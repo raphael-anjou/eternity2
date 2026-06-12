@@ -1,0 +1,28 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_wasmsolver_free: (a: number, b: number) => void;
+export const buildPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+export const generatePuzzle: (a: number, b: number, c: number) => any;
+export const generateSolvedPuzzle: (a: number, b: number, c: number) => any;
+export const maxColors: (a: number) => number;
+export const officialPuzzle: () => any;
+export const pathKinds: () => [number, number];
+export const scoreBoard: (a: any, b: number, c: number) => [number, number, number];
+export const wasmsolver_bestBoard: (a: number) => [number, number];
+export const wasmsolver_bestScore: (a: number) => number;
+export const wasmsolver_board: (a: number) => [number, number];
+export const wasmsolver_new: (a: any, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+export const wasmsolver_report: (a: number) => any;
+export const wasmsolver_reset: (a: number) => void;
+export const wasmsolver_score: (a: number) => number;
+export const wasmsolver_step: (a: number, b: number) => any;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_exn_store: (a: number) => void;
+export const __externref_table_alloc: () => number;
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __externref_table_dealloc: (a: number) => void;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __externref_drop_slice: (a: number, b: number) => void;
+export const __wbindgen_start: () => void;

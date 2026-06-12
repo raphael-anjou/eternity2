@@ -1,0 +1,31 @@
+# Eternity II community site. Fully static: one nginx container, no
+# database, no API, no persistent volumes.
+#
+#   docker compose up -d --build        # build from source and run
+#   open http://localhost:8080
+#
+# For Traefik-based infrastructures, uncomment the labels below and drop
+# the `ports:` mapping. Because the app uses relative asset paths and hash
+# routing, it works behind any path prefix without a rebuild.
+
+services:
+  eternity2:
+    build: .
+    image: eternity2-community:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    # networks:
+    #   - traefik-public
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.eternity2.rule=PathPrefix(`/eternity2`)
+    #   - traefik.http.routers.eternity2.entrypoints=websecure
+    #   - traefik.http.routers.eternity2.tls.certresolver=letsencrypt
+    #   - traefik.http.middlewares.eternity2-strip.stripprefix.prefixes=/eternity2
+    #   - traefik.http.routers.eternity2.middlewares=eternity2-strip
+    #   - traefik.http.services.eternity2.loadbalancer.server.port=80
+
+# networks:
+#   traefik-public:
+#     external: true

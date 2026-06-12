@@ -1,0 +1,428 @@
+// Watch a real DFS run live, in your browser. The Rust/WASM solver is
+// stepped from an animation loop; speed controls how many solver steps
+// (placements + backtracks) run per second.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BoardSvg } from "@/components/board/BoardSvg";
+import { BucasActions } from "@/components/board/BucasActions";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useEngine } from "@/engine/useEngine";
+import {
+  createSolver,
+  getGeneratedPuzzle,
+  getMaxColors,
+  getOfficialPuzzle,
+  getPath,
+  getPathKinds,
+} from "@/engine";
+import type { SolverHandle } from "@/engine";
+import { useT } from "@/i18n";
+import type { Puzzle, SolverReport } from "@/lib/types";
+import { boardFromEngine } from "@/lib/bucas";
+import { formatCompact, formatInt } from "@/lib/format";
+
+const SIZES = [3, 4, 5, 6, 7, 8, 10, 12, 14, 16];
+
+const T = {
+  en: {
+    title: "Watch the machine think",
+    intro:
+      "This is a real depth-first search running in your browser. Watch it place pieces, hit dead ends, and backtrack. Crank the speed to see why even millions of attempts per second are not enough for the 16×16 puzzle.",
+    buildingSolver: "Building solver…",
+    loadingEngine: "Loading WASM engine…",
+    puzzleCard: "Puzzle",
+    official: "Official Eternity II (16×16)",
+    sizeLabel: (s: number) => `Size: ${s}×${s}`,
+    colorsLabel: (n: number) => `Colors: ${n}`,
+    seedLabel: (n: number) => `Seed: ${n}`,
+    newPuzzle: "New puzzle",
+    searchPath: "Search path",
+    runCard: "Run",
+    speedFull: "Speed: everything your machine can do",
+    speedLabel: (steps: string) => `Speed: ${steps} steps/s`,
+    fullSpeed: "Full speed",
+    pause: "Pause",
+    run: "Run",
+    step: "Step",
+    reset: "Reset",
+    showBest: "Show deepest board reached",
+    liveStats: "Live stats",
+    solved: "SOLVED",
+    noSolution: "no solution",
+    placed: "Placed",
+    deepestEver: "Deepest ever",
+    placements: "Placements",
+    placementsTip: "Pieces actually put on the board (after a successful fit check)",
+    backtracks: "Backtracks",
+    backtracksTip: "Times the search hit a dead end and removed a piece",
+    fitChecks: "Nodes",
+    fitChecksTip:
+      "Candidate (piece, rotation) pairs tested against a square; one placement costs many nodes",
+    checksPerSecond: "Nodes / s",
+    boardCompletion: "Board completion",
+  },
+  fr: {
+    title: "Regardez la machine réfléchir",
+    intro:
+      "C'est une vraie recherche en profondeur qui tourne dans votre navigateur. Regardez-la placer des pièces, tomber sur des impasses et revenir en arrière. Montez la vitesse pour comprendre pourquoi même des millions de tentatives par seconde ne suffisent pas pour le puzzle 16×16.",
+    buildingSolver: "Construction du solveur…",
+    loadingEngine: "Chargement du moteur WASM…",
+    puzzleCard: "Puzzle",
+    official: "Eternity II officiel (16×16)",
+    sizeLabel: (s: number) => `Taille : ${s}×${s}`,
+    colorsLabel: (n: number) => `Couleurs : ${n}`,
+    seedLabel: (n: number) => `Graine : ${n}`,
+    newPuzzle: "Nouveau puzzle",
+    searchPath: "Chemin de parcours",
+    runCard: "Exécution",
+    speedFull: "Vitesse : tout ce que votre machine peut faire",
+    speedLabel: (steps: string) => `Vitesse : ${steps} étapes/s`,
+    fullSpeed: "Vitesse maximale",
+    pause: "Pause",
+    run: "Lancer",
+    step: "Une étape",
+    reset: "Réinitialiser",
+    showBest: "Afficher le plateau le plus profond atteint",
+    liveStats: "Statistiques en direct",
+    solved: "RÉSOLU",
+    noSolution: "aucune solution",
+    placed: "Placées",
+    deepestEver: "Record de profondeur",
+    placements: "Placements",
+    placementsTip: "Pièces réellement posées sur le plateau (après un test de compatibilité réussi)",
+    backtracks: "Retours en arrière",
+    backtracksTip: "Nombre de fois où la recherche est tombée sur une impasse et a retiré une pièce",
+    fitChecksTip:
+      "Paires (pièce, rotation) candidates testées sur une case ; un placement coûte de nombreux nœuds",
+    fitChecks: "Nœuds",
+    checksPerSecond: "Nœuds / s",
+    boardCompletion: "Remplissage du plateau",
+  },
+};
+
+export default function Watch() {
+  const t = useT(T);
+  const engineReady = useEngine();
+
+  const [official, setOfficial] = useState(false);
+  const [size, setSize] = useState(6);
+  const [colors, setColors] = useState(6);
+  const [seed, setSeed] = useState(1);
+  const [pathKind, setPathKind] = useState("row-major");
+  const [speedExp, setSpeedExp] = useState(2); // 10^x steps per second
+  const [fullSpeed, setFullSpeed] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [showBest, setShowBest] = useState(false);
+
+  const [report, setReport] = useState<SolverReport | null>(null);
+  const [boardCells, setBoardCells] = useState<Int32Array | null>(null);
+  const [measuredRate, setMeasuredRate] = useState(0);
+
+  const solverRef = useRef<SolverHandle | null>(null);
+  const puzzleRef = useRef<Puzzle | null>(null);
+  const rafRef = useRef(0);
+  const lastTickRef = useRef(0);
+
+  const stepsPerSecond = Math.round(10 ** speedExp);
+
+  const rebuild = useCallback(() => {
+    if (!engineReady) return;
+    solverRef.current?.free();
+    const puzzle = official ? getOfficialPuzzle() : getGeneratedPuzzle(size, colors, seed);
+    const width = puzzle.width;
+    const path = getPath(pathKind, width, puzzle.height, seed);
+    const solver = createSolver(puzzle, path, { useHints: true });
+    puzzleRef.current = puzzle;
+    solverRef.current = solver;
+    setReport(solver.report());
+    setBoardCells(solver.board());
+    setRunning(false);
+  }, [engineReady, official, size, colors, seed, pathKind]);
+
+  useEffect(() => {
+    rebuild();
+    return () => {
+      solverRef.current?.free();
+      solverRef.current = null;
+    };
+  }, [rebuild]);
+
+  useEffect(() => {
+    if (!running) return;
+    lastTickRef.current = performance.now();
+    let attemptsAtLast = report?.attempts ?? 0;
+    let lastRateUpdate = performance.now();
+    let stepDebt = 0; // fractional steps carried between frames (for slow speeds)
+
+    const tick = () => {
+      const solver = solverRef.current;
+      if (!solver) return;
+      const now = performance.now();
+      const dt = Math.min(now - lastTickRef.current, 250) / 1000;
+      lastTickRef.current = now;
+      stepDebt += stepsPerSecond * dt;
+
+      // Run in small chunks inside a ~12ms frame budget so huge speeds
+      // degrade gracefully instead of freezing the tab. "Full speed" ignores
+      // the slider and simply uses the whole frame budget.
+      let r = solver.report();
+      const frameStart = performance.now();
+      while ((fullSpeed || stepDebt >= 1) && performance.now() - frameStart < 12) {
+        const chunk = fullSpeed ? 10_000 : Math.min(Math.floor(stepDebt), 5000);
+        r = solver.step(chunk);
+        stepDebt -= chunk;
+        if (r.status !== "running") break;
+      }
+
+      // Don't bank more than ~1s of unmet work when the machine can't keep up.
+      stepDebt = Math.max(0, Math.min(stepDebt, stepsPerSecond));
+
+      setReport(r);
+      setBoardCells(showBest ? solver.bestBoard() : solver.board());
+      if (now - lastRateUpdate > 500) {
+        setMeasuredRate(((r.attempts - attemptsAtLast) * 1000) / (now - lastRateUpdate));
+        attemptsAtLast = r.attempts;
+        lastRateUpdate = now;
+      }
+      if (r.status !== "running") {
+        setRunning(false);
+        return;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, stepsPerSecond, showBest, fullSpeed]);
+
+  const puzzle = puzzleRef.current;
+  const cells = useMemo(() => {
+    if (!puzzle || !boardCells) return null;
+    return boardFromEngine(puzzle, boardCells).cells;
+  }, [puzzle, boardCells]);
+
+  const totalCells = puzzle ? puzzle.width * puzzle.height : 0;
+  const maxColorsForSize = engineReady && !official ? getMaxColors(size) : 22;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
+        <p className="mt-1 text-muted-foreground">{t.intro}</p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div>
+          {cells && puzzle ? (
+            <div className="max-w-3xl space-y-2">
+              <BoardSvg
+                width={puzzle.width}
+                height={puzzle.height}
+                cells={cells}
+                highlight={official ? puzzle.hints.map((h) => h.pos) : undefined}
+              />
+              {boardCells && (
+                <BucasActions puzzle={puzzle} board={Array.from(boardCells)} size="xs" />
+              )}
+            </div>
+          ) : (
+            <div className="flex aspect-square max-w-3xl items-center justify-center rounded-lg border text-muted-foreground">
+              {engineReady ? t.buildingSolver : t.loadingEngine}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t.puzzleCard}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="w-official">{t.official}</Label>
+                <Switch id="w-official" checked={official} onCheckedChange={setOfficial} />
+              </div>
+              {!official && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>{t.sizeLabel(size)}</Label>
+                    <Select value={String(size)} onValueChange={(v) => {
+                      if (!v) return;
+                      const s = parseInt(v, 10);
+                      setSize(s);
+                      setColors((c) => Math.min(c, getMaxColors(s)));
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SIZES.map((s) => (
+                          <SelectItem key={s} value={String(s)}>
+                            {s}×{s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>{t.colorsLabel(colors)}</Label>
+                    <Slider
+                      min={2}
+                      max={maxColorsForSize}
+                      step={1}
+                      value={colors}
+                      onValueChange={(v) => setColors(Array.isArray(v) ? v[0] : v)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="flex-1">{t.seedLabel(seed)}</Label>
+                    <Button variant="outline" size="sm" onClick={() => setSeed(Math.floor(Math.random() * 100000))}>
+                      {t.newPuzzle}
+                    </Button>
+                  </div>
+                </>
+              )}
+              <div className="space-y-1.5">
+                <Label>{t.searchPath}</Label>
+                <Select value={pathKind} onValueChange={(v) => v && setPathKind(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(engineReady ? getPathKinds() : ["row-major"]).map((k) => (
+                      <SelectItem key={k} value={k}>
+                        {k}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t.runCard}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label>
+                    {fullSpeed ? t.speedFull : t.speedLabel(formatCompact(stepsPerSecond))}
+                  </Label>
+                  <Button
+                    variant={fullSpeed ? "default" : "outline"}
+                    size="xs"
+                    onClick={() => setFullSpeed((f) => !f)}
+                  >
+                    {t.fullSpeed}
+                  </Button>
+                </div>
+                <Slider
+                  min={0}
+                  max={6}
+                  step={0.1}
+                  value={speedExp}
+                  disabled={fullSpeed}
+                  onValueChange={(v) => setSpeedExp(Array.isArray(v) ? v[0] : v)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  onClick={() => setRunning((r) => !r)}
+                  disabled={!engineReady || report?.status !== "running"}
+                >
+                  {running ? t.pause : t.run}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const s = solverRef.current;
+                    if (!s) return;
+                    setReport(s.step(1));
+                    setBoardCells(showBest ? s.bestBoard() : s.board());
+                  }}
+                  disabled={!engineReady || running || report?.status !== "running"}
+                >
+                  {t.step}
+                </Button>
+                <Button variant="outline" onClick={rebuild} disabled={!engineReady}>
+                  {t.reset}
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="w-best">{t.showBest}</Label>
+                <Switch id="w-best" checked={showBest} onCheckedChange={setShowBest} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {report && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-base">
+                  {t.liveStats}
+                  {report.status === "solved" && <Badge className="bg-emerald-600">{t.solved}</Badge>}
+                  {report.status === "exhausted" && <Badge variant="destructive">{t.noSolution}</Badge>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <dt className="text-muted-foreground">{t.placed}</dt>
+                  <dd className="text-right font-mono">
+                    {report.placed} / {totalCells}
+                  </dd>
+                  <dt className="text-muted-foreground">{t.deepestEver}</dt>
+                  <dd className="text-right font-mono">{report.bestPlaced}</dd>
+                  <dt className="text-muted-foreground" title={t.placementsTip}>
+                    {t.placements}
+                  </dt>
+                  <dd className="text-right font-mono">{formatInt(report.nodes)}</dd>
+                  <dt className="text-muted-foreground" title={t.backtracksTip}>
+                    {t.backtracks}
+                  </dt>
+                  <dd className="text-right font-mono">{formatInt(report.backtracks)}</dd>
+                  <dt className="text-muted-foreground" title={t.fitChecksTip}>
+                    {t.fitChecks}
+                  </dt>
+                  <dd className="text-right font-mono">{formatInt(report.attempts)}</dd>
+                  {running && (
+                    <>
+                      <dt className="text-muted-foreground">{t.checksPerSecond}</dt>
+                      <dd className="text-right font-mono">{formatCompact(measuredRate)}</dd>
+                    </>
+                  )}
+                </dl>
+                <div className="mt-3">
+                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                    <span>{t.boardCompletion}</span>
+                    <span>{totalCells ? Math.round((report.placed / totalCells) * 100) : 0}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded bg-muted">
+                    <div
+                      className="h-full bg-primary transition-[width]"
+                      style={{ width: `${totalCells ? (report.placed / totalCells) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
