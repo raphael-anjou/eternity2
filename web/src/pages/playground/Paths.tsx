@@ -23,7 +23,7 @@ import { useT } from "@/i18n";
 import type { Puzzle, SolverReport } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
 import type { Edges } from "@/lib/bucas";
-import { formatCompact } from "@/lib/format";
+import { formatCompact, formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const GRID_SIZES = [4, 5, 6, 8, 10];
@@ -53,7 +53,9 @@ const T = {
     yourPath: "Your path",
     finishedBadge: (rank: number | undefined, checks: string) =>
       rank === 1 ? `🏆 ${checks} nodes` : `#${rank} · ${checks} nodes`,
-    racingBadge: (checks: string) => `racing… ${checks} nodes`,
+    racingBadge: () => "racing…",
+    nodesLabel: "nodes explored",
+    depthTip: "deepest the search has placed so far",
     laneStats: (placed: number, total: number, deepest: number, backtracks: string) =>
       `placed ${placed}/${total} · deepest ${deepest} · backtracks ${backtracks}`,
   },
@@ -82,7 +84,9 @@ const T = {
     yourPath: "Votre chemin",
     finishedBadge: (rank: number | undefined, checks: string) =>
       rank === 1 ? `🏆 ${checks} nœuds` : `#${rank} · ${checks} nœuds`,
-    racingBadge: (checks: string) => `en course… ${checks} nœuds`,
+    racingBadge: () => "en course…",
+    nodesLabel: "nœuds explorés",
+    depthTip: "profondeur maximale atteinte par la recherche",
     laneStats: (placed: number, total: number, deepest: number, backtracks: string) =>
       `placées ${placed}/${total} · profondeur max ${deepest} · retours en arrière ${backtracks}`,
   },
@@ -115,6 +119,7 @@ export default function Paths() {
   const [lanes, setLanes] = useState<Lane[]>([]);
   const [racing, setRacing] = useState(false);
   const solversRef = useRef<Map<string, SolverHandle>>(new Map());
+  const lanesRef = useRef<Lane[]>([]); // current lanes for the rAF loop
   const puzzleRef = useRef<Puzzle | null>(null);
   const rafRef = useRef(0);
 
@@ -182,6 +187,7 @@ export default function Paths() {
         finishedAttempts: null,
       };
     });
+    lanesRef.current = newLanes;
     setLanes(newLanes);
     setRacing(true);
   };
@@ -191,37 +197,40 @@ export default function Paths() {
     const tick = () => {
       const puzzle = puzzleRef.current;
       if (!puzzle) return;
+
+      // Step the WASM solvers HERE (never inside a setState updater: React
+      // Strict Mode double-invokes updaters, which would step solvers twice
+      // and desync them). We mutate the lanes ref, accumulate the new public
+      // state, then hand React a pure snapshot.
       let anyRunning = false;
-      // Time-boxed round-robin so every lane advances fairly each frame.
-      setLanes((prev) => {
-        const next = prev.map((l) => ({ ...l }));
+      const snapshot = lanesRef.current.map((lane) => {
+        if (lane.finishedAttempts !== null) return lane;
+        const solver = solversRef.current.get(lane.id);
+        if (!solver) return lane;
+        // Several chunks per frame inside a time budget, so fast lanes finish
+        // quickly while every lane gets visible motion each frame.
         const frameStart = performance.now();
-        let progressed = true;
-        while (performance.now() - frameStart < 12 && progressed) {
-          progressed = false;
-          for (const lane of next) {
-            if (lane.finishedAttempts !== null) continue;
-            const solver = solversRef.current.get(lane.id);
-            if (!solver) continue;
-            const r = solver.step(4000);
-            lane.report = r;
-            if (r.status !== "running") {
-              lane.finishedAttempts = r.nodes;
-              lane.cells = boardFromEngine(puzzle, solver.board()).cells;
-            } else {
-              progressed = true;
-            }
-          }
+        let r = lane.report ?? solver.report();
+        while (r.status === "running" && performance.now() - frameStart < 10) {
+          r = solver.step(20_000);
         }
-        for (const lane of next) {
-          if (lane.finishedAttempts === null) {
-            const solver = solversRef.current.get(lane.id);
-            if (solver) lane.cells = boardFromEngine(puzzle, solver.board()).cells;
-            anyRunning = true;
-          }
+        if (r.status !== "running") {
+          return {
+            ...lane,
+            report: r,
+            finishedAttempts: r.nodes,
+            cells: boardFromEngine(puzzle, solver.board()).cells,
+          };
         }
-        return next;
+        anyRunning = true;
+        // Live working board each frame: it thrashes, which is the point: you
+        // can watch the search churn. The node counter carries true progress.
+        return { ...lane, report: r, cells: boardFromEngine(puzzle, solver.board()).cells };
       });
+
+      lanesRef.current = snapshot;
+      setLanes(snapshot);
+
       if (anyRunning) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
@@ -405,7 +414,7 @@ export default function Paths() {
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="animate-pulse">
-                            {t.racingBadge(formatCompact(lane.report?.nodes ?? 0))}
+                            {t.racingBadge()}
                           </Badge>
                         )}
                       </CardTitle>
@@ -413,6 +422,25 @@ export default function Paths() {
                     <CardContent>
                       {lane.cells && (
                         <BoardSvg width={size} height={size} cells={lane.cells} />
+                      )}
+                      {lane.finishedAttempts === null && (
+                        <div className="mt-2 flex items-baseline justify-between font-mono text-sm">
+                          <span className="tabular-nums font-semibold">
+                            {formatInt(lane.report?.nodes ?? 0)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{t.nodesLabel}</span>
+                        </div>
+                      )}
+                      {lane.finishedAttempts === null && lane.report && (
+                        <div
+                          className="mt-1 h-1.5 overflow-hidden rounded bg-muted"
+                          title={t.depthTip}
+                        >
+                          <div
+                            className="h-full bg-primary transition-[width]"
+                            style={{ width: `${(lane.report.bestPlaced / n) * 100}%` }}
+                          />
+                        </div>
                       )}
                       <p className="mt-1.5 text-xs text-muted-foreground">
                         {t.laneStats(

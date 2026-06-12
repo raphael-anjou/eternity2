@@ -238,7 +238,14 @@ export default function Viewer() {
 
   const pieceNumbers = useMemo(() => {
     if (!board || !showNumbers) return undefined;
-    if (board.pieceNumbers) return board.pieceNumbers.map((n) => (n > 0 ? n : null));
+    if (board.pieceNumbers) {
+      // Bucas convention is 1-based with 000 = empty, but some bundled
+      // boards (Sample_4x4) number occupied cells from 0. Detect that and
+      // shift to 1-based; a 0 only means "no number" on an empty cell.
+      const zeroBased = board.pieceNumbers.some((n, i) => n === 0 && board.cells[i] !== null);
+      const offset = zeroBased ? 1 : 0;
+      return board.pieceNumbers.map((n, i) => (board.cells[i] !== null ? n + offset : null));
+    }
     if (!is16 || !engineReady) return undefined;
     const matched = matchToPieces(getOfficialPuzzle(), board);
     return Array.from(matched, (v) => (v >= 0 ? (v >> 2) + 1 : null));
