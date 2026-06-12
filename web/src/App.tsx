@@ -33,6 +33,7 @@ const T = {
     footer:
       "Open source (MIT, motif artwork GPL-3.0). Everything runs in your browser. There is no server.",
     builtBy: "Built by Raphaël Anjou.",
+    sourceCode: "Source code on GitHub",
   },
   fr: {
     nav: [
@@ -50,6 +51,7 @@ const T = {
     footer:
       "Open source (MIT, motifs graphiques GPL-3.0). Tout tourne dans votre navigateur. Il n'y a aucun serveur.",
     builtBy: "Créé par Raphaël Anjou.",
+    sourceCode: "Code source sur GitHub",
   },
 };
 
@@ -206,7 +208,17 @@ export default function App() {
 
       <footer className="space-y-1 border-t py-8 text-center text-sm text-muted-foreground">
         <p>{t.footer}</p>
-        <p>{t.builtBy}</p>
+        <p>
+          {t.builtBy}{" "}
+          <a
+            className="underline hover:text-foreground"
+            href="https://github.com/raphael-anjou/eternity2"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t.sourceCode}
+          </a>
+        </p>
       </footer>
     </div>
   );
