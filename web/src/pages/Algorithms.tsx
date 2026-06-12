@@ -164,7 +164,7 @@ const T = {
     s5P1: (
       <>
         A piece is just four small numbers (up, right, down, left motif). No pictures, no
-        geometry. These three demos run live; watch them for a few seconds each:
+        geometry. These four demos run live; watch them for a few seconds each:
       </>
     ),
     s5P2: (
@@ -289,7 +289,7 @@ const T = {
     s5P1: (
       <>
         Une pièce, c'est juste quatre petits nombres (motifs haut, droite, bas, gauche). Pas
-        d'images, pas de géométrie. Ces trois démos tournent en direct ; observez chacune
+        d'images, pas de géométrie. Ces quatre démos tournent en direct ; observez chacune
         pendant quelques secondes :
       </>
     ),
