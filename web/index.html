@@ -21,10 +21,12 @@
     <meta property="og:image" content="https://eternity2.dev/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Google Analytics (GA4). Inactive until a real measurement ID is set. -->
+    <!-- Google Analytics (GA4). The ID is injected at build time from the
+         VITE_GA_ID env var (set via a GitHub Actions repository variable);
+         without it, this stays inert (local dev, forks). -->
     <script>
-      window.GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; // replace with the real ID to enable
-      if (/^G-[A-Z0-9]+$/.test(window.GA_MEASUREMENT_ID) && !window.GA_MEASUREMENT_ID.includes("X")) {
+      window.GA_MEASUREMENT_ID = "%VITE_GA_ID%";
+      if (/^G-[A-Z0-9]{4,}$/.test(window.GA_MEASUREMENT_ID)) {
         var s = document.createElement("script");
         s.async = true;
         s.src = "https://www.googletagmanager.com/gtag/js?id=" + window.GA_MEASUREMENT_ID;
