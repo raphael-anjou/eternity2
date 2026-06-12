@@ -1,6 +1,6 @@
 //! Built-in cell-visit orders ("paths"). A path is the order in which the
 //! DFS fills cells: a permutation of 0..w*h (row-major cell indices).
-//! Path order is a first-class search hyperparameter — on the same puzzle,
+//! Path order is a first-class search hyperparameter: on the same puzzle,
 //! different paths can differ by orders of magnitude in nodes-to-solve.
 
 use crate::generator::XorShift;
@@ -111,7 +111,7 @@ pub fn build_path(kind: &str, width: u8, height: u8, seed: u32) -> Option<Vec<u1
             }
         }
         "double-snake" => {
-            // Two rows at a time, zig-zagging — keeps a compact frontier.
+            // Two rows at a time, zig-zagging keeps a compact frontier.
             let mut y = 0;
             while y < h {
                 let rows: Vec<usize> = if y + 1 < h { vec![y, y + 1] } else { vec![y] };

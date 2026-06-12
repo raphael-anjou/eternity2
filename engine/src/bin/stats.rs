@@ -126,7 +126,7 @@ fn main() {
     // ---- search-space sizes ----------------------------------------------
     // Raw placement space for an n×n puzzle: n²! orderings × 4^(n²) rotations.
     // Refined (corner/edge/interior classes, the way real solvers think):
-    // 4!·(4(n-2))!·((n-2)²)!·4^((n-2)²) — rim rotations are forced.
+    // 4!·(4(n-2))!·((n-2)²)!·4^((n-2)²); rim rotations are forced.
     out.push_str("  \"searchSpace\": [\n");
     let ln10 = std::f64::consts::LN_10;
     let mut rows: Vec<String> = Vec::new();

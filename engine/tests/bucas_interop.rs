@@ -5,7 +5,7 @@
 
 use eternity2_engine::{canonical, official_puzzle, rotated, BORDER};
 
-/// board_edges of "JBlackwood+PMcGavin_469" — 4 letters (URDL) per cell,
+/// board_edges of "JBlackwood+PMcGavin_469": 4 letters (URDL) per cell,
 /// row-major, 'a' = 0 = grey. Source: e2.bucas.name init.js (GPL-3.0).
 const MCGAVIN_469_EDGES: &str = "adcaaendadweadhdafwdafgfaemfacqeaencafqeadofaepdaeueaeseadteaacdcnfansnnwuwshlsuwvvlgsgvmtrsqvgtntqvkkntokvkpllkulplsnhltovncacofqfangwqwwvgstgwvphtgnnprqungqmqqkwhuwokvwlwlrqwpnqrhsknvpnscadpfvcawkrvvrnkglorhuqlnvhuusuvmonpwnspouqnlkvuqmokqhwmkrphlslrdadscpcarqvpntmqopstqrqphmorulwmnkolsntkqoqnuvgoosnqwsoqphssoggkdadgcrfavmkrmupmsthuqqwtoriqwmmrorrmtrgrqrtrgtmrnlktogllsquggtnqdaftfoeaknvopgtnhhlgwushiowumnlorkmngtrktlqtmnwlkounllwougolnkpgfackelfavhnltrwhluqrsrtuwvlrlgvvmkigrwpkqlhwwokluisowquiooiqpprocaepfufanhhuwkuhqtjktpjtloupvmjoijjmpppjhhrpkprhskppuvtkitvvrvmteabvfhcahwjhuhmwjnthjronuhhrjqphjskqpgmsrusgrhouptwhtkmtvrtkmhmrbafhcsbajwgsmsowtjisoqtjhmkqpjnmkgrjmpqgsuvpoujuwovummsotlgmmtplfabtbteagiwtomniiwpmtwvwksmwnplsrilpqwoivkvwjhukvrkhsjprgwvjppvwbaepeibawilinqwiphiqvjshmlljlkillqikovjqvijvuksikgikpnigvjnnvomjeabobjfalijjwgiiisjgsksslqjkiigqisoijuhsjosuslgoirilijurnvijmqlvbaeqfjbajrijingrjminsutmjtrugigtommihjumsiujggjiimhgujvmijpjlthjeaetbdaaidadgcadidactcadrbacgbabmdabufadubafjbabhcabvbacpcabhbaceaab";
 
@@ -75,13 +75,13 @@ fn center_clue_matches_469_board() {
 #[test]
 fn all_five_hints_match_official_clues_board() {
     // The viewer's bundled "Clues" board pins exactly the 5 official clue
-    // pieces — but in motifs_order=jef letters, so this also validates the
+    // pieces, but in motifs_order=jef letters, so this also validates the
     // jef→bucas translation table.
     const JEF_TO_BUCAS: &[u8; 23] = b"atojeqlgbupkfrmhcwvsnid";
     let clue_cells: [(u16, &str); 5] = [
         (34, "rgou"),  // piece 208 (1-based) at (2,2)
         (45, "rtrj"),  // piece 255 at (13,2)
-        (135, "vddo"), // piece 139 at (7,8) — the center clue
+        (135, "vddo"), // piece 139 at (7,8), the center clue
         (210, "jdso"), // piece 181 at (2,13)
         (221, "fskn"), // piece 249 at (13,13)
     ];

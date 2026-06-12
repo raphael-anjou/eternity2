@@ -20,7 +20,7 @@ pub fn rotated(e: [Color; 4], r: u8) -> [Color; 4] {
     ]
 }
 
-/// Lexicographically minimal cyclic rotation — the canonical form used by
+/// Lexicographically minimal cyclic rotation: the canonical form used by
 /// bucas to identify a piece independent of rotation.
 pub fn canonical(e: [Color; 4]) -> [Color; 4] {
     let mut best = e;

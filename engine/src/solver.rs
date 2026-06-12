@@ -6,7 +6,7 @@
 //! one backtrack; the candidate scan inside a step is bounded by
 //! pieces × rotations.
 //!
-//! No clocks in here — wall-time is the caller's business (std::time::Instant
+//! No clocks in here; wall-time is the caller's business (std::time::Instant
 //! panics on wasm32-unknown-unknown).
 
 use crate::types::{rotated, Color, Puzzle, BORDER};
