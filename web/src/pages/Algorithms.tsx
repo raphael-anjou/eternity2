@@ -125,9 +125,9 @@ const T = {
       </>
     ),
     s2P3: <>"Digits" stay abstract, so let's make it personal:</>,
-    zeroWallTitle: "Here is that 16×16 number, written out in full:",
+    zeroWallTitle: "How long is a 560-digit number? This long:",
     zeroWallCaption:
-      "One. Followed by 557 zeros. Every single zero multiplies the previous count by ten.",
+      "One followed by 559 zeros: 560 digits, exactly as many as the real count (about 9 × 10^559). Every single zero multiplies the count by ten.",
     s3Title: "3 · Measured difficulty: size and colors",
     s3Intro: (seeds: number | undefined) => (
       <>
@@ -244,9 +244,9 @@ const T = {
       </>
     ),
     s2P3: <>Des « chiffres », ça reste abstrait, alors voyons ce que ça donne sur votre machine :</>,
-    zeroWallTitle: "Voici ce nombre du 16×16, écrit en entier :",
+    zeroWallTitle: "À quoi ressemble un nombre de 560 chiffres ? À ceci :",
     zeroWallCaption:
-      "Un. Suivi de 557 zéros. Chaque zéro multiplie le compte précédent par dix.",
+      "Un suivi de 559 zéros : 560 chiffres, exactement autant que le vrai compte (environ 9 × 10^559). Chaque zéro multiplie le compte par dix.",
     s3Title: "3 · La difficulté mesurée : taille et couleurs",
     s3Intro: (seeds: number | undefined) => (
       <>
@@ -366,7 +366,7 @@ export default function Algorithms() {
           <p className="text-sm font-medium">{t.zeroWallTitle}</p>
           <div className="w-full rounded-lg border bg-muted/30 p-4 font-mono text-[11px] leading-relaxed break-all text-muted-foreground select-all">
             <span className="font-bold text-foreground">1</span>
-            {"0".repeat(557)}
+            {"0".repeat(559)}
           </div>
           <p className="text-xs text-muted-foreground">{t.zeroWallCaption}</p>
         </div>

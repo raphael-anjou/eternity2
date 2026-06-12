@@ -63,6 +63,7 @@ function ScrollToTop() {
 export default function App() {
   const [engineReady, setEngineReady] = useState(false);
   const [engineError, setEngineError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { lang, setLang } = useLang();
   const t = useT(T);
 
@@ -90,7 +91,7 @@ export default function App() {
               <span className="hidden text-muted-foreground md:inline"> · community</span>
             </span>
           </NavLink>
-          <nav className="flex flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="hidden flex-1 items-center gap-1 md:flex">
             {t.nav.map((item) => (
               <NavLink
                 key={item.to}
@@ -109,6 +110,7 @@ export default function App() {
               </NavLink>
             ))}
           </nav>
+          <div className="flex-1 md:hidden" />
           <span
             className={cn(
               "hidden items-center gap-1.5 text-xs sm:flex",
@@ -131,7 +133,39 @@ export default function App() {
           >
             {lang === "en" ? "FR" : "EN"}
           </button>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="shrink-0 rounded-md border px-2.5 py-1 text-base leading-none md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
         </div>
+        {menuOpen && (
+          <nav className="border-t md:hidden">
+            <div className="mx-auto flex max-w-6xl flex-col gap-1 px-3 py-2">
+              {t.nav.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === "/"}
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </nav>
+        )}
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
