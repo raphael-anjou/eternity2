@@ -48,11 +48,18 @@ const PAPERS = [
     url: "https://webperso.info.ucl.ac.be/~pschaus/assets/publi/jfpc2008_eternity.pdf",
   },
   {
-    authors: "W. Wauters, W. Vancroonenburg, G. Vanden Berghe",
+    authors: "T. Wauters, W. Vancroonenburg, G. Vanden Berghe",
     year: 2012,
     title: "A guide-and-observe hyper-heuristic approach to the Eternity II puzzle",
-    venue: "J. Math. Modelling and Algorithms 11",
-    url: "https://link.springer.com/article/10.1007/s10852-011-9155-3",
+    venue: "J. Math. Modelling and Algorithms",
+    url: "https://link.springer.com/article/10.1007/s10852-012-9178-4",
+  },
+  {
+    authors: "F. Salassa, W. Vancroonenburg, T. Wauters, F. Della Croce, G. Vanden Berghe",
+    year: 2017,
+    title: "MILP and Max-Clique based heuristics for the Eternity II puzzle",
+    venue: "arXiv:1709.00252",
+    url: "https://arxiv.org/abs/1709.00252",
   },
 ];
 
@@ -89,6 +96,7 @@ const T = {
       "Constraint-propagation machinery purpose-built for E2: counting arguments that prune impossible regions early.",
       "Constraint programming plus very-large-neighborhood repair: the family of methods behind most record boards.",
       "Hyper-heuristics: an algorithm that learns which of its own moves are working.",
+      "Mixed-integer programming and clique-finding as repair tools for near-complete boards.",
     ],
     communityNotes: [
       "Jef Bucas's GPL viewer; its URL format is the community's lingua franca (and this site speaks it natively).",
@@ -113,6 +121,7 @@ const T = {
       "Une machinerie de propagation de contraintes conçue sur mesure pour E2 : des arguments de comptage qui éliminent très tôt les régions impossibles.",
       "Programmation par contraintes et réparation par très grands voisinages : la famille de méthodes derrière la plupart des plateaux records.",
       "Les hyper-heuristiques : un algorithme qui apprend lesquels de ses propres coups fonctionnent.",
+      "La programmation linéaire en nombres entiers et la recherche de cliques comme outils de réparation pour des plateaux presque complets.",
     ],
     communityNotes: [
       "Le visualiseur GPL de Jef Bucas ; son format d'URL est la langue commune de la communauté (et ce site la parle nativement).",
