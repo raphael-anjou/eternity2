@@ -11,11 +11,11 @@
 
 use eternity2_engine::{build_path, generate, Solver, Status};
 
-const WORK_CAP: u64 = 30_000_000; // attempts per instance before censoring
+const WORK_CAP: u64 = 20_000_000; // steps (nodes + backtracks) before censoring
 const SEEDS: u32 = 10;
 
 struct RunResult {
-    attempts: f64,
+    nodes: f64,
     solved: bool,
 }
 
@@ -26,14 +26,14 @@ fn solve_instance(size: u8, colors: u8, seed: u32, path_kind: &str) -> RunResult
     loop {
         let r = solver.step(2_000_000);
         if r.status == Status::Solved {
-            return RunResult { attempts: r.attempts, solved: true };
+            return RunResult { nodes: r.nodes, solved: true };
         }
         if r.status == Status::Exhausted {
             // Shouldn't happen (generator guarantees solvability) but stay honest.
-            return RunResult { attempts: r.attempts, solved: false };
+            return RunResult { nodes: r.nodes, solved: false };
         }
-        if r.attempts >= WORK_CAP as f64 {
-            return RunResult { attempts: r.attempts, solved: false };
+        if r.nodes + r.backtracks >= WORK_CAP as f64 {
+            return RunResult { nodes: r.nodes, solved: false };
         }
     }
 }
@@ -68,7 +68,7 @@ fn main() {
                 if !r.solved {
                     censored += 1;
                 }
-                attempts.push(r.attempts);
+                attempts.push(r.nodes);
             }
             attempts.sort_by(|a, b| a.partial_cmp(b).unwrap());
             eprintln!(
@@ -100,16 +100,16 @@ fn main() {
             let result = loop {
                 let r = solver.step(2_000_000);
                 if r.status == Status::Solved {
-                    break RunResult { attempts: r.attempts, solved: true };
+                    break RunResult { nodes: r.nodes, solved: true };
                 }
-                if r.status == Status::Exhausted || r.attempts >= WORK_CAP as f64 {
-                    break RunResult { attempts: r.attempts, solved: false };
+                if r.status == Status::Exhausted || r.nodes + r.backtracks >= WORK_CAP as f64 {
+                    break RunResult { nodes: r.nodes, solved: false };
                 }
             };
             if !result.solved {
                 censored += 1;
             }
-            attempts.push(result.attempts);
+            attempts.push(result.nodes);
         }
         attempts.sort_by(|a, b| a.partial_cmp(b).unwrap());
         eprintln!("  {kind}: median {:.0} (censored {censored})", median(&attempts));

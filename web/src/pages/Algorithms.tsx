@@ -139,7 +139,7 @@ const T = {
         the search into deep dead ends. And the 8×8 line shows something famous: a{" "}
         <strong>hardness peak</strong>. Very few colors → tons of solutions, easy to stumble
         on one. Many colors → so constrained the search barely branches. In between sits a
-        killer zone (here ~5–9 colors) where puzzles have few solutions <em>and</em> deep
+        killer zone (here ~4–9 colors) where puzzles have few solutions <em>and</em> deep
         false trails. Our measurement capped out there, so those points are{" "}
         <em>under</em>-estimates. Eternity II's parameters were chosen in exactly that zone.
       </>

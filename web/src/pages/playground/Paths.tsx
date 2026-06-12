@@ -206,7 +206,7 @@ export default function Paths() {
             const r = solver.step(4000);
             lane.report = r;
             if (r.status !== "running") {
-              lane.finishedAttempts = r.attempts;
+              lane.finishedAttempts = r.nodes;
               lane.cells = boardFromEngine(puzzle, solver.board()).cells;
             } else {
               progressed = true;
@@ -405,7 +405,7 @@ export default function Paths() {
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="animate-pulse">
-                            {t.racingBadge(formatCompact(lane.report?.attempts ?? 0))}
+                            {t.racingBadge(formatCompact(lane.report?.nodes ?? 0))}
                           </Badge>
                         )}
                       </CardTitle>

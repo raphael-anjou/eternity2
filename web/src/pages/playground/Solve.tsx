@@ -236,7 +236,7 @@ export default function Solve() {
     }
     const ms = performance.now() - t0;
     solver.free();
-    if (r.status === "solved") setMachine({ ms, attempts: r.attempts });
+    if (r.status === "solved") setMachine({ ms, attempts: r.nodes });
   }, [complete, finishedIn, startedAt, puzzle]);
 
   const touch = () => {

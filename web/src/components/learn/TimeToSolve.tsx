@@ -128,7 +128,7 @@ export function TimeToSolve() {
     while (performance.now() - t0 < 150) r = solver.step(20_000);
     const elapsed = (performance.now() - t0) / 1000;
     solver.free();
-    setRate(r.attempts / elapsed);
+    setRate(r.nodes / elapsed);
   }, [engineReady, rate]);
 
   return (

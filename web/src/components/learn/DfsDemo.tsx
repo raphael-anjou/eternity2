@@ -239,7 +239,7 @@ export function DfsDemo() {
           </div>
           <div className="space-y-1.5">
             <p className="text-xs font-medium">{t.supplyTitle}</p>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid w-fit grid-cols-[repeat(3,max-content)] gap-1.5">
               {puzzle.pieces.map((piece, i) => (
                 <div
                   key={i}
