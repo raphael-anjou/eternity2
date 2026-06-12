@@ -54,6 +54,10 @@ jobs:
 
       - name: Build web app
         working-directory: web
+        env:
+          # Repository variable (Settings -> Secrets and variables -> Actions
+          # -> Variables). Empty or absent = analytics disabled.
+          VITE_GA_ID: ${{ vars.GA_MEASUREMENT_ID }}
         run: |
           pnpm install --frozen-lockfile
           pnpm build
