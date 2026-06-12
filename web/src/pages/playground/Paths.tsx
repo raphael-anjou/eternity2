@@ -17,10 +17,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEngine } from "@/engine/useEngine";
-import { createSolver, getGeneratedPuzzle, getMaxColors, getPath, getPathKinds } from "@/engine";
+import {
+  createSolver,
+  getGeneratedPuzzle,
+  getGeneratedSolvedPuzzle,
+  getMaxColors,
+  getPath,
+  getPathKinds,
+} from "@/engine";
 import type { SolverHandle } from "@/engine";
 import { useT } from "@/i18n";
-import type { Puzzle, SolverReport } from "@/lib/types";
+import type { Hint, Puzzle, SolverReport } from "@/lib/types";
+import { rotateEdges } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
 import type { Edges } from "@/lib/bucas";
 import { formatCompact, formatInt } from "@/lib/format";
@@ -35,11 +43,17 @@ const T = {
       <>
         The solver fills the board in whatever order you choose. Click (or drag) cells in the
         order you want them filled, then race your path against the classics on the same
-        puzzle. Spoiler: the order matters <em>a lot</em>.
+        puzzle. Spoiler: the order matters <em>a lot</em>. You can also <em>reveal</em> a few
+        pieces as hints and watch the search collapse, just like the puzzle's real clues.
       </>
     ),
     clear: "Clear",
     autoFinish: "Auto-finish",
+    modePath: "Draw path",
+    modeHint: "Reveal hint",
+    gridHelpHint:
+      "Click cells to reveal their true piece as a hint. Hinted cells are pinned and drop out of the path. Click again to un-reveal.",
+    hintsBadge: (k: number) => `${k} hint${k === 1 ? "" : "s"}`,
     gridHelp:
       "Left-click/drag to add cells in order · right-click a cell to cut the path there.",
     raceSetup: "Race setup",
@@ -66,11 +80,17 @@ const T = {
         Le solveur remplit le plateau dans l'ordre que vous choisissez. Cliquez sur les cases
         (ou faites-les glisser) dans l'ordre où vous voulez les remplir, puis faites courir
         votre chemin contre les classiques sur le même puzzle. Spoiler : l'ordre compte{" "}
-        <em>énormément</em>.
+        <em>énormément</em>. Vous pouvez aussi <em>révéler</em> quelques pièces comme indices
+        et regarder la recherche s'effondrer, comme avec les vrais indices du puzzle.
       </>
     ),
     clear: "Effacer",
     autoFinish: "Compléter automatiquement",
+    modePath: "Tracer le chemin",
+    modeHint: "Révéler un indice",
+    gridHelpHint:
+      "Cliquez sur des cases pour révéler leur vraie pièce comme indice. Les cases avec indice sont fixées et sortent du chemin. Cliquez à nouveau pour annuler.",
+    hintsBadge: (k: number) => `${k} indice${k === 1 ? "" : "s"}`,
     gridHelp:
       "Clic gauche ou glisser pour ajouter des cases dans l'ordre · clic droit sur une case pour couper le chemin à cet endroit.",
     raceSetup: "Préparation de la course",
@@ -113,6 +133,9 @@ export default function Paths() {
   const [size, setSize] = useState(6);
   const [order, setOrder] = useState<number[]>([]);
   const [drawing, setDrawing] = useState(false);
+  const [mode, setMode] = useState<"path" | "hint">("path");
+  // Cells whose true piece is revealed as a hint before the race starts.
+  const [hintCells, setHintCells] = useState<Set<number>>(new Set());
 
   const [colors, setColors] = useState(6);
   const [seed, setSeed] = useState(1);
@@ -145,24 +168,78 @@ export default function Paths() {
   };
 
   const loadDefault = (kind: string) => {
-    setOrder(Array.from(getPath(kind, size, size, seed)));
+    setOrder(Array.from(getPath(kind, size, size, seed)).filter((c) => !hintCells.has(c)));
   };
 
   const completeRowMajor = () => {
     setOrder((prev) => {
       const seen = new Set(prev);
       const rest = [];
-      for (let c = 0; c < n; c++) if (!seen.has(c)) rest.push(c);
+      for (let c = 0; c < n; c++) if (!seen.has(c) && !hintCells.has(c)) rest.push(c);
       return [...prev, ...rest];
     });
   };
 
+  // Marking a cell as a hint removes it from the drawn path: a hint is a
+  // known piece, so it is not part of the order the solver must work out.
+  const toggleHint = useCallback((cell: number) => {
+    setHintCells((prev) => {
+      const next = new Set(prev);
+      if (next.has(cell)) next.delete(cell);
+      else next.add(cell);
+      return next;
+    });
+    setOrder((prev) => prev.filter((c) => c !== cell));
+  }, []);
+
   useEffect(() => {
     setOrder([]);
+    setHintCells(new Set());
     stopRace();
     setLanes([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size]);
+
+  // Reset hints when the puzzle changes (seed/colors), since cell→piece moves.
+  useEffect(() => {
+    setHintCells(new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed, colors]);
+
+  // Build engine hints for the revealed cells: look up the true piece+rotation
+  // at each hinted cell from the solved puzzle, matched against the shuffled
+  // race puzzle's pieces (greedy by cell, each piece used once, which is safe
+  // because the solved board is a valid tiling).
+  const buildHints = (shuffled: Puzzle, cells: Set<number>): Hint[] => {
+    if (cells.size === 0) return [];
+    const solved = getGeneratedSolvedPuzzle(size, colors, seed);
+    const used = new Array(shuffled.pieces.length).fill(false);
+    const hints: Hint[] = [];
+    // Assign every cell first (keeps the multiset consistent), then keep only
+    // the revealed ones as hints.
+    const assignment: (Hint | null)[] = [];
+    for (let cell = 0; cell < n; cell++) {
+      const want = solved.pieces[cell];
+      let hit: Hint | null = null;
+      for (let pid = 0; pid < shuffled.pieces.length && !hit; pid++) {
+        if (used[pid]) continue;
+        for (let r = 0; r < 4; r++) {
+          const e = rotateEdges(shuffled.pieces[pid], r);
+          if (e[0] === want[0] && e[1] === want[1] && e[2] === want[2] && e[3] === want[3]) {
+            used[pid] = true;
+            hit = { pos: cell, piece: pid, rot: r };
+            break;
+          }
+        }
+      }
+      assignment.push(hit);
+    }
+    for (const cell of cells) {
+      const h = assignment[cell];
+      if (h) hints.push(h);
+    }
+    return hints;
+  };
 
   // ---- race machinery -----------------------------------------------------
 
@@ -176,9 +253,20 @@ export default function Paths() {
   const startRace = (laneSpecs: { id: string; label: string; path: Uint16Array }[]) => {
     stopRace();
     const puzzle = getGeneratedPuzzle(size, colors, seed);
+    puzzle.hints = buildHints(puzzle, hintCells);
     puzzleRef.current = puzzle;
+    const useHints = puzzle.hints.length > 0;
+    // The engine wants a full-coverage path (it pre-fills hint cells and
+    // skips them). Append any cells the visible path omits — the hints first,
+    // then any stragglers — so every lane's path is a permutation of all n.
+    const completePath = (path: Uint16Array): Uint16Array => {
+      const seen = new Set(path);
+      const full = Array.from(path);
+      for (let c = 0; c < n; c++) if (!seen.has(c)) full.push(c);
+      return Uint16Array.from(full);
+    };
     const newLanes: Lane[] = laneSpecs.map((spec) => {
-      const solver = createSolver(puzzle, spec.path, { useHints: false });
+      const solver = createSolver(puzzle, completePath(spec.path), { useHints });
       solversRef.current.set(spec.id, solver);
       return {
         ...spec,
@@ -243,7 +331,8 @@ export default function Paths() {
 
   useEffect(() => stopRace, []);
 
-  const customComplete = order.length === n;
+  const pathTarget = n - hintCells.size;
+  const customComplete = order.length === pathTarget && pathTarget > 0;
   const ranking = useMemo(() => {
     const done = lanes.filter((l) => l.finishedAttempts !== null);
     done.sort((a, b) => (a.finishedAttempts ?? 0) - (b.finishedAttempts ?? 0));
@@ -279,8 +368,34 @@ export default function Paths() {
               {t.autoFinish}
             </Button>
             <Badge variant={customComplete ? "default" : "secondary"}>
-              {order.length}/{n}
+              {order.length}/{pathTarget}
             </Badge>
+            {hintCells.size > 0 && (
+              <Badge variant="outline" className="border-amber-500 text-amber-600">
+                📌 {t.hintsBadge(hintCells.size)}
+              </Badge>
+            )}
+          </div>
+
+          <div className="inline-flex rounded-md border p-0.5 text-sm">
+            <button
+              onClick={() => setMode("path")}
+              className={cn(
+                "rounded px-3 py-1 font-medium transition-colors",
+                mode === "path" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+              )}
+            >
+              {t.modePath}
+            </button>
+            <button
+              onClick={() => setMode("hint")}
+              className={cn(
+                "rounded px-3 py-1 font-medium transition-colors",
+                mode === "hint" ? "bg-amber-400 text-amber-950" : "text-muted-foreground",
+              )}
+            >
+              📌 {t.modeHint}
+            </button>
           </div>
 
           {/* Pointer events + elementFromPoint so drag-painting works with a
@@ -295,14 +410,22 @@ export default function Paths() {
               if (e.pointerType === "mouse" && e.button !== 0) return;
               const cell = (e.target as HTMLElement).dataset["cell"];
               if (cell === undefined) return;
+              const c = parseInt(cell, 10);
+              if (mode === "hint") {
+                toggleHint(c);
+                return;
+              }
+              if (hintCells.has(c)) return; // can't route a path through a hint
               setDrawing(true);
-              appendCell(parseInt(cell, 10));
+              appendCell(c);
             }}
             onPointerMove={(e) => {
-              if (!drawing) return;
+              if (!drawing || mode === "hint") return;
               const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
               const cell = el?.dataset["cell"];
-              if (cell !== undefined) appendCell(parseInt(cell, 10));
+              if (cell !== undefined && !hintCells.has(parseInt(cell, 10))) {
+                appendCell(parseInt(cell, 10));
+              }
             }}
             onPointerUp={() => setDrawing(false)}
             onPointerLeave={() => setDrawing(false)}
@@ -310,28 +433,36 @@ export default function Paths() {
           >
             {Array.from({ length: n }, (_, cell) => {
               const rank = rankOf.get(cell);
+              const isHint = hintCells.has(cell);
               return (
                 <div
                   key={cell}
                   data-cell={cell}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    truncateFrom(cell);
+                    if (isHint) toggleHint(cell);
+                    else truncateFrom(cell);
                   }}
                   className={cn(
                     "flex aspect-square cursor-crosshair items-center justify-center rounded-sm text-xs font-semibold",
-                    rank === undefined ? "bg-background text-muted-foreground/40" : "text-white",
+                    isHint
+                      ? "bg-amber-400 text-amber-950 ring-1 ring-amber-600"
+                      : rank === undefined
+                        ? "bg-background text-muted-foreground/40"
+                        : "text-white",
                   )}
                   style={
-                    rank !== undefined ? { backgroundColor: rankColor(rank, n) } : undefined
+                    !isHint && rank !== undefined
+                      ? { backgroundColor: rankColor(rank, n) }
+                      : undefined
                   }
                 >
-                  {rank !== undefined && size <= 9 ? rank + 1 : ""}
+                  {isHint ? "📌" : rank !== undefined && size <= 9 ? rank + 1 : ""}
                 </div>
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground">{t.gridHelp}</p>
+          <p className="text-xs text-muted-foreground">{mode === "hint" ? t.gridHelpHint : t.gridHelp}</p>
 
           <div className="flex flex-wrap gap-1.5">
             {(engineReady ? getPathKinds() : []).map((k) => (
