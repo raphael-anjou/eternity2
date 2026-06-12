@@ -1,4 +1,6 @@
-# Eternity II — community site
+# Eternity II community site
+
+**Live at [eternity2.dev](https://eternity2.dev)**
 
 An open-source hub for the [Eternity II](https://en.wikipedia.org/wiki/Eternity_II_puzzle)
 puzzle: play it, watch real solvers run **in your browser**, learn the algorithms behind

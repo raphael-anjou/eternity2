@@ -3,7 +3,7 @@
 //! Paints every interior adjacency with a random color (each color used at
 //! least once), derives the pieces from the painted board, then shuffles
 //! piece order and rotations. The result is solvable by construction.
-//! Deterministic for a given (size, colors, seed) on every platform — no
+//! Deterministic for a given (size, colors, seed) on every platform: no
 //! getrandom, just xorshift.
 
 use crate::types::{rotated, Puzzle, BORDER};
