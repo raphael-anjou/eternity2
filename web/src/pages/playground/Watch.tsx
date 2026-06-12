@@ -31,7 +31,7 @@ import type { SolverHandle } from "@/engine";
 import { useT } from "@/i18n";
 import type { Puzzle, SolverReport } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
-import { formatCompact, formatInt } from "@/lib/format";
+import { formatCompact, formatInt, formatSeconds } from "@/lib/format";
 
 const SIZES = [3, 4, 5, 6, 7, 8, 10, 12, 14, 16];
 
@@ -39,7 +39,7 @@ const T = {
   en: {
     title: "Watch the machine think",
     intro:
-      "This is a real depth-first search running in your browser. Watch it place pieces, hit dead ends, and backtrack. Crank the speed to see why even millions of attempts per second are not enough for the 16×16 puzzle.",
+      "This is a real depth-first search running in your browser. Watch it place pieces, hit dead ends, and backtrack. Crank the speed to see why even millions of nodes per second are not enough for the 16×16 puzzle.",
     buildingSolver: "Building solver…",
     loadingEngine: "Loading WASM engine…",
     puzzleCard: "Puzzle",
@@ -63,20 +63,19 @@ const T = {
     noSolution: "no solution",
     placed: "Placed",
     deepestEver: "Deepest ever",
-    placements: "Placements",
-    placementsTip: "Pieces actually put on the board (after a successful fit check)",
-    backtracks: "Backtracks",
-    backtracksTip: "Times the search hit a dead end and removed a piece",
-    fitChecks: "Nodes",
-    fitChecksTip:
-      "Candidate (piece, rotation) pairs tested against a square; one placement costs many nodes",
-    checksPerSecond: "Nodes / s",
+    placements: "Nodes",
+    placementsTip:
+      "One node = one piece placed (the community's standard solver metric).",
+    undoneNote: (n: string) =>
+      `${n} of those placements were later undone. A hard search un-builds almost everything it builds; what survives is the "Placed" count.`,
+    nodesPerSecond: "Nodes / s",
+    elapsed: "Run time",
     boardCompletion: "Board completion",
   },
   fr: {
     title: "Regardez la machine réfléchir",
     intro:
-      "C'est une vraie recherche en profondeur qui tourne dans votre navigateur. Regardez-la placer des pièces, tomber sur des impasses et revenir en arrière. Montez la vitesse pour comprendre pourquoi même des millions de tentatives par seconde ne suffisent pas pour le puzzle 16×16.",
+      "C'est une vraie recherche en profondeur qui tourne dans votre navigateur. Regardez-la placer des pièces, tomber sur des impasses et revenir en arrière. Montez la vitesse pour comprendre pourquoi même des millions de nœuds par seconde ne suffisent pas pour le puzzle 16×16.",
     buildingSolver: "Construction du solveur…",
     loadingEngine: "Chargement du moteur WASM…",
     puzzleCard: "Puzzle",
@@ -100,14 +99,13 @@ const T = {
     noSolution: "aucune solution",
     placed: "Placées",
     deepestEver: "Record de profondeur",
-    placements: "Placements",
-    placementsTip: "Pièces réellement posées sur le plateau (après un test de compatibilité réussi)",
-    backtracks: "Retours en arrière",
-    backtracksTip: "Nombre de fois où la recherche est tombée sur une impasse et a retiré une pièce",
-    fitChecksTip:
-      "Paires (pièce, rotation) candidates testées sur une case ; un placement coûte de nombreux nœuds",
-    fitChecks: "Nœuds",
-    checksPerSecond: "Nœuds / s",
+    placements: "Nœuds",
+    placementsTip:
+      "Un nœud = une pièce posée (la métrique standard des solveurs dans la communauté).",
+    undoneNote: (n: string) =>
+      `${n} de ces placements ont ensuite été annulés. Une recherche difficile défait presque tout ce qu'elle construit ; ce qui survit, c'est le compteur « Placées ».`,
+    nodesPerSecond: "Nœuds / s",
+    elapsed: "Durée d'exécution",
     boardCompletion: "Remplissage du plateau",
   },
 };
@@ -129,6 +127,8 @@ export default function Watch() {
   const [report, setReport] = useState<SolverReport | null>(null);
   const [boardCells, setBoardCells] = useState<Int32Array | null>(null);
   const [measuredRate, setMeasuredRate] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const elapsedRef = useRef(0);
 
   const solverRef = useRef<SolverHandle | null>(null);
   const puzzleRef = useRef<Puzzle | null>(null);
@@ -149,6 +149,8 @@ export default function Watch() {
     setReport(solver.report());
     setBoardCells(solver.board());
     setRunning(false);
+    elapsedRef.current = 0;
+    setElapsedMs(0);
   }, [engineReady, official, size, colors, seed, pathKind]);
 
   useEffect(() => {
@@ -162,7 +164,7 @@ export default function Watch() {
   useEffect(() => {
     if (!running) return;
     lastTickRef.current = performance.now();
-    let attemptsAtLast = report?.attempts ?? 0;
+    let nodesAtLast = report?.nodes ?? 0;
     let lastRateUpdate = performance.now();
     let stepDebt = 0; // fractional steps carried between frames (for slow speeds)
 
@@ -172,6 +174,8 @@ export default function Watch() {
       const now = performance.now();
       const dt = Math.min(now - lastTickRef.current, 250) / 1000;
       lastTickRef.current = now;
+      elapsedRef.current += dt * 1000;
+      setElapsedMs(elapsedRef.current);
       stepDebt += stepsPerSecond * dt;
 
       // Run in small chunks inside a ~12ms frame budget so huge speeds
@@ -192,8 +196,8 @@ export default function Watch() {
       setReport(r);
       setBoardCells(showBest ? solver.bestBoard() : solver.board());
       if (now - lastRateUpdate > 500) {
-        setMeasuredRate(((r.attempts - attemptsAtLast) * 1000) / (now - lastRateUpdate));
-        attemptsAtLast = r.attempts;
+        setMeasuredRate(((r.nodes - nodesAtLast) * 1000) / (now - lastRateUpdate));
+        nodesAtLast = r.nodes;
         lastRateUpdate = now;
       }
       if (r.status !== "running") {
@@ -214,6 +218,9 @@ export default function Watch() {
   }, [puzzle, boardCells]);
 
   const totalCells = puzzle ? puzzle.width * puzzle.height : 0;
+  // "Placed" and the completion bar track the displayed board: the live one,
+  // or the deepest-ever snapshot when that toggle is on.
+  const shownPlaced = report ? (showBest ? report.bestPlaced : report.placed) : 0;
   const maxColorsForSize = engineReady && !official ? getMaxColors(size) : 22;
 
   return (
@@ -383,7 +390,7 @@ export default function Watch() {
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <dt className="text-muted-foreground">{t.placed}</dt>
                   <dd className="text-right font-mono">
-                    {report.placed} / {totalCells}
+                    {shownPlaced} / {totalCells}
                   </dd>
                   <dt className="text-muted-foreground">{t.deepestEver}</dt>
                   <dd className="text-right font-mono">{report.bestPlaced}</dd>
@@ -391,17 +398,11 @@ export default function Watch() {
                     {t.placements}
                   </dt>
                   <dd className="text-right font-mono">{formatInt(report.nodes)}</dd>
-                  <dt className="text-muted-foreground" title={t.backtracksTip}>
-                    {t.backtracks}
-                  </dt>
-                  <dd className="text-right font-mono">{formatInt(report.backtracks)}</dd>
-                  <dt className="text-muted-foreground" title={t.fitChecksTip}>
-                    {t.fitChecks}
-                  </dt>
-                  <dd className="text-right font-mono">{formatInt(report.attempts)}</dd>
+                  <dt className="text-muted-foreground">{t.elapsed}</dt>
+                  <dd className="text-right font-mono">{formatSeconds(elapsedMs / 1000)}</dd>
                   {running && (
                     <>
-                      <dt className="text-muted-foreground">{t.checksPerSecond}</dt>
+                      <dt className="text-muted-foreground">{t.nodesPerSecond}</dt>
                       <dd className="text-right font-mono">{formatCompact(measuredRate)}</dd>
                     </>
                   )}
@@ -409,15 +410,20 @@ export default function Watch() {
                 <div className="mt-3">
                   <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                     <span>{t.boardCompletion}</span>
-                    <span>{totalCells ? Math.round((report.placed / totalCells) * 100) : 0}%</span>
+                    <span>{totalCells ? Math.round((shownPlaced / totalCells) * 100) : 0}%</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded bg-muted">
                     <div
                       className="h-full bg-primary transition-[width]"
-                      style={{ width: `${totalCells ? (report.placed / totalCells) * 100 : 0}%` }}
+                      style={{ width: `${totalCells ? (shownPlaced / totalCells) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
+                {report.backtracks > 0 && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {t.undoneNote(formatInt(report.backtracks))}
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
