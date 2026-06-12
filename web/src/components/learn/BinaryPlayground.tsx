@@ -38,7 +38,7 @@ const T = {
     mask: {
       title: "4 · 256 pieces = 256 bits of “still free?”",
       explainer:
-        "The solver tracks which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. Checking and updating availability is therefore almost instant, even with 256 pieces.",
+        "Fast solvers track which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. So checking and updating availability stays almost instant even with 256 pieces. Our own engine does exactly this.",
       placing: (n: number) => `placing piece #${n}…`,
       free: "free",
       used: "used",
@@ -70,7 +70,7 @@ const T = {
     mask: {
       title: "4 · 256 pièces = 256 bits « encore libre ? »",
       explainer:
-        "Le solveur garde la trace des pièces encore inutilisées dans un seul nombre de 256 bits, un bit chacune. « La pièce n°137 est-elle libre ? » est un simple test de bit ; « marquer comme utilisée » bascule un bit. Vérifier et mettre à jour la disponibilité est donc quasi instantané, même avec 256 pièces.",
+        "Les solveurs rapides gardent la trace des pièces encore inutilisées dans un seul nombre de 256 bits, un bit chacune. « La pièce n°137 est-elle libre ? » est un simple test de bit ; « marquer comme utilisée » bascule un bit. Vérifier et mettre à jour la disponibilité reste donc quasi instantané, même avec 256 pièces. C'est exactement ce que fait notre propre moteur.",
       placing: (n: number) => `pose de la pièce n°${n}…`,
       free: "libre",
       used: "utilisée",

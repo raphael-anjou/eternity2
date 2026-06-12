@@ -35,6 +35,38 @@ pub struct Report {
     pub best_placed: u32,
 }
 
+/// Dense bitset over piece ids: "is piece p still available?" is one bit.
+/// This is the standard fast-solver representation (and what the website's
+/// binary demo describes): a `Vec<u64>` of words, tested and flipped with
+/// single bit operations instead of byte-per-piece booleans.
+#[derive(Clone)]
+struct BitSet {
+    words: Vec<u64>,
+}
+
+impl BitSet {
+    fn new(n: usize) -> Self {
+        Self {
+            words: vec![0u64; n.div_ceil(64)],
+        }
+    }
+
+    #[inline]
+    fn contains(&self, i: usize) -> bool {
+        (self.words[i >> 6] >> (i & 63)) & 1 == 1
+    }
+
+    #[inline]
+    fn insert(&mut self, i: usize) {
+        self.words[i >> 6] |= 1u64 << (i & 63);
+    }
+
+    #[inline]
+    fn remove(&mut self, i: usize) {
+        self.words[i >> 6] &= !(1u64 << (i & 63));
+    }
+}
+
 struct Frame {
     pos: u16,
     /// Next candidate row (piece_order_index * 4 + rotation) to try when we
@@ -56,7 +88,8 @@ pub struct Solver {
     piece_order: Vec<u16>,
     /// Cell -> table row (piece_id * 4 + rot) or -1.
     board: Vec<i32>,
-    used: Vec<bool>,
+    /// Availability bitset: bit p set ⇒ piece p is already placed.
+    used: BitSet,
     /// One frame per non-hint cell, in visit order.
     frames: Vec<Frame>,
     depth: usize,
@@ -114,16 +147,16 @@ impl Solver {
         }
 
         let mut board = vec![-1i32; n_cells];
-        let mut used = vec![false; n_pieces];
+        let mut used = BitSet::new(n_pieces);
         let mut hint_count = 0u32;
         if use_hints {
             for h in &puzzle.hints {
                 let pos = h.pos as usize;
-                if pos >= n_cells || h.piece as usize >= n_pieces || used[h.piece as usize] {
+                if pos >= n_cells || h.piece as usize >= n_pieces || used.contains(h.piece as usize) {
                     return Err(format!("invalid hint at position {pos}"));
                 }
                 board[pos] = (h.piece as i32) * 4 + i32::from(h.rot & 3);
-                used[h.piece as usize] = true;
+                used.insert(h.piece as usize);
                 hint_count += 1;
             }
         }
@@ -234,7 +267,7 @@ impl Solver {
                 let r = cursor % 4;
                 cursor += 1;
                 let pid = self.piece_order[oi] as usize;
-                if self.used[pid] {
+                if self.used.contains(pid) {
                     cursor = (cursor + 3) & !3; // skip remaining rotations
                     continue;
                 }
@@ -252,7 +285,7 @@ impl Solver {
             if placed_row != u32::MAX {
                 let pid = (placed_row / 4) as usize;
                 self.board[pos] = placed_row as i32;
-                self.used[pid] = true;
+                self.used.insert(pid);
                 let f = &mut self.frames[self.depth];
                 f.cursor = cursor;
                 f.placed = placed_row;
@@ -276,7 +309,7 @@ impl Solver {
                 let row = prev.placed;
                 prev.placed = u32::MAX;
                 self.board[prev.pos as usize] = -1;
-                self.used[(row / 4) as usize] = false;
+                self.used.remove((row / 4) as usize);
                 self.backtracks += 1;
             }
         }
