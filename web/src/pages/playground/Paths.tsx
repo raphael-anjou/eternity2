@@ -26,7 +26,7 @@ import type { Edges } from "@/lib/bucas";
 import { formatCompact, formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const GRID_SIZES = [4, 5, 6, 8, 10];
+const GRID_SIZES = [2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16];
 
 const T = {
   en: {
@@ -286,8 +286,11 @@ export default function Paths() {
           {/* Pointer events + elementFromPoint so drag-painting works with a
               finger as well as a mouse (touch never fires mouseenter). */}
           <div
-            className="grid select-none touch-none gap-0.5 rounded-lg border bg-border p-0.5"
-            style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+            className="grid select-none touch-none rounded-lg border bg-border p-0.5"
+            style={{
+              gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+              gap: size > 8 ? "1px" : "2px",
+            }}
             onPointerDown={(e) => {
               if (e.pointerType === "mouse" && e.button !== 0) return;
               const cell = (e.target as HTMLElement).dataset["cell"];
@@ -323,7 +326,7 @@ export default function Paths() {
                     rank !== undefined ? { backgroundColor: rankColor(rank, n) } : undefined
                   }
                 >
-                  {rank !== undefined ? rank + 1 : ""}
+                  {rank !== undefined && size <= 9 ? rank + 1 : ""}
                 </div>
               );
             })}
