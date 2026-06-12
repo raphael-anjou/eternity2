@@ -96,7 +96,7 @@ const T = {
       {
         year: "2010s–today",
         title: "The community keeps climbing",
-        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Patrick McGavin, 2020). On a one-clue variant, 470. Eleven edges still separate humanity from 480.",
+        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Patrick McGavin, 2020), then 470 (Joshua Blackwood). Ten edges still separate humanity from 480.",
       },
     ],
     anatomyTitle: "Anatomy of the piece set",
@@ -163,7 +163,7 @@ const T = {
         two smaller "clue puzzles" that each revealed another placement, plus two more published
         later. A board that respects all five is called <strong>strict-canonical</strong>; most
         record boards only respect the mandatory center clue, which is why "best with all
-        clues" (460) trails the open record (469).
+        clues" (460) trails the open record (470).
       </>
     ),
     cluesText2: (
@@ -184,13 +184,13 @@ const T = {
       {
         score: "470 / 480",
         who: "Joshua Blackwood",
-        notes: "one-clue variant (center clue only convention differs)" as ReactNode,
+        notes: "the current record" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "the canonical record" as ReactNode,
+        notes: "" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -220,7 +220,7 @@ const T = {
     complexityTitle: "Why brute force is hopeless",
     bigNumber: (
       <>
-        ~10<sup>557</sup>
+        ~10<sup>560</sup>
       </>
     ),
     bigNumberText: (
@@ -303,7 +303,7 @@ const T = {
       {
         year: "Années 2010 à aujourd'hui",
         title: "La communauté continue de grimper",
-        text: "Des passionnés équipés de machines modernes poussent le record à 468, puis 469 (Joshua Blackwood & Patrick McGavin, 2020). Sur une variante à un seul indice, 470. Onze côtés séparent encore l'humanité du 480.",
+        text: "Des passionnés équipés de machines modernes poussent le record à 468, puis 469 (Joshua Blackwood & Patrick McGavin, 2020), puis 470 (Joshua Blackwood). Dix côtés séparent encore l'humanité du 480.",
       },
     ],
     anatomyTitle: "Anatomie du jeu de pièces",
@@ -373,7 +373,7 @@ const T = {
         de deux autres publiés plus tard. Un plateau qui respecte les cinq est dit{" "}
         <strong>strict-canonique</strong> ; la plupart des plateaux records ne respectent que
         l'indice central obligatoire, c'est pourquoi le « meilleur avec tous les indices » (460)
-        reste derrière le record libre (469).
+        reste derrière le record libre (470).
       </>
     ),
     cluesText2: (
@@ -394,13 +394,13 @@ const T = {
       {
         score: "470 / 480",
         who: "Joshua Blackwood",
-        notes: "variante à un seul indice (convention différente : indice central uniquement)" as ReactNode,
+        notes: "le record actuel" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "le record canonique" as ReactNode,
+        notes: "" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -430,7 +430,7 @@ const T = {
     complexityTitle: "Pourquoi la force brute n'a aucune chance",
     bigNumber: (
       <>
-        ~10<sup>557</sup>
+        ~10<sup>560</sup>
       </>
     ),
     bigNumberText: (
