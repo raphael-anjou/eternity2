@@ -60,7 +60,7 @@ const T = {
     front: "front",
     back: "back (mirrored)",
     pageLabel: (i: number, n: number) => `page ${i} of ${n} (front + back)`,
-    removePage: "Remove this page (its blocks move to the previous page)",
+    removePage: "Remove this page and the puzzles on it",
     loading: "Loading engine…",
   },
   fr: {
@@ -86,7 +86,7 @@ const T = {
     front: "recto",
     back: "verso (en miroir)",
     pageLabel: (i: number, n: number) => `page ${i} sur ${n} (recto + verso)`,
-    removePage: "Supprimer cette page (ses blocs passent sur la page précédente)",
+    removePage: "Supprimer cette page et les puzzles qu'elle contient",
     loading: "Chargement du moteur…",
   },
 };
@@ -290,10 +290,11 @@ export default function Print() {
 
   const removePage = (i: number) => {
     setBlocks((prev) =>
-      prev.map((b) =>
-        b.page === i ? { ...b, page: Math.max(0, i - 1) } : b.page > i ? { ...b, page: b.page - 1 } : b,
-      ),
+      prev
+        .filter((b) => b.page !== i)
+        .map((b) => (b.page > i ? { ...b, page: b.page - 1 } : b)),
     );
+    setSelected(null);
     setPageCountState(Math.max(1, pageCount - 1));
   };
 
