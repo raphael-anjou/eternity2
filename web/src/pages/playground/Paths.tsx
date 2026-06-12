@@ -193,18 +193,16 @@ export default function Paths() {
   }, []);
 
   useEffect(() => {
+    // Size changes the cell count, so both path and hints must reset.
     setOrder([]);
     setHintCells(new Set());
     stopRace();
     setLanes([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size]);
-
-  // Reset hints when the puzzle changes (seed/colors), since cell→piece moves.
-  useEffect(() => {
-    setHintCells(new Set());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed, colors]);
+  // Note: seed/colors changes keep both the path AND the hints. Both are
+  // positional ("this cell"), not piece-bound: the true piece at each hinted
+  // cell is looked up fresh from the solved puzzle at race time.
 
   // Build engine hints for the revealed cells: look up the true piece+rotation
   // at each hinted cell from the solved puzzle, matched against the shuffled
