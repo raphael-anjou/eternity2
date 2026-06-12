@@ -60,6 +60,21 @@ function ScrollToTop() {
   return null;
 }
 
+// GA4 page views per hash route (the index.html config disables automatic
+// ones, which would all collapse to "/" since GA ignores URL fragments).
+function PageTracking() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    gtag?.("event", "page_view", {
+      page_path: pathname,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   const [engineReady, setEngineReady] = useState(false);
   const [engineError, setEngineError] = useState<string | null>(null);
@@ -76,6 +91,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ScrollToTop />
+      <PageTracking />
       <MotifDefs />
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:gap-6 sm:px-4">

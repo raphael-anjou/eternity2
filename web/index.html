@@ -32,9 +32,11 @@
         s.src = "https://www.googletagmanager.com/gtag/js?id=" + window.GA_MEASUREMENT_ID;
         document.head.appendChild(s);
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+        window.gtag = function () { dataLayer.push(arguments); };
         gtag("js", new Date());
-        gtag("config", window.GA_MEASUREMENT_ID, { anonymize_ip: true });
+        // The app is hash-routed and GA4 ignores URL fragments, so automatic
+        // page views would all report as "/". The router sends them instead.
+        gtag("config", window.GA_MEASUREMENT_ID, { anonymize_ip: true, send_page_view: false });
       }
     </script>
   </head>
