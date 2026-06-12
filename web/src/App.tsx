@@ -11,6 +11,7 @@ const PlaygroundHub = lazy(() => import("@/pages/playground/Hub"));
 const Watch = lazy(() => import("@/pages/playground/Watch"));
 const Solve = lazy(() => import("@/pages/playground/Solve"));
 const Paths = lazy(() => import("@/pages/playground/Paths"));
+const Print = lazy(() => import("@/pages/playground/Print"));
 const Algorithms = lazy(() => import("@/pages/Algorithms"));
 const Research = lazy(() => import("@/pages/Research"));
 const Viewer = lazy(() => import("@/pages/Viewer"));
@@ -195,6 +196,7 @@ export default function App() {
             <Route path="/playground/watch" element={<Watch />} />
             <Route path="/playground/solve" element={<Solve />} />
             <Route path="/playground/paths" element={<Paths />} />
+            <Route path="/playground/print" element={<Print />} />
             <Route path="/algorithms" element={<Algorithms />} />
             <Route path="/research" element={<Research />} />
             <Route path="/viewer" element={<Viewer />} />

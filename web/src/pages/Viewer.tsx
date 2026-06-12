@@ -208,6 +208,22 @@ export default function Viewer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Answer keys from printed sheets: #/viewer?g=size.colors.seed shows the
+  // solved board of that generated set.
+  useEffect(() => {
+    const g = searchParams.get("g");
+    if (!g || !engineReady || board) return;
+    const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(g);
+    if (!m) return;
+    const puzzle = getGeneratedSolvedPuzzle(
+      parseInt(m[1], 10),
+      parseInt(m[2], 10),
+      parseInt(m[3], 10),
+    );
+    loadEngine(puzzle, identityBoard(puzzle), `${m[1]}x${m[1]}-${m[2]}c answer key`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engineReady]);
+
   const summary = useMemo(() => (board ? scoreSummary(board) : null), [board]);
   const audit = useMemo(
     () => (board && engineReady ? auditBoard(board, getOfficialPuzzle()) : null),

@@ -146,6 +146,7 @@ const T = {
       </>
     ),
     rareFrameBadge: "rare · frame",
+    borderBadge: "the border",
     loadingPieceSet: "Loading piece set…",
     allPiecesTitle: "All 256 pieces",
     allPiecesText: (
@@ -355,6 +356,7 @@ const T = {
       </>
     ),
     rareFrameBadge: "rare · cadre",
+    borderBadge: "le bord",
     loadingPieceSet: "Chargement du jeu de pièces…",
     allPiecesTitle: "Les 256 pièces",
     allPiecesText: (
@@ -560,18 +562,17 @@ export default function PuzzlePage() {
         <p className="max-w-3xl text-sm text-muted-foreground">{t.motifDistribution}</p>
         {colorStats ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-            {colorStats.map((count, color) =>
-              color === 0 ? null : (
+            {colorStats.map((count, color) => (
                 <div key={color} className="flex items-center gap-2 rounded-md border p-2">
                   <MotifSwatch color={color} width={60} />
                   <div className="text-xs">
                     <div className="font-mono font-bold">'{colorToLetter(color)}'</div>
                     <div className="text-muted-foreground">×{count}</div>
+                    {color === 0 && <Badge variant="secondary" className="mt-0.5">{t.borderBadge}</Badge>}
                     {count === 24 && <Badge variant="secondary" className="mt-0.5">{t.rareFrameBadge}</Badge>}
                   </div>
                 </div>
-              ),
-            )}
+            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{t.loadingPieceSet}</p>

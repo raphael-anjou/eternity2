@@ -6,7 +6,7 @@ const T = {
   en: {
     title: "Playground",
     intro:
-      "Three ways to get your hands on the puzzle: no installs, no account, everything runs right here in your browser.",
+      "Four ways to get your hands on the puzzle: no installs, no account, everything runs right here in your browser.",
     modes: [
       {
         to: "/playground/solve",
@@ -26,12 +26,18 @@ const T = {
         title: "Invent a search path",
         text: "Draw the order the solver explores the board (spiral? zigzag? chaos?) and race your idea against the classic strategies.",
       },
+      {
+        to: "/playground/print",
+        emoji: "🖨️",
+        title: "Print and cut",
+        text: "Make real puzzles for the table: pick sizes and colors, print double-sided with piece numbers on the back, cut along the lines.",
+      },
     ],
   },
   fr: {
     title: "Aire de jeu",
     intro:
-      "Trois façons de jouer avec le puzzle : rien à installer, pas de compte, tout tourne directement dans votre navigateur.",
+      "Quatre façons de jouer avec le puzzle : rien à installer, pas de compte, tout tourne directement dans votre navigateur.",
     modes: [
       {
         to: "/playground/solve",
@@ -51,6 +57,12 @@ const T = {
         title: "Inventez un chemin de parcours",
         text: "Dessinez l'ordre dans lequel le solveur explore le plateau (en spirale ? en zigzag ? au hasard ?) puis faites la course contre les stratégies classiques.",
       },
+      {
+        to: "/playground/print",
+        emoji: "🖨️",
+        title: "Imprimer et découper",
+        text: "Fabriquez de vrais puzzles pour la table : choisissez tailles et couleurs, imprimez en recto verso avec les numéros au dos, découpez le long des lignes.",
+      },
     ],
   },
 };
@@ -63,7 +75,7 @@ export default function Hub() {
         <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
         <p className="mt-1 max-w-2xl text-muted-foreground">{t.intro}</p>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {t.modes.map((m) => (
           <Link key={m.to} to={m.to} className="group">
             <Card className="h-full transition-shadow group-hover:shadow-lg">

@@ -132,3 +132,30 @@
 html {
   font-size: 17px;
 }
+
+/* Print sheets: scaled preview on screen, true A4 in print. */
+.print-sheet-scale {
+  transform: scale(0.72);
+  transform-origin: top left;
+  width: calc(210mm * 0.72);
+  height: calc(297mm * 0.72);
+}
+.print-portal {
+  display: none;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body.print-sheets-page > #root {
+    display: none;
+  }
+  body.print-sheets-page > .print-portal {
+    display: block;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    page-break-after: always;
+  }
+}
