@@ -94,7 +94,9 @@ function describeLogSeconds(logSec: number, u: typeof T.en.units): string {
   if (sec < 86400) return u.hours(Math.round(sec / 3600));
   if (sec < 3.156e7) return u.days(Math.round(sec / 86400));
   const logYears = logSec - Math.log10(SECONDS_PER_YEAR);
-  if (logYears < 6) return u.years(formatCompact(10 ** logYears));
+  // Plain years all the way up to one age of the universe, so the next unit
+  // always starts at >= 1x (never "0x the age of the universe").
+  if (logYears < LOG10_UNIVERSE_AGE_YEARS) return u.years(formatCompact(10 ** logYears));
   if (logYears < LOG10_UNIVERSE_AGE_YEARS + 6) {
     const ages = 10 ** (logYears - LOG10_UNIVERSE_AGE_YEARS);
     return u.universeAges(formatCompact(ages));

@@ -11,31 +11,52 @@
 
 use eternity2_engine::{build_path, generate, Solver, Status};
 
-const WORK_CAP: u64 = 20_000_000; // steps (nodes + backtracks) before censoring
 const SEEDS: u32 = 10;
+const THREADS: usize = 8;
 
-struct RunResult {
-    nodes: f64,
-    solved: bool,
-}
-
-fn solve_instance(size: u8, colors: u8, seed: u32, path_kind: &str) -> RunResult {
+/// Run to completion, however long it takes (no work cap by design).
+fn solve_instance(size: u8, colors: u8, seed: u32, path_kind: &str) -> f64 {
     let puzzle = generate(size, colors, seed);
     let path = build_path(path_kind, size, size, 0).expect("path kind");
     let mut solver = Solver::new(&puzzle, &path, true, false, 0).expect("solver");
     loop {
-        let r = solver.step(2_000_000);
+        let r = solver.step(10_000_000);
         if r.status == Status::Solved {
-            return RunResult { nodes: r.nodes, solved: true };
+            return r.nodes;
         }
-        if r.status == Status::Exhausted {
-            // Shouldn't happen (generator guarantees solvability) but stay honest.
-            return RunResult { nodes: r.nodes, solved: false };
-        }
-        if r.nodes + r.backtracks >= WORK_CAP as f64 {
-            return RunResult { nodes: r.nodes, solved: false };
-        }
+        assert!(
+            r.status != Status::Exhausted,
+            "generated puzzle unexpectedly unsolvable"
+        );
     }
+}
+
+/// Run `jobs` on THREADS workers, preserving result order.
+fn run_parallel<J: Send + Sync>(jobs: &[J], f: impl Fn(&J) -> f64 + Send + Sync) -> Vec<f64> {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Mutex;
+    let next = AtomicUsize::new(0);
+    let results = Mutex::new(vec![0.0f64; jobs.len()]);
+    std::thread::scope(|scope| {
+        for _ in 0..THREADS {
+            scope.spawn(|| loop {
+                let i = next.fetch_add(1, Ordering::Relaxed);
+                if i >= jobs.len() {
+                    break;
+                }
+                let t0 = std::time::Instant::now();
+                let nodes = f(&jobs[i]);
+                eprintln!(
+                    "  job {}/{}: {nodes:.0} nodes in {:.1}s",
+                    i + 1,
+                    jobs.len(),
+                    t0.elapsed().as_secs_f64()
+                );
+                results.lock().unwrap()[i] = nodes;
+            });
+        }
+    });
+    results.into_inner().unwrap()
 }
 
 fn median(sorted: &[f64]) -> f64 {
@@ -58,25 +79,28 @@ fn main() {
     eprintln!("difficulty sweep...");
     out.push_str("  \"difficulty\": [\n");
     let mut rows: Vec<String> = Vec::new();
+    let mut jobs: Vec<(u8, u8, u32)> = Vec::new();
     for size in 3u8..=8 {
         let max_c = eternity2_engine::generator::max_colors(size).min(14);
         for colors in 2..=max_c {
-            let mut attempts: Vec<f64> = Vec::new();
-            let mut censored = 0u32;
             for seed in 1..=SEEDS {
-                let r = solve_instance(size, colors, seed, "row-major");
-                if !r.solved {
-                    censored += 1;
-                }
-                attempts.push(r.nodes);
+                jobs.push((size, colors, seed));
             }
+        }
+    }
+    let all = run_parallel(&jobs, |&(size, colors, seed)| {
+        solve_instance(size, colors, seed, "row-major")
+    });
+    let mut i = 0;
+    for size in 3u8..=8 {
+        let max_c = eternity2_engine::generator::max_colors(size).min(14);
+        for colors in 2..=max_c {
+            let mut attempts: Vec<f64> = all[i..i + SEEDS as usize].to_vec();
+            i += SEEDS as usize;
             attempts.sort_by(|a, b| a.partial_cmp(b).unwrap());
-            eprintln!(
-                "  size {size} colors {colors}: median {:.0} (censored {censored})",
-                median(&attempts)
-            );
+            eprintln!("  size {size} colors {colors}: median {:.0}", median(&attempts));
             rows.push(format!(
-                "    {{\"size\": {size}, \"colors\": {colors}, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": {censored}, \"seeds\": {SEEDS}}}",
+                "    {{\"size\": {size}, \"colors\": {colors}, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": 0, \"seeds\": {SEEDS}}}",
                 median(&attempts),
                 attempts[0],
                 attempts[attempts.len() - 1]
@@ -90,31 +114,32 @@ fn main() {
     eprintln!("path comparison...");
     out.push_str("  \"paths\": [\n");
     let mut rows: Vec<String> = Vec::new();
+    let mut jobs: Vec<(&str, u32)> = Vec::new();
     for kind in eternity2_engine::PATH_KINDS {
-        let mut attempts: Vec<f64> = Vec::new();
-        let mut censored = 0u32;
         for seed in 1..=SEEDS {
-            let puzzle = generate(6, 6, seed);
-            let path = build_path(kind, 6, 6, 7).expect("path kind");
-            let mut solver = Solver::new(&puzzle, &path, true, false, 0).expect("solver");
-            let result = loop {
-                let r = solver.step(2_000_000);
-                if r.status == Status::Solved {
-                    break RunResult { nodes: r.nodes, solved: true };
-                }
-                if r.status == Status::Exhausted || r.nodes + r.backtracks >= WORK_CAP as f64 {
-                    break RunResult { nodes: r.nodes, solved: false };
-                }
-            };
-            if !result.solved {
-                censored += 1;
-            }
-            attempts.push(result.nodes);
+            jobs.push((kind, seed));
         }
+    }
+    let all = run_parallel(&jobs, |&(kind, seed)| {
+        let puzzle = generate(6, 6, seed);
+        let path = build_path(kind, 6, 6, 7).expect("path kind");
+        let mut solver = Solver::new(&puzzle, &path, true, false, 0).expect("solver");
+        loop {
+            let r = solver.step(10_000_000);
+            if r.status == Status::Solved {
+                break r.nodes;
+            }
+            assert!(r.status != Status::Exhausted);
+        }
+    });
+    let mut i = 0;
+    for kind in eternity2_engine::PATH_KINDS {
+        let mut attempts: Vec<f64> = all[i..i + SEEDS as usize].to_vec();
+        i += SEEDS as usize;
         attempts.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        eprintln!("  {kind}: median {:.0} (censored {censored})", median(&attempts));
+        eprintln!("  {kind}: median {:.0}", median(&attempts));
         rows.push(format!(
-            "    {{\"kind\": \"{kind}\", \"size\": 6, \"colors\": 6, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": {censored}, \"seeds\": {SEEDS}}}",
+            "    {{\"kind\": \"{kind}\", \"size\": 6, \"colors\": 6, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": 0, \"seeds\": {SEEDS}}}",
             median(&attempts),
             attempts[0],
             attempts[attempts.len() - 1]
