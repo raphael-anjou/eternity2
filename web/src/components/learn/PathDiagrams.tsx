@@ -23,12 +23,10 @@ function Diagram({ kind }: { kind: string }) {
   const cx = (c: number) => (c % N) * CELL + CELL / 2;
   const cy = (c: number) => Math.floor(c / N) * CELL + CELL / 2;
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex w-full flex-col items-center gap-1">
       <svg
         viewBox={`0 0 ${N * CELL} ${N * CELL}`}
-        width={N * CELL}
-        height={N * CELL}
-        className="rounded-md border bg-background"
+        className="aspect-square w-full max-w-[200px] rounded-md border bg-background"
       >
         <defs>
           <marker
@@ -83,7 +81,7 @@ export function PathDiagrams() {
   const engineReady = useEngine();
   if (!engineReady) return null;
   return (
-    <div className="mx-auto grid max-w-2xl grid-cols-3 justify-items-center gap-4">
+    <div className="mx-auto grid max-w-3xl grid-cols-2 justify-items-center gap-4 sm:grid-cols-4">
       {KINDS.map((k) => (
         <Diagram key={k} kind={k} />
       ))}
