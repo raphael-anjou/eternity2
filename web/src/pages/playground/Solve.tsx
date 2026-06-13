@@ -9,7 +9,6 @@ import { pageMeta } from "@/seo";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BoardSvg } from "@/components/board/BoardSvg";
-import { BucasActions } from "@/components/board/BucasActions";
 import { PieceSvg } from "@/components/board/PieceSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,12 +30,13 @@ const T = {
       "Drag pieces from the tray onto the board; drag them around the board or back to the tray to rearrange. Click a placed piece to rotate it; right-click to take it back. Grey edges go on the outside, and touching edges must match. The clock starts on your first move…",
     introTouch:
       "Tap a piece in the tray, then tap a square to place it. Tap a placed piece to rotate it; press and hold to take it back. Grey edges go on the outside, and touching edges must match. The clock starts on your first move…",
+    trayHintTouch: "Now tap a square to place it.",
     newPuzzle: "New puzzle",
     mistakes: (n: number) => (n === 1 ? "1 mistake" : `${n} mistakes`),
     loadingEngine: "Loading engine…",
     piecesLeft: (n: number) => `Pieces (${n} left)`,
     pieceTitle: (n: number) => `piece ${n}`,
-    trayHint: "Now click an empty square. (Pieces are placed unrotated; click again to rotate.)",
+    trayHint: "Now drag it onto the board. Pieces land unrotated — click a placed piece to rotate it.",
     solvedIn: (time: string) => `🎉 Solved in ${time}!`,
     machineSolved: (ms: string, attempts: string) => (
       <>
@@ -74,13 +74,14 @@ const T = {
       "Faites glisser les pièces de la réserve vers le plateau ; déplacez-les sur le plateau ou ramenez-les dans la réserve pour réorganiser. Cliquez sur une pièce posée pour la faire tourner ; clic droit pour la reprendre. Les côtés gris vont vers l'extérieur, et les côtés qui se touchent doivent correspondre. Le chrono démarre dès votre premier coup…",
     introTouch:
       "Touchez une pièce de la réserve, puis une case pour la poser. Touchez une pièce posée pour la faire tourner ; appuyez longuement pour la reprendre. Les côtés gris vont vers l'extérieur, et les côtés qui se touchent doivent correspondre. Le chrono démarre dès votre premier coup…",
+    trayHintTouch: "Touchez maintenant une case pour la poser.",
     newPuzzle: "Nouveau puzzle",
     mistakes: (n: number) => (n === 1 ? "1 erreur" : `${n} erreurs`),
     loadingEngine: "Chargement du moteur…",
     piecesLeft: (n: number) => `Pièces (${n} restante${n === 1 ? "" : "s"})`,
     pieceTitle: (n: number) => `pièce ${n}`,
     trayHint:
-      "Cliquez maintenant sur une case vide. (Les pièces sont posées sans rotation ; cliquez à nouveau pour les faire tourner.)",
+      "Faites-la maintenant glisser sur le plateau. Les pièces sont posées sans rotation — cliquez sur une pièce posée pour la faire tourner.",
     solvedIn: (time: string) => `🎉 Résolu en ${time} !`,
     machineSolved: (ms: string, attempts: string) => (
       <>
@@ -136,7 +137,11 @@ export default function Solve() {
   const longPress = useRef<{ timer: number; x: number; y: number } | null>(null);
   const [size, setSize] = useState(3);
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 100000));
-  const [board, setBoard] = useState<(Placement | null)[]>([]);
+  // Seed with a board sized to the initial `size`: the only thing that resizes
+  // it afterwards is reset(), which fills a fresh empty board itself. Without
+  // this the overlay grid maps over an empty array on first mount and renders
+  // zero drop targets, so drag-and-drop does nothing until you click a size.
+  const [board, setBoard] = useState<(Placement | null)[]>(() => Array(3 * 3).fill(null));
   const [selected, setSelected] = useState<number | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -463,13 +468,6 @@ export default function Solve() {
                 ))}
               </div>
             </div>
-            <div className="mt-2">
-              <BucasActions
-                puzzle={puzzle}
-                board={board.map((p) => (p ? p.piece * 4 + p.rot : -1))}
-                size="xs"
-              />
-            </div>
           </div>
 
           <div className="space-y-4">
@@ -516,7 +514,9 @@ export default function Solve() {
                   )}
                 </div>
                 {selected !== null && (
-                  <p className="mt-2 text-xs text-muted-foreground">{t.trayHint}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {coarsePointer ? t.trayHintTouch : t.trayHint}
+                  </p>
                 )}
               </CardContent>
             </Card>
