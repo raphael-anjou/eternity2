@@ -342,8 +342,8 @@ export default function Algorithms() {
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s1Title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{t.s1P1}</p>
-        <p className="text-sm leading-relaxed text-muted-foreground">{t.s1P2}</p>
+        <p className="text-base leading-relaxed text-muted-foreground">{t.s1P1}</p>
+        <p className="text-base leading-relaxed text-muted-foreground">{t.s1P2}</p>
         <DfsDemo />
         <Button variant="outline" size="sm" render={<Link to="/playground/watch" />}>
           {t.watchFullSpeed}
@@ -352,7 +352,7 @@ export default function Algorithms() {
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s2Title}</h2>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{t.s2P1}</p>
+        <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{t.s2P1}</p>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t.spaceChartTitle}</CardTitle>
@@ -374,7 +374,7 @@ export default function Algorithms() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <p className="max-w-3xl text-sm text-muted-foreground">{t.s2P2}</p>
+        <p className="max-w-3xl text-base text-muted-foreground">{t.s2P2}</p>
         <div className="space-y-2">
           <p className="text-sm font-medium">{t.zeroWallTitle}</p>
           <div className="w-full rounded-lg border bg-muted/30 p-4 font-mono text-[11px] leading-relaxed break-all text-muted-foreground select-all">
@@ -383,13 +383,13 @@ export default function Algorithms() {
           </div>
           <p className="text-xs text-muted-foreground">{t.zeroWallCaption}</p>
         </div>
-        <p className="max-w-3xl text-sm text-muted-foreground">{t.s2P3}</p>
+        <p className="max-w-3xl text-base text-muted-foreground">{t.s2P3}</p>
         <TimeToSolve />
       </section>
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s3Title}</h2>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
           {t.s3Intro(difficulty[0]?.seeds)}
         </p>
         <Card>
@@ -404,7 +404,8 @@ export default function Algorithms() {
                 <YAxis
                   scale="log"
                   domain={[10, 3e9]}
-                  ticks={[10, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9]}
+                  ticks={[100, 1e4, 1e6, 1e8, 1e9]}
+                  interval={0}
                   allowDataOverflow
                   width={70}
                   tickFormatter={(v) => formatCompact(Number(v))}
@@ -430,7 +431,7 @@ export default function Algorithms() {
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s4Title}</h2>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{t.s4P1}</p>
+        <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{t.s4P1}</p>
         <PathDiagrams />
         <Card>
           <CardHeader>
@@ -457,14 +458,14 @@ export default function Algorithms() {
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s5Title}</h2>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{t.s5P1}</p>
+        <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{t.s5P1}</p>
         <BinaryPlayground />
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{t.s5P2}</p>
+        <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{t.s5P2}</p>
       </section>
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.s6Title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{t.s6P1}</p>
+        <p className="text-base leading-relaxed text-muted-foreground">{t.s6P1}</p>
       </section>
     </div>
   );

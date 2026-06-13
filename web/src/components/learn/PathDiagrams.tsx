@@ -5,7 +5,16 @@ import { useMemo } from "react";
 import { useEngine } from "@/engine/useEngine";
 import { getPath } from "@/engine";
 
-const KINDS = ["row-major", "snake", "spiral-in", "diagonal", "border-first", "double-snake"];
+const KINDS = [
+  "row-major",
+  "column-major",
+  "snake",
+  "spiral-in",
+  "spiral-out",
+  "diagonal",
+  "border-first",
+  "double-snake",
+];
 const N = 5;
 const CELL = 40;
 
