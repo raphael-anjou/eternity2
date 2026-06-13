@@ -1,7 +1,9 @@
 import { pageMeta } from "@/seo";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { Download } from "lucide-react";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,6 +25,7 @@ import {
 import { useEngine } from "@/engine/useEngine";
 import { getOfficialPuzzle } from "@/engine";
 import { colorToLetter } from "@/lib/motifs";
+import { downloadPiecesZip } from "@/lib/pieceSvg";
 import { KNOWN_BOARDS } from "@/data/known-boards";
 import { rotateEdges } from "@/lib/types";
 import { useT } from "@/i18n";
@@ -158,6 +161,8 @@ const T = {
       </>
     ),
     showPieceSet: "Show the full piece set",
+    downloadPieces: "Download all as SVG (.zip)",
+    downloadingPieces: "Zipping…",
     cluesTitle: "The five official clues",
     cluesText1: (
       <>
@@ -368,6 +373,8 @@ const T = {
       </>
     ),
     showPieceSet: "Afficher le jeu de pièces complet",
+    downloadPieces: "Télécharger tout en SVG (.zip)",
+    downloadingPieces: "Compression…",
     cluesTitle: "Les cinq indices officiels",
     cluesText1: (
       <>
@@ -476,8 +483,23 @@ const T = {
 export default function PuzzlePage() {
   const engineReady = useEngine();
   const t = useT(T);
+  const [zipping, setZipping] = useState(false);
 
   const puzzle = useMemo(() => (engineReady ? getOfficialPuzzle() : null), [engineReady]);
+
+  const handleDownloadPieces = () => {
+    if (!puzzle) return;
+    setZipping(true);
+    // Defer so the button's disabled/label state paints before the (brief,
+    // synchronous) zip of 256 SVGs blocks the main thread.
+    setTimeout(() => {
+      try {
+        downloadPiecesZip(puzzle.pieces);
+      } finally {
+        setZipping(false);
+      }
+    }, 0);
+  };
 
   const colorStats = useMemo(() => {
     if (!puzzle) return null;
@@ -584,6 +606,18 @@ export default function PuzzlePage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">{t.allPiecesTitle}</h2>
         <p className="max-w-3xl text-sm text-muted-foreground">{t.allPiecesText}</p>
+        {puzzle && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPieces}
+            disabled={zipping}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {zipping ? t.downloadingPieces : t.downloadPieces}
+          </Button>
+        )}
         {puzzle && (
           <Accordion>
             <AccordionItem value="pieces">
