@@ -13,10 +13,13 @@ const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
 
 export function meta() {
   // Site-wide defaults; individual routes override title/description.
-  // NOTE: charset is set as a literal <meta charSet> in Layout's <head>, not
-  // here — the descriptor form does not reliably reach the prerendered HTML.
+  // NOTE: charset AND viewport are emitted as literal <meta> tags in Layout's
+  // <head>, not here — the descriptor form does not reliably reach the
+  // prerendered HTML (ssr:false + prerender silently drops them). A MISSING
+  // viewport is why the desktop site renders correct-but-tiny on phones:
+  // without it, mobile browsers assume a ~980px layout viewport and zoom the
+  // whole page out to fit. See the literal <meta name="viewport"> below.
   return [
-    { name: "viewport", content: "width=device-width, initial-scale=1.0" },
     { property: "og:type", content: "website" },
     { property: "og:image", content: "https://eternity2.dev/og.png" },
     { name: "twitter:card", content: "summary_large_image" },
@@ -47,6 +50,12 @@ export function Layout({ children }: { children: ReactNode }) {
             which then mismatches the UTF-8-decoding client and breaks
             hydration. */}
         <meta charSet="utf-8" />
+        {/* viewport MUST be a literal tag for the same reason as charSet above:
+            React Router's <Meta> descriptor form is dropped from the prerendered
+            HTML under ssr:false. Without this tag mobile browsers fall back to a
+            ~980px layout viewport and render the desktop layout zoomed-out tiny.
+            viewport-fit=cover lets content extend under iOS notch/home-bar. */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <Meta />
         <Links />
         <link rel="canonical" href={absoluteUrl(pathname)} />
