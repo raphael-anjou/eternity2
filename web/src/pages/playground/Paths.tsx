@@ -369,7 +369,9 @@ export default function Paths() {
           <div className="flex flex-wrap items-center gap-2">
             <Select value={String(size)} onValueChange={(v) => v && setSize(parseInt(v, 10))}>
               <SelectTrigger className="w-24">
-                <SelectValue />
+                {/* Show the closed selector as "Y×Y", matching the menu items
+                    (SelectValue alone would render the bare value, e.g. "6"). */}
+                <SelectValue>{`${size}×${size}`}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {GRID_SIZES.map((s) => (
