@@ -269,97 +269,98 @@ const T = {
     title: "Le Puzzle",
     intro: (
       <>
-        Eternity II est un <strong>puzzle d'appariement de côtés</strong> : 256 pièces carrées
-        sur un plateau de 16×16. Partout où deux pièces se touchent, leurs demi-dessins doivent
-        former le même motif ; le bord du plateau doit rester gris. C'est toute la règle. Le jeu
-        tient sur une table basse, et il résiste à tous les humains et à toutes les machines
-        depuis 2007.
+        Eternity II est un <strong>puzzle d'appariement de côtés</strong> : 256 pièces carrées à
+        ranger sur un plateau de 16×16. La consigne tient en une phrase. Partout où deux pièces se
+        touchent, leurs demi-dessins doivent composer le même motif, et tout le pourtour du
+        plateau doit rester gris. Voilà toute la règle. Le jeu tient sur une table basse, et
+        pourtant il tient tête à tous les cerveaux humains comme à toutes les machines depuis 2007.
       </>
     ),
     historyTitle: "Une revanche à deux millions de dollars",
     timeline: [
       {
         year: "1999",
-        title: "Eternity I est lancé",
-        text: "Christopher Monckton lance un puzzle d'assemblage de 209 pièces doté d'un prix de 1 000 000 £, convaincu qu'il tiendra des années.",
+        title: "Eternity I voit le jour",
+        text: "Christopher Monckton met sur le marché un puzzle de pavage à 209 pièces, assorti d'un prix de 1 000 000 £. Il est persuadé que personne ne le résoudra avant des années.",
       },
       {
         year: "2000",
-        title: "…et tombe en 18 mois",
-        text: "Les mathématiciens de Cambridge Alex Selby et Oliver Riordan empochent le million. Ils n'ont pas cherché plus vite que tout le monde : ils ont été plus malins que le puzzle, en prouvant qu'il avait bien plus de solutions que prévu et en guidant leurs ordinateurs vers les plus faciles.",
+        title: "…et tombe en dix-huit mois",
+        text: "Deux mathématiciens de Cambridge, Alex Selby et Oliver Riordan, raflent le million. Leur secret n'est pas d'avoir cherché plus vite que les autres, mais d'avoir déjoué le puzzle lui-même : ils démontrent qu'il cache bien plus de solutions que prévu, puis aiguillent leurs ordinateurs droit vers les plus accessibles.",
       },
       {
         year: "2005–2007",
-        title: "Préparer la revanche",
-        text: "Pour la suite, Monckton recrute ceux-là mêmes qui l'ont battu. Selby et Riordan testent par ordinateur les designs candidats, pour que le nouveau puzzle résiste à toutes les astuces qui ont fait tomber Eternity I : une solution construite d'avance, des motifs en quantités équilibrées, et aucune structure statistique exploitable.",
+        title: "L'art de préparer sa revanche",
+        text: "Pour la suite, Monckton va chercher ceux-là mêmes qui l'ont humilié. Selby et Riordan passent au crible, ordinateur à l'appui, des dizaines de maquettes, jusqu'à obtenir un puzzle imperméable à toutes les astuces qui avaient eu raison d'Eternity I : une solution dessinée à l'avance, des motifs distribués en quantités soigneusement équilibrées, et plus la moindre régularité statistique à exploiter.",
       },
       {
         year: "Juillet 2007",
-        title: "Eternity II sort dans le monde entier",
-        text: "256 pièces, 22 motifs de côté, édité par Tomy. À la clé : 2 000 000 $ pour la première solution complète. Deux petits « puzzles indices » vendus à part révèlent chacun le placement d'une pièce.",
+        title: "Eternity II débarque dans le monde entier",
+        text: "256 pièces, 22 motifs de côté, le tout édité par Tomy. À la clé : 2 millions de dollars pour la première solution complète. Deux petits « puzzles indices », vendus séparément, dévoilent chacun la place d'une pièce.",
       },
       {
         year: "2008",
         title: "Meilleur score partiel : 467 / 480",
-        text: "Au premier examen officiel des candidatures, l'équipe de Louis Verhaard, de Lund en Suède, détient la meilleure solution partielle, 467 côtés appariés sur 480, et remporte le prix de consolation de 10 000 $.",
+        text: "Lors du premier examen officiel des candidatures, c'est l'équipe de Louis Verhaard, à Lund en Suède, qui tient la meilleure solution partielle : 467 côtés appariés sur 480. De quoi décrocher le prix de consolation de 10 000 dollars.",
       },
       {
         year: "31 décembre 2010",
-        title: "Le prix expire sans vainqueur",
-        text: "Personne ne soumet jamais de solution complète. Les 2 000 000 $ ne sont jamais versés. Le puzzle disparaît discrètement des rayons, et devient une légende.",
+        title: "Le prix expire, sans vainqueur",
+        text: "Personne n'aura jamais rendu de solution complète. Les 2 millions de dollars resteront dans les caisses. Le puzzle s'efface discrètement des rayons et entre dans la légende.",
       },
       {
-        year: "Années 2010 à aujourd'hui",
-        title: "La communauté continue de grimper",
-        text: "Des passionnés équipés de machines modernes poussent le record à 468, puis 469 (Joshua Blackwood & Patrick McGavin, 2020), puis 470 (Joshua Blackwood). Dix côtés séparent encore l'humanité du 480.",
+        year: "Des années 2010 à aujourd'hui",
+        title: "La communauté grignote, score après score",
+        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Patrick McGavin, en 2020), puis 470 (Joshua Blackwood). Il ne manque plus que dix côtés pour atteindre le mythique 480.",
       },
     ],
     anatomyTitle: "Anatomie du jeu de pièces",
     cornerCard: (
       <>
-        <strong className="text-foreground">pièces de coin</strong> : deux côtés gris. Chacune se
-        loge dans un coin du plateau, dans une seule orientation possible.
+        <strong className="text-foreground">pièces de coin</strong> : deux côtés gris. Chacune ne
+        trouve sa place que dans un coin du plateau, et dans une seule orientation.
       </>
     ),
     borderCard: (
       <>
-        <strong className="text-foreground">pièces de bord</strong> : un côté gris, obligées de
-        se placer sur le bord, le gris tourné vers l'extérieur.
+        <strong className="text-foreground">pièces de bord</strong> : un seul côté gris, qui les
+        condamne au pourtour, le gris tourné vers l'extérieur.
       </>
     ),
     interiorCard: (
       <>
         <strong className="text-foreground">pièces intérieures</strong> : quatre côtés colorés,
-        quatre rotations possibles chacune. C'est ici que vit l'explosion combinatoire.
+        et quatre rotations possibles chacune. C'est là que l'explosion combinatoire se déchaîne.
       </>
     ),
     edgePairs: (
       <>
-        Un plateau complet compte <strong>480 paires de côtés intérieurs</strong> à apparier
-        (2·16·16 − 16 − 16). « Score 467 » signifie que 467 de ces 480 paires correspondent.
-        Aucune pièce du jeu n'est identique à une autre, et aucune n'est symétrique par
-        rotation : les concepteurs ont veillé à ce que chaque pièce soit vraiment unique.
+        Un plateau complet, ce sont <strong>480 paires de côtés intérieurs</strong> à faire
+        coïncider (2·16·16 − 16 − 16). Un « score de 467 » veut donc dire que 467 de ces 480
+        paires tombent juste. Détail crucial : dans tout le jeu, pas deux pièces ne sont
+        identiques, et aucune n'est symétrique par rotation. Les concepteurs ont tout fait pour
+        que chacune soit absolument unique.
       </>
     ),
     motifsTitle: "Les 22 motifs (et un gris)",
     pieceAnatomyText: (
       <>
         Une pièce, ce sont <strong>quatre motifs triangulaires</strong> (haut, droite, bas,
-        gauche) qui se rejoignent au centre (ici : la célèbre pièce de l'indice central, la
-        n°139). Un motif est donc toujours un <em>demi</em>-dessin : le dessin complet
-        n'apparaît que lorsque deux pièces se rencontrent et que leurs triangles se complètent.
-        C'est cela, « apparier un côté ».
+        gauche) qui se retrouvent en son centre (ici, la fameuse pièce de l'indice central, la
+        n°139). Chaque motif n'est donc jamais qu'un <em>demi</em>-dessin : le dessin entier ne
+        se révèle que lorsque deux pièces se rejoignent et que leurs triangles s'emboîtent. Voilà
+        ce que veut dire « apparier un côté ».
       </>
     ),
     motifDistribution: (
       <>
-        Chaque côté porte l'un des 22 motifs, plus le gris pour le pourtour. Leur répartition n'a
-        rien d'un hasard : comptez-les et vous découvrez une signature voulue : cinq{" "}
-        <strong>motifs rares</strong> n'apparaissent que 24 fois chacun, et uniquement sur le
-        cadre (les jonctions entre pièces de bord) ; cinq apparaissent 48 fois ; les douze
-        restants, 50 fois. Tous les comptes sont pairs, car chaque côté de la solution cachée
-        fait partie d'une paire appariée. Dans la notation de la communauté, chaque motif reçoit
-        une lettre (le format d'URL de e2.bucas.name).
+        Chaque côté arbore l'un des 22 motifs, auxquels s'ajoute le gris du pourtour. Et leur
+        répartition ne doit rien au hasard : faites le compte, et une signature délibérée se
+        dessine. Cinq <strong>motifs rares</strong> ne reviennent que 24 fois chacun, et
+        uniquement sur le cadre, là où deux pièces de bord se touchent ; cinq autres reviennent 48
+        fois ; les douze derniers, 50 fois. Tous ces totaux sont pairs, et pour cause : dans la
+        solution cachée, chaque côté est forcément moitié d'une paire appariée. Côté communauté,
+        chaque motif se voit attribuer une lettre (c'est le format d'URL de e2.bucas.name).
       </>
     ),
     rareFrameBadge: "rare · cadre",
@@ -368,30 +369,31 @@ const T = {
     allPiecesTitle: "Les 256 pièces",
     allPiecesText: (
       <>
-        Le jeu officiel complet, par numéro de pièce (1–256), dans son orientation de référence
-        (rotation 0°). Vous pouvez aussi disposer les pièces sur un plateau dans le{" "}
+        Voici le jeu officiel au complet, rangé par numéro de pièce (1–256) et présenté dans son
+        orientation de référence (rotation 0°). Envie de les poser vous-même sur un plateau ?
+        Direction le{" "}
         <Link className="underline" to="/viewer">Visualiseur</Link>.
       </>
     ),
     showPieceSet: "Afficher le jeu de pièces complet",
-    downloadPieces: "Télécharger tout en SVG (.zip)",
+    downloadPieces: "Tout télécharger en SVG (.zip)",
     downloadingPieces: "Compression…",
     cluesTitle: "Les cinq indices officiels",
     cluesText1: (
       <>
-        La règle du jeu impose une pièce, <strong>la pièce 139 sur la case I8</strong>, et Tomy a
-        vendu deux petits « puzzles indices » qui révélaient chacun un placement de plus, suivis
-        de deux autres publiés plus tard. Un plateau qui respecte les cinq est dit{" "}
-        <strong>strict-canonique</strong> ; la plupart des plateaux records ne respectent que
-        l'indice central obligatoire, c'est pourquoi le « meilleur avec tous les indices » (460)
-        reste derrière le record libre (470).
+        La règle du jeu fige d'office une pièce, <strong>la pièce 139 sur la case I8</strong>.
+        Tomy a par ailleurs commercialisé deux petits « puzzles indices », qui dévoilaient chacun
+        un placement supplémentaire, et deux autres indices ont suivi plus tard. Un plateau qui
+        respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
+        records se contentent du seul indice central obligatoire, le « meilleur résultat tous
+        indices respectés » (460) reste en deçà du record libre (470).
       </>
     ),
     cluesText2: (
       <>
-        Les pièces ci-dessous sont montrées <strong>telles que placées sur le plateau</strong>,
-        déjà tournées selon la rotation de leur indice (indiquée sous chaque pièce). À 0°, une
-        pièce est orientée exactement comme dans la liste officielle des pièces.
+        Les pièces ci-dessous apparaissent <strong>telles qu'elles se posent sur le plateau</strong>,
+        déjà pivotées selon la rotation de leur indice (notée sous chaque pièce). À 0°, une pièce
+        est orientée exactement comme dans la liste officielle.
       </>
     ),
     pieceLabel: (n: number) => `pièce ${n}`,
@@ -423,7 +425,7 @@ const T = {
       {
         score: "467 / 480",
         who: "L'équipe de Louis Verhaard, 2008",
-        notes: "a remporté le prix de 10 000 $ pour la meilleure solution partielle" as ReactNode,
+        notes: "prix de 10 000 $ pour la meilleure solution partielle" as ReactNode,
         viewId: "Louis_Verhaard_467" as string | null,
       },
       {
@@ -438,7 +440,7 @@ const T = {
       },
     ],
     viewLabel: "voir",
-    complexityTitle: "Pourquoi la force brute n'a aucune chance",
+    complexityTitle: "Pourquoi la force brute est vouée à l'échec",
     bigNumber: (
       <>
         ~10<sup>560</sup>
@@ -446,9 +448,9 @@ const T = {
     ),
     bigNumberText: (
       <>
-        façons d'arranger les pièces, même en exploitant le fait que les coins et les bords sont
-        forcés dans leurs zones (4! · 56! · 196! · 4<sup>196</sup>). Écrire ce nombre en entier
-        demande 560 chiffres.
+        façons d'agencer les pièces, et ce alors même qu'on tire déjà parti du fait que coins et
+        bords sont cantonnés à leurs zones (4! · 56! · 196! · 4<sup>196</sup>). Pour écrire ce
+        nombre en toutes lettres, il faut aligner 560 chiffres.
       </>
     ),
     universeAges: (
@@ -458,10 +460,11 @@ const T = {
     ),
     universeText: (
       <>
-        Donnez à chaque atome de l'univers observable (10<sup>80</sup>) un milliard de plateaux
-        par seconde depuis le Big Bang : vous couvrez environ 10<sup>106</sup> plateaux. Le
-        fossé n'est pas du genre « il faudrait un plus gros ordinateur ». C'est un impossible
-        d'une autre nature : les solveurs doivent être <em>malins</em>, pas rapides. Voir{" "}
+        Confiez à chacun des atomes de l'univers observable (10<sup>80</sup>) la tâche d'essayer
+        un milliard de plateaux par seconde depuis le Big Bang : vous n'en explorerez qu'environ
+        10<sup>106</sup>. Le problème n'est donc pas qu'« il faudrait une plus grosse machine ».
+        On a affaire à un impossible d'un tout autre genre : pour avancer, un solveur doit être{" "}
+        <em>malin</em>, pas rapide. Voir{" "}
         <Link className="underline" to="/algorithms">
           Algorithmes
         </Link>
@@ -470,12 +473,12 @@ const T = {
     ),
     npComplete: (
       <>
-        Formellement, les puzzles d'appariement de côtés sont <strong>NP-complets</strong>{" "}
-        (Demaine & Demaine, 2007) ; ils appartiennent à la famille des problèmes pour lesquels
-        on ne connaît aucun algorithme général efficace. Eternity II est largement considéré
-        comme l'une des instances les plus difficiles jamais mises en boîte. Les méthodes
-        astucieuses qui avaient fait tomber Eternity I ont été spécifiquement neutralisées par
-        les concepteurs : voir <Link className="underline" to="/research">Recherche</Link>.
+        En termes mathématiques, les puzzles d'appariement de côtés sont{" "}
+        <strong>NP-complets</strong> (Demaine et Demaine, 2007) : ils font partie de ces problèmes
+        pour lesquels on ne connaît aucun algorithme général efficace. Beaucoup voient en Eternity
+        II l'une des instances les plus coriaces jamais glissées dans une boîte de jeu. Quant aux
+        astuces qui avaient eu raison d'Eternity I, ses concepteurs les ont méthodiquement
+        désamorcées : voir <Link className="underline" to="/research">Recherche</Link>.
       </>
     ),
   },

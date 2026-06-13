@@ -69,11 +69,11 @@ const T = {
     racing: "Racing the machine…",
   },
   fr: {
-    title: "Résolvez-le vous-même",
+    title: "À vous de jouer",
     intro:
-      "Faites glisser les pièces de la réserve vers le plateau ; déplacez-les sur le plateau ou ramenez-les dans la réserve pour réorganiser. Cliquez sur une pièce posée pour la faire tourner ; clic droit pour la reprendre. Les côtés gris vont vers l'extérieur, et les côtés qui se touchent doivent correspondre. Le chrono démarre dès votre premier coup…",
+      "Glissez les pièces de la réserve vers le plateau ; déplacez-les sur le plateau ou ramenez-les dans la réserve pour les réorganiser. Cliquez sur une pièce posée pour la faire pivoter ; faites un clic droit pour la retirer. Les côtés gris se placent à l'extérieur, et deux côtés qui se touchent doivent correspondre. Le chrono se lance dès votre premier coup…",
     introTouch:
-      "Touchez une pièce de la réserve, puis une case pour la poser. Touchez une pièce posée pour la faire tourner ; appuyez longuement pour la reprendre. Les côtés gris vont vers l'extérieur, et les côtés qui se touchent doivent correspondre. Le chrono démarre dès votre premier coup…",
+      "Touchez une pièce dans la réserve, puis une case pour la poser. Touchez une pièce posée pour la faire pivoter ; appuyez longuement pour la retirer. Les côtés gris se placent à l'extérieur, et deux côtés qui se touchent doivent correspondre. Le chrono se lance dès votre premier coup…",
     trayHintTouch: "Touchez maintenant une case pour la poser.",
     newPuzzle: "Nouveau puzzle",
     mistakes: (n: number) => (n === 1 ? "1 erreur" : `${n} erreurs`),
@@ -81,37 +81,37 @@ const T = {
     piecesLeft: (n: number) => `Pièces (${n} restante${n === 1 ? "" : "s"})`,
     pieceTitle: (n: number) => `pièce ${n}`,
     trayHint:
-      "Faites-la maintenant glisser sur le plateau. Les pièces sont posées sans rotation — cliquez sur une pièce posée pour la faire tourner.",
+      "Glissez-la maintenant sur le plateau. Les pièces se posent sans rotation — cliquez sur une pièce posée pour la faire pivoter.",
     solvedIn: (time: string) => `🎉 Résolu en ${time} !`,
     machineSolved: (ms: string, attempts: string) => (
       <>
-        L'ordinateur a résolu le même puzzle en <strong>{ms} ms</strong> ({attempts} nœuds
-        explorés).
+        L'ordinateur a résolu le même puzzle en <strong>{ms} ms</strong> (en explorant {attempts}{" "}
+        nœuds).
       </>
     ),
     couldHave: (times: string) => (
       <>
-        Pendant que vous jouiez, il aurait eu le temps de résoudre ce puzzle environ{" "}
+        Pendant que vous jouiez, il aurait eu le temps de le résoudre environ{" "}
         <strong className="text-lg">{times} fois</strong>.
       </>
     ),
     beforeSecondPiece: (
       <>
-        Il a résolu le puzzle entier{" "}
+        Il avait terminé le puzzle{" "}
         <strong>avant même que vous ayez posé votre deuxième pièce</strong>.
       </>
     ),
     exponential: (
       <>
-        Et pourtant personne, ni humain ni machine, n'a jamais résolu la version 16×16. C'est
-        la magie de la croissance exponentielle. Voir{" "}
+        Et pourtant, personne — ni humain ni machine — n'a jamais résolu la version 16×16. Toute la
+        magie de la croissance exponentielle est là. Voir{" "}
         <Link className="underline" to="/algorithms">
           Algorithmes
         </Link>
         .
       </>
     ),
-    racing: "Course contre la machine…",
+    racing: "La machine s'élance…",
   },
 };
 
@@ -276,7 +276,6 @@ export default function Solve() {
       }
       solverMs += performance.now() - frameStart;
       if (r.status !== "running" || solverMs >= 5000) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (r.status === "solved") setMachine({ ms: solverMs, attempts: r.nodes });
         return; // solver freed by the cleanup below
       }

@@ -129,53 +129,54 @@ const T = {
     heroTitleAccent: "tout le monde.",
     heroLede: (
       <>
-        Eternity II ressemble à un puzzle pour enfants : 256 pièces carrées, il suffit de faire
-        correspondre les couleurs. Lancé en 2007 avec un prix de{" "}
-        <strong>2 millions de dollars</strong>, il n'a jamais été résolu : ni par les humains, ni
-        par les superordinateurs. Ce site vous fait <em>ressentir</em> pourquoi, directement dans
-        votre navigateur.
+        Eternity II a tout d'un puzzle pour enfants : 256 pièces carrées, et des couleurs à faire
+        coïncider. Lancé en 2007, doté d'un prix de{" "}
+        <strong>2 millions de dollars</strong>, il n'a pourtant jamais été résolu : ni par l'homme,
+        ni par les superordinateurs. Ce site vous fait <em>toucher du doigt</em> pourquoi, sans rien
+        installer.
       </>
     ),
     ctaPlayground: "Essayer l'aire de jeu",
     ctaPuzzle: "C'est quoi, Eternity II ?",
     heroCaption:
-      "← ce plateau est un vrai solveur en direct : il repart sur un nouveau puzzle à chaque victoire. En 16×16, il ne finirait pas avant que les étoiles ne s'éteignent.",
+      "← ce plateau est un vrai solveur en action : à chaque victoire, il repart sur un puzzle tout neuf. En 16×16, il n'aurait pas terminé que les étoiles se seraient déjà éteintes.",
     cards: [
       {
         to: "/puzzle",
         title: "Le Puzzle",
-        text: "256 pièces, 22 motifs, un prix de 2 millions de dollars que personne n'a jamais remporté. Toute l'histoire et l'anatomie d'Eternity II.",
+        text: "256 pièces, 22 motifs et un prix de 2 millions de dollars jamais réclamé. Toute l'histoire et l'anatomie d'Eternity II.",
       },
       {
         to: "/playground",
         title: "Aire de jeu",
-        text: "Résolvez vous-même un petit puzzle, regardez un vrai solveur tourner à un million d'étapes par seconde, ou dessinez son chemin de parcours.",
+        text: "Résolvez un petit puzzle à la main, regardez un vrai solveur filer à un million d'étapes par seconde, ou tracez vous-même son parcours.",
       },
       {
         to: "/algorithms",
         title: "Algorithmes",
-        text: "Retour en arrière (backtracking), astuces binaires et murs exponentiels : comment les informaticiens s'attaquent vraiment au puzzle, le tout expliqué à partir de zéro.",
+        text: "Retour en arrière (backtracking), astuces binaires et murs exponentiels : comment les informaticiens s'y prennent réellement face au puzzle. Tout est expliqué depuis le début.",
       },
       {
         to: "/viewer",
         title: "Visualiseur",
-        text: "Affichez et partagez n'importe quel plateau. Entièrement compatible avec les liens e2.bucas.name, y compris les célèbres plateaux records à 467, 469 et 470 côtés appariés.",
+        text: "Affichez et partagez n'importe quel plateau. Pleinement compatible avec les liens e2.bucas.name, jusqu'aux célèbres plateaux records de 467, 469 et 470 côtés appariés.",
       },
       {
         to: "/research",
         title: "Recherche",
-        text: "Articles scientifiques, records de la communauté, les coulisses du solveur, et un carnet de laboratoire ouvert sur les tentatives d'atteindre les 480.",
+        text: "Articles scientifiques, records de la communauté, dessous techniques du solveur, et un carnet de laboratoire ouvert sur la quête des 480 côtés appariés.",
       },
     ],
     classroomTitle: "Pour les classes",
     classroomText: (
       <>
-        Conçu pour{" "}
+        Pensé pour{" "}
         <a className="underline" href="https://terra-numerica.org" target="_blank" rel="noreferrer">
           Terra Numerica
         </a>
-        : une façon concrète de découvrir l'explosion combinatoire, les algorithmes, et pourquoi
-        un jeu « tout simple » peut être « incroyablement difficile ». Aucun prérequis.
+        : une manière concrète d'aborder l'explosion combinatoire et les algorithmes, et de
+        comprendre pourquoi un jeu « tout simple » peut se révéler « impossiblement difficile ».
+        Aucun prérequis.
       </>
     ),
   },

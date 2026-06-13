@@ -53,21 +53,21 @@ const T = {
         Combien de temps faudrait-il à <em>votre</em> ordinateur pour tout essayer ?
       </>
     ),
-    measuring: "Mesure de votre machine…",
+    measuring: "Test de votre machine en cours…",
     measured: (rate: string) => (
       <>
-        Votre navigateur vient de mesurer sa propre vitesse :{" "}
+        Votre navigateur vient de jauger sa propre vitesse :{" "}
         <strong className="text-foreground">{rate} nœuds par seconde</strong>.
-        À ce rythme, essayer tous les arrangements un par un (après les déductions
-        coins/bords) prendrait :
+        À ce rythme, passer en revue toutes les dispositions une à une (une fois les coins
+        et les bords déduits) prendrait :
       </>
     ),
     note: (
       <>
-        (Les vrais solveurs n'essaient pas <em>tout</em> : le retour en arrière abandonne
-        très tôt les branches condamnées, et c'est pourquoi les petits plateaux sont résolus
-        instantanément. Mais le mur recule à peine : même la recherche la plus maligne connue
-        s'effondre bien avant le 16×16.)
+        (Les vrais solveurs n'essaient pas <em>tout</em> : le retour en arrière (backtracking)
+        abandonne au plus tôt les branches sans issue, et c'est pour ça que les petits plateaux se
+        résolvent en un clin d'œil. Mais le mur ne recule que d'un cheveu : même la recherche
+        la plus astucieuse que l'on connaisse rend l'âme bien avant d'atteindre le 16×16.)
       </>
     ),
     units: {

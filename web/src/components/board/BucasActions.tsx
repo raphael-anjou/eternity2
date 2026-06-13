@@ -15,7 +15,7 @@ const T = {
   },
   fr: {
     copied: "Copié !",
-    copyLink: "Copier le lien e2.bucas.name",
+    copyLink: "Copier le lien vers e2.bucas.name",
     open: "ouvrir ↗",
   },
 };

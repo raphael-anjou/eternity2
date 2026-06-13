@@ -35,11 +35,11 @@ const T = {
     ],
     engineReady: "moteur prêt",
     engineLoading: "chargement du moteur",
-    engineFailed: "échec du moteur",
-    engineTitle: "Moteur Rust compilé en WebAssembly, qui tourne dans votre navigateur",
+    engineFailed: "moteur en échec",
+    engineTitle: "Moteur Rust compilé en WebAssembly, exécuté directement dans votre navigateur",
     footer:
-      "Open source (MIT, motifs graphiques GPL-3.0). Tout tourne dans votre navigateur. Il n'y a aucun serveur.",
-    builtBy: "Créé par Raphaël Anjou.",
+      "Logiciel libre (MIT, motifs sous licence GPL-3.0). Tout se passe dans votre navigateur : aucun serveur n'est sollicité.",
+    builtBy: "Réalisé par Raphaël Anjou.",
     sourceCode: "Code source sur GitHub",
   },
 };

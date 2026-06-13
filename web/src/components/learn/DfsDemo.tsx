@@ -44,7 +44,7 @@ const T = {
       "The red square is where the solver is working. Watch what happens when no piece fits: it un-places the previous piece and continues from there. That undo is the whole secret of backtracking.",
   },
   fr: {
-    title: "Le retour en arrière sur un 3×3, au ralenti",
+    title: "Le retour en arrière (backtracking) sur un 3×3, au ralenti",
     pause: "Pause",
     play: "Lecture",
     back: "◀ Reculer",
@@ -52,18 +52,18 @@ const T = {
     restart: "Recommencer",
     loading: "Chargement du moteur…",
     stepCounter: (i: number, n: number) => `étape ${i} / ${n}`,
-    fresh: "Un plateau vierge. Premier arrêt : la case en haut à gauche.",
+    fresh: "Un plateau vierge. On commence par la case en haut à gauche.",
     solved: (nodes: number, backtracks: number) =>
       `Résolu ! ${nodes} placements, ${backtracks} retours en arrière. On recommence…`,
     deadEnd:
-      "Rien ne convient ici. Impasse : on retire la pièce précédente et on essaie son option suivante.",
+      "Rien ne convient ici : c'est une impasse. On retire alors la dernière pièce posée et on tente l'option suivante.",
     placed: (tries: number) =>
-      `Une pièce convient (trouvée après ${tries} test${tries > 1 ? "s" : ""} de compatibilité). Direction la case suivante.`,
+      `Une pièce convient (trouvée au bout de ${tries} essai${tries > 1 ? "s" : ""}). Et on passe à la case suivante.`,
     supplyTitle: "Réserve de pièces",
     supplyHint:
-      "En vert : pourrait être posée sur la case rouge en ce moment. Estompée : déjà sur le plateau.",
+      "En vert : les pièces que l'on pourrait poser sur la case rouge à cet instant. En estompé : celles déjà sur le plateau.",
     footer:
-      "La case rouge indique où le solveur travaille. Observez ce qui se passe quand aucune pièce ne convient : il retire la pièce précédente et repart de là. Cette annulation, c'est tout le secret du retour en arrière.",
+      "La case rouge, c'est là où le solveur travaille. Regardez bien ce qui se passe quand plus aucune pièce ne convient : il défait la dernière pièce posée et repart de là. Ce simple retour en arrière, c'est tout le principe du backtracking.",
   },
 };
 
