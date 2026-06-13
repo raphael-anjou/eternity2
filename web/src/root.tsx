@@ -2,8 +2,7 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from "re
 import type { ReactNode } from "react";
 import "./index.css";
 import { LangProvider, langFromPath, pathForLang } from "@/i18n";
-
-const SITE = "https://eternity2.dev";
+import { absoluteUrl } from "@/site";
 
 // The document shell (formerly index.html). React Router injects <Meta> and
 // <Links> from the route module `meta`/`links` exports, and <Scripts> boots
@@ -41,10 +40,10 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <Meta />
         <Links />
-        <link rel="canonical" href={SITE + pathname} />
-        <link rel="alternate" hrefLang="en" href={SITE + enPath} />
-        <link rel="alternate" hrefLang="fr" href={SITE + frPath} />
-        <link rel="alternate" hrefLang="x-default" href={SITE + enPath} />
+        <link rel="canonical" href={absoluteUrl(pathname)} />
+        <link rel="alternate" hrefLang="en" href={absoluteUrl(enPath)} />
+        <link rel="alternate" hrefLang="fr" href={absoluteUrl(frPath)} />
+        <link rel="alternate" hrefLang="x-default" href={absoluteUrl(enPath)} />
         {/* Google Analytics (GA4). Injected only when a valid measurement ID
             is present at build time; inert on local dev and forks. The router
             sends page views (see layout.tsx) because automatic ones would not

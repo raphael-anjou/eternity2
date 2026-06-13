@@ -4,6 +4,7 @@
 
 import type { Lang } from "@/i18n";
 import { langFromPath } from "@/i18n";
+import { absoluteUrl } from "@/site";
 
 type Entry = { title: string; description: string };
 
@@ -120,8 +121,6 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   },
 };
 
-const SITE = "https://eternity2.dev";
-
 /**
  * Build a React Router `meta` descriptor list for a page. `pageKey` matches a
  * PAGES entry; the language comes from the URL of the page being prerendered.
@@ -135,7 +134,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
       { name: "description", content: entry.description },
       { property: "og:title", content: entry.title },
       { property: "og:description", content: entry.description },
-      { property: "og:url", content: SITE + location.pathname },
+      { property: "og:url", content: absoluteUrl(location.pathname) },
     ];
   };
 }

@@ -23,6 +23,14 @@ RUN wasm-pack build --target web --out-dir /out/pkg --release
 FROM node:22-slim AS web
 RUN corepack enable
 WORKDIR /src/web
+# Optional: serve under a path prefix and/or a non-default public origin.
+#   docker build --build-arg BASE_PATH=/eternity2 \
+#                --build-arg VITE_SITE_ORIGIN=https://www.terra-numerica.fr .
+# Default (empty) builds for a domain root at https://eternity2.dev.
+ARG BASE_PATH=""
+ARG VITE_SITE_ORIGIN=""
+ENV BASE_PATH=$BASE_PATH
+ENV VITE_SITE_ORIGIN=$VITE_SITE_ORIGIN
 COPY web/package.json web/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY web/ .
