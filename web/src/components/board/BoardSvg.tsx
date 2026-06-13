@@ -25,6 +25,8 @@ export interface BoardSvgProps {
   onCellDrop?: (pos: number, data: string) => void;
   /** Extra SVG painted above the pieces (path arrows, ranks…). */
   overlay?: ReactNode;
+  /** Show A,B,C… row labels on the left and 1,2,3… column labels on top. */
+  coordinates?: boolean;
   className?: string;
 }
 
@@ -69,16 +71,47 @@ export const BoardSvg = memo(function BoardSvg({
   onCellClick,
   onCellDrop,
   overlay,
+  coordinates,
   className,
 }: BoardSvgProps) {
   const W = width * CELL;
   const H = height * CELL;
+  // Gutter reserved for the A,B,C / 1,2,3 labels when coordinates are on.
+  const G = coordinates ? CELL * 0.6 : 0;
   return (
     <svg
-      viewBox={`-6 -6 ${W + 12} ${H + 12}`}
+      viewBox={`${-6 - G} ${-6 - G} ${W + 12 + G} ${H + 12 + G}`}
       className={className}
       style={{ display: "block", width: "100%", height: "auto" }}
     >
+      {coordinates && (
+        <g fill="#a8a29e" fontWeight={600} style={{ pointerEvents: "none" }}>
+          {Array.from({ length: height }, (_, r) => (
+            <text
+              key={`r${r}`}
+              x={-G / 2}
+              y={r * CELL + CELL / 2}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={G * 0.6}
+            >
+              {String.fromCharCode(65 + r)}
+            </text>
+          ))}
+          {Array.from({ length: width }, (_, c) => (
+            <text
+              key={`c${c}`}
+              x={c * CELL + CELL / 2}
+              y={-G / 2}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={G * 0.6}
+            >
+              {c + 1}
+            </text>
+          ))}
+        </g>
+      )}
       <rect x={-6} y={-6} width={W + 12} height={H + 12} rx={10} fill="#1c1917" />
       {/* empty-cell backdrop */}
       {cells.map((cell, pos) =>

@@ -10,12 +10,6 @@ export interface KnownBoard {
 
 export const KNOWN_BOARDS: KnownBoard[] = [
   {
-    "id": "Sample_4x4",
-    "label": "Sample 4\u00d74",
-    "score": null,
-    "params": "puzzle=Sample_4x4&board_w=4&board_h=4&board_edges=ajjaajojaetjaaeejoeaootottooeajteojattoootttjajtjeaaoeaeteaejaae&board_pieces=000001002003004005006007008009010011012013014015&board_types=bccbcddccddcbccb"
-  },
-  {
     "id": "Joshua_Blackwood_470",
     "label": "Blackwood 470, the record",
     "score": 470,

@@ -27,6 +27,7 @@ import { getOfficialPuzzle } from "@/engine";
 import { colorToLetter } from "@/lib/motifs";
 import { downloadPiecesZip } from "@/lib/pieceSvg";
 import { KNOWN_BOARDS } from "@/data/known-boards";
+import { parseParams, toOurParams } from "@/lib/bucas";
 import { rotateEdges } from "@/lib/types";
 import { useT } from "@/i18n";
 
@@ -719,8 +720,9 @@ export default function PuzzlePage() {
 function ViewLink({ id, label }: { id: string; label: string }) {
   const kb = KNOWN_BOARDS.find((b) => b.id === id);
   if (!kb) return null;
+  const query = new URLSearchParams(toOurParams(parseParams(kb.params))).toString();
   return (
-    <Link className="text-sm underline" to={`/viewer?b=${encodeURIComponent(kb.params)}`}>
+    <Link className="text-sm underline" to={`/viewer?${query}`}>
       {label}
     </Link>
   );

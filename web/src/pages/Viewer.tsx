@@ -1,8 +1,7 @@
 import { pageMeta } from "@/seo";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { BoardSvg } from "@/components/board/BoardSvg";
-import { BucasActions } from "@/components/board/BucasActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,26 +10,30 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDownIcon } from "lucide-react";
 import { KNOWN_BOARDS } from "@/data/known-boards";
 import {
   decodeBucas,
+  parseParams,
+  toOurParams,
   conflictEdges,
   scoreSummary,
   matchToPieces,
   boardFromEngine,
-  bucasParams,
+  ourParams,
+  encodeBucasUrl,
 } from "@/lib/bucas";
 import type { BucasBoard } from "@/lib/bucas";
 import { getOfficialPuzzle, getGeneratedSolvedPuzzle, getMaxColors } from "@/engine";
 import { useEngine } from "@/engine/useEngine";
 import { useT } from "@/i18n";
 import { auditBoard } from "@/lib/audit";
+import { downloadSvg, downloadPng } from "@/lib/svg-export";
 import type { Puzzle } from "@/lib/types";
 
 const HINT_POSITIONS = [34, 45, 135, 210, 221];
@@ -40,8 +43,8 @@ const T = {
     title: "Board viewer",
     intro: (
       <>
-        Paste any <code>e2.bucas.name</code> link, or pick a famous board. Fully compatible
-        with the community URL format, including <code>motifs_order</code> translation.
+        Paste any e2.bucas.name link, or pick a famous board. Fully compatible with the
+        community URL format, including <code>motifs_order</code> translation.
       </>
     ),
     credit: (
@@ -72,6 +75,7 @@ const T = {
     piecesPlaced: (placed: number, total: number) => `${placed} / ${total} pieces placed`,
     showConflicts: "Show conflicts",
     pieceNumbers: "Piece numbers",
+    coordinates: "Coordinates",
     cluePositions: "Clue positions",
     verification: "Verification",
     officialSet: "Official piece set",
@@ -82,23 +86,23 @@ const T = {
     cluesRespected: "Clues respected",
     hintTitle: (n: number, cell: string) => `piece ${n} at ${cell}`,
     share: "Share",
-    copyPageLink: "Copy link to this page",
+    copyLink: "Copy link",
+    downloadImage: "Download image",
+    copied: "Copied!",
     generator: "Board generator",
     generatorIntro:
       "Build a brand-new solvable puzzle and see its solution. (Colors cap at 22: that's how many motifs exist.)",
-    sizeLabel: "Size",
+    sizeLabel: (n: number) => `Size: ${n}×${n}`,
     colorsLabel: (n: number) => `Colors: ${n}`,
-    generate: "Generate board",
-    seedTitle: "Regenerate with the same seed",
-    seedBtn: (n: number) => `Seed ${n}`,
+    generate: "Generate new board",
   },
   fr: {
     title: "Visualiseur de plateaux",
     intro: (
       <>
-        Collez n'importe quel lien <code>e2.bucas.name</code>, ou choisissez un plateau
-        célèbre. Entièrement compatible avec le format d'URL de la communauté, y compris la
-        conversion <code>motifs_order</code>.
+        Collez n'importe quel lien e2.bucas.name, ou choisissez un plateau célèbre.
+        Entièrement compatible avec le format d'URL de la communauté, y compris la conversion{" "}
+        <code>motifs_order</code>.
       </>
     ),
     credit: (
@@ -129,6 +133,7 @@ const T = {
     piecesPlaced: (placed: number, total: number) => `${placed} / ${total} pièces placées`,
     showConflicts: "Afficher les conflits",
     pieceNumbers: "Numéros des pièces",
+    coordinates: "Coordonnées",
     cluePositions: "Positions des indices",
     verification: "Vérification",
     officialSet: "Jeu de pièces officiel",
@@ -139,15 +144,15 @@ const T = {
     cluesRespected: "Indices respectés",
     hintTitle: (n: number, cell: string) => `pièce ${n} en ${cell}`,
     share: "Partager",
-    copyPageLink: "Copier le lien de cette page",
+    copyLink: "Copier le lien",
+    downloadImage: "Télécharger l'image",
+    copied: "Copié !",
     generator: "Générateur de plateaux",
     generatorIntro:
       "Créez un tout nouveau puzzle qui a une solution et regardez-la. (Maximum 22 couleurs : c'est le nombre de motifs qui existent.)",
-    sizeLabel: "Taille",
+    sizeLabel: (n: number) => `Taille : ${n}×${n}`,
     colorsLabel: (n: number) => `Couleurs : ${n}`,
-    generate: "Générer un plateau",
-    seedTitle: "Régénérer avec la même graine",
-    seedBtn: (n: number) => `Graine ${n}`,
+    generate: "Générer un nouveau plateau",
   },
 };
 
@@ -168,11 +173,29 @@ export default function Viewer() {
   const [error, setError] = useState<string | null>(null);
   const [showConflicts, setShowConflicts] = useState(true);
   const [showNumbers, setShowNumbers] = useState(false);
+  const [showCoords, setShowCoords] = useState(false);
   const [showHints, setShowHints] = useState(false);
 
   const [genSize, setGenSize] = useState(8);
   const [genColors, setGenColors] = useState(8);
   const [genSeed, setGenSeed] = useState(1);
+  const [copied, setCopied] = useState(false);
+
+  const boardRef = useRef<HTMLDivElement>(null);
+  const boardName = () => board?.puzzleName?.replaceAll(" ", "_") ?? "eternity2-board";
+
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const saveImage = (kind: "svg" | "png") => {
+    const svg = boardRef.current?.querySelector("svg");
+    if (!svg) return;
+    if (kind === "svg") downloadSvg(svg, boardName());
+    else void downloadPng(svg, boardName());
+  };
 
   const load = (params: string) => {
     try {
@@ -180,33 +203,71 @@ export default function Viewer() {
       setBoard(decoded);
       setEnginePair(null);
       setError(null);
-      setSearchParams({ b: params }, { replace: true });
+      setSearchParams(toOurParams(parseParams(params)), { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  const loadEngine = (puzzle: Puzzle, cells: number[], name: string, numbered = false) => {
+  const loadEngine = (
+    puzzle: Puzzle,
+    cells: number[],
+    name: string,
+    { numbered = false, preventScroll = false } = {},
+  ) => {
     const b = boardFromEngine(puzzle, cells);
     b.puzzleName = name;
     if (numbered) b.pieceNumbers = cells.map((v) => (v >= 0 ? (v >> 2) + 1 : 0));
     setBoard(b);
     setEnginePair({ puzzle, board: cells });
     setError(null);
-    setSearchParams({ b: bucasParams(puzzle, cells, name) }, { replace: true });
+    setSearchParams(ourParams(puzzle, cells, name), {
+      replace: true,
+      preventScrollReset: preventScroll,
+    });
   };
 
-  // Shared links: #/viewer?b=<bucas params>
+  // Generate (or regenerate) a solvable board. Pass a seed to keep the same
+  // board while only size/colors change; omit it to roll a fresh one.
+  const generate = (size: number, colors: number, seed = genSeed) => {
+    if (!engineReady) return;
+    const puzzle = getGeneratedSolvedPuzzle(size, colors, seed);
+    loadEngine(puzzle, identityBoard(puzzle), t.generatedName(size), { preventScroll: true });
+  };
+
+  // Live regeneration as a slider drags: each tick can fire many times per
+  // frame, and generating a solved board is a synchronous WASM search, so we
+  // coalesce to at most one generation per animation frame using the latest
+  // params. The label still updates instantly off the slider's own value.
+  const genFrame = useRef<{ id: number; size: number; colors: number } | null>(null);
+  const generateLive = (size: number, colors: number) => {
+    if (!engineReady) return;
+    if (genFrame.current) {
+      genFrame.current.size = size;
+      genFrame.current.colors = colors;
+      return;
+    }
+    const pending = { id: 0, size, colors };
+    pending.id = requestAnimationFrame(() => {
+      genFrame.current = null;
+      generate(pending.size, pending.colors);
+    });
+    genFrame.current = pending;
+  };
+
+  // Shared links: the board params (puzzle_size, board_edges, …) sit directly
+  // in the query string. A legacy single `b=<bucas blob>` is still honored.
   useEffect(() => {
-    const b = searchParams.get("b");
-    if (b && !board) {
-      try {
-        // Initialize state from an external system (the URL) on mount.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setBoard(decodeBucas(b));
-      } catch {
-        /* bad shared link; ignore */
-      }
+    if (board) return;
+    const legacy = searchParams.get("b");
+    const map = legacy ? parseParams(legacy) : Object.fromEntries(searchParams);
+    if (!map["board_edges"]) return;
+    try {
+      // Initialize state from an external system (the URL) on mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBoard(decodeBucas(map));
+    } catch {
+      /* bad shared link; ignore */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -267,6 +328,9 @@ export default function Viewer() {
     return { puzzle, board: Array.from(matchToPieces(puzzle, board)) };
   }, [enginePair, board, is16, engineReady]);
 
+  const bucasUrl = () =>
+    exportPair ? encodeBucasUrl(exportPair.puzzle, exportPair.board, board?.puzzleName) : "";
+
   return (
     <div className="space-y-6">
       <div>
@@ -287,7 +351,7 @@ export default function Viewer() {
           disabled={!engineReady}
           onClick={() => {
             const puzzle = getOfficialPuzzle();
-            loadEngine(puzzle, identityBoard(puzzle), t.officialById, true);
+            loadEngine(puzzle, identityBoard(puzzle), t.officialById, { numbered: true });
             setShowNumbers(true);
             setShowConflicts(false);
           }}
@@ -313,8 +377,8 @@ export default function Viewer() {
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-        <div>
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div ref={boardRef}>
           {board && (
             <BoardSvg
               width={board.width}
@@ -323,6 +387,7 @@ export default function Viewer() {
               conflicts={conflicts}
               pieceNumbers={pieceNumbers}
               highlight={showHints && is16 ? HINT_POSITIONS : undefined}
+              coordinates={showCoords}
               className="max-w-3xl"
             />
           )}
@@ -358,6 +423,10 @@ export default function Viewer() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="v-num">{t.pieceNumbers}</Label>
                     <Switch id="v-num" checked={showNumbers} onCheckedChange={setShowNumbers} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="v-coord">{t.coordinates}</Label>
+                    <Switch id="v-coord" checked={showCoords} onCheckedChange={setShowCoords} />
                   </div>
                   {is16 && (
                     <div className="flex items-center justify-between">
@@ -423,22 +492,43 @@ export default function Viewer() {
               <CardHeader>
                 <CardTitle className="text-base">{t.share}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => navigator.clipboard.writeText(window.location.href)}
-                >
-                  {t.copyPageLink}
-                </Button>
-                {exportPair && (
-                  <BucasActions
-                    puzzle={exportPair.puzzle}
-                    board={exportPair.board}
-                    name={board.puzzleName ?? "shared-board"}
+              <CardContent className="flex flex-wrap gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="outline" size="sm">
+                        {copied ? t.copied : t.copyLink}
+                        <ChevronDownIcon className="size-3.5 text-muted-foreground" />
+                      </Button>
+                    }
                   />
-                )}
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => copyUrl(window.location.href)}>
+                      eternity2.dev
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={!exportPair}
+                      onClick={() => copyUrl(bucasUrl())}
+                    >
+                      e2.bucas.name
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="outline" size="sm">
+                        {t.downloadImage}
+                        <ChevronDownIcon className="size-3.5 text-muted-foreground" />
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => saveImage("svg")}>SVG</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => saveImage("png")}>PNG</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </CardContent>
             </Card>
           )}
@@ -450,27 +540,20 @@ export default function Viewer() {
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground">{t.generatorIntro}</p>
               <div className="space-y-1.5">
-                <Label>{t.sizeLabel}</Label>
-                <Select
-                  value={String(genSize)}
+                <Label>{t.sizeLabel(genSize)}</Label>
+                <Slider
+                  min={2}
+                  max={16}
+                  step={1}
+                  value={genSize}
                   onValueChange={(v) => {
-                    if (!v) return;
-                    const s = parseInt(v, 10);
+                    const s = Array.isArray(v) ? v[0] : v;
+                    const c = Math.min(genColors, engineReady ? getMaxColors(s) : 4);
                     setGenSize(s);
-                    setGenColors((c) => Math.min(c, engineReady ? getMaxColors(s) : 4));
+                    setGenColors(c);
+                    generateLive(s, c);
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 15 }, (_, i) => i + 2).map((s) => (
-                      <SelectItem key={s} value={String(s)}>
-                        {s}×{s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>{t.colorsLabel(genColors)}</Label>
@@ -479,34 +562,24 @@ export default function Viewer() {
                   max={engineReady ? getMaxColors(genSize) : 22}
                   step={1}
                   value={genColors}
-                  onValueChange={(v) => setGenColors(Array.isArray(v) ? v[0] : v)}
+                  onValueChange={(v) => {
+                    const c = Array.isArray(v) ? v[0] : v;
+                    setGenColors(c);
+                    generateLive(genSize, c);
+                  }}
                 />
               </div>
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  disabled={!engineReady}
-                  onClick={() => {
-                    const seed = Math.floor(Math.random() * 1_000_000);
-                    setGenSeed(seed);
-                    const puzzle = getGeneratedSolvedPuzzle(genSize, genColors, seed);
-                    loadEngine(puzzle, identityBoard(puzzle), t.generatedName(genSize));
-                  }}
-                >
-                  {t.generate}
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={!engineReady}
-                  title={t.seedTitle}
-                  onClick={() => {
-                    const puzzle = getGeneratedSolvedPuzzle(genSize, genColors, genSeed);
-                    loadEngine(puzzle, identityBoard(puzzle), t.generatedName(genSize));
-                  }}
-                >
-                  {t.seedBtn(genSeed)}
-                </Button>
-              </div>
+              <Button
+                className="w-full"
+                disabled={!engineReady}
+                onClick={() => {
+                  const seed = Math.floor(Math.random() * 1_000_000);
+                  setGenSeed(seed);
+                  generate(genSize, genColors, seed);
+                }}
+              >
+                {t.generate}
+              </Button>
             </CardContent>
           </Card>
         </div>
