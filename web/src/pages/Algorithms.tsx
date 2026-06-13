@@ -52,8 +52,9 @@ const difficulty = stats.difficulty as DifficultyRow[];
 const pathRows = [...(stats.paths as PathRow[])].sort((a, b) => a.median - b.median);
 const spaceRows = stats.searchSpace as SpaceRow[];
 
-// One line per board size: median work vs number of colors.
-const SIZES = [...new Set(difficulty.map((d) => d.size))];
+// One line per board size: median work vs number of colors. 3×3 is omitted —
+// it solves near-instantly and just hugs the bottom axis without adding signal.
+const SIZES = [...new Set(difficulty.map((d) => d.size))].filter((s) => s !== 3);
 const colorsDomain = [...new Set(difficulty.map((d) => d.colors))].sort((a, b) => a - b);
 const difficultyChart = colorsDomain.map((colors) => {
   const row: Record<string, number | null> = { colors };
