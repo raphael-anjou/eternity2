@@ -1,4 +1,5 @@
 import type { Config } from "@react-router/dev/config";
+import { allRoutePaths } from "./sitemap.config";
 
 // Static site: no server. `ssr: false` makes React Router pre-render every
 // listed path to a real .html file at build time (good for crawlers and
@@ -15,25 +16,10 @@ import type { Config } from "@react-router/dev/config";
 // Default "" → served at the domain root. Keep this in sync with vite.config.
 const BASE_PATH = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
 
-const PAGES = [
-  "",
-  "puzzle",
-  "playground",
-  "playground/watch",
-  "playground/solve",
-  "playground/paths",
-  "playground/print",
-  "algorithms",
-  "research",
-  "viewer",
-];
-
-const prerender = PAGES.flatMap((p) => {
-  const en = "/" + p;
-  const fr = "/fr/" + p;
-  // Normalize the two roots ("/" and "/fr").
-  return [en.replace(/\/$/, "") || "/", fr.replace(/\/$/, "")];
-});
+// Page list lives in sitemap.config.ts so the prerender list and the
+// build-time sitemap.xml are generated from one source and cannot drift.
+// React Router applies the basename itself, so prerender paths carry no prefix.
+const prerender = allRoutePaths();
 
 export default {
   // Keep the existing source layout: root.tsx and routes.ts live in src/
