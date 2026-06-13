@@ -136,14 +136,18 @@ const T = {
         random puzzles per point; log scale!). Three things to see. Each extra row of board
         multiplies the work: the lines sit decades apart. <em>More</em> colors often make a
         puzzle <em>easier</em>, because wrong placements get rejected sooner instead of luring
-        the search into deep dead ends. And the 8×8 line shows something famous: a sharp{" "}
-        <strong>hardness peak at 6–7 colors</strong>. Very few colors → tons of solutions, easy
-        to stumble on one. Many colors → so constrained the search barely branches. Right in
-        between, at 6 colors, the median 8×8 puzzle needs over <strong>2 billion</strong> piece
-        placements, and most seeds there ran so long we had to stop measuring them (the flat
-        tops are those censored points). One color either side and it collapses by a hundredfold.
-        Eternity II's 22 colors sit past this small-board peak, but its 16×16 size more than
-        makes up for it.
+        the search into deep dead ends. And every line shows something famous: a sharp{" "}
+        <strong>hardness peak</strong>. Very few colors → tons of solutions, easy to stumble on
+        one. Many colors → so constrained the search barely branches. The peak sits right in
+        between — and, crucially, <strong>it slides to the right as the board grows</strong>: the
+        6×6 line peaks at <strong>4 colors</strong>, the 8×8 line at <strong>6 colors</strong>,
+        roughly one extra color per added row. At its peak the median 8×8 puzzle needs over{" "}
+        <strong>2 billion</strong> piece placements, and most seeds there ran so long we had to
+        stop measuring them (the flat tops are those censored points). One color either side and
+        it collapses by a hundredfold. Extrapolate that one-color-per-row trend out to a 16×16
+        board and the peak lands right around <strong>22 colors</strong> — exactly where
+        Eternity II was built to sit. It isn't an accident past the peak; it's tuned to land
+        <em> on</em> it.
       </>
     ),
     workChartTitle: "Work to solve (median nodes, log scale) vs number of colors",
@@ -258,16 +262,20 @@ const T = {
         Trois choses à observer. Chaque rangée de plateau en plus multiplie le travail : les
         lignes sont séparées de plusieurs ordres de grandeur. <em>Plus</em> de couleurs
         rendent souvent un puzzle <em>plus facile</em>, car les mauvais placements sont
-        rejetés plus tôt au lieu d'entraîner la recherche dans des impasses profondes. Et la
-        ligne 8×8 montre un phénomène célèbre : un <strong>pic de difficulté net à 6–7
-        couleurs</strong>. Très peu de couleurs → des tonnes de solutions, facile d'en trouver
-        une par hasard. Beaucoup de couleurs → le puzzle est si contraint que la recherche se
-        ramifie à peine. Juste entre les deux, à 6 couleurs, le puzzle 8×8 médian demande plus
-        de <strong>2 milliards</strong> de placements de pièces, et la plupart des graines ont
-        tourné si longtemps qu'il a fallu arrêter de les mesurer (les plateaux correspondent à
-        ces points censurés). Une couleur de plus ou de moins, et tout s'effondre d'un facteur
-        cent. Les 22 couleurs d'Eternity II sont au-delà de ce pic des petits plateaux, mais
-        sa taille de 16×16 compense largement.
+        rejetés plus tôt au lieu d'entraîner la recherche dans des impasses profondes. Et
+        chaque ligne montre un phénomène célèbre : un <strong>pic de difficulté</strong>. Très
+        peu de couleurs → des tonnes de solutions, facile d'en trouver une par hasard. Beaucoup
+        de couleurs → le puzzle est si contraint que la recherche se ramifie à peine. Le pic se
+        situe juste entre les deux — et, surtout, <strong>il se décale vers la droite quand le
+        plateau grandit</strong> : la ligne 6×6 culmine à <strong>4 couleurs</strong>, la ligne
+        8×8 à <strong>6 couleurs</strong>, soit environ une couleur de plus par rangée ajoutée.
+        À son pic, le puzzle 8×8 médian demande plus de <strong>2 milliards</strong> de
+        placements de pièces, et la plupart des graines ont tourné si longtemps qu'il a fallu
+        arrêter de les mesurer (les plateaux correspondent à ces points censurés). Une couleur
+        de plus ou de moins, et tout s'effondre d'un facteur cent. Prolongez cette tendance
+        d'une couleur par rangée jusqu'à un plateau 16×16, et le pic tombe pile autour de{" "}
+        <strong>22 couleurs</strong> — exactement là où Eternity II a été conçu pour se situer.
+        Ce n'est pas un hasard au-delà du pic ; il est calibré pour tomber <em>dessus</em>.
       </>
     ),
     workChartTitle:
@@ -394,7 +402,9 @@ export default function Algorithms() {
                 <XAxis dataKey="colors" label={{ value: t.axisColors, position: "insideBottom", offset: -2 }} />
                 <YAxis
                   scale="log"
-                  domain={["auto", "auto"]}
+                  domain={[10, 3e9]}
+                  ticks={[10, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9]}
+                  allowDataOverflow
                   width={70}
                   tickFormatter={(v) => formatCompact(Number(v))}
                 />
