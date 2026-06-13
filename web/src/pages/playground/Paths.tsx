@@ -296,16 +296,28 @@ export default function Paths() {
       // Strict Mode double-invokes updaters, which would step solvers twice
       // and desync them). We mutate the lanes ref, accumulate the new public
       // state, then hand React a pure snapshot.
+      //
+      // CRITICAL: the per-frame WASM budget is shared across ALL lanes, not
+      // spent per-lane. A per-lane budget meant total synchronous work scaled
+      // with lane count (N lanes × 10ms), pinning the main thread every frame
+      // and starving the browser of the idle slice it needs to commit a route
+      // change — so clicking a nav link while racing appeared to do nothing.
+      // One shared budget keeps total work bounded regardless of lane count,
+      // leaving the thread responsive enough to navigate away mid-race.
+      const FRAME_BUDGET_MS = 8;
       let anyRunning = false;
+      const runningCount = lanesRef.current.filter((l) => l.finishedAttempts === null).length;
+      // Split the frame budget evenly; at least a sliver each so every lane moves.
+      const perLaneMs = runningCount > 0 ? Math.max(1, FRAME_BUDGET_MS / runningCount) : 0;
       const snapshot = lanesRef.current.map((lane) => {
         if (lane.finishedAttempts !== null) return lane;
         const solver = solversRef.current.get(lane.id);
         if (!solver) return lane;
-        // Several chunks per frame inside a time budget, so fast lanes finish
-        // quickly while every lane gets visible motion each frame.
-        const frameStart = performance.now();
+        // A slice of the shared frame budget, so fast lanes still finish quickly
+        // while every lane gets visible motion each frame.
+        const laneStart = performance.now();
         let r = lane.report ?? solver.report();
-        while (r.status === "running" && performance.now() - frameStart < 10) {
+        while (r.status === "running" && performance.now() - laneStart < perLaneMs) {
           r = solver.step(20_000);
         }
         if (r.status !== "running") {
