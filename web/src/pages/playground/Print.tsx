@@ -366,7 +366,6 @@ export default function Print() {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocks]);
 
   const pages = useMemo(

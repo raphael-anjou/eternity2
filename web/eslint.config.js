@@ -23,7 +23,19 @@ export default defineConfig([
     // React Router framework-mode route modules legitimately export `meta`,
     // `links`, `loader`, etc. alongside the default component — the Fast
     // Refresh "only export components" rule does not apply to them.
-    files: ['src/root.tsx', 'src/routes.ts', 'src/layout.tsx', 'src/pages/**/*.tsx'],
+    //
+    // shadcn/ui primitives co-locate their cva `*Variants` builders with the
+    // component (the canonical shadcn layout), and src/i18n is a
+    // provider+hooks+helpers module rather than a Fast-Refresh component file.
+    // Neither is a real hot-reload hazard, so the rule is off for them too.
+    files: [
+      'src/root.tsx',
+      'src/routes.ts',
+      'src/layout.tsx',
+      'src/pages/**/*.tsx',
+      'src/components/ui/**/*.tsx',
+      'src/i18n/**/*.tsx',
+    ],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

@@ -159,9 +159,8 @@ export default function Solve() {
     setMachine(null);
   }, []);
 
-  useEffect(() => {
-    setBoard(Array(size * size).fill(null));
-  }, [size, seed]);
+  // No effect to clear the board on size/seed change: `reset()` is the only
+  // thing that changes either, and it already sizes a fresh empty board.
 
   // ticking clock
   useEffect(() => {
@@ -235,10 +234,13 @@ export default function Solve() {
   const complete =
     puzzle !== null && board.every(Boolean) && allConflicts.length === 0 && board.length > 0;
 
-  // completion → stop clock, run the machine
+  // completion → stop clock, run the machine. This effect synchronizes with an
+  // external system (the WASM solver), so the setState calls that record its
+  // timing/result legitimately live in the effect body.
   useEffect(() => {
     if (!complete || finishedIn !== null || startedAt === null || !puzzle) return;
     const humanMs = Date.now() - startedAt;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFinishedIn(humanMs / 1000);
 
     const path = getPath("row-major", puzzle.width, puzzle.height, 0);
@@ -253,9 +255,11 @@ export default function Solve() {
     if (r.status === "solved") setMachine({ ms, attempts: r.nodes });
   }, [complete, finishedIn, startedAt, puzzle]);
 
-  const touch = () => {
-    if (startedAt === null) setStartedAt(Date.now());
-  };
+  // Start the human clock on first interaction. Wrapped so the linter sees it
+  // as an event handler (not render code) — Date.now() is fine to call here.
+  const touch = useCallback(() => {
+    setStartedAt((prev) => (prev === null ? Date.now() : prev));
+  }, []);
 
   const placePiece = (pos: number, piece: number) => {
     if (!puzzle || finishedIn !== null) return;

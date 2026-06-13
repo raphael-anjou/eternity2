@@ -130,6 +130,9 @@ export function TimeToSolve() {
     while (performance.now() - t0 < 150) r = solver.step(20_000);
     const elapsed = (performance.now() - t0) / 1000;
     solver.free();
+    // Terminal result of a one-shot WASM benchmark — the whole point of the
+    // effect, not a cascading render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRate(r.nodes / elapsed);
   }, [engineReady, rate]);
 

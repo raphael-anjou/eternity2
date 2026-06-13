@@ -129,10 +129,12 @@ export default function Watch() {
   const [boardCells, setBoardCells] = useState<Int32Array | null>(null);
   const [measuredRate, setMeasuredRate] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
+  // The active puzzle is render state, not a ref: `rebuild` swaps it together
+  // with the board/report it produced, and the JSX reads it every render.
+  const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const elapsedRef = useRef(0);
 
   const solverRef = useRef<SolverHandle | null>(null);
-  const puzzleRef = useRef<Puzzle | null>(null);
   const rafRef = useRef(0);
   const lastTickRef = useRef(0);
 
@@ -145,7 +147,7 @@ export default function Watch() {
     const width = puzzle.width;
     const path = getPath(pathKind, width, puzzle.height, seed);
     const solver = createSolver(puzzle, path, { useHints: true });
-    puzzleRef.current = puzzle;
+    setPuzzle(puzzle);
     solverRef.current = solver;
     setReport(solver.report());
     setBoardCells(solver.board());
@@ -155,6 +157,9 @@ export default function Watch() {
   }, [engineReady, official, size, colors, seed, pathKind]);
 
   useEffect(() => {
+    // rebuild() constructs the WASM solver (an external system) and seeds the
+    // board/report state from it — a legitimate effect, not a render cascade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     rebuild();
     return () => {
       solverRef.current?.free();
@@ -212,7 +217,6 @@ export default function Watch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, stepsPerSecond, showBest, fullSpeed]);
 
-  const puzzle = puzzleRef.current;
   const cells = useMemo(() => {
     if (!puzzle || !boardCells) return null;
     return boardFromEngine(puzzle, boardCells).cells;

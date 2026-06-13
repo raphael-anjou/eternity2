@@ -148,6 +148,17 @@ export default function Paths() {
   const rafRef = useRef(0);
 
   const n = size * size;
+
+  // Tear down a running race: stop the loop, free the WASM solvers. Defined
+  // up here (before the effects that call it) and memoized so it can be an
+  // effect dependency without re-subscribing every render.
+  const stopRace = useCallback(() => {
+    setRacing(false);
+    cancelAnimationFrame(rafRef.current);
+    solversRef.current.forEach((s) => s.free());
+    solversRef.current.clear();
+  }, []);
+
   const rankOf = useMemo(() => {
     const m = new Map<number, number>();
     order.forEach((cell, i) => m.set(cell, i));
@@ -194,13 +205,16 @@ export default function Paths() {
   }, []);
 
   useEffect(() => {
-    // Size changes the cell count, so both path and hints must reset.
+    // Size changes the cell count, so both path and hints must reset. This is
+    // a reset-on-key-change effect that ALSO frees the running race's WASM
+    // solvers (stopRace) — that teardown can't happen during render, so the
+    // accompanying state resets live here too.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrder([]);
     setHintCells(new Set());
     stopRace();
     setLanes([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size]);
+  }, [size, stopRace]);
   // Note: seed/colors changes keep both the path AND the hints. Both are
   // positional ("this cell"), not piece-bound: the true piece at each hinted
   // cell is looked up fresh from the solved puzzle at race time.
@@ -241,13 +255,6 @@ export default function Paths() {
   };
 
   // ---- race machinery -----------------------------------------------------
-
-  const stopRace = () => {
-    setRacing(false);
-    cancelAnimationFrame(rafRef.current);
-    solversRef.current.forEach((s) => s.free());
-    solversRef.current.clear();
-  };
 
   const startRace = (laneSpecs: { id: string; label: string; path: Uint16Array }[]) => {
     stopRace();
@@ -328,7 +335,7 @@ export default function Paths() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [racing]);
 
-  useEffect(() => stopRace, []);
+  useEffect(() => stopRace, [stopRace]);
 
   const pathTarget = n - hintCells.size;
   const customComplete = order.length === pathTarget && pathTarget > 0;

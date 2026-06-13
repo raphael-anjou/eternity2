@@ -201,6 +201,8 @@ export default function Viewer() {
     const b = searchParams.get("b");
     if (b && !board) {
       try {
+        // Initialize state from an external system (the URL) on mount.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setBoard(decodeBucas(b));
       } catch {
         /* bad shared link; ignore */
@@ -221,7 +223,12 @@ export default function Viewer() {
       parseInt(m[2], 10),
       parseInt(m[3], 10),
     );
+    // Initialize the view from a URL param (external system) once the engine
+    // is ready; loadEngine seeds board/engine state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEngine(puzzle, identityBoard(puzzle), `${m[1]}x${m[1]}-${m[2]}c answer key`);
+    // Run once when the engine becomes ready; re-reading the URL on every
+    // searchParams/board change would clobber user edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engineReady]);
 
