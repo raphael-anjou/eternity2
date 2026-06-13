@@ -23,6 +23,16 @@ file (`/algorithms/index.html`, `/fr/algorithms/index.html`, …) with the corre
 language-specific content. The workflow also copies the React Router SPA shell to
 `404.html` so unmatched deep links still boot the app.
 
+**Crawler / AI-agent files.** The build root carries three discovery files:
+`robots.txt` and `llms.txt` ship verbatim from `web/public/`, while `sitemap.xml`
+is generated at build time by a Vite plugin from the same page list React Router
+prerenders (so it never drifts). `robots.txt` explicitly welcomes every major AI
+crawler (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, …) plus a blanket
+allow; `llms.txt` is a curated [llmstxt.org](https://llmstxt.org) site map for
+LLMs. The sitemap honors `VITE_SITE_ORIGIN`/`BASE_PATH`, so subpath/alternate-host
+deploys get correct absolute URLs automatically. `robots.txt` hardcodes the
+`eternity2.dev` sitemap URL — edit it if you deploy elsewhere.
+
 **Path prefix / subpath deploys.** By default the site is served at a domain
 root and asset/route paths are absolute. To serve it under a prefix instead
 (e.g. behind a reverse proxy at `host/eternity2/`, or a GitHub project page at
