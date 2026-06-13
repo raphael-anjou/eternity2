@@ -4,9 +4,8 @@
 #   docker compose up -d --build        # build from source and run
 #   open http://localhost:8080
 #
-# For Traefik-based infrastructures, uncomment the labels below and drop
-# the `ports:` mapping. Because the app uses relative asset paths and hash
-# routing, it works behind any path prefix without a rebuild.
+# For Traefik: uncomment the labels and drop the `ports:` mapping. Two cases,
+# depending on where the site lives (see DEPLOYMENT.md for details).
 
 services:
   eternity2:
@@ -15,15 +14,37 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"
+
+    # ---- Traefik at a host root (https://eternity2.example/) ----------------
+    # No special build needed; just route the host to the container.
+    #
     # networks:
     #   - traefik-public
     # labels:
     #   - traefik.enable=true
-    #   - traefik.http.routers.eternity2.rule=PathPrefix(`/eternity2`)
+    #   - traefik.http.routers.eternity2.rule=Host(`eternity2.example`)
     #   - traefik.http.routers.eternity2.entrypoints=websecure
     #   - traefik.http.routers.eternity2.tls.certresolver=letsencrypt
-    #   - traefik.http.middlewares.eternity2-strip.stripprefix.prefixes=/eternity2
-    #   - traefik.http.routers.eternity2.middlewares=eternity2-strip
+    #   - traefik.http.services.eternity2.loadbalancer.server.port=80
+
+    # ---- Traefik under a path prefix (https://example/eternity2/) -----------
+    # The prefix is baked into the build, so route it straight through.
+    # IMPORTANT: do NOT use a stripprefix middleware — the prerendered HTML
+    # references /eternity2/assets/..., so stripping the prefix 404s every
+    # asset. Build the prefix in instead:
+    #
+    # build:
+    #   context: .
+    #   args:
+    #     BASE_PATH: /eternity2
+    #     VITE_SITE_ORIGIN: https://example.org
+    # networks:
+    #   - traefik-public
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.eternity2.rule=Host(`example.org`) && PathPrefix(`/eternity2`)
+    #   - traefik.http.routers.eternity2.entrypoints=websecure
+    #   - traefik.http.routers.eternity2.tls.certresolver=letsencrypt
     #   - traefik.http.services.eternity2.loadbalancer.server.port=80
 
 # networks:
