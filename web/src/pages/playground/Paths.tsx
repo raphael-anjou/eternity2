@@ -75,37 +75,38 @@ const T = {
       `placed ${placed}/${total} · deepest ${deepest} · backtracks ${backtracks}`,
   },
   fr: {
-    title: "Inventez votre propre chemin de parcours",
+    title: "Inventez votre propre parcours de recherche",
     intro: (
       <>
-        Le solveur remplit le plateau dans l'ordre que vous choisissez. Cliquez sur les cases
-        (ou faites-les glisser) dans l'ordre où vous voulez les remplir, puis faites courir
-        votre chemin contre les classiques sur le même puzzle. Spoiler : l'ordre compte{" "}
-        <em>énormément</em>. Vous pouvez aussi <em>révéler</em> quelques pièces comme indices
-        et regarder la recherche s'effondrer, comme avec les vrais indices du puzzle.
+        Le solveur remplit le plateau dans l'ordre que vous lui dictez. Cliquez sur les cases
+        (ou faites-les glisser) dans l'ordre où vous voulez les voir remplies, puis lancez
+        votre parcours dans la course face aux classiques, sur le même puzzle. Surprise :
+        l'ordre change tout, <em>vraiment</em>. Vous pouvez aussi <em>révéler</em> quelques
+        pièces en guise d'indices et voir la recherche s'effondrer, exactement comme avec les
+        vrais indices du puzzle.
       </>
     ),
     clear: "Effacer",
-    autoFinish: "Compléter automatiquement",
-    modePath: "Tracer le chemin",
+    autoFinish: "Compléter le parcours",
+    modePath: "Tracer le parcours",
     modeHint: "Révéler un indice",
     gridHelpHint:
-      "Cliquez sur des cases pour révéler leur vraie pièce comme indice. Les cases avec indice sont fixées et sortent du chemin. Cliquez à nouveau pour annuler.",
+      "Cliquez sur une case pour révéler sa vraie pièce en indice. Les cases avec indice sont figées et sortent du parcours. Recliquez pour les masquer.",
     hintsBadge: (k: number) => `${k} indice${k === 1 ? "" : "s"}`,
     gridHelp:
-      "Clic gauche ou glisser pour ajouter des cases dans l'ordre · clic droit sur une case pour couper le chemin à cet endroit.",
-    raceSetup: "Préparation de la course",
+      "Clic gauche ou glissé pour ajouter des cases dans l'ordre · clic droit sur une case pour couper le parcours à cet endroit.",
+    raceSetup: "Réglages de la course",
     colorsLabel: (n: number) => `Couleurs : ${n}`,
     newPuzzle: (seed: number) => `Nouveau puzzle (graine ${seed})`,
-    raceWithCustom: "Lancer la course : votre chemin contre les classiques",
+    raceWithCustom: "Lancer votre parcours contre les classiques",
     raceClassics: "Lancer la course des classiques",
     stop: "Arrêter",
     finishPath: (done: number, total: number) =>
-      `Terminez votre chemin (${done}/${total} cases) pour l'inscrire à la course.`,
-    yourPath: "Votre chemin",
+      `Complétez votre parcours (${done}/${total} cases) pour l'engager dans la course.`,
+    yourPath: "Votre parcours",
     finishedBadge: (rank: number | undefined, checks: string) =>
       rank === 1 ? `🏆 ${checks} nœuds` : `#${rank} · ${checks} nœuds`,
-    racingBadge: () => "en course…",
+    racingBadge: () => "en cours…",
     nodesLabel: "nœuds explorés",
     depthTip: "profondeur maximale atteinte par la recherche",
     laneStats: (placed: number, total: number, deepest: number, backtracks: string) =>

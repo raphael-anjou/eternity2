@@ -211,45 +211,48 @@ const T = {
     ),
   },
   fr: {
-    title: "Comment apprendre à un ordinateur à résoudre des puzzles ?",
+    title: "Comment apprend-on à un ordinateur à résoudre un puzzle ?",
     intro: (
       <>
-        Pas de magie ici, juste trois grandes idées : <strong>essayer les possibilités dans
-        l'ordre</strong>, <strong>défaire ses erreurs</strong> et <strong>compter jusqu'où le
-        travail peut grimper</strong>. Chaque nombre et chaque graphique de cette page a été
-        mesuré par le moteur Rust qui fait tourner l'
-        <Link className="underline" to="/playground">aire de jeu</Link>, sur des puzzles qu'il
-        a générés lui-même.
+        Aucune magie là-dedans, seulement trois grandes idées : <strong>essayer les
+        possibilités une à une</strong>, <strong>revenir sur ses erreurs</strong> et{" "}
+        <strong>mesurer jusqu'où la facture peut grimper</strong>. Tous les chiffres et tous les
+        graphiques de cette page ont été produits par le moteur Rust qui anime l'
+        <Link className="underline" to="/playground">aire de jeu</Link>, lancé sur des puzzles
+        qu'il a lui-même générés.
       </>
     ),
-    s1Title: "1 · Le parcours en profondeur : la stratégie du labyrinthe",
+    s1Title: "1 · La recherche en profondeur : la stratégie du labyrinthe",
     s1P1: (
       <>
-        Imaginez l'exploration d'un labyrinthe : à chaque croisement, prenez le premier
-        couloir que vous n'avez pas encore essayé ; dans une impasse, revenez au dernier
-        croisement et prenez le couloir suivant. C'est le <strong>parcours en profondeur
-        (DFS)</strong>, et c'est exactement ainsi que notre solveur joue à Eternity II. Le
-        « croisement », c'est une case vide ; les « couloirs », ce sont toutes les pièces et
-        rotations qui conviennent encore ; le « demi-tour » s'appelle le <strong>retour en
-        arrière</strong> (backtracking).
+        Imaginez que vous explorez un labyrinthe : à chaque carrefour, vous empruntez le
+        premier couloir que vous n'avez pas encore tenté ; et dès que vous butez sur une
+        impasse, vous retournez au dernier carrefour pour prendre le couloir d'à côté. Voilà la{" "}
+        <strong>recherche en profondeur (DFS)</strong>, et c'est exactement comme cela que notre
+        solveur s'attaque à Eternity II. Le « carrefour », c'est une case vide ; les
+        « couloirs », ce sont toutes les pièces (et toutes leurs rotations) qui tiennent encore
+        à cet endroit ; et le « demi-tour » porte un nom : le <strong>retour en arrière</strong>{" "}
+        (backtracking).
       </>
     ),
     s1P2: (
       <>
-        Le DFS est <em>complet</em> : avec assez de temps, il essaie tout, donc si une
-        solution existe, il finira par la trouver. Le piège se cache dans les mots « assez de
-        temps ». Le voici, ralenti à une décision par seconde :
+        Le DFS est <em>complet</em> : laissez-lui assez de temps et il essaie tout, si bien
+        qu'une solution existante finit toujours par tomber dans ses filets. Tout le piège tient
+        dans ces quelques mots : « assez de temps ». Le voici, ralenti à une décision par
+        seconde :
       </>
     ),
-    watchFullSpeed: "▶ Regardez-le maintenant à pleine vitesse",
+    watchFullSpeed: "▶ Voyez-le maintenant à pleine vitesse",
     s2Title: "2 · Le mur exponentiel",
     s2P1: (
       <>
-        « Tout », c'est grand comment ? Pour un puzzle n×n, il existe environ n²! façons
-        d'ordonner les pièces, fois 4 rotations chacune. Le graphique ci-dessous montre le{" "}
-        <em>nombre de chiffres</em> de ce total. Remarquez que la ligne est presque droite :
-        chaque taille supplémentaire multiplie le travail par un facteur astronomique. La
-        boîte 16×16 posée sur votre étagère se situe vers 560 chiffres.
+        Ce « tout », au juste, c'est grand comment ? Pour un puzzle n×n, on compte à peu près
+        n²! manières de ranger les pièces, multipliées par leurs 4 rotations. Le graphique
+        ci-dessous indique le <em>nombre de chiffres</em> de ce total. Remarquez la ligne,
+        presque droite : à chaque cran de taille, le travail est multiplié par un facteur
+        astronomique. La boîte 16×16 posée sur votre étagère, elle, plafonne aux alentours de
+        560 chiffres.
       </>
     ),
     spaceChartTitle: "Nombre de chiffres de l'espace de recherche, selon la taille du plateau",
@@ -259,88 +262,90 @@ const T = {
     legendRefined: "après déductions coins/bords",
     s2P2: (
       <>
-        La ligne bleue, c'est la première leçon de conception d'algorithmes : <strong>les
-        déductions rétrécissent les mondes</strong>. Le simple fait de remarquer que les
-        pièces de coin vont dans les coins et les pièces de bord sur le pourtour enlève
-        environ 100 chiffres. Les vrais solveurs empilent beaucoup de déductions de ce genre.
-        Et c'est encore très loin de suffire.
+        La ligne bleue résume la toute première leçon de conception d'algorithmes : <strong>une
+        déduction, c'est un monde qui rétrécit</strong>. Rien que de remarquer que les pièces de
+        coin finissent dans les coins et les pièces de bord sur le pourtour, on raye déjà
+        environ 100 chiffres. Les vrais solveurs enchaînent quantité de déductions du même
+        genre. Et pourtant, on reste très loin du compte.
       </>
     ),
-    s2P3: <>Des « chiffres », ça reste abstrait, alors voyons ce que ça donne sur votre machine :</>,
+    s2P3: <>Le mot « chiffres » reste abstrait ; alors rendons la chose concrète :</>,
     zeroWallTitle: "À quoi ressemble un nombre de 560 chiffres ? À ceci :",
     zeroWallCaption:
-      "Un suivi de 559 zéros : 560 chiffres, exactement autant que le vrai compte (environ 9 × 10^559). Chaque zéro multiplie le compte par dix.",
-    s3Title: "3 · La difficulté mesurée : taille et couleurs",
+      "Un 1 suivi de 559 zéros : 560 chiffres, soit exactement la taille du vrai total (environ 9 × 10^559). Et chaque zéro de plus multiplie ce total par dix.",
+    s3Title: "3 · La difficulté, mesurée : taille et couleurs",
     s3Intro: (seeds: number | undefined) => (
       <>
-        Nous avons généré des centaines de mini-puzzles et laissé le moteur résoudre chacun
-        d'eux, en comptant les <strong>nœuds</strong> (placements candidats testés) jusqu'à la première
-        solution (médiane de {seeds} puzzles aléatoires par point ; échelle logarithmique !).
-        Trois choses à observer. Chaque rangée de plateau en plus multiplie le travail : les
-        lignes sont séparées de plusieurs ordres de grandeur. <em>Plus</em> de couleurs
-        rendent souvent un puzzle <em>plus facile</em>, car les mauvais placements sont
-        rejetés plus tôt au lieu d'entraîner la recherche dans des impasses profondes. Et
-        chaque ligne montre un phénomène célèbre : un <strong>pic de difficulté</strong>. Très
-        peu de couleurs → des tonnes de solutions, facile d'en trouver une par hasard. Beaucoup
-        de couleurs → le puzzle est si contraint que la recherche se ramifie à peine. Le pic se
-        situe juste entre les deux — et, surtout, <strong>il se décale vers la droite quand le
-        plateau grandit</strong> : la ligne 6×6 culmine à <strong>4 couleurs</strong>, la ligne
-        8×8 à <strong>6 couleurs</strong>, soit environ une couleur de plus par rangée ajoutée.
-        À son pic, le puzzle 8×8 médian demande plus de <strong>2 milliards</strong> de
-        placements de pièces, et la plupart des graines ont tourné si longtemps qu'il a fallu
-        arrêter de les mesurer (les plateaux correspondent à ces points censurés). Une couleur
-        de plus ou de moins, et tout s'effondre d'un facteur cent. Prolongez cette tendance
-        d'une couleur par rangée jusqu'à un plateau 16×16, et le pic tombe pile autour de{" "}
-        <strong>22 couleurs</strong> — exactement là où Eternity II a été conçu pour se situer.
-        Ce n'est pas un hasard au-delà du pic ; il est calibré pour tomber <em>dessus</em>.
+        Nous avons généré des centaines de mini-puzzles et confié chacun au moteur, en comptant
+        les <strong>nœuds</strong> (les placements de pièce mis à l'essai) jusqu'à la première
+        solution (médiane sur {seeds} puzzles tirés au hasard pour chaque point ; échelle
+        logarithmique !). Trois choses sautent aux yeux. D'abord, chaque rangée de plateau en
+        plus multiplie le travail : les courbes sont espacées de plusieurs ordres de grandeur.
+        Ensuite, <em>ajouter</em> des couleurs rend souvent le puzzle <em>plus facile</em>,
+        parce qu'un mauvais placement se fait recaler plus vite au lieu d'attirer la recherche
+        au fond d'une impasse. Enfin, chaque courbe trahit un phénomène bien connu : un{" "}
+        <strong>pic de difficulté</strong>. Très peu de couleurs → des solutions à la pelle,
+        faciles à dégoter par hasard. Beaucoup de couleurs → un puzzle si contraint que la
+        recherche ne se ramifie presque plus. Le pic se loge entre les deux — et surtout,{" "}
+        <strong>il glisse vers la droite à mesure que le plateau s'agrandit</strong> : la courbe
+        6×6 culmine à <strong>4 couleurs</strong>, la courbe 8×8 à <strong>6 couleurs</strong>,
+        soit grosso modo une couleur de plus par rangée ajoutée. À son sommet, le puzzle 8×8
+        médian réclame plus de <strong>2 milliards</strong> de placements de pièces, et la
+        plupart des graines ont tourné si longtemps qu'on a dû renoncer à les mesurer (les
+        plateaux des courbes, ce sont ces points censurés). Une couleur de plus ou de moins, et
+        tout s'effondre d'un facteur cent. Prolongez cette progression d'une couleur par rangée
+        jusqu'au plateau 16×16 et le pic retombe pile sur les <strong>22 couleurs</strong> —
+        exactement le réglage choisi pour Eternity II. Rien d'accidentel à ce qu'il se tienne
+        au-delà du pic : il est calibré pour tomber <em>dessus</em>.
       </>
     ),
     workChartTitle:
       "Travail pour résoudre (médiane des nœuds, échelle log) selon le nombre de couleurs",
     axisColors: "couleurs",
     fitChecks: "nœuds",
-    s4Title: "4 · L'ordre dans lequel on cherche compte. Énormément.",
+    s4Title: "4 · L'ordre dans lequel on cherche compte. Et même énormément.",
     s4P1: (
       <>
-        Mêmes puzzles, même solveur. Le seul changement, c'est l'<em>ordre</em> dans lequel
-        les cases sont remplies. Les ordres qui gardent chaque nouveau placement collé à des
-        voisins déjà posés (snake, spiral) contraignent chaque étape et élaguent tôt. Les
-        ordres qui éparpillent les placements (random) laissent les pièces sans contrainte et
-        le paient plus tard. C'est un vrai sujet de recherche, et vous pouvez{" "}
-        <Link className="underline" to="/playground/paths">concevoir votre propre ordre</Link>{" "}
-        et le faire courir contre les autres. Voici à quoi ressemblent vraiment les ordres
-        classiques ; suivez les flèches (rouge = première case, vert = dernière) :
+        Mêmes puzzles, même solveur. La seule chose qui change, c'est le <em>parcours</em>,
+        l'ordre dans lequel les cases se remplissent. Les parcours qui collent chaque nouveau
+        placement à des voisins déjà posés (snake, spiral) verrouillent chaque étape et élaguent
+        tôt. Ceux qui dispersent les placements (random) laissent les pièces libres de toute
+        contrainte… et le paient cher plus loin. C'est un véritable sujet de recherche, et vous
+        pouvez d'ailleurs <Link className="underline" to="/playground/paths">concevoir votre
+        propre parcours</Link> pour le lancer dans la course. Voici l'allure réelle des
+        parcours classiques ; suivez les flèches (rouge = première case, vert = dernière) :
       </>
     ),
     pathChartTitle:
-      "Médiane des nœuds sur les mêmes puzzles 6×6, selon l'ordre de remplissage (échelle log)",
-    s5Title: "5 · Pourquoi les ordinateurs pensent ici en binaire",
+      "Médiane des nœuds sur les mêmes puzzles 6×6, selon le parcours de remplissage (échelle log)",
+    s5Title: "5 · Pourquoi, ici, les ordinateurs raisonnent en binaire",
     s5P1: (
       <>
-        Une pièce, c'est juste quatre petits nombres (motifs haut, droite, bas, gauche). Pas
-        d'images, pas de géométrie. Ces quatre démos tournent en direct ; observez chacune
-        pendant quelques secondes :
+        Une pièce, ce n'est rien d'autre que quatre petits nombres (les motifs du haut, de
+        droite, du bas et de gauche). Ni image, ni géométrie. Les quatre démos ci-dessous
+        tournent en direct ; accordez quelques secondes à chacune :
       </>
     ),
     s5P2: (
       <>
-        Rangé sous forme de nombres, le jeu officiel complet pèse environ 1&nbsp;Ko. Les
-        solveurs sérieux vont plus loin avec les <strong>bitsets</strong> : un seul nombre de
-        64 bits porte une réponse oui/non sur 64 pièces à la fois, donc une seule instruction
-        du processeur filtre 64 candidates d'un coup. C'est ainsi que les moteurs les plus
-        rapides atteignent des centaines de millions de nœuds par seconde. La représentation
-        des données, pas seulement l'algorithme, fait partie du métier.
+        Une fois codé sous forme de nombres, le jeu officiel au complet tient dans environ
+        1&nbsp;Ko. Les solveurs sérieux poussent l'astuce plus loin avec les{" "}
+        <strong>bitsets</strong> : un seul nombre de 64 bits transporte une réponse oui/non sur
+        64 pièces à la fois, si bien qu'une unique instruction du processeur filtre 64
+        candidates d'un seul coup. C'est ce qui permet aux moteurs les plus rapides d'abattre
+        des centaines de millions de nœuds par seconde. La façon de représenter les données —
+        pas seulement l'algorithme — fait partie du métier.
       </>
     ),
-    s6Title: "6 · Alors, jusqu'où va-t-on en étant malin ?",
+    s6Title: "6 · Alors, jusqu'où la finesse nous mène-t-elle ?",
     s6P1: (
       <>
-        Les attaques les plus avancées ajoutent la propagation de contraintes (déduire les
-        placements forcés avant tout essai), des ordres de pièces astucieux, la recherche en
-        parallèle et des heuristiques de réparation locale qui corrigent les plateaux
-        imparfaits. Elles atteignent 469 et 470 côtés appariés sur 480. Extraordinaire, et
-        pourtant pas assez. L'écart entre « presque résolu » et « résolu », c'est là que vit
-        la recherche ouverte : voyez la section{" "}
+        Les attaques de pointe ajoutent à tout cela la propagation de contraintes (déduire les
+        placements forcés avant le moindre essai), des ordres de pièces malins, la recherche en
+        parallèle et des heuristiques de réparation locale qui rafistolent les plateaux
+        imparfaits. Elles atteignent 469, voire 470 côtés appariés sur 480. C'est
+        prodigieux — et toujours insuffisant. Cet écart entre « presque résolu » et « résolu »,
+        c'est précisément là que se joue la recherche ouverte : rendez-vous dans la section{" "}
         <Link className="underline" to="/research">Recherche</Link>.
       </>
     ),

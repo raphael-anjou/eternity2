@@ -49,28 +49,28 @@ const T = {
       title: "1 · Une pièce entière tient sur 20 bits",
       pieceWord: "un seul nombre de 20 bits",
       explainer:
-        "L'ordinateur ne voit jamais le dessin. Chacun des 22 motifs reçoit un nombre qui tient sur 5 bits, et une pièce en compte quatre : 4 × 5 = 20 bits, un petit nombre. Tout le jeu officiel pèse environ 1 Ko.",
+        "L'ordinateur ne voit jamais le dessin. À chacun des 22 motifs correspond un nombre qui tient sur 5 bits, et comme une pièce en réunit quatre, cela fait 4 × 5 = 20 bits : un tout petit nombre. Le jeu officiel complet pèse à peine 1 Ko.",
       dirLabels: ["haut", "droite", "bas", "gauche"],
     },
     compare: {
-      title: "2 · « Ça s'emboîte ? » = « les nombres sont-ils égaux ? »",
-      fits: "tous les bits sont égaux → la pièce CONVIENT ✓",
-      rejected: "un bit diffère → rejetée, on essaie la pièce suivante",
-      comparing: "comparaison…",
+      title: "2 · « Ça s'emboîte ? » revient à « les nombres sont-ils égaux ? »",
+      fits: "tous les bits coïncident → la pièce CONVIENT ✓",
+      rejected: "un bit diffère → on écarte la pièce et on passe à la suivante",
+      comparing: "comparaison en cours…",
       explainer:
-        "Voici un « test de compatibilité ». Un processeur compare tous les bits en une seule instruction, en moins d'une nanoseconde.",
+        "C'est un « test de compatibilité ». Le processeur compare tous les bits d'un coup, en une seule instruction, en moins d'une nanoseconde.",
     },
     rotation: {
-      title: "3 · Tourner = une seule rotation de bits",
+      title: "3 · Pivoter une pièce = une seule rotation de bits",
       explainer:
-        "Comme une pièce est un seul mot de 20 bits, un quart de tour est une simple rotation du processeur : on décale les bits de 5 places, et le côté qui sort par la fin revient au début. Aucun dessin n'est jamais tourné, et les quatre orientations ne coûtent presque rien.",
+        "Une pièce n'étant qu'un mot de 20 bits, un quart de tour se résume à une rotation du processeur : on fait glisser les bits de 5 crans, et ceux qui débordent par la fin réapparaissent au début. Aucun dessin n'est réellement tourné, et passer d'une orientation à l'autre ne coûte presque rien.",
       before: "avant",
       after: "après ↻",
     },
     mask: {
-      title: "4 · 256 pièces = 256 bits « encore libre ? »",
+      title: "4 · 256 pièces = 256 bits pour dire « encore libre ? »",
       explainer:
-        "Les solveurs rapides gardent la trace des pièces encore inutilisées dans un seul nombre de 256 bits, un bit chacune. « La pièce n°137 est-elle libre ? » est un simple test de bit ; « marquer comme utilisée » bascule un bit. Vérifier et mettre à jour la disponibilité reste donc quasi instantané, même avec 256 pièces. C'est exactement ce que fait notre propre moteur.",
+        "Les solveurs rapides suivent les pièces encore disponibles dans un unique nombre de 256 bits, à raison d'un bit par pièce. « La pièce n°137 est-elle libre ? » se réduit à la lecture d'un seul bit ; la « marquer comme utilisée » revient à en basculer un. Consulter et mettre à jour les disponibilités reste donc quasi instantané, même avec 256 pièces. C'est précisément ainsi que procède notre propre moteur.",
       placing: (n: number) => `pose de la pièce n°${n}…`,
       free: "libre",
       used: "utilisée",

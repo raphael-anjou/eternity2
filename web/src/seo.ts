@@ -18,9 +18,9 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Play it, watch real solvers run in your browser, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
     },
     fr: {
-      title: "Eternity II : le puzzle qui a battu tout le monde",
+      title: "Eternity II : le puzzle que personne n'a battu",
       description:
-        "Jouez-y, regardez de vrais solveurs tourner dans votre navigateur, apprenez les algorithmes, explorez la recherche. Le puzzle à 2 000 000 $ que personne n'a jamais résolu.",
+        "Jouez, regardez de vrais solveurs à l'œuvre dans votre navigateur, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
     },
   },
   puzzle: {
@@ -32,7 +32,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Le Puzzle" + SUFFIX,
       description:
-        "Ce qu'est vraiment Eternity II : 256 tuiles à bords assortis, 22 couleurs, un plateau 16×16 et un prix jamais réclamé.",
+        "Eternity II en clair : 256 tuiles à côtés appariés, 22 couleurs, un plateau 16×16 et un prix jamais remporté.",
     },
   },
   playground: {
@@ -44,7 +44,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Aire de jeu" + SUFFIX,
       description:
-        "Regardez des solveurs tourner, comparez des ordres de remplissage et résolvez des puzzles à la main — propulsé par un moteur Rust dans votre navigateur.",
+        "Regardez les solveurs à l'œuvre, comparez les ordres de remplissage et résolvez le puzzle à la main — le tout propulsé par un moteur Rust, dans votre navigateur.",
     },
   },
   watch: {
@@ -54,7 +54,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Regarder un solveur" + SUFFIX,
-      description: "Regardez un vrai solveur en profondeur explorer Eternity II en direct, étape par étape.",
+      description: "Suivez en direct un vrai solveur explorer Eternity II, étape par étape.",
     },
   },
   solve: {
@@ -64,7 +64,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Résoudre à la main" + SUFFIX,
-      description: "Placez vous-même les tuiles à bords assortis et ressentez pourquoi Eternity II est si difficile.",
+      description: "Placez vous-même les tuiles à côtés appariés et comprenez pourquoi Eternity II est si redoutable.",
     },
   },
   paths: {
@@ -74,7 +74,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Ordres de remplissage" + SUFFIX,
-      description: "Concevez l'ordre dans lequel un solveur remplit le plateau et comparez-le aux ordres classiques.",
+      description: "Choisissez l'ordre dans lequel le solveur remplit le plateau, puis défiez les ordres classiques.",
     },
   },
   print: {
@@ -84,7 +84,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Imprimer & jouer" + SUFFIX,
-      description: "Générez des planches de pièces Eternity II à imprimer, découper et résoudre sur papier.",
+      description: "Générez des planches de pièces Eternity II à imprimer, à découper et à résoudre sur papier.",
     },
   },
   algorithms: {
@@ -96,7 +96,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Algorithmes" + SUFFIX,
       description:
-        "Comment les ordinateurs attaquent Eternity II — recherche en profondeur, backtracking, le mur exponentiel et le pic de difficulté couleur/taille — avec des mesures en direct.",
+        "Comment les ordinateurs s'attaquent à Eternity II : recherche en profondeur, retour en arrière (backtracking), mur exponentiel et pic de difficulté couleur/taille, mesures à l'appui.",
     },
   },
   research: {
@@ -106,7 +106,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Recherche" + SUFFIX,
-      description: "Les records, les méthodes et les questions ouvertes derrière le puzzle non résolu Eternity II.",
+      description: "Les records, les méthodes et les grandes questions encore ouvertes autour d'Eternity II, le puzzle jamais résolu.",
     },
   },
   viewer: {
@@ -116,7 +116,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
     fr: {
       title: "Visualiseur" + SUFFIX,
-      description: "Collez un plateau et inspectez-le : score, conflits et solutions record connues d'Eternity II.",
+      description: "Collez un plateau et passez-le au crible : score, conflits et meilleures solutions connues d'Eternity II.",
     },
   },
 };

@@ -97,17 +97,17 @@ const T = {
     generate: "Generate new board",
   },
   fr: {
-    title: "Visualiseur de plateaux",
+    title: "Visualiseur",
     intro: (
       <>
-        Collez n'importe quel lien e2.bucas.name, ou choisissez un plateau célèbre.
-        Entièrement compatible avec le format d'URL de la communauté, y compris la conversion{" "}
-        <code>motifs_order</code>.
+        Collez un lien e2.bucas.name ou choisissez un plateau célèbre. Le visualiseur
+        comprend le format de lien de la communauté, conversion des{" "}
+        <code>motifs_order</code> comprise.
       </>
     ),
     credit: (
       <>
-        Motifs graphiques et format d'URL des plateaux issus de{" "}
+        Motifs et format de lien des plateaux signés{" "}
         <a className="underline" href="https://e2.bucas.name" target="_blank" rel="noreferrer">
           e2.bucas.name
         </a>{" "}
@@ -123,18 +123,18 @@ const T = {
         ).
       </>
     ),
-    officialById: "Pièces officielles par numéro",
+    officialById: "Pièces officielles, par numéro",
     generatedName: (s: number) => `généré ${s}×${s}`,
     placeholder: "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=…",
-    load: "Charger",
-    emptyState: "Choisissez un plateau ci-dessus, collez un lien, ou générez-en un →",
+    load: "Afficher",
+    emptyState: "Choisissez un plateau, collez un lien ou générez-en un →",
     importedBoard: "Plateau importé",
     matchedEdges: "côtés appariés",
-    piecesPlaced: (placed: number, total: number) => `${placed} / ${total} pièces placées`,
+    piecesPlaced: (placed: number, total: number) => `${placed} / ${total} pièces posées`,
     showConflicts: "Afficher les conflits",
     pieceNumbers: "Numéros des pièces",
     coordinates: "Coordonnées",
-    cluePositions: "Positions des indices",
+    cluePositions: "Position des indices",
     verification: "Vérification",
     officialSet: "Jeu de pièces officiel",
     verified: "✓ vérifié",
@@ -149,10 +149,10 @@ const T = {
     copied: "Copié !",
     generator: "Générateur de plateaux",
     generatorIntro:
-      "Créez un tout nouveau puzzle qui a une solution et regardez-la. (Maximum 22 couleurs : c'est le nombre de motifs qui existent.)",
+      "Fabriquez un puzzle inédit qui a bien une solution, puis admirez-la. (Pas plus de 22 couleurs : c'est le nombre de motifs disponibles.)",
     sizeLabel: (n: number) => `Taille : ${n}×${n}`,
     colorsLabel: (n: number) => `Couleurs : ${n}`,
-    generate: "Générer un nouveau plateau",
+    generate: "Générer un plateau",
   },
 };
 
@@ -329,7 +329,7 @@ export default function Viewer() {
   }, [enginePair, board, is16, engineReady]);
 
   const bucasUrl = () =>
-    exportPair ? encodeBucasUrl(exportPair.puzzle, exportPair.board, board?.puzzleName) : "";
+    exportPair ? encodeBucasUrl(exportPair.puzzle, exportPair.board, board?.puzzleName ?? undefined) : "";
 
   return (
     <div className="space-y-6">

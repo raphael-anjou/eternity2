@@ -38,31 +38,31 @@ const T = {
   fr: {
     title: "Aire de jeu",
     intro:
-      "Quatre façons de jouer avec le puzzle : rien à installer, pas de compte, tout tourne directement dans votre navigateur.",
+      "Quatre manières de mettre la main à la pâte : rien à installer, pas de compte, tout se passe directement dans votre navigateur.",
     modes: [
       {
         to: "/playground/solve",
         emoji: "🧩",
         title: "Résolvez-le vous-même",
-        text: "Un vrai puzzle où les côtés doivent correspondre, à taille humaine (de 3×3 à 5×5). Battez le chrono, puis découvrez combien de fois un ordinateur aurait pu le résoudre pendant que vous jouiez.",
+        text: "Un vrai casse-tête où les bords doivent s'emboîter, à taille humaine (du 3×3 au 5×5). Battez le chrono, puis voyez combien de fois un ordinateur l'aurait résolu pendant que vous jouiez.",
       },
       {
         to: "/playground/watch",
         emoji: "🤖",
         title: "Regardez la machine réfléchir",
-        text: "Une vraie recherche par retour en arrière (backtracking), en direct dans votre navigateur. Regardez-la placer des pièces, se bloquer et revenir sur ses pas. De 1 étape par seconde à plusieurs millions.",
+        text: "Une vraie recherche par retour en arrière (backtracking), en direct dans votre navigateur. Regardez-la poser des pièces, se retrouver coincée et revenir sur ses pas. D'une étape par seconde à plusieurs millions.",
       },
       {
         to: "/playground/paths",
         emoji: "🗺️",
-        title: "Inventez un chemin de parcours",
-        text: "Dessinez l'ordre dans lequel le solveur explore le plateau (en spirale ? en zigzag ? au hasard ?) puis faites la course contre les stratégies classiques.",
+        title: "Inventez votre parcours",
+        text: "Dessinez l'ordre dans lequel le solveur explore le plateau (en spirale ? en zigzag ? au petit bonheur ?), puis défiez les stratégies classiques.",
       },
       {
         to: "/playground/print",
         emoji: "🖨️",
-        title: "Imprimer et découper",
-        text: "Fabriquez de vrais puzzles pour la table : choisissez tailles et couleurs, imprimez en recto verso avec les numéros au dos, découpez le long des lignes.",
+        title: "Imprimez et découpez",
+        text: "Fabriquez de vrais casse-tête à poser sur la table : choisissez les tailles et les couleurs, imprimez en recto verso avec les numéros au dos, et découpez le long des traits.",
       },
     ],
   },
