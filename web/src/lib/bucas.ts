@@ -45,12 +45,28 @@ export function parseParams(input: string): Record<string, string> {
   return out;
 }
 
-export function decodeBucas(input: string): BucasBoard {
-  const params = parseParams(input);
+/** Normalize any bucas-style param map into our clean URL params: collapse
+ *  board_w/board_h into a single square `puzzle_size`, keep only the keys we
+ *  round-trip, and sanitize the name. All resulting values are URL-safe. */
+export function toOurParams(raw: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const size = raw["puzzle_size"] ?? raw["board_w"] ?? raw["board_h"];
+  if (size) out["puzzle_size"] = size;
+  if (raw["puzzle"]) out["puzzle"] = raw["puzzle"].replace(/[^A-Za-z0-9_]+/g, "_");
+  for (const k of ["board_edges", "board_pieces", "motifs_order"]) {
+    if (raw[k]) out[k] = raw[k];
+  }
+  return out;
+}
+
+export function decodeBucas(input: string | Record<string, string>): BucasBoard {
+  const params = typeof input === "string" ? parseParams(input) : input;
   const edges = params["board_edges"];
   if (!edges) throw new Error("no board_edges parameter found");
-  const width = parseInt(params["board_w"] ?? "16", 10);
-  const height = parseInt(params["board_h"] ?? "16", 10);
+  // Our URLs use a single square `puzzle_size`; bucas links use board_w/board_h.
+  const size = params["puzzle_size"];
+  const width = parseInt(size ?? params["board_w"] ?? "16", 10);
+  const height = parseInt(size ?? params["board_h"] ?? "16", 10);
   if (edges.length !== width * height * 4) {
     throw new Error(
       `board_edges has ${edges.length} letters; expected ${width * height * 4} for ${width}×${height}`,
@@ -197,14 +213,9 @@ export function boardFromEngine(puzzle: Puzzle, board: BoardCells): BucasBoard {
   };
 }
 
-/** Bucas URL parameters for any board (default motif letters). Works for any
- *  size/piece set; bucas only *verifies* the official 16×16, but displays
- *  everything. */
-export function bucasParams(
-  puzzle: Puzzle,
-  board: BoardCells,
-  name = "eternity2-community",
-): string {
+/** Encode a board's cells into the `board_edges` / `board_pieces` strings
+ *  (default motif letters). Shared by both our own URLs and bucas export. */
+function encodeCells(puzzle: Puzzle, board: BoardCells): { edges: string; pieces: string } {
   const n = puzzle.width * puzzle.height;
   let edges = "";
   let pieces = "";
@@ -219,6 +230,36 @@ export function bucasParams(
       pieces += String((v >> 2) + 1).padStart(3, "0");
     }
   }
+  return { edges, pieces };
+}
+
+/** Our own clean query params for a board. Boards are always square, so we
+ *  emit a single `puzzle_size` instead of bucas's `board_w`/`board_h`, and we
+ *  keep every value in the safe `[A-Za-z0-9_]` range so the URL needs no
+ *  percent-encoding. `decodeBucas` reads these back transparently. */
+export function ourParams(
+  puzzle: Puzzle,
+  board: BoardCells,
+  name = "eternity2-community",
+): Record<string, string> {
+  const { edges, pieces } = encodeCells(puzzle, board);
+  return {
+    puzzle: name.replace(/[^A-Za-z0-9_]+/g, "_"),
+    puzzle_size: String(puzzle.width),
+    board_edges: edges,
+    board_pieces: pieces,
+  };
+}
+
+/** Bucas URL parameters for any board (default motif letters). Works for any
+ *  size/piece set; bucas only *verifies* the official 16×16, but displays
+ *  everything. Bucas needs the explicit `board_w`/`board_h` pair. */
+export function bucasParams(
+  puzzle: Puzzle,
+  board: BoardCells,
+  name = "eternity2-community",
+): string {
+  const { edges, pieces } = encodeCells(puzzle, board);
   return (
     `puzzle=${encodeURIComponent(name)}` +
     `&board_w=${puzzle.width}&board_h=${puzzle.height}` +
