@@ -5,7 +5,6 @@ import { pageMeta } from "@/seo";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BoardSvg } from "@/components/board/BoardSvg";
-import { BucasActions } from "@/components/board/BucasActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -245,9 +244,6 @@ export default function Watch() {
                 cells={cells}
                 highlight={official ? puzzle.hints.map((h) => h.pos) : undefined}
               />
-              {boardCells && (
-                <BucasActions puzzle={puzzle} board={Array.from(boardCells)} size="xs" />
-              )}
             </div>
           ) : (
             <div className="flex aspect-square max-w-3xl items-center justify-center rounded-lg border text-muted-foreground">
