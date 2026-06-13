@@ -234,26 +234,56 @@ export default function Solve() {
   const complete =
     puzzle !== null && board.every(Boolean) && allConflicts.length === 0 && board.length > 0;
 
-  // completion → stop clock, run the machine. This effect synchronizes with an
-  // external system (the WASM solver), so the setState calls that record its
-  // timing/result legitimately live in the effect body.
+  // completion → stop the human clock. Kept separate from the machine-solve
+  // effect below: this one just records elapsed time (cheap, synchronous), and
+  // flipping `finishedIn` is what triggers the benchmark. Bundling them would
+  // tear the benchmark's RAF loop down on the re-render that setFinishedIn
+  // causes (the effect would re-run, hit the guard, and fire its cleanup).
   useEffect(() => {
-    if (!complete || finishedIn !== null || startedAt === null || !puzzle) return;
-    const humanMs = Date.now() - startedAt;
+    if (!complete || finishedIn !== null || startedAt === null) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFinishedIn(humanMs / 1000);
+    setFinishedIn((Date.now() - startedAt) / 1000);
+  }, [complete, finishedIn, startedAt]);
+
+  // Once the human is done, race the machine. The solve is stepped across RAF
+  // frames in small (~12ms) chunks rather than one synchronous burst: a hard
+  // puzzle could otherwise pin the main thread for up to the full 5s cap,
+  // freezing the tab (and blocking navigation) right after the human finishes.
+  // While it runs, `machine` stays null and the UI shows the "Racing the
+  // machine…" message; we accumulate only the time spent inside step()
+  // (excluding the idle gaps between frames) so the reported time stays
+  // comparable to the old synchronous measurement. Guarded on machine === null
+  // so it runs once per puzzle. This effect synchronizes with an external
+  // system (the WASM solver), so its setState legitimately lives in the body.
+  useEffect(() => {
+    if (finishedIn === null || machine !== null || !puzzle) return;
 
     const path = getPath("row-major", puzzle.width, puzzle.height, 0);
     const solver = createSolver(puzzle, path, { useHints: false });
-    const t0 = performance.now();
-    let r = solver.step(10_000_000);
-    while (r.status === "running" && performance.now() - t0 < 5000) {
-      r = solver.step(10_000_000);
-    }
-    const ms = performance.now() - t0;
-    solver.free();
-    if (r.status === "solved") setMachine({ ms, attempts: r.nodes });
-  }, [complete, finishedIn, startedAt, puzzle]);
+    let raf = 0;
+    let solverMs = 0; // accumulated time spent inside step(), excluding idle gaps
+
+    const frame = () => {
+      const frameStart = performance.now();
+      let r = solver.report();
+      while (r.status === "running" && performance.now() - frameStart < 12) {
+        r = solver.step(10_000_000);
+      }
+      solverMs += performance.now() - frameStart;
+      if (r.status !== "running" || solverMs >= 5000) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (r.status === "solved") setMachine({ ms: solverMs, attempts: r.nodes });
+        return; // solver freed by the cleanup below
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      solver.free();
+    };
+  }, [finishedIn, machine, puzzle]);
 
   // Start the human clock on first interaction. Wrapped so the linter sees it
   // as an event handler (not render code) — Date.now() is fine to call here.
