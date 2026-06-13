@@ -1,3 +1,4 @@
+import { pageMeta } from "@/seo";
 // Solve a small puzzle yourself: pieces in a tray on the right, board on the
 // left, timer running. When you finish, the WASM engine solves the same
 // puzzle and tells you how many times it could have done it meanwhile.
@@ -16,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
 import { useT } from "@/i18n";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import type { Puzzle } from "@/lib/types";
 import { rotateEdges, BORDER } from "@/lib/types";
 import type { Edges } from "@/lib/bucas";
@@ -58,9 +60,9 @@ const T = {
       <>
         And yet nobody, human or machine, has ever solved the 16×16 one. That's the magic of
         exponential growth. See{" "}
-        <a className="underline" href="#/algorithms">
+        <Link className="underline" to="/algorithms">
           Algorithms
-        </a>
+        </Link>
         .
       </>
     ),
@@ -102,9 +104,9 @@ const T = {
       <>
         Et pourtant personne, ni humain ni machine, n'a jamais résolu la version 16×16. C'est
         la magie de la croissance exponentielle. Voir{" "}
-        <a className="underline" href="#/algorithms">
+        <Link className="underline" to="/algorithms">
           Algorithmes
-        </a>
+        </Link>
         .
       </>
     ),
@@ -128,7 +130,7 @@ export default function Solve() {
   // Touch devices get tap-centric instructions and long-press removal
   // (HTML5 drag and drop does not exist on mobile browsers).
   const coarsePointer = useMemo(
-    () => window.matchMedia("(pointer: coarse)").matches,
+    () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
     [],
   );
   const longPress = useRef<{ timer: number; x: number; y: number } | null>(null);
@@ -520,3 +522,5 @@ export default function Solve() {
     </div>
   );
 }
+
+export const meta = pageMeta("solve");

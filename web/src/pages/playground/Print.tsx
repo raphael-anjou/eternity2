@@ -1,3 +1,4 @@
+import { pageMeta } from "@/seo";
 // Print real puzzles, PowerPoint-style: drop puzzle blocks onto A4 pages,
 // drag them anywhere, resize them with the corner handle, then print
 // double-sided and cut along the lines. The back of each piece carries its
@@ -572,3 +573,5 @@ export default function Print() {
     </div>
   );
 }
+
+export const meta = pageMeta("print");

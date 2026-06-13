@@ -1,5 +1,6 @@
+import { pageMeta } from "@/seo";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { BucasActions } from "@/components/board/BucasActions";
 import { Button } from "@/components/ui/button";
@@ -506,3 +507,5 @@ export default function Viewer() {
     </div>
   );
 }
+
+export const meta = pageMeta("viewer");

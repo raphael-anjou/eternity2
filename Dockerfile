@@ -32,7 +32,7 @@ RUN pnpm build
 # ---- stage 3: static server ------------------------------------------------
 FROM nginx:1.27-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=web /src/web/dist /usr/share/nginx/html
+COPY --from=web /src/web/build/client /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget -qO /dev/null http://localhost/ || exit 1

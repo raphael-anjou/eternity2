@@ -1,20 +1,9 @@
-import { Suspense, lazy, useEffect, useState } from "react";
-import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Suspense, useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { initEngine } from "@/engine";
-import { useLang, useT } from "@/i18n";
+import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
 import { cn } from "@/lib/utils";
-
-const Home = lazy(() => import("@/pages/Home"));
-const PuzzlePage = lazy(() => import("@/pages/Puzzle"));
-const PlaygroundHub = lazy(() => import("@/pages/playground/Hub"));
-const Watch = lazy(() => import("@/pages/playground/Watch"));
-const Solve = lazy(() => import("@/pages/playground/Solve"));
-const Paths = lazy(() => import("@/pages/playground/Paths"));
-const Print = lazy(() => import("@/pages/playground/Print"));
-const Algorithms = lazy(() => import("@/pages/Algorithms"));
-const Research = lazy(() => import("@/pages/Research"));
-const Viewer = lazy(() => import("@/pages/Viewer"));
 
 const T = {
   en: {
@@ -55,16 +44,7 @@ const T = {
   },
 };
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-}
-
-// GA4 page views per hash route (the index.html config disables automatic
-// ones, which would all collapse to "/" since GA ignores URL fragments).
+// GA4 page views per route (the root.tsx config disables automatic ones).
 function PageTracking() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -78,7 +58,28 @@ function PageTracking() {
   return null;
 }
 
-export default function App() {
+// On a first visit to a bare "/" path, send French visitors to /fr (honoring an
+// earlier explicit choice or the browser language). Runs only in the browser,
+// so prerendered HTML always reflects the URL it was generated for.
+function FirstVisitRedirect() {
+  const { pathname, search } = useLocation();
+  const { setLang } = useLang();
+  useEffect(() => {
+    if (langFromBare(pathname)) return; // already on a language-qualified path
+    const pref = preferredLang();
+    if (pref === "fr") setLang("fr");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+
+  // Treat any non-root path as already-decided (it carries its own segments);
+  // only the bare English root "/" is eligible for the FR redirect.
+  function langFromBare(p: string): boolean {
+    return p !== "/" || /^\/fr(\/|$)/.test(p) || search.length > 0;
+  }
+}
+
+export default function Layout() {
   const [engineReady, setEngineReady] = useState(false);
   const [engineError, setEngineError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -91,14 +92,18 @@ export default function App() {
       .catch((e) => setEngineError(String(e)));
   }, []);
 
+  // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle).
+  const link = (to: string) => pathForLang(to, lang);
+  const other: Lang = lang === "en" ? "fr" : "en";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ScrollToTop />
       <PageTracking />
+      <FirstVisitRedirect />
       <MotifDefs />
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:gap-6 sm:px-4">
-          <NavLink to="/" className="flex shrink-0 items-center gap-2 font-bold tracking-tight">
+          <NavLink to={link("/")} className="flex shrink-0 items-center gap-2 font-bold tracking-tight">
             <svg viewBox="-130 -130 260 260" width="28" height="28" aria-hidden>
               <use href="#e2m-9" transform="rotate(90)" />
               <use href="#e2m-12" transform="rotate(180)" />
@@ -114,7 +119,7 @@ export default function App() {
             {t.nav.map((item) => (
               <NavLink
                 key={item.to}
-                to={item.to}
+                to={link(item.to)}
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
@@ -146,7 +151,7 @@ export default function App() {
             {engineError ? t.engineFailed : engineReady ? t.engineReady : t.engineLoading}
           </span>
           <button
-            onClick={() => setLang(lang === "en" ? "fr" : "en")}
+            onClick={() => setLang(other)}
             className="shrink-0 rounded-md border px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={lang === "en" ? "Passer en français" : "Switch to English"}
           >
@@ -167,7 +172,7 @@ export default function App() {
               {t.nav.map((item) => (
                 <NavLink
                   key={item.to}
-                  to={item.to}
+                  to={link(item.to)}
                   end={item.to === "/"}
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
@@ -188,21 +193,8 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <Suspense
-          fallback={<div className="py-24 text-center text-muted-foreground">Loading…</div>}
-        >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/puzzle" element={<PuzzlePage />} />
-            <Route path="/playground" element={<PlaygroundHub />} />
-            <Route path="/playground/watch" element={<Watch />} />
-            <Route path="/playground/solve" element={<Solve />} />
-            <Route path="/playground/paths" element={<Paths />} />
-            <Route path="/playground/print" element={<Print />} />
-            <Route path="/algorithms" element={<Algorithms />} />
-            <Route path="/research" element={<Research />} />
-            <Route path="/viewer" element={<Viewer />} />
-          </Routes>
+        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading…</div>}>
+          <Outlet />
         </Suspense>
       </main>
 
