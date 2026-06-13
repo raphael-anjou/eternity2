@@ -25,6 +25,21 @@ import { BinaryPlayground } from "@/components/learn/BinaryPlayground";
 import { useT } from "@/i18n";
 import stats from "@/data/difficulty.json";
 import { formatCompact } from "@/lib/format";
+import { useIsClient } from "@/lib/utils";
+import type { ReactElement } from "react";
+
+// recharts measures its parent's layout; during the static prerender pass
+// there is no layout and ResponsiveContainer warns about width/height -1.
+// Render the chart only once mounted in the browser.
+function ChartFrame({ children }: { children: ReactElement }) {
+  const isClient = useIsClient();
+  if (!isClient) return null;
+  return (
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+      {children}
+    </ResponsiveContainer>
+  );
+}
 
 interface DifficultyRow {
   size: number;
@@ -359,7 +374,7 @@ export default function Algorithms() {
             <CardTitle className="text-base">{t.spaceChartTitle}</CardTitle>
           </CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer>
+            <ChartFrame>
               <LineChart data={spaceRows} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="size" tickFormatter={(s) => `${s}×${s}`} />
@@ -372,7 +387,7 @@ export default function Algorithms() {
                 <Line name={t.legendNaive} dataKey="log10Naive" stroke="#f87171" dot={false} strokeWidth={2} />
                 <Line name={t.legendRefined} dataKey="log10Refined" stroke="#38bdf8" dot={false} strokeWidth={2} />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           </CardContent>
         </Card>
         <p className="max-w-3xl text-base text-muted-foreground">{t.s2P2}</p>
@@ -398,7 +413,7 @@ export default function Algorithms() {
             <CardTitle className="text-base">{t.workChartTitle}</CardTitle>
           </CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer>
+            <ChartFrame>
               <LineChart data={difficultyChart} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="colors" label={{ value: t.axisColors, position: "insideBottom", offset: -2 }} />
@@ -425,7 +440,7 @@ export default function Algorithms() {
                   />
                 ))}
               </LineChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           </CardContent>
         </Card>
       </section>
@@ -439,7 +454,7 @@ export default function Algorithms() {
             <CardTitle className="text-base">{t.pathChartTitle}</CardTitle>
           </CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer>
+            <ChartFrame>
               <BarChart data={pathRows} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="kind" interval={0} angle={-20} textAnchor="end" height={60} />
@@ -452,7 +467,7 @@ export default function Algorithms() {
                 <Tooltip formatter={(v) => [formatCompact(Number(v)), t.fitChecks]} />
                 <Bar dataKey="median" fill="#38bdf8" radius={[4, 4, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           </CardContent>
         </Card>
       </section>
