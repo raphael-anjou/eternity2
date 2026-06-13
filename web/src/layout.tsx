@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { initEngine } from "@/engine";
 import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
@@ -58,25 +58,22 @@ function PageTracking() {
   return null;
 }
 
-// On a first visit to a bare "/" path, send French visitors to /fr (honoring an
-// earlier explicit choice or the browser language). Runs only in the browser,
-// so prerendered HTML always reflects the URL it was generated for.
+// On a first visit to the bare English root "/", send French visitors to /fr
+// (honoring an earlier explicit choice or the browser language). This must run
+// SYNCHRONOUSLY during render — not in a post-paint effect — because an effect
+// can fire *after* the user has already clicked a nav link, and would then
+// redirect away from the page they navigated to (the "click The Puzzle, flicker,
+// bounce to home" bug). Rendering <Navigate> reacts to the live location, so a
+// real navigation away from "/" simply makes this component render null.
 function FirstVisitRedirect() {
   const { pathname, search } = useLocation();
-  const { setLang } = useLang();
-  useEffect(() => {
-    if (langFromBare(pathname)) return; // already on a language-qualified path
-    const pref = preferredLang();
-    if (pref === "fr") setLang("fr");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return null;
-
-  // Treat any non-root path as already-decided (it carries its own segments);
-  // only the bare English root "/" is eligible for the FR redirect.
-  function langFromBare(p: string): boolean {
-    return p !== "/" || /^\/fr(\/|$)/.test(p) || search.length > 0;
+  // Only the exact bare root with no query is eligible; any other path already
+  // carries its own language/segments and is left untouched.
+  const eligible = pathname === "/" && search.length === 0;
+  if (eligible && preferredLang() === "fr") {
+    return <Navigate to="/fr" replace />;
   }
+  return null;
 }
 
 export default function Layout() {
