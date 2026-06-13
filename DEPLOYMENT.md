@@ -23,12 +23,24 @@ file (`/algorithms/index.html`, `/fr/algorithms/index.html`, …) with the corre
 language-specific content. The workflow also copies the React Router SPA shell to
 `404.html` so unmatched deep links still boot the app.
 
-**Served at the domain root.** Because assets and routes use absolute paths
-(`base: "/"`), the site must live at the root of a domain — it no longer works
-unchanged under an arbitrary subpath. A project page at
-`<user>.github.io/<repo>/` would need `base` and the route `basename` set to the
-subpath and a rebuild (note: react-router's `ssr:false` prerender + `basename` is
-currently buggy — prefer a root domain).
+**Path prefix / subpath deploys.** By default the site is served at a domain
+root and asset/route paths are absolute. To serve it under a prefix instead
+(e.g. behind a reverse proxy at `host/eternity2/`, or a GitHub project page at
+`<user>.github.io/<repo>/`), set two build-time env vars — no code changes:
+
+```bash
+# served at https://www.terra-numerica.fr/eternity2/
+BASE_PATH=/eternity2 \
+VITE_SITE_ORIGIN=https://www.terra-numerica.fr \
+pnpm build
+```
+
+- `BASE_PATH` — the path prefix. Becomes the Vite asset `base` and the router
+  `basename`, so every asset link, nav link and prerendered route in the output
+  carries the prefix. Default `""` (root).
+- `VITE_SITE_ORIGIN` — the public origin used for `canonical`, `hreflang` and
+  `og:url` tags. Default `https://eternity2.dev`. Set it so the SEO/social tags
+  point at the real deployed URL.
 
 ### Any other static host (GitLab Pages, CDN, plain nginx)
 
@@ -71,12 +83,28 @@ docker tag eternity2-community registry.example.org/eternity2/site:1.0.0
 docker push registry.example.org/eternity2/site:1.0.0
 ```
 
-### Behind a reverse proxy
+### Behind a reverse proxy (Traefik)
 
-The image expects to be served at the domain root (absolute asset/route paths).
-A `StripPrefix`-style path prefix (`https://host/eternity2/`) no longer works
-without a rebuild — set `base` in `vite.config.ts` and the route `basename` to
-the prefix and rebuild. Expose only the container's port 80 to the proxy network.
+**At a host root** (`https://eternity2.example/`): nothing special — route the
+host to the container, expose only its port 80 to the proxy network.
+
+**Under a path prefix** (`https://example/eternity2/`): build the image with
+`BASE_PATH=/eternity2` (pass it as a Docker build arg / build env) and **do NOT
+use `StripPrefix`**. The prefixed build writes its files under `/eternity2/` and
+emits `/eternity2/...` asset and route links, so it expects to *receive* the
+prefix — stripping it would make every asset 404. Just route the prefixed host
+path straight through:
+
+```yaml
+# docker-compose labels (no StripPrefix middleware)
+labels:
+  - "traefik.http.routers.eternity2.rule=Host(`example.org`) && PathPrefix(`/eternity2`)"
+  - "traefik.http.services.eternity2.loadbalancer.server.port=80"
+```
+
+The rule of thumb: the prefix must survive all the way to the files. Build the
+prefix in (`BASE_PATH`), and let the proxy pass it through rather than strip it.
+Also set `VITE_SITE_ORIGIN` so the SEO tags use the public hostname.
 
 ### Operational profile
 
