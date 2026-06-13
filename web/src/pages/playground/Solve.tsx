@@ -48,6 +48,12 @@ const T = {
         <strong className="text-lg">{times}×</strong>.
       </>
     ),
+    beforeSecondPiece: (
+      <>
+        It solved the whole puzzle{" "}
+        <strong>before you had even placed your second piece</strong>.
+      </>
+    ),
     exponential: (
       <>
         And yet nobody, human or machine, has ever solved the 16×16 one. That's the magic of
@@ -84,6 +90,12 @@ const T = {
       <>
         Pendant que vous jouiez, il aurait eu le temps de résoudre ce puzzle environ{" "}
         <strong className="text-lg">{times} fois</strong>.
+      </>
+    ),
+    beforeSecondPiece: (
+      <>
+        Il a résolu le puzzle entier{" "}
+        <strong>avant même que vous ayez posé votre deuxième pièce</strong>.
       </>
     ),
     exponential: (
@@ -305,8 +317,19 @@ export default function Solve() {
     }
   };
 
-  const machineTimes =
-    machine && finishedIn ? Math.max(1, Math.floor((finishedIn * 1000) / machine.ms)) : null;
+  // How the machine's solve time compares to yours, framed as a human image
+  // instead of a division that explodes to infinity when ms ≈ 0.
+  const comparison = useMemo(() => {
+    if (!machine || finishedIn === null || !puzzle) return null;
+    const yourMs = finishedIn * 1000;
+    const perPieceMs = yourMs / (puzzle.width * puzzle.height); // your avg time per piece
+    // How many of YOUR pieces' worth of time the machine fit into.
+    const piecesWorth = machine.ms / perPieceMs;
+    if (piecesWorth < 2) return { kind: "beforeSecondPiece" as const };
+    const times = Math.floor(yourMs / machine.ms);
+    if (times >= 2) return { kind: "times" as const, n: times };
+    return { kind: "beforeSecondPiece" as const };
+  }, [machine, finishedIn, puzzle]);
 
   return (
     <div className="space-y-6">
@@ -470,7 +493,7 @@ export default function Solve() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  {machine && machineTimes !== null ? (
+                  {machine && comparison ? (
                     <>
                       <p>
                         {t.machineSolved(
@@ -478,7 +501,11 @@ export default function Solve() {
                           formatInt(machine.attempts),
                         )}
                       </p>
-                      <p>{t.couldHave(formatInt(machineTimes))}</p>
+                      <p>
+                        {comparison.kind === "beforeSecondPiece"
+                          ? t.beforeSecondPiece
+                          : t.couldHave(formatInt(comparison.n))}
+                      </p>
                       <p className="text-muted-foreground">{t.exponential}</p>
                     </>
                   ) : (
