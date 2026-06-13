@@ -13,8 +13,9 @@ const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
 
 export function meta() {
   // Site-wide defaults; individual routes override title/description.
+  // NOTE: charset is set as a literal <meta charSet> in Layout's <head>, not
+  // here — the descriptor form does not reliably reach the prerendered HTML.
   return [
-    { charSet: "utf-8" },
     { name: "viewport", content: "width=device-width, initial-scale=1.0" },
     { property: "og:type", content: "website" },
     { property: "og:image", content: "https://eternity2.dev/og.png" },
@@ -38,6 +39,14 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang={lang}>
       <head>
+        {/* charset MUST be the first thing in <head> (within the first 1024
+            bytes) and emitted as a literal tag. React Router's <Meta> does not
+            reliably render the { charSet } descriptor into prerendered HTML, so
+            without this the browser guesses the encoding: it reads the UTF-8
+            bytes C2 A0 (a &nbsp;, e.g. "Eternity II") as Latin-1 → "Â ",
+            which then mismatches the UTF-8-decoding client and breaks
+            hydration. */}
+        <meta charSet="utf-8" />
         <Meta />
         <Links />
         <link rel="canonical" href={absoluteUrl(pathname)} />
