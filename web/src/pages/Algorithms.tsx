@@ -136,12 +136,14 @@ const T = {
         random puzzles per point; log scale!). Three things to see. Each extra row of board
         multiplies the work: the lines sit decades apart. <em>More</em> colors often make a
         puzzle <em>easier</em>, because wrong placements get rejected sooner instead of luring
-        the search into deep dead ends. And the 8×8 line shows something famous: a{" "}
-        <strong>hardness peak</strong>. Very few colors → tons of solutions, easy to stumble
-        on one. Many colors → so constrained the search barely branches. In between sits a
-        killer zone (here ~4–9 colors) where puzzles have few solutions <em>and</em> deep
-        false trails. Our measurement capped out there, so those points are{" "}
-        <em>under</em>-estimates. Eternity II's parameters were chosen in exactly that zone.
+        the search into deep dead ends. And the 8×8 line shows something famous: a sharp{" "}
+        <strong>hardness peak at 6–7 colors</strong>. Very few colors → tons of solutions, easy
+        to stumble on one. Many colors → so constrained the search barely branches. Right in
+        between, at 6 colors, the median 8×8 puzzle needs over <strong>2 billion</strong> piece
+        placements, and most seeds there ran so long we had to stop measuring them (the flat
+        tops are those censored points). One color either side and it collapses by a hundredfold.
+        Eternity II's 22 colors sit past this small-board peak, but its 16×16 size more than
+        makes up for it.
       </>
     ),
     workChartTitle: "Work to solve (median nodes, log scale) vs number of colors",
@@ -257,13 +259,15 @@ const T = {
         lignes sont séparées de plusieurs ordres de grandeur. <em>Plus</em> de couleurs
         rendent souvent un puzzle <em>plus facile</em>, car les mauvais placements sont
         rejetés plus tôt au lieu d'entraîner la recherche dans des impasses profondes. Et la
-        ligne 8×8 montre un phénomène célèbre : un <strong>pic de difficulté</strong>. Très
-        peu de couleurs → des tonnes de solutions, facile d'en trouver une par hasard.
-        Beaucoup de couleurs → le puzzle est si contraint que la recherche se ramifie à
-        peine. Entre les deux se trouve une zone redoutable (ici environ 5 à 9 couleurs) où
-        les puzzles ont peu de solutions <em>et</em> de longues fausses pistes. Notre mesure
-        a atteint son plafond dans cette zone, ces points sont donc <em>sous</em>-estimés.
-        Les paramètres d'Eternity II ont été choisis exactement dans cette zone.
+        ligne 8×8 montre un phénomène célèbre : un <strong>pic de difficulté net à 6–7
+        couleurs</strong>. Très peu de couleurs → des tonnes de solutions, facile d'en trouver
+        une par hasard. Beaucoup de couleurs → le puzzle est si contraint que la recherche se
+        ramifie à peine. Juste entre les deux, à 6 couleurs, le puzzle 8×8 médian demande plus
+        de <strong>2 milliards</strong> de placements de pièces, et la plupart des graines ont
+        tourné si longtemps qu'il a fallu arrêter de les mesurer (les plateaux correspondent à
+        ces points censurés). Une couleur de plus ou de moins, et tout s'effondre d'un facteur
+        cent. Les 22 couleurs d'Eternity II sont au-delà de ce pic des petits plateaux, mais
+        sa taille de 16×16 compense largement.
       </>
     ),
     workChartTitle:
