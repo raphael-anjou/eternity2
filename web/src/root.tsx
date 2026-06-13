@@ -43,7 +43,7 @@ export function Layout({ children }: { children: ReactNode }) {
             bytes) and emitted as a literal tag. React Router's <Meta> does not
             reliably render the { charSet } descriptor into prerendered HTML, so
             without this the browser guesses the encoding: it reads the UTF-8
-            bytes C2 A0 (a &nbsp;, e.g. "Eternity II") as Latin-1 → "Â ",
+            bytes C2 A0 (a &nbsp;, e.g. the gap in an "Eternity II" title) as Latin-1,
             which then mismatches the UTF-8-decoding client and breaks
             hydration. */}
         <meta charSet="utf-8" />
