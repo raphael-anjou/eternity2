@@ -1,5 +1,6 @@
+import { pageMeta } from "@/seo";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -228,3 +229,5 @@ export default function Home() {
     </div>
   );
 }
+
+export const meta = pageMeta("home");

@@ -1,3 +1,4 @@
+import { pageMeta } from "@/seo";
 // Build your own search path (the order the solver fills cells) by clicking
 // or dragging on a grid, then race it against the classics on the same
 // puzzle. Path order routinely changes nodes-to-solve by orders of magnitude.
@@ -593,3 +594,5 @@ export default function Paths() {
     </div>
   );
 }
+
+export const meta = pageMeta("paths");

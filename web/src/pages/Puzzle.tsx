@@ -1,6 +1,7 @@
+import { pageMeta } from "@/seo";
 import { useMemo } from "react";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -690,3 +691,5 @@ function ViewLink({ id, label }: { id: string; label: string }) {
     </Link>
   );
 }
+
+export const meta = pageMeta("puzzle");

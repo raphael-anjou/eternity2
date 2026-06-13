@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { pageMeta } from "@/seo";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 
@@ -91,3 +92,5 @@ export default function Hub() {
     </div>
   );
 }
+
+export const meta = pageMeta("playground");

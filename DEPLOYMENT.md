@@ -13,22 +13,35 @@ runs its test suite, builds the web app and publishes to GitHub Pages on every p
 the default branch. One-time setup after pushing the repo to GitHub:
 
 1. Repository **Settings → Pages → Source: "GitHub Actions"**.
-2. Push to `main`/`master`. The site appears at `https://<user>.github.io/<repo>/`.
+2. Push to `main`/`master`. The site is served at the domain root (a `CNAME` file
+   pins it to `eternity2.dev`; remove `web/public/CNAME` to use the default
+   `https://<user>.github.io/<repo>/`, but see the root-path note below).
 
-No configuration is needed for the subpath: the app uses relative asset paths and hash
-routing, so it works at any URL.
+The app is pre-rendered: every route × language is emitted as a real `.html`
+file (`/algorithms/index.html`, `/fr/algorithms/index.html`, …) with the correct
+`<html lang>` and `hreflang` tags, so crawlers and link-preview bots get real,
+language-specific content. The workflow also copies the React Router SPA shell to
+`404.html` so unmatched deep links still boot the app.
+
+**Served at the domain root.** Because assets and routes use absolute paths
+(`base: "/"`), the site must live at the root of a domain — it no longer works
+unchanged under an arbitrary subpath. A project page at
+`<user>.github.io/<repo>/` would need `base` and the route `basename` set to the
+subpath and a rebuild (note: react-router's `ssr:false` prerender + `basename` is
+currently buggy — prefer a root domain).
 
 ### Any other static host (GitLab Pages, CDN, plain nginx)
 
 ```bash
 cd engine && wasm-pack build --target web --out-dir ../web/src/engine/pkg --release
 cd ../web && pnpm install && pnpm build
-# upload web/dist/ anywhere that serves static files
+# upload web/build/client/ anywhere that serves static files
 ```
 
-The only host requirement: serve `.wasm` files with the `application/wasm` MIME type
-(all mainstream hosts and CDNs do). Routing is hash-based, so no 404/rewrite rules are
-needed.
+Host requirements: serve `.wasm` with the `application/wasm` MIME type (all
+mainstream hosts/CDNs do), and serve the site at the domain root. For unmatched
+paths, fall back to `__spa-fallback.html` (the bundled `nginx.conf` does this; on
+a CDN, point the 404/SPA fallback there).
 
 ## Option B: Docker
 
@@ -58,14 +71,12 @@ docker tag eternity2-community registry.example.org/eternity2/site:1.0.0
 docker push registry.example.org/eternity2/site:1.0.0
 ```
 
-### Behind a reverse proxy with a path prefix
+### Behind a reverse proxy
 
-The same image works at the domain root or behind any path prefix (e.g.
-`https://host/eternity2/`) **without a rebuild and without configuration**, thanks to
-relative asset paths and hash routing. With Traefik, use a standard `StripPrefix`
-middleware; ready-made labels are in `docker-compose.yaml` (commented). There is no
-`BASE_PATH` to set and no port to expose besides the container's port 80 to the proxy
-network.
+The image expects to be served at the domain root (absolute asset/route paths).
+A `StripPrefix`-style path prefix (`https://host/eternity2/`) no longer works
+without a rebuild — set `base` in `vite.config.ts` and the route `basename` to
+the prefix and rebuild. Expose only the container's port 80 to the proxy network.
 
 ### Operational profile
 

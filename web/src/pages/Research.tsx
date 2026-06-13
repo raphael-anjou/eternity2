@@ -1,3 +1,4 @@
+import { pageMeta } from "@/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 
@@ -187,3 +188,5 @@ export default function Research() {
     </div>
   );
 }
+
+export const meta = pageMeta("research");

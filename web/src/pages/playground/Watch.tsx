@@ -1,3 +1,4 @@
+import { pageMeta } from "@/seo";
 // Watch a real DFS run live, in your browser. The Rust/WASM solver is
 // stepped from an animation loop; speed controls how many solver steps
 // (placements + backtracks) run per second.
@@ -432,3 +433,5 @@ export default function Watch() {
     </div>
   );
 }
+
+export const meta = pageMeta("watch");
