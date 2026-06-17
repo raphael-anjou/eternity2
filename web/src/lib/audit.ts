@@ -44,7 +44,7 @@ export function auditBoard(board: BucasBoard, official: Puzzle): BoardAudit {
   // Multiset check: every placed cell must consume a distinct official piece.
   const pool = new Map<string, number>();
   for (const e of official.pieces) {
-    const k = canonical(e as Edges);
+    const k = canonical(e);
     pool.set(k, (pool.get(k) ?? 0) + 1);
   }
   let duplicates = 0;
@@ -66,9 +66,11 @@ export function auditBoard(board: BucasBoard, official: Puzzle): BoardAudit {
 
   const hints: HintCheck[] = official.hints.map((h) => {
     const cell = board.cells[h.pos];
-    const expected = rotateEdges(official.pieces[h.piece], h.rot);
+    const piece = official.pieces[h.piece];
+    const expected = piece ? rotateEdges(piece, h.rot) : null;
     const respected =
       !!cell &&
+      !!expected &&
       cell[0] === expected[0] &&
       cell[1] === expected[1] &&
       cell[2] === expected[2] &&

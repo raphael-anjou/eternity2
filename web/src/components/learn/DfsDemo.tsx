@@ -158,7 +158,8 @@ export function DfsDemo() {
 
   const shown = Math.min(idx, history.length - 1);
   const snap = history[shown];
-  const prev = shown > 0 ? history[shown - 1] : null;
+  if (!snap) return null;
+  const prev = shown > 0 ? (history[shown - 1] ?? null) : null;
   const cells = boardFromEngine(puzzle, snap.board).cells;
   const frontier = snap.solved ? null : snap.placed;
 

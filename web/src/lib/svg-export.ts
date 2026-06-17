@@ -13,7 +13,7 @@ function inlineReferencedDefs(clone: SVGSVGElement) {
   clone.querySelectorAll("use").forEach((u) => {
     const href = u.getAttribute("href") ?? u.getAttribute("xlink:href");
     const m = href?.match(/^#(.+)$/);
-    if (m) ids.add(m[1]);
+    if (m?.[1]) ids.add(m[1]);
   });
   if (!ids.size) return;
 
@@ -30,7 +30,7 @@ function inlineReferencedDefs(clone: SVGSVGElement) {
     dup.querySelectorAll("[clip-path],[fill],[mask],[filter]").forEach((el) => {
       for (const attr of ["clip-path", "fill", "mask", "filter"]) {
         const ref = el.getAttribute(attr)?.match(/url\(#(.+?)\)/);
-        if (ref) add(ref[1]);
+        if (ref?.[1]) add(ref[1]);
       }
     });
   };

@@ -49,4 +49,13 @@ function Slider({
   )
 }
 
-export { Slider }
+/**
+ * Extract a single numeric value from a slider's onValueChange payload, which
+ * is typed `number | readonly number[]`. For single-thumb sliders the value is
+ * a plain number; for range sliders the first thumb is used.
+ */
+function singleSliderValue(value: number | readonly number[]): number {
+  return typeof value === "number" ? value : (value[0] ?? 0)
+}
+
+export { Slider, singleSliderValue }

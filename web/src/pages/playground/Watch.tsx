@@ -8,7 +8,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -291,7 +291,7 @@ export default function Watch() {
                       max={maxColorsForSize}
                       step={1}
                       value={colors}
-                      onValueChange={(v) => setColors(Array.isArray(v) ? v[0] : v)}
+                      onValueChange={(v) => setColors(singleSliderValue(v))}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function Watch() {
                   step={0.1}
                   value={speedExp}
                   disabled={fullSpeed}
-                  onValueChange={(v) => setSpeedExp(Array.isArray(v) ? v[0] : v)}
+                  onValueChange={(v) => setSpeedExp(singleSliderValue(v))}
                 />
               </div>
               <div className="flex gap-2">

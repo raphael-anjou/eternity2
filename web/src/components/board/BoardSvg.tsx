@@ -15,11 +15,11 @@ export interface BoardSvgProps {
   /** Edge colors per cell (URDL), null = empty. */
   cells: (Edges | null)[];
   /** [pos, URDL direction] half-edges to mark as conflicts. */
-  conflicts?: [number, number][];
+  conflicts?: [number, number][] | undefined;
   /** Cells to outline (e.g. official hints or the last placement). */
-  highlight?: number[];
+  highlight?: number[] | undefined;
   /** 1-based numbers to print on pieces. */
-  pieceNumbers?: (number | null)[];
+  pieceNumbers?: (number | null)[] | undefined;
   onCellClick?: (pos: number) => void;
   /** HTML5 drop target per cell; receives the dataTransfer text payload. */
   onCellDrop?: (pos: number, data: string) => void;

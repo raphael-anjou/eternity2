@@ -386,7 +386,7 @@ export default function Algorithms() {
                 <YAxis width={60} label={{ value: t.axisDigits, angle: -90, position: "insideLeft" }} />
                 <Tooltip
                   formatter={(v) => [`10^${Number(v).toFixed(0)}`, ""]}
-                  labelFormatter={(s) => t.boardTooltip(s)}
+                  labelFormatter={(s) => t.boardTooltip(String(s))}
                 />
                 <Legend />
                 <Line name={t.legendNaive} dataKey="log10Naive" stroke="#f87171" dot={false} strokeWidth={2} />
