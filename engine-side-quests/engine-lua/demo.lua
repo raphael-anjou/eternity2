@@ -4,7 +4,11 @@
   bounded search to show progress. This is just a human-facing smoke test —
   the real correctness check is `lua spec.lua`.
 
-  Usage:  lua demo.lua [size] [seed]
+  Usage:  lua demo.lua [size] [seed] [colors]
+
+  `colors` defaults to 5: fewer colors than edges means several pieces share an
+  edge color, so the search has to backtrack to find the fit (with the maximum
+  color count every placement is forced and the solve is trivial — boring).
 ]]
 
 local here = (debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])")) or "./"
@@ -16,14 +20,15 @@ local S = require("solver")
 
 local size = tonumber(arg[1]) or 6
 local seed = tonumber(arg[2]) or 42
+local colors = tonumber(arg[3]) or 5
 
 print(string.format("Eternity II — pure Lua engine (Lua %s)", _VERSION:match("%d+%.%d+")))
 print(string.rep("-", 52))
 
--- 1. Generate and fully solve a small puzzle.
-local colors = P.max_colors(size)
+-- 1. Generate and fully solve a small puzzle. Fewer colors -> real backtracking.
+colors = math.min(colors, P.max_colors(size))
 local p = P.generate(size, colors, seed)
-local path = P.build_path("double-snake", size, size, 0)
+local path = P.build_path("row-major", size, size, 0)
 local sv = assert(S.new(p, path))
 local r
 repeat r = sv:step(2000000) until r.status ~= "running"
