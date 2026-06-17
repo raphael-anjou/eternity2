@@ -20,7 +20,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Hard quality gate: the strict TypeScript typecheck and the ESLint pass must
+  # both be clean before anything builds or deploys. This is what *enforces*
+  # the TypeScript discipline — `vite build` alone does not typecheck, so
+  # without this a type error would deploy silently. `build` needs this job, so
+  # a red typecheck/lint blocks the deploy.
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install web deps
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+      - name: TypeScript typecheck (strict)
+        working-directory: web
+        run: pnpm typecheck
+      - name: ESLint
+        working-directory: web
+        run: pnpm lint
+
   build:
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
