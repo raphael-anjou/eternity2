@@ -14,7 +14,7 @@ import { allRoutePaths } from "./sitemap.config";
 // router `basename` here and the Vite asset `base` in vite.config.ts, so the
 // absolute asset/route paths baked into the prerendered HTML carry the prefix.
 // Default "" → served at the domain root. Keep this in sync with vite.config.
-const BASE_PATH = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
+const BASE_PATH = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
 
 // Page list lives in sitemap.config.ts so the prerender list and the
 // build-time sitemap.xml are generated from one source and cannot drift.

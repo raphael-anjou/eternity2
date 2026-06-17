@@ -18,8 +18,8 @@ function sitemap(): Plugin {
       // removed under ssr:false). Only emit into the client output.
       const outDir = options.dir ?? "";
       if (!outDir.includes("client")) return;
-      const origin = (process.env.VITE_SITE_ORIGIN || "https://eternity2.dev").replace(/\/$/, "");
-      const base = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
+      const origin = (process.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
+      const base = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
       const urls = allRoutePaths(base)
         .map((p) => `  <url><loc>${origin}${p}</loc></url>`)
         .join("\n");
@@ -39,7 +39,7 @@ function sitemap(): Plugin {
 // a Traefik StripPrefix at `host/eternity2/`), build with BASE_PATH=/eternity2;
 // it must match the router `basename` in react-router.config.ts. The trailing
 // slash is required by Vite.
-const BASE_PATH = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
+const BASE_PATH = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
 
 export default defineConfig({
   base: BASE_PATH ? BASE_PATH + "/" : "/",
