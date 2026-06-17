@@ -10,6 +10,7 @@ import type { SolverHandle } from "@/engine";
 import { useT } from "@/i18n";
 import type { Puzzle } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
+import type { Edges } from "@/lib/bucas";
 
 // A small board solving itself forever: the site's heartbeat.
 function HeroBoard() {
@@ -66,7 +67,7 @@ function HeroBoard() {
     };
   }, [engineReady]);
 
-  const placeholder = useMemo(() => Array(64).fill(null), []);
+  const placeholder = useMemo<(Edges | null)[]>(() => Array<Edges | null>(64).fill(null), []);
   return <BoardSvg width={8} height={8} cells={cells ?? placeholder} className="w-full" />;
 }
 

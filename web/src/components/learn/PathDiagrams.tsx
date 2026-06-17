@@ -49,6 +49,7 @@ function Diagram({ kind }: { kind: string }) {
         ))}
         {path.slice(0, -1).map((c, i) => {
           const next = path[i + 1];
+          if (next === undefined) return null;
           const t = i / (path.length - 2);
           const hue = 0 + t * 120;
           // Shorten the segment a bit so arrowheads stay inside cells.
@@ -70,7 +71,9 @@ function Diagram({ kind }: { kind: string }) {
             />
           );
         })}
-        <circle cx={cx(path[0])} cy={cy(path[0])} r={5} fill="hsl(0 75% 45%)" />
+        {path[0] !== undefined && (
+          <circle cx={cx(path[0])} cy={cy(path[0])} r={5} fill="hsl(0 75% 45%)" />
+        )}
       </svg>
       <span className="text-xs font-medium text-muted-foreground">{kind}</span>
     </div>

@@ -8,7 +8,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -234,11 +234,17 @@ export default function Paths() {
     const assignment: (Hint | null)[] = [];
     for (let cell = 0; cell < n; cell++) {
       const want = solved.pieces[cell];
+      if (!want) {
+        assignment.push(null);
+        continue;
+      }
       let hit: Hint | null = null;
       for (let pid = 0; pid < shuffled.pieces.length && !hit; pid++) {
         if (used[pid]) continue;
+        const piece = shuffled.pieces[pid];
+        if (!piece) continue;
         for (let r = 0; r < 4; r++) {
-          const e = rotateEdges(shuffled.pieces[pid], r);
+          const e = rotateEdges(piece, r);
           if (e[0] === want[0] && e[1] === want[1] && e[2] === want[2] && e[3] === want[3]) {
             used[pid] = true;
             hit = { pos: cell, piece: pid, rot: r };
@@ -508,7 +514,7 @@ export default function Paths() {
                     max={engineReady ? getMaxColors(size) : 10}
                     step={1}
                     value={colors}
-                    onValueChange={(v) => setColors(Array.isArray(v) ? v[0] : v)}
+                    onValueChange={(v) => setColors(singleSliderValue(v))}
                   />
                 </div>
                 <div className="flex items-end gap-2">

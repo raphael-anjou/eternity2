@@ -3,7 +3,7 @@
 // inlined). Mirrors MotifDefs (triangle + clip) and PieceSvg (four rotated
 // edges + border), so the output looks identical to what's shown on the page.
 
-import { MOTIFS, DIRECTION_ROTATION } from "@/lib/motifs";
+import { motifFor, directionRotation } from "@/lib/motifs";
 import type { Edges } from "@/lib/bucas";
 import { zipSync, strToU8 } from "fflate";
 
@@ -11,7 +11,7 @@ const TRIANGLE = "M0,0 L-128,128 L-128,-128 Z";
 
 /** Inline <g> definition for one motif, referenced as #e2m-<color>. */
 function motifDef(color: number): string {
-  const m = MOTIFS[color];
+  const m = motifFor(color);
   const bg = `<path d="${TRIANGLE}" fill="${m.bg}"/>`;
   const deco = m.path
     ? `<path d="${m.path}" fill="${m.pathFill ?? "none"}" stroke="${m.pathStroke ?? "none"}" stroke-width="1" clip-path="url(#e2m-clip)"/>`
@@ -25,7 +25,7 @@ export function pieceToSvg(edges: Edges): string {
   const used = [...new Set(edges)].sort((a, b) => a - b);
   const defs = used.map(motifDef).join("");
   const uses = edges
-    .map((c, dir) => `<use href="#e2m-${c}" transform="rotate(${DIRECTION_ROTATION[dir]})"/>`)
+    .map((c, dir) => `<use href="#e2m-${c}" transform="rotate(${directionRotation(dir)})"/>`)
     .join("");
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-130 -130 260 260" width="256" height="256">`,

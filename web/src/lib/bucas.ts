@@ -117,8 +117,10 @@ export function matchToPieces(puzzle: Puzzle, board: BucasBoard): Int32Array {
     const hinted = board.pieceNumbers?.[pos];
     if (hinted && hinted >= 1 && hinted <= puzzle.pieces.length) {
       const pid = hinted - 1;
+      const piece = puzzle.pieces[pid];
+      if (!piece) return;
       for (let r = 0; r < 4; r++) {
-        const e = rotateEdges(puzzle.pieces[pid], r);
+        const e = rotateEdges(piece, r);
         if (e[0] === cell[0] && e[1] === cell[1] && e[2] === cell[2] && e[3] === cell[3]) {
           out[pos] = pid * 4 + r;
           used[pid] = true;
@@ -129,11 +131,13 @@ export function matchToPieces(puzzle: Puzzle, board: BucasBoard): Int32Array {
   });
 
   board.cells.forEach((cell, pos) => {
-    if (!cell || out[pos] >= 0) return;
+    if (!cell || (out[pos] ?? -1) >= 0) return;
     for (let pid = 0; pid < puzzle.pieces.length; pid++) {
       if (used[pid]) continue;
+      const piece = puzzle.pieces[pid];
+      if (!piece) continue;
       for (let r = 0; r < 4; r++) {
-        const e = rotateEdges(puzzle.pieces[pid], r);
+        const e = rotateEdges(piece, r);
         if (e[0] === cell[0] && e[1] === cell[1] && e[2] === cell[2] && e[3] === cell[3]) {
           out[pos] = pid * 4 + r;
           used[pid] = true;
@@ -197,11 +201,12 @@ export function conflictEdges(board: BucasBoard): [number, number][] {
 export function boardFromEngine(puzzle: Puzzle, board: BoardCells): BucasBoard {
   const cells: (Edges | null)[] = [];
   for (let pos = 0; pos < puzzle.width * puzzle.height; pos++) {
-    const v = board[pos];
-    if (v < 0) {
+    const v = board[pos] ?? -1;
+    const piece = v < 0 ? undefined : puzzle.pieces[v >> 2];
+    if (!piece) {
       cells.push(null);
     } else {
-      cells.push(rotateEdges(puzzle.pieces[v >> 2], v & 3));
+      cells.push(rotateEdges(piece, v & 3));
     }
   }
   return {
@@ -220,12 +225,13 @@ function encodeCells(puzzle: Puzzle, board: BoardCells): { edges: string; pieces
   let edges = "";
   let pieces = "";
   for (let pos = 0; pos < n; pos++) {
-    const v = board[pos];
-    if (v < 0) {
+    const v = board[pos] ?? -1;
+    const piece = v < 0 ? undefined : puzzle.pieces[v >> 2];
+    if (!piece) {
       edges += "aaaa";
       pieces += "000";
     } else {
-      const e = rotateEdges(puzzle.pieces[v >> 2], v & 3);
+      const e = rotateEdges(piece, v & 3);
       edges += e.map((c) => String.fromCharCode(97 + c)).join("");
       pieces += String((v >> 2) + 1).padStart(3, "0");
     }

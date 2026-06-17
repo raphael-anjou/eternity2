@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -185,7 +185,7 @@ export default function Viewer() {
   const boardName = () => board?.puzzleName?.replaceAll(" ", "_") ?? "eternity2-board";
 
   const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
+    void navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -279,15 +279,17 @@ export default function Viewer() {
     if (!g || !engineReady || board) return;
     const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(g);
     if (!m) return;
+    const [, sizeStr, colorsStr, seedStr] = m;
+    if (sizeStr === undefined || colorsStr === undefined || seedStr === undefined) return;
     const puzzle = getGeneratedSolvedPuzzle(
-      parseInt(m[1], 10),
-      parseInt(m[2], 10),
-      parseInt(m[3], 10),
+      parseInt(sizeStr, 10),
+      parseInt(colorsStr, 10),
+      parseInt(seedStr, 10),
     );
     // Initialize the view from a URL param (external system) once the engine
     // is ready; loadEngine seeds board/engine state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadEngine(puzzle, identityBoard(puzzle), `${m[1]}x${m[1]}-${m[2]}c answer key`);
+    loadEngine(puzzle, identityBoard(puzzle), `${sizeStr}x${sizeStr}-${colorsStr}c answer key`);
     // Run once when the engine becomes ready; re-reading the URL on every
     // searchParams/board change would clobber user edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -547,7 +549,7 @@ export default function Viewer() {
                   step={1}
                   value={genSize}
                   onValueChange={(v) => {
-                    const s = Array.isArray(v) ? v[0] : v;
+                    const s = singleSliderValue(v);
                     const c = Math.min(genColors, engineReady ? getMaxColors(s) : 4);
                     setGenSize(s);
                     setGenColors(c);
@@ -563,7 +565,7 @@ export default function Viewer() {
                   step={1}
                   value={genColors}
                   onValueChange={(v) => {
-                    const c = Array.isArray(v) ? v[0] : v;
+                    const c = singleSliderValue(v);
                     setGenColors(c);
                     generateLive(genSize, c);
                   }}

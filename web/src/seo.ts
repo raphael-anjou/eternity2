@@ -10,19 +10,22 @@ type Entry = { title: string; description: string };
 
 const SUFFIX = " · Eternity II";
 
-const PAGES: Record<string, { en: Entry; fr: Entry }> = {
-  home: {
-    en: {
-      title: "Eternity II: the puzzle that beat everyone",
-      description:
-        "Play it, watch real solvers run in your browser, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
-    },
-    fr: {
-      title: "Eternity II : le puzzle que personne n'a battu",
-      description:
-        "Jouez, regardez de vrais solveurs à l'œuvre dans votre navigateur, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
-    },
+// Default page metadata, used as the fallback for any unknown page key.
+const HOME_PAGE: { en: Entry; fr: Entry } = {
+  en: {
+    title: "Eternity II: the puzzle that beat everyone",
+    description:
+      "Play it, watch real solvers run in your browser, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
   },
+  fr: {
+    title: "Eternity II : le puzzle que personne n'a battu",
+    description:
+      "Jouez, regardez de vrais solveurs à l'œuvre dans votre navigateur, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
+  },
+};
+
+const PAGES: Record<string, { en: Entry; fr: Entry }> = {
+  home: HOME_PAGE,
   puzzle: {
     en: {
       title: "The Puzzle" + SUFFIX,
@@ -128,7 +131,8 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
 export function pageMeta(pageKey: keyof typeof PAGES) {
   return ({ location }: { location: { pathname: string } }) => {
     const lang: Lang = langFromPath(location.pathname);
-    const entry = PAGES[pageKey][lang];
+    const group = PAGES[pageKey];
+    const entry = (group ?? HOME_PAGE)[lang];
     return [
       { title: entry.title },
       { name: "description", content: entry.description },

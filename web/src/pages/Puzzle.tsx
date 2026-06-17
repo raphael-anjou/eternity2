@@ -583,7 +583,7 @@ export default function PuzzlePage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">{t.motifsTitle}</h2>
         <div className="flex max-w-3xl flex-wrap items-center gap-6">
-          {puzzle && <PieceAnatomy edges={puzzle.pieces[138]} />}
+          {puzzle?.pieces[138] && <PieceAnatomy edges={puzzle.pieces[138]} />}
           <p className="flex-1 basis-72 text-sm text-muted-foreground">{t.pieceAnatomyText}</p>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">{t.motifDistribution}</p>
@@ -649,12 +649,14 @@ export default function PuzzlePage() {
         {puzzle && (
           <div className="flex flex-wrap gap-3">
             {puzzle.hints.map((h) => {
+              const piece = puzzle.pieces[h.piece];
+              if (!piece) return null;
               const x = h.pos % 16;
               const y = Math.floor(h.pos / 16);
               return (
                 <Card key={h.pos} className="w-36">
                   <CardContent className="flex flex-col items-center gap-2 pt-4">
-                    <PieceSvg edges={rotateEdges(puzzle.pieces[h.piece], h.rot)} size={84} />
+                    <PieceSvg edges={rotateEdges(piece, h.rot)} size={84} />
                     <div className="text-center text-xs text-muted-foreground">
                       <div className="font-semibold text-foreground">{t.pieceLabel(h.piece + 1)}</div>
                       {t.cellAndRot(`${String.fromCharCode(65 + y)}${x + 1}`, h.rot * 90)}

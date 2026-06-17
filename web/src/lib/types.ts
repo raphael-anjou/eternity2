@@ -32,13 +32,24 @@ export interface SolverReport {
 
 export const BORDER = 0;
 
-/** Clockwise rotation of URDL edges: new[i] = old[(i + 4 - r) % 4]. */
+/** Clockwise rotation of URDL edges: new[i] = old[(i + 4 - r) % 4].
+ * Destructured rather than index-computed so the result is a provably total
+ * 4-tuple under noUncheckedIndexedAccess (no `T | undefined` element reads). */
 export function rotateEdges(
   e: readonly [number, number, number, number],
   r: number,
 ): [number, number, number, number] {
-  const k = r & 3;
-  return [e[(4 - k) & 3], e[(5 - k) & 3], e[(6 - k) & 3], e[(7 - k) & 3]];
+  const [u, ri, d, l] = e;
+  switch (r & 3) {
+    case 1:
+      return [l, u, ri, d];
+    case 2:
+      return [d, l, u, ri];
+    case 3:
+      return [ri, d, l, u];
+    default:
+      return [u, ri, d, l];
+  }
 }
 
 /** Edges of a board cell given the engine encoding pieceId*4+rot. */

@@ -15,9 +15,12 @@ export interface Motif {
   pathStroke: string | null;
 }
 
+/** The grey border motif (color id 0), also the fallback for out-of-range colors. */
+export const BORDER_MOTIF: Motif = { bg: "#9a9a9a", path: null, pathFill: null, pathStroke: null };
+
 // Index = color id = bucas letter - 'a'. 0 is the grey border.
 export const MOTIFS: Motif[] = [
-  { bg: "#9a9a9a", path: null, pathFill: null, pathStroke: null },
+  BORDER_MOTIF,
   { bg: "#f88512", path: "m-128,-80 h 16 a64,64 30 0,0 64,64 v 32 a64,64 30 0,0 -64,64 h -16", pathFill: "#80d5f8", pathStroke: "#9ea599" },
   { bg: "#155c8c", path: "m-128,-64 a32,32 30 0,1 32,32 a32,32 30 0,1 0,64 a32,32 30 0,1 -32,32 v -32 a32,32 30 0,0 0,-64", pathFill: "#fef102", pathStroke: "#7c8c48" },
   { bg: "#ec35a0", path: "m-128,-80 h 16 a64,64 30 0,0 64,64 v 32 a64,64 30 0,0 -64,64 h -16 v -48 a32,32 30 1,0 0,-64", pathFill: "#81d1f0", pathStroke: "#af4f8d" },
@@ -42,9 +45,31 @@ export const MOTIFS: Motif[] = [
   { bg: "#145c8c", path: "m-128,-32 v -32 a64,64 30 0,1 0,128 v -40 l 24, 24 l 24,-24 l -24,-24 l 24,-24 l -24,-24 l -24,24", pathFill: "#eced25", pathStroke: "#a95397" },
 ];
 
+/** Motif for a color, clamped into range. Border (0) is the fallback for any
+ *  out-of-range color, so callers never deal with `undefined` (the array
+ *  index would otherwise be `Motif | undefined` under noUncheckedIndexedAccess). */
+export function motifFor(color: number): Motif {
+  return MOTIFS[color] ?? BORDER_MOTIF;
+}
+
 /** Rotation (degrees, about the cell center) that points the left-edge motif
  *  at each URDL direction, bucas convention. */
 export const DIRECTION_ROTATION = [90, 180, -90, 0] as const;
+
+/** Rotation for a URDL direction (0..3), clamped. Total accessor over the
+ *  4-tuple so indexed reads don't widen to `number | undefined`. */
+export function directionRotation(dir: number): number {
+  switch (dir & 3) {
+    case 1:
+      return DIRECTION_ROTATION[1];
+    case 2:
+      return DIRECTION_ROTATION[2];
+    case 3:
+      return DIRECTION_ROTATION[3];
+    default:
+      return DIRECTION_ROTATION[0];
+  }
+}
 
 export function colorToLetter(color: number): string {
   return String.fromCharCode(97 + color);

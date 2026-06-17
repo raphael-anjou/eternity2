@@ -160,6 +160,7 @@ function PrintGrid({ block, back }: { block: Block; back: boolean }) {
           );
         }
         const edges = puzzle.pieces[srcIndex];
+        if (!edges) return null;
         return (
           <g key={i} transform={`translate(${cx} ${cy}) scale(${C / 256})`}>
             {edges.map((c, dir) => (

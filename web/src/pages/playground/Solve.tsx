@@ -141,7 +141,9 @@ export default function Solve() {
   // it afterwards is reset(), which fills a fresh empty board itself. Without
   // this the overlay grid maps over an empty array on first mount and renders
   // zero drop targets, so drag-and-drop does nothing until you click a size.
-  const [board, setBoard] = useState<(Placement | null)[]>(() => Array(3 * 3).fill(null));
+  const [board, setBoard] = useState<(Placement | null)[]>(() =>
+    Array<Placement | null>(3 * 3).fill(null),
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -182,7 +184,11 @@ export default function Solve() {
 
   const cells: (Edges | null)[] = useMemo(() => {
     if (!puzzle) return [];
-    return board.map((p) => (p ? rotateEdges(puzzle.pieces[p.piece], p.rot) : null));
+    return board.map((p) => {
+      if (!p) return null;
+      const piece = puzzle.pieces[p.piece];
+      return piece ? rotateEdges(piece, p.rot) : null;
+    });
   }, [board, puzzle]);
 
   // Mistakes = mismatched piece-piece contacts PLUS misoriented rim pieces:

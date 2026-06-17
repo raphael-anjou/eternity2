@@ -45,7 +45,7 @@ export function useLang(): { lang: Lang; setLang: (l: Lang) => void } {
   const navigate = useNavigate();
   const setLang = (l: Lang) => {
     if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, l);
-    navigate(pathForLang(pathname, l) + search);
+    void navigate(pathForLang(pathname, l) + search);
   };
   return { lang, setLang };
 }

@@ -6,7 +6,7 @@ export function useEngine(): boolean {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let alive = true;
-    initEngine().then(() => {
+    void initEngine().then(() => {
       if (alive) setReady(true);
     });
     return () => {

@@ -122,7 +122,7 @@ function PieceAsBits() {
       [19, 2, 11, 22],
       [7, 16, 1, 13],
     ];
-    return pieces[seed % pieces.length];
+    return pieces[seed % pieces.length] ?? PIECE1;
   }, [seed]);
   useEffect(() => {
     const id = setInterval(() => setSeed((s) => s + 1), 2600);
