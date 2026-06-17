@@ -9,7 +9,7 @@ import { absoluteUrl } from "@/site";
 // the client bundle. ssr:false means this is rendered once per prerendered
 // path at build time, producing real static HTML per route × language.
 
-const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
+const GA_ID = import.meta.env["VITE_GA_ID"];
 
 export function meta() {
   // Site-wide defaults; individual routes override title/description.

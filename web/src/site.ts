@@ -13,8 +13,8 @@
 
 // Empty string (e.g. an unset Docker build arg) falls back to the default,
 // so `|| ` is intentional here rather than `??`.
-const ORIGIN = (import.meta.env.VITE_SITE_ORIGIN || "https://eternity2.dev").replace(/\/$/, "");
-const BASE = (import.meta.env.VITE_BASE_PATH || "").replace(/\/$/, "");
+const ORIGIN = (import.meta.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
+const BASE = (import.meta.env["VITE_BASE_PATH"] || "").replace(/\/$/, "");
 
 /** Absolute public URL for a basename-stripped in-app path (e.g. "/fr/algorithms"). */
 export function absoluteUrl(pathname: string): string {
