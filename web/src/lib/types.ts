@@ -30,6 +30,24 @@ export interface SolverReport {
   bestPlaced: number;
 }
 
+/** The step-able solver surface every engine backend implements.
+ * The Rust/WASM, TypeScript, C/WASM and C++/WASM backends are interchangeable
+ * (selected at build time by VITE_ENGINE); they all return one of these. */
+export interface SolverHandle {
+  /** Run up to `budget` placements/backtracks, then report. */
+  step(budget: number): SolverReport;
+  report(): SolverReport;
+  /** cell -> pieceId*4+rotation, or -1 while empty. */
+  board(): Int32Array;
+  /** Deepest board ever reached (by placed count). */
+  bestBoard(): Int32Array;
+  score(): number;
+  bestScore(): number;
+  reset(): void;
+  /** Release native/WASM resources (a no-op for the pure-TS backend). */
+  free(): void;
+}
+
 export const BORDER = 0;
 
 /** Clockwise rotation of URDL edges: new[i] = old[(i + 4 - r) % 4].
