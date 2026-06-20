@@ -41,6 +41,27 @@ function sitemap(): Plugin {
 // slash is required by Vite.
 const BASE_PATH = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
 
+// Build-time engine backend switch. `VITE_ENGINE` picks which implementation of
+// the engine surface the site is built against; the rest of the app imports
+// the virtual module "virtual:engine-backend" (re-exported by src/engine), and
+// the alias below resolves it to the chosen backend. All four backends expose
+// the identical surface and are validated against the same Rust golden data.
+//   rust (default) -> Rust/WASM   ts -> pure TypeScript
+//   c -> C/WASM                   cpp -> C++/WASM
+const ENGINE_BACKENDS: Record<string, string> = {
+  rust: "./src/engine/backends/rust.ts",
+  ts: "./src/engine-ts/index.ts",
+  c: "./src/engine-c/glue.ts",
+  cpp: "./src/engine-cpp/glue.ts",
+};
+const ENGINE = process.env["VITE_ENGINE"] ?? "rust";
+const ENGINE_BACKEND = ENGINE_BACKENDS[ENGINE];
+if (!ENGINE_BACKEND) {
+  throw new Error(
+    `VITE_ENGINE="${ENGINE}" is not one of: ${Object.keys(ENGINE_BACKENDS).join(", ")}`,
+  );
+}
+
 export default defineConfig({
   base: BASE_PATH ? BASE_PATH + "/" : "/",
   // Mirror BASE_PATH into a VITE_-prefixed var so render code (src/site.ts) can
@@ -52,6 +73,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "virtual:engine-backend": path.resolve(__dirname, ENGINE_BACKEND),
     },
   },
 });

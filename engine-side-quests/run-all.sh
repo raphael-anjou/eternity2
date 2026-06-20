@@ -22,16 +22,57 @@ rule() { printf '%s\n' "--------------------------------------------------------
 LUA="$(command -v lua || command -v lua5.4 || command -v lua5.3 || true)"
 COBC="$(command -v cobc || true)"
 RUSTC="$(command -v rustc || true)"
+NODE="$(command -v node || true)"
+PY="$(command -v python3 || true)"
 
 have_lua=1;   [ -z "$LUA" ]  && have_lua=0
 have_cobol=1; [ -z "$COBC" ] && have_cobol=0
+have_node=1;  [ -z "$NODE" ] && have_node=0
+have_py=1;    [ -z "$PY" ]   && have_py=0
 
 # ============================================================================
 bold "Eternity II — running every side-quest engine"
+echo "Node (TS/C/C++ parity): ${NODE:-(not found — skipping)}"
+echo "Python:    ${PY:-(not found — skipping)}"
 echo "Lua:       ${LUA:-(not found — skipping)}"
 echo "COBOL:     ${COBC:-(not found — skipping)}"
 echo "Brainfuck: Rust interpreter ${RUSTC:+(rustc found)}${RUSTC:-(rustc not found, using bf.py)}"
 echo
+
+# ============================================================================
+# ISO PORTS — full golden parity (RNG + 9 paths + solver counts + official set).
+# These are the serious, functionality-matching ports. TS/C/C++ are also the
+# browser-switchable backends (web's VITE_ENGINE switch).
+# ============================================================================
+if [ "$have_node" = 1 ]; then
+  rule; bold "TYPESCRIPT — pure-TS port, full golden parity"
+  ( "$NODE" "$ROOT/../web/src/engine-ts/parity.mjs" | tail -1 )
+  echo
+  rule; bold "C — clang→WASM port, full golden parity (wasm under node)"
+  ( "$NODE" "$ROOT/../web/src/engine-c/parity.mjs" | tail -1 ) \
+    || echo "  (engine.wasm missing? rebuild: web/src/engine-c/build.sh)"
+  echo
+  rule; bold "C++ — clang++→WASM port, full golden parity (wasm under node)"
+  ( "$NODE" "$ROOT/../web/src/engine-cpp/parity.mjs" | tail -1 ) \
+    || echo "  (engine.wasm missing? rebuild: web/src/engine-cpp/build.sh)"
+  echo
+else
+  rule; echo "TypeScript/C/C++ parity skipped (no node)."; echo
+fi
+
+if [ "$have_py" = 1 ]; then
+  rule; bold "PYTHON — pure-Python port, full golden parity"
+  ( cd engine-python && "$PY" spec.py | tail -1 )
+  echo
+  for args in "3 2 3" "4 11 5" "5 3 6"; do
+    set -- $args
+    bold "PYTHON — solve a generated ${1}x${1} (seed ${2}, ${3} colors)"
+    ( cd engine-python && "$PY" demo.py "$1" "$2" "$3" | sed -n '3,5p' )
+    echo
+  done
+else
+  rule; echo "Python skipped (no python3)."; echo
+fi
 
 # ============================================================================
 # LUA — its spec already cross-checks generated puzzles + the official set
