@@ -1,6 +1,10 @@
-//! Core types. Edge order is always URDL (up, right, down, left), matching
-//! the e2.bucas.name URL encoding. Color 0 is the grey outer border; interior
+//! Core types and the four shared conventions (ALGORITHM.md §2).
+//!
+//! Edge order is always URDL (up, right, down, left), matching the
+//! e2.bucas.name URL encoding. Color 0 is the grey outer border; interior
 //! colors are 1..=22 for the official set ('a' + color = bucas letter).
+//! Rotation `r` is clockwise quarter-turns. A board cell holds `piece*4 + rot`
+//! (or -1 when empty), row-major. Every port shares these conventions.
 
 use serde::{Deserialize, Serialize};
 

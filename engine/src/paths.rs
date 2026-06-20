@@ -1,7 +1,7 @@
-//! Built-in cell-visit orders ("paths"). A path is the order in which the
-//! DFS fills cells: a permutation of 0..w*h (row-major cell indices).
-//! Path order is a first-class search hyperparameter: on the same puzzle,
-//! different paths can differ by orders of magnitude in nodes-to-solve.
+//! Built-in cell-visit orders ("paths") — ALGORITHM.md §6. A path is the order
+//! in which the DFS fills cells: a permutation of 0..w*h (row-major cell
+//! indices). Path order is a first-class search hyperparameter: on the same
+//! puzzle, different paths can differ by orders of magnitude in nodes-to-solve.
 
 use crate::generator::XorShift;
 

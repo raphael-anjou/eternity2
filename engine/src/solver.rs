@@ -1,4 +1,5 @@
-//! Step-able backtracking DFS over an arbitrary cell-visit order.
+//! Step-able backtracking DFS over an arbitrary cell-visit order
+//! (ALGORITHM.md §7; the scorer at the bottom of this file is §8).
 //!
 //! The solver is an explicit machine, not a recursive function: callers run
 //! `step(budget)` repeatedly and read off the board between calls, which is

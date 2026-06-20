@@ -1,5 +1,15 @@
 //! Eternity II engine. Native crate + WASM bindings (wasm-bindgen).
 //!
+//! This is the **canonical** implementation: the website loads it compiled to
+//! WebAssembly, and the from-scratch ports in other languages
+//! (`engine-side-quests/` + `web/src/engine-{ts,c,cpp}/`) are literal
+//! translations of it. The algorithm — conventions, RNG, generator, the nine
+//! cell-visit orders, the step-able backtracking solver, and the scorer — is
+//! described once, language-agnostically, in
+//! `engine-side-quests/ALGORITHM.md`. If you are new to this code, read that
+//! document alongside these modules; they were written to be read together.
+//! Each module below cross-references the relevant ALGORITHM.md section.
+//!
 //! JS boundary rules: no u64 (counters cross as f64), no clocks (the browser
 //! times things), all data as plain serde-serialized objects.
 
