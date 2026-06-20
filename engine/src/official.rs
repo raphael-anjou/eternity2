@@ -1,4 +1,5 @@
-//! The official Eternity II piece set, embedded from the canonical CSV.
+//! The official Eternity II piece set, embedded from the canonical CSV
+//! (ALGORITHM.md §5).
 //!
 //! CSV format: line 1 = board size; then one piece per line as
 //! `top,right,bottom,left,x,y,rotation` where each color is a 16-bit binary

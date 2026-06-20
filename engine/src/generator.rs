@@ -1,10 +1,12 @@
-//! Seeded generator for solvable n×n edge-matching puzzles.
+//! Seeded generator for solvable n×n edge-matching puzzles, and the engine's
+//! own RNG (ALGORITHM.md §3 for `XorShift`, §4 for generation).
 //!
 //! Paints every interior adjacency with a random color (each color used at
 //! least once), derives the pieces from the painted board, then shuffles
 //! piece order and rotations. The result is solvable by construction.
 //! Deterministic for a given (size, colors, seed) on every platform: no
-//! getrandom, just xorshift.
+//! getrandom, just xorshift — which is exactly why every port can reproduce
+//! these puzzles byte-for-byte.
 
 use crate::types::{rotated, Puzzle, BORDER};
 
