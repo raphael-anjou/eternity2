@@ -1,0 +1,20 @@
+# Standalone, self-contained compute crate for this research topic. It depends on
+# the shared engine via a path dependency so it reuses the official piece set and
+# edge conventions without duplicating any puzzle data.
+[package]
+name = "subgrid-placement-counts"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "reference_table"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+
+[profile.release]
+opt-level = 3
+lto = true

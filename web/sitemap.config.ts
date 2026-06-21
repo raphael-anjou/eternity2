@@ -13,6 +13,7 @@ export const PAGE_PATHS = [
   "playground/print",
   "algorithms",
   "research",
+  "research/reference",
   "viewer",
 ] as const;
 

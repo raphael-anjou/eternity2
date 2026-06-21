@@ -112,6 +112,16 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description: "Les records, les méthodes et les grandes questions encore ouvertes autour d'Eternity II, le puzzle jamais résolu.",
     },
   },
+  reference: {
+    en: {
+      title: "Reference numbers" + SUFFIX,
+      description: "Exact placement counts for small blocks of the official Eternity II board — known-good values to validate your own solver against.",
+    },
+    fr: {
+      title: "Valeurs de référence" + SUFFIX,
+      description: "Comptages exacts de placements pour de petits blocs du plateau officiel d'Eternity II — des valeurs sûres pour valider votre propre solveur.",
+    },
+  },
   viewer: {
     en: {
       title: "Board Viewer" + SUFFIX,
