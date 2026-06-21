@@ -19,6 +19,7 @@ const PAGES = [
   { path: "playground/print", file: "pages/playground/Print.tsx", id: "print" },
   { path: "algorithms", file: "pages/Algorithms.tsx", id: "algorithms" },
   { path: "research", file: "pages/Research.tsx", id: "research" },
+  { path: "research/reference", file: "pages/ReferenceTable.tsx", id: "reference" },
   { path: "viewer", file: "pages/Viewer.tsx", id: "viewer" },
 ];
 

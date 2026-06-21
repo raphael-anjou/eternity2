@@ -33,4 +33,16 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   the client output dir (`options.dir.includes("client")`) or they fail trying
   to write into the deleted server dir.
 
+- **`research/` holds reproducible research topics.** Each topic under
+  `research/topics/<id>/` is self-contained: `article.md` (YAML frontmatter is the
+  single source of truth for its metadata), a `compute/` crate/script, and
+  committed `results/`. `node research/build-index.mjs` regenerates+validates
+  `research/index.json` (the registry; fails if an `id` mismatches its dir or a
+  declared result file is missing — usable as a CI gate). See `research/README.md`.
+
+- **Site reference-table data is a copy of a research result.** `web/src/data/
+  reference-table.json` is copied from `research/topics/subgrid-placement-counts/
+  results/reference-table.json` (the site imports from `src/`). If you regenerate
+  the research result, copy it across again — there is no automatic sync.
+
 - **Verify after web changes:** `cd web && pnpm build && pnpm typecheck`.
