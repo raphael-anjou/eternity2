@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  "forbidden-patterns": {
+    en: {
+      title: "Forbidden patterns" + SUFFIX,
+      description:
+        "Almost every small patch of Eternity II pieces is impossible to assemble — 99.72% of 2x2 squares can never be made to match. The exact counts, and why they explain the puzzle's difficulty.",
+    },
+    fr: {
+      title: "Motifs interdits" + SUFFIX,
+      description:
+        "Presque tout petit groupe de pièces d'Eternity II est impossible à assembler — 99,72 % des carrés 2x2 ne peuvent jamais s'accorder. Les comptages exacts, et pourquoi ils expliquent la difficulté.",
+    },
+  },
   reference: {
     en: {
       title: "Reference numbers" + SUFFIX,

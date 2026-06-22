@@ -14,7 +14,7 @@ const TOPICS: Topic[] = [
   { key: "phaseTransition", ready: false },
   { key: "rigidity", ready: false },
   { key: "entropy", ready: false },
-  { key: "forbidden", ready: false },
+  { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
 ];
 
 const T = {
