@@ -16,7 +16,7 @@ const TOPICS: Topic[] = [
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
-  { key: "entropy", ready: false },
+  { key: "entropy", ready: true, to: "/research/why/entropy-area-law" },
 ];
 
 const T = {

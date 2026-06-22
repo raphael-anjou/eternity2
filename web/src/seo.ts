@@ -220,6 +220,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
     },
   },
+  "entropy-area-law": {
+    en: {
+      title: "Entropy and the area law" + SUFFIX,
+      description:
+        "Eternity II's matching rules are rich (positive entropy density, proven). The hardness is in the use-each-piece-once rule, whose cost grows with area and collapses distinctness past ~80 cells.",
+    },
+    fr: {
+      title: "Entropie et loi d'aire" + SUFFIX,
+      description:
+        "Les règles d'accord d'Eternity II sont riches (densité d'entropie positive, prouvée). La difficulté est dans la règle « chaque pièce une fois », dont le coût croît avec l'aire et effondre la distinction au-delà de ~80 cellules.",
+    },
+  },
   "no-forced-moves": {
     en: {
       title: "No forced moves" + SUFFIX,
