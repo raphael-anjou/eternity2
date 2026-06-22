@@ -15,6 +15,7 @@ const TOPICS: Topic[] = [
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
+  { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
   { key: "entropy", ready: false },
 ];
 
@@ -52,6 +53,10 @@ const T = {
         title: "Forbidden patterns",
         body: "Almost every small patch of colors you could draw is illegal under the piece set; a real solution contains none of the forbidden ones. A sharp combinatorial fingerprint of validity.",
       },
+      noForced: {
+        title: "No forced moves",
+        body: "And yet no single piece is ever pinned: every interior piece has 73 to 137 possible neighbours. Lots of local freedom, almost no global consistency.",
+      },
     },
   },
   fr: {
@@ -86,6 +91,10 @@ const T = {
       forbidden: {
         title: "Motifs interdits",
         body: "Presque tout petit carré de couleurs que l'on pourrait dessiner est illégal au regard du jeu de pièces ; une vraie solution n'en contient aucun. Une signature combinatoire nette de la validité.",
+      },
+      noForced: {
+        title: "Aucun coup forcé",
+        body: "Et pourtant aucune pièce n'est jamais coincée : chaque pièce intérieure a entre 73 et 137 voisines possibles. Beaucoup de liberté locale, presque aucune cohérence globale.",
       },
     },
   },
