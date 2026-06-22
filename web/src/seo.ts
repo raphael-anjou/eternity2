@@ -256,6 +256,30 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Résoudre exactement une bande de rangées d'Eternity II en se rejoignant au milieu, prouvant la meilleure fin et mesurant jusqu'où une fin de partie se décide à l'avance.",
     },
   },
+  "inv-ladder": {
+    en: {
+      title: "LADDER" + SUFFIX,
+      description:
+        "Flood Eternity II with cheap short searches, keep the deepest starts, and promote survivors through longer rounds. Reached a 451 strict board with no record to copy.",
+    },
+    fr: {
+      title: "LADDER" + SUFFIX,
+      description:
+        "Inonder Eternity II de recherches courtes et bon marché, garder les départs les plus profonds, et promouvoir les survivants. A atteint un plateau 451 strict sans record à copier.",
+    },
+  },
+  "inv-replay": {
+    en: {
+      title: "REPLAY" + SUFFIX,
+      description:
+        "Rebuild the community's strict 460 boards exactly and discover the move ordinary solvers miss: paying two mismatches at one cell. Explains the 457-458 plateau.",
+    },
+    fr: {
+      title: "REPLAY" + SUFFIX,
+      description:
+        "Reconstruire exactement les plateaux 460 stricts de la communauté et découvrir le coup que les solveurs manquent : payer deux défauts sur une cellule. Explique le plateau 457-458.",
+    },
+  },
   "phase-transition": {
     en: {
       title: "Tuned to the hardness peak" + SUFFIX,

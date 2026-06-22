@@ -20,6 +20,8 @@ const INVENTIONS: Invention[] = [
   { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true },
   { key: "staged", score: 436, to: "/research/lab/inventions/staged", ready: true },
   { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true },
+  { key: "ladder", score: 451, to: "/research/lab/inventions/ladder", ready: true },
+  { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true },
 ];
 
 const T = {
@@ -55,6 +57,14 @@ const T = {
         title: "BANDSAW",
         body: "Solves a band of rows exactly by meeting in the middle, to measure precisely how far ahead an endgame can be decided.",
       },
+      ladder: {
+        title: "LADDER",
+        body: "Floods the board with cheap short searches and promotes only the deepest starts through longer rounds. Reached a 451 strict board with no record to copy.",
+      },
+      replay: {
+        title: "REPLAY",
+        body: "Rebuilds the community's strict 460 boards exactly, revealing the move ordinary solvers miss: two mismatches at one cell.",
+      },
     },
   },
   fr: {
@@ -88,6 +98,14 @@ const T = {
       bandsaw: {
         title: "BANDSAW",
         body: "Résout exactement une bande de rangées en se rejoignant au milieu, pour mesurer précisément jusqu'où une fin de partie peut être décidée à l'avance.",
+      },
+      ladder: {
+        title: "LADDER",
+        body: "Inonde le plateau de recherches courtes et bon marché et ne promeut que les départs les plus profonds. A atteint un plateau 451 strict sans record à copier.",
+      },
+      replay: {
+        title: "REPLAY",
+        body: "Reconstruit exactement les plateaux 460 stricts de la communauté, révélant le coup que les solveurs manquent : deux défauts sur une seule cellule.",
       },
     },
   },
