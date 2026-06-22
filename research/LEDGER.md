@@ -222,6 +222,17 @@ InventionLayout. 4 inventions live (PALIMPSEST/KEYRING/GAUNTLET/PRIOR). Commit
 MIDDEN) still queued (#22) — need their boards bundled+verified or written
 board-less. Local commits only.
 
+### 2026-06-23 — Invention catalogue complete (10 named algorithms)
+
+Added STAGED(436), BANDSAW(437), LADDER(451), REPLAY(460), CLOISTER(453),
+MIDDEN(452) — board-less InventionLayout pages, honest repro labels. Plus PRIOR
+earlier. Inventions hub now lists all 10: PALIMPSEST, KEYRING, GAUNTLET, PRIOR,
+STAGED, BANDSAW, LADDER, REPLAY, CLOISTER, MIDDEN. Commits `33c492d`, `1c2bfe4`,
+`323a719`. Tasks #20, #22 done. The whole research section is now content-complete
+(no placeholders). Next: animations for the board-less invention pages (STAGED
+stage-by-stage, MIDDEN mask shapes, etc.) per the alive-KB directive. Local
+commits only.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
