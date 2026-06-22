@@ -17,7 +17,7 @@ const INVENTIONS: Invention[] = [
   { key: "palimpsest", score: 463, to: "/research/lab/inventions/palimpsest", ready: true },
   { key: "keyring", score: 460, to: "/research/lab/inventions/keyring", ready: true },
   { key: "gauntlet", score: 458, to: "/research/lab/inventions/gauntlet", ready: true },
-  { key: "prior", ready: false },
+  { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true },
   { key: "staged", ready: false },
   { key: "bandsaw", ready: false },
 ];
