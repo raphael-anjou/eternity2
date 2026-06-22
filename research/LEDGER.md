@@ -187,6 +187,20 @@ entropy-area-law. All reproducible, all with a viz; entropy has full KaTeX math.
 Next: Lab (#20) — remaining inventions (LADDER/REPLAY/PRIOR/STAGED/BANDSAW/
 CLOISTER/MIDDEN), basins gallery, findings hub; then solver catalogue (#21).
 
+### 2026-06-22 — Lab door completed: basins gallery + findings index
+
+- /research/lab/basins: notable-boards gallery — 3 verified project boards
+  (463/460/458) + 4 community (467/468/469/470), sorted by score, each opens in
+  viewer via native params (bucas board_w/h + motifs_order stripped). Commit
+  `59eac42`.
+- /research/lab/findings: grouped index of the 7 structural results (design
+  signatures / structural walls / rigidity proofs), each linking to its full /why
+  write-up. Commit `dbd06b9`.
+Lab hub now has all three cards live (findings, inventions, basins) — no
+"in preparation" left on the Lab door. Remaining: more invention pages with their
+own viz (LADDER/REPLAY/PRIOR/STAGED/BANDSAW/CLOISTER/MIDDEN, #20), and the solver
+catalogue with a live demo (#21). All commits LOCAL only (no push, per user).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
