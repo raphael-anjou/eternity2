@@ -159,6 +159,23 @@ threw a "file not found" for sigma-cycles; restarted clean on 5174.
 Remaining /why: entropy/area-law (#18), rare-color-geography (#19 other half).
 Then lab inventions/basins (#20), solver catalogue (#21).
 
+### 2026-06-22 — Math rendering (KaTeX) + animations + entropy theorem
+
+Added KaTeX (`<Math>`/`<MathBlock>`, SSR-rendered into prerendered HTML). Note:
+importing `Math` shadows the global Math object — import as `MathInline` on pages
+that use `Math.exp` etc.
+- forbidden-patterns: NEW live "draw four pieces" animation (real pieces, real
+  2x2 feasibility, converges to 99.72%, speed slider) + a "where 99.72% comes
+  from" math section.
+- entropy-area-law (#18): NEW finding + topic. Recomputes grammar entropy exactly
+  for widths 1,2 (transfer-matrix eigenvalue) + lambda_H=46.18; h(n) decay chart;
+  rho(n) area-law collapse (log axis); the Fekete-subadditivity theorem in KaTeX.
+  Carries h(3)/h(4)/h_inf≈0.67 from offline sweep, labelled.
+Commits `f25231c`, `d4802d0`. **User said STOP PUSHING to GitHub — committing
+locally only now ([[feedback_e2_site_repo_main_only]]).** Also: `pnpm add katex`
+broke the rolldown native binding (dangling optional-dep symlink); fixed with
+`pnpm install --force`.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
