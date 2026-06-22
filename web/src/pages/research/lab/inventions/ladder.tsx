@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { LadderDiagram } from "@/components/research/LadderDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -95,7 +96,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Ladder() {
-  return <InventionLayout copy={copy} score={451} reproducibility="seeded" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={451}
+      reproducibility="seeded"
+      visual={<LadderDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-ladder");
