@@ -43,7 +43,7 @@ door should carry the whole stack of hardness evidence, not just one argument.
 | sigma-cycles | vols 65/99/101/188 | basin-hopping impossible: every proper subset of the 154-cell swap scores worse | heavy | interactive apply-part-of-the-loop diagram (built) | ★★★ | LIVE |
 | entropy-area-law | ISENTROPE vol-209; MATH_NOTES | distinctness collapses at ~80 cells; grammar entropy h∞≈0.67>0; ρ(n)≈exp(-0.085 n²) | exact (h1,h2,λ_H) + carried (h3,h4,h∞) | h(n) decay chart + ρ(n) log-collapse + Fekete theorem in KaTeX (built) | ★★ | LIVE |
 | no-forced-moves | vol-206 + exact recompute | zero forced placements; every interior piece has 73-137 partners (recomputed exact) | exact | partner-count histogram (built) | ★★ | LIVE |
-| rare-color-geography | vols 5/7/13 | 5 rare colors live only on the border ring; 100% matched in all ≥440 boards | exact | border-ring diagram with rare edges lit; interior mask all-zero | ★★ | TODO |
+| rare-color-geography | vols 5/7/13 + exact recompute | 5 rare colors only on the border ring, each on exactly 24 edges, 0 interior | exact | board-ring diagram + rare swatches + stacked frame/interior bar (built) | ★★ | LIVE |
 | watershed-piece-theft | WATERSHED vol-204 | 90% of solver deaths are local piece-theft, not global infeasibility | exact | death-cell map; (N,W)-pair scarcity heatmap | ★ | TODO |
 | depth-40-wall | vol-125 | block-search plateaus at depth 40/64 invariantly | seeded | depth histogram by seed; trajectory curves | ★ | TODO |
 | ns1-deficit | vol-11 / Hopfer | Δ∈{0,1,2,4} for canonical partials; correlates with score | exact | score-vs-Δ scatter | ★ | TODO |

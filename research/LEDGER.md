@@ -176,6 +176,17 @@ locally only now ([[feedback_e2_site_repo_main_only]]).** Also: `pnpm add katex`
 broke the rolldown native binding (dangling optional-dep symlink); fixed with
 `pnpm install --force`.
 
+### 2026-06-22 — rare-color geography; Door 1 (Why) complete
+
+NEW finding + topic rare-color-geography: 5 rare colors (1-5) only on the border
+ring, each exactly 24 edges, 0 interior; board-ring diagram + swatches + stacked
+frame/interior bar chart. Exact, deterministic. Commit `efcdec9`.
+**Door 1 (Why) now COMPLETE — 7 findings:** phase-transition, rigidity-wall,
+sigma-cycles, forbidden-patterns, no-forced-moves, rare-color-geography,
+entropy-area-law. All reproducible, all with a viz; entropy has full KaTeX math.
+Next: Lab (#20) — remaining inventions (LADDER/REPLAY/PRIOR/STAGED/BANDSAW/
+CLOISTER/MIDDEN), basins gallery, findings hub; then solver catalogue (#21).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
