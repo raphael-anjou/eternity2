@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { MeetInMiddleDiagram } from "@/components/research/MeetInMiddleDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -94,7 +95,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Bandsaw() {
-  return <InventionLayout copy={copy} score={437} reproducibility="deterministic" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={437}
+      reproducibility="deterministic"
+      visual={<MeetInMiddleDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-bandsaw");
