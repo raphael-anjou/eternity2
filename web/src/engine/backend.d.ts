@@ -12,6 +12,18 @@ declare module "virtual:engine-backend" {
   export function getOfficialPuzzle(): Puzzle;
   export function getGeneratedPuzzle(size: number, colors: number, seed: number): Puzzle;
   export function getGeneratedSolvedPuzzle(size: number, colors: number, seed: number): Puzzle;
+  export function getGeneratedPuzzleFramed(
+    size: number,
+    colors: number,
+    seed: number,
+    framed: boolean,
+  ): Puzzle;
+  export function getGeneratedSolvedPuzzleFramed(
+    size: number,
+    colors: number,
+    seed: number,
+    framed: boolean,
+  ): Puzzle;
   export function getMaxColors(size: number): number;
   export function getPathKinds(): string[];
   export function getPath(kind: string, width: number, height: number, seed?: number): Uint16Array;

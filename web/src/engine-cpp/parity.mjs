@@ -85,6 +85,10 @@ function generate(size, colors, seed) {
   e.e2_generate(size, colors, seed >>> 0);
   return readWirePuzzle();
 }
+function generateFramed(size, colors, seed, framed) {
+  e.e2_generate_framed(size, colors, seed >>> 0, framed ? 1 : 0);
+  return readWirePuzzle();
+}
 function official() {
   e.e2_official();
   return readWirePuzzle();
@@ -166,6 +170,16 @@ for (const line of lines) {
       let ok = got.length === expect.length;
       if (ok) for (let i = 0; i < got.length; i++) if (got[i] !== expect[i]) { ok = false; break; }
       check(ok, `generate(${size},${colors},${seed}) pieces`);
+      break;
+    }
+    case "FRAMEDGEN": {
+      const [size, colors, seed] = [Number(t[1]), Number(t[2]), Number(t[3])];
+      const p = generateFramed(size, colors, seed, true);
+      const got = p.pieces.map((e4) => e4.join(","));
+      const expect = t.slice(4);
+      let ok = got.length === expect.length;
+      if (ok) for (let i = 0; i < got.length; i++) if (got[i] !== expect[i]) { ok = false; break; }
+      check(ok, `generateFramed(${size},${colors},${seed},true) pieces`);
       break;
     }
     case "OFF": {

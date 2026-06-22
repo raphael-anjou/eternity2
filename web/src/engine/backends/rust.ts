@@ -11,7 +11,9 @@ import init, {
   WasmSolver,
   buildPath,
   generatePuzzle,
+  generatePuzzleFramed,
   generateSolvedPuzzle,
+  generateSolvedPuzzleFramed,
   maxColors,
   officialPuzzle,
   pathKinds,
@@ -40,6 +42,30 @@ export function getGeneratedPuzzle(size: number, colors: number, seed: number): 
 /** Pieces in solution order/orientation: piece i belongs at cell i, rot 0. */
 export function getGeneratedSolvedPuzzle(size: number, colors: number, seed: number): Puzzle {
   return generateSolvedPuzzle(size, colors, seed) as Puzzle;
+}
+
+/**
+ * Framed variant: when `framed` is true, frame-restricted colors are confined to
+ * the border band (mirrors real Eternity II). `framed=false` is identical to
+ * `getGeneratedPuzzle`.
+ */
+export function getGeneratedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  return generatePuzzleFramed(size, colors, seed, framed) as Puzzle;
+}
+
+/** Solved-order counterpart of `getGeneratedPuzzleFramed`. */
+export function getGeneratedSolvedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  return generateSolvedPuzzleFramed(size, colors, seed, framed) as Puzzle;
 }
 
 export function getMaxColors(size: number): number {

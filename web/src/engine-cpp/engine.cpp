@@ -205,9 +205,134 @@ static void generate_solved(Puzzle* p, u8 size, u8 colors, u32 seed) {
   p->n_hints = 0;
 }
 
+// frame_color_count(colors): min(5, colors-1), or 0 when colors < 2.
+static u8 frame_color_count(u8 colors) {
+  if (colors < 2) return 0;
+  u8 c = (u8)(colors - 1);
+  return c < 5 ? c : 5;
+}
+
+// The framed split is meaningful only when there is an interior color
+// (colors >= 2) AND a deep-interior adjacency (size >= 4).
+static bool framed_is_meaningful(u8 size, u8 colors) {
+  return size >= 4 && colors >= 2;
+}
+
+// slot_is_frame_band(i, s): is palette slot i (default flat order) a frame-band
+// adjacency — at least one incident cell on the outer ring?
+static bool slot_is_frame_band(int i, int s) {
+  int vcount = s * (s - 1);
+  if (i < vcount) {
+    int x = i % (s - 1);
+    int y = i / (s - 1);
+    return y == 0 || y == s - 1 || x == 0 || x + 1 == s - 1;
+  }
+  int j = i - vcount;
+  int x = j % s;
+  int y = j / s;
+  return x == 0 || x == s - 1 || y == 0 || y + 1 == s - 1;
+}
+
+// paint_framed: fill palette[0..n_edges) so frame colors (1..frame_count) land
+// only on frame-band slots and interior colors (frame_count+1..colors) only on
+// deep-interior slots, each group covering all its colors, then shuffled within
+// the group. Uses only below/shuffle so every port matches.
+static void paint_framed(XorShift* rng, u8* palette, int n_edges, int s, u8 colors) {
+  u8 frame_count = frame_color_count(colors);     // >= 1 here
+  u8 interior_count = (u8)(colors - frame_count); // >= 1 here
+
+  // Partition slot indices, ascending.
+  u16 frame_slots[2 * MAX_SIZE * (MAX_SIZE - 1)];
+  u16 interior_slots[2 * MAX_SIZE * (MAX_SIZE - 1)];
+  int nf = 0, ni = 0;
+  for (int i = 0; i < n_edges; ++i) {
+    if (slot_is_frame_band(i, s)) frame_slots[nf++] = (u16)i;
+    else interior_slots[ni++] = (u16)i;
+  }
+
+  // Frame band colors.
+  u8 frame_colors[2 * MAX_SIZE * (MAX_SIZE - 1)];
+  for (int k = 0; k < nf; ++k) {
+    frame_colors[k] = (k < (int)frame_count)
+                          ? (u8)(k + 1)
+                          : (u8)(rng->below((u32)frame_count) + 1);
+  }
+  shuffle_u8(rng, frame_colors, nf);
+  for (int k = 0; k < nf; ++k) palette[frame_slots[k]] = frame_colors[k];
+
+  // Deep interior colors.
+  u8 interior_colors[2 * MAX_SIZE * (MAX_SIZE - 1)];
+  for (int k = 0; k < ni; ++k) {
+    interior_colors[k] =
+        (k < (int)interior_count)
+            ? (u8)(frame_count + k + 1)
+            : (u8)(frame_count + rng->below((u32)interior_count) + 1);
+  }
+  shuffle_u8(rng, interior_colors, ni);
+  for (int k = 0; k < ni; ++k) palette[interior_slots[k]] = interior_colors[k];
+}
+
+// generate_solved_framed: framed-capable solved-board generator. framed=false
+// is byte-for-byte identical to generate_solved.
+static void generate_solved_framed(Puzzle* p, u8 size, u8 colors, u32 seed, bool framed) {
+  u8 mc = max_colors(size);
+  if (colors < 1) colors = 1;
+  if (colors > mc) colors = mc;
+
+  int s = (int)size;
+  int n_edges = (int)interior_edge_count(size);
+  XorShift rng = XorShift::make(seed);
+
+  u8 palette[2 * MAX_SIZE * (MAX_SIZE - 1)];
+  if (framed && framed_is_meaningful(size, colors)) {
+    paint_framed(&rng, palette, n_edges, s, colors);
+  } else {
+    for (int i = 0; i < n_edges; ++i) {
+      palette[i] = (i < (int)colors) ? (u8)(i + 1)
+                                     : (u8)(rng.below((u32)colors) + 1);
+    }
+    shuffle_u8(&rng, palette, n_edges);
+  }
+
+  const u8* vert = palette;
+  const u8* horiz = palette + (s * (s - 1));
+
+  int idx = 0;
+  for (int y = 0; y < s; ++y) {
+    for (int x = 0; x < s; ++x) {
+      u8 up    = (y == 0)     ? BORDER : horiz[(y - 1) * s + x];
+      u8 down  = (y == s - 1) ? BORDER : horiz[y * s + x];
+      u8 left  = (x == 0)     ? BORDER : vert[y * (s - 1) + (x - 1)];
+      u8 right = (x == s - 1) ? BORDER : vert[y * (s - 1) + x];
+      p->pieces[idx].e[0] = up;
+      p->pieces[idx].e[1] = right;
+      p->pieces[idx].e[2] = down;
+      p->pieces[idx].e[3] = left;
+      ++idx;
+    }
+  }
+
+  p->width = size;
+  p->height = size;
+  p->num_colors = colors;
+  p->n_pieces = s * s;
+  p->n_hints = 0;
+}
+
 // generate(size, colors, seed) — ALGORITHM.md §4 step 4 (scramble).
 static void generate(Puzzle* p, u8 size, u8 colors, u32 seed) {
   generate_solved(p, size, colors, seed);
+  XorShift rng = XorShift::make(seed ^ 0xA5A5A5A5u);
+  shuffle_edges(&rng, p->pieces, p->n_pieces);
+  for (int i = 0; i < p->n_pieces; ++i) {
+    p->pieces[i] = rotated(p->pieces[i], (u8)rng.below(4));
+  }
+}
+
+// generate_framed: scramble path with optional frame confinement. framed=false
+// is byte-for-byte identical to generate.
+static void generate_framed(Puzzle* p, u8 size, u8 colors, u32 seed, bool framed) {
+  generate_solved_framed(p, size, colors, seed, framed);
   XorShift rng = XorShift::make(seed ^ 0xA5A5A5A5u);
   shuffle_edges(&rng, p->pieces, p->n_pieces);
   for (int i = 0; i < p->n_pieces; ++i) {
@@ -777,6 +902,18 @@ int E2_EXPORT(e2_generate)(int size, int colors, u32 seed) {
 int E2_EXPORT(e2_generate_solved)(int size, int colors, u32 seed) {
   Puzzle p;
   generate_solved(&p, (u8)size, (u8)colors, seed);
+  puzzle_to_wire(&p);
+  return p.n_pieces;
+}
+int E2_EXPORT(e2_generate_framed)(int size, int colors, u32 seed, int framed) {
+  Puzzle p;
+  generate_framed(&p, (u8)size, (u8)colors, seed, framed != 0);
+  puzzle_to_wire(&p);
+  return p.n_pieces;
+}
+int E2_EXPORT(e2_generate_solved_framed)(int size, int colors, u32 seed, int framed) {
+  Puzzle p;
+  generate_solved_framed(&p, (u8)size, (u8)colors, seed, framed != 0);
   puzzle_to_wire(&p);
   return p.n_pieces;
 }

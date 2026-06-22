@@ -30,6 +30,87 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /**
+ * Number of frame-restricted colours in framed mode: `min(5, colors - 1)`,
+ * mirroring real Eternity II (5 of 22 colours appear only on frame-adjacent
+ * edges). Colours `1..=frameCount` are frame colours; the rest are interior.
+ * Mirrors `frame_color_count` in engine/src/generator.rs.
+ */
+export function frameColorCount(colors: number): number {
+  return colors < 2 ? 0 : Math.min(colors - 1, 5);
+}
+
+/**
+ * The framed split is only meaningful when there is at least one interior
+ * colour (`colors >= 2`) AND at least one deep-interior adjacency to confine it
+ * to (which needs `size >= 4`, since a deep-interior adjacency joins two off-rim
+ * cells). Below this threshold framed mode falls back to the unrestricted path
+ * so every requested colour still appears. Mirrors `framed_is_meaningful`.
+ */
+function framedIsMeaningful(size: number, colors: number): boolean {
+  return size >= 4 && colors >= 2;
+}
+
+/**
+ * Is palette slot `i` (default flat order: `i < s*(s-1)` is `vert[i]`, else
+ * `horiz[i - s*(s-1)]`) a frame-band adjacency — at least one incident cell on
+ * the outer ring? Mirrors `slot_is_frame_band` in engine/src/generator.rs.
+ */
+function slotIsFrameBand(i: number, s: number): boolean {
+  const vcount = s * (s - 1);
+  if (i < vcount) {
+    const x = i % (s - 1);
+    const y = Math.floor(i / (s - 1));
+    return y === 0 || y === s - 1 || x === 0 || x + 1 === s - 1;
+  }
+  const j = i - vcount;
+  const x = j % s;
+  const y = Math.floor(j / s);
+  return x === 0 || x === s - 1 || y === 0 || y + 1 === s - 1;
+}
+
+/**
+ * Paint each palette slot in framed mode (frame band gets colours
+ * `1..=frameCount`; deep interior gets `frameCount+1..=colors`, each group
+ * guaranteeing every colour appears, then shuffled within the group). Only
+ * `below`/`shuffle` are used so every port matches. Mirrors `paint_framed`.
+ */
+function paintFramed(rng: XorShift, nEdges: number, s: number, colors: number): number[] {
+  const frameCount = frameColorCount(colors); // >= 1 here (colors >= 2)
+  const interiorCount = colors - frameCount; // >= 1 here (size >= 4)
+
+  const frameSlots: number[] = [];
+  const interiorSlots: number[] = [];
+  for (let i = 0; i < nEdges; i++) {
+    if (slotIsFrameBand(i, s)) frameSlots.push(i);
+    else interiorSlots.push(i);
+  }
+
+  const palette: number[] = new Array<number>(nEdges).fill(0);
+
+  const frameColors: number[] = [];
+  for (let k = 0; k < frameSlots.length; k++) {
+    frameColors.push(k < frameCount ? k + 1 : rng.below(frameCount) + 1);
+  }
+  rng.shuffle(frameColors);
+  for (let k = 0; k < frameSlots.length; k++) {
+    palette[frameSlots[k] ?? 0] = frameColors[k] ?? 0;
+  }
+
+  const interiorColors: number[] = [];
+  for (let k = 0; k < interiorSlots.length; k++) {
+    interiorColors.push(
+      k < interiorCount ? frameCount + k + 1 : frameCount + rng.below(interiorCount) + 1,
+    );
+  }
+  rng.shuffle(interiorColors);
+  for (let k = 0; k < interiorSlots.length; k++) {
+    palette[interiorSlots[k] ?? 0] = interiorColors[k] ?? 0;
+  }
+
+  return palette;
+}
+
+/**
  * Same construction as `generate`, but the pieces stay in solution order and
  * orientation: piece `i` belongs at cell `i` with rotation 0, so the identity
  * board is the solution. Used by the viewer's board generator.
@@ -37,6 +118,23 @@ function clamp(v: number, lo: number, hi: number): number {
  * Mirrors `generate_solved` in engine/src/generator.rs.
  */
 export function generateSolved(size: number, colors: number, seed: number): Puzzle {
+  return generateSolvedFramed(size, colors, seed, false);
+}
+
+/**
+ * Framed-capable solved-board generator. When `framed` is true (and the split is
+ * meaningful), frame colours `1..=frameCount` are confined to frame-band
+ * adjacencies and interior colours to the deep interior. When false, this is
+ * byte-for-byte identical to the original `generateSolved`.
+ *
+ * Mirrors `generate_solved_framed` in engine/src/generator.rs.
+ */
+export function generateSolvedFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
   if (size < 2) {
     throw new Error("size must be >= 2");
   }
@@ -45,13 +143,19 @@ export function generateSolved(size: number, colors: number, seed: number): Puzz
   const nEdges = interiorEdgeCount(size);
   const rng = new XorShift(seed);
 
-  // Step 1: one colour per interior adjacency, every colour present at least
-  // once (the first `colors` entries are 1..colors), then shuffle the palette.
-  const palette: number[] = [];
-  for (let i = 0; i < nEdges; i++) {
-    palette.push(i < clampedColors ? i + 1 : rng.below(clampedColors) + 1);
+  // Step 1: paint one colour per interior adjacency. Framed mode confines each
+  // colour to its band; otherwise every colour is present at least once (the
+  // first `colors` entries are 1..colors) and the palette is shuffled.
+  let palette: number[];
+  if (framed && framedIsMeaningful(size, clampedColors)) {
+    palette = paintFramed(rng, nEdges, s, clampedColors);
+  } else {
+    palette = [];
+    for (let i = 0; i < nEdges; i++) {
+      palette.push(i < clampedColors ? i + 1 : rng.below(clampedColors) + 1);
+    }
+    rng.shuffle(palette);
   }
-  rng.shuffle(palette);
 
   // Step 2: split into vertical and horizontal adjacency colours.
   // vert[y*(s-1)+x] = colour between (x,y) and (x+1,y);
@@ -95,7 +199,22 @@ export function generateSolved(size: number, colors: number, seed: number): Puzz
  * Mirrors `generate` in engine/src/generator.rs.
  */
 export function generate(size: number, colors: number, seed: number): Puzzle {
-  const puzzle = generateSolved(size, colors, seed);
+  return generateFramed(size, colors, seed, false);
+}
+
+/**
+ * Framed-capable scrambled generator. `framed=false` is byte-for-byte identical
+ * to `generate`; `framed=true` confines frame-restricted colours to the border
+ * band (see `generateSolvedFramed`). Mirrors `generate_framed` in
+ * engine/src/generator.rs.
+ */
+export function generateFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  const puzzle = generateSolvedFramed(size, colors, seed, framed);
   // `^` is signed 32-bit in JS; `>>> 0` brings it back to an unsigned u32 so
   // the XorShift seed matches Rust's `seed ^ 0xA5A5_A5A5`.
   const rng = new XorShift((seed ^ 0xa5a5a5a5) >>> 0);

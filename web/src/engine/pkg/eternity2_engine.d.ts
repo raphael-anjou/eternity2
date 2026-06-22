@@ -25,9 +25,22 @@ export function buildPath(kind: string, width: number, height: number, seed: num
 export function generatePuzzle(size: number, colors: number, seed: number): any;
 
 /**
+ * Like `generatePuzzle`, but when `framed` is true the frame-restricted colors
+ * (`1..=min(5, colors-1)`) are confined to the border-band adjacencies and the
+ * rest to the deep interior, mirroring real Eternity II. `framed=false` is
+ * byte-for-byte identical to `generatePuzzle`.
+ */
+export function generatePuzzleFramed(size: number, colors: number, seed: number, framed: boolean): any;
+
+/**
  * Pieces in solution order/orientation: piece i belongs at cell i, rot 0.
  */
 export function generateSolvedPuzzle(size: number, colors: number, seed: number): any;
+
+/**
+ * Solved-order counterpart of `generatePuzzleFramed`.
+ */
+export function generateSolvedPuzzleFramed(size: number, colors: number, seed: number, framed: boolean): any;
 
 export function maxColors(size: number): number;
 
@@ -44,7 +57,9 @@ export interface InitOutput {
     readonly __wbg_wasmsolver_free: (a: number, b: number) => void;
     readonly buildPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly generatePuzzle: (a: number, b: number, c: number) => any;
+    readonly generatePuzzleFramed: (a: number, b: number, c: number, d: number) => any;
     readonly generateSolvedPuzzle: (a: number, b: number, c: number) => any;
+    readonly generateSolvedPuzzleFramed: (a: number, b: number, c: number, d: number) => any;
     readonly maxColors: (a: number) => number;
     readonly officialPuzzle: () => any;
     readonly pathKinds: () => [number, number];

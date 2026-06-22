@@ -176,6 +176,116 @@ static void generate_solved(Puzzle *p, u8 size, u8 colors, u32 seed) {
     p->n_hints = 0;
 }
 
+/* frame_color_count(colors): min(5, colors-1), or 0 when colors < 2. */
+static u8 frame_color_count(u8 colors) {
+    if (colors < 2) return 0;
+    u8 c = (u8)(colors - 1);
+    return c < 5 ? c : 5;
+}
+
+/* The framed split is meaningful only with an interior color (colors >= 2) and
+ * a deep-interior adjacency (size >= 4). */
+static int framed_is_meaningful(u8 size, u8 colors) {
+    return size >= 4 && colors >= 2;
+}
+
+/* slot_is_frame_band(i, s): is palette slot i (default flat order) a frame-band
+ * adjacency — at least one incident cell on the outer ring? */
+static int slot_is_frame_band(int i, int s) {
+    int vcount = s * (s - 1);
+    if (i < vcount) {
+        int x = i % (s - 1);
+        int y = i / (s - 1);
+        return y == 0 || y == s - 1 || x == 0 || x + 1 == s - 1;
+    }
+    int j = i - vcount;
+    int x = j % s;
+    int y = j / s;
+    return x == 0 || x == s - 1 || y == 0 || y + 1 == s - 1;
+}
+
+/* paint_framed: confine frame colors (1..frame_count) to frame-band slots and
+ * interior colors (frame_count+1..colors) to deep-interior slots, each group
+ * covering all its colors then shuffled. Uses only below/shuffle. */
+static void paint_framed(XorShift *rng, u8 *palette, int n_edges, int s, u8 colors) {
+    u8 frame_count = frame_color_count(colors);      /* >= 1 here */
+    u8 interior_count = (u8)(colors - frame_count);  /* >= 1 here */
+
+    static u16 frame_slots[2 * E2_MAX_SIZE * (E2_MAX_SIZE - 1)];
+    static u16 interior_slots[2 * E2_MAX_SIZE * (E2_MAX_SIZE - 1)];
+    int nf = 0, ni = 0;
+    for (int i = 0; i < n_edges; i++) {
+        if (slot_is_frame_band(i, s)) frame_slots[nf++] = (u16)i;
+        else                          interior_slots[ni++] = (u16)i;
+    }
+
+    static u8 frame_colors[2 * E2_MAX_SIZE * (E2_MAX_SIZE - 1)];
+    for (int k = 0; k < nf; k++) {
+        frame_colors[k] = (k < (int)frame_count)
+                              ? (u8)(k + 1)
+                              : (u8)(xs_below(rng, (u32)frame_count) + 1);
+    }
+    xs_shuffle_u8(rng, frame_colors, (u32)nf);
+    for (int k = 0; k < nf; k++) palette[frame_slots[k]] = frame_colors[k];
+
+    static u8 interior_colors[2 * E2_MAX_SIZE * (E2_MAX_SIZE - 1)];
+    for (int k = 0; k < ni; k++) {
+        interior_colors[k] =
+            (k < (int)interior_count)
+                ? (u8)(frame_count + k + 1)
+                : (u8)(frame_count + xs_below(rng, (u32)interior_count) + 1);
+    }
+    xs_shuffle_u8(rng, interior_colors, (u32)ni);
+    for (int k = 0; k < ni; k++) palette[interior_slots[k]] = interior_colors[k];
+}
+
+/* generate_solved_framed: framed-capable solved board. framed=0 is
+ * byte-for-byte identical to generate_solved. */
+static void generate_solved_framed(Puzzle *p, u8 size, u8 colors, u32 seed, int framed) {
+    u8 mc = e2_max_colors(size);
+    if (colors < 1) colors = 1;
+    if (colors > mc) colors = mc;
+
+    u32 s = size;
+    u32 n_edges = interior_edge_count(size);
+    XorShift rng; xs_new(&rng, seed);
+
+    static u8 palette[2 * E2_MAX_SIZE * (E2_MAX_SIZE - 1)];
+    if (framed && framed_is_meaningful(size, colors)) {
+        paint_framed(&rng, palette, (int)n_edges, (int)s, colors);
+    } else {
+        for (u32 i = 0; i < n_edges; i++) {
+            if (i < (u32)colors) palette[i] = (u8)(i + 1);
+            else                 palette[i] = (u8)(xs_below(&rng, (u32)colors) + 1);
+        }
+        xs_shuffle_u8(&rng, palette, n_edges);
+    }
+
+    const u8 *vert  = palette;
+    const u8 *horiz = palette + s * (s - 1);
+
+    u16 idx = 0;
+    for (u32 y = 0; y < s; y++) {
+        for (u32 x = 0; x < s; x++) {
+            u8 up    = (y == 0)     ? BORDER : horiz[(y - 1) * s + x];
+            u8 down  = (y == s - 1) ? BORDER : horiz[y * s + x];
+            u8 left  = (x == 0)     ? BORDER : vert[y * (s - 1) + (x - 1)];
+            u8 right = (x == s - 1) ? BORDER : vert[y * (s - 1) + x];
+            p->pieces[idx][0] = up;
+            p->pieces[idx][1] = right;
+            p->pieces[idx][2] = down;
+            p->pieces[idx][3] = left;
+            idx++;
+        }
+    }
+
+    p->width = size;
+    p->height = size;
+    p->num_colors = colors;
+    p->n_pieces = (u16)(s * s);
+    p->n_hints = 0;
+}
+
 /*
  * generate (generator.rs::generate): generate_solved, then scramble with a
  * SECOND rng seeded seed ^ 0xA5A5A5A5 — shuffle the piece list, then give
@@ -195,6 +305,27 @@ static void generate(Puzzle *p, u8 size, u8 colors, u32 seed) {
         if (i == 1) break;
     }
     /* Random rotation per piece. */
+    for (u32 i = 0; i < n; i++) {
+        u8 out[4];
+        rotated(p->pieces[i], (u8)xs_below(&rng, 4), out);
+        for (int k = 0; k < 4; k++) p->pieces[i][k] = out[k];
+    }
+}
+
+/* generate_framed: scramble path with optional frame confinement. framed=0 is
+ * byte-for-byte identical to generate. */
+static void generate_framed(Puzzle *p, u8 size, u8 colors, u32 seed, int framed) {
+    generate_solved_framed(p, size, colors, seed, framed);
+    XorShift rng; xs_new(&rng, seed ^ 0xA5A5A5A5u);
+
+    u32 n = p->n_pieces;
+    for (u32 i = n - 1; i >= 1; i--) {
+        u32 j = xs_below(&rng, i + 1);
+        for (int k = 0; k < 4; k++) {
+            u8 t = p->pieces[i][k]; p->pieces[i][k] = p->pieces[j][k]; p->pieces[j][k] = t;
+        }
+        if (i == 1) break;
+    }
     for (u32 i = 0; i < n; i++) {
         u8 out[4];
         rotated(p->pieces[i], (u8)xs_below(&rng, 4), out);
@@ -601,6 +732,18 @@ int e2_generate(int size, int colors, unsigned int seed) {
 __attribute__((export_name("e2_generate_solved")))
 int e2_generate_solved(int size, int colors, unsigned int seed) {
     generate_solved(&g_puzzle, (u8)size, (u8)colors, seed);
+    return g_puzzle.n_pieces;
+}
+
+__attribute__((export_name("e2_generate_framed")))
+int e2_generate_framed(int size, int colors, unsigned int seed, int framed) {
+    generate_framed(&g_puzzle, (u8)size, (u8)colors, seed, framed);
+    return g_puzzle.n_pieces;
+}
+
+__attribute__((export_name("e2_generate_solved_framed")))
+int e2_generate_solved_framed(int size, int colors, unsigned int seed, int framed) {
+    generate_solved_framed(&g_puzzle, (u8)size, (u8)colors, seed, framed);
     return g_puzzle.n_pieces;
 }
 

@@ -122,6 +122,26 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description: "Comptages exacts de placements pour de petits blocs du plateau officiel d'Eternity II — des valeurs sûres pour valider votre propre solveur.",
     },
   },
+  papers: {
+    en: {
+      title: "Papers" + SUFFIX,
+      description: "The academic literature on Eternity II and edge-matching puzzles, ranked by how useful each paper is if you actually want to write a solver.",
+    },
+    fr: {
+      title: "Articles scientifiques" + SUFFIX,
+      description: "La littérature scientifique sur Eternity II et les casse-tête d'assemblage par les bords, classée selon son utilité réelle pour écrire un solveur.",
+    },
+  },
+  records: {
+    en: {
+      title: "Records & solvers" + SUFFIX,
+      description: "The Eternity II record timeline — who reached 469/480 and how — plus the key community solvers and why some '480' boards aren't the real puzzle.",
+    },
+    fr: {
+      title: "Records & solveurs" + SUFFIX,
+      description: "La chronologie des records d'Eternity II — qui a atteint 469/480 et comment — les principaux solveurs de la communauté et pourquoi certains plateaux « 480 » ne sont pas le vrai puzzle.",
+    },
+  },
   viewer: {
     en: {
       title: "Board Viewer" + SUFFIX,
