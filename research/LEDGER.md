@@ -201,6 +201,18 @@ Lab hub now has all three cards live (findings, inventions, basins) — no
 own viz (LADDER/REPLAY/PRIOR/STAGED/BANDSAW/CLOISTER/MIDDEN, #20), and the solver
 catalogue with a live demo (#21). All commits LOCAL only (no push, per user).
 
+### 2026-06-22 — Solver catalogue; research section fully populated
+
+/research/build/solvers: backtracking → fill-order effect → Blackwood schedule +
+break-index → McGavin throughput; links to live Watch/Paths to see a solver run.
+Commit `3237a9c`. **The whole research section now has NO "in preparation" cards**
+— every hub (Why 7 findings, Build 6 tools, Lab 3 areas + 3 inventions) and child
+is live.
+REMAINING (enhancements, not gaps): per-invention deep-dive pages
+(LADDER/REPLAY/PRIOR/STAGED/BANDSAW/CLOISTER/MIDDEN) with their own animations
+(#22); a bespoke embedded solver demo (currently links to playground).
+All commits LOCAL only (8+ ahead of origin; user said don't push).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
