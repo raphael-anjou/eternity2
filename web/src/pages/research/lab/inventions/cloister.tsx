@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -93,7 +94,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Cloister() {
-  return <InventionLayout copy={copy} score={453} reproducibility="seeded" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={453}
+      reproducibility="seeded"
+      visual={<BorderAnchorDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-cloister");
