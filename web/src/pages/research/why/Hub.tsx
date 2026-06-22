@@ -16,6 +16,7 @@ const TOPICS: Topic[] = [
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
+  { key: "rareColor", ready: true, to: "/research/why/rare-color-geography" },
   { key: "entropy", ready: true, to: "/research/why/entropy-area-law" },
 ];
 
@@ -57,6 +58,10 @@ const T = {
         title: "No forced moves",
         body: "And yet no single piece is ever pinned: every interior piece has 73 to 137 possible neighbours. Lots of local freedom, almost no global consistency.",
       },
+      rareColor: {
+        title: "The rare colors live on the frame",
+        body: "Five of the 22 colors appear only on the border ring, each on exactly 24 edges, never inside. Design you can see, balanced on purpose.",
+      },
     },
   },
   fr: {
@@ -95,6 +100,10 @@ const T = {
       noForced: {
         title: "Aucun coup forcé",
         body: "Et pourtant aucune pièce n'est jamais coincée : chaque pièce intérieure a entre 73 et 137 voisines possibles. Beaucoup de liberté locale, presque aucune cohérence globale.",
+      },
+      rareColor: {
+        title: "Les couleurs rares vivent sur le cadre",
+        body: "Cinq des 22 couleurs n'apparaissent que sur le cadre, chacune sur exactement 24 bords, jamais à l'intérieur. Une conception visible, équilibrée à dessein.",
       },
     },
   },

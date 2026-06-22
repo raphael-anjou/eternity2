@@ -220,6 +220,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
     },
   },
+  "rare-color-geography": {
+    en: {
+      title: "The rare colors live on the frame" + SUFFIX,
+      description:
+        "Five of Eternity II's 22 colors appear only on the border ring, each on exactly 24 edges, never in the interior. A deliberate design signature you can see.",
+    },
+    fr: {
+      title: "Les couleurs rares vivent sur le cadre" + SUFFIX,
+      description:
+        "Cinq des 22 couleurs d'Eternity II n'apparaissent que sur le cadre, chacune sur exactement 24 bords, jamais à l'intérieur. Une signature de conception visible.",
+    },
+  },
   "entropy-area-law": {
     en: {
       title: "Entropy and the area law" + SUFFIX,

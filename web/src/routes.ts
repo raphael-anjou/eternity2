@@ -26,6 +26,7 @@ const PAGES = [
   { path: "research/why/forbidden-patterns", file: "pages/research/why/forbidden-patterns.tsx", id: "forbidden-patterns" },
   { path: "research/why/no-forced-moves", file: "pages/research/why/no-forced-moves.tsx", id: "no-forced-moves" },
   { path: "research/why/entropy-area-law", file: "pages/research/why/entropy-area-law.tsx", id: "entropy-area-law" },
+  { path: "research/why/rare-color-geography", file: "pages/research/why/rare-color-geography.tsx", id: "rare-color-geography" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
