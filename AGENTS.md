@@ -102,4 +102,10 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   institutional-repository / HAL / DIAL / arXiv links over personal faculty
   paths).
 
+- **`justfile` wraps the common tasks.** `just` lists them; `just setup`,
+  `just dev`, `just test`, `just wasm`, `just build`, `just check`, and the
+  per-topic `just research-<topic>` reproduce recipes are thin wrappers over the
+  underlying cargo/pnpm/node commands (no logic of their own). Keep it in sync
+  when commands change; the raw commands still work without `just`.
+
 - **Verify after web changes:** `cd web && pnpm build && pnpm typecheck`.
