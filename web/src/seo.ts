@@ -160,6 +160,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Les couleurs d'Eternity II se répartissent en 17 intérieures et 5 réservées au cadre, exactement là où les puzzles d'assemblage par les bords sont les plus durs. La conception, montrée directement dans les pièces officielles.",
     },
   },
+  "dead-ends": {
+    en: {
+      title: "Dead ends" + SUFFIX,
+      description:
+        "Approaches that look promising for Eternity II but don't work: symmetry breaking, more compute, survey propagation, tensor counting, relaxation bounds, learned heuristics. What's known, so you don't waste the time.",
+    },
+    fr: {
+      title: "Impasses" + SUFFIX,
+      description:
+        "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
+    },
+  },
   "run-it-yourself": {
     en: {
       title: "Run it yourself" + SUFFIX,

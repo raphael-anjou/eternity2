@@ -24,6 +24,7 @@ const PAGES = [
   { path: "research/why/forbidden-patterns", file: "pages/research/why/forbidden-patterns.tsx", id: "forbidden-patterns" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
+  { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
   { path: "research/lab", file: "pages/research/lab/Hub.tsx", id: "lab" },
   { path: "research/reference", file: "pages/ReferenceTable.tsx", id: "reference" },
   { path: "research/papers", file: "pages/Papers.tsx", id: "papers" },

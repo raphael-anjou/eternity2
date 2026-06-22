@@ -75,6 +75,14 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   you add a page: append to `routes.ts` PAGES (unique id), `sitemap.config.ts`
   PAGE_PATHS, and a `seo.ts` key (EN+FR).
 
+- **Keep the research ledger.** `research/LEDGER.md` is an append-only,
+  oldest-first record of every research-section step: findings, pages,
+  refutations, decisions, and what was learned (including failures and inert
+  results). This is multi-day work, so the ledger is the cross-session memory.
+  Add an entry for each meaningful step, with the outcome/learning, the
+  reproducibility kind, the commit hash, and the files touched. Never rewrite past
+  entries.
+
 - **Every published result must be reproducible.** Findings/inventions/boards
   are published through the `research/topics/<id>/` pipeline (see the `research/`
   bullet above): a `compute/` crate (path-dep on `engine/`), committed
