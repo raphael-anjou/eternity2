@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -95,7 +96,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Midden() {
-  return <InventionLayout copy={copy} score={452} reproducibility="seeded" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={452}
+      reproducibility="seeded"
+      visual={<MaskShapeDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-midden");
