@@ -142,6 +142,23 @@ Learnings recorded: small-board live sweeps duplicate difficulty.json; the
 "alive" budget is best spent on viz the site doesn't already have (rigidity halo
 animation, sigma-cycle overlay, entropy collapse curve, forbidden-patch heatmap).
 
+### 2026-06-22 — /why findings: rigidity wall, sigma-cycles, no forced moves (loop)
+
+Started a 2h self-paced loop (cron 55d3e9eb). Built the flagship hardness findings:
+- rigidity-wall: every record board locally frozen (MIP, halo-4, 3 boards). Animated
+  halo growing over the verified 463 board with mismatches marked. repro=heavy(MIP),
+  board verifiable.
+- sigma-cycles: basin-hopping impossible — one 154-cell interlocking cycle, every
+  subset scores worse. Interactive "apply part of the loop, seam breaks" diagram.
+  Cross-linked with rigidity (the two escape routes, both closed).
+- no-forced-moves: NEW exact topic. Every interior piece has 73-137 right-partners,
+  ZERO forced. Histogram chart. The flip side of forbidden-patterns (local freedom +
+  no global consistency). repro=exact, deterministic.
+Commits `262dc5f`, `04fbf5f`. Also fixed a stale dev-server (port 5173 squat) that
+threw a "file not found" for sigma-cycles; restarted clean on 5174.
+Remaining /why: entropy/area-law (#18), rare-color-geography (#19 other half).
+Then lab inventions/basins (#20), solver catalogue (#21).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
