@@ -27,6 +27,7 @@ export const PAGE_PATHS = [
   "research/lab",
   "research/lab/inventions",
   "research/lab/basins",
+  "research/lab/findings",
   "research/lab/inventions/palimpsest",
   "research/lab/inventions/keyring",
   "research/lab/inventions/gauntlet",

@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  findings: {
+    en: {
+      title: "Findings" + SUFFIX,
+      description:
+        "The standing structural results about Eternity II: design signatures, the walls no local method gets past, and the proofs of why the records are stuck. All reproducible.",
+    },
+    fr: {
+      title: "Résultats" + SUFFIX,
+      description:
+        "Les résultats structurels établis sur Eternity II : signatures de conception, murs qu'aucune méthode locale ne franchit, et preuves expliquant pourquoi les records sont bloqués. Tout reproductible.",
+    },
+  },
   basins: {
     en: {
       title: "Notable boards" + SUFFIX,
