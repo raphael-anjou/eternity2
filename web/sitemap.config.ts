@@ -20,6 +20,7 @@ export const PAGE_PATHS = [
   "research/why/forbidden-patterns",
   "research/why/no-forced-moves",
   "research/why/entropy-area-law",
+  "research/why/rare-color-geography",
   "research/build",
   "research/build/run-it-yourself",
   "research/build/dead-ends",
