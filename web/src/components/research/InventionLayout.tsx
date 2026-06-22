@@ -70,11 +70,14 @@ export function InventionLayout({
   score,
   boardId,
   reproducibility,
+  visual,
 }: {
   copy: { en: InventionCopy; fr: InventionCopy };
   score: number;
   boardId?: string;
   reproducibility: Reproducibility;
+  /** Optional animation/diagram shown after "How it works". */
+  visual?: ReactNode;
 }) {
   const t = useT(copy);
   const l = useT(LABELS);
@@ -109,6 +112,8 @@ export function InventionLayout({
         <h2 className="text-xl font-semibold tracking-tight">{l.howTitle}</h2>
         <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">{t.how}</div>
       </section>
+
+      {visual && <section className="space-y-3">{visual}</section>}
 
       {board && cells && (
         <section className="space-y-3">

@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { StageBuildDiagram } from "@/components/research/StageBuildDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -98,7 +99,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Staged() {
-  return <InventionLayout copy={copy} score={436} reproducibility="stochastic" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={436}
+      reproducibility="stochastic"
+      visual={<StageBuildDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-staged");
