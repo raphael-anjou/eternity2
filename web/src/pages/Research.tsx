@@ -13,6 +13,12 @@ const DOORS = [
   { key: "lab", to: "/research/lab" },
 ];
 
+const COMMUNITY = [
+  { name: "e2.bucas.name board viewer", url: "https://e2.bucas.name" },
+  { name: "Eternity II Discord", url: "https://discord.gg/Ny5xs3q8w" },
+  { name: "groups.io/g/eternity2", url: "https://groups.io/g/eternity2" },
+];
+
 const T = {
   en: {
     title: "Research",
@@ -32,6 +38,12 @@ const T = {
         body: "Original findings, the named algorithms built to attack the puzzle, and the notable boards that came out — all reproducible from source.",
       },
     },
+    communityTitle: "Community infrastructure",
+    communityNotes: [
+      "Jef Bucas's GPL viewer; its URL format is the community's lingua franca (and this site speaks it natively).",
+      "An active Discord server where solvers share their runs, records and code, in real time.",
+      "The active mailing list: records, techniques, and 15+ years of accumulated folklore.",
+    ],
   },
   fr: {
     title: "Recherche",
@@ -51,6 +63,12 @@ const T = {
         body: "Résultats originaux, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables obtenus — le tout reproductible depuis les sources.",
       },
     },
+    communityTitle: "Les outils de la communauté",
+    communityNotes: [
+      "Le visualiseur GPL de Jef Bucas : son format d'URL fait office de langue commune dans la communauté (et ce site le parle couramment).",
+      "Un serveur Discord vivant où les passionnés partagent en temps réel leurs essais, leurs records et leur code.",
+      "La liste de diffusion historique : des records, des techniques et plus de quinze ans de savoir accumulé.",
+    ],
   },
 };
 
@@ -77,6 +95,24 @@ export default function Research() {
             </LocalizedLink>
           );
         })}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold tracking-tight">{t.communityTitle}</h2>
+        <div className="grid gap-3 md:grid-cols-3">
+          {COMMUNITY.map((c, i) => (
+            <a key={c.url} href={c.url} target="_blank" rel="noreferrer" className="group">
+              <Card className="h-full transition-shadow group-hover:shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm group-hover:underline">{c.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {t.communityNotes[i]}
+                </CardContent>
+              </Card>
+            </a>
+          ))}
+        </div>
       </section>
     </div>
   );
