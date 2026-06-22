@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/table";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import type { Edges } from "@/lib/bucas";
+import { ForbiddenPatchLab } from "@/components/research/ForbiddenPatchLab";
+import { Math, MathBlock } from "@/components/research/Math";
 import data from "@/data/forbidden-patterns.json";
 
 // The exact, reproducible feasibility counts, computed by the research topic's
@@ -62,6 +64,11 @@ const T = {
     illusTitle: "One that fits, one that can't",
     illusFeasible: "Fits: every inner edge shares a color.",
     illusForbidden: "Forbidden: the two middle pieces have no shared color, and no rotation fixes it.",
+    labTitle: "Try it: draw four pieces",
+    mathTitle: "Where 99.72% comes from",
+    math1: "A rough estimate explains why the number is so high. Two adjacent pieces share one edge. Each interior piece carries colors from the 17-color interior palette, so a random pair of half-edges matches with probability roughly",
+    math2: "A 2x2 square has four internal edges to satisfy at once. Rotations give each piece four chances, but the four edges are coupled, so a back-of-the-envelope independence estimate puts the chance all four match at very roughly",
+    math3: "which is already under one percent. The exact exhaustive count lands at 0.28% feasible, that is 99.72% forbidden. The estimate is crude because the edges aren't independent and the colors aren't uniform, but it gets the order of magnitude right and shows why closing a square is so much harder than placing a single pair.",
     tableTitle: "The exact counts",
     tableIntro: "Every distinct-piece placement of each shape, checked exhaustively — no sampling.",
     colShape: "Shape",
@@ -90,6 +97,11 @@ const T = {
     illusTitle: "Un qui marche, un qui ne peut pas",
     illusFeasible: "Marche : chaque bord intérieur partage une couleur.",
     illusForbidden: "Interdit : les deux pièces du milieu n'ont aucune couleur commune, et aucune rotation n'y change rien.",
+    labTitle: "Essayez : tirez quatre pièces",
+    mathTitle: "D'où vient le 99,72 %",
+    math1: "Une estimation grossière explique pourquoi le nombre est si élevé. Deux pièces voisines partagent un bord. Chaque pièce intérieure porte des couleurs de la palette intérieure de 17 couleurs, donc une paire de demi-bords au hasard s'accorde avec une probabilité d'environ",
+    math2: "Un carré 2x2 a quatre bords internes à satisfaire en même temps. Les rotations donnent quatre chances à chaque pièce, mais les quatre bords sont couplés ; une estimation d'indépendance au dos de l'enveloppe place la chance que les quatre s'accordent à très grossièrement",
+    math3: "soit déjà moins d'un pour cent. Le comptage exhaustif exact tombe à 0,28 % d'accords possibles, c'est-à-dire 99,72 % d'interdits. L'estimation est grossière car les bords ne sont pas indépendants et les couleurs ne sont pas uniformes, mais elle donne le bon ordre de grandeur et montre pourquoi fermer un carré est bien plus dur que poser une seule paire.",
     tableTitle: "Les comptages exacts",
     tableIntro: "Chaque placement de pièces distinctes pour chaque forme, vérifié de façon exhaustive — sans échantillonnage.",
     colShape: "Forme",
@@ -152,6 +164,23 @@ export default function ForbiddenPatterns() {
             <figcaption className="text-xs text-muted-foreground">{t.illusForbidden}</figcaption>
           </figure>
         </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-center text-2xl font-semibold tracking-tight">{t.labTitle}</h2>
+        <ForbiddenPatchLab />
+      </section>
+
+      <section className="mx-auto max-w-2xl space-y-3">
+        <h2 className="text-2xl font-semibold tracking-tight">{t.mathTitle}</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t.math1}</p>
+        <MathBlock>{String.raw`\Pr[\text{one edge matches}] \;\approx\; \frac{1}{17} \;\approx\; 6\%.`}</MathBlock>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t.math2}</p>
+        <MathBlock>{String.raw`\Pr[\text{2}\times\text{2 feasible}] \;\sim\; 1 - \left(1 - \tfrac{1}{17}\right)^{\!c} \ \text{per rotation budget} \;\Rightarrow\; \lesssim 1\%,`}</MathBlock>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t.math3}{" "}
+          <Math>{String.raw`(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)`}</Math>
+        </p>
       </section>
 
       <section className="space-y-4">
