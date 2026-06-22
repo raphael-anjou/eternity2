@@ -39,10 +39,10 @@ door should carry the whole stack of hardness evidence, not just one argument.
 |---|---|---|---|---|---|---|
 | phase-transition | Mateu 2012 + color-split | 17 interior / 5 frame colors sits on the SAT/CSP hardness peak | exact (split) + measured (wall) | difficulty-wall chart (built) + color swatches (built) | ★★★ | LIVE |
 | forbidden-patterns | INTAGLIO vols 138-142 | 99.72% of 2x2 placements impossible; 39%→83%→99.7% climb | exact | feasible-vs-forbidden board demo (built); add: board forbidden-patch heatmap | ★★★ | LIVE |
-| rigidity-wall | PAPER rigidity; vols 65/83-101/187/188 | every top board is locally frozen; 13+ MIP-proven regions, halo-4 | heavy (MIP) | animated halo region + "no better neighbour" board overlay | ★★★ | TODO |
-| sigma-cycles | vols 65/99/101/188 | basin-hopping impossible: every proper subset of the 154-cell swap scores worse | heavy | animated cycle overlay, subset-applies-show-delta | ★★★ | TODO |
+| rigidity-wall | PAPER rigidity; vols 65/83-101/187/188 | every top board is locally frozen; 13+ MIP-proven regions, halo-4 | heavy (MIP) | animated halo region + "no better neighbour" board overlay (built) | ★★★ | LIVE |
+| sigma-cycles | vols 65/99/101/188 | basin-hopping impossible: every proper subset of the 154-cell swap scores worse | heavy | interactive apply-part-of-the-loop diagram (built) | ★★★ | LIVE |
 | entropy-area-law | ISENTROPE vol-209; MATH_NOTES | distinctness collapses at ~80 cells; grammar entropy h∞≈0.67>0; ρ(n)≈exp(-0.085 n²) | exact (n≤4) + heavy (MPS) | entropy-density curve; ρ(n) collapse vs n² with area-law fit | ★★ | TODO |
-| no-forced-moves | LATTICE vol-206 | zero forced placements; every interior piece has 20-49 partners | exact | partner-count histogram; piece→partners graph | ★★ | TODO |
+| no-forced-moves | vol-206 + exact recompute | zero forced placements; every interior piece has 73-137 partners (recomputed exact) | exact | partner-count histogram (built) | ★★ | LIVE |
 | rare-color-geography | vols 5/7/13 | 5 rare colors live only on the border ring; 100% matched in all ≥440 boards | exact | border-ring diagram with rare edges lit; interior mask all-zero | ★★ | TODO |
 | watershed-piece-theft | WATERSHED vol-204 | 90% of solver deaths are local piece-theft, not global infeasibility | exact | death-cell map; (N,W)-pair scarcity heatmap | ★ | TODO |
 | depth-40-wall | vol-125 | block-search plateaus at depth 40/64 invariantly | seeded | depth histogram by seed; trajectory curves | ★ | TODO |
