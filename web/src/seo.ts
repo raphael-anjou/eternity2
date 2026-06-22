@@ -232,6 +232,30 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Construire un plateau Eternity II à partir de rien, guidé par l'endroit où les pièces se trouvent dans les bons plateaux. Atteint 460 de zéro, sans copier de plateau d'ancrage.",
     },
   },
+  "inv-staged": {
+    en: {
+      title: "STAGED" + SUFFIX,
+      description:
+        "Build the whole Eternity II board from scratch with no pre-set frame, letting the border emerge last. Reaches 436 frame-free, measuring what the frame anchor is worth.",
+    },
+    fr: {
+      title: "STAGED" + SUFFIX,
+      description:
+        "Construire tout le plateau Eternity II de zéro sans cadre préétabli, en laissant la bordure émerger en dernier. Atteint 436 sans cadre, mesurant ce que vaut l'ancrage par le cadre.",
+    },
+  },
+  "inv-bandsaw": {
+    en: {
+      title: "BANDSAW" + SUFFIX,
+      description:
+        "Solve a band of Eternity II rows exactly by meeting in the middle, proving the best ending and measuring how far ahead an endgame can be decided.",
+    },
+    fr: {
+      title: "BANDSAW" + SUFFIX,
+      description:
+        "Résoudre exactement une bande de rangées d'Eternity II en se rejoignant au milieu, prouvant la meilleure fin et mesurant jusqu'où une fin de partie se décide à l'avance.",
+    },
+  },
   "phase-transition": {
     en: {
       title: "Tuned to the hardness peak" + SUFFIX,
