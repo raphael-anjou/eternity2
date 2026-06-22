@@ -14,7 +14,7 @@ type Area = { key: string; to?: string; ready: boolean };
 
 const AREAS: Area[] = [
   { key: "findings", ready: false },
-  { key: "inventions", ready: false },
+  { key: "inventions", ready: true, to: "/research/lab/inventions" },
   { key: "basins", ready: false },
 ];
 
