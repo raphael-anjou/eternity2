@@ -13,7 +13,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 type Area = { key: string; to?: string; ready: boolean };
 
 const AREAS: Area[] = [
-  { key: "findings", ready: false },
+  { key: "findings", ready: true, to: "/research/lab/findings" },
   { key: "inventions", ready: true, to: "/research/lab/inventions" },
   { key: "basins", ready: true, to: "/research/lab/basins" },
 ];
