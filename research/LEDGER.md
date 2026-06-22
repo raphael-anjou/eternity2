@@ -244,6 +244,12 @@ either a verified board preview or an animation. Lint reminder: no non-null
 assertions — use a typed non-empty tuple + `?? fallback` instead of `arr[i]!`.
 Local commits only.
 
+### 2026-06-23 — CLOISTER + REPLAY animations; all inventions have a visual
+
+CLOISTER (border-anchor fill diagram), REPLAY (double-break toggle diagram).
+Commit `ff9b4d7`. Now all 10 invention pages have either a verified board preview
+or a bespoke animation. Local commits only.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
