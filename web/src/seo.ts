@@ -232,6 +232,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Les couleurs d'Eternity II se répartissent en 17 intérieures et 5 réservées au cadre, exactement là où les puzzles d'assemblage par les bords sont les plus durs. La conception, montrée directement dans les pièces officielles.",
     },
   },
+  solvers: {
+    en: {
+      title: "Solver catalogue" + SUFFIX,
+      description:
+        "How the Eternity II record solvers actually search: backtracking, the fill-order effect, Blackwood's schedule + break-index, and McGavin's high-throughput engine. With a live solver to watch.",
+    },
+    fr: {
+      title: "Catalogue des solveurs" + SUFFIX,
+      description:
+        "Comment les solveurs records d'Eternity II cherchent : backtracking, effet de l'ordre de remplissage, calendrier + index de rupture de Blackwood, et moteur haut débit de McGavin. Avec un solveur en direct à regarder.",
+    },
+  },
   "dead-ends": {
     en: {
       title: "Dead ends" + SUFFIX,

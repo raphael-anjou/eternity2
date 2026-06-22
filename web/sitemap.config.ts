@@ -24,6 +24,7 @@ export const PAGE_PATHS = [
   "research/build",
   "research/build/run-it-yourself",
   "research/build/dead-ends",
+  "research/build/solvers",
   "research/lab",
   "research/lab/inventions",
   "research/lab/basins",

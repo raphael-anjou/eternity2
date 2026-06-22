@@ -30,6 +30,7 @@ const PAGES = [
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
+  { path: "research/build/solvers", file: "pages/research/build/solvers/Hub.tsx", id: "solvers" },
   { path: "research/lab", file: "pages/research/lab/Hub.tsx", id: "lab" },
   { path: "research/lab/inventions", file: "pages/research/lab/inventions/Hub.tsx", id: "inventions" },
   { path: "research/lab/basins", file: "pages/research/lab/basins/Hub.tsx", id: "basins" },
