@@ -213,6 +213,15 @@ REMAINING (enhancements, not gaps): per-invention deep-dive pages
 (#22); a bespoke embedded solver demo (currently links to playground).
 All commits LOCAL only (8+ ahead of origin; user said don't push).
 
+### 2026-06-22 — PRIOR invention (constructive from scratch, 460)
+
+Bundled + verified the vol-155 from-scratch→ALNS 460 board into record-boards
+(recompute 460 == claimed; 4 boards now). New /research/lab/inventions/prior via
+InventionLayout. 4 inventions live (PALIMPSEST/KEYRING/GAUNTLET/PRIOR). Commit
+`1828ec3`. Remaining invention pages (LADDER/REPLAY/STAGED/BANDSAW/CLOISTER/
+MIDDEN) still queued (#22) — need their boards bundled+verified or written
+board-less. Local commits only.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
