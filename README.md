@@ -21,12 +21,17 @@ nginx container).
 | **Playground / Paths** | Draw a custom cell-visit order (mouse or finger) and race it against the classic orders on the same puzzle, all lanes to the finish |
 | **Algorithms** | DFS and backtracking explained for high-schoolers: a scrubbable slow-motion 3×3 demo, the exponential wall (with all 557 zeros written out), live binary demos, difficulty charts measured by the engine itself |
 | **Board Viewer** | Import/export of `e2.bucas.name` URLs (board_edges/board_pieces/motifs_order), live scoring, conflict marks, verification card (official set, duplicates, clues n/5), famous boards (467/468/469/470), and a solvable-board generator |
-| **Research** | Paper list, community infrastructure (mailing list, Discord), how the puzzle was hardness-vetted |
+| **Research** | Three doors: *Why it's hard* (the design and the structural walls, e.g. forbidden patterns), *Build a solver* (validation data, papers, records, and how to run the code), and *The lab notebook* (original findings, all reproducible from source) |
 
 ## Quick start (local development)
 
 Prereqs: Rust stable + `wasm32-unknown-unknown` target, `wasm-pack`, Node 22+, pnpm
 (via `corepack enable`). Details in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+With [`just`](https://just.systems) installed, `just setup && just dev` does the whole
+first build and starts the dev server; `just` on its own lists every task (test, wasm,
+build, check, and the research reproduce recipes). The raw commands are below if you
+prefer them.
 
 ```bash
 # 1. Engine → WASM (output lands in web/src/engine/pkg)

@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  "run-it-yourself": {
+    en: {
+      title: "Run it yourself" + SUFFIX,
+      description:
+        "Clone the repository, build the Eternity II engine, run the site locally, and reproduce every research result with a handful of commands.",
+    },
+    fr: {
+      title: "À vous de jouer" + SUFFIX,
+      description:
+        "Clonez le dépôt, compilez le moteur Eternity II, lancez le site en local et reproduisez chaque résultat de recherche en quelques commandes.",
+    },
+  },
   "forbidden-patterns": {
     en: {
       title: "Forbidden patterns" + SUFFIX,
