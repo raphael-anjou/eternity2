@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  basins: {
+    en: {
+      title: "Notable boards" + SUFFIX,
+      description:
+        "A gallery of notable Eternity II boards: community records and the best boards this project produced, each opening in the viewer to check edge by edge.",
+    },
+    fr: {
+      title: "Plateaux notables" + SUFFIX,
+      description:
+        "Une galerie de plateaux Eternity II notables : records de la communauté et meilleurs plateaux de ce projet, chacun s'ouvrant dans le visualiseur pour vérifier bord par bord.",
+    },
+  },
   inventions: {
     en: {
       title: "Inventions" + SUFFIX,

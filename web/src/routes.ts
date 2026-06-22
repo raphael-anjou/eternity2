@@ -32,6 +32,7 @@ const PAGES = [
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
   { path: "research/lab", file: "pages/research/lab/Hub.tsx", id: "lab" },
   { path: "research/lab/inventions", file: "pages/research/lab/inventions/Hub.tsx", id: "inventions" },
+  { path: "research/lab/basins", file: "pages/research/lab/basins/Hub.tsx", id: "basins" },
   { path: "research/lab/inventions/palimpsest", file: "pages/research/lab/inventions/palimpsest.tsx", id: "inv-palimpsest" },
   { path: "research/lab/inventions/keyring", file: "pages/research/lab/inventions/keyring.tsx", id: "inv-keyring" },
   { path: "research/lab/inventions/gauntlet", file: "pages/research/lab/inventions/gauntlet.tsx", id: "inv-gauntlet" },
