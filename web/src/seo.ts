@@ -220,6 +220,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Lancer la recherche en faisceau d'Eternity II dans plusieurs directions à la fois pour atteindre des régions différentes. A trouvé un nouveau plateau 458.",
     },
   },
+  "inv-prior": {
+    en: {
+      title: "PRIOR" + SUFFIX,
+      description:
+        "Build an Eternity II board from nothing, guided by where pieces tend to sit in strong boards. Reaches 460 from scratch, no anchor board copied.",
+    },
+    fr: {
+      title: "PRIOR" + SUFFIX,
+      description:
+        "Construire un plateau Eternity II à partir de rien, guidé par l'endroit où les pièces se trouvent dans les bons plateaux. Atteint 460 de zéro, sans copier de plateau d'ancrage.",
+    },
+  },
   "phase-transition": {
     en: {
       title: "Tuned to the hardness peak" + SUFFIX,
