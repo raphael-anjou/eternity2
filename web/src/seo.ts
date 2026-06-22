@@ -256,6 +256,30 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Résoudre exactement une bande de rangées d'Eternity II en se rejoignant au milieu, prouvant la meilleure fin et mesurant jusqu'où une fin de partie se décide à l'avance.",
     },
   },
+  "inv-cloister": {
+    en: {
+      title: "CLOISTER" + SUFFIX,
+      description:
+        "Fix a perfect Eternity II border, then search the interior with the frame's edges as hard constraints from cell one. Reaches a 453 standalone interior and measures border-interior coupling.",
+    },
+    fr: {
+      title: "CLOISTER" + SUFFIX,
+      description:
+        "Fixer une bordure Eternity II parfaite, puis chercher l'intérieur avec les bords du cadre comme contraintes dures dès la première cellule. Atteint un intérieur autonome 453 et mesure le couplage bordure-intérieur.",
+    },
+  },
+  "inv-midden": {
+    en: {
+      title: "MIDDEN" + SUFFIX,
+      description:
+        "Decide where, not when, an Eternity II board may break: confine mismatches to a chosen mask and search its shape. A dispersed lattice extends the perfect run to the 170s.",
+    },
+    fr: {
+      title: "MIDDEN" + SUFFIX,
+      description:
+        "Décider où, et non quand, un plateau Eternity II peut casser : confiner les défauts à un masque choisi et chercher sa forme. Un réseau dispersé prolonge la suite parfaite jusqu'aux 170.",
+    },
+  },
   "inv-ladder": {
     en: {
       title: "LADDER" + SUFFIX,

@@ -22,6 +22,8 @@ const INVENTIONS: Invention[] = [
   { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true },
   { key: "ladder", score: 451, to: "/research/lab/inventions/ladder", ready: true },
   { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true },
+  { key: "cloister", score: 453, to: "/research/lab/inventions/cloister", ready: true },
+  { key: "midden", score: 452, to: "/research/lab/inventions/midden", ready: true },
 ];
 
 const T = {
@@ -65,6 +67,14 @@ const T = {
         title: "REPLAY",
         body: "Rebuilds the community's strict 460 boards exactly, revealing the move ordinary solvers miss: two mismatches at one cell.",
       },
+      cloister: {
+        title: "CLOISTER",
+        body: "Fixes a perfect border, then searches the interior with the frame's edges as hard constraints from cell one. Isolates the border-interior coupling.",
+      },
+      midden: {
+        title: "MIDDEN",
+        body: "Decides where, not when, a board may break: confine mismatches to a chosen shape and search it. A dispersed lattice extends the perfect run.",
+      },
     },
   },
   fr: {
@@ -106,6 +116,14 @@ const T = {
       replay: {
         title: "REPLAY",
         body: "Reconstruit exactement les plateaux 460 stricts de la communauté, révélant le coup que les solveurs manquent : deux défauts sur une seule cellule.",
+      },
+      cloister: {
+        title: "CLOISTER",
+        body: "Fixe une bordure parfaite, puis cherche l'intérieur avec les bords du cadre comme contraintes dures dès la première cellule. Isole le couplage bordure-intérieur.",
+      },
+      midden: {
+        title: "MIDDEN",
+        body: "Décide où, et non quand, un plateau peut casser : confiner les défauts à une forme choisie et la chercher. Un réseau dispersé prolonge la suite parfaite.",
       },
     },
   },
