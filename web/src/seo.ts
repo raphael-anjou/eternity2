@@ -148,6 +148,54 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  inventions: {
+    en: {
+      title: "Inventions" + SUFFIX,
+      description:
+        "The named algorithms built to push the Eternity II score: PALIMPSEST (463), KEYRING (460), GAUNTLET (458) and more. Each idea, its result, and the open questions, with verified boards.",
+    },
+    fr: {
+      title: "Inventions" + SUFFIX,
+      description:
+        "Les algorithmes nommés conçus pour pousser le score d'Eternity II : PALIMPSEST (463), KEYRING (460), GAUNTLET (458) et d'autres. Chaque idée, son résultat et les questions ouvertes, avec des plateaux vérifiés.",
+    },
+  },
+  "inv-palimpsest": {
+    en: {
+      title: "PALIMPSEST" + SUFFIX,
+      description:
+        "Read every strong Eternity II board to find the habits that quietly hold a board back, then break them. Produced the project's best board: 463 of 480.",
+    },
+    fr: {
+      title: "PALIMPSEST" + SUFFIX,
+      description:
+        "Lire tous les bons plateaux d'Eternity II pour repérer les habitudes qui freinent un plateau, puis les casser. A produit le meilleur plateau du projet : 463 sur 480.",
+    },
+  },
+  "inv-keyring": {
+    en: {
+      title: "KEYRING" + SUFFIX,
+      description:
+        "Build an Eternity II board from scratch, ranking each next piece by three signals learned from strong boards. Reached 460 in a new board family.",
+    },
+    fr: {
+      title: "KEYRING" + SUFFIX,
+      description:
+        "Construire un plateau Eternity II de zéro en classant chaque pièce par trois signaux appris des bons plateaux. A atteint 460 dans une nouvelle famille.",
+    },
+  },
+  "inv-gauntlet": {
+    en: {
+      title: "GAUNTLET" + SUFFIX,
+      description:
+        "Run the Eternity II beam search in several fill directions at once to reach different regions. Found a new 458 board in a fresh family.",
+    },
+    fr: {
+      title: "GAUNTLET" + SUFFIX,
+      description:
+        "Lancer la recherche en faisceau d'Eternity II dans plusieurs directions à la fois pour atteindre des régions différentes. A trouvé un nouveau plateau 458.",
+    },
+  },
   "phase-transition": {
     en: {
       title: "Tuned to the hardness peak" + SUFFIX,
