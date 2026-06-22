@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -94,7 +95,14 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Replay() {
-  return <InventionLayout copy={copy} score={460} reproducibility="seeded" />;
+  return (
+    <InventionLayout
+      copy={copy}
+      score={460}
+      reproducibility="seeded"
+      visual={<DoubleBreakDiagram />}
+    />
+  );
 }
 
 export const meta = pageMeta("inv-replay");
