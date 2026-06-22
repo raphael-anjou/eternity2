@@ -233,6 +233,17 @@ STAGED, BANDSAW, LADDER, REPLAY, CLOISTER, MIDDEN. Commits `33c492d`, `1c2bfe4`,
 stage-by-stage, MIDDEN mask shapes, etc.) per the alive-KB directive. Local
 commits only.
 
+### 2026-06-23 — Invention animations (alive KB)
+
+Added an optional `visual` slot to InventionLayout (renders after "How it works")
+and built four bespoke animations: STAGED (stage-by-stage frame-free build),
+MIDDEN (interactive mask shapes — rows/cols/dispersed lattice), BANDSAW
+(meet-in-the-middle seam join), LADDER (successive-halving tournament bars).
+Commits `b34b0f4`, `afbf562`, `48f5af0`, `765a261`. Now every invention page has
+either a verified board preview or an animation. Lint reminder: no non-null
+assertions — use a typed non-empty tuple + `?? fallback` instead of `arr[i]!`.
+Local commits only.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
