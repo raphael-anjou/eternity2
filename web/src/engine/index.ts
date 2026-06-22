@@ -24,6 +24,8 @@ export {
   getOfficialPuzzle,
   getGeneratedPuzzle,
   getGeneratedSolvedPuzzle,
+  getGeneratedPuzzleFramed,
+  getGeneratedSolvedPuzzleFramed,
   getMaxColors,
   getPathKinds,
   getPath,

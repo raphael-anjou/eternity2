@@ -12,7 +12,9 @@
 import type { Puzzle, SolverReport } from "@/lib/types";
 import {
   generate,
+  generateFramed,
   generateSolved,
+  generateSolvedFramed,
   maxColors as maxColorsImpl,
 } from "./generator.ts";
 import { officialPuzzle } from "./official.ts";
@@ -38,6 +40,30 @@ export function getGeneratedPuzzle(size: number, colors: number, seed: number): 
 /** Pieces in solution order/orientation: piece i belongs at cell i, rot 0. */
 export function getGeneratedSolvedPuzzle(size: number, colors: number, seed: number): Puzzle {
   return generateSolved(size, colors, seed);
+}
+
+/**
+ * Framed variant: when `framed` is true, frame-restricted colours are confined
+ * to the border band (mirrors real Eternity II). `framed=false` is identical to
+ * `getGeneratedPuzzle`.
+ */
+export function getGeneratedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  return generateFramed(size, colors, seed, framed);
+}
+
+/** Solved-order counterpart of `getGeneratedPuzzleFramed`. */
+export function getGeneratedSolvedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  return generateSolvedFramed(size, colors, seed, framed);
 }
 
 export function getMaxColors(size: number): number {

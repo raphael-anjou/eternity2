@@ -115,6 +115,22 @@ export function generatePuzzle(size, colors, seed) {
 }
 
 /**
+ * Like `generatePuzzle`, but when `framed` is true the frame-restricted colors
+ * (`1..=min(5, colors-1)`) are confined to the border-band adjacencies and the
+ * rest to the deep interior, mirroring real Eternity II. `framed=false` is
+ * byte-for-byte identical to `generatePuzzle`.
+ * @param {number} size
+ * @param {number} colors
+ * @param {number} seed
+ * @param {boolean} framed
+ * @returns {any}
+ */
+export function generatePuzzleFramed(size, colors, seed, framed) {
+    const ret = wasm.generatePuzzleFramed(size, colors, seed, framed);
+    return ret;
+}
+
+/**
  * Pieces in solution order/orientation: piece i belongs at cell i, rot 0.
  * @param {number} size
  * @param {number} colors
@@ -123,6 +139,19 @@ export function generatePuzzle(size, colors, seed) {
  */
 export function generateSolvedPuzzle(size, colors, seed) {
     const ret = wasm.generateSolvedPuzzle(size, colors, seed);
+    return ret;
+}
+
+/**
+ * Solved-order counterpart of `generatePuzzleFramed`.
+ * @param {number} size
+ * @param {number} colors
+ * @param {number} seed
+ * @param {boolean} framed
+ * @returns {any}
+ */
+export function generateSolvedPuzzleFramed(size, colors, seed, framed) {
+    const ret = wasm.generateSolvedPuzzleFramed(size, colors, seed, framed);
     return ret;
 }
 

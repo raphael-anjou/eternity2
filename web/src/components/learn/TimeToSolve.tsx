@@ -30,9 +30,11 @@ const T = {
     ),
     note: (
       <>
-        (Real solvers don't try <em>everything</em>: backtracking abandons doomed branches
-        early, which is why small boards solve instantly. But the wall moves only a little:
-        even the smartest known search dies long before 16×16.)
+        (This is the <em>brute-force</em> ceiling — the worst case. Real solvers do far better:
+        backtracking abandons doomed branches early, and the best Eternity II searches add
+        smart pruning and constraint propagation that cut the work by many orders of magnitude.
+        Faster hardware helps too. Even so, the gap is so vast that all of it together still
+        falls short of 16×16 — which is exactly why the puzzle remains unsolved.)
       </>
     ),
     units: {
@@ -64,10 +66,13 @@ const T = {
     ),
     note: (
       <>
-        (Les vrais solveurs n'essaient pas <em>tout</em> : le retour en arrière (backtracking)
-        abandonne au plus tôt les branches sans issue, et c'est pour ça que les petits plateaux se
-        résolvent en un clin d'œil. Mais le mur ne recule que d'un cheveu : même la recherche
-        la plus astucieuse que l'on connaisse rend l'âme bien avant d'atteindre le 16×16.)
+        (C'est le plafond de la <em>force brute</em>, le pire des cas. Les vrais solveurs font
+        bien mieux : le retour en arrière (backtracking) abandonne au plus tôt les branches sans
+        issue, et les meilleures recherches sur Eternity II y ajoutent un élagage malin et de la
+        propagation de contraintes qui divisent le travail par plusieurs ordres de grandeur. Le
+        matériel plus rapide aide aussi. Et pourtant l'écart est si vertigineux que tout cela
+        réuni reste insuffisant pour le 16×16 — c'est précisément pour ça que le puzzle n'est
+        toujours pas résolu.)
       </>
     ),
     units: {

@@ -78,6 +78,16 @@ for (const line of lines) {
       check(ok, `generate(${size},${colors},${seed}) pieces`);
       break;
     }
+    case "FRAMEDGEN": {
+      const [size, colors, seed] = [Number(t[1]), Number(t[2]), Number(t[3])];
+      e.e2_generate_framed(size, colors, seed, 1);
+      const got = readPieces().map((p) => p.join(","));
+      const expect = t.slice(4);
+      let ok = got.length === expect.length;
+      if (ok) for (let i = 0; i < got.length; i++) if (got[i] !== expect[i]) { ok = false; break; }
+      check(ok, `generateFramed(${size},${colors},${seed},true) pieces`);
+      break;
+    }
     case "OFF": {
       e.e2_official();
       check(e.e2_puzzle_width() * e.e2_puzzle_height() === field(t[1]), "official piece count");

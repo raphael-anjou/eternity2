@@ -45,4 +45,30 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   results/reference-table.json` (the site imports from `src/`). If you regenerate
   the research result, copy it across again — there is no automatic sync.
 
+- **The generator has an optional frame-restricted-colors mode.** `generate`/
+  `generate_solved` (Rust) and their TS/C/C++ mirrors keep their original
+  signatures (flag off = byte-for-byte identical output, parity-tested). The
+  framed variants — `generate_framed(size,colors,seed,framed)` /
+  `generate_solved_framed(...)`, exposed to JS as `getGeneratedPuzzleFramed` /
+  `getGeneratedSolvedPuzzleFramed` and as wasm exports `e2_generate_framed` /
+  `e2_generate_solved_framed` — confine the first `min(5, colors-1)` colors to
+  the border band and the rest to the deep interior (real-E2 behavior; only
+  active for size ≥ 4 and colors ≥ 2, else falls back to the unrestricted
+  painter). The Viewer's board generator surfaces this as a Switch. Any change
+  to the generator must stay byte-for-byte across all four ports; run the
+  `parity.mjs` harnesses + `cargo test` and rebuild the C/C++/Rust wasm.
+
+- **Papers and records live on their own pages.** `web/src/pages/Papers.tsx`
+  (route `research/papers`) holds the academic bibliography with per-paper
+  usefulness tiers, grouped by section, + a "which ones are actually useful"
+  discussion. `web/src/pages/Records.tsx` (route `research/records`) holds the
+  community record timeline (canonical vs variant, the "480" false positives),
+  key algorithms, and contributor cast. Both are sourced from the research
+  vault at `../../v2/vault/reference/` (`academic-references.md` and
+  `community-e2-history.md` — the canonical sources for any future bibliography
+  / history work). `Research.tsx` links to both via cards. When adding a paper,
+  verify the URL resolves (some academic PDFs rot — prefer
+  institutional-repository / HAL / DIAL / arXiv links over personal faculty
+  paths).
+
 - **Verify after web changes:** `cd web && pnpm build && pnpm typecheck`.

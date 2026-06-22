@@ -29,7 +29,12 @@ import {
   encodeBucasUrl,
 } from "@/lib/bucas";
 import type { BucasBoard } from "@/lib/bucas";
-import { getOfficialPuzzle, getGeneratedSolvedPuzzle, getMaxColors } from "@/engine";
+import {
+  getOfficialPuzzle,
+  getGeneratedSolvedPuzzle,
+  getGeneratedSolvedPuzzleFramed,
+  getMaxColors,
+} from "@/engine";
 import { useEngine } from "@/engine/useEngine";
 import { useT } from "@/i18n";
 import { auditBoard } from "@/lib/audit";
@@ -94,6 +99,9 @@ const T = {
       "Build a brand-new solvable puzzle and see its solution. (Colors cap at 22: that's how many motifs exist.)",
     sizeLabel: (n: number) => `Size: ${n}×${n}`,
     colorsLabel: (n: number) => `Colors: ${n}`,
+    framed: "Frame-restricted colors",
+    framedHint:
+      "Like the real Eternity II: confine some colors to the border band, the rest to the deep interior (needs size ≥ 4, colors ≥ 2).",
     generate: "Generate new board",
   },
   fr: {
@@ -152,6 +160,9 @@ const T = {
       "Fabriquez un puzzle inédit qui a bien une solution, puis admirez-la. (Pas plus de 22 couleurs : c'est le nombre de motifs disponibles.)",
     sizeLabel: (n: number) => `Taille : ${n}×${n}`,
     colorsLabel: (n: number) => `Couleurs : ${n}`,
+    framed: "Couleurs réservées au cadre",
+    framedHint:
+      "Comme le vrai Eternity II : confine certaines couleurs à la bande de bordure, les autres à l'intérieur profond (nécessite taille ≥ 4, couleurs ≥ 2).",
     generate: "Générer un plateau",
   },
 };
@@ -179,6 +190,7 @@ export default function Viewer() {
   const [genSize, setGenSize] = useState(8);
   const [genColors, setGenColors] = useState(8);
   const [genSeed, setGenSeed] = useState(1);
+  const [genFramed, setGenFramed] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -229,9 +241,11 @@ export default function Viewer() {
 
   // Generate (or regenerate) a solvable board. Pass a seed to keep the same
   // board while only size/colors change; omit it to roll a fresh one.
-  const generate = (size: number, colors: number, seed = genSeed) => {
+  const generate = (size: number, colors: number, seed = genSeed, framed = genFramed) => {
     if (!engineReady) return;
-    const puzzle = getGeneratedSolvedPuzzle(size, colors, seed);
+    const puzzle = framed
+      ? getGeneratedSolvedPuzzleFramed(size, colors, seed, true)
+      : getGeneratedSolvedPuzzle(size, colors, seed);
     loadEngine(puzzle, identityBoard(puzzle), t.generatedName(size), { preventScroll: true });
   };
 
@@ -239,18 +253,24 @@ export default function Viewer() {
   // frame, and generating a solved board is a synchronous WASM search, so we
   // coalesce to at most one generation per animation frame using the latest
   // params. The label still updates instantly off the slider's own value.
-  const genFrame = useRef<{ id: number; size: number; colors: number } | null>(null);
-  const generateLive = (size: number, colors: number) => {
+  const genFrame = useRef<{
+    id: number;
+    size: number;
+    colors: number;
+    framed: boolean;
+  } | null>(null);
+  const generateLive = (size: number, colors: number, framed = genFramed) => {
     if (!engineReady) return;
     if (genFrame.current) {
       genFrame.current.size = size;
       genFrame.current.colors = colors;
+      genFrame.current.framed = framed;
       return;
     }
-    const pending = { id: 0, size, colors };
+    const pending = { id: 0, size, colors, framed };
     pending.id = requestAnimationFrame(() => {
       genFrame.current = null;
-      generate(pending.size, pending.colors);
+      generate(pending.size, pending.colors, genSeed, pending.framed);
     });
     genFrame.current = pending;
   };
@@ -571,13 +591,27 @@ export default function Viewer() {
                   }}
                 />
               </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="v-framed">{t.framed}</Label>
+                  <Switch
+                    id="v-framed"
+                    checked={genFramed}
+                    onCheckedChange={(checked) => {
+                      setGenFramed(checked);
+                      generate(genSize, genColors, genSeed, checked);
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{t.framedHint}</p>
+              </div>
               <Button
                 className="w-full"
                 disabled={!engineReady}
                 onClick={() => {
                   const seed = Math.floor(Math.random() * 1_000_000);
                   setGenSeed(seed);
-                  generate(genSize, genColors, seed);
+                  generate(genSize, genColors, seed, genFramed);
                 }}
               >
                 {t.generate}

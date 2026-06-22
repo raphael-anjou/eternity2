@@ -1,11 +1,20 @@
 // Emit golden reference outputs for the Lua port to validate against.
-use eternity2_engine::{generate, official_puzzle, build_path, PATH_KINDS, score_board, Solver, Status};
+use eternity2_engine::{generate, generate_framed, official_puzzle, build_path, PATH_KINDS, score_board, Solver, Status};
 
 fn main() {
     // 1. Generated puzzle pieces (parity of RNG + construction).
     for &(s, c, seed) in &[(4u8,4u8,7u32),(5,6,42),(3,3,1),(6,5,99)] {
         let p = generate(s, c, seed);
         print!("GEN {s} {c} {seed}");
+        for e in &p.pieces { print!(" {},{},{},{}", e[0],e[1],e[2],e[3]); }
+        println!();
+    }
+    // 1b. Framed generated puzzles (frame-restricted colours in the border band).
+    // Ports that don't implement framing ignore the FRAMEDGEN prefix. Covers
+    // below-threshold fallback (3x3, colours=1) and meaningful framed boards.
+    for &(s, c, seed) in &[(4u8,4u8,7u32),(6,8,42),(8,12,99),(10,22,5),(3,3,1),(5,1,4)] {
+        let p = generate_framed(s, c, seed, true);
+        print!("FRAMEDGEN {s} {c} {seed}");
         for e in &p.pieces { print!(" {},{},{},{}", e[0],e[1],e[2],e[3]); }
         println!();
     }

@@ -21,7 +21,7 @@ pub mod paths;
 pub mod solver;
 pub mod types;
 
-pub use generator::generate;
+pub use generator::{generate, generate_framed, generate_solved_framed};
 pub use official::official_puzzle;
 pub use paths::{build_path, PATH_KINDS};
 pub use solver::{score_board, Solver, Status};
@@ -47,6 +47,21 @@ pub fn generate_puzzle_js(size: u8, colors: u8, seed: u32) -> JsValue {
 #[wasm_bindgen(js_name = generateSolvedPuzzle)]
 pub fn generate_solved_puzzle_js(size: u8, colors: u8, seed: u32) -> JsValue {
     to_js(&generator::generate_solved(size, colors, seed))
+}
+
+/// Like `generatePuzzle`, but when `framed` is true the frame-restricted colors
+/// (`1..=min(5, colors-1)`) are confined to the border-band adjacencies and the
+/// rest to the deep interior, mirroring real Eternity II. `framed=false` is
+/// byte-for-byte identical to `generatePuzzle`.
+#[wasm_bindgen(js_name = generatePuzzleFramed)]
+pub fn generate_puzzle_framed_js(size: u8, colors: u8, seed: u32, framed: bool) -> JsValue {
+    to_js(&generator::generate_framed(size, colors, seed, framed))
+}
+
+/// Solved-order counterpart of `generatePuzzleFramed`.
+#[wasm_bindgen(js_name = generateSolvedPuzzleFramed)]
+pub fn generate_solved_puzzle_framed_js(size: u8, colors: u8, seed: u32, framed: bool) -> JsValue {
+    to_js(&generator::generate_solved_framed(size, colors, seed, framed))
 }
 
 #[wasm_bindgen(js_name = maxColors)]

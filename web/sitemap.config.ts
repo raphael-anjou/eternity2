@@ -14,6 +14,8 @@ export const PAGE_PATHS = [
   "algorithms",
   "research",
   "research/reference",
+  "research/papers",
+  "research/records",
   "viewer",
 ] as const;
 

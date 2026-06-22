@@ -81,6 +81,7 @@ for (const f of engineFiles) {
 const engine = await import(pathToFileURL(join(engineOut, "index.js")).href);
 const {
   getGeneratedPuzzle,
+  getGeneratedPuzzleFramed,
   getOfficialPuzzle,
   getPath,
   getPathKinds,
@@ -129,6 +130,29 @@ for (const line of goldenLines) {
     }
   }
   check(ok, `generate(${size},${colors},${seed}) pieces match`);
+}
+
+// == framed generator parity ==
+console.log("== framed generator parity ==");
+for (const line of goldenLines) {
+  const t = split(line);
+  if (t[0] !== "FRAMEDGEN") continue;
+  const size = Number(t[1]);
+  const colors = Number(t[2]);
+  const seed = Number(t[3]);
+  const p = getGeneratedPuzzleFramed(size, colors, seed, true);
+  const got = p.pieces.map((e) => `${e[0]},${e[1]},${e[2]},${e[3]}`);
+  const expect = t.slice(4);
+  let ok = got.length === expect.length;
+  if (ok) {
+    for (let i = 0; i < got.length; i++) {
+      if (got[i] !== expect[i]) {
+        ok = false;
+        break;
+      }
+    }
+  }
+  check(ok, `generateFramed(${size},${colors},${seed},true) pieces match`);
 }
 
 // == official set parity ==

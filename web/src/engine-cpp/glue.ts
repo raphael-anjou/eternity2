@@ -33,6 +33,18 @@ interface EngineExports {
   readonly e2_official: () => number;
   readonly e2_generate: (size: number, colors: number, seed: number) => number;
   readonly e2_generate_solved: (size: number, colors: number, seed: number) => number;
+  readonly e2_generate_framed: (
+    size: number,
+    colors: number,
+    seed: number,
+    framed: number,
+  ) => number;
+  readonly e2_generate_solved_framed: (
+    size: number,
+    colors: number,
+    seed: number,
+    framed: number,
+  ) => number;
   readonly e2_max_colors: (size: number) => number;
   readonly e2_path_count: () => number;
   readonly e2_build_path: (kind: number, w: number, h: number, seed: number) => number;
@@ -89,6 +101,11 @@ class Engine {
       e2_official: asFn(get("e2_official"), "e2_official"),
       e2_generate: asFn(get("e2_generate"), "e2_generate"),
       e2_generate_solved: asFn(get("e2_generate_solved"), "e2_generate_solved"),
+      e2_generate_framed: asFn(get("e2_generate_framed"), "e2_generate_framed"),
+      e2_generate_solved_framed: asFn(
+        get("e2_generate_solved_framed"),
+        "e2_generate_solved_framed",
+      ),
       e2_max_colors: asFn(get("e2_max_colors"), "e2_max_colors"),
       e2_path_count: asFn(get("e2_path_count"), "e2_path_count"),
       e2_build_path: asFn(get("e2_build_path"), "e2_build_path"),
@@ -219,6 +236,36 @@ export function getGeneratedPuzzle(size: number, colors: number, seed: number): 
 export function getGeneratedSolvedPuzzle(size: number, colors: number, seed: number): Puzzle {
   const en = eng();
   en.exports.e2_generate_solved(size, colors, seed >>> 0);
+  const p = en.readWirePuzzle();
+  return { ...p, name: `generated_${size}x${size}_c${colors}_s${seed}` };
+}
+
+/**
+ * Framed variant: when `framed` is true, frame-restricted colors are confined to
+ * the border band (mirrors real Eternity II). `framed=false` is identical to
+ * `getGeneratedPuzzle`.
+ */
+export function getGeneratedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  const en = eng();
+  en.exports.e2_generate_framed(size, colors, seed >>> 0, framed ? 1 : 0);
+  const p = en.readWirePuzzle();
+  return { ...p, name: `generated_${size}x${size}_c${colors}_s${seed}` };
+}
+
+/** Solved-order counterpart of `getGeneratedPuzzleFramed`. */
+export function getGeneratedSolvedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  const en = eng();
+  en.exports.e2_generate_solved_framed(size, colors, seed >>> 0, framed ? 1 : 0);
   const p = en.readWirePuzzle();
   return { ...p, name: `generated_${size}x${size}_c${colors}_s${seed}` };
 }

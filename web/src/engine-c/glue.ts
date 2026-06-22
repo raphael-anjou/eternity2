@@ -19,6 +19,8 @@ interface E2Exports {
   memory: WebAssembly.Memory;
   e2_generate(size: number, colors: number, seed: number): number;
   e2_generate_solved(size: number, colors: number, seed: number): number;
+  e2_generate_framed(size: number, colors: number, seed: number, framed: number): number;
+  e2_generate_solved_framed(size: number, colors: number, seed: number, framed: number): number;
   e2_official(): number;
   e2_puzzle_width(): number;
   e2_puzzle_height(): number;
@@ -76,6 +78,8 @@ function bindExports(raw: WebAssembly.Exports): E2Exports {
     memory: mem,
     e2_generate: asFn<N3>(raw, "e2_generate"),
     e2_generate_solved: asFn<N3>(raw, "e2_generate_solved"),
+    e2_generate_framed: asFn<N4>(raw, "e2_generate_framed"),
+    e2_generate_solved_framed: asFn<N4>(raw, "e2_generate_solved_framed"),
     e2_official: asFn<N0>(raw, "e2_official"),
     e2_puzzle_width: asFn<N0>(raw, "e2_puzzle_width"),
     e2_puzzle_height: asFn<N0>(raw, "e2_puzzle_height"),
@@ -226,6 +230,34 @@ export function getGeneratedPuzzle(size: number, colors: number, seed: number): 
 export function getGeneratedSolvedPuzzle(size: number, colors: number, seed: number): Puzzle {
   const m = exportsOrThrow();
   m.e2_generate_solved(size, colors, seed);
+  return readPuzzle(m, `generated_${size}x${size}_c${colors}_s${seed}`);
+}
+
+/**
+ * Framed variant: when `framed` is true, frame-restricted colors are confined to
+ * the border band (mirrors real Eternity II). `framed=false` is identical to
+ * `getGeneratedPuzzle`.
+ */
+export function getGeneratedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  const m = exportsOrThrow();
+  m.e2_generate_framed(size, colors, seed, framed ? 1 : 0);
+  return readPuzzle(m, `generated_${size}x${size}_c${colors}_s${seed}`);
+}
+
+/** Solved-order counterpart of `getGeneratedPuzzleFramed`. */
+export function getGeneratedSolvedPuzzleFramed(
+  size: number,
+  colors: number,
+  seed: number,
+  framed: boolean,
+): Puzzle {
+  const m = exportsOrThrow();
+  m.e2_generate_solved_framed(size, colors, seed, framed ? 1 : 0);
   return readPuzzle(m, `generated_${size}x${size}_c${colors}_s${seed}`);
 }
 
