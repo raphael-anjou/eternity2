@@ -18,8 +18,8 @@ const INVENTIONS: Invention[] = [
   { key: "keyring", score: 460, to: "/research/lab/inventions/keyring", ready: true },
   { key: "gauntlet", score: 458, to: "/research/lab/inventions/gauntlet", ready: true },
   { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true },
-  { key: "staged", ready: false },
-  { key: "bandsaw", ready: false },
+  { key: "staged", score: 436, to: "/research/lab/inventions/staged", ready: true },
+  { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true },
 ];
 
 const T = {

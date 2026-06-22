@@ -33,6 +33,8 @@ export const PAGE_PATHS = [
   "research/lab/inventions/keyring",
   "research/lab/inventions/gauntlet",
   "research/lab/inventions/prior",
+  "research/lab/inventions/staged",
+  "research/lab/inventions/bandsaw",
   "research/reference",
   "research/papers",
   "research/records",
