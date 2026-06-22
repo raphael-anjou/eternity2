@@ -41,6 +41,8 @@ const PAGES = [
   { path: "research/lab/inventions/prior", file: "pages/research/lab/inventions/prior.tsx", id: "inv-prior" },
   { path: "research/lab/inventions/staged", file: "pages/research/lab/inventions/staged.tsx", id: "inv-staged" },
   { path: "research/lab/inventions/bandsaw", file: "pages/research/lab/inventions/bandsaw.tsx", id: "inv-bandsaw" },
+  { path: "research/lab/inventions/ladder", file: "pages/research/lab/inventions/ladder.tsx", id: "inv-ladder" },
+  { path: "research/lab/inventions/replay", file: "pages/research/lab/inventions/replay.tsx", id: "inv-replay" },
   { path: "research/reference", file: "pages/ReferenceTable.tsx", id: "reference" },
   { path: "research/papers", file: "pages/Papers.tsx", id: "papers" },
   { path: "research/records", file: "pages/Records.tsx", id: "records" },
