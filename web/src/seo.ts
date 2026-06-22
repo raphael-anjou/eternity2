@@ -112,6 +112,42 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description: "Les records, les méthodes et les grandes questions encore ouvertes autour d'Eternity II, le puzzle jamais résolu.",
     },
   },
+  why: {
+    en: {
+      title: "Why it's hard" + SUFFIX,
+      description:
+        "Why Eternity II resists every approach: a puzzle designed to defeat statistical shortcuts, and the structural walls — rigidity, entropy, forbidden patterns — that explain the gap to a full solution.",
+    },
+    fr: {
+      title: "Pourquoi c'est dur" + SUFFIX,
+      description:
+        "Pourquoi Eternity II déjoue toutes les approches : un puzzle conçu pour contrer les raccourcis statistiques, et les murs structurels — rigidité, entropie, motifs interdits — qui expliquent l'écart jusqu'à une solution complète.",
+    },
+  },
+  build: {
+    en: {
+      title: "Build a solver" + SUFFIX,
+      description:
+        "Everything you need to write an Eternity II solver: validation data, the literature ranked by usefulness, the record timeline and methods, the dead ends, and how to run the code yourself.",
+    },
+    fr: {
+      title: "Construire un solveur" + SUFFIX,
+      description:
+        "Tout pour écrire un solveur Eternity II : données de validation, littérature classée par utilité, chronologie des records et méthodes, impasses, et comment exécuter le code vous-même.",
+    },
+  },
+  lab: {
+    en: {
+      title: "The lab notebook" + SUFFIX,
+      description:
+        "An open notebook of original Eternity II research: structural findings, the named algorithms built to attack the puzzle, and notable boards — all reproducible from source.",
+    },
+    fr: {
+      title: "Le carnet de laboratoire" + SUFFIX,
+      description:
+        "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
+    },
+  },
   reference: {
     en: {
       title: "Reference numbers" + SUFFIX,

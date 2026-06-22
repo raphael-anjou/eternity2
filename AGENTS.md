@@ -58,6 +58,37 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   to the generator must stay byte-for-byte across all four ports; run the
   `parity.mjs` harnesses + `cargo test` and rebuild the C/C++/Rust wasm.
 
+- **The research section is three doors, folders mirror routes.** `/research`
+  (`pages/Research.tsx`) is a chooser pointing to three door hubs: **Why it's
+  hard** (`pages/research/why/Hub.tsx` → `/research/why` — the design story +
+  structural-wall science), **Build a solver** (`pages/research/build/Hub.tsx`
+  → `/research/build` — re-homes reference/papers/records, plus dead-ends,
+  solver catalogue and community infra), and **The lab notebook**
+  (`pages/research/lab/Hub.tsx` → `/research/lab` — original findings,
+  inventions, notable boards). **Folder path mirrors the route 1:1 at arbitrary
+  depth**, and every level has an index hub named `Hub.tsx`
+  (`pages/research/build/solvers/blackwood/Hub.tsx` → `/research/build/solvers/
+  blackwood`, with leaves like `schedule.tsx` beside it). Sections like
+  build/solvers and lab/inventions are expected to grow many sub/sub-sub pages —
+  add depth freely, nothing re-homes. Cards for not-yet-published children show
+  an "In preparation" badge and are rendered as non-links (no dead links). When
+  you add a page: append to `routes.ts` PAGES (unique id), `sitemap.config.ts`
+  PAGE_PATHS, and a `seo.ts` key (EN+FR).
+
+- **Every published result must be reproducible.** Findings/inventions/boards
+  are published through the `research/topics/<id>/` pipeline (see the `research/`
+  bullet above): a `compute/` crate (path-dep on `engine/`), committed
+  `results/`, a copy-pasteable `reproduce:` command in the frontmatter, and a
+  GitHub "computed from…" link on the page. Deterministic results reproduce
+  bit-for-bit; stochastic or long-running searches still ship their script plus
+  the board they produced (verifiable in `/viewer`), labelled honestly
+  (e.g. "stochastic — won't reproduce exactly" / "~N h on 8 cores"). No result
+  on the site is an unbacked claim.
+
+- **Write research content attribution-neutral.** State findings and methods
+  plainly as the project's research. Do not describe the process that produced
+  them.
+
 - **Papers and records live on their own pages.** `web/src/pages/Papers.tsx`
   (route `research/papers`) holds the academic bibliography with per-paper
   usefulness tiers, grouped by section, + a "which ones are actually useful"
