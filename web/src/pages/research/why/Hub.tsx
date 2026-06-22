@@ -12,9 +12,10 @@ type Topic = { key: string; ready: boolean; to?: string };
 
 const TOPICS: Topic[] = [
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
-  { key: "rigidity", ready: false },
-  { key: "entropy", ready: false },
+  { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
+  { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
+  { key: "entropy", ready: false },
 ];
 
 const T = {
@@ -37,7 +38,11 @@ const T = {
       },
       rigidity: {
         title: "The rigidity wall",
-        body: "Every known top board is locally frozen: no small rearrangement improves it. You cannot nudge your way from a record board to a solution — the good boards are isolated.",
+        body: "Every known top board is locally frozen: integer programming proves no small rearrangement improves it. You cannot nudge your way from a record board to a solution.",
+      },
+      sigmaCycles: {
+        title: "Why basin-hopping is impossible",
+        body: "Two great boards differ by one giant interlocking swap of up to 154 cells. Every smaller piece of it scores worse, so you can't step from one to the other.",
       },
       entropy: {
         title: "Entropy and the area law",
@@ -68,7 +73,11 @@ const T = {
       },
       rigidity: {
         title: "Le mur de rigidité",
-        body: "Tout plateau record connu est figé localement : aucun petit réarrangement ne l'améliore. On ne peut pas, de proche en proche, passer d'un plateau record à une solution — les bons plateaux sont isolés.",
+        body: "Tout plateau record connu est figé localement : la programmation en nombres entiers prouve qu'aucun petit réarrangement ne l'améliore. On ne peut pas, de proche en proche, atteindre une solution.",
+      },
+      sigmaCycles: {
+        title: "Pourquoi sauter de bassin en bassin est impossible",
+        body: "Deux bons plateaux diffèrent par un seul échange imbriqué géant, jusqu'à 154 cellules. Chaque morceau plus petit fait moins bien, donc on ne peut pas passer de l'un à l'autre par étapes.",
       },
       entropy: {
         title: "Entropie et loi d'aire",

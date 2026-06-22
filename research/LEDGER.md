@@ -111,6 +111,37 @@ tuples). Stated as plain facts about the approaches, no internal references.
 - Learning: kept only general approaches a newcomer would try; dropped items that
   were specific to private 459-basin work (basin-mix MIP, high-T MCMC from 459).
 
+### 2026-06-22 — Inventions section + verified record boards
+
+Built /research/lab/inventions (hub + PALIMPSEST 463, KEYRING 460, GAUNTLET 458)
+with a shared InventionLayout and in-viewer board previews. New topic
+research/topics/record-boards recomputes each board's matched-edge score from its
+edges (463/460/458 all verified == claimed). Boards link via native eternity2.dev
+params, not bucas URLs (user directive). Stochastic searches → ship the board,
+not the run. Commit `772cf1f`.
+
+### 2026-06-22 — Community infra moved; phase-transition reuses measured data
+
+Community infrastructure moved to the /research hub (off the Build door, user
+directive). The phase-transition "wall" chart now reuses the existing measured
+difficulty.json (the same data Algorithms charts) instead of re-solving live —
+caught that a live sweep would just recompute what we already have. Page reframed
+to explain HOW the 17/5 claim is established and what it impacts, not assert it.
+Commit `5bfb711`.
+
+### 2026-06-22 — Master content plan (SITE_PLAN.md)
+
+Stepped back and mined the whole vault with parallel agents (219 vols, 384
+concepts, 17 basins). Wrote research/SITE_PLAN.md: every experiment mapped to
+PUBLISH / SUPPORT / INTERNAL with its viz and repro kind, plus a "not published"
+section so nothing is lost. This is now the build map. Door 1 (why) has a much
+bigger hardness-evidence stack than first built: rigidity wall, sigma-cycles,
+entropy/area-law, no-forced-moves, rare-color geography, watershed, depth-40,
+NS-1. Commit `2b87969`.
+Learnings recorded: small-board live sweeps duplicate difficulty.json; the
+"alive" budget is best spent on viz the site doesn't already have (rigidity halo
+animation, sigma-cycle overlay, entropy collapse curve, forbidden-patch heatmap).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the

@@ -220,6 +220,30 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
     },
   },
+  "rigidity-wall": {
+    en: {
+      title: "The rigidity wall" + SUFFIX,
+      description:
+        "Every Eternity II record board is locally frozen: integer programming proves no rearrangement of any nearby region scores higher. Why the gap to 480 isn't a polishing problem.",
+    },
+    fr: {
+      title: "Le mur de rigidité" + SUFFIX,
+      description:
+        "Chaque plateau record d'Eternity II est figé localement : la programmation en nombres entiers prouve qu'aucun réarrangement d'une région proche ne fait mieux. Pourquoi l'écart vers 480 n'est pas un problème de polissage.",
+    },
+  },
+  "sigma-cycles": {
+    en: {
+      title: "Why basin-hopping is impossible" + SUFFIX,
+      description:
+        "Two great Eternity II boards differ by one giant interlocking swap of up to 154 cells. Every smaller piece of that swap scores worse, so you can't get from one to the other in steps.",
+    },
+    fr: {
+      title: "Pourquoi sauter de bassin en bassin est impossible" + SUFFIX,
+      description:
+        "Deux bons plateaux d'Eternity II diffèrent par un seul échange imbriqué géant, jusqu'à 154 cellules. Chaque morceau plus petit de cet échange fait moins bien, donc on ne peut pas passer de l'un à l'autre par étapes.",
+    },
+  },
   "run-it-yourself": {
     en: {
       title: "Run it yourself" + SUFFIX,

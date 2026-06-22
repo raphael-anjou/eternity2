@@ -21,6 +21,8 @@ const PAGES = [
   { path: "research", file: "pages/Research.tsx", id: "research" },
   { path: "research/why", file: "pages/research/why/Hub.tsx", id: "why" },
   { path: "research/why/phase-transition", file: "pages/research/why/phase-transition.tsx", id: "phase-transition" },
+  { path: "research/why/rigidity-wall", file: "pages/research/why/rigidity-wall.tsx", id: "rigidity-wall" },
+  { path: "research/why/sigma-cycles", file: "pages/research/why/sigma-cycles.tsx", id: "sigma-cycles" },
   { path: "research/why/forbidden-patterns", file: "pages/research/why/forbidden-patterns.tsx", id: "forbidden-patterns" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
