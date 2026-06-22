@@ -18,6 +18,7 @@ export const PAGE_PATHS = [
   "research/why/forbidden-patterns",
   "research/build",
   "research/build/run-it-yourself",
+  "research/build/dead-ends",
   "research/lab",
   "research/reference",
   "research/papers",
