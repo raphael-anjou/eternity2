@@ -14,6 +14,7 @@ export const PAGE_PATHS = [
   "algorithms",
   "research",
   "research/why",
+  "research/why/phase-transition",
   "research/why/forbidden-patterns",
   "research/build",
   "research/build/run-it-yourself",

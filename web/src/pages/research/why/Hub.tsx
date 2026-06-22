@@ -11,7 +11,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 type Topic = { key: string; ready: boolean; to?: string };
 
 const TOPICS: Topic[] = [
-  { key: "phaseTransition", ready: false },
+  { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: false },
   { key: "entropy", ready: false },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },

@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  "phase-transition": {
+    en: {
+      title: "Tuned to the hardness peak" + SUFFIX,
+      description:
+        "Eternity II's colors split 17 interior to 5 frame-only, which is exactly where edge-matching puzzles are at their hardest. The design, shown straight from the official pieces.",
+    },
+    fr: {
+      title: "Calé sur le pic de difficulté" + SUFFIX,
+      description:
+        "Les couleurs d'Eternity II se répartissent en 17 intérieures et 5 réservées au cadre, exactement là où les puzzles d'assemblage par les bords sont les plus durs. La conception, montrée directement dans les pièces officielles.",
+    },
+  },
   "run-it-yourself": {
     en: {
       title: "Run it yourself" + SUFFIX,
