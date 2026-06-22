@@ -18,6 +18,7 @@ export const PAGE_PATHS = [
   "research/why/rigidity-wall",
   "research/why/sigma-cycles",
   "research/why/forbidden-patterns",
+  "research/why/no-forced-moves",
   "research/build",
   "research/build/run-it-yourself",
   "research/build/dead-ends",

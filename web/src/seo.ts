@@ -220,6 +220,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
     },
   },
+  "no-forced-moves": {
+    en: {
+      title: "No forced moves" + SUFFIX,
+      description:
+        "Every interior Eternity II piece has 73 to 137 possible neighbours; not one is ever pinned to a single option. Why there's no 'only one piece fits' lever to pull.",
+    },
+    fr: {
+      title: "Aucun coup forcé" + SUFFIX,
+      description:
+        "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
+    },
+  },
   "rigidity-wall": {
     en: {
       title: "The rigidity wall" + SUFFIX,

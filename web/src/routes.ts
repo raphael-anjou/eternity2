@@ -24,6 +24,7 @@ const PAGES = [
   { path: "research/why/rigidity-wall", file: "pages/research/why/rigidity-wall.tsx", id: "rigidity-wall" },
   { path: "research/why/sigma-cycles", file: "pages/research/why/sigma-cycles.tsx", id: "sigma-cycles" },
   { path: "research/why/forbidden-patterns", file: "pages/research/why/forbidden-patterns.tsx", id: "forbidden-patterns" },
+  { path: "research/why/no-forced-moves", file: "pages/research/why/no-forced-moves.tsx", id: "no-forced-moves" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
