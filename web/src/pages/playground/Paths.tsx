@@ -1,4 +1,5 @@
 import { pageMeta } from "@/seo";
+import { LocalizedLink } from "@/components/LocalizedLink";
 // Build your own search path (the order the solver fills cells) by clicking
 // or dragging on a grid, then race it against the classics on the same
 // puzzle. Path order routinely changes nodes-to-solve by orders of magnitude.
@@ -45,7 +46,12 @@ const T = {
         The solver fills the board in whatever order you choose. Click (or drag) cells in the
         order you want them filled, then race your path against the classics on the same
         puzzle. Spoiler: the order matters <em>a lot</em>. You can also <em>reveal</em> a few
-        pieces as hints and watch the search collapse, just like the puzzle's real clues.
+        pieces as hints and watch the search collapse, just like the puzzle's real clues.{" "}
+        Want to predict which order wins before racing? That's exactly what{" "}
+        <LocalizedLink className="underline" to="/research/why/complex-theory">
+          complex theory
+        </LocalizedLink>{" "}
+        estimates — the expected node count of a path, depth by depth.
       </>
     ),
     clear: "Clear",
@@ -83,7 +89,13 @@ const T = {
         votre parcours dans la course face aux classiques, sur le même puzzle. Surprise :
         l'ordre change tout, <em>vraiment</em>. Vous pouvez aussi <em>révéler</em> quelques
         pièces en guise d'indices et voir la recherche s'effondrer, exactement comme avec les
-        vrais indices du puzzle.
+        vrais indices du puzzle.{" "}
+        Vous voulez prédire quel ordre gagne avant de lancer la course ? C'est précisément ce
+        qu'estime la{" "}
+        <LocalizedLink className="underline" to="/research/why/complex-theory">
+          théorie complexe
+        </LocalizedLink>{" "}
+        — le nombre de nœuds attendu d'un parcours, profondeur par profondeur.
       </>
     ),
     clear: "Effacer",
