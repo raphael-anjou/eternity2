@@ -5,6 +5,7 @@ import { RelatedRail } from "@/components/research/RelatedRail";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
+import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
 import data from "@/data/phase-transition.json";
 
 const ARTICLE_URL =
@@ -36,6 +37,8 @@ const T = {
     p1: "Hard search problems have a difficulty knob. Loosen it and there are many solutions, so a search trips over one fast. Tighten it and there are none, which is often easy to prove. In between sits a narrow band where solutions are scarce but real, and that's where search blows up. People call it a phase transition, like water freezing.",
     p2: "For edge-matching puzzles the knob is the number of colors. Too few and pieces fit together countless ways; too many and they barely fit at all. The published analysis puts the peak at around 17 interior colors, the setting where a puzzle this size has about one solution. Eternity II uses 17.",
     liveTitle: "The difficulty wall",
+    runItTitle: "Or measure it yourself",
+    runItIntro: "The chart above is precomputed. This one isn't: the engine solves fresh puzzles live, one per colour count, and draws the peak from real runs in your browser.",
     splitTitle: "The split, straight from the pieces",
     splitIntro: "Sorting the official set's colors by where they appear shows the design plainly.",
     frameLabel: "5 frame-only colors",
@@ -65,6 +68,8 @@ const T = {
     p1: "Les problèmes de recherche difficiles ont un bouton de difficulté. Desserrez-le et il y a beaucoup de solutions, qu'une recherche trouve vite. Serrez-le et il n'y en a aucune, ce qui est souvent facile à prouver. Entre les deux se trouve une bande étroite où les solutions sont rares mais réelles, et c'est là que la recherche explose. On appelle cela une transition de phase, comme l'eau qui gèle.",
     p2: "Pour les puzzles d'assemblage par les bords, le bouton est le nombre de couleurs. Trop peu et les pièces s'emboîtent d'innombrables façons ; trop et elles ne s'emboîtent presque plus. L'analyse publiée situe le pic autour de 17 couleurs intérieures, le réglage où un puzzle de cette taille a environ une solution. Eternity II en utilise 17.",
     liveTitle: "Voir le phénomène",
+    runItTitle: "Ou mesurez-le vous-même",
+    runItIntro: "Le graphique ci-dessus est précalculé. Celui-ci ne l'est pas : le moteur résout des puzzles frais en direct, un par nombre de couleurs, et trace le pic à partir de vraies exécutions dans votre navigateur.",
     splitTitle: "La répartition, directement dans les pièces",
     splitIntro: "Trier les couleurs du jeu officiel selon où elles apparaissent rend la conception évidente.",
     frameLabel: "5 couleurs réservées au cadre",
@@ -112,6 +117,14 @@ export default function PhaseTransition() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">{t.liveTitle}</h2>
         <PhaseTransitionLab />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold tracking-tight">{t.runItTitle}</h2>
+        <p className="max-w-3xl text-sm text-muted-foreground">{t.runItIntro}</p>
+        <div className="max-w-3xl">
+          <PhaseTransitionLiveLab />
+        </div>
       </section>
 
       <section className="space-y-4">
