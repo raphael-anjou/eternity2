@@ -3,28 +3,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
-// Index of the named algorithms. Each ready one has its own page under this
-// folder; the rest are listed honestly as upcoming. `score` and `note` give the
-// one-line outcome so the index reads as a real catalogue, not just titles.
+// Index of the named algorithms, grouped by the kind of idea each one is. Each
+// ready one has its own page under this folder. `score` is the one-line outcome;
+// `live` flags the ones with a real-engine demo you can drive in the browser, so
+// the index reads as a real, organised catalogue rather than a flat title list.
+type Family = "scratch" | "corpus" | "concentrate" | "anchor" | "exact" | "decode";
+
 type Invention = {
   key: string;
   score?: number;
   to?: string;
   ready: boolean;
+  family: Family;
+  live?: boolean;
 };
 
+// Ordering within the array also orders cards inside each family group.
 const INVENTIONS: Invention[] = [
-  { key: "palimpsest", score: 463, to: "/research/lab/inventions/palimpsest", ready: true },
-  { key: "keyring", score: 460, to: "/research/lab/inventions/keyring", ready: true },
-  { key: "gauntlet", score: 458, to: "/research/lab/inventions/gauntlet", ready: true },
-  { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true },
-  { key: "staged", score: 436, to: "/research/lab/inventions/staged", ready: true },
-  { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true },
-  { key: "ladder", score: 451, to: "/research/lab/inventions/ladder", ready: true },
-  { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true },
-  { key: "cloister", score: 453, to: "/research/lab/inventions/cloister", ready: true },
-  { key: "midden", score: 452, to: "/research/lab/inventions/midden", ready: true },
+  { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true, family: "scratch" },
+  { key: "keyring", score: 460, to: "/research/lab/inventions/keyring", ready: true, family: "scratch" },
+  { key: "gauntlet", score: 458, to: "/research/lab/inventions/gauntlet", ready: true, family: "scratch", live: true },
+  { key: "staged", score: 436, to: "/research/lab/inventions/staged", ready: true, family: "scratch" },
+  { key: "palimpsest", score: 463, to: "/research/lab/inventions/palimpsest", ready: true, family: "corpus" },
+  { key: "ladder", score: 451, to: "/research/lab/inventions/ladder", ready: true, family: "concentrate", live: true },
+  { key: "cloister", score: 453, to: "/research/lab/inventions/cloister", ready: true, family: "anchor", live: true },
+  { key: "midden", score: 452, to: "/research/lab/inventions/midden", ready: true, family: "anchor" },
+  { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true, family: "exact" },
+  { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true, family: "decode" },
 ];
+
+const FAMILY_ORDER: Family[] = ["scratch", "corpus", "concentrate", "anchor", "exact", "decode"];
 
 const T = {
   en: {
@@ -34,6 +42,33 @@ const T = {
       "The named algorithms built to push the score. Each one has its own idea, its result, and the questions it left open. The best of them reaches 463 of 480 matched edges; the community's best on the same puzzle is 469. Methods and boards are here in full.",
     soon: "In preparation",
     scoreSuffix: "/ 480",
+    liveBadge: "live demo",
+    families: {
+      scratch: {
+        title: "Build from scratch",
+        body: "Grow a board from an empty grid, with no record to copy — the construction itself is the idea. The lever is which cell to fill next and which piece to trust.",
+      },
+      corpus: {
+        title: "Learn from the corpus",
+        body: "Mine every strong board ever found for the choices they share, then use that statistical knowledge to steer or unlock a new one.",
+      },
+      concentrate: {
+        title: "Concentrate the effort",
+        body: "Spend the search budget where progress is real instead of spreading it evenly — flood cheap probes, keep the deepest, promote them.",
+      },
+      anchor: {
+        title: "Anchor and constrain",
+        body: "Fix part of the board, or decide where damage is allowed, so the rest of the search is constrained from the very first placement.",
+      },
+      exact: {
+        title: "Solve a piece exactly",
+        body: "Take a sub-region — a band, an endgame — and solve it to proven optimality, to measure exactly how far ahead a board can be decided.",
+      },
+      decode: {
+        title: "Decode and replay",
+        body: "Rebuild the community's own record boards move for move, to reveal the technique ordinary solvers miss.",
+      },
+    } as Record<string, { title: string; body: string }>,
     inventions: {
       palimpsest: {
         title: "PALIMPSEST",
@@ -84,6 +119,33 @@ const T = {
       "Les algorithmes nommés conçus pour pousser le score. Chacun a son idée, son résultat et les questions qu'il a laissées. Le meilleur atteint 463 bords appariés sur 480 ; le meilleur de la communauté sur le même puzzle est 469. Méthodes et plateaux sont ici en entier.",
     soon: "En préparation",
     scoreSuffix: "/ 480",
+    liveBadge: "démo en direct",
+    families: {
+      scratch: {
+        title: "Construire de zéro",
+        body: "Faire croître un plateau depuis une grille vide, sans record à copier — la construction elle-même est l'idée. Le levier : quelle case remplir ensuite et à quelle pièce se fier.",
+      },
+      corpus: {
+        title: "Apprendre du corpus",
+        body: "Exploiter tous les bons plateaux connus pour les choix qu'ils partagent, puis utiliser ce savoir statistique pour orienter ou débloquer un nouveau plateau.",
+      },
+      concentrate: {
+        title: "Concentrer l'effort",
+        body: "Dépenser le budget de recherche là où le progrès est réel plutôt que de l'étaler — inonder de sondes bon marché, garder les plus profondes, les promouvoir.",
+      },
+      anchor: {
+        title: "Ancrer et contraindre",
+        body: "Fixer une partie du plateau, ou décider où les défauts sont permis, pour que le reste de la recherche soit contraint dès la première pose.",
+      },
+      exact: {
+        title: "Résoudre une partie exactement",
+        body: "Prendre une sous-région — une bande, une fin de partie — et la résoudre à l'optimum prouvé, pour mesurer jusqu'où un plateau peut être décidé à l'avance.",
+      },
+      decode: {
+        title: "Décoder et rejouer",
+        body: "Reconstruire coup par coup les plateaux records de la communauté, pour révéler la technique que les solveurs ordinaires manquent.",
+      },
+    } as Record<string, { title: string; body: string }>,
     inventions: {
       palimpsest: {
         title: "PALIMPSEST",
@@ -144,42 +206,62 @@ export default function InventionsHub() {
         <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
       </div>
 
-      <section className="grid gap-3 md:grid-cols-2">
-        {INVENTIONS.map((inv) => {
-          const copy = t.inventions[inv.key as keyof typeof t.inventions];
-          const card = (
-            <Card className="h-full transition-shadow group-hover:shadow-md">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base tracking-tight group-hover:underline">
-                    {copy.title}
-                  </CardTitle>
-                  {inv.ready && inv.score ? (
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      <span className="font-bold text-foreground tabular-nums">{inv.score}</span>{" "}
-                      {t.scoreSuffix}
-                    </span>
+      <div className="space-y-10">
+        {FAMILY_ORDER.map((fam) => {
+          const members = INVENTIONS.filter((inv) => inv.family === fam);
+          if (!members.length) return null;
+          const famCopy = t.families[fam];
+          return (
+            <section key={fam} className="space-y-3">
+              <div className="max-w-3xl">
+                <h2 className="text-xl font-semibold tracking-tight">{famCopy?.title}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{famCopy?.body}</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {members.map((inv) => {
+                  const copy = t.inventions[inv.key as keyof typeof t.inventions];
+                  const card = (
+                    <Card className="h-full transition-shadow group-hover:shadow-md">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="flex items-center gap-2 text-base tracking-tight group-hover:underline">
+                            {copy.title}
+                            {inv.live && (
+                              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                {t.liveBadge}
+                              </span>
+                            )}
+                          </CardTitle>
+                          {inv.ready && inv.score ? (
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              <span className="font-bold text-foreground tabular-nums">{inv.score}</span>{" "}
+                              {t.scoreSuffix}
+                            </span>
+                          ) : (
+                            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                              {t.soon}
+                            </span>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">{copy.body}</CardContent>
+                    </Card>
+                  );
+                  return inv.ready && inv.to ? (
+                    <LocalizedLink key={inv.key} to={inv.to} className="group block">
+                      {card}
+                    </LocalizedLink>
                   ) : (
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                      {t.soon}
-                    </span>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">{copy.body}</CardContent>
-            </Card>
-          );
-          return inv.ready && inv.to ? (
-            <LocalizedLink key={inv.key} to={inv.to} className="group block">
-              {card}
-            </LocalizedLink>
-          ) : (
-            <div key={inv.key} className="group block opacity-75">
-              {card}
-            </div>
+                    <div key={inv.key} className="group block opacity-75">
+                      {card}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
-      </section>
+      </div>
     </div>
   );
 }
