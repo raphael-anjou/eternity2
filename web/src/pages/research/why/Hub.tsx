@@ -2,6 +2,7 @@ import { pageMeta } from "@/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { ScoringPrimer } from "@/components/research/ScoringPrimer";
 
 // Door 1 of the research section: the science of *why* Eternity II resists every
 // approach. It carries the "engineered to resist cleverness" framing (the
@@ -168,6 +169,8 @@ export default function Why() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight">{t.title}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
       </div>
+
+      <ScoringPrimer />
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.engineeredTitle}</h2>
