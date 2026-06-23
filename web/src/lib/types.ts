@@ -48,6 +48,20 @@ export interface SolverHandle {
   free(): void;
 }
 
+/** Break-tolerant solver surface (Rust/WASM backend only). Same step-able shape
+ * as SolverHandle plus a live `breaks` count; it completes a full board within a
+ * mismatch budget instead of stopping at the first imperfection. */
+export interface BreakSolverHandle {
+  step(budget: number): SolverReport;
+  report(): SolverReport;
+  board(): Int32Array;
+  bestBoard(): Int32Array;
+  score(): number;
+  breaks(): number;
+  reset(): void;
+  free(): void;
+}
+
 export const BORDER = 0;
 
 /** Clockwise rotation of URDL edges: new[i] = old[(i + 4 - r) % 4].

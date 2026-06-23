@@ -1,5 +1,94 @@
 /* @ts-self-types="./eternity2_engine.d.ts" */
 
+/**
+ * Break-tolerant solver: the same step-able surface, but a mismatch is allowed
+ * only at the fixed `break_positions` cells (one each), plus a live `breaks`
+ * count. This is the mechanism behind the community record solvers — see
+ * `break_solver.rs`.
+ */
+export class WasmBreakSolver {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WasmBreakSolverFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_wasmbreaksolver_free(ptr, 0);
+    }
+    /**
+     * @returns {Int32Array}
+     */
+    bestBoard() {
+        const ret = wasm.wasmbreaksolver_bestBoard(this.__wbg_ptr);
+        var v1 = getArrayI32FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @returns {Int32Array}
+     */
+    board() {
+        const ret = wasm.wasmbreaksolver_board(this.__wbg_ptr);
+        var v1 = getArrayI32FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @returns {number}
+     */
+    breaks() {
+        const ret = wasm.wasmbreaksolver_breaks(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @param {any} puzzle
+     * @param {Uint16Array} path
+     * @param {boolean} use_hints
+     * @param {Uint16Array} break_positions
+     */
+    constructor(puzzle, path, use_hints, break_positions) {
+        const ptr0 = passArray16ToWasm0(path, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passArray16ToWasm0(break_positions, wasm.__wbindgen_malloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmbreaksolver_new(puzzle, ptr0, len0, use_hints, ptr1, len1);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        this.__wbg_ptr = ret[0];
+        WasmBreakSolverFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {any}
+     */
+    report() {
+        const ret = wasm.wasmbreaksolver_report(this.__wbg_ptr);
+        return ret;
+    }
+    reset() {
+        wasm.wasmbreaksolver_reset(this.__wbg_ptr);
+    }
+    /**
+     * @returns {number}
+     */
+    score() {
+        const ret = wasm.wasmbreaksolver_score(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @param {number} budget
+     * @returns {any}
+     */
+    step(budget) {
+        const ret = wasm.wasmbreaksolver_step(this.__wbg_ptr, budget);
+        return ret;
+    }
+}
+if (Symbol.dispose) WasmBreakSolver.prototype[Symbol.dispose] = WasmBreakSolver.prototype.free;
+
 export class WasmSolver {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -383,6 +472,9 @@ function __wbg_get_imports() {
     };
 }
 
+const WasmBreakSolverFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasmbreaksolver_free(ptr, 1));
 const WasmSolverFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_wasmsolver_free(ptr, 1));
