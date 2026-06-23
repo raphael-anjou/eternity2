@@ -42,7 +42,7 @@ const T = {
     communityTitle: "Community infrastructure",
     communityNotes: [
       "Jef Bucas's GPL viewer; its URL format is the community's lingua franca (and this site speaks it natively).",
-      "An active Discord server where solvers share their runs, records and code, in real time.",
+      "An active Discord server where puzzlers share their runs, records and code, in real time.",
       "The active mailing list: records, techniques, and 15+ years of accumulated folklore.",
     ],
   },
