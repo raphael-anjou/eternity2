@@ -114,7 +114,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Pourquoi sauter de bassin en bassin est impossible",
     "Two great boards differ by one giant indivisible swap; every smaller piece scores worse.",
     "Deux bons plateaux diffèrent par un seul échange géant indivisible ; tout morceau plus petit fait moins bien.",
-    ["/research/why/rigidity-wall", "/research/why/basin-archipelago", "/research/why/mismatch-geometry", "/research/lab/inventions/keyring"],
+    ["/research/why/rigidity-wall", "/research/why/mismatch-geometry", "/research/lab/inventions/keyring"],
   ),
   N(
     "/research/why/mismatch-geometry",
@@ -128,19 +128,6 @@ export const RESEARCH_NODES: ResearchNode[] = [
       "/research/lab/inventions/staged",
       "/research/why/walls-and-methods",
       "/research/why/sigma-cycles",
-    ],
-  ),
-  N(
-    "/research/why/basin-archipelago",
-    "why",
-    "The archipelago of record boards",
-    "L'archipel des plateaux records",
-    "The strong boards form 47 isolated islands; McGavin's 469 sits alone, 247 cells from anything.",
-    "Les bons plateaux forment 47 îles isolées ; le 469 de McGavin est seul, à 247 cellules de tout.",
-    [
-      "/research/why/sigma-cycles",
-      "/research/why/rigidity-wall",
-      "/research/why/mismatch-geometry",
     ],
   ),
   N(
