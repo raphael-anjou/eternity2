@@ -110,4 +110,4 @@ export default function Keyring() {
   );
 }
 
-export const meta = pageMeta("inv-keyring");
+export const meta = pageMeta("exp-keyring");

@@ -114,4 +114,4 @@ export default function Mosaic() {
   return <InventionLayout copy={copy} score={448} reproducibility="deterministic" />;
 }
 
-export const meta = pageMeta("inv-mosaic");
+export const meta = pageMeta("exp-mosaic");

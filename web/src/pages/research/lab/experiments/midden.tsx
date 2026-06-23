@@ -106,4 +106,4 @@ export default function Midden() {
   );
 }
 
-export const meta = pageMeta("inv-midden");
+export const meta = pageMeta("exp-midden");

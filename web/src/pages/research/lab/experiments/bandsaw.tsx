@@ -105,4 +105,4 @@ export default function Bandsaw() {
   );
 }
 
-export const meta = pageMeta("inv-bandsaw");
+export const meta = pageMeta("exp-bandsaw");

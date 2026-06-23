@@ -112,4 +112,4 @@ export default function Palimpsest() {
   );
 }
 
-export const meta = pageMeta("inv-palimpsest");
+export const meta = pageMeta("exp-palimpsest");

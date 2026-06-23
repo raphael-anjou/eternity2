@@ -111,4 +111,4 @@ export default function Prior() {
   );
 }
 
-export const meta = pageMeta("inv-prior");
+export const meta = pageMeta("exp-prior");

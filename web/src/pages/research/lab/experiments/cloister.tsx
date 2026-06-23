@@ -110,4 +110,4 @@ export default function Cloister() {
   );
 }
 
-export const meta = pageMeta("inv-cloister");
+export const meta = pageMeta("exp-cloister");

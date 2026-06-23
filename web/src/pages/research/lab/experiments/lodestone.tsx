@@ -116,4 +116,4 @@ export default function Lodestone() {
   return <InventionLayout copy={copy} score={451} reproducibility="seeded" />;
 }
 
-export const meta = pageMeta("inv-lodestone");
+export const meta = pageMeta("exp-lodestone");
