@@ -266,6 +266,26 @@ or a bespoke animation. Local commits only.
   refuted concepts' bodies.
 Why door now has 8 findings. Local commits only (no push, per user).
 
+### 2026-06-23 — Session close
+
+Added experiments-log/article.md so `build-index.mjs` validates (9 topics OK).
+Session state at close:
+- **Research section content-complete.** Why: 8 findings (phase-transition,
+  rigidity, sigma-cycles, forbidden-patterns, no-forced-moves, piece-theft,
+  rare-color, entropy/area-law). Build: reference, papers, records, dead-ends,
+  run-it-yourself, solvers. Lab: findings, 10 inventions (each with a verified
+  board preview or animation), experiments log (380 attempts, searchable), basins
+  gallery (7 boards).
+- 9 reproducible `research/topics/`; KaTeX math; 7 bespoke animations.
+- Verified green at close: typecheck ✓ lint ✓ build ✓ index ✓.
+- **28 commits LOCAL ONLY — NOT pushed** (user said stop pushing; resume only on
+  explicit say-so). `git push origin main` when cleared.
+- OPEN / next-session backlog: clean up terse internal-shorthand in the
+  experiments log for outsiders; basin case-studies for all 17 (gallery has 7);
+  full 219-vol record-climb timeline on Records; ★ findings depth-40 + NS-1
+  still TODO; bespoke embedded solver demo (solvers page currently links to
+  playground). Plan: research/SITE_PLAN.md.
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
