@@ -4,6 +4,9 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { PruneVsSpeedLab } from "@/components/research/PruneVsSpeedLab";
 
+const ARTICLE_URL =
+  "https://github.com/raphael-anjou/eternity2/tree/main/research/topics/prune-vs-speed";
+
 const T = {
   en: {
     backLabel: "← Why it's hard",
@@ -27,6 +30,9 @@ const T = {
     impactTitle: "What it means for everything else here",
     impact: "This is the lens for the whole research section. Our 232× faster engine made the same search cheaper, not smaller — and didn't move the record. Every invention that did move the needle changed the shape of the search instead: a different scan order, a learned prior over where pieces sit, a confined region for the mismatches. And every dead end is, at heart, a prune that the puzzle's global structure refuses to honour. Speed first feels productive; it is almost never where the gap to 480 is hiding.",
     note: "The tree numbers in the demo are illustrative — a branching factor and depth chosen to be E2-like and legible, not a measurement of a specific solver. The principle (constant divisor versus exponential divisor) is exact.",
+    reproTitle: "Reproduce it",
+    reproBody: "The hardness curve and node counts are real engine measurements on small puzzles; the illustrative tree-size estimate is labelled as such. Deterministic — reproduces identically every run.",
+    sourceLink: "Article, source and results on GitHub",
   },
   fr: {
     backLabel: "← Pourquoi c'est dur",
@@ -50,6 +56,9 @@ const T = {
     impactTitle: "Ce que cela signifie pour tout le reste ici",
     impact: "C'est la grille de lecture de toute la section recherche. Notre moteur 232× plus rapide a rendu la même recherche moins coûteuse, pas plus petite — et n'a pas bougé le record. Chaque invention qui a fait avancer les choses a changé la forme de la recherche : un autre ordre de parcours, un prior appris sur l'endroit où les pièces se posent, une région confinée pour les défauts. Et chaque impasse est, au fond, un élagage que la structure globale du puzzle refuse d'honorer. La vitesse d'abord semble productive ; ce n'est presque jamais là que se cache l'écart vers 480.",
     note: "Les nombres de l'arbre dans la démo sont illustratifs — un facteur de branchement et une profondeur choisis pour être proches d'E2 et lisibles, pas la mesure d'un solveur précis. Le principe (diviseur constant contre diviseur exponentiel) est exact.",
+    reproTitle: "Le reproduire",
+    reproBody: "La courbe de difficulté et les comptages de nœuds sont de vraies mesures du moteur sur de petits puzzles ; l'estimation illustrative de la taille de l'arbre est signalée comme telle. Déterministe — se reproduit à l'identique à chaque exécution.",
+    sourceLink: "Article, code source et résultats sur GitHub",
   },
 };
 
@@ -107,6 +116,23 @@ export default function PruneVsSpeed() {
       </section>
 
       <p className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">{t.note}</p>
+
+      <section className="mx-auto max-w-2xl space-y-3 rounded-lg border bg-muted/30 p-5">
+        <h2 className="text-lg font-semibold tracking-tight">{t.reproTitle}</h2>
+        <p className="text-sm text-muted-foreground">{t.reproBody}</p>
+        <pre className="overflow-x-auto rounded-md border bg-background p-3 text-xs leading-relaxed">
+          <code>{`cd research/topics/prune-vs-speed/compute
+cargo run --release > ../results/prune-vs-speed.json`}</code>
+        </pre>
+        <a
+          href={ARTICLE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block text-sm font-medium underline hover:text-foreground"
+        >
+          {t.sourceLink}
+        </a>
+      </section>
 
       <RelatedRail path="/research/why/prune-vs-speed" />
     </div>
