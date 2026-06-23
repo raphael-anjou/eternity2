@@ -30,16 +30,18 @@ type RecordRow = {
   method: string;
   // id into BOARD_PARAMS when we have a real board to preview in the viewer.
   board?: string;
+  // index into REFS (1-based) for the exact groups.io message announcing it.
+  ref?: number;
 };
 
 const RECORDS: RecordRow[] = [
   { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing", board: "Louis_Verhaard_467" },
-  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468" },
-  { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling", board: "JBlackwood+PMcGavin_469" },
+  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468", ref: 1 },
+  { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling", board: "JBlackwood+PMcGavin_469", ref: 2 },
   { date: "2020-11", score: "469", author: "various (~6–7 boards)", canonical: "canonical", method: "Blackwood's solver; mostly single-piece swaps of McGavin's" },
-  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470" },
+  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470", ref: 3 },
   { date: "2021", score: "470", author: "Jef Bucas", canonical: "variant", method: "Blackwood's algorithm with a different choice of heuristic colors — shows the heuristic isn't tied to one color set; C. Fernandez reported further variations" },
-  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023" },
+  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023", ref: 4 },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle" },
   { date: "2025-07", score: "470", author: "onesmallstep", canonical: "variant", method: "1-clue variant — continued 470 ties" },
 ];
@@ -101,6 +103,7 @@ const T = {
     linkVerhaard: "Louis Verhaard's algorithm details",
     sourceNote:
       "Sourced from our research notebook's community history, itself distilled from ~11,500 mailing-list messages and the community Discord.",
+    referencesTitle: "References",
     back: "Back to research",
   },
   fr: {
@@ -159,6 +162,7 @@ const T = {
     linkVerhaard: "Les détails de l'algorithme de Louis Verhaard",
     sourceNote:
       "Tiré de l'historique communautaire de notre carnet de recherche, lui-même distillé de ≈11 500 messages de la liste de diffusion et du Discord de la communauté.",
+    referencesTitle: "Références",
     back: "Retour à la recherche",
   },
 };
@@ -167,6 +171,59 @@ const BADGE: Record<RecordRow["canonical"], string> = {
   canonical: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
   variant: "bg-muted text-muted-foreground",
 };
+
+// Numbered references for the contestable record claims. The community records
+// (468/469/470) are not in any peer-reviewed or encyclopedic source — they live
+// in the mailing list and on the board viewer — so we point at the primary
+// community sources directly and flag what mainstream sources do and don't say.
+// Exact community sources. The 468/469/470/460 boards are not in any
+// peer-reviewed or encyclopedic source — they were announced on the mailing
+// list — so we link the specific groups.io messages (id, author, date, and
+// subject all verified against the decoded board in our community export).
+// Reading a message needs a free groups.io login.
+const REFS: { href: string; label: string }[] = [
+  {
+    href: "https://groups.io/g/eternity2/message/171536025",
+    label:
+      "468 — Jef Bucas, “New best solution found (12 breaks)”, eternity2@groups.io, 2020-08-31 (Blackwood's board, relayed to the group).",
+  },
+  {
+    href: "https://groups.io/g/eternity2/message/175608276",
+    label:
+      "469 — “EternityII Solver” thread, eternity2@groups.io, 2020-11-16: the Blackwood & McGavin board, still the canonical ceiling.",
+  },
+  {
+    href: "https://groups.io/g/eternity2/message/183676823",
+    label:
+      "470 — Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30 — on the easier one-clue variant, not the canonical puzzle.",
+  },
+  {
+    href: "https://groups.io/g/eternity2/message/219328931",
+    label:
+      "460 — “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03: the best board respecting all five clues (Bruno Gauthier, Eternity II Editor).",
+  },
+  {
+    href: "https://e2.bucas.name",
+    label:
+      "e2.bucas.name (Jef Bucas) — the board viewer and shared URL format; every board above can be loaded and re-scored there.",
+  },
+  {
+    href: "https://en.wikipedia.org/wiki/Eternity_II_puzzle",
+    label:
+      "Wikipedia, “Eternity II puzzle” — documents only the encyclopedic facts: the $2M prize, the deadline of noon 31 Dec 2010, and Verhaard's 467 ($10,000). The 468+ records remain community-reported, not yet in a source Wikipedia accepts.",
+  },
+];
+
+// A superscript [n] linking down to the References list.
+function Cite({ n }: { n: number }) {
+  return (
+    <sup>
+      <a href="#refs" className="px-0.5 text-xs underline underline-offset-2 hover:text-foreground">
+        [{n}]
+      </a>
+    </sup>
+  );
+}
 
 export default function Records() {
   const t = useT(T);
@@ -179,7 +236,11 @@ export default function Records() {
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.bestTitle}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{t.best}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t.best}
+          <Cite n={2} />
+          <Cite n={6} />
+        </p>
       </section>
 
       <section className="space-y-3">
@@ -199,7 +260,10 @@ export default function Records() {
             {RECORDS.map((r, i) => (
               <TableRow key={`${r.date}-${i}`}>
                 <TableCell className="whitespace-nowrap text-muted-foreground">{r.date}</TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">{r.score}</TableCell>
+                <TableCell className="text-right font-semibold tabular-nums">
+                  {r.score}
+                  {r.ref && <Cite n={r.ref} />}
+                </TableCell>
                 <TableCell className="whitespace-nowrap">{r.author}</TableCell>
                 <TableCell>
                   <span
@@ -229,7 +293,10 @@ export default function Records() {
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">{t.falsePositiveTitle}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{t.falsePositive}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t.falsePositive}
+          <Cite n={2} />
+        </p>
       </section>
 
       <section className="space-y-4">
@@ -289,6 +356,25 @@ export default function Records() {
             {t.linkVerhaard}
           </a>
         </div>
+      </section>
+
+      <section id="refs" className="max-w-3xl space-y-2 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">{t.referencesTitle}</h2>
+        <ol className="space-y-1.5 text-xs text-muted-foreground">
+          {REFS.map((r, i) => (
+            <li key={r.href} className="flex gap-2">
+              <span className="tabular-nums">[{i + 1}]</span>
+              <a
+                href={r.href}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                {r.label}
+              </a>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <p className="max-w-3xl text-xs text-muted-foreground">{t.sourceNote}</p>
