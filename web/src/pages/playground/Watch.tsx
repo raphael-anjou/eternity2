@@ -28,6 +28,7 @@ import {
   getPathKinds,
 } from "@/engine";
 import type { SolverHandle } from "@/engine";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { useT } from "@/i18n";
 import type { Puzzle, SolverReport } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
@@ -71,6 +72,16 @@ const T = {
     nodesPerSecond: "Nodes / s",
     elapsed: "Run time",
     boardCompletion: "Board completion",
+    whyNotFast: (
+      <>
+        Notice the node counter races while the depth bar barely moves? That's the whole story:
+        on the 16×16 puzzle, no reachable speed is enough. Raw speed only divides the work by a
+        constant; what actually moves the record is <em>pruning</em> the search.{" "}
+        <Link className="underline" to="/research/why/prune-vs-speed">
+          Why pruning beats speed →
+        </Link>
+      </>
+    ),
   },
   fr: {
     title: "Regardez la machine réfléchir",
@@ -107,6 +118,17 @@ const T = {
     nodesPerSecond: "Nœuds / s",
     elapsed: "Temps écoulé",
     boardCompletion: "Remplissage du plateau",
+    whyNotFast: (
+      <>
+        Vous voyez le compteur de nœuds s'emballer pendant que la barre de profondeur bouge à
+        peine ? Tout est là : sur le puzzle 16×16, aucune vitesse atteignable ne suffit. La
+        vitesse brute ne fait que diviser le travail par une constante ; ce qui fait réellement
+        avancer le record, c'est l'<em>élagage</em> de la recherche.{" "}
+        <Link className="underline" to="/research/why/prune-vs-speed">
+          Pourquoi élaguer l'emporte sur la vitesse →
+        </Link>
+      </>
+    ),
   },
 };
 
@@ -430,6 +452,8 @@ export default function Watch() {
           )}
         </div>
       </div>
+
+      <p className="max-w-3xl border-t pt-4 text-sm text-muted-foreground">{t.whyNotFast}</p>
     </div>
   );
 }
