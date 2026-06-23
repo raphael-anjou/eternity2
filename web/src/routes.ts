@@ -25,6 +25,7 @@ const PAGES = [
   { path: "research/why/sigma-cycles", file: "pages/research/why/sigma-cycles.tsx", id: "sigma-cycles" },
   { path: "research/why/forbidden-patterns", file: "pages/research/why/forbidden-patterns.tsx", id: "forbidden-patterns" },
   { path: "research/why/no-forced-moves", file: "pages/research/why/no-forced-moves.tsx", id: "no-forced-moves" },
+  { path: "research/why/piece-theft", file: "pages/research/why/piece-theft.tsx", id: "piece-theft" },
   { path: "research/why/entropy-area-law", file: "pages/research/why/entropy-area-law.tsx", id: "entropy-area-law" },
   { path: "research/why/rare-color-geography", file: "pages/research/why/rare-color-geography.tsx", id: "rare-color-geography" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },

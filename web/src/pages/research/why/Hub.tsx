@@ -16,6 +16,7 @@ const TOPICS: Topic[] = [
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
+  { key: "pieceTheft", ready: true, to: "/research/why/piece-theft" },
   { key: "rareColor", ready: true, to: "/research/why/rare-color-geography" },
   { key: "entropy", ready: true, to: "/research/why/entropy-area-law" },
 ];
@@ -57,6 +58,10 @@ const T = {
       noForced: {
         title: "No forced moves",
         body: "And yet no single piece is ever pinned: every interior piece has 73 to 137 possible neighbours. Lots of local freedom, almost no global consistency.",
+      },
+      pieceTheft: {
+        title: "Piece theft, where solvers die",
+        body: "A cell's needed colors can be served by only ~3 pieces, 47 by just one. Spend that one elsewhere and a future cell dies while the box still looks full.",
       },
       rareColor: {
         title: "The rare colors live on the frame",
@@ -100,6 +105,10 @@ const T = {
       noForced: {
         title: "Aucun coup forcé",
         body: "Et pourtant aucune pièce n'est jamais coincée : chaque pièce intérieure a entre 73 et 137 voisines possibles. Beaucoup de liberté locale, presque aucune cohérence globale.",
+      },
+      pieceTheft: {
+        title: "Le vol de pièce, là où les solveurs meurent",
+        body: "Les couleurs requises d'une cellule ne peuvent être servies que par ~3 pièces, 47 par une seule. Dépensez-la ailleurs et une cellule à venir meurt alors que la boîte semble pleine.",
       },
       rareColor: {
         title: "Les couleurs rares vivent sur le cadre",
