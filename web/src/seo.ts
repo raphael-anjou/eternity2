@@ -148,6 +148,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
     },
   },
+  experiments: {
+    en: {
+      title: "Experiments log" + SUFFIX,
+      description:
+        "Everything we tried on Eternity II and how it turned out: hundreds of attempts — successes, half-built ideas, and dead ends — searchable and filterable by outcome, so you can build on them.",
+    },
+    fr: {
+      title: "Journal des expériences" + SUFFIX,
+      description:
+        "Tout ce que nous avons essayé sur Eternity II et le résultat : des centaines de tentatives — succès, idées à moitié construites et impasses — cherchables et filtrables par résultat, pour bâtir dessus.",
+    },
+  },
   findings: {
     en: {
       title: "Findings" + SUFFIX,

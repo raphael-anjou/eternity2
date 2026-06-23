@@ -15,6 +15,7 @@ type Area = { key: string; to?: string; ready: boolean };
 const AREAS: Area[] = [
   { key: "findings", ready: true, to: "/research/lab/findings" },
   { key: "inventions", ready: true, to: "/research/lab/inventions" },
+  { key: "experiments", ready: true, to: "/research/lab/experiments" },
   { key: "basins", ready: true, to: "/research/lab/basins" },
 ];
 
@@ -36,6 +37,10 @@ const T = {
       inventions: {
         title: "Inventions",
         body: "The named algorithms built to push the score: what problem each attacks, the idea, the result it reached, and the open questions it left. Methods and code in full.",
+      },
+      experiments: {
+        title: "Experiments log",
+        body: "Everything we tried, with how it turned out — hundreds of attempts, the wins and the dead ends alike, searchable and filterable. The honest, complete record.",
       },
       basins: {
         title: "Notable boards",
@@ -60,6 +65,10 @@ const T = {
       inventions: {
         title: "Inventions",
         body: "Les algorithmes nommés conçus pour pousser le score : le problème que chacun attaque, l'idée, le résultat atteint et les questions restées ouvertes. Méthodes et code en entier.",
+      },
+      experiments: {
+        title: "Journal des expériences",
+        body: "Tout ce que nous avons essayé, avec le résultat — des centaines de tentatives, les réussites comme les impasses, cherchables et filtrables. Le compte-rendu honnête et complet.",
       },
       basins: {
         title: "Plateaux notables",
