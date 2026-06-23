@@ -4,7 +4,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 
 // A synthesis page: the four structural walls (the "Why it's hard" door) on one
-// axis, the ten invented algorithms (the "Lab notebook" door) on the other. Each
+// axis, the invented algorithms (the "Lab notebook" door) on the other. Each
 // method is mapped to the wall(s) it fundamentally attacks and the exact score
 // where it saturated. Every cell is grounded in the research vault; the four
 // walls themselves are corroborated by the published literature (the 17-colour
@@ -46,6 +46,8 @@ const METHODS: Method[] = [
   { key: "cloister", to: "/research/lab/inventions/cloister", score: 453, family: "anchor", walls: ["area", "rigidity"], newBasin: false },
   { key: "midden", to: "/research/lab/inventions/midden", score: 452, family: "anchor", walls: ["rigidity", "area"], newBasin: false },
   { key: "ladder", to: "/research/lab/inventions/ladder", score: 451, family: "concentrate", walls: ["peak", "forced"], newBasin: true },
+  { key: "lodestone", to: "/research/lab/inventions/lodestone", score: 451, family: "scratch", walls: ["forced"], newBasin: false },
+  { key: "mosaic", to: "/research/lab/inventions/mosaic", score: 448, family: "exact", walls: ["forced", "peak"], newBasin: false },
   { key: "bandsaw", to: "/research/lab/inventions/bandsaw", score: 437, family: "exact", walls: ["forced", "peak"], newBasin: false },
   { key: "staged", to: "/research/lab/inventions/staged", score: 436, family: "scratch", walls: ["forced", "area"], newBasin: false },
 ];
@@ -88,6 +90,8 @@ const T = {
       ladder: "Floods cheap probes and promotes the deepest, reaching a 451 strict board with no record to copy — the first escape from the universal 444–450 band — but the supply of perfect openings runs out and the rungs all converge to one ceiling.",
       bandsaw: "Solves an endgame band to proven optimality, and in doing so measures the exactness wall: the search tree grows about twentyfold per extra allowed mismatch, on both sides, so meeting in the middle stops paying at full size.",
       staged: "Builds the whole board with no pre-set frame and an emergent border, reaching 436 — well below the records. That honest gap is the finding: it measures exactly how much the usual frame-first anchor is worth.",
+      mosaic: "Composes exact 4×4 block solutions with soft seams, reaching 448 from scratch — but the shortfall lands almost entirely in the last three corner blocks, where the piece pool runs thin: the same piece-theft, now a single bright spot.",
+      lodestone: "A scarce-demand prior used only as a tiebreaker lifts the from-scratch median by two (449→451) and tightens the variance, but any larger weight collapses it — scarcity is a real but weak signal, and it never touches the basin ceiling.",
     } as Record<string, string>,
     families: {
       scratch: "from scratch",
@@ -135,6 +139,8 @@ const T = {
       ladder: "Inonde de sondes bon marché et promeut les plus profondes, atteignant un plateau 451 strict sans record à copier — la première sortie de la bande universelle 444–450 — mais le stock d'ouvertures parfaites s'épuise et les barreaux convergent tous vers un seul plafond.",
       bandsaw: "Résout une bande de fin de partie à l'optimum prouvé, et mesure ce faisant le mur d'exactitude : l'arbre de recherche croît d'environ vingt fois par défaut autorisé supplémentaire, des deux côtés, donc se rejoindre au milieu cesse de payer à pleine taille.",
       staged: "Construit tout le plateau sans cadre préétabli et avec une bordure émergente, atteignant 436 — bien sous les records. Cet écart honnête est le résultat : il mesure exactement ce que vaut l'ancrage habituel par le cadre.",
+      mosaic: "Compose des solutions exactes de blocs 4×4 avec jointures souples, atteignant 448 de zéro — mais le déficit tombe presque entièrement dans les trois derniers blocs du coin, où le stock de pièces s'amincit : le même vol de pièce, désormais un seul point vif.",
+      lodestone: "Un prior de demande rare utilisé seulement comme départage relève la médiane de zéro de deux (449→451) et resserre la variance, mais tout poids plus grand l'effondre — la rareté est un signal réel mais faible, et il ne touche jamais au plafond de bassin.",
     } as Record<string, string>,
     families: {
       scratch: "de zéro",

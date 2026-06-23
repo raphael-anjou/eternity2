@@ -464,12 +464,12 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     en: {
       title: "Which wall stops which method" + SUFFIX,
       description:
-        "Four structural walls make Eternity II hard. This maps each of the ten invented algorithms to the wall it attacks and the exact score where it saturated — the connective tissue between why it's hard and what we tried.",
+        "Four structural walls make Eternity II hard. This maps each invented algorithm to the wall it attacks and the exact score where it saturated — the connective tissue between why it's hard and what we tried.",
     },
     fr: {
       title: "Quel mur arrête quelle méthode" + SUFFIX,
       description:
-        "Quatre murs structurels rendent Eternity II difficile. On associe chacun des dix algorithmes inventés au mur qu'il attaque et au score exact où il a saturé — le lien entre pourquoi c'est dur et ce qu'on a essayé.",
+        "Quatre murs structurels rendent Eternity II difficile. On associe chaque algorithme inventé au mur qu'il attaque et au score exact où il a saturé — le lien entre pourquoi c'est dur et ce qu'on a essayé.",
     },
   },
   "rigidity-wall": {
