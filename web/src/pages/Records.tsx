@@ -98,6 +98,7 @@ const T = {
     linkBlackwoodSrc: "Blackwood's solver (original C#)",
     linkBlackwood: "Bucas's libblackwood (C port)",
     linkBlog: "Ramon van der Werf's solver blog",
+    linkVerhaard: "Louis Verhaard's algorithm details",
     sourceNote:
       "Sourced from our research notebook's community history, itself distilled from ~11,500 mailing-list messages and the community Discord.",
     back: "Back to research",
@@ -155,6 +156,7 @@ const T = {
     linkBlackwoodSrc: "Le solveur de Blackwood (C# original)",
     linkBlackwood: "libblackwood de Bucas (portage C)",
     linkBlog: "Le blog de solveur de Ramon van der Werf",
+    linkVerhaard: "Les détails de l'algorithme de Louis Verhaard",
     sourceNote:
       "Tiré de l'historique communautaire de notre carnet de recherche, lui-même distillé de ≈11 500 messages de la liste de diffusion et du Discord de la communauté.",
     back: "Retour à la recherche",
@@ -277,6 +279,14 @@ export default function Records() {
             className="underline underline-offset-2 hover:text-foreground"
           >
             {t.linkBlog}
+          </a>
+          <a
+            href="https://www.shortestpath.se/eii/eii_details.html"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            {t.linkVerhaard}
           </a>
         </div>
       </section>
