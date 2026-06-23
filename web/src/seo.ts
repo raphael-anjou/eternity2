@@ -448,6 +448,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "En recherche combinatoire difficile, réduire l'espace bat le fait de l'explorer plus vite — d'une marge exponentielle. Eternity II est conçu pour qu'on ne puisse presque pas le réduire. Un regard interactif sur élagage contre vitesse.",
     },
   },
+  "basin-archipelago": {
+    en: {
+      title: "The archipelago of record boards" + SUFFIX,
+      description:
+        "Join every near-record Eternity II board to its close neighbours and the strong boards fall into 47 isolated islands — McGavin's 469 a singleton, 247 cells from anything else. Why local search can never cross the open water between them.",
+    },
+    fr: {
+      title: "L'archipel des plateaux records" + SUFFIX,
+      description:
+        "Reliez chaque plateau Eternity II quasi record à ses proches voisins et les bons plateaux se répartissent en 47 îles isolées — le 469 de McGavin un singleton, à 247 cellules de tout le reste. Pourquoi la recherche locale ne peut jamais traverser l'eau libre entre elles.",
+    },
+  },
   "mismatch-geometry": {
     en: {
       title: "Where the mismatches live" + SUFFIX,
