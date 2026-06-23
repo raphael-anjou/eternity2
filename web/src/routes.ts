@@ -21,6 +21,7 @@ const PAGES = [
   { path: "research", file: "pages/Research.tsx", id: "research" },
   { path: "research/why", file: "pages/research/why/Hub.tsx", id: "why" },
   { path: "research/why/prune-vs-speed", file: "pages/research/why/prune-vs-speed.tsx", id: "prune-vs-speed" },
+  { path: "research/why/complex-theory", file: "pages/research/why/complex-theory.tsx", id: "complex-theory" },
   { path: "research/why/phase-transition", file: "pages/research/why/phase-transition.tsx", id: "phase-transition" },
   { path: "research/why/rigidity-wall", file: "pages/research/why/rigidity-wall.tsx", id: "rigidity-wall" },
   { path: "research/why/sigma-cycles", file: "pages/research/why/sigma-cycles.tsx", id: "sigma-cycles" },

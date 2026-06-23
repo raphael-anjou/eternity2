@@ -49,9 +49,23 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Shrinking the search space beats searching it faster, exponentially — and E2 resists shrinking.",
     "Réduire l'espace de recherche bat l'explorer plus vite, exponentiellement — et E2 résiste à la réduction.",
     [
+      "/research/why/complex-theory",
       "/research/why/no-forced-moves",
       "/research/why/phase-transition",
       "/research/why/rigidity-wall",
+    ],
+  ),
+  N(
+    "/research/why/complex-theory",
+    "why",
+    "Complex theory: counting the search",
+    "La théorie complexe : compter la recherche",
+    "Estimate the tree's width at every depth: ~14,702 solutions with one clue, the funnel where 99% of the time goes.",
+    "Estime la largeur de l'arbre à chaque profondeur : ~14 702 solutions avec un indice, l'entonnoir où passe 99 % du temps.",
+    [
+      "/research/why/prune-vs-speed",
+      "/research/why/phase-transition",
+      "/research/why/entropy-area-law",
     ],
   ),
   N(
