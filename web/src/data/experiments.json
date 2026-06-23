@@ -41,7 +41,8 @@
 "id": "a5-bidirectional-design",
 "title": "a5 bidirectional design",
 "status": "partial",
-"summary": "A5 = Bidirectional CSP: solve from corners-in (4 separate fronts) + from center-out simultaneously. Both meet at a 14-cell ring (perimeter of inner 8x8 in canonical 16x16). Designed 2026-05-17."
+"summary": "A5 = Bidirectional CSP: solve from corners-in (4 separate fronts) + from center-out simultaneously. Both meet at a 14-cell ring (perimeter of inner 8x8 in canonical 16x16). Designed 2026-05-17.",
+"why": "The constraints make INNER STRICTLY HARDER than a free 12\u00d712, because the boundary is over-determined."
 },
 {
 "id": "ac-family-comparison",
@@ -119,7 +120,8 @@
 "id": "atlas-pattern-database",
 "title": "atlas pattern database",
 "status": "refuted",
-"summary": "plans/EXTERNALBRAINSTORM2026-05-18"
+"summary": "plans/EXTERNALBRAINSTORM2026-05-18",
+"why": "ATLAS as a per-patch DB is refuted on canonical E2. The objective"
 },
 {
 "id": "band-oracle",
@@ -161,7 +163,8 @@
 "id": "basin-mix-mip-refuted",
 "title": "basin mix mip refuted",
 "status": "refuted",
-"summary": "Vol-112 T1 \u2014 MIP-PROVEN refutation. Given 4 distinct 459 basins, formulated an MIP picking one of the 4 basin assignments per cell, subject to piece-uniqueness, maximising matched edges. HiGHS-CBC solved to OPTIMAL = 459 in 16s. No mix of these 4 basins exceeds 459. Rigorous math"
+"summary": "Vol-112 T1 \u2014 MIP-PROVEN refutation. Given 4 distinct 459 basins, formulated an MIP picking one of the 4 basin assignments per cell, subject to piece-uniqueness, maximising matched edges. HiGHS-CBC solved to OPTIMAL = 459 in 16s. No mix of these 4 basins exceeds 459. Rigorous math",
+"why": "Optimal solution = 459. The MIP proved that no convex"
 },
 {
 "id": "basin-permutation-group",
@@ -215,7 +218,8 @@
 "id": "blackwood-layered-depth-wall",
 "title": "blackwood layered depth wall",
 "status": "refuted",
-"summary": "`blackwood_raw_rect_layered` = [[blackwood-algorithm]] + RectangleDestroy pre-commit + LayeredDestroy ordering (concentric rings inward). The layered ordering was conjectured to encode the schedule-as-failure-mode that vol-14's hint-rectangle finding pointed at."
+"summary": "`blackwood_raw_rect_layered` = [[blackwood-algorithm]] + RectangleDestroy pre-commit + LayeredDestroy ordering (concentric rings inward). The layered ordering was conjectured to encode the schedule-as-failure-mode that vol-14's hint-rectangle finding pointed at.",
+"why": "Layered + Blackwood is fundamentally wrong. The layered ordering enforces a constraint pattern that conflicts with Blackwood's heuristic schedule. Do NOT retry with bigger budget. Clean null."
 },
 {
 "id": "blackwood-schedule-calibration",
@@ -269,7 +273,8 @@
 "id": "boundary-mps",
 "title": "boundary mps",
 "status": "refuted",
-"summary": "Treat the E2 factor graph as a tensor network. Contract row-by-row using MPS approximation with bond dimension \u03c7. Get the partition function Z and marginals. Use as a globally-informed pruner or value-order."
+"summary": "Treat the E2 factor graph as a tensor network. Contract row-by-row using MPS approximation with bond dimension \u03c7. Get the partition function Z and marginals. Use as a globally-informed pruner or value-order.",
+"why": "The 10^101 overcounting gap - MPS Z \u2248 7\u00d710\u2079\u00b3 boundary-consistent colorings (sum over edge configurations consistent with the local matching constraints)."
 },
 {
 "id": "bp-marginals",
@@ -425,7 +430,8 @@
 "id": "component-quotient-destroy",
 "title": "component quotient destroy",
 "status": "refuted",
-"summary": "proves that no local repair with halo \u2264 2 cells can escape the 459"
+"summary": "proves that no local repair with halo \u2264 2 cells can escape the 459",
+"why": "Halo radius - r = 0: only defect cells; CP often infeasible because piece-unique- ness can't be satisfied with the rest of the board fixed."
 },
 {
 "id": "concentric-annular-solving",
@@ -443,7 +449,8 @@
 "id": "concretion-rigid-molecules",
 "title": "concretion rigid molecules",
 "status": "refuted",
-"summary": "plans/EXTERNALBRAINSTORM2026-05-18"
+"summary": "plans/EXTERNALBRAINSTORM2026-05-18",
+"why": "CONCRETION is REFUTED on canonical Selby-Riordan E2 at the simple"
 },
 {
 "id": "constraint-density-vs-alns-gap",
@@ -485,7 +492,8 @@
 "id": "corpus-restricted-mip-doesnt-scale",
 "title": "corpus restricted mip doesnt scale",
 "status": "refuted",
-"summary": "Vol-119 T2 \u2014 Vol-112's basin-mix MIP formulation (binary x[c,b] per cell-basin) doesn't scale beyond N=5 basins. CBC at N=9 timed out at 30min with NO feasible integer solution (LP-UB 1094, far from any integer). The REGIONAL formulation (T5, vault/concepts/corpus-restricted-regi"
+"summary": "Vol-119 T2 \u2014 Vol-112's basin-mix MIP formulation (binary x[c,b] per cell-basin) doesn't scale beyond N=5 basins. CBC at N=9 timed out at 30min with NO feasible integer solution (LP-UB 1094, far from any integer). The REGIONAL formulation (T5, vault/concepts/corpus-restricted-regi",
+"why": "CBC's LP relaxation can't tighten because the y-pair variables don't correspond to any geometric interpretation \u2014 the LP allows fractional contributions to edge matches that the integer rounding can't preserve."
 },
 {
 "id": "corpus-restricted-region-mip-locked",
@@ -515,7 +523,8 @@
 "id": "dead-ends",
 "title": "dead ends",
 "status": "refuted",
-"summary": "- Theoretical block: cavity-method assumes locally-tree-like; E2 is 2D grid with short cycles in every 2\u00d72."
+"summary": "- Theoretical block: cavity-method assumes locally-tree-like; E2 is 2D grid with short cycles in every 2\u00d72.",
+"why": "- D-Wave: would need >100k qubits via minor-embedding; benchmarked at this scale no advantage over classical (Nature Sci."
 },
 {
 "id": "delta-regularized-search",
@@ -563,7 +572,8 @@
 "id": "edge-color-supply-propagator",
 "title": "edge color supply propagator",
 "status": "refuted",
-"summary": "Vol-106 T8 SKETCH then REFUTED. New propagator idea (maintain remaining edge-color supply, check frontier feasibility). Implemented + measured 2026-05-16: ZERO PRUNING, ~40% nps slowdown. The check is REDUNDANT with the existing (top, left)-keyed candidate bucket structure. Docum"
+"summary": "Vol-106 T8 SKETCH then REFUTED. New propagator idea (maintain remaining edge-color supply, check frontier feasibility). Implemented + measured 2026-05-16: ZERO PRUNING, ~40% nps slowdown. The check is REDUNDANT with the existing (top, left)-keyed candidate bucket structure. Docum",
+"why": "When we walk that bucket, we cannot SELECT a piece whose colors would later cause supply[k] = 0 for a required-k, because for cell d+w to demand color k, color k must appear on the piece P we just placed AT depth d (i.e., P.bottom = k)."
 },
 {
 "id": "edge-grid-dual",
@@ -575,7 +585,8 @@
 "id": "engine-perf-hot-paths",
 "title": "engine perf hot paths",
 "status": "partial",
-"summary": "The per-node hot path of the CSP engine. Joe-class profiles (gacolor + AC-3 + multisetequality + depth-gate, the cano..."
+"summary": "The per-node hot path of the CSP engine. Joe-class profiles (gacolor + AC-3 + multisetequality + depth-gate, the cano...",
+"why": "The fix-4 dirty-list approach captures only ~3% of the headline 22% rebuild cost because piece-uniqueness drops mark nearly every unplaced cell dirty."
 },
 {
 "id": "engine-profile-registry",
@@ -599,7 +610,8 @@
 "id": "exact-region-growth",
 "title": "exact region growth",
 "status": "partial",
-"summary": "Vol-216 binding 3: grow the exact endgame from et14 toward et20-28 with stronger admissible bounds \u2014 value-based per-cell LB (vs the old 0/1 sat bound) + Hungarian assignment root cut in exact_tail; k>14 made safe (old fixed [_;56] candidate array would overflow). The only practi"
+"summary": "Vol-216 binding 3: grow the exact endgame from et14 toward et20-28 with stronger admissible bounds \u2014 value-based per-cell LB (vs the old 0/1 sat bound) + Hungarian assignment root cut in exact_tail; k>14 made safe (old fixed [_;56] candidate array would overflow). The only practi",
+"why": "Admissible because static costs ignore tail-internal edges."
 },
 {
 "id": "f2-k-lock-analytical-attempt",
@@ -659,7 +671,8 @@
 "id": "fugacity-corrected-counts",
 "title": "fugacity corrected counts",
 "status": "partial",
-"summary": "Vol-216 (user-directed): grand-canonical fugacity correction for the piece-distinctness overcount in transfer/MPS counts (the vol-209 10^101 wall). Sinkhorn-style saddle z_p <- z_p/u_p enforcing E[usage]=1, log N ~ log Z(z*) - sum log z*. VALIDATED on ground-truth bands (equal ca"
+"summary": "Vol-216 (user-directed): grand-canonical fugacity correction for the piece-distinctness overcount in transfer/MPS counts (the vol-209 10^101 wall). Sinkhorn-style saddle z_p <- z_p/u_p enforcing E[usage]=1, log N ~ log Z(z*) - sum log z*. VALIDATED on ground-truth bands (equal ca",
+"why": "The statistical-mechanics route around the wall that stopped isentrope-entropy-growth's boundary-MPS from counting REAL completions: transfer formalisms let pieces repeat (10^101 overcount at board scale, the \"boundary-MPS null\")."
 },
 {
 "id": "gac-schema",
@@ -701,7 +714,8 @@
 "id": "high-t-mcmc-refuted",
 "title": "high t mcmc refuted",
 "status": "refuted",
-"summary": "Vol-114 T1 \u2014 IDEAS_FROM_BLANK Idea H REFUTED both forms. Single-piece-swap MCMC at T \u2208 {2, 5, 10, 15, 25, 50}: chain randomizes (score crashes from 459 to 20-25), never returns to high-score. \u03c3-cycle MCMC with corpus of 4 459 basins: chain hovers around 459 (max ever observed = 4"
+"summary": "Vol-114 T1 \u2014 IDEAS_FROM_BLANK Idea H REFUTED both forms. Single-piece-swap MCMC at T \u2208 {2, 5, 10, 15, 25, 50}: chain randomizes (score crashes from 459 to 20-25), never returns to high-score. \u03c3-cycle MCMC with corpus of 4 459 basins: chain hovers around 459 (max ever observed = 4",
+"why": "Even at low T (=2), acceptance rate is high (85%) because the typical \u0394 is small (range -5 to +5 per swap, T=2 gives p \u2248 0.6-0.9 for negative deltas), so the chain doesn't stay near 459."
 },
 {
 "id": "hint-compliance-clarification",
@@ -743,7 +757,8 @@
 "id": "iceberg-constructive",
 "title": "iceberg constructive",
 "status": "refuted",
-"summary": "Like GRAIN but greedy-attach to MINIMIZE forbidden 2\u00d73 patches rather"
+"summary": "Like GRAIN but greedy-attach to MINIMIZE forbidden 2\u00d73 patches rather",
+"why": "3 seeds on canonical, ICEBERG vs GRAIN:"
 },
 {
 "id": "infrastructure-consolidation-plan",
@@ -761,7 +776,8 @@
 "id": "intaglio-attack-lex",
 "title": "intaglio attack lex",
 "status": "partial",
-"summary": "Naming: INTAGLIO \u2014 Italian \\\"carved\\\" \u2014 from V138/V139 forbidden-2x2 analysis."
+"summary": "Naming: INTAGLIO \u2014 Italian \\\"carved\\\" \u2014 from V138/V139 forbidden-2x2 analysis.",
+"why": "- Secondary objective: $f2(b) = -|\\text{forbidden-2x2}(b)|$ (negative because we minimize patches)."
 },
 {
 "id": "intaglio-forbidden-patterns",
@@ -773,7 +789,8 @@
 "id": "intaglio-pruned-dfs",
 "title": "intaglio pruned dfs",
 "status": "refuted",
-"summary": "Post-placement 2\u00d72 forbidden-patch check during DFS. At every placement,"
+"summary": "Post-placement 2\u00d72 forbidden-patch check during DFS. At every placement,",
+"why": "Original vacuous; redesign requires changing DFS scan order. This is"
 },
 {
 "id": "interior-14x14-parity-feasible",
@@ -785,13 +802,15 @@
 "id": "intra-cluster-sigma-subset-refuted",
 "title": "intra cluster sigma subset refuted",
 "status": "refuted",
-"summary": "Vol-118 \u2014 even intra-Cluster-A \u03c3-cycle subset application with \u03b4=+1 target (459\u2192460) cannot escape via ALNS. Tested 3-cycle decomposition between bseed1_459 and bseed9_460: cycles sized 21, 14, 4 (total 39 cells). Individual cycles drop score by 9-11. Pairs reach 442-454. Even fr"
+"summary": "Vol-118 \u2014 even intra-Cluster-A \u03c3-cycle subset application with \u03b4=+1 target (459\u2192460) cannot escape via ALNS. Tested 3-cycle decomposition between bseed1_459 and bseed9_460: cycles sized 21, 14, 4 (total 39 cells). Individual cycles drop score by 9-11. Pairs reach 442-454. Even fr",
+"why": "The cross-cluster bound is lower (~448) because the recovery basin under partial application is different (deeper in score)."
 },
 {
 "id": "inv-b4-hall-color-pair-refuted",
 "title": "inv b4 hall color pair refuted",
 "status": "refuted",
-"summary": "Vol-122 INVENTION B4 \u2014 color-pair Hall-condition LP. Refined vol-44's color-UB=480 by adding per-side rotation choice. LP optimum = 480.0; integer MIP optimum = 480.0. Hall does NOT tighten."
+"summary": "Vol-122 INVENTION B4 \u2014 color-pair Hall-condition LP. Refined vol-44's color-UB=480 by adding per-side rotation choice. LP optimum = 480.0; integer MIP optimum = 480.0. Hall does NOT tighten.",
+"why": "- What's refuted: the hypothesis that vol-44's bound (UB \u2248 478) is loose because of per-side rotation slack."
 },
 {
 "id": "inv3-border-dp-seed",
@@ -809,7 +828,8 @@
 "id": "isentrope-entropy-growth",
 "title": "isentrope entropy growth",
 "status": "partial",
-"summary": "ISENTROPE (vol-209) \u2014 adapts the 2026 Canfora-Cede\u00f1o Wang-tiling stat-mech entropy framework to canonical E2. Computes W_\u0393(n)=# valid all-matched n\u00d7n blocks, S_\u0393(n)=log10 W_\u0393(n). Variant A (reusable/color-grammar): n=1\u2192784, n=2\u21924.55M, n=3\u21921.96e11; entropy DENSITY S/n\u00b2 monotonical"
+"summary": "ISENTROPE (vol-209) \u2014 adapts the 2026 Canfora-Cede\u00f1o Wang-tiling stat-mech entropy framework to canonical E2. Computes W_\u0393(n)=# valid all-matched n\u00d7n blocks, S_\u0393(n)=log10 W_\u0393(n). Variant A (reusable/color-grammar): n=1\u2192784, n=2\u21924.55M, n=3\u21921.96e11; entropy DENSITY S/n\u00b2 monotonical",
+"why": "~4.6 valid extensions per cell asymptotically, consistent with WATERSHED's ~2-3 edge-strict survivors.) THE EXPONENTIAL WALL (measured, fundamental): time per width ~\u00d750 (0.0\u21920.1\u2192 1.4\u219275s) because the seam state space is 22^width."
 },
 {
 "id": "j1-backward-multiset-constraint",
@@ -833,7 +853,8 @@
 "id": "j1-center-sweep-failure",
 "title": "j1 center sweep failure",
 "status": "refuted",
-"summary": "J1 center-out sweep FAILED at center band 7 in 130s with beam=5000. Center band has NO border constraints, so state space is too large for the beam to navigate."
+"summary": "J1 center-out sweep FAILED at center band 7 in 130s with beam=5000. Center band has NO border constraints, so state space is too large for the beam to navigate.",
+"why": "Center band 7 (rows 7, 8 \u2014 interior rows with NO border on top/bottom)"
 },
 {
 "id": "j1-chain-band-decomposition-math",
@@ -845,7 +866,8 @@
 "id": "j1-chain-hinted-band-12-failure",
 "title": "j1 chain hinted band 12 failure",
 "status": "refuted",
-"summary": "J1-hinted: J1 chain with 5 canonical hints baked in as fixed_top/fixed_bot constraints. Reaches band 11 (208/256 placed) but fails at band 12 col 2 where hint piece 180 rot 1 at (13,2) is no-state-feasible under accumulated piece supply."
+"summary": "J1-hinted: J1 chain with 5 canonical hints baked in as fixed_top/fixed_bot constraints. Reaches band 11 (208/256 placed) but fails at band 12 col 2 where hint piece 180 rot 1 at (13,2) is no-state-feasible under accumulated piece supply.",
+"why": "Band 12 hint at (13, 2) is piece 180 rot 1. Beam-search fails to find"
 },
 {
 "id": "j1-chain-hinted-v2-fix",
@@ -857,7 +879,8 @@
 "id": "j1-column-dp-design",
 "title": "j1 column dp design",
 "status": "partial",
-"summary": "J1 Double-Row Column-DP with Beam Search \u2014 design + math. Solve E2 as a column-by-column sliding band, with state = (column index, top/bottom boundary colors). Per CLAUDE.md senior-researcher directive."
+"summary": "J1 Double-Row Column-DP with Beam Search \u2014 design + math. Solve E2 as a column-by-column sliding band, with state = (column index, top/bottom boundary colors). Per CLAUDE.md senior-researcher directive.",
+"why": "Pessimistic: same plateau as ALNS (~444-452) because beam doesn't escape basin in the same fundamental way."
 },
 {
 "id": "j1-forward-look-heuristic",
@@ -869,7 +892,8 @@
 "id": "j1-fragment-anchor-design",
 "title": "j1 fragment anchor design",
 "status": "partial",
-"summary": "J1-fragment-anchor: instead of strict top-down chain, solve the 3 hint-containing bands first (bands 1, 7, 12) as independent column-DP fragments, then connect them via top/middle/bottom J1 sub-chains. Addresses the cascade penalty observed in J1-hinted v2."
+"summary": "J1-fragment-anchor: instead of strict top-down chain, solve the 3 hint-containing bands first (bands 1, 7, 12) as independent column-DP fragments, then connect them via top/middle/bottom J1 sub-chains. Addresses the cascade penalty observed in J1-hinted v2.",
+"why": "J1-fragment-anchor (design only) Motivation j1-hinted-v2-band-score-decomp showed the J1-hinted v2 loss is cumulative: bands 6-13 each drop 1-7 points because the upstream pieces consumed in band 0 (with hint reservation already applied) leave a worse pool for downstream bands."
 },
 {
 "id": "j1-hinted-v2-band-score-decomp",
@@ -929,7 +953,8 @@
 "id": "k10-kuramoto-design-issues",
 "title": "k10 kuramoto design issues",
 "status": "partial",
-"summary": "K10 Kuramoto coupled-oscillator for E2 \u2014 design analysis reveals the mapping isn't natural. Each cell would need a continuous phase, but the puzzle is fundamentally discrete (piece-id + rotation). Kuramoto-on-E2 collapses to XY model that doesn't map back to piece assignments."
+"summary": "K10 Kuramoto coupled-oscillator for E2 \u2014 design analysis reveals the mapping isn't natural. Each cell would need a continuous phase, but the puzzle is fundamentally discrete (piece-id + rotation). Kuramoto-on-E2 collapses to XY model that doesn't map back to piece assignments.",
+"why": "K10 Kuramoto-on-E2 does not provide new operational structure. The"
 },
 {
 "id": "k11-2-algebraic-connectivity-signature",
@@ -971,7 +996,8 @@
 "id": "k8-fft-signature-refuted",
 "title": "k8 fft signature refuted",
 "status": "refuted",
-"summary": "K8 = FFT signature: treat board as 16\u00d716\u00d74 image, compute 2D FFT. Hypothesis: high-score boards have characteristic low-frequency dominance. REFUTED \u2014 all complete boards (444-459) have identical low_frac \u2248 0.903."
+"summary": "K8 = FFT signature: treat board as 16\u00d716\u00d74 image, compute 2D FFT. Hypothesis: high-score boards have characteristic low-frequency dominance. REFUTED \u2014 all complete boards (444-459) have identical low_frac \u2248 0.903.",
+"why": "All complete boards (256 cells, scores 444-459) have lowfrac in"
 },
 {
 "id": "k9-mismatch-topology-finding",
@@ -1001,25 +1027,29 @@
 "id": "lattice-forced-chains",
 "title": "lattice forced chains",
 "status": "refuted",
-"summary": "LATTICE (vol-205) \u2014 tested whether color/scarcity uniqueness forces UNCONDITIONAL piece placements for any 480 solution. Result \u2014 ZERO unconditional forced adjacencies (single colors appear 20-49\u00d7 each), all 196 interior pieces orbit-4, all 4 corners fit all 4 corners. E2 has no "
+"summary": "LATTICE (vol-205) \u2014 tested whether color/scarcity uniqueness forces UNCONDITIONAL piece placements for any 480 solution. Result \u2014 ZERO unconditional forced adjacencies (single colors appear 20-49\u00d7 each), all 196 interior pieces orbit-4, all 4 corners fit all 4 corners. E2 has no ",
+"why": "1. Single-color partner counts are large (forcedadjacency.py): each of the"
 },
 {
 "id": "learned-value-order",
 "title": "learned value order",
 "status": "partial",
-"summary": "Does a small imitation-learning model trained on synthetic E2-family"
+"summary": "Does a small imitation-learning model trained on synthetic E2-family",
+"why": "learned-on-ties-hyperparam-sweep \u2192 refuted (model never called)"
 },
 {
 "id": "ledger-color-deficit",
 "title": "ledger color deficit",
 "status": "partial",
-"summary": "LEDGER (vol-214): admissible in-DFS color-accounting prune \u2014 per color, frontier demand F_c (rim targets on empty cells + placed sides facing empty cells) vs pool supply S_c (sides among available pieces); prune when spent + \u03a3 max(0, F_c \u2212 S_c) > budget. First prune that sees poo"
+"summary": "LEDGER (vol-214): admissible in-DFS color-accounting prune \u2014 per color, frontier demand F_c (rim targets on empty cells + placed sides facing empty cells) vs pool supply S_c (sides among available pieces); prune when spent + \u03a3 max(0, F_c \u2212 S_c) > budget. First prune that sees poo",
+"why": "sound-insert rule: only on clean candidate exhaustion (no restart"
 },
 {
 "id": "lifted-lp-column-gen-per-piece",
 "title": "lifted lp column gen per piece",
 "status": "refuted",
-"summary": "instance with HiGHS verification) shows the gap mechanism is cell-"
+"summary": "instance with HiGHS verification) shows the gap mechanism is cell-",
+"why": "Column-gen is preferred in practice because it gives finite termination (vs subgradient's asymptotic convergence) and because modern LP solvers like HiGHS handle the master efficiently."
 },
 {
 "id": "lifted-lp-column-generation",
@@ -1241,13 +1271,15 @@
 "id": "mcgavin-top4-mip-bounded",
 "title": "mcgavin top4 mip bounded",
 "status": "partial",
-"summary": "vol-86 top-4-rows MIP on McGavin gave SOUND BOUND \u2014 dual=123, best feasible=116, gap=6%. Means McGavin's top-4 cannot exceed 123 under LP relaxation but no improvement found in 1200s. First non-trivial sound bound BELOW 480 on canonical E2."
+"summary": "vol-86 top-4-rows MIP on McGavin gave SOUND BOUND \u2014 dual=123, best feasible=116, gap=6%. Means McGavin's top-4 cannot exceed 123 under LP relaxation but no improvement found in 1200s. First non-trivial sound bound BELOW 480 on canonical E2.",
+"why": "McGavin's 469 with cluster = rows 0-3 (top 4 rows, 64 cells)."
 },
 {
 "id": "mcgavin-top5-mip-inconclusive",
 "title": "mcgavin top5 mip inconclusive",
 "status": "partial",
-"summary": "Top-5-rows MIP on McGavin 469 didn't finish \u2014 600s time limit hit with 0 B&B nodes explored, 1745% gap. Best feasible = current 144 (no improvement) but NOT a proof. Honest null result."
+"summary": "Top-5-rows MIP on McGavin 469 didn't finish \u2014 600s time limit hit with 0 B&B nodes explored, 1745% gap. Best feasible = current 144 (no improvement) but NOT a proof. Honest null result.",
+"why": "Best feasible solution: obj=144 (identical to McGavin's current"
 },
 {
 "id": "method-vs-record-divergence",
@@ -1265,7 +1297,8 @@
 "id": "min-boundary-subset-bridge-refuted",
 "title": "min boundary subset bridge refuted",
 "status": "refuted",
-"summary": "Vol-117 T4 \u2014 refutes the 'min-boundary \u03c3-cycle subset + ALNS' bridge hypothesis. Greedy min-boundary subsets of the 459\u2192McGavin 154-cycle achieve k=10/b=24, k=20/b=38, k=40/b=64 (vs contiguous min ~3-4\u00d7 higher). Applying these subsets loses ~boundary-many score edges (22, 38, 63)"
+"summary": "Vol-117 T4 \u2014 refutes the 'min-boundary \u03c3-cycle subset + ALNS' bridge hypothesis. Greedy min-boundary subsets of the 459\u2192McGavin 154-cycle achieve k=10/b=24, k=20/b=38, k=40/b=64 (vs contiguous min ~3-4\u00d7 higher). Applying these subsets loses ~boundary-many score edges (22, 38, 63)",
+"why": "vol-110 \u03c3-subset enumeration, vol-112 basin-mix MIP, vol-114"
 },
 {
 "id": "mip-local-optimality-459",
@@ -1307,7 +1340,8 @@
 "id": "murmuration-basin-sampling",
 "title": "murmuration basin sampling",
 "status": "partial",
-"summary": "The E2 score landscape has a 460-tier basin family. Volumes 122 and 129 found 18 distinct corner-perms with boards sc..."
+"summary": "The E2 score landscape has a 460-tier basin family. Volumes 122 and 129 found 18 distinct corner-perms with boards sc...",
+"why": "Adding seed-tiebreak is null because there are essentially no exact-score ties at K \u2265 256 (vols 162-163 confirmed empirically)."
 },
 {
 "id": "n-series-enumeration-deadend",
@@ -1361,7 +1395,8 @@
 "id": "oracle-aware-alns-repair",
 "title": "oracle aware alns repair",
 "status": "refuted",
-"summary": "Vol-109 T1 \u2014 analytical concern EMPIRICALLY CONFIRMED. The cheap test (`vol109_oracle_graft.py`) grafted the oracle's pieces at \u03c3-cycle positions into offset=100's partial. Result: score DROPPED from 442 to 271 (-171). Cumulative grafting through top-6 cycles never exceeds 271. T"
+"summary": "Vol-109 T1 \u2014 analytical concern EMPIRICALLY CONFIRMED. The cheap test (`vol109_oracle_graft.py`) grafted the oracle's pieces at \u03c3-cycle positions into offset=100's partial. Result: score DROPPED from 442 to 271 (-171). Cumulative grafting through top-6 cycles never exceeds 271. T",
+"why": "Why the graft is catastrophic The partial achieved score 442 because its piece placements have MANY matching edges in the non-cycle region."
 },
 {
 "id": "oracle-cycle-swap",
@@ -1373,7 +1408,8 @@
 "id": "ot-hungarian-repair",
 "title": "ot hungarian repair",
 "status": "refuted",
-"summary": "Given current placement and a target piece-distribution, compute the **Hungarian / Kuhn-Munkres** optimal piece-to-cell assignment under a cost function (edge-mismatch count, or relaxed bound, or distance to target)."
+"summary": "Given current placement and a target piece-distribution, compute the **Hungarian / Kuhn-Munkres** optimal piece-to-cell assignment under a cost function (edge-mismatch count, or relaxed bound, or distance to target).",
+"why": "In pipeline: deterministic descent IS the useful property \u2014 it gives ALNS a clean starting state with structure preserved from the bound-ascent."
 },
 {
 "id": "p18-s2-458-new-basin-family",
@@ -1421,7 +1457,8 @@
 "id": "per-piece-column-gen-6x6-worked",
 "title": "per piece column gen 6x6 worked",
 "status": "refuted",
-"summary": "a 6\u00d76/5c worked example to validate before any engineering investment."
+"summary": "a 6\u00d76/5c worked example to validate before any engineering investment.",
+"why": "Per-piece column-gen as standalone LP relaxation: not the right tool."
 },
 {
 "id": "per-row-diversity-corpus",
@@ -1547,13 +1584,15 @@
 "id": "regin-alldiff-brouillon",
 "title": "regin alldiff brouillon",
 "status": "partial",
-"summary": "Vol-125 brouillon: math + pseudocode for R\u00e9gin 1994 alldiff filter applied to Eternity II super-block BB&B. Written carefully to debug v6 bug (max-depth dropped from 39 -> 30 when R\u00e9gin filter was active, suggesting over-removal)."
+"summary": "Vol-125 brouillon: math + pseudocode for R\u00e9gin 1994 alldiff filter applied to Eternity II super-block BB&B. Written carefully to debug v6 bug (max-depth dropped from 39 -> 30 when R\u00e9gin filter was active, suggesting over-removal).",
+"why": "In my v6 test (with assertion), I might be running ASSERT-INSTRUMENTED but the slowdown to 1.5 nodes/s might be because I added 2562 assertions per regin call."
 },
 {
 "id": "reinforce-plackett-luce-value-order",
 "title": "reinforce plackett luce value order",
 "status": "partial",
-"summary": "the cheap \\\"no engine change\\\" path is dead (vol-50, 2026-05-15)."
+"summary": "the cheap \\\"no engine change\\\" path is dead (vol-50, 2026-05-15).",
+"why": "vol-50 \u2014 vol-50 session"
 },
 {
 "id": "relax-and-cross-cvc",
@@ -1667,7 +1706,8 @@
 "id": "semaphore-row-hungarian",
 "title": "semaphore row hungarian",
 "status": "refuted",
-"summary": "Naming: SEMAPHORE \u2014 Greek for \\\"sign-bearer\\\"; per-row signals from above propagate to determine below."
+"summary": "Naming: SEMAPHORE \u2014 Greek for \\\"sign-bearer\\\"; per-row signals from above propagate to determine below.",
+"why": "But for E2's 16-row structure, even an EXACT per-row solver is fundamentally different from greedy beam: it can find row placements with 14-15 matched edges that beam might miss because greedy can't see the cross-row constraints."
 },
 {
 "id": "session-2-final-synthesis",
@@ -1691,7 +1731,8 @@
 "id": "sigma-cycle-destroy",
 "title": "sigma cycle destroy",
 "status": "refuted",
-"summary": "Vol-108 T1 \u2014 built a SigmaCycleDestroy ALNS operator (+ halo variant) that destroys cells along the largest \u03c3-cycle to an oracle good basin. Tested on offset=100 partial (max-cyc 71, baseline ALNS-lift 446). Result: NO IMPROVEMENT (448 with or without sigma op). The destroy-and-l"
+"summary": "Vol-108 T1 \u2014 built a SigmaCycleDestroy ALNS operator (+ halo variant) that destroys cells along the largest \u03c3-cycle to an oracle good basin. Tested on offset=100 partial (max-cyc 71, baseline ALNS-lift 446). Result: NO IMPROVEMENT (448 with or without sigma op). The destroy-and-l",
+"why": "The whole vol-18 work was that THIS doesn't help either, because the cycle in isolation has \u0394 < 0; only full-cycle application crosses the barrier with \u0394 > 0."
 },
 {
 "id": "sigma-cycle-indecomposable-vol32-458",
@@ -1769,7 +1810,8 @@
 "id": "stratum-orbits",
 "title": "stratum orbits",
 "status": "refuted",
-"summary": "maxdepth 86 vs ~250 in 60s. Global value-order uninformative."
+"summary": "maxdepth 86 vs ~250 in 60s. Global value-order uninformative.",
+"why": "Same lesson as V147: pruners over \"already-placed\" partials are vacuous in strict DFS because strict DFS only places cells that can't yet violate the invariant."
 },
 {
 "id": "streamlining-for-e2",
@@ -1811,7 +1853,8 @@
 "id": "survey-propagation",
 "title": "survey propagation",
 "status": "refuted",
-"summary": "SP extends [[bp-marginals]] with a Parisi parameter `m \u2208 [0, 1]` that, in 1RSB-shattered landscapes, sharpens marginals around clusters of solutions. Successful on random k-SAT, q-coloring, NAE-SAT near phase transitions."
+"summary": "SP extends [[bp-marginals]] with a Parisi parameter `m \u2208 [0, 1]` that, in 1RSB-shattered landscapes, sharpens marginals around clusters of solutions. Successful on random k-SAT, q-coloring, NAE-SAT near phase transitions.",
+"why": "Do not propose SP/BP for E2 unless someone has a fresh result on grid-structured factor graphs. This is theorem-level, not \"we haven't tuned it enough.\""
 },
 {
 "id": "symmetry-analysis",
@@ -1859,7 +1902,8 @@
 "id": "tidemark-conditional-marginals",
 "title": "tidemark conditional marginals",
 "status": "refuted",
-"summary": "TIDEMARK (vol-210) \u2014 conditional placement marginals of the free tail GIVEN a committed perfect-prefix board, via the \u03c7-truncated boundary MPS with pins. Tests whether conditioning on a good 60-80% board sharpens the hard tail (exploitable for tail-resolution) or stays flat (rigo"
+"summary": "TIDEMARK (vol-210) \u2014 conditional placement marginals of the free tail GIVEN a committed perfect-prefix board, via the \u03c7-truncated boundary MPS with pins. Tests whether conditioning on a good 60-80% board sharpens the hard tail (exploitable for tail-resolution) or stays flat (rigo",
+"why": "Why this matters / lesson (anti-pattern caught): UNCONDITIONAL entropy (vol-209) converged fine at \u03c7=16-32 (validated vs brute on 4\u00d74/6\u00d76) because it's low-entanglement."
 },
 {
 "id": "top-row-determines-basin",
@@ -1883,7 +1927,8 @@
 "id": "transept-strip-assignment",
 "title": "transept strip assignment",
 "status": "partial",
-"summary": "TRANSEPT (vol-208) \u2014 from-scratch constructor: solve a GLOBAL piece\u2192horizontal-stratum assignment, then each stratum to MaxScore optimum vs its assigned pool + shared seam, then optimize seams. Synthesizes N2 (strip-MaxSAT) + N1 (assignment-pricing). GATE findings: a near-perfect"
+"summary": "TRANSEPT (vol-208) \u2014 from-scratch constructor: solve a GLOBAL piece\u2192horizontal-stratum assignment, then each stratum to MaxScore optimum vs its assigned pool + shared seam, then optimize seams. Synthesizes N2 (strip-MaxSAT) + N1 (assignment-pricing). GATE findings: a near-perfect",
+"why": "The idea Every prior from-scratch constructor (greedy ~385, BP-decimation 435, MOSAIC 448, Anjou scaffolds ~429) plateaus far below SOTA because of ONE shared failure mode: the last-filled region inherits incompatible pieces (piece-theft / pool depletion)."
 },
 {
 "id": "tunnel-pt-destroy-ladder",
@@ -1907,7 +1952,8 @@
 "id": "unsat-clause-propagator",
 "title": "unsat clause propagator",
 "status": "refuted",
-"summary": "- **Hard-pruner**: `refuted` \u2014 capiman's clauses are heuristic-specific,"
+"summary": "- **Hard-pruner**: `refuted` \u2014 capiman's clauses are heuristic-specific,",
+"why": "This acts as a 2-piece-lookahead propagator \u2014 strictly stronger than pairwise AC-3 because the SAT-derived forbidden set encodes long-range unsatisfiability proofs that AC-3 cannot rediscover locally."
 },
 {
 "id": "v125-461-reproducibility",
@@ -1961,7 +2007,8 @@
 "id": "v182-engrave-csp-fill",
 "title": "v182 engrave csp fill",
 "status": "partial",
-"summary": "1. Strip a contiguous row band of $K$ rows (e.g., rows 12..15) \u2192 leaves $192$ pieces placed and $64 - 16 K$ cells empty."
+"summary": "1. Strip a contiguous row band of $K$ rows (e.g., rows 12..15) \u2192 leaves $192$ pieces placed and $64 - 16 K$ cells empty.",
+"why": "This is stronger than \"ALNS can't lift\" because ENGRAVE is exact: no randomness, no time-budget excuse."
 },
 {
 "id": "v186-color-conservation",
@@ -1973,7 +2020,8 @@
 "id": "v186-pool-biased-top-down",
 "title": "v186 pool biased top down",
 "status": "refuted",
-"summary": "V184 LIGHTHOUSE (hard interface) failed: 0/1024 valid pairs."
+"summary": "V184 LIGHTHOUSE (hard interface) failed: 0/1024 valid pairs.",
+"why": "The wall is at row 12 (bottom-up direction) because the residual piece pool (256 \u2212 pieces-in-top) cannot form a valid chain through rows 12\u201314."
 },
 {
 "id": "v187-intaglio-mip",
@@ -2099,7 +2147,8 @@
 "id": "vol122-k8-interior-mip-intractable",
 "title": "vol122 k8 interior mip intractable",
 "status": "refuted",
-"summary": "Vol-122 K8 TIMF (Targeted Interior MIP) result: 30min HiGHS timeout. No feasible integer solution found. MIP intractable at canonical scale."
+"summary": "Vol-122 K8 TIMF (Targeted Interior MIP) result: 30min HiGHS timeout. No feasible integer solution found. MIP intractable at canonical scale.",
+"why": "- Region-restricted MIPs (vol-119's corpus-restricted MIP is this: works because vars-to-pieces is restricted to a known corpus)."
 },
 {
 "id": "vol122-mcgavin-border-our-stack-435",
@@ -2135,7 +2184,8 @@
 "id": "vol122-rcbo-refuted",
 "title": "vol122 rcbo refuted",
 "status": "refuted",
-"summary": "Vol-122 K1 \u2014 Reverse Construction via Boundary-Out (center-out CSP). REFUTED. Across 5\u00d75 through 8\u00d78 puzzles, center-out is 10\u00d7\u2013100\u00d7 SLOWER than border-out, often failing to solve."
+"summary": "Vol-122 K1 \u2014 Reverse Construction via Boundary-Out (center-out CSP). REFUTED. Across 5\u00d75 through 8\u00d78 puzzles, center-out is 10\u00d7\u2013100\u00d7 SLOWER than border-out, often failing to solve.",
+"why": "Tested on 5\u00d75 through 8\u00d78 puzzles with row-major, border-out, and"
 },
 {
 "id": "vol122-sigma-perm0-444-to-mcgavin-indecomposable",
@@ -2177,13 +2227,15 @@
 "id": "w1-canonical-scale-plan",
 "title": "w1 canonical scale plan",
 "status": "partial",
-"summary": "Roadmap for scaling W1 PEPS-Lagrangian to canonical 16\u00d716. Phase 1 (DONE): Python validation on 4\u00d74/6\u00d76. Phase 2 (NOW): Python multiprocessing. Phase 3 (next): full Rust port with PyO3 fallback for contraction. Phase 4: canonical run."
+"summary": "Roadmap for scaling W1 PEPS-Lagrangian to canonical 16\u00d716. Phase 1 (DONE): Python validation on 4\u00d74/6\u00d76. Phase 2 (NOW): Python multiprocessing. Phase 3 (next): full Rust port with PyO3 fallback for contraction. Phase 4: canonical run.",
+"why": "They dominate because we do ncells \u00d7 niter \u00d7 nrounds of them."
 },
 {
 "id": "w1-peps-design-derivation",
 "title": "w1 peps design derivation",
 "status": "partial",
-"summary": "W1 design derivation. Hyperoptimized 2D PEPS contraction for E2. Confronts the vol-13 piece-uniqueness obstruction: local-message-passing cannot capture global permutation. Designs a *factor-augmented* PEPS where piece-pool sites enforce supply constraints. Three candidate encodi"
+"summary": "W1 design derivation. Hyperoptimized 2D PEPS contraction for E2. Confronts the vol-13 piece-uniqueness obstruction: local-message-passing cannot capture global permutation. Designs a *factor-augmented* PEPS where piece-pool sites enforce supply constraints. Three candidate encodi",
+"why": "$\\approx 10^{-8}$ expected solutions \u2014 $10^{101}$ overcounting gap, all from the missing permutation constraint."
 },
 {
 "id": "w1-peps-empirical-results",
@@ -2201,7 +2253,8 @@
 "id": "w11-border-screen-unviable",
 "title": "w11 border screen unviable",
 "status": "refuted",
-"summary": "Vol-124 conclusion: SAT-screen-per-border on canonical E2 cannot be a primary engine. Border space is ~10^7-10^9, per-border SAT is ~1.9s \u2192 enumeration would take ~22 single-thread years. W11 retires as a primary attack; remains useful as post-hoc verification (yes/no on a candid"
+"summary": "Vol-124 conclusion: SAT-screen-per-border on canonical E2 cannot be a primary engine. Border space is ~10^7-10^9, per-border SAT is ~1.9s \u2192 enumeration would take ~22 single-thread years. W11 retires as a primary attack; remains useful as post-hoc verification (yes/no on a candid",
+"why": "SAT-screen-per-border cannot be the primary attack on canonical E2."
 },
 {
 "id": "w11-sat-correctness-validated",
@@ -2231,7 +2284,8 @@
 "id": "w2-sp-for-e2-derivation",
 "title": "w2 sp for e2 derivation",
 "status": "partial",
-"summary": "Derivation: Survey Propagation adapted for E2's structured factor graph. SP was designed for random k-SAT; E2's factors are STRUCTURED (color matching, piece-uniqueness, hint pins). Derives the message-passing equations and identifies where the structure helps vs. hurts."
+"summary": "Derivation: Survey Propagation adapted for E2's structured factor graph. SP was designed for random k-SAT; E2's factors are STRUCTURED (color matching, piece-uniqueness, hint pins). Derives the message-passing equations and identifies where the structure helps vs. hurts.",
+"why": "- SP may give STRONGER marginals than BP because it accounts for the cluster correlation that BP averages over."
 },
 {
 "id": "w9-quantum-amplitude-scoring",
@@ -2243,7 +2297,8 @@
 "id": "watershed-frontier-flow",
 "title": "watershed frontier flow",
 "status": "partial",
-"summary": "WATERSHED (vol-204) \u2014 diagnosed canonical E2 DFS deaths as 90% PIECE THEFT from brutal (N,W)-pair scarcity (33% of color-pairs have a UNIQUE serving piece). Global Hall/flow fires 0 levels early (deaths are local resource-misallocation, not global supply). Scarcity-aware value or"
+"summary": "WATERSHED (vol-204) \u2014 diagnosed canonical E2 DFS deaths as 90% PIECE THEFT from brutal (N,W)-pair scarcity (33% of color-pairs have a UNIQUE serving piece). Global Hall/flow fires 0 levels early (deaths are local resource-misallocation, not global supply). Scarcity-aware value or",
+"why": "The scarcity signal is REAL but its leverage is narrow: it improves single-shot"
 },
 {
 "id": "weaving-beam",
