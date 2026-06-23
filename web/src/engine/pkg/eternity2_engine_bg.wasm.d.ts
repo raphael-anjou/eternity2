@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const __wbg_wasmbreaksolver_free: (a: number, b: number) => void;
 export const __wbg_wasmsolver_free: (a: number, b: number) => void;
 export const buildPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const generatePuzzle: (a: number, b: number, c: number) => any;
@@ -11,6 +12,14 @@ export const maxColors: (a: number) => number;
 export const officialPuzzle: () => any;
 export const pathKinds: () => [number, number];
 export const scoreBoard: (a: any, b: number, c: number) => [number, number, number];
+export const wasmbreaksolver_bestBoard: (a: number) => [number, number];
+export const wasmbreaksolver_board: (a: number) => [number, number];
+export const wasmbreaksolver_breaks: (a: number) => number;
+export const wasmbreaksolver_new: (a: any, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+export const wasmbreaksolver_report: (a: number) => any;
+export const wasmbreaksolver_reset: (a: number) => void;
+export const wasmbreaksolver_score: (a: number) => number;
+export const wasmbreaksolver_step: (a: number, b: number) => any;
 export const wasmsolver_bestBoard: (a: number) => [number, number];
 export const wasmsolver_bestScore: (a: number) => number;
 export const wasmsolver_board: (a: number) => [number, number];

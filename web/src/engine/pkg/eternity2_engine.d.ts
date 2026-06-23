@@ -1,6 +1,25 @@
 /* tslint:disable */
 /* eslint-disable */
 
+/**
+ * Break-tolerant solver: the same step-able surface, but a mismatch is allowed
+ * only at the fixed `break_positions` cells (one each), plus a live `breaks`
+ * count. This is the mechanism behind the community record solvers — see
+ * `break_solver.rs`.
+ */
+export class WasmBreakSolver {
+    free(): void;
+    [Symbol.dispose](): void;
+    bestBoard(): Int32Array;
+    board(): Int32Array;
+    breaks(): number;
+    constructor(puzzle: any, path: Uint16Array, use_hints: boolean, break_positions: Uint16Array);
+    report(): any;
+    reset(): void;
+    score(): number;
+    step(budget: number): any;
+}
+
 export class WasmSolver {
     free(): void;
     [Symbol.dispose](): void;
@@ -54,6 +73,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_wasmbreaksolver_free: (a: number, b: number) => void;
     readonly __wbg_wasmsolver_free: (a: number, b: number) => void;
     readonly buildPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly generatePuzzle: (a: number, b: number, c: number) => any;
@@ -64,6 +84,14 @@ export interface InitOutput {
     readonly officialPuzzle: () => any;
     readonly pathKinds: () => [number, number];
     readonly scoreBoard: (a: any, b: number, c: number) => [number, number, number];
+    readonly wasmbreaksolver_bestBoard: (a: number) => [number, number];
+    readonly wasmbreaksolver_board: (a: number) => [number, number];
+    readonly wasmbreaksolver_breaks: (a: number) => number;
+    readonly wasmbreaksolver_new: (a: any, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly wasmbreaksolver_report: (a: number) => any;
+    readonly wasmbreaksolver_reset: (a: number) => void;
+    readonly wasmbreaksolver_score: (a: number) => number;
+    readonly wasmbreaksolver_step: (a: number, b: number) => any;
     readonly wasmsolver_bestBoard: (a: number) => [number, number];
     readonly wasmsolver_bestScore: (a: number) => number;
     readonly wasmsolver_board: (a: number) => [number, number];

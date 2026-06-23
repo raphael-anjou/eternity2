@@ -15,12 +15,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod break_solver;
 pub mod generator;
 pub mod official;
 pub mod paths;
 pub mod solver;
 pub mod types;
 
+pub use break_solver::BreakSolver;
 pub use generator::{generate, generate_framed, generate_solved_framed};
 pub use official::official_puzzle;
 pub use paths::{build_path, PATH_KINDS};
@@ -158,5 +160,72 @@ impl WasmSolver {
             self.seed,
         )
         .expect("reset with previously validated arguments");
+    }
+}
+
+/// Break-tolerant solver: the same step-able surface, but a mismatch is allowed
+/// only at the fixed `break_positions` cells (one each), plus a live `breaks`
+/// count. This is the mechanism behind the community record solvers — see
+/// `break_solver.rs`.
+#[wasm_bindgen]
+pub struct WasmBreakSolver {
+    puzzle: Puzzle,
+    inner: BreakSolver,
+    path: Vec<u16>,
+    use_hints: bool,
+    break_positions: Vec<u16>,
+}
+
+#[wasm_bindgen]
+impl WasmBreakSolver {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        puzzle: JsValue,
+        path: Vec<u16>,
+        use_hints: bool,
+        break_positions: Vec<u16>,
+    ) -> Result<WasmBreakSolver, JsValue> {
+        let puzzle: Puzzle = serde_wasm_bindgen::from_value(puzzle)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let inner = BreakSolver::new(&puzzle, &path, use_hints, &break_positions)
+            .map_err(|e| JsValue::from_str(&e))?;
+        Ok(WasmBreakSolver {
+            puzzle,
+            inner,
+            path,
+            use_hints,
+            break_positions,
+        })
+    }
+
+    pub fn step(&mut self, budget: u32) -> JsValue {
+        to_js(&self.inner.step(budget))
+    }
+
+    pub fn report(&self) -> JsValue {
+        to_js(&self.inner.report())
+    }
+
+    pub fn board(&self) -> Vec<i32> {
+        self.inner.board().to_vec()
+    }
+
+    #[wasm_bindgen(js_name = bestBoard)]
+    pub fn best_board(&self) -> Vec<i32> {
+        self.inner.best_board().to_vec()
+    }
+
+    pub fn score(&self) -> u32 {
+        solver::score_board(&self.puzzle, self.inner.board())
+    }
+
+    pub fn breaks(&self) -> u32 {
+        self.inner.breaks_used()
+    }
+
+    pub fn reset(&mut self) {
+        self.inner =
+            BreakSolver::new(&self.puzzle, &self.path, self.use_hints, &self.break_positions)
+                .expect("reset with previously validated arguments");
     }
 }

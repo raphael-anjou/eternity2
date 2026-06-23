@@ -9,6 +9,7 @@
 
 import init, {
   WasmSolver,
+  WasmBreakSolver,
   buildPath,
   generatePuzzle,
   generatePuzzleFramed,
@@ -20,7 +21,7 @@ import init, {
   scoreBoard,
 } from "../pkg/eternity2_engine";
 import wasmUrl from "../pkg/eternity2_engine_bg.wasm?url";
-import type { Puzzle, SolverReport, SolverHandle } from "@/lib/types";
+import type { Puzzle, SolverReport, SolverHandle, BreakSolverHandle } from "@/lib/types";
 
 let ready: Promise<void> | null = null;
 
@@ -103,6 +104,32 @@ export function createSolver(
     bestBoard: () => solver.bestBoard(),
     score: () => solver.score(),
     bestScore: () => solver.bestScore(),
+    reset: () => solver.reset(),
+    free: () => solver.free(),
+  };
+}
+
+/** Break-tolerant solver (see engine/src/break_solver.rs): completes a full
+ * board allowing one mismatch at each of the fixed `breakPositions` cells.
+ * Rust/WASM only. */
+export function createBreakSolver(
+  puzzle: Puzzle,
+  path: Uint16Array,
+  opts: { useHints?: boolean; breakPositions?: Uint16Array } = {},
+): BreakSolverHandle {
+  const solver = new WasmBreakSolver(
+    puzzle,
+    path,
+    opts.useHints ?? true,
+    opts.breakPositions ?? new Uint16Array(0),
+  );
+  return {
+    step: (budget) => solver.step(budget) as SolverReport,
+    report: () => solver.report() as SolverReport,
+    board: () => solver.board(),
+    bestBoard: () => solver.bestBoard(),
+    score: () => solver.score(),
+    breaks: () => solver.breaks(),
     reset: () => solver.reset(),
     free: () => solver.free(),
   };

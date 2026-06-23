@@ -2,6 +2,7 @@ import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { DfsDemo } from "@/components/learn/DfsDemo";
+import { BreakIndexLab } from "@/components/research/BreakIndexLab";
 
 // The solver catalogue: how the notable solvers actually search. Prose for now,
 // with links into the live playground (Watch / Paths) so readers can see a real
@@ -103,6 +104,7 @@ export default function SolversHub() {
                 <DfsDemo />
               </div>
             )}
+            {i === 2 && <BreakIndexLab />}
           </div>
         ))}
       </section>
