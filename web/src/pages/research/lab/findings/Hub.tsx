@@ -17,6 +17,8 @@ const FINDINGS: Finding[] = [
   { key: "entropy", to: "/research/why/entropy-area-law", kind: "wall" },
   { key: "rigidity", to: "/research/why/rigidity-wall", kind: "proof" },
   { key: "sigma", to: "/research/why/sigma-cycles", kind: "proof" },
+  { key: "archipelago", to: "/research/why/basin-archipelago", kind: "proof" },
+  { key: "mismatch", to: "/research/why/mismatch-geometry", kind: "proof" },
 ];
 
 const T = {
@@ -31,6 +33,7 @@ const T = {
       proof: "Rigidity proofs",
     },
     reproNote: "Each finding links to its full write-up, with the exact computation and a reproduce command.",
+    synthesisCta: "See how each wall maps to the methods that hit it →",
     findings: {
       phase: {
         title: "Tuned to the hardness peak",
@@ -60,6 +63,14 @@ const T = {
         title: "Why basin-hopping is impossible",
         body: "Two great boards differ by one 154-cell cycle; every smaller piece of it scores worse.",
       },
+      archipelago: {
+        title: "The archipelago of record boards",
+        body: "The strong boards form 47 isolated islands; McGavin's 469 sits alone, 247 cells from anything.",
+      },
+      mismatch: {
+        title: "Where the mismatches live",
+        body: "A record board packs all its errors into one five-row band; scan direction decides which end.",
+      },
     },
   },
   fr: {
@@ -73,6 +84,7 @@ const T = {
       proof: "Preuves de rigidité",
     },
     reproNote: "Chaque résultat renvoie à sa rédaction complète, avec le calcul exact et une commande de reproduction.",
+    synthesisCta: "Voir comment chaque mur correspond aux méthodes qui s'y heurtent →",
     findings: {
       phase: {
         title: "Calé sur le pic de difficulté",
@@ -101,6 +113,14 @@ const T = {
       sigma: {
         title: "Pourquoi sauter de bassin en bassin est impossible",
         body: "Deux bons plateaux diffèrent par un cycle de 154 cellules ; chaque morceau plus petit fait moins bien.",
+      },
+      archipelago: {
+        title: "L'archipel des plateaux records",
+        body: "Les bons plateaux forment 47 îles isolées ; le 469 de McGavin est seul, à 247 cellules de tout.",
+      },
+      mismatch: {
+        title: "Où vivent les défauts",
+        body: "Un plateau record entasse ses erreurs dans une bande de cinq rangées ; le sens de balayage décide laquelle.",
       },
     },
   },
@@ -145,6 +165,13 @@ export default function FindingsHub() {
       ))}
 
       <p className="max-w-3xl text-sm text-muted-foreground">{t.reproNote}</p>
+
+      <LocalizedLink
+        to="/research/why/walls-and-methods"
+        className="inline-block text-sm font-medium underline underline-offset-2 hover:text-foreground"
+      >
+        {t.synthesisCta}
+      </LocalizedLink>
     </div>
   );
 }
