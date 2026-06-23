@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { MosaicBlockLab } from "@/components/research/MosaicBlockLab";
 
 // MOSAIC (vol-206): tile the board into 4x4 blocks, solve each block to exact
 // MaxSAT optimality with its boundary to already-placed neighbours as SOFT
@@ -111,7 +112,9 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Mosaic() {
-  return <InventionLayout copy={copy} score={448} reproducibility="deterministic" />;
+  return (
+    <InventionLayout copy={copy} score={448} reproducibility="deterministic" visual={<MosaicBlockLab />} />
+  );
 }
 
 export const meta = pageMeta("exp-mosaic");

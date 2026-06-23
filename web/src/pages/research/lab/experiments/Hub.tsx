@@ -31,7 +31,7 @@ const INVENTIONS: Invention[] = [
   { key: "cloister", score: 453, to: "/research/lab/experiments/cloister", ready: true, family: "anchor", live: true },
   { key: "midden", score: 452, to: "/research/lab/experiments/midden", ready: true, family: "anchor" },
   { key: "bandsaw", score: 437, to: "/research/lab/experiments/bandsaw", ready: true, family: "exact" },
-  { key: "mosaic", score: 448, to: "/research/lab/experiments/mosaic", ready: true, family: "exact" },
+  { key: "mosaic", score: 448, to: "/research/lab/experiments/mosaic", ready: true, family: "exact", live: true },
   { key: "replay", score: 460, to: "/research/lab/experiments/replay", ready: true, family: "decode", live: true },
 ];
 
