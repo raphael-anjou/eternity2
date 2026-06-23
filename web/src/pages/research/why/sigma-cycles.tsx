@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
 
 const T = {
@@ -102,6 +103,8 @@ export default function SigmaCycles() {
           {t.backToWall}
         </LocalizedLink>
       </div>
+
+      <RelatedRail path="/research/why/sigma-cycles" />
     </div>
   );
 }

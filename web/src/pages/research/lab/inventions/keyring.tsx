@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -99,7 +100,13 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 
 export default function Keyring() {
   return (
-    <InventionLayout copy={copy} score={460} boardId="v181-keyring-460" reproducibility="stochastic" />
+    <InventionLayout
+      copy={copy}
+      score={460}
+      boardId="v181-keyring-460"
+      reproducibility="stochastic"
+      visual={<KeyringDiagram />}
+    />
   );
 }
 

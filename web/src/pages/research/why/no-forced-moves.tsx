@@ -11,6 +11,7 @@ import {
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import data from "@/data/no-forced-moves.json";
 
 const ARTICLE_URL =
@@ -153,6 +154,8 @@ cargo run --release > ../results/partner-counts.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/no-forced-moves" />
     </div>
   );
 }

@@ -400,6 +400,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
     },
   },
+  "prune-vs-speed": {
+    en: {
+      title: "Why a faster computer doesn't help" + SUFFIX,
+      description:
+        "In hard combinatorial search, shrinking the space beats searching it faster — by an exponential margin. Eternity II is engineered so you can barely shrink it at all. An interactive look at prune-versus-speed.",
+    },
+    fr: {
+      title: "Pourquoi un ordinateur plus rapide n'aide pas" + SUFFIX,
+      description:
+        "En recherche combinatoire difficile, réduire l'espace bat le fait de l'explorer plus vite — d'une marge exponentielle. Eternity II est conçu pour qu'on ne puisse presque pas le réduire. Un regard interactif sur élagage contre vitesse.",
+    },
+  },
   "rigidity-wall": {
     en: {
       title: "The rigidity wall" + SUFFIX,

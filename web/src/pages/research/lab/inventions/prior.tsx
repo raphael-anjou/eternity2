@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { PriorDiagram } from "@/components/research/PriorDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -100,7 +101,13 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 
 export default function Prior() {
   return (
-    <InventionLayout copy={copy} score={460} boardId="v155-prior-460" reproducibility="seeded" />
+    <InventionLayout
+      copy={copy}
+      score={460}
+      boardId="v155-prior-460"
+      reproducibility="seeded"
+      visual={<PriorDiagram />}
+    />
   );
 }
 

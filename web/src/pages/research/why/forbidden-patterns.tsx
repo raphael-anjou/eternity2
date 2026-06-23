@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import {
   Table,
   TableBody,
@@ -236,6 +237,8 @@ cargo run --release > ../results/feasibility.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/forbidden-patterns" />
     </div>
   );
 }

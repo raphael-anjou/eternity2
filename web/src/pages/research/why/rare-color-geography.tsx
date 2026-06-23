@@ -12,6 +12,7 @@ import {
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import data from "@/data/rare-color-geography.json";
@@ -213,6 +214,8 @@ cargo run --release > ../results/color-geography.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/rare-color-geography" />
     </div>
   );
 }

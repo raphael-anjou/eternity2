@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { RigidityHalo } from "@/components/research/RigidityHalo";
 
 const T = {
@@ -91,6 +92,8 @@ export default function RigidityWall() {
       </section>
 
       <p className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">{t.note}</p>
+
+      <RelatedRail path="/research/why/rigidity-wall" />
     </div>
   );
 }
