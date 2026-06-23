@@ -13,6 +13,7 @@ import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { PieceTheftDiagram } from "@/components/research/PieceTheftDiagram";
+import { PieceTheftLab } from "@/components/research/PieceTheftLab";
 import data from "@/data/piece-theft.json";
 
 const ARTICLE_URL =
@@ -35,6 +36,8 @@ const T = {
     statUnique: "demands served by a single piece",
     statMean: "pieces per demand, on average",
     statTotal: "distinct demands that occur",
+    tryTitle: "Starve a cell yourself",
+    tryIntro: "The engine fills a board to a cell with a single legal supplier; steal that piece and watch the cell die with the box still full.",
     whyTitle: "Why it matters",
     why1: "A tempting fix is a global check: do the remaining pieces still cover the remaining cells? It doesn't help. Globally the supply is fine; the failure is one scarce piece misallocated, not a shortage. So a global lookahead sees nothing wrong right up until the cell turns out to have no server, which is why this wall resisted so many attempts to prune it early.",
     why2: "Set this beside no forced moves and the trap is complete. Every piece has dozens of places it could go, so the solver is never told where a scarce piece must be saved, yet each scarce piece has exactly one demand it must be saved for. Freedom to place, no guidance on where to save.",
@@ -58,6 +61,8 @@ const T = {
     statUnique: "demandes servies par une seule pièce",
     statMean: "pièces par demande, en moyenne",
     statTotal: "demandes distinctes qui apparaissent",
+    tryTitle: "Affamez une case vous-même",
+    tryIntro: "Le moteur remplit un plateau jusqu'à une case à fournisseur unique ; volez cette pièce et regardez la case mourir alors que la boîte est pleine.",
     whyTitle: "Pourquoi c'est important",
     why1: "Une correction tentante est une vérification globale : les pièces restantes couvrent-elles encore les cellules restantes ? Ça n'aide pas. Globalement l'offre est suffisante ; l'échec est une pièce rare mal affectée, pas une pénurie. Un regard global ne voit donc rien d'anormal jusqu'à ce que la cellule se révèle sans serveur, et c'est pourquoi ce mur a résisté à tant de tentatives d'élagage précoce.",
     why2: "Placez ceci à côté de « aucun coup forcé » et le piège est complet. Chaque pièce a des dizaines d'endroits où elle pourrait aller, donc le solveur n'apprend jamais où une pièce rare doit être gardée, alors que chaque pièce rare a exactement une demande pour laquelle elle doit l'être. Liberté de poser, aucun guide sur où garder.",
@@ -136,6 +141,16 @@ export default function PieceTheft() {
           )}
         </div>
         <p className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">{t.chartNote}</p>
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.tryTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.tryIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <PieceTheftLab />
+        </div>
       </section>
 
       <section className="mx-auto max-w-2xl space-y-4">
