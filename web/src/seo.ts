@@ -150,6 +150,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   },
   experiments: {
     en: {
+      title: "Experiments" + SUFFIX,
+      description:
+        "The named search experiments built to push the Eternity II score, each written up with its idea, its result, and the questions it left open. The best reaches 463 of 480; the community's best is 469.",
+    },
+    fr: {
+      title: "Expériences" + SUFFIX,
+      description:
+        "Les expériences de recherche nommées, conçues pour pousser le score d'Eternity II, chacune rédigée avec son idée, son résultat et les questions laissées ouvertes. La meilleure atteint 463 sur 480 ; le meilleur de la communauté est 469.",
+    },
+  },
+  "experiments-log": {
+    en: {
       title: "Experiments log" + SUFFIX,
       description:
         "Everything we tried on Eternity II and how it turned out: hundreds of attempts — successes, half-built ideas, and dead ends — searchable and filterable by outcome, so you can build on them.",
@@ -196,7 +208,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Les algorithmes nommés conçus pour pousser le score d'Eternity II : PALIMPSEST (463), KEYRING (460), GAUNTLET (458) et d'autres. Chaque idée, son résultat et les questions ouvertes, avec des plateaux vérifiés.",
     },
   },
-  "inv-palimpsest": {
+  "exp-palimpsest": {
     en: {
       title: "PALIMPSEST" + SUFFIX,
       description:
@@ -208,7 +220,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Lire tous les bons plateaux d'Eternity II pour repérer les habitudes qui freinent un plateau, puis les casser. A produit le meilleur plateau du projet : 463 sur 480.",
     },
   },
-  "inv-keyring": {
+  "exp-keyring": {
     en: {
       title: "KEYRING" + SUFFIX,
       description:
@@ -220,7 +232,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Construire un plateau Eternity II de zéro en classant chaque pièce par trois signaux appris des bons plateaux. A atteint 460 dans une nouvelle famille.",
     },
   },
-  "inv-gauntlet": {
+  "exp-gauntlet": {
     en: {
       title: "GAUNTLET" + SUFFIX,
       description:
@@ -232,7 +244,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Lancer la recherche en faisceau d'Eternity II dans plusieurs directions à la fois pour atteindre des régions différentes. A trouvé un nouveau plateau 458.",
     },
   },
-  "inv-prior": {
+  "exp-prior": {
     en: {
       title: "PRIOR" + SUFFIX,
       description:
@@ -244,7 +256,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Construire un plateau Eternity II à partir de rien, guidé par l'endroit où les pièces se trouvent dans les bons plateaux. Atteint 460 de zéro, sans copier de plateau d'ancrage.",
     },
   },
-  "inv-staged": {
+  "exp-staged": {
     en: {
       title: "STAGED" + SUFFIX,
       description:
@@ -256,7 +268,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Construire tout le plateau Eternity II de zéro sans cadre préétabli, en laissant la bordure émerger en dernier. Atteint 436 sans cadre, mesurant ce que vaut l'ancrage par le cadre.",
     },
   },
-  "inv-mosaic": {
+  "exp-mosaic": {
     en: {
       title: "MOSAIC" + SUFFIX,
       description:
@@ -268,7 +280,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Découper Eternity II en blocs 4×4, résoudre chacun à l'optimum MaxSAT exact avec des jointures souples, et réserver les pièces rares aux blocs suivants. De zéro, sans amorce : 448/480.",
     },
   },
-  "inv-lodestone": {
+  "exp-lodestone": {
     en: {
       title: "LODESTONE" + SUFFIX,
       description:
@@ -280,7 +292,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Un prior de demande rare qui pousse un faisceau Eternity II parti de zéro à engager tôt les pièces rares. Un simple départage : +2 médian constant et variance resserrée, pas un déplaceur de record.",
     },
   },
-  "inv-bandsaw": {
+  "exp-bandsaw": {
     en: {
       title: "BANDSAW" + SUFFIX,
       description:
@@ -292,7 +304,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Résoudre exactement une bande de rangées d'Eternity II en se rejoignant au milieu, prouvant la meilleure fin et mesurant jusqu'où une fin de partie se décide à l'avance.",
     },
   },
-  "inv-cloister": {
+  "exp-cloister": {
     en: {
       title: "CLOISTER" + SUFFIX,
       description:
@@ -304,7 +316,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Fixer une bordure Eternity II parfaite, puis chercher l'intérieur avec les bords du cadre comme contraintes dures dès la première cellule. Atteint un intérieur autonome 453 et mesure le couplage bordure-intérieur.",
     },
   },
-  "inv-midden": {
+  "exp-midden": {
     en: {
       title: "MIDDEN" + SUFFIX,
       description:
@@ -316,7 +328,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Décider où, et non quand, un plateau Eternity II peut casser : confiner les défauts à un masque choisi et chercher sa forme. Un réseau dispersé prolonge la suite parfaite jusqu'aux 170.",
     },
   },
-  "inv-ladder": {
+  "exp-ladder": {
     en: {
       title: "LADDER" + SUFFIX,
       description:
@@ -328,7 +340,7 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Inonder Eternity II de recherches courtes et bon marché, garder les départs les plus profonds, et promouvoir les survivants. A atteint un plateau 451 strict sans record à copier.",
     },
   },
-  "inv-replay": {
+  "exp-replay": {
     en: {
       title: "REPLAY" + SUFFIX,
       description:

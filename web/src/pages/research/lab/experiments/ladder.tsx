@@ -112,4 +112,4 @@ export default function Ladder() {
   );
 }
 
-export const meta = pageMeta("inv-ladder");
+export const meta = pageMeta("exp-ladder");

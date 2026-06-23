@@ -120,4 +120,4 @@ export default function Gauntlet() {
   );
 }
 
-export const meta = pageMeta("inv-gauntlet");
+export const meta = pageMeta("exp-gauntlet");

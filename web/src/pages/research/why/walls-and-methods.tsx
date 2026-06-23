@@ -38,18 +38,18 @@ type Method = {
 
 // Order roughly by score so the table reads as a ladder up to the 469 ceiling.
 const METHODS: Method[] = [
-  { key: "palimpsest", to: "/research/lab/inventions/palimpsest", score: 463, family: "corpus", walls: ["rigidity"], newBasin: false },
-  { key: "prior", to: "/research/lab/inventions/prior", score: 460, family: "scratch", walls: ["rigidity", "peak"], newBasin: false },
-  { key: "keyring", to: "/research/lab/inventions/keyring", score: 460, family: "scratch", walls: ["rigidity"], newBasin: true },
-  { key: "replay", to: "/research/lab/inventions/replay", score: 460, family: "decode", walls: ["rigidity"], newBasin: false },
-  { key: "gauntlet", to: "/research/lab/inventions/gauntlet", score: 458, family: "scratch", walls: ["rigidity"], newBasin: true },
-  { key: "cloister", to: "/research/lab/inventions/cloister", score: 453, family: "anchor", walls: ["area", "rigidity"], newBasin: false },
-  { key: "midden", to: "/research/lab/inventions/midden", score: 452, family: "anchor", walls: ["rigidity", "area"], newBasin: false },
-  { key: "ladder", to: "/research/lab/inventions/ladder", score: 451, family: "concentrate", walls: ["peak", "forced"], newBasin: true },
-  { key: "lodestone", to: "/research/lab/inventions/lodestone", score: 451, family: "scratch", walls: ["forced"], newBasin: false },
-  { key: "mosaic", to: "/research/lab/inventions/mosaic", score: 448, family: "exact", walls: ["forced", "peak"], newBasin: false },
-  { key: "bandsaw", to: "/research/lab/inventions/bandsaw", score: 437, family: "exact", walls: ["forced", "peak"], newBasin: false },
-  { key: "staged", to: "/research/lab/inventions/staged", score: 436, family: "scratch", walls: ["forced", "area"], newBasin: false },
+  { key: "palimpsest", to: "/research/lab/experiments/palimpsest", score: 463, family: "corpus", walls: ["rigidity"], newBasin: false },
+  { key: "prior", to: "/research/lab/experiments/prior", score: 460, family: "scratch", walls: ["rigidity", "peak"], newBasin: false },
+  { key: "keyring", to: "/research/lab/experiments/keyring", score: 460, family: "scratch", walls: ["rigidity"], newBasin: true },
+  { key: "replay", to: "/research/lab/experiments/replay", score: 460, family: "decode", walls: ["rigidity"], newBasin: false },
+  { key: "gauntlet", to: "/research/lab/experiments/gauntlet", score: 458, family: "scratch", walls: ["rigidity"], newBasin: true },
+  { key: "cloister", to: "/research/lab/experiments/cloister", score: 453, family: "anchor", walls: ["area", "rigidity"], newBasin: false },
+  { key: "midden", to: "/research/lab/experiments/midden", score: 452, family: "anchor", walls: ["rigidity", "area"], newBasin: false },
+  { key: "ladder", to: "/research/lab/experiments/ladder", score: 451, family: "concentrate", walls: ["peak", "forced"], newBasin: true },
+  { key: "lodestone", to: "/research/lab/experiments/lodestone", score: 451, family: "scratch", walls: ["forced"], newBasin: false },
+  { key: "mosaic", to: "/research/lab/experiments/mosaic", score: 448, family: "exact", walls: ["forced", "peak"], newBasin: false },
+  { key: "bandsaw", to: "/research/lab/experiments/bandsaw", score: 437, family: "exact", walls: ["forced", "peak"], newBasin: false },
+  { key: "staged", to: "/research/lab/experiments/staged", score: 436, family: "scratch", walls: ["forced", "area"], newBasin: false },
 ];
 
 const CEILING = 469;

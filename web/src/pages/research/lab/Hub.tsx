@@ -14,7 +14,7 @@ type Area = { key: string; to?: string; ready: boolean };
 
 const AREAS: Area[] = [
   { key: "findings", ready: true, to: "/research/lab/findings" },
-  { key: "inventions", ready: true, to: "/research/lab/inventions" },
+  { key: "inventions", ready: true, to: "/research/lab/experiments" },
   { key: "others", ready: false },
 ];
 
@@ -35,7 +35,7 @@ const T = {
       },
       inventions: {
         title: "Raphaël's experiments",
-        body: "The named algorithms built to push the score: what problem each attacks, the idea, the result it reached, and the open questions it left. Methods and code in full.",
+        body: "The named search experiments built to push the score: what each attacks, the idea, the result it reached, and the open questions it left. Some are our own; some honestly reimplement a known technique to measure it. Methods and code in full.",
       },
       others: {
         title: "Research from other puzzlers",
@@ -59,7 +59,7 @@ const T = {
       },
       inventions: {
         title: "Les expériences de Raphaël",
-        body: "Les algorithmes nommés conçus pour pousser le score : le problème que chacun attaque, l'idée, le résultat atteint et les questions restées ouvertes. Méthodes et code en entier.",
+        body: "Les expériences de recherche nommées, conçues pour pousser le score : ce que chacune attaque, l'idée, le résultat atteint et les questions restées ouvertes. Certaines sont les nôtres ; d'autres réimplémentent honnêtement une technique connue pour la mesurer. Méthodes et code en entier.",
       },
       others: {
         title: "Recherches d'autres puzzlers",

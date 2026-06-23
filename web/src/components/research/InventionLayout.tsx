@@ -26,7 +26,7 @@ export interface InventionCopy {
 
 const LABELS = {
   en: {
-    back: "← Inventions",
+    back: "← Experiments",
     ideaTitle: "The idea",
     howTitle: "How it works",
     resultTitle: "The result",
@@ -46,7 +46,7 @@ const LABELS = {
     scoreSuffix: "/ 480 matched edges",
   },
   fr: {
-    back: "← Inventions",
+    back: "← Expériences",
     ideaTitle: "L'idée",
     howTitle: "Comment ça marche",
     resultTitle: "Le résultat",
@@ -95,7 +95,7 @@ export function InventionLayout({
     <div className="space-y-10">
       <div>
         <LocalizedLink
-          to="/research/lab/inventions"
+          to="/research/lab/experiments"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           {l.back}

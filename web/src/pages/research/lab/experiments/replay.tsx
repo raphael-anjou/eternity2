@@ -111,4 +111,4 @@ export default function Replay() {
   );
 }
 
-export const meta = pageMeta("inv-replay");
+export const meta = pageMeta("exp-replay");
