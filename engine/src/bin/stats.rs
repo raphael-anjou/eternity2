@@ -12,6 +12,11 @@
 use eternity2_engine::{build_path, generate, Solver, Status};
 
 const SEEDS: u32 = 10;
+// The fill-order comparison needs many more samples: row-major and column-major
+// are equivalent up to a board transpose, so with only a handful of seeds their
+// medians drift apart on noise alone and wrongly suggest one order is better. A
+// large sample lets the genuinely-equivalent orders converge.
+const PATH_SEEDS: u32 = 200;
 const THREADS: usize = 8;
 
 /// Run to completion, however long it takes (no work cap by design).
@@ -116,7 +121,7 @@ fn main() {
     let mut rows: Vec<String> = Vec::new();
     let mut jobs: Vec<(&str, u32)> = Vec::new();
     for kind in eternity2_engine::PATH_KINDS {
-        for seed in 1..=SEEDS {
+        for seed in 1..=PATH_SEEDS {
             jobs.push((kind, seed));
         }
     }
@@ -124,9 +129,12 @@ fn main() {
         let puzzle = generate(6, 6, seed);
         let path = build_path(kind, 6, 6, 7).expect("path kind");
         let mut solver = Solver::new(&puzzle, &path, true, false, 0).expect("solver");
+        // Bound each solve so slow orders (random, spiral-out) don't run forever
+        // across the large path-seed sample; censor at the budget.
+        const CAP: f64 = 2_000_000.0;
         loop {
-            let r = solver.step(10_000_000);
-            if r.status == Status::Solved {
+            let r = solver.step(100_000);
+            if r.status == Status::Solved || r.nodes >= CAP {
                 break r.nodes;
             }
             assert!(r.status != Status::Exhausted);
@@ -134,12 +142,12 @@ fn main() {
     });
     let mut i = 0;
     for kind in eternity2_engine::PATH_KINDS {
-        let mut attempts: Vec<f64> = all[i..i + SEEDS as usize].to_vec();
-        i += SEEDS as usize;
+        let mut attempts: Vec<f64> = all[i..i + PATH_SEEDS as usize].to_vec();
+        i += PATH_SEEDS as usize;
         attempts.sort_by(|a, b| a.partial_cmp(b).unwrap());
         eprintln!("  {kind}: median {:.0}", median(&attempts));
         rows.push(format!(
-            "    {{\"kind\": \"{kind}\", \"size\": 6, \"colors\": 6, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": 0, \"seeds\": {SEEDS}}}",
+            "    {{\"kind\": \"{kind}\", \"size\": 6, \"colors\": 6, \"median\": {:.0}, \"min\": {:.0}, \"max\": {:.0}, \"censored\": 0, \"seeds\": {PATH_SEEDS}}}",
             median(&attempts),
             attempts[0],
             attempts[attempts.len() - 1]
