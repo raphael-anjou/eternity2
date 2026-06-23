@@ -13,6 +13,7 @@ import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
+import { RareColorLab } from "@/components/research/RareColorLab";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import data from "@/data/rare-color-geography.json";
@@ -186,6 +187,8 @@ export default function RareColorGeography() {
         </div>
         <p className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">{t.chartNote}</p>
       </section>
+
+      <RareColorLab />
 
       <section className="mx-auto max-w-2xl space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">{t.whyTitle}</h2>
