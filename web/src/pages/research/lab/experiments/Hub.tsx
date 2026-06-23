@@ -15,6 +15,7 @@ interface Experiment {
   title: string;
   status: string;
   summary: string;
+  why?: string;
 }
 const experiments = data.experiments as Experiment[];
 
@@ -45,6 +46,7 @@ const T = {
       "wont-do": "won't do",
     } as Record<string, string>,
     legend: "Filter by outcome:",
+    whyLabel: "Why:",
     none: "No experiments match.",
     note: "Generated from the research notebook's concept notes. Summaries are the original lab notes, kept terse; some use internal shorthand.",
   },
@@ -63,6 +65,7 @@ const T = {
       "wont-do": "abandonné",
     } as Record<string, string>,
     legend: "Filtrer par résultat :",
+    whyLabel: "Pourquoi :",
     none: "Aucune expérience ne correspond.",
     note: "Généré à partir des notes de concept du carnet de recherche. Les résumés sont les notes de laboratoire d'origine, gardées concises ; certaines emploient des abréviations internes.",
   },
@@ -77,7 +80,7 @@ export default function ExperimentsHub() {
     const q = query.trim().toLowerCase();
     return experiments.filter((e) => {
       if (active.size > 0 && !active.has(e.status)) return false;
-      if (q && !(`${e.title} ${e.summary}`.toLowerCase().includes(q))) return false;
+      if (q && !(`${e.title} ${e.summary} ${e.why ?? ""}`.toLowerCase().includes(q))) return false;
       return true;
     });
   }, [query, active]);
@@ -150,6 +153,11 @@ export default function ExperimentsHub() {
               <div className="text-sm font-medium">{e.title}</div>
               {e.summary && (
                 <div className="mt-0.5 text-sm text-muted-foreground">{e.summary}</div>
+              )}
+              {e.why && (
+                <div className="mt-1 border-l-2 border-muted pl-2 text-xs text-muted-foreground/90">
+                  <span className="font-medium text-foreground/70">{t.whyLabel}</span> {e.why}
+                </div>
               )}
             </div>
           </div>

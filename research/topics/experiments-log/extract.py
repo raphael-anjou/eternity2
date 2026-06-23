@@ -27,6 +27,33 @@ def bucket(s):
     if any(k in s for k in ("built","measured","fixed","documented","research","open")): return "built"
     return "other"
 
+def _clean(s):
+    s = re.sub(r"\[\[([^\]|]+\|)?([^\]]+)\]\]", r"\2", s)  # wikilinks
+    s = re.sub(r"[*`_#]", "", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+def extract_why(txt):
+    """Best-effort why-it-happened line from a concept body (verdict/conclusion/
+    because-sentence). Returns None when nothing confident is found, so we never
+    fabricate a reason."""
+    for h in ["verdict", "conclusion", r"why .* refuted", r"why it (fails|failed)",
+              "why h is refuted", "what we found", "result"]:
+        m = re.search(r"^#{1,3}\s*(" + h + r")\b.*?\n(.+?)(\n#{1,2}\s|\Z)", txt, re.I | re.S | re.M)
+        if m:
+            body = m.group(2).strip()
+            line = next((l.strip() for l in body.splitlines()
+                         if l.strip() and not l.strip().startswith(("|", "---"))), "")
+            line = re.sub(r"^[-*]\s*", "", _clean(line))
+            if 20 < len(line) < 320:
+                return line
+    for sent in re.split(r"(?<=[.!])\s+", _clean(txt)):
+        low = sent.lower()
+        if any(k in low for k in [" because ", "refuted because", "fails because",
+                                  " too flat", " overcount", " inert", " no advantage"]):
+            if 25 < len(sent) < 320:
+                return sent.strip()
+    return None
+
 def main():
     out = []
     for fn in sorted(os.listdir(VAULT)):
@@ -47,12 +74,18 @@ def main():
                 if line and not line.startswith(("#", "**", "---")):
                     desc = line
                     break
-        out.append({
+        entry = {
             "id": name,
             "title": name.replace("-", " "),
             "status": bucket(raw),
             "summary": desc.strip()[:280],
-        })
+        }
+        # A why-it-happened line, mainly for the instructive (refuted/partial) ones.
+        if entry["status"] in ("refuted", "partial"):
+            w = extract_why(txt[m.end():] if m else txt)
+            if w:
+                entry["why"] = w[:320]
+        out.append(entry)
     out.sort(key=lambda x: x["id"])
     sys.stderr.write("buckets: %s\n" % dict(Counter(x["status"] for x in out)))
     json.dump({"count": len(out), "experiments": out}, sys.stdout, indent=0)
