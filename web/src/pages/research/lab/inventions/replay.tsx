@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
 import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -100,7 +101,12 @@ export default function Replay() {
       copy={copy}
       score={460}
       reproducibility="seeded"
-      visual={<DoubleBreakDiagram />}
+      visual={
+        <div className="space-y-6">
+          <DoubleBreakDiagram />
+          <DoubleBreakLab />
+        </div>
+      }
     />
   );
 }

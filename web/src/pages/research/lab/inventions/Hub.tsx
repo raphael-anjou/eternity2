@@ -29,7 +29,7 @@ const INVENTIONS: Invention[] = [
   { key: "cloister", score: 453, to: "/research/lab/inventions/cloister", ready: true, family: "anchor", live: true },
   { key: "midden", score: 452, to: "/research/lab/inventions/midden", ready: true, family: "anchor" },
   { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true, family: "exact" },
-  { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true, family: "decode" },
+  { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true, family: "decode", live: true },
 ];
 
 const FAMILY_ORDER: Family[] = ["scratch", "corpus", "concentrate", "anchor", "exact", "decode"];
