@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
 import { LadderDiagram } from "@/components/research/LadderDiagram";
+import { LadderLiveLab } from "@/components/research/LadderLiveLab";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -101,7 +102,12 @@ export default function Ladder() {
       copy={copy}
       score={451}
       reproducibility="seeded"
-      visual={<LadderDiagram />}
+      visual={
+        <div className="space-y-6">
+          <LadderDiagram />
+          <LadderLiveLab />
+        </div>
+      }
     />
   );
 }
