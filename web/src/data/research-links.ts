@@ -114,7 +114,21 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Pourquoi sauter de bassin en bassin est impossible",
     "Two great boards differ by one giant indivisible swap; every smaller piece scores worse.",
     "Deux bons plateaux diffèrent par un seul échange géant indivisible ; tout morceau plus petit fait moins bien.",
-    ["/research/why/rigidity-wall", "/research/lab/inventions/keyring"],
+    ["/research/why/rigidity-wall", "/research/why/mismatch-geometry", "/research/lab/inventions/keyring"],
+  ),
+  N(
+    "/research/why/mismatch-geometry",
+    "why",
+    "Where the mismatches live",
+    "Où vivent les défauts",
+    "A record board packs all its errors into one five-row band; scan direction decides which end.",
+    "Un plateau record entasse toutes ses erreurs dans une bande de cinq rangées ; le sens de balayage décide laquelle.",
+    [
+      "/research/why/rigidity-wall",
+      "/research/lab/inventions/staged",
+      "/research/why/walls-and-methods",
+      "/research/why/sigma-cycles",
+    ],
   ),
   N(
     "/research/why/entropy-area-law",

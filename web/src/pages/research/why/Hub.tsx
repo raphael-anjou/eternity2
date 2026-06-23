@@ -17,6 +17,7 @@ const TOPICS: Topic[] = [
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
+  { key: "mismatchGeometry", ready: true, to: "/research/why/mismatch-geometry" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
   { key: "pieceTheft", ready: true, to: "/research/why/piece-theft" },
@@ -61,6 +62,10 @@ const T = {
       sigmaCycles: {
         title: "Why basin-hopping is impossible",
         body: "Two great boards differ by one giant interlocking swap of up to 154 cells. Every smaller piece of it scores worse, so you can't step from one to the other.",
+      },
+      mismatchGeometry: {
+        title: "Where the mismatches live",
+        body: "A record board packs all its few errors into one band of five rows and leaves the rest flawless — and which band is decided by the direction the search filled the board. Seen live on the real boards.",
       },
       entropy: {
         title: "Entropy and the area law",
@@ -120,6 +125,10 @@ const T = {
       sigmaCycles: {
         title: "Pourquoi sauter de bassin en bassin est impossible",
         body: "Deux bons plateaux diffèrent par un seul échange imbriqué géant, jusqu'à 154 cellules. Chaque morceau plus petit fait moins bien, donc on ne peut pas passer de l'un à l'autre par étapes.",
+      },
+      mismatchGeometry: {
+        title: "Où vivent les défauts",
+        body: "Un plateau record entasse ses rares erreurs dans une bande de cinq rangées et laisse le reste impeccable — et quelle bande dépend du sens dans lequel la recherche a rempli le plateau. À voir en direct sur les vrais plateaux.",
       },
       entropy: {
         title: "Entropie et loi d'aire",

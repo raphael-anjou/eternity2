@@ -424,6 +424,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "En recherche combinatoire difficile, réduire l'espace bat le fait de l'explorer plus vite — d'une marge exponentielle. Eternity II est conçu pour qu'on ne puisse presque pas le réduire. Un regard interactif sur élagage contre vitesse.",
     },
   },
+  "mismatch-geometry": {
+    en: {
+      title: "Where the mismatches live" + SUFFIX,
+      description:
+        "Every near-perfect Eternity II board packs its few errors into one band of five rows and leaves the rest flawless. Which band is decided by the scan direction — McGavin's 469 at the top, this project's boards at the bottom. Seen live on the real record boards.",
+    },
+    fr: {
+      title: "Où vivent les défauts" + SUFFIX,
+      description:
+        "Chaque plateau Eternity II quasi parfait entasse ses rares erreurs dans une bande de cinq rangées et laisse le reste impeccable. Quelle bande dépend du sens de balayage — le 469 de McGavin en haut, les plateaux de ce projet en bas. À voir en direct sur les vrais plateaux records.",
+    },
+  },
   "walls-and-methods": {
     en: {
       title: "Which wall stops which method" + SUFFIX,
