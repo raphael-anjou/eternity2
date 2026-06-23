@@ -12,6 +12,7 @@ import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
+import { ForcedMovesLab } from "@/components/research/ForcedMovesLab";
 import data from "@/data/no-forced-moves.json";
 
 const ARTICLE_URL =
@@ -33,6 +34,8 @@ const T = {
     statsForced: "pieces forced to a single option",
     statsRange: "partners per piece (min to max)",
     statsMean: "average partners",
+    tryTitle: "See it on a real puzzle",
+    tryIntro: "The engine fills a few cells; then we count, live, how many pieces legally fit the next one. It almost never drops to one.",
     whyTitle: "Why it matters",
     why: "Put this beside forbidden patterns and the real shape of the difficulty appears. Locally the puzzle looks loose: any piece fits next to plenty of others, so there's nothing to propagate and no chain of forced moves to ride. Globally almost every combination is illegal. The hardness lives in that gap: lots of local freedom, almost no global consistency. A solver has to make a long run of free-looking choices that only turn out wrong much later.",
     reproTitle: "Reproduce it",
@@ -53,6 +56,8 @@ const T = {
     statsForced: "pièces réduites à un seul choix",
     statsRange: "partenaires par pièce (min à max)",
     statsMean: "partenaires en moyenne",
+    tryTitle: "Voyez-le sur un vrai puzzle",
+    tryIntro: "Le moteur remplit quelques cases ; puis on compte, en direct, combien de pièces conviennent à la suivante. Cela ne descend presque jamais à une.",
     whyTitle: "Pourquoi c'est important",
     why: "Mettez ceci à côté des motifs interdits et la vraie forme de la difficulté apparaît. Localement, le puzzle semble lâche : toute pièce s'accorde avec beaucoup d'autres, donc rien à propager et aucune chaîne de coups forcés à suivre. Globalement, presque toute combinaison est illégale. La difficulté vit dans cet écart : beaucoup de liberté locale, presque aucune cohérence globale. Un solveur doit enchaîner de longs choix d'apparence libre qui ne se révèlent faux que bien plus tard.",
     reproTitle: "Le reproduire",
@@ -130,6 +135,16 @@ export default function NoForcedMoves() {
               {t.busy}
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.tryTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.tryIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <ForcedMovesLab />
         </div>
       </section>
 
