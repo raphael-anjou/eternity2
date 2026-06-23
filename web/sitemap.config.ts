@@ -16,6 +16,7 @@ export const PAGE_PATHS = [
   "research/why",
   "research/why/walls-and-methods",
   "research/why/mismatch-geometry",
+  "research/why/basin-archipelago",
   "research/why/prune-vs-speed",
   "research/why/complex-theory",
   "research/why/phase-transition",

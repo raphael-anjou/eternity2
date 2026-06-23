@@ -18,6 +18,7 @@ const TOPICS: Topic[] = [
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
+  { key: "basinArchipelago", ready: true, to: "/research/why/basin-archipelago" },
   { key: "mismatchGeometry", ready: true, to: "/research/why/mismatch-geometry" },
   { key: "forbidden", ready: true, to: "/research/why/forbidden-patterns" },
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
@@ -63,6 +64,10 @@ const T = {
       sigmaCycles: {
         title: "Why basin-hopping is impossible",
         body: "Two great boards differ by one giant interlocking swap of up to 154 cells. Every smaller piece of it scores worse, so you can't step from one to the other.",
+      },
+      basinArchipelago: {
+        title: "The archipelago of record boards",
+        body: "Join the strong boards to their close neighbours and they fall into 47 isolated islands — McGavin's 469 alone, 247 cells from anything else. Why local search can't cross between them.",
       },
       mismatchGeometry: {
         title: "Where the mismatches live",
@@ -126,6 +131,10 @@ const T = {
       sigmaCycles: {
         title: "Pourquoi sauter de bassin en bassin est impossible",
         body: "Deux bons plateaux diffèrent par un seul échange imbriqué géant, jusqu'à 154 cellules. Chaque morceau plus petit fait moins bien, donc on ne peut pas passer de l'un à l'autre par étapes.",
+      },
+      basinArchipelago: {
+        title: "L'archipel des plateaux records",
+        body: "Reliez les bons plateaux à leurs proches voisins et ils se répartissent en 47 îles isolées — le 469 de McGavin seul, à 247 cellules de tout le reste. Pourquoi la recherche locale ne peut pas passer de l'une à l'autre.",
       },
       mismatchGeometry: {
         title: "Où vivent les défauts",
