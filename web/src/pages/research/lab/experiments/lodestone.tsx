@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
 
 // LODESTONE (vol-208): a scarce-demand prior for the from-scratch beam. High
 // boards activate a soft, score-correlated set of scarce (north,west) demands;
@@ -113,7 +114,9 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 };
 
 export default function Lodestone() {
-  return <InventionLayout copy={copy} score={451} reproducibility="seeded" />;
+  return (
+    <InventionLayout copy={copy} score={451} reproducibility="seeded" visual={<LodestoneRarityLab />} />
+  );
 }
 
 export const meta = pageMeta("exp-lodestone");
