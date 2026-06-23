@@ -11,6 +11,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 type Topic = { key: string; ready: boolean; to?: string };
 
 const TOPICS: Topic[] = [
+  { key: "pruneVsSpeed", ready: true, to: "/research/why/prune-vs-speed" },
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
@@ -35,6 +36,10 @@ const T = {
       "Beyond the design story, the puzzle has measurable structure that explains the gap between the best known board (469/480) and a full solution. Each of these is published with the exact computation behind it.",
     soon: "In preparation",
     topics: {
+      pruneVsSpeed: {
+        title: "Why a faster computer doesn't help",
+        body: "The master idea: shrinking the search space beats searching it faster, exponentially. Every wall below is, underneath, a way the puzzle stops you shrinking it. Start here.",
+      },
       phaseTransition: {
         title: "The phase-transition argument",
         body: "Why ≈17 interior colors and 5 border colors put the puzzle exactly on the SAT/CSP hardness peak — roughly one expected solution, the worst possible place to search.",
@@ -82,6 +87,10 @@ const T = {
       "Au-delà de la conception, le puzzle présente une structure mesurable qui explique l'écart entre le meilleur plateau connu (469/480) et une solution complète. Chacun de ces résultats est publié avec le calcul exact qui le sous-tend.",
     soon: "En préparation",
     topics: {
+      pruneVsSpeed: {
+        title: "Pourquoi un ordinateur plus rapide n'aide pas",
+        body: "L'idée maîtresse : réduire l'espace de recherche bat le fait de l'explorer plus vite, exponentiellement. Chaque mur ci-dessous est, au fond, une façon dont le puzzle vous empêche de le réduire. Commencez ici.",
+      },
       phaseTransition: {
         title: "L'argument de la transition de phase",
         body: "Pourquoi ≈17 couleurs intérieures et 5 couleurs de bord placent le puzzle pile sur le pic de difficulté SAT/CSP — environ une solution attendue, le pire endroit où chercher.",

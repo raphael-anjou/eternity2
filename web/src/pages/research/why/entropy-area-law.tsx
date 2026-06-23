@@ -11,6 +11,7 @@ import {
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { Math as MathInline, MathBlock } from "@/components/research/Math";
 import data from "@/data/entropy-area-law.json";
 
@@ -239,6 +240,8 @@ cargo run --release > ../results/entropy.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/entropy-area-law" />
     </div>
   );
 }

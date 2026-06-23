@@ -1,5 +1,6 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -101,7 +102,13 @@ const copy: { en: InventionCopy; fr: InventionCopy } = {
 
 export default function Palimpsest() {
   return (
-    <InventionLayout copy={copy} score={463} boardId="v129-palimpsest-463" reproducibility="seeded" />
+    <InventionLayout
+      copy={copy}
+      score={463}
+      boardId="v129-palimpsest-463"
+      reproducibility="seeded"
+      visual={<PalimpsestDiagram />}
+    />
   );
 }
 

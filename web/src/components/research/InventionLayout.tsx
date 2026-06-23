@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import { useLocation } from "react-router";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { decodeBucas } from "@/lib/bucas";
 import { RECORD_BOARDS } from "@/data/record-boards";
+import { RelatedRail } from "@/components/research/RelatedRail";
 
 // Shared layout for an invention write-up under /research/lab/inventions. Each
 // invention page supplies its own bilingual prose; this gives them a consistent
@@ -71,6 +73,7 @@ export function InventionLayout({
   boardId,
   reproducibility,
   visual,
+  reproduce,
 }: {
   copy: { en: InventionCopy; fr: InventionCopy };
   score: number;
@@ -78,9 +81,13 @@ export function InventionLayout({
   reproducibility: Reproducibility;
   /** Optional animation/diagram shown after "How it works". */
   visual?: ReactNode;
+  /** Optional "reproduce this" block (command + committed output). */
+  reproduce?: ReactNode;
 }) {
   const t = useT(copy);
   const l = useT(LABELS);
+  const { pathname } = useLocation();
+  const path = pathname.replace(/^\/fr(?=\/|$)/, "") || "/";
   const board = boardId ? RECORD_BOARDS.find((b) => b.id === boardId) : undefined;
   const cells = board ? decodeBucas(board.viewerParams).cells : null;
 
@@ -148,7 +155,10 @@ export function InventionLayout({
       <section className="max-w-3xl space-y-2 rounded-lg border bg-muted/30 p-5">
         <h2 className="text-lg font-semibold tracking-tight">{l.reproTitle}</h2>
         <p className="text-sm text-muted-foreground">{l.repro[reproducibility]}</p>
+        {reproduce && <div className="pt-2">{reproduce}</div>}
       </section>
+
+      <RelatedRail path={path} />
     </div>
   );
 }

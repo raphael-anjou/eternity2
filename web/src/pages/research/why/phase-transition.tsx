@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -170,6 +171,8 @@ cargo run --release > ../results/color-split.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/phase-transition" />
     </div>
   );
 }

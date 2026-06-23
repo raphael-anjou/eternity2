@@ -11,6 +11,7 @@ import {
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { RelatedRail } from "@/components/research/RelatedRail";
 import { PieceTheftDiagram } from "@/components/research/PieceTheftDiagram";
 import data from "@/data/piece-theft.json";
 
@@ -157,6 +158,8 @@ cargo run --release > ../results/piece-theft.json`}</code>
           {t.sourceLink}
         </a>
       </section>
+
+      <RelatedRail path="/research/why/piece-theft" />
     </div>
   );
 }
