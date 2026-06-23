@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { InventionLayout, type InventionCopy } from "@/components/research/InventionLayout";
 import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
+import { CloisterLiveLab } from "@/components/research/CloisterLiveLab";
 
 const copy: { en: InventionCopy; fr: InventionCopy } = {
   en: {
@@ -99,7 +100,12 @@ export default function Cloister() {
       copy={copy}
       score={453}
       reproducibility="seeded"
-      visual={<BorderAnchorDiagram />}
+      visual={
+        <div className="space-y-6">
+          <BorderAnchorDiagram />
+          <CloisterLiveLab />
+        </div>
+      }
     />
   );
 }
