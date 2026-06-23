@@ -34,10 +34,11 @@ type RecordRow = {
 
 const RECORDS: RecordRow[] = [
   { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing", board: "Louis_Verhaard_467" },
-  { date: "2020-08-31", score: "468", author: "Jef Bucas", canonical: "canonical", method: "Blackwood's solver (pre-release)", board: "Joshua_Blackwood_468" },
+  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468" },
   { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling", board: "JBlackwood+PMcGavin_469" },
   { date: "2020-11", score: "469", author: "various (~6–7 boards)", canonical: "canonical", method: "Blackwood's solver; mostly single-piece swaps of McGavin's" },
   { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470" },
+  { date: "2021", score: "470", author: "Jef Bucas", canonical: "variant", method: "Blackwood's algorithm with a different choice of heuristic colors — shows the heuristic isn't tied to one color set; C. Fernandez reported further variations" },
   { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023" },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle" },
   { date: "2025-07", score: "470", author: "onesmallstep", canonical: "variant", method: "1-clue variant — continued 470 ties" },
@@ -87,7 +88,7 @@ const T = {
     cast: [
       ["Peter McGavin", "First verified 469 on the canonical puzzle; ~295M nps C engine; scan-order theory."],
       ["Joshua Blackwood", "The 469/470-class algorithm (heuristic schedule + break-index); the modern standard."],
-      ["Jef Bucas", "libblackwood (a ~2.3× faster C port) and bucas.name — the board viewer + URL format the community shares boards in."],
+      ["Jef Bucas", "libblackwood (a C port of Blackwood's solver) and bucas.name — the board viewer + URL format the community shares boards in."],
       ["Louis Verhaard", "The 467 record (2008) and set-composition swap-annealing."],
       ["Brendan Owen & Günter Stertenbrink", "The 2007 hardness derivation: why 17/5 colors sit at the unique-solution boundary."],
       ["Marijn Heule", "The canonical SAT encoding (2008) and ongoing SAT experiments."],
@@ -144,7 +145,7 @@ const T = {
     cast: [
       ["Peter McGavin", "Premier 469 vérifié sur le puzzle canonique ; moteur C ≈295M nps ; théorie de l'ordre de balayage."],
       ["Joshua Blackwood", "L'algorithme de classe 469/470 (schedule heuristique + break-index) ; le standard moderne."],
-      ["Jef Bucas", "libblackwood (un port C ≈2,3× plus rapide) et bucas.name — le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
+      ["Jef Bucas", "libblackwood (un port C du solveur de Blackwood) et bucas.name — le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
       ["Louis Verhaard", "Le record 467 (2008) et le recuit par composition de jeux."],
       ["Brendan Owen & Günter Stertenbrink", "La dérivation de difficulté de 2007 : pourquoi 17/5 couleurs sont à la frontière d'unicité."],
       ["Marijn Heule", "L'encodage SAT canonique (2008) et des expériences SAT continues."],

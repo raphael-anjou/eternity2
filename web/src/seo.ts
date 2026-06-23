@@ -400,6 +400,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
     },
   },
+  "complex-theory": {
+    en: {
+      title: "Complex theory: counting the search before you run it" + SUFFIX,
+      description:
+        "Brendan Owen's complex theory estimates how wide Eternity II's search tree is at every depth — ~14,702 solutions with one clue, ~1 with five — and reveals the funnel: growth, a vast plateau where backtrackers burn 99% of their time, then collapse.",
+    },
+    fr: {
+      title: "La théorie complexe : compter la recherche avant de la lancer" + SUFFIX,
+      description:
+        "La théorie complexe de Brendan Owen estime la largeur de l'arbre de recherche d'Eternity II à chaque profondeur — ~14 702 solutions avec un indice, ~1 avec cinq — et révèle l'entonnoir : croissance, un vaste plateau où les backtrackers brûlent 99 % de leur temps, puis effondrement.",
+    },
+  },
   "prune-vs-speed": {
     en: {
       title: "Why a faster computer doesn't help" + SUFFIX,

@@ -12,6 +12,7 @@ type Topic = { key: string; ready: boolean; to?: string };
 
 const TOPICS: Topic[] = [
   { key: "pruneVsSpeed", ready: true, to: "/research/why/prune-vs-speed" },
+  { key: "complexTheory", ready: true, to: "/research/why/complex-theory" },
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
   { key: "sigmaCycles", ready: true, to: "/research/why/sigma-cycles" },
@@ -39,6 +40,10 @@ const T = {
       pruneVsSpeed: {
         title: "Why a faster computer doesn't help",
         body: "The master idea: shrinking the search space beats searching it faster, exponentially. Every wall below is, underneath, a way the puzzle stops you shrinking it. Start here.",
+      },
+      complexTheory: {
+        title: "Complex theory — counting the search",
+        body: "Brendan Owen's method to estimate the tree's width at every depth: ~14,702 solutions with one clue, ~1 with five, and the funnel where backtrackers burn 99% of their time. The community's key idea.",
       },
       phaseTransition: {
         title: "The phase-transition argument",
@@ -90,6 +95,10 @@ const T = {
       pruneVsSpeed: {
         title: "Pourquoi un ordinateur plus rapide n'aide pas",
         body: "L'idée maîtresse : réduire l'espace de recherche bat le fait de l'explorer plus vite, exponentiellement. Chaque mur ci-dessous est, au fond, une façon dont le puzzle vous empêche de le réduire. Commencez ici.",
+      },
+      complexTheory: {
+        title: "Théorie complexe — compter la recherche",
+        body: "La méthode de Brendan Owen pour estimer la largeur de l'arbre à chaque profondeur : ~14 702 solutions avec un indice, ~1 avec cinq, et l'entonnoir où les backtrackers brûlent 99 % de leur temps. L'idée clé de la communauté.",
       },
       phaseTransition: {
         title: "L'argument de la transition de phase",
