@@ -10,6 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -17,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
 import { KNOWN_BOARDS } from "@/data/known-boards";
+import type { KnownBoard } from "@/data/known-boards";
 import {
   decodeBucas,
   parseParams,
@@ -42,6 +52,17 @@ import { downloadSvg, downloadPng } from "@/lib/svg-export";
 import type { Puzzle } from "@/lib/types";
 
 const HINT_POSITIONS = [34, 45, 135, 210, 221];
+
+// Group the bundled boards in the picker dropdown by record tier, so the 18
+// boards (records + Bucas/McGavin/Verhaard variants) read as an organised list
+// rather than a wall of buttons.
+type BoardGroupKey = "records" | "class469" | "class467" | "other";
+const BOARD_GROUPS: { key: BoardGroupKey; filter: (b: KnownBoard) => boolean }[] = [
+  { key: "records", filter: (b) => b.score !== null && b.score >= 470 },
+  { key: "class469", filter: (b) => b.score === 469 },
+  { key: "class467", filter: (b) => b.score !== null && b.score >= 460 && b.score <= 468 },
+  { key: "other", filter: (b) => b.score === null || b.score < 460 },
+];
 
 const T = {
   en: {
@@ -71,6 +92,13 @@ const T = {
       </>
     ),
     officialById: "Official pieces by ID",
+    pickBoard: "Pick a board…",
+    groups: {
+      records: "Records",
+      class469: "469 boards",
+      class467: "460–468 boards",
+      other: "Other",
+    } as Record<BoardGroupKey, string>,
     generatedName: (s: number) => `generated ${s}×${s}`,
     placeholder: "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=…",
     load: "Load",
@@ -132,6 +160,13 @@ const T = {
       </>
     ),
     officialById: "Pièces officielles, par numéro",
+    pickBoard: "Choisir un plateau…",
+    groups: {
+      records: "Records",
+      class469: "Plateaux 469",
+      class467: "Plateaux 460–468",
+      other: "Autres",
+    } as Record<BoardGroupKey, string>,
     generatedName: (s: number) => `généré ${s}×${s}`,
     placeholder: "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=…",
     load: "Afficher",
@@ -361,12 +396,35 @@ export default function Viewer() {
         <p className="mt-1 text-xs text-muted-foreground">{t.credit}</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {KNOWN_BOARDS.map((kb) => (
-          <Button key={kb.id} variant="outline" size="sm" onClick={() => load(kb.params)}>
-            {kb.label}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          value=""
+          onValueChange={(id) => {
+            const kb = KNOWN_BOARDS.find((b) => b.id === id);
+            if (kb) load(kb.params);
+          }}
+        >
+          <SelectTrigger className="w-72">
+            <SelectValue placeholder={t.pickBoard} />
+          </SelectTrigger>
+          <SelectContent>
+            {BOARD_GROUPS.map((group) => {
+              const items = KNOWN_BOARDS.filter(group.filter);
+              if (items.length === 0) return null;
+              return (
+                <SelectGroup key={group.key}>
+                  <SelectLabel>{t.groups[group.key]}</SelectLabel>
+                  {items.map((kb) => (
+                    <SelectItem key={kb.id} value={kb.id}>
+                      {kb.label}
+                      {kb.score !== null ? ` · ${kb.score}/480` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              );
+            })}
+          </SelectContent>
+        </Select>
         <Button
           variant="outline"
           size="sm"
