@@ -250,6 +250,22 @@ CLOISTER (border-anchor fill diagram), REPLAY (double-break toggle diagram).
 Commit `ff9b4d7`. Now all 10 invention pages have either a verified board preview
 or a bespoke animation. Local commits only.
 
+### 2026-06-23 — Piece-theft finding + Experiments log (publish ALL attempts)
+
+- piece-theft (#why): exact (N,W)-demand server scarcity (269 demands, 47 with a
+  single server, mean 2.9), animation of a cell dying from a stolen scarce piece,
+  histogram. NOTE: my exact recompute (269/47) differs from the vault note
+  (362/121) — different convention; published what's reproducible. Commit `f279cf9`.
+- USER DIRECTIVE: publish ALL experiments tried + result + why
+  ([[feedback_e2_site_publish_all_experiments]]). Built the **Experiments log**:
+  web/src/data/experiments.json rolled from all 380 vault concept frontmatters
+  (245 built / 52 refuted / 41 partial / 39 idea / 2 wont-do), regenerable via
+  research/topics/experiments-log/extract.py. New /research/lab/experiments page:
+  search + outcome filters. Commit `0de1d0a`. Lab door now has 4 cards.
+  NEXT: enrich the "why" — esp. pull a why-it-failed line from each of the 52
+  refuted concepts' bodies.
+Why door now has 8 findings. Local commits only (no push, per user).
+
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
 Created `research/LEDGER.md` (this file) as the cross-session memory for the
