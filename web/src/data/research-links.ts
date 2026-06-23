@@ -72,6 +72,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Tout plateau record est figé : aucun petit réarrangement ne l'améliore.",
     [
       "/research/why/sigma-cycles",
+      "/research/why/prune-vs-speed",
       "/research/lab/inventions/palimpsest",
       "/research/lab/inventions/midden",
     ],
@@ -96,7 +97,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Entropie et loi d'aire",
     "Why the count of distinct partial boards collapses past ~80 cells — a wall no local signal sees.",
     "Pourquoi le nombre de plateaux partiels distincts s'effondre au-delà de ~80 cellules — un mur qu'aucun signal local ne voit.",
-    ["/research/why/phase-transition", "/research/why/forbidden-patterns"],
+    ["/research/why/phase-transition", "/research/why/prune-vs-speed", "/research/why/forbidden-patterns"],
   ),
   N(
     "/research/why/forbidden-patterns",
