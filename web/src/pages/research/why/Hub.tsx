@@ -12,6 +12,7 @@ type Topic = { key: string; ready: boolean; to?: string };
 
 const TOPICS: Topic[] = [
   { key: "pruneVsSpeed", ready: true, to: "/research/why/prune-vs-speed" },
+  { key: "wallsAndMethods", ready: true, to: "/research/why/walls-and-methods" },
   { key: "complexTheory", ready: true, to: "/research/why/complex-theory" },
   { key: "phaseTransition", ready: true, to: "/research/why/phase-transition" },
   { key: "rigidity", ready: true, to: "/research/why/rigidity-wall" },
@@ -40,6 +41,10 @@ const T = {
       pruneVsSpeed: {
         title: "Why a faster computer doesn't help",
         body: "The master idea: shrinking the search space beats searching it faster, exponentially. Every wall below is, underneath, a way the puzzle stops you shrinking it. Start here.",
+      },
+      wallsAndMethods: {
+        title: "Which wall stops which method",
+        body: "The bridge to the lab notebook: every invented algorithm lined up against the wall it actually attacks, and the exact score where that wall stopped it. The map of the whole project on one page.",
       },
       complexTheory: {
         title: "Complex theory — counting the search",
@@ -95,6 +100,10 @@ const T = {
       pruneVsSpeed: {
         title: "Pourquoi un ordinateur plus rapide n'aide pas",
         body: "L'idée maîtresse : réduire l'espace de recherche bat le fait de l'explorer plus vite, exponentiellement. Chaque mur ci-dessous est, au fond, une façon dont le puzzle vous empêche de le réduire. Commencez ici.",
+      },
+      wallsAndMethods: {
+        title: "Quel mur arrête quelle méthode",
+        body: "Le pont vers le carnet de laboratoire : chaque algorithme inventé aligné face au mur qu'il attaque réellement, et le score exact où ce mur l'a arrêté. La carte de tout le projet sur une page.",
       },
       complexTheory: {
         title: "Théorie complexe — compter la recherche",

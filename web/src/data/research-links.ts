@@ -42,6 +42,20 @@ const N = (
 export const RESEARCH_NODES: ResearchNode[] = [
   // ---- Why it's hard (the findings) ----
   N(
+    "/research/why/walls-and-methods",
+    "why",
+    "Which wall stops which method",
+    "Quel mur arrête quelle méthode",
+    "The bridge: every invented algorithm lined up against the wall it attacks and the score where it saturated.",
+    "Le pont : chaque algorithme inventé aligné face au mur qu'il attaque et au score où il a saturé.",
+    [
+      "/research/why/prune-vs-speed",
+      "/research/why/rigidity-wall",
+      "/research/lab/inventions",
+      "/research/why/no-forced-moves",
+    ],
+  ),
+  N(
     "/research/why/prune-vs-speed",
     "why",
     "Why a faster computer doesn't help",
@@ -49,6 +63,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Shrinking the search space beats searching it faster, exponentially — and E2 resists shrinking.",
     "Réduire l'espace de recherche bat l'explorer plus vite, exponentiellement — et E2 résiste à la réduction.",
     [
+      "/research/why/walls-and-methods",
       "/research/why/complex-theory",
       "/research/why/no-forced-moves",
       "/research/why/phase-transition",
@@ -86,6 +101,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Tout plateau record est figé : aucun petit réarrangement ne l'améliore.",
     [
       "/research/why/sigma-cycles",
+      "/research/why/walls-and-methods",
       "/research/why/prune-vs-speed",
       "/research/lab/inventions/palimpsest",
       "/research/lab/inventions/midden",
@@ -255,6 +271,15 @@ export const RESEARCH_NODES: ResearchNode[] = [
   ),
 
   // ---- Lab hubs & tools ----
+  N(
+    "/research/lab/inventions",
+    "invention",
+    "Inventions",
+    "Inventions",
+    "The ten named algorithms built to push the score, grouped by the kind of idea each one is.",
+    "Les dix algorithmes nommés conçus pour pousser le score, regroupés par type d'idée.",
+    ["/research/why/walls-and-methods", "/research/why/rigidity-wall", "/research/records"],
+  ),
   N(
     "/research/records",
     "reference",
