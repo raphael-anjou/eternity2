@@ -183,6 +183,8 @@ const T = {
       </>
     ),
     pathChartTitle: "Median nodes on the same 6×6 puzzles, by fill order (log scale)",
+    pathChartNote:
+      "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same — any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first.",
     s5Title: "5 · Why computers think in binary here",
     s5P1: (
       <>
@@ -318,6 +320,8 @@ const T = {
     ),
     pathChartTitle:
       "Médiane des nœuds sur les mêmes puzzles 6×6, selon le parcours de remplissage (échelle log)",
+    pathChartNote:
+      "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil — tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord.",
     s5Title: "5 · Pourquoi, ici, les ordinateurs raisonnent en binaire",
     s5P1: (
       <>
@@ -475,6 +479,7 @@ export default function Algorithms() {
             </ChartFrame>
           </CardContent>
         </Card>
+        <p className="max-w-3xl text-sm text-muted-foreground">{t.pathChartNote}</p>
       </section>
 
       <section className="space-y-3">
