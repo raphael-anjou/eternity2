@@ -2,6 +2,7 @@ import { pageMeta } from "@/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { InventionScoreChart, type ScoreDatum } from "@/components/research/InventionScoreChart";
 
 // Index of the named algorithms, grouped by the kind of idea each one is. Each
 // ready one has its own page under this folder. `score` is the one-line outcome;
@@ -193,6 +194,12 @@ const T = {
 
 export default function InventionsHub() {
   const t = useT(T);
+  const chartData: ScoreDatum[] = INVENTIONS.filter((inv) => inv.ready && inv.score).map((inv) => ({
+    key: inv.key,
+    label: t.inventions[inv.key as keyof typeof t.inventions].title,
+    score: inv.score as number,
+    family: inv.family,
+  }));
   return (
     <div className="space-y-10">
       <div>
@@ -205,6 +212,8 @@ export default function InventionsHub() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight">{t.title}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
       </div>
+
+      <InventionScoreChart data={chartData} />
 
       <div className="space-y-10">
         {FAMILY_ORDER.map((fam) => {
