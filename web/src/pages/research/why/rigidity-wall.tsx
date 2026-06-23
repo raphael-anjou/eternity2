@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { RigidityHalo } from "@/components/research/RigidityHalo";
+import { RigidityLab } from "@/components/research/RigidityLab";
 
 const T = {
   en: {
@@ -15,6 +16,8 @@ const T = {
     how1: "We didn't just try a lot of swaps and give up. We asked an integer-programming solver an exact question: take a region of the board, free every piece inside it, and find the single best way to fill it back in. The solver searches that whole local space exactly, not by sampling.",
     how2: "The answer keeps coming back the same: the best arrangement is the one already there. We proved it for region after region, across three different record boards, and out to a radius of four cells, which is a block of dozens of cells at once. Every time, no improvement exists.",
     vizTitle: "Watch the region grow",
+    tryTitle: "Try to beat it yourself",
+    tryIntro: "A real perfect small board. Swap any two pieces — or let the engine try every swap. Nothing beats it; that's rigidity, live.",
     impactTitle: "Why it matters",
     impact1: "This reframes the whole gap to 480. The distance from the best known board to a solution is not a pile of small fixes waiting to be found. If it were, this kind of local search would have found them. The barrier is that the good boards sit at the bottom of their own little valleys, and the valley walls are exact, not approximate.",
     impact2: "It also tells you what won't work. Polishing, hill-climbing, and most local-repair heuristics are trying to walk uphill from a frozen point. There is no uphill. Reaching a solution needs a move that rearranges a large region all at once, or a different starting point entirely, not a better polish.",
@@ -33,6 +36,8 @@ const T = {
     how1: "Nous n'avons pas seulement essayé beaucoup d'échanges avant d'abandonner. Nous avons posé une question exacte à un solveur de programmation en nombres entiers : prendre une région du plateau, libérer chaque pièce à l'intérieur, et trouver la meilleure façon de la remplir. Le solveur explore tout cet espace local exactement, pas par échantillonnage.",
     how2: "La réponse revient toujours la même : le meilleur agencement est celui déjà en place. Nous l'avons prouvé région après région, sur trois plateaux records différents, et jusqu'à un rayon de quatre cellules, soit un bloc de dizaines de cellules d'un coup. À chaque fois, aucune amélioration n'existe.",
     vizTitle: "Regardez la région grandir",
+    tryTitle: "Essayez de le battre vous-même",
+    tryIntro: "Un vrai petit plateau parfait. Échangez deux pièces — ou laissez le moteur essayer tous les échanges. Rien ne le bat ; c'est la rigidité, en direct.",
     impactTitle: "Pourquoi c'est important",
     impact1: "Cela recadre tout l'écart vers 480. La distance entre le meilleur plateau connu et une solution n'est pas un tas de petites corrections à trouver. Si c'en était un, ce type de recherche locale les aurait trouvées. L'obstacle, c'est que les bons plateaux sont au fond de leurs propres petites vallées, et les parois de ces vallées sont exactes, pas approximatives.",
     impact2: "Cela indique aussi ce qui ne marchera pas. Le polissage, la montée de colline et la plupart des heuristiques de réparation locale essaient de monter depuis un point figé. Il n'y a pas de montée. Atteindre une solution exige un mouvement qui réarrange une grande région d'un seul coup, ou un tout autre point de départ, pas un meilleur polissage.",
@@ -66,6 +71,16 @@ export default function RigidityWall() {
       <section className="space-y-6">
         <h2 className="text-center text-2xl font-semibold tracking-tight">{t.vizTitle}</h2>
         <RigidityHalo />
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.tryTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.tryIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <RigidityLab />
+        </div>
       </section>
 
       <section className="mx-auto max-w-2xl space-y-4">
