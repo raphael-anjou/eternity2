@@ -364,6 +364,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Les règles d'accord d'Eternity II sont riches (densité d'entropie positive, prouvée). La difficulté est dans la règle « chaque pièce une fois », dont le coût croît avec l'aire et effondre la distinction au-delà de ~80 cellules.",
     },
   },
+  "piece-theft": {
+    en: {
+      title: "Piece theft, where solvers die" + SUFFIX,
+      description:
+        "Why Eternity II solvers hit a wall mid-board: a cell's (north, west) demand has ~3 possible pieces on average, 47 have just one, and spending that one elsewhere kills a future cell while the box still looks full.",
+    },
+    fr: {
+      title: "Le vol de pièce, là où les solveurs meurent" + SUFFIX,
+      description:
+        "Pourquoi les solveurs Eternity II frappent un mur en milieu de plateau : la demande (nord, ouest) d'une cellule a ~3 pièces possibles en moyenne, 47 n'en ont qu'une, et dépenser celle-ci ailleurs tue une cellule à venir.",
+    },
+  },
   "no-forced-moves": {
     en: {
       title: "No forced moves" + SUFFIX,
