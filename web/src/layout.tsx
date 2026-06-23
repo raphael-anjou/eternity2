@@ -20,7 +20,7 @@ const T = {
     engineFailed: "engine failed",
     engineTitle: "Rust engine compiled to WebAssembly, running in your browser",
     footer:
-      "Open source (MIT, motif artwork GPL-3.0). Everything runs in your browser. There is no server.",
+      "Open source (MIT). Piece motifs by Jef Bucas (GPL-3.0). Everything runs in your browser. There is no server.",
     builtBy: "Built by Raphaël Anjou.",
     sourceCode: "Source code on GitHub",
   },
@@ -38,7 +38,7 @@ const T = {
     engineFailed: "moteur en échec",
     engineTitle: "Moteur Rust compilé en WebAssembly, exécuté directement dans votre navigateur",
     footer:
-      "Logiciel libre (MIT, motifs sous licence GPL-3.0). Tout se passe dans votre navigateur : aucun serveur n'est sollicité.",
+      "Logiciel libre (MIT). Motifs des pièces par Jef Bucas (GPL-3.0). Tout se passe dans votre navigateur : aucun serveur n'est sollicité.",
     builtBy: "Réalisé par Raphaël Anjou.",
     sourceCode: "Code source sur GitHub",
   },
