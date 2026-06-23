@@ -24,7 +24,7 @@ const INVENTIONS: Invention[] = [
   { key: "prior", score: 460, to: "/research/lab/experiments/prior", ready: true, family: "scratch" },
   { key: "keyring", score: 460, to: "/research/lab/experiments/keyring", ready: true, family: "scratch" },
   { key: "gauntlet", score: 458, to: "/research/lab/experiments/gauntlet", ready: true, family: "scratch", live: true },
-  { key: "lodestone", score: 451, to: "/research/lab/experiments/lodestone", ready: true, family: "scratch" },
+  { key: "lodestone", score: 451, to: "/research/lab/experiments/lodestone", ready: true, family: "scratch", live: true },
   { key: "staged", score: 436, to: "/research/lab/experiments/staged", ready: true, family: "scratch" },
   { key: "palimpsest", score: 463, to: "/research/lab/experiments/palimpsest", ready: true, family: "corpus" },
   { key: "ladder", score: 451, to: "/research/lab/experiments/ladder", ready: true, family: "concentrate", live: true },
