@@ -316,8 +316,8 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "invention",
     "Inventions",
     "Inventions",
-    "The ten named algorithms built to push the score, grouped by the kind of idea each one is.",
-    "Les dix algorithmes nommés conçus pour pousser le score, regroupés par type d'idée.",
+    "The named algorithms built to push the score, grouped by the kind of idea each one is.",
+    "Les algorithmes nommés conçus pour pousser le score, regroupés par type d'idée.",
     ["/research/why/walls-and-methods", "/research/why/rigidity-wall", "/research/records"],
   ),
   N(
