@@ -24,12 +24,14 @@ const INVENTIONS: Invention[] = [
   { key: "prior", score: 460, to: "/research/lab/inventions/prior", ready: true, family: "scratch" },
   { key: "keyring", score: 460, to: "/research/lab/inventions/keyring", ready: true, family: "scratch" },
   { key: "gauntlet", score: 458, to: "/research/lab/inventions/gauntlet", ready: true, family: "scratch", live: true },
+  { key: "lodestone", score: 451, to: "/research/lab/inventions/lodestone", ready: true, family: "scratch" },
   { key: "staged", score: 436, to: "/research/lab/inventions/staged", ready: true, family: "scratch" },
   { key: "palimpsest", score: 463, to: "/research/lab/inventions/palimpsest", ready: true, family: "corpus" },
   { key: "ladder", score: 451, to: "/research/lab/inventions/ladder", ready: true, family: "concentrate", live: true },
   { key: "cloister", score: 453, to: "/research/lab/inventions/cloister", ready: true, family: "anchor", live: true },
   { key: "midden", score: 452, to: "/research/lab/inventions/midden", ready: true, family: "anchor" },
   { key: "bandsaw", score: 437, to: "/research/lab/inventions/bandsaw", ready: true, family: "exact" },
+  { key: "mosaic", score: 448, to: "/research/lab/inventions/mosaic", ready: true, family: "exact" },
   { key: "replay", score: 460, to: "/research/lab/inventions/replay", ready: true, family: "decode", live: true },
 ];
 
@@ -111,6 +113,14 @@ const T = {
         title: "MIDDEN",
         body: "Decides where, not when, a board may break: confine mismatches to a chosen shape and search it. A dispersed lattice extends the perfect run.",
       },
+      mosaic: {
+        title: "MOSAIC",
+        body: "Tiles the board into 4×4 blocks, solves each to exact optimality with soft seams, and reserves scarce pieces for later blocks. Composes exact-in-the-small to 448 from scratch.",
+      },
+      lodestone: {
+        title: "LODESTONE",
+        body: "A scarce-demand prior that nudges a from-scratch beam to commit rare pieces early. A pure tiebreaker: a consistent median +2 and tighter variance, not a higher ceiling.",
+      },
     },
   },
   fr: {
@@ -187,6 +197,14 @@ const T = {
       midden: {
         title: "MIDDEN",
         body: "Décide où, et non quand, un plateau peut casser : confiner les défauts à une forme choisie et la chercher. Un réseau dispersé prolonge la suite parfaite.",
+      },
+      mosaic: {
+        title: "MOSAIC",
+        body: "Découpe le plateau en blocs 4×4, résout chacun à l'optimum exact avec des jointures souples, et réserve les pièces rares aux blocs suivants. Compose l'exact-en-petit jusqu'à 448 de zéro.",
+      },
+      lodestone: {
+        title: "LODESTONE",
+        body: "Un prior de demande rare qui pousse un faisceau parti de zéro à engager tôt les pièces rares. Un pur départage : +2 médian constant et variance resserrée, pas un plafond plus haut.",
       },
     },
   },

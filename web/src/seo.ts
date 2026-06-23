@@ -256,6 +256,30 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Construire tout le plateau Eternity II de zéro sans cadre préétabli, en laissant la bordure émerger en dernier. Atteint 436 sans cadre, mesurant ce que vaut l'ancrage par le cadre.",
     },
   },
+  "inv-mosaic": {
+    en: {
+      title: "MOSAIC" + SUFFIX,
+      description:
+        "Tile Eternity II into 4×4 blocks, solve each to exact MaxSAT optimality with soft seams, and reserve scarce pieces for later blocks. From scratch, no warm start: 448/480.",
+    },
+    fr: {
+      title: "MOSAIC" + SUFFIX,
+      description:
+        "Découper Eternity II en blocs 4×4, résoudre chacun à l'optimum MaxSAT exact avec des jointures souples, et réserver les pièces rares aux blocs suivants. De zéro, sans amorce : 448/480.",
+    },
+  },
+  "inv-lodestone": {
+    en: {
+      title: "LODESTONE" + SUFFIX,
+      description:
+        "A scarce-demand prior that nudges a from-scratch Eternity II beam to commit rare pieces early. A tiebreaker only: a consistent median +2 and tighter variance, not a record-mover.",
+    },
+    fr: {
+      title: "LODESTONE" + SUFFIX,
+      description:
+        "Un prior de demande rare qui pousse un faisceau Eternity II parti de zéro à engager tôt les pièces rares. Un simple départage : +2 médian constant et variance resserrée, pas un déplaceur de record.",
+    },
+  },
   "inv-bandsaw": {
     en: {
       title: "BANDSAW" + SUFFIX,

@@ -283,6 +283,32 @@ export const RESEARCH_NODES: ResearchNode[] = [
       "/research/lab/inventions/cloister",
     ],
   ),
+  N(
+    "/research/lab/inventions/mosaic",
+    "invention",
+    "MOSAIC",
+    "MOSAIC",
+    "Solves 4×4 blocks to exact optimality with soft seams and composes them; 448 from scratch.",
+    "Résout des blocs 4×4 à l'optimum exact avec jointures souples et les compose ; 448 de zéro.",
+    [
+      "/research/lab/inventions/bandsaw",
+      "/research/why/piece-theft",
+      "/research/why/walls-and-methods",
+    ],
+  ),
+  N(
+    "/research/lab/inventions/lodestone",
+    "invention",
+    "LODESTONE",
+    "LODESTONE",
+    "A scarce-demand tiebreaker for the from-scratch beam: median +2 and tighter variance, not a higher ceiling.",
+    "Un départage de demande rare pour le faisceau parti de zéro : +2 médian et variance resserrée, pas un plafond plus haut.",
+    [
+      "/research/why/piece-theft",
+      "/research/lab/inventions/keyring",
+      "/research/lab/inventions/prior",
+    ],
+  ),
 
   // ---- Lab hubs & tools ----
   N(

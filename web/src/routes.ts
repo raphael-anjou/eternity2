@@ -49,6 +49,8 @@ const PAGES = [
   { path: "research/lab/inventions/replay", file: "pages/research/lab/inventions/replay.tsx", id: "inv-replay" },
   { path: "research/lab/inventions/cloister", file: "pages/research/lab/inventions/cloister.tsx", id: "inv-cloister" },
   { path: "research/lab/inventions/midden", file: "pages/research/lab/inventions/midden.tsx", id: "inv-midden" },
+  { path: "research/lab/inventions/mosaic", file: "pages/research/lab/inventions/mosaic.tsx", id: "inv-mosaic" },
+  { path: "research/lab/inventions/lodestone", file: "pages/research/lab/inventions/lodestone.tsx", id: "inv-lodestone" },
   { path: "research/reference", file: "pages/ReferenceTable.tsx", id: "reference" },
   { path: "research/papers", file: "pages/Papers.tsx", id: "papers" },
   { path: "research/records", file: "pages/Records.tsx", id: "records" },
