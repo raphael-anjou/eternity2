@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
+import { SigmaCycleLab } from "@/components/research/SigmaCycleLab";
 
 const T = {
   en: {
@@ -12,6 +13,8 @@ const T = {
     p1: "Two top boards look totally different, but they're related: you can turn one into the other by picking up a set of pieces and shifting each one into the spot the next was using, all the way around a loop. Mathematicians call that loop a cycle. Do the whole loop and you arrive at the other board.",
     p2: "Here's the catch. Between the best boards, that loop is enormous and there's only one of it. Going from a 458 board to the community's 469 means one single interlocking cycle of 154 cells, spanning the entire interior of the board.",
     vizTitle: "One loop, all or nothing",
+    tryItTitle: "Try it on a real small puzzle",
+    tryItIntro: "Not a diagram — the live engine finds two real solutions, computes the actual cycles between them, and scores every step you take.",
     howTitle: "How we know",
     how1: "We computed the exact cycles between three different record boards and then tried every partial move: apply just some of the loop and see what the score does. The result is blunt. Every partial application makes the score worse, with drops ranging from a few points to over a hundred. There is no subset of the loop that helps, not one.",
     how2: "That's what makes it a wall. To move from one good board toward a better one you'd have to commit to shifting up to 154 cells at once, with no improving step along the way to guide you there. Every search that works in steps is blind to a move like that.",
@@ -32,6 +35,8 @@ const T = {
     p1: "Deux plateaux de tête semblent totalement différents, mais ils sont liés : on peut transformer l'un en l'autre en prenant un ensemble de pièces et en décalant chacune vers la place qu'occupait la suivante, tout le long d'une boucle. Les mathématiciens appellent cette boucle un cycle. Faites toute la boucle et vous arrivez à l'autre plateau.",
     p2: "Voici le piège. Entre les meilleurs plateaux, cette boucle est énorme et il n'y en a qu'une. Passer d'un plateau 458 au 469 de la communauté demande un seul cycle imbriqué de 154 cellules, couvrant tout l'intérieur du plateau.",
     vizTitle: "Une boucle, tout ou rien",
+    tryItTitle: "Essayez sur un vrai petit puzzle",
+    tryItIntro: "Pas un schéma — le moteur en direct trouve deux vraies solutions, calcule les cycles réels entre elles, et évalue chaque étape que vous faites.",
     howTitle: "Comment on le sait",
     how1: "Nous avons calculé les cycles exacts entre trois plateaux records différents, puis essayé chaque mouvement partiel : appliquer seulement une partie de la boucle et observer le score. Le résultat est net. Chaque application partielle dégrade le score, avec des baisses allant de quelques points à plus de cent. Aucun sous-ensemble de la boucle n'aide, pas un seul.",
     how2: "C'est ce qui en fait un mur. Pour passer d'un bon plateau vers un meilleur, il faudrait s'engager à décaler jusqu'à 154 cellules d'un coup, sans aucune étape améliorante pour vous y guider. Toute recherche qui procède par étapes est aveugle à un tel mouvement.",
@@ -70,6 +75,16 @@ export default function SigmaCycles() {
       <section className="space-y-6">
         <h2 className="text-center text-2xl font-semibold tracking-tight">{t.vizTitle}</h2>
         <SigmaCycleDiagram />
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.tryItTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.tryItIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <SigmaCycleLab />
+        </div>
       </section>
 
       <section className="mx-auto max-w-2xl space-y-4">
