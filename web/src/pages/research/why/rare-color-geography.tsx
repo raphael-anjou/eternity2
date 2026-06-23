@@ -57,7 +57,7 @@ const T = {
     why: "This is design you can see. Eternity I fell because its pieces had exploitable statistical regularities; Eternity II's colors were balanced on purpose to remove those handholds. Fencing the scarce colors to the border keeps them away from the vast interior, where an attacker would most want a rare, highly-constraining signal to grab. The interior is left to seventeen common colors, which is exactly why interior search has so little to grip. The border, where the rare colors make matches tight, is why every strong board gets its border essentially perfect.",
     related: "See why the interior gives no forced moves",
     reproTitle: "Reproduce it",
-    reproBody: "Computed exactly from the official set; identical every run.",
+    reproBody: "Computed exactly from the official set; reproduces identically every run.",
     sourceLink: "Article, source and results on GitHub",
   },
   fr: {
@@ -81,7 +81,7 @@ const T = {
     why: "C'est une conception visible. Eternity I est tombé car ses pièces avaient des régularités statistiques exploitables ; les couleurs d'Eternity II ont été équilibrées exprès pour supprimer ces prises. Cantonner les couleurs rares au bord les éloigne du vaste intérieur, là où un attaquant voudrait le plus un signal rare et très contraignant à saisir. L'intérieur est laissé à dix-sept couleurs communes, et c'est précisément pourquoi la recherche intérieure a si peu de prise. Le bord, où les couleurs rares rendent les accords serrés, explique pourquoi tout bon plateau obtient un bord quasi parfait.",
     related: "Voir pourquoi l'intérieur ne donne aucun coup forcé",
     reproTitle: "Le reproduire",
-    reproBody: "Calculé exactement à partir du jeu officiel ; identique à chaque exécution.",
+    reproBody: "Calculé exactement à partir du jeu officiel ; se reproduit à l'identique à chaque exécution.",
     sourceLink: "Article, code source et résultats sur GitHub",
   },
 };

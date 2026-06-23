@@ -84,11 +84,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Pourquoi sauter de bassin en bassin est impossible",
     "Two great boards differ by one giant indivisible swap; every smaller piece scores worse.",
     "Deux bons plateaux diffèrent par un seul échange géant indivisible ; tout morceau plus petit fait moins bien.",
-    [
-      "/research/why/rigidity-wall",
-      "/research/lab/basins",
-      "/research/lab/inventions/keyring",
-    ],
+    ["/research/why/rigidity-wall", "/research/lab/inventions/keyring"],
   ),
   N(
     "/research/why/entropy-area-law",
@@ -144,7 +140,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "PALIMPSEST",
     "Reads the corpus to find the choices that quietly lock a board below the top, then targets them.",
     "Lit le corpus pour repérer les choix qui bloquent un plateau sous le sommet, puis les cible.",
-    ["/research/why/rigidity-wall", "/research/lab/basins", "/research/lab/inventions/keyring"],
+    ["/research/why/rigidity-wall", "/research/lab/inventions/keyring"],
   ),
   N(
     "/research/lab/inventions/keyring",
@@ -166,7 +162,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "GAUNTLET",
     "Beam search in several fill directions at once, to land in different regions.",
     "Recherche en faisceau dans plusieurs directions à la fois, pour atterrir dans des régions différentes.",
-    ["/research/lab/inventions/prior", "/research/lab/basins"],
+    ["/research/lab/inventions/prior"],
   ),
   N(
     "/research/lab/inventions/prior",
@@ -246,24 +242,6 @@ export const RESEARCH_NODES: ResearchNode[] = [
 
   // ---- Lab hubs & tools ----
   N(
-    "/research/lab/basins",
-    "finding",
-    "The three basins",
-    "Les trois bassins",
-    "Three distinct record-class regions, each frozen and isolated from the others.",
-    "Trois régions de classe record, chacune figée et isolée des autres.",
-    ["/research/why/sigma-cycles", "/research/why/rigidity-wall"],
-  ),
-  N(
-    "/research/lab/experiments",
-    "reference",
-    "Experiments log",
-    "Journal des expériences",
-    "Every attempt from the notebook, searchable: what worked, what didn't, and why.",
-    "Chaque tentative du carnet, cherchable : ce qui a marché, ce qui non, et pourquoi.",
-    ["/research/lab/inventions", "/research/build/dead-ends"],
-  ),
-  N(
     "/research/records",
     "reference",
     "Record boards",
@@ -279,7 +257,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "À vous de jouer",
     "Clone the repo and reproduce every number on this site.",
     "Clonez le dépôt et reproduisez chaque chiffre du site.",
-    ["/research/build/dead-ends", "/research/lab/experiments"],
+    ["/research/build/dead-ends"],
   ),
   N(
     "/research/build/dead-ends",
@@ -288,7 +266,7 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Impasses",
     "Whole approaches that were ruled out, so you can skip them.",
     "Des approches entières écartées, pour vous les épargner.",
-    ["/research/lab/experiments", "/research/build/run-it-yourself"],
+    ["/research/build/run-it-yourself"],
   ),
 ];
 

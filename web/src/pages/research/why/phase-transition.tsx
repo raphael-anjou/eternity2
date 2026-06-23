@@ -58,7 +58,7 @@ const T = {
     why2: "How do we know the peak is real and not just a story? Two ways meet here. The published analysis derives it: for framed edge-matching puzzles, the color count where you'd expect about one solution falls near 17, and that is the hardest setting to search. And you can watch a piece of it yourself in the demo above: build real puzzles, count the work, and see it explode when colors are scarce. The impact is concrete. It means the gap to a solution isn't a tuning problem you can grind away with a faster machine; the puzzle was placed where search is worst on purpose, so beating it needs a genuinely better idea, not just more effort.",
     seeAlso: "See the difficulty measured live on the Algorithms page",
     reproTitle: "Reproduce it",
-    reproBody: "The color split is read straight from the official set. Instant and identical every run.",
+    reproBody: "Computed exactly from the official set; reproduces identically every run.",
     sourceLink: "Article, source and results on GitHub",
   },
   fr: {
@@ -89,7 +89,7 @@ const T = {
     why2: "Comment savoir que le pic est réel et pas seulement une jolie histoire ? Deux voies se rejoignent ici. L'analyse publiée le démontre : pour les puzzles encadrés d'assemblage par les bords, le nombre de couleurs où l'on attend environ une solution tombe près de 17, et c'est le réglage le plus dur à explorer. Et vous pouvez en observer une partie vous-même dans la démo ci-dessus : construire de vrais puzzles, compter le travail, et voir l'explosion quand les couleurs sont rares. La conséquence est concrète. L'écart vers une solution n'est pas un problème de réglage qu'on grignote avec une machine plus rapide ; le puzzle a été placé là où la recherche est la pire, à dessein, donc le battre exige une idée vraiment meilleure, pas seulement plus d'efforts.",
     seeAlso: "Voir la difficulté mesurée en direct sur la page Algorithmes",
     reproTitle: "Le reproduire",
-    reproBody: "La répartition des couleurs est lue directement dans le jeu officiel. Instantané et identique à chaque exécution.",
+    reproBody: "Calculé exactement à partir du jeu officiel ; se reproduit à l'identique à chaque exécution.",
     sourceLink: "Article, code source et résultats sur GitHub",
   },
 };

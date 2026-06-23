@@ -86,7 +86,7 @@ const T = {
     why1: "A finished, correct board has zero forbidden patches — by definition, everything matches. So counting the forbidden patches in a board tells you roughly how far it is from a real solution, even when two boards have the same number of matched edges. Weak boards are full of forbidden squares; the best boards ever found have only a couple of dozen left.",
     why2: "It also shows, from another angle, why the puzzle shrugs off clever local fixes. When 99.72% of small squares are impossible, the pieces that do fit together are rare and specific. There's almost no room to shuffle things around without breaking something — the good arrangements are scarce and rigid.",
     reproTitle: "Reproduce it",
-    reproBody: "The counts are computed exactly and reproduce byte-for-byte. About twenty seconds to run.",
+    reproBody: "Computed exactly from the official set; reproduces identically every run (about twenty seconds).",
     sourceLink: "Article, source and results on GitHub",
   },
   fr: {
@@ -119,7 +119,7 @@ const T = {
     why1: "Un plateau terminé et correct n'a aucun motif interdit — par définition, tout s'accorde. Compter les motifs interdits d'un plateau indique donc à peu près sa distance à une vraie solution, même quand deux plateaux ont le même nombre de bords appariés. Les plateaux faibles en regorgent ; les meilleurs jamais trouvés n'en ont plus qu'une vingtaine.",
     why2: "Cela montre aussi, sous un autre angle, pourquoi le puzzle résiste aux retouches locales malignes. Quand 99,72 % des petits carrés sont impossibles, les pièces qui s'emboîtent sont rares et précises. Il n'y a presque aucune marge pour réarranger sans casser quelque chose — les bons agencements sont rares et rigides.",
     reproTitle: "Le reproduire",
-    reproBody: "Les comptages sont calculés exactement et se reproduisent à l'identique. Une vingtaine de secondes d'exécution.",
+    reproBody: "Calculé exactement à partir du jeu officiel ; se reproduit à l'identique à chaque exécution (une vingtaine de secondes).",
     sourceLink: "Article, code source et résultats sur GitHub",
   },
 };

@@ -15,17 +15,16 @@ type Area = { key: string; to?: string; ready: boolean };
 const AREAS: Area[] = [
   { key: "findings", ready: true, to: "/research/lab/findings" },
   { key: "inventions", ready: true, to: "/research/lab/inventions" },
-  { key: "experiments", ready: true, to: "/research/lab/experiments" },
-  { key: "basins", ready: true, to: "/research/lab/basins" },
+  { key: "others", ready: false },
 ];
 
 const T = {
   en: {
     title: "The lab notebook",
     intro:
-      "An open notebook of original work on Eternity II: the structural findings, the algorithms built to attack it, and the notable boards that came out. Everything here is reproducible from source — and where a search is stochastic or long-running, the script and the resulting board are published anyway, plainly labelled.",
+      "An open notebook of original work on Eternity II: the structural findings and the algorithms built to attack it. Everything here is reproducible from source — and where a search is stochastic or long-running, the script and the resulting board are published anyway, plainly labelled.",
     backLabel: "← Research",
-    soon: "In preparation",
+    soon: "Coming soon",
     reproTitle: "Everything is reproducible",
     reproBody:
       "No result on this site is an unbacked claim. Deterministic computations ship a runnable script and the exact output it produces. Searches that depend on randomness or take hours ship the same script plus the board they found — which you can load into the viewer and check edge by edge. The label on each result tells you which kind it is.",
@@ -35,25 +34,21 @@ const T = {
         body: "Standing structural results about the puzzle — rigidity, the entropy wall, indecomposable rearrangements, forbidden patterns — each written up with the computation behind it.",
       },
       inventions: {
-        title: "Inventions",
+        title: "Raphaël's experiments",
         body: "The named algorithms built to push the score: what problem each attacks, the idea, the result it reached, and the open questions it left. Methods and code in full.",
       },
-      experiments: {
-        title: "Experiments log",
-        body: "Everything we tried, with how it turned out — hundreds of attempts, the wins and the dead ends alike, searchable and filterable. The honest, complete record.",
-      },
-      basins: {
-        title: "Notable boards",
-        body: "A gallery of record and boundary boards as case studies — each loadable in the viewer and annotated with what makes it interesting.",
+      others: {
+        title: "Research from other puzzlers",
+        body: "Coming soon — write-ups of the methods and findings of the wider Eternity II community, alongside the work here.",
       },
     },
   },
   fr: {
     title: "Le carnet de laboratoire",
     intro:
-      "Un carnet ouvert de travaux originaux sur Eternity II : les résultats structurels, les algorithmes conçus pour l'attaquer et les plateaux notables qui en sont sortis. Tout ici est reproductible depuis les sources — et lorsqu'une recherche est aléatoire ou longue, le script et le plateau obtenu sont quand même publiés, clairement étiquetés.",
+      "Un carnet ouvert de travaux originaux sur Eternity II : les résultats structurels et les algorithmes conçus pour l'attaquer. Tout ici est reproductible depuis les sources — et lorsqu'une recherche est aléatoire ou longue, le script et le plateau obtenu sont quand même publiés, clairement étiquetés.",
     backLabel: "← Recherche",
-    soon: "En préparation",
+    soon: "Bientôt",
     reproTitle: "Tout est reproductible",
     reproBody:
       "Aucun résultat de ce site n'est une affirmation sans preuve. Les calculs déterministes sont accompagnés d'un script exécutable et de la sortie exacte qu'il produit. Les recherches qui dépendent du hasard ou prennent des heures fournissent le même script ainsi que le plateau trouvé — que vous pouvez charger dans le visualiseur et vérifier bord par bord. L'étiquette de chaque résultat indique de quel type il s'agit.",
@@ -63,16 +58,12 @@ const T = {
         body: "Des résultats structurels établis sur le puzzle — rigidité, mur d'entropie, réarrangements indécomposables, motifs interdits — chacun rédigé avec le calcul qui le sous-tend.",
       },
       inventions: {
-        title: "Inventions",
+        title: "Les expériences de Raphaël",
         body: "Les algorithmes nommés conçus pour pousser le score : le problème que chacun attaque, l'idée, le résultat atteint et les questions restées ouvertes. Méthodes et code en entier.",
       },
-      experiments: {
-        title: "Journal des expériences",
-        body: "Tout ce que nous avons essayé, avec le résultat — des centaines de tentatives, les réussites comme les impasses, cherchables et filtrables. Le compte-rendu honnête et complet.",
-      },
-      basins: {
-        title: "Plateaux notables",
-        body: "Une galerie de plateaux records et limites présentés comme des études de cas — chacun chargeable dans le visualiseur et annoté de ce qui le rend intéressant.",
+      others: {
+        title: "Recherches d'autres puzzlers",
+        body: "Bientôt — des comptes-rendus des méthodes et résultats de la communauté Eternity II au sens large, aux côtés du travail présenté ici.",
       },
     },
   },

@@ -21,6 +21,7 @@ const COMMUNITY = [
 
 const T = {
   en: {
+    wip: "This is a work in progress. The website is young and slowly adding years of research.",
     title: "Research",
     intro:
       "For the people who want to actually solve it. Pick a door: why the puzzle is so hard, what you need to build a solver, or the open notebook of original work — including this project's.",
@@ -35,7 +36,7 @@ const T = {
       },
       lab: {
         title: "The lab notebook",
-        body: "Original findings, the named algorithms built to attack the puzzle, and the notable boards that came out — all reproducible from source.",
+        body: "Original findings and the named algorithms built to attack the puzzle — Raphaël's experiments, all reproducible from source, with room for other puzzlers' work to come.",
       },
     },
     communityTitle: "Community infrastructure",
@@ -46,6 +47,7 @@ const T = {
     ],
   },
   fr: {
+    wip: "Ce site est en construction. Il est jeune et intègre peu à peu des années de recherche.",
     title: "Recherche",
     intro:
       "Pour celles et ceux qui veulent vraiment le résoudre. Choisissez une porte : pourquoi le puzzle est si dur, ce qu'il faut pour construire un solveur, ou le carnet ouvert des travaux originaux — y compris ceux de ce projet.",
@@ -60,7 +62,7 @@ const T = {
       },
       lab: {
         title: "Le carnet de laboratoire",
-        body: "Résultats originaux, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables obtenus — le tout reproductible depuis les sources.",
+        body: "Résultats originaux et algorithmes nommés conçus pour attaquer le puzzle — les expériences de Raphaël, le tout reproductible depuis les sources, avec de la place pour les travaux d'autres puzzlers à venir.",
       },
     },
     communityTitle: "Les outils de la communauté",
@@ -76,6 +78,10 @@ export default function Research() {
   const t = useT(T);
   return (
     <div className="space-y-12">
+      <div className="rounded-lg border border-amber-300/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:text-amber-200">
+        {t.wip}
+      </div>
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
