@@ -36,6 +36,7 @@ const PAGES = [
   { path: "research/lab/inventions", file: "pages/research/lab/inventions/Hub.tsx", id: "inventions" },
   { path: "research/lab/basins", file: "pages/research/lab/basins/Hub.tsx", id: "basins" },
   { path: "research/lab/findings", file: "pages/research/lab/findings/Hub.tsx", id: "findings" },
+  { path: "research/lab/experiments", file: "pages/research/lab/experiments/Hub.tsx", id: "experiments" },
   { path: "research/lab/inventions/palimpsest", file: "pages/research/lab/inventions/palimpsest.tsx", id: "inv-palimpsest" },
   { path: "research/lab/inventions/keyring", file: "pages/research/lab/inventions/keyring.tsx", id: "inv-keyring" },
   { path: "research/lab/inventions/gauntlet", file: "pages/research/lab/inventions/gauntlet.tsx", id: "inv-gauntlet" },
