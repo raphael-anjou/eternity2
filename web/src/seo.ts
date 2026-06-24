@@ -436,6 +436,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
     },
   },
+  "border-balance": {
+    en: {
+      title: "The border balance (NS-1 deficit)" + SUFFIX,
+      description:
+        "A solved Eternity II board obeys a colour-balance law: the colours the border shows the interior equal the colours the interior shows back. The NS-1 deficit measures the imbalance — a real necessary condition, and a revealing blind spot.",
+    },
+    fr: {
+      title: "L'équilibre du bord (déficit NS-1)" + SUFFIX,
+      description:
+        "Un plateau Eternity II résolu obéit à une loi d'équilibre des couleurs : les couleurs que le bord montre à l'intérieur égalent celles que l'intérieur renvoie. Le déficit NS-1 mesure le déséquilibre — une vraie condition nécessaire, avec un angle mort révélateur.",
+    },
+  },
   "complex-theory": {
     en: {
       title: "Complex theory: counting the search before you run it" + SUFFIX,

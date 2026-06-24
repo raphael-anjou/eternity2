@@ -26,6 +26,7 @@ export const PAGE_PATHS = [
   "research/why/piece-theft",
   "research/why/entropy-area-law",
   "research/why/rare-color-geography",
+  "research/why/border-balance",
   "research/build",
   "research/build/run-it-yourself",
   "research/build/dead-ends",

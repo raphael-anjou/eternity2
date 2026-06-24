@@ -173,7 +173,20 @@ export const RESEARCH_NODES: ResearchNode[] = [
     "Les couleurs rares vivent sur le cadre",
     "Five of 22 colours appear only on the border ring — design you can see.",
     "Cinq des 22 couleurs n'apparaissent que sur le cadre — une conception visible.",
-    ["/research/why/forbidden-patterns", "/research/lab/experiments/cloister"],
+    ["/research/why/forbidden-patterns", "/research/why/border-balance", "/research/lab/experiments/cloister"],
+  ),
+  N(
+    "/research/why/border-balance",
+    "why",
+    "The border balance (NS-1)",
+    "L'équilibre du bord (NS-1)",
+    "The border hands the interior exactly the colours it hands back. A real necessary condition — blind to permutations.",
+    "Le bord rend à l'intérieur exactement les couleurs qu'il reçoit. Une vraie condition nécessaire — aveugle aux permutations.",
+    [
+      "/research/why/rare-color-geography",
+      "/research/why/forbidden-patterns",
+      "/research/why/no-forced-moves",
+    ],
   ),
 
   // ---- Inventions ----
