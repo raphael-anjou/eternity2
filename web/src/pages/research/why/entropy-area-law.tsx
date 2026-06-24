@@ -13,6 +13,7 @@ import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { Math as MathInline, MathBlock } from "@/components/research/Math";
+import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
 import data from "@/data/entropy-area-law.json";
 
 const ARTICLE_URL =
@@ -42,6 +43,9 @@ const T = {
     area1: "Now put the use-each-piece-once rule back, and ask how often a random color-valid n×n patch actually uses distinct pieces. Call it ρ(n). It collapses, and crucially it collapses in the area, not the perimeter:",
     area2: "An area-law decay is brutal because area grows quadratically. The fraction of realizable patches drops below one in a thousand at around eighty cells.",
     chartRhoTitle: "Fraction of patches realizable with distinct pieces",
+    tryTitle: "See the gap open",
+    tryIntro:
+      "The same idea on the real pieces, exactly counted. Step the block size and watch how many colour-valid blocks survive the use-each-piece-once rule.",
     rhoAxis: "ρ (distinct-realizable fraction)",
     cellsAxis: "patch size (cells)",
     impactTitle: "Why it matters",
@@ -71,6 +75,9 @@ const T = {
     area1: "Remettez la règle « chaque pièce une fois » et demandez à quelle fréquence un patch n×n aléatoire valide en couleurs utilise vraiment des pièces distinctes. Appelez cela ρ(n). Cela s'effondre, et surtout cela s'effondre en l'aire, pas le périmètre :",
     area2: "Une décroissance en loi d'aire est brutale car l'aire croît de façon quadratique. La fraction de patches réalisables tombe sous un pour mille vers quatre-vingts cellules.",
     chartRhoTitle: "Fraction de patches réalisables avec des pièces distinctes",
+    tryTitle: "Voir l'écart se creuser",
+    tryIntro:
+      "La même idée sur les vraies pièces, comptée exactement. Faites varier la taille de bloc et observez combien de blocs valides en couleurs survivent à la règle « chaque pièce une fois ».",
     rhoAxis: "ρ (fraction réalisable distincte)",
     cellsAxis: "taille du patch (cellules)",
     impactTitle: "Pourquoi c'est important",
@@ -197,6 +204,16 @@ export default function EntropyAreaLaw() {
               {t.busy}
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.tryTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.tryIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <EntropyScarcityLab />
         </div>
       </section>
 
