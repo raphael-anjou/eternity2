@@ -13,6 +13,7 @@ import {
 import { BoardSvg } from "@/components/board/BoardSvg";
 import type { Edges } from "@/lib/bucas";
 import { ForbiddenPatchLab } from "@/components/research/ForbiddenPatchLab";
+import { ForbiddenCountLab } from "@/components/research/ForbiddenCountLab";
 import { Math, MathBlock } from "@/components/research/Math";
 import data from "@/data/forbidden-patterns.json";
 
@@ -85,6 +86,9 @@ const T = {
     whyTitle: "Why it matters",
     why1: "A finished, correct board has zero forbidden patches — by definition, everything matches. So counting the forbidden patches in a board tells you roughly how far it is from a real solution, even when two boards have the same number of matched edges. Weak boards are full of forbidden squares; the best boards ever found have only a couple of dozen left.",
     why2: "It also shows, from another angle, why the puzzle shrugs off clever local fixes. When 99.72% of small squares are impossible, the pieces that do fit together are rare and specific. There's almost no room to shuffle things around without breaking something — the good arrangements are scarce and rigid.",
+    signalTitle: "A second axis of progress",
+    signalIntro:
+      "Counting forbidden squares turns the idea into a usable signal. Pick a real record board: the number of forbidden 2×2 windows falls as the matched-edge score rises. Two boards with the same edge-score can still differ here — the one with fewer forbidden squares is structurally closer to a solution, which is why some solvers track forbidden-patch count as a tiebreak.",
     reproTitle: "Reproduce it",
     reproBody: "Computed exactly from the official set; reproduces identically every run (about twenty seconds).",
     sourceLink: "Article, source and results on GitHub",
@@ -118,6 +122,9 @@ const T = {
     whyTitle: "Pourquoi c'est important",
     why1: "Un plateau terminé et correct n'a aucun motif interdit — par définition, tout s'accorde. Compter les motifs interdits d'un plateau indique donc à peu près sa distance à une vraie solution, même quand deux plateaux ont le même nombre de bords appariés. Les plateaux faibles en regorgent ; les meilleurs jamais trouvés n'en ont plus qu'une vingtaine.",
     why2: "Cela montre aussi, sous un autre angle, pourquoi le puzzle résiste aux retouches locales malignes. Quand 99,72 % des petits carrés sont impossibles, les pièces qui s'emboîtent sont rares et précises. Il n'y a presque aucune marge pour réarranger sans casser quelque chose — les bons agencements sont rares et rigides.",
+    signalTitle: "Un second axe de progrès",
+    signalIntro:
+      "Compter les carrés interdits transforme l'idée en signal exploitable. Choisissez un vrai plateau record : le nombre de fenêtres 2×2 interdites chute à mesure que le score de bords appariés monte. Deux plateaux de même score peuvent différer ici — celui qui a le moins de carrés interdits est structurellement plus proche d'une solution, et certains solveurs suivent le compte d'interdits comme critère de départage.",
     reproTitle: "Le reproduire",
     reproBody: "Calculé exactement à partir du jeu officiel ; se reproduit à l'identique à chaque exécution (une vingtaine de secondes).",
     sourceLink: "Article, code source et résultats sur GitHub",
@@ -219,6 +226,16 @@ export default function ForbiddenPatterns() {
         <h2 className="text-2xl font-semibold tracking-tight">{t.whyTitle}</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">{t.why1}</p>
         <p className="text-sm leading-relaxed text-muted-foreground">{t.why2}</p>
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.signalTitle}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.signalIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <ForbiddenCountLab />
+        </div>
       </section>
 
       <section className="max-w-3xl space-y-3 rounded-lg border bg-muted/30 p-5">
