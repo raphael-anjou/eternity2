@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { RelatedRail } from "@/components/research/RelatedRail";
 import { ComplexFunnel } from "@/components/research/ComplexFunnel";
+import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
 
 const T = {
   en: {
@@ -25,6 +26,9 @@ const T = {
     funnelTitle: "The funnel",
     funnelIntro:
       "Plot the expected width at each depth and three regimes appear — the shape the community calls the E2 funnel.",
+    interactiveTitle: "Try it: the order decides the funnel",
+    interactiveIntro:
+      "The same estimate, run live for different scan orders. The plateau peak — the widest point the search must cross — is decided by the order alone, before a single node is placed.",
     regimesTitle: "Three regimes",
     regimes: [
       ["Growth (depth 1–50)", "Solutions multiply geometrically from one to about 10²⁸. Every placement is essentially free; nothing constrains you yet."],
@@ -61,6 +65,9 @@ const T = {
     fiveHintLabel: "solutions attendues avec les cinq indices officiels",
     numbersNote:
       "Avec la seule pièce centrale obligatoire, le puzzle a de l'ordre de quinze mille solutions ; ajoutez les quatre indices de coin et le compte attendu chute à environ 4×10⁻⁸ — très majoritairement, exactement une. C'est la raison formelle pour laquelle le puzzle à 5 indices a une unique solution conçue.",
+    interactiveTitle: "Essayez : l'ordre décide l'entonnoir",
+    interactiveIntro:
+      "La même estimation, en direct pour différents ordres de balayage. Le pic de plateau — le point le plus large que la recherche doit traverser — est décidé par l'ordre seul, avant de poser le moindre nœud.",
     funnelTitle: "L'entonnoir",
     funnelIntro:
       "Tracez la largeur attendue à chaque profondeur et trois régimes apparaissent — la forme que la communauté appelle l'entonnoir d'E2.",
@@ -126,6 +133,16 @@ export default function ComplexTheory() {
           <p className="mt-1 text-sm text-muted-foreground">{t.funnelIntro}</p>
         </div>
         <ComplexFunnel />
+      </section>
+
+      <section className="space-y-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.interactiveTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.interactiveIntro}</p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <ComplexFunnelLab />
+        </div>
       </section>
 
       <section className="mx-auto max-w-2xl space-y-3">
