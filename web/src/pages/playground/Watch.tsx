@@ -21,7 +21,7 @@ import {
 import { useEngine } from "@/engine/useEngine";
 import {
   createSolver,
-  getGeneratedPuzzle,
+  getGeneratedPuzzleFramed,
   getMaxColors,
   getOfficialPuzzle,
   getPath,
@@ -47,6 +47,9 @@ const T = {
     official: "Official Eternity II (16×16)",
     sizeLabel: (s: number) => `Size: ${s}×${s}`,
     colorsLabel: (n: number) => `Colors: ${n}`,
+    framed: "Frame-restricted colors",
+    framedHint:
+      "Like the real Eternity II: confine some colors to the border band, the rest to the deep interior (needs size ≥ 4).",
     seedLabel: (n: number) => `Seed: ${n}`,
     newPuzzle: "New puzzle",
     searchPath: "Search path",
@@ -93,6 +96,9 @@ const T = {
     official: "Eternity II officiel (16×16)",
     sizeLabel: (s: number) => `Taille : ${s}×${s}`,
     colorsLabel: (n: number) => `Couleurs : ${n}`,
+    framed: "Couleurs réservées au cadre",
+    framedHint:
+      "Comme le vrai Eternity II : confine certaines couleurs à la bande de bordure, les autres à l'intérieur profond (nécessite taille ≥ 4).",
     seedLabel: (n: number) => `Graine : ${n}`,
     newPuzzle: "Nouveau tirage",
     searchPath: "Parcours",
@@ -139,6 +145,9 @@ export default function Watch() {
   const [official, setOfficial] = useState(false);
   const [size, setSize] = useState(6);
   const [colors, setColors] = useState(6);
+  // Frame-restricted colours: like the real Eternity II, confine some colours to
+  // the border band and the rest to the deep interior (needs size ≥ 4).
+  const [framed, setFramed] = useState(false);
   const [seed, setSeed] = useState(1);
   const [pathKind, setPathKind] = useState("row-major");
   const [speedExp, setSpeedExp] = useState(2); // 10^x steps per second
@@ -164,7 +173,9 @@ export default function Watch() {
   const rebuild = useCallback(() => {
     if (!engineReady) return;
     solverRef.current?.free();
-    const puzzle = official ? getOfficialPuzzle() : getGeneratedPuzzle(size, colors, seed);
+    const puzzle = official
+      ? getOfficialPuzzle()
+      : getGeneratedPuzzleFramed(size, colors, seed, framed);
     const width = puzzle.width;
     const path = getPath(pathKind, width, puzzle.height, seed);
     const solver = createSolver(puzzle, path, { useHints: true });
@@ -175,7 +186,7 @@ export default function Watch() {
     setRunning(false);
     elapsedRef.current = 0;
     setElapsedMs(0);
-  }, [engineReady, official, size, colors, seed, pathKind]);
+  }, [engineReady, official, size, colors, seed, framed, pathKind]);
 
   useEffect(() => {
     // rebuild() constructs the WASM solver (an external system) and seeds the
@@ -315,6 +326,18 @@ export default function Watch() {
                       value={colors}
                       onValueChange={(v) => setColors(singleSliderValue(v))}
                     />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="w-framed">{t.framed}</Label>
+                      <Switch
+                        id="w-framed"
+                        checked={framed}
+                        disabled={size < 4 || colors < 2}
+                        onCheckedChange={setFramed}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t.framedHint}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="flex-1">{t.seedLabel(seed)}</Label>
