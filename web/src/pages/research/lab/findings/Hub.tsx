@@ -12,6 +12,7 @@ type Finding = { key: string; to: string; kind: "design" | "wall" | "proof" };
 const FINDINGS: Finding[] = [
   { key: "phase", to: "/research/why/phase-transition", kind: "design" },
   { key: "rareColor", to: "/research/why/rare-color-geography", kind: "design" },
+  { key: "borderBalance", to: "/research/why/border-balance", kind: "design" },
   { key: "forbidden", to: "/research/why/forbidden-patterns", kind: "wall" },
   { key: "noForced", to: "/research/why/no-forced-moves", kind: "wall" },
   { key: "entropy", to: "/research/why/entropy-area-law", kind: "wall" },
@@ -41,6 +42,10 @@ const T = {
       rareColor: {
         title: "The rare colors live on the frame",
         body: "Five colors appear only on the border ring, each on exactly 24 edges, balanced on purpose.",
+      },
+      borderBalance: {
+        title: "The border balance (NS-1)",
+        body: "The border hands the interior exactly the colors it hands back — a real necessary condition with a revealing blind spot.",
       },
       forbidden: {
         title: "Forbidden patterns",
@@ -88,6 +93,10 @@ const T = {
       rareColor: {
         title: "Les couleurs rares vivent sur le cadre",
         body: "Cinq couleurs n'apparaissent que sur le cadre, chacune sur exactement 24 bords, équilibrées exprès.",
+      },
+      borderBalance: {
+        title: "L'équilibre du bord (NS-1)",
+        body: "Le bord rend à l'intérieur exactement les couleurs qu'il reçoit — une vraie condition nécessaire, avec un angle mort révélateur.",
       },
       forbidden: {
         title: "Motifs interdits",
