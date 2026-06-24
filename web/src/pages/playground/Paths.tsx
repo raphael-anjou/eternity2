@@ -6,6 +6,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BoardSvg } from "@/components/board/BoardSvg";
+import { PathComplexity } from "@/components/learn/PathComplexity";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ import {
   getPathKinds,
 } from "@/engine";
 import type { SolverHandle } from "@/engine";
+import { createBlockSolver, type Block } from "@/engine-ts/block-solver";
 import { useT } from "@/i18n";
 import type { Hint, Puzzle, SolverReport } from "@/lib/types";
 import { rotateEdges } from "@/lib/types";
@@ -37,6 +39,19 @@ import { formatCompact, formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const GRID_SIZES = [2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16];
+
+// Brush footprints offered on the path grid (Dan Karlsson's list). 1×1 is the
+// classic single-cell path; the rest build a block path the macro-piece solver
+// can fill block-by-block.
+const BRUSH_SHAPES: { w: number; h: number }[] = [
+  { w: 1, h: 1 },
+  { w: 2, h: 1 },
+  { w: 1, h: 2 },
+  { w: 2, h: 2 },
+  { w: 3, h: 3 },
+  { w: 4, h: 4 },
+  { w: 4, h: 1 },
+];
 
 const T = {
   en: {
@@ -63,6 +78,13 @@ const T = {
     hintsBadge: (k: number) => `${k} hint${k === 1 ? "" : "s"}`,
     gridHelp:
       "Left-click/drag to add cells in order · right-click a cell to cut the path there.",
+    gridHelpBlock:
+      "Click to stamp a block of cells at once · right-click a cell to cut the path at its block. Blocks fill as a unit when you race.",
+    brushLabel: "Block",
+    blocksBadge: (k: number) => `${k} block${k === 1 ? "" : "s"}`,
+    blockMode: "Block mode",
+    blockModeHelp:
+      "Your path is built from blocks. Race it and the solver commits each block as one atomic move — a whole valid sub-assembly at a time — instead of one piece.",
     raceSetup: "Race setup",
     colorsLabel: (n: number) => `Colors: ${n}`,
     newPuzzle: (seed: number) => `New puzzle (seed ${seed})`,
@@ -107,6 +129,13 @@ const T = {
     hintsBadge: (k: number) => `${k} indice${k === 1 ? "" : "s"}`,
     gridHelp:
       "Clic gauche ou glissé pour ajouter des cases dans l'ordre · clic droit sur une case pour couper le parcours à cet endroit.",
+    gridHelpBlock:
+      "Cliquez pour poser tout un bloc de cases d'un coup · clic droit sur une case pour couper le parcours à son bloc. Les blocs se remplissent d'un seul tenant pendant la course.",
+    brushLabel: "Bloc",
+    blocksBadge: (k: number) => `${k} bloc${k === 1 ? "" : "s"}`,
+    blockMode: "Mode bloc",
+    blockModeHelp:
+      "Votre parcours est constitué de blocs. Lancez la course et le solveur valide chaque bloc comme un coup atomique — un sous-assemblage valide complet à la fois — au lieu d'une seule pièce.",
     raceSetup: "Réglages de la course",
     colorsLabel: (n: number) => `Couleurs : ${n}`,
     newPuzzle: (seed: number) => `Nouveau puzzle (graine ${seed})`,
@@ -132,6 +161,15 @@ function rankColor(rank: number, total: number): string {
   return `hsl(${hue} 75% 45%)`;
 }
 
+// A distinct, stable colour per block. Adjacent block indices get well-separated
+// hues (golden-angle stepping) and alternating lightness so neighbouring blocks
+// stay visually distinct even when their hues land close.
+function blockColor(blockIndex: number): string {
+  const hue = (blockIndex * 137.508) % 360;
+  const light = blockIndex % 2 === 0 ? 45 : 38;
+  return `hsl(${hue} 60% ${light}%)`;
+}
+
 interface Lane {
   id: string;
   label: string;
@@ -145,7 +183,19 @@ export default function Paths() {
   const t = useT(T);
   const engineReady = useEngine();
   const [size, setSize] = useState(6);
-  const [order, setOrder] = useState<number[]>([]);
+  // The drawn path as a list of BLOCKS (each block = the cells it covers, in
+  // internal placement order). A single-cell click is a 1×1 block. `order` (the
+  // flat cell sequence the single-piece solver + estimate consume) is just
+  // blocks.flat(). Block mode (any block bigger than 1×1) additionally lets the
+  // race run the macro-piece BlockSolver, which commits whole blocks atomically.
+  const [blockGroups, setBlockGroups] = useState<number[][]>([]);
+  const order = useMemo(() => blockGroups.flat(), [blockGroups]);
+  // Block mode = the path uses at least one multi-cell block. Drives whether the
+  // race runs the macro-piece BlockSolver for the custom lane.
+  const blockMode = useMemo(() => blockGroups.some((g) => g.length > 1), [blockGroups]);
+  // Brush footprint: w×h cells laid per click. 1×1 = the classic single-cell
+  // path. Larger footprints build a block path.
+  const [brush, setBrush] = useState<{ w: number; h: number }>({ w: 1, h: 1 });
   const [drawing, setDrawing] = useState(false);
   const [mode, setMode] = useState<"path" | "hint">("path");
   // Cells whose true piece is revealed as a hint before the race starts.
@@ -178,35 +228,86 @@ export default function Paths() {
     return m;
   }, [order]);
 
-  const appendCell = useCallback(
+  // cell -> the index of the block it belongs to (for colouring/labelling the
+  // grid by block when a block path is drawn).
+  const blockOf = useMemo(() => {
+    const m = new Map<number, number>();
+    blockGroups.forEach((g, bi) => g.forEach((cell) => m.set(cell, bi)));
+    return m;
+  }, [blockGroups]);
+
+  // Lay the brush footprint anchored at `cell` (top-left), as one block. Cells
+  // already in the path, hinted, or off-board are clipped out; the block keeps
+  // only the fresh cells, in row-major internal order. A 1×1 brush appends a
+  // single-cell block, reproducing the classic behaviour. Dragging extends the
+  // most recent block when the brush is 1×1; with a larger brush each press
+  // stamps a new block (drag-painting whole blocks would overlap confusingly).
+  const stampBlock = useCallback(
     (cell: number) => {
-      setOrder((prev) => (prev.includes(cell) ? prev : [...prev, cell]));
+      setBlockGroups((prev) => {
+        const placed = new Set(prev.flat());
+        const ax = cell % size;
+        const ay = Math.floor(cell / size);
+        const fresh: number[] = [];
+        for (let dy = 0; dy < brush.h; dy++) {
+          for (let dx = 0; dx < brush.w; dx++) {
+            const x = ax + dx;
+            const y = ay + dy;
+            if (x >= size || y >= size) continue;
+            const c = y * size + x;
+            if (placed.has(c) || hintCells.has(c)) continue;
+            fresh.push(c);
+          }
+        }
+        if (fresh.length === 0) return prev;
+        return [...prev, fresh];
+      });
     },
-    [],
+    [size, brush, hintCells],
   );
 
+  // Extend the last block by one cell (used for 1×1 drag-painting so a dragged
+  // stroke stays a single contiguous group rather than N singleton blocks).
+  const extendLastBlock = useCallback(
+    (cell: number) => {
+      setBlockGroups((prev) => {
+        const placed = new Set(prev.flat());
+        if (placed.has(cell) || hintCells.has(cell)) return prev;
+        if (prev.length === 0) return [[cell]];
+        const last = prev[prev.length - 1] ?? [];
+        return [...prev.slice(0, -1), [...last, cell]];
+      });
+    },
+    [hintCells],
+  );
+
+  // Right-click a cell to cut the path there: drop the block containing it and
+  // every block after it.
   const truncateFrom = (cell: number) => {
-    setOrder((prev) => {
-      const i = prev.indexOf(cell);
+    setBlockGroups((prev) => {
+      const i = prev.findIndex((g) => g.includes(cell));
       return i >= 0 ? prev.slice(0, i) : prev;
     });
   };
 
   const loadDefault = (kind: string) => {
-    setOrder(Array.from(getPath(kind, size, size, seed)).filter((c) => !hintCells.has(c)));
+    // A built-in path is a sequence of single-cell (1×1) blocks.
+    const cells = Array.from(getPath(kind, size, size, seed)).filter((c) => !hintCells.has(c));
+    setBlockGroups(cells.map((c) => [c]));
   };
 
   const completeRowMajor = () => {
-    setOrder((prev) => {
-      const seen = new Set(prev);
-      const rest = [];
-      for (let c = 0; c < n; c++) if (!seen.has(c) && !hintCells.has(c)) rest.push(c);
+    setBlockGroups((prev) => {
+      const seen = new Set(prev.flat());
+      const rest: number[][] = [];
+      for (let c = 0; c < n; c++) if (!seen.has(c) && !hintCells.has(c)) rest.push([c]);
       return [...prev, ...rest];
     });
   };
 
-  // Marking a cell as a hint removes it from the drawn path: a hint is a
-  // known piece, so it is not part of the order the solver must work out.
+  // Marking a cell as a hint removes it from the drawn path: a hint is a known
+  // piece, so it is not part of the order the solver must work out. Drop it from
+  // whichever block holds it (and drop now-empty blocks).
   const toggleHint = useCallback((cell: number) => {
     setHintCells((prev) => {
       const next = new Set(prev);
@@ -214,7 +315,9 @@ export default function Paths() {
       else next.add(cell);
       return next;
     });
-    setOrder((prev) => prev.filter((c) => c !== cell));
+    setBlockGroups((prev) =>
+      prev.map((g) => g.filter((c) => c !== cell)).filter((g) => g.length > 0),
+    );
   }, []);
 
   useEffect(() => {
@@ -223,7 +326,7 @@ export default function Paths() {
     // solvers (stopRace) — that teardown can't happen during render, so the
     // accompanying state resets live here too.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOrder([]);
+    setBlockGroups([]);
     setHintCells(new Set());
     stopRace();
     setLanes([]);
@@ -275,10 +378,16 @@ export default function Paths() {
 
   // ---- race machinery -----------------------------------------------------
 
-  const startRace = (laneSpecs: { id: string; label: string; path: Uint16Array }[]) => {
+  const startRace = (
+    laneSpecs: { id: string; label: string; path: Uint16Array; blocks?: number[][] }[],
+  ) => {
     stopRace();
     const puzzle = getGeneratedPuzzle(size, colors, seed);
-    puzzle.hints = buildHints(puzzle, hintCells);
+    // Block mode partitions the whole board into blocks and can't pre-pin hint
+    // cells, so the macro-piece lane runs hint-free. The single-piece lanes
+    // still honour hints.
+    const anyBlockLane = laneSpecs.some((s) => s.blocks);
+    puzzle.hints = anyBlockLane ? [] : buildHints(puzzle, hintCells);
     puzzleRef.current = puzzle;
     const useHints = puzzle.hints.length > 0;
     // The engine wants a full-coverage path (it pre-fills hint cells and
@@ -290,11 +399,23 @@ export default function Paths() {
       for (let c = 0; c < n; c++) if (!seen.has(c)) full.push(c);
       return Uint16Array.from(full);
     };
+    // Complete a block list into a partition of all n cells: any cell not in a
+    // drawn block becomes its own 1×1 block, appended in row-major order.
+    const completeBlocks = (blocks: number[][]): Block[] => {
+      const seen = new Set(blocks.flat());
+      const out: Block[] = blocks.map((cells) => ({ cells }));
+      for (let c = 0; c < n; c++) if (!seen.has(c)) out.push({ cells: [c] });
+      return out;
+    };
     const newLanes: Lane[] = laneSpecs.map((spec) => {
-      const solver = createSolver(puzzle, completePath(spec.path), { useHints });
+      const solver = spec.blocks
+        ? createBlockSolver(puzzle, completeBlocks(spec.blocks))
+        : createSolver(puzzle, completePath(spec.path), { useHints });
       solversRef.current.set(spec.id, solver);
       return {
-        ...spec,
+        id: spec.id,
+        label: spec.label,
+        path: spec.path,
         report: solver.report(),
         cells: null,
         finishedAttempts: null,
@@ -400,7 +521,7 @@ export default function Paths() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={() => setOrder([])}>
+            <Button variant="outline" size="sm" onClick={() => setBlockGroups([])}>
               {t.clear}
             </Button>
             <Button variant="outline" size="sm" onClick={completeRowMajor} disabled={customComplete}>
@@ -409,6 +530,11 @@ export default function Paths() {
             <Badge variant={customComplete ? "default" : "secondary"}>
               {order.length}/{pathTarget}
             </Badge>
+            {blockMode && (
+              <Badge variant="outline" className="border-primary text-primary">
+                {t.blocksBadge(blockGroups.length)}
+              </Badge>
+            )}
             {hintCells.size > 0 && (
               <Badge variant="outline" className="border-amber-500 text-amber-600">
                 📌 {t.hintsBadge(hintCells.size)}
@@ -437,6 +563,34 @@ export default function Paths() {
             </button>
           </div>
 
+          {mode === "path" && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">{t.brushLabel}:</span>
+              {BRUSH_SHAPES.map((s) => {
+                const active = brush.w === s.w && brush.h === s.h;
+                return (
+                  <button
+                    key={`${s.w}x${s.h}`}
+                    onClick={() => setBrush({ w: s.w, h: s.h })}
+                    className={cn(
+                      "rounded border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {s.w}×{s.h}
+                  </button>
+                );
+              })}
+              {blockMode && (
+                <Badge variant="outline" className="border-primary text-primary" title={t.blockModeHelp}>
+                  {t.blockMode}
+                </Badge>
+              )}
+            </div>
+          )}
+
           {/* Pointer events + elementFromPoint so drag-painting works with a
               finger as well as a mouse (touch never fires mouseenter). */}
           <div
@@ -456,14 +610,17 @@ export default function Paths() {
               }
               if (hintCells.has(c)) return; // can't route a path through a hint
               setDrawing(true);
-              appendCell(c);
+              stampBlock(c);
             }}
             onPointerMove={(e) => {
               if (!drawing || mode === "hint") return;
+              // Drag-painting only extends the stroke for the 1×1 brush; with a
+              // block brush each press stamps one block (dragging would overlap).
+              if (brush.w !== 1 || brush.h !== 1) return;
               const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
               const cell = el?.dataset["cell"];
               if (cell !== undefined && !hintCells.has(parseInt(cell, 10))) {
-                appendCell(parseInt(cell, 10));
+                extendLastBlock(parseInt(cell, 10));
               }
             }}
             onPointerUp={() => setDrawing(false)}
@@ -472,7 +629,28 @@ export default function Paths() {
           >
             {Array.from({ length: n }, (_, cell) => {
               const rank = rankOf.get(cell);
+              const bi = blockOf.get(cell);
               const isHint = hintCells.has(cell);
+              // In block mode, colour each cell by its block (so a block reads as
+              // one tile) and label it with the block number. Otherwise colour by
+              // visit rank as before.
+              const bg =
+                !isHint && rank !== undefined
+                  ? blockMode && bi !== undefined
+                    ? blockColor(bi)
+                    : rankColor(rank, n)
+                  : undefined;
+              const label = isHint
+                ? "📌"
+                : rank === undefined
+                  ? ""
+                  : blockMode && bi !== undefined
+                    ? size <= 12
+                      ? bi + 1
+                      : ""
+                    : size <= 9
+                      ? rank + 1
+                      : "";
               return (
                 <div
                   key={cell}
@@ -490,18 +668,20 @@ export default function Paths() {
                         ? "bg-background text-muted-foreground/40"
                         : "text-white",
                   )}
-                  style={
-                    !isHint && rank !== undefined
-                      ? { backgroundColor: rankColor(rank, n) }
-                      : undefined
-                  }
+                  style={bg ? { backgroundColor: bg } : undefined}
                 >
-                  {isHint ? "📌" : rank !== undefined && size <= 9 ? rank + 1 : ""}
+                  {label}
                 </div>
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground">{mode === "hint" ? t.gridHelpHint : t.gridHelp}</p>
+          <p className="text-xs text-muted-foreground">
+            {mode === "hint"
+              ? t.gridHelpHint
+              : brush.w === 1 && brush.h === 1
+                ? t.gridHelp
+                : t.gridHelpBlock}
+          </p>
 
           <div className="flex flex-wrap gap-1.5">
             {(engineReady ? getPathKinds() : []).map((k) => (
@@ -545,7 +725,16 @@ export default function Paths() {
                   onClick={() => {
                     const specs = [
                       ...(customComplete
-                        ? [{ id: "custom", label: t.yourPath, path: Uint16Array.from(order) }]
+                        ? [
+                            {
+                              id: "custom",
+                              label: blockMode ? `${t.yourPath} (${t.blockMode})` : t.yourPath,
+                              path: Uint16Array.from(order),
+                              // In block mode the custom lane runs the macro-piece
+                              // solver over the drawn blocks.
+                              ...(blockMode ? { blocks: blockGroups } : {}),
+                            },
+                          ]
                         : []),
                       { id: "row-major", label: "row-major", path: getPath("row-major", size, size, seed) },
                       { id: "spiral-in", label: "spiral-in", path: getPath("spiral-in", size, size, seed) },
@@ -568,6 +757,8 @@ export default function Paths() {
               )}
             </CardContent>
           </Card>
+
+          <PathComplexity size={size} colors={colors} seed={seed} order={order} />
 
           {lanes.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
