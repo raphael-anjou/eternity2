@@ -32,6 +32,7 @@ const PAGES = [
   { path: "research/why/piece-theft", file: "pages/research/why/piece-theft.tsx", id: "piece-theft" },
   { path: "research/why/entropy-area-law", file: "pages/research/why/entropy-area-law.tsx", id: "entropy-area-law" },
   { path: "research/why/rare-color-geography", file: "pages/research/why/rare-color-geography.tsx", id: "rare-color-geography" },
+  { path: "research/why/border-balance", file: "pages/research/why/border-balance.tsx", id: "border-balance" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },

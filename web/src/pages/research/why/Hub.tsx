@@ -23,6 +23,7 @@ const TOPICS: Topic[] = [
   { key: "noForced", ready: true, to: "/research/why/no-forced-moves" },
   { key: "pieceTheft", ready: true, to: "/research/why/piece-theft" },
   { key: "rareColor", ready: true, to: "/research/why/rare-color-geography" },
+  { key: "borderBalance", ready: true, to: "/research/why/border-balance" },
   { key: "entropy", ready: true, to: "/research/why/entropy-area-law" },
 ];
 
@@ -88,6 +89,10 @@ const T = {
         title: "The rare colors live on the frame",
         body: "Five of the 22 colors appear only on the border ring, each on exactly 24 edges, never inside. Design you can see, balanced on purpose.",
       },
+      borderBalance: {
+        title: "The border balance (NS-1)",
+        body: "A solved board's border hands the interior exactly the colors the interior hands back. The deficit measures the imbalance — a real necessary condition, with a revealing blind spot you can trigger live.",
+      },
     },
   },
   fr: {
@@ -150,6 +155,10 @@ const T = {
       rareColor: {
         title: "Les couleurs rares vivent sur le cadre",
         body: "Cinq des 22 couleurs n'apparaissent que sur le cadre, chacune sur exactement 24 bords, jamais à l'intérieur. Une conception visible, équilibrée à dessein.",
+      },
+      borderBalance: {
+        title: "L'équilibre du bord (NS-1)",
+        body: "Le bord d'un plateau résolu rend à l'intérieur exactement les couleurs que l'intérieur lui rend. Le déficit mesure le déséquilibre — une vraie condition nécessaire, avec un angle mort révélateur que vous pouvez déclencher en direct.",
       },
     },
   },
