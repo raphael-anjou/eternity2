@@ -14,7 +14,7 @@ import { useMemo } from "react";
 import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { getGeneratedPuzzle, getPath, getPathKinds } from "@/engine";
+import { getGeneratedPuzzleFramed, getPath, getPathKinds } from "@/engine";
 import { estimateComplexity, type ComplexityEstimate } from "@/engine-ts/complexity";
 
 const T = {
@@ -102,18 +102,20 @@ export function PathComplexity({
   colors,
   seed,
   order,
+  framed = false,
 }: {
   size: number;
   colors: number;
   seed: number;
   order: number[];
+  framed?: boolean;
 }) {
   const t = useT(T);
   const engineReady = useEngine();
 
   const rows = useMemo<Row[]>(() => {
     if (!engineReady) return [];
-    const puzzle = getGeneratedPuzzle(size, colors, seed);
+    const puzzle = getGeneratedPuzzleFramed(size, colors, seed, framed);
     const classics = ["row-major", "snake", "spiral-in", "diagonal"];
     const out: Row[] = [];
     if (order.length > 0) {
@@ -131,7 +133,7 @@ export function PathComplexity({
       out.push({ id: k, label: k, est: estimateComplexity(puzzle, path), isCustom: false });
     }
     return out.sort((a, b) => a.est.peakLog10 - b.est.peakLog10);
-  }, [engineReady, size, colors, seed, order, t.yourPath]);
+  }, [engineReady, size, colors, seed, framed, order, t.yourPath]);
 
   const bestId = rows[0]?.id;
 

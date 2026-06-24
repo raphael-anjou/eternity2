@@ -22,12 +22,13 @@ import {
 import { useEngine } from "@/engine/useEngine";
 import {
   createSolver,
-  getGeneratedPuzzle,
-  getGeneratedSolvedPuzzle,
+  getGeneratedPuzzleFramed,
+  getGeneratedSolvedPuzzleFramed,
   getMaxColors,
   getPath,
   getPathKinds,
 } from "@/engine";
+import { Switch } from "@/components/ui/switch";
 import type { SolverHandle } from "@/engine";
 import { createBlockSolver, type Block } from "@/engine-ts/block-solver";
 import { useT } from "@/i18n";
@@ -88,6 +89,9 @@ const T = {
     raceSetup: "Race setup",
     colorsLabel: (n: number) => `Colors: ${n}`,
     newPuzzle: (seed: number) => `New puzzle (seed ${seed})`,
+    framed: "Frame-restricted colors",
+    framedHint:
+      "Like the real Eternity II: confine some colors to the border band, the rest to the deep interior (needs size ≥ 4, colors ≥ 2).",
     raceWithCustom: "Race your path vs the classics",
     raceClassics: "Race the classics",
     stop: "Stop",
@@ -139,6 +143,9 @@ const T = {
     raceSetup: "Réglages de la course",
     colorsLabel: (n: number) => `Couleurs : ${n}`,
     newPuzzle: (seed: number) => `Nouveau puzzle (graine ${seed})`,
+    framed: "Couleurs réservées au cadre",
+    framedHint:
+      "Comme le vrai Eternity II : confine certaines couleurs à la bande de bordure, les autres à l'intérieur profond (nécessite taille ≥ 4, couleurs ≥ 2).",
     raceWithCustom: "Lancer votre parcours contre les classiques",
     raceClassics: "Lancer la course des classiques",
     stop: "Arrêter",
@@ -203,6 +210,10 @@ export default function Paths() {
 
   const [colors, setColors] = useState(6);
   const [seed, setSeed] = useState(1);
+  // Frame-restricted colours: like the real Eternity II, confine some colours to
+  // the border band and the rest to the deep interior (needs size ≥ 4). Ported
+  // from the board generator / Viewer.
+  const [framed, setFramed] = useState(false);
   const [lanes, setLanes] = useState<Lane[]>([]);
   const [racing, setRacing] = useState(false);
   const solversRef = useRef<Map<string, SolverHandle>>(new Map());
@@ -341,7 +352,7 @@ export default function Paths() {
   // because the solved board is a valid tiling).
   const buildHints = (shuffled: Puzzle, cells: Set<number>): Hint[] => {
     if (cells.size === 0) return [];
-    const solved = getGeneratedSolvedPuzzle(size, colors, seed);
+    const solved = getGeneratedSolvedPuzzleFramed(size, colors, seed, framed);
     const used = new Array(shuffled.pieces.length).fill(false);
     const hints: Hint[] = [];
     // Assign every cell first (keeps the multiset consistent), then keep only
@@ -382,7 +393,7 @@ export default function Paths() {
     laneSpecs: { id: string; label: string; path: Uint16Array; blocks?: number[][] }[],
   ) => {
     stopRace();
-    const puzzle = getGeneratedPuzzle(size, colors, seed);
+    const puzzle = getGeneratedPuzzleFramed(size, colors, seed, framed);
     // Block mode partitions the whole board into blocks and can't pre-pin hint
     // cells, so the macro-piece lane runs hint-free. The single-piece lanes
     // still honour hints.
@@ -719,6 +730,20 @@ export default function Paths() {
                   </Button>
                 </div>
               </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="paths-framed"
+                    checked={framed}
+                    disabled={size < 4 || colors < 2}
+                    onCheckedChange={setFramed}
+                  />
+                  <Label htmlFor="paths-framed" className="cursor-pointer">
+                    {t.framed}
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">{t.framedHint}</p>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   disabled={!engineReady || racing}
@@ -758,7 +783,7 @@ export default function Paths() {
             </CardContent>
           </Card>
 
-          <PathComplexity size={size} colors={colors} seed={seed} order={order} />
+          <PathComplexity size={size} colors={colors} seed={seed} order={order} framed={framed} />
 
           {lanes.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
