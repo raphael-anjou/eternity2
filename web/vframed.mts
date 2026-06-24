@@ -1,0 +1,10 @@
+import { getGeneratedPuzzleFramed, createSolver, getPath } from "./src/engine-ts/index.ts";
+import { scoreBoard } from "./src/engine-ts/solver.ts";
+console.log("start");
+const p=getGeneratedPuzzleFramed(8,6,1,true);
+console.log("generated, colors=", p.numColors, "pieces=", p.pieces.length);
+const path=getPath("row-major",8,8,0);
+const s=createSolver(p, path, {useHints:false});
+let r=s.report(); let g=0;
+while(r.status==="running" && g++<200000) r=s.step(20000);
+console.log("framed solve:", r.status, "score=", scoreBoard(p,s.board()), "/", 2*8*7);
