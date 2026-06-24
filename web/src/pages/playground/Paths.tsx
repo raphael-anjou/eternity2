@@ -783,7 +783,14 @@ export default function Paths() {
             </CardContent>
           </Card>
 
-          <PathComplexity size={size} colors={colors} seed={seed} order={order} framed={framed} />
+          <PathComplexity
+            size={size}
+            colors={colors}
+            seed={seed}
+            order={order}
+            framed={framed}
+            hints={Array.from(hintCells)}
+          />
 
           {lanes.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2">

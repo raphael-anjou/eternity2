@@ -15,7 +15,11 @@ import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { getGeneratedPuzzleFramed, getPath, getPathKinds } from "@/engine";
-import { estimateComplexity, type ComplexityEstimate } from "@/engine-ts/complexity";
+import {
+  estimateComplexity,
+  COMPLEX_THEORY_SOURCE_URL,
+  type ComplexityEstimate,
+} from "@/engine-ts/complexity";
 
 const T = {
   en: {
@@ -37,12 +41,19 @@ const T = {
     best: "predicted best",
     chartTitle: "Expected branches at each depth (log scale)",
     chartX: "depth (cells placed)",
+    sourcePrefix: "Method:",
+    sourceName: "McGavin's reference implementation of Owen's complex theory",
     caveat: (
       <>
-        A first-moment estimate: it counts partial boards without checking they are distinct, so it
-        over-counts past the plateau and is{" "}
+        An exact port of Peter McGavin's{" "}
+        <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
+          reference implementation
+        </a>{" "}
+        of Owen's theory (validated to reproduce his published table — 14,702 solutions at the last
+        cell). Still a first-moment estimate: it treats colours as independent, so it is accurate to
+        ~×2 and{" "}
         <LocalizedLink className="underline" to="/research/why/entropy-area-law">
-          blind to the end-game collapse
+          blind to the distinctness collapse
         </LocalizedLink>
         . Use it to compare orders, not as a true count.
       </>
@@ -68,12 +79,19 @@ const T = {
     best: "meilleur prédit",
     chartTitle: "Branches attendues à chaque profondeur (échelle log)",
     chartX: "profondeur (cases posées)",
+    sourcePrefix: "Méthode :",
+    sourceName: "implémentation de référence de McGavin de la théorie complexe d'Owen",
     caveat: (
       <>
-        Une estimation au premier moment : elle compte les plateaux partiels sans vérifier qu'ils
-        sont distincts, donc surcompte au-delà du plateau et est{" "}
+        Un portage exact de{" "}
+        <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
+          l'implémentation de référence
+        </a>{" "}
+        de Peter McGavin de la théorie d'Owen (validé pour reproduire sa table publiée — 14 702
+        solutions à la dernière case). Reste une estimation au premier moment : elle traite les
+        couleurs comme indépendantes, donc précise à ~×2 et{" "}
         <LocalizedLink className="underline" to="/research/why/entropy-area-law">
-          aveugle à l'effondrement final
+          aveugle à l'effondrement de distinction
         </LocalizedLink>
         . À utiliser pour comparer des ordres, pas comme un vrai décompte.
       </>
@@ -103,37 +121,45 @@ export function PathComplexity({
   seed,
   order,
   framed = false,
+  hints = [],
 }: {
   size: number;
   colors: number;
   seed: number;
   order: number[];
   framed?: boolean;
+  hints?: number[];
 }) {
   const t = useT(T);
   const engineReady = useEngine();
+  // Hints are part of the configuration, not the drawn order — pre-placed before
+  // every path, so they don't appear in the custom order but do shape the
+  // estimate (exactly as McGavin's reference pre-places its hint squares).
+  const hintKey = hints.join(",");
 
   const rows = useMemo<Row[]>(() => {
     if (!engineReady) return [];
     const puzzle = getGeneratedPuzzleFramed(size, colors, seed, framed);
+    const hintCells = hintKey ? hintKey.split(",").map(Number) : [];
     const classics = ["row-major", "snake", "spiral-in", "diagonal"];
     const out: Row[] = [];
     if (order.length > 0) {
       out.push({
         id: "custom",
         label: t.yourPath,
-        est: estimateComplexity(puzzle, order),
+        est: estimateComplexity(puzzle, order, hintCells),
         isCustom: true,
       });
     }
     const kinds = new Set(getPathKinds());
     for (const k of classics) {
       if (!kinds.has(k)) continue;
-      const path = Array.from(getPath(k, size, size, seed));
-      out.push({ id: k, label: k, est: estimateComplexity(puzzle, path), isCustom: false });
+      // A classic path must skip hinted cells (they're pre-placed).
+      const path = Array.from(getPath(k, size, size, seed)).filter((c) => !hintCells.includes(c));
+      out.push({ id: k, label: k, est: estimateComplexity(puzzle, path, hintCells), isCustom: false });
     }
     return out.sort((a, b) => a.est.peakLog10 - b.est.peakLog10);
-  }, [engineReady, size, colors, seed, framed, order, t.yourPath]);
+  }, [engineReady, size, colors, seed, framed, order, hintKey, t.yourPath]);
 
   const bestId = rows[0]?.id;
 
@@ -159,6 +185,12 @@ export function PathComplexity({
         ) : (
           <>
             <CurveChart rows={rows} chartTitle={t.chartTitle} chartX={t.chartX} />
+            <p className="-mt-2 text-center text-[10px] text-muted-foreground">
+              {t.sourcePrefix}{" "}
+              <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
+                {t.sourceName}
+              </a>
+            </p>
             <ul className="space-y-1.5">
               {rows.map((r) => (
                 <li
