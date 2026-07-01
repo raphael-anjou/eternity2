@@ -31,6 +31,16 @@ export interface ReproInfo {
   topic?: string | undefined;
 }
 
+/** One entry of the full-text search index (per language). */
+export interface SearchEntry {
+  url: string;
+  title: string;
+  description: string;
+  kind: string;
+  /** Plain body text (empty for pages that only index title/description). */
+  text: string;
+}
+
 /** A topic (big cross-cutting category), labels resolved to one language. */
 export interface Topic {
   slug: string;

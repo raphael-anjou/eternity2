@@ -127,12 +127,14 @@ attempts (both exist in groups.io history). Design:
   reproducible-research collaboration for /research/build/solvers/blackwood
   (cite both links; credit Jef).
 
-### Phase 2 — search
+### Phase 2 — search ✅ DONE 2026-07-01
 
-- [ ] Build-time text index per language (strip MDX → text), lazy-loaded chunk
-- [ ] minisearch + ⌘K dialog (site-styled), result grouping by section
-- [ ] Manifest entries for non-MDX research pages (reference, log, records…)
-      so they're findable too
+- [x] Build-time text index per language (strip MDX → text), lazy-loaded chunk
+      (virtual:research-search-{en,fr} — own chunk, loads on first ⌘K)
+- [x] minisearch + ⌘K dialog (site-styled, keyboard nav, fuzzy+prefix,
+      body snippets), search button in the research subnav
+- [x] Legacy TSX pages searchable via title+description (full text arrives
+      as they migrate)
 
 ### Phase 3 — full migration (page by page, commit per batch)
 

@@ -348,3 +348,21 @@ Blackwood notes + parameter study offered for the site with permission
   src/lib/research/*, src/components/docs/* (Subnav, TopicPages new),
   src/pages/research/doc.tsx, index.css, border-balance MDX,
   research/WIKI_REBUILD.md.
+
+### 2026-07-01 — Research search (Phase 2)
+
+Full-text search across the research section: the content pipeline emits a
+per-language plain-text index as its own lazy chunk (nothing loads until the
+dialog opens), minisearch runs it client-side (fuzzy + prefix, title/
+description boosted), and a ⌘K dialog in the research subnav shows results
+with kind dots and body snippets. MDX pages are indexed full-text; the
+not-yet-migrated TSX pages join via title+description so nothing is
+unfindable. Static-only as always — no server, works offline.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (index chunks code-split); manual:
+  "forbidden squares" → Forbidden patterns; "multiset seam tallies" →
+  border-balance ranked first via body text.
+- Reproducibility: tooling.
+- Files: web/content.config.ts (plainText/searchEntries), plugins/
+  research-content.ts, src/components/docs/SearchDialog.tsx, ResearchSubnav,
+  src/lib/research/{types,nav}.ts, seo.ts (pageDescription), minisearch dep.

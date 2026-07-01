@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import GithubSlugger from "github-slugger";
 import { z } from "zod";
-import type { ResearchDoc, TocItem } from "./src/lib/research/types";
+import type { ResearchDoc, SearchEntry, TocItem } from "./src/lib/research/types";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CONTENT_DIR = path.join(HERE, "content", "research");
@@ -224,6 +224,40 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
     return a.section === b.section
       ? ao - bo || at.localeCompare(bt)
       : a.section.localeCompare(b.section);
+  });
+}
+
+/** Reduce MDX source to plain searchable text: drop frontmatter (already
+ *  stripped), ESM imports/exports, JSX tags, MDX expressions, code-fence
+ *  markers, markdown syntax and math delimiters — keep the words. */
+function plainText(body: string): string {
+  return (
+    body
+      .replace(/^(import|export)\s[^\n]*$/gm, "")
+      .replace(/```[^\n]*/g, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\{[^}]*\}/g, " ")
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/[*_`~]|\$\$?/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
+/** Full-text search entries for all publishable MDX pages, one language. */
+export function searchEntries(lang: Lang): SearchEntry[] {
+  const entries = scanResearchContent();
+  return buildManifest(lang).map((d) => {
+    const raw = entries.find((e) => e.file === d.file);
+    return {
+      url: d.url,
+      title: d.title,
+      description: d.description,
+      kind: d.kind,
+      text: raw ? plainText(raw.body) : "",
+    };
   });
 }
 

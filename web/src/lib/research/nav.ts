@@ -6,13 +6,14 @@
 //      as its page moves to web/content/research.
 
 import type { Lang } from "@/i18n";
-import { pageTitle } from "@/seo";
+import { pageDescription, pageTitle } from "@/seo";
 import { researchDocs } from "./manifest";
 import type { ResearchKind } from "./types";
 
 export interface NavItem {
   url: string;
   title: string;
+  description: string;
   kind: ResearchKind;
   /** Backed by an MDX page (docs shell) vs a legacy TSX page. */
   mdx: boolean;
@@ -111,6 +112,7 @@ export function researchNav(lang: Lang): NavSection[] {
     flat.push({
       url: leaf.url,
       title: pageTitle(leaf.seoKey, lang),
+      description: pageDescription(leaf.seoKey, lang),
       kind: leaf.kind,
       mdx: false,
       translated: true,
@@ -123,6 +125,7 @@ export function researchNav(lang: Lang): NavSection[] {
     flat.push({
       url: d.url,
       title: d.title,
+      description: d.description,
       kind: d.kind,
       mdx: true,
       translated: d.translated,
