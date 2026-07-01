@@ -271,7 +271,7 @@ const T = {
       ],
       [
         "Where the literature stops",
-        "No published method actually solves the 16×16 board. SAT/CSP encodings empirically cap around 10×10 sub-puzzles; the best heuristics plateau well short of 480 matched edges. The community record (469/480, McGavin 2020, using Blackwood's solver) beats every academic-published solver. The frontier today lives in the community (groups.io, Discord) and in open lab notebooks like this one — not in a paper.",
+        "No published method actually solves the 16×16 board. SAT/CSP encodings empirically cap around 10×10 sub-puzzles; the best heuristics plateau well short of 480 matched edges. The community record (470/480, Blackwood 2021, using his own solver; tied since) beats every academic-published solver. The frontier today lives in the community (groups.io, Discord) and in open lab notebooks like this one — not in a paper.",
       ],
     ],
     sections: {
@@ -356,7 +356,7 @@ const T = {
       ],
       [
         "Là où la littérature s'arrête",
-        "Aucune méthode publiée ne résout réellement le plateau 16×16. Les encodages SAT/CSP plafonnent empiriquement vers des sous-puzzles 10×10 ; les meilleures heuristiques stagnent bien en deçà de 480 bords appariés. Le record de la communauté (469/480, McGavin 2020, avec le solveur de Blackwood) bat tous les solveurs publiés. La frontière se trouve aujourd'hui dans la communauté (groups.io, Discord) et dans des carnets de laboratoire ouverts comme celui-ci — pas dans un article.",
+        "Aucune méthode publiée ne résout réellement le plateau 16×16. Les encodages SAT/CSP plafonnent empiriquement vers des sous-puzzles 10×10 ; les meilleures heuristiques stagnent bien en deçà de 480 bords appariés. Le record de la communauté (470/480, Blackwood 2021, avec son propre solveur ; égalé depuis) bat tous les solveurs publiés. La frontière se trouve aujourd'hui dans la communauté (groups.io, Discord) et dans des carnets de laboratoire ouverts comme celui-ci — pas dans un article.",
       ],
     ],
     sections: {

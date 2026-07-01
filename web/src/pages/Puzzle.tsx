@@ -101,7 +101,7 @@ const T = {
       {
         year: "2010s–today",
         title: "The community keeps climbing",
-        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020) on the real five-clue puzzle. That 469 has stood ever since: eleven edges still separate humanity from 480. (A few 470 boards exist, but on an easier one-clue variant, not the canonical puzzle.)",
+        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020), then 470 (Blackwood, 2021) on the official puzzle. That 470 has stood ever since — tied twice, never beaten: ten edges still separate humanity from 480.",
       },
     ],
     anatomyTitle: "Anatomy of the piece set",
@@ -171,7 +171,7 @@ const T = {
         two smaller "clue puzzles" that each revealed another placement, plus two more published
         later. A board that respects all five is called <strong>strict-canonical</strong>; most
         record boards only respect the mandatory center clue, which is why the best board with all
-        five clues (460, Bruno Gauthier) trails the open canonical record (469).
+        five clues (460, Bruno Gauthier) trails the open canonical record (470).
       </>
     ),
     cluesText2: (
@@ -190,9 +190,15 @@ const T = {
     colNotes: "Notes",
     records: [
       {
+        score: "470 / 480",
+        who: "Joshua Blackwood, 2021",
+        notes: "the canonical record — tied in 2024 and 2025, never beaten" as ReactNode,
+        viewId: "Joshua_Blackwood_470" as string | null,
+      },
+      {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "the canonical record — unbeaten since 2020" as ReactNode,
+        notes: "the previous record — long quoted as the ceiling" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -216,16 +222,6 @@ const T = {
           </>
         ) as ReactNode,
         viewId: null as string | null,
-      },
-      {
-        score: "470 / 480",
-        who: "Joshua Blackwood",
-        notes: (
-          <>
-            higher, but on an easier <em>one-clue variant</em> — not the canonical puzzle
-          </>
-        ) as ReactNode,
-        viewId: "Joshua_Blackwood_470" as string | null,
       },
     ],
     viewLabel: "view",
@@ -315,7 +311,7 @@ const T = {
       {
         year: "Des années 2010 à aujourd'hui",
         title: "La communauté grignote, score après score",
-        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020) sur le vrai puzzle à cinq indices. Ce 469 tient depuis : il manque encore onze côtés pour atteindre le mythique 480. (Quelques plateaux atteignent 470, mais sur une variante à un seul indice, plus facile, et non sur le puzzle canonique.)",
+        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020), puis 470 (Blackwood, en 2021) sur le puzzle officiel. Ce 470 tient depuis — égalé deux fois, jamais battu : il manque encore dix côtés pour atteindre le mythique 480.",
       },
     ],
     anatomyTitle: "Anatomie du jeu de pièces",
@@ -390,7 +386,7 @@ const T = {
         un placement supplémentaire, et deux autres indices ont suivi plus tard. Un plateau qui
         respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
         records se contentent du seul indice central obligatoire, le meilleur plateau respectant
-        les cinq indices (460, Bruno Gauthier) reste en deçà du record canonique libre (469).
+        les cinq indices (460, Bruno Gauthier) reste en deçà du record canonique libre (470).
       </>
     ),
     cluesText2: (
@@ -409,9 +405,15 @@ const T = {
     colNotes: "Notes",
     records: [
       {
+        score: "470 / 480",
+        who: "Joshua Blackwood, 2021",
+        notes: "le record canonique — égalé en 2024 et 2025, jamais battu" as ReactNode,
+        viewId: "Joshua_Blackwood_470" as string | null,
+      },
+      {
         score: "469 / 480",
         who: "Blackwood & McGavin, 2020",
-        notes: "le record canonique — invaincu depuis 2020" as ReactNode,
+        notes: "le record précédent — longtemps cité comme le plafond" as ReactNode,
         viewId: "JBlackwood+PMcGavin_469" as string | null,
       },
       {
@@ -435,16 +437,6 @@ const T = {
           </>
         ) as ReactNode,
         viewId: null as string | null,
-      },
-      {
-        score: "470 / 480",
-        who: "Joshua Blackwood",
-        notes: (
-          <>
-            plus haut, mais sur une <em>variante à un indice</em>, plus facile — pas le puzzle canonique
-          </>
-        ) as ReactNode,
-        viewId: "Joshua_Blackwood_470" as string | null,
       },
     ],
     viewLabel: "voir",

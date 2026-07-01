@@ -29,7 +29,7 @@ const T = {
     reset: "Reset to the solution",
     perfect: "Perfect — every interior edge matches. This is what 480/480 would be on the full 16×16.",
     broken: (n: number) =>
-      `${n} ${n === 1 ? "edge is" : "edges are"} now mismatched (marked red). The score dropped by exactly that many. On the real puzzle the best anyone has reached is 469 — eleven short of perfect.`,
+      `${n} ${n === 1 ? "edge is" : "edges are"} now mismatched (marked red). The score dropped by exactly that many. On the real puzzle the best anyone has reached is 470 — ten short of perfect.`,
     loading: "Generating a solvable board…",
   },
   fr: {
@@ -41,7 +41,7 @@ const T = {
     reset: "Revenir à la solution",
     perfect: "Parfait — chaque bord intérieur concorde. C'est ce que serait 480/480 sur le 16×16 complet.",
     broken: (n: number) =>
-      `${n} bord${n === 1 ? "" : "s"} ${n === 1 ? "est" : "sont"} désormais non apparié${n === 1 ? "" : "s"} (marqué${n === 1 ? "" : "s"} en rouge). Le score a chuté d'exactement autant. Sur le vrai puzzle, le meilleur jamais atteint est 469 — onze de moins que la perfection.`,
+      `${n} bord${n === 1 ? "" : "s"} ${n === 1 ? "est" : "sont"} désormais non apparié${n === 1 ? "" : "s"} (marqué${n === 1 ? "" : "s"} en rouge). Le score a chuté d'exactement autant. Sur le vrai puzzle, le meilleur jamais atteint est 470 — dix de moins que la perfection.`,
     loading: "Génération d'un plateau soluble…",
   },
 };

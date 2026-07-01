@@ -36,7 +36,7 @@ const T = {
       },
       records: {
         title: "Records & solvers",
-        body: "The record timeline — who reached 469/480 and how — plus the key community solvers and why some '480' boards aren't the real puzzle.",
+        body: "The record timeline — who reached 470/480 and how — plus the key community solvers and why some '480' boards aren't the real puzzle.",
       },
       solvers: {
         title: "Solver catalogue",
@@ -69,7 +69,7 @@ const T = {
       },
       records: {
         title: "Records & solveurs",
-        body: "La chronologie des records — qui a atteint 469/480 et comment — les principaux solveurs de la communauté et pourquoi certains plateaux « 480 » ne sont pas le vrai puzzle.",
+        body: "La chronologie des records — qui a atteint 470/480 et comment — les principaux solveurs de la communauté et pourquoi certains plateaux « 480 » ne sont pas le vrai puzzle.",
       },
       solvers: {
         title: "Catalogue des solveurs",

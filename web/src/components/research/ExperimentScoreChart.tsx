@@ -13,14 +13,14 @@ import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 
 // A single glance at the whole gallery: every experiment's best score on one
-// axis, the 469 community ceiling and the 480 target marked. Bars are coloured
+// axis, the 470 community ceiling and the 480 target marked. Bars are coloured
 // by family so the "build from scratch" cluster, the lone corpus peak, etc. are
 // legible. Data is passed in by the caller (the experiments hub MDX), so this
 // stays a pure presentational chart with no separate source of truth.
 
 export type ScoreDatum = { key: string; label: string; score: number; family: string };
 
-const CEILING = 469;
+const CEILING = 470;
 const DOMAIN_LO = 430;
 const DOMAIN_HI = 480;
 
@@ -38,16 +38,16 @@ const T = {
   en: {
     title: "Every experiment, by best score",
     intro:
-      "Bars are the best board each method produced; the amber line is the community ceiling (469), the right edge is a full solution (480). Colour marks the family.",
-    ceiling: "community ceiling 469",
+      "Bars are the best board each method produced; the amber line is the community ceiling (470), the right edge is a full solution (480). Colour marks the family.",
+    ceiling: "community ceiling 470",
     busy: "Drawing…",
     tip: "/ 480",
   },
   fr: {
     title: "Chaque expérience, par meilleur score",
     intro:
-      "Les barres sont le meilleur plateau produit par chaque méthode ; la ligne ambre est le plafond communautaire (469), le bord droit une solution complète (480). La couleur marque la famille.",
-    ceiling: "plafond communautaire 469",
+      "Les barres sont le meilleur plateau produit par chaque méthode ; la ligne ambre est le plafond communautaire (470), le bord droit une solution complète (480). La couleur marque la famille.",
+    ceiling: "plafond communautaire 470",
     busy: "Tracé…",
     tip: "/ 480",
   },
