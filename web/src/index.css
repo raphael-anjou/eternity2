@@ -4,6 +4,8 @@
 @import "@fontsource-variable/geist";
 @import "katex/dist/katex.min.css";
 
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -132,6 +134,28 @@
 /* Slightly larger base type for comfortable reading (user feedback). */
 html {
   font-size: 17px;
+}
+
+/* ---- Research wiki (MDX) ---------------------------------------------
+   Shiki code blocks carry a dual theme: light colors are inlined at build
+   time, dark ones live in CSS variables and are swapped in under .dark. */
+.prose pre.shiki {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+/* KaTeX display math: scroll horizontally on narrow screens instead of
+   overflowing the prose column. */
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
 }
 
 /* Print sheets: scaled preview on screen, true A4 in print. */

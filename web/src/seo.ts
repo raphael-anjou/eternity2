@@ -436,18 +436,8 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
     },
   },
-  "border-balance": {
-    en: {
-      title: "The border balance (NS-1 deficit)" + SUFFIX,
-      description:
-        "A solved Eternity II board obeys a colour-balance law: the colours the border shows the interior equal the colours the interior shows back. The NS-1 deficit measures the imbalance — a real necessary condition, and a revealing blind spot.",
-    },
-    fr: {
-      title: "L'équilibre du bord (déficit NS-1)" + SUFFIX,
-      description:
-        "Un plateau Eternity II résolu obéit à une loi d'équilibre des couleurs : les couleurs que le bord montre à l'intérieur égalent celles que l'intérieur renvoie. Le déficit NS-1 mesure le déséquilibre — une vraie condition nécessaire, avec un angle mort révélateur.",
-    },
-  },
+  // "border-balance" migrated to web/content/research/why/border-balance.mdx —
+  // MDX pages carry their SEO meta in frontmatter.
   "complex-theory": {
     en: {
       title: "Complex theory: counting the search before you run it" + SUFFIX,
@@ -585,6 +575,16 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     },
   },
 };
+
+/**
+ * Bare page title (suffix stripped) for a registered page key — used by the
+ * research sidebar to label not-yet-migrated TSX pages without duplicating
+ * their titles. Goes away when the research migration to MDX completes.
+ */
+export function pageTitle(pageKey: string, lang: Lang): string {
+  const entry = (PAGES[pageKey] ?? HOME_PAGE)[lang];
+  return entry.title.replace(SUFFIX, "");
+}
 
 /**
  * Build a React Router `meta` descriptor list for a page. `pageKey` matches a

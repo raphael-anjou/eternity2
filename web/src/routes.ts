@@ -32,7 +32,6 @@ const PAGES = [
   { path: "research/why/piece-theft", file: "pages/research/why/piece-theft.tsx", id: "piece-theft" },
   { path: "research/why/entropy-area-law", file: "pages/research/why/entropy-area-law.tsx", id: "entropy-area-law" },
   { path: "research/why/rare-color-geography", file: "pages/research/why/rare-color-geography.tsx", id: "rare-color-geography" },
-  { path: "research/why/border-balance", file: "pages/research/why/border-balance.tsx", id: "border-balance" },
   { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
   { path: "research/build/run-it-yourself", file: "pages/research/build/run-it-yourself.tsx", id: "run-it-yourself" },
   { path: "research/build/dead-ends", file: "pages/research/build/dead-ends.tsx", id: "dead-ends" },
@@ -71,4 +70,17 @@ function tree(prefix: "" | "fr") {
   });
 }
 
-export default [layout("layout.tsx", [...tree(""), ...tree("fr")])] satisfies RouteConfig;
+// Research wiki pages (web/content/research/**.mdx) resolve through one
+// catch-all per language. Explicit PAGES entries outrank the splat, so a
+// legacy TSX page keeps winning until its entry is removed — migration to
+// MDX is page-by-page with no dead URLs. Adding an MDX file needs NO entry
+// here: the route resolves from the content manifest, and the prerender list
+// picks the path up via sitemap.config.ts → content.config.ts.
+const researchDocs = [
+  route("research/*", "pages/research/doc.tsx", { id: "en-research-doc" }),
+  route("fr/research/*", "pages/research/doc.tsx", { id: "fr-research-doc" }),
+];
+
+export default [
+  layout("layout.tsx", [...tree(""), ...tree("fr"), ...researchDocs]),
+] satisfies RouteConfig;
