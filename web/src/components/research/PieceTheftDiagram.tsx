@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // Piece theft, schematically. A solver fills top-left to bottom-right. Early on
 // it uses the one piece that could ever serve a particular (north, west) demand,
@@ -49,11 +50,13 @@ export function PieceTheftDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [phase, setPhase] = useState(0);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setPhase((p) => (p + 1) % 4), 1500);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -83,7 +86,7 @@ export function PieceTheftDiagram() {
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
           {Array.from({ length: N }, (_, r) =>

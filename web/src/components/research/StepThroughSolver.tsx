@@ -24,6 +24,7 @@ import { countCandidates } from "@/lib/piece-fit";
 import type { Puzzle } from "@/lib/types";
 import { useT } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 export interface Snapshot {
   board: number[]; // cell -> pieceId*4+rot | -1
@@ -135,6 +136,7 @@ export function StepThroughSolver({
   const ui = useT(UI);
   const [idx, setIdx] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   const puzzle = useMemo(
     () => (engineReady ? getGeneratedPuzzle(size, colors, seed) : null),
@@ -150,12 +152,12 @@ export function StepThroughSolver({
   );
 
   useEffect(() => {
-    if (!playing || !history) return;
+    if (!playing || !history || !visible) return;
     const id = setInterval(() => {
       setIdx((i) => (i >= history.length - 1 + endPauseSteps ? 0 : i + 1));
     }, stepMs);
     return () => clearInterval(id);
-  }, [playing, history, stepMs, endPauseSteps]);
+  }, [playing, history, stepMs, endPauseSteps, visible]);
 
   if (!puzzle || !history || !path) {
     return (
@@ -198,7 +200,7 @@ export function StepThroughSolver({
   };
 
   return (
-    <Card>
+    <Card ref={rootRef}>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
           <span>{title}</span>

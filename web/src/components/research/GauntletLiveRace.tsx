@@ -7,6 +7,7 @@ import type { Puzzle, SolverReport } from "@/lib/types";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { boardFromEngine } from "@/lib/bucas";
 import { Button } from "@/components/ui/button";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // GAUNTLET, for real and slowed down. This runs the *actual* Rust/WASM solver —
 // not a schematic — four times over on the same small generated puzzle, each
@@ -88,6 +89,7 @@ export function GauntletLiveRace() {
   const rafRef = useRef(0);
   const lastTickRef = useRef(0);
   const debtRef = useRef(0);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   const build = useCallback(() => {
     if (!engineReady) return;
@@ -120,8 +122,10 @@ export function GauntletLiveRace() {
     };
   }, [build]);
 
+  // Race loop; pauses entirely while scrolled out of view or in a hidden tab
+  // and resumes seamlessly (the dt clamp below prevents any catch-up burst).
   useEffect(() => {
-    if (!running) return;
+    if (!running || !visible) return;
     lastTickRef.current = performance.now();
 
     const tick = () => {
@@ -150,7 +154,7 @@ export function GauntletLiveRace() {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [running]);
+  }, [running, visible]);
 
   const laneCells = useMemo(() => {
     if (!puzzle) return [];
@@ -171,7 +175,7 @@ export function GauntletLiveRace() {
     s === "solved" ? t.solved : s === "exhausted" ? t.stuck : t.running;
 
   return (
-    <div className="space-y-4 rounded-lg border bg-card p-4">
+    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
       <div className="space-y-1">
         <h3 className="text-sm font-semibold">{t.title}</h3>
         <p className="text-xs text-muted-foreground">{t.intro}</p>

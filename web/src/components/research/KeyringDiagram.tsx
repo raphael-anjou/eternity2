@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // KEYRING, schematically. At one cell, several pieces fit. A single rule of thumb
 // would always pick the same one and march into the same dead end. KEYRING scores
@@ -59,11 +60,13 @@ export function KeyringDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [frame, setFrame] = useState(0);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setFrame((f) => (f + 1) % WEIGHT_FRAMES.length), 1600);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -86,7 +89,7 @@ export function KeyringDiagram() {
   const scale = 70; // px per unit-score
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto" style={{ maxWidth: W }}>
         <svg viewBox={`0 0 ${W} ${H + 26}`} className="w-full">

@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
 import type { SolverHandle } from "@/engine";
 import type { Puzzle } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // LADDER, run for real. Rung 1: many cheap probes (distinct seeds/scan orders),
 // each given a tiny budget; we keep the ones that reached deepest. Rung 2: those
@@ -72,7 +73,16 @@ export function LadderLiveLab() {
   const [probes, setProbes] = useState<Probe[]>([]);
   const [rung, setRung] = useState<number>(-1);
   const [running, setRunning] = useState(false);
+  const cancelRef = useRef(false);
   const TOTAL = SIZE * SIZE;
+
+  // Abort any in-flight ladder run on unmount so no loop survives navigation.
+  useEffect(() => {
+    cancelRef.current = false;
+    return () => {
+      cancelRef.current = true;
+    };
+  }, []);
 
   const run = useCallback(async () => {
     if (!engineReady || running) return;
@@ -97,28 +107,53 @@ export function LadderLiveLab() {
       live.push({ id: i, scan, seed, solver, depth: 0, best: 0, solved: false, alive: true });
     }
 
+    // Free every solver still alive (used at the end and on cancellation).
+    const freeLive = () => {
+      live.forEach((p) => {
+        if (p.alive) {
+          p.alive = false;
+          p.solver.free();
+        }
+      });
+    };
+
     for (let r = 0; r < RUNGS.length; r++) {
       const rungCfg = RUNGS[r];
       if (!rungCfg) break;
       setRung(r);
       const { budget, keep } = rungCfg;
-      // run each live probe for this rung's budget
+      // Run each live probe for this rung's budget, in time-boxed bursts
+      // (~8ms of synchronous work) with yields in between so the main thread
+      // stays free for clicks and navigation.
       for (const probe of live) {
-        let rep;
-        for (let g = 0; g < 50; g++) {
-          rep = probe.solver.step(Math.ceil(budget / 50));
-          if (rep.status !== "running") break;
+        if (cancelRef.current) break;
+        let rep = probe.solver.report();
+        let spent = 0;
+        while (rep.status === "running" && spent < budget && !cancelRef.current) {
+          const deadline = performance.now() + FRAME_BUDGET_MS;
+          do {
+            const chunk = Math.min(1_000, budget - spent);
+            rep = probe.solver.step(chunk);
+            spent += chunk;
+          } while (rep.status === "running" && spent < budget && performance.now() < deadline);
+          if (rep.status === "running" && spent < budget) await yieldToBrowser();
         }
-        if (rep) {
-          probe.best = Math.max(probe.best, rep.bestPlaced);
-          probe.depth = rep.bestPlaced;
-          probe.solved = rep.status === "solved";
-        }
+        probe.best = Math.max(probe.best, rep.bestPlaced);
+        probe.depth = rep.bestPlaced;
+        probe.solved = rep.status === "solved";
+      }
+      if (cancelRef.current) {
+        freeLive();
+        return;
       }
       // show this rung's result
       setProbes(live.map((p) => ({ ...p })));
       // let the UI paint between rungs
       await new Promise((res) => setTimeout(res, 700));
+      if (cancelRef.current) {
+        freeLive();
+        return;
+      }
 
       // keep the deepest `keep`; free the rest
       const ranked = [...live].sort((a, b) => b.depth - a.depth);
@@ -135,9 +170,13 @@ export function LadderLiveLab() {
       live = survivors;
       if (survivors.some((p) => p.solved)) break;
       await new Promise((res) => setTimeout(res, 500));
+      if (cancelRef.current) {
+        freeLive();
+        return;
+      }
     }
     // free the survivors that are still alive
-    live.forEach((p) => p.solver.free());
+    freeLive();
     setRunning(false);
   }, [engineReady, running]);
 

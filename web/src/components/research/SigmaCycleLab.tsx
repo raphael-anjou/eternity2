@@ -9,6 +9,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // Basin-hopping, on a real small puzzle. We generate a puzzle, find TWO distinct
 // real solutions with the engine, then compute the actual permutation σ that
@@ -27,24 +28,41 @@ interface Solved {
 }
 
 // Find two distinct full solutions of a small puzzle using the real engine.
-function findTwoSolutions(size: number, colors: number, seed: number): Solved | null {
+// Each solve runs in time-boxed bursts (~8ms of synchronous work) with yields to
+// the browser in between, so the search never blocks clicks or navigation.
+async function findTwoSolutions(
+  size: number,
+  colors: number,
+  seed: number,
+  cancelled: () => boolean,
+): Promise<Solved | null> {
   const puzzle = getGeneratedPuzzle(size, colors, seed);
   const found = new Map<string, Int32Array>();
   const kinds = ["row-major", "snake", "spiral-in", "diagonal", "column-major", "spiral-out"];
+  const STEP_CAP = 80_000_000; // same per-solve cap as the old 400 × 200k loop
   for (const kind of kinds) {
     for (let s = 0; s < 6 && found.size < 6; s++) {
+      if (cancelled()) return null;
       const path = getPath(kind, puzzle.width, puzzle.height, s);
       const solver = createSolver(puzzle, path, { useHints: false, shufflePieces: true, seed: s + 1 });
-      let r;
-      for (let g = 0; g < 400; g++) {
-        r = solver.step(200000);
-        if (r.status !== "running") break;
+      let r = solver.report();
+      let spent = 0;
+      try {
+        while (r.status === "running" && spent < STEP_CAP && !cancelled()) {
+          const deadline = performance.now() + FRAME_BUDGET_MS;
+          do {
+            r = solver.step(5_000);
+            spent += 5_000;
+          } while (r.status === "running" && spent < STEP_CAP && performance.now() < deadline);
+          if (r.status === "running" && spent < STEP_CAP) await yieldToBrowser();
+        }
+        if (r.status === "solved") {
+          const board = solver.board();
+          found.set(Array.from(board).join(","), Int32Array.from(board));
+        }
+      } finally {
+        solver.free();
       }
-      if (r && r.status === "solved") {
-        const board = solver.board();
-        found.set(Array.from(board).join(","), Int32Array.from(board));
-      }
-      solver.free();
     }
     if (found.size >= 2) break;
   }
@@ -145,25 +163,39 @@ export function SigmaCycleLab() {
   const [allCycles, setAllCycles] = useState(false);
   const seedRef = useRef(seed);
 
-  const build = useCallback(() => {
-    if (!engineReady) return;
-    // Try a few seeds until we get a puzzle with two solutions and a cycle.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const s = (seedRef.current + attempt * 101) % 100000;
-      const found = findTwoSolutions(6, 5, s);
-      if (found) {
-        setData(found);
-        setCycleIdx(0);
-        setPct(0);
-        return;
+  const build = useCallback(
+    async (token: { cancelled: boolean }) => {
+      if (!engineReady) return;
+      const cancelled = () => token.cancelled;
+      // Let the effect return before doing any solver work.
+      await yieldToBrowser();
+      if (token.cancelled) return;
+      // Try a few seeds until we get a puzzle with two solutions and a cycle.
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const s = (seedRef.current + attempt * 101) % 100000;
+        const found = await findTwoSolutions(6, 5, s, cancelled);
+        if (token.cancelled) return;
+        if (found) {
+          setData(found);
+          setCycleIdx(0);
+          setPct(0);
+          return;
+        }
       }
-    }
-    setData(null);
-  }, [engineReady]);
+      setData(null);
+    },
+    [engineReady],
+  );
 
   useEffect(() => {
     seedRef.current = seed;
-    build();
+    // Cancellation token: flipped on unmount or seed change so no in-flight
+    // chunked solve survives navigation.
+    const token = { cancelled: false };
+    void build(token);
+    return () => {
+      token.cancelled = true;
+    };
   }, [build, seed]);
 
   const selectedCycles = useMemo(() => {

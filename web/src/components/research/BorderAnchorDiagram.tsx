@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // CLOISTER, schematically. The border ring is fixed first (locked). Then the
 // interior fills inward, row by row, with the cells touching the frame having to
@@ -31,11 +32,13 @@ export function BorderAnchorDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [fill, setFill] = useState(0); // interior rows filled (0..N-2)
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setFill((f) => (f >= N - 2 ? 0 : f + 1)), 600);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -56,7 +59,7 @@ export function BorderAnchorDiagram() {
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
           {Array.from({ length: N }, (_, r) =>

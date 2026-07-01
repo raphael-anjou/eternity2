@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // A schematic animation of why basin-hopping fails. A ring of cells must all
 // rotate to their next position together (the "cycle"). Apply the whole cycle
@@ -42,12 +43,13 @@ export function SigmaCycleDiagram() {
   const isClient = useIsClient();
   const [applied, setApplied] = useState(0);
   const [auto, setAuto] = useState(true);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || !visible) return;
     const id = setInterval(() => setApplied((a) => (a >= N ? 0 : a + 1)), 700);
     return () => clearInterval(id);
-  }, [auto]);
+  }, [auto, visible]);
 
   if (!isClient) {
     return (
@@ -60,7 +62,7 @@ export function SigmaCycleDiagram() {
   const complete = applied >= N;
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} className="space-y-4">
       <div className="mx-auto max-w-sm rounded-lg border p-2">
         <svg viewBox="0 0 260 260" className="w-full">
           {/* arrows from each cell to its target */}

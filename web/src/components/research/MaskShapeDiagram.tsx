@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // MIDDEN's idea, shown as masks. Each shape marks the cells where a mismatch is
 // allowed (everywhere else must match perfectly). The animation cycles through
@@ -41,12 +42,13 @@ export function MaskShapeDiagram() {
   const isClient = useIsClient();
   const [idx, setIdx] = useState(2); // start on the lattice (the interesting one)
   const [auto, setAuto] = useState(true);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || !visible) return;
     const id = setInterval(() => setIdx((i) => (i + 1) % SHAPES.length), 1400);
     return () => clearInterval(id);
-  }, [auto]);
+  }, [auto, visible]);
 
   if (!isClient) {
     return (
@@ -59,7 +61,7 @@ export function MaskShapeDiagram() {
   const shape = SHAPES[idx] ?? ROWS_SHAPE;
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
           {Array.from({ length: N }, (_, r) =>

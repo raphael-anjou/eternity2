@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // LADDER as a tournament. Round 1: many short probes reach different depths.
 // Each round keeps only the deepest and gives them more time, so the survivors
@@ -33,11 +34,13 @@ export function LadderDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [round, setRound] = useState(0);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setRound((r) => (r + 1) % 4), 1300);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -59,7 +62,7 @@ export function LadderDiagram() {
   const W = ROUND0.length * (barW + gap);
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto" style={{ maxWidth: W }}>
         <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full">
           {ROUND0.map((d0, i) => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // PRIOR, schematically. From the library of strong boards, PRIOR learns one thing:
 // for each position, how concentrated the choice of piece is across good boards.
@@ -48,11 +49,13 @@ export function PriorDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [front, setFront] = useState(0); // diagonal fill front 0..2N
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setFront((f) => (f >= 2 * N + 3 ? 0 : f + 1)), 220);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -63,7 +66,7 @@ export function PriorDiagram() {
   }
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">

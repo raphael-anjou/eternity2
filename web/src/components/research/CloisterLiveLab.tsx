@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // CLOISTER's idea, measured live: does anchoring the border first save work?
 // We solve the same small puzzle two ways with the real engine — once border-
@@ -21,20 +22,31 @@ interface Result {
   wbSolved: boolean;
 }
 
-function solveCount(size: number, seed: number, kind: string): { nodes: number; solved: boolean } {
+// The solve runs in time-boxed bursts (~8ms of synchronous work, measured with
+// performance.now()), yielding to the browser between bursts so clicks and
+// navigation stay responsive while the engine works.
+async function solveCount(
+  size: number,
+  seed: number,
+  kind: string,
+  cancelled: () => boolean,
+): Promise<{ nodes: number; solved: boolean }> {
   const puzzle = getGeneratedPuzzle(size, 5, seed);
   const path = getPath(kind, puzzle.width, puzzle.height, 0);
   const solver = createSolver(puzzle, path, { useHints: false });
-  let r;
-  for (let g = 0; g < 400; g++) {
-    r = solver.step(50000);
-    if (r.status !== "running") break;
-    if (r.nodes >= NODE_CAP) break; // cap so the demo stays snappy
+  let r = solver.report();
+  try {
+    while (r.status === "running" && r.nodes < NODE_CAP && !cancelled()) {
+      const deadline = performance.now() + FRAME_BUDGET_MS;
+      do {
+        r = solver.step(2_000);
+      } while (r.status === "running" && r.nodes < NODE_CAP && performance.now() < deadline);
+      if (r.status === "running" && r.nodes < NODE_CAP) await yieldToBrowser();
+    }
+  } finally {
+    solver.free();
   }
-  const nodes = r ? r.nodes : 0;
-  const solved = r ? r.status === "solved" : false;
-  solver.free();
-  return { nodes, solved };
+  return { nodes: r.nodes, solved: r.status === "solved" };
 }
 
 const T = {
@@ -78,14 +90,24 @@ export function CloisterLiveLab() {
   const [result, setResult] = useState<Result | null>(null);
   const [running, setRunning] = useState(false);
   const [seed, setSeed] = useState(1);
+  const cancelRef = useRef(false);
+
+  // Stop any in-flight chunked solve when the component unmounts (navigation).
+  useEffect(() => {
+    cancelRef.current = false;
+    return () => {
+      cancelRef.current = true;
+    };
+  }, []);
 
   const run = useCallback(async () => {
     if (!engineReady || running) return;
     setRunning(true);
     setResult(null);
-    await new Promise((r) => setTimeout(r, 0));
-    const bf = solveCount(SIZE, seed, "border-first");
-    const wb = solveCount(SIZE, seed, "row-major");
+    const cancelled = () => cancelRef.current;
+    const bf = await solveCount(SIZE, seed, "border-first", cancelled);
+    const wb = await solveCount(SIZE, seed, "row-major", cancelled);
+    if (cancelRef.current) return;
     setResult({
       borderFirst: bf.nodes,
       wholeBoard: wb.nodes,

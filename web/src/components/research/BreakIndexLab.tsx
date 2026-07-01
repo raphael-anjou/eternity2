@@ -10,6 +10,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // The break-index, run live and watchable. One fixed 8x8 puzzle. Breaks (a
 // single mismatch) are licensed only in the bottom `breakRows` rows — the
@@ -74,6 +75,7 @@ export function BreakIndexLab() {
   const [breakRows, setBreakRows] = useState(0);
   const [speedExp, setSpeedExp] = useState(3); // 10^3 steps/s
   const [running, setRunning] = useState(false);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   const [cells, setCells] = useState<(Edges | null)[] | null>(null);
   const [conflicts, setConflicts] = useState<[number, number][]>([]);
@@ -138,8 +140,9 @@ export function BreakIndexLab() {
   }, [rebuild]);
 
   // Animation loop: step the solver at the chosen rate, repaint each frame.
+  // Paused entirely while off-screen or in a hidden tab (`visible`).
   useEffect(() => {
-    if (!running) return;
+    if (!running || !visible) return;
     const stepsPerSec = Math.pow(10, speedExp);
     let last = 0;
     const tick = (now: number) => {
@@ -149,9 +152,16 @@ export function BreakIndexLab() {
         if (r.status === "running") {
           const dt = last ? (now - last) / 1000 : 1 / 60;
           last = now;
-          // Cap per-frame work so a fast rate never freezes the tab.
-          const want = Math.min(Math.ceil(stepsPerSec * dt), 200_000);
-          s.step(Math.max(1, want));
+          // Time-box per-frame work by wall clock: run the step budget in small
+          // chunks and stop at the deadline so a fast rate never blocks input.
+          let want = Math.max(1, Math.min(Math.ceil(stepsPerSec * dt), 200_000));
+          const deadline = performance.now() + FRAME_BUDGET_MS;
+          while (want > 0) {
+            const chunk = Math.min(want, 2_000);
+            s.step(chunk);
+            want -= chunk;
+            if (s.report().status !== "running" || performance.now() >= deadline) break;
+          }
           paint();
         } else {
           setRunning(false);
@@ -163,7 +173,7 @@ export function BreakIndexLab() {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [running, speedExp, paint]);
+  }, [running, speedExp, paint, visible]);
 
   const placeholder = useMemo<(Edges | null)[]>(
     () => Array<Edges | null>(SIZE * SIZE).fill(null),
@@ -173,7 +183,7 @@ export function BreakIndexLab() {
   const stuck = status === "exhausted" || (status === "running" && !running && placed > 0);
 
   return (
-    <section className="mx-auto max-w-3xl space-y-4 rounded-xl border bg-muted/20 p-5">
+    <section ref={rootRef} className="mx-auto max-w-3xl space-y-4 rounded-xl border bg-muted/20 p-5">
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{t.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t.intro}</p>

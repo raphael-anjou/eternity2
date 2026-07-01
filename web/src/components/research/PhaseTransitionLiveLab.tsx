@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath, getMaxColors } from "@/engine";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // The hardness peak, measured live. For a fixed small board we solve a generated
 // puzzle at each colour count, right now, with the real engine, and plot the
@@ -21,23 +22,35 @@ interface Point {
   solved: number; // how many of the seeds were solved
 }
 
-function medianNodesAt(size: number, colors: number): Point {
+// Each solve runs in time-boxed bursts (~8ms of synchronous work, measured with
+// performance.now()), yielding to the browser between bursts so the page stays
+// responsive — the medians come out the same, just without blocking the UI.
+async function medianNodesAt(
+  size: number,
+  colors: number,
+  cancelled: () => boolean,
+): Promise<Point> {
   const runs: number[] = [];
   let solved = 0;
   for (let seed = 1; seed <= SEEDS_PER_POINT; seed++) {
+    if (cancelled()) break;
     const puzzle = getGeneratedPuzzle(size, colors, seed);
     const path = getPath("row-major", puzzle.width, puzzle.height, 0);
     const solver = createSolver(puzzle, path, { useHints: false });
-    let r;
-    for (let g = 0; g < 20000; g++) {
-      r = solver.step(50000);
-      if (r.status !== "running") break;
-    }
-    if (r) {
+    let r = solver.report();
+    try {
+      while (r.status === "running" && !cancelled()) {
+        const deadline = performance.now() + FRAME_BUDGET_MS;
+        do {
+          r = solver.step(2_000);
+        } while (r.status === "running" && performance.now() < deadline);
+        if (r.status === "running") await yieldToBrowser();
+      }
       runs.push(r.nodes);
       if (r.status === "solved") solved++;
+    } finally {
+      solver.free();
     }
-    solver.free();
   }
   runs.sort((a, b) => a - b);
   const mid = runs.length ? (runs[Math.floor(runs.length / 2)] ?? 0) : 0;
@@ -100,8 +113,9 @@ export function PhaseTransitionLiveLab() {
       if (cancelRef.current) break;
       setCurrent(c);
       // Yield to the event loop so the UI can paint between colour points.
-      await new Promise((r) => setTimeout(r, 0));
-      acc.push(medianNodesAt(SIZE, c));
+      await yieldToBrowser();
+      acc.push(await medianNodesAt(SIZE, c, () => cancelRef.current));
+      if (cancelRef.current) break;
       setPoints([...acc]);
     }
     setCurrent(null);
@@ -109,6 +123,7 @@ export function PhaseTransitionLiveLab() {
   }, [engineReady, running, colorRange]);
 
   useEffect(() => {
+    cancelRef.current = false;
     return () => {
       cancelRef.current = true;
     };

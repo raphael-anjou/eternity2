@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // REPLAY's discovery, schematically. A strict-460 board is almost all perfect
 // matches, with a few single-break cells and a handful of double-break cells
@@ -42,11 +43,13 @@ export function DoubleBreakDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [showDouble, setShowDouble] = useState(true);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setShowDouble((s) => !s), 1800);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -64,7 +67,7 @@ export function DoubleBreakDiagram() {
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
           {Array.from({ length: N }, (_, r) =>

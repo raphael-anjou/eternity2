@@ -11,6 +11,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { PieceSvg } from "@/components/board/PieceSvg";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // Piece theft, live. We fill a small board up to a frontier cell, read the
 // (north, west) colours that cell now demands, and ask the real legality test
@@ -82,15 +83,20 @@ export function PieceTheftLab() {
   const SIZE = 6;
   const COLORS = 5;
 
-  const build = useCallback(() => {
+  const build = useCallback(async (token: { cancelled: boolean }) => {
     if (!engineReady) return;
+    const cancelled = () => token.cancelled;
     // Look for a seed/fill where the frontier cell has exactly one server.
+    // Each (seed, fill) probe is a small bounded solve; we yield to the browser
+    // between probes so the hunt never blocks clicks or navigation.
     for (let attempt = 0; attempt < 14; attempt++) {
       const s = (seedRef.current + attempt * 37) % 100000;
       const puzzle = getGeneratedPuzzle(SIZE, COLORS, s);
       const path = getPath("row-major", puzzle.width, puzzle.height, 0);
       // try several fill depths to hit a sole-server frontier
       for (const fill of [10, 12, 14, 16, 8, 18]) {
+        await yieldToBrowser();
+        if (cancelled()) return;
         const solver = createSolver(puzzle, path, { useHints: false });
         let report = solver.report();
         for (let g = 0; g < 5000 && report.placed < fill; g++) {
@@ -121,6 +127,8 @@ export function PieceTheftLab() {
       }
     }
     // fallback: accept whatever the first config gives (multi-server)
+    await yieldToBrowser();
+    if (cancelled()) return;
     const puzzle = getGeneratedPuzzle(SIZE, COLORS, seedRef.current);
     const path = getPath("row-major", puzzle.width, puzzle.height, 0);
     const solver = createSolver(puzzle, path, { useHints: false });
@@ -152,7 +160,13 @@ export function PieceTheftLab() {
 
   useEffect(() => {
     seedRef.current = seed;
-    build();
+    // Cancellation token: flipped on unmount or seed change so no in-flight
+    // search loop survives navigation.
+    const token = { cancelled: false };
+    void build(token);
+    return () => {
+      token.cancelled = true;
+    };
   }, [build, seed]);
 
   const display = useMemo(() => {
