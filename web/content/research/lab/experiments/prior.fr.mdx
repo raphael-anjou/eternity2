@@ -1,0 +1,70 @@
+---
+title: PRIOR
+description: >-
+  Construire un plateau à partir de rien, en départageant les égalités selon
+  l'endroit où les pièces se placent dans les plateaux forts déjà connus. Un
+  score élevé, sans aucun plateau de départ à copier.
+kind: experiment
+score: 460
+repro:
+  kind: seeded
+order: 30
+updated: 2026-07-01
+topics: [construction, learning]
+related:
+  - /research/lab/experiments/keyring
+  - /research/lab/experiments/gauntlet
+  - /research/why/piece-theft
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+La plupart des plateaux forts de ce site sont obtenus en partant d'un bon
+plateau existant pour l'améliorer. PRIOR pose une question plus dure :
+peut-on construire un plateau compétitif depuis une grille vide, sans plateau
+d'ancrage ? L'astuce est de laisser la foule des bons plateaux passés guider
+discrètement la construction, sans en copier aucun en particulier.
+
+## Comment ça marche
+
+De la bibliothèque des plateaux bien notés, PRIOR apprend une seule chose,
+toute simple : pour chaque position du plateau, la fréquence à laquelle
+chaque pièce y apparaît. Cela donne une préférence douce — un prior — sur ce
+qui tend à aller où.
+
+Il construit ensuite par recherche en faisceau, en gardant vivants de
+nombreux plateaux partiels et en les étendant case par case. Quand deux
+options apparient le même nombre de bords, le prior tranche en faveur de la
+pièce la plus typique des plateaux forts à cet endroit. Une règle de
+diversité empêche les tentatives parallèles de retomber toutes sur le même
+chemin. Aucun plateau n'est copié ; le guidage est purement statistique.
+
+<PriorDiagram />
+
+## Le plateau
+
+<RecordBoard id="v155-prior-460" />
+
+## Le résultat
+
+Parti de zéro, PRIOR atteint le milieu des 450, et avec un prior plus pointu,
+bâti sur les tout meilleurs plateaux seulement, il monte encore. Suivi d'un
+affinage local, il atteint 460 — le plateau montré ici. Qu'une construction
+partie de rien arrive si près des records, c'est tout l'intérêt : la
+structure des bons plateaux est en partie apprenable, et il n'est pas
+nécessaire d'en posséder un pour y arriver.
+
+Ce n'est pas le meilleur score du projet (463), et la dernière marche
+s'appuie ici sur une étape d'affinage, ce que l'étiquette du plateau signale
+honnêtement. Mais comme résultat sur table rase, c'est le plus fort du
+projet — et la fondation sur laquelle les constructeurs multi-signaux
+ultérieurs ont grandi.
+
+## Questions ouvertes
+
+Jusqu'où peut-on affûter le prior avant qu'il ne surapprenne ? Bâti sur une
+poignée de plateaux de tête, le signal est fort mais mince. Un prior distinct
+par famille de plateaux capterait-il une structure que le prior combiné gomme
+en moyennant ? Et quelle part de l'écart final revient à la construction,
+plutôt qu'à l'affinage qui la suit ?

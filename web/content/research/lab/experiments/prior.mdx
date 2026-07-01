@@ -1,0 +1,66 @@
+---
+title: PRIOR
+description: >-
+  Build a board from nothing, breaking ties by where pieces tend to sit in the
+  strong boards we already have. It reaches a high score with no starting
+  board to copy.
+kind: experiment
+score: 460
+repro:
+  kind: seeded
+order: 30
+updated: 2026-07-01
+topics: [construction, learning]
+related:
+  - /research/lab/experiments/keyring
+  - /research/lab/experiments/gauntlet
+  - /research/why/piece-theft
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Most strong boards on this site are found by taking an existing good board
+and improving it. PRIOR asks a harder question: can you build a competitive
+board from an empty grid, with no board to anchor to? The trick is to let the
+crowd of past good boards quietly guide the construction without copying any
+single one of them.
+
+## How it works
+
+From the library of boards scoring well, PRIOR learns one simple thing: for
+each position on the board, how often each piece shows up there. That gives a
+gentle preference, a prior, for what tends to belong where.
+
+Then it builds with a beam search, keeping many partial boards alive at once
+and extending them cell by cell. When two options match the same number of
+edges, the prior breaks the tie toward the piece that's more typical of
+strong boards in that spot. A diversity rule keeps the many parallel attempts
+from collapsing onto the same path. No single board is copied; the guidance
+is statistical.
+
+<PriorDiagram />
+
+## The board
+
+<RecordBoard id="v155-prior-460" />
+
+## The result
+
+From scratch, PRIOR reaches the mid-450s, and with a sharper prior built from
+only the very best boards it climbs higher. Followed by local refinement it
+reaches 460, the board shown here. That a from-nothing build lands this close
+to the records is the point: the structure of good boards is partly
+learnable, and you don't need to start from one to get there.
+
+It is not the project's top score (463), and the final lift here leans on a
+refinement step, which the board's label notes. But as a clean-slate result
+it's the strongest the project has, and it's the foundation the later
+multi-signal builders grew from.
+
+## Open questions
+
+How sharp can the prior get before it overfits? Built from only a handful of
+top boards the signal is strong but thin. Could a separate prior per
+board-family capture structure the combined one averages away? And how much
+of the final gap is the construction versus the refinement that follows it?

@@ -1,0 +1,66 @@
+---
+title: PALIMPSEST
+description: >-
+  Read every strong board to find the habits that quietly hold a board back,
+  then break them. This experiment produced the project's best board: 463 of
+  480.
+kind: experiment
+score: 463
+repro:
+  kind: seeded
+order: 10
+updated: 2026-07-01
+topics: [local-search, learning, records]
+related:
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/keyring
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+When many independent searches all reach a high but not perfect board, they
+tend to agree on a lot of placements. Some of that agreement is genuine
+structure, and some of it is a shared bad habit: a local choice that looks
+good and keeps every search stuck just short of the top. The idea behind this
+experiment is to read the whole corpus of strong boards, separate the helpful
+agreement from the trap, and attack the traps.
+
+## How it works
+
+Take every board anyone has found that scores reasonably well, and for each
+pair of neighbouring positions count how often a given pair of pieces sits
+there, weighted by how good the board was. Two patterns fall out. Some
+adjacencies show up again and again in the very best boards: those are safe,
+real structure. Others show up almost everywhere but never in the top boards:
+those are the traps, the choices that feel right and cap the score.
+
+The traps cluster in particular regions of the board rather than spreading
+evenly. Knowing where they are turns the corpus into a map: which placements
+to trust, and which to pull apart and rebuild. Grouping boards by how their
+corners are arranged then points the search at the most promising family to
+attack.
+
+<PalimpsestDiagram />
+
+## The board
+
+<RecordBoard id="v129-palimpsest-463" />
+
+## The result
+
+Used as a map to steer the search, this reached 463 of 480 matched edges, the
+best board this project has produced. For comparison, the community's best on
+this puzzle is 469, and a complete solution is 480.
+
+One honest caveat: trying to use the trap list directly, by forcing the
+search to avoid trapped placements, did not work on its own and tended to
+make boards worse. The value was in reading the corpus to choose where to
+focus, not in hard-coding its conclusions into the search.
+
+## Open questions
+
+Why does rebuilding the trapped regions tend to land back on the same known
+top board rather than a genuinely new one? Would a separate map per corner
+family reveal structure that the combined map hides? And could a gentle
+penalty for trapped placements help where a hard ban hurt?

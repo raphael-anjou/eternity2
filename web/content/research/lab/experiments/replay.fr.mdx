@@ -1,0 +1,64 @@
+---
+title: REPLAY
+description: >-
+  Reconstruire exactement les plateaux 460 stricts de la communauté — et
+  découvrir au passage le coup que les solveurs ordinaires s'interdisent :
+  payer deux défauts sur une seule et même cellule.
+kind: experiment
+score: 460
+repro:
+  kind: seeded
+order: 40
+updated: 2026-07-01
+topics: [records, backtracking]
+related:
+  - /research/lab/experiments/ladder
+  - /research/records
+  - /research/why/rigidity-wall
+---
+
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
+
+Les meilleurs plateaux de la communauté avec tous les indices atteignent 460.
+La recherche à tolérance de défauts de ce projet, elle, calait à 457 ou 458,
+quoi qu'on tente. D'où REPLAY : reproduire ces plateaux 460 exactement, pièce
+par pièce, pour comprendre ce qu'ils faisaient que notre recherche ne savait
+pas faire. La réponse tenait en un seul coup, passé inaperçu.
+
+## Comment ça marche
+
+D'ordinaire, une recherche à tolérance de défauts n'autorise qu'un défaut par
+cellule au moment de la pose. REPLAY assouplit cette règle — deux défauts sont
+permis sur certaines cellules — et rebat le classement des placements
+candidats, de sorte que les coups réellement joués par un bon plateau connu
+passent devant ceux qui semblaient moins coûteux. Ces deux changements
+suffisent pour suivre pas à pas le chemin du plateau témoin.
+
+Rejoués ainsi, les plateaux 460 de la communauté se reconstruisent à
+l'identique, chaque pièce à sa place, et le score se vérifie. La reproduction
+elle-même est la preuve : l'ingrédient manquant était bien réel.
+
+<DoubleBreakDiagram />
+
+<DoubleBreakLab />
+
+## Le résultat
+
+Les deux plateaux 460 stricts de la communauté se rejouent exactement à 460.
+Et voici la découverte : chacun contient quatre ou cinq cellules qui paient
+deux défauts d'un coup. Une recherche limitée à un défaut par cellule ne peut
+tout simplement pas atteindre ces plateaux — c'est très exactement pourquoi
+les exécutions précédentes du projet saturaient à 457-458. Autoriser le double
+défaut hisse l'échelle stricte jusqu'à 460.
+
+C'est l'explication propre d'un plateau qui durait, et un avertissement : une
+règle d'apparence raisonnable — un défaut par cellule — avait discrètement mis
+hors d'atteinte les plateaux mêmes que nous poursuivions.
+
+## Questions ouvertes
+
+Deux défauts par cellule ouvrent-ils une voie vers 461 et au-delà, ou
+seulement vers les 460 déjà connus ? Existe-t-il des plateaux qui exigent un
+triple défaut ? Et peut-on prédire les cellules à double défaut depuis un
+plateau partiel, plutôt que de les découvrir par rejeu ?

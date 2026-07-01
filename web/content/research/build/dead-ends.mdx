@@ -1,0 +1,118 @@
+---
+title: Dead ends
+description: >-
+  Approaches we tried that look promising and don't move the needle on
+  Eternity II — written down, with what we found, so you can spend your time
+  elsewhere.
+kind: reference
+order: 50
+updated: 2026-07-01
+topics: [search-space, learning, exact-methods]
+related:
+  - /research/build/run-it-yourself
+---
+
+Approaches we tried that look promising and don't move the needle on
+Eternity II. None of these are bad ideas in general; they just don't crack
+this puzzle. We're writing down what we found so you can spend your time
+elsewhere.
+
+Each entry opens its verdict with a firmness tag: **Proven** means a theorem
+or an exact computation closes the door; **Measured** means we ran it (or the
+community did) and watched it fail.
+
+## Symmetry breaking
+
+*Assume the board has rotational or mirror symmetries and fix some pieces to
+shrink the search.*
+
+**Proven.** The official set was built with no rotationally-symmetric pieces
+and no duplicates, and the single center clue pins orientation. There's no
+global symmetry to break, so fixing corners just makes an arbitrary, not a
+free, choice. [Why this is a wall →](/research/why/rare-color-geography)
+
+## Just throw more compute at it
+
+*Run the same SAT or search solver on a bigger machine, a GPU, an FPGA, or
+quantum hardware.*
+
+**Measured.** The wall isn't clock speed, it's how well the problem is encoded
+and how the search space is shaped. GPU SAT solvers give a small constant
+speedup at best; quantum annealers show no advantage at the scale this would
+need. The same algorithm, faster, hits the same wall a little sooner.
+[Why this is a wall →](/research/why/prune-vs-speed)
+
+## Survey propagation
+
+*The message-passing method that cracked huge random SAT problems by finding
+solution clusters.*
+
+**Proven.** It assumes the problem looks locally like a tree. Eternity II is a
+grid with a short cycle in every 2×2, which breaks that assumption. In
+practice the messages flatten out instead of sharpening, the opposite of what
+makes it work on random SAT. There are no published successes for it on grid
+puzzles.
+
+## Belief-propagation move ordering
+
+*Run belief propagation over the colors and use its per-cell hints to decide
+which piece to try first.*
+
+**Measured.** The hints come out almost uniform, so they barely rank the
+candidates. When we raced it head-to-head, picking the next move at random did
+as well or better, because a fixed informed order tends to repeat the same
+mistakes. [Why this is a wall →](/research/why/no-forced-moves)
+
+## Tensor-network counting
+
+*Treat the board as a tensor network and contract it to count or score
+boundary-consistent colorings.*
+
+**Proven.** It can only enforce that touching edges match, not that every
+piece is used exactly once. That blind spot is enormous: it counts on the
+order of $10^{90}$ boundary-consistent colorings against the puzzle's roughly
+one real solution. Local message passing simply can't see the global
+one-piece-per-cell rule. [Why this is a wall →](/research/why/entropy-area-law)
+
+## Relaxation bounds
+
+*Solve the linear-programming relaxation to get a tight ceiling on how many
+edges a board can match.*
+
+**Measured.** The relaxation lets pieces be fractional and spread across
+cells, which fakes matches that no real board can have. The result is a
+ceiling around 478 while the best real boards sit near 458, a gap too large to
+certify anything. The binding constraint is global piece-uniqueness, which the
+relaxation throws away.
+
+## Learn a heuristic on small boards
+
+*Train a neural network on small puzzles, then transfer it to the full 16×16
+to guide the search.*
+
+**Measured.** We trained a model that nailed small boards and watched it
+collapse on the real one. It learns from candidate moves filtered one way and
+is then asked about moves filtered very differently, and the full puzzle's
+colors never appeared in training. The skill doesn't carry across the size and
+color gap. [Why this is a wall →](/research/why/rigidity-wall)
+
+## Enumerate local clusters first
+
+*List every valid 3×3 or 4×4 cluster, then stitch the clusters together into a
+full board.*
+
+**Measured.** The counts blow up before they help. When we tried it, valid
+clusters around a single region already ran into the tens of millions, and
+combining four corners reaches the order of $10^{12}$ piece-disjoint tuples.
+You run out of time and disk long before the constraints prune anything.
+[Why this is a wall →](/research/why/rigidity-wall)
+
+## The honest summary
+
+The gap from the best known board to a full solution doesn't look like a
+missing optimization. The good boards are locally frozen and globally
+constrained in ways that local fixes, faster hardware, and standard
+relaxations don't touch. Reaching the end seems to need an idea of a different
+kind, not more of the same.
+
+See [why a faster computer doesn't help](/research/why/prune-vs-speed).

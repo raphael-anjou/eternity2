@@ -1,0 +1,65 @@
+---
+title: CLOISTER
+description: >-
+  Fix a perfect border, then search the interior with the border's edges
+  treated as hard constraints from the very first cell.
+kind: experiment
+score: 453
+repro:
+  kind: seeded
+order: 60
+updated: 2026-07-01
+topics: [local-search, backtracking]
+related:
+  - /research/lab/experiments/staged
+  - /research/why/rare-color-geography
+  - /research/lab/experiments/midden
+---
+
+import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
+import { CloisterLiveLab } from "@/components/research/CloisterLiveLab";
+
+The border and the interior are usually solved together, which wastes effort:
+the interior keeps proposing pieces that can't possibly meet the border
+later. CLOISTER pins a perfect 60-piece frame first, then searches the 14×14
+interior with the frame's inward-facing edges as real constraints from cell
+one, so a doomed interior is rejected immediately instead of at the end.
+
+## How it works
+
+Start from a complete, perfectly-matched border. The interior search is a
+break-allowing depth-first fill, but the cells along the inner edge of the
+frame must match the frame, and that requirement is live from the first
+placement, not checked only when the interior is finished. Exact endgames
+score the last region, including how well it seals against the rim.
+
+Because the border is fixed, the search collects something a post-hoc
+interior can't: the handful of extra edges that come from the interior
+actually fitting the rim it was built against, rather than being grafted onto
+a rim later.
+
+<BorderAnchorDiagram />
+
+Try it live: fix a frame and watch the interior search run against it in your
+browser.
+
+<CloisterLiveLab />
+
+## The result
+
+As a standalone interior solver CLOISTER reaches an interior score of 453
+unhinted, in minutes, and confirms a real effect: an interior built against
+its own rim attaches with a few more matched edges than the same-quality
+interior attached after the fact. With all five official clues forced it
+settles in the high 440s to low 450s.
+
+It doesn't break the top records, and it saturates like everything else does
+near the wall. But it cleanly isolates and measures the border-interior
+coupling that whole-board search blurs together.
+
+## Open questions
+
+How much of the rim-compatibility bonus can be collected without fixing the
+border first? Does scanning many borders, rather than one, find an interior
+that attaches better still? And where exactly does the strict-clue version's
+ceiling come from?

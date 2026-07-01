@@ -1,0 +1,73 @@
+---
+title: Catalogue des solveurs
+description: >-
+  Comment cherchent réellement les solveurs qui détiennent les records. Tous
+  sont, au fond, des backtrackers en profondeur ; ce qui les distingue, c'est
+  l'ordre de leurs essais et leur façon d'assouplir les règles vers la fin.
+kind: page
+order: 40
+updated: 2026-07-01
+topics: [backtracking, speed]
+---
+
+import { DfsDemo } from "@/components/learn/DfsDemo";
+import { BreakIndexLab } from "@/components/research/BreakIndexLab";
+
+Comment cherchent réellement les solveurs qui détiennent les records. Tous
+sont, au fond, des backtrackers en profondeur ; ce qui les distingue, c'est
+l'ordre dans lequel ils essaient les choses et la façon dont ils assouplissent
+les règles vers la fin.
+
+## Le backtracking simple
+
+Remplir le plateau case par case, dans un ordre fixé d'avance. À chaque case,
+essayer chaque pièce et chaque rotation dont les bords s'accordent avec ce qui
+est déjà posé ; si rien ne convient, revenir en arrière et rejouer la case
+précédente autrement. Correct, mais lent : l'arbre de recherche est d'une
+largeur astronomique.
+
+Le voici, précisément, au ralenti : un vrai backtracker sur un 3×3, une
+décision à la fois. Avancez pas à pas — regardez une pièce se poser, une
+impasse surgir, et la recherche retirer la pièce pour réessayer.
+
+<DfsDemo />
+
+## L'ordre compte : le chemin de remplissage
+
+L'ordre de visite des cases change la difficulté de plusieurs ordres de
+grandeur : certains ordres font remonter les conflits tôt (tant mieux),
+d'autres les repoussent jusqu'à avoir gâché énormément de travail (tant pis).
+Sur le même puzzle, commencer par le bord bat très largement le balayage ligne
+par ligne.
+
+## Blackwood : calendrier et index de rupture
+
+Le solveur de Joshua Blackwood — celui derrière les meilleurs plateaux de la
+communauté — ajoute deux idées au backtracking simple. Un calendrier
+heuristique s'engage à placer quelques couleurs d'arête très fréquentes selon
+un échéancier fixé par profondeur, et élague les branches qui prennent du
+retard. Et une tolérance dite d'index de rupture autorise une poignée de
+positions tardives, fixées d'avance, à porter un défaut chacune au lieu
+d'exiger l'accord parfait — c'est ce qui rend un 469 (onze défauts) seulement
+atteignable.
+
+<BreakIndexLab />
+
+## McGavin : le débit brut
+
+Le plateau à 469 est né de Peter McGavin faisant tourner une version très
+optimisée de ce solveur à plusieurs centaines de millions de placements par
+seconde, sur de nombreux cœurs, pendant des semaines. Aucune idée nouvelle par
+rapport au calendrier de Blackwood : un moteur extrêmement rapide, et beaucoup
+de calcul braqué sur le bon jeu de paramètres.
+
+## Le voir tourner
+
+L'aire de jeu fait tourner un vrai solveur en profondeur dans votre
+navigateur. [Regardez-le chercher en direct](/playground/watch), ou
+[dessinez votre propre ordre de remplissage](/playground/paths) et
+faites-le courir contre les ordres classiques, pour sentir à quel point
+l'ordre compte.
+
+Pour les approches qui ne mènent nulle part, voir les
+[impasses](/research/build/dead-ends).

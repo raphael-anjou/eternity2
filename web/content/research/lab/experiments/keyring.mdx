@@ -1,0 +1,65 @@
+---
+title: KEYRING
+description: >-
+  Build a board from scratch, ranking each next piece by three signals learned
+  from past strong boards. Reached 460 in a board family no earlier search had
+  cracked.
+kind: experiment
+score: 460
+repro:
+  kind: stochastic
+order: 20
+updated: 2026-07-01
+topics: [construction, learning]
+related:
+  - /research/lab/experiments/prior
+  - /research/why/sigma-cycles
+  - /research/why/forbidden-patterns
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Building a board one piece at a time, the hard part is deciding which piece
+to place next when several would fit. A single rule of thumb tends to march
+the search into the same dead ends every time. KEYRING carries three
+different learned hunches at once, a keyring of them, and lets them vote,
+which keeps the search from over-trusting any one signal.
+
+## How it works
+
+From the library of strong boards, KEYRING learns three things. First, where
+each piece likes to sit: how often a piece appears in each position across
+good boards. Second, which pieces like to be neighbours: how often two pieces
+end up touching. Third, which little 2x2 patches show up in good boards
+versus bad ones.
+
+It then fills the board with a beam search, keeping many partial boards alive
+at once. When it has to choose the next piece, it scores each option by how
+many edges it matches, nudged by the three learned signals together. A small
+amount of randomness keeps the many parallel attempts from collapsing onto
+the same path.
+
+<KeyringDiagram />
+
+## The board
+
+<RecordBoard id="v181-keyring-460" />
+
+## The result
+
+KEYRING reached 460 of 480, and did it in a corner arrangement where no board
+had reached that level before, so it's not just another route to a known
+board but a genuinely new region. Across repeated runs it landed a strong
+board far more often than the simpler single-signal version it grew out of.
+
+It is not the project's top score (that's 463), but finding a high board in a
+fresh family matters: the strong boards are known to be isolated from each
+other, so each new family is its own foothold.
+
+## Open questions
+
+Would grading the patch signal by degree, rather than treating patches as
+simply good or bad, help further? Could the weights on the three signals
+shift as the board fills, trusting structure more late in the build? And can
+this new family be pushed past 460 with a longer refinement?

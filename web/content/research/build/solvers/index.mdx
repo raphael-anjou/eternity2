@@ -1,0 +1,66 @@
+---
+title: Solver catalogue
+description: >-
+  How the solvers that hold the records actually search. They are all, at
+  heart, depth-first backtrackers; what separates them is the order they try
+  things and how they bend the rules near the end.
+kind: page
+order: 40
+updated: 2026-07-01
+topics: [backtracking, speed]
+---
+
+import { DfsDemo } from "@/components/learn/DfsDemo";
+import { BreakIndexLab } from "@/components/research/BreakIndexLab";
+
+How the solvers that hold the records actually search. They are all, at heart,
+depth-first backtrackers; what separates them is the order they try things and
+how they bend the rules near the end.
+
+## Plain backtracking
+
+Fill the board cell by cell in some fixed order. At each cell, try every piece
+and rotation whose edges match what's already placed; if none fit, back up and
+try the previous cell differently. Correct but slow: the search tree is
+astronomically wide.
+
+Here is exactly that, in slow motion: a real backtracker on a 3×3, one
+decision at a time. Step through it — watch a piece go down, a dead end
+appear, and the search un-place and try again.
+
+<DfsDemo />
+
+## Order matters: the fill path
+
+The order you visit cells changes the difficulty by orders of magnitude,
+because some orders force conflicts to surface early (good) and others defer
+them until a lot of work is wasted (bad). Border-first beats row-major by a
+wide margin on the same puzzle.
+
+## Blackwood: schedule and break-index
+
+Joshua Blackwood's solver — the one behind the community's best boards — adds
+two ideas to plain backtracking. A heuristic schedule pre-commits to placing a
+few high-frequency edge colors on a set timetable by depth, pruning branches
+that fall behind. And a break-index allowance lets a handful of fixed late
+positions carry one mismatch instead of demanding a perfect match, which is
+what makes a 469 (eleven mismatches) reachable at all.
+
+<BreakIndexLab />
+
+## McGavin: raw throughput
+
+The 469 board came from Peter McGavin running a heavily optimized version of
+that solver at hundreds of millions of placements per second, across many
+cores for weeks. No new idea over Blackwood's schedule; just an extremely fast
+engine and a lot of compute aimed at the right parameter set.
+
+## See it run
+
+The playground runs a real depth-first solver in your browser.
+[Watch it search live](/playground/watch), or
+[draw your own fill order](/playground/paths) and race it against the classics
+to feel how much the order matters.
+
+For approaches that don't work, see the
+[dead ends](/research/build/dead-ends).

@@ -394,3 +394,24 @@ McGavin material. kind:"experiment" replaces "invention" in the schema.
   seo.ts, src/lib/research/{nav,types}.ts, content.config.ts,
   src/components/research/RecordBoard.tsx (new, for the experiment batch),
   DocsShell HubCards, 12 TSX pages deleted.
+
+### 2026-07-02 — Build pages + all 12 experiments migrated; InventionLayout retired (Phase 3 batch 2)
+
+run-it-yourself, dead-ends, the solver catalogue (now build/solvers/index.mdx,
+first hub-as-MDX) and all 12 experiment pages live in web/content/research
+(30 MDX files, EN + natural FR). The experiment template decomposes the old
+InventionLayout: score/repro in frontmatter (shell renders the badge + honesty
+box), sections as h2, board previews via the new <RecordBoard> component,
+all live labs preserved (GauntletLiveRace, CloisterLiveLab, MosaicBlockLab,
+LadderLiveLab…). Copy de-invention-ified per user directive (experiment
+framing; MIDDEN's novelty claims softened). Fact-checks: every board id +
+score verified against record-boards data (463/460/460/458 recomputed =
+claimed); run-it-yourself commands verified against the real justfile;
+MOSAIC 448 / MIDDEN 452 / LADDER 451 / LODESTONE 451 confirmed from ledger +
+experiments.json. InventionLayout.tsx deleted (unused).
+
+- Verified: typecheck ✓ lint ✓ build ✓ (119 paths), EN/FR titles on all six
+  spot-checked pages, visual pass on PALIMPSEST (shell, badges, board, TOC).
+- Files: web/content/research/{build,lab}/** (30 MDX), routes.ts,
+  sitemap.config.ts, seo.ts, nav.ts, 15 TSX + InventionLayout deleted,
+  RecordBoard.tsx new.

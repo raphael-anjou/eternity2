@@ -1,0 +1,63 @@
+---
+title: MOSAIC
+description: >-
+  Tile the board into small blocks, solve each one to proven optimality, and
+  glue them together — paying for the seams instead of forbidding them. From
+  scratch, with no record to copy, it reaches 448.
+kind: experiment
+score: 448
+repro:
+  kind: exact
+order: 100
+updated: 2026-07-01
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/bandsaw
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+---
+
+import { MosaicBlockLab } from "@/components/research/MosaicBlockLab";
+
+Eternity II has no local structure you can exploit globally — but a small
+window of it, a 4×4 block, solves to perfect optimality in seconds. MOSAIC is
+an experiment built on that single fact: if you can solve a block exactly, can
+you compose sixteen exact blocks into a whole board?
+
+## How it works
+
+The 16×16 board is cut into sixteen 4×4 blocks, filled one at a time. Each
+block is handed to an exact MaxSAT solver, which finds the best possible
+placement of pieces in it. The trick is in how a block meets its
+already-placed neighbours: those shared edges are not hard requirements but
+*soft* targets the block is rewarded for matching. So a block can never become
+impossible — it simply pays for any seam it can't match, and always completes.
+
+The second idea fights piece theft directly. Before filling a block, MOSAIC
+holds back the globally scarcest pieces, so the last blocks aren't starved of
+the rare pieces their seams will demand. Tuning how much to reserve is the one
+real knob; too little and the corner starves, too much and the early blocks
+suffer.
+
+<MosaicBlockLab />
+
+## The result
+
+The window primitive does what it promises: a 4×4 block solves to its 24-edge
+optimum in about thirty seconds, a 3×3 in eleven — confirming the puzzle
+really is tractable in the small. Composed across the whole board, from
+scratch and with no warm start, MOSAIC reaches 448 of 480. The reservation
+sweet spot is around eight percent of the pool.
+
+The shortfall is informative: almost all of it is in the last three blocks of
+the bottom-right corner, where the pool finally runs thin — piece theft again,
+now visible as a single bright spot on the board. Exact-in-the-small does
+compose, but the composition order spends its freedom early and pays for it at
+the end, the same shape every method here runs into.
+
+## Open questions
+
+Would a non-row-major block order — spiralling in, or solving the constrained
+corner first — move the depletion off the hardest block? Could blocks overlap,
+so seams are solved twice and reconciled? And does a faster (Rust) primitive
+make a larger block size, with its stronger exact guarantee, affordable?
