@@ -1,17 +1,16 @@
 ---
 title: L'équilibre du bord
 description: >-
-  Un plateau résolu cache une loi comptable simple : chaque couleur que le
-  bord tend à l'intérieur, l'intérieur la rend aussitôt. Brisez-la et vous
-  savez sur-le-champ que le plateau est faux — mais la respecter ne garantit
-  rien.
+  Tout plateau résolu obéit à une loi comptable toute simple : les couleurs
+  que le bord offre à l'intérieur, l'intérieur les rend exactement. Si la loi
+  est violée, le plateau est condamné — mais la respecter ne prouve rien.
 kind: finding
 tier: 3
 order: 120
 updated: 2026-07-01
-topics: [search-space, invariants]
+topics: [search-space, structure]
 sources:
-  - label: Le post communautaire de Hopfer (2022) sur la condition d'égalité de multisets (groups.io)
+  - label: Le message de Hopfer (2022) sur la condition d'égalité des multisets (groups.io)
     url: https://groups.io/g/eternity2
 related:
   - /research/why/rare-color-geography
@@ -21,54 +20,55 @@ related:
 
 import { Ns1Lab } from "@/components/research/Ns1Lab";
 
-Ne regardez que la couture entre l'anneau extérieur de pièces de bord et le
-premier anneau de pièces intérieures. Chaque arête traversant cette couture
-montre une couleur — comptée une fois côté bord, une fois côté intérieur.
-Dans toute solution complète, les deux décomptes sont identiques : le multiset
-de couleurs que le bord présente vers l'intérieur égale exactement celui que
-l'intérieur présente vers l'extérieur.
+Oubliez un instant le reste du plateau et ne gardez que la couture : la
+frontière entre l'anneau des pièces de bord et le premier anneau de pièces
+intérieures. Chaque arête qui traverse cette couture porte une couleur, qu'on
+peut compter deux fois — côté bord, côté intérieur. Dans toute solution
+complète, les deux inventaires coïncident : les couleurs que le bord présente
+vers l'intérieur forment exactement le même multiset que celles que
+l'intérieur lui renvoie.
 
-Appelons **déficit** $\Delta$ le déséquilibre — la moitié de l'écart total
-entre les deux décomptes. Un plateau correct et terminé a $\Delta = 0$. Les
-quatre solutions complètes connues, sur quatre jeux de pièces différents, le
-vérifient exactement. Donc $\Delta > 0$ certifie qu'un plateau ne pourra
-jamais être complété : une vraie condition nécessaire, peu coûteuse.
+L'écart entre les deux inventaires, c'est le **déficit** $\Delta$ — la moitié
+du désaccord total. Sur un plateau terminé et correct, $\Delta = 0$. Les
+quatre solutions complètes connues, issues de quatre jeux de pièces
+différents, le vérifient toutes exactement. Autrement dit, $\Delta > 0$ est
+un certificat d'échec : ce plateau-là ne pourra jamais être terminé. Une
+vraie condition nécessaire, et qui ne coûte presque rien.
 
 ## La loi, en une ligne
 
-À travers la couture bord↔intérieur, les couleurs que le bord montre vers
-l'intérieur et celles que l'intérieur montre vers l'extérieur forment le même
-multiset. En notant $A[c]$ et $B[c]$ les deux décomptes par couleur :
+De part et d'autre de la couture bord↔intérieur, mêmes couleurs, mêmes
+quantités. En notant $A[c]$ et $B[c]$ les deux décomptes de la couleur $c$ :
 
 $$
 \Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
 $$
 
-## Voyez-le sur un vrai plateau
+## À voir sur un vrai plateau
 
-Un 8×8 résolu démarre équilibré ($\Delta = 0$). Retirez une pièce de bord et
-observez quelles couleurs se déséquilibrent, et le déficit grimper. Essayez
-ensuite le bouton d'échange — et observez le piège.
+Un 8×8 résolu part à l'équilibre ($\Delta = 0$). Retirez une pièce du bord :
+certaines couleurs basculent dans le rouge et le déficit grimpe. Essayez
+ensuite le bouton d'échange — c'est là que le piège se referme.
 
 <Ns1Lab />
 
-## Le piège — et pourquoi il compte
+## Le piège — et ce qu'il révèle
 
-Échanger deux pièces de bord laisse $\Delta$ à 0. L'échange déplace des
-couleurs le long de la couture sans changer aucun décompte, donc l'invariant
-ne le voit pas. Pire, sur une quasi-solution la plupart des erreurs restantes
-ne sont pas du tout sur la couture du bord — elles sont
-intérieur-à-intérieur, là où NS-1 ne regarde jamais : sur les plateaux de
-classe 469, plus de 85 % des arêtes non appariées lui sont invisibles.
+Échangez deux pièces de bord : $\Delta$ reste à 0. L'échange fait circuler
+les couleurs le long de la couture sans toucher aux inventaires, et
+l'invariant n'y voit que du feu. Pire : sur une quasi-solution, l'essentiel
+des erreurs restantes ne se trouve même pas sur cette couture. Elles sont
+enfouies entre pièces intérieures, là où NS-1 ne regarde jamais — sur les
+plateaux de classe 469, plus de 85 % des arêtes fautives lui échappent.
 
-C'est toute la texture d'Eternity II en miniature. Un test si propre ne dit
-jamais que « certainement cassé », jamais « certainement bon ». Le puzzle
-résiste à tout certificat de progrès facile.
+Tout Eternity II tient dans cette miniature : un test d'une propreté
+irréprochable, qui ne sait dire que « c'est perdu », jamais « c'est bon ».
+Le puzzle refuse obstinément les certificats de progrès bon marché.
 
-## Est-ce utile, alors ?
+## À quoi bon, alors ?
 
-Oui — comme élagueur de fin de recherche. Une fois l'anneau de bord refermé,
-imposer $\Delta = 0$ rejette 10 à 28 % des impasses profondes pour le prix
-d'un passage sur les 56 arêtes de couture. C'est nécessaire-mais-lâche : cela
-jette les mauvais états à bas coût, et laisse intacte la partie dure —
-l'intérieur.
+À élaguer en fin de recherche. Une fois l'anneau de bord refermé, exiger
+$\Delta = 0$ élimine 10 à 28 % des impasses profondes, pour le prix d'un
+seul passage sur les 56 arêtes de la couture. Condition nécessaire mais peu
+contraignante : elle jette les états morts à bas coût — et laisse le cœur du
+problème, l'intérieur, parfaitement intact.

@@ -9,15 +9,18 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { REPO_URL } from "@/site";
 import {
-  researchNav,
-  researchReadingOrder,
+  allNavItems,
+  findSection,
+  sectionReadingOrder,
   kindLabel,
   KIND_DOT,
   type NavItem,
 } from "@/lib/research/nav";
+import { researchTopic, topicUrl } from "@/lib/research/manifest";
 import type { ResearchDoc, ReproKind } from "@/lib/research/types";
 import { DocsSidebar } from "./DocsSidebar";
 import { DocsToc } from "./DocsToc";
+import { ResearchSubnav } from "./ResearchSubnav";
 
 const T = {
   en: {
@@ -65,8 +68,7 @@ const T = {
 function Breadcrumbs({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   const { lang } = useLang();
-  const sections = researchNav(lang);
-  const section = sections.find((s) => doc.url.startsWith(s.url + "/") || doc.url === s.url);
+  const section = findSection(lang, doc.url);
   return (
     <nav className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
       <LocalizedLink to="/research" className="hover:text-foreground">
@@ -108,6 +110,19 @@ function Badges({ doc }: { doc: ResearchDoc }) {
           {doc.score}/480
         </span>
       )}
+      {doc.topics.map((slug) => {
+        const topic = researchTopic(lang, slug);
+        if (!topic) return null;
+        return (
+          <LocalizedLink
+            key={slug}
+            to={topicUrl(slug)}
+            className="rounded-full border px-2 py-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {topic.label}
+          </LocalizedLink>
+        );
+      })}
       {doc.updated && (
         <span className="text-muted-foreground">
           {t.updated} {doc.updated}
@@ -146,7 +161,8 @@ function ReproBlock({ doc }: { doc: ResearchDoc }) {
 function PrevNext({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   const { lang } = useLang();
-  const order = researchReadingOrder(lang);
+  const section = findSection(lang, doc.url);
+  const order = section ? sectionReadingOrder(section) : [];
   const idx = order.findIndex((i) => i.url === doc.url);
   if (idx === -1) return null;
   const prev = idx > 0 ? order[idx - 1] : undefined;
@@ -180,7 +196,7 @@ function Related({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   const { lang } = useLang();
   if (doc.related.length === 0) return null;
-  const all = researchReadingOrder(lang);
+  const all = allNavItems(lang);
   const items = doc.related
     .map((url) => all.find((i) => i.url === url))
     .filter((i): i is NavItem => i !== undefined);
@@ -216,10 +232,13 @@ function Related({ doc }: { doc: ResearchDoc }) {
 export function DocsShell({ doc, children }: { doc: ResearchDoc; children: ReactNode }) {
   const t = useT(T);
   const { lang } = useLang();
+  const section = findSection(lang, doc.url) ?? null;
   return (
-    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
-      <DocsSidebar />
-      <article className="min-w-0">
+    <div>
+      <ResearchSubnav />
+      <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
+        <DocsSidebar section={section} />
+        <article className="min-w-0">
         <Breadcrumbs doc={doc} />
         {lang === "fr" && !doc.translated && (
           <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-muted-foreground">
@@ -273,8 +292,9 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
             {t.editOnGitHub}
           </a>
         </p>
-      </article>
-      <DocsToc toc={doc.toc} />
+        </article>
+        <DocsToc toc={doc.toc} />
+      </div>
     </div>
   );
 }

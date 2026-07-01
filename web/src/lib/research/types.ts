@@ -31,6 +31,13 @@ export interface ReproInfo {
   topic?: string | undefined;
 }
 
+/** A topic (big cross-cutting category), labels resolved to one language. */
+export interface Topic {
+  slug: string;
+  label: string;
+  description: string;
+}
+
 /** One research wiki page, in one language. */
 export interface ResearchDoc {
   /** Content path without extension/lang, e.g. "why/border-balance". */

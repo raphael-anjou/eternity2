@@ -20,6 +20,36 @@ import type { ResearchDoc, TocItem } from "./src/lib/research/types";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CONTENT_DIR = path.join(HERE, "content", "research");
+const TOPICS_FILE = path.join(CONTENT_DIR, "topics.json");
+
+// ---- Topic registry ------------------------------------------------------
+
+const topicSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9-]+$/),
+  order: z.number(),
+  label: z.object({ en: z.string(), fr: z.string() }),
+  description: z.object({ en: z.string(), fr: z.string() }),
+});
+
+export type TopicDef = z.infer<typeof topicSchema>;
+
+let topicsCache: TopicDef[] | null = null;
+
+/** The curated topic registry (content/research/topics.json), validated. */
+export function researchTopics(fresh = false): TopicDef[] {
+  if (topicsCache && !fresh) return topicsCache;
+  if (!fs.existsSync(TOPICS_FILE)) return (topicsCache = []);
+  const raw: unknown = JSON.parse(fs.readFileSync(TOPICS_FILE, "utf8"));
+  const parsed = z.object({ topics: z.array(topicSchema) }).safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(
+      `research content: invalid topics.json:\n` +
+        parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n"),
+    );
+  }
+  topicsCache = [...parsed.data.topics].sort((a, b) => a.order - b.order);
+  return topicsCache;
+}
 
 const reproSchema = z.object({
   kind: z.enum(["exact", "seeded", "stochastic", "heavy", "prose"]),
@@ -128,6 +158,26 @@ export function scanResearchContent(fresh = false): RawEntry[] {
       throw new Error(`research content: ${e.file} has no English counterpart (${e.slug}.mdx)`);
     }
   }
+  // The topics/ URL prefix is reserved for auto-generated topic hub pages.
+  for (const e of entries) {
+    if (e.slug === "topics" || e.slug.startsWith("topics/")) {
+      throw new Error(
+        `research content: ${e.file} — the "topics/" slug prefix is reserved for topic hubs`,
+      );
+    }
+  }
+  // Frontmatter topics must exist in the registry (catches typos).
+  const known = new Set(researchTopics(fresh).map((t) => t.slug));
+  for (const e of entries) {
+    for (const s of e.fm.topics) {
+      if (!known.has(s)) {
+        throw new Error(
+          `research content: ${e.file} references unknown topic "${s}" ` +
+            `(registry: content/research/topics.json)`,
+        );
+      }
+    }
+  }
   cache = entries;
   return entries;
 }
@@ -177,8 +227,15 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
   });
 }
 
-/** Site paths (EN, prefix-free) of all publishable MDX pages — feeds the
- *  prerender list and sitemap. Drafts are excluded (they would 404 in prod). */
+/** Site paths (EN, prefix-free) of all publishable MDX pages plus the
+ *  auto-generated topic hub pages — feeds the prerender list and sitemap.
+ *  Drafts are excluded (they would 404 in prod). */
 export function researchPagePaths(): string[] {
-  return buildManifest("en").map((d) => d.url.slice(1));
+  const pages = buildManifest("en").map((d) => d.url.slice(1));
+  const topics = researchTopics();
+  const topicPaths =
+    topics.length > 0
+      ? ["research/topics", ...topics.map((t) => `research/topics/${t.slug}`)]
+      : [];
+  return [...pages, ...topicPaths];
 }
