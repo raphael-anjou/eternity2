@@ -589,3 +589,23 @@ Also applied: Hopfer's NS-1 condition pinned to its exact messages
 8125 → McGavin's pdf 9188 → the 2017 10×10 validation 9686/9688 → the 2024
 C reference 11197 → this site's port). A consistency agent is sweeping the
 remaining "469 ceiling" mentions; history part II is being written.
+
+### 2026-07-02 — History part II (2009-2026) + the 470 correction applied site-wide
+
+/research/build/history-2: the story's second half from digests 0007-0015 —
+the diehard years, the contest's death, the quiet era and the 10x10 triumph,
+the Yahoo→groups.io migration, the record wave, the modern era through the
+archive's edge (2026-03). Part I links forward. ~2,300 words EN, native FR,
+six anchor sources, dense msg citations.
+
+The 469→470 correction swept the whole site (not just research): records/
+known-facts tables rewritten (470 the ceiling since 2021, tied twice; 469
+demoted to "previous record, long quoted as the ceiling"; strict-460
+reframed), experiments hub + PALIMPSEST comparison lines, walls-and-methods
+and sigma-cycles gap phrasing (ten edges, since 2021), solver catalogue,
+ScoringPrimer, ExperimentScoreChart ceiling line, PapersView, Puzzle page
+timeline (the "easier one-clue variant" parenthetical deleted). Board-family
+references ("469-class", McGavin's 469 analyses) deliberately preserved.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (143 paths), EN/FR titles, corrected
+  records page in prerendered HTML.
