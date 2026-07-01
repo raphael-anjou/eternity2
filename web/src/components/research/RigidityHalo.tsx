@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { decodeBucas, conflictEdges } from "@/lib/bucas";
 import { RECORD_BOARDS } from "@/data/record-boards";
@@ -55,14 +56,15 @@ export function RigidityHalo() {
   const isClient = useIsClient();
   const [radius, setRadius] = useState(1);
   const [playing, setPlaying] = useState(true);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || !visible) return;
     const id = setInterval(() => {
       setRadius((r) => (r >= MAX_HALO ? 1 : r + 1));
     }, 1100);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [playing, visible]);
 
   if (!isClient) {
     return (
@@ -79,7 +81,7 @@ export function RigidityHalo() {
   const halo = haloCells(radius);
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-md">
         <div className="rounded-lg border p-2">
           <BoardSvg

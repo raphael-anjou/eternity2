@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // BANDSAW's meet-in-the-middle, schematically. A band of rows is split into a
 // top half (grown downward) and a bottom half (grown upward); they meet at a
@@ -40,11 +41,13 @@ export function MeetInMiddleDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [phase, setPhase] = useState(0);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setPhase((p) => (p + 1) % 4), 1300);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -66,7 +69,7 @@ export function MeetInMiddleDiagram() {
   const rowY = (r: number) => r * CELL;
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto" style={{ maxWidth: W }}>
         <svg viewBox={`0 0 ${W} ${CELL * 5}`} className="w-full rounded-lg border bg-card">
           {/* top half: rows 0,1 then the seam row 2 (top's bottom edge) */}

@@ -6,6 +6,7 @@ import type { Puzzle } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // Rigidity, hands-on. We hand you a real perfect solution of a small puzzle and
 // invite you to beat it: click two cells to swap their pieces, and the real
@@ -20,22 +21,35 @@ interface Solved {
   maxScore: number;
 }
 
-function solveSmall(size: number, colors: number, seed: number): Solved | null {
+// The solve runs in time-boxed bursts (~8ms of synchronous work) with yields to
+// the browser in between, so it never blocks clicks or navigation.
+async function solveSmall(
+  size: number,
+  colors: number,
+  seed: number,
+  cancelled: () => boolean,
+): Promise<Solved | null> {
   const puzzle = getGeneratedPuzzle(size, colors, seed);
   const path = getPath("row-major", puzzle.width, puzzle.height, 0);
   const solver = createSolver(puzzle, path, { useHints: false });
-  let r;
-  for (let g = 0; g < 4000; g++) {
-    r = solver.step(100000);
-    if (r.status !== "running") break;
-  }
-  if (!r || r.status !== "solved") {
+  const STEP_CAP = 400_000_000; // same per-solve cap as the old 4000 × 100k loop
+  let r = solver.report();
+  let spent = 0;
+  try {
+    while (r.status === "running" && spent < STEP_CAP && !cancelled()) {
+      const deadline = performance.now() + FRAME_BUDGET_MS;
+      do {
+        r = solver.step(5_000);
+        spent += 5_000;
+      } while (r.status === "running" && spent < STEP_CAP && performance.now() < deadline);
+      if (r.status === "running" && spent < STEP_CAP) await yieldToBrowser();
+    }
+    if (r.status !== "solved") return null;
+    const board = Int32Array.from(solver.board());
+    return { puzzle, board, maxScore: getBoardScore(puzzle, board) };
+  } finally {
     solver.free();
-    return null;
   }
-  const board = Int32Array.from(solver.board());
-  solver.free();
-  return { puzzle, board, maxScore: getBoardScore(puzzle, board) };
 }
 
 /** Swap the pieces (keeping each one's own rotation) at two cells. */
@@ -95,24 +109,35 @@ export function RigidityLab() {
   const [allResult, setAllResult] = useState<number | null>(null);
   const seedRef = useRef(seed);
 
-  const build = useCallback(() => {
-    if (!engineReady) return;
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const s = (seedRef.current + attempt * 53) % 100000;
-      const solved = solveSmall(5, 4, s);
-      if (solved) {
-        setData(solved);
-        setWorking(solved.board);
-        setSel([]);
-        setAllResult(null);
-        return;
+  const build = useCallback(
+    async (token: { cancelled: boolean }) => {
+      if (!engineReady) return;
+      const cancelled = () => token.cancelled;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const s = (seedRef.current + attempt * 53) % 100000;
+        const solved = await solveSmall(5, 4, s, cancelled);
+        if (token.cancelled) return;
+        if (solved) {
+          setData(solved);
+          setWorking(solved.board);
+          setSel([]);
+          setAllResult(null);
+          return;
+        }
       }
-    }
-  }, [engineReady]);
+    },
+    [engineReady],
+  );
 
   useEffect(() => {
     seedRef.current = seed;
-    build();
+    // Cancellation token: flipped on unmount or seed change so no in-flight
+    // chunked solve survives navigation.
+    const token = { cancelled: false };
+    void build(token);
+    return () => {
+      token.cancelled = true;
+    };
   }, [build, seed]);
 
   const onCell = (pos: number) => {

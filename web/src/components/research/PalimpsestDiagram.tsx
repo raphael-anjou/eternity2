@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // PALIMPSEST, schematically. Lay many strong boards on top of one another and a
 // consensus appears: most cells agree (the board is "written over" again and
@@ -47,11 +48,13 @@ export function PalimpsestDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [n, setN] = useState(0); // boards stacked so far
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setN((x) => (x >= STACK + 4 ? 0 : x + 1)), 360);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -65,7 +68,7 @@ export function PalimpsestDiagram() {
   const showLocks = n >= STACK; // rings appear once the stack is deep enough
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">

@@ -5,6 +5,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { rotateEdges } from "@/lib/types";
 import type { Edges } from "@/lib/bucas";
 import { getOfficialPuzzle, initEngine } from "@/engine";
+import { FRAME_BUDGET_MS, useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // Draw four real interior pieces at random and try to make a 2x2 that matches.
 // Almost every draw fails. The component animates draw after draw, tallies how
@@ -84,6 +85,7 @@ export function ForbiddenPatchLab() {
   // Speed 1..5: from one slow draw at a time up to thousands per tick.
   const [speed, setSpeed] = useState(2);
   const seed = useRef(123456789);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
     let alive = true;
@@ -126,21 +128,27 @@ export function ForbiddenPatchLab() {
   );
 
   // One tick draws `batch` patches; we render the last one and add up the rest.
-  // Higher speeds draw many per tick so the counts climb fast.
+  // Higher speeds draw many per tick so the counts climb fast. Each tick is
+  // time-boxed by wall clock (only the draws actually done are tallied), and the
+  // loop pauses entirely while off-screen or in a hidden tab.
   useEffect(() => {
-    if (!running || !interior) return;
+    if (!running || !interior || !visible) return;
     const pieces = interior;
     const batch = [1, 1, 20, 200, 2000][speed - 1] ?? 1;
     const delay = speed === 1 ? 600 : 90;
     const id = setInterval(() => {
       let newFits = 0;
+      let done = 0;
       let last = drawOne(pieces);
+      const deadline = performance.now() + FRAME_BUDGET_MS;
       for (let n = 0; n < batch; n++) {
         const d = drawOne(pieces);
         if (d.solved) newFits++;
         last = d;
+        done++;
+        if (performance.now() >= deadline) break;
       }
-      setTries((x) => x + batch);
+      setTries((x) => x + done);
       setFits((x) => x + newFits);
       if (last.solved) {
         setCells([last.solved[0], last.solved[1], last.solved[2], last.solved[3]]);
@@ -151,7 +159,7 @@ export function ForbiddenPatchLab() {
       }
     }, delay);
     return () => clearInterval(id);
-  }, [running, interior, speed, drawOne]);
+  }, [running, interior, speed, drawOne, visible]);
 
   if (!isClient || !interior) {
     return (
@@ -164,7 +172,7 @@ export function ForbiddenPatchLab() {
   const rate = tries > 0 ? (100 * (tries - fits)) / tries : 0;
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} className="space-y-4">
       <p className="mx-auto max-w-2xl text-center text-sm text-muted-foreground">{t.intro}</p>
 
       <div className="mx-auto max-w-xs space-y-2">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // GAUNTLET, schematically. One beam search run in a single fill direction always
 // drifts toward the same region of board-space. GAUNTLET runs several fill
@@ -53,12 +54,14 @@ export function GauntletDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [step, setStep] = useState(0); // 0..maxStep, fraction of board filled
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   const maxStep = (N - 1) * 2; // max value of grow()
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setStep((s) => (s >= maxStep + 4 ? 0 : s + 1)), 280);
     return () => clearInterval(id);
-  }, [maxStep]);
+  }, [maxStep, visible]);
 
   if (!isClient) {
     return (
@@ -71,7 +74,7 @@ export function GauntletDiagram() {
   const filledFrac = Math.min(1, step / maxStep);
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto grid max-w-md grid-cols-4 gap-2 sm:gap-3">
         {DIRS.map((dir) => (

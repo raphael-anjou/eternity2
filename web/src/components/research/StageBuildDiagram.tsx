@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // A schematic of STAGED's four-stage, frame-free build. The 16x16 grid fills in
 // order: top half (stage 1-2), the oracle band, the third band, then the exact
@@ -48,11 +49,13 @@ export function StageBuildDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [shown, setShown] = useState(0); // how many stages revealed (0..5)
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setShown((s) => (s >= 5 ? 0 : s + 1)), 850);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   if (!isClient) {
     return (
@@ -63,7 +66,7 @@ export function StageBuildDiagram() {
   }
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
         <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
           {Array.from({ length: N }, (_, r) =>

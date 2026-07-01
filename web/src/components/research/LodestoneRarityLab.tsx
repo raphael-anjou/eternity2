@@ -19,6 +19,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { FRAME_BUDGET_MS, useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
 // LODESTONE made visible: the supply of scarce pieces drains as a board fills.
 // We watch a real solver fill a small board, and after every placement we ask,
@@ -87,6 +88,7 @@ export function LodestoneRarityLab() {
   const isClient = useIsClient();
   const [speedExp, setSpeedExp] = useState(1); // 10^1 = 10 placements/s
   const [running, setRunning] = useState(false);
+  const { ref: rootRef, visible } = useRunWhileVisible();
 
   const [cells, setCells] = useState<(Edges | null)[] | null>(null);
   const [scarceCells, setScarceCells] = useState<number[]>([]);
@@ -157,9 +159,10 @@ export function LodestoneRarityLab() {
   }, [rebuild]);
 
   // Step the solver one *placement* at a time (so the scarcity series advances
-  // by piece, not by raw DFS step), paced by the speed slider.
+  // by piece, not by raw DFS step), paced by the speed slider. The whole tick is
+  // time-boxed by wall clock and the loop pauses while off-screen / tab hidden.
   useEffect(() => {
-    if (!running || !puzzle) return;
+    if (!running || !puzzle || !visible) return;
     const perSec = Math.pow(10, speedExp);
     let acc = 0;
     let last = 0;
@@ -170,13 +173,20 @@ export function LodestoneRarityLab() {
         last = now;
         acc += perSec * dt;
         let advanced = false;
+        const deadline = performance.now() + FRAME_BUDGET_MS;
         while (acc >= 1) {
           acc -= 1;
           const before = s.report().placed;
-          // run until the placed count changes or the search ends
+          // run until the placed count changes, the search ends, or the frame
+          // budget is spent (an interrupted placement resumes next frame)
           let guard = 0;
           let r = s.report();
-          while (r.status === "running" && r.placed === before && guard < 5000) {
+          while (
+            r.status === "running" &&
+            r.placed === before &&
+            guard < 5000 &&
+            performance.now() < deadline
+          ) {
             r = s.step(1);
             guard++;
           }
@@ -186,6 +196,7 @@ export function LodestoneRarityLab() {
             setDone(true);
             break;
           }
+          if (performance.now() >= deadline) break;
         }
         if (advanced) {
           const snap = measure(puzzle, s.board());
@@ -203,14 +214,14 @@ export function LodestoneRarityLab() {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [running, speedExp, puzzle, measure]);
+  }, [running, speedExp, puzzle, measure, visible]);
 
   const placeholder = useMemo<(Edges | null)[]>(() => Array<Edges | null>(SIZE * SIZE).fill(null), []);
   const speedLabel = Math.pow(10, speedExp).toLocaleString();
   const latest = series[series.length - 1];
 
   return (
-    <section className="mx-auto max-w-3xl space-y-4 rounded-xl border bg-muted/20 p-5">
+    <section ref={rootRef} className="mx-auto max-w-3xl space-y-4 rounded-xl border bg-muted/20 p-5">
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{t.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t.intro}</p>
