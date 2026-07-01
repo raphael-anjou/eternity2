@@ -22,6 +22,12 @@ related:
   - /research/records
 ---
 
+import patternsA from "@/assets/research/blackwood/patterns_priorization_470_a.jpg";
+import patternsB from "@/assets/research/blackwood/patterns_priorization_470_b.jpg";
+import scheduleTraces from "@/assets/research/blackwood/jblackwood_heuristics.png";
+import boardOrder from "@/assets/research/blackwood/board_order.svg";
+import sweep from "@/assets/research/blackwood/heuristic_array.jpg";
+
 <Callout kind="note" title="À qui revient ce travail">
   L'algorithme est celui de Joshua Blackwood
   ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
@@ -31,7 +37,8 @@ related:
   page reformule et prolonge
   [ses notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
   avec sa permission explicite
-  ([groups.io, message 11905](https://groups.io/g/eternity2/message/11905)).
+  ([groups.io, message 11905](https://groups.io/g/eternity2/message/11905)) —
+  les figures ci-dessous sont les siennes, tirées des mêmes notes.
 </Callout>
 
 Le solveur de Joshua Blackwood est, au fond, un backtracker en profondeur des
@@ -59,8 +66,14 @@ Les pièces qui portent ces couleurs remontent en tête de chaque liste de
 candidates : la recherche les engage tôt. Pourquoi ces trois-là ? C'est l'un
 des deux boutons que l'étude de Jef a tournés — voir plus bas. Son
 échantillonnage suggère que les meilleurs scores connus proviennent de deux
-jeux de motifs distincts ; le détail est dans les
-[visualisations de son dépôt](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md).
+jeux de motifs distincts :
+
+<Figure caption="Les deux jeux de motifs derrière les meilleures parties de classe 470, projetés sur le plateau : les trois motifs privilégiés se concentrent dans la zone que le balayage remplit en premier. Figures de Jef Bucas (wrapper_blackwood), reproduites avec sa permission.">
+  <div className="grid gap-3 sm:grid-cols-2">
+    <img src={patternsA} alt="Premier jeu de motifs privilégiés projeté sur le plateau 16x16" loading="lazy" className="rounded-lg border" />
+    <img src={patternsB} alt="Second jeu de motifs privilégiés projeté sur le plateau 16x16" loading="lazy" className="rounded-lg border" />
+  </div>
+</Figure>
 
 ## Le calendrier : une courbe de quotas sur 256 profondeurs
 
@@ -95,6 +108,10 @@ profondeurs 20, puis un aplatissement jusqu'à 160. C'est le « calendrier » du
 couple calendrier-et-indices-de-rupture : un échéancier pré-engagé pour
 écouler les couleurs à haute fréquence, appliqué comme un élagage dur.
 
+<Figure caption="Le calendrier, dessiné : les quotas grimpent jusqu'à environ 115 placements privilégiés vers la profondeur 155, puis lâchent prise. Figure de Jef Bucas (wrapper_blackwood), reproduite avec sa permission.">
+  <img src={scheduleTraces} alt="Courbes de quotas sur les profondeurs 0 à 256" loading="lazy" className="rounded-lg border bg-white" />
+</Figure>
+
 ## L'ordre de remplissage : ni trop serré, ni trop lâche
 
 La recherche démarre en bas à gauche du plateau — le coin le plus proche de
@@ -110,6 +127,10 @@ L'ordre de Blackwood relâche la pression du bord progressivement. Pourquoi
 l'ordre pèse-t-il autant — et comment en noter un avant de le lancer — c'est
 précisément ce que formalise la
 [théorie complexe](/research/why/complex-theory).
+
+<Figure caption="L'ordre de remplissage de Blackwood : un balayage par lignes depuis le coin bas-gauche jusqu'à la profondeur 180, les pièces de bord intercalées ensuite. Figure de Jef Bucas (wrapper_blackwood), reproduite avec sa permission.">
+  <img src={boardOrder} alt="L'ordre dans lequel le solveur de Blackwood remplit le plateau 16x16" loading="lazy" className="mx-auto max-w-md rounded-lg border bg-white p-2" />
+</Figure>
 
 ## Les ruptures : acheter la fin de partie avec des désaccords
 
@@ -187,6 +208,10 @@ Deux paramètres sont passés au crible :
   aléatoires du tableau de 256 entrées et en traçant jusqu'où chacune est
   allée (plus c'est vert, mieux c'est), la courbe façonnée à la main par
   Blackwood tombe en plein milieu de la zone verte.
+
+<Figure caption="Des centaines de variations aléatoires du calendrier de quotas, colorées selon la profondeur atteinte (vert = plus profond, rouge/noir = moins). La ligne bleue est le calendrier réglé à la main par Blackwood — en plein cœur de la bande la plus performante. Figure de Jef Bucas (wrapper_blackwood), reproduite avec sa permission.">
+  <img src={sweep} alt="Variations aléatoires du calendrier de quotas colorées par profondeur atteinte, la courbe de Blackwood en bleu au milieu de la bande verte" loading="lazy" className="rounded-lg border" />
+</Figure>
 
 ## Ce que le réglage à la main a réussi
 

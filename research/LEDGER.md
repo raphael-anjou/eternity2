@@ -461,3 +461,18 @@ had been failing since the reference port landed (11 topics OK now).
   overview Door component): text inside a JSX <p> is re-parsed as a markdown
   paragraph — use <div> wrappers in JSX islands.
 - Verified: typecheck ✓ lint ✓ build ✓ (121 paths).
+
+### 2026-07-02 — Blackwood article illustrated with Jef Bucas's figures
+
+Pulled the four figures from Jef's wrapper_blackwood notes into the Blackwood
+page (user directive: illustrate articles with Bucas images, with mention):
+the two 470-class pattern-set boards, the quota-schedule traces, the fill
+order, and the study's headline image — hundreds of random schedule
+variations coloured by depth with Blackwood's hand-tuned blue line in the
+middle of the green band. Every caption credits "Jef Bucas
+(wrapper_blackwood), reproduced with permission", and the credit callout now
+says the figures are his. Images live in web/src/assets/research/blackwood
+(downscaled/JPEG-compressed, ~790 KB total, lazy-loaded, hashed by Vite).
+
+- Verified: typecheck ✓ build ✓ (assets emitted, captions in prerendered
+  HTML EN+FR, all four figures load in browser).
