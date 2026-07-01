@@ -86,21 +86,12 @@ binding breaks on pnpm add → `pnpm install --force`; react-refresh wants
 component-only modules (mdx-map.ts split); heading anchors need opacity
 utilities (prose link color beats transparent-color trick).
 
-### Phase 1.5 — topic categories + research top nav (user directive 2026-07-01)
+### Phase 1.5 — topic categories + research top nav ✅ DONE 2026-07-01
 
-Readers should be able to browse by THEME, not only by door: big cross-cutting
-categories with many pages under each. Examples the user named: improving
-solver speed, reducing the search space, everything-DFS, GPU work, quantum
-attempts (both exist in groups.io history). Design:
-
-- [ ] `topics: [slug]` in frontmatter; a curated topic registry (label EN/FR,
-      description, icon/color) — pages can belong to several topics
-- [ ] Auto-generated topic hub pages (/research/topic/<slug>) listing member
-      pages grouped by kind
-- [ ] A top category bar inside the research shell (above the article, under
-      the site header) for the big categories; sidebar stays the full tree
-- [ ] Seed categories from vault themes + groups.io history (quantum, GPU,
-      SAT/MIP, backtracking, local search, structure/theory, records)
+- [x] `topics: [slug]` frontmatter + curated registry (topics.json, 11 themes)
+- [x] Auto topic hubs at /research/topics/<slug> + index (EN+FR prerendered)
+- [x] Research subnav (Overview / doors / Topics tab); chip strip cut on user
+      feedback — the Topics tab is enough; sidebar scoped to active section
 
 ### User directives (standing, from 2026-07-01)
 
@@ -142,17 +133,29 @@ attempts (both exist in groups.io history). Design:
 - [x] Legacy TSX pages searchable via title+description (full text arrives
       as they migrate)
 
-### Phase 3 — full migration (page by page, commit per batch)
+### Repro blocks must never be empty ✅ DONE 2026-07-02 (user report)
 
-- [ ] why/ remaining 12 pages
-- [ ] build/ (run-it-yourself, dead-ends, solvers)
-- [ ] lab/experiments 12 invention pages (frontmatter carries score/board/
-      repro; InventionLayout becomes the kind=invention template)
-- [ ] papers, records (long prose → MDX; keep data-driven parts as components)
-- [ ] hubs become manifest-driven (kill hand-maintained hub card lists)
-- [ ] delete research-links.ts (related lives in frontmatter, validated),
-      prune migrated seo.ts entries + routes.ts entries
-- [ ] AGENTS.md + research/README.md updated to the new authoring flow
+- [x] justfile: `research-<topic>` recipes for all 8 missing topics
+      (phase-transition byte-identical rerun verified)
+- [x] every compute-backed MDX page carries `repro.cmd` + `repro.topic`
+- [x] board-backed experiments (palimpsest/keyring/gauntlet/prior) link the
+      record-boards verification recipe
+- [x] shell: repro without cmd/topic renders a compact one-line note, not a box
+- [x] complex-theory got a proper research/topics article.md (index was
+      failing since the reference port landed)
+
+### Phase 3 — full migration ✅ DONE 2026-07-02
+
+- [x] why/ 13 pages (2 stale figures corrected during fact-check)
+- [x] build/ run-it-yourself, dead-ends, solvers (first index.mdx hub)
+- [x] lab/experiments 12 experiment pages (InventionLayout deleted; RecordBoard
+      component; experiments-not-inventions voice)
+- [x] papers, records, reference, log → MDX wrappers + view components
+- [x] all hubs manifest-driven (index.mdx + auto child cards); overview too
+- [x] research-links.ts + RelatedRail deleted; STATIC_LEAVES gone — the MDX
+      manifest is the only source of truth; seo.ts/routes.ts hold only
+      non-research pages
+- [x] AGENTS.md rewritten for the new authoring flow
 
 ### Phase 4 — wiki growth from the vault (the actual point)
 

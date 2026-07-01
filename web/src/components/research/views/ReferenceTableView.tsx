@@ -1,6 +1,4 @@
-import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
-import { LocalizedLink } from "@/components/LocalizedLink";
 import {
   Table,
   TableBody,
@@ -84,9 +82,6 @@ const ROW_LABELS: Record<string, { en: string; fr: string }> = {
 
 const T = {
   en: {
-    title: "Reference numbers",
-    intro:
-      "When you start writing an Eternity II solver, the first thing you want is a set of known-good numbers to check your edge-matching and constraint code against. This table gives exact counts of how many valid ways a small block can be filled at a given board position, under increasingly constrained rules.",
     computedFrom: "Computed from",
     article: "the open research note + reproducible Rust generator",
     onGithub: "on GitHub",
@@ -107,9 +102,6 @@ const T = {
       "Counting rules: each cell uses a piece of the class matching its border-facing sides (corner / edge / interior); board-rim edges are grey; block-boundary edges facing the interior are non-grey; shared internal edges match; pieces are distinct within the block.",
   },
   fr: {
-    title: "Valeurs de référence",
-    intro:
-      "Quand on se lance dans l'écriture d'un solveur Eternity II, la première chose utile est un jeu de valeurs sûres pour vérifier son code d'assemblage et de contraintes. Ce tableau donne le nombre exact de façons valides de remplir un petit bloc à une position donnée du plateau, sous des règles de plus en plus contraintes.",
     computedFrom: "Calculé à partir de",
     article: "la note de recherche ouverte + le générateur Rust reproductible",
     onGithub: "sur GitHub",
@@ -131,28 +123,24 @@ const T = {
   },
 };
 
-export default function ReferenceTable() {
+export function ReferenceTableView() {
   const t = useT(T);
   const lang = useT({ en: { l: "en" as const }, fr: { l: "fr" as const } }).l;
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
-        <p className="mt-3 text-sm text-muted-foreground">
-          {t.computedFrom}{" "}
-          <a
-            href={ARTICLE_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium underline underline-offset-2 hover:text-foreground"
-          >
-            {t.article}
-          </a>{" "}
-          {t.onGithub}.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {t.computedFrom}{" "}
+        <a
+          href={ARTICLE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:text-foreground"
+        >
+          {t.article}
+        </a>{" "}
+        {t.onGithub}.
+      </p>
 
       <section className="space-y-3">
         <Table>
@@ -202,14 +190,6 @@ export default function ReferenceTable() {
         </dl>
         <p className="pt-2 text-xs text-muted-foreground">{t.rules}</p>
       </section>
-
-      <div>
-        <LocalizedLink to="/research" className="text-sm underline underline-offset-2 hover:text-foreground">
-          {"←"} {lang === "fr" ? "Retour à la recherche" : "Back to research"}
-        </LocalizedLink>
-      </div>
     </div>
   );
 }
-
-export const meta = pageMeta("reference");

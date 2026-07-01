@@ -18,16 +18,6 @@ const PAGES = [
   { path: "playground/paths", file: "pages/playground/Paths.tsx", id: "paths" },
   { path: "playground/print", file: "pages/playground/Print.tsx", id: "print" },
   { path: "algorithms", file: "pages/Algorithms.tsx", id: "algorithms" },
-  { path: "research", file: "pages/Research.tsx", id: "research" },
-  { path: "research/why", file: "pages/research/why/Hub.tsx", id: "why" },
-  { path: "research/build", file: "pages/research/build/Hub.tsx", id: "build" },
-  { path: "research/lab", file: "pages/research/lab/Hub.tsx", id: "lab" },
-  { path: "research/lab/experiments", file: "pages/research/lab/experiments/Hub.tsx", id: "experiments" },
-  { path: "research/lab/experiments/log", file: "pages/research/lab/experiments/log.tsx", id: "experiments-log" },
-  { path: "research/lab/findings", file: "pages/research/lab/findings/Hub.tsx", id: "findings" },
-  { path: "research/reference", file: "pages/ReferenceTable.tsx", id: "reference" },
-  { path: "research/papers", file: "pages/Papers.tsx", id: "papers" },
-  { path: "research/records", file: "pages/Records.tsx", id: "records" },
   { path: "viewer", file: "pages/Viewer.tsx", id: "viewer" },
 ];
 

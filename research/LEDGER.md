@@ -415,3 +415,28 @@ experiments.json. InventionLayout.tsx deleted (unused).
 - Files: web/content/research/{build,lab}/** (30 MDX), routes.ts,
   sitemap.config.ts, seo.ts, nav.ts, 15 TSX + InventionLayout deleted,
   RecordBoard.tsx new.
+
+### 2026-07-02 — Migration COMPLETE: the research section is a pure MDX wiki (Phase 3 done)
+
+The last legacy layer is gone. Hubs (overview, why, build, lab, experiments,
+findings) are index.mdx pages with auto-rendered child cards; papers/records/
+reference/experiments-log are MDX wrappers around view components (data-heavy
+TSX stays TSX); research-links.ts, RelatedRail, STATIC_LEAVES and all research
+entries in routes.ts/seo.ts are deleted. web/content/research is now the
+single source of truth: ~80 MDX files drive routes, prerender, sitemap, SEO,
+sidebar, topic hubs, search and the related rail. URLs unchanged throughout
+(119 prerendered paths before and after).
+
+Also fixed on user report: "Reproduce this result" was near-empty on many
+pages. Added 8 missing `just research-<topic>` recipes (phase-transition rerun
+verified byte-identical), wired repro.cmd+topic into every compute-backed page,
+pointed board-backed experiments at the record-boards verification, and the
+shell now renders a compact note instead of a box when there is nothing to
+run. complex-theory finally got its research/topics article.md — build-index
+had been failing since the reference port landed (11 topics OK now).
+
+- Verified: typecheck ✓ lint ✓ build ✓ (119 paths) ✓ research index ✓; visual
+  pass on overview + experiments hub.
+- Files: web/content/research/** (hubs + 8 wrapper MDX), views/ (4),
+  ExperimentScoreChart (renamed from InventionScoreChart), justfile,
+  research/topics/complex-theory/article.md, AGENTS.md, deletions listed above.

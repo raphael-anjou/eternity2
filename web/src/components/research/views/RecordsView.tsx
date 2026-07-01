@@ -1,4 +1,3 @@
-import { pageMeta } from "@/seo";
 import {
   Table,
   TableBody,
@@ -48,9 +47,6 @@ const RECORDS: RecordRow[] = [
 
 const T = {
   en: {
-    title: "Records & solvers",
-    intro:
-      "Eternity II has never been solved — but fifteen years of community effort have pushed the best board steadily upward, and the strongest methods are documented in the mailing list and Discord, not in journals. This page distills that history: who holds what, how they did it, and why some headline '480' boards are not actually the real puzzle.",
     bestTitle: "The state of the art",
     best:
       "The community ceiling on the real (canonical, 5-clue) puzzle is 469 of 480 matched edges — Peter McGavin, 2020, using Joshua Blackwood's solver. No published academic solver has matched it. The full solution (480) has never been found by anyone; the gap of 11 edges has stood since 2020.",
@@ -104,12 +100,8 @@ const T = {
     sourceNote:
       "Sourced from our research notebook's community history, itself distilled from ~11,500 mailing-list messages and the community Discord.",
     referencesTitle: "References",
-    back: "Back to research",
   },
   fr: {
-    title: "Records & solveurs",
-    intro:
-      "Eternity II n'a jamais été résolu — mais quinze ans d'efforts de la communauté ont fait progresser le meilleur plateau, et les méthodes les plus fortes sont documentées dans la liste de diffusion et sur Discord, pas dans des revues. Cette page distille cette histoire : qui détient quoi, comment, et pourquoi certains plateaux « 480 » ne sont pas le vrai puzzle.",
     bestTitle: "L'état de l'art",
     best:
       "Le plafond communautaire sur le vrai puzzle (canonique, 5 indices) est de 469 bords appariés sur 480 — Peter McGavin, 2020, avec le solveur de Joshua Blackwood. Aucun solveur académique publié ne l'a égalé. La solution complète (480) n'a jamais été trouvée ; l'écart de 11 bords tient depuis 2020.",
@@ -163,7 +155,6 @@ const T = {
     sourceNote:
       "Tiré de l'historique communautaire de notre carnet de recherche, lui-même distillé de ≈11 500 messages de la liste de diffusion et du Discord de la communauté.",
     referencesTitle: "Références",
-    back: "Retour à la recherche",
   },
 };
 
@@ -225,15 +216,10 @@ function Cite({ n }: { n: number }) {
   );
 }
 
-export default function Records() {
+export function RecordsView() {
   const t = useT(T);
   return (
     <div className="space-y-12">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
-      </div>
-
       <section className="max-w-3xl space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.bestTitle}</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
@@ -378,17 +364,6 @@ export default function Records() {
       </section>
 
       <p className="max-w-3xl text-xs text-muted-foreground">{t.sourceNote}</p>
-
-      <div>
-        <LocalizedLink
-          to="/research"
-          className="text-sm underline underline-offset-2 hover:text-foreground"
-        >
-          {"←"} {t.back}
-        </LocalizedLink>
-      </div>
     </div>
   );
 }
-
-export const meta = pageMeta("records");

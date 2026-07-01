@@ -102,88 +102,6 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Comment les ordinateurs s'attaquent à Eternity II : recherche en profondeur, retour en arrière (backtracking), mur exponentiel et pic de difficulté couleur/taille, mesures à l'appui.",
     },
   },
-  research: {
-    en: {
-      title: "Research" + SUFFIX,
-      description: "The records, the methods and the open questions behind the unsolved Eternity II puzzle.",
-    },
-    fr: {
-      title: "Recherche" + SUFFIX,
-      description: "Les records, les méthodes et les grandes questions encore ouvertes autour d'Eternity II, le puzzle jamais résolu.",
-    },
-  },
-  why: {
-    en: {
-      title: "Why it's hard" + SUFFIX,
-      description:
-        "Why Eternity II resists every approach: a puzzle designed to defeat statistical shortcuts, and the structural walls — rigidity, entropy, forbidden patterns — that explain the gap to a full solution.",
-    },
-    fr: {
-      title: "Pourquoi c'est dur" + SUFFIX,
-      description:
-        "Pourquoi Eternity II déjoue toutes les approches : un puzzle conçu pour contrer les raccourcis statistiques, et les murs structurels — rigidité, entropie, motifs interdits — qui expliquent l'écart jusqu'à une solution complète.",
-    },
-  },
-  build: {
-    en: {
-      title: "Build a solver" + SUFFIX,
-      description:
-        "Everything you need to write an Eternity II solver: validation data, the literature ranked by usefulness, the record timeline and methods, the dead ends, and how to run the code yourself.",
-    },
-    fr: {
-      title: "Construire un solveur" + SUFFIX,
-      description:
-        "Tout pour écrire un solveur Eternity II : données de validation, littérature classée par utilité, chronologie des records et méthodes, impasses, et comment exécuter le code vous-même.",
-    },
-  },
-  lab: {
-    en: {
-      title: "The lab notebook" + SUFFIX,
-      description:
-        "An open notebook of original Eternity II research: structural findings, the named algorithms built to attack the puzzle, and notable boards — all reproducible from source.",
-    },
-    fr: {
-      title: "Le carnet de laboratoire" + SUFFIX,
-      description:
-        "Un carnet ouvert de recherche originale sur Eternity II : résultats structurels, algorithmes nommés conçus pour attaquer le puzzle, et plateaux notables — le tout reproductible depuis les sources.",
-    },
-  },
-  experiments: {
-    en: {
-      title: "Experiments" + SUFFIX,
-      description:
-        "The named search experiments built to push the Eternity II score, each written up with its idea, its result, and the questions it left open. The best reaches 463 of 480; the community's best is 469.",
-    },
-    fr: {
-      title: "Expériences" + SUFFIX,
-      description:
-        "Les expériences de recherche nommées, conçues pour pousser le score d'Eternity II, chacune rédigée avec son idée, son résultat et les questions laissées ouvertes. La meilleure atteint 463 sur 480 ; le meilleur de la communauté est 469.",
-    },
-  },
-  "experiments-log": {
-    en: {
-      title: "Experiments log" + SUFFIX,
-      description:
-        "Everything we tried on Eternity II and how it turned out: hundreds of attempts — successes, half-built ideas, and dead ends — searchable and filterable by outcome, so you can build on them.",
-    },
-    fr: {
-      title: "Journal des expériences" + SUFFIX,
-      description:
-        "Tout ce que nous avons essayé sur Eternity II et le résultat : des centaines de tentatives — succès, idées à moitié construites et impasses — cherchables et filtrables par résultat, pour bâtir dessus.",
-    },
-  },
-  findings: {
-    en: {
-      title: "Findings" + SUFFIX,
-      description:
-        "The standing structural results about Eternity II: design signatures, the walls no local method gets past, and the proofs of why the records are stuck. All reproducible.",
-    },
-    fr: {
-      title: "Résultats" + SUFFIX,
-      description:
-        "Les résultats structurels établis sur Eternity II : signatures de conception, murs qu'aucune méthode locale ne franchit, et preuves expliquant pourquoi les records sont bloqués. Tout reproductible.",
-    },
-  },
   basins: {
     en: {
       title: "Notable boards" + SUFFIX,
@@ -210,36 +128,6 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   },
   // "border-balance" migrated to web/content/research/why/border-balance.mdx —
   // MDX pages carry their SEO meta in frontmatter.
-  reference: {
-    en: {
-      title: "Reference numbers" + SUFFIX,
-      description: "Exact placement counts for small blocks of the official Eternity II board — known-good values to validate your own solver against.",
-    },
-    fr: {
-      title: "Valeurs de référence" + SUFFIX,
-      description: "Comptages exacts de placements pour de petits blocs du plateau officiel d'Eternity II — des valeurs sûres pour valider votre propre solveur.",
-    },
-  },
-  papers: {
-    en: {
-      title: "Papers" + SUFFIX,
-      description: "The academic literature on Eternity II and edge-matching puzzles, ranked by how useful each paper is if you actually want to write a solver.",
-    },
-    fr: {
-      title: "Articles scientifiques" + SUFFIX,
-      description: "La littérature scientifique sur Eternity II et les casse-tête d'assemblage par les bords, classée selon son utilité réelle pour écrire un solveur.",
-    },
-  },
-  records: {
-    en: {
-      title: "Records & solvers" + SUFFIX,
-      description: "The Eternity II record timeline — who reached 469/480 and how — plus the key community solvers and why some '480' boards aren't the real puzzle.",
-    },
-    fr: {
-      title: "Records & solveurs" + SUFFIX,
-      description: "La chronologie des records d'Eternity II — qui a atteint 469/480 et comment — les principaux solveurs de la communauté et pourquoi certains plateaux « 480 » ne sont pas le vrai puzzle.",
-    },
-  },
   viewer: {
     en: {
       title: "Board Viewer" + SUFFIX,

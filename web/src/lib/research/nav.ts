@@ -1,12 +1,8 @@
-// The research wiki navigation model: the sidebar tree, breadcrumbs, and
-// prev/next all derive from one ordered union of
-//   1. MDX pages from the manifest (the target state), and
-//   2. STATIC_LEAVES — the TSX pages that haven't migrated yet (transitional;
-//      titles come from seo.ts so nothing is duplicated). Each entry deleted
-//      as its page moves to web/content/research.
+// The research wiki navigation model: the sidebar tree, breadcrumbs, prev/next
+// and topic membership all derive from the content manifest — the MDX files
+// under web/content/research are the single source of truth.
 
 import type { Lang } from "@/i18n";
-import { pageDescription, pageTitle } from "@/seo";
 import { researchDocs } from "./manifest";
 import type { ResearchKind } from "./types";
 
@@ -50,30 +46,6 @@ const SECTION_OF: Record<string, string> = {
   records: "build",
 };
 
-interface StaticLeaf {
-  url: string;
-  seoKey: string;
-  kind: ResearchKind;
-  order: number;
-  topics?: string[];
-}
-
-// Mirrors the current hub-card order. Shrinks to empty during the migration.
-// Topic tags let the topic hubs cover legacy pages before they migrate.
-const STATIC_LEAVES: StaticLeaf[] = [
-  // Why it's hard: fully migrated to MDX — no static leaves left.
-
-  // Build a solver (hub order)
-  { url: "/research/reference", seoKey: "reference", kind: "reference", order: 10, topics: ["backtracking"] },
-  { url: "/research/papers", seoKey: "papers", kind: "paper", order: 20 },
-  { url: "/research/records", seoKey: "records", kind: "reference", order: 30, topics: ["records"] },
-
-  // The lab notebook
-  { url: "/research/lab/findings", seoKey: "findings", kind: "finding", order: 10, topics: ["structure"] },
-  { url: "/research/lab/experiments", seoKey: "experiments", kind: "experiment", order: 20 },
-  { url: "/research/lab/experiments/log", seoKey: "experiments-log", kind: "tool", order: 130 },
-];
-
 function sectionOf(url: string): string {
   const seg = url.split("/")[2] ?? "";
   return SECTION_OF[seg] ?? seg;
@@ -84,19 +56,6 @@ export function researchNav(lang: Lang): NavSection[] {
   type Flat = NavItem & { order: number };
   const flat: Flat[] = [];
 
-  for (const leaf of STATIC_LEAVES) {
-    flat.push({
-      url: leaf.url,
-      title: pageTitle(leaf.seoKey, lang),
-      description: pageDescription(leaf.seoKey, lang),
-      kind: leaf.kind,
-      mdx: false,
-      translated: true,
-      topics: leaf.topics ?? [],
-      children: [],
-      order: leaf.order,
-    });
-  }
   for (const d of researchDocs(lang)) {
     flat.push({
       url: d.url,
@@ -113,7 +72,11 @@ export function researchNav(lang: Lang): NavSection[] {
 
   return SECTION_ORDER.map((key) => {
     const label = SECTION_LABELS[key];
-    const inSection = flat.filter((i) => sectionOf(i.url) === key);
+    // The section's own hub page (an index.mdx at the section root) is the
+    // section header link, not one of its items.
+    const inSection = flat.filter(
+      (i) => sectionOf(i.url) === key && i.url !== `/research/${key}`,
+    );
     // Nest one level: an item is a child of the section item whose URL is its
     // parent path (e.g. …/experiments/palimpsest under …/experiments).
     const byUrl = new Map(inSection.map((i) => [i.url, i]));
