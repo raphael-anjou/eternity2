@@ -8,6 +8,7 @@ import { useLang, useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { researchNav } from "@/lib/research/nav";
+import { SearchDialog } from "./SearchDialog";
 
 const T = {
   en: { overview: "Overview", topics: "Topics" },
@@ -47,6 +48,7 @@ export function ResearchSubnav() {
             (s.key === "build" && /^\/research\/(reference|papers|records)$/.test(active))),
         )}
         {tab("/research/topics", t.topics, onTopics)}
+        <SearchDialog />
       </nav>
     </div>
   );

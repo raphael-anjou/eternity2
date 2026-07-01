@@ -19,3 +19,13 @@ declare module "virtual:research-manifest-fr" {
   export const docs: ResearchDoc[];
   export const topics: Topic[];
 }
+
+declare module "virtual:research-search-en" {
+  import type { SearchEntry } from "@/lib/research/types";
+  export const entries: SearchEntry[];
+}
+
+declare module "virtual:research-search-fr" {
+  import type { SearchEntry } from "@/lib/research/types";
+  export const entries: SearchEntry[];
+}

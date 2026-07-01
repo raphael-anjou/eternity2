@@ -13,12 +13,20 @@ import {
   buildManifest,
   researchTopics,
   scanResearchContent,
+  searchEntries,
   CONTENT_DIR,
 } from "../content.config";
 
 const IDS = {
   "virtual:research-manifest-en": "en",
   "virtual:research-manifest-fr": "fr",
+} as const;
+
+// Full-text index payloads, split from the manifest so they only load when
+// the search dialog opens (they carry every page's body text).
+const SEARCH_IDS = {
+  "virtual:research-search-en": "en",
+  "virtual:research-search-fr": "fr",
 } as const;
 
 export function researchContent(): Plugin {
@@ -33,13 +41,17 @@ export function researchContent(): Plugin {
     },
 
     resolveId(id) {
-      if (id in IDS) return "\0" + id;
+      if (id in IDS || id in SEARCH_IDS) return "\0" + id;
       return null;
     },
 
     load(id) {
       if (!id.startsWith("\0")) return null;
       const bare = id.slice(1);
+      if (bare in SEARCH_IDS) {
+        const lang = SEARCH_IDS[bare as keyof typeof SEARCH_IDS];
+        return `export const entries = ${JSON.stringify(searchEntries(lang))};`;
+      }
       if (!(bare in IDS)) return null;
       const lang = IDS[bare as keyof typeof IDS];
       // Drafts stay reachable in dev so they can be written/previewed, but are
@@ -61,7 +73,7 @@ export function researchContent(): Plugin {
         if (!file.startsWith(CONTENT_DIR)) return;
         researchTopics(true); // bust both caches
         scanResearchContent(true);
-        for (const bare of Object.keys(IDS)) {
+        for (const bare of [...Object.keys(IDS), ...Object.keys(SEARCH_IDS)]) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);
           if (mod) devServer?.moduleGraph.invalidateModule(mod);
         }

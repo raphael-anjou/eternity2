@@ -586,6 +586,11 @@ export function pageTitle(pageKey: string, lang: Lang): string {
   return entry.title.replace(SUFFIX, "");
 }
 
+/** Page description for a registered page key (research search + nav). */
+export function pageDescription(pageKey: string, lang: Lang): string {
+  return (PAGES[pageKey] ?? HOME_PAGE)[lang].description;
+}
+
 /**
  * Build a React Router `meta` descriptor list for a page. `pageKey` matches a
  * PAGES entry; the language comes from the URL of the page being prerendered.
