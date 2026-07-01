@@ -171,6 +171,18 @@ utilities (prose link color beats transparent-color trick).
   entries into real write-ups (dead-ends candidates, per-experiment notes) —
   but nothing ships until it reads as a researched artifact.
 
+### Community archive mining (user directive 2026-07-02, IN PROGRESS)
+
+The FULL groups.io archive is local: `../v2/community-exports/messages.jsonl`
+(11,511 messages, 2000→2026, with public msg_num → citable URLs). Directive:
+sweep chronologically from the oldest messages toward today. Pipeline +
+digest format + privacy rules: research/community/README.md; digests land in
+research/community/digests/ (windows 0001–0003 launched: →2007-07,
+2007-08→10, 2007-11→2008-02). Wiki pages (history, sourced records, concept
+attributions) are synthesized FROM digests. Note: groups.io itself is
+login-walled for tools (402) — the local archive is the source of truth;
+the groups.io WIKI section still needs the user's browser session to mine.
+
 ### Phase 4 — wiki growth from the vault (IN PROGRESS)
 
 Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
