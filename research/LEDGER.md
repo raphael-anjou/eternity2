@@ -556,3 +556,16 @@ messages cited. Lesson: categorical impossibility claims get the same
 adversarial treatment as everything else.
 
 - Verified: build ✓ (139 paths).
+
+### 2026-07-02 — The hunt, a history — part I (2000–2009)
+
+First synthesis from the archive digests: /research/build/history, a
+narrative of the community's first decade — the group that predates its
+puzzle, launch summer, the Monckton disqualification chill, the theory race
+(17+5, parity, complex theory), eternity2.net and the Syndicate, the road to
+467 and the scrutiny-date farce ("Anna Karlsson" decoded). 85 message-level
+citations in the EN page; French written as its own prose ("La farce du
+scrutin"). Ends with a To-be-continued: parts extend as the digest sweep
+advances (0010-0012 mining now; 0013-0015 queued to reach 2026).
+
+- Verified: typecheck ✓ build ✓ (141 paths, EN+FR titles).
