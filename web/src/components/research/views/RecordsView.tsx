@@ -18,9 +18,14 @@ const BOARD_PARAMS: Record<string, string> = Object.fromEntries(
 
 // Distilled from our research vault's community history note, which is itself
 // distilled from ~11,500 groups.io messages (2007–2026) + the Discord archive
-// + 124 decoded community boards. `variant` flags whether a score is on the
-// real (canonical 5-clue) puzzle or a different piece set, because several
-// headline "480" boards are NOT the canonical puzzle.
+// + 124 decoded community boards. The flag distinguishes boards on the
+// official pieces under the contest's own rules (only the starter piece was
+// mandatory — TOMY's entry form listed piece numbers only, see groups.io
+// #11046) from boards on different or mixed piece sets. Several headline
+// "480" boards are NOT the official puzzle. Note: none of the record boards
+// from 468 up respect the four optional clue placements; boards that do are
+// tracked as "strict 5-clue" in the method text (best known: 460, Gauthier
+// 2023). Verified at board level against the archive (digest 0014).
 type RecordRow = {
   date: string;
   score: string;
@@ -44,31 +49,31 @@ const RECORDS: RecordRow[] = [
   { date: "2007-07-28", score: "—", author: "TOMY / Christopher Monckton", canonical: "canonical", method: "Puzzle released, with a $2M prize for the first complete solution", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
   { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing; won the $10,000 best-partial-solution prize", board: "Louis_Verhaard_467", source: { href: "https://www.shortestpath.se/eii/eii_details.html", label: "shortestpath.se" } },
   { date: "2010-12-31", score: "—", author: "—", canonical: "canonical", method: "The competition closes at noon; the $2M prize expires unclaimed", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
-  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468", source: { href: `${GROUPS_IO}/message/10033`, label: "groups.io #10033" } },
+  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); relayed from Reddit (#10032), board verified and shared by Jef Bucas", board: "Joshua_Blackwood_468", source: { href: `${GROUPS_IO}/message/10033`, label: "groups.io #10033" } },
   { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling (“New record score of 469! Only 11 breaks!”)", board: "JBlackwood+PMcGavin_469", source: { href: `${GROUPS_IO}/message/10045`, label: "groups.io #10045" } },
-  { date: "2020-11", score: "469", author: "various (~6–7 boards)", canonical: "canonical", method: "Blackwood's solver; mostly single-piece swaps of McGavin's", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
-  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
-  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
+  { date: "2020-11", score: "469", author: "various (~7 boards)", canonical: "canonical", method: "Blackwood's solver (Bucas's C rewrite), independent finds — plus one single-piece swap of McGavin's board", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
+  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver, retuned schedule (break indexes 11→10) — same starter-only regime as the 468/469 (verified, #10554)", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
+  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best known board that also respects the four optional clues", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
-  { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "variant", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
-  { date: "2025-07", score: "470", author: "onesmallstep", canonical: "variant", method: "1-clue variant — continued 470 ties (reported on the community Discord)" },
+  { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "canonical", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
+  { date: "2025-07", score: "470", author: "onesmallstep", canonical: "canonical", method: "Continued 470 ties — reported on the community Discord only; no archived board" },
 ];
 
 const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the real (canonical, 5-clue) puzzle is 469 of 480 matched edges — Peter McGavin, 2020, using Joshua Blackwood's solver. No published academic solver has matched it. The full solution (480) has never been found by anyone; the gap of 11 edges has stood since 2020.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied twice since. The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 460 (Bruno Gauthier, 2023). The full solution (480) has never been found; the 10-edge gap has stood since 2021.",
     timelineTitle: "Record timeline",
     cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Preview" },
-    canonical: "canonical",
-    variant: "variant",
+    canonical: "official pieces",
+    variant: "other set",
     view: "View board",
     timelineNote:
       "Mailing-list sources link the exact announcement message in the eternity2 groups.io archive; reading them requires a free groups.io account. Entries without a link were only reported in places with no public archive (e.g. Discord).",
     falsePositiveTitle: "Why some “480” boards don't count",
     falsePositive:
-      "The real puzzle is the canonical 5-clue board TOMY sold: 256 specific pieces, five pinned clue positions, a 16×16 frame, 22 colors. Several boards posted as 480/480 use different piece sets — Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the canonical puzzle. The canonical 480 remains unfound.",
+      "The real puzzle is the board TOMY sold: 256 specific pieces, a 16×16 frame, 22 colors, the starter piece pinned at I8 (the four other clues were optional aids under the contest rules). Several boards posted as 480/480 use different piece sets — Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the official puzzle. The official 480 remains unfound.",
     methodsTitle: "The key algorithms",
     methods: [
       [
@@ -115,17 +120,17 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le vrai puzzle (canonique, 5 indices) est de 469 bords appariés sur 480 — Peter McGavin, 2020, avec le solveur de Joshua Blackwood. Aucun solveur académique publié ne l'a égalé. La solution complète (480) n'a jamais été trouvée ; l'écart de 11 bords tient depuis 2020.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé deux fois depuis. Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 460 (Bruno Gauthier, 2023). La solution complète (480) reste introuvée ; l'écart de 10 arêtes tient depuis 2021.",
     timelineTitle: "Chronologie des records",
     cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Aperçu" },
-    canonical: "canonique",
-    variant: "variante",
+    canonical: "pièces officielles",
+    variant: "autre jeu",
     view: "Voir le plateau",
     timelineNote:
       "Les sources « groups.io » pointent vers le message d'annonce exact dans les archives de la liste eternity2 ; leur lecture demande un compte groups.io gratuit. Les entrées sans lien n'ont été rapportées que dans des espaces sans archive publique (Discord, par exemple).",
     falsePositiveTitle: "Pourquoi certains plateaux « 480 » ne comptent pas",
     falsePositive:
-      "Le vrai puzzle est le plateau canonique à 5 indices vendu par TOMY : 256 pièces précises, cinq indices épinglés, un cadre 16×16, 22 couleurs. Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces — les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle canonique. Le 480 canonique reste introuvé.",
+      "Le vrai puzzle est le plateau vendu par TOMY : 256 pièces précises, un cadre 16×16, 22 couleurs, la pièce de départ épinglée en I8 (les quatre autres indices n'étaient que des aides facultatives selon le règlement). Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces — les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle officiel. Le 480 officiel reste introuvé.",
     methodsTitle: "Les algorithmes clés",
     methods: [
       [
@@ -195,12 +200,12 @@ const REFS: { href: string; label: string }[] = [
   {
     href: `${GROUPS_IO}/message/10045`,
     label:
-      "469 — Peter McGavin, “EternityII Solver” thread, eternity2@groups.io, 2020-09-09: “New record score of 469! Only 11 breaks!” — still the canonical ceiling.",
+      "469 — Peter McGavin, “EternityII Solver” thread, eternity2@groups.io, 2020-09-09: “New record score of 469! Only 11 breaks!” — the ceiling until the 470.",
   },
   {
     href: `${GROUPS_IO}/message/10117`,
     label:
-      "470 — Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30 — on the easier one-clue variant, not the canonical puzzle.",
+      "470 — Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30 — same starter-only regime as the 468/469 (board-level verification: groups.io #10554); the standing record.",
   },
   {
     href: `${GROUPS_IO}/message/11074`,
