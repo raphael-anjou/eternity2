@@ -19,6 +19,7 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0004` 2008-03 → 2008-06 ✅ 2026-07-02
 - `0005` 2008-07 → 2008-10 ✅ 2026-07-02 (the 467 run-up; NO public 467 announcement exists — beware the Oct-2008 '468 TEST puzzle' trap)
 - `0006` 2008-11 → 2009-02 ✅ 2026-07-02 (scrutiny date: \$10k to 'Anna Karlsson' = Verhaard's entry, msg 6337/6349)
+- `0007` 2009-03 → 2009-08 ✅ 2026-07-02 (Verhaard's first-person 467 account msg 6891: 247 flawless pieces; ELTE claim collapses msg 6764; eii benchmarked to 467 in ~82 days msg 6687)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
@@ -38,6 +39,18 @@ sweep chronologically toward today.** Each window produces one digest in
   5210 (May 2008); 5209 is already cited.
 - concepts/local-search-alns: Pierre Schaus's JFPC paper + Hungarian/Munkres
   refill neighborhood first detailed at msgs 5589/5601 (June 2008).
+- records 467 row: Verhaard's definitive first-person account is msg 6891
+  (2009-08: "Anna is my wife… it was my program that did the job"; 247
+  flawless pieces). History page carries it; row keeps the open-access
+  shortestpath.se link.
+- OPEN QUESTION for the timeline: was 468 already the community best by
+  June 2010? doc_s_smith's challenge "beat 468 matching edges" (msg 7803)
+  cites Toulis's simulated-annealing paper (Harvard PDF). If digest 0008
+  (2009-09→2010-02) or the Toulis paper confirms a public 468 pre-2010, the
+  records table gains a missing row — do NOT add it before that check.
+- border-balance history: Al Hopfer's balance doctrine appears 2009-08
+  (msgs 6842/6844/6960) — the bridge between the 2007 observations and his
+  2022 formalization.
 - phase-transition: Owen's launch-era derivation of ~17.14 interior colours
   from the "one expected solution" criterion (msg 1947) — a community
   precursor to the published papers; cite it.
