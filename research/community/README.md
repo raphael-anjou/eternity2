@@ -27,12 +27,18 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0012` 2012-01 → 2014-12 ✅ 2026-07-02 (quiet years: Wauters academia, Czech re-prize, McGavin's complex_theory.pdf msg 9188, FPGA/Carré arrivals)
 - `0013` 2015-01 → 2018-12 ✅ 2026-07-02 (McGavin solves Brendan's 10x10 — complex theory's strongest validation, msgs 9686/9688; TopCoder 468 claim surfaces unresolved, msg 9694; unframed-480, msg 9750)
 - `0014` 2019-01 → 2021-12 ✅ 2026-07-02 (record wave confirmed: 468 msg 10033, 469 msg 10045, wave msg 10067, 470 msg 10117; Yahoo→groups.io migration story)
-- `0015` 2022-01 → 2026-03 (launched; Gauthier 460 strict, Bucas 470, wrapper_blackwood)
+- `0015` 2022-01 → 2026-03 ✅ 2026-07-02 (SWEEP COMPLETE. Hopfer NS-1 = msgs 10754/10757;
+  Gauthier 460 = 11074; mixed-set 480 = 11169; complex_theory.c = 11197; Bucas 470 tie = 11401.
+  NOTE: msg 11905 (Jef's wrapper_blackwood permission) post-dates the export (ends 11823,
+  2026-03-31) — it was provided firsthand by Raphaël from his inbox; citation valid.)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
 ## Digest-driven wiki improvement leads (grows as digests land)
 
+- APPLY NOW — border-balance: Hopfer's exact messages are 10754 (2022-05-24,
+  the condition) and 10757 (the crisp restatement); replace the generic
+  groups.io link. The 4-minute quadrant solves were Carlos Fernandez (10802).
 - border-balance page: the finding traces to 2007 — Owen's paired-edge-count
   observation (msgs 414/422/485) and the 12-per-side border balance
   (msgs 2073/2098). Add these as earlier sources alongside Hopfer 2022.
