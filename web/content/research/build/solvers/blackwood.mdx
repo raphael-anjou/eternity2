@@ -21,6 +21,12 @@ related:
   - /research/records
 ---
 
+import patternsA from "@/assets/research/blackwood/patterns_priorization_470_a.jpg";
+import patternsB from "@/assets/research/blackwood/patterns_priorization_470_b.jpg";
+import scheduleTraces from "@/assets/research/blackwood/jblackwood_heuristics.png";
+import boardOrder from "@/assets/research/blackwood/board_order.svg";
+import sweep from "@/assets/research/blackwood/heuristic_array.jpg";
+
 <Callout kind="note" title="Whose work this is">
   The algorithm is Joshua Blackwood's
   ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
@@ -30,7 +36,8 @@ related:
   This page rephrases and extends
   [his notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
   with his explicit permission
-  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)).
+  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)) —
+  the figures below are his, reproduced from the same notes.
 </Callout>
 
 Joshua Blackwood's solver is, at heart, a classic depth-first backtracker —
@@ -55,8 +62,14 @@ heuristic_sides = new List<int>() { 13, 16, 10 };
 Pieces carrying those colours are sorted to the front of every candidate
 list, so the search commits them early. Why these three? That is one of the
 two knobs Jef's study turned — see below. His sampling suggests the best
-known scores come from two distinct pattern sets, with the details in the
-[visualizations in his repo](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md).
+known scores come from two distinct pattern sets:
+
+<Figure caption="The two pattern sets behind the best-scoring 470-class runs, mapped onto the board: the three privileged motifs cluster in the region the scan fills first. Figures by Jef Bucas (wrapper_blackwood), reproduced with permission.">
+  <div className="grid gap-3 sm:grid-cols-2">
+    <img src={patternsA} alt="First prioritized pattern set mapped on the 16x16 board" loading="lazy" className="rounded-lg border" />
+    <img src={patternsB} alt="Second prioritized pattern set mapped on the 16x16 board" loading="lazy" className="rounded-lg border" />
+  </div>
+</Figure>
 
 ## The schedule: a quota curve over 256 depths
 
@@ -90,6 +103,10 @@ Free until depth 16, steep through the 20s, then flattening out to depth 160.
 This is the "schedule" in schedule-and-break-index: a pre-committed timetable
 for burning down the high-frequency colours, enforced as a hard prune.
 
+<Figure caption="The schedule drawn: quota curves ramp to about 115 privileged placements by depth ~155, then release. Figure by Jef Bucas (wrapper_blackwood), reproduced with permission.">
+  <img src={scheduleTraces} alt="Quota schedule curves over depth 0 to 256" loading="lazy" className="rounded-lg border bg-white" />
+</Figure>
+
 ## The fill order: not too tight, not too loose
 
 The search starts at the bottom-left of the board — the corner nearest the
@@ -103,6 +120,10 @@ end, where they ambush you. Blackwood's order releases the border pressure
 progressively. Why the order matters this much — and how to score one before
 running it — is exactly what
 [complex theory](/research/why/complex-theory) formalizes.
+
+<Figure caption="Blackwood's fill order: a bottom-left row scan to depth 180, border pieces interspersed afterwards. Figure by Jef Bucas (wrapper_blackwood), reproduced with permission.">
+  <img src={boardOrder} alt="The order in which Blackwood's solver fills the 16x16 board" loading="lazy" className="mx-auto max-w-md rounded-lg border bg-white p-2" />
+</Figure>
 
 ## Breaks: buying the endgame with mismatches
 
@@ -175,6 +196,10 @@ Two parameters got the treatment:
   heuristic array and plotting how far each one got (greener is better),
   Blackwood's manually crafted curve lands right in the middle of the green
   region.
+
+<Figure caption="Hundreds of random variations of the quota schedule, coloured by how deep the search got (green = deeper, red/black = shallower). The blue line is Blackwood's hand-tuned schedule — squarely inside the best-performing band. Figure by Jef Bucas (wrapper_blackwood), reproduced with permission.">
+  <img src={sweep} alt="Random quota-schedule variations coloured by search depth, with Blackwood's hand-tuned curve in blue through the middle of the green band" loading="lazy" className="rounded-lg border" />
+</Figure>
 
 ## What hand-tuning got right
 
