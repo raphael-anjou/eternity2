@@ -26,7 +26,7 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0011` 2011-03 → 2011-12 ✅ 2026-07-02 (post-contest year: solution-in-a-safe msg 8823; 9x9 exhaustive validations)
 - `0012` 2012-01 → 2014-12 ✅ 2026-07-02 (quiet years: Wauters academia, Czech re-prize, McGavin's complex_theory.pdf msg 9188, FPGA/Carré arrivals)
 - `0013` 2015-01 → 2018-12 ✅ 2026-07-02 (McGavin solves Brendan's 10x10 — complex theory's strongest validation, msgs 9686/9688; TopCoder 468 claim surfaces unresolved, msg 9694; unframed-480, msg 9750)
-- `0014` 2019-01 → 2021-12 (launched; the 468/469/470 record wave)
+- `0014` 2019-01 → 2021-12 ✅ 2026-07-02 (record wave confirmed: 468 msg 10033, 469 msg 10045, wave msg 10067, 470 msg 10117; Yahoo→groups.io migration story)
 - `0015` 2022-01 → 2026-03 (launched; Gauthier 460 strict, Bucas 470, wrapper_blackwood)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
@@ -77,6 +77,18 @@ sweep chronologically toward today.** Each window produces one digest in
   popup msg 7284; ≥472 hand-solve msg 7383) must never enter the table.
 - records provenance: shortestpath.se/eii is Verhaard's own site (solver
   relocated there, msg 7439) — our 467 source link is first-party.
+- RECORDS CORRECTIONS PENDING (from 0014's programmatic cross-check):
+  (a) the canonical(469)/variant(470) split is unsupported — both boards
+  have start piece 139@I8 and none of the other clues (470 confirmed at
+  msg 10554): same regime, classify them consistently;
+  (b) the 468 was relayed from Reddit by "Puzzled_For_Eternity" (msg 10032),
+  not announced by Bucas;
+  (c) "onesmallstep" never appears in the list archive — Discord-only,
+  no-source status confirmed correct.
+  Apply to RecordsView after digest 0015 corroborates.
+- blackwood page leads: primary sources for the four levers + break indexes
+  are msgs 10076/10056/10051; libblackwood re-publication "exact code used
+  to find a 470" is msg 10161.
 - border-balance history: Al Hopfer's balance doctrine appears 2009-08
   (msgs 6842/6844/6960) — the bridge between the 2007 observations and his
   2022 formalization.
