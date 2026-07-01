@@ -1,0 +1,94 @@
+---
+title: Simulated annealing and parallel tempering
+description: >-
+  Treat mismatches as energy and temperature as tolerance for making things
+  worse. Annealing holds the puzzle's longest-standing record; parallel
+  tempering crosses barriers annealing can't — and both stop at the same wall.
+kind: concept
+order: 70
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
+    url: https://doi.org/10.1103/PhysRevLett.57.2607
+  - label: "Earl & Deem, Parallel tempering: Theory, applications, and new perspectives (Phys. Chem. Chem. Phys., 2005)"
+    url: https://arxiv.org/abs/physics/0508111
+  - label: The Eternity II mailing list, where Verhaard described his 2008 annealing method (groups.io)
+    url: https://groups.io/g/eternity2
+related:
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/concepts/local-search-alns
+---
+
+Simulated annealing reads a board as a physical system: unmatched edges are
+energy, moves that lower the energy are always accepted, and moves that raise
+it are accepted with probability $e^{-\Delta E / T}$. Run hot and the search
+wanders; cool it and the board settles into a low-energy arrangement —
+ideally a deep one, not merely the nearest one. The catch is the schedule:
+cool too fast and you freeze into a mediocre local optimum, cool slowly
+enough for a puzzle this size and you wait forever.
+
+## From one temperature to a ladder
+
+Parallel tempering — replica exchange — dissolves the schedule problem by
+running the whole ladder at once. The method comes from spin-glass physics:
+Swendsen and Wang's
+[1986 replica Monte Carlo paper](https://doi.org/10.1103/PhysRevLett.57.2607)
+introduced the idea, and Earl and Deem's
+[2005 review](https://arxiv.org/abs/physics/0508111) is the standard modern
+survey. $K$ copies of the board run simulated annealing at fixed temperatures
+$T_1 < T_2 < \dots < T_K$; periodically, adjacent replicas propose to swap
+states, accepted with the Metropolis rule
+
+$$
+P(\text{swap}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_j - E_i)}\bigr).
+$$
+
+Hot replicas roam across barriers; cold replicas exploit; the swaps shuttle
+promising configurations down the ladder to be refined. No single chain ever
+has to survive a cooling schedule.
+
+## Why this puzzle needs the ladder
+
+This project's measurements (on our own engine; not independently
+replicated) give an unusually concrete reason. Between one strong board and
+a better one, the connecting move is a single interlocking relocation of
+dozens of pieces in which *every* strict subset of the move loses edges —
+the [σ-cycle structure](/research/why/sigma-cycles). One measured transition
+required a 76-cell move whose intermediate states sat about 21 edges below
+the start: at $T = 1$ the acceptance is on the order of $e^{-21}$, hopeless.
+With the ladder's top temperature raised to roughly 30, the crossing
+actually happened, and produced what was then the project's best cold-start
+board. Temperature, used correctly, is a real lever against real barriers.
+
+Ladder design is where practice bites. When we spaced the temperatures too
+closely, replica exchange accepted every swap — 100% acceptance sounds
+healthy and means the opposite: adjacent replicas saw effectively the same
+landscape, and the ladder added nothing. Geometric spacing with a genuinely
+hot top rung, tuned so that swaps are frequent but not free, is the standard
+advice in Earl and Deem, and it matched what we observed.
+
+## The community record that annealing built
+
+Annealing has a distinguished history on this puzzle. The longest-standing
+record on the canonical piece set — Louis Verhaard's 467 of 480 in 2008,
+unbeaten until the Blackwood-era backtrackers of 2020 — came from an
+annealing method, and an unusual one: as he described it on the
+[community mailing list](https://groups.io/g/eternity2), he annealed the
+*composition* of a piece subset, swapping pieces in and out of a candidate
+group under a tilability score, rather than annealing positions on the
+board. The lesson generalizes: on Eternity II, the choice of *what to
+anneal* mattered more than the annealing itself.
+
+## Honest verdict
+
+From this project's measurements, hedged accordingly: parallel tempering is
+a better barrier-crosser than plain annealing, and on the mid-range of the
+climb that difference is real and bankable. Near the top it dissolves. The
+plateaus up there are iso-score — ties everywhere, so acceptance no longer
+depends on temperature at all — and cranking the heat instead of climbing
+just randomizes the board, which then never finds its way back to record
+territory. Replicas launched from a top board plateau at the seed's score,
+every chain, every ladder we tried. Tempering moves you between hills; it
+does not repeal the [rigidity wall](/research/why/rigidity-wall).

@@ -1,0 +1,114 @@
+---
+title: Recherche locale et ALNS
+description: >-
+  Détruire un morceau du plateau, le reconstruire en mieux, et laisser
+  l'algorithme apprendre quelles démolitions rapportent. L'ALNS est le
+  polisseur le plus fiable de ce projet — et la démonstration la plus nette du
+  mur où le polissage s'arrête.
+kind: concept
+order: 60
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
+    url: https://doi.org/10.1287/trsc.1050.0135
+  - label: Shaw, Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (CP 1998 — le LNS d'origine)
+    url: https://link.springer.com/chapter/10.1007/3-540-49481-2_30
+  - label: Schaus & Deville, Hybridization of CP and VLNS for Eternity II (JFPC 2008)
+    url: https://dial.uclouvain.be/pr/boreal/object/boreal:85275/datastream/PDF_01/view
+related:
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/concepts/beam-search
+  - /research/build/concepts/parallel-tempering
+---
+
+Dès qu'on tient un bon plateau, les mouvements à une pièce cessent presque
+aussitôt de rapporter. La recherche à grands voisinages fait le pari inverse :
+arracher toute une région — des dizaines de cases — et la reconstruire avec
+quelque chose de plus malin que la passe gloutonne qui l'avait remplie.
+L'idée est de Paul Shaw
+([CP 1998](https://link.springer.com/chapter/10.1007/3-540-49481-2_30)) ; la
+version *adaptative*, l'ALNS, revient à Ropke et Pisinger
+([Transportation Science 2006](https://doi.org/10.1287/trsc.1050.0135)), qui
+y ont ajouté un portefeuille d'opérateurs de destruction et de réparation, et
+une règle d'apprentissage qui concentre l'effort sur les opérateurs qui
+viennent de réussir.
+
+## La boucle
+
+Une itération d'ALNS sur un plateau :
+
+1. **Détruire** — choisir un opérateur de destruction, déposer les $k$ cases
+   qu'il désigne.
+2. **Réparer** — reboucher le trou (remplissage glouton, propagation de
+   contraintes, ou résolution exacte du petit sous-problème).
+3. **Accepter** — garder le nouveau plateau s'il fait mieux, ou parfois quand
+   même, sous une règle de recuit simulé.
+4. **Adapter** — repondérer les opérateurs selon leurs succès récents, pour
+   que la roulette favorise ce qui marche.
+
+Eternity II se prête étonnamment bien à l'étape 1, parce qu'un plateau
+partiel dit exactement où il a mal : les arêtes en défaut.
+
+## Un portefeuille d'opérateurs pour plateaux
+
+Les opérateurs de destruction expédiés par ce projet sont pour l'essentiel
+guidés par la géométrie et le conflit : cases aléatoires en référence, cases
+incidentes à une arête en défaut, les $k$ cases les plus conflictuelles, la
+pire rangée ou bande de rangées, une composante connexe du graphe des défauts
+(avec, en option, un halo d'une case), des rectangles, des anneaux
+concentriques. Deux enseignements du réglage du portefeuille, tous deux
+mesurés sur le moteur de ce projet et non répliqués indépendamment :
+
+- **Mieux vaut trier qu'empiler.** Un jeu choisi de cinq opérateurs a battu
+  la collection complète de onze — trop d'opérateurs diluent le signal
+  d'apprentissage des poids adaptatifs.
+- **La température n'est pas le levier.** Sur une plage de températures
+  d'acceptation d'un facteur dix, les scores finaux étaient identiques :
+  près du sommet, le paysage est dominé par des plateaux d'égal score où
+  presque tout mouvement est accepté, quelle que soit la température.
+
+Que la destruction-réparation convienne à ce puzzle n'est pas qu'une
+observation de ce projet : dès
+[2008](https://dial.uclouvain.be/pr/boreal/object/boreal:85275/datastream/PDF_01/view),
+Schaus et Deville hybridaient programmation par contraintes et grands
+voisinages sur Eternity II, la PC servant d'étape de réparation — la même
+répartition des rôles qui fonctionne ici.
+
+## Ce qu'elle achète, de façon fiable
+
+Le polissage final. Sur le moteur de ce projet, l'ALNS est l'étape qui
+transforme la sortie des constructeurs en plateaux de classe record — les
+faisceaux qui construisent au milieu des 450 gagnent régulièrement plusieurs
+arêtes sous une passe de raffinement, et les meilleurs plateaux du projet
+portent tous une remontée ALNS en dernière étape. Sur des puzzles générés
+plus petits, l'effet est spectaculaire et répétable : la
+destruction-réparation comble l'essentiel de la distance entre un placement
+aléatoire et le meilleur score atteignable, sur une large gamme de
+difficulté, avant de saturer sur les instances les plus dures. (Tout ceci est
+mesuré ici, à prendre avec cette réserve.)
+
+Tout aussi caractéristique : les gains arrivent tôt. Les courbes de
+progression s'aplatissent en quelques dizaines d'itérations, et laisser
+tourner dix fois plus longtemps reproduit le même score final. Quand l'ALNS
+s'arrête, c'est fini.
+
+## Le mur qu'elle heurte
+
+Le pourquoi de cet arrêt est la partie intéressante, et ce site y consacre
+deux pages entières. Sur chaque plateau de tête, les défauts restants sont
+prouvés verrouillés : libérer un voisinage généreux autour d'eux et le
+fouiller exhaustivement ne trouve rien de mieux — le
+[mur de rigidité](/research/why/rigidity-wall). Et passer d'un plateau de
+tête à un meilleur exige de déplacer un grand ensemble de pièces en une seule
+boucle imbriquée, dont toute application partielle fait pire que ne rien
+faire — la [structure en σ-cycles](/research/why/sigma-cycles).
+
+L'ALNS a exactement la mauvaise forme pour cela. Un voisinage de destruction
+de 20 à 80 cases ne couvre presque jamais la boucle qui compte, et quand la
+destruction est assez large pour la couvrir, la réparation affronte un
+sous-problème presque aussi dur que le puzzle entier et rend moins qu'on n'a
+arraché. La destruction-réparation explore un bassin superbement et n'en
+sort pratiquement jamais. Le bilan honnête des mesures de ce projet : l'ALNS
+est notre meilleur dernier kilomètre — et ce n'est qu'un dernier kilomètre.

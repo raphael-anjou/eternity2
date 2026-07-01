@@ -1,0 +1,103 @@
+---
+title: Recuit simulé et parallel tempering
+description: >-
+  Lire les défauts comme une énergie et la température comme une tolérance à
+  faire pire. Le recuit détient le plus ancien record du puzzle ; le parallel
+  tempering franchit des barrières que le recuit ne passe pas — et les deux
+  s'arrêtent au même mur.
+kind: concept
+order: 70
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
+    url: https://doi.org/10.1103/PhysRevLett.57.2607
+  - label: "Earl & Deem, Parallel tempering: Theory, applications, and new perspectives (Phys. Chem. Chem. Phys., 2005)"
+    url: https://arxiv.org/abs/physics/0508111
+  - label: La liste de diffusion Eternity II, où Verhaard a décrit sa méthode de recuit de 2008 (groups.io)
+    url: https://groups.io/g/eternity2
+related:
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/concepts/local-search-alns
+---
+
+Le recuit simulé lit un plateau comme un système physique : les arêtes en
+défaut sont une énergie, tout mouvement qui la fait baisser est accepté, et
+un mouvement qui la fait monter l'est avec probabilité
+$e^{-\Delta E / T}$. À chaud, la recherche vagabonde ; en refroidissant, le
+plateau se dépose dans un arrangement de basse énergie — idéalement profond,
+pas simplement le plus proche. Le piège, c'est le programme de
+refroidissement : trop vite, on gèle dans un optimum local médiocre ; assez
+lentement pour un puzzle de cette taille, on attend l'éternité.
+
+## D'une température à une échelle
+
+Le parallel tempering — l'échange de répliques — dissout le problème du
+programme en faisant tourner toute l'échelle à la fois. La méthode vient de
+la physique des verres de spin : l'article de
+[Swendsen et Wang (1986)](https://doi.org/10.1103/PhysRevLett.57.2607)
+l'introduit, et la
+[revue d'Earl et Deem (2005)](https://arxiv.org/abs/physics/0508111) en est
+le panorama moderne de référence. $K$ copies du plateau font du recuit à
+températures fixes $T_1 < T_2 < \dots < T_K$ ; périodiquement, les répliques
+adjacentes proposent d'échanger leurs états, acceptés selon la règle de
+Metropolis
+
+$$
+P(\text{échange}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_j - E_i)}\bigr).
+$$
+
+Les répliques chaudes traversent les barrières ; les froides exploitent ;
+les échanges font descendre les configurations prometteuses le long de
+l'échelle pour y être raffinées. Aucune chaîne n'a plus à survivre à un
+refroidissement.
+
+## Pourquoi ce puzzle réclame l'échelle
+
+Les mesures de ce projet (sur notre propre moteur ; non répliquées
+indépendamment) en donnent une raison inhabituellement concrète. Entre un
+bon plateau et un meilleur, le mouvement qui les relie est une relocalisation
+imbriquée de dizaines de pièces dont *tout* sous-ensemble strict perd des
+arêtes — la [structure en σ-cycles](/research/why/sigma-cycles). Une
+transition mesurée exigeait un mouvement de 76 cases dont les états
+intermédiaires plongeaient d'environ 21 arêtes sous le point de départ : à
+$T = 1$, l'acceptation est de l'ordre de $e^{-21}$, sans espoir. Avec le haut
+de l'échelle porté vers 30, le franchissement a réellement eu lieu et a
+produit ce qui était alors le meilleur plateau from-scratch du projet. La
+température, bien employée, est un vrai levier contre de vraies barrières.
+
+C'est dans le dessin de l'échelle que la pratique mord. Quand nous avons
+espacé les températures trop serré, l'échange de répliques a tout accepté —
+100 % d'acceptation a l'air d'une bonne santé et signifie l'inverse : les
+répliques adjacentes voyaient effectivement le même paysage, et l'échelle
+n'apportait rien. Un espacement géométrique avec un dernier barreau vraiment
+chaud, réglé pour que les échanges soient fréquents sans être gratuits, est
+le conseil classique d'Earl et Deem — et il colle à ce que nous avons
+observé.
+
+## Le record communautaire que le recuit a bâti
+
+Le recuit a un passé glorieux sur ce puzzle. Le record le plus durable sur le
+jeu de pièces canonique — les 467 sur 480 de Louis Verhaard en 2008, invaincus
+jusqu'aux backtrackers de l'ère Blackwood en 2020 — venait d'une méthode de
+recuit, et d'une méthode singulière : comme il l'a décrite sur la
+[liste de diffusion communautaire](https://groups.io/g/eternity2), il
+recuisait la *composition* d'un sous-ensemble de pièces, en échangeant des
+pièces entrantes et sortantes d'un groupe candidat sous un score de
+« tuilabilité », plutôt que de recuire des positions sur le plateau. La leçon
+se généralise : sur Eternity II, le choix de *ce qu'on recuit* a compté plus
+que le recuit lui-même.
+
+## Verdict honnête
+
+D'après les mesures de ce projet, avec la réserve d'usage : le parallel
+tempering franchit les barrières mieux que le recuit simple, et sur le
+milieu de l'ascension cette différence est réelle et monnayable. Près du
+sommet, elle se dissout. Les plateaux de là-haut sont à score constant — des
+ex æquo partout, donc une acceptation qui ne dépend plus du tout de la
+température — et pousser le feu au lieu de grimper ne fait que randomiser le
+plateau, qui ne retrouve ensuite jamais le chemin des records. Les répliques
+lancées d'un plateau de tête plafonnent au score de départ, chaque chaîne,
+chaque échelle essayée. Le tempering vous déplace de colline en colline ; il
+n'abroge pas le [mur de rigidité](/research/why/rigidity-wall).

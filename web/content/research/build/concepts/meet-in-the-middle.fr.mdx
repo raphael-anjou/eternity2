@@ -1,0 +1,114 @@
+---
+title: Meet in the middle
+description: >-
+  Énumérer deux moitiés d'un problème et les joindre sur une interface
+  commune, en échangeant de la mémoire contre un exposant divisé par deux.
+  L'astuce classique de Horowitz–Sahni, sa forme sur des bandes du plateau,
+  et ce que l'expérience BANDSAW de ce projet a mesuré — y compris la méthode
+  unilatérale qui l'a battue.
+kind: concept
+order: 40
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Horowitz & Sahni 1974, « Computing Partitions with Applications to the Knapsack Problem » (JACM) — l'origine classique
+    url: https://doi.org/10.1145/321812.321823
+  - label: Attaque par le milieu (Wikipedia) — la branche cryptanalytique de la même idée
+    url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
+  - label: Recherche bidirectionnelle (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Bidirectional_search
+related:
+  - /research/lab/experiments/bandsaw
+  - /research/build/concepts/exact-cover-dlx
+  - /research/build/dead-ends
+---
+
+Le meet in the middle est la plus vieille astuce de division d'exposant de la
+recherche combinatoire : au lieu d'explorer un arbre de profondeur $n$, on
+explore deux arbres de profondeur $n/2$ et on joint leurs feuilles sur une
+interface commune. Ellis Horowitz et Sartaj Sahni l'ont introduite en 1974
+pour le sac à dos, transformant un temps $O(2^n)$ en $O(2^{n/2})$ — au prix
+de stocker les $2^{n/2}$ résultats d'une moitié dans une table indexée pour
+que l'autre moitié puisse s'y retrouver. La même idée refait surface comme
+attaque par le milieu en cryptanalyse (pourquoi le double DES ne rapporte
+presque rien sur le simple) et comme recherche bidirectionnelle en calcul de
+chemins. Le motif est toujours le même : deux énumérations bon marché plus
+une jointure, au lieu d'une énumération impossible.
+
+## À quoi ça ressemble sur le plateau
+
+Eternity II offre une coupe naturelle : une couture horizontale. Prenez une
+bande de lignes à terminer ; coupez-la en une moitié haute et une moitié
+basse. Énumérez toutes les façons de remplir la moitié haute, indexées par
+deux choses — l'ensemble exact des pièces consommées, et le vecteur de
+couleurs d'arêtes laissé pendant à la couture. Énumérez la moitié basse
+symétriquement. Puis joignez : tout haut et tout bas dont les couleurs de
+couture concordent et dont les ensembles de pièces sont disjoints forment un
+remplissage complet, trouvé sans jamais parcourir l'arbre de la bande
+entière.
+
+La clause de disjonction est la douleur propre à E2, et elle n'est pas
+optionnelle. Dans le sac à dos, les deux moitiés sont indépendantes par
+construction ; ici elles puisent dans un même réservoir de pièces, donc les
+hauts doivent être groupés par leur empreinte exacte de réservoir, et chaque
+groupe joint uniquement à des bas construits à partir des pièces
+complémentaires. Sautez cette comptabilité et la jointure produit gaiement
+des plateaux fantômes qui utilisent une pièce deux fois. Obtenir une
+comptabilité exacte des réservoirs complémentaires fut une leçon de
+correction durement acquise dans l'expérience du projet ci-dessous.
+
+## L'échange
+
+L'échange d'école, c'est du temps contre de la mémoire : l'exposant est
+divisé par deux, et l'énumération d'une moitié doit tenir dans une table de
+hachage. Sur le plateau, l'état d'interface est une ligne de couleurs
+d'arêtes — 16 cases de large sur le puzzle complet — plus l'empreinte de
+réservoir : l'espace des clés grossit vite avec la largeur de la bande, et
+c'est la mémoire, non le temps, qui est en général le premier mur. La
+jointure elle-même est bon marché (du hachage) ; tout se joue sur le nombre
+d'entrées que chaque côté doit stocker et sur la fréquence à laquelle les
+signatures de couture coïncident réellement.
+
+## Ce que BANDSAW a mesuré
+
+Ce projet a mené l'idée jusqu'au bout, rigoureusement, dans
+[l'expérience BANDSAW](/research/lab/experiments/bandsaw) : complétion
+optimale exacte d'une bande, jointure meet-in-the-middle avec comptabilité
+exacte des réservoirs, approfondissement itératif sur le budget de défauts,
+le tout validé sur un banc 10×10 contre la force brute. Trois constats,
+mesurés sur le moteur de ce projet et non répliqués indépendamment :
+
+- **Ça marche — près de la perfection seulement.** Dans les petits budgets
+  de défauts, la méthode est exacte et abordable. Mais chaque unité de budget
+  gonfle les arbres d'énumération d'un facteur vingt environ *par côté* : le
+  régime où l'exactitude reste payable se dissout en une poignée de défauts
+  autorisés.
+- **Une méthode unilatérale l'a battue.** Armé des mêmes tables exactes de
+  bornes inférieures (bornes suffixes min-plus calculées colonne par
+  colonne), un simple branch-and-bound en approfondissement itératif a
+  prouvé l'optimalité en 12 secondes environ sur un barreau où la jointure
+  bidirectionnelle ne terminait pas. Le MITM paie l'énumération complète des
+  *deux* moitiés même quand un seul optimum plus une preuve d'épuisement
+  suffiraient ; près de l'horizon de décidabilité, sa jointure ne se
+  déclenchait presque jamais — des millions de hauts stockés, zéro bas
+  correspondant, les deux factures payées pour rien.
+- **Les acquis durables, ce sont les bornes.** Ce qui a survécu à
+  l'expérience n'est pas la jointure mais les tables de bornes inférieures
+  admissibles et les certificats de budget exacts qu'elles permettent — des
+  instruments réutilisés ailleurs. La conclusion consignée fut sans détour :
+  pas de déploiement du meet-in-the-middle à la taille du plateau complet.
+
+## Limites, et ce qui reste ouvert
+
+La leçon générale rejoint la littérature classique : le meet in the middle
+gagne quand l'interface est étroite, quand les moitiés sont vraiment
+indépendantes, et quand une réponse résolu/non-résolu suffit. Eternity II
+malmène les trois — la couture porte un large vecteur de couleurs, le
+réservoir de pièces partagé couple les moitiés, et le jeu des records tourne
+au crédit partiel, ce qui regonfle les deux arbres. Ce qui reste réellement
+non testé ici, c'est le cousin *heuristique* : deux faisceaux poussant depuis
+les bords opposés du plateau, filtrés mutuellement par des hachages de leurs
+couleurs de couture, se rejoignant à une ligne médiane. Ce dessin a été
+couché sur le papier dans ce projet mais jamais exécuté ; savoir si l'élagage
+bidirectionnel aide un faisceau là où il échoue pour une jointure exacte est
+une question ouverte, pas un verdict.

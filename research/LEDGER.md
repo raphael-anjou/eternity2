@@ -503,3 +503,21 @@ Blackwood 470, 11074 Gauthier strict-460); and the timeline's "2021 470,
 different heuristic colors" row had no archive support — corrected to Jef
 Bucas's 2024-12-02 470 (msg 11401). The 2025 Discord-only 470 is honestly
 marked unsourced. groups.io deep links are login-walled; a note says so.
+
+### 2026-07-02 — Concepts encyclopedia v1: the technique shelf (8 concepts + hub)
+
+New section /research/build/concepts — the techniques every solver author
+meets, each attributed to its inventors with resolving primary sources, the
+honest measured verdict from this project's engine (always hedged "not
+independently replicated"), and cross-links into the wiki:
+arc-consistency (Mackworth 77, AC-2001), alldiff-regin (Régin 94; the
+colour-filter-vs-break-allowance soundness caveat stated plainly),
+exact-cover-dlx (Knuth), meet-in-the-middle (Horowitz-Sahni; BANDSAW),
+beam-search (Zhou-Hansen; GAUNTLET/PRIOR/LODESTONE), local-search-alns
+(Shaw 98, Ropke-Pisinger 06, Schaus-Deville E2 precedent),
+parallel-tempering (Swendsen-Wang; Verhaard's 467 method per public
+sources), sat-csp-encodings (Heule 08, Ansótegui et al.). Internal
+vol/basin/codename material excluded; one vault figure flagged fabricated
+was replaced with "never profiled". 18 MDX files, EN + native FR.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (139 paths, EN/FR titles).

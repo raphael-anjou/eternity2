@@ -1,0 +1,122 @@
+---
+title: Encodages SAT et CSP
+description: >-
+  Écrire le puzzle en clauses et le confier à un solveur industriel — le
+  geste évident, tenté depuis 2008. Pourquoi les solveurs complets calent sur
+  le plateau entier, et où leurs verdicts gagnent encore leur pain comme
+  preuves d'impossibilité.
+kind: concept
+order: 80
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Heule, Solving edge-matching problems with satisfiability solvers (2008)
+    url: https://www.cs.cmu.edu/~mheule/publications/eternity.pdf
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, Edge Matching Puzzles as Hard SAT/CSP Benchmarks (CP 2008)
+    url: https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, On the hardness of solving edge matching puzzles as SAT or CSP problems (Constraints, Springer)
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+related:
+  - /research/papers
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+---
+
+Les solveurs SAT modernes règlent des problèmes industriels à des millions de
+variables ; le geste évident est donc d'écrire Eternity II en clauses et de
+laisser le CDCL creuser. On fait exactement ce geste depuis 2008. Les
+encodages sont propres, les petites tailles tombent instantanément — et le
+puzzle entier ne bouge pas d'un pouce. Comprendre pourquoi, c'est comprendre
+de quoi se nourrit vraiment la recherche pilotée par les conflits.
+
+## L'encodage
+
+L'encodage direct introduit une variable $x_{c,p,r}$ pour « la pièce $p$
+occupe la case $c$ avec la rotation $r$ », puis trois familles de
+contraintes : chaque case porte exactement un placement, chaque pièce sert au
+plus une fois, et deux placements en désaccord de part et d'autre d'une arête
+commune s'excluent mutuellement. Le même modèle se lit naturellement en CSP —
+une variable par case, les placements comme valeurs de domaine, un
+*alldifferent* sur les pièces et des contraintes en table entre cases
+adjacentes — et c'est la formulation que les articles de référence étudient
+en parallèle de la version clausale.
+
+La forme clausale directe explose vite, car les clauses de désaccord par
+paires se multiplient. L'article de Marijn Heule
+([2008](https://www.cs.cmu.edu/~mheule/publications/eternity.pdf)) montre le
+remède standard : des variables auxiliaires pour la couleur affichée sur
+chaque couture interne, si bien qu'un placement implique ses quatre couleurs
+de couture et que le désaccord s'exclut une fois par couture plutôt qu'une
+fois par paire. Avec des encodages compacts, du bris de symétrie et un
+réglage soigné, Heule a résolu des instances d'appariement d'arêtes bien
+au-delà de la portée de l'encodage naïf. Malgré cela, les CNF du 16×16
+complet construites par la communauté avoisinent la centaine de milliers de
+variables et les centaines de millions de clauses (comme rapporté sur la
+[liste de diffusion](https://groups.io/g/eternity2)) — chargeables, et
+parfaitement irrésolues.
+
+## Ce que les benchmarks publiés ont montré
+
+L'étude systématique revient à Ansótegui, Béjar, Fernàndez et Mateu, dans un
+[article à CP 2008](https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39)
+et sa
+[version longue dans Constraints](https://link.springer.com/article/10.1007/s10601-012-9128-9),
+avec un article compagnon demandant, littéralement,
+[à quel point le puzzle commercial est difficile](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download).
+Leur conclusion phare : les puzzles d'appariement d'arêtes généralisés font
+d'excellents benchmarks SAT/CSP précisément parce que la difficulté se règle
+— faites varier le nombre de couleurs et le temps de résolution monte
+jusqu'à un pic aigu, là où les solutions sont rares mais réelles. Les
+comptes de couleurs d'Eternity II sont posés sur ce pic, à dessein ; la page
+sur la [transition de phase](/research/why/phase-transition) le détaille. En
+pratique, les solveurs complets expédient les petits plateaux en secondes
+puis heurtent une falaise exponentielle ; les expériences communautaires
+placent au fil des ans le plafond pratique du SAT pur sur les instances de
+type Eternity quelque part vers le 10×10 — loin du 16×16. Voir la
+[page Papers](/research/papers) pour la piste bibliographique complète.
+
+## Pourquoi le CDCL cale sur le plateau entier
+
+Le CDCL tire sa puissance de l'apprentissage de clauses : à chaque conflit,
+le solveur remonte le graphe d'implications jusqu'au petit ensemble de
+décisions responsables, et enregistre cette combinaison comme interdite. La
+clause apprise est courte et générale quand le conflit naît d'une longue
+chaîne de propagation unitaire.
+
+Eternity II affame ce mécanisme. L'analyse par ce projet de son propre moteur
+CSP (avec la réserve d'usage : mesuré ici, non répliqué indépendamment) a
+trouvé une structure d'implications presque plate — une suppression de
+domaine remonte à un unique placement voisin, pas à une chaîne profonde — si
+bien que l'analyse de conflit n'a presque rien à compresser : les no-goods
+appris sortent larges et spécifiques au lieu de courts et généraux. Pire,
+les conflits affleurent tard : avec une propagation forte, aucun vidage de
+domaine n'apparaissait pratiquement avant la profondeur 50, la médiane loin
+dans le plateau. Une clause large sur une configuration profonde et
+spécifique n'élague presque rien d'autre. Ajoutez une instance délibérément
+réglée sur le pic de difficulté, et le puzzle entier frôle le pire cas pour
+la recherche pilotée par les conflits.
+
+## Où les verdicts exacts paient encore
+
+Rien de tout cela ne rend les encodages inutiles — cela les déplace. La
+réponse UNSAT d'un solveur complet est un théorème, et sur des sous-problèmes
+ces théorèmes ne coûtent presque rien. L'usage le plus productif du SAT dans
+ce projet (même réserve que plus haut) est celui d'un *oracle sur régions* :
+épingler l'essentiel d'un bon plateau, libérer un voisinage de ses défauts
+restants, et demander une complétion parfaitement appariée. La réponse —
+UNSAT, typiquement en moins de deux secondes — prouve qu'aucun réarrangement
+local de cette région ne finira jamais le plateau : c'est la machinerie
+derrière le [mur de rigidité](/research/why/rigidity-wall). La même astuce
+filtre des anneaux de bord entiers : épinglez un bord candidat, libérez les
+191 cases intérieures, et un UNSAT en moins d'une seconde certifie que ce
+bord ne portera jamais un intérieur parfait. Et au sein d'un moteur CSP, la
+même idée en miniature — enregistrer des no-goods durs aux échecs de
+propagation pour ne jamais re-visiter une impasse structurelle — est correcte
+par construction et se vérifie à bas coût avec des littéraux surveillés à la
+SAT.
+
+Voilà l'honnête partage des rôles : en solveur frontal du puzzle entier, le
+CDCL est surclassé ; en générateur rapide de certificats d'impossibilité
+pour ses morceaux, rien ne l'approche.

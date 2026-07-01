@@ -1,0 +1,122 @@
+---
+title: Couverture exacte et dancing links
+description: >-
+  Eternity II s'énonce proprement comme un problème de couverture exacte, et
+  l'algorithme X de Knuth avec ses dancing links est la machine classique
+  pour cela. Là où il brille vraiment — petits plateaux, dénombrement
+  exhaustif — et les deux raisons pour lesquelles il ne casse pas le 16×16 :
+  un arbre de recherche intact, et aucun crédit partiel.
+kind: concept
+order: 30
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Knuth 2000, « Dancing Links » (arXiv cs/0011047)
+    url: https://arxiv.org/abs/cs/0011047
+  - label: Algorithme X de Knuth (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
+  - label: Couverture exacte (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Exact_cover
+related:
+  - /research/build/dead-ends
+  - /research/why/no-forced-moves
+  - /research/build/solvers/blackwood
+---
+
+Certains puzzles doivent être tordus pour entrer dans un formalisme ;
+Eternity II tombe dans la couverture exacte presque tout seul. Un problème de
+couverture exacte demande : étant donné un ensemble d'éléments et une
+collection d'options couvrant chacune quelques éléments, choisir des options
+telles que chaque élément soit couvert *exactement une fois*. Les pavages de
+pentominos, le sudoku et les n-reines sont les clients d'école — et
+l'appariement d'arêtes habite la porte à côté.
+
+## Le plateau comme couverture exacte
+
+Prenez 512 éléments : un par case (« la case $c$ est remplie ») et un par
+pièce (« la pièce $p$ est utilisée »). Chaque option est un placement
+concret — la pièce $p$ dans la case $c$ en rotation $r$ — couvrant exactement
+deux éléments : sa case et sa pièce. Une sélection d'options couvrant chaque
+élément exactement une fois est très exactement un plateau où chaque case est
+remplie et chaque pièce sert une fois.
+
+Ce que la couverture exacte pure ne sait pas dire, c'est que les bords qui se
+touchent doivent s'accorder. L'extension de Knuth lui-même s'en charge : XCC,
+la couverture exacte avec couleurs, où des éléments secondaires — ici, un par
+arête intérieure de la grille — portent une couleur, et où deux options ne
+peuvent partager un élément secondaire que si elles lui donnent la même
+couleur. Une solution XCC complète est alors exactement un plateau
+Eternity II parfait. L'encodage est honnête : rien du puzzle n'est
+approximé en route.
+
+## L'algorithme X, et pourquoi les liens dansent
+
+L'algorithme X de Knuth résout la couverture exacte par essais-erreurs
+disciplinés : choisir l'élément qui a le moins d'options restantes (la règle
+de l'échec d'abord), essayer chaque option qui le couvre, retirer tout ce que
+cette option rend impossible, et récurser ; en cas d'échec, restaurer et
+passer à l'option suivante.
+
+Les dancing links (DLX) sont la structure de données qui rend la
+restauration élégante. La matrice des options vit dans des listes doublement
+chaînées circulaires, et retirer un élément tient en deux écritures de
+pointeurs — `left.right = right; right.left = left` — qui, point crucial,
+laissent intacts les pointeurs du nœud retiré. Défaire le retrait, ce sont
+les deux mêmes écritures à l'envers. Le retour arrière devient de la
+chirurgie de pointeurs sans aucune copie, et la mémoire touchée est
+exactement proportionnelle au travail accompli. C'est l'un des algorithmes
+les plus élégants de la boîte à outils combinatoire, et l'article de Knuth
+est un vrai plaisir de lecture.
+
+## Là où il brille
+
+DLX est le bon outil quand on veut *toutes* les solutions, ou un compte, ou
+une preuve d'unicité, sur des instances assez petites pour être épuisées. Sur
+de petits plateaux d'appariement d'arêtes, il fait exactement cela :
+énumération complète avec d'excellentes constantes, aucune solution manquée,
+aucun état répété. Compter les remplissages complets de petites régions,
+vérifier qu'un mini-puzzle généré a une solution unique, contre-vérifier les
+comptes exhaustifs d'un autre solveur — c'est son terrain, et rien
+d'heuristique n'y rivalise.
+
+Une note de terrain du projet, offerte comme avertissement plutôt que comme
+résultat : une implémentation XCC écrite ici de zéro s'est validée proprement
+sur les n-reines et des plateaux triviaux, puis a passé des jours cassée sur
+tout ce qui était plus grand, parce que l'interaction entre la purification
+par couleurs et la restauration cover/uncover est réellement subtile. Si vous
+la construisez, suivez l'algorithme publié de Knuth à la lettre — mesuré sur
+le moteur de ce projet, au sens où les rapports de bogues étaient les nôtres.
+
+## Pourquoi il ne casse pas le 16×16
+
+Deux murs indépendants, dont chacun suffirait.
+
+**L'arbre est le même arbre.** La couverture exacte re-décrit la recherche ;
+elle ne la rétrécit pas. Le choix de l'élément le moins couvert est un bon
+ordre de variables, mais
+[aucun coup n'est jamais forcé](/research/why/no-forced-moves) sur ce
+puzzle — l'élément le plus contraint offre encore des dizaines d'options
+vivantes très loin dans la recherche, si bien que le branchement reste énorme
+jusqu'en bas, sur un espace couramment estimé vers $10^{100}$ plateaux. Un
+moteur DLX parcourt cet arbre complètement ou pas utilement du tout ; et sa
+boucle interne, qui court après des pointeurs, est bornée par la mémoire —
+un ordre de grandeur derrière les moteurs à tableaux réglés pour le cache
+des [backtrackers à records](/research/build/solvers/blackwood).
+
+**Aucun crédit partiel.** DLX répond à une seule question : couvert
+exactement, ou non. Toute l'économie d'Eternity II tourne sur des scores
+partiels — 467, 469, 470 — et sur des recherches qui tolèrent délibérément
+quelques arêtes défaillantes pour y parvenir. La couverture exacte n'a aucun
+moyen natif de laisser une arête dépareillée contre pénalité ; la relâcher à
+ce point revient à la reconstruire en branch-and-bound, et l'élégance qui la
+justifiait s'est alors évaporée.
+
+## Verdict
+
+Gardez DLX sur l'étagère pour ce qu'il est : l'instrument exhaustif.
+Dénombrement, preuves d'unicité, vérité de terrain sur petits plateaux —
+imbattable, et digne du soin d'implémentation qu'il exige. Comme attaque du
+puzzle complet, c'est une [impasse](/research/build/dead-ends), pour des
+raisons structurelles qu'aucune constante ne corrigera : l'arbre qu'il doit
+épuiser est astronomique, et le jeu des scores partiels auquel jouent toutes
+les méthodes à records lui est fermé.

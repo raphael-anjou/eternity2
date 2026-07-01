@@ -1,0 +1,129 @@
+---
+title: La cohérence d'arc, d'AC-3 aux variantes optimales
+description: >-
+  Le forward checking regarde un coup devant ; la cohérence d'arc oblige la
+  liste de candidats de chaque case à se défendre face à chacune de ses
+  voisines, jusqu'au point fixe. AC-3 de Mackworth, les raffinements optimaux
+  qui ont suivi, et ce que toute la famille a réellement donné, mesurée sur ce
+  puzzle — y compris là où elle devient incorrecte.
+kind: concept
+order: 10
+updated: 2026-07-02
+topics: [search-space]
+sources:
+  - label: Mackworth 1977, « Consistency in Networks of Relations » (Artificial Intelligence 8) — AC-3
+    url: https://doi.org/10.1016/0004-3702(77)90007-8
+  - label: Bessière, Régin, Yap & Zhang 2005, « An Optimal Coarse-grained Arc Consistency Algorithm » (AIJ) — AC-2001/AC-3.1
+    url: https://doi.org/10.1016/j.artint.2005.02.004
+  - label: Algorithme AC-3 (Wikipedia)
+    url: https://en.wikipedia.org/wiki/AC-3_algorithm
+related:
+  - /research/why/no-forced-moves
+  - /research/build/solvers/blackwood
+  - /research/build/concepts/alldiff-regin
+  - /research/build/dead-ends
+---
+
+Sur Eternity II, un backtracker passe l'essentiel de son temps non pas à
+poser des pièces, mais à en éliminer. Comme
+[aucune case n'est jamais forcée](/research/why/no-forced-moves) — chaque
+position intérieure garde des dizaines de candidats vivants très loin dans la
+recherche — le seul levier disponible consiste à rétrécir ces listes de
+candidats, fort et pour pas cher. La cohérence d'arc est la machine standard
+pour cela, avec cinquante ans de littérature derrière elle.
+
+## Des domaines qui se surveillent mutuellement
+
+Donnez à chaque case vide un *domaine* : l'ensemble des candidats
+pièce-et-rotation encore admis là. Sur le puzzle complet, cela démarre à
+environ 760 tuples par case intérieure. Le **forward checking** est la
+discipline à un coup : quand une pièce est posée, on la supprime de tous les
+autres domaines, et on supprime tout candidat en conflit avec les bords
+qu'elle vient d'exposer. Peu coûteux — tout solveur sérieux fait au moins
+cela.
+
+La **cohérence d'arc** exige davantage. Pour chaque paire de cases adjacentes,
+chaque candidat d'un domaine doit avoir au moins un partenaire compatible —
+un *support* — dans l'autre. Dès qu'une suppression laisse un candidat sans
+support, il tombe à son tour, et la vérification se propage de proche en
+proche jusqu'à ce que plus rien ne bouge. Pour l'appariement d'arêtes, c'est
+exactement : « une pièce ne reste dans une case que si chaque case voisine
+peut encore répondre à ses couleurs ».
+
+## AC-3, et où il gaspille
+
+AC-3, d'Alan Mackworth (1977), atteint ce point fixe à gros grain : une file
+d'arcs orientés, une révision à la fois (parcourir un domaine, supprimer les
+candidats sans support), et chaque fois qu'un domaine rétrécit, on remet en
+file les arcs qui pointent vers lui. C'est court, correct, facile à rendre
+incrémental au fil de la recherche — d'où son statut de choix par défaut,
+partout. Dans le pire cas, il coûte $O(e d^3)$ pour $e$ arcs et des domaines
+de taille $d$ ; sur le plateau 16×16, $e$ correspond aux 480 adjacences
+intérieures prises dans les deux sens et $d \approx 764$.
+
+Son défaut connu : chaque révision cherche les supports à partir de zéro, si
+bien que le même support est redécouvert des milliers de fois pendant que la
+recherche plonge et remonte.
+
+## Ce qu'apportent les variantes plus fortes
+
+La littérature a passé deux décennies à corriger cette redondance. AC-4 (Mohr
+& Henderson 1986) compte explicitement les supports — temps optimal
+$O(e d^2)$, mais mémoire $O(e d^2)$ et restauration pénible au retour
+arrière. AC-6 et AC-7 (Bessière ; Bessière, Freuder & Régin) stockent les
+supports paresseusement et exploitent la bidirectionnalité : temps optimal,
+espace $O(e d)$, au prix d'une comptabilité à grain fin.
+
+La version à connaître aujourd'hui est **AC-2001/AC-3.1**, trouvée
+indépendamment par Bessière & Régin et par Zhang & Yap en 2001 : on garde la
+boucle simple d'AC-3, mais on mémorise, pour chaque paire candidat-arc, le
+*dernier support trouvé* ; on vérifie qu'il est toujours vivant avant de
+chercher à nouveau, et on reprend le parcours là où il s'était arrêté plutôt
+qu'au début. Ce seul entier par paire donne la borne optimale $O(e d^2)$ avec
+seulement $O(e d)$ de mémoire — environ 367 000 petits entiers sur ce puzzle,
+négligeable. L'étude de 2005 mesure 1,5 à 9 fois moins de CPU qu'AC-3 en
+recherche avec maintien de cohérence, et montre que l'avantage sur AC-6
+*croît* avec la taille du domaine de l'autre côté de l'arc. Eternity II a des
+domaines énormes des deux côtés de chaque arc : AC-2001 est l'ajustement
+d'école.
+
+## Mesuré sur ce puzzle
+
+Sur le moteur de ce projet (mesuré ici ; non répliqué indépendamment) :
+
+- Un backtracker simple propageant AC-3 avec le
+  [filtre de couplage par couleur](/research/build/concepts/alldiff-regin)
+  atteint 449 arêtes sur 480 sur le puzzle canonique en 44 secondes environ
+  en mono-thread, autour de 2,5 secondes sur 8 cœurs.
+- Le meilleur gain algorithmique trouvé à l'intérieur d'AC-3 est prosaïque :
+  une table précalculée disant quelles rotations d'une même pièce partagent
+  leurs couleurs d'arête, pour que les révisions cessent de la redériver —
+  un gain de débit de 2,9× sur le banc de référence du moteur.
+- La partie honnête : AC-2001 a été recommandé deux fois dans les notes du
+  projet et jamais construit ; son gain projeté de 2 à 5× ici est une lecture
+  de la littérature, pas une mesure. Et la conviction qu'AC-3 dominait le
+  profil d'exécution n'a elle-même jamais été confirmée au profileur.
+  Mesurez avant de porter.
+
+## La réserve de correction
+
+La cohérence d'arc suppose que chaque arête doit s'apparier parfaitement. Les
+moteurs à records, eux, non : les recherches
+[à la Blackwood](/research/build/solvers/blackwood) s'autorisent un budget de
+défauts délibérés aux profondeurs tardives, et sous ce régime la cohérence
+d'arc est *incorrecte* — elle élague des plateaux qu'un défaut autorisé
+rendrait parfaitement légaux. Sur le moteur de ce projet, toute la famille AC
+est désactivée dans les runs tolérants aux défauts, précisément pour cela. Le
+seul propagateur fort qui survit au régime des défauts est le tous-différents
+au niveau des pièces — voir
+[le filtre de Régin](/research/build/concepts/alldiff-regin).
+
+## Verdict
+
+Pour toute recherche à appariement exact, la cohérence d'arc est obligatoire
+et bon marché : c'est la différence entre un backtracker qui patine et un qui
+atteint les 440. Le forward checking seul laisse des élagages sur la table ;
+AC-3 les ramasse ; AC-2001 ramasse les mêmes pour moins de CPU — à condition
+d'avoir d'abord vérifié que la propagation est bien là où partent vos cycles.
+Pour la chasse aux records tolérante aux défauts, laissez-la de côté : la
+correction d'abord.

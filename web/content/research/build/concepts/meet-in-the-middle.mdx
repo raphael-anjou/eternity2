@@ -1,0 +1,103 @@
+---
+title: Meet in the middle
+description: >-
+  Enumerate two halves of a problem and join them on a shared interface,
+  trading memory for an exponent cut in half. The classic Horowitz–Sahni
+  trick, what it looks like on bands of the board, and what this project's
+  BANDSAW experiment measured — including the one-sided method that beat it.
+kind: concept
+order: 40
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM) — the classic origin
+    url: https://doi.org/10.1145/321812.321823
+  - label: Meet-in-the-middle attack (Wikipedia) — the cryptanalytic branch of the same idea
+    url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
+  - label: Bidirectional search (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Bidirectional_search
+related:
+  - /research/lab/experiments/bandsaw
+  - /research/build/concepts/exact-cover-dlx
+  - /research/build/dead-ends
+---
+
+Meet in the middle is the oldest exponent-cutting trick in combinatorial
+search: instead of exploring one tree of depth $n$, explore two trees of
+depth $n/2$ and join their leaves on a shared interface. Ellis Horowitz and
+Sartaj Sahni introduced it in 1974 for the knapsack problem, turning
+$O(2^n)$ time into $O(2^{n/2})$ time — at the price of storing one half's
+$2^{n/2}$ results in a table keyed so the other half can look them up. The
+same idea resurfaces as the meet-in-the-middle attack in cryptanalysis
+(why double DES buys almost nothing over single) and as bidirectional
+search in pathfinding. The pattern is always the same: two cheap
+enumerations plus a join, instead of one impossible enumeration.
+
+## What it looks like on the board
+
+Eternity II offers a natural cut: a horizontal seam. Take a band of rows to
+finish; split it into a top half and a bottom half. Enumerate every way to
+fill the top half, keyed by two things — the exact set of pieces it consumed,
+and the vector of edge colours it leaves dangling at the seam. Enumerate the
+bottom half symmetrically. Then join: any top and bottom whose seam colours
+agree and whose piece sets are disjoint form a complete filling, found
+without ever walking the full band's tree.
+
+The disjointness clause is the E2-specific pain, and it is not optional. In
+knapsack the two halves are independent by construction; here they draw on
+one shared pool of pieces, so tops must be grouped by their exact pool
+fingerprint and each group joined only against bottoms built from the
+complementary pieces. Skip that bookkeeping and the join happily produces
+phantom boards that use a piece twice. Getting exact complementary-pool
+accounting right was a hard-won correctness lesson of the project's
+experiment below.
+
+## The trade
+
+The textbook trade is time for memory: the exponent halves, and one half's
+enumeration must be held in a hash table. On the board the interface state is
+a row of edge colours — 16 cells wide on the full puzzle — plus the pool
+fingerprint, so the table's key space grows fast with band width, and memory,
+not time, is usually the first wall. The join itself is cheap (hashing);
+everything hinges on how many entries each side must store and on how often
+seam signatures actually coincide.
+
+## What BANDSAW measured
+
+This project ran the idea to the end, rigorously, in the
+[BANDSAW experiment](/research/lab/experiments/bandsaw): exact best
+completion of a band, meet-in-the-middle join with exact pool accounting,
+iterative deepening on the mismatch budget, all validated on a 10×10 testbed
+against brute force. Three findings, measured on this project's engine and
+not independently replicated:
+
+- **It works — near perfection only.** Within small mismatch budgets the
+  method is exact and affordable. But each unit of mismatch budget inflates
+  the enumeration trees roughly twenty-fold *per side*, so the regime where
+  exactness is payable dissolves within a handful of allowed defects.
+- **A one-sided method beat it.** Armed with the same exact lower-bound
+  tables (min-plus suffix bounds computed column by column), a plain
+  iterative-deepening branch-and-bound proved optimality in about 12 seconds
+  on a rung where the bidirectional join did not finish. The MITM pays full
+  enumeration of *both* halves even when a single optimum plus an exhaustion
+  proof would do; near the decidability horizon its join almost never fired —
+  millions of stored tops, zero matching bottoms, both bills paid for
+  nothing.
+- **The durable outputs were the bounds.** What survived the experiment was
+  not the join but the admissible lower-bound tables and the exact
+  budget-certificates they enable — instruments now used elsewhere. The
+  registered conclusion was blunt: no meet-in-the-middle deployment at
+  full board size.
+
+## Limits, and what is still open
+
+The general lesson matches the classic literature: meet in the middle wins
+when the interface is narrow, the halves are truly independent, and a
+solved/unsolved answer suffices. Eternity II strains all three — the seam
+carries a wide colour vector, the shared piece pool couples the halves, and
+the record game runs on partial credit, which re-inflates both trees. What
+remains genuinely untested here is the *heuristic* cousin: two beams growing
+from opposite edges of the board, cross-filtered by hashes of their seam
+colours, meeting at a middle row. That design was written down in this
+project but never run; whether bidirectional pruning helps a beam the way it
+fails an exact join is an open question, not a verdict.
