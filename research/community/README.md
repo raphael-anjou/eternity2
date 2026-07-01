@@ -16,9 +16,9 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0001` 2000-01 → 2007-07 (pre-launch + launch) ✅ 2026-07-02
 - `0002` 2007-08 → 2007-10 ✅ 2026-07-02
 - `0003` 2007-11 → 2008-02 ✅ 2026-07-02
-- `0004` 2008-03 → 2008-06 (launched)
-- `0005` 2008-07 → 2008-10 (launched; expect Verhaard 467 era)
-- `0006` 2008-11 → 2009-02 (launched; first scrutiny date)
+- `0004` 2008-03 → 2008-06 ✅ 2026-07-02
+- `0005` 2008-07 → 2008-10 ✅ 2026-07-02 (the 467 run-up; NO public 467 announcement exists — beware the Oct-2008 '468 TEST puzzle' trap)
+- `0006` 2008-11 → 2009-02 ✅ 2026-07-02 (scrutiny date: \$10k to 'Anna Karlsson' = Verhaard's entry, msg 6337/6349)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
@@ -27,7 +27,17 @@ sweep chronologically toward today.** Each window produces one digest in
 - border-balance page: the finding traces to 2007 — Owen's paired-edge-count
   observation (msgs 414/422/485) and the 12-per-side border balance
   (msgs 2073/2098). Add these as earlier sources alongside Hopfer 2022.
-- known-facts: parity proof that 479/480 is impossible (msg 1640).
+- ~~known-facts: parity proof that 479 is impossible (msg 1640)~~ APPLIED then
+  CORRECTED: Verhaard's msg 6317 defeats the parity argument through the
+  unscored outward border edges; verified against the piece set (14
+  qualifying border pieces). known-facts now tells the full story.
+- records: the 467 award's primary sources are msgs 6337 (result surfaced,
+  'Anna Karlsson from Lund') + 6349/6356 (Verhaard confirms it was his
+  household's entry) — richer than shortestpath.se alone.
+- complex-theory page: Owen's original 'nailed it' posts are msgs 5197/5209/
+  5210 (May 2008); 5209 is already cited.
+- concepts/local-search-alns: Pierre Schaus's JFPC paper + Hungarian/Munkres
+  refill neighborhood first detailed at msgs 5589/5601 (June 2008).
 - phase-transition: Owen's launch-era derivation of ~17.14 interior colours
   from the "one expected solution" criterion (msg 1947) — a community
   precursor to the published papers; cite it.
