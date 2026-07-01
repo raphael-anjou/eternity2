@@ -22,6 +22,7 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0007` 2009-03 → 2009-08 ✅ 2026-07-02 (Verhaard's first-person 467 account msg 6891: 247 flawless pieces; ELTE claim collapses msg 6764; eii benchmarked to 467 in ~82 days msg 6687)
 - `0008` 2009-09 → 2010-02 ✅ 2026-07-02 (2nd scrutiny: no winner, NO new $10k — Tomy Q&A msg 7488; 467 stands, msg 7494)
 - `0009` 2010-03 → 2010-08 ✅ 2026-07-02 (doc's return, toolbox era, complex-theory defense)
+- `0011` 2011-03 → 2011-12 ✅ 2026-07-02 (post-contest year: solution-in-a-safe msg 8823; 9x9 exhaustive validations)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
@@ -38,7 +39,10 @@ sweep chronologically toward today.** Each window produces one digest in
   'Anna Karlsson from Lund') + 6349/6356 (Verhaard confirms it was his
   household's entry) — richer than shortestpath.se alone.
 - complex-theory page: Owen's original 'nailed it' posts are msgs 5197/5209/
-  5210 (May 2008); 5209 is already cited.
+  5210 (May 2008); 5209 is already cited. McGavin's 14,702-with-hint estimate
+  appears as early as 2011 (msg 8924) — an earlier source than his 2024 post.
+- history part II material: Owen on the designers' solution "locked in a
+  safe" (msg 8823); the official unclaimed-prize confirmation (msg 8846).
 - concepts/local-search-alns: Pierre Schaus's JFPC paper + Hungarian/Munkres
   refill neighborhood first detailed at msgs 5589/5601 (June 2008).
 - records 467 row: Verhaard's definitive first-person account is msg 6891
