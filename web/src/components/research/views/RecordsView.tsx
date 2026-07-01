@@ -29,20 +29,29 @@ type RecordRow = {
   method: string;
   // id into BOARD_PARAMS when we have a real board to preview in the viewer.
   board?: string;
-  // index into REFS (1-based) for the exact groups.io message announcing it.
-  ref?: number;
+  // Public source for the entry. groups.io hrefs use the archive's sequential
+  // message numbers (msg_num), cross-checked against our full message export
+  // (id, msg_num, author, date and subject). Reading them needs a free
+  // groups.io account — anonymous access is login-walled. Entries with no
+  // public source (Discord-only reports) carry none.
+  source?: { href: string; label: string };
 };
 
+const GROUPS_IO = "https://groups.io/g/eternity2";
+const WIKIPEDIA_E2 = "https://en.wikipedia.org/wiki/Eternity_II_puzzle";
+
 const RECORDS: RecordRow[] = [
-  { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing", board: "Louis_Verhaard_467" },
-  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468", ref: 1 },
-  { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling", board: "JBlackwood+PMcGavin_469", ref: 2 },
-  { date: "2020-11", score: "469", author: "various (~6–7 boards)", canonical: "canonical", method: "Blackwood's solver; mostly single-piece swaps of McGavin's" },
-  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470", ref: 3 },
-  { date: "2021", score: "470", author: "Jef Bucas", canonical: "variant", method: "Blackwood's algorithm with a different choice of heuristic colors — shows the heuristic isn't tied to one color set; C. Fernandez reported further variations" },
-  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023", ref: 4 },
-  { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle" },
-  { date: "2025-07", score: "470", author: "onesmallstep", canonical: "variant", method: "1-clue variant — continued 470 ties" },
+  { date: "2007-07-28", score: "—", author: "TOMY / Christopher Monckton", canonical: "canonical", method: "Puzzle released, with a $2M prize for the first complete solution", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
+  { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing; won the $10,000 best-partial-solution prize", board: "Louis_Verhaard_467", source: { href: "https://www.shortestpath.se/eii/eii_details.html", label: "shortestpath.se" } },
+  { date: "2010-12-31", score: "—", author: "—", canonical: "canonical", method: "The competition closes at noon; the $2M prize expires unclaimed", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
+  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); board relayed to the group by Jef Bucas", board: "Joshua_Blackwood_468", source: { href: `${GROUPS_IO}/message/10033`, label: "groups.io #10033" } },
+  { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling (“New record score of 469! Only 11 breaks!”)", board: "JBlackwood+PMcGavin_469", source: { href: `${GROUPS_IO}/message/10045`, label: "groups.io #10045" } },
+  { date: "2020-11", score: "469", author: "various (~6–7 boards)", canonical: "canonical", method: "Blackwood's solver; mostly single-piece swaps of McGavin's", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
+  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "variant", method: "1-clue Blackwood variant, retuned schedule", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
+  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Eternity II Editor (Java) — best canonical 5-clue of 2023", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
+  { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
+  { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "variant", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
+  { date: "2025-07", score: "470", author: "onesmallstep", canonical: "variant", method: "1-clue variant — continued 470 ties (reported on the community Discord)" },
 ];
 
 const T = {
@@ -51,10 +60,12 @@ const T = {
     best:
       "The community ceiling on the real (canonical, 5-clue) puzzle is 469 of 480 matched edges — Peter McGavin, 2020, using Joshua Blackwood's solver. No published academic solver has matched it. The full solution (480) has never been found by anyone; the gap of 11 edges has stood since 2020.",
     timelineTitle: "Record timeline",
-    cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", preview: "Preview" },
+    cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Preview" },
     canonical: "canonical",
     variant: "variant",
     view: "View board",
+    timelineNote:
+      "Mailing-list sources link the exact announcement message in the eternity2 groups.io archive; reading them requires a free groups.io account. Entries without a link were only reported in places with no public archive (e.g. Discord).",
     falsePositiveTitle: "Why some “480” boards don't count",
     falsePositive:
       "The real puzzle is the canonical 5-clue board TOMY sold: 256 specific pieces, five pinned clue positions, a 16×16 frame, 22 colors. Several boards posted as 480/480 use different piece sets — Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the canonical puzzle. The canonical 480 remains unfound.",
@@ -106,10 +117,12 @@ const T = {
     best:
       "Le plafond communautaire sur le vrai puzzle (canonique, 5 indices) est de 469 bords appariés sur 480 — Peter McGavin, 2020, avec le solveur de Joshua Blackwood. Aucun solveur académique publié ne l'a égalé. La solution complète (480) n'a jamais été trouvée ; l'écart de 11 bords tient depuis 2020.",
     timelineTitle: "Chronologie des records",
-    cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", preview: "Aperçu" },
+    cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Aperçu" },
     canonical: "canonique",
     variant: "variante",
     view: "Voir le plateau",
+    timelineNote:
+      "Les sources « groups.io » pointent vers le message d'annonce exact dans les archives de la liste eternity2 ; leur lecture demande un compte groups.io gratuit. Les entrées sans lien n'ont été rapportées que dans des espaces sans archive publique (Discord, par exemple).",
     falsePositiveTitle: "Pourquoi certains plateaux « 480 » ne comptent pas",
     falsePositive:
       "Le vrai puzzle est le plateau canonique à 5 indices vendu par TOMY : 256 pièces précises, cinq indices épinglés, un cadre 16×16, 22 couleurs. Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces — les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle canonique. Le 480 canonique reste introuvé.",
@@ -169,29 +182,30 @@ const BADGE: Record<RecordRow["canonical"], string> = {
 // community sources directly and flag what mainstream sources do and don't say.
 // Exact community sources. The 468/469/470/460 boards are not in any
 // peer-reviewed or encyclopedic source — they were announced on the mailing
-// list — so we link the specific groups.io messages (id, author, date, and
-// subject all verified against the decoded board in our community export).
-// Reading a message needs a free groups.io login.
+// list — so we link the specific groups.io messages, using the archive's
+// sequential message numbers (msg_num; author, date and subject all verified
+// against our full message export). Reading a message needs a free groups.io
+// login — anonymous access to the archive is login-walled.
 const REFS: { href: string; label: string }[] = [
   {
-    href: "https://groups.io/g/eternity2/message/171536025",
+    href: `${GROUPS_IO}/message/10033`,
     label:
       "468 — Jef Bucas, “New best solution found (12 breaks)”, eternity2@groups.io, 2020-08-31 (Blackwood's board, relayed to the group).",
   },
   {
-    href: "https://groups.io/g/eternity2/message/175608276",
+    href: `${GROUPS_IO}/message/10045`,
     label:
-      "469 — “EternityII Solver” thread, eternity2@groups.io, 2020-11-16: the Blackwood & McGavin board, still the canonical ceiling.",
+      "469 — Peter McGavin, “EternityII Solver” thread, eternity2@groups.io, 2020-09-09: “New record score of 469! Only 11 breaks!” — still the canonical ceiling.",
   },
   {
-    href: "https://groups.io/g/eternity2/message/183676823",
+    href: `${GROUPS_IO}/message/10117`,
     label:
       "470 — Joshua Blackwood, “470 Found”, eternity2@groups.io, 2021-03-30 — on the easier one-clue variant, not the canonical puzzle.",
   },
   {
-    href: "https://groups.io/g/eternity2/message/219328931",
+    href: `${GROUPS_IO}/message/11074`,
     label:
-      "460 — “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03: the best board respecting all five clues (Bruno Gauthier, Eternity II Editor).",
+      "460 — Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues (Eternity II Editor).",
   },
   {
     href: "https://e2.bucas.name",
@@ -239,6 +253,7 @@ export function RecordsView() {
               <TableHead>{t.cols.author}</TableHead>
               <TableHead>{t.cols.puzzle}</TableHead>
               <TableHead>{t.cols.method}</TableHead>
+              <TableHead>{t.cols.source}</TableHead>
               <TableHead>{t.cols.preview}</TableHead>
             </TableRow>
           </TableHeader>
@@ -246,10 +261,7 @@ export function RecordsView() {
             {RECORDS.map((r, i) => (
               <TableRow key={`${r.date}-${i}`}>
                 <TableCell className="whitespace-nowrap text-muted-foreground">{r.date}</TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">
-                  {r.score}
-                  {r.ref && <Cite n={r.ref} />}
-                </TableCell>
+                <TableCell className="text-right font-semibold tabular-nums">{r.score}</TableCell>
                 <TableCell className="whitespace-nowrap">{r.author}</TableCell>
                 <TableCell>
                   <span
@@ -259,6 +271,20 @@ export function RecordsView() {
                   </span>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{r.method}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {r.source ? (
+                    <a
+                      href={r.source.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs underline underline-offset-2 hover:text-foreground"
+                    >
+                      {r.source.label}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {r.board && BOARD_PARAMS[r.board] ? (
                     <LocalizedLink
@@ -275,6 +301,7 @@ export function RecordsView() {
             ))}
           </TableBody>
         </Table>
+        <p className="max-w-3xl text-xs text-muted-foreground">{t.timelineNote}</p>
       </section>
 
       <section className="max-w-3xl space-y-3">
