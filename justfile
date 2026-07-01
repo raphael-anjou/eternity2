@@ -98,3 +98,7 @@ research-record-boards:
 # Regenerate the experiments-log data from the research vault concepts.
 research-experiments-log:
     cd research/topics/experiments-log && python3 extract.py > ../../../web/src/data/experiments.json
+
+# Validate every internal link in the research wiki content (MDX + frontmatter).
+research-wiki-check:
+    node web/scripts/check-research-links.mjs
