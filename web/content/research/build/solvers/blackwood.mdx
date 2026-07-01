@@ -1,0 +1,199 @@
+---
+title: "Blackwood's algorithm, decoded"
+description: >-
+  The backtracker behind the community's record boards, read through Jef
+  Bucas's notes: a colour quota schedule, a late-game mismatch allowance, and
+  a distributed parameter study suggesting Blackwood's hand-tuned values were
+  already near-optimal.
+kind: concept
+order: 10
+updated: 2026-07-02
+topics: [backtracking, speed]
+sources:
+  - label: Jef Bucas's notes on the Blackwood solver (wrapper_blackwood repo)
+    url: https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md
+  - label: Jef's study announcement and permission to republish (groups.io message 11905)
+    url: https://groups.io/g/eternity2/message/11905
+  - label: Joshua Blackwood's original solver
+    url: https://github.com/jblackwood345/EternityII_Solver
+related:
+  - /research/why/complex-theory
+  - /research/records
+---
+
+<Callout kind="note" title="Whose work this is">
+  The algorithm is Joshua Blackwood's
+  ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
+  The decoding of it — and the parameter study this page reports — is by Jef
+  Bucas, in his
+  [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) project.
+  This page rephrases and extends
+  [his notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
+  with his explicit permission
+  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)).
+</Callout>
+
+Joshua Blackwood's solver is, at heart, a classic depth-first backtracker —
+the same loop as any other: place, check, back up. What makes it the engine
+behind the community's best boards is a set of manually crafted heuristics
+layered on top: a scoring rule that decides *which* pieces to try first, a
+depth-by-depth quota schedule that prunes branches falling behind, a fill
+order tuned to be "not too tight and not too loose", and a late-game allowance
+for accumulating mismatches. Every one of those choices has numbers in it, and
+Jef Bucas's study asked the obvious question: are Blackwood's numbers any
+good? (Spoiler: yes, uncomfortably so.)
+
+## Score pieces by three colours
+
+The solver scores every piece by the colours on its sides, and it privileges
+exactly three of them — one border colour and two interior colours:
+
+```csharp
+heuristic_sides = new List<int>() { 13, 16, 10 };
+```
+
+Pieces carrying those colours are sorted to the front of every candidate
+list, so the search commits them early. Why these three? That is one of the
+two knobs Jef's study turned — see below. His sampling suggests the best
+known scores come from two distinct pattern sets, with the details in the
+[visualizations in his repo](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md).
+
+## The schedule: a quota curve over 256 depths
+
+Prioritizing three colours only helps if the search is *forced* to actually
+place them. So the solver carries a 256-entry array — one entry per depth —
+where each value is the minimum number of those three colours that must
+already be on the board to keep descending. Fall below the quota and the
+branch is cut on the spot: backtrack, no discussion.
+
+Blackwood filled that array by hand, as a piecewise-linear ramp:
+
+```csharp
+heuristic_array = new int[256];
+for (int i = 0; i < 256; i++) {
+  if (i <= 16)
+     heuristic_array[i] = 0;
+  else if (i <= 26)
+     heuristic_array[i] = (int)(((float)i - 16) * (float)2.8);
+  else if (i <= 56)
+     heuristic_array[i] = (int)((((float)i - 26) * (float)1.43333) + 28);
+  else if (i <= 76)
+     heuristic_array[i] = (int)(((((float)i - 56) * (float)0.9)) + 71);
+  else if (i <= 102)
+     heuristic_array[i] = (int)(((((float)i - 76) * (float)0.6538)) + 89);
+  else if (i <= 160)
+     heuristic_array[i] = (int)(((((float)i - 102) / 4.4615)) + 106);
+}
+```
+
+Free until depth 16, steep through the 20s, then flattening out to depth 160.
+This is the "schedule" in schedule-and-break-index: a pre-committed timetable
+for burning down the high-frequency colours, enforced as a hard prune.
+
+## The fill order: not too tight, not too loose
+
+The search starts at the bottom-left of the board — the corner nearest the
+mandatory centre piece — and runs a standard row scan all the way to
+depth 180. After that, it intersperses the remaining border pieces (including
+the third corner) every few steps among the interior placements.
+
+That is a deliberate middle course. Spiralling in (border ring first) commits
+the most constrained pieces too early; a pure row scan leaves them all to the
+end, where they ambush you. Blackwood's order releases the border pressure
+progressively. Why the order matters this much — and how to score one before
+running it — is exactly what
+[complex theory](/research/why/complex-theory) formalizes.
+
+## Breaks: buying the endgame with mismatches
+
+Approaching the end of the search, the solver stops demanding perfection. A
+budget of edge mismatches unlocks with depth, cumulatively: one break is
+allowed from depth 201 onward (it can be spent at 201 or any later depth), a
+second from 206, and so on:
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Ten breaks in total, the last unlocking at depth 239. This is what makes the
+[record boards](/research/records) reachable at all: a perfect 256 has never
+been found, but a board that tolerates a handful of late mismatches is
+something a backtracker can actually finish.
+
+## Restarts, randomness, and a 50-billion-node cap
+
+A row-scan backtracker rarely climbs back up to its first rows, so a bad
+opening can strand an entire run in an impossible region. Blackwood's answer
+is cheap and effective: randomize the opening (the first corner and the
+bottom-row pieces are shuffled on every attempt, so no two runs retrace the
+same prefix) and cap each attempt at 50 billion nodes explored. Hit the cap,
+abandon, restart with a fresh opening — and go looking for a more fertile
+one.
+
+## Make it fit in cache
+
+The last ingredient is mechanical sympathy. Candidate pieces live in
+per-position lookup tables, and each entry is a compact struct — piece
+number, rotation, the two exposed sides, a break count and a heuristic
+count — sized so the working set fits in CPU cache:
+
+```csharp
+public struct RotatedPiece
+{
+    public ushort PieceNumber { get; set; }
+    public byte Rotations { get; set; }
+    public byte TopSide { get; set; }
+    public byte RightSide { get; set; }
+    public byte Break_Count { get; set; }
+    public byte Heuristic_Side_Count { get; set; }
+}
+```
+
+This is the throughput half of the story: the same design that Peter McGavin
+later pushed to hundreds of millions of placements per second.
+
+## Jef's parameter study: wrapper_blackwood
+
+All of the above is *how* the solver works. Jef Bucas built
+[wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) to ask
+whether its numbers are *right*. The setup is a small distributed experiment:
+a Python server hands out jobs over HTTP, where each job is a variation of
+the solver's parameters. Clients — one worker per core — fetch a job,
+generate the C# source from templates with that variation baked in, compile
+it with Mono, run it, and report the result back to the server for analysis.
+
+Two parameters got the treatment:
+
+- **The three prioritized colours.** Sampling many different sets of three
+  patterns, and recording how deep the algorithm got with each, his
+  [results page](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/batch00_edge_combos_stats.html)
+  maps every combination of one border colour and two interior colours to the
+  depth it reached — together with a heatmap of where in the board the search
+  spent its time. The best known scores concentrate on two distinct pattern
+  sets.
+- **The quota schedule.** Running many random variations of the 256-entry
+  heuristic array and plotting how far each one got (greener is better),
+  Blackwood's manually crafted curve lands right in the middle of the green
+  region.
+
+## What hand-tuning got right
+
+That last result deserves emphasis. Blackwood filled his schedule by hand —
+five linear segments, eyeballed coefficients — and when a randomized sweep
+explored the neighbourhood around it, the hand-tuned line sat squarely in the
+best-performing zone. Jef's conclusion, and ours: the original parameters
+were near-optimal. The decades-old advice holds — before you redesign a
+record solver's heuristics, check whether its author already found the local
+optimum by hand.
+
+## Replicate it
+
+One honest caveat, and it is Jef's own: the sample counts behind these
+results are low, and he is not 100% sure of the conclusions. His notes say it
+plainly — it would be good to attempt to reproduce these results, to validate
+or invalidate them. He offers his samples, and the
+[wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) harness is
+public: point a few machines at the server, re-run the sweeps, and post what
+you find on the [mailing list](https://groups.io/g/eternity2). An independent
+replication would confirm or refute the findings — and either outcome would
+be a real contribution.
