@@ -1,0 +1,214 @@
+---
+title: "L'algorithme de Blackwood, décodé"
+description: >-
+  Le backtracker derrière les plateaux records de la communauté, lu à travers
+  les notes de Jef Bucas : un calendrier de quotas de couleurs, un budget de
+  ruptures en fin de partie, et une étude de paramètres distribuée qui suggère
+  que les valeurs réglées à la main par Blackwood étaient déjà quasi
+  optimales.
+kind: concept
+order: 10
+updated: 2026-07-02
+topics: [backtracking, speed]
+sources:
+  - label: Les notes de Jef Bucas sur le solveur de Blackwood (dépôt wrapper_blackwood)
+    url: https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md
+  - label: L'annonce de l'étude et la permission de republier (groups.io, message 11905)
+    url: https://groups.io/g/eternity2/message/11905
+  - label: Le solveur original de Joshua Blackwood
+    url: https://github.com/jblackwood345/EternityII_Solver
+related:
+  - /research/why/complex-theory
+  - /research/records
+---
+
+<Callout kind="note" title="À qui revient ce travail">
+  L'algorithme est celui de Joshua Blackwood
+  ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
+  Son décodage — et l'étude de paramètres que cette page rapporte — est
+  l'œuvre de Jef Bucas, dans son projet
+  [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood). Cette
+  page reformule et prolonge
+  [ses notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
+  avec sa permission explicite
+  ([groups.io, message 11905](https://groups.io/g/eternity2/message/11905)).
+</Callout>
+
+Le solveur de Joshua Blackwood est, au fond, un backtracker en profondeur des
+plus classiques — la même boucle que tous les autres : poser, vérifier,
+revenir en arrière. Ce qui en fait le moteur des meilleurs plateaux de la
+communauté, c'est un empilement d'heuristiques réglées à la main : une règle
+de score qui décide *quelles* pièces essayer d'abord, un calendrier de quotas
+profondeur par profondeur qui coupe les branches en retard, un ordre de
+remplissage « ni trop serré, ni trop lâche », et un budget de désaccords
+autorisés en fin de recherche. Chacun de ces choix contient des nombres, et
+l'étude de Jef Bucas pose la question qui s'impose : les nombres de Blackwood
+sont-ils bons ? (Réponse : oui, et c'en est presque vexant.)
+
+## Noter les pièces par trois couleurs
+
+Le solveur attribue un score à chaque pièce d'après les couleurs de ses
+côtés, et il en privilégie exactement trois — une couleur de bord et deux
+couleurs intérieures :
+
+```csharp
+heuristic_sides = new List<int>() { 13, 16, 10 };
+```
+
+Les pièces qui portent ces couleurs remontent en tête de chaque liste de
+candidates : la recherche les engage tôt. Pourquoi ces trois-là ? C'est l'un
+des deux boutons que l'étude de Jef a tournés — voir plus bas. Son
+échantillonnage suggère que les meilleurs scores connus proviennent de deux
+jeux de motifs distincts ; le détail est dans les
+[visualisations de son dépôt](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md).
+
+## Le calendrier : une courbe de quotas sur 256 profondeurs
+
+Prioriser trois couleurs ne sert que si la recherche est *forcée* de les
+poser vraiment. Le solveur transporte donc un tableau de 256 entrées — une
+par profondeur — où chaque valeur est le nombre minimal de ces trois couleurs
+qui doivent déjà être sur le plateau pour continuer à descendre. Passez sous
+le quota et la branche est coupée net : retour arrière, sans discussion.
+
+Blackwood a rempli ce tableau à la main, en rampe linéaire par morceaux :
+
+```csharp
+heuristic_array = new int[256];
+for (int i = 0; i < 256; i++) {
+  if (i <= 16)
+     heuristic_array[i] = 0;
+  else if (i <= 26)
+     heuristic_array[i] = (int)(((float)i - 16) * (float)2.8);
+  else if (i <= 56)
+     heuristic_array[i] = (int)((((float)i - 26) * (float)1.43333) + 28);
+  else if (i <= 76)
+     heuristic_array[i] = (int)(((((float)i - 56) * (float)0.9)) + 71);
+  else if (i <= 102)
+     heuristic_array[i] = (int)(((((float)i - 76) * (float)0.6538)) + 89);
+  else if (i <= 160)
+     heuristic_array[i] = (int)(((((float)i - 102) / 4.4615)) + 106);
+}
+```
+
+Rien d'exigé jusqu'à la profondeur 16, une pente raide dans les
+profondeurs 20, puis un aplatissement jusqu'à 160. C'est le « calendrier » du
+couple calendrier-et-indices-de-rupture : un échéancier pré-engagé pour
+écouler les couleurs à haute fréquence, appliqué comme un élagage dur.
+
+## L'ordre de remplissage : ni trop serré, ni trop lâche
+
+La recherche démarre en bas à gauche du plateau — le coin le plus proche de
+la pièce centrale obligatoire — et déroule un balayage par lignes tout à fait
+standard jusqu'à la profondeur 180. Au-delà, elle intercale les pièces de
+bord restantes (y compris le troisième coin) toutes les quelques étapes,
+entre les poses intérieures.
+
+C'est une voie médiane délibérée. Spiraler vers l'intérieur (l'anneau de bord
+d'abord) engage trop tôt les pièces les plus contraintes ; un balayage par
+lignes pur les remet toutes à la fin, où elles vous tendent une embuscade.
+L'ordre de Blackwood relâche la pression du bord progressivement. Pourquoi
+l'ordre pèse-t-il autant — et comment en noter un avant de le lancer — c'est
+précisément ce que formalise la
+[théorie complexe](/research/why/complex-theory).
+
+## Les ruptures : acheter la fin de partie avec des désaccords
+
+À l'approche de la fin de la recherche, le solveur cesse d'exiger la
+perfection. Un budget de désaccords d'arêtes se débloque avec la profondeur,
+de façon cumulative : une première rupture est permise à partir de la
+profondeur 201 (elle peut être dépensée à 201 ou à n'importe quelle
+profondeur ultérieure), une deuxième à partir de 206, et ainsi de suite :
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Dix ruptures en tout, la dernière débloquée à la profondeur 239. C'est ce qui
+rend les [plateaux records](/research/records) atteignables tout court : un
+256 parfait n'a jamais été trouvé, mais un plateau qui tolère une poignée de
+désaccords tardifs, un backtracker peut réellement le finir.
+
+## Redémarrages, hasard, et un plafond de 50 milliards de nœuds
+
+Un backtracker en balayage par lignes remonte rarement jusqu'à ses premières
+lignes : une mauvaise ouverture peut échouer toute une exécution dans une
+région impossible. La réponse de Blackwood est simple et efficace :
+randomiser l'ouverture (le premier coin et les pièces de la rangée du bas
+sont mélangés à chaque tentative, si bien que deux exécutions ne retracent
+jamais le même préfixe) et plafonner chaque tentative à 50 milliards de
+nœuds explorés. Plafond atteint : on abandonne, on redémarre sur une
+ouverture fraîche — et on part chercher un terrain plus fertile.
+
+## Tenir dans le cache
+
+Le dernier ingrédient relève de la sympathie mécanique. Les pièces candidates
+vivent dans des tables de correspondance par position, et chaque entrée est
+une petite structure compacte — numéro de pièce, rotation, les deux côtés
+exposés, un compteur de ruptures et un compteur heuristique — dimensionnée
+pour que l'ensemble tienne dans le cache du CPU :
+
+```csharp
+public struct RotatedPiece
+{
+    public ushort PieceNumber { get; set; }
+    public byte Rotations { get; set; }
+    public byte TopSide { get; set; }
+    public byte RightSide { get; set; }
+    public byte Break_Count { get; set; }
+    public byte Heuristic_Side_Count { get; set; }
+}
+```
+
+C'est le versant débit de l'histoire : la conception même que Peter McGavin
+poussera plus tard à des centaines de millions de poses par seconde.
+
+## L'étude de paramètres de Jef : wrapper_blackwood
+
+Tout ce qui précède décrit *comment* le solveur fonctionne. Jef Bucas a
+construit [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood)
+pour demander si ses nombres sont *justes*. Le dispositif est une petite
+expérience distribuée : un serveur Python distribue des tâches par HTTP,
+chaque tâche étant une variation des paramètres du solveur. Les clients — un
+travailleur par cœur — récupèrent une tâche, génèrent le source C# à partir
+de gabarits avec la variation injectée, le compilent avec Mono, l'exécutent,
+et renvoient le résultat au serveur pour analyse.
+
+Deux paramètres sont passés au crible :
+
+- **Les trois couleurs priorisées.** En échantillonnant de nombreux jeux de
+  trois motifs, et en notant jusqu'où l'algorithme est descendu avec chacun,
+  sa
+  [page de résultats](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/batch00_edge_combos_stats.html)
+  associe à chaque combinaison d'une couleur de bord et de deux couleurs
+  intérieures la profondeur atteinte — avec, en dessous, une carte de chaleur
+  des profondeurs où la recherche a passé son temps. Les meilleurs scores
+  connus se concentrent sur deux jeux de motifs distincts.
+- **Le calendrier de quotas.** En exécutant de nombreuses variations
+  aléatoires du tableau de 256 entrées et en traçant jusqu'où chacune est
+  allée (plus c'est vert, mieux c'est), la courbe façonnée à la main par
+  Blackwood tombe en plein milieu de la zone verte.
+
+## Ce que le réglage à la main a réussi
+
+Ce dernier résultat mérite qu'on s'y arrête. Blackwood a rempli son
+calendrier à la main — cinq segments linéaires, des coefficients à vue de
+nez — et quand un balayage aléatoire a exploré le voisinage, la courbe
+manuelle s'est retrouvée au beau milieu de la zone la plus performante. La
+conclusion de Jef, et la nôtre : les paramètres d'origine étaient quasi
+optimaux. Le vieux conseil tient toujours — avant de repenser les
+heuristiques d'un solveur record, vérifiez si son auteur n'a pas déjà trouvé
+l'optimum local à la main.
+
+## À reproduire
+
+Une réserve honnête, et elle vient de Jef lui-même : le nombre d'échantillons
+derrière ces résultats est faible, et il n'est pas sûr à 100 % des
+conclusions. Ses notes le disent sans détour — il serait bon de tenter de
+reproduire ces résultats, pour les valider ou les invalider. Il offre ses
+échantillons, et le harnais
+[wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) est
+public : pointez quelques machines vers le serveur, relancez les balayages,
+et publiez ce que vous trouvez sur la
+[liste de diffusion](https://groups.io/g/eternity2). Une réplication
+indépendante confirmerait ou réfuterait les résultats — et l'un comme l'autre
+serait une vraie contribution.

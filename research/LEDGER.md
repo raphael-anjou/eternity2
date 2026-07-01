@@ -440,3 +440,24 @@ had been failing since the reference port landed (11 topics OK now).
 - Files: web/content/research/** (hubs + 8 wrapper MDX), views/ (4),
   ExperimentScoreChart (renamed from InventionScoreChart), justfile,
   research/topics/complex-theory/article.md, AGENTS.md, deletions listed above.
+
+### 2026-07-02 — Blackwood decoded (credit: Jef Bucas), Known facts page, experiments log retired (Phase 4 begins)
+
+- /research/build/solvers/blackwood: Joshua Blackwood's record backtracker
+  explained through Jef Bucas's notes and wrapper_blackwood parameter study,
+  published with his explicit permission (groups.io msg 11905) and full
+  credit. Carries his verbatim schedule/break-index code, his near-optimal
+  conclusion, his own low-sample caveat, and an open replication invitation.
+  Numbers cross-verified against wrapper_blackwood's jobs.py defaults.
+- /research/build/known-facts: the reference numbers researchers keep
+  re-deriving, every row with provenance. Serious verification pass:
+  1.115×10^557 reproduced exactly (4!·56!·195!·4^195), Verhaard 467 corrected
+  to 2008, twin-pair piece ids re-based to the site's 1–256 numbering, the
+  vault's internal-only material (basins, bounds, engine perf) excluded.
+- USER DIRECTIVE: the experiments log page (auto-extracted one-liners) is
+  removed — not a proper research artifact. Data + topic stay in the repo for
+  future curation into real write-ups.
+- Fixed MDX nested-<p> hydration warnings (phase-transition swatch cards, the
+  overview Door component): text inside a JSX <p> is re-parsed as a markdown
+  paragraph — use <div> wrappers in JSX islands.
+- Verified: typecheck ✓ lint ✓ build ✓ (121 paths).

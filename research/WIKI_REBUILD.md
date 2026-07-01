@@ -157,6 +157,20 @@ utilities (prose link color beats transparent-color trick).
       non-research pages
 - [x] AGENTS.md rewritten for the new authoring flow
 
+### New user directives (2026-07-02)
+
+- **Animations must never block navigation**: clicking a link while a live
+  lab runs must navigate immediately. Audit every research lab/animation
+  component: time-boxed per-frame budgets (measure with performance.now(),
+  ~10ms cap, never step-count-based), stop work when unmounted AND when
+  scrolled out of view / tab hidden, no synchronous WASM bursts on the main
+  thread longer than a frame.
+- **Experiments log page removed** (was /research/lab/experiments/log): the
+  auto-extracted one-line entries are not proper research artifacts. The
+  extracted data + topic stay in the repo; future curation may turn selected
+  entries into real write-ups (dead-ends candidates, per-experiment notes) —
+  but nothing ships until it reads as a researched artifact.
+
 ### Phase 4 — wiki growth from the vault (the actual point)
 
 Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Priorities:
