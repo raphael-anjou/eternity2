@@ -17,6 +17,7 @@ export interface NavItem {
   /** Backed by an MDX page (docs shell) vs a legacy TSX page. */
   mdx: boolean;
   translated: boolean;
+  topics: string[];
   children: NavItem[];
 }
 
@@ -49,48 +50,50 @@ interface StaticLeaf {
   seoKey: string;
   kind: ResearchKind;
   order: number;
+  topics?: string[];
 }
 
 // Mirrors the current hub-card order. Shrinks to empty during the migration.
+// Topic tags let the topic hubs cover legacy pages before they migrate.
 const STATIC_LEAVES: StaticLeaf[] = [
   // Why it's hard (hub order)
-  { url: "/research/why/prune-vs-speed", seoKey: "prune-vs-speed", kind: "finding", order: 10 },
-  { url: "/research/why/walls-and-methods", seoKey: "walls-and-methods", kind: "finding", order: 20 },
-  { url: "/research/why/complex-theory", seoKey: "complex-theory", kind: "finding", order: 30 },
-  { url: "/research/why/phase-transition", seoKey: "phase-transition", kind: "finding", order: 40 },
-  { url: "/research/why/rigidity-wall", seoKey: "rigidity-wall", kind: "finding", order: 50 },
-  { url: "/research/why/sigma-cycles", seoKey: "sigma-cycles", kind: "finding", order: 60 },
-  { url: "/research/why/mismatch-geometry", seoKey: "mismatch-geometry", kind: "finding", order: 70 },
-  { url: "/research/why/forbidden-patterns", seoKey: "forbidden-patterns", kind: "finding", order: 80 },
-  { url: "/research/why/no-forced-moves", seoKey: "no-forced-moves", kind: "finding", order: 90 },
-  { url: "/research/why/piece-theft", seoKey: "piece-theft", kind: "finding", order: 100 },
-  { url: "/research/why/rare-color-geography", seoKey: "rare-color-geography", kind: "finding", order: 110 },
+  { url: "/research/why/prune-vs-speed", seoKey: "prune-vs-speed", kind: "finding", order: 10, topics: ["speed", "search-space", "backtracking"] },
+  { url: "/research/why/walls-and-methods", seoKey: "walls-and-methods", kind: "finding", order: 20, topics: ["structure"] },
+  { url: "/research/why/complex-theory", seoKey: "complex-theory", kind: "finding", order: 30, topics: ["structure", "backtracking"] },
+  { url: "/research/why/phase-transition", seoKey: "phase-transition", kind: "finding", order: 40, topics: ["structure"] },
+  { url: "/research/why/rigidity-wall", seoKey: "rigidity-wall", kind: "finding", order: 50, topics: ["structure", "local-search", "exact-methods"] },
+  { url: "/research/why/sigma-cycles", seoKey: "sigma-cycles", kind: "finding", order: 60, topics: ["structure", "local-search"] },
+  { url: "/research/why/mismatch-geometry", seoKey: "mismatch-geometry", kind: "finding", order: 70, topics: ["structure", "records"] },
+  { url: "/research/why/forbidden-patterns", seoKey: "forbidden-patterns", kind: "finding", order: 80, topics: ["structure", "search-space"] },
+  { url: "/research/why/no-forced-moves", seoKey: "no-forced-moves", kind: "finding", order: 90, topics: ["structure", "search-space"] },
+  { url: "/research/why/piece-theft", seoKey: "piece-theft", kind: "finding", order: 100, topics: ["structure", "search-space"] },
+  { url: "/research/why/rare-color-geography", seoKey: "rare-color-geography", kind: "finding", order: 110, topics: ["structure"] },
   // border-balance: order 120 — first MDX pilot, lives in the manifest.
-  { url: "/research/why/entropy-area-law", seoKey: "entropy-area-law", kind: "finding", order: 130 },
+  { url: "/research/why/entropy-area-law", seoKey: "entropy-area-law", kind: "finding", order: 130, topics: ["structure"] },
 
   // Build a solver (hub order)
-  { url: "/research/reference", seoKey: "reference", kind: "reference", order: 10 },
+  { url: "/research/reference", seoKey: "reference", kind: "reference", order: 10, topics: ["backtracking"] },
   { url: "/research/papers", seoKey: "papers", kind: "paper", order: 20 },
-  { url: "/research/records", seoKey: "records", kind: "reference", order: 30 },
-  { url: "/research/build/solvers", seoKey: "solvers", kind: "tool", order: 40 },
-  { url: "/research/build/dead-ends", seoKey: "dead-ends", kind: "reference", order: 50 },
+  { url: "/research/records", seoKey: "records", kind: "reference", order: 30, topics: ["records"] },
+  { url: "/research/build/solvers", seoKey: "solvers", kind: "tool", order: 40, topics: ["backtracking", "speed"] },
+  { url: "/research/build/dead-ends", seoKey: "dead-ends", kind: "reference", order: 50, topics: ["search-space", "learning", "exact-methods"] },
   { url: "/research/build/run-it-yourself", seoKey: "run-it-yourself", kind: "tool", order: 60 },
 
   // The lab notebook
-  { url: "/research/lab/findings", seoKey: "findings", kind: "finding", order: 10 },
+  { url: "/research/lab/findings", seoKey: "findings", kind: "finding", order: 10, topics: ["structure"] },
   { url: "/research/lab/experiments", seoKey: "experiments", kind: "invention", order: 20 },
-  { url: "/research/lab/experiments/palimpsest", seoKey: "exp-palimpsest", kind: "invention", order: 10 },
-  { url: "/research/lab/experiments/keyring", seoKey: "exp-keyring", kind: "invention", order: 20 },
-  { url: "/research/lab/experiments/prior", seoKey: "exp-prior", kind: "invention", order: 30 },
-  { url: "/research/lab/experiments/replay", seoKey: "exp-replay", kind: "invention", order: 40 },
-  { url: "/research/lab/experiments/gauntlet", seoKey: "exp-gauntlet", kind: "invention", order: 50 },
-  { url: "/research/lab/experiments/cloister", seoKey: "exp-cloister", kind: "invention", order: 60 },
-  { url: "/research/lab/experiments/midden", seoKey: "exp-midden", kind: "invention", order: 70 },
-  { url: "/research/lab/experiments/ladder", seoKey: "exp-ladder", kind: "invention", order: 80 },
-  { url: "/research/lab/experiments/lodestone", seoKey: "exp-lodestone", kind: "invention", order: 90 },
-  { url: "/research/lab/experiments/mosaic", seoKey: "exp-mosaic", kind: "invention", order: 100 },
-  { url: "/research/lab/experiments/bandsaw", seoKey: "exp-bandsaw", kind: "invention", order: 110 },
-  { url: "/research/lab/experiments/staged", seoKey: "exp-staged", kind: "invention", order: 120 },
+  { url: "/research/lab/experiments/palimpsest", seoKey: "exp-palimpsest", kind: "invention", order: 10, topics: ["local-search", "learning", "records"] },
+  { url: "/research/lab/experiments/keyring", seoKey: "exp-keyring", kind: "invention", order: 20, topics: ["construction", "learning"] },
+  { url: "/research/lab/experiments/prior", seoKey: "exp-prior", kind: "invention", order: 30, topics: ["construction", "learning"] },
+  { url: "/research/lab/experiments/replay", seoKey: "exp-replay", kind: "invention", order: 40, topics: ["records", "backtracking"] },
+  { url: "/research/lab/experiments/gauntlet", seoKey: "exp-gauntlet", kind: "invention", order: 50, topics: ["construction"] },
+  { url: "/research/lab/experiments/cloister", seoKey: "exp-cloister", kind: "invention", order: 60, topics: ["local-search", "backtracking"] },
+  { url: "/research/lab/experiments/midden", seoKey: "exp-midden", kind: "invention", order: 70, topics: ["local-search"] },
+  { url: "/research/lab/experiments/ladder", seoKey: "exp-ladder", kind: "invention", order: 80, topics: ["local-search"] },
+  { url: "/research/lab/experiments/lodestone", seoKey: "exp-lodestone", kind: "invention", order: 90, topics: ["construction", "search-space"] },
+  { url: "/research/lab/experiments/mosaic", seoKey: "exp-mosaic", kind: "invention", order: 100, topics: ["exact-methods"] },
+  { url: "/research/lab/experiments/bandsaw", seoKey: "exp-bandsaw", kind: "invention", order: 110, topics: ["exact-methods"] },
+  { url: "/research/lab/experiments/staged", seoKey: "exp-staged", kind: "invention", order: 120, topics: ["construction"] },
   { url: "/research/lab/experiments/log", seoKey: "experiments-log", kind: "tool", order: 130 },
 ];
 
@@ -111,6 +114,7 @@ export function researchNav(lang: Lang): NavSection[] {
       kind: leaf.kind,
       mdx: false,
       translated: true,
+      topics: leaf.topics ?? [],
       children: [],
       order: leaf.order,
     });
@@ -122,6 +126,7 @@ export function researchNav(lang: Lang): NavSection[] {
       kind: d.kind,
       mdx: true,
       translated: d.translated,
+      topics: d.topics,
       children: [],
       order: d.order ?? 1e9,
     });
@@ -153,10 +158,29 @@ export function researchNav(lang: Lang): NavSection[] {
   });
 }
 
-/** Reading order across the whole wiki (sections, depth-first) — drives
- *  prev/next. Hub pages are not in the list; only leaves. */
-export function researchReadingOrder(lang: Lang): NavItem[] {
+/** Every research page as a flat list (sections in order, depth-first). */
+export function allNavItems(lang: Lang): NavItem[] {
   return researchNav(lang).flatMap((s) => s.items.flatMap((i) => [i, ...i.children]));
+}
+
+/** Reading order within one section — drives prev/next (the sidebar is scoped
+ *  per section, so page-to-page flow stays inside it too). */
+export function sectionReadingOrder(section: NavSection): NavItem[] {
+  return section.items.flatMap((i) => [i, ...i.children]);
+}
+
+/** The section a research URL belongs to (handles the re-homed flat pages). */
+export function findSection(lang: Lang, url: string): NavSection | undefined {
+  const sections = researchNav(lang);
+  const direct = sections.find((s) =>
+    sectionReadingOrder(s).some((i) => i.url === url),
+  );
+  return direct ?? sections.find((s) => url === s.url || url.startsWith(s.url + "/"));
+}
+
+/** Pages tagged with a topic, in global reading order. */
+export function topicMembers(lang: Lang, slug: string): NavItem[] {
+  return allNavItems(lang).filter((i) => i.topics.includes(slug));
 }
 
 /** Localized labels for page kinds (badges, related rail). */

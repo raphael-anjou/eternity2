@@ -285,6 +285,7 @@ export function estimateComplexity(
 
   const curve: DepthPoint[] = [];
   let logCum = NEG;
+  let lastLogS2 = NEG;
   let peakLog10 = NEG;
   let peakDepth = 0;
 
@@ -329,6 +330,7 @@ export function estimateComplexity(
     // A hint square contributes an expected count of exactly 1 (it is fixed).
     const logS2 = hintSet.has(cell) ? 0 : statLog();
     logCum = logAdd(logCum, logS2);
+    lastLogS2 = logS2;
     curve.push({
       depth,
       branch: 10 ** Math.min(logS2, 300),
@@ -344,6 +346,9 @@ export function estimateComplexity(
     curve,
     peakLog10: peakLog10 === NEG ? 0 : peakLog10,
     peakDepth,
-    solutionsLog10: logCum === NEG ? 0 : logCum,
+    // Expected number of FULL solutions = the per-depth count at the last cell
+    // (McGavin's "num-solns" at depth N, e.g. 14,702 for 1-hint E2), NOT the
+    // cumulative sum over depths.
+    solutionsLog10: lastLogS2 === NEG ? 0 : lastLogS2,
   };
 }

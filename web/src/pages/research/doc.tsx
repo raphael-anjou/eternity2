@@ -14,8 +14,9 @@ import { useLocation } from "react-router";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { absoluteUrl } from "@/site";
-import { researchDoc } from "@/lib/research/manifest";
+import { researchDoc, researchTopic } from "@/lib/research/manifest";
 import { DocsShell } from "@/components/docs/DocsShell";
+import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
@@ -37,20 +38,40 @@ function neutralPath(pathname: string): string {
 
 const SUFFIX = " · Eternity II";
 
+/** Topic hub URL → slug ("" for the topics index), or null if not a topic URL. */
+function topicSlugFor(path: string): string | null {
+  if (path === "/research/topics") return "";
+  const m = /^\/research\/topics\/([a-z0-9-]+)$/.exec(path);
+  return m?.[1] ?? null;
+}
+
+const TOPICS_TITLE = { en: "Research topics", fr: "Thèmes de recherche" } as const;
+const TOPICS_DESC = {
+  en: "The Eternity II research wiki sliced by theme: structure, search-space reduction, backtracking, speed, local search, exact methods, hardware and more.",
+  fr: "Le wiki de recherche Eternity II par thème : structure, réduction de l'espace de recherche, retour arrière, vitesse, recherche locale, méthodes exactes, matériel…",
+} as const;
+
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
-  const doc = researchDoc(lang, neutralPath(location.pathname));
-  if (!doc) {
-    return [{ title: "Not found" + SUFFIX }];
-  }
-  const title = doc.title + SUFFIX;
-  return [
+  const path = neutralPath(location.pathname);
+  const pack = (title: string, description: string) => [
     { title },
-    { name: "description", content: doc.description },
+    { name: "description", content: description },
     { property: "og:title", content: title },
-    { property: "og:description", content: doc.description },
+    { property: "og:description", content: description },
     { property: "og:url", content: absoluteUrl(location.pathname) },
   ];
+
+  const topicSlug = topicSlugFor(path);
+  if (topicSlug === "") return pack(TOPICS_TITLE[lang] + SUFFIX, TOPICS_DESC[lang]);
+  if (topicSlug !== null) {
+    const topic = researchTopic(lang, topicSlug);
+    if (topic) return pack(topic.label + SUFFIX, topic.description);
+  }
+
+  const doc = researchDoc(lang, path);
+  if (!doc) return [{ title: "Not found" + SUFFIX }];
+  return pack(doc.title + SUFFIX, doc.description);
 }
 
 const NF = {
@@ -85,7 +106,15 @@ function NotFound() {
 export default function ResearchDocPage() {
   const { pathname } = useLocation();
   const lang = langFromPath(pathname);
-  const doc = researchDoc(lang, neutralPath(pathname));
+  const path = neutralPath(pathname);
+
+  const topicSlug = topicSlugFor(path);
+  if (topicSlug === "") return <TopicsIndex />;
+  if (topicSlug !== null) {
+    return researchTopic(lang, topicSlug) ? <TopicHub slug={topicSlug} /> : <NotFound />;
+  }
+
+  const doc = researchDoc(lang, path);
   const Content = doc ? pages.get(`/content/research/${doc.file}`) : undefined;
   if (!doc || !Content) return <NotFound />;
   return (

@@ -9,11 +9,13 @@ declare module "*.mdx" {
 }
 
 declare module "virtual:research-manifest-en" {
-  import type { ResearchDoc } from "@/lib/research/types";
+  import type { ResearchDoc, Topic } from "@/lib/research/types";
   export const docs: ResearchDoc[];
+  export const topics: Topic[];
 }
 
 declare module "virtual:research-manifest-fr" {
-  import type { ResearchDoc } from "@/lib/research/types";
+  import type { ResearchDoc, Topic } from "@/lib/research/types";
   export const docs: ResearchDoc[];
+  export const topics: Topic[];
 }

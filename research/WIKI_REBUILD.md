@@ -108,6 +108,24 @@ attempts (both exist in groups.io history). Design:
   whenever they exist; don't propagate unverified figures.
 - **Every claim links its supporting resource** (groups.io post, paper,
   research/topics compute) — `sources:` frontmatter list + inline links.
+- **French is written, not translated**: natural idiomatic FR, never literal.
+  Improve existing literal FR passages whenever a page is touched.
+- **Two-level navigation**: the left sidebar must NOT carry the whole wiki.
+  A research sub-navbar (under the site header) carries the doors + topic
+  categories; the sidebar shows only the active section's tree.
+
+### Community-contributed sources (to publish, with permission)
+
+- **Jef Bucas — Blackwood algorithm notes + parameter study**:
+  https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md
+  Explicit permission to copy/rephrase/improve for the site
+  (https://groups.io/g/eternity2/message/11905). His wrapper_blackwood
+  project varied each parameter of Joshua Blackwood's algorithm
+  (server distributes jobs, clients compile+run variations, statistics back)
+  and concluded Blackwood's manual tweaks were near-optimal. He offers his
+  samples and NOTES he'd like independent validation — a perfect
+  reproducible-research collaboration for /research/build/solvers/blackwood
+  (cite both links; credit Jef).
 
 ### Phase 2 — search
 

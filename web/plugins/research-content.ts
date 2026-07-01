@@ -9,7 +9,12 @@
 // EN chunk and vice versa. Content edits invalidate the modules in dev.
 
 import type { Plugin, ViteDevServer } from "vite";
-import { buildManifest, scanResearchContent, CONTENT_DIR } from "../content.config";
+import {
+  buildManifest,
+  researchTopics,
+  scanResearchContent,
+  CONTENT_DIR,
+} from "../content.config";
 
 const IDS = {
   "virtual:research-manifest-en": "en",
@@ -40,7 +45,13 @@ export function researchContent(): Plugin {
       // Drafts stay reachable in dev so they can be written/previewed, but are
       // stripped from production builds (matching the prerender list).
       const docs = buildManifest(lang, { includeDrafts: !isBuild });
-      return `export const docs = ${JSON.stringify(docs)};`;
+      // Topic registry, labels resolved to this language.
+      const topics = researchTopics().map((t) => ({
+        slug: t.slug,
+        label: t.label[lang],
+        description: t.description[lang],
+      }));
+      return `export const docs = ${JSON.stringify(docs)};\nexport const topics = ${JSON.stringify(topics)};`;
     },
 
     configureServer(server) {
@@ -48,7 +59,8 @@ export function researchContent(): Plugin {
       server.watcher.add(CONTENT_DIR);
       const onContentChange = (file: string) => {
         if (!file.startsWith(CONTENT_DIR)) return;
-        scanResearchContent(true); // bust the scanner cache
+        researchTopics(true); // bust both caches
+        scanResearchContent(true);
         for (const bare of Object.keys(IDS)) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);
           if (mod) devServer?.moduleGraph.invalidateModule(mod);

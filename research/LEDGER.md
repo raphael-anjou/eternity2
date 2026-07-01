@@ -323,3 +323,28 @@ Registration burden for a new research page: 1 MDX file (was 5 files).
   web/content/research/why/border-balance{,.fr}.mdx, web/src/components/docs/*,
   web/src/lib/research/*, web/src/pages/research/doc.tsx, routes.ts,
   sitemap.config.ts, seo.ts, vite.config.ts, index.css, research/WIKI_REBUILD.md.
+
+### 2026-07-01 — Topic categories + two-level research navigation (Phase 1.5)
+
+User directives: big cross-cutting categories browsable from a research-level
+navbar (not everything in one huge sidebar), natural non-literal French, and
+every claim linked to its source. Built: a curated topic registry
+(content/research/topics.json — structure, search-space, backtracking, speed,
+construction, local-search, exact-methods, learning, records, hardware,
+quantum), `topics:` frontmatter validated against it, auto-generated hub pages
+/research/topics/<slug> + index (prerendered EN+FR, 24 new pages), a research
+subnav (Overview / three doors / Topics — user cut the chip strip, tab is
+enough), and the sidebar scoped to the ACTIVE section only. Legacy TSX pages
+carry topic tags in nav.ts so hubs are populated pre-migration. Pilot FR page
+rewritten in natural French. hardware/quantum hubs are honest placeholders
+(community history to be written in Phase 4). Also recorded: Jef Bucas's
+Blackwood notes + parameter study offered for the site with permission
+(groups.io msg 11905) — queued for the solver catalogue.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (119 prerendered paths), visual pass
+  EN+FR desktop.
+- Reproducibility: tooling/prose.
+- Files: web/content/research/topics.json, content.config.ts, plugins/,
+  src/lib/research/*, src/components/docs/* (Subnav, TopicPages new),
+  src/pages/research/doc.tsx, index.css, border-balance MDX,
+  research/WIKI_REBUILD.md.
