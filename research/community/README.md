@@ -25,7 +25,7 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0010` 2010-09 → 2011-02 ✅ 2026-07-02 (contest ends: Monckton msg 8477; 467 stands, Owen farewell 8429; peak-depth 256·(1−1/e) proof msg 8125)
 - `0011` 2011-03 → 2011-12 ✅ 2026-07-02 (post-contest year: solution-in-a-safe msg 8823; 9x9 exhaustive validations)
 - `0012` 2012-01 → 2014-12 ✅ 2026-07-02 (quiet years: Wauters academia, Czech re-prize, McGavin's complex_theory.pdf msg 9188, FPGA/Carré arrivals)
-- `0013` 2015-01 → 2018-12 (launched)
+- `0013` 2015-01 → 2018-12 ✅ 2026-07-02 (McGavin solves Brendan's 10x10 — complex theory's strongest validation, msgs 9686/9688; TopCoder 468 claim surfaces unresolved, msg 9694; unframed-480, msg 9750)
 - `0014` 2019-01 → 2021-12 (launched; the 468/469/470 record wave)
 - `0015` 2022-01 → 2026-03 (launched; Gauthier 460 strict, Bucas 470, wrapper_blackwood)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
@@ -55,6 +55,12 @@ sweep chronologically toward today.** Each window produces one digest in
 - complex-theory lineage complete: Owen 2008 (5197/5209) → McGavin's LaTeX
   complex_theory.pdf in group Files (msg 9188, 2013) → McGavin's C reference
   (msg 11197, 2024) → this site's TS port. Worth a provenance paragraph.
+  PLUS its strongest validation: McGavin's 2017 10x10 set_1 solve via
+  complex-theory-ranked first rows, ~180 core-years, inside predictions
+  (msgs 9686/9688, verified 9725).
+- records: the TopCoder/Takahashi 2009 "468" claim (surfaced msg 9694,
+  challenged 9697, defended 9698) is UNRESOLVED — never promote without
+  primary evidence; it's also a different-rules variant (randomized pieces).
 - 468/Toulis question further narrowed: nothing above 467 verified through
   contest close (Owen farewell 8429).
 - concepts/local-search-alns: Pierre Schaus's JFPC paper + Hungarian/Munkres
