@@ -24,6 +24,10 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0009` 2010-03 → 2010-08 ✅ 2026-07-02 (doc's return, toolbox era, complex-theory defense)
 - `0010` 2010-09 → 2011-02 ✅ 2026-07-02 (contest ends: Monckton msg 8477; 467 stands, Owen farewell 8429; peak-depth 256·(1−1/e) proof msg 8125)
 - `0011` 2011-03 → 2011-12 ✅ 2026-07-02 (post-contest year: solution-in-a-safe msg 8823; 9x9 exhaustive validations)
+- `0012` 2012-01 → 2014-12 ✅ 2026-07-02 (quiet years: Wauters academia, Czech re-prize, McGavin's complex_theory.pdf msg 9188, FPGA/Carré arrivals)
+- `0013` 2015-01 → 2018-12 (launched)
+- `0014` 2019-01 → 2021-12 (launched; the 468/469/470 record wave)
+- `0015` 2022-01 → 2026-03 (launched; Gauthier 460 strict, Bucas 470, wrapper_blackwood)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
@@ -48,6 +52,9 @@ sweep chronologically toward today.** Each window produces one digest in
   8339, official page 8373, Monckton "extension not allowed" 8477).
 - complex-theory page: Owen's peak-depth proof 256·(1−1/e)=161.8 (msg 8125)
   — the closed form behind the funnel chart's empirical peak (~157-161).
+- complex-theory lineage complete: Owen 2008 (5197/5209) → McGavin's LaTeX
+  complex_theory.pdf in group Files (msg 9188, 2013) → McGavin's C reference
+  (msg 11197, 2024) → this site's TS port. Worth a provenance paragraph.
 - 468/Toulis question further narrowed: nothing above 467 verified through
   contest close (Owen farewell 8429).
 - concepts/local-search-alns: Pierre Schaus's JFPC paper + Hungarian/Munkres
