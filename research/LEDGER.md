@@ -535,3 +535,24 @@ attempts, and the score climb to 463 by late 2007. Every event carries its
 public msg_num link. Leads for existing wiki pages recorded in the README
 (earlier sources for border-balance and phase-transition, a known-facts
 parity fact).
+
+### 2026-07-02 — Digests 0004-0006; the wiki corrects itself on 479
+
+Windows 0004-0006 digested (2008-03 → 2009-02, ~2,000 messages, 90+ events):
+Owen's complex-theory completion posts (5197/5209), Schaus's Hungarian-refill
+VLNS arriving, the 467 run-up (Verhaard past the "don't-talk limit", solver
+released at fingerboys.se), and the first scrutiny date (TOMY silence, the
+$10,000 to "Anna Karlsson" = Verhaard's household entry, 467 hit 40+ times by
+his tool's users). Two synthesis traps recorded (no public 467 announcement;
+the Oct-2008 "468" is a test puzzle).
+
+LIVING-WIKI CORRECTION: digest 0006 flagged that Verhaard (msg 6317, 2009)
+refuted the msg-1640 parity proof I had just published in known-facts.
+Adjudicated from the archive bodies + verified against the official piece
+set (14 border pieces have equal ring-facing sides): 479 IS reachable from
+any full solution via a border-piece flip — the parity leaks through the 60
+unscored outward edges. known-facts rewritten to tell the full story, both
+messages cited. Lesson: categorical impossibility claims get the same
+adversarial treatment as everything else.
+
+- Verified: build ✓ (139 paths).
