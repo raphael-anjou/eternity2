@@ -609,3 +609,25 @@ references ("469-class", McGavin's 469 analyses) deliberately preserved.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (143 paths), EN/FR titles, corrected
   records page in prerendered HTML.
+
+### 2026-07-02 — Overnight wave: benchmarks, parity, Blackwood enrichment, contribute guide
+
+Four pages from the digest goldmine, all EN + native FR:
+- /research/build/benchmarks — the community's benchmark culture: the census
+  verification protocol (3x3 corner 2,633,221; 2x2 counts), the named suites
+  and their duels (hints15_2 down to 85,729 nodes), hints.20.3 (2.9e13 nodes,
+  one solution), the 9x9 pair, and Brendan's 10x10 — set_1 solved 2017
+  (~180 core-years), set_2 framed as the standing open challenge.
+- /research/build/concepts/parity-arguments — the 479 story in three acts,
+  colour sums → NS-1 lineage, the 2011 balanced-sets negatives, and the
+  certificate-asymmetry lesson.
+- Blackwood page enriched with primary levers (no-adjacent-breaks 10051, the
+  11→10 retune behind the 470 10076, his own negative results 10056, the
+  open-source spread arc). Agent corrected my brief from the digests
+  (10161 = his repo re-publication, libblackwood = 10078).
+- /research/contribute — the warm invitation: three ways in, house rules,
+  the Jef Bucas precedent; lands in the Build sidebar via SECTION_OF.
+Also: Schaus msg 5589 wired into the ALNS concept sources. Phase 5 complete.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (149 paths), contribute in Build
+  sidebar confirmed in browser.

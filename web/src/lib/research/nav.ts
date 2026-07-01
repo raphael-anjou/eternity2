@@ -44,6 +44,7 @@ const SECTION_OF: Record<string, string> = {
   reference: "build",
   papers: "build",
   records: "build",
+  contribute: "build",
 };
 
 function sectionOf(url: string): string {

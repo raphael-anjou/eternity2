@@ -1,0 +1,241 @@
+---
+title: "The community's benchmarks"
+description: >-
+  How a community forbidden from sharing the pieces built a shared test
+  culture anyway: derived-count verification protocols, the Txibilis and
+  beginner suites, node-count duels, full enumerations — and the one
+  benchmark that is still standing open today.
+kind: reference
+order: 17
+updated: 2026-07-02
+topics: [backtracking, speed]
+sources:
+  - label: "The 3x3 corner census proposal — 'Suggestion for Benchmark/Test' (arthurhucksake), eternity2@groups.io, 2007-08"
+    url: https://groups.io/g/eternity2/message/2229
+  - label: "Txibilis launches the benchmark suite — 'New round of benchmarks...', eternity2@groups.io, 2007-08"
+    url: https://groups.io/g/eternity2/message/1610
+  - label: "Geoff's 'Benchmarks for Beginners' datasets, eternity2@groups.io, 2008-02"
+    url: https://groups.io/g/eternity2/message/4322
+  - label: "hints.20.3 fully enumerated — 'Algorithmic Challenges related to E2' (doc_s_smith), eternity2@groups.io, 2010-07"
+    url: https://groups.io/g/eternity2/message/7861
+  - label: "Both 9x9s exhaustively searched (istarinz), eternity2@groups.io, 2011-03"
+    url: https://groups.io/g/eternity2/message/8793
+  - label: "Brendan's set_1 10x10 solved (Peter McGavin), eternity2@groups.io, 2017-09"
+    url: https://groups.io/g/eternity2/message/9686
+related:
+  - /research/reference
+  - /research/build/known-facts
+  - /research/why/complex-theory
+---
+
+Every solver community needs test problems, but Eternity II's had an extra
+constraint: in August 2007 Christopher Monckton claimed copyright on the
+piece designs and threatened action against "any circulation of them, in any
+form or medium" — and disqualified Brendan Owen over a file that did not
+even contain the real pieces
+([message 1342](https://groups.io/g/eternity2/message/1342)). So the
+community built its test culture around two things that *could* be shared:
+derived counts computed from the pieces, and freshly generated E2-like
+puzzles. Both are still the right way to calibrate a solver today.
+
+## The census protocol: verify without sharing
+
+If two people transcribed the same 256 pieces and wrote correct code, their
+solvers must agree on exhaustive counts. That observation, posted by
+arthurhucksake in August 2007, became the community's standard correctness
+test: tile the top-left 3x3 corner with all E2 pieces and count —
+**2,633,221** solutions, or **2,582,369** without the mandatory hint piece
+([message 2229](https://groups.io/g/eternity2/message/2229),
+[2370](https://groups.io/g/eternity2/message/2370)). The 2x2 block census
+followed the same autumn, with three independent programs converging on
+**5,248** corner blocks, **292,012** edge blocks and **4,059,952** interior
+blocks ([message 3044](https://groups.io/g/eternity2/message/3044)).
+
+The protocol earned its keep. When apal1969 posted per-centre-piece counts
+of all 3x3 interior partials in 2009, the pile-on of independent programs
+found bugs on *both* sides — one verifier discovered his own hint piece was
+rotated 90° off, and apal1969 himself found an error affecting every centre
+piece but one ([message 6625](https://groups.io/g/eternity2/message/6625)).
+Matching the consensus numbers got you welcomed, only half-jokingly, into
+the "Right Numbers Club"
+([message 6869](https://groups.io/g/eternity2/message/6869)). Sharing counts
+instead of pieces was copyright-safe — and it caught more bugs than any
+code review.
+
+The interchange formats crystallized in the same period: the community
+standardized on the `e2pieces.txt` / `e2hints.txt` files from Dave Clark's
+eternity2.net project, written down explicitly so tools could interoperate
+([message 3571](https://groups.io/g/eternity2/message/3571)). The metric
+took longer. A "node vs step" debate over what exactly a solver should count
+ended with the admission that no common metric would be agreed
+([message 3936](https://groups.io/g/eternity2/message/3936)); Txibilis's
+convention — a node is a *committed valid placement*, lookahead not counted
+([message 3843](https://groups.io/g/eternity2/message/3843)) — is the one
+most period numbers use, and the reason old speed claims need care when
+compared.
+
+## The Txibilis suite and the node-count race
+
+In August 2007, after a debate over what a fair E2 stand-in should look like
+(the flat 17+5 colour distribution, above all), Txibilis generated E2-like
+boards at sides 11 through 14 with hint variants — the `tiles_N_5.17` files —
+and Craig Easton set up a results database
+([message 1610](https://groups.io/g/eternity2/message/1610),
+[1784](https://groups.io/g/eternity2/message/1784)). The suite immediately
+became a competitive arena: doc_s_smith's first full scan of the size-12
+hint puzzle cost 750,226,469 nodes
+([message 1862](https://groups.io/g/eternity2/message/1862)); two months of
+head-to-head between his automatic strategy finder and Txibilis's hand-built
+fill orders drove the full search of the size-14 `hints15_2` benchmark down
+to 89,794 nodes, then 85,729
+([message 2896](https://groups.io/g/eternity2/message/2896),
+[2928](https://groups.io/g/eternity2/message/2928)) — orders of magnitude
+below where the race began, machine-designed versus human-designed
+strategies trading the lead. The same weeks produced a preview of the other
+lever: newcomer Geoff's constraint-propagation solver traversed just 198
+nodes to a first solution on a 14x14 hint benchmark
+([message 2902](https://groups.io/g/eternity2/message/2902)). And at the
+heavyweight end, Txibilis exhausted the full 14x14 search space — about
+2.2 × 10¹³ nodes — with the help of friends' computers
+([message 2550](https://groups.io/g/eternity2/message/2550)).
+
+The lesson the race taught is the one this wiki keeps returning to: node
+count is a property of the *fill order*, and the gap between a naive order
+and a designed one is measured in orders of magnitude, not percent —
+exactly what [complex theory](/research/why/complex-theory) later made
+computable in advance.
+
+## Benchmarks for Beginners
+
+In February 2008 Geoff packaged the on-ramp: three puzzles drawn from
+Brendan Owen's generated "Set 1" — a 6x6 with one hint, an 8x8 with two,
+a 10x10 with three — published inline with a self-documented format
+([message 4322](https://groups.io/g/eternity2/message/4322)). Complete
+solution sets followed (the 6x6 has 65 distinct solutions, 260 counting
+rotations; [message 4604](https://groups.io/g/eternity2/message/4604)), and
+the suite accumulated canonical calibration numbers newcomers still get
+pointed to: 260 rotated solutions and a full row-scan search of exactly
+69,284,103 nodes for the 6x6
+([message 7766](https://groups.io/g/eternity2/message/7766),
+[7777](https://groups.io/g/eternity2/message/7777)). If your solver gets a
+different count, your solver is wrong — that is the entire value
+proposition.
+
+## The 40-hint 12x12 shoot-out
+
+In May 2008 Max uploaded a designed instance: Brendan's 12x12 with 40 hints —
+four 3x3 corners plus a central 2x2 — to measure how much knowing the hint
+"environments" shrinks the search
+([message 5453](https://groups.io/g/eternity2/message/5453)). What followed
+is the era's best single-instance comparison of every school at once:
+Geoff's arc-consistency + backtracking hybrid found the solution in ~7 s
+and 1.29 × 10⁸ nodes
+([message 5455](https://groups.io/g/eternity2/message/5455)); Brendan's
+complex theory priced the plain scanline full search at 5.6 × 10⁸ nodes
+([message 5457](https://groups.io/g/eternity2/message/5457)); istarinz's
+generated-C brute-forcer ran at ~68 million placements per second
+([message 5459](https://groups.io/g/eternity2/message/5459)); and Txibilis's
+hand-tuned path cut the full search to 2.89 × 10⁸ nodes — over 20x below
+scanline — with a theory-derived path landing close behind
+([message 5494](https://groups.io/g/eternity2/message/5494)). Propagation,
+theory, raw speed and path design, all on one board: the shoot-out format
+every solver author secretly wants.
+
+## hints.20.3: the full-enumeration challenge
+
+When doc_s_smith returned in 2010 he reframed the game: solving E2 itself is
+brute force and therefore boring; the interesting, *comparable* problem is
+exhaustively counting the solutions of hint-rich benchmarks
+([message 7803](https://groups.io/g/eternity2/message/7803)). His flagship:
+the 16x16 `hints.20.3` puzzle, fully enumerated on a single 3.5 GHz core —
+**29,481,602,025,785 nodes** (about 2.9 × 10¹³), 15.6 CPU-days, exactly
+**one** solution ([message 7861](https://groups.io/g/eternity2/message/7861))
+— posted as a standing challenge: beat the node count, the time, or both.
+
+The challenge did what good benchmarks do — it forced collaboration. Over
+three weeks Martin (capiman), istarinz and doc converged their
+arc-consistency and domain-reduction implementations by exchanging full
+16x16 domain dumps for this exact instance, catching each other's coordinate
+mirroring and propagation bugs; doc's estimated node count for the benchmark
+fell from 1.6 × 10¹³ to 2.6 × 10¹²
+([message 7890](https://groups.io/g/eternity2/message/7890),
+[7902](https://groups.io/g/eternity2/message/7902)).
+
+## The 9x9 pair: exhausted, then re-verified on a GPU
+
+In March 2011 istarinz reported exhausting the full search spaces of *both*
+of Brendan's 9x9 puzzles — three weeks each on a dual-core Opteron:
+191,750,810,226,600 nodes for set 1, 145,088,777,827,367 for set 2, against
+a theory estimate of ~1.84 × 10¹⁴
+([message 8793](https://groups.io/g/eternity2/message/8793)). The census
+protocol then did its job on the answer itself: he initially claimed one
+solution each, Peter McGavin's independently shuffled backtrackers found a
+*second* set-1 solution ([message 8801](https://groups.io/g/eternity2/message/8801)),
+and the corrected tallies — **2 solutions for set 1, 3 for set 2** — were
+confirmed when McGavin found all three set-2 solutions
+([message 8803](https://groups.io/g/eternity2/message/8803)). Complex theory
+had predicted 3.2 solutions for set 1: right order of magnitude on the
+largest instance ever fully searched.
+
+Seven years later the numbers were re-verified from scratch by a completely
+different implementation on absurdly different hardware: Adam Miles's
+DirectX 12 compute-shader solver ran the full 9x9 set-1 tree on an Xbox
+One X in 25 h 24 m and found exactly the 2 known solutions
+([message 9822](https://groups.io/g/eternity2/message/9822)). That is what a
+mature benchmark culture looks like: a 2011 CPU census and a 2018 console
+GPU agreeing to the solution.
+
+## Brendan's 10x10s: one fell, one is still standing
+
+Brendan Owen's hint-free 10x10 puzzles were the community's acknowledged
+frontier — "No one has even solved his 10x10 yet. The largest solved one is
+the 9x9" ([message 8936](https://groups.io/g/eternity2/message/8936)). In
+September 2017, Peter McGavin solved **set_1**: enumerate the ~20 million
+first rows, rank them by complex theory's chance-of-solution per search-tree
+node, and farm the backtracking out to 400+ cores of home ARM boards and
+borrowed servers. The solution arrived after ~2 × 10¹⁷ nodes — about
+**180 core-years** — on row-search ~92,907 of a predicted one-per-70,000,
+having covered under 0.5% of the whole tree
+([message 9686](https://groups.io/g/eternity2/message/9686), method and
+statistics in [9688](https://groups.io/g/eternity2/message/9688)). Martin
+validated the board independently
+([message 9725](https://groups.io/g/eternity2/message/9725)), and the
+community's verdict — "amazing that it is being truly just as hard as
+predicted" ([message 9693](https://groups.io/g/eternity2/message/9693)) —
+doubled as the strongest empirical validation
+[complex theory](/research/why/complex-theory) has ever received. In
+McGavin's own words: no new methods, just systematic persistence and the law
+of large numbers.
+
+**Set_2 has never been solved.** As of this page's last update it remains
+exactly what set_1 was for a decade: a hint-free 10x10, statistics known,
+difficulty priced by theory, waiting for somebody's 180 core-years. If you
+want a benchmark with a name to make, this is the one.
+
+## What to run today
+
+The historical suites live in the group's Files area (with some link rot);
+the protocol they embody is easier to follow now than it was then:
+
+1. **Join the Right Numbers Club first.** Before trusting any timing, check
+   your solver against exhaustive counts. This site maintains the modern
+   equivalent of the census posts — exact block counts at every board
+   position, under increasingly constrained rules — on the
+   [reference numbers](/research/reference) page. The classics still work
+   too: 2,633,221 for the 3x3 corner, 69,284,103 row-scan nodes for
+   Brendan's 6x6.
+2. **Climb the ladder.** Brendan's generated puzzles have agreed answers:
+   6x6 (65 solutions), 7x7 (set 1: 6,297 solutions in 67,667,477,364 nodes —
+   the standard micro-benchmark since
+   [message 9793](https://groups.io/g/eternity2/message/9793)), 8x8
+   (24 corner-fixed solutions,
+   [message 8890](https://groups.io/g/eternity2/message/8890)), the 9x9 pair
+   (2 and 3 solutions), then `hints.20.3` (exactly 1 solution in
+   2.9 × 10¹³ nodes).
+3. **Report node counts with your times**, and say what you count — the
+   2007 node-vs-step ambiguity never fully died, and a timing without a node
+   count is unfalsifiable. The habit of posting both is what made the
+   2017–2018 results comparable across a Phenom, a Xeon and an Xbox.
+4. **Then aim at set_2.** The
+   [known facts page](/research/build/known-facts) has the numbers for the
+   real board; the open 10x10 is the community's agreed next rung below it.
