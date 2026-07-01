@@ -190,7 +190,11 @@ Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
       with provenance; internal vault material excluded)
 - [x] Blackwood solver page (/research/build/solvers/blackwood — Jef Bucas's
       notes + parameter study, with permission, full credit)
-- [ ] Research timeline/history enrichment (TIMELINE.md, 219 vols compressed)
+- [x] History: "The hunt" parts I+II (2000→2026) synthesized from the full
+      community-archive sweep (better than the vault TIMELINE — primary
+      sources throughout); records fully sourced and CORRECTED (470 ceiling)
+- [x] Concepts encyclopedia v1 (9 techniques incl. parity-arguments) +
+      community benchmarks page + Blackwood decoded & enriched
 - [ ] Concepts encyclopedia: curated subset of the 386 concept files
       (propagators, search, local-search families…), attribution-neutral
 - [ ] Basins: case studies for all 17 boards (gallery has 7)
@@ -198,13 +202,11 @@ Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
       technical write-ups under lab/findings
 - [ ] groups.io community links/history verification
 
-### Phase 5 — researcher affordances
+### Phase 5 — researcher affordances ✅ DONE 2026-07-02
 
-- [ ] Per-page raw markdown export (`.md` next to each page) + llms.txt
-      regeneration (revisits the AGENTS.md index-only tradeoff: content is
-      now markdown, so the old objection is gone)
-- [ ] "Edit this page" / "View source" GitHub links
-- [ ] Contribution guide for community researchers
+- [x] Per-page raw markdown export (78 .md siblings) + llms.txt rewrite
+- [x] "Page source" GitHub + "View as Markdown" links in the shell footer
+- [x] Contribution guide (/research/contribute, in the Build section)
 
 ## Working rules
 

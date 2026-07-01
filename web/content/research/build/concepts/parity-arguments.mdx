@@ -1,0 +1,148 @@
+---
+title: Parity arguments
+description: >-
+  Count anything on an edge-matching board twice — once from each side — and
+  the totals must agree, giving impossibility proofs for the price of one
+  pass. The 479 story shows both the power and the trap: a clean parity
+  claim, true for every interior move, defeated through the sixty border
+  edges nobody scores.
+kind: concept
+order: 90
+updated: 2026-07-02
+topics: [structure, search-space]
+sources:
+  - label: kubzpa's parity claim that a 479 score is impossible (August 2007)
+    url: https://groups.io/g/eternity2/message/1640
+  - label: psykowally's 478 construction — rotate an interior piece with equal opposite edges (msg 1642)
+    url: https://groups.io/g/eternity2/message/1642
+  - label: Verhaard's refutation — 479 through a flipped border piece (January 2009)
+    url: https://groups.io/g/eternity2/message/6317
+  - label: angwin_uk & mjqxxxx on border edge-type balance, 12 per side (August 2007)
+    url: https://groups.io/g/eternity2/message/2073
+  - label: The 2011 parity mega-thread — checkerboard and rotation-balanced piece sets
+    url: https://groups.io/g/eternity2/message/8898
+  - label: John Gilbert's negative result — balanced sets stall backtrackers faster (msg 8913)
+    url: https://groups.io/g/eternity2/message/8913
+  - label: Nick's pen-and-paper near-balanced set, and Jamison's global-sum verification (msgs 8977/8978)
+    url: https://groups.io/g/eternity2/message/8977
+related:
+  - /research/why/border-balance
+  - /research/build/known-facts
+---
+
+A parity argument is double-entry bookkeeping applied to a game board. Every
+edge inside the puzzle has two sides, so anything counted over the whole
+board — colour occurrences, matched edges, orientation sums — gets counted
+twice, once from each side, and the two ledgers must agree. A state where
+they disagree is not merely unpromising; it is impossible, and no search is
+needed to prove it. On a puzzle where [no move is ever
+forced](/research/why/no-forced-moves) and lookahead is expensive, an
+invariant that costs one pass over the board and never lies is worth taking
+seriously — as long as you remember which direction it points.
+
+## The 479 story, in three acts
+
+The community's best parity tale starts three weeks after launch. In August
+2007, kubzpa argued that a placement with *exactly* 479 matched edges — one
+single mismatch — cannot exist
+([msg 1640](https://groups.io/g/eternity2/message/1640)). The intuition is a
+parity flip: disturb any piece and the edges it touches change state
+together, so mismatches should come in pairs. psykowally immediately
+supplied the constructive companion for 478: take a solved board and rotate
+an interior piece whose opposite edges carry equal colours by 180° — exactly
+two edges break
+([msg 1642](https://groups.io/g/eternity2/message/1642)).
+
+The argument is correct for every interior move. It fails at the frame. In
+January 2009 Louis Verhaard pointed out the leak: the 60 outward-facing grey
+edges are *unscored*, so a border piece whose two ring-facing sides share a
+colour can be flipped end-for-end, breaking exactly one scored edge — the
+seam edge behind it — while the change on the grey side costs nothing
+([msg 6317](https://groups.io/g/eternity2/message/6317)). One mismatch,
+score 479, parity defeated through the edges the scoring convention ignores.
+This project checked the claim against the official piece set: 14 border
+pieces qualify (computed), so any full solution implies a 479 — the version
+of the story that [known facts](/research/build/known-facts) now carries.
+Verhaard added a bureaucratic punchline: the prize entry form recorded piece
+numbers but not rotations, so Tomy's scorer would have read such a board as
+a 480.
+
+The lesson generalises. A parity argument is only as strong as the boundary
+conditions it accounts for, and Eternity II's scoring rules puncture the
+boundary in sixty places.
+
+## Colour sums and multiset balance
+
+The second family of counting arguments tallies colours rather than
+mismatches. Already in August 2007, angwin_uk observed that the border is
+built balanced: five border edge types, twelve of each on either side of
+every border piece's grey edge
+([msg 2073](https://groups.io/g/eternity2/message/2073)) — and mjqxxxx
+sharpened the point: border pieces sit in a fixed orientation, so each type
+must split *equally* into left-facing and right-facing edges, a strictly
+stronger condition than even counts
+([msg 2098](https://groups.io/g/eternity2/message/2098)).
+
+Follow that thought inward and you reach the seam. In any complete solution,
+the multiset of colours the border ring presents to the interior must equal
+the multiset the interior presents back — every colour handed in is handed
+out. That is Hopfer's NS-1 condition, formalised in 2022 and treated at
+length on [the border balance page](/research/why/border-balance): a genuine
+necessary condition, cheap to check, and blind to everything that happens
+interior-to-interior. Same mathematics, two uses — 2007 used the balance to
+estimate how many border solutions exist; 2022 turned it around into a
+pruning certificate.
+
+## The 2011 expedition, and its honest negative
+
+After the contest ended, the list spent the summer of 2011 pushing parity as
+far as it would go. Juraj Pivovarov posed the *oriented set* problem: split
+the 256 pieces into checkerboard piles A and B so that every colour's
+directional edge counts balance — because knowing either the orientations or
+the pile assignment of a solution would make the rest easy
+([msg 8898](https://groups.io/g/eternity2/message/8898)). Peter McGavin
+reduced the condition to per-colour sums — left equals right, top equals
+bottom ([msg 8906](https://groups.io/g/eternity2/message/8906)) — and Juraj
+counted roughly $4.5 \times 10^{485}$ qualifying checkerboard
+rotation-balanced sets, after Michael Field corrected his first estimate
+([msg 8929](https://groups.io/g/eternity2/message/8929)), while framing the
+search for even one as a hard instance of PARTITION.
+
+Two results ended the expedition, both worth keeping. John Gilbert ran the
+experiment: balanced checkerboard sets can be found one at a time, but
+feeding the balance to a backtracker as a constraint makes it stall *faster*
+— each placement now draws on half the candidate pieces, and the restriction
+costs more than it prunes
+([msg 8913](https://groups.io/g/eternity2/message/8913)). And Nick, working
+with pen and paper on his train commute, drove a full 256-piece
+checkerboard-plus-rotation assignment to within a single edge-flip of
+balance ([msg 8977](https://groups.io/g/eternity2/message/8977)); Jason
+Jamison verified the global sums under Nick's coding — all tops equal all
+bottoms at 2,809, all lefts equal all rights at 2,881 — and reported that
+the near-balanced set still stalled his backtracker about 19 pieces out of a
+corner ([msg 8978](https://groups.io/g/eternity2/message/8978)). Balance is
+real, abundant, and buys the search nothing.
+
+## What parity buys a solver author
+
+Three things, none of them a solution.
+
+**Cheap necessary conditions.** A parity or balance check costs one pass and
+composes with anything — a backtracker, a
+[local search](/research/build/concepts/local-search-alns), a sanity check
+on someone else's claimed board. NS-1 after the border ring closes rejects
+10–28% of deep dead-ends for the price of 56 edge reads.
+
+**Certificate asymmetry.** Every argument on this page points one way: a
+violated invariant says *definitely broken*, a satisfied one never says
+*definitely fine*. Swap two border pieces and NS-1 stays at zero; balance a
+piece set perfectly and the backtracker stalls anyway. Parity prunes; it
+does not guide.
+
+**A boundary-conditions reflex.** The 479 proof was correct everywhere the
+prover looked, and wrong because the scoring rules created sixty edges he
+did not have to look at. Before trusting any counting argument on this
+puzzle — including this project's own — audit what the frame, the scoring
+convention, and the unscored grey are quietly exempting. On Eternity II, the
+exceptions live at the border, and the border is where the arguments go to
+die.

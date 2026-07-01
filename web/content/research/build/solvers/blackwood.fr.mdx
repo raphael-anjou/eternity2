@@ -17,6 +17,10 @@ sources:
     url: https://groups.io/g/eternity2/message/11905
   - label: Le solveur original de Joshua Blackwood
     url: https://github.com/jblackwood345/EternityII_Solver
+  - label: Le plan de réglage de Blackwood — les quatre leviers et le re-réglage du 470 (groups.io, message 10076)
+    url: https://groups.io/g/eternity2/message/10076
+  - label: Le dépôt re-publié — « le code exact utilisé pour trouver un 470 » (groups.io, message 10161)
+    url: https://groups.io/g/eternity2/message/10161
 related:
   - /research/why/complex-theory
   - /research/records
@@ -149,6 +153,20 @@ rend les [plateaux records](/research/records) atteignables tout court : un
 256 parfait n'a jamais été trouvé, mais un plateau qui tolère une poignée de
 désaccords tardifs, un backtracker peut réellement le finir.
 
+Deux détails précisent le tableau. D'abord, le budget s'accompagne d'une
+discipline : deux ruptures ne peuvent jamais se toucher — chaque désaccord
+doit rester isolé au milieu d'arêtes appariées. Blackwood en tire lui-même la
+conséquence : toute exécution qui atteint 255 poses se termine
+automatiquement à 256, et un plateau 469 équivaut à un partiel de 249 pièces
+avec sept trous
+([groups.io, message 10051](https://groups.io/g/eternity2/message/10051)).
+Ensuite, la liste de dix entrées ci-dessus est elle-même un re-réglage : en
+préparant le passage du 469 au 470, Blackwood a réduit le budget de onze
+ruptures à dix et déplacé les profondeurs de déblocage — un changement qu'il
+documente, levier par levier, dans son propre plan de réglage
+([groups.io, message 10076](https://groups.io/g/eternity2/message/10076)) —
+et c'est ce calendrier re-réglé qui a trouvé le 470.
+
 ## Redémarrages, hasard, et un plafond de 50 milliards de nœuds
 
 Un backtracker en balayage par lignes remonte rarement jusqu'à ses premières
@@ -182,6 +200,34 @@ public struct RotatedPiece
 
 C'est le versant débit de l'histoire : la conception même que Peter McGavin
 poussera plus tard à des centaines de millions de poses par seconde.
+
+## D'un seul 468 à une vague de records
+
+L'histoire du solveur est aussi instructive que ses entrailles. Blackwood est
+arrivé en parfait inconnu : son 468 — la première avancée au-delà du 467 de
+Louis Verhaard en douze ans — a atteint la liste de diffusion de seconde
+main, relayé depuis un fil Reddit
+([groups.io, message 10032](https://groups.io/g/eternity2/message/10032)).
+Trois jours plus tard, il publie le solveur en source ouverte, avec des
+heuristiques qui, estime-t-il, le rendent « deux fois meilleur » que
+l'exécution du 468
+([message 10037](https://groups.io/g/eternity2/message/10037)) ; Jef Bucas
+le fait tourner sous Mono sur Ubuntu presque aussitôt
+([message 10038](https://groups.io/g/eternity2/message/10038)). En moins
+d'une semaine, Peter McGavin — qui l'exécute « sur environ deux cents
+cœurs » — décroche un 469
+([message 10045](https://groups.io/g/eternity2/message/10045)). Bucas
+réécrit alors l'algorithme en C, à peu près deux fois plus rapide
+([message 10065](https://groups.io/g/eternity2/message/10065)), une vague de
+nouveaux plateaux 469 suit en quelques semaines, et le générateur de code
+derrière la réécriture est publié sous le nom de
+[libblackwood](https://github.com/jfbucas/libblackwood)
+([message 10078](https://groups.io/g/eternity2/message/10078)). Quand
+Blackwood publie son 470 en mars 2021, il sort de ce même code public — ses
+propres mots, en re-publiant le dépôt discrètement passé en privé : « C'est
+le code exact utilisé pour trouver un 470 »
+([message 10161](https://groups.io/g/eternity2/message/10161)). Un record,
+mis en source ouverte, est devenu une machine à records communautaire.
 
 ## L'étude de paramètres de Jef : wrapper_blackwood
 
@@ -223,6 +269,20 @@ conclusion de Jef, et la nôtre : les paramètres d'origine étaient quasi
 optimaux. Le vieux conseil tient toujours — avant de repenser les
 heuristiques d'un solveur record, vérifiez si son auteur n'a pas déjà trouvé
 l'optimum local à la main.
+
+<Callout kind="note" title="Les résultats négatifs de Blackwood lui-même">
+  Blackwood s'est appliqué le même audit. Après le 469, il a catalogué ses
+  impasses sur la liste de diffusion
+  ([groups.io, message 10056](https://groups.io/g/eternity2/message/10056)) :
+  éliminer quatre couleurs tôt au lieu de trois (aucun gain), garder des
+  couleurs pour la fin de partie (pire), les solveurs SAT — kissat,
+  cryptominisat, OR-tools de Google — (médiocres), l'accélération GPU, et la
+  mise en cache de tous les blocs 2x2 pré-résolus (mesurée, puis
+  abandonnée). La seule chose qui ait jamais payé : raffiner les heuristiques
+  elles-mêmes, pour un nouveau facteur ~2. C'est la conclusion du balayage de
+  Jef, atteinte par l'autre bout : la magie est dans le calendrier, pas dans
+  la technologie brute.
+</Callout>
 
 ## À reproduire
 

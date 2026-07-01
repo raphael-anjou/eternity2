@@ -16,6 +16,10 @@ sources:
     url: https://groups.io/g/eternity2/message/11905
   - label: Joshua Blackwood's original solver
     url: https://github.com/jblackwood345/EternityII_Solver
+  - label: Blackwood's own tuning plan — the four levers and the 470 retune (groups.io message 10076)
+    url: https://groups.io/g/eternity2/message/10076
+  - label: The repo re-published — "the exact code used to find a 470" (groups.io message 10161)
+    url: https://groups.io/g/eternity2/message/10161
 related:
   - /research/why/complex-theory
   - /research/records
@@ -141,6 +145,19 @@ Ten breaks in total, the last unlocking at depth 239. This is what makes the
 been found, but a board that tolerates a handful of late mismatches is
 something a backtracker can actually finish.
 
+Two details sharpen the picture. First, the budget comes with a discipline:
+no two breaks are ever allowed to touch — each mismatch must sit isolated
+among matched edges. Blackwood spells out the consequence himself: any run
+that reaches 255 placements automatically completes to 256, and a 469 board
+is equivalently a 249-piece partial with seven holes
+([groups.io message 10051](https://groups.io/g/eternity2/message/10051)).
+Second, the ten-entry list above is itself a retune: planning the push from
+469 to 470, Blackwood cut the break budget from eleven depths to ten and
+shifted the unlock points — a change he documented, lever by lever, in his
+own tuning plan
+([groups.io message 10076](https://groups.io/g/eternity2/message/10076)) —
+and that retuned schedule is what found the 470.
+
 ## Restarts, randomness, and a 50-billion-node cap
 
 A row-scan backtracker rarely climbs back up to its first rows, so a bad
@@ -172,6 +189,31 @@ public struct RotatedPiece
 
 This is the throughput half of the story: the same design that Peter McGavin
 later pushed to hundreds of millions of placements per second.
+
+## From one 468 to a wave of records
+
+The solver's history is as instructive as its internals. Blackwood arrived a
+complete outsider: his 468 — the first advance past Louis Verhaard's 467 in
+twelve years — reached the mailing list second-hand, relayed from a Reddit
+post ([groups.io message 10032](https://groups.io/g/eternity2/message/10032)).
+Three days later he open-sourced the solver, with heuristics he reckoned made
+it "twice as good" as the 468 run
+([message 10037](https://groups.io/g/eternity2/message/10037)); Jef Bucas had
+it running under Mono on Ubuntu almost immediately
+([message 10038](https://groups.io/g/eternity2/message/10038)). Within a
+week, Peter McGavin — running it "on about a couple of hundred cores" — hit
+469 ([message 10045](https://groups.io/g/eternity2/message/10045)). Bucas
+then rewrote the algorithm in C for roughly double the speed
+([message 10065](https://groups.io/g/eternity2/message/10065)), a wave of
+fresh 469 boards followed within weeks, and the code generator behind the
+rewrite was published as
+[libblackwood](https://github.com/jfbucas/libblackwood)
+([message 10078](https://groups.io/g/eternity2/message/10078)). When
+Blackwood posted his 470 in March 2021, it came from that same public code —
+his own words, on re-publishing the repo after it had quietly gone private:
+"It is the exact code used to find a 470"
+([message 10161](https://groups.io/g/eternity2/message/10161)). One record,
+open-sourced, became a community record machine.
 
 ## Jef's parameter study: wrapper_blackwood
 
@@ -210,6 +252,19 @@ best-performing zone. Jef's conclusion, and ours: the original parameters
 were near-optimal. The decades-old advice holds — before you redesign a
 record solver's heuristics, check whether its author already found the local
 optimum by hand.
+
+<Callout kind="note" title="Blackwood's own negative results">
+  Blackwood ran the same audit on himself. After the 469 he catalogued his
+  dead ends on the mailing list
+  ([groups.io message 10056](https://groups.io/g/eternity2/message/10056)):
+  eliminating four colours early instead of three (no gain), saving colours
+  for the endgame (worse), SAT solvers — kissat, cryptominisat, Google
+  OR-tools — (poor), GPU acceleration, and caching all pre-solved 2x2 blocks
+  (measured, then dropped). The only thing that ever paid was refining the
+  heuristics themselves, worth another ~2x. It is the same conclusion as
+  Jef's sweep, reached from the other direction: the schedule is the magic,
+  not the raw technology.
+</Callout>
 
 ## Replicate it
 
