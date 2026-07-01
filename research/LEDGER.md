@@ -521,3 +521,17 @@ vol/basin/codename material excluded; one vault figure flagged fabricated
 was replaced with "never profiled". 18 MDX files, EN + native FR.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (139 paths, EN/FR titles).
+
+### 2026-07-02 — Community archive digests 0001-0003 (2000 → 2008-02)
+
+The full local groups.io export (11,511 messages) is being swept
+chronologically per user directive (pipeline: research/community/README.md).
+First three windows digested (~4,600 messages, 86 sourced events): the
+group's 2000 pre-history, launch-week analysis, Monckton's disqualification
+drama, the 17-colour design derivation (msg 1947), the parity proof that 479
+is impossible (msg 1640), 2007 border-balance precursors (msgs 414/2073),
+eternity2.net's rise and shutdown, the benchmark culture, early SAT/DLX/ILP
+attempts, and the score climb to 463 by late 2007. Every event carries its
+public msg_num link. Leads for existing wiki pages recorded in the README
+(earlier sources for border-balance and phase-transition, a known-facts
+parity fact).

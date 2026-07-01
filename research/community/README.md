@@ -13,11 +13,28 @@ sweep chronologically toward today.** Each window produces one digest in
 
 ## Windows
 
-- `0001` 2000-01 → 2007-07 (pre-launch + launch)
-- `0002` 2007-08 → 2007-10
-- `0003` 2007-11 → 2008-02
+- `0001` 2000-01 → 2007-07 (pre-launch + launch) ✅ 2026-07-02
+- `0002` 2007-08 → 2007-10 ✅ 2026-07-02
+- `0003` 2007-11 → 2008-02 ✅ 2026-07-02
+- `0004` 2008-03 → 2008-06 (launched)
+- `0005` 2008-07 → 2008-10 (launched; expect Verhaard 467 era)
+- `0006` 2008-11 → 2009-02 (launched; first scrutiny date)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
+
+## Digest-driven wiki improvement leads (grows as digests land)
+
+- border-balance page: the finding traces to 2007 — Owen's paired-edge-count
+  observation (msgs 414/422/485) and the 12-per-side border balance
+  (msgs 2073/2098). Add these as earlier sources alongside Hopfer 2022.
+- known-facts: parity proof that 479/480 is impossible (msg 1640).
+- phase-transition: Owen's launch-era derivation of ~17.14 interior colours
+  from the "one expected solution" criterion (msg 1947) — a community
+  precursor to the published papers; cite it.
+- history page candidates: Monckton disqualification drama (1342-1412),
+  eternity2.net rise+shutdown (756, 3511), the Syndicate (3021), Clark's
+  Monckton phone call on puzzle generation (4177), benchmark culture
+  (Txibilis suite, 2896/2928).
 
 ## Digest format (one file per window: `digests/0001-2000-01--2007-07.md`)
 
