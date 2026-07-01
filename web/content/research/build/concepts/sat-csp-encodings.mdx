@@ -1,0 +1,116 @@
+---
+title: SAT and CSP encodings
+description: >-
+  Write the puzzle as clauses and hand it to an industrial solver — the
+  obvious move, tried since 2008. Why complete solvers stall on the full
+  board, and where their verdicts still earn their keep as impossibility
+  proofs.
+kind: concept
+order: 80
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Heule, Solving edge-matching problems with satisfiability solvers (2008)
+    url: https://www.cs.cmu.edu/~mheule/publications/eternity.pdf
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, Edge Matching Puzzles as Hard SAT/CSP Benchmarks (CP 2008)
+    url: https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, On the hardness of solving edge matching puzzles as SAT or CSP problems (Constraints, Springer)
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+related:
+  - /research/papers
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+---
+
+Modern SAT solvers settle industrial problems with millions of variables, so
+the obvious move is to write Eternity II as clauses and let CDCL do the
+digging. People have been making exactly this move since 2008. The encodings
+are clean, the small sizes fall instantly — and the full puzzle does not
+budge. Understanding why is a lesson in what conflict-driven search actually
+feeds on.
+
+## The encoding
+
+The direct encoding introduces a variable $x_{c,p,r}$ for "piece $p$ sits at
+cell $c$ with rotation $r$", then three families of constraints: every cell
+holds exactly one placement, every piece is used at most once, and any two
+placements that disagree across a shared edge are mutually excluded. The
+same model reads naturally as a CSP — one variable per cell, placements as
+domain values, an *alldifferent* over pieces, and table constraints on
+adjacent cells — which is the formulation the benchmark papers study
+alongside the clausal one.
+
+The direct clausal form blows up fast, because the pairwise
+edge-disagreement clauses multiply. Marijn Heule's
+[2008 paper](https://www.cs.cmu.edu/~mheule/publications/eternity.pdf)
+showed the standard remedy: introduce auxiliary variables for the colour
+shown on each internal seam, so a placement implies its four seam colours
+and disagreement is excluded once per seam rather than once per pair. With
+compact encodings, symmetry breaking, and solver tuning, Heule solved
+edge-matching instances well beyond what the naive encoding reached.
+Even so, community-built CNFs of the full 16×16 puzzle run to roughly a
+hundred thousand variables and hundreds of millions of clauses (as reported
+on the [community mailing list](https://groups.io/g/eternity2)) — loadable,
+and utterly unsolved.
+
+## What the published benchmarks showed
+
+The systematic study is due to Ansótegui, Béjar, Fernàndez and Mateu, in a
+[CP 2008 paper](https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39)
+and an extended
+[journal version in Constraints](https://link.springer.com/article/10.1007/s10601-012-9128-9),
+with a companion paper asking, verbatim,
+[how hard the commercial puzzle actually is](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download).
+Their headline: generalized edge-matching puzzles make excellent SAT/CSP
+benchmarks precisely because difficulty is tunable — vary the number of
+colours and solve time rises to a sharp peak where solutions are scarce but
+real. Eternity II's colour counts sit at that peak, by design; the
+[phase transition page](/research/why/phase-transition) walks through it.
+In practice, complete solvers dispatch small boards in seconds and then hit
+an exponential cliff; community experiments over the years put the practical
+ceiling for pure SAT on Eternity-style instances somewhere around the 10×10
+scale, far short of 16×16. See the [papers page](/research/papers) for the
+full literature trail.
+
+## Why CDCL stalls on the full board
+
+CDCL earns its power from clause learning: when propagation hits a conflict,
+the solver walks the implication graph back to a small set of decisions that
+caused it, and records that combination as forbidden. The learned clause is
+short and general when conflicts arise from long chains of unit
+propagation.
+
+Eternity II starves that mechanism. This project's analysis of its own CSP
+engine (hedged accordingly: measured here, not independently replicated)
+found the implication structure is nearly flat — a domain deletion traces
+back to a single neighbouring placement, not to a deep chain — so
+conflict analysis has almost nothing to compress, and the learned no-goods
+come out wide and specific instead of short and general. Worse, conflicts
+surface late: with strong propagation running, domain wipeouts essentially
+never occurred before depth 50, with the median deep in the board. A wide
+clause about a deep, specific configuration prunes almost nothing else. Add
+an instance deliberately tuned to the hardness peak, and the full puzzle is
+close to a worst case for conflict-driven search.
+
+## Where the exact verdicts still pay
+
+None of this makes the encodings useless — it relocates them. A complete
+solver's UNSAT answer is a theorem, and on subproblems those theorems come
+cheap. This project's most productive use of SAT (same hedge as above) is as
+an *oracle on regions*: pin most of a strong board, free a neighbourhood of
+its remaining mismatches, and ask for a fully matched completion. The
+answer — UNSAT, typically in under two seconds — proves that no local
+rearrangement of that region can ever finish the board, which is the
+machinery behind the [rigidity wall](/research/why/rigidity-wall). The same
+trick screens whole border rings: pin a candidate border, free all 191
+interior cells, and a sub-second UNSAT certifies that border can never carry
+a perfect interior. And within a CSP search engine, the same idea in
+miniature — recording hard no-goods at propagation failures so a structural
+dead end is never re-entered — is sound by construction and cheap to check
+with SAT-style watched literals.
+
+That is the honest division of labour: as a frontal solver of the full
+puzzle, CDCL is outmatched; as a fast generator of impossibility
+certificates for pieces of it, nothing else comes close.

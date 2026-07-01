@@ -1,0 +1,120 @@
+---
+title: Arc consistency, from AC-3 up
+description: >-
+  Forward checking looks one move ahead; arc consistency makes every cell's
+  candidate list defend itself against every neighbour's, to a fixed point.
+  Mackworth's AC-3, the optimal refinements that followed, and what the whole
+  family actually measured on this puzzle — including where it is unsound.
+kind: concept
+order: 10
+updated: 2026-07-02
+topics: [search-space]
+sources:
+  - label: Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8) — AC-3
+    url: https://doi.org/10.1016/0004-3702(77)90007-8
+  - label: Bessière, Régin, Yap & Zhang 2005, "An Optimal Coarse-grained Arc Consistency Algorithm" (AIJ) — AC-2001/AC-3.1
+    url: https://doi.org/10.1016/j.artint.2005.02.004
+  - label: AC-3 algorithm (Wikipedia)
+    url: https://en.wikipedia.org/wiki/AC-3_algorithm
+related:
+  - /research/why/no-forced-moves
+  - /research/build/solvers/blackwood
+  - /research/build/concepts/alldiff-regin
+  - /research/build/dead-ends
+---
+
+A backtracker on Eternity II spends most of its effort not placing pieces but
+ruling them out. Since [no cell is ever forced](/research/why/no-forced-moves)
+— every interior position keeps dozens of live candidates deep into the search
+— the only leverage available is shrinking those candidate lists as hard and
+as cheaply as possible. Arc consistency is the standard machine for doing
+that, and it has a fifty-year paper trail.
+
+## Domains that police each other
+
+Give every empty cell a *domain*: the set of piece-and-rotation candidates
+still allowed there. On the full puzzle that starts at roughly 760 tuples per
+interior cell. **Forward checking** is the one-step discipline: when a piece
+is placed, delete it from every other domain and delete every candidate that
+clashes with the newly exposed edges. Cheap, and every serious solver does at
+least this.
+
+**Arc consistency** demands more. For every pair of adjacent cells, every
+candidate in one domain must have at least one compatible partner — a
+*support* — in the other. When a deletion anywhere leaves a candidate
+unsupported, that candidate goes too, and the check ripples outward until
+nothing more can be removed. For edge-matching this is exactly "a piece may
+stay in a cell only if each neighbouring cell can still answer its colours".
+
+## AC-3, and where it wastes work
+
+Alan Mackworth's AC-3 (1977) is the coarse-grained way to reach that fixed
+point: keep a queue of directed arcs, revise one arc at a time (scan a domain,
+delete unsupported candidates), and whenever a domain shrinks, requeue the
+arcs that point at it. It is short, correct, and easy to make incremental
+inside a search — which is why it is still the default everywhere. Worst case
+it costs $O(e d^3)$ for $e$ arcs and domain size $d$; on the 16×16 board $e$
+is the 480 interior adjacencies taken in both directions and $d \approx 764$.
+
+Its known flaw: every revision searches for supports from scratch, so the same
+support gets rediscovered thousands of times as the search dives and
+backtracks.
+
+## What the stronger variants buy
+
+The literature spent two decades fixing that redundancy. AC-4 (Mohr &
+Henderson 1986) counts supports explicitly — optimal $O(e d^2)$ time, but
+$O(e d^2)$ memory and painful state restoration on backtrack. AC-6 and AC-7
+(Bessière; Bessière, Freuder & Régin) store supports lazily and exploit
+bidirectionality, keeping optimal time with $O(e d)$ space at the price of
+fine-grained bookkeeping.
+
+The version worth knowing today is **AC-2001/AC-3.1**, found independently by
+Bessière & Régin and by Zhang & Yap in 2001: keep AC-3's simple loop, but
+remember for each candidate-arc pair the *last support found*, check that it
+is still alive before searching again, and resume the scan from where it
+stopped rather than from zero. That one integer per pair delivers the optimal
+$O(e d^2)$ bound with only $O(e d)$ memory — on this puzzle about 367,000
+small integers, negligible. The 2005 journal study measures 1.5–9× less CPU
+than AC-3 in maintained-arc-consistency search, and shows the advantage over
+AC-6 *growing* with the domain size on the far side of the arc. Eternity II
+has huge domains on both sides of every arc, which makes AC-2001 the
+textbook fit.
+
+## Measured on this puzzle
+
+On this project's engine (measured here; not independently replicated):
+
+- A plain backtracker propagating AC-3 together with the
+  [per-colour matching filter](/research/build/concepts/alldiff-regin)
+  reaches 449 of 480 edges on the canonical puzzle in about 44 seconds
+  single-threaded, around 2.5 seconds on 8 cores.
+- The best algorithmic speedup found inside AC-3 itself was mundane: a
+  precomputed table of which rotations of the same piece share edge colours,
+  so revisions stop re-deriving it — a 2.9× throughput gain on the engine's
+  reference benchmark.
+- The honest part: AC-2001 was recommended twice in this project's notes and
+  never actually built, so its projected 2–5× win here is a reading of the
+  literature, not a measurement. And the belief that AC-3 dominated the
+  runtime profile was itself never confirmed by a profiler. Measure before
+  porting.
+
+## The soundness caveat
+
+Arc consistency assumes every edge must match perfectly. The record engines
+do not: [Blackwood-style searches](/research/build/solvers/blackwood) allow a
+budget of deliberate mismatches at late depths, and under that regime AC is
+*unsound* — it prunes boards that a licensed mismatch would make perfectly
+legal. On this project's engine the whole AC family is switched off in
+break-tolerant runs for exactly that reason. The one strong propagator that
+survives the mismatch regime is piece-level all-different — see
+[Régin's filter](/research/build/concepts/alldiff-regin).
+
+## Verdict
+
+For any exact-matching search, arc consistency is mandatory and cheap: it is
+the difference between a backtracker that thrashes and one that reaches the
+440s. Forward checking alone leaves prunings on the table; AC-3 collects
+them; AC-2001 collects the same ones for less CPU, if you first verify that
+propagation is where your cycles actually go. For mismatch-tolerant record
+hunting, leave it out — soundness comes first.

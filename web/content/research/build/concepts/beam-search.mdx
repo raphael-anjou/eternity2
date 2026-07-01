@@ -1,0 +1,97 @@
+---
+title: Beam search
+description: >-
+  Keep the K most promising partial boards alive at once and grow them cell by
+  cell. Beam search is the workhorse behind this project's from-scratch
+  builders — and a clean illustration of why breadth alone stalls in the deep
+  interior.
+kind: concept
+order: 50
+updated: 2026-07-02
+topics: [construction]
+sources:
+  - label: Zhou & Hansen, Beam-Stack Search — Integrating Backtracking with Beam Search (ICAPS 2005)
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/lab/experiments/gauntlet
+  - /research/lab/experiments/prior
+  - /research/lab/experiments/lodestone
+  - /research/why/piece-theft
+  - /research/build/concepts/local-search-alns
+---
+
+A depth-first backtracker commits to one partial board and digs. Beam search
+hedges: it keeps the $K$ best partial boards alive at once, extends every one
+of them by a single cell, scores all the children, and keeps the top $K$
+again. The idea goes back to Bruce Lowerre's HARPY speech-recognition system
+in the 1970s; Zhou and Hansen's
+[beam-stack search paper](https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf) is
+a good modern treatment of the family and its trade-offs.
+
+## How it runs on a board
+
+Fix a scan order over the 256 cells. A beam state is a partial placement, the
+set of pieces already spent, and a matched-edge score. Extending a state at
+depth $d$ means trying every legal (piece, rotation) for cell $d$ — legal
+with respect to the placed neighbours and the remaining inventory — and
+adding the number of newly matched edges to the score. Pool all children from
+all $K$ survivors, sort, truncate to $K$, repeat 256 times, and every
+survivor is a complete board.
+
+The inventory is what makes this different from beam search on a generic
+constraint problem: each piece exists exactly once, so a placement is not
+just a local choice but a withdrawal from a global budget. That detail
+decides everything below.
+
+## Width buys less than you'd hope
+
+At $K = 1$ the beam is plain greedy construction, and greedy with random
+restarts has a brutally heavy tail: on this project's engine, tens of
+thousands of random greedy runs topped out around 408 of 480, and
+extrapolating the tail put a 440 at billions of restarts. Widening the beam
+is far better — but the returns are roughly logarithmic. A beam of a few
+hundred states builds boards around 450; pushing $K$ past ten thousand
+reached the mid-450s and then flattened. (Measured on this project's engine;
+not independently replicated.)
+
+There is a structural reason a plain beam cannot be much more than "greedy,
+wider". A beam state at depth $d$ faces exactly the same edge-matching and
+inventory constraints as a DFS node at depth $d$; keeping many states alive
+relaxes nothing. Without a scoring function that reliably predicts which
+depth-100 prefixes still complete well — and no such heuristic is known for
+Eternity II — the beam's extra breadth mostly duplicates what randomized
+restarts of a backtracker already provide.
+
+## Diversity is the real dial
+
+Left to itself a beam collapses: within a few dozen cells most survivors
+share one high-scoring prefix, and the beam degenerates toward greedy with
+extra bookkeeping. Standard fixes are prefix deduplication and sampling from
+the top $2K$ instead of taking the top $K$ — and this project's builders use
+both. But the strongest diversity lever found here was not inside the beam at
+all: it was the scan order. Running the same beam under nine different visit
+orders ([GAUNTLET](/research/lab/experiments/gauntlet)) produced eighteen
+distinct board families where sixteen seeds of a single order had produced
+one.
+
+The other productive dial is the tiebreak.
+[PRIOR](/research/lab/experiments/prior) breaks score ties toward pieces that
+are frequent at that position in a corpus of strong boards, lifting the
+from-scratch ceiling by a few edges and reaching 460 after refinement.
+[LODESTONE](/research/lab/experiments/lodestone) breaks ties toward pieces
+that serve scarce demands, buying a small median gain and much better
+consistency — and collapsing badly the moment the prior is promoted from
+tiebreaker to objective.
+
+## The depth wall
+
+Every beam variant tried here stalls the same way. The border and early
+interior fill almost perfectly; the mismatches concentrate in the last rows,
+where the pieces a cell needs were already spent serving easier cells long
+ago — the [piece theft](/research/why/piece-theft) problem. A greedy local
+objective cannot see that global budget, and doubling $K$ pushes the wall
+back by only an edge or two. From-scratch beams on this engine ceiling in
+the mid-450s; the remaining distance is bought by
+[destroy-and-repair polish](/research/build/concepts/local-search-alns), not
+by more width. Beam search, on this puzzle, is a fine way to reach the
+plateau quickly — and no way at all to leave it.

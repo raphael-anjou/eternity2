@@ -1,0 +1,109 @@
+---
+title: Exact cover and dancing links
+description: >-
+  Eternity II states cleanly as an exact-cover problem, and Knuth's
+  Algorithm X with dancing links is the classic machine for those. Where it
+  genuinely shines — small boards, exhaustive counting — and the two reasons
+  it does not crack the 16×16: an unshrunk search tree, and no partial
+  credit.
+kind: concept
+order: 30
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Knuth 2000, "Dancing Links" (arXiv cs/0011047)
+    url: https://arxiv.org/abs/cs/0011047
+  - label: Knuth's Algorithm X (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
+  - label: Exact cover (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Exact_cover
+related:
+  - /research/build/dead-ends
+  - /research/why/no-forced-moves
+  - /research/build/solvers/blackwood
+---
+
+Some puzzles have to be bent to fit a formalism; Eternity II drops into exact
+cover almost by itself. An exact-cover problem asks: given a set of items and
+a collection of options, each option covering some items, pick options so that
+every item is covered *exactly once*. Pentomino tilings, sudoku and the
+n-queens problem are the textbook customers — and edge matching is next door.
+
+## The board as an exact cover
+
+Take 512 items: one per cell ("cell $c$ is filled") and one per piece
+("piece $p$ is used"). Each option is a concrete placement — piece $p$ at
+cell $c$ in rotation $r$ — covering exactly two items, its cell and its
+piece. A selection of options covering every item exactly once is precisely a
+board with every cell filled and every piece used once.
+
+What pure exact cover cannot say is that touching edges must agree. Knuth's
+own extension handles it: XCC, exact covering with colours, where secondary
+items — here, one per interior edge of the grid — carry a colour, and two
+options may share a secondary item only if they assign it the same colour. A
+full XCC solution is then exactly a perfect Eternity II board. The encoding
+is honest: nothing about the puzzle is approximated away.
+
+## Algorithm X, and why the links dance
+
+Knuth's Algorithm X solves exact cover by disciplined trial and error: pick
+the item with the fewest remaining options (the fail-first rule), try each
+option that covers it, remove everything that option makes impossible, and
+recurse; on failure, restore and try the next.
+
+Dancing links (DLX) is the data structure that makes the restore step
+beautiful. The matrix of options lives in circular doubly linked lists, and
+removing an element is two pointer writes — `left.right = right;
+right.left = left` — which, crucially, leaves the removed node's own pointers
+intact. Undoing the removal is the same two writes reversed. Backtracking
+becomes pointer surgery with zero copying, and the memory touched is exactly
+proportional to work done. It is one of the most elegant algorithms in the
+combinatorial toolbox, and Knuth's paper is a genuine pleasure to read.
+
+## Where it shines
+
+DLX is the right tool when you want *all* solutions, or a count, or a proof
+of uniqueness, on instances small enough to exhaust. On small edge-matching
+boards it does exactly that: complete enumeration with excellent constant
+factors, no solution missed, no state repeated. Counting complete tilings of
+clue-sized regions, verifying that a generated mini-puzzle has a unique
+solution, cross-checking another solver's exhaustive counts — this is its
+home turf, and nothing heuristic competes there.
+
+One project note from the trenches, offered as a warning rather than a
+result: a from-scratch XCC implementation here validated cleanly on n-queens
+and trivial boards, then spent days broken on anything larger, because the
+interaction between colour-driven purification and cover/uncover restoration
+is genuinely subtle. If you build it, follow Knuth's published algorithm to
+the letter — measured on this project's engine, in the sense that the bug
+reports were ours.
+
+## Why it does not crack the 16×16
+
+Two independent walls, either of which would suffice.
+
+**The tree is the same tree.** Exact cover re-describes the search; it does
+not shrink it. The fail-first item choice is a good variable ordering, but
+[no move is ever forced](/research/why/no-forced-moves) on this puzzle — the
+least-covered item still offers dozens of live options deep into the search,
+so the branching stays enormous all the way down, over a space usually
+estimated near $10^{100}$ boards. A DLX engine walks that tree completely or
+not usefully at all; and its pointer-chasing inner loop is memory-bound,
+an order of magnitude behind the cache-tuned array engines the
+[record backtrackers](/research/build/solvers/blackwood) use.
+
+**No partial credit.** DLX answers one question: covered exactly, or not.
+The entire Eternity II economy runs on partial scores — 467, 469, 470 —
+and on searches that deliberately tolerate a few mismatched edges to get
+there. Exact cover has no native way to leave an edge unmatched and pay a
+penalty; relaxing it that far means rebuilding it into a branch-and-bound,
+at which point the elegance that justified it is gone.
+
+## Verdict
+
+Keep DLX on the shelf for what it is: the exhaustive instrument. Counting,
+uniqueness proofs, ground truth on small boards — unbeatable, and worth the
+implementation care it demands. As an attack on the full puzzle it is a
+[dead end](/research/build/dead-ends), for structural reasons no constant
+factor will fix: the tree it must exhaust is astronomical, and the
+partial-score game every record method plays is one it cannot enter.
