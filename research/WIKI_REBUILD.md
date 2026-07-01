@@ -171,11 +171,13 @@ utilities (prose link color beats transparent-color trick).
   entries into real write-ups (dead-ends candidates, per-experiment notes) —
   but nothing ships until it reads as a researched artifact.
 
-### Phase 4 — wiki growth from the vault (the actual point)
+### Phase 4 — wiki growth from the vault (IN PROGRESS)
 
-Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Priorities:
-- [ ] Known-facts reference page (from E2_KNOWN_FACTS.md — numbers researchers
-      keep re-deriving)
+Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
+- [x] Known-facts reference page (/research/build/known-facts — every number
+      with provenance; internal vault material excluded)
+- [x] Blackwood solver page (/research/build/solvers/blackwood — Jef Bucas's
+      notes + parameter study, with permission, full credit)
 - [ ] Research timeline/history enrichment (TIMELINE.md, 219 vols compressed)
 - [ ] Concepts encyclopedia: curated subset of the 386 concept files
       (propagators, search, local-search families…), attribution-neutral
