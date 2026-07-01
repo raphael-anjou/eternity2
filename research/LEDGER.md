@@ -476,3 +476,17 @@ says the figures are his. Images live in web/src/assets/research/blackwood
 
 - Verified: typecheck ✓ build ✓ (assets emitted, captions in prerendered
   HTML EN+FR, all four figures load in browser).
+
+### 2026-07-02 — Raw-markdown siblings for every research page (Phase 5 begins)
+
+Every research page now ships a .md sibling at build time (same URL + ".md",
+FR under /fr — 78 files): a provenance header (title, description, canonical
+URL, updated, topics, reproduce command, sources) plus the MDX body with the
+ESM plumbing stripped. "View as Markdown" link in the page footer; llms.txt
+rewritten to describe the wiki and point agents at the .md URLs (also fixed
+its stale repo link). This deliberately revisits the old "llms.txt is
+index-only" trade-off from AGENTS.md: content is markdown now, so the old
+objection (TSX→thin stubs) is gone.
+
+- Verified: typecheck ✓ lint ✓ build ✓; emitted .md spot-checked (header +
+  clean body, export blocks stripped).

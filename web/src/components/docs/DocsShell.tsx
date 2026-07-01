@@ -41,6 +41,7 @@ const T = {
     next: "Next",
     keepExploring: "Keep exploring",
     editOnGitHub: "Page source",
+    viewMarkdown: "View as Markdown",
     updated: "Updated",
   },
   fr: {
@@ -61,6 +62,7 @@ const T = {
     next: "Suivant",
     keepExploring: "Continuer l'exploration",
     editOnGitHub: "Source de la page",
+    viewMarkdown: "Version Markdown",
     updated: "Mis à jour",
   },
 };
@@ -329,7 +331,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
         <ReproBlock doc={doc} />
         <PrevNext doc={doc} />
         <Related doc={doc} />
-        <p className="mt-8 text-xs text-muted-foreground">
+        <p className="mt-8 flex gap-4 text-xs text-muted-foreground">
           <a
             href={`${REPO_URL}/blob/main/web/content/research/${doc.file}`}
             target="_blank"
@@ -337,6 +339,15 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
             className="underline hover:text-foreground"
           >
             {t.editOnGitHub}
+          </a>
+          {/* Raw-markdown sibling, emitted at build time (404 on dev servers). */}
+          <a
+            href={`${(lang === "fr" ? "/fr" : "") + doc.url}.md`}
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-foreground"
+          >
+            {t.viewMarkdown}
           </a>
         </p>
         </article>
