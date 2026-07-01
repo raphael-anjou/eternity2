@@ -490,3 +490,16 @@ objection (TSX→thin stubs) is gone.
 
 - Verified: typecheck ✓ lint ✓ build ✓; emitted .md spot-checked (header +
   clean body, export blocks stripped).
+
+### 2026-07-02 — Records timeline fully sourced from the community archive
+
+Every record entry on /research/records now carries a verifiable source
+(new localized Source column): Wikipedia for the launch/prize/close,
+shortestpath.se for Verhaard's 467, and real groups.io message links for the
+modern era. The archive export exposed real errors: the four existing deep
+links used groups.io internal global IDs (dead ends) — remapped to true
+msg_nums (10033 Bucas/Blackwood 468, 10045 McGavin 469 announcement, 10117
+Blackwood 470, 11074 Gauthier strict-460); and the timeline's "2021 470,
+different heuristic colors" row had no archive support — corrected to Jef
+Bucas's 2024-12-02 470 (msg 11401). The 2025 Discord-only 470 is honestly
+marked unsourced. groups.io deep links are login-walled; a note says so.
