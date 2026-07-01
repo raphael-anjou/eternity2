@@ -569,3 +569,23 @@ scrutin"). Ends with a To-be-continued: parts extend as the digest sweep
 advances (0010-0012 mining now; 0013-0015 queued to reach 2026).
 
 - Verified: typecheck ✓ build ✓ (141 paths, EN+FR titles).
+
+### 2026-07-02 — MAJOR CORRECTION from the completed archive sweep: the record is 470
+
+All 15 archive windows are digested (2000 → 2026-03, 11,511 messages, ~400
+sourced events). The sweep's biggest yield falsifies the site's own headline
+framing, inherited from community habit: "469 is the canonical ceiling; the
+470s are an easier one-clue variant." Board-level verification (digest 0014)
+shows the 468/469/470 record boards are all the same starter-only regime
+(starter at I8, none of the optional clues), and per the contest's own entry
+rules only the starter was mandatory (msg 11046; Bucas msg 10082; Blackwood
+msg 10185). RecordsView reframed: official-pieces ceiling = 470 (Blackwood
+2021, tied 2024/2025); strict all-5-clue best = 460 (Gauthier 2023); flag
+semantics now "official pieces" vs "other set". Row nuances fixed (468
+relayed from Reddit #10032; the November-wave boards are independent finds).
+Also applied: Hopfer's NS-1 condition pinned to its exact messages
+(10754/10757) on border-balance, and complex-theory gained a fully sourced
+"Provenance and validation" section (Owen 5197/5209 → peak-depth closed form
+8125 → McGavin's pdf 9188 → the 2017 10×10 validation 9686/9688 → the 2024
+C reference 11197 → this site's port). A consistency agent is sweeping the
+remaining "469 ceiling" mentions; history part II is being written.
