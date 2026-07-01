@@ -20,6 +20,8 @@ sweep chronologically toward today.** Each window produces one digest in
 - `0005` 2008-07 → 2008-10 ✅ 2026-07-02 (the 467 run-up; NO public 467 announcement exists — beware the Oct-2008 '468 TEST puzzle' trap)
 - `0006` 2008-11 → 2009-02 ✅ 2026-07-02 (scrutiny date: \$10k to 'Anna Karlsson' = Verhaard's entry, msg 6337/6349)
 - `0007` 2009-03 → 2009-08 ✅ 2026-07-02 (Verhaard's first-person 467 account msg 6891: 247 flawless pieces; ELTE claim collapses msg 6764; eii benchmarked to 467 in ~82 days msg 6687)
+- `0008` 2009-09 → 2010-02 ✅ 2026-07-02 (2nd scrutiny: no winner, NO new $10k — Tomy Q&A msg 7488; 467 stands, msg 7494)
+- `0009` 2010-03 → 2010-08 ✅ 2026-07-02 (doc's return, toolbox era, complex-theory defense)
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
@@ -43,11 +45,14 @@ sweep chronologically toward today.** Each window produces one digest in
   (2009-08: "Anna is my wife… it was my program that did the job"; 247
   flawless pieces). History page carries it; row keeps the open-access
   shortestpath.se link.
-- OPEN QUESTION for the timeline: was 468 already the community best by
-  June 2010? doc_s_smith's challenge "beat 468 matching edges" (msg 7803)
-  cites Toulis's simulated-annealing paper (Harvard PDF). If digest 0008
-  (2009-09→2010-02) or the Toulis paper confirms a public 468 pre-2010, the
-  records table gains a missing row — do NOT add it before that check.
+- OPEN QUESTION (narrowed by 0008): nobody beat 467 through 2010-02
+  (Verhaard, msg 7494; Tomy Q&A, msg 7488 — partials weren't even scored in
+  2009). doc's June-2010 "beat 468" (msg 7803) therefore most likely refers
+  to the Toulis simulated-annealing PAPER's claimed 468 — read the paper
+  before any records-table change. Also: two unverified claims (471 E2Lab
+  popup msg 7284; ≥472 hand-solve msg 7383) must never enter the table.
+- records provenance: shortestpath.se/eii is Verhaard's own site (solver
+  relocated there, msg 7439) — our 467 source link is first-party.
 - border-balance history: Al Hopfer's balance doctrine appears 2009-08
   (msgs 6842/6844/6960) — the bridge between the 2007 observations and his
   2022 formalization.
