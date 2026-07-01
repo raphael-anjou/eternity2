@@ -3,7 +3,16 @@ import { writeFileSync } from "node:fs";
 import { defineConfig, type Plugin } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
+import mdx from "@mdx-js/rollup";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
+import rehypeShiki from "@shikijs/rehype";
 import { allRoutePaths } from "./sitemap.config";
+import { researchContent } from "./plugins/research-content";
 
 // Emit sitemap.xml into the build output from the same page list React Router
 // prerenders, so crawlers (and the AI bots welcomed in public/robots.txt) get
@@ -69,7 +78,30 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_BASE_PATH": JSON.stringify(BASE_PATH),
   },
-  plugins: [reactRouter(), tailwindcss(), sitemap()],
+  plugins: [
+    // MDX must transform .mdx files before React Router / React see them.
+    // Research wiki pages (web/content/research) are authored in MDX; the
+    // pipeline gives GFM tables, KaTeX math ($…$ / $$…$$), heading anchor ids
+    // and build-time Shiki syntax highlighting (dual theme via CSS variables).
+    {
+      enforce: "pre" as const,
+      ...mdx({
+        remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkGfm, remarkMath],
+        rehypePlugins: [
+          rehypeSlug,
+          rehypeKatex,
+          [
+            rehypeShiki,
+            { themes: { light: "github-light", dark: "github-dark" }, defaultColor: "light" },
+          ],
+        ],
+      }),
+    },
+    researchContent(),
+    reactRouter(),
+    tailwindcss(),
+    sitemap(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

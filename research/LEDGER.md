@@ -296,3 +296,30 @@ dead-ends copy accordingly.
 
 - Commit `<this commit>`.
 - Files: `research/LEDGER.md`, `AGENTS.md`, `web/src/pages/research/build/dead-ends.tsx`.
+
+### 2026-07-01 — Research wiki rebuild: MDX pipeline + docs shell (Phase 1)
+
+The research section starts its move from hand-written TSX pages to an
+MDX-first wiki (plan + ADR: research/WIKI_REBUILD.md). Considered Fumadocs and
+Mintlify; chose a headless custom pipeline (@mdx-js/rollup + remark/rehype +
+a small Vite manifest plugin) because the site is RR7 ssr:false with custom
+EN//fr i18n and its own design system. New: web/content/research/**.mdx with
+zod-validated frontmatter (title/description/kind/tier/score/repro/sources/
+topics/related), per-language virtual manifests, docs shell (sidebar tree +
+scrollspy TOC + breadcrumbs + prev/next + sources + repro + related rail),
+catch-all research/* routes so migration is page-by-page with URLs unchanged.
+Pilot page migrated: why/border-balance (EN+FR), now with real KaTeX math.
+Registration burden for a new research page: 1 MDX file (was 5 files).
+
+- Verified: typecheck ✓ lint ✓ build ✓; prerendered HTML carries the full
+  prose in both languages (lazy MDX resolves during prerender — the key
+  architectural risk, confirmed safe); sitemap symmetric; live Ns1Lab demo
+  works embedded in MDX.
+- User directives recorded: cross-cutting topic categories + a top category
+  bar (Phase 1.5); always link supporting sources (frontmatter sources[]);
+  double-check numbers/facts during every migration.
+- Reproducibility: tooling/prose.
+- Files: web/content.config.ts, web/plugins/research-content.ts,
+  web/content/research/why/border-balance{,.fr}.mdx, web/src/components/docs/*,
+  web/src/lib/research/*, web/src/pages/research/doc.tsx, routes.ts,
+  sitemap.config.ts, seo.ts, vite.config.ts, index.css, research/WIKI_REBUILD.md.

@@ -58,26 +58,56 @@ shadcn/Tailwind language so research still feels like eternity2.dev.
 
 ## Phases
 
-### Phase 1 — pipeline + docs shell + pilot page ✅ when checked
+### Phase 1 — pipeline + docs shell + pilot page ✅ DONE 2026-07-01
 
-- [ ] Deps: @mdx-js/rollup, @mdx-js/react, remark-gfm, remark-math,
+- [x] Deps: @mdx-js/rollup, @mdx-js/react, remark-gfm, remark-math,
       remark-frontmatter, remark-mdx-frontmatter, rehype-katex, rehype-slug,
       @shikijs/rehype, gray-matter, zod, github-slugger, @tailwindcss/typography
-- [ ] `web/content.config.ts`: fs scan of `web/content/research/**/*.mdx`,
-      zod frontmatter schema, slug/lang derivation, TOC extraction. Shared by
-      sitemap + vite plugin.
-- [ ] Vite plugin `virtual:research-manifest/{en,fr}` (+ HMR on content edits)
-- [ ] `sitemap.config.ts`: merge scanned MDX paths; throw on overlap with
+- [x] `web/content.config.ts`: fs scan of `web/content/research/**/*.mdx`,
+      zod frontmatter schema (incl. `sources[]` + `topics[]`), slug/lang
+      derivation, TOC extraction. Shared by sitemap + vite plugin.
+- [x] Vite plugin `virtual:research-manifest-{en,fr}` (+ HMR on content edits)
+- [x] `sitemap.config.ts`: merge scanned MDX paths; throw on overlap with
       static PAGE_PATHS (guards double-registration during migration)
-- [ ] Catch-all routes `research/*` + `fr/research/*` → doc page (explicit
+- [x] Catch-all routes `research/*` + `fr/research/*` → doc page (explicit
       routes win, so migration is page-by-page)
-- [ ] Docs shell: sidebar tree, TOC (scrollspy), breadcrumbs, prev/next,
-      badges, FR-fallback notice, related rail from frontmatter
-- [ ] MDX component map: headings, language-aware links, code, tables,
+- [x] Docs shell: sidebar tree, TOC (scrollspy), breadcrumbs, prev/next,
+      badges, FR-fallback notice, sources block, related rail from frontmatter
+- [x] MDX component map: headings, language-aware links, code, tables,
       callouts; KaTeX css
-- [ ] Pilot: migrate `why/border-balance` (EN+FR) end-to-end
-- [ ] Verify: typecheck, lint, build; prerendered HTML contains full prose
-      (EN + FR); sitemap has the path exactly once; visual pass in dev
+- [x] Pilot: migrated `why/border-balance` (EN+FR) end-to-end
+- [x] Verify: typecheck, lint, build green; prerendered HTML contains full
+      prose + KaTeX in EN and FR (lazy MDX resolves during prerender);
+      sitemap symmetric (47 EN + 47 FR + SPA); visual pass in dev (3-column
+      desktop, mobile disclosure, live Ns1Lab works inside MDX)
+
+Learned: YAML bare dates parse as Date (schema accepts both); rolldown
+binding breaks on pnpm add → `pnpm install --force`; react-refresh wants
+component-only modules (mdx-map.ts split); heading anchors need opacity
+utilities (prose link color beats transparent-color trick).
+
+### Phase 1.5 — topic categories + research top nav (user directive 2026-07-01)
+
+Readers should be able to browse by THEME, not only by door: big cross-cutting
+categories with many pages under each. Examples the user named: improving
+solver speed, reducing the search space, everything-DFS, GPU work, quantum
+attempts (both exist in groups.io history). Design:
+
+- [ ] `topics: [slug]` in frontmatter; a curated topic registry (label EN/FR,
+      description, icon/color) — pages can belong to several topics
+- [ ] Auto-generated topic hub pages (/research/topic/<slug>) listing member
+      pages grouped by kind
+- [ ] A top category bar inside the research shell (above the article, under
+      the site header) for the big categories; sidebar stays the full tree
+- [ ] Seed categories from vault themes + groups.io history (quantum, GPU,
+      SAT/MIP, backtracking, local search, structure/theory, records)
+
+### User directives (standing, from 2026-07-01)
+
+- **Double-check numbers/facts** against research/topics data or the vault
+  whenever they exist; don't propagate unverified figures.
+- **Every claim links its supporting resource** (groups.io post, paper,
+  research/topics compute) — `sources:` frontmatter list + inline links.
 
 ### Phase 2 — search
 

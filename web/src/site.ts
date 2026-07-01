@@ -20,3 +20,6 @@ const BASE = (import.meta.env["VITE_BASE_PATH"] || "").replace(/\/$/, "");
 export function absoluteUrl(pathname: string): string {
   return ORIGIN + BASE + pathname;
 }
+
+/** The public source repository (edit links, "computed from" links). */
+export const REPO_URL = "https://github.com/raphael-anjou/eternity2";
