@@ -1,0 +1,71 @@
+---
+title: PALIMPSEST
+description: >-
+  Lire tous les plateaux forts pour repérer les habitudes qui, discrètement,
+  retiennent un plateau sous le sommet — puis les casser. Cette expérience a
+  produit le meilleur plateau du projet : 463 sur 480.
+kind: experiment
+score: 463
+repro:
+  kind: seeded
+order: 10
+updated: 2026-07-01
+topics: [local-search, learning, records]
+related:
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/keyring
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Quand beaucoup de recherches indépendantes aboutissent toutes à un plateau
+élevé mais imparfait, elles s'accordent sur une bonne partie des placements.
+Une part de cet accord est de la structure authentique ; le reste est une
+mauvaise habitude partagée — un choix local qui a l'air bon et qui laisse
+chaque recherche coincée juste sous le sommet. L'idée de cette expérience :
+lire l'ensemble du corpus de plateaux forts, démêler l'accord utile du piège,
+puis attaquer les pièges.
+
+## Comment ça marche
+
+On prend tous les plateaux trouvés qui atteignent un score honorable et, pour
+chaque paire de positions voisines, on compte combien de fois une paire de
+pièces donnée s'y installe, en pondérant par la qualité du plateau. Deux
+motifs se dégagent. Certaines adjacences reviennent encore et encore dans les
+tout meilleurs plateaux : de la structure sûre, réelle. D'autres apparaissent
+presque partout mais jamais dans les meilleurs : ce sont les pièges, ces
+choix qui semblent justes et qui plafonnent le score.
+
+Les pièges se concentrent dans certaines régions du plateau au lieu de se
+répartir uniformément. Savoir où ils sont transforme le corpus en carte :
+quels placements croire, lesquels démonter et reconstruire. En regroupant
+ensuite les plateaux selon la disposition de leurs coins, on oriente la
+recherche vers la famille la plus prometteuse à attaquer.
+
+<PalimpsestDiagram />
+
+## Le plateau
+
+<RecordBoard id="v129-palimpsest-463" />
+
+## Le résultat
+
+Utilisée comme carte pour guider la recherche, l'approche a atteint 463 bords
+appariés sur 480 — le meilleur plateau que ce projet ait produit. Pour
+situer : le meilleur de la communauté sur ce puzzle est à 469, et une
+solution complète en vaut 480.
+
+Une réserve honnête : utiliser la liste des pièges telle quelle, en
+interdisant à la recherche les placements piégés, n'a pas fonctionné — cela
+tendait même à dégrader les plateaux. La valeur était dans la lecture du
+corpus pour choisir où concentrer l'effort, pas dans le codage en dur de ses
+conclusions dans la recherche.
+
+## Questions ouvertes
+
+Pourquoi la reconstruction des régions piégées retombe-t-elle si souvent sur
+le même plateau sommet déjà connu, plutôt que sur un plateau vraiment neuf ?
+Une carte distincte par famille de coins révélerait-elle une structure que la
+carte combinée gomme ? Et une pénalité douce sur les placements piégés
+aiderait-elle là où l'interdiction stricte a nui ?

@@ -1,0 +1,69 @@
+---
+title: LODESTONE
+description: >-
+  Une boussole discrète pour la recherche partie de zéro : l'inciter à engager
+  tôt les pièces rares, là où on en aura besoin. Elle ne relève pas le plafond
+  — elle fait atteindre, de façon fiable, le haut de la fourchette.
+kind: experiment
+score: 451
+repro:
+  kind: seeded
+order: 90
+updated: 2026-07-01
+topics: [construction, search-space]
+related:
+  - /research/why/piece-theft
+  - /research/lab/experiments/keyring
+  - /research/lab/experiments/prior
+---
+
+import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
+
+Les bons plateaux s'accordent discrètement sur un point : plus le score
+monte, plus ils satisfont un certain ensemble de demandes rares — des cases
+dont les couleurs nord et ouest ne peuvent être servies que par une ou deux
+pièces de tout le jeu. LODESTONE pose la question : si l'on renseigne une
+recherche partie de zéro sur ces demandes, engage-t-elle les bonnes pièces
+rares avant qu'elles ne soient volées ?
+
+## Comment ça marche
+
+À partir du corpus des bons plateaux, LODESTONE construit un prior : pour
+chaque pièce, la fréquence à laquelle elle finit par servir l'une de ces
+demandes nord-ouest rares dans un bon plateau, pondérée fortement vers les
+plus rares — la pièce qui est l'unique serveuse possible reçoit le plus gros
+bonus. La recherche en faisceau classe alors ses placements candidats par le
+score habituel d'arêtes accordées, plus un petit multiple de ce prior : entre
+deux coups par ailleurs égaux, elle préfère poser les pièces que les bons
+plateaux ont appris à dépenser tôt.
+
+Le détail crucial, c'est la taille de ce multiple. Le prior doit rester un
+pur départage, jamais une part de l'objectif : il tranche entre des coups qui
+accordent autant d'arêtes l'un que l'autre, et rien de plus.
+
+<LodestoneRarityLab />
+
+## Le résultat
+
+À un poids minuscule, le prior donne un gain petit mais constant : sur cinq
+graines, le score médian depuis zéro passe de 449 à 451, et — plus utile
+encore — la dispersion se resserre, d'un éparpillement 446–451 à un fiable
+450–451. Le constructeur atterrit en haut de sa fourchette au lieu de
+trébucher de temps en temps.
+
+Montez le poids ne serait-ce qu'un peu, et tout s'effondre — 422, puis 380 —
+parce que courir après les demandes rares du corpus se paie alors directement
+contre l'accord de l'arête qu'on a devant soi. Cet échec est lui-même le
+résultat : la rareté est un vrai signal pour choisir *quelle* pièce préférer,
+mais un signal faible, sûr seulement en départage. LODESTONE est honnête sur
+sa taille : il améliore la qualité et la régularité de la construction de
+deux ou trois arêtes, et ne touche pas au plafond de bassin qui arrête toutes
+les méthodes près du sommet.
+
+## Questions ouvertes
+
+Le prior pourrait-il devenir sensible à la position sans entrer dans
+l'objectif — fort seulement là où les demandes rares se concentrent vraiment ?
+Le combiner aux trois signaux de KEYRING ajoute-t-il un quatrième vote utile,
+ou seulement du bruit ? Et le gain de régularité vaut-il davantage que le gain
+médian — il est plus facile de bâtir une échelle sur une recherche resserrée ?

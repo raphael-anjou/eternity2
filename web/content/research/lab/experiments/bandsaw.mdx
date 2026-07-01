@@ -1,0 +1,59 @@
+---
+title: BANDSAW
+description: >-
+  Solve a band of rows exactly by meeting in the middle, to find the true best
+  ending and to measure how far ahead an endgame can be decided.
+kind: experiment
+score: 437
+repro:
+  kind: exact
+order: 110
+updated: 2026-07-01
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/staged
+  - /research/why/entropy-area-law
+---
+
+import { MeetInMiddleDiagram } from "@/components/research/MeetInMiddleDiagram";
+
+Heuristic search guesses; it never knows it has the best possible finish.
+BANDSAW is the opposite experiment: for a band of rows near the bottom, it
+computes the exact best completion, with a proof that nothing scores higher.
+The aim isn't speed, it's certainty — and the certainty doubles as a ruler
+for how hard the endgame really is.
+
+## How it works
+
+Split the band into a top half and a bottom half. Enumerate every way to fill
+the top half up to a small mismatch budget, keyed by two things: which pieces
+it used, and the row of colors it leaves dangling at the seam. Enumerate the
+bottom half the same way, but only from the pieces the top half didn't use.
+Then join the two halves wherever their seam colors agree and their piece
+sets don't overlap. That meet-in-the-middle join finds the exact best
+completion without walking the whole tree.
+
+Exact lower-bound tables, computed by working backwards column by column, let
+it prune branches that already can't beat the budget, and it raises the
+budget step by step until a round finds nothing new, which proves the best
+score for that band.
+
+<MeetInMiddleDiagram />
+
+## The result
+
+On a 10×10 testbed BANDSAW settles the endgame exactly and pins the budget
+where exactness stops being affordable: the search tree grows about
+twenty-fold per extra mismatch, on both sides, so meeting in the middle stops
+paying off at full board size. That negative is the useful part: it tells you
+exactly where exact methods give out and heuristics must take over. The exact
+pieces that survived, the suffix lower-bound tables and the pruned
+branch-and-bound, became reusable instruments. A frame-free board scoring 437
+came out of the same machinery.
+
+## Open questions
+
+Can the lower-bound tables scale to the full 16×16 endgame, or does the seam
+state space grow too large? At what band size does memory rather than time
+become the limit? And can the rare cases where the middle join does fire be
+spotted in advance and finished exactly?

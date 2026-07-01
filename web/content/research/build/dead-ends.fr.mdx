@@ -1,0 +1,125 @@
+---
+title: Impasses
+description: >-
+  Des approches séduisantes sur le papier que nous avons essayées et qui ne
+  font pas avancer Eternity II — consignées, avec ce que nous avons constaté,
+  pour vous épargner des semaines.
+kind: reference
+order: 50
+updated: 2026-07-01
+topics: [search-space, learning, exact-methods]
+related:
+  - /research/build/run-it-yourself
+---
+
+Des approches que nous avons essayées, séduisantes sur le papier, et qui ne
+font pas avancer Eternity II. Aucune n'est mauvaise en soi ; elles ne percent
+simplement pas ce puzzle-ci. Nous consignons ce que nous avons constaté pour
+que vous puissiez passer votre temps ailleurs.
+
+Chaque verdict s'ouvre sur une étiquette de solidité : **Prouvé** signifie
+qu'un théorème ou un calcul exact ferme la porte ; **Mesuré** signifie que
+nous l'avons fait tourner (ou la communauté avant nous) et regardé échouer.
+
+## Casser les symétries
+
+*Supposer que le plateau possède des symétries de rotation ou de miroir, et
+fixer quelques pièces pour rétrécir la recherche.*
+
+**Prouvé.** Le jeu officiel a été conçu sans aucune pièce invariante par
+rotation et sans aucun doublon, et l'unique indice central fige l'orientation.
+Il n'y a aucune symétrie globale à casser : fixer des coins revient à faire un
+choix arbitraire, pas à gagner quoi que ce soit.
+[Pourquoi c'est un mur →](/research/why/rare-color-geography)
+
+## Simplement plus de puissance de calcul
+
+*Faire tourner le même solveur, SAT ou par recherche, sur une machine plus
+grosse, un GPU, un FPGA ou du matériel quantique.*
+
+**Mesuré.** Le mur n'est pas la fréquence d'horloge : c'est la qualité de
+l'encodage et la forme de l'espace de recherche. Les solveurs SAT sur GPU
+n'apportent au mieux qu'un petit gain constant ; les recuits quantiques ne
+montrent aucun avantage à l'échelle qu'il faudrait. Le même algorithme, en
+plus rapide, heurte le même mur un peu plus tôt.
+[Pourquoi c'est un mur →](/research/why/prune-vs-speed)
+
+## La survey propagation
+
+*La méthode de passage de messages qui a percé d'énormes instances SAT
+aléatoires en repérant les grappes de solutions.*
+
+**Prouvé.** Elle suppose que le problème ressemble localement à un arbre. Or
+Eternity II est une grille, avec un cycle court dans chaque carré 2×2, ce qui
+ruine cette hypothèse. En pratique, les messages s'aplatissent au lieu de
+s'affûter — exactement l'inverse de ce qui fait son succès sur le SAT
+aléatoire. Aucune réussite publiée sur des puzzles en grille.
+
+## Ordonner les coups par belief propagation
+
+*Faire tourner la belief propagation sur les couleurs et se servir de ses
+indices par case pour décider quelle pièce essayer en premier.*
+
+**Mesuré.** Les indices ressortent presque uniformes : ils ne départagent
+guère les candidats. Mis en course directe, le tirage du coup suivant au
+hasard faisait aussi bien, voire mieux — un ordre « informé » mais figé tend à
+refaire les mêmes erreurs.
+[Pourquoi c'est un mur →](/research/why/no-forced-moves)
+
+## Compter par réseaux de tenseurs
+
+*Voir le plateau comme un réseau de tenseurs et le contracter pour compter ou
+noter les coloriages cohérents le long des frontières.*
+
+**Prouvé.** La contraction ne sait imposer qu'une chose : que les arêtes en
+contact s'accordent — pas que chaque pièce serve exactement une fois. Et cet
+angle mort est gigantesque : on compte de l'ordre de $10^{90}$ coloriages
+cohérents aux frontières, contre l'unique vraie solution du puzzle. Le passage
+de messages local ne voit tout simplement pas la règle globale « une pièce par
+case ». [Pourquoi c'est un mur →](/research/why/entropy-area-law)
+
+## Les bornes par relaxation
+
+*Résoudre la relaxation linéaire pour obtenir un plafond serré sur le nombre
+d'arêtes qu'un plateau peut accorder.*
+
+**Mesuré.** La relaxation autorise des pièces fractionnaires, étalées sur
+plusieurs cases, ce qui fabrique des accords qu'aucun vrai plateau ne peut
+réaliser. Résultat : un plafond vers 478 quand les meilleurs plateaux réels
+plafonnent vers 458 — un écart bien trop large pour certifier quoi que ce
+soit. La contrainte qui mord, l'unicité globale des pièces, est précisément
+celle que la relaxation jette.
+
+## Apprendre une heuristique sur de petits plateaux
+
+*Entraîner un réseau de neurones sur de petits puzzles, puis le transférer au
+16×16 complet pour guider la recherche.*
+
+**Mesuré.** Nous avons entraîné un modèle brillant sur les petits plateaux, et
+nous l'avons regardé s'effondrer sur le vrai. Il apprend sur des coups filtrés
+d'une certaine manière, puis on l'interroge sur des coups filtrés tout
+autrement — et les couleurs du vrai puzzle ne figuraient pas dans son
+entraînement. La compétence ne franchit ni l'écart de taille ni celui des
+couleurs. [Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## Énumérer d'abord les amas locaux
+
+*Dresser la liste de tous les amas 3×3 ou 4×4 valides, puis les recoudre en un
+plateau complet.*
+
+**Mesuré.** Les décomptes explosent avant de servir. À l'essai, les amas
+valides autour d'une seule région se comptaient déjà en dizaines de millions,
+et combiner quatre coins atteint l'ordre de $10^{12}$ quadruplets à pièces
+disjointes. On manque de temps et de disque bien avant que les contraintes
+n'élaguent quoi que ce soit.
+[Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## Le bilan honnête
+
+L'écart entre le meilleur plateau connu et une solution complète ne ressemble
+pas à une optimisation qui manquerait. Les bons plateaux sont figés localement
+et contraints globalement, d'une façon que les retouches locales, le matériel
+plus rapide et les relaxations classiques n'entament pas. Aller au bout semble
+exiger une idée d'une autre nature — pas davantage de la même.
+
+Voir [pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed).

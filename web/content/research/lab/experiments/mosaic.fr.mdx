@@ -1,0 +1,68 @@
+---
+title: MOSAIC
+description: >-
+  Découper le plateau en petits blocs, résoudre chacun à l'optimum prouvé,
+  puis les recoller — en payant les jointures au lieu de les interdire. Parti
+  de zéro, sans record à copier, il atteint 448.
+kind: experiment
+score: 448
+repro:
+  kind: exact
+order: 100
+updated: 2026-07-01
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/bandsaw
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+---
+
+import { MosaicBlockLab } from "@/components/research/MosaicBlockLab";
+
+Eternity II n'offre aucune structure locale qu'on puisse exploiter
+globalement — mais une petite fenêtre du puzzle, un bloc 4×4, se résout à
+l'optimum parfait en quelques secondes. MOSAIC est une expérience bâtie sur
+ce seul constat : si l'on sait résoudre un bloc exactement, peut-on composer
+seize blocs exacts en un plateau entier ?
+
+## Comment ça marche
+
+Le plateau 16×16 est découpé en seize blocs 4×4, remplis un par un. Chaque
+bloc est confié à un solveur MaxSAT exact, qui y trouve le meilleur placement
+possible des pièces. Toute l'astuce tient à la rencontre entre un bloc et ses
+voisins déjà posés : ces bords partagés ne sont pas des exigences dures mais
+des cibles *souples*, que le bloc est récompensé d'apparier. Un bloc ne peut
+donc jamais devenir infaisable — il paie simplement chaque jointure qu'il
+n'arrive pas à apparier, et se termine toujours.
+
+La seconde idée s'attaque de front au vol de pièces. Avant de remplir un
+bloc, MOSAIC met de côté les pièces globalement les plus rares, pour que les
+derniers blocs ne soient pas privés de celles que leurs jointures
+réclameront. La part à réserver est le seul vrai bouton de réglage : trop peu
+et le coin meurt de faim, trop et ce sont les premiers blocs qui trinquent.
+
+<MosaicBlockLab />
+
+## Le résultat
+
+La primitive de fenêtre tient sa promesse : un bloc 4×4 atteint son optimum
+de 24 bords en une trentaine de secondes, un 3×3 en onze — la preuve que le
+puzzle est bel et bien traitable en petit. Composé sur tout le plateau, parti
+de zéro et sans amorce, MOSAIC atteint 448 sur 480. Le point idéal de
+réservation se situe autour de huit pour cent du stock.
+
+Le déficit est instructif : il se concentre presque entièrement dans les
+trois derniers blocs du coin inférieur droit, là où le stock finit par
+s'épuiser — le vol de pièces, encore lui, visible cette fois comme un unique
+point chaud sur le plateau. L'exact-en-petit se compose bien, mais l'ordre de
+composition dépense sa liberté tôt et la paie à la fin — la forme même sur
+laquelle butent toutes les méthodes explorées ici.
+
+## Questions ouvertes
+
+Un ordre de blocs non row-major — en spirale, ou en résolvant d'abord le coin
+le plus contraint — déplacerait-il l'épuisement hors du bloc le plus dur ?
+Des blocs qui se chevauchent, où chaque jointure serait résolue deux fois
+puis réconciliée, feraient-ils mieux ? Et une primitive plus rapide (en Rust)
+rendrait-elle abordable une taille de bloc supérieure, à la garantie exacte
+plus forte ?

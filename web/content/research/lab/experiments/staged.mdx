@@ -1,0 +1,61 @@
+---
+title: STAGED
+description: >-
+  Build the whole board from scratch with no pre-set frame, in stages, letting
+  the border emerge last from whatever pieces are left.
+kind: experiment
+score: 436
+repro:
+  kind: stochastic
+order: 120
+updated: 2026-07-01
+topics: [construction]
+related:
+  - /research/lab/experiments/cloister
+  - /research/lab/experiments/bandsaw
+---
+
+import { StageBuildDiagram } from "@/components/research/StageBuildDiagram";
+
+Almost every solver starts by locking down the border, because the border is
+the most constrained part and pinning it shrinks the search. STAGED is an
+experiment in refusing that crutch. It builds the board in stages from the
+top down with all 256 pieces free, and never commits to a border until the
+very end, when the border simply falls out of what remains. The question it
+answers: can you reach a strong board without ever anchoring to a frame?
+
+## How it works
+
+The build runs in four stages. The first two fill the top half of the board
+with a fast plain search, banking the partial boards that survive. At the
+handoff, a cheap admissible estimate throws out any partial that clearly
+can't be finished well, so later stages only work on promising starts.
+
+The third stage grows the next band of rows from those survivors. The fourth
+is an exact finisher on the bottom rows that minimizes mismatches, and
+crucially it chooses the bottom border last, against whatever pieces are
+still unused. So the frame is not designed up front; it emerges as a
+consequence of everything above it.
+
+<StageBuildDiagram />
+
+## The result
+
+STAGED reaches 436 of 480 from scratch, with an emergent border and all five
+official clues respected, built end to end with no frame to lean on. That's
+well below the records, and that gap is the finding: it measures honestly how
+much the usual frame-first anchor is worth, and it showed the frame-free
+machinery works at full scale.
+
+Along the way it pinned down the anatomy of the very best boards: they are a
+perfect block of most of the board plus a thin band of mismatches
+concentrated in a few top rows. That shape is what later builders aim to
+reproduce on purpose.
+
+## Open questions
+
+Can a generator that deliberately spends its mismatches in the top rows, to
+keep the rest perfect, reach the 450s frame-free? How much of the
+436-to-record gap is the missing frame anchor versus the harder endgame? And
+does a learned finish-quality estimate pick better survivors than the cheap
+admissible one?

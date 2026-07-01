@@ -1,0 +1,61 @@
+---
+title: LADDER
+description: >-
+  Throw hundreds of cheap short searches at the board, keep only the deepest
+  starts, and promote the survivors through longer and longer rounds.
+kind: experiment
+score: 451
+repro:
+  kind: seeded
+order: 80
+updated: 2026-07-01
+topics: [local-search]
+related:
+  - /research/lab/experiments/replay
+  - /research/lab/experiments/prior
+---
+
+import { LadderDiagram } from "@/components/research/LadderDiagram";
+import { LadderLiveLab } from "@/components/research/LadderLiveLab";
+
+Most of a long search is wasted on starts that were doomed early. LADDER
+spends almost nothing to find out which beginnings are worth pursuing. It runs
+a flood of very short probes, keeps the few that got deepest, and only then
+pays for longer runs — on those alone. It's tournament selection for search
+starts.
+
+## How it works
+
+Round one is hundreds of five-second probes from different random seeds, each
+trying to lay down a long run of perfectly-matched cells. Keep the deepest
+prefixes, and throw out ones that are near-duplicates of each other so the
+survivors stay diverse.
+
+Promote those to a longer round with tighter quality gates, then promote the
+best of those to a full-length run. Each rung spends more time on fewer,
+better candidates, the way successive-halving tournaments allocate effort to
+the contenders that keep winning.
+
+<LadderDiagram />
+
+<LadderLiveLab />
+
+## The result
+
+LADDER produced a 451 board obeying all five official clues, with no guidance
+from any known record — the first time the project escaped the band of 444 to
+450 that unguided search kept landing in. The finishes are determined by their
+prefix: once a strong enough opening is banked, the rest follows. A longer run
+later reached 452.
+
+It also mapped the limits: the supply of perfect openings runs out, and beyond
+a point the rungs all converge to the same ceiling. So LADDER is a good way to
+find the best start, not a way past the structural walls that stop every
+method near the top.
+
+## Open questions
+
+What's the real ceiling of prefix-first selection given more compute on the
+early rungs? Could the diversity rule be smarter about which near-duplicates
+to keep? And does combining the deepest prefixes from different families beat
+promoting within one?

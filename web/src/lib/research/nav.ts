@@ -67,25 +67,10 @@ const STATIC_LEAVES: StaticLeaf[] = [
   { url: "/research/reference", seoKey: "reference", kind: "reference", order: 10, topics: ["backtracking"] },
   { url: "/research/papers", seoKey: "papers", kind: "paper", order: 20 },
   { url: "/research/records", seoKey: "records", kind: "reference", order: 30, topics: ["records"] },
-  { url: "/research/build/solvers", seoKey: "solvers", kind: "tool", order: 40, topics: ["backtracking", "speed"] },
-  { url: "/research/build/dead-ends", seoKey: "dead-ends", kind: "reference", order: 50, topics: ["search-space", "learning", "exact-methods"] },
-  { url: "/research/build/run-it-yourself", seoKey: "run-it-yourself", kind: "tool", order: 60 },
 
   // The lab notebook
   { url: "/research/lab/findings", seoKey: "findings", kind: "finding", order: 10, topics: ["structure"] },
   { url: "/research/lab/experiments", seoKey: "experiments", kind: "experiment", order: 20 },
-  { url: "/research/lab/experiments/palimpsest", seoKey: "exp-palimpsest", kind: "experiment", order: 10, topics: ["local-search", "learning", "records"] },
-  { url: "/research/lab/experiments/keyring", seoKey: "exp-keyring", kind: "experiment", order: 20, topics: ["construction", "learning"] },
-  { url: "/research/lab/experiments/prior", seoKey: "exp-prior", kind: "experiment", order: 30, topics: ["construction", "learning"] },
-  { url: "/research/lab/experiments/replay", seoKey: "exp-replay", kind: "experiment", order: 40, topics: ["records", "backtracking"] },
-  { url: "/research/lab/experiments/gauntlet", seoKey: "exp-gauntlet", kind: "experiment", order: 50, topics: ["construction"] },
-  { url: "/research/lab/experiments/cloister", seoKey: "exp-cloister", kind: "experiment", order: 60, topics: ["local-search", "backtracking"] },
-  { url: "/research/lab/experiments/midden", seoKey: "exp-midden", kind: "experiment", order: 70, topics: ["local-search"] },
-  { url: "/research/lab/experiments/ladder", seoKey: "exp-ladder", kind: "experiment", order: 80, topics: ["local-search"] },
-  { url: "/research/lab/experiments/lodestone", seoKey: "exp-lodestone", kind: "experiment", order: 90, topics: ["construction", "search-space"] },
-  { url: "/research/lab/experiments/mosaic", seoKey: "exp-mosaic", kind: "experiment", order: 100, topics: ["exact-methods"] },
-  { url: "/research/lab/experiments/bandsaw", seoKey: "exp-bandsaw", kind: "experiment", order: 110, topics: ["exact-methods"] },
-  { url: "/research/lab/experiments/staged", seoKey: "exp-staged", kind: "experiment", order: 120, topics: ["construction"] },
   { url: "/research/lab/experiments/log", seoKey: "experiments-log", kind: "tool", order: 130 },
 ];
 

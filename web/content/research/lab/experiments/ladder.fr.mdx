@@ -1,0 +1,67 @@
+---
+title: LADDER
+description: >-
+  Lancer des centaines de recherches courtes et bon marché sur le plateau, ne
+  garder que les départs les plus profonds, et promouvoir les survivants de
+  tour en tour, chacun plus long que le précédent.
+kind: experiment
+score: 451
+repro:
+  kind: seeded
+order: 80
+updated: 2026-07-01
+topics: [local-search]
+related:
+  - /research/lab/experiments/replay
+  - /research/lab/experiments/prior
+---
+
+import { LadderDiagram } from "@/components/research/LadderDiagram";
+import { LadderLiveLab } from "@/components/research/LadderLiveLab";
+
+L'essentiel d'une longue recherche part en fumée sur des départs condamnés
+dès les premières cases. LADDER dépense trois fois rien pour découvrir quels
+débuts méritent d'être poursuivis : une nuée de sondes très courtes, dont on
+ne garde que les quelques-unes allées le plus profond — et c'est seulement
+alors qu'on paie des exécutions longues, pour celles-là seules. Une sélection
+par tournoi, appliquée aux départs de recherche.
+
+## Comment ça marche
+
+Le premier tour lance des centaines de sondes de cinq secondes depuis des
+graines aléatoires différentes, chacune essayant de poser la plus longue
+suite de cases parfaitement accordées. On garde les préfixes les plus
+profonds, en écartant les quasi-doublons pour que les survivants restent
+divers.
+
+On les promeut vers un tour plus long, aux seuils de qualité plus stricts,
+puis les meilleurs vers une exécution complète. Chaque échelon consacre plus
+de temps à moins de candidats, meilleurs — à la manière des tournois à
+élimination successive, qui concentrent l'effort sur les concurrents qui
+continuent de gagner.
+
+<LadderDiagram />
+
+<LadderLiveLab />
+
+## Le résultat
+
+LADDER a produit un plateau à 451 respectant les cinq indices officiels, sans
+s'appuyer sur aucun record connu — la première fois que le projet sortait de
+la bande 444–450 où la recherche non guidée retombait sans cesse. Les
+arrivées sont déterminées par leur préfixe : une fois une ouverture assez
+forte mise en banque, le reste suit. Une exécution plus longue a ensuite
+atteint 452.
+
+L'expérience a aussi cartographié ses propres limites : la réserve
+d'ouvertures parfaites s'épuise, et au-delà d'un certain point tous les
+échelons convergent vers le même plafond. LADDER est donc un bon moyen de
+trouver le meilleur départ — pas de franchir les murs structurels qui
+arrêtent toutes les méthodes près du sommet.
+
+## Questions ouvertes
+
+Quel est le vrai plafond de la sélection par préfixe, avec plus de calcul sur
+les premiers échelons ? La règle de diversité pourrait-elle choisir plus
+finement quels quasi-doublons garder ? Et combiner les préfixes les plus
+profonds de familles différentes bat-il la promotion au sein d'une seule ?

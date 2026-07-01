@@ -1,0 +1,103 @@
+---
+title: Run it yourself
+description: >-
+  The whole site, the engine, and every result in this section run from one
+  repository. Here is how to get it going, rebuild the WebAssembly engine,
+  and reproduce the numbers.
+kind: tool
+order: 60
+updated: 2026-07-01
+sources:
+  - label: The eternity2 repository on GitHub
+    url: https://github.com/raphael-anjou/eternity2
+related:
+  - /research/build/dead-ends
+---
+
+The whole site, the engine, and every result in this section run from one
+repository. Here is how to get it going and reproduce the numbers.
+
+## Get the code
+
+Clone the repository. Everything lives here: the Rust engine, the website, and
+the research topics with their compute scripts.
+
+```bash
+git clone https://github.com/raphael-anjou/eternity2
+cd eternity2
+```
+
+## What you need
+
+Three toolchains. The engine is Rust, the site is a Node app, and the engine
+ships to the browser as WebAssembly.
+
+- **Rust** — stable, with the `wasm32-unknown-unknown` target
+- **Node.js 22+ and pnpm** — for the website (`corepack enable` gets you pnpm)
+- **wasm-pack** — to compile the engine to WebAssembly
+- **just** (optional) — a small task runner that wraps the commands below
+
+## Build and run the site
+
+With `just` installed, two commands. The first builds the engine to
+WebAssembly and installs the web dependencies; the second starts the site at
+`localhost:5173` with hot reload.
+
+```bash
+just setup
+just dev
+```
+
+Prefer to run things directly? Every `just` recipe is a one-line wrapper, so
+you can skip `just` entirely:
+
+```bash
+# build the engine to WebAssembly
+cd engine && wasm-pack build --target web --out-dir ../web/src/engine/pkg --release
+# install and run the site
+cd ../web && pnpm install && pnpm dev
+```
+
+## Work on the engine
+
+The engine is a normal Rust crate that also compiles to WebAssembly. Run its
+tests, then rebuild the WASM whenever you change it. The tests include
+cross-checks against real community boards, so they catch any change to the
+piece set, rotation, or scoring.
+
+```bash
+just test    # cargo test --release
+just wasm    # rebuild the WebAssembly after a change
+```
+
+## Reproduce a research result
+
+Each topic in this section is self-contained: an article, a compute script,
+and the committed output it produces. Re-running the script regenerates that
+output. Deterministic results come back byte-for-byte identical; runs that
+depend on randomness or take hours say so plainly, and ship the board they
+found so you can still check it in the viewer.
+
+For example, the forbidden-patterns counts (about twenty seconds):
+
+```bash
+just research-forbidden-patterns
+# or directly:
+cd research/topics/forbidden-patterns/compute
+cargo run --release > ../results/feasibility.json
+```
+
+Running `just` with no arguments lists every task, including the other
+reproduce recipes (`research-subgrid`, `research-index`) and the engine's
+native `bench` and `stats` runs.
+
+## Run every check
+
+One command runs what continuous integration runs: engine tests, type-check,
+lint, and the production build.
+
+```bash
+just check   # engine tests, typecheck, lint, build
+```
+
+[Browse the repository on GitHub](https://github.com/raphael-anjou/eternity2).

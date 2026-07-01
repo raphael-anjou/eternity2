@@ -1,0 +1,70 @@
+---
+title: KEYRING
+description: >-
+  Construire un plateau à partir de rien, en classant chaque pièce candidate
+  par trois signaux appris des bons plateaux passés. A atteint 460 dans une
+  famille de plateaux qu'aucune recherche n'avait percée jusque-là.
+kind: experiment
+score: 460
+repro:
+  kind: stochastic
+order: 20
+updated: 2026-07-01
+topics: [construction, learning]
+related:
+  - /research/lab/experiments/prior
+  - /research/why/sigma-cycles
+  - /research/why/forbidden-patterns
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Quand on construit un plateau pièce par pièce, le plus dur est de choisir
+laquelle poser ensuite lorsque plusieurs conviennent. Une règle empirique
+unique conduit la recherche dans les mêmes impasses à chaque fois. KEYRING
+porte trois intuitions apprises à la fois — un trousseau — et les fait
+voter, ce qui empêche la recherche d'accorder trop de confiance à un seul
+signal.
+
+## Comment ça marche
+
+De la bibliothèque des plateaux forts, KEYRING apprend trois choses. D'abord,
+où chaque pièce aime se poser : la fréquence à laquelle elle apparaît à
+chaque position dans les bons plateaux. Ensuite, quelles pièces aiment se
+voisiner : combien de fois deux pièces finissent en contact. Enfin, quels
+petits carrés 2x2 se retrouvent dans les bons plateaux plutôt que dans les
+mauvais.
+
+Il remplit alors le plateau par recherche en faisceau, en gardant vivants de
+nombreux plateaux partiels à la fois. Quand il faut choisir la pièce
+suivante, chaque option est notée d'après le nombre de bords qu'elle apparie,
+infléchi par les trois signaux appris réunis. Une pointe de hasard empêche
+les tentatives parallèles de s'effondrer toutes sur le même chemin.
+
+<KeyringDiagram />
+
+## Le plateau
+
+<RecordBoard id="v181-keyring-460" />
+
+## Le résultat
+
+KEYRING a atteint 460 sur 480 — et dans une disposition de coins où aucun
+plateau n'était monté aussi haut auparavant. Ce n'est donc pas une énième
+route vers un plateau connu, mais une région véritablement nouvelle. Sur des
+exécutions répétées, il a décroché un plateau fort bien plus souvent que la
+version à signal unique dont il est issu.
+
+Ce n'est pas le meilleur score du projet (463), mais trouver un plateau élevé
+dans une famille inédite compte : on sait les plateaux forts isolés les uns
+des autres, et chaque nouvelle famille est donc un point d'appui à part
+entière.
+
+## Questions ouvertes
+
+Graduer le signal des carrés 2x2, plutôt que de les classer simplement bons
+ou mauvais, aiderait-il davantage ? Les poids des trois signaux
+pourraient-ils évoluer à mesure que le plateau se remplit, en se fiant
+davantage à la structure en fin de construction ? Et cette famille nouvelle
+peut-elle être poussée au-delà de 460 avec un affinage plus long ?
