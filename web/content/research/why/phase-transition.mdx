@@ -1,0 +1,122 @@
+---
+title: Tuned to the hardness peak
+description: >-
+  Eternity II uses 22 colors. They split 17 interior to 5 frame-only, and
+  that 17 is exactly where this kind of puzzle is hardest to solve.
+kind: finding
+tier: 1
+order: 40
+updated: 2026-07-01
+topics: [structure]
+sources:
+  - label: "Mateu & Hamadi, Edge matching puzzles as hard SAT/CSP benchmarks (Constraints, Springer 2012)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
+    url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/entropy-area-law
+  - /research/why/no-forced-moves
+repro:
+  kind: exact
+  topic: phase-transition
+---
+
+import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
+import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
+import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { colorToLetter } from "@/lib/motifs";
+import data from "@/data/phase-transition.json";
+
+Hard search problems have a difficulty knob. Loosen it and there are many
+solutions, so a search trips over one fast. Tighten it and there are none,
+which is often easy to prove. In between sits a narrow band where solutions
+are scarce but real, and that's where search blows up. People call it a phase
+transition, like water freezing.
+
+For edge-matching puzzles the knob is the number of colors. Too few and pieces
+fit together countless ways; too many and they barely fit at all. The
+[published analysis](https://link.springer.com/article/10.1007/s10601-012-9128-9)
+puts the peak at around 17 interior colors, the setting where a puzzle this
+size has about one solution. Eternity II uses 17.
+
+## The difficulty wall
+
+<PhaseTransitionLab />
+
+## Or measure it yourself
+
+The chart above is precomputed. This one isn't: the engine solves fresh
+puzzles live, one per colour count, and draws the peak from real runs in your
+browser.
+
+<PhaseTransitionLiveLab />
+
+## The split, straight from the pieces
+
+Sorting the official set's colors by where they appear shows the design
+plainly.
+
+<div className="not-prose grid gap-5 sm:grid-cols-2">
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">5 frame-only colors</div>
+    <div className="flex flex-wrap gap-3">
+      {data.frameOnlyColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      These appear only on border and corner pieces, never in the interior.
+      They are the rare colors, kept to the edge.
+    </p>
+  </div>
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">17 interior colors</div>
+    <div className="flex flex-wrap gap-3">
+      {data.interiorColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      The palette of the inside of the board, where almost all the matching
+      happens.
+    </p>
+  </div>
+</div>
+
+## The set in numbers
+
+|                   | Count |
+| ----------------- | ----: |
+| Corner pieces     |     4 |
+| Edge pieces       |    56 |
+| Interior pieces   |   196 |
+| Interior colors   |    17 |
+| Frame-only colors |     5 |
+
+## Why it matters
+
+This is the clearest single sign that Eternity II was made hard on purpose.
+Board size, piece count and color split all aim at the same target: a puzzle
+with about one solution, placed at the worst possible spot for any search to
+find it. The difficulty was chosen, the way a good exam is neither trivial nor
+impossible.
+
+How do we know the peak is real and not just a story? Two ways meet here. The
+published analysis
+[derives it](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content):
+for framed edge-matching puzzles, the color count where you'd expect about one
+solution falls near 17, and that is the hardest setting to search. And you can
+watch a piece of it yourself in the demo above: build real puzzles, count the
+work, and see it explode when colors are scarce. The impact is concrete. It
+means the gap to a solution isn't a tuning problem you can grind away with a
+faster machine; the puzzle was placed where search is worst on purpose, so
+beating it needs a genuinely better idea, not just more effort.
+
+See the difficulty measured live on the [Algorithms page](/algorithms).

@@ -113,6 +113,12 @@ attempts (both exist in groups.io history). Design:
 - **Two-level navigation**: the left sidebar must NOT carry the whole wiki.
   A research sub-navbar (under the site header) carries the doors + topic
   categories; the sidebar shows only the active section's tree.
+- **Experiments, not inventions** (2026-07-01): the project's own algorithms
+  are "experiments" (we can't be sure they're inventions) and must NOT be the
+  wiki's core topic. Frame them as one researcher's work — "Raphaël's
+  exploration" — structurally parallel to other researchers' work (Jef
+  Bucas's Blackwood study, Blackwood, McGavin…). kind: experiment in the
+  schema; prose in that voice.
 
 ### Community-contributed sources (to publish, with permission)
 

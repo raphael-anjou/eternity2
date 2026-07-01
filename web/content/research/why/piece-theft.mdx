@@ -1,0 +1,128 @@
+---
+title: Piece theft, where solvers die
+description: >-
+  A solver fills a few rows for free, then hits a wall in the middle of the
+  board. Here's the mechanism: a scarce piece spent in the wrong place, rows
+  ago.
+kind: finding
+tier: 3
+order: 100
+updated: 2026-07-01
+topics: [structure, search-space]
+related:
+  - /research/why/no-forced-moves
+  - /research/lab/experiments/prior
+repro:
+  kind: exact
+  topic: piece-theft
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { PieceTheftDiagram } from "@/components/research/PieceTheftDiagram";
+import { PieceTheftLab } from "@/components/research/PieceTheftLab";
+import data from "@/data/piece-theft.json";
+
+export function ServersChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+            <XAxis
+              dataKey="servers"
+              label={{
+                value: "pieces that can serve the demand",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              label={{ value: "demands", angle: -90, position: "insideLeft", fontSize: 12 }}
+              width={40}
+              fontSize={12}
+            />
+            <Tooltip
+              formatter={(v) => [String(v), "demands"]}
+              labelFormatter={(s) => `${String(s)} pieces that can serve the demand`}
+            />
+            <Bar dataKey="demands" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Fill the board top-left to bottom-right and every new cell already knows two
+of its colors: the north color from the piece above, the west color from the
+piece to the left. The cell needs an unused piece that can show that exact
+pair. Those demands are scarce, with only about three possible pieces on
+average, and 47 of them have just one.
+
+So a board that looks healthy, most pieces still in the box, can already be
+doomed. Somewhere back up the board, the single piece that could ever serve
+an upcoming cell was used for something else. When the solver finally reaches
+that cell, there's nothing to place.
+
+## How a cell dies
+
+<PieceTheftDiagram />
+
+## How many pieces can serve a demand
+
+<div className="mx-auto grid max-w-2xl grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums text-red-600">{data.uniqueServerDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">demands served by a single piece</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanServers}</div>
+    <div className="mt-1 text-xs text-muted-foreground">pieces per demand, on average</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.occurringDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">distinct demands that occur</div>
+  </div>
+</div>
+
+<Figure caption="Each (north, west) demand a cell can have, bucketed by how many interior pieces could serve it. Most demands have one to three.">
+  <ServersChart />
+</Figure>
+
+## Starve a cell yourself
+
+The engine fills a board to a cell with a single legal supplier; steal that
+piece and watch the cell die with the box still full.
+
+<PieceTheftLab />
+
+## Why it matters
+
+A tempting fix is a global check: do the remaining pieces still cover the
+remaining cells? It doesn't help. Globally the supply is fine; the failure is
+one scarce piece misallocated, not a shortage. So a global lookahead sees
+nothing wrong right up until the cell turns out to have no server, which is
+why this wall resisted so many attempts to prune it early.
+
+Set this beside [no forced moves](/research/why/no-forced-moves) and the trap
+is complete. Every piece has dozens of places it could go, so the solver is
+never told where a scarce piece must be saved, yet each scarce piece has
+exactly one demand it must be saved for. Freedom to place, no guidance on
+where to save.

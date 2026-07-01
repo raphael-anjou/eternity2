@@ -1,0 +1,120 @@
+---
+title: "Complex theory: counting the search before you run it"
+description: >-
+  Brendan Owen's complex theory estimates how wide the search tree is at every
+  depth — and how many solutions exist at all. Many in the community consider
+  it the single most important thing to understand about Eternity II.
+kind: finding
+order: 30
+updated: 2026-07-01
+topics: [structure, backtracking]
+sources:
+  - label: Brendan Owen's solution-count estimates (groups.io message 5209)
+    url: https://groups.io/g/eternity2/message/5209
+  - label: Peter McGavin's reference implementation and depth table (groups.io message 11197)
+    url: https://groups.io/g/eternity2/message/11197
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/phase-transition
+  - /research/why/entropy-area-law
+---
+
+import { ComplexFunnel } from "@/components/research/ComplexFunnel";
+import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
+
+<Callout kind="note" title="Whose idea this is">
+  Complex theory is due to Brendan Owen, one of the puzzle's vetters; Peter
+  McGavin [implemented it in C](https://groups.io/g/eternity2/message/11197)
+  with arbitrary-precision arithmetic and posted the numbers. We're writing it
+  up here because a community member (Dan Karlsson) rightly pointed out it was
+  missing, and because it underpins almost every good decision you can make
+  about a solver — especially the choice of search order.
+</Callout>
+
+## The idea
+
+Take a scan order and walk it one cell at a time. At each new cell, a random
+unused piece matches its already-placed neighbours with some probability — a
+product of per-edge colour-match chances. Multiply that by how many pieces are
+left and you get the expected number of ways to extend the board one cell
+further. Chain this down all 256 cells and you have a closed-form estimate of
+how wide the search tree is at every depth, and — at the last cell — how many
+full solutions the puzzle has.
+
+It is an average, not a true count: it assumes the 22 edge colours are drawn
+independently, which they aren't (four edges are bolted to one rigid piece).
+But calibrated against small puzzles where the real count is known, it lands
+within about a factor of two. That is more than enough to see the shape.
+
+## The headline numbers
+
+| Clues placed                       | Expected solutions |
+| ---------------------------------- | ------------------ |
+| One clue (the centre piece only)   | ≈ 14,702           |
+| All five official clues            | ≈ 1                |
+
+With only the mandatory centre piece the puzzle has on the order of fifteen
+thousand solutions; add the four other clues and the expected count drops to
+about $4\times10^{-8}$ — overwhelmingly, exactly one. This is the formal
+reason the 5-clue puzzle has a single designed solution.
+
+## The funnel
+
+Plot the expected width at each depth and three regimes appear — the shape the
+community calls the E2 funnel.
+
+<ComplexFunnel />
+
+## Try it: the order decides the funnel
+
+The same estimate, run live for different scan orders. The plateau peak — the
+widest point the search must cross — is decided by the order alone, before a
+single node is placed.
+
+<ComplexFunnelLab />
+
+## Three regimes
+
+- **Growth (depth 1–50)** — Solutions multiply geometrically from one to
+  about $10^{27}$. Every placement is essentially free; nothing constrains you
+  yet.
+- **Plateau (depth 50–200)** — The tree is at its widest — about $10^{45}$
+  ways to extend — while the solution count barely moves. This is where
+  backtrackers spend roughly 99% of their time, matching Joe's empirical
+  finding that most time is spent below depth 150.
+- **Collapse (depth 200–256)** — The width falls from $10^{45}$ back to about
+  $10^{4}$. The last ~60 pieces are tightly constrained: each one placed
+  eliminates orders of magnitude of branches. The endgame is locally easy —
+  the hard part is reaching it.
+
+## Why it changes how you search
+
+If almost all the work is in the plateau, the goal isn't raw speed — it's
+getting across the plateau to the funnel entrance (around depth 200), after
+which the search chains down deterministically. And because complex theory
+scores a scan order before you run it, you can compare orders by the height of
+their plateau peak rather than by trial and error. That is the rigorous
+version of a rule this site states everywhere: the fill order is a
+first-class choice, and McGavin's bottom-left, left-to-right scan was picked
+because complex theory said it was good.
+
+## Bigger tiles
+
+The same idea works if you place 2×2 or 3×3 tiles instead of single pieces: a
+whole block of cells is committed at once, with its internal edges already
+matched. The [search-path playground](/playground/paths) lets you do this for
+real — pick a block shape (1×1, 2×1, 2×2, 3×3, …) and stamp blocks onto the
+grid to build a block path. Race it and a dedicated macro-piece solver commits
+one whole valid sub-assembly per block instead of one piece at a time, so the
+search advances region by region. The plateau-peak estimate alongside still
+scores the cell order your blocks imply, predicting the cost before you run a
+single node.
+
+## What it can't see
+
+Complex theory is a first-moment estimate, so it is blind to one thing:
+whether the many counted partial boards are genuinely distinct. The
+[entropy and area-law results](/research/why/entropy-area-law) show that
+distinctness collapses past ~80 cells — a second-order effect the
+independent-edge model cannot capture. So use complex theory to choose orders
+and read the tree's shape, never as a true count or a bound.

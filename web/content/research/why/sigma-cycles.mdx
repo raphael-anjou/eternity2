@@ -1,0 +1,74 @@
+---
+title: Why basin-hopping is impossible
+description: >-
+  If you can't improve a great board by polishing it, maybe you can jump to a
+  different great board. You can't, and the reason is beautiful.
+kind: finding
+tier: 1
+order: 60
+updated: 2026-07-01
+topics: [structure, local-search]
+related:
+  - /research/why/rigidity-wall
+  - /research/why/mismatch-geometry
+  - /research/lab/experiments/keyring
+---
+
+import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
+import { SigmaCycleLab } from "@/components/research/SigmaCycleLab";
+
+Two top boards look totally different, but they're related: you can turn one
+into the other by picking up a set of pieces and shifting each one into the
+spot the next was using, all the way around a loop. Mathematicians call that
+loop a cycle. Do the whole loop and you arrive at the other board.
+
+Here's the catch. Between the best boards, that loop is enormous and there's
+only one of it. Going from a 458 board to the community's 469 means one
+single interlocking cycle of 154 cells, spanning the entire interior of the
+board.
+
+## One loop, all or nothing
+
+<SigmaCycleDiagram />
+
+## Try it on a real small puzzle
+
+Not a diagram — the live engine finds two real solutions, computes the actual
+cycles between them, and scores every step you take.
+
+<SigmaCycleLab />
+
+## How we know
+
+We computed the exact cycles between three different record boards and then
+tried every partial move: apply just some of the loop and see what the score
+does. The result is blunt. Every partial application makes the score worse,
+with drops ranging from a few points to over a hundred. There is no subset of
+the loop that helps, not one.
+
+That's what makes it a wall. To move from one good board toward a better one
+you'd have to commit to shifting up to 154 cells at once, with no improving
+step along the way to guide you there. Every search that works in steps is
+blind to a move like that.
+
+## The cycles, measured
+
+- 459 to 458: 14 cycles, largest 85 cells.
+- 458 to McGavin 469: one giant cycle of 80 cells, spanning rows 1 to 14.
+- 459 to McGavin 469: one giant cycle of 154 cells.
+- **In every case, every smaller piece of the cycle scores worse. The
+  property is universal across the basins we tested.**
+
+## Why it matters
+
+Together with [the rigidity wall](/research/why/rigidity-wall), this closes
+off the two obvious escape routes at once. You can't climb out of a good
+board locally, and you can't hop to a neighbour either, because the nearest
+better board is one indivisible 150-cell move away. The 469 record has stood
+since 2020 for exactly this reason: the moves that would beat it are too
+large for any step-by-step search to find.
+
+*Cycles are computed exactly from pairs of record boards by composing their
+piece permutations; the subset tests enumerate sub-cycles and rescore. The
+animation above is a schematic of the mechanism, not the 154-cell cycle
+itself.*

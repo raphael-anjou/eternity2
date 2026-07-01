@@ -1,0 +1,208 @@
+---
+title: Entropy and the area law
+description: >-
+  Eternity II has two rules: edges must match, and each piece is used once.
+  The first is generous. All the hardness lives in the second.
+kind: finding
+tier: 2
+order: 130
+updated: 2026-07-01
+topics: [structure]
+related:
+  - /research/why/phase-transition
+  - /research/why/prune-vs-speed
+  - /research/why/forbidden-patterns
+repro:
+  kind: exact
+  topic: entropy-area-law
+---
+
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
+import data from "@/data/entropy-area-law.json";
+
+export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
+  const n = i + 1;
+  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
+});
+
+export function EntropyChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={data.hByWidth} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="width"
+              type="number"
+              domain={[1, 4]}
+              tickCount={4}
+              label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
+              fontSize={12}
+            />
+            <YAxis domain={[0.5, 1.8]} width={40} fontSize={12} />
+            <Tooltip
+              formatter={(v) => [Number(v).toFixed(4), "entropy density h(n)"]}
+              labelFormatter={(w) => `strip width n = ${String(w)}`}
+            />
+            <Line
+              type="monotone"
+              dataKey="h"
+              stroke="#38bdf8"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function RhoChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="cells"
+              type="number"
+              domain={[0, 170]}
+              tickCount={7}
+              label={{
+                value: "patch size (cells)",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              scale="log"
+              domain={[1e-7, 1]}
+              allowDataOverflow
+              tickFormatter={(n) => Number(n).toExponential(0)}
+              width={52}
+              fontSize={11}
+            />
+            <Tooltip
+              formatter={(v) => [Number(v).toExponential(2), "ρ"]}
+              labelFormatter={(c) => `${String(c)} patch size (cells)`}
+            />
+            <Line
+              type="monotone"
+              dataKey="rho"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Forget the use-each-piece-once rule for a moment and treat the 196 interior
+pieces as reusable tiles. Count the valid all-matched patches and they grow
+exponentially with size: there's no shortage of locally-valid ways to tile.
+The matching grammar is rich, not restrictive.
+
+We can measure that richness exactly. For a strip of width $n$, the growth
+rate per cell is an entropy density $h(n)$, and the sequence decreases toward
+the true two-dimensional value as the strip widens.
+
+## The grammar's entropy, width by width
+
+<Figure caption="Decreasing toward the limit ≈ 0.67. The first two points are computed exactly here; the rest from an offline sweep.">
+  <EntropyChart />
+</Figure>
+
+## Then the area law bites
+
+Now put the use-each-piece-once rule back, and ask how often a random
+color-valid $n \times n$ patch actually uses distinct pieces. Call it
+$\rho(n)$. It collapses, and crucially it collapses in the area, not the
+perimeter:
+
+$$
+\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
+$$
+
+An area-law decay is brutal because area grows quadratically. The fraction of
+realizable patches drops below one in a thousand at around eighty cells.
+
+<Figure caption="Fraction of color-valid patches realizable with distinct pieces.">
+  <RhoChart />
+</Figure>
+
+## See the gap open
+
+The same idea on the real pieces, exactly counted. Step the block size and
+watch how many colour-valid blocks survive the use-each-piece-once rule.
+
+<EntropyScarcityLab />
+
+## Why it matters
+
+Eighty cells is not arbitrary. It's the size of the smallest moves that
+separate the best known boards. The matching grammar stays rich up to about
+that scale, then the distinctness rule collapses it. So the wall isn't in the
+part that looks hard, matching colors; it's in the quiet rule that each piece
+is used once, whose cost grows with area, on a board just large enough for it
+to bite.
+
+See [why basin-hopping is impossible](/research/why/sigma-cycles).
+
+## The theorem, briefly
+
+The per-width entropy has a well-defined limit. Joining an $n_1$-wide and an
+$n_2$-wide strip side by side only adds a seam constraint, so the eigenvalues
+satisfy
+
+$$
+\lambda_{n_1+n_2} \;\le\; \lambda_{n_1}\,\lambda_{n_2}.
+$$
+
+Taking logs makes $\log \lambda_n$ subadditive, and Fekete's lemma gives the
+limit as an infimum, which is exactly why the curve above decreases:
+
+$$
+h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
+$$
+
+The upper bound is the purely horizontal rate: ignoring vertical constraints
+only adds patches, so
+
+$$
+0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+$$
+
+with $\lambda_H = 46.18$ the spectral radius of the horizontal
+color-compatibility matrix. Positivity holds because the grammar supports
+exponentially many chains, so the density is strictly between zero and
+1.6645, measured near 0.67.
