@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { pageMeta } from "@/seo";
 import { useT } from "@/i18n";
-import { LocalizedLink } from "@/components/LocalizedLink";
 import data from "@/data/experiments.json";
 
 // The complete experiments log: every attempt from the research notebook, with
@@ -32,10 +30,6 @@ const STATUS_CLASS: Record<string, string> = {
 
 const T = {
   en: {
-    backLabel: "← The lab notebook",
-    title: "Experiments log",
-    intro:
-      "Everything we tried, with how it turned out. Hundreds of attempts from the research notebook: the ones that worked, the half-built ideas, and the dead ends, all in one place so you can build on them and skip the walls we already hit. Search and filter below.",
     search: "Search experiments…",
     counts: (shown: number, total: number) => `${shown} of ${total}`,
     statusLabels: {
@@ -51,10 +45,6 @@ const T = {
     note: "Generated from the research notebook's concept notes. Summaries are the original lab notes, kept terse; some use internal shorthand.",
   },
   fr: {
-    backLabel: "← Le carnet de laboratoire",
-    title: "Journal des expériences",
-    intro:
-      "Tout ce que nous avons essayé, avec le résultat. Des centaines de tentatives tirées du carnet de recherche : celles qui ont marché, les idées à moitié construites et les impasses, réunies pour que vous puissiez bâtir dessus et éviter les murs déjà rencontrés. Recherchez et filtrez ci-dessous.",
     search: "Rechercher des expériences…",
     counts: (shown: number, total: number) => `${shown} sur ${total}`,
     statusLabels: {
@@ -71,7 +61,7 @@ const T = {
   },
 };
 
-export default function ExperimentsHub() {
+export function ExperimentsLogView() {
   const t = useT(T);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Set<string>>(new Set());
@@ -101,14 +91,6 @@ export default function ExperimentsHub() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <LocalizedLink to="/research/lab/experiments" className="text-sm text-muted-foreground hover:text-foreground">
-          {t.backLabel}
-        </LocalizedLink>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">{t.title}</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
-      </div>
-
       <div className="space-y-3">
         <input
           type="search"
@@ -171,5 +153,3 @@ export default function ExperimentsHub() {
     </div>
   );
 }
-
-export const meta = pageMeta("experiments-log");

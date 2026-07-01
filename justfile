@@ -66,3 +66,35 @@ research-forbidden-patterns:
 # Reproduce the subgrid-placement-counts topic's results.
 research-subgrid:
     cd research/topics/subgrid-placement-counts/compute && cargo run --release > ../results/reference-table.json
+
+# Reproduce the phase-transition topic's results.
+research-phase-transition:
+    cd research/topics/phase-transition/compute && cargo run --release > ../results/color-split.json
+
+# Reproduce the no-forced-moves topic's results.
+research-no-forced-moves:
+    cd research/topics/no-forced-moves/compute && cargo run --release > ../results/partner-counts.json
+
+# Reproduce the piece-theft topic's results.
+research-piece-theft:
+    cd research/topics/piece-theft/compute && cargo run --release > ../results/piece-theft.json
+
+# Reproduce the prune-vs-speed topic's results.
+research-prune-vs-speed:
+    cd research/topics/prune-vs-speed/compute && cargo run --release > ../results/prune-vs-speed.json
+
+# Reproduce the rare-color-geography topic's results.
+research-rare-color-geography:
+    cd research/topics/rare-color-geography/compute && cargo run --release > ../results/color-geography.json
+
+# Reproduce the entropy-area-law topic's results.
+research-entropy-area-law:
+    cd research/topics/entropy-area-law/compute && cargo run --release > ../results/entropy.json
+
+# Recompute every bundled record board's score from its edges (verification).
+research-record-boards:
+    cd research/topics/record-boards/compute && cargo run --release > ../results/verified-scores.json
+
+# Regenerate the experiments-log data from the research vault concepts.
+research-experiments-log:
+    cd research/topics/experiments-log && python3 extract.py > ../../../web/src/data/experiments.json

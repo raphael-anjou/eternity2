@@ -74,7 +74,7 @@ function Breadcrumbs({ doc }: { doc: ResearchDoc }) {
       <LocalizedLink to="/research" className="hover:text-foreground">
         {t.research}
       </LocalizedLink>
-      {section && (
+      {section && section.url !== doc.url && (
         <>
           <span aria-hidden>/</span>
           <LocalizedLink to={section.url} className="hover:text-foreground">
@@ -135,6 +135,15 @@ function Badges({ doc }: { doc: ResearchDoc }) {
 function ReproBlock({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   if (!doc.repro) return null;
+  // Nothing actionable (no command, no code link): a compact honesty note
+  // instead of a near-empty box.
+  if (!doc.repro.cmd && !doc.repro.topic) {
+    return (
+      <p className="mt-10 border-t pt-4 text-xs text-muted-foreground">
+        {t.reproduce} — {t.reproKind[doc.repro.kind]}
+      </p>
+    );
+  }
   return (
     <div className="mt-10 rounded-lg border bg-muted/30 p-4 text-sm">
       <div className="font-semibold">{t.reproduce}</div>

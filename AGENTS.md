@@ -58,22 +58,29 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   to the generator must stay byte-for-byte across all four ports; run the
   `parity.mjs` harnesses + `cargo test` and rebuild the C/C++/Rust wasm.
 
-- **The research section is three doors, folders mirror routes.** `/research`
-  (`pages/Research.tsx`) is a chooser pointing to three door hubs: **Why it's
-  hard** (`pages/research/why/Hub.tsx` → `/research/why` — the design story +
-  structural-wall science), **Build a solver** (`pages/research/build/Hub.tsx`
-  → `/research/build` — re-homes reference/papers/records, plus dead-ends,
-  solver catalogue and community infra), and **The lab notebook**
-  (`pages/research/lab/Hub.tsx` → `/research/lab` — original findings,
-  inventions, notable boards). **Folder path mirrors the route 1:1 at arbitrary
-  depth**, and every level has an index hub named `Hub.tsx`
-  (`pages/research/build/solvers/blackwood/Hub.tsx` → `/research/build/solvers/
-  blackwood`, with leaves like `schedule.tsx` beside it). Sections like
-  build/solvers and lab/inventions are expected to grow many sub/sub-sub pages —
-  add depth freely, nothing re-homes. Cards for not-yet-published children show
-  an "In preparation" badge and are rendered as non-links (no dead links). When
-  you add a page: append to `routes.ts` PAGES (unique id), `sitemap.config.ts`
-  PAGE_PATHS, and a `seo.ts` key (EN+FR).
+- **The research section is an MDX wiki.** Content lives in
+  `web/content/research/**` — one `.mdx` file per page (`page.mdx` = EN,
+  `page.fr.mdx` = FR; `index.mdx` = a directory's hub). **Adding an MDX file IS
+  the registration**: the scanner (`web/content.config.ts`) feeds the prerender
+  list + sitemap, the Vite plugin (`web/plugins/research-content.ts`) builds
+  per-language manifests, and the catch-all `research/*` routes render pages in
+  the docs shell (`web/src/components/docs/`) with sidebar, TOC, breadcrumbs,
+  prev/next, search (⌘K) and topic hubs. Frontmatter is zod-validated and
+  fails the build loudly: title, description, kind (finding | experiment |
+  tool | reference | concept | basin | paper | page), order, updated, topics
+  (validated against `content/research/topics.json`), sources[] (every claim
+  links its evidence), related[] (site paths), repro {kind, cmd, topic}, and
+  score for experiments. Interactive components are imported directly inside
+  MDX (`@/components/...`) — per-page code splitting is preserved, and prerender
+  waits for them (full prose ends up in the static HTML). Do NOT add research
+  pages to `routes.ts`/`seo.ts` — those are only for non-research pages now.
+
+- **Research writing rules.** French pages are *written*, never translated
+  literally. The project's own algorithms are **experiments** (never
+  "inventions") under "Raphaël's explorations" — one researcher's notebook,
+  structurally equal to other researchers' work (Bucas, Blackwood, McGavin).
+  Every number is fact-checked against `research/topics/*/results` before
+  publication; `repro.cmd` should be a real `just research-<topic>` recipe.
 
 - **Keep the research ledger.** `research/LEDGER.md` is an append-only,
   oldest-first record of every research-section step: findings, pages,
@@ -97,18 +104,13 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   plainly as the project's research. Do not describe the process that produced
   them.
 
-- **Papers and records live on their own pages.** `web/src/pages/Papers.tsx`
-  (route `research/papers`) holds the academic bibliography with per-paper
-  usefulness tiers, grouped by section, + a "which ones are actually useful"
-  discussion. `web/src/pages/Records.tsx` (route `research/records`) holds the
-  community record timeline (canonical vs variant, the "480" false positives),
-  key algorithms, and contributor cast. Both are sourced from the research
-  vault at `../../v2/vault/reference/` (`academic-references.md` and
-  `community-e2-history.md` — the canonical sources for any future bibliography
-  / history work). `Research.tsx` links to both via cards. When adding a paper,
-  verify the URL resolves (some academic PDFs rot — prefer
-  institutional-repository / HAL / DIAL / arXiv links over personal faculty
-  paths).
+- **Papers and records are MDX + view components.** `content/research/
+  papers.mdx` and `records.mdx` wrap `web/src/components/research/views/
+  {Papers,Records}View.tsx` (data-heavy TSX stays TSX; the MDX wrapper carries
+  the metadata). Both are sourced from the research vault at
+  `../../v2/vault/reference/` (`academic-references.md`,
+  `community-e2-history.md`). When adding a paper, verify the URL resolves
+  (prefer institutional-repository / HAL / DIAL / arXiv links).
 
 - **`justfile` wraps the common tasks.** `just` lists them; `just setup`,
   `just dev`, `just test`, `just wasm`, `just build`, `just check`, and the

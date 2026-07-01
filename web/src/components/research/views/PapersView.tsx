@@ -1,7 +1,5 @@
-import { pageMeta } from "@/seo";
 import { Card, CardContent } from "@/components/ui/card";
 import { useT } from "@/i18n";
-import { LocalizedLink } from "@/components/LocalizedLink";
 
 // Academic citations (authors, titles, venues, years, URLs) are not translated.
 // Only the per-entry notes are localized, via T.notes, keyed by paper id.
@@ -249,9 +247,6 @@ const SECTION_ORDER: Section[] = ["complexity", "solvers", "cp", "global", "cros
 
 const T = {
   en: {
-    title: "Papers",
-    intro:
-      "Curated from our research lab notebook — 200-plus volumes of work on Eternity II — plus the community reading list. Sorted by how useful each paper actually is if your goal is to write a solver. The short version: the complexity results tell you why it's hard, the SAT/CSP papers explain why off-the-shelf solvers hit a wall, and the constraint-propagation + large-neighborhood papers are the ones whose ideas show up in the strongest solvers.",
     usefulnessTitle: "Which ones are actually useful?",
     usefulness: [
       [
@@ -335,12 +330,8 @@ const T = {
       braunstein2005:
         "Survey propagation — message passing built for clustered solution spaces near the SAT phase transition. Plain belief propagation gives ~19% interior reduction on E2 but pure SP was refuted early; the backtracking-SP variant remains untested here.",
     } as Record<string, string>,
-    back: "Back to research",
   },
   fr: {
-    title: "Articles scientifiques",
-    intro:
-      "Sélection issue de notre carnet de laboratoire — plus de 200 volumes de travaux sur Eternity II — complétée par la liste de lectures de la communauté. Classés selon l'utilité réelle de chaque article quand on veut écrire un solveur. En résumé : les résultats de complexité disent pourquoi c'est dur, les articles SAT/CSP expliquent pourquoi les solveurs génériques butent sur un mur, et les articles de propagation de contraintes et de recherche à grand voisinage sont ceux dont les idées se retrouvent dans les meilleurs solveurs.",
     usefulnessTitle: "Lesquels sont vraiment utiles ?",
     usefulness: [
       [
@@ -424,7 +415,6 @@ const T = {
       braunstein2005:
         "Survey propagation — passage de messages conçu pour les espaces de solutions en grappes près de la transition de phase SAT. La propagation de croyance simple donne ≈19 % de réduction intérieure sur E2 mais la SP pure a été réfutée tôt ; la variante backtracking-SP reste à tester ici.",
     } as Record<string, string>,
-    back: "Retour à la recherche",
   },
 };
 
@@ -457,15 +447,10 @@ function PaperCard({ p, note, tierLabel }: { p: Paper; note: string; tierLabel: 
   );
 }
 
-export default function Papers() {
+export function PapersView() {
   const t = useT(T);
   return (
     <div className="space-y-12">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">{t.intro}</p>
-      </div>
-
       <section className="max-w-3xl space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">{t.usefulnessTitle}</h2>
         <dl className="space-y-3 text-sm">
@@ -492,17 +477,6 @@ export default function Papers() {
           </section>
         );
       })}
-
-      <div>
-        <LocalizedLink
-          to="/research"
-          className="text-sm underline underline-offset-2 hover:text-foreground"
-        >
-          {"←"} {t.back}
-        </LocalizedLink>
-      </div>
     </div>
   );
 }
-
-export const meta = pageMeta("papers");
