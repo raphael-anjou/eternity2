@@ -22,11 +22,11 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   `public/`. The sitemap reads `VITE_SITE_ORIGIN`/`BASE_PATH`; `robots.txt`
   hardcodes the `eternity2.dev` sitemap URL.
 
-- **`llms.txt` is index-only by design.** We deliberately do **not** generate
-  per-page `.md` counterparts. Page content is authored in interactive React/TSX
-  (playground, live solvers), so HTML→Markdown would produce thin or meaningless
-  stubs. The prerendered HTML is clean enough for agents to parse. Don't add a
-  per-page `.md` build step without revisiting that trade-off.
+- **`llms.txt` + research `.md` siblings.** `public/llms.txt` is the static
+  index. Research pages (authored in MDX) additionally get a raw-markdown
+  sibling emitted at build time by `plugins/research-content.ts` — same URL
+  with `.md` appended, EN + FR. Non-research pages remain TSX-only (no `.md`
+  stubs for them; prerendered HTML is clean enough).
 
 - **`ssr: false` build runs twice.** Vite emits a client bundle and a temporary
   server bundle (removed afterward). Build plugins that write files must gate on
