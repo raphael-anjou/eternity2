@@ -366,3 +366,31 @@ unfindable. Static-only as always — no server, works offline.
 - Files: web/content.config.ts (plainText/searchEntries), plugins/
   research-content.ts, src/components/docs/SearchDialog.tsx, ResearchSubnav,
   src/lib/research/{types,nav}.ts, seo.ts (pageDescription), minisearch dep.
+
+### 2026-07-02 — Why door fully migrated to MDX; "experiments, not inventions" (Phase 3 batch 1)
+
+All 13 "Why it's hard" pages now live in web/content/research/why/*.mdx
+(EN + natural-French FR, 26 files). Every number re-verified against
+research/topics computed results; two errors in the old TSX corrected in the
+process: complex-theory's growth-regime endpoint is ~10^27 (not 10^28 —
+verified by running the exact McGavin estimator port), and the four non-centre
+clues sit at interior cells (34/45/210/221), not corners. Sources frontmatter
+now carries the Mateu/Hamadi 2012 and Ansótegui et al. papers and McGavin's
+groups.io posts (5209, 11197) with working URLs. All interactive labs
+preserved; recharts/motif-swatch blocks became in-MDX components.
+Deregistered the 12 pages from routes.ts/PAGE_PATHS/seo.ts/nav.ts and deleted
+the TSX (net: prose now lives in markdown).
+
+USER DIRECTIVE recorded and applied: the project's own algorithms are
+"experiments", never "inventions", and must not read as the wiki's core —
+the lab section is now "Raphaël's explorations" / "Les explorations de
+Raphaël", one researcher's work structurally parallel to Bucas/Blackwood/
+McGavin material. kind:"experiment" replaces "invention" in the schema.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (119 paths), EN+FR titles/prose in
+  prerendered HTML, visual pass on walls-and-methods.
+- Reproducibility: prose/content (numbers backed by the cited topics).
+- Files: web/content/research/why/** (26 MDX), routes.ts, sitemap.config.ts,
+  seo.ts, src/lib/research/{nav,types}.ts, content.config.ts,
+  src/components/research/RecordBoard.tsx (new, for the experiment batch),
+  DocsShell HubCards, 12 TSX pages deleted.

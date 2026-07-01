@@ -61,7 +61,7 @@ const frontmatterSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   kind: z
-    .enum(["finding", "invention", "tool", "reference", "concept", "basin", "paper", "page"])
+    .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),
   status: z.enum(["live", "draft"]).default("live"),
   tier: z.number().int().min(1).max(3).optional(),
@@ -134,7 +134,13 @@ export function scanResearchContent(fresh = false): RawEntry[] {
   for (const abs of walk(CONTENT_DIR)) {
     const rel = path.relative(CONTENT_DIR, abs).split(path.sep).join("/");
     const isFr = rel.endsWith(".fr.mdx");
-    const slug = rel.replace(/\.fr\.mdx$/, "").replace(/\.mdx$/, "");
+    // "<dir>/index.mdx" is the hub page of <dir> ("index.mdx" at the root is
+    // /research itself, slug "").
+    const slug = rel
+      .replace(/\.fr\.mdx$/, "")
+      .replace(/\.mdx$/, "")
+      .replace(/(^|\/)index$/, "$1")
+      .replace(/\/$/, "");
     const { data, content } = matter(fs.readFileSync(abs, "utf8"));
     const parsed = frontmatterSchema.safeParse(data);
     if (!parsed.success) {
@@ -197,7 +203,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
     const use = fr ?? e;
     const doc: ResearchDoc = {
       slug: e.slug,
-      url: `/research/${e.slug}`,
+      url: e.slug === "" ? "/research" : `/research/${e.slug}`,
       section: e.slug.split("/")[0] ?? "",
       title: use.fm.title,
       description: use.fm.description,

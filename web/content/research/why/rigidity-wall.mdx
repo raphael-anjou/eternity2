@@ -1,0 +1,75 @@
+---
+title: The rigidity wall
+description: >-
+  Every record board we have is frozen in place. You cannot nudge your way
+  from a great board to a perfect one, and we can prove it.
+kind: finding
+tier: 1
+order: 50
+updated: 2026-07-01
+topics: [structure, local-search, exact-methods]
+related:
+  - /research/why/sigma-cycles
+  - /research/why/walls-and-methods
+  - /research/why/prune-vs-speed
+  - /research/lab/experiments/palimpsest
+  - /research/lab/experiments/midden
+---
+
+import { RigidityHalo } from "@/components/research/RigidityHalo";
+import { RigidityLab } from "@/components/research/RigidityLab";
+
+Here is the intuition almost everyone starts with: get close, then tidy up
+the last few mismatches. Swap a couple of pieces, rotate a few, and surely
+the score creeps up to 480.
+
+It doesn't. On every top board we have tested, the last mismatches are
+locked. Move anything nearby and the score stays the same or drops. The good
+boards aren't almost-solutions waiting for a polish; they're isolated points
+with nowhere better to go next door.
+
+## Watch the region grow
+
+<RigidityHalo />
+
+## Try to beat it yourself
+
+A real perfect small board. Swap any two pieces — or let the engine try every
+swap. Nothing beats it; that's rigidity, live.
+
+<RigidityLab />
+
+## How we know
+
+We didn't just try a lot of swaps and give up. We asked an
+integer-programming solver an exact question: take a region of the board,
+free every piece inside it, and find the single best way to fill it back in.
+The solver searches that whole local space exactly, not by sampling.
+
+The answer keeps coming back the same: the best arrangement is the one
+already there. We proved it for region after region, across three different
+record boards, and out to a radius of four cells, which is a block of dozens
+of cells at once. Every time, no improvement exists.
+
+## Why it matters
+
+This reframes the whole gap to 480. The distance from the best known board to
+a solution is not a pile of small fixes waiting to be found. If it were, this
+kind of local search would have found them. The barrier is that the good
+boards sit at the bottom of their own little valleys, and the valley walls
+are exact, not approximate.
+
+It also tells you what won't work. Polishing, hill-climbing, and most
+local-repair heuristics are trying to walk uphill from a frozen point. There
+is no uphill. Reaching a solution needs a move that rearranges a large region
+all at once, or a different starting point entirely, not a better polish.
+
+<Callout kind="insight" title="The next piece of the picture">
+  If you can't improve a board locally, maybe you can hop from one good board
+  to another. That fails too, for a related reason — [see why basin-hopping
+  is impossible](/research/why/sigma-cycles).
+</Callout>
+
+*The proofs use integer programming on regions of each board; they run for
+minutes per region on a solver, so they aren't reproduced live here. The
+boards themselves are bundled and checkable in the viewer.*

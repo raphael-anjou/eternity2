@@ -1,0 +1,129 @@
+---
+title: No forced moves
+description: >-
+  The usual way to crack a logic puzzle is to find a spot where only one piece
+  fits, place it, and repeat. That lever doesn't exist here: every interior
+  piece has between 73 and 137 possible neighbours, and not one is ever pinned
+  to a single option.
+kind: finding
+tier: 2
+order: 90
+updated: 2026-07-01
+topics: [structure, search-space]
+sources:
+  - label: No forced moves — article, source and results (GitHub)
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-forced-moves
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/piece-theft
+  - /research/why/phase-transition
+repro:
+  kind: exact
+  topic: no-forced-moves
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { ForcedMovesLab } from "@/components/research/ForcedMovesLab";
+import data from "@/data/no-forced-moves.json";
+
+export function PartnerHistogram() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="flex h-72 items-center justify-center rounded-lg border text-sm text-muted-foreground">
+        Loading chart…
+      </div>
+    );
+  }
+  return (
+    <div className="h-72 rounded-lg border p-2">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+        <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+          <XAxis
+            dataKey="bucket"
+            label={{ value: "right-hand partners", position: "insideBottom", offset: -8, fontSize: 12 }}
+            fontSize={11}
+          />
+          <YAxis
+            label={{ value: "pieces", angle: -90, position: "insideLeft", fontSize: 12 }}
+            width={40}
+            fontSize={12}
+          />
+          <Tooltip
+            formatter={(v) => [String(v), "pieces"]}
+            labelFormatter={(b) => `${String(b)} right-hand partners`}
+          />
+          <Bar dataKey="count" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+Every one of the 196 interior pieces has between 73 and 137 other pieces that
+could legally sit beside it. The typical piece has over a hundred options.
+Not a single piece is ever pinned to one choice.
+
+This is the flip side of forbidden patterns. There, almost every combination
+of pieces is impossible. You'd think all those rules would corner pieces into
+place. They don't: the constraints rule out combinations without ever
+cornering an individual piece, so a solver never gets a free, forced move to
+build on.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.forcedPieces}</div>
+    <div className="mt-1 text-xs text-muted-foreground">pieces forced to a single option</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.minPartners}–{data.maxPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">partners per piece (min to max)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">average partners</div>
+  </div>
+</div>
+
+## How many neighbours each piece allows
+
+The 196 interior pieces, bucketed by how many right-hand neighbours each one
+accepts. The whole distribution sits far from one.
+
+<PartnerHistogram />
+
+## See it on a real puzzle
+
+The engine fills a few cells; then we count, live, how many pieces legally
+fit the next one. It almost never drops to one.
+
+<ForcedMovesLab />
+
+## Why it matters
+
+Put this beside forbidden patterns and the real shape of the difficulty
+appears. Locally the puzzle looks loose: any piece fits next to plenty of
+others, so there's nothing to propagate and no chain of forced moves to ride.
+Globally almost every combination is illegal. The hardness lives in that gap:
+lots of local freedom, almost no global consistency. A solver has to make a
+long run of free-looking choices that only turn out wrong much later.
+
+## Reproduce it
+
+Computed exactly from the official set; reproduces identically every run.
+The [article, source and results are on GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-forced-moves).
+
+```sh
+cd research/topics/no-forced-moves/compute
+cargo run --release > ../results/partner-counts.json
+```

@@ -352,18 +352,6 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Reconstruire exactement les plateaux 460 stricts de la communauté et découvrir le coup que les solveurs manquent : payer deux défauts sur une cellule. Explique le plateau 457-458.",
     },
   },
-  "phase-transition": {
-    en: {
-      title: "Tuned to the hardness peak" + SUFFIX,
-      description:
-        "Eternity II's colors split 17 interior to 5 frame-only, which is exactly where edge-matching puzzles are at their hardest. The design, shown straight from the official pieces.",
-    },
-    fr: {
-      title: "Calé sur le pic de difficulté" + SUFFIX,
-      description:
-        "Les couleurs d'Eternity II se répartissent en 17 intérieures et 5 réservées au cadre, exactement là où les puzzles d'assemblage par les bords sont les plus durs. La conception, montrée directement dans les pièces officielles.",
-    },
-  },
   solvers: {
     en: {
       title: "Solver catalogue" + SUFFIX,
@@ -388,128 +376,8 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
         "Des approches qui semblent prometteuses pour Eternity II mais qui échouent : casser les symétries, plus de calcul, survey propagation, comptage par tenseurs, bornes de relaxation, heuristiques apprises. Ce qu'on sait, pour ne pas perdre de temps.",
     },
   },
-  "rare-color-geography": {
-    en: {
-      title: "The rare colors live on the frame" + SUFFIX,
-      description:
-        "Five of Eternity II's 22 colors appear only on the border ring, each on exactly 24 edges, never in the interior. A deliberate design signature you can see.",
-    },
-    fr: {
-      title: "Les couleurs rares vivent sur le cadre" + SUFFIX,
-      description:
-        "Cinq des 22 couleurs d'Eternity II n'apparaissent que sur le cadre, chacune sur exactement 24 bords, jamais à l'intérieur. Une signature de conception visible.",
-    },
-  },
-  "entropy-area-law": {
-    en: {
-      title: "Entropy and the area law" + SUFFIX,
-      description:
-        "Eternity II's matching rules are rich (positive entropy density, proven). The hardness is in the use-each-piece-once rule, whose cost grows with area and collapses distinctness past ~80 cells.",
-    },
-    fr: {
-      title: "Entropie et loi d'aire" + SUFFIX,
-      description:
-        "Les règles d'accord d'Eternity II sont riches (densité d'entropie positive, prouvée). La difficulté est dans la règle « chaque pièce une fois », dont le coût croît avec l'aire et effondre la distinction au-delà de ~80 cellules.",
-    },
-  },
-  "piece-theft": {
-    en: {
-      title: "Piece theft, where solvers die" + SUFFIX,
-      description:
-        "Why Eternity II solvers hit a wall mid-board: a cell's (north, west) demand has ~3 possible pieces on average, 47 have just one, and spending that one elsewhere kills a future cell while the box still looks full.",
-    },
-    fr: {
-      title: "Le vol de pièce, là où les solveurs meurent" + SUFFIX,
-      description:
-        "Pourquoi les solveurs Eternity II frappent un mur en milieu de plateau : la demande (nord, ouest) d'une cellule a ~3 pièces possibles en moyenne, 47 n'en ont qu'une, et dépenser celle-ci ailleurs tue une cellule à venir.",
-    },
-  },
-  "no-forced-moves": {
-    en: {
-      title: "No forced moves" + SUFFIX,
-      description:
-        "Every interior Eternity II piece has 73 to 137 possible neighbours; not one is ever pinned to a single option. Why there's no 'only one piece fits' lever to pull.",
-    },
-    fr: {
-      title: "Aucun coup forcé" + SUFFIX,
-      description:
-        "Chaque pièce intérieure d'Eternity II a entre 73 et 137 voisines possibles ; aucune n'est jamais réduite à un seul choix. Pourquoi il n'y a pas de levier « une seule pièce convient ».",
-    },
-  },
   // "border-balance" migrated to web/content/research/why/border-balance.mdx —
   // MDX pages carry their SEO meta in frontmatter.
-  "complex-theory": {
-    en: {
-      title: "Complex theory: counting the search before you run it" + SUFFIX,
-      description:
-        "Brendan Owen's complex theory estimates how wide Eternity II's search tree is at every depth — ~14,702 solutions with one clue, ~1 with five — and reveals the funnel: growth, a vast plateau where backtrackers burn 99% of their time, then collapse.",
-    },
-    fr: {
-      title: "La théorie complexe : compter la recherche avant de la lancer" + SUFFIX,
-      description:
-        "La théorie complexe de Brendan Owen estime la largeur de l'arbre de recherche d'Eternity II à chaque profondeur — ~14 702 solutions avec un indice, ~1 avec cinq — et révèle l'entonnoir : croissance, un vaste plateau où les backtrackers brûlent 99 % de leur temps, puis effondrement.",
-    },
-  },
-  "prune-vs-speed": {
-    en: {
-      title: "Why a faster computer doesn't help" + SUFFIX,
-      description:
-        "In hard combinatorial search, shrinking the space beats searching it faster — by an exponential margin. Eternity II is engineered so you can barely shrink it at all. An interactive look at prune-versus-speed.",
-    },
-    fr: {
-      title: "Pourquoi un ordinateur plus rapide n'aide pas" + SUFFIX,
-      description:
-        "En recherche combinatoire difficile, réduire l'espace bat le fait de l'explorer plus vite — d'une marge exponentielle. Eternity II est conçu pour qu'on ne puisse presque pas le réduire. Un regard interactif sur élagage contre vitesse.",
-    },
-  },
-  "mismatch-geometry": {
-    en: {
-      title: "Where the mismatches live" + SUFFIX,
-      description:
-        "Every near-perfect Eternity II board packs its few errors into one band of five rows and leaves the rest flawless. Which band is decided by the scan direction — McGavin's 469 at the top, this project's boards at the bottom. Seen live on the real record boards.",
-    },
-    fr: {
-      title: "Où vivent les défauts" + SUFFIX,
-      description:
-        "Chaque plateau Eternity II quasi parfait entasse ses rares erreurs dans une bande de cinq rangées et laisse le reste impeccable. Quelle bande dépend du sens de balayage — le 469 de McGavin en haut, les plateaux de ce projet en bas. À voir en direct sur les vrais plateaux records.",
-    },
-  },
-  "walls-and-methods": {
-    en: {
-      title: "Which wall stops which method" + SUFFIX,
-      description:
-        "Four structural walls make Eternity II hard. This maps each invented algorithm to the wall it attacks and the exact score where it saturated — the connective tissue between why it's hard and what we tried.",
-    },
-    fr: {
-      title: "Quel mur arrête quelle méthode" + SUFFIX,
-      description:
-        "Quatre murs structurels rendent Eternity II difficile. On associe chaque algorithme inventé au mur qu'il attaque et au score exact où il a saturé — le lien entre pourquoi c'est dur et ce qu'on a essayé.",
-    },
-  },
-  "rigidity-wall": {
-    en: {
-      title: "The rigidity wall" + SUFFIX,
-      description:
-        "Every Eternity II record board is locally frozen: integer programming proves no rearrangement of any nearby region scores higher. Why the gap to 480 isn't a polishing problem.",
-    },
-    fr: {
-      title: "Le mur de rigidité" + SUFFIX,
-      description:
-        "Chaque plateau record d'Eternity II est figé localement : la programmation en nombres entiers prouve qu'aucun réarrangement d'une région proche ne fait mieux. Pourquoi l'écart vers 480 n'est pas un problème de polissage.",
-    },
-  },
-  "sigma-cycles": {
-    en: {
-      title: "Why basin-hopping is impossible" + SUFFIX,
-      description:
-        "Two great Eternity II boards differ by one giant interlocking swap of up to 154 cells. Every smaller piece of that swap scores worse, so you can't get from one to the other in steps.",
-    },
-    fr: {
-      title: "Pourquoi sauter de bassin en bassin est impossible" + SUFFIX,
-      description:
-        "Deux bons plateaux d'Eternity II diffèrent par un seul échange imbriqué géant, jusqu'à 154 cellules. Chaque morceau plus petit de cet échange fait moins bien, donc on ne peut pas passer de l'un à l'autre par étapes.",
-    },
-  },
   "run-it-yourself": {
     en: {
       title: "Run it yourself" + SUFFIX,
@@ -520,18 +388,6 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "À vous de jouer" + SUFFIX,
       description:
         "Clonez le dépôt, compilez le moteur Eternity II, lancez le site en local et reproduisez chaque résultat de recherche en quelques commandes.",
-    },
-  },
-  "forbidden-patterns": {
-    en: {
-      title: "Forbidden patterns" + SUFFIX,
-      description:
-        "Almost every small patch of Eternity II pieces is impossible to assemble — 99.72% of 2x2 squares can never be made to match. The exact counts, and why they explain the puzzle's difficulty.",
-    },
-    fr: {
-      title: "Motifs interdits" + SUFFIX,
-      description:
-        "Presque tout petit groupe de pièces d'Eternity II est impossible à assembler — 99,72 % des carrés 2x2 ne peuvent jamais s'accorder. Les comptages exacts, et pourquoi ils expliquent la difficulté.",
     },
   },
   reference: {

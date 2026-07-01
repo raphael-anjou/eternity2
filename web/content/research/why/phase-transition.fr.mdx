@@ -1,0 +1,128 @@
+---
+title: Calé sur le pic de difficulté
+description: >-
+  Eternity II emploie 22 couleurs : 17 pour l'intérieur, 5 réservées au cadre.
+  Et ce 17 tombe précisément là où les puzzles de ce type sont les plus durs à
+  résoudre.
+kind: finding
+tier: 1
+order: 40
+updated: 2026-07-01
+topics: [structure]
+sources:
+  - label: "Mateu & Hamadi, « Edge matching puzzles as hard SAT/CSP benchmarks » (Constraints, Springer 2012)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernández & Mateu, « How Hard is a Commercial Puzzle: the Eternity II Challenge »"
+    url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/entropy-area-law
+  - /research/why/no-forced-moves
+repro:
+  kind: exact
+  topic: phase-transition
+---
+
+import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
+import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
+import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { colorToLetter } from "@/lib/motifs";
+import data from "@/data/phase-transition.json";
+
+Les problèmes de recherche difficiles sont munis d'un bouton de réglage.
+Desserrez-le : les solutions abondent, et la première venue se laisse trouver
+en un instant. Serrez-le : il n'y en a plus aucune, ce qui se prouve souvent
+sans peine. Entre les deux s'étend une bande étroite où les solutions
+existent mais se font rares — et c'est là que la recherche explose. On parle
+de transition de phase, comme pour l'eau qui gèle.
+
+Pour les puzzles à bords appariés, ce bouton, c'est le nombre de couleurs.
+Trop peu, et les pièces s'emboîtent de mille façons ; trop, et plus rien ne
+s'emboîte. L'[analyse publiée](https://link.springer.com/article/10.1007/s10601-012-9128-9)
+situe le pic autour de 17 couleurs intérieures : le réglage où un puzzle de
+cette taille possède environ une solution. Eternity II en compte 17.
+
+## Le mur de difficulté
+
+<PhaseTransitionLab />
+
+## Mesurez-le vous-même
+
+Le graphique ci-dessus est précalculé. Pas celui-ci : le moteur résout des
+puzzles neufs en direct, un par nombre de couleurs, et trace le pic à partir
+d'exécutions réelles, dans votre navigateur.
+
+<PhaseTransitionLiveLab />
+
+## La répartition, lue directement dans les pièces
+
+Il suffit de trier les couleurs du jeu officiel selon l'endroit où elles
+apparaissent pour que la conception saute aux yeux.
+
+<div className="not-prose grid gap-5 sm:grid-cols-2">
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">5 couleurs réservées au cadre</div>
+    <div className="flex flex-wrap gap-3">
+      {data.frameOnlyColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      Elles n'apparaissent que sur les pièces de bord et de coin, jamais à
+      l'intérieur : ce sont les couleurs rares, cantonnées à la lisière du
+      plateau.
+    </p>
+  </div>
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">17 couleurs intérieures</div>
+    <div className="flex flex-wrap gap-3">
+      {data.interiorColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      La palette du cœur du plateau, là où se joue presque tout
+      l'appariement.
+    </p>
+  </div>
+</div>
+
+## Le jeu en chiffres
+
+|                             | Nombre |
+| --------------------------- | -----: |
+| Pièces de coin              |      4 |
+| Pièces de bord              |     56 |
+| Pièces intérieures          |    196 |
+| Couleurs intérieures        |     17 |
+| Couleurs réservées au cadre |      5 |
+
+## Pourquoi c'est important
+
+De tous les indices, c'est le plus net : Eternity II a été rendu difficile à
+dessein. Taille du plateau, nombre de pièces, répartition des couleurs — tout
+vise la même cible : un puzzle à environ une solution, posé à l'endroit exact
+où toute recherche peine le plus. La difficulté a été choisie, comme un bon
+sujet d'examen n'est ni trivial ni infaisable.
+
+Et comment savoir que ce pic n'est pas qu'une belle histoire ? Deux chemins
+se recoupent ici. L'analyse publiée le
+[démontre](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content) :
+pour les puzzles encadrés à bords appariés, le nombre de couleurs où l'on
+attend environ une solution tombe près de 17 — et c'est précisément le
+réglage le plus rebelle à la recherche. Vous pouvez aussi en observer un
+morceau de vos propres yeux dans la démonstration ci-dessus : construire de
+vrais puzzles, compter le travail, regarder l'explosion quand les couleurs
+viennent à manquer. La conséquence est très concrète : l'écart qui nous
+sépare d'une solution n'est pas une affaire de réglage qu'une machine plus
+rapide finirait par gommer. Le puzzle a été posé là où la recherche souffre
+le plus, à dessein ; le vaincre demandera une idée réellement meilleure, pas
+simplement plus d'efforts.
+
+La difficulté se mesure aussi en direct sur la [page Algorithmes](/algorithms).

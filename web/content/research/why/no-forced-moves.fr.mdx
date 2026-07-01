@@ -1,0 +1,133 @@
+---
+title: Aucun coup forcé
+description: >-
+  Pour venir à bout d'un casse-tête logique, on cherche d'ordinaire une case
+  où une seule pièce peut aller, on la pose, et on recommence. Ce levier
+  n'existe pas ici : chaque pièce intérieure a entre 73 et 137 voisines
+  possibles, et aucune n'est jamais réduite à un choix unique.
+kind: finding
+tier: 2
+order: 90
+updated: 2026-07-01
+topics: [structure, search-space]
+sources:
+  - label: Aucun coup forcé — article, code source et résultats (GitHub)
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-forced-moves
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/piece-theft
+  - /research/why/phase-transition
+repro:
+  kind: exact
+  topic: no-forced-moves
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { ForcedMovesLab } from "@/components/research/ForcedMovesLab";
+import data from "@/data/no-forced-moves.json";
+
+export function PartnerHistogram() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="flex h-72 items-center justify-center rounded-lg border text-sm text-muted-foreground">
+        Chargement du graphique…
+      </div>
+    );
+  }
+  return (
+    <div className="h-72 rounded-lg border p-2">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+        <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+          <XAxis
+            dataKey="bucket"
+            label={{ value: "partenaires de droite", position: "insideBottom", offset: -8, fontSize: 12 }}
+            fontSize={11}
+          />
+          <YAxis
+            label={{ value: "pièces", angle: -90, position: "insideLeft", fontSize: 12 }}
+            width={40}
+            fontSize={12}
+          />
+          <Tooltip
+            formatter={(v) => [String(v), "pièces"]}
+            labelFormatter={(b) => `${String(b)} partenaires de droite`}
+          />
+          <Bar dataKey="count" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+Chacune des 196 pièces intérieures compte entre 73 et 137 autres pièces qui
+pourraient légalement se poser à côté d'elle. La pièce typique dépasse la
+centaine d'options. Pas une seule n'est jamais acculée à un choix unique.
+
+C'est l'envers des motifs interdits. Là-bas, presque toute combinaison de
+pièces est impossible ; on s'attendrait à ce qu'un tel maillage de règles
+finisse par coincer les pièces à leur place. Il n'en est rien : les
+contraintes éliminent des combinaisons sans jamais acculer une pièce en
+particulier, si bien qu'un solveur ne reçoit jamais ce coup forcé gratuit
+sur lequel bâtir la suite.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.forcedPieces}</div>
+    <div className="mt-1 text-xs text-muted-foreground">pièce réduite à un choix unique</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.minPartners}–{data.maxPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">partenaires par pièce (du min au max)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">partenaires en moyenne</div>
+  </div>
+</div>
+
+## Combien de voisines chaque pièce accepte
+
+Les 196 pièces intérieures, regroupées selon le nombre de voisines de droite
+que chacune admet. Toute la distribution se tient très loin de un.
+
+<PartnerHistogram />
+
+## À voir sur un vrai puzzle
+
+Le moteur remplit quelques cases ; on compte ensuite, en direct, combien de
+pièces conviennent légalement à la case suivante. Le compte ne descend
+presque jamais à une.
+
+<ForcedMovesLab />
+
+## Pourquoi c'est important
+
+Rapprochez ce constat des motifs interdits, et la vraie forme de la
+difficulté se dessine. Localement, le puzzle paraît lâche : n'importe quelle
+pièce s'accorde avec quantité d'autres, donc rien à propager, aucune chaîne
+de coups forcés à dérouler. Globalement, presque toute combinaison est
+illégale. La difficulté loge dans cet écart : une immense liberté locale,
+presque aucune cohérence globale. Le solveur doit enchaîner une longue série
+de choix d'apparence libre, dont l'erreur ne se révèle que bien plus tard.
+
+## Le reproduire
+
+Calculé exactement à partir du jeu officiel ; le résultat se reproduit à
+l'identique à chaque exécution.
+[L'article, le code source et les résultats sont sur GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-forced-moves).
+
+```sh
+cd research/topics/no-forced-moves/compute
+cargo run --release > ../results/partner-counts.json
+```

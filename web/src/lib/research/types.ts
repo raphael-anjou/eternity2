@@ -4,7 +4,7 @@
 
 export type ResearchKind =
   | "finding"
-  | "invention"
+  | "experiment"
   | "tool"
   | "reference"
   | "concept"

@@ -1,0 +1,66 @@
+---
+title: Where the mismatches live
+description: >-
+  A near-perfect board doesn't scatter its few errors evenly. It packs them
+  into one band of five rows and leaves all the rest flawless. Which band is
+  decided by the direction the search filled the board — and you can see the
+  mirror on the real record boards.
+kind: finding
+order: 70
+updated: 2026-07-01
+topics: [structure, records]
+related:
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/staged
+  - /research/why/walls-and-methods
+  - /research/why/sigma-cycles
+---
+
+import { MismatchGeometryLab } from "@/components/research/MismatchGeometryLab";
+
+Score a record board edge by edge and a striking thing shows up: the
+mismatches are not spread around. McGavin's 469 has all eleven of its
+unmatched edges in the top five rows; rows 5 through 15 are locally perfect.
+The board is, in effect, a flawless 11-row slab with all the damage swept up
+against one edge.
+
+Now score this project's best from-scratch boards the same way. The damage is
+again in a five-row band — but at the bottom. KEYRING's and GAUNTLET's
+mismatches sit in rows 11 to 15, with rows 0 through 10 perfect. It is the
+same picture flipped top to bottom.
+
+## See it on the real boards
+
+Pick a board. The shaded band is where its mismatches actually fall, computed
+live with the engine's own scoring rule — community boards at the top, this
+project's at the bottom.
+
+<MismatchGeometryLab />
+
+## Why it flips: scan order
+
+The flip is not a coincidence; it is the fingerprint of how each board was
+built. A search that fills the board from the bottom up spends its perfect
+placements early, low down, and is forced to absorb every accumulated
+conflict in the last rows it reaches — the top. A search that fills top-down
+does the exact opposite and piles the damage at the bottom. The mismatches
+always end up crammed against the edge the solver finished at. Same puzzle,
+same kind of board, opposite construction order.
+
+## What it tells us
+
+This is the visible form of two deeper facts. First, the great boards really
+are almost-complete: the gap to 480 is concentrated, not diffuse, which is
+why integer programming finds them locally frozen everywhere except that one
+band (the rigidity wall). Second, it says the endgame is the whole game —
+whichever rows you fill last are where the puzzle makes you pay, so the order
+you search in decides where the difficulty lands. That is the same lesson the
+playground's path-racing makes you feel, here written into the structure of
+every record board.
+
+<Callout kind="note">
+  The per-row counts and the highlighted band are computed in your browser
+  from the real board edges (the same scoring rule the engine uses), not
+  hand-placed. The underlying finding and the scan-order explanation are
+  recorded in the project lab notebook.
+</Callout>

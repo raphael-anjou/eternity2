@@ -158,6 +158,43 @@ function ReproBlock({ doc }: { doc: ResearchDoc }) {
   );
 }
 
+/** For hub pages (a section root or a node with children): the children as
+ *  cards, so a hub's MDX body only needs its intro prose. */
+function HubCards({ doc }: { doc: ResearchDoc }) {
+  const { lang } = useLang();
+  const section = findSection(lang, doc.url);
+  if (!section) return null;
+  const items =
+    doc.url === section.url
+      ? section.items
+      : (sectionReadingOrder(section).find((i) => i.url === doc.url)?.children ?? []);
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      {items.map((n) => (
+        <LocalizedLink
+          key={n.url}
+          to={n.url}
+          className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
+        >
+          <div className="flex items-center gap-2">
+            <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[n.kind])} aria-hidden />
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {kindLabel(n.kind, lang)}
+            </span>
+          </div>
+          <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
+            {n.title}
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {n.description}
+          </p>
+        </LocalizedLink>
+      ))}
+    </div>
+  );
+}
+
 function PrevNext({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   const { lang } = useLang();
@@ -260,6 +297,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
         >
           {children}
         </div>
+        <HubCards doc={doc} />
         {doc.sources.length > 0 && (
           <div className="mt-8 rounded-lg border p-4 text-sm">
             <div className="font-semibold">{t.source}</div>
