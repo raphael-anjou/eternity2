@@ -1,0 +1,345 @@
+---
+title: "No-good learning: remembering why you failed"
+description: >-
+  A failed subtree is a theorem — this partial state can never extend — so
+  store it and never re-enter. The community tried both flavours: chess-style
+  transposition tables over the search frontier, and mined constraints about
+  the puzzle itself. The honest ledger of what memory buys at E2 scale, and
+  the small boards where it genuinely pays.
+kind: concept
+order: 190
+updated: 2026-07-02
+topics: [search-space, exact-methods]
+sources:
+  - label: "Max's frontier-index scheme — 16 unmatched edges plus a piece bitmap (groups.io message 6137, 2008)"
+    url: https://groups.io/g/eternity2/message/6137
+  - label: "Lindström tries it — 'it learns from mistakes' (groups.io message 6138)"
+    url: https://groups.io/g/eternity2/message/6138
+  - label: "Verhaard's chess-style advice — fixed memory, hash, overwrite (groups.io message 6144)"
+    url: https://groups.io/g/eternity2/message/6144
+  - label: "The corrected key size — 76 bits of frontier state; hit rate 0.1% → 1% before memory ran out (groups.io message 6145)"
+    url: https://groups.io/g/eternity2/message/6145
+  - label: "Max's count of distinct frontier signatures — 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
+    url: https://groups.io/g/eternity2/message/6143
+  - label: "The improved method — tiny memory, 75–80% of branches discarded (groups.io message 6218)"
+    url: https://groups.io/g/eternity2/message/6218
+  - label: "The restore-list saga begins (groups.io message 8854, 2011)"
+    url: https://groups.io/g/eternity2/message/8854
+  - label: "DeVincentis's fix — one restore list per edge, plus one for used pieces (groups.io message 8886)"
+    url: https://groups.io/g/eternity2/message/8886
+  - label: "Measured on the 6x6 border ring — 133,326,155 → 30,496,808 iterations (groups.io message 8875)"
+    url: https://groups.io/g/eternity2/message/8875
+  - label: "Mocsi's Failure Lookup Table, abandoned over a bug (groups.io message 8887)"
+    url: https://groups.io/g/eternity2/message/8887
+  - label: "McGavin's duplicate top rows — 40 core-hours provably wasted (groups.io message 9610, 2016)"
+    url: https://groups.io/g/eternity2/message/9610
+  - label: "21valy's duplicate-rate measurements — ~1% exact halfway; the relaxed table saturates in minutes (groups.io message 9618)"
+    url: https://groups.io/g/eternity2/message/9618
+  - label: "Verhaard: eii keeps no memory of past positions — and it won the $10,000 (groups.io message 7451, 2010)"
+    url: https://groups.io/g/eternity2/message/7451
+  - label: "Blackwood's ledger — 2x2 caching measured and dropped (groups.io message 10056, 2020)"
+    url: https://groups.io/g/eternity2/message/10056
+  - label: "Lindström's invalid-placement mining and collaboration call (groups.io message 6743, 2009)"
+    url: https://groups.io/g/eternity2/message/6743
+  - label: "capiman's invalid two-piece combination for the 5-hint puzzle (groups.io message 10832, 2022)"
+    url: https://groups.io/g/eternity2/message/10832
+  - label: "The tally — ~68M invalid pairs found, ~8.1×10⁹ undecided, ~32,000 would pin a solution (groups.io message 10973, 2023)"
+    url: https://groups.io/g/eternity2/message/10973
+  - label: "An invalid 3-piece combination, dissected down to three ring-0 cells (groups.io message 11131)"
+    url: https://groups.io/g/eternity2/message/11131
+  - label: "SAT as an invalidation service — shrinking a dead-end partial to 28 pieces (groups.io message 10292, 2021)"
+    url: https://groups.io/g/eternity2/message/10292
+  - label: "capiman's CNF pipeline — 130,180 variables, cryptominisat, partials and rings (groups.io message 11822, 2026)"
+    url: https://groups.io/g/eternity2/message/11822
+related:
+  - /research/build/concepts/sat-csp-encodings
+  - /research/build/concepts/solver-engineering
+  - /research/build/solvers/blackwood
+---
+
+A backtracker that gives up on a subtree has just proved a theorem: *this
+partial state cannot be extended to a solution*. Then it throws the theorem
+away and, hours later, proves it again from a different branch. No-good
+learning is the refusal to waste that proof — store the failed state, check
+the store before descending, never re-enter. Chess engines run on this idea
+(transposition tables), and SAT solvers industrialised it as clause learning.
+The Eternity II community has been trying to make it pay since 2008, in two
+distinct flavours, and the archive records both the attempts and the
+autopsies.
+
+## Why a failed subtree is reusable at all
+
+A depth-first search over a scan-line fill order is a function of
+surprisingly few inputs. When the solver stands at depth $d$, the entire
+subtree below is determined by two things: the **open frontier** — the
+colour sequence exposed along the boundary between placed and empty cells —
+and the **set of pieces still in hand**. Nothing else about the history
+matters. Two different 128-piece partials that expose the same sixteen edge
+colours and leave the same 128 pieces unused have *identical* subtrees. If
+the first failed, the second must fail, and searching it is pure waste.
+
+Peter McGavin caught this happening in the wild in 2016: two top-row
+combinations in his 10x10 farming logs used the same ten pieces with the
+same permutation of colours along their lower edge, and their search trees
+came back with exactly the same node count — 5,602,741,481,523 nodes, twice.
+The roughly 40 core-hours spent on the second one "were a complete waste of
+time, since we could easily predict in advance that the result would be the
+same" ([message 9610](https://groups.io/g/eternity2/message/9610)).
+
+So the theorem is real and the waste is real. Everything else on this page
+is about whether *remembering* is cheaper than *re-deriving* — and at E2
+scale that question has a surprisingly consistent answer.
+
+## Flavour one: transposition tables over the frontier
+
+The idea arrived on the mailing list in one thread in the autumn of 2008.
+Max proposed indexing every 128-piece partial (eight completed rows) by its
+sixteen unmatched edges, storing alongside the index a bitmap of the pieces
+that were available-plus-unconsidered when the subtree failed; reach another
+partial with the same index whose available pieces are a *subset* of the
+stored bitmap, and the whole subtree can be skipped
+([message 6137](https://groups.io/g/eternity2/message/6137)). Michael
+Lindström had already been experimenting: it "does work pretty good, it
+learns from mistakes and will cut away more and more branches early on"
+([message 6138](https://groups.io/g/eternity2/message/6138)). Louis Verhaard
+supplied the standard engineering answer from computer chess: don't try to
+store everything — fix a memory budget, hash the position, overwrite old
+entries ([message 6144](https://groups.io/g/eternity2/message/6144)) — and
+added a warning that the more the piece sets of two matching frontiers
+differ, the shorter the subtree the hit can legally cut.
+
+Then the measurements came in, and they are the heart of the story.
+Lindström's corrected accounting put the key at 76 bits of frontier state —
+3 bits for each of the two border-facing edges, 5 bits for each of the
+fourteen interior edges — so a direct table needs $2^{76}/8$ bytes, and Max
+counted roughly $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$ distinct
+signatures for that one test line
+([message 6145](https://groups.io/g/eternity2/message/6145),
+[message 6143](https://groups.io/g/eternity2/message/6143)). Running the
+real thing with the break point at 128 pieces, the discard rate started at
+0.1% and climbed slowly to about 1% before memory ran out
+([message 6145](https://groups.io/g/eternity2/message/6145)). Max's verdict
+on 1%: "we shouldn't expect wonders of this method"
+([message 6152](https://groups.io/g/eternity2/message/6152)). A month later
+Lindström reported a refined version — no per-piece state stored, the test
+point movable, tiny memory, "discards about 75-80% on average"
+([message 6218](https://groups.io/g/eternity2/message/6218)) — a striking
+claim that was never benchmarked by anyone else and never surfaced in any
+record solver; when he returned in 2010 it was to ask the group to spot the
+flaw in his dynamic-reduction scheme, and no substantive reply came
+([message 7938](https://groups.io/g/eternity2/message/7938)).
+
+Note what made the key so big: E2's scan-line frontier is *wide*. A chess
+position fits in a few dozen bytes regardless of how deep the game is; an
+E2 frontier is sixteen open edges of seventeen interior colours **plus** a
+256-piece availability set, and the number of reachable signatures grows
+exponentially with the frontier's length. That is the same
+boundary-entropy quantity that governs the
+[entropy area law](/research/why/entropy-area-law) — the frontier is where
+the puzzle's information lives, and a transposition key must carry all of
+it or be unsound.
+
+## The correctness traps
+
+Unsound is exactly what the cheaper variants turned out to be, and the
+archive's most instructive contribution to this topic is a public autopsy.
+In 2011 Lindström described a backtracker where every cell keeps a live
+candidate list, and a piece refuted at one cell is removed from that list
+and parked on a "restore list" attached to the earlier cell whose undoing
+would make it valid again — memoized pruning, in effect
+([message 8854](https://groups.io/g/eternity2/message/8854)). It cut node
+counts beautifully and silently lost solutions: his 8x8 runs missed some of
+the 52 known solutions. Over thirty-plus messages McGavin built
+counterexamples ([message 8866](https://groups.io/g/eternity2/message/8866))
+until Joseph DeVincentis diagnosed the flaw: a single restore list conflates
+*why* a piece was eliminated. Each cell needs one restore list per
+neighbouring edge plus one for pieces used elsewhere, restored at different
+moments of the backtrack
+([message 8871](https://groups.io/g/eternity2/message/8871),
+[message 8886](https://groups.io/g/eternity2/message/8886)). With the
+bookkeeping fixed, the measured saving was real: the 6x6 border ring fell
+from 133,326,155 iterations to 30,496,808
+([message 8875](https://groups.io/g/eternity2/message/8875)). In the same
+thread Mocsi recognised his own Failure Lookup Table — spiral search,
+record the outer-colour arrangement at each forced retreat to the border,
+consult before descending — abandoned because a bug kept it from solving
+even 6x6 and "debugging is not so easy, when you have to wait for several
+thousand iterations, till the bug occurs"
+([message 8887](https://groups.io/g/eternity2/message/8887)).
+
+The lesson generalises. A no-good is a *proof*, and caching proofs means
+your cache key must capture every hypothesis the proof used. Under-key it —
+forget a neighbour edge, a used piece, a restore moment — and you cache a
+falsehood that quietly deletes solutions. This is why the sound version of
+the idea inside CSP engines records no-goods only at propagation failures
+with their full reason sets, checked SAT-style with watched literals — the
+mechanics are on the
+[SAT and CSP encodings page](/research/build/concepts/sat-csp-encodings).
+
+## Flavour two: no-goods about the puzzle itself
+
+A transposition entry says "this state, in this search, is dead". A
+stronger kind of no-good says "this local configuration appears in **no
+solution of Eternity II at all**" — a learned constraint about the puzzle,
+not the run, valid for every solver and shareable as a file.
+
+That programme also starts in 2009 with Lindström: given the corners and
+hints, he counted ~4,500 inherently invalid single placements, estimated
+20–50 million invalid two-piece combinations, and openly called for
+collaborators to verify and exchange "invalid placements" files any solver
+could use for early branch cutting
+([message 6743](https://groups.io/g/eternity2/message/6743)); comparing
+possibility matrices with another member promptly caught a rotation bug via
+a 618-vs-624 discrepancy
+([message 6951](https://groups.io/g/eternity2/message/6951)).
+
+The modern, industrialised form is capiman's. Using a generated CNF of the
+5-hint puzzle (130,180 variables, ~4 GB, solved with an old cryptominisat —
+the pipeline is described first-hand at
+[message 11822](https://groups.io/g/eternity2/message/11822)), he mines
+provably-invalid two-piece placements — pairs that can co-occur at their
+positions in no solution
+([message 10832](https://groups.io/g/eternity2/message/10832)) — and even
+dissected an invalid *three*-piece combination down to the three ring-0
+cells it strangles
+([message 11131](https://groups.io/g/eternity2/message/11131)). The same
+machinery ran as a service for other members: handed a dead-end partial, he
+removed pieces one by one, keeping each removal only if the SAT solver
+still answered UNSAT, and returned a 28-piece core that is already
+unextendable ([message 10292](https://groups.io/g/eternity2/message/10292))
+— which is conflict-clause minimisation performed by hand, and exactly what
+a CDCL solver does internally after every conflict.
+
+The accounting, though, is sobering and capiman published it himself: by
+February 2023 the mine held ~68 million confirmed invalid pairs, against
+roughly $8.1 \times 10^9$ pairs still undecided — and by his estimate only
+~32,000 *well-chosen* invalidations would pin down a solution
+([message 10973](https://groups.io/g/eternity2/message/10973)). Sixty-eight
+million theorems, each individually true, collectively covering under 1% of
+the pair space and none of them guaranteed to be among the 32,000 that
+matter. Learned constraints about E2 are real assets — they are just being
+deposited into an account with astronomical liabilities. Why CDCL's
+automated version of this learning also starves on the full board — flat
+implication chains, wide late conflicts — is covered on the
+[SAT and CSP encodings page](/research/build/concepts/sat-csp-encodings);
+this is the same phenomenon met from the mining side.
+
+## The honest record
+
+Now the counterweight, because on this topic the archive's negatives are
+better documented than its positives.
+
+**The prize-winning solver remembered nothing.** Asked in 2010 whether his
+public solver deduplicated the thousands of 463–465 boards it found,
+Verhaard answered plainly: "it does not remember them" — no memory of past
+positions at all, and given the node volumes, someone had almost certainly
+re-encountered any given position already
+([message 7451](https://groups.io/g/eternity2/message/7451)). This is the
+same Verhaard who had given the chess-style transposition advice two years
+earlier ([message 6144](https://groups.io/g/eternity2/message/6144)), whose
+engine held the 467 record for over a decade. He knew the technique; he
+shipped without it.
+
+**The record engine measured caching and dropped it.** Cataloguing what he
+tried after the 469, Joshua Blackwood listed SAT solvers, GPUs — "and
+caching all pre-solved 2 by 2s" — all measured, none kept; only refining
+the placement heuristics paid, worth about 2×
+([message 10056](https://groups.io/g/eternity2/message/10056)). His stated
+reasons for rejecting a related per-thread cache design are pure memory
+arithmetic: reconstruction cost when the search recrosses the cache
+boundary, and the certainty that per-thread tables would no longer fit in
+L3. The fastest engines spend over half their cycles stalled on memory
+already (see [solver engineering](/research/build/concepts/solver-engineering));
+a cache probe per node is a proposal to add a DRAM-latency roundtrip to a
+loop that lives or dies by L1.
+
+**The hit rates were measured, and they are thin.** In 2016, 21valy
+instrumented a 10x10 scan-line solver: exact duplicate states (same
+borders, same inner tiles, same exposed norths) occur at about 1% halfway
+through the board — "morality #1: do not care true duplicates". Relaxed
+keys (inner tiles only) show 30–40% repetition, but the theoretical gain
+tops out below 25% and his hash table "grows too rapidly … saturated in a
+few minutes" ([message 9618](https://groups.io/g/eternity2/message/9618)).
+One percent of hits, each saving a subtree, versus a probe on every node
+and a table whose working set exceeds RAM within minutes: that is the
+break-even problem in one measurement.
+
+The pattern across all three: nobody refuted the theorem. Failed subtrees
+*are* reusable. What failed is the exchange rate — at 16x16 the frontier
+key is too wide, the state space too large for any table to cover a useful
+fraction, and the probe cost lands on the exact resource (memory bandwidth)
+that fast backtrackers have already exhausted.
+
+## Where it genuinely pays
+
+Shrink the board or close the search, and the same idea changes sign.
+
+- **Small boards and rings.** Lindström's fixed restore-list scheme cut the
+  6x6 border ring by 4.4×
+  ([message 8875](https://groups.io/g/eternity2/message/8875)). On a small
+  state space the table *can* cover a meaningful fraction of reachable
+  frontiers, so hit rates climb from per-mille to per-cent and beyond.
+- **Exhaustive enumeration and counting.** When the tree will be walked to
+  the end, every duplicate subtree is a guaranteed revisit, not a
+  probabilistic one — McGavin's twin top rows
+  ([message 9610](https://groups.io/g/eternity2/message/9610)) are 40
+  core-hours that a signature check would have saved with certainty.
+  Deduplicating enumerated row lists before farming them out is exactly
+  this, applied at the tree's top, and the community's census culture —
+  the 9x9 exhausts, the fully-enumerated hint puzzles — is where
+  enumeration discipline visibly wins (see
+  [benchmarks](/research/build/benchmarks)).
+- **Endgames.** Deep in the board the remaining-piece set is small, the
+  frontier short, and the subproblem repeats across many top-halves — the
+  regime where a memo table is small, hot and honest.
+- **Inside a propagation engine.** Recording a hard no-good with its full
+  reason set at each propagation failure is sound by construction and
+  cheap to check — the CSP-side inheritance of CDCL described on the
+  [encodings page](/research/build/concepts/sat-csp-encodings).
+
+## What it costs
+
+- **The key: frontier entropy, paid per entry.** A sound transposition key
+  is the open frontier plus the remaining-piece set. At a mid-board test
+  line that is $2 \cdot 3 + 14 \cdot 5 = 76$ bits of edge state
+  ([message 6145](https://groups.io/g/eternity2/message/6145)) plus a
+  256-bit piece bitmap for the subset test
+  ([message 6137](https://groups.io/g/eternity2/message/6137)) — and the
+  number of *reachable* keys at that one line is about
+  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$
+  ([message 6143](https://groups.io/g/eternity2/message/6143)). In general
+  the key population grows like $e^{h \cdot \ell}$ for a frontier of
+  length $\ell$ — a perimeter law, the same boundary term as the
+  [area law's](/research/why/entropy-area-law), which is why small boards
+  are cheap and 16x16 is not.
+- **The table: coverage is memory over population.** A hash table of $M$
+  entries facing $K$ reachable keys covers $M/K$ of them; with
+  $K \approx 4 \times 10^{18}$, a 64 GiB table ($M \approx 2^{33}$ entries)
+  covers about $10^{-9}$ of the space. Hits then come only from short-term
+  locality — which is what Lindström observed: 0.1% climbing to 1% and
+  stalling at the memory wall
+  ([message 6145](https://groups.io/g/eternity2/message/6145)).
+- **The probe: a DRAM roundtrip per node.** A modern engine places
+  $\sim$70M pieces per second — about $14$ ns per node — while a random
+  table probe costs a $\sim$100 ns memory stall, i.e. $c \approx 7$ nodes
+  of search. The cache pays only if
+  $$
+  p_{\text{hit}} \cdot \bar{S} \;>\; c \;\approx\; 7 \text{ nodes},
+  $$
+  where $\bar{S}$ is the mean size of a skipped subtree. At the measured
+  $p_{\text{hit}} \approx 1\%$
+  ([message 9618](https://groups.io/g/eternity2/message/9618)) you need
+  $\bar{S} > 700$ nodes *and* a table that actually retains those entries —
+  the one 21valy watched saturate in minutes. At an effective
+  $p_{\text{hit}} \sim 10^{-9}$, no realistic $\bar{S}$ balances the books.
+- **Correctness: the full reason set, or nothing.** Every hypothesis the
+  failure proof used must be in the key — per-edge restore lists, used-piece
+  lists, all of it
+  ([message 8886](https://groups.io/g/eternity2/message/8886)) — and the
+  failure mode of under-keying is silently lost solutions, the most
+  expensive bug an exhaustive search can have.
+
+That is the summary the archive earned over eighteen years: the theorem is
+free, the memory is not. A failed subtree really is a fact you own — but at
+full-board scale, storing facts costs more than rediscovering them, and the
+two solvers that set records both chose, after measuring, to forget.
