@@ -13,25 +13,29 @@ import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 // The crossover-conflict argument (groups.io msgs 1500/2591), made visible.
 //
 // Two PERFECT parents of the same engine-generated framed 8×8: parent A is
-// the solved board; parent B is the same solution rotated 180° — a genuinely
+// the solved board; parent B is the same solution rotated 90° — a genuinely
 // different perfect board using the same 64 pieces (edge matching is
-// invariant under a global 180° turn, and generated puzzles have no fixed
-// hint). One-point crossover at cut k takes cells 0..k-1 from A and the rest
-// from B, exactly the operator the 2007 threads debated.
+// invariant under a global turn of a square board, and generated puzzles
+// have no fixed hint). One-point crossover at cut k takes cells 0..k-1 from
+// A and the rest from B, exactly the operator the 2007 threads debated.
 //
-// The pathology is deterministic and total: the child duplicates every piece
-// in 0..min(k, n-k)-1 and omits just as many. At k = n/2 — the "fairest" mix —
-// EVERY cell belongs to a duplicate pair. The naive child still *scores*
-// almost perfectly (each half is internally solved), which is precisely how a
-// fitness function gets fooled. The repair step (replace second occurrences
-// with the missing pieces, greedy best rotation — the fix proposed in msg
-// 1500) restores legality and destroys the score.
+// (Why 90° and not 180°? Under a 180° turn the duplicated cells and the
+// missing pieces' home cells coincide exactly, so a repair step can quietly
+// reconstruct parent A and fake a success. The 90° turn scatters them — the
+// honest, generic case.)
+//
+// The pathology is deterministic: away from the trivial cuts the child
+// duplicates some pieces and omits just as many — it is not a board. Yet it
+// still *scores* almost perfectly (each half is internally solved), which is
+// precisely how a fitness function gets fooled. The repair step (replace
+// second occurrences with the missing pieces, greedy best rotation — the fix
+// proposed in msg 1500) restores legality and collapses the score.
 //
 // Everything is measured by the same bucas-compatible scoring the viewer
 // uses; nothing is faked. The sweep animation is gated by useRunWhileVisible.
 
 const SIZE = 8;
-const COLORS = 6;
+const COLORS = 10;
 const SEED = 11;
 const N = SIZE * SIZE;
 
@@ -39,9 +43,9 @@ const T = {
   en: {
     title: "Two perfect parents, one broken child",
     intro:
-      "Parent A is a solved board; parent B is the same solution turned 180° — a different, equally perfect arrangement of the same 64 pieces. Drag the cut: the child takes the first k cells from A and the rest from B. Rose rings mark pieces the child now holds twice; just as many pieces are missing entirely.",
+      "Parent A is a solved board; parent B is the same solution turned a quarter turn — a different, equally perfect arrangement of the same 64 pieces. Drag the cut: the child takes the first k cells from A and the rest from B. Rose rings mark pieces the child now holds twice; just as many pieces are missing entirely.",
     parentA: "Parent A — solved",
-    parentB: "Parent B — solved (180°)",
+    parentB: "Parent B — solved (turned 90°)",
     childNaive: "Naive child",
     childRepaired: "Repaired child",
     cut: (k: number) => `crossover cut: ${k} cells from A, ${N - k} from B`,
@@ -62,9 +66,9 @@ const T = {
   fr: {
     title: "Deux parents parfaits, un enfant cassé",
     intro:
-      "Le parent A est un plateau résolu ; le parent B est la même solution tournée de 180° — un arrangement différent, tout aussi parfait, des 64 mêmes pièces. Déplacez la coupure : l'enfant prend les k premières cases de A et le reste de B. Les anneaux roses marquent les pièces que l'enfant possède désormais en double ; autant de pièces manquent entièrement.",
+      "Le parent A est un plateau résolu ; le parent B est la même solution tournée d'un quart de tour — un arrangement différent, tout aussi parfait, des 64 mêmes pièces. Déplacez la coupure : l'enfant prend les k premières cases de A et le reste de B. Les anneaux roses marquent les pièces que l'enfant possède désormais en double ; autant de pièces manquent entièrement.",
     parentA: "Parent A — résolu",
-    parentB: "Parent B — résolu (180°)",
+    parentB: "Parent B — résolu (tourné de 90°)",
     childNaive: "Enfant naïf",
     childRepaired: "Enfant réparé",
     cut: (k: number) => `coupure : ${k} cases de A, ${N - k} de B`,
@@ -84,21 +88,42 @@ const T = {
   },
 };
 
+/** Parent B: the same solution turned 90° clockwise. The piece from A cell
+ *  (r, c) lands at (c, S-1-r) rotated one quarter turn — so B cell (r, c)
+ *  holds the piece whose A cell is (S-1-c, r). */
+function parentBCell(pos: number): number {
+  const r = Math.floor(pos / SIZE);
+  const c = pos % SIZE;
+  return ((SIZE - 1 - c) * SIZE + r) * 4 + 1;
+}
+
 /** Engine cells (pieceId*4+rot) of the naive one-point crossover child. */
 function naiveChildCells(k: number): number[] {
   const cells: number[] = [];
   for (let pos = 0; pos < N; pos++) {
-    cells.push(pos < k ? pos * 4 : (N - 1 - pos) * 4 + 2);
+    cells.push(pos < k ? pos * 4 : parentBCell(pos));
   }
   return cells;
 }
 
-/** Cells of the child that hold a piece already used earlier (second copies). */
+/** Cells of the child that hold a piece already used earlier (second copies).
+ *  The A half is duplicate-free (pieces 0..k-1) and B is a permutation, so
+ *  second copies are exactly the B-half cells whose piece id is below k. */
 function duplicateBCells(k: number): number[] {
   const out: number[] = [];
-  for (let pos = Math.max(k, N - k); pos < N; pos++) out.push(pos);
-  // When k == 0 or k == N the child is a clone: no duplicates.
-  return k === 0 || k === N ? [] : out;
+  for (let pos = k; pos < N; pos++) {
+    if (parentBCell(pos) >> 2 < k) out.push(pos);
+  }
+  return out;
+}
+
+/** Piece ids absent from the naive child. */
+function missingPieces(k: number): number[] {
+  const used = new Set<number>();
+  for (const v of naiveChildCells(k)) used.add(v >> 2);
+  const out: number[] = [];
+  for (let p = 0; p < N; p++) if (!used.has(p)) out.push(p);
+  return out;
 }
 
 /** Greedy deterministic repair: replace second copies with the missing
@@ -107,8 +132,7 @@ function repairedChildCells(puzzle: Puzzle, k: number): number[] {
   const cells = naiveChildCells(k);
   const dupCells = duplicateBCells(k);
   if (dupCells.length === 0) return cells;
-  const missing: number[] = [];
-  for (let p = Math.max(k, N - k); p < N; p++) missing.push(p);
+  const missing = missingPieces(k);
   const open = new Set(dupCells);
   for (const pos of dupCells) cells[pos] = -1;
   for (const pos of dupCells) {
@@ -180,10 +204,7 @@ export function CrossoverClashLab() {
   }, [visible, sweeping, puzzle]);
 
   const parentACells = useMemo(() => Array.from({ length: N }, (_, i) => i * 4), []);
-  const parentBCells = useMemo(
-    () => Array.from({ length: N }, (_, i) => (N - 1 - i) * 4 + 2),
-    [],
-  );
+  const parentBCells = useMemo(() => Array.from({ length: N }, (_, i) => parentBCell(i)), []);
   const childCells = useMemo(
     () => (puzzle ? (repaired ? repairedChildCells(puzzle, k) : naiveChildCells(k)) : []),
     [puzzle, k, repaired],
@@ -205,10 +226,9 @@ export function CrossoverClashLab() {
   // Both copies of every duplicated piece, for the rings on the naive child.
   const dupCellSet = useMemo(() => {
     const s = new Set<number>();
-    if (k === 0 || k === N) return s;
     for (const pos of duplicateBCells(k)) {
       s.add(pos); // second copy (B half)
-      s.add(N - 1 - pos); // first copy (A half): same piece id
+      s.add(parentBCell(pos) >> 2); // first copy: piece p sits at A cell p
     }
     return s;
   }, [k]);
@@ -230,8 +250,7 @@ export function CrossoverClashLab() {
     );
   }
 
-  const dupCount = k === 0 || k === N ? 0 : Math.min(k, N - k);
-  const childSummary = repaired ? repairedSummary : naiveSummary;
+  const dupCount = duplicateBCells(k).length;
   const conflicts = conflictEdges(childBoard);
 
   const overlay = repaired ? undefined : (
