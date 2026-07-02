@@ -1,5 +1,12 @@
 # Research wiki rebuild — working plan + TODO
 
+> **State 2026-07-02 ~02:45:** overnight queue COMPLETE — everything below
+> through Phase 5 is committed (36 commits, tree clean). Remaining items are
+> deliberately future work (deep vault-sensitive basin case studies, more
+> concepts, groups.io WIKI section via the user's browser session). If a
+> heartbeat fires before ~08:00: nothing to build — verify `git status` is
+> clean and wait for the user's morning review.
+
 The research section becomes the **official Eternity II research wiki**: a
 docs-grade reading experience (sidebar tree, search, TOC, breadcrumbs,
 prev/next) with markdown-first authoring, while keeping every live
