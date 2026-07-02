@@ -1,6 +1,7 @@
 # Research wiki rebuild — working plan + TODO
 
-> **State 2026-07-02 ~02:45:** overnight queue COMPLETE — everything below
+> **State 2026-07-02 ~06:20:** Phase 6+7 launched (see below).
+> Previous state: overnight queue COMPLETE — everything below
 > through Phase 5 is committed (36 commits, tree clean). Remaining items are
 > deliberately future work (deep vault-sensitive basin case studies, more
 > concepts, groups.io WIKI section via the user's browser session). If a
@@ -226,3 +227,19 @@ Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
 - Attribution-neutral research voice; every claim reproducible or labelled.
 - The old TSX pages keep working until their MDX replacement is verified —
   no reader-visible regression mid-migration.
+
+### Phase 6 — educational concepts (user directive 2026-07-02 morning)
+
+Concepts must be genuinely educational: every concept page gets (a) a
+purpose-built interactive animation (src/components/research/concepts/,
+useRunWhileVisible + 8ms budgets — never block navigation), (b) a
+"step by step" worked walkthrough, (c) an "algorithmic cost" section with
+verified complexity formulas in KaTeX. Wave 1 = the 9 existing concepts.
+
+### Phase 7 — ALL of groups.io into the wiki
+
+The digests become the roadmap: research/community/PAGE_CANDIDATES.md
+(generated) lists every distinct technique/tool/story in the archive worth a
+page, with inventors, key msgs, section, and priority. Then page-writing
+waves work through it P1-first. Everything sourced, attributed, and
+cross-linked; new concepts follow the Phase 6 educational bar.
