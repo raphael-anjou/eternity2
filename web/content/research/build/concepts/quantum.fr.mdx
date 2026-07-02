@@ -1,0 +1,318 @@
+---
+title: "Approches quantiques : deux accélérations, au prix honnête"
+description: >-
+  L'ordinateur quantique est le plus vieux deus ex machina de la liste —
+  invoqué dès le premier mois du puzzle, puis tous les deux ou trois ans.
+  Il n'y a que deux vraies histoires à raconter : l'accélération quadratique
+  de Grover, et le recuit sur un encodage QUBO. Cette page raconte les deux
+  correctement, fait l'arithmétique contre les vrais nombres d'Eternity II,
+  et rapporte le dossier communautaire complet — dix-neuf ans d'apartés, une
+  tentative d'embedding inachevée, zéro exécution.
+kind: concept
+order: 210
+updated: 2026-07-02
+topics: [quantum, exact-methods]
+sources:
+  - label: Grover, A fast quantum mechanical algorithm for database search (arXiv:quant-ph/9605043, 1996)
+    url: https://arxiv.org/abs/quant-ph/9605043
+  - label: Bennett, Bernstein, Brassard & Vazirani, Strengths and weaknesses of quantum computing — la limite quadratique (arXiv:quant-ph/9701001)
+    url: https://arxiv.org/abs/quant-ph/9701001
+  - label: Montanaro, Quantum walk speedup of backtracking algorithms (arXiv:1509.02374)
+    url: https://arxiv.org/abs/1509.02374
+  - label: Lucas, Ising formulations of many NP problems (arXiv:1302.5843, 2014)
+    url: https://arxiv.org/abs/1302.5843
+  - label: Bengtsson et al., le QAOA résout de petites instances d'exact cover sur deux qubits supraconducteurs (arXiv:1912.10495)
+    url: https://arxiv.org/abs/1912.10495
+  - label: Ambainis, Quantum search algorithms — le survol posté sur la liste par Alan (arXiv:quant-ph/0504012)
+    url: https://arxiv.org/abs/quant-ph/0504012
+  - label: Aaronson & Ambainis, Quantum search of spatial regions (arXiv:quant-ph/0303041)
+    url: https://arxiv.org/abs/quant-ph/0303041
+  - label: "Le fil « Quantum computing » de 2007 s'ouvre (message groups.io 1446)"
+    url: https://groups.io/g/eternity2/message/1446
+  - label: "Max lit Deutsch : l'accélération quantique pour E2 « would be very moderate » (message groups.io 6484, 2009)"
+    url: https://groups.io/g/eternity2/message/6484
+  - label: "D-Wave nommé pour la première fois sur la liste (message groups.io 7796, 2010)"
+    url: https://groups.io/g/eternity2/message/7796
+  - label: "L'arithmétique de Grover par McGavin — 3,4x10^40 nœuds, racine carrée, 135 qubits (message groups.io 10258, 2021)"
+    url: https://groups.io/g/eternity2/message/10258
+  - label: "McGavin pose la question ouverte (message groups.io 10260, 2021)"
+    url: https://groups.io/g/eternity2/message/10260
+  - label: "mulisak, « let quantum computing save us! » — QAOA sur exact cover (message groups.io 10791, 2022)"
+    url: https://groups.io/g/eternity2/message/10791
+  - label: "Le recuit quantique et le temps communautaire gratuit de D-Wave suggérés (message groups.io 11175, 2023)"
+    url: https://groups.io/g/eternity2/message/11175
+  - label: "La tentative DQM de Patrick Poitras sur D-Wave bute sur le mur de la connectivité (message groups.io 11176, 2023)"
+    url: https://groups.io/g/eternity2/message/11176
+  - label: "mulisak dimensionne le modèle de circuit : plus de 3 000 qubits nécessaires, ~150 disponibles (message groups.io 11813, 2026)"
+    url: https://groups.io/g/eternity2/message/11813
+related:
+  - /research/build/concepts/sat-csp-encodings
+  - /research/build/concepts/fpga-solving
+  - /research/why/complex-theory
+---
+
+L'ordinateur quantique entre dans les archives d'Eternity II dès le premier
+mois du puzzle. En mai 2007, avant même que la plupart des membres n'aient
+écrit un solveur, l'un d'eux proposait de fonder le « Homebrew Quantum
+Computer Club » ([message 263](https://groups.io/g/eternity2/message/263)) —
+une blague, et la première apparition d'une figure qui hantera la liste
+pendant dix-neuf ans : la machine venue du futur qui dissout le problème
+tout entier. On l'a invoquée comme fantasme, comme satire, comme vœu de
+liste au Père Noël, et parfois comme vraie question technique. Ce qu'elle
+n'a jamais été, nulle part dans le dossier, c'est *utilisée* : aucun membre
+n'a jamais rapporté avoir fait tourner le moindre matériel ou simulateur
+quantique contre la moindre instance d'Eternity II, quelle que soit sa
+taille.
+
+Ce dossier mince mérite quand même une page, pour deux raisons. D'abord, il
+n'existe que deux vraies histoires quantiques pertinentes pour E2 — la
+recherche de Grover et le recuit sur un encodage d'Ising — et toutes deux
+peuvent être racontées honnêtement, arithmétique à l'appui, ce que les
+apartés éparpillés de la liste n'ont jamais tout à fait assemblé. Ensuite,
+l'arithmétique est éclairante : le calcul quantique offre la plus forte
+accélération que la physique promette aujourd'hui à une recherche aveugle,
+et confronter E2 à ce prix montre avec netteté *pourquoi* ce puzzle résiste
+— les mêmes murs que cartographient les
+[pages de structure](/research/why/complex-theory), vus depuis l'autre
+versant.
+
+## Première histoire : Grover, la racine carrée
+
+[L'algorithme de Grover](https://arxiv.org/abs/quant-ph/9605043) est le
+titre honnête de la recherche quantique. Étant donné $N$ possibilités et un
+test boîte noire « celle-ci est-elle une solution ? », un ordinateur
+quantique trouve une solution en environ $\tfrac{\pi}{4}\sqrt{N}$
+évaluations du test, là où une machine classique en demande de l'ordre de
+$N$. Deux clauses en petits caractères comptent ici :
+
+- **L'accélération est quadratique, et c'est un théorème, pas une borne à
+  battre.** Pour la recherche en boîte noire,
+  [Bennett, Bernstein, Brassard et Vazirani](https://arxiv.org/abs/quant-ph/9701001)
+  ont prouvé que la racine carrée est optimale : aucun algorithme quantique
+  ne fait mieux sans exploiter la structure du problème. On ne sait *pas*
+  résoudre les problèmes NP-complets en temps polynomial sur un ordinateur
+  quantique ; sur une recherche non structurée, il divise l'exposant par
+  deux, point final.
+- **Avec $M$ solutions le coût est $\sqrt{N/M}$** — l'abondance de solutions
+  aide la recherche quantique exactement comme elle aide la recherche
+  classique. Or Eternity II a été
+  [conçu pour en avoir essentiellement une seule](/research/why/complex-theory).
+  Le design adversarial qui affame les solveurs classiques affame aussi
+  Grover.
+
+Maintenant l'arithmétique, contre les vrais nombres d'E2.
+
+**Contre l'espace brut.** Le décompte naïf des configurations — chaque pièce
+n'importe où, dans n'importe quelle rotation — est le fameux
+$\sim 10^{557}$ ([faits établis](/research/build/known-facts)). Grover le
+transforme en
+
+$$
+\sqrt{10^{557}} \;\approx\; 10^{278{,}5}
+$$
+
+appels d'oracle séquentiels. Diviser 557 par deux laisse 278 : un nombre
+indifférent au fait que votre machine exécute une opération par seconde ou
+par temps de Planck. Il n'y a rien à ajouter sur la version non structurée.
+
+**Contre l'arbre structuré.** La comparaison loyale n'est pas l'espace brut
+mais l'arbre qu'un bon backtracker parcourt réellement, et la communauté a
+fait cette arithmétique elle-même — le seul échange Grover véritablement
+technique des archives. En octobre 2021, à partir de l'estimation d'Akos
+selon laquelle un balayage complet de l'espace exige au minimum
+$3{,}4\times10^{40}$ opérations, Peter McGavin a demandé si Grover pouvait
+fouiller cet arbre en $\sqrt{3{,}4\times10^{40}} \approx 1{,}8\times10^{20}$
+opérations sur une machine à $\log_2(3{,}4\times10^{40}) = 135$ qubits
+([message 10258](https://groups.io/g/eternity2/message/10258)), avant de
+reformuler soigneusement deux messages plus loin : Grover ou un autre
+algorithme quantique pourrait-il fouiller l'arbre d'E2 en $O(\sqrt{N})$ ?
+([message 10260](https://groups.io/g/eternity2/message/10260)). Personne sur
+la liste n'a répondu. La littérature, si : oui, presque —
+[le backtracking quantique de Montanaro](https://arxiv.org/abs/1509.02374)
+parcourt l'arbre d'un backtracker classique de $T$ nœuds en environ
+$\sqrt{T}$ pas quantiques (à des facteurs polynomiaux près), structure et
+élagage compris. Prenez le nombre de ce wiki pour la largeur du plateau de
+l'arbre, environ $10^{45}$ plateaux partiels
+([complex theory](/research/why/complex-theory)) :
+
+$$
+\sqrt{10^{45}} \;\approx\; 3\times10^{22} \text{ pas quantiques.}
+$$
+
+Est-ce faisable, $3\times10^{22}$ ? Accordez à la machine un cadeau absurde :
+un appel d'oracle complet — vérifier les 480 contraintes d'arêtes d'un
+plateau entier, de façon réversible — chaque *nanoseconde*. Les itérations
+de Grover sont intrinsèquement séquentielles (faire tourner $k$ machines en
+parallèle ne rapporte que $\sqrt{k}$, pas $k$), donc cela fait
+$3\times10^{13}$ secondes : **environ un million d'années**. Aux cadences
+logiques kHz–MHz que projettent réellement les machines corrigées d'erreurs,
+c'est plus long que l'âge de l'univers. Et les 135 qubits de McGavin ne
+comptent que le registre d'index : l'oracle doit tenir le plateau (256
+cases × 10 bits de pièce-rotation, déjà ~2 560 qubits logiques), la
+comptabilité des pièces utilisées, et les ancillas qui rendent la
+vérification réversible — des milliers de qubits logiques, c'est-à-dire des
+millions de qubits physiques aux surcoûts actuels de correction d'erreurs,
+contre les quelque 150 qubits bruités accessibles en 2026
+([message 11813](https://groups.io/g/eternity2/message/11813)).
+
+Le plus remarquable est que la liste a vu juste très tôt, depuis un
+fauteuil. En février 2009, Max, lisant un essai de David Deutsch, concluait
+que même avec un grand ordinateur quantique disponible aujourd'hui,
+l'accélération pour des problèmes comme les échecs et sans doute aussi E2
+« would be very moderate » — il faudrait par-dessus de nouveaux algorithmes
+encore à découvrir
+([message 6484](https://groups.io/g/eternity2/message/6484)). C'est le
+théorème BBBV, paraphrasé sur une liste de diffusion de puzzle, deux ans
+après le début de la chasse.
+
+## Deuxième histoire : le recuit, et le puzzle comme paysage d'énergie
+
+La deuxième histoire est plus intéressante parce qu'elle est plus proche du
+constructible. Les recuiseurs quantiques — les machines de D-Wave —
+n'exécutent pas Grover. Ils refroidissent physiquement un réseau de qubits
+couplés vers l'état fondamental d'une fonction d'énergie programmable, un
+**QUBO** (optimisation binaire quadratique sans contrainte), autrement dit
+un modèle d'Ising.
+[Le catalogue de Lucas (2014)](https://arxiv.org/abs/1302.5843) donne des
+formulations d'Ising pour les 21 problèmes NP-complets de Karp, et
+l'appariement d'arêtes s'encode exactement dans son style. Prenez la même
+variable que l'[encodage SAT](/research/build/concepts/sat-csp-encodings) —
+$x_{p,c,r} = 1$ si la pièce $p$ occupe la case $c$ avec la rotation $r$ —
+et écrivez
+
+$$
+H \;=\; A\sum_{c}\Big(1-\!\!\sum_{p,r} x_{p,c,r}\Big)^{2}
+\;+\; A\sum_{p}\Big(1-\!\!\sum_{c,r} x_{p,c,r}\Big)^{2}
+\;+\; B \sum_{\langle c,c' \rangle} \sum_{\text{paires discordantes}} x_{p,c,r}\,x_{p',c',r'} ,
+$$
+
+avec $A > B > 0$ : le premier terme punit les cases qui ne portent pas
+exactement un placement, le deuxième les pièces non utilisées exactement une
+fois, le troisième ajoute $B$ par jointure intérieure discordante. L'état
+fondamental a une énergie nulle exactement quand le plateau est une solution
+parfaite — et, joliment, les états excités de basse énergie *sont* des
+partiels à haut score : l'encodage parle nativement la langue de
+[l'échelle des records](/research/records).
+
+Puis on dimensionne.
+
+- **Variables :** $256 \times 256 \times 4 = 262\,144$ binaires logiques.
+- **Couplages :** les 1 024 placements candidats de chaque case s'excluent
+  mutuellement — soit $\binom{1024}{2} \approx 5\times10^{5}$ termes
+  quadratiques *par case*, et autant par pièce : de l'ordre de $10^{8}$
+  couplages avant même de compter les termes de discordance.
+- **Matériel :** les plus grands recuiseurs de 2026 portent de l'ordre de
+  5 000 qubits physiques, chacun couplé à 15–20 voisins. Projeter un
+  problème logique sur ce graphe clairsemé (**minor-embedding**) représente
+  chaque variable densément connectée par une *chaîne* de qubits physiques ;
+  le plafond pratique pour un problème complètement connecté est de
+  quelques centaines de variables logiques par puce. Le groupe one-hot
+  d'**une seule case** — 1 024 variables mutuellement couplées — dépasse
+  déjà ce plafond plusieurs fois, et il y a 256 cases.
+
+L'écart n'est pas une génération d'ingénierie ; ce sont trois ordres de
+grandeur et plus en variables, quatre en couplages, avant le surcoût des
+chaînes. (Les solveurs *hybrides* de D-Wave acceptent des QUBO au million de
+variables, mais le processeur quantique y est une sous-routine d'une
+heuristique classique — un « résultat » hybride ne serait pas un résultat
+quantique.) Et derrière le mur de la taille s'en dresse un plus ancien : un
+recuiseur, à n'importe quelle taille, est une machine physique de recherche
+locale qui descend ce paysage d'énergie — le même paysage sur lequel
+[le recuit simulé et la recherche locale](/research/build/concepts/local-search-alns)
+de la communauté ont plafonné dans les 460. Rien dans la théorie du recuit
+quantique ne promet de creuser un tunnel à travers la
+[rareté qui a été fabriquée dans ce puzzle](/research/why/complex-theory) ;
+sur les instances de type verre de spin, le gap adiabatique se referme et le
+temps de recuit explose. La remarque enjouée d'Alan en 2010 — le recuit
+simulé est l'un des problèmes où l'on attend que les ordinateurs quantiques
+excellent ([message 7802](https://groups.io/g/eternity2/message/7802)) — est
+précisément l'espoir, et il reste — sur cette classe de problèmes — un
+espoir, pas un résultat.
+
+## Ce que disent réellement les archives
+
+Le dossier quantique complet de la liste, 2007–2026. Ce sont surtout des
+apartés, et ce tableau le dit ; les trois moments véritablement techniques
+sont marqués.
+
+| Quand | Qui | Ce qui a été dit | Msg |
+| --- | --- | --- | --- |
+| 2007-05 | gfleder | « Homebrew Quantum Computer Club ??? » — la première blague | [263](https://groups.io/g/eternity2/message/263) |
+| 2007-06 | Steve Moyer | Cite le fil « home quantum computing » en faisant les premiers décomptes de permutations | [268](https://groups.io/g/eternity2/message/268) |
+| 2007-07 | Jim Witte | Question-inventaire analogique/ADN/quantique — un Q-comp « could probably spit out a solution in about a second » | [824](https://groups.io/g/eternity2/message/824) |
+| 2007-08 | psykowally & al. | Le fil « Quantum computing » : une voie « évidente »… mais combien de bits gèrent-ils ? ; Anurag : le matériel n'existe pas ; Grech : un vrai QC vaut plus que le prix ; une blague de calcul contrefactuel | [1446](https://groups.io/g/eternity2/message/1446), [1457](https://groups.io/g/eternity2/message/1457), [1464](https://groups.io/g/eternity2/message/1464), [1535](https://groups.io/g/eternity2/message/1535), [1540](https://groups.io/g/eternity2/message/1540) |
+| 2008 | divers | Le quantique listé parmi les « autres voies » (3995), mis en doute pour les interférences (4032), espéré (4850), satirisé — l'« ordinateur quantique à voyage temporel » (5413, 5442), moqué (5542), mêlé aux rêveries P=NP (5629), listé avec le calcul holographique et l'ADN (5736) | [3995](https://groups.io/g/eternity2/message/3995), [4032](https://groups.io/g/eternity2/message/4032), [4850](https://groups.io/g/eternity2/message/4850), [5413](https://groups.io/g/eternity2/message/5413), [5629](https://groups.io/g/eternity2/message/5629), [5736](https://groups.io/g/eternity2/message/5736) |
+| 2009-02 | lukas ; **Max** | « Where is the non-linear 'quantum' solver? » — réponse via Deutsch : **l'accélération « would be very moderate »** | [6480](https://groups.io/g/eternity2/message/6480), [6484](https://groups.io/g/eternity2/message/6484) |
+| 2009-12 | andreas gammel | « Homemade quantum computer » : rêverie sur les fentes de Young, projeter la solution sur un mur | [7336](https://groups.io/g/eternity2/message/7336) |
+| 2010-06 | **Alan (Figjam)** & Geoff | « We either need a 2048 bit quantum computer or else buy a lottery ticket » ; **D-Wave nommé** (premier pointeur matériel) ; les papiers d'Ambainis et d'Aaronson–Ambainis postés ; espoirs d'effet tunnel | [7789](https://groups.io/g/eternity2/message/7789), [7796](https://groups.io/g/eternity2/message/7796), [7799](https://groups.io/g/eternity2/message/7799), [7802](https://groups.io/g/eternity2/message/7802), [7811](https://groups.io/g/eternity2/message/7811) |
+| 2011-02 | Johannes Lindé | Démo Wolfram d'algorithmes de recherche quantique en lien, « any others researching along these lines? » | [8565](https://groups.io/g/eternity2/message/8565) |
+| 2015-06 | void solid | Lien vers QUBO-Chimera d'alex1770 (le problème natif de D-Wave résolu *en logiciel*) — dans un fil sans rapport, sans suite | [9417](https://groups.io/g/eternity2/message/9417) |
+| 2021-10 | **Peter McGavin** | **L'arithmétique de Grover** : $3{,}4\times10^{40}$ nœuds $\to$ $1{,}8\times10^{20}$ opérations, 135 qubits ; la question ouverte, jamais répondue sur la liste | [10258](https://groups.io/g/eternity2/message/10258), [10260](https://groups.io/g/eternity2/message/10260) |
+| 2022-07 | mulisak | « Let quantum computing save us! » — papier QAOA-sur-exact-cover + cuQuantum ; convaincre Google/IBM/Microsoft que résoudre E2 les rendrait célèbres | [10791](https://groups.io/g/eternity2/message/10791) |
+| 2023-10 | Hopfer ; **Poitras** | L'idée « Pseudoquantum » d'un processeur par case ; recuit quantique + temps communautaire gratuit de D-Wave suggérés ; **la seule tentative concrète** — un modèle DQM D-Wave bloqué sur l'embedding : connectivité 15 contre 22 couleurs, en attendant une puce Zephyr | [11174](https://groups.io/g/eternity2/message/11174), [11175](https://groups.io/g/eternity2/message/11175), [11176](https://groups.io/g/eternity2/message/11176) |
+| 2023-12 | Jef Bucas | « Anyone got a big quantum computer on Santa's list? » | [11185](https://groups.io/g/eternity2/message/11185) |
+| 2024 | mulisak ; McGavin ; Joe | La machine de campus IBM à 127 qubits signalée (11283) ; le quantique listé parmi les domaines d'où pourrait venir une percée (11346) ; l'annonce Willow de Google relayée (11407) | [11283](https://groups.io/g/eternity2/message/11283), [11346](https://groups.io/g/eternity2/message/11346), [11407](https://groups.io/g/eternity2/message/11407) |
+| 2026 | JSA ; **mulisak** | Les ordinateurs quantiques nommés comme l'une des deux voies à court terme (11788) ; le travail SAT est-il une « préparation » pour un futur ordinateur quantique ? (11812) ; **la réponse dimensionnée** : ~150 qubits bruités existent, un circuit set-cover pour E2 en demande plus de 3 000, un proof-of-concept QAOA/Grover à ~30 qubits est le plafond réaliste — « this does not look like something that will solve Eternity II anytime soon » | [11788](https://groups.io/g/eternity2/message/11788), [11812](https://groups.io/g/eternity2/message/11812), [11813](https://groups.io/g/eternity2/message/11813) |
+
+C'est tout. (Les autres occurrences de « quantum » dans les archives sont
+figuratives — « quantum leap » — ou des apartés de physique sans rapport
+avec le calcul.) En résumé : trois moments techniques en dix-neuf ans — le
+théorème en fauteuil de Max en 2009, la racine carrée de McGavin en 2021, le
+décompte de qubits de mulisak en 2026 — une tentative d'embedding D-Wave
+inachevée, et zéro exécution rapportée de quoi que ce soit, sur quelque
+instance que ce soit. Le dossier communautaire est mince, et le travail de
+cette page est de le dire plutôt que de le gonfler.
+
+<Callout kind="note" title="Le quantique comme loupe, pas comme outil">
+  Voici l'usage sobre de tout cela. La recherche de type Grover est la
+  *plus forte* accélération générique que la physique connue offre — elle
+  divise l'exposant par deux, là où chaque histoire matérielle de ce wiki
+  ([FPGA](/research/build/concepts/fpga-solving),
+  [GPU](/research/build/concepts/gpu-solving), grappes) ne divise que par
+  une constante. Et E2 la balaie d'un haussement d'épaules :
+  $10^{45} \to 10^{22{,}5}$ perd encore contre n'importe quelle horloge
+  concevable. L'argument de
+  [pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)
+  survit même à la meilleure accélération que la physique ait en rayon, ce
+  qui est la forme la plus forte de cet argument. L'histoire du recuit,
+  elle, atterrit sur l'autre mur : comme paysage d'énergie, E2 a été
+  [construit avec une seule aiguille et aucun gradient vers elle](/research/why/complex-theory).
+  La vraie pertinence du quantique pour E2 aujourd'hui, c'est que chiffrer
+  le puzzle contre du matériel hypothétique localise la difficulté
+  exactement là où les pages de structure la placent — dans l'arbre, pas
+  dans l'horloge.
+</Callout>
+
+## À quoi ressemblerait une tentative sérieuse
+
+L'écart entre « espéré » et « mesuré » est, pour une fois, bon marché à
+combler — le temps de recuiseur se loue à la minute, et l'expérience
+honnête est petite :
+
+1. **Encoder l'échelle, pas le puzzle.** Écrire le QUBO ci-dessus (ou la
+   forme à variables discrètes de Poitras,
+   [message 11176](https://groups.io/g/eternity2/message/11176)) pour la
+   [suite de benchmarks de Brendan Owen](/research/build/benchmarks) en
+   commençant par le 4x4 et le 5x5 — des tailles dont les groupes one-hot
+   s'embeddent réellement sur une puce à ~5 000 qubits.
+2. **Faire tourner trois solveurs sur le même $H$ :** le vrai QPU, un recuit
+   simulé classique, et un hybride tabou/SA moderne — même fonction
+   d'énergie, même budget. Le QPU doit battre le recuit classique *sur son
+   propre encodage* avant que toute revendication plus large ait un sens.
+3. **Sur matériel à portes, faire le proof-of-concept de mulisak** — QAOA ou
+   Grover sur un jouet set-cover à ~30 qubits
+   ([message 11813](https://groups.io/g/eternity2/message/11813)) — en
+   sachant d'avance qu'il démontre la machinerie, pas un progrès.
+4. **Rapporter la courbe d'échelle, pas l'anecdote :** probabilité de succès
+   et temps-jusqu'à-solution en fonction de la taille du plateau, à côté de
+   la référence classique. Le meilleur cas réaliste n'est pas un 6x6
+   résolu ; c'est un croisement mesuré — ou, plus probablement, une entrée
+   propre et sourcée pour le registre des
+   [impasses](/research/build/dead-ends), ce qui sur ce wiki compte aussi
+   comme un progrès.
+
+Tant que personne ne l'aura fait, le tableau de bord honnête se lit ainsi :
+deux beaux algorithmes, une arithmétique qui finit à $10^{22}$ pas
+séquentiels, un encodage trop grand de trois ordres de grandeur pour son
+matériel, et dix-neuf ans d'archives où l'ordinateur quantique reste ce
+qu'il était en mai 2007 — le club que personne n'a jamais fondé.
