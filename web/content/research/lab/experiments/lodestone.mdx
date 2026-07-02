@@ -2,7 +2,7 @@
 title: LODESTONE
 description: >-
   A faint compass for a from-scratch search: nudge it to commit the rare
-  pieces early, where they're needed. It doesn't raise the ceiling — it makes
+  pieces early, where they're needed. It doesn't raise the ceiling; it makes
   the search reliably reach the top of its own range.
 kind: experiment
 score: 451
@@ -20,7 +20,7 @@ related:
 import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
 
 The strong boards quietly agree on something: as the score rises, they
-increasingly satisfy a particular set of scarce demands — places where only
+increasingly satisfy a particular set of scarce demands, places where only
 one or two pieces in the whole set can serve a cell's north-and-west colours.
 LODESTONE asks whether telling a from-scratch search about those demands helps
 it commit the right rare pieces before they're stolen.
@@ -29,7 +29,7 @@ it commit the right rare pieces before they're stolen.
 
 From the corpus of strong boards, LODESTONE builds a prior: for each piece,
 how often it ends up serving one of those scarce north-west demands in a good
-board, weighted up sharply for the rarest — a piece that is the only possible
+board, weighted up sharply for the rarest, so a piece that is the only possible
 server gets the biggest boost. The beam search then ranks its candidate
 placements by the usual matched-edge score plus a small multiple of this
 prior, so among otherwise-equal moves it prefers to place the pieces the good
@@ -44,22 +44,22 @@ moves and nothing more.
 ## The result
 
 At a tiny weight the prior gives a small, consistent gain: across five seeds
-the median from-scratch score rises from 449 to 451, and — more usefully — the
+the median from-scratch score rises from 449 to 451, and, more usefully, the
 spread tightens, from a 446–451 scatter to a reliable 450–451. It makes the
 constructor land at the top of its range instead of sometimes stumbling.
 
-Turn the weight up even slightly and it collapses — 422, then 380 — because
+Turn the weight up even slightly and it collapses (422, then 380) because
 chasing the corpus's scarce demands then trades directly against matching the
 edge in front of you. That failure is itself the finding: scarcity is a real
 signal for *which* piece to prefer, but a weak one, and only safe as a
-tiebreaker. LODESTONE is honest about its size: it improves construction
+tiebreaker. LODESTONE is modest about its size: it improves construction
 quality and consistency by a couple of edges, and does not touch the basin
 ceiling that stops every method near the top.
 
 ## Open questions
 
-Could the prior be made position-aware without becoming part of the objective
-— strong only in the regions where scarce demands actually concentrate? Does
+Could the prior be made position-aware without becoming part of the objective,
+strong only in the regions where scarce demands actually concentrate? Does
 combining it with KEYRING's three signals add a fourth useful vote, or just
-more noise? And is the consistency gain worth more than the median gain — a
-tighter search is easier to build a ladder on?
+more noise? And is the consistency gain worth more than the median gain, given
+that a tighter search is easier to build a ladder on?

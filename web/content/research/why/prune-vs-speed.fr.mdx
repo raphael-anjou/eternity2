@@ -2,7 +2,7 @@
 title: Pourquoi un ordinateur plus rapide n'aide pas
 description: >-
   L'idée la plus importante de toute la recherche combinatoire difficile :
-  mieux vaut rétrécir l'espace à explorer que l'explorer plus vite — l'écart
+  mieux vaut rétrécir l'espace à explorer que l'explorer plus vite, et l'écart
   est exponentiel. Or Eternity II est conçu pour qu'on ne puisse presque pas
   le rétrécir.
 kind: finding
@@ -29,27 +29,27 @@ import { PruneVsSpeedLab } from "@/components/research/PruneVsSpeedLab";
 Représentez-vous la recherche comme un arbre. Depuis le plateau vide, on
 choisit une pièce pour la première case ; de là, une pièce pour la deuxième ;
 et ainsi de suite, sur 256 cases de profondeur. Le nombre de feuilles tout en
-bas, c'est le facteur de branchement élevé à la puissance de la profondeur —
+bas, c'est le facteur de branchement élevé à la puissance de la profondeur :
 un nombre astronomique. Et pour prouver qu'une région n'a pas de solution, il
 faut parcourir cet arbre.
 
-Il existe alors deux façons de travailler moins. Aller **plus vite** — un
+Il existe alors deux façons de travailler moins. Aller **plus vite** : un
 meilleur moteur, plus de cœurs, des boucles internes ciselées à la main. Ou
-rendre l'arbre **plus petit** — élaguer les branches qui ne mènent à rien,
+rendre l'arbre **plus petit** en élaguant les branches qui ne mènent à rien,
 pour faire baisser le facteur de branchement effectif. Les deux se
 ressemblent. Ils ne jouent pas du tout dans la même cour.
 
 ## Constante contre exponentielle
 
 Une accélération est un diviseur constant. Une machine 1000 fois plus rapide,
-c'est 1000 fois moins d'attente — que l'arbre fasse dix niveaux ou dix mille.
+c'est 1000 fois moins d'attente, que l'arbre fasse dix niveaux ou dix mille.
 Elle offre un multiple fixe, rien de plus.
 
 Un élagage, lui, se compose. Rognez ne serait-ce que quelques pour cent du
 facteur de branchement, et l'économie se répète à chaque niveau. Sur 256
 niveaux, ces économies se multiplient entre elles : faire passer le facteur de
 branchement de $b$ à $b'$ divise le travail par $(b/b')^{256}$. Une coupe de
-5 %, appliquée jusqu'en bas, vaut $(1/0.95)^{256} \approx 5\times10^{5}$ —
+5 %, appliquée jusqu'en bas, vaut $(1/0.95)^{256} \approx 5\times10^{5}$ :
 l'équivalent d'une accélération de cinq cent mille fois, obtenue par une seule
 idée structurelle bon marché. Aucune machine réelle n'offre cela.
 
@@ -67,26 +67,26 @@ qu'on ne peut pas élaguer. Eternity II a été réglé pour être précisément
 cela. Quatre de ses murs disent, au fond, la même chose : il n'y a rien de
 local à élaguer.
 
-- **[Aucun coup forcé](/research/why/no-forced-moves)** — Chaque case
-  intérieure conserve de 73 à 137 voisines légales : la propagation ne réduit
+- **[Aucun coup forcé](/research/why/no-forced-moves)** : chaque case
+  intérieure conserve de 73 à 137 voisines légales ; la propagation ne réduit
   presque jamais une case à un choix unique, et le facteur de branchement
   reste obstinément élevé.
-- **[Sur le pic de difficulté](/research/why/phase-transition)** — Le nombre
-  de pièces et de couleurs tombe pile là où l'on attend environ une solution —
-  aucune région riche en solutions vers laquelle viser un raccourci
+- **[Sur le pic de difficulté](/research/why/phase-transition)** : le nombre
+  de pièces et de couleurs tombe pile là où l'on attend environ une solution,
+  sans aucune région riche en solutions vers laquelle viser un raccourci
   statistique, l'astuce qui avait fait tomber Eternity I.
-- **[La loi d'aire](/research/why/entropy-area-law)** — Le nombre de plateaux
+- **[La loi d'aire](/research/why/entropy-area-law)** : le nombre de plateaux
   partiels vraiment distincts s'effondre passé ~80 cases, mais aucun score
-  local ne voit cet effondrement global : impossible d'élaguer vers lui à bon
-  compte.
-- **[La rigidité](/research/why/rigidity-wall)** — Même depuis un plateau
-  record, le pas vers un meilleur plateau est énorme et indivisible — aucun
-  gradient à suivre, rien à élaguer dans le voisinage.
+  local ne voit cet effondrement global, et l'élaguer vers lui à bon compte
+  devient impossible.
+- **[La rigidité](/research/why/rigidity-wall)** : même depuis un plateau
+  record, le pas vers un meilleur plateau est énorme et indivisible, sans
+  gradient à suivre ni rien à élaguer dans le voisinage.
 
 ## Ce que cela change pour tout le reste du site
 
 C'est la grille de lecture de toute la section recherche. Notre moteur 232
-fois plus rapide a rendu la même recherche moins chère, pas plus petite — et
+fois plus rapide a rendu la même recherche moins chère, pas plus petite, et
 le record n'a pas bougé. Chaque invention qui a réellement fait avancer le
 score a changé la forme de la recherche : un autre ordre de parcours, un prior
 appris sur la place des pièces, une région confinée pour les défauts. Et
@@ -95,11 +95,11 @@ refuse d'honorer. Commencer par la vitesse donne le sentiment d'avancer ; ce
 n'est presque jamais là que se cache l'écart vers 480.
 
 <Callout kind="note">
-  Les nombres de l'arbre dans la démo sont illustratifs — un facteur de
+  Les nombres de l'arbre dans la démo sont illustratifs : un facteur de
   branchement et une profondeur choisis pour rester proches d'E2 et lisibles,
   pas la mesure d'un solveur précis. La courbe de difficulté et les comptages
   de nœuds, en revanche, sont de vraies mesures du moteur sur de petits
   puzzles, déterministes et reproductibles avec `just research-prune-vs-speed`.
-  Le principe, lui — diviseur constant contre diviseur exponentiel —, est
+  Le principe, lui, diviseur constant contre diviseur exponentiel, est
   exact.
 </Callout>

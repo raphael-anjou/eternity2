@@ -3,7 +3,7 @@ title: Iterated maps and divide-and-concur
 description: >-
   The physicist's attack on constraint satisfaction: split the puzzle into two
   constraint sets that are each easy to project onto, then iterate a map whose
-  fixed points are solutions. Veit Elser's method made the cover of PNAS — and
+  fixed points are solutions. Veit Elser's method made the cover of PNAS, yet
   on the Eternity II list it remains a road admired, tested once, and never
   marched down.
 kind: concept
@@ -13,9 +13,9 @@ topics: [exact-methods, learning]
 sources:
   - label: Elser, Rankenburg & Thibault, Searching with iterated maps (PNAS 104:418, 2007)
     url: https://doi.org/10.1073/pnas.0606359104
-  - label: Gravel & Elser, Divide and concur — a general approach to constraint satisfaction (Phys. Rev. E 78, 036706, 2008)
+  - label: "Gravel & Elser, Divide and concur: a general approach to constraint satisfaction (Phys. Rev. E 78, 036706, 2008)"
     url: https://doi.org/10.1103/PhysRevE.78.036706
-  - label: Gravel & Elser, Divide and concur — open preprint (arXiv:0801.0222)
+  - label: "Gravel & Elser, Divide and concur: open preprint (arXiv:0801.0222)"
     url: https://arxiv.org/abs/0801.0222
   - label: Aragón Artacho, Borwein & Tam, Recent results on Douglas–Rachford methods for combinatorial optimization problems (arXiv:1305.2657)
     url: https://arxiv.org/abs/1305.2657
@@ -23,17 +23,17 @@ sources:
     url: https://groups.io/g/eternity2/message/9347
   - label: JSA on the divide-and-concur papers and the open scaling question (groups.io message 9350)
     url: https://groups.io/g/eternity2/message/9350
-  - label: Dima's test — a simple hill-climber beats the difference map on the paper's own benchmark (groups.io message 9351)
+  - label: "Dima's test: a simple hill-climber beats the difference map on the paper's own benchmark (groups.io message 9351)"
     url: https://groups.io/g/eternity2/message/9351
-  - label: Elser's ICCOPT-MOPTA 2007 slides uploaded to the group files — "Eternity II mentioned in last 3 slides" (groups.io message 9349)
+  - label: Elser's ICCOPT-MOPTA 2007 slides uploaded to the group files, "Eternity II mentioned in last 3 slides" (groups.io message 9349)
     url: https://groups.io/g/eternity2/message/9349
   - label: Source code from Veit Elser, with a 5x5 example puzzle, shared in the group files (groups.io message 9362)
     url: https://groups.io/g/eternity2/message/9362
-  - label: JSA's 2015 recap — small model versions solved, the big one not (groups.io message 9442)
+  - label: "JSA's 2015 recap: small model versions solved, the big one not (groups.io message 9442)"
     url: https://groups.io/g/eternity2/message/9442
   - label: Dima's primal–dual transfer sketch with Hungarian matching (groups.io message 9445)
     url: https://groups.io/g/eternity2/message/9445
-  - label: The SRD edge-swap precedent — solved 8x8, never made 10x10 (groups.io message 9447)
+  - label: "The SRD edge-swap precedent: solved 8x8, never made 10x10 (groups.io message 9447)"
     url: https://groups.io/g/eternity2/message/9447
   - label: Douglas–Rachford named on the list, via Wikipedia's TetraVex note (groups.io message 11592)
     url: https://groups.io/g/eternity2/message/11592
@@ -48,7 +48,7 @@ related:
 Every method on this shelf so far treats Eternity II as a discrete search:
 place, check, backtrack. The physics community proposed something stranger.
 Veit Elser's group at Cornell reformulated constraint satisfaction as
-geometry — a point bouncing between two sets in a high-dimensional space —
+geometry, a point bouncing between two sets in a high-dimensional space,
 and rode one iteration scheme from X-ray phase retrieval to Sudoku, 3-SAT and
 protein folding, landing the method on the cover of PNAS
 ([Elser, Rankenburg & Thibault, 2007](https://doi.org/10.1073/pnas.0606359104)).
@@ -57,32 +57,32 @@ cover of that PNAS issue showed one, as the member who brought the work to
 the list pointed out
 ([groups.io message 9347](https://groups.io/g/eternity2/message/9347)).
 
-This page explains the method properly, because it is genuinely beautiful and
-genuinely different from everything else in the catalogue. It then reports,
-honestly, what the Eternity II community did with it: a flurry of interest in
-2014–2015, one empirical test, one shared tarball of Elser's own code — and
+This page explains the method properly, because it is genuinely striking and
+genuinely different from everything else in the catalogue. It then reports
+what the Eternity II community actually did with it: a flurry of interest in
+2014–2015, one empirical test, one shared tarball of Elser's own code, and
 no campaign. This is a known road, lightly traveled here.
 
 ## Two easy sets, one hard intersection
 
-Embed a board state as a point $x$ in a Euclidean space — say, a real vector
+Embed a board state as a point $x$ in a Euclidean space, say a real vector
 with one coordinate per (cell, piece, rotation) triple, where a legal board is
 a 0/1 assignment. Now define two constraint sets:
 
-- $C_1$ — **pieces used once**: every cell holds exactly one piece-rotation,
+- $C_1$, **pieces used once**: every cell holds exactly one piece-rotation,
   and every piece is used exactly once. Edge colors are ignored.
-- $C_2$ — **edges match**: every pair of touching edges agrees in color, and
-  the rim is gray. Piece inventory is ignored — cells may hold fractional
+- $C_2$, **edges match**: every pair of touching edges agrees in color, and
+  the rim is gray. Piece inventory is ignored, so cells may hold fractional
   blends or duplicate pieces.
 
 A solved Eternity II is exactly a point in $C_1 \cap C_2$. The trick that
 makes the formulation useful is that each set *alone* is easy to project
-onto — given an arbitrary $x$, you can cheaply compute the nearest point of
+onto. Given an arbitrary $x$, you can cheaply compute the nearest point of
 the set:
 
 - $P_1(x)$, the nearest valid piece assignment, is a bipartite matching
   problem: assign 256 pieces to 256 cells to maximize total affinity. The
-  Hungarian algorithm solves it exactly in polynomial time — the same
+  Hungarian algorithm solves it exactly in polynomial time, the same
   assignment engine that powers the refill step in
   [local search](/research/build/concepts/local-search-alns).
 - $P_2(x)$, the nearest edge-consistent coloring, decomposes edge by edge:
@@ -90,7 +90,7 @@ the set:
   local, embarrassingly parallel.
 
 Each projection is a solved problem. The hardness of Eternity II lives
-entirely in the *intersection* — and the naive scheme, alternating
+entirely in the *intersection*, and the naive scheme, alternating
 projections $x \mapsto P_1(P_2(x))$, fails exactly the way you'd guess: it
 converges to a pair of points, one in each set, locally as close as possible
 and globally wrong. A local minimum, in projection clothing.
@@ -101,7 +101,7 @@ in the domain of colored diamonds
 ([message 6184](https://groups.io/g/eternity2/message/6184)), and JSA
 immediately recognized it as the *dual problem*
 ([message 6185](https://groups.io/g/eternity2/message/6185)): Eternity II is
-256 pieces to be arranged so that 480 edges match — or 480 colored edge
+256 pieces to be arranged so that 480 edges match, or 480 colored edge
 squares to be arranged so that they generate the correct 256 pieces. Solving
 means making both descriptions true at once.
 
@@ -122,19 +122,19 @@ all the work:
 
 1. **Fixed point = solution.** If $D(x^\ast) = x^\ast$, then
    $P_1(2P_2(x^\ast) - x^\ast) = P_2(x^\ast)$: the same point lies in both
-   sets. You read the solution off as $P_2(x^\ast)$, not as $x^\ast$ itself —
+   sets. You read the solution off as $P_2(x^\ast)$, not as $x^\ast$ itself:
    the iterate is a *searcher*, not a board. Termination is detected when the
    displacement $\Delta = \lVert D(x) - x \rVert$ falls below a threshold, and
    the candidate is then verified exactly.
 2. **No cost function.** The map does not descend anything. That sounds like
    a defect and is the point: a hill-climber sticks wherever its score
    function has a local optimum, but the difference map has no score to
-   flatter it into staying. Away from fixed points it keeps moving — in
-   practice chaotically — so near-miss configurations that trap
+   flatter it into staying. Away from fixed points it keeps moving, in
+   practice chaotically, so near-miss configurations that trap
    [local search](/research/build/concepts/local-search-alns) are places it
    visits and leaves. This is the "tunneling" the physicists prized.
 3. **The iterate lives outside both sets.** $x$ need not satisfy either
-   constraint while searching — like the fractional boards of the
+   constraint while searching. Like the fractional boards of the
    [LP relaxation](/research/build/concepts/lp-relaxations), it explores a
    superposition of boards. Unlike the LP, it has no objective to optimize
    and no optimum to plateau at: its only resting places are solutions.
@@ -145,7 +145,7 @@ iteration**, a projection method convex analysts have studied since the
 unguaranteed here, where $C_1$ is a scatter of permutation points. The
 Eternity II list only learned the family name in 2025, when Wyatt Carpenter
 found Wikipedia crediting "the Douglas–Rachford algorithm" for TetraVex
-solving and flagged it as a possibly promising avenue no one had mentioned
+solving and flagged it as a possibly promising avenue no one had raised
 ([message 11592](https://groups.io/g/eternity2/message/11592)); JSA closed
 the loop, pointing back to the Elser thread of 2014–2016 and framing
 Douglas–Rachford as the $f(x) + g(x)$ splitting view of the same attack
@@ -164,90 +164,90 @@ mechanical for *any* CSP. Give every constraint its own private **replica**
 of each variable it touches:
 
 - The **divide** projection satisfies each constraint independently on its
-  own replicas — every constraint is now a tiny local problem (for Eternity
+  own replicas. Every constraint is now a tiny local problem (for Eternity
   II: one edge, two piece-sides), trivially projectable.
 - The **concur** projection forces all replicas of the same variable to
-  agree, by replacing each with their average — the cheapest projection
+  agree, by replacing each with their average, the cheapest projection
   imaginable.
 
 Run the difference map between *divide* and *concur* and you get a general
 CSP solver whose per-iteration work is entirely local, with the averaging
 step playing the role of communication. Gravel and Elser benchmarked it on
-3-SAT — scaling comparably to WalkSAT — and used it to improve known sphere
-packings. When the method reached the list, Dima immediately recognized the
+3-SAT, where it scaled comparably to WalkSAT, and used it to improve known
+sphere packings. When the method reached the list, Dima immediately recognized the
 structure from his own field: the replica-averaging scheme is a close
 relative of belief propagation on the constraint graph, a connection the
 authors draw themselves
 ([message 9348](https://groups.io/g/eternity2/message/9348)). For readers of
 this wiki the family resemblance goes further: a message-passing search over
-a graph that is locally tree-like nowhere — every 2x2 block is a cycle — is
+a graph that is locally tree-like nowhere (every 2x2 block is a cycle) is
 exactly the setting where the related methods on the
 [dead ends](/research/build/dead-ends) page (survey propagation,
 belief-propagation move ordering) flattened out and died.
 
 ## What the archive actually shows
 
-The honest record, in full — because it is short.
+The record, in full, because it is short.
 
-- **2008 — a dismissal in passing.** The first mention of the method on the
+- **2008, a dismissal in passing.** The first mention of the method on the
   list is Don Milne listing "difference map" among the optimization
   techniques he judged unable to solve complex CSPs: they shine only when
   solutions are dense, and Eternity II was
   [designed to have almost exactly one](/research/why/complex-theory)
   ([message 5479](https://groups.io/g/eternity2/message/5479)).
-- **2014 — the real introduction.** A member's diagram of the puzzle's edge
+- **2014, the real introduction.** A member's diagram of the puzzle's edge
   lattice prompted JSA to state the dual problem and introduce Elser's work:
   the difference map "moves back and forth between the two dual problems"
   ([message 9347](https://groups.io/g/eternity2/message/9347)), with
   pointers to the PNAS paper and the divide-and-concur Physical Review paper
   ([message 9350](https://groups.io/g/eternity2/message/9350)). Elser's own
-  ICCOPT-MOPTA 2007 slides — which mention Eternity II in their final three
-  slides — were uploaded to the group's files
+  ICCOPT-MOPTA 2007 slides, which mention Eternity II in their final three
+  slides, were uploaded to the group's files
   ([message 9349](https://groups.io/g/eternity2/message/9349)).
-- **2014 — the one empirical test.** Dima read the PNAS paper, liked it, and
+- **2014, the one empirical test.** Dima read the PNAS paper, liked it, and
   checked it: he wrote a simple hill-climber for the paper's own graph
   3-coloring benchmark and solved the $N=16$ instance in seconds, where the
   paper's Table 2 has the difference map taking on the order of ten minutes.
   "So this makes me wonder whether it is really all that it is hyped up to
-  be" ([message 9351](https://groups.io/g/eternity2/message/9351)) — while
+  be" ([message 9351](https://groups.io/g/eternity2/message/9351)), while
   still calling the two-sided tiles-versus-edges idea worth exploring for
   E2.
-- **2015 — code, and a promise.** Someone obtained source code from Elser
+- **2015, code and a promise.** Someone obtained source code from Elser
   himself, with a worked 5x5 edge-matching example, and shared it in the
   group files ([message 9362](https://groups.io/g/eternity2/message/9362)).
   In the "New Approach?" thread that summer, JSA recapped the method's
-  standing — it "has solved small model version[s] of Eternity II," and had it
+  standing: it "has solved small model version[s] of Eternity II," and had it
   solved the big one "we would have heard about it"
   ([message 9442](https://groups.io/g/eternity2/message/9442)). Juraj
   Pivovarov asked for a concrete difference map written down for Eternity II
   ([message 9443](https://groups.io/g/eternity2/message/9443)); JSA promised
   a short write-up ([message 9446](https://groups.io/g/eternity2/message/9446))
   that never appears in the archive. In the same thread Dima sketched the
-  primal–dual transfer explicitly — carry an edge-coloring solution to the
-  nearest piece assignment with the Hungarian algorithm and back — and
+  primal–dual transfer explicitly (carry an edge-coloring solution to the
+  nearest piece assignment with the Hungarian algorithm and back) and
   reported his own dual-side annealer stalling at 48/49 correct tiles on
   Brendan Owen's 7x7
   ([message 9445](https://groups.io/g/eternity2/message/9445)), while Mike
   Pringle recalled the list's home-grown cousin, the SRD edge-swap approach
   of 2007: capable of 8x8, never 10x10
   ([message 9447](https://groups.io/g/eternity2/message/9447)).
-- **2025 — a name, and a shrug.** The Douglas–Rachford thread
+- **2025, a name and a shrug.** The Douglas–Rachford thread
   ([message 11592](https://groups.io/g/eternity2/message/11592)) drew one
-  quick evaluation — useful for theory, "but not much else"
-  ([message 11593](https://groups.io/g/eternity2/message/11593)) — and JSA's
+  quick evaluation, useful for theory, "but not much else"
+  ([message 11593](https://groups.io/g/eternity2/message/11593)), and JSA's
   reflection that on a puzzle built to be optimally difficult, he'd expect
   the iteration count to be "on the order of" a backtracker's node count
   anyway ([message 11594](https://groups.io/g/eternity2/message/11594)).
 
 That is the whole record: no member ever reported running the difference map
 or divide-and-concur on the full 480-edge puzzle, or even on the 10x10
-benchmark ladder. The peer-reviewed literature is similar in shape — Elser's
+benchmark ladder. The peer-reviewed literature is similar in shape. Elser's
 group published the method's successes on coloring, SAT, packing and folding,
 and kept Eternity II to talks, cover art and example code. Nobody has
 published a difference-map result on the full puzzle, positive or negative.
 
 <Callout kind="note" title="Why so little uptake?">
-  Partly timing — the 2014 thread landed in the archive's quietest years —
+  Partly timing (the 2014 thread landed in the archive's quietest years)
   and partly Dima's data point, which took the shine off fast. But the deeper
   reason is the one Don Milne gave in 2008 and JSA repeated in 2025:
   stochastic continuous methods pay off when solutions are plentiful relative
@@ -271,26 +271,26 @@ could close it. A modern attempt would:
    piece-validity is one Hungarian solve per iteration (256 cells x 1,024
    candidates), or pure replica-averaging in the divide-and-concur form.
 3. **Climb the benchmark ladder.** Run against
-   [Brendan Owen's puzzle suite](/research/build/benchmarks) — the same 7x7
-   where Dima's dual annealer got 48/49, then 8x8, 9x9, 10x10 — with a plain
+   [Brendan Owen's puzzle suite](/research/build/benchmarks), the same 7x7
+   where Dima's dual annealer got 48/49, then 8x8, 9x9, 10x10, with a plain
    hill-climber and a restart-driven backtracker as controls, plotting
    iterations-to-solution against instance hardness.
 4. **Report the curve, not the anecdote.** The interesting output is the
    scaling exponent: Elser's own papers report iteration counts growing
-   steeply with instance hardness, and the open question JSA posed in 2014 —
+   steeply with instance hardness, and the open question JSA posed in 2014,
    how does it scale to E2-class instances?
-   ([message 9350](https://groups.io/g/eternity2/message/9350)) — has never
+   ([message 9350](https://groups.io/g/eternity2/message/9350)), has never
    been answered with a graph.
 
 The realistic best case is not a solved puzzle. It is a characterized method:
-either a scaling curve that crosses the backtracker's somewhere interesting —
-which would be news — or a clean negative entry for the
+either a scaling curve that crosses the backtracker's somewhere interesting,
+which would be news, or a clean negative entry for the
 [dead ends](/research/build/dead-ends) ledger, which is also progress.
 
 ## What it costs
 
 - **Per iteration: two projections.** The edge projection is linear in the
-  number of edges. The piece projection is the expensive one — an exact
+  number of edges. The piece projection is the expensive one: an exact
   assignment solve is $O(n^3)$ in the Hungarian algorithm, and at $n = 256$
   cells that is millions of operations per *iteration*, against a tuned
   backtracker's [tens of millions of placements per
@@ -299,17 +299,17 @@ which would be news — or a clean negative entry for the
   replicated state.
 - **No convergence guarantee.** Douglas–Rachford convergence theory is
   convex; both Eternity II sets are combinatorial scatter. On feasible
-  instances the map usually finds fixed points in practice — that is the
-  papers' empirical content — but nothing bounds the iteration count, and on
+  instances the map usually finds fixed points in practice (that is the
+  papers' empirical content), but nothing bounds the iteration count, and on
   this puzzle JSA's expectation is that it matches backtracking's node count
   ([message 11594](https://groups.io/g/eternity2/message/11594)).
-- **Fixed point = solution — and nothing less.** The method has no useful
+- **Fixed point = solution, and nothing less.** The method has no useful
   partial output: until $\Delta \to 0$ you have a wandering point in a
   fractional space, not a scored board. There is no 460-edge consolation
   prize along the way, which matters on the only puzzle where the
   [record ladder](/research/records) is denominated in partial scores.
-- **The honest scoreboard.** One community test, lost to a hill-climber on
+- **The scoreboard.** One community test, lost to a hill-climber on
   the method's own benchmark ([message 9351](https://groups.io/g/eternity2/message/9351));
   small edge-matching models solved in Elser's materials; the full puzzle
-  untouched. Elegant, principled, unproven here — and, unusually for this
+  untouched. Elegant, principled, unproven here, and, unusually for this
   wiki, still unmeasured rather than measured-and-buried.

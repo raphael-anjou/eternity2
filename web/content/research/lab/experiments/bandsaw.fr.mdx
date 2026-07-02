@@ -2,7 +2,7 @@
 title: BANDSAW
 description: >-
   Résoudre exactement une bande de rangées en se rejoignant au milieu, pour
-  trouver la vraie meilleure fin — et mesurer jusqu'où une fin de partie peut
+  trouver la vraie meilleure fin et mesurer jusqu'où une fin de partie peut
   se décider à l'avance.
 kind: experiment
 score: 437
@@ -22,7 +22,7 @@ La recherche heuristique devine ; elle ne sait jamais qu'elle tient la
 meilleure fin possible. BANDSAW est l'expérience inverse : pour une bande de
 rangées proche du bas, il calcule la meilleure complétion exacte, preuve à
 l'appui que rien ne fait mieux. Le but n'est pas la vitesse mais la
-certitude — et cette certitude sert du même coup de règle graduée pour
+certitude, et cette certitude sert du même coup de règle graduée pour
 mesurer la vraie difficulté de la fin de partie.
 
 ## Comment ça marche
@@ -39,7 +39,7 @@ meilleure complétion exacte sans parcourir l'arbre entier.
 Des tables de bornes inférieures exactes, calculées à rebours colonne par
 colonne, élaguent les branches qui ne peuvent déjà plus battre le budget ; on
 relève ensuite le budget cran par cran jusqu'à ce qu'un tour ne trouve plus
-rien de neuf — ce qui prouve le meilleur score de la bande.
+rien de neuf, ce qui prouve le meilleur score de la bande.
 
 <MeetInMiddleDiagram />
 
@@ -51,8 +51,8 @@ grossit d'environ vingt fois par défaut supplémentaire, des deux côtés, si
 bien que se rejoindre au milieu ne paie plus à la taille du vrai plateau. Ce
 négatif est justement l'utile : il dit précisément où les méthodes exactes
 cèdent et où les heuristiques doivent prendre le relais. Les morceaux exacts
-qui ont survécu — les tables de bornes inférieures de suffixe et le
-branch-and-bound élagué — sont devenus des instruments réutilisables. Un
+qui ont survécu (les tables de bornes inférieures de suffixe et le
+branch-and-bound élagué) sont devenus des instruments réutilisables. Un
 plateau sans cadre à 437 est sorti de la même mécanique.
 
 ## Questions ouvertes

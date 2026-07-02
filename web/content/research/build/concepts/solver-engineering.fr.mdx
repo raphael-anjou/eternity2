@@ -200,13 +200,13 @@ de 2010 ([message 11643](https://groups.io/g/eternity2/message/11643)). Les
 moteurs ont touché le mur mémoire de Field il y a quinze ans et s'y
 adossent depuis.
 
-## La discipline de mesure — c'est quoi, un « nœud » ?
+## La discipline de mesure : c'est quoi, un « nœud » ?
 
 Une culture d'ingénierie vaut ce que valent ses benchmarks, et l'archive a
 dû bâtir cette discipline à la dure. En janvier 2008, comparer des
 prétentions de vitesse a forcé la question de définition : Txibilis comptait
 un nœud pour chaque pièce *valide* posée sur le plateau, sans lookahead
-([message 3843](https://groups.io/g/eternity2/message/3843)) — mais
+([message 3843](https://groups.io/g/eternity2/message/3843)), mais
 d'autres comptaient les essais de placement, ou les pas, et le fil a conclu
 qu'une métrique qui fasse consensus n'existe peut-être pas
 ([message 3946](https://groups.io/g/eternity2/message/3946)). La question
@@ -214,18 +214,18 @@ est revenue en 2017 et a reçu la réponse standard : les « pièces par
 seconde » de la communauté comptent les pièces *posées* par seconde, à la
 manière des nœuds/s aux échecs
 ([message 9739](https://groups.io/g/eternity2/message/9739),
-[message 9740](https://groups.io/g/eternity2/message/9740)) — avec
+[message 9740](https://groups.io/g/eternity2/message/9740)), avec
 l'objection standard : la métrique flatte les ordres de remplissage en
 balayage et ne dit rien de la couverture de l'espace de recherche par unité
 de temps ([message 9746](https://groups.io/g/eternity2/message/9746)).
 
 Deux conséquences pratiques. D'abord : ne jamais comparer les M/s de deux
-solveurs sans vérifier ce qu'ils comptent — le solveur « plus rapide » a
+solveurs sans vérifier ce qu'ils comptent : le solveur « plus rapide » a
 peut-être juste une définition plus généreuse. Ensuite, l'habitude positive
 qui en est née : publier les **comptes de nœuds avec les temps**. Un
 backtracker déterministe parcourant un arbre fixe doit compter les mêmes
 nœuds sur toute machine ; les comptes exacts sont devenus les sommes de
-contrôle de la communauté — la façon dont les ports, réécritures et
+contrôle de la communauté : la façon dont les ports, réécritures et
 matériels neufs prouvent qu'ils parcourent le même arbre, avant que leur
 vitesse ne veuille dire quoi que ce soit.
 
@@ -233,7 +233,7 @@ vitesse ne veuille dire quoi que ce soit.
 
 | Technique | Ce qu'elle coûte | Ce qu'elle a rapporté | Source |
 | --- | --- | --- | --- |
-| Tables de candidats par position (clé à deux arêtes) | de la mémoire ; un ordre de remplissage fixe | les candidats en un accès mémoire — le socle commun de tous les solveurs rapides | [3098](https://groups.io/g/eternity2/message/3098) |
+| Tables de candidats par position (clé à deux arêtes) | de la mémoire ; un ordre de remplissage fixe | les candidats en un accès mémoire ; le socle commun de tous les solveurs rapides | [3098](https://groups.io/g/eternity2/message/3098) |
 | Hachage parfait minimal | construction du hachage hors ligne | table de 1M d'entrées → 1 024, résidente en cache | [1831](https://groups.io/g/eternity2/message/1831) |
 | Compactage binaire, structures taillées cache | contorsions de code | moins de blocages là où >50 % du temps est mémoire ; court-circuits par masque 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
 | Bipièces (précomposition 1×2) | les tables enflent vite ; aucune réduction de l'espace | +20–30 % en 1×2 ; ~4,2× plus *lent* en 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
@@ -242,32 +242,32 @@ vitesse ne veuille dire quoi que ce soit.
 | Chasse aux compilateurs, flags natifs, PGO | essais-erreurs, machine par machine | gains « significatifs » mais non quantifiés, de quelques % à quelques dizaines | [11751](https://groups.io/g/eternity2/message/11751) |
 | Astuces de compteur (registre 16 bits qui déborde) | de l'obscurité | mesurable seulement sur le matériel de l'ère 32 bits | [11751](https://groups.io/g/eternity2/message/11751) |
 
-## Le bilan honnête
+## Vingt ans, 4× par cœur
 
 Prenez du recul. La recette de Field faisait déjà 60–80 millions de
 placements par seconde et par cœur en 2007
 ([message 3098](https://groups.io/g/eternity2/message/3098)). Les
-meilleurs chiffres mono-cœur de l'archive moderne — 72,7M/s pour un C++
+meilleurs chiffres mono-cœur de l'archive moderne (72,7M/s pour un C++
 soigné et 68,4M/s pour un descendant Rust de Blackwood en 2025
 ([message 11633](https://groups.io/g/eternity2/message/11633),
 [message 11634](https://groups.io/g/eternity2/message/11634)), autour de
 225–295M/s pour le C généré de McGavin sur le matériel le plus récent
 ([message 11751](https://groups.io/g/eternity2/message/11751),
-[message 11750](https://groups.io/g/eternity2/message/11750)) — situent
+[message 11750](https://groups.io/g/eternity2/message/11750))) situent
 vingt ans de cet artisanat à environ **4× par cœur**. Sur les mêmes vingt
 ans, le record a bougé de trois arêtes : 467 à 470.
 
 Les praticiens l'ont dit eux-mêmes. Joshua Blackwood, cataloguant ses
-impasses après le 469 — solveurs SAT, GPU, blocs 2×2 en cache, tous mesurés
-puis abandonnés — a constaté que seul le raffinement des *heuristiques*
+impasses après le 469 (solveurs SAT, GPU, blocs 2×2 en cache, tous mesurés
+puis abandonnés) a constaté que seul le raffinement des *heuristiques*
 avait payé, pour ~2× de mieux
 ([message 10056](https://groups.io/g/eternity2/message/10056)). Et quand le
 fil des vitesses de 2025 s'est éteint, Razvan en a écrit l'épitaphe : quelle
 que soit la vitesse à laquelle nous vérifions, « nous n'entamerons pas »
 l'espace de recherche d'E2
 ([message 11657](https://groups.io/g/eternity2/message/11657)).
-L'artisanat de cette page est réel, mesurable, et vaut d'être appris — c'est
-lui qui permet à une ferme d'amateur de parcourir 10¹⁷ nœuds — mais un
+L'artisanat de cette page est réel, mesurable, et vaut d'être appris : c'est
+lui qui permet à une ferme d'amateur de parcourir 10¹⁷ nœuds. Mais un
 facteur constant reste un facteur constant.
 [Pourquoi réduire l'arbre bat accélérer la marche](/research/why/prune-vs-speed),
 c'est l'arithmétique de cette phrase ; cette page en est le registre

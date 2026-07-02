@@ -120,7 +120,7 @@ One round of parallel tempering, as the lab runs it:
 This project's measurements (on our own engine; not independently
 replicated) give an unusually concrete reason. Between one strong board and
 a better one, the connecting move is a single interlocking relocation of
-dozens of pieces in which *every* strict subset of the move loses edges —
+dozens of pieces in which *every* strict subset of the move loses edges:
 the [σ-cycle structure](/research/why/sigma-cycles). One measured transition
 required a 76-cell move whose intermediate states sat about 21 edges below
 the start: at $T = 1$ the acceptance is on the order of $e^{-21}$, hopeless.
@@ -129,7 +129,7 @@ actually happened, and produced what was then the project's best cold-start
 board. Temperature, used correctly, is a real lever against real barriers.
 
 Ladder design is where practice bites. When we spaced the temperatures too
-closely, replica exchange accepted every swap — 100% acceptance sounds
+closely, replica exchange accepted every swap. A 100% acceptance rate sounds
 healthy and means the opposite: adjacent replicas saw effectively the same
 landscape, and the ladder added nothing. Geometric spacing with a genuinely
 hot top rung, tuned so that swaps are frequent but not free, is the standard
@@ -138,8 +138,8 @@ advice in Earl and Deem, and it matched what we observed.
 ## The community record that annealing built
 
 Annealing has a distinguished history on this puzzle. The longest-standing
-record on the canonical piece set — Louis Verhaard's 467 of 480 in 2008,
-unbeaten until the Blackwood-era backtrackers of 2020 — came from an
+record on the canonical piece set (Louis Verhaard's 467 of 480 in 2008,
+unbeaten until the Blackwood-era backtrackers of 2020) came from an
 annealing method, and an unusual one: as he described it on the
 [community mailing list](https://groups.io/g/eternity2), he annealed the
 *composition* of a piece subset, swapping pieces in and out of a candidate
@@ -147,13 +147,13 @@ group under a tilability score, rather than annealing positions on the
 board. The lesson generalizes: on Eternity II, the choice of *what to
 anneal* mattered more than the annealing itself.
 
-## Honest verdict
+## The verdict
 
 From this project's measurements, hedged accordingly: parallel tempering is
 a better barrier-crosser than plain annealing, and on the mid-range of the
 climb that difference is real and bankable. Near the top it dissolves. The
-plateaus up there are iso-score — ties everywhere, so acceptance no longer
-depends on temperature at all — and cranking the heat instead of climbing
+plateaus up there are iso-score: ties everywhere, so acceptance no longer
+depends on temperature at all, and cranking the heat instead of climbing
 just randomizes the board, which then never finds its way back to record
 territory. Replicas launched from a top board plateau at the seed's score,
 every chain, every ladder we tried. Tempering moves you between hills; it

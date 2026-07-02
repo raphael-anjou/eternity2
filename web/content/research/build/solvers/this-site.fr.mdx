@@ -2,7 +2,7 @@
 title: "Le moteur de ce site (Raphaël)"
 description: >-
   Le backtracker Rust compilé en WebAssembly qui anime chaque démo et vérifie
-  chaque chiffre de ce wiki. Pas une machine à records — un moteur de
+  chaque chiffre de ce wiki. Pas une machine à records, mais un moteur de
   référence, porté quatre fois et validé octet par octet, conçu pour que
   chaque affirmation puisse être rejouée.
 kind: concept
@@ -20,7 +20,7 @@ related:
 
 Transparence d'abord : cette fiche décrit le moteur du site que vous lisez,
 rédigée par celui qui l'a écrit. Elle figure dans ce catalogue comme une
-entrée parmi les autres — et une entrée modeste : les solveurs ci-dessus
+entrée parmi les autres, et une entrée modeste : les solveurs ci-dessus
 détiennent les records ; celui-ci tient les preuves.
 
 ## Ce que c'est
@@ -31,13 +31,13 @@ classiques, sans détour : le jeu officiel de pièces 16×16, un générateur de
 puzzles solubles de toute taille (avec un mode optionnel façon vraie E2, qui
 cantonne les couleurs de bordure à la bande du cadre), neuf ordres de visite
 des cases, un backtracker strict en profondeur, un scoreur, et une variante
-tolérante aux défauts — une réimplémentation de l'idée d'index de rupture du
+tolérante aux défauts, une réimplémentation de l'idée d'index de rupture du
 [solveur de Blackwood](/research/build/solvers/blackwood), écrite pour que les
 labos d'ici puissent la montrer à l'œuvre.
 
 Un choix de conception compte plus que les algorithmes : le solveur est une
 machine à pas, pas une fonction récursive. On l'avance un pas borné à la
-fois — un placement ou un retour arrière — et on lit le plateau entre deux
+fois, un placement ou un retour arrière, et on lit le plateau entre deux
 pas. C'est ce qui permet à une page web d'animer une vraie recherche plutôt
 qu'un enregistrement : [la page de visionnage](/playground/watch) fait
 avancer ce moteur-là, pas une vidéo.
@@ -48,7 +48,7 @@ Le site peut être construit sur quatre implémentations interchangeables : le
 crate Rust/WASM (la référence canonique, par défaut), un portage TypeScript
 pur, un portage C et un portage C++. Les quatre exposent exactement la même
 interface, et chacun est validé octet par octet contre des données de
-référence émises par le crate Rust — les puzzles générés jusqu'à la sortie du
+référence émises par le crate Rust : les puzzles générés jusqu'à la sortie du
 générateur aléatoire, les neuf chemins de remplissage à plusieurs tailles, et
 des recherches complètes avec les comptes exacts de nœuds, d'essais et de
 retours arrière.
@@ -56,7 +56,7 @@ retours arrière.
 Cette discipline a une seule raison d'être : une démo interactive qu'on ne
 peut pas contre-vérifier n'est qu'une animation. Deux implémentations
 indépendantes qui s'accordent au dernier retour arrière près se trompent
-difficilement de la même façon — quatre, encore plus difficilement. (Le dépôt
+difficilement de la même façon ; quatre, encore plus difficilement. (Le dépôt
 contient aussi des traductions littérales en Python, Lua, COBOL et Brainfuck,
 tenues aux mêmes données de référence. Celles-là, c'est pour le plaisir.)
 
@@ -73,7 +73,7 @@ de ce catalogue sont, tout simplement, meilleurs pour trouver des plateaux.
 
 Ce moteur a un autre métier : la vérifiabilité et la pédagogie. Quand ce wiki
 annonce un compte de nœuds, un chiffre de faisabilité ou un score,
-l'affirmation est contrôlée par ce moteur — et comme il tourne dans votre
+l'affirmation est contrôlée par ce moteur, et comme il tourne dans votre
 navigateur et que son code est public, vous pouvez la contrôler aussi.
 
 ## Ce qu'il fait tourner sur le wiki
@@ -90,8 +90,8 @@ chiffres du site en silence.
 
 ## Où le trouver
 
-Tout tient dans un seul dépôt —
-[github.com/raphael-anjou/eternity2](https://github.com/raphael-anjou/eternity2) —
+Tout tient dans un seul dépôt,
+[github.com/raphael-anjou/eternity2](https://github.com/raphael-anjou/eternity2),
 et [À vous de jouer](/research/build/run-it-yourself) détaille, commande par
 commande, comment compiler le moteur, lancer ses tests et reproduire les
 résultats publiés.
@@ -103,5 +103,5 @@ Le moteur ne grandit pas selon son propre calendrier ; il grandit quand
 solveur tolérant aux défauts existe parce qu'il fallait pouvoir montrer les
 index de rupture ; le générateur à couleurs de cadre restreintes existe parce
 qu'un labo avait besoin de puzzles qui se comportent comme la vraie bordure
-d'E2. Cela garde le moteur petit — et chaque fonctionnalité rattachée à une
+d'E2. Cela garde le moteur petit, et chaque fonctionnalité reste rattachée à une
 question que quelqu'un a réellement posée.
