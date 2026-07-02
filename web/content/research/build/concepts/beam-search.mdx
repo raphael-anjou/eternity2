@@ -3,14 +3,14 @@ title: Beam search
 description: >-
   Keep the K most promising partial boards alive at once and grow them cell by
   cell. Beam search is the workhorse behind this project's from-scratch
-  builders — and a clean illustration of why breadth alone stalls in the deep
+  builders, and a clean illustration of why breadth alone stalls in the deep
   interior.
 kind: concept
 order: 50
 updated: 2026-07-02
 topics: [construction]
 sources:
-  - label: Zhou & Hansen, Beam-Stack Search — Integrating Backtracking with Beam Search (ICAPS 2005)
+  - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
 related:
   - /research/lab/experiments/gauntlet
@@ -34,8 +34,8 @@ a good modern treatment of the family and its trade-offs.
 
 Fix a scan order over the 256 cells. A beam state is a partial placement, the
 set of pieces already spent, and a matched-edge score. Extending a state at
-depth $d$ means trying every legal (piece, rotation) for cell $d$ — legal
-with respect to the placed neighbours and the remaining inventory — and
+depth $d$ means trying every legal (piece, rotation) for cell $d$ (legal
+with respect to the placed neighbours and the remaining inventory) and
 adding the number of newly matched edges to the score. Pool all children from
 all $K$ survivors, sort, truncate to $K$, repeat 256 times, and every
 survivor is a complete board.
@@ -47,13 +47,13 @@ decides everything below.
 
 ## Watch a beam descend
 
-The lab below runs a beam down a synthetic tree — branching factor $b = 4$,
-depth $d = 14$, deterministic hash-based scores, no board — because the
+The lab below runs a beam down a synthetic tree: branching factor $b = 4$,
+depth $d = 14$, deterministic hash-based scores, no board, because the
 pathologies are easier to *see* when the instance is small enough to draw.
 Two features are planted deliberately: node scores are partly heritable (a
 good prefix tends to have good children, which is what makes a beam collapse
 onto one prefix), and a few **trap** nodes pay a large immediate score while
-quietly poisoning every descendant — a two-line synthetic model of
+quietly poisoning every descendant: a two-line synthetic model of
 [piece theft](/research/why/piece-theft), where a placement that scores now
 spends a piece the deep interior will need later.
 
@@ -62,22 +62,22 @@ spends a piece the deep interior will need later.
 ## Step by step
 
 1. **Depth 0.** The beam is just the root. On every tick, each survivor
-   spawns its $b = 4$ children — at most $K \cdot 4$ candidates in the pool.
+   spawns its $b = 4$ children, at most $K \cdot 4$ candidates in the pool.
 2. **Score, sort, truncate.** The pooled children are ranked and only the
    top $K$ survive. Everything below the cut is deleted *forever*: a beam
    never backtracks, so a good prefix pruned at depth 5 is unreachable at
    depth 10. This is where completeness is given away.
 3. **Watch the huddle.** A dot's horizontal position encodes its path
    prefix, so distinct branches live in distinct clusters. Within a few
-   levels most survivors share one high-scoring prefix — the *distinct
+   levels most survivors share one high-scoring prefix: the *distinct
    prefixes* counter falling toward 1 is diversity collapse, the beam
    degenerating into greedy-with-bookkeeping.
 4. **Follow the rose trace.** That is $K = 1$, plain greedy. When it
-   swallows an amber trap — big gain now, poisoned subtree after — its score
+   swallows an amber trap (big gain now, poisoned subtree after), its score
    curve flattens for good. A wider beam survives the same trap only while
    its survivors are still spread across branches; once collapsed, it is
    exactly as gullible.
-5. **Slide $K$ from 1 to 64.** The final score climbs and then flattens —
+5. **Slide $K$ from 1 to 64.** The final score climbs and then flattens;
    each doubling of width buys less, the same roughly-logarithmic returns
    this project measured on real boards. Note what the slider never changes:
    the collapse still happens, just a few levels later.
@@ -92,7 +92,7 @@ $$
 $$
 
 for width $K$, branching factor $b$ and depth $d$ (plus an
-$O(Kb \log Kb)$ sort per level). Both are linear in $K$ — that is the whole
+$O(Kb \log Kb)$ sort per level). Both are linear in $K$, which is the whole
 appeal. The price is *incompleteness*: a beam offers no optimality
 guarantee, no certificate on failure, and no way back to a pruned prefix.
 Its one systematic failure mode is the collapse the lab shows: when the
@@ -101,13 +101,13 @@ regardless of what you paid for.
 
 At Eternity II scale the arithmetic is friendly, which is exactly why beams
 are the from-scratch workhorse here: $d = 256$ cells, $b$ = the legal
-(piece, rotation) candidates per cell — a few hundred early, dwindling as
-the inventory drains — so even $K = 10^4$ costs on the order of $10^8$–$10^9$
+(piece, rotation) candidates per cell, a few hundred early, dwindling as
+the inventory drains, so even $K = 10^4$ costs on the order of $10^8$–$10^9$
 child evaluations per complete board: minutes on a laptop, incomparably
 cheaper than any exhaustive figure on the
-[dead ends page](/research/build/dead-ends). The honest reading of
-$O(K \cdot b \cdot d)$ is therefore not "cheap" but "only as good as its
-scoring function": the beam evaluates a vanishing fraction of the tree, and
+[dead ends page](/research/build/dead-ends). What $O(K \cdot b \cdot d)$
+really says is not "cheap" but "only as good as its scoring function": the
+beam evaluates a vanishing fraction of the tree, and
 no known score predicts which depth-100 prefixes still complete well. Width
 is bought in linear coin; foresight is not for sale.
 
@@ -117,7 +117,7 @@ At $K = 1$ the beam is plain greedy construction, and greedy with random
 restarts has a brutally heavy tail: on this project's engine, tens of
 thousands of random greedy runs topped out around 408 of 480, and
 extrapolating the tail put a 440 at billions of restarts. Widening the beam
-is far better — but the returns are roughly logarithmic. A beam of a few
+is far better, but the returns are roughly logarithmic. A beam of a few
 hundred states builds boards around 450; pushing $K$ past ten thousand
 reached the mid-450s and then flattened. (Measured on this project's engine;
 not independently replicated.)
@@ -126,8 +126,8 @@ There is a structural reason a plain beam cannot be much more than "greedy,
 wider". A beam state at depth $d$ faces exactly the same edge-matching and
 inventory constraints as a DFS node at depth $d$; keeping many states alive
 relaxes nothing. Without a scoring function that reliably predicts which
-depth-100 prefixes still complete well — and no such heuristic is known for
-Eternity II — the beam's extra breadth mostly duplicates what randomized
+depth-100 prefixes still complete well (and no such heuristic is known for
+Eternity II), the beam's extra breadth mostly duplicates what randomized
 restarts of a backtracker already provide.
 
 ## Diversity is the real dial
@@ -135,7 +135,7 @@ restarts of a backtracker already provide.
 Left to itself a beam collapses: within a few dozen cells most survivors
 share one high-scoring prefix, and the beam degenerates toward greedy with
 extra bookkeeping. Standard fixes are prefix deduplication and sampling from
-the top $2K$ instead of taking the top $K$ — and this project's builders use
+the top $2K$ instead of taking the top $K$, and this project's builders use
 both. But the strongest diversity lever found here was not inside the beam at
 all: it was the scan order. Running the same beam under nine different visit
 orders ([GAUNTLET](/research/lab/experiments/gauntlet)) produced eighteen
@@ -148,7 +148,7 @@ are frequent at that position in a corpus of strong boards, lifting the
 from-scratch ceiling by a few edges and reaching 460 after refinement.
 [LODESTONE](/research/lab/experiments/lodestone) breaks ties toward pieces
 that serve scarce demands, buying a small median gain and much better
-consistency — and collapsing badly the moment the prior is promoted from
+consistency, then collapsing badly the moment the prior is promoted from
 tiebreaker to objective.
 
 ## The depth wall
@@ -156,10 +156,10 @@ tiebreaker to objective.
 Every beam variant tried here stalls the same way. The border and early
 interior fill almost perfectly; the mismatches concentrate in the last rows,
 where the pieces a cell needs were already spent serving easier cells long
-ago — the [piece theft](/research/why/piece-theft) problem. A greedy local
+ago: the [piece theft](/research/why/piece-theft) problem. A greedy local
 objective cannot see that global budget, and doubling $K$ pushes the wall
 back by only an edge or two. From-scratch beams on this engine ceiling in
 the mid-450s; the remaining distance is bought by
 [destroy-and-repair polish](/research/build/concepts/local-search-alns), not
 by more width. Beam search, on this puzzle, is a fine way to reach the
-plateau quickly — and no way at all to leave it.
+plateau quickly, and no way at all to leave it.

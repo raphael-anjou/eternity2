@@ -11,15 +11,15 @@ order: 15
 updated: 2026-07-02
 topics: [backtracking, local-search]
 sources:
-  - label: "La publication — « je suis bloqué… mon seul espoir est la force brute » (groups.io, message 5940)"
+  - label: "La publication : « je suis bloqué… mon seul espoir est la force brute » (groups.io, message 5940)"
     url: https://groups.io/g/eternity2/message/5940
   - label: "Décodeur et documentation des rouages internes ; le 467 trouvé 40+ fois (groups.io, message 6275)"
     url: https://groups.io/g/eternity2/message/6275
-  - label: "La méthode dévoilée — glissement d'arêtes par profondeur, score propre 247 (groups.io, message 7321)"
+  - label: "La méthode dévoilée : glissement d'arêtes par profondeur, score propre 247 (groups.io, message 7321)"
     url: https://groups.io/g/eternity2/message/7321
-  - label: "Le banc d'essai indépendant de JSA — un 467 en 82 jours avec le binaire public (groups.io, message 6687)"
+  - label: "Le banc d'essai indépendant de JSA : un 467 en 82 jours avec le binaire public (groups.io, message 6687)"
     url: https://groups.io/g/eternity2/message/6687
-  - label: "Le domicile durable du solveur — shortestpath.se/eii (groups.io, message 7439)"
+  - label: "Le domicile durable du solveur : shortestpath.se/eii (groups.io, message 7439)"
     url: https://groups.io/g/eternity2/message/7439
 related:
   - /research/build/solvers/blackwood
@@ -98,9 +98,9 @@ silence de Tomy, la presse, l'après. Ce qui suit ici, c'est la machine.
 ## Un élagage anticipé sur seuils statiques
 
 La boucle de base est un backtracker en profondeur sur un ordre de
-remplissage fixe — mais qui élague vers l'avant : toute branche dont le
+remplissage fixe, mais qui élague vers l'avant : toute branche dont le
 score heuristique passe sous un seuil est coupée avant d'être explorée.
-Verhaard décrivait ses seuils comme statiques et réglés à la main —
+Verhaard décrivait ses seuils comme statiques et réglés à la main,
 « essentiellement fondés sur de pures conjectures et, pour une part
 limitée seulement, sur la théorie ou des mesures », longs à régler mais
 prévisibles sur la durée
@@ -111,7 +111,7 @@ recité dans le [message 5772](https://groups.io/g/eternity2/message/5772)).
 convergé dans cet échange est le cœur du sujet : on ne peut influencer le
 choix des pièces qu'au début de la recherche, mais ce qu'on veut maximiser,
 c'est la **capacité de pavage des pièces restantes** loin dans le
-remplissage — vers les pièces 160–200 — là où le facteur de branchement
+remplissage (vers les pièces 160–200) là où le facteur de branchement
 s'effondre en coups quasi forcés. Les seuils précoces sont donc réglés,
 semi-manuellement, pour répondre à : quel score heuristique les partiels
 précoces doivent-ils atteindre pour que les survivants gardent un stock de
@@ -122,15 +122,15 @@ de compte » ([message 5780](https://groups.io/g/eternity2/message/5780)).
 ## Le tableau de bord : où culmine la distribution des nœuds
 
 Comment savoir qu'une heuristique est forte ? La mesure adoptée par les
-deux — proposée par Max, reprise par Verhaard — est la position du pic de
+deux (proposée par Max, reprise par Verhaard) est la position du pic de
 la distribution des nœuds par profondeur. Une recherche complète sans
-heuristique passe l'essentiel de son temps vers la profondeur 161 — le
+heuristique passe l'essentiel de son temps vers la profondeur 161, soit le
 chiffre de référence de Brendan Owen
 ([message 6112](https://groups.io/g/eternity2/message/6112)) ; leurs
 deux recherches heuristiques avaient poussé le pic juste sous 170
 ([message 5780](https://groups.io/g/eternity2/message/5780)). Max en donna
 l'interprétation : un pic à 170 équivaut en gros à éliminer entièrement une
-couleur intérieure du puzzle — et une « heuristique tueuse » qui en
+couleur intérieure du puzzle, et une « heuristique tueuse » qui en
 éliminerait deux semblait hors de portée
 ([message 5787](https://groups.io/g/eternity2/message/5787)).
 
@@ -140,8 +140,8 @@ Une recherche de solution complète veut un balayage ligne par ligne ; une
 chasse au haut score vit plus profond dans le plateau, et réclame une autre
 frontière. Quand Brendan Owen posa précisément cette question, Verhaard
 dévoila la forme de sa réponse : les meilleurs ordres qu'il avait trouvés
-ressemblent à une **recherche en peigne** — la plupart des lignes balayées
-horizontalement, puis les lignes restantes verticalement — la longueur des
+ressemblent à une **recherche en peigne** (la plupart des lignes balayées
+horizontalement, puis les lignes restantes verticalement), la longueur des
 dents étant liée à l'objectif : « plus le score visé est bas, plus les
 dents du peigne s'allongent »
 ([groups.io, message 6112](https://groups.io/g/eternity2/message/6112)).
@@ -155,24 +155,24 @@ environ une arête en dessous de ceux du solveur de Louis
 Le levier qui a réellement acheté le 467, c'est l'imperfection délibérée.
 Interrogé frontalement un an plus tard, Verhaard fut précis : le programme
 du 467 cherche « normalement », mais à certaines profondeurs il autorise le
-**glissement d'arête** — poser une pièce dont une arête ne correspond pas à
+**glissement d'arête** : poser une pièce dont une arête ne correspond pas à
 un voisin déjà placé. Il ne construit pas d'abord un partiel propre pour
 boucher les trous ensuite : les désaccords sont budgétés *dans la
 descente*, débloqués à des profondeurs choisies. Et l'anatomie du résultat
 est parlante : la plupart des plateaux à 467 qu'il a examinés n'avaient
-qu'un score propre de 247 — treize arêtes glissées, dépensées là où le
+qu'un score propre de 247 : treize arêtes glissées, dépensées là où le
 calendrier le permettait
 ([groups.io, message 7321](https://groups.io/g/eternity2/message/7321)).
 Le 467 n'avait d'ailleurs rien d'un coup de chance : il l'a trouvé plus de
 50 fois ([même message](https://groups.io/g/eternity2/message/7321)).
 
-La technique elle-même — pourquoi des désaccords planifiés atteignent des
+La technique elle-même, à savoir pourquoi des désaccords planifiés atteignent des
 plateaux qu'une recherche propre ne toucherait jamais, et la théorie du
-comptage derrière le coût de chaque arête appariée supplémentaire — a
+comptage derrière le coût de chaque arête appariée supplémentaire, a
 [sa propre page](/research/build/concepts/edge-slipping). Ce qui relève de
 cette page-ci, c'est la mécanique côté solveur : le budget de désaccords
 par profondeur est un **tableau de glissement** (slip array), une entrée
-par profondeur — et c'est un objet optimisé, pas une intuition.
+par profondeur, et c'est un objet optimisé, pas une intuition.
 
 ## L'optimiseur du tableau de glissement : une chaîne de Markov
 
@@ -182,14 +182,14 @@ l'algorithme qu'il utilisait pour optimiser l'ordre de recherche et le
 tableau de glissement d'eii
 ([groups.io, message 6423](https://groups.io/g/eternity2/message/6423)).
 L'entrée : un ordre de recherche candidat plus un tableau de glissement.
-Pour chaque profondeur, il estime deux nombres — la probabilité qu'une
-pièce restante prise au hasard s'ajuste parfaitement, et celle qu'elle
-s'ajuste avec une arête glissée — à partir de mesures expérimentales (la
+Pour chaque profondeur, il estime deux nombres, la probabilité qu'une
+pièce restante prise au hasard s'ajuste parfaitement et celle qu'elle
+s'ajuste avec une arête glissée, à partir de mesures expérimentales (la
 théorie suffirait pour démarrer, notait-il). Il en construit une chaîne de
 Markov dont l'état est *(profondeur, arêtes glissées jusque-là)*, avec une
 transition pour un placement propre et, là où le tableau l'autorise, une
 pour un placement glissé. Parcourue de bout en bout, la chaîne donne la
-probabilité d'atteindre le fond et le nombre de nœuds attendu — un
+probabilité d'atteindre le fond et le nombre de nœuds attendu : un
 évaluateur bon marché, en boucle fermée, pour toute paire (ordre,
 calendrier de glissement), mémoïsé pour l'efficacité. Il en signala
 lui-même la limite : ce modèle simple ignore la parité des glissements et
@@ -198,24 +198,24 @@ devient peu fiable aux très hauts scores.
 L'air de famille avec ce qui viendra une décennie plus tard saute aux
 yeux : les indices de rupture de Blackwood sont eux aussi un budget de
 désaccords déverrouillé par profondeur, et son calendrier de quotas est lui
-aussi une courbe par profondeur fixée d'avance — réglée à la main plutôt
+aussi une courbe par profondeur fixée d'avance, réglée à la main plutôt
 qu'optimisée par chaîne. La filiation passe par ce solveur.
 
 ## Le frère jumeau à score propre
 
 Les mêmes heuristiques alimentaient un second programme, au coup de fin de
-partie différent : au lieu de glisser une arête, il peut *sauter une case*
-— la laisser vide et continuer, le nom qu'il donne lui-même au coup
+partie différent : au lieu de glisser une arête, il peut *sauter une case*,
+la laisser vide et continuer, le nom qu'il donne lui-même au coup
 ([message 7321](https://groups.io/g/eternity2/message/7321)). C'est le
-chasseur de score propre (sans désaccords). Avec lui, Verhaard remplit 14 lignes complètes plus deux
-pièces — un partiel sans défaut de 226 pièces, le record à sa connaissance
-à l'époque
-([groups.io, message 6303](https://groups.io/g/eternity2/message/6303)) —
+chasseur de score propre (sans désaccords). Avec lui, Verhaard remplit
+14 lignes complètes plus deux pièces (un partiel sans défaut de 226 pièces,
+le record à sa connaissance à l'époque ;
+[groups.io, message 6303](https://groups.io/g/eternity2/message/6303)),
 et lors d'un retour d'une journée en décembre 2009, après avoir estimé à
 ~2 000 le nombre de 248 par 249, il aligna trois 249 d'affilée et
 s'arrêta, plaçant un 250 à environ 4 000 fois plus difficile
 ([message 7306](https://groups.io/g/eternity2/message/7306)). Interrogé
-une décennie plus tard, il confirma que le 249 de son site est bien réel —
+une décennie plus tard, il confirma que le 249 de son site est bien réel :
 environ une semaine de calcul sur une seule machine
 ([message 9890](https://groups.io/g/eternity2/message/9890)).
 
@@ -226,10 +226,10 @@ possède une reproduction indépendante et chiffrée. JSA fit tourner eii en
 continu sur un seul PC et journalisa la distribution des scores au fil de
 l'accumulation :
 
-- **43 jours :** 2 008 484 463 · 109 195 464 · 6 048 465 · 250 466 — rien
+- **43 jours :** 2 008 484 463 · 109 195 464 · 6 048 465 · 250 466, rien
   au-dessus
   ([groups.io, message 6571](https://groups.io/g/eternity2/message/6571))
-- **62 jours :** 427 466, au rythme d'environ 5–6 par jour — toujours pas
+- **62 jours :** 427 466, au rythme d'environ 5–6 par jour, toujours pas
   de 467 ([message 6653](https://groups.io/g/eternity2/message/6653))
 - **82 jours :** deux 467, aux côtés de 4 017 182 463 · 227 245 464 ·
   13 637 465 · 625 466
@@ -238,21 +238,21 @@ l'accumulation :
 Ce dernier journal est la mesure publique la plus propre de l'échelle de
 rareté exponentielle près du sommet : quatre millions de 463 pour deux 467,
 et une marche 466→467 qui a coûté près de trois mois à une machine seule.
-La conclusion de JSA — « félicitations à Louis pour un algorithme bien
-pensé » — tient lieu de verdict de vérification.
+La conclusion de JSA, « félicitations à Louis pour un algorithme bien
+pensé », tient lieu de verdict de vérification.
 
 ## Ce que la communauté en a appris
 
 Au-delà du score, eii a créé un précédent : quand on est bloqué, on publie
-son solveur et on laisse les machines de la communauté chasser — le partage
+son solveur et on laisse les machines de la communauté chasser, le partage
 du prix faisant contrat. Le 467 a été trouvé par les *utilisateurs* d'un
 binaire public, plus de 40 fois, avant de rien gagner. Douze ans plus tard,
-[Joshua Blackwood a répété le schéma](/research/build/solvers/blackwood) —
-un 468 annoncé, le moteur ouvert quelques jours après — avec la même
-récompense : une vague de records communautaires sur son propre algorithme.
+[Joshua Blackwood a répété le schéma](/research/build/solvers/blackwood) :
+un 468 annoncé, le moteur ouvert quelques jours après, avec la même
+récompense, une vague de records communautaires sur son propre algorithme.
 L'autre leçon est méthodologique et traverse toute cette page : Verhaard
-réglait son solveur contre des *modèles* — le tableau de bord du pic de
-nœuds, l'évaluateur par chaîne de Markov — plutôt qu'au jugé, à une époque
+réglait son solveur contre des *modèles* (le tableau de bord du pic de
+nœuds, l'évaluateur par chaîne de Markov) plutôt qu'au jugé, à une époque
 où cette discipline était rare.
 
 ## Où vit le code
@@ -262,7 +262,7 @@ musique ; quand le groupe a renoncé à entretenir le site, le solveur a
 disparu avec lui pendant des mois. En janvier 2010,
 Verhaard l'a republié, inchangé, sur
 [shortestpath.se/eii](http://www.shortestpath.se/eii/)
-([groups.io, message 7439](https://groups.io/g/eternity2/message/7439)) —
+([groups.io, message 7439](https://groups.io/g/eternity2/message/7439)),
 toujours son adresse aujourd'hui, et la source de première main derrière la
 ligne 467 de [la table des records](/research/records). Une note
 opérationnelle issue de la foire aux questions qui a suivi : le solveur ne

@@ -72,13 +72,13 @@ export function ServersChart() {
 }
 
 Remplissez le plateau du coin haut-gauche vers le coin bas-droit : chaque
-nouvelle case connaît déjà deux de ses couleurs — celle du nord, imposée par
+nouvelle case connaît déjà deux de ses couleurs : celle du nord, imposée par
 la pièce du dessus, et celle de l'ouest, imposée par la pièce de gauche. Il
 lui faut donc une pièce encore disponible qui présente exactement cette
 paire. Or ces demandes sont mal servies : à peine trois pièces candidates en
 moyenne, et 47 d'entre elles n'en ont qu'une seule.
 
-Un plateau d'apparence saine — la boîte encore presque pleine — peut donc
+Un plateau d'apparence saine, la boîte encore presque pleine, peut donc
 être déjà condamné. Quelque part en amont, l'unique pièce capable de servir
 une case à venir a été posée ailleurs. Quand le solveur arrive enfin devant
 cette case, il n'a plus rien à y mettre.
@@ -121,12 +121,12 @@ On serait tenté d'ajouter une vérification globale : les pièces restantes
 couvrent-elles encore les cases restantes ? Cela ne sert à rien. À l'échelle
 du plateau, l'offre suffit ; l'échec vient d'une pièce rare mal affectée, pas
 d'une pénurie. Un examen global ne voit donc rien venir, jusqu'à l'instant où
-la case se découvre sans fournisseur — voilà pourquoi ce mur a résisté à tant
+la case se découvre sans fournisseur : voilà pourquoi ce mur a résisté à tant
 de tentatives d'élagage précoce.
 
 Rapprochez cela de [l'absence de coups forcés](/research/why/no-forced-moves)
 et le piège se referme. Chaque pièce a des dizaines d'endroits où elle
 pourrait aller : rien n'indique jamais au solveur où une pièce rare doit être
-économisée — alors que chaque pièce rare a exactement une demande pour
+économisée, alors que chaque pièce rare a exactement une demande pour
 laquelle il faut la garder. Toute liberté pour poser, aucun indice pour
 réserver.

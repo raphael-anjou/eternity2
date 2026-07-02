@@ -3,14 +3,14 @@ title: La recherche en faisceau
 description: >-
   Garder en vie les K meilleurs plateaux partiels et les faire grandir case
   par case. Le faisceau est le moteur des constructeurs from-scratch de ce
-  projet — et une démonstration limpide de la raison pour laquelle la largeur
+  projet, et une démonstration limpide de la raison pour laquelle la largeur
   seule cale dans l'intérieur profond.
 kind: concept
 order: 50
 updated: 2026-07-02
 topics: [construction]
 sources:
-  - label: Zhou & Hansen, Beam-Stack Search — Integrating Backtracking with Beam Search (ICAPS 2005)
+  - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
 related:
   - /research/lab/experiments/gauntlet
@@ -36,8 +36,8 @@ un traitement moderne, compromis compris.
 On fixe un ordre de parcours des 256 cases. Un état du faisceau, c'est un
 placement partiel, l'ensemble des pièces déjà dépensées et un score en arêtes
 appariées. Prolonger un état à la profondeur $d$, c'est essayer chaque couple
-(pièce, rotation) légal pour la case $d$ — légal vis-à-vis des voisines déjà
-posées et de l'inventaire restant — en ajoutant au score les arêtes
+(pièce, rotation) légal pour la case $d$, légal vis-à-vis des voisines déjà
+posées et de l'inventaire restant, en ajoutant au score les arêtes
 nouvellement appariées. On rassemble les enfants des $K$ survivants, on trie,
 on tronque à $K$, on répète 256 fois : chaque survivant est un plateau
 complet.
@@ -50,13 +50,13 @@ global. Ce détail commande tout ce qui suit.
 ## Regarder un faisceau descendre
 
 Le laboratoire ci-dessous fait descendre un faisceau dans un arbre
-synthétique — branchement $b = 4$, profondeur $d = 14$, scores
-déterministes à base de hachage, pas de plateau — parce que les pathologies
+synthétique : branchement $b = 4$, profondeur $d = 14$, scores
+déterministes à base de hachage, pas de plateau, parce que les pathologies
 se *voient* mieux quand l'instance est assez petite pour être dessinée. Deux
 traits y sont plantés à dessein : les scores sont en partie héréditaires (un
 bon préfixe tend à avoir de bons enfants, ce qui fait s'effondrer le
 faisceau sur un seul préfixe), et quelques nœuds **pièges** paient un gros
-score immédiat en empoisonnant discrètement toute leur descendance — un
+score immédiat en empoisonnant discrètement toute leur descendance : un
 modèle synthétique en deux lignes du
 [vol de pièces](/research/why/piece-theft), où un placement qui rapporte
 maintenant dépense une pièce dont l'intérieur profond aura besoin plus tard.
@@ -66,7 +66,7 @@ maintenant dépense une pièce dont l'intérieur profond aura besoin plus tard.
 ## Pas à pas
 
 1. **Profondeur 0.** Le faisceau, c'est la racine. À chaque tic, chaque
-   survivant engendre ses $b = 4$ enfants — au plus $K \cdot 4$ candidats
+   survivant engendre ses $b = 4$ enfants, au plus $K \cdot 4$ candidats
    dans le pot commun.
 2. **Noter, trier, tronquer.** Les enfants réunis sont classés et seuls les
    $K$ meilleurs survivent. Tout ce qui passe sous la coupe est supprimé
@@ -76,15 +76,15 @@ maintenant dépense une pièce dont l'intérieur profond aura besoin plus tard.
 3. **Regardez le troupeau se resserrer.** La position horizontale d'un point
    encode son préfixe de chemin : des branches distinctes vivent dans des
    grappes distinctes. En quelques niveaux, la plupart des survivants
-   partagent un même préfixe à haut score — le compteur de *préfixes
+   partagent un même préfixe à haut score : le compteur de *préfixes
    distincts* qui tombe vers 1, c'est l'effondrement de diversité, le
    faisceau qui dégénère en glouton avec de la comptabilité.
 4. **Suivez le tracé rose.** C'est $K = 1$, le glouton pur. Quand il avale
-   un piège ambre — gros gain immédiat, sous-arbre empoisonné — sa courbe de
+   un piège ambre (gros gain immédiat, sous-arbre empoisonné), sa courbe de
    score s'aplatit pour de bon. Un faisceau plus large ne survit au même
    piège que tant que ses survivants restent répartis entre les branches ;
    une fois effondré, il est exactement aussi crédule.
-5. **Faites glisser $K$ de 1 à 64.** Le score final monte puis s'aplatit —
+5. **Faites glisser $K$ de 1 à 64.** Le score final monte puis s'aplatit ;
    chaque doublement de largeur rapporte moins, les mêmes rendements
    grossièrement logarithmiques que ce projet a mesurés sur de vrais
    plateaux. Notez ce que le curseur ne change jamais : l'effondrement se
@@ -101,17 +101,17 @@ $$
 $$
 
 pour une largeur $K$, un branchement $b$ et une profondeur $d$ (plus un tri
-en $O(Kb \log Kb)$ par niveau). Les deux sont linéaires en $K$ — c'est tout
+en $O(Kb \log Kb)$ par niveau). Les deux sont linéaires en $K$ : c'est tout
 l'attrait. Le prix, c'est l'*incomplétude* : un faisceau n'offre aucune
 garantie d'optimalité, aucun certificat en cas d'échec, et aucun retour vers
 un préfixe élagué. Son mode d'échec systématique est l'effondrement que
 montre le laboratoire : quand les survivants deviennent $K$ copies d'un même
 préfixe, la largeur effective vaut 1, quel que soit le prix payé.
 
-À l'échelle d'Eternity II, l'arithmétique est clémente — c'est exactement
+À l'échelle d'Eternity II, l'arithmétique est clémente, et c'est exactement
 pourquoi le faisceau est ici le cheval de trait from-scratch : $d = 256$
-cases, $b$ = les candidats (pièce, rotation) légaux par case — quelques
-centaines au début, de moins en moins à mesure que l'inventaire se vide —
+cases, $b$ = les candidats (pièce, rotation) légaux par case, quelques
+centaines au début, de moins en moins à mesure que l'inventaire se vide,
 si bien que même $K = 10^4$ coûte de l'ordre de $10^8$ à $10^9$ évaluations
 d'enfants par plateau complet : des minutes sur un portable, sans commune
 mesure avec les chiffres exhaustifs de la page des
@@ -128,7 +128,7 @@ linéaire ; la clairvoyance n'est pas à vendre.
 redémarrages aléatoires a une queue de distribution brutale : sur le moteur
 de ce projet, des dizaines de milliers de départs gloutons ont plafonné vers
 408 sur 480, et l'extrapolation de la queue plaçait un 440 à plusieurs
-milliards de redémarrages. Élargir le faisceau vaut bien mieux — mais les
+milliards de redémarrages. Élargir le faisceau vaut bien mieux, mais les
 rendements sont grosso modo logarithmiques. Quelques centaines d'états
 construisent autour de 450 ; pousser $K$ au-delà de dix mille a atteint le
 milieu des 450 puis s'est aplati. (Mesuré sur le moteur de ce projet ; non
@@ -139,16 +139,16 @@ qu'un « glouton élargi ». Un état du faisceau à la profondeur $d$ affronte
 exactement les mêmes contraintes d'appariement et d'inventaire qu'un nœud de
 DFS à la même profondeur ; garder plusieurs états en vie ne relâche rien. En
 l'absence d'une fonction capable de prédire de façon fiable quels préfixes de
-profondeur 100 se termineront bien — et aucune heuristique de ce genre n'est
-connue pour Eternity II — la largeur supplémentaire duplique surtout ce que
+profondeur 100 se termineront bien (et aucune heuristique de ce genre n'est
+connue pour Eternity II), la largeur supplémentaire duplique surtout ce que
 les redémarrages aléatoires d'un backtracker offraient déjà.
 
 ## La diversité, le vrai bouton
 
 Livré à lui-même, un faisceau s'effondre : en quelques dizaines de cases, la
 plupart des survivants partagent un même préfixe à haut score, et le faisceau
-dégénère en glouton avec de la comptabilité en plus. Les parades classiques —
-déduplication des préfixes, tirage dans le top $2K$ plutôt que le top $K$ —
+dégénère en glouton avec de la comptabilité en plus. Les parades classiques,
+déduplication des préfixes et tirage dans le top $2K$ plutôt que le top $K$,
 sont toutes deux dans les constructeurs de ce projet. Mais le levier de
 diversité le plus puissant trouvé ici n'était pas dans le faisceau : c'était
 l'ordre de parcours. Le même faisceau lancé sous neuf ordres de visite
@@ -158,11 +158,11 @@ avaient donné qu'une.
 
 L'autre bouton productif, c'est le départage des égalités.
 [PRIOR](/research/lab/experiments/prior) tranche les ex æquo en faveur des
-pièces fréquentes à cette position dans un corpus de bons plateaux — quelques
+pièces fréquentes à cette position dans un corpus de bons plateaux : quelques
 arêtes de mieux from-scratch, et 460 après raffinement.
 [LODESTONE](/research/lab/experiments/lodestone) tranche en faveur des pièces
 qui servent les demandes rares : petit gain médian, régularité nettement
-meilleure — et effondrement brutal dès que l'a priori est promu de
+meilleure, puis effondrement brutal dès que l'a priori est promu de
 départage en objectif.
 
 ## Le mur de profondeur
@@ -170,11 +170,11 @@ départage en objectif.
 Toutes les variantes essayées ici calent de la même façon. Le bord et le
 début de l'intérieur se remplissent presque parfaitement ; les erreurs se
 concentrent dans les dernières rangées, où les pièces dont une case a besoin
-ont été dépensées depuis longtemps au service de cases plus faciles — le
+ont été dépensées depuis longtemps au service de cases plus faciles : le
 problème du [vol de pièces](/research/why/piece-theft). Un objectif local
 glouton ne voit pas ce budget global, et doubler $K$ ne recule le mur que
 d'une arête ou deux. Sur ce moteur, les faisceaux from-scratch plafonnent au
 milieu des 450 ; la distance restante s'achète au
 [polissage par destruction-réparation](/research/build/concepts/local-search-alns),
 pas à coups de largeur. Sur ce puzzle, le faisceau est un excellent moyen
-d'atteindre le plateau vite — et aucun moyen d'en repartir.
+d'atteindre le plateau vite, et aucun moyen d'en repartir.

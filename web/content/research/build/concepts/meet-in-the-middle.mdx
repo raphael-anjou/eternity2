@@ -4,15 +4,15 @@ description: >-
   Enumerate two halves of a problem and join them on a shared interface,
   trading memory for an exponent cut in half. The classic Horowitz–Sahni
   trick, what it looks like on bands of the board, and what this project's
-  BANDSAW experiment measured — including the one-sided method that beat it.
+  BANDSAW experiment measured, including the one-sided method that beat it.
 kind: concept
 order: 40
 updated: 2026-07-02
 topics: [exact-methods]
 sources:
-  - label: Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM) — the classic origin
+  - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), the classic origin'
     url: https://doi.org/10.1145/321812.321823
-  - label: Meet-in-the-middle attack (Wikipedia) — the cryptanalytic branch of the same idea
+  - label: Meet-in-the-middle attack (Wikipedia), the cryptanalytic branch of the same idea
     url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
   - label: Bidirectional search (Wikipedia)
     url: https://en.wikipedia.org/wiki/Bidirectional_search
@@ -28,7 +28,7 @@ Meet in the middle is the oldest exponent-cutting trick in combinatorial
 search: instead of exploring one tree of depth $n$, explore two trees of
 depth $n/2$ and join their leaves on a shared interface. Ellis Horowitz and
 Sartaj Sahni introduced it in 1974 for the knapsack problem, turning
-$O(2^n)$ time into $O(2^{n/2})$ time — at the price of storing one half's
+$O(2^n)$ time into $O(2^{n/2})$ time, at the price of storing one half's
 $2^{n/2}$ results in a table keyed so the other half can look them up. The
 same idea resurfaces as the meet-in-the-middle attack in cryptanalysis
 (why double DES buys almost nothing over single) and as bidirectional
@@ -39,7 +39,7 @@ enumerations plus a join, instead of one impossible enumeration.
 
 Eternity II offers a natural cut: a horizontal seam. Take a band of rows to
 finish; split it into a top half and a bottom half. Enumerate every way to
-fill the top half, keyed by two things — the exact set of pieces it consumed,
+fill the top half, keyed by two things: the exact set of pieces it consumed,
 and the vector of edge colours it leaves dangling at the seam. Enumerate the
 bottom half symmetrically. Then join: any top and bottom whose seam colours
 agree and whose piece sets are disjoint form a complete filling, found
@@ -58,7 +58,7 @@ experiment below.
 
 The textbook trade is time for memory: the exponent halves, and one half's
 enumeration must be held in a hash table. On the board the interface state is
-a row of edge colours — 16 cells wide on the full puzzle — plus the pool
+a row of edge colours (16 cells wide on the full puzzle) plus the pool
 fingerprint, so the table's key space grows fast with band width, and memory,
 not time, is usually the first wall. The join itself is cheap (hashing);
 everything hinges on how many entries each side must store and on how often
@@ -66,11 +66,11 @@ seam signatures actually coincide.
 
 ## Feel the square root
 
-Numbers make the trade honest in a way prose cannot. The lab below has two
+Numbers pin down the trade in a way prose cannot. The lab below has two
 views. *The trade* puts the three bills side by side on a log scale as you
 grow the problem: one-sided time $2^n$, MITM time $2 \cdot 2^{n/2}$, MITM
-memory $2^{n/2}$ table entries. *The join* runs a complete micro-instance —
-$n = 10$, two halves of $2^5 = 32$ candidates each — through the store phase
+memory $2^{n/2}$ table entries. *The join* runs a complete micro-instance
+($n = 10$, two halves of $2^5 = 32$ candidates each) through the store phase
 and the probe phase, so you can watch where the speed comes from and where
 the memory goes.
 
@@ -84,7 +84,7 @@ the memory goes.
    on a log scale the MITM bars climb at half the slope.
 2. **Watch the memory bar arrive.** Around $n \approx 56$ the table (at an
    optimistic 16 bytes per entry) outgrows a 16 GiB machine, while the sky
-   MITM *time* bar is still comfortable. Memory hits the wall first — the
+   MITM *time* bar is still comfortable. Memory hits the wall first: the
    same order of events BANDSAW recorded, where real entries carry a pool
    fingerprint and a seam vector and are far fatter than 16 bytes.
 3. **Switch to the join view.** The left half enumerates its 32 candidates
@@ -94,10 +94,10 @@ the memory goes.
 4. **The probe phase.** The right half's 32 candidates arrive one per tick,
    and each performs exactly one lookup. An empty bucket dismisses an entire
    family of combinations in one step; an occupied one yields a joined
-   solution per stored partner — found without walking the full tree.
+   solution per stored partner, found without walking the full tree.
 5. **Read the final tally.** $2 \cdot 32 = 64$ enumeration steps plus $32$
    stored entries replace $2^{10} = 1{,}024$ full walks. On Eternity II the
-   same arithmetic holds — with the caveat that a join only counts if the
+   same arithmetic holds, with the caveat that a join only counts if the
    seam colours match *and* the piece pools are disjoint, which is what the
    grouping-by-fingerprint bookkeeping above is for.
 
@@ -113,15 +113,15 @@ $$
 
 (plus a $\log$ factor if the halves are sorted rather than hashed). Note
 what is conserved: the *product* of time and space stays around $2^n$. Meet
-in the middle never destroys the exponential — it splits one unpayable bill
+in the middle never destroys the exponential; it splits one unpayable bill
 into two smaller ones, and both must clear. The square root of the runtime
 is bought with an exponential memory bill, which is why the method wins
 exactly when $2^{n/2}$ entries still fit in RAM and loses the moment they
 don't.
 
-On Eternity II the clean $n$-choices model needs two honest corrections.
-First, the interface is not one number but a wide state — a seam vector of
-up to 16 edge colours plus the exact piece-pool fingerprint — so the table
+On Eternity II the clean $n$-choices model needs two corrections. First,
+the interface is not one number but a wide state (a seam vector of up to 16
+edge colours plus the exact piece-pool fingerprint), so the table
 keys are big, entries are fat, and the memory wall arrives well before the
 textbook crossover. Second, the halves are coupled through the shared piece
 pool, so the join is not a free hash hit but a hash hit *filtered by
@@ -140,7 +140,7 @@ iterative deepening on the mismatch budget, all validated on a 10×10 testbed
 against brute force. Three findings, measured on this project's engine and
 not independently replicated:
 
-- **It works — near perfection only.** Within small mismatch budgets the
+- **It works, near perfection only.** Within small mismatch budgets the
   method is exact and affordable. But each unit of mismatch budget inflates
   the enumeration trees roughly twenty-fold *per side*, so the regime where
   exactness is payable dissolves within a handful of allowed defects.
@@ -149,12 +149,12 @@ not independently replicated:
   iterative-deepening branch-and-bound proved optimality in about 12 seconds
   on a rung where the bidirectional join did not finish. The MITM pays full
   enumeration of *both* halves even when a single optimum plus an exhaustion
-  proof would do; near the decidability horizon its join almost never fired —
+  proof would do; near the decidability horizon its join almost never fired:
   millions of stored tops, zero matching bottoms, both bills paid for
   nothing.
 - **The durable outputs were the bounds.** What survived the experiment was
   not the join but the admissible lower-bound tables and the exact
-  budget-certificates they enable — instruments now used elsewhere. The
+  budget-certificates they enable, instruments now used elsewhere. The
   registered conclusion was blunt: no meet-in-the-middle deployment at
   full board size.
 
@@ -162,7 +162,7 @@ not independently replicated:
 
 The general lesson matches the classic literature: meet in the middle wins
 when the interface is narrow, the halves are truly independent, and a
-solved/unsolved answer suffices. Eternity II strains all three — the seam
+solved/unsolved answer suffices. Eternity II strains all three: the seam
 carries a wide colour vector, the shared piece pool couples the halves, and
 the record game runs on partial credit, which re-inflates both trees. What
 remains genuinely untested here is the *heuristic* cousin: two beams growing

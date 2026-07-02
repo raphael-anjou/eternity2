@@ -3,7 +3,7 @@ title: Recuit simulé et parallel tempering
 description: >-
   Lire les défauts comme une énergie et la température comme une tolérance à
   faire pire. Le recuit détient le plus ancien record du puzzle ; le parallel
-  tempering franchit des barrières que le recuit ne passe pas — et les deux
+  tempering franchit des barrières que le recuit ne passe pas, et les deux
   s'arrêtent au même mur.
 kind: concept
 order: 70
@@ -28,14 +28,14 @@ Le recuit simulé lit un plateau comme un système physique : les arêtes en
 défaut sont une énergie, tout mouvement qui la fait baisser est accepté, et
 un mouvement qui la fait monter l'est avec probabilité
 $e^{-\Delta E / T}$. À chaud, la recherche vagabonde ; en refroidissant, le
-plateau se dépose dans un arrangement de basse énergie — idéalement profond,
+plateau se dépose dans un arrangement de basse énergie, idéalement profond,
 pas simplement le plus proche. Le piège, c'est le programme de
 refroidissement : trop vite, on gèle dans un optimum local médiocre ; assez
 lentement pour un puzzle de cette taille, on attend l'éternité.
 
 ## D'une température à une échelle
 
-Le parallel tempering — l'échange de répliques — dissout le problème du
+Le parallel tempering, l'échange de répliques, dissout le problème du
 programme en faisant tourner toute l'échelle à la fois. La méthode vient de
 la physique des verres de spin : l'article de
 [Swendsen et Wang (1986)](https://doi.org/10.1103/PhysRevLett.57.2607)
@@ -55,7 +55,7 @@ avec $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ et
 $\Delta E = E_i - E_j$. Lisez-la une fois avec des signes concrets : si la
 réplique $i$ est la plus froide ($\Delta\beta > 0$) et que la plus chaude
 détient la *plus basse* énergie ($\Delta E > 0$), l'exposant est positif et
-l'échange est accepté à coup sûr — le bon état descend toujours l'échelle
+l'échange est accepté à coup sûr : le bon état descend toujours l'échelle
 gratuitement. Les répliques chaudes traversent les barrières ; les froides
 exploitent ; les échanges font descendre les configurations prometteuses le
 long de l'échelle pour y être raffinées. Aucune chaîne n'a plus à survivre à
@@ -67,8 +67,8 @@ L'affirmation qui mérite d'être vue, c'est la comparaison : la même chaîne
 froide, avec et sans échelle au-dessus d'elle. Ci-dessous, quatre répliques
 explorent un paysage synthétique accidenté dont le minimum global se cache
 derrière des barrières ; un fantôme gris exécute la dynamique froide
-identique, seul. Regardez les éclairs d'échange — verts quand ils sont
-acceptés — porter le bassin de droite jusqu'au barreau froid, pendant que le
+identique, seul. Regardez les éclairs d'échange, verts quand ils sont
+acceptés, porter le bassin de droite jusqu'au barreau froid, pendant que le
 fantôme reste dans le puits de départ pour toujours. Puis poussez le curseur
 d'espacement aux deux extrêmes et reproduisez les deux pannes classiques de
 l'échelle.
@@ -88,13 +88,13 @@ Un tour de parallel tempering, tel que le labo l'exécute :
    calculer $\Delta\beta\,\Delta E$ à partir des deux énergies en cache,
    accepter avec $\min(1, e^{\Delta\beta \Delta E})$. En cas d'acceptation,
    les deux répliques échangent leurs configurations (ou, ce qui revient au
-   même, leurs températures) — rien d'autre ne bouge.
+   même, leurs températures) : rien d'autre ne bouge.
 3. **Comptabilité.** Suivre le taux d'acceptation des échanges par paire de
    barreaux. Ce nombre *est* le diagnostic de l'échelle : proche de 100 %,
    les barreaux adjacents voient le même paysage et l'un des deux est
    gaspillé ; proche de 0 %, l'échelle s'est découplée en chaînes
    indépendantes. Les échelles utiles vivent dans les dizaines de pourcents
-   — fréquent mais pas gratuit, exactement le régime que recommandent Earl
+   (fréquent mais pas gratuit), exactement le régime que recommandent Earl
    et Deem, et celui vers lequel nos runs ont convergé.
 4. **Recommencer.** Les bons états descendent les barreaux en marche
    aléatoire ; les états coincés montent, se font secouer, et redescendent
@@ -103,28 +103,28 @@ Un tour de parallel tempering, tel que le labo l'exécute :
 ## Ce que ça coûte
 
 - **Par balayage :** $R$ répliques × $N$ sites, chaque mouvement en $O(1)$
-  d'évaluation locale, soit $O(R \cdot N)$ — exactement $R$ fois une seule
+  d'évaluation locale, soit $O(R \cdot N)$, exactement $R$ fois une seule
   chaîne. La mémoire est en $O(R \cdot N)$ : chaque réplique est un plateau
   entier.
 - **Par phase d'échange :** les $R{-}1$ paires adjacentes demandent chacune
-  une exponentielle sur des énergies en cache — $O(R)$ au total, une erreur
+  une exponentielle sur des énergies en cache, soit $O(R)$ au total, une erreur
   d'arrondi à côté des balayages.
 - **Le gain, c'est le temps de mélange, pas le coût du pas.** Une chaîne
   froide seule franchit une barrière d'énergie $\Delta E$ en environ
-  $e^{\Delta E / T_{\text{froid}}}$ tentatives (l'attente d'Arrhenius —
+  $e^{\Delta E / T_{\text{froid}}}$ tentatives (l'attente d'Arrhenius ;
   notre franchissement mesuré de 76 cases plafonnait à $e^{-21}$ par
   tentative à $T = 1$). L'échelle remplace cette attente par une diffusion :
   une configuration fait une marche aléatoire sur $R$ barreaux, et avec un
   espacement géométrique réglé pour une acceptation constante par barreau,
   l'aller-retour coûte de l'ordre de $R^2$ tours d'échange. On paie un
   facteur constant $R$ par balayage pour transformer une attente
-  exponentielle en navette polynomiale — cette asymétrie est tout
+  exponentielle en navette polynomiale : cette asymétrie est tout
   l'argument de la méthode.
 - **Aucune garantie, comme tous les échantillonneurs.** Le parallel
   tempering n'est pas complet et ne certifie rien ; il converge vers la
   bonne distribution un jour, sans borne utile sur « un jour ». Et là où le
-  paysage offre des ex æquo plutôt que des barrières — les plateaux
-  iso-score du sommet de ce puzzle — $\Delta E = 0$ rend tous les barreaux
+  paysage offre des ex æquo plutôt que des barrières, sur les plateaux
+  iso-score du sommet de ce puzzle, $\Delta E = 0$ rend tous les barreaux
   identiques, et l'avantage de l'échelle s'évapore par construction : c'est
   précisément ce que rapporte le verdict plus bas.
 
@@ -134,7 +134,7 @@ Les mesures de ce projet (sur notre propre moteur ; non répliquées
 indépendamment) en donnent une raison inhabituellement concrète. Entre un
 bon plateau et un meilleur, le mouvement qui les relie est une relocalisation
 imbriquée de dizaines de pièces dont *tout* sous-ensemble strict perd des
-arêtes — la [structure en σ-cycles](/research/why/sigma-cycles). Une
+arêtes : la [structure en σ-cycles](/research/why/sigma-cycles). Une
 transition mesurée exigeait un mouvement de 76 cases dont les états
 intermédiaires plongeaient d'environ 21 arêtes sous le point de départ : à
 $T = 1$, l'acceptation est de l'ordre de $e^{-21}$, sans espoir. Avec le haut
@@ -143,19 +143,19 @@ produit ce qui était alors le meilleur plateau from-scratch du projet. La
 température, bien employée, est un vrai levier contre de vraies barrières.
 
 C'est dans le dessin de l'échelle que la pratique mord. Quand nous avons
-espacé les températures trop serré, l'échange de répliques a tout accepté —
-100 % d'acceptation a l'air d'une bonne santé et signifie l'inverse : les
+espacé les températures trop serré, l'échange de répliques a tout accepté :
+100 % d'acceptation a l'air d'une bonne santé et signifie l'inverse, les
 répliques adjacentes voyaient effectivement le même paysage, et l'échelle
 n'apportait rien. Un espacement géométrique avec un dernier barreau vraiment
 chaud, réglé pour que les échanges soient fréquents sans être gratuits, est
-le conseil classique d'Earl et Deem — et il colle à ce que nous avons
+le conseil classique d'Earl et Deem, et il colle à ce que nous avons
 observé.
 
 ## Le record communautaire que le recuit a bâti
 
 Le recuit a un passé glorieux sur ce puzzle. Le record le plus durable sur le
-jeu de pièces canonique — les 467 sur 480 de Louis Verhaard en 2008, invaincus
-jusqu'aux backtrackers de l'ère Blackwood en 2020 — venait d'une méthode de
+jeu de pièces canonique (les 467 sur 480 de Louis Verhaard en 2008, invaincus
+jusqu'aux backtrackers de l'ère Blackwood en 2020) venait d'une méthode de
 recuit, et d'une méthode singulière : comme il l'a décrite sur la
 [liste de diffusion communautaire](https://groups.io/g/eternity2), il
 recuisait la *composition* d'un sous-ensemble de pièces, en échangeant des
@@ -164,14 +164,14 @@ pièces entrantes et sortantes d'un groupe candidat sous un score de
 se généralise : sur Eternity II, le choix de *ce qu'on recuit* a compté plus
 que le recuit lui-même.
 
-## Verdict honnête
+## Le verdict
 
 D'après les mesures de ce projet, avec la réserve d'usage : le parallel
 tempering franchit les barrières mieux que le recuit simple, et sur le
 milieu de l'ascension cette différence est réelle et monnayable. Près du
-sommet, elle se dissout. Les plateaux de là-haut sont à score constant — des
+sommet, elle se dissout. Les plateaux de là-haut sont à score constant : des
 ex æquo partout, donc une acceptation qui ne dépend plus du tout de la
-température — et pousser le feu au lieu de grimper ne fait que randomiser le
+température, et pousser le feu au lieu de grimper ne fait que randomiser le
 plateau, qui ne retrouve ensuite jamais le chemin des records. Les répliques
 lancées d'un plateau de tête plafonnent au score de départ, chaque chaîne,
 chaque échelle essayée. Le tempering vous déplace de colline en colline ; il

@@ -2,7 +2,7 @@
 title: Why a faster computer doesn't help
 description: >-
   The single most important idea in hard combinatorial search: shrinking the
-  space you search beats searching it faster — by an exponential margin.
+  space you search beats searching it faster, by an exponential margin.
   Eternity II is engineered so you can barely shrink it at all.
 kind: finding
 order: 10
@@ -27,26 +27,26 @@ import { PruneVsSpeedLab } from "@/components/research/PruneVsSpeedLab";
 
 Picture the search as a tree. From the empty board you choose a piece for the
 first cell; from there a piece for the second; and so on, 256 cells deep. The
-number of leaves at the bottom is the branching factor raised to the depth —
+number of leaves at the bottom is the branching factor raised to the depth,
 an astronomically large number. To prove a region has no solution, a search
 has to walk that tree.
 
-Now there are two ways to do less work. You can go **faster** — a better
+Now there are two ways to do less work. You can go **faster**: a better
 engine, more cores, hand-tuned inner loops. Or you can make the tree
-**smaller** — prune branches that can't lead to a solution, so the effective
+**smaller**, pruning branches that can't lead to a solution, so the effective
 branching factor drops. These sound similar. They are not even close.
 
 ## Constant versus exponential
 
 A speedup is a constant divisor. Make the machine 1000× faster and you do
-1000× less waiting — the same whether the tree is ten levels deep or ten
+1000× less waiting, the same whether the tree is ten levels deep or ten
 thousand. It buys you a fixed multiple, full stop.
 
 A prune compounds. Shave even a few percent off the branching factor and you
 save that fraction at every single level. Over 256 levels the savings multiply
 into each other: cutting the branching factor from $b$ to $b'$ divides the
 work by $(b/b')^{256}$. A 5% cut, applied all the way down, is worth
-$(1/0.95)^{256} \approx 5\times10^{5}$ — a five-hundred-thousand-fold
+$(1/0.95)^{256} \approx 5\times10^{5}$, a five-hundred-thousand-fold
 speedup's worth of work, from one cheap structural idea. That beats almost any
 speedup a real machine can offer.
 
@@ -63,25 +63,25 @@ If pruning is the lever that matters, the hard puzzles are the ones you can't
 prune. Eternity II was tuned to be precisely that. Four of its walls are,
 underneath, all the same statement: there is nothing local to prune on.
 
-- **[No forced moves](/research/why/no-forced-moves)** — Every interior cell
+- **[No forced moves](/research/why/no-forced-moves)**: every interior cell
   still has 73 to 137 legal neighbours, so propagation almost never collapses
   a cell to one choice. The branching factor stays stubbornly high.
-- **[On the hardness peak](/research/why/phase-transition)** — The piece and
-  colour counts sit where there is about one expected solution — no
+- **[On the hardness peak](/research/why/phase-transition)**: the piece and
+  colour counts sit where there is about one expected solution, leaving no
   solution-dense region to aim a statistical shortcut at, the trick that
   cracked Eternity I.
-- **[The area law](/research/why/entropy-area-law)** — The count of
+- **[The area law](/research/why/entropy-area-law)**: the count of
   genuinely-distinct partial boards collapses past ~80 cells, but no local
   scoring signal can see that global collapse, so you can't prune toward it
   cheaply.
-- **[Rigidity](/research/why/rigidity-wall)** — Even at a record board, the
-  move to a better one is huge and indivisible — no gradient to follow,
+- **[Rigidity](/research/why/rigidity-wall)**: even at a record board, the
+  move to a better one is huge and indivisible, with no gradient to follow and
   nothing nearby to prune away.
 
 ## What it means for everything else here
 
 This is the lens for the whole research section. Our 232× faster engine made
-the same search cheaper, not smaller — and didn't move the record. Every
+the same search cheaper, not smaller, and didn't move the record. Every
 invention that did move the needle changed the shape of the search instead: a
 different scan order, a learned prior over where pieces sit, a confined region
 for the mismatches. And every dead end is, at heart, a prune that the puzzle's
@@ -89,10 +89,10 @@ global structure refuses to honour. Speed first feels productive; it is almost
 never where the gap to 480 is hiding.
 
 <Callout kind="note">
-  The tree numbers in the demo are illustrative — a branching factor and depth
+  The tree numbers in the demo are illustrative: a branching factor and depth
   chosen to be E2-like and legible, not a measurement of a specific solver.
   The hardness curve and node counts, however, are real engine measurements on
   small puzzles, deterministic and reproducible with `just research-prune-vs-speed`.
-  The principle itself — constant divisor versus exponential divisor — is
+  The principle itself, constant divisor versus exponential divisor, is
   exact.
 </Callout>

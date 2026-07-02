@@ -54,8 +54,8 @@ related:
 There are three classic roads into Eternity II. Backtracking walks the tree.
 [SAT and CSP encodings](/research/build/concepts/sat-csp-encodings) hand the
 logic to an industrial solver. The third road belongs to the optimizers:
-write the puzzle as an integer program — variables, linear constraints, an
-objective — and call CPLEX. It is the road every operations-research person
+write the puzzle as an integer program (variables, linear constraints, an
+objective) and call CPLEX. It is the road every operations-research person
 tries first, because it comes with a move the other two don't have:
 *relaxation*. Delete the requirement that variables be whole numbers and the
 NP-hard integer program becomes a linear program, solvable in polynomial
@@ -65,7 +65,7 @@ rest.
 The community walked this road repeatedly between 2007 and 2025, with
 solvers from `glpsol` to CPLEX to hand-rolled Newton–Raphson, and the
 outcome was measured precisely enough to be worth a page: the relaxation
-solves fast and reports a nearly perfect board — made of fractions of
+solves fast and reports a nearly perfect board, one made of fractions of
 pieces. Force the pieces whole and the score collapses onto a plateau around
 420–440 of 480 edges. The gap between the fractional optimum and the integer
 one is not a technicality. It is the exact place where the puzzle lives.
@@ -89,14 +89,14 @@ $$
 \end{aligned}
 $$
 
-where $f_{s,k}^{i}$ is the colour flow — the total weight of placements on
+where $f_{s,k}^{i}$ is the colour flow, the total weight of placements on
 side $i$ of seam $s$ that show colour $k$ across it,
 $f_{s,k}^{i} = \sum_{(p,r)\,\text{showing}\,k} x_{c_i,p,r}$. The $\min$ is
 linearized with one auxiliary variable per seam and colour; for the
 *feasibility* version you instead demand equal colour flow on both sides of
 every seam. Community models land exactly where the arithmetic
-says they should. Benjamin's 2009 LP had ~50,000 variables — placements
-pruned to valid positions — and 7,952 equations: 256 per-cell, 256
+says they should. Benjamin's 2009 LP had ~50,000 variables (placements
+pruned to valid positions) and 7,952 equations: 256 per-cell, 256
 per-piece, and $60 \times 5 + 420 \times 17 = 7{,}440$ seam-colour balance
 constraints ([message 6910](https://groups.io/g/eternity2/message/6910)).
 Vlasta's 2008 model carried 160,254 binaries
@@ -105,14 +105,14 @@ Timmermans's AMPL/CPLEX binary program, 272,704 variables and 24,566
 equations ([message 6728](https://groups.io/g/eternity2/message/6728)).
 Günter Stertenbrink had already posed the equivalent graph form in 2007:
 make the 262,144 placements vertices, join compatible pairs, and ask for a
-clique of size 256 ([message 627](https://groups.io/g/eternity2/message/627))
-— the framing the academic literature returned to a decade later.
+clique of size 256 ([message 627](https://groups.io/g/eternity2/message/627)),
+the framing the academic literature returned to a decade later.
 
 ## Relax it, and it solves in seconds
 
 Relaxation means one edit: replace $x_{c,p,r} \in \{0,1\}$ with
 $0 \le x_{c,p,r} \le 1$. That single change moves the problem across the
-most important boundary in optimization. The integer program is NP-hard —
+most important boundary in optimization. The integer program is NP-hard:
 0–1 integer programming is one of Karp's original 21 complete problems. The
 linear program is solvable in polynomial time (ellipsoid, interior-point),
 and in practice simplex dispatches these model sizes almost instantly.
@@ -123,7 +123,7 @@ Benjamin measured it: his 50,000-variable system reached an error below
 Two properties make the relaxation genuinely useful, not just fast. Every
 integer solution is also a fractional one, so the LP optimum is a *bound*:
 no real board can ever score more than the relaxation says. And LP solvers
-return certificates — dual values, infeasibility proofs — that integer-free
+return certificates (dual values, infeasibility proofs) that integer-free
 methods don't. The whole question is how much of that speed survives the
 return trip to whole pieces.
 
@@ -131,7 +131,7 @@ return trip to whole pieces.
 
 Here is what the LP optimum actually looks like, in the words of the person
 who computed it. Benjamin's system "converged relatively fast to zero
-error" — a perfect board, as far as the constraints could see — and the
+error" (a perfect board, as far as the constraints could see), and the
 upper-left corner held "30% piece 1, 20% piece 2, 10% piece 3, 40% piece 4"
 ([message 6905](https://groups.io/g/eternity2/message/6905)). Andrew's
 parallel experiment ran the same idea as an iterated ascent over a
@@ -140,14 +140,14 @@ parallel experiment ran the same idea as an iterated ascent over a
 
 The relaxation is happy because a superposition can hedge. A quarter of a
 blue-edged piece plus three quarters of a pink-edged one presents a blend
-that simultaneously part-matches a blue neighbour and a pink one — a match
+that simultaneously part-matches a blue neighbour and a pink one, a match
 no physical board can realize. Linear constraints can price how much of
 each piece sits where; they cannot express "exactly one of these is real,"
 because *one-of* is not a linear fact. It takes a quadratic constraint (or
-an integrality one) to say it — Benjamin used
+an integrality one) to say it. Benjamin used
 $(\sum v_i)^2 - \sum v_i^2 = 0$, which forces all but one variable in a
-group to zero ([message 6913](https://groups.io/g/eternity2/message/6913))
-— and the moment he added it, convergence died: the system "stalls at higher
+group to zero ([message 6913](https://groups.io/g/eternity2/message/6913)),
+and the moment he added it, convergence died: the system "stalls at higher
 values which resemble results like 420-440 / 480 correct edges"
 ([message 6905](https://groups.io/g/eternity2/message/6905)).
 
@@ -161,7 +161,7 @@ compresses this into one line, listing among his tried approaches
 "Assignment problem (integral solutions)" followed by "Assignment problem
 with side constraints (not necessarily integral solutions)"
 ([message 8791](https://groups.io/g/eternity2/message/8791)). The side
-constraints — the edges, the actual puzzle — are precisely what breaks the
+constraints (the edges, the actual puzzle) are precisely what breaks the
 guarantee. Eternity II is an easy assignment problem welded to a hard
 coupling, and the relaxation quietly optimizes only the easy half.
 
@@ -175,21 +175,21 @@ integrality lands in the mid-400s. The campaigns, in order:
 | Year | Who | Model | Where it stopped | Msg |
 | --- | --- | --- | --- | --- |
 | 2007 | Günter Stertenbrink | Max-clique, 262,144 vertices | Framing only; never scaled | [166](https://groups.io/g/eternity2/message/166), [627](https://groups.io/g/eternity2/message/627) |
-| 2007 | dmitri_ulitski | ILP (glpsol) on rotation sets | Solved — ~5 s per set; the subproblem is easy | [3320](https://groups.io/g/eternity2/message/3320) |
+| 2007 | dmitri_ulitski | ILP (glpsol) on rotation sets | Solved in ~5 s per set; the subproblem is easy | [3320](https://groups.io/g/eternity2/message/3320) |
 | 2008 | Vlasta | ILP, 160,254 binaries | "Applicable only for 8x8 puzzles"; switched to SAT, reached 428 | [5602](https://groups.io/g/eternity2/message/5602) |
 | 2008–09 | Andrew (bozmo2004) | Continuous ascent, Newton–Raphson over ~250k weights | ~800,000 days projected with his VBA prototype | [5304](https://groups.io/g/eternity2/message/5304), [6911](https://groups.io/g/eternity2/message/6911) |
 | 2009 | Benjamin (okifinoki) | LP, ~50,000 vars, 7,952 constraints | Zero error in ~10 s, fractional; forced integral: stalls at 420–440/480 | [6905](https://groups.io/g/eternity2/message/6905), [6913](https://groups.io/g/eternity2/message/6913) |
-| 2009–10 | Jimmy Timmermans | Toric ideals; AMPL/CPLEX BIP, 272,704 then 153k vars | Singular's 32k-variable limit; a 12x12 "solved" at 5.3% infeasibility — converges, integrality doesn't | [6716](https://groups.io/g/eternity2/message/6716), [6728](https://groups.io/g/eternity2/message/6728), [6745](https://groups.io/g/eternity2/message/6745), [8077](https://groups.io/g/eternity2/message/8077) |
+| 2009–10 | Jimmy Timmermans | Toric ideals; AMPL/CPLEX BIP, 272,704 then 153k vars | Singular's 32k-variable limit; a 12x12 "solved" at 5.3% infeasibility (converges, integrality doesn't) | [6716](https://groups.io/g/eternity2/message/6716), [6728](https://groups.io/g/eternity2/message/6728), [6745](https://groups.io/g/eternity2/message/6745), [8077](https://groups.io/g/eternity2/message/8077) |
 | 2010 | Vlasta | MILP (164,256 booleans) converted to SAT | 8x8 in ~1 min; parity with backtrackers, no further | [7858](https://groups.io/g/eternity2/message/7858) |
 | 2008–10 | David Munjak | Side-constrained assignment, fractional values as probabilities | 200–224 pieces placed, then a detected dead end; never backtracked | [8791](https://groups.io/g/eternity2/message/8791) |
-| 2012 | Wauters group | Hyper-heuristic (peer-reviewed) | 461/480 in one hour — the academic line | [9023](https://groups.io/g/eternity2/message/9023) |
-| 2012 | Tony Wauters | MILP for rotation sets | Milliseconds — again, the easy subproblem | [9071](https://groups.io/g/eternity2/message/9071) |
+| 2012 | Wauters group | Hyper-heuristic (peer-reviewed) | 461/480 in one hour (the academic line) | [9023](https://groups.io/g/eternity2/message/9023) |
+| 2012 | Tony Wauters | MILP for rotation sets | Milliseconds; again, the easy subproblem | [9071](https://groups.io/g/eternity2/message/9071) |
 | 2017 | Salassa, Vancroonenburg, Wauters et al. | MILP + Max-Clique formulations | "Computationally intractable for medium and large sized instances"; recycled as heuristic decompositions | [9683](https://groups.io/g/eternity2/message/9683), [arXiv](https://arxiv.org/abs/1709.00252) |
 | 2025 | Marcus Garvie | Modern ILP | 10x10 with 6 colours in ~19 min; full E2 out of reach | [11502](https://groups.io/g/eternity2/message/11502) |
 
-Three readings of the table. First, notice where ILP *wins*: rotation sets —
-fix only each piece's orientation so the directional edge counts balance —
-fell to `glpsol` in five seconds in 2007 and to CPLEX in milliseconds in
+Three readings of the table. First, notice where ILP *wins*: rotation sets,
+where you fix only each piece's orientation so the directional edge counts
+balance, fell to `glpsol` in five seconds in 2007 and to CPLEX in milliseconds in
 2012. When the integer structure is genuinely easy, the solver says so
 immediately; the full puzzle's silence is a verdict, not a tooling problem.
 Second, the plateau numbers agree across totally different machinery:
@@ -198,46 +198,46 @@ mismatch-free by iterated assignment, the Wauters group's 461 with an hour
 of metaheuristic repair on top. Everything optimizer-shaped lands in the
 same mid-400s band that plain
 [local search](/research/build/concepts/local-search-alns) reaches without
-any LP at all. Third, the 2017 paper — the strongest academic treatment,
-with both a MILP and a Max-Clique formulation — concedes intractability in
+any LP at all. Third, the 2017 paper, the strongest academic treatment,
+with both a MILP and a Max-Clique formulation, concedes intractability in
 its abstract and pivots to using the formulations *inside* heuristics. The
 road's own builders posted the detour sign.
 
 The bound side of the story has the same shape and lives on the
 [dead-ends ledger](/research/build/dead-ends): this project's measured LP
-ceiling sits around 478 while the best real boards sit near 458 — a gap far
+ceiling sits around 478 while the best real boards sit near 458, a gap far
 too wide to certify anything, for exactly the fractional-hedging reason
 above.
 
 ## What it costs
 
-- **The LP: polynomial, honestly fast.** Interior-point methods solve
+- **The LP: polynomial, genuinely fast.** Interior-point methods solve
   linear programs in polynomial time; on models of this size (50k–270k
   variables, thousands to hundreds of thousands of constraints) modern
   solvers finish in seconds to minutes. This is the one genuinely cheap
   object on the page.
 - **The ILP: NP-hard, and not abstractly.** Branch-and-bound is
-  backtracking with an LP bound at every node — worst-case exponential, and
+  backtracking with an LP bound at every node: worst-case exponential, and
   an instance [built at the hardness peak](/research/why/phase-transition)
   is engineered to realize the worst case. The measured form of the cost:
   a solver that handles 8x8 (64 pieces) returns nothing on 16x16, because
   the tree under the root is squared, not doubled.
 - **The integrality gap is the real currency.** The whole method's value is
   the distance between the LP optimum and the best integer solution. Here
-  that distance is roughly 478 versus 458-and-stalling — the relaxation
+  that distance is roughly 478 versus 458-and-stalling: the relaxation
   spends its polynomial budget answering a question about a different,
   fractional puzzle. Cutting planes exist to buy the gap down; nobody has
   reported cuts that close a dent of it on E2, and the per-seam structure
   that fakes matches regenerates the slack everywhere.
 - **Branch-and-bound prunes with the bound it has.** A node is cut only
   when its LP bound falls below the incumbent. With the bound floating ~20
-  edges above anything real, almost nothing prunes — the exact analogue of
+  edges above anything real, almost nothing prunes: the exact analogue of
   wide, useless learned clauses in
   [CDCL](/research/build/concepts/sat-csp-encodings), one road over.
 
 ## What LP and MIP are still for
 
-The honest conclusion is relocation, not dismissal — the same one the
+The fair conclusion is relocation, not dismissal, the same one the
 [SAT page](/research/build/concepts/sat-csp-encodings) reaches for CDCL.
 
 - **Bounds, stated with their error bars.** The relaxation *is* a valid
@@ -246,7 +246,7 @@ The honest conclusion is relocation, not dismissal — the same one the
   nobody re-derives it expecting a certificate.
 - **Assignment subproblems, where integrality is free.** Inside repair
   loops, refilling $k$ pairwise non-adjacent holes is a pure $k \times k$
-  assignment problem — Birkhoff's polytope, integral vertices, Hungarian
+  assignment problem: Birkhoff's polytope, integral vertices, Hungarian
   algorithm in $O(k^3)$. That is Schaus's Eternity II neighborhood, and it
   is the one place on this wiki where the optimizer's machinery runs at
   full power: see
@@ -254,14 +254,14 @@ The honest conclusion is relocation, not dismissal — the same one the
 - **Easy integer subproblems, dispatched instantly.** Rotation sets by MILP
   in milliseconds ([message 9071](https://groups.io/g/eternity2/message/9071))
   is the pattern: when a sub-question has tractable structure, a MIP solver
-  is the fastest honest way to settle it — including settling that the
+  is the fastest reliable way to settle it, including settling that the
   answer doesn't help.
 - **Infeasibility as a theorem.** An ILP that comes back infeasible on a
-  pinned region proves the same impossibility a SAT UNSAT call does — the
+  pinned region proves the same impossibility a SAT UNSAT call does: the
   certificate currency behind the
   [rigidity wall](/research/why/rigidity-wall). This project mints those
   certificates with SAT, which is faster on this encoding; a MIP solver is
-  a legitimate second mint, and Munjak's placer used exactly that signal —
+  a legitimate second mint, and Munjak's placer used exactly that signal,
   "identifying an issue that would prevent all 256 pieces from being
   placed" ([message 8791](https://groups.io/g/eternity2/message/8791)).
 - **Formulations as neighbourhood generators.** The 2017 paper's lasting
@@ -273,7 +273,7 @@ The honest conclusion is relocation, not dismissal — the same one the
 
 The optimizer's road, walked to its end, teaches one clean fact about
 Eternity II: the puzzle is exactly the integrality constraint. Everything
-linear about it — the flows, the balances, the assignment skeleton — is
+linear about it, the flows, the balances, the assignment skeleton, is
 polynomial and was solved by 2009, to zero error, in ten seconds. What
 remains is the requirement that every piece be somewhere *whole*, once. The
 relaxation's cheerful fractional board is the sharpest picture anyone has

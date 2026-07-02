@@ -3,8 +3,8 @@ title: Couverture exacte et dancing links
 description: >-
   Eternity II s'énonce proprement comme un problème de couverture exacte, et
   l'algorithme X de Knuth avec ses dancing links est la machine classique
-  pour cela. Là où il brille vraiment — petits plateaux, dénombrement
-  exhaustif — et les deux raisons pour lesquelles il ne casse pas le 16×16 :
+  pour cela. Là où il brille vraiment (petits plateaux, dénombrement
+  exhaustif) et les deux raisons pour lesquelles il ne casse pas le 16×16 :
   un arbre de recherche intact, et aucun crédit partiel.
 kind: concept
 order: 30
@@ -30,25 +30,25 @@ Eternity II tombe dans la couverture exacte presque tout seul. Un problème de
 couverture exacte demande : étant donné un ensemble d'éléments et une
 collection d'options couvrant chacune quelques éléments, choisir des options
 telles que chaque élément soit couvert *exactement une fois*. Les pavages de
-pentominos, le sudoku et les n-reines sont les clients d'école — et
+pentominos, le sudoku et les n-reines sont les clients d'école, et
 l'appariement d'arêtes habite la porte à côté.
 
 ## Le plateau comme couverture exacte
 
 Prenez 512 éléments : un par case (« la case $c$ est remplie ») et un par
 pièce (« la pièce $p$ est utilisée »). Chaque option est un placement
-concret — la pièce $p$ dans la case $c$ en rotation $r$ — couvrant exactement
+concret, la pièce $p$ dans la case $c$ en rotation $r$, couvrant exactement
 deux éléments : sa case et sa pièce. Une sélection d'options couvrant chaque
 élément exactement une fois est très exactement un plateau où chaque case est
 remplie et chaque pièce sert une fois.
 
 Ce que la couverture exacte pure ne sait pas dire, c'est que les bords qui se
 touchent doivent s'accorder. L'extension de Knuth lui-même s'en charge : XCC,
-la couverture exacte avec couleurs, où des éléments secondaires — ici, un par
-arête intérieure de la grille — portent une couleur, et où deux options ne
+la couverture exacte avec couleurs, où des éléments secondaires (ici, un par
+arête intérieure de la grille) portent une couleur, et où deux options ne
 peuvent partager un élément secondaire que si elles lui donnent la même
 couleur. Une solution XCC complète est alors exactement un plateau
-Eternity II parfait. L'encodage est honnête : rien du puzzle n'est
+Eternity II parfait. L'encodage est fidèle : rien du puzzle n'est
 approximé en route.
 
 ## L'algorithme X, et pourquoi les liens dansent
@@ -62,8 +62,8 @@ passer à l'option suivante.
 Les dancing links (DLX) sont la structure de données qui rend la
 restauration élégante. La matrice des options vit dans des listes doublement
 chaînées circulaires, et retirer un élément tient en deux écritures de
-pointeurs — `left.right = right; right.left = left` — qui, point crucial,
-laissent intacts les pointeurs du nœud retiré. Défaire le retrait, ce sont
+pointeurs, `left.right = right; right.left = left`, qui laissent
+intacts les pointeurs du nœud retiré. Défaire le retrait, ce sont
 les deux mêmes écritures à l'envers. Le retour arrière devient de la
 chirurgie de pointeurs sans aucune copie, et la mémoire touchée est
 exactement proportionnelle au travail accompli. C'est l'un des algorithmes
@@ -75,7 +75,7 @@ est un vrai plaisir de lecture.
 Voici la recherche complète sur l'instance même que Knuth prend dans son
 article : sept éléments A–G, six options R1–R6, exactement une solution.
 Avancez pas à pas et observez les trois gestes qui composent tout
-l'algorithme — choisir la colonne la plus vide, la couvrir (colonnes et
+l'algorithme : choisir la colonne la plus vide, la couvrir (colonnes et
 lignes se détachent du treillis), et, en cas d'échec, découvrir en ordre
 inverse (les mêmes liens se recousent). L'impasse sur la colonne E est le
 moment à savourer lentement : tout ce que la mauvaise hypothèse avait retiré
@@ -86,7 +86,7 @@ lien.
 
 Remarquez ce qui n'arrive jamais : aucune copie, aucune reconstruction, aucun
 parcours pour savoir quoi restaurer. Les nœuds retirés gardent leurs propres
-pointeurs pendant qu'ils sont détachés — c'est là toute l'astuce — si bien
+pointeurs pendant qu'ils sont détachés, et c'est là toute l'astuce, si bien
 que défaire une couverture coûte aussi peu que la faire.
 
 ## Pas à pas
@@ -94,46 +94,46 @@ que défaire une couverture coûte aussi peu que la faire.
 La même exécution, en toutes lettres. La matrice est R1 \{C,E,F\}, R2 \{A,D,G\},
 R3 \{B,C,F\}, R4 \{A,D\}, R5 \{B,G\}, R6 \{D,E,G\} :
 
-1. **Choisir la colonne A** — deux options vivantes, à égalité au minimum ;
+1. **Choisir la colonne A.** Deux options vivantes, à égalité au minimum ;
    l'échec d'abord commande de brancher sur l'élément le plus contraint. On
    essaie sa première option, R2 \{A,D,G\} : couvrir les colonnes A, D et G.
    Chaque ligne qui les touche (R2, R4, R5, R6) se détache.
 2. **Récurser.** Seules R1 et R3 survivent. La colonne B n'a plus qu'une
-   option vivante — on la choisit, on essaie R3 \{B,C,F\} : couvrir B, C, F,
+   option vivante, donc on la choisit, on essaie R3 \{B,C,F\} : couvrir B, C, F,
    ce qui détache R1.
 3. **Impasse.** La colonne E reste à couvrir et aucune option vivante ne la
-   couvre. Cette branche ne pourra jamais aboutir — aucune descente
+   couvre. Cette branche ne pourra jamais aboutir : aucune descente
    supplémentaire n'est même tentée.
-4. **La danse.** Découvrir F, C, B, puis G, D, A — ordre exactement inverse,
+4. **La danse.** Découvrir F, C, B, puis G, D, A, ordre exactement inverse,
    chaque restauration en miroir du retrait. La matrice revient bit à bit à
    son état initial, sans avoir été sauvegardée nulle part.
 5. **Essayer l'autre option de A, R4 \{A,D\}.** Couvrir A, D. La colonne E n'a
    plus qu'une option vivante, R1 \{C,E,F\} : couvrir C, E, F. La colonne B n'a
    plus que R5 \{B,G\} : couvrir B, G.
-6. **Plus aucune colonne** — chaque élément couvert exactement une fois.
+6. **Plus aucune colonne**, chaque élément couvert exactement une fois.
    Solution : R1 + R4 + R5, trouvée à profondeur 3 avec une seule impasse. La
    recherche remonte ensuite entièrement, vérifie qu'aucune autre branche
-   n'existe, et annonce exactement une solution — cette certitude
+   n'existe, et annonce exactement une solution, et cette certitude
    d'exhaustivité est tout le produit.
 
 ## Ce que ça coûte
 
-Le registre honnête a deux lignes très différentes :
+Le registre a deux lignes très différentes :
 
 - **Le problème est NP-complet.** La couverture exacte figure sur la liste
   originelle de Karp (1972) : aucun algorithme polynomial n'est connu, et
-  l'algorithme X est exponentiel dans le pire cas — c'est une recherche
+  l'algorithme X est exponentiel dans le pire cas : c'est une recherche
   arborescente complète, dont l'arbre peut croître comme le produit des
   branchements à chaque niveau.
 - **C'est la structure de données qui est bon marché.** DLX rend chaque
-  retrait de lien et chaque restauration $O(1)$ — deux écritures de
-  pointeurs, avec un défaire exact — si bien que le temps total est $O(1)$
+  retrait de lien et chaque restauration $O(1)$ : deux écritures de
+  pointeurs, avec un défaire exact, si bien que le temps total est $O(1)$
   par lien touché, proportionnel à l'arbre que la recherche explore
   réellement. Les dancing links achètent un facteur constant superbe et un
   coût de restauration nul ; ils ne retranchent pas un seul nœud à l'arbre.
 
 À l'échelle d'Eternity II : la matrice XCC elle-même est parfaitement
-gérable — 512 éléments primaires (256 cases + 256 pièces), 480 éléments
+gérable : 512 éléments primaires (256 cases + 256 pièces), 480 éléments
 secondaires pour les arêtes intérieures et leurs 22 couleurs, et au plus
 $256 \times 256 \times 4 = 262\,144$ options avant symétries et élagage du
 bord. La construire est l'affaire de quelques minutes. C'est l'arbre
@@ -152,7 +152,7 @@ de petits plateaux d'appariement d'arêtes, il fait exactement cela :
 énumération complète avec d'excellentes constantes, aucune solution manquée,
 aucun état répété. Compter les remplissages complets de petites régions,
 vérifier qu'un mini-puzzle généré a une solution unique, contre-vérifier les
-comptes exhaustifs d'un autre solveur — c'est son terrain, et rien
+comptes exhaustifs d'un autre solveur : c'est son terrain, et rien
 d'heuristique n'y rivalise.
 
 Une note de terrain du projet, offerte comme avertissement plutôt que comme
@@ -160,7 +160,7 @@ résultat : une implémentation XCC écrite ici de zéro s'est validée propreme
 sur les n-reines et des plateaux triviaux, puis a passé des jours cassée sur
 tout ce qui était plus grand, parce que l'interaction entre la purification
 par couleurs et la restauration cover/uncover est réellement subtile. Si vous
-la construisez, suivez l'algorithme publié de Knuth à la lettre — mesuré sur
+la construisez, suivez l'algorithme publié de Knuth à la lettre, mesuré sur
 le moteur de ce projet, au sens où les rapports de bogues étaient les nôtres.
 
 ## Pourquoi il ne casse pas le 16×16
@@ -171,17 +171,17 @@ Deux murs indépendants, dont chacun suffirait.
 elle ne la rétrécit pas. Le choix de l'élément le moins couvert est un bon
 ordre de variables, mais
 [aucun coup n'est jamais forcé](/research/why/no-forced-moves) sur ce
-puzzle — l'élément le plus contraint offre encore des dizaines d'options
+puzzle : l'élément le plus contraint offre encore des dizaines d'options
 vivantes très loin dans la recherche, si bien que le branchement reste énorme
 jusqu'en bas, sur un espace couramment estimé vers $10^{100}$ plateaux. Un
 moteur DLX parcourt cet arbre complètement ou pas utilement du tout ; et sa
-boucle interne, qui court après des pointeurs, est bornée par la mémoire —
+boucle interne, qui court après des pointeurs, est bornée par la mémoire,
 un ordre de grandeur derrière les moteurs à tableaux réglés pour le cache
 des [backtrackers à records](/research/build/solvers/blackwood).
 
 **Aucun crédit partiel.** DLX répond à une seule question : couvert
 exactement, ou non. Toute l'économie d'Eternity II tourne sur des scores
-partiels — 467, 469, 470 — et sur des recherches qui tolèrent délibérément
+partiels (467, 469, 470) et sur des recherches qui tolèrent délibérément
 quelques arêtes défaillantes pour y parvenir. La couverture exacte n'a aucun
 moyen natif de laisser une arête dépareillée contre pénalité ; la relâcher à
 ce point revient à la reconstruire en branch-and-bound, et l'élégance qui la
@@ -190,7 +190,7 @@ justifiait s'est alors évaporée.
 ## Verdict
 
 Gardez DLX sur l'étagère pour ce qu'il est : l'instrument exhaustif.
-Dénombrement, preuves d'unicité, vérité de terrain sur petits plateaux —
+Dénombrement, preuves d'unicité, vérité de terrain sur petits plateaux :
 imbattable, et digne du soin d'implémentation qu'il exige. Comme attaque du
 puzzle complet, c'est une [impasse](/research/build/dead-ends), pour des
 raisons structurelles qu'aucune constante ne corrigera : l'arbre qu'il doit

@@ -191,14 +191,14 @@ deux murs plutôt que de les nier : une « pré-résolution » en largeur énum�
 sur le GPU lui-même toutes les solutions partielles des 14 à 18 premières
 tuiles (3,3 millions de préfixes de deux rangées pour le 7x7 ; 155,8
 millions de préfixes de 16 tuiles pour le 9x9), chacune compressée en 20
-octets — un masque de pièces utilisées sur 96 bits plus douze couleurs de 5
-bits — avant qu'un balayage massivement parallèle ne termine chaque préfixe
+octets (un masque de pièces utilisées sur 96 bits plus douze couleurs de 5
+bits) avant qu'un balayage massivement parallèle ne termine chaque préfixe
 ([message 9814](https://groups.io/g/eternity2/message/9814),
 [message 9819](https://groups.io/g/eternity2/message/9819)). État uniforme,
 état minuscule, aucun dialogue. Le 7x7 set 1 de Brendan tombe de 74 à 25
 puis 14 secondes, contre 529 secondes pour son CPU optimisé ; le 8x8 prend
 248 secondes. Le solveur OpenCL de Barr, sur une GTX 1060, fait le même 7x7
-en 73 secondes, et les deux échangent leurs notes de conception de noyau —
+en 73 secondes, et les deux échangent leurs notes de conception de noyau :
 la cartographie exacte de la déception des téraflops
 ([message 9818](https://groups.io/g/eternity2/message/9818)). Miles réécrit
 le tout en 2020 sur un matériel haut de gamme qu'il n'a pas encore le droit
@@ -208,8 +208,8 @@ de nommer
 
 **Joshua Blackwood (2020).** L'auteur des plateaux records a mesuré un
 portage GPU pendant la campagne qui a produit la famille 468–470, au même
-titre que les solveurs SAT et le cache de blocs 2x2 — « j'ai mesuré tout ce
-que j'ai fait » — et n'a rien gardé de tout cela. Seul le raffinement des
+titre que les solveurs SAT et le cache de blocs 2x2 (« j'ai mesuré tout ce
+que j'ai fait ») et n'a rien gardé de tout cela. Seul le raffinement des
 heuristiques a payé, environ un facteur 2 de plus
 ([message 10056](https://groups.io/g/eternity2/message/10056)). Le
 catalogue complet de ce qu'il a écarté est sur la
@@ -218,7 +218,7 @@ catalogue complet de ce qu'il a écarté est sur la
 **David Barr, encore (2025).** Le point de mesure moderne : son solveur
 Python/OpenCL en profondeur d'abord, sur une RTX 4090 louée (vast.ai,
 0,25–0,34 $ de l'heure), fouille environ **3,17 milliards de placements par
-seconde** sur le 10x10 de Brendan — et, selon ses propres mots, le code
+seconde** sur le 10x10 de Brendan et, selon ses propres mots, le code
 actuel « ne fonctionne pas bien avec le puzzle Eternity complet à cause de
 limitations mémoire »
 ([message 11598](https://groups.io/g/eternity2/message/11598)). Quatorze ans
@@ -235,38 +235,38 @@ toujours avec la réserve de Field agrafée dessus.
 | valy / 21valy (2011) | carte à 80 SP, puis Radeon 5770 | Sous-puzzle 4x4 jouet porté en OpenCL : 4 s en C mono-cœur contre 60 s sur GPU ; code partagé | [8982](https://groups.io/g/eternity2/message/8982), [8994](https://groups.io/g/eternity2/message/8994) |
 | Mike Field (2011) | (analyse) | L'argument négatif : coopérer exige une bande passante que le GPU n'a pas ; l'indépendance exige >8 Ko d'état par thread ; aucun ordre de grandeur disponible | [9003](https://groups.io/g/eternity2/message/9003), [9004](https://groups.io/g/eternity2/message/9004) |
 | David Barr (2015) | Radeon HD 7870, PyOpenCL | Premier solveur GPU fonctionnel publié ; une première rangée du 10x10 fouillée en 3 h 46 ; open source | [9360](https://groups.io/g/eternity2/message/9360), [9367](https://groups.io/g/eternity2/message/9367) |
-| Adam Miles (2018) | Xbox One X, compute DX12 | 7x7 set 1 en 14 s (CPU : 529 s) ; le 9x9 set 1 re-vérifié exhaustivement en 25 h 24 — exactement les 2 solutions connues | [9811](https://groups.io/g/eternity2/message/9811), [9822](https://groups.io/g/eternity2/message/9822) |
+| Adam Miles (2018) | Xbox One X, compute DX12 | 7x7 set 1 en 14 s (CPU : 529 s) ; le 9x9 set 1 re-vérifié exhaustivement en 25 h 24, exactement les 2 solutions connues | [9811](https://groups.io/g/eternity2/message/9811), [9822](https://groups.io/g/eternity2/message/9822) |
 | David Barr (2018) | GTX 1060, OpenCL | 7x7 set 1 en 73 s ; échange de notes de conception de noyau avec Miles | [9818](https://groups.io/g/eternity2/message/9818) |
 | Adam Miles (2020) | GPU haut de gamme non annoncé | Réécriture « nettement plus rapide » ; lucide sur le 16x16 complet, hors de portée | [9994](https://groups.io/g/eternity2/message/9994), [9996](https://groups.io/g/eternity2/message/9996), [9998](https://groups.io/g/eternity2/message/9998) |
-| Joshua Blackwood (2020) | GPU non précisé | Mesuré pendant la campagne des records 468–470 ; non retenu — seules les heuristiques ont payé | [10056](https://groups.io/g/eternity2/message/10056) |
+| Joshua Blackwood (2020) | GPU non précisé | Mesuré pendant la campagne des records 468–470 ; non retenu, seules les heuristiques ont payé | [10056](https://groups.io/g/eternity2/message/10056) |
 | David Barr (2025) | RTX 4090 louée (vast.ai) | ~3,17 Mds placements/s sur le 10x10 de Brendan à ~0,30 $/h ; le vrai E2 bute sur la mémoire | [11598](https://groups.io/g/eternity2/message/11598) |
 
-## Lire les chiffres honnêtement
+## Ce que les chiffres disent vraiment
 
 Posez les 3,17 milliards de placements par seconde de Barr à côté des
-chiffres CPU de la communauté — environ 70–90 M/s pour un cœur bien réglé,
+chiffres CPU de la communauté (environ 70–90 M/s pour un cœur bien réglé,
 225–295 M/s pour le C généré de McGavin sur le matériel le plus récent (le
 registre complet est sur la
-[page d'ingénierie des solveurs](/research/build/concepts/solver-engineering))
-— et le meilleur résultat GPU vaut entre dix et quarante cœurs de CPU. C'est
+[page d'ingénierie des solveurs](/research/build/concepts/solver-engineering)),
+et le meilleur résultat GPU vaut entre dix et quarante cœurs de CPU. C'est
 une constante réelle et utile. Mais ce n'est *qu'une* constante, obtenue sur
 un petit puzzle où l'état par thread reste minuscule, et elle se dégrade vers
 l'analyse de Field précisément quand le plateau grandit vers les vraies 256
-pièces. L'estimation de James en 2007 — « 4 ou 5 fois » — était fausse ; le
-rapport de téraflops — un facteur mille — l'était bien davantage, et dans
+pièces. L'estimation de James en 2007, « 4 ou 5 fois », était fausse ; le
+rapport de téraflops, un facteur mille, l'était bien davantage, et dans
 l'autre sens.
 
 Une constante, ici, a un sens précis :
 [pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)
 en fait l'arithmétique, et la [page des impasses](/research/build/dead-ends)
-en consigne le verdict — le même algorithme, plus vite, heurte le même mur
+en consigne le verdict : le même algorithme, plus vite, heurte le même mur
 un peu plus tôt.
 
 ## Là où les GPU brillent vraiment
 
-Reste l'autre moitié honnête. Le 25 février 2018, la Xbox One X de Miles
+Reste l'autre moitié du bilan. Le 25 février 2018, la Xbox One X de Miles
 achève de parcourir l'**intégralité** de l'arbre de recherche du 9x9 set 1
-de Brendan en 25 heures et 24 minutes, trouvant exactement 2 solutions — à
+de Brendan en 25 heures et 24 minutes, trouvant exactement 2 solutions, à
 22 % et 32 % du parcours, après quoi la machine a passé dix-sept heures de
 plus à prouver qu'il n'y en avait pas d'autres
 ([message 9822](https://groups.io/g/eternity2/message/9822)). Cela a
@@ -287,7 +287,7 @@ deuil. Un GPU ne trouvera pas la solution : trois praticiens de l'ère des
 records l'ont mesuré indépendamment, et l'argument qui l'explique tient
 depuis 2011. Mais si votre tâche est de re-vérifier un recensement,
 d'énumérer des rangées ou des blocs, ou de balayer exhaustivement un
-sous-puzzle borné — forme fixe, état minuscule, travail uniforme — une 4090
-louée trente centimes de l'heure est le calcul honnête le moins cher que ce
+sous-puzzle borné (forme fixe, état minuscule, travail uniforme), une 4090
+louée trente centimes de l'heure est le calcul le moins cher que ce
 problème ait jamais connu. Pointez le GPU vers ce qu'il est : non pas un
 chercheur plus profond, mais un compteur très rapide.
