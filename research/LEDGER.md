@@ -645,3 +645,21 @@ its announcement message; no internal vault basin analyses used. This closes
 the SITE_PLAN's "basins gallery" item with a fully public-sourced version.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (151 paths) ✓ link check (108 files).
+
+### 2026-07-02 — McGavin's engine deep dive + who's who; the wiki corrects itself again
+
+/research/build/solvers/mcgavin: the throughput story mined from his own
+posts — a 2007→2026 timeline of sourced figures (Field's 2007 recipe msg
+3098 as the acknowledged base, 44-105M nps single-core across CPU eras, the
+10,160M/s dual-Xeon table msg 11369), the three-machines lineage (his
+auto-generated C engines; Blackwood's solver run AS-IS for the 469; his
+complex-theory implementations incl. the 25x lookahead msg 9751), closing
+on the prune-vs-speed lesson. TWO of our claims fell to the sourcing pass:
+"~295M nps" is Joe's measurement of McGavin's code (msg 11750), not
+McGavin's own figure, and the solvers hub's "heavily optimized version" for
+the 469 was unsupported (msg 10045: ran as released) — both corrected.
+
+/research/people: who's who of E2 research — 25 full entries + 9 roll-call,
+era-grouped, every contribution message-linked, identities only as stated
+on-list (Wolz via msg 2972; Verhaard/Karlsson via his own msgs), Raphaël one
+line among the others. Closes inviting corrections via the list.

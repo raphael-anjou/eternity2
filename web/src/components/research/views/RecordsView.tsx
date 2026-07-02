@@ -100,7 +100,7 @@ const T = {
     castTitle: "Cast of contributors",
     castNote: "A non-exhaustive who's-who of the people behind the records and the infrastructure.",
     cast: [
-      ["Peter McGavin", "First verified 469 on the canonical puzzle; ~295M nps C engine; scan-order theory."],
+      ["Peter McGavin", "The 469 (2020, Blackwood's solver on ~200 cores); his own auto-generated C engines and the complex-theory implementations — the community's throughput and theory anchor."],
       ["Joshua Blackwood", "The 469/470-class algorithm (heuristic schedule + break-index); the modern standard."],
       ["Jef Bucas", "libblackwood (a C port of Blackwood's solver) and bucas.name — the board viewer + URL format the community shares boards in."],
       ["Louis Verhaard", "The 467 record (2008) and set-composition swap-annealing."],
@@ -157,7 +157,7 @@ const T = {
     castTitle: "Les contributeurs",
     castNote: "Un who's-who non exhaustif des personnes derrière les records et l'infrastructure.",
     cast: [
-      ["Peter McGavin", "Premier 469 vérifié sur le puzzle canonique ; moteur C ≈295M nps ; théorie de l'ordre de balayage."],
+      ["Peter McGavin", "Le 469 (2020, solveur de Blackwood sur ~200 cœurs) ; ses moteurs C auto-générés et ses implémentations de la théorie complexe — l'ancre débit et théorie de la communauté."],
       ["Joshua Blackwood", "L'algorithme de classe 469/470 (schedule heuristique + break-index) ; le standard moderne."],
       ["Jef Bucas", "libblackwood (un port C du solveur de Blackwood) et bucas.name — le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
       ["Louis Verhaard", "Le record 467 (2008) et le recuit par composition de jeux."],
