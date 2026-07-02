@@ -86,7 +86,7 @@ const T = {
       {
         year: "July 2007",
         title: "Eternity II launches worldwide",
-        text: "256 pieces, 22 edge motifs, published by Tomy. Prize: $2,000,000 for the first complete solution. Two companion 'clue puzzles' reveal hint placements.",
+        text: "256 pieces, 22 edge motifs, published by Tomy. Prize: $2,000,000 for the first complete solution. Four companion 'clue puzzles' each revealed a hint placement.",
       },
       {
         year: "2008",
@@ -168,8 +168,8 @@ const T = {
     cluesText1: (
       <>
         The rules sheet pins one piece, <strong>piece 139 at square I8</strong>, and Tomy sold
-        two smaller "clue puzzles" that each revealed another placement, plus two more published
-        later. A board that respects all five is called <strong>strict-canonical</strong>; most
+        four smaller "clue puzzles" (two in 2007, two in 2008) that each revealed
+        another placement. A board that respects all five is called <strong>strict-canonical</strong>; most
         record boards only respect the mandatory center clue, which is why the best board with all
         five clues (460, Bruno Gauthier) trails the open canonical record (470).
       </>
@@ -296,7 +296,7 @@ const T = {
       {
         year: "Juillet 2007",
         title: "Eternity II débarque dans le monde entier",
-        text: "256 pièces, 22 motifs de côté, le tout édité par Tomy. À la clé : 2 millions de dollars pour la première solution complète. Deux petits « puzzles indices », vendus séparément, dévoilent chacun la place d'une pièce.",
+        text: "256 pièces, 22 motifs de côté, le tout édité par Tomy. À la clé : 2 millions de dollars pour la première solution complète. Quatre petits « puzzles indices », vendus séparément, dévoilaient chacun la place d'une pièce.",
       },
       {
         year: "2008",
@@ -382,8 +382,8 @@ const T = {
     cluesText1: (
       <>
         La règle du jeu fige d'office une pièce, <strong>la pièce 139 sur la case I8</strong>.
-        Tomy a par ailleurs commercialisé deux petits « puzzles indices », qui dévoilaient chacun
-        un placement supplémentaire, et deux autres indices ont suivi plus tard. Un plateau qui
+        Tomy a par ailleurs commercialisé quatre petits « puzzles indices » (deux en 2007,
+        deux en 2008), qui dévoilaient chacun un placement supplémentaire. Un plateau qui
         respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
         records se contentent du seul indice central obligatoire, le meilleur plateau respectant
         les cinq indices (460, Bruno Gauthier) reste en deçà du record canonique libre (470).
