@@ -6,8 +6,13 @@ description: >-
   pour vous épargner des semaines.
 kind: reference
 order: 50
-updated: 2026-07-01
+updated: 2026-07-02
 topics: [search-space, learning, exact-methods]
+sources:
+  - label: "eternity2.net ferme — 1,6 TFlops, 10^19 opérations CPU, pas de solution (message groups.io 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "Max sur la propagation de probabilités — l'influence des contraintes s'estompe à deux cases (message groups.io 6208)"
+    url: https://groups.io/g/eternity2/message/6208
 related:
   - /research/build/run-it-yourself
 ---
@@ -20,6 +25,11 @@ que vous puissiez passer votre temps ailleurs.
 Chaque verdict s'ouvre sur une étiquette de solidité : **Prouvé** signifie
 qu'un théorème ou un calcul exact ferme la porte ; **Mesuré** signifie que
 nous l'avons fait tourner (ou la communauté avant nous) et regardé échouer.
+Quand le verdict vient de nos propres runs, la page « pourquoi » liée porte la
+commande exacte pour le reproduire, et
+[À vous de jouer](/research/build/run-it-yourself) donne l'installation ;
+quand la communauté y est passée avant nous, nous citons le message des
+archives.
 
 ## Casser les symétries
 
@@ -41,7 +51,13 @@ grosse, un GPU, un FPGA ou du matériel quantique.*
 l'encodage et la forme de l'espace de recherche. Les solveurs SAT sur GPU
 n'apportent au mieux qu'un petit gain constant ; les recuits quantiques ne
 montrent aucun avantage à l'échelle qu'il faudrait. Le même algorithme, en
-plus rapide, heurte le même mur un peu plus tôt.
+plus rapide, heurte le même mur un peu plus tôt. La communauté a mené
+l'expérience à grande échelle : la grille eternity2.net a mis 1,6 téraflops et
+plus de $10^{19}$ opérations CPU sur le puzzle, puis a fermé sans solution
+([msg 3511](https://groups.io/g/eternity2/message/3511)) — et l'espoir
+quantique refait surface régulièrement, de
+[2007](https://groups.io/g/eternity2/message/1446) à
+[2024](https://groups.io/g/eternity2/message/11407).
 [Pourquoi c'est un mur →](/research/why/prune-vs-speed)
 
 ## La survey propagation
@@ -53,7 +69,11 @@ aléatoires en repérant les grappes de solutions.*
 Eternity II est une grille, avec un cycle court dans chaque carré 2×2, ce qui
 ruine cette hypothèse. En pratique, les messages s'aplatissent au lieu de
 s'affûter — exactement l'inverse de ce qui fait son succès sur le SAT
-aléatoire. Aucune réussite publiée sur des puzzles en grille.
+aléatoire. Aucune réussite publiée sur des puzzles en grille. La communauté a
+remarqué l'aplatissement très tôt : dès 2008, des essais de propagation de
+probabilités de pièces constataient que l'influence des contraintes issues des
+indices et des coins semble « s'estomper » à environ deux cases de distance
+([msg 6208](https://groups.io/g/eternity2/message/6208)).
 
 ## Ordonner les coups par belief propagation
 
@@ -88,7 +108,9 @@ plusieurs cases, ce qui fabrique des accords qu'aucun vrai plateau ne peut
 réaliser. Résultat : un plafond vers 478 quand les meilleurs plateaux réels
 plafonnent vers 458 — un écart bien trop large pour certifier quoi que ce
 soit. La contrainte qui mord, l'unicité globale des pièces, est précisément
-celle que la relaxation jette.
+celle que la relaxation jette. Les formulations LP étaient sur la table de la
+communauté dès le premier été — et déjà là, un 4×4 demandait plus d'une heure
+([msg 1678](https://groups.io/g/eternity2/message/1678)).
 
 ## Apprendre une heuristique sur de petits plateaux
 
@@ -111,7 +133,12 @@ plateau complet.*
 valides autour d'une seule région se comptaient déjà en dizaines de millions,
 et combiner quatre coins atteint l'ordre de $10^{12}$ quadruplets à pièces
 disjointes. On manque de temps et de disque bien avant que les contraintes
-n'élaguent quoi que ce soit.
+n'élaguent quoi que ce soit. L'idée est d'ailleurs sans cesse redécouverte —
+les « macro-pièces » 2×2 sont revenues fin 2024, avec environ 4 millions de
+blocs avant même de parler de pièces disjointes
+([msg 11428](https://groups.io/g/eternity2/message/11428)), et les vétérans
+ont pointé des années de travaux 2×2 antérieurs dans les archives
+([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Pourquoi c'est un mur →](/research/why/rigidity-wall)
 
 ## Le bilan honnête

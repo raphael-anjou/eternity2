@@ -27,7 +27,7 @@ sources:
     url: https://groups.io/g/eternity2/message/8854
   - label: "DeVincentis's fix — one restore list per edge, plus one for used pieces (groups.io message 8886)"
     url: https://groups.io/g/eternity2/message/8886
-  - label: "Measured on the 6x6 border ring — 133,326,155 → 30,496,808 iterations (groups.io message 8875)"
+  - label: "Measured on the 6x6 border ring — 133,326,155 → 30,496,808 nodes (groups.io message 8875)"
     url: https://groups.io/g/eternity2/message/8875
   - label: "Mocsi's Failure Lookup Table, abandoned over a bug (groups.io message 8887)"
     url: https://groups.io/g/eternity2/message/8887
@@ -43,12 +43,12 @@ sources:
     url: https://groups.io/g/eternity2/message/6743
   - label: "capiman's invalid two-piece combination for the 5-hint puzzle (groups.io message 10832, 2022)"
     url: https://groups.io/g/eternity2/message/10832
-  - label: "The tally — ~68M invalid pairs found, ~8.1×10⁹ undecided, ~32,000 would pin a solution (groups.io message 10973, 2023)"
+  - label: "The tally — ~68M invalid pairs found, ~8.1×10⁹ undecided, and a solution's ~32,000 pairs must survive them all (groups.io message 10973, 2023)"
     url: https://groups.io/g/eternity2/message/10973
   - label: "An invalid 3-piece combination, dissected down to three ring-0 cells (groups.io message 11131)"
     url: https://groups.io/g/eternity2/message/11131
-  - label: "SAT as an invalidation service — shrinking a dead-end partial to 28 pieces (groups.io message 10292, 2021)"
-    url: https://groups.io/g/eternity2/message/10292
+  - label: "SAT as an invalidation service — shrinking a dead-end partial to 28 pieces (groups.io messages 10289/10292, 2021)"
+    url: https://groups.io/g/eternity2/message/10289
   - label: "capiman's CNF pipeline — 130,180 variables, cryptominisat, partials and rings (groups.io message 11822, 2026)"
     url: https://groups.io/g/eternity2/message/11822
 related:
@@ -149,16 +149,17 @@ and parked on a "restore list" attached to the earlier cell whose undoing
 would make it valid again — memoized pruning, in effect
 ([message 8854](https://groups.io/g/eternity2/message/8854)). It cut node
 counts beautifully and silently lost solutions: his 8x8 runs missed some of
-the 52 known solutions. Over thirty-plus messages McGavin built
-counterexamples ([message 8866](https://groups.io/g/eternity2/message/8866))
+the 52 known solutions. Over thirty-plus messages McGavin pressed
+objections and probing test cases
+([message 8866](https://groups.io/g/eternity2/message/8866))
 until Joseph DeVincentis diagnosed the flaw: a single restore list conflates
 *why* a piece was eliminated. Each cell needs one restore list per
 neighbouring edge plus one for pieces used elsewhere, restored at different
 moments of the backtrack
 ([message 8871](https://groups.io/g/eternity2/message/8871),
-[message 8886](https://groups.io/g/eternity2/message/8886)). With the
-bookkeeping fixed, the measured saving was real: the 6x6 border ring fell
-from 133,326,155 iterations to 30,496,808
+[message 8886](https://groups.io/g/eternity2/message/8886)). The prize the
+scheme was chasing was real — Lindström had already measured the 6x6 border
+ring falling from 133,326,155 nodes to 30,496,808
 ([message 8875](https://groups.io/g/eternity2/message/8875)). In the same
 thread Mocsi recognised his own Failure Lookup Table — spiral search,
 record the outer-colour arrangement at each forced retreat to the border,
@@ -189,9 +190,12 @@ hints, he counted ~4,500 inherently invalid single placements, estimated
 collaborators to verify and exchange "invalid placements" files any solver
 could use for early branch cutting
 ([message 6743](https://groups.io/g/eternity2/message/6743)); comparing
-possibility matrices with another member promptly caught a rotation bug via
-a 618-vs-624 discrepancy
-([message 6951](https://groups.io/g/eternity2/message/6951)).
+possibility matrices with another member
+([message 6951](https://groups.io/g/eternity2/message/6951)) promptly
+surfaced a 618-vs-624 discrepancy
+([message 6956](https://groups.io/g/eternity2/message/6956)) that Lindström
+chalked up to a rotation mix-up on his own side
+([message 6957](https://groups.io/g/eternity2/message/6957)).
 
 The modern, industrialised form is capiman's. Using a generated CNF of the
 5-hint puzzle (130,180 variables, ~4 GB, solved with an old cryptominisat —
@@ -205,19 +209,22 @@ cells it strangles
 ([message 11131](https://groups.io/g/eternity2/message/11131)). The same
 machinery ran as a service for other members: handed a dead-end partial, he
 removed pieces one by one, keeping each removal only if the SAT solver
-still answered UNSAT, and returned a 28-piece core that is already
-unextendable ([message 10292](https://groups.io/g/eternity2/message/10292))
+still answered UNSAT
+([message 10292](https://groups.io/g/eternity2/message/10292)), and returned
+a 28-piece core that is already unextendable
+([message 10289](https://groups.io/g/eternity2/message/10289))
 — which is conflict-clause minimisation performed by hand, and exactly what
 a CDCL solver does internally after every conflict.
 
 The accounting, though, is sobering and capiman published it himself: by
 February 2023 the mine held ~68 million confirmed invalid pairs, against
-roughly $8.1 \times 10^9$ pairs still undecided — and by his estimate only
-~32,000 *well-chosen* invalidations would pin down a solution
+roughly $8.1 \times 10^9$ pairs still undecided — and hiding among the
+undecided, by his estimate, sit the ~32,000 pairs of an actual solution,
+the ones no invalidation campaign is allowed to touch
 ([message 10973](https://groups.io/g/eternity2/message/10973)). Sixty-eight
 million theorems, each individually true, collectively covering under 1% of
-the pair space and none of them guaranteed to be among the 32,000 that
-matter. Learned constraints about E2 are real assets — they are just being
+the pair space — and no way to guess at the rest without risking one of the
+32,000 that must survive. Learned constraints about E2 are real assets — they are just being
 deposited into an account with astronomical liabilities. Why CDCL's
 automated version of this learning also starves on the full board — flat
 implication chains, wide late conflicts — is covered on the
@@ -274,7 +281,7 @@ that fast backtrackers have already exhausted.
 
 Shrink the board or close the search, and the same idea changes sign.
 
-- **Small boards and rings.** Lindström's fixed restore-list scheme cut the
+- **Small boards and rings.** Lindström's restore-list scheme cut the
   6x6 border ring by 4.4×
   ([message 8875](https://groups.io/g/eternity2/message/8875)). On a small
   state space the table *can* cover a meaningful fraction of reachable

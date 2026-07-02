@@ -93,10 +93,11 @@ from Tomy, the press coverage, the aftermath — belongs to
 The base loop is a depth-first backtracker over a fixed fill order — but one
 that prunes forward: branches whose heuristic score falls below a threshold
 are cut before they are explored. Verhaard described his thresholds as
-static and hand-tuned — "mostly based on pure guesswork and only [a] limited
+static and hand-tuned — "mostly based on pure guesswork and only on limited
 amount on theory or measurements," slow to tune but predictable over long
-runs (quoted in
-[groups.io message 5772](https://groups.io/g/eternity2/message/5772)).
+runs ([groups.io message 5771](https://groups.io/g/eternity2/message/5771),
+quoted back at him in
+[message 5772](https://groups.io/g/eternity2/message/5772)).
 
 What are the thresholds *for*? The design he and Max converged on in that
 exchange is the interesting part: you can only influence piece selection
@@ -114,8 +115,9 @@ way after all"
 How do you know a heuristic is strong? The measure the two settled on —
 proposed by Max, adopted by Verhaard — is where the peak of the node-depth
 distribution sits. An unheuristic full search on E2 spends most of its time
-around depth 161; both of their heuristic searches had pushed the peak to
-just under 170
+around depth 161 — Brendan Owen's baseline figure
+([message 6112](https://groups.io/g/eternity2/message/6112)); both of their
+heuristic searches had pushed the peak to just under 170
 ([message 5780](https://groups.io/g/eternity2/message/5780)). Max supplied
 the interpretation: a peak at 170 is roughly equivalent to eliminating one
 interior colour from the puzzle entirely — and a "killer heuristic" that
@@ -134,7 +136,7 @@ teeth of the comb become"
 ([groups.io message 6112](https://groups.io/g/eternity2/message/6112)). Max
 had independently converged on nearly the same geometry (twelve rows of
 scanline, then column scan) and reported his scores ran about one edge below
-"what Louis solver accomplishes"
+"the results that Louis solver accomplishes"
 ([message 6126](https://groups.io/g/eternity2/message/6126)).
 
 ## Edge slipping, gated by depth
@@ -186,7 +188,9 @@ than chain-optimized. The lineage runs through this solver.
 
 The same heuristics powered a second program with a different late-game
 move: instead of slipping an edge, it may *skip a square* — leave a cell
-empty and keep going. That is the clean-score (no mismatches) hunter. With
+empty and keep going, his own name for the move
+([message 7321](https://groups.io/g/eternity2/message/7321)). That is the
+clean-score (no mismatches) hunter. With
 it, Verhaard filled 14 complete rows plus two pieces — a 226-piece flawless
 partial, the record he knew of at the time
 ([groups.io message 6303](https://groups.io/g/eternity2/message/6303)) — and
@@ -234,7 +238,7 @@ evaluator — rather than raw vibes, at a time when that discipline was rare.
 ## Where the code lives
 
 The original home, fingerboys.se, was his band's website; when the band
-folded the site went with it, taking the solver offline for eight months.
+gave up maintaining the site, the solver went offline with it for months.
 In January 2010 Verhaard republished it, unchanged, at
 [shortestpath.se/eii](http://www.shortestpath.se/eii/)
 ([groups.io message 7439](https://groups.io/g/eternity2/message/7439)) —

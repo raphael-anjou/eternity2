@@ -11,7 +11,7 @@ order: 120
 updated: 2026-07-02
 topics: [speed]
 sources:
-  - label: "The Lebel-thread deep dive — bipieces, lookup arrays, cache (groups.io message 1704, 2007)"
+  - label: "The Lebel-thread deep dive — dissecting the era's reference C++ solver (groups.io message 1704, 2007)"
     url: https://groups.io/g/eternity2/message/1704
   - label: "Nathan's 1024-key minimal perfect hash replacing a 1M-entry array (groups.io message 1831)"
     url: https://groups.io/g/eternity2/message/1831
@@ -79,8 +79,9 @@ smaller, making its entries denser, or unrolling the code around it.
 The lookup table has a size problem when you key on more than two edges. In
 the Lebel thread, Nathan described the brute-force version: a 4-D array
 indexed by all four edge colours, `combo4[32][32][32][32]` — a million
-entries, mostly zeros, guaranteed cache misses. His fix, prompted by another
-member's pointer to Bob Jenkins's minimal-perfect-hash generator: since the
+entries, mostly zeros, guaranteed cache misses. His fix, built on Bob
+Jenkins's minimal-perfect-hash generator — a pointer he had shared with the
+list himself: since the
 256 pieces in 4 rotations produce only 1,024 distinct edge-quadruples, a
 minimal perfect hash maps the packed 32-bit key to a 1,024-entry table with
 no collisions — "small enough to fit in cache most of the time", with
@@ -116,11 +117,13 @@ If one lookup gives you candidate pieces, why not precompose pairs — 1×2
 August 2007, it worked: about 20–30% faster
 ([message 1734](https://groups.io/g/eternity2/message/1734)). But the trade
 is steep and the archive documents both sides. Going to 2×2 blocks, one
-member measured roughly 4.2× *slower* — the tables explode (about 4 million
-inner 2×2 combinations) and the cache advantage inverts
-([message 1704](https://groups.io/g/eternity2/message/1704) thread). Louis
-Verhaard reported bipieces helping "only very marginally" in his own fast
-backtracker ([message 3044](https://groups.io/g/eternity2/message/3044)).
+member measured roughly 4.2× *slower* and rejected bigger pieces outright
+([message 1730](https://groups.io/g/eternity2/message/1730)) — no surprise
+once the tables are counted: about 4 million distinct inner 2×2
+combinations ([message 3044](https://groups.io/g/eternity2/message/3044)).
+Louis Verhaard reported bipieces helping "only very marginally" in his own
+fast backtracker
+([message 3061](https://groups.io/g/eternity2/message/3061)).
 And in 2008 the list settled the theory question underneath: a metatile
 solver visits essentially the same constraint frontier as a 1×1 solver — "in
 sync every 4 pieces" — so the gain is implementation-level, never a
@@ -146,7 +149,8 @@ season the list compared notes on non-recursive backtrackers generally
 McGavin's `body.c` — labelled blocks like `cell_9_2_next:`, `goto` chains
 back into the previous cell on exhaustion, regenerated for every puzzle and
 hint set — is this idea compounded for twenty years
-([message 11751](https://groups.io/g/eternity2/message/11751)). And it works
+([message 11337](https://groups.io/g/eternity2/message/11337),
+[message 11782](https://groups.io/g/eternity2/message/11782)). And it works
 across languages: Jef Bucas's libblackwood, a Python generator emitting C,
 made Blackwood's C# algorithm roughly twice as fast on the same machine
 ([message 10065](https://groups.io/g/eternity2/message/10065),
@@ -171,13 +175,13 @@ time, because he timed both ways years ago on 32-bit hardware and the trick
 won.
 
 The same realism applies to hardware. Multithreading scales the obvious way
-— thread-pinned solvers broke 100M placements/s across cores in 2008
+— multi-core solvers broke 100M placements/s in 2008
 ([message 5804](https://groups.io/g/eternity2/message/5804)), and a single
 Core i7 hit 558M/s that December
 ([message 6212](https://groups.io/g/eternity2/message/6212)) — but
 single-core progress mostly stopped. Posting his 2025 table of nine
 CPU/compiler combinations (38–84M placements/s), McGavin noted that speeds
-on the latest CPUs "are only a little faster" than on his 2009 Phenom II
+on the latest CPUs "are only a little faster" than on his 2010 Phenom II
 ([message 11643](https://groups.io/g/eternity2/message/11643)). The engines
 hit Field's memory wall fifteen years ago and have been leaning on it since.
 

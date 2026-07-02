@@ -776,3 +776,31 @@ hints — Discord 2024-11), now enriching the 2021 row; people-page entries
 for onesmallstep (server founder — with the honest story of the mis-carried
 row) and Reinout Annaert (469, the linear-run subculture, hint-authenticity
 settled). The lesson the wiki keeps teaching itself: unsourced rows die.
+
+### 2026-07-02 — Pass 2 (data quality): every citation on the wiki verified
+
+The full-sweep citation audit is done. Section verifiers (why/, concepts
+A-L, concepts M-Z + solvers, flat + lab + history + people, with per-page
+children on the dense files) checked every one of the wiki's 700 distinct
+groups.io citations against the local archive — author, date, and verbatim
+support for every quoted number and phrase — plus all 57 external URLs.
+Roughly 140 fixes landed, all mirrored EN + FR: repointed message numbers
+(quote lived in a sibling message), restored-verbatim quotes (including a
+"[sic]" for an original's typo), inverted chronologies straightened
+(parity-argument estimate/retraction order, solution-counting peer-review
+sequence), attribution corrections (e2walker is Philippe Coustaux's, revised
+by Ole Knudsen; the depth-161 baseline is Brendan Owen's; Bob Jenkins's
+pointer was Nathan's own find), a renamed tool (eii-puzzles, not "eii-pgen"),
+and scope-narrowing on overclaims ("verified for the 470", not both;
+"~32,000 pairs must survive invalidation", not pin). Highlights by report:
+history-2 21 fixes / 101 citations; tooling 13 / 82; concepts M-Z + solvers
+~25 (Blackwood code blocks byte-identical to Jef's Notes.md and the 470
+repo); why-section 12; history 12; known-facts + benchmarks 11; people 9;
+clue-puzzles 7; distributed 6; boards + contribute 4; lp-relaxations 0.
+One standing flag: msg 11905 (wrapper_blackwood permission) post-dates the
+archive export (ends #11823) — documented as provided firsthand in
+research/community/README.md, whitelisted in the checker. Verified at
+close: citations check ✓ (700 msgs, 0 missing; 0 dead URLs; 0 no-source
+pages), link check ✓ (150 files), typecheck ✓, lint ✓, build ✓ (193
+prerendered pages). The audit's lesson: quotes drift one message inside
+their thread; always cite the message that *contains the words*.

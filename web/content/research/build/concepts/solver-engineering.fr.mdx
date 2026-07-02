@@ -12,7 +12,7 @@ order: 120
 updated: 2026-07-02
 topics: [speed]
 sources:
-  - label: "La plongée du fil Lebel — bipièces, tables de correspondance, cache (message groups.io 1704, 2007)"
+  - label: "La plongée du fil Lebel — dissection du solveur C++ de référence de l'époque (message groups.io 1704, 2007)"
     url: https://groups.io/g/eternity2/message/1704
   - label: "Le hachage parfait minimal de Nathan : 1 024 clés au lieu d'un tableau à 1M d'entrées (message groups.io 1831)"
     url: https://groups.io/g/eternity2/message/1831
@@ -83,8 +83,9 @@ La table de correspondance a un problème de taille dès qu'on indexe plus de
 deux arêtes. Dans le fil Lebel, Nathan décrit la version brutale : un tableau
 4-D indexé par les quatre couleurs d'arêtes, `combo4[32][32][32][32]` — un
 million d'entrées, presque toutes nulles, des défauts de cache garantis. Sa
-solution, soufflée par un autre membre qui pointait le générateur de hachage
-parfait minimal de Bob Jenkins : puisque les 256 pièces en 4 rotations ne
+solution, bâtie sur le générateur de hachage parfait minimal de Bob
+Jenkins — un lien qu'il avait lui-même partagé avec la liste : puisque les
+256 pièces en 4 rotations ne
 produisent que 1 024 quadruplets d'arêtes distincts, un hachage parfait
 minimal envoie la clé 32 bits compactée vers une table de 1 024 entrées, sans
 collision — « assez petite pour tenir en cache la plupart du temps », avec un
@@ -124,13 +125,15 @@ paires — des « bipièces » 1×2 — et poser deux cases par nœud ? Mesuré 
 code de Lebel en août 2007, ça marche : environ 20 à 30 % plus rapide
 ([message 1734](https://groups.io/g/eternity2/message/1734)). Mais le prix
 grimpe vite, et l'archive documente les deux faces. En passant aux blocs
-2×2, un membre a mesuré environ 4,2× plus *lent* — les tables explosent
-(environ 4 millions de combinaisons 2×2 intérieures) et l'avantage de cache
-s'inverse (fil du
-[message 1704](https://groups.io/g/eternity2/message/1704)). Louis Verhaard
+2×2, un membre a mesuré environ 4,2× plus *lent* et rejeté d'emblée les
+pièces plus grandes
+([message 1730](https://groups.io/g/eternity2/message/1730)) — rien
+d'étonnant une fois les tables comptées : environ 4 millions de
+combinaisons 2×2 intérieures distinctes
+([message 3044](https://groups.io/g/eternity2/message/3044)). Louis Verhaard
 rapportait que les bipièces n'aidaient « que très marginalement » son propre
 backtracker rapide
-([message 3044](https://groups.io/g/eternity2/message/3044)). Et en 2008 la
+([message 3061](https://groups.io/g/eternity2/message/3061)). Et en 2008 la
 liste a tranché la question théorique du dessous : un solveur à métatuiles
 visite essentiellement la même frontière de contraintes qu'un solveur 1×1 —
 « synchronisés toutes les 4 pièces » — donc le gain est d'implémentation,
@@ -158,7 +161,8 @@ de Peter McGavin — des blocs étiquetés comme `cell_9_2_next:`, des chaînes
 de `goto` qui remontent dans le bloc de la case précédente à l'épuisement,
 régénéré pour chaque puzzle et jeu d'indices — c'est cette idée composée
 pendant vingt ans
-([message 11751](https://groups.io/g/eternity2/message/11751)). Et elle
+([message 11337](https://groups.io/g/eternity2/message/11337),
+[message 11782](https://groups.io/g/eternity2/message/11782)). Et elle
 traverse les langages : libblackwood, le générateur Python de Jef Bucas qui
 émet du C, a rendu l'algorithme C# de Blackwood environ deux fois plus
 rapide sur la même machine
@@ -183,7 +187,7 @@ ajoutant `0x10000` à chaque tour, parce qu'il a chronométré les deux
 méthodes il y a des années sur du matériel 32 bits et que l'astuce a gagné.
 
 Le même réalisme vaut pour le matériel. Le multithread passe à l'échelle
-comme prévu — des solveurs épinglés par thread dépassaient 100M
+comme prévu — des solveurs multi-cœurs dépassaient 100M
 placements/s en 2008
 ([message 5804](https://groups.io/g/eternity2/message/5804)), et un seul
 Core i7 atteignait 558M/s en décembre
@@ -191,7 +195,7 @@ Core i7 atteignait 558M/s en décembre
 mono-cœur, lui, s'est presque arrêté. En publiant sa table 2025 de neuf
 combinaisons CPU/compilateur (38–84M placements/s), McGavin notait que les
 CPU les plus récents ne sont « qu'un peu plus rapides » que son Phenom II
-de 2009 ([message 11643](https://groups.io/g/eternity2/message/11643)). Les
+de 2010 ([message 11643](https://groups.io/g/eternity2/message/11643)). Les
 moteurs ont touché le mur mémoire de Field il y a quinze ans et s'y
 adossent depuis.
 
