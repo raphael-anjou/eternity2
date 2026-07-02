@@ -762,3 +762,17 @@ and the FPGA record's did-reach-silicon nuance. Verified at close:
 just check ✓, link check ✓ (146 content files, 0 dead links), 183+
 prerendered pages, every commit local. The wiki now tells the community's
 whole technical story with primary sources end to end.
+
+### 2026-07-02 — Discord archive mined (digest 0016); a records row falls
+
+The 1,198-message Discord #general export is digested. Headline: the
+"2025-07 · 470 · onesmallstep" records row is REFUTED — the CSV shows a
+July-2025 conversation where onesmallstep RELAYED the two existing 470
+boards; he never claimed one (his self-reported best: ~466-467). Row
+deleted; "tied twice" phrasing corrected to "tied once (Bucas, Dec 2024)"
+across records and known-facts. Gained in exchange: Blackwood's first-person
+470 account (a month on a home Threadripper 3970X, ~150 total hours, no
+hints — Discord 2024-11), now enriching the 2021 row; people-page entries
+for onesmallstep (server founder — with the honest story of the mis-carried
+row) and Reinout Annaert (469, the linear-run subculture, hint-authenticity
+settled). The lesson the wiki keeps teaching itself: unsourced rows die.

@@ -52,18 +52,17 @@ const RECORDS: RecordRow[] = [
   { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); relayed from Reddit (#10032), board verified and shared by Jef Bucas", board: "Joshua_Blackwood_468", source: { href: `${GROUPS_IO}/message/10033`, label: "groups.io #10033" } },
   { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling (“New record score of 469! Only 11 breaks!”)", board: "JBlackwood+PMcGavin_469", source: { href: `${GROUPS_IO}/message/10045`, label: "groups.io #10045" } },
   { date: "2020-11", score: "469", author: "various (~7 boards)", canonical: "canonical", method: "Blackwood's solver (Bucas's C rewrite), independent finds — plus one single-piece swap of McGavin's board", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
-  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver, retuned schedule (break indexes 11→10) — same starter-only regime as the 468/469 (verified, #10554)", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
+  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver, retuned schedule (break indexes 11→10) — same starter-only regime as the 468/469 (verified, #10554). His own account: about a month on a home Threadripper 3970X (Discord, 2024-11)", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
   { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best known board that also respects the four optional clues", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
   { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "canonical", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
-  { date: "2025-07", score: "470", author: "onesmallstep", canonical: "canonical", method: "Continued 470 ties — reported on the community Discord only; no archived board" },
 ];
 
 const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied twice since. The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 460 (Bruno Gauthier, 2023). The full solution (480) has never been found; the 10-edge gap has stood since 2021.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied once since (Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 460 (Bruno Gauthier, 2023). The full solution (480) has never been found; the 10-edge gap has stood since 2021.",
     timelineTitle: "Record timeline",
     cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Preview" },
     canonical: "official pieces",
@@ -120,7 +119,7 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé deux fois depuis. Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 460 (Bruno Gauthier, 2023). La solution complète (480) reste introuvée ; l'écart de 10 arêtes tient depuis 2021.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé une fois depuis (Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 460 (Bruno Gauthier, 2023). La solution complète (480) reste introuvée ; l'écart de 10 arêtes tient depuis 2021.",
     timelineTitle: "Chronologie des records",
     cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Aperçu" },
     canonical: "pièces officielles",
