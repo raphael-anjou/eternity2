@@ -197,7 +197,10 @@ Sources: ../v2/vault (704 files). SITE_PLAN.md maps fates. Status:
       community benchmarks page + Blackwood decoded & enriched
 - [ ] Concepts encyclopedia: curated subset of the 386 concept files
       (propagators, search, local-search families…), attribution-neutral
-- [ ] Basins: case studies for all 17 boards (gallery has 7)
+- [x] Notable boards gallery (lab/boards) — public-sourced version: the
+      record line + strict line + project boards, previews embedded, every
+      claim carrying its announcement message. (Deep per-board case studies
+      from vault analyses remain future work — vault-sensitive.)
 - [ ] Papers/math notes (rigidity theorem, σ-cycles, entropy) as long-form
       technical write-ups under lab/findings
 - [ ] groups.io community links/history verification
