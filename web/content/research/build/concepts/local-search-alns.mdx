@@ -25,6 +25,8 @@ related:
   - /research/build/concepts/parallel-tempering
 ---
 
+import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
+
 Once you hold a strong board, single-piece moves stop paying almost
 immediately. Large-neighborhood search takes the opposite bet: rip out a
 whole region — dozens of cells — and rebuild it with something smarter than
@@ -49,6 +51,81 @@ One ALNS iteration on a board:
 
 Eternity II is unusually friendly to step 1, because a partial board tells
 you exactly where it hurts: the mismatched edges.
+
+## Watch it run
+
+Reading the loop is one thing; watching it learn is another. Below, a real
+solved 8×8 from the engine has been deliberately damaged, and the full ALNS
+loop runs on it in slow motion — destroy, greedy refill piece by piece,
+accept or revert, reweight. Force an operator by hand and watch its weight
+bar respond; or just let the roulette drift toward whatever has been paying.
+
+<AlnsLoopLab />
+
+## Step by step
+
+One iteration, exactly as the lab executes it:
+
+1. **Draw an operator.** Roulette-wheel selection: operator $o$ is picked
+   with probability $w_o / \sum_j w_j$. All weights start equal; the wheel is
+   uniform until results arrive.
+2. **Destroy.** The operator returns $k$ cells and their pieces come off the
+   board. Picking random cells or a fixed shape is $O(k)$; conflict-guided
+   operators (worst row, most-conflicted cells) also need the mismatch map,
+   which costs a linear scan unless the engine maintains it incrementally —
+   ours does, precisely so that destroy stays $O(k)$.
+3. **Repair, greedily.** Until the hole is full: take the empty cell with the
+   most placed neighbours (most-constrained first), try every lifted piece in
+   all four rotations, keep the placement that matches the most seams. Each
+   of the $k$ placements scans the remaining candidates, so the pass costs
+   $O(k \cdot |C|)$ where $|C|$ is the candidate pool (free pieces × 4
+   rotations).
+4. **Accept or revert.** Score the rebuilt region — only the seams touching
+   the $k$ cells changed, so re-evaluation is $O(k)$. Keep the board if
+   $\Delta \geq 0$, else keep it anyway with probability $e^{\Delta/T}$; on
+   rejection, restore the snapshot.
+5. **Adapt.** Update the winner's weight,
+   $w_o \leftarrow \lambda\, w_o + (1 - \lambda)\, \psi$, where the reward
+   $\psi$ is tiered: new global best > improvement > accepted sideways move >
+   rejection. That exponential smoothing is the whole "adaptive" in ALNS —
+   Ropke and Pisinger's original does the same bookkeeping over segments of
+   a few hundred iterations.
+
+## What it costs
+
+Per iteration, with $k$ destroyed cells:
+
+$$
+\underbrace{O(k)}_{\text{destroy}}
+\;+\;
+\underbrace{O(k \cdot |C|)}_{\text{greedy repair}}
+\;+\;
+\underbrace{O(k)}_{\text{evaluate}}
+\;+\;
+\underbrace{O(|\mathcal{O}|)}_{\text{adapt}}
+$$
+
+Three refinements worth knowing:
+
+- **Optimal refill is an assignment problem — sometimes.** When the freed
+  cells are pairwise non-adjacent, each hole's cost depends only on its fixed
+  neighbours, so the refill is exactly a $k \times k$ assignment problem:
+  the Hungarian algorithm solves it optimally in $O(k^3)$. That is Schaus's
+  Eternity II neighborhood. The moment two holes touch, their choices couple,
+  and optimal repair becomes a small CP/exact search — worst-case exponential
+  in $k$, which is why large destroys stop paying.
+- **Anytime, and nothing more.** ALNS improves a feasible answer and can be
+  stopped whenever; the best board so far *is* the output. It carries no
+  completeness or optimality guarantee — it can never certify that no better
+  board exists. On this puzzle that certificate has to come from elsewhere
+  (the SAT oracle behind the [rigidity wall](/research/why/rigidity-wall)).
+- **At Eternity II scale the loop is cheap; the escape is not.** With
+  $k = 20$–$80$ of 256 cells and a few hundred candidates per hole, an
+  iteration costs microseconds to milliseconds, and improvement curves
+  flatten within dozens of iterations. The binding cost is therefore not the
+  arithmetic but the probability that a $k$-cell neighbourhood contains the
+  one interlocking [σ-cycle](/research/why/sigma-cycles) that leads upward —
+  and that probability is what collapses near the top.
 
 ## An operator portfolio for boards
 

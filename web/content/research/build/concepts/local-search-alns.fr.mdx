@@ -25,6 +25,8 @@ related:
   - /research/build/concepts/parallel-tempering
 ---
 
+import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
+
 Dès qu'on tient un bon plateau, les mouvements à une pièce cessent presque
 aussitôt de rapporter. La recherche à grands voisinages fait le pari inverse :
 arracher toute une région — des dizaines de cases — et la reconstruire avec
@@ -52,6 +54,87 @@ Une itération d'ALNS sur un plateau :
 
 Eternity II se prête étonnamment bien à l'étape 1, parce qu'un plateau
 partiel dit exactement où il a mal : les arêtes en défaut.
+
+## Regardez-la tourner
+
+Lire la boucle est une chose ; la regarder apprendre en est une autre.
+Ci-dessous, un vrai 8×8 résolu par le moteur a été abîmé exprès, et la boucle
+ALNS complète tourne dessus au ralenti — destruction, remplissage glouton
+pièce par pièce, acceptation ou retour en arrière, repondération. Forcez un
+opérateur à la main et observez sa barre de poids réagir ; ou laissez la
+roulette dériver d'elle-même vers ce qui rapporte.
+
+<AlnsLoopLab />
+
+## Pas à pas
+
+Une itération, exactement telle que le labo l'exécute :
+
+1. **Tirer un opérateur.** Sélection à la roulette : l'opérateur $o$ sort
+   avec probabilité $w_o / \sum_j w_j$. Les poids démarrent égaux ; la roue
+   est uniforme tant qu'aucun résultat n'est tombé.
+2. **Détruire.** L'opérateur désigne $k$ cases, dont les pièces quittent le
+   plateau. Choisir des cases au hasard ou une forme fixe coûte $O(k)$ ; les
+   opérateurs guidés par le conflit (pire rangée, cases les plus
+   conflictuelles) demandent en plus la carte des défauts, un balayage
+   linéaire — sauf si le moteur l'entretient incrémentalement, ce que fait le
+   nôtre, précisément pour garder la destruction en $O(k)$.
+3. **Réparer, gloutonnement.** Tant que le trou n'est pas comblé : prendre la
+   case vide au plus grand nombre de voisins posés (la plus contrainte
+   d'abord), essayer chaque pièce levée dans ses quatre rotations, garder le
+   placement qui accorde le plus de coutures. Chacun des $k$ placements
+   parcourt les candidats restants : la passe coûte $O(k \cdot |C|)$, où
+   $|C|$ est le vivier de candidats (pièces libres × 4 rotations).
+4. **Accepter ou restaurer.** Évaluer la région reconstruite — seules les
+   coutures touchant les $k$ cases ont changé, donc la ré-évaluation est en
+   $O(k)$. Garder le plateau si $\Delta \geq 0$, sinon le garder quand même
+   avec probabilité $e^{\Delta/T}$ ; en cas de rejet, restaurer l'instantané.
+5. **Adapter.** Mettre à jour le poids du gagnant,
+   $w_o \leftarrow \lambda\, w_o + (1 - \lambda)\, \psi$, avec une récompense
+   $\psi$ à paliers : nouveau record > amélioration > mouvement latéral
+   accepté > rejet. Ce lissage exponentiel est tout l'« adaptatif » de
+   l'ALNS — la version originale de Ropke et Pisinger tient la même
+   comptabilité par segments de quelques centaines d'itérations.
+
+## Ce que ça coûte
+
+Par itération, pour $k$ cases détruites :
+
+$$
+\underbrace{O(k)}_{\text{destruction}}
+\;+\;
+\underbrace{O(k \cdot |C|)}_{\text{réparation gloutonne}}
+\;+\;
+\underbrace{O(k)}_{\text{évaluation}}
+\;+\;
+\underbrace{O(|\mathcal{O}|)}_{\text{adaptation}}
+$$
+
+Trois précisions qui valent la peine :
+
+- **La réparation optimale est un problème d'affectation — parfois.** Quand
+  les cases libérées sont deux à deux non adjacentes, le coût de chaque trou
+  ne dépend que de ses voisins figés : le remplissage est exactement un
+  problème d'affectation $k \times k$, que l'algorithme hongrois résout
+  optimalement en $O(k^3)$. C'est le voisinage de Schaus pour Eternity II.
+  Dès que deux trous se touchent, leurs choix se couplent, et la réparation
+  optimale devient une petite recherche exacte/PC — exponentielle en $k$ au
+  pire cas, ce qui explique pourquoi les grandes destructions cessent de
+  payer.
+- **Anytime, et rien de plus.** L'ALNS améliore une réponse faisable et
+  s'arrête quand on veut ; le meilleur plateau rencontré *est* la sortie.
+  Aucune garantie de complétude ni d'optimalité — elle ne peut jamais
+  certifier qu'aucun meilleur plateau n'existe. Sur ce puzzle, ce certificat
+  vient d'ailleurs (l'oracle SAT derrière le
+  [mur de rigidité](/research/why/rigidity-wall)).
+- **À l'échelle d'Eternity II, la boucle est bon marché ; l'évasion, non.**
+  Avec $k = 20$–$80$ cases sur 256 et quelques centaines de candidats par
+  trou, une itération coûte de la microseconde à la milliseconde, et les
+  courbes de progression s'aplatissent en quelques dizaines d'itérations. Le
+  coût qui compte n'est donc pas l'arithmétique, mais la probabilité qu'un
+  voisinage de $k$ cases contienne le
+  [σ-cycle](/research/why/sigma-cycles) imbriqué qui mène plus haut — et
+  c'est cette probabilité qui s'effondre près du sommet.
 
 ## Un portefeuille d'opérateurs pour plateaux
 

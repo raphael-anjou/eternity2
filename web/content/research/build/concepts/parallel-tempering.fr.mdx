@@ -22,6 +22,8 @@ related:
   - /research/build/concepts/local-search-alns
 ---
 
+import { TemperingLadderLab } from "@/components/research/concepts/TemperingLadderLab";
+
 Le recuit simulé lit un plateau comme un système physique : les arêtes en
 défaut sont une énergie, tout mouvement qui la fait baisser est accepté, et
 un mouvement qui la fait monter l'est avec probabilité
@@ -45,13 +47,86 @@ adjacentes proposent d'échanger leurs états, acceptés selon la règle de
 Metropolis
 
 $$
-P(\text{échange}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_j - E_i)}\bigr).
+P(\text{échange}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_i - E_j)}\bigr)
+= \min\bigl(1,\; e^{\Delta\beta\,\Delta E}\bigr),
 $$
 
-Les répliques chaudes traversent les barrières ; les froides exploitent ;
-les échanges font descendre les configurations prometteuses le long de
-l'échelle pour y être raffinées. Aucune chaîne n'a plus à survivre à un
-refroidissement.
+avec $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ et
+$\Delta E = E_i - E_j$. Lisez-la une fois avec des signes concrets : si la
+réplique $i$ est la plus froide ($\Delta\beta > 0$) et que la plus chaude
+détient la *plus basse* énergie ($\Delta E > 0$), l'exposant est positif et
+l'échange est accepté à coup sûr — le bon état descend toujours l'échelle
+gratuitement. Les répliques chaudes traversent les barrières ; les froides
+exploitent ; les échanges font descendre les configurations prometteuses le
+long de l'échelle pour y être raffinées. Aucune chaîne n'a plus à survivre à
+un refroidissement.
+
+## Voyez l'échelle battre une chaîne froide seule
+
+L'affirmation qui mérite d'être vue, c'est la comparaison : la même chaîne
+froide, avec et sans échelle au-dessus d'elle. Ci-dessous, quatre répliques
+explorent un paysage synthétique accidenté dont le minimum global se cache
+derrière des barrières ; un fantôme gris exécute la dynamique froide
+identique, seul. Regardez les éclairs d'échange — verts quand ils sont
+acceptés — porter le bassin de droite jusqu'au barreau froid, pendant que le
+fantôme reste dans le puits de départ pour toujours. Puis poussez le curseur
+d'espacement aux deux extrêmes et reproduisez les deux pannes classiques de
+l'échelle.
+
+<TemperingLadderLab />
+
+## Pas à pas
+
+Un tour de parallel tempering, tel que le labo l'exécute :
+
+1. **Balayage.** Chaque réplique fait des mouvements de Metropolis à sa
+   température fixe : proposer un changement local, calculer $\Delta E$,
+   accepter si l'énergie descend, sinon avec probabilité
+   $e^{-\Delta E / T_i}$. Sur un plateau, un mouvement à une pièce touche au
+   plus quatre coutures : le $\Delta E$ de chaque mouvement est en $O(1)$.
+2. **Tentative d'échange.** Prendre une paire adjacente $(i, i{+}1)$,
+   calculer $\Delta\beta\,\Delta E$ à partir des deux énergies en cache,
+   accepter avec $\min(1, e^{\Delta\beta \Delta E})$. En cas d'acceptation,
+   les deux répliques échangent leurs configurations (ou, ce qui revient au
+   même, leurs températures) — rien d'autre ne bouge.
+3. **Comptabilité.** Suivre le taux d'acceptation des échanges par paire de
+   barreaux. Ce nombre *est* le diagnostic de l'échelle : proche de 100 %,
+   les barreaux adjacents voient le même paysage et l'un des deux est
+   gaspillé ; proche de 0 %, l'échelle s'est découplée en chaînes
+   indépendantes. Les échelles utiles vivent dans les dizaines de pourcents
+   — fréquent mais pas gratuit, exactement le régime que recommandent Earl
+   et Deem, et celui vers lequel nos runs ont convergé.
+4. **Recommencer.** Les bons états descendent les barreaux en marche
+   aléatoire ; les états coincés montent, se font secouer, et redescendent
+   différents.
+
+## Ce que ça coûte
+
+- **Par balayage :** $R$ répliques × $N$ sites, chaque mouvement en $O(1)$
+  d'évaluation locale, soit $O(R \cdot N)$ — exactement $R$ fois une seule
+  chaîne. La mémoire est en $O(R \cdot N)$ : chaque réplique est un plateau
+  entier.
+- **Par phase d'échange :** les $R{-}1$ paires adjacentes demandent chacune
+  une exponentielle sur des énergies en cache — $O(R)$ au total, une erreur
+  d'arrondi à côté des balayages.
+- **Le gain, c'est le temps de mélange, pas le coût du pas.** Une chaîne
+  froide seule franchit une barrière d'énergie $\Delta E$ en environ
+  $e^{\Delta E / T_{\text{froid}}}$ tentatives (l'attente d'Arrhenius —
+  notre franchissement mesuré de 76 cases plafonnait à $e^{-21}$ par
+  tentative à $T = 1$). L'échelle remplace cette attente par une diffusion :
+  une configuration fait une marche aléatoire sur $R$ barreaux, et avec un
+  espacement géométrique réglé pour une acceptation constante par barreau,
+  l'aller-retour coûte de l'ordre de $R^2$ tours d'échange. On paie un
+  facteur constant $R$ par balayage pour transformer une attente
+  exponentielle en navette polynomiale — cette asymétrie est tout
+  l'argument de la méthode.
+- **Aucune garantie, comme tous les échantillonneurs.** Le parallel
+  tempering n'est pas complet et ne certifie rien ; il converge vers la
+  bonne distribution un jour, sans borne utile sur « un jour ». Et là où le
+  paysage offre des ex æquo plutôt que des barrières — les plateaux
+  iso-score du sommet de ce puzzle — $\Delta E = 0$ rend tous les barreaux
+  identiques, et l'avantage de l'échelle s'évapore par construction : c'est
+  précisément ce que rapporte le verdict plus bas.
 
 ## Pourquoi ce puzzle réclame l'échelle
 
