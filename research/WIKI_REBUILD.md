@@ -1,12 +1,12 @@
 # Research wiki rebuild — working plan + TODO
 
-> **State 2026-07-02 ~06:20:** Phase 6+7 launched (see below).
-> Previous state: overnight queue COMPLETE — everything below
-> through Phase 5 is committed (36 commits, tree clean). Remaining items are
-> deliberately future work (deep vault-sensitive basin case studies, more
-> concepts, groups.io WIKI section via the user's browser session). If a
-> heartbeat fires before ~08:00: nothing to build — verify `git status` is
-> clean and wait for the user's morning review.
+> **State 2026-07-02 (day's end):** Phases 6 complete + Phase 7 all-P1s and
+> 10 P2s live; tree clean; just check + link check green. Remaining work is
+> the deliberately-deferred tail: PAGE_CANDIDATES P2/P3 leftovers (lower
+> value, several flagged already-covered), deep vault basin case studies
+> (needs user judgment), groups.io WIKI section (needs user's browser).
+> Heartbeats: verify `git status` clean and stand by for the user's review —
+> do NOT launch tail pages without user direction.
 
 The research section becomes the **official Eternity II research wiki**: a
 docs-grade reading experience (sidebar tree, search, TOC, breadcrumbs,
