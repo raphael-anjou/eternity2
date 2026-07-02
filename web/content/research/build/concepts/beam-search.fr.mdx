@@ -20,6 +20,8 @@ related:
   - /research/build/concepts/local-search-alns
 ---
 
+import { BeamWidthLab } from "@/components/research/concepts/BeamWidthLab";
+
 Un backtracker en profondeur s'engage sur un plateau partiel et creuse. La
 recherche en faisceau, elle, se couvre : elle garde en vie les $K$ meilleurs
 plateaux partiels à la fois, prolonge chacun d'une case, note tous les
@@ -44,6 +46,81 @@ L'inventaire fait toute la différence avec un faisceau sur un problème de
 contraintes générique : chaque pièce n'existe qu'en un exemplaire, si bien
 qu'un placement n'est pas un choix local mais un retrait sur un budget
 global. Ce détail commande tout ce qui suit.
+
+## Regarder un faisceau descendre
+
+Le laboratoire ci-dessous fait descendre un faisceau dans un arbre
+synthétique — branchement $b = 4$, profondeur $d = 14$, scores
+déterministes à base de hachage, pas de plateau — parce que les pathologies
+se *voient* mieux quand l'instance est assez petite pour être dessinée. Deux
+traits y sont plantés à dessein : les scores sont en partie héréditaires (un
+bon préfixe tend à avoir de bons enfants, ce qui fait s'effondrer le
+faisceau sur un seul préfixe), et quelques nœuds **pièges** paient un gros
+score immédiat en empoisonnant discrètement toute leur descendance — un
+modèle synthétique en deux lignes du
+[vol de pièces](/research/why/piece-theft), où un placement qui rapporte
+maintenant dépense une pièce dont l'intérieur profond aura besoin plus tard.
+
+<BeamWidthLab />
+
+## Pas à pas
+
+1. **Profondeur 0.** Le faisceau, c'est la racine. À chaque tic, chaque
+   survivant engendre ses $b = 4$ enfants — au plus $K \cdot 4$ candidats
+   dans le pot commun.
+2. **Noter, trier, tronquer.** Les enfants réunis sont classés et seuls les
+   $K$ meilleurs survivent. Tout ce qui passe sous la coupe est supprimé
+   *pour toujours* : un faisceau ne revient jamais en arrière, un bon
+   préfixe élagué à la profondeur 5 est inatteignable à la profondeur 10.
+   C'est ici que la complétude est abandonnée.
+3. **Regardez le troupeau se resserrer.** La position horizontale d'un point
+   encode son préfixe de chemin : des branches distinctes vivent dans des
+   grappes distinctes. En quelques niveaux, la plupart des survivants
+   partagent un même préfixe à haut score — le compteur de *préfixes
+   distincts* qui tombe vers 1, c'est l'effondrement de diversité, le
+   faisceau qui dégénère en glouton avec de la comptabilité.
+4. **Suivez le tracé rose.** C'est $K = 1$, le glouton pur. Quand il avale
+   un piège ambre — gros gain immédiat, sous-arbre empoisonné — sa courbe de
+   score s'aplatit pour de bon. Un faisceau plus large ne survit au même
+   piège que tant que ses survivants restent répartis entre les branches ;
+   une fois effondré, il est exactement aussi crédule.
+5. **Faites glisser $K$ de 1 à 64.** Le score final monte puis s'aplatit —
+   chaque doublement de largeur rapporte moins, les mêmes rendements
+   grossièrement logarithmiques que ce projet a mesurés sur de vrais
+   plateaux. Notez ce que le curseur ne change jamais : l'effondrement se
+   produit quand même, juste quelques niveaux plus tard.
+
+## Ce que ça coûte
+
+La recherche en faisceau, c'est de la recherche exponentielle dont
+l'exponentielle a été supprimée par décret :
+
+$$
+\text{temps} \;=\; O(K \cdot b \cdot d), \qquad
+\text{mémoire} \;=\; O(K \cdot d),
+$$
+
+pour une largeur $K$, un branchement $b$ et une profondeur $d$ (plus un tri
+en $O(Kb \log Kb)$ par niveau). Les deux sont linéaires en $K$ — c'est tout
+l'attrait. Le prix, c'est l'*incomplétude* : un faisceau n'offre aucune
+garantie d'optimalité, aucun certificat en cas d'échec, et aucun retour vers
+un préfixe élagué. Son mode d'échec systématique est l'effondrement que
+montre le laboratoire : quand les survivants deviennent $K$ copies d'un même
+préfixe, la largeur effective vaut 1, quel que soit le prix payé.
+
+À l'échelle d'Eternity II, l'arithmétique est clémente — c'est exactement
+pourquoi le faisceau est ici le cheval de trait from-scratch : $d = 256$
+cases, $b$ = les candidats (pièce, rotation) légaux par case — quelques
+centaines au début, de moins en moins à mesure que l'inventaire se vide —
+si bien que même $K = 10^4$ coûte de l'ordre de $10^8$ à $10^9$ évaluations
+d'enfants par plateau complet : des minutes sur un portable, sans commune
+mesure avec les chiffres exhaustifs de la page des
+[impasses](/research/build/dead-ends). La lecture honnête de
+$O(K \cdot b \cdot d)$ n'est donc pas « bon marché » mais « seulement aussi
+bon que sa fonction de score » : le faisceau n'évalue qu'une fraction
+évanescente de l'arbre, et aucun score connu ne prédit quels préfixes de
+profondeur 100 se terminent encore bien. La largeur s'achète en monnaie
+linéaire ; la clairvoyance n'est pas à vendre.
 
 ## La largeur rapporte moins qu'on l'espère
 

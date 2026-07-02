@@ -20,6 +20,8 @@ related:
   - /research/build/concepts/local-search-alns
 ---
 
+import { BeamWidthLab } from "@/components/research/concepts/BeamWidthLab";
+
 A depth-first backtracker commits to one partial board and digs. Beam search
 hedges: it keeps the $K$ best partial boards alive at once, extends every one
 of them by a single cell, scores all the children, and keeps the top $K$
@@ -42,6 +44,72 @@ The inventory is what makes this different from beam search on a generic
 constraint problem: each piece exists exactly once, so a placement is not
 just a local choice but a withdrawal from a global budget. That detail
 decides everything below.
+
+## Watch a beam descend
+
+The lab below runs a beam down a synthetic tree — branching factor $b = 4$,
+depth $d = 14$, deterministic hash-based scores, no board — because the
+pathologies are easier to *see* when the instance is small enough to draw.
+Two features are planted deliberately: node scores are partly heritable (a
+good prefix tends to have good children, which is what makes a beam collapse
+onto one prefix), and a few **trap** nodes pay a large immediate score while
+quietly poisoning every descendant — a two-line synthetic model of
+[piece theft](/research/why/piece-theft), where a placement that scores now
+spends a piece the deep interior will need later.
+
+<BeamWidthLab />
+
+## Step by step
+
+1. **Depth 0.** The beam is just the root. On every tick, each survivor
+   spawns its $b = 4$ children — at most $K \cdot 4$ candidates in the pool.
+2. **Score, sort, truncate.** The pooled children are ranked and only the
+   top $K$ survive. Everything below the cut is deleted *forever*: a beam
+   never backtracks, so a good prefix pruned at depth 5 is unreachable at
+   depth 10. This is where completeness is given away.
+3. **Watch the huddle.** A dot's horizontal position encodes its path
+   prefix, so distinct branches live in distinct clusters. Within a few
+   levels most survivors share one high-scoring prefix — the *distinct
+   prefixes* counter falling toward 1 is diversity collapse, the beam
+   degenerating into greedy-with-bookkeeping.
+4. **Follow the rose trace.** That is $K = 1$, plain greedy. When it
+   swallows an amber trap — big gain now, poisoned subtree after — its score
+   curve flattens for good. A wider beam survives the same trap only while
+   its survivors are still spread across branches; once collapsed, it is
+   exactly as gullible.
+5. **Slide $K$ from 1 to 64.** The final score climbs and then flattens —
+   each doubling of width buys less, the same roughly-logarithmic returns
+   this project measured on real boards. Note what the slider never changes:
+   the collapse still happens, just a few levels later.
+
+## What it costs
+
+Beam search is exponential search with the exponential deleted by fiat:
+
+$$
+\text{time} \;=\; O(K \cdot b \cdot d), \qquad
+\text{memory} \;=\; O(K \cdot d),
+$$
+
+for width $K$, branching factor $b$ and depth $d$ (plus an
+$O(Kb \log Kb)$ sort per level). Both are linear in $K$ — that is the whole
+appeal. The price is *incompleteness*: a beam offers no optimality
+guarantee, no certificate on failure, and no way back to a pruned prefix.
+Its one systematic failure mode is the collapse the lab shows: when the
+survivors become $K$ copies of one prefix, the effective width is 1
+regardless of what you paid for.
+
+At Eternity II scale the arithmetic is friendly, which is exactly why beams
+are the from-scratch workhorse here: $d = 256$ cells, $b$ = the legal
+(piece, rotation) candidates per cell — a few hundred early, dwindling as
+the inventory drains — so even $K = 10^4$ costs on the order of $10^8$–$10^9$
+child evaluations per complete board: minutes on a laptop, incomparably
+cheaper than any exhaustive figure on the
+[dead ends page](/research/build/dead-ends). The honest reading of
+$O(K \cdot b \cdot d)$ is therefore not "cheap" but "only as good as its
+scoring function": the beam evaluates a vanishing fraction of the tree, and
+no known score predicts which depth-100 prefixes still complete well. Width
+is bought in linear coin; foresight is not for sale.
 
 ## Width buys less than you'd hope
 

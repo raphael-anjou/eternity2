@@ -30,6 +30,8 @@ related:
   - /research/build/known-facts
 ---
 
+import { ParityFlipLab } from "@/components/research/concepts/ParityFlipLab";
+
 Un argument de parité, c'est de la comptabilité en partie double appliquée à
 un plateau de jeu. Chaque arête interne du puzzle a deux faces : tout ce
 qu'on compte sur l'ensemble du plateau — occurrences d'une couleur, arêtes
@@ -74,6 +76,64 @@ plateau comme un 480.
 La leçon se généralise. Un argument de parité ne vaut que ce que valent les
 conditions aux bords dont il tient compte — et les règles de score
 d'Eternity II percent le bord en soixante endroits.
+
+## Retournez-le vous-même
+
+Les trois actes tiennent sur un petit plateau. Ci-dessous, un 8×8 encadré,
+réellement résolu et généré par le moteur — toutes les arêtes comptées
+appariées, et un rebord gris extérieur que le score ignore, exactement comme
+les 60 arêtes grises du vrai puzzle (32 à cette taille). Chaque affirmation
+de l'histoire ci-dessus est ici à un clic.
+
+<ParityFlipLab />
+
+## Pas à pas
+
+1. **Partez du plateau résolu.** Les 112 arêtes comptées concordent —
+   l'équivalent local du 480/480. La bande grise est le rebord que la
+   convention de score ne lit jamais.
+2. **Acte un — cliquez n'importe quelle pièce intérieure sans anneau.** Une
+   rotation de 180° échange les côtés haut/bas ensemble et gauche/droite
+   ensemble : les arêtes comptées cassent par paires et par axe — 0, 2 ou 4
+   à la fois, jamais un compte impair. Essayez autant de pièces que vous
+   voulez : aucun clic intérieur ne produira exactement un défaut. C'est
+   l'argument de kubzpa, et pour les coups intérieurs il est étanche.
+3. **Acte deux — cliquez une pièce intérieure à anneau bleu ciel.** Une
+   paire opposée égale, l'autre non : exactement deux arêtes comptées
+   cassent, et le badge annonce un plateau de classe 478 — la construction
+   jumelle de psykowally.
+4. **Acte trois — cliquez une pièce de bordure à anneau émeraude.** Ses deux
+   côtés longeant l'anneau partagent une couleur : le retournement de 180°
+   laisse les deux arêtes latérales appariées. Seule casse la couture
+   derrière elle — *une* arête comptée — pendant que le changement extérieur
+   se gare sur le rebord gris (signalé en ambre), là où aucun correcteur ne
+   regarde. Un seul défaut. 479. La réfutation de Verhaard, en un clic.
+5. **Auditez la frontière.** Le panneau vous dit combien de pièces de ce
+   tirage se prêtent à chaque coup ; sur le jeu officiel, 14 pièces de
+   bordure se qualifient (calculé), donc toute solution complète implique un
+   479. La preuve était juste partout où le score regardait — la fuite est
+   précisément dans les arêtes qu'il exemptait.
+
+## Ce que ça coûte
+
+Un contrôle de parité ou d'équilibre, c'est une seule passe sur les arêtes
+comptées :
+
+$$
+O(\text{arêtes}) \;=\; O(480) \ \text{sur le plateau complet},
+\qquad O(56) \ \text{pour la couture de NS-1},
+$$
+
+avec une constante si petite que c'est effectivement gratuit — 480 lectures
+d'arêtes se font en microsecondes, contre des pas de recherche qui se
+comptent en milliards. Cette asymétrie de prix explique pourquoi ces
+contrôles se composent avec tout : NS-1, une fois la bordure fermée, rejette
+10 à 28 % des impasses profondes pour 56 lectures, l'élagage le moins cher
+que connaisse ce projet. Mais l'asymétrie d'*information* va dans l'autre
+sens, et elle ne s'adoucit jamais : un invariant violé est une preuve
+d'impossibilité, un invariant satisfait ne prouve rien du tout. Une passe
+sur les arêtes achète un certificat qui ne sait dire que non — il vaut
+exactement son prix, à condition de ne pas le prendre pour un guide.
 
 ## Sommes de couleurs et équilibre de multiensembles
 

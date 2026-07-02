@@ -23,6 +23,8 @@ related:
   - /research/build/dead-ends
 ---
 
+import { MitmCostLab } from "@/components/research/concepts/MitmCostLab";
+
 Le meet in the middle est la plus vieille astuce de division d'exposant de la
 recherche combinatoire : au lieu d'explorer un arbre de profondeur $n$, on
 explore deux arbres de profondeur $n/2$ et on joint leurs feuilles sur une
@@ -68,6 +70,80 @@ c'est la mémoire, non le temps, qui est en général le premier mur. La
 jointure elle-même est bon marché (du hachage) ; tout se joue sur le nombre
 d'entrées que chaque côté doit stocker et sur la fréquence à laquelle les
 signatures de couture coïncident réellement.
+
+## Sentir la racine carrée
+
+Les nombres rendent l'échange honnête là où la prose reste vague. Le
+laboratoire ci-dessous a deux vues. *L'échange* aligne les trois factures en
+échelle logarithmique pendant que le problème grandit : temps unilatéral
+$2^n$, temps MITM $2 \cdot 2^{n/2}$, mémoire MITM $2^{n/2}$ entrées de
+table. *La jonction* déroule une micro-instance complète — $n = 10$, deux
+moitiés de $2^5 = 32$ candidats chacune — de la phase de stockage à la phase
+de sondage : on voit d'où vient la vitesse, et où part la mémoire.
+
+<MitmCostLab />
+
+## Pas à pas
+
+1. **Faites glisser $n$ dans la vue de l'échange.** Chaque $+2$ sur le
+   curseur *quadruple* la barre rouge unilatérale mais ne fait que *doubler*
+   les deux barres MITM. Ce rapport deux entre les vitesses de croissance
+   est toute l'astuce : l'exposant est divisé par deux, donc en échelle
+   logarithmique les barres MITM montent avec une pente moitié.
+2. **Regardez la facture mémoire arriver.** Vers $n \approx 56$, la table (à
+   16 octets par entrée, un chiffre optimiste) déborde d'une machine à
+   16 Gio, alors que la barre de *temps* MITM reste confortable. C'est la
+   mémoire qui touche le mur en premier — le même ordre des événements que
+   BANDSAW a consigné, avec des entrées réelles bien plus grasses que
+   16 octets (empreinte de réservoir plus vecteur de couture).
+3. **Passez à la vue de la jonction.** La moitié gauche énumère ses 32
+   candidats et stocke chacun dans une table de hachage indexée par sa
+   signature de couture (une parmi 48). C'est la phase qui paie la facture
+   mémoire : le compteur *mémoire de table* la voit arriver, entrée par
+   entrée.
+4. **La phase de sondage.** Les 32 candidats de la moitié droite arrivent un
+   par tic, et chacun fait exactement une consultation. Un seau vide écarte
+   toute une famille de combinaisons en un pas ; un seau occupé rapporte une
+   solution jointe par partenaire stocké — trouvée sans jamais parcourir
+   l'arbre complet.
+5. **Lisez le bilan.** $2 \cdot 32 = 64$ pas d'énumération plus $32$ entrées
+   stockées remplacent $2^{10} = 1\,024$ parcours complets. Sur Eternity II,
+   la même arithmétique tient — à ceci près qu'une jonction ne compte que si
+   les couleurs de couture concordent *et* que les réservoirs de pièces sont
+   disjoints : c'est à cela que sert la comptabilité par empreinte décrite
+   plus haut.
+
+## Ce que ça coûte
+
+La comptabilité classique de Horowitz–Sahni, pour un problème à $n$ choix
+binaires :
+
+$$
+\underbrace{O(2^n)\ \text{temps},\ O(n)\ \text{espace}}_{\text{énumération unilatérale}}
+\quad\longrightarrow\quad
+\underbrace{O(2^{n/2})\ \text{temps},\ O(2^{n/2})\ \text{espace}}_{\text{meet in the middle}}
+$$
+
+(plus un facteur $\log$ si l'on trie les moitiés au lieu de les hacher).
+Notez ce qui se conserve : le *produit* temps × espace reste de l'ordre de
+$2^n$. Le meet in the middle ne détruit jamais l'exponentielle — il découpe
+une facture impayable en deux factures plus petites, qui doivent passer
+toutes les deux. La racine carrée du temps d'exécution s'achète avec une
+facture mémoire exponentielle : la méthode gagne exactement tant que
+$2^{n/2}$ entrées tiennent en RAM, et perd dès qu'elles n'y tiennent plus.
+
+Sur Eternity II, le modèle propre des $n$ choix demande deux corrections
+honnêtes. D'abord, l'interface n'est pas un nombre mais un état large — un
+vecteur de couture pouvant atteindre 16 couleurs d'arêtes plus l'empreinte
+exacte du réservoir de pièces — donc les clés sont grosses, les entrées
+grasses, et le mur mémoire arrive bien avant le croisement d'école. Ensuite,
+les moitiés sont couplées par le réservoir partagé : la jonction n'est pas
+un simple contact de hachage mais un contact *filtré par réservoirs
+complémentaires*. BANDSAW en a mesuré la conséquence : dans les petits
+budgets de défauts, les deux côtés restent énumérables et la méthode est
+exacte ; mais chaque unité de budget gonfle les deux arbres d'un facteur
+vingt environ par côté, et près de l'horizon le projet a payé des millions
+de hauts stockés dont aucun bas n'a jamais sondé le seau avec succès.
 
 ## Ce que BANDSAW a mesuré
 

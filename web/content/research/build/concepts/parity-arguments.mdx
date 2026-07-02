@@ -30,6 +30,8 @@ related:
   - /research/build/known-facts
 ---
 
+import { ParityFlipLab } from "@/components/research/concepts/ParityFlipLab";
+
 A parity argument is double-entry bookkeeping applied to a game board. Every
 edge inside the puzzle has two sides, so anything counted over the whole
 board — colour occurrences, matched edges, orientation sums — gets counted
@@ -70,6 +72,58 @@ a 480.
 The lesson generalises. A parity argument is only as strong as the boundary
 conditions it accounts for, and Eternity II's scoring rules puncture the
 boundary in sixty places.
+
+## Flip it yourself
+
+The three acts fit on one small board. Below is a genuinely solved,
+engine-generated framed 8×8 — every scored edge matched, and an outward grey
+rim the score ignores, exactly like the real puzzle's 60 grey edges (32 of
+them at this size). Every claim in the story above is a single click here.
+
+<ParityFlipLab />
+
+## Step by step
+
+1. **Start solved.** All 112 scored edges match — this board's stand-in for
+   480/480. The grey band is the rim the scoring convention never reads.
+2. **Act one — click any unmarked interior piece.** A 180° turn swaps the
+   up/down edges together and the left/right edges together, so scored edges
+   break in pairs per axis: 0, 2 or 4 at a time, never an odd count. Try as
+   many as you like — no interior click will ever produce exactly one
+   mismatch. That is kubzpa's argument, and for interior moves it is
+   airtight.
+3. **Act two — click a sky-ringed interior piece.** One opposite pair equal,
+   the other not: exactly two scored edges break, and the badge reads a
+   478-class board — psykowally's constructive companion.
+4. **Act three — click an emerald-ringed border piece.** Its two ring-facing
+   sides share a colour, so the 180° flip leaves both lateral edges matched.
+   Only the seam edge behind it breaks — *one* scored edge — while the
+   outward change parks on the grey rim (flashed amber), where no scorer
+   ever looks. One mismatch. 479. Verhaard's refutation, in one click.
+5. **Audit the boundary.** The counter panel tells you how many pieces of
+   this draw qualify for each move; on the official set, 14 border pieces
+   qualify (computed), so any full solution implies a 479. The proof was
+   correct everywhere the scoring looked — the leak is precisely the edges
+   it exempted.
+
+## What it costs
+
+A parity or balance check is a single pass over the scored edges:
+
+$$
+O(\text{edges}) \;=\; O(480) \ \text{on the full board},
+\qquad O(56) \ \text{for NS-1's seam},
+$$
+
+with a constant so small it is effectively free — 480 edge reads are
+microseconds, against search steps counted in billions. That asymmetry of
+price is why such checks compose with everything: NS-1 after the border
+closes rejects 10–28% of deep dead-ends for 56 reads, the cheapest pruning
+this project knows. But the asymmetry of *information* runs the other way,
+and it never softens: a violated invariant is a proof of impossibility, a
+satisfied one proves nothing at all. One pass over the edges buys a
+certificate that only ever says no — worth exactly its price, provided
+nobody mistakes it for guidance.
 
 ## Colour sums and multiset balance
 
