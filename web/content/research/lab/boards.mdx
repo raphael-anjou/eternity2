@@ -1,0 +1,281 @@
+---
+title: The notable boards
+description: >-
+  The famous Eternity II boards, treated as first-class citizens: Verhaard's
+  prize-winning 467, the Blackwood record line to 470, the strict five-clue
+  460, and this project's own boards — who found each one, when, and what
+  makes it structurally interesting. Every bundled board opens in the viewer.
+kind: basin
+order: 30
+updated: 2026-07-02
+topics: [records]
+sources:
+  - label: "msg 6337 — the January 2009 scrutiny result: $10,000 to Anna Karlsson of Lund for 467/480"
+    url: https://groups.io/g/eternity2/message/6337
+  - label: "msg 10032 — Blackwood's 468 reaches the list from Reddit"
+    url: https://groups.io/g/eternity2/message/10032
+  - label: "msg 10045 — McGavin announces the 469"
+    url: https://groups.io/g/eternity2/message/10045
+  - label: "msg 10074 — Fernandez's single-piece-swap 469"
+    url: https://groups.io/g/eternity2/message/10074
+  - label: "msg 10117 — Blackwood's 470"
+    url: https://groups.io/g/eternity2/message/10117
+  - label: "msg 11401 — Bucas ties the 470"
+    url: https://groups.io/g/eternity2/message/11401
+  - label: "msg 11074 — Gauthier's strict five-clue 460"
+    url: https://groups.io/g/eternity2/message/11074
+  - label: e2.bucas.name (Jef Bucas) — the community viewer these boards were first shared in
+    url: https://e2.bucas.name
+related:
+  - /research/records
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+---
+
+import { LocalizedLink } from "@/components/LocalizedLink";
+import { BoardSvg } from "@/components/board/BoardSvg";
+import { decodeBucas } from "@/lib/bucas";
+import { KNOWN_BOARDS } from "@/data/known-boards";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+export const CommunityBoard = ({ id, caption }) => {
+  const b = KNOWN_BOARDS.find((k) => k.id === id);
+  if (!b) return null;
+  return (
+    <div className="my-6 max-w-md space-y-2">
+      <LocalizedLink
+        to={`/viewer?${b.params}`}
+        className="block rounded-lg border p-2 transition-shadow hover:shadow-md"
+      >
+        <BoardSvg width={16} height={16} cells={decodeBucas(b.params).cells} />
+      </LocalizedLink>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{caption}</p>
+        <LocalizedLink
+          to={`/viewer?${b.params}`}
+          className="shrink-0 text-sm font-medium underline hover:text-foreground"
+        >
+          Open in the viewer
+        </LocalizedLink>
+      </div>
+    </div>
+  );
+};
+
+The history of Eternity II is usually told through the people and the
+solvers. This page tells it through the boards themselves — the handful of
+artifacts that carry the whole record line, whoever found them. Each entry
+says who announced the board and where, and what is publicly known about its
+structure. Every board shown here is bundled with this site: click any
+preview to load it in the [viewer](/viewer) and re-score it edge by edge. The
+full timeline and method history live on the
+[records page](/research/records); this is the gallery.
+
+## The record line: 467 → 468 → 469 → 470
+
+### Verhaard's 467 (2008) — the prize board
+
+The board that won the only money Eternity II ever paid out. Louis Verhaard's
+distributed *eii* solver — released to volunteers in September 2008 with the
+words "I am stuck" ([msg 5940](https://groups.io/g/eternity2/message/5940)) —
+had found 467/480 more than 40 times by different users by the time he
+documented it ([msg 6275](https://groups.io/g/eternity2/message/6275)). At
+the 31 December 2008 scrutiny the entry, submitted under the name of Anna
+Karlsson of Lund — Verhaard's household — took the $10,000 best-partial prize
+([msg 6337](https://groups.io/g/eternity2/message/6337), with the group
+recognizing the winner immediately at
+[msg 6349](https://groups.io/g/eternity2/message/6349)).
+
+Two later footnotes change how the board reads. Re-reading Verhaard's own
+account, Jef Bucas noted the 467 was achieved under a self-imposed handicap:
+Verhaard had misinterpreted the rules and restricted the kind of board he
+allowed himself to submit
+([msg 10582](https://groups.io/g/eternity2/message/10582)). And by 2023 the
+score had become a calibration target — "last week I found about 30 x 467. I
+use this target to calibrate the code I'm running"
+([msg 11001](https://groups.io/g/eternity2/message/11001)). It stood as the
+record for twelve years anyway.
+
+<CommunityBoard
+  id="Louis_Verhaard_467"
+  caption="467/480 — Louis Verhaard, best board at the 2008 prize scrutiny."
+/>
+
+The viewer also bundles three sibling 467s (Verhaard 467a, 467b, 467c) from
+the same campaign, in its board menu.
+
+### Blackwood's 468 (2020) — the outsider board
+
+The first advance past 467 in twelve years arrived from outside the
+community: a Reddit post by Joshua Blackwood, then unknown to the mailing
+list, relayed at [msg 10032](https://groups.io/g/eternity2/message/10032). A
+board with only 12 breaks — 468/480. Bucas verified it, added it to the
+viewer, and passed on the startling claim that the author could "find a 468
+every 4 days" ([msg 10033](https://groups.io/g/eternity2/message/10033)).
+Days later Blackwood open-sourced the solver that found it
+([msg 10037](https://groups.io/g/eternity2/message/10037)) — the code every
+board below this point traces back to.
+
+<CommunityBoard
+  id="Joshua_Blackwood_468"
+  caption="468/480 — Joshua Blackwood, August 2020, announced on Reddit."
+/>
+
+### McGavin's 469 (2020) — the ceiling board
+
+"Your solver is fantastic!! I ran it for a few days on about a couple of
+hundred cores and hit the jackpot. New record score of 469! Only 11 breaks!"
+— Peter McGavin, running Blackwood's freshly published solver
+([msg 10045](https://groups.io/g/eternity2/message/10045)). Blackwood
+explained the solver's break discipline in the same thread: breaks are never
+allowed to touch, so this 469 is equivalently a 249-piece partial with 7
+holes ([msg 10051](https://groups.io/g/eternity2/message/10051)).
+
+Structurally this board has a signature you can check yourself: all eleven of
+its unmatched edges sit in the top five rows, leaving an eleven-row slab that
+is locally flawless — the damage swept up against the edge the search
+finished at. That geometry, and why it flips on boards built in the other
+direction, is analyzed in
+[Where the mismatches live](/research/why/mismatch-geometry).
+
+<CommunityBoard
+  id="JBlackwood+PMcGavin_469"
+  caption="469/480 — Peter McGavin with Blackwood's solver, September 2020."
+/>
+
+### The 469 wave (November 2020)
+
+Bucas ported Blackwood's algorithm to C, roughly doubling its speed
+([msg 10065](https://groups.io/g/eternity2/message/10065)), and 469s started
+arriving in a stream: boards a through g over three weeks
+([msg 10067](https://groups.io/g/eternity2/message/10067) — "Another one yay
+\o/" — through [msg 10078](https://groups.io/g/eternity2/message/10078),
+which shipped together with the open-sourced port, *libblackwood*). All seven
+are in the viewer's board menu as Bucas 469a–g.
+
+The odd one out is Carlos Fernandez's. He fed McGavin's 469 to a
+piece-exchange program of his own and found another 469 differing by a
+single piece ([msg 10074](https://groups.io/g/eternity2/message/10074)) —
+proof, in Bucas's words when he added it to the viewer, that "even at 469,
+there is still a little bit of flexibility left"
+([msg 10075](https://groups.io/g/eternity2/message/10075)). That flexibility
+is thin: it is exactly the kind of isolated tie the rigidity analysis below
+predicts, not a path upward.
+
+### The 470s (2021 and 2024) — the current ceiling
+
+Blackwood closed his own arc with a two-line message: a viewer URL and a
+piece list, 470/480, 10 breaks
+([msg 10117](https://groups.io/g/eternity2/message/10117)). He later
+confirmed it was found with exactly the public repo's code
+([msg 10161](https://groups.io/g/eternity2/message/10161)) — the retuned
+schedule he had published in advance — and then stopped: "I have not written
+a line of code or run any algorithms since I found a 470"
+([msg 10185](https://groups.io/g/eternity2/message/10185)).
+
+<CommunityBoard
+  id="Joshua_Blackwood_470"
+  caption="470/480 — Joshua Blackwood, March 2021. Still the best known board."
+/>
+
+The score has been tied once, not beaten. In December 2024 Bucas restarted "a
+few threads of Joshua's code" and another 470 appeared
+([msg 11401](https://groups.io/g/eternity2/message/11401)); Fernandez noticed
+its three unmatched border figures allowed a rearrangement and posted a 470b
+([msg 11403](https://groups.io/g/eternity2/message/11403)). The 470 class
+remains a Blackwood-solver monopoly, and 470 remains the ceiling: "No one is
+even close… The best result to date is the partial solution from Joshua
+Blackwood, 470/480 edges matching"
+([msg 11343](https://groups.io/g/eternity2/message/11343)).
+
+<CommunityBoard
+  id="JBlackwood+Jef_470"
+  caption="470/480 — Jef Bucas, December 2024, with Blackwood's algorithm."
+/>
+
+## What the record boards share
+
+Three publicly documented facts hold across the 468/469/470 line.
+
+**Same clue regime.** All of them place the mandatory starter piece at its
+official spot and none of the four optional clue pieces at theirs — checked
+board by board in the community
+([msg 10554](https://groups.io/g/eternity2/message/10554)). Under the
+original contest rules only the starter was mandatory, so these boards were
+prize-eligible as submitted.
+
+**Banded mismatches.** The few unmatched edges are not scattered; they pack
+into one band of rows against the edge the search finished at.
+[Where the mismatches live](/research/why/mismatch-geometry) scores the real
+boards live and shows the band — and shows this project's boards exhibiting
+the same band, mirrored.
+
+**Local rigidity.** None of these boards is an almost-solution waiting for a
+polish. [The rigidity wall](/research/why/rigidity-wall) uses exact
+integer-programming solves to prove that on record boards, freeing whole
+regions and refilling them optimally returns the same arrangement: the best
+boards sit at the bottom of their own valleys. Fernandez's single-piece-swap
+469 is the exception that proves the rule — a tie next door, never a step up.
+
+## The strict five-clue line: Gauthier's 460
+
+Most published record boards keep only the mandatory starter piece. In March
+2023 a thread asked the stricter question: what is the best board that
+respects **all five** official clues
+([msg 11037](https://groups.io/g/eternity2/message/11037))? A ladder climbed
+in days — 412, then 452 and 457 (Carlos Fernandez), then 453/455/456/458
+(David Barr) — and stopped at **Bruno Gauthier's 460**, "made with my own
+program and Eternity II Editor"
+([msg 11074](https://groups.io/g/eternity2/message/11074)); McGavin converted
+it to the shared viewer format
+([msg 11081](https://groups.io/g/eternity2/message/11081)).
+
+The strict line matters because of what the five clues imply: the community's
+solution-count estimate with all five clues placed is about 0.00000004 —
+effectively a unique target — against roughly 14,702 expected "solutions"
+with the starter alone
+([msg 11193](https://groups.io/g/eternity2/message/11193)). A five-clue board
+is playing the exact game the designers set. The 460 stands ten edges below
+the one-clue ceiling, and that gap is itself a datum.
+
+## This project's boards
+
+This site's own experiments produced four boards worth keeping — honestly
+several steps below the community line, and documented end to end. Each links
+to the experiment that found it; every score is recomputed from the board's
+own edges.
+
+### PALIMPSEST — 463
+
+The project's best, found by reading the whole corpus of strong boards to
+separate genuine shared structure from shared bad habits, then attacking the
+traps. The full story is in
+[the PALIMPSEST experiment](/research/lab/experiments/palimpsest).
+
+<RecordBoard id="v129-palimpsest-463" />
+
+### KEYRING — 460
+
+Built from scratch by letting three learned signals vote on every placement,
+reaching 460 in a board family no earlier search here had cracked —
+see [KEYRING](/research/lab/experiments/keyring). Its mismatches band in the
+bottom rows, the mirror image of McGavin's 469 — the scan-order fingerprint
+explained in [Where the mismatches live](/research/why/mismatch-geometry).
+
+<RecordBoard id="v181-keyring-460" />
+
+### PRIOR — 460
+
+From scratch plus destroy-and-repair, breaking construction ties by where
+pieces tend to sit in strong boards — see
+[PRIOR](/research/lab/experiments/prior).
+
+<RecordBoard id="v155-prior-460" />
+
+### GAUNTLET — 458
+
+The same beam search run across nine scan orders so it lands in different
+regions of board space; the zigzag order found this brand-new 458 — see
+[GAUNTLET](/research/lab/experiments/gauntlet).
+
+<RecordBoard id="v175-gauntlet-458" />

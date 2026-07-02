@@ -631,3 +631,17 @@ Also: Schaus msg 5589 wired into the ALNS concept sources. Phase 5 complete.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (149 paths), contribute in Build
   sidebar confirmed in browser.
+
+### 2026-07-02 — The notable boards gallery (lab/boards)
+
+/research/lab/boards: every board that matters, whoever found it — the
+record line (Verhaard's 467 story, Blackwood's 468 from Reddit, McGavin's
+469 with its top-rows mismatch banding, the November wave with Fernandez's
+single-swap, both 470s), the strict five-clue line (Gauthier 460 ladder),
+and this project's four bundled boards — all previews embedded (RecordBoard
+for bundled boards; a new in-MDX CommunityBoard pattern renders community
+boards from KNOWN_BOARDS params with viewer deep-links). Every claim carries
+its announcement message; no internal vault basin analyses used. This closes
+the SITE_PLAN's "basins gallery" item with a fully public-sourced version.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (151 paths) ✓ link check (108 files).
