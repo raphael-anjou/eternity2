@@ -742,3 +742,23 @@ Corrected in both languages on both pages.
   as the methodology gem; the naive toy expectation shown honestly failing
   by six orders.
 The concepts shelf now covers 17 techniques.
+
+### 2026-07-02 — Day recap: Phases 6+7 — the wiki went deep
+
+The day's sweep (user away, autonomous): Phase 6 completed all 9 concept
+educational upgrades (9 new interactive labs, walkthroughs, verified
+complexity sections — plus a sign-error fix in published prose). Phase 7
+then worked through the PAGE_CANDIDATES roadmap: all 9 P1s and 10 P2s are
+live — the solver catalogue grew to four entries (Blackwood, Verhaard's eii,
+McGavin's engine deep-dive, this site's engine as a modest peer), the
+concepts shelf to 19 techniques (edge slipping, fill orders, solver
+engineering, restarts, GPU, FPGA, distributed, LP relaxations, iterated
+maps, solution counting, no-good learning...), and the reference row gained
+who's-who, tooling, clue-puzzles, variants, and design-recipe pages. The
+sourcing discipline kept correcting the site itself: the four-not-two clue
+puzzles error (site-wide fix), the 295M-nps attribution (Joe's measurement,
+not McGavin's claim), the "heavily optimized" 469 myth (ran as released),
+and the FPGA record's did-reach-silicon nuance. Verified at close:
+just check ✓, link check ✓ (146 content files, 0 dead links), 183+
+prerendered pages, every commit local. The wiki now tells the community's
+whole technical story with primary sources end to end.
