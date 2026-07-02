@@ -21,6 +21,8 @@ related:
   - /research/build/concepts/local-search-alns
 ---
 
+import { TemperingLadderLab } from "@/components/research/concepts/TemperingLadderLab";
+
 Simulated annealing reads a board as a physical system: unmatched edges are
 energy, moves that lower the energy are always accepted, and moves that raise
 it are accepted with probability $e^{-\Delta E / T}$. Run hot and the search
@@ -42,12 +44,76 @@ $T_1 < T_2 < \dots < T_K$; periodically, adjacent replicas propose to swap
 states, accepted with the Metropolis rule
 
 $$
-P(\text{swap}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_j - E_i)}\bigr).
+P(\text{swap}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_i - E_j)}\bigr)
+= \min\bigl(1,\; e^{\Delta\beta\,\Delta E}\bigr),
 $$
 
+with $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ and
+$\Delta E = E_i - E_j$. Read it once with concrete signs: if replica $i$ is
+the colder one ($\Delta\beta > 0$) and the hotter replica holds the *lower*
+energy ($\Delta E > 0$), the exponent is positive and the swap is accepted
+with certainty — the good state always gets handed down the ladder for free.
 Hot replicas roam across barriers; cold replicas exploit; the swaps shuttle
 promising configurations down the ladder to be refined. No single chain ever
 has to survive a cooling schedule.
+
+## See the ladder beat one cold chain
+
+The claim worth seeing is the comparison: the same cold chain, with and
+without a ladder above it. Below, four replicas explore a rugged synthetic
+landscape whose global minimum hides behind barriers; a grey ghost runs the
+identical cold dynamics alone. Watch the swap flashes — green for accepted —
+carry the right-hand basin down to the cold rung, while the ghost sits in the
+starting well forever. Then drag the spacing slider to both extremes and
+reproduce the two classic ladder failures.
+
+<TemperingLadderLab />
+
+## Step by step
+
+One round of parallel tempering, as the lab runs it:
+
+1. **Sweep.** Every replica performs Metropolis moves at its own fixed
+   temperature: propose a local change, compute $\Delta E$, accept if
+   downhill, else with probability $e^{-\Delta E / T_i}$. On a board, a
+   single-piece move touches at most four seams, so each move's $\Delta E$
+   is $O(1)$.
+2. **Swap attempt.** Pick an adjacent pair $(i, i{+}1)$, compute
+   $\Delta\beta\,\Delta E$ from the two cached energies, accept with
+   $\min(1, e^{\Delta\beta \Delta E})$. On acceptance the two replicas
+   exchange configurations (equivalently: temperatures) — nothing else moves.
+3. **Bookkeeping.** Track the swap-acceptance rate per rung pair. That
+   number *is* the ladder diagnostic: near 100%, adjacent rungs see the same
+   landscape and one of them is wasted; near 0%, the ladder has decoupled
+   into independent chains. Useful ladders sit in the tens of percent —
+   frequent but not free, exactly the regime Earl and Deem recommend and the
+   one our runs converged to.
+4. **Repeat.** The good states random-walk down the rungs; the stuck states
+   ride up, get shaken loose, and come back different.
+
+## What it costs
+
+- **Per sweep:** $R$ replicas × $N$ sites, each move $O(1)$ local
+  evaluation, so $O(R \cdot N)$ — exactly $R$ times one chain. Memory is
+  $O(R \cdot N)$: every replica is a full board.
+- **Per swap phase:** the $R{-}1$ adjacent pairs each need one exponential
+  of cached energies — $O(R)$ total, a rounding error next to the sweeps.
+- **The win is mixing time, not step cost.** A lone cold chain crosses an
+  energy barrier $\Delta E$ in roughly $e^{\Delta E / T_{\text{cold}}}$
+  attempts (the Arrhenius wait — our measured 76-cell crossing sat at
+  $e^{-21}$ per attempt at $T = 1$). The ladder replaces that wait with
+  diffusion: a configuration random-walks across $R$ rungs, and with
+  geometric spacing tuned for constant per-rung acceptance, a round trip
+  costs on the order of $R^2$ swap rounds. You pay a constant factor $R$
+  per sweep to turn an exponential wait into a polynomial shuttle — that
+  asymmetry is the entire argument for the method.
+- **No guarantees, same as all samplers.** Parallel tempering is not
+  complete and certifies nothing; it converges to the right distribution
+  eventually, with no useful bound on "eventually". And where the landscape
+  offers ties instead of barriers — the iso-score plateaus at the top of
+  this puzzle — $\Delta E = 0$ makes every rung behave identically, and the
+  ladder's advantage vanishes by construction, which is precisely what the
+  verdict below reports.
 
 ## Why this puzzle needs the ladder
 

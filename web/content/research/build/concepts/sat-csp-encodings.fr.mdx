@@ -24,6 +24,8 @@ related:
   - /research/why/rigidity-wall
 ---
 
+import { EncodingSizeLab } from "@/components/research/concepts/EncodingSizeLab";
+
 Les solveurs SAT modernes règlent des problèmes industriels à des millions de
 variables ; le geste évident est donc d'écrire Eternity II en clauses et de
 laisser le CDCL creuser. On fait exactement ce geste depuis 2008. Les
@@ -56,6 +58,86 @@ complet construites par la communauté avoisinent la centaine de milliers de
 variables et les centaines de millions de clauses (comme rapporté sur la
 [liste de diffusion](https://groups.io/g/eternity2)) — chargeables, et
 parfaitement irrésolues.
+
+## Prendre la mesure des tailles
+
+Des nombres à quatorze chiffres ne disent plus rien en prose ; mesurez-les
+plutôt. L'explorateur ci-dessous calcule les deux encodages en direct depuis
+la dérivation ci-dessus — faites glisser la taille du plateau au-delà du
+plafond SAT pur de la communauté à 10×10 et jusqu'au 16×16 complet, et
+regardez les barres en échelle log. En dessous, une instance à six clauses
+montre l'autre moitié de l'histoire : la cascade de propagation unitaire dont
+se nourrit l'apprentissage de clauses du CDCL — et que ce puzzle affame.
+
+<EncodingSizeLab />
+
+## Pas à pas
+
+Dérivez les tailles une fois à la main ; elles cessent d'être du folklore.
+
+1. **Variables de placement.** $p = n^2$ pièces, $4$ rotations, $n^2$
+   cases : $x_{c,p,r}$ donne $n^2 \cdot p \cdot 4 = 4n^4$ variables. À
+   $n = 16$, cela fait $262\,144$ — la « centaine de milliers de variables »
+   des CNF communautaires, avant auxiliaires.
+2. **Contraintes de cases et de pièces.** Chaque case porte exactement un
+   placement : une clause longue plus, par paires, $\binom{4n^2}{2}$
+   exclusions par case. Chaque pièce sert au plus une fois : encore
+   $\binom{4n^2}{2}$ par pièce. L'au-plus-un par paires est quadratique —
+   c'est ce que les encodages compacts (séquentiel, commandant) ramènent à
+   $O(4n^2)$ clauses chacun, au prix de variables auxiliaires.
+3. **Les clauses de conflit directes — l'explosion.** Le plateau a
+   $2n(n-1)$ coutures internes. Pour chaque couture, chaque paire de
+   placements en désaccord reçoit une clause binaire : environ
+   $(4n^2)^2 (1 - 1/c)$ paires par couture si les couleurs étaient
+   uniformes. À $n = 16$, $c = 17$ :
+   $480 \times 1024^2 \times \tfrac{16}{17} \approx 4{,}7 \times 10^8$
+   clauses — les « centaines de millions » rapportées pour les CNF du
+   plateau entier, retrouvées depuis les premiers principes.
+4. **L'astuce des coutures de Heule.** Nommer la couleur de chaque couture :
+   $2n(n-1) \cdot c$ variables auxiliaires ($8\,160$ en taille réelle).
+   Chaque placement *implique* alors ses quatre couleurs de couture (au plus
+   $16n^4$ clauses binaires) et le désaccord s'interdit une fois par
+   couture, pas une fois par paire : $\binom{c}{2}$ clauses par couture,
+   environ $65\,000$ au total. La machinerie de conflit s'effondre de trois
+   ordres de grandeur — c'est exactement pourquoi les instances de Heule ont
+   atteint des tailles que l'encodage naïf n'a jamais touchées, et pourquoi
+   le plafond reste pourtant vers 10×10 plutôt que 16×16 : la taille n'a
+   jamais été le seul problème.
+
+## Ce que ça coûte
+
+- **Le solveur, au pire cas : exponentiel.** SAT est NP-complet, et le CDCL
+  est une procédure fondée sur la résolution — sur les familles à bornes
+  inférieures de résolution exponentielles, *aucune* de ses exécutions ne
+  peut être sous-exponentielle. Son succès industriel parle de la structure
+  typique, pas du coût au pire cas, et une instance bâtie sur le pic de
+  difficulté est aussi loin du typique qu'il est possible.
+- **La propagation unitaire : bon marché par construction.** Avec deux
+  littéraux surveillés par clause, une clause n'est examinée que lorsqu'un
+  de ses deux littéraux surveillés est falsifié, et chaque visite coûte
+  $O(\text{longueur de la clause})$ pour trouver un nouveau surveillant.
+  C'est la propagation qui permet au CDCL des millions de décisions par
+  seconde même sur des CNF énormes — charger Eternity II n'a jamais été le
+  problème.
+- **L'analyse de conflit : au prix du graphe d'implications.** Chaque
+  conflit s'analyse en remontant le graphe d'implications jusqu'à une coupe
+  (premier UIP), en temps linéaire dans le graphe parcouru, et produit une
+  clause apprise dont le pouvoir d'élagage tient à sa *brièveté*. C'est
+  l'étape que ce puzzle affame : des chaînes d'implications plates rendent
+  la remontée triviale et la clause apprise large — plein tarif, aucun
+  produit.
+- **Le versant CSP a la même silhouette.** Maintenir l'arc-cohérence sur
+  les contraintes en table est polynomial par nœud, et le filtre GAC
+  *alldifferent* de Régin fait tourner un couplage biparti en
+  $O(m\sqrt{n})$ par appel — voir la
+  [page alldifferent](/research/build/concepts/alldiff-regin). Une
+  propagation polynomiale au sommet d'un arbre de recherche exponentiel :
+  fort localement, impuissant globalement.
+- **Où le compte s'équilibre.** Sur le plateau entier, le comportement au
+  pire cas est le comportement observé. Sur des sous-problèmes épinglés, la
+  même machinerie rend UNSAT en moins de deux secondes — un théorème
+  d'impossibilité par requête, au prix d'une consultation de base de
+  données. Les coûts n'ont pas changé ; la question, si.
 
 ## Ce que les benchmarks publiés ont montré
 

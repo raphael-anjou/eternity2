@@ -663,3 +663,19 @@ the 469 was unsupported (msg 10045: ran as released) — both corrected.
 era-grouped, every contribution message-linked, identities only as stated
 on-list (Wolz via msg 2972; Verhaard/Karlsson via his own msgs), Raphaël one
 line among the others. Closes inviting corrections via the list.
+
+### 2026-07-02 — Phase 6 complete: all 9 concepts are now educational
+
+Every concept page carries a purpose-built interactive lab, a step-by-step
+walkthrough on the lab's exact instance, and a verified complexity section:
+AC-3 worklist (with a real AC-1 baseline), Régin's filter (augmenting paths
++ SCCs on a Hall trap), dancing links (Knuth's own instance, trace verified
+move-by-move), the MITM square-root trade + hash join, beam diversity
+collapse, parity flips on a real solved board (measured deltas), an ALNS
+destroy-repair loop with adaptive weights on an engine board, a tempering
+ladder with a ghost single-chain control (the cold replica demonstrably
+escapes via swaps), and a SAT encoding-size explorer with a unit-propagation
+cascade. All labs obey useRunWhileVisible + frame budgets. Two errors in
+published prose fell to the work: a sign error in the tempering swap
+formula, and MDX brace-escaping crashes caught in preview. All browser-
+verified EN+FR; typecheck/lint/link-check green.
