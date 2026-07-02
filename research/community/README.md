@@ -31,6 +31,10 @@ sweep chronologically toward today.** Each window produces one digest in
   Gauthier 460 = 11074; mixed-set 480 = 11169; complex_theory.c = 11197; Bucas 470 tie = 11401.
   NOTE: msg 11905 (Jef's wrapper_blackwood permission) post-dates the export (ends 11823,
   2026-03-31) — it was provided firsthand by Raphaël from his inbox; citation valid.)
+- `0016` Discord #general (2021-11 → 2026-05) ✅ 2026-07-02 — REFUTED the
+  "2025-07 470 onesmallstep" records row (relay misread as claim; his best
+  ~466-467); Blackwood's first-person 470 account (Threadripper, ~150h);
+  Reinout's linear-run subculture; hint-authenticity settled.
 - …continue ~quarterly through 2011, then yearly 2012→2026 (append to the
   list as windows complete; keep numbering sequential).
 
