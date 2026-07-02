@@ -2,7 +2,7 @@
 title: Evolutionary and genetic approaches
 description: >-
   Breed a population of boards, keep the fittest, recombine the survivors.
-  The most natural metaphor in the toolbox — and the one method whose central
+  The most natural metaphor in the toolbox, and the one method whose central
   operator, crossover, fights the structure of Eternity II head-on. The
   complete record of what the community bred, measured, and abandoned.
 kind: concept
@@ -10,33 +10,33 @@ order: 200
 updated: 2026-07-02
 topics: [local-search, learning]
 sources:
-  - label: simon.chapple's full GA blueprint — spiral genome, class-constrained genes, fitness (groups.io message 302)
+  - label: "simon.chapple's full GA blueprint: spiral genome, class-constrained genes, fitness (groups.io message 302)"
     url: https://groups.io/g/eternity2/message/302
-  - label: Steve Moyer's two-week GA study — "Crossover seems to have no impact" (groups.io message 565)
+  - label: Steve Moyer's two-week GA study, "Crossover seems to have no impact" (groups.io message 565)
     url: https://groups.io/g/eternity2/message/565
-  - label: cambdacambda — crossover not useful; 10x population = 10x CPU, same iterations (groups.io message 578)
+  - label: "cambdacambda: crossover not useful; 10x population = 10x CPU, same iterations (groups.io message 578)"
     url: https://groups.io/g/eternity2/message/578
-  - label: sam_maes — mutation is obvious, a plausible crossover operator is not (groups.io message 1468)
+  - label: "sam_maes: mutation is obvious, a plausible crossover operator is not (groups.io message 1468)"
     url: https://groups.io/g/eternity2/message/1468
-  - label: sam_maes — the real issue is that good partial solutions are hard to combine (groups.io message 1492)
+  - label: sam_maes on the real issue, good partial solutions are hard to combine (groups.io message 1492)
     url: https://groups.io/g/eternity2/message/1492
-  - label: TD — mixing two parents is mixing two permutations; duplicates, gaps, and the repair idea (groups.io message 1500)
+  - label: "TD: mixing two parents is mixing two permutations; duplicates, gaps, and the repair idea (groups.io message 1500)"
     url: https://groups.io/g/eternity2/message/1500
   - label: mobaladje's GA plateau near 406/480 (groups.io message 2360)
     url: https://groups.io/g/eternity2/message/2360
   - label: mobaladje's classic recipe, and mismatches spread evenly across the board (groups.io message 2516)
     url: https://groups.io/g/eternity2/message/2516
-  - label: Lyman — two partial solutions are likely to need the same tiles in different places (groups.io message 2591)
+  - label: "Lyman: two partial solutions are likely to need the same tiles in different places (groups.io message 2591)"
     url: https://groups.io/g/eternity2/message/2591
   - label: Lyman's repair-crossover sketch, with his own verdict (groups.io message 2612)
     url: https://groups.io/g/eternity2/message/2612
-  - label: antminder's backtracker+GA hybrid — 462/480 in about a day, Munkres repair operator (groups.io message 5589)
+  - label: antminder's backtracker+GA hybrid, 462/480 in about a day with a Munkres repair operator (groups.io message 5589)
     url: https://groups.io/g/eternity2/message/5589
   - label: Pierre Schaus explains the optimal assignment neighborhood behind that repair (groups.io message 5601)
     url: https://groups.io/g/eternity2/message/5601
-  - label: antminder shelves it — a week to 463, and Verhaard's eii "completely blows it away" (groups.io message 5950)
+  - label: antminder shelves it; a week to 463, and Verhaard's eii "completely blows it away" (groups.io message 5950)
     url: https://groups.io/g/eternity2/message/5950
-  - label: jagbrain's 2011 post-mortem — why GA/SA assumptions fail on this search space (groups.io message 8257)
+  - label: jagbrain's 2011 post-mortem on why GA/SA assumptions fail on this search space (groups.io message 8257)
     url: https://groups.io/g/eternity2/message/8257
   - label: Niang, Solving the Eternity II Puzzle using Evolutionary Computing Techniques (MASc thesis, Concordia, 2011)
     url: https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf
@@ -54,15 +54,15 @@ Ten days after the puzzle launched, the mailing list already had a complete
 genetic-algorithm design on the table: number the pieces, thread the board
 onto a spiral genome starting at the clue piece, score connectivity, breed
 ([groups.io message 302](https://groups.io/g/eternity2/message/302)). It is
-the most natural metaphor in the toolbox — a population of boards, survival
+the most natural metaphor in the toolbox: a population of boards, survival
 of the best-matched, children that inherit good fragments from two good
 parents. Over the following years the community built these solvers, measured
 them carefully, and watched every one of them stall in the low 400s while
 plain backtrackers cruised past. This page teaches the recipe, then the
-reason it fails — a reason worth understanding properly, because it is not
-"GAs are weak" but a precise structural clash between crossover and
-permutation problems — and then follows the ideas that survived to the pages
-where they live now.
+reason it fails. That reason is worth understanding properly, because it is
+not "GAs are weak" but a precise structural clash between crossover and
+permutation problems. From there, the page follows the ideas that survived
+to the pages where they live now.
 
 ## The recipe on a board
 
@@ -70,32 +70,32 @@ A genetic algorithm needs four ingredients, and Eternity II offers each one
 almost too easily:
 
 1. **Genome.** A candidate solution encoded for breeding. Here: an assignment
-   of the 256 pieces to the 256 cells, plus a rotation each — equivalently, a
-   permutation of the piece list. Chapple's launch-week blueprint threaded
+   of the 256 pieces to the 256 cells, plus a rotation each (equivalently, a
+   permutation of the piece list). Chapple's launch-week blueprint threaded
    the cells onto a spiral from the clue piece outward, with border and
    corner genes constrained to border and corner pieces
    ([message 302](https://groups.io/g/eternity2/message/302)); most later
    implementations used the flat board directly.
-2. **Fitness.** Count the matched edges — the same 0-to-480 score the
+2. **Fitness.** Count the matched edges, the same 0-to-480 score the
    [record ladder](/research/records) is denominated in. mobaladje's solver
    was exactly this classic loop: generate a random population, evaluate,
    select the best, cross them, mutate a little, repeat
    ([message 2516](https://groups.io/g/eternity2/message/2516)).
 3. **Mutation.** Swap two pieces, rotate one in place, scramble a small
-   patch. Everyone agreed this part was easy — "the mutation operators are
+   patch. Everyone agreed this part was easy: "the mutation operators are
    obvious," as the first serious GA thread put it
    ([message 1468](https://groups.io/g/eternity2/message/1468)).
 4. **Crossover.** Take two high-scoring parents and produce a child that
    inherits from both. This is the ingredient that makes a GA a GA rather
-   than a population of hill-climbers — and on this puzzle it is where
+   than a population of hill-climbers, and on this puzzle it is where
    everything goes wrong.
 
 ## The central problem: crossover on a permutation
 
 The promise of crossover is recombination of building blocks: a creature that
 excels at flying and one that excels at swimming might produce one that does
-both. Lyman Hurd stated the premise on the list — and his own doubt —
-in one sentence: two partial solutions are likely to need *the same tiles in
+both. Lyman Hurd stated the premise on the list (and his own doubt) in one
+sentence: two partial solutions are likely to need *the same tiles in
 different places*
 ([message 2591](https://groups.io/g/eternity2/message/2591)).
 
@@ -103,14 +103,14 @@ Make that concrete. A genome is a permutation of 256 pieces. Take two good
 parents and cut them at a point (or mix them uniformly): the child keeps
 cells 1 to $k$ from parent A and the rest from parent B. Because the parents
 arrange the *same* pieces differently, the child now holds some pieces twice
-and lacks others entirely — it is not a board at all. TD spelled this out
+and lacks others entirely; it is not a board at all. TD spelled this out
 within hours of the question being asked: mixing two parents is mixing two
 permutations of 1..256, and the result "is not a valid permutation because
 some values are duplicated and other values are missing"
 ([message 1500](https://groups.io/g/eternity2/message/1500)).
 
-Watch it happen. Two *perfect* parents — the same solved board and its
-quarter-turn rotation, both flawless arrangements of the same pieces —
+Watch it happen. Two *perfect* parents (the same solved board and its
+quarter-turn rotation, both flawless arrangements of the same pieces)
 produce a child that is illegal at almost every cut:
 
 <CrossoverClashLab />
@@ -118,7 +118,7 @@ produce a child that is illegal at almost every cut:
 The naive child's fitness is nearly perfect, which is the trap: each
 inherited half is internally solved, so an edge-counting fitness function
 loves a genome that isn't even a board. Every practical fix is a **repair
-operator** — delete the duplicates, insert the missing pieces
+operator**: delete the duplicates, insert the missing pieces
 ([message 1500](https://groups.io/g/eternity2/message/1500)), or swap
 duplicated entries between the two children to preserve as many "good ideas"
 as possible, as Lyman sketched before concluding he held "little hope that it
@@ -126,7 +126,7 @@ will stumble upon the actual solution"
 ([message 2612](https://groups.io/g/eternity2/message/2612)). But the
 repaired genes land in cells whose neighbours were inherited from the *other*
 parent, where they match nothing. Repair converts crossover into a large,
-poorly aimed mutation — and at that point the population is just a set of
+poorly aimed mutation. At that point the population is just a set of
 parallel mutation hill-climbers paying crossover's overhead.
 
 <Callout kind="note" title="But crossover works on TSP?">
@@ -136,7 +136,7 @@ parallel mutation hill-climbers paying crossover's overhead.
   difference is what a "building block" is. A tour's value lives in its
   adjacencies, and order-preserving crossovers (OX, PMX) inherit adjacency
   fragments meaningfully. An Eternity II board's value lives in exact
-  piece-at-cell placements checked against 22 colours — and two good boards
+  piece-at-cell placements checked against 22 colours, and two good boards
   agree on almost none of them. sam_maes's own diagnosis was the right one:
   the problem is not the search space's size but that "good partial solutions
   are hard to combine."
@@ -147,18 +147,19 @@ two high-scoring boards are related by large interlocking
 [σ-cycles](/research/why/sigma-cycles), and every *partial* application of a
 cycle scores worse than either endpoint. Crossover is exactly a partial
 application of the permutation connecting the parents. The valley between
-two good parents is not an accident of the operator — it is the structure of
+two good parents is not an accident of the operator: it is the structure of
 the landscape.
 
 ## What the community measured
 
-The record, in chronological order — it is remarkably consistent.
+The record, in chronological order, is remarkably consistent.
 
 - **2007, the two-week study.** Steve Moyer ran a 1000-individual GA with
   order-preserving crossover and reported the numbers that settled the
   question early: "Crossover seems to have no impact," and population size
-  barely matters — a 100-individual population converged about as fast at a
-  tenth of the cost ([message 565](https://groups.io/g/eternity2/message/565)).
+  barely matters, since a 100-individual population converged about as fast
+  at a tenth of the cost
+  ([message 565](https://groups.io/g/eternity2/message/565)).
   An independent reply confirmed both findings from separate experiments
   ([message 578](https://groups.io/g/eternity2/message/578)).
 - **2007, the plateaus.** insurrectors' GA on the inner 14x14 reached
@@ -166,7 +167,7 @@ The record, in chronological order — it is remarkably consistent.
   types of combinatorial problems"
   ([message 1311](https://groups.io/g/eternity2/message/1311)). mobaladje's
   full-board GA hit its local optimum "towards 406 (/480)"
-  ([message 2360](https://groups.io/g/eternity2/message/2360)) — with the
+  ([message 2360](https://groups.io/g/eternity2/message/2360)), with the
   mismatches spread evenly across the board, no fixable weak region
   ([message 2516](https://groups.io/g/eternity2/message/2516)). JSA pointed
   at the underlying issue: the 480-metric is a poor guide, and nobody found a
@@ -174,7 +175,7 @@ The record, in chronological order — it is remarkably consistent.
 - **2008, the serious hybrid.** antminder built the strongest evolutionary
   solver in the archive: a backtracker runs for ~3 minutes and fills most of
   the board legally, then a steady-state GA (every individual forced unique)
-  polishes the remainder — with the disruptive crossover compensated by a
+  polishes the remainder. The disruptive crossover is compensated by a
   repair operator he had used before on tracking problems: pop off
   non-adjacent pieces and let the Munkres/Hungarian algorithm re-place them
   *optimally*. Average, over seven runs: 462/480 in a little over a day
@@ -182,11 +183,12 @@ The record, in chronological order — it is remarkably consistent.
   Schaus, whose JFPC paper the operator came from, confirmed the mechanism
   on-list ([message 5601](https://groups.io/g/eternity2/message/5601)).
   Note what happened to the architecture: the GA no longer breeds boards
-  from scratch — it manages a restart loop around a backtracker and applies
+  from scratch; it manages a restart loop around a backtracker and applies
   an exact local repair. The genetic layer became scaffolding.
 - **2008, the shelving.** Three months later antminder reported his program
   needed "a week to reach a partial score of 463" and that Louis Verhaard's
-  backtracking-based eii "completely blows it away"
+  backtracking-based [eii](/research/build/solvers/verhaard-eii) "completely
+  blows it away"
   ([message 5950](https://groups.io/g/eternity2/message/5950)). He shelved
   it. eii went on to power the 467 record; no evolutionary solver appears
   anywhere in the record lineage after this point.
@@ -194,12 +196,12 @@ The record, in chronological order — it is remarkably consistent.
   the one substantive reply advised against expecting GAs to progress
   without "going backwards and ruining previous progress"
   ([message 6835](https://groups.io/g/eternity2/message/6835)). A 2010
-  neural-network-with-GA solver was shared with the honest caveat "it wont
+  neural-network-with-GA solver was shared with the plain caveat "it wont
   solve your puzzle anyway"
   ([message 7454](https://groups.io/g/eternity2/message/7454)). A 2011
   solver census recorded 190 pieces by pure backtracking against 209 with a
-  genetic hybrid ([message 8787](https://groups.io/g/eternity2/message/8787))
-  — respectable, and some fifty pieces short of the same era's best. jagbrain
+  genetic hybrid ([message 8787](https://groups.io/g/eternity2/message/8787)):
+  respectable, and some fifty pieces short of the same era's best. jagbrain
   wrote the community's post-mortem the same year: GA and annealing assume a
   landscape you can climb, and this one is huge, "fractalized," with
   near-random solution placement
@@ -217,9 +219,10 @@ The academic record matches the list's. The one thesis-length treatment of
 evolutionary computing on Eternity II
 ([Niang 2011](https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf))
 surveys the GA design space without dethroning the metaheuristics of the
-2008–2012 literature, and the strongest published heuristics from that line —
-tabu search, VLNS, [hyper-heuristics](https://link.springer.com/article/10.1007/s10852-012-9178-4)
-— all abandoned recombination of boards.
+2008–2012 literature, and the strongest published heuristics from that line
+(tabu search, VLNS,
+[hyper-heuristics](https://link.springer.com/article/10.1007/s10852-012-9178-4))
+all abandoned recombination of boards.
 
 ## Where the surviving ideas went
 
@@ -228,7 +231,7 @@ GA era survived by moving out:
 
 - **The population became restarts.** Once crossover contributes nothing, a
   population of mutating boards is exactly a portfolio of independent
-  restarts — and Moyer's finding that population size barely matters is the
+  restarts. Moyer's finding that population size barely matters is the
   restart lesson in disguise: independent draws from the same distribution,
   not compounding evolution. The measured case for restart portfolios is on
   the [restarts page](/research/build/concepts/restarts).
@@ -240,7 +243,7 @@ GA era survived by moving out:
   of the 2008 hybrid was never the genetics; it was the neighborhood.
 - **Evolution moved up a level.** The hyper-heuristic line
   ([Wauters et al. 2012](https://link.springer.com/article/10.1007/s10852-012-9178-4))
-  keeps selection-and-adaptation but applies it to *operators*, not boards —
+  keeps selection-and-adaptation but applies it to *operators*, not boards:
   learn which moves are paying and lean on them. That is literally the
   "adapt" step of ALNS. Evolving the search's parameters survived; evolving
   its solutions did not.
@@ -248,25 +251,25 @@ GA era survived by moving out:
 ## What it costs
 
 - **Per generation: $O(P \cdot (f + g))$** for population size $P$, fitness
-  cost $f$ (a linear edge count, cheap) and operator cost $g$ — cheap for
-  swap mutations, $O(k^3)$ per Hungarian repair of $k$ cells, and worthless
-  in between for repaired crossover. The multiplier $P$ is the painful part:
+  cost $f$ (a linear edge count, cheap) and operator cost $g$, which is
+  cheap for swap mutations, $O(k^3)$ per Hungarian repair of $k$ cells, and
+  worthless in between for repaired crossover. The multiplier $P$ is the painful part:
   the community's measurements say it buys diversity that mutation alone
   replicates at a tenth of the cost
   ([message 578](https://groups.io/g/eternity2/message/578)).
 - **No guarantees of any kind.** No completeness, no optimality certificate,
-  and — unlike [ALNS](/research/build/concepts/local-search-alns), which at
-  least polishes a good board it is handed — a GA bred from random
+  and, unlike [ALNS](/research/build/concepts/local-search-alns), which at
+  least polishes a good board it is handed, a GA bred from random
   populations spends most of its budget rediscovering what a greedy
   constructor produces in milliseconds.
-- **The honest verdict.** Pure GAs plateau around 406/480 on the full board
-  ([message 2360](https://groups.io/g/eternity2/message/2360)). The best
-  hybrid ever reported on the list averaged 462 per day in 2008 by demoting
-  the GA to a management layer over a backtracker and an exact repair
-  ([message 5589](https://groups.io/g/eternity2/message/5589)) — and its
-  author shelved it the week a pure backtracking solver appeared
-  ([message 5950](https://groups.io/g/eternity2/message/5950)). Crossover —
-  the one idea evolution brings that nothing else in this catalogue has —
+- **Where GAs actually top out.** Pure GAs plateau around 406/480 on the
+  full board ([message 2360](https://groups.io/g/eternity2/message/2360)).
+  The best hybrid ever reported on the list averaged 462 per day in 2008 by
+  demoting the GA to a management layer over a backtracker and an exact
+  repair ([message 5589](https://groups.io/g/eternity2/message/5589)), and
+  its author shelved it the week a pure backtracking solver appeared
+  ([message 5950](https://groups.io/g/eternity2/message/5950)). Crossover,
+  the one idea evolution brings that nothing else in this catalogue has,
   is structurally wrong for a puzzle whose good solutions
   [share almost nothing transplantable](/research/why/sigma-cycles). What
   survived of the GA era is real, and none of it is genetic.

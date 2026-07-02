@@ -1,7 +1,7 @@
 ---
 title: "Solution counting: measuring what you cannot find"
 description: >-
-  Nobody has ever seen a full Eternity II solution — yet the community knows,
+  Nobody has ever seen a full Eternity II solution, yet the community knows,
   to within a factor of two, how many exist. This page is the story and the
   craft of that number: exact censuses on small boards, the expectation
   formula and its twenty-year convergence on 14,702, and the culled-search
@@ -34,7 +34,7 @@ related:
 ---
 
 Nobody has ever exhibited a full Eternity II solution. The community
-nevertheless agrees — to within a claimed factor of two — on how many exist:
+nevertheless agrees on how many exist, to within a claimed factor of two:
 about **14,702** with the mandatory starter piece, and about **4×10⁻⁸**,
 effectively exactly one, with all five clues placed
 ([msg 11193](https://groups.io/g/eternity2/message/11193)). This page is
@@ -43,29 +43,29 @@ find, and why they bothered.
 
 The *why* is not curiosity. A puzzle with 14,702 solutions and a puzzle with
 1 are different beasts in every way that matters. **Design**: the puzzle's
-parameters were tuned so the expected count sits near one — the community
+parameters were tuned so the expected count sits near one; the community
 reverse-engineered the designer's knob within weeks of the 2007 announcement,
 when Alan O'Donnell wrote the count as a function of the number of colours
 $B$ and found it crosses $1$ at $B \approx 14.67$
 ([msg 94](https://groups.io/g/eternity2/message/94)); the real puzzle's
 [17 interior colours](/research/why/phase-transition) sit just past that
-knife edge. **Difficulty**: solution count divided into search-tree size —
-nodes per solution — is the real price of the hunt, and it behaves
+knife edge. **Difficulty**: solution count divided into search-tree size
+(nodes per solution) is the real price of the hunt, and it behaves
 counter-intuitively: Peter McGavin computed that dropping the starter
 constraint multiplies the solutions by 784 while leaving nodes-per-solution
 essentially unchanged, $9.2766\times10^{42}$ against $9.2751\times10^{42}$
 ([msg 8924](https://groups.io/g/eternity2/message/8924)). More solutions do
 not mean an easier puzzle; they mean a proportionally bigger haystack.
 **Verification**: exact counts on small regions are the community's
-correctness currency — the way two solvers prove they read the same pieces
+correctness currency: the way two solvers prove they read the same pieces
 without ever sharing them (see
 [the benchmark culture](/research/build/benchmarks)).
 
 One more reason the count matters: the solutions are not variations on a
 theme. Brendan Owen and others stressed that distinct solutions are
 "generally a complete restructure of the entire puzzle", not local swaps of
-a few pieces ([msgs 7364/7365](https://groups.io/g/eternity2/message/7365))
-— so 14,702 is a count of genuinely different boards, scattered through the
+a few pieces ([msgs 7364/7365](https://groups.io/g/eternity2/message/7365)),
+so 14,702 is a count of genuinely different boards, scattered through the
 search space.
 
 ## Three ways to count
@@ -85,24 +85,24 @@ Where the tree is small enough to walk entirely, counting is just searching
 without stopping at the first success. The community used this from the
 first weeks as a *verification protocol*: tile the top-left 3×3 corner with
 all 256 pieces and you must find exactly **2,633,221** solutions
-([msg 2229](https://groups.io/g/eternity2/message/2229)) — a number safe to
+([msg 2229](https://groups.io/g/eternity2/message/2229)), a number safe to
 publish under the piece-set copyright, and impossible to reproduce with even
 one piece mistyped. The 5×5 corners followed in 2009, cross-verified by
 three independent programs (top-left: 1,596,901,885,652 partials with all
 five hints, [msg 7103](https://groups.io/g/eternity2/message/7103),
 [7105](https://groups.io/g/eternity2/message/7105)). Matching the consensus
-got you into the community's half-joking "Right Numbers Club" — the whole
+got you into the community's half-joking "Right Numbers Club"; the whole
 story is on the [benchmarks page](/research/build/benchmarks).
 
 Two exact results stand above the rest. In 2010, apal1969 exhausted the
-official Clue #3 puzzle — a real, commercial Tomy instance — and found
+official Clue #3 puzzle (a real, commercial Tomy instance) and found
 exactly **2,195,647,488** solutions
 ([msg 8168](https://groups.io/g/eternity2/message/8168)): the only
 commercially sold instance of the family whose solution count is known
 exactly rather than estimated. And in 2011, both of Brendan Owen's 9×9
-benchmark puzzles were exhausted — about $1.9\times10^{14}$ and
-$1.45\times10^{14}$ nodes, three weeks each on a dual-core Opteron —
-yielding **2** and **3** solutions —
+benchmark puzzles were exhausted, at about $1.9\times10^{14}$ and
+$1.45\times10^{14}$ nodes and three weeks each on a dual-core Opteron.
+They yielded **2** and **3** solutions;
 [complex theory](/research/why/complex-theory) had predicted 3.2 for the
 first ([msg 8793](https://groups.io/g/eternity2/message/8793)). Even the counting
 had to be counted carefully: the first report claimed one solution each,
@@ -112,7 +112,7 @@ Exhaustive does not mean bug-free; only replication is.
 
 ### The first moment: counting by expectation
 
-For the full 16×16 board, exhaustion is off the table — so the community's
+For the full 16×16 board, exhaustion is off the table, so the community's
 main tool has always been the *first-moment* (expected-value) calculation:
 multiply the number of ways to arrange the pieces by the probability that
 every internal edge matches, treating edge colours as independent draws.
@@ -121,13 +121,15 @@ announcement, months before anyone had pieces
 ([msg 38](https://groups.io/g/eternity2/message/38),
 [94](https://groups.io/g/eternity2/message/94)). On launch day, with the
 real piece statistics in hand, Owen computed ≈ **5,930** solutions with the
-mandatory hint and ≈ **4.65 million** without it — and used the split to
+mandatory hint and ≈ **4.65 million** without it, then used the split to
 audit the marketing: Christopher Monckton had given eternity2.net's Dave
 Clark a best estimate of "roughly 5 million" solutions, so Owen concluded
 Monckton's mathematicians had simply forgotten the hint constraint
 ([msg 987](https://groups.io/g/eternity2/message/987)). David Eddy added
-the same day that parity corrections — every colour's edge count must be
-even — contribute a factor of roughly $2^{16}$ that brings the estimate
+the same day that
+[parity corrections](/research/build/concepts/parity-arguments) (every
+colour's edge count must be even) contribute a factor of roughly $2^{16}$
+that brings the estimate
 families into agreement ([msg 992](https://groups.io/g/eternity2/message/992)).
 
 Convergence took years, and it was not monotone. The closed-form product
@@ -135,7 +137,7 @@ was posted in November 2007
 ([msg 3385](https://groups.io/g/eternity2/message/3385)); mjqxxxx had
 already begun a fully rigorous counting framework that July
 ([msg 1221](https://groups.io/g/eternity2/message/1221)); kubzpa's December
-2007 paper argued for ~**15 million** solutions with the starter — and got
+2007 paper argued for ~**15 million** solutions with the starter. It got
 genuine peer review on the list: the list's fixes produced a corrected
 second version ([msg 3497](https://groups.io/g/eternity2/message/3497),
 [3583](https://groups.io/g/eternity2/message/3583)), and mjqxxxx then caught
@@ -150,18 +152,18 @@ an independent closed-form Markov model in 2008, matching Owen's iterative
 method exactly ([msg 5758](https://groups.io/g/eternity2/message/5758));
 McGavin published the same figure in 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)) and restated it as
-the canonical answer in 2024 — 14,702 with the starter, "probably accurate
+the canonical answer in 2024: 14,702 with the starter, "probably accurate
 to within a factor of 2", and $4\times10^{-8}$ with all five clues, "very
 strongly suggesting… a single, unique solution"
 ([msg 11193](https://groups.io/g/eternity2/message/11193)). The machinery
-behind those numbers — the depth-by-depth expectation and what it predicts
-about the search tree — lives on the
+behind those numbers, the depth-by-depth expectation and what it predicts
+about the search tree, lives on the
 [complex theory page](/research/why/complex-theory); this page only needs
 its output.
 
 One caveat the community itself raised belongs here. E2 was *generated from
 a solution*, and picking a puzzle by picking a solution oversamples
-solution-rich piece sets — so the count conditioned on the generation
+solution-rich piece sets, so the count conditioned on the generation
 process should run *higher* than the plain expectation, by an amount the
 thread tried and failed to pin down
 ([msgs 6892/6894](https://groups.io/g/eternity2/message/6892)). Expectation
@@ -175,23 +177,23 @@ randomly cull it to a fixed budget, and scale the survivors back up. The
 archive's methodological gem is Owen's September 2007 census of the border
 ring. He ran **four separate searches** of the 60-piece frame, each
 randomly culling the tree while keeping about 10 million active nodes per
-depth — and each of the four independently estimated **≈ 4.05×10³⁷** border
+depth. Each of the four independently estimated **≈ 4.05×10³⁷** border
 solutions ([msg 2696](https://groups.io/g/eternity2/message/2696), first
 posted at [msg 1225](https://groups.io/g/eternity2/message/1225)). The
 figure disagreed with eternity2.net's published estimate by thirteen orders
-of magnitude — and the replication is exactly why the community sided with
+of magnitude, and the replication is exactly why the community sided with
 Owen. A single culled run can be silently biased by anything; four
-independent runs agreeing is an error bar you can see. That habit —
-replication as error control, not authority — is the same one that later
+independent runs agreeing is an error bar you can see. That habit
+(replication as error control, not authority) is the same one that later
 governed the corner censuses and the 9×9 recounts.
 
 ## Step by step: the expectation formula on a tiny board
 
 The first-moment calculation is worth doing once by hand. Take a miniature
-E2: a framed 3×3 board — 4 corner pieces, 4 edge pieces, 1 interior piece —
+E2: a framed 3×3 board (4 corner pieces, 4 edge pieces, 1 interior piece)
 with a single palette of $c$ colours on every internal edge.
 
-**Step 1 — count the arrangements.** Corners go to corner cells with their
+**Step 1: count the arrangements.** Corners go to corner cells with their
 orientation forced by the two grey sides; edge pieces likewise; the single
 interior piece keeps its 4 rotations:
 
@@ -199,11 +201,11 @@ $$
 A \;=\; 4! \times 4! \times 4 \;=\; 2304 .
 $$
 
-**Step 2 — count the constraints.** The board has $2\cdot3\cdot2 = 12$
+**Step 2: count the constraints.** The board has $2\cdot3\cdot2 = 12$
 internal edges. If colours were independent uniform draws, each edge would
 match with probability $1/c$.
 
-**Step 3 — multiply.**
+**Step 3: multiply.**
 
 $$
 \mathbb{E}[S] \;=\; \frac{2304}{c^{12}}
@@ -213,11 +215,11 @@ $$
 
 That is the entire designer's dilemma in one line: at two colours the tiny
 puzzle expects about half a solution, at three it is almost surely
-unsolvable — a fraction of a colour swings the expectation across the
-"exactly one" line. Scale the same product up to the real board — $4!$
+unsolvable. A fraction of a colour swings the expectation across the
+"exactly one" line. Scale the same product up to the real board, with $4!$
 corner arrangements, $56!$ edge arrangements, $195!\cdot4^{195}$ interior
 arrangements (the starter is pinned), 60 frame-ring edges at $1/5$ and
-$56+364=420$ remaining edges at $1/17$ — and you get the form posted to the
+$56+364=420$ remaining edges at $1/17$, and you get the form posted to the
 list in November 2007 ([msg 3385](https://groups.io/g/eternity2/message/3385)):
 
 $$
@@ -226,10 +228,10 @@ $$
 \;\approx\; 0.02 .
 $$
 
-And here honesty is due: **0.02 is not 14,702**. The naive product is
+There is no hiding the gap: **0.02 is not 14,702**. The naive product is
 nearly six orders of magnitude too small, and the community knew why from
 the start. Treating every edge as an independent $1/17$ coin flip prices
-the last piece like the first — when in reality the real piece set pairs up
+the last piece like the first, when in reality the real piece set pairs up
 perfectly (every colour has an even count, with
 [zero slack](/research/build/known-facts)), so the match probabilities in
 the endgame are conditioned far above $1/17$ by everything already placed.
@@ -237,8 +239,8 @@ Those parity and depletion corrections were flagged in the very message
 that posted the formula, and Eddy's $\sim 2^{16}$ even-count factor
 ([msg 992](https://groups.io/g/eternity2/message/992)) is the largest of
 them. [Complex theory](/research/why/complex-theory) is precisely this
-calculation done properly — tracking the surviving piece and colour counts
-depth by depth instead of assuming a fixed probability — and *that* is the
+calculation done properly, tracking the surviving piece and colour counts
+depth by depth instead of assuming a fixed probability, and *that* is the
 version that lands at 14,702 and matches exhaustive counts on small boards
 to within its claimed factor of two. The structure of the formula
 (arrangements × match probability) is right; where you take the probability
@@ -252,10 +254,10 @@ The three regimes are really three points on a cost–knowledge curve.
 that refuses to stop: each 9×9 census cost on the order of $10^{14}$ nodes
 and three weeks of 2011 hardware, and the price grows
 with the search space, not with the answer. For the full puzzle the tree is
-$\sim 10^{45}$ wide at its plateau — the exact count of E2's solutions will
+$\sim 10^{45}$ wide at its plateau; the exact count of E2's solutions will
 not be computed by anyone, ever, by this route.
 
-**Expectation costs almost nothing — and that is its trap.** The
+**Expectation costs almost nothing, and that is its trap.** The
 first-moment formula is $O(1)$ arithmetic (complex theory's refined version
 is a few hundred multiplications, one per cell), which is why it existed
 before the puzzle shipped. But a first moment carries no information about
@@ -266,7 +268,7 @@ each depth are genuinely distinct. The
 [entropy and area-law results](/research/why/entropy-area-law) show exactly
 where that blindness bites: past ~80 cells, distinctness collapses in a way
 no independence model can see. Use expectations to compare orders and set
-expectations — never as bounds.
+expectations, never as bounds.
 
 **Sampling buys error bars only through repetition.** A culled search costs
 one node budget per run and gives an estimate of unknown bias; Owen paid

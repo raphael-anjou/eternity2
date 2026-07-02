@@ -1,7 +1,7 @@
 ---
 title: "Résoudre sur GPU : le mur, c'est la mémoire, pas le calcul"
 description: >-
-  Eternity II ressemble au problème GPU idéal — des millions de sous-arbres
+  Eternity II ressemble au problème GPU idéal : des millions de sous-arbres
   indépendants, un parallélisme embarrassant de facilité. Dix-huit ans de
   tentatives communautaires ont mesuré une autre réalité : branchements
   divergents, état par thread qui déborde la mémoire rapide, et une boucle de
@@ -12,13 +12,13 @@ order: 140
 updated: 2026-07-02
 topics: [speed, hardware]
 sources:
-  - label: "La première proposition de solveur GPU — « maybe 4 or 5 times » (message groups.io 351, 2007)"
+  - label: "La première proposition de solveur GPU : « maybe 4 or 5 times » (message groups.io 351, 2007)"
     url: https://groups.io/g/eternity2/message/351
   - label: "La question CUDA et un solveur CSP en GLSL en chantier (message groups.io 5407, 2008)"
     url: https://groups.io/g/eternity2/message/5407
-  - label: "« Does anyone use OpenCL for E2? » — la première discussion OpenCL (message groups.io 7653, 2010)"
+  - label: "« Does anyone use OpenCL for E2? », la première discussion OpenCL (message groups.io 7653, 2010)"
     url: https://groups.io/g/eternity2/message/7653
-  - label: "L'analyse de Mike Field sur la bande passante mémoire — l'argument négatif de référence (message groups.io 9003, 2011)"
+  - label: "L'analyse de Mike Field sur la bande passante mémoire, l'argument négatif de référence (message groups.io 9003, 2011)"
     url: https://groups.io/g/eternity2/message/9003
   - label: "Le solveur OpenCL fonctionnel de David Barr (message groups.io 9360, 2015)"
     url: https://groups.io/g/eternity2/message/9360
@@ -28,11 +28,11 @@ sources:
     url: https://groups.io/g/eternity2/message/9811
   - label: "La récompense : le 9x9 set 1 re-vérifié exhaustivement en 25 h 24 (message groups.io 9822, 2018)"
     url: https://groups.io/g/eternity2/message/9822
-  - label: "Miles sur le vrai problème du parallélisme — occuper chaque processeur (message groups.io 9984, 2020)"
+  - label: "Miles sur le vrai problème du parallélisme : occuper chaque processeur (message groups.io 9984, 2020)"
     url: https://groups.io/g/eternity2/message/9984
-  - label: "Le registre de Blackwood — GPU mesuré pendant la campagne des records, non retenu (message groups.io 10056, 2020)"
+  - label: "Le registre de Blackwood : GPU mesuré pendant la campagne des records, non retenu (message groups.io 10056, 2020)"
     url: https://groups.io/g/eternity2/message/10056
-  - label: "La RTX 4090 louée par Barr — 3,17 Mds placements/s sur un 10x10, bloquée par la mémoire sur le vrai puzzle (message groups.io 11598, 2025)"
+  - label: "La RTX 4090 louée par Barr : 3,17 Mds placements/s sur un 10x10, bloquée par la mémoire sur le vrai puzzle (message groups.io 11598, 2025)"
     url: https://groups.io/g/eternity2/message/11598
 related:
   - /research/build/dead-ends
@@ -45,14 +45,14 @@ rangées du plateau : vous obtenez des millions de sous-arbres totalement
 indépendants, où rien de ce qu'apprend l'un ne sert aux autres. C'est le cas
 d'école du parallélisme dit « embarrassant », et un GPU moderne aligne des
 dizaines de milliers de voies parallèles et des téraflops pour l'exploiter.
-La communauté l'a vu tout de suite — la première proposition de solveur GPU
-date de juin 2007, avant même la sortie du puzzle — et n'a jamais cessé de le
+La communauté l'a vu tout de suite (la première proposition de solveur GPU
+date de juin 2007, avant même la sortie du puzzle) et n'a jamais cessé de le
 voir pendant dix-huit ans, dans un fil littéralement intitulé « Graphic cards
 as CPU's? » qui refait surface en 2010, en 2011, puis en 2019.
 
 La réponse mesurée, sur chaque implémentation réelle, est que les téraflops
 ne sont pas la ressource qui compte. Un backtracker Eternity II passe sa vie
-à faire de minuscules lectures de tables et à brancher sur le résultat — une
+à faire de minuscules lectures de tables et à brancher sur le résultat : une
 charge qui était *déjà* bloquée sur les accès mémoire côté CPU, et que le GPU
 aggrave de deux manières précises et bien comprises. Cette page déroule
 l'argument à travers ceux qui l'ont éprouvé : le
@@ -65,13 +65,15 @@ L'idée a précédé le matériel. En juin 2007, Simon Chapple propose la force
 brute sur les cartes Nvidia 8800, et un membre signant James estime qu'un
 GPU rendrait un solveur « peut-être 4 ou 5 fois » plus rapide
 ([message 351](https://groups.io/g/eternity2/message/351),
-[message 355](https://groups.io/g/eternity2/message/355)) — une estimation
-qui se révélera bien plus proche de la vérité que les rapports de téraflops.
+[message 355](https://groups.io/g/eternity2/message/355)). Cette estimation
+se révélera bien plus proche de la vérité que les rapports de téraflops.
 (La même année, le premier fil « GPU » de la liste parlait en réalité d'un
-*Gnutella* Processing Unit — du calcul distribué, pas de cartes graphiques
+*Gnutella* Processing Unit : du
+[calcul distribué](/research/build/concepts/distributed-solving), pas de
+cartes graphiques
 ([message 3020](https://groups.io/g/eternity2/message/3020)).) En mai 2008
-arrive la question CUDA — quelqu'un a-t-il essayé de faire tourner des
-backtrackers sur 96–128 cœurs de carte graphique ? — et une réponse : un
+arrive la question CUDA (quelqu'un a-t-il essayé de faire tourner des
+backtrackers sur 96–128 cœurs de carte graphique ?), et une réponse : un
 membre dit avoir « presque terminé » un solveur CSP en GLSL, préféré à CUDA
 pour ses exigences matérielles plus légères
 ([message 5407](https://groups.io/g/eternity2/message/5407),
@@ -83,21 +85,21 @@ malheureusement un programme adapté pour l'utiliser »
 ([message 7653](https://groups.io/g/eternity2/message/7653)).
 
 Cette phrase résume tout le sujet. Les opérations par seconde étaient bien
-là. Le programme adapté, lui, était la vraie difficulté — et les raisons pour
+là. Le programme adapté, lui, était la vraie difficulté, et les raisons pour
 lesquelles elle allait le rester ont été diagnostiquées avec précision un an
 plus tard.
 
 ## L'analyse de Field : une bifurcation sans bonne branche
 
-En novembre 2011, dans le même fil récurrent, Mike Field — celui dont le
+En novembre 2011, dans le même fil récurrent, Mike Field, celui dont le
 budget en cycles ancre déjà la
-[page d'ingénierie des solveurs](/research/build/concepts/solver-engineering)
-— publie l'analyse négative de référence de l'archive
+[page d'ingénierie des solveurs](/research/build/concepts/solver-engineering),
+publie l'analyse négative de référence de l'archive
 ([message 9003](https://groups.io/g/eternity2/message/9003), correction de
 frappe au [message 9004](https://groups.io/g/eternity2/message/9004)). Son
 point de départ est une mesure, pas une opinion : son backtracker place 75
-millions de tuiles par seconde et par cœur sur un AMD à 2 GHz — environ 26
-cycles d'horloge par tuile — alors que le compte d'instructions brut n'en
+millions de tuiles par seconde et par cœur sur un AMD à 2 GHz (environ 26
+cycles d'horloge par tuile), alors que le compte d'instructions brut n'en
 explique que la moitié : **plus de 50 % du temps, le code attend la
 mémoire**. La boucle interne d'un solveur Eternity II n'est pas du calcul.
 C'est une chaîne de petites lectures dépendantes : table de candidats,
@@ -106,12 +108,12 @@ données de pièce, état du plateau, branchement.
 De là, Field pose une bifurcation. Projetez la recherche sur un GPU : chaque
 processeur de flux coopère avec ses voisins, ou travaille seul.
 
-- **S'ils coopèrent**, il leur faut échanger de l'information en permanence —
+- **S'ils coopèrent**, il leur faut échanger de l'information en permanence,
   et la bande passante de synchronisation que cela exige est précisément ce
   que le GPU n'offre pas. Il n'y a pas de « honking great crossbar » entre
   les processeurs de flux ; ce tissu a été conçu pour des pixels qui ne se
   parlent pas.
-- **S'ils travaillent seuls** — disons 1 024 backtrackers indépendants —
+- **S'ils travaillent seuls**, disons 1 024 backtrackers indépendants,
   chacun a besoin de sa définition du problème et de son état de recherche :
   les tables de tuiles, le plateau, le code pour les traiter. Ce paquet,
   minuscule à l'échelle d'un CPU, reste **trop gros pour les ~8 Ko de
@@ -123,10 +125,11 @@ Les deux branches finissent au même mur : la bande passante de la mémoire
 externe. Et Field ajoute le détail qui rend ce mur particulièrement têtu pour
 ce puzzle : presque toutes les variables qu'un solveur E2 touche tiennent en
 16 bits, donc ce qu'il faut à la recherche, ce sont plus de *transactions*
-mémoire à plus haute fréquence, pas des bus plus larges — « un bus mémoire de
+mémoire à plus haute fréquence, pas des bus plus larges : « un bus mémoire de
 128 bits ne sera guère plus rapide qu'un bus de 16 bits ». Élargir la lance à
 incendie ne sert à rien quand on boit à la paille. Sa conclusion englobe les
-FPGA par le même argument : il ne voit nulle part un ordre de grandeur à
+[FPGA](/research/build/concepts/fpga-solving) par le même argument : il ne
+voit nulle part un ordre de grandeur à
 gagner sur un cœur de CPU. Son conseil pratique : « prenez un bi-socket AMD
 six cœurs... et ayez beaucoup, beaucoup de chance »
 ([message 9003](https://groups.io/g/eternity2/message/9003)).
@@ -140,15 +143,15 @@ L'argument de Field porte sur l'endroit où vivent les octets. L'autre mur
 porte sur la façon dont un GPU exécute : les voies avancent en groupes
 synchronisés, et un groupe va à la vitesse de la voie qui a encore du
 travail. Or le backtracking est le flot de contrôle le plus divergent qui
-soit — deux recherches parties de préfixes adjacents se retrouvent dans des
+soit : deux recherches parties de préfixes adjacents se retrouvent dans des
 états de plateau sans rapport au bout de quelques placements, l'une en train
 de remonter à la profondeur 40 pendant que sa voisine descend à la 55.
 
 Adam Miles, ingénieur graphique et auteur du solveur GPU le plus rapide de
 l'archive (ci-dessous), a formulé le problème en connaissance de cause : le
 difficile est de « garder chaque processeur occupé à quelque chose d'utile à
-chaque cycle d'horloge » — certains threads n'ont simplement plus de tuiles
-candidates et attendent — et faute d'algorithme prouvé meilleur que la force
+chaque cycle d'horloge » (certains threads n'ont simplement plus de tuiles
+candidates et attendent) et, faute d'algorithme prouvé meilleur que la force
 brute, « le temps passé à communiquer est du temps non passé à calculer »
 ([message 9984](https://groups.io/g/eternity2/message/9984)). David Barr a
 retrouvé le même mur à l'échelle de l'ordonnancement en 2025 : découpez la
@@ -156,19 +159,19 @@ recherche entre travailleurs, certains sous-arbres durent bien plus longtemps
 que d'autres, et la fin d'un run voit « un nombre décroissant de travailleurs
 actifs » monopoliser le GPU pendant que des milliers de voies se tournent les
 pouces ([message 11598](https://groups.io/g/eternity2/message/11598)). Les
-sous-arbres embarrassamment parallèles existent bel et bien — ils sont
+sous-arbres embarrassamment parallèles existent bel et bien ; ils sont
 simplement embarrassamment *inégaux*.
 
 ## Ce qui a quand même été construit
 
 La communauté ne s'est pas arrêtée à l'analyse ; elle a construit les
-solveurs et publié les chiffres — c'est ce qui permet à cette page d'être
-honnête dans les deux sens.
+solveurs et publié les chiffres, ce qui permet à cette page d'étayer les
+deux versants par des mesures.
 
 **Le solveur OpenCL de David Barr (2015).** Le premier solveur GPU
 fonctionnel et publié : PyOpenCL, sur une Radeon HD 7870. Il a fouillé
 intégralement une rangée de la liste des premières rangées du 10x10 de
-Martin — celle qui contient la solution connue — en 3 h 46, le travail
+Martin (celle qui contient la solution connue) en 3 h 46, le travail
 découpé en 1 620 parts
 ([message 9360](https://groups.io/g/eternity2/message/9360),
 [message 9364](https://groups.io/g/eternity2/message/9364)) ; sa référence
@@ -176,13 +179,13 @@ CPU était de 120 M placements/s sur les 8 cœurs d'un FX-8120
 ([message 9366](https://groups.io/g/eternity2/message/9366)). Il a publié le
 code sur
 [github.com/david3x3x3/eternity2](https://github.com/david3x3x3/eternity2)
-([message 9367](https://groups.io/g/eternity2/message/9367)) — l'un des
+([message 9367](https://groups.io/g/eternity2/message/9367)), l'un des
 rares solveurs E2 open source de son époque.
 
 **Le solveur DirectX 12 d'Adam Miles (2018).** Après avoir abandonné un
 solveur AVX2 presque terminé, jugé sans intérêt
 ([message 9811](https://groups.io/g/eternity2/message/9811)), Miles écrit
-des compute shaders DX12 et les fait tourner sur une Xbox One X — une puce à
+des compute shaders DX12 et les fait tourner sur une Xbox One X, une puce à
 6 téraflops. Son noyau est une étude de cas sur l'art de composer *avec* les
 deux murs plutôt que de les nier : une « pré-résolution » en largeur énumère
 sur le GPU lui-même toutes les solutions partielles des 14 à 18 premières

@@ -3,7 +3,7 @@ title: The border balance
 description: >-
   A solved board hides a simple bookkeeping law: every colour the border hands
   to the interior, the interior hands straight back. Break it and you know
-  instantly the board is wrong — but obeying it guarantees nothing.
+  instantly the board is wrong; obeying it, though, guarantees nothing.
 kind: finding
 tier: 3
 order: 120
@@ -12,13 +12,13 @@ topics: [search-space, structure]
 sources:
   - label: Border edge-type balance observed in the launch summer (angwin_uk, August 2007)
     url: https://groups.io/g/eternity2/message/2073
-  - label: mjqxxxx's stronger border condition — even counts, split equally into left and right edges (August 2007)
+  - label: 'mjqxxxx''s stronger border condition: even counts, split equally into left and right edges (August 2007)'
     url: https://groups.io/g/eternity2/message/2098
   - label: Brendan Owen's paired edge-count observation on planted sets (June 2007)
     url: https://groups.io/g/eternity2/message/422
   - label: Hopfer's 2022 statement of the multiset-equality condition (groups.io msg 10754)
     url: https://groups.io/g/eternity2/message/10754
-  - label: Hopfer's crisp restatement — same mixture of internal images on all 56 border pieces (msg 10757)
+  - label: 'Hopfer''s crisp restatement: same mixture of internal images on all 56 border pieces (msg 10757)'
     url: https://groups.io/g/eternity2/message/10757
 related:
   - /research/why/rare-color-geography
@@ -29,12 +29,12 @@ related:
 import { Ns1Lab } from "@/components/research/Ns1Lab";
 
 Look only at the seam between the outer ring of border pieces and the first
-ring of interior pieces. Each edge across that seam shows one colour — counted
-once from the border side, once from the interior side. In any complete
+ring of interior pieces. Each edge across that seam shows one colour, counted
+once from the border side and once from the interior side. In any complete
 solution the two tallies are identical: the multiset of colours the border
 presents inward exactly equals the multiset the interior presents outward.
 
-Call the imbalance the **deficit**, $\Delta$ — half the total mismatch between
+Call the imbalance the **deficit**, $\Delta$: half the total mismatch between
 the two tallies. A finished, correct board has $\Delta = 0$. The four known
 full solutions, across four different piece sets, all satisfy it exactly. So
 $\Delta > 0$ is a certificate that a board can never be completed: a real,
@@ -54,16 +54,16 @@ $$
 
 A solved 8×8 starts in balance ($\Delta = 0$). Lift a border piece and watch
 which colours fall out of balance, and the deficit climb. Then try the swap
-button — and watch the catch.
+button, and watch the catch.
 
 <Ns1Lab />
 
-## The catch — and why it matters
+## The catch, and why it matters
 
 Swapping two border pieces leaves $\Delta$ at 0. The swap moves colours around
 the seam without changing either tally, so the invariant is blind to it.
 Worse, on a near-solution most of the remaining errors aren't on the border
-seam at all — they're interior-to-interior, where NS-1 never looks: on
+seam at all. They sit interior-to-interior, where NS-1 never looks: on
 469-class boards over 85% of the unmatched edges are invisible to it.
 
 That is the whole texture of Eternity II in miniature. A check this clean
@@ -72,7 +72,7 @@ resists every cheap certificate of progress.
 
 ## Is it useful, then?
 
-Yes — as a late-search pruner. Once a solver has closed the border ring,
+Yes, as a late-search pruner. Once a solver has closed the border ring,
 enforcing $\Delta = 0$ rejects 10–28% of deep dead-ends for the price of one
 pass over the 56 seam edges. It is necessary-but-loose: it throws away bad
-states cheaply, and leaves the hard part — the interior — untouched.
+states cheaply and leaves the hard part, the interior, untouched.

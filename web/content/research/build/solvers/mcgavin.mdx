@@ -1,11 +1,11 @@
 ---
 title: "McGavin's engine: the throughput story"
 description: >-
-  How Peter McGavin's C backtracker became the community's fastest — a 2007
+  How Peter McGavin's C backtracker became the community's fastest: a 2007
   optimization recipe compounded for two decades through generated code,
-  lookup tables, counter tricks and compiler archaeology — and an honest
-  account of what hundreds of millions of placements per second did and did
-  not buy.
+  lookup tables, counter tricks and compiler archaeology, plus an account,
+  drawn from his own posted numbers, of what hundreds of millions of
+  placements per second did and did not buy.
 kind: concept
 order: 20
 updated: 2026-07-02
@@ -34,8 +34,8 @@ related:
 ---
 
 <Callout kind="note" title="Whose work this is">
-  The engine is Peter McGavin's own auto-generated C — built, by his own
-  account, on an optimization recipe Mike Field posted to the mailing list in
+  The engine is Peter McGavin's own auto-generated C, built (by his own
+  account) on an optimization recipe Mike Field posted to the mailing list in
   2007 ([message 3098](https://groups.io/g/eternity2/message/3098)), a debt
   he acknowledged twice, in 2024 and again in 2026
   ([message 11338](https://groups.io/g/eternity2/message/11338),
@@ -56,10 +56,10 @@ community's hardest open [benchmark](/research/build/benchmarks), and set
 the 469 record that stood until Blackwood's 470. But under all of that runs
 a quieter, twenty-year project: a plain row-scan backtracker in C, tuned
 until it counts tile placements by the hundreds of millions per second. This
-page traces that project through his own posted numbers — where the speed
+page traces that project through his own posted numbers: where the speed
 came from, what it bought, and what he himself said it never could.
 
-## The recipe is from 2007 — and he says so
+## The recipe is from 2007, and he says so
 
 In October 2007, answering the question "where have you heard of 70 million
 pieces per second?", Mike Field posted a complete optimization playbook
@@ -67,8 +67,8 @@ under the pointed title "Brute force does not work"
 ([message 3098](https://groups.io/g/eternity2/message/3098)). Its
 ingredients: a lookup table keyed by a cell's north and west colours, so
 finding candidate pieces is one memory access; a **fixed** search order
-exploited ruthlessly — placing a piece only updates its south and east
-neighbours; no loops at all, but procedurally *generated* monolithic code,
+exploited ruthlessly (placing a piece only updates its south and east
+neighbours); no loops at all, but procedurally *generated* monolithic code,
 one straight-line block per cell; minimal state (reconstruct the pretty
 output later, don't store it in the hot path); piece sides packed into a
 single int; and reading the generated assembler to hunt pipeline flushes
@@ -84,15 +84,15 @@ and a `goto` back into the previous cell's block on exhaustion
 ([message 11337](https://groups.io/g/eternity2/message/11337)). He went
 looking for the origin minutes later and posted the link: "I found the old
 thread" ([message 11338](https://groups.io/g/eternity2/message/11338)); in
-2026 he repeated the attribution — his optimised backtracker C code "is
+2026 he repeated the attribution: his optimised backtracker C code "is
 based on" Mike's 2007 post
 ([message 11780](https://groups.io/g/eternity2/message/11780)).
 
 Field himself supplies the era's baseline. In 2011 he reported his own
-backtracker at 75 million tiles placed per second per core on a 2 GHz AMD —
+backtracker at 75 million tiles placed per second per core on a 2 GHz AMD,
 about 26 clock cycles per tile, with over half the time stalled on memory
 access ([message 9003](https://groups.io/g/eternity2/message/9003)). That
-number — roughly 40 to 80 million per core — is what a serious community
+number, roughly 40 to 80 million per core, is what a serious community
 engine did for the next decade, McGavin's included.
 
 ## What he added, in his own words
@@ -101,15 +101,16 @@ The recipe was public; the compounding was McGavin's. The refinements he has
 described on the list, roughly in the order they surface:
 
 - **A code generator, not a program.** The per-cell C is regenerated for
-  each puzzle, hint set and placement path — his 2026 workflow is a
-  compile/run/compile/run cycle: the first pass rebuilds `body.c`, the
+  each puzzle, hint set and
+  [placement path](/research/build/concepts/fill-order). His 2026 workflow
+  is a compile/run/compile/run cycle: the first pass rebuilds `body.c`, the
   straight-line cell code, and the second compiles the solver that embeds
   it. Skip a step after changing an input file and the program "won't be
   doing anything sensible"
   ([message 11751](https://groups.io/g/eternity2/message/11751),
   [message 11782](https://groups.io/g/eternity2/message/11782)).
-- **A counter that costs almost nothing.** `ntpll` — "number of tile
-  placements per second long long", in his own gloss — is not incremented
+- **A counter that costs almost nothing.** `ntpll` ("number of tile
+  placements per second long long", in his own gloss) is not incremented
   directly. A 16-bit register is
   bumped on every placement, and `0x10000` is added to the 64-bit counter
   each time it rolls over: a throwback to 32-bit machines where a 64-bit
@@ -123,9 +124,9 @@ described on the list, roughly in the order they surface:
   clang-15 beats clang-19 and gcc; add `-march=native` and `-mtune=native`;
   try icc and icx; use profile-guided optimisation
   ([message 11751](https://groups.io/g/eternity2/message/11751)). None of
-  this changes the search — it changes how many searches a dollar of
+  this changes the search. It changes how many searches a dollar of
   electricity buys.
-- **The placement path as a measured choice.** Scan-row is best for E2 —
+- **The placement path as a measured choice.** Scan-row is best for E2,
   but spiral-in wins on clue puzzles 1 and 3, frame-first on 2 and 4, and
   spiral-out on unframed variants; he checks by running the solver or by
   asking complex theory, having found himself "poor at judging solving
@@ -148,11 +149,11 @@ Every figure below is from the archive, in its author's own units.
 | 2024-11 | 99M → 10,160M nodes/s per machine | Raspberry Pi 4 (4 processes) to dual Xeon Gold 6338 (128) | [11369](https://groups.io/g/eternity2/message/11369) |
 | 2025-09 | 38–84M placements/s, single core | nine OS/compiler/CPU combos on Brendan's 8x8 | [11643](https://groups.io/g/eternity2/message/11643) |
 | 2026-01 | ~225M placements/s, single core | Orange Pi 6 Plus on small puzzles; "halves on 16x16" | [11751](https://groups.io/g/eternity2/message/11751) |
-| 2026-01 | 295M placements/s, single core | Joe running McGavin's code on a newer CPU — vs his own C# at 27–37M | [11750](https://groups.io/g/eternity2/message/11750) |
+| 2026-01 | 295M placements/s, single core | Joe running McGavin's code on a newer CPU, vs his own C# at 27–37M | [11750](https://groups.io/g/eternity2/message/11750) |
 | 2026-02 | 44.0M vs 105.1M tiles/s | identical 2.12-trillion-node tree: 2010 Phenom II vs Ryzen 5 5600H | [11782](https://groups.io/g/eternity2/message/11782) |
 
-Two readings of that table. First, the headline: the ~295M/s figure — the
-one our [records page](/research/records) quotes — is real, but it is Joe's
+Two readings of that table. First, the headline: the ~295M/s figure (the
+one our [records page](/research/records) quotes) is real, but it is Joe's
 measurement, made in January 2026 when McGavin shared his source and Joe ran
 it on hardware newer than anything McGavin owns; Joe's own C# solver managed
 27–37M/s on the same machine, and the best speed he had seen mentioned on
@@ -163,7 +164,7 @@ own best figure is the Orange Pi's ~225M/s on small puzzles
 
 Second, the quieter and more instructive reading: single-core speed barely
 moved for fifteen years. McGavin said so himself when he posted the 2025
-table — speeds on the latest CPUs "are only a little faster" than on his
+table: speeds on the latest CPUs "are only a little faster" than on his
 2010 Phenom II
 ([message 11643](https://groups.io/g/eternity2/message/11643)). The engine
 was already near the memory wall Field described in 2011. What actually
@@ -171,15 +172,17 @@ grew was the number of cores he could point at a problem.
 
 ## Hundreds of cores on a hobby budget
 
-The multi-core story is charmingly domestic. For the 10x10 campaign he
+McGavin's chapter of the community's
+[distributed-solving story](/research/build/concepts/distributed-solving)
+is charmingly domestic. For the 10x10 campaign he
 started with about 20 cores at home, then added three octa-core Odroid XU4s
-and twenty-five quad-core Orange Pi Lites at 12 dollars each — over 130
-cores, each ARM core about a third the speed of a PC core — and, when
+and twenty-five quad-core Orange Pi Lites at 12 dollars each (over 130
+cores, each ARM core about a third the speed of a PC core) and, when
 allowed, multi-core servers at work for a total of over 400
 ([message 9688](https://groups.io/g/eternity2/message/9688)). The Orange
 Pis ran off 12-port USB chargers (he permanently killed one charger by
 plugging in twelve boards running 48 backtrackers, and cut back to eight
-per charger) with WiFi networking — one cable per board, for power
+per charger) with WiFi networking: one cable per board, for power
 ([message 9690](https://groups.io/g/eternity2/message/9690)). Orchestration
 is two shell scripts: one starts as many backtrackers as a node has cores,
 the other launches it on ~20 nodes over ssh
@@ -191,24 +194,24 @@ the other launches it on ~20 nodes over ssh
 
 **Verified counts, first.** Fast full enumerations are what let the
 community check theory against reality. In 2011, an overnight run counted
-4,739,821,621,743 5x5 corner blocks of Brendan's 10x10 — against a complex
+4,739,821,621,743 5x5 corner blocks of Brendan's 10x10, against a complex
 theory estimate of 5.0077 × 10¹², "pretty close… if I do say so myself"
 ([message 8672](https://groups.io/g/eternity2/message/8672)). In 2014 his
-single core swept Arnaud Carré's 256-piece benchmark tree — 3,979,209,754
-placements, all 4 solutions — in under a minute
+single core swept Arnaud Carré's 256-piece benchmark tree (3,979,209,754
+placements, all 4 solutions) in under a minute
 ([message 9263](https://groups.io/g/eternity2/message/9263)). In 2026,
 two different machines walked the same 2,120,424,701,160-node tree of an
-E2-like puzzle and found the same lone solution — determinism as a feature,
+E2-like puzzle and found the same lone solution: determinism as a feature,
 node counts as a checksum
 ([message 11782](https://groups.io/g/eternity2/message/11782)).
 
-**The 10x10, above all.** Brendan's set_1 10x10 — a decade-open benchmark —
-fell in September 2017 to exactly this machinery: enumerate ~20 million
+**The 10x10, above all.** Brendan's set_1 10x10, a benchmark that had stood
+open for a decade, fell in September 2017 to exactly this machinery: enumerate ~20 million
 candidate first rows, rank them by complex theory's
 solutions-per-search-node, and let the farm test them one by one, about a
 core-day each. The solution arrived on row-test ~92,907 of a predicted
-one-in-70,000 — nearly 2 × 10¹⁷ nodes, about **180 core-years**, less than
-0.5% of the whole tree
+one-in-70,000, after nearly 2 × 10¹⁷ nodes, about **180 core-years**, less
+than 0.5% of the whole tree
 ([message 9686](https://groups.io/g/eternity2/message/9686),
 [message 9688](https://groups.io/g/eternity2/message/9688)), spread over
 about four years
@@ -218,17 +221,18 @@ The [benchmarks page](/research/build/benchmarks) tells that story as
 complex theory's strongest validation; here it stands as the throughput
 story's high-water mark.
 
-**And one record — on someone else's engine.** In September 2020, days
+**And one record, on someone else's engine.** In September 2020, days
 after Joshua Blackwood open-sourced his solver, McGavin ran it "for a few
 days on about a couple of hundred cores and hit the jackpot. New record
 score of 469!"
-([message 10045](https://groups.io/g/eternity2/message/10045)) — with run
+([message 10045](https://groups.io/g/eternity2/message/10045)), with run
 statistics to match (2,832 boards reaching 252 pieces, one 255, one 256:
 [message 10049](https://groups.io/g/eternity2/message/10049)). Note what
 combined there: [Blackwood's heuristics](/research/build/solvers/blackwood)
 supplied the shape of the search; McGavin's farm supplied the placements.
-His own C engine holds no E2 score record — his row-scan 226s of February
-2020 equalled Verhaard's old consecutive-placement mark, no more
+His own C engine holds no E2 score record; his row-scan 226s of February
+2020 equalled [Verhaard's](/research/build/solvers/verhaard-eii) old
+consecutive-placement mark, no more
 ([message 10523](https://groups.io/g/eternity2/message/10523)).
 
 ## What the speed could not buy
@@ -236,10 +240,10 @@ His own C engine holds no E2 score record — his row-scan 226s of February
 McGavin is also the archive's most consistent witness *against* raw speed.
 His own numbers make the case. With scan-row order, complex theory puts
 E2's full search tree at about 1.6 × 10⁴⁷ placements
-([message 9710](https://groups.io/g/eternity2/message/9710)) — some
+([message 9710](https://groups.io/g/eternity2/message/9710)), some
 9.3 × 10⁴² per expected solution
 ([message 9713](https://groups.io/g/eternity2/message/9713)). Even on his
-best 5-hint placement path — a far smaller tree, about 3.1 × 10⁴⁰ nodes —
+best 5-hint placement path (a far smaller tree, about 3.1 × 10⁴⁰ nodes)
 he computed 4.9 × 10³² years at 100 million nodes per second, and adding
 billions of cores still leaves you "orders of magnitude longer than the age
 of the Universe"
@@ -251,12 +255,12 @@ will be by deep analysis and/or clever insight, in my opinion"
 
 Which is why the biggest single speedup he ever reported was not a speedup
 at all. For the unframed sub-solution hunts, he used complex theory as a
-chess-style lookahead — estimate solutions-per-node at every leaf 13 or 14
+chess-style lookahead: estimate solutions-per-node at every leaf 13 or 14
 plies ahead, cache the repeated statistics, and steer into the best branch.
 Overall gain: a factor of about 25 by depth 81
 ([message 9751](https://groups.io/g/eternity2/message/9751)). No compiler
-flag ever gave him 25×. Shaping the tree beat shrinking the nanoseconds —
-which is this site's [core lesson](/research/why/prune-vs-speed), reported
+flag ever gave him 25×. Shaping the tree beat shrinking the nanoseconds.
+That is this site's [core lesson](/research/why/prune-vs-speed), reported
 here as one practitioner's twenty-year experiment: he built the fastest
 engine in the community's history, measured everything, and concluded the
 gap to 480 was never on the clock.

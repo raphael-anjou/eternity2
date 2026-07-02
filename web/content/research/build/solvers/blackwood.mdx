@@ -16,9 +16,9 @@ sources:
     url: https://groups.io/g/eternity2/message/11905
   - label: Joshua Blackwood's original solver
     url: https://github.com/jblackwood345/EternityII_Solver
-  - label: Blackwood's own tuning plan — the four levers and the 470 retune (groups.io message 10076)
+  - label: "Blackwood's own tuning plan: the four levers and the 470 retune (groups.io message 10076)"
     url: https://groups.io/g/eternity2/message/10076
-  - label: The repo re-published — "the exact code used to find a 470" (groups.io message 10161)
+  - label: The repo re-published, "the exact code used to find a 470" (groups.io message 10161)
     url: https://groups.io/g/eternity2/message/10161
 related:
   - /research/why/complex-theory
@@ -34,30 +34,31 @@ import sweep from "@/assets/research/blackwood/heuristic_array.jpg";
 <Callout kind="note" title="Whose work this is">
   The algorithm is Joshua Blackwood's
   ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
-  The decoding of it — and the parameter study this page reports — is by Jef
-  Bucas, in his
+  The decoding of it, along with the parameter study this page reports, is by
+  Jef Bucas, in his
   [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) project.
   This page rephrases and extends
   [his notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
   with his explicit permission
-  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)) —
-  the figures below are his, reproduced from the same notes.
+  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)).
+  The figures below are his, reproduced from the same notes.
 </Callout>
 
-Joshua Blackwood's solver is, at heart, a classic depth-first backtracker —
-the same loop as any other: place, check, back up. What makes it the engine
-behind the community's best boards is a set of manually crafted heuristics
-layered on top: a scoring rule that decides *which* pieces to try first, a
-depth-by-depth quota schedule that prunes branches falling behind, a fill
-order tuned to be "not too tight and not too loose", and a late-game allowance
-for accumulating mismatches. Every one of those choices has numbers in it, and
-Jef Bucas's study asked the obvious question: are Blackwood's numbers any
-good? (Spoiler: yes, uncomfortably so.)
+Joshua Blackwood's solver is, at heart, a classic depth-first backtracker
+running the same loop as any other: place, check, back up. What makes it the
+engine behind the community's best boards is a set of manually crafted
+heuristics layered on top: a scoring rule that decides *which* pieces to try
+first, a depth-by-depth quota schedule that prunes branches falling behind, a
+[fill order](/research/build/concepts/fill-order) tuned to be "not too tight
+and not too loose", and a late-game allowance for accumulating mismatches.
+Every one of those choices has numbers in it, and Jef Bucas's study asked the
+obvious question: are Blackwood's numbers any good? They are, uncomfortably
+so.
 
 ## Score pieces by three colours
 
 The solver scores every piece by the colours on its sides, and it privileges
-exactly three of them — one border colour and two interior colours:
+exactly three of them, one border colour and two interior colours:
 
 ```csharp
 heuristic_sides = new List<int>() { 13, 16, 10 };
@@ -65,7 +66,7 @@ heuristic_sides = new List<int>() { 13, 16, 10 };
 
 Pieces carrying those colours are sorted to the front of every candidate
 list, so the search commits them early. Why these three? That is one of the
-two knobs Jef's study turned — see below. His sampling suggests the best
+two knobs Jef's study turned (see below). His sampling suggests the best
 known scores come from two distinct pattern sets:
 
 <Figure caption="The two pattern sets behind the best-scoring 470-class runs, mapped onto the board: the three privileged motifs cluster in the region the scan fills first. Figures by Jef Bucas (wrapper_blackwood), reproduced with permission.">
@@ -78,7 +79,7 @@ known scores come from two distinct pattern sets:
 ## The schedule: a quota curve over 256 depths
 
 Prioritizing three colours only helps if the search is *forced* to actually
-place them. So the solver carries a 256-entry array — one entry per depth —
+place them. So the solver carries a 256-entry array, one entry per depth,
 where each value is the minimum number of those three colours that must
 already be on the board to keep descending. Fall below the quota and the
 branch is cut on the spot: backtrack, no discussion.
@@ -113,16 +114,16 @@ for burning down the high-frequency colours, enforced as a hard prune.
 
 ## The fill order: not too tight, not too loose
 
-The search starts at the bottom-left of the board — the corner nearest the
-mandatory centre piece — and runs a standard row scan all the way to
+The search starts at the bottom-left of the board (the corner nearest the
+mandatory centre piece) and runs a standard row scan all the way to
 depth 180. After that, it intersperses the remaining border pieces (including
 the third corner) every few steps among the interior placements.
 
 That is a deliberate middle course. Spiralling in (border ring first) commits
 the most constrained pieces too early; a pure row scan leaves them all to the
 end, where they ambush you. Blackwood's order releases the border pressure
-progressively. Why the order matters this much — and how to score one before
-running it — is exactly what
+progressively. Why the order matters this much, and how to score one before
+running it, is exactly what
 [complex theory](/research/why/complex-theory) formalizes.
 
 <Figure caption="Blackwood's fill order: a bottom-left row scan to depth 180, border pieces interspersed afterwards. Figure by Jef Bucas (wrapper_blackwood), reproduced with permission.">
@@ -146,17 +147,17 @@ been found, but a board that tolerates a handful of late mismatches is
 something a backtracker can actually finish.
 
 Two details sharpen the picture. First, the budget comes with a discipline:
-no two breaks are ever allowed to touch — each mismatch must sit isolated
+no two breaks are ever allowed to touch: each mismatch must sit isolated
 among matched edges. Blackwood spells out the consequence himself: any run
 that reaches 255 placements automatically completes to 256, and a 469 board
 is equivalently a 249-piece partial with seven holes
 ([groups.io message 10051](https://groups.io/g/eternity2/message/10051)).
 Second, the ten-entry list above is itself a retune: planning the push from
-469 to 470, Blackwood cut the break budget from eleven depths to ten — a
+469 to 470, Blackwood cut the break budget from eleven depths to ten, a
 change he documented, lever by lever, in his own tuning plan
 ([groups.io message 10076](https://groups.io/g/eternity2/message/10076)).
-The shifted unlock points he sketched in that plan were never adopted — the
-published 470 code keeps the 469-era points and simply drops the eleventh —
+The shifted unlock points he sketched in that plan were never adopted (the
+published 470 code keeps the 469-era points and simply drops the eleventh),
 and that tightened schedule is what found the 470.
 
 ## Restarts, randomness, and a 50-billion-node cap
@@ -166,15 +167,15 @@ opening can strand an entire run in an impossible region. Blackwood's answer
 is cheap and effective: randomize the opening (the first corner and the
 bottom-row pieces are shuffled on every attempt, so no two runs retrace the
 same prefix) and cap each attempt at 50 billion nodes explored. Hit the cap,
-abandon, restart with a fresh opening — and go looking for a more fertile
-one.
+abandon, [restart](/research/build/concepts/restarts) with a fresh opening,
+and go looking for a more fertile one.
 
 ## Make it fit in cache
 
 The last ingredient is mechanical sympathy. Candidate pieces live in
-per-position lookup tables, and each entry is a compact struct — piece
+per-position lookup tables, and each entry is a compact struct (piece
 number, rotation, the two exposed sides, a break count and a heuristic
-count — sized so the working set fits in CPU cache:
+count) sized so the working set fits in CPU cache:
 
 ```csharp
 public struct RotatedPiece
@@ -188,21 +189,23 @@ public struct RotatedPiece
 }
 ```
 
-This is the throughput half of the story: the same design that Peter McGavin
-later pushed to hundreds of millions of placements per second.
+This is the throughput half of the story: the same design that
+[Peter McGavin](/research/build/solvers/mcgavin) later pushed to hundreds of
+millions of placements per second.
 
 ## From one 468 to a wave of records
 
 The solver's history is as instructive as its internals. Blackwood arrived a
-complete outsider: his 468 — the first advance past Louis Verhaard's 467 in
-twelve years — reached the mailing list second-hand, relayed from a Reddit
+complete outsider: his 468, the first advance past
+[Louis Verhaard's 467](/research/build/solvers/verhaard-eii) in twelve years,
+reached the mailing list second-hand, relayed from a Reddit
 post ([groups.io message 10032](https://groups.io/g/eternity2/message/10032)).
 Three days later he open-sourced the solver, with heuristics he reckoned made
 it "twice as good" as the 468 run
 ([message 10037](https://groups.io/g/eternity2/message/10037)); Jef Bucas had
 it running under Mono on Ubuntu almost immediately
 ([message 10038](https://groups.io/g/eternity2/message/10038)). Within a
-week, Peter McGavin — running it "on about a couple of hundred cores" — hit
+week, Peter McGavin, running it "on about a couple of hundred cores," hit
 469 ([message 10045](https://groups.io/g/eternity2/message/10045)). Bucas
 then rewrote the algorithm in C for roughly double the speed
 ([message 10065](https://groups.io/g/eternity2/message/10065)), a wave of
@@ -210,8 +213,8 @@ fresh 469 boards followed within weeks, and the code generator behind the
 rewrite was published as
 [libblackwood](https://github.com/jfbucas/libblackwood)
 ([message 10078](https://groups.io/g/eternity2/message/10078)). When
-Blackwood posted his 470 in March 2021, it came from that same public code —
-his own words, on re-publishing the repo after it had quietly gone private:
+Blackwood posted his 470 in March 2021, it came from that same public code.
+His own words, on re-publishing the repo after it had quietly gone private:
 "It is the exact code used to find a 470"
 ([message 10161](https://groups.io/g/eternity2/message/10161)). One record,
 open-sourced, became a community record machine.
@@ -220,9 +223,10 @@ open-sourced, became a community record machine.
 
 All of the above is *how* the solver works. Jef Bucas built
 [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) to ask
-whether its numbers are *right*. The setup is a small distributed experiment:
+whether its numbers are *right*. The setup is a small
+[distributed experiment](/research/build/concepts/distributed-solving):
 a Python server hands out jobs over HTTP, where each job is a variation of
-the solver's parameters. Clients — one worker per core — fetch a job,
+the solver's parameters. Clients (one worker per core) fetch a job,
 generate the C# source from templates with that variation baked in, compile
 it with Mono, run it, and report the result back to the server for analysis.
 
@@ -232,7 +236,7 @@ Two parameters got the treatment:
   patterns, and recording how deep the algorithm got with each, his
   [results page](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/batch00_edge_combos_stats.html)
   maps every combination of one border colour and two interior colours to the
-  depth it reached — together with a heatmap of where in the board the search
+  depth it reached, together with a heatmap of where in the board the search
   spent its time. The best known scores concentrate on two distinct pattern
   sets.
 - **The quota schedule.** Running many random variations of the 256-entry
@@ -246,11 +250,11 @@ Two parameters got the treatment:
 
 ## What hand-tuning got right
 
-That last result deserves emphasis. Blackwood filled his schedule by hand —
-five linear segments, eyeballed coefficients — and when a randomized sweep
+That last result deserves emphasis. Blackwood filled his schedule by hand:
+five linear segments, eyeballed coefficients. When a randomized sweep
 explored the neighbourhood around it, the hand-tuned line sat squarely in the
 best-performing zone. Jef's conclusion, and ours: the original parameters
-were near-optimal. The decades-old advice holds — before you redesign a
+were near-optimal. The decades-old advice holds. Before you redesign a
 record solver's heuristics, check whether its author already found the local
 optimum by hand.
 
@@ -259,8 +263,8 @@ optimum by hand.
   dead ends on the mailing list
   ([groups.io message 10056](https://groups.io/g/eternity2/message/10056)):
   eliminating four colours early instead of three (no gain), saving colours
-  for the endgame (worse), SAT solvers — kissat, cryptominisat, Google
-  OR-tools — (poor), GPU acceleration, and caching all pre-solved 2x2 blocks
+  for the endgame (worse), SAT solvers such as kissat, cryptominisat and
+  Google OR-tools (poor), GPU acceleration, and caching all pre-solved 2x2 blocks
   (measured, then dropped). The only thing that ever paid was refining the
   heuristics themselves, worth another ~2x. It is the same conclusion as
   Jef's sweep, reached from the other direction: the schedule is the magic,
@@ -269,12 +273,12 @@ optimum by hand.
 
 ## Replicate it
 
-One honest caveat, and it is Jef's own: the sample counts behind these
+One caveat, and it is Jef's own: the sample counts behind these
 results are low, and he is not 100% sure of the conclusions. His notes say it
-plainly — it would be good to attempt to reproduce these results, to validate
+plainly: it would be good to attempt to reproduce these results, to validate
 or invalidate them. He offers his samples, and the
 [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) harness is
 public: point a few machines at the server, re-run the sweeps, and post what
 you find on the [mailing list](https://groups.io/g/eternity2). An independent
-replication would confirm or refute the findings — and either outcome would
+replication would confirm or refute the findings, and either outcome would
 be a real contribution.

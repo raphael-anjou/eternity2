@@ -2,17 +2,17 @@
 title: "L'ingénierie des solveurs : l'artisanat sous l'algorithme"
 description: >-
   Tous les solveurs de records exécutent le même backtracking en profondeur.
-  Ce qui les sépare, c'est la couche du dessous — tables de correspondance,
+  Ce qui les sépare, c'est la couche du dessous : tables de correspondance,
   hachage parfait, structures taillées pour le cache, code généré,
-  archéologie de compilateurs — l'artisanat qui décide si un nœud coûte 26
+  archéologie de compilateurs. Cet artisanat décide si un nœud coûte 26
   cycles ou 2 600. Vingt ans de registre communautaire, technique par
-  technique, avec son bilan honnête.
+  technique, et ce que tout cela a rapporté.
 kind: concept
 order: 120
 updated: 2026-07-02
 topics: [speed]
 sources:
-  - label: "La plongée du fil Lebel — dissection du solveur C++ de référence de l'époque (message groups.io 1704, 2007)"
+  - label: "Le fil Lebel disséqué — le solveur C++ de référence de l'époque mis à nu (message groups.io 1704, 2007)"
     url: https://groups.io/g/eternity2/message/1704
   - label: "Le hachage parfait minimal de Nathan : 1 024 clés au lieu d'un tableau à 1M d'entrées (message groups.io 1831)"
     url: https://groups.io/g/eternity2/message/1831
@@ -41,7 +41,7 @@ related:
 Réduisez n'importe quel solveur de record à son squelette : vous trouverez la
 même boucle. Poser une pièce, vérifier les arêtes, remonter en cas de blocage.
 L'algorithme était réglé dès 2007. Ce sur quoi la communauté se dispute
-réellement depuis vingt ans, c'est la couche *sous* l'algorithme —
+réellement depuis vingt ans, c'est la couche *sous* l'algorithme :
 l'artisanat qui décide si visiter un nœud de cet arbre coûte environ 26
 cycles d'horloge, comme Mike Field l'a mesuré sur son propre moteur
 ([message 9003](https://groups.io/g/eternity2/message/9003)), ou cent fois
@@ -56,13 +56,14 @@ derrière les plateaux records, sur la
 [page Blackwood](/research/build/solvers/blackwood). Voici l'étagère où les
 deux se servent.
 
-## Les tables de candidats — le truc universel
+## Les tables de candidats : le truc universel
 
 Tous les backtrackers rapides partagent une idée porteuse : on ne *cherche*
-jamais les pièces candidates, on les lit dans une table. Fixez l'ordre de
-remplissage (un balayage par lignes, en général) : quand vient le tour d'une
-case, elle expose exactement deux contraintes connues — la couleur de son
-arête nord et celle de son arête ouest. On précalcule donc une table indexée
+jamais les pièces candidates, on les lit dans une table. Fixez
+[l'ordre de remplissage](/research/build/concepts/fill-order) (un balayage
+par lignes, en général) : quand vient le tour d'une case, elle expose
+exactement deux contraintes connues, la couleur de son arête nord et celle
+de son arête ouest. On précalcule donc une table indexée
 par ce couple de couleurs, et trouver toutes les pièces légales pour la case
 courante devient un unique accès mémoire. La recette de Field (2007) la
 place en tête de liste, avec son corollaire : c'est l'ordre de recherche
@@ -70,33 +71,33 @@ place en tête de liste, avec son corollaire : c'est l'ordre de recherche
 jour que ses voisines sud et est
 ([message 3098](https://groups.io/g/eternity2/message/3098)). Le même
 dispositif était disséqué la même année autour du solveur C++ public de Marc
-Lebel — le backtracker rapide de référence de l'époque — dans le fil qui
+Lebel, le backtracker rapide de référence de l'époque, dans le fil qui
 tient lieu de premier séminaire d'ingénierie de la communauté
 ([message 1704](https://groups.io/g/eternity2/message/1704)).
 
 Tout le reste de cette page raffine cette table : la rendre plus petite,
 densifier ses entrées, ou dérouler le code autour.
 
-## Le hachage parfait minimal — la table, réduite à la taille du cache
+## Le hachage parfait minimal : la table, réduite à la taille du cache
 
 La table de correspondance a un problème de taille dès qu'on indexe plus de
 deux arêtes. Dans le fil Lebel, Nathan décrit la version brutale : un tableau
-4-D indexé par les quatre couleurs d'arêtes, `combo4[32][32][32][32]` — un
+4-D indexé par les quatre couleurs d'arêtes, `combo4[32][32][32][32]`. Un
 million d'entrées, presque toutes nulles, des défauts de cache garantis. Sa
-solution, bâtie sur le générateur de hachage parfait minimal de Bob
-Jenkins — un lien qu'il avait lui-même partagé avec la liste : puisque les
+solution s'appuie sur le générateur de hachage parfait minimal de Bob
+Jenkins, un lien qu'il avait lui-même partagé avec la liste. Puisque les
 256 pièces en 4 rotations ne
 produisent que 1 024 quadruplets d'arêtes distincts, un hachage parfait
 minimal envoie la clé 32 bits compactée vers une table de 1 024 entrées, sans
-collision — « assez petite pour tenir en cache la plupart du temps », avec un
+collision : « assez petite pour tenir en cache la plupart du temps », avec un
 surcoût de hachage quasi nul, les clés absentes lisant simplement un compte
 de zéro ([message 1831](https://groups.io/g/eternity2/message/1831)). Un
 million d'entrées ramenées à un millier, uniquement pour que l'ensemble de
-travail vive en L1. Il note lui-même la limite honnête : la table à quatre
+travail vive en L1. Il trace lui-même la limite : la table à quatre
 arêtes ne sert que si l'ordre de remplissage peut laisser des trous ; un
 solveur en balayage strict n'en a jamais besoin.
 
-## Compactage binaire et taille des structures — le cache comme vrai adversaire
+## Compactage binaire et taille des structures : le cache comme vrai adversaire
 
 Le budget en cycles de Field explique pourquoi tant de cet artisanat parle
 de disposition mémoire : à 75M tuiles par seconde et par cœur, plus de la
@@ -106,28 +107,28 @@ faire compter chaque octet que la recherche touche. Compacter les quatre
 côtés d'une pièce dans un seul entier
 ([message 3098](https://groups.io/g/eternity2/message/3098)). Tenir
 l'ensemble des pièces utilisées dans un mot de 64 bits et court-circuiter
-toute une boucle de candidats d'un seul test de masque — une optimisation
+toute une boucle de candidats d'un seul test de masque, une optimisation
 qu'Arnaud Carré et Adam Miles ont découvert avoir implémentée
 indépendamment, ligne pour ligne
 ([message 9808](https://groups.io/g/eternity2/message/9808),
 [message 9809](https://groups.io/g/eternity2/message/9809)). Dimensionner
-l'entrée de la table de candidats pour que la table entière tienne en cache
-— exactement le dessein de la structure `RotatedPiece` de six octets de
-Blackwood, déjà racontée sur
+l'entrée de la table de candidats pour que la table entière tienne en
+cache. C'est exactement le dessein de la structure `RotatedPiece` de six
+octets de Blackwood, déjà racontée sur
 [la page Blackwood](/research/build/solvers/blackwood) : numéro de pièce,
 rotation, les deux côtés exposés, un compte de breaks, un compte
 heuristique, et rien d'autre.
 
-## Bipièces et métatuiles — précomposer, et payer en mémoire
+## Bipièces et métatuiles : précomposer, et payer en mémoire
 
 Si une lecture donne les pièces candidates, pourquoi ne pas précomposer des
-paires — des « bipièces » 1×2 — et poser deux cases par nœud ? Mesuré sur le
+paires en « bipièces » 1×2 et poser deux cases par nœud ? Mesuré sur le
 code de Lebel en août 2007, ça marche : environ 20 à 30 % plus rapide
 ([message 1734](https://groups.io/g/eternity2/message/1734)). Mais le prix
 grimpe vite, et l'archive documente les deux faces. En passant aux blocs
 2×2, un membre a mesuré environ 4,2× plus *lent* et rejeté d'emblée les
 pièces plus grandes
-([message 1730](https://groups.io/g/eternity2/message/1730)) — rien
+([message 1730](https://groups.io/g/eternity2/message/1730)). Rien
 d'étonnant une fois les tables comptées : environ 4 millions de
 combinaisons 2×2 intérieures distinctes
 ([message 3044](https://groups.io/g/eternity2/message/3044)). Louis Verhaard
@@ -135,18 +136,18 @@ rapportait que les bipièces n'aidaient « que très marginalement » son propre
 backtracker rapide
 ([message 3061](https://groups.io/g/eternity2/message/3061)). Et en 2008 la
 liste a tranché la question théorique du dessous : un solveur à métatuiles
-visite essentiellement la même frontière de contraintes qu'un solveur 1×1 —
-« synchronisés toutes les 4 pièces » — donc le gain est d'implémentation,
+visite essentiellement la même frontière de contraintes qu'un solveur 1×1
+(« synchronisés toutes les 4 pièces »), donc le gain est d'implémentation,
 jamais une réduction de l'espace de recherche
 ([message 5842](https://groups.io/g/eternity2/message/5842),
 [message 5899](https://groups.io/g/eternity2/message/5899)). La
 précomposition est une accélération qu'on achète en mémoire, et au-delà du
 1×2 le prix devient négatif.
 
-## La génération de code — écrire le programme qui écrit le solveur
+## La génération de code : écrire le programme qui écrit le solveur
 
-Les dernières indirections de la boucle interne — « sur quelle case
-suis-je ? qui sont ses voisines ? » — s'éliminent en n'ayant pas de boucle
+Les dernières indirections de la boucle interne (« sur quelle case
+suis-je ? qui sont ses voisines ? ») s'éliminent en n'ayant pas de boucle
 du tout. La recette de Field : *générer* procéduralement un code monolithique
 en ligne droite, un bloc par case, chaque bloc connaissant ses voisines comme
 constantes ; son code généré compilait vers environ 33 instructions par case
@@ -157,10 +158,10 @@ puzzle et par chemin de remplissage, compilé avec le compilateur Intel
 [message 5438](https://groups.io/g/eternity2/message/5438)), la même saison
 où la liste comparait ses backtrackers non récursifs
 ([message 4683](https://groups.io/g/eternity2/message/4683)). Le `body.c`
-de Peter McGavin — des blocs étiquetés comme `cell_9_2_next:`, des chaînes
-de `goto` qui remontent dans le bloc de la case précédente à l'épuisement,
-régénéré pour chaque puzzle et jeu d'indices — c'est cette idée composée
-pendant vingt ans
+de Peter McGavin, c'est cette idée composée pendant vingt ans : des blocs
+étiquetés comme `cell_9_2_next:`, des chaînes de `goto` qui remontent dans
+le bloc de la case précédente à l'épuisement, le tout régénéré pour chaque
+puzzle et jeu d'indices
 ([message 11337](https://groups.io/g/eternity2/message/11337),
 [message 11782](https://groups.io/g/eternity2/message/11782)). Et elle
 traverse les langages : libblackwood, le générateur Python de Jef Bucas qui
@@ -169,17 +170,17 @@ rapide sur la même machine
 ([message 10065](https://groups.io/g/eternity2/message/10065),
 [message 10078](https://groups.io/g/eternity2/message/10078)).
 
-## Les réalités du compilateur — les derniers 20 %, pas les 10²⁰ manquants
+## Les réalités du compilateur : les derniers 20 %, pas les 10²⁰ manquants
 
-Sous le code source, il reste du débit à moissonner — en instructions et en
-flags, pas en idées. Adam Miles a fait passer son solveur de 78 à 90
+Sous le code source, il reste du débit à moissonner, en instructions et en
+flags plutôt qu'en idées. Adam Miles a fait passer son solveur de 78 à 90
 millions de placements par seconde avec `bextr` (BMI) et `pext` (BMI2), tout
 en notant qu'il devenait « de plus en plus difficile » d'aller plus loin
 ([message 9796](https://groups.io/g/eternity2/message/9796)). Le manuel
 2026 de McGavin est le folklore accumulé : essayer clang, icc et icx contre
 gcc ; essayer les *versions* (clang-15 bat clang-19 sur ses cartes ARM) ;
 ajouter `-march=native` et `-mtune=native` ; utiliser l'optimisation guidée
-par profil — une liste d'astuces, aucune n'étant une solution miracle
+par profil. Aucune de ces astuces n'est une solution miracle
 ([message 11751](https://groups.io/g/eternity2/message/11751)). Son astuce
 de compteur, dans le même message, résume le genre : le compteur de
 placements 64 bits est alimenté par un registre 16 bits qui déborde, en
@@ -187,11 +188,11 @@ ajoutant `0x10000` à chaque tour, parce qu'il a chronométré les deux
 méthodes il y a des années sur du matériel 32 bits et que l'astuce a gagné.
 
 Le même réalisme vaut pour le matériel. Le multithread passe à l'échelle
-comme prévu — des solveurs multi-cœurs dépassaient 100M
+comme prévu : des solveurs multi-cœurs dépassaient 100M
 placements/s en 2008
 ([message 5804](https://groups.io/g/eternity2/message/5804)), et un seul
 Core i7 atteignait 558M/s en décembre
-([message 6212](https://groups.io/g/eternity2/message/6212)) — mais le
+([message 6212](https://groups.io/g/eternity2/message/6212)). Le
 mono-cœur, lui, s'est presque arrêté. En publiant sa table 2025 de neuf
 combinaisons CPU/compilateur (38–84M placements/s), McGavin notait que les
 CPU les plus récents ne sont « qu'un peu plus rapides » que son Phenom II

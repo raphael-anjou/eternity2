@@ -17,9 +17,9 @@ sources:
     url: https://groups.io/g/eternity2/message/11905
   - label: Le solveur original de Joshua Blackwood
     url: https://github.com/jblackwood345/EternityII_Solver
-  - label: Le plan de réglage de Blackwood — les quatre leviers et le re-réglage du 470 (groups.io, message 10076)
+  - label: "Le plan de réglage de Blackwood : les quatre leviers et le re-réglage du 470 (groups.io, message 10076)"
     url: https://groups.io/g/eternity2/message/10076
-  - label: Le dépôt re-publié — « le code exact utilisé pour trouver un 470 » (groups.io, message 10161)
+  - label: "Le dépôt re-publié : « le code exact utilisé pour trouver un 470 » (groups.io, message 10161)"
     url: https://groups.io/g/eternity2/message/10161
 related:
   - /research/why/complex-theory
@@ -35,31 +35,32 @@ import sweep from "@/assets/research/blackwood/heuristic_array.jpg";
 <Callout kind="note" title="À qui revient ce travail">
   L'algorithme est celui de Joshua Blackwood
   ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver)).
-  Son décodage — et l'étude de paramètres que cette page rapporte — est
+  Son décodage, tout comme l'étude de paramètres que cette page rapporte, est
   l'œuvre de Jef Bucas, dans son projet
   [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood). Cette
   page reformule et prolonge
   [ses notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
   avec sa permission explicite
-  ([groups.io, message 11905](https://groups.io/g/eternity2/message/11905)) —
-  les figures ci-dessous sont les siennes, tirées des mêmes notes.
+  ([groups.io, message 11905](https://groups.io/g/eternity2/message/11905)).
+  Les figures ci-dessous sont les siennes, tirées des mêmes notes.
 </Callout>
 
 Le solveur de Joshua Blackwood est, au fond, un backtracker en profondeur des
-plus classiques — la même boucle que tous les autres : poser, vérifier,
-revenir en arrière. Ce qui en fait le moteur des meilleurs plateaux de la
-communauté, c'est un empilement d'heuristiques réglées à la main : une règle
-de score qui décide *quelles* pièces essayer d'abord, un calendrier de quotas
-profondeur par profondeur qui coupe les branches en retard, un ordre de
-remplissage « ni trop serré, ni trop lâche », et un budget de désaccords
-autorisés en fin de recherche. Chacun de ces choix contient des nombres, et
-l'étude de Jef Bucas pose la question qui s'impose : les nombres de Blackwood
-sont-ils bons ? (Réponse : oui, et c'en est presque vexant.)
+plus classiques, qui déroule la même boucle que tous les autres : poser,
+vérifier, revenir en arrière. Ce qui en fait le moteur des meilleurs plateaux
+de la communauté, c'est un empilement d'heuristiques réglées à la main : une
+règle de score qui décide *quelles* pièces essayer d'abord, un calendrier de
+quotas profondeur par profondeur qui coupe les branches en retard, un
+[ordre de remplissage](/research/build/concepts/fill-order) « ni trop serré,
+ni trop lâche », et un budget de désaccords autorisés en fin de recherche.
+Chacun de ces choix contient des nombres, et l'étude de Jef Bucas pose la
+question qui s'impose : les nombres de Blackwood sont-ils bons ? Oui, et c'en
+est presque vexant.
 
 ## Noter les pièces par trois couleurs
 
 Le solveur attribue un score à chaque pièce d'après les couleurs de ses
-côtés, et il en privilégie exactement trois — une couleur de bord et deux
+côtés, et il en privilégie exactement trois, une couleur de bord et deux
 couleurs intérieures :
 
 ```csharp
@@ -68,7 +69,7 @@ heuristic_sides = new List<int>() { 13, 16, 10 };
 
 Les pièces qui portent ces couleurs remontent en tête de chaque liste de
 candidates : la recherche les engage tôt. Pourquoi ces trois-là ? C'est l'un
-des deux boutons que l'étude de Jef a tournés — voir plus bas. Son
+des deux boutons que l'étude de Jef a tournés (voir plus bas). Son
 échantillonnage suggère que les meilleurs scores connus proviennent de deux
 jeux de motifs distincts :
 
@@ -82,8 +83,8 @@ jeux de motifs distincts :
 ## Le calendrier : une courbe de quotas sur 256 profondeurs
 
 Prioriser trois couleurs ne sert que si la recherche est *forcée* de les
-poser vraiment. Le solveur transporte donc un tableau de 256 entrées — une
-par profondeur — où chaque valeur est le nombre minimal de ces trois couleurs
+poser vraiment. Le solveur transporte donc un tableau de 256 entrées, une
+par profondeur, où chaque valeur est le nombre minimal de ces trois couleurs
 qui doivent déjà être sur le plateau pour continuer à descendre. Passez sous
 le quota et la branche est coupée net : retour arrière, sans discussion.
 
@@ -118,8 +119,8 @@ couple calendrier-et-indices-de-rupture : un échéancier pré-engagé pour
 
 ## L'ordre de remplissage : ni trop serré, ni trop lâche
 
-La recherche démarre en bas à gauche du plateau — le coin le plus proche de
-la pièce centrale obligatoire — et déroule un balayage par lignes tout à fait
+La recherche démarre en bas à gauche du plateau (le coin le plus proche de
+la pièce centrale obligatoire) et déroule un balayage par lignes tout à fait
 standard jusqu'à la profondeur 180. Au-delà, elle intercale les pièces de
 bord restantes (y compris le troisième coin) toutes les quelques étapes,
 entre les poses intérieures.
@@ -128,7 +129,7 @@ C'est une voie médiane délibérée. Spiraler vers l'intérieur (l'anneau de bo
 d'abord) engage trop tôt les pièces les plus contraintes ; un balayage par
 lignes pur les remet toutes à la fin, où elles vous tendent une embuscade.
 L'ordre de Blackwood relâche la pression du bord progressivement. Pourquoi
-l'ordre pèse-t-il autant — et comment en noter un avant de le lancer — c'est
+l'ordre pèse-t-il autant, et comment en noter un avant de le lancer ? C'est
 précisément ce que formalise la
 [théorie complexe](/research/why/complex-theory).
 
@@ -154,20 +155,20 @@ rend les [plateaux records](/research/records) atteignables tout court : un
 désaccords tardifs, un backtracker peut réellement le finir.
 
 Deux détails précisent le tableau. D'abord, le budget s'accompagne d'une
-discipline : deux ruptures ne peuvent jamais se toucher — chaque désaccord
-doit rester isolé au milieu d'arêtes appariées. Blackwood en tire lui-même la
+discipline : deux ruptures ne peuvent jamais se toucher, et chaque désaccord
+doit donc rester isolé au milieu d'arêtes appariées. Blackwood en tire lui-même la
 conséquence : toute exécution qui atteint 255 poses se termine
 automatiquement à 256, et un plateau 469 équivaut à un partiel de 249 pièces
 avec sept trous
 ([groups.io, message 10051](https://groups.io/g/eternity2/message/10051)).
 Ensuite, la liste de dix entrées ci-dessus est elle-même un re-réglage : en
 préparant le passage du 469 au 470, Blackwood a réduit le budget de onze
-ruptures à dix — un changement qu'il documente, levier par levier, dans son
+ruptures à dix, un changement qu'il documente, levier par levier, dans son
 propre plan de réglage
 ([groups.io, message 10076](https://groups.io/g/eternity2/message/10076)).
 Les profondeurs de déblocage décalées qu'il y esquissait n'ont jamais été
-adoptées — le code publié du 470 garde les profondeurs de l'ère 469 et
-supprime simplement la onzième — et c'est ce calendrier resserré qui a
+adoptées (le code publié du 470 garde les profondeurs de l'ère 469 et
+supprime simplement la onzième), et c'est ce calendrier resserré qui a
 trouvé le 470.
 
 ## Redémarrages, hasard, et un plafond de 50 milliards de nœuds
@@ -178,15 +179,16 @@ région impossible. La réponse de Blackwood est simple et efficace :
 randomiser l'ouverture (le premier coin et les pièces de la rangée du bas
 sont mélangés à chaque tentative, si bien que deux exécutions ne retracent
 jamais le même préfixe) et plafonner chaque tentative à 50 milliards de
-nœuds explorés. Plafond atteint : on abandonne, on redémarre sur une
-ouverture fraîche — et on part chercher un terrain plus fertile.
+nœuds explorés. Plafond atteint : on abandonne, on
+[redémarre](/research/build/concepts/restarts) sur une ouverture fraîche, et
+on part chercher un terrain plus fertile.
 
 ## Tenir dans le cache
 
 Le dernier ingrédient relève de la sympathie mécanique. Les pièces candidates
 vivent dans des tables de correspondance par position, et chaque entrée est
-une petite structure compacte — numéro de pièce, rotation, les deux côtés
-exposés, un compteur de ruptures et un compteur heuristique — dimensionnée
+une petite structure compacte (numéro de pièce, rotation, les deux côtés
+exposés, un compteur de ruptures et un compteur heuristique) dimensionnée
 pour que l'ensemble tienne dans le cache du CPU :
 
 ```csharp
@@ -201,15 +203,16 @@ public struct RotatedPiece
 }
 ```
 
-C'est le versant débit de l'histoire : la conception même que Peter McGavin
-poussera plus tard à des centaines de millions de poses par seconde.
+C'est le versant débit de l'histoire : la conception même que
+[Peter McGavin](/research/build/solvers/mcgavin) poussera plus tard à des
+centaines de millions de poses par seconde.
 
 ## D'un seul 468 à une vague de records
 
 L'histoire du solveur est aussi instructive que ses entrailles. Blackwood est
-arrivé en parfait inconnu : son 468 — la première avancée au-delà du 467 de
-Louis Verhaard en douze ans — a atteint la liste de diffusion de seconde
-main, relayé depuis un fil Reddit
+arrivé en parfait inconnu : son 468, la première avancée en douze ans au-delà
+du [467 de Louis Verhaard](/research/build/solvers/verhaard-eii), a atteint
+la liste de diffusion de seconde main, relayé depuis un fil Reddit
 ([groups.io, message 10032](https://groups.io/g/eternity2/message/10032)).
 Trois jours plus tard, il publie le solveur en source ouverte, avec des
 heuristiques qui, estime-t-il, le rendent « deux fois meilleur » que
@@ -217,8 +220,8 @@ l'exécution du 468
 ([message 10037](https://groups.io/g/eternity2/message/10037)) ; Jef Bucas
 le fait tourner sous Mono sur Ubuntu presque aussitôt
 ([message 10038](https://groups.io/g/eternity2/message/10038)). En moins
-d'une semaine, Peter McGavin — qui l'exécute « sur environ deux cents
-cœurs » — décroche un 469
+d'une semaine, Peter McGavin, qui l'exécute « sur environ deux cents
+cœurs », décroche un 469
 ([message 10045](https://groups.io/g/eternity2/message/10045)). Bucas
 réécrit alors l'algorithme en C, à peu près deux fois plus rapide
 ([message 10065](https://groups.io/g/eternity2/message/10065)), une vague de
@@ -226,7 +229,7 @@ nouveaux plateaux 469 suit en quelques semaines, et le générateur de code
 derrière la réécriture est publié sous le nom de
 [libblackwood](https://github.com/jfbucas/libblackwood)
 ([message 10078](https://groups.io/g/eternity2/message/10078)). Quand
-Blackwood publie son 470 en mars 2021, il sort de ce même code public — ses
+Blackwood publie son 470 en mars 2021, il sort de ce même code public. Ses
 propres mots, en re-publiant le dépôt discrètement passé en privé : « C'est
 le code exact utilisé pour trouver un 470 »
 ([message 10161](https://groups.io/g/eternity2/message/10161)). Un record,
@@ -237,9 +240,10 @@ mis en source ouverte, est devenu une machine à records communautaire.
 Tout ce qui précède décrit *comment* le solveur fonctionne. Jef Bucas a
 construit [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood)
 pour demander si ses nombres sont *justes*. Le dispositif est une petite
-expérience distribuée : un serveur Python distribue des tâches par HTTP,
-chaque tâche étant une variation des paramètres du solveur. Les clients — un
-travailleur par cœur — récupèrent une tâche, génèrent le source C# à partir
+[expérience distribuée](/research/build/concepts/distributed-solving) : un
+serveur Python distribue des tâches par HTTP, chaque tâche étant une
+variation des paramètres du solveur. Les clients (un travailleur par cœur)
+récupèrent une tâche, génèrent le source C# à partir
 de gabarits avec la variation injectée, le compilent avec Mono, l'exécutent,
 et renvoient le résultat au serveur pour analyse.
 
@@ -250,7 +254,7 @@ Deux paramètres sont passés au crible :
   sa
   [page de résultats](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/batch00_edge_combos_stats.html)
   associe à chaque combinaison d'une couleur de bord et de deux couleurs
-  intérieures la profondeur atteinte — avec, en dessous, une carte de chaleur
+  intérieures la profondeur atteinte, avec en dessous une carte de chaleur
   des profondeurs où la recherche a passé son temps. Les meilleurs scores
   connus se concentrent sur deux jeux de motifs distincts.
 - **Le calendrier de quotas.** En exécutant de nombreuses variations
@@ -265,11 +269,11 @@ Deux paramètres sont passés au crible :
 ## Ce que le réglage à la main a réussi
 
 Ce dernier résultat mérite qu'on s'y arrête. Blackwood a rempli son
-calendrier à la main — cinq segments linéaires, des coefficients à vue de
-nez — et quand un balayage aléatoire a exploré le voisinage, la courbe
+calendrier à la main : cinq segments linéaires, des coefficients à vue de
+nez. Et quand un balayage aléatoire a exploré le voisinage, la courbe
 manuelle s'est retrouvée au beau milieu de la zone la plus performante. La
 conclusion de Jef, et la nôtre : les paramètres d'origine étaient quasi
-optimaux. Le vieux conseil tient toujours — avant de repenser les
+optimaux. Le vieux conseil tient toujours. Avant de repenser les
 heuristiques d'un solveur record, vérifiez si son auteur n'a pas déjà trouvé
 l'optimum local à la main.
 
@@ -278,8 +282,8 @@ l'optimum local à la main.
   impasses sur la liste de diffusion
   ([groups.io, message 10056](https://groups.io/g/eternity2/message/10056)) :
   éliminer quatre couleurs tôt au lieu de trois (aucun gain), garder des
-  couleurs pour la fin de partie (pire), les solveurs SAT — kissat,
-  cryptominisat, OR-tools de Google — (médiocres), l'accélération GPU, et la
+  couleurs pour la fin de partie (pire), les solveurs SAT comme kissat,
+  cryptominisat ou OR-tools de Google (médiocres), l'accélération GPU, et la
   mise en cache de tous les blocs 2x2 pré-résolus (mesurée, puis
   abandonnée). La seule chose qui ait jamais payé : raffiner les heuristiques
   elles-mêmes, pour un nouveau facteur ~2. C'est la conclusion du balayage de
@@ -289,14 +293,14 @@ l'optimum local à la main.
 
 ## À reproduire
 
-Une réserve honnête, et elle vient de Jef lui-même : le nombre d'échantillons
+Une réserve, et elle vient de Jef lui-même : le nombre d'échantillons
 derrière ces résultats est faible, et il n'est pas sûr à 100 % des
-conclusions. Ses notes le disent sans détour — il serait bon de tenter de
+conclusions. Ses notes le disent sans détour : il serait bon de tenter de
 reproduire ces résultats, pour les valider ou les invalider. Il offre ses
 échantillons, et le harnais
 [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) est
 public : pointez quelques machines vers le serveur, relancez les balayages,
 et publiez ce que vous trouvez sur la
 [liste de diffusion](https://groups.io/g/eternity2). Une réplication
-indépendante confirmerait ou réfuterait les résultats — et l'un comme l'autre
+indépendante confirmerait ou réfuterait les résultats, et l'un comme l'autre
 serait une vraie contribution.

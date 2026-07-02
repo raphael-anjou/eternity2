@@ -2,11 +2,11 @@
 title: "Le moteur de McGavin : une histoire de débit"
 description: >-
   Comment le backtracker C de Peter McGavin est devenu le plus rapide de la
-  communauté — une recette d'optimisation de 2007 capitalisée pendant vingt
+  communauté : une recette d'optimisation de 2007, capitalisée pendant vingt
   ans à coups de code généré, de tables de correspondance, d'astuces de
-  compteur et d'archéologie de compilateurs — et un bilan honnête de ce que
-  des centaines de millions de placements par seconde ont acheté, et de ce
-  qu'ils n'ont jamais pu acheter.
+  compteur et d'archéologie de compilateurs, avec un bilan tiré de ses
+  propres chiffres publiés de ce que des centaines de millions de placements
+  par seconde ont acheté, et de ce qu'ils n'ont jamais pu acheter.
 kind: concept
 order: 20
 updated: 2026-07-02
@@ -35,7 +35,7 @@ related:
 ---
 
 <Callout kind="note" title="À qui revient ce travail">
-  Le moteur est le C auto-généré de Peter McGavin lui-même — bâti, de son
+  Le moteur est le C auto-généré de Peter McGavin lui-même, bâti, de son
   propre aveu, sur une recette d'optimisation que Mike Field a publiée sur la
   liste en 2007 ([message 3098](https://groups.io/g/eternity2/message/3098)),
   une dette qu'il a reconnue deux fois, en 2024 puis en 2026
@@ -59,10 +59,10 @@ communauté, et qui a établi le record de 469 tenu jusqu'au 470 de Blackwood.
 Mais sous tout cela court un projet plus discret, long de vingt ans : un
 backtracker en C, à balayage de lignes, poli jusqu'à compter les placements
 de tuiles par centaines de millions par seconde. Cette page retrace ce
-projet à travers ses propres chiffres publiés — d'où vient la vitesse, ce
+projet à travers ses propres chiffres publiés : d'où vient la vitesse, ce
 qu'elle a acheté, et ce dont il a lui-même dit qu'elle ne suffirait jamais.
 
-## La recette date de 2007 — et il le dit
+## La recette date de 2007, et il le dit
 
 En octobre 2007, répondant à la question « où avez-vous entendu parler de 70
 millions de pièces par seconde ? », Mike Field publie un manuel
@@ -70,8 +70,8 @@ d'optimisation complet sous un titre sans ambiguïté : « Brute force does not
 work » ([message 3098](https://groups.io/g/eternity2/message/3098)). Les
 ingrédients : une table de correspondance indexée par les couleurs nord et
 ouest d'une case, pour que la recherche de candidats coûte un seul accès
-mémoire ; un ordre de parcours **fixe**, exploité sans scrupule — poser une
-pièce ne met à jour que ses voisins sud et est ; aucune boucle, mais du code
+mémoire ; un ordre de parcours **fixe**, exploité sans scrupule (poser une
+pièce ne met à jour que ses voisins sud et est) ; aucune boucle, mais du code
 monolithique *généré* procéduralement, un bloc en ligne droite par case ; un
 état minimal (l'affichage se reconstruit après coup, pas dans le chemin
 chaud) ; les quatre côtés d'une pièce empaquetés dans un seul entier ; et la
@@ -90,16 +90,16 @@ retombe dans le bloc de la case précédente quand la liste est épuisée
 ([message 11337](https://groups.io/g/eternity2/message/11337)). Il part
 retrouver l'origine quelques minutes plus tard et publie le lien : « j'ai retrouvé le
 vieux fil » ([message 11338](https://groups.io/g/eternity2/message/11338)) ;
-en 2026 il répète l'attribution — son code C optimisé « est basé sur » le
+en 2026 il répète l'attribution : son code C optimisé « est basé sur » le
 message de Mike de 2007
 ([message 11780](https://groups.io/g/eternity2/message/11780)).
 
 Field fournit lui-même l'étalon de l'époque. En 2011, il rapporte son propre
 backtracker à 75 millions de tuiles posées par seconde et par cœur sur un
-AMD à 2 GHz — environ 26 cycles d'horloge par tuile, dont plus de la moitié
-perdus à attendre la mémoire
-([message 9003](https://groups.io/g/eternity2/message/9003)). Ce chiffre —
-grosso modo 40 à 80 millions par cœur — est ce que fait un moteur
+AMD à 2 GHz, soit environ 26 cycles d'horloge par tuile, dont plus de la
+moitié perdus à attendre la mémoire
+([message 9003](https://groups.io/g/eternity2/message/9003)). Ce chiffre,
+grosso modo 40 à 80 millions par cœur, est ce que fait un moteur
 communautaire sérieux pendant la décennie suivante, celui de McGavin
 compris.
 
@@ -110,15 +110,16 @@ raffinements qu'il a décrits sur la liste, à peu près dans l'ordre où ils
 apparaissent :
 
 - **Un générateur de code, pas un programme.** Le C par case est régénéré
-  pour chaque puzzle, jeu d'indices et chemin de placement — son mode
+  pour chaque puzzle, jeu d'indices et
+  [chemin de placement](/research/build/concepts/fill-order). Son mode
   d'emploi de 2026 est un cycle compiler/exécuter/compiler/exécuter : la
   première passe reconstruit `body.c`, le code en ligne droite des cases,
   et la seconde compile le solveur qui l'embarque. Sautez une étape après
   avoir changé un fichier d'entrée et le programme « ne fera rien de
   sensé » ([message 11751](https://groups.io/g/eternity2/message/11751),
   [message 11782](https://groups.io/g/eternity2/message/11782)).
-- **Un compteur qui ne coûte presque rien.** `ntpll` — « number of tile
-  placements per second long long », selon sa propre glose — n'est pas
+- **Un compteur qui ne coûte presque rien.** `ntpll` (« number of tile
+  placements per second long long », selon sa propre glose) n'est pas
   incrémenté directement. Un registre de
   16 bits est incrémenté à chaque placement, et `0x10000` est ajouté au
   compteur 64 bits à chaque débordement : un héritage des machines 32 bits,
@@ -133,10 +134,10 @@ apparaissent :
   clang-15 bat clang-19 et gcc ; ajouter `-march=native` et
   `-mtune=native` ; essayer icc et icx ; utiliser l'optimisation guidée par
   profil ([message 11751](https://groups.io/g/eternity2/message/11751)).
-  Rien de tout cela ne change la recherche — cela change combien de
+  Rien de tout cela ne change la recherche. Cela change combien de
   recherches un euro d'électricité peut payer.
 - **Le chemin de placement comme choix mesuré.** Le balayage de lignes est
-  le meilleur ordre pour E2 — mais la spirale vers l'intérieur gagne sur les
+  le meilleur ordre pour E2, mais la spirale vers l'intérieur gagne sur les
   puzzles indices 1 et 3, le cadre d'abord sur les 2 et 4, la spirale vers
   l'extérieur sur les variantes sans cadre ; il tranche en faisant tourner
   le solveur ou en interrogeant la théorie complexe, s'étant reconnu
@@ -160,11 +161,11 @@ Chaque chiffre ci-dessous vient de l'archive, dans les unités de son auteur.
 | 2024-11 | 99M → 10 160M nœuds/s par machine | du Raspberry Pi 4 (4 processus) au bi-Xeon Gold 6338 (128) | [11369](https://groups.io/g/eternity2/message/11369) |
 | 2025-09 | 38–84M placements/s, mono-cœur | neuf combinaisons OS/compilateur/CPU sur le 8x8 de Brendan | [11643](https://groups.io/g/eternity2/message/11643) |
 | 2026-01 | ~225M placements/s, mono-cœur | Orange Pi 6 Plus sur petits puzzles ; « moitié moins sur 16x16 » | [11751](https://groups.io/g/eternity2/message/11751) |
-| 2026-01 | 295M placements/s, mono-cœur | Joe exécutant le code de McGavin sur un CPU plus récent — contre 27–37M pour son propre C# | [11750](https://groups.io/g/eternity2/message/11750) |
+| 2026-01 | 295M placements/s, mono-cœur | Joe exécutant le code de McGavin sur un CPU plus récent, contre 27–37M pour son propre C# | [11750](https://groups.io/g/eternity2/message/11750) |
 | 2026-02 | 44,0M contre 105,1M tuiles/s | le même arbre de 2,12 billions de nœuds : Phenom II de 2010 contre Ryzen 5 5600H | [11782](https://groups.io/g/eternity2/message/11782) |
 
-Deux lectures de cette table. D'abord la manchette : le chiffre de ~295M/s —
-celui que cite notre [page des records](/research/records) — est réel, mais
+Deux lectures de cette table. D'abord la manchette : le chiffre de ~295M/s
+(celui que cite notre [page des records](/research/records)) est réel, mais
 c'est la mesure de Joe, faite en janvier 2026 quand McGavin a partagé son
 code source et que Joe l'a exécuté sur du matériel plus récent que tout ce
 que McGavin possède ; le solveur C# de Joe plafonnait à 27–37M/s sur la même
@@ -176,7 +177,7 @@ puzzles ([message 11751](https://groups.io/g/eternity2/message/11751)).
 
 Ensuite, la lecture plus discrète et plus instructive : la vitesse mono-cœur
 n'a presque pas bougé en quinze ans. McGavin l'a dit lui-même en publiant la
-table de 2025 — les vitesses sur les CPU les plus récents « ne sont qu'un
+table de 2025 : les vitesses sur les CPU les plus récents « ne sont qu'un
 peu plus rapides » que sur son Phenom II de 2010
 ([message 11643](https://groups.io/g/eternity2/message/11643)). Le moteur
 était déjà contre le mur mémoire que Field décrivait en 2011. Ce qui a

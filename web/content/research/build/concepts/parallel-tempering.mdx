@@ -3,7 +3,7 @@ title: Simulated annealing and parallel tempering
 description: >-
   Treat mismatches as energy and temperature as tolerance for making things
   worse. Annealing holds the puzzle's longest-standing record; parallel
-  tempering crosses barriers annealing can't — and both stop at the same wall.
+  tempering crosses barriers annealing can't. Both stop at the same wall.
 kind: concept
 order: 70
 updated: 2026-07-02
@@ -26,14 +26,14 @@ import { TemperingLadderLab } from "@/components/research/concepts/TemperingLadd
 Simulated annealing reads a board as a physical system: unmatched edges are
 energy, moves that lower the energy are always accepted, and moves that raise
 it are accepted with probability $e^{-\Delta E / T}$. Run hot and the search
-wanders; cool it and the board settles into a low-energy arrangement —
+wanders; cool it and the board settles into a low-energy arrangement,
 ideally a deep one, not merely the nearest one. The catch is the schedule:
 cool too fast and you freeze into a mediocre local optimum, cool slowly
 enough for a puzzle this size and you wait forever.
 
 ## From one temperature to a ladder
 
-Parallel tempering — replica exchange — dissolves the schedule problem by
+Parallel tempering (replica exchange) dissolves the schedule problem by
 running the whole ladder at once. The method comes from spin-glass physics:
 Swendsen and Wang's
 [1986 replica Monte Carlo paper](https://doi.org/10.1103/PhysRevLett.57.2607)
@@ -52,7 +52,7 @@ with $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ and
 $\Delta E = E_i - E_j$. Read it once with concrete signs: if replica $i$ is
 the colder one ($\Delta\beta > 0$) and the hotter replica holds the *lower*
 energy ($\Delta E > 0$), the exponent is positive and the swap is accepted
-with certainty — the good state always gets handed down the ladder for free.
+with certainty: the good state always gets handed down the ladder for free.
 Hot replicas roam across barriers; cold replicas exploit; the swaps shuttle
 promising configurations down the ladder to be refined. No single chain ever
 has to survive a cooling schedule.
@@ -62,7 +62,7 @@ has to survive a cooling schedule.
 The claim worth seeing is the comparison: the same cold chain, with and
 without a ladder above it. Below, four replicas explore a rugged synthetic
 landscape whose global minimum hides behind barriers; a grey ghost runs the
-identical cold dynamics alone. Watch the swap flashes — green for accepted —
+identical cold dynamics alone. Watch the swap flashes (green for accepted)
 carry the right-hand basin down to the cold rung, while the ghost sits in the
 starting well forever. Then drag the spacing slider to both extremes and
 reproduce the two classic ladder failures.
@@ -81,11 +81,11 @@ One round of parallel tempering, as the lab runs it:
 2. **Swap attempt.** Pick an adjacent pair $(i, i{+}1)$, compute
    $\Delta\beta\,\Delta E$ from the two cached energies, accept with
    $\min(1, e^{\Delta\beta \Delta E})$. On acceptance the two replicas
-   exchange configurations (equivalently: temperatures) — nothing else moves.
+   exchange configurations (equivalently: temperatures); nothing else moves.
 3. **Bookkeeping.** Track the swap-acceptance rate per rung pair. That
    number *is* the ladder diagnostic: near 100%, adjacent rungs see the same
    landscape and one of them is wasted; near 0%, the ladder has decoupled
-   into independent chains. Useful ladders sit in the tens of percent —
+   into independent chains. Useful ladders sit in the tens of percent:
    frequent but not free, exactly the regime Earl and Deem recommend and the
    one our runs converged to.
 4. **Repeat.** The good states random-walk down the rungs; the stuck states
@@ -94,24 +94,24 @@ One round of parallel tempering, as the lab runs it:
 ## What it costs
 
 - **Per sweep:** $R$ replicas × $N$ sites, each move $O(1)$ local
-  evaluation, so $O(R \cdot N)$ — exactly $R$ times one chain. Memory is
+  evaluation, so $O(R \cdot N)$, exactly $R$ times one chain. Memory is
   $O(R \cdot N)$: every replica is a full board.
 - **Per swap phase:** the $R{-}1$ adjacent pairs each need one exponential
-  of cached energies — $O(R)$ total, a rounding error next to the sweeps.
+  of cached energies: $O(R)$ total, a rounding error next to the sweeps.
 - **The win is mixing time, not step cost.** A lone cold chain crosses an
   energy barrier $\Delta E$ in roughly $e^{\Delta E / T_{\text{cold}}}$
-  attempts (the Arrhenius wait — our measured 76-cell crossing sat at
+  attempts (the Arrhenius wait; our measured 76-cell crossing sat at
   $e^{-21}$ per attempt at $T = 1$). The ladder replaces that wait with
   diffusion: a configuration random-walks across $R$ rungs, and with
   geometric spacing tuned for constant per-rung acceptance, a round trip
   costs on the order of $R^2$ swap rounds. You pay a constant factor $R$
-  per sweep to turn an exponential wait into a polynomial shuttle — that
+  per sweep to turn an exponential wait into a polynomial shuttle. That
   asymmetry is the entire argument for the method.
 - **No guarantees, same as all samplers.** Parallel tempering is not
   complete and certifies nothing; it converges to the right distribution
   eventually, with no useful bound on "eventually". And where the landscape
-  offers ties instead of barriers — the iso-score plateaus at the top of
-  this puzzle — $\Delta E = 0$ makes every rung behave identically, and the
+  offers ties instead of barriers, as on the iso-score plateaus at the top
+  of this puzzle, $\Delta E = 0$ makes every rung behave identically, and the
   ladder's advantage vanishes by construction, which is precisely what the
   verdict below reports.
 

@@ -1,7 +1,7 @@
 ---
 title: All-different, Régin's matching filter
 description: >-
-  No piece may be used twice — one global all-different constraint over 256
+  No piece may be used twice: one global all-different constraint over 256
   cells. Jean-Charles Régin showed in 1994 how bipartite matching filters it
   completely in polynomial time; its per-colour cousin is the strongest
   propagator anyone has measured on edge matching, with one sharp caveat
@@ -13,7 +13,7 @@ topics: [search-space, exact-methods]
 sources:
   - label: Régin 1994, "A Filtering Algorithm for Constraints of Difference in CSPs" (AAAI-94)
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
-  - label: Ansótegui, Béjar, Fernández & Mateu 2008, "Edge Matching Puzzles as Hard SAT/CSP Benchmarks" (CP 2008) — the per-colour matching filter
+  - label: 'Ansótegui, Béjar, Fernández & Mateu 2008, "Edge Matching Puzzles as Hard SAT/CSP Benchmarks" (CP 2008): the per-colour matching filter'
     url: https://doi.org/10.1007/978-3-540-85958-1_42
   - label: Hopcroft–Karp matching algorithm (Wikipedia)
     url: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
@@ -29,7 +29,7 @@ import { ReginMatchingLab } from "@/components/research/concepts/ReginMatchingLa
 Underneath the colour matching, Eternity II carries a second global law: the
 256 cells must take 256 *distinct* pieces. Written as a constraint, that is a
 single all-different over the whole board. Most solvers enforce it in the
-weakest possible way — when a piece is placed, cross it off everywhere else —
+weakest possible way (when a piece is placed, cross it off everywhere else),
 which misses a whole class of dead positions: five cells whose remaining
 candidates draw on only four pieces are already unsolvable, and simple
 crossing-off will not notice until much later.
@@ -37,13 +37,13 @@ crossing-off will not notice until much later.
 ## Régin's 1994 filter
 
 Jean-Charles Régin showed that the all-different constraint can be filtered
-*completely* — every candidate that appears in no valid global assignment
-removed — in polynomial time. The construction is pure graph theory:
+*completely*, in polynomial time: every candidate that appears in no valid
+global assignment gets removed. The construction is pure graph theory:
 
 1. Build the bipartite graph of cells versus pieces, with an edge wherever a
    piece is still in a cell's domain.
 2. Compute a maximum matching (Hopcroft–Karp, $O(E \sqrt{V})$). If it fails
-   to cover every cell, the position is dead — backtrack immediately.
+   to cover every cell, the position is dead; backtrack immediately.
 3. Orient the graph around the matching and compute its strongly connected
    components (Tarjan, linear time). A theorem of Berge then identifies, in
    one pass, exactly which edges belong to *some* maximum matching.
@@ -61,7 +61,7 @@ it affordable inside a search loop.
 
 The construction is easier to believe than to picture, so here it is on a
 six-piece instance built to contain a trap: cells C1 and C2 both draw on only
-pieces P1 and P2 — a Hall set. Crossing-off sees nothing wrong with C3
+pieces P1 and P2, a Hall set. Crossing-off sees nothing wrong with C3
 holding P2 as a candidate; the matching argument proves it can never happen.
 Build the matching first (watch an augmenting path evict and re-route an
 earlier assignment), then run the filter and watch the strongly connected
@@ -69,7 +69,7 @@ components expose every edge that no maximum matching can use.
 
 <ReginMatchingLab />
 
-The payoff to notice: three edges deleted, and two cells *forced* — C3 must
+The payoff to notice: three edges deleted, and two cells *forced*. C3 must
 take P3 and C6 must take P6, conclusions that pairwise reasoning would only
 reach after branching. That is what "filtering to optimality" means: after
 Régin's pass, every surviving candidate genuinely participates in some
@@ -80,11 +80,11 @@ complete assignment.
 The same run, in words:
 
 1. **Build the bipartite graph.** Cells on one side, pieces on the other, an
-   edge wherever a piece is still in a cell's domain — six cells, six pieces,
+   edge wherever a piece is still in a cell's domain: six cells, six pieces,
    thirteen edges in the demo.
 2. **Grow a matching by augmenting paths.** C1 takes P1. C2 also wants P1:
-   instead of giving up, follow the *alternating path* C2–P1–C1–P2 — P1 is
-   taken, but its owner C1 has a free alternative P2. Flip every edge on the
+   instead of giving up, follow the *alternating path* C2–P1–C1–P2. P1 is
+   taken, but its owner C1 has a free alternative, P2. Flip every edge on the
    path: C1 slides to P2, C2 gets P1, and the matching has grown by one.
    Repeat until every cell is covered. If some cell ever exhausts its paths,
    there is no complete assignment and the search backtracks on the spot.
@@ -92,13 +92,13 @@ The same run, in words:
    point piece → cell. Now an alternating cycle in the original graph is a
    directed cycle in this one.
 4. **Compute strongly connected components** (Tarjan, one linear pass). In
-   the demo, \{C1, C2, P1, P2\} form one component — they trade their two
-   pieces around a cycle — and \{C4, C5, P4, P5\} another.
+   the demo, \{C1, C2, P1, P2\} form one component (they trade their two
+   pieces around a cycle) and \{C4, C5, P4, P5\} another.
 5. **Apply Berge's rule.** An unmatched edge can join *some* maximum matching
    only if it lies on an alternating cycle (same SCC) or on an alternating
-   path from a free vertex (none here — the matching is perfect). Everything
+   path from a free vertex (none here; the matching is perfect). Everything
    else is dead: C3–P2, C4–P3 and C6–P5 each cross two components, so they
-   are deleted — provably, not heuristically.
+   are deleted, provably rather than heuristically.
 6. **Read off the reductions.** C3's domain drops to \{P3\}, C6's to \{P6\}:
    two forced placements found without a single branch.
 
@@ -107,18 +107,18 @@ The same run, in words:
 One invocation from scratch is two graph passes:
 
 - **Maximum matching** via Hopcroft–Karp: $O(m \sqrt{n})$ for $m$ feasible
-  edges over $n$ vertices — the dominant term.
+  edges over $n$ vertices, the dominant term.
 - **SCC decomposition** via Tarjan: $O(n + m)$, linear, plus the same again
   to sweep the edges and delete.
 
 For the piece-level all-different on Eternity II, $n = 512$ vertices (256
 cells + 256 pieces) and $m$ at most $256 \times 256 = 65{,}536$ edges, so
-$m\sqrt{n} \approx 1.5$ million edge operations for a full build — small
-change on modern hardware, and that is the *worst* case, from scratch, with
-maximally loose domains. Inside a search nobody rebuilds: the incremental
-versions (Régin 1995; Mehlhorn & Thiel 2000) keep the previous matching,
-repair it with a few augmenting paths after each domain change, and re-run
-the linear SCC pass — near-linear re-filtering per node in practice. The
+$m\sqrt{n} \approx 1.5$ million edge operations for a full build. That is
+small change on modern hardware, and it is the *worst* case, from scratch,
+with maximally loose domains. Inside a search nobody rebuilds: the
+incremental versions cited above keep the previous matching, repair it with
+a few augmenting paths after each domain change, and re-run the linear SCC
+pass, which comes to near-linear re-filtering per node in practice. The
 per-colour variant is smaller still: one graph per colour class over only the
 half-edges showing that colour, 22 little matchings instead of one big one.
 The polynomial label is the point: this is complete filtering of a global
@@ -129,19 +129,19 @@ constraint for graph-algorithm prices, not search prices.
 The same theorem applies at two different levels on this puzzle.
 
 **Per colour.** For each colour, the half-edges showing it must pair up
-perfectly across adjacent cells — a perfect-matching condition per colour
+perfectly across adjacent cells: a perfect-matching condition per colour
 class. Ansótegui, Béjar, Fernández and Mateu built exactly this propagator on
 Régin's theorem for edge-matching CSPs and called it the most powerful global
 constraint they had found for these puzzles. That matches this project's
 experience: the per-colour filter is the strongest propagator in the
 project's exact-matching engine, the ingredient that (together with
 [arc consistency](/research/build/concepts/arc-consistency)) lifts a plain
-backtracker to 449 of 480 edges in under a minute — measured on this
-project's engine, not independently replicated. It earns its keep late: the
+backtracker to 449 of 480 edges in under a minute (measured on this
+project's engine, not independently replicated). It earns its keep late: the
 project gates it to deep positions, where domains are tight enough for
 matchings to fail and the cost is repaid.
 
-**Per piece.** The direct reading — remaining pieces versus empty cells —
+**Per piece.** The direct reading, remaining pieces versus empty cells,
 catches the Hall-style traps that crossing-off misses: whole groups of cells
 competing for too few pieces, detected before the pairwise machinery sees any
 contradiction. Since [no move is ever forced](/research/why/no-forced-moves)
@@ -155,7 +155,7 @@ The per-colour filter assumes every colour must match *exactly*. A
 assumption on purpose: its break indices license a budget of mismatches at
 late depths, so a board the filter proves "impossible" may be exactly the 470
 the search is hunting. Running the per-colour matching filter inside a
-mismatch-tolerant search is unsound, full stop — on this project's engine it
+mismatch-tolerant search is unsound, full stop. On this project's engine it
 is switched off in that regime, and dropping it (with the rest of the strict
 propagators) was part of a large single-thread speedup.
 
@@ -168,8 +168,8 @@ breaks. It is the one strong global propagator available to a record engine.
 ## Benefit, and what is not yet known
 
 The cost side of the ledger is above, and it is polynomial all the way down.
-The honest ledger, though, has a hole in it: Régin's original
-paper benchmarks a 25-variable toy, and there is no published measurement of
+The benefit side, though, has a hole in it: Régin's original paper
+benchmarks a 25-variable toy, and there is no published measurement of
 the filter on a 256-variable all-different shaped like Eternity II. This
 project has not built the piece-level version either; its promise inside
 mismatch-tolerant searches is an argument, not a number. Treat it as the
