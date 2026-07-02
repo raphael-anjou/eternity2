@@ -1,0 +1,346 @@
+---
+title: Cartes itérées et divide-and-concur
+description: >-
+  L'attaque du physicien contre la satisfaction de contraintes : couper le
+  puzzle en deux ensembles de contraintes faciles à projeter séparément, puis
+  itérer une application dont les points fixes sont les solutions. La méthode
+  de Veit Elser a fait la couverture de PNAS — et sur la liste Eternity II,
+  elle reste une route admirée, testée une fois, jamais vraiment empruntée.
+kind: concept
+order: 170
+updated: 2026-07-02
+topics: [exact-methods, learning]
+sources:
+  - label: Elser, Rankenburg & Thibault, Searching with iterated maps (PNAS 104:418, 2007)
+    url: https://doi.org/10.1073/pnas.0606359104
+  - label: Gravel & Elser, Divide and concur — a general approach to constraint satisfaction (Phys. Rev. E 78, 036706, 2008)
+    url: https://doi.org/10.1103/PhysRevE.78.036706
+  - label: Gravel & Elser, Divide and concur — préprint en accès libre (arXiv:0801.0222)
+    url: https://arxiv.org/abs/0801.0222
+  - label: Aragón Artacho, Borwein & Tam, Recent results on Douglas–Rachford methods for combinatorial optimization problems (arXiv:1305.2657)
+    url: https://arxiv.org/abs/1305.2657
+  - label: JSA formalise le problème dual et présente les travaux d'Elser à la liste (message groups.io 9347)
+    url: https://groups.io/g/eternity2/message/9347
+  - label: JSA sur les articles divide-and-concur et la question ouverte du passage à l'échelle (message groups.io 9350)
+    url: https://groups.io/g/eternity2/message/9350
+  - label: Le test de Dima — un simple hill-climber bat la difference map sur le benchmark de l'article (message groups.io 9351)
+    url: https://groups.io/g/eternity2/message/9351
+  - label: Les transparents ICCOPT-MOPTA 2007 d'Elser déposés dans les fichiers du groupe — « Eternity II mentionné dans les 3 dernières diapositives » (message groups.io 9349)
+    url: https://groups.io/g/eternity2/message/9349
+  - label: Du code source de Veit Elser, avec un exemple 5x5, partagé dans les fichiers du groupe (message groups.io 9362)
+    url: https://groups.io/g/eternity2/message/9362
+  - label: Le récapitulatif de JSA en 2015 — les petits modèles résolus, le grand puzzle non (message groups.io 9442)
+    url: https://groups.io/g/eternity2/message/9442
+  - label: L'esquisse primal–dual de Dima, avec appariement hongrois (message groups.io 9445)
+    url: https://groups.io/g/eternity2/message/9445
+  - label: Le précédent SRD par échange d'arêtes — 8x8 résolu, jamais le 10x10 (message groups.io 9447)
+    url: https://groups.io/g/eternity2/message/9447
+  - label: Douglas–Rachford nommé sur la liste, via la note TetraVex de Wikipédia (message groups.io 11592)
+    url: https://groups.io/g/eternity2/message/11592
+  - label: JSA raccroche Douglas–Rachford à la lignée Elser (message groups.io 11594)
+    url: https://groups.io/g/eternity2/message/11594
+related:
+  - /research/build/dead-ends
+  - /research/build/concepts/lp-relaxations
+  - /research/build/concepts/sat-csp-encodings
+---
+
+Toutes les méthodes de cette étagère traitent jusqu'ici Eternity II comme une
+recherche discrète : placer, vérifier, revenir en arrière. Les physiciens ont
+proposé quelque chose de plus étrange. Le groupe de Veit Elser, à Cornell, a
+reformulé la satisfaction de contraintes en géométrie — un point qui rebondit
+entre deux ensembles dans un espace de grande dimension — et a promené le
+même schéma d'itération de la reconstruction de phase en cristallographie
+jusqu'au Sudoku, au 3-SAT et au repliement de protéines, décrochant au
+passage la couverture de PNAS
+([Elser, Rankenburg & Thibault, 2007](https://doi.org/10.1073/pnas.0606359104)).
+Les puzzles d'appariement d'arêtes illustrent la formulation comme peu
+d'autres problèmes — la couverture de ce numéro de PNAS en montrait un,
+comme l'a signalé le membre qui a apporté ces travaux à la liste
+([message groups.io 9347](https://groups.io/g/eternity2/message/9347)).
+
+Cette page explique la méthode pour de bon, parce qu'elle est réellement
+belle et réellement différente de tout le reste du catalogue. Puis elle
+rapporte, honnêtement, ce que la communauté Eternity II en a fait : un
+frisson d'intérêt en 2014–2015, un unique test empirique, une archive du code
+d'Elser lui-même — et aucune campagne. C'est une route connue, très peu
+parcourue ici.
+
+## Deux ensembles faciles, une intersection difficile
+
+Plongeons l'état du plateau dans un espace euclidien : un vecteur réel avec
+une coordonnée par triplet (case, pièce, rotation), où un plateau légal est
+une affectation 0/1. Définissons deux ensembles de contraintes :
+
+- $C_1$ — **chaque pièce utilisée une fois** : chaque case porte exactement
+  une pièce orientée, chaque pièce sert exactement une fois. Les couleurs
+  d'arêtes sont ignorées.
+- $C_2$ — **les arêtes concordent** : chaque paire d'arêtes en contact a la
+  même couleur, et le bord du cadre est gris. L'inventaire des pièces est
+  ignoré — une case peut porter un mélange fractionnaire ou des doublons.
+
+Un Eternity II résolu est exactement un point de $C_1 \cap C_2$. Ce qui rend
+la formulation exploitable, c'est que chaque ensemble, *pris seul*, admet une
+projection facile — pour un $x$ arbitraire, on sait calculer à bas coût le
+point le plus proche de l'ensemble :
+
+- $P_1(x)$, l'affectation valide la plus proche, est un problème
+  d'appariement biparti : affecter 256 pièces à 256 cases en maximisant
+  l'affinité totale. L'algorithme hongrois le résout exactement en temps
+  polynomial — le même moteur d'affectation que l'étape de re-remplissage de
+  la [recherche locale](/research/build/concepts/local-search-alns).
+- $P_2(x)$, le coloriage d'arêtes cohérent le plus proche, se décompose arête
+  par arête : chaque jointure intérieure ramène simplement ses deux côtés
+  vers leur moyenne. Purement local, trivialement parallèle.
+
+Chaque projection est un problème résolu. Toute la difficulté d'Eternity II
+loge dans l'*intersection* — et le schéma naïf, les projections alternées
+$x \mapsto P_1(P_2(x))$, échoue exactement comme on le devine : il converge
+vers une paire de points, un dans chaque ensemble, localement aussi proches
+que possible et globalement faux. Un minimum local, déguisé en projections.
+
+Cette vision à deux faces a atteint la liste indépendamment d'Elser. Dès
+2008, antminder proposait de découper les pièces en triangles d'arêtes et de
+chercher dans le domaine des losanges colorés
+([message 6184](https://groups.io/g/eternity2/message/6184)), et JSA y a
+aussitôt reconnu le *problème dual*
+([message 6185](https://groups.io/g/eternity2/message/6185)) : Eternity II,
+ce sont 256 pièces à arranger pour que 480 arêtes concordent — ou 480 carrés
+d'arêtes colorés à arranger pour qu'ils engendrent les 256 bonnes pièces.
+Résoudre, c'est rendre les deux descriptions vraies en même temps.
+
+## La difference map
+
+La réponse d'Elser au piège des minima locaux n'est pas d'alterner les
+projections, mais d'itérer une *difference map*. Sous la forme publiée, avec
+le paramètre fixé à $\beta = 1$, un pas s'écrit
+
+$$
+x \;\mapsto\; D(x) \;=\; x \;+\; P_1\!\big(2P_2(x) - x\big) \;-\; P_2(x),
+$$
+
+et la famille en $\beta$ général interpole autour de cette forme via des
+points « estimateurs » $f_i(x)$ construits à partir des projections
+([PNAS 2007](https://doi.org/10.1073/pnas.0606359104)). Trois propriétés
+font tout le travail :
+
+1. **Point fixe = solution.** Si $D(x^\ast) = x^\ast$, alors
+   $P_1(2P_2(x^\ast) - x^\ast) = P_2(x^\ast)$ : le même point appartient aux
+   deux ensembles. La solution se lit comme $P_2(x^\ast)$, pas comme
+   $x^\ast$ — l'itéré est un *chercheur*, pas un plateau. L'arrêt se détecte
+   quand le déplacement $\Delta = \lVert D(x) - x \rVert$ passe sous un
+   seuil ; le candidat est alors vérifié exactement.
+2. **Pas de fonction de coût.** L'application ne descend rien. Cela ressemble
+   à un défaut et c'est précisément l'idée : un hill-climber se fige partout
+   où son score a un optimum local, mais la difference map n'a aucun score
+   pour la flatter et la retenir. Loin des points fixes, elle continue de
+   bouger — chaotiquement, en pratique — si bien que les configurations
+   presque-justes qui piègent la
+   [recherche locale](/research/build/concepts/local-search-alns) sont pour
+   elle des lieux de passage. C'est l'« effet tunnel » que célébraient les
+   physiciens.
+3. **L'itéré vit hors des deux ensembles.** Pendant la recherche, $x$ n'a
+   besoin de satisfaire aucune des deux contraintes — comme les plateaux
+   fractionnaires de la
+   [relaxation LP](/research/build/concepts/lp-relaxations), il explore une
+   superposition de plateaux. Mais contrairement au LP, il n'a ni objectif à
+   optimiser ni optimum où plafonner : ses seuls points de repos sont les
+   solutions.
+
+Pour $\beta = 1$, la difference map coïncide avec l'itération de
+**Douglas–Rachford**, une méthode de projections que l'analyse convexe
+étudie depuis les années 1950 ; la convergence est prouvée quand les deux
+ensembles sont convexes, et nullement garantie ici, où $C_1$ est une
+poussière de points de permutation. La liste n'a appris le nom de la famille
+qu'en 2025, quand Wyatt Carpenter a découvert que Wikipédia créditait
+« l'algorithme de Douglas–Rachford » pour la résolution de TetraVex et a
+demandé si quelqu'un avait essayé
+([message 11592](https://groups.io/g/eternity2/message/11592)) ; JSA a
+refermé la boucle en renvoyant au fil Elser de 2014–2016 et en présentant
+Douglas–Rachford comme la lecture « splitting $f(x) + g(x)$ » de la même
+attaque ([message 11594](https://groups.io/g/eternity2/message/11594)). La
+littérature d'optimisation avait bel et bien adopté la méthode pour cette
+famille de puzzles
+([Aragón Artacho, Borwein & Tam](https://arxiv.org/abs/1305.2657)).
+
+## Divide and concur : l'astuce des répliques
+
+Le tableau à deux ensembles ci-dessus exige encore une projection globale
+($P_1$ est un grand appariement). L'article suivant de Gravel et Elser,
+[*Divide and concur*](https://doi.org/10.1103/PhysRevE.78.036706)
+([préprint libre](https://arxiv.org/abs/0801.0222)), rend la construction
+mécanique pour *n'importe quel* CSP. On donne à chaque contrainte sa
+**réplique** privée de chaque variable qu'elle touche :
+
+- La projection **divide** satisfait chaque contrainte indépendamment sur
+  ses propres répliques — chaque contrainte devient un problème local
+  minuscule (pour Eternity II : une arête, deux côtés de pièces), trivial à
+  projeter.
+- La projection **concur** force toutes les répliques d'une même variable à
+  s'accorder, en les remplaçant par leur moyenne — la projection la moins
+  chère qui soit.
+
+Faites tourner la difference map entre *divide* et *concur* et vous obtenez
+un solveur de CSP générique dont chaque itération est un travail purement
+local, l'étape de moyenne jouant le rôle de la communication. Gravel et
+Elser l'ont mesuré sur 3-SAT — un passage à l'échelle comparable à WalkSAT —
+et s'en sont servis pour améliorer des empilements de sphères connus. Quand
+la méthode a atteint la liste, Dima a tout de suite reconnu la structure
+depuis son propre domaine : ce schéma de moyennes entre répliques est un
+proche parent de la propagation de croyances sur le graphe de contraintes,
+un lien que les auteurs font eux-mêmes
+([message 9348](https://groups.io/g/eternity2/message/9348)). Pour les
+lecteurs de ce wiki, l'air de famille va plus loin : une recherche par
+passage de messages sur un graphe qui n'est localement arborescent nulle
+part — chaque bloc 2x2 est un cycle — est exactement le terrain où les
+méthodes cousines de la page des
+[impasses](/research/build/dead-ends) (survey propagation, ordre de coups
+par propagation de croyances) se sont aplaties et éteintes.
+
+## Ce que montre réellement l'archive
+
+Le relevé honnête, en entier — parce qu'il est court.
+
+- **2008 — un rejet en passant.** La première mention de la méthode sur la
+  liste, c'est Don Milne rangeant la « difference map » parmi les techniques
+  d'optimisation incapables selon lui de résoudre les CSP complexes : elles
+  ne brillent que lorsque les solutions abondent, et Eternity II a été
+  [conçu pour en avoir presque exactement une](/research/why/complex-theory)
+  ([message 5479](https://groups.io/g/eternity2/message/5479)).
+- **2014 — la vraie introduction.** Le schéma d'un membre sur le treillis
+  d'arêtes du puzzle pousse JSA à énoncer le problème dual et à présenter
+  les travaux d'Elser : la difference map « fait l'aller-retour entre les
+  deux problèmes duaux »
+  ([message 9347](https://groups.io/g/eternity2/message/9347)), avec des
+  renvois vers l'article PNAS et l'article divide-and-concur de Physical
+  Review ([message 9350](https://groups.io/g/eternity2/message/9350)). Les
+  transparents ICCOPT-MOPTA 2007 d'Elser — qui mentionnent Eternity II dans
+  leurs trois dernières diapositives — sont déposés dans les fichiers du
+  groupe ([message 9349](https://groups.io/g/eternity2/message/9349)).
+- **2014 — l'unique test empirique.** Dima lit l'article PNAS, l'apprécie,
+  et le vérifie : il écrit un simple hill-climber pour le benchmark de
+  3-coloriage de graphes de l'article lui-même et résout l'instance
+  $N=16$ en quelques secondes, là où la Table 2 de l'article donne à la
+  difference map de l'ordre de dix minutes. De quoi « se demander si c'est
+  vraiment à la hauteur de son battage »
+  ([message 9351](https://groups.io/g/eternity2/message/9351)) — tout en
+  jugeant l'idée à deux faces, pièces contre arêtes, digne d'être explorée
+  pour E2.
+- **2015 — du code, et une promesse.** Un membre obtient du code source
+  d'Elser en personne, avec un exemple 5x5 d'appariement d'arêtes, et le
+  partage dans les fichiers du groupe
+  ([message 9362](https://groups.io/g/eternity2/message/9362)). Dans le fil
+  « New Approach ? » de cet été-là, JSA fait le point : la méthode « a
+  résolu de petits modèles d'Eternity II », et si elle avait résolu le
+  grand, « nous en aurions entendu parler »
+  ([message 9442](https://groups.io/g/eternity2/message/9442)). Juraj
+  Pivovarov demande une difference map écrite noir sur blanc pour Eternity
+  II ([message 9443](https://groups.io/g/eternity2/message/9443)) ; JSA
+  promet une courte note
+  ([message 9446](https://groups.io/g/eternity2/message/9446)) qui
+  n'apparaît jamais dans l'archive. Dans le même fil, Dima esquisse
+  explicitement le transfert primal–dual — porter une solution de coloriage
+  d'arêtes vers l'affectation de pièces la plus proche par l'algorithme
+  hongrois, et retour — et rapporte son propre recuit côté dual calé à
+  48/49 tuiles correctes sur le 7x7 de Brendan Owen
+  ([message 9445](https://groups.io/g/eternity2/message/9445)), tandis que
+  Mike Pringle rappelle le cousin maison de la liste, l'approche SRD par
+  échange d'arêtes de 2007 : capable du 8x8, jamais du 10x10
+  ([message 9447](https://groups.io/g/eternity2/message/9447)).
+- **2025 — un nom, et un haussement d'épaules.** Le fil Douglas–Rachford
+  ([message 11592](https://groups.io/g/eternity2/message/11592)) récolte une
+  évaluation expresse — utile pour la théorie, « mais pas pour grand-chose
+  d'autre » ([message 11593](https://groups.io/g/eternity2/message/11593)) —
+  et la réflexion de JSA : sur un puzzle construit pour être optimalement
+  difficile, il s'attend à ce que le nombre d'itérations soit « de l'ordre
+  de » celui des nœuds d'un backtracker
+  ([message 11594](https://groups.io/g/eternity2/message/11594)).
+
+Voilà tout le dossier : aucun membre n'a jamais rapporté avoir fait tourner
+la difference map ou divide-and-concur sur le puzzle complet à 480 arêtes,
+ni même sur l'échelle de benchmarks 10x10. La littérature à comité de
+lecture a la même silhouette — le groupe d'Elser a publié les succès de la
+méthode sur le coloriage, SAT, les empilements et le repliement, et a réservé
+Eternity II aux exposés, à la couverture du journal et au code d'exemple.
+Personne n'a publié de résultat difference map sur le puzzle complet, ni
+positif ni négatif.
+
+<Callout kind="note" title="Pourquoi si peu d'écho ?">
+  En partie le calendrier — le fil de 2014 tombe dans les années les plus
+  calmes de l'archive — et en partie la mesure de Dima, qui a vite terni le
+  lustre. Mais la raison profonde est celle que Don Milne donnait en 2008 et
+  que JSA répétait en 2025 : les méthodes continues stochastiques rapportent
+  quand les solutions sont denses par rapport à l'espace, et Eternity II
+  siège au [pic de difficulté voulu par ses
+  concepteurs](/research/why/complex-theory), là où elles ne le sont pas. La
+  méthode est célèbre *parce que* l'appariement d'arêtes l'illustre à
+  merveille, pas parce qu'elle résout l'appariement d'arêtes à grande
+  échelle.
+</Callout>
+
+## À quoi ressemblerait une tentative aujourd'hui
+
+L'écart entre « discuté » et « mesuré » est assez mince pour qu'une seule
+personne le comble. Une tentative moderne :
+
+1. **Fixer le plongement.** Vecteurs one-hot par case sur 1 024
+   pièces-rotations (la version à deux ensembles), ou répliques
+   divide-and-concur par contrainte d'arête. C'est l'étape que Juraj
+   réclamait en 2015 et que personne n'a écrite pour E2 ; le code 5x5
+   partagé par Elser
+   ([message 9362](https://groups.io/g/eternity2/message/9362)) est le
+   gabarit de départ naturel.
+2. **Implémenter les deux projections.** L'accord d'arêtes est une moyenne
+   locale ; la validité des pièces, une résolution hongroise par itération
+   (256 cases x 1 024 candidats), ou de pures moyennes de répliques dans la
+   forme divide-and-concur.
+3. **Gravir l'échelle des benchmarks.** Se mesurer à la
+   [suite de puzzles de Brendan Owen](/research/build/benchmarks) — le même
+   7x7 où le recuit dual de Dima a plafonné à 48/49, puis 8x8, 9x9, 10x10 —
+   avec un hill-climber nu et un backtracker à redémarrages comme témoins,
+   en traçant les itérations-jusqu'à-solution contre la difficulté de
+   l'instance.
+4. **Publier la courbe, pas l'anecdote.** La sortie intéressante est
+   l'exposant d'échelle : les articles d'Elser rapportent des nombres
+   d'itérations qui grimpent vite avec la difficulté, et la question ouverte
+   que JSA posait dès 2014 — comment cela passe-t-il à l'échelle des
+   instances de classe E2 ?
+   ([message 9350](https://groups.io/g/eternity2/message/9350)) — n'a jamais
+   reçu de réponse sous forme de graphique.
+
+Le meilleur cas réaliste n'est pas un puzzle résolu. C'est une méthode
+caractérisée : soit une courbe d'échelle qui croise quelque part celle du
+backtracker — ce qui serait une nouvelle —, soit une entrée négative propre
+pour le registre des [impasses](/research/build/dead-ends), ce qui est aussi
+un progrès.
+
+## Ce que ça coûte
+
+- **Par itération : deux projections.** La projection d'arêtes est linéaire
+  en le nombre d'arêtes. La projection de pièces est la coûteuse — une
+  résolution exacte d'affectation est en $O(n^3)$ par l'algorithme hongrois,
+  et à $n = 256$ cases cela fait des millions d'opérations par *itération*,
+  face à un backtracker réglé qui place des
+  [dizaines de millions de pièces par
+  seconde](/research/build/concepts/solver-engineering). Divide-and-concur
+  échange ce coût contre de pures moyennes locales, au prix d'un état
+  répliqué bien plus gros.
+- **Aucune garantie de convergence.** La théorie de Douglas–Rachford est
+  convexe ; les deux ensembles d'Eternity II sont de la poussière
+  combinatoire. Sur les instances faisables, la carte trouve en pratique des
+  points fixes — c'est le contenu empirique des articles — mais rien ne
+  borne le nombre d'itérations, et sur ce puzzle JSA s'attend à retrouver le
+  compte de nœuds du backtracking
+  ([message 11594](https://groups.io/g/eternity2/message/11594)).
+- **Point fixe = solution — et rien en dessous.** La méthode n'a pas de
+  sortie partielle utile : tant que $\Delta \not\to 0$, on tient un point
+  errant dans un espace fractionnaire, pas un plateau à scorer. Pas de lot
+  de consolation à 460 arêtes en chemin — ce qui compte sur le seul puzzle
+  où l'[échelle des records](/research/records) se libelle en scores
+  partiels.
+- **Le tableau des scores, honnêtement.** Un test communautaire, perdu
+  contre un hill-climber sur le benchmark même de la méthode
+  ([message 9351](https://groups.io/g/eternity2/message/9351)) ; de petits
+  modèles d'appariement résolus dans les matériaux d'Elser ; le puzzle
+  complet intouché. Élégante, principielle, non prouvée ici — et, fait rare
+  sur ce wiki, toujours non mesurée plutôt que mesurée puis enterrée.
