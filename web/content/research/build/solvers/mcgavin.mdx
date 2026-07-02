@@ -13,7 +13,7 @@ topics: [speed, backtracking]
 sources:
   - label: "Mike Field's optimization recipe — 'Brute force does not work' (groups.io message 3098, 2007)"
     url: https://groups.io/g/eternity2/message/3098
-  - label: "McGavin credits msg 3098 as the basis of his C code (groups.io message 11338)"
+  - label: "McGavin rediscovers Field's thread — 'I found the old thread' (groups.io message 11338)"
     url: https://groups.io/g/eternity2/message/11338
   - label: "The 10x10 method and statistics — 180 core-years (groups.io message 9688)"
     url: https://groups.io/g/eternity2/message/9688
@@ -37,7 +37,7 @@ related:
   The engine is Peter McGavin's own auto-generated C — built, by his own
   account, on an optimization recipe Mike Field posted to the mailing list in
   2007 ([message 3098](https://groups.io/g/eternity2/message/3098)), a debt
-  he acknowledged twice, seventeen years apart
+  he acknowledged twice, in 2024 and again in 2026
   ([message 11338](https://groups.io/g/eternity2/message/11338),
   [message 11780](https://groups.io/g/eternity2/message/11780)). One record
   is deliberately excluded from that lineage: his 469 came from running
@@ -82,7 +82,7 @@ organism: a labelled block per cell (`cell_9_2_next:`), a `LookupNW` table
 indexed by the north and west colours, a `tileFree` array, `register` hints,
 and a `goto` back into the previous cell's block on exhaustion
 ([message 11337](https://groups.io/g/eternity2/message/11337)). He went
-looking for the origin the next day and posted the link: "I found the old
+looking for the origin minutes later and posted the link: "I found the old
 thread" ([message 11338](https://groups.io/g/eternity2/message/11338)); in
 2026 he repeated the attribution — his optimised backtracker C code "is
 based on" Mike's 2007 post
@@ -109,7 +109,8 @@ described on the list, roughly in the order they surface:
   ([message 11751](https://groups.io/g/eternity2/message/11751),
   [message 11782](https://groups.io/g/eternity2/message/11782)).
 - **A counter that costs almost nothing.** `ntpll` — "number of tile
-  placements long long" — is not incremented directly. A 16-bit register is
+  placements per second long long", in his own gloss — is not incremented
+  directly. A 16-bit register is
   bumped on every placement, and `0x10000` is added to the 64-bit counter
   each time it rolls over: a throwback to 32-bit machines where a 64-bit
   increment wasted registers or hit slow RAM. He timed both approaches
@@ -129,7 +130,7 @@ described on the list, roughly in the order they surface:
   spiral-out on unframed variants; he checks by running the solver or by
   asking complex theory, having found himself "poor at judging solving
   orders" by eye ([message 9703](https://groups.io/g/eternity2/message/9703),
-  [message 9710](https://groups.io/g/eternity2/message/9710)).
+  [message 9713](https://groups.io/g/eternity2/message/9713)).
 
 ## The numbers, 2007 to 2026
 
@@ -148,7 +149,7 @@ Every figure below is from the archive, in its author's own units.
 | 2025-09 | 38–84M placements/s, single core | nine OS/compiler/CPU combos on Brendan's 8x8 | [11643](https://groups.io/g/eternity2/message/11643) |
 | 2026-01 | ~225M placements/s, single core | Orange Pi 6 Plus on small puzzles; "halves on 16x16" | [11751](https://groups.io/g/eternity2/message/11751) |
 | 2026-01 | 295M placements/s, single core | Joe running McGavin's code on a newer CPU — vs his own C# at 27–37M | [11750](https://groups.io/g/eternity2/message/11750) |
-| 2026-02 | 44.0M vs 105.1M tiles/s | identical 2.12-trillion-node tree: 2009 Phenom II vs Ryzen 5 5600H | [11782](https://groups.io/g/eternity2/message/11782) |
+| 2026-02 | 44.0M vs 105.1M tiles/s | identical 2.12-trillion-node tree: 2010 Phenom II vs Ryzen 5 5600H | [11782](https://groups.io/g/eternity2/message/11782) |
 
 Two readings of that table. First, the headline: the ~295M/s figure — the
 one our [records page](/research/records) quotes — is real, but it is Joe's
@@ -163,7 +164,7 @@ own best figure is the Orange Pi's ~225M/s on small puzzles
 Second, the quieter and more instructive reading: single-core speed barely
 moved for fifteen years. McGavin said so himself when he posted the 2025
 table — speeds on the latest CPUs "are only a little faster" than on his
-2009 Phenom II
+2010 Phenom II
 ([message 11643](https://groups.io/g/eternity2/message/11643)). The engine
 was already near the memory wall Field described in 2011. What actually
 grew was the number of cores he could point at a problem.
@@ -237,10 +238,12 @@ His own numbers make the case. With scan-row order, complex theory puts
 E2's full search tree at about 1.6 × 10⁴⁷ placements
 ([message 9710](https://groups.io/g/eternity2/message/9710)) — some
 9.3 × 10⁴² per expected solution
-([message 9713](https://groups.io/g/eternity2/message/9713)). At 100
-million nodes per second that is 4.9 × 10³² years, and adding billions of
-cores still leaves you "orders of magnitude longer than the age of the
-Universe" ([message 11201](https://groups.io/g/eternity2/message/11201)).
+([message 9713](https://groups.io/g/eternity2/message/9713)). Even on his
+best 5-hint placement path — a far smaller tree, about 3.1 × 10⁴⁰ nodes —
+he computed 4.9 × 10³² years at 100 million nodes per second, and adding
+billions of cores still leaves you "orders of magnitude longer than the age
+of the Universe"
+([message 11201](https://groups.io/g/eternity2/message/11201)).
 He had drawn the conclusion long before, in 2013: "It seems clear to me
 that E2 will not be solved by brute force. If it is to be solved at all, it
 will be by deep analysis and/or clever insight, in my opinion"

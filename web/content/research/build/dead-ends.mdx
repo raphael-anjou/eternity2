@@ -6,8 +6,13 @@ description: >-
   elsewhere.
 kind: reference
 order: 50
-updated: 2026-07-01
+updated: 2026-07-02
 topics: [search-space, learning, exact-methods]
+sources:
+  - label: "eternity2.net shuts down — 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "Max on probability propagation — constraint influence fades out about two cells away (groups.io message 6208)"
+    url: https://groups.io/g/eternity2/message/6208
 related:
   - /research/build/run-it-yourself
 ---
@@ -19,7 +24,10 @@ elsewhere.
 
 Each entry opens its verdict with a firmness tag: **Proven** means a theorem
 or an exact computation closes the door; **Measured** means we ran it (or the
-community did) and watched it fail.
+community did) and watched it fail. Where the verdict comes from our own runs,
+the linked “why” page carries the exact reproduction command, and
+[run it yourself](/research/build/run-it-yourself) has the setup; where the
+community got there first, we cite the archive message.
 
 ## Symmetry breaking
 
@@ -39,7 +47,14 @@ quantum hardware.*
 **Measured.** The wall isn't clock speed, it's how well the problem is encoded
 and how the search space is shaped. GPU SAT solvers give a small constant
 speedup at best; quantum annealers show no advantage at the scale this would
-need. The same algorithm, faster, hits the same wall a little sooner.
+need. The same algorithm, faster, hits the same wall a little sooner. The
+community ran this experiment at scale: the eternity2.net grid put 1.6
+teraflops and over $10^{19}$ CPU operations on the puzzle, then shut down
+without a solution
+([msg 3511](https://groups.io/g/eternity2/message/3511)) — and the quantum
+hope has been re-floated regularly, from
+[2007](https://groups.io/g/eternity2/message/1446) to
+[2024](https://groups.io/g/eternity2/message/11407).
 [Why this is a wall →](/research/why/prune-vs-speed)
 
 ## Survey propagation
@@ -51,7 +66,10 @@ solution clusters.*
 grid with a short cycle in every 2×2, which breaks that assumption. In
 practice the messages flatten out instead of sharpening, the opposite of what
 makes it work on random SAT. There are no published successes for it on grid
-puzzles.
+puzzles. The community noticed the flattening early: in 2008, experiments with
+propagating piece probabilities found that constraint influence from the clues
+and corners seems to “fade out” about two cells away
+([msg 6208](https://groups.io/g/eternity2/message/6208)).
 
 ## Belief-propagation move ordering
 
@@ -83,7 +101,9 @@ edges a board can match.*
 cells, which fakes matches that no real board can have. The result is a
 ceiling around 478 while the best real boards sit near 458, a gap too large to
 certify anything. The binding constraint is global piece-uniqueness, which the
-relaxation throws away.
+relaxation throws away. LP formulations were on the community's table in the
+first summer — and already there, a 4×4 took over an hour to solve
+([msg 1678](https://groups.io/g/eternity2/message/1678)).
 
 ## Learn a heuristic on small boards
 
@@ -104,7 +124,12 @@ full board.*
 **Measured.** The counts blow up before they help. When we tried it, valid
 clusters around a single region already ran into the tens of millions, and
 combining four corners reaches the order of $10^{12}$ piece-disjoint tuples.
-You run out of time and disk long before the constraints prune anything.
+You run out of time and disk long before the constraints prune anything. The
+idea keeps getting rediscovered — 2×2 “macro pieces” came up again in late
+2024, at around 4 million blocks before piece-disjointness even enters
+([msg 11428](https://groups.io/g/eternity2/message/11428)), and veterans
+pointed back at years of earlier 2×2 work in the archive
+([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Why this is a wall →](/research/why/rigidity-wall)
 
 ## The honest summary

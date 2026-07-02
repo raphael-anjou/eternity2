@@ -28,7 +28,7 @@ sources:
     url: https://groups.io/g/eternity2/message/8854
   - label: "Le correctif de DeVincentis — une restore list par arête, plus une pour les pièces utilisées (message groups.io 8886)"
     url: https://groups.io/g/eternity2/message/8886
-  - label: "Mesuré sur l'anneau de bord du 6x6 — 133 326 155 → 30 496 808 itérations (message groups.io 8875)"
+  - label: "Mesuré sur l'anneau de bord du 6x6 — 133 326 155 → 30 496 808 nœuds (message groups.io 8875)"
     url: https://groups.io/g/eternity2/message/8875
   - label: "La Failure Lookup Table de Mocsi, abandonnée pour un bug (message groups.io 8887)"
     url: https://groups.io/g/eternity2/message/8887
@@ -44,12 +44,12 @@ sources:
     url: https://groups.io/g/eternity2/message/6743
   - label: "La combinaison invalide de deux pièces de capiman pour le puzzle à 5 indices (message groups.io 10832, 2022)"
     url: https://groups.io/g/eternity2/message/10832
-  - label: "Le décompte — ~68 M de paires invalides trouvées, ~8,1×10⁹ indécises, ~32 000 suffiraient à épingler une solution (message groups.io 10973, 2023)"
+  - label: "Le décompte — ~68 M de paires invalides trouvées, ~8,1×10⁹ indécises, et les ~32 000 paires d'une solution doivent toutes leur survivre (message groups.io 10973, 2023)"
     url: https://groups.io/g/eternity2/message/10973
   - label: "Une combinaison invalide de 3 pièces, disséquée jusqu'à trois cases de l'anneau 0 (message groups.io 11131)"
     url: https://groups.io/g/eternity2/message/11131
-  - label: "SAT comme service d'invalidation — réduire une impasse à un noyau de 28 pièces (message groups.io 10292, 2021)"
-    url: https://groups.io/g/eternity2/message/10292
+  - label: "SAT comme service d'invalidation — réduire une impasse à un noyau de 28 pièces (messages groups.io 10289/10292, 2021)"
+    url: https://groups.io/g/eternity2/message/10289
   - label: "Le pipeline CNF de capiman — 130 180 variables, cryptominisat, partiels et anneaux (message groups.io 11822, 2026)"
     url: https://groups.io/g/eternity2/message/11822
 related:
@@ -160,16 +160,16 @@ l'élagage mémoïsé, en somme
 ([message 8854](https://groups.io/g/eternity2/message/8854)). Les comptes de
 nœuds fondent, et des solutions disparaissent en silence : ses runs 8x8
 manquent une partie des 52 solutions connues. Sur plus de trente messages,
-McGavin construit des contre-exemples
+McGavin presse d'objections et de cas d'épreuve
 ([message 8866](https://groups.io/g/eternity2/message/8866)) jusqu'à ce que
 Joseph DeVincentis diagnostique la faille : une restore list unique confond
 les *raisons* de l'élimination d'une pièce. Chaque case a besoin d'une
 restore list par arête voisine, plus une pour les pièces utilisées ailleurs,
 restaurées à des moments différents du backtrack
 ([message 8871](https://groups.io/g/eternity2/message/8871),
-[message 8886](https://groups.io/g/eternity2/message/8886)). Une fois la
-comptabilité réparée, le gain mesuré est réel : l'anneau de bord du 6x6
-tombe de 133 326 155 itérations à 30 496 808
+[message 8886](https://groups.io/g/eternity2/message/8886)). Le butin que le
+schéma convoitait était réel — Lindström avait déjà mesuré l'anneau de bord
+du 6x6 tombant de 133 326 155 nœuds à 30 496 808
 ([message 8875](https://groups.io/g/eternity2/message/8875)). Dans le même
 fil, Mocsi reconnaît sa propre Failure Lookup Table — recherche en spirale,
 enregistrer l'arrangement de couleurs extérieures à chaque repli forcé vers
@@ -202,9 +202,12 @@ invalides, estime entre 20 et 50 millions les combinaisons invalides de deux
 pièces, et appelle ouvertement à des collaborateurs pour vérifier et
 échanger des fichiers de « placements invalides » utilisables par n'importe
 quel solveur ([message 6743](https://groups.io/g/eternity2/message/6743)) ;
-la comparaison de matrices de possibilités avec un autre membre attrape
-aussitôt un bug de rotation via un écart 618 contre 624
-([message 6951](https://groups.io/g/eternity2/message/6951)).
+la comparaison de matrices de possibilités avec un autre membre
+([message 6951](https://groups.io/g/eternity2/message/6951)) fait aussitôt
+surgir un écart 618 contre 624
+([message 6956](https://groups.io/g/eternity2/message/6956)), que Lindström
+impute à une rotation mélangée de son côté
+([message 6957](https://groups.io/g/eternity2/message/6957)).
 
 La forme moderne, industrialisée, est celle de capiman. À partir d'un CNF
 généré du puzzle à 5 indices (130 180 variables, ~4 Go, résolu avec un
@@ -218,21 +221,22 @@ l'anneau 0 qu'elle étrangle
 ([message 11131](https://groups.io/g/eternity2/message/11131)). La même
 machinerie a tourné comme service pour les autres membres : recevant un
 partiel en impasse, il retire les pièces une à une, ne gardant chaque
-retrait que si le solveur SAT répond toujours UNSAT, et renvoie un noyau de
-28 pièces déjà inextensible
-([message 10292](https://groups.io/g/eternity2/message/10292)) — ce qui est
+retrait que si le solveur SAT répond toujours UNSAT
+([message 10292](https://groups.io/g/eternity2/message/10292)), et renvoie
+un noyau de 28 pièces déjà inextensible
+([message 10289](https://groups.io/g/eternity2/message/10289)) — ce qui est
 de la minimisation de clause de conflit faite à la main, très exactement ce
 qu'un solveur CDCL fait en interne après chaque conflit.
 
 La comptabilité, en revanche, dégrise — et c'est capiman lui-même qui l'a
 publiée : début 2023, la mine contient ~68 millions de paires invalides
 confirmées, contre environ $8{,}1 \times 10^9$ paires encore indécises — et
-selon son estimation, ~32 000 invalidations *bien choisies* suffiraient à
-épingler une solution
-([message 10973](https://groups.io/g/eternity2/message/10973)).
+parmi les indécises se cachent, selon son estimation, les ~32 000 paires
+d'une vraie solution, celles qu'aucune campagne d'invalidation n'a le droit
+de toucher ([message 10973](https://groups.io/g/eternity2/message/10973)).
 Soixante-huit millions de théorèmes, tous individuellement vrais, couvrant
-ensemble moins de 1 % de l'espace des paires, et aucun garanti de figurer
-parmi les 32 000 qui comptent. Les contraintes apprises sur E2 sont des
+ensemble moins de 1 % de l'espace des paires — et aucun moyen de deviner le
+reste sans risquer l'une des 32 000 qui doivent survivre. Les contraintes apprises sur E2 sont des
 actifs réels — simplement déposés sur un compte aux passifs astronomiques.
 Pourquoi la version automatisée de cet apprentissage, dans CDCL, meurt de
 faim elle aussi sur le plateau complet — chaînes d'implication plates,
@@ -296,7 +300,7 @@ backtrackers rapides ont déjà épuisée.
 Rétrécissez le plateau ou fermez la recherche, et la même idée change de
 signe.
 
-- **Petits plateaux et anneaux.** Le schéma de restore lists corrigé de
+- **Petits plateaux et anneaux.** Le schéma de restore lists de
   Lindström divise par 4,4 l'anneau de bord du 6x6
   ([message 8875](https://groups.io/g/eternity2/message/8875)). Sur un petit
   espace d'états, la table *peut* couvrir une fraction significative des
