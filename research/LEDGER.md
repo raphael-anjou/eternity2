@@ -679,3 +679,20 @@ cascade. All labs obey useRunWhileVisible + frame budgets. Two errors in
 published prose fell to the work: a sign error in the tempering swap
 formula, and MDX brace-escaping crashes caught in preview. All browser-
 verified EN+FR; typecheck/lint/link-check green.
+
+### 2026-07-02 — Verhaard's eii + edge slipping: the prize-winning technique, decoded
+
+Two linked P1 pages close the catalogue's biggest gap. /research/build/
+solvers/verhaard-eii: the solver behind the only prize ever paid — the
+misread-rules origin, the "I am stuck" release, forward pruning and comb
+orders from his own messages, the Markov-chain slip array, JSA's 82-day
+public reproduction (and the 82h typo in msg 6687 diagnosed from the log
+series). /research/build/concepts/edge-slipping: the technique itself, with
+Max's target-multiplication formula RECOMPUTED and verified digit-by-digit
+(S(478)=4.699e9 ✓, the 467→468 ratio telescoping to ~63 ✓), Brendan's
+complex-theory extension and the honest 7-orders gap explained, and the
+EdgeSlipLab whose slider notches land on real history (N=13 = Verhaard's
+467; N=10 = Blackwood's break budget; N=1 = the exact parity zero, linked
+to parity-arguments). The lineage slipping→breaks is now told end to end.
+
+- Verified: typecheck ✓ lint ✓ build ✓ (163 paths) ✓ links (120 files).
