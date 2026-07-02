@@ -1,11 +1,11 @@
 ---
-title: "Quantum approaches: two speedups, honestly priced"
+title: "Quantum approaches: two speedups at their true price"
 description: >-
-  The quantum computer is the list's oldest deus ex machina — invoked in the
+  The quantum computer is the list's oldest deus ex machina, invoked in the
   puzzle's first month and every few years since. There are exactly two real
   stories to tell: Grover's quadratic speedup, and annealing on a QUBO
   encoding. This page tells both properly, does the arithmetic against
-  Eternity II's actual numbers, and reports the complete community record —
+  Eternity II's actual numbers, and reports the complete community record:
   nineteen years of asides, one unfinished embedding attempt, zero runs.
 kind: concept
 order: 210
@@ -14,7 +14,7 @@ topics: [quantum, exact-methods]
 sources:
   - label: Grover, A fast quantum mechanical algorithm for database search (arXiv:quant-ph/9605043, 1996)
     url: https://arxiv.org/abs/quant-ph/9605043
-  - label: Bennett, Bernstein, Brassard & Vazirani, Strengths and weaknesses of quantum computing — the quadratic limit (arXiv:quant-ph/9701001)
+  - label: "Bennett, Bernstein, Brassard & Vazirani, Strengths and weaknesses of quantum computing: the quadratic limit (arXiv:quant-ph/9701001)"
     url: https://arxiv.org/abs/quant-ph/9701001
   - label: Montanaro, Quantum walk speedup of backtracking algorithms (arXiv:1509.02374)
     url: https://arxiv.org/abs/1509.02374
@@ -22,7 +22,7 @@ sources:
     url: https://arxiv.org/abs/1302.5843
   - label: Bengtsson et al., QAOA solves small exact-cover instances on two superconducting qubits (arXiv:1912.10495)
     url: https://arxiv.org/abs/1912.10495
-  - label: Ambainis, Quantum search algorithms — the survey Alan posted to the list (arXiv:quant-ph/0504012)
+  - label: Ambainis, Quantum search algorithms, the survey Alan posted to the list (arXiv:quant-ph/0504012)
     url: https://arxiv.org/abs/quant-ph/0504012
   - label: Aaronson & Ambainis, Quantum search of spatial regions (arXiv:quant-ph/0303041)
     url: https://arxiv.org/abs/quant-ph/0303041
@@ -53,8 +53,8 @@ related:
 The quantum computer entered the Eternity II archive in the puzzle's first
 month. In May 2007, weeks before most members had written a solver, one
 proposed founding the "Homebrew Quantum Computer Club"
-([message 263](https://groups.io/g/eternity2/message/263)) — a joke, and the
-first appearance of a figure that would haunt the list for nineteen years:
+([message 263](https://groups.io/g/eternity2/message/263)). It was a joke,
+and the first appearance of a figure that would haunt the list for nineteen years:
 the machine from the future that dissolves the whole problem. It has been
 invoked as fantasy, as satire, as Santa's-list wish, and occasionally as a
 genuine technical question. What it has never been, anywhere in the record,
@@ -62,19 +62,19 @@ is *used*: no member has ever reported running any quantum hardware or
 simulator against any Eternity II instance, of any size.
 
 That thin record is worth a page anyway, for two reasons. First, there are
-exactly two real quantum stories relevant to E2 — Grover search and
-annealing on an Ising encoding — and both can be told honestly, with
+exactly two real quantum stories relevant to E2, Grover search and
+annealing on an Ising encoding, and both can be told with actual
 arithmetic, in a way the list's scattered asides never quite assembled.
 Second, the arithmetic is clarifying: quantum computing offers the single
 strongest speedup any physics currently promises for blind search, and
-pricing E2 against it shows sharply *why* this puzzle resists — the same
+pricing E2 against it shows sharply *why* this puzzle resists: the same
 walls the [structure pages](/research/why/complex-theory) map, seen from the
 far side.
 
 ## Story one: Grover, the square root
 
-[Grover's algorithm](https://arxiv.org/abs/quant-ph/9605043) is the honest
-headline of quantum search. Given $N$ possibilities and a black-box test for
+[Grover's algorithm](https://arxiv.org/abs/quant-ph/9605043) is the
+headline result of quantum search. Given $N$ possibilities and a black-box test for
 "is this one a solution?", a quantum computer finds a solution in about
 $\tfrac{\pi}{4}\sqrt{N}$ evaluations of the test, where a classical machine
 needs on the order of $N$. Two fine-print clauses matter here:
@@ -86,15 +86,15 @@ needs on the order of $N$. Two fine-print clauses matter here:
   structure. Quantum computers are *not* known to solve NP-complete problems
   in polynomial time; on unstructured search they halve the exponent, full
   stop.
-- **With $M$ solutions the cost is $\sqrt{N/M}$** — plentiful solutions help
+- **With $M$ solutions the cost is $\sqrt{N/M}$.** Plentiful solutions help
   quantum search exactly as they help classical search. Eternity II was
   [designed to have essentially one](/research/why/complex-theory). The
   adversarial design that starves classical solvers starves Grover too.
 
 Now the arithmetic, against E2's actual numbers.
 
-**Against the raw space.** The naive configuration count — every piece
-anywhere, any rotation — is the famous $\sim 10^{557}$
+**Against the raw space.** The naive configuration count (every piece
+anywhere, any rotation) is the famous $\sim 10^{557}$
 ([known facts](/research/build/known-facts)). Grover turns that into
 
 $$
@@ -107,17 +107,17 @@ Nothing more needs saying about the unstructured version.
 
 **Against the structured tree.** The fair comparison is not the raw space
 but the tree a good backtracker actually walks, and the community did this
-arithmetic itself — the one genuinely technical Grover exchange in the
+arithmetic itself, in the one genuinely technical Grover exchange in the
 archive. In October 2021, prompted by Akos's estimate that a full sweep of
-the search space needs at minimum $3.4\times10^{40}$ operations, Peter
-McGavin asked whether Grover could search that tree in
+the search space needs at minimum $3.4\times10^{40}$ operations,
+[Peter McGavin](/research/build/solvers/mcgavin) asked whether Grover could search that tree in
 $\sqrt{3.4\times10^{40}} \approx 1.8\times10^{20}$ operations on a machine
 with $\log_2(3.4\times10^{40}) = 135$ qubits
 ([message 10258](https://groups.io/g/eternity2/message/10258)), and restated
 it carefully two messages later: "Could Grover's or another quantum
 algorithm search the E2 tree in O(sqrt(N)) operations?"
 ([message 10260](https://groups.io/g/eternity2/message/10260)). Nobody on
-the list answered. The literature does: yes, almost —
+the list answered. The literature does: yes, almost.
 [Montanaro's quantum backtracking](https://arxiv.org/abs/1509.02374) walks a
 classical backtracking tree of $T$ nodes in roughly $\sqrt{T}$ (times
 polynomial factors) quantum steps, structure and pruning included. Take this
@@ -129,7 +129,7 @@ $$
 $$
 
 Is $3\times10^{22}$ feasible? Grant the machine an absurd gift: one full
-oracle call — verifying an entire board's 480 edge constraints, reversibly —
+oracle call (verifying an entire board's 480 edge constraints, reversibly)
 every *nanosecond*. Grover iterations are inherently sequential (running $k$
 machines in parallel only buys $\sqrt{k}$, not $k$), so that is
 $3\times10^{13}$ seconds: **about a million years**. At the kHz–MHz logical
@@ -137,7 +137,8 @@ gate rates that error-corrected machines actually project, it is longer than
 the age of the universe. And McGavin's 135 qubits count only the index
 register: the oracle must hold the board (256 cells × 10 bits of
 piece-rotation is already ~2,560 logical qubits), the used-piece
-bookkeeping, and the ancillas that make the check reversible — thousands of
+bookkeeping, and the ancillas that make the check reversible. That adds up
+to thousands of
 logical qubits, meaning millions of physical ones at current error-correction
 overheads, against the roughly 150 noisy qubits accessible in 2026
 ([message 11813](https://groups.io/g/eternity2/message/11813)).
@@ -145,7 +146,7 @@ overheads, against the roughly 150 noisy qubits accessible in 2026
 The remarkable thing is that the list got this right early, from an
 armchair. In February 2009 Max, reading a David Deutsch essay, concluded
 that "even if we had a large quantum computer today, the speedup for
-problems like chess and likely also E2 would be very moderate" — one would
+problems like chess and likely also E2 would be very moderate"; one would
 need new, undiscovered algorithms on top
 ([message 6484](https://groups.io/g/eternity2/message/6484)). That is the
 BBBV theorem, paraphrased on a puzzle mailing list two years into the hunt.
@@ -153,15 +154,15 @@ BBBV theorem, paraphrased on a puzzle mailing list two years into the hunt.
 ## Story two: annealing, and the puzzle as an energy landscape
 
 The second story is more interesting because it is closer to buildable.
-Quantum annealers — D-Wave's machines — do not run Grover. They physically
+Quantum annealers (D-Wave's machines) do not run Grover. They physically
 cool a network of coupled qubits toward the ground state of a programmable
 energy function, a **QUBO** (quadratic unconstrained binary optimization),
 equivalently an Ising model.
 [Lucas's 2014 catalogue](https://arxiv.org/abs/1302.5843) gives Ising
 formulations for all of Karp's 21 NP-complete problems, and edge matching
 encodes exactly in its style. Take the same variable the
-[SAT encoding](/research/build/concepts/sat-csp-encodings) uses —
-$x_{p,c,r} = 1$ if piece $p$ sits at cell $c$ with rotation $r$ — and write
+[SAT encoding](/research/build/concepts/sat-csp-encodings) uses,
+$x_{p,c,r} = 1$ if piece $p$ sits at cell $c$ with rotation $r$, and write
 
 $$
 H \;=\; A\sum_{c}\Big(1-\!\!\sum_{p,r} x_{p,c,r}\Big)^{2}
@@ -172,7 +173,7 @@ $$
 with $A > B > 0$: the first term punishes cells not holding exactly one
 placement, the second punishes pieces not used exactly once, the third adds
 $B$ per mismatched interior join. The ground state has energy zero exactly
-when the board is a perfect solution — and, pleasingly, low-lying excited
+when the board is a perfect solution. Pleasingly, low-lying excited
 states *are* high-scoring partials, so the encoding natively speaks the
 [record ladder's](/research/records) language.
 
@@ -180,7 +181,7 @@ Then you size it.
 
 - **Variables:** $256 \times 256 \times 4 = 262{,}144$ logical binaries.
 - **Couplings:** every cell's 1,024 candidate placements are mutually
-  exclusive — that is $\binom{1024}{2} \approx 5\times10^{5}$ quadratic terms
+  exclusive, which means $\binom{1024}{2} \approx 5\times10^{5}$ quadratic terms
   *per cell*, and again per piece: order $10^{8}$ couplings before the
   mismatch terms are counted.
 - **Hardware:** the largest annealers in 2026 carry on the order of
@@ -188,17 +189,17 @@ Then you size it.
   problem onto that sparse graph (**minor-embedding**) represents each
   densely connected variable by a *chain* of physical qubits; the practical
   ceiling for a fully connected problem is a couple of hundred logical
-  variables per chip. A **single cell's** one-hot group — 1,024 mutually
-  coupled variables — already exceeds that several times over, and there are
+  variables per chip. A **single cell's** one-hot group (1,024 mutually
+  coupled variables) already exceeds that several times over, and there are
   256 cells.
 
 The gap is not an engineering generation; it is three-plus orders of
 magnitude in variables and four in couplings, before chain overhead.
 (D-Wave's *hybrid* solvers accept million-variable QUBOs, but there the
-quantum processor is a subroutine inside a classical heuristic — a hybrid
-"result" would not be a quantum result.) And behind the size wall stands a
+quantum processor is a subroutine inside a classical heuristic; a hybrid
+"result" would not be a quantum result.) And behind the size wall stands an
 older one: an annealer, at any size, is a physical local-search machine
-descending this energy landscape — the same landscape on which the
+descending this energy landscape, the same landscape on which the
 community's [simulated annealing and local search](/research/build/concepts/local-search-alns)
 plateaued in the 460s. Nothing in quantum annealing theory promises to
 tunnel through the [scarcity that was engineered into this
@@ -207,7 +208,7 @@ adiabatic gap closes and the anneal time blows up. Alan's cheerful 2010
 remark that "Simulated Annealing is one problem QComputers are expected to
 be especially good at"
 ([message 7802](https://groups.io/g/eternity2/message/7802)) is precisely
-the hope, and it remains — on this problem class — a hope, not a result.
+the hope, and it remains, on this problem class, a hope rather than a result.
 
 ## What the archive actually says
 
@@ -216,34 +217,34 @@ and this table says so; the three genuinely technical moments are marked.
 
 | When | Who | What was said | Msg |
 | --- | --- | --- | --- |
-| 2007-05 | gfleder | "Homebrew Quantum Computer Club ???" — the first joke | [263](https://groups.io/g/eternity2/message/263) |
+| 2007-05 | gfleder | "Homebrew Quantum Computer Club ???", the first joke | [263](https://groups.io/g/eternity2/message/263) |
 | 2007-06 | Steve Moyer | Cites the "home quantum computing" thread while doing the first permutation counts | [268](https://groups.io/g/eternity2/message/268) |
-| 2007-07 | Jim Witte | Analog/DNA/quantum survey question — a Q-comp "could probably spit out a solution in about a second" | [824](https://groups.io/g/eternity2/message/824) |
+| 2007-07 | Jim Witte | Analog/DNA/quantum survey question; a Q-comp "could probably spit out a solution in about a second" | [824](https://groups.io/g/eternity2/message/824) |
 | 2007-08 | psykowally & al. | The "Quantum computing" thread: "an obvious way to solve the puzzle... how many bits can they manage?"; Anurag: no hardware exists; Grech: a real QC is worth more than the prize; a counterfactual-computation joke | [1446](https://groups.io/g/eternity2/message/1446), [1457](https://groups.io/g/eternity2/message/1457), [1464](https://groups.io/g/eternity2/message/1464), [1535](https://groups.io/g/eternity2/message/1535), [1540](https://groups.io/g/eternity2/message/1540) |
-| 2008 | various | Quantum listed among "other ways" (3995), doubted for interference (4032), wished for (4850), satirized — the "time-travelling quantum computer" (5413, 5442), joked about (5542), tied to P=NP musings (5629), listed with holographic and DNA computing (5736) | [3995](https://groups.io/g/eternity2/message/3995), [4032](https://groups.io/g/eternity2/message/4032), [4850](https://groups.io/g/eternity2/message/4850), [5413](https://groups.io/g/eternity2/message/5413), [5629](https://groups.io/g/eternity2/message/5629), [5736](https://groups.io/g/eternity2/message/5736) |
-| 2009-02 | lukas; **Max** | "Where is the non-linear 'quantum' solver?" — answered with Deutsch: **the speedup "would be very moderate"** | [6480](https://groups.io/g/eternity2/message/6480), [6484](https://groups.io/g/eternity2/message/6484) |
+| 2008 | various | Quantum listed among "other ways" (3995), doubted for interference (4032), wished for (4850), satirized as the "time-travelling quantum computer" (5413, 5442), joked about (5542), tied to P=NP musings (5629), listed with holographic and DNA computing (5736) | [3995](https://groups.io/g/eternity2/message/3995), [4032](https://groups.io/g/eternity2/message/4032), [4850](https://groups.io/g/eternity2/message/4850), [5413](https://groups.io/g/eternity2/message/5413), [5629](https://groups.io/g/eternity2/message/5629), [5736](https://groups.io/g/eternity2/message/5736) |
+| 2009-02 | lukas; **Max** | "Where is the non-linear 'quantum' solver?", answered with Deutsch: **the speedup "would be very moderate"** | [6480](https://groups.io/g/eternity2/message/6480), [6484](https://groups.io/g/eternity2/message/6484) |
 | 2009-12 | andreas gammel | "Homemade quantum computer": double-slit musing, project the solution onto a wall | [7336](https://groups.io/g/eternity2/message/7336) |
 | 2010-06 | **Alan (Figjam)** & Geoff | "We either need a 2048 bit quantum computer or else buy a lottery ticket"; **D-Wave named** (first hardware pointer); the Ambainis and Aaronson–Ambainis papers posted; quantum tunnelling hopes | [7789](https://groups.io/g/eternity2/message/7789), [7796](https://groups.io/g/eternity2/message/7796), [7799](https://groups.io/g/eternity2/message/7799), [7802](https://groups.io/g/eternity2/message/7802), [7811](https://groups.io/g/eternity2/message/7811) |
 | 2011-02 | Johannes Lindé | Wolfram quantum-search-algorithms demo linked, "any others researching along these lines?" | [8565](https://groups.io/g/eternity2/message/8565) |
-| 2015-06 | void solid | Links alex1770's QUBO-Chimera (how well D-Wave's native problem solves *in software*) — in an unrelated thread, no follow-up | [9417](https://groups.io/g/eternity2/message/9417) |
+| 2015-06 | void solid | Links alex1770's QUBO-Chimera (how well D-Wave's native problem solves *in software*) in an unrelated thread; no follow-up | [9417](https://groups.io/g/eternity2/message/9417) |
 | 2021-10 | **Peter McGavin** | **The Grover arithmetic**: $3.4\times10^{40}$ nodes $\to$ $1.8\times10^{20}$ ops, 135 qubits; the open question, never answered on-list | [10258](https://groups.io/g/eternity2/message/10258), [10260](https://groups.io/g/eternity2/message/10260) |
-| 2022-07 | mulisak | "Let quantum computing save us!" — QAOA-on-exact-cover paper + cuQuantum; "convince Google/IBM/Microsoft... that this will make them famous" | [10791](https://groups.io/g/eternity2/message/10791) |
-| 2023-10 | Hopfer; **Poitras** | The "Pseudoquantum" processor-per-cell idea; quantum annealing + D-Wave's free community time suggested; **the one hands-on attempt** — a D-Wave DQM model stuck on embedding: 15-way connectivity vs 22 colours, "hoping they can yield a Zephyr chip soon" | [11174](https://groups.io/g/eternity2/message/11174), [11175](https://groups.io/g/eternity2/message/11175), [11176](https://groups.io/g/eternity2/message/11176) |
+| 2022-07 | mulisak | "Let quantum computing save us!": a QAOA paper on [exact cover](/research/build/concepts/exact-cover-dlx) + cuQuantum; "convince Google/IBM/Microsoft... that this will make them famous" | [10791](https://groups.io/g/eternity2/message/10791) |
+| 2023-10 | Hopfer; **Poitras** | The "Pseudoquantum" processor-per-cell idea; quantum annealing + D-Wave's free community time suggested; **the one hands-on attempt**, a D-Wave DQM model stuck on embedding: 15-way connectivity vs 22 colours, "hoping they can yield a Zephyr chip soon" | [11174](https://groups.io/g/eternity2/message/11174), [11175](https://groups.io/g/eternity2/message/11175), [11176](https://groups.io/g/eternity2/message/11176) |
 | 2023-12 | Jef Bucas | "Anyone got a big quantum computer on Santa's list?" | [11185](https://groups.io/g/eternity2/message/11185) |
 | 2024 | mulisak; McGavin; Joe | IBM's 127-qubit campus machine flagged (11283); quantum listed among realms a breakthrough could come from (11346); Google's Willow announcement relayed (11407) | [11283](https://groups.io/g/eternity2/message/11283), [11346](https://groups.io/g/eternity2/message/11346), [11407](https://groups.io/g/eternity2/message/11407) |
-| 2026 | JSA; **mulisak** | Quantum computers named as one of the two near-term routes (11788); is the SAT work "pre-work... for an eventual quantum computer?" (11812); **the sizing answer**: ~150 noisy qubits exist, an E2 set-cover circuit needs 3,000+, a ~30-qubit QAOA/Grover proof-of-concept is the realistic ceiling — "this does not look like something that will solve Eternity II anytime soon" | [11788](https://groups.io/g/eternity2/message/11788), [11812](https://groups.io/g/eternity2/message/11812), [11813](https://groups.io/g/eternity2/message/11813) |
+| 2026 | JSA; **mulisak** | Quantum computers named as one of the two near-term routes (11788); is the SAT work "pre-work... for an eventual quantum computer?" (11812); **the sizing answer**: ~150 noisy qubits exist, an E2 set-cover circuit needs 3,000+, a ~30-qubit QAOA/Grover proof-of-concept is the realistic ceiling; "this does not look like something that will solve Eternity II anytime soon" | [11788](https://groups.io/g/eternity2/message/11788), [11812](https://groups.io/g/eternity2/message/11812), [11813](https://groups.io/g/eternity2/message/11813) |
 
-That is everything. (The archive's remaining "quantum" hits are figurative —
-"quantum leap" — or physics asides unrelated to computing.) Summed up: three
-technical moments in nineteen years — Max's 2009 armchair theorem, McGavin's
-2021 square root, mulisak's 2026 qubit count — one unfinished D-Wave
-embedding, and zero reported runs of anything, on any instance. The
+That is everything. (The archive's remaining "quantum" hits are figurative
+uses like "quantum leap", or physics asides unrelated to computing.) Summed
+up: three technical moments in nineteen years (Max's 2009 armchair theorem,
+McGavin's 2021 square root, mulisak's 2026 qubit count), one unfinished
+D-Wave embedding, and zero reported runs of anything, on any instance. The
 community record is thin, and this page's job is to say so rather than
 inflate it.
 
 <Callout kind="note" title="Quantum as a lens, not a tool">
   Here is the sober use of all this. Grover-type search is the *strongest*
-  generic speedup any known physics offers — it halves the exponent, where
+  generic speedup any known physics offers: it halves the exponent, where
   every hardware story on this wiki ([FPGA](/research/build/concepts/fpga-solving),
   [GPU](/research/build/concepts/gpu-solving), clusters) only divides by a
   constant. And E2 shrugs it off: $10^{45} \to 10^{22.5}$ still loses to any
@@ -255,35 +256,35 @@ inflate it.
   [built to have one needle and no gradient toward it](/research/why/complex-theory).
   Quantum's real E2 relevance today is that pricing the puzzle against
   hypothetical hardware locates the difficulty precisely where the structure
-  pages say it lives — in the tree, not the clock.
+  pages say it lives: in the tree, not the clock.
 </Callout>
 
 ## What a serious attempt would look like
 
-The gap between "wished for" and "measured" is, for once, cheap to close —
-annealer time is rentable by the minute, and the honest experiment is small:
+The gap between "wished for" and "measured" is, for once, cheap to close.
+Annealer time is rentable by the minute, and the experiment itself is small:
 
 1. **Encode the ladder, not the puzzle.** Write the QUBO above (or Poitras's
    discrete-variable form, [message 11176](https://groups.io/g/eternity2/message/11176))
    for [Brendan Owen's benchmark suite](/research/build/benchmarks) starting
-   at 4x4 and 5x5 — sizes whose one-hot groups actually embed on a
+   at 4x4 and 5x5, sizes whose one-hot groups actually embed on a
    ~5,000-qubit chip.
 2. **Run three solvers on the same $H$:** the real QPU, classical simulated
-   annealing, and a modern tabu/SA hybrid — same energy function, same
+   annealing, and a modern tabu/SA hybrid: same energy function, same
    cutoff. The QPU must beat the classical anneal *on its own encoding*
    before any larger claim means anything.
-3. **On gate hardware, do mulisak's proof-of-concept** — QAOA or Grover on a
-   ~30-qubit set-cover toy ([message 11813](https://groups.io/g/eternity2/message/11813)) —
+3. **On gate hardware, do mulisak's proof-of-concept**: QAOA or Grover on a
+   ~30-qubit set-cover toy ([message 11813](https://groups.io/g/eternity2/message/11813)),
    knowing in advance it demonstrates machinery, not progress.
 4. **Report the scaling curve, not the anecdote:** success probability and
    time-to-solution versus board size, alongside the classical baseline. The
-   realistic best case is not a solved 6x6; it is a measured crossover — or,
+   realistic best case is not a solved 6x6; it is a measured crossover or,
    more likely, a clean, sourced entry for the
    [dead ends](/research/build/dead-ends) ledger, which on this wiki also
    counts as progress.
 
-Until someone does that, the honest scoreboard reads: two beautiful
+Until someone does that, the scoreboard reads: two beautiful
 algorithms, one arithmetic that ends in $10^{22}$ sequential steps, one
 encoding three orders of magnitude too large for its hardware, and a
 nineteen-year archive in which the quantum computer remains what it was in
-May 2007 — the club nobody ever built.
+May 2007: the club nobody ever built.

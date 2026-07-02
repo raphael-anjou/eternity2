@@ -5,15 +5,15 @@ description: >-
   liste de candidats de chaque case à se défendre face à chacune de ses
   voisines, jusqu'au point fixe. AC-3 de Mackworth, les raffinements optimaux
   qui ont suivi, et ce que toute la famille a réellement donné, mesurée sur ce
-  puzzle — y compris là où elle devient incorrecte.
+  puzzle, y compris là où elle devient incorrecte.
 kind: concept
 order: 10
 updated: 2026-07-02
 topics: [search-space]
 sources:
-  - label: Mackworth 1977, « Consistency in Networks of Relations » (Artificial Intelligence 8) — AC-3
+  - label: "Mackworth 1977, « Consistency in Networks of Relations » (Artificial Intelligence 8) : AC-3"
     url: https://doi.org/10.1016/0004-3702(77)90007-8
-  - label: Bessière, Régin, Yap & Zhang 2005, « An Optimal Coarse-grained Arc Consistency Algorithm » (AIJ) — AC-2001/AC-3.1
+  - label: "Bessière, Régin, Yap & Zhang 2005, « An Optimal Coarse-grained Arc Consistency Algorithm » (AIJ) : AC-2001/AC-3.1"
     url: https://doi.org/10.1016/j.artint.2005.02.004
   - label: Algorithme AC-3 (Wikipedia)
     url: https://en.wikipedia.org/wiki/AC-3_algorithm
@@ -28,9 +28,9 @@ import { AcThreeLab } from "@/components/research/concepts/AcThreeLab";
 
 Sur Eternity II, un backtracker passe l'essentiel de son temps non pas à
 poser des pièces, mais à en éliminer. Comme
-[aucune case n'est jamais forcée](/research/why/no-forced-moves) — chaque
+[aucune case n'est jamais forcée](/research/why/no-forced-moves) (chaque
 position intérieure garde des dizaines de candidats vivants très loin dans la
-recherche — le seul levier disponible consiste à rétrécir ces listes de
+recherche), le seul levier disponible consiste à rétrécir ces listes de
 candidats, fort et pour pas cher. La cohérence d'arc est la machine standard
 pour cela, avec cinquante ans de littérature derrière elle.
 
@@ -41,12 +41,13 @@ pièce-et-rotation encore admis là. Sur le puzzle complet, cela démarre à
 environ 760 tuples par case intérieure. Le **forward checking** est la
 discipline à un coup : quand une pièce est posée, on la supprime de tous les
 autres domaines, et on supprime tout candidat en conflit avec les bords
-qu'elle vient d'exposer. Peu coûteux — tout solveur sérieux fait au moins
+qu'elle vient d'exposer. Peu coûteux : tout solveur sérieux fait au moins
 cela.
 
 La **cohérence d'arc** exige davantage. Pour chaque paire de cases adjacentes,
-chaque candidat d'un domaine doit avoir au moins un partenaire compatible —
-un *support* — dans l'autre. Dès qu'une suppression laisse un candidat sans
+chaque candidat d'un domaine doit avoir, dans l'autre, au moins un
+partenaire compatible : un *support*. Dès qu'une suppression laisse un
+candidat sans
 support, il tombe à son tour, et la vérification se propage de proche en
 proche jusqu'à ce que plus rien ne bouge. Pour l'appariement d'arêtes, c'est
 exactement : « une pièce ne reste dans une case que si chaque case voisine
@@ -58,7 +59,7 @@ AC-3, d'Alan Mackworth (1977), atteint ce point fixe à gros grain : une file
 d'arcs orientés, une révision à la fois (parcourir un domaine, supprimer les
 candidats sans support), et chaque fois qu'un domaine rétrécit, on remet en
 file les arcs qui pointent vers lui. C'est court, correct, facile à rendre
-incrémental au fil de la recherche — d'où son statut de choix par défaut,
+incrémental au fil de la recherche ; d'où son statut de choix par défaut,
 partout. Dans le pire cas, il coûte $O(e d^3)$ pour $e$ arcs et des domaines
 de taille $d$ ; sur le plateau 16×16, $e$ correspond aux 480 adjacences
 intérieures prises dans les deux sens et $d \approx 764$.
@@ -73,7 +74,7 @@ Les descriptions d'algorithmes à liste de travail se ressemblent toutes ;
 c'est en en regardant un se stabiliser que tout s'éclaire. Voici AC-3 sur une
 version jouet du problème : un plateau 4×4, 3 couleurs d'arêtes, chaque case
 démarrant avec ses 64 candidats (16 tuiles × 4 rotations). Posez une pièce et
-suivez la file — quels arcs y entrent, ce que chaque révision supprime,
+suivez la file : quels arcs y entrent, ce que chaque révision supprime,
 comment une suppression réarme les arcs pointant vers le domaine rétréci, et
 comment l'onde s'éteint. Les compteurs comparent le travail d'AC-3 à celui de
 la boucle naïve de point fixe (AC-1 : rebalayer tous les arcs jusqu'à une
@@ -84,49 +85,49 @@ passe complète sans changement), lancée sur exactement les mêmes positions.
 Deux choses méritent l'attention. Les premières poses ne propagent presque
 pas : un anneau de voisines rétrécit et l'onde s'arrête, parce que le second
 anneau trouve encore des supports pour les trois couleurs parmi les
-survivants. Les poses tardives, elles, propagent bien plus loin — les
-domaines sont serrés, une seule suppression laisse des candidats orphelins à
+survivants. Les poses tardives, elles, propagent bien plus loin : les
+domaines sont serrés, et une seule suppression laisse des candidats orphelins à
 deux ou trois cases de distance. C'est exactement le comportement sur le vrai
 puzzle : la cohérence d'arc gagne sa place en fin de partie, pas en
 ouverture.
 
 ## Pas à pas
 
-La même exécution, en toutes lettres — c'est là tout AC-3 :
+La même exécution, en toutes lettres. C'est là tout AC-3 :
 
 1. **Départ.** Chaque case porte un domaine de 64 candidats. La file d'arcs
    est vide ; sans suppression, il n'y a rien à vérifier.
 2. **Une pièce se pose en B2.** Son domaine s'effondre sur l'unique candidat
-   posé. Chaque arc *visant* B2 — un par voisine, ici (B1→B2), (C2→B2),
-   (B3→B2), (A2→B2) — entre dans la file. Rien d'autre : aucun autre domaine
+   posé. Chaque arc *visant* B2 entre dans la file, un par voisine : ici
+   (B1→B2), (C2→B2), (B3→B2), (A2→B2). Rien d'autre : aucun autre domaine
    n'a changé, donc aucun autre arc n'a pu perdre un support.
 3. **Dépiler un arc, le réviser.** Prenons (B1→B2) : on parcourt les 64
    candidats de B1 et, pour chacun, on cherche dans le domaine de B2 un
-   partenaire compatible — un *support*. B2 ne contient plus qu'une pièce :
-   seuls survivent les candidats dont l'arête sud reprend sa couleur nord —
+   partenaire compatible, un *support*. B2 ne contient plus qu'une pièce :
+   seuls survivent les candidats dont l'arête sud reprend sa couleur nord,
    environ un tiers. Les autres sont supprimés.
 4. **Les suppressions réarment des arcs.** Le domaine de B1 a rétréci, donc
    des candidats ailleurs, qui s'appuyaient sur les supprimés, sont peut-être
-   orphelins : chaque arc pointant vers B1 — sauf celui venant de B2, qui
-   vient de tirer — repasse en file. C'est l'onde.
+   orphelins : chaque arc pointant vers B1 repasse en file, sauf celui venant
+   de B2, qui vient de tirer. C'est l'onde.
 5. **Pas de suppression, pas de remise en file.** Quand une révision ne
    retire rien, l'arc est simplement abandonné. En début de partie, le second
    anneau survit presque toujours intact, et la file se vide en une poignée
    de révisions.
 6. **Point fixe.** La file est vide : chaque candidat, partout, garde un
    support dans chaque domaine voisin. Aucun ordre de traitement ne change
-   cet état final — le point fixe est unique ; la discipline de file ne
+   cet état final : le point fixe est unique, et la discipline de file ne
    change que la vitesse pour l'atteindre.
 
 La comparaison AC-1 de la démo est tout l'argument de la liste de travail :
 la boucle naïve re-révise les 48 arcs à chaque passe jusqu'à une passe
-propre, produisant les mêmes suppressions pour plusieurs fois plus de tests —
+propre, produisant les mêmes suppressions pour plusieurs fois plus de tests,
 et l'écart se creuse quand le plateau grandit.
 
 ## Ce qu'apportent les variantes plus fortes
 
 La littérature a passé deux décennies à corriger cette redondance. AC-4 (Mohr
-& Henderson 1986) compte explicitement les supports — temps optimal
+& Henderson 1986) compte explicitement les supports : temps optimal
 $O(e d^2)$, mais mémoire $O(e d^2)$ et restauration pénible au retour
 arrière. AC-6 et AC-7 (Bessière ; Bessière, Freuder & Régin) stockent les
 supports paresseusement et exploitent la bidirectionnalité : temps optimal,
@@ -138,8 +139,8 @@ boucle simple d'AC-3, mais on mémorise, pour chaque paire candidat-arc, le
 *dernier support trouvé* ; on vérifie qu'il est toujours vivant avant de
 chercher à nouveau, et on reprend le parcours là où il s'était arrêté plutôt
 qu'au début. Ce seul entier par paire donne la borne optimale $O(e d^2)$ avec
-seulement $O(e d)$ de mémoire — environ 367 000 petits entiers sur ce puzzle,
-négligeable. L'étude de 2005 mesure 1,5 à 9 fois moins de CPU qu'AC-3 en
+seulement $O(e d)$ de mémoire, soit environ 367 000 petits entiers sur ce
+puzzle, négligeable. L'étude de 2005 mesure 1,5 à 9 fois moins de CPU qu'AC-3 en
 recherche avec maintien de cohérence, et montre que l'avantage sur AC-6
 *croît* avec la taille du domaine de l'autre côté de l'arc. Eternity II a des
 domaines énormes des deux côtés de chaque arc : AC-2001 est l'ajustement
@@ -155,7 +156,7 @@ des domaines :
   et chaque révision coûte jusqu'à $d^2$ tests de support. Sa mémoire de
   travail se réduit à la file, $O(e)$.
 - **AC-2001** tourne en $O(e d^2)$, ce qui est *optimal* pour tout algorithme
-  fondé sur la révision d'arcs — il y a $e d$ paires candidat–arc et chacune
+  fondé sur la révision d'arcs : il y a $e d$ paires candidat–arc et chacune
   peut exiger de parcourir une fois un domaine de taille $d$. Le prix : la
   table des derniers supports, un entier par paire candidat–arc, soit
   $O(e d)$ d'espace.
@@ -164,14 +165,14 @@ des domaines :
 intérieures, dans les deux sens) et $d \approx 764$ tuples candidats par case
 intérieure. Les bornes de pire cas tombent donc vers
 $e d^3 \approx 4 \times 10^{11}$ tests élémentaires pour AC-3 contre
-$e d^2 \approx 5{,}6 \times 10^8$ pour AC-2001 — trois ordres de grandeur sur
-le papier. Les pires cas sont pessimistes (une propagation réelle ne touche
+$e d^2 \approx 5{,}6 \times 10^8$ pour AC-2001, soit trois ordres de grandeur
+sur le papier. Les pires cas sont pessimistes (une propagation réelle ne touche
 que quelques cases, comme la démo ci-dessus le montre), mais ce rapport est
 la raison pour laquelle la littérature considère la borne d'AC-3 comme le
-défaut à corriger — et la correction ne coûte que $O(e d)$ entiers de
+défaut à corriger ; la correction, elle, ne coûte que $O(e d)$ entiers de
 mémoire. Le piège sur ce puzzle n'est pas le coût de propagation par nœud :
 c'est qu'en pleine recherche ce coût se paie à *chaque* nœud, des millions de
-fois par seconde — d'où des facteurs constants et un comportement de cache
+fois par seconde, d'où des facteurs constants et un comportement de cache
 qui finissent par compter autant que l'exposant de $d$.
 
 ## Mesuré sur ce puzzle
@@ -184,10 +185,10 @@ Sur le moteur de ce projet (mesuré ici ; non répliqué indépendamment) :
   en mono-thread, autour de 2,5 secondes sur 8 cœurs.
 - Le meilleur gain algorithmique trouvé à l'intérieur d'AC-3 est prosaïque :
   une table précalculée disant quelles rotations d'une même pièce partagent
-  leurs couleurs d'arête, pour que les révisions cessent de la redériver —
-  un gain de débit de 2,9× sur le banc de référence du moteur.
-- La partie honnête : AC-2001 a été recommandé deux fois dans les notes du
-  projet et jamais construit ; son gain projeté de 2 à 5× ici est une lecture
+  leurs couleurs d'arête, pour que les révisions cessent de la redériver.
+  Gain de débit : 2,9× sur le banc de référence du moteur.
+- La partie jamais construite : AC-2001 a été recommandé deux fois dans les
+  notes du projet sans jamais voir le jour ; son gain projeté de 2 à 5× ici est une lecture
   de la littérature, pas une mesure. Et la conviction qu'AC-3 dominait le
   profil d'exécution n'a elle-même jamais été confirmée au profileur.
   Mesurez avant de porter.
@@ -198,11 +199,11 @@ La cohérence d'arc suppose que chaque arête doit s'apparier parfaitement. Les
 moteurs à records, eux, non : les recherches
 [à la Blackwood](/research/build/solvers/blackwood) s'autorisent un budget de
 défauts délibérés aux profondeurs tardives, et sous ce régime la cohérence
-d'arc est *incorrecte* — elle élague des plateaux qu'un défaut autorisé
+d'arc est *incorrecte* : elle élague des plateaux qu'un défaut autorisé
 rendrait parfaitement légaux. Sur le moteur de ce projet, toute la famille AC
 est désactivée dans les runs tolérants aux défauts, précisément pour cela. Le
 seul propagateur fort qui survit au régime des défauts est le tous-différents
-au niveau des pièces — voir
+au niveau des pièces ; voir
 [le filtre de Régin](/research/build/concepts/alldiff-regin).
 
 ## Verdict
@@ -210,7 +211,7 @@ au niveau des pièces — voir
 Pour toute recherche à appariement exact, la cohérence d'arc est obligatoire
 et bon marché : c'est la différence entre un backtracker qui patine et un qui
 atteint les 440. Le forward checking seul laisse des élagages sur la table ;
-AC-3 les ramasse ; AC-2001 ramasse les mêmes pour moins de CPU — à condition
+AC-3 les ramasse ; AC-2001 ramasse les mêmes pour moins de CPU, à condition
 d'avoir d'abord vérifié que la propagation est bien là où partent vos cycles.
 Pour la chasse aux records tolérante aux défauts, laissez-la de côté : la
 correction d'abord.

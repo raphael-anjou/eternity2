@@ -2,16 +2,16 @@
 title: "Solver engineering: the craft below the algorithm"
 description: >-
   Every record solver runs the same depth-first backtracker. What separates
-  them is the layer underneath — lookup tables, perfect hashes, cache-sized
-  structs, generated code, compiler archaeology — the craft that decides
+  them is the layer underneath: lookup tables, perfect hashes, cache-sized
+  structs, generated code, compiler archaeology. That craft decides
   whether a node costs 26 cycles or 2,600. The community's twenty-year
-  engineering ledger, technique by technique, with its honest bottom line.
+  engineering ledger, technique by technique, and what it all bought.
 kind: concept
 order: 120
 updated: 2026-07-02
 topics: [speed]
 sources:
-  - label: "The Lebel-thread deep dive — dissecting the era's reference C++ solver (groups.io message 1704, 2007)"
+  - label: "The Lebel thread dissected — the era's reference C++ solver taken apart (groups.io message 1704, 2007)"
     url: https://groups.io/g/eternity2/message/1704
   - label: "Nathan's 1024-key minimal perfect hash replacing a 1M-entry array (groups.io message 1831)"
     url: https://groups.io/g/eternity2/message/1831
@@ -40,7 +40,7 @@ related:
 Strip any record solver to its skeleton and you find the same loop: place a
 piece, check the edges, back up when stuck. The algorithm was settled by
 2007. What the community has actually been competing on for twenty years is
-the layer *below* the algorithm — the craft that decides whether visiting one
+the layer *below* the algorithm: the craft that decides whether visiting one
 node of that tree costs about 26 clock cycles, as Mike Field measured on his
 own engine ([message 9003](https://groups.io/g/eternity2/message/9003)), or
 a hundred times that in a naive interpreter. Same tree, same search, two
@@ -54,11 +54,12 @@ behind the record boards is on the
 [Blackwood page](/research/build/solvers/blackwood). Here is the shelf they
 both draw from.
 
-## Candidate lookup tables — the universal trick
+## Candidate lookup tables: the universal trick
 
 Every fast backtracker shares one load-bearing idea: never *search* for
-candidate pieces, look them up. Fix the fill order (a row scan, usually), and
-each cell exposes exactly two known constraints when its turn comes — the
+candidate pieces, look them up. Fix the
+[fill order](/research/build/concepts/fill-order) (a row scan, usually), and
+each cell exposes exactly two known constraints when its turn comes, the
 colour on its north edge and the colour on its west edge. So you precompute a
 table keyed by that colour pair, and finding all pieces that could legally go
 in the current cell becomes a single memory access. Field's 2007 recipe put
@@ -67,31 +68,31 @@ is what makes the two-edge key possible at all, and placing a piece then only
 updates its south and east neighbours
 ([message 3098](https://groups.io/g/eternity2/message/3098)). The same
 design was being dissected the same year around Marc Lebel's public C++
-solver — the era's reference fast backtracker — in the thread that doubles
+solver, the era's reference fast backtracker, in the thread that doubles
 as the community's first engineering seminar
 ([message 1704](https://groups.io/g/eternity2/message/1704)).
 
 Everything else on this page is a refinement of that table: making it
 smaller, making its entries denser, or unrolling the code around it.
 
-## Minimal perfect hashing — the table, shrunk to fit
+## Minimal perfect hashing: the table, shrunk to fit
 
 The lookup table has a size problem when you key on more than two edges. In
 the Lebel thread, Nathan described the brute-force version: a 4-D array
-indexed by all four edge colours, `combo4[32][32][32][32]` — a million
-entries, mostly zeros, guaranteed cache misses. His fix, built on Bob
-Jenkins's minimal-perfect-hash generator — a pointer he had shared with the
-list himself: since the
+indexed by all four edge colours, `combo4[32][32][32][32]`. A million
+entries, mostly zeros, guaranteed cache misses. His fix built on Bob
+Jenkins's minimal-perfect-hash generator, a pointer he had shared with the
+list himself. Since the
 256 pieces in 4 rotations produce only 1,024 distinct edge-quadruples, a
 minimal perfect hash maps the packed 32-bit key to a 1,024-entry table with
-no collisions — "small enough to fit in cache most of the time", with
+no collisions: "small enough to fit in cache most of the time", with
 near-zero hashing overhead, and absent keys simply read a count of zero
 ([message 1831](https://groups.io/g/eternity2/message/1831)). A million
-entries down to a thousand, purely so the working set lives in L1. He noted
-the honest boundary himself: the four-edge table only earns its keep when
+entries down to a thousand, purely so the working set lives in L1. He drew
+the boundary himself: the four-edge table only earns its keep when
 the fill order can leave holes; a strict scan-line solver never needs it.
 
-## Bit-packing and struct sizing — cache as the real opponent
+## Bit-packing and struct sizing: cache as the real opponent
 
 Field's cycle budget explains why so much of this craft is about memory
 layout: at 75M tiles per second per core, over half the time was stalled on
@@ -100,42 +101,42 @@ memory access, not computation
 is to make every byte the search touches count. Pack a piece's four sides
 into a single int ([message 3098](https://groups.io/g/eternity2/message/3098)).
 Keep the used-piece set as one 64-bit word per group and early-out a whole
-candidate loop with a single mask test — an optimization Arnaud Carré and
+candidate loop with a single mask test, an optimization Arnaud Carré and
 Adam Miles discovered they had implemented independently, line for line
 ([message 9808](https://groups.io/g/eternity2/message/9808),
 [message 9809](https://groups.io/g/eternity2/message/9809)). Size the
-candidate-table entry so the whole table fits in cache — which is exactly
+candidate-table entry so the whole table fits in cache. That is exactly
 the design of Blackwood's six-byte `RotatedPiece` struct, already told on
 [the Blackwood page](/research/build/solvers/blackwood): piece number,
 rotation, the two exposed sides, a break count and a heuristic count, and
 nothing else.
 
-## Bipieces and metatiles — precompose, and pay in memory
+## Bipieces and metatiles: precompose, and pay in memory
 
-If one lookup gives you candidate pieces, why not precompose pairs — 1×2
-"bipieces" — and place two cells per node? Measured on Lebel's code in
+If one lookup gives you candidate pieces, why not precompose pairs into 1×2
+"bipieces" and place two cells per node? Measured on Lebel's code in
 August 2007, it worked: about 20–30% faster
 ([message 1734](https://groups.io/g/eternity2/message/1734)). But the trade
 is steep and the archive documents both sides. Going to 2×2 blocks, one
 member measured roughly 4.2× *slower* and rejected bigger pieces outright
-([message 1730](https://groups.io/g/eternity2/message/1730)) — no surprise
+([message 1730](https://groups.io/g/eternity2/message/1730)). No surprise
 once the tables are counted: about 4 million distinct inner 2×2
 combinations ([message 3044](https://groups.io/g/eternity2/message/3044)).
 Louis Verhaard reported bipieces helping "only very marginally" in his own
 fast backtracker
 ([message 3061](https://groups.io/g/eternity2/message/3061)).
 And in 2008 the list settled the theory question underneath: a metatile
-solver visits essentially the same constraint frontier as a 1×1 solver — "in
-sync every 4 pieces" — so the gain is implementation-level, never a
+solver visits essentially the same constraint frontier as a 1×1 solver
+("in sync every 4 pieces"), so the gain is implementation-level, never a
 reduction of the search space
 ([message 5842](https://groups.io/g/eternity2/message/5842),
 [message 5899](https://groups.io/g/eternity2/message/5899)). Precomposition
 is a speedup you buy with memory, and past 1×2 the price goes negative.
 
-## Code generation — write the program that writes the solver
+## Code generation: write the program that writes the solver
 
-The inner loop's last indirections — "which cell am I on? what are its
-neighbours?" — can be removed by not having a loop at all. Field's recipe:
+The inner loop's last indirections ("which cell am I on? what are its
+neighbours?") can be removed by not having a loop at all. Field's recipe:
 procedurally *generate* monolithic straight-line code, one block per cell,
 each block knowing its own neighbours as constants; his generated code
 compiled to about 33 instructions per cell
@@ -146,9 +147,9 @@ per puzzle and per fill path, compiled with the Intel compiler
 [message 5438](https://groups.io/g/eternity2/message/5438)), in the same
 season the list compared notes on non-recursive backtrackers generally
 ([message 4683](https://groups.io/g/eternity2/message/4683)). Peter
-McGavin's `body.c` — labelled blocks like `cell_9_2_next:`, `goto` chains
-back into the previous cell on exhaustion, regenerated for every puzzle and
-hint set — is this idea compounded for twenty years
+McGavin's `body.c` is this idea compounded for twenty years: labelled
+blocks like `cell_9_2_next:`, `goto` chains back into the previous cell on
+exhaustion, the whole file regenerated for every puzzle and hint set
 ([message 11337](https://groups.io/g/eternity2/message/11337),
 [message 11782](https://groups.io/g/eternity2/message/11782)). And it works
 across languages: Jef Bucas's libblackwood, a Python generator emitting C,
@@ -156,66 +157,66 @@ made Blackwood's C# algorithm roughly twice as fast on the same machine
 ([message 10065](https://groups.io/g/eternity2/message/10065),
 [message 10078](https://groups.io/g/eternity2/message/10078)).
 
-## Compiler realities — the last 20%, not the missing 10²⁰
+## Compiler realities: the last 20%, not the missing 10²⁰
 
-Below the source code, there is still throughput to harvest — in
-instructions and flags, not ideas. Adam Miles took his solver from 78 to 90
+Below the source code, there is still throughput to harvest, in
+instructions and flags rather than ideas. Adam Miles took his solver from 78 to 90
 million placements per second with BMI's `bextr` and BMI2's `pext`
 bit-extract instructions, while noting it was "getting increasingly
 difficult" to reach further
 ([message 9796](https://groups.io/g/eternity2/message/9796)). McGavin's
 2026 playbook is the accumulated folklore: try clang, icc and icx against
 gcc; try *versions* (clang-15 beats clang-19 on his ARM boards); add
-`-march=native` and `-mtune=native`; use profile-guided optimisation — a
-list of tips, none of them a silver bullet
+`-march=native` and `-mtune=native`; use profile-guided optimisation. None
+of these tips is a silver bullet
 ([message 11751](https://groups.io/g/eternity2/message/11751)). His counter
 trick from the same post is the genre in miniature: the 64-bit placement
 counter is fed by a 16-bit register that rolls over, adding `0x10000` at a
 time, because he timed both ways years ago on 32-bit hardware and the trick
 won.
 
-The same realism applies to hardware. Multithreading scales the obvious way
-— multi-core solvers broke 100M placements/s in 2008
+The same realism applies to hardware. Multithreading scales the obvious
+way: multi-core solvers broke 100M placements/s in 2008
 ([message 5804](https://groups.io/g/eternity2/message/5804)), and a single
 Core i7 hit 558M/s that December
-([message 6212](https://groups.io/g/eternity2/message/6212)) — but
-single-core progress mostly stopped. Posting his 2025 table of nine
+([message 6212](https://groups.io/g/eternity2/message/6212)). Single-core
+progress, though, mostly stopped. Posting his 2025 table of nine
 CPU/compiler combinations (38–84M placements/s), McGavin noted that speeds
 on the latest CPUs "are only a little faster" than on his 2010 Phenom II
 ([message 11643](https://groups.io/g/eternity2/message/11643)). The engines
 hit Field's memory wall fifteen years ago and have been leaning on it since.
 
-## Measurement discipline — what is a "node", anyway?
+## Measurement discipline: what is a "node", anyway?
 
 An engineering culture is only as good as its benchmarks, and the archive
 had to build that discipline the hard way. In January 2008, comparing speed
 claims forced the definitional question: Txibilis counted a node as every
 *valid* piece committed to the board, no lookahead
-([message 3843](https://groups.io/g/eternity2/message/3843)) — but others
+([message 3843](https://groups.io/g/eternity2/message/3843)); others
 counted attempted placements, or steps, and the thread concluded that a
 metric everyone agrees on may not exist
 ([message 3946](https://groups.io/g/eternity2/message/3946)). The question
 came back in 2017 and got the standard answer: the community's
 "pieces per second" counts pieces *placed* per second, chess-style
 ([message 9739](https://groups.io/g/eternity2/message/9739),
-[message 9740](https://groups.io/g/eternity2/message/9740)) — along with
-the standard objection, that the metric flatters scan-line fill orders and
+[message 9740](https://groups.io/g/eternity2/message/9740)). The standard
+objection came with it: the metric flatters scan-line fill orders and
 says nothing about search-space coverage per unit time
 ([message 9746](https://groups.io/g/eternity2/message/9746)).
 
 Two practical consequences. First: never compare two solvers' M/s figures
-without checking what they count — a "faster" solver may simply have a more
+without checking what they count: a "faster" solver may simply have a more
 generous definition. Second, the positive habit that grew out of it: publish
 **node counts alongside timings**. A deterministic backtracker walking a
 fixed tree must count the same nodes on any machine, so exact node counts
-became the community's checksums — the way ports, rewrites and new hardware
+became the community's checksums, the way ports, rewrites and new hardware
 prove they search the same tree before their speed means anything.
 
 ## The shelf at a glance
 
 | Technique | What it costs | What it bought | Source |
 | --- | --- | --- | --- |
-| Per-position candidate tables (two-edge key) | memory for tables; a fixed fill order | candidates in one memory access — the baseline every fast solver shares | [3098](https://groups.io/g/eternity2/message/3098) |
+| Per-position candidate tables (two-edge key) | memory for tables; a fixed fill order | candidates in one memory access, the baseline every fast solver shares | [3098](https://groups.io/g/eternity2/message/3098) |
 | Minimal perfect hashing | offline hash construction | 1M-entry lookup → 1,024 entries, cache-resident | [1831](https://groups.io/g/eternity2/message/1831) |
 | Bit-packing, cache-sized structs | code contortions | fewer stalls where >50% of time is memory; 64-bit used-mask early-outs | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
 | Bipieces (1×2 precomposition) | tables grow fast; no search-space reduction | +20–30% at 1×2; ~4.2× *slower* at 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
@@ -224,28 +225,29 @@ prove they search the same tree before their speed means anything.
 | Compiler shopping, native flags, PGO | trial and error, per machine | "significant" but unquantified single-digit-percent-to-tens gains | [11751](https://groups.io/g/eternity2/message/11751) |
 | Counter tricks (16-bit rollover feed) | obscurity | measurable only on 32-bit-era hardware | [11751](https://groups.io/g/eternity2/message/11751) |
 
-## The honest bottom line
+## Twenty years, 4× per core
 
 Now zoom out. Field's 2007 recipe already did 60–80 million placements per
 second per core ([message 3098](https://groups.io/g/eternity2/message/3098)).
-The best single-core figures in the modern archive — 72.7M/s from a tuned
+The best single-core figures in the modern archive put twenty years of this
+craft at roughly **4× per core**: 72.7M/s from a tuned
 C++ solver and 68.4M/s from a Rust descendant of Blackwood's in 2025
 ([message 11633](https://groups.io/g/eternity2/message/11633),
 [message 11634](https://groups.io/g/eternity2/message/11634)), around
 225–295M/s for McGavin's generated C on the newest hardware
 ([message 11751](https://groups.io/g/eternity2/message/11751),
-[message 11750](https://groups.io/g/eternity2/message/11750)) — put twenty
-years of this craft at roughly **4× per core**. Over the same twenty years,
+[message 11750](https://groups.io/g/eternity2/message/11750)). Over the same twenty years,
 the record moved three edges: 467 to 470.
 
 The practitioners said it themselves. Joshua Blackwood, cataloguing his dead
-ends after the 469 — SAT solvers, GPUs, cached 2×2 blocks, all measured and
-dropped — found that only refining the *heuristics* ever paid, worth another
+ends after the 469 ([SAT solvers](/research/build/concepts/sat-csp-encodings),
+[GPUs](/research/build/concepts/gpu-solving), cached 2×2 blocks, all measured
+and dropped), found that only refining the *heuristics* ever paid, worth another
 ~2× ([message 10056](https://groups.io/g/eternity2/message/10056)). And
 when the 2025 speed thread wound down, Razvan wrote its epitaph: regardless
 of how fast we can check, "we will not make a dent" in the E2 search space
 ([message 11657](https://groups.io/g/eternity2/message/11657)). The craft
-on this page is real, measurable and worth learning — it is why a hobbyist
-farm can walk 10¹⁷ nodes — but a constant factor is a constant factor.
+on this page is real, measurable and worth learning; it is why a hobbyist
+farm can walk 10¹⁷ nodes. But a constant factor is a constant factor.
 [Why shrinking the tree beats speeding up the walk](/research/why/prune-vs-speed)
 is the arithmetic of that sentence; this page is its engineering ledger.

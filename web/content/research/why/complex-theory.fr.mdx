@@ -2,7 +2,7 @@
 title: "La théorie complexe : compter la recherche avant de la lancer"
 description: >-
   La théorie complexe de Brendan Owen estime la largeur de l'arbre de
-  recherche à chaque profondeur — et jusqu'au nombre total de solutions.
+  recherche à chaque profondeur, et jusqu'au nombre total de solutions.
   Beaucoup, dans la communauté, y voient la chose la plus importante à
   comprendre sur Eternity II.
 kind: finding
@@ -36,8 +36,8 @@ import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
   [l'a implémentée en C](https://groups.io/g/eternity2/message/11197) avec une
   arithmétique en précision arbitraire et en a publié les chiffres. Si nous la
   présentons ici, c'est d'abord parce qu'un membre de la communauté (Dan
-  Karlsson) a fait remarquer, à juste titre, qu'elle manquait — et parce
-  qu'elle sous-tend presque toutes les bonnes décisions qu'on peut prendre sur
+  Karlsson) a fait remarquer, à juste titre, qu'elle manquait, et ensuite
+  parce qu'elle sous-tend presque toutes les bonnes décisions qu'on peut prendre sur
   un solveur, à commencer par le choix de l'ordre de parcours.
 </Callout>
 
@@ -45,11 +45,11 @@ import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
 
 Prenez un ordre de parcours et suivez-le case après case. À chaque nouvelle
 case, une pièce encore inutilisée, tirée au hasard, s'accorde à ses voisines
-déjà posées avec une certaine probabilité — un produit de chances d'accord,
+déjà posées avec une certaine probabilité : un produit de chances d'accord,
 bord par bord. Multipliez par le nombre de pièces restantes : vous obtenez le
 nombre attendu de façons d'étendre le plateau d'une case. Enchaînez sur les
 256 cases, et vous tenez une estimation en forme close de la largeur de
-l'arbre à chaque profondeur — et, à la toute dernière case, du nombre de
+l'arbre à chaque profondeur et, à la toute dernière case, du nombre de
 solutions complètes du puzzle.
 
 C'est une moyenne, pas un décompte exact : elle suppose les 22 couleurs de
@@ -67,39 +67,39 @@ largement suffisant pour voir la forme.
 
 Avec la seule pièce centrale obligatoire, le puzzle compte de l'ordre de
 quinze mille solutions ; ajoutez les quatre autres indices et le compte
-attendu s'effondre à environ $4\times10^{-8}$ — c'est-à-dire, très
-massivement, exactement une. Voilà la raison formelle pour laquelle le puzzle
+attendu s'effondre à environ $4\times10^{-8}$ : très massivement, exactement
+une. Voilà la raison formelle pour laquelle le puzzle
 à cinq indices n'a qu'une seule solution, celle voulue par ses concepteurs.
 
 ## L'entonnoir
 
-Tracez la largeur attendue à chaque profondeur : trois régimes se dessinent —
-cette forme que la communauté appelle l'entonnoir d'E2.
+Tracez la largeur attendue à chaque profondeur : trois régimes se dessinent.
+C'est la forme que la communauté appelle l'entonnoir d'E2.
 
 <ComplexFunnel />
 
 ## À vous : l'ordre décide de l'entonnoir
 
 La même estimation, calculée en direct pour différents ordres de balayage. Le
-pic du plateau — le point le plus large que la recherche devra traverser — se
+pic du plateau (le point le plus large que la recherche devra traverser) se
 joue sur l'ordre seul, avant d'avoir posé le moindre nœud.
 
 <ComplexFunnelLab />
 
 ## Trois régimes
 
-- **Croissance (profondeur 1 à 50)** — Les solutions se multiplient
+- **Croissance (profondeur 1 à 50).** Les solutions se multiplient
   géométriquement, de une à environ $10^{27}$. Chaque pose est pour ainsi dire
   gratuite ; rien ne vous contraint encore.
-- **Plateau (profondeur 50 à 200)** — L'arbre atteint sa largeur maximale —
-  environ $10^{45}$ façons d'étendre — tandis que le nombre de solutions bouge
+- **Plateau (profondeur 50 à 200).** L'arbre atteint sa largeur maximale,
+  environ $10^{45}$ façons d'étendre, tandis que le nombre de solutions bouge
   à peine. C'est là que les backtrackers passent à peu près 99 % de leur
   temps, ce qui rejoint le constat empirique de Joe : l'essentiel du temps se
   consume sous la profondeur 150.
-- **Effondrement (profondeur 200 à 256)** — La largeur retombe de $10^{45}$ à
+- **Effondrement (profondeur 200 à 256).** La largeur retombe de $10^{45}$ à
   environ $10^{4}$. Les ~60 dernières pièces sont très contraintes : chaque
   pose élimine des ordres de grandeur entiers de branches. La fin de partie
-  est localement facile — le difficile, c'est d'y parvenir.
+  est localement facile ; le difficile, c'est d'y parvenir.
 
 ## Ce que cela change dans la façon de chercher
 
@@ -109,8 +109,8 @@ vitesse brute : c'est de traverser le plateau jusqu'à l'entrée de l'entonnoir
 façon déterministe. Et comme la théorie complexe note un ordre de parcours
 avant même de l'exécuter, on peut comparer les ordres à la hauteur de leur pic
 de plateau plutôt qu'à tâtons. C'est la version rigoureuse d'une règle que ce
-site martèle partout : l'ordre de remplissage est un choix de premier plan —
-et si le balayage de McGavin, du coin bas-gauche et de gauche à droite, a été
+site martèle partout : l'ordre de remplissage est un choix de premier plan.
+Et si le balayage de McGavin, du coin bas-gauche et de gauche à droite, a été
 retenu, c'est parce que la théorie complexe le donnait bon.
 
 ## Des tuiles plus grandes
@@ -118,12 +118,12 @@ retenu, c'est parce que la théorie complexe le donnait bon.
 La même idée tient si l'on pose des tuiles 2×2 ou 3×3 au lieu de pièces
 seules : tout un bloc de cases est engagé d'un coup, ses arêtes internes déjà
 accordées. Le [terrain de jeu des ordres de parcours](/playground/paths)
-permet de l'essayer pour de bon — choisissez une forme de bloc (1×1, 2×1,
+permet de l'essayer pour de bon : choisissez une forme de bloc (1×1, 2×1,
 2×2, 3×3, …) et tamponnez des blocs sur la grille pour construire un parcours
 par blocs. Lancez la course : un solveur de macro-pièces dédié valide alors un
 sous-assemblage complet par bloc, au lieu d'une pièce à la fois, et la
 recherche avance région par région. L'estimation du pic de plateau, affichée à
-côté, continue de noter l'ordre de cases que vos blocs impliquent — le coût se
+côté, continue de noter l'ordre de cases que vos blocs impliquent ; le coût se
 lit avant d'avoir lancé le moindre nœud.
 
 ## Ce que la théorie ne voit pas
@@ -132,9 +132,9 @@ La théorie complexe est une estimation de premier moment ; une chose lui
 échappe donc entièrement : savoir si les nombreux plateaux partiels qu'elle
 compte sont vraiment distincts. Les
 [résultats d'entropie et de loi d'aire](/research/why/entropy-area-law)
-montrent que cette distinction s'effondre passé ~80 cases — un effet de second
+montrent que cette distinction s'effondre passé ~80 cases, un effet de second
 ordre que le modèle à bords indépendants ne peut pas capter. Servez-vous-en
-donc pour choisir les ordres et lire la forme de l'arbre — jamais comme d'un
+donc pour choisir les ordres et lire la forme de l'arbre, jamais comme d'un
 décompte exact, ni d'une borne.
 
 ## Provenance et validation
@@ -145,13 +145,13 @@ le modèle achevé en avril 2008
 [5209](https://groups.io/g/eternity2/message/5209)), puis en tire une jolie
 forme close : pour un balayage, le pic de nœuds tombe à la profondeur
 $256\,(1 - 1/e) \approx 161{,}8$
-([msg 8125](https://groups.io/g/eternity2/message/8125)) — exactement là où
+([msg 8125](https://groups.io/g/eternity2/message/8125)) : exactement là où
 culmine l'entonnoir ci-dessus. Peter McGavin met la théorie au propre
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), publie le chiffre
 des 14 702 solutions attendues dès 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), et lui offre en
 2017 sa validation la plus forte : la résolution du 10×10 sans indice de
-Brendan en explorant les premières lignes classées par la théorie — environ
+Brendan en explorant les premières lignes classées par la théorie : environ
 180 années-cœur, pile dans les prédictions
 ([msg 9686](https://groups.io/g/eternity2/message/9686),
 [9688](https://groups.io/g/eternity2/message/9688)). Son implémentation C de

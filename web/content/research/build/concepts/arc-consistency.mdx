@@ -4,15 +4,15 @@ description: >-
   Forward checking looks one move ahead; arc consistency makes every cell's
   candidate list defend itself against every neighbour's, to a fixed point.
   Mackworth's AC-3, the optimal refinements that followed, and what the whole
-  family actually measured on this puzzle — including where it is unsound.
+  family actually measured on this puzzle, including where it is unsound.
 kind: concept
 order: 10
 updated: 2026-07-02
 topics: [search-space]
 sources:
-  - label: Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8) — AC-3
+  - label: 'Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8): AC-3'
     url: https://doi.org/10.1016/0004-3702(77)90007-8
-  - label: Bessière, Régin, Yap & Zhang 2005, "An Optimal Coarse-grained Arc Consistency Algorithm" (AIJ) — AC-2001/AC-3.1
+  - label: 'Bessière, Régin, Yap & Zhang 2005, "An Optimal Coarse-grained Arc Consistency Algorithm" (AIJ): AC-2001/AC-3.1'
     url: https://doi.org/10.1016/j.artint.2005.02.004
   - label: AC-3 algorithm (Wikipedia)
     url: https://en.wikipedia.org/wiki/AC-3_algorithm
@@ -27,9 +27,9 @@ import { AcThreeLab } from "@/components/research/concepts/AcThreeLab";
 
 A backtracker on Eternity II spends most of its effort not placing pieces but
 ruling them out. Since [no cell is ever forced](/research/why/no-forced-moves)
-— every interior position keeps dozens of live candidates deep into the search
-— the only leverage available is shrinking those candidate lists as hard and
-as cheaply as possible. Arc consistency is the standard machine for doing
+(every interior position keeps dozens of live candidates deep into the
+search), the only leverage available is shrinking those candidate lists as
+hard and as cheaply as possible. Arc consistency is the standard machine for doing
 that, and it has a fifty-year paper trail.
 
 ## Domains that police each other
@@ -42,8 +42,8 @@ clashes with the newly exposed edges. Cheap, and every serious solver does at
 least this.
 
 **Arc consistency** demands more. For every pair of adjacent cells, every
-candidate in one domain must have at least one compatible partner — a
-*support* — in the other. When a deletion anywhere leaves a candidate
+candidate in one domain must have at least one compatible partner in the
+other, a *support*. When a deletion anywhere leaves a candidate
 unsupported, that candidate goes too, and the check ripples outward until
 nothing more can be removed. For edge-matching this is exactly "a piece may
 stay in a cell only if each neighbouring cell can still answer its colours".
@@ -54,7 +54,7 @@ Alan Mackworth's AC-3 (1977) is the coarse-grained way to reach that fixed
 point: keep a queue of directed arcs, revise one arc at a time (scan a domain,
 delete unsupported candidates), and whenever a domain shrinks, requeue the
 arcs that point at it. It is short, correct, and easy to make incremental
-inside a search — which is why it is still the default everywhere. Worst case
+inside a search, which is why it is still the default everywhere. Worst case
 it costs $O(e d^3)$ for $e$ arcs and domain size $d$; on the 16×16 board $e$
 is the 480 interior adjacencies taken in both directions and $d \approx 764$.
 
@@ -67,7 +67,7 @@ backtracks.
 Descriptions of worklist algorithms all sound alike; watching one settle is
 what makes it click. Below is AC-3 on a toy version of the problem: a 4×4
 board, 3 edge colours, every cell starting with all 64 candidates (16 tiles ×
-4 rotations). Place a piece and follow the queue — which arcs enter it, what
+4 rotations). Place a piece and follow the queue: which arcs enter it, what
 each revision deletes, how a deletion re-arms the arcs pointing at the
 shrunken domain, and how the ripple dies out. The counters compare AC-3's
 work against the naive fixed-point loop (AC-1: re-sweep every arc until a
@@ -78,45 +78,45 @@ full pass is clean) running on the exact same positions.
 Two things are worth noticing. Early placements barely ripple: one ring of
 neighbours shrinks and the wave stops, because the second ring still finds
 supports for all three colours among the survivors. Late placements ripple
-much further — domains are tight, single deletions strand candidates two and
-three cells away. That is exactly the behaviour on the real puzzle: arc
+much further: domains are tight, and single deletions strand candidates two
+and three cells away. That is exactly the behaviour on the real puzzle: arc
 consistency earns its keep in the endgame, not the opening.
 
 ## Step by step
 
-The same run, in words — this is all of AC-3:
+The same run, in words. This is all of AC-3:
 
 1. **Start.** Every cell holds a domain of 64 candidates. The arc queue is
    empty; with no deletions yet, there is nothing to check.
 2. **A piece lands on B2.** Its domain collapses to the single placed
-   candidate. Every arc *aimed at* B2 — one per neighbour, here (B1→B2),
-   (C2→B2), (B3→B2), (A2→B2) — enters the queue. Nothing else does: no other
+   candidate. Every arc *aimed at* B2 enters the queue, one per neighbour:
+   here (B1→B2), (C2→B2), (B3→B2), (A2→B2). Nothing else does: no other
    domain changed, so no other arc can have lost a support.
 3. **Pop an arc, revise it.** Take (B1→B2): scan B1's 64 candidates, and for
-   each one search B2's domain for a compatible partner — a *support*. B2
+   each one search B2's domain for a compatible partner, a *support*. B2
    now holds one piece, so only candidates whose south edge matches its north
    colour survive: roughly a third. The rest are deleted.
 4. **Deletions re-arm arcs.** B1's domain shrank, so candidates elsewhere
    that leaned on the deleted ones may be stranded: every arc pointing at B1
-   — except the one from B2 that just fired — re-enters the queue. This is
-   the ripple.
+   re-enters the queue, except the one from B2 that just fired. This is the
+   ripple.
 5. **No deletion, no requeue.** When a revision removes nothing, the arc is
    simply dropped. Early in the game the second ring almost always survives
    intact, and the queue drains in a handful of revisions.
 6. **Fixed point.** The queue is empty: every candidate everywhere has a
    support in every neighbouring domain. No order of processing changes this
-   final state — the fixed point is unique; the queue discipline only changes
-   how fast you reach it.
+   final state: the fixed point is unique, and the queue discipline changes
+   only how fast you reach it.
 
 The AC-1 comparison in the demo is the entire argument for the worklist: the
 naive loop re-revises all 48 arcs per sweep until one sweep is clean, doing
-the same deletions for several times the checks — and the gap widens as the
+the same deletions for several times the checks, and the gap widens as the
 board grows.
 
 ## What the stronger variants buy
 
 The literature spent two decades fixing that redundancy. AC-4 (Mohr &
-Henderson 1986) counts supports explicitly — optimal $O(e d^2)$ time, but
+Henderson 1986) counts supports explicitly: optimal $O(e d^2)$ time, but
 $O(e d^2)$ memory and painful state restoration on backtrack. AC-6 and AC-7
 (Bessière; Bessière, Freuder & Régin) store supports lazily and exploit
 bidirectionality, keeping optimal time with $O(e d)$ space at the price of
@@ -127,8 +127,8 @@ Bessière & Régin and by Zhang & Yap in 2001: keep AC-3's simple loop, but
 remember for each candidate-arc pair the *last support found*, check that it
 is still alive before searching again, and resume the scan from where it
 stopped rather than from zero. That one integer per pair delivers the optimal
-$O(e d^2)$ bound with only $O(e d)$ memory — on this puzzle about 367,000
-small integers, negligible. The 2005 journal study measures 1.5–9× less CPU
+$O(e d^2)$ bound with only $O(e d)$ memory; on this puzzle that is about
+367,000 small integers, negligible. The 2005 journal study measures 1.5–9× less CPU
 than AC-3 in maintained-arc-consistency search, and shows the advantage over
 AC-6 *growing* with the domain size on the far side of the arc. Eternity II
 has huge domains on both sides of every arc, which makes AC-2001 the
@@ -143,19 +143,19 @@ domain size:
   to $d$ times (once per deletion in its far domain), and each revision costs
   up to $d^2$ support checks. Its working memory is just the queue, $O(e)$.
 - **AC-2001** runs in $O(e d^2)$ time, which is *optimal* for any algorithm
-  based on arc revision — there are $e d$ candidate–arc pairs and each may
+  based on arc revision: there are $e d$ candidate–arc pairs and each may
   need its support walked once across a domain of size $d$. The price is the
   last-support table: one integer per candidate–arc pair, $O(e d)$ space.
 
 On Eternity II's scale those symbols are: $e = 960$ (480 interior adjacencies,
 both directions) and $d \approx 764$ candidate tuples per interior cell. So
 the worst-case bounds sit near $e d^3 \approx 4 \times 10^{11}$ elementary
-checks for AC-3 against $e d^2 \approx 5.6 \times 10^8$ for AC-2001 — three
+checks for AC-3 against $e d^2 \approx 5.6 \times 10^8$ for AC-2001, three
 orders of magnitude apart on paper. Worst cases are pessimistic (real
 propagations touch a few cells, as the demo above shows), but the ratio is
 why the literature calls AC-3's bound the thing to fix, and the fix costs
 only $O(e d)$ integers of memory. The catch on this puzzle is not the
-propagation cost per node — it is that inside a search this cost is paid at
+propagation cost per node; it is that inside a search this cost is paid at
 *every* node, millions of times per second, which is why constant factors and
 cache behaviour end up mattering as much as the exponent on $d$.
 
@@ -169,9 +169,9 @@ On this project's engine (measured here; not independently replicated):
   single-threaded, around 2.5 seconds on 8 cores.
 - The best algorithmic speedup found inside AC-3 itself was mundane: a
   precomputed table of which rotations of the same piece share edge colours,
-  so revisions stop re-deriving it — a 2.9× throughput gain on the engine's
-  reference benchmark.
-- The honest part: AC-2001 was recommended twice in this project's notes and
+  so revisions stop re-deriving it, worth a 2.9× throughput gain on the
+  engine's reference benchmark.
+- The unbuilt part: AC-2001 was recommended twice in this project's notes and
   never actually built, so its projected 2–5× win here is a reading of the
   literature, not a measurement. And the belief that AC-3 dominated the
   runtime profile was itself never confirmed by a profiler. Measure before
@@ -182,10 +182,10 @@ On this project's engine (measured here; not independently replicated):
 Arc consistency assumes every edge must match perfectly. The record engines
 do not: [Blackwood-style searches](/research/build/solvers/blackwood) allow a
 budget of deliberate mismatches at late depths, and under that regime AC is
-*unsound* — it prunes boards that a licensed mismatch would make perfectly
+*unsound*: it prunes boards that a licensed mismatch would make perfectly
 legal. On this project's engine the whole AC family is switched off in
 break-tolerant runs for exactly that reason. The one strong propagator that
-survives the mismatch regime is piece-level all-different — see
+survives the mismatch regime is piece-level all-different; see
 [Régin's filter](/research/build/concepts/alldiff-regin).
 
 ## Verdict
@@ -195,4 +195,4 @@ the difference between a backtracker that thrashes and one that reaches the
 440s. Forward checking alone leaves prunings on the table; AC-3 collects
 them; AC-2001 collects the same ones for less CPU, if you first verify that
 propagation is where your cycles actually go. For mismatch-tolerant record
-hunting, leave it out — soundness comes first.
+hunting, leave it out; soundness comes first.

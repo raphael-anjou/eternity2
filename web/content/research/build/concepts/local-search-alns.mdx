@@ -3,7 +3,7 @@ title: Local search and ALNS
 description: >-
   Destroy part of a board, rebuild it better, and let the algorithm learn
   which demolitions pay. Adaptive large-neighborhood search is the most
-  reliable polisher this project has — and the cleanest demonstration of the
+  reliable polisher this project has, and the cleanest demonstration of the
   wall where polishing ends.
 kind: concept
 order: 60
@@ -14,7 +14,7 @@ sources:
     url: https://groups.io/g/eternity2/message/5589
   - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
     url: https://doi.org/10.1287/trsc.1050.0135
-  - label: Shaw, Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (CP 1998 — the original LNS)
+  - label: Shaw, Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (CP 1998, the original LNS)
     url: https://link.springer.com/chapter/10.1007/3-540-49481-2_30
   - label: Schaus & Deville, Hybridization of CP and VLNS for Eternity II (JFPC 2008)
     url: https://hdl.handle.net/2078.5/253676
@@ -29,7 +29,7 @@ import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
 
 Once you hold a strong board, single-piece moves stop paying almost
 immediately. Large-neighborhood search takes the opposite bet: rip out a
-whole region — dozens of cells — and rebuild it with something smarter than
+whole region (dozens of cells) and rebuild it with something smarter than
 the greedy pass that put it there. The idea is Paul Shaw's
 ([CP 1998](https://link.springer.com/chapter/10.1007/3-540-49481-2_30));
 the *adaptive* version, ALNS, is due to Ropke and Pisinger
@@ -41,12 +41,13 @@ steers effort toward the operators that have recently succeeded.
 
 One ALNS iteration on a board:
 
-1. **Destroy** — pick a destroy operator, unplace the $k$ cells it selects.
-2. **Repair** — refill the hole (greedy fill, constraint propagation, or an
+1. **Destroy.** Pick a destroy operator, unplace the $k$ cells it selects.
+2. **Repair.** Refill the hole (greedy fill,
+   [constraint propagation](/research/build/concepts/arc-consistency), or an
    exact solve of the small subproblem).
-3. **Accept** — keep the new board if it scores better, or sometimes anyway
+3. **Accept.** Keep the new board if it scores better, or sometimes anyway
    under a simulated-annealing rule.
-4. **Adapt** — reweight the operators by their recent success, so the
+4. **Adapt.** Reweight the operators by their recent success, so the
    roulette wheel favours what has been working.
 
 Eternity II is unusually friendly to step 1, because a partial board tells
@@ -56,7 +57,7 @@ you exactly where it hurts: the mismatched edges.
 
 Reading the loop is one thing; watching it learn is another. Below, a real
 solved 8×8 from the engine has been deliberately damaged, and the full ALNS
-loop runs on it in slow motion — destroy, greedy refill piece by piece,
+loop runs on it in slow motion: destroy, greedy refill piece by piece,
 accept or revert, reweight. Force an operator by hand and watch its weight
 bar respond; or just let the roulette drift toward whatever has been paying.
 
@@ -72,22 +73,22 @@ One iteration, exactly as the lab executes it:
 2. **Destroy.** The operator returns $k$ cells and their pieces come off the
    board. Picking random cells or a fixed shape is $O(k)$; conflict-guided
    operators (worst row, most-conflicted cells) also need the mismatch map,
-   which costs a linear scan unless the engine maintains it incrementally —
-   ours does, precisely so that destroy stays $O(k)$.
+   which costs a linear scan unless the engine maintains it incrementally.
+   Ours does, precisely so that destroy stays $O(k)$.
 3. **Repair, greedily.** Until the hole is full: take the empty cell with the
    most placed neighbours (most-constrained first), try every lifted piece in
    all four rotations, keep the placement that matches the most seams. Each
    of the $k$ placements scans the remaining candidates, so the pass costs
    $O(k \cdot |C|)$ where $|C|$ is the candidate pool (free pieces × 4
    rotations).
-4. **Accept or revert.** Score the rebuilt region — only the seams touching
+4. **Accept or revert.** Score the rebuilt region; only the seams touching
    the $k$ cells changed, so re-evaluation is $O(k)$. Keep the board if
    $\Delta \geq 0$, else keep it anyway with probability $e^{\Delta/T}$; on
    rejection, restore the snapshot.
 5. **Adapt.** Update the winner's weight,
    $w_o \leftarrow \lambda\, w_o + (1 - \lambda)\, \psi$, where the reward
    $\psi$ is tiered: new global best > improvement > accepted sideways move >
-   rejection. That exponential smoothing is the whole "adaptive" in ALNS —
+   rejection. That exponential smoothing is the whole "adaptive" in ALNS.
    Ropke and Pisinger's original does the same bookkeeping over segments of
    a few hundred iterations.
 
@@ -107,16 +108,16 @@ $$
 
 Three refinements worth knowing:
 
-- **Optimal refill is an assignment problem — sometimes.** When the freed
+- **Optimal refill is an assignment problem (sometimes).** When the freed
   cells are pairwise non-adjacent, each hole's cost depends only on its fixed
   neighbours, so the refill is exactly a $k \times k$ assignment problem:
   the Hungarian algorithm solves it optimally in $O(k^3)$. That is Schaus's
   Eternity II neighborhood. The moment two holes touch, their choices couple,
-  and optimal repair becomes a small CP/exact search — worst-case exponential
+  and optimal repair becomes a small CP/exact search, worst-case exponential
   in $k$, which is why large destroys stop paying.
 - **Anytime, and nothing more.** ALNS improves a feasible answer and can be
   stopped whenever; the best board so far *is* the output. It carries no
-  completeness or optimality guarantee — it can never certify that no better
+  completeness or optimality guarantee: it can never certify that no better
   board exists. On this puzzle that certificate has to come from elsewhere
   (the SAT oracle behind the [rigidity wall](/research/why/rigidity-wall)).
 - **At Eternity II scale the loop is cheap; the escape is not.** With
@@ -124,7 +125,7 @@ Three refinements worth knowing:
   iteration costs microseconds to milliseconds, and improvement curves
   flatten within dozens of iterations. The binding cost is therefore not the
   arithmetic but the probability that a $k$-cell neighbourhood contains the
-  one interlocking [σ-cycle](/research/why/sigma-cycles) that leads upward —
+  one interlocking [σ-cycle](/research/why/sigma-cycles) that leads upward,
   and that probability is what collapses near the top.
 
 ## An operator portfolio for boards
@@ -138,27 +139,28 @@ the portfolio, both measured on this project's engine and not independently
 replicated:
 
 - **Curation beats coverage.** A curated set of five operators outperformed
-  the full set of eleven — spreading the adaptive weights across too many
+  the full set of eleven; spreading the adaptive weights across too many
   operators dilutes the learning signal.
 - **Temperature is not the lever.** Across a tenfold range of acceptance
   temperatures the end scores were identical, because near the top the
   landscape is dominated by equal-score plateaus where essentially every
   move is accepted at any temperature.
 
-That destroy-and-repair suits this puzzle is not just our observation: Schaus
+That destroy-and-repair suits this puzzle is an old observation: Schaus
 and Deville hybridized constraint programming with large-neighborhood search
 on Eternity II back in
 [2008](https://hdl.handle.net/2078.5/253676),
-using CP as the repair step — the same division of labour that works here.
+using CP as the repair step, the same division of labour that works here.
 
 ## What it reliably buys
 
 Final polish. On this project's engine, ALNS is the step that turns
-constructive output into record-class boards — beam builds in the
-mid-450s consistently gain several edges under a refinement pass, and the
-project's strongest boards all carry an ALNS lift as their last stage. On
-smaller generated puzzles the effect is dramatic and repeatable: destroy-and-
-repair closes most of the distance between a random placement and the best
+constructive output into record-class boards:
+[beam](/research/build/concepts/beam-search) builds in the mid-450s
+consistently gain several edges under a refinement pass, and the project's
+strongest boards all carry an ALNS lift as their last stage. On smaller
+generated puzzles the effect is dramatic and repeatable: destroy-and-repair
+closes most of the distance between a random placement and the best
 reachable score, across a wide range of puzzle tightness, before saturating
 on the very hardest instances. (All of this is measured here, hedged
 accordingly.)
@@ -172,15 +174,16 @@ reproduces the same final score. When ALNS stops, it has stopped.
 Why it stops is the interesting part, and this site has two full pages on
 it. On every top board, the remaining mismatches are provably locked: freeing
 a generous neighbourhood around them and searching it exhaustively finds
-nothing better — the [rigidity wall](/research/why/rigidity-wall). And moving
-from one top board to a better one requires relocating a large set of pieces
-in one interlocking loop, where every partial application of the loop scores
-worse than doing nothing — the [σ-cycle structure](/research/why/sigma-cycles).
+nothing better; that is the [rigidity wall](/research/why/rigidity-wall). And
+moving from one top board to a better one requires relocating a large set of
+pieces in one interlocking loop, where every partial application of the loop
+scores worse than doing nothing: the
+[σ-cycle structure](/research/why/sigma-cycles).
 
 ALNS is exactly the wrong shape for that. A destroy neighbourhood of 20–80
 cells almost never covers the one cycle that matters, and when the
 destruction is large enough to cover it, the repair step faces a subproblem
 nearly as hard as the puzzle itself and gives back less than was torn down.
 Destroy-and-repair explores a basin superbly and escapes it essentially
-never. The honest summary from this project's measurements: ALNS is the best
+never. The summary this project's measurements support: ALNS is the best
 last mile we have, and it is only a last mile.

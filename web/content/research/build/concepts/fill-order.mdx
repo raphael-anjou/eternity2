@@ -3,34 +3,34 @@ title: Fill orders
 description: >-
   The order in which a backtracker visits the 256 cells is its one free
   choice: it costs nothing at runtime and moves the size of the search tree
-  by orders of magnitude. Twenty years of community science — the
-  fixed-vs-dynamic wars, the strategy races, the magic 10×16 square,
-  Verhaard's comb search — all answer the same question: which path through
-  the board is cheapest?
+  by orders of magnitude. Twenty years of community science, from the
+  fixed-vs-dynamic wars and the strategy races to the magic 10×16 square
+  and Verhaard's comb search, all answer the same question: which path
+  through the board is cheapest?
 kind: concept
 order: 110
 updated: 2026-07-02
 topics: [backtracking, search-space]
 sources:
-  - label: Owen's "Best Search Order" — scanline near-optimal, and the shape-counting argument (September 2007)
+  - label: Owen's "Best Search Order", scanline near-optimal, and the shape-counting argument (September 2007)
     url: https://groups.io/g/eternity2/message/2714
-  - label: The fixed-vs-dynamic debate — fixed paths win empirically (msg 2392; Owen's verdict msg 2425)
+  - label: The fixed-vs-dynamic debate, where fixed paths win empirically (msg 2392; Owen's verdict msg 2425)
     url: https://groups.io/g/eternity2/message/2392
-  - label: istarinz's one-word answer to why fixed paths win — speed (September 2008)
+  - label: Speed, istarinz's one-word answer to why fixed paths win (September 2008)
     url: https://groups.io/g/eternity2/message/5860
   - label: Verhaard's "magic 10×16 square" (msg 5868; the depth-160 explanation is msg 5879)
     url: https://groups.io/g/eternity2/message/5868
-  - label: Max measures scanline orientations — 2.3 vs 2.7 × 10⁴⁰ nodes (October 2008; thread starts msg 6015)
+  - label: Max measures scanline orientations, 2.3 vs 2.7 × 10⁴⁰ nodes (October 2008; thread starts msg 6015)
     url: https://groups.io/g/eternity2/message/6023
-  - label: Owen's design experiment — scanline wins only because E2's 5/17 split is balanced (msg 5263; tables msg 5243)
+  - label: Owen's design experiment showing scanline wins only because E2's 5/17 split is balanced (msg 5263; tables msg 5243)
     url: https://groups.io/g/eternity2/message/5263
   - label: Verhaard reveals the comb search for high scores (October 2008)
     url: https://groups.io/g/eternity2/message/6112
-  - label: Max's near-identical high-score order — twelve rows, then columns (October 2008)
+  - label: Max's near-identical high-score order of twelve rows, then columns (October 2008)
     url: https://groups.io/g/eternity2/message/6126
-  - label: The 89,794-node strategy race — automated order design vs hand tuning (msg 2896; the comeback msg 2928)
+  - label: The 89,794-node strategy race, automated order design vs hand tuning (msg 2896; the comeback msg 2928)
     url: https://groups.io/g/eternity2/message/2896
-  - label: Verhaard's Markov chain — optimizing the fill order and the slip array together (January 2009)
+  - label: Verhaard's Markov chain, optimizing the fill order and the slip array together (January 2009)
     url: https://groups.io/g/eternity2/message/6423
 related:
   - /research/why/complex-theory
@@ -43,25 +43,25 @@ import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
 A backtracker has almost no freedom. The pieces are given, the matching rule
 is given, the board is given. The one thing entirely up to you is the *fill
 order*: the sequence in which the 256 cells get filled. It looks like a
-detail — the search is exhaustive either way — and it is instead the
+detail (the search is exhaustive either way), and it is instead the
 highest-leverage decision in the whole solver. Brendan Owen said it plainly
 in 2007: "One of the biggest node count savings you can have is choosing a
 good search order"
 ([msg 2714](https://groups.io/g/eternity2/message/2714)). The same puzzle,
-walked in a different order, can cost ten orders of magnitude more nodes —
-and the choice is free, decided before the first piece is placed.
+walked in a different order, can cost ten orders of magnitude more nodes.
+And the choice is free, decided before the first piece is placed.
 
 That is why the mailing list argued about it for twenty years. The first
 great debate, in the summer of 2007, was *fixed versus dynamic*: veterans of
 Eternity I argued for dynamically picking the most-constrained cell at every
 step, the classic CSP heuristic
 ([msg 2392](https://groups.io/g/eternity2/message/2392)). The empiricists
-answered with node counts — the best results came from fixed, precomputed
+answered with node counts: the best results came from fixed, precomputed
 paths, and Owen's verdict was that "a scan-line search after the hint piece
 is placed seems the best"
 ([msg 2425](https://groups.io/g/eternity2/message/2425)). A year later,
 asked why nobody bothered with fully dynamic placement, istarinz compressed
-the engineering half of the answer into one word: speed — a fixed path keeps
+the engineering half of the answer into one word, speed: a fixed path keeps
 the inner loop branch-free and table-driven
 ([msg 5860](https://groups.io/g/eternity2/message/5860)). The theory half
 took longer, and is the subject of this page.
@@ -70,30 +70,30 @@ took longer, and is the subject of this page.
 
 One idea underneath everything: a piece placement is only ever tested
 against the neighbours *already on the board*. A 16×16 grid has exactly 480
-internal joins, and every complete fill order — row scan, spiral, anything —
+internal joins, and every complete fill order (row scan, spiral, anything)
 ends up checking all 480 of them. The order changes only the *schedule*:
 which joins are paid early, while the tree is still narrow, and which are
 deferred to where it is wide. A cell that arrives with two placed neighbours
 admits few candidate pieces; a cell that arrives with none admits nearly all
 of them and prunes nothing. Good orders are the ones that feed the search a
-steady diet of constrained cells — which is exactly what a row scan does:
+steady diet of constrained cells, which is exactly what a row scan does:
 after the first row, almost every new cell touches a piece on its left and a
 piece below.
 
 Owen turned this into a method. For a fixed order, the nodes at depth $D$
 are (in expectation) the number of ways to tile the *shape* the order has
-built at depth $D$ — so you can score any candidate order, shape by shape,
-without running it. His conclusion from doing this exhaustively: the shapes
+built at depth $D$. Any candidate order can therefore be scored, shape by
+shape, without running it. His conclusion from doing this exhaustively: the shapes
 that dominate the total are those of sizes 121–185, and the best shapes in
 that critical window "form a simple row scan order"
 ([msg 2714](https://groups.io/g/eternity2/message/2714)). The full
 machinery, join probabilities and all, became
-[complex theory](/research/why/complex-theory) — this page is what its
+[complex theory](/research/why/complex-theory); this page is what its
 answers look like in practice.
 
 The lab below makes the schedule visible. It animates the visit sequence of
-four preset orders over a 16×16 grid and plots, live, the constraint count —
-how many already-placed neighbours each new cell has — together with the
+four preset orders over a 16×16 grid and plots, live, the constraint count
+(how many already-placed neighbours each new cell has) together with the
 running total of joins collected. (It shows the *geometry*; to race real
 solves along paths you draw yourself, the hands-on companion is the
 [search-path playground](/playground/paths).)
@@ -106,23 +106,23 @@ solves along paths you draw yourself, the hands-on companion is the
 shared benchmark puzzles, full-search node counts, and a public scoreboard.
 The style peak was doc_s_smith's fully automatic strategy-finding algorithm,
 which designed a search order that exhausted the size-14 `hints15_2`
-benchmark in 89,794 nodes, beating Txibilis's hand-tuned 141,628 — machine
+benchmark in 89,794 nodes, beating Txibilis's hand-tuned 141,628: machine
 over human ([msg 2896](https://groups.io/g/eternity2/message/2896)).
 Txibilis struck back within two days with 85,729
-([msg 2928](https://groups.io/g/eternity2/message/2928)) — doc_s_smith had
+([msg 2928](https://groups.io/g/eternity2/message/2928)); doc_s_smith had
 already been musing about why humans are so strong in this discipline
 ([msg 2883](https://groups.io/g/eternity2/message/2883)). The lesson that
 survived the race: order quality is measurable, and the differences are
 never small.
 
 **Scanline's win is a fact about E2's design.** In April 2008 Owen built
-16×16 puzzles with the border/interior colour balance deliberately tipped —
-2 border and 19 interior colours, then 14 and 15 — and scored scanline,
+16×16 puzzles with the border/interior colour balance deliberately tipped
+(2 border and 19 interior colours, then 14 and 15) and scored scanline,
 middle-first and border-first orders on each. The tipped designs are
 attackable: middle-first beats scanline by ~150× on the 2/19 design,
 border-first wins on the 14/15. On E2's actual 5/17 split, every deviation
-*loses* — middle-first costs $1.22\times10^{60}$ nodes against scanline's
-$1.07\times10^{50}$ — because the design balances border and interior
+*loses*: middle-first costs $1.22\times10^{60}$ nodes against scanline's
+$1.07\times10^{50}$, because the design balances border and interior
 tileability, giving the puzzle "no weak areas to start tiling from"
 ([msg 5263](https://groups.io/g/eternity2/message/5263),
 [5243](https://groups.io/g/eternity2/message/5243)). Row scan is not a law
@@ -131,7 +131,7 @@ of nature; it is the correct answer to one specific, adversarial design.
 **The magic 10×16 square.** Why row scan and not, say, a 4×4 block order?
 Louis Verhaard's frontier-shape rule of thumb: most orders hit their
 node-count maximum around depth 160, so what matters is the shape your
-order has built *there* — and the best known depth-160 shape for E2 is a
+order has built *there*, and the best known depth-160 shape for E2 is a
 10×16 rectangle (with two corners filled). Orders whose frontier passes
 through "the magic 10×16 square" are near-optimal; a 2×2 block scan does, a
 4×4 does not, which is exactly the gap Max had just measured
@@ -141,19 +141,19 @@ constraint-count curve alone can't see: two orders can pay joins on the same
 schedule and still differ through the perimeter of the region they build.
 
 **Which scanline, though?** Even within row scans there are eight
-orientations — four corners to start from, rows or columns
+orientations: four corners to start from, rows or columns
 ([msg 6018](https://groups.io/g/eternity2/message/6018)). Max ran multi-day
 sampling estimates of the full-tree size per orientation: right-to-left held
-stable just below $2.7\times10^{40}$ nodes, while bottom-up, left-to-right —
-the orientation that connects the mandatory starter piece earliest, and the
-one Verhaard already used — came out around $2.3\times10^{40}$
+stable just below $2.7\times10^{40}$ nodes, while bottom-up, left-to-right
+(the orientation that connects the mandatory starter piece earliest, and
+the one Verhaard already used) came out around $2.3\times10^{40}$
 ([msg 6015](https://groups.io/g/eternity2/message/6015),
 [6023](https://groups.io/g/eternity2/message/6023)). A folklore choice
-turned into a measured ~15% — small next to the orders of magnitude above,
+turned into a measured ~15%: small next to the orders of magnitude above,
 but free.
 
 **Deviations that paid.** The scan-order orthodoxy was tested constantly,
-and mostly won — but not always. Owen himself solved his 14×14 challenge
+and mostly won, but not always. Owen himself solved his 14×14 challenge
 with a *decreasing squares* order after scanline stalled; on irregular
 boards the balance argument no longer holds
 ([msg 3124](https://groups.io/g/eternity2/message/3124)). Hybrids were
@@ -161,9 +161,9 @@ proposed that start as increasing squares (cheaper early) and switch to
 scanline before the mid-depth peak
 ([msg 6142](https://groups.io/g/eternity2/message/6142)). And Max found a
 genuine within-scanline improvement: at a row start, border candidates that
-differ only in their unmatched second border colour are equivalent — refute
-one and you have refuted them all. Verhaard, delighted — "Finally something
-that beats simple scan-row!" — implemented it and confirmed ~10% of the
+differ only in their unmatched second border colour are equivalent: refute
+one and you have refuted them all. Verhaard, delighted ("Finally something
+that beats simple scan-row!"), implemented it and confirmed ~10% of the
 search space gone at near-zero cost
 ([msg 5980](https://groups.io/g/eternity2/message/5980),
 [5983](https://groups.io/g/eternity2/message/5983),
@@ -172,68 +172,69 @@ search space gone at near-zero cost
 ### Comb search: the high-score geometry
 
 All of the above optimizes a *full* search, whose node count peaks near
-depth 161. In October 2008 — while privately sitting on the boards that
-would win the $10,000 scrutiny prize — Verhaard answered a different
+depth 161. In October 2008, while privately sitting on the boards that
+would win the $10,000 scrutiny prize, Verhaard answered a different
 question from Owen: what is the best order when you are chasing a partial
 *score*, and therefore living much deeper in the board
 ([msg 6111](https://groups.io/g/eternity2/message/6111))? His answer named
-a geometry: the best orders he had found resemble a **comb search** — most
-rows searched horizontally, then the remaining rows searched vertically —
+a geometry: the best orders he had found resemble a **comb search** (most
+rows searched horizontally, then the remaining rows searched vertically),
 with the tooth length tied to the target: "The lower the score you aim for,
 the longer the teeth of the comb become"
 ([msg 6112](https://groups.io/g/eternity2/message/6112)). Max had
-independently converged on nearly the same order — twelve rows of scanline,
-then column scan — and reported scores "roughly 1 edge lower" than what
+independently converged on nearly the same order (twelve rows of scanline,
+then column scan) and reported scores "roughly 1 edge lower" than what
 Louis's solver accomplished
 ([msg 6126](https://groups.io/g/eternity2/message/6126)).
 
 The intuition: a full search must cross the depth-160 bottleneck as cheaply
-as possible; a high-score search instead wants many cheap ways to *finish* —
-each vertical tooth is a short, nearly independent column whose failures are
+as possible; a high-score search instead wants many cheap ways to *finish*.
+Each vertical tooth is a short, nearly independent column whose failures are
 local, so deep, high-scoring frontiers are reached again and again. The comb
 was one half of the machine behind the 467; the other half,
 [depth-gated edge slipping](/research/build/concepts/edge-slipping), decided
 what the teeth were allowed to place. And the two were tuned *together*:
 Verhaard optimized the fill order and the slip array jointly with a Markov
 chain over (depth, slips used), built from measured per-depth fit
-probabilities ([msg 6423](https://groups.io/g/eternity2/message/6423)) —
-order design by calculation, not folklore. The full engine is on
+probabilities ([msg 6423](https://groups.io/g/eternity2/message/6423)).
+Order design by calculation, not folklore. The full engine is on
 [the Verhaard eii page](/research/build/solvers/verhaard-eii).
 
 ## Step by step
 
 1. **Watch the row scan.** After the first row, nearly every placement meets
-   exactly two placed neighbours — left and below. The constraint curve
+   exactly two placed neighbours: left and below. The constraint curve
    flatlines at 2, and the cumulative joins climb steadily: the search pays
    as it goes.
-2. **Switch to the spiral.** The entire first ring — 60 placements — arrives
+2. **Switch to the spiral.** The entire first ring (60 placements) arrives
    with at most one placed neighbour: sixty nearly unconstrained choices
    stacked up before the interior starts paying them back. The cumulative
    line sags below the row-scan reference exactly where the tree can least
    afford it.
 3. **Try the diagonal.** Surprise: the counts look almost like the row
-   scan's. This is the limit of the neighbour-count view — the diagonal's
+   scan's. This is the limit of the neighbour-count view: the diagonal's
    frontier is longer than a scanline's for much of the middle game, a shape
    effect only [complex theory](/research/why/complex-theory) (or the magic
    10×16 rule) can score.
 4. **Select the comb at teeth 4.** Twelve rows of scanline, then vertical
-   teeth — Max's order from
+   teeth, Max's order from
    [msg 6126](https://groups.io/g/eternity2/message/6126). Note the little
    cliff at each new tooth: the first column pays a weak, 1-neighbour cell
    at its base, the price of the high-score geometry.
 5. **Lengthen the teeth.** More of the board moves into vertical mode and
-   the weak placements multiply — Verhaard's trade stated visually: the
+   the weak placements multiply. That is Verhaard's trade, stated
+   visually: the
    lower the score you aim for (the more slips you'll allow), the longer
    the teeth you can afford.
 6. **Then race it for real.** The
    [search-path playground](/playground/paths) lets you draw any of these
-   paths — or your own — on a real puzzle and watch solvers race them,
+   paths, or your own, on a real puzzle and watch solvers race them,
    with a live plateau-peak estimate alongside.
 
 ## What it costs
 
 At runtime, nothing: a fixed fill order is a precomputed array of 256 cell
-indices, and "choose the next cell" is an index increment — $O(1)$, zero
+indices, and "choose the next cell" is an index increment: $O(1)$, zero
 branches, which is precisely the speed argument that killed dynamic
 ordering for E2 ([msg 5860](https://groups.io/g/eternity2/message/5860)).
 All the cost and all the payoff live in the tree the order induces:
@@ -241,7 +242,7 @@ All the cost and all the payoff live in the tree the order induces:
 - **Between order families, orders of magnitude.** Middle-first on E2 is
   $10^{10}$ times more expensive than scanline
   ([msg 5263](https://groups.io/g/eternity2/message/5263)); a 4×4 block
-  order costs ~70× over 1×1 scanline by Max's complex-theory estimates —
+  order costs ~70× over 1×1 scanline by Max's complex-theory estimates,
   the gap the magic 10×16 rule summarizes
   ([msg 5867](https://groups.io/g/eternity2/message/5867)).
 - **Within a family, measurable percentages.** Bottom-up-left-right vs
@@ -250,7 +251,7 @@ All the cost and all the payoff live in the tree the order induces:
   equivalence pruning: ~10%
   ([msg 6062](https://groups.io/g/eternity2/message/6062)). Worth having,
   never decisive.
-- **Choosing wrong is invisible.** A bad order produces no error — just a
+- **Choosing wrong is invisible.** A bad order produces no error, just a
   tree that is $10^{10}$ times bigger, silently. That is why the community's
   real advance was not any single order but the ability to *score an order
   before running it*: Owen's shape counts, then

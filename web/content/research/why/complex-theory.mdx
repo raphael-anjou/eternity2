@@ -2,7 +2,7 @@
 title: "Complex theory: counting the search before you run it"
 description: >-
   Brendan Owen's complex theory estimates how wide the search tree is at every
-  depth — and how many solutions exist at all. Many in the community consider
+  depth, and even how many solutions exist at all. Many in the community consider
   it the single most important thing to understand about Eternity II.
 kind: finding
 order: 30
@@ -35,17 +35,17 @@ import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
   with arbitrary-precision arithmetic and posted the numbers. We're writing it
   up here because a community member (Dan Karlsson) rightly pointed out it was
   missing, and because it underpins almost every good decision you can make
-  about a solver — especially the choice of search order.
+  about a solver, above all the choice of search order.
 </Callout>
 
 ## The idea
 
 Take a scan order and walk it one cell at a time. At each new cell, a random
-unused piece matches its already-placed neighbours with some probability — a
+unused piece matches its already-placed neighbours with some probability: a
 product of per-edge colour-match chances. Multiply that by how many pieces are
 left and you get the expected number of ways to extend the board one cell
 further. Chain this down all 256 cells and you have a closed-form estimate of
-how wide the search tree is at every depth, and — at the last cell — how many
+how wide the search tree is at every depth and, at the last cell, how many
 full solutions the puzzle has.
 
 It is an average, not a true count: it assumes the 22 edge colours are drawn
@@ -62,41 +62,41 @@ within about a factor of two. That is more than enough to see the shape.
 
 With only the mandatory centre piece the puzzle has on the order of fifteen
 thousand solutions; add the four other clues and the expected count drops to
-about $4\times10^{-8}$ — overwhelmingly, exactly one. This is the formal
+about $4\times10^{-8}$: overwhelmingly, exactly one. This is the formal
 reason the 5-clue puzzle has a single designed solution.
 
 ## The funnel
 
-Plot the expected width at each depth and three regimes appear — the shape the
-community calls the E2 funnel.
+Plot the expected width at each depth and three regimes appear. Their shape is
+what the community calls the E2 funnel.
 
 <ComplexFunnel />
 
 ## Try it: the order decides the funnel
 
-The same estimate, run live for different scan orders. The plateau peak — the
-widest point the search must cross — is decided by the order alone, before a
+The same estimate, run live for different scan orders. The plateau peak (the
+widest point the search must cross) is decided by the order alone, before a
 single node is placed.
 
 <ComplexFunnelLab />
 
 ## Three regimes
 
-- **Growth (depth 1–50)** — Solutions multiply geometrically from one to
+- **Growth (depth 1–50).** Solutions multiply geometrically from one to
   about $10^{27}$. Every placement is essentially free; nothing constrains you
   yet.
-- **Plateau (depth 50–200)** — The tree is at its widest — about $10^{45}$
-  ways to extend — while the solution count barely moves. This is where
+- **Plateau (depth 50–200).** The tree is at its widest, about $10^{45}$
+  ways to extend, while the solution count barely moves. This is where
   backtrackers spend roughly 99% of their time, matching Joe's empirical
   finding that most time is spent below depth 150.
-- **Collapse (depth 200–256)** — The width falls from $10^{45}$ back to about
+- **Collapse (depth 200–256).** The width falls from $10^{45}$ back to about
   $10^{4}$. The last ~60 pieces are tightly constrained: each one placed
-  eliminates orders of magnitude of branches. The endgame is locally easy —
+  eliminates orders of magnitude of branches. The endgame is locally easy;
   the hard part is reaching it.
 
 ## Why it changes how you search
 
-If almost all the work is in the plateau, the goal isn't raw speed — it's
+If almost all the work is in the plateau, the goal isn't raw speed. It is
 getting across the plateau to the funnel entrance (around depth 200), after
 which the search chains down deterministically. And because complex theory
 scores a scan order before you run it, you can compare orders by the height of
@@ -110,7 +110,7 @@ because complex theory said it was good.
 The same idea works if you place 2×2 or 3×3 tiles instead of single pieces: a
 whole block of cells is committed at once, with its internal edges already
 matched. The [search-path playground](/playground/paths) lets you do this for
-real — pick a block shape (1×1, 2×1, 2×2, 3×3, …) and stamp blocks onto the
+real: pick a block shape (1×1, 2×1, 2×2, 3×3, …) and stamp blocks onto the
 grid to build a block path. Race it and a dedicated macro-piece solver commits
 one whole valid sub-assembly per block instead of one piece at a time, so the
 search advances region by region. The plateau-peak estimate alongside still
@@ -122,7 +122,7 @@ single node.
 Complex theory is a first-moment estimate, so it is blind to one thing:
 whether the many counted partial boards are genuinely distinct. The
 [entropy and area-law results](/research/why/entropy-area-law) show that
-distinctness collapses past ~80 cells — a second-order effect the
+distinctness collapses past ~80 cells, a second-order effect the
 independent-edge model cannot capture. So use complex theory to choose orders
 and read the tree's shape, never as a true count or a bound.
 
@@ -134,13 +134,13 @@ the completed model in April 2008
 [5209](https://groups.io/g/eternity2/message/5209)), and later proved a neat
 closed form: for a scan order the node-count peak sits at depth
 $256\,(1 - 1/e) \approx 161.8$
-([msg 8125](https://groups.io/g/eternity2/message/8125)) — the funnel above
+([msg 8125](https://groups.io/g/eternity2/message/8125)); the funnel above
 peaks there empirically. Peter McGavin typeset the theory
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), published the
 14,702 expected-solutions figure as early as 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), and in 2017
 delivered its strongest validation: solving Brendan's hint-free 10×10
-benchmark by searching complex-theory-ranked first rows — roughly 180
+benchmark by searching complex-theory-ranked first rows: roughly 180
 core-years, landing inside the theory's predictions
 ([msg 9686](https://groups.io/g/eternity2/message/9686),
 [9688](https://groups.io/g/eternity2/message/9688)). His 2024 reference C
