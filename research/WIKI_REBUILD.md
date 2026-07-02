@@ -236,10 +236,19 @@ useRunWhileVisible + 8ms budgets — never block navigation), (b) a
 "step by step" worked walkthrough, (c) an "algorithmic cost" section with
 verified complexity formulas in KaTeX. Wave 1 = the 9 existing concepts.
 
-### Phase 7 — ALL of groups.io into the wiki
+### Phase 7 — ALL of groups.io into the wiki (MAJOR PROGRESS 2026-07-02)
 
-The digests become the roadmap: research/community/PAGE_CANDIDATES.md
-(generated) lists every distinct technique/tool/story in the archive worth a
-page, with inventors, key msgs, section, and priority. Then page-writing
-waves work through it P1-first. Everything sourced, attributed, and
-cross-linked; new concepts follow the Phase 6 educational bar.
+Roadmap: research/community/PAGE_CANDIDATES.md (39 candidates: 9 P1, 20 P2,
+10 P3). Status after the day's waves — ALL 9 P1s done, plus 10 P2s:
+- P1 ✅: edge-slipping, fill-order (comb folded in), verhaard-eii,
+  solver-engineering, restarts, design-recipe, tooling-lineage,
+  complex-theory-provenance (applied), records-corrections (applied)
+- P2 ✅: mcgavin engine deep dive, people who's-who, this-site engine,
+  gpu-solving, fpga-solving, distributed-solving, clue-puzzles,
+  lp-relaxations, iterated-maps, solution-counting, variants,
+  nogood-learning
+- Remaining: the rest of the P2/P3 tail in PAGE_CANDIDATES.md (e.g.
+  piece-set statistics, per-person deep pages, e2coin-grade curios) — lower
+  value, good future-session material, several flagged already-covered.
+The Build section now holds 19 concepts, 4 solver pages, and 8 reference
+pages — every claim message-sourced.
