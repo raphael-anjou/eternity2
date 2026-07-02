@@ -1,0 +1,244 @@
+---
+title: Edge slipping
+description: >-
+  Louis Verhaard's prize-winning move: let the backtracker place a mismatched
+  piece, but only at chosen depths near the end of the board. Each allowed
+  slip costs one point of score and multiplies the number of target boards
+  astronomically — the reason his 467 was found more than fifty times, and
+  the direct ancestor of Blackwood's breaks.
+kind: concept
+order: 100
+updated: 2026-07-02
+topics: [search-space, local-search]
+sources:
+  - label: Verhaard defines edge slipping (January 2009)
+    url: https://groups.io/g/eternity2/message/6328
+  - label: Verhaard details the 467 method — slipping gated at chosen depths, found 50+ times (December 2009)
+    url: https://groups.io/g/eternity2/message/7321
+  - label: Verhaard's first-person 467 account — 247 flawless pieces (August 2009)
+    url: https://groups.io/g/eternity2/message/6891
+  - label: Max's counting formula for N slipped edges (January 2009)
+    url: https://groups.io/g/eternity2/message/6390
+  - label: Owen extends complex theory to edge slips (msg 6408; the slip table is msg 6412)
+    url: https://groups.io/g/eternity2/message/6408
+  - label: Verhaard's Markov chain over (depth, slips) — how the slip array was optimized (msg 6423)
+    url: https://groups.io/g/eternity2/message/6423
+  - label: JSA reproduces the 467 with the public solver — the rarity ladder (msg 6687)
+    url: https://groups.io/g/eternity2/message/6687
+  - label: Blackwood's no-adjacent-breaks discipline (msg 10051)
+    url: https://groups.io/g/eternity2/message/10051
+related:
+  - /research/build/solvers/blackwood
+  - /research/build/concepts/parity-arguments
+  - /research/why/complex-theory
+---
+
+import { EdgeSlipLab } from "@/components/research/concepts/EdgeSlipLab";
+
+Edge slipping is the deliberate placement of a piece that does not match one
+of its neighbours. Louis Verhaard, who coined the term on the mailing list,
+defined it in one line: "putting a piece on the board that does not match the
+colour of one or more of its neighbours"
+([msg 6328](https://groups.io/g/eternity2/message/6328)). That sounds like a
+description of failure. It is in fact the single most consequential
+partial-score idea in the puzzle's history: because Eternity II's prize
+ladder scored *matched edges* rather than perfect completion, a mismatch
+costs exactly one point of 480 — and tolerating a budget of them converts
+one unreachable target, the perfect board, into an astronomical number of
+reachable ones. The craft is in the word *budget*: slips are not allowed
+anywhere, but unlocked on a schedule, deep in the search, where they are
+cheap. Everything on this page is about that schedule.
+
+## The mismatch that wins prizes
+
+In the summer of 2008, Verhaard was stuck the honest way. Without any
+mismatch tolerance he had found hundreds of partials with 248 pieces
+correctly placed — score 450 — and calculated his ceiling at roughly 456. He
+only discovered that half-fitting pieces were *allowed* when he ran Bob
+Cousins's public solver (originally Dave Clark's) and watched it hit 458
+within a minute; he had, by his own cheerful admission, never bothered to
+read the rules ([msg 5767](https://groups.io/g/eternity2/message/5767)). The
+same discovery struck Max independently that July: he tweaked his
+backtracker to tolerate single mismatched edges past piece 215 and took a
+219-piece scanline partial to 461 on the spot
+([msg 5691](https://groups.io/g/eternity2/message/5691)); by September he
+was past the community's "don't-talk-about-limit" of 463, "quite easily".
+Verhaard's reply — "Max, you are really a dangerous man!" — opens the
+method exchange in which both describe the shape of the mature technique:
+heuristic depth-first search tuned to keep the remaining pieces tileable,
+with a mismatch allowance at the end
+([msgs 5767–5787](https://groups.io/g/eternity2/message/5767)).
+
+Six months later, the first scrutiny paid out: $10,000 to "Anna Karlsson
+from Lund" — Verhaard's wife, running his program
+([msg 6891](https://groups.io/g/eternity2/message/6891)) — for a board with
+467 of 480 edges matched. The number that matters for this page is not 467
+but *fifty*: "the 467 was not a once-off; I found it more than 50 times"
+([msg 7321](https://groups.io/g/eternity2/message/7321)). A score that no
+exhaustive argument said should be findable at all was being found
+repeatedly, on hobbyist hardware — and when Verhaard released the solver,
+JSA reproduced it from the outside, logging 4,017,182 boards at 463, 227,245
+at 464, 13,637 at 465, 625 at 466 and finally two 467s over roughly eighty
+days of continuous running
+([msg 6687](https://groups.io/g/eternity2/message/6687)). That ladder of
+rarity is climbable for one reason: every rung is not a single board but a
+combinatorially enormous class of boards, and slipping is what makes the
+class reachable. Most of Verhaard's 467s had a *clean* score — pieces with
+no mismatched edge at all — of only 247
+([msg 7321](https://groups.io/g/eternity2/message/7321)); the mismatches
+were not blemishes on the result, they were the mechanism.
+
+## How it works
+
+Verhaard's own description is compact
+([msg 7321](https://groups.io/g/eternity2/message/7321)). The program
+"searches normally" — a depth-first backtracker over a fixed fill order,
+with heuristics tuned to maximize the tileability of the remaining pieces —
+but at certain depths it *allows edge slipping*: a piece may be placed with
+one edge disagreeing with an already placed neighbour. He is explicit about
+what it is not: the solver does not first build a clean partial and then
+cram leftover pieces into the holes at the end, and it is a different
+program from his clean-score searcher, which is allowed to skip squares
+instead of mismatching them.
+
+The allowance is depth-gated and cumulative — what his documentation calls
+the *slip array*: for every depth, the number of slipped edges the search is
+permitted to have accumulated so far. Below the first gate the solver is an
+ordinary exact backtracker. Past it, each placement may either fit perfectly
+or, if the budget at that depth allows, half-fit — and the budget unlocks
+one slip at a time as the depth increases. Two facts make late gates the
+whole game:
+
+- **Branching.** A random piece half-fits far more often than it fits —
+  Verhaard's machinery tracks the two probabilities separately, per depth,
+  as `fitProb` and `halfFitProb`
+  ([msg 6423](https://groups.io/g/eternity2/message/6423)). Open the slip
+  door at depth 40 and you multiply the width of the tree where it is
+  already widest, drowning the search in junk prefixes. Open it at depth 210,
+  where the surviving branches are nearly forced and candidate counts hover
+  near zero, and the same extra option revives dying branches for almost
+  nothing.
+- **Inheritance.** A depth-first search never repairs a slip; undoing it
+  means backtracking through everything placed after it. A slip admitted at
+  depth 41 is baked underneath 215 subsequent placements; one admitted at
+  depth 221 sits under 35. Early slips spend the budget where it buys the
+  least and costs the most.
+
+And the gates were not guessed. Verhaard optimized both the fill order and
+the slip array with a Markov chain whose states are pairs (depth, slips used
+so far), with transition probabilities estimated from measured fit and
+half-fit rates; from the chain he computed the probability of reaching the
+bottom of the board and the number of nodes each candidate schedule would
+cost ([msg 6423](https://groups.io/g/eternity2/message/6423)). The winning
+schedule concentrated the entire budget late — thirteen slips, a target of
+467.
+
+<EdgeSlipLab />
+
+## Step by step
+
+1. **Set N = 0.** One target class: the perfect boards. Nobody has ever
+   found one, and [complex theory](/research/why/complex-theory) explains
+   why nobody should expect to.
+2. **Slide to N = 2.** Already ≈ 1.8 × 10⁵ times more targets, at score 478.
+   Each extra allowed slip multiplies the class again — the bars climb by
+   roughly two orders of magnitude per step.
+3. **Mind the gap at N = 1.** There is no bar: a lone slipped interior edge
+   is parity-forbidden, and Owen's slip table has an exact zero there
+   ([msg 6412](https://groups.io/g/eternity2/message/6412)). The only
+   single-mismatch boards route through the unscored border rim — the same
+   leak that produced [the 479 story](/research/build/concepts/parity-arguments).
+4. **Stop at N = 10.** Target score 470 — the current record, and exactly
+   the break budget of [Blackwood's solver](/research/build/solvers/blackwood).
+5. **Stop at N = 13.** Target score 467, multiplier ≈ 6.9 × 10²⁷. This is
+   why one hobbyist's program found the prize board more than fifty times.
+6. **Toggle the gates early.** Same budget, same multiplier — but the
+   earliest slip now sits beneath 215 later placements instead of 55, and
+   the extra branching lands where the tree is widest. The schedule, not
+   the budget, is what Verhaard's Markov chain was built to get right.
+
+## What it costs
+
+Asked how many high partials exist, Max worked backwards from the full
+solutions and produced the community's rule-of-thumb count for boards with
+$N$ slipped interior edges
+([msg 6390](https://groups.io/g/eternity2/message/6390)):
+
+$$
+S(480-N) \;\approx\; 2^{\,N-1}\binom{420}{N}\,S(480), \qquad N \ge 2,
+$$
+
+where $\binom{420}{N}$ chooses which of the 420 interior joins break, the
+powers of two account (roughly) for the ways each break can be realized, and
+$S(480)$ is the number of perfect boards. Plugging in the early
+complex-theory estimate $S(480) = 26{,}700$ he got about $4.7 \times 10^9$
+boards at 478, $2.9 \times 10^{30}$ at 468 and $1.8 \times 10^{32}$ at 467 —
+numbers this project has re-verified from the formula. Two consequences
+matter more than the absolute values, which Max himself flagged as
+oversimplified:
+
+- **The cost of one more matched edge.** Consecutive ratios telescope:
+  $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
+  \approx 63$. Each edge you refuse to slip shrinks the target class by a
+  factor of about sixty — matching the observed behaviour of Verhaard's
+  solver, Max's own measurement of a ~30×-plus slowdown per edge, and
+  Owen's older ~100× rule of thumb
+  ([msg 6390](https://groups.io/g/eternity2/message/6390)).
+- **The ceiling.** The multiplication is bought with score: $N$ allowed
+  slips cap the board at $480 - N$ forever. Slipping buys reachability, not
+  quality — it converts an impossible search into a feasible one whose best
+  possible outcome is strictly worse.
+
+The runtime price, by contrast, is almost nothing: per placement the solver
+compares a slip counter against the slip array's entry for the current depth
+— $O(1)$ bookkeeping, incremented on a half-fit placement and restored on
+backtrack. All the cost lives in the tree it unlocks, which is why the gate
+placement is the design problem.
+
+Owen closed the loop by extending
+[complex theory](/research/why/complex-theory) to slips: replace the
+probability that all $m$ joins match with $pm(m,v)$, the probability that
+exactly $v$ do, via the recursion $pm(m,v) = pm(m-1,v) - pm(m,v+1)$, then
+weight by the ways to position the slips
+([msg 6408](https://groups.io/g/eternity2/message/6408)). His table puts
+boards with 13 slips at $2.05 \times 10^{35}$ times the count of perfect
+boards ([msg 6412](https://groups.io/g/eternity2/message/6412)) — seven
+orders of magnitude above Max's figure, because the theory also counts
+near-boards that are not perturbations of any solution, while Max counted
+only those derived from a perfect board. Take either number: the target set
+explodes combinatorially, while the price is linear in score.
+
+## From slipping to breaks
+
+For twelve years the 467 stood, and so did the design. When Joshua Blackwood
+arrived in 2020 — an outsider, his 468 relayed to the list from Reddit — his
+record solver carried a hard-coded list:
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Read it against this page and it is a slip array: mismatches ("breaks", in
+his vocabulary) forbidden outright for the first 200 placements, then
+unlocked cumulatively, one at a time, at hand-chosen depths — ten in total,
+for a target score of 470. The concept, the depth gating and the
+late-concentration of the budget are Verhaard's design of 2008, re-derived
+at record strength; the retuning of exactly those unlock depths is what took
+Blackwood from 469 to 470. He also added a discipline Verhaard's version did
+not have: no two breaks may ever touch, so every mismatch sits isolated
+among matched edges — which is why any of his runs reaching 255 placements
+completes to 256, and why a 469 board doubles as a 249-piece clean partial
+with seven holes
+([msg 10051](https://groups.io/g/eternity2/message/10051)). The full
+machine, with its quota schedules and its parameter study, is on
+[the Blackwood page](/research/build/solvers/blackwood).
+
+The arithmetic of the lineage is worth saying out loud. Verhaard's thirteen
+slips targeted 467; Blackwood's ten target 470. By Max's ratio, each slip
+removed costs a factor of about sixty, so those three edges are roughly a
+$2 \times 10^5$ multiplier in difficulty — paid for by twelve years of
+hardware, a faster inner loop, and a community running the code in
+parallel. The technique itself did not change. On a puzzle scored by matched
+edges, the winning move — twice, thirteen years apart — was not a better
+search for perfect boards. It was a scheduled, budgeted redefinition of what
+counts as a target.
