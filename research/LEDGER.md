@@ -726,3 +726,19 @@ clue-puzzles sourcing exposed a site-wide error: known-facts and the Puzzle
 page said "two clue puzzles + two later placements" — the archive documents
 FOUR puzzles, each revealing one placement (rules msg 182, mechanism 4187).
 Corrected in both languages on both pages.
+
+### 2026-07-02 — P2 wave: LP relaxations, iterated maps, solution counting
+
+- concepts/lp-relaxations — the optimizer's road: the compact ILP
+  formulation, why the LP is happy while the puzzle isn't (Birkhoff broken
+  by seam constraints, the verbatim fractional corner), the measured plateau
+  table (12 campaigns 2007-2025), what LP/MIP is still for.
+- concepts/iterated-maps — the Elser lineage with scope honesty: a road
+  lightly traveled (one empirical test, a promised write-up that never
+  appeared), the exact PNAS difference map, Elser's own 5x5 code in the
+  group files, and a concrete attempt-today protocol.
+- concepts/solution-counting — the three regimes (exact, expectation,
+  culled) with the 9x9 replication lesson and Owen's 4.05e37 border count
+  as the methodology gem; the naive toy expectation shown honestly failing
+  by six orders.
+The concepts shelf now covers 17 techniques.
