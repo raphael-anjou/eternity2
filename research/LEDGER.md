@@ -714,3 +714,15 @@ Four more archive-sourced pages at the educational bar:
 - build/tooling — the 28-tool census 2007-2026 with the conventions layer;
   two brief-corrections from primary sources (group Files survived the
   migration; eii-pgen = msg 11752).
+
+### 2026-07-02 — P2 wave: GPU solving, distributed solving, clue puzzles (+ another self-correction)
+
+Three more archive pages: gpu-solving (eleven attempts 2007-2025, Field's
+bandwidth anchor, Miles's enumeration win — first page of the hardware
+topic hub), distributed-solving (swarms vs fleets, the DFS-partitioning
+problem, what 10^19 ops bought), clue-puzzles (the four products per-puzzle
+with the checker fiasco and the not-publicly-documented gaps stated). The
+clue-puzzles sourcing exposed a site-wide error: known-facts and the Puzzle
+page said "two clue puzzles + two later placements" — the archive documents
+FOUR puzzles, each revealing one placement (rules msg 182, mechanism 4187).
+Corrected in both languages on both pages.
