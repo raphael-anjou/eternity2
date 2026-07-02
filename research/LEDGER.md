@@ -696,3 +696,21 @@ EdgeSlipLab whose slider notches land on real history (N=13 = Verhaard's
 to parity-arguments). The lineage slipping→breaks is now told end to end.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (163 paths) ✓ links (120 files).
+
+### 2026-07-02 — Phase 7 wave 2: fill orders, solver engineering, restarts, tooling
+
+Four more archive-sourced pages at the educational bar:
+- concepts/fill-order — Owen's 121-185 decisive band, the magic 10x16
+  square, the 8-orientations race, comb search folded in; FillOrderLab
+  paints visit sequences against a live constraint-count curve (join counts
+  hand-verified); /playground/paths framed as the hands-on companion.
+- concepts/solver-engineering — the craft census (perfect hashing, cache
+  structs, bipieces incl. the honest 2x2 slowdown, codegen, BMI2,
+  node-counting discipline), closing on 4x-per-core vs 3 edges in 20 years.
+- concepts/restarts — Txibilis's 2007 heavy-tail measurement, Gomes/Luby
+  literature, Blackwood's "arbitrary" 50e9 cap, McGavin's row-farming as
+  restart practice; RestartTailLab shows the cutoff U-curve (~217x at the
+  historical cutoff).
+- build/tooling — the 28-tool census 2007-2026 with the conventions layer;
+  two brief-corrections from primary sources (group Files survived the
+  migration; eii-pgen = msg 11752).
