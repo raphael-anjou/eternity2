@@ -24,6 +24,8 @@ related:
   - /research/build/dead-ends
 ---
 
+import { ReginMatchingLab } from "@/components/research/concepts/ReginMatchingLab";
+
 Sous l'appariement des couleurs, Eternity II porte une seconde loi globale :
 les 256 cases doivent recevoir 256 pièces *distinctes*. Écrite comme une
 contrainte, c'est un unique tous-différents sur tout le plateau. La plupart
@@ -59,6 +61,79 @@ d'être décomposée en vérifications par paires, faibles. Les versions
 incrémentales (Régin 1995 ; Mehlhorn & Thiel 2000) réparent le couplage après
 quelques suppressions au lieu de le recalculer — c'est ce qui le rend
 abordable au cœur d'une boucle de recherche.
+
+## Voyez le filtre à l'œuvre
+
+La construction est plus facile à croire qu'à se représenter ; la voici donc
+sur une instance à six pièces, bâtie pour contenir un piège : les cases C1 et
+C2 ne puisent que dans les pièces P1 et P2 — un ensemble de Hall. Le rayage
+ne voit rien à redire à ce que C3 garde P2 comme candidate ; l'argument de
+couplage prouve que c'est impossible. Construisez d'abord le couplage
+(regardez un chemin augmentant déloger puis re-router une affectation
+antérieure), puis lancez le filtre et voyez les composantes fortement
+connexes dénoncer chaque arête qu'aucun couplage maximum ne peut utiliser.
+
+<ReginMatchingLab />
+
+Le gain à remarquer : trois arêtes supprimées, et deux cases *forcées* — C3
+doit prendre P3 et C6 doit prendre P6, des conclusions que le raisonnement
+par paires n'atteindrait qu'après avoir branché. C'est le sens de « filtrer à
+l'optimum » : après la passe de Régin, chaque candidat survivant participe
+réellement à au moins une affectation complète.
+
+## Pas à pas
+
+La même exécution, en toutes lettres :
+
+1. **Construire le graphe biparti.** Les cases d'un côté, les pièces de
+   l'autre, une arête partout où une pièce figure encore dans le domaine
+   d'une case — six cases, six pièces, treize arêtes dans la démo.
+2. **Faire grandir le couplage par chemins augmentants.** C1 prend P1. C2
+   veut aussi P1 : plutôt que d'abandonner, on suit le *chemin alternant*
+   C2–P1–C1–P2 — P1 est prise, mais sa propriétaire C1 dispose d'une
+   alternative libre, P2. On bascule chaque arête du chemin : C1 glisse vers
+   P2, C2 obtient P1, le couplage a grandi d'une unité. On répète jusqu'à
+   couvrir toutes les cases. Si une case épuise un jour ses chemins, aucune
+   affectation complète n'existe et la recherche rebrousse chemin sur-le-champ.
+3. **Orienter le graphe.** Les arêtes couplées vont de la case vers la
+   pièce ; les autres, de la pièce vers la case. Un cycle alternant du graphe
+   d'origine devient un cycle orienté dans celui-ci.
+4. **Calculer les composantes fortement connexes** (Tarjan, une passe
+   linéaire). Dans la démo, \{C1, C2, P1, P2\} forment une composante — elles
+   s'échangent leurs deux pièces le long d'un cycle — et \{C4, C5, P4, P5\} une
+   autre.
+5. **Appliquer la règle de Berge.** Une arête non couplée ne peut rejoindre
+   *un* couplage maximum que si elle est sur un cycle alternant (même
+   composante) ou sur un chemin alternant partant d'un sommet libre (aucun
+   ici — le couplage est parfait). Tout le reste est mort : C3–P2, C4–P3 et
+   C6–P5 traversent chacune deux composantes, donc supprimées — prouvé, pas
+   deviné.
+6. **Lire les réductions.** Le domaine de C3 tombe à \{P3\}, celui de C6 à
+   \{P6\} : deux placements forcés obtenus sans le moindre branchement.
+
+## Ce que ça coûte
+
+Une invocation complète, c'est deux passes de graphe :
+
+- **Couplage maximum** par Hopcroft–Karp : $O(m \sqrt{n})$ pour $m$ arêtes
+  faisables sur $n$ sommets — le terme dominant.
+- **Décomposition en composantes fortement connexes** par Tarjan :
+  $O(n + m)$, linéaire, plus autant pour balayer les arêtes et supprimer.
+
+Pour le tous-différents au niveau des pièces sur Eternity II, $n = 512$
+sommets (256 cases + 256 pièces) et $m$ au plus $256 \times 256 = 65\,536$
+arêtes, soit $m\sqrt{n} \approx 1{,}5$ million d'opérations d'arêtes pour une
+construction complète — de la petite monnaie sur du matériel moderne, et
+c'est le *pire* cas, à partir de zéro, avec des domaines au plus lâche. En
+pleine recherche, personne ne reconstruit : les versions incrémentales
+(Régin 1995 ; Mehlhorn & Thiel 2000) gardent le couplage précédent, le
+réparent en quelques chemins augmentants après chaque changement de domaine,
+et relancent la passe linéaire des composantes — un re-filtrage quasi
+linéaire par nœud en pratique. La variante par couleur est plus petite
+encore : un graphe par classe de couleur sur les seules demi-arêtes qui la
+portent, 22 petits couplages au lieu d'un gros. L'étiquette « polynomial »
+est tout l'enjeu : un filtrage complet d'une contrainte globale au prix d'un
+algorithme de graphes, pas au prix d'une recherche.
 
 ## Pourquoi il mord sur Eternity II
 
@@ -106,12 +181,10 @@ l'est plus, donc le filtre de Régin sur les pièces demeure correct exactement
 dans le régime où tout le reste de la famille casse. C'est le seul
 propagateur global fort à la disposition d'un moteur à records.
 
-## Coût, bénéfice, et ce qu'on ne sait pas encore
+## Bénéfice, et ce qu'on ne sait pas encore
 
-Par invocation, le filtre coûte un couplage maximum plus une passe de
-composantes fortement connexes — polynomial et, en version incrémentale, le
-plus souvent quelques chemins augmentants par changement de domaine. Le
-registre honnête a pourtant un trou : l'article original de Régin ne mesure
+Le versant coût du registre est ci-dessus, et il est polynomial de bout en
+bout. Le registre honnête a pourtant un trou : l'article original de Régin ne mesure
 qu'un jouet à 25 variables, et il n'existe aucune mesure publiée du filtre
 sur un tous-différents à 256 variables taillé comme Eternity II. Ce projet
 n'a pas non plus construit la version par pièce ; sa promesse au sein des

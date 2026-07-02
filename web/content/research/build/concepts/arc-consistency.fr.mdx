@@ -24,6 +24,8 @@ related:
   - /research/build/dead-ends
 ---
 
+import { AcThreeLab } from "@/components/research/concepts/AcThreeLab";
+
 Sur Eternity II, un backtracker passe l'essentiel de son temps non pas à
 poser des pièces, mais à en éliminer. Comme
 [aucune case n'est jamais forcée](/research/why/no-forced-moves) — chaque
@@ -65,6 +67,62 @@ Son défaut connu : chaque révision cherche les supports à partir de zéro, si
 bien que le même support est redécouvert des milliers de fois pendant que la
 recherche plonge et remonte.
 
+## Regardez-le tourner
+
+Les descriptions d'algorithmes à liste de travail se ressemblent toutes ;
+c'est en en regardant un se stabiliser que tout s'éclaire. Voici AC-3 sur une
+version jouet du problème : un plateau 4×4, 3 couleurs d'arêtes, chaque case
+démarrant avec ses 64 candidats (16 tuiles × 4 rotations). Posez une pièce et
+suivez la file — quels arcs y entrent, ce que chaque révision supprime,
+comment une suppression réarme les arcs pointant vers le domaine rétréci, et
+comment l'onde s'éteint. Les compteurs comparent le travail d'AC-3 à celui de
+la boucle naïve de point fixe (AC-1 : rebalayer tous les arcs jusqu'à une
+passe complète sans changement), lancée sur exactement les mêmes positions.
+
+<AcThreeLab />
+
+Deux choses méritent l'attention. Les premières poses ne propagent presque
+pas : un anneau de voisines rétrécit et l'onde s'arrête, parce que le second
+anneau trouve encore des supports pour les trois couleurs parmi les
+survivants. Les poses tardives, elles, propagent bien plus loin — les
+domaines sont serrés, une seule suppression laisse des candidats orphelins à
+deux ou trois cases de distance. C'est exactement le comportement sur le vrai
+puzzle : la cohérence d'arc gagne sa place en fin de partie, pas en
+ouverture.
+
+## Pas à pas
+
+La même exécution, en toutes lettres — c'est là tout AC-3 :
+
+1. **Départ.** Chaque case porte un domaine de 64 candidats. La file d'arcs
+   est vide ; sans suppression, il n'y a rien à vérifier.
+2. **Une pièce se pose en B2.** Son domaine s'effondre sur l'unique candidat
+   posé. Chaque arc *visant* B2 — un par voisine, ici (B1→B2), (C2→B2),
+   (B3→B2), (A2→B2) — entre dans la file. Rien d'autre : aucun autre domaine
+   n'a changé, donc aucun autre arc n'a pu perdre un support.
+3. **Dépiler un arc, le réviser.** Prenons (B1→B2) : on parcourt les 64
+   candidats de B1 et, pour chacun, on cherche dans le domaine de B2 un
+   partenaire compatible — un *support*. B2 ne contient plus qu'une pièce :
+   seuls survivent les candidats dont l'arête sud reprend sa couleur nord —
+   environ un tiers. Les autres sont supprimés.
+4. **Les suppressions réarment des arcs.** Le domaine de B1 a rétréci, donc
+   des candidats ailleurs, qui s'appuyaient sur les supprimés, sont peut-être
+   orphelins : chaque arc pointant vers B1 — sauf celui venant de B2, qui
+   vient de tirer — repasse en file. C'est l'onde.
+5. **Pas de suppression, pas de remise en file.** Quand une révision ne
+   retire rien, l'arc est simplement abandonné. En début de partie, le second
+   anneau survit presque toujours intact, et la file se vide en une poignée
+   de révisions.
+6. **Point fixe.** La file est vide : chaque candidat, partout, garde un
+   support dans chaque domaine voisin. Aucun ordre de traitement ne change
+   cet état final — le point fixe est unique ; la discipline de file ne
+   change que la vitesse pour l'atteindre.
+
+La comparaison AC-1 de la démo est tout l'argument de la liste de travail :
+la boucle naïve re-révise les 48 arcs à chaque passe jusqu'à une passe
+propre, produisant les mêmes suppressions pour plusieurs fois plus de tests —
+et l'écart se creuse quand le plateau grandit.
+
 ## Ce qu'apportent les variantes plus fortes
 
 La littérature a passé deux décennies à corriger cette redondance. AC-4 (Mohr
@@ -86,6 +144,35 @@ recherche avec maintien de cohérence, et montre que l'avantage sur AC-6
 *croît* avec la taille du domaine de l'autre côté de l'arc. Eternity II a des
 domaines énormes des deux côtés de chaque arc : AC-2001 est l'ajustement
 d'école.
+
+## Ce que ça coûte
+
+La comptabilité, avec $e$ le nombre d'arcs orientés et $d$ la taille maximale
+des domaines :
+
+- **AC-3** tourne en $O(e d^3)$ dans le pire cas : chaque arc peut repasser
+  en file jusqu'à $d$ fois (une par suppression dans le domaine d'en face),
+  et chaque révision coûte jusqu'à $d^2$ tests de support. Sa mémoire de
+  travail se réduit à la file, $O(e)$.
+- **AC-2001** tourne en $O(e d^2)$, ce qui est *optimal* pour tout algorithme
+  fondé sur la révision d'arcs — il y a $e d$ paires candidat–arc et chacune
+  peut exiger de parcourir une fois un domaine de taille $d$. Le prix : la
+  table des derniers supports, un entier par paire candidat–arc, soit
+  $O(e d)$ d'espace.
+
+À l'échelle d'Eternity II, ces symboles valent : $e = 960$ (480 adjacences
+intérieures, dans les deux sens) et $d \approx 764$ tuples candidats par case
+intérieure. Les bornes de pire cas tombent donc vers
+$e d^3 \approx 4 \times 10^{11}$ tests élémentaires pour AC-3 contre
+$e d^2 \approx 5{,}6 \times 10^8$ pour AC-2001 — trois ordres de grandeur sur
+le papier. Les pires cas sont pessimistes (une propagation réelle ne touche
+que quelques cases, comme la démo ci-dessus le montre), mais ce rapport est
+la raison pour laquelle la littérature considère la borne d'AC-3 comme le
+défaut à corriger — et la correction ne coûte que $O(e d)$ entiers de
+mémoire. Le piège sur ce puzzle n'est pas le coût de propagation par nœud :
+c'est qu'en pleine recherche ce coût se paie à *chaque* nœud, des millions de
+fois par seconde — d'où des facteurs constants et un comportement de cache
+qui finissent par compter autant que l'exposant de $d$.
 
 ## Mesuré sur ce puzzle
 

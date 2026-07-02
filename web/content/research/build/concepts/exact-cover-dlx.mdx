@@ -23,6 +23,8 @@ related:
   - /research/build/solvers/blackwood
 ---
 
+import { DancingLinksLab } from "@/components/research/concepts/DancingLinksLab";
+
 Some puzzles have to be bent to fit a formalism; Eternity II drops into exact
 cover almost by itself. An exact-cover problem asks: given a set of items and
 a collection of options, each option covering some items, pick options so that
@@ -59,6 +61,70 @@ intact. Undoing the removal is the same two writes reversed. Backtracking
 becomes pointer surgery with zero copying, and the memory touched is exactly
 proportional to work done. It is one of the most elegant algorithms in the
 combinatorial toolbox, and Knuth's paper is a genuine pleasure to read.
+
+## Watch the links dance
+
+Here is the complete search on the exact instance Knuth uses in the paper:
+seven items A–G, six options R1–R6, exactly one solution. Step through it and
+watch the three moves that make up the whole algorithm — choose the emptiest
+column, cover it (columns and rows detach from the lattice), and, on failure,
+uncover in reverse (the same links splice back). The dead end at column E is
+the moment worth stepping slowly: everything the wrong guess removed comes
+back in exactly the opposite order, for two pointer writes per link.
+
+<DancingLinksLab />
+
+Note what never happens: no copying, no rebuilding, no scanning for what to
+restore. The removed nodes keep their own pointers while detached — that is
+the entire trick — so undoing a cover is as cheap as doing it.
+
+## Step by step
+
+The same run, in words. The matrix is R1 \{C,E,F\}, R2 \{A,D,G\}, R3 \{B,C,F\},
+R4 \{A,D\}, R5 \{B,G\}, R6 \{D,E,G\}:
+
+1. **Choose column A** — two live options, tied for fewest; fail-first says
+   branch on the most constrained item. Try its first option, R2 \{A,D,G\}:
+   cover columns A, D and G. Every row touching them (R2, R4, R5, R6)
+   detaches.
+2. **Recurse.** Only R1 and R3 survive. Column B now has a single live
+   option — choose it, try R3 \{B,C,F\}: cover B, C, F, which detaches R1.
+3. **Dead end.** Column E is still uncovered and no live option covers it.
+   This branch can never complete — no deeper search is even attempted.
+4. **The dance.** Uncover F, C, B, then G, D, A — exact reverse order, each
+   restoration the mirror image of the removal. The matrix is bit-for-bit
+   back to its initial state, without having been saved anywhere.
+5. **Try A's other option, R4 \{A,D\}.** Cover A, D. Column E now has exactly
+   one live option, R1 \{C,E,F\}: cover C, E, F. Column B has one option left,
+   R5 \{B,G\}: cover B, G.
+6. **No columns remain** — every item covered exactly once. Solution:
+   R1 + R4 + R5, found at depth 3 with a single dead end. The search then
+   unwinds fully, verifies no other branch exists, and reports exactly one
+   solution — that certainty of exhaustion is the whole product.
+
+## What it costs
+
+The honest ledger has two very different lines:
+
+- **The problem is NP-complete.** Exact cover is on Karp's original 1972
+  list, so no polynomial algorithm is known for it, and Algorithm X is
+  exponential in the worst case — it is a complete backtracking search, and
+  its tree can grow like the product of the branching at each level.
+- **The data structure is what's cheap.** DLX makes each link removal and
+  each restoration $O(1)$ — two pointer writes, with an exact undo — so the
+  total time is $O(1)$ per link touched, proportional to the tree the search
+  actually explores. Dancing links buys a superb constant factor and zero
+  restore cost; it does not shrink the tree by a single node.
+
+On Eternity II's scale: the XCC matrix itself is perfectly manageable — 512
+primary items (256 cells + 256 pieces), 480 secondary items for the interior
+edges and their 22 colours, and at most $256 \times 256 \times 4 = 262{,}144$
+options before symmetry and border pruning. Building it is minutes of work.
+The tree above it is the wall: with [no forced moves](/research/why/no-forced-moves)
+the branching stays wide all the way down, over a space usually estimated
+near $10^{100}$, and $O(1)$ per node times an astronomical node count is
+still astronomical. That is the precise sense in which DLX is the right tool
+for small boards and the wrong weapon for the 16×16.
 
 ## Where it shines
 
