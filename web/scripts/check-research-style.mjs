@@ -49,6 +49,7 @@ for (const f of walk(CONTENT)) {
       return;
     }
     if (inFence) return;
+    if (/^\s*>/.test(line)) return; // blockquotes hold verbatim source material
     // mask quoted spans (verbatim source material is exempt)
     const masked = line
       .replace(/"[^"]*"/g, '""')
