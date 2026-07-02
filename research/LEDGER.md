@@ -804,3 +804,36 @@ close: citations check ✓ (700 msgs, 0 missing; 0 dead URLs; 0 no-source
 pages), link check ✓ (150 files), typecheck ✓, lint ✓, build ✓ (193
 prerendered pages). The audit's lesson: quotes drift one message inside
 their thread; always cite the message that *contains the words*.
+
+### 2026-07-02 — Pass 3 (article quality + style): the wiki loses its em dashes
+
+The whole research section has been rewritten to drop the LLM-writing
+artifacts the user flagged. Every em dash outside verbatim quoted material
+is gone, roughly 3,190 of them across ~103 MDX files in both languages,
+replaced not by a mechanical comma swap but by varied punctuation chosen per
+sentence (commas, colons, periods, parentheses, sentence splits); the French
+copy was reworked to idiomatic rhythm rather than a literal mirror of the
+English fix. Every banned tic went too: the "honest/honestly" crutch (72
+hits) rewritten to say what it actually meant (headings like "The honest
+record" became "What was measured"/"Why nothing shipped"; "honest verdict"
+became the verdict itself), plus a stray "crucially" and one "Spoiler:". The
+French "honnête" mirrors were softened for EN/FR parity even though the
+English-only checker never flagged them. A second sweep cleared the em
+dashes hiding in frontmatter source labels, figure captions, and the
+topics.json registry (the checker masks quoted spans, so ~130 label/caption
+dashes were invisible to it and had to be hunted by grep), always preserving
+the verbatim community quotes those labels wrap. The only two em dashes left
+on the site are inside quoted source material ("didn't pan out — I had
+memory bandwidth issues…") and are correct to keep.
+
+Along the way the style checker gained a blockquote exemption (`> …` lines
+hold verbatim quotes) and the pipeline caught one real bug: a rewriter had
+put an unquoted colon into a restarts.mdx source label, breaking the YAML
+frontmatter and the whole config load; fixed by double-quoting the two
+labels. Commits: e1cd9be (checkpoint, 3190→1723), d65e313 (body prose to
+0/0), plus this frontmatter+registry sweep. Verified at close: style 0
+dashes / 0 tics, links 150 files, citations 700/0 missing + 0 dead URLs + 0
+no-source pages, typecheck, lint, build (193 prerendered pages) all green.
+The three-pass arc (Discord mining, citation audit, style) is complete: the
+wiki now reads like one researcher wrote it carefully, with every claim
+sourced and no machine tells.
