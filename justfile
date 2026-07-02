@@ -102,3 +102,7 @@ research-experiments-log:
 # Validate every internal link in the research wiki content (MDX + frontmatter).
 research-wiki-check:
     node web/scripts/check-research-links.mjs
+
+# Audit research citations: msg numbers vs the local archive, external URLs, missing sources.
+research-citations-check:
+    node web/scripts/check-research-citations.mjs
