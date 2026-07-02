@@ -106,3 +106,7 @@ research-wiki-check:
 # Audit research citations: msg numbers vs the local archive, external URLs, missing sources.
 research-citations-check:
     node web/scripts/check-research-citations.mjs
+
+# Audit research prose style: em dashes and recurring LLM tics (quotes exempt).
+research-style-check:
+    node web/scripts/check-research-style.mjs
