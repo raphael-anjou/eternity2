@@ -1,0 +1,249 @@
+---
+title: Restarts and heavy tails
+description: >-
+  Run the same backtracker on the same puzzle twice and the runtimes differ by
+  powers of ten. The community measured this in 2007; the CSP literature had
+  just named it. The cure — cut off, reshuffle, restart — is why every record
+  solver since has been a restart portfolio.
+kind: concept
+order: 130
+updated: 2026-07-02
+topics: [backtracking, search-space]
+sources:
+  - label: Txibilis's 500-puzzle experiment — restarts win 52% of races, all of the tail (groups.io message 2822)
+    url: https://groups.io/g/eternity2/message/2822
+  - label: antminder's original claim — backtracking with multiple restarts (groups.io message 2420)
+    url: https://groups.io/g/eternity2/message/2420
+  - label: Verhaard on what restart sampling revealed about the score landscape (groups.io message 5182)
+    url: https://groups.io/g/eternity2/message/5182
+  - label: antminder on deadline-aware search — probability in the window beats a better average (groups.io message 3089)
+    url: https://groups.io/g/eternity2/message/3089
+  - label: Blackwood on the 50-billion cap — "arbitrary" (groups.io message 10066)
+    url: https://groups.io/g/eternity2/message/10066
+  - label: McGavin's manually restarted 20-PC farm for the 9x9 census (groups.io message 9342)
+    url: https://groups.io/g/eternity2/message/9342
+  - label: McGavin's 10x10 solve — 92,907 restarted row searches and the law of large numbers (groups.io message 9688)
+    url: https://groups.io/g/eternity2/message/9688
+  - label: The PRNG hygiene thread — generator period vs restart campaigns (groups.io message 6798)
+    url: https://groups.io/g/eternity2/message/6798
+  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+    url: https://doi.org/10.1023/A:1006314320276
+  - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
+  - label: Luby, Sinclair & Zuckerman, Optimal Speedup of Las Vegas Algorithms (Information Processing Letters, 1993)
+    url: https://doi.org/10.1016/0020-0190(93)90029-9
+related:
+  - /research/build/solvers/blackwood
+  - /research/build/concepts/fill-order
+  - /research/why/complex-theory
+---
+
+import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
+
+Run the same backtracker on two puzzles drawn from the same distribution and
+the solve times do not differ by percentages — they differ by powers of ten.
+The Eternity II community measured this in October 2007. Responding to
+antminder's claim that "backtracking with multiple restarts" beat plain
+backtracking
+([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
+a sceptical Txibilis generated 500 random 7x7 puzzles and raced both policies
+on every one, the restarting solver cutting off at 10 million nodes per
+attempt. The restarter won only 52% of the races — a coin flip. Then he
+looked at the *margins*: among the 240 races the plain backtracker won, its
+biggest winning margin was 90 million nodes. Among the 260 the restarter won,
+the biggest margin was **50,463 million** — and in 45 of those races the
+restarter's margin alone exceeded the plain solver's best win
+([message 2822](https://groups.io/g/eternity2/message/2822)). One column of
+the ledger is bounded; the other is not.
+
+That asymmetry has a name in the literature: a **heavy-tailed runtime
+distribution**. Gomes, Selman and Kautz had described exactly this phenomenon
+in satisfiability and CSP search the year before
+([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), and formalized it
+in [their 2000 paper](https://doi.org/10.1023/A:1006314320276): for
+backtracking on hard instances, the survival function decays like a power
+law, $P(T > t) \approx C\,t^{-\alpha}$, not an exponential — so slowly that
+for $\alpha \le 1$ the *mean* runtime is infinite. Every Eternity II record
+since — Verhaard's 467, McGavin's 10x10, the
+[468–470 wave](/research/build/solvers/blackwood) — was found by a solver
+built around this fact.
+
+## Why tails happen
+
+A depth-first backtracker with a fixed
+[fill order](/research/build/concepts/fill-order) makes its cheapest
+decisions first and then never revisits them: a row-scan solver that has
+reached depth 150 has, in practice, permanently committed its first three
+rows. If one of those early placements is wrong — legal, plausible, but on no
+completable board — the entire subtree below it is barren, and the solver
+must *exhaust* that subtree before the ordinary backtracking mechanism climbs
+back high enough to undo the mistake. Subtree sizes are exponential in the
+height of the wrong turn, so a bad commitment at depth 3 costs exponentially
+more than one at depth 30. The tail of the runtime distribution is precisely
+the distribution of early wrong commitments, inherited forever.
+
+The flip side is a fat *left* tail: some runs get every early decision right
+by luck and finish absurdly fast. Gomes, Selman and Kautz's point is that
+both tails come from the same variance-amplifying mechanism, and that the
+right response is not a better average run but *more draws from the
+distribution*.
+
+Louis Verhaard added an Eternity II-specific observation. He had originally
+used restarts as a survey instrument, hoping high-scoring regions clustered
+like mountain ranges — find the Himalaya by coarse sampling, then climb. What
+his sampling actually found is that high scores are spread "like high
+buildings in cities": one or a few anywhere, and finding one tells you
+nothing about where the next one stands
+([message 5182](https://groups.io/g/eternity2/message/5182)). There is no
+regional signal worth staying for — which removes the last argument for
+loyalty to a struggling run.
+
+One honest nuance from the original thread: Txibilis reasoned that restarts
+should pay only when the instance has *many* solutions — many chances for a
+lucky prefix — and less on a unique-solution benchmark. For Eternity II the
+distinction is moot in the searcher's favour:
+[complex theory](/research/why/complex-theory) puts the hint-free full puzzle
+at roughly $1.15 \times 10^7$ solutions, any one of which wins, and
+partial-score hunting has astronomically more targets still.
+
+## The cure
+
+The remedy is almost embarrassingly simple, and antminder's 2007 recipe
+already contains all of it: run the backtracker for a fixed budget, and if no
+solution has appeared, **stop, reshuffle the piece ordering, and start over
+from the empty board**
+([message 2420](https://groups.io/g/eternity2/message/2420)). Two ingredients
+matter:
+
+- **The cutoff** truncates the right tail by decree. No attempt can cost more
+  than the budget $c$, so the unbounded column of Txibilis's ledger simply
+  ceases to exist.
+- **Fresh randomization** — a shuffled candidate order, a different opening —
+  makes each attempt an independent draw from the runtime distribution
+  instead of a replay of the same doomed descent. Without it, restarting is
+  just the same run with amnesia.
+
+When the distribution is known, there is an optimal *fixed* cutoff. When it
+is not — the usual case — [Luby, Sinclair and
+Zuckerman](https://doi.org/10.1016/0020-0190(93)90029-9) proved you barely
+need it: their universal schedule $1,1,2,1,1,2,4,1,1,2,\ldots$ (each power of
+two appearing in a self-similar pattern) is within a logarithmic factor of
+the optimal fixed cutoff on *every* distribution, and no universal schedule
+can do better in general.
+
+What production looks like, twenty years on:
+
+- **Blackwood's engine** caps every attempt at 50 billion nodes and reshuffles
+  the opening — first corner, bottom-row pieces — before each new run, so no
+  two attempts retrace the same prefix
+  ([the solver page](/research/build/solvers/blackwood) covers the
+  machinery). Asked how the 50-billion figure was chosen, Blackwood answered:
+  "arbitrary. I tried a few big numbers (over 1B) and they didn't make too
+  much of a difference"
+  ([message 10066](https://groups.io/g/eternity2/message/10066)). That
+  insensitivity is itself a heavy-tail signature: when the enemy is the tail,
+  almost any cutoff that spares the body of the distribution works.
+- **McGavin's farms** are the same policy at the human timescale. His 9x9
+  solution census ran on "about 20 PCs" scavenged for up to 60 cores, each
+  running a row-scan backtracker from a randomly shuffled piece array — and
+  he "manually restarted ones that seemed stuck"
+  ([message 9342](https://groups.io/g/eternity2/message/9342)). His 2017
+  solve of Brendan Owen's 10x10 — the community's hardest solved benchmark —
+  was a restart portfolio by construction: 92,907 independent first-row
+  searches, farmed to 400+ cores, where theory predicted about one success
+  per 70,000. His own summary: "no new methods, just systematic persistence
+  and the law of large numbers"
+  ([message 9688](https://groups.io/g/eternity2/message/9688)).
+
+There is also a strategic reading, stated on the list as early as 2007: under
+a contest deadline, a solver with a *worse average* but more probability mass
+inside the time window is the better solver
+([message 3089](https://groups.io/g/eternity2/message/3089)). Restarts are
+exactly that trade — they reshape the distribution around its body, at the
+cost of ever finishing a marathon run.
+
+<Callout kind="note" title="Feed the portfolio honest randomness">
+  A restart portfolio is only as diverse as its shuffles. In 2009 a member
+  worried his solver's standard generator, with its period of $2^{32}$, could
+  silently limit how much of the tree his restarts could ever sample
+  ([message 6798](https://groups.io/g/eternity2/message/6798)); the list's
+  answer was the Mersenne Twister, the standard remedy for non-cryptographic
+  simulation ([message 6801](https://groups.io/g/eternity2/message/6801)). A
+  weak PRNG doesn't crash a restart campaign — it quietly narrows the
+  distribution being drawn from.
+</Callout>
+
+## Watch the tail collapse
+
+The lab below draws 400 solver runs from a seeded heavy-tailed mixture —
+calibrated so the shape is honest to the 2007 measurement: a body of lucky
+runs around a few million nodes, a tail stretching five orders of magnitude
+past it. Then it hands you the cutoff.
+
+<RestartTailLab />
+
+## Step by step
+
+1. **Watch the histogram fill.** The median (emerald marker) settles within
+   the first few dozen runs and barely moves again. The mean (rose marker)
+   never settles: each landing tail run yanks it right. A statistic dominated
+   by its rarest samples is the visual definition of a heavy tail.
+2. **Read the log axis.** The body sits near $10^6$ nodes; the worst runs
+   reach past $10^{11}$ — the same orders-of-magnitude spread as Txibilis's
+   90M-vs-50,463M ledger, on a distribution small enough to draw.
+3. **Now cut.** The default cutoff is 10 million nodes — Txibilis's own. Every
+   amber run that would have blown past it is abandoned at the dashed line
+   and retried. The restart row's mean and P99 drop far below the single-run
+   row: the tail is not survived, it is *deleted*.
+4. **Cut too deep.** Drag the cutoff below the body's left edge. The success
+   probability per attempt collapses, expected attempts explode, and the
+   expected total climbs — at the extreme, no run can finish and the policy
+   never succeeds. The cutoff must spare the lucky runs it is betting on.
+5. **Notice how flat the sweet spot is.** Between "too greedy" and "too
+   patient" lies a plateau several orders of magnitude wide where the
+   expected total barely changes — Blackwood's "arbitrary" 50 billion, found
+   empirically, is this plateau speaking.
+
+## What it costs
+
+Fix a cutoff $c$ and let $F(c) = P(T \le c)$ be the chance a single attempt
+succeeds within budget. Failed attempts cost $c$ each and their count is
+geometric, so the expected total work to first success is
+
+$$
+\mathbb{E}[T_c] \;=\; \frac{1 - F(c)}{F(c)}\,c \;+\; \mathbb{E}[T \mid T \le c].
+$$
+
+Minimizing over $c$ gives the best fixed-cutoff time
+$\ell^{\ast} = \min_c \mathbb{E}[T_c]$. Against a heavy tail
+$P(T > t) \approx C\,t^{-\alpha}$ this is not a refinement but a rescue: for
+$\alpha \le 1$ the unrestarted mean $\mathbb{E}[T]$ diverges while
+$\ell^{\ast}$ stays finite — the policy turns an infinite expectation into a
+finite one. And Luby's theorem prices the ignorance of not knowing $F$: the
+universal schedule achieves expected time
+$O(\ell^{\ast} \log \ell^{\ast})$ with no
+knowledge of the distribution at all, and that logarithmic factor is optimal.
+
+The price of restarting is the thing it throws away: a deep partial board,
+abandoned. On Eternity II that price is unusually low, for two reasons.
+First, the [complex-theory funnel](/research/why/complex-theory): runs stall
+against a depth wall at a characteristic depth, and progress beyond it is
+rare in a way that does not compound — McGavin's 92,907 10x10 row searches
+recorded a maximum placement depth of 88–99 (out of 100) for all but one of
+them, with well over half the mass on just three depths
+([message 9688](https://groups.io/g/eternity2/message/9688)). A run sitting
+at the wall for hours holds no asset a fresh run cannot re-earn in minutes;
+its "progress" was a lottery ticket, already scratched. Second, the board
+state carries no learning: unlike a clause-learning SAT solver, a plain
+backtracker that dies at depth 190 has recorded nothing about *why* — so
+persisting preserves no knowledge either.
+
+What is genuinely lost is the certificate. A restart portfolio samples the
+tree; it does not sweep it. McGavin says it plainly about his 9x9 census: "I
+did not systematically traverse the whole search tree, so might have missed
+some solutions"
+([message 9342](https://groups.io/g/eternity2/message/9342)). For proving a
+region empty, restarts are the wrong tool. For finding one solution — or one
+record board — in a space where your runtime spans powers of ten, they are
+the only sane policy, and every engine on the
+[records timeline](/research/records) uses them.
