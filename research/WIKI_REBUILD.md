@@ -252,3 +252,13 @@ Roadmap: research/community/PAGE_CANDIDATES.md (39 candidates: 9 P1, 20 P2,
   value, good future-session material, several flagged already-covered.
 The Build section now holds 19 concepts, 4 solver pages, and 8 reference
 pages — every claim message-sourced.
+
+### Style pass (user directive 2026-07-02): no LLM writing artifacts
+
+Remove em dashes (—) from all site prose, both languages (rewrite with
+commas/colons/periods/parentheses; keep en-dashes in numeric ranges; NEVER
+alter verbatim quoted material). Also hunt the recurring tics: the
+"honest(ly)" crutch, "not just X, it's Y", "Spoiler:", "the beauty of",
+"deep dive", rhetorical-colon flourishes, triadic sentence endings.
+Tooling: web/scripts/check-research-style.mjs counts offenders; target 0
+em dashes outside quotes/code. Applied as part of the article-quality pass.
