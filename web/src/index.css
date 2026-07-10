@@ -157,6 +157,25 @@ html {
   overflow-y: hidden;
   padding-block: 0.25rem;
 }
+
+/* Collapsible <details> figures (see Figure in mdx-components): hide the
+   default disclosure triangle so our own chevron is the only marker, in every
+   engine (WebKit needs the ::-webkit-details-marker rule). */
+.prose details > summary,
+details > summary {
+  list-style: none;
+}
+.prose details > summary::-webkit-details-marker,
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Reading measure. Long research prose is more comfortable capped near ~68
+   characters, but figures, tables, code and math must still use the full
+   column. Cap the flow-text elements only; block visuals opt out. */
+.prose > :where(p, ul, ol, blockquote, h1, h2, h3, h4, h5, h6) {
+  max-width: 68ch;
+}
 /* Horizontal nav strips (research subnav): scrollable but without the bar. */
 .no-scrollbar {
   scrollbar-width: none;
