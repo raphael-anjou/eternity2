@@ -7,15 +7,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 458
+rigor: measured
+complexity:
+  time: "9 scans × 4 seeds beam builds, then 5-min ALNS lift per strong build"
+  space: "one live beam per (scan, seed); shares PRIOR's 256×256 prior matrix"
+  note: >-
+    Scan order is a preprocessing choice, not a cost: the nine orders reuse the
+    same beam machinery and the same prior.
 repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 50
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction]
 related:
   - /research/lab/experiments/prior
+  - /research/lab/experiments/keyring
+  - /research/build/concepts/beam-search
+sources:
+  - label: "Beam search (this project's concept page): the construction this varies the scan order of"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { GauntletDiagram } from "@/components/research/GauntletDiagram";
@@ -80,6 +92,40 @@ So GAUNTLET's contribution is reach rather than a record: it opened a new
 region of strong boards. A second round (32 more lifts) topped out at 457
 with no 461, which says the new family saturates like the others, but the
 family itself was the prize.
+
+## Method
+
+The pipeline is three stages, and the parameters are the point.
+
+**Stage 1 — diverse construction.** Fork PRIOR's beam and give it a swappable
+scan order over the 256 cells: `row`, `row_rev`, `col`, `col_rev`, `zigzag`,
+`zigzag_rev`, `spiral_in`, `spiral_out`, `diagonal` — nine orders — crossed
+with seeds `{1, 7, 42, 99}`. All share one prior (the `high459` matrix) at a
+low softmax temperature (0.05), so the beam is prior-guided but not
+deterministic. The order changes which partial boards survive each step, so
+each (scan, seed) walks a different trajectory.
+
+**Stage 2 — lift.** Each strong build gets an ALNS lift (prior-escape +
+`basic_lkh` destroy/repair operators), 5 minutes per build in the sweep, longer
+for the finalists.
+
+**Stage 3 — cluster.** Group all outputs by corner-permutation and flag the
+signatures absent from the existing database. That is how the 9×4 sweep
+surfaced **18 distinct corner families** where sixteen seeds of a single scan
+had surfaced one — the measured claim that *scan order is a stronger diversity
+axis than the seed.*
+
+The winning board — zigzag, seed 99, lifted — sits at cp = (3, 0, 1, 2),
+Hamming distance ≥ 246/256 from anything previously at that level: a new basin
+by the same corner-perm-plus-Hamming test [PRIOR](/research/lab/experiments/prior)
+uses.
+
+## Reproduce
+
+`just research-record-boards` verifies the committed 458 board's score exactly.
+The sweep is stochastic (nine scans × four seeds, then ALNS), so it will not
+reproduce the same board; the board is the artifact of record. The scan-sweep
+driver lives in the vault under `v175_gauntlet`.
 
 ## Open questions
 

@@ -8,15 +8,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 458
+rigor: measured
+complexity:
+  time: "9 parcours × 4 graines en faisceau, puis affinage ALNS de 5 min par construction forte"
+  space: "un faisceau vivant par (parcours, graine) ; partage la matrice de prior 256×256 de PRIOR"
+  note: >-
+    L'ordre de parcours est un choix de prétraitement, pas un coût : les neuf
+    ordres réutilisent la même machinerie de faisceau et le même prior.
 repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 50
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction]
 related:
   - /research/lab/experiments/prior
+  - /research/lab/experiments/keyring
+  - /research/build/concepts/beam-search
+sources:
+  - label: "La recherche en faisceau (page concept de ce projet) : la construction dont on varie l'ordre de parcours"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { GauntletDiagram } from "@/components/research/GauntletDiagram";
@@ -87,6 +99,42 @@ il a ouvert une région neuve de bons plateaux. Un second tour (32 affinages
 supplémentaires) a plafonné à 457, sans le moindre 461 : la nouvelle famille
 sature donc comme les autres. Mais c'est la famille elle-même qui était le
 butin.
+
+## Méthode
+
+Le pipeline tient en trois étapes, et ce sont les paramètres qui comptent.
+
+**Étape 1 — construction diverse.** On dérive le faisceau de PRIOR et on lui
+donne un ordre de parcours interchangeable sur les 256 cases : `row`,
+`row_rev`, `col`, `col_rev`, `zigzag`, `zigzag_rev`, `spiral_in`, `spiral_out`,
+`diagonal` — neuf ordres — croisés avec les graines `{1, 7, 42, 99}`. Tous
+partagent un prior (la matrice `high459`) à basse température softmax (0,05),
+si bien que le faisceau est guidé par le prior sans être déterministe. L'ordre
+change quelles ébauches survivent à chaque étape, donc chaque (parcours, graine)
+suit une trajectoire différente.
+
+**Étape 2 — affinage.** Chaque construction forte reçoit un affinage ALNS
+(opérateurs prior-escape + `basic_lkh` de destruction/réparation), 5 minutes par
+construction dans le balayage, davantage pour les finalistes.
+
+**Étape 3 — regroupement.** On groupe toutes les sorties par permutation de
+coins et on repère les signatures absentes de la base existante. C'est ainsi
+que le balayage 9×4 a fait émerger **18 familles de coins distinctes** là où
+seize graines d'un parcours unique n'en avaient fait émerger qu'une — la
+mesure qui établit que *l'ordre de parcours est un axe de diversité plus fort
+que la graine.*
+
+Le plateau gagnant — zigzag, graine 99, affiné — se situe en cp = (3, 0, 1, 2),
+à une distance de Hamming ≥ 246/256 de tout ce qui existait à ce niveau : un
+nouveau bassin selon le même test coins-plus-Hamming
+qu'emploie [PRIOR](/research/lab/experiments/prior).
+
+## Reproduire
+
+`just research-record-boards` vérifie exactement le score du plateau 458 livré.
+Le balayage est stochastique (neuf parcours × quatre graines, puis ALNS) ; il
+ne reproduira pas le même plateau, et c'est le plateau qui fait référence. Le
+pilote du balayage de parcours vit dans le vault sous `v175_gauntlet`.
 
 ## Questions ouvertes
 
