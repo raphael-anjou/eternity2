@@ -7,17 +7,28 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "construction du prior O(B·256) sur B plateaux ; faisceau O(W·256·|coups|)"
+  space: "matrice de comptes 256×256 (65 536 entiers) ; variante avec rotation 1024×256 (262 144)"
+  note: >-
+    Le prior est une passe unique sur le corpus ; le coût de construction est la
+    recherche en faisceau qu'il oriente, plus un affinage local optionnel.
 repro:
   kind: seeded
   cmd: just research-record-boards
   topic: record-boards
 order: 30
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, learning]
 related:
   - /research/lab/experiments/keyring
   - /research/lab/experiments/gauntlet
   - /research/why/piece-theft
+  - /research/build/concepts/beam-search
+sources:
+  - label: "La recherche en faisceau (page concept de ce projet) : construction meilleur-d'abord à largeur bornée"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { PriorDiagram } from "@/components/research/PriorDiagram";
@@ -65,6 +76,50 @@ s'appuie ici sur une étape d'affinage, ce que l'étiquette du plateau indique
 sans détour. Mais comme résultat sur table rase, c'est le plus fort du
 projet, et la fondation sur laquelle les constructeurs multi-signaux
 ultérieurs ont grandi.
+
+## Méthode
+
+Le prior est délibérément la chose la plus simple qui puisse marcher : un
+comptage. Sur chaque plateau du corpus dépassant un seuil (440 pour le prior de
+base), on tabule une matrice $256 \times 256$ $M[p][c]$ — combien de plateaux
+forts placent la pièce $p$ dans la case $c$. Normalisée par case, c'est la
+préférence utilisée pour départager les égalités.
+
+Trois affûtages, chacun une variante du même comptage :
+
+- **Sensible à la rotation.** On sépare chaque pièce selon ses quatre
+  rotations : un tenseur $1024 \times 256$ ($256 \times 4$ lignes). Le prior
+  préfère alors non seulement la bonne pièce mais la bonne orientation —
+  262 144 entrées contre 65 536 pour la base.
+- **Par famille de coins.** Les plateaux forts se répartissent en familles
+  selon leurs quatre coins. Bâtir un prior *séparé* à partir des seuls plateaux
+  d'une famille donne un signal que la matrice groupée gomme en moyennant —
+  c'est ce qui a permis à la construction de zéro d'atteindre un 460 inédit
+  plutôt que le bassin commun encombré.
+- **Seuil plus pointu.** Reconstruire le prior à partir des tout meilleurs
+  plateaux seulement relève le plafond de la construction, au prix d'un signal
+  plus mince et plus bruité.
+
+La construction est une [recherche en faisceau](/research/build/concepts/beam-search) :
+on garde $W$ plateaux partiels, on étend case par case et, à égalité de bords
+appariés, on laisse $M$ trancher ; une règle de diversité maintient les $W$
+faisceaux à distance. Le 460 ici part d'une construction en faisceau de zéro
+jusqu'au milieu des 450, puis un court affinage local le mène à 460.
+
+**La nouveauté a été vérifiée, pas supposée.** Le plateau obtenu est comparé à
+chaque plateau de niveau 460 déjà connu, par permutation de coins et distance
+de Hamming sur (pièce, position) ; on ne compte un nouveau bassin que si la
+famille de coins diffère ou si la distance de Hamming est grande. Le plateau de
+PRIOR a passé ce test — c'est un bassin véritablement distinct, pas une
+redécouverte.
+
+## Reproduire
+
+`just research-record-boards` vérifie exactement le score du plateau 460 livré.
+La construction est ensemencée mais sa dernière marche utilise un affinage
+stochastique ; on tiendra donc le plateau pour l'artefact de référence. Les
+constructeurs de matrice de prior (base, avec rotation, par bassin) et la
+vérification de nouveauté vivent dans le vault sous `v155_prior`.
 
 ## Questions ouvertes
 
