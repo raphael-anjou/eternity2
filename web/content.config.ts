@@ -91,6 +91,12 @@ const reproSchema = z.object({
   topic: z.string().optional(),
 });
 
+const complexitySchema = z.object({
+  time: z.string().optional(),
+  space: z.string().optional(),
+  note: z.string().optional(),
+});
+
 const frontmatterSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
@@ -102,6 +108,8 @@ const frontmatterSchema = z.object({
   // authors.json in scanResearchContent (below), like topics.
   author: z.string().optional(),
   tier: z.number().int().min(1).max(3).optional(),
+  rigor: z.enum(["proven", "measured", "conjectured"]).optional(),
+  complexity: complexitySchema.optional(),
   score: z.number().int().optional(),
   // YAML parses a bare 2026-07-01 as a Date; accept both, normalize to string.
   updated: z
@@ -266,6 +274,8 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       status: e.fm.status,
       ...(e.fm.author !== undefined ? { author: e.fm.author } : {}),
       ...(e.fm.tier !== undefined ? { tier: e.fm.tier } : {}),
+      ...(e.fm.rigor !== undefined ? { rigor: e.fm.rigor } : {}),
+      ...(e.fm.complexity !== undefined ? { complexity: e.fm.complexity } : {}),
       ...(e.fm.score !== undefined ? { score: e.fm.score } : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
