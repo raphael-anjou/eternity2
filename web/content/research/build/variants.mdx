@@ -180,6 +180,30 @@ indignant (or silent) upon requests for proof"
 ([msg 8951](https://groups.io/g/eternity2/message/8951),
 [8952](https://groups.io/g/eternity2/message/8952)).
 
+### A different objective: most pieces placed, zero conflicts
+
+Not every variant changes the pieces or the frame. Some change the *scoring
+rule*, and the cleanest example is the max-conflict-free-placement objective:
+instead of counting matched edges on a full board, count the most pieces you
+can place so that **every** placed piece matches all its neighbours, leaving
+holes rather than mismatches. The score is "pieces placed", not "edges matched",
+and the two are not comparable: a board with a handful of holes says nothing
+about how a full board built from the same search would score.
+
+The frontier here is old and small. Louis Verhaard's "Only seven holes" board
+from around 2008 places **249 of 256** pieces conflict-free, with the seven
+holes clustered in the top band (rows 1 to 4), and in June 2026 Laurent Zamofing
+reported reaching **248** by recombining the community's published 467-edge
+boards as crossover donors ([msg 11890](https://groups.io/g/eternity2/message/11890),
+[11901](https://groups.io/g/eternity2/message/11901)). Both ceilings turn out to
+be *proven local dead-ends*: Verhaard's seven holes cannot be filled by the seven
+remaining pieces, and freeing a radius-6 neighbourhood around them still never
+reaches 250. That the residual holes always land in the same top band, under an
+objective that has nothing to do with edge count, is its own small finding, and
+it is [the mismatch geometry again](/research/why/mismatch-geometry): the damage
+collects against whichever edge the search finishes on, whatever it is
+optimising.
+
 ## The claim quarantine
 
 Variants are one way a false "record" is born; the other is a claim with

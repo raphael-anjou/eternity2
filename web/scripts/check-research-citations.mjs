@@ -93,6 +93,8 @@ let missing = 0;
 // Messages newer than the archive export (ends msg 11823, 2026-03-31), verified
 // firsthand via the groups.io API rather than the bulk export.
 const POST_EXPORT_OK = new Set([
+  11890, // Laurent Zamofing: max-conflict-free-placement objective, 248/256 via recombining 467 boards, 2026-06
+  11901, // Laurent Zamofing: Verhaard's 249 is a proven local dead-end; residual holes always in the top band, 2026-06
   11826, // Adam Miles: state-of-the-art throughput (~50M/core CPU, >10B/s GPU), "What are the performances of state-of-the-art solvers?", 2026-06
   11835, // David Barr: 23M/s CPU, 2.4B/s GPU on his own solvers, same thread, 2026-06
   11848, // Peter McGavin: early doom-detection pruning generally too expensive to be worthwhile, 2026-06
