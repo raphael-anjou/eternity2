@@ -7,15 +7,29 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 451
+rigor: measured
+complexity:
+  time: "construction du prior O(B) sur le corpus ; faisceau comme PRIOR/KEYRING, plus une consultation de départage"
+  space: "un poids de demande rare par pièce (un vecteur de 256)"
+  note: >-
+    Le prior est un scalaire par pièce ; il ne coûte rien au moment de la
+    recherche au-delà d'un départage — c'est précisément pourquoi le surpondérer
+    (en faire une partie de l'objectif) le casse.
 repro:
   kind: seeded
+  cmd: just research-record-boards
+  topic: record-boards
 order: 90
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, search-space]
 related:
   - /research/why/piece-theft
   - /research/lab/experiments/keyring
   - /research/lab/experiments/prior
+  - /research/why/rare-color-geography
+sources:
+  - label: "Géographie des couleurs rares (ce projet) : où vivent les demandes rares (N,O)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/rare-color-geography.mdx
 ---
 
 import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
@@ -62,6 +76,40 @@ mais un signal faible, sûr seulement en départage. LODESTONE ne cache pas
 sa modestie : il améliore la qualité et la régularité de la construction de
 deux ou trois arêtes, et ne touche pas au plafond de bassin qui arrête toutes
 les méthodes près du sommet.
+
+## Méthode
+
+Le signal d'abord, puis la manière délibérément minuscule de l'employer.
+
+**La mesure.** Une *demande rare* est une cellule dont les couleurs nord et
+ouest ne peuvent être servies que par une ou deux pièces de tout le jeu. Sur le
+corpus, le nombre de demandes rares satisfaites dans au moins la moitié des
+plateaux croît *monotonement* avec le score — environ 1 → 2 → 3 → 10 à mesure
+que les plateaux montent vers 458+. Les plateaux forts ne placent pas seulement
+bien les pièces rares par hasard ; ils satisfont de plus en plus les *mêmes*
+demandes rares. C'est une structure réelle, corrélée au score, qu'aucun
+constructeur antérieur n'avait câblée.
+
+**Le prior.** Pour chaque pièce, on pondère la fréquence à laquelle elle sert
+l'une de ces demandes rares nord-ouest dans un bon plateau, fortement rehaussée
+pour les plus rares (une pièce qui est le *seul* serveur possible reçoit le plus
+gros poids). Le faisceau classe les candidats par le gain de bords appariés
+habituel plus un petit multiple de ce poids.
+
+**Le réglage est toute l'histoire.** Le multiple doit être un pur *départage* —
+il tranche entre coups de même appariement, rien de plus. À poids minuscule :
+score médian de zéro 449 → 451 sur cinq graines, et l'étendue se resserre de
+446–451 à un fiable 450–451. Montez le poids et tout s'effondre (422, puis 380),
+car courir après les demandes rares se paie alors directement contre l'accord de
+l'arête devant soi. L'effondrement *est* le résultat : la rareté dit *quelle*
+pièce préférer, mais faiblement — sûre seulement en départage.
+
+## Reproduire
+
+Ensemencée ; l'effet de départage (étendue resserrée, +2 en médiane) se
+reproduit d'une graine à l'autre, et le plateau 451 livré est vérifiable dans la
+visionneuse. Le constructeur du prior de demandes rares vit dans le vault sous
+`v208_confluence` (`build_lodestone_prior.py`).
 
 ## Questions ouvertes
 

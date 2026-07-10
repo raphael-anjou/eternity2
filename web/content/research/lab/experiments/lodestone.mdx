@@ -7,15 +7,29 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 451
+rigor: measured
+complexity:
+  time: "prior build O(B) over the corpus; beam construction as PRIOR/KEYRING, plus a tiebreak lookup"
+  space: "one scarce-demand weight per piece (a 256-vector)"
+  note: >-
+    The prior is a per-piece scalar; it costs nothing at search time beyond a
+    tiebreak, which is exactly why over-weighting it (making it part of the
+    objective) is what breaks it.
 repro:
   kind: seeded
+  cmd: just research-record-boards
+  topic: record-boards
 order: 90
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, search-space]
 related:
   - /research/why/piece-theft
   - /research/lab/experiments/keyring
   - /research/lab/experiments/prior
+  - /research/why/rare-color-geography
+sources:
+  - label: "Rare-colour geography (this project): where the scarce (N,W) demands live"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/rare-color-geography.mdx
 ---
 
 import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
@@ -58,6 +72,38 @@ signal for *which* piece to prefer, but a weak one, and only safe as a
 tiebreaker. LODESTONE is modest about its size: it improves construction
 quality and consistency by a couple of edges, and does not touch the basin
 ceiling that stops every method near the top.
+
+## Method
+
+The signal comes first, then the deliberately-tiny way it is used.
+
+**The measurement.** A *scarce demand* is a cell whose north-and-west colours
+can be served by only one or two pieces in the whole set. Over the corpus, the
+count of scarce demands satisfied in at least half the boards rises
+*monotonically* with score — roughly 1 → 2 → 3 → 10 as boards climb toward
+458+. Strong boards don't just happen to place rare pieces well; they
+increasingly satisfy the *same* scarce demands. That is a real, score-correlated
+structure that no earlier constructor had wired in.
+
+**The prior.** For each piece, weight how often it serves one of those scarce
+north-west demands in a good board, boosted sharply for the rarest (a piece
+that is the *only* possible server gets the biggest weight). The beam ranks
+candidates by the usual matched-edge gain plus a small multiple of this weight.
+
+**The knob is the whole story.** The multiple must be a pure *tiebreaker* —
+it decides between equally-matching moves and nothing else. At a tiny weight:
+median from-scratch score 449 → 451 across five seeds, and the spread tightens
+from 446–451 to a reliable 450–451. Nudge the weight up and it collapses (422,
+then 380), because chasing scarce demands then trades directly against matching
+the edge in front of you. The collapse *is* the result: scarcity says *which*
+piece to prefer, but weakly — safe only as a tiebreak.
+
+## Reproduce
+
+Seeded; the tiebreak effect (tighter spread, +2 median) reproduces across
+seeds, and the committed 451 board is checkable in the viewer. The
+scarce-demand prior builder lives in the vault under `v208_confluence`
+(`build_lodestone_prior.py`).
 
 ## Open questions
 
