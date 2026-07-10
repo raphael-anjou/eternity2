@@ -171,7 +171,7 @@ const T = {
         four smaller "clue puzzles" (two in 2007, two in 2008) that each revealed
         another placement. A board that respects all five is called <strong>strict-canonical</strong>; most
         record boards only respect the mandatory center clue, which is why the best board with all
-        five clues (460, Bruno Gauthier) trails the open canonical record (470).
+        five clues (464, Benjamin Riotte, 2026) trails the open canonical record (470).
       </>
     ),
     cluesText2: (
@@ -214,14 +214,14 @@ const T = {
         viewId: "Louis_Verhaard_467" as string | null,
       },
       {
-        score: "460 / 480",
-        who: "Bruno Gauthier, 2023",
+        score: "464 / 480",
+        who: "Benjamin Riotte, 2026",
         notes: (
           <>
-            best <em>strict-canonical</em> board (all 5 clues respected)
+            best <em>strict-canonical</em> board (all 5 clues respected) — beat Gauthier's 460 of 2023
           </>
         ) as ReactNode,
-        viewId: null as string | null,
+        viewId: "Benjamin_Riotte_464" as string | null,
       },
     ],
     viewLabel: "view",
@@ -386,7 +386,7 @@ const T = {
         deux en 2008), qui dévoilaient chacun un placement supplémentaire. Un plateau qui
         respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
         records se contentent du seul indice central obligatoire, le meilleur plateau respectant
-        les cinq indices (460, Bruno Gauthier) reste en deçà du record canonique libre (470).
+        les cinq indices (464, Benjamin Riotte, 2026) reste en deçà du record canonique libre (470).
       </>
     ),
     cluesText2: (
@@ -429,14 +429,14 @@ const T = {
         viewId: "Louis_Verhaard_467" as string | null,
       },
       {
-        score: "460 / 480",
-        who: "Bruno Gauthier, 2023",
+        score: "464 / 480",
+        who: "Benjamin Riotte, 2026",
         notes: (
           <>
-            meilleur plateau <em>strict-canonique</em> (les 5 indices respectés)
+            meilleur plateau <em>strict-canonique</em> (les 5 indices respectés) — a battu le 460 de Gauthier (2023)
           </>
         ) as ReactNode,
-        viewId: null as string | null,
+        viewId: "Benjamin_Riotte_464" as string | null,
       },
     ],
     viewLabel: "voir",

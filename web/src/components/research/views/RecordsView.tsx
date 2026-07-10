@@ -24,8 +24,9 @@ const BOARD_PARAMS: Record<string, string> = Object.fromEntries(
 // #11046) from boards on different or mixed piece sets. Several headline
 // "480" boards are NOT the official puzzle. Note: none of the record boards
 // from 468 up respect the four optional clue placements; boards that do are
-// tracked as "strict 5-clue" in the method text (best known: 460, Gauthier
-// 2023). Verified at board level against the archive (digest 0014).
+// tracked as "strict 5-clue" in the method text (best known: 464, Benjamin
+// Riotte 2026, beating Gauthier's 460 of 2023). Verified at board level
+// against the archive (digest 0014) and the groups.io thread (topic 120056886).
 type RecordRow = {
   date: string;
   score: string;
@@ -53,16 +54,17 @@ const RECORDS: RecordRow[] = [
   { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling (“New record score of 469! Only 11 breaks!”)", board: "JBlackwood+PMcGavin_469", source: { href: `${GROUPS_IO}/message/10045`, label: "groups.io #10045" } },
   { date: "2020-11", score: "469", author: "various (~7 boards)", canonical: "canonical", method: "Blackwood's solver (Bucas's C rewrite), independent finds — plus one single-piece swap of McGavin's board", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
   { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver, retuned schedule (break indexes 11→10) — same starter-only regime as the 468/469 (verified, #10554). His own account: about a month on a home Threadripper 3970X (Discord, 2024-11)", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
-  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best known board that also respects the four optional clues", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
+  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best board respecting the four optional clues for over three years, until 2026", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
   { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "canonical", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
+  { date: "2026-07-06", score: "464", author: "Benjamin Riotte", canonical: "canonical", method: "New strict-five-clue record (16 broken edges), all five clues at their official cells — his own modified-Blackwood DFS. Beats Gauthier's 460, unbeaten since 2023; Igor Pejic reached the same 463–464 range independently in the same thread", board: "Benjamin_Riotte_464", source: { href: `${GROUPS_IO}/message/267561597`, label: "groups.io" } },
 ];
 
 const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied once since (Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 460 (Bruno Gauthier, 2023). The full solution (480) has never been found; the 10-edge gap has stood since 2021.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied once since (Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 464 (Benjamin Riotte, July 2026), which finally beat Bruno Gauthier's 460 after more than three years. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
     timelineTitle: "Record timeline",
     cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Preview" },
     canonical: "official pieces",
@@ -119,7 +121,7 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé une fois depuis (Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 460 (Bruno Gauthier, 2023). La solution complète (480) reste introuvée ; l'écart de 10 arêtes tient depuis 2021.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé une fois depuis (Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 464 (Benjamin Riotte, juillet 2026), qui a enfin battu le 460 de Bruno Gauthier après plus de trois ans. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
     timelineTitle: "Chronologie des records",
     cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Aperçu" },
     canonical: "pièces officielles",
@@ -184,7 +186,7 @@ const BADGE: Record<RecordRow["canonical"], string> = {
 // (468/469/470) are not in any peer-reviewed or encyclopedic source — they live
 // in the mailing list and on the board viewer — so we point at the primary
 // community sources directly and flag what mainstream sources do and don't say.
-// Exact community sources. The 468/469/470/460 boards are not in any
+// Exact community sources. The 468/469/470/460/464 boards are not in any
 // peer-reviewed or encyclopedic source — they were announced on the mailing
 // list — so we link the specific groups.io messages, using the archive's
 // sequential message numbers (msg_num; author, date and subject all verified
@@ -209,7 +211,12 @@ const REFS: { href: string; label: string }[] = [
   {
     href: `${GROUPS_IO}/message/11074`,
     label:
-      "460 — Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues (Eternity II Editor).",
+      "460 — Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues for over three years (Eternity II Editor).",
+  },
+  {
+    href: `${GROUPS_IO}/message/267561597`,
+    label:
+      "464 — Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the new strict-five-clue record (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
   },
   {
     href: "https://e2.bucas.name",
