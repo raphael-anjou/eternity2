@@ -57,7 +57,7 @@ const RECORDS: RecordRow[] = [
   { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best board respecting the four optional clues for over three years, until 2026", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
   { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
   { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "canonical", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
-  { date: "2026-07-06", score: "464", author: "Benjamin Riotte", canonical: "canonical", method: "New strict-five-clue record (16 broken edges), all five clues at their official cells — his own modified-Blackwood DFS. Beats Gauthier's 460, unbeaten since 2023; Igor Pejic reached the same 463–464 range independently in the same thread", board: "Benjamin_Riotte_464", source: { href: `${GROUPS_IO}/message/267561597`, label: "groups.io" } },
+  { date: "2026-07-06", score: "464", author: "Benjamin Riotte", canonical: "canonical", method: "New strict-five-clue record (16 broken edges), all five clues at their official cells — his own modified-Blackwood DFS. Beats Gauthier's 460, unbeaten since 2023; Igor Pejic reached the same 463–464 range independently in the same thread", board: "Benjamin_Riotte_464", source: { href: `${GROUPS_IO}/message/11919`, label: "groups.io #11919" } },
 ];
 
 const T = {
@@ -214,7 +214,7 @@ const REFS: { href: string; label: string }[] = [
       "460 — Bruno Gauthier, “Highest points (of 480) with using all 5 (!) hints?” thread, eternity2@groups.io, 2023-03-09: the best board respecting all five clues for over three years (Eternity II Editor).",
   },
   {
-    href: `${GROUPS_IO}/message/267561597`,
+    href: `${GROUPS_IO}/message/11919`,
     label:
       "464 — Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the new strict-five-clue record (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
   },
