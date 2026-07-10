@@ -12,6 +12,10 @@ topics: [speed, search-space, backtracking]
 sources:
   - label: Article, source and results on GitHub (research/topics/prune-vs-speed)
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/prune-vs-speed
+  - label: "Peter McGavin: early doom-detection pruning is generally too expensive to be worthwhile (groups.io msg 11848)"
+    url: https://groups.io/g/eternity2/message/11848
+  - label: "@95A31: a full battery of feasibility checks turned out to be useless on an 8×8 search (groups.io msg 11856)"
+    url: https://groups.io/g/eternity2/message/11856
 related:
   - /research/why/walls-and-methods
   - /research/why/complex-theory
@@ -90,6 +94,22 @@ different scan order, a learned prior over where pieces sit, a confined region
 for the mismatches. And every dead end is, at heart, a prune that the puzzle's
 global structure refuses to honour. Speed first feels productive; it is almost
 never where the gap to 480 is hiding.
+
+## The community landed here too, the hard way
+
+The counterintuitive half of this is that even *legal* pruning often loses. A
+check that detects a doomed partial board and backtracks early sounds like a
+free win, but if the check costs more than the subtree it saves, a plain
+backtracker that just barrels ahead is faster. Peter McGavin put the settled
+view plainly on the groups.io list: methods that try to detect a doomed partial
+placement and backtrack early "are generally considered too expensive to be
+worthwhile". A newcomer running a decision-diagram solver, @95A31, then
+confirmed it from scratch: after building a full battery of feasibility checks
+he reported that "all the feasibility checks I implemented turned out to be
+useless", with a complete 8×8 search still grinding through 953 billion nodes
+over 17 hours. The lesson is not that pruning is bad, it is that a prune only
+pays if it is *cheaper than the search it removes*, and on this puzzle almost
+nothing local clears that bar.
 
 <Callout kind="note">
   The tree numbers in the demo are illustrative: a branching factor and depth

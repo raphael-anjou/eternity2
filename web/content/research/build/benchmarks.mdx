@@ -221,6 +221,28 @@ exactly what set_1 was for a decade: a hint-free 10x10, statistics known,
 difficulty priced by theory, waiting for somebody's 180 core-years. If you
 want a benchmark with a name to make, this is the one.
 
+## Throughput, in 2026 terms
+
+The period speed claims above (istarinz's ~68 million placements per second in
+2008) are worth updating, because "placements per second" is still how the
+community sizes a solver, and the ceiling has moved. Asked directly in June 2026
+what state-of-the-art engines do, Adam Miles gave the current rule of thumb: a
+well-tuned CPU backtracker reaches roughly **50 million valid placements per
+second per core**, and GPU solvers run **north of 10 billion placements per
+second** ([message 11826](https://groups.io/g/eternity2/message/11826)). Concrete
+numbers from the same thread bear that out: David Barr measured his own single
+CPU core at ~23 million placements per second and his GPU port at ~2.4 billion
+([message 11835](https://groups.io/g/eternity2/message/11835)), and Peter
+McGavin's optimised backtracker hit ~295 million per second on a fast single
+core ([message 11750](https://groups.io/g/eternity2/message/11750)). Two cautions
+carry over from the old node-vs-step debate: a "valid placement" counts only
+pieces that pass the colour-fit lookup, not every piece tried, and single-core
+speed on a full 16×16 is typically about half the small-puzzle figure, because
+the search spends its time in the dense forest of near-border constraints. None
+of this changes the [prune-versus-speed](/research/why/prune-vs-speed) verdict:
+a 400× throughput jump since 2008 has not moved the record, because it makes the
+tree cheaper to walk, not smaller.
+
 ## What to run today
 
 The historical suites live in the group's Files area (with some link rot);

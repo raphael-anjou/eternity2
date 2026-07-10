@@ -1,0 +1,113 @@
+---
+title: Where you place the hints beats how many
+description: >-
+  On a 16x16 puzzle built like Eternity II, eighteen hints scattered across the
+  board solve it in minutes, while the same puzzle needs eighty or more hints
+  piled into contiguous rows to be as easy. Position, not count, is the lever,
+  and it points straight at the endgame.
+kind: finding
+rigor: measured
+order: 95
+updated: 2026-07-10
+topics: [structure, search-space, backtracking]
+sources:
+  - label: "Joe's hint-density study and Peter McGavin's 18-hint solve (groups.io thread 'A method to prune E2 search space by 17-30%+', msg 11725)"
+    url: https://groups.io/g/eternity2/message/11725
+  - label: "Peter McGavin: 18 scattered hints solve the 16x16 E2-like puzzle in under 15 minutes (groups.io msg 11746)"
+    url: https://groups.io/g/eternity2/message/11746
+  - label: "Peter McGavin: the optimised backtracker traces to Mike's 2007 post (groups.io msg 3098)"
+    url: https://groups.io/g/eternity2/message/3098
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/no-forced-moves
+  - /research/why/prune-vs-speed
+repro:
+  kind: prose
+---
+
+import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
+
+Give a solver some correct pieces for free and the puzzle gets easier. The
+obvious question is how many you need. The better question, it turns out, is
+*where* they go. On a 16x16 puzzle built with Eternity II's exact colour
+recipe, eighteen hints placed in the right spots solve it in minutes; the same
+puzzle wants eighty or more hints, if you pile them into contiguous rows, to be
+that easy. A fourfold difference in count, decided entirely by geometry.
+
+## Two ways to spend the same eighteen hints
+
+<HintGeometryDiagram />
+
+The left board is the real layout Peter McGavin used: eighteen hints on a
+regular lattice, every third column on a few odd rows. His plain scan-row
+backtracker solved Joe's 16x16 E2-like puzzle (five border colours, seventeen
+interior colours, the same distribution as the official puzzle) in under
+fifteen minutes on a single core, walking a search tree of 41,160,067,167
+placements. Dropping to fifteen hints still worked; the search just grew to
+several hours. Pile eighteen hints into the first rows instead, the way a
+top-down scan naturally accumulates them, and they buy almost nothing: the hard
+part of the board is still completely open.
+
+Joe had come at it from the other side, seeding whole contiguous rows from a
+known solution, and needed far more before the puzzle fell:
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">18</div>
+    <div className="mt-1 text-xs text-muted-foreground">scattered hints, solved in minutes</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">88+</div>
+    <div className="mt-1 text-xs text-muted-foreground">contiguous-row hints for comparable ease</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">99%</div>
+    <div className="mt-1 text-xs text-muted-foreground">of search time spent below depth 132</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">70%</div>
+    <div className="mt-1 text-xs text-muted-foreground">of search time spent below depth 150</div>
+  </div>
+</div>
+
+## Why position wins: the hints have to reach the endgame
+
+The two right-hand numbers explain the left-hand ones. Joe instrumented his
+backtracker over a billion iterations and found the work is not spread across
+the board at all: 99% of it happens after depth 132 of 256, and 70% after
+depth 150. Nearly all the pain is in the last quarter of the fill.
+
+A block of contiguous hints at the top is spent exactly where the search was
+never going to struggle. It shortens an easy beginning and leaves the
+expensive tail untouched. Scattered hints do the opposite: dotted through the
+board, including down into the region the search reaches last, they pre-empt
+the choices that would otherwise blow up deep in the tree. This is the same
+fact the record boards wear on their surface. A near-perfect board packs all
+its damage into the band of rows the search finished on, because
+[whichever rows you fill last are where the puzzle makes you pay](/research/why/mismatch-geometry).
+Hints only help to the extent they reach that band before the search does.
+
+It also fits [why the interior gives no forced moves](/research/why/no-forced-moves):
+with every interior cell still accepting scores of neighbours, a hint's value
+is not local propagation but global constraint, cutting off whole subtrees the
+search would otherwise have to walk. A hint far from the hard region cuts off
+subtrees that were cheap anyway.
+
+## What it does and doesn't say
+
+This is a result about a 16x16 puzzle built to Eternity II's colour recipe, not
+about the official puzzle, whose five fixed clues are a different, much smaller
+gift in different places. What transfers is the shape of the lesson, and it is
+the same one the [prune-versus-speed](/research/why/prune-vs-speed) argument
+makes from the other direction: what matters is changing where the search
+spends its effort, and the effort lives in the endgame. A handful of hints
+aimed at that endgame is worth a great many aimed anywhere else.
+
+<Callout kind="note">
+  The counts, the 41-billion-node tree, and the depth statistics are Joe's and
+  Peter McGavin's measurements, reported on the eternity2 groups.io list in
+  January 2026; the scattered layout shown is decoded from Peter's posted board
+  (msg 11746). The optimised backtracker Peter used traces back to Mike's 2007
+  post (msg 3098). These are community results on a specific E2-like puzzle,
+  recorded here with attribution rather than re-derived.
+</Callout>
