@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import data from "@/data/complex-theory.json";
 import { Button } from "@/components/ui/button";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { formatScientific, superscript } from "@/lib/format";
 
 // The E2 funnel as an animated explainer. A "search head" sweeps depth 1 → 256
 // along the expected-branches curve (Brendan Owen's complex-theory numbers). As
@@ -85,21 +86,6 @@ function branchesAt(depth: number): number {
     lo = hi;
   }
   return last.atDepth;
-}
-
-/** Format a huge number as a compact power-of-ten string. */
-function fmt(n: number): string {
-  if (n < 1000) return Math.round(n).toLocaleString("en-US");
-  const exp = Math.floor(Math.log10(n));
-  const mant = n / Math.pow(10, exp);
-  return `${mant.toFixed(1)}×10${sup(exp)}`;
-}
-function sup(n: number): string {
-  const map: Record<string, string> = {
-    "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
-    "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
-  };
-  return String(n).split("").map((c) => map[c] ?? c).join("");
 }
 
 const prefersReducedMotion = () =>
@@ -216,7 +202,7 @@ export function ComplexFunnelAnimated() {
             <g key={lv}>
               <line x1={padL} y1={y(lv)} x2={W - padR} y2={y(lv)} className="stroke-muted" strokeWidth={0.5} />
               <text x={4} y={y(lv) + 3} className="fill-muted-foreground text-[8px]">
-                10{sup(lv)}
+                10{superscript(lv)}
               </text>
             </g>
           ))}
@@ -249,7 +235,7 @@ export function ComplexFunnelAnimated() {
         </div>
         <div className="rounded-md border p-2">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">ways to extend</div>
-          <div className="text-lg font-semibold tabular-nums">{fmt(branches)}</div>
+          <div className="text-lg font-semibold tabular-nums">{formatScientific(branches)}</div>
         </div>
         <div className="rounded-md border p-2">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">regime</div>
