@@ -14,6 +14,21 @@ export type ResearchKind =
 
 export type ReproKind = "exact" | "seeded" | "stochastic" | "heavy" | "prose";
 
+/** How firmly a page's central claim is established — a scannable credibility
+ *  signal (rendered as a badge). "proven" = a formal or exhaustive proof/
+ *  certificate; "measured" = an empirical result on this project's engine;
+ *  "conjectured" = a hypothesis or literature reading not yet established here. */
+export type RigorKind = "proven" | "measured" | "conjectured";
+
+/** Algorithmic cost of the method a page describes, for the researcher who
+ *  wants the complexity at a glance. Strings are KaTeX-free plain text
+ *  (e.g. "O(e·d²) time, O(e·d) space"); `note` adds the one-line caveat. */
+export interface ComplexityInfo {
+  time?: string | undefined;
+  space?: string | undefined;
+  note?: string | undefined;
+}
+
 export interface TocItem {
   /** Heading depth: 2 or 3 (h2/h3). */
   depth: number;
@@ -48,6 +63,25 @@ export interface Topic {
   description: string;
 }
 
+/** A researcher who has authored pages on the wiki, resolved to one language.
+ *  The registry (content/research/authors.json) holds the profile; the *list*
+ *  of a person's pages is derived from every doc's `author` field, never
+ *  hand-maintained — the same way topic membership is derived from `topics`. */
+export interface Author {
+  /** URL slug, e.g. "raphael-anjou" → /research/people/raphael-anjou. */
+  slug: string;
+  /** Display name as it should appear in bylines and the hub header. */
+  name: string;
+  /** One-line role/summary, e.g. "Independent researcher". */
+  tagline?: string;
+  /** A short prose bio (one language). */
+  bio?: string;
+  /** Optional affiliation line (institution, group, "independent"). */
+  affiliation?: string;
+  /** Outbound links (personal site, GitHub, groups.io handle, ORCID…). */
+  links: { label: string; url: string }[];
+}
+
 /** One research wiki page, in one language. */
 export interface ResearchDoc {
   /** Content path without extension/lang, e.g. "why/border-balance". */
@@ -60,8 +94,15 @@ export interface ResearchDoc {
   description: string;
   kind: ResearchKind;
   status: "live" | "draft";
+  /** Registry slug of the page's author (drives the byline + researcher hub).
+   *  Undefined for structural/community pages with no single researcher. */
+  author?: string;
   /** 1 = flagship, 2 = finding, 3 = supporting. */
   tier?: number;
+  /** How firmly the central claim is established (badge). */
+  rigor?: RigorKind;
+  /** Algorithmic cost of the method (badge / small block). */
+  complexity?: ComplexityInfo;
   /** Matched-edges score, for inventions/basins. */
   score?: number;
   /** ISO date of last substantive update. */

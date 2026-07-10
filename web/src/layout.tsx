@@ -82,6 +82,10 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { lang, setLang } = useLang();
   const t = useT(T);
+  const { pathname } = useLocation();
+  // The research wiki is English-only, so the language toggle has nothing to
+  // switch to there — hide it on /research (and the /fr/research redirect).
+  const onResearch = /^\/(fr\/)?research(\/|$)/.test(pathname);
 
   useEffect(() => {
     initEngine()
@@ -147,13 +151,15 @@ export default function Layout() {
             />
             {engineError ? t.engineFailed : engineReady ? t.engineReady : t.engineLoading}
           </span>
-          <button
-            onClick={() => setLang(other)}
-            className="shrink-0 rounded-md border px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title={lang === "en" ? "Passer en français" : "Switch to English"}
-          >
-            {lang === "en" ? "FR" : "EN"}
-          </button>
+          {!onResearch && (
+            <button
+              onClick={() => setLang(other)}
+              className="shrink-0 rounded-md border px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title={lang === "en" ? "Passer en français" : "Switch to English"}
+            >
+              {lang === "en" ? "FR" : "EN"}
+            </button>
+          )}
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="shrink-0 rounded-md border px-2.5 py-1 text-base leading-none md:hidden"

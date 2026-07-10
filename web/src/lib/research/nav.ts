@@ -28,11 +28,11 @@ export interface NavSection {
 const SECTION_LABELS: Record<string, { en: string; fr: string }> = {
   why: { en: "Why it's hard", fr: "Pourquoi c'est dur" },
   build: { en: "Build a solver", fr: "Écrire un solveur" },
-  // One researcher's open notebook among the community's work — deliberately
-  // named after its author, on equal footing with Bucas/Blackwood/McGavin
-  // material elsewhere in the wiki (user directive: experiments, not
-  // inventions; never the wiki's core topic).
-  lab: { en: "Raphaël's explorations", fr: "Les explorations de Raphaël" },
+  // The open notebook: structural findings and named search experiments, each
+  // credited to its author by a byline (see the `author` frontmatter field and
+  // the per-researcher hubs at /research/people/<slug>). Deliberately named for
+  // the work, not one person — it scales to any contributor.
+  lab: { en: "The lab", fr: "Le laboratoire" },
 };
 
 /** Order of the sidebar sections. */

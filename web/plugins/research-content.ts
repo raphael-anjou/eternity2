@@ -14,6 +14,7 @@ import type { Plugin, ViteDevServer } from "vite";
 import {
   buildManifest,
   researchTopics,
+  researchAuthors,
   scanResearchContent,
   searchEntries,
   CONTENT_DIR,
@@ -90,26 +91,38 @@ export function researchContent(): Plugin {
         label: t.label[lang],
         description: t.description[lang],
       }));
-      return `export const docs = ${JSON.stringify(docs)};\nexport const topics = ${JSON.stringify(topics)};`;
+      // Author registry, profile fields resolved to this language.
+      const authors = researchAuthors().map((a) => ({
+        slug: a.slug,
+        name: a.name,
+        ...(a.tagline ? { tagline: a.tagline[lang] } : {}),
+        ...(a.affiliation ? { affiliation: a.affiliation[lang] } : {}),
+        ...(a.bio ? { bio: a.bio[lang] } : {}),
+        links: a.links,
+      }));
+      return (
+        `export const docs = ${JSON.stringify(docs)};\n` +
+        `export const topics = ${JSON.stringify(topics)};\n` +
+        `export const authors = ${JSON.stringify(authors)};`
+      );
     },
 
     // Researcher/LLM affordance: every research page ships a raw-markdown
-    // sibling (…/research/<slug>.md, FR under /fr/…) built from the MDX
-    // source — frontmatter header + body with the ESM plumbing stripped.
+    // sibling (…/research/<slug>.md) built from the MDX source — frontmatter
+    // header + body with the ESM plumbing stripped. The research wiki is
+    // English-only, so only EN siblings are emitted.
     writeBundle(options) {
       const outDir = options.dir ?? "";
       if (!outDir.includes("client")) return; // client pass only (see sitemap plugin)
       const origin = (process.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
       const base = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
-      for (const lang of ["en", "fr"] as const) {
-        for (const doc of buildManifest(lang)) {
+      {
+        for (const doc of buildManifest("en")) {
           const raw = scanResearchContent().find((e) => e.file === doc.file);
           if (!raw) continue;
-          const urlPath = (lang === "fr" ? "/fr" : "") + doc.url;
+          const urlPath = doc.url;
           const relFile =
-            (lang === "fr" ? "fr/" : "") +
-            (doc.slug === "" ? "research/index" : `research/${doc.slug}`) +
-            ".md";
+            (doc.slug === "" ? "research/index" : `research/${doc.slug}`) + ".md";
           const header = [
             `# ${doc.title}`,
             "",
@@ -136,7 +149,8 @@ export function researchContent(): Plugin {
       server.watcher.add(CONTENT_DIR);
       const onContentChange = (file: string) => {
         if (!file.startsWith(CONTENT_DIR)) return;
-        researchTopics(true); // bust both caches
+        researchTopics(true); // bust all caches
+        researchAuthors(true);
         scanResearchContent(true);
         for (const bare of [...Object.keys(IDS), ...Object.keys(SEARCH_IDS)]) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);

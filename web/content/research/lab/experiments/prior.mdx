@@ -5,18 +5,30 @@ description: >-
   strong boards we already have. It reaches a high score with no starting
   board to copy.
 kind: experiment
+author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "prior build O(B·256) over B corpus boards; beam construction O(W·256·|moves|)"
+  space: "256×256 count matrix (65,536 ints); rotation-aware variant 1024×256 (262,144)"
+  note: >-
+    The prior is a single pass over the corpus; the construction cost is the
+    beam search it biases, plus an optional local-refinement tail.
 repro:
   kind: seeded
   cmd: just research-record-boards
   topic: record-boards
 order: 30
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, learning]
 related:
   - /research/lab/experiments/keyring
   - /research/lab/experiments/gauntlet
   - /research/why/piece-theft
+  - /research/build/concepts/beam-search
+sources:
+  - label: "Beam search (this project's concept page): bounded-width best-first construction"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { PriorDiagram } from "@/components/research/PriorDiagram";
@@ -41,7 +53,9 @@ strong boards in that spot. A diversity rule keeps the many parallel attempts
 from collapsing onto the same path. No single board is copied; the guidance
 is statistical.
 
-<PriorDiagram />
+<Figure collapsible title="Interactive: the position-prior heatmap">
+  <PriorDiagram />
+</Figure>
 
 ## The board
 
@@ -59,6 +73,47 @@ It is not the project's top score (463), and the final lift here leans on a
 refinement step, which the board's label notes. But as a clean-slate result
 it's the strongest the project has, and it's the foundation the later
 multi-signal builders grew from.
+
+## Method
+
+The prior is deliberately the simplest thing that could work: a count. Over
+every corpus board scoring above a threshold (440 for the base prior), tally a
+$256 \times 256$ matrix $M[p][c]$ — how many strong boards place piece $p$ in
+cell $c$. Normalized per cell, that is the preference used to break ties.
+
+Three sharpenings, each a variant of the same tally:
+
+- **Rotation-aware.** Split each piece by its four rotations: a
+  $1024 \times 256$ tensor ($256 \times 4$ rows). The prior now prefers not
+  just the right piece but the right orientation — 262,144 entries against the
+  base 65,536.
+- **Per corner-family.** The strong boards fall into families by their four
+  corner pieces. Building a *separate* prior from just one family's boards
+  gives a signal the pooled matrix averages away — this is what let the
+  from-scratch build reach a fresh 460 rather than the crowded common basin.
+- **Sharper threshold.** Rebuilding the prior from only the very best boards
+  (a higher cutoff) raises the ceiling of the construction, at the cost of a
+  thinner, noisier signal.
+
+Construction is a [beam search](/research/build/concepts/beam-search): keep $W$
+partial boards, extend cell by cell, and when candidates tie on matched edges
+let $M$ break the tie; a diversity rule keeps the $W$ beams apart. The 460 here
+takes a from-scratch beam build to the mid-450s, then a short local-refinement
+tail to 460.
+
+**Novelty was checked, not assumed.** The resulting board is compared against
+every 460-tier board already known by corner-permutation and Hamming distance
+on (piece, position); a match only counts as a new basin when the corner
+family differs or the Hamming distance is large. PRIOR's board passed that
+test — it is a genuinely distinct basin, not a re-discovery.
+
+## Reproduce
+
+`just research-record-boards` verifies the committed 460 board's score exactly.
+The build is seeded but its final lift uses a stochastic refinement tail, so
+treat the board as the artifact of record. The prior-matrix builders (base,
+rotation-aware, per-basin) and the novelty check live in the vault under
+`v155_prior`.
 
 ## Open questions
 

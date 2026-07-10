@@ -4,16 +4,29 @@ description: >-
   Decide in advance not when a board may break, but where: confine every
   mismatch to a chosen shape of cells, and search for the best shape.
 kind: experiment
+author: raphael-anjou
 score: 452
+rigor: measured
+complexity:
+  time: "per mask: a 300 s × 8-seed break-tolerant DFS run; plus a sweep over mask shapes/densities"
+  space: "the mask is a 256-bit cell set; otherwise a standard DFS frontier"
+  note: >-
+    The mask adds no search cost — it only changes which cells may carry a
+    mismatch, turning a fixed rule into a design axis to sweep.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --break-cells <mask> --frame <frame.json>
 order: 70
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search]
 related:
   - /research/lab/experiments/ladder
   - /research/why/rigidity-wall
   - /research/lab/experiments/cloister
+  - /research/why/piece-theft
+sources:
+  - label: "Piece theft (this project): the spatial view of where boards fail that MIDDEN gates against"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/piece-theft.mdx
 ---
 
 import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
@@ -36,7 +49,9 @@ design knob rather than a fixed rule.
 Comparing shapes shows which geometry of allowed damage lets a board grow a
 long perfect run before it has to spend a mismatch.
 
-<MaskShapeDiagram />
+<Figure collapsible title="Interactive: the damage-geometry break masks">
+  <MaskShapeDiagram />
+</Figure>
 
 ## The result
 
@@ -49,6 +64,36 @@ score once the endgame has to absorb the deferred damage.
 So the mask is a real lever, the spatial complement to the usual timing
 controls, with a measured effect on how far a board stays perfect, but not
 yet a finished route to a record.
+
+## Method
+
+Every other break-tolerant search gates damage by *when* — a depth, a fill
+fraction. MIDDEN gates by *where*. It is the first cell-set (WHERE) damage
+control against everyone else's depth (WHEN) gates.
+
+- **The mask.** A chosen set of cells (a 256-bit mask) is passed as
+  `--break-cells`. Inside the mask, mismatches are allowed; everywhere else must
+  match perfectly. The search is otherwise a standard break-tolerant DFS off a
+  fixed frame.
+- **The sweep.** Mask *shape* becomes the design variable: a couple of rows, a
+  couple of columns, a dispersed lattice, or a colour-chosen set — swept over
+  shapes and densities, each 300 s × 8 seeds.
+
+The measured result is a graded-density design rule: a **dispersed lattice** of
+allowed-damage cells extends the longest perfect run from ~153 cells to
+167–174 (**+21**), far more than concentrating the damage into a row or two.
+The mechanism is clear; the open economics is the endgame — a longer perfect
+run only helps if the tail can absorb the deferred damage, and the dispersed
+mask that maximizes the wall does not by itself seal the finish. The natural
+next step (composing a dispersed body-mask with an open tail) is exactly what
+the MIDDEN-v2 sweep set out to test.
+
+## Reproduce
+
+Seeded off a fixed frame; the wall-extension effect reproduces across masks,
+though the exact board depends on seeds, and the committed 452 board is
+checkable in the viewer. The mask sweep harness lives in the vault under
+`vol-215` (`midden2.sh`).
 
 ## Open questions
 

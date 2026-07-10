@@ -4,16 +4,29 @@ description: >-
   Fix a perfect border, then search the interior with the border's edges
   treated as hard constraints from the very first cell.
 kind: experiment
+author: raphael-anjou
 score: 453
+rigor: measured
+complexity:
+  time: "per frame: ~6 s hint-compatibility probe, then a 30 s tail recipe × 8 seeds"
+  space: "one DFS frontier over the 14×14 interior; the 60-piece frame is fixed"
+  note: >-
+    Fixing the border collapses the joint border-interior search to an interior-
+    only one, which is what makes the exact endgame tractable.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --frame <frame.json> --exact-tail 14
 order: 60
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search, backtracking]
 related:
   - /research/lab/experiments/staged
   - /research/why/rare-color-geography
   - /research/lab/experiments/midden
+  - /research/build/concepts/meet-in-the-middle
+sources:
+  - label: "Rare-colour border geography (this project): why the frame is the natural cut"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/rare-color-geography.mdx
 ---
 
 import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
@@ -38,12 +51,16 @@ interior can't: the handful of extra edges that come from the interior
 actually fitting the rim it was built against, rather than being grafted onto
 a rim later.
 
-<BorderAnchorDiagram />
+<Figure collapsible title="Interactive: how the frame anchors the interior">
+  <BorderAnchorDiagram />
+</Figure>
 
 Try it live: fix a frame and watch the interior search run against it in your
 browser.
 
-<CloisterLiveLab />
+<Figure collapsible title="Interactive: solve the standalone interior live">
+  <CloisterLiveLab />
+</Figure>
 
 ## The result
 
@@ -56,6 +73,35 @@ settles in the high 440s to low 450s.
 It doesn't break the top records, and it saturates like everything else does
 near the wall. But it cleanly isolates and measures the border-interior
 coupling that whole-board search blurs together.
+
+## Method
+
+The search is a break-tolerant DFS over the interior, but the leverage is in
+the framing and a two-phase campaign over *many* frames.
+
+- **Frame as hard constraint.** A complete 60-piece border is fixed, and the
+  frame's inward-facing colours become hard constraints on the rim cells from
+  the very first interior placement — not a check deferred to the end. A doomed
+  interior is pruned immediately.
+- **Exact tail.** The endgame region is solved exactly (a 14-cell exact tail),
+  including how it seals against the rim, so the last few cells are closed
+  deterministically rather than by heuristic.
+- **Frame-breadth campaign.** Rather than one border, sweep a directory of
+  candidate frames in two phases: a cheap ~6-second hint-compatibility probe
+  drops frames that can't host the clues, then a 30-second tail recipe runs
+  over each surviving frame with 8 seeds. The best interior wins.
+
+The measured effect is small but real: an interior *built against* its own rim
+attaches with a few more matched edges than the same-quality interior grafted
+on afterward — the border-interior coupling that whole-board search averages
+away. 453 unhinted; high-440s to low-450s with all five clues forced.
+
+## Reproduce
+
+Seeded and close to deterministic given a frame: the DFS interior solve off a
+fixed frame reproduces its score reliably, and the boards are checkable in the
+viewer. The campaign scripts (probe + tail recipe) live in the vault under
+`v211_cloister` / `v212_cloister2`, with frames under `vol-212`.
 
 ## Open questions
 
