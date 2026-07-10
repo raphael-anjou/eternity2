@@ -20,11 +20,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Hard quality gate: the strict TypeScript typecheck and the ESLint pass must
-  # both be clean before anything builds or deploys. This is what *enforces*
-  # the TypeScript discipline — `vite build` alone does not typecheck, so
-  # without this a type error would deploy silently. `build` needs this job, so
-  # a red typecheck/lint blocks the deploy.
+  # Hard quality gate: the strict TypeScript typecheck, the ESLint pass, and the
+  # research-content checks (house style, internal links, and citations) must
+  # all be clean before anything builds or deploys. This is what *enforces* the
+  # TypeScript discipline and the research house style — `vite build` alone does
+  # not typecheck or lint the content, so without this a type error, a dead
+  # link, or a banned em-dash would deploy silently. `build` needs this job, so
+  # a red typecheck/lint/research-check blocks the deploy.
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -43,6 +45,13 @@ jobs:
       - name: ESLint
         working-directory: web
         run: pnpm lint
+      - name: Research content checks (house style, links, citations)
+        working-directory: web
+        # CI variant: skips the live external-URL probe (flaky in CI) and the
+        # local bulk-archive existence check (the archive lives outside the
+        # repo). Style, internal links, citation structure, and no-source pages
+        # still gate. Run `pnpm run check:research` locally for the full set.
+        run: pnpm run check:research:ci
 
   build:
     needs: quality

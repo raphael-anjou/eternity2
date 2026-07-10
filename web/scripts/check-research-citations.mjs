@@ -104,14 +104,24 @@ const POST_EXPORT_OK = new Set([
   11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
 ]);
 console.log(`== groups.io citations: ${msgCites.size} distinct messages cited`);
-for (const [n, where] of [...msgCites.entries()].sort((a, b) => a[0] - b[0])) {
-  if (!archive.has(n)) {
-    if (POST_EXPORT_OK.has(n)) continue;
-    console.log(`  MISSING msg ${n}  (cited in: ${where.join(", ")})`);
-    missing++;
+// The archive lives outside the repo (../../v2/community-exports), so a clean
+// CI checkout won't have it. Only validate msg_num existence when it is present;
+// otherwise skip that one check (style, links, external URLs, and no-source
+// still run and still gate). Without this guard, a missing archive would flag
+// every citation as MISSING and break CI.
+const archiveAvailable = archive.size > 0;
+if (!archiveAvailable) {
+  console.log("  archive not found; skipping msg_num existence check (run locally to validate against the bulk export)");
+} else {
+  for (const [n, where] of [...msgCites.entries()].sort((a, b) => a[0] - b[0])) {
+    if (!archive.has(n)) {
+      if (POST_EXPORT_OK.has(n)) continue;
+      console.log(`  MISSING msg ${n}  (cited in: ${where.join(", ")})`);
+      missing++;
+    }
   }
+  if (missing === 0) console.log("  all cited messages exist in the archive ✓");
 }
-if (missing === 0) console.log("  all cited messages exist in the archive ✓");
 
 // ---- 2. external URL probing -----------------------------------------------
 let dead = 0;
