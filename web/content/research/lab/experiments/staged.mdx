@@ -6,14 +6,28 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 436
+rigor: measured
+complexity:
+  time: "four stages: two fast top-half beams, a band grow, and an exact bottom finisher"
+  space: "banks the surviving partials between stages; pruned at each handoff by an admissible estimate"
+  note: >-
+    Frame-free construction removes the usual border pin, so the search space is
+    larger up front; the admissible cutoff at each stage handoff is what keeps
+    it tractable.
 repro:
   kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
 order: 120
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction]
 related:
   - /research/lab/experiments/cloister
   - /research/lab/experiments/bandsaw
+  - /research/build/concepts/beam-search
+sources:
+  - label: "Beam search (this project's concept page): the staged construction primitive"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { StageBuildDiagram } from "@/components/research/StageBuildDiagram";
@@ -54,6 +68,38 @@ Along the way it pinned down the anatomy of the very best boards: they are a
 perfect block of most of the board plus a thin band of mismatches
 concentrated in a few top rows. That shape is what later builders aim to
 reproduce on purpose.
+
+## Method
+
+Four stages, each handing survivors to the next through an admissible filter.
+
+1. **Top-half beams (stages 1–2).** Fill the top half with a fast plain search,
+   banking the partial boards that survive. All 256 pieces are free — no frame
+   is pinned.
+2. **Admissible handoff.** At each stage boundary, a cheap *admissible* estimate
+   (an optimistic upper bound on the best possible finish) discards any partial
+   that provably can't be completed well. Because the estimate never
+   under-counts the achievable score, discarding is safe — it only removes
+   partials that cannot win.
+3. **Band grow (stage 3).** Extend the surviving partials down the next band of
+   rows.
+4. **Exact finisher (stage 4).** Solve the bottom rows exactly, minimizing
+   mismatches, and *choose the border last* from whatever pieces remain. The
+   frame is not designed up front; it falls out of everything above it.
+
+The result is 436 from scratch with an emergent border, all five clues
+respected — well below the records, and that gap is the measurement: it prices
+what the usual frame-first anchor is worth. The by-product mattered more than
+the score: STAGED pinned the anatomy of the best boards — a large perfect block
+plus a thin band of mismatches in a few top rows — the target shape later
+builders aim at deliberately.
+
+## Reproduce
+
+Stochastic (the top-half beams use randomized tie-breaking), so a re-run won't
+reproduce the exact board; the committed 436 board is the artifact of record and
+is checkable in the viewer. The staged builder is committed with the research
+code.
 
 ## Open questions
 

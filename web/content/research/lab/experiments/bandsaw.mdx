@@ -6,14 +6,26 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 437
+rigor: proven
+complexity:
+  time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
+  space: "O(number of top-half partials) — the seam/piece-set hash table is the memory bottleneck"
+  note: >-
+    Meeting in the middle trades time for space: it replaces one exponential
+    walk with two smaller ones plus a join, which is why the band size is capped
+    by memory, not time.
 repro:
   kind: exact
 order: 110
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [exact-methods]
 related:
   - /research/lab/experiments/staged
   - /research/why/entropy-area-law
+  - /research/build/concepts/meet-in-the-middle
+sources:
+  - label: "Meet-in-the-middle (this project's concept page): the two-halves-and-join technique"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/meet-in-the-middle.mdx
 ---
 
 import { MeetInMiddleDiagram } from "@/components/research/MeetInMiddleDiagram";
@@ -53,6 +65,39 @@ exactly where exact methods give out and heuristics must take over. The exact
 pieces that survived, the suffix lower-bound tables and the pruned
 branch-and-bound, became reusable instruments. A frame-free board scoring 437
 came out of the same machinery.
+
+## Method
+
+The join is the idea; the pruning is what makes it affordable.
+
+- **Meet in the middle.** Split the band into a top and bottom half. Enumerate
+  every top-half fill up to a mismatch budget, keyed by (piece-set used, seam
+  colour row). Enumerate the bottom half the same way, drawing only from the
+  pieces the top half left. Join two halves wherever their seam colours agree
+  *and* their piece-sets are disjoint. That join finds the exact best
+  completion without ever walking the full tree — the classic
+  [meet-in-the-middle](/research/build/concepts/meet-in-the-middle) time-for-
+  space trade.
+- **Suffix lower bounds.** Working backwards column by column builds exact
+  lower-bound tables, so a partial that already cannot beat the current budget
+  is pruned before it is extended.
+- **Budget ratchet.** Raise the mismatch budget one step at a time and re-solve;
+  when a round finds nothing better, the previous best is *proven* optimal for
+  that band. That proof is why this page is tagged **proven**, not measured —
+  the result is a certificate, not a sample.
+
+The measured ceiling: each half grows ~20× per extra unit of budget, so at full
+16×16 board size the top-half table no longer fits — memory, not time, is the
+wall. That negative is the deliverable: it pins exactly where exact methods give
+out and heuristics must take over. The frame-free 437 board fell out of the same
+machinery.
+
+## Reproduce
+
+Deterministic (`kind: exact`): the meet-in-the-middle solve and its optimality
+proof reproduce byte-for-byte for a given band, and the 437 board is checkable
+in the viewer. The MITM enumerator and suffix-bound tables are committed with
+the research code.
 
 ## Open questions
 
