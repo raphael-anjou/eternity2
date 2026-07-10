@@ -15,7 +15,10 @@ import { researchPagePaths } from "./content.config";
 // exists solely to redirect stray French bookmarks back to the English page).
 export const PAGE_PATHS = [
   "",
+  "start",
+  "status",
   "puzzle",
+  "is-it-a-scam",
   "playground",
   "playground/watch",
   "playground/solve",
@@ -23,6 +26,7 @@ export const PAGE_PATHS = [
   "playground/print",
   "algorithms",
   "viewer",
+  "convert",
 ] as const;
 
 /** All crawlable paths: hand-listed TSX pages + scanned research MDX pages.

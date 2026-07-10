@@ -9,7 +9,7 @@ const T = {
   en: {
     nav: [
       { to: "/", label: "Home" },
-      { to: "/puzzle", label: "The Puzzle" },
+      { to: "/start", label: "Start here" },
       { to: "/playground", label: "Playground" },
       { to: "/algorithms", label: "Algorithms" },
       { to: "/viewer", label: "Board Viewer" },
@@ -27,7 +27,7 @@ const T = {
   fr: {
     nav: [
       { to: "/", label: "Accueil" },
-      { to: "/puzzle", label: "Le Puzzle" },
+      { to: "/start", label: "Par où commencer" },
       { to: "/playground", label: "Aire de jeu" },
       { to: "/algorithms", label: "Algorithmes" },
       { to: "/viewer", label: "Visualiseur" },

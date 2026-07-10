@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
+import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,6 +132,8 @@ const T = {
     framedHint:
       "Like the real Eternity II: confine some colors to the border band, the rest to the deep interior (needs size ≥ 4, colors ≥ 2).",
     generate: "Generate new board",
+    convertLink: "Need to convert between board_edges, board_pieces and bucas URLs?",
+    convertLinkCta: "Open the format converter",
   },
   fr: {
     title: "Visualiseur",
@@ -199,6 +202,8 @@ const T = {
     framedHint:
       "Comme le vrai Eternity II : confine certaines couleurs à la bande de bordure, les autres à l'intérieur profond (nécessite taille ≥ 4, couleurs ≥ 2).",
     generate: "Générer un plateau",
+    convertLink: "Besoin de passer entre board_edges, board_pieces et les liens bucas ?",
+    convertLinkCta: "Ouvrir le convertisseur de formats",
   },
 };
 
@@ -394,6 +399,15 @@ export default function Viewer() {
         <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
         <p className="mt-1 text-muted-foreground">{t.intro}</p>
         <p className="mt-1 text-xs text-muted-foreground">{t.credit}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t.convertLink}{" "}
+          <Link
+            to="/convert"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {t.convertLinkCta}
+          </Link>
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
