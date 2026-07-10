@@ -35,36 +35,10 @@ import {
 } from "recharts";
 import { useIsClient } from "@/lib/utils";
 import { RareColorLab } from "@/components/research/RareColorLab";
+import { RareColorRing } from "@/components/research/RareColorRing";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import data from "@/data/rare-color-geography.json";
-
-export function RingSchematic() {
-  const cell = 18;
-  const cells = [];
-  for (let r = 0; r < 16; r++) {
-    for (let c = 0; c < 16; c++) {
-      cells.push({ x: c, y: r, frame: r === 0 || r === 15 || c === 0 || c === 15 });
-    }
-  }
-  return (
-    <div className="mx-auto max-w-xs">
-      <svg viewBox={`0 0 ${16 * cell} ${16 * cell}`} className="w-full rounded-lg border bg-card">
-        {cells.map((c, i) => (
-          <rect
-            key={i}
-            x={c.x * cell + 1}
-            y={c.y * cell + 1}
-            width={cell - 2}
-            height={cell - 2}
-            rx={2}
-            className={c.frame ? "fill-amber-400" : "fill-muted"}
-          />
-        ))}
-      </svg>
-    </div>
-  );
-}
 
 export function RareSwatches() {
   return (
@@ -119,8 +93,13 @@ and seventeen common colors that do almost all their work inside the board.
 
 ## Where the rare colors are allowed
 
-<Figure caption="The outer ring is the 60-piece border. Every edge carrying one of the five rare colors sits there. The interior never shows a rare color.">
-  <RingSchematic />
+Pick one of the five rare colors and watch the board: all 24 of its edges light
+up around the frame ring, and the 14×14 interior stays completely blank. Switch
+to a common color and the interior fills instead. That empty middle, for every
+rare color, is the whole finding.
+
+<Figure caption="The board map of a single color's edges. Rare colors are pure frame (0 interior); common colors are the mirror image. Counts are exact, from the official piece set.">
+  <RareColorRing />
 </Figure>
 
 ## The five rare colors
