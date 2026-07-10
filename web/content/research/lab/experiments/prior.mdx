@@ -78,18 +78,18 @@ multi-signal builders grew from.
 
 The prior is deliberately the simplest thing that could work: a count. Over
 every corpus board scoring above a threshold (440 for the base prior), tally a
-$256 \times 256$ matrix $M[p][c]$ — how many strong boards place piece $p$ in
+$256 \times 256$ matrix $M[p][c]$, how many strong boards place piece $p$ in
 cell $c$. Normalized per cell, that is the preference used to break ties.
 
 Three sharpenings, each a variant of the same tally:
 
 - **Rotation-aware.** Split each piece by its four rotations: a
   $1024 \times 256$ tensor ($256 \times 4$ rows). The prior now prefers not
-  just the right piece but the right orientation — 262,144 entries against the
+  just the right piece but the right orientation, 262,144 entries against the
   base 65,536.
 - **Per corner-family.** The strong boards fall into families by their four
   corner pieces. Building a *separate* prior from just one family's boards
-  gives a signal the pooled matrix averages away — this is what let the
+  gives a signal the pooled matrix averages away, this is what let the
   from-scratch build reach a fresh 460 rather than the crowded common basin.
 - **Sharper threshold.** Rebuilding the prior from only the very best boards
   (a higher cutoff) raises the ceiling of the construction, at the cost of a
@@ -105,7 +105,7 @@ tail to 460.
 every 460-tier board already known by corner-permutation and Hamming distance
 on (piece, position); a match only counts as a new basin when the corner
 family differs or the Hamming distance is large. PRIOR's board passed that
-test — it is a genuinely distinct basin, not a re-discovery.
+test, it is a genuinely distinct basin, not a re-discovery.
 
 ## Reproduce
 

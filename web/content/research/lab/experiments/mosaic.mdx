@@ -13,7 +13,7 @@ complexity:
   space: "one MaxSAT solution enumerator per block level held on the backtrack stack"
   note: >-
     Each block is exact (MaxSAT-optimal), but composing 16 of them is a coarse
-    16-level backtracking search — exponential in the worst case, tractable
+    16-level backtracking search, exponential in the worst case, tractable
     because each node is a whole provably-optimal block.
 repro:
   kind: exact
@@ -72,16 +72,16 @@ the end, the same shape every method here runs into.
 
 ## Method
 
-The exactness is genuine — and so is the backtracking that stitches it
+The exactness is genuine, and so is the backtracking that stitches it
 together.
 
 - **Exact blocks.** Each 4×4 block is encoded as a *weighted MaxSAT* problem
   and solved by RC2, a core-guided solver, to a provably-optimal fill. Shared
   edges with already-placed neighbours are *soft* clauses (rewarded, not
-  required), so a block can never be infeasible — it pays for any seam it can't
+  required), so a block can never be infeasible, it pays for any seam it can't
   match and always completes.
 - **Backtracking over solutions.** MOSAIC is not a one-shot glue. Each block
-  level keeps an *enumerator* of MaxSAT solutions — best-first, via RC2 plus
+  level keeps an *enumerator* of MaxSAT solutions, best-first, via RC2 plus
   blocking clauses that rule out already-seen fills. When a later block is
   starved or a level exhausts, it backtracks and pulls the *next* solution of
   the previous block (freeing a different set of pieces). It is a coarse
@@ -92,7 +92,7 @@ together.
   sweet spot is ~8% of the pool.
 
 The window primitive is real: a 4×4 block reaches its 24-edge optimum in ~30 s,
-a 3×3 in ~11 s — the puzzle *is* tractable in the small. Composed from scratch
+a 3×3 in ~11 s, the puzzle *is* tractable in the small. Composed from scratch
 it reaches 448, with the residual shortfall concentrated in the last three
 bottom-right blocks: [piece theft](/research/why/piece-theft) made visible as a
 single bright spot.
@@ -100,7 +100,7 @@ single bright spot.
 ## Reproduce
 
 Deterministic: the MaxSAT block solves and the backtracking composition are
-exact, so `kind: exact` — the 448 board reproduces and is checkable edge by
+exact, so `kind: exact`, the 448 board reproduces and is checkable edge by
 edge in the viewer. The block engine and I/O live in the vault under
 `v206_mosaic` (`mosaic_bt.py`, `mosaic_engine.py`).
 

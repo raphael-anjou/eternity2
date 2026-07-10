@@ -97,25 +97,25 @@ family itself was the prize.
 
 The pipeline is three stages, and the parameters are the point.
 
-**Stage 1 — diverse construction.** Fork PRIOR's beam and give it a swappable
+**Stage 1: diverse construction.** Fork PRIOR's beam and give it a swappable
 scan order over the 256 cells: `row`, `row_rev`, `col`, `col_rev`, `zigzag`,
-`zigzag_rev`, `spiral_in`, `spiral_out`, `diagonal` — nine orders — crossed
+`zigzag_rev`, `spiral_in`, `spiral_out`, `diagonal`, nine orders, crossed
 with seeds `{1, 7, 42, 99}`. All share one prior (the `high459` matrix) at a
 low softmax temperature (0.05), so the beam is prior-guided but not
 deterministic. The order changes which partial boards survive each step, so
 each (scan, seed) walks a different trajectory.
 
-**Stage 2 — lift.** Each strong build gets an ALNS lift (prior-escape +
+**Stage 2: lift.** Each strong build gets an ALNS lift (prior-escape +
 `basic_lkh` destroy/repair operators), 5 minutes per build in the sweep, longer
 for the finalists.
 
-**Stage 3 — cluster.** Group all outputs by corner-permutation and flag the
+**Stage 3: cluster.** Group all outputs by corner-permutation and flag the
 signatures absent from the existing database. That is how the 9×4 sweep
 surfaced **18 distinct corner families** where sixteen seeds of a single scan
-had surfaced one — the measured claim that *scan order is a stronger diversity
+had surfaced one, the measured claim that *scan order is a stronger diversity
 axis than the seed.*
 
-The winning board — zigzag, seed 99, lifted — sits at cp = (3, 0, 1, 2),
+The winning board, zigzag, seed 99, lifted, sits at cp = (3, 0, 1, 2),
 Hamming distance ≥ 246/256 from anything previously at that level: a new basin
 by the same corner-perm-plus-Hamming test [PRIOR](/research/lab/experiments/prior)
 uses.

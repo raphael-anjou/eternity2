@@ -95,13 +95,13 @@ adjacency** frequency, each tallied over the same strong-board set.
 The build is a **beam search**: keep $W$ partial boards alive, and at each step
 extend every beam by scoring each candidate placement as its matched-edge gain
 plus a weighted sum of the three priors, then keep the top $W$. A little
-injected randomness stops the $W$ beams from collapsing onto one path — which
+injected randomness stops the $W$ beams from collapsing onto one path, which
 is what let KEYRING reach a *new* corner family rather than re-deriving a known
 board. Patches pack into a `u64` key (piece ≤ 8 bits, rotation 2 bits, ×4
 cells = 40 bits) so the prior lookup is a hash hit.
 
-One honest limit: the priors are learned from a corpus that is itself
-sub-perfect, so they encode the community's ceiling as much as its wisdom —
+One limit worth stating: the priors are learned from a corpus that is itself
+sub-perfect, so they encode the community's ceiling as much as its wisdom:
 the same double edge that [PALIMPSEST](/research/lab/experiments/palimpsest)
 turns into a feature by separating good consensus from traps.
 
