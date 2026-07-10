@@ -30,6 +30,8 @@ sources:
     url: https://github.com/raphael-anjou/eternity2/tree/main/research
   - label: "Land & Doig 1960, branch and bound, the exact method behind every region solve"
     url: https://doi.org/10.2307/1910129
+  - label: "benj39100: GPU annealing on the strict-5-clue board hits the same frozen core; best score grows with distance from the incumbent (groups.io msg 11902)"
+    url: https://groups.io/g/eternity2/message/11902
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -113,6 +115,21 @@ It also tells you what won't work. Polishing, hill-climbing, and most
 local-repair heuristics are trying to walk uphill from a frozen point. There
 is no uphill. Reaching a solution needs a move that rearranges a large region
 all at once, or a different starting point entirely, not a better polish.
+
+## Someone hit the same wall from the annealing side
+
+The MIP proof approaches the wall analytically. In June 2026 another researcher
+ran headlong into it empirically. Working the strict five-clue board with a GPU
+simulated-annealing solver (4096 parallel replicas), benj39100 reported two
+things that read like a restatement of this page. First, the best score a run
+could reach *increased with distance from the current best board*: to climb
+from 429 toward 432 the winning perturbations had to migrate steadily further
+out, because near the incumbent there was no improving move to find. Second,
+across all their best boards the same roughly forty-two broken edges formed a
+frozen "hard core" that local search never touched, so they had to add an
+explicit term that *rewarded* prying that core open. A locally frozen incumbent
+with no nearby gradient, and a small locked set of defects nothing local will
+move: that is the rigidity wall, seen from a completely different method.
 
 <Callout kind="insight" title="The next piece of the picture">
   If you can't improve a board locally, maybe you can hop from one good board

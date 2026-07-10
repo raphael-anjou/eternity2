@@ -93,6 +93,11 @@ let missing = 0;
 // Messages newer than the archive export (ends msg 11823, 2026-03-31), verified
 // firsthand via the groups.io API rather than the bulk export.
 const POST_EXPORT_OK = new Set([
+  11826, // Adam Miles: state-of-the-art throughput (~50M/core CPU, >10B/s GPU), "What are the performances of state-of-the-art solvers?", 2026-06
+  11835, // David Barr: 23M/s CPU, 2.4B/s GPU on his own solvers, same thread, 2026-06
+  11848, // Peter McGavin: early doom-detection pruning generally too expensive to be worthwhile, 2026-06
+  11856, // @95A31: a full battery of feasibility checks turned out useless on an 8x8 search, 2026-06
+  11902, // benj39100: GPU annealing hits the same frozen core; best score grows with distance, 2026-06
   11905, // Jef Bucas wrapper_blackwood permission (from the user's inbox)
   11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
 ]);
