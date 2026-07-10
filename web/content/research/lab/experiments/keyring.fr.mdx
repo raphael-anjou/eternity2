@@ -7,17 +7,28 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "recherche en faisceau O(W·n·|coups|) pour une largeur W sur n = 256 placements ; construction du prior O(B) dans le corpus"
+  space: "O(H) pour la table de carrés (H carrés 2×2 distincts vus) + O(W·n) faisceaux vivants"
+  note: >-
+    Les priors appris sont une passe de prétraitement unique ; le coût
+    d'exécution est la recherche en faisceau qu'ils orientent.
 repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 20
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, learning]
 related:
   - /research/lab/experiments/prior
   - /research/why/sigma-cycles
   - /research/why/forbidden-patterns
+  - /research/build/concepts/beam-search
+sources:
+  - label: "La recherche en faisceau comme construction meilleur-d'abord à largeur bornée (page concept de ce projet)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { KeyringDiagram } from "@/components/research/KeyringDiagram";
@@ -45,7 +56,7 @@ suivante, chaque option est notée d'après le nombre de bords qu'elle apparie,
 infléchi par les trois signaux appris réunis. Une pointe de hasard empêche
 les tentatives parallèles de s'effondrer toutes sur le même chemin.
 
-<Figure collapsible title="Interactive: the three-signal placement vote">
+<Figure collapsible title="Interactif : le vote de placement à trois signaux">
   <KeyringDiagram />
 </Figure>
 
@@ -65,6 +76,49 @@ Ce n'est pas le meilleur score du projet (463), mais trouver un plateau élevé
 dans une famille inédite compte : on sait les plateaux forts isolés les uns
 des autres, et chaque nouvelle famille est donc un point d'appui à part
 entière.
+
+## Méthode
+
+Les trois signaux, précisément, puis leur façon d'orienter le faisceau.
+
+Le plus fort des trois est le **prior de carrés 2×2**. Sur le corpus, on sépare
+les plateaux en *hauts* (score ≥ 460) et *bas* (< 460), et pour chaque carré
+2×2 $q$ (quatre pièces avec leurs rotations) on le note par un rapport de cotes
+logarithmique lissé (Laplace) :
+
+$$
+\text{score}(q) = \log\big(\text{count}_\text{haut}(q) + \alpha\big) - \log\big(\text{count}_\text{bas}(q) + \alpha\big), \quad \alpha = 0{,}5
+$$
+
+Un carré présent dans les plateaux forts et absent des faibles obtient un score
+positif ; un carré piège de consensus obtient un score négatif. (Dans
+l'exécution qui a trouvé le 460, le corpus se partageait en 23 plateaux hauts
+contre 1255 bas.) Les deux autres signaux sont de simples comptes : une
+fréquence **pièce-en-position** et une fréquence **d'adjacence de pièces**,
+comptées sur le même ensemble de plateaux forts.
+
+La construction est une **recherche en faisceau** : on garde $W$ plateaux
+partiels vivants et, à chaque étape, on étend chaque faisceau en notant chaque
+placement candidat comme son gain de bords appariés plus une somme pondérée des
+trois priors, puis on conserve les $W$ meilleurs. Une pointe de hasard injecté
+empêche les $W$ faisceaux de s'effondrer sur un même chemin — c'est ce qui a
+permis à KEYRING d'atteindre une *nouvelle* famille de coins plutôt que de
+redécouvrir un plateau connu. Les carrés se compressent en une clé `u64`
+(pièce ≤ 8 bits, rotation 2 bits, ×4 cellules = 40 bits), la consultation du
+prior est donc un accès de hachage.
+
+Une limite honnête : les priors sont appris d'un corpus lui-même imparfait, si
+bien qu'ils encodent le plafond de la communauté autant que sa sagesse — le
+même tranchant à double face que [PALIMPSEST](/research/lab/experiments/palimpsest)
+transforme en atout en séparant le bon consensus des pièges.
+
+## Reproduire
+
+`just research-record-boards` vérifie à l'octet près le score du plateau 460
+livré. La recherche est stochastique (faisceau avec hasard injecté) ; une
+réexécution ne redonnera pas le même plateau, et c'est le plateau qui fait
+référence. Les scripts de construction des priors vivent dans le vault sous
+`v181_keyring`.
 
 ## Questions ouvertes
 
