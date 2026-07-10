@@ -164,7 +164,7 @@ export function MismatchGeometryLab() {
               </span>
             )}
           </div>
-          <div className="h-44 rounded-lg border p-2">
+          <div className="h-44 rounded-lg border p-2" role="img" aria-label={t.caption}>
             {isClient ? (
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={perRow} margin={{ top: 6, right: 10, bottom: 16, left: 4 }}>

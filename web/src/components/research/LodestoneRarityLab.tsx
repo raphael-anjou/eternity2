@@ -60,6 +60,7 @@ const T = {
     loading: "Loading the engine…",
     legendScarce: "≤ 2 servers left",
     legendUnique: "exactly 1 left (a unique server)",
+    a11y: "Line chart tracking scarce cells as the board fills: the count of still-empty cells served by only one or two remaining pieces climbs steadily toward the endgame.",
   },
   fr: {
     title: "Regardez les pièces rares se raréfier",
@@ -79,6 +80,7 @@ const T = {
     loading: "Chargement du moteur…",
     legendScarce: "≤ 2 serveurs restants",
     legendUnique: "exactement 1 restant (serveur unique)",
+    a11y: "Graphique linéaire suivant les cases rares à mesure que le plateau se remplit : le nombre de cases encore vides servies par une ou deux pièces restantes grimpe régulièrement vers la fin de partie.",
   },
 };
 
@@ -262,7 +264,7 @@ export function LodestoneRarityLab() {
               </Button>
             </div>
 
-            <div className="h-40 rounded-lg border bg-background p-2">
+            <div className="h-40 rounded-lg border bg-background p-2" role="img" aria-label={t.a11y}>
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <AreaChart data={series} margin={{ top: 6, right: 10, bottom: 16, left: 0 }}>
