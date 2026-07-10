@@ -145,6 +145,33 @@ AC-6 *growing* with the domain size on the far side of the arc. Eternity II
 has huge domains on both sides of every arc, which makes AC-2001 the
 textbook fit.
 
+## The ceiling: why not path consistency?
+
+Arc consistency checks pairs of cells. The next rung up, *path consistency*,
+checks triples: it removes any pair of assignments that no third cell can
+support, propagating a much stronger condition. It shrinks the search tree
+enormously, and the community measured exactly how much, and exactly why nobody
+uses it. In March 2008 Geoff ran the ladder on Brendan Owen's beginner puzzles
+([msg 4827](https://groups.io/g/eternity2/message/4827)):
+
+- On the 6×6, plain nodal consistency leaves a search tree of over **40,000
+  nodes**. Partial path-1 consistency drops it to about 10,000. Partial path-2
+  consistency drops it to **138 nodes**, the bare minimum needed to walk to all
+  eight solutions. But the runtime goes from 0.25 seconds to over **10 seconds**.
+- On the 8×8 the trade gets worse. Arc consistency alone solves it in under
+  **6 million nodes and about 36 seconds**. Adding path-1 preprocessing cuts the
+  tree to roughly 1 million nodes but costs about **14 minutes** of
+  preprocessing; path-2 preprocessing was still running after **7 hours**.
+
+The pattern is unambiguous: each stronger level of consistency really does cut
+the tree by orders of magnitude, and each one costs more than it saves. Geoff's
+own conclusion was that path consistency is "simply not a cost-benefit positive
+effect" on this puzzle. That is [prune versus speed](/research/why/prune-vs-speed)
+stated in the language of a real algorithm: the prune is genuine and large, but
+here the machinery to compute it is more expensive than the search it removes,
+which is why the record engines stop at arc consistency (or below) and spend the
+saved time on raw placements instead.
+
 ## What it costs
 
 The accounting, with $e$ the number of directed arcs and $d$ the maximum
