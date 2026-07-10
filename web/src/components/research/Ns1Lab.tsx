@@ -7,6 +7,7 @@ import { rotateEdges } from "@/lib/types";
 import type { Edges } from "@/lib/bucas";
 import { ns1Deficit } from "@/lib/ns1-deficit";
 import { BoardSvg } from "@/components/board/BoardSvg";
+import { motifFor } from "@/lib/motifs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -57,11 +58,10 @@ const T = {
   },
 };
 
-/** A small colour swatch matching the bucas palette index. */
+/** The board's own motif background for this colour, so the balance-table
+ *  swatches match exactly what the board shows rather than an ad-hoc ramp. */
 function swatch(color: number): string {
-  // Reuse the board's HSL ramp: spread interior colours around the wheel.
-  const hue = (color * 47) % 360;
-  return `hsl(${hue} 65% 50%)`;
+  return motifFor(color).bg;
 }
 
 interface Built {
