@@ -9,7 +9,7 @@ score: 437
 rigor: proven
 complexity:
   time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
-  space: "O(number of top-half partials) — the seam/piece-set hash table is the memory bottleneck"
+  space: "O(number of top-half partials), the seam/piece-set hash table is the memory bottleneck"
   note: >-
     Meeting in the middle trades time for space: it replaces one exponential
     walk with two smaller ones plus a join, which is why the band size is capped
@@ -75,7 +75,7 @@ The join is the idea; the pruning is what makes it affordable.
   colour row). Enumerate the bottom half the same way, drawing only from the
   pieces the top half left. Join two halves wherever their seam colours agree
   *and* their piece-sets are disjoint. That join finds the exact best
-  completion without ever walking the full tree — the classic
+  completion without ever walking the full tree, the classic
   [meet-in-the-middle](/research/build/concepts/meet-in-the-middle) time-for-
   space trade.
 - **Suffix lower bounds.** Working backwards column by column builds exact
@@ -83,11 +83,11 @@ The join is the idea; the pruning is what makes it affordable.
   is pruned before it is extended.
 - **Budget ratchet.** Raise the mismatch budget one step at a time and re-solve;
   when a round finds nothing better, the previous best is *proven* optimal for
-  that band. That proof is why this page is tagged **proven**, not measured —
+  that band. That proof is why this page is tagged **proven**, not measured:
   the result is a certificate, not a sample.
 
 The measured ceiling: each half grows ~20× per extra unit of budget, so at full
-16×16 board size the top-half table no longer fits — memory, not time, is the
+16×16 board size the top-half table no longer fits, memory, not time, is the
 wall. That negative is the deliverable: it pins exactly where exact methods give
 out and heuristics must take over. The frame-free 437 board fell out of the same
 machinery.

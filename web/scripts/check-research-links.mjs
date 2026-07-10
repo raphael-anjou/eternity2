@@ -27,10 +27,12 @@ function walk(dir) {
 
 const files = walk(CONTENT);
 
-// Known research URLs: from MDX slugs + topic hubs.
+// Known research URLs: from MDX slugs + topic hubs + auto-generated researcher
+// hubs (both hub families are derived from registries, not backed by MDX).
 const known = new Set(staticPaths);
 known.add("/research");
 known.add("/research/topics");
+known.add("/research/people");
 for (const f of files) {
   const rel = path.relative(CONTENT, f).split(path.sep).join("/");
   const slug = rel.replace(/\.fr\.mdx$/, "").replace(/\.mdx$/, "").replace(/(^|\/)index$/, "$1").replace(/\/$/, "");
@@ -38,6 +40,8 @@ for (const f of files) {
 }
 const topicsJson = JSON.parse(readFileSync(path.join(CONTENT, "topics.json"), "utf8"));
 for (const t of topicsJson.topics) known.add(`/research/topics/${t.slug}`);
+const authorsJson = JSON.parse(readFileSync(path.join(CONTENT, "authors.json"), "utf8"));
+for (const a of authorsJson.authors) known.add(`/research/people/${a.slug}`);
 
 let bad = 0;
 for (const f of files) {
