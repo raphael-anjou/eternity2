@@ -6,14 +6,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 451
+rigor: measured
+complexity:
+  time: "round 1: hundreds of 5 s probes; finish: 300 s × 8 exact-tail-14 runs from the deepest prefixes"
+  space: "keeps only the banked prefixes and their live continuations between rounds"
+  note: >-
+    Successive halving: total effort is roughly constant per round, but each
+    round spends it on fewer, deeper survivors — so the cost concentrates where
+    it pays.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --mode dfs --exact-tail 14 --restart-ms 5000
 order: 80
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search]
 related:
   - /research/lab/experiments/replay
   - /research/lab/experiments/prior
+  - /research/build/concepts/restarts
+sources:
+  - label: "Successive halving / restart strategies (this project's restarts concept page)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/restarts.mdx
 ---
 
 import { LadderDiagram } from "@/components/research/LadderDiagram";
@@ -57,6 +70,36 @@ It also mapped the limits: the supply of perfect openings runs out, and beyond
 a point the rungs all converge to the same ceiling. So LADDER is a good way to
 find the best start, not a way past the structural walls that stop every
 method near the top.
+
+## Method
+
+The ladder is a recursive successive-halving tournament over search *starts*,
+scored by prefix depth.
+
+- **Round one — flood.** Hundreds of 5-second probes from different seeds, each
+  laying down as long a run of perfectly-matched cells as it can. Rank by the
+  depth of that perfect prefix; keep the deepest, and drop near-duplicates
+  (prefixes too similar to a survivor) so the kept set stays diverse.
+- **Ratchet.** Each subsequent round pins the previous round's deepest banked
+  prefix (a depth-15 pin in the recorded run) and probes *beyond* it, pushing
+  the perfect-prefix frontier one notch further. The recursion stops when a
+  round gains fewer than four cells of depth — the supply of deeper openings has
+  run dry.
+- **Finish.** From the three deepest distinct prefixes, run long exact-tail-14
+  rungs (300 s × 8 seeds each) to convert the banked opening into a full board.
+
+The finding is that *the finish is determined by the prefix*: once a deep enough
+perfect opening is banked, the endgame follows. That is why concentrating
+compute on finding the best start — rather than spreading it across full runs —
+escaped the 444–450 band unguided search kept landing in. A longer finishing
+round later reached 452.
+
+## Reproduce
+
+Seeded; the probe-and-promote structure reproduces the *behaviour* reliably
+though the exact board depends on seeds. The committed 451 board is checkable in
+the viewer. The climb driver and ranking scripts live in the vault under
+`v214` (`ladder_climb.sh`, `ladder_rank`).
 
 ## Open questions
 
