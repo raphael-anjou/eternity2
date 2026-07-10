@@ -26,6 +26,30 @@ const HOME_PAGE: { en: Entry; fr: Entry } = {
 
 const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   home: HOME_PAGE,
+  start: {
+    en: {
+      title: "Start here" + SUFFIX,
+      description:
+        "New to Eternity II, or not sure where to look? Pick who you are here as, from curious visitor to researcher, and get a short guided path through the parts of the site pitched at you.",
+    },
+    fr: {
+      title: "Par où commencer" + SUFFIX,
+      description:
+        "Nouveau venu sur Eternity II, ou vous ne savez pas où chercher ? Choisissez à quel titre vous êtes là, du simple curieux au chercheur, et suivez un court parcours guidé dans les parties du site faites pour vous.",
+    },
+  },
+  status: {
+    en: {
+      title: "Has Eternity II been solved?" + SUFFIX,
+      description:
+        "No. The current record is 470 of 480 matched edges (Joshua Blackwood, 2021), tied but never beaten. The full solution has never been found. Updated July 2026.",
+    },
+    fr: {
+      title: "Eternity II a-t-il été résolu ?" + SUFFIX,
+      description:
+        "Non. Le record actuel est de 470 arêtes appariées sur 480 (Joshua Blackwood, 2021), égalé mais jamais battu. La solution complète n'a jamais été trouvée. À jour en juillet 2026.",
+    },
+  },
   puzzle: {
     en: {
       title: "The Puzzle" + SUFFIX,
@@ -36,6 +60,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "Le Puzzle" + SUFFIX,
       description:
         "Eternity II en clair : 256 tuiles à côtés appariés, 22 couleurs, un plateau 16×16 et un prix jamais remporté.",
+    },
+  },
+  scam: {
+    en: {
+      title: "Is Eternity II a scam? Can it be solved?" + SUFFIX,
+      description:
+        "No, it is not a scam, and yes, a solution almost certainly exists. The sourced facts on the $2,000,000 puzzle that expired with no winner, and why hard is not the same as impossible.",
+    },
+    fr: {
+      title: "Eternity II, une arnaque ? A-t-il une solution ?" + SUFFIX,
+      description:
+        "Non, ce n'est pas une arnaque, et oui, une solution existe presque à coup sûr. Les faits sourcés sur le puzzle à 2 000 000 $ resté sans vainqueur, et pourquoi difficile ne veut pas dire impossible.",
     },
   },
   playground: {
@@ -136,6 +172,18 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Visualiseur" + SUFFIX,
       description: "Collez un plateau et passez-le au crible : score, conflits et meilleures solutions connues d'Eternity II.",
+    },
+  },
+  convert: {
+    en: {
+      title: "Format converter" + SUFFIX,
+      description:
+        "Convert between Eternity II board formats: bucas URLs, board_edges letter strings and board_pieces numbers. Paste one, get the others, with a live preview.",
+    },
+    fr: {
+      title: "Convertisseur de formats" + SUFFIX,
+      description:
+        "Passez d'un format de plateau Eternity II à l'autre : liens bucas, chaînes board_edges et numéros board_pieces. Collez-en un, récupérez les autres, avec un aperçu.",
     },
   },
 };

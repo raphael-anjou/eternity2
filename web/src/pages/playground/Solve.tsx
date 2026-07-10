@@ -26,8 +26,29 @@ import { formatSeconds, formatInt } from "@/lib/format";
 const T = {
   en: {
     title: "Solve it yourself",
+    levelsLabel: "Level",
+    levels: [
+      { size: 3, name: "Warm-up", note: "3×3, gentle" },
+      { size: 4, name: "Getting tricky", note: "4×4" },
+      { size: 5, name: "Real challenge", note: "5×5" },
+    ],
+    lockedLevel: {
+      name: "The real one",
+      note: "16×16 — never solved",
+    },
+    lockedTitle: "Nobody has ever finished this level",
+    lockedBody: (
+      <>
+        The puzzle TOMY actually sold is 16×16. No person and no computer has ever placed all 256
+        pieces. See{" "}
+        <Link className="underline" to="/status">
+          where the record stands
+        </Link>
+        .
+      </>
+    ),
     intro:
-      "Drag pieces from the tray onto the board; drag them around the board or back to the tray to rearrange. Click a placed piece to rotate it; right-click to take it back. Grey edges go on the outside, and touching edges must match. The clock starts on your first move…",
+      "Pick a level, then drag pieces from the tray onto the board; drag them around the board or back to the tray to rearrange. Click a placed piece to rotate it; right-click to take it back. Grey edges go on the outside, and touching edges must match. The clock starts on your first move…",
     introTouch:
       "Tap a piece in the tray, then tap a square to place it. Tap a placed piece to rotate it; press and hold to take it back. Grey edges go on the outside, and touching edges must match. The clock starts on your first move…",
     trayHintTouch: "Now tap a square to place it.",
@@ -36,7 +57,13 @@ const T = {
     loadingEngine: "Loading engine…",
     piecesLeft: (n: number) => `Pieces (${n} left)`,
     pieceTitle: (n: number) => `piece ${n}`,
-    trayHint: "Now drag it onto the board. Pieces land unrotated — click a placed piece to rotate it.",
+    trayHint: "Now drag it onto the board. Pieces land unrotated; click a placed piece to rotate it.",
+    candidateHint: (n: number) =>
+      n === 0
+        ? "This piece fits nowhere right now (in any rotation)."
+        : n === 1
+          ? "The green cell is the only spot this piece fits, in some rotation."
+          : `Green cells are the ${n} spots this piece could fit, in some rotation.`,
     solvedIn: (time: string) => `🎉 Solved in ${time}!`,
     machineSolved: (ms: string, attempts: string) => (
       <>
@@ -70,8 +97,29 @@ const T = {
   },
   fr: {
     title: "À vous de jouer",
+    levelsLabel: "Niveau",
+    levels: [
+      { size: 3, name: "Échauffement", note: "3×3, tout doux" },
+      { size: 4, name: "Ça se corse", note: "4×4" },
+      { size: 5, name: "Vrai défi", note: "5×5" },
+    ],
+    lockedLevel: {
+      name: "Le vrai",
+      note: "16×16 — jamais résolu",
+    },
+    lockedTitle: "Personne n'a jamais bouclé ce niveau",
+    lockedBody: (
+      <>
+        Le puzzle vendu par TOMY fait 16×16. Ni un humain ni un ordinateur n'a jamais posé les 256
+        pièces. Voyez{" "}
+        <Link className="underline" to="/status">
+          où en est le record
+        </Link>
+        .
+      </>
+    ),
     intro:
-      "Glissez les pièces de la réserve vers le plateau ; déplacez-les sur le plateau ou ramenez-les dans la réserve pour les réorganiser. Cliquez sur une pièce posée pour la faire pivoter ; faites un clic droit pour la retirer. Les côtés gris se placent à l'extérieur, et deux côtés qui se touchent doivent correspondre. Le chrono se lance dès votre premier coup…",
+      "Choisissez un niveau, puis glissez les pièces de la réserve vers le plateau ; déplacez-les sur le plateau ou ramenez-les dans la réserve pour les réorganiser. Cliquez sur une pièce posée pour la faire pivoter ; faites un clic droit pour la retirer. Les côtés gris se placent à l'extérieur, et deux côtés qui se touchent doivent correspondre. Le chrono se lance dès votre premier coup…",
     introTouch:
       "Touchez une pièce dans la réserve, puis une case pour la poser. Touchez une pièce posée pour la faire pivoter ; appuyez longuement pour la retirer. Les côtés gris se placent à l'extérieur, et deux côtés qui se touchent doivent correspondre. Le chrono se lance dès votre premier coup…",
     trayHintTouch: "Touchez maintenant une case pour la poser.",
@@ -81,7 +129,13 @@ const T = {
     piecesLeft: (n: number) => `Pièces (${n} restante${n === 1 ? "" : "s"})`,
     pieceTitle: (n: number) => `pièce ${n}`,
     trayHint:
-      "Glissez-la maintenant sur le plateau. Les pièces se posent sans rotation — cliquez sur une pièce posée pour la faire pivoter.",
+      "Glissez-la maintenant sur le plateau. Les pièces se posent sans rotation ; cliquez sur une pièce posée pour la faire pivoter.",
+    candidateHint: (n: number) =>
+      n === 0
+        ? "Cette pièce ne rentre nulle part pour l'instant (quelle que soit la rotation)."
+        : n === 1
+          ? "La case verte est le seul endroit où cette pièce rentre, dans une certaine rotation."
+          : `Les cases vertes sont les ${n} endroits où cette pièce pourrait rentrer, dans une certaine rotation.`,
     solvedIn: (time: string) => `🎉 Résolu en ${time} !`,
     machineSolved: (ms: string, attempts: string) => (
       <>
@@ -145,6 +199,7 @@ export default function Solve() {
     Array<Placement | null>(3 * 3).fill(null),
   );
   const [selected, setSelected] = useState<number | null>(null);
+  const [showLocked, setShowLocked] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [finishedIn, setFinishedIn] = useState<number | null>(null);
@@ -190,6 +245,52 @@ export default function Solve() {
       return piece ? rotateEdges(piece, p.rot) : null;
     });
   }, [board, puzzle]);
+
+  // What-if helper: while a tray piece is selected, which empty cells could it
+  // legally go into, in SOME rotation, given the pieces already on the board and
+  // the grey-rim rules? This is the "suggest pieces per position" aid the
+  // by-hand community keeps asking for, run in reverse (one piece, many cells).
+  const candidateCells = useMemo(() => {
+    const out = new Set<number>();
+    if (selected === null || !puzzle) return out;
+    const piece = puzzle.pieces[selected];
+    if (!piece || usedPieces.has(selected)) return out;
+    const w = puzzle.width;
+    const h = puzzle.height;
+    for (let pos = 0; pos < board.length; pos++) {
+      if (board[pos]) continue; // only empty cells
+      const x = pos % w;
+      const y = Math.floor(pos / w);
+      // A cell edge facing the rim must be grey (BORDER); an interior edge must
+      // match the touching edge of a placed neighbour, if one is there.
+      const facesRim = [y === 0, x === w - 1, y === h - 1, x === 0];
+      const neighbourPos = [
+        y === 0 ? -1 : pos - w,
+        x === w - 1 ? -1 : pos + 1,
+        y === h - 1 ? -1 : pos + w,
+        x === 0 ? -1 : pos - 1,
+      ];
+      const fits = [0, 1, 2, 3].some((rot) => {
+        const e = rotateEdges(piece, rot);
+        for (let d = 0; d < 4; d++) {
+          if (facesRim[d]) {
+            if (e[d] !== BORDER) return false; // rim edge must be grey
+            continue;
+          }
+          if (e[d] === BORDER) return false; // interior edge must not be grey
+          const np = neighbourPos[d] ?? -1;
+          const ncell = np >= 0 ? cells[np] : null;
+          if (ncell) {
+            // the neighbour's edge that touches side d is the opposite side.
+            if (ncell[(d + 2) % 4] !== e[d]) return false;
+          }
+        }
+        return true;
+      });
+      if (fits) out.add(pos);
+    }
+    return out;
+  }, [selected, puzzle, board, cells, usedPieces]);
 
   // Mistakes = mismatched piece-piece contacts PLUS misoriented rim pieces:
   // a non-grey edge facing the outside, or a grey edge facing inward, is
@@ -391,11 +492,34 @@ export default function Solve() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {[3, 4, 5].map((s) => (
-          <Button key={s} variant={s === size ? "default" : "outline"} onClick={() => reset(s)}>
-            {s}×{s}
+        {t.levels.map((lvl, i) => (
+          <Button
+            key={lvl.size}
+            variant={lvl.size === size ? "default" : "outline"}
+            onClick={() => {
+              setShowLocked(false);
+              reset(lvl.size);
+            }}
+            className="h-auto flex-col items-start gap-0.5 py-2"
+          >
+            <span className="text-xs font-normal opacity-70">
+              {t.levelsLabel} {i + 1}
+            </span>
+            <span className="font-semibold">{lvl.name}</span>
+            <span className="text-xs font-normal opacity-70">{lvl.note}</span>
           </Button>
         ))}
+        {/* The aspirational tier: a real level you can select, but never win.
+            Clicking it teaches the whole point of the site. */}
+        <Button
+          variant={showLocked ? "default" : "outline"}
+          onClick={() => setShowLocked((v) => !v)}
+          className="h-auto flex-col items-start gap-0.5 border-dashed py-2"
+        >
+          <span className="text-xs font-normal opacity-70">🔒 {t.levelsLabel} ∞</span>
+          <span className="font-semibold">{t.lockedLevel.name}</span>
+          <span className="text-xs font-normal opacity-70">{t.lockedLevel.note}</span>
+        </Button>
         <div className="ml-auto flex items-center gap-3">
           {mistakeCount > 0 && (
             <Badge variant="destructive">{t.mistakes(mistakeCount)}</Badge>
@@ -405,6 +529,15 @@ export default function Solve() {
           </Badge>
         </div>
       </div>
+
+      {showLocked && (
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle className="text-base">🔒 {t.lockedTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">{t.lockedBody}</CardContent>
+        </Card>
+      )}
 
       {!engineReady || !puzzle ? (
         <div className="py-24 text-center text-muted-foreground">{t.loadingEngine}</div>
@@ -474,7 +607,12 @@ export default function Solve() {
                         longPress.current = null;
                       }
                     }}
-                    className={p ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}
+                    className={[
+                      p ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+                      !p && candidateCells.has(pos)
+                        ? "rounded-sm ring-2 ring-inset ring-emerald-400/70"
+                        : "",
+                    ].join(" ")}
                   />
                 ))}
               </div>
@@ -525,9 +663,12 @@ export default function Solve() {
                   )}
                 </div>
                 {selected !== null && (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {coarsePointer ? t.trayHintTouch : t.trayHint}
-                  </p>
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                    <p>{coarsePointer ? t.trayHintTouch : t.trayHint}</p>
+                    <p className="text-emerald-600 dark:text-emerald-400">
+                      {t.candidateHint(candidateCells.size)}
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>

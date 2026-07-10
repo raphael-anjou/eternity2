@@ -82,6 +82,7 @@ const T = {
         not by supercomputers. This site lets you <em>feel</em> why, right in your browser.
       </>
     ),
+    ctaStart: "Start here",
     ctaPlayground: "Try the playground",
     ctaPuzzle: "What is Eternity II?",
     heroCaption:
@@ -137,6 +138,7 @@ const T = {
         installer.
       </>
     ),
+    ctaStart: "Par où commencer",
     ctaPlayground: "Essayer l'aire de jeu",
     ctaPuzzle: "C'est quoi, Eternity II ?",
     heroCaption:
@@ -198,7 +200,10 @@ export default function Home() {
           </h1>
           <p className="max-w-prose text-lg text-muted-foreground">{t.heroLede}</p>
           <div className="flex flex-wrap gap-3">
-            <Button size="lg" render={<Link to="/playground" />}>
+            <Button size="lg" render={<Link to="/start" />}>
+              {t.ctaStart}
+            </Button>
+            <Button size="lg" variant="outline" render={<Link to="/playground" />}>
               {t.ctaPlayground}
             </Button>
             <Button size="lg" variant="outline" render={<Link to="/puzzle" />}>

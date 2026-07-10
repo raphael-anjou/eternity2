@@ -261,7 +261,9 @@ const T = {
         2007); they belong to the family of problems for which no efficient general algorithm is
         known. Eternity II is widely considered one of the hardest instances ever put in a box.
         The known clever methods that broke Eternity I were specifically engineered out: see{" "}
-        <Link className="underline" to="/research">Research</Link>.
+        <Link className="underline" to="/research">Research</Link>. Wondering whether it is even
+        solvable, or a scam? See{" "}
+        <Link className="underline" to="/is-it-a-scam">Is it a scam? Can it be solved?</Link>
       </>
     ),
   },
@@ -478,7 +480,9 @@ const T = {
         pour lesquels on ne connaît aucun algorithme général efficace. Beaucoup voient en Eternity
         II l'une des instances les plus coriaces jamais glissées dans une boîte de jeu. Quant aux
         astuces qui avaient eu raison d'Eternity I, ses concepteurs les ont méthodiquement
-        désamorcées : voir <Link className="underline" to="/research">Recherche</Link>.
+        désamorcées : voir <Link className="underline" to="/research">Recherche</Link>. Vous vous
+        demandez s'il a seulement une solution, ou si c'est une arnaque ? Voir{" "}
+        <Link className="underline" to="/is-it-a-scam">Une arnaque ? A-t-il une solution ?</Link>
       </>
     ),
   },

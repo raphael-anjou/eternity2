@@ -1,0 +1,217 @@
+---
+title: "Is this instance NP-complete, and how do I encode it?"
+description: >-
+  Edge matching is NP-complete as a family, but that says nothing about one
+  fixed 16×16 board: a single instance is a constant, not a problem. What is
+  true is the family's worst-case hardness and this instance's empirical
+  hardness, and how to write the puzzle for a SAT, exact-cover, or ILP solver
+  with small worked sketches.
+kind: concept
+order: 25
+updated: 2026-07-08
+topics: [exact-methods]
+sources:
+  - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): edge matching is NP-complete'
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+  - label: 'Knuth, The Art of Computer Programming, Volume 4B: Algorithm X and Algorithm C (exact covering with colours)'
+    url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
+  - label: Eternity II puzzle (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/why/complex-theory
+  - /research/build/concepts/sat-csp-encodings
+  - /research/build/concepts/exact-cover-dlx
+  - /research/build/concepts/arc-consistency
+---
+
+This page answers a question that keeps surfacing on Math and CS Stack
+Exchange and tops the dispute list on Wikipedia's Talk page for the puzzle:
+edge matching is NP-complete in general, so does that tell us anything about
+*this* fixed 16×16 board, and concretely, how would you hand Eternity II to a
+solver? The short answers are: no, not directly, and here are three encodings.
+
+## First, the category error
+
+NP-completeness is a property of a *problem*, which in complexity theory means
+an infinite family of instances indexed by a size parameter $n$. "Edge-matching
+puzzles" is such a family: given $n$, a set of square tiles, and a colour
+alphabet, decide whether the tiles tile an $n \times n$ frame with all abutting
+edges agreeing. That decision problem is NP-complete
+([Demaine & Demaine 2007](https://doi.org/10.1007/s00373-007-0713-4)), which
+means both that a proposed solution is checkable in polynomial time and that
+every problem in NP reduces to it.
+
+A single fixed board is not a family. The Eternity II instance has a definite
+answer, "yes, it is solvable" (the designers built it from a solution) or in the
+5-clue competition form "yes, with exactly this arrangement". That answer is a
+single bit. A single bit is a constant, and "is this constant NP-complete?" is
+not a well-formed question: there is a constant-time algorithm that prints the
+answer (`return true`), it just has the answer baked in. Asking whether one
+instance is NP-complete is the same category error as asking whether the
+number 17 is polynomial-time.
+
+So the family is hard and the instance is a constant. What, then, is actually
+true and useful about the difficulty of the board on your desk?
+
+## What is actually true
+
+Two separate statements, kept apart:
+
+- **Worst-case hardness of the family.** Because the general problem is
+  NP-complete, no algorithm is known that beats exponential time in the worst
+  case as $n$ grows, and finding one would prove $\mathrm{P}=\mathrm{NP}$. This
+  bounds what any general edge-matching solver can promise. It says nothing
+  about how a *specific* input behaves.
+- **Empirical hardness of this instance.** Hardness you can measure. The 16×16
+  board has on the order of $1.15\times10^{557}$ distinct piece-and-rotation
+  arrangements, and the puzzle appears to admit very few solutions (the 5-clue
+  form is designed for essentially one; see
+  [complex theory](/research/why/complex-theory) for the expected-count
+  estimate). A backtracking search therefore threads an astronomically wide
+  space toward a near-empty solution set, so it spends almost all of its time
+  exploring dead ends. That is why the puzzle is hard *in practice*, and it is a
+  claim about this board, not about the family.
+
+The worst-case theorem and the empirical difficulty point the same way here,
+but they are different kinds of statement and only one of them is a theorem. A
+family can be NP-complete while a given instance is trivial (many are), and an
+instance can be brutally hard to solve in practice even inside a family that is
+polynomial. Ansótegui et al. made exactly the empirical case for Eternity II,
+building solver benchmarks from it and measuring the difficulty directly rather
+than appealing to the general theorem
+([CCIA 2008](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download)).
+
+<Callout kind="note" title="The one-line version">
+  "Is Eternity II NP-complete?" No: an instance has no complexity class. "Is the
+  edge-matching problem NP-complete?" Yes. "Is this instance hard to solve?"
+  Empirically yes, because the search space is ~$10^{557}$ wide and the solution
+  set is nearly empty, so search drowns in dead ends.
+</Callout>
+
+## Encoding it: the setup
+
+The rest is practical: how do you write the board so a solver can chew on it?
+All three encodings below share the same skeleton. Number the cells
+$c = 1 \dots 256$, the pieces $p = 1 \dots 256$, and the rotations
+$r \in \{0, 1, 2, 3\}$. A *placement* is a triple $(c, p, r)$: piece $p$ dropped
+into cell $c$ turned by $r$ quarter-turns. Every encoding has to say three
+things:
+
+1. each cell gets exactly one placement,
+2. each piece is used exactly once,
+3. wherever two cells touch, the colours on the shared edge agree.
+
+The encodings differ only in how they express constraint 3, the colour match,
+and that difference is the whole story. The sketches below use a 2×2 or 3×3
+board so you can see all the clauses; the 16×16 is the same shape at scale.
+
+## SAT / CNF
+
+Introduce a Boolean variable $x_{c,p,r}$, true when piece $p$ sits at cell $c$
+in rotation $r$. On the full board that is $256 \times 256 \times 4 \approx
+262{,}000$ variables before any constraint. Then:
+
+- **Exactly one placement per cell.** For each cell $c$, an at-least-one clause
+  over all its placements, $\bigvee_{p,r} x_{c,p,r}$, plus at-most-one clauses
+  forbidding any two, $\lnot x_{c,p,r} \lor \lnot x_{c,p',r'}$ for distinct
+  placements.
+- **Exactly one cell per piece.** The mirror image: for each piece $p$, one
+  at-least-one clause over the cells it could occupy, plus at-most-one clauses
+  so it is placed only once.
+- **Edge match.** For every interior adjacency and every placement whose exposed
+  edge shows colour $k$, forbid every placement in the neighbouring cell whose
+  facing edge is not $k$: a binary clause $\lnot x_{c,p,r} \lor \lnot
+  x_{c',p',r'}$ for each conflicting pair.
+
+A 2×2 sketch makes the third family concrete. Cells $A$ (top-left) and $B$
+(top-right) share a vertical edge; $A$'s east edge must equal $B$'s west edge.
+For each placement $(A,p,r)$ showing east colour $k$, and each placement
+$(B,p',r')$ whose west colour is not $k$, add $\lnot x_{A,p,r} \lor \lnot
+x_{B,p',r'}$. Do the same for $A$/$C$ vertically and the other two interior
+adjacencies. That is all constraint 3 is: a large pile of "these two placements
+cannot both be true" binary clauses.
+
+The catch is that the pile is enormous. The conflict clauses dominate, the
+at-most-one encodings add their own blowup (naive pairwise is quadratic; ladder
+or commander encodings trade it for auxiliary variables), and the result is a
+formula with millions of clauses whose structure gives conflict-driven search
+almost nothing to learn from. This has been tried since 2008 and complete SAT
+solvers stall on the full board; Blackwood, among others, reported that SAT did
+not help. The encoding is clean, the solver is not the bottleneck, the
+*instance* is. See [SAT and CSP encodings](/research/build/concepts/sat-csp-encodings)
+for the benchmark history and where SAT verdicts still earn their keep as
+small-region impossibility proofs.
+
+## Exact cover and dancing links
+
+The exact-cover view is tidier, and it hides a trap that trips up almost
+everyone who reaches for Knuth's dancing links.
+
+Set up 512 *items*: one per cell ("cell $c$ is filled") and one per piece
+("piece $p$ is used"). Each *option* is a placement $(c,p,r)$, and it covers
+exactly two items: cell $c$ and piece $p$. A set of options covering every item
+exactly once is a board with every cell filled and every piece used once. That
+is a clean exact-cover instance, and Knuth's **Algorithm X** with dancing links
+solves exact cover beautifully.
+
+Here is the trap. Constraints 1 and 2 are cover-once conditions, which is
+exactly what exact cover expresses. But constraint 3, the colour match, is not a
+cover-once condition at all: a shared edge is not "used once", it is "assigned a
+colour that both neighbours agree on". Plain Algorithm X has no way to say this.
+People encode it, run it, and get boards with mismatched edges, or they try to
+bolt on extra items and find the cover-once semantics fight them. This exact
+confusion has its own question on the CS Stack Exchange.
+
+The fix is Knuth's own extension, **Algorithm C**, for XCC, exact covering with
+colours (TAOCP Volume 4B). Alongside the *primary* items (covered exactly once)
+you add *secondary* items that may be covered any number of times, *provided all
+options covering a given secondary item assign it the same colour*. Give each
+interior edge of the grid one secondary item. A placement that exposes colour
+$k$ on a shared edge assigns colour $k$ to that edge's secondary item. Two
+placements can then coexist across the edge only if they colour it identically,
+which is precisely the edge-match constraint, now expressed natively.
+
+A 3×3 sketch: 9 cell items and 9 piece items (primary), plus 12 interior-edge
+items (secondary, one per horizontal or vertical join). The centre cell's
+placements each touch four secondary edge items and must colour-agree with all
+four neighbours; a corner cell's placements touch two. Algorithm C threads this
+without ever emitting a mismatched board. The takeaway students miss:
+**exact-cover-DLX for Eternity II needs Algorithm C, not Algorithm X.** The
+[exact cover and dancing links](/research/build/concepts/exact-cover-dlx) page
+walks the full XCC construction and where DLX genuinely shines (small boards,
+exhaustive solution counting) versus where it stalls on the 16×16.
+
+## ILP and max-clique, briefly
+
+Two more framings, useful mainly as pointers:
+
+- **Integer linear programming.** Reuse the SAT variables as 0/1 integers
+  $x_{c,p,r}$. Constraints 1 and 2 become equalities $\sum_{p,r} x_{c,p,r} = 1$
+  per cell and $\sum_{c,r} x_{c,p,r} = 1$ per piece. The edge match becomes, for
+  each interior edge and each colour $k$, a linking condition tying the two
+  neighbours' colour-$k$ placements together (one clean form: a fresh binary
+  edge-colour variable $y_{e,k}$ with $\sum_k y_{e,k} = 1$ and each side's
+  placements implying the matching $y$). It is a feasibility ILP, no objective,
+  and the LP relaxation is weak, so branch-and-bound behaves much like the SAT
+  search. See [LP relaxations](/research/build/concepts/lp-relaxations).
+- **Max clique.** Build a graph whose vertices are legal placements and whose
+  edges join any two placements that are mutually compatible (different cells,
+  different pieces, and agreeing on any shared edge). A full board is a clique of
+  size 256. This is elegant on paper but the graph is huge and clique solvers
+  fare no better; it is worth knowing as a reduction, not as a practical attack.
+
+## Where this leaves you
+
+If you came asking whether the theory of NP-completeness makes this instance
+provably hard, the answer is that it does not, and cannot: complexity classes
+describe families, and this board is a fixed input with a fixed answer.
+The general edge-matching problem is NP-complete, which caps what any solver can
+promise as $n$ grows, but the difficulty you actually feel is empirical, a
+$10^{557}$-wide space over a nearly empty solution set. Every encoding above
+faithfully captures the puzzle; none of them makes it easy, because the hardness
+lives in the instance, not in the choice of formalism. Once the board is
+encoded, the leverage that remains is
+[arc consistency](/research/build/concepts/arc-consistency) and smart search
+order, which is where the rest of this section picks up.

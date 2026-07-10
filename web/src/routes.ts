@@ -11,7 +11,10 @@ import { type RouteConfig, index, route, layout } from "@react-router/dev/routes
 // when a module is used twice, so each entry gets an explicit unique id.
 const PAGES = [
   { path: "", file: "pages/Home.tsx", id: "home" },
+  { path: "start", file: "pages/Start.tsx", id: "start" },
+  { path: "status", file: "pages/Status.tsx", id: "status" },
   { path: "puzzle", file: "pages/Puzzle.tsx", id: "puzzle" },
+  { path: "is-it-a-scam", file: "pages/Scam.tsx", id: "scam" },
   { path: "playground", file: "pages/playground/Hub.tsx", id: "playground" },
   { path: "playground/watch", file: "pages/playground/Watch.tsx", id: "watch" },
   { path: "playground/solve", file: "pages/playground/Solve.tsx", id: "solve" },
@@ -19,6 +22,7 @@ const PAGES = [
   { path: "playground/print", file: "pages/playground/Print.tsx", id: "print" },
   { path: "algorithms", file: "pages/Algorithms.tsx", id: "algorithms" },
   { path: "viewer", file: "pages/Viewer.tsx", id: "viewer" },
+  { path: "convert", file: "pages/Convert.tsx", id: "convert" },
 ];
 
 function tree(prefix: "" | "fr") {

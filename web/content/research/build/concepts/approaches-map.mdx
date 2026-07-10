@@ -1,0 +1,209 @@
+---
+title: A map of every known approach
+description: >-
+  The survey the community keeps asking for and never finds: every family of
+  attack tried on Eternity II, what each one actually reached, where it walls
+  out, and a link to the deep page. One organising insight runs through all of
+  them.
+kind: page
+order: 5
+updated: 2026-07-08
+sources:
+  - label: "The community's own summary of two decades of effort: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "Eternity II (Wikipedia): the puzzle, prize, and public record"
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/build/concepts
+  - /research/build/solvers
+  - /research/why
+---
+
+People who work on Eternity II eventually ask the same question: is there one
+place that lays out *all* the approaches? The usual answer is no, because the
+people attacking it are a mix of academics, competitive solvers, and hobbyists,
+and nobody wrote the map. This page is that map. It does not add a new method;
+it lines up the ones already documented on this wiki, one family at a time, so
+you can see the whole territory before you pick a direction.
+
+For each family: what it is in a line, what it actually reached on the real
+16×16 board, where it stops, and a link to the deep page with the labs, the
+measurements, and the archive citations.
+
+## The one insight that organises the whole map
+
+Every family below stalls in the same place: the community ceiling of 470 out
+of 480 matched edges, with this project's own experiments clustered at
+460–463. They stall there for the same reason, and it is worth stating before
+the catalogue so the rest reads as variations on one theme.
+
+The reason is an evaluation problem. The only cheap signal any solver has is
+the number of matched edges, and that number does not tell you how close you
+are to a solution. A 470-edge board and a 460-edge board can be equally far
+from finishing, because the last ten edges are not a polishing job: they sit on
+the far side of a global wall that no local score can see. So the systematic
+searchers and the stochastic searchers, which look nothing alike, converge on
+the same height. This is the **[rigidity wall](/research/why/rigidity-wall)**:
+record boards are locally frozen, and the step from a great board to a perfect
+one is one indivisible swap with no gradient to follow. Its companion is
+**[why a faster computer doesn't help](/research/why/prune-vs-speed)**: when you
+cannot shrink the search, raw speed buys you almost nothing. The
+**[why it's hard](/research/why)** section proves both, and
+**[which wall stops which method](/research/why/walls-and-methods)** lines up
+each attack against the wall it dies on.
+
+Keep that in mind and the map below is easy to read: the families differ in
+*how* they climb, not in *how high*.
+
+## Systematic search
+
+The backtracking family: place pieces one at a time in a fixed or computed
+order, prune illegal placements, and undo on failure. Everything that holds a
+record lives here.
+
+- **[Fill orders](/research/build/concepts/fill-order)**. The order a
+  backtracker visits the 256 cells is its one free choice, and it moves the
+  size of the search tree by orders of magnitude at no runtime cost. Twenty
+  years of community science, from the fixed-versus-dynamic debate to
+  Verhaard's comb search. This is the lever, not a wall.
+- **[Arc consistency](/research/build/concepts/arc-consistency)**. Make every
+  cell's candidate list defend itself against its neighbours to a fixed point,
+  going beyond one-move-ahead forward checking. Mackworth's AC-3 and its
+  refinements prune hard on small boards; on the full board the reachable
+  pruning fades about two cells out and cannot collapse the branching factor.
+- **[All-different, Régin's matching filter](/research/build/concepts/alldiff-regin)**.
+  No piece may be used twice: one global constraint over 256 cells, filtered
+  completely in polynomial time by bipartite matching. The strongest propagator
+  anyone has measured here, with a sharp caveat once the search tolerates
+  mismatches.
+- **[No-good learning](/research/build/concepts/nogood-learning)**. A failed
+  subtree is a theorem: record it and never re-enter. Transposition tables and
+  mined constraints both pay on small boards; at 16×16 the number of distinct
+  no-goods outruns any memory you can hold.
+- **[Restarts and heavy tails](/research/build/concepts/restarts)**. The same
+  backtracker on the same puzzle finishes in runtimes that differ by powers of
+  ten, so cut off, reshuffle, and restart. Every record solver since 2007 is a
+  restart portfolio. It changes which boards you reach, not the ceiling.
+- **[Meet in the middle](/research/build/concepts/meet-in-the-middle)**.
+  Enumerate two halves and join them on a shared interface, trading memory for
+  half the exponent. Real on bands of the board; this project's BANDSAW
+  experiment measured where it stops paying at full size.
+- **[Exact cover and dancing links](/research/build/concepts/exact-cover-dlx)**.
+  Eternity II states cleanly as exact cover, and Knuth's Algorithm X is the
+  classic machine for it. It shines on small boards and exhaustive counting;
+  on the 16×16 the tree is unshrunk and there is no partial credit for a
+  near-miss.
+- **[Solver engineering](/research/build/concepts/solver-engineering)**. Not an
+  algorithm but the craft below one: lookup tables, perfect hashes, cache-sized
+  structs, generated code. It decides whether a node costs 26 cycles or 2,600,
+  and it is why the record engines run at all. It buys speed, and speed is the
+  thing that does not move the wall.
+
+The **[solver catalogue](/research/build/solvers)** shows how the record
+engines (Verhaard's 467, Blackwood's 470) assemble these parts.
+
+## Encodings to other solvers
+
+Rather than write a backtracker, translate the puzzle into the input language
+of an industrial solver and let a decade of engineering do the search.
+
+- **[SAT and CSP encodings](/research/build/concepts/sat-csp-encodings)**.
+  Write the puzzle as clauses and hand it to a complete solver. Tried since
+  2008. The solvers stall on the full board, but their verdicts still earn
+  their keep as impossibility proofs on sub-boards.
+- **[LP and ILP relaxations](/research/build/concepts/lp-relaxations)**. Write
+  it as an integer program and drop the integrality: a linear solver reaches
+  zero error in seconds by placing fractions of pieces. The comfort ends the
+  moment pieces must be whole: a plateau at 420–440 edges, an ILP wall at 8×8,
+  and an academic best of 461 in an hour.
+
+## Local and stochastic search
+
+Start with a full (imperfect) board and improve it by moves, guided by an
+objective. These methods look nothing like backtracking, and they stop at the
+same height.
+
+- **[Local search and ALNS](/research/build/concepts/local-search-alns)**.
+  Destroy part of a board, rebuild it better, and learn which demolitions pay.
+  The most reliable polisher here, and the cleanest demonstration of where
+  polishing ends.
+- **[Simulated annealing and parallel tempering](/research/build/concepts/parallel-tempering)**.
+  Treat mismatches as energy and temperature as tolerance for getting worse.
+  Annealing holds the longest-standing record in this family; tempering crosses
+  barriers annealing cannot. Both stop at the same wall.
+- **[Beam search](/research/build/concepts/beam-search)**. Keep the K most
+  promising partial boards alive and grow them cell by cell. The workhorse
+  behind this project's from-scratch builders, and a clean illustration of why
+  breadth alone stalls in the deep interior.
+- **[Evolutionary and genetic approaches](/research/build/concepts/evolutionary)**.
+  Breed a population, keep the fittest, recombine survivors. The most natural
+  metaphor in the toolbox and the one whose central operator, crossover, fights
+  the structure of the puzzle head-on.
+- **[Iterated maps and divide-and-concur](/research/build/concepts/iterated-maps)**.
+  Split the puzzle into two easy-to-project constraint sets and iterate a map
+  whose fixed points are solutions. Elser's method made the cover of PNAS; on
+  the Eternity II list it was tested once and never marched down.
+
+## Exotic and hardware roads
+
+Every few years someone proposes new hardware or new physics. These pages are
+the ledger of what each one actually delivered.
+
+- **[GPU solving](/research/build/concepts/gpu-solving)**. Looks like the
+  perfect workload (millions of independent subtrees), and eighteen years of
+  attempts measured a different reality: divergent branching and per-thread
+  state that outgrows fast memory. The wall is memory, not arithmetic.
+- **[FPGA solving](/research/build/concepts/fpga-solving)**. Put the lookup
+  tables one cycle away in on-chip RAM and pipeline dozens of tiny
+  backtrackers. Michael Field designed it, projected 5 billion placements per
+  second per chip, and ran a prototype. The road was mapped in detail and never
+  driven to the end.
+- **[Distributed solving](/research/build/concepts/distributed-solving)**.
+  Throw more computers at it: BOINC screensavers, prize-sharing syndicates,
+  console clusters, single-board farms. The community's total effort reached
+  about 10^19 operations with no solution; the one job distribution is
+  genuinely good at is exhaustive counting on small boards.
+- **[Quantum approaches](/research/build/concepts/quantum)**. The list's oldest
+  deus ex machina, invoked in the puzzle's first month and every few years
+  since. Two real stories (Grover's quadratic speedup and annealing on a QUBO),
+  the arithmetic against Eternity II's actual numbers, and a record of zero
+  runs.
+
+## Analysis, not solvers
+
+These do not try to solve the puzzle. They measure it, which is how the
+community knows where the walls are.
+
+- **[Parity arguments](/research/build/concepts/parity-arguments)**. Count
+  something on the board twice, once from each side, and the totals must agree,
+  giving impossibility proofs for one pass. The 479 story shows both the power
+  and the trap.
+- **[Solution counting](/research/build/concepts/solution-counting)**. Nobody
+  has seen a full solution, yet the community knows to within a factor of two
+  how many exist: exact censuses on small boards and an expectation formula that
+  converged on about 14,702.
+
+## Dead ends
+
+Some ideas sound as good as any above and provably do not move the score. The
+**[dead ends](/research/build/dead-ends)** page collects them with the reason
+each fails, so you can skip a month of work: symmetry breaking (there is no
+global symmetry to break), probability propagation that fades two cells out,
+and others.
+
+## What the map is telling you
+
+Read it top to bottom and the shape is clear. The systematic families own the
+records because they can prove things and prune hard on small boards, but they
+cannot shrink the full search enough to reach the end. The stochastic families
+polish beautifully and reach genuinely different boards, then stall at the same
+height. The hardware roads change the speed and never the ceiling. And the
+analysis pages explain why: the last ten edges are not a matter of effort or
+cleverness in any one family, but a global wall that every family meets from
+its own direction.
+
+If you are choosing where to spend time, the useful question is not which
+family is best. It is which wall you think you can get past, because that is
+what actually decides the score.
+**[Which wall stops which method](/research/why/walls-and-methods)** is the
+place to start.
