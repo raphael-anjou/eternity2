@@ -17,7 +17,7 @@ import {
   type NavItem,
 } from "@/lib/research/nav";
 import { researchTopic, topicUrl, researchAuthor, authorUrl } from "@/lib/research/manifest";
-import type { ResearchDoc, ReproKind } from "@/lib/research/types";
+import type { ResearchDoc, ReproKind, RigorKind } from "@/lib/research/types";
 import { DocsSidebar } from "./DocsSidebar";
 import { DocsToc } from "./DocsToc";
 import { ResearchSubnav } from "./ResearchSubnav";
@@ -44,6 +44,19 @@ const T = {
     viewMarkdown: "View as Markdown",
     updated: "Updated",
     by: "by",
+    rigor: {
+      proven: "proven",
+      measured: "measured",
+      conjectured: "conjectured",
+    } as Record<RigorKind, string>,
+    rigorTitle: {
+      proven: "established by a formal or exhaustive proof / certificate",
+      measured: "an empirical result measured on this project's engine",
+      conjectured: "a hypothesis or literature reading, not yet established here",
+    } as Record<RigorKind, string>,
+    complexity: "Complexity",
+    time: "Time",
+    space: "Space",
   },
   fr: {
     research: "Recherche",
@@ -66,8 +79,71 @@ const T = {
     viewMarkdown: "Version Markdown",
     updated: "Mis à jour",
     by: "par",
+    rigor: {
+      proven: "prouvé",
+      measured: "mesuré",
+      conjectured: "conjecturé",
+    } as Record<RigorKind, string>,
+    rigorTitle: {
+      proven: "établi par une preuve formelle ou exhaustive / un certificat",
+      measured: "un résultat empirique mesuré sur le moteur de ce projet",
+      conjectured: "une hypothèse ou une lecture de la littérature, pas encore établie ici",
+    } as Record<RigorKind, string>,
+    complexity: "Complexité",
+    time: "Temps",
+    space: "Espace",
   },
 };
+
+const RIGOR_STYLE: Record<RigorKind, string> = {
+  proven:
+    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  measured: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  conjectured:
+    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+};
+
+/** Credibility badge: how firmly the page's central claim is established. */
+function RigorBadge({ rigor }: { rigor: RigorKind }) {
+  const t = useT(T);
+  return (
+    <span
+      className={cn("rounded-full border px-2 py-0.5 font-medium", RIGOR_STYLE[rigor])}
+      title={t.rigorTitle[rigor]}
+    >
+      {t.rigor[rigor]}
+    </span>
+  );
+}
+
+/** Algorithmic-cost block: time / space bounds + an optional caveat. Math in
+ *  the strings is written as KaTeX and rendered by the same pipeline as the
+ *  body (the fields are plain text here; author writes `$O(e d^2)$`). */
+function ComplexityBlock({ doc }: { doc: ResearchDoc }) {
+  const t = useT(T);
+  const c = doc.complexity;
+  if (!c || (!c.time && !c.space && !c.note)) return null;
+  return (
+    <div className="mt-8 rounded-lg border p-4 text-sm">
+      <div className="font-semibold">{t.complexity}</div>
+      <dl className="mt-1.5 space-y-1">
+        {c.time && (
+          <div className="flex gap-2">
+            <dt className="w-16 shrink-0 text-muted-foreground">{t.time}</dt>
+            <dd className="font-mono text-[0.95em]">{c.time}</dd>
+          </div>
+        )}
+        {c.space && (
+          <div className="flex gap-2">
+            <dt className="w-16 shrink-0 text-muted-foreground">{t.space}</dt>
+            <dd className="font-mono text-[0.95em]">{c.space}</dd>
+          </div>
+        )}
+      </dl>
+      {c.note && <p className="mt-2 text-muted-foreground">{c.note}</p>}
+    </div>
+  );
+}
 
 /** Author credit line — links to the researcher's auto-generated hub. */
 function Byline({ doc }: { doc: ResearchDoc }) {
@@ -129,6 +205,7 @@ function Badges({ doc }: { doc: ResearchDoc }) {
           {"★".repeat(4 - doc.tier)}
         </span>
       )}
+      {doc.rigor && <RigorBadge rigor={doc.rigor} />}
       {doc.score !== undefined && (
         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
           {doc.score}/480
@@ -332,6 +409,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
           {children}
         </div>
         <HubCards doc={doc} />
+        <ComplexityBlock doc={doc} />
         {doc.sources.length > 0 && (
           <div className="mt-8 rounded-lg border p-4 text-sm">
             <div className="font-semibold">{t.source}</div>
