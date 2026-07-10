@@ -8,16 +8,28 @@ tier: 1
 rigor: proven
 author: raphael-anjou
 order: 50
-updated: 2026-07-02
+updated: 2026-07-10
 topics: [structure, local-search, exact-methods]
+complexity:
+  time: "one MIP solve per region; ~70 s (48 cells) to ~1800 s (59-cell joint halo-1) on CBC"
+  space: "≈18.7k binary assignment variables for a 64-cell region"
+  note: >-
+    Exponential in the worst case (integer programming is NP-hard), but each
+    region is small enough to close to optimality or a tight gap in minutes.
 related:
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
   - /research/lab/experiments/palimpsest
   - /research/lab/experiments/midden
+  - /research/build/concepts/lp-relaxations
 repro:
   kind: heavy
+sources:
+  - label: "Local rigidity theorem (project paper, 2026-05-16): ≥13 MIP proofs of halo-optimality across 3–4 basins, out to halo-4"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research
+  - label: "Land & Doig 1960, branch and bound — the exact method behind every region solve"
+    url: https://doi.org/10.2307/1910129
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -56,6 +68,38 @@ The answer keeps coming back the same: the best arrangement is the one
 already there. We proved it for region after region, across three different
 record boards, and out to a radius of four cells, which is a block of dozens
 of cells at once. Every time, no improvement exists.
+
+## Method: the MIP proof
+
+The exact question, stated precisely. Around each defect cell take the
+*halo-$r$* region: every cell within $r$ steps. Free all pieces inside it,
+keep the rest of the board fixed as a boundary, and solve an integer program
+for the best legal refill. Binary variables $x_{c,p,\theta} \in \{0,1\}$ place
+piece $p$ at rotation $\theta$ in cell $c$; one-piece-per-cell and
+one-cell-per-piece constraints make it an assignment problem; the objective
+maximizes matched edges, counting the fixed boundary. A 64-cell region is about
+18,700 binary variables. Branch and bound then either finds a strictly better
+refill or proves, with a dual bound, that none exists.
+
+It never finds one. The proofs, region by region:
+
+| Region | Board | Cells | Solver time | Result |
+|---|---|---:|---:|---|
+| halo-2, per-component (×8) | 3 basins (469, 459, 458) | 2–32 | — | all Δ = +0, **proven** |
+| halo-1 joint | McGavin 469 | 37 | 895 s | Δ = +0, **proven** |
+| halo-1 joint | Local 459 | 59 | 1800 s | Δ = +0, **proven** |
+| halo-3, per-component | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **proven** |
+| halo-4, component 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **proven** |
+
+Across four basins and ≥13 regions the answer is invariant: the incumbent
+board is locally MIP-optimal, out to halo-4 for McGavin's 469. The one region
+left with a gap — the top-four rows, 64 cells — still gives a *sound* result:
+a dual bound of 123 against the incumbent's 116, so even the unclosed case
+cannot exceed the wall by much (it implies a board-wide bound of ≤ 476).
+
+The badge says *proven* rather than *conjectured* for the regions actually
+closed; the general statement over *all* boards remains a conjecture, supported
+by every region tested to date.
 
 ## Why it matters
 
