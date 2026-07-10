@@ -21,6 +21,7 @@ import type { ResearchDoc, SearchEntry, TocItem } from "./src/lib/research/types
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CONTENT_DIR = path.join(HERE, "content", "research");
 const TOPICS_FILE = path.join(CONTENT_DIR, "topics.json");
+const AUTHORS_FILE = path.join(CONTENT_DIR, "authors.json");
 
 // ---- Topic registry ------------------------------------------------------
 
@@ -51,6 +52,39 @@ export function researchTopics(fresh = false): TopicDef[] {
   return topicsCache;
 }
 
+// ---- Author registry -----------------------------------------------------
+
+const authorSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9-]+$/),
+  name: z.string().min(1),
+  tagline: z.object({ en: z.string(), fr: z.string() }).optional(),
+  affiliation: z.object({ en: z.string(), fr: z.string() }).optional(),
+  bio: z.object({ en: z.string(), fr: z.string() }).optional(),
+  links: z.array(z.object({ label: z.string(), url: z.string().url() })).default([]),
+});
+
+export type AuthorDef = z.infer<typeof authorSchema>;
+
+let authorsCache: AuthorDef[] | null = null;
+
+/** The curated author registry (content/research/authors.json), validated.
+ *  Profiles only; the list of each person's pages is derived from the `author`
+ *  frontmatter field, never stored here. */
+export function researchAuthors(fresh = false): AuthorDef[] {
+  if (authorsCache && !fresh) return authorsCache;
+  if (!fs.existsSync(AUTHORS_FILE)) return (authorsCache = []);
+  const raw: unknown = JSON.parse(fs.readFileSync(AUTHORS_FILE, "utf8"));
+  const parsed = z.object({ authors: z.array(authorSchema) }).safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(
+      `research content: invalid authors.json:\n` +
+        parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n"),
+    );
+  }
+  authorsCache = [...parsed.data.authors].sort((a, b) => a.name.localeCompare(b.name));
+  return authorsCache;
+}
+
 const reproSchema = z.object({
   kind: z.enum(["exact", "seeded", "stochastic", "heavy", "prose"]),
   cmd: z.string().optional(),
@@ -64,6 +98,9 @@ const frontmatterSchema = z.object({
     .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),
   status: z.enum(["live", "draft"]).default("live"),
+  // Registry slug of the researcher who authored the page. Validated against
+  // authors.json in scanResearchContent (below), like topics.
+  author: z.string().optional(),
   tier: z.number().int().min(1).max(3).optional(),
   score: z.number().int().optional(),
   // YAML parses a bare 2026-07-01 as a Date; accept both, normalize to string.
@@ -164,11 +201,29 @@ export function scanResearchContent(fresh = false): RawEntry[] {
       throw new Error(`research content: ${e.file} has no English counterpart (${e.slug}.mdx)`);
     }
   }
-  // The topics/ URL prefix is reserved for auto-generated topic hub pages.
+  // The topics/ and people/ URL prefixes are reserved for auto-generated hub
+  // pages (topic hubs and researcher hubs).
   for (const e of entries) {
     if (e.slug === "topics" || e.slug.startsWith("topics/")) {
       throw new Error(
         `research content: ${e.file} — the "topics/" slug prefix is reserved for topic hubs`,
+      );
+    }
+    // "/research/people" itself is a real content page (the community gallery);
+    // only the sub-paths are reserved for auto-generated per-researcher hubs.
+    if (e.slug.startsWith("people/")) {
+      throw new Error(
+        `research content: ${e.file} — the "people/<slug>" prefix is reserved for researcher hubs`,
+      );
+    }
+  }
+  // Frontmatter author must exist in the registry (catches typos).
+  const knownAuthors = new Set(researchAuthors(fresh).map((a) => a.slug));
+  for (const e of entries) {
+    if (e.fm.author !== undefined && !knownAuthors.has(e.fm.author)) {
+      throw new Error(
+        `research content: ${e.file} references unknown author "${e.fm.author}" ` +
+          `(registry: content/research/authors.json)`,
       );
     }
   }
@@ -209,6 +264,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       description: use.fm.description,
       kind: e.fm.kind,
       status: e.fm.status,
+      ...(e.fm.author !== undefined ? { author: e.fm.author } : {}),
       ...(e.fm.tier !== undefined ? { tier: e.fm.tier } : {}),
       ...(e.fm.score !== undefined ? { score: e.fm.score } : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
@@ -277,5 +333,16 @@ export function researchPagePaths(): string[] {
     topics.length > 0
       ? ["research/topics", ...topics.map((t) => `research/topics/${t.slug}`)]
       : [];
-  return [...pages, ...topicPaths];
+  // Per-researcher hubs (the /research/people index is a real content page,
+  // already covered by `pages`). Only authors who actually wrote a page get a
+  // prerendered hub, so an unused registry entry never ships an empty page.
+  const authored = new Set(
+    buildManifest("en")
+      .map((d) => d.author)
+      .filter((a): a is string => a !== undefined),
+  );
+  const peoplePaths = researchAuthors()
+    .filter((a) => authored.has(a.slug))
+    .map((a) => `research/people/${a.slug}`);
+  return [...pages, ...topicPaths, ...peoplePaths];
 }

@@ -16,7 +16,7 @@ import {
   KIND_DOT,
   type NavItem,
 } from "@/lib/research/nav";
-import { researchTopic, topicUrl } from "@/lib/research/manifest";
+import { researchTopic, topicUrl, researchAuthor, authorUrl } from "@/lib/research/manifest";
 import type { ResearchDoc, ReproKind } from "@/lib/research/types";
 import { DocsSidebar } from "./DocsSidebar";
 import { DocsToc } from "./DocsToc";
@@ -43,6 +43,7 @@ const T = {
     editOnGitHub: "Page source",
     viewMarkdown: "View as Markdown",
     updated: "Updated",
+    by: "by",
   },
   fr: {
     research: "Recherche",
@@ -64,8 +65,29 @@ const T = {
     editOnGitHub: "Source de la page",
     viewMarkdown: "Version Markdown",
     updated: "Mis à jour",
+    by: "par",
   },
 };
+
+/** Author credit line — links to the researcher's auto-generated hub. */
+function Byline({ doc }: { doc: ResearchDoc }) {
+  const t = useT(T);
+  const { lang } = useLang();
+  if (!doc.author) return null;
+  const author = researchAuthor(lang, doc.author);
+  if (!author) return null;
+  return (
+    <p className="text-sm text-muted-foreground">
+      {t.by}{" "}
+      <LocalizedLink
+        to={authorUrl(author.slug)}
+        className="font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
+      >
+        {author.name}
+      </LocalizedLink>
+    </p>
+  );
+}
 
 function Breadcrumbs({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
@@ -296,6 +318,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
         <header className="mt-4 space-y-3">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{doc.title}</h1>
           <p className="text-lg text-muted-foreground">{doc.description}</p>
+          <Byline doc={doc} />
           <Badges doc={doc} />
         </header>
         <div

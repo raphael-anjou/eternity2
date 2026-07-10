@@ -9,15 +9,17 @@ declare module "*.mdx" {
 }
 
 declare module "virtual:research-manifest-en" {
-  import type { ResearchDoc, Topic } from "@/lib/research/types";
+  import type { ResearchDoc, Topic, Author } from "@/lib/research/types";
   export const docs: ResearchDoc[];
   export const topics: Topic[];
+  export const authors: Author[];
 }
 
 declare module "virtual:research-manifest-fr" {
-  import type { ResearchDoc, Topic } from "@/lib/research/types";
+  import type { ResearchDoc, Topic, Author } from "@/lib/research/types";
   export const docs: ResearchDoc[];
   export const topics: Topic[];
+  export const authors: Author[];
 }
 
 declare module "virtual:research-search-en" {
