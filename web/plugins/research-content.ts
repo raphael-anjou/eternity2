@@ -108,22 +108,21 @@ export function researchContent(): Plugin {
     },
 
     // Researcher/LLM affordance: every research page ships a raw-markdown
-    // sibling (…/research/<slug>.md, FR under /fr/…) built from the MDX
-    // source — frontmatter header + body with the ESM plumbing stripped.
+    // sibling (…/research/<slug>.md) built from the MDX source — frontmatter
+    // header + body with the ESM plumbing stripped. The research wiki is
+    // English-only, so only EN siblings are emitted.
     writeBundle(options) {
       const outDir = options.dir ?? "";
       if (!outDir.includes("client")) return; // client pass only (see sitemap plugin)
       const origin = (process.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
       const base = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
-      for (const lang of ["en", "fr"] as const) {
-        for (const doc of buildManifest(lang)) {
+      {
+        for (const doc of buildManifest("en")) {
           const raw = scanResearchContent().find((e) => e.file === doc.file);
           if (!raw) continue;
-          const urlPath = (lang === "fr" ? "/fr" : "") + doc.url;
+          const urlPath = doc.url;
           const relFile =
-            (lang === "fr" ? "fr/" : "") +
-            (doc.slug === "" ? "research/index" : `research/${doc.slug}`) +
-            ".md";
+            (doc.slug === "" ? "research/index" : `research/${doc.slug}`) + ".md";
           const header = [
             `# ${doc.title}`,
             "",

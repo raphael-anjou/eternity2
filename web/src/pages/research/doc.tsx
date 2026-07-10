@@ -10,7 +10,7 @@
 // keep working until their MDX replacement lands — migration is page-by-page.
 
 import { lazy, Suspense, type ComponentType } from "react";
-import { useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { absoluteUrl } from "@/site";
@@ -127,8 +127,15 @@ function NotFound() {
 
 export default function ResearchDocPage() {
   const { pathname } = useLocation();
-  const lang = langFromPath(pathname);
   const path = neutralPath(pathname);
+
+  // The research wiki is English-only. Any /fr/research/* URL (a stray bookmark
+  // from when French pages existed) redirects to the English page. No /fr
+  // research URLs are generated anymore; this route only catches old links.
+  if (langFromPath(pathname) === "fr") {
+    return <Navigate to={path} replace />;
+  }
+  const lang = "en" as const;
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return <TopicsIndex />;
