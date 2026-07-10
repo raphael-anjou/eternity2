@@ -7,17 +7,28 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "beam search O(W·n·|moves|) for beam width W over n = 256 placements; prior build O(B) in the corpus"
+  space: "O(H) for the patch table (H distinct 2×2 patches seen) + O(W·n) live beams"
+  note: >-
+    The learned priors are a one-off preprocessing pass; the run cost is the
+    beam search they bias.
 repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 20
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [construction, learning]
 related:
   - /research/lab/experiments/prior
   - /research/why/sigma-cycles
   - /research/why/forbidden-patterns
+  - /research/build/concepts/beam-search
+sources:
+  - label: "Beam search as bounded-width best-first construction (this project's concept page)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/concepts/beam-search.mdx
 ---
 
 import { KeyringDiagram } from "@/components/research/KeyringDiagram";
@@ -61,6 +72,45 @@ board far more often than the simpler single-signal version it grew out of.
 It is not the project's top score (that's 463), but finding a high board in a
 fresh family matters: the strong boards are known to be isolated from each
 other, so each new family is its own foothold.
+
+## Method
+
+The three signals, made precise, then how they steer the beam.
+
+The strongest of the three is the **2×2 patch prior**. Over the corpus, split
+boards into *high* (score ≥ 460) and *low* (< 460), and for every 2×2 patch $q$
+(four pieces with their rotations) score it by a Laplace-smoothed log-odds
+ratio:
+
+$$
+\text{score}(q) = \log\big(\text{count}_\text{high}(q) + \alpha\big) - \log\big(\text{count}_\text{low}(q) + \alpha\big), \quad \alpha = 0.5
+$$
+
+A patch that shows up in strong boards and not weak ones scores positive; a
+consensus-trap patch scores negative. (In the run that found the 460, the
+corpus split 23 high boards against 1255 low.) The other two signals are
+simpler counts: a **piece-in-position** frequency and a **piece-pair
+adjacency** frequency, each tallied over the same strong-board set.
+
+The build is a **beam search**: keep $W$ partial boards alive, and at each step
+extend every beam by scoring each candidate placement as its matched-edge gain
+plus a weighted sum of the three priors, then keep the top $W$. A little
+injected randomness stops the $W$ beams from collapsing onto one path — which
+is what let KEYRING reach a *new* corner family rather than re-deriving a known
+board. Patches pack into a `u64` key (piece ≤ 8 bits, rotation 2 bits, ×4
+cells = 40 bits) so the prior lookup is a hash hit.
+
+One honest limit: the priors are learned from a corpus that is itself
+sub-perfect, so they encode the community's ceiling as much as its wisdom —
+the same double edge that [PALIMPSEST](/research/lab/experiments/palimpsest)
+turns into a feature by separating good consensus from traps.
+
+## Reproduce
+
+`just research-record-boards` verifies the committed 460 board's score
+byte-for-byte. The search is stochastic (beam search with injected randomness),
+so a re-run will not reproduce the same board; the board is the artifact of
+record. The prior-building scripts live in the vault under `v181_keyring`.
 
 ## Open questions
 
