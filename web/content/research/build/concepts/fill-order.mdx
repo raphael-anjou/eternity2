@@ -142,6 +142,24 @@ through "the magic 10×16 square" are near-optimal; a 2×2 block scan does, a
 constraint-count curve alone can't see: two orders can pay joins on the same
 schedule and still differ through the perimeter of the region they build.
 
+**Why "solve the border first" is a trap.** The most natural human instinct,
+build the easy frame and then fill the middle, is quantitatively one of the
+worst orders, and in 2025 Owen and Peter McGavin spelled out why on exactly
+this depth-160 peak. The border really is easy: after the start piece there are
+about $5.17\times10^{37}$ ways to complete it, of which only 14,702 can be
+filled by the 196 interior pieces, so about $3.5\times10^{33}$ frames must be
+tried before one even *can* finish
+([msg 11572](https://groups.io/g/eternity2/message/11572)). That alone is
+hopeless, but it is not the real problem. The problem is that with the frame
+fixed first, the node count keeps *climbing* after the border to a peak of about
+$10^{57}$ around 160 pieces, versus about $10^{43}$ for scan-row. A frame-first
+order commits early to the border and then walks straight into a peak fourteen
+orders of magnitude taller than scan-row's, because only about 1 in $10^{31}$
+frames leads anywhere and each is expensive to rule out
+([msg 11573](https://groups.io/g/eternity2/message/11573)). Row scan wins not by
+building a nicer frontier but by never paying for a border it cannot yet know is
+doomed.
+
 **Which scanline, though?** Even within row scans there are eight
 orientations: four corners to start from, rows or columns
 ([msg 6018](https://groups.io/g/eternity2/message/6018)). Max ran multi-day

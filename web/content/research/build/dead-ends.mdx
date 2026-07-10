@@ -92,6 +92,28 @@ order of $10^{90}$ boundary-consistent colorings against the puzzle's roughly
 one real solution. Local message passing simply can't see the global
 one-piece-per-cell rule. [Why this is a wall →](/research/why/entropy-area-law)
 
+## Solve the colors first, place pieces later
+
+*Reformulate the board as a line graph over colors, solve for a
+color-adjacency arrangement that is edge-consistent everywhere, then hope that
+arrangement is easier to turn into a real tiling than solving for pieces
+directly.*
+
+**Measured.** It is a clean idea, explored on the list in 2023 to 2025: strip
+the puzzle down to which color meets which, solve that smaller object, and use
+it as a scaffold. The trouble is the smaller object is not small. Enumerating
+just the interior color arrangements for E2 leaves about
+$6.6\times10^{11}$ permutations, and 17×17 blows up to $2.97\times10^{13}$
+([msg 11182](https://groups.io/g/eternity2/message/11182)), and every one of
+those still has to be checked against a real piece assignment, because a
+color-consistent arrangement need not be tileable by the actual 256 pieces at
+all. It is the tensor-network blind spot in another costume: satisfying the
+color adjacencies is necessary but nowhere near sufficient, and the
+use-each-piece-once constraint that does the real work is exactly what the
+color-only view drops. The author's own summary after the enumeration was that
+you would "spend a lot of time just validating one" arrangement against all its
+inner-color permutations. [Why this is a wall →](/research/why/entropy-area-law)
+
 ## Relaxation bounds
 
 *Solve the linear-programming relaxation to get a tight ceiling on how many
