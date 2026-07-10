@@ -14,6 +14,7 @@ import type { Plugin, ViteDevServer } from "vite";
 import {
   buildManifest,
   researchTopics,
+  researchAuthors,
   scanResearchContent,
   searchEntries,
   CONTENT_DIR,
@@ -90,7 +91,20 @@ export function researchContent(): Plugin {
         label: t.label[lang],
         description: t.description[lang],
       }));
-      return `export const docs = ${JSON.stringify(docs)};\nexport const topics = ${JSON.stringify(topics)};`;
+      // Author registry, profile fields resolved to this language.
+      const authors = researchAuthors().map((a) => ({
+        slug: a.slug,
+        name: a.name,
+        ...(a.tagline ? { tagline: a.tagline[lang] } : {}),
+        ...(a.affiliation ? { affiliation: a.affiliation[lang] } : {}),
+        ...(a.bio ? { bio: a.bio[lang] } : {}),
+        links: a.links,
+      }));
+      return (
+        `export const docs = ${JSON.stringify(docs)};\n` +
+        `export const topics = ${JSON.stringify(topics)};\n` +
+        `export const authors = ${JSON.stringify(authors)};`
+      );
     },
 
     // Researcher/LLM affordance: every research page ships a raw-markdown
@@ -136,7 +150,8 @@ export function researchContent(): Plugin {
       server.watcher.add(CONTENT_DIR);
       const onContentChange = (file: string) => {
         if (!file.startsWith(CONTENT_DIR)) return;
-        researchTopics(true); // bust both caches
+        researchTopics(true); // bust all caches
+        researchAuthors(true);
         scanResearchContent(true);
         for (const bare of [...Object.keys(IDS), ...Object.keys(SEARCH_IDS)]) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);

@@ -48,6 +48,25 @@ export interface Topic {
   description: string;
 }
 
+/** A researcher who has authored pages on the wiki, resolved to one language.
+ *  The registry (content/research/authors.json) holds the profile; the *list*
+ *  of a person's pages is derived from every doc's `author` field, never
+ *  hand-maintained — the same way topic membership is derived from `topics`. */
+export interface Author {
+  /** URL slug, e.g. "raphael-anjou" → /research/people/raphael-anjou. */
+  slug: string;
+  /** Display name as it should appear in bylines and the hub header. */
+  name: string;
+  /** One-line role/summary, e.g. "Independent researcher". */
+  tagline?: string;
+  /** A short prose bio (one language). */
+  bio?: string;
+  /** Optional affiliation line (institution, group, "independent"). */
+  affiliation?: string;
+  /** Outbound links (personal site, GitHub, groups.io handle, ORCID…). */
+  links: { label: string; url: string }[];
+}
+
 /** One research wiki page, in one language. */
 export interface ResearchDoc {
   /** Content path without extension/lang, e.g. "why/border-balance". */
@@ -60,6 +79,9 @@ export interface ResearchDoc {
   description: string;
   kind: ResearchKind;
   status: "live" | "draft";
+  /** Registry slug of the page's author (drives the byline + researcher hub).
+   *  Undefined for structural/community pages with no single researcher. */
+  author?: string;
   /** 1 = flagship, 2 = finding, 3 = supporting. */
   tier?: number;
   /** Matched-edges score, for inventions/basins. */
