@@ -6,6 +6,10 @@ The full eternity2 groups.io archive lives locally at
 (plain text), `body` (HTML), `topic_id`). `msg_num` maps to the public URL
 `https://groups.io/g/eternity2/message/<msg_num>` — the canonical citation.
 
+To fetch posts newer than that export (or pull a single thread live), read
+[GROUPSIO_API.md](./GROUPSIO_API.md) — the web pages are anti-bot-gated, so
+use the native groups.io REST API, not a scraper.
+
 **Process (user directive 2026-07-02): start from the oldest messages and
 sweep chronologically toward today.** Each window produces one digest in
 `digests/` (format below). Digests are the working layer; wiki pages
