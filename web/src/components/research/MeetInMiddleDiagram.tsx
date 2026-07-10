@@ -71,7 +71,7 @@ export function MeetInMiddleDiagram() {
   return (
     <div ref={rootRef} className="space-y-3">
       <div className="mx-auto" style={{ maxWidth: W }}>
-        <svg viewBox={`0 0 ${W} ${CELL * 5}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${W} ${CELL * 5}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Meet-in-the-middle diagram of a top half grown downward and a bottom half grown upward joining at a seam row, where seam markers show colours clashing or lining up exactly">
           {/* top half: rows 0,1 then the seam row 2 (top's bottom edge) */}
           {topShown &&
             [0, 1].map((r) =>

@@ -71,7 +71,7 @@ export function PalimpsestDiagram() {
     <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto max-w-xs">
-        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Grid of strong boards stacked into a consensus heat map, with a handful of over-agreed cells ringed as the quiet locks PALIMPSEST targets">
           {Array.from({ length: N }, (_, r) =>
             Array.from({ length: N }, (_, c) => {
               const key = `${r}-${c}`;

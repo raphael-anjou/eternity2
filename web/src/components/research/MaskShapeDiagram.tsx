@@ -63,7 +63,7 @@ export function MaskShapeDiagram() {
   return (
     <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
-        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card" role="img" aria-label="16 by 16 grid showing the selected allowed-mismatch mask shape, with the rest of the cells marked as must-match-perfectly">
           {Array.from({ length: N }, (_, r) =>
             Array.from({ length: N }, (_, c) => {
               const allowed = shape.mask(r, c);

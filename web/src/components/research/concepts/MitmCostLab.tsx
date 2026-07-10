@@ -310,7 +310,7 @@ function JoinView({ t, visible }: { t: (typeof T)["en"]; visible: boolean }) {
 
   return (
     <div className="space-y-3">
-      <svg viewBox={`0 0 ${W} 128`} className="w-full rounded-md border bg-muted/20">
+      <svg viewBox={`0 0 ${W} 128`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="Histogram of stored seam signatures across hash buckets, with the currently probed bucket outlined green on a hit or rose on a miss">
         {Array.from({ length: BUCKETS }, (_, b) => {
           const c = counts[b] ?? 0;
           const h = c * 22;

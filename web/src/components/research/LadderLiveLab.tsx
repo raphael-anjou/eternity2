@@ -204,7 +204,7 @@ export function LadderLiveLab() {
 
       {probes.length > 0 && (
         <div className="mx-auto" style={{ maxWidth: W }}>
-          <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full">
+          <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full" role="img" aria-label="Bar chart of the depth each live probe reached, with survivors promoted and dropped probes greyed out at each ladder rung">
             {probes.map((p, i) => {
               const h = (p.depth / maxDepth) * H;
               const fill = p.solved

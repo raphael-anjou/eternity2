@@ -186,7 +186,7 @@ function FunnelChart({
 
   return (
     <div className="space-y-1">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Log-scale curves of expected search branches against depth in cells placed, one curve per scan order, showing how the funnel narrows">
         {gridLevels.map((lv) => (
           <g key={lv}>
             <line
