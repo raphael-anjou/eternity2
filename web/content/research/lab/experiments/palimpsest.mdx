@@ -5,17 +5,29 @@ description: >-
   then break them. This experiment produced the project's best board: 463 of
   480.
 kind: experiment
+author: raphael-anjou
 score: 463
+rigor: measured
+complexity:
+  time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
+  space: "O(P·K) for the persistence table (K distinct piece-pairs per position)"
+  note: >-
+    The mining pass is linear in the corpus; the cost is the downstream ALNS
+    search it steers, not the statistics.
 repro:
   kind: seeded
   cmd: just research-record-boards
   topic: record-boards
 order: 10
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search, learning, records]
 related:
   - /research/why/rigidity-wall
   - /research/lab/experiments/keyring
+  - /research/build/concepts/local-search-alns
+sources:
+  - label: "Ropke & Pisinger 2006, adaptive large-neighbourhood search (the destroy-and-repair frame this steers)"
+    url: https://doi.org/10.1287/trsc.1050.0135
 ---
 
 import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
@@ -43,7 +55,9 @@ to trust, and which to pull apart and rebuild. Grouping boards by how their
 corners are arranged then points the search at the most promising family to
 attack.
 
-<PalimpsestDiagram />
+<Figure collapsible title="Interactive: the trap map, corner-family by corner-family">
+  <PalimpsestDiagram />
+</Figure>
 
 ## The board
 
@@ -59,6 +73,52 @@ One caveat worth stating: trying to use the trap list directly, by forcing the
 search to avoid trapped placements, did not work on its own and tended to
 make boards worse. The value was in reading the corpus to choose where to
 focus, not in hard-coding its conclusions into the search.
+
+## Method
+
+For the reader who wants the exact procedure. It runs in two passes.
+
+**1. Score-weighted, basin-separated consensus mining.** Over a corpus of
+boards scoring 400–480, for every adjacent cell-pair $(i, j, \text{dir})$ and
+every piece-pair that ever sits there, compute two frequencies rather than one:
+
+$$
+\begin{aligned}
+p_\text{high}(\text{pair}) &= \frac{\#\{\text{boards with the pair, score} \ge 460\}}{\#\{\text{boards with score} \ge 460\}} \\[4pt]
+p_\text{all}(\text{pair}) &= \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
+\end{aligned}
+$$
+
+together with a *ceiling*: the maximum score of any board containing that pair.
+Two categories fall out. **Good consensus** — high $p_\text{all}$ *and* a
+462+ ceiling — is trustworthy structure. **Consensus traps** — high
+$p_\text{all}$ but a ceiling stuck at 461 — are the agreed-upon wrong choice
+that locks every search into the same sub-460 family. The single-frequency
+view (persistence alone) cannot tell these apart; splitting by basin is the
+whole trick.
+
+**2. Trap-destroy ALNS.** Take a 461 board (it lives *inside* the trap basin
+by construction), locate the ~50 highest-ranked trap pairs it contains, and
+find the wedge: the position whose removal breaks the most trap pairs while
+preserving the good-consensus ones. Then perturb those trap cells — swap them
+to non-trap pieces, introducing 4–8 deliberate mismatches — and feed the board
+back to [adaptive large-neighbourhood search](/research/build/concepts/local-search-alns).
+ALNS's worst-band destroy operator preferentially tears open exactly those
+intentionally-broken regions and rebuilds them. Run: 30 minutes × 6 seeds.
+
+The complexity is unremarkable: the mining pass is linear in the corpus size,
+and the real cost is the ALNS search it steers. The contribution is *where* it
+aims that search, not a new search.
+
+## Reproduce
+
+The verifier `just research-record-boards` recomputes the matched-edge score of
+the committed 463 board from its raw Bucas edges and checks it equals the
+claim — so the board is reproducible and checkable byte-for-byte in the viewer.
+The search that *found* it is a stochastic ALNS run (30 min × 6 seeds); it will
+not reproduce the same board, which is why the artifact of record is the board,
+not a re-run. The mining scripts and the attack driver live in the vault under
+`vol-129`.
 
 ## Open questions
 

@@ -5,6 +5,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { useT } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 /** Internal absolute links stay in the reader's language and use SPA
@@ -88,19 +89,68 @@ export function Callout({
   );
 }
 
-/** Figure wrapper for embedded visuals: centers content, adds a caption. */
-export function Figure({ caption, children }: { caption?: string; children: ReactNode }) {
-  return (
-    <figure className="my-8">
+/** Figure wrapper for embedded visuals: centers content, adds a caption.
+ *
+ *  Interactive labs are heavy: full-height cards that a reader skimming the
+ *  argument has to scroll past. Pass `collapsible` (optionally `open` to start
+ *  expanded) to render the visual inside a native <details>, so the caption
+ *  stays visible as a jump target while the widget itself folds away until the
+ *  reader chooses to explore it. `title` is the summary label; `caption` is the
+ *  small line beneath the content. */
+export function Figure({
+  caption,
+  title,
+  collapsible = false,
+  open = false,
+  children,
+}: {
+  caption?: string;
+  title?: string;
+  collapsible?: boolean;
+  open?: boolean;
+  children: ReactNode;
+}) {
+  const t = useT(FIGURE_T);
+  const body = (
+    <>
       {children}
       {caption && (
         <figcaption className="mt-2 text-center text-xs text-muted-foreground">
           {caption}
         </figcaption>
       )}
+    </>
+  );
+
+  if (!collapsible) {
+    return <figure className="my-8">{body}</figure>;
+  }
+
+  return (
+    <figure className="my-8">
+      <details className="group rounded-lg border bg-card/40 open:bg-transparent" open={open}>
+        <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-open:rounded-b-none group-open:border-b">
+          <span
+            aria-hidden
+            className="text-muted-foreground transition-transform group-open:rotate-90 motion-reduce:transition-none"
+          >
+            ▶
+          </span>
+          <span className="flex-1">{title ?? caption ?? t.fallback}</span>
+          <span className="text-xs font-normal text-muted-foreground group-open:hidden">
+            {t.explore}
+          </span>
+        </summary>
+        <div className="p-4">{body}</div>
+      </details>
     </figure>
   );
 }
+
+const FIGURE_T = {
+  en: { explore: "Explore →", fallback: "Interactive figure" },
+  fr: { explore: "Explorer →", fallback: "Figure interactive" },
+};
 
 /** Responsive table wrapper (wide research tables scroll, not overflow). */
 export function ProseTable(props: ComponentPropsWithoutRef<"table">) {

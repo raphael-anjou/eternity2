@@ -10,13 +10,14 @@
 // keep working until their MDX replacement lands — migration is page-by-page.
 
 import { lazy, Suspense, type ComponentType } from "react";
-import { useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { absoluteUrl } from "@/site";
-import { researchDoc, researchTopic } from "@/lib/research/manifest";
+import { researchDoc, researchTopic, researchAuthor } from "@/lib/research/manifest";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
+import { PersonHub } from "@/components/docs/PeoplePages";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
@@ -45,6 +46,13 @@ function topicSlugFor(path: string): string | null {
   return m?.[1] ?? null;
 }
 
+/** Researcher hub URL → author slug, or null. The index /research/people is a
+ *  real content page (the community gallery), so only sub-paths match here. */
+function personSlugFor(path: string): string | null {
+  const m = /^\/research\/people\/([a-z0-9-]+)$/.exec(path);
+  return m?.[1] ?? null;
+}
+
 const TOPICS_TITLE = { en: "Research topics", fr: "Thèmes de recherche" } as const;
 const TOPICS_DESC = {
   en: "The Eternity II research wiki sliced by theme: structure, search-space reduction, backtracking, speed, local search, exact methods, hardware and more.",
@@ -67,6 +75,20 @@ export function meta({ location }: { location: { pathname: string } }) {
   if (topicSlug !== null) {
     const topic = researchTopic(lang, topicSlug);
     if (topic) return pack(topic.label + SUFFIX, topic.description);
+  }
+
+  const personSlug = personSlugFor(path);
+  if (personSlug !== null) {
+    const author = researchAuthor(lang, personSlug);
+    if (author) {
+      const desc =
+        author.bio ??
+        author.tagline ??
+        (lang === "fr"
+          ? `Les travaux de ${author.name} sur Eternity II.`
+          : `${author.name}'s work on Eternity II.`);
+      return pack(author.name + SUFFIX, desc);
+    }
   }
 
   const doc = researchDoc(lang, path);
@@ -105,13 +127,25 @@ function NotFound() {
 
 export default function ResearchDocPage() {
   const { pathname } = useLocation();
-  const lang = langFromPath(pathname);
   const path = neutralPath(pathname);
+
+  // The research wiki is English-only. Any /fr/research/* URL (a stray bookmark
+  // from when French pages existed) redirects to the English page. No /fr
+  // research URLs are generated anymore; this route only catches old links.
+  if (langFromPath(pathname) === "fr") {
+    return <Navigate to={path} replace />;
+  }
+  const lang = "en" as const;
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return <TopicsIndex />;
   if (topicSlug !== null) {
     return researchTopic(lang, topicSlug) ? <TopicHub slug={topicSlug} /> : <NotFound />;
+  }
+
+  const personSlug = personSlugFor(path);
+  if (personSlug !== null) {
+    return researchAuthor(lang, personSlug) ? <PersonHub slug={personSlug} /> : <NotFound />;
   }
 
   const doc = researchDoc(lang, path);
