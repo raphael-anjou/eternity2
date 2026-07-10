@@ -28,6 +28,7 @@ repro:
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
 import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
+import { RectangleTransitionChart } from "@/components/research/RectangleTransitionChart";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
 import { colorToLetter } from "@/lib/motifs";
 import data from "@/data/phase-transition.json";
@@ -65,6 +66,28 @@ browser.
 <Figure collapsible title="Interactive: solve across the difficulty peak live">
   <PhaseTransitionLiveLab />
 </Figure>
+
+## The transition, measured on real pieces
+
+The colour-count argument says *where* the peak is. In March 2008 Brendan Owen
+went and watched a phase transition happen, directly, on the actual pieces. He
+took a thin 2-by-L interior rectangle and tiled it with random sets of E2's
+interior pieces, four hundred random sets at each length, and recorded how many
+could be completed with no mismatch
+([msg 4909](https://groups.io/g/eternity2/message/4909)).
+
+<RectangleTransitionChart />
+
+The shape is the phase transition in miniature. A 2-by-1 or 2-by-2 strip is so
+short that random pieces often just fit: 58% solvable at length 1. Then it dies
+completely. From length 4 through 15, not one random set out of four hundred
+tiles the rectangle at any length: solutions are so scarce they effectively do
+not exist. And then they come back. At length 16 one set in four hundred works,
+by 19 it is 8.5%, by 21 it is 57%, and by 22 nearly nine in ten. The region
+where solutions are vanishingly rare but not yet impossible is exactly the hard
+band, and it is not a story or a model here, it is a count. It is also why a
+14-cell-wide interior is so punishing: it sits in the steep part of that climb,
+where a solution exists but almost no random arrangement is one.
 
 ## The split, straight from the pieces
 
