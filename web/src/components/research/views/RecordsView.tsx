@@ -9,6 +9,8 @@ import {
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { KNOWN_BOARDS } from "@/data/known-boards";
+import { RECORDS, type RecordRow } from "@/data/records-timeline";
+import { RecordTimeline } from "@/components/research/RecordTimeline";
 
 // Records we have a real, bundled board for (e2.bucas.name viewer data) get a
 // clickable preview into our own /viewer. Keyed by the record row's `board`.
@@ -27,39 +29,6 @@ const BOARD_PARAMS: Record<string, string> = Object.fromEntries(
 // tracked as "strict 5-clue" in the method text (best known: 464, Benjamin
 // Riotte 2026, beating Gauthier's 460 of 2023). Verified at board level
 // against the archive (digest 0014) and the groups.io thread (topic 120056886).
-type RecordRow = {
-  date: string;
-  score: string;
-  author: string;
-  canonical: "canonical" | "variant";
-  method: string;
-  // id into BOARD_PARAMS when we have a real board to preview in the viewer.
-  board?: string;
-  // Public source for the entry. groups.io hrefs use the archive's sequential
-  // message numbers (msg_num), cross-checked against our full message export
-  // (id, msg_num, author, date and subject). Reading them needs a free
-  // groups.io account — anonymous access is login-walled. Entries with no
-  // public source (Discord-only reports) carry none.
-  source?: { href: string; label: string };
-};
-
-const GROUPS_IO = "https://groups.io/g/eternity2";
-const WIKIPEDIA_E2 = "https://en.wikipedia.org/wiki/Eternity_II_puzzle";
-
-const RECORDS: RecordRow[] = [
-  { date: "2007-07-28", score: "—", author: "TOMY / Christopher Monckton", canonical: "canonical", method: "Puzzle released, with a $2M prize for the first complete solution", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
-  { date: "2008-09", score: "467", author: "Louis Verhaard", canonical: "canonical", method: "Set-composition swap-annealing; won the $10,000 best-partial-solution prize", board: "Louis_Verhaard_467", source: { href: "https://www.shortestpath.se/eii/eii_details.html", label: "shortestpath.se" } },
-  { date: "2010-12-31", score: "—", author: "—", canonical: "canonical", method: "The competition closes at noon; the $2M prize expires unclaimed", source: { href: WIKIPEDIA_E2, label: "Wikipedia" } },
-  { date: "2020-08-31", score: "468", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver (pre-release); relayed from Reddit (#10032), board verified and shared by Jef Bucas", board: "Joshua_Blackwood_468", source: { href: `${GROUPS_IO}/message/10033`, label: "groups.io #10033" } },
-  { date: "2020-09-09", score: "469", author: "Peter McGavin", canonical: "canonical", method: "Blackwood's solver — the community ceiling (“New record score of 469! Only 11 breaks!”)", board: "JBlackwood+PMcGavin_469", source: { href: `${GROUPS_IO}/message/10045`, label: "groups.io #10045" } },
-  { date: "2020-11", score: "469", author: "various (~7 boards)", canonical: "canonical", method: "Blackwood's solver (Bucas's C rewrite), independent finds — plus one single-piece swap of McGavin's board", board: "JBlackwood+Jef_469_c", source: { href: `${GROUPS_IO}/message/10067`, label: "groups.io #10067" } },
-  { date: "2021-03-30", score: "470", author: "Joshua Blackwood", canonical: "canonical", method: "Blackwood's solver, retuned schedule (break indexes 11→10) — same starter-only regime as the 468/469 (verified, #10554). His own account: about a month on a home Threadripper 3970X (Discord, 2024-11)", board: "Joshua_Blackwood_470", source: { href: `${GROUPS_IO}/message/10117`, label: "groups.io #10117" } },
-  { date: "2023-03-09", score: "460", author: "Bruno Gauthier", canonical: "canonical", method: "Strict all-5-clue discipline — the best board respecting the four optional clues for over three years, until 2026", source: { href: `${GROUPS_IO}/message/11074`, label: "groups.io #11074" } },
-  { date: "2023-10", score: "“480”", author: "various", canonical: "variant", method: "Mixed Clue-1 + Clue-2 piece sets — NOT the canonical puzzle", source: { href: `${GROUPS_IO}/message/11169`, label: "groups.io #11169" } },
-  { date: "2024-12-02", score: "470", author: "Jef Bucas", canonical: "canonical", method: "Restarted threads of Blackwood's solver — another 470 tie; Carlos Fernandez posted border-rearrangement variations", board: "JBlackwood+Jef_470", source: { href: `${GROUPS_IO}/message/11401`, label: "groups.io #11401" } },
-  { date: "2026-07-06", score: "464", author: "Benjamin Riotte", canonical: "canonical", method: "New strict-five-clue record (16 broken edges), all five clues at their official cells — his own modified-Blackwood DFS. Beats Gauthier's 460, unbeaten since 2023; Igor Pejic reached the same 463–464 range independently in the same thread", board: "Benjamin_Riotte_464", source: { href: `${GROUPS_IO}/message/11919`, label: "groups.io #11919" } },
-];
-
 const T = {
   en: {
     bestTitle: "The state of the art",
@@ -192,6 +161,7 @@ const BADGE: Record<RecordRow["canonical"], string> = {
 // sequential message numbers (msg_num; author, date and subject all verified
 // against our full message export). Reading a message needs a free groups.io
 // login — anonymous access to the archive is login-walled.
+const GROUPS_IO = "https://groups.io/g/eternity2";
 const REFS: { href: string; label: string }[] = [
   {
     href: `${GROUPS_IO}/message/10033`,
@@ -256,6 +226,7 @@ export function RecordsView() {
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">{t.timelineTitle}</h2>
+        <RecordTimeline />
         <Table>
           <TableHeader>
             <TableRow>
