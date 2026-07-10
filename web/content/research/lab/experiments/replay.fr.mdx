@@ -7,15 +7,28 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "DFS avec queue exacte de 14 cases ; 8 fils, redémarrage toutes les 5 s, budget par témoin"
+  space: "borné par le front DFS plus le cadre fixe et l'ordonnancement du témoin"
+  note: >-
+    La recherche par retour arrière est exponentielle dans le pire cas ; la
+    queue exacte et l'ordonnancement du témoin la ramènent à un rejeu ciblé
+    plutôt qu'à une chasse à l'aveugle.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --mode dfs --exact-tail 14 --prior-over-cost
 order: 40
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [records, backtracking]
 related:
   - /research/lab/experiments/ladder
   - /research/records
   - /research/why/rigidity-wall
+  - /research/build/concepts/nogood-learning
+sources:
+  - label: "Plateaux 460 stricts de la communauté (chronologie des records) : les témoins que REPLAY reconstruit"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/records.mdx
 ---
 
 import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
@@ -61,6 +74,44 @@ défaut hisse l'échelle stricte jusqu'à 460.
 C'est l'explication propre d'un plateau qui durait, et un avertissement : une
 règle d'apparence raisonnable (un défaut par cellule) avait discrètement mis
 hors d'atteinte les plateaux mêmes que nous poursuivions.
+
+## Méthode
+
+Le rejeu est une recherche en profondeur menée dans un mode délibérément
+contraint.
+
+- **Ordre prior-sur-coût.** Une DFS ordinaire tolérante aux défauts classe les
+  placements candidats par coût de discordance immédiat, le moins cher d'abord.
+  REPLAY inverse la priorité en *prior-sur-coût* : les candidats que le plateau
+  témoin a réellement utilisés passent devant les options en apparence moins
+  chères, si bien que la recherche est tirée le long du bon chemin connu au lieu
+  de s'en écarter. C'est le drapeau `--prior-over-cost`, guidé par
+  l'ordonnancement du plateau témoin lui-même.
+- **Queue exacte.** Les 14 dernières cases sont résolues exactement
+  (`--exact-tail 14`) plutôt qu'heuristiquement, si bien que la fin de partie
+  que les exécutions ordinaires ratent est fermée de façon déterministe.
+- **La relaxation décisive.** Le budget de discordance par cellule passe de un à
+  deux. Ce seul changement est ce qui admet les plateaux témoins.
+
+Exécuté sur un cadre 460 fixe, 8 fils, un redémarrage toutes les 5 secondes et
+un budget par exécution, les deux témoins 460 stricts de la communauté se
+reconstruisent pièce par pièce et le score se vérifie — la reproduction *est*
+la preuve que l'ingrédient manquant était le double défaut.
+
+**La découverte.** Chaque témoin contient quatre ou cinq cellules qui paient
+deux défauts d'un coup. Une recherche plafonnée à un défaut par cellule ne peut
+pas représenter ces plateaux, et c'est très exactement pourquoi les exécutions
+tolérantes aux défauts antérieures saturaient à 457-458. C'est un résultat de
+complétude de recherche déguisé en tentative de record : le mur était dans le
+jeu de coups, pas dans le calcul.
+
+## Reproduire
+
+Celle-ci est ensemencée et plus proche du déterministe que les constructeurs
+stochastiques : le rejeu DFS sur un cadre fixe et un ordonnancement témoin
+reconstruit les plateaux 460 de façon fiable. Les plateaux livrés sont
+vérifiables arête par arête dans la visionneuse ; le pilote de rejeu et les
+cadres vivent dans le vault sous `v213_replay` (cadres issus de `vol-212`).
 
 ## Questions ouvertes
 

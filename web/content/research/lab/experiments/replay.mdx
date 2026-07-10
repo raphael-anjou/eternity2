@@ -7,15 +7,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 460
+rigor: measured
+complexity:
+  time: "DFS with an exact 14-cell tail; 8 threads, 5 s restart cadence, per-witness budget"
+  space: "bounded by the DFS frontier plus the fixed frame and the witness schedule"
+  note: >-
+    Backtracking search is exponential in the worst case; the exact tail and
+    the witness schedule tame it to a targeted replay rather than a blind hunt.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --mode dfs --exact-tail 14 --prior-over-cost
 order: 40
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [records, backtracking]
 related:
   - /research/lab/experiments/ladder
   - /research/records
   - /research/why/rigidity-wall
+  - /research/build/concepts/nogood-learning
+sources:
+  - label: "Community strict-460 boards (records timeline): the witnesses REPLAY reconstructs"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/records.mdx
 ---
 
 import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
@@ -59,6 +71,41 @@ the double break lifts the strict ladder to 460.
 It's a clean explanation of a long-standing plateau, and a caution: a
 reasonable-looking rule (one break per cell) silently fenced off the very
 boards we were chasing.
+
+## Method
+
+The replay is a depth-first search run in a deliberately constrained mode.
+
+- **Prior-over-cost ordering.** Ordinary break-tolerant DFS ranks candidate
+  placements by immediate mismatch cost, cheapest first. REPLAY flips the
+  priority to *prior-over-cost*: candidates the witness board actually used are
+  ranked ahead of cheaper-looking ones, so the search is pulled down the known
+  good path instead of wandering off it. This is the `--prior-over-cost` flag
+  driving off the witness board's own schedule.
+- **Exact tail.** The last 14 cells are solved exactly (`--exact-tail 14`)
+  rather than heuristically, so the endgame that ordinary runs fumble is closed
+  deterministically.
+- **The relaxation that mattered.** The per-cell mismatch budget is raised from
+  one to two. That single change is what admits the witness boards at all.
+
+Run on a fixed 460 frame, 8 threads, a 5-second restart cadence and a per-run
+budget, both community strict-460 witnesses rebuild piece-for-piece and the
+score checks out — the reproduction *is* the proof that the missing ingredient
+was the double break.
+
+**The finding.** Each witness contains four or five cells that pay two
+mismatches at once. A search capped at one break per cell cannot represent
+those boards, which is precisely why the project's earlier break-tolerant runs
+saturated at 457–458. It is a search-completeness result dressed as a record
+attempt: the wall was in the move set, not the compute.
+
+## Reproduce
+
+This one is seeded and closer to deterministic than the stochastic builders:
+the DFS replay off a fixed frame and witness schedule rebuilds the 460 boards
+reliably. The committed boards are checkable edge-by-edge in the viewer; the
+replay driver and frames live in the vault under `v213_replay` (frames from
+`vol-212`).
 
 ## Open questions
 
