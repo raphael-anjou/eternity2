@@ -277,8 +277,14 @@ export default function Solve() {
     const frame = () => {
       const frameStart = performance.now();
       let r = solver.report();
+      // Step in small node-budget chunks so the wall-clock check below is
+      // actually enforced: step(budget) runs up to `budget` nodes SYNCHRONOUSLY
+      // before returning, so a huge budget (e.g. 10_000_000) can pin the main
+      // thread for hundreds of ms in a single call — past the 12ms slice — which
+      // freezes the tab and blocks route changes. A modest chunk keeps each call
+      // short enough that we re-check the clock often and yield after ~12ms.
       while (r.status === "running" && performance.now() - frameStart < 12) {
-        r = solver.step(10_000_000);
+        r = solver.step(50_000);
       }
       solverMs += performance.now() - frameStart;
       if (r.status !== "running" || solverMs >= 5000) {

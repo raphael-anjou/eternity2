@@ -277,16 +277,19 @@ export default function Paths() {
     [size, brush, hintCells],
   );
 
-  // Extend the last block by one cell (used for 1×1 drag-painting so a dragged
-  // stroke stays a single contiguous group rather than N singleton blocks).
+  // Continue a 1×1 drag stroke by one cell. Each dragged cell is appended as its
+  // OWN single-cell (1×1) block — NOT merged into one big group. A 1×1 stroke is
+  // a plain search path, so it must stay a run of singleton blocks: that keeps
+  // `blockMode` false (it triggers only on a group bigger than one cell), so the
+  // grid labels cells by visit rank (1, 2, 3, …) and colours them by rank rather
+  // than collapsing the whole stroke into block 0 (which rendered "1" on every
+  // dragged cell and flipped the grid into block-colouring mid-drag).
   const extendLastBlock = useCallback(
     (cell: number) => {
       setBlockGroups((prev) => {
         const placed = new Set(prev.flat());
         if (placed.has(cell) || hintCells.has(cell)) return prev;
-        if (prev.length === 0) return [[cell]];
-        const last = prev[prev.length - 1] ?? [];
-        return [...prev.slice(0, -1), [...last, cell]];
+        return [...prev, [cell]];
       });
     },
     [hintCells],
