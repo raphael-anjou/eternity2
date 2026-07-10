@@ -7,16 +7,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 463
+rigor: measured
+complexity:
+  time: "minage du corpus O(B·P) pour B plateaux × P paires intérieures (P = 480) ; attaque ALNS 30 min × 6 graines"
+  space: "O(P·K) pour la table de persistance (K paires de pièces distinctes par position)"
+  note: >-
+    Le minage est linéaire en la taille du corpus ; le coût réel est la
+    recherche ALNS qu'il oriente, pas les statistiques.
 repro:
   kind: seeded
   cmd: just research-record-boards
   topic: record-boards
 order: 10
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search, learning, records]
 related:
   - /research/why/rigidity-wall
   - /research/lab/experiments/keyring
+  - /research/build/concepts/local-search-alns
+sources:
+  - label: "Ropke & Pisinger 2006, recherche adaptative à grand voisinage (le cadre destruction-réparation ici orienté)"
+    url: https://doi.org/10.1287/trsc.1050.0135
 ---
 
 import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
@@ -46,7 +57,9 @@ quels placements croire, lesquels démonter et reconstruire. En regroupant
 ensuite les plateaux selon la disposition de leurs coins, on oriente la
 recherche vers la famille la plus prometteuse à attaquer.
 
-<PalimpsestDiagram />
+<Figure collapsible title="Interactive : la carte des pièges, famille de coins par famille de coins">
+  <PalimpsestDiagram />
+</Figure>
 
 ## Le plateau
 
@@ -64,6 +77,57 @@ interdisant à la recherche les placements piégés, n'a pas fonctionné, et
 tendait même à dégrader les plateaux. La valeur était dans la lecture du
 corpus pour choisir où concentrer l'effort, pas dans le codage en dur de ses
 conclusions dans la recherche.
+
+## Méthode
+
+Pour qui veut la procédure exacte. Elle se déroule en deux passes.
+
+**1. Minage de consensus pondéré par le score, séparé par bassin.** Sur un
+corpus de plateaux notés de 400 à 480, pour chaque paire de cellules voisines
+$(i, j, \text{dir})$ et chaque paire de pièces qui s'y trouve un jour, on
+calcule deux fréquences au lieu d'une :
+
+$$
+\begin{aligned}
+p_\text{high}(\text{paire}) &= \frac{\#\{\text{plateaux avec la paire, score} \ge 460\}}{\#\{\text{plateaux de score} \ge 460\}} \\[4pt]
+p_\text{all}(\text{paire}) &= \frac{\#\{\text{plateaux avec la paire}\}}{\#\{\text{tous les plateaux}\}}
+\end{aligned}
+$$
+
+assorties d'un *plafond* : le score maximal d'un plateau contenant cette paire.
+Deux catégories émergent. Le **bon consensus** — $p_\text{all}$ élevé *et* un
+plafond à 462+ — est de la structure fiable. Les **pièges de consensus** —
+$p_\text{all}$ élevé mais un plafond bloqué à 461 — sont le choix erroné mais
+partagé qui enferme toute recherche dans la même famille sous les 460. La vue
+à une seule fréquence (la persistance seule) ne les distingue pas ; c'est la
+séparation par bassin qui fait tout.
+
+**2. ALNS de destruction des pièges.** On prend un plateau à 461 (il est *dans*
+le bassin des pièges par construction), on repère les ~50 paires-pièges les
+mieux classées qu'il contient, et on cherche le coin : la position dont le
+retrait casse le plus de paires-pièges tout en préservant les paires de bon
+consensus. On perturbe alors ces cellules piégées — on les échange vers des
+pièces non piégées, introduisant 4 à 8 discordances délibérées — et on renvoie
+le plateau à la
+[recherche adaptative à grand voisinage](/research/build/concepts/local-search-alns).
+L'opérateur de destruction « pire bande » de l'ALNS déchire de préférence ces
+régions volontairement cassées et les reconstruit. Exécution : 30 minutes ×
+6 graines.
+
+La complexité n'a rien de remarquable : le minage est linéaire en la taille du
+corpus, et le coût réel est la recherche ALNS qu'il oriente. La contribution,
+c'est *où* il vise cette recherche, pas une nouvelle recherche.
+
+## Reproduire
+
+Le vérificateur `just research-record-boards` recalcule le score de bords
+appariés du plateau 463 livré à partir de ses arêtes Bucas brutes et vérifie
+qu'il égale l'annonce — le plateau est donc reproductible et vérifiable à
+l'octet près dans la visionneuse. La recherche qui l'a *trouvé* est une
+exécution ALNS stochastique (30 min × 6 graines) ; elle ne redonnera pas le
+même plateau, et c'est pourquoi l'artefact de référence est le plateau, pas une
+réexécution. Les scripts de minage et le pilote d'attaque vivent dans le vault
+sous `vol-129`.
 
 ## Questions ouvertes
 
