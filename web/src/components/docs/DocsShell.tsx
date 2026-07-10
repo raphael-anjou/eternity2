@@ -387,11 +387,6 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
         <DocsSidebar section={section} />
         <article className="min-w-0">
         <Breadcrumbs doc={doc} />
-        {lang === "fr" && !doc.translated && (
-          <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-muted-foreground">
-            {t.notTranslated}
-          </div>
-        )}
         <header className="mt-4 space-y-3">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{doc.title}</h1>
           <p className="text-lg text-muted-foreground">{doc.description}</p>
