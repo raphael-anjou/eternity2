@@ -7,15 +7,27 @@ description: >-
 kind: experiment
 author: raphael-anjou
 score: 453
+rigor: measured
+complexity:
+  time: "par cadre : ~6 s de sonde de compatibilité aux indices, puis une recette de queue de 30 s × 8 graines"
+  space: "un front DFS sur l'intérieur 14×14 ; le cadre de 60 pièces est fixe"
+  note: >-
+    Fixer la bordure réduit la recherche conjointe bordure-intérieur à une
+    recherche d'intérieur seul, ce qui rend la fin de partie exacte traitable.
 repro:
   kind: seeded
+  cmd: cargo run --release --bin cloister2 -- --frame <frame.json> --exact-tail 14
 order: 60
-updated: 2026-07-01
+updated: 2026-07-10
 topics: [local-search, backtracking]
 related:
   - /research/lab/experiments/staged
   - /research/why/rare-color-geography
   - /research/lab/experiments/midden
+  - /research/build/concepts/meet-in-the-middle
+sources:
+  - label: "Géographie de bordure des couleurs rares (ce projet) : pourquoi le cadre est la coupe naturelle"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/rare-color-geography.mdx
 ---
 
 import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
@@ -66,6 +78,40 @@ Avec les cinq indices officiels imposés, il se stabilise entre le haut des
 Il ne menace pas les records de tête, et il sature près du mur comme tout le
 reste. Mais il isole et mesure proprement le couplage bordure-intérieur que
 la recherche sur plateau entier fond dans la masse.
+
+## Méthode
+
+La recherche est une DFS tolérante aux défauts sur l'intérieur, mais le levier
+tient au cadrage et à une campagne en deux phases sur *plusieurs* cadres.
+
+- **Le cadre comme contrainte dure.** Une bordure complète de 60 pièces est
+  fixée, et les couleurs tournées vers l'intérieur du cadre deviennent des
+  contraintes dures sur les cellules du pourtour dès le tout premier placement
+  intérieur — pas une vérification reportée à la fin. Un intérieur condamné est
+  élagué immédiatement.
+- **Queue exacte.** La région de fin de partie est résolue exactement (une
+  queue exacte de 14 cases), y compris la façon dont elle scelle contre le
+  pourtour, si bien que les dernières cases sont fermées de manière
+  déterministe plutôt qu'heuristique.
+- **Campagne en largeur de cadres.** Plutôt qu'une seule bordure, on balaie un
+  répertoire de cadres candidats en deux phases : une sonde de compatibilité aux
+  indices d'environ 6 secondes écarte les cadres incapables d'accueillir les
+  indices, puis une recette de queue de 30 secondes s'exécute sur chaque cadre
+  survivant avec 8 graines. Le meilleur intérieur l'emporte.
+
+L'effet mesuré est faible mais réel : un intérieur *bâti contre* son propre
+pourtour s'attache avec quelques bords accordés de plus que le même intérieur
+greffé après coup — le couplage bordure-intérieur que la recherche sur plateau
+entier gomme en moyennant. 453 sans indices ; du haut des 440 au bas des 450
+avec les cinq indices imposés.
+
+## Reproduire
+
+Ensemencée et quasi déterministe pour un cadre donné : la résolution DFS de
+l'intérieur sur un cadre fixe reproduit son score de façon fiable, et les
+plateaux sont vérifiables dans la visionneuse. Les scripts de campagne (sonde +
+recette de queue) vivent dans le vault sous `v211_cloister` / `v212_cloister2`,
+les cadres sous `vol-212`.
 
 ## Questions ouvertes
 
