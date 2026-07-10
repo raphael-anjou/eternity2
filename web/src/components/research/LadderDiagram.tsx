@@ -64,7 +64,7 @@ export function LadderDiagram() {
   return (
     <div ref={rootRef} className="space-y-3">
       <div className="mx-auto" style={{ maxWidth: W }}>
-        <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full">
+        <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full" role="img" aria-label="Tournament bar chart where each round keeps only the deepest probes and gives survivors a longer search, so kept bars climb while eliminated ones grey out">
           {ROUND0.map((d0, i) => {
             const alive = survivors.has(i);
             const d = Math.min(1, d0 + (alive ? bump : 0));

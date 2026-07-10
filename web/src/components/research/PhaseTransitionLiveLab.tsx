@@ -156,7 +156,7 @@ export function PhaseTransitionLiveLab() {
       </div>
 
       <div className="mx-auto max-w-md">
-        <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full">
+        <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full" role="img" aria-label="Log-scale bar chart of median nodes explored versus number of colours, rising to a highlighted peak at the hardest colour count and falling again">
           <line x1={pad} y1={H} x2={W - pad} y2={H} className="stroke-border" />
           {colorRange.map((c, i) => {
             const pt = points.find((p) => p.colors === c);

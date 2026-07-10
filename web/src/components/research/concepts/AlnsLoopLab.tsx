@@ -612,7 +612,7 @@ function Sparkline({ history, max }: { history: number[]; max: number }) {
   }
   const bestPts = bestParts.join(" ");
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-14 w-full rounded-md border bg-muted/30">
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-14 w-full rounded-md border bg-muted/30" role="img" aria-label="Sparkline of the ALNS board score over each destroy-and-repair iteration, with a running-best line and a dashed reference at the maximum">
       <line x1={0} y1={y(max)} x2={W} y2={y(max)} className="stroke-muted-foreground/40" strokeDasharray="3 3" strokeWidth={1} />
       <polyline points={bestPts} fill="none" className="stroke-emerald-500/70" strokeWidth={1.5} />
       <polyline points={points} fill="none" className="stroke-foreground" strokeWidth={1.2} />

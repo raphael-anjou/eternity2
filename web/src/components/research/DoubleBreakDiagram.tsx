@@ -69,7 +69,7 @@ export function DoubleBreakDiagram() {
   return (
     <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
-        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Board grid toggling between what a one-break search can reach and what the 460 board needs, marking perfect-match, single-break, and double-break cells">
           {Array.from({ length: N }, (_, r) =>
             Array.from({ length: N }, (_, c) => (
               <rect

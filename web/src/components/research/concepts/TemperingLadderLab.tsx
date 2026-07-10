@@ -300,7 +300,7 @@ export function TemperingLadderLab() {
         <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md border bg-muted/20">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A rugged one-dimensional energy landscape with a shallow left basin and the global minimum on the right, marked with a dashed line, where four tempering replicas and one lone cold control chain move">
         {/* landscape */}
         <path d={path} fill="none" className="stroke-muted-foreground/70" strokeWidth={1.6} />
         {/* marker for the global minimum */}

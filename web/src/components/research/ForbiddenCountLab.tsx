@@ -226,7 +226,7 @@ function Scatter({
   const y = (f: number) => padT + (1 - f / maxY) * (H - padT - padB);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Scatter plot of forbidden 2×2 windows against matched edges across record boards, the count of forbidden squares falling as the score rises, with the selected board highlighted">
       {/* axes */}
       <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} className="stroke-muted" strokeWidth={1} />
       <line x1={padL} y1={padT} x2={padL} y2={H - padB} className="stroke-muted" strokeWidth={1} />

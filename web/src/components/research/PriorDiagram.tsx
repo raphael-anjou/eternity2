@@ -69,7 +69,7 @@ export function PriorDiagram() {
     <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto max-w-xs">
-        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Grid heat map of the learned prior's sharpness per cell, with the border ring sharply determined and the deep interior nearly a coin-toss">
           {Array.from({ length: N }, (_, r) =>
             Array.from({ length: N }, (_, c) => {
               const revealed = r + c <= front;

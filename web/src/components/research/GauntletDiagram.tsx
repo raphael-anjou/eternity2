@@ -82,6 +82,8 @@ export function GauntletDiagram() {
             key={dir.key}
             viewBox={`0 0 ${N * CELL} ${N * CELL}`}
             className="w-full rounded-md border bg-card"
+            role="img"
+            aria-label="Four mini-boards each filling from a different corner, showing GAUNTLET's parallel scan orders growing out from distinct starting points"
           >
             {Array.from({ length: N }, (_, r) =>
               Array.from({ length: N }, (_, c) => {
@@ -107,7 +109,7 @@ export function GauntletDiagram() {
       {/* board-space strip: where each direction lands, kept spread apart */}
       <div className="mx-auto max-w-md space-y-1">
         <p className="text-center text-[11px] text-muted-foreground">{t.landings}</p>
-        <svg viewBox="0 0 200 26" className="w-full">
+        <svg viewBox="0 0 200 26" className="w-full" aria-hidden>
           <line x1={6} y1={20} x2={194} y2={20} className="stroke-border" strokeWidth={1} />
           {DIRS.map((dir) => {
             const cx = 6 + dir.landing * 188;

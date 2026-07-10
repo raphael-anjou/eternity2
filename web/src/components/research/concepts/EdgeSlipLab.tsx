@@ -203,7 +203,7 @@ export function EdgeSlipLab() {
       <div className="flex flex-wrap items-start justify-center gap-6">
         {/* target-multiplication chart */}
         <div className="w-full min-w-64 max-w-lg flex-1">
-          <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full rounded-md border bg-muted/20">
+          <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="Log-scale bar chart of near-miss boards per perfect board as the number of allowed edge slips N rises from 0 to 13">
             {/* y grid: 10^0, 10^7, 10^14, 10^21, 10^28 */}
             {[0, 7, 14, 21, 28].map((l) => (
               <g key={l}>

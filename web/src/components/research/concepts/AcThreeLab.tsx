@@ -391,7 +391,7 @@ export function AcThreeLab() {
 
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-72">
-          <svg viewBox={`0 0 ${W} ${W}`} className="w-full">
+          <svg viewBox={`0 0 ${W} ${W}`} className="w-full" role="img" aria-label="A grid of cells showing AC-3 arc consistency propagate, each cell's candidate-domain size shrinking as one arc is revised per tick, with the current cell and the arc it is checked against highlighted">
             {/* cells */}
             {Array.from({ length: CELLS }, (_, i) => {
               const x = PAD + (i % N) * (CS + GAP);

@@ -290,7 +290,7 @@ export function FillOrderLab() {
       <div className="flex flex-wrap items-start justify-center gap-6">
         {/* visit-sequence grid */}
         <div className="w-full max-w-xs space-y-2">
-          <svg viewBox={`-1 -1 ${SW + 2} ${SW + 2}`} className="w-full rounded-md border bg-muted/20">
+          <svg viewBox={`-1 -1 ${SW + 2} ${SW + 2}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A board grid coloured by each cell's position in the fill order, from blue early to red late, with the current frontier cell outlined">
             {Array.from({ length: CELLS }, (_, cell) => {
               const x = (cell % N) * CELL;
               const y = Math.floor(cell / N) * CELL;
@@ -325,7 +325,7 @@ export function FillOrderLab() {
 
         {/* constraint-count curve */}
         <div className="w-full min-w-64 max-w-lg flex-1">
-          <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full rounded-md border bg-muted/20">
+          <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A curve of how many already-placed neighbours each new cell has along the fill order, with Owen's 121 to 185 band shaded">
             {/* Owen's 121–185 band */}
             <rect
               x={xOf(PEAK_LO - 1)}

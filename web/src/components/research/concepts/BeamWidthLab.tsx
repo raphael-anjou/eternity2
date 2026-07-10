@@ -239,7 +239,7 @@ export function BeamWidthLab() {
         <span className="w-8 text-right font-semibold tabular-nums">{k}</span>
       </label>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md border bg-muted/20">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A beam-search tree descending depth by depth, keeping only the top K survivors per level with trap nodes in amber and the greedy K equals 1 path overlaid">
         {/* root */}
         <circle cx={xOf(0.5)} cy={yOf(0)} r={4} className="fill-foreground" />
         {/* beam levels revealed so far */}

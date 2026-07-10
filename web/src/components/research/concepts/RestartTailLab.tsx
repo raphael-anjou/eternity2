@@ -267,7 +267,7 @@ export function RestartTailLab() {
         <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${HIST_H + AXIS_H}`} className="w-full rounded-md border bg-muted/20">
+      <svg viewBox={`0 0 ${W} ${HIST_H + AXIS_H}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A log-x histogram of node counts over 400 solver runs from a heavy-tailed distribution, blue runs finishing under the restart cutoff and amber runs cut at the dashed threshold line">
         {/* bars */}
         {bins.map((c, i) => {
           if (c === 0) return null;

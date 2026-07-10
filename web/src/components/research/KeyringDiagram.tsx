@@ -92,7 +92,7 @@ export function KeyringDiagram() {
     <div ref={rootRef} className="space-y-3">
       <h3 className="text-center text-sm font-medium">{t.title}</h3>
       <div className="mx-auto" style={{ maxWidth: W }}>
-        <svg viewBox={`0 0 ${W} ${H + 26}`} className="w-full">
+        <svg viewBox={`0 0 ${W} ${H + 26}`} className="w-full" role="img" aria-label="Stacked bar chart of four candidate pieces, each scored by three learned signals summed into a total, with the tallest stack marked as the winner">
           {CANDIDATES.map((cand, ci) => {
             const x = ci * (colW + gap) + gap / 2;
             const isWin = ci === winner;

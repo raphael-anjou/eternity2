@@ -391,7 +391,7 @@ export function ReginMatchingLab() {
 
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-80">
-          <svg viewBox={`0 0 340 ${H}`} className="w-full">
+          <svg viewBox={`0 0 340 ${H}`} className="w-full" role="img" aria-label="Bipartite graph of six cells and six pieces with feasible edges, showing the maximum matching, strongly connected components, and the cross-component edges Régin's filter deletes">
             <text x={PX} y={12} fontSize={9} textAnchor="middle" className="fill-muted-foreground">
               {t.pieces}
             </text>

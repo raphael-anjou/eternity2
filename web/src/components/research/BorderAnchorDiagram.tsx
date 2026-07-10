@@ -61,7 +61,7 @@ export function BorderAnchorDiagram() {
   return (
     <div ref={rootRef} className="space-y-3">
       <div className="mx-auto max-w-xs">
-        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card">
+        <svg viewBox={`0 0 ${N * CELL} ${N * CELL}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Grid showing the fixed border locked first, then the interior filling inward with the cells next to the frame highlighted as constrained from the start">
           {Array.from({ length: N }, (_, r) =>
             Array.from({ length: N }, (_, c) => (
               <rect
