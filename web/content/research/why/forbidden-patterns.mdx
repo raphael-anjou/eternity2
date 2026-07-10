@@ -102,6 +102,21 @@ Computed exactly from the official set; the run reproduces identically every
 time (about twenty seconds). The
 [article, source and results are on GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/forbidden-patterns).
 
+## Forbidden before you even pick a piece
+
+The scarcity starts one level below whole pieces, at the colors. An interior
+cell shows two of the 17 interior colors on any given corner, the two edges
+that meet there, which is $17 \times 17 = 289$ possible ordered color pairs. Not
+all of them exist. Back in 2008 the community noticed that **20 of those 289
+pairs are voids**: no interior piece, in any rotation, presents that particular
+pair of colors on adjacent edges
+([msg 5027](https://groups.io/g/eternity2/message/5027)). So a partial board that
+forces a cell to answer with one of those 20 corner-pairs is dead on the spot,
+before a single piece is tried, and a fast solver can reject it with one table
+lookup. It is the same lesson as the 2×2 count, pushed down to the smallest unit
+that can be impossible: the constraints bite so early that whole categories of
+local demand have no legal answer at all.
+
 ## Why it matters
 
 A finished, correct board has zero forbidden patches: by definition,
