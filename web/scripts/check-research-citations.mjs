@@ -90,7 +90,12 @@ for (const f of files) {
 
 // ---- 1. archive validation -------------------------------------------------
 let missing = 0;
-const POST_EXPORT_OK = new Set([11905]); // provided firsthand by the user; post-dates the export
+// Messages newer than the archive export (ends msg 11823, 2026-03-31), verified
+// firsthand via the groups.io API rather than the bulk export.
+const POST_EXPORT_OK = new Set([
+  11905, // Jef Bucas wrapper_blackwood permission (from the user's inbox)
+  11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
+]);
 console.log(`== groups.io citations: ${msgCites.size} distinct messages cited`);
 for (const [n, where] of [...msgCites.entries()].sort((a, b) => a[0] - b[0])) {
   if (!archive.has(n)) {
