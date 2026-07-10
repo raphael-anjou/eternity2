@@ -66,7 +66,7 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
         <h2 className="text-2xl font-semibold tracking-tight">{t.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t.intro}</p>
       </div>
-      <div className="mx-auto max-w-3xl rounded-lg border p-3" style={{ height }}>
+      <div className="mx-auto max-w-3xl rounded-lg border p-3" style={{ height }} role="img" aria-label={`${t.title}. ${t.intro}`}>
         {isClient ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <BarChart
