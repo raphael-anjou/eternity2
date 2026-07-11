@@ -102,6 +102,7 @@ const POST_EXPORT_OK = new Set([
   11902, // benj39100: GPU annealing hits the same frozen core; best score grows with distance, 2026-06
   11905, // Jef Bucas wrapper_blackwood permission (from the user's inbox)
   11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
+  11879, // sylvogel's published subgrid-count reference table (the source of published-reference.json), "I built a website that serves as a starter kit...", 2026 — verified firsthand via the groups.io API
 ]);
 console.log(`== groups.io citations: ${msgCites.size} distinct messages cited`);
 // The archive lives outside the repo (../../v2/community-exports), so a clean

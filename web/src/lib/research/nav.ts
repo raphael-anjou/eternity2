@@ -44,6 +44,7 @@ const SECTION_OF: Record<string, string> = {
   reference: "build",
   papers: "build",
   records: "build",
+  history: "build",
   contribute: "build",
   people: "build",
 };

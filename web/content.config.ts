@@ -344,15 +344,11 @@ export function researchPagePaths(): string[] {
       ? ["research/topics", ...topics.map((t) => `research/topics/${t.slug}`)]
       : [];
   // Per-researcher hubs (the /research/people index is a real content page,
-  // already covered by `pages`). Only authors who actually wrote a page get a
-  // prerendered hub, so an unused registry entry never ships an empty page.
-  const authored = new Set(
-    buildManifest("en")
-      .map((d) => d.author)
-      .filter((a): a is string => a !== undefined),
-  );
-  const peoplePaths = researchAuthors()
-    .filter((a) => authored.has(a.slug))
-    .map((a) => `research/people/${a.slug}`);
+  // already covered by `pages`). Every registered author gets a prerendered
+  // hub: the profile (bio + links) is the page's substance, whether or not the
+  // person also authored wiki pages. Contributors who authored pages get those
+  // listed too; profile-only figures (the record-holders, theorists and
+  // toolmakers on the Who's-who gallery) still ship a real, crawlable page.
+  const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
   return [...pages, ...topicPaths, ...peoplePaths];
 }

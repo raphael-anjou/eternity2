@@ -19,14 +19,18 @@ const T = {
   en: {
     research: "Research",
     people: "People",
-    empty: "No pages credited to this researcher yet.",
+    empty:
+      "This is a profile page. This researcher's contributions are documented across the wiki, from the records to the history, rather than gathered under their own byline.",
+    emptyLink: "See their entry in the Who's-who",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     backToGallery: "All contributors",
   },
   fr: {
     research: "Recherche",
     people: "Contributeurs",
-    empty: "Aucune page créditée à ce chercheur pour l'instant.",
+    empty:
+      "Ceci est une page de profil. Les contributions de ce chercheur sont documentées un peu partout dans le wiki, des records à l'histoire, plutôt que réunies sous sa seule signature.",
+    emptyLink: "Voir son entrée dans le « Qui est qui »",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     backToGallery: "Tous les contributeurs",
   },
@@ -156,9 +160,15 @@ export function PersonHub({ slug }: { slug: string }) {
       </header>
 
       {docs.length === 0 ? (
-        <p className="mt-8 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          {t.empty}
-        </p>
+        <div className="mt-8 space-y-2 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+          <p>{t.empty}</p>
+          <LocalizedLink
+            to="/research/people"
+            className="inline-block font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
+          >
+            {t.emptyLink}
+          </LocalizedLink>
+        </div>
       ) : (
         <div className="mt-10 space-y-8">
           {orderedGroups.map(([kind, items]) => (
