@@ -6,8 +6,19 @@ description: >-
   rules: known-good numbers to check your solver's edge-matching and
   constraint code against.
 kind: reference
-order: 10
+order: 60
+author: raphael-anjou
+updated: 2026-07-11
 topics: [backtracking]
+sources:
+  - label: "sylvogel's published subgrid counts (groups.io message 11879)"
+    url: https://groups.io/g/eternity2/message/11879
+  - label: "This project's reproducible Rust generator + committed results (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/subgrid-placement-counts
+related:
+  - /research/build/known-facts
+  - /research/build/benchmarks
+  - /research/people/raphael-anjou
 repro:
   kind: exact
   cmd: just research-subgrid
@@ -15,5 +26,17 @@ repro:
 ---
 
 import { ReferenceTableView } from "@/components/research/views/ReferenceTableView";
+
+How many distinct, edge-matching ways can you fill a small block of the
+official board? These counts are the ground truth to test a solver against: if
+your edge-matching and constraint code disagrees with the numbers below on a
+2×2 corner, the bug is in your code, not the table.
+
+The upright figures here are computed from the official piece set by this
+project's reproducible Rust generator (linked below), so anyone can rerun them.
+The handful of italic figures are counts too large to enumerate exactly in
+seconds (tens of billions to tens of trillions of fillings); those are
+**sylvogel's published values**, reproduced here for completeness and credited
+in the sources. Everything else is recomputed here from scratch.
 
 <ReferenceTableView />
