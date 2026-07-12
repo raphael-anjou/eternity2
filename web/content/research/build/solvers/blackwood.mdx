@@ -50,7 +50,7 @@ running the same loop as any other: place, check, back up. What makes it the
 engine behind the community's best boards is a set of manually crafted
 heuristics layered on top: a scoring rule that decides *which* pieces to try
 first, a depth-by-depth quota schedule that prunes branches falling behind, a
-[fill order](/research/build/concepts/fill-order) tuned to be "not too tight
+[fill order](/research/build/backtracking/fill-order) tuned to be "not too tight
 and not too loose", and a late-game allowance for accumulating mismatches.
 Every one of those choices has numbers in it, and Jef Bucas's study asked the
 obvious question: are Blackwood's numbers any good? They are, uncomfortably
@@ -168,7 +168,7 @@ opening can strand an entire run in an impossible region. Blackwood's answer
 is cheap and effective: randomize the opening (the first corner and the
 bottom-row pieces are shuffled on every attempt, so no two runs retrace the
 same prefix) and cap each attempt at 50 billion nodes explored. Hit the cap,
-abandon, [restart](/research/build/concepts/restarts) with a fresh opening,
+abandon, [restart](/research/build/backtracking/restarts) with a fresh opening,
 and go looking for a more fertile one.
 
 ## Make it fit in cache
@@ -225,7 +225,7 @@ open-sourced, became a community record machine.
 All of the above is *how* the solver works. Jef Bucas built
 [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) to ask
 whether its numbers are *right*. The setup is a small
-[distributed experiment](/research/build/concepts/distributed-solving):
+[distributed experiment](/research/build/faster/distributed-solving):
 a Python server hands out jobs over HTTP, where each job is a variation of
 the solver's parameters. Clients (one worker per core) fetch a job,
 generate the C# source from templates with that variation baked in, compile

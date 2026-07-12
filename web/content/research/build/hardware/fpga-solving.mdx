@@ -38,12 +38,12 @@ sources:
   - label: "The one academic FPGA attempt, ReConFig 2011 (ieeexplore 6044826; discussed in message 10651)"
     url: https://ieeexplore.ieee.org/document/6044826
 related:
-  - /research/build/concepts/gpu-solving
-  - /research/build/concepts/solver-engineering
+  - /research/build/hardware/gpu-solving
+  - /research/build/faster/solver-engineering
   - /research/why/prune-vs-speed
 ---
 
-The [GPU page](/research/build/concepts/gpu-solving) ends at a wall: an
+The [GPU page](/research/build/hardware/gpu-solving) ends at a wall: an
 Eternity II backtracker is not compute-bound, it is a chain of tiny dependent
 memory lookups, and Mike Field's 2011 analysis showed both GPU branches
 (cooperate or work alone) ending at the external memory bus
@@ -66,7 +66,7 @@ the designer's own words.
 ## Why FPGAs answer the exact wall GPUs hit
 
 Recall the fork from Field's analysis (told in full on the
-[GPU page](/research/build/concepts/gpu-solving)): parallel searchers either
+[GPU page](/research/build/hardware/gpu-solving)): parallel searchers either
 share information, needing synchronization bandwidth the fabric doesn't have,
 or work independently, needing per-worker state that outgrows the ~8 KB of
 fast memory a GPU lane gets, spilling everything to one shared external bus.
@@ -125,7 +125,7 @@ the record, first resource wall in the record, same message.
 
 Then came the protagonist. In October 2010 Michael Field, the engineer whose
 26-cycles-per-placement budget anchors the
-[solver-engineering page](/research/build/concepts/solver-engineering),
+[solver-engineering page](/research/build/faster/solver-engineering),
 opened a thread titled "E2 in hardware...", having started playing with
 Digilent FPGA boards. His first sober estimate: a hardware backtracker would
 run "roughly as fast as a PC's cpu core"; the real prize would be massively
@@ -174,7 +174,7 @@ hardware, he noted, the shifts and masks are free wiring, the two tables sit
 in different BRAMs so both lookups happen in parallel, and block RAM's
 same-cycle read-write gives an atomic test-and-set on the used-piece bit:
 the inner loop's entire memory traffic, one cycle away. Compare that 4 KB
-against the [GPU page's](/research/build/concepts/gpu-solving) fatal ">8 KB
+against the [GPU page's](/research/build/hardware/gpu-solving) fatal ">8 KB
 per thread": this is what deleting the bandwidth wall looks like.
 
 The projection: about **50 solver instances on a Zynq 7020 at ~200 MHz**,
@@ -257,7 +257,7 @@ You need to be an expert or have plenty of spare time and motivation. I've
 tried once, that was my hardest programming experience"
 ([message 9590](https://groups.io/g/eternity2/message/9590)). Months of HDL
 bring-up bought what the
-[solver-engineering ledger](/research/build/concepts/solver-engineering)
+[solver-engineering ledger](/research/build/faster/solver-engineering)
 gets from a compiler flag. That asymmetry, not any single technical wall,
 is why every FPGA thread in the archive ends in silence: a 2021 member's
 promised "FPGA custom engine in 2022"
@@ -323,7 +323,7 @@ The map is still on the table, and parts of it have aged well. Field's own
 mid-range part carries megabytes of block RAM where his Spartan-6 had
 kilobytes, so the instance-count ceiling that killed the 2014 projection has
 genuinely lifted. But the target list that survives scrutiny is the same one the
-[GPU page](/research/build/concepts/gpu-solving) arrives at:
+[GPU page](/research/build/hardware/gpu-solving) arrives at:
 
 - **Not search.** A record attempt needs heuristics, restarts, and the
   freedom to change fill order mid-campaign, everything Field traded away to

@@ -80,7 +80,7 @@ const T = {
           { to: "/status", title: "The current record", why: "470/480, who holds it, and what counts as the real puzzle." },
           { to: "/research/build/tooling", title: "Pieces, clues and formats", why: "The e2pieces.txt and clue conventions, and why they drift." },
           { to: "/convert", title: "Convert a board", why: "Turn a bucas link into edge and piece lists, and back." },
-          { to: "/research/build/concepts/approaches-map", title: "Every known approach", why: "The map of methods, what each reached, where each walls out." },
+          { to: "/research/build/approaches-map", title: "Every known approach", why: "The map of methods, what each reached, where each walls out." },
         ],
         surprise: {
           to: "/research/why/rigidity-wall",
@@ -96,7 +96,7 @@ const T = {
         trail: [
           { to: "/research/why/how-hard-is-this-instance", title: "Is this instance NP-complete?", why: "The category error, and how to actually encode it (SAT, DLX, ILP)." },
           { to: "/algorithms", title: "Backtracking, measured", why: "Real timings from the site's own engine as size grows." },
-          { to: "/research/build/concepts", title: "The technique shelf", why: "Each method with what it costs and what it bought on this puzzle." },
+          { to: "/research/build/techniques", title: "The technique shelf", why: "Each method with what it costs and what it bought on this puzzle." },
           { to: "/research/build/run-it-yourself", title: "Run a solver yourself", why: "Get your hands on a working solver, not just the theory." },
         ],
         surprise: {
@@ -111,7 +111,7 @@ const T = {
         who: "A researcher",
         tagline: "You want the frontier: what is known, and what is open.",
         trail: [
-          { to: "/research/build/concepts/approaches-map", title: "The survey nobody wrote", why: "All approaches in one map, with where each hits its ceiling." },
+          { to: "/research/build/approaches-map", title: "The survey nobody wrote", why: "All approaches in one map, with where each hits its ceiling." },
           { to: "/research/why", title: "Why it is hard", why: "The structural results: walls, phase transition, forbidden patterns." },
           { to: "/research/lab/findings", title: "Open findings", why: "The lab notebook: what has been measured, what is still loose." },
           { to: "/research/papers", title: "The literature", why: "The academic reading list, ranked by use if you are writing a solver." },
@@ -178,7 +178,7 @@ const T = {
           { to: "/status", title: "Le record actuel", why: "470/480, qui le détient, et ce qui compte comme le vrai puzzle." },
           { to: "/research/build/tooling", title: "Pièces, indices et formats", why: "Les conventions e2pieces.txt et indices, et pourquoi elles dérivent." },
           { to: "/convert", title: "Convertir un plateau", why: "D'un lien bucas vers des listes de côtés et de pièces, et l'inverse." },
-          { to: "/research/build/concepts/approaches-map", title: "Toutes les approches connues", why: "La carte des méthodes, ce que chacune a atteint, où chacune bute." },
+          { to: "/research/build/approaches-map", title: "Toutes les approches connues", why: "La carte des méthodes, ce que chacune a atteint, où chacune bute." },
         ],
         surprise: {
           to: "/research/why/rigidity-wall",
@@ -194,7 +194,7 @@ const T = {
         trail: [
           { to: "/research/why/how-hard-is-this-instance", title: "Cette instance est-elle NP-complète ?", why: "L'erreur de raisonnement, et comment vraiment l'encoder (SAT, DLX, PLNE)." },
           { to: "/algorithms", title: "Le retour arrière, mesuré", why: "De vrais temps du moteur du site à mesure que la taille grandit." },
-          { to: "/research/build/concepts", title: "L'étagère des techniques", why: "Chaque méthode, son coût, et ce qu'elle a rapporté sur ce puzzle." },
+          { to: "/research/build/techniques", title: "L'étagère des techniques", why: "Chaque méthode, son coût, et ce qu'elle a rapporté sur ce puzzle." },
           { to: "/research/build/run-it-yourself", title: "Lancez un solveur vous-même", why: "Mettez la main sur un solveur qui tourne, pas juste la théorie." },
         ],
         surprise: {
@@ -209,7 +209,7 @@ const T = {
         who: "Un chercheur",
         tagline: "Vous voulez la frontière : ce qui est su, et ce qui reste ouvert.",
         trail: [
-          { to: "/research/build/concepts/approaches-map", title: "La synthèse que personne n'a écrite", why: "Toutes les approches sur une carte, avec le plafond de chacune." },
+          { to: "/research/build/approaches-map", title: "La synthèse que personne n'a écrite", why: "Toutes les approches sur une carte, avec le plafond de chacune." },
           { to: "/research/why", title: "Pourquoi c'est difficile", why: "Les résultats de structure : murs, transition de phase, motifs interdits." },
           { to: "/research/lab/findings", title: "Découvertes ouvertes", why: "Le carnet du labo : ce qui est mesuré, ce qui reste flou." },
           { to: "/research/papers", title: "La littérature", why: "La liste de lecture, classée par utilité si vous écrivez un solveur." },
