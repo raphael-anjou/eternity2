@@ -42,8 +42,8 @@ sources:
     url: https://groups.io/g/eternity2/message/11594
 related:
   - /research/build/dead-ends
-  - /research/build/concepts/lp-relaxations
-  - /research/build/concepts/sat-csp-encodings
+  - /research/build/exact/lp-relaxations
+  - /research/build/exact/sat-csp-encodings
 ---
 
 Every method on this shelf so far treats Eternity II as a discrete search:
@@ -85,7 +85,7 @@ the set:
   problem: assign 256 pieces to 256 cells to maximize total affinity. The
   Hungarian algorithm solves it exactly in polynomial time, the same
   assignment engine that powers the refill step in
-  [local search](/research/build/concepts/local-search-alns).
+  [local search](/research/build/local-search/local-search-alns).
 - $P_2(x)$, the nearest edge-consistent coloring, decomposes edge by edge:
   each interior join just averages its two sides toward agreement. Purely
   local, embarrassingly parallel.
@@ -132,11 +132,11 @@ all the work:
    function has a local optimum, but the difference map has no score to
    flatter it into staying. Away from fixed points it keeps moving, in
    practice chaotically, so near-miss configurations that trap
-   [local search](/research/build/concepts/local-search-alns) are places it
+   [local search](/research/build/local-search/local-search-alns) are places it
    visits and leaves. This is the "tunneling" the physicists prized.
 3. **The iterate lives outside both sets.** $x$ need not satisfy either
    constraint while searching. Like the fractional boards of the
-   [LP relaxation](/research/build/concepts/lp-relaxations), it explores a
+   [LP relaxation](/research/build/exact/lp-relaxations), it explores a
    superposition of boards. Unlike the LP, it has no objective to optimize
    and no optimum to plateau at: its only resting places are solutions.
 
@@ -295,7 +295,7 @@ which would be news, or a clean negative entry for the
   assignment solve is $O(n^3)$ in the Hungarian algorithm, and at $n = 256$
   cells that is millions of operations per *iteration*, against a tuned
   backtracker's [tens of millions of placements per
-  second](/research/build/concepts/solver-engineering). Divide-and-concur
+  second](/research/build/faster/solver-engineering). Divide-and-concur
   trades this for pure local averaging, at the price of a much larger
   replicated state.
 - **No convergence guarantee.** Douglas–Rachford convergence theory is

@@ -23,8 +23,8 @@ related:
   - /research/lab/experiments/palimpsest
   - /research/why/rigidity-wall
   - /research/why/sigma-cycles
-  - /research/build/concepts/beam-search
-  - /research/build/concepts/parallel-tempering
+  - /research/build/construct/beam-search
+  - /research/build/local-search/parallel-tempering
 ---
 
 import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
@@ -45,7 +45,7 @@ One ALNS iteration on a board:
 
 1. **Destroy.** Pick a destroy operator, unplace the $k$ cells it selects.
 2. **Repair.** Refill the hole (greedy fill,
-   [constraint propagation](/research/build/concepts/arc-consistency), or an
+   [constraint propagation](/research/build/reduce/arc-consistency), or an
    exact solve of the small subproblem).
 3. **Accept.** Keep the new board if it scores better, or sometimes anyway
    under a simulated-annealing rule.
@@ -160,7 +160,7 @@ using CP as the repair step, the same division of labour that works here.
 
 Final polish. On this project's engine, ALNS is the step that turns
 constructive output into record-class boards:
-[beam](/research/build/concepts/beam-search) builds in the mid-450s
+[beam](/research/build/construct/beam-search) builds in the mid-450s
 consistently gain several edges under a refinement pass, and the project's
 strongest boards all carry an ALNS lift as their last stage. On smaller
 generated puzzles the effect is dramatic and repeatable: destroy-and-repair

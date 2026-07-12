@@ -506,7 +506,7 @@ marked unsourced. groups.io deep links are login-walled; a note says so.
 
 ### 2026-07-02 — Concepts encyclopedia v1: the technique shelf (8 concepts + hub)
 
-New section /research/build/concepts — the techniques every solver author
+New section /research/build/techniques — the techniques every solver author
 meets, each attributed to its inventors with resolving primary sources, the
 honest measured verdict from this project's engine (always hedged "not
 independently replicated"), and cross-links into the wiki:
@@ -618,7 +618,7 @@ Four pages from the digest goldmine, all EN + native FR:
   and their duels (hints15_2 down to 85,729 nodes), hints.20.3 (2.9e13 nodes,
   one solution), the 9x9 pair, and Brendan's 10x10 — set_1 solved 2017
   (~180 core-years), set_2 framed as the standing open challenge.
-- /research/build/concepts/parity-arguments — the 479 story in three acts,
+- /research/build/analysis/parity-arguments — the 479 story in three acts,
   colour sums → NS-1 lineage, the 2011 balanced-sets negatives, and the
   certificate-asymmetry lesson.
 - Blackwood page enriched with primary levers (no-adjacent-breaks 10051, the
@@ -687,7 +687,7 @@ solvers/verhaard-eii: the solver behind the only prize ever paid — the
 misread-rules origin, the "I am stuck" release, forward pruning and comb
 orders from his own messages, the Markov-chain slip array, JSA's 82-day
 public reproduction (and the 82h typo in msg 6687 diagnosed from the log
-series). /research/build/concepts/edge-slipping: the technique itself, with
+series). /research/build/reduce/edge-slipping: the technique itself, with
 Max's target-multiplication formula RECOMPUTED and verified digit-by-digit
 (S(478)=4.699e9 ✓, the 467→468 ratio telescoping to ~63 ✓), Brendan's
 complex-theory extension and the honest 7-orders gap explained, and the

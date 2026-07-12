@@ -59,7 +59,7 @@ both draw from.
 
 Every fast backtracker shares one load-bearing idea: never *search* for
 candidate pieces, look them up. Fix the
-[fill order](/research/build/concepts/fill-order) (a row scan, usually), and
+[fill order](/research/build/backtracking/fill-order) (a row scan, usually), and
 each cell exposes exactly two known constraints when its turn comes, the
 colour on its north edge and the colour on its west edge. So you precompute a
 table keyed by that colour pair, and finding all pieces that could legally go
@@ -241,8 +241,8 @@ C++ solver and 68.4M/s from a Rust descendant of Blackwood's in 2025
 the record moved three edges: 467 to 470.
 
 The practitioners said it themselves. Joshua Blackwood, cataloguing his dead
-ends after the 469 ([SAT solvers](/research/build/concepts/sat-csp-encodings),
-[GPUs](/research/build/concepts/gpu-solving), cached 2×2 blocks, all measured
+ends after the 469 ([SAT solvers](/research/build/exact/sat-csp-encodings),
+[GPUs](/research/build/hardware/gpu-solving), cached 2×2 blocks, all measured
 and dropped), found that only refining the *heuristics* ever paid, worth another
 ~2× ([message 10056](https://groups.io/g/eternity2/message/10056)). And
 when the 2025 speed thread wound down, Razvan wrote its epitaph: regardless

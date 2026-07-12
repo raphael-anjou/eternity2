@@ -21,9 +21,9 @@ sources:
     url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
 related:
   - /research/why/complex-theory
-  - /research/build/concepts/sat-csp-encodings
-  - /research/build/concepts/exact-cover-dlx
-  - /research/build/concepts/arc-consistency
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/exact/exact-cover-dlx
+  - /research/build/reduce/arc-consistency
 ---
 
 This page answers a question that keeps surfacing on Math and CS Stack
@@ -140,7 +140,7 @@ formula with millions of clauses whose structure gives conflict-driven search
 almost nothing to learn from. This has been tried since 2008 and complete SAT
 solvers stall on the full board; Blackwood, among others, reported that SAT did
 not help. The encoding is clean, the solver is not the bottleneck, the
-*instance* is. See [SAT and CSP encodings](/research/build/concepts/sat-csp-encodings)
+*instance* is. See [SAT and CSP encodings](/research/build/exact/sat-csp-encodings)
 for the benchmark history and where SAT verdicts still earn their keep as
 small-region impossibility proofs.
 
@@ -179,7 +179,7 @@ placements each touch four secondary edge items and must colour-agree with all
 four neighbours; a corner cell's placements touch two. Algorithm C threads this
 without ever emitting a mismatched board. The takeaway students miss:
 **exact-cover-DLX for Eternity II needs Algorithm C, not Algorithm X.** The
-[exact cover and dancing links](/research/build/concepts/exact-cover-dlx) page
+[exact cover and dancing links](/research/build/exact/exact-cover-dlx) page
 walks the full XCC construction and where DLX genuinely shines (small boards,
 exhaustive solution counting) versus where it stalls on the 16×16.
 
@@ -195,7 +195,7 @@ Two more framings, useful mainly as pointers:
   edge-colour variable $y_{e,k}$ with $\sum_k y_{e,k} = 1$ and each side's
   placements implying the matching $y$). It is a feasibility ILP, no objective,
   and the LP relaxation is weak, so branch-and-bound behaves much like the SAT
-  search. See [LP relaxations](/research/build/concepts/lp-relaxations).
+  search. See [LP relaxations](/research/build/exact/lp-relaxations).
 - **Max clique.** Build a graph whose vertices are legal placements and whose
   edges join any two placements that are mutually compatible (different cells,
   different pieces, and agreeing on any shared edge). A full board is a clique of
@@ -213,5 +213,5 @@ $10^{557}$-wide space over a nearly empty solution set. Every encoding above
 faithfully captures the puzzle; none of them makes it easy, because the hardness
 lives in the instance, not in the choice of formalism. Once the board is
 encoded, the leverage that remains is
-[arc consistency](/research/build/concepts/arc-consistency) and smart search
+[arc consistency](/research/build/reduce/arc-consistency) and smart search
 order, which is where the rest of this section picks up.

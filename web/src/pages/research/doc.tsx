@@ -15,6 +15,7 @@ import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { absoluteUrl } from "@/site";
 import { researchDoc, researchTopic, researchAuthor } from "@/lib/research/manifest";
+import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
 import { PersonHub } from "@/components/docs/PeoplePages";
@@ -136,6 +137,11 @@ export default function ResearchDocPage() {
     return <Navigate to={path} replace />;
   }
   const lang = "en" as const;
+
+  // Pages that moved (Build reorg into technique-family sub-hubs) redirect old
+  // URLs to their new home, so bookmarks and external links don't 404.
+  const moved = RESEARCH_REDIRECTS[path];
+  if (moved) return <Navigate to={moved} replace />;
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return <TopicsIndex />;

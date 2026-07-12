@@ -49,12 +49,12 @@ sources:
 related:
   - /research/why/rigidity-wall
   - /research/build/dead-ends
-  - /research/build/concepts/sat-csp-encodings
-  - /research/build/concepts/alldiff-regin
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/reduce/alldiff-regin
 ---
 
 There are three classic roads into Eternity II. Backtracking walks the tree.
-[SAT and CSP encodings](/research/build/concepts/sat-csp-encodings) hand the
+[SAT and CSP encodings](/research/build/exact/sat-csp-encodings) hand the
 logic to an industrial solver. The third road belongs to the optimizers:
 write the puzzle as an integer program (variables, linear constraints, an
 objective) and call CPLEX. It is the road every operations-research person
@@ -199,7 +199,7 @@ Benjamin's 420–440 by penalized LP, Munjak's 200–224 pieces placed
 mismatch-free by iterated assignment, the Wauters group's 461 with an hour
 of metaheuristic repair on top. Everything optimizer-shaped lands in the
 same mid-400s band that plain
-[local search](/research/build/concepts/local-search-alns) reaches without
+[local search](/research/build/local-search/local-search-alns) reaches without
 any LP at all. Third, the 2017 paper, the strongest academic treatment,
 with both a MILP and a Max-Clique formulation, concedes intractability in
 its abstract and pivots to using the formulations *inside* heuristics. The
@@ -235,12 +235,12 @@ above.
   when its LP bound falls below the incumbent. With the bound floating ~20
   edges above anything real, almost nothing prunes: the exact analogue of
   wide, useless learned clauses in
-  [CDCL](/research/build/concepts/sat-csp-encodings), one road over.
+  [CDCL](/research/build/exact/sat-csp-encodings), one road over.
 
 ## What LP and MIP are still for
 
 The fair conclusion is relocation, not dismissal, the same one the
-[SAT page](/research/build/concepts/sat-csp-encodings) reaches for CDCL.
+[SAT page](/research/build/exact/sat-csp-encodings) reaches for CDCL.
 
 - **Bounds, stated with their error bars.** The relaxation *is* a valid
   ceiling, computed in polynomial time; it is just a loose one here. The
@@ -252,7 +252,7 @@ The fair conclusion is relocation, not dismissal, the same one the
   algorithm in $O(k^3)$. That is Schaus's Eternity II neighborhood, and it
   is the one place on this wiki where the optimizer's machinery runs at
   full power: see
-  [local search and ALNS](/research/build/concepts/local-search-alns).
+  [local search and ALNS](/research/build/local-search/local-search-alns).
 - **Easy integer subproblems, dispatched instantly.** Rotation sets by MILP
   in milliseconds ([message 9071](https://groups.io/g/eternity2/message/9071))
   is the pattern: when a sub-question has tractable structure, a MIP solver
