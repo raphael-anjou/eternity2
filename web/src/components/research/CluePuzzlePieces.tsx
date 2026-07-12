@@ -79,8 +79,23 @@ function ClueCard({ clue }: { clue: Clue }) {
   );
 }
 
-/** All four solved clue puzzles, rendered in the real motifs, each downloadable. */
-export function CluePuzzlePieces() {
+/**
+ * Solved clue puzzles, rendered in the real motifs, each downloadable.
+ * With `n` (1–4), shows just that puzzle inline in its own section; without it,
+ * shows all four in a grid.
+ */
+export function CluePuzzlePieces({ n }: { n?: number } = {}) {
+  if (n != null) {
+    const clue = CLUES.find((c) => c.n === n);
+    if (!clue) return null;
+    // A single 12×6 board is wide; cap the width so it sits neatly in a section.
+    const maxW = clue.solved.w > clue.solved.h ? "sm:max-w-lg" : "sm:max-w-xs";
+    return (
+      <div className={`my-4 ${maxW}`}>
+        <ClueCard clue={clue} />
+      </div>
+    );
+  }
   return (
     <div className="my-6 grid gap-4 sm:grid-cols-2">
       {CLUES.map((c) => (
