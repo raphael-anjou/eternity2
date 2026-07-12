@@ -8,19 +8,32 @@ import { useLocation } from "react-router";
 import { useLang, useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
-import { KIND_DOT, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
+import { KIND_DOT, groupedItems, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
 import { researchTopics, topicUrl } from "@/lib/research/manifest";
+import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 
 const T = {
-  en: { browse: "Browse this section", topics: "Topics" },
-  fr: { browse: "Parcourir cette section", topics: "Thèmes" },
+  en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More" },
+  fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus" },
 };
 
 function activePath(pathname: string): string {
   return pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "") || "/";
 }
 
-function SideLink({ item, depth, active }: { item: NavItem; depth: number; active: string }) {
+function SideLink({
+  item,
+  depth,
+  active,
+  flat = false,
+}: {
+  item: NavItem;
+  depth: number;
+  active: string;
+  /** When true, render only this item — its children are placed elsewhere
+   *  (e.g. flattened into sidebar groups), so don't recurse. */
+  flat?: boolean;
+}) {
   const isActive = active === item.url;
   return (
     <>
@@ -41,9 +54,10 @@ function SideLink({ item, depth, active }: { item: NavItem; depth: number; activ
         />
         <span className="truncate">{item.title}</span>
       </LocalizedLink>
-      {item.children.map((c) => (
-        <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
-      ))}
+      {!flat &&
+        item.children.map((c) => (
+          <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+        ))}
     </>
   );
 }
@@ -51,6 +65,10 @@ function SideLink({ item, depth, active }: { item: NavItem; depth: number; activ
 function SectionTree({ section }: { section: NavSection }) {
   const { pathname } = useLocation();
   const active = activePath(pathname);
+  const groups = groupedItems(section);
+  // A grouped section is flattened (each page placed by its own group), so its
+  // links must not re-render their children; an ungrouped section keeps nesting.
+  const isGrouped = groups.some((g) => g.label !== null);
   return (
     <nav className="space-y-0.5 pb-4 text-sm">
       <LocalizedLink
@@ -64,18 +82,75 @@ function SectionTree({ section }: { section: NavSection }) {
       >
         {section.label}
       </LocalizedLink>
-      {section.items.map((i) => (
-        <SideLink key={i.url} item={i} depth={0} active={active} />
+      {groups.map((g, gi) => (
+        <div key={g.label ?? "_"} className={gi > 0 ? "pt-2" : undefined}>
+          {g.label && (
+            <div className="mt-1 mb-0.5 px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+              {g.label}
+            </div>
+          )}
+          {g.items.map((i) => (
+            <SideLink key={i.url} item={i} depth={0} active={active} flat={isGrouped} />
+          ))}
+        </div>
       ))}
     </nav>
   );
 }
 
+/** One topic row: accent dot (path themes) + label + page count. */
+function TopicRow({
+  slug,
+  label,
+  color,
+  count,
+  active,
+}: {
+  slug: string;
+  label: string;
+  color?: string | undefined;
+  count: number;
+  active: string;
+}) {
+  const url = topicUrl(slug);
+  const isActive = active === url;
+  return (
+    <LocalizedLink
+      to={url}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-2 rounded-md px-2 py-1 transition-colors",
+        isActive
+          ? "bg-muted font-medium text-foreground"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+      )}
+    >
+      {color ? (
+        <span
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: color }}
+          aria-hidden
+        />
+      ) : (
+        <span className="h-2 w-2 shrink-0" aria-hidden />
+      )}
+      <span className="truncate">{label}</span>
+      <span className="ml-auto text-xs tabular-nums text-muted-foreground">{count}</span>
+    </LocalizedLink>
+  );
+}
+
+// The overview/topic-hub left rail: the nine solving paths, styled to match the
+// homepage tree (short labels + accent dots + counts), then the meta themes
+// (records) under a divider so their hubs stay reachable.
 function TopicsList() {
   const t = useT(T);
   const { lang } = useLang();
   const { pathname } = useLocation();
   const active = activePath(pathname);
+  const topics = researchTopics(lang);
+  const paths = topics.filter((x) => !NON_PATH_THEMES.has(x.slug) && THEME_ROOTS[x.slug]);
+  const meta = topics.filter((x) => NON_PATH_THEMES.has(x.slug) || !THEME_ROOTS[x.slug]);
   return (
     <nav className="space-y-0.5 pb-4 text-sm">
       <LocalizedLink
@@ -87,29 +162,34 @@ function TopicsList() {
             : "text-muted-foreground hover:text-foreground",
         )}
       >
-        {t.topics}
+        {t.roads}
       </LocalizedLink>
-      {researchTopics(lang).map((topic) => {
-        const url = topicUrl(topic.slug);
-        const count = topicMembers(lang, topic.slug).length;
-        const isActive = active === url;
-        return (
-          <LocalizedLink
-            key={topic.slug}
-            to={url}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "flex items-center justify-between gap-2 rounded-md px-2 py-1 transition-colors",
-              isActive
-                ? "bg-muted font-medium text-foreground"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-            )}
-          >
-            <span className="truncate">{topic.label}</span>
-            <span className="text-xs tabular-nums text-muted-foreground">{count}</span>
-          </LocalizedLink>
-        );
-      })}
+      {paths.map((topic) => (
+        <TopicRow
+          key={topic.slug}
+          slug={topic.slug}
+          label={topic.label}
+          color={THEME_ROOTS[topic.slug]?.color}
+          count={topicMembers(lang, topic.slug).length}
+          active={active}
+        />
+      ))}
+      {meta.length > 0 && (
+        <>
+          <div className="mt-3 mb-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t.more}
+          </div>
+          {meta.map((topic) => (
+            <TopicRow
+              key={topic.slug}
+              slug={topic.slug}
+              label={topic.label}
+              count={topicMembers(lang, topic.slug).length}
+              active={active}
+            />
+          ))}
+        </>
+      )}
     </nav>
   );
 }

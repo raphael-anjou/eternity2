@@ -11,61 +11,7 @@ import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { researchTopics, topicUrl } from "@/lib/research/manifest";
 import { topicMembers } from "@/lib/research/nav";
-
-// Short node label + one-line hook per theme slug. The registry descriptions
-// are full paragraphs; these are the tree-node versions. Colour is the accent
-// dot, echoing the kind-dot palette used across the wiki.
-const ROOT: Record<string, { label: string; hook: string; color: string }> = {
-  structure: {
-    label: "Why it resists",
-    hook: "The design tuned to be unsolvable, and the walls that prove it.",
-    color: "#a78bfa", // violet
-  },
-  "search-space": {
-    label: "Reduce the search",
-    hook: "Throw away hopeless states before the search wastes time on them.",
-    color: "#38bdf8", // sky
-  },
-  backtracking: {
-    label: "Backtracking",
-    hook: "DFS done seriously: fill orders, restarts, break indices.",
-    color: "#22d3ee", // cyan
-  },
-  speed: {
-    label: "Go faster",
-    hook: "Bit tricks and cache — and why raw speed alone won't crack it.",
-    color: "#fbbf24", // amber
-  },
-  construction: {
-    label: "Build boards up",
-    hook: "Beam search, priors, staged assembly — compose, don't dig.",
-    color: "#34d399", // emerald
-  },
-  "local-search": {
-    label: "Local search",
-    hook: "Improve a board you already have; the rigidity walls that stop you.",
-    color: "#4ade80", // green
-  },
-  "exact-methods": {
-    label: "Exact methods",
-    hook: "Solvers with proofs: SAT, MIP, exact-cover, meet-in-the-middle.",
-    color: "#60a5fa", // blue
-  },
-  learning: {
-    label: "Learned guidance",
-    hook: "Belief propagation, learned heuristics, corpus priors.",
-    color: "#f472b6", // pink
-  },
-  hardware: {
-    label: "GPU & hardware",
-    hook: "GPU, FPGA, distributed sweeps — silicon thrown at the wall.",
-    color: "#fb923c", // orange
-  },
-};
-
-// The meta "records" theme is not a solving path; it belongs in the band below
-// the tree with People and History, so the tree stays "the nine ways to attack".
-const EXCLUDE = new Set(["records"]);
+import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 
 interface Root {
   slug: string;
@@ -79,9 +25,9 @@ function useRoots(): Root[] {
   const { lang } = useLang();
   const out: Root[] = [];
   for (const t of researchTopics(lang)) {
-    const def = ROOT[t.slug];
-    if (EXCLUDE.has(t.slug) || !def) continue;
-    out.push({ slug: t.slug, ...def, count: topicMembers(lang, t.slug).length });
+    const def = THEME_ROOTS[t.slug];
+    if (NON_PATH_THEMES.has(t.slug) || !def) continue;
+    out.push({ slug: t.slug, label: t.label, ...def, count: topicMembers(lang, t.slug).length });
   }
   return out;
 }

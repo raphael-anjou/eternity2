@@ -15,6 +15,8 @@ export interface NavItem {
   mdx: boolean;
   translated: boolean;
   topics: string[];
+  /** Named sub-section within its sidebar section (the approaches-map spine). */
+  group?: string;
   children: NavItem[];
 }
 
@@ -37,6 +39,64 @@ const SECTION_LABELS: Record<string, { en: string; fr: string }> = {
 
 /** Order of the sidebar sections. */
 const SECTION_ORDER = ["why", "build", "lab"] as const;
+
+/** The named sub-groups inside the Build section, in display order — the
+ *  approaches-map spine. Items whose `group` is not listed fall to the end
+ *  under their own header; items with no `group` collect under UNGROUPED. */
+export const BUILD_GROUP_ORDER = [
+  "Start here",
+  "Check your code",
+  "Reduce the search",
+  "Backtracking",
+  "Go faster",
+  "Build boards up",
+  "Local search",
+  "Exact methods",
+  "Analysis",
+  "GPU & hardware",
+  "The engines",
+  "Skip these",
+  "Context",
+] as const;
+
+/** A sidebar section's items bucketed into ordered, labelled groups. Sections
+ *  with no grouped items return a single unlabelled group (the flat list). */
+export interface NavGroup {
+  label: string | null;
+  items: NavItem[];
+}
+
+export function groupedItems(section: NavSection): NavGroup[] {
+  // Grouping flattens the parent/child nesting: a group header replaces the
+  // "Concepts"/"Solvers" parent, and every page (root or child) is placed by
+  // its own `group`. Sections with no groups keep their nested tree.
+  const flat = section.items.flatMap((i) => [i, ...i.children]);
+  const hasGroups = flat.some((i) => i.group);
+  if (!hasGroups) return [{ label: null, items: section.items }];
+
+  const order = section.key === "build" ? (BUILD_GROUP_ORDER as readonly string[]) : [];
+  const byLabel = new Map<string, NavItem[]>();
+  const ungrouped: NavItem[] = [];
+  for (const it of flat) {
+    if (it.group) {
+      const bucket = byLabel.get(it.group) ?? [];
+      bucket.push(it);
+      byLabel.set(it.group, bucket);
+    } else {
+      ungrouped.push(it);
+    }
+  }
+  // Known groups first (in spine order), then any unknown groups alphabetically,
+  // then the ungrouped remainder under no header.
+  const known = order.filter((g) => byLabel.has(g));
+  const unknown = [...byLabel.keys()].filter((g) => !order.includes(g)).sort();
+  const groups: NavGroup[] = [...known, ...unknown].map((label) => ({
+    label,
+    items: byLabel.get(label) ?? [],
+  }));
+  if (ungrouped.length) groups.push({ label: null, items: ungrouped });
+  return groups;
+}
 
 /** Flat research pages that belong to a section other than their first URL
  *  segment (the Build door re-homes the reference pages). */
@@ -68,6 +128,7 @@ export function researchNav(lang: Lang): NavSection[] {
       mdx: true,
       translated: d.translated,
       topics: d.topics,
+      ...(d.group !== undefined ? { group: d.group } : {}),
       children: [],
       order: d.order ?? 1e9,
     });

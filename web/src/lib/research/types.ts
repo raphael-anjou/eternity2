@@ -117,6 +117,8 @@ export interface ResearchDoc {
   related: string[];
   /** Sort key within its section (lower first; ties by title). */
   order?: number;
+  /** Named sub-section within a sidebar section (the approaches-map spine). */
+  group?: string;
   toc: TocItem[];
   /** False in the fr manifest when no .fr.mdx exists (page falls back to EN). */
   translated: boolean;

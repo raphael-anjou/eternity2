@@ -123,6 +123,9 @@ const frontmatterSchema = z.object({
   topics: z.array(z.string()).default([]),
   related: z.array(z.string().startsWith("/")).default([]),
   order: z.number().optional(),
+  // Named sub-section within a sidebar section (e.g. "Reduce the search" inside
+  // Build a solver). Groups the flat page list into the approaches-map spine.
+  group: z.string().optional(),
 });
 
 export type Lang = "en" | "fr";
@@ -283,6 +286,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       topics: e.fm.topics,
       related: e.fm.related,
       ...(e.fm.order !== undefined ? { order: e.fm.order } : {}),
+      ...(e.fm.group !== undefined ? { group: e.fm.group } : {}),
       toc: use.toc,
       translated: lang === "en" || fr !== undefined,
       file: use.file,
