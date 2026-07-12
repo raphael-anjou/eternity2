@@ -1,0 +1,19 @@
+# Self-contained compute crate for the rigidity-sat-halo topic. It takes a
+# public record board, frees a halo of cells around its mismatched edges, and
+# emits a SAT (DIMACS CNF) instance asking whether those freed pieces can be
+# rearranged so every edge in the halo matches. UNSAT means the board is a
+# strict local optimum on that halo: no local rearrangement of its own pieces
+# improves the score. This is the SAT counterpart to the MIP rigidity proofs.
+[package]
+name = "rigidity-sat-halo"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "halo_cnf"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
