@@ -1,7 +1,9 @@
-// The research section's own navigation bar, under the site header: the three
-// doors as tabs, then the big cross-cutting topic categories as chips. The
-// left sidebar only ever shows the ACTIVE section's tree — this bar is how a
-// reader changes territory.
+// The research section's own navigation bar, under the site header: the reading
+// MODES (Overview + the three door sections) + an all-themes tab + search. The
+// nine solving PATHS are not repeated here — they live in the homepage tree and
+// in the persistent left rail ("The nine roads"), so a third navbar row would
+// only duplicate them. The left sidebar shows the ACTIVE section's tree; this
+// bar is how a reader changes territory.
 
 import { useLocation } from "react-router";
 import { useLang, useT } from "@/i18n";
@@ -11,8 +13,8 @@ import { researchNav } from "@/lib/research/nav";
 import { SearchDialog } from "./SearchDialog";
 
 const T = {
-  en: { overview: "Overview", topics: "Topics" },
-  fr: { overview: "Vue d'ensemble", topics: "Thèmes" },
+  en: { overview: "Overview", themes: "All themes" },
+  fr: { overview: "Vue d'ensemble", themes: "Tous les thèmes" },
 };
 
 export function ResearchSubnav() {
@@ -40,14 +42,21 @@ export function ResearchSubnav() {
 
   return (
     <div className="mb-6 border-b pb-3">
-      <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto" aria-label="Research sections">
+      <nav
+        className="no-scrollbar flex items-center gap-1 overflow-x-auto"
+        aria-label="Research sections"
+      >
         {tab("/research", t.overview, active === "/research")}
         {sections.map((s) =>
-          tab(s.url, s.label, !onTopics && (active === s.url || active.startsWith(s.url + "/")) ||
-            // The re-homed flat pages (reference/papers/records) highlight Build.
-            (s.key === "build" && /^\/research\/(reference|papers|records)$/.test(active))),
+          tab(
+            s.url,
+            s.label,
+            (!onTopics && (active === s.url || active.startsWith(s.url + "/"))) ||
+              // The re-homed flat pages (reference/papers/records) highlight Build.
+              (s.key === "build" && /^\/research\/(reference|papers|records)$/.test(active)),
+          ),
         )}
-        {tab("/research/topics", t.topics, onTopics)}
+        {tab("/research/topics", t.themes, onTopics)}
         <SearchDialog />
       </nav>
     </div>
