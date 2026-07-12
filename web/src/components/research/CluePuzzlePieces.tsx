@@ -1,28 +1,51 @@
-// Download buttons for the recovered clue-puzzle piece sets, mirroring the main
-// puzzle's "download pieces" affordance (/puzzle). Each button zips one SVG per
-// piece via the shared pieceSvg renderer, so the output matches the site's
-// motif art. The pieces come from Le Bail's SHORTER solver; see
-// research/topics/clue-puzzle-pieces for provenance.
+// The four recovered clue puzzles: each solved board rendered with the real
+// Eternity II motifs (same BoardSvg the record boards use, so no flat-triangle
+// stand-ins and no clipped border), plus a download of the puzzle as one SVG
+// per piece — mirroring the main puzzle's affordance (/puzzle). Clues 1 & 2 come
+// from Le Bail's SHORTER solver, Clues 3 & 4 from jwortmann's Eternity2Puzzles.jl;
+// see research/topics/clue-puzzle-pieces for provenance and the solve.
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { BoardSvg } from "@/components/board/BoardSvg";
 import { downloadPiecesZip } from "@/lib/pieceSvg";
-import { CLUE1_PIECES, CLUE2_PIECES } from "@/data/clue-puzzle-pieces";
+import {
+  CLUE1_PIECES,
+  CLUE2_PIECES,
+  CLUE3_PIECES,
+  CLUE4_PIECES,
+} from "@/data/clue-puzzle-pieces";
+import {
+  CLUE1_SOLVED,
+  CLUE2_SOLVED,
+  CLUE3_SOLVED,
+  CLUE4_SOLVED,
+  type ClueSolution,
+} from "@/data/clue-puzzle-solutions";
 import type { Edges } from "@/lib/bucas";
 
-function DownloadButton({
-  label,
-  pieces,
-  filename,
-}: {
+interface Clue {
+  n: number;
   label: string;
+  dims: string;
   pieces: Edges[];
+  solved: ClueSolution;
   filename: string;
-}) {
+}
+
+const CLUES: Clue[] = [
+  { n: 1, label: "Clue Puzzle 1", dims: "36 pieces · 6×6", pieces: CLUE1_PIECES, solved: CLUE1_SOLVED, filename: "eternity2-clue-puzzle-1.svg.zip" },
+  { n: 2, label: "Clue Puzzle 2", dims: "72 pieces · 12×6", pieces: CLUE2_PIECES, solved: CLUE2_SOLVED, filename: "eternity2-clue-puzzle-2.svg.zip" },
+  { n: 3, label: "Clue Puzzle 3", dims: "36 pieces · 6×6", pieces: CLUE3_PIECES, solved: CLUE3_SOLVED, filename: "eternity2-clue-puzzle-3.svg.zip" },
+  { n: 4, label: "Clue Puzzle 4", dims: "72 pieces · 12×6", pieces: CLUE4_PIECES, solved: CLUE4_SOLVED, filename: "eternity2-clue-puzzle-4.svg.zip" },
+];
+
+function DownloadButton({ pieces, filename }: { pieces: Edges[]; filename: string }) {
   const [zipping, setZipping] = useState(false);
   return (
     <Button
       variant="outline"
+      size="sm"
       disabled={zipping}
       onClick={() => {
         setZipping(true);
@@ -36,25 +59,33 @@ function DownloadButton({
         }, 0);
       }}
     >
-      {zipping ? "Preparing…" : label}
+      {zipping ? "Preparing…" : "Download pieces (.zip)"}
     </Button>
   );
 }
 
-/** Two buttons: download each recovered clue puzzle as a zip of per-piece SVGs. */
+function ClueCard({ clue }: { clue: Clue }) {
+  return (
+    <figure className="flex flex-col gap-2 rounded-lg border p-3">
+      <BoardSvg width={clue.solved.w} height={clue.solved.h} cells={clue.solved.cells} />
+      <figcaption className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm">
+          <span className="font-medium">{clue.label}</span>{" "}
+          <span className="text-muted-foreground">· {clue.dims}</span>
+        </span>
+        <DownloadButton pieces={clue.pieces} filename={clue.filename} />
+      </figcaption>
+    </figure>
+  );
+}
+
+/** All four solved clue puzzles, rendered in the real motifs, each downloadable. */
 export function CluePuzzlePieces() {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
-      <DownloadButton
-        label="Download Clue Puzzle 1 (36 pieces)"
-        pieces={CLUE1_PIECES}
-        filename="eternity2-clue-puzzle-1.svg.zip"
-      />
-      <DownloadButton
-        label="Download Clue Puzzle 2 (72 pieces)"
-        pieces={CLUE2_PIECES}
-        filename="eternity2-clue-puzzle-2.svg.zip"
-      />
+    <div className="my-6 grid gap-4 sm:grid-cols-2">
+      {CLUES.map((c) => (
+        <ClueCard key={c.n} clue={c} />
+      ))}
     </div>
   );
 }

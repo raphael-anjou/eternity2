@@ -51,6 +51,30 @@ fn main() {
     }
     assert_eq!(pieces.len(), n, "piece count {} != {w}x{h}", pieces.len());
 
+    // Compact the colour labels to a dense 0..k range, keeping 0 = grey border.
+    // Source files number colours arbitrarily (SHORTER uses 0..7; jwortmann's
+    // clue3/4 leave gaps and go up to 22), which only matters for palette lookup;
+    // remapping keeps the solve identical and the render inside the palette.
+    {
+        let mut remap: HashMap<u16, u16> = HashMap::new();
+        remap.insert(0, 0);
+        let mut next: u16 = 1;
+        for p in &pieces {
+            for &c in p {
+                remap.entry(c).or_insert_with(|| {
+                    let v = next;
+                    next += 1;
+                    v
+                });
+            }
+        }
+        for p in &mut pieces {
+            for c in p.iter_mut() {
+                *c = remap[c];
+            }
+        }
+    }
+
     // Candidate (cell, piece, rot) placements that respect the grey-on-rim rule.
     // Variable numbering: 1-based, assigned on first use.
     let mut var: HashMap<(usize, usize, u8), i32> = HashMap::new();
@@ -283,9 +307,12 @@ fn main() {
 
 /// Render the solved board as a self-contained SVG (our own renderer, no viewer).
 fn render_svg(grid: &[[u16; 4]], w: usize, h: usize) -> String {
-    const PAL: [&str; 9] = [
+    // Index 0 = grey border; the rest are distinct motif hues. The first nine are
+    // unchanged from the Clue 1/2 renders; the tail covers Clue 3/4 (up to nine
+    // non-grey colours each) after the colour labels are compacted to 0..k.
+    const PAL: [&str; 13] = [
         "#9a9a9a", "#d62828", "#2176dd", "#2eb85c", "#f2c744", "#8e44c9", "#f0821e", "#17c3c8",
-        "#e65aa8",
+        "#e65aa8", "#7d5a3c", "#b0c94a", "#3b3f8f", "#e0e0e0",
     ];
     let cell = 40i32;
     let (pw, ph) = (w as i32 * cell, h as i32 * cell);
