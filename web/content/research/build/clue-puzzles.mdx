@@ -31,11 +31,18 @@ sources:
     url: https://groups.io/g/eternity2/message/10082
   - label: "A \"480\" built from one E2 set + Clue-1 + Clue-2 pieces (Peter McGavin), eternity2@groups.io, 2023-10"
     url: https://groups.io/g/eternity2/message/11169
+  - label: "Armel Le Bail's SHORTER solver, whose example files carry the Clue 1 & 2 pieces (cristal.org, 2007)"
+    url: http://www.cristal.org/Eternity-II/
+  - label: "eternity2.net's own clue-puzzle position files (Wayback Machine, 2007-10-17)"
+    url: https://web.archive.org/web/20071017024639/http://eternity2.net:80/e2pieces_clue2.txt
 related:
   - /research/build/known-facts
   - /research/records
   - /research/why/complex-theory
 ---
+
+import clue1Solution from "@/assets/research/clue-puzzles/clue1_solution.svg";
+import clue2Solution from "@/assets/research/clue-puzzles/clue2_solution.svg";
 
 Alongside the 256-piece prize puzzle, Tomy sold four small companion
 puzzles, **Clue Puzzle 1** through **Clue Puzzle 4**. Each was an
@@ -341,14 +348,54 @@ are not in the official 256-piece set, and they are why headline "480"
 claims must always be checked against the piece list
 ([Records & solvers](/research/records)).
 
+## Recovered and solved
+
+The one thing everyone assumed was gone turns out to be recoverable. The
+community withheld the clue puzzles' piece designs on copyright grounds, and no
+one posted the layouts to the list. But Armel Le Bail's SHORTER solver, a Fortran
+program published at cristal.org in August 2007, ships three worked examples: a
+36-piece 6×6, a 72-piece 12×6, and the full 256-piece board. The 256-piece file
+is the real official Eternity II set, which is how the provenance checks out: Le
+Bail was reading genuine Tomy data in the eternity2.net format. The other two are
+Clue Puzzle 1 and Clue Puzzle 2, motifs and all.
+
+The files eternity2.net published itself, recovered from the Wayback Machine,
+corroborate the sizes and board positions but not the motifs. They lay each clue
+puzzle out as a block on a 16×16 grid, the 6×6 at rows 5–10 and columns 5–10, the
+6×12 at rows 5–10 and columns 2–13, and collapse every interior edge to one
+placeholder colour. So the official files fix *where* each puzzle sat; Le Bail's
+files are the public record of *what* the pieces are.
+
+We solved both from scratch to confirm they are the real, coherent puzzles. The
+solve encodes "place every piece so all edges match and grey sits on the rim" as
+a SAT instance and hands it to a solver; a separate pass then checks the answer
+independently (each piece used once, every internal edge matched, grey only on
+the outer ring). Both close perfectly, Clue Puzzle 1 on all 60 of its internal
+edges and Clue Puzzle 2 on all 126. The images below are rendered straight from
+the solver's output.
+
+<Figure caption="Clue Puzzle 1 (36 pieces, 6x6) and Clue Puzzle 2 (72 pieces, 12x6), solved. Each cell shows its four edge colours as triangles; the grey ring is the border. Recovered from Armel Le Bail's 2007 SHORTER solver and solved here from scratch.">
+  <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center">
+    <img src={clue1Solution} alt="Clue Puzzle 1 solved: a 6x6 board with a grey border and every internal edge matched" loading="lazy" className="w-full max-w-xs rounded-lg border" />
+    <img src={clue2Solution} alt="Clue Puzzle 2 solved: a 12x6 board with a grey border and every internal edge matched" loading="lazy" className="w-full max-w-md rounded-lg border" />
+  </div>
+</Figure>
+
+The full recovery, the piece data, and the reproducible solve are in the
+[clue-puzzle-pieces topic](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/clue-puzzle-pieces).
+This says nothing about the copyright the layouts were withheld over; it simply
+records that they were already public in a 2007 solver's example files, and shows
+them solved.
+
 ## What is not publicly documented
 
 Gaps a careful reader should know about:
 
-- **The clue puzzles' piece definitions.** Never published (copyright); no
-  community file exists, and the only public checksums cover Clue Puzzle 1
-  and remain unconfirmed
-  ([msg 6769](https://groups.io/g/eternity2/message/6769)).
+- **The clue puzzles' piece definitions were never posted to the list**
+  (copyright), and the only community checksums cover Clue Puzzle 1 and remain
+  unconfirmed ([msg 6769](https://groups.io/g/eternity2/message/6769)). They do,
+  however, survive in Le Bail's SHORTER example files for Clues 1 and 2 (above);
+  Clues 3 and 4 remain unrecovered.
 - **Which puzzle revealed which placement.** The archive never cleanly maps
   Clue Puzzle *n* to a specific square among C3, C14, N3, N14. Only piece
   181 has a first-hand puzzle-to-hint attestation
