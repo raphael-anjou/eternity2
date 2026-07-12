@@ -32,6 +32,8 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100: GPU annealing on the strict-5-clue board hits the same frozen core; best score grows with distance from the incumbent (groups.io msg 11902)"
     url: https://groups.io/g/eternity2/message/11902
+  - label: "William Millilaw's independent halo SAT-residual and replica freeze tests, reproduced here on the public record boards (all UNSAT out to a two-cell halo)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -130,6 +132,36 @@ frozen "hard core" that local search never touched, so they had to add an
 explicit term that *rewarded* prying that core open. A locally frozen incumbent
 with no nearby gradient, and a small locked set of defects nothing local will
 move: that is the rigidity wall, seen from a completely different method.
+
+## And again, from a SAT solver
+
+A third researcher reached the same conclusion with a third tool. William
+Millilaw, working the ceiling independently, ran two tests. The first was a
+freeze test: perturb the root of a top board, re-optimize, and see which cells
+come back. On his best boards 93 to 100 percent of the cells returned to exactly
+where they were, a frozen core the search could not move. The second was a
+decision question for a SAT solver. Free the cells around the mismatches, demand
+that every freed edge match, and ask whether any arrangement of those pieces
+satisfies it. His solver answered UNSAT.
+
+We [reproduced that SAT test](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
+on the public record boards, with our own encoder and a positive control to make
+sure a matched region comes back satisfiable. Every record board we tried, from
+Verhaard's 467 up to Blackwood's 470, is UNSAT out to a two-cell halo: no local
+rearrangement of a record board's own pieces closes a single mismatch. Integer
+programming optimizes and bounds; annealing runs into the wall by hand; SAT
+decides and returns a refutation. Three methods, one answer.
+
+His earlier snake-and-local-search work put a number on why. The largest patch
+any of his repair operators could rewrite in one move was about 48 cells, while
+two of the known good boards, both near the ceiling, differ across roughly 225
+cells. A move that can only touch 48 cells cannot cross a 225-cell gap, so no
+sequence of them reaches a different basin. He looked for a chain of small
+improving moves that would tunnel out and found none: zero improvements across
+twenty-eight million four- and five-move combinations at the plateau. That is
+the same wall stated as a budget. Local repair rewrites too little at once to
+leave the valley, which is why escaping needs a move that rearranges a large
+region all at once, exactly as the proof section above concludes.
 
 <Callout kind="insight" title="The next piece of the picture">
   If you can't improve a board locally, maybe you can hop from one good board

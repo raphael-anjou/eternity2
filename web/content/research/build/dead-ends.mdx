@@ -24,10 +24,11 @@ elsewhere.
 
 Each entry opens its verdict with a firmness tag: **Proven** means a theorem
 or an exact computation closes the door; **Measured** means we ran it (or the
-community did) and watched it fail. Where the verdict comes from our own runs,
-the linked “why” page carries the exact reproduction command, and
-[run it yourself](/research/build/run-it-yourself) has the setup; where the
-community got there first, we cite the archive message.
+community did) and watched it fail; **Reported** means another researcher ran it
+and wrote up the failure, and we have not re-run it ourselves. Where the verdict
+comes from our own runs, the linked “why” page carries the exact reproduction
+command, and [run it yourself](/research/build/run-it-yourself) has the setup;
+where the community got there first, we cite the archive message.
 
 ## Symmetry breaking
 
@@ -153,6 +154,88 @@ again, at around 4 million blocks before piece-disjointness even enters
 pointed back at years of earlier 2×2 work in the archive
 ([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Why this is a wall →](/research/why/rigidity-wall)
+
+## Cube and conquer
+
+*Split the SAT instance into millions of sub-cases (cubes), solve each
+independently, and recombine. The technique that settled Schur number five and
+the Pythagorean triples problem.*
+
+**Reported.** William Millilaw tested it exhaustively in May 2026 and it does
+not clear the board. On 16×16 the cubing phase does not partition the instance
+into anything tractable without heavy preprocessing, and the conquer step (a
+lookahead solver on each cube) was itself slower than running kissat straight.
+The clean result was a firm boundary: the method works up to about 8×8 and
+stops there. It joins the long line of exact methods that meet the same wall as
+integer programming and SAT decision, without a foothold past it.
+
+## Generate boards with a transformer
+
+*Train a GPT-style model on a corpus of boards, condition it on a target score,
+and have it emit fresh high-scoring boards the search never found.*
+
+**Reported.** William Millilaw ran the full arc in May 2026 and each stage
+failed for its own reason. A 51-million-parameter model learned the grammar of a
+board (each piece used once, 96 percent structurally valid) but not the physics:
+unconditioned, its boards averaged around 250 matched edges, near random.
+Conditioning on a target score raised the average, but every board it emitted at
+the top of the range was an exact token-for-token copy of a memorized community
+board, McGavin's 469 among them. With only a couple of dozen distinct elite
+boards in the training set against tens of millions of parameters, the model had
+simply memorized them; the score condition became an index lookup. A final
+reinforcement-learning pass made it worse, not better, because the elite tail is
+sampled far too rarely to give a stable gradient. The lesson matches the
+[small-board transfer](/research/why/rigidity-wall) result on this page:
+imitation learns the distribution it is shown and cannot invent the rare
+structure that a record needs.
+
+## Recombine two good boards
+
+*Take two high-scoring boards, keep the cells where they agree, and use
+partition crossover to splice the disagreeing regions into a child at least as
+good as both parents. The genetic operator with a tunneling guarantee on
+pseudo-Boolean problems.*
+
+**Reported.** William Millilaw implemented it and benchmarked it on pairs of
+boards scoring 455 and above. It degenerates. The permutation constraint (a
+piece cannot be reused) forces the disagreeing regions to merge into one
+component the moment you close them under piece-uniqueness, so the operator
+collapses into "pick the better parent" on more than 99 percent of pairs. The
+rare improving splices topped out at 469, the score of the parents, never above.
+It is the same lesson as the [rigidity wall](/research/why/rigidity-wall) from
+the recombination side: the good boards all sit in one narrow basin, so mixing
+them produces more of the same rather than something new.
+
+## Force a diverse border, then fill
+
+*The border is a smaller sub-puzzle. Solve for many different valid frames
+first, on the theory that variety in the frame seeds variety in the whole
+board.*
+
+**Reported.** William Millilaw tried it and found the premise backwards. The
+border is the easy part: from scratch it is already varied and quick to place.
+The scarce resource is the interior fill, where the pieces run thin and the
+mismatches concentrate. Forcing frame diversity spends effort where there is no
+shortage and buys nothing where there is one. It is a recurring theme in this
+project's own experiments too: the frame is worth surprisingly little
+([STAGED](/research/lab/experiments/staged) measures exactly how little), and
+the endgame damage lands in the interior corners
+([MOSAIC](/research/lab/experiments/mosaic)).
+
+## Build a fake 480 and repair it
+
+*Start from a board with every edge matched by allowing duplicate pieces, then
+greedily swap in the real pieces one at a time, hoping to keep the score at
+480.*
+
+**Reported.** William Millilaw ran it and it collapses into whack-a-mole: every
+real piece you force in breaks edges elsewhere, and the repair never converges,
+topping out around 463. The reason is the lesson underneath this whole page.
+The barrier to 480 is not that the edges are hard to match; a fake board with
+repeated pieces matches all of them easily. The barrier is the global
+constraint that each of the 256 pieces is used exactly once, and that is exactly
+what the fake-480 construction throws away. The wall is informational, not a
+matter of local edge repair.
 
 ## What every dead end has in common
 
