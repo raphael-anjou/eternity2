@@ -1,0 +1,19 @@
+# Self-contained compute crate for the clue-puzzle-pieces topic. It reads the
+# Tomy Clue Puzzle 2 piece set (recovered from Armel Le Bail's 2007 SHORTER
+# solver, cristal.org), solves it by backtracking, independently validates the
+# solution (all pieces distinct, every edge matched, grey border), and emits the
+# solution grid plus an e2.bucas.name viewer URL.
+[package]
+name = "clue-puzzle-pieces"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "cluesolve"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
