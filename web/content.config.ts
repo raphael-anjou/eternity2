@@ -118,6 +118,14 @@ const frontmatterSchema = z.object({
       z.date().transform((d) => d.toISOString().slice(0, 10)),
     ])
     .optional(),
+  // Month an experiment was run/first written (YYYY-MM), shown on the gallery.
+  // A bare YYYY-MM parses as a string in YAML; a full date is truncated.
+  date: z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}$/, "date must be YYYY-MM"),
+      z.date().transform((d) => d.toISOString().slice(0, 7)),
+    ])
+    .optional(),
   repro: reproSchema.optional(),
   sources: z.array(z.object({ label: z.string(), url: z.string().url() })).default([]),
   topics: z.array(z.string()).default([]),
@@ -281,6 +289,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(e.fm.complexity !== undefined ? { complexity: e.fm.complexity } : {}),
       ...(e.fm.score !== undefined ? { score: e.fm.score } : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
+      ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
       sources: use.fm.sources,
       topics: e.fm.topics,

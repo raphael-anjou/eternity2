@@ -107,6 +107,8 @@ export interface ResearchDoc {
   score?: number;
   /** ISO date of last substantive update. */
   updated?: string;
+  /** Month an experiment was run / first written (YYYY-MM), for the gallery. */
+  date?: string;
   repro?: ReproInfo;
   /** External resources supporting the page's claims (groups.io posts,
    *  papers, community pages) — every claim links its evidence. */
