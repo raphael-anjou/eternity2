@@ -14,6 +14,8 @@ import {
   type NavItem,
 } from "@/lib/research/nav";
 import { researchTopic, researchTopics, topicUrl } from "@/lib/research/manifest";
+import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
+import type { Lang } from "@/i18n";
 import { DocsSidebar } from "./DocsSidebar";
 import { ResearchSubnav } from "./ResearchSubnav";
 
@@ -26,6 +28,8 @@ const T = {
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     empty:
       "Nothing published under this theme yet — the community history exists and the write-ups are on their way.",
+    neighbours: "Neighbouring roads",
+    allRoads: "All nine roads",
   },
   fr: {
     research: "Recherche",
@@ -35,6 +39,8 @@ const T = {
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     empty:
       "Rien de publié sur ce thème pour l'instant — l'historique communautaire existe, la rédaction arrive.",
+    neighbours: "Voies voisines",
+    allRoads: "Les neuf voies",
   },
 };
 
@@ -129,6 +135,63 @@ export function TopicsIndex() {
   );
 }
 
+/** A single neighbouring-road card: accent dot + label + hook. */
+function RoadCard({ slug, lang, dir }: { slug: string; lang: Lang; dir: "prev" | "next" }) {
+  const topic = researchTopic(lang, slug);
+  const style = THEME_ROOTS[slug];
+  if (!topic || !style) return null;
+  return (
+    <LocalizedLink
+      to={topicUrl(slug)}
+      className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
+    >
+      <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span aria-hidden>{dir === "prev" ? "←" : "→"}</span>
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: style.color }} aria-hidden />
+      </div>
+      <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
+        {topic.label}
+      </div>
+      <p className="mt-1 text-xs leading-snug text-muted-foreground">{style.hook}</p>
+    </LocalizedLink>
+  );
+}
+
+// The nine solving paths form a ring; from any one, offer the road before and
+// the road after (wrapping), plus a link back to all nine. This is the "where
+// do I go next" the topic hubs otherwise lacked. Only shown for path themes
+// (the meta "records" theme has no neighbouring roads).
+function NeighbourRoads({ slug, lang }: { slug: string; lang: Lang }) {
+  const t = useT(T);
+  if (NON_PATH_THEMES.has(slug)) return null;
+  const roads = researchTopics(lang).filter(
+    (x) => !NON_PATH_THEMES.has(x.slug) && THEME_ROOTS[x.slug],
+  );
+  const i = roads.findIndex((r) => r.slug === slug);
+  if (i === -1 || roads.length < 2) return null;
+  const prev = roads[(i - 1 + roads.length) % roads.length];
+  const next = roads[(i + 1) % roads.length];
+  return (
+    <section className="mt-12 border-t pt-8">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {t.neighbours}
+        </h2>
+        <LocalizedLink
+          to="/research/topics"
+          className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {t.allRoads}
+        </LocalizedLink>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {prev && <RoadCard slug={prev.slug} lang={lang} dir="prev" />}
+        {next && <RoadCard slug={next.slug} lang={lang} dir="next" />}
+      </div>
+    </section>
+  );
+}
+
 export function TopicHub({ slug }: { slug: string }) {
   const t = useT(T);
   const { lang } = useLang();
@@ -170,6 +233,7 @@ export function TopicHub({ slug }: { slug: string }) {
           ))}
         </div>
       )}
+      <NeighbourRoads slug={slug} lang={lang} />
     </Frame>
   );
 }
