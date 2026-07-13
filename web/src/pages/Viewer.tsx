@@ -57,12 +57,16 @@ const HINT_POSITIONS = [34, 45, 135, 210, 221];
 // Group the bundled boards in the picker dropdown by record tier, so the 18
 // boards (records + Bucas/McGavin/Verhaard variants) read as an organised list
 // rather than a wall of buttons.
-type BoardGroupKey = "records" | "class469" | "class467" | "other";
+type BoardGroupKey = "records" | "class469" | "class467" | "linear" | "other";
 const BOARD_GROUPS: { key: BoardGroupKey; filter: (b: KnownBoard) => boolean }[] = [
-  { key: "records", filter: (b) => b.score !== null && b.score >= 470 },
-  { key: "class469", filter: (b) => b.score === 469 },
-  { key: "class467", filter: (b) => b.score !== null && b.score >= 460 && b.score <= 468 },
-  { key: "other", filter: (b) => b.score === null || b.score < 460 },
+  { key: "records", filter: (b) => b.tag !== "linear" && b.score !== null && b.score >= 470 },
+  { key: "class469", filter: (b) => b.tag !== "linear" && b.score === 469 },
+  {
+    key: "class467",
+    filter: (b) => b.tag !== "linear" && b.score !== null && b.score >= 460 && b.score <= 468,
+  },
+  { key: "linear", filter: (b) => b.tag === "linear" },
+  { key: "other", filter: (b) => b.tag !== "linear" && (b.score === null || b.score < 460) },
 ];
 
 const T = {
@@ -93,11 +97,14 @@ const T = {
       </>
     ),
     officialById: "Official pieces by ID",
+    officialClues: "Official clues",
+    officialCluesName: "Official clues",
     pickBoard: "Pick a board…",
     groups: {
       records: "Records",
       class469: "469 boards",
       class467: "460–468 boards",
+      linear: "Linear",
       other: "Other",
     } as Record<BoardGroupKey, string>,
     generatedName: (s: number) => `generated ${s}×${s}`,
@@ -163,11 +170,14 @@ const T = {
       </>
     ),
     officialById: "Pièces officielles, par numéro",
+    officialClues: "Indices officiels",
+    officialCluesName: "Indices officiels",
     pickBoard: "Choisir un plateau…",
     groups: {
       records: "Records",
       class469: "Plateaux 469",
       class467: "Plateaux 460–468",
+      linear: "Linéaires",
       other: "Autres",
     } as Record<BoardGroupKey, string>,
     generatedName: (s: number) => `généré ${s}×${s}`,
@@ -451,6 +461,24 @@ export default function Viewer() {
           }}
         >
           {t.officialById}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!engineReady}
+          onClick={() => {
+            // A clue-only board: every cell empty (-1) except the five pinned
+            // hint pieces, placed at their official positions and rotations.
+            const puzzle = getOfficialPuzzle();
+            const cells = new Array<number>(puzzle.width * puzzle.height).fill(-1);
+            for (const h of puzzle.hints) cells[h.pos] = h.piece * 4 + h.rot;
+            loadEngine(puzzle, cells, t.officialCluesName, { numbered: true });
+            setShowNumbers(true);
+            setShowConflicts(false);
+            setShowHints(true);
+          }}
+        >
+          {t.officialClues}
         </Button>
       </div>
 

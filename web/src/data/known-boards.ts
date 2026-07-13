@@ -6,6 +6,10 @@ export interface KnownBoard {
   label: string;
   score: number | null;
   params: string;
+  /** Optional picker category override. "linear" collects the consecutive /
+   *  linear-run partials (a distinct pursuit from full-board scores), so they
+   *  don't sink into the low-score "Other" bucket. */
+  tag?: "linear";
 }
 
 export const KNOWN_BOARDS: KnownBoard[] = [
@@ -67,6 +71,7 @@ export const KNOWN_BOARDS: KnownBoard[] = [
     "id": "Joshua_Blackwood_230",
     "label": "Blackwood 230 (partial)",
     "score": 429,
+    "tag": "linear",
     "params": "puzzle=Joshua_Blackwood_230&board_w=16&board_h=16&board_edges=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafufatpduiwkphsewtglscsugaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafpjadlipklmletillpgtuihpdeiivtiedoitdwhooulwgpmuemepwllmupcljarpjefaigoemsggivvsgcwvhudcicwuilmciiolhvtiledvmimeevcilimvcswirajsfifaoutigwcuvvdwwomvdegowieemuliouuutttudhltmsehcptsmsdpwplsjajpftratpctcitpdclimstcgtvsemptlhmmutehtvgtlghvehvgtplhddopltwdjaftrifacscitewslhoetgmhvvsgptuvmolteguogdsghcddvcucloscocsowetcfanefebacitewvwiohovmcdhslkcuhwlllshuhllssuhdswsuhqssehhsodetioonabiblratshlwcssohccdtohkdutwlqdsggllddgudmdwhddqethhetedkweopmkbafprcrahdqcsmsdcmimokvmuupkqilugsuiddosmwvddmewtovmtvhowvovmiovfabiruraqghusgpgiipgvpkipvwplqgvuikqoqvivpuqeclpvvdchlgvomvlocimbabcrwfahoqwppuoppgpkompwkeogqlkkwoqvcwwueqclecedkqegdikvktdimwkbajmfdnaqdpduqkdgqhqmsgqepksllqpoeklwuheqvquchqvqmkhiqumtmeqwpomjabpnenapkgekdckhqpdgimqkgtiqkugkwgkhvqwqdovqemdkwleuwqweqswousqbajunvjagukvcmqupkkmmqkktkkquotkgkqoqtvkohqtmklhlwqkqukwsqgushwqjajhjraakrarqnarkjankbajkjabtnajqbanvfabqfaflnafqnankbangnabwranjaar&motifs_order=jblackwood"
   },
   {
