@@ -4,6 +4,11 @@
 // lands on the new page instead of a 404. Language-neutral paths (no /fr, no
 // trailing slash), matching neutralPath() in the doc route.
 export const RESEARCH_REDIRECTS: Record<string, string> = {
+  // Pages moved into the History & community section (2026-07).
+  "/research/lab/boards": "/research/community/boards",
+  "/research/build/history": "/research/community/hunt",
+  "/research/build/history-2": "/research/community/hunt-part-2",
+  // Build reorg into per-technique-family sub-hubs.
   "/research/build/concepts": "/research/build/techniques",
   "/research/build/concepts/approaches-map": "/research/build/approaches-map",
   // Reduce the search

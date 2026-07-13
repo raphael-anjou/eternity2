@@ -35,10 +35,14 @@ const SECTION_LABELS: Record<string, { en: string; fr: string }> = {
   // the per-researcher hubs at /research/people/<slug>). Deliberately named for
   // the work, not one person — it scales to any contributor.
   lab: { en: "The lab", fr: "Le laboratoire" },
+  // The record & the people behind it: the history, the record boards, the
+  // record-holders, the papers, and how to contribute. Community memory, not
+  // solver-building — kept out of Build so that section stays a curriculum.
+  community: { en: "History & community", fr: "Histoire & communauté" },
 };
 
 /** Order of the sidebar sections. */
-const SECTION_ORDER = ["why", "build", "lab"] as const;
+const SECTION_ORDER = ["why", "build", "lab", "community"] as const;
 
 /** The named sub-groups inside the Build section, in display order — the
  *  approaches-map spine. Items whose `group` is not listed fall to the end
@@ -56,7 +60,7 @@ export const BUILD_GROUP_ORDER = [
   "GPU & hardware",
   "The engines",
   "Skip these",
-  "Context",
+  "Also worth knowing",
 ] as const;
 
 /** A sidebar section's items bucketed into ordered, labelled groups. Sections
@@ -99,14 +103,15 @@ export function groupedItems(section: NavSection): NavGroup[] {
 }
 
 /** Flat research pages that belong to a section other than their first URL
- *  segment (the Build door re-homes the reference pages). */
+ *  segment. Reference stays with Build (it's solver-facing); the record and
+ *  community pages live in the History & community section. */
 const SECTION_OF: Record<string, string> = {
   reference: "build",
-  papers: "build",
-  records: "build",
-  history: "build",
-  contribute: "build",
-  people: "build",
+  papers: "community",
+  records: "community",
+  history: "community",
+  contribute: "community",
+  people: "community",
 };
 
 function sectionOf(url: string): string {
