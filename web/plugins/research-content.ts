@@ -116,11 +116,14 @@ export function researchContent(): Plugin {
       if (!outDir.includes("client")) return; // client pass only (see sitemap plugin)
       const origin = (process.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
       const base = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
+      // Trailing-slash form the host serves at 200 (see the sitemap plugin).
+      const canonical = (p: string) =>
+        p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
       {
         for (const doc of buildManifest("en")) {
           const raw = scanResearchContent().find((e) => e.file === doc.file);
           if (!raw) continue;
-          const urlPath = doc.url;
+          const urlPath = canonical(doc.url);
           const relFile =
             (doc.slug === "" ? "research/index" : `research/${doc.slug}`) + ".md";
           const header = [

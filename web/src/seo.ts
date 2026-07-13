@@ -4,7 +4,7 @@
 
 import type { Lang } from "@/i18n";
 import { langFromPath } from "@/i18n";
-import { absoluteUrl } from "@/site";
+import { canonicalUrl } from "@/site";
 
 type Entry = { title: string; description: string };
 
@@ -217,7 +217,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
       { name: "description", content: entry.description },
       { property: "og:title", content: entry.title },
       { property: "og:description", content: entry.description },
-      { property: "og:url", content: absoluteUrl(location.pathname) },
+      { property: "og:url", content: canonicalUrl(location.pathname) },
     ];
   };
 }

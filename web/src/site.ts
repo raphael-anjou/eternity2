@@ -21,5 +21,19 @@ export function absoluteUrl(pathname: string): string {
   return ORIGIN + BASE + pathname;
 }
 
+/** The canonical public URL for a page, matching the exact form the host
+ *  serves at 200. GitHub Pages serves an extensionless path only at its
+ *  trailing-slash variant and 301-redirects the bare form (/research →
+ *  /research/), so a canonical/sitemap/og:url without the slash points at a
+ *  redirect — which suppresses indexing. Add the slash (except for the root
+ *  and any path that already has a file extension, e.g. sitemap.xml). */
+export function canonicalUrl(pathname: string): string {
+  const withSlash =
+    pathname === "/" || /\.[a-z0-9]+$/i.test(pathname) || pathname.endsWith("/")
+      ? pathname
+      : pathname + "/";
+  return ORIGIN + BASE + withSlash;
+}
+
 /** The public source repository (edit links, "computed from" links). */
 export const REPO_URL = "https://github.com/raphael-anjou/eternity2";

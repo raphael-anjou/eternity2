@@ -13,7 +13,7 @@ import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, useLocation } from "react-router";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
-import { absoluteUrl } from "@/site";
+import { canonicalUrl } from "@/site";
 import { researchDoc, researchTopic, researchAuthor } from "@/lib/research/manifest";
 import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
@@ -75,7 +75,7 @@ export function meta({ location }: { location: { pathname: string } }) {
     { name: "description", content: description },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
-    { property: "og:url", content: absoluteUrl(location.pathname) },
+    { property: "og:url", content: canonicalUrl(location.pathname) },
   ];
 
   if (path === "/research/glossary") return pack(GLOSSARY_TITLE[lang] + SUFFIX, GLOSSARY_DESC[lang]);

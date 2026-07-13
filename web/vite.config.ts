@@ -29,8 +29,14 @@ function sitemap(): Plugin {
       if (!outDir.includes("client")) return;
       const origin = (process.env["VITE_SITE_ORIGIN"] || "https://eternity2.dev").replace(/\/$/, "");
       const base = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
+      // Emit the trailing-slash form the host actually serves at 200. GitHub
+      // Pages 301-redirects an extensionless path to its slash variant, so a
+      // sitemap <loc> without the slash lists a redirect (which suppresses
+      // indexing). Keep the root and any path with a file extension as-is.
+      const canonical = (p: string) =>
+        p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
       const urls = allRoutePaths(base)
-        .map((p) => `  <url><loc>${origin}${p}</loc></url>`)
+        .map((p) => `  <url><loc>${origin}${canonical(p)}</loc></url>`)
         .join("\n");
       const xml =
         `<?xml version="1.0" encoding="UTF-8"?>\n` +

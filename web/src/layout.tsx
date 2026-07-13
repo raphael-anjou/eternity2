@@ -4,6 +4,7 @@ import { MotifDefs } from "@/components/board/MotifDefs";
 import { initEngine } from "@/engine";
 import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { loadAnalyticsWhenIdle } from "@/lib/analytics";
 
 const T = {
   en: {
@@ -15,10 +16,6 @@ const T = {
       { to: "/viewer", label: "Board Viewer" },
       { to: "/research", label: "Research" },
     ],
-    engineReady: "engine ready",
-    engineLoading: "loading engine",
-    engineFailed: "engine failed",
-    engineTitle: "Rust engine compiled to WebAssembly, running in your browser",
     footer:
       "Open source (MIT). Piece motifs by Jef Bucas (GPL-3.0). Everything runs in your browser. There is no server.",
     builtBy: "Built by Raphaël Anjou.",
@@ -33,10 +30,6 @@ const T = {
       { to: "/viewer", label: "Visualiseur" },
       { to: "/research", label: "Recherche" },
     ],
-    engineReady: "moteur prêt",
-    engineLoading: "chargement du moteur",
-    engineFailed: "moteur en échec",
-    engineTitle: "Moteur Rust compilé en WebAssembly, exécuté directement dans votre navigateur",
     footer:
       "Logiciel libre (MIT). Motifs des pièces par Jef Bucas (GPL-3.0). Tout se passe dans votre navigateur : aucun serveur n'est sollicité.",
     builtBy: "Réalisé par Raphaël Anjou.",
@@ -77,8 +70,6 @@ function FirstVisitRedirect() {
 }
 
 export default function Layout() {
-  const [engineReady, setEngineReady] = useState(false);
-  const [engineError, setEngineError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const { lang, setLang } = useLang();
   const t = useT(T);
@@ -88,9 +79,11 @@ export default function Layout() {
   const onResearch = /^\/(fr\/)?research(\/|$)/.test(pathname);
 
   useEffect(() => {
-    initEngine()
-      .then(() => setEngineReady(true))
-      .catch((e) => setEngineError(String(e)));
+    // Warm the WebAssembly engine in the background so interactive pages
+    // (playground, solver, convert) don't pay the compile cost on first use.
+    void initEngine().catch(() => {});
+    // Load analytics once idle, keeping it off the critical render path.
+    return loadAnalyticsWhenIdle();
   }, []);
 
   // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle).
@@ -136,21 +129,6 @@ export default function Layout() {
             ))}
           </nav>
           <div className="flex-1 md:hidden" />
-          <span
-            className={cn(
-              "hidden items-center gap-1.5 text-xs sm:flex",
-              engineReady ? "text-emerald-600" : "text-muted-foreground",
-            )}
-            title={t.engineTitle}
-          >
-            <span
-              className={cn(
-                "inline-block h-2 w-2 rounded-full",
-                engineReady ? "bg-emerald-500" : engineError ? "bg-red-500" : "bg-amber-400 animate-pulse",
-              )}
-            />
-            {engineError ? t.engineFailed : engineReady ? t.engineReady : t.engineLoading}
-          </span>
           {!onResearch && (
             <button
               onClick={() => setLang(other)}
