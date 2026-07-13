@@ -2,14 +2,12 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from "re
 import type { ReactNode } from "react";
 import "./index.css";
 import { LangProvider, langFromPath, pathForLang } from "@/i18n";
-import { absoluteUrl } from "@/site";
+import { canonicalUrl } from "@/site";
 
 // The document shell (formerly index.html). React Router injects <Meta> and
 // <Links> from the route module `meta`/`links` exports, and <Scripts> boots
 // the client bundle. ssr:false means this is rendered once per prerendered
 // path at build time, producing real static HTML per route × language.
-
-const GA_ID = import.meta.env["VITE_GA_ID"];
 
 export function meta() {
   // Site-wide defaults; individual routes override title/description.
@@ -58,24 +56,13 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <Meta />
         <Links />
-        <link rel="canonical" href={absoluteUrl(pathname)} />
-        <link rel="alternate" hrefLang="en" href={absoluteUrl(enPath)} />
-        <link rel="alternate" hrefLang="fr" href={absoluteUrl(frPath)} />
-        <link rel="alternate" hrefLang="x-default" href={absoluteUrl(enPath)} />
-        {/* Google Analytics (GA4). Injected only when a valid measurement ID
-            is present at build time; inert on local dev and forks. The router
-            sends page views (see layout.tsx) because automatic ones would not
-            fire on client-side navigations. */}
-        {GA_ID && /^G-[A-Z0-9]{4,}$/.test(GA_ID) && (
-          <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}',{anonymize_ip:true,send_page_view:false});`,
-              }}
-            />
-          </>
-        )}
+        <link rel="canonical" href={canonicalUrl(pathname)} />
+        <link rel="alternate" hrefLang="en" href={canonicalUrl(enPath)} />
+        <link rel="alternate" hrefLang="fr" href={canonicalUrl(frPath)} />
+        <link rel="alternate" hrefLang="x-default" href={canonicalUrl(enPath)} />
+        {/* Google Analytics (GA4) is loaded lazily after the page is idle (see
+            loadAnalyticsWhenIdle in layout.tsx), so it stays off the critical
+            render path. Page views are sent by the router. */}
       </head>
       <body>
         <LangProvider>{children}</LangProvider>

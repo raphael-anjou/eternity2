@@ -13,15 +13,40 @@ import { boardFromEngine } from "@/lib/bucas";
 import type { Edges } from "@/lib/bucas";
 
 // A small board solving itself forever: the site's heartbeat.
+/** True once the browser has gone idle after first paint — used to hold back
+ *  non-essential main-thread work (the hero solver loop) so it doesn't compete
+ *  with initial render, hydration and LCP. */
+function useIdleAfterPaint(): boolean {
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    const ric = (
+      window as unknown as {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+        cancelIdleCallback?: (h: number) => void;
+      }
+    ).requestIdleCallback;
+    if (ric) {
+      const h = ric(() => setIdle(true), { timeout: 2000 });
+      return () => (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback?.(h);
+    }
+    const h = window.setTimeout(() => setIdle(true), 1200);
+    return () => window.clearTimeout(h);
+  }, []);
+  return idle;
+}
+
 function HeroBoard() {
   const engineReady = useEngine();
+  const idle = useIdleAfterPaint();
   const [cells, setCells] = useState<ReturnType<typeof boardFromEngine>["cells"] | null>(null);
   const solverRef = useRef<SolverHandle | null>(null);
   const puzzleRef = useRef<Puzzle | null>(null);
   const seedRef = useRef(1);
 
   useEffect(() => {
-    if (!engineReady) return;
+    // Hold the solver loop until the engine is warm AND the page has settled,
+    // so its per-frame stepping never lands on the critical-render path.
+    if (!engineReady || !idle) return;
     let raf = 0;
     const make = () => {
       solverRef.current?.free();
@@ -65,7 +90,7 @@ function HeroBoard() {
       solverRef.current?.free();
       solverRef.current = null;
     };
-  }, [engineReady]);
+  }, [engineReady, idle]);
 
   const placeholder = useMemo<(Edges | null)[]>(() => Array<Edges | null>(64).fill(null), []);
   return <BoardSvg width={8} height={8} cells={cells ?? placeholder} className="w-full" />;
