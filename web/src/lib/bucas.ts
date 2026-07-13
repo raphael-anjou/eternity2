@@ -67,9 +67,14 @@ export function decodeBucas(input: string | Record<string, string>): BucasBoard 
   const size = params["puzzle_size"];
   const width = parseInt(size ?? params["board_w"] ?? "16", 10);
   const height = parseInt(size ?? params["board_h"] ?? "16", 10);
-  if (edges.length !== width * height * 4) {
-    throw new Error(
-      `board_edges has ${edges.length} letters; expected ${width * height * 4} for ${width}×${height}`,
+  // Be forgiving about a short or damaged string: instead of refusing to show
+  // anything, decode the letters we do have. A cell past the end of the string,
+  // or one holding an un-decodable letter, is treated as empty — so a truncated
+  // or partly-corrupt board still renders the pieces it can retrieve.
+  const expected = width * height * 4;
+  if (edges.length !== expected && expected > 0) {
+    console.warn(
+      `board_edges has ${edges.length} letters; expected ${expected} for ${width}×${height} — showing what decodes`,
     );
   }
 
@@ -79,13 +84,20 @@ export function decodeBucas(input: string | Record<string, string>): BucasBoard 
   const cells: (Edges | null)[] = [];
   for (let i = 0; i < width * height; i++) {
     const four = edges.slice(i * 4, i * 4 + 4);
+    // A cell missing any of its four letters can't be trusted as a placed
+    // piece; render it empty rather than inventing edges.
+    if (four.length < 4) {
+      cells.push(null);
+      continue;
+    }
     const e = [...four].map((ch) => {
       let c = ch.charCodeAt(0) - 97;
-      if (c < 0 || c > 25) throw new Error(`bad edge letter "${ch}"`);
+      if (c < 0 || c > 25) return -1; // un-decodable letter → sentinel
       if (translate && c < translate.length) c = translate.charCodeAt(c) - 97;
       return c;
     }) as Edges;
-    cells.push(e.every((c) => c === 0) ? null : e);
+    // Any un-decodable edge, or an all-grey "aaaa": treat the cell as empty.
+    cells.push(e.some((c) => c < 0) || e.every((c) => c === 0) ? null : e);
   }
 
   let pieceNumbers: number[] | null = null;
