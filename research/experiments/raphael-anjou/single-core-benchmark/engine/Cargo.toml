@@ -1,0 +1,47 @@
+# Standalone workspace for the single-core benchmark's native engine family.
+#
+# Lifted verbatim from the v2 research vault (crates/*) — the SAME code that
+# produced the published results — and made self-contained here: no external
+# path deps, only serde/serde_json from crates.io. `run_algo` is the runnable
+# entry point (site-schema Puzzle JSON in, bucas .url out); `gen_variants`
+# regenerates the corner-pinned puzzle variants.
+#
+#   cargo build --release --bin run_algo
+#   ./target/release/run_algo --list
+#   ./target/release/run_algo --puzzle ../variants/variant_00.json \
+#       --algo border_first_lcv --seed 1 --budget-ms 60000 --emit out.url
+#
+# Only the "native engine family" (naive + CSP presets, ranks 5–15 in the
+# report) lives here. The four standalone strong engines (producer, blackwood,
+# verhaard, alns) stay in the private vault; their results are committed under
+# ../results and their invocations archived under ../scripts.
+
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+doc_markdown = "allow"
+
+# Release profile mirrors the vault's benchmark build so throughput numbers are
+# comparable to the published run.
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

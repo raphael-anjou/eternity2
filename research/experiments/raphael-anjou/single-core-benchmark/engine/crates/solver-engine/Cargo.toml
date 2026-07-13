@@ -1,0 +1,33 @@
+[package]
+name = "eternity2-solver-engine"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+eternity2-core = { path = "../core" }
+eternity2-events = { path = "../events" }
+eternity2-propagators = { path = "../propagators" }
+eternity2-solver-trait = { path = "../solver-trait" }
+eternity2-time = { path = "../time" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+crossbeam-channel = "0.5"
+rayon = "1.10"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+# Vol-27 — in-process ONNX inference for ValueOrder::Learned. Replaces
+# vol-26's stdio bridge (~15 ms/node → ~0.1 ms/call). Default download
+# strategy fetches the macOS arm64 binary; load-dynamic feature lets us
+# point at a custom libonnxruntime if needed.
+ort = { version = "=2.0.0-rc.10", default-features = false, features = ["std", "download-binaries", "ndarray"] }
+ndarray = "0.16"
+
+[dev-dependencies]
+eternity2-generator = { path = "../generator" }
+rayon = "1.10"

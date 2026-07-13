@@ -1,0 +1,25 @@
+[package]
+name = "bench-grid"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Single-core apples-to-apples benchmark harness. Every algorithm consumes the
+# SAME site-schema Puzzle JSON (see `eternity2/engine` `Puzzle`) plus corner
+# pins, and emits a bucas .url scored by the ONE canonical scorer. Solvers are
+# written against this interface so they are later liftable to the site repo.
+
+[dependencies]
+eternity2-core = { path = "../core", features = ["serde"] }
+eternity2-export = { path = "../export" }
+eternity2-puzzle-io = { path = "../puzzle-io" }
+eternity2-solver-engine = { path = "../solver-engine" }
+eternity2-solver-naive = { path = "../solver-naive" }
+eternity2-solver-trait = { path = "../solver-trait" }
+eternity2-events = { path = "../events" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints]
+workspace = true

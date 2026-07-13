@@ -1,0 +1,150 @@
+---
+title: Single-core benchmark
+description: >-
+  Fifteen solvers, ours and the community's, each run once on ten corner-pinned
+  variants of the official puzzle, single core, 60 seconds per run. The finding:
+  throughput does not equal score.
+kind: experiment
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # the standardized single-core bench
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # budget per run
+  runs: 150 # 15 algorithms × 10 corner variants
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true only for the standardized single-core bench
+repro:
+  kind: seeded
+  cmd: just raphael-anjou single-core-benchmark
+order: 10
+updated: 2026-07-13
+date: 2026-07
+topics: [speed, construction, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/prior
+  - /research/build/construct/beam-search
+sources:
+  - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+Give every solver the same budget, one core and one minute, and which one wins?
+The answer overturns the obvious intuition. Fifteen solvers, ours and the
+community's (Blackwood, Verhaard), each ran once on ten corner-pinned variants of
+the official puzzle, single-threaded, 60 seconds a run. Every board was re-scored
+by one canonical scorer; no engine's self-reported score is trusted. The maximum
+possible score is 480.
+
+## Throughput does not equal score
+
+The Blackwood backtracker, the algorithm behind the community's record, explores
+**40.6 million** search-nodes per second. Our beam producer explores **273
+thousand** beam-nodes per second, roughly 150 times fewer. On a single core for
+one minute, the producer reaches **456** and Blackwood reaches **436**.
+
+Blackwood explores 149 times more nodes per second and still finishes 20 points
+lower. At one core the win comes from node quality, not node count: the beam
+front-loads its intelligence (comb fill-order, edge-match greedy, a wide
+frontier) where the backtracker relies on brute persistence. This is measured
+proof of the compute-regime split. Our efficient engine dominates at small
+scale; Blackwood only wins with a farm behind it.
+
+<Figure title="The leaderboard: mean score over ten corner variants, single core, 60 s">
+  <BenchmarkLeaderboard />
+</Figure>
+
+## Reading the table
+
+The producer is remarkably consistent, 453 to 456 on every variant with a
+standard deviation of 1.0. It wins on skill, not luck. The CSP engines below the
+top four are bimodal: on a friendly corner arrangement they reach 340 to 349, on
+a hostile one they collapse to about 55, because the arc-consistency search gets
+pinned in a bad basin and cannot escape inside 60 seconds. That fragility is the
+real story of the lower half of the table.
+
+Throughput units differ by family and are never cross-compared. The producer
+counts beam-nodes per second, the backtrackers search-nodes per second, ALNS
+counts repair iterations per second. The CSP engines sit at 5 to 10 thousand
+nodes per second because each node runs full arc-consistency; they trade
+throughput for pruning, which is why they explore far fewer nodes yet still beat
+naive DFS on good variants.
+
+## What each family is doing
+
+- **Producer (beam, rank 1).** Wide-beam constructive search over the comb fill
+  order (Verhaard and Max's high-score geometry). It keeps thousands of partial
+  boards and extends each by the best edge-matching pieces. Low nodes per second,
+  but every node is a near-complete, high-quality board. This is the base of our
+  record pipeline.
+- **ALNS (rank 2).** Two stages inside the 60 seconds: the producer makes a base
+  board, then large-neighbourhood local search (destroy a region, repair it)
+  polishes it. At 60 seconds it manages only about 32 repair iterations, so it
+  lands just under the raw producer here; the real 461 record needed about 20
+  minutes of ALNS.
+- **Verhaard and Blackwood (backtrackers, ranks 3 to 4).** Depth-gated-break DFS
+  at 20 to 40 million nodes per second. They punch to 437 to 451 but hit a wall:
+  the endgame needs far more compute than 60 seconds allows. Blackwood's record
+  took roughly 180 core-years.
+- **CSP with AC-3 (ranks 6 to 15).** Arc-consistency propagation makes each node
+  expensive but well-pruned. Strong on friendly variants, fragile on hostile
+  ones. Three of them (`gacolor_ac3`, `gacolor_ac3_ns1`, `verhaard_preferred`)
+  produced byte-identical boards on this puzzle: NS-1 and preferred ordering add
+  nothing here at this depth.
+- **Naive DFS (rank 5).** Fills the whole board allowing every break. It reaches
+  a high matched-edge count (365) but a low-quality board full of breaks. Fast,
+  and junk.
+
+## Where these numbers sit
+
+This grid caps every engine at one core for 60 seconds, far below the compute
+that produced the records below. It measures per-core efficiency and heuristic
+quality, not peak reachable score. An engine that ranks high here reaches good
+boards cheaply; the record numbers need many cores times hours.
+
+| reference | score | conditions |
+|:--|--:|:--|
+| Community all-hints ceiling | 470 | Blackwood, farm-scale (about 180 core-years) |
+| Community 5-hint record | 464 | Pejic and benj39100, 2026 |
+| Our verified record | 461 | comb-producer then ALNS, about 20 min |
+| This grid's best (producer) | 456 | one core, 60 s |
+| Blackwood on our 8-core hardware | 438 | proves 464 to 470 is a compute wall |
+
+## Method and reproducibility
+
+Each of the ten variants is the official puzzle plus three pinned corner cells
+(distinct corner-piece arrangements), so all ten share the 256-piece set and 5
+clue hints but differ in three corner constraints. They are emitted as both
+site-schema JSON (for the native engines) and CSV (for the standalone engines)
+from one generator, so every algorithm sees identical instances. One run per
+puzzle, fixed seed; the corner arrangement is the only diversity axis. Every run
+emits a bucas `.url`, and the score is the canonical matched-edge count from the
+same scorer, never the engine's self-report. There were zero failures across all
+150 runs.
+
+The native engine family (ranks 5 to 15) is lifted into this repository and runs
+from it: the crate workspace, the ten variants, the committed per-run results and
+the grid scripts all live under the experiment's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark).
+`just raphael-anjou single-core-benchmark` builds the engine and reruns that
+family. The four standalone strong engines (producer, ALNS, Verhaard, Blackwood)
+run from the private v2 vault; their committed rows are the published result and
+their exact invocations are archived alongside the scripts.
+
+## Companion findings
+
+Profiling put 96.6 percent of the CSP family's time in one heavily pre-optimised
+AC-3 loop, and three bit-identical optimisation attempts on the producer's hot
+path all measured neutral or worse. These engines are already at their
+performance ceiling; the benchmark speeds are their real speeds, not an
+implementation gap. Separately, the community's Blackwood constants do not
+transfer across colour labelings: its published privileged colours scored 387 in
+our labeling versus 435 for a re-fit, a 48-point gap that our Blackwood closes by
+re-fitting only the labeling-relative colour IDs while matching every structural
+element of the published spec.

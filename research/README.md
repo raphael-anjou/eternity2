@@ -18,12 +18,41 @@ research/
 ├── build-index.mjs      ← scans topics/*/article.md frontmatter → index.json
 ├── TEMPLATE/            ← copy this to start a new topic
 │   └── article.md       ← frontmatter + article skeleton
-└── topics/
-    └── <topic-id>/
-        ├── article.md   ← the article; YAML frontmatter holds all metadata
-        ├── compute/     ← the exact code that produces the results (+ how to run)
-        └── results/     ← committed output files (JSON/CSV) the article and site reference
+├── topics/
+│   └── <topic-id>/
+│       ├── article.md   ← the article; YAML frontmatter holds all metadata
+│       ├── compute/     ← the exact code that produces the results (+ how to run)
+│       └── results/     ← committed output files (JSON/CSV) the article and site reference
+└── experiments/
+    └── <author>/
+        ├── justfile     ← this author's recipes; `just <author>` lists them,
+        │                  `just <author> <experiment>` runs one
+        └── <experiment>/ ← a self-contained author experiment (see below)
 ```
+
+## Author experiments (`experiments/<author>/`)
+
+Some experiments are one researcher's own runs rather than shared theory, and a
+few carry the code that produced them. Those live under
+`experiments/<author>/<experiment>/`, each self-contained:
+
+```
+experiments/raphael-anjou/single-core-benchmark/
+├── engine/     ← a standalone cargo workspace (lifted from the vault), the
+│                 runnable solver family; `run_algo` is the entry point
+├── variants/   ← the puzzle inputs
+├── results/    ← committed results (jsonl/csv + per-run bucas urls); results/rerun/
+│                 (gitignored) is where a reproduction writes
+├── scripts/    ← the grid runner + reporter (repo-relative), plus any archived
+│                 wrappers for private-vault engines that cannot run here
+└── README.md   ← what is runnable here vs archived, and how to reproduce
+```
+
+Recipes are per-author `just` modules: the root justfile does
+`mod <author> 'research/experiments/<author>/justfile'`, so `just <author>` lists
+that author's experiments and `just <author> <experiment>` runs one. The site
+page for the experiment lives in `web/content/research/lab/experiments/<author>/`
+and sets `repro.cmd` to that command.
 
 ## Conventions
 
