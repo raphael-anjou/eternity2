@@ -4,6 +4,21 @@
 // lands on the new page instead of a 404. Language-neutral paths (no /fr, no
 // trailing slash), matching neutralPath() in the doc route.
 export const RESEARCH_REDIRECTS: Record<string, string> = {
+  // Experiments re-homed under a per-author folder, so the lab opens to more
+  // than one researcher (2026-07). Each experiment now lives at
+  // …/experiments/<author-slug>/<name>.
+  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/prior",
+  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/keyring",
+  "/research/lab/experiments/gauntlet": "/research/lab/experiments/raphael-anjou/gauntlet",
+  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/lodestone",
+  "/research/lab/experiments/staged": "/research/lab/experiments/raphael-anjou/staged",
+  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/palimpsest",
+  "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/ladder",
+  "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/cloister",
+  "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/midden",
+  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/bandsaw",
+  "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/mosaic",
+  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/replay",
   // Pages moved into the History & community section (2026-07).
   "/research/lab/boards": "/research/community/boards",
   "/research/build/history": "/research/community/hunt",

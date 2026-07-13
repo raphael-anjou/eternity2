@@ -74,7 +74,7 @@ export function groupedItems(section: NavSection): NavGroup[] {
   // Grouping flattens the parent/child nesting: a group header replaces the
   // "Concepts"/"Solvers" parent, and every page (root or child) is placed by
   // its own `group`. Sections with no groups keep their nested tree.
-  const flat = section.items.flatMap((i) => [i, ...i.children]);
+  const flat = section.items.flatMap(flattenDeep);
   const hasGroups = flat.some((i) => i.group);
   if (!hasGroups) return [{ label: null, items: section.items }];
 
@@ -146,20 +146,30 @@ export function researchNav(lang: Lang): NavSection[] {
     const inSection = flat.filter(
       (i) => sectionOf(i.url) === key && i.url !== `/research/${key}`,
     );
-    // Nest one level: an item is a child of the section item whose URL is its
-    // parent path (e.g. …/experiments/palimpsest under …/experiments).
+    // Nest to arbitrary depth: an item is a child of the nearest ancestor page
+    // that exists (…/experiments/raphael-anjou/prior nests under
+    // …/experiments/raphael-anjou, which nests under …/experiments). Walk the
+    // URL up one segment at a time until a real page is found, else it's a root.
     const byUrl = new Map(inSection.map((i) => [i.url, i]));
     const roots: Flat[] = [];
     for (const item of inSection) {
-      const parentUrl = item.url.slice(0, item.url.lastIndexOf("/"));
-      const parent = byUrl.get(parentUrl);
+      let parentUrl = item.url.slice(0, item.url.lastIndexOf("/"));
+      let parent: Flat | undefined;
+      while (parentUrl.startsWith(`/research/${key}`)) {
+        parent = byUrl.get(parentUrl);
+        if (parent) break;
+        parentUrl = parentUrl.slice(0, parentUrl.lastIndexOf("/"));
+      }
       if (parent) parent.children.push(item);
       else roots.push(item);
     }
-    const byOrder = (a: Flat, b: Flat) =>
-      a.order - b.order || a.title.localeCompare(b.title);
-    roots.sort(byOrder);
-    for (const r of roots) (r.children as Flat[]).sort(byOrder);
+    const byOrder = (a: NavItem, b: NavItem) =>
+      (a as Flat).order - (b as Flat).order || a.title.localeCompare(b.title);
+    const sortDeep = (items: NavItem[]) => {
+      items.sort(byOrder);
+      for (const it of items) sortDeep(it.children);
+    };
+    sortDeep(roots);
     return {
       key,
       url: `/research/${key}`,
@@ -169,15 +179,20 @@ export function researchNav(lang: Lang): NavSection[] {
   });
 }
 
+/** An item and all its descendants, depth-first (pre-order). */
+function flattenDeep(item: NavItem): NavItem[] {
+  return [item, ...item.children.flatMap(flattenDeep)];
+}
+
 /** Every research page as a flat list (sections in order, depth-first). */
 export function allNavItems(lang: Lang): NavItem[] {
-  return researchNav(lang).flatMap((s) => s.items.flatMap((i) => [i, ...i.children]));
+  return researchNav(lang).flatMap((s) => s.items.flatMap(flattenDeep));
 }
 
 /** Reading order within one section — drives prev/next (the sidebar is scoped
  *  per section, so page-to-page flow stays inside it too). */
 export function sectionReadingOrder(section: NavSection): NavItem[] {
-  return section.items.flatMap((i) => [i, ...i.children]);
+  return section.items.flatMap(flattenDeep);
 }
 
 /** The section a research URL belongs to (handles the re-homed flat pages). */
