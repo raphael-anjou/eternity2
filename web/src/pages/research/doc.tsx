@@ -168,8 +168,12 @@ export default function ResearchDocPage() {
   const doc = researchDoc(lang, path);
   const Content = doc ? pages.get(`/content/research/${doc.file}`) : undefined;
   if (!doc || !Content) return <NotFound />;
+  // The people gallery is a real content page, but it heads the People tab and
+  // its person hubs, so it shows the alphabetical contributor rail (not the
+  // section rail) to match them.
+  const sidebarVariant = path === "/research/people" ? "people" : undefined;
   return (
-    <DocsShell doc={doc}>
+    <DocsShell doc={doc} {...(sidebarVariant ? { sidebarVariant } : {})}>
       <Suspense fallback={null}>
         <Content components={mdxComponents} />
       </Suspense>

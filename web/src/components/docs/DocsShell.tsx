@@ -417,7 +417,17 @@ function Related({ doc }: { doc: ResearchDoc }) {
   );
 }
 
-export function DocsShell({ doc, children }: { doc: ResearchDoc; children: ReactNode }) {
+export function DocsShell({
+  doc,
+  children,
+  sidebarVariant,
+}: {
+  doc: ResearchDoc;
+  children: ReactNode;
+  /** Override the left rail — "people" shows the alphabetical contributor list
+   *  (used by the /research/people gallery so it matches the person hubs). */
+  sidebarVariant?: "people";
+}) {
   const t = useT(T);
   const { lang } = useLang();
   const section = findSection(lang, doc.url) ?? null;
@@ -425,7 +435,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
     <div>
       <ResearchSubnav />
       <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
-        <DocsSidebar section={section} />
+        <DocsSidebar section={section} variant={sidebarVariant} />
         <article className="min-w-0">
         <Breadcrumbs doc={doc} />
         <header className="mt-4 space-y-3">

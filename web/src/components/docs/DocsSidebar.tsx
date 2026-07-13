@@ -9,12 +9,12 @@ import { useLang, useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { KIND_DOT, groupedItems, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
-import { researchTopics, topicUrl } from "@/lib/research/manifest";
+import { researchTopics, topicUrl, researchAuthors, authorDocs, authorUrl } from "@/lib/research/manifest";
 import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 
 const T = {
-  en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More", glossary: "Glossary" },
-  fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus", glossary: "Glossaire" },
+  en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More", glossary: "Glossary", people: "People", allPeople: "Who's who" },
+  fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus", glossary: "Glossaire", people: "Contributeurs", allPeople: "Qui est qui" },
 };
 
 function activePath(pathname: string): string {
@@ -227,6 +227,57 @@ function TopicsList() {
   );
 }
 
+// The people left rail: the gallery link on top, then every contributor with a
+// page, alphabetical (by display name, locale-aware), each with the count of
+// pages they wrote. Shown on /research/people and every /research/people/<slug>.
+function PeopleList() {
+  const t = useT(T);
+  const { lang } = useLang();
+  const { pathname } = useLocation();
+  const active = activePath(pathname);
+  const authors = [...researchAuthors(lang)].sort((a, b) =>
+    a.name.localeCompare(b.name, lang),
+  );
+  return (
+    <nav className="space-y-0.5 pb-4 text-sm">
+      <LocalizedLink
+        to="/research/people"
+        className={cn(
+          "mb-1.5 block px-2 text-xs font-semibold uppercase tracking-wide",
+          active === "/research/people"
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        {t.allPeople}
+      </LocalizedLink>
+      {authors.map((a) => {
+        const url = authorUrl(a.slug);
+        const isActive = active === url;
+        const count = authorDocs(lang, a.slug).length;
+        return (
+          <LocalizedLink
+            key={a.slug}
+            to={url}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "flex items-center gap-2 rounded-md px-2 py-1 transition-colors",
+              isActive
+                ? "bg-muted font-medium text-foreground"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+            )}
+          >
+            <span className="truncate">{a.name}</span>
+            {count > 0 && (
+              <span className="ml-auto text-xs tabular-nums text-muted-foreground">{count}</span>
+            )}
+          </LocalizedLink>
+        );
+      })}
+    </nav>
+  );
+}
+
 function Collapsible({ children, label }: { children: ReactNode; label: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -253,9 +304,23 @@ function Collapsible({ children, label }: { children: ReactNode; label: string }
   );
 }
 
-/** Sidebar scoped to a section; pass `section: null` for the topics list. */
-export function DocsSidebar({ section }: { section: NavSection | null }) {
+/** Sidebar scoped to a section; pass `section: null` for the topics list, or
+ *  `variant: "people"` for the alphabetical contributor list. */
+export function DocsSidebar({
+  section,
+  variant,
+}: {
+  section: NavSection | null;
+  variant?: "people";
+}) {
   const t = useT(T);
+  if (variant === "people") {
+    return (
+      <Collapsible label={t.people}>
+        <PeopleList />
+      </Collapsible>
+    );
+  }
   return (
     <Collapsible label={section ? t.browse : t.topics}>
       {section ? <SectionTree section={section} /> : <TopicsList />}

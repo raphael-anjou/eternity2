@@ -109,7 +109,7 @@ function Frame({ children }: { children: React.ReactNode }) {
     <div>
       <ResearchSubnav />
       <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10">
-        <DocsSidebar section={null} />
+        <DocsSidebar section={null} variant="people" />
         <div className="min-w-0">{children}</div>
       </div>
     </div>
