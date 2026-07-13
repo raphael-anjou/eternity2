@@ -33,6 +33,7 @@ const known = new Set(staticPaths);
 known.add("/research");
 known.add("/research/topics");
 known.add("/research/people");
+known.add("/research/glossary");
 for (const f of files) {
   const rel = path.relative(CONTENT, f).split(path.sep).join("/");
   const slug = rel.replace(/\.fr\.mdx$/, "").replace(/\.mdx$/, "").replace(/(^|\/)index$/, "$1").replace(/\/$/, "");
@@ -62,8 +63,28 @@ for (const f of files) {
   }
 }
 
+// The glossary is a JSON registry, not MDX; validate each term's `see` link too.
+const glossaryPath = path.join(CONTENT, "glossary.json");
+let glossaryTerms = 0;
+try {
+  const glossary = JSON.parse(readFileSync(glossaryPath, "utf8"));
+  for (const term of glossary.terms ?? []) {
+    glossaryTerms++;
+    if (!term.see) continue;
+    const clean = String(term.see).replace(/\/$/, "");
+    if (!known.has(clean)) {
+      console.error(`DEAD LINK  glossary.json (${term.term})  →  ${term.see}`);
+      bad++;
+    }
+  }
+} catch {
+  /* no glossary yet — fine */
+}
+
 if (bad > 0) {
   console.error(`\n${bad} dead internal link(s).`);
   process.exit(1);
 }
-console.log(`research wiki links OK — ${files.length} files, ${known.size} known routes`);
+console.log(
+  `research wiki links OK — ${files.length} files, ${glossaryTerms} glossary terms, ${known.size} known routes`,
+);
