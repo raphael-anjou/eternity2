@@ -435,7 +435,7 @@ export function DocsShell({
     <div>
       <ResearchSubnav />
       <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
-        <DocsSidebar section={section} variant={sidebarVariant} />
+        <DocsSidebar section={section} {...(sidebarVariant ? { variant: sidebarVariant } : {})} />
         <article className="min-w-0">
         <Breadcrumbs doc={doc} />
         <header className="mt-4 space-y-3">
