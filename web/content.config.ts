@@ -363,5 +363,6 @@ export function researchPagePaths(): string[] {
   // listed too; profile-only figures (the record-holders, theorists and
   // toolmakers on the Who's-who gallery) still ship a real, crawlable page.
   const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
-  return [...pages, ...topicPaths, ...peoplePaths];
+  // The glossary is a route-generated page (like the hubs), not MDX content.
+  return [...pages, ...topicPaths, ...peoplePaths, "research/glossary"];
 }

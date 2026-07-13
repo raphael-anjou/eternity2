@@ -19,6 +19,7 @@ import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
 import { PersonHub } from "@/components/docs/PeoplePages";
+import { GlossaryPage } from "@/components/docs/GlossaryPage";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
@@ -60,6 +61,12 @@ const TOPICS_DESC = {
   fr: "Le wiki de recherche Eternity II par thème : structure, réduction de l'espace de recherche, retour arrière, vitesse, recherche locale, méthodes exactes, matériel…",
 } as const;
 
+const GLOSSARY_TITLE = { en: "Glossary", fr: "Glossaire" } as const;
+const GLOSSARY_DESC = {
+  en: "Every Eternity II term the research wiki uses, defined once: community jargon, the loaded computer-science words, and the board notation, each linking to the page that goes deep.",
+  fr: "Chaque terme d'Eternity II qu'emploie le wiki, défini une fois : jargon de la communauté, mots d'informatique au sens précis, et notation des plateaux, chacun renvoyant à la page qui approfondit.",
+} as const;
+
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
@@ -70,6 +77,8 @@ export function meta({ location }: { location: { pathname: string } }) {
     { property: "og:description", content: description },
     { property: "og:url", content: absoluteUrl(location.pathname) },
   ];
+
+  if (path === "/research/glossary") return pack(GLOSSARY_TITLE[lang] + SUFFIX, GLOSSARY_DESC[lang]);
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return pack(TOPICS_TITLE[lang] + SUFFIX, TOPICS_DESC[lang]);
@@ -153,6 +162,8 @@ export default function ResearchDocPage() {
   if (personSlug !== null) {
     return researchAuthor(lang, personSlug) ? <PersonHub slug={personSlug} /> : <NotFound />;
   }
+
+  if (path === "/research/glossary") return <GlossaryPage />;
 
   const doc = researchDoc(lang, path);
   const Content = doc ? pages.get(`/content/research/${doc.file}`) : undefined;

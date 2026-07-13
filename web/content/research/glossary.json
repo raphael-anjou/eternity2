@@ -1,0 +1,389 @@
+{
+  "$comment": "The research wiki glossary: community + domain terms a newcomer meets on the wiki, each with a short definition and a `see` link to the page that goes deep. Rendered at /research/glossary. Sorted alphabetically at render time. tier: 1 = E2/community jargon, 2 = loaded CS/CSP term, 3 = notation/measurement. Extend freely; keep definitions to one or two sentences.",
+  "terms": [
+    {
+      "term": "all-different (Régin's filter)",
+      "tier": 2,
+      "def": "The global constraint that each of the 256 pieces is used exactly once, filtered completely in polynomial time by a bipartite-matching check that deletes any piece no longer placeable.",
+      "see": "/research/build/reduce/alldiff-regin"
+    },
+    {
+      "term": "ALNS",
+      "tier": 1,
+      "def": "Adaptive Large Neighbourhood Search: destroy part of a board, rebuild it better, and learn which demolitions pay. The most reliable board polisher measured here.",
+      "see": "/research/build/local-search/local-search-alns"
+    },
+    {
+      "term": "annealing (simulated annealing)",
+      "tier": 2,
+      "def": "Local search that treats mismatches as energy and temperature as tolerance for getting worse, cooling slowly toward a good board. Holds the longest-standing record in its family.",
+      "see": "/research/build/local-search/parallel-tempering"
+    },
+    {
+      "term": "arc consistency (AC-3)",
+      "tier": 2,
+      "def": "Propagation that makes every cell's candidate list defend itself against its neighbours to a fixed point, going beyond one-move-ahead forward checking. Prunes hard on small boards, fades about two cells out on the full one.",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "backtracking",
+      "tier": 2,
+      "def": "Depth-first search that places pieces one at a time in a fixed or computed order, undoing a placement when it leads to a dead end. Every record engine lives in this family.",
+      "see": "/research/build/backtracking"
+    },
+    {
+      "term": "beam search",
+      "tier": 1,
+      "def": "Keep the K most promising partial boards alive and grow each by one cell, then truncate back to K. The workhorse behind this project's from-scratch builders; breadth alone stalls in the deep interior.",
+      "see": "/research/build/construct/beam-search"
+    },
+    {
+      "term": "border (frame)",
+      "tier": 3,
+      "def": "The outer ring of the board: the four corner and 56 edge pieces, which show a grey (unscored) edge outward. The rest are interior pieces.",
+      "see": "/research/why/phase-transition"
+    },
+    {
+      "term": "branching factor",
+      "tier": 2,
+      "def": "How many candidate placements a cell offers on average during search. On Eternity II it stays high deep into the board, which is why the search tree never collapses.",
+      "see": "/research/build/backtracking/fill-order"
+    },
+    {
+      "term": "break index",
+      "tier": 3,
+      "def": "The number of mismatched (broken) edges on a board. A full solution has zero; the community record leaves ten. The cheap score every solver optimises, and a poor guide to how close a board really is.",
+      "see": "/research/why/mismatch-geometry"
+    },
+    {
+      "term": "Bucas notation",
+      "tier": 3,
+      "def": "The community's shared text format for a board, from Jef Bucas's viewer: rows A–P, columns 1–16, each cell a piece id and rotation. The lingua franca every solver reads and writes.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "candidate list",
+      "tier": 2,
+      "def": "The set of piece-and-rotation options still legal for a cell after propagation. Shrinking it is the whole point of constraint propagation.",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "cell",
+      "tier": 3,
+      "def": "One of the 256 squares of the 16×16 board.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "clue puzzle",
+      "tier": 1,
+      "def": "One of four optional companion puzzles (two 6×6 and two 12×6) that each revealed one piece placement on the main board when solved.",
+      "see": "/research/build/clue-puzzles"
+    },
+    {
+      "term": "comb search",
+      "tier": 1,
+      "def": "A fill order that scans most rows horizontally, then sweeps the remaining rows vertically, with the tooth length tuned to a target score. Verhaard's ordering.",
+      "see": "/research/build/backtracking/fill-order"
+    },
+    {
+      "term": "constraint propagation",
+      "tier": 2,
+      "def": "Automatically deleting candidates that can no longer lead to a legal board, cascading the effect until nothing more can be removed (a fixed point).",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "dancing links (DLX)",
+      "tier": 2,
+      "def": "Knuth's data structure for exact cover: doubly linked lists that cover and uncover a column in O(1) by pointer surgery, so backtracking is cheap.",
+      "see": "/research/build/exact/exact-cover-dlx"
+    },
+    {
+      "term": "dead end",
+      "tier": 1,
+      "def": "A partial board that provably cannot extend to any complete board. Recognising them early is what pruning is for.",
+      "see": "/research/build/dead-ends"
+    },
+    {
+      "term": "deficit (border balance)",
+      "tier": 1,
+      "def": "An imbalance on the seam between the border ring and the interior. A completable board needs it to be zero, giving a cheap necessary condition.",
+      "see": "/research/why/border-balance"
+    },
+    {
+      "term": "domain (of a variable)",
+      "tier": 2,
+      "def": "The set of values a variable may still take. Here, the piece-and-rotation options left for a cell.",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "edge (seam)",
+      "tier": 3,
+      "def": "A shared boundary between two adjacent cells. The 16×16 board has 480 interior edges, all of which must match in a full solution.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "edge slipping",
+      "tier": 1,
+      "def": "Deliberately placing a mismatched piece on a depth-gated schedule so the search can pass a barrier it otherwise stalls at. The lever behind Verhaard's 467.",
+      "see": "/research/build/reduce/edge-slipping"
+    },
+    {
+      "term": "encoding",
+      "tier": 2,
+      "def": "Rewriting the puzzle in another solver's input language, e.g. as SAT clauses or CSP constraints, to borrow a decade of that solver's engineering.",
+      "see": "/research/build/exact/sat-csp-encodings"
+    },
+    {
+      "term": "entropy (area law)",
+      "tier": 1,
+      "def": "How rich the matching grammar is per cell. The raw 2D entropy is modest, and the all-distinct rule collapses it exponentially, which is why near-solutions are so scarce.",
+      "see": "/research/why/entropy-area-law"
+    },
+    {
+      "term": "exact cover",
+      "tier": 2,
+      "def": "The problem of choosing options so every item is covered exactly once. Eternity II states cleanly as exact cover with colours (XCC), Knuth's Algorithm X being the classic machine for it.",
+      "see": "/research/build/exact/exact-cover-dlx"
+    },
+    {
+      "term": "fill order",
+      "tier": 1,
+      "def": "The sequence in which a backtracker visits the 256 cells. Its one free choice, and it moves the search-tree size by orders of magnitude at no runtime cost.",
+      "see": "/research/build/backtracking/fill-order"
+    },
+    {
+      "term": "forbidden pattern",
+      "tier": 1,
+      "def": "A small local configuration that can never match, so no solution contains it. On Eternity II almost every 2×2 arrangement of pieces is forbidden.",
+      "see": "/research/why/forbidden-patterns"
+    },
+    {
+      "term": "forward checking",
+      "tier": 2,
+      "def": "The lightest propagation: when a piece is placed, remove it and any now-incompatible pieces from neighbouring cells' candidate lists.",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "grey edge",
+      "tier": 3,
+      "def": "A border-facing edge, coloured grey and never scored. Interior pieces have none; border and corner pieces show one or two.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "heavy tail",
+      "tier": 2,
+      "def": "A runtime distribution where a few unlucky runs take orders of magnitude longer than the median. It is what makes restarts pay.",
+      "see": "/research/build/backtracking/restarts"
+    },
+    {
+      "term": "heuristic",
+      "tier": 2,
+      "def": "A rule that guides search without any correctness guarantee, e.g. visit the most-constrained cell first, or break ties by piece rarity.",
+      "see": "/research/build/backtracking/fill-order"
+    },
+    {
+      "term": "hint",
+      "tier": 1,
+      "def": "A cell whose piece and rotation are given in advance, whether the mandatory centre clue or one revealed by a clue puzzle. Where the hints sit matters more than how many there are.",
+      "see": "/research/why/hint-geometry"
+    },
+    {
+      "term": "interior piece",
+      "tier": 3,
+      "def": "One of the 196 pieces with no grey edge, which may sit only away from the border.",
+      "see": "/research/why/phase-transition"
+    },
+    {
+      "term": "invariant",
+      "tier": 2,
+      "def": "A property true of every complete solution (parity, border balance, colour counts). Break one and you have a quick impossibility proof.",
+      "see": "/research/build/analysis/parity-arguments"
+    },
+    {
+      "term": "local optimum",
+      "tier": 2,
+      "def": "A board with no single improving move. Record boards are frozen in one: the step to a perfect board is not a local improvement.",
+      "see": "/research/why/rigidity-wall"
+    },
+    {
+      "term": "local search",
+      "tier": 1,
+      "def": "Start from a full, imperfect board and improve it by moves (swaps, relocations, destroy-and-repair) guided by the mismatch count.",
+      "see": "/research/build/local-search"
+    },
+    {
+      "term": "matched edge",
+      "tier": 3,
+      "def": "An edge showing the same colour on both sides. The score is the count of matched edges, out of 480; a mismatch is the opposite.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "meet in the middle",
+      "tier": 2,
+      "def": "Enumerate two halves of the board and join them on a shared interface, trading memory for half the exponent. Real on bands, measured to stop paying at full size.",
+      "see": "/research/build/exact/meet-in-the-middle"
+    },
+    {
+      "term": "mismatch-tolerant search",
+      "tier": 1,
+      "def": "A backtracker that permits a budget of deliberate mismatches, aiming for a high partial score (467, 469, 470) rather than a perfect 480.",
+      "see": "/research/build/solvers/blackwood"
+    },
+    {
+      "term": "motif",
+      "tier": 3,
+      "def": "The printed glyph standing for each edge colour on the physical tiles. This site can render boards in the real motifs.",
+      "see": "/research/reference"
+    },
+    {
+      "term": "no-good learning",
+      "tier": 2,
+      "def": "Recording that a particular partial state cannot extend, so the search never re-enters it. Pays on small boards; the number of distinct no-goods outruns memory at 16×16.",
+      "see": "/research/build/reduce/nogood-learning"
+    },
+    {
+      "term": "node",
+      "tier": 2,
+      "def": "One state in the search tree. Node cost, the time to evaluate one, is what solver engineering drives down.",
+      "see": "/research/build/dead-ends"
+    },
+    {
+      "term": "parity argument",
+      "tier": 2,
+      "def": "Counting something on the board twice, once from each side; the totals must agree, which yields one-pass impossibility proofs.",
+      "see": "/research/build/analysis/parity-arguments"
+    },
+    {
+      "term": "phase transition",
+      "tier": 1,
+      "def": "The difficulty peak where solutions are scarce but do exist. Eternity II's 22 colours place it right at that peak by design.",
+      "see": "/research/why/phase-transition"
+    },
+    {
+      "term": "piece",
+      "tier": 3,
+      "def": "One of the 256 square tiles, each with four coloured edges. Also called a tile.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "piece theft",
+      "tier": 1,
+      "def": "Spending a scarce piece in the wrong place early, so a later cell that needed it has nothing to fill it. Where many searches quietly die.",
+      "see": "/research/why/piece-theft"
+    },
+    {
+      "term": "placement",
+      "tier": 3,
+      "def": "An assignment of a particular piece at a particular rotation to a particular cell.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "propagation",
+      "tier": 2,
+      "def": "See constraint propagation: removing candidates forced dead by a placement, cascading to a fixed point.",
+      "see": "/research/build/reduce/arc-consistency"
+    },
+    {
+      "term": "pruning",
+      "tier": 2,
+      "def": "Discarding a whole branch of the search without exploring it, using a constraint, a bound, or an impossibility proof.",
+      "see": "/research/why/prune-vs-speed"
+    },
+    {
+      "term": "relaxation (LP/ILP)",
+      "tier": 2,
+      "def": "Dropping the whole-piece requirement so a linear solver can place fractions of pieces and reach zero error, then paying for it when integrality is restored.",
+      "see": "/research/build/exact/lp-relaxations"
+    },
+    {
+      "term": "restart portfolio",
+      "tier": 2,
+      "def": "Running the same solver many times with different random seeds, cutting each off early. Every record solver since 2007 is one.",
+      "see": "/research/build/backtracking/restarts"
+    },
+    {
+      "term": "rigidity wall",
+      "tier": 1,
+      "def": "The proven fact that record boards are locally frozen: freeing and re-optimising the halo around the mismatches finds no improvement. The central barrier of the puzzle.",
+      "see": "/research/why/rigidity-wall"
+    },
+    {
+      "term": "SAT",
+      "tier": 2,
+      "def": "Boolean satisfiability: is there an assignment satisfying every clause? Complete SAT solvers stall on the full board but still prove sub-boards impossible.",
+      "see": "/research/build/exact/sat-csp-encodings"
+    },
+    {
+      "term": "score",
+      "tier": 3,
+      "def": "The number of matched edges on a board, out of 480. A perfect solution scores 480; the community record scores 470.",
+      "see": "/research/build/known-facts"
+    },
+    {
+      "term": "search tree",
+      "tier": 2,
+      "def": "The exponential tree of all placement sequences a backtracker could explore. On Eternity II it is astronomically large and barely shrinkable.",
+      "see": "/research/build/dead-ends"
+    },
+    {
+      "term": "σ-cycle (sigma cycle)",
+      "tier": 1,
+      "def": "An interlocking loop of piece moves connecting two board configurations. Because every partial application scores worse, you cannot walk between basins gradually.",
+      "see": "/research/why/sigma-cycles"
+    },
+    {
+      "term": "solver engineering",
+      "tier": 1,
+      "def": "The craft below the algorithm: lookup tables, cache-sized structs, generated code. It decides whether a node costs 26 cycles or 2,600, and it is why the record engines run at all.",
+      "see": "/research/build/faster/solver-engineering"
+    },
+    {
+      "term": "solver speed (nodes per second)",
+      "tier": 3,
+      "def": "Throughput: how many placements a solver evaluates per second. It changes which boards you reach, not the ceiling you hit.",
+      "see": "/research/build/faster/solver-engineering"
+    },
+    {
+      "term": "strict-5 (strict-canonical)",
+      "tier": 1,
+      "def": "A board that honours all five official clues: the mandatory centre piece plus the four placements the clue puzzles reveal. Most records honour only the centre.",
+      "see": "/research/build/clue-puzzles"
+    },
+    {
+      "term": "tempering (parallel tempering)",
+      "tier": 2,
+      "def": "Run several annealing chains at different temperatures and periodically swap their states, so the search crosses barriers a single chain cannot.",
+      "see": "/research/build/local-search/parallel-tempering"
+    },
+    {
+      "term": "transposition table",
+      "tier": 2,
+      "def": "A hash table of already-evaluated states, so identical subtrees are not re-explored. Its hit rate is low on Eternity II.",
+      "see": "/research/build/reduce/nogood-learning"
+    },
+    {
+      "term": "URDL",
+      "tier": 3,
+      "def": "Up–right–down–left: the order in which a piece's four edge colours are written, and the sense of a clockwise rotation.",
+      "see": "/research/reference"
+    },
+    {
+      "term": "void",
+      "tier": 1,
+      "def": "A corner colour-pair that no interior piece can present, so a cell demanding it is a dead end before any piece is placed.",
+      "see": "/research/why/forbidden-patterns"
+    },
+    {
+      "term": "wall",
+      "tier": 1,
+      "def": "A barrier that stops a solver at a score: the rigidity wall (no local improvement), the σ-cycle wall (no basin hop), the depth wall (breadth search stalls). Different methods die on different walls.",
+      "see": "/research/why/rigidity-wall"
+    },
+    {
+      "term": "XCC (exact cover with colours)",
+      "tier": 2,
+      "def": "Knuth's extension of exact cover with coloured secondary items, which models edge matching faithfully. The clean statement of Eternity II as exact cover.",
+      "see": "/research/build/exact/exact-cover-dlx"
+    }
+  ]
+}

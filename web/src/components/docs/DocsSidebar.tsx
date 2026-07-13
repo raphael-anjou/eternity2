@@ -13,8 +13,8 @@ import { researchTopics, topicUrl } from "@/lib/research/manifest";
 import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 
 const T = {
-  en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More" },
-  fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus" },
+  en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More", glossary: "Glossary" },
+  fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus", glossary: "Glossaire" },
 };
 
 function activePath(pathname: string): string {
@@ -174,22 +174,31 @@ function TopicsList() {
           active={active}
         />
       ))}
-      {meta.length > 0 && (
-        <>
-          <div className="mt-3 mb-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t.more}
-          </div>
-          {meta.map((topic) => (
-            <TopicRow
-              key={topic.slug}
-              slug={topic.slug}
-              label={topic.label}
-              count={topicMembers(lang, topic.slug).length}
-              active={active}
-            />
-          ))}
-        </>
-      )}
+      <div className="mt-3 mb-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t.more}
+      </div>
+      {meta.map((topic) => (
+        <TopicRow
+          key={topic.slug}
+          slug={topic.slug}
+          label={topic.label}
+          count={topicMembers(lang, topic.slug).length}
+          active={active}
+        />
+      ))}
+      <LocalizedLink
+        to="/research/glossary"
+        aria-current={active === "/research/glossary" ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-2 rounded-md px-2 py-1 transition-colors",
+          active === "/research/glossary"
+            ? "bg-muted font-medium text-foreground"
+            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+        )}
+      >
+        <span className="h-2 w-2 shrink-0" aria-hidden />
+        <span className="truncate">{t.glossary}</span>
+      </LocalizedLink>
     </nav>
   );
 }
