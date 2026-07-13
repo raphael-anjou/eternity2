@@ -68,11 +68,19 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
     const authors = researchAuthors(lang);
     const nameOf = (slug?: string) =>
       (slug && authors.find((a) => a.slug === slug)?.name) || "Unattributed";
+    // Experiment pages live under a per-author folder
+    // (…/experiments/<author-slug>/<key>), so match by URL segment rather than
+    // a fixed path: the last segment is the key, and the page sits somewhere
+    // under …/experiments/. Falls back to the bare path if no page is found.
+    const isExperiment = (u: string) => u.startsWith("/research/lab/experiments/");
     return data.map((d) => {
-      const doc = docs.find((x) => x.url === `/research/lab/experiments/${d.key}`);
+      const doc = docs.find(
+        (x) => isExperiment(x.url) && x.url.split("/").pop() === d.key,
+      );
+      const url = doc?.url ?? `/research/lab/experiments/${d.key}`;
       return {
         ...d,
-        url: `/research/lab/experiments/${d.key}`,
+        url,
         ...(doc?.rigor ? { rigor: doc.rigor } : {}),
         ...(doc?.repro ? { repro: doc.repro.kind } : {}),
         ...(doc?.author ? { authorSlug: doc.author } : {}),

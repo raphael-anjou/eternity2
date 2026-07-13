@@ -1,45 +1,53 @@
 ---
 title: Experiments
 description: >-
-  The named search experiments from Raphaël's notebook, built to push the
-  Eternity II score, each with its idea, its best result, and the questions
-  it left open. The best reaches 463 of 480; the community's best on the same
-  puzzle is 470.
+  The lab's named search experiments, one section per researcher. Each is a
+  real run against Eternity II with its idea, its best board, and the questions
+  it left open. Raphaël Anjou's notebook is here in full; the notebook is open
+  to anyone else's.
 kind: page
 order: 20
-updated: 2026-07-01
+updated: 2026-07-13
 ---
 
-import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
-import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
+import { ProseLink } from "@/components/docs/mdx-components";
 
-export const scores = [
-  { key: "prior", label: "PRIOR", score: 460, family: "scratch" },
-  { key: "keyring", label: "KEYRING", score: 460, family: "scratch" },
-  { key: "gauntlet", label: "GAUNTLET", score: 458, family: "scratch" },
-  { key: "lodestone", label: "LODESTONE", score: 451, family: "scratch" },
-  { key: "staged", label: "STAGED", score: 436, family: "scratch" },
-  { key: "palimpsest", label: "PALIMPSEST", score: 463, family: "corpus" },
-  { key: "ladder", label: "LADDER", score: 451, family: "concentrate" },
-  { key: "cloister", label: "CLOISTER", score: 453, family: "anchor" },
-  { key: "midden", label: "MIDDEN", score: 452, family: "anchor" },
-  { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact" },
-  { key: "mosaic", label: "MOSAIC", score: 448, family: "exact" },
-  { key: "replay", label: "REPLAY", score: 460, family: "decode" },
-];
+export function Door({ to, title, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      <div className="text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
 
-The named search experiments built to push the score. Some are original ideas;
-some are faithful reimplementations of a known community technique, run to
-measure exactly what it buys. Each write-up has the idea, the result it reached,
-and the questions it left open. The best reaches 463 of 480 matched edges; the
-community's best on the same puzzle is 470. Methods and boards are here in full.
+Experiments are named search runs against Eternity II, each written up with
+its idea, its best result, and the questions it left open. They are credited
+page by page to the researcher who ran them, and gathered into a section per
+researcher. This is one corner of the community's wider research; the methods,
+records and history live across the rest of the [research
+section](/research).
 
-<ExperimentScoreChart data={scores} />
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door to="/research/lab/experiments/raphael-anjou" title="Raphaël Anjou">
+    Twelve beam-search, local-search and exact experiments pushing a
+    from-scratch solver, the best reaching 463 of 480. Full methods and boards.
+  </Door>
+  <Door to="/research/contribute" title="Your section here">
+    The notebook is open. If you have a search worth writing down, it gets its
+    own section, credited to you, sitting beside the rest.
+  </Door>
+</div>
 
-The same results as a sortable table (click a column head to reorder by score,
-name, method, or month). Each experiment is credited to the researcher who ran
-it, so the table groups by author once more than one has contributed. Author,
-month, rigor and reproducibility are read from each experiment's own page, so
-this summary stays in step with them.
+## What counts as an experiment here
 
-<ExperimentResultsTable data={scores} />
+Some are original ideas; some faithfully reimplement a known community
+technique to measure exactly what it buys. Each write-up says which it is, what
+it attacked, where it stopped, and what it left open, so anyone can pick up
+where it ended. And every result is reproducible: deterministic runs ship a
+script and its exact output; searches that depend on randomness ship the same
+script plus the board they found, loadable in the [viewer](/viewer) and
+checkable edge by edge.
