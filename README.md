@@ -43,7 +43,7 @@ wasm-pack build --target web --out-dir ../web/src/engine/pkg --release
 cd ../web
 pnpm install
 pnpm dev                             # http://localhost:5173
-pnpm build                           # production build in web/dist
+pnpm build                           # production build in web/build/client
 ```
 
 Optional engine extras:
@@ -58,11 +58,13 @@ cargo run --release --bin bench                                     # native nod
 Two supported paths, both documented in [DEPLOYMENT.md](DEPLOYMENT.md):
 
 - **Static hosting (recommended)**: pushing to the default branch auto-deploys to
-  GitHub Pages via `.github/workflows/deploy.yml`; or upload `web/dist/` to any CDN.
+  GitHub Pages via `.github/workflows/deploy.yml` (which also uploads the built site
+  as a downloadable `web-dist` artifact); or upload `web/build/client/` to any CDN.
 - **Docker**: `docker compose up -d --build` → static site on port 8080, served by one
-  stateless nginx container. Works behind a reverse-proxy path prefix with no rebuild
-  (relative asset paths + hash routing); ready-made Traefik labels are in
-  `docker-compose.yaml`.
+  stateless nginx container. To serve under a reverse-proxy path prefix, build with
+  `BASE_PATH=/prefix` (the prefix is baked into the prerendered routes and absolute
+  asset paths, so the proxy passes it straight through — no `StripPrefix`); ready-made
+  Traefik labels are in `docker-compose.yaml`.
 
 ## Repository layout
 
@@ -74,7 +76,12 @@ engine/   Rust crate (eternity2-engine): puzzle types, official piece set,
 web/      React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui frontend.
           web/src/engine/pkg is the wasm-pack output (committed for now).
           web/src/i18n holds the EN/FR language context; each page colocates
-          its translations.
+          its translations. Research wiki prose lives in web/content/research
+          (MDX); prerendered to build/client by react-router.
+research/  Reproducible research backing the wiki. topics/<id>/ holds shared
+          theory (compute + committed results); experiments/<author>/ holds one
+          researcher's own runs, some with a self-contained runnable engine
+          (e.g. the single-core benchmark). See research/README.md.
 deploy/   nginx config template used by the Docker image.
 ```
 
