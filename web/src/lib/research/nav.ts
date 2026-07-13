@@ -17,6 +17,10 @@ export interface NavItem {
   topics: string[];
   /** Named sub-section within its sidebar section (the approaches-map spine). */
   group?: string;
+  /** Registry slug of the page's author (a per-author hub carries one and its
+   *  children are that author's experiments — the sidebar renders it as a
+   *  first-class heading rather than a plain row). */
+  author?: string;
   children: NavItem[];
 }
 
@@ -134,6 +138,7 @@ export function researchNav(lang: Lang): NavSection[] {
       translated: d.translated,
       topics: d.topics,
       ...(d.group !== undefined ? { group: d.group } : {}),
+      ...(d.author !== undefined ? { author: d.author } : {}),
       children: [],
       order: d.order ?? 1e9,
     });
@@ -162,6 +167,31 @@ export function researchNav(lang: Lang): NavSection[] {
       }
       if (parent) parent.children.push(item);
       else roots.push(item);
+    }
+    // Lift per-author hubs one level so they sit BESIDE their parent hub rather
+    // than under it: in the lab this makes each author (Raphaël Anjou, …) a
+    // sibling of the Experiments landing, a first-class row, while their own
+    // experiments stay nested beneath the author. URLs are untouched — this is
+    // presentation only. An author hub whose parent is itself an author hub is
+    // left in place (already at the right depth).
+    const parentOf = new Map<string, Flat | undefined>();
+    const indexParents = (items: Flat[], parent: Flat | undefined) => {
+      for (const it of items) {
+        parentOf.set(it.url, parent);
+        indexParents(it.children as Flat[], it);
+      }
+    };
+    indexParents(roots, undefined);
+    for (const [url, node] of byUrl) {
+      if (!node.author) continue;
+      const parent = parentOf.get(url);
+      if (!parent || parent.author) continue; // a root already, or nested under an author
+      // Detach from the parent's children…
+      parent.children = parent.children.filter((c) => c.url !== url);
+      // …and re-attach beside the parent (grandparent's children, or roots).
+      const grandparent = parentOf.get(parent.url);
+      (grandparent ? grandparent.children : roots).push(node);
+      parentOf.set(url, grandparent);
     }
     const byOrder = (a: NavItem, b: NavItem) =>
       (a as Flat).order - (b as Flat).order || a.title.localeCompare(b.title);

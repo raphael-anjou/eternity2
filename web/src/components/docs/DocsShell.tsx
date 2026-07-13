@@ -6,6 +6,7 @@
 import type { ReactNode } from "react";
 import { useLang, useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { HardwareCard } from "@/components/research/HardwareCard";
 import { cn } from "@/lib/utils";
 import { REPO_URL } from "@/site";
 import {
@@ -268,8 +269,55 @@ function ReproBlock({ doc }: { doc: ResearchDoc }) {
   );
 }
 
+/** The default hub card: kind tag on top, title, two-line clamped blurb —
+ *  compact so mixed-kind hubs tile two-up. */
+function HubCard({ item }: { item: NavItem }) {
+  const { lang } = useLang();
+  return (
+    <LocalizedLink
+      to={item.url}
+      className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
+    >
+      <div className="flex items-center gap-2">
+        <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[item.kind])} aria-hidden />
+        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {kindLabel(item.kind, lang)}
+        </span>
+      </div>
+      <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
+        {item.title}
+      </div>
+      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+        {item.description}
+      </p>
+    </LocalizedLink>
+  );
+}
+
+/** The author-hub card: no repeated kind tag (every child is the same kind),
+ *  and the full subtitle unclamped — meant for a single column, so a
+ *  researcher's experiments read like a list with room to breathe. */
+function AuthorHubCard({ item }: { item: NavItem }) {
+  return (
+    <LocalizedLink
+      to={item.url}
+      className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
+    >
+      <div className="flex items-center gap-2 text-sm font-semibold tracking-tight group-hover:underline">
+        <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[item.kind])} aria-hidden />
+        {item.title}
+      </div>
+      <p className="mt-1 pl-4 text-xs leading-relaxed text-muted-foreground">
+        {item.description}
+      </p>
+    </LocalizedLink>
+  );
+}
+
 /** For hub pages (a section root or a node with children): the children as
- *  cards, so a hub's MDX body only needs its intro prose. */
+ *  cards, so a hub's MDX body only needs its intro prose. An author's
+ *  experiment hub uses the single-column list layout; every other hub uses the
+ *  compact two-up grid. */
 function HubCards({ doc }: { doc: ResearchDoc }) {
   const { lang } = useLang();
   const section = findSection(lang, doc.url);
@@ -279,27 +327,20 @@ function HubCards({ doc }: { doc: ResearchDoc }) {
       ? section.items
       : (sectionReadingOrder(section).find((i) => i.url === doc.url)?.children ?? []);
   if (items.length === 0) return null;
+
+  if (doc.author) {
+    return (
+      <div className="mt-8 grid grid-cols-1 gap-3">
+        {items.map((n) => (
+          <AuthorHubCard key={n.url} item={n} />
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="mt-8 grid gap-3 sm:grid-cols-2">
       {items.map((n) => (
-        <LocalizedLink
-          key={n.url}
-          to={n.url}
-          className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
-        >
-          <div className="flex items-center gap-2">
-            <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[n.kind])} aria-hidden />
-            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {kindLabel(n.kind, lang)}
-            </span>
-          </div>
-          <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
-            {n.title}
-          </div>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {n.description}
-          </p>
-        </LocalizedLink>
+        <HubCard key={n.url} item={n} />
       ))}
     </div>
   );
@@ -405,6 +446,7 @@ export function DocsShell({ doc, children }: { doc: ResearchDoc; children: React
         </div>
         <HubCards doc={doc} />
         <ComplexityBlock doc={doc} />
+        {doc.hardware && <HardwareCard hardware={doc.hardware} />}
         {doc.sources.length > 0 && (
           <div className="mt-8 rounded-lg border p-4 text-sm">
             <div className="font-semibold">{t.source}</div>

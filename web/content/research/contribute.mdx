@@ -59,6 +59,32 @@ sources:
     url: https://groups.io/g/eternity2/message/10754
 ```
 
+If the page is an **experiment** (a search run you measured), one more block is
+required: the hardware it ran on. It is what lets a reader compare your result
+to everyone else's, and the build refuses an experiment page without it.
+
+```yaml
+kind: experiment
+hardware:
+  cores: 1 # logical cores used; sum across nodes for a cluster
+  cpu: "AMD Ryzen 9 7950X"
+  ramGb: 64
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "desktop, single box"
+  wallClock: "10 × 60 s" # budget per run × repeats
+  runs: 10
+  seedPolicy: "randomized corner permutation per run"
+  measured: true # true only for the standardized single-core bench
+```
+
+The page renders this as a spec card with one derived headline: **core-hours**
+(cores × wall-clock hours), the true cost of the run. That single number is
+what puts a one-core, one-minute search and a 400-core datacenter sweep in the
+same table without one flattering the other. Set `measured: true` only for a
+standardized single-core baseline (one core, a fixed time budget); a many-core
+run is a `native run` and records its real kit and the best score it reached.
+
 Not sure about the plumbing? Open an issue with your draft in plain markdown
 and we will handle the rest. [Run it yourself](/research/build/run-it-yourself)
 covers getting the site running locally if you want to preview your page.
@@ -82,6 +108,10 @@ they read.
   stochastic, or heavy computations say so plainly ("won't reproduce exactly",
   "~40 h on 8 cores") and ship the board they found so it can still be
   verified.
+- **Every experiment says what it ran on.** A measured search is meaningless
+  without its hardware, so an experiment page must carry the `hardware:` block
+  above (cores, kit, time budget). The build enforces it. A score with no
+  compute behind it is not a result anyone can compare.
 - **French pages are written, not translated.** Each page exists in both
   languages, and the French version is real French prose, not a machine pass.
   If you only write one language, that is fine; help with the other is

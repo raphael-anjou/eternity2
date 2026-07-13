@@ -35,6 +35,30 @@ function SideLink({
   flat?: boolean;
 }) {
   const isActive = active === item.url;
+  // A per-author hub (its own experiments nested beneath) renders as a
+  // first-class heading — bold, no bullet, a touch of top space — so the lab
+  // reads as "these people, each with their runs" rather than a uniform list.
+  const isAuthorHub = Boolean(item.author) && item.children.length > 0;
+  if (isAuthorHub) {
+    return (
+      <>
+        <LocalizedLink
+          to={item.url}
+          aria-current={isActive ? "page" : undefined}
+          className={cn(
+            "mt-2 mb-0.5 flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold transition-colors",
+            isActive ? "text-foreground" : "text-foreground/90 hover:text-foreground",
+          )}
+        >
+          <span className="truncate">{item.title}</span>
+        </LocalizedLink>
+        {!flat &&
+          item.children.map((c) => (
+            <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+          ))}
+      </>
+    );
+  }
   return (
     <>
       <LocalizedLink
