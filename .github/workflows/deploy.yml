@@ -107,6 +107,18 @@ jobs:
         with:
           path: web/build/client
 
+      # Also publish the built site as a plain downloadable artifact, so the
+      # exact bytes that go to Pages can be grabbed from the run (e.g. to test
+      # a self-hosted / reverse-proxied deploy without rebuilding). The Pages
+      # artifact above is a special tarball only consumable by deploy-pages;
+      # this one is a normal zip you can download from the Actions run page.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/build/client
+          if-no-files-found: error
+          retention-days: 14
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

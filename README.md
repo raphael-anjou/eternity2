@@ -75,7 +75,7 @@ web/      React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui frontend.
           web/src/engine/pkg is the wasm-pack output (committed for now).
           web/src/i18n holds the EN/FR language context; each page colocates
           its translations.
-deploy/   nginx config used by the Docker image.
+deploy/   nginx config template used by the Docker image.
 ```
 
 ## Contributing

@@ -51,9 +51,13 @@ function sitemap(): Plugin {
 //
 // `base` is the absolute prefix for built assets. Default "/" serves the site
 // at a domain root (eternity2.dev). To deploy under a path prefix (e.g. behind
-// a Traefik StripPrefix at `host/eternity2/`), build with BASE_PATH=/eternity2;
-// it must match the router `basename` in react-router.config.ts. The trailing
-// slash is required by Vite.
+// a reverse proxy at `host/eternity2/`), build with BASE_PATH=/eternity2; it
+// must match the router `basename` in react-router.config.ts. The trailing
+// slash is required by Vite. NB: `base` only rewrites the asset URLs baked into
+// the HTML, not the output directory — Vite still writes assets to
+// build/client/assets/. scripts/relocate-under-base.mjs (run after the build)
+// moves the whole output under the prefix dir so the files match those URLs,
+// letting the proxy pass the prefix straight through (no StripPrefix).
 const BASE_PATH = (process.env["BASE_PATH"] ?? "").replace(/\/$/, "");
 
 // Build-time engine backend switch. `VITE_ENGINE` picks which implementation of

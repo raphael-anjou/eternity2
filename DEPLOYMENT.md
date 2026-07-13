@@ -23,6 +23,13 @@ file (`/algorithms/index.html`, `/fr/algorithms/index.html`, …) with the corre
 language-specific content. The workflow also copies the React Router SPA shell to
 `404.html` so unmatched deep links still boot the app.
 
+**Downloadable build artifact.** Every workflow run also uploads the built site
+as a plain `web-dist` artifact (the exact `web/build/client/` bytes that go to
+Pages, retained 14 days). Grab it from the run's **Actions → Artifacts** section
+to self-host the same build behind your own server/proxy without rebuilding —
+unzip it and point nginx/Caddy/Traefik at the folder. (This is the *root* build;
+for a path-prefix host, build with `BASE_PATH` yourself — see below.)
+
 **Crawler / AI-agent files.** The build root carries three discovery files:
 `robots.txt` and `llms.txt` ship verbatim from `web/public/`, while `sitemap.xml`
 is generated at build time by a Vite plugin from the same page list React Router
@@ -43,11 +50,18 @@ root and asset/route paths are absolute. To serve it under a prefix instead
 BASE_PATH=/eternity2 \
 VITE_SITE_ORIGIN=https://www.terra-numerica.fr \
 pnpm build
+# the whole site is now under build/client/eternity2/ — upload that, or upload
+# build/client/ and let the server resolve /eternity2/… paths.
 ```
 
 - `BASE_PATH` — the path prefix. Becomes the Vite asset `base` and the router
   `basename`, so every asset link, nav link and prerendered route in the output
-  carries the prefix. Default `""` (root).
+  carries the prefix. The `pnpm build` post-step
+  (`scripts/relocate-under-base.mjs`) then moves the entire build output under a
+  matching `build/client/eternity2/` directory, so the files on disk sit exactly
+  where those prefixed URLs point. This means the prefix is **passed straight
+  through** to the files — a reverse proxy must **not** strip it (see the Traefik
+  note below). Default `""` (root); the post-step is then a no-op.
 - `VITE_SITE_ORIGIN` — the public origin used for `canonical`, `hreflang` and
   `og:url` tags. Default `https://eternity2.dev`. Set it so the SEO/social tags
   point at the real deployed URL.
@@ -62,8 +76,10 @@ cd ../web && pnpm install && pnpm build
 
 Host requirements: serve `.wasm` with the `application/wasm` MIME type (all
 mainstream hosts/CDNs do), and serve the site at the domain root. For unmatched
-paths, fall back to `__spa-fallback.html` (the bundled `nginx.conf` does this; on
-a CDN, point the 404/SPA fallback there).
+paths, fall back to `__spa-fallback.html` (the bundled nginx template
+`deploy/nginx.conf.template` does this; on a CDN, point the 404/SPA fallback
+there). For a prefixed build, everything — including the SPA fallback — lives
+under the prefix dir, so point the fallback at `<prefix>/__spa-fallback.html`.
 
 ## Option B: Docker
 
@@ -86,6 +102,20 @@ Or with compose:
 docker compose up -d --build
 ```
 
+**Prefixed image** (to serve under `https://example.org/eternity2/`): pass the
+same two knobs as build args. `BASE_PATH` bakes the prefix into the site *and*
+into the nginx config (asset caching, SPA fallback) and the container
+healthcheck, so the image is self-consistent and needs no proxy rewriting:
+
+```bash
+docker build \
+  --build-arg BASE_PATH=/eternity2 \
+  --build-arg VITE_SITE_ORIGIN=https://example.org \
+  -t eternity2-community:eternity2 .
+docker run --rm -p 8080:80 eternity2-community:eternity2
+# → http://localhost:8080/eternity2/   (bare / returns 404 by design)
+```
+
 To push to a private registry:
 
 ```bash
@@ -95,21 +125,45 @@ docker push registry.example.org/eternity2/site:1.0.0
 
 ### Behind a reverse proxy (Traefik)
 
+Both setups below are verified end-to-end against a real Traefik v3 instance —
+assets, the WASM engine, French routes, the sitemap and the SPA fallback all
+resolve, and the app hydrates in the browser. The container ships a healthcheck
+and Traefik only routes to healthy containers, so both cases "just work" once
+the container reports healthy (a few seconds after start).
+
 **At a host root** (`https://eternity2.example/`): nothing special — route the
 host to the container, expose only its port 80 to the proxy network.
 
-**Under a path prefix** (`https://example/eternity2/`): build the image with
-`BASE_PATH=/eternity2` (pass it as a Docker build arg / build env) and **do NOT
-use `StripPrefix`**. The prefixed build writes its files under `/eternity2/` and
-emits `/eternity2/...` asset and route links, so it expects to *receive* the
-prefix — stripping it would make every asset 404. Just route the prefixed host
-path straight through:
+```yaml
+# docker-compose labels
+labels:
+  - traefik.enable=true
+  - traefik.http.routers.eternity2.rule=Host(`eternity2.example`)
+  - traefik.http.routers.eternity2.entrypoints=websecure
+  - traefik.http.routers.eternity2.tls.certresolver=letsencrypt
+  - traefik.http.services.eternity2.loadbalancer.server.port=80
+```
+
+**Under a path prefix** (`https://example.org/eternity2/`): build the image with
+`BASE_PATH=/eternity2` (build arg, see above) and **do NOT use `StripPrefix`**.
+The prefixed build lays the whole site out under `/eternity2/` on disk and emits
+`/eternity2/...` asset and route links, so it expects to *receive* the prefix —
+stripping it would make every asset 404. Route the prefixed path straight
+through:
 
 ```yaml
 # docker-compose labels (no StripPrefix middleware)
+build:
+  context: .
+  args:
+    BASE_PATH: /eternity2
+    VITE_SITE_ORIGIN: https://example.org
 labels:
-  - "traefik.http.routers.eternity2.rule=Host(`example.org`) && PathPrefix(`/eternity2`)"
-  - "traefik.http.services.eternity2.loadbalancer.server.port=80"
+  - traefik.enable=true
+  - traefik.http.routers.eternity2.rule=Host(`example.org`) && PathPrefix(`/eternity2`)
+  - traefik.http.routers.eternity2.entrypoints=websecure
+  - traefik.http.routers.eternity2.tls.certresolver=letsencrypt
+  - traefik.http.services.eternity2.loadbalancer.server.port=80
 ```
 
 The rule of thumb: the prefix must survive all the way to the files. Build the
@@ -119,7 +173,9 @@ Also set `VITE_SITE_ORIGIN` so the SEO tags use the public hostname.
 ### Operational profile
 
 - One stateless nginx container; scale or restart freely, no volumes.
-- Healthcheck built into the image (HTTP GET /).
+- Healthcheck built into the image (HTTP GET of the site root — `/`, or
+  `<prefix>/` for a prefixed build — over IPv4). Traefik/Swarm/Kubernetes will
+  only route to the container once it reports healthy.
 - All computation (the solver!) runs in the visitor's browser, so the container's
   resource needs are those of a static file server: ~10 MB RAM.
 - Logs: standard nginx access/error logs on stdout/stderr.

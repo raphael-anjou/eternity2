@@ -50,7 +50,7 @@ web/
   src/components/learn/ self-running educational demos
   src/pages/            one file per route
   src/i18n/             the language context (see i18n below)
-deploy/                 nginx config for the Docker image
+deploy/                 nginx config template for the Docker image
 ```
 
 ## Conventions (load-bearing; please keep them)
