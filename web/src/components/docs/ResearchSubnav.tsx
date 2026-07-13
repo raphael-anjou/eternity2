@@ -13,8 +13,8 @@ import { researchNav } from "@/lib/research/nav";
 import { SearchDialog } from "./SearchDialog";
 
 const T = {
-  en: { overview: "Overview", themes: "All themes" },
-  fr: { overview: "Vue d'ensemble", themes: "Tous les thèmes" },
+  en: { overview: "Overview", themes: "All themes", people: "People" },
+  fr: { overview: "Vue d'ensemble", themes: "Tous les thèmes", people: "Contributeurs" },
 };
 
 export function ResearchSubnav() {
@@ -24,6 +24,7 @@ export function ResearchSubnav() {
   const active = pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "") || "/";
   const sections = researchNav(lang);
   const onTopics = active === "/research/topics" || active.startsWith("/research/topics/");
+  const onPeople = active === "/research/people" || active.startsWith("/research/people/");
 
   const tab = (to: string, label: string, isActive: boolean) => (
     <LocalizedLink
@@ -51,11 +52,14 @@ export function ResearchSubnav() {
           tab(
             s.url,
             s.label,
-            (!onTopics && (active === s.url || active.startsWith(s.url + "/"))) ||
+            (!onTopics &&
+              !onPeople &&
+              (active === s.url || active.startsWith(s.url + "/"))) ||
               // The re-homed flat pages (reference/papers/records) highlight Build.
               (s.key === "build" && /^\/research\/(reference|papers|records)$/.test(active)),
           ),
         )}
+        {tab("/research/people", t.people, onPeople)}
         {tab("/research/topics", t.themes, onTopics)}
         <SearchDialog />
       </nav>
