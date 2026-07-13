@@ -33,6 +33,8 @@ sources:
     url: https://groups.io/g/eternity2/message/2896
   - label: Verhaard's Markov chain, optimizing the fill order and the slip array together (January 2009)
     url: https://groups.io/g/eternity2/message/6423
+  - label: "Markus Zajc's 8x8 head-to-head, minimum-remaining-value beats scanline beats max-reduction (September 2008)"
+    url: https://groups.io/g/eternity2/message/5918
 related:
   - /research/why/complex-theory
   - /research/build/solvers/verhaard-eii
@@ -117,6 +119,22 @@ already been musing about why humans are so strong in this discipline
 ([msg 2883](https://groups.io/g/eternity2/message/2883)). The lesson that
 survived the race: order quality is measurable, and the differences are
 never small.
+
+**Dynamic versus fixed, measured.** The fixed-versus-dynamic argument from
+2007 got a small controlled test in September 2008. Markus Zajc ran three
+orders on the hint-free 8×8, each over ten randomized tile orders to cancel
+input-order effects, all under a constraint resolver: plain scanline, a
+minimum-remaining-value order that always takes the cell with the fewest
+candidates, and a maximum-reduction order that takes the cell whose placement
+prunes the most. Minimum-remaining-value won; scanline came second but swung
+with the input order (its best run was still ~2× the winner); maximum-reduction
+came last, because seeding the open interior early buys a big first cut but
+then a punishing branch factor on every backtrack
+([msg 5918](https://groups.io/g/eternity2/message/5918); the per-order domain
+dumps are in his files-area folder). It is a small board, but it is the cleanest
+head-to-head of the classic CSP heuristic against a fixed scan, and it lands
+where the community's later node counts do: the value is in feeding the search
+constrained cells, whether a dynamic rule or a good fixed path gets you there.
 
 **Scanline's win is a fact about E2's design.** In April 2008 Owen built
 16×16 puzzles with the border/interior colour balance deliberately tipped

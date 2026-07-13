@@ -14,6 +14,10 @@ sources:
     url: https://groups.io/g/eternity2/message/3511
   - label: "Max on probability propagation: constraint influence fades out about two cells away (groups.io message 6208)"
     url: https://groups.io/g/eternity2/message/6208
+  - label: "Markus Zajc: macro-tiles are a speedup but no domain reduction (groups.io message 5883)"
+    url: https://groups.io/g/eternity2/message/5883
+  - label: "Markus Zajc benchmarks border-supply pruning: 0.0014% fewer tests, 8% slower (groups.io message 6060)"
+    url: https://groups.io/g/eternity2/message/6060
 related:
   - /research/build/run-it-yourself
 ---
@@ -237,6 +241,35 @@ repeated pieces matches all of them easily. The barrier is the global
 constraint that each of the 256 pieces is used exactly once, and that is exactly
 what the fake-480 construction throws away. The wall is informational, not a
 matter of local edge repair.
+
+## Precompute 2×2 (or bigger) macro-tiles
+
+*Solve every 2×2 block once, store the valid ones, and place four cells at a
+time so the search is shorter.*
+
+**Measured.** Markus Zajc worked through it in 2008: building the macro-tiles
+just moves the work, it doesn't remove it. You trade a small set of single
+pieces for a very large set of 2×2 blocks, so placing a block is faster but the
+number of distinct partial boards is unchanged, still on the order of $10^{40}$
+where it needs to be $10^{4}$. A 10× or 100× speedup on an out-of-reach tree is
+still out of reach ([msg 5883](https://groups.io/g/eternity2/message/5883)).
+Macro-tiles are a real constant-factor win for a fast solver, which is why the
+[block-order playground](/playground/paths) supports them, they are just not a
+domain reduction, and only a domain reduction would move the needle.
+
+## Border-supply pruning (the "lollypop" check)
+
+*Before recursing, count the remaining border-colour demand against the pieces
+still available; if supply can't meet demand, cut the branch early.*
+
+**Measured.** Markus Zajc implemented this supply-versus-demand check as an
+add-on to his constraint solver and benchmarked it on the 8×8: it cut about
+0.0014% of tests while adding 8% to the runtime, a clear net loss. The reason
+is instructive: on almost every branch the border-supply check would have
+failed, the ordinary constraint propagation has *already* failed a step or two
+earlier, so the extra bookkeeping pays for a cut the solver was about to make
+for free ([msg 6060](https://groups.io/g/eternity2/message/6060)). A pruning
+rule only helps if it fires before the checks you already run, not after.
 
 ## What every dead end has in common
 
