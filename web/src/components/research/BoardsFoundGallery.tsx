@@ -1,16 +1,19 @@
 // Gallery of the 2026 five-clue record wave: every board whose e2.bucas.name
 // link was shared, rendered from its own edges and linking into our viewer so
 // each edge is checkable. Two data sets, kept visually distinct:
-//   - FIVE_CLUE_RECORDS_2026 — full boards scored by matched edges /480
-//   - LINEAR_PARTIALS_2026    — partial constructions, counted by pieces placed
-// Scores/counts were re-verified with scoreCells before publishing.
+//   - FIVE_CLUE_RECORDS_2026    — full boards scored by matched edges /480
+//   - PARTIALS_WITH_HINTS_2026  — spiral-in partials respecting all five clues
+//   - PARTIALS_OTHER_2026       — partial-hint / run-length partials, off the ladder
+// Scores/counts were re-verified from each board's edges before publishing.
 
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import {
   FIVE_CLUE_RECORDS_2026,
-  LINEAR_PARTIALS_2026,
+  PARTIALS_WITH_HINTS_2026,
+  PARTIALS_OTHER_2026,
+  type LinearPartial,
 } from "@/data/community-boards-2026";
 
 const T = {
@@ -18,9 +21,18 @@ const T = {
     recordsHeading: "Five-clue record boards (464 → 460)",
     recordsIntro:
       "Every board below is a full 256-piece layout that respects all five official clues, scored by matched edges out of 480. Benjamin Riotte's 464 broke Bruno Gauthier's 460, which had stood since 2023; Igor Pejic reached the same 463–464 range independently. These are the boards a verification link was shared for — the full census is far larger (10 boards at 464, 290 at 463, 2213 at 462, 38 at 461). Click any board to re-score it edge by edge in the viewer.",
-    partialsHeading: "Linear & spiral-in partials (One Small Step)",
+    partialsHeading: "Spiral-in partials, all five clues",
     partialsIntro:
-      "A parallel, different achievement: partial boards built as long linear runs or spiral-in constructions, shared on the community Discord between December 2025 and February 2026. The number is the pieces placed (or the continuous run length), not an edge score — these track the consecutive-partial lineage, not the record ladder.",
+      "A parallel, different pursuit: partial boards that place as many pieces as possible while respecting all five official clues, built by a spiral-in fill. The number is the pieces placed, not an edge score. Peter McGavin and Patrick Hegland posted these to the groups.io SAT thread in 2024; One Small Step continued the line on Discord in 2025–26. The counts are re-verified from each board. Thanks to Peter McGavin for flagging that the SAT-thread boards belonged here.",
+    partialsOtherHeading: "Other partials & run-length records",
+    partialsOtherIntro:
+      "Kept for the record, but off the clean ladder above: boards that respect only the starter clue, boards from a source without piece ids (so clue compliance can't be verified), and boards reported as a continuous-run length rather than a placement count. Each is labelled with its caveat.",
+    hintsFull: "all 5 clues",
+    hintsPartial: (n: number) => `${n}/5 clues`,
+    hintsUnverified: "clues unverified",
+    metricRun: "continuous run",
+    metricLinear: "linear",
+    placedLabel: "placed",
     open: "Open in the viewer",
     census: "Distinct boards reported by score",
     censusCols: { score: "Score", broken: "Broken edges", found: "Distinct boards found" },
@@ -33,9 +45,18 @@ const T = {
     recordsHeading: "Plateaux records à cinq indices (464 → 460)",
     recordsIntro:
       "Chaque plateau ci-dessous est une disposition complète de 256 pièces qui respecte les cinq indices officiels, notée en arêtes appariées sur 480. Le 464 de Benjamin Riotte a battu le 460 de Bruno Gauthier, qui tenait depuis 2023 ; Igor Pejic a atteint la même plage 463–464 de façon indépendante. Ce sont les plateaux pour lesquels un lien de vérification a été partagé — le recensement complet est bien plus vaste (10 plateaux à 464, 290 à 463, 2213 à 462, 38 à 461). Cliquez sur un plateau pour le re-noter arête par arête dans le visualiseur.",
-    partialsHeading: "Partiels linéaires et en spirale (One Small Step)",
+    partialsHeading: "Partiels en spirale, les cinq indices",
     partialsIntro:
-      "Un accomplissement parallèle et différent : des plateaux partiels construits en longues séries linéaires ou en spirale, partagés sur le Discord de la communauté entre décembre 2025 et février 2026. Le nombre indique les pièces posées (ou la longueur de la série continue), pas un score d'arêtes — ils relèvent de la lignée des partiels consécutifs, pas de l'échelle des records.",
+      "Une quête parallèle et différente : des plateaux partiels qui posent le plus de pièces possible tout en respectant les cinq indices officiels, construits par un remplissage en spirale. Le nombre indique les pièces posées, pas un score d'arêtes. Peter McGavin et Patrick Hegland les ont publiés dans le fil SAT de groups.io en 2024 ; One Small Step a prolongé la lignée sur Discord en 2025–26. Les décomptes sont revérifiés depuis chaque plateau. Merci à Peter McGavin d'avoir signalé que les plateaux du fil SAT avaient leur place ici.",
+    partialsOtherHeading: "Autres partiels et records de série continue",
+    partialsOtherIntro:
+      "Conservés pour mémoire, mais hors de l'échelle ci-dessus : des plateaux ne respectant que l'indice de départ, des plateaux issus d'une source sans identifiants de pièces (le respect des indices n'est donc pas vérifiable), et des plateaux rapportés comme une longueur de série continue plutôt qu'un nombre de pièces posées. Chacun porte sa mise en garde.",
+    hintsFull: "5 indices",
+    hintsPartial: (n: number) => `${n}/5 indices`,
+    hintsUnverified: "indices non vérifiés",
+    metricRun: "série continue",
+    metricLinear: "linéaire",
+    placedLabel: "posées",
     open: "Ouvrir dans le visualiseur",
     census: "Plateaux distincts rapportés, par score",
     censusCols: { score: "Score", broken: "Arêtes brisées", found: "Plateaux distincts trouvés" },
@@ -144,18 +165,47 @@ export function BoardsFoundGallery() {
           <p className="text-sm leading-relaxed text-muted-foreground">{t.partialsIntro}</p>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {LINEAR_PARTIALS_2026.map((b) => (
-            <Thumb
-              key={b.id}
-              params={b.params}
-              href={`/viewer?${b.params}`}
-              badge={b.note.match(/\d+/)?.[0] ?? "·"}
-              cta={t.open}
-              caption={`${b.date.split(" ")[0]} · ${b.note}`}
-            />
+          {PARTIALS_WITH_HINTS_2026.map((b) => (
+            <PartialThumb key={b.id} b={b} t={t} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="max-w-3xl space-y-2">
+          <h3 className="text-lg font-semibold tracking-tight">{t.partialsOtherHeading}</h3>
+          <p className="text-sm leading-relaxed text-muted-foreground">{t.partialsOtherIntro}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {PARTIALS_OTHER_2026.map((b) => (
+            <PartialThumb key={b.id} b={b} t={t} />
           ))}
         </div>
       </section>
     </div>
+  );
+}
+
+/** A partial board thumb: badge = pieces placed, caption = author + clue status
+ *  (+ any caveat), so a spiral-in record and a starter-only board never read as
+ *  the same thing. */
+function PartialThumb({ b, t }: { b: LinearPartial; t: (typeof T)["en"] }) {
+  const clue =
+    b.hints === null
+      ? t.hintsUnverified
+      : b.hints === 5
+        ? t.hintsFull
+        : t.hintsPartial(b.hints);
+  const metric =
+    b.metric === "continuous-run" ? ` · ${t.metricRun}` : b.metric === "linear" ? ` · ${t.metricLinear}` : "";
+  const caption = `${b.author} · ${clue}${metric}${b.note ? ` · ${b.note}` : ""}`;
+  return (
+    <Thumb
+      params={b.params}
+      href={`/viewer?${b.params}`}
+      badge={`${b.placed}`}
+      cta={t.open}
+      caption={caption}
+    />
   );
 }
