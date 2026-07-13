@@ -113,7 +113,7 @@ const T = {
         trail: [
           { to: "/research/build/approaches-map", title: "The survey nobody wrote", why: "All approaches in one map, with where each hits its ceiling." },
           { to: "/research/why", title: "Why it is hard", why: "The structural results: walls, phase transition, forbidden patterns." },
-          { to: "/research/lab/findings", title: "Open findings", why: "The lab notebook: what has been measured, what is still loose." },
+          { to: "/research/lab/experiments", title: "The lab notebook", why: "Named search runs, each with the hardware it ran on and what it left open." },
           { to: "/research/papers", title: "The literature", why: "The academic reading list, ranked by use if you are writing a solver." },
         ],
         surprise: {
@@ -211,7 +211,7 @@ const T = {
         trail: [
           { to: "/research/build/approaches-map", title: "La synthèse que personne n'a écrite", why: "Toutes les approches sur une carte, avec le plafond de chacune." },
           { to: "/research/why", title: "Pourquoi c'est difficile", why: "Les résultats de structure : murs, transition de phase, motifs interdits." },
-          { to: "/research/lab/findings", title: "Découvertes ouvertes", why: "Le carnet du labo : ce qui est mesuré, ce qui reste flou." },
+          { to: "/research/lab/experiments", title: "Le carnet du labo", why: "Les recherches nommées, chacune avec le matériel qui l'a exécutée et ce qu'elle laisse ouvert." },
           { to: "/research/papers", title: "La littérature", why: "La liste de lecture, classée par utilité si vous écrivez un solveur." },
         ],
         surprise: {

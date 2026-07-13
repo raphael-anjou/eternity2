@@ -3,6 +3,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLang } from "@/i18n";
 import { researchDocs, researchAuthors } from "@/lib/research/manifest";
 import { cn } from "@/lib/utils";
+import { coreHours, formatCoreHours } from "@/lib/research/hardware-cost";
 import type { ScoreDatum } from "./ExperimentScoreChart";
 import type { RigorKind, ReproKind } from "@/lib/research/types";
 
@@ -54,9 +55,14 @@ interface Row extends ScoreDatum {
   authorSlug?: string;
   authorName: string;
   date?: string;
+  /** Compute cost of the run (cores × wall-clock hours), when hardware is
+   *  declared and its budget parses; the honest cross-run comparison. */
+  coreHours?: number;
+  /** Whether the run is the standardized single-core bench (vs a native run). */
+  measured?: boolean;
 }
 
-type SortKey = "score" | "label" | "family" | "date";
+type SortKey = "score" | "label" | "family" | "date" | "cost";
 
 export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
   const { lang } = useLang();
@@ -78,6 +84,7 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
         (x) => isExperiment(x.url) && x.url.split("/").pop() === d.key,
       );
       const url = doc?.url ?? `/research/lab/experiments/${d.key}`;
+      const ch = doc?.hardware ? coreHours(doc.hardware) : null;
       return {
         ...d,
         url,
@@ -86,6 +93,8 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
         ...(doc?.author ? { authorSlug: doc.author } : {}),
         authorName: nameOf(doc?.author),
         ...(doc?.date ? { date: doc.date } : {}),
+        ...(ch != null ? { coreHours: ch } : {}),
+        ...(doc?.hardware?.measured !== undefined ? { measured: doc.hardware.measured } : {}),
       };
     });
   }, [data, lang]);
@@ -95,6 +104,8 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
       if (sortKey === "score") return b.score - a.score;
       if (sortKey === "label") return a.label.localeCompare(b.label);
       if (sortKey === "date") return (b.date ?? "").localeCompare(a.date ?? "");
+      // Cost: cheapest first ascending; rows without a cost sink to the bottom.
+      if (sortKey === "cost") return (a.coreHours ?? Infinity) - (b.coreHours ?? Infinity);
       return (FAMILY_LABEL[a.family] ?? a.family).localeCompare(FAMILY_LABEL[b.family] ?? b.family);
     });
     return asc ? s.reverse() : s;
@@ -160,6 +171,18 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
         <td className="px-3 py-2 whitespace-nowrap text-muted-foreground tabular-nums">
           {monthYear(r.date) || "—"}
         </td>
+        <td className="px-3 py-2 whitespace-nowrap text-right tabular-nums">
+          {r.coreHours != null ? (
+            <span
+              className={cn(r.measured ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground")}
+              title={r.measured ? "standardized single-core bench" : "native run"}
+            >
+              {formatCoreHours(r.coreHours)}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </td>
         <td className="px-3 py-2">
           {r.rigor && (
             <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", RIGOR_STYLE[r.rigor])}>
@@ -171,17 +194,18 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
       </tr>
     ));
 
-  const colCount = 6;
+  const colCount = 7;
 
   return (
     <div className="my-6 overflow-x-auto rounded-lg border">
-      <table className="w-full min-w-[40rem] text-sm">
+      <table className="w-full min-w-[46rem] text-sm">
         <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             {sortableHeader("label", "Experiment")}
             {sortableHeader("score", "Score", "text-right")}
             {sortableHeader("family", "Method")}
             {sortableHeader("date", "When")}
+            {sortableHeader("cost", "Core-h", "text-right")}
             <th className="px-3 py-2 text-left font-semibold">Rigor</th>
             <th className="px-3 py-2 text-left font-semibold">Reproduces</th>
           </tr>

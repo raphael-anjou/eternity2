@@ -46,6 +46,54 @@ export interface ReproInfo {
   topic?: string | undefined;
 }
 
+/** The class of compute a run leaned on — kept small and explicit so the
+ *  widget can badge it. `none` = plain CPU; the rest name the accelerator that
+ *  did the heavy lifting. Quantum/FPGA/TPU are in the vocabulary from the start
+ *  so a future run needs no schema migration. */
+export type AcceleratorKind = "none" | "gpu" | "quantum" | "fpga" | "tpu";
+
+/** The hardware an experiment actually ran on — mandatory on experiment pages
+ *  so every measured result is comparable and reproducible. Split three ways:
+ *  the *quantitative* fields are the comparable numbers; the *qualitative*
+ *  fields name the exact kit; the *protocol* fields say what a single number
+ *  means. `coreHours` is DERIVED by the widget (cores × wall-clock hours), the
+ *  honest compute-cost figure that lets a 1-core bench and a 400-core cluster
+ *  run sit in the same table. */
+export interface HardwareInfo {
+  // Quantitative — the comparable numbers.
+  /** Total logical cores used (summed across nodes for a cluster). */
+  cores: number;
+  /** Machines the run spanned; omit or 1 for a single box. */
+  nodes?: number;
+  /** OS threads spawned — differs from cores when oversubscribed. */
+  threads?: number;
+  /** Total RAM available to the run, in GiB (summed across nodes). */
+  ramGb?: number;
+  /** GPU count; 0 for CPU-only. */
+  gpus?: number;
+  // Qualitative — the exact kit and its provenance.
+  /** CPU brand/model, e.g. "Apple M2 Pro", "AMD EPYC 7742". */
+  cpu?: string;
+  /** GPU/accelerator model when present, e.g. "NVIDIA RTX 4090". */
+  gpu?: string;
+  /** Which class of accelerator carried the work. */
+  accelerator?: AcceleratorKind;
+  /** Human label for the box or cluster, e.g. "MacBook Pro 14 (2023)",
+   *  "8× EPYC node cluster". */
+  machine?: string;
+  // Protocol — what makes the number mean something.
+  /** Budget per run and repeats as prose, e.g. "10 × 60 s", "10 h". */
+  wallClock?: string;
+  /** How many independent runs the reported figures aggregate. */
+  runs?: number;
+  /** How the start was varied, e.g. "randomized corner permutation per run". */
+  seedPolicy?: string;
+  /** True only for the standardized single-core bench (1 core / fixed budget),
+   *  which makes the run cross-comparable; false for a native run recorded for
+   *  provenance. A many-core run can never be true. */
+  measured?: boolean;
+}
+
 /** One entry of the full-text search index (per language). */
 export interface SearchEntry {
   url: string;
@@ -110,6 +158,8 @@ export interface ResearchDoc {
   /** Month an experiment was run / first written (YYYY-MM), for the gallery. */
   date?: string;
   repro?: ReproInfo;
+  /** The hardware a measured run leaned on (mandatory on experiment pages). */
+  hardware?: HardwareInfo;
   /** External resources supporting the page's claims (groups.io posts,
    *  papers, community pages) — every claim links its evidence. */
   sources: { label: string; url: string }[];

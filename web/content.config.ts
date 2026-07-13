@@ -97,6 +97,26 @@ const complexitySchema = z.object({
   note: z.string().optional(),
 });
 
+// The hardware an experiment ran on. Quantitative fields are the comparable
+// numbers; qualitative name the kit; protocol fields say what a number means.
+// `coreHours` is derived by the widget, never authored. `measured: true` is the
+// standardized single-core bench; anything many-core must be false.
+const hardwareSchema = z.object({
+  cores: z.number().positive(),
+  nodes: z.number().int().positive().optional(),
+  threads: z.number().positive().optional(),
+  ramGb: z.number().positive().optional(),
+  gpus: z.number().int().min(0).optional(),
+  cpu: z.string().optional(),
+  gpu: z.string().optional(),
+  accelerator: z.enum(["none", "gpu", "quantum", "fpga", "tpu"]).optional(),
+  machine: z.string().optional(),
+  wallClock: z.string().optional(),
+  runs: z.number().int().positive().optional(),
+  seedPolicy: z.string().optional(),
+  measured: z.boolean().optional(),
+});
+
 const frontmatterSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
@@ -127,6 +147,7 @@ const frontmatterSchema = z.object({
     ])
     .optional(),
   repro: reproSchema.optional(),
+  hardware: hardwareSchema.optional(),
   sources: z.array(z.object({ label: z.string(), url: z.string().url() })).default([]),
   topics: z.array(z.string()).default([]),
   related: z.array(z.string().startsWith("/")).default([]),
@@ -291,6 +312,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
+      ...(e.fm.hardware !== undefined ? { hardware: e.fm.hardware } : {}),
       sources: use.fm.sources,
       topics: e.fm.topics,
       related: e.fm.related,
