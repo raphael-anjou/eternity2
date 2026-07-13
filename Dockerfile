@@ -39,8 +39,25 @@ RUN pnpm build
 
 # ---- stage 3: static server ------------------------------------------------
 FROM nginx:1.27-alpine
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+# BASE_PATH must reach this stage too: the served files live under it and the
+# nginx config (asset-cache location, SPA fallback) needs the prefix. Re-declare
+# the ARG (ARGs don't cross stages) and default to empty for a root deploy.
+ARG BASE_PATH=""
+ENV BASE_PATH=$BASE_PATH
+# Ship the config as a TEMPLATE. The nginx image entrypoint runs envsubst over
+# everything in /etc/nginx/templates/*.template at startup, substituting
+# ${BASE_PATH}, and writes the result to /etc/nginx/conf.d/. So the same image
+# recipe yields a correct root config (BASE_PATH empty) or a prefixed one.
+# Restrict envsubst to BASE_PATH so nginx's own $uri variables survive.
+ENV NGINX_ENVSUBST_FILTER="BASE_PATH"
+COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=web /src/web/build/client /usr/share/nginx/html
 EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -qO /dev/null http://localhost/ || exit 1
+# Probe the site's real entry point. For a prefixed build the app lives under
+# ${BASE_PATH}/, so a bare / would 404 — hit ${BASE_PATH}/ instead. Use
+# 127.0.0.1, not localhost: in Alpine, localhost resolves to ::1 (IPv6) first,
+# but nginx only `listen 80;` (IPv4), so a localhost probe gets "connection
+# refused", the container is marked unhealthy, and health-aware proxies
+# (Traefik) then refuse to route to it. Shell form so $BASE_PATH expands.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD wget -qO /dev/null "http://127.0.0.1${BASE_PATH}/" || exit 1

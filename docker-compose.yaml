@@ -28,10 +28,11 @@ services:
     #   - traefik.http.services.eternity2.loadbalancer.server.port=80
 
     # ---- Traefik under a path prefix (https://example/eternity2/) -----------
-    # The prefix is baked into the build, so route it straight through.
-    # IMPORTANT: do NOT use a stripprefix middleware — the prerendered HTML
-    # references /eternity2/assets/..., so stripping the prefix 404s every
-    # asset. Build the prefix in instead:
+    # The prefix is baked into the build (files, asset URLs, nginx config and
+    # healthcheck all carry it), so route it straight through.
+    # IMPORTANT: do NOT use a stripprefix middleware — the whole site lives under
+    # /eternity2/ and the HTML references /eternity2/assets/..., so stripping the
+    # prefix 404s every asset. Build the prefix in instead:
     #
     # build:
     #   context: .
