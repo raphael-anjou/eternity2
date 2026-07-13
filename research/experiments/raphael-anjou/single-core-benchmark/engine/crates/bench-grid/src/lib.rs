@@ -256,8 +256,9 @@ pub fn core_board_to_vec(board: &Board) -> Vec<i32> {
 mod tests {
     use super::*;
 
+    // Resolved relative to this crate so the test runs from any checkout.
     const OFFICIAL_CSV: &str =
-        "/Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/data/puzzles/size_16_official_eternity.csv";
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/puzzles/size_16_official_eternity.csv");
 
     #[test]
     fn official_loads_256_pieces_5_hints() {

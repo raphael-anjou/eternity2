@@ -1,20 +1,22 @@
-# Standalone workspace for the single-core benchmark's native engine family.
+# Standalone workspace for the single-core benchmark: all fifteen solvers.
 #
 # Lifted verbatim from the v2 research vault (crates/*) — the SAME code that
-# produced the published results — and made self-contained here: no external
-# path deps, only serde/serde_json from crates.io. `run_algo` is the runnable
-# entry point (site-schema Puzzle JSON in, bucas .url out); `gen_variants`
-# regenerates the corner-pinned puzzle variants.
+# produced the published results — and made self-contained here. Two families
+# share one puzzle-in / bucas-url-out contract:
 #
-#   cargo build --release --bin run_algo
+#   * native engine family (naive + CSP presets, ranks 5–15): one binary,
+#     `run_algo --algo NAME`, site-schema Puzzle JSON in.
+#   * strong engines (producer, blackwood, verhaard, alns, ranks 1–4): one
+#     binary each (vol232_w1_producer_trie, blackwood_bt, verhaard_faithful_v2,
+#     alns_only), CSV variant in, driven by ../scripts/run_standalone.sh.
+#
+# Plus verify_bucas (the one canonical scorer, never trust an engine's self
+# report) and gen_variants (regenerates the corner-pinned puzzle variants).
+#
+#   cargo build --release          # builds every binary
 #   ./target/release/run_algo --list
 #   ./target/release/run_algo --puzzle ../variants/variant_00.json \
 #       --algo border_first_lcv --seed 1 --budget-ms 60000 --emit out.url
-#
-# Only the "native engine family" (naive + CSP presets, ranks 5–15 in the
-# report) lives here. The four standalone strong engines (producer, blackwood,
-# verhaard, alns) stay in the private vault; their results are committed under
-# ../results and their invocations archived under ../scripts.
 
 [workspace]
 resolver = "2"

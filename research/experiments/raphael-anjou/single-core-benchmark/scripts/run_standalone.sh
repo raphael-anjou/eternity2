@@ -54,14 +54,17 @@ export LC_NUMERIC=C
 # Resolve the repo root (v2/) from this file's location, so the functions
 # work regardless of the caller's cwd.
 _RSA_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-V2_ROOT="$(cd "${_RSA_HERE}/../../.." && pwd)"
+# scripts/ -> experiment root is one up; the engine build is under engine/.
+EXP_ROOT="$(cd "${_RSA_HERE}/.." && pwd)"
+BIN_DIR="${EXP_ROOT}/engine/target/release"
+SCRATCH_ROOT="${EXP_ROOT}/results/scratch"
 
-PRODUCER_BIN="${V2_ROOT}/target/release/vol232_w1_producer_trie"
-BLACKWOOD_BIN="${V2_ROOT}/target/release/blackwood_bt"
-VERHAARD_BIN="${V2_ROOT}/target/release/verhaard_faithful_v2"
-ALNS_BIN="${V2_ROOT}/target/release/alns_only"
-DUMP_BOARD_JSON_BIN="${V2_ROOT}/target/release/dump_board_json"
-VERIFY_BIN="${V2_ROOT}/target/release/verify_bucas"
+PRODUCER_BIN="${BIN_DIR}/vol232_w1_producer_trie"
+BLACKWOOD_BIN="${BIN_DIR}/blackwood_bt"
+VERHAARD_BIN="${BIN_DIR}/verhaard_faithful_v2"
+ALNS_BIN="${BIN_DIR}/alns_only"
+DUMP_BOARD_JSON_BIN="${BIN_DIR}/dump_board_json"
+VERIFY_BIN="${BIN_DIR}/verify_bucas"
 
 export RAYON_NUM_THREADS=1
 
@@ -69,7 +72,7 @@ export RAYON_NUM_THREADS=1
 # output/bench-grid-scratch/, never overwrites a previous run's dir.
 _rsa_scratch() {
     local tag="$1"
-    local d="${V2_ROOT}/output/bench-grid-scratch/${tag}_$(date +%Y%m%dT%H%M%S)_$$"
+    local d="${SCRATCH_ROOT}/${tag}_$(date +%Y%m%dT%H%M%S)_$$"
     mkdir -p "$d"
     echo "$d"
 }
@@ -253,8 +256,8 @@ run_verhaard() {
 #    ids/edges are IDENTICAL across all 10 corner-pinned variants (only the
 #    8 hint cells differ), so this is safe as long as this script's cwd
 #    resolves `../data/...` to the real repo `data/puzzles/` dir. We `cd`
-#    into $V2_ROOT for the alns_only invocation to guarantee that,
-#    regardless of the caller's cwd.
+#    the bins resolve the puzzle CSV relative to their crate, so cwd
+#    does not matter here.
 # ---------------------------------------------------------------------------
 run_alns() {
     local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
@@ -295,10 +298,10 @@ run_alns() {
     echo "run_alns: stage A base board -- ${base_score_line}" >&2
 
     # --- convert bucas URL -> alns_only's --cp-board JSON ("placement") --
-    # dump_board_json/alns_only both hardcode ../data/puzzles/... relative
-    # to CWD, so this whole stage runs with cwd=$V2_ROOT.
+    # dump_board_json/alns_only resolve the official puzzle CSV relative to their
+    # crate (CARGO_MANIFEST_DIR), so they are cwd-independent -- no cd needed.
     local cpboard_json="${scratch}/base_cpboard.json"
-    ( cd "$V2_ROOT" && "$DUMP_BOARD_JSON_BIN" "$base_url" ) \
+    "$DUMP_BOARD_JSON_BIN" "$base_url" \
         > "${scratch}/dump.json" 2> "${scratch}/dump_stderr.log"
     if [[ ! -s "${scratch}/dump.json" ]]; then
         echo "run_alns: dump_board_json failed, see ${scratch}/dump_stderr.log" >&2
@@ -312,7 +315,7 @@ run_alns() {
     # lines are eprintln!'d (stderr), not stdout -- must grep alns_stderr.log,
     # not alns_stdout.log (alns_only's stdout is empty/unused in this mode).
     local alns_stderr="${scratch}/alns_stderr.log"
-    ( cd "$V2_ROOT" && timeout "$(( alns_budget_s + 15 ))" "$ALNS_BIN" \
+    ( timeout "$(( alns_budget_s + 15 ))" "$ALNS_BIN" \
         --cp-board "$cpboard_json" \
         --puzzle "$variant_csv" \
         --alns-budget-ms "$alns_budget_ms" \
