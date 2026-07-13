@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import GithubSlugger from "github-slugger";
 import { z } from "zod";
-import type { ResearchDoc, SearchEntry, TocItem } from "./src/lib/research/types";
+import type { HardwareInfo, ResearchDoc, SearchEntry, TocItem } from "./src/lib/research/types";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CONTENT_DIR = path.join(HERE, "content", "research");
@@ -312,7 +312,11 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
-      ...(e.fm.hardware !== undefined ? { hardware: e.fm.hardware } : {}),
+      // zod infers optional fields as `T | undefined`, which trips
+      // exactOptionalPropertyTypes against HardwareInfo's `nodes?: number` etc.
+      // The schema mirrors HardwareInfo exactly (and has just validated the
+      // value), so assert it at this boundary rather than widen the consumer type.
+      ...(e.fm.hardware !== undefined ? { hardware: e.fm.hardware as HardwareInfo } : {}),
       sources: use.fm.sources,
       topics: e.fm.topics,
       related: e.fm.related,

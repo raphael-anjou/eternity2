@@ -12,7 +12,7 @@ export function wallClockHours(s: string | undefined): number | null {
   const m = /(\d+(?:\.\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hr|hrs|hours?|d|days?)\b/i.exec(
     s,
   );
-  if (!m) return null;
+  if (!m || m[1] === undefined || m[2] === undefined) return null;
   const n = Number(m[1]);
   const unit = m[2].toLowerCase();
   if (unit.startsWith("s")) return n / 3600;
