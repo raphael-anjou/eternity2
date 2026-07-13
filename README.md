@@ -25,7 +25,7 @@ nginx container).
 
 ## Quick start (local development)
 
-Prereqs: Rust stable + `wasm32-unknown-unknown` target, `wasm-pack`, Node 22+, pnpm
+Prereqs: Rust stable + `wasm32-unknown-unknown` target, `wasm-pack`, Node 24+, pnpm
 (via `corepack enable`). Details in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 With [`just`](https://just.systems) installed, `just setup && just dev` does the whole
