@@ -559,7 +559,7 @@ adversarial treatment as everything else.
 
 ### 2026-07-02 — The hunt, a history — part I (2000–2009)
 
-First synthesis from the archive digests: /research/build/history, a
+First synthesis from the archive digests: /research/community/hunt, a
 narrative of the community's first decade — the group that predates its
 puzzle, launch summer, the Monckton disqualification chill, the theory race
 (17+5, parity, complex theory), eternity2.net and the Syndicate, the road to
@@ -592,7 +592,7 @@ remaining "469 ceiling" mentions; history part II is being written.
 
 ### 2026-07-02 — History part II (2009-2026) + the 470 correction applied site-wide
 
-/research/build/history-2: the story's second half from digests 0007-0015 —
+/research/community/hunt-part-2: the story's second half from digests 0007-0015 —
 the diehard years, the contest's death, the quiet era and the 10x10 triumph,
 the Yahoo→groups.io migration, the record wave, the modern era through the
 archive's edge (2026-03). Part I links forward. ~2,300 words EN, native FR,
@@ -634,7 +634,7 @@ Also: Schaus msg 5589 wired into the ALNS concept sources. Phase 5 complete.
 
 ### 2026-07-02 — The notable boards gallery (lab/boards)
 
-/research/lab/boards: every board that matters, whoever found it — the
+/research/community/boards: every board that matters, whoever found it — the
 record line (Verhaard's 467 story, Blackwood's 468 from Reddit, McGavin's
 469 with its top-rows mismatch banding, the November wave with Fernandez's
 single-swap, both 470s), the strict five-clue line (Gauthier 460 ladder),

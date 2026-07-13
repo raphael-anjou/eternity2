@@ -37,7 +37,7 @@ const MILESTONES: Milestone[] = [
       en: "Brendan Owen starts the eternity_two group, more than six years before the puzzle exists.",
       fr: "Brendan Owen crée le groupe eternity_two, plus de six ans avant que le puzzle n'existe.",
     },
-    to: "/research/build/history",
+    to: "/research/community/hunt",
     src: "https://groups.io/g/eternity2/message/384",
   },
   {
@@ -48,7 +48,7 @@ const MILESTONES: Milestone[] = [
       en: "TOMY releases the 256-piece puzzle in July. Within a fortnight the list has digitized it and called it unsolvable.",
       fr: "TOMY sort le puzzle de 256 pièces en juillet. En quinze jours, la liste l'a numérisé et déclaré insoluble.",
     },
-    to: "/research/build/history",
+    to: "/research/community/hunt",
     src: "https://en.wikipedia.org/wiki/Eternity_II_puzzle",
   },
   {
@@ -70,7 +70,7 @@ const MILESTONES: Milestone[] = [
       en: "Louis Verhaard's eii solver reaches 467/480, entered under his wife's name. It holds the record for twelve years.",
       fr: "Le solveur eii de Louis Verhaard atteint 467/480, engagé sous le nom de son épouse. Le record tiendra douze ans.",
     },
-    to: "/research/build/history",
+    to: "/research/community/hunt",
     src: "https://www.shortestpath.se/eii/eii_details.html",
   },
   {
@@ -81,7 +81,7 @@ const MILESTONES: Milestone[] = [
       en: "The competition ends at noon on 31 December. The $2,000,000 goes unpaid; the puzzle is still unsolved.",
       fr: "Le concours prend fin le 31 décembre à midi. Les 2 000 000 $ ne sont jamais versés ; le puzzle reste non résolu.",
     },
-    to: "/research/build/history-2",
+    to: "/research/community/hunt-part-2",
     src: "https://groups.io/g/eternity2/message/8477",
   },
   {
@@ -103,7 +103,7 @@ const MILESTONES: Milestone[] = [
       en: "Yahoo Groups is erased. Members move two decades of the mailing list to groups.io days before it vanishes.",
       fr: "Yahoo Groups est effacé. Des membres transfèrent vingt ans de liste vers groups.io quelques jours avant sa disparition.",
     },
-    to: "/research/build/history-2",
+    to: "/research/community/hunt-part-2",
     src: "https://groups.io/g/eternity2/message/2",
   },
   {
