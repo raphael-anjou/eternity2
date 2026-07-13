@@ -30,12 +30,12 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 26
       - name: Enable pnpm
-        run: corepack enable
+        run: npm install -g corepack@latest && corepack enable
       - name: Install web deps
         working-directory: web
         run: pnpm install --frozen-lockfile
@@ -57,7 +57,7 @@ jobs:
     needs: quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Rust toolchain (with wasm target)
         uses: dtolnay/rust-toolchain@stable
@@ -79,12 +79,12 @@ jobs:
         working-directory: engine
         run: wasm-pack build --target web --out-dir ../web/src/engine/pkg --release
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Enable pnpm
-        run: corepack enable
+        run: npm install -g corepack@latest && corepack enable
 
       - name: Build web app
         working-directory: web
@@ -103,7 +103,7 @@ jobs:
       - name: SPA fallback for unmatched paths
         run: cp web/build/client/__spa-fallback.html web/build/client/404.html
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: web/build/client
 
@@ -112,7 +112,7 @@ jobs:
       # a self-hosted / reverse-proxied deploy without rebuilding). The Pages
       # artifact above is a special tarball only consumable by deploy-pages;
       # this one is a normal zip you can download from the Actions run page.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: web-dist
           path: web/build/client
@@ -127,4 +127,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

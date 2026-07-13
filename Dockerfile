@@ -20,8 +20,11 @@ RUN cargo test --release
 RUN wasm-pack build --target web --out-dir /out/pkg --release
 
 # ---- stage 2: web app (Vite/React) ----------------------------------------
-FROM node:22-slim AS web
-RUN corepack enable
+FROM node:26-slim AS web
+# Node 25+ no longer bundles Corepack, so install it before enabling it. Corepack
+# then reads the "packageManager" field in package.json and provisions that exact
+# pnpm version — keeping the version pin in one place.
+RUN npm install -g corepack@latest && corepack enable
 WORKDIR /src/web
 # Optional: serve under a path prefix and/or a non-default public origin.
 #   docker build --build-arg BASE_PATH=/eternity2 \
