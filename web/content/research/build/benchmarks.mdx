@@ -23,6 +23,10 @@ sources:
     url: https://groups.io/g/eternity2/message/8793
   - label: "Brendan's set_1 10x10 solved (Peter McGavin), eternity2@groups.io, 2017-09"
     url: https://groups.io/g/eternity2/message/9686
+  - label: "Dave Clark's Sample Puzzles suite and documented file format (groups.io Files)"
+    url: https://groups.io/g/eternity2/files/Sample%20Puzzles
+  - label: "The sized benchmark boards, sides 11-16 (groups.io Files)"
+    url: https://groups.io/g/eternity2/files/Benchmarks
 related:
   - /research/reference
   - /research/build/known-facts
@@ -271,3 +275,25 @@ the protocol they embody is easier to follow now than it was then:
 4. **Then aim at set_2.** The
    [known facts page](/research/build/known-facts) has the numbers for the
    real board; the open 10x10 is the community's agreed next rung below it.
+
+## Where the files actually are
+
+Two of these suites survived the Yahoo-to-groups.io migration intact and are
+worth pointing your parser at directly. Dave Clark's
+[Sample Puzzles](https://groups.io/g/eternity2/files/Sample%20Puzzles) (2007)
+are the cleanest starting set: E2-like 16×16 boards at 16 and 40 border
+colours, each with its solution, in a self-documenting format. A puzzle file
+`sample_16_16_16_flat.txt` opens with a `width height borders` line, then one
+line of `Left Top Right Bottom` colours per cell (`0` is grey); the matching
+`solution_…` file lists `piece x y orientation` rows, orientation `0`–`3` for
+0°/90°/180°/270° clockwise. The `flat` variants spread the colours evenly; the
+`rand` variants assign each edge independently, so a `flat`/`rand` pair is a
+ready-made test of how much your solver leans on a uniform colour
+distribution.
+
+The [Benchmarks folder](https://groups.io/g/eternity2/files/Benchmarks)
+collects the sized boards the node-count race above was fought on (sides 11
+through 16, plus `8x8x8.txt`, a unique-solution 8×8 that a correct
+backtracker clears in about twenty minutes). Between these two folders you can
+walk the whole ladder, from a puzzle that solves over a coffee to the
+generated 16×16s, without ever touching the copyrighted prize pieces.
