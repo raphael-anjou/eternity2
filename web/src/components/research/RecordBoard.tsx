@@ -4,8 +4,7 @@
 
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { BoardSvg } from "@/components/board/BoardSvg";
-import { decodeBucas } from "@/lib/bucas";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import { RECORD_BOARDS } from "@/data/record-boards";
 
 const T = {
@@ -31,14 +30,13 @@ export function RecordBoard({ id }: { id: string }) {
       </p>
     );
   }
-  const cells = decodeBucas(board.viewerParams).cells;
   return (
     <div className="my-6 max-w-md space-y-2">
       <LocalizedLink
         to={`/viewer?${board.viewerParams}`}
         className="block rounded-lg border p-2 transition-shadow hover:shadow-md"
       >
-        <BoardSvg width={16} height={16} cells={cells} />
+        <LazyBoardPreview params={board.viewerParams} />
       </LocalizedLink>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">{t.note}</p>

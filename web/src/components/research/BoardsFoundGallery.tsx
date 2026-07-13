@@ -7,8 +7,7 @@
 
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { BoardSvg } from "@/components/board/BoardSvg";
-import { decodeBucas } from "@/lib/bucas";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import {
   FIVE_CLUE_RECORDS_2026,
   LINEAR_PARTIALS_2026,
@@ -67,7 +66,6 @@ function Thumb({
   caption?: string;
   cta: string;
 }) {
-  const cells = decodeBucas(params).cells;
   return (
     <div className="space-y-1.5">
       <LocalizedLink
@@ -76,7 +74,7 @@ function Thumb({
         className="block rounded-lg border p-1.5 transition-shadow hover:shadow-md"
       >
         <div className="relative">
-          <BoardSvg width={16} height={16} cells={cells} />
+          <LazyBoardPreview params={params} />
           <span className="absolute right-1 top-1 rounded bg-background/85 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums shadow-sm">
             {badge}
           </span>

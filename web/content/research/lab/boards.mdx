@@ -35,8 +35,7 @@ related:
 ---
 
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { BoardSvg } from "@/components/board/BoardSvg";
-import { decodeBucas } from "@/lib/bucas";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import { KNOWN_BOARDS } from "@/data/known-boards";
 import { RecordBoard } from "@/components/research/RecordBoard";
 import { BoardsFoundGallery } from "@/components/research/BoardsFoundGallery";
@@ -50,7 +49,7 @@ export const CommunityBoard = ({ id, caption }) => {
         to={`/viewer?${b.params}`}
         className="block rounded-lg border p-2 transition-shadow hover:shadow-md"
       >
-        <BoardSvg width={16} height={16} cells={decodeBucas(b.params).cells} />
+        <LazyBoardPreview params={b.params} />
       </LocalizedLink>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">{caption}</p>
