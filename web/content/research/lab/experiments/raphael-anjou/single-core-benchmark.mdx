@@ -128,14 +128,15 @@ emits a bucas `.url`, and the score is the canonical matched-edge count from the
 same scorer, never the engine's self-report. There were zero failures across all
 150 runs.
 
-The native engine family (ranks 5 to 15) is lifted into this repository and runs
-from it: the crate workspace, the ten variants, the committed per-run results and
-the grid scripts all live under the experiment's
-[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark).
-`just raphael-anjou single-core-benchmark` builds the engine and reruns that
-family. The four standalone strong engines (producer, ALNS, Verhaard, Blackwood)
-run from the private v2 vault; their committed rows are the published result and
-their exact invocations are archived alongside the scripts.
+Every one of the fifteen solvers is open source and runs from this repository.
+The crate workspace, the ten variants, the committed per-run results and the grid
+scripts all live under the experiment's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark),
+and `just raphael-anjou single-core-benchmark` builds the engines and reruns the
+whole grid. The native family (ranks 5 to 15) is one binary selected by preset;
+the four strong engines (producer, ALNS, Verhaard, Blackwood, ranks 1 to 4) are a
+binary each, driven by a small wrapper. Both speak the same puzzle-in,
+bucas-url-out contract, and every board is re-scored by the one canonical scorer.
 
 ## Companion findings
 

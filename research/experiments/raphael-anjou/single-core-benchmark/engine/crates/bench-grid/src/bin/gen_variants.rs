@@ -16,8 +16,17 @@
 use bench_grid::{rotated, SiteHint, SiteInstance, BORDER};
 use serde::Serialize;
 
-const OFFICIAL_CSV: &str =
-    "/Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/data/puzzles/size_16_official_eternity.csv";
+// The official 16x16 puzzle CSV, resolved at build time relative to this crate
+// (engine/crates/bench-grid) so it works from any checkout. Override with the
+// OFFICIAL_CSV env var if the data lives elsewhere.
+fn official_csv() -> String {
+    std::env::var("OFFICIAL_CSV").unwrap_or_else(|_| {
+        format!(
+            "{}/../../data/puzzles/size_16_official_eternity.csv",
+            env!("CARGO_MANIFEST_DIR")
+        )
+    })
+}
 
 // The 4 corner cells of a 16x16 board (row-major pos) and, for each, which two
 // URDL edge slots must be border (facing outward).
@@ -118,7 +127,8 @@ fn main() {
         .expect("usage: gen_variants <outdir>");
     std::fs::create_dir_all(&outdir).expect("mkdir outdir");
 
-    let base = SiteInstance::official(OFFICIAL_CSV).expect("load official");
+    let official = official_csv();
+    let base = SiteInstance::official(&official).expect("load official");
 
     // Identify the 4 corner pieces (exactly 2 border edges) in id order.
     let corner_pieces: Vec<u16> = base
@@ -134,7 +144,7 @@ fn main() {
         description: "Official E2 + 3 pinned corners per variant (pin-3-corners, 10 arrangements). \
                       All engines solve these identical 10 instances."
             .into(),
-        official_csv: OFFICIAL_CSV.into(),
+        official_csv: official.clone(),
         corner_pieces: corner_pieces.clone(),
         corner_cells: CORNER_CELLS.iter().map(|c| c.0).collect(),
         variants: Vec::new(),
@@ -164,7 +174,7 @@ fn main() {
         // reads the identical 8 hints through the shared loader — no
         // per-engine hint plumbing needed.
         let csv_path = format!("{outdir}/variant_{vid:02}.csv");
-        write_csv_variant(OFFICIAL_CSV, &csv_path, &pins);
+        write_csv_variant(&official, &csv_path, &pins);
 
         manifest.variants.push(VariantRecord {
             id: vid,

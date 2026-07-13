@@ -36,7 +36,8 @@ from pathlib import Path
 # engine and default variants/results dirs are its siblings. No absolute paths.
 HERE = Path(__file__).resolve().parent
 EXPERIMENT = HERE.parent
-RUN_ALGO = EXPERIMENT / "engine" / "target" / "release" / "run_algo"
+BIN_DIR = EXPERIMENT / "engine" / "target" / "release"
+RUN_ALGO = BIN_DIR / "run_algo"
 
 # native engine-family algos (driven by run_algo, JSON variant input). This is
 # the exact registry the ported run_algo exposes (see `run_algo --list`).
@@ -53,9 +54,12 @@ NATIVE_ALGOS = [
     "joe_depth150_bp",
     "verhaard_preferred",
 ]
-# standalone strong engines: private vault binaries, opt-in only (see module doc).
+# standalone strong engines: their own binaries in the same engine workspace,
+# driven by the local run_standalone.sh wrapper (CSV variant in, url out). Now
+# open source and runnable here, so they are on by default. BENCH_STANDALONE_SH
+# can override the wrapper path.
 STANDALONE_ALGOS = ["producer", "blackwood", "verhaard", "alns"]
-STANDALONE_SH = os.environ.get("BENCH_STANDALONE_SH", "")
+STANDALONE_SH = os.environ.get("BENCH_STANDALONE_SH", str(HERE / "run_standalone.sh"))
 
 RESULT_RE = re.compile(r"score=(\d+)")
 SCORE_RE = re.compile(r"canonical_score=(\d+)")
@@ -127,9 +131,9 @@ def main():
     ap.add_argument("--seed", type=int, default=1,
                     help="fixed seed for every run (one run per variant)")
     ap.add_argument("--algos", default="")
-    ap.add_argument("--native-only", action="store_true", default=True,
-                    help="only the runnable native family (default; standalone "
-                         "engines need the private vault)")
+    ap.add_argument("--native-only", action="store_true",
+                    help="run only the native engine family (skip the four "
+                         "standalone strong engines)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
