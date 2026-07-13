@@ -74,6 +74,26 @@ const PAPERS: Paper[] = [
     section: "complexity",
   },
   {
+    id: "bejar2009",
+    authors: "R. Béjar, C. Fernàndez, C. Mateu, N. Pascual",
+    year: 2009,
+    title: "Bounding the Phase Transition on Edge Matching Puzzles",
+    venue: "ISMVL 2009 (IEEE)",
+    url: "https://ieeexplore.ieee.org/document/5010379/",
+    tier: "context",
+    section: "complexity",
+  },
+  {
+    id: "benoist2008edges",
+    authors: "T. Benoist",
+    year: 2008,
+    title: "How many edges can be shared by N square tiles on a board?",
+    venue: "e-lab Research Report (Bouygues SA)",
+    url: "https://groups.io/g/eternity2/files/Puzzle%20Theory/HowManyEdges.pdf",
+    tier: "context",
+    section: "complexity",
+  },
+  {
     id: "ansotegui2008ccia",
     authors: "C. Ansótegui, R. Béjar, C. Fernández, C. Mateu",
     year: 2008,
@@ -297,6 +317,10 @@ const T = {
         "The phase-transition result: E2's ~17 interior / 5 border color split puts it exactly at the SAT/CSP hardness peak, with about one expected solution. This is *why* the parameters are what they are.",
       ansotegui2008cp:
         "Encodes Eternity-style puzzles for SAT/CSP solvers and shows generated instances sit right at the hardness peak.",
+      bejar2009:
+        "Bounds the phase transition analytically (via second-moment statistical measures), not just empirically: an upper bound that doubles as a good estimator for locating the hardest instances. The theory backbone under the 'E2 sits at the hardness peak' claim.",
+      benoist2008edges:
+        "A short, elegant result from the e-lab (same author as Fast Global Filtering): the exact maximum number of shared edges N square tiles can achieve on a board, with a closed-form h(N) and a proof. A necessary feasibility condition, and a clean building block for parity and solution-count arguments.",
       ansotegui2008ccia:
         "The Eternity II instance itself, dissected as a hard CSP benchmark — an early, accessible analysis of the real puzzle.",
       heule2008:
@@ -382,6 +406,10 @@ const T = {
         "Le résultat de transition de phase : le partage ≈17 couleurs intérieures / 5 de bord place E2 pile au pic de difficulté SAT/CSP, avec environ une solution attendue. C'est *pourquoi* les paramètres sont ce qu'ils sont.",
       ansotegui2008cp:
         "Traduit les puzzles de type Eternity pour les solveurs SAT/CSP et montre que les instances générées tombent pile au pic de difficulté.",
+      bejar2009:
+        "Borne la transition de phase de façon analytique (mesures statistiques du second moment), et pas seulement empirique : une borne supérieure qui sert aussi de bon estimateur pour situer les instances les plus dures. La charpente théorique sous l'affirmation « E2 est pile au pic de difficulté ».",
+      benoist2008edges:
+        "Un résultat court et élégant de l'e-lab (même auteur que Fast Global Filtering) : le nombre maximal exact d'arêtes partagées que N tuiles carrées peuvent atteindre sur un plateau, avec un h(N) en forme close et une preuve. Une condition nécessaire de faisabilité, et une brique nette pour les arguments de parité et de comptage de solutions.",
       ansotegui2008ccia:
         "L'instance Eternity II elle-même, disséquée comme benchmark CSP difficile — une analyse précoce et accessible du vrai puzzle.",
       heule2008:
