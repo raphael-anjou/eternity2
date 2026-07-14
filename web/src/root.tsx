@@ -3,6 +3,14 @@ import type { ReactNode } from "react";
 import "./index.css";
 import { LangProvider, langFromPath, pathForLang } from "@/i18n";
 import { canonicalUrl } from "@/site";
+// The Latin subset of the Geist variable font, imported as a hashed URL so it
+// can be preloaded. This is the one woff2 that basic Latin text (EN + FR body
+// and the big hero headline) resolves to; preloading it means it arrives
+// before first paint, so the headline renders in Geist from the start instead
+// of swapping fallback→Geist afterwards — which is what caused the residual
+// font-driven layout shift (CLS). The @import in index.css still defines the
+// @font-face and pulls the other subsets on demand.
+import geistLatinUrl from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 
 // The document shell (formerly index.html). React Router injects <Meta> and
 // <Links> from the route module `meta`/`links` exports, and <Scripts> boots
@@ -55,7 +63,20 @@ const SITE_JSONLD = {
 };
 
 export function links() {
-  return [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }];
+  return [
+    { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+    // Preload the Latin Geist subset so the headline paints in the final font
+    // (no fallback→Geist swap → no font-driven CLS). crossOrigin is required on
+    // font preloads: the browser fetches fonts in anonymous CORS mode even
+    // same-origin, and the hint must match or it won't be reused.
+    {
+      rel: "preload",
+      as: "font" as const,
+      type: "font/woff2",
+      href: geistLatinUrl,
+      crossOrigin: "anonymous" as const,
+    },
+  ];
 }
 
 export function Layout({ children }: { children: ReactNode }) {
