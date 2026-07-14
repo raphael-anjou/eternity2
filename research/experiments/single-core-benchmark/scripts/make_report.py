@@ -129,7 +129,7 @@ def main():
 
     md.append("\n## Reproduction (native family)\n")
     md.append("```bash")
-    md.append("cd research/experiments/raphael-anjou/single-core-benchmark")
+    md.append("cd research/experiments/single-core-benchmark")
     md.append("cargo build --release --bin run_algo --manifest-path engine/Cargo.toml")
     md.append("python3 scripts/run_grid.py --variants variants \\")
     md.append(f"  --out results/rerun --budget-s {meta['budget_s']} "

@@ -5,7 +5,7 @@ official puzzle, **single-threaded, 60 s per run**, every board re-scored by one
 canonical scorer. The finding: **throughput does not equal score** — the beam
 producer explores 150x fewer nodes/s than the Blackwood backtracker and still
 finishes 20 points higher. The write-up is the research page
-[`lab/experiments/raphael-anjou/single-core-benchmark`](https://eternity2.dev/research/lab/experiments/raphael-anjou/single-core-benchmark);
+[`lab/experiments/single-core-benchmark`](https://eternity2.dev/research/lab/experiments/single-core-benchmark);
 this directory is its runnable/committed backing.
 
 ## What is runnable here vs archived

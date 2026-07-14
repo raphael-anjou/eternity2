@@ -24,35 +24,35 @@ research/
 │       ├── compute/     ← the exact code that produces the results (+ how to run)
 │       └── results/     ← committed output files (JSON/CSV) the article and site reference
 └── experiments/
-    └── <author>/
-        ├── justfile     ← this author's recipes; `just <author>` lists them,
-        │                  `just <author> <experiment>` runs one
-        └── <experiment>/ ← a self-contained author experiment (see below)
+    ├── justfile      ← `just experiments` lists them, `just experiments <name>` runs one
+    └── <experiment>/ ← a self-contained experiment (see below)
 ```
 
-## Author experiments (`experiments/<author>/`)
+## Experiments (`experiments/<experiment>/`)
 
-Some experiments are one researcher's own runs rather than shared theory, and a
-few carry the code that produced them. Those live under
-`experiments/<author>/<experiment>/`, each self-contained:
+Some entries are measured runs rather than shared theory, and a few carry the
+code that produced them. These are shared facilities — any researcher's engine
+or run can join an experiment — so they live under `experiments/<experiment>/`
+(not under an author), each self-contained. Who ran it and on what hardware is
+recorded on the write-up page (the `author:` field and the `hardware:` block),
+because those are part of the result, not the directory layout.
 
 ```
-experiments/raphael-anjou/single-core-benchmark/
-├── engine/     ← a standalone cargo workspace (lifted from the vault), the
-│                 runnable solver family; `run_algo` is the entry point
+experiments/single-core-benchmark/
+├── engine/     ← a standalone cargo workspace (lifted from the vault): all 15
+│                 solvers; `run_algo` (native family) + the strong-engine bins
 ├── variants/   ← the puzzle inputs
 ├── results/    ← committed results (jsonl/csv + per-run bucas urls); results/rerun/
 │                 (gitignored) is where a reproduction writes
-├── scripts/    ← the grid runner + reporter (repo-relative), plus any archived
-│                 wrappers for private-vault engines that cannot run here
-└── README.md   ← what is runnable here vs archived, and how to reproduce
+├── scripts/    ← the grid runner + reporter (repo-relative) + run_standalone.sh
+└── README.md   ← what runs here, and how to reproduce
 ```
 
-Recipes are per-author `just` modules: the root justfile does
-`mod <author> 'research/experiments/<author>/justfile'`, so `just <author>` lists
-that author's experiments and `just <author> <experiment>` runs one. The site
-page for the experiment lives in `web/content/research/lab/experiments/<author>/`
-and sets `repro.cmd` to that command.
+Recipes are a `just` module: the root justfile does
+`mod experiments 'research/experiments/justfile'`, so `just experiments` lists
+the experiments and `just experiments <name>` runs one. The site write-up lives
+in `web/content/research/lab/experiments/<name>.mdx` and sets `repro.cmd` to that
+command.
 
 ## Conventions
 
