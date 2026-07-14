@@ -235,8 +235,10 @@ static bool slot_is_frame_band(int i, int s) {
 
 // paint_framed: fill palette[0..n_edges) so frame colors (1..frame_count) land
 // only on frame-band slots and interior colors (frame_count+1..colors) only on
-// deep-interior slots, each group covering all its colors, then shuffled within
-// the group. Uses only below/shuffle so every port matches.
+// deep-interior slots. Each band is filled by cycling its colors (slot k ->
+// base + (k % count) + 1) so counts are as equal as possible, then shuffled
+// (real-E2-style even counts, still fully random). Only shuffle touches the RNG,
+// so every port matches.
 static void paint_framed(XorShift* rng, u8* palette, int n_edges, int s, u8 colors) {
   u8 frame_count = frame_color_count(colors);     // >= 1 here
   u8 interior_count = (u8)(colors - frame_count); // >= 1 here
@@ -250,23 +252,18 @@ static void paint_framed(XorShift* rng, u8* palette, int n_edges, int s, u8 colo
     else interior_slots[ni++] = (u16)i;
   }
 
-  // Frame band colors.
+  // Frame band colors: cycle then shuffle.
   u8 frame_colors[2 * MAX_SIZE * (MAX_SIZE - 1)];
   for (int k = 0; k < nf; ++k) {
-    frame_colors[k] = (k < (int)frame_count)
-                          ? (u8)(k + 1)
-                          : (u8)(rng->below((u32)frame_count) + 1);
+    frame_colors[k] = (u8)(k % (int)frame_count + 1);
   }
   shuffle_u8(rng, frame_colors, nf);
   for (int k = 0; k < nf; ++k) palette[frame_slots[k]] = frame_colors[k];
 
-  // Deep interior colors.
+  // Deep interior colors: cycle then shuffle.
   u8 interior_colors[2 * MAX_SIZE * (MAX_SIZE - 1)];
   for (int k = 0; k < ni; ++k) {
-    interior_colors[k] =
-        (k < (int)interior_count)
-            ? (u8)(frame_count + k + 1)
-            : (u8)(frame_count + rng->below((u32)interior_count) + 1);
+    interior_colors[k] = (u8)(frame_count + k % (int)interior_count + 1);
   }
   shuffle_u8(rng, interior_colors, ni);
   for (int k = 0; k < ni; ++k) palette[interior_slots[k]] = interior_colors[k];

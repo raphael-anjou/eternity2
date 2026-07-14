@@ -121,10 +121,17 @@ fn slot_is_frame_band(i: usize, s: usize) -> bool {
 
 /// Paint each palette slot in framed mode. Returns colors in default flat slot
 /// order. Frame-band slots get colors `1..=frame_count`; deep-interior slots get
-/// `frame_count+1..=colors`. Each group is filled so every color in the group
-/// appears at least once (the first `k` slots of a group seed colors `1..=k`,
-/// the rest are random within the group), then shuffled within the group. The
-/// only RNG primitives used are `below` and `shuffle`, so all ports match.
+/// `frame_count+1..=colors`.
+///
+/// Each band is filled by **cycling** its colors — slot `k` gets color
+/// `base + (k mod count) + 1` — so every color appears as equally often as the
+/// slot count allows (each ⌈slots/count⌉ or ⌊slots/count⌋ times), then the band
+/// is shuffled. This mirrors real Eternity II, whose ~equal number of each edge
+/// motif is what makes its boards look the way they do; the shuffle keeps the
+/// board fully random despite the even counts. (Thanks to VV for the nudge.)
+///
+/// The only RNG primitive is `shuffle` — no `below` draws inside a band — so the
+/// output is a pure function of the two shuffles and every port matches.
 fn paint_framed(rng: &mut XorShift, n_edges: usize, s: usize, colors: u8) -> Vec<u8> {
     let frame_count = frame_color_count(colors); // >= 1 here (colors >= 2)
     let interior_count = colors - frame_count; // >= 1 here (size >= 4)
@@ -142,30 +149,18 @@ fn paint_framed(rng: &mut XorShift, n_edges: usize, s: usize, colors: u8) -> Vec
 
     let mut palette = vec![0u8; n_edges];
 
-    // Frame band: colors 1..=frame_count.
+    // Frame band: cycle colors 1..=frame_count, then shuffle.
     let mut frame_colors: Vec<u8> = (0..frame_slots.len())
-        .map(|k| {
-            if k < frame_count as usize {
-                k as u8 + 1
-            } else {
-                rng.below(u32::from(frame_count)) as u8 + 1
-            }
-        })
+        .map(|k| (k % frame_count as usize) as u8 + 1)
         .collect();
     rng.shuffle(&mut frame_colors);
     for (k, &slot) in frame_slots.iter().enumerate() {
         palette[slot] = frame_colors[k];
     }
 
-    // Deep interior: colors frame_count+1..=colors.
+    // Deep interior: cycle colors frame_count+1..=colors, then shuffle.
     let mut interior_colors: Vec<u8> = (0..interior_slots.len())
-        .map(|k| {
-            if k < interior_count as usize {
-                frame_count + k as u8 + 1
-            } else {
-                frame_count + rng.below(u32::from(interior_count)) as u8 + 1
-            }
-        })
+        .map(|k| frame_count + (k % interior_count as usize) as u8 + 1)
         .collect();
     rng.shuffle(&mut interior_colors);
     for (k, &slot) in interior_slots.iter().enumerate() {
@@ -369,6 +364,39 @@ mod tests {
                     "color {c} missing at {size}/{colors}/{seed}"
                 );
             }
+        }
+    }
+
+    #[test]
+    fn framed_bands_are_color_balanced() {
+        // Every color within a band appears as equally often as the slot count
+        // allows: max count - min count <= 1 (the point of the cycle-then-shuffle
+        // fill). Checked on both bands across several boards.
+        for &(size, colors, seed) in
+            &[(6u8, 8u8, 42u32), (8, 12, 99), (10, 22, 5), (16, 22, 3), (16, 22, 7)]
+        {
+            let p = generate_solved_framed(size, colors, seed, true);
+            let frame_count = frame_color_count(colors);
+            let (frame_band, deep) = band_colors(&p);
+
+            let spread = |band: &[u8], lo: u8, hi: u8| {
+                let mut counts = vec![0usize; (hi - lo + 1) as usize];
+                for &c in band {
+                    counts[(c - lo) as usize] += 1;
+                }
+                let max = *counts.iter().max().unwrap();
+                let min = *counts.iter().min().unwrap();
+                max - min
+            };
+
+            assert!(
+                spread(&frame_band, 1, frame_count) <= 1,
+                "frame band unbalanced at {size}/{colors}/{seed}"
+            );
+            assert!(
+                spread(&deep, frame_count + 1, colors) <= 1,
+                "deep interior unbalanced at {size}/{colors}/{seed}"
+            );
         }
     }
 

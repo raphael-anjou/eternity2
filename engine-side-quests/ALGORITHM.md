@@ -165,7 +165,9 @@ pieces. Steps:
    edges (shared sides between neighbours). Make a `palette` array of that many
    colours: the first `colors` entries are `1, 2, …, colors` (guaranteeing every
    colour appears at least once), the rest are random in `1..=colors`. Then
-   `shuffle` the palette.
+   `shuffle` the palette. (The optional *framed* variant paints this step
+   differently — with **balanced** colour counts, closer to real Eternity II —
+   see §4.1.)
 
 2. **Split the palette** into vertical and horizontal adjacency colours and lay
    them out on the grid: `vert[y][x]` is the colour between cell `(x,y)` and
@@ -187,6 +189,44 @@ scramble) keep the puzzle's *shape* and its *shuffle* independent.
 
 `max_colors(size) = min(2·n·(n−1), 22)` — you can't ask for more colours than
 there are interior edges, nor more than the 22 renderable motifs.
+
+### 4.1 The framed variant (real-Eternity-II colour layout)
+
+The default painter above is uniform: any colour can appear on any interior
+adjacency, and each colour's *count* is left to chance. Real Eternity II is not
+like that — its 22 motifs split into a handful that only touch the **frame band**
+(edges adjacent to the grey rim) and the rest that live in the **deep interior**,
+and each motif appears roughly the same number of times. The framed variant
+(`generate_framed` / `generate_solved_framed`, flag off ⇒ byte-for-byte identical
+to the default) reproduces both properties. It only differs in **step 1** — the
+painting; steps 2–4 are unchanged.
+
+- **Two pools, not one.** With `frame_count = min(5, colors−1)`, colours
+  `1..=frame_count` are the frame colours and `frame_count+1..=colors` the
+  interior colours. Partition the interior adjacencies (ascending slot index)
+  into a *frame-band* pool (a slot at least one of whose two cells lies on the
+  outer ring) and a *deep-interior* pool (both cells off the rim).
+
+- **Fill each pool by *cycling*, then shuffle.** Fill the frame-band pool with
+  `1, 2, …, frame_count, 1, 2, …` (repeat the cycle to the pool's length), so
+  every frame colour appears as equally often as the slot count allows — each
+  `⌈slots/frame_count⌉` or `⌊slots/frame_count⌋` times, never more than one apart.
+  Fill the deep-interior pool the same way with its colours. Then `shuffle` each
+  pool **independently** and drop the results onto their slots. The even counts
+  give the real-E2 look; the shuffle keeps the board fully random.
+
+  > This balanced fill uses **only `shuffle`** (no `below` draws inside a pool),
+  > so it stays a pure function of the two shuffles and every port reproduces it
+  > byte-for-byte. Thanks to Vasily (VV) for pointing out that cycling the pools
+  > — rather than drawing colours at random — is what gives the equal counts.
+
+- **Fallback.** The split needs at least one interior colour (`colors ≥ 2`) and at
+  least one deep-interior adjacency (only exists for `size ≥ 4`); below that
+  threshold the framed path equals the unrestricted one, so every requested
+  colour still appears.
+
+`frame_count = min(5, colors−1)` mirrors the real set (5 of its 22 colours are
+frame-only). The website's Viewer surfaces this variant as a switch.
 
 ---
 
