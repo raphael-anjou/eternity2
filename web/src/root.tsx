@@ -17,12 +17,42 @@ export function meta() {
   // viewport is why the desktop site renders correct-but-tiny on phones:
   // without it, mobile browsers assume a ~980px layout viewport and zoom the
   // whole page out to fit. See the literal <meta name="viewport"> below.
-  return [
-    { property: "og:type", content: "website" },
-    { property: "og:image", content: "https://eternity2.dev/og.png" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ];
+  // Site-wide social tags and structured data are NOT returned here: in React
+  // Router 7 a child route's `meta` export REPLACES the root route's meta
+  // wholesale (they do not merge), so anything returned here vanishes on every
+  // page that exports its own meta — which is all of them. Instead these
+  // invariant tags are rendered as literal elements in Layout's <head> below,
+  // exactly like charSet/viewport, so they appear on every prerendered page
+  // regardless of the route's own meta. Per-page meta() still adds the page
+  // title/description and any Article/FAQ JSON-LD on top.
+  return [];
 }
+
+// Site-wide structured data (WebSite + publisher Organization), rendered as a
+// literal <script> in Layout. Per-page Article/FAQ nodes reference these by
+// @id. Kept as a constant so the JSON is stringified once.
+const SITE_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://eternity2.dev/#website",
+      url: "https://eternity2.dev/",
+      name: "Eternity II · community",
+      description:
+        "An open, bilingual educational hub for the Eternity II edge-matching puzzle: play it, watch real solvers run in your browser, learn the algorithms, and read the community research.",
+      inLanguage: ["en", "fr"],
+      publisher: { "@id": "https://eternity2.dev/#org" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://eternity2.dev/#org",
+      name: "Eternity II community site",
+      url: "https://eternity2.dev/",
+      logo: "https://eternity2.dev/og.png",
+    },
+  ],
+};
 
 export function links() {
   return [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }];
@@ -60,6 +90,20 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="alternate" hrefLang="en" href={canonicalUrl(enPath)} />
         <link rel="alternate" hrefLang="fr" href={canonicalUrl(frPath)} />
         <link rel="alternate" hrefLang="x-default" href={canonicalUrl(enPath)} />
+        {/* Invariant site-wide social + structured-data tags. These live here as
+            literal elements (not in a route `meta` export) because in React
+            Router 7 a child route's meta REPLACES the root route's meta, so
+            anything the root returns is dropped on every page. Per-page og:title
+            / og:description still come from <Meta/> above; these add the shared
+            image, card type and site-level JSON-LD on top of every page. */}
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://eternity2.dev/og.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://eternity2.dev/og.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSONLD) }}
+        />
         {/* Google Analytics (GA4) is loaded lazily after the page is idle (see
             loadAnalyticsWhenIdle in layout.tsx), so it stays off the critical
             render path. Page views are sent by the router. */}

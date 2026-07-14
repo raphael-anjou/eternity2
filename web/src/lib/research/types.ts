@@ -140,6 +140,10 @@ export interface ResearchDoc {
   section: string;
   title: string;
   description: string;
+  /** Optional short override for the <meta description>/og tag; `description`
+   *  stays the on-page lede. Absent → meta falls back to a truncated
+   *  `description`. See metaDescriptionFor(). */
+  metaDescription?: string;
   kind: ResearchKind;
   status: "live" | "draft";
   /** Registry slug of the page's author (drives the byline + researcher hub).

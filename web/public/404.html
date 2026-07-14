@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>404 — this piece is missing · Eternity II</title>
+<meta name="description" content="One tile short of a solution. Fitting, for a puzzle nobody has ever solved." />
+<!-- GitHub Pages serves this file for any unmatched path. It is standalone
+     (no app bundle, no CSS import) because GH Pages returns it verbatim with a
+     real 404 status, so it must render on its own. Theme follows the OS. -->
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<style>
+  :root {
+    --bg: oklch(1 0 0);
+    --fg: oklch(0.145 0 0);
+    --muted: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0);
+    --btn-bg: oklch(0.205 0 0);
+    --btn-fg: oklch(0.985 0 0);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(0.145 0 0);
+      --fg: oklch(0.985 0 0);
+      --muted: oklch(0.708 0 0);
+      --border: oklch(1 0 0 / 12%);
+      --btn-bg: oklch(0.922 0 0);
+      --btn-fg: oklch(0.205 0 0);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 1.25rem;
+    gap: 1.5rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tile {
+    width: min(46vw, 190px);
+    height: auto;
+    filter: drop-shadow(0 12px 30px rgb(0 0 0 / 0.18));
+    animation: nudge 4.5s ease-in-out infinite;
+  }
+  /* The lone piece leans in, tries a slot, and gives up — it never fits. */
+  @keyframes nudge {
+    0%, 62%, 100% { transform: rotate(0deg); }
+    68% { transform: rotate(-5deg) translateX(-3px); }
+    74% { transform: rotate(4deg) translateX(3px); }
+    80% { transform: rotate(-2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .tile { animation: none; } }
+  .code {
+    font-size: clamp(3.2rem, 15vw, 5.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin: 0;
+  }
+  h1 {
+    font-size: clamp(1.3rem, 4.5vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+    max-width: 22ch;
+  }
+  p.lede {
+    color: var(--muted);
+    font-size: clamp(0.98rem, 2.6vw, 1.1rem);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 42ch;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 0.25rem; }
+  a.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  a.btn:hover { transform: translateY(-1px); }
+  a.btn.primary { background: var(--btn-bg); color: var(--btn-fg); border-color: transparent; }
+  a.btn.ghost { color: var(--fg); }
+  a.btn.ghost:hover { opacity: 0.7; }
+  .fine { color: var(--muted); font-size: 0.82rem; margin: 0; max-width: 40ch; }
+  .fine b { color: var(--fg); font-weight: 600; }
+</style>
+</head>
+<body>
+  <!-- A single Eternity II tile: four motif triangles, like the site mark. -->
+  <svg class="tile" viewBox="-128 -128 256 256" role="img" aria-label="A single Eternity II tile">
+    <defs>
+      <clipPath id="c"><path d="M0,0 L-128,128 L-128,-128 Z" /></clipPath>
+    </defs>
+    <!-- Solid backing so the hairline anti-aliasing seams where the four
+         triangles meet on the diagonals fall on dark, not on the page colour
+         (that was the faint white "X"). -->
+    <rect x="-128" y="-128" width="256" height="256" fill="#1a1a1a" />
+    <!-- top -->
+    <g transform="rotate(90)">
+      <path d="M0,0 L-128,128 L-128,-128 Z" fill="#854aa3" />
+      <path d="m-128,-32 v -32 a64,64 30 0,1 0,128 v -40 l 24, 24 l 24,-24 l -24,-24 l 24,-24 l -24,-24 l -24,24" fill="#eced25" stroke="#c9bb4b" stroke-width="1" clip-path="url(#c)" />
+    </g>
+    <!-- right -->
+    <g transform="rotate(180)">
+      <path d="M0,0 L-128,128 L-128,-128 Z" fill="#2bb35a" />
+      <path d="m-128,-96 l 32,32 l -8,40 l 40,-8 l 32,32 l -32,32 l -40,-8 l 8,40 l -32,32" fill="#f4892a" stroke="#778e3d" stroke-width="1" clip-path="url(#c)" />
+    </g>
+    <!-- bottom -->
+    <g transform="rotate(-90)">
+      <path d="M0,0 L-128,128 L-128,-128 Z" fill="#831b43" />
+      <path d="m-128,0 m-8,-40 a16,16 30 1,1 16,0 l 32,32 a16,16 30 1,1 0,16 l -32,32 a16,16 30 1,1 -16,0 l 8,-16 l 24,-24 l -24,-24" fill="#f48614" stroke="#b76742" stroke-width="1" clip-path="url(#c)" />
+    </g>
+    <!-- left -->
+    <g transform="rotate(0)">
+      <path d="M0,0 L-128,128 L-128,-128 Z" fill="#fdf103" />
+      <path d="m-128,-96 l 32,32 l -8,8 l 32,32 l 8,-8 l 32,32 l -32,32 l -8,-8 l -32,32 l 8,8 l -32,32" fill="#145c8c" stroke="#8e9743" stroke-width="1" clip-path="url(#c)" />
+    </g>
+    <rect x="-128" y="-128" width="256" height="256" fill="none" stroke="#000" stroke-width="6" opacity="0.35" />
+  </svg>
+
+  <p class="code">404</p>
+  <h1>This piece is missing.</h1>
+  <p class="lede">One tile short of a solution — fitting, for a puzzle nobody has ever solved. The page you're after isn't on the board.</p>
+
+  <div class="actions">
+    <a class="btn primary" href="/">← Back to the board</a>
+    <a class="btn ghost" href="/research/">Research wiki</a>
+    <a class="btn ghost" href="/playground/">Playground</a>
+  </div>
+
+  <p class="fine">Looking for something specific? Try the <a href="/research/" style="color:inherit">research index</a>. Or lost in translation — the whole site mirrors in French under <b>/fr</b>.</p>
+
+  <script>
+    // GitHub Pages serves this at the requested (missing) URL with a 404
+    // status, so relative asset paths would resolve wrong under a project
+    // subpath. Everything here is absolute from the domain root, matching the
+    // CNAME (eternity2.dev) — no rewrite needed.
+  </script>
+</body>
+</html>

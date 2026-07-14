@@ -98,8 +98,8 @@ function HeroBoard() {
 
 const T = {
   en: {
-    heroTitleTop: "The puzzle that beat",
-    heroTitleAccent: "everyone.",
+    heroTitleTop: "Eternity II:",
+    heroTitleAccent: "the puzzle that beat everyone.",
     heroLede: (
       <>
         Eternity II looks like a children's jigsaw: 256 square pieces, match the colors. Launched
@@ -152,8 +152,8 @@ const T = {
     ),
   },
   fr: {
-    heroTitleTop: "Le puzzle qui a battu",
-    heroTitleAccent: "tout le monde.",
+    heroTitleTop: "Eternity II :",
+    heroTitleAccent: "le puzzle qui a battu tout le monde.",
     heroLede: (
       <>
         Eternity II a tout d'un puzzle pour enfants : 256 pièces carrées, et des couleurs à faire

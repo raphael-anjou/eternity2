@@ -1,4 +1,5 @@
 import { pageMeta } from "@/seo";
+import { PageFaq } from "@/components/PageFaq";
 import { useMemo } from "react";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { Button } from "@/components/ui/button";
@@ -222,6 +223,7 @@ export default function StatusPage() {
           {t.ctaAlgorithms}
         </Button>
       </section>
+      <PageFaq pageKey="status" />
     </div>
   );
 }

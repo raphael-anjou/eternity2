@@ -12,6 +12,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
 import { allRoutePaths } from "./sitemap.config";
+import { researchPageLastmod } from "./content.config";
 import { researchContent } from "./plugins/research-content";
 
 // Emit sitemap.xml into the build output from the same page list React Router
@@ -35,8 +36,28 @@ function sitemap(): Plugin {
       // indexing). Keep the root and any path with a file extension as-is.
       const canonical = (p: string) =>
         p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
+      // Research MDX pages carry an `updated:` frontmatter date; surface it as
+      // <lastmod> so crawlers get a real freshness signal. Keyed by the
+      // basename-relative page path (e.g. "research/build/known-facts"), which
+      // we recover from each full route path by stripping the base + leading
+      // slash. Pages without a date (main TSX pages, hubs, /fr mirrors) get no
+      // <lastmod> — a partial-coverage sitemap is valid and better than a
+      // fabricated date.
+      const lastmod = researchPageLastmod();
+      const lastmodFor = (fullPath: string): string | undefined => {
+        let rel = fullPath;
+        if (base && rel.startsWith(base)) rel = rel.slice(base.length);
+        rel = rel.replace(/^\//, "");
+        return lastmod[rel];
+      };
       const urls = allRoutePaths(base)
-        .map((p) => `  <url><loc>${origin}${canonical(p)}</loc></url>`)
+        .map((p) => {
+          const lm = lastmodFor(p);
+          const loc = `<loc>${origin}${canonical(p)}</loc>`;
+          return lm
+            ? `  <url>${loc}<lastmod>${lm}</lastmod></url>`
+            : `  <url>${loc}</url>`;
+        })
         .join("\n");
       const xml =
         `<?xml version="1.0" encoding="UTF-8"?>\n` +

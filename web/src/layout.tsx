@@ -16,6 +16,21 @@ const T = {
       { to: "/viewer", label: "Board Viewer" },
       { to: "/research", label: "Research" },
     ],
+    // A flat footer link row. Its main SEO job is to give the two "money"
+    // pages that aren't in the header nav — /status and /is-it-a-scam — a
+    // site-wide internal link (they were previously reachable only from a
+    // couple of in-body links), and to spread link equity to the cornerstone
+    // pages from every page on the site.
+    footerNav: [
+      { to: "/puzzle", label: "The puzzle" },
+      { to: "/status", label: "Has it been solved?" },
+      { to: "/is-it-a-scam", label: "Is it a scam?" },
+      { to: "/algorithms", label: "Algorithms" },
+      { to: "/playground", label: "Playground" },
+      { to: "/viewer", label: "Board Viewer" },
+      { to: "/convert", label: "Format converter" },
+      { to: "/research", label: "Research" },
+    ],
     footer:
       "Open source (MIT). Piece motifs by Jef Bucas (GPL-3.0). Everything runs in your browser. There is no server.",
     builtBy: "Built by Raphaël Anjou.",
@@ -28,6 +43,16 @@ const T = {
       { to: "/playground", label: "Aire de jeu" },
       { to: "/algorithms", label: "Algorithmes" },
       { to: "/viewer", label: "Visualiseur" },
+      { to: "/research", label: "Recherche" },
+    ],
+    footerNav: [
+      { to: "/puzzle", label: "Le puzzle" },
+      { to: "/status", label: "A-t-il été résolu ?" },
+      { to: "/is-it-a-scam", label: "Une arnaque ?" },
+      { to: "/algorithms", label: "Algorithmes" },
+      { to: "/playground", label: "Aire de jeu" },
+      { to: "/viewer", label: "Visualiseur" },
+      { to: "/convert", label: "Convertisseur" },
       { to: "/research", label: "Recherche" },
     ],
     footer:
@@ -179,7 +204,14 @@ export default function Layout() {
         </Suspense>
       </main>
 
-      <footer className="space-y-1 border-t py-8 text-center text-sm text-muted-foreground">
+      <footer className="space-y-4 border-t py-8 text-center text-sm text-muted-foreground">
+        <nav className="mx-auto flex max-w-3xl flex-wrap justify-center gap-x-4 gap-y-2">
+          {t.footerNav.map((item) => (
+            <NavLink key={item.to} to={link(item.to)} className="hover:text-foreground hover:underline">
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
         <p>{t.footer}</p>
         <p>
           {t.builtBy}{" "}

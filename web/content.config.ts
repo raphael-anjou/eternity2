@@ -120,6 +120,14 @@ const hardwareSchema = z.object({
 const frontmatterSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
+  // Optional short form used ONLY for the <meta name="description"> / og tag.
+  // Many `description` ledes run 200–450 chars — great as the visible page
+  // subtitle, but Google truncates a SERP snippet around 155–160 chars. When a
+  // page sets `metaDescription`, that (tighter) string feeds the meta tag while
+  // `description` stays the on-page lede. When absent, the meta tag falls back
+  // to `description`, cleanly truncated at a word boundary (see metaDescription
+  // in the manifest). Capped so it can't itself overflow.
+  metaDescription: z.string().min(1).max(165).optional(),
   kind: z
     .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),
@@ -302,6 +310,9 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       section: e.slug.split("/")[0] ?? "",
       title: use.fm.title,
       description: use.fm.description,
+      ...(use.fm.metaDescription !== undefined
+        ? { metaDescription: use.fm.metaDescription }
+        : {}),
       kind: e.fm.kind,
       status: e.fm.status,
       ...(e.fm.author !== undefined ? { author: e.fm.author } : {}),
@@ -391,4 +402,18 @@ export function researchPagePaths(): string[] {
   const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
   // The glossary is a route-generated page (like the hubs), not MDX content.
   return [...pages, ...topicPaths, ...peoplePaths, "research/glossary"];
+}
+
+/** Basename-relative path → last-modified date (YYYY-MM-DD) for research MDX
+ *  pages that declare `updated:` in frontmatter. Feeds <lastmod> in the sitemap
+ *  so crawlers get a real freshness signal, computed from the same manifest the
+ *  prerender list uses (no drift, no hand-maintenance). Pages without an
+ *  `updated` date (and the route-generated hubs/topics/people) are simply
+ *  absent from the map — the sitemap then omits <lastmod> for them. */
+export function researchPageLastmod(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const d of buildManifest("en")) {
+    if (d.updated) out[d.url.slice(1)] = d.updated;
+  }
+  return out;
 }
