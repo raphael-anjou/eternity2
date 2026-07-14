@@ -13,8 +13,9 @@ import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, useLocation } from "react-router";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
-import { canonicalUrl } from "@/site";
-import { researchDoc, researchTopic, researchAuthor } from "@/lib/research/manifest";
+import { canonicalUrl, absoluteUrl } from "@/site";
+import { researchDoc, researchTopic, researchAuthor, metaDescriptionFor } from "@/lib/research/manifest";
+import { findSection } from "@/lib/research/nav";
 import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
@@ -70,11 +71,16 @@ const GLOSSARY_DESC = {
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
+  // Meta/og description is trimmed to a SERP-safe length (~155 chars, word
+  // boundary). This covers the route-generated pages too — glossary, topics and
+  // the person hubs, whose descriptions come from long author bios. MDX docs
+  // pass their own already-resolved short form (see the doc branch below), which
+  // is short enough to pass through untouched.
   const pack = (title: string, description: string) => [
     { title },
-    { name: "description", content: description },
+    { name: "description", content: metaDescriptionFor({ description }) },
     { property: "og:title", content: title },
-    { property: "og:description", content: description },
+    { property: "og:description", content: metaDescriptionFor({ description }) },
     { property: "og:url", content: canonicalUrl(location.pathname) },
   ];
 
@@ -103,7 +109,66 @@ export function meta({ location }: { location: { pathname: string } }) {
 
   const doc = researchDoc(lang, path);
   if (!doc) return [{ title: "Not found" + SUFFIX }];
-  return pack(doc.title + SUFFIX, doc.description);
+  // The <meta description>/og tag use the short form (explicit metaDescription,
+  // else the lede truncated to ~155 chars). The full lede stays on-page via
+  // DocsShell. The Article node also uses the short form for a clean snippet.
+  const metaDesc = metaDescriptionFor(doc);
+  // Every research MDX page ships a raw-markdown sibling at the same URL with
+  // `.md` appended (…/research/<slug>.md; the overview is research/index.md).
+  // Advertise it declaratively so AI agents and markdown-aware clients can find
+  // the clean source without User-Agent sniffing or a redirect (which would be
+  // cloaking). Only real MDX docs have a sibling — the route-generated hubs,
+  // topics, people and glossary above return before reaching here.
+  const mdRel = path === "/research" ? "/research/index.md" : `${path}.md`;
+  // TechArticle structured data: helps this page qualify as a citable article
+  // (and surfaces its freshness date) in search and AI answers. dateModified
+  // comes from the frontmatter `updated:`; author is the research author when
+  // the page declares one, else the site.
+  const pageUrl = canonicalUrl(location.pathname);
+  const ldArticle: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: doc.title,
+    description: metaDesc,
+    inLanguage: "en",
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    isPartOf: { "@id": "https://eternity2.dev/#website" },
+    publisher: { "@id": "https://eternity2.dev/#org" },
+    ...(doc.updated ? { dateModified: doc.updated } : {}),
+    ...(doc.date ? { datePublished: doc.date } : {}),
+    ...(doc.author
+      ? { author: { "@type": "Person", name: researchAuthor("en", doc.author)?.name ?? doc.author } }
+      : { author: { "@id": "https://eternity2.dev/#org" } }),
+  };
+  // BreadcrumbList structured data mirrors the visual trail (Research →
+  // section → page). Eligible for breadcrumb rich results and reinforces the
+  // site hierarchy to crawlers. Built from the same findSection() chain the
+  // DocsShell breadcrumb renders, so the two never disagree.
+  const section = findSection("en", doc.url);
+  const crumbs: { name: string; url: string }[] = [
+    { name: "Research", url: absoluteUrl("/research") },
+  ];
+  if (section && section.url !== doc.url) {
+    crumbs.push({ name: section.label, url: absoluteUrl(section.url) });
+  }
+  crumbs.push({ name: doc.title, url: pageUrl });
+  const ldBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: c.url,
+    })),
+  };
+  return [
+    ...pack(doc.title + SUFFIX, metaDesc),
+    { tagName: "link", rel: "alternate", type: "text/markdown", href: absoluteUrl(mdRel) },
+    { "script:ld+json": ldBreadcrumb },
+    { "script:ld+json": ldArticle },
+  ];
 }
 
 const NF = {

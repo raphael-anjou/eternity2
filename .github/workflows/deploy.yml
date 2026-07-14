@@ -96,12 +96,14 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
 
-      # GitHub Pages serves 404.html for any path it has no file for. Our build
-      # pre-renders a real .html per route, but use the React Router SPA
-      # fallback for anything else (e.g. unknown deep links) so the app still
-      # boots and client-side routing can resolve the URL.
-      - name: SPA fallback for unmatched paths
-        run: cp web/build/client/__spa-fallback.html web/build/client/404.html
+      # GitHub Pages serves 404.html for any path it has no file for. We ship a
+      # real, static, puzzle-themed 404 page (web/public/404.html, copied to the
+      # build output by Vite) with a noindex — better UX than the blank SPA shell
+      # and no soft-404. Every real route is pre-rendered to its own .html, so
+      # there are no client-only routes that would need the SPA fallback here;
+      # unknown paths are genuine 404s and should look like one. (The SPA
+      # fallback __spa-fallback.html is still emitted and used by the
+      # nginx/Docker deploy's try_files chain.)
 
       - uses: actions/upload-pages-artifact@v4
         with:

@@ -1,4 +1,5 @@
 import { pageMeta } from "@/seo";
+import { PageFaq } from "@/components/PageFaq";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Download } from "lucide-react";
@@ -57,7 +58,7 @@ function PieceAnatomy({ edges }: { edges: [number, number, number, number] }) {
 
 const T = {
   en: {
-    title: "The Puzzle",
+    title: "The Eternity II puzzle",
     intro: (
       <>
         Eternity II is an <strong>edge-matching puzzle</strong>: 256 square pieces on a 16×16
@@ -268,7 +269,7 @@ const T = {
     ),
   },
   fr: {
-    title: "Le Puzzle",
+    title: "Le puzzle Eternity II",
     intro: (
       <>
         Eternity II est un <strong>puzzle d'appariement de côtés</strong> : 256 pièces carrées à
@@ -722,6 +723,7 @@ export default function PuzzlePage() {
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">{t.npComplete}</p>
       </section>
+      <PageFaq pageKey="puzzle" />
     </div>
   );
 }

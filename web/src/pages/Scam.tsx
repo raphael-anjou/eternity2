@@ -1,4 +1,5 @@
 import { pageMeta } from "@/seo";
+import { PageFaq } from "@/components/PageFaq";
 import type { ReactNode } from "react";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -381,6 +382,7 @@ export default function ScamPage() {
         <p className="max-w-3xl text-sm text-muted-foreground">{t.learnMoreMath}</p>
         <p className="max-w-3xl text-sm text-muted-foreground">{t.learnMoreRecord}</p>
       </section>
+      <PageFaq pageKey="scam" />
     </div>
   );
 }

@@ -23,6 +23,26 @@ export function researchDoc(lang: Lang, url: string): ResearchDoc | undefined {
   return researchDocs(lang).find((d) => d.url === url);
 }
 
+/** The string for a doc's <meta name="description">/og:description.
+ *
+ *  Prefers the page's explicit `metaDescription` (a hand-tuned short form).
+ *  Otherwise falls back to `description`, truncated at a word boundary to keep
+ *  the SERP snippet from being cut mid-word: Google shows ~155–160 chars, so we
+ *  aim for ~155 and append an ellipsis only when we actually cut. Short
+ *  descriptions pass through untouched. */
+export function metaDescriptionFor(doc: Pick<ResearchDoc, "description" | "metaDescription">): string {
+  if (doc.metaDescription) return doc.metaDescription;
+  const full = doc.description.trim();
+  const LIMIT = 157; // 155 target + a little slack; ellipsis makes it 158 max
+  if (full.length <= LIMIT) return full;
+  // Cut at the last word boundary at or before the limit, then trim trailing
+  // punctuation/space so "… ," or "…." doesn't happen.
+  const slice = full.slice(0, LIMIT);
+  const lastSpace = slice.lastIndexOf(" ");
+  const cut = (lastSpace > 80 ? slice.slice(0, lastSpace) : slice).replace(/[\s,;:.\-–—]+$/, "");
+  return cut + "…";
+}
+
 /** The topic registry, labels in the given language (registry order). */
 export function researchTopics(lang: Lang): Topic[] {
   return lang === "fr" ? topicsFr : topicsEn;

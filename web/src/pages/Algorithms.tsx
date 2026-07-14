@@ -91,7 +91,7 @@ const SIZE_COLORS: Record<number, string> = {
 
 const T = {
   en: {
-    title: "How do you teach a computer to solve puzzles?",
+    title: "How do you solve Eternity II with a computer?",
     intro: (
       <>
         No magic here, just three big ideas: <strong>trying things in order</strong>,{" "}
@@ -213,7 +213,7 @@ const T = {
     ),
   },
   fr: {
-    title: "Comment apprend-on à un ordinateur à résoudre un puzzle ?",
+    title: "Comment résoudre Eternity II avec un ordinateur ?",
     intro: (
       <>
         Aucune magie là-dedans, seulement trois grandes idées : <strong>essayer les
