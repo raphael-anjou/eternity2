@@ -1,99 +1,20 @@
 import { pageMeta } from "@/seo";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEngine } from "@/engine/useEngine";
-import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
-import type { SolverHandle } from "@/engine";
 import { useT } from "@/i18n";
-import type { Puzzle } from "@/lib/types";
-import { boardFromEngine } from "@/lib/bucas";
-import type { Edges } from "@/lib/bucas";
+import { HERO_BOARD_CELLS } from "@/data/hero-board";
 
-// A small board solving itself forever: the site's heartbeat.
-/** True once the browser has gone idle after first paint — used to hold back
- *  non-essential main-thread work (the hero solver loop) so it doesn't compete
- *  with initial render, hydration and LCP. */
-function useIdleAfterPaint(): boolean {
-  const [idle, setIdle] = useState(false);
-  useEffect(() => {
-    const ric = (
-      window as unknown as {
-        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-        cancelIdleCallback?: (h: number) => void;
-      }
-    ).requestIdleCallback;
-    if (ric) {
-      const h = ric(() => setIdle(true), { timeout: 2000 });
-      return () => (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback?.(h);
-    }
-    const h = window.setTimeout(() => setIdle(true), 1200);
-    return () => window.clearTimeout(h);
-  }, []);
-  return idle;
-}
-
+// The hero shows a full, solved-looking 16×16 board. It used to be a live
+// 8×8 solver looping forever, but that ran a requestAnimationFrame + engine
+// step on every frame — main-thread work that hurt interaction responsiveness
+// (INP) on the landing page for no real benefit. It's now a single static SVG
+// of a pre-generated board (src/data/hero-board.ts): zero runtime cost, no
+// engine, no repaint. The board is randomly generated, not the official puzzle
+// — the caption says so.
 function HeroBoard() {
-  const engineReady = useEngine();
-  const idle = useIdleAfterPaint();
-  const [cells, setCells] = useState<ReturnType<typeof boardFromEngine>["cells"] | null>(null);
-  const solverRef = useRef<SolverHandle | null>(null);
-  const puzzleRef = useRef<Puzzle | null>(null);
-  const seedRef = useRef(1);
-
-  useEffect(() => {
-    // Hold the solver loop until the engine is warm AND the page has settled,
-    // so its per-frame stepping never lands on the critical-render path.
-    if (!engineReady || !idle) return;
-    let raf = 0;
-    const make = () => {
-      solverRef.current?.free();
-      const puzzle = getGeneratedPuzzle(8, 8, seedRef.current++);
-      puzzleRef.current = puzzle;
-      solverRef.current = createSolver(puzzle, getPath("snake", 8, 8, 0), { useHints: false });
-    };
-    make();
-    // Solve at full speed behind the scenes, but repaint gently (every
-    // ~600ms) so the hero doesn't flicker and steal attention.
-    let solvedAt = 0;
-    let lastPaint = 0;
-    const tick = (t: number) => {
-      const solver = solverRef.current;
-      const puzzle = puzzleRef.current;
-      if (solver && puzzle) {
-        const r = solver.report();
-        if (r.status === "solved") {
-          if (!solvedAt) {
-            solvedAt = t;
-            setCells(boardFromEngine(puzzle, solver.board()).cells);
-          }
-          if (t - solvedAt > 4000) {
-            solvedAt = 0;
-            make();
-            lastPaint = 0;
-          }
-        } else {
-          solver.step(1500);
-          if (t - lastPaint > 450) {
-            lastPaint = t;
-            setCells(boardFromEngine(puzzle, solver.board()).cells);
-          }
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(raf);
-      solverRef.current?.free();
-      solverRef.current = null;
-    };
-  }, [engineReady, idle]);
-
-  const placeholder = useMemo<(Edges | null)[]>(() => Array<Edges | null>(64).fill(null), []);
-  return <BoardSvg width={8} height={8} cells={cells ?? placeholder} className="w-full" />;
+  return <BoardSvg width={16} height={16} cells={HERO_BOARD_CELLS} className="w-full" />;
 }
 
 const T = {
@@ -111,7 +32,7 @@ const T = {
     ctaPlayground: "Try the playground",
     ctaPuzzle: "What is Eternity II?",
     heroCaption:
-      "← that board is a live solver, restarting on a fresh puzzle each time it wins. The 16×16 one would not finish before the stars burn out.",
+      "A full 16×16 board, every edge matched and the border grey — this is what a solved Eternity II looks like. (It's a randomly generated board, not the official puzzle.)",
     cards: [
       {
         to: "/puzzle",
@@ -167,7 +88,7 @@ const T = {
     ctaPlayground: "Essayer l'aire de jeu",
     ctaPuzzle: "C'est quoi, Eternity II ?",
     heroCaption:
-      "← ce plateau est un vrai solveur en action : à chaque victoire, il repart sur un puzzle tout neuf. En 16×16, il n'aurait pas terminé que les étoiles se seraient déjà éteintes.",
+      "Un plateau 16×16 complet, tous les côtés appariés et le bord gris : voilà à quoi ressemble un Eternity II résolu. (C'est un plateau généré au hasard, pas le puzzle officiel.)",
     cards: [
       {
         to: "/puzzle",
