@@ -70,9 +70,11 @@ function slotIsFrameBand(i: number, s: number): boolean {
 
 /**
  * Paint each palette slot in framed mode (frame band gets colours
- * `1..=frameCount`; deep interior gets `frameCount+1..=colors`, each group
- * guaranteeing every colour appears, then shuffled within the group). Only
- * `below`/`shuffle` are used so every port matches. Mirrors `paint_framed`.
+ * `1..=frameCount`; deep interior gets `frameCount+1..=colors`). Each band is
+ * filled by cycling its colours — slot `k` gets `base + (k % count) + 1` — so
+ * every colour appears as equally often as the slot count allows, then the band
+ * is shuffled (real-E2-style even counts, still fully random). The only RNG
+ * primitive is `shuffle`, so every port matches. Mirrors `paint_framed`.
  */
 function paintFramed(rng: XorShift, nEdges: number, s: number, colors: number): number[] {
   const frameCount = frameColorCount(colors); // >= 1 here (colors >= 2)
@@ -89,7 +91,7 @@ function paintFramed(rng: XorShift, nEdges: number, s: number, colors: number): 
 
   const frameColors: number[] = [];
   for (let k = 0; k < frameSlots.length; k++) {
-    frameColors.push(k < frameCount ? k + 1 : rng.below(frameCount) + 1);
+    frameColors.push((k % frameCount) + 1);
   }
   rng.shuffle(frameColors);
   for (let k = 0; k < frameSlots.length; k++) {
@@ -98,9 +100,7 @@ function paintFramed(rng: XorShift, nEdges: number, s: number, colors: number): 
 
   const interiorColors: number[] = [];
   for (let k = 0; k < interiorSlots.length; k++) {
-    interiorColors.push(
-      k < interiorCount ? frameCount + k + 1 : frameCount + rng.below(interiorCount) + 1,
-    );
+    interiorColors.push(frameCount + (k % interiorCount) + 1);
   }
   rng.shuffle(interiorColors);
   for (let k = 0; k < interiorSlots.length; k++) {
