@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { initEngine } from "@/engine";
@@ -199,9 +199,7 @@ export default function Layout() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading…</div>}>
-          <Outlet />
-        </Suspense>
+        <Outlet />
       </main>
 
       <footer className="space-y-4 border-t py-8 text-center text-sm text-muted-foreground">
