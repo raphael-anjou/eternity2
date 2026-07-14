@@ -102,11 +102,10 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
                 strokeDasharray="4 3"
                 label={{
                   value: t.ceiling,
-                  position: "insideTopRight",
+                  position: "top",
                   fontSize: 10,
                   fill: "#f59e0b",
                   textAnchor: "end",
-                  dy: -2,
                   dx: -2,
                 }}
               />
