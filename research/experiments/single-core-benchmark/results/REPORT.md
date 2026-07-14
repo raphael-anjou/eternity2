@@ -74,7 +74,7 @@ Throughput (`nps`) is the engine's NATIVE unit -- search-nodes/s (DFS/CSP + back
 ## Reproduction (native family)
 
 ```bash
-cd research/experiments/raphael-anjou/single-core-benchmark
+cd research/experiments/single-core-benchmark
 cargo build --release --bin run_algo --manifest-path engine/Cargo.toml
 python3 scripts/run_grid.py --variants variants \
   --out results/rerun --budget-s 60 --seed 1 --parallel 6

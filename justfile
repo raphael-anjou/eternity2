@@ -55,9 +55,9 @@ check: test typecheck lint build
 
 # --- Research --------------------------------------------------------------
 
-# Per-author experiment recipes. `just raphael-anjou` lists them;
-# `just raphael-anjou single-core-benchmark` runs one (see that dir's justfile).
-mod raphael-anjou 'research/experiments/raphael-anjou/justfile'
+# Shared research experiments. `just experiments` lists them;
+# `just experiments single-core-benchmark` runs one (see that dir's justfile).
+mod experiments 'research/experiments/justfile'
 
 # Validate every research topic and regenerate research/index.json.
 research-index:

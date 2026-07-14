@@ -72,7 +72,7 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
             <BarChart
               layout="vertical"
               data={sorted}
-              margin={{ top: 6, right: 40, bottom: 6, left: 8 }}
+              margin={{ top: 24, right: 40, bottom: 6, left: 8 }}
               barCategoryGap={8}
             >
               <XAxis
@@ -94,11 +94,21 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
                 cursor={{ fill: "transparent" }}
                 formatter={(v) => [`${String(v)} ${t.tip}`, ""]}
               />
+              {/* Ceiling sits near the right edge; anchor the label to the end
+                  so it grows leftward and never clips. Top margin gives it room. */}
               <ReferenceLine
                 x={CEILING}
                 stroke="#f59e0b"
                 strokeDasharray="4 3"
-                label={{ value: t.ceiling, position: "top", fontSize: 10, fill: "#f59e0b" }}
+                label={{
+                  value: t.ceiling,
+                  position: "insideTopRight",
+                  fontSize: 10,
+                  fill: "#f59e0b",
+                  textAnchor: "end",
+                  dy: -2,
+                  dx: -2,
+                }}
               />
               <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                 <LabelList dataKey="score" position="right" fontSize={11} className="fill-foreground" />

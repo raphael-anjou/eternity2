@@ -20,7 +20,7 @@ hardware:
   measured: true # true only for the standardized single-core bench
 repro:
   kind: seeded
-  cmd: just raphael-anjou single-core-benchmark
+  cmd: just experiments single-core-benchmark
 order: 10
 updated: 2026-07-13
 date: 2026-07
@@ -30,7 +30,7 @@ related:
   - /research/build/construct/beam-search
 sources:
   - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
-    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
 ---
 
 import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
@@ -108,13 +108,17 @@ that produced the records below. It measures per-core efficiency and heuristic
 quality, not peak reachable score. An engine that ranks high here reaches good
 boards cheaply; the record numbers need many cores times hours.
 
+Every variant here pins all 5 official clues (plus 3 corners, so 8 hints in
+total), so the relevant ceiling is the **5-clue community record of 464**, not
+the all-hints 470 (which uses more than the 5 clues). That 464 is what the
+leaderboard's dashed line marks.
+
 | reference | score | conditions |
 |:--|--:|:--|
-| Community all-hints ceiling | 470 | Blackwood, farm-scale (about 180 core-years) |
-| Community 5-hint record | 464 | Pejic and benj39100, 2026 |
-| Our verified record | 461 | comb-producer then ALNS, about 20 min |
+| Community 5-clue record | 464 | Pejic and benj39100, 2026 (same 5 clues these variants pin) |
 | This grid's best (producer) | 456 | one core, 60 s |
-| Blackwood on our 8-core hardware | 438 | proves 464 to 470 is a compute wall |
+| Community all-hints ceiling | 470 | Blackwood, farm-scale, uses more than 5 clues |
+| Blackwood from scratch on an 8-core box | 438 | shows 464 is a compute wall, not a cleverness gap |
 
 ## Method and reproducibility
 
@@ -131,8 +135,8 @@ same scorer, never the engine's self-report. There were zero failures across all
 Every one of the fifteen solvers is open source and runs from this repository.
 The crate workspace, the ten variants, the committed per-run results and the grid
 scripts all live under the experiment's
-[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/raphael-anjou/single-core-benchmark),
-and `just raphael-anjou single-core-benchmark` builds the engines and reruns the
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
+and `just experiments single-core-benchmark` builds the engines and reruns the
 whole grid. The native family (ranks 5 to 15) is one binary selected by preset;
 the four strong engines (producer, ALNS, Verhaard, Blackwood, ranks 1 to 4) are a
 binary each, driven by a small wrapper. Both speak the same puzzle-in,

@@ -38,11 +38,13 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   single source of truth for its metadata), a `compute/` crate/script, and
   committed `results/`. `node research/build-index.mjs` regenerates+validates
   `research/index.json` (the registry; fails if an `id` mismatches its dir or a
-  declared result file is missing — usable as a CI gate). One researcher's own runs
-  live under `research/experiments/<author>/<experiment>/` and may carry a
-  self-contained runnable engine plus a per-author `just` module (root:
-  `mod <author> '…/justfile'`, so `just <author>` lists and `just <author> <exp>`
-  runs). See `research/README.md`.
+  declared result file is missing — usable as a CI gate). Measured runs (shared
+  facilities any researcher's engine can join) live under
+  `research/experiments/<experiment>/` and may carry a self-contained runnable
+  engine plus a `just` module (root: `mod experiments 'research/experiments/justfile'`,
+  so `just experiments` lists and `just experiments <name>` runs). Who ran it and
+  on what hardware is recorded on the write-up page's `author:`/`hardware:` fields.
+  See `research/README.md`.
 
 - **Site reference-table data is a copy of a research result.** `web/src/data/
   reference-table.json` is copied from `research/topics/subgrid-placement-counts/

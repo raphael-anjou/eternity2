@@ -24,7 +24,7 @@ import data from "@/data/single-core-benchmark.json";
 //
 // Bars are coloured by algorithm FAMILY (categorical identity, never by rank),
 // with a legend, so colour is never the only signal. Reference ticks mark our
-// 461 record and the community 470 ceiling. Throughput units differ by family
+// community 470 ceiling. Throughput units differ by family
 // and are never cross-compared; each row shows its own native unit.
 
 type Algo = {
@@ -42,7 +42,6 @@ type Algo = {
 const D = data as {
   budgetS: number;
   maxScore: number;
-  record: number;
   community: number;
   variantIds: number[];
   algos: Algo[];
@@ -60,7 +59,7 @@ const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
 // Score domain: start below the weakest so every bar has visible length, end at
-// the 480 maximum so the record/ceiling ticks sit in a true-to-scale position.
+// the 480 maximum so the 5-clue-record tick sits in a true-to-scale position.
 const DOMAIN_LO = 0;
 
 const T = {
@@ -76,8 +75,7 @@ const T = {
     boardTitle: "The leaderboard",
     boardIntro:
       "Mean score over ten corner-pinned variants, single core, 60 s each. The dark segment marks each engine's worst-to-best range; colour marks the family.",
-    record: "our 461",
-    ceiling: "community 470",
+    ceiling: "5-clue record 464",
     npsUnit: "median throughput (native unit, never cross-compared)",
     heatTitle: "Every algorithm across all ten corner variants",
     heatIntro:
@@ -98,8 +96,7 @@ const T = {
     boardTitle: "Le classement",
     boardIntro:
       "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Le segment sombre marque l'écart pire-au-meilleur de chaque moteur ; la couleur marque la famille.",
-    record: "notre 461",
-    ceiling: "communauté 470",
+    ceiling: "record 5 indices 464",
     npsUnit: "débit médian (unité native, jamais comparée entre familles)",
     heatTitle: "Chaque algorithme sur les dix variantes de coins",
     heatIntro:
@@ -201,7 +198,7 @@ export function BenchmarkLeaderboard() {
               <BarChart
                 layout="vertical"
                 data={algos}
-                margin={{ top: 6, right: 44, bottom: 6, left: 8 }}
+                margin={{ top: 34, right: 44, bottom: 6, left: 8 }}
                 barCategoryGap={6}
               >
                 <XAxis
@@ -229,17 +226,23 @@ export function BenchmarkLeaderboard() {
                     ];
                   }}
                 />
-                <ReferenceLine
-                  x={D.record}
-                  stroke="#a78bfa"
-                  strokeDasharray="4 3"
-                  label={{ value: t.record, position: "top", fontSize: 10, fill: "#a78bfa" }}
-                />
+                {/* These variants pin all 5 clues, so the meaningful ceiling is
+                    the 5-clue community record (464), not the all-hints 470.
+                    Anchor the label to the END (grows leftward, never clips)
+                    with room from the top margin. One line only, no overlap. */}
                 <ReferenceLine
                   x={D.community}
                   stroke="#f59e0b"
                   strokeDasharray="4 3"
-                  label={{ value: t.ceiling, position: "top", fontSize: 10, fill: "#f59e0b" }}
+                  label={{
+                    value: t.ceiling,
+                    position: "insideTopRight",
+                    fontSize: 10,
+                    fill: "#f59e0b",
+                    textAnchor: "end",
+                    dy: -2,
+                    dx: -2,
+                  }}
                 />
                 <Bar dataKey="mean" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                   <LabelList
