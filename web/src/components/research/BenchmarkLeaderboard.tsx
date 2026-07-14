@@ -198,7 +198,7 @@ export function BenchmarkLeaderboard() {
               <BarChart
                 layout="vertical"
                 data={algos}
-                margin={{ top: 34, right: 44, bottom: 6, left: 8 }}
+                margin={{ top: 28, right: 44, bottom: 6, left: 8 }}
                 barCategoryGap={6}
               >
                 <XAxis
@@ -236,11 +236,10 @@ export function BenchmarkLeaderboard() {
                   strokeDasharray="4 3"
                   label={{
                     value: t.ceiling,
-                    position: "insideTopRight",
+                    position: "top",
                     fontSize: 10,
                     fill: "#f59e0b",
                     textAnchor: "end",
-                    dy: -2,
                     dx: -2,
                   }}
                 />
