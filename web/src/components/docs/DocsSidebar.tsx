@@ -21,6 +21,80 @@ function activePath(pathname: string): string {
   return pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "") || "/";
 }
 
+/** Indent for a nested row. Each level adds a rule + padding, so a page inside
+ *  a sub-hub reads as deeper than its group's siblings (Tailwind needs literal
+ *  class names, so this is a lookup, not an interpolation). */
+const DEPTH_INDENT: Record<number, string> = {
+  0: "",
+  1: "ml-3 border-l pl-3",
+  2: "ml-6 border-l pl-3",
+  3: "ml-9 border-l pl-3",
+};
+const indentAt = (depth: number) => DEPTH_INDENT[Math.min(depth, 3)] ?? DEPTH_INDENT[3];
+
+/** Does this subtree contain the active page? Used to auto-open a sub-hub so a
+ *  reader never lands on a page whose own group is collapsed shut. */
+function containsActive(item: NavItem, active: string): boolean {
+  return item.url === active || item.children.some((c) => containsActive(c, active));
+}
+
+/** A collapsible group of pages nested INSIDE an author hub (the engines, the
+ *  runs, the analyses). The author hub itself stays a flat heading — this is
+ *  the level below it, where a long list needs folding. Open by default when it
+ *  holds the active page; otherwise remembers whatever the reader last chose. */
+function SubHub({ item, depth, active }: { item: NavItem; depth: number; active: string }) {
+  const hasActive = containsActive(item, active);
+  const [open, setOpen] = useState(hasActive);
+  // Following a link into a collapsed group must reveal it; without this the
+  // reader clicks a search result and lands behind a shut door.
+  const [lastActive, setLastActive] = useState(active);
+  if (active !== lastActive) {
+    setLastActive(active);
+    if (hasActive && !open) setOpen(true);
+  }
+  const isActive = active === item.url;
+  return (
+    <>
+      <div className={cn("flex items-center gap-1", indentAt(depth))}>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label={`${open ? "Collapse" : "Expand"} ${item.title}`}
+          className="shrink-0 rounded p-0.5 text-muted-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
+        >
+          <svg
+            viewBox="0 0 12 12"
+            className={cn("h-3 w-3 transition-transform", open && "rotate-90")}
+            aria-hidden
+          >
+            <path d="M4 2.5 L8 6 L4 9.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <LocalizedLink
+          to={item.url}
+          aria-current={isActive ? "page" : undefined}
+          className={cn(
+            "group flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1 text-sm transition-colors",
+            isActive
+              ? "bg-muted font-medium text-foreground"
+              : "font-medium text-foreground/80 hover:bg-muted/60 hover:text-foreground",
+          )}
+        >
+          <span className="truncate">{item.title}</span>
+          <span className="ml-auto shrink-0 pl-1 text-[10px] tabular-nums text-muted-foreground/60">
+            {item.children.length}
+          </span>
+        </LocalizedLink>
+      </div>
+      {open &&
+        item.children.map((c) => (
+          <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+        ))}
+    </>
+  );
+}
+
 function SideLink({
   item,
   depth,
@@ -38,7 +112,15 @@ function SideLink({
   // A per-author hub (its own experiments nested beneath) renders as a
   // first-class heading — bold, no bullet, a touch of top space — so the lab
   // reads as "these people, each with their runs" rather than a uniform list.
-  const isAuthorHub = Boolean(item.author) && item.children.length > 0;
+  // Only at depth 0: nav lifts author hubs to the top of their section, so a
+  // deeper page carrying the same `author` is a sub-hub INSIDE one, not an
+  // author. This branch ignores `depth`, so letting a sub-hub through here
+  // would render it flush-left, level with the author it belongs to.
+  const isAuthorHub = Boolean(item.author) && item.children.length > 0 && depth === 0;
+  // Any other page with children nested under a hub is a collapsible group.
+  if (!isAuthorHub && !flat && item.children.length > 0 && depth > 0) {
+    return <SubHub item={item} depth={depth} active={active} />;
+  }
   if (isAuthorHub) {
     return (
       <>
@@ -66,7 +148,7 @@ function SideLink({
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "group flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors",
-          depth > 0 && "ml-3 border-l pl-3",
+          indentAt(depth),
           isActive
             ? "bg-muted font-medium text-foreground"
             : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",

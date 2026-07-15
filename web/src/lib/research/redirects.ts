@@ -5,20 +5,36 @@
 // trailing slash), matching neutralPath() in the doc route.
 export const RESEARCH_REDIRECTS: Record<string, string> = {
   // Experiments re-homed under a per-author folder, so the lab opens to more
-  // than one researcher (2026-07). Each experiment now lives at
-  // …/experiments/<author-slug>/<name>.
-  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/prior",
-  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/keyring",
-  "/research/lab/experiments/gauntlet": "/research/lab/experiments/raphael-anjou/gauntlet",
-  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/lodestone",
-  "/research/lab/experiments/staged": "/research/lab/experiments/raphael-anjou/staged",
-  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/palimpsest",
-  "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/ladder",
-  "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/cloister",
-  "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/midden",
-  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/bandsaw",
-  "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/mosaic",
-  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/replay",
+  // than one researcher (2026-07), then sorted into per-kind sub-hubs under
+  // that author (runs / analyses / engines) so the sidebar can fold them.
+  // Targets below point at the CURRENT url, so a pre-author bookmark still
+  // lands in one hop.
+  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/runs/prior",
+  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/runs/keyring",
+  "/research/lab/experiments/gauntlet": "/research/lab/experiments/raphael-anjou/runs/gauntlet",
+  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/runs/lodestone",
+  "/research/lab/experiments/staged": "/research/lab/experiments/raphael-anjou/runs/staged",
+  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/runs/palimpsest",
+  "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/runs/ladder",
+  "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/runs/cloister",
+  "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/runs/midden",
+  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
+  "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/runs/mosaic",
+  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/analyses/replay",
+  // …and from the flat per-author urls those pages held until the sub-hubs
+  // landed (2026-07). Same pages, one level deeper.
+  "/research/lab/experiments/raphael-anjou/prior": "/research/lab/experiments/raphael-anjou/runs/prior",
+  "/research/lab/experiments/raphael-anjou/keyring": "/research/lab/experiments/raphael-anjou/runs/keyring",
+  "/research/lab/experiments/raphael-anjou/gauntlet": "/research/lab/experiments/raphael-anjou/runs/gauntlet",
+  "/research/lab/experiments/raphael-anjou/lodestone": "/research/lab/experiments/raphael-anjou/runs/lodestone",
+  "/research/lab/experiments/raphael-anjou/staged": "/research/lab/experiments/raphael-anjou/runs/staged",
+  "/research/lab/experiments/raphael-anjou/palimpsest": "/research/lab/experiments/raphael-anjou/runs/palimpsest",
+  "/research/lab/experiments/raphael-anjou/ladder": "/research/lab/experiments/raphael-anjou/runs/ladder",
+  "/research/lab/experiments/raphael-anjou/cloister": "/research/lab/experiments/raphael-anjou/runs/cloister",
+  "/research/lab/experiments/raphael-anjou/midden": "/research/lab/experiments/raphael-anjou/runs/midden",
+  "/research/lab/experiments/raphael-anjou/mosaic": "/research/lab/experiments/raphael-anjou/runs/mosaic",
+  "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
+  "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/analyses/replay",
   // Pages moved into the History & community section (2026-07).
   "/research/lab/boards": "/research/community/boards",
   "/research/build/history": "/research/community/hunt",

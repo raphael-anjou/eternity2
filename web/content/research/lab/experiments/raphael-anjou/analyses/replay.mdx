@@ -5,6 +5,7 @@ description: >-
   the move ordinary solvers can't make: paying two mismatches at a single
   cell.
 kind: experiment
+contribution: reconstruction
 author: raphael-anjou
 score: 460
 rigor: measured
@@ -16,13 +17,12 @@ complexity:
     the witness schedule tame it to a targeted replay rather than a blind hunt.
 repro:
   kind: seeded
-  cmd: cargo run --release --bin cloister2 -- --mode dfs --exact-tail 14 --prior-over-cost
 order: 40
 updated: 2026-07-10
 date: 2026-07
 topics: [records, backtracking]
 related:
-  - /research/lab/experiments/raphael-anjou/ladder
+  - /research/lab/experiments/raphael-anjou/runs/ladder
   - /research/records
   - /research/why/rigidity-wall
   - /research/build/reduce/nogood-learning
@@ -104,9 +104,10 @@ attempt: the wall was in the move set, not the compute.
 
 This one is seeded and closer to deterministic than the stochastic builders:
 the DFS replay off a fixed frame and witness schedule rebuilds the 460 boards
-reliably. The committed boards are checkable edge-by-edge in the viewer; the
-replay driver and frames live in the vault under `v213_replay` (frames from
-`vol-212`).
+reliably. The committed boards are checkable edge by edge in the viewer. The
+replay needs two inputs beyond the puzzle, a border frame and the community
+witness board it reconstructs; a runnable backing directory that ships both is
+planned.
 
 ## Open questions
 

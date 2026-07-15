@@ -4,6 +4,7 @@ description: >-
   Throw hundreds of cheap short searches at the board, keep only the deepest
   starts, and promote the survivors through longer and longer rounds.
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 451
 rigor: measured
@@ -16,14 +17,13 @@ complexity:
     it pays.
 repro:
   kind: seeded
-  cmd: cargo run --release --bin cloister2 -- --mode dfs --exact-tail 14 --restart-ms 5000
 order: 80
 updated: 2026-07-10
 date: 2026-07
 topics: [local-search]
 related:
-  - /research/lab/experiments/raphael-anjou/replay
-  - /research/lab/experiments/raphael-anjou/prior
+  - /research/lab/experiments/raphael-anjou/analyses/replay
+  - /research/lab/experiments/raphael-anjou/runs/prior
   - /research/build/backtracking/restarts
 sources:
   - label: "Successive halving / restart strategies (this project's restarts concept page)"
@@ -100,8 +100,9 @@ round later touched 452; the committed, reproducible board here is the 451.
 
 Seeded; the probe-and-promote structure reproduces the *behaviour* reliably
 though the exact board depends on seeds. The committed 451 board is checkable in
-the viewer. The climb driver and ranking scripts live in the vault under
-`v214` (`ladder_climb.sh`, `ladder_rank`).
+the viewer. The climb needs no corpus, frame, or witness, it runs from the
+puzzle alone, so a runnable backing directory for it is planned alongside the
+other from-scratch experiments.
 
 ## Open questions
 

@@ -6,6 +6,7 @@ description: >-
   the search reliably reach the top of its own range.
 metaDescription: "LODESTONE nudges a from-scratch Eternity II search to commit rare pieces early: it doesn't raise the ceiling but reliably reaches the top of its own range."
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 451
 rigor: measured
@@ -17,7 +18,7 @@ complexity:
     tiebreak, which is exactly why over-weighting it (making it part of the
     objective) is what breaks it.
 repro:
-  kind: seeded
+  kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 90
@@ -25,9 +26,10 @@ updated: 2026-07-10
 date: 2026-07
 topics: [construction, search-space]
 related:
+  - /research/lab/experiments/raphael-anjou/engines/producer
   - /research/why/piece-theft
-  - /research/lab/experiments/raphael-anjou/keyring
-  - /research/lab/experiments/raphael-anjou/prior
+  - /research/lab/experiments/raphael-anjou/runs/keyring
+  - /research/lab/experiments/raphael-anjou/runs/prior
   - /research/why/rare-color-geography
 sources:
   - label: "Rare-colour geography (this project): where the scarce (N,W) demands live"
@@ -103,9 +105,11 @@ piece to prefer, but weakly, safe only as a tiebreak.
 ## Reproduce
 
 Seeded; the tiebreak effect (tighter spread, +2 median) reproduces across
-seeds, and the committed 451 board is checkable in the viewer. The
-scarce-demand prior builder lives in the vault under `v208_confluence`
-(`build_lodestone_prior.py`).
+seeds, and the committed 451 board is checkable in the viewer. The engine is the
+shared [beam producer](/research/lab/experiments/raphael-anjou/engines/producer);
+the change this page describes is a faint scarce-piece-early tiebreak. That
+tiebreak weight is derived from the piece set and a corpus, so the run is not
+reproduced from scratch here.
 
 ## Open questions
 

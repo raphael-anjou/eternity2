@@ -6,6 +6,7 @@ description: >-
   order found a brand-new 458 board.
 metaDescription: "GAUNTLET runs one beam search across nine scan orders so it lands in different regions instead of converging: the zigzag order found a new 458 board."
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 458
 rigor: measured
@@ -24,8 +25,9 @@ updated: 2026-07-10
 date: 2026-07
 topics: [construction]
 related:
-  - /research/lab/experiments/raphael-anjou/prior
-  - /research/lab/experiments/raphael-anjou/keyring
+  - /research/lab/experiments/raphael-anjou/engines/producer
+  - /research/lab/experiments/raphael-anjou/runs/prior
+  - /research/lab/experiments/raphael-anjou/runs/keyring
   - /research/build/construct/beam-search
 sources:
   - label: "Beam search (this project's concept page): the construction this varies the scan order of"
@@ -119,15 +121,19 @@ axis than the seed.*
 
 The winning board, zigzag, seed 99, lifted, sits at cp = (3, 0, 1, 2),
 Hamming distance ≥ 246/256 from anything previously at that level: a new basin
-by the same corner-perm-plus-Hamming test [PRIOR](/research/lab/experiments/raphael-anjou/prior)
+by the same corner-perm-plus-Hamming test [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior)
 uses.
 
 ## Reproduce
 
-`just research-record-boards` verifies the committed 458 board's score exactly.
-The sweep is stochastic (nine scans × four seeds, then ALNS), so it will not
-reproduce the same board; the board is the artifact of record. The scan-sweep
-driver lives in the vault under `v175_gauntlet`.
+`just research-record-boards` verifies the committed 458 board's score exactly
+from its stored Bucas string. The sweep is stochastic (nine scans × four seeds,
+then a polish pass), so it will not reproduce the same board; the board is the
+artifact of record. The engine is the shared [beam
+producer](/research/lab/experiments/raphael-anjou/engines/producer) run across
+nine fill orders; it uses the same corpus-mined prior as
+[PRIOR](/research/lab/experiments/raphael-anjou/runs/prior), so the run is not
+reproduced from scratch here.
 
 ## Open questions
 
