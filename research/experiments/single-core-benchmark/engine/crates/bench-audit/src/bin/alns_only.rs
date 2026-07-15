@@ -7,6 +7,13 @@
 //
 // CLI:
 //   alns_only --cp-board <path> --alns-budget-ms <N> --seed <N> [--ops <preset>]
+//             [--chains N]
+//
+// --chains N (default 1) runs N independent ALNS chains from the same start
+// board in parallel and keeps the best. ALNS is one time-budgeted chain with no
+// restart loop, so best-of-N-chains is the parallelism available to it; each
+// chain gets the full --alns-budget-ms, so N chains cost ~1 chain's wall time on
+// N cores.
 //
 // Ops presets:
 //   --ops minimal   = RandomRegion{4}, WorstWindow{5}, ConflictDriven{30}, MwpmDefectPair{12}
@@ -26,7 +33,7 @@ use eternity2_benchmark::loader::load_puzzle_with_hints;
 use eternity2_benchmark::report::bucas_url;
 use eternity2_core::{Board, Rotation};
 use eternity2_localsearch::{
-    piece_swap_hillclimb, polish_rotations, run_alns, Acceptance, AlnsConfig,
+    piece_swap_hillclimb, polish_rotations, run_alns, run_alns_portfolio, Acceptance, AlnsConfig,
     BottomBandDestroy, ComponentClusterDestroy, ComponentDestroy, ComponentPlusHaloDestroy, ConflictDriven, DestroyOp,
     HalfBoardDestroy, HingeDestroy, LkhChainDestroy, MegaBand, MwpmDefectPair, PriorDestroy, RandomRegion, RandomScatter,
     RepairKind, SigmaCycleDestroy, WorstBand, WorstColumn, WorstColumnBand, WorstRow, WorstWindow,
@@ -347,6 +354,9 @@ fn main() {
     // V169 — load a prior matrix to enable PriorDestroy ops appended to
     // the preset's destroy portfolio.
     let mut prior_path: Option<PathBuf> = None;
+    // >1 runs that many independent ALNS chains from the same start
+    // board (in parallel) and keeps the best. 1 = the historical single chain.
+    let mut chains: usize = 1;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
@@ -354,6 +364,7 @@ fn main() {
             "--puzzle" => custom_puzzle = Some(PathBuf::from(args.next().unwrap())),
             "--alns-budget-ms" => alns_ms = args.next().unwrap().parse().unwrap(),
             "--seed" => seed = args.next().unwrap().parse().unwrap(),
+            "--chains" => chains = args.next().unwrap().parse().unwrap(),
             "--ops" => ops_preset = args.next().unwrap(),
             "--oracle" => oracle_path = Some(PathBuf::from(args.next().unwrap())),
             "--repair-budget-ms" => repair_budget_ms = args.next().unwrap().parse().unwrap(),
@@ -401,21 +412,35 @@ fn main() {
         eprintln!("loading oracle from {}", p.display());
         load_cp_board(p)
     });
-    let mut ops = build_ops_with_oracle(&ops_preset, oracle_board.as_ref());
-
-    // V169 — append PriorDestroy variants to the preset if a prior was given.
-    if let Some(p) = prior_path.as_ref() {
+    // V169 — the prior matrix (if any) is loaded ONCE and shared; build_ops is a
+    // factory because a portfolio needs one independent op set per chain
+    // (DestroyOps carry mutable per-chain state, so chains cannot share them).
+    let prior_matrix = prior_path.as_ref().map(|p| {
         eprintln!("loading prior matrix from {}", p.display());
-        let prior = load_prior_matrix(p);
-        let pinned_set: std::collections::BTreeSet<u32> = hints.hints.iter()
-            .map(|h| h.position)
-            .chain(extra_pins.iter().copied())
-            .collect();
-        let prior_ops = build_prior_ops(&prior, &pinned_set);
-        eprintln!("appended {} PriorDestroy ops to preset", prior_ops.len());
-        for op in prior_ops {
-            ops.push(op);
+        load_prior_matrix(p)
+    });
+    let prior_pinned: std::collections::BTreeSet<u32> = hints
+        .hints
+        .iter()
+        .map(|h| h.position)
+        .chain(extra_pins.iter().copied())
+        .collect();
+    // Named build_chain_ops, not build_ops: a free `build_ops(preset)` already
+    // exists in this file and shadowing it here would be a trap for the next reader.
+    let build_chain_ops = || {
+        let mut ops = build_ops_with_oracle(&ops_preset, oracle_board.as_ref());
+        // V169 — append PriorDestroy variants to the preset if a prior was given.
+        if let Some(prior) = prior_matrix.as_ref() {
+            for op in build_prior_ops(prior, &prior_pinned) {
+                ops.push(op);
+            }
         }
+        ops
+    };
+
+    let mut ops = build_chain_ops();
+    if prior_matrix.is_some() {
+        eprintln!("appended PriorDestroy ops to preset (total {} ops)", ops.len());
     }
 
     let cfg = AlnsConfig {
@@ -448,7 +473,40 @@ fn main() {
     };
 
     let t0 = Instant::now();
-    let (alns_board, stats) = run_alns(&puzzle, &cp_board, ops.as_mut_slice(), &cfg);
+    // ALNS is a single time-budgeted chain -- there is no restart loop
+    // to fan out, and one chain cannot be split across cores without changing the
+    // search. The available parallelism is INDEPENDENT CHAINS from the same start
+    // board, keeping the best: --chains N. Each chain gets the same wall budget,
+    // so N chains cost the same wall time as 1 on N cores and sample the
+    // acceptance landscape N times instead of once.
+    //
+    // run_alns_portfolio (localsearch) already implements exactly this and is
+    // already rayon-parallel; it simply had no caller here. --chains 1 (default)
+    // keeps the direct single-chain call, unchanged.
+    let (alns_board, stats) = if chains > 1 {
+        eprintln!("# --chains {chains}: independent ALNS chains from the same start board, best-of. Each gets the full --alns-budget-ms.");
+        let (b, per_chain) = run_alns_portfolio(
+            &puzzle,
+            &cp_board,
+            |_i| build_chain_ops(),
+            &cfg,
+            chains,
+            |_i| cfg.acceptance,
+        );
+        // Report the best chain's stats (the portfolio returns the best board).
+        let best = per_chain
+            .iter()
+            .max_by_key(|(score, _)| *score)
+            .expect("portfolio returns one entry per chain");
+        eprintln!(
+            "# chain scores: {:?} (best {})",
+            per_chain.iter().map(|(s, _)| *s).collect::<Vec<_>>(),
+            best.0
+        );
+        (b, best.1.clone())
+    } else {
+        run_alns(&puzzle, &cp_board, ops.as_mut_slice(), &cfg)
+    };
     let elapsed = t0.elapsed();
     let pinned_set: std::collections::BTreeSet<u32> = hints.hints.iter().map(|h| h.position).collect();
     let (alns_board, rg) = polish_rotations(&puzzle, &alns_board, &pinned_set);

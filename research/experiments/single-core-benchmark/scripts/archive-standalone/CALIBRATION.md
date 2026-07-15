@@ -1,4 +1,16 @@
-# Standalone engine calibration — vol-235 benchmark grid
+# Standalone engine calibration — benchmark grid
+
+> **Archived record — one claim below has since expired.** This file documents
+> the calibration as it stood when the published results were measured, and is
+> kept for provenance; it is not maintained. The "Threading mechanism" table
+> below says the producer has *"none — no `rayon`/`thread::spawn` anywhere in
+> the binary"* and is *"inherently single-core"*. That was accurate then. It is
+> no longer: all four strong engines now take `--threads`/`--chains` and can use
+> many cores. The grid is still single-core, but because the wrapper now passes
+> `--threads 1` explicitly, not because the binaries cannot do otherwise. See
+> `../run_standalone.sh` for the current, enforced position. Every measurement
+> in this file was taken single-core and remains reproducible with
+> `--threads 1`.
 
 Machine: 8-core Apple Silicon (`hw.ncpu=8`), macOS (Darwin 25.5.0). All
 measurements below are single runs of `crates/bench-grid/wrappers/run_standalone.sh`
