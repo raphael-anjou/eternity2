@@ -1,0 +1,112 @@
+---
+title: The C backtracker on real E2
+description: >-
+  Peter McGavin's own C solver, built on my M1 and ported from Joe's test puzzle
+  to the real 256-piece Eternity II. Single core, it drives past 200 of 256
+  pieces at roughly 109 million tile placements a second.
+metaDescription: "Peter McGavin's C solver, built on an M1 and run on the real Eternity II: ~204/256 pieces deep at ~109M placements/s, single core."
+kind: experiment
+contribution: measurement
+author: peter-mcgavin
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), single-threaded binary"
+  wallClock: "30 s per run"
+  seedPolicy: "time-seeded; deterministic on Joe's puzzle, non-terminating on real E2"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "fetch genbody71.zip from groups.io msg 11749; gcc -Ofast -DG then without -DG"
+order: 10
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/lab/experiments/single-core-benchmark
+sources:
+  - label: "Peter McGavin's genbody71.zip (groups.io msg 11749, the original source)"
+    url: https://groups.io/g/eternity2/message/11749
+  - label: "McGavin's 469 announcement (msg 10045)"
+    url: https://groups.io/g/eternity2/message/10045
+---
+
+<Callout kind="note" title="Whose work this is">
+  The algorithm and the C are **Peter McGavin's**, posted to the mailing list.
+  This page is [Raphaël Anjou](/research/people/raphael-anjou) building and
+  running that code on one machine and writing up what it did. The only changes
+  to his source are the two small ones described below.
+</Callout>
+
+Peter McGavin held the record himself in 2020, and his C is, by the community's
+own measurements, the fastest raw backtracker anyone has run. He posted the
+source to the mailing list. This page is that program, built and run on my
+machine, then pointed at the real puzzle.
+
+## Where the code came from
+
+The source is `genbody.c`, attached as `genbody71.zip` to
+[groups.io message 11749](https://groups.io/g/eternity2/message/11749). It is
+1,455 lines of C, with a README, a piece file, and a hint file. It is not
+copied into this repository: it stays on the list, where its author put it.
+
+It is a two-pass program, and the README is candid about the style ("dreadful C
+source code ... it really needs a lot of work to clean it up"). Compiled with
+`-DG`, it generates a second C file, `body.c`, specialised to one puzzle.
+Recompiled without `-DG`, it includes that generated file and runs the search.
+
+## What was changed to run it
+
+Two things, both small:
+
+- **Nothing, to build it.** It compiles clean on Apple silicon with `clang`
+  (one unused-variable warning). The POSIX status display it uses,
+  `setitimer` and `termios`, works on macOS with no shim.
+- **The puzzle it reads.** The filenames were hardcoded to Joe's test puzzle. I
+  made them read from the command line so it could be fed the real Eternity II,
+  and wrote the official pieces and clues into his `.puz` / `.hnt` format from
+  the canonical puzzle file. His search path is built generically (clue cells
+  first, then a row scan), so no other change was needed.
+
+## What it does on Joe's puzzle
+
+Configured as shipped, on Joe's 18-hint 16x16 test puzzle, it is very fast and
+it finishes:
+
+- **~279 million tile placements per second**, single core.
+- Solves the puzzle to completion in about 13 seconds (3.577 billion placements
+  to the first solution), identically on every run.
+
+That is the number the community means by "McGavin is fast." It is real, and it
+is on current hardware, not a seven-year-old machine.
+
+## What it does on the real Eternity II
+
+Fed the actual 256-piece puzzle, once with only the mandatory centre clue and
+once with all five official clues: his solver only saves a board when it finds a
+**complete** solution, and the real puzzle has never been solved, so it saves
+nothing and runs without stopping. What it does report, live, is the deepest it
+has placed:
+
+| Puzzle | Deepest placement, 30 s | Rate | Solutions |
+| --- | --- | --- | --- |
+| Real E2, 1 clue | **205 / 256** | ~108 M placements/s | 0 |
+| Real E2, 5 clues | **204 / 256** | ~109 M placements/s | 0 |
+
+Two things are worth saying plainly. First, this is a **depth** (how far the
+search reached before backtracking), not an edge score out of 480: his program
+does not emit a partial board to re-score. Second, the rate on the real puzzle
+is about 109 million placements a second, roughly 40% of its speed on Joe's
+puzzle, because the real puzzle's constraints prune harder. The clue count
+barely moves it: 205 with one clue, 204 with five.
+
+## Single core, confirmed
+
+The binary links only the system library, has no threading primitives in its
+source, and holds one CPU at 100% (not 800%) with a single thread throughout.
+The speed is one core's.

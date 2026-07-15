@@ -1,0 +1,73 @@
+---
+title: eii, and why it will not run here
+description: >-
+  Louis Verhaard's eii shipped as a Windows binary with no source, so his own
+  program cannot be built or run on this machine. What his method was, how its
+  constants survive, and why running "Verhaard" at all means a reimplementation.
+metaDescription: "Verhaard's eii ships as a source-less Win32 binary and won't run here. His method, how its constants survive, and why running it means a reimplementation."
+kind: experiment
+contribution: exposition
+author: louis-verhaard
+rigor: measured
+order: 10
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/engines/verhaard-reimpl
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Louis Verhaard's eii solver details (the original, Win32 only)"
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "Verhaard on his method (groups.io msg 6891)"
+    url: https://groups.io/g/eternity2/message/6891
+---
+
+<Callout kind="note" title="Whose work this is">
+  The method and the eii solver are **Louis Verhaard's**. This page, written up by
+  [Raphaël Anjou](/research/people/raphael-anjou), records what that method was
+  and why the original binary cannot be run here. The runnable engine is a
+  [reimplementation](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl),
+  and it is filed under Raphaël's section because that code is not Verhaard's.
+</Callout>
+
+Louis Verhaard is the only person the puzzle ever paid: his eii solver found the
+467 that won the $10,000 scrutiny prize in 2008. Unlike McGavin and Blackwood,
+he never released source. This page is about that gap, and about what it means to
+run "Verhaard" at all.
+
+## Why there is no original to run
+
+What Verhaard shipped is `eii-1.0-win32.zip` from
+[shortestpath.se/eii](https://www.shortestpath.se/eii/eii_details.html): a
+Windows `eii.exe`, a readme, and some `.bat` files. There are **zero source
+files**, and it is Win32 only. It does not run on Apple silicon, and there is no
+Windows or emulation layer on this machine to run it under. His artifact is,
+here, unrunnable, and there is nothing of his to fetch and build. The only thing
+to link is his own page.
+
+## What the method was
+
+Verhaard described his approach on the mailing list: **set-composition
+swap-annealing** under a 2x2-tiling metric. In short, pick a roughly
+180-piece subset of the interior, swap-anneal its composition until the number
+of achievable 2x2 sub-tilings is locally maximised, front-load the pieces that
+performed worst, and search the rest under that scaffold. It is a local-search
+method for choosing *which* pieces to commit to, not a raw backtracker.
+
+Its numeric constants survive only inside `eii.exe`: the comb-search fill orders
+and depth-gated edge slipping that became community canon were recovered
+byte-exact from the strings in the binary, because that is the only record of
+them that exists.
+
+## Running it means a reimplementation
+
+Because the source is gone, the only way to run his approach is to rebuild it.
+That is what the
+[Verhaard reimplementation](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
+does, and on the real five-clue puzzle it reaches 438 of 480, single core. That
+engine is filed under Raphaël's section, not this one, because it is a reading of
+Verhaard's method, not Verhaard's code. Naming that distinction is part of the
+finding: of the three community engines run here, his is the one that cannot be
+run at all.
