@@ -1,0 +1,83 @@
+---
+title: Verhaard reimplementation
+description: >-
+  A from-scratch reimplementation of Louis Verhaard's eii method, since his own
+  binary ships no source and will not run here. Set-composition swap-annealing
+  under the 2x2-tiling metric; on the real five-clue puzzle it reaches 438 of
+  480, single core.
+metaDescription: "A from-scratch reimplementation of Verhaard's eii method: set-composition swap-annealing, reaching 438/480 on the real five-clue puzzle, single core."
+kind: experiment
+contribution: reconstruction
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "120 s"
+  seedPolicy: "fixed seed 1"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 20
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, local-search]
+related:
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "Louis Verhaard's eii solver details (the original, Win32 only)"
+    url: https://www.shortestpath.se/eii/eii_details.html
+---
+
+<Callout kind="note" title="Whose work this is">
+  The **method** is [Louis Verhaard's](/research/lab/experiments/louis-verhaard/eii).
+  The **code** here is a from-scratch reimplementation by
+  [Raphaël Anjou](/research/people/raphael-anjou), which is why it lives in this
+  section and not his. It is filed as a reconstruction: a reading of his method,
+  not his program.
+</Callout>
+
+Verhaard's own eii is a source-less Windows binary that
+[will not run here](/research/lab/experiments/louis-verhaard/eii). The only way
+to run his approach is to rebuild it, and this is that rebuild: the same engine
+that appears as `verhaard` on the
+[grid](/research/lab/experiments/single-core-benchmark).
+
+## What it reimplements
+
+Verhaard's documented method: **set-composition swap-annealing** under the
+2x2-tiling metric. Pick a roughly 180-piece interior subset, swap-anneal its
+composition until the number of achievable 2x2 sub-tilings is locally maximised,
+front-load the worst performers, then search the rest under that scaffold. The
+engine's numeric constants were recovered byte-exact from the strings inside
+`eii.exe`, because that binary is the only surviving record of them.
+
+Calling this "running Verhaard" is a stretch worth naming: it is a reading of his
+method, not his code. That it is the only way to run his approach at all is part
+of the finding.
+
+## What it does on the real five-clue puzzle
+
+Single core, 120 seconds, all five official clues pinned:
+
+- **438 / 480** matched edges, a **fully placed** board (256 of 256 pieces).
+- All five clues respected (a strict clue solution), 42 broken edges, at roughly
+  40 million nodes a second.
+
+It found 438 within about twelve seconds and then plateaued for the rest of the
+budget: a genuine local optimum for that seed and time. That is the same ballpark
+as the other [engine](/research/lab/experiments/raphael-anjou/engines) results on
+the corner-pinned variants, and it is the only one of the three community engines
+here that solves the real, constrained puzzle well rather than an easier version
+of it: [Blackwood](/research/lab/experiments/joshua-blackwood/solver) stalls near
+45 with the clues pinned, and [McGavin](/research/lab/experiments/peter-mcgavin/backtracker)
+reaches about 204 pieces deep but by a different measure.

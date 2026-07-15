@@ -1,0 +1,116 @@
+---
+title: The C# solver, clued and unclued
+description: >-
+  Joshua Blackwood's open-source record solver, built and run on my M1. Left as
+  published it flies to 248 of 256 pieces without respecting the clues; pin the
+  five official clues and the same engine stalls near 45. A study of what its
+  speed is actually buying.
+metaDescription: "Blackwood's open-source C# solver on an M1: 248/256 pieces unconstrained at ~19M nodes/s, but stalls near 45/256 once the five official clues are pinned."
+kind: experiment
+contribution: measurement
+author: joshua-blackwood
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), pinned to one search thread"
+  wallClock: "60-120 s per run"
+  seedPolicy: "randomised per restart (his Random); one thread"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "git clone github.com/jblackwood345/EternityII_Solver; dotnet build -c Release"
+order: 10
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/single-core-benchmark
+sources:
+  - label: "Joshua Blackwood's solver (GitHub, GPL-3.0, the original source)"
+    url: https://github.com/jblackwood345/EternityII_Solver
+  - label: "Blackwood's 470 announcement (msg 10117)"
+    url: https://groups.io/g/eternity2/message/10117
+---
+
+<Callout kind="note" title="Whose work this is">
+  The algorithm and the C# are **Joshua Blackwood's**, public on GitHub under the
+  GPL-3.0. This page is [Raphaël Anjou](/research/people/raphael-anjou) building
+  and running that code and writing up what it did. The three small edits made to
+  run it single core and to read its progress are listed below; each is one his
+  own README invites.
+</Callout>
+
+Joshua Blackwood holds the standing 470 record, found with code he made public.
+That code is a real, buildable C# program, so unlike Verhaard's it can be run as
+its author wrote it. This page is that run, and what it exposed.
+
+## Where the code came from
+
+The source is his public repository,
+[github.com/jblackwood345/EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver),
+under the GPL-3.0. It builds unmodified on .NET 8. It is not copied here: the
+licence and good manners both say to link it, not vendor it, so it was cloned to
+a scratch directory, run, and only the numbers kept.
+
+## What was changed to run it
+
+His program is written to run on one machine's full core count and to save only
+near-complete boards. To measure it single core, and to see anything short of a
+full solve, three edits were made, each of which his own README invites ("change
+the number of cores", "change the save function"):
+
+- **One search thread.** His `number_virtual_cores` constant defaults to 64. His
+  `Parallel.For(1, N)` runs `N-1` workers, so setting it to 2 gives exactly one
+  search thread.
+- **A progress line.** Unmodified, in a bounded run it prints only "Solving...".
+  A single added line reports the deepest placement reached, so a run that does
+  not finish still yields a number.
+- **A lower save threshold, and clue pinning** for the constrained run below.
+
+## Left as published: fast, but on an easier puzzle
+
+Run as his code stands, single core for 60 seconds, it is fast and it gets far:
+
+- **248 / 256 pieces placed**, a board that re-scores to **454 / 480** matched
+  edges.
+- **~18.9 million nodes per second** (one node is one placement attempt).
+
+But there is a catch that the raw 454 hides. His solver places the five special
+clue pieces wherever they fit best, so the board it reaches satisfies only
+**one of the five official clues**. It is solving a looser, easier puzzle than
+the real Eternity II. The number is real, but it is not on the puzzle the prize
+was set on.
+
+The last eight cells of that 454 board are a genuine dead end: no arrangement of
+the eight leftover pieces completes them edge-perfectly. (For fun, handing that
+board to [our ALNS](/research/build/local-search/local-search-alns) for 30
+seconds filled all eight and pushed it to 462 by rearranging the region, but
+still with only one clue respected, so still not a legal board.)
+
+## With the five clues pinned: it stalls
+
+Pinning all five official clues into their cells forces the engine to solve the
+actual puzzle. The same code, 120 seconds, single core:
+
+- **Deepest placement: about 45 / 256.**
+
+His scan-order heuristic has nothing to grip once the special pieces are fixed
+mid-board: it thrashes near the bottom rows and never climbs. This is the true
+measure of his published program on the real puzzle, and it is far below the
+[Verhaard reimplementation's 438](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
+or [McGavin's 204](/research/lab/experiments/peter-mcgavin/backtracker)
+under the same constraint.
+
+<Callout kind="note" title="A fair caveat">
+  This clue pin is crude: it forbids every other piece at the five clue cells and
+  reserves those pieces. A clue-aware redesign would search outward from the
+  clues instead, and would do better. So 45 is a floor for "his published code
+  with clues bolted on", not a verdict on the approach. His record 470 was found
+  with this code plus a great deal of compute and luck, not in two minutes.
+</Callout>
