@@ -134,7 +134,8 @@ const frontmatterSchema = z.object({
   // The *contribution* axis: what kind of research result this is, independent
   // of `kind` (which drives layout). Only `solver` results earn a row on the
   // score chart / leaderboard; everything else is a property, a decode, a
-  // technique, a measurement, a dead end, or an explainer. See lab/methodology.
+  // technique, a measurement, a dead end, or an explainer. See
+  // lab/experiments/methodology.
   contribution: z
     .enum([
       "solver",
