@@ -17,7 +17,7 @@
 // `load_puzzle` returns the bare puzzle; `load_puzzle_with_hints`
 // returns both the puzzle and any hints embedded in the CSV.
 //
-// Vol-33 T4 — moved out of `eternity2-benchmark::loader` so non-benchmark
+// T4 — moved out of `eternity2-benchmark::loader` so non-benchmark
 // crates (server, solver-engine examples) can consume it without
 // pulling in the benchmark runner.
 

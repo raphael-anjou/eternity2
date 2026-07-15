@@ -390,7 +390,7 @@ pub fn encode_with_pinned(
         });
 
         // Case 1: both pinned. Edge is a CONSTANT.
-        // FIXED 2026-05-17 (vol-123 W-SAT bug):
+ // FIXED 2026-05-17 (W-SAT bug):
         //   For DECISION SAT (soft_edge_match=false), if the two pinned colors
         //   don't agree, we MUST emit a hard ⊥ (empty clause) to fail the
         //   whole problem. Previously this case skipped silently, which

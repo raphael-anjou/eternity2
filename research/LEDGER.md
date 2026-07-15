@@ -10,9 +10,9 @@ Conventions for entries:
 
 - **One entry per meaningful step** (a finding, a page, a refutation, a decision).
 - Record the **outcome and the learning**, not just "did X". If something failed
-  or was inert, say so plainly: a recorded dead end is as valuable as a result.
+ or was inert, say so plainly: a recorded dead end is as valuable as a result.
 - Note **reproducibility**: deterministic (reproduces byte-for-byte), stochastic
-  (script + committed output, labelled), or prose (no compute).
+ (script + committed output, labelled), or prose (no compute).
 - Link the **commit hash** and the **paths** touched.
 
 ---
@@ -20,17 +20,17 @@ Conventions for entries:
 ## Plan and conventions (the spine)
 
 - The research section is three doors: **Why it's hard**, **Build a solver**,
-  **The lab notebook**. Folders mirror routes at arbitrary depth; every level has
-  a `Hub.tsx`. See `AGENTS.md`.
+ **The lab notebook**. Folders mirror routes at arbitrary depth; every level has
+ a `Hub.tsx`. See `AGENTS.md`.
 - Every published result is reproducible. Findings go through the
-  `research/topics/<id>/` pipeline (compute crate + committed results +
-  `reproduce` command + GitHub link). Deterministic results reproduce
-  byte-for-byte; stochastic or long ones ship the script and the board (checkable
-  in the viewer), labelled honestly.
+ `research/topics/<id>/` pipeline (compute crate + committed results +
+ `reproduce` command + GitHub link). Deterministic results reproduce
+ byte-for-byte; stochastic or long ones ship the script and the board (checkable
+ in the viewer), labelled honestly.
 - Prose is accessible and human; findings are stated plainly without describing
-  how they were produced.
+ how they were produced.
 - Verify before every commit: `just check` (engine tests, typecheck, lint,
-  build), and for a research topic, `node research/build-index.mjs`.
+ build), and for a research topic, `node research/build-index.mjs`.
 
 ---
 
@@ -47,7 +47,7 @@ never dead links.
 - Reproducibility: prose/structure.
 - Commit `e1c4d28`.
 - Files: `web/src/pages/Research.tsx`, `web/src/pages/research/{why,build,lab}/Hub.tsx`,
-  `routes.ts`, `sitemap.config.ts`, `seo.ts`, `AGENTS.md`.
+ `routes.ts`, `sitemap.config.ts`, `seo.ts`, `AGENTS.md`.
 
 ### 2026-06-22 — Finding: Forbidden patterns (first lab-notebook content)
 
@@ -59,14 +59,14 @@ the expected sign of a set with no directional bias. A correct board has zero
 forbidden patches, so the count is a distance-to-valid signal.
 
 - Reproducibility: deterministic; ~20s; verified byte-for-byte identical across
-  two runs.
+ two runs.
 - Commit `41e0280`.
 - Topic: `research/topics/forbidden-patterns/`. Page:
-  `web/src/pages/research/why/forbidden-patterns.tsx`. Data:
-  `web/src/data/forbidden-patterns.json`.
+ `web/src/pages/research/why/forbidden-patterns.tsx`. Data:
+ `web/src/data/forbidden-patterns.json`.
 - Learning: the right population is the 196 interior pieces with distinct-piece
-  placements; the vault's earlier 0.282% figure sampled a different population.
-  The exact count (~0.28% feasible) is cleaner and reproduces.
+ placements; the vault's earlier 0.282% figure sampled a different population.
+ The exact count (~0.28% feasible) is cleaner and reproduces.
 
 ### 2026-06-22 — DX: justfile + "Run it yourself" page
 
@@ -78,7 +78,7 @@ New page `/research/build/run-it-yourself`. Validated `just --list`,
 - Reproducibility: tooling/prose.
 - Commit `855250a`.
 - Files: `justfile`, `web/src/pages/research/build/run-it-yourself.tsx`,
-  `README.md`, `AGENTS.md`.
+ `README.md`, `AGENTS.md`.
 
 ### 2026-06-22 — Finding: Tuned to the hardness peak (phase transition)
 
@@ -92,8 +92,8 @@ Ansotegui et al.
 - Reproducibility: deterministic; instant; verified identical across runs.
 - Commit `8c39c65`.
 - Topic: `research/topics/phase-transition/`. Page:
-  `web/src/pages/research/why/phase-transition.tsx`. Data:
-  `web/src/data/phase-transition.json`.
+ `web/src/pages/research/why/phase-transition.tsx`. Data:
+ `web/src/data/phase-transition.json`.
 
 ### 2026-06-22 — Page: Dead ends (Build door)
 
@@ -109,7 +109,7 @@ tuples). Stated as plain facts about the approaches, no internal references.
 - Reproducibility: prose (drawn from prior refutations).
 - Page: `web/src/pages/research/build/dead-ends.tsx`. Build hub card live.
 - Learning: kept only general approaches a newcomer would try; dropped items that
-  were specific to private 459-basin work (basin-mix MIP, high-T MCMC from 459).
+ were specific to private 459-basin work (basin-mix MIP, high-T MCMC from 459).
 
 ### 2026-06-22 — Inventions section + verified record boards
 
@@ -146,14 +146,14 @@ animation, sigma-cycle overlay, entropy collapse curve, forbidden-patch heatmap)
 
 Started a 2h self-paced loop (cron 55d3e9eb). Built the flagship hardness findings:
 - rigidity-wall: every record board locally frozen (MIP, halo-4, 3 boards). Animated
-  halo growing over the verified 463 board with mismatches marked. repro=heavy(MIP),
-  board verifiable.
+ halo growing over the verified 463 board with mismatches marked. repro=heavy(MIP),
+ board verifiable.
 - sigma-cycles: basin-hopping impossible — one 154-cell interlocking cycle, every
-  subset scores worse. Interactive "apply part of the loop, seam breaks" diagram.
-  Cross-linked with rigidity (the two escape routes, both closed).
+ subset scores worse. Interactive "apply part of the loop, seam breaks" diagram.
+ Cross-linked with rigidity (the two escape routes, both closed).
 - no-forced-moves: NEW exact topic. Every interior piece has 73-137 right-partners,
-  ZERO forced. Histogram chart. The flip side of forbidden-patterns (local freedom +
-  no global consistency). repro=exact, deterministic.
+ ZERO forced. Histogram chart. The flip side of forbidden-patterns (local freedom +
+ no global consistency). repro=exact, deterministic.
 Commits `262dc5f`, `04fbf5f`. Also fixed a stale dev-server (port 5173 squat) that
 threw a "file not found" for sigma-cycles; restarted clean on 5174.
 Remaining /why: entropy/area-law (#18), rare-color-geography (#19 other half).
@@ -165,12 +165,12 @@ Added KaTeX (`<Math>`/`<MathBlock>`, SSR-rendered into prerendered HTML). Note:
 importing `Math` shadows the global Math object — import as `MathInline` on pages
 that use `Math.exp` etc.
 - forbidden-patterns: NEW live "draw four pieces" animation (real pieces, real
-  2x2 feasibility, converges to 99.72%, speed slider) + a "where 99.72% comes
-  from" math section.
+ 2x2 feasibility, converges to 99.72%, speed slider) + a "where 99.72% comes
+ from" math section.
 - entropy-area-law (#18): NEW finding + topic. Recomputes grammar entropy exactly
-  for widths 1,2 (transfer-matrix eigenvalue) + lambda_H=46.18; h(n) decay chart;
-  rho(n) area-law collapse (log axis); the Fekete-subadditivity theorem in KaTeX.
-  Carries h(3)/h(4)/h_inf≈0.67 from offline sweep, labelled.
+ for widths 1,2 (transfer-matrix eigenvalue) + lambda_H=46.18; h(n) decay chart;
+ rho(n) area-law collapse (log axis); the Fekete-subadditivity theorem in KaTeX.
+ Carries h(3)/h(4)/h_inf≈0.67 from offline sweep, labelled.
 Commits `f25231c`, `d4802d0`. **User said STOP PUSHING to GitHub — committing
 locally only now ([[feedback_e2_site_repo_main_only]]).** Also: `pnpm add katex`
 broke the rolldown native binding (dangling optional-dep symlink); fixed with
@@ -190,12 +190,12 @@ CLOISTER/MIDDEN), basins gallery, findings hub; then solver catalogue (#21).
 ### 2026-06-22 — Lab door completed: basins gallery + findings index
 
 - /research/lab/basins: notable-boards gallery — 3 verified project boards
-  (463/460/458) + 4 community (467/468/469/470), sorted by score, each opens in
-  viewer via native params (bucas board_w/h + motifs_order stripped). Commit
-  `59eac42`.
+ (463/460/458) + 4 community (467/468/469/470), sorted by score, each opens in
+ viewer via native params (bucas board_w/h + motifs_order stripped). Commit
+ `59eac42`.
 - /research/lab/findings: grouped index of the 7 structural results (design
-  signatures / structural walls / rigidity proofs), each linking to its full /why
-  write-up. Commit `dbd06b9`.
+ signatures / structural walls / rigidity proofs), each linking to its full /why
+ write-up. Commit `dbd06b9`.
 Lab hub now has all three cards live (findings, inventions, basins) — no
 "in preparation" left on the Lab door. Remaining: more invention pages with their
 own viz (LADDER/REPLAY/PRIOR/STAGED/BANDSAW/CLOISTER/MIDDEN, #20), and the solver
@@ -215,7 +215,7 @@ All commits LOCAL only (8+ ahead of origin; user said don't push).
 
 ### 2026-06-22 — PRIOR invention (constructive from scratch, 460)
 
-Bundled + verified the vol-155 from-scratch→ALNS 460 board into record-boards
+Bundled + verified the from-scratch→ALNS 460 board into record-boards
 (recompute 460 == claimed; 4 boards now). New /research/lab/inventions/prior via
 InventionLayout. 4 inventions live (PALIMPSEST/KEYRING/GAUNTLET/PRIOR). Commit
 `1828ec3`. Remaining invention pages (LADDER/REPLAY/STAGED/BANDSAW/CLOISTER/
@@ -253,17 +253,17 @@ or a bespoke animation. Local commits only.
 ### 2026-06-23 — Piece-theft finding + Experiments log (publish ALL attempts)
 
 - piece-theft (#why): exact (N,W)-demand server scarcity (269 demands, 47 with a
-  single server, mean 2.9), animation of a cell dying from a stolen scarce piece,
-  histogram. NOTE: my exact recompute (269/47) differs from the vault note
-  (362/121) — different convention; published what's reproducible. Commit `f279cf9`.
+ single server, mean 2.9), animation of a cell dying from a stolen scarce piece,
+ histogram. NOTE: my exact recompute (269/47) differs from the vault note
+ (362/121) — different convention; published what's reproducible. Commit `f279cf9`.
 - USER DIRECTIVE: publish ALL experiments tried + result + why
-  ([[feedback_e2_site_publish_all_experiments]]). Built the **Experiments log**:
-  web/src/data/experiments.json rolled from all 380 vault concept frontmatters
-  (245 built / 52 refuted / 41 partial / 39 idea / 2 wont-do), regenerable via
-  research/topics/experiments-log/extract.py. New /research/lab/experiments page:
-  search + outcome filters. Commit `0de1d0a`. Lab door now has 4 cards.
-  NEXT: enrich the "why" — esp. pull a why-it-failed line from each of the 52
-  refuted concepts' bodies.
+ ([[feedback_e2_site_publish_all_experiments]]). Built the **Experiments log**:
+ web/src/data/experiments.json rolled from all 380 vault concept frontmatters
+ (245 built / 52 refuted / 41 partial / 39 idea / 2 wont-do), regenerable via
+ research/topics/experiments-log/extract.py. New /research/lab/experiments page:
+ search + outcome filters. Commit `0de1d0a`. Lab door now has 4 cards.
+ NEXT: enrich the "why" — esp. pull a why-it-failed line from each of the 52
+ refuted concepts' bodies.
 Why door now has 8 findings. Local commits only (no push, per user).
 
 ### 2026-06-23 — Session close
@@ -271,20 +271,20 @@ Why door now has 8 findings. Local commits only (no push, per user).
 Added experiments-log/article.md so `build-index.mjs` validates (9 topics OK).
 Session state at close:
 - **Research section content-complete.** Why: 8 findings (phase-transition,
-  rigidity, sigma-cycles, forbidden-patterns, no-forced-moves, piece-theft,
-  rare-color, entropy/area-law). Build: reference, papers, records, dead-ends,
-  run-it-yourself, solvers. Lab: findings, 10 inventions (each with a verified
-  board preview or animation), experiments log (380 attempts, searchable), basins
-  gallery (7 boards).
+ rigidity, sigma-cycles, forbidden-patterns, no-forced-moves, piece-theft,
+ rare-color, entropy/area-law). Build: reference, papers, records, dead-ends,
+ run-it-yourself, solvers. Lab: findings, 10 inventions (each with a verified
+ board preview or animation), experiments log (380 attempts, searchable), basins
+ gallery (7 boards).
 - 9 reproducible `research/topics/`; KaTeX math; 7 bespoke animations.
 - Verified green at close: typecheck ✓ lint ✓ build ✓ index ✓.
 - **28 commits LOCAL ONLY — NOT pushed** (user said stop pushing; resume only on
-  explicit say-so). `git push origin main` when cleared.
+ explicit say-so). `git push origin main` when cleared.
 - OPEN / next-session backlog: clean up terse internal-shorthand in the
-  experiments log for outsiders; basin case-studies for all 17 (gallery has 7);
-  full 219-vol record-climb timeline on Records; ★ findings depth-40 + NS-1
-  still TODO; bespoke embedded solver demo (solvers page currently links to
-  playground). Plan: research/SITE_PLAN.md.
+ experiments log for outsiders; basin case-studies for all 17 (gallery has 7);
+ full 219-vol record-climb timeline on Records; ★ findings depth-40 + NS-1
+ still TODO; bespoke embedded solver demo (solvers page currently links to
+ playground). Plan: research/SITE_PLAN.md.
 
 ### 2026-06-22 — Set up this ledger; refined the writing voice
 
@@ -312,17 +312,17 @@ Pilot page migrated: why/border-balance (EN+FR), now with real KaTeX math.
 Registration burden for a new research page: 1 MDX file (was 5 files).
 
 - Verified: typecheck ✓ lint ✓ build ✓; prerendered HTML carries the full
-  prose in both languages (lazy MDX resolves during prerender — the key
-  architectural risk, confirmed safe); sitemap symmetric; live Ns1Lab demo
-  works embedded in MDX.
+ prose in both languages (lazy MDX resolves during prerender — the key
+ architectural risk, confirmed safe); sitemap symmetric; live Ns1Lab demo
+ works embedded in MDX.
 - User directives recorded: cross-cutting topic categories + a top category
-  bar (Phase 1.5); always link supporting sources (frontmatter sources[]);
-  double-check numbers/facts during every migration.
+ bar (Phase 1.5); always link supporting sources (frontmatter sources[]);
+ double-check numbers/facts during every migration.
 - Reproducibility: tooling/prose.
 - Files: web/content.config.ts, web/plugins/research-content.ts,
-  web/content/research/why/border-balance{,.fr}.mdx, web/src/components/docs/*,
-  web/src/lib/research/*, web/src/pages/research/doc.tsx, routes.ts,
-  sitemap.config.ts, seo.ts, vite.config.ts, index.css, research/WIKI_REBUILD.md.
+ web/content/research/why/border-balance{,.fr}.mdx, web/src/components/docs/*,
+ web/src/lib/research/*, web/src/pages/research/doc.tsx, routes.ts,
+ sitemap.config.ts, seo.ts, vite.config.ts, index.css, research/WIKI_REBUILD.md.
 
 ### 2026-07-01 — Topic categories + two-level research navigation (Phase 1.5)
 
@@ -342,12 +342,12 @@ Blackwood notes + parameter study offered for the site with permission
 (groups.io msg 11905) — queued for the solver catalogue.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (119 prerendered paths), visual pass
-  EN+FR desktop.
+ EN+FR desktop.
 - Reproducibility: tooling/prose.
 - Files: web/content/research/topics.json, content.config.ts, plugins/,
-  src/lib/research/*, src/components/docs/* (Subnav, TopicPages new),
-  src/pages/research/doc.tsx, index.css, border-balance MDX,
-  research/WIKI_REBUILD.md.
+ src/lib/research/*, src/components/docs/* (Subnav, TopicPages new),
+ src/pages/research/doc.tsx, index.css, border-balance MDX,
+ research/WIKI_REBUILD.md.
 
 ### 2026-07-01 — Research search (Phase 2)
 
@@ -360,12 +360,12 @@ not-yet-migrated TSX pages join via title+description so nothing is
 unfindable. Static-only as always — no server, works offline.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (index chunks code-split); manual:
-  "forbidden squares" → Forbidden patterns; "multiset seam tallies" →
-  border-balance ranked first via body text.
+ "forbidden squares" → Forbidden patterns; "multiset seam tallies" →
+ border-balance ranked first via body text.
 - Reproducibility: tooling.
 - Files: web/content.config.ts (plainText/searchEntries), plugins/
-  research-content.ts, src/components/docs/SearchDialog.tsx, ResearchSubnav,
-  src/lib/research/{types,nav}.ts, seo.ts (pageDescription), minisearch dep.
+ research-content.ts, src/components/docs/SearchDialog.tsx, ResearchSubnav,
+ src/lib/research/{types,nav}.ts, seo.ts (pageDescription), minisearch dep.
 
 ### 2026-07-02 — Why door fully migrated to MDX; "experiments, not inventions" (Phase 3 batch 1)
 
@@ -388,12 +388,12 @@ Raphaël", one researcher's work structurally parallel to Bucas/Blackwood/
 McGavin material. kind:"experiment" replaces "invention" in the schema.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (119 paths), EN+FR titles/prose in
-  prerendered HTML, visual pass on walls-and-methods.
+ prerendered HTML, visual pass on walls-and-methods.
 - Reproducibility: prose/content (numbers backed by the cited topics).
 - Files: web/content/research/why/** (26 MDX), routes.ts, sitemap.config.ts,
-  seo.ts, src/lib/research/{nav,types}.ts, content.config.ts,
-  src/components/research/RecordBoard.tsx (new, for the experiment batch),
-  DocsShell HubCards, 12 TSX pages deleted.
+ seo.ts, src/lib/research/{nav,types}.ts, content.config.ts,
+ src/components/research/RecordBoard.tsx (new, for the experiment batch),
+ DocsShell HubCards, 12 TSX pages deleted.
 
 ### 2026-07-02 — Build pages + all 12 experiments migrated; InventionLayout retired (Phase 3 batch 2)
 
@@ -411,10 +411,10 @@ MOSAIC 448 / MIDDEN 452 / LADDER 451 / LODESTONE 451 confirmed from ledger +
 experiments.json. InventionLayout.tsx deleted (unused).
 
 - Verified: typecheck ✓ lint ✓ build ✓ (119 paths), EN/FR titles on all six
-  spot-checked pages, visual pass on PALIMPSEST (shell, badges, board, TOC).
+ spot-checked pages, visual pass on PALIMPSEST (shell, badges, board, TOC).
 - Files: web/content/research/{build,lab}/** (30 MDX), routes.ts,
-  sitemap.config.ts, seo.ts, nav.ts, 15 TSX + InventionLayout deleted,
-  RecordBoard.tsx new.
+ sitemap.config.ts, seo.ts, nav.ts, 15 TSX + InventionLayout deleted,
+ RecordBoard.tsx new.
 
 ### 2026-07-02 — Migration COMPLETE: the research section is a pure MDX wiki (Phase 3 done)
 
@@ -436,30 +436,30 @@ run. complex-theory finally got its research/topics article.md — build-index
 had been failing since the reference port landed (11 topics OK now).
 
 - Verified: typecheck ✓ lint ✓ build ✓ (119 paths) ✓ research index ✓; visual
-  pass on overview + experiments hub.
+ pass on overview + experiments hub.
 - Files: web/content/research/** (hubs + 8 wrapper MDX), views/ (4),
-  ExperimentScoreChart (renamed from InventionScoreChart), justfile,
-  research/topics/complex-theory/article.md, AGENTS.md, deletions listed above.
+ ExperimentScoreChart (renamed from InventionScoreChart), justfile,
+ research/topics/complex-theory/article.md, AGENTS.md, deletions listed above.
 
 ### 2026-07-02 — Blackwood decoded (credit: Jef Bucas), Known facts page, experiments log retired (Phase 4 begins)
 
 - /research/build/solvers/blackwood: Joshua Blackwood's record backtracker
-  explained through Jef Bucas's notes and wrapper_blackwood parameter study,
-  published with his explicit permission (groups.io msg 11905) and full
-  credit. Carries his verbatim schedule/break-index code, his near-optimal
-  conclusion, his own low-sample caveat, and an open replication invitation.
-  Numbers cross-verified against wrapper_blackwood's jobs.py defaults.
+ explained through Jef Bucas's notes and wrapper_blackwood parameter study,
+ published with his explicit permission (groups.io msg 11905) and full
+ credit. Carries his verbatim schedule/break-index code, his near-optimal
+ conclusion, his own low-sample caveat, and an open replication invitation.
+ Numbers cross-verified against wrapper_blackwood's jobs.py defaults.
 - /research/build/known-facts: the reference numbers researchers keep
-  re-deriving, every row with provenance. Serious verification pass:
-  1.115×10^557 reproduced exactly (4!·56!·195!·4^195), Verhaard 467 corrected
-  to 2008, twin-pair piece ids re-based to the site's 1–256 numbering, the
-  vault's internal-only material (basins, bounds, engine perf) excluded.
+ re-deriving, every row with provenance. Serious verification pass:
+ 1.115×10^557 reproduced exactly (4!·56!·195!·4^195), Verhaard 467 corrected
+ to 2008, twin-pair piece ids re-based to the site's 1–256 numbering, the
+ vault's internal-only material (basins, bounds, engine perf) excluded.
 - USER DIRECTIVE: the experiments log page (auto-extracted one-liners) is
-  removed — not a proper research artifact. Data + topic stay in the repo for
-  future curation into real write-ups.
+ removed — not a proper research artifact. Data + topic stay in the repo for
+ future curation into real write-ups.
 - Fixed MDX nested-<p> hydration warnings (phase-transition swatch cards, the
-  overview Door component): text inside a JSX <p> is re-parsed as a markdown
-  paragraph — use <div> wrappers in JSX islands.
+ overview Door component): text inside a JSX <p> is re-parsed as a markdown
+ paragraph — use <div> wrappers in JSX islands.
 - Verified: typecheck ✓ lint ✓ build ✓ (121 paths).
 
 ### 2026-07-02 — Blackwood article illustrated with Jef Bucas's figures
@@ -475,7 +475,7 @@ says the figures are his. Images live in web/src/assets/research/blackwood
 (downscaled/JPEG-compressed, ~790 KB total, lazy-loaded, hashed by Vite).
 
 - Verified: typecheck ✓ build ✓ (assets emitted, captions in prerendered
-  HTML EN+FR, all four figures load in browser).
+ HTML EN+FR, all four figures load in browser).
 
 ### 2026-07-02 — Raw-markdown siblings for every research page (Phase 5 begins)
 
@@ -489,7 +489,7 @@ index-only" trade-off from AGENTS.md: content is markdown now, so the old
 objection (TSX→thin stubs) is gone.
 
 - Verified: typecheck ✓ lint ✓ build ✓; emitted .md spot-checked (header +
-  clean body, export blocks stripped).
+ clean body, export blocks stripped).
 
 ### 2026-07-02 — Records timeline fully sourced from the community archive
 
@@ -608,29 +608,29 @@ timeline (the "easier one-clue variant" parenthetical deleted). Board-family
 references ("469-class", McGavin's 469 analyses) deliberately preserved.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (143 paths), EN/FR titles, corrected
-  records page in prerendered HTML.
+ records page in prerendered HTML.
 
 ### 2026-07-02 — Overnight wave: benchmarks, parity, Blackwood enrichment, contribute guide
 
 Four pages from the digest goldmine, all EN + native FR:
 - /research/build/benchmarks — the community's benchmark culture: the census
-  verification protocol (3x3 corner 2,633,221; 2x2 counts), the named suites
-  and their duels (hints15_2 down to 85,729 nodes), hints.20.3 (2.9e13 nodes,
-  one solution), the 9x9 pair, and Brendan's 10x10 — set_1 solved 2017
-  (~180 core-years), set_2 framed as the standing open challenge.
+ verification protocol (3x3 corner 2,633,221; 2x2 counts), the named suites
+ and their duels (hints15_2 down to 85,729 nodes), hints.20.3 (2.9e13 nodes,
+ one solution), the 9x9 pair, and Brendan's 10x10 — set_1 solved 2017
+ (~180 core-years), set_2 framed as the standing open challenge.
 - /research/build/analysis/parity-arguments — the 479 story in three acts,
-  colour sums → NS-1 lineage, the 2011 balanced-sets negatives, and the
-  certificate-asymmetry lesson.
+ colour sums → NS-1 lineage, the 2011 balanced-sets negatives, and the
+ certificate-asymmetry lesson.
 - Blackwood page enriched with primary levers (no-adjacent-breaks 10051, the
-  11→10 retune behind the 470 10076, his own negative results 10056, the
-  open-source spread arc). Agent corrected my brief from the digests
-  (10161 = his repo re-publication, libblackwood = 10078).
+ 11→10 retune behind the 470 10076, his own negative results 10056, the
+ open-source spread arc). Agent corrected my brief from the digests
+ (10161 = his repo re-publication, libblackwood = 10078).
 - /research/contribute — the warm invitation: three ways in, house rules,
-  the Jef Bucas precedent; lands in the Build sidebar via SECTION_OF.
+ the Jef Bucas precedent; lands in the Build sidebar via SECTION_OF.
 Also: Schaus msg 5589 wired into the ALNS concept sources. Phase 5 complete.
 
 - Verified: typecheck ✓ lint ✓ build ✓ (149 paths), contribute in Build
-  sidebar confirmed in browser.
+ sidebar confirmed in browser.
 
 ### 2026-07-02 — The notable boards gallery (lab/boards)
 
@@ -701,19 +701,19 @@ to parity-arguments). The lineage slipping→breaks is now told end to end.
 
 Four more archive-sourced pages at the educational bar:
 - concepts/fill-order — Owen's 121-185 decisive band, the magic 10x16
-  square, the 8-orientations race, comb search folded in; FillOrderLab
-  paints visit sequences against a live constraint-count curve (join counts
-  hand-verified); /playground/paths framed as the hands-on companion.
+ square, the 8-orientations race, comb search folded in; FillOrderLab
+ paints visit sequences against a live constraint-count curve (join counts
+ hand-verified); /playground/paths framed as the hands-on companion.
 - concepts/solver-engineering — the craft census (perfect hashing, cache
-  structs, bipieces incl. the honest 2x2 slowdown, codegen, BMI2,
-  node-counting discipline), closing on 4x-per-core vs 3 edges in 20 years.
+ structs, bipieces incl. the honest 2x2 slowdown, codegen, BMI2,
+ node-counting discipline), closing on 4x-per-core vs 3 edges in 20 years.
 - concepts/restarts — Txibilis's 2007 heavy-tail measurement, Gomes/Luby
-  literature, Blackwood's "arbitrary" 50e9 cap, McGavin's row-farming as
-  restart practice; RestartTailLab shows the cutoff U-curve (~217x at the
-  historical cutoff).
+ literature, Blackwood's "arbitrary" 50e9 cap, McGavin's row-farming as
+ restart practice; RestartTailLab shows the cutoff U-curve (~217x at the
+ historical cutoff).
 - build/tooling — the 28-tool census 2007-2026 with the conventions layer;
-  two brief-corrections from primary sources (group Files survived the
-  migration; eii-pgen = msg 11752).
+ two brief-corrections from primary sources (group Files survived the
+ migration; eii-pgen = msg 11752).
 
 ### 2026-07-02 — P2 wave: GPU solving, distributed solving, clue puzzles (+ another self-correction)
 
@@ -730,17 +730,17 @@ Corrected in both languages on both pages.
 ### 2026-07-02 — P2 wave: LP relaxations, iterated maps, solution counting
 
 - concepts/lp-relaxations — the optimizer's road: the compact ILP
-  formulation, why the LP is happy while the puzzle isn't (Birkhoff broken
-  by seam constraints, the verbatim fractional corner), the measured plateau
-  table (12 campaigns 2007-2025), what LP/MIP is still for.
+ formulation, why the LP is happy while the puzzle isn't (Birkhoff broken
+ by seam constraints, the verbatim fractional corner), the measured plateau
+ table (12 campaigns 2007-2025), what LP/MIP is still for.
 - concepts/iterated-maps — the Elser lineage with scope honesty: a road
-  lightly traveled (one empirical test, a promised write-up that never
-  appeared), the exact PNAS difference map, Elser's own 5x5 code in the
-  group files, and a concrete attempt-today protocol.
+ lightly traveled (one empirical test, a promised write-up that never
+ appeared), the exact PNAS difference map, Elser's own 5x5 code in the
+ group files, and a concrete attempt-today protocol.
 - concepts/solution-counting — the three regimes (exact, expectation,
-  culled) with the 9x9 replication lesson and Owen's 4.05e37 border count
-  as the methodology gem; the naive toy expectation shown honestly failing
-  by six orders.
+ culled) with the 9x9 replication lesson and Owen's 4.05e37 border count
+ as the methodology gem; the naive toy expectation shown honestly failing
+ by six orders.
 The concepts shelf now covers 17 techniques.
 
 ### 2026-07-02 — Day recap: Phases 6+7 — the wiki went deep

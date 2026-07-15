@@ -41,11 +41,11 @@ pub struct EngineSolver {
     config: EngineConfig,
     solver_id: String,
     heuristic_profile: String,
-    /// Vol-14 instrumentation: per-position backtrack counts from
+ /// instrumentation: per-position backtrack counts from
     /// the most recent `solve()` call. Updated at end-of-solve.
     /// `take_pos_backtracks()` returns and clears this vector.
     last_pos_backtracks: std::sync::Mutex<Vec<u64>>,
-    /// Vol-15 — Blackwood 2020 schedule + break-index policy. Held
+ /// Blackwood 2020 schedule + break-index policy. Held
     /// on the solver (not in SolveOpts) so solver-trait does not
     /// have to know about Blackwood. Arc so rayon workers under
     /// `RootSplit` share a single allocation. Consulted when
@@ -65,7 +65,7 @@ impl EngineSolver {
         }
     }
 
-    /// Vol-15 — attach a Blackwood schedule to this solver. The
+ /// attach a Blackwood schedule to this solver. The
     /// schedule is read-only across the run; pass an `Arc` so rayon
     /// workers share the allocation. The engine consults the schedule
     /// only when `config.value_order == ValueOrder::BlackwoodHeuristic`.
@@ -74,7 +74,7 @@ impl EngineSolver {
         self
     }
 
-    /// Vol-41 — override the value-order of an existing engine profile.
+ /// override the value-order of an existing engine profile.
     /// Useful for A/B testing alternate value-orders against a fixed
     /// variable-order + propagator stack.
     pub fn with_value_order(mut self, vo: ValueOrder) -> Self {
@@ -86,7 +86,7 @@ impl EngineSolver {
         self.blackwood_schedule.clone()
     }
 
-    /// Vol-15 — Blackwood-mode constructor. Returns a solver with
+ /// Blackwood-mode constructor. Returns a solver with
     /// `BLACKWOOD_BASE_PAR` config and a Blackwood schedule attached.
     /// Mirrors `joe_depth150_bp_par()`'s pattern.
     #[must_use]
@@ -101,7 +101,7 @@ impl EngineSolver {
             .with_blackwood_schedule(schedule)
     }
 
-    /// Vol-15 — "dumb Blackwood": no gacolor/AC-3/NS-1, just edge
+ /// "dumb Blackwood": no gacolor/AC-3/NS-1, just edge
     /// forward-checking + piece-uniqueness + schedule + breaks.
     /// Sound after break by construction (no exact-matching
     /// invariants).
@@ -117,7 +117,7 @@ impl EngineSolver {
             .with_blackwood_schedule(schedule)
     }
 
-    /// Vol-14 instrumentation hook: pull per-position backtrack
+ /// instrumentation hook: pull per-position backtrack
     /// counts from the most recent `solve()`. Cleared on read.
     /// Returns empty Vec if no run has completed.
     pub fn take_pos_backtracks(&self) -> Vec<u64> {
@@ -220,7 +220,7 @@ impl EngineSolver {
         Self::new(EngineConfig::CHESS_GACOLOR_AC3, "engine", "chess_gacolor_ac3")
     }
 
-    /// Vol-12: gacolor + AC-3 + NS-1 multiset-equality propagator.
+ ///: gacolor + AC-3 + NS-1 multiset-equality propagator.
     #[must_use]
     pub fn gacolor_ac3_ns1() -> Self {
         Self::new(EngineConfig::GACOLOR_AC3_NS1, "engine", "gacolor_ac3_ns1")
@@ -231,7 +231,7 @@ impl EngineSolver {
         Self::new(EngineConfig::GACOLOR_AC3_NS1_PAR, "engine", "gacolor_ac3_ns1_par")
     }
 
-    /// Vol-12: gacolor + AC-3 + NS-1 with Step-8 propagators gated to
+ ///: gacolor + AC-3 + NS-1 with Step-8 propagators gated to
     /// depth ≥ 150 (Joe-Saunders 2026 pruning policy).
     #[must_use]
     pub fn joe_depth150() -> Self {
@@ -328,7 +328,7 @@ impl Solver for EngineSolver {
                 return parallel::solve_parallel(self, puzzle, opts, sink);
             }
         }
-        // Vol-14 instrumentation hook: capture pos_backtracks at
+ // instrumentation hook: capture pos_backtracks at
         // end-of-run. The state consumes itself in `run`; we use a
         // helper that returns both the outcome and the counters.
         let (outcome, pos_bt) = SearchState::new(puzzle, self, opts).run_with_diag(sink);
@@ -356,7 +356,7 @@ pub use schedule_builders::{
     blackwood_schedule_calibrated_v17e, compute_heuristic_sides, count_color_occurrences,
 };
 
-/// Number of states per edge in the vol-12 BP marginals file
+/// Number of states per edge in the BP marginals file
 /// (`output/v12_bp/edge_bp_60i.json`): color 0 = BORDER + 22 interior
 /// colors = 23.
 pub const EDGE_BP_NSTATE: usize = 23;
@@ -416,7 +416,7 @@ pub(crate) fn build_cell_side_edge(puzzle: &Puzzle) -> Vec<u32> {
     cse
 }
 
-/// Load vol-12 edge-color BP marginals from a JSON file produced by
+/// Load edge-color BP marginals from a JSON file produced by
 /// `scripts/v12_edge_bp.py`. Returns a flat `Arc<Vec<f32>>` of length
 /// `n_edges * EDGE_BP_NSTATE` indexed as
 /// `flat[edge_id * EDGE_BP_NSTATE + color]`. Order of edges in the
@@ -458,7 +458,7 @@ pub fn load_edge_bp_marginals(path: &std::path::Path) -> std::io::Result<Arc<Vec
     Ok(Arc::new(flat))
 }
 
-/// Vol-41 — Load per-cell records-prior value-order JSON.
+/// Load per-cell records-prior value-order JSON.
 /// Format produced by `ml/structural_scan.py`:
 ///   { "n_records": 7, "value_order": { "0": [{"piece_id", "rotation", "count"}, ...], ... } }
 /// Returns Vec<Vec<(piece_id, rotation, freq)>> indexed by cell position (length 256 for canonical E2),
@@ -533,7 +533,7 @@ pub(crate) struct SearchState<'a> {
     /// Canonical domain representation as a flat row-id bitset.
     /// `domain_bits[pos * words_per_pos + word]` has bit `r_id % 64`
     /// of word `r_id / 64` set iff `r_id` is in the domain of `pos`.
-    /// Vol-12 dropped the parallel `Vec<Vec<u32>>` rep (AUDIT_REPORT
+ /// dropped the parallel `Vec<Vec<u32>>` rep (AUDIT_REPORT
     /// Step 6).
     pub(crate) domain_bits: Vec<u64>,
     /// Number of u64 words per position (ceil(n_rows / 64)).
@@ -575,22 +575,22 @@ pub(crate) struct SearchState<'a> {
     /// `ac3_count` and `(n_pos * words_per_pos)` u64s for `ac3_present`.
     /// Holding them on SearchState avoids per-call allocator round-trips.
     ///
-    /// Vol-23 — `ac3_count` is now maintained *across* AC-3 invocations
+ /// `ac3_count` is now maintained *across* AC-3 invocations
     /// via a dirty list. Mutation sites mark cells dirty via
     /// `mark_ac3_dirty(p)`; `propagate_ac3` rebuilds only dirty cells at
     /// entry. Replaces the 21% per-node full-rebuild loop.
     pub(crate) ac3_count: Vec<u16>,
     pub(crate) ac3_present: Vec<u64>,
     pub(crate) ac3_on_queue: Vec<bool>,
-    /// Vol-23 — positions whose `ac3_count` row is stale and must be
+ /// positions whose `ac3_count` row is stale and must be
     /// rebuilt at the next `propagate_ac3` entry. Push-only during
     /// domain mutations; drained + cleared at AC-3 entry.
     pub(crate) ac3_dirty_list: Vec<u32>,
-    /// Vol-23 — per-position dirty flag, gating pushes into
+ /// per-position dirty flag, gating pushes into
     /// `ac3_dirty_list` to avoid duplicates. `true` iff position is in
     /// the dirty list pending rebuild.
     pub(crate) ac3_dirty_flag: Vec<bool>,
-    /// Vol-14 — `cell_side_edge[pos * 4 + side]` = edge_id in the BP
+ /// `cell_side_edge[pos * 4 + side]` = edge_id in the BP
     /// marginals file. Empty unless value-order is
     /// `EdgeBpMarginals` *and* `opts.edge_bp_marginals` is set.
     /// Enumeration order matches `scripts/v12_edge_bp.py`
@@ -598,27 +598,27 @@ pub(crate) struct SearchState<'a> {
     /// N then (S if y==H-1) then W then (E if x==W-1); shared sides
     /// reuse the neighbour's edge_id.
     pub(crate) cell_side_edge: Vec<u32>,
-    /// Vol-14 transient instrumentation: backtracks bucketed by the
+ /// transient instrumentation: backtracks bucketed by the
     /// cell whose value-choice exhausted. `pos_backtracks[pos]` =
     /// count of times `recurse` saw a Wipeout while attempting some
     /// row at `pos`. Exposed via `EngineSolver::take_pos_backtracks`
     /// for harness-side bucket analysis (corner / edge / interior).
     /// Always allocated; cheap (1 KB on canonical E2).
     pub(crate) pos_backtracks: Vec<u64>,
-    /// Vol-14 `PathSkeleton::HintRectangle` auto-injected prefix length.
+ /// `PathSkeleton::HintRectangle` auto-injected prefix length.
     /// When > 0, `select_position` walks the first `auto_skeleton_path_k`
     /// entries of `path_order` (which were populated from the hint
     /// rectangle) before falling back to the variable-order heuristic.
     /// Independent of `opts.path` / `opts.path_policy` — those still work
     /// if the user wants explicit control.
     pub(crate) auto_skeleton_path_k: u32,
-    /// Vol-15 — Blackwood schedule cloned from the solver.
+ /// Blackwood schedule cloned from the solver.
     pub(crate) blackwood: Option<Arc<BlackwoodSchedule>>,
-    /// Vol-15 — set bitset over `heuristic_sides` for fast membership.
+ /// set bitset over `heuristic_sides` for fast membership.
     /// `heuristic_color_mask[c as usize] = true` iff `c` is in
     /// `schedule.heuristic_sides`. Empty when no schedule.
     pub(crate) heuristic_color_mask: Vec<bool>,
-    /// Vol-15 — `break_indexes_allowed` lifted into a bitvec indexed
+ /// `break_indexes_allowed` lifted into a bitvec indexed
     /// by SCAN-ORDER INDEX (not engine traversal depth). At each
     /// recurse depth the engine fetches `pos`, then tests
     /// `is_break_index[scan_index_of_cell[pos]]`. This handles the
@@ -626,15 +626,15 @@ pub(crate) struct SearchState<'a> {
     /// (depth ≠ scan_index) and HintRectangle composition (scan_index
     /// is still well-defined for each cell). Empty when no schedule.
     pub(crate) is_break_index: Vec<bool>,
-    /// Vol-15 — scan-order index of each cell. Built when scan_order
+ /// scan-order index of each cell. Built when scan_order
     /// is set; empty otherwise.
     pub(crate) scan_index_of_cell: Vec<u32>,
-    /// Vol-15 — running count of placed heuristic-color edge
+ /// running count of placed heuristic-color edge
     /// occurrences (Σ over placed rows of count of heuristic-colored
     /// edges in that row). Maintained incrementally by
     /// place_and_propagate / undo_place. 0 when no schedule.
     pub(crate) placed_heuristic_count: u32,
-    /// Vol-16 Cat-4f — precomputed table for the AC-3 inner support
+ /// Cat-4f — precomputed table for the AC-3 inner support
     /// loop. `same_piece_rots[row_id * 16 + side_a * 4 + side_b]` is a
     /// 4-bit mask (low nibble of a u8) where bit `r` is set iff
     /// rotation `r` of `row.piece_id` has the SAME color on side_b as
@@ -645,37 +645,37 @@ pub(crate) struct SearchState<'a> {
     /// Built once at SearchState::new from the static row table.
     /// Size: rows.len() * 16 bytes = ~16 KB on canonical E2.
     pub(crate) same_piece_rots: Vec<u8>,
-    /// Vol-16 Cat-4g — reusable AC-3 work queue (was Vec::with_capacity(16)
+ /// Cat-4g — reusable AC-3 work queue (was Vec::with_capacity(16)
     /// per invocation). LIFO discipline.
     pub(crate) ac3_queue: Vec<Position>,
-    /// Vol-16 Cat-4 — single arena for all UndoEntry bit-diff buffers.
+ /// Cat-4 — single arena for all UndoEntry bit-diff buffers.
     /// `UndoEntry { pos, words_start }` references a contiguous slice
     /// `[words_start..words_start + words_per_pos]`. The arena grows
     /// monotonically within a `place_and_propagate_opts` call and is
     /// truncated back when `restore()` runs after the recurse child
-    /// returns (LIFO discipline). Replaces ~42% of pre-vol-16 CPU
+ /// returns (LIFO discipline). Replaces ~42% of the earlier CPU
     /// spent in System::alloc/dealloc inside the `prune` closure.
     pub(crate) undo_words_arena: Vec<u64>,
-    /// Vol-24 — total internal grid edges = (w-1)*h + w*(h-1). Cached
+ /// total internal grid edges = (w-1)*h + w*(h-1). Cached
     /// because the bound prune queries it on every node.
     pub(crate) total_internal_edges: u32,
-    /// Vol-24 — running count of internal edges with BOTH endpoints
+ /// running count of internal edges with BOTH endpoints
     /// placed. Maintained incrementally: each `place_and_propagate_opts`
     /// adds one per placed neighbour; `undo_place` subtracts the same
     /// count (LIFO discipline guarantees correctness without snapshots).
     pub(crate) decided_edges: u32,
-    /// Vol-24 — running count of internal edges with both endpoints
+ /// running count of internal edges with both endpoints
     /// placed AND matching colors (excluding BORDER 0). The MaxScore
     /// objective. Same incremental discipline as `decided_edges`.
     pub(crate) matched_count: u32,
-    /// Vol-24 — best matched-edge count seen across the whole search.
+ /// best matched-edge count seen across the whole search.
     /// Only meaningful when `opts.objective == Some(Objective::MaxScore)`.
     pub(crate) best_score: u32,
-    /// Vol-24 — board snapshot at the moment we observed `best_score`.
+ /// board snapshot at the moment we observed `best_score`.
     /// Cleared at search start; set the first time a candidate beats
     /// the running best.
     pub(crate) best_score_partial: Option<Board>,
-    /// Vol-24 — shared best-score atom across all RootSplit workers.
+ /// shared best-score atom across all RootSplit workers.
     /// Each worker reads it into the prune test (`max(local, shared)`)
     /// and CAS-bumps it whenever its leaf beats the running shared
     /// best. Single-threaded runs use `None` and rely on `best_score`
@@ -683,14 +683,14 @@ pub(crate) struct SearchState<'a> {
     /// branch-and-bound monotone-optimal under RootSplit; without it,
     /// workers can return strictly suboptimal local bests.
     pub(crate) shared_best_score: Option<Arc<std::sync::atomic::AtomicU32>>,
-    /// Vol-27 — in-process ONNX scorer for `ValueOrder::Learned`. Lazily
+ /// in-process ONNX scorer for `ValueOrder::Learned`. Lazily
     /// constructed at the first value-ordering query; `None` until then
-    /// or if model loading fails. Replaces vol-26's stdio bridge.
+ /// or if model loading fails. Replaces the earlier stdio bridge.
     /// Not used when value_order != Learned. Present only with the
     /// `learned-order` feature (the ONNX runtime is optional).
     #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
     pub(crate) learned_bridge: Option<crate::bridge::LearnedScorer>,
-    /// Vol-26 — set to `true` once we've attempted to load the scorer
+ /// set to `true` once we've attempted to load the scorer
     /// and failed, so we don't retry per-node.
     #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
     pub(crate) learned_bridge_disabled: bool,
@@ -732,7 +732,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-16 Cat-4f — precomputed same-piece rotation table for AC-3.
+ // Cat-4f — precomputed same-piece rotation table for AC-3.
         // For each row r and (side_a, side_b) pair: which rotations of
         // r's piece have edges[side_b] == r.edges[side_a]? Stored as a
         // 4-bit mask in the low nibble of a u8. Reads turn AC-3's
@@ -788,7 +788,7 @@ impl<'a> SearchState<'a> {
         // Resolve path_order: prefer user-supplied opts.path, otherwise
         // auto-build from config.path_skeleton + config.scan_order.
         //
-        // Vol-15 composition: when BOTH `path_skeleton` (e.g.
+ // composition: when BOTH `path_skeleton` (e.g.
         // HintRectangle) and `scan_order` (Blackwood bottom-up) are
         // set, build the rectangle path FIRST and then append the
         // remaining cells in scan order. This way:
@@ -936,7 +936,7 @@ impl<'a> SearchState<'a> {
             } else {
                 Vec::new()
             },
-            // Vol-23 — initially every position is dirty (count is all
+ // initially every position is dirty (count is all
             // zeros at construction). First AC-3 entry rebuilds all
             // non-placed cells; subsequent entries only touch cells
             // that mutated since last rebuild.
@@ -973,7 +973,7 @@ impl<'a> SearchState<'a> {
                 }
             },
             is_break_index: {
-                // Vol-15 — `break_indexes_allowed` interpreted as
+ // `break_indexes_allowed` interpreted as
                 // engine-traversal DEPTHS (the i-th cell placed in
                 // path_order). Composition rule in path-order
                 // construction above guarantees: under pure bottom-up
@@ -1013,7 +1013,7 @@ impl<'a> SearchState<'a> {
             placed_heuristic_count: 0,
             same_piece_rots,
             ac3_queue: Vec::with_capacity(256),
-            // Vol-16 Cat-4 — pre-reserve the arena for the worst-case
+ // Cat-4 — pre-reserve the arena for the worst-case
             // undo log: 4 prunes + n_pos piece-uniqueness entries per
             // place_and_propagate_opts call, * wpp words per entry,
             // * (n_pos) recursion depth. Conservative upper bound;
@@ -1035,7 +1035,7 @@ impl<'a> SearchState<'a> {
         }
     }
 
-    /// Vol-24 — inject the cross-worker shared best-score atom. Called
+ /// inject the cross-worker shared best-score atom. Called
     /// by `parallel::run_unit` once per worker; single-thread runs skip
     /// this. The atom is read on every node and CAS-bumped on every
     /// leaf in MaxScore mode.
@@ -1090,7 +1090,7 @@ impl<'a> SearchState<'a> {
     fn restore_bits(&mut self, pos: usize, snap: &[u64]) {
         let base = pos * self.words_per_pos;
         self.domain_bits[base..base + self.words_per_pos].copy_from_slice(snap);
-        // Vol-23 — domain[pos] changed; ac3_count[pos] is stale.
+ // domain[pos] changed; ac3_count[pos] is stale.
         self.mark_ac3_dirty(pos);
     }
 
@@ -1107,7 +1107,7 @@ impl<'a> SearchState<'a> {
     /// Mark a position's AC-3 row-count cache as stale. Called from
     /// every site that mutates `domain_bits[p]` outside the AC-3 inner
     /// loop. No-op when AC-3 isn't enabled (flag vec is empty).
-    /// Vol-23.
+ ///.
     #[inline]
     fn mark_ac3_dirty(&mut self, p: usize) {
         if let Some(flag) = self.ac3_dirty_flag.get_mut(p) {
@@ -1133,7 +1133,7 @@ impl<'a> SearchState<'a> {
         for w in &mut self.domain_bits[base..base + self.words_per_pos] { *w = 0; }
         let r = row_id as usize;
         self.domain_bits[base + (r >> 6)] = 1u64 << (r & 63);
-        // Vol-23 — domain[pos] changed (almost everything dropped);
+ // domain[pos] changed (almost everything dropped);
         // ac3_count[pos] is stale.
         self.mark_ac3_dirty(pos);
     }
@@ -1209,7 +1209,7 @@ impl<'a> SearchState<'a> {
                 }
             }
         }
-        // 2. Vol-14 auto-skeleton path (config.path_skeleton). Only
+ // 2. auto-skeleton path (config.path_skeleton). Only
         // applies when no explicit user path was provided.
         if self.auto_skeleton_path_k > 0
             && self.opts.path.is_empty()
@@ -1244,11 +1244,11 @@ impl<'a> SearchState<'a> {
         self.place_and_propagate_opts(sink, depth, pos, row_id, None)
     }
 
-    /// Vol-15 — extended `place_and_propagate` that optionally skips
+ /// extended `place_and_propagate` that optionally skips
     /// edge-color propagation on one of the placed row's 4 sides (used
     /// at Blackwood break-indexes, where the placement intentionally
     /// mismatches a placed neighbour). `skip_side`:
-    ///   `None`     ⇒ propagate normally (engine's pre-vol-15 behaviour).
+ /// `None` ⇒ propagate normally (the engine's earlier behaviour).
     ///   `Some(s)`  ⇒ skip the edge-color prune on side `s` (0=N, 1=E,
     ///                2=S, 3=W). Piece-uniqueness, AC-3, and Step-8
     ///                propagators still run.
@@ -1271,9 +1271,9 @@ impl<'a> SearchState<'a> {
         if let Some(gc) = self.gacolor.as_mut() {
             gc.apply_place(&row.edges, &n_info);
         }
-        // Vol-15 — increment Blackwood heuristic-count.
+ // increment Blackwood heuristic-count.
         self.placed_heuristic_count += self.count_heuristic_in_row(&row.edges);
-        // Vol-24 — incremental score tracking for the MaxScore objective.
+ // incremental score tracking for the MaxScore objective.
         // For each of the 4 sides, if the neighbour cell is also placed,
         // this edge has just become "decided". It counts as a match iff
         // the touching colors agree AND aren't BORDER (color 0). Walked
@@ -1300,7 +1300,7 @@ impl<'a> SearchState<'a> {
                 }
             }
         }
-        // Vol-16 Cat-4b: pre-allocate so the `undo.push` chain doesn't
+ // Cat-4b: pre-allocate so the `undo.push` chain doesn't
         // hit `RawVecInner::grow_amortized`. Worst case is one entry
         // per cell (piece-uniqueness over all unplaced positions) +
         // four neighbour prunes + ~few AC-3 cascades. Sized to
@@ -1328,7 +1328,7 @@ impl<'a> SearchState<'a> {
             //   rows belonging to the just-placed piece.
             let sc_base = (neighbor_edge_idx * n_colors + req_idx) * wpp;
             let pm_base = usize::from(row.piece_id) * wpp;
-            // Vol-23 — stack scratch + track survival in the same loop;
+ // stack scratch + track survival in the same loop;
             // see piece-uniqueness path in place_and_propagate for the
             // motivation (eliminates bzero traffic + redundant
             // domain_is_empty rescan).
@@ -1365,7 +1365,7 @@ impl<'a> SearchState<'a> {
                 let arena_start = this.undo_words_arena.len();
                 this.undo_words_arena.extend_from_slice(scratch);
                 let entry = UndoEntry { pos: neighbor, words_start: arena_start as u32 };
-                // Vol-23 — domain[neighbor] changed; ac3_count[neighbor]
+ // domain[neighbor] changed; ac3_count[neighbor]
                 // is stale until next AC-3 rebuild.
                 this.mark_ac3_dirty(neighbor as usize);
                 if survived == 0 {
@@ -1381,7 +1381,7 @@ impl<'a> SearchState<'a> {
         // Four neighbor prunes (edge-color propagation). Each entry
         // is (neighbour, neighbour-facing-edge-index, required-color,
         // our-side-index). When `skip_side == Some(our_side)` we
-        // suppress propagation through that side (Vol-15 Blackwood
+ // suppress propagation through that side ( Blackwood
         // break-index allowance).
         let neighbors: [(Option<Position>, usize, Color, usize); 4] = [
             (if y > 0 { Some((y - 1) * w + x) } else { None }, 2, row.edges[0], 0),
@@ -1408,11 +1408,11 @@ impl<'a> SearchState<'a> {
         // Bitset form: for every unplaced cell p, AND off any row in
         // piece_mask[just_placed_piece]. Save the dropped bits as a
         // bit-diff for the undo log — no per-row iteration.
-        // Vol-16 Cat-4b: same capacity argument as `undo` above.
+ // Cat-4b: same capacity argument as `undo` above.
         let mut other_undo: Vec<UndoEntry> = Vec::with_capacity(self.puzzle.cell_count() as usize);
         let words_per_pos = self.words_per_pos;
         let pm_base = piece_idx * words_per_pos;
-        // Vol-23 — stack scratch buffer for the per-cell drop bits, sized
+ // stack scratch buffer for the per-cell drop bits, sized
         // large enough for any realistic puzzle (16 words = 1024 rows =
         // canonical E2; 32 words = 2048 rows ⇒ 32×32). Avoids the
         // `resize(+wpp, 0)` zero-fill (bzero call site visible in
@@ -1449,7 +1449,7 @@ impl<'a> SearchState<'a> {
                 // statically-sized chunk lets the compiler vectorize.
                 self.undo_words_arena.extend_from_slice(scratch);
                 let entry = UndoEntry { pos: p, words_start: arena_start as u32 };
-                // Vol-23 — domain[p] changed; ac3_count[p] is stale.
+ // domain[p] changed; ac3_count[p] is stale.
                 self.mark_ac3_dirty(p as usize);
                 if survived == 0 {
                     other_undo.push(entry);
@@ -1523,10 +1523,10 @@ impl<'a> SearchState<'a> {
         //   present[pos] is a row-id bitset.
         // Buffers live on SearchState so we pay the alloc only once.
         //
-        // Vol-23 — `ac3_count` is now maintained *incrementally* via the
+ // `ac3_count` is now maintained *incrementally* via the
         // dirty list (see `mark_ac3_dirty`). At entry we rebuild only the
         // cells whose domain mutated since the last AC-3 call. Replaces
-        // the full per-node rebuild (21% of joe runtime in the vol-23
+ // the full per-node rebuild (21% of joe runtime in the
         // pre-fix flamegraph).
         let stride_pos = 4 * n_colors;
         let words_per_pos = n_rows.div_ceil(64);
@@ -1550,12 +1550,12 @@ impl<'a> SearchState<'a> {
         debug_assert!(self.domain_bits.len() == present_len,
             "domain_bits ({}) != present_len ({})", self.domain_bits.len(), present_len);
         self.ac3_present[..present_len].copy_from_slice(&self.domain_bits[..present_len]);
-        // Vol-23 — drain the dirty list. For each dirty position, zero
+ // drain the dirty list. For each dirty position, zero
         // its count row, then rebuild from current domain bits. Clear
         // the dirty flag as we go. Placed cells are skipped (their
         // count row is never read).
         //
-        // Vol-23 — for each (side, color) we have a precomputed
+ // for each (side, color) we have a precomputed
         // `side_color_mask` u64 bitset (rows whose edges[side]==color).
         // count[p][s][c] = popcount(domain[p] & side_color_mask[s*nC+c]).
         // This is O(stride_pos × wpp) per position instead of
@@ -1589,7 +1589,7 @@ impl<'a> SearchState<'a> {
         let count = &mut self.ac3_count;
         let present = &mut self.ac3_present;
         let on_queue = &mut self.ac3_on_queue;
-        // Vol-16 Cat-4g — reuse the queue scratch across AC-3 calls.
+ // Cat-4g — reuse the queue scratch across AC-3 calls.
         self.ac3_queue.clear();
         let queue = &mut self.ac3_queue;
         // Seed: all unplaced neighbours of start_pos (and their unplaced
@@ -1609,7 +1609,7 @@ impl<'a> SearchState<'a> {
                 on_queue[*np as usize] = true;
             }
         }
-        // Vol-16 Cat-4b — bound the AC-3 cascade output by n_pos so we
+ // Cat-4b — bound the AC-3 cascade output by n_pos so we
         // skip grow_amortized work.
         let mut all_removed: Vec<UndoEntry> = Vec::with_capacity(self.puzzle.cell_count() as usize);
 
@@ -1619,7 +1619,7 @@ impl<'a> SearchState<'a> {
             // Cooperative timeout check inside the AC-3 loop. On hard
             // puzzles a single AC-3 invocation can churn for seconds;
             // without this the outer per-N-nodes timeout check fires
-            // late. Vol-23 — flamegraph showed `elapsed_us()` cost was
+ // late. — flamegraph showed `elapsed_us` cost was
             // 12.4% of joe runtime at 1/64 rate (mach_absolute_time +
             // Duration arithmetic on macOS is ~800% of an inner-loop
             // iteration). Drop to 1/4096; worst-case timeout latency is
@@ -1650,7 +1650,7 @@ impl<'a> SearchState<'a> {
 
             // Accumulate the bit-diff for position `a` as words_per_pos
             // u64s — cheaper to OR back on restore than to iterate
-            // individual row-ids. Vol-23 — stack scratch instead of the
+ // individual row-ids. — stack scratch instead of the
             // arena's resize-then-truncate dance. The previous version
             // paid bzero on every queue pop (4.29% of joe runtime) and a
             // truncate on every no-diff pop. With scratch we extend the
@@ -1660,7 +1660,7 @@ impl<'a> SearchState<'a> {
             let mut diff_scratch = [0u64; MAX_WPP];
             let mut removed_popcount: u32 = 0;
             let a_u = a as usize;
-            // Vol-23 — stack snapshot of domain_bits[a_u] for safe
+ // stack snapshot of domain_bits[a_u] for safe
             // iteration during in-place mutation. Replaces the
             // `ac3_to_check` Vec<u32> materialization (4.78% self-time
             // on `push`) plus its subsequent re-read. Now the bitset
@@ -1672,7 +1672,7 @@ impl<'a> SearchState<'a> {
                 let src = &self.domain_bits[base..base + words_per_pos];
                 dom_snapshot[..words_per_pos].copy_from_slice(src);
             }
-            // Vol-23 — bind read-only slices once so the inner loop
+ // bind read-only slices once so the inner loop
             // avoids re-dereffing self.* on every iteration. self.placed,
             // self.rows, self.same_piece_rots are all read-only here;
             // only count/present/domain_bits mutate (and those go
@@ -1690,7 +1690,7 @@ impl<'a> SearchState<'a> {
                     let r = rows_slice[r_id as usize];
                     let mut supported = true;
                     let pid_base = usize::from(r.piece_id) * 4;
-                    // Vol-16 Cat-4f — precomputed 4-bit rotation mask per
+ // Cat-4f — precomputed 4-bit rotation mask per
                     // (row, side_a, side_b). Replaces the inner 4-iteration
                     // loop with a single AND + popcount over `present`.
                     let r_lut_base = (r_id as usize) * 16;
@@ -1856,7 +1856,7 @@ impl<'a> SearchState<'a> {
         // the minimum is the first entry's words_start. Empty undo log
         // means nothing was reserved here.
         let arena_keep = undo.iter().map(|e| e.words_start as usize).min();
-        // Vol-16 Cat-2 follow-up: take a non-overlapping view of the
+ // Cat-2 follow-up: take a non-overlapping view of the
         // arena (read-only borrow) and the domain_bits (mutable). For
         // each entry, slice both to a length-wpp window so the inner
         // OR loop is bounds-check-free (the compiler elides them when
@@ -1879,7 +1879,7 @@ impl<'a> SearchState<'a> {
                 *d |= *s;
             }
         }
-        // Vol-23 — mark every restored position's ac3_count stale. Done
+ // mark every restored position's ac3_count stale. Done
         // after the OR loop so we drop the dom_slice/arena_slice borrows
         // before calling the (&mut self) mark helper.
         for entry in &undo {
@@ -1949,7 +1949,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-23 — batch hint application mode for prune-restart.
+ // batch hint application mode for prune-restart.
         //
         // In `per-hint` (default) mode: pin each hint and propagate
         // immediately. The propagation removes options from other cells'
@@ -1996,7 +1996,7 @@ impl<'a> SearchState<'a> {
                 self.pin_to(pos_idx, row_id);
                 self.placed[pos_idx] = Some(row_id);
                 self.used[piece_idx] = true;
-                // Vol-15 — update Blackwood heuristic count for this placement
+ // update Blackwood heuristic count for this placement
                 // (mirroring the increment in place_and_propagate).
                 let row = self.rows[row_id as usize];
                 let inc = self.count_heuristic_in_row(&row.edges);
@@ -2064,7 +2064,7 @@ impl<'a> SearchState<'a> {
         Ok(())
     }
 
-    /// Vol-14 wrapper: like `run` but also returns the per-position
+ /// wrapper: like `run` but also returns the per-position
     /// backtrack counters for downstream diagnostic analysis.
     pub(crate) fn run_with_diag(self, sink: &mut dyn EventSink) -> (SolveOutcome, Vec<u64>) {
         // Save a handle before run() consumes self; we'll repopulate
@@ -2129,7 +2129,7 @@ impl<'a> SearchState<'a> {
                     final_stats: self.stats,
                     solutions_found: solutions.len() as u64,
                 });
-                // Vol-24 — under MaxScore, surface the highest-score
+ // under MaxScore, surface the highest-score
                 // FULL completion seen as `Solved`. If no completion was
                 // reached (heavy pruning), fall back to Exhausted; the
                 // caller can inspect `best_partial` via TimedOut paths.
@@ -2149,7 +2149,7 @@ impl<'a> SearchState<'a> {
                 }
             }
             RecurseResult::TimedOut => {
-                // Vol-24 — under MaxScore, prefer the highest-score full
+ // under MaxScore, prefer the highest-score full
                 // completion seen over the depth-best partial. Cold-start
                 // round-2 use case: a 412 completion is better than a
                 // depth-297 partial that ALNS would have to repair.
@@ -2169,7 +2169,7 @@ impl<'a> SearchState<'a> {
                 SolveOutcome::TimedOut { best_partial: best, best_depth }
             }
             RecurseResult::Cancelled => {
-                // Vol-24 — same surfacing rule as TimedOut.
+ // same surfacing rule as TimedOut.
                 let best = if matches!(self.opts.objective, Some(Objective::MaxScore))
                     && self.best_score_partial.is_some()
                 {
@@ -2232,7 +2232,7 @@ impl<'a> SearchState<'a> {
             // alternatives to the chosen row_id.
             let base = (pos as usize) * self.words_per_pos;
             for w in &mut self.domain_bits[base..base + self.words_per_pos] { *w = 0; }
-            // Vol-23 — domain[pos] changed; ac3_count[pos] is stale.
+ // domain[pos] changed; ac3_count[pos] is stale.
             self.mark_ac3_dirty(pos as usize);
             let mut null = eternity2_events::NullSink;
             match self.place_and_propagate(&mut null, depth, pos, row_id) {
@@ -2271,7 +2271,7 @@ impl<'a> SearchState<'a> {
             self.stats.max_depth_seen = depth;
         }
 
-        // Vol-24 — MaxScore objective: branch-and-bound on the matched-
+ // MaxScore objective: branch-and-bound on the matched-
         // edge count. `decided_edges` tracks edges with both ends placed;
         // every other internal edge is bounded by 1 match. If even the
         // optimistic completion can't beat the running best, prune the
@@ -2298,7 +2298,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-15 — Blackwood schedule prune: BEFORE picking a position,
+ // Blackwood schedule prune: BEFORE picking a position,
         // verify the running heuristic-color count is on-schedule for
         // the total number of placed cells (= depth + hint count).
         // The schedule is calibrated against TOTAL cells-on-board
@@ -2329,7 +2329,7 @@ impl<'a> SearchState<'a> {
         let pos = match self.select_position() {
             Some(p) => p,
             None => {
-                // Vol-24 — under MaxScore, a "complete" placement (no
+ // under MaxScore, a "complete" placement (no
                 // more positions to fill) is just a candidate: capture
                 // its score if it beats the running best, then return
                 // Exhausted so the parent loop keeps trying alternatives
@@ -2463,7 +2463,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-30 — LearnedOnTies: rerank only the top-k tied candidates
+ // LearnedOnTies: rerank only the top-k tied candidates
         // by Learned scores. "Tied" = within EPS of the top BP score.
         // Cheaper per-node than the full Learned variant (we call the
         // NN only when there's an ambiguous choice), and dominated by
@@ -2492,7 +2492,7 @@ impl<'a> SearchState<'a> {
             {
                 tie_len += 1;
             }
-            // Vol-32 T4 instrumentation: if E2_LOT_TRACE is set, emit
+ // T4 instrumentation: if E2_LOT_TRACE is set, emit
             // (depth, tie_len, dom_len) to stderr so the Python diagnostic
             // can compute per-depth fire-rate.
             if std::env::var("E2_LOT_TRACE").is_ok() {
@@ -2521,7 +2521,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-26 — Learned imitation-policy value order. Reorders candidates by
+ // Learned imitation-policy value order. Reorders candidates by
         // ONNX-model scores. Compiled only with the `learned-order` feature;
         // without it, ValueOrder::Learned keeps the insertion-order fallback
         // (this block is simply absent, so the order is unchanged).
@@ -2582,12 +2582,12 @@ impl<'a> SearchState<'a> {
             domain_snapshot.extend(a);
         }
 
-        // Vol-15 — BlackwoodHeuristic value-order: rank rows by count
+ // BlackwoodHeuristic value-order: rank rows by count
         // of heuristic-color edges (descending). Schedule-rich rows
         // tried first so the running heuristic count keeps pace with
         // the schedule's target_at(depth+1).
         //
-        // Vol-17 (H22) — within-tie shuffle. The heuristic-color
+ // (H22) — within-tie shuffle. The heuristic-color
         // count is an integer in 0..=4; many rows score equal. By
         // default sort_by_key is stable (preserves insertion order
         // within ties). With `config.shuffle_within_blackwood_ties`,
@@ -2632,7 +2632,7 @@ impl<'a> SearchState<'a> {
             domain_snapshot.extend(scored.into_iter().map(|(_, r)| r));
         }
 
-        // Vol-41 — RecordsPrior value-order. Rank rows by record frequency
+ // RecordsPrior value-order. Rank rows by record frequency
         // at this position (from opts.records_prior_map[pos]). Rows whose
         // (piece_id, rotation) appears in N/7 records get a key of u32::MAX - N,
         // so descending-frequency wins. Unranked rows get u32::MAX (lowest priority).
@@ -2666,7 +2666,7 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-15 — Blackwood break-index: at a break depth, the cell's
+ // Blackwood break-index: at a break depth, the cell's
         // pruned domain may be empty or too narrow because a previously
         // placed neighbour pruned all rows with the "right" matching
         // color. Augment the candidate set with any row that:
@@ -2745,7 +2745,7 @@ impl<'a> SearchState<'a> {
             // from the placed row's edges.
             let base = (pos as usize) * self.words_per_pos;
             for w in &mut self.domain_bits[base..base + self.words_per_pos] { *w = 0; }
-            // Vol-23 — domain[pos] changed; ac3_count[pos] is stale.
+ // domain[pos] changed; ac3_count[pos] is stale.
             self.mark_ac3_dirty(pos as usize);
             let skip_side = if mismatch_side == u8::MAX { None } else { Some(mismatch_side as usize) };
             let outcome = self.place_and_propagate_opts(sink, depth, pos, row_id, skip_side);
@@ -2775,7 +2775,7 @@ impl<'a> SearchState<'a> {
                 PropagationOutcome::Wipeout { undo } => {
                     self.restore(undo);
                     self.stats.backtracks += 1;
-                    // Vol-14 instrumentation (transient): count backtracks
+ // instrumentation (transient): count backtracks
                     // by the cell whose value-choice failed (pos at this
                     // depth). Inspect `self.pos_backtracks` from a sink.
                     if (pos as usize) < self.pos_backtracks.len() {
@@ -2806,7 +2806,7 @@ impl<'a> SearchState<'a> {
                 gc.apply_unplace(&row.edges, &n_info);
             }
         }
-        // Vol-24 — symmetric decrement of decided_edges / matched_count.
+ // symmetric decrement of decided_edges / matched_count.
         // MUST run before `placed[pos] = None` so the neighbour scan can
         // still see this cell's placement (won't matter; we only check
         // the neighbour) — actually only the NEIGHBOUR's placement state
@@ -2836,12 +2836,12 @@ impl<'a> SearchState<'a> {
         self.placed[pos as usize] = None;
         let piece_idx = usize::from(row.piece_id);
         self.used[piece_idx] = false;
-        // Vol-15 — decrement Blackwood heuristic-count.
+ // decrement Blackwood heuristic-count.
         let dec = self.count_heuristic_in_row(&row.edges);
         self.placed_heuristic_count = self.placed_heuristic_count.saturating_sub(dec);
     }
 
-    /// Vol-15 — count edges in `edges` whose color is in the active
+ /// count edges in `edges` whose color is in the active
     /// `heuristic_color_mask`. Returns 0 when no schedule is attached.
     #[inline]
     fn count_heuristic_in_row(&self, edges: &[Color; 4]) -> u32 {
@@ -2859,7 +2859,7 @@ impl<'a> SearchState<'a> {
         n
     }
 
-    /// Vol-15 — count edges of a placed row `cand` that disagree with
+ /// count edges of a placed row `cand` that disagree with
     /// already-placed neighbours of `pos`. Returns u32::MAX if `cand`
     /// would violate piece-uniqueness (piece already used).
     fn count_placed_neighbor_mismatches(&self, pos: Position, cand_edges: &[Color; 4]) -> u32 {
@@ -2886,7 +2886,7 @@ impl<'a> SearchState<'a> {
         n
     }
 
-    /// Vol-15 — does this row also match the cell's border_mask
+ /// does this row also match the cell's border_mask
     /// pattern? Used to admit fresh candidates at break depth (where
     /// the cell's domain may have been pruned away by earlier
     /// neighbour-prunes).
@@ -2899,7 +2899,7 @@ impl<'a> SearchState<'a> {
             && on_left == (edges[3] == BORDER)
     }
 
-    /// Vol-15 — is the cell at `pos` a Blackwood break cell? Tests
+ /// is the cell at `pos` a Blackwood break cell? Tests
     /// `is_break_index[scan_index_of_cell[pos]]`. Returns false when
     /// no schedule is attached or scan_order isn't set.
     #[inline]
@@ -2911,7 +2911,7 @@ impl<'a> SearchState<'a> {
         scan_idx < self.is_break_index.len() && self.is_break_index[scan_idx]
     }
 
-    /// Vol-27/28 — call the in-process ONNX learned scorer to rank each
+ /// call the in-process ONNX learned scorer to rank each
     /// candidate row at the given position. Returns `None` when the
     /// model is unavailable or the puzzle size doesn't match a v1
     /// model; the caller then preserves the existing order. Dispatches
@@ -3052,7 +3052,7 @@ pub(crate) enum RecurseResult { Found, Exhausted, TimedOut, Cancelled }
 /// restore. The actual bit-diff lives in `SearchState::undo_words_arena`,
 /// in the slot `[words_start..words_start + words_per_pos]`. Recurse-stack
 /// discipline guarantees arena slots are popped LIFO with the entries
-/// themselves, so no entry outlives its slot. (Vol-16 Cat-4 perf
+/// themselves, so no entry outlives its slot. ( Cat-4 perf
 /// cleanup: dropped per-entry `Vec<u64>` allocation, was ~17.5% of CPU
 /// in System::alloc_zeroed.)
 #[derive(Clone, Copy)]
@@ -3137,7 +3137,7 @@ mod tests {
         assert!(matches!(s.solve(&puzzle, &SolveOpts::default(), &mut sink), SolveOutcome::Solved(_)));
     }
 
-    /// Vol-24 — MaxScore must still find the unique perfect solution
+ /// MaxScore must still find the unique perfect solution
     /// on a generator board where every internal edge matches by
     /// construction. Also acts as a smoke test that incremental
     /// `matched_count` / `decided_edges` accounting + the upper-bound
@@ -3506,7 +3506,7 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn load_edge_bp_marginals_smoketest_v12_file() {
-        // The 284 KB vol-12 measurement is in the repo. If running under
+ // The 284 KB measurement is in the repo. If running under
         // a sandbox without it, skip cleanly.
         let path = std::path::Path::new("../../output/v12_bp/edge_bp_60i.json");
         if !path.exists() { return; }
@@ -3525,12 +3525,12 @@ mod tests {
         assert_eq!(argmax_0, 0, "boundary edge 0 should argmax to BORDER");
     }
 
-    // ===== Vol-15 Blackwood tests =====
+ // ===== Blackwood tests =====
 
     #[test]
     fn blackwood_schedule_validate_catches_depth_cliff() {
         // Two control points at the same depth = cliff = exactly
-        // the vol-15 first-iteration bug. validate() must reject.
+ // the first-iteration bug. validate must reject.
         let bad = BlackwoodSchedule {
             heuristic_sides: vec![1],
             exhaustion_targets: vec![(0, 0), (60, 0), (60, 34), (100, 80)],

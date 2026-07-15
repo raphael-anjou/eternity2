@@ -101,7 +101,7 @@ impl EventSink for ProgressSink {
     }
 }
 
-/// Vol-33 T5 — silent sink. No file, no logging; just captures the
+/// T5 — silent sink. No file, no logging; just captures the
 /// final `FinalStats` and tracks `best_depth`. Several bins (compare,
 /// run_8x8_solve, profile_*) want this when they're batching A/B
 /// configurations and don't need per-config log files.
@@ -140,13 +140,13 @@ impl EventSink for QuietSink {
     }
 }
 
-// ---------- Vol-16 Cat-3 — shared harness helpers ----------
+// ---------- Cat-3 — shared harness helpers ----------
 //
 // The bench bins in `src/bin/` share ~80 lines of boilerplate each.
 // These helpers move the common parts into one place so each bin is
 // just CLI parsing + a Pipeline invocation. Migration is incremental:
-// bins added in vol-12 / vol-14 / vol-15 originally inlined their own
-// copies of the helpers below; vol-16 swaps them out one at a time.
+// bins that originally inlined their own
+// copies of the helpers below; swaps them out one at a time.
 
 // Reporting / scoring helpers now live in `eternity2-export`. Re-export so
 // existing call sites (`use eternity2_bench_audit::{score_board, ...}`)
@@ -165,7 +165,7 @@ pub fn score_board_dense(puzzle: &Puzzle, board: &Board) -> (u32, u32) {
     (matched, total)
 }
 
-/// Vol-51 — extracted from `bin/edge_bound_ascent.rs` so other drivers
+/// extracted from `bin/edge_bound_ascent.rs` so other drivers
 /// can compute the greedy-relaxed score between rounds.
 ///
 /// **⚠️ NOT AN UPPER BOUND ON INTEGER SCORE ⚠️**
@@ -174,8 +174,8 @@ pub fn score_board_dense(puzzle: &Puzzle, board: &Board) -> (u32, u32) {
 /// IGNORING piece-uniqueness (so pieces CAN be reused). Because piece
 /// reuse fakes matches that real integer assignments cannot achieve,
 /// **the return value is OFTEN HIGHER than the true integer ceiling**.
-/// On the vol-32 458 board this function returns 462 — 4 above the
-/// true integer optimum confirmed by vol-44 MIP.
+/// On the 458 board this function returns 462 — 4 above the
+/// true integer optimum confirmed by MIP.
 ///
 /// This is a HEURISTIC INDICATOR of matching density, useful for
 /// COMPARATIVE ranking of basins. It is NOT a valid mathematical
@@ -183,7 +183,7 @@ pub fn score_board_dense(puzzle: &Puzzle, board: &Board) -> (u32, u32) {
 ///
 /// For TRUE upper bounds on integer score, use:
 /// - `border_lp_ub.rs` (LP relaxation; sound UB)
-/// - `border_mip.rs` or vol-55 cluster MIP (sound integer ceiling)
+/// - `border_mip.rs` or cluster MIP (sound integer ceiling)
 ///
 /// Per `feedback_no_false_metrics` memory: cheapness is not an
 /// excuse for falsehood. Use the right tool for the claim.
@@ -232,7 +232,7 @@ pub fn relaxed_bound(puzzle: &eternity2_core::Puzzle, board: &eternity2_core::Bo
     score_board(puzzle, &b).0
 }
 
-/// Vol-60 — alias for `relaxed_bound` with a name that doesn't lie.
+/// alias for `relaxed_bound` with a name that doesn't lie.
 /// This function does NOT compute an upper bound. It runs greedy
 /// local search ignoring piece-uniqueness. Use this name in new code
 /// to avoid the documentation hazard of `relaxed_bound`.
@@ -274,7 +274,7 @@ fn cell_local_score_for_edges(puzzle: &eternity2_core::Puzzle, board: &eternity2
     s
 }
 
-/// Vol-33 T5 — shared bin-harness helpers.
+/// T5 — shared bin-harness helpers.
 ///
 /// Most bench-audit bins follow the same shape:
 ///   1. load puzzle + hints

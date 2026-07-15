@@ -5,7 +5,7 @@
 // reference, and return a `Vec<Position>` ordering. No domains, no
 // propagator state, no `SearchState`.
 //
-// Moved here in vol-33 T3 (split solver-engine/src/lib.rs into modules).
+// Moved here in T3 (split solver-engine/src/lib.rs into modules).
 
 use eternity2_core::{Hints, Position, Puzzle};
 
@@ -81,7 +81,7 @@ pub(crate) fn compute_chess_rank(puzzle: &Puzzle) -> Vec<u32> {
     rank
 }
 
-/// Build a "rectangle skeleton" path from hint positions. Vol-14 user-
+/// Build a "rectangle skeleton" path from hint positions. user-
 /// proposed heuristic for canonical E2 (works when there are ≥4
 /// outermost hints + (optionally) a centre hint):
 ///
@@ -181,7 +181,7 @@ pub fn build_hint_rectangle_path(puzzle: &Puzzle, hints: &Hints) -> Vec<Position
     path
 }
 
-/// Vol-14 user-proposed: extend `build_hint_rectangle_path` to cover
+/// user-proposed: extend `build_hint_rectangle_path` to cover
 /// all cells in three subsequent phases (interior, annulus, outer border).
 pub fn build_hint_rectangle_layered_path(puzzle: &Puzzle, hints: &Hints) -> Vec<Position> {
     let phase1 = build_hint_rectangle_path(puzzle, hints);
@@ -299,7 +299,7 @@ pub fn build_hint_rectangle_layered_path(puzzle: &Puzzle, hints: &Hints) -> Vec<
     path
 }
 
-/// Vol-23 — build the X-skeleton path. 3-cell-wide diagonals through 5
+/// build the X-skeleton path. 3-cell-wide diagonals through 5
 /// hints (TL→C→BR, TR→C→BL). See `PathSkeleton::XSkeleton`.
 /// Returns an empty Vec if fewer than 5 hints are supplied.
 pub fn build_x_skeleton_path(puzzle: &Puzzle, hints: &Hints) -> Vec<Position> {

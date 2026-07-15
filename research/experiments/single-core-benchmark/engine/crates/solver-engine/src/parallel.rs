@@ -92,7 +92,7 @@ pub fn solve_parallel(
     let solutions_found = Arc::new(AtomicU64::new(0));
     let (tx, rx) = crossbeam_channel::unbounded::<WorkerMsg>();
     let stop_on_first = matches!(opts.mode, SolveMode::FirstSolution);
-    // Vol-24 — shared best-score cutoff for cross-worker BnB prune.
+ // shared best-score cutoff for cross-worker BnB prune.
     // Only allocated when MaxScore is set; workers without it use
     // their local `best_score` (`None` arm of `attach_shared_best_score`).
     let shared_best_score: Option<Arc<AtomicU32>> =
@@ -197,7 +197,7 @@ pub fn solve_parallel(
     let mut all_solutions: Vec<Board> = Vec::new();
     let mut any_timeout = false;
     let mut any_cancel = false;
-    // Vol-24 — cross-worker max-by-score aggregation. The shared atom
+ // cross-worker max-by-score aggregation. The shared atom
     // already bounded the per-worker prune, but each worker only saved
     // its OWN best leaf; we still have to pick the winner here.
     let mut best_score: u32 = 0;
@@ -234,7 +234,7 @@ pub fn solve_parallel(
     }
     final_stats.time_ms = (now_micros().saturating_sub(wall_started_us)) / 1000;
 
-    // Vol-24 — under MaxScore, the best leaf observed across workers is
+ // under MaxScore, the best leaf observed across workers is
     // the canonical answer; surface it as Solved before checking
     // FirstSolution / TimedOut / Cancelled paths. Falls through if no
     // worker reached a leaf.
@@ -311,10 +311,10 @@ struct WorkerOutcome {
     best_partial: Option<Board>,
     best_depth: u32,
     stats: FinalStats,
-    /// Vol-24 — highest matched-edge count this worker saw on a leaf.
+ /// highest matched-edge count this worker saw on a leaf.
     /// 0 when no leaf was reached or MaxScore is off.
     best_score: u32,
-    /// Vol-24 — board snapshot at the moment the worker observed its
+ /// board snapshot at the moment the worker observed its
     /// `best_score`. None when no leaf reached.
     best_score_partial: Option<Board>,
 }

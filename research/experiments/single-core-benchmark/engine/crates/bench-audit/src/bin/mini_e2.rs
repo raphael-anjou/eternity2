@@ -1,4 +1,4 @@
-// Vol-218: tropical-suffix + ID-B&B portability smoke on the REAL
+//: tropical-suffix + ID-B&B portability smoke on the REAL
 // 16×16 stage-4 endgame (rows 12-15, 64-piece pool, row-13 hints).
 // Per entry: relax floor (k=4), suffix floor (must agree), certified
 // LB ladder (ID-bb, per-rung wall budget), and a 1.5 s greedy label

@@ -1,4 +1,4 @@
-// Vol-18 — Iterative Optimal Transport (Hungarian / Kuhn-Munkres) repair.
+// Iterative Optimal Transport (Hungarian / Kuhn-Munkres) repair.
 //
 // Reframe local repair as a Linear Assignment Problem. For the k pieces
 // currently residing in `free_set`, find the permutation that MAXIMIZES the
@@ -10,7 +10,7 @@
 //
 // Iterate until fixed point or max_iters.
 //
-// Bug history (do NOT undo): vol-18 prior version (a) called
+// Bug history (do NOT undo): prior version (a) called
 // `rotated(rot as u8)` (wrong: needs Rotation), and (b) passed mismatch
 // counts as kuhn_munkres weight (wrong: that maximises mismatches because
 // kuhn_munkres is a maximiser). Both bugs are fixed here.

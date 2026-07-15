@@ -1,12 +1,12 @@
-//! Vol-27/28 — in-process ONNX inference for `ValueOrder::Learned`.
+//! in-process ONNX inference for `ValueOrder::Learned`.
 //!
 //! Loads an ONNX model at solver construction (path from env var
 //! `E2_LEARNED_MODEL`, default `ml/runs/v1/model.onnx`) and runs
 //! inference via the `ort` crate. The sidecar `.meta.json` next to the
 //! `.onnx` file selects between two model schemas:
-//!   - `version: 1` (or missing) — vol-26/27 fixed-size, fixed-piece-count
+//! - `version: 1` (or missing) — fixed-size, fixed-piece-count
 //!     model. Single forward gives one logit per `piece_id * 4 + rot`.
-//!   - `version: 2` — vol-28 position-relative model. Takes nb_idx +
+//! - `version: 2` — position-relative model. Takes nb_idx +
 //!     valid_mask + candidate edges; emits one score per candidate.
 //!     Works on any grid size / piece count.
 //!
@@ -24,13 +24,13 @@ use ort::session::Session;
 use ort::value::Tensor;
 
 pub enum LearnedScorer {
-    /// Vol-26/27 layout. Fixed grid size + fixed piece count baked in.
+ /// layout. Fixed grid size + fixed piece count baked in.
     V1 {
         session: Mutex<Session>,
         grid_size: usize,
         n_pieces: u32,
     },
-    /// Vol-28 layout. Size + piece-count agnostic.
+ /// layout. Size + piece-count agnostic.
     V2 {
         session: Mutex<Session>,
     },
@@ -63,7 +63,7 @@ impl LearnedScorer {
         }
     }
 
-    /// Vol-26/27 entry point. Used when the engine builds the v1 feature
+ /// entry point. Used when the engine builds the v1 feature
     /// tensor + candidates. v2 models accept the same input on the
     /// feats/target_pos side but need the extra nb_idx/valid_mask/cand
     /// tensors — for v2, callers should use `score_v2` instead.
@@ -111,7 +111,7 @@ impl LearnedScorer {
         }
     }
 
-    /// Vol-28 entry point — position-relative scoring. The engine
+ /// entry point — position-relative scoring. The engine
     /// constructs (cell_feats, nb_idx, valid_mask, target_pos,
     /// cand_edges) directly. Works on any grid size; the model has no
     /// fixed-size baked-in axes.

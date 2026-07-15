@@ -11,10 +11,10 @@ session journals, plus curated PAPER / MATH_NOTES / SYNTHESIS docs.
 
 Legend for each entry:
 - **repro**: `exact` (deterministic, byte-for-byte) · `seeded` · `stochastic`
-  (ship the board, verifiable in viewer) · `heavy` (MIP/long search, script +
-  result) · `prose`.
+ (ship the board, verifiable in viewer) · `heavy` (MIP/long search, script +
+ result) · `prose`.
 - **viz**: the animation / diagram / interactive demo it should get (the site
-  must feel alive).
+ must feel alive).
 - **tier**: ★★★ flagship · ★★ finding · ★ supporting · — internal.
 
 ---
@@ -41,12 +41,12 @@ door should carry the whole stack of hardness evidence, not just one argument.
 | forbidden-patterns | INTAGLIO vols 138-142 | 99.72% of 2x2 placements impossible; 39%→83%→99.7% climb | exact | feasible-vs-forbidden board demo (built); add: board forbidden-patch heatmap | ★★★ | LIVE |
 | rigidity-wall | PAPER rigidity; vols 65/83-101/187/188 | every top board is locally frozen; 13+ MIP-proven regions, halo-4 | heavy (MIP) | animated halo region + "no better neighbour" board overlay (built) | ★★★ | LIVE |
 | sigma-cycles | vols 65/99/101/188 | basin-hopping impossible: every proper subset of the 154-cell swap scores worse | heavy | interactive apply-part-of-the-loop diagram (built) | ★★★ | LIVE |
-| entropy-area-law | ISENTROPE vol-209; MATH_NOTES | distinctness collapses at ~80 cells; grammar entropy h∞≈0.67>0; ρ(n)≈exp(-0.085 n²) | exact (h1,h2,λ_H) + carried (h3,h4,h∞) | h(n) decay chart + ρ(n) log-collapse + Fekete theorem in KaTeX (built) | ★★ | LIVE |
-| no-forced-moves | vol-206 + exact recompute | zero forced placements; every interior piece has 73-137 partners (recomputed exact) | exact | partner-count histogram (built) | ★★ | LIVE |
+| entropy-area-law | ISENTROPE; MATH_NOTES | distinctness collapses at ~80 cells; grammar entropy h∞≈0.67>0; ρ(n)≈exp(-0.085 n²) | exact (h1,h2,λ_H) + carried (h3,h4,h∞) | h(n) decay chart + ρ(n) log-collapse + Fekete theorem in KaTeX (built) | ★★ | LIVE |
+| no-forced-moves | exact recompute | zero forced placements; every interior piece has 73-137 partners (recomputed exact) | exact | partner-count histogram (built) | ★★ | LIVE |
 | rare-color-geography | vols 5/7/13 + exact recompute | 5 rare colors only on the border ring, each on exactly 24 edges, 0 interior | exact | board-ring diagram + rare swatches + stacked frame/interior bar (built) | ★★ | LIVE |
-| watershed-piece-theft | WATERSHED vol-204 | 90% of solver deaths are local piece-theft, not global infeasibility | exact | death-cell map; (N,W)-pair scarcity heatmap | ★ | TODO |
-| depth-40-wall | vol-125 | block-search plateaus at depth 40/64 invariantly | seeded | depth histogram by seed; trajectory curves | ★ | TODO |
-| ns1-deficit | vol-11 / Hopfer | Δ∈{0,1,2,4} for canonical partials; correlates with score | exact | score-vs-Δ scatter | ★ | TODO |
+| watershed-piece-theft | WATERSHED | 90% of solver deaths are local piece-theft, not global infeasibility | exact | death-cell map; (N,W)-pair scarcity heatmap | ★ | TODO |
+| depth-40-wall | | block-search plateaus at depth 40/64 invariantly | seeded | depth histogram by seed; trajectory curves | ★ | TODO |
+| ns1-deficit | (Hopfer) | Δ∈{0,1,2,4} for canonical partials; correlates with score | exact | score-vs-Δ scatter | ★ | TODO |
 
 Supporting evidence (fold into the pages above, not standalone): piece-side
 polytope (rotation absorbs 307→480), Fiedler spectral frame/interior split,
@@ -73,7 +73,7 @@ prove the pattern).
 
 ## DOOR 3 — /research/lab (the open notebook)
 
-### /research/lab/inventions  (LIVE hub; many TODO pages)
+### /research/lab/inventions (LIVE hub; many TODO pages)
 
 Record-setting (have verified boards):
 | Invention | vol | result | repro | viz/demo | status |
@@ -97,7 +97,7 @@ Exact / endgame:
 Each invention page uses the shared `InventionLayout` (idea / how / board /
 result / open questions / repro) and gets its viz where listed.
 
-### /research/lab/findings  (TODO hub)
+### /research/lab/findings (TODO hub)
 
 The structural results from Door 1's research, written as standalone findings
 with their proofs. Some overlap with /why is intentional and cross-linked:
@@ -107,7 +107,7 @@ forbidden patterns, no-forced-moves, NS-1 invariant. (Decide: keep these in /why
 only, or mirror richer versions here. Leaning: flagship proofs live in /why;
 /lab/findings holds the longer technical write-ups + certificates.)
 
-### /research/lab/basins  (TODO hub)
+### /research/lab/basins (TODO hub)
 
 17 board case studies. Gallery with viewer previews (native eternity2.dev
 params) + per-board annotation. Avoid duplicating the records timeline; frame as
@@ -124,10 +124,10 @@ accounted for, not lost — full detail remains in the vault.
 | What | Where in vault | Why not published |
 |---|---|---|
 | Design-only / unbuilt inventions (bidirectional A5, DLX A4, RL self-play D4, FSMC J6, per-color Lagrangian J4, M-series cross-domain M1-M15) | INVENTIONS_BACKLOG.md | not built / no result yet; would read as speculation. Revisit if built. |
-| Raw session journals (vol-1…219) | sessions/ | lab minutiae; the findings/inventions distil them. Link the vault, don't republish. |
+| Raw session journals | sessions/ | lab minutiae; the findings/inventions distil them. Link the vault, don't republish. |
 | Early refuted micro-experiments | concepts/ status:refuted (non-general) | too specific to be instructive publicly; the Dead Ends page covers the general lessons. |
 | Internal tooling notes (engine profiles, code-debt, audits) | concepts/, AUDIT_*, CONCEPT_TRIAGE_* | maintenance detail, not research content. |
-| χ-truncation / TIDEMARK conditional-marginal internals | tidemark-*, vol-210 | honest negative but math-heavy; mention as a dead end, don't dedicate a page. |
+| χ-truncation / TIDEMARK conditional-marginal internals | tidemark-* | honest negative but math-heavy; mention as a dead end, don't dedicate a page. |
 
 ---
 
@@ -188,10 +188,10 @@ streamlining, CVC, SB-BLE. Reason: proposed, no result; revisit if built.
 
 The 219 volumes compress into a public "how the record climbed" timeline (this
 is the Records page's job, already LIVE; can be enriched): 449 baseline → 454
-(border-diversity, vol-6) → 457 (Blackwood schedule + PT, vol-18) → 458 (vol-32)
-→ 459 (cross-machine, vol-60) → 461 (A1 pipeline, vol-125) → 463 (PALIMPSEST,
-vol-129). Strict-canonical: → 458 (vol-122). Plus the frame-free track (vols
-217-218) as a separate "clean-slate construction" story.
+(border-diversity) → 457 (Blackwood schedule + PT) → 458
+→ 459 (cross-machine) → 461 (A1 pipeline) → 463 (PALIMPSEST).
+Strict-canonical: → 458. Plus the frame-free track as a separate
+"clean-slate construction" story.
 
 ### Sessions (179) and synthesis docs
 

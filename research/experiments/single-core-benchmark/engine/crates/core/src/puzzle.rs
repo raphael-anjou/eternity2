@@ -16,7 +16,7 @@ pub struct Puzzle {
     pub height: u32,
     pub color_count: u32,
     pieces: Vec<Piece>,
-    /// Vol-16 — `pieces_by_id[id as usize]` is the index into `pieces`
+ /// `pieces_by_id[id as usize]` is the index into `pieces`
     /// where piece `id` lives. Built at construction so `Puzzle::piece(id)`
     /// is O(1) instead of O(n) linear search (the old `iter().find`).
     ///
@@ -81,7 +81,7 @@ impl Puzzle {
                 }
             }
         }
-        // Vol-16 — build the O(1) id->index map.
+ // build the O(1) id->index map.
         let max_id = pieces.iter().map(|p| u32::from(p.id)).max().unwrap_or(0);
         let mut pieces_by_id: Vec<u32> = Vec::with_capacity((max_id as usize) + 1);
         pieces_by_id.resize((max_id as usize) + 1, u32::MAX);
@@ -94,7 +94,7 @@ impl Puzzle {
     #[must_use]
     pub fn pieces(&self) -> &[Piece] { &self.pieces }
 
-    /// O(1) piece lookup by id (vol-16 — was O(n) linear search via
+ /// O(1) piece lookup by id (was O(n) linear search via
     /// `iter().find`; profile showed score_board's 3-call-per-cell
     /// pattern made this O(n²) on a fully-placed board).
     #[must_use]

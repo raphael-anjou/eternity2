@@ -1,4 +1,4 @@
-// vol-234 R4 — BLACKWOOD-STYLE DEPTH-GATED BREAK BACKTRACKER (from scratch).
+// R4 — BLACKWOOD-STYLE DEPTH-GATED BREAK BACKTRACKER (from scratch).
 //
 // Our from-scratch record engine is a SOFT BEAM that tolerates breaks
 // uniformly/greedily. The community record engines (Blackwood 468-470) are
@@ -7,7 +7,7 @@
 // with a non-adjacency rule. This binary implements that algorithm faithfully
 // from the decoded specification (NO community source imported).
 //
-// Algorithm components (see vault/papers/vol-234/R4-BLACKWOOD-BT.md):
+// Algorithm components (see the project write-ups):
 //   1. classic DFS place/check/backtrack over a fixed fill order
 //   2. piece value-ordering by 3 privileged colors (tunable)
 //   3. a 256-entry quota schedule (hard prune on privileged-color count)
@@ -1173,7 +1173,7 @@ fn main() {
     let mut stage = 4usize;
     // Privileged colors for the quota-schedule pruning. Blackwood's published
     // spec names colors {13,16,10} — but those are in HIS piece-set labeling.
-    // A/B on OUR labeling (vol-235, 3 seeds, nodecap 30M): {13,16,10}=387,
+ // A/B on OUR labeling (, 3 seeds, nodecap 30M): {13,16,10}=387,
     // {22,21,20}=435, freq-top3 {12,14,15}=418. So the spec-literal colors
     // TRANSFER BADLY (mis-keyed quota over-prunes); {22,21,20} is empirically
     // near-optimal for our numbering and is kept as the default.

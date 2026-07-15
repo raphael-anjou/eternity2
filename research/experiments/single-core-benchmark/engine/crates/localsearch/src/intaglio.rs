@@ -1,4 +1,4 @@
-// INTAGLIO — forbidden 2x2 patch detection (Vol-140).
+// INTAGLIO — forbidden 2x2 patch detection.
 //
 // For a 4-tuple of piece IDs (p_tl, p_tr, p_bl, p_br), a 2x2 patch is
 // FEASIBLE if some rotation assignment (r_tl, r_tr, r_bl, r_br) makes:

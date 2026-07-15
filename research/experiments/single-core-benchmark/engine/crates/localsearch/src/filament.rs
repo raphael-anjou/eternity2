@@ -1,4 +1,4 @@
-// FILAMENT — Lin-Kernighan on 2D grid for Eternity II (Vol-130).
+// FILAMENT — Lin-Kernighan on 2D grid for Eternity II.
 //
 // Difference from existing LkhChainDestroy:
 //   - Operates as REPAIR/IMPROVE, not destroy. Takes a board, applies a chain of

@@ -1,4 +1,4 @@
-// Vol-17 — replay ALNS on a saved Blackwood CP board.
+// replay ALNS on a saved Blackwood CP board.
 //
 // Saves the 5 minutes of CP each experiment, lets us iterate ALNS
 // configs at 2× throughput. Loads a CP-board JSON (the existing
@@ -126,7 +126,7 @@ fn build_ops_with_oracle(preset: &str, oracle: Option<&Board>) -> Vec<Box<dyn De
             ]
         }
         "sigma_halo" => {
-            // Vol-108 T1.b — try σ-cycle + 1-cell halo to unlock the
+ // T1.b — try σ-cycle + 1-cell halo to unlock the
             // surrounding pieces' rotations.
             let oracle = oracle.expect("sigma_halo preset requires --oracle");
             vec![
@@ -181,7 +181,7 @@ fn build_ops(preset: &str) -> Vec<Box<dyn DestroyOp>> {
             Box::new(WorstBand { k_rows: 4 }),
         ],
         "basic_lkh" => vec![
-            // Vol-123 W4 — basic + LKH-chain operator (adaptive K=10-15).
+ // W4 — basic + LKH-chain operator (adaptive K=10-15).
             Box::new(RandomRegion { k: 4 }),
             Box::new(WorstWindow { k: 5 }),
             Box::new(ConflictDriven { max_size: 30 }),
@@ -206,7 +206,7 @@ fn build_ops(preset: &str) -> Vec<Box<dyn DestroyOp>> {
             Box::new(WorstBand { k_rows: 4 }),
         ],
         "diverse" => vec![
-            // Vol-17 — winning5 + BottomBandDestroy to inject diversity in
+ // winning5 + BottomBandDestroy to inject diversity in
             // the perfect zone. Tests H15: forcing bottom-row disturbance
             // breaks past 455 local optimum.
             Box::new(RandomRegion { k: 4 }),
@@ -252,7 +252,7 @@ fn build_ops(preset: &str) -> Vec<Box<dyn DestroyOp>> {
             Box::new(ComponentClusterDestroy { cluster_radius: 4, halo: 1 }),
         ],
         "winning5_cluster" => vec![
-            // Vol-62 invented op: ComponentClusterDestroy joins many small
+ // invented op: ComponentClusterDestroy joins many small
             // co-located defect components into one destroy region. Tested
             // against winning5 on local 459 board.
             Box::new(RandomRegion { k: 4 }),
@@ -265,7 +265,7 @@ fn build_ops(preset: &str) -> Vec<Box<dyn DestroyOp>> {
             Box::new(ComponentClusterDestroy { cluster_radius: 5, halo: 1 }),
         ],
         "hingeonly" => vec![Box::new(HingeDestroy { halo: 1 })],
-        // Vol-18 — escape 457 operator-lock with fundamentally different
+ // escape 457 operator-lock with fundamentally different
         // proposals. MegaBand{8,10,12} destroys 128-192 cells; WorstColumn
         // and column-band sample orthogonal to row-bands; HalfBoardDestroy
         // is brutal; RandomScatter explores non-contiguous patterns.
@@ -278,7 +278,7 @@ fn build_ops(preset: &str) -> Vec<Box<dyn DestroyOp>> {
             Box::new(RandomScatter { k: 60 }),
         ],
         "mega_mix" => vec![
-            // Vol-18 — combine winning5's reliable ops with mega-escape ops.
+ // combine winning5's reliable ops with mega-escape ops.
             // Gives ALNS adaptive weights the choice: small ops for
             // refinement, big ops for basin-escape.
             Box::new(RandomRegion { k: 4 }),
@@ -341,15 +341,15 @@ fn main() {
     let mut lex_intaglio = false;
     let mut repair_step_budget: u64 = 0;
     let mut cp_repair_parallel = true;
-    // Vol-60 — extra-hint support (mirrors vanilla_fast). These are
+ // extra-hint support (mirrors vanilla_fast). These are
     // additional pinned positions beyond canonical hints. Format:
     // POS:PID:ROT per --extra-hint. Used by the corner-sweep experiment
     // to pin corner pieces during ALNS so the sweep's distinct
     // permutations are preserved through recovery.
     let mut extra_pins: Vec<u32> = Vec::new();
-    // Vol-108 T1 — oracle board path for SigmaCycleDestroy.
+ // T1 — oracle board path for SigmaCycleDestroy.
     let mut oracle_path: Option<PathBuf> = None;
-    // Vol-122 K11 — allow custom puzzle path (e.g. for hint-relaxation experiments).
+ // K11 — allow custom puzzle path (e.g. for hint-relaxation experiments).
     let mut custom_puzzle: Option<PathBuf> = None;
     // V169 — load a prior matrix to enable PriorDestroy ops appended to
     // the preset's destroy portfolio.
@@ -371,10 +371,10 @@ fn main() {
             "--repair-kind" => repair_kind = args.next().unwrap(),
             "--t" => t = args.next().unwrap().parse().unwrap(),
             "--lex" => lex = true,
-            // Vol-17 OPTIMIZATION_REPORT phase 0 — determinism knobs.
+ // OPTIMIZATION_REPORT phase 0 — determinism knobs.
             "--repair-step-budget" => repair_step_budget = args.next().unwrap().parse().unwrap(),
             "--cp-repair-single" => cp_repair_parallel = false,
-            // Vol-60 — pin additional position(s). Format POS:PID:ROT
+ // pin additional position(s). Format POS:PID:ROT
             // (PID:ROT are ignored — the partial's existing placement
             // at that position is honored; this just adds the position
             // to the pinned set so ALNS doesn't move that piece).
@@ -407,7 +407,7 @@ fn main() {
         "ALNS config: ops={ops_preset} repair_kind={repair_kind} repair_budget_ms={repair_budget_ms} t={t} budget={alns_ms}ms seed={seed}"
     );
 
-    // Vol-108 T1 — load oracle board if --oracle was given.
+ // T1 — load oracle board if --oracle was given.
     let oracle_board = oracle_path.as_ref().map(|p| {
         eprintln!("loading oracle from {}", p.display());
         load_cp_board(p)
@@ -520,7 +520,7 @@ fn main() {
         "ALNS: elapsed={:.1}s iters={} placed={ap}/256 matched={am}/480 polish_rot=+{rg} polish_swap=+{sg}",
         elapsed.as_secs_f64(), stats.iters
     );
-    // Vol-17 — show when new bests were found.
+ // show when new bests were found.
     if !stats.best_score_history.is_empty() {
         eprintln!("  best_score_history: {} entries", stats.best_score_history.len());
         for (iter, score) in &stats.best_score_history {
@@ -546,7 +546,7 @@ fn main() {
             }))
         }).collect::<Vec<_>>(),
     });
-    // Vol-34 fix — include nanos + pid in run_id so concurrent ALNS
+ // fix — include nanos + pid in run_id so concurrent ALNS
     // runs with the same (ops, repair, t, seed) don't overwrite each
     // other's output files. The earlier secs-only naming collided
     // when 8 parallel processes finished in the same second.

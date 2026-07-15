@@ -14,7 +14,7 @@
 
 Machine: 8-core Apple Silicon (`hw.ncpu=8`), macOS (Darwin 25.5.0). All
 measurements below are single runs of `crates/bench-grid/wrappers/run_standalone.sh`
-functions against `output/vol-235/variants_20260713T221027/variant_00.csv`
+functions against `output/variants_20260713T221027/variant_00.csv`
 (official 16x16 E2 puzzle + 3 pinned corners, 8 hints total; one of the 10
 corner-pinned benchmark variants). `verify_bucas` is the sole scoring
 oracle — every score below is the independently-verified `canonical_score`,
@@ -26,7 +26,7 @@ Reproduce any row below with:
 ```bash
 cd /Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/v2
 source crates/bench-grid/wrappers/run_standalone.sh
-run_<engine> output/vol-235/variants_20260713T221027/variant_00.csv <seed> 60 /tmp/out.url
+run_<engine> output/variants_20260713T221027/variant_00.csv <seed> 60 /tmp/out.url
 ```
 
 (must be run with `bash`, not `zsh` — the script uses `BASH_SOURCE`; `run_grid.py`
@@ -36,7 +36,7 @@ already invokes it via `bash -c`.)
 
 | Engine | Threading mechanism | Verdict |
 |---|---|---|
-| `vol232_w1_producer_trie` | none — no `rayon`/`thread::spawn` anywhere in the binary (grep-verified) | inherently single-core |
+| `producer_trie` | none — no `rayon`/`thread::spawn` anywhere in the binary (grep-verified) | inherently single-core |
 | `blackwood_bt` | spawns exactly ONE `std::thread::Builder` worker (256MB stack, for the 256-deep recursive DFS) per restart, `.join()`s it synchronously before the next restart | single-core in practice (2 OS threads total, only 1 ever runs) |
 | `verhaard_faithful_v2` | same pattern as `blackwood_bt` (same author lineage) | single-core in practice |
 | `alns_only` | `run_alns` (single-chain entry point, what this wrapper calls) has zero rayon calls on the default `--repair-kind sa` path. Rayon exists in the crate only for `run_alns_portfolio`/`run_alns_pt` (unused here) and `RepairKind::Cp` (unused here — we pass no `--repair-kind`, default is `sa`) | single-core on the path used here |
@@ -48,7 +48,7 @@ script defensively regardless.
 
 **None of the 4 binaries are natively time-bounded except `alns_only`**
 (which takes `--alns-budget-ms` directly). The other 3 either run a fixed
-workload to completion (`vol232_w1_producer_trie`'s beam search) or a
+workload to completion (`producer_trie`'s beam search) or a
 node-capped restart portfolio (`blackwood_bt`, `verhaard_faithful_v2`). The
 wrapper makes all 4 behave as ~60s-wall-clock engines via calibrated fixed
 parameters (producer) or `timeout` + a checkpoint file the binary itself
@@ -56,9 +56,9 @@ maintains (blackwood/verhaard), or true time-boxing (alns).
 
 ---
 
-## 1. Producer (`vol232_w1_producer_trie`)
+## 1. Producer (`producer_trie`)
 
-Beam search, `--order comb:14` (the vol-234 comb fill-order that beat plain
+Beam search, `--order comb:14` (the comb fill-order that beat plain
 row-major — see memory: "comb broke the old 455 raw ceiling"). Not natively
 time-bounded: the binary runs the given `--beam` to full completion, no
 timer. Calibration = finding a beam that completes in ~60s.
@@ -81,11 +81,11 @@ conditions).
 ### Exact command
 
 ```bash
-target/release/vol232_w1_producer_trie \
-  output/vol-235/variants_20260713T221027/variant_00.csv \
-  --order comb:14 --beam 80000 --tol 0 --seed 1 \
-  --emit-best /tmp/producer_s1.url
-target/release/verify_bucas output/vol-235/variants_20260713T221027/variant_00.csv "$(cat /tmp/producer_s1.url)"
+target/release/producer_trie \
+ output/variants_20260713T221027/variant_00.csv \
+ --order comb:14 --beam 80000 --tol 0 --seed 1 \
+ --emit-best /tmp/producer_s1.url
+target/release/verify_bucas output/variants_20260713T221027/variant_00.csv "$(cat /tmp/producer_s1.url)"
 ```
 
 ### Measured (via `run_producer`, budget_s=60)
@@ -132,10 +132,10 @@ the wrapper.**
 
 ```bash
 timeout 60 target/release/blackwood_bt \
-  output/vol-235/variants_20260713T221027/variant_00.csv \
-  --nodecap 20000000 --restarts 1000 --seed 1 \
-  --emit-dir /tmp/bw_scratch --emit-prefix bw
-target/release/verify_bucas output/vol-235/variants_20260713T221027/variant_00.csv "$(cat /tmp/bw_scratch/best_so_far.url)"
+ output/variants_20260713T221027/variant_00.csv \
+ --nodecap 20000000 --restarts 1000 --seed 1 \
+ --emit-dir /tmp/bw_scratch --emit-prefix bw
+target/release/verify_bucas output/variants_20260713T221027/variant_00.csv "$(cat /tmp/bw_scratch/best_so_far.url)"
 ```
 
 ### Measured (via `run_blackwood`, budget_s=60)
@@ -163,10 +163,10 @@ separate stage-4 exists distinct from stage 3 for this binary.
 
 ```bash
 timeout 60 target/release/verhaard_faithful_v2 \
-  output/vol-235/variants_20260713T221027/variant_00.csv \
-  --nodecap 20000000 --restarts 1000 --seed 1 \
-  --emit-dir /tmp/vh_scratch --emit-prefix vh
-target/release/verify_bucas output/vol-235/variants_20260713T221027/variant_00.csv "$(cat /tmp/vh_scratch/best_so_far.url)"
+ output/variants_20260713T221027/variant_00.csv \
+ --nodecap 20000000 --restarts 1000 --seed 1 \
+ --emit-dir /tmp/vh_scratch --emit-prefix vh
+target/release/verify_bucas output/variants_20260713T221027/variant_00.csv "$(cat /tmp/vh_scratch/best_so_far.url)"
 ```
 
 ### Measured (via `run_verhaard`, budget_s=60)
@@ -179,7 +179,7 @@ target/release/verify_bucas output/vol-235/variants_20260713T221027/variant_00.c
 Verhaard's per-node throughput (~40 Mnode/s) is noticeably lower than
 Blackwood's (~60 Mnode/s) at the same nodecap — consistent with Verhaard's
 extra good-groups bookkeeping per placement (see
-`vault/papers/vol-234/R8-VERHAARD-GOODGROUPS.md`).
+`the project write-ups
 
 ---
 
@@ -189,66 +189,66 @@ Time-bounded (`--alns-budget-ms`) but requires a **starting board** —
 `alns_only` has no producer of its own. Two-stage chain inside the same
 `budget_s` wall-clock window:
 
-- **Stage A** — `vol232_w1_producer_trie`, fixed `--beam 16384`
-  (`--order comb:14`), which completes in a MEASURED ~9s regardless of
-  `budget_s` (it is not itself time-bounded; 16384 was chosen because it
-  reliably lands well under any reasonable sub-budget while still landing
-  in the "raw ~453-457" band the memory-recorded winning pipeline starts
-  from — "comb14 B=16384 seed9 -> 457 raw -> ALNS -> 461").
+- **Stage A** — `producer_trie`, fixed `--beam 16384`
+ (`--order comb:14`), which completes in a MEASURED ~9s regardless of
+ `budget_s` (it is not itself time-bounded; 16384 was chosen because it
+ reliably lands well under any reasonable sub-budget while still landing
+ in the "raw ~453-457" band the memory-recorded winning pipeline starts
+ from — "comb14 B=16384 seed9 -> 457 raw -> ALNS -> 461").
 - **Convert**: `dump_board_json <bucas-url>` (decodes the bucas URL back to
-  a placement JSON) piped through `jq '{placement: .board}'` to match
-  `alns_only`'s `load_cp_board` schema (`{"placement":[{piece_id,rotation}|
-  {pos,piece_id,rotation}, ...]}` — sparse-with-`pos` form used here).
-  ~1s overhead.
+ a placement JSON) piped through `jq '{placement: .board}'` to match
+ `alns_only`'s `load_cp_board` schema (`{"placement":[{piece_id,rotation}|
+ {pos,piece_id,rotation}, ...]}` — sparse-with-`pos` form used here).
+ ~1s overhead.
 - **Stage B** — `alns_only --ops basic_lkh` (the memory-recorded winning
-  preset: "ALNS `alns_only` ops=basic_lkh, repair=sa ... 457->459->460->461")
-  for the ACTUAL remaining wall-clock: `budget_s - measured_stageA_wall -
-  2s conversion overhead`, floor 5s. This measure-then-allocate approach
-  (rather than a fixed a-priori split) avoids wasting budget when stage A
-  finishes faster than any fixed allowance — an earlier version of this
-  wrapper fixed a 22s producer sub-budget for a beam that actually finished
-  in ~3s, silently discarding ~19s of the 60s window (found and fixed
-  during calibration; see script comments).
+ preset: "ALNS `alns_only` ops=basic_lkh, repair=sa ... 457->459->460->461")
+ for the ACTUAL remaining wall-clock: `budget_s - measured_stageA_wall -
+ 2s conversion overhead`, floor 5s. This measure-then-allocate approach
+ (rather than a fixed a-priori split) avoids wasting budget when stage A
+ finishes faster than any fixed allowance — an earlier version of this
+ wrapper fixed a 22s producer sub-budget for a beam that actually finished
+ in ~3s, silently discarding ~19s of the 60s window (found and fixed
+ during calibration; see script comments).
 
 ### CRITICAL bugs found + fixed during calibration
 
 1. **`alns_only`'s summary lines (`bucas: ...`, `ALNS: elapsed=... iters=...`)
-   are `eprintln!`'d (stderr), not printed to stdout.** An early version of
-   the wrapper grepped stdout and silently fell back to the stage-A board
-   every single run (never actually picking up ALNS's output). Fixed by
-   grepping the captured stderr log.
+ are `eprintln!`'d (stderr), not printed to stdout.** An early version of
+ the wrapper grepped stdout and silently fell back to the stage-A board
+ every single run (never actually picking up ALNS's output). Fixed by
+ grepping the captured stderr log.
 2. **`alns_only --puzzle` does NOT affect `load_cp_board`'s internal piece
-   catalog load** — `load_cp_board` (used to parse `--cp-board`) hardcodes
-   `../data/puzzles/size_16_official_eternity.csv` relative to CWD,
-   independent of the `--puzzle` flag (which only affects the main
-   scoring/ALNS puzzle load). This is safe here ONLY because piece
-   ids/edges are identical across all 10 corner-pinned benchmark variants
-   (only the 8 hint cells differ) — verified by checking the file actually
-   exists at that relative path. **The wrapper explicitly `cd`s to
-   `$V2_ROOT` before invoking `alns_only` and `dump_board_json`** (both
-   binaries share this hardcoded-relative-path pattern) so `../data/...`
-   resolves correctly regardless of the caller's cwd. This is a real
-   pre-existing quirk in `alns_only.rs`/`dump_board_json.rs`, documented
-   here rather than silently patched around, per repo convention (flagged
-   for a future fix: the hardcoded path should honor `--puzzle` or take its
-   own `--catalog-puzzle` flag).
+ catalog load** — `load_cp_board` (used to parse `--cp-board`) hardcodes
+ `../data/puzzles/size_16_official_eternity.csv` relative to CWD,
+ independent of the `--puzzle` flag (which only affects the main
+ scoring/ALNS puzzle load). This is safe here ONLY because piece
+ ids/edges are identical across all 10 corner-pinned benchmark variants
+ (only the 8 hint cells differ) — verified by checking the file actually
+ exists at that relative path. **The wrapper explicitly `cd`s to
+ `$V2_ROOT` before invoking `alns_only` and `dump_board_json`** (both
+ binaries share this hardcoded-relative-path pattern) so `../data/...`
+ resolves correctly regardless of the caller's cwd. This is a real
+ pre-existing quirk in `alns_only.rs`/`dump_board_json.rs`, documented
+ here rather than silently patched around, per repo convention (flagged
+ for a future fix: the hardcoded path should honor `--puzzle` or take its
+ own `--catalog-puzzle` flag).
 3. **Non-English locale (`fr_FR.UTF-8` on this machine) made `awk`
-   printf a comma decimal separator** (`58,48` instead of `58.48`),
-   breaking every downstream numeric parse. Fixed with `export LC_ALL=C;
-   export LC_NUMERIC=C` at the top of the wrapper script.
+ printf a comma decimal separator** (`58,48` instead of `58.48`),
+ breaking every downstream numeric parse. Fixed with `export LC_ALL=C;
+ export LC_NUMERIC=C` at the top of the wrapper script.
 
 ### Exact command (manual, 2-stage)
 
 ```bash
-cd /Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/v2   # cwd matters, see bug #2
-target/release/vol232_w1_producer_trie \
-  output/vol-235/variants_20260713T221027/variant_00.csv \
-  --order comb:14 --beam 16384 --tol 0 --seed 1 --emit-best /tmp/base.url
+cd /Users/raphaelanjou/Documents/dev-projects/polytech/eternity2/v2 # cwd matters, see bug #2
+target/release/producer_trie \
+ output/variants_20260713T221027/variant_00.csv \
+ --order comb:14 --beam 16384 --tol 0 --seed 1 --emit-best /tmp/base.url
 target/release/dump_board_json "$(cat /tmp/base.url)" | jq '{placement: .board}' > /tmp/base_cpboard.json
 target/release/alns_only \
-  --cp-board /tmp/base_cpboard.json \
-  --puzzle output/vol-235/variants_20260713T221027/variant_00.csv \
-  --alns-budget-ms 48000 --seed 1 --ops basic_lkh
+ --cp-board /tmp/base_cpboard.json \
+ --puzzle output/variants_20260713T221027/variant_00.csv \
+ --alns-budget-ms 48000 --seed 1 --ops basic_lkh
 # bucas url is on the "bucas: ..." STDERR line
 ```
 

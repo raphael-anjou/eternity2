@@ -1,4 +1,4 @@
-// Canonical board verifier — vol-118 T7 consolidation.
+// Canonical board verifier — T7 consolidation.
 //
 // Replaces per-bin verification logic with a single, comprehensive
 // VerifyReport struct + verify() function. Catches:
@@ -10,7 +10,7 @@
 //   - edge-match score (matched / total adjacencies among placed cells)
 //
 // The border-consistency check is the load-bearing addition: it
-// catches the class of bugs that escaped vol-15 → vol-118 in the
+// catches the class of bugs that escaped → in the
 // blackwood-fast candidate-bucket bug.
 
 use eternity2_core::{Board, Hints, PieceId, Puzzle, Rotation, BORDER};

@@ -5,7 +5,7 @@
 // Factory methods for EngineConfig (border_first_lcv, joe_depth150_bp,
 // etc.) live in profiles.rs.
 //
-// Moved here in vol-33 T3 (split solver-engine/src/lib.rs into modules).
+// Moved here in T3 (split solver-engine/src/lib.rs into modules).
 
 use eternity2_core::Color;
 
@@ -39,19 +39,19 @@ pub enum ValueOrder {
     /// Score each candidate row by Σ over its 4 sides of
     /// `SolveOpts.edge_bp_marginals[edge_id(cell, side)][row.edges[side]]`;
     /// sort descending so higher-probability colors are tried first.
-    /// Vol-14 #1, port of vol-12's edge-color BP measurement
+ /// Port of the edge-color BP measurement
     /// (`output/v12_bp/edge_bp_60i.json`, 18.84% interior-edge
     /// entropy reduction; beat random as value-order in Python A/B).
     /// Falls back silently to InsertionOrder if marginals absent
     /// (preserves correctness in tests / smoke runs).
     EdgeBpMarginals,
-    /// Vol-15 — Blackwood 2020 heuristic-side value ordering. Score
+ /// Blackwood 2020 heuristic-side value ordering. Score
     /// each candidate row by `Σ_{side} 1[row.edges[side] ∈ schedule.heuristic_sides]`
     /// and sort descending so heuristic-rich candidates are tried first.
     /// Falls back silently to InsertionOrder when no schedule is
     /// attached (preserves correctness in tests).
     BlackwoodHeuristic,
-    /// Vol-26 — Learned imitation-policy value order. Score each
+ /// Learned imitation-policy value order. Score each
     /// candidate row by an external Python subprocess running a small
     /// neural network trained on expert search trajectories. The bridge
     /// is spawned in `EngineSolver::new` when this variant is selected.
@@ -60,17 +60,17 @@ pub enum ValueOrder {
     /// model. Per-node overhead: ~1-3 ms (JSON + inference). Acceptable
     /// at small puzzle sizes; not intended for canonical E2.
     Learned,
-    /// Vol-30 — hybrid value order. Score candidates by EdgeBpMarginals
+ /// hybrid value order. Score candidates by EdgeBpMarginals
     /// first; reorder only the top-k tied/near-tied candidates with the
     /// Learned scorer. Cheaper per-node than `Learned` (we call the NN
     /// only when a tie-break matters), and theoretically dominated by
-    /// EdgeBpMarginals when there are no ties. Vol-29 measurement showed
+ /// EdgeBpMarginals when there are no ties. measurement showed
     /// the learned model picks productive tie-breakers
     /// (−35% nodes / −37% backtracks at iso-depth); this variant tests
     /// whether that signal turns into Δ > 0 depth on canonical E2.
     /// Requires both `opts.edge_bp_marginals` and a loaded Learned model.
     LearnedOnTies,
-    /// Vol-41 — records-prior value order. At each cell, rank candidates
+ /// records-prior value order. At each cell, rank candidates
     /// by how many of our 7 verified canonical-E2 records have that
     /// (piece_id, rotation) at that position. Concept: records are a
     /// biased sample of high-score local optima; their per-cell
@@ -80,7 +80,7 @@ pub enum ValueOrder {
     RecordsPrior,
 }
 
-/// Vol-15 — Blackwood 2020 algorithm parameters. The backtracker is
+/// Blackwood 2020 algorithm parameters. The backtracker is
 /// constrained by:
 ///   1. A piecewise-linear schedule that demands a minimum count of
 ///      "heuristic-colored" edges placed by each depth — branches
@@ -118,7 +118,7 @@ impl BlackwoodSchedule {
     /// non-decreasing, all counts fit in `heuristic_pool_size`. A
     /// schedule that violates strict-monotonicity in depth produces
     /// a "cliff" where `target_at(d)` jumps discontinuously — the
-    /// vol-15 bug your friend spotted in run_1778604403.
+ /// bug your friend spotted in run_1778604403.
     /// Returns `Err(reason)` if malformed; `Ok(())` otherwise.
     pub fn validate(&self) -> Result<(), String> {
         if self.exhaustion_targets.is_empty() {
@@ -176,7 +176,7 @@ impl BlackwoodSchedule {
     }
 }
 
-/// Vol-15 — scan order for the engine. Default `RowMajorTopDown`
+/// scan order for the engine. Default `RowMajorTopDown`
 /// matches the engine's historic indexing `idx = y*W + x`.
 /// `RowMajorBottomUp` matches Blackwood's `idx = (H-1-y)*W + x`
 /// (index 0 = bottom-left). The scan order is materialised as an
@@ -203,7 +203,7 @@ pub enum Parallelism {
     RootSplit { split_depth: u32 },
 }
 
-/// Vol-16 Cat-2 Stage A — orthogonal sub-config for the optional
+/// Cat-2 Stage A — orthogonal sub-config for the optional
 /// propagator stack. Baseline edge-color matching + piece-uniqueness
 /// are ALWAYS on inside the engine; this struct only controls the
 /// additional propagators that may run after baseline succeeds.
@@ -212,7 +212,7 @@ pub enum Parallelism {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PropagatorConfig {
     /// Cheap; corner/edge/inner piece-class counting. On by default for
-    /// most profiles. Note: in `BLACKWOOD_RAW` it is OFF (vol-16 Cat-4b
+ /// most profiles. Note: in `BLACKWOOD_RAW` it is OFF (Cat-4b
     /// dropped it because Blackwood's depth ~80 wall doesn't reach the
     /// regime where class_balance pays its cost).
     pub class_balance: bool,
@@ -267,7 +267,7 @@ impl PropagatorConfig {
 pub struct EngineConfig {
     pub variable_order: VariableOrder,
     pub value_order: ValueOrder,
-    /// Optional propagator stack (vol-16 Cat-2 Stage A — extracted from
+ /// Optional propagator stack (Cat-2 Stage A — extracted from
     /// 7 flat fields). Baseline edge-color + piece-uniqueness are
     /// always on regardless.
     pub propagators: PropagatorConfig,
@@ -277,7 +277,7 @@ pub struct EngineConfig {
     /// puzzles, which almost always satisfy this).
     pub break_symmetry: bool,
     pub parallelism: Parallelism,
-    /// Vol-14 — automatic "skeleton path" that the engine pre-pins
+ /// automatic "skeleton path" that the engine pre-pins
     /// before falling back to its normal variable-ordering. When
     /// `Some(PathSkeleton::HintRectangle)`, `SearchState::new` builds
     /// a path that traces the rectangle through the 4 outermost hint
@@ -287,7 +287,7 @@ pub struct EngineConfig {
     /// vs default MRV on canonical E2 single-thread border_first_lcv. See
     /// `project_e2_vol14_rectangle_path_finding.md` (forthcoming).
     pub path_skeleton: Option<PathSkeleton>,
-    /// Vol-15 — Blackwood 2020 scan order. `None` = inherit default
+ /// Blackwood 2020 scan order. `None` = inherit default
     /// `RowMajorTopDown` (engine's historic indexing). When set to
     /// `Some(RowMajorBottomUp)` and no explicit `opts.path` or
     /// `path_skeleton` is supplied, the engine auto-builds a full-board
@@ -295,7 +295,7 @@ pub struct EngineConfig {
     /// schedule's `break_indexes_allowed` field then indexes into this
     /// path.
     pub scan_order: Option<ScanOrder>,
-    /// Vol-17 (H22) — within-tie shuffle for BlackwoodHeuristic value
+ /// (H22) — within-tie shuffle for BlackwoodHeuristic value
     /// order. When true, after sorting rows by heuristic-color count
     /// (descending), shuffle each run of equal-score rows using the
     /// seed-derived RNG. Gives schedule-invariant CP-partial diversity
@@ -315,7 +315,7 @@ pub enum PathSkeleton {
     /// Requires `opts.hints` to have at least 4 hint positions.
     /// No-op if fewer than 4 hints.
     HintRectangle,
-    /// Vol-14 user-proposed: same as HintRectangle but then continues
+ /// user-proposed: same as HintRectangle but then continues
     /// the path by filling cells in layered order:
     ///   1. Rectangle skeleton (49 cells on canonical E2).
     ///   2. Interior of the rectangle, spiraling outward from center
@@ -328,7 +328,7 @@ pub enum PathSkeleton {
     /// hypothesis that maximum-constraint-first ordering improves
     /// search beyond the basic rectangle path.
     HintRectangleLayered,
-    /// Vol-23 user-proposed: X-shape skeleton through the 5 canonical
+ /// user-proposed: X-shape skeleton through the 5 canonical
     /// hints. Pre-commits cells along two 3-cell-wide diagonals that
     /// cross at the centre hint, so each subsequent diagonal cell has
     /// two already-placed neighbours (early constraint propagation).

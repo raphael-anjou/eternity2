@@ -1,12 +1,12 @@
-// Vol-218: entry-population generator for the BANDSAW 10×10 testbed.
+//: entry-population generator for the BANDSAW 10×10 testbed.
 // Perfect-walk DFS over rows 0..R of a generated N×N instance, hints
 // inside the prefix forced, ALL hint pieces bucket-excluded elsewhere
-// (vol-217 poisoning lesson), randomized candidate order per restart,
+// (poisoning lesson), randomized candidate order per restart,
 // banked on visit at depth R*N, deduped by the H7 key
 // (row-(R-1) south vector, remaining-pool mask).
 //
 //   mini_gen --size 10 --colors 8 --seed 101 --rows 6 --secs 60 \
-//     --cap 200 --restart-ms 250 --out output/vol-218/run/inst_101
+// --cap 200 --restart-ms 250 --out output/run/inst_101
 
 #![forbid(unsafe_code)]
 
@@ -28,7 +28,7 @@ fn main() {
     let mut cap = 200usize;
     let mut restart_ms = 250u64;
     let mut per_restart = 10usize;
-    let mut out = PathBuf::from("output/vol-218/mini_gen_out");
+    let mut out = PathBuf::from("output/mini_gen_out");
     let mut i = 0;
     while i < raw.len() {
         match raw[i].as_str() {

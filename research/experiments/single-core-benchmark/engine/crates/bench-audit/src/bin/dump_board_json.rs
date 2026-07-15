@@ -1,6 +1,6 @@
 // dump_board_json — decode a bucas URL (or load a partial JSON) and emit a
 // full JSON description of the puzzle catalog + board placement, for external
-// (Python) consumers such as the vol-228 worm-update experiment.
+// (Python) consumers such as the worm-update experiment.
 //
 // Output JSON:
 //   {

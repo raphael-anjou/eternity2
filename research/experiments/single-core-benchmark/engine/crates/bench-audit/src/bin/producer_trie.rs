@@ -1,12 +1,12 @@
-// vol232_w1_producer_trie — frontier/parent-chain beam storage, removing the
-// O(B*fanout) full-board-clone RAM ceiling of vol232_w1_producer_fast.
+// producer_trie — frontier/parent-chain beam storage, removing the
+// O(B*fanout) full-board-clone RAM ceiling of producer_fast.
 //
 // Motivation (team-lead directive, citing Frohner et al. 2022 "Parallel
 // Beam Search for Combinatorial Optimization" -- they run B up to 20M on
 // 46 cores): our beam entries are partial boards that SHARE almost all of
 // their placed cells with their siblings and parent at every layer -- at
 // depth d, a beam member differs from its parent in exactly ONE cell.
-// Storing B full 256-cell board copies per layer (vol232_w1_producer_fast's
+// Storing B full 256-cell board copies per layer (producer_fast's
 // packed-but-still-O(B) design) is the RAM wall for B>=131072. This binary
 // stores the beam as a FOREST: each node is (parent_index, pos, pid, rot,
 // score) -- one placement's delta, not a board. A full board is
@@ -28,12 +28,10 @@
 // peak of ~4-5GB for a single layer alone in the flat design.
 //
 // CORRECTNESS GATE (--threads 1, the default): bit-identical boards to
-// vol232_w1_producer (and to vol232_w1_producer_fast's --serial mode) for
+// producer (and to producer_fast's --serial mode) for
 // the same (order, beam, tol, seed) -- the storage change is STORAGE ONLY,
-// not the search or the RNG draw sequence. Verified in W2-BEAMOPT.md.
-// Every vault paper that cites this binary's numbers (vol-235's
-// SINGLE-CORE-BENCHMARK, vol-232's W2-BEAMOPT, ...) predates --threads and
-// is reproducible from the default path.
+// not the search or the RNG draw sequence. Every published number from this
+// binary was recorded on the default single-thread path and reproduces there.
 //
 // PARALLELISM (--threads N). Frohner et al.'s 46-core/20M-beam
 // result is intra-run data parallelism across the beam, and that is what
@@ -68,7 +66,7 @@
 //   --threads 1    == the historical serial stream, bit-for-bit.
 //   --threads N>1  != the serial stream, but == itself for any N, always.
 //
-// Usage: vol232_w1_producer, plus [--threads N] (default 1).
+// Usage: producer, plus [--threads N] (default 1).
 
 use eternity2_core::{Board, Piece, PieceId, Puzzle, Rotation, BORDER};
 use eternity2_export::bucas_url;
@@ -82,8 +80,8 @@ const H: usize = 16;
 const N: usize = W * H;
 
 // ---------------------------------------------------------------------------
-// vol-234 EMPIRICAL PLACEMENT PRIOR (additive; revives the V155 prior-weaving
-// beam idea on the current-indexing producer).
+// EMPIRICAL PLACEMENT PRIOR (additive; a prior-weaving beam idea on the
+// current-indexing producer).
 //
 // P[pid][pos] = how often piece `pid` appears at board position `pos` across a
 // corpus of our HIGH-SCORE boards. We normalize per POSITION so that
@@ -150,7 +148,7 @@ enum Order {
     RowMajor,
     Spiral,
     BorderFirst,
-    // COMB (vol-234): Verhaard & Max's high-score fill geometry (msg 6112/6126).
+    // COMB: Verhaard & Max's high-score fill geometry (msg 6112/6126).
     // The top `split_row` rows are filled row-major (the "handle" / scanline
     // part); the remaining rows split_row..H are filled COLUMN-BY-COLUMN, left
     // to right, top to bottom within each column (the vertical "teeth"). Each
@@ -247,7 +245,7 @@ fn border_first_order() -> Vec<u32> {
     order
 }
 
-/// Comb fill order (vol-234): rows `0..split_row` in row-major order (the
+/// Comb fill order: rows `0..split_row` in row-major order (the
 /// scanline handle), then rows `split_row..H` filled column-by-column (vertical
 /// teeth), columns left-to-right and rows top-to-bottom within each column.
 /// `split_row == H` degenerates to pure row-major; `split_row == 0` is a pure
@@ -599,7 +597,7 @@ fn run_one(
     prior: Option<&Prior>,
     prior_alpha: f32,
     // 1 = the historical serial expansion (single shared RNG stream, bit-identical
-    // to vol232_w1_producer). >1 = per-member RNG streams, expanded in parallel.
+    // to producer). >1 = per-member RNG streams, expanded in parallel.
     threads: usize,
 ) -> (i32, Box<[u16; N]>, usize, usize) {
     let mut rng = Rng::new(seed);
@@ -1422,8 +1420,8 @@ fn write_final_beam_jsonl(
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("usage: vol232_w1_producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--threads N] [--emit-best out.url] [--emit-final-beam dir]");
-        eprintln!("  --threads 1 (default): historical serial search, bit-identical to vol232_w1_producer.");
+        eprintln!("usage: producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--threads N] [--emit-best out.url] [--emit-final-beam dir]");
+        eprintln!("  --threads 1 (default): historical serial search, bit-identical to producer.");
         eprintln!("  --threads N (0 = all cores): parallel; deterministic for a given seed and equal");
         eprintln!("              across thread counts, but NOT bit-identical to the serial stream.");
         std::process::exit(1);
