@@ -11,6 +11,11 @@
 
 import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, useLocation } from "react-router";
+// KaTeX math styling, scoped to the research wiki. This is the single route
+// module behind every /research/** page (the only pages that render math), so
+// importing the stylesheet here keeps it out of the global critical CSS and
+// lets Vite load it only with this route's chunk. See src/index.css.
+import "katex/dist/katex.min.css";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { canonicalUrl, absoluteUrl } from "@/site";

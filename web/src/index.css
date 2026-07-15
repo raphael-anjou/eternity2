@@ -2,7 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-@import "katex/dist/katex.min.css";
+/* KaTeX's stylesheet (~24 KiB) is NOT imported here: math is rendered only on
+   the /research/** wiki pages (via rehype-katex), so pulling its CSS into the
+   global, render-blocking bundle taxed first paint on every page — including
+   the home page and playground, which have no math. It is imported instead in
+   the research route module (pages/research/doc.tsx), so Vite splits it into a
+   chunk that loads only when a research page is viewed. */
 
 @plugin "@tailwindcss/typography";
 
