@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -97,7 +98,7 @@ const T = {
     npsUnit: "median throughput (native unit, never cross-compared)",
     heatTitle: "Every algorithm across all ten corner variants",
     heatIntro:
-      "One 60 s run per cell. The producer is flat at 453–456; the CSP engines are bimodal, collapsing to ~55 on hostile corners.",
+      "One 60 s run per cell, shaded against this table's own range. The backtrackers are flat near the top; the CSP engines are bimodal, collapsing to ~55 on hostile corners.",
     heatIntroPresets:
       "One 60 s run per cell. The presets are bimodal: several corners solve near the top, then the same knobs collapse to ~55 on hostile corners.",
     busy: "Drawing…",
@@ -123,7 +124,7 @@ const T = {
     npsUnit: "débit médian (unité native, jamais comparée entre familles)",
     heatTitle: "Chaque algorithme sur les dix variantes de coins",
     heatIntro:
-      "Un run de 60 s par cellule. Le producteur est stable à 453–456 ; les moteurs CSP sont bimodaux, s'effondrant à ~55 sur les coins hostiles.",
+      "Un run de 60 s par cellule, nuancé sur l'amplitude propre à ce tableau. Les backtrackers restent groupés en haut ; les moteurs CSP sont bimodaux et s'effondrent à ~55 sur les coins hostiles.",
     heatIntroPresets:
       "Un run de 60 s par cellule. Les préréglages sont bimodaux : plusieurs coins se résolvent près du sommet, puis les mêmes réglages s'effondrent à ~55 sur les coins hostiles.",
     busy: "Tracé…",
@@ -143,11 +144,26 @@ function fmtNps(nps: number | null, unit: string): string {
 
 // Heatmap cell colour: a single-hue sequential ramp over the score range, so a
 // weak cell reads pale and a strong one saturated (magnitude, one hue).
-function heatColor(v: number | null): string {
-  if (v == null) return "var(--muted)";
-  const t = Math.max(0, Math.min(1, (v - 40) / (456 - 40)));
-  // emerald ramp: light (low) → dark (high), via alpha over the surface.
-  return `color-mix(in srgb, #10b981 ${12 + t * 78}%, transparent)`;
+//
+// The domain is derived from the cells actually rendered, never hard-coded: the
+// two views span very different ranges (contenders sit in a tight 431–451 band,
+// the presets spread 35–349), and the set of engines changes as they are added
+// or withheld. A fixed domain silently rots — it used to end at the producer's
+// 456, so once that engine left the grid nothing reached full saturation and
+// the palest cell clamped below the floor.
+type HeatScale = (v: number | null) => string;
+function makeHeatScale(values: number[]): HeatScale {
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  const span = hi - lo;
+  return (v) => {
+    if (v == null) return "var(--muted)";
+    // A degenerate span (one row, or every score equal) would divide by zero;
+    // give those cells the full-strength end rather than NaN.
+    const t = span > 0 ? Math.max(0, Math.min(1, (v - lo) / span)) : 1;
+    // emerald ramp: light (low) → dark (high), via alpha over the surface.
+    return `color-mix(in srgb, #10b981 ${12 + t * 78}%, transparent)`;
+  };
 }
 
 // Two views of the same committed run data:
@@ -170,6 +186,11 @@ export function BenchmarkLeaderboard({
     isContenders ? a.role === "contender" : a.role !== "contender",
   );
   const height = Math.max(320, algos.length * 32 + 48);
+  // Scale the heatmap to the cells this view actually draws (see makeHeatScale).
+  const heatColor = useMemo(() => {
+    const cells = algos.flatMap((a) => a.variants).filter((v): v is number => v != null);
+    return makeHeatScale(cells.length ? cells : [0]);
+  }, [algos]);
 
   // The paradox tiles compare a high-throughput / lower-score engine against a
   // low-throughput / higher-score one. WHICH rows is a manifest fact carried in
