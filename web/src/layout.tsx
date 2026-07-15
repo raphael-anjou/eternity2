@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { initEngine } from "@/engine";
 import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -223,6 +224,8 @@ export default function Layout() {
           </a>
         </p>
       </footer>
+
+      <FeedbackButton />
     </div>
   );
 }
