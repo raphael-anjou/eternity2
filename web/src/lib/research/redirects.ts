@@ -35,6 +35,8 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   "/research/lab/experiments/raphael-anjou/mosaic": "/research/lab/experiments/raphael-anjou/runs/mosaic",
   "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
   "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/analyses/replay",
+  // The publishing methodology moved under Experiments (2026-07).
+  "/research/lab/methodology": "/research/lab/experiments/methodology",
   // Pages moved into the History & community section (2026-07).
   "/research/lab/boards": "/research/community/boards",
   "/research/build/history": "/research/community/hunt",

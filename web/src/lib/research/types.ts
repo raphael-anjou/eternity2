@@ -16,7 +16,7 @@ export type ReproKind = "exact" | "seeded" | "stochastic" | "heavy" | "prose";
 
 /** The *contribution* axis: what kind of research result a page is, independent
  *  of `kind` (which drives layout). Only `solver` results earn a row on the
- *  score chart / leaderboard. See lab/methodology for the full taxonomy.
+ *  score chart / leaderboard. See lab/experiments/methodology for the full taxonomy.
  *  solver — produces a competitive board by searching (a real search score);
  *  analysis — proves/computes a property of an existing board or the instance;
  *  reconstruction — decodes/rebuilds community work to extract an insight;
