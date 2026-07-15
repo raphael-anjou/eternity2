@@ -49,7 +49,10 @@
 include!("verhaard_good_groups.in");
 
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::Instant;
+
+use rayon::prelude::*;
 
 use eternity2_core::{Board, Rotation};
 use eternity2_export::bucas_url;
@@ -271,6 +274,10 @@ fn build_comb_order(horiz_rows: usize) -> Vec<usize> {
 // ---------------------------------------------------------------------------
 // Solver state (mirrors blackwood_bt.rs; break-gating swapped to Verhaard's).
 // ---------------------------------------------------------------------------
+// Clone: each parallel restart worker takes its own Solver. The bulk
+// (rotpieces / cand_by_tl / cand_by_tl_pristine) is a few hundred KB of tables
+// that are read-only during a search, so a per-worker copy is cheap.
+#[derive(Clone)]
 struct Solver {
     npieces: usize,
     quota: [u16; 256],
@@ -285,6 +292,10 @@ struct Solver {
     distinct_rots: Vec<u8>,
     ncolors: usize,
     cand_by_tl: Vec<Vec<(u16, u8)>>,
+    // Construction-order copy of cand_by_tl, never mutated after Solver::new.
+    // reshuffle_candidates restores from this so each restart's opening depends
+    // only on its own seed (see reshuffle_candidates).
+    cand_by_tl_pristine: Vec<Vec<(u16, u8)>>,
 
     // [GAP 1] real good-group membership for the ACTIVE group (set per restart).
     // good_a[pid] = pid in tier-A (privileged 150) of the active group;
@@ -404,6 +415,7 @@ impl Solver {
             rotpieces,
             distinct_rots,
             ncolors,
+            cand_by_tl_pristine: cand_by_tl.clone(),
             cand_by_tl,
             good_a: vec![false; npieces],
             good_b: vec![false; npieces],
@@ -428,7 +440,26 @@ impl Solver {
         }
     }
 
+    /// Re-derive this restart's candidate order from the pristine
+    /// (construction-order) table rather than from the previous restart's
+    /// leftovers.
+    ///
+    /// This used to shuffle `cand_by_tl` in place, and `reset` deliberately
+    /// keeps the catalog, so restart K's opening was a shuffle-of-a-shuffle-of-
+    /// ... over restarts 0..K on that Solver -- a restart's result depended on
+    /// how many had run before it, which is not what a seeded restart portfolio
+    /// means and is the hidden coupling that would make a per-thread Solver
+    /// disagree with the serial run. Same defect as blackwood_bt's (same
+    /// lineage); same fix. Restore first, so a restart is a pure function of its
+    /// own (seed, group).
+    ///
+    /// Ordering note: the caller runs `set_active_group` BEFORE this, and the
+    /// stable-sort below ranks by `value_rank`, which depends on the active
+    /// group. Restoring the pristine order here (not in `reset`) keeps that
+    /// dependency intact -- the group's ranking is applied fresh over pristine
+    /// order every restart.
     fn reshuffle_candidates(&mut self, rng: &mut Rng) {
+        self.cand_by_tl.clone_from(&self.cand_by_tl_pristine);
         for list in self.cand_by_tl.iter_mut() {
             rng.shuffle(list);
         }
@@ -1023,6 +1054,85 @@ fn run_attempt(solver: &mut Solver, rng: &mut Rng, shuffle_open: bool, group_idx
     solver.search(0);
 }
 
+/// RNG seed for restart `attempt` of a run seeded `seed`.
+///
+/// This used to be `(seed + attempt) * K`, which ALIASES -- `seed+attempt` is a
+/// single number, so (seed=7, attempt=1) and (seed=8, attempt=0) are the same
+/// key and give the same opening AND the same good-group pick. Consecutive seeds
+/// shared all but one of their restarts. Identical defect (and identical
+/// formula) to blackwood_bt's; identical fix -- mix both coordinates with
+/// distinct odd multipliers, then a SplitMix64 finalizer to decorrelate
+/// near-identical inputs.
+#[inline]
+fn attempt_key(seed: u64, attempt: usize) -> u64 {
+    let mut z = seed
+        .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        .wrapping_add((attempt as u64).wrapping_mul(0xD1B5_4A32_D192_ED03));
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// What one restart produced. Extracted so a restart is a pure
+/// `attempt -> AttemptOutcome` function over its own Solver, which is what lets
+/// restarts run concurrently.
+struct AttemptOutcome {
+    score: u16,
+    board: Option<([u16; N], [u8; N])>,
+    physical: bool,
+    native: bool,
+    deepest: usize,
+    nodes: u64,
+}
+
+/// Run restart `attempt` to completion on its own 256MB-stack thread (the
+/// 256-deep DFS overflows the default 8MB; the big stacks are lazily committed,
+/// so one per worker is cheap) and report what it found. `solver` is this
+/// worker's private Solver, so nothing is shared with concurrent restarts.
+fn run_attempt_scored(
+    solver: &mut Solver,
+    seed: u64,
+    attempt: usize,
+    shuffle: bool,
+    fixed_group: Option<usize>,
+) -> AttemptOutcome {
+    let mut rng = Rng::new(attempt_key(seed, attempt));
+    // [GAP 1] per-restart good-group pick (binary: rand % 60 @ .text 0x4145a6).
+    // Drawn from this restart's own stream, before the search, exactly as the
+    // serial loop did.
+    let group_idx =
+        fixed_group.unwrap_or_else(|| (rng.next_u64() % VERHAARD_NUM_GROUPS as u64) as usize);
+    solver.best_score = 0;
+    solver.best_board = None;
+    solver.deepest = 0;
+    solver.best_partial = None;
+    solver.nodes = 0;
+
+    std::thread::scope(|s| {
+        std::thread::Builder::new()
+            .stack_size(256 * 1024 * 1024)
+            .spawn_scoped(s, || {
+                run_attempt(solver, &mut rng, shuffle, group_idx);
+            })
+            .expect("spawn search thread")
+            .join()
+            .expect("search thread panicked");
+    });
+
+    let native = solver.best_score > 0;
+    let (score, board): (u16, Option<([u16; N], [u8; N])>) = if native {
+        (solver.best_score, solver.best_board)
+    } else if let Some((bp, br, d)) = solver.best_partial {
+        let (cbp, cbr, sc) = solver.greedy_complete(&bp, &br, d);
+        (sc, Some((cbp, cbr)))
+    } else {
+        (0, None)
+    };
+    let physical = board.as_ref().is_some_and(|(bp, br)| solver.is_physical(bp, br));
+
+    AttemptOutcome { score, board, physical, native, deepest: solver.deepest, nodes: solver.nodes }
+}
+
 fn board_url(puzzle: &eternity2_core::Puzzle, bp: &[u16; N], br: &[u8; N]) -> String {
     let mut b = Board::empty(puzzle);
     for pos in 0..N {
@@ -1038,7 +1148,7 @@ fn main() {
     if args.len() < 2 {
         eprintln!(
             "usage: verhaard_faithful <puzzle.csv> [--stage 1|2|3] [--priv c1,c2,c3] \
-             [--maxbreaks K] [--nodecap N] [--restarts R] [--seed S] \
+             [--maxbreaks K] [--nodecap N] [--restarts R] [--seed S] [--threads T] \
              [--horiz-rows H] [--quota-scale F] [--emit-dir DIR] [--emit-prefix P] [--verbose]\n\
              stages: 1=comb DFS only, 2=+slip schedule, 3=+quota (full engine)"
         );
@@ -1060,6 +1170,7 @@ fn main() {
     let mut use_real_groups = true; // [GAP 1] default: real recovered good groups
     let mut abort_enabled = true; // [GAP 2] default: adaptive restart-abort on
     let mut fixed_group: Option<usize> = None; // pin a specific group (else rand)
+    let mut threads: usize = 1; // 1 = serial restart portfolio (the default)
 
     let mut i = 2;
     while i < args.len() {
@@ -1078,6 +1189,10 @@ fn main() {
             }
             "--nodecap" => {
                 node_cap = args[i + 1].parse().unwrap();
+                i += 2;
+            }
+            "--threads" => {
+                threads = args[i + 1].parse().unwrap();
                 i += 2;
             }
             "--restarts" => {
@@ -1173,14 +1288,15 @@ fn main() {
         if use_real_groups { "REAL-60" } else { "color-proxy" }
     );
 
-    let mut global_best = 0u16;
-    let mut deepest_overall = 0usize;
-    let mut global_best_board: Option<([u16; N], [u8; N])> = None;
-    let mut best_natural = 0u16;
-    let mut best_physical = 0u16;
-    let mut n_physical = 0u32;
-    let mut hist = vec![0u32; 481];
-    let mut total_nodes = 0u64;
+    if threads == 0 {
+        threads = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    }
+    // Never spin up more workers than there are restarts to run.
+    threads = threads.min(restarts.max(1));
+    if threads > 1 {
+        eprintln!("# --threads {threads}: restarts run concurrently; per-restart results are unchanged (each depends only on its own seed), but \"new best\" log order reflects completion order.");
+    }
+
     let t0 = Instant::now();
 
     let emit_dir_s = emit_dir.clone().unwrap_or_else(|| ".".into());
@@ -1188,101 +1304,166 @@ fn main() {
     let checkpoint_path = Path::new(&emit_dir_s).join("best_so_far.url");
     let log_path = Path::new(&emit_dir_s).join(format!("{emit_prefix}_portfolio.log"));
 
-    for attempt in 0..restarts {
-        let mut rng = Rng::new(seed.wrapping_add(attempt as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
-        // [GAP 1] per-restart good-group pick (binary: rand % 60 @ .text 0x4145a6).
-        let group_idx = fixed_group.unwrap_or_else(|| (rng.next_u64() % VERHAARD_NUM_GROUPS as u64) as usize);
-        solver.best_score = 0;
-        solver.best_board = None;
-        solver.deepest = 0;
-        solver.best_partial = None;
-        let shuffle = restarts > 1;
-        std::thread::scope(|s| {
-            std::thread::Builder::new()
-                .stack_size(256 * 1024 * 1024)
-                .spawn_scoped(s, || {
-                    run_attempt(&mut solver, &mut rng, shuffle, group_idx);
-                })
-                .expect("spawn search thread")
-                .join()
-                .expect("search thread panicked");
-        });
-        if solver.deepest > deepest_overall {
-            deepest_overall = solver.deepest;
-        }
-        total_nodes += solver.nodes;
-
-        let (attempt_score, attempt_board): (u16, Option<([u16; N], [u8; N])>) =
-            if solver.best_score > 0 {
-                if solver.best_score > best_natural {
-                    best_natural = solver.best_score;
-                }
-                (solver.best_score, solver.best_board)
-            } else if let Some((bp, br, d)) = solver.best_partial {
-                let (cbp, cbr, sc) = solver.greedy_complete(&bp, &br, d);
-                (sc, Some((cbp, cbr)))
-            } else {
-                (0, None)
-            };
-        if (attempt_score as usize) < hist.len() {
-            hist[attempt_score as usize] += 1;
-        }
-
-        let attempt_physical =
-            attempt_board.as_ref().map(|(bp, br)| solver.is_physical(bp, br)).unwrap_or(false);
-        if attempt_physical {
-            n_physical += 1;
-            if attempt_score > best_physical {
-                best_physical = attempt_score;
+    let shuffle = restarts > 1;
+    // Shared bookkeeping. Under --threads 1 this is an uncontended mutex around
+    // the same updates the serial loop did; under N>1 it serializes only the
+    // cheap post-restart bookkeeping and the record/checkpoint writes -- never
+    // the search. Keeping the banking inside the lock stops two threads that both
+    // beat the record from interleaving their RECORD_*.url writes.
+    struct Portfolio<'a> {
+        global_best: u16,
+        global_best_board: Option<([u16; N], [u8; N])>,
+        best_natural: u16,
+        best_physical: u16,
+        n_physical: u32,
+        deepest_overall: usize,
+        total_nodes: u64,
+        hist: Vec<u32>,
+        done: usize,
+        puzzle: &'a eternity2_core::Puzzle,
+        checkpoint_path: PathBuf,
+        log_path: PathBuf,
+        emit_dir_s: String,
+        emit_prefix: String,
+        restarts: usize,
+        t0: Instant,
+    }
+    impl Portfolio<'_> {
+        /// Fold one finished restart into the portfolio. Called under the mutex,
+        /// so the >best test and the banking that follows are atomic.
+        fn record(&mut self, attempt: usize, o: &AttemptOutcome) {
+            self.done += 1;
+            if o.deepest > self.deepest_overall {
+                self.deepest_overall = o.deepest;
             }
-        }
-
-        if attempt_score > global_best && attempt_physical {
-            global_best = attempt_score;
-            global_best_board = attempt_board;
-            let el = t0.elapsed().as_secs_f64();
-            let native = solver.best_score > 0;
-            let msg = format!(
-                "# attempt {attempt}: NEW BEST complete score={} (native={}) deepest={} nodes={} ({:.1}s)",
-                global_best, native, deepest_overall, solver.nodes, el
-            );
-            eprintln!("{msg}");
-            if let Some((bp, br)) = &global_best_board {
-                let url = board_url(&puzzle, bp, br);
-                std::fs::write(&checkpoint_path, &url).ok();
-                use std::io::Write;
-                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&log_path) {
-                    let _ = writeln!(f, "{msg}");
-                    let _ = writeln!(f, "  url: {url}");
-                }
-                if global_best > 459 && native {
-                    let ts = std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs();
-                    let rec = Path::new(&emit_dir_s)
-                        .join(format!("RECORD_{global_best}_{emit_prefix}_{ts}.url"));
-                    std::fs::write(&rec, &url).ok();
-                    eprintln!("# ***** NEW FROM-SCRATCH RECORD CANDIDATE score={global_best} native={native} *****");
-                    eprintln!("# ***** banked -> {} — VERIFY 3 WAYS *****", rec.display());
+            self.total_nodes += o.nodes;
+            if o.native && o.score > self.best_natural {
+                self.best_natural = o.score;
+            }
+            if (o.score as usize) < self.hist.len() {
+                self.hist[o.score as usize] += 1;
+            }
+            if o.physical {
+                self.n_physical += 1;
+                if o.score > self.best_physical {
+                    self.best_physical = o.score;
                 }
             }
-        }
-        if restarts > 1 && (attempt + 1) % 25 == 0 {
-            let el = t0.elapsed().as_secs_f64();
-            eprintln!(
-                "# progress {}/{} best_complete={} best_native={} deepest={} nodes={} {:.1} Mnode/s ({:.0}s)",
-                attempt + 1,
-                restarts,
-                global_best,
-                best_natural,
-                deepest_overall,
-                total_nodes,
-                (total_nodes as f64 / 1e6) / el.max(1e-9),
-                el,
-            );
+
+            if o.score > self.global_best && o.physical {
+                self.global_best = o.score;
+                self.global_best_board = o.board;
+                let el = self.t0.elapsed().as_secs_f64();
+                let msg = format!(
+                    "# attempt {attempt}: NEW BEST complete score={} (native={}) deepest={} nodes={} ({:.1}s)",
+                    self.global_best, o.native, self.deepest_overall, o.nodes, el
+                );
+                eprintln!("{msg}");
+                if let Some((bp, br)) = &self.global_best_board {
+                    let url = board_url(self.puzzle, bp, br);
+                    std::fs::write(&self.checkpoint_path, &url).ok();
+                    use std::io::Write;
+                    if let Ok(mut f) =
+                        std::fs::OpenOptions::new().create(true).append(true).open(&self.log_path)
+                    {
+                        let _ = writeln!(f, "{msg}");
+                        let _ = writeln!(f, "  url: {url}");
+                    }
+                    if self.global_best > 459 && o.native {
+                        let ts = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs();
+                        let rec = Path::new(&self.emit_dir_s).join(format!(
+                            "RECORD_{}_{}_{ts}.url",
+                            self.global_best, self.emit_prefix
+                        ));
+                        std::fs::write(&rec, &url).ok();
+                        eprintln!("# ***** NEW FROM-SCRATCH RECORD CANDIDATE score={} native={} *****", self.global_best, o.native);
+                        eprintln!("# ***** banked -> {} — VERIFY 3 WAYS *****", rec.display());
+                    }
+                }
+            }
+            // Keyed on COMPLETED count, not attempt index, so it still fires every
+            // 25 restarts when they finish out of order.
+            if self.restarts > 1 && self.done % 25 == 0 {
+                let el = self.t0.elapsed().as_secs_f64();
+                eprintln!(
+                    "# progress {}/{} best_complete={} best_native={} deepest={} nodes={} {:.1} Mnode/s ({:.0}s)",
+                    self.done,
+                    self.restarts,
+                    self.global_best,
+                    self.best_natural,
+                    self.deepest_overall,
+                    self.total_nodes,
+                    (self.total_nodes as f64 / 1e6) / el.max(1e-9),
+                    el,
+                );
+            }
         }
     }
+
+    let portfolio = Mutex::new(Portfolio {
+        global_best: 0,
+        global_best_board: None,
+        best_natural: 0,
+        best_physical: 0,
+        n_physical: 0,
+        deepest_overall: 0,
+        total_nodes: 0,
+        hist: vec![0u32; 481],
+        done: 0,
+        puzzle: &puzzle,
+        checkpoint_path: checkpoint_path.clone(),
+        log_path: log_path.clone(),
+        emit_dir_s: emit_dir_s.clone(),
+        emit_prefix: emit_prefix.clone(),
+        restarts,
+        t0,
+    });
+
+    if threads > 1 {
+        // Each worker holds its OWN Solver clone -- with one shared Solver the
+        // restarts would race on board_piece/used/nodes. The catalog tables are a
+        // few hundred KB and the 256MB search stacks are lazily committed, so a
+        // per-worker copy is cheap.
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .expect("build rayon pool");
+        pool.install(|| {
+            (0..restarts).into_par_iter().for_each_init(
+                || solver.clone(),
+                |local, attempt| {
+                    let o = run_attempt_scored(local, seed, attempt, shuffle, fixed_group);
+                    portfolio
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .record(attempt, &o);
+                },
+            );
+        });
+    } else {
+        for attempt in 0..restarts {
+            let o = run_attempt_scored(&mut solver, seed, attempt, shuffle, fixed_group);
+            portfolio
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .record(attempt, &o);
+        }
+    }
+
+    let p = portfolio.into_inner().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let (global_best, global_best_board, best_natural, best_physical, n_physical, deepest_overall, total_nodes, hist) = (
+        p.global_best,
+        p.global_best_board,
+        p.best_natural,
+        p.best_physical,
+        p.n_physical,
+        p.deepest_overall,
+        p.total_nodes,
+        p.hist,
+    );
 
     let elapsed = t0.elapsed().as_secs_f64();
     let mnps = (total_nodes as f64 / 1e6) / elapsed.max(1e-9);

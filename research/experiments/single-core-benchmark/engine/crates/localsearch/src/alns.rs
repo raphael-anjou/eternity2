@@ -57,6 +57,27 @@ impl AlnsRng {
     }
 }
 
+/// Derive an independent stream seed for sub-stream `index` of a run seeded
+/// `seed` (chain i of a portfolio, restart i of a sweep, ...).
+///
+/// The previous idiom was `(seed + index) * K`, which ALIASES.
+/// `seed + index` collapses the two coordinates into one number, so
+/// (seed=7, index=1) and (seed=8, index=0) derive the SAME stream: consecutive
+/// seeds re-run each other's chains, and an "N seeds x M chains" sweep explores
+/// far fewer than N*M distinct streams. Mixing the coordinates with distinct odd
+/// multipliers before the SplitMix64 finalizer keeps them separable and
+/// decorrelates near-identical inputs.
+#[inline]
+#[must_use]
+pub fn derive_stream_seed(seed: u64, index: usize) -> u64 {
+    let mut z = seed
+        .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        .wrapping_add((index as u64).wrapping_mul(0xD1B5_4A32_D192_ED03));
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
 // ----- Scoring helpers --------------------------------------------------
 
 /// Vol-16 — was `iter().find` (O(n)). Now delegates to the O(1) lookup
@@ -2278,9 +2299,8 @@ where
     F: Fn(usize) -> Acceptance + Send + Sync,
 {
     use rayon::prelude::*;
-    let chains: Vec<(usize, u64)> = (0..n_chains)
-        .map(|i| (i, base_cfg.seed.wrapping_add(i as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)))
-        .collect();
+    let chains: Vec<(usize, u64)> =
+        (0..n_chains).map(|i| (i, derive_stream_seed(base_cfg.seed, i))).collect();
     let results: Vec<(Board, AlnsStats)> = chains
         .into_par_iter()
         .map(|(i, seed)| {

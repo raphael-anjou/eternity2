@@ -27,16 +27,53 @@
 // that is ~537MB for the whole run's history, vs a naive O(B) full-board
 // peak of ~4-5GB for a single layer alone in the flat design.
 //
-// CORRECTNESS GATE: bit-identical boards to vol232_w1_producer (and to
-// vol232_w1_producer_fast's --serial mode) for the same (order, beam, tol,
-// seed) -- this binary changes STORAGE ONLY, not the search or the RNG
-// draw sequence. Verified in W2-BEAMOPT.md.
+// CORRECTNESS GATE (--threads 1, the default): bit-identical boards to
+// vol232_w1_producer (and to vol232_w1_producer_fast's --serial mode) for
+// the same (order, beam, tol, seed) -- the storage change is STORAGE ONLY,
+// not the search or the RNG draw sequence. Verified in W2-BEAMOPT.md.
+// Every vault paper that cites this binary's numbers (vol-235's
+// SINGLE-CORE-BENCHMARK, vol-232's W2-BEAMOPT, ...) predates --threads and
+// is reproducible from the default path.
 //
-// Usage: identical to vol232_w1_producer.
+// PARALLELISM (--threads N). Frohner et al.'s 46-core/20M-beam
+// result is intra-run data parallelism across the beam, and that is what
+// --threads N buys. Two independent layers:
+//
+//   1. SEED-LEVEL (--seed-lo/--seed-hi): each seed already builds its own
+//      Rng and its own arenas, so seeds are independent by construction.
+//      Fanning the seed loop out does NOT perturb any individual seed's
+//      draw stream -- every seed's score is bit-identical to --threads 1 at
+//      any thread count. Only stdout row ORDER would change, and we sort
+//      rows back into seed order before printing so even that is stable.
+//
+//   2. INTRA-RUN (the per-layer beam expansion): the serial code threads
+//      ONE `rng` through every beam member in index order inside the
+//      expansion loop, which is the only true serialization in the layer --
+//      resolve_neighbor/candidates_for_cell are pure reads of immutable
+//      state. --threads N>1 replaces that single stream with a per-member
+//      stream keyed by (seed, depth, member_index) (see `member_rng`).
+//
+// WHAT --threads N>1 GIVES UP, PRECISELY: the intra-run path's boards are
+// NOT bit-identical to the serial stream, because a beam member's tie-break
+// draws no longer depend on how many draws its lower-indexed siblings
+// happened to consume. It is NOT, however, non-deterministic: the
+// per-member key is derived from (seed, depth, member_index) and never from
+// thread id, arrival order, or wall-clock, so a given (order, beam, tol,
+// seed) is reproducible run-to-run AND ACROSS THREAD COUNTS -- --threads 2
+// and --threads 16 produce the same board. The truncation shuffle keeps its
+// own single sequential stream (it is O(children) on one thread and not the
+// bottleneck), so the beam contents are a pure function of the inputs.
+//
+// So the guarantee ladder is:
+//   --threads 1    == the historical serial stream, bit-for-bit.
+//   --threads N>1  != the serial stream, but == itself for any N, always.
+//
+// Usage: vol232_w1_producer, plus [--threads N] (default 1).
 
 use eternity2_core::{Board, Piece, PieceId, Puzzle, Rotation, BORDER};
 use eternity2_export::bucas_url;
 use eternity2_puzzle_io::load_puzzle_with_hints;
+use rayon::prelude::*;
 use std::env;
 use std::path::PathBuf;
 
@@ -265,6 +302,33 @@ impl Rng {
             v.swap(i, j);
         }
     }
+}
+
+/// Per-beam-member RNG for the `--threads N>1` expansion path.
+///
+/// The serial path threads one `Rng` through the members of a layer in index
+/// order, so member k's draws depend on how many draws members 0..k consumed
+/// -- inherently sequential. Here each member instead gets a stream seeded by
+/// a SplitMix64 finalizer over `(seed, depth, member_index)`. Every input is a
+/// pure function of the search state, so the stream a member sees does not
+/// depend on which thread ran it, when it started, or how many threads exist:
+/// `--threads 2` and `--threads 16` draw identically. That is what makes N>1
+/// non-reproducible-vs-serial but still fully deterministic.
+///
+/// SplitMix64's finalizer (not xorshift64 seeded directly) because the three
+/// inputs are small and highly correlated across members -- consecutive
+/// member_index values must not yield correlated streams, and xorshift64 seeds
+/// poorly from near-identical values.
+#[inline]
+fn member_rng(seed: u64, depth: u32, member_index: usize) -> Rng {
+    let mut z = seed
+        .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        .wrapping_add(u64::from(depth).wrapping_mul(0xBF58_476D_1CE4_E5B9))
+        .wrapping_add((member_index as u64).wrapping_mul(0x94D0_49BB_1331_11EB));
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^= z >> 31;
+    Rng::new(z)
 }
 
 fn rim_needs(pos: u32) -> [bool; 4] {
@@ -523,6 +587,7 @@ struct BeamRef {
     prior_sum: f32,
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_one(
     hints: &eternity2_core::Hints,
     order: Order,
@@ -533,6 +598,9 @@ fn run_one(
     piece_edges: &[[u8; 4]],
     prior: Option<&Prior>,
     prior_alpha: f32,
+    // 1 = the historical serial expansion (single shared RNG stream, bit-identical
+    // to vol232_w1_producer). >1 = per-member RNG streams, expanded in parallel.
+    threads: usize,
 ) -> (i32, Box<[u16; N]>, usize, usize) {
     let mut rng = Rng::new(seed);
     let positions = order_positions(order);
@@ -575,8 +643,13 @@ fn run_one(
 
     let fanout = 8usize.min(beam_width.max(1));
     let mut peak_layer_len = 0usize;
+    let par = threads > 1;
+    // Search depth of the layer about to be built; 1-based, matching depth_of.
+    // Only read on the parallel path, as the per-member RNG key.
+    let mut cur_depth = 0u32;
 
     for &pos in positions.iter().filter(|&&p| !hint_positions[p as usize]) {
+        cur_depth += 1;
         let legal = &legal_table[pos as usize];
         let y = pos / W as u32;
         let x = pos % W as u32;
@@ -594,10 +667,18 @@ fn run_one(
         let mut children: Vec<Node> = Vec::with_capacity(beam.len() * fanout);
         let mut child_used: Vec<UsedSet> = Vec::with_capacity(beam.len() * fanout);
         let mut child_prior: Vec<f32> = Vec::with_capacity(beam.len() * fanout);
-        let mut cand_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(legal.len());
-        let mut picks_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(fanout);
 
-        for bref in &beam {
+        // The per-member work: resolve <=4 neighbour edges by walking the parent
+        // chain, score the legal placements, draw up to `fanout` tie-class picks.
+        // Everything it touches outside its own scratch buffers (`layers`, `root`,
+        // `legal`, `depth_of`, `piece_edges`) is immutable for the whole layer,
+        // so the only thing standing between this and a parallel map is the RNG --
+        // which is why the parallel arm hands each member its own stream.
+        let expand = |bref: &BeamRef,
+                      rng: &mut Rng,
+                      cand_buf: &mut Vec<(PieceId, Rotation, i8)>,
+                      picks_buf: &mut Vec<(PieceId, Rotation, i8)>,
+                      out: &mut Vec<(Node, UsedSet, f32)>| {
             let top_edge = if need_top {
                 resolve_neighbor(&layers, cur_layer_idx, bref.node_idx, pos - W as u32, &depth_of, &root)
                     .map(|(pid, r)| rotated_edge(piece_edges, pid, r, 2))
@@ -623,18 +704,64 @@ fn run_one(
                 None
             };
 
-            candidates_for_cell(&mut cand_buf, legal, &bref.used, top_edge, right_edge, bottom_edge, left_edge);
+            candidates_for_cell(cand_buf, legal, &bref.used, top_edge, right_edge, bottom_edge, left_edge);
             if cand_buf.is_empty() {
-                continue;
+                return;
             }
-            pick_tie_class(&mut cand_buf, tol, &mut rng, fanout, &mut picks_buf);
-            for &(pid, r, gain) in &picks_buf {
+            pick_tie_class(cand_buf, tol, rng, fanout, picks_buf);
+            for &(pid, r, gain) in picks_buf.iter() {
                 let mut nu = bref.used;
                 nu.set(pid);
-                children.push(Node { parent: bref.node_idx, pos: pos as u16, pid, rot: r, score: bref.score + gain as i32 });
-                child_used.push(nu);
                 let pinc = if use_prior { prior.unwrap().get(pid, pos as u16) } else { 0.0 };
-                child_prior.push(bref.prior_sum + pinc);
+                out.push((
+                    Node { parent: bref.node_idx, pos: pos as u16, pid, rot: r, score: bref.score + gain as i32 },
+                    nu,
+                    bref.prior_sum + pinc,
+                ));
+            }
+        };
+
+        if par {
+            // Parallel expansion. Each member produces its own child list keyed by
+            // its beam index, and we concatenate those lists IN BEAM-INDEX ORDER
+            // (not completion order) below -- so `children` is exactly the vector
+            // the serial arm would build from the same per-member draws, and the
+            // downstream counting sort / shuffle / truncate see a thread-count-
+            // independent input. This is the property that makes --threads 2 and
+            // --threads 16 agree.
+            let per_member: Vec<Vec<(Node, UsedSet, f32)>> = beam
+                .par_iter()
+                .enumerate()
+                .map(|(mi, bref)| {
+                    let mut rng = member_rng(seed, cur_depth, mi);
+                    let mut cand_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(legal.len());
+                    let mut picks_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(fanout);
+                    let mut out: Vec<(Node, UsedSet, f32)> = Vec::with_capacity(fanout);
+                    expand(bref, &mut rng, &mut cand_buf, &mut picks_buf, &mut out);
+                    out
+                })
+                .collect();
+            for m in per_member {
+                for (node, used, ps) in m {
+                    children.push(node);
+                    child_used.push(used);
+                    child_prior.push(ps);
+                }
+            }
+        } else {
+            // Serial expansion: one shared RNG stream threaded through the members
+            // in beam order -- the historical draw sequence, bit-for-bit.
+            let mut cand_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(legal.len());
+            let mut picks_buf: Vec<(PieceId, Rotation, i8)> = Vec::with_capacity(fanout);
+            let mut out: Vec<(Node, UsedSet, f32)> = Vec::with_capacity(fanout);
+            for bref in &beam {
+                out.clear();
+                expand(bref, &mut rng, &mut cand_buf, &mut picks_buf, &mut out);
+                for &(node, used, ps) in out.iter() {
+                    children.push(node);
+                    child_used.push(used);
+                    child_prior.push(ps);
+                }
             }
         }
 
@@ -1295,7 +1422,10 @@ fn write_final_beam_jsonl(
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("usage: vol232_w1_producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--emit-best out.url] [--emit-final-beam dir]");
+        eprintln!("usage: vol232_w1_producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--threads N] [--emit-best out.url] [--emit-final-beam dir]");
+        eprintln!("  --threads 1 (default): historical serial search, bit-identical to vol232_w1_producer.");
+        eprintln!("  --threads N (0 = all cores): parallel; deterministic for a given seed and equal");
+        eprintln!("              across thread counts, but NOT bit-identical to the serial stream.");
         std::process::exit(1);
     }
     let csv_path = PathBuf::from(&args[1]);
@@ -1311,6 +1441,7 @@ fn main() {
     let mut div_tol: i32 = 3;
     let mut prior_file: Option<String> = None;
     let mut prior_alpha: f32 = 0.0;
+    let mut threads: usize = 1; // 1 = serial/bit-identical default
 
     let mut i = 2;
     while i < args.len() {
@@ -1328,8 +1459,28 @@ fn main() {
             "--diversify-tol" => { div_tol = args[i + 1].parse().unwrap(); i += 2; }
             "--prior-file" => { prior_file = Some(args[i + 1].clone()); i += 2; }
             "--prior-alpha" => { prior_alpha = args[i + 1].parse().unwrap(); i += 2; }
+            "--threads" => { threads = args[i + 1].parse().unwrap(); i += 2; }
             other => { eprintln!("unknown arg {other}"); std::process::exit(1); }
         }
+    }
+
+    // --threads 0 = "use every core". Resolve it to a concrete count now so the
+    // rest of the run (and the log line) talks about a real number.
+    if threads == 0 {
+        threads = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    }
+    // Build our own pool rather than touching rayon's global one: the pool size
+    // is then exactly what --threads asked for, regardless of RAYON_NUM_THREADS
+    // or any other rayon user in the process.
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .expect("build rayon pool");
+    if threads > 1 {
+        eprintln!(
+            "# --threads {threads}: parallel search. Deterministic per seed and identical across \
+             thread counts, but NOT bit-identical to --threads 1 (the serial RNG stream)."
+        );
     }
 
     let prior: Option<Prior> = prior_file.as_deref().map(|p| {
@@ -1353,6 +1504,54 @@ fn main() {
     let mut scores: Vec<i32> = Vec::new();
     let mut best_overall: (i32, Option<Box<[u16; N]>>) = (-1, None);
     println!("order,beam,tol,seed,score,layers,peak_layer_len");
+
+    let n_seeds = (seed_hi - seed_lo + 1) as usize;
+    // Two ways to spend cores, and they compete for the same pool:
+    //
+    //   * SEED-PARALLEL: run whole seeds concurrently, each one internally
+    //     serial. Perfectly independent, no synchronization per layer, and each
+    //     seed stays bit-identical to --threads 1 -- strictly the better deal
+    //     whenever there are enough seeds to fill the pool.
+    //   * BEAM-PARALLEL: one seed at a time, cores split across the beam. The
+    //     only option that makes a SINGLE run faster (and the benchmark harness
+    //     runs exactly one seed), but it pays a sync barrier per layer and
+    //     departs from the serial stream.
+    //
+    // So: prefer seed-parallel when there's more than one seed, and fall back to
+    // beam-parallel when a single seed has to use the whole machine. Nesting both
+    // would just oversubscribe the pool.
+    let seed_parallel = threads > 1 && n_seeds > 1 && div_row == 0 && emit_final_beam.is_none();
+    let inner_threads = if seed_parallel { 1 } else { threads };
+
+    if seed_parallel {
+        // Each seed is independent and internally serial, so this is a plain map
+        // -- collected into a Vec that rayon returns in INPUT order, then printed
+        // in seed order. Row order on stdout is therefore identical to the serial
+        // run's; only the wall-clock changes.
+        eprintln!("# {n_seeds} seeds across {threads} threads (per-seed results bit-identical to --threads 1)");
+        let results: Vec<(u64, i32, Box<[u16; N]>, usize, usize)> = pool.install(|| {
+            (seed_lo..=seed_hi)
+                .into_par_iter()
+                .map(|seed| {
+                    let (score, board, n_layers, peak) = run_one(
+                        &hints, order, beam_width, tol, seed, &legal_table, &piece_edges,
+                        prior_ref, prior_alpha, 1,
+                    );
+                    (seed, score, board, n_layers, peak)
+                })
+                .collect()
+        });
+        for (seed, score, board, n_layers, peak_layer_len) in results {
+            println!("{order_name},{beam_width},{tol},{seed},{score},{n_layers},{peak_layer_len}");
+            scores.push(score);
+            if score > best_overall.0 {
+                best_overall = (score, Some(board));
+            }
+        }
+        finish(&mut scores, order_name, beam_width, tol, best_overall, emit_best.as_deref(), &puzzle);
+        return;
+    }
+
     for seed in seed_lo..=seed_hi {
         if div_row > 0 {
             let (harvest, trunk_count) = run_one_diversify(
@@ -1370,8 +1569,12 @@ fn main() {
             }
             continue;
         }
-        let (score, board, n_layers, peak_layer_len) =
-            run_one(&hints, order, beam_width, tol, seed, &legal_table, &piece_edges, prior_ref, prior_alpha);
+        let (score, board, n_layers, peak_layer_len) = pool.install(|| {
+            run_one(
+                &hints, order, beam_width, tol, seed, &legal_table, &piece_edges, prior_ref,
+                prior_alpha, inner_threads,
+            )
+        });
         println!("{order_name},{beam_width},{tol},{seed},{score},{n_layers},{peak_layer_len}");
         scores.push(score);
         if score > best_overall.0 {
@@ -1384,6 +1587,20 @@ fn main() {
         }
     }
 
+    finish(&mut scores, order_name, beam_width, tol, best_overall, emit_best.as_deref(), &puzzle);
+}
+
+/// Print the run summary and, if asked, write the best board's bucas URL.
+/// Shared by the seed-parallel and sequential paths so they cannot drift.
+fn finish(
+    scores: &mut Vec<i32>,
+    order_name: &str,
+    beam_width: usize,
+    tol: i8,
+    best_overall: (i32, Option<Box<[u16; N]>>),
+    emit_best: Option<&str>,
+    puzzle: &Puzzle,
+) {
     scores.sort_unstable();
     let n = scores.len();
     let min = scores[0];
@@ -1393,15 +1610,15 @@ fn main() {
 
     if let Some(path) = emit_best {
         let best_board = best_overall.1.expect("at least one seed run");
-        let mut b = Board::empty(&puzzle);
+        let mut b = Board::empty(puzzle);
         for (pos, &v) in best_board.iter().enumerate() {
             if v != EMPTY {
                 let (pid, r) = unpack(v);
                 b.place(pos as u32, pid, r);
             }
         }
-        let url = bucas_url(&puzzle, &b, "size_16_official_eternity");
-        std::fs::write(&path, url).expect("write url");
+        let url = bucas_url(puzzle, &b, "size_16_official_eternity");
+        std::fs::write(path, url).expect("write url");
         eprintln!("# emitted best board (score={}) -> {path}", best_overall.0);
     }
 }

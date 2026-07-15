@@ -25,7 +25,10 @@
 #![forbid(unsafe_code)]
 
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::Instant;
+
+use rayon::prelude::*;
 
 use eternity2_core::{Board, Rotation};
 use eternity2_export::bucas_url;
@@ -204,6 +207,10 @@ fn build_fill_order(border_interspersed: bool) -> Vec<usize> {
 // ---------------------------------------------------------------------------
 // Solver state.
 // ---------------------------------------------------------------------------
+// Clone: each parallel restart worker takes its own Solver. The bulk
+// (rotpieces / cand_by_tl / cand_by_tl_pristine) is a few hundred KB of tables
+// that are read-only during a search, so a per-worker copy is cheap.
+#[derive(Clone)]
 struct Solver {
     npieces: usize,
     // quota schedule
@@ -232,6 +239,10 @@ struct Solver {
     // every (piece_id, rot) with exactly that top & left. NC = ncolors.
     ncolors: usize,
     cand_by_tl: Vec<Vec<(u16, u8)>>,
+    // Construction-order copy of cand_by_tl, never mutated after Solver::new.
+    // reshuffle_candidates restores from this so each restart's opening depends
+    // only on its own seed (see reshuffle_candidates).
+    cand_by_tl_pristine: Vec<Vec<(u16, u8)>>,
 
     // working state
     board_piece: [u16; N], // u16::MAX = empty
@@ -359,6 +370,7 @@ impl Solver {
             rotpieces,
             distinct_rots,
             ncolors,
+            cand_by_tl_pristine: cand_by_tl.clone(),
             cand_by_tl,
             board_piece: [EMPTYP; N],
             board_rot: [0u8; N],
@@ -382,7 +394,23 @@ impl Solver {
     // different first legal piece at the early cells sends the DFS into a
     // different basin. Privileged-first grouping is preserved (stable within a
     // heuristic_count block; only intra-block order is shuffled).
+    /// Re-derive this attempt's candidate order from `cand_by_tl_pristine` (the
+    /// construction-order table), NOT from whatever the previous attempt left
+    /// behind.
+    ///
+    /// This used to shuffle `cand_by_tl` in place, cumulatively -- the
+    /// table was never restored between attempts (`reset` deliberately keeps the
+    /// catalog), so attempt K's opening was a shuffle-of-a-shuffle-of-... over
+    /// attempts 0..K on that Solver. That made an attempt's result depend on how
+    /// many attempts had run before it on the same Solver, which (a) is not what
+    /// "seeded restart portfolio" is supposed to mean -- the seed alone should
+    /// determine the opening -- and (b) is precisely the hidden coupling that
+    /// would make a per-thread Solver silently disagree with the serial run.
+    /// Restoring first makes an attempt a pure function of its own seed, which
+    /// is both the honest portfolio semantics and what lets attempts run
+    /// concurrently. Attempt 0 is unaffected (nothing had shuffled yet).
     fn reshuffle_candidates(&mut self, rng: &mut Rng) {
+        self.cand_by_tl.clone_from(&self.cand_by_tl_pristine);
         for list in self.cand_by_tl.iter_mut() {
             // Fisher-Yates within the whole list, then stable-sort by
             // heuristic_count desc restores the privileged grouping while
@@ -1031,6 +1059,88 @@ fn run_attempt(solver: &mut Solver, rng: &mut Rng, shuffle_open: bool) {
     solver.search(0, &mut break_count_at);
 }
 
+/// RNG seed for restart `attempt` of a run seeded `seed`.
+///
+/// This used to be `(seed + attempt) * K`, which ALIASES -- `seed+attempt` is
+/// one number, so (seed=7, attempt=1) and (seed=8, attempt=0) are the same key
+/// and produce the same opening. Consecutive seeds shared all but one of their
+/// restarts: a "12-seed x 6-restart sweep" was really ~17 distinct openings, not
+/// 72. (The old cumulative reshuffle partly hid this -- colliding attempts sat
+/// at different shuffle depths -- so the aliasing only became visible once each
+/// attempt derived from its own seed alone. It was always there.)
+///
+/// Fix: mix the two coordinates with distinct odd multipliers and run them
+/// through a SplitMix64 finalizer, so (seed, attempt) pairs are distinct keys
+/// and near-identical inputs decorrelate.
+#[inline]
+fn attempt_key(seed: u64, attempt: usize) -> u64 {
+    let mut z = seed
+        .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        .wrapping_add((attempt as u64).wrapping_mul(0xD1B5_4A32_D192_ED03));
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// What one restart attempt produced, extracted so an attempt is a pure
+/// `attempt_index -> AttemptOutcome` function with no shared mutable state.
+/// That is what lets the portfolio run attempts on N threads: the
+/// attempts were ALREADY independent -- each seeds its own Rng from
+/// `seed + attempt` and resets the solver first -- they were merely sharing
+/// one Solver buffer and being run one at a time.
+struct AttemptOutcome {
+    score: u16,
+    board: Option<([u16; N], [u8; N])>,
+    physical: bool,
+    native: bool,
+    deepest: usize,
+    nodes: u64,
+}
+
+/// Run restart `attempt` to completion on its own 256MB-stack thread and report
+/// what it found. `solver` is this worker's private Solver (reset internally),
+/// so nothing is shared with concurrent attempts.
+fn run_attempt_scored(solver: &mut Solver, seed: u64, attempt: usize, shuffle: bool) -> AttemptOutcome {
+    let mut rng = Rng::new(attempt_key(seed, attempt));
+    solver.best_score = 0;
+    solver.best_board = None;
+    solver.deepest = 0;
+    solver.best_partial = None;
+    solver.nodes = 0;
+
+    // The recursive search needs a LARGE stack (256 MB): the 256-deep DFS with
+    // per-frame candidate scratch overflows the default 8 MB. These stacks are
+    // lazily committed by the OS -- 8 of them cost ~1.7MB RSS, not 2GB -- so one
+    // per worker is affordable. std::thread::scope lets us borrow solver/rng.
+    std::thread::scope(|s| {
+        std::thread::Builder::new()
+            .stack_size(256 * 1024 * 1024)
+            .spawn_scoped(s, || {
+                run_attempt(solver, &mut rng, shuffle);
+            })
+            .expect("spawn search thread")
+            .join()
+            .expect("search thread panicked");
+    });
+
+    let native = solver.best_score > 0;
+    let (score, board): (u16, Option<([u16; N], [u8; N])>) = if native {
+        (solver.best_score, solver.best_board.clone())
+    } else if let Some((bp, br, d)) = solver.best_partial {
+        let (cbp, cbr, sc) = solver.greedy_complete(&bp, &br, d);
+        (sc, Some((cbp, cbr)))
+    } else {
+        (0, None)
+    };
+    // Only PHYSICAL complete boards are eligible to be the best/banked board
+    // (the greedy tail can complete non-physically via its cross-kind fallback,
+    // which verify_bucas would reject). Native completions are physical by
+    // construction.
+    let physical = board.as_ref().is_some_and(|(bp, br)| solver.is_physical(bp, br));
+
+    AttemptOutcome { score, board, physical, native, deepest: solver.deepest, nodes: solver.nodes }
+}
+
 // Build a bucas URL string from a complete board.
 fn board_url(puzzle: &eternity2_core::Puzzle, bp: &[u16; N], br: &[u8; N]) -> String {
     let mut b = Board::empty(puzzle);
@@ -1049,7 +1159,12 @@ fn main() {
         eprintln!(
             "usage: blackwood_bt <puzzle.csv> [--stage 1|2|3|4] [--priv c1,c2,c3] \
              [--maxbreaks K] [--nodecap N] [--restarts R] [--seed S] \
-             [--border-intersperse] [--emit-dir DIR] [--emit-prefix P]"
+             [--threads T] [--border-intersperse] [--emit-dir DIR] [--emit-prefix P]\n\
+             \n  --threads 1 (default): restarts run one at a time.\
+             \n  --threads T (0 = all cores): restarts run concurrently. Each restart is a\
+             \n              pure function of its own seed, so the SET of restart results is\
+             \n              the same at any T; only their completion order (and thus which\
+             \n              one is seen as \"new best\" first) varies."
         );
         std::process::exit(2);
     }
@@ -1072,6 +1187,7 @@ fn main() {
     let mut quota_scale = 1.0f32;
     let mut emit_dir: Option<String> = None;
     let mut emit_prefix = "bw".to_string();
+    let mut threads: usize = 1; // 1 = serial restart portfolio (the default)
 
     let mut i = 2;
     while i < args.len() {
@@ -1097,6 +1213,10 @@ fn main() {
             }
             "--restarts" => {
                 restarts = args[i + 1].parse().unwrap();
+                i += 2;
+            }
+            "--threads" => {
+                threads = args[i + 1].parse().unwrap();
                 i += 2;
             }
             "--seed" => {
@@ -1172,21 +1292,24 @@ fn main() {
     );
     solver.verbose = verbose;
 
+    if threads == 0 {
+        threads = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    }
+    // Never spin up more workers than there are restarts to run.
+    threads = threads.min(restarts.max(1));
+
     eprintln!(
         "# blackwood_bt stage={stage} priv={priv_colors:?} maxbreaks={max_breaks} \
-         nodecap={node_cap} restarts={restarts} seed={seed} border_intersperse={}",
+         nodecap={node_cap} restarts={restarts} seed={seed} threads={threads} border_intersperse={}",
         border_intersperse && stage >= 4
     );
+    if threads > 1 {
+        eprintln!("# --threads {threads}: restarts run concurrently; per-restart results are unchanged (each depends only on its own seed), but \"new best\" log order reflects completion order.");
+    }
 
     // global best is over COMPLETE boards (native completion OR greedy-tail
     // completion of the deepest partial). This makes every restart yield a
     // scorable full board — the marathon always banks something.
-    let mut global_best = 0u16;
-    let mut deepest_overall = 0usize;
-    let mut global_best_board: Option<([u16; N], [u8; N])> = None;
-    let mut best_natural = 0u16; // best score from a NATIVE completion (no greedy tail)
-    let mut hist = vec![0u32; 481]; // histogram of the per-attempt best complete score
-    let mut total_nodes = 0u64;
     let t0 = Instant::now();
 
     let emit_dir_s = emit_dir.clone().unwrap_or_else(|| ".".into());
@@ -1194,114 +1317,148 @@ fn main() {
     let checkpoint_path = Path::new(&emit_dir_s).join("best_so_far.url");
     let log_path = Path::new(&emit_dir_s).join(format!("{emit_prefix}_portfolio.log"));
 
-    for attempt in 0..restarts {
-        let mut rng = Rng::new(seed.wrapping_add(attempt as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
-        solver.best_score = 0;
-        solver.best_board = None;
-        solver.deepest = 0;
-        solver.best_partial = None;
-        // Run the recursive search on a thread with a LARGE stack (256 MB): the
-        // 256-deep DFS with per-frame candidate scratch can overflow the default
-        // 8 MB stack. std::thread::scope lets us borrow solver/rng safely.
-        let shuffle = stage >= 4 || restarts > 1;
-        std::thread::scope(|s| {
-            std::thread::Builder::new()
-                .stack_size(256 * 1024 * 1024)
-                .spawn_scoped(s, || {
-                    run_attempt(&mut solver, &mut rng, shuffle);
-                })
-                .expect("spawn search thread")
-                .join()
-                .expect("search thread panicked");
-        });
-        if solver.deepest > deepest_overall {
-            deepest_overall = solver.deepest;
-        }
-        total_nodes += solver.nodes;
+    let shuffle = stage >= 4 || restarts > 1;
+    // Bookkeeping shared by every finished attempt. Under --threads 1 this is an
+    // uncontended mutex around the same sequence of updates the serial loop did;
+    // under N>1 it serializes only the (rare, cheap) post-attempt bookkeeping and
+    // the record/checkpoint file writes -- never the search itself. Keeping the
+    // banking inside the lock is what stops two threads that both beat the record
+    // from interleaving their RECORD_*.url writes.
+    struct Portfolio<'a> {
+        global_best: u16,
+        global_best_board: Option<([u16; N], [u8; N])>,
+        best_natural: u16,
+        deepest_overall: usize,
+        total_nodes: u64,
+        hist: Vec<u32>,
+        done: usize,
+        puzzle: &'a eternity2_core::Puzzle,
+        checkpoint_path: PathBuf,
+        log_path: PathBuf,
+        emit_dir_s: String,
+        emit_prefix: String,
+        restarts: usize,
+        t0: Instant,
+    }
+    impl Portfolio<'_> {
+        /// Fold one finished attempt into the portfolio state. Called under the
+        /// mutex, so the >best test and the banking that follows it are atomic.
+        fn record(&mut self, attempt: usize, o: &AttemptOutcome) {
+            self.done += 1;
+            if o.deepest > self.deepest_overall {
+                self.deepest_overall = o.deepest;
+            }
+            self.total_nodes += o.nodes;
+            if o.native && o.score > self.best_natural {
+                self.best_natural = o.score;
+            }
+            if (o.score as usize) < self.hist.len() {
+                self.hist[o.score as usize] += 1;
+            }
 
-        // best complete board this attempt: native completion if any, else
-        // greedy-complete the deepest partial.
-        let (attempt_score, attempt_board): (u16, Option<([u16; N], [u8; N])>) =
-            if solver.best_score > 0 {
-                if solver.best_score > best_natural {
-                    best_natural = solver.best_score;
-                }
-                (solver.best_score, solver.best_board.clone())
-            } else if let Some((bp, br, d)) = solver.best_partial {
-                let (cbp, cbr, sc) = solver.greedy_complete(&bp, &br, d);
-                (sc, Some((cbp, cbr)))
-            } else {
-                (0, None)
-            };
-        if (attempt_score as usize) < hist.len() {
-            hist[attempt_score as usize] += 1;
-        }
-
-        // Only PHYSICAL complete boards are eligible to be the best/banked board
-        // (the greedy tail can complete non-physically via its cross-kind
-        // fallback, which verify_bucas would reject). Native completions are
-        // physical by construction.
-        let attempt_physical = attempt_board
-            .as_ref()
-            .map(|(bp, br)| solver.is_physical(bp, br))
-            .unwrap_or(false);
-
-        if attempt_score > global_best && attempt_physical {
-            global_best = attempt_score;
-            global_best_board = attempt_board.clone();
-            let el = t0.elapsed().as_secs_f64();
-            let native = solver.best_score > 0;
-            let msg = format!(
-                "# attempt {attempt}: NEW BEST complete score={} (native={}) deepest={} nodes={} ({:.1}s)",
-                global_best, native, deepest_overall, solver.nodes, el
-            );
-            eprintln!("{msg}");
-            // checkpoint the best-so-far complete board
-            if let Some((bp, br)) = &global_best_board {
-                let url = board_url(&puzzle, bp, br);
-                std::fs::write(&checkpoint_path, &url).ok();
-                // append to log
-                use std::io::Write;
-                if let Ok(mut f) = std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open(&log_path)
-                {
-                    let _ = writeln!(f, "{msg}");
-                    let _ = writeln!(f, "  url: {url}");
-                }
-                // BANK + FLAG only NATIVE completions beating 459 (greedy-tail
-                // boards are a soft lower bound, not strict-5 record candidates).
-                if global_best > 459 && native {
-                    let ts = std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs();
-                    let rec = Path::new(&emit_dir_s)
-                        .join(format!("RECORD_{global_best}_{emit_prefix}_{ts}.url"));
-                    std::fs::write(&rec, &url).ok();
-                    eprintln!("# ***** NEW FROM-SCRATCH RECORD CANDIDATE score={global_best} native={native} *****");
-                    eprintln!("# ***** banked -> {} — VERIFY 3 WAYS *****", rec.display());
+            if o.score > self.global_best && o.physical {
+                self.global_best = o.score;
+                self.global_best_board = o.board.clone();
+                let el = self.t0.elapsed().as_secs_f64();
+                let msg = format!(
+                    "# attempt {attempt}: NEW BEST complete score={} (native={}) deepest={} nodes={} ({:.1}s)",
+                    self.global_best, o.native, self.deepest_overall, o.nodes, el
+                );
+                eprintln!("{msg}");
+                if let Some((bp, br)) = &self.global_best_board {
+                    let url = board_url(self.puzzle, bp, br);
+                    std::fs::write(&self.checkpoint_path, &url).ok();
+                    use std::io::Write;
+                    if let Ok(mut f) =
+                        std::fs::OpenOptions::new().create(true).append(true).open(&self.log_path)
+                    {
+                        let _ = writeln!(f, "{msg}");
+                        let _ = writeln!(f, "  url: {url}");
+                    }
+                    // BANK + FLAG only NATIVE completions beating 459 (greedy-tail
+                    // boards are a soft lower bound, not strict-5 record candidates).
+                    if self.global_best > 459 && o.native {
+                        let ts = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs();
+                        let rec = Path::new(&self.emit_dir_s).join(format!(
+                            "RECORD_{}_{}_{ts}.url",
+                            self.global_best, self.emit_prefix
+                        ));
+                        std::fs::write(&rec, &url).ok();
+                        eprintln!("# ***** NEW FROM-SCRATCH RECORD CANDIDATE score={} native={} *****", self.global_best, o.native);
+                        eprintln!("# ***** banked -> {} — VERIFY 3 WAYS *****", rec.display());
+                    }
                 }
             }
-        }
-        // periodic progress / checkpoint refresh
-        if restarts > 1 && (attempt + 1) % 25 == 0 {
-            let el = t0.elapsed().as_secs_f64();
-            eprintln!(
-                "# progress {}/{} best_complete={} best_native={} deepest={} nodes={} {:.1} Mnode/s {:.1} restarts/s ({:.0}s)",
-                attempt + 1,
-                restarts,
-                global_best,
-                best_natural,
-                deepest_overall,
-                total_nodes,
-                (total_nodes as f64 / 1e6) / el.max(1e-9),
-                (attempt as f64 + 1.0) / el.max(1e-9),
-                el,
-            );
+            // periodic progress / checkpoint refresh. Keyed on COMPLETED count
+            // rather than attempt index so it still fires every 25 attempts when
+            // attempts finish out of order.
+            if self.restarts > 1 && self.done % 25 == 0 {
+                let el = self.t0.elapsed().as_secs_f64();
+                eprintln!(
+                    "# progress {}/{} best_complete={} best_native={} deepest={} nodes={} {:.1} Mnode/s {:.1} restarts/s ({:.0}s)",
+                    self.done,
+                    self.restarts,
+                    self.global_best,
+                    self.best_natural,
+                    self.deepest_overall,
+                    self.total_nodes,
+                    (self.total_nodes as f64 / 1e6) / el.max(1e-9),
+                    (self.done as f64) / el.max(1e-9),
+                    el,
+                );
+            }
         }
     }
+
+    let portfolio = Mutex::new(Portfolio {
+        global_best: 0,
+        global_best_board: None,
+        best_natural: 0,
+        deepest_overall: 0,
+        total_nodes: 0,
+        hist: vec![0u32; 481],
+        done: 0,
+        puzzle: &puzzle,
+        checkpoint_path: checkpoint_path.clone(),
+        log_path: log_path.clone(),
+        emit_dir_s: emit_dir_s.clone(),
+        emit_prefix: emit_prefix.clone(),
+        restarts,
+        t0,
+    });
+
+    if threads > 1 {
+        // Attempts run concurrently, each on a worker holding its OWN Solver
+        // clone (the catalog tables are a few hundred KB; the 256MB search stacks
+        // are lazily committed, so N workers cost ~N*few-hundred-KB in practice).
+        // Cloning is what makes the attempts independent: with one shared Solver
+        // they would race on board_piece/used/nodes.
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .expect("build rayon pool");
+        pool.install(|| {
+            (0..restarts).into_par_iter().for_each_init(
+                || solver.clone(),
+                |local, attempt| {
+                    let o = run_attempt_scored(local, seed, attempt, shuffle);
+                    portfolio.lock().unwrap_or_else(std::sync::PoisonError::into_inner).record(attempt, &o);
+                },
+            );
+        });
+    } else {
+        for attempt in 0..restarts {
+            let o = run_attempt_scored(&mut solver, seed, attempt, shuffle);
+            portfolio.lock().unwrap_or_else(std::sync::PoisonError::into_inner).record(attempt, &o);
+        }
+    }
+
+    let p = portfolio.into_inner().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let (global_best, global_best_board, best_natural, deepest_overall, total_nodes, hist) =
+        (p.global_best, p.global_best_board, p.best_natural, p.deepest_overall, p.total_nodes, p.hist);
 
     let elapsed = t0.elapsed().as_secs_f64();
     let mnps = (total_nodes as f64 / 1e6) / elapsed.max(1e-9);
