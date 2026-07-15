@@ -11,7 +11,8 @@
 default:
     @just --list
 
-# Single-core solver benchmark: build + run all 15 solvers (native + strong).
+# Single-core solver benchmark: build + run all 17 solvers (native + strong),
+# regenerate the report, and regenerate the site JSON the research page reads.
 single-core-benchmark budget_s="60" parallel="6":
     cargo build --release --manifest-path single-core-benchmark/engine/Cargo.toml --bin run_algo
     python3 single-core-benchmark/scripts/run_grid.py \
@@ -20,3 +21,18 @@ single-core-benchmark budget_s="60" parallel="6":
         --budget-s {{budget_s}} --seed 1 --parallel {{parallel}}
     python3 single-core-benchmark/scripts/make_report.py \
         --run single-core-benchmark/results/rerun
+    python3 single-core-benchmark/scripts/make_site_json.py \
+        --run single-core-benchmark/results/rerun
+
+# BANDSAW (analysis tool, not a solver): prove the optimal completion of a
+# board's endgame band by meet-in-the-middle. Runs the committed worked example.
+bandsaw rung_ms="15000" label_ms="1500":
+    cargo build --release \
+        --manifest-path single-core-benchmark/engine/Cargo.toml \
+        --bin mini_e2 --bin dump_board_json
+    single-core-benchmark/engine/target/release/dump_board_json \
+        "$(cat bandsaw/example/board.url)" > /tmp/bandsaw_raw.json
+    python3 bandsaw/scripts/to_entry.py /tmp/bandsaw_raw.json > /tmp/bandsaw_entry.json
+    single-core-benchmark/engine/target/release/mini_e2 \
+        --entry /tmp/bandsaw_entry.json --rung-ms {{rung_ms}} --label-ms {{label_ms}} \
+        | tee bandsaw/results/bracket.json

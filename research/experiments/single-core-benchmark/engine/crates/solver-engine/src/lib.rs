@@ -10,7 +10,7 @@
 
 #![forbid(unsafe_code)]
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
 mod bridge;
 
 use std::sync::Arc;
@@ -686,12 +686,13 @@ pub(crate) struct SearchState<'a> {
     /// Vol-27 — in-process ONNX scorer for `ValueOrder::Learned`. Lazily
     /// constructed at the first value-ordering query; `None` until then
     /// or if model loading fails. Replaces vol-26's stdio bridge.
-    /// Not used when value_order != Learned.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Not used when value_order != Learned. Present only with the
+    /// `learned-order` feature (the ONNX runtime is optional).
+    #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
     pub(crate) learned_bridge: Option<crate::bridge::LearnedScorer>,
     /// Vol-26 — set to `true` once we've attempted to load the scorer
     /// and failed, so we don't retry per-node.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
     pub(crate) learned_bridge_disabled: bool,
 }
 
@@ -1027,9 +1028,9 @@ impl<'a> SearchState<'a> {
             best_score: 0,
             best_score_partial: None,
             shared_best_score: None,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
             learned_bridge: None,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
             learned_bridge_disabled: false,
         }
     }
@@ -2470,7 +2471,9 @@ impl<'a> SearchState<'a> {
         // Tunable: E2_LOT_EPS (BP-score units, default 0.05) and
         // E2_LOT_MAX_K (default 8). Read once per recurse — cheap and
         // lets us sweep without rebuilding.
-        #[cfg(not(target_arch = "wasm32"))]
+        // Compiled only with `learned-order`; without it, LearnedOnTies keeps
+        // the pure EdgeBpMarginals order (the tie-rerank block is absent).
+        #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
         if is_learned_on_ties && bp_keys.len() >= 2 {
             let eps_f: f32 = std::env::var("E2_LOT_EPS")
                 .ok().and_then(|s| s.parse().ok()).unwrap_or(0.05);
@@ -2518,10 +2521,11 @@ impl<'a> SearchState<'a> {
             }
         }
 
-        // Vol-26 — Learned imitation-policy value order. Hand the
-        // partial board + target position + candidates to a Python
-        // subprocess and reorder by returned scores (descending).
-        #[cfg(not(target_arch = "wasm32"))]
+        // Vol-26 — Learned imitation-policy value order. Reorders candidates by
+        // ONNX-model scores. Compiled only with the `learned-order` feature;
+        // without it, ValueOrder::Learned keeps the insertion-order fallback
+        // (this block is simply absent, so the order is unchanged).
+        #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
         if matches!(self.config.value_order, ValueOrder::Learned)
             && domain_snapshot.len() > 1
         {
@@ -2913,7 +2917,7 @@ impl<'a> SearchState<'a> {
     /// model; the caller then preserves the existing order. Dispatches
     /// to v1 (fixed-size) or v2 (size-agnostic) based on the loaded
     /// scorer.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "learned-order"))]
     fn learned_score_candidates(
         &mut self,
         pos: Position,

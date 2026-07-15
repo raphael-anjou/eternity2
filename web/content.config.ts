@@ -131,7 +131,33 @@ const frontmatterSchema = z.object({
   kind: z
     .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),
-  status: z.enum(["live", "draft"]).default("live"),
+  // The *contribution* axis: what kind of research result this is, independent
+  // of `kind` (which drives layout). Only `solver` results earn a row on the
+  // score chart / leaderboard; everything else is a property, a decode, a
+  // technique, a measurement, a dead end, or an explainer. See lab/methodology.
+  contribution: z
+    .enum([
+      "solver",
+      "analysis",
+      "reconstruction",
+      "theory",
+      "method",
+      "measurement",
+      "negative",
+      "tool",
+      "exposition",
+    ])
+    .optional(),
+  // The *status* axis: how far through the publish pipeline a page is. Work is
+  // published by pull request; the PR review sets the tier.
+  //   draft  — unpublished; not normally present in the repo at all. Kept as a
+  //            valid state only for pulling a page back out of publication.
+  //   report — a technical report: public but not yet reviewed (badged as such).
+  //   live   — a reviewed finding: public, cited, treated as ~immutable.
+  status: z.enum(["draft", "report", "live"]).default("live"),
+  // Optional provenance note: what this page was distilled from, so the public
+  // record is traceable. Free text; never a link to anyone's private material.
+  provenance: z.string().optional(),
   // Registry slug of the researcher who authored the page. Validated against
   // authors.json in scanResearchContent (below), like topics.
   author: z.string().optional(),
@@ -315,6 +341,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
         : {}),
       kind: e.fm.kind,
       status: e.fm.status,
+      ...(e.fm.contribution !== undefined ? { contribution: e.fm.contribution } : {}),
       ...(e.fm.author !== undefined ? { author: e.fm.author } : {}),
       ...(e.fm.tier !== undefined ? { tier: e.fm.tier } : {}),
       ...(e.fm.rigor !== undefined ? { rigor: e.fm.rigor } : {}),
@@ -333,6 +360,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       related: e.fm.related,
       ...(e.fm.order !== undefined ? { order: e.fm.order } : {}),
       ...(e.fm.group !== undefined ? { group: e.fm.group } : {}),
+      ...(e.fm.provenance !== undefined ? { provenance: e.fm.provenance } : {}),
       toc: use.toc,
       translated: lang === "en" || fr !== undefined,
       file: use.file,

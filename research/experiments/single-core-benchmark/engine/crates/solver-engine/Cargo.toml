@@ -9,6 +9,16 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+# ONNX-backed ValueOrder::Learned / LearnedOnTies (vol-27). OFF by default: it
+# pulls the `ort` ONNX runtime (which downloads a native libonnxruntime at build
+# time) + `ndarray`, and NO published benchmark preset uses a Learned value order
+# — the presets are border/gacolor/joe/verhaard. With the feature off, the
+# Learned variants fall back to their documented insertion-order behaviour, so
+# the default build is self-contained and needs no network fetch. Enable with
+# `--features learned-order` to use the learned model.
+learned-order = ["dep:ort", "dep:ndarray"]
+
 [dependencies]
 eternity2-core = { path = "../core" }
 eternity2-events = { path = "../events" }
@@ -21,12 +31,11 @@ crossbeam-channel = "0.5"
 rayon = "1.10"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
-# Vol-27 — in-process ONNX inference for ValueOrder::Learned. Replaces
-# vol-26's stdio bridge (~15 ms/node → ~0.1 ms/call). Default download
-# strategy fetches the macOS arm64 binary; load-dynamic feature lets us
-# point at a custom libonnxruntime if needed.
-ort = { version = "=2.0.0-rc.10", default-features = false, features = ["std", "download-binaries", "ndarray"] }
-ndarray = "0.16"
+# Vol-27 — in-process ONNX inference for ValueOrder::Learned, behind the
+# off-by-default `learned-order` feature (see [features]). `download-binaries`
+# fetches the platform libonnxruntime at build time when the feature is on.
+ort = { version = "=2.0.0-rc.10", default-features = false, features = ["std", "download-binaries", "ndarray"], optional = true }
+ndarray = { version = "0.16", optional = true }
 
 [dev-dependencies]
 eternity2-generator = { path = "../generator" }

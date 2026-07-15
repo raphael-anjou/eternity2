@@ -1,0 +1,101 @@
+---
+title: CSP presets, measured
+description: >-
+  One constraint-propagation engine, run under a dozen ordering and propagator
+  presets, on the same ten corner-pinned variants as the leaderboard. A study of
+  what each knob buys, kept off the headline board because the best preset reaches
+  less than half a contender's score.
+metaDescription: "One CSP engine measured under a dozen ordering and propagator presets on ten Eternity II variants: what each knob buys, and why none competes."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # the standardized single-core bench
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # budget per run
+  runs: 120 # 12 preset/variant algorithms × 10 corner variants
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true only for the standardized single-core bench
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 11
+updated: 2026-07-15
+date: 2026-07
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/reduce/arc-consistency
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+The [single-core benchmark](/research/lab/experiments/single-core-benchmark)
+leaderboard shows the methods that compete on score. This page shows the rest:
+a dozen presets of one constraint-satisfaction engine, plus the naive DFS in its
+weaker visit order. They are not a dozen solvers. They are one arc-consistency
+core wearing different heads, kept so the exact cost of each classic technique
+can be read off a number instead of argued about.
+
+<Figure title="CSP presets: mean score over ten corner variants, single core, 60 s">
+  <BenchmarkLeaderboard view="presets" />
+</Figure>
+
+## What each knob buys
+
+The presets vary two things: the order the engine assigns cells, and how hard it
+propagates before committing. Holding the puzzle and the budget fixed, the score
+gap between two presets is the value of that one knob.
+
+- **Least-constraining-value ordering helps.** `anjou-gacolor_ac3_lcv` reaches a
+  mean of 114 against the plain `anjou-gacolor_ac3` at 76: choosing the value
+  that rules out the fewest neighbours is worth about 38 points here.
+- **Some knobs are inert at this depth.** Three presets (`anjou-gacolor_ac3`,
+  `anjou-gacolor_ac3_ns1`, `anjou-verhaard_preferred`) produced byte-identical
+  boards on this puzzle. NS-1 and preferred ordering add nothing at 60 seconds:
+  the engine never searches deep enough for them to bite.
+- **Border-first ordering is the strongest preset.** `anjou-border_first_lcv` and
+  `anjou-rare_color_first` top the sweep at about 183, by committing the
+  over-constrained frame before the free interior. It is still less than half a
+  contender's score.
+
+## Why none of them competes
+
+Every preset is bimodal. On a friendly corner arrangement the arc-consistency
+search reaches 340 to 349; on a hostile one it collapses to about 55, pinned in a
+bad basin it cannot escape inside 60 seconds. The mean sits low because the bad
+corners drag it down, and no ordering knob fixes the basin problem. That is the
+real story of this family: propagation makes each node well-pruned but expensive,
+so the search is strong where the instance is forgiving and helpless where it is
+not. The constructive engines on the leaderboard never enter that trap, which is
+why a preset at 183 sits on a different page from a producer at 455.
+
+## The naive DFS is here too, for one reason
+
+Naive depth-first search with every break allowed is not a CSP preset, but its
+visit order belongs to the same lesson. In row-major order
+(`anjou-naive_rowmajor`, on the leaderboard as the baseline) it reaches 365; the
+same DFS in spiral visit order (`anjou-naive_spiral`) collapses to a mean of 78.
+The visit-order choice alone costs the naive search nearly 290 points, the same
+kind of ordering sensitivity the CSP presets show, at a larger scale.
+
+## Method and reproducibility
+
+These presets ran in the same grid as the leaderboard: ten official-puzzle
+variants, each with three pinned corner cells, single core, 60 seconds, fixed
+seed, one run per variant. Every board is re-scored by the one canonical
+matched-edge scorer, never the engine's self-report. The engine, the ten
+variants, the committed per-run results and the scripts live under the
+experiment's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
+and `just experiments single-core-benchmark` reruns the whole grid, contenders
+and presets together.

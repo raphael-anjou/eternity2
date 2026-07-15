@@ -15,7 +15,7 @@
 // pub mod border_ub; // dropped: used only by non-published bins
 // pub mod border_ub_lifted; // dropped: used only by non-published bins
 // pub mod cluster_repair; // dropped: used only by non-published bins
-// pub mod mini; // dropped: used only by non-published bins
+pub mod mini; // BANDSAW: exact meet-in-the-middle endgame band solver
 
 use std::io::Write;
 use std::path::Path;
