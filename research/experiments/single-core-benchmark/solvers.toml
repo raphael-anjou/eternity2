@@ -1,0 +1,251 @@
+# solvers.toml — the single source of truth for the single-core benchmark grid.
+#
+# Every solver in the grid is ONE [[solver]] entry here. This file is read by:
+#   - scripts/run_grid.py      (which solvers to run, input format, calibration)
+#   - scripts/make_site_json.py (family, author→site prefix, native throughput unit)
+# and, transitively, by the website (via the generated
+# web/src/data/single-core-benchmark.json).
+#
+# Adding a solver to the grid = one [[solver]] entry here + its runnable engine
+# (a native module registered in bench-grid's algos registry, or a standalone
+# binary with a run_<name> wrapper in scripts/run_standalone.sh). No Python/TS
+# name-tables to edit — this file replaces the ~6 hand-kept lists that used to
+# drift (that drift is what silently dropped naive_spiral + gacolor_ac3_lcv).
+#
+# FIELDS
+#   name       canonical engine name. For kind="native" it MUST appear in
+#              `run_algo --list`; run_grid.py cross-checks and errors on mismatch.
+#   author     an author slug from web/content/research/authors.json
+#              (e.g. "raphael-anjou", "joshua-blackwood", "louis-verhaard").
+#              WHO WROTE THE CODE WE RUN -- not who invented the algorithm.
+#              Drives the site name prefix: "raphael-anjou" → "anjou-<name>";
+#              every other author → bare "<name>". Every engine here is
+#              currently Raphaël's own code, so every row is prefixed. A bare
+#              row would mean we run that author's actual program.
+#   algorithm_by  optional; an authors.json slug. Credits the originator when
+#              the code is ours but the algorithm is theirs (blackwood,
+#              verhaard). Validated like `author`; never affects the prefix.
+#   family     producer | alns | backtracker | csp | naive. Bar colour + legend
+#              grouping on the site (NOT the algorithm identity — see the page).
+#   kind       "native"     → run via run_algo (site-schema JSON puzzle in), or
+#              "standalone" → run via a run_<name> function in run_standalone.sh
+#                             (legacy CSV puzzle in). This is the ONLY difference;
+#              the split is historical, not fundamental.
+#   input      "json" | "csv" — which variant file the runner feeds this solver.
+#   nps_unit   the engine's NATIVE throughput unit, never cross-compared between
+#              families: beam-nodes/s (producer), iters/s (alns),
+#              search-nodes/s (backtrackers, CSP, naive).
+#   eligible   true = a from-scratch, comparable grid row. (All 17 current
+#              solvers are eligible; input-assisted showcase algorithms that need
+#              a corpus/frame/witness are NOT added to this grid.)
+#   role       optional "contender" tag: this solver competes on score with the
+#              other methods and earns a row on the HEADLINE leaderboard. Rows
+#              without it (the CSP-preset ablations, the naive_spiral variant)
+#              are a different category and live on the CSP-presets study page,
+#              not the headline board. The best CSP preset (~183) is less than
+#              half the contenders' scores, so it doesn't compete.
+#   paradox    optional role tag for the site's throughput-vs-score paradox
+#              tiles: "throughput" (the high-nodes/s, lower-score engine) or
+#              "quality" (the low-nodes/s, higher-score engine). The component
+#              reads rows by these ROLES, so it never hard-codes an algo name.
+#
+#   [solver.calibration] (standalone only) — the run-shaping knobs that
+#   run_standalone.sh used to hard-code. Present so calibration lives with the
+#   solver, not buried in bash. run_standalone.sh falls back to these same values
+#   if a knob is absent, so behaviour is identical to the committed run.
+#
+# Order below is the engine/registry order (naive → csp native, then the 4
+# standalone strong engines). The site re-sorts rows by mean score.
+
+# ---- native family: naive DFS -------------------------------------------------
+[[solver]]
+name = "naive_rowmajor"
+author = "raphael-anjou"
+family = "naive"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+role = "contender"     # the naive baseline (a floor) on the headline leaderboard
+
+[[solver]]
+name = "naive_spiral"
+author = "raphael-anjou"
+family = "naive"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+# ---- native family: CSP + AC-3 presets ---------------------------------------
+[[solver]]
+name = "border_first_lcv"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "border_first_full"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "border_first_random"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "rare_color_first"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "gacolor_ac3"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "gacolor_ac3_ns1"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "gacolor_ac3_lcv"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "gacolor_ac3_random"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "joe_depth150"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "joe_depth150_bp"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+[[solver]]
+name = "verhaard_preferred"
+author = "raphael-anjou"
+family = "csp"
+kind = "native"
+input = "json"
+nps_unit = "search-nodes/s"
+eligible = true
+
+# ---- standalone strong engines (one binary each, CSV in) ---------------------
+[[solver]]
+name = "producer"
+author = "raphael-anjou"
+family = "producer"
+kind = "standalone"
+input = "csv"
+nps_unit = "beam-nodes/s"
+# eligible=false: withheld pending publication of the engine itself. The grid
+# skips it; no producer row reaches the results or the site.
+eligible = false
+[solver.calibration]
+order = "comb:14"
+beam = 80000
+tol = 0
+timeout_pad_s = 15
+
+[[solver]]
+name = "alns"
+author = "raphael-anjou"
+family = "alns"
+kind = "standalone"
+input = "csv"
+nps_unit = "iters/s"
+# eligible=false: withheld pending publication (see `producer`).
+eligible = false
+[solver.calibration]
+# stage A: producer base board, then stage B: alns_only time-bounded.
+base_order = "comb:14"
+base_beam = 16384
+ops = "basic_lkh"
+repair_kind = "sa"
+timeout_pad_s = 15
+
+[[solver]]
+name = "verhaard"
+# OUR code, THEIR algorithm. `author` is whoever wrote the binary we actually
+# run -- it drives the site's anjou- ownership prefix, and this engine is our
+# from-scratch Rust, not Verhaard's. `algorithm_by` credits the originator.
+# Verhaard's own eii shipped as a win32 binary with NO source, so reconstructing
+# it from eii.exe + his published algorithm shape is the only way to run it.
+author = "raphael-anjou"
+algorithm_by = "louis-verhaard"
+family = "backtracker"
+kind = "standalone"
+input = "csv"
+nps_unit = "search-nodes/s"
+eligible = true
+role = "contender"
+[solver.calibration]
+nodecap = 20000000
+restarts = 1000
+timeout_pad_s = 60
+
+[[solver]]
+name = "blackwood"
+# OUR code, THEIR algorithm -- see the note on `verhaard` above. Blackwood's own
+# C# IS public (github.com/jblackwood345/EternityII_Solver, GPL-3.0) but it
+# hardcodes its 256 pieces and `number_virtual_cores = 64`, so it can neither
+# read this grid's variants nor be pinned to one core without editing it.
+author = "raphael-anjou"
+algorithm_by = "joshua-blackwood"
+family = "backtracker"
+kind = "standalone"
+input = "csv"
+nps_unit = "search-nodes/s"
+eligible = true
+role = "contender"
+[solver.calibration]
+nodecap = 20000000
+restarts = 1000
+timeout_pad_s = 60

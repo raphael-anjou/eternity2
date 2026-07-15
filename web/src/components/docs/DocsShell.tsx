@@ -55,6 +55,9 @@ const T = {
       measured: "an empirical result measured on this project's engine",
       conjectured: "a hypothesis or literature reading, not yet established here",
     } as Record<RigorKind, string>,
+    reportBadge: "technical report",
+    reportTitle:
+      "a technical report: published, but not yet independently reviewed. Its claims are stated in good faith and may still be revised.",
     complexity: "Complexity",
     time: "Time",
     space: "Space",
@@ -90,6 +93,9 @@ const T = {
       measured: "un résultat empirique mesuré sur le moteur de ce projet",
       conjectured: "une hypothèse ou une lecture de la littérature, pas encore établie ici",
     } as Record<RigorKind, string>,
+    reportBadge: "rapport technique",
+    reportTitle:
+      "un rapport technique : publié, mais pas encore relu de façon indépendante. Ses affirmations sont faites de bonne foi et peuvent encore être révisées.",
     complexity: "Complexité",
     time: "Temps",
     space: "Espace",
@@ -113,6 +119,22 @@ function RigorBadge({ rigor }: { rigor: RigorKind }) {
       title={t.rigorTitle[rigor]}
     >
       {t.rigor[rigor]}
+    </span>
+  );
+}
+
+/** Status badge for a technical report: published but not yet independently
+ *  reviewed. Only rendered when status === "report"; a reviewed finding (live)
+ *  carries no badge (the absence is the signal). */
+function ReportBadge() {
+  const t = useT(T);
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300"
+      title={t.reportTitle}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+      {t.reportBadge}
     </span>
   );
 }
@@ -198,6 +220,7 @@ function Badges({ doc }: { doc: ResearchDoc }) {
         <span className={cn("h-1.5 w-1.5 rounded-full", KIND_DOT[doc.kind])} aria-hidden />
         {kindLabel(doc.kind, lang)}
       </span>
+      {doc.status === "report" && <ReportBadge />}
       {doc.tier !== undefined && (
         <span
           className="rounded-full border px-2 py-0.5 font-medium text-amber-600 dark:text-amber-400"

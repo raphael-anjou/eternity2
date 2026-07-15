@@ -1,0 +1,63 @@
+---
+title: The engines
+description: >-
+  The shared engines under Raphaël Anjou's experiments. The named experiments
+  are studies that run on these; this is the apparatus they share. The CSP
+  presets are documented here; the constructive engines are not yet published.
+metaDescription: "The shared engines behind Raphael Anjou's Eternity II experiments: the CSP presets, documented here as the apparatus the studies run on."
+kind: page
+order: 5
+author: raphael-anjou
+updated: 2026-07-15
+---
+
+import { ProseLink } from "@/components/docs/mdx-components";
+
+export function Door({ to, title, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      <div className="text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
+
+The [experiments](/research/lab/experiments/raphael-anjou) are studies: each
+one asks a question and reports the board it reached. But most of them are not
+built from nothing. They run on a small set of shared engines, and the same
+engine turns up under experiment after experiment. This page documents that
+apparatus once, so the studies can point here instead of re-explaining the
+machine each time.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="The CSP presets">
+    A single constraint-propagation engine with interchangeable orderings and
+    propagators: arc-consistency, colour-graph matching, several fill orders.
+    These are faithful reimplementations of known community techniques, kept so
+    their exact cost can be measured against the other engines.
+  </Door>
+</div>
+
+The two constructive engines these studies also lean on, the beam producer and
+the ALNS polish stage, are not yet published; their write-ups are held back for
+now. Where an experiment steers one of them, its own page says what the engine
+does at the level the study needs.
+
+## Why document the engines apart from the experiments
+
+A study and its engine answer different questions. The engine answers *how the
+search works*, the data structures, the fill order, the propagators, and it
+is reused unchanged across many studies. The study answers *what happens when
+you point that engine at a particular idea*: a learned prior, a fixed border, a
+break mask. Keeping them apart means a reader who wants to understand PRIOR's
+prior does not have to re-read how a beam works, and a reader who wants the
+engine gets it in one place, current and complete.
+
+Where these engines race head to head under a fixed budget, they appear on the
+[single-core benchmark](/research/lab/experiments/single-core-benchmark). The
+general theory behind each method lives in the
+[build-a-solver](/research/build) section; these pages are the specific engines
+as built and measured here.

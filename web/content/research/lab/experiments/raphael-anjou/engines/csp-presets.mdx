@@ -1,0 +1,80 @@
+---
+title: The CSP presets
+description: >-
+  One constraint-propagation engine with interchangeable orderings and
+  propagators, plus a plain-DFS floor. Faithful reimplementations of known
+  community techniques, kept so their exact cost can be measured against the
+  constructive engines.
+metaDescription: "The CSP presets: one constraint-propagation Eternity II engine with interchangeable orderings and propagators, reimplementing known techniques to measure their cost."
+kind: concept
+contribution: tool
+order: 30
+author: raphael-anjou
+updated: 2026-07-15
+topics: [backtracking, search-space]
+related:
+  - /research/build/reduce/arc-consistency
+  - /research/build/backtracking/fill-order
+  - /research/lab/experiments/single-core-benchmark
+sources:
+  - label: "Arc consistency, from AC-3 up: this project's concept page"
+    url: https://eternity2.dev/research/build/reduce/arc-consistency
+---
+
+The CSP presets are not one algorithm but one engine wearing different heads. A
+single constraint-propagation core does the search; a preset chooses which
+variable-ordering, which value-ordering, and which propagators it runs with. The
+point of keeping them is measurement: each preset is a faithful reimplementation
+of a known community technique, so its exact cost and reach can be read off the
+[single-core benchmark](/research/lab/experiments/single-core-benchmark) against
+the constructive engines rather than argued about.
+
+Unlike the constructive engines that drive the records, these are not where the
+records come from. They are the baselines: what the classic constraint-solving
+approach actually buys on this puzzle, at one core, in one minute.
+
+## The propagators and orderings
+
+Every preset shares the same backtracking core and differs only in what it plugs
+into it:
+
+- **gacolor** enforces a colour-graph matching condition, a per-colour
+  generalisation of arc-consistency in the style of Régin's alldifferent
+  propagator, so a partial board that cannot possibly balance its remaining
+  colours is pruned early. Variants (`ns1`, `lcv`, `random`) change only the
+  value ordering on top of the same propagator.
+- **joe** is a prune-and-restart schedule in the Joe-Saunders style: propagate
+  to a fixed depth, and restart when the search wedges rather than grinding on a
+  bad line.
+- **verhaard_preferred** uses [Verhaard's
+  2008](/research/build/solvers/verhaard-eii) preferred-piece value ordering, the
+  same idea the community's eii solver used, measured here in isolation.
+- **border-first** presets fix the border ring before the interior, in
+  least-constraining-value, full, or random orders.
+- **rare-colour-first** orders by scarcest colour, binding the tightest
+  constraints soonest.
+
+The general theory behind all of this, arc-consistency, AC-3 and its
+refinements, is on the [arc-consistency
+page](/research/build/reduce/arc-consistency); the [fill-order
+page](/research/build/backtracking/fill-order) covers the ordering choices.
+These presets are those ideas as built and timed here.
+
+## The naive floor
+
+Two more presets set the floor: plain depth-first search in row-major and in
+spiral visit order, with no propagation at all. They exist to answer "what
+does the puzzle give you for free," and the answer is instructive: row-major
+naive DFS reaches a high matched-edge count on a low-quality board full of
+breaks, while the same search in spiral order collapses. The visit order alone
+moves the result by hundreds of points, which is the whole argument for the comb
+order the producer uses.
+
+## What they show
+
+On the benchmark the CSP presets are bimodal: strong on a friendly corner
+arrangement, fragile on a hostile one, because arc-consistency search can get
+pinned in a bad basin and cannot escape inside the budget. That fragility, set
+beside the producer's flat consistency, is the measured case for constructive
+search over classic constraint solving on this puzzle, which is exactly why
+these presets are documented as baselines, not as the record engines.

@@ -29,8 +29,12 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import manifest  # noqa: E402  (local module, sibling of this script)
 
 # Repo-relative: this script lives at <experiment>/scripts/run_grid.py, so the
 # engine and default variants/results dirs are its siblings. No absolute paths.
@@ -39,27 +43,36 @@ EXPERIMENT = HERE.parent
 BIN_DIR = EXPERIMENT / "engine" / "target" / "release"
 RUN_ALGO = BIN_DIR / "run_algo"
 
-# native engine-family algos (driven by run_algo, JSON variant input). This is
-# the exact registry the ported run_algo exposes (see `run_algo --list`).
-NATIVE_ALGOS = [
-    "naive_rowmajor",
-    "border_first_lcv",
-    "border_first_full",
-    "rare_color_first",
-    "gacolor_ac3",
-    "gacolor_ac3_ns1",
-    "gacolor_ac3_random",
-    "border_first_random",
-    "joe_depth150",
-    "joe_depth150_bp",
-    "verhaard_preferred",
-]
-# standalone strong engines: their own binaries in the same engine workspace,
-# driven by the local run_standalone.sh wrapper (CSV variant in, url out). Now
-# open source and runnable here, so they are on by default. BENCH_STANDALONE_SH
-# can override the wrapper path.
-STANDALONE_ALGOS = ["producer", "blackwood", "verhaard", "alns"]
+# The grid is defined by ../solvers.toml (the single source of truth for which
+# solvers exist, their I/O format, family, author and calibration). run_grid.py
+# reads it — there is no hand-kept algo list here to drift out of sync. See
+# manifest.py / solvers.toml.
+SPEC = {s["name"]: s for s in manifest.load()}
+NATIVE_ALGOS = manifest.by_kind(list(SPEC.values()), "native")
+STANDALONE_ALGOS = manifest.by_kind(list(SPEC.values()), "standalone")
+
+# The standalone wrapper (CSV variant in, url out). BENCH_STANDALONE_SH overrides.
 STANDALONE_SH = os.environ.get("BENCH_STANDALONE_SH", str(HERE / "run_standalone.sh"))
+
+
+def check_native_registry():
+    """Cross-check the manifest's native names against `run_algo --list` (the
+    engine registry). Errors on ANY mismatch so the manifest and the registry
+    can never silently diverge — the anti-drift guarantee. Skipped only if the
+    binary isn't built yet (caller already handles that case)."""
+    if not RUN_ALGO.exists():
+        return
+    out = subprocess.check_output([str(RUN_ALGO), "--list"], text=True)
+    registry = {ln.strip() for ln in out.splitlines() if ln.strip()}
+    manifest_native = set(NATIVE_ALGOS)
+    missing = manifest_native - registry           # in manifest, not runnable
+    unlisted = registry - manifest_native           # runnable, not in manifest
+    if missing or unlisted:
+        raise SystemExit(
+            "solvers.toml native entries disagree with `run_algo --list`:\n"
+            f"  in manifest but not in registry: {sorted(missing)}\n"
+            f"  in registry but not in manifest: {sorted(unlisted)}\n"
+            "Fix solvers.toml or the bench-grid registry so they match.")
 
 RESULT_RE = re.compile(r"score=(\d+)")
 SCORE_RE = re.compile(r"canonical_score=(\d+)")
@@ -93,15 +106,20 @@ def run_native(algo, variant_json, seed, budget_s, url_path):
 
 
 def run_standalone(algo, variant_csv, seed, budget_s, url_path):
-    # Delegates to a bash function from the private vault wrapper (opt-in via
+    # Delegates to a bash function in run_standalone.sh (opt-in via
     # BENCH_STANDALONE_SH): run_<algo> <csv> <seed> <budget_s> <out.url>.
     if not STANDALONE_SH:
         raise RuntimeError(
-            f"{algo} is a private-vault engine; set BENCH_STANDALONE_SH to a "
-            f"wrapper that defines run_{algo}, or omit it from --algos")
+            f"{algo} needs the standalone wrapper; set BENCH_STANDALONE_SH to a "
+            f"file that defines run_{algo}, or omit it from --algos")
     cmd = ["bash", "-c",
            f'source "{STANDALONE_SH}"; run_{algo} "{variant_csv}" {seed} {budget_s} "{url_path}"']
     env = dict(os.environ, RAYON_NUM_THREADS="1")
+    # Pass this solver's calibration knobs (solvers.toml [solver.calibration]) as
+    # BENCH_<ALGO>_<KNOB> env vars; run_standalone.sh reads them with the
+    # committed-run values as defaults, so an absent knob changes nothing.
+    for knob, val in SPEC.get(algo, {}).get("calibration", {}).items():
+        env[f"BENCH_{algo.upper()}_{knob.upper()}"] = str(val)
     t0 = time.time()
     p = subprocess.run(cmd, capture_output=True, text=True, env=env,
                        timeout=budget_s + 60)
@@ -111,12 +129,8 @@ def run_standalone(algo, variant_csv, seed, budget_s, url_path):
     nodes = int(NODES_RE.search(p.stdout).group(1)) if NODES_RE.search(p.stdout) else None
     nps = int(NPS_RE.search(p.stdout).group(1)) if NPS_RE.search(p.stdout) else None
     um = NPS_UNIT_RE.search(p.stdout)
-    default_unit = {
-        "producer": "beam-nodes/s",
-        "blackwood": "search-nodes/s",
-        "verhaard": "search-nodes/s",
-        "alns": "iters/s",
-    }.get(algo, "nodes/s")
+    # Native unit comes from the manifest when the wrapper didn't print one.
+    default_unit = SPEC.get(algo, {}).get("nps_unit", "nodes/s")
     nps_unit = um.group(1) if um else default_unit
     return score, wall, p.stdout.strip()[-500:], p.stderr.strip()[-500:], nodes, nps, nps_unit
 
@@ -141,6 +155,10 @@ def main():
         raise SystemExit(
             f"run_algo not built. From {EXPERIMENT/'engine'} run:\n"
             f"  cargo build --release --bin run_algo")
+
+    # Guarantee the manifest's native list matches the engine registry before we
+    # run anything (so neither can silently drop or add a solver).
+    check_native_registry()
 
     variants_dir = Path(args.variants)
     variant_ids = sorted(int(p.stem.split("_")[1])
@@ -187,12 +205,15 @@ def main():
         tag = f"{algo}__v{vid:02d}"
         url_path = run_dir / "urls" / f"{tag}.url"
         try:
-            if algo in STANDALONE_ALGOS:
-                vfile = variants_dir / f"variant_{vid:02d}.csv"
+            # kind + input format both come from the manifest, so how a solver is
+            # driven and which variant file it gets are never name-guessed here.
+            spec = SPEC.get(algo, {})
+            fmt = spec.get("input", "csv" if spec.get("kind") == "standalone" else "json")
+            vfile = variants_dir / f"variant_{vid:02d}.{fmt}"
+            if spec.get("kind") == "standalone":
                 score, wall, out, err, nodes, nps, unit = run_standalone(
                     algo, vfile, seed, args.budget_s, url_path)
             else:
-                vfile = variants_dir / f"variant_{vid:02d}.json"
                 score, wall, out, err, nodes, nps, unit = run_native(
                     algo, vfile, seed, args.budget_s, url_path)
             return dict(algo=algo, variant=vid, seed=seed,

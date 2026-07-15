@@ -26,6 +26,13 @@ import data from "@/data/single-core-benchmark.json";
 // with a legend, so colour is never the only signal. Reference ticks mark our
 // community 470 ceiling. Throughput units differ by family
 // and are never cross-compared; each row shows its own native unit.
+//
+// Algo names carry an `anjou-` ownership prefix for Raphaël's engines; the two
+// community engines (blackwood, verhaard) stay bare. The prefix is site-side
+// only — the backing engine, its registry (`run_algo --list`) and the committed
+// results.jsonl use the canonical unprefixed names, so the experiment stays
+// reproducible against those. The site JSON is generated from results.jsonl by
+// research/experiments/single-core-benchmark/scripts/make_site_json.py.
 
 type Algo = {
   algo: string;
@@ -37,6 +44,10 @@ type Algo = {
   nps: number | null;
   npsUnit: string;
   variants: (number | null)[];
+  // "contender" rows compete on score and appear on the headline leaderboard;
+  // rows without a role are the CSP-preset study (their own page). Set from the
+  // manifest (solvers.toml `role`), never string-matched by name here.
+  role?: string;
 };
 
 const D = data as {
@@ -44,6 +55,10 @@ const D = data as {
   maxScore: number;
   community: number;
   variantIds: number[];
+  // Which two rows the throughput-vs-score paradox tiles show, keyed by role.
+  // Set from the manifest (solvers.toml `paradox` tag) — never a hard-coded
+  // algo name here, so renaming/adding solvers can't break the tiles.
+  paradox: { throughput?: string; quality?: string; [role: string]: string | undefined };
   algos: Algo[];
 };
 
@@ -74,12 +89,17 @@ const T = {
       "Blackwood explores 149× more nodes per second and still finishes 20 points lower. At one core, the win comes from node quality, not node count.",
     boardTitle: "The leaderboard",
     boardIntro:
-      "Mean score over ten corner-pinned variants, single core, 60 s each. The dark segment marks each engine's worst-to-best range; colour marks the family.",
+      "Mean score over ten corner-pinned variants, single core, 60 s each. The methods that compete on score; the CSP-preset ablations live on their own page. Colour marks the family.",
+    presetsTitle: "CSP presets, one engine, many knobs",
+    presetsIntro:
+      "Mean score over ten corner-pinned variants, single core, 60 s each. These are not separate solvers: they are one CSP engine (arc-consistency + a variable/value ordering) run under different presets. The best reaches ~183, less than half a contender's score, so none earns a leaderboard row.",
     ceiling: "5-clue record 464",
     npsUnit: "median throughput (native unit, never cross-compared)",
     heatTitle: "Every algorithm across all ten corner variants",
     heatIntro:
       "One 60 s run per cell. The producer is flat at 453–456; the CSP engines are bimodal, collapsing to ~55 on hostile corners.",
+    heatIntroPresets:
+      "One 60 s run per cell. The presets are bimodal: several corners solve near the top, then the same knobs collapse to ~55 on hostile corners.",
     busy: "Drawing…",
     legendTitle: "family",
     of: "/ 480",
@@ -95,12 +115,17 @@ const T = {
       "Blackwood explore 149× plus de nœuds par seconde et finit pourtant 20 points plus bas. Sur un cœur, la victoire vient de la qualité des nœuds, pas de leur nombre.",
     boardTitle: "Le classement",
     boardIntro:
-      "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Le segment sombre marque l'écart pire-au-meilleur de chaque moteur ; la couleur marque la famille.",
+      "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Les méthodes qui rivalisent au score ; les préréglages CSP ont leur propre page. La couleur marque la famille.",
+    presetsTitle: "Préréglages CSP : un moteur, plusieurs réglages",
+    presetsIntro:
+      "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Ce ne sont pas des solveurs distincts : c'est un seul moteur CSP (consistance d'arc + un ordre variable/valeur) lancé sous différents préréglages. Le meilleur atteint ~183, moins de la moitié du score d'un prétendant ; aucun n'obtient donc de ligne au classement.",
     ceiling: "record 5 indices 464",
     npsUnit: "débit médian (unité native, jamais comparée entre familles)",
     heatTitle: "Chaque algorithme sur les dix variantes de coins",
     heatIntro:
       "Un run de 60 s par cellule. Le producteur est stable à 453–456 ; les moteurs CSP sont bimodaux, s'effondrant à ~55 sur les coins hostiles.",
+    heatIntroPresets:
+      "Un run de 60 s par cellule. Les préréglages sont bimodaux : plusieurs coins se résolvent près du sommet, puis les mêmes réglages s'effondrent à ~55 sur les coins hostiles.",
     busy: "Tracé…",
     legendTitle: "famille",
     of: "/ 480",
@@ -125,15 +150,37 @@ function heatColor(v: number | null): string {
   return `color-mix(in srgb, #10b981 ${12 + t * 78}%, transparent)`;
 }
 
-export function BenchmarkLeaderboard() {
+// Two views of the same committed run data:
+//   "contenders" (default) — the headline leaderboard: only rows the manifest
+//     tags role:contender (they compete on score). Shows the paradox + verdict.
+//   "presets" — the CSP-preset study page: every other row (the AC-3 / ordering
+//     ablations of one engine, plus the naive_spiral variant). No paradox tiles;
+//     the best preset (~183) is less than half a contender's score, so it isn't
+//     a leaderboard rival, it's a same-engine ablation sweep shown on its own.
+export function BenchmarkLeaderboard({
+  view = "contenders",
+}: {
+  view?: "contenders" | "presets";
+}) {
   const t = useT(T);
   const { lang } = useLang();
   const isClient = useIsClient();
-  const algos = D.algos;
+  const isContenders = view === "contenders";
+  const algos = D.algos.filter((a) =>
+    isContenders ? a.role === "contender" : a.role !== "contender",
+  );
   const height = Math.max(320, algos.length * 32 + 48);
 
-  const blackwood = algos.find((a) => a.algo === "blackwood");
-  const producer = algos.find((a) => a.algo === "producer");
+  // The paradox tiles compare a high-throughput / lower-score engine against a
+  // low-throughput / higher-score one. WHICH rows is a manifest fact carried in
+  // D.paradox (by role), so no algo name is hard-coded here. Only the headline
+  // (contenders) view shows them.
+  const blackwood = isContenders
+    ? D.algos.find((a) => a.algo === D.paradox.throughput)
+    : undefined;
+  const producer = isContenders
+    ? D.algos.find((a) => a.algo === D.paradox.quality)
+    : undefined;
 
   const familiesPresent = Array.from(new Set(algos.map((a) => a.family)));
 
@@ -170,10 +217,14 @@ export function BenchmarkLeaderboard() {
         </div>
       )}
 
-      {/* 2. the leaderboard */}
+      {/* 2. the leaderboard (contenders) or the preset sweep (presets view) */}
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">{t.boardTitle}</h2>
-        <p className="mb-1 mt-1 text-sm text-muted-foreground">{t.boardIntro}</p>
+        <h2 className="text-xl font-semibold tracking-tight">
+          {isContenders ? t.boardTitle : t.presetsTitle}
+        </h2>
+        <p className="mb-1 mt-1 text-sm text-muted-foreground">
+          {isContenders ? t.boardIntro : t.presetsIntro}
+        </p>
         {/* legend: family identity, always present (>2 series) */}
         <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
           {familiesPresent.map((f) => (
@@ -211,7 +262,7 @@ export function BenchmarkLeaderboard() {
                 <YAxis
                   type="category"
                   dataKey="algo"
-                  width={128}
+                  width={172}
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
@@ -267,7 +318,9 @@ export function BenchmarkLeaderboard() {
       {/* 3. the per-variant heatmap across all algos */}
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{t.heatTitle}</h2>
-        <p className="mb-2 mt-1 text-sm text-muted-foreground">{t.heatIntro}</p>
+        <p className="mb-2 mt-1 text-sm text-muted-foreground">
+          {isContenders ? t.heatIntro : t.heatIntroPresets}
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-center font-mono text-xs">
             <thead>

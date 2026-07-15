@@ -26,18 +26,35 @@
 # machine or binaries change.
 #
 # Single-core notes (see CALIBRATION.md for the full audit):
-#   - vol232_w1_producer_trie: no threading in the binary at all (verified by
-#     grep) -- inherently single-core.
-#   - blackwood_bt / verhaard_faithful_v2: spawn exactly ONE worker thread
-#     (std::thread::Builder with a 256MB stack, for stack-depth headroom on
-#     the 256-deep recursive DFS) and `.join()` it synchronously before doing
-#     anything else -- single-core in practice (one thread runs at a time).
-#   - alns_only: `run_alns` (single-chain entry point used here) has no
-#     rayon calls on the SA repair path (the default, `--repair-kind sa`).
-#     rayon only appears in `run_alns_portfolio` / `run_alns_pt` (unused
-#     here) and in the CP-repair path (`RepairKind::Cp`, avoided here; the
-#     default repair kind is `sa`). RAYON_NUM_THREADS=1 is exported anyway as
-#     a defensive belt-and-braces pin in case a future default changes.
+#
+# IMPORTANT: single-core is now a CHOICE THIS SCRIPT ENFORCES, not a property
+# of the binaries. It used to be the latter -- this comment block used to say
+# the producer had "no threading in the binary at all (verified by grep)" and
+# was "inherently single-core", which was true when written and is now FALSE.
+# All four strong engines can now use N cores (via --threads/--chains).
+# We pass the single-core flag EXPLICITLY below rather than relying on any
+# binary's default, so the grid stays single-core -- and stays comparable to
+# the published results/ -- even if a default ever changes.
+#
+#   - vol232_w1_producer_trie: `--threads N` (default 1). 1 = the historical
+#     serial search, bit-identical to the binary that produced the published
+#     results/ (verified: same scores AND same boards). N>1 parallelizes across
+#     seeds, or across the beam within one seed. We pass --threads 1.
+#   - blackwood_bt / verhaard_faithful_v2: `--threads N` (default 1) fans the
+#     RESTART PORTFOLIO across cores. At 1, restarts run one at a time, each on
+#     a single 256MB-stack worker thread that the main thread `.join()`s
+#     synchronously -- one thread runs at a time, as before. We pass
+#     --threads 1.
+#   - alns_only: `--chains N` (default 1). 1 = the single-chain `run_alns`
+#     entry point, which has no rayon calls on the SA repair path (the default,
+#     `--repair-kind sa`). rayon appears in `run_alns_portfolio` (what
+#     --chains N>1 now calls), `run_alns_pt`, and the CP-repair path
+#     (`RepairKind::Cp`, avoided here). We leave --chains at its default of 1.
+#
+# RAYON_NUM_THREADS=1 is exported below as belt-and-braces on top of all that:
+# it caps rayon's GLOBAL pool. Note the engines build their OWN pools sized by
+# --threads, which RAYON_NUM_THREADS does NOT constrain -- so the explicit
+# --threads 1 flags above are the real guarantee, not this env var.
 #
 # All temp working dirs are timestamped + include the PID so concurrent runs
 # (e.g. via run_grid.py's ThreadPoolExecutor) never collide or overwrite.
@@ -111,14 +128,20 @@ _rsa_verify_and_emit() {
 # ---------------------------------------------------------------------------
 run_producer() {
     local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
-    local beam=80000
+    # Calibration knobs default to the committed-run literals; run_grid.py may
+    # override them from solvers.toml ([solver.calibration]) via env vars, so the
+    # calibration lives with the solver in the manifest, not only here.
+    local beam="${BENCH_PRODUCER_BEAM:-80000}"
+    local order="${BENCH_PRODUCER_ORDER:-comb:14}"
+    local tol="${BENCH_PRODUCER_TOL:-0}"
     local scratch; scratch="$(_rsa_scratch "producer")"
     local emit="${scratch}/best.url"
 
     local t0 t1 wall
     t0=$(date +%s.%N)
     timeout "$(( budget_s + 15 ))" "$PRODUCER_BIN" "$variant_csv" \
-        --order comb:14 --beam "$beam" --tol 0 --seed "$seed" \
+        --order "$order" --beam "$beam" --tol "$tol" --seed "$seed" \
+        --threads 1 \
         --emit-best "$emit" \
         > "${scratch}/stdout.log" 2> "${scratch}/stderr.log"
     local rc=$?
@@ -172,7 +195,9 @@ run_blackwood() {
     # complete in 60s, so no progress line and no honest total-nodes figure
     # under a hard kill).
     timeout "$budget_s" "$BLACKWOOD_BIN" "$variant_csv" \
-        --nodecap 20000000 --restarts 1000 --seed "$seed" \
+        --nodecap "${BENCH_BLACKWOOD_NODECAP:-20000000}" \
+        --restarts "${BENCH_BLACKWOOD_RESTARTS:-1000}" --seed "$seed" \
+        --threads 1 \
         --emit-dir "$scratch" --emit-prefix bw \
         > "${scratch}/stdout.log" 2> "${scratch}/stderr.log"
     # timeout SIGTERMs the process at budget_s; rc 124 is the expected/normal
@@ -208,7 +233,9 @@ run_verhaard() {
 
     # Same nodecap=20M rationale as run_blackwood (see there).
     timeout "$budget_s" "$VERHAARD_BIN" "$variant_csv" \
-        --nodecap 20000000 --restarts 1000 --seed "$seed" \
+        --nodecap "${BENCH_VERHAARD_NODECAP:-20000000}" \
+        --restarts "${BENCH_VERHAARD_RESTARTS:-1000}" --seed "$seed" \
+        --threads 1 \
         --emit-dir "$scratch" --emit-prefix vh \
         > "${scratch}/stdout.log" 2> "${scratch}/stderr.log"
 
@@ -272,6 +299,7 @@ run_alns() {
     ta0=$(date +%s.%N)
     timeout 30 "$PRODUCER_BIN" "$variant_csv" \
         --order comb:14 --beam "$beam" --tol 0 --seed "$seed" \
+        --threads 1 \
         --emit-best "$prod_emit" \
         > "${scratch}/producer_stdout.log" 2> "${scratch}/producer_stderr.log"
     ta1=$(date +%s.%N)
@@ -321,6 +349,7 @@ run_alns() {
         --alns-budget-ms "$alns_budget_ms" \
         --seed "$seed" \
         --ops basic_lkh \
+        --chains 1 \
         > "${scratch}/alns_stdout.log" 2> "$alns_stderr" )
     local rc=$?
     if [[ $rc -ne 0 ]]; then

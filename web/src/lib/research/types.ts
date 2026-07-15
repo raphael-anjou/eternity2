@@ -14,6 +14,34 @@ export type ResearchKind =
 
 export type ReproKind = "exact" | "seeded" | "stochastic" | "heavy" | "prose";
 
+/** The *contribution* axis: what kind of research result a page is, independent
+ *  of `kind` (which drives layout). Only `solver` results earn a row on the
+ *  score chart / leaderboard. See lab/methodology for the full taxonomy.
+ *  solver — produces a competitive board by searching (a real search score);
+ *  analysis — proves/computes a property of an existing board or the instance;
+ *  reconstruction — decodes/rebuilds community work to extract an insight;
+ *  theory — a mathematical property, law, or impossibility proof;
+ *  method — a technique described for reuse, not a scored run;
+ *  measurement — a benchmark or empirical observation about solvers/instances;
+ *  negative — a rigorously-run dead end (first-class, not a footnote);
+ *  tool — a software artifact; exposition — an explainer for an audience. */
+export type ContributionKind =
+  | "solver"
+  | "analysis"
+  | "reconstruction"
+  | "theory"
+  | "method"
+  | "measurement"
+  | "negative"
+  | "tool"
+  | "exposition";
+
+/** How far through the publish pipeline a page is (work is published by PR; the
+ *  PR review sets the tier). `draft` = unpublished (not normally in the repo);
+ *  `report` = a public technical report, not yet reviewed (badged); `live` = a
+ *  reviewed finding, cited and ~immutable. */
+export type StatusTier = "draft" | "report" | "live";
+
 /** How firmly a page's central claim is established — a scannable credibility
  *  signal (rendered as a badge). "proven" = a formal or exhaustive proof/
  *  certificate; "measured" = an empirical result on this project's engine;
@@ -145,7 +173,10 @@ export interface ResearchDoc {
    *  `description`. See metaDescriptionFor(). */
   metaDescription?: string;
   kind: ResearchKind;
-  status: "live" | "draft";
+  status: StatusTier;
+  /** What kind of research contribution this is (drives score-chart membership:
+   *  only `solver` appears). Undefined on structural/hub pages. */
+  contribution?: ContributionKind;
   /** Registry slug of the page's author (drives the byline + researcher hub).
    *  Undefined for structural/community pages with no single researcher. */
   author?: string;
@@ -175,6 +206,9 @@ export interface ResearchDoc {
   order?: number;
   /** Named sub-section within a sidebar section (the approaches-map spine). */
   group?: string;
+  /** Optional provenance note: what this page was distilled from. Never a link
+   *  to private material. */
+  provenance?: string;
   toc: TocItem[];
   /** False in the fr manifest when no .fr.mdx exists (page falls back to EN). */
   translated: boolean;
