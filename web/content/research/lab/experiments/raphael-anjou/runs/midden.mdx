@@ -4,6 +4,7 @@ description: >-
   Decide in advance not when a board may break, but where: confine every
   mismatch to a chosen shape of cells, and search for the best shape.
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 452
 rigor: measured
@@ -15,15 +16,14 @@ complexity:
     mismatch, turning a fixed rule into a design axis to sweep.
 repro:
   kind: seeded
-  cmd: cargo run --release --bin cloister2 -- --break-cells <mask> --frame <frame.json>
 order: 70
 updated: 2026-07-10
 date: 2026-07
 topics: [local-search]
 related:
-  - /research/lab/experiments/raphael-anjou/ladder
+  - /research/lab/experiments/raphael-anjou/runs/ladder
   - /research/why/rigidity-wall
-  - /research/lab/experiments/raphael-anjou/cloister
+  - /research/lab/experiments/raphael-anjou/runs/cloister
   - /research/why/piece-theft
 sources:
   - label: "Piece theft (this project): the spatial view of where boards fail that MIDDEN gates against"
@@ -93,8 +93,9 @@ the MIDDEN-v2 sweep set out to test.
 
 Seeded off a fixed frame; the wall-extension effect reproduces across masks,
 though the exact board depends on seeds, and the committed 452 board is
-checkable in the viewer. The mask sweep harness lives in the vault under
-`vol-215` (`midden2.sh`).
+checkable in the viewer. Like [CLOISTER](/research/lab/experiments/raphael-anjou/runs/cloister)
+it needs a pre-solved border frame (plus the break-cell mask, which is a literal
+input); a runnable backing directory that ships the frame is planned.
 
 ## Open questions
 

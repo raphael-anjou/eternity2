@@ -4,6 +4,7 @@ description: >-
   Fix a perfect border, then search the interior with the border's edges
   treated as hard constraints from the very first cell.
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 453
 rigor: measured
@@ -15,15 +16,14 @@ complexity:
     only one, which is what makes the exact endgame tractable.
 repro:
   kind: seeded
-  cmd: cargo run --release --bin cloister2 -- --frame <frame.json> --exact-tail 14
 order: 60
 updated: 2026-07-10
 date: 2026-07
 topics: [local-search, backtracking]
 related:
-  - /research/lab/experiments/raphael-anjou/staged
+  - /research/lab/experiments/raphael-anjou/runs/staged
   - /research/why/rare-color-geography
-  - /research/lab/experiments/raphael-anjou/midden
+  - /research/lab/experiments/raphael-anjou/runs/midden
   - /research/build/exact/meet-in-the-middle
 sources:
   - label: "Rare-colour border geography (this project): why the frame is the natural cut"
@@ -100,9 +100,10 @@ low-450s with all five clues forced.
 ## Reproduce
 
 Seeded and close to deterministic given a frame: the DFS interior solve off a
-fixed frame reproduces its score reliably, and the boards are checkable in the
-viewer. The campaign scripts (probe + tail recipe) live in the vault under
-`v211_cloister` / `v212_cloister2`, with frames under `vol-212`.
+fixed frame reproduces its score reliably, and the committed board is checkable
+edge by edge in the viewer. The solve needs one input beyond the puzzle, a
+pre-solved perfect border frame; a runnable backing directory that ships that
+frame alongside the engine is planned.
 
 ## Open questions
 

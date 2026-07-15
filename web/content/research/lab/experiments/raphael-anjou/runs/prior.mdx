@@ -5,6 +5,7 @@ description: >-
   strong boards we already have. It reaches a high score with no starting
   board to copy.
 kind: experiment
+contribution: solver
 author: raphael-anjou
 score: 460
 rigor: measured
@@ -15,7 +16,7 @@ complexity:
     The prior is a single pass over the corpus; the construction cost is the
     beam search it biases, plus an optional local-refinement tail.
 repro:
-  kind: seeded
+  kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
 order: 30
@@ -23,8 +24,9 @@ updated: 2026-07-10
 date: 2026-07
 topics: [construction, learning]
 related:
-  - /research/lab/experiments/raphael-anjou/keyring
-  - /research/lab/experiments/raphael-anjou/gauntlet
+  - /research/lab/experiments/raphael-anjou/engines/producer
+  - /research/lab/experiments/raphael-anjou/runs/keyring
+  - /research/lab/experiments/raphael-anjou/runs/gauntlet
   - /research/why/piece-theft
   - /research/build/construct/beam-search
 sources:
@@ -110,11 +112,15 @@ test, it is a genuinely distinct basin, not a re-discovery.
 
 ## Reproduce
 
-`just research-record-boards` verifies the committed 460 board's score exactly.
-The build is seeded but its final lift uses a stochastic refinement tail, so
-treat the board as the artifact of record. The prior-matrix builders (base,
-rotation-aware, per-basin) and the novelty check live in the vault under
-`v155_prior`.
+`just research-record-boards` verifies the committed 460 board's score exactly,
+edge by edge, from its stored Bucas string, so the result is checkable even
+though the search that found it is not deterministic (its final lift uses a
+stochastic refinement tail). The board is the artifact of record. The search
+that produced it is the shared [beam
+producer](/research/lab/experiments/raphael-anjou/engines/producer), with the
+one change this page describes: the learned positional prior that breaks its
+ties. That prior is a matrix mined from a large corpus of strong boards, which
+is why the run is not reproduced here from scratch.
 
 ## Open questions
 
