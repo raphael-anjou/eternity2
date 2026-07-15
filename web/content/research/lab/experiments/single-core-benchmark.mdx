@@ -1,10 +1,10 @@
 ---
 title: Single-core benchmark
 description: >-
-  Fifteen solvers, ours and the community's, each run once on ten corner-pinned
+  Seventeen solvers, ours and the community's, each run once on ten corner-pinned
   variants of the official puzzle, single core, 60 seconds per run. The finding:
   throughput does not equal score.
-metaDescription: "Fifteen Eternity II solvers, each run once on ten corner-pinned variants, single core, 60 seconds. The finding: throughput does not equal score."
+metaDescription: "Seventeen Eternity II solvers, each run once on ten corner-pinned variants, single core, 60 seconds. The finding: throughput does not equal score."
 kind: experiment
 author: raphael-anjou
 rigor: measured
@@ -16,7 +16,7 @@ hardware:
   accelerator: none # none | gpu | quantum | fpga | tpu
   machine: "MacBook (Apple M1, 8 cores), one core pinned"
   wallClock: "60 s" # budget per run
-  runs: 150 # 15 algorithms × 10 corner variants
+  runs: 170 # 17 algorithms × 10 corner variants
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
   measured: true # true only for the standardized single-core bench
 repro:
@@ -37,11 +37,12 @@ sources:
 import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
 
 Give every solver the same budget, one core and one minute, and which one wins?
-The answer overturns the obvious intuition. Fifteen solvers, ours and the
+The answer overturns the obvious intuition. Seventeen solvers, ours and the
 community's (Blackwood, Verhaard), each ran once on ten corner-pinned variants of
 the official puzzle, single-threaded, 60 seconds a run. Every board was re-scored
 by one canonical scorer; no engine's self-reported score is trusted. The maximum
-possible score is 480.
+possible score is 480. On the leaderboard, our own engines carry an `anjou-`
+prefix; the two community backtrackers stay bare.
 
 ## Throughput does not equal score
 
@@ -91,16 +92,21 @@ naive DFS on good variants.
   minutes of ALNS.
 - **Verhaard and Blackwood (backtrackers, ranks 3 to 4).** Depth-gated-break DFS
   at 20 to 40 million nodes per second. They punch to 437 to 451 but hit a wall:
-  the endgame needs far more compute than 60 seconds allows. Blackwood's record
-  took roughly 180 core-years.
-- **CSP with AC-3 (ranks 6 to 15).** Arc-consistency propagation makes each node
-  expensive but well-pruned. Strong on friendly variants, fragile on hostile
-  ones. Three of them (`gacolor_ac3`, `gacolor_ac3_ns1`, `verhaard_preferred`)
-  produced byte-identical boards on this puzzle: NS-1 and preferred ordering add
-  nothing here at this depth.
-- **Naive DFS (rank 5).** Fills the whole board allowing every break. It reaches
-  a high matched-edge count (365) but a low-quality board full of breaks. Fast,
-  and junk.
+  the endgame needs far more compute than 60 seconds allows. Blackwood found his
+  470 after about a month on a single PC, and called it "a stroke of luck"
+  ([message 10194](https://groups.io/g/eternity2/message/10194)).
+- **CSP with AC-3 (the rest of the table).** Arc-consistency propagation makes
+  each node expensive but well-pruned. Strong on friendly variants, fragile on
+  hostile ones. Three of them (`anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1`,
+  `anjou-verhaard_preferred`) produced byte-identical boards on this puzzle: NS-1
+  and preferred ordering add nothing here at this depth. Least-constraining-value
+  ordering, though, does help: `anjou-gacolor_ac3_lcv` reaches a mean of 114
+  against those three's 76.
+- **Naive DFS (ranks 5 and 13).** Fills the whole board allowing every break. In
+  row-major order (`anjou-naive_rowmajor`) it reaches a high matched-edge count
+  (365) but a low-quality board full of breaks. Fast, and junk. The same DFS in
+  spiral visit order (`anjou-naive_spiral`) collapses to a mean of 78: the
+  visit-order choice alone costs the naive search nearly 290 points.
 
 ## Where these numbers sit
 
@@ -118,8 +124,8 @@ leaderboard's dashed line marks.
 |:--|--:|:--|
 | Community 5-clue record | 464 | Pejic and benj39100, 2026 (same 5 clues these variants pin) |
 | This grid's best (producer) | 456 | one core, 60 s |
-| Community all-hints ceiling | 470 | Blackwood, farm-scale, uses more than 5 clues |
-| Blackwood from scratch on an 8-core box | 438 | shows 464 is a compute wall, not a cleverness gap |
+| Community all-hints ceiling | 470 | Blackwood, ~1 month on a single PC, uses more than 5 clues |
+| Blackwood in this grid | 440 | one core, 60 s (mean 436.4 over 10 variants) |
 
 ## Method and reproducibility
 
@@ -131,17 +137,18 @@ from one generator, so every algorithm sees identical instances. One run per
 puzzle, fixed seed; the corner arrangement is the only diversity axis. Every run
 emits a bucas `.url`, and the score is the canonical matched-edge count from the
 same scorer, never the engine's self-report. There were zero failures across all
-150 runs.
+170 runs.
 
-Every one of the fifteen solvers is open source and runs from this repository.
+Every one of the seventeen solvers is open source and runs from this repository.
 The crate workspace, the ten variants, the committed per-run results and the grid
 scripts all live under the experiment's
 [backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
 and `just experiments single-core-benchmark` builds the engines and reruns the
-whole grid. The native family (ranks 5 to 15) is one binary selected by preset;
-the four strong engines (producer, ALNS, Verhaard, Blackwood, ranks 1 to 4) are a
-binary each, driven by a small wrapper. Both speak the same puzzle-in,
-bucas-url-out contract, and every board is re-scored by the one canonical scorer.
+whole grid. The native family (the thirteen naive and CSP presets, ranks 5 to 17)
+is one binary selected by preset; the four strong engines (producer, ALNS,
+Verhaard, Blackwood, ranks 1 to 4) are a binary each, driven by a small wrapper.
+Both speak the same puzzle-in, bucas-url-out contract, and every board is
+re-scored by the one canonical scorer.
 
 ## Companion findings
 
