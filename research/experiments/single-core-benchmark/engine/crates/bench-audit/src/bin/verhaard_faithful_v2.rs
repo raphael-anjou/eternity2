@@ -1,4 +1,4 @@
-// vol-234 R8 — FAITHFUL VERHAARD "eii" SOLVER v2 (real good-groups + adaptive abort).
+// R8 — FAITHFUL VERHAARD "eii" SOLVER v2 (real good-groups + adaptive abort).
 //
 // Louis Verhaard's win32 "eii" solver reached 467/480 (the pre-Blackwood
 // community ceiling). Its algorithm SHAPE is published on shortestpath.se
@@ -19,7 +19,7 @@
 //     depth-vs-nodes trajectory (checkpoints derived from the depth knots the
 //     binary tracks; see VERHAARD_ABORT_KNOTS).
 //
-// See vault/papers/vol-234/R7-VERHAARD-RE.md + R8-VERHAARD-GOODGROUPS.md for the
+// See the project write-ups + R8-VERHAARD-GOODGROUPS.md for the
 // RE evidence: recovered .data/.rdata arrays with addresses + disassembly xrefs.
 //
 // Distinguishing components vs Blackwood (blackwood_bt.rs, same family):
@@ -41,7 +41,7 @@
 // A break = a mismatched interior edge between two placed pieces, OR a placed
 // piece whose border-facing edge is not the border color. Internal adjacencies
 // counted once (right + down from each cell). Matches blackwood_bt.rs & the
-// vol-232 verifier.
+// verifier.
 
 #![forbid(unsafe_code)]
 
@@ -108,7 +108,7 @@ impl Rng {
 }
 
 // ---------------------------------------------------------------------------
-// RECOVERED CONSTANTS (see vault/papers/vol-234/R7-VERHAARD-RE.md).
+// RECOVERED CONSTANTS (see the project write-ups).
 // ---------------------------------------------------------------------------
 
 // [RECOVERED, high confidence] Depth-gated piece quota, binary .data @ 0x42f000,

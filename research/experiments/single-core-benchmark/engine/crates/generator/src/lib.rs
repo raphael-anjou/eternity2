@@ -91,7 +91,7 @@ pub struct Placement {
 /// Like `generate`, but also returns the canonical solution that was
 /// implicitly constructed by the Selby-Riordan procedure (place pieces
 /// at their original positions first, then randomly rotate + shuffle).
-/// Used by vol-26 to dump training data: each puzzle has a known
+/// Used by to dump training data: each puzzle has a known
 /// optimal placement sequence.
 pub fn generate_with_solution(
     cfg: GeneratorConfig,

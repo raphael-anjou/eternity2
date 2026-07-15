@@ -1,4 +1,4 @@
-// Vol-18 — OracleCycleSwap: cross the 447 → 456 first-order barrier in
+// OracleCycleSwap: cross the 447 → 456 first-order barrier in
 // one move by applying coordinated σ-cycle swaps from a known higher-
 // score oracle board.
 //
@@ -64,7 +64,7 @@ pub fn compute_sigma_cycles(current: &Board, oracle: &Board, cell_count: usize) 
         // Walk only while q is in sigma's domain (placed in current
         // AND its piece has an oracle target). Otherwise we'd push a
         // non-placed position into the cycle and crash at piece lookup.
-        // Vol-108 T1 fix: was pushing q before sigma-membership check.
+ // T1 fix: was pushing q before sigma-membership check.
         while !seen.contains(&q) && sigma.contains_key(&q) {
             seen.insert(q);
             positions.push(q);

@@ -503,7 +503,7 @@ pub fn island_check(ctx: &PropagatorContext<'_>) -> PropagatorResult {
 }
 
 // =============================================================================
-// multiset_equality (NS-1) — Al Hopfer 2022 + vol-11 quantitative measurement.
+// multiset_equality (NS-1) — Al Hopfer 2022 + quantitative measurement.
 //
 // Statement: in any full solution, the multiset A of inward-facing colors
 // across the 56 edge-class border cells equals the multiset B of border-
@@ -511,7 +511,7 @@ pub fn island_check(ctx: &PropagatorContext<'_>) -> PropagatorResult {
 // to-border interface edge contributes the same color to both multisets,
 // so equality is a *necessary condition*.
 //
-// Vol-11 verified A=B exactly on all 4 known 480 boards; canonical-E2
+// verified A=B exactly on all 4 known 480 boards; canonical-E2
 // near-solutions (score 448–470) had deficit Δ ∈ {0, 1, 2, 4}. The
 // invariant is loose (most unmatched edges on a 469 are interior-interior,
 // not border-interior), but it cleanly eliminates a class of unsolvable

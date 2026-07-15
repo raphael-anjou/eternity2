@@ -6,7 +6,7 @@
 // pair exposed in ListSolvers + server::service::instantiate. See
 // proto/solver/v2/solver.proto for the registry comment.
 //
-// Moved here in vol-33 T3 (split solver-engine/src/lib.rs into modules).
+// Moved here in T3 (split solver-engine/src/lib.rs into modules).
 
 use crate::{
     EngineConfig, Parallelism, PathSkeleton, PropagatorConfig, ScanOrder,
@@ -33,7 +33,7 @@ impl EngineConfig {
         },
     };
 
-    /// Vol-15 — Blackwood 2020 base profile (engine knobs only; the
+ /// Blackwood 2020 base profile (engine knobs only; the
     /// `BlackwoodSchedule` itself rides on `SolveOpts.blackwood_schedule`).
     /// Sets scan_order=RowMajorBottomUp + value_order=BlackwoodHeuristic.
     /// Pair with gacolor + AC-3 + (optionally) NS-1 propagation.
@@ -54,7 +54,7 @@ impl EngineConfig {
         ..Self::BLACKWOOD_BASE
     };
 
-    /// Vol-15 — "dumb Blackwood" profile suggested by external
+ /// "dumb Blackwood" profile suggested by external
     /// reviewer: bottom-up scan + heuristic value-order + schedule +
     /// break allowance + piece-uniqueness + simple edge forward-
     /// checking ONLY. Drops gacolor, AC-3, NS-1 because those exact-
@@ -67,7 +67,7 @@ impl EngineConfig {
     pub const BLACKWOOD_RAW: Self = Self {
         value_order: ValueOrder::BlackwoodHeuristic,
         scan_order: Some(ScanOrder::RowMajorBottomUp),
-        // Vol-16: class_balance also dropped. Profile showed 7.6%
+ //: class_balance also dropped. Profile showed 7.6%
         // self time in RAW. It IS break-sound (piece classes don't
         // change under a color mismatch), but the pruning value at
         // the depths Blackwood reaches (~80) is marginal. Better to
@@ -250,7 +250,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    // Vol-12: gacolor + AC-3 + NS-1 multiset equality (Hopfer 2022).
+ //: gacolor + AC-3 + NS-1 multiset equality (Hopfer 2022).
     pub const GACOLOR_AC3_NS1: Self = Self {
         propagators: PropagatorConfig {
             gacolor: true,
@@ -272,7 +272,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    // Vol-12: Joe-Saunders 2026 — gacolor + AC-3, but extras only fire
+ //: Joe-Saunders 2026 — gacolor + AC-3, but extras only fire
     // at depth ≥ 150. Tries to bridge our ~2k nodes/sec to McGavin's
     // ~300M/sec by skipping per-node Step-8 work during early search.
     pub const JOE_DEPTH150: Self = Self {
@@ -298,7 +298,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    /// Vol-14 #1 — Joe-depth150 baseline + edge-color BP marginals as
+ /// #1 — Joe-depth150 baseline + edge-color BP marginals as
     /// value-order. Caller must populate `SolveOpts.edge_bp_marginals`;
     /// see `eternity2_solver_engine::load_edge_bp_marginals`.
     pub const JOE_DEPTH150_BP: Self = Self {
@@ -326,7 +326,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    /// Vol-14 — joe_depth150_bp_par + auto-built hint-rectangle skeleton
+ /// joe_depth150_bp_par + auto-built hint-rectangle skeleton
     /// path (places the 4 outer hints + center via PathPolicy first).
     /// Requires `opts.hints` to have ≥4 hint positions. Empirically the
     /// strongest non-warm-started canonical-E2 single-process profile.
@@ -358,7 +358,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    /// Vol-14 user-proposed: joe_depth150_bp + LAYERED rectangle skeleton.
+ /// user-proposed: joe_depth150_bp + LAYERED rectangle skeleton.
     /// Path: rectangle perimeter → interior (centre-out) → annulus
     /// (row-by-row) → outer border. Engine is locked into this order
     /// for the entire search via PathPolicy::PrefixConstraint{k=256}.
@@ -376,7 +376,7 @@ impl EngineConfig {
         ..Self::BORDER_FIRST_LCV
     };
 
-    /// Vol-23 user-proposed: joe_depth150_bp_par + X-skeleton path
+ /// user-proposed: joe_depth150_bp_par + X-skeleton path
     /// (two 3-cell-wide diagonals through the 5 canonical hints,
     /// then Chebyshev-outward fill from centre). Requires
     /// `opts.hints.len() >= 5`.

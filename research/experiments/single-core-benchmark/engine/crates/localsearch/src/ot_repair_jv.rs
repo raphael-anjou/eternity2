@@ -1,4 +1,4 @@
-// Vol-125 T37 — Jonker-Volgenant (JV) repair backend.
+// T37 — Jonker-Volgenant (JV) repair backend.
 //
 // Drop-in alternative to ot_repair's Kuhn-Munkres call. Same outer loop and
 // best-of-rotation logic. JV (via lsap crate) is typically 2-10× faster on

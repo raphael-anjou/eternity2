@@ -100,7 +100,7 @@ pub struct PtConfig {
     /// < 2 are degenerate. Defaults to 4.
     pub houdayer_min_component: usize,
     /// If true, accept Houdayer swaps with a_delta == 0 (cold replica
-    /// unchanged). Vol-3 unconditional acceptance caused toggling; vol-7
+ /// unchanged). unconditional acceptance caused toggling;
     /// fix: default to requiring a_delta > 0 (cold replica strictly
     /// improves). The joint_delta=0 conservation law means b_delta is the
     /// negative of a_delta, which is fine — the hot replica absorbing a
@@ -437,7 +437,7 @@ pub fn run_pt_from(
                 let proposals = enumerate_proposals(puzzle, &boards[i], &boards[i + 1]);
                 // Filter and rank by COLD-REPLICA improvement a_delta (= score
                 // change for boards[i] when it adopts boards[i+1]'s cells on
-                // the component). Vol-7 correction: joint_delta is a
+ // the component). correction: joint_delta is a
                 // conservation law (a_delta + b_delta = 0 for an alldiff-
                 // multiset-equal swap), so requiring joint_delta > 0 rejects
                 // every Houdayer swap. The right criterion is a_delta > 0:

@@ -5,10 +5,10 @@ use eternity2_core::{Board, Puzzle, BORDER};
 /// that both have a piece placed. The canonical E2 maximum is 480
 /// (240 horizontal + 240 vertical inner edges).
 ///
-/// **Vol-118 fix**: BORDER-BORDER matches between adjacent placed cells
+/// ** fix**: BORDER-BORDER matches between adjacent placed cells
 /// do NOT count as `matched`. In a LEGAL board, BORDER edges face only
 /// outside the puzzle; two adjacent placed cells with BORDER edges
-/// touching would be illegal (the vol-118 bf-bucket-bug class).
+/// touching would be illegal (the bf-bucket-bug class).
 /// Excluding BORDER-BORDER from `matched` keeps the scorer honest for
 /// illegal boards, matching the conservative behavior of
 /// `eternity2_localsearch::alns::score_board`.

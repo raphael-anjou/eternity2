@@ -80,7 +80,7 @@ pub fn derive_stream_seed(seed: u64, index: usize) -> u64 {
 
 // ----- Scoring helpers --------------------------------------------------
 
-/// Vol-16 — was `iter().find` (O(n)). Now delegates to the O(1) lookup
+/// was `iter.find` (O(n)). Now delegates to the O(1) lookup
 /// on Puzzle. Inlined so score_board's hot loop sees a single load.
 #[inline]
 fn lookup_piece<'a>(puzzle: &'a Puzzle, id: PieceId) -> Option<&'a eternity2_core::Piece> {
@@ -181,18 +181,18 @@ pub enum RepairKind {
     /// Iterative Optimal Transport (Hungarian / Kuhn-Munkres) on the free cells.
     /// Treats the repair as a linear assignment problem and iterates until fixed point.
     IterativeOt,
-    /// Vol-125 T37: Jonker-Volgenant LAP backend (drop-in for IterativeOt).
+ /// T37: Jonker-Volgenant LAP backend (drop-in for IterativeOt).
     /// Same outer loop, best-of-rotation memo identical to IterativeOt — only
     /// the inner LAP call uses lsap (JV) instead of kuhn_munkres. Typically
     /// 2-10× faster on dense k×k cost matrices.
     IterativeJv,
-    /// Vol-125 T37: JV LAP with JOINT piece × rotation assignment.
+ /// T37: JV LAP with JOINT piece × rotation assignment.
     /// 4k × 4k block formulation: each piece occupies 4 rows (one per
     /// rotation). The LAP picks ONE rotation per piece AND assigns it to a
     /// real position. Globally optimal over both axes (no best-of-4 memo
     /// sub-optimality).
     IterativeJvJoint,
-    /// Vol-130 FILAMENT: Lin-Kernighan-style variable-depth swap chain.
+ /// FILAMENT: Lin-Kernighan-style variable-depth swap chain.
     /// Seeds from each cell in `free_set`, builds a swap chain extending
     /// outside the free-set if needed. Chain extends while cumulative gain
     /// >= -max_loss; stops at the depth with max gain. Returns the best
@@ -211,7 +211,7 @@ pub fn cp_repair(
     cp_repair_with_opts(puzzle, board, free_set, budget_ms, true)
 }
 
-/// Vol-17 — CP repair with parallel/single-thread toggle. `parallel = true`
+/// CP repair with parallel/single-thread toggle. `parallel = true`
 /// matches the legacy throughput-oriented behaviour (`gacolor_ac3_par`);
 /// `parallel = false` uses single-thread `gacolor_ac3` for run-to-run
 /// reproducibility. Use single-thread when running deterministic A/B tests.
@@ -270,7 +270,7 @@ pub fn sa_repair(
     sa_repair_with_steps(puzzle, board, free_set, budget_ms, 0, seed)
 }
 
-/// Vol-17 — SA repair with optional fixed-step budget. When `step_budget > 0`,
+/// SA repair with optional fixed-step budget. When `step_budget > 0`,
 /// run exactly that many SA moves (deterministic); when 0, fall back to the
 /// wall-clock `budget_ms` (legacy). Use the step variant for scientific A/B,
 /// the time variant for record runs that want to fill all available wall time.
@@ -322,7 +322,7 @@ pub fn repair(
     }
 }
 
-/// Vol-130 FILAMENT repair: SA-repair to fill, then FILAMENT chains to polish.
+/// FILAMENT repair: SA-repair to fill, then FILAMENT chains to polish.
 ///
 /// FILAMENT alone only swaps pieces; it can't fill empty cells. So if the
 /// free_set has empty cells (typical after destroy), we MUST first run
@@ -369,7 +369,7 @@ fn filament_repair(
     best
 }
 
-/// Vol-17 — repair dispatch with per-kind determinism knobs. `sa_step_budget`
+/// repair dispatch with per-kind determinism knobs. `sa_step_budget`
 /// fixes SA work; `cp_parallel = false` switches CP to single-thread.
 pub fn repair_with_opts(
     puzzle: &Puzzle,
@@ -520,7 +520,7 @@ impl DestroyOp for WorstWindow {
 ///   4. Sample seed cell with P ∝ w(c).
 ///   5. BFS-grow region by max-weight neighbor until `max_size` cells.
 ///
-/// Empirical finding (vol-169 probe 2026-05-20):
+/// Empirical finding (probe 2026-05-20):
 /// - McGavin 469: 0 unsupported cells (s=0) — fully in corpus.
 /// - V155-direct 460: 5 unsupported — basically a corpus replay.
 /// - V155→ALNS 460 (seed1, seed13): 186-191 unsupported — already
@@ -763,9 +763,9 @@ impl DestroyOp for MwpmDefectPair {
     }
 }
 
-/// Vol-17 — destroy a full horizontal band of `k_rows` adjacent rows
+/// destroy a full horizontal band of `k_rows` adjacent rows
 /// chosen to maximize the count of mismatched edges falling inside.
-/// Motivated by the vol-17 calibrated_v17a 447 board where ALL 33
+/// Motivated by the calibrated_v17a 447 board where ALL 33
 /// mismatches concentrated in rows 0-3 forming one 51-cell connected
 /// component — bigger than any of the k≤30 destroy ops can swallow.
 /// Pair with `RepairKind::Cp` to let the engine search-fill the band
@@ -813,7 +813,7 @@ impl DestroyOp for WorstBand {
     }
 }
 
-/// Vol-17 NOVEL — destroy a single ROW (1 × W = 16 cells) whose
+/// NOVEL — destroy a single ROW (1 × W = 16 cells) whose
 /// mismatch density is the worst. Smaller than WorstBand{4} but still
 /// touches the entire row, allowing piece-uniqueness across a thin
 /// strip to be re-optimised.
@@ -851,7 +851,7 @@ impl DestroyOp for WorstRow {
     }
 }
 
-/// Vol-17 NOVEL — destroy the ENTIRE connected component of mismatched
+/// NOVEL — destroy the ENTIRE connected component of mismatched
 /// cells, no matter how big. Adjacent (4-neighbour) cells that both
 /// touch at least one mismatch are part of the same component.
 ///
@@ -860,7 +860,7 @@ impl DestroyOp for WorstRow {
 /// component or stop short of bridges. ComponentDestroy explicitly
 /// computes the connected-component closure and frees ALL of it.
 ///
-/// For boards with one big component (vol-17 calibrated_v17a 447:
+/// For boards with one big component (calibrated_v17a 447:
 /// 51 cells in one component) this exactly matches the cluster size,
 /// which neither ConflictDriven{30} nor ConflictDriven{80} can do —
 /// 30 misses cells and 80 over-includes harmless cells.
@@ -931,7 +931,7 @@ impl DestroyOp for ComponentDestroy {
     }
 }
 
-/// Vol-17 NOVEL — destroy a connected component of mismatched cells
+/// NOVEL — destroy a connected component of mismatched cells
 /// AND a 1-cell border around it, so the CP-repair has neighbouring
 /// free cells to rotate into matching positions. Useful when the
 /// component is fully surrounded by matched cells whose edge-pieces
@@ -962,9 +962,9 @@ impl DestroyOp for ComponentPlusHaloDestroy {
     }
 }
 
-/// Vol-62 NOVEL — destroy the spatial CLUSTER of all defect cells
+/// NOVEL — destroy the spatial CLUSTER of all defect cells
 /// within an L∞ window of given radius, plus a halo. Motivated by the
-/// vol-62 measurement that at score ≥ 458, defect graphs decompose
+/// measurement that at score ≥ 458, defect graphs decompose
 /// into many SMALL components (size ≤ 5, mostly pair-defects) that
 /// are spatially co-located in a tight region (e.g. rows 11-15 on
 /// our 459 boards).
@@ -1052,13 +1052,13 @@ impl DestroyOp for ComponentClusterDestroy {
     }
 }
 
-/// Vol-17 NOVEL — destroy a RANDOM band of k_rows rows from the
+/// NOVEL — destroy a RANDOM band of k_rows rows from the
 /// bottom half of the board (rows 8-15 by default on 16×16). Unlike
 /// WorstBand which targets mismatch density (always rows 0-4 on
 /// canonical-E2 calibrated_v17a boards), this op DELIBERATELY
 /// disturbs the "perfect" zone to inject diversity.
 ///
-/// Why: vol-17 empirical finding (E6/E7) — pinning the bottom 12 rows
+/// Why: empirical finding (E6/E7) — pinning the bottom 12 rows
 /// makes the top cluster provably-unfillable under gacolor_ac3. ALNS
 /// stuck at 455 because it never modifies bottom rows (no mismatches
 /// there to anchor destroy ops). Forcing bottom destruction is the
@@ -1092,7 +1092,7 @@ impl DestroyOp for BottomBandDestroy {
     }
 }
 
-/// Vol-108 T1 — σ-cycle-aware destroy.
+/// T1 — σ-cycle-aware destroy.
 ///
 /// Given an oracle board (a known good basin, e.g. the 459 record),
 /// compute the σ-permutation from `board` (current) to `oracle`,
@@ -1100,7 +1100,7 @@ impl DestroyOp for BottomBandDestroy {
 /// all cycles with length ≥ `min_size`, up to `max_cells`) as the
 /// destroy set.
 ///
-/// Motivation: vol-107 T2 found that the largest σ-cycle between a
+/// Motivation: T2 found that the largest σ-cycle between a
 /// partial and the 459 record predicts ALNS-liftability — partials
 /// with max-cycle > 50 are structurally locked. SigmaCycleDestroy
 /// targets EXACTLY those locked regions for repair, instead of the
@@ -1112,7 +1112,7 @@ impl DestroyOp for BottomBandDestroy {
 ///   - The largest cycles are picked first.
 ///   - Falls back to `RandomRegion{k:4}` when no σ-cycle ≥ min_size
 ///     exists (board is too close to oracle).
-/// Vol-123 W4 — LKH-style adaptive-cardinality chain destroy.
+/// W4 — LKH-style adaptive-cardinality chain destroy.
 ///
 /// Inspired by Lin-Kernighan-Helsgaun's variable-K k-opt for TSP. Where
 /// ConflictDriven grows BFS from a single seed mismatch with random
@@ -1301,7 +1301,7 @@ impl DestroyOp for SigmaCycleDestroy {
     }
 }
 
-/// Vol-18 NOVEL — destroy a LARGE band (k_rows wide) centered on the
+/// NOVEL — destroy a LARGE band (k_rows wide) centered on the
 /// densest mismatch row. Unlike WorstBand{4} which destroys 64 cells,
 /// MegaBand{k=8-10} destroys 128-160 cells. Generates fundamentally
 /// different proposals: the destroyed region overlaps both the
@@ -1309,7 +1309,7 @@ impl DestroyOp for SigmaCycleDestroy {
 /// migration ACROSS the cluster boundary that small-band ops cannot
 /// achieve.
 ///
-/// Motivation: vol-18 found 457 is operator-locked under winning5
+/// Motivation: found 457 is operator-locked under winning5
 /// ops at any temperature. The proposal distribution from k=4 bands
 /// is exhausted. Bigger bands sample a different proposal regime.
 pub struct MegaBand {
@@ -1348,7 +1348,7 @@ impl DestroyOp for MegaBand {
     }
 }
 
-/// Vol-18 NOVEL — destroy a single COLUMN strip (1 × H) whose mismatch
+/// NOVEL — destroy a single COLUMN strip (1 × H) whose mismatch
 /// density is highest. Orthogonal to row-band ops. Useful when the
 /// cluster has vertical structure that row-band ops can't see.
 pub struct WorstColumn;
@@ -1380,7 +1380,7 @@ impl DestroyOp for WorstColumn {
     }
 }
 
-/// Vol-18 NOVEL — destroy a column BAND of k_cols centered on the
+/// NOVEL — destroy a column BAND of k_cols centered on the
 /// densest mismatch column.
 pub struct WorstColumnBand {
     pub k_cols: u32,
@@ -1415,7 +1415,7 @@ impl DestroyOp for WorstColumnBand {
     }
 }
 
-/// Vol-18 NOVEL — destroy half the board (top or bottom). 128 cells
+/// NOVEL — destroy half the board (top or bottom). 128 cells
 /// deterministic. Brutal but guaranteed to perturb basin structure
 /// beyond any local op. The SA repair on 128 cells is heavy
 /// (~1500ms budget gives ~few hundred SA moves which may not fully
@@ -1458,7 +1458,7 @@ impl DestroyOp for HalfBoardDestroy {
     }
 }
 
-/// Vol-18 NOVEL — destroy K random cells scattered across the WHOLE board
+/// NOVEL — destroy K random cells scattered across the WHOLE board
 /// (not a connected window). Different topology than RandomRegion (which
 /// picks a kxk square). Useful for proposing piece-set redistributions
 /// across the entire board.
@@ -1479,13 +1479,13 @@ impl DestroyOp for RandomScatter {
     }
 }
 
-/// Vol-17 NOVEL — destroy the "hinge cells" of the mismatch component:
+/// NOVEL — destroy the "hinge cells" of the mismatch component:
 /// the articulation points (cut vertices) of the cell graph induced by
 /// the mismatch component. Removing an articulation point disconnects
 /// the graph into smaller pieces, each of which is then a tractable
 /// CP-repair problem.
 ///
-/// Why this might work: the vol-17 calibrated_v17a 447 board has all
+/// Why this might work: the calibrated_v17a 447 board has all
 /// 51 mismatch cells in ONE connected component. ComponentDestroy
 /// frees the whole thing (CP must reconstruct 51 cells). HingeDestroy
 /// frees just the few hinges (3-8 cells typically), leaving most of
@@ -1697,8 +1697,8 @@ impl AdaptiveWeights {
     pub fn weights(&self) -> &[f64] { &self.weights }
 }
 
-/// Vol-17 — atomic write of a single best-board JSON checkpoint.
-/// Format mirrors what other vol-17 bins emit (placement array +
+/// atomic write of a single best-board JSON checkpoint.
+/// Format mirrors what other bins emit (placement array +
 /// matched score). Overwrites the file each call.
 fn write_alns_checkpoint(
     puzzle: &Puzzle,
@@ -1756,16 +1756,16 @@ pub struct AlnsConfig {
     pub cp_fallback_to_sa: bool,
     /// Cell positions that destroy operators are not allowed to free.
     /// Used to keep the 5 canonical E2 hints pinned during ALNS. Empty
-    /// = unconstrained (legacy vol-12 behaviour — score is then *not*
+ /// = unconstrained (legacy behaviour — score is then *not*
     /// the official canonical-E2 score). Set this to
     /// `hints.iter().map(|h| h.position).collect()` for canonical
-    /// scoring. Fixed in vol-14 after discovering canonical hints
+ /// scoring. Fixed in after discovering canonical hints
     /// were being swapped out, invalidating the 443/480 score.
     pub pinned_positions: Vec<Position>,
-    /// Vol-17 — optional hard cap on iters (0 = no cap). Used by PT-on-ALNS
+ /// optional hard cap on iters (0 = no cap). Used by PT-on-ALNS
     /// to do bounded inner loops between exchanges.
     pub iter_budget: u32,
-    /// Vol-17 — periodic mid-run checkpoint of the current-best board.
+ /// periodic mid-run checkpoint of the current-best board.
     /// When `checkpoint_path` is `Some(path)`, every `checkpoint_every_ms`
     /// (default 60s when 0), the current best board is written to
     /// `<path>` as JSON containing the placement + score + bucas-style
@@ -1774,10 +1774,10 @@ pub struct AlnsConfig {
     /// in sync with in-flight ALNS progress.
     pub checkpoint_path: Option<std::path::PathBuf>,
     pub checkpoint_every_ms: u64,
-    /// Vol-17 — when true, iso-score moves use largest-mismatch-component
+ /// when true, iso-score moves use largest-mismatch-component
     /// size as a tie-breaker. Smaller largest-component is preferred
     /// (easier to repair in future iters). Useful when matched count
-    /// plateaus on iso-score landscapes (vol-17 empirical observation).
+ /// plateaus on iso-score landscapes (empirical observation).
     /// Adds O(W*H) cluster computation per iter; cheap on 16×16.
     pub lex_break_isoscore: bool,
     /// V140 — when true, iso-score moves use FORBIDDEN-2x2 count as
@@ -1786,14 +1786,14 @@ pub struct AlnsConfig {
     /// (LOW 109, MID 60, HIGH 29 medians). Adds O(225) feasibility
     /// checks per iter on canonical 16x16.
     pub lex_break_intaglio: bool,
-    /// Vol-17 — fixed-step SA repair for deterministic A/B. When non-zero,
+ /// fixed-step SA repair for deterministic A/B. When non-zero,
     /// `sa_repair` runs exactly this many SA moves regardless of wall-clock,
     /// instead of `repair_budget_ms`. Eliminates the timing-jitter
     /// nondeterminism that produced same-seed score variance up to 11
     /// matches in the overnight portfolio (see RESEARCH_NOTES_17_OVERNIGHT
     /// F2 and OPTIMIZATION_REPORT). Default 0 = legacy wall-clock budget.
     pub repair_step_budget: u64,
-    /// Vol-17 — when true (default), `cp_repair` uses parallel
+ /// when true (default), `cp_repair` uses parallel
     /// `gacolor_ac3_par` for throughput; when false, uses single-thread
     /// `gacolor_ac3` for reproducibility across runs. Set to false in
     /// scientific benchmark binaries; leave true in portfolio/record runs.
@@ -1823,7 +1823,7 @@ impl Default for AlnsConfig {
     }
 }
 
-/// Vol-17 — compute largest-connected-mismatch-component size on `board`.
+/// compute largest-connected-mismatch-component size on `board`.
 /// Cheap: O(W×H) BFS. Used as iso-score tie-breaker.
 fn largest_mismatch_component_size(puzzle: &Puzzle, board: &Board) -> u32 {
     let mismatches = find_mismatches(puzzle, board);
@@ -1901,13 +1901,13 @@ pub fn run_alns(
 
     let t_start = std::time::Instant::now();
     let mut last_log = t_start;
-    // Vol-17 — periodic best-board checkpoint (overwrites file each tick).
+ // periodic best-board checkpoint (overwrites file each tick).
     let mut last_checkpoint = t_start;
     let checkpoint_every = std::time::Duration::from_millis(cfg.checkpoint_every_ms.max(1));
 
     let pinned_set: BTreeSet<Position> = cfg.pinned_positions.iter().copied().collect();
 
-    // Vol-17 novel — restart-on-stagnation: track iters-since-best.
+ // novel — restart-on-stagnation: track iters-since-best.
     // After STAGNATION_LIMIT iters with no new best, reset
     // `current` to `best` (escapes worse-accept drifts that ratchet
     // away from the optimum) and reshuffle op weights to give bored
@@ -1924,7 +1924,7 @@ pub fn run_alns(
         stats.per_op_invocations[op_idx] += 1;
 
         let mut free_set = ops[op_idx].destroy(puzzle, &current, &mut rng);
-        // Vol-14 fix: pinned positions are never freed by destroy operators.
+ // fix: pinned positions are never freed by destroy operators.
         // Without this, canonical E2 hints get swapped out and the reported
         // score is for a different puzzle.
         if !pinned_set.is_empty() {
@@ -1954,7 +1954,7 @@ pub fn run_alns(
         let new_score = score_board(puzzle, &new_board);
         let delta = new_score as i32 - current_score as i32;
 
-        // Vol-17 — lex_break_isoscore: iso-score moves use smaller
+ // lex_break_isoscore: iso-score moves use smaller
         // largest-mismatch-component as tie-breaker.
         // V140 — lex_break_intaglio: iso-score moves use FEWER forbidden
         // 2x2 patches as tie-breaker.
@@ -2004,7 +2004,7 @@ pub fn run_alns(
         }
         weights.reward(op_idx, sigma);
 
-        // Vol-17 — periodic checkpoint of current best board.
+ // periodic checkpoint of current best board.
         if let Some(cp_path) = cfg.checkpoint_path.as_ref() {
             if last_checkpoint.elapsed() >= checkpoint_every {
                 write_alns_checkpoint(puzzle, &best, best_score, stats.iters, cp_path);
@@ -2012,7 +2012,7 @@ pub fn run_alns(
             }
         }
 
-        // Vol-17 — stagnation check: if no new best in stagnation_limit
+ // stagnation check: if no new best in stagnation_limit
         // iterations, jump back to best and reshuffle weights.
         if stats.iters - last_best_iter >= stagnation_limit {
             current = best.clone();
@@ -2044,7 +2044,7 @@ pub fn run_alns(
     (best, stats)
 }
 
-/// Vol-17 NOVEL — exhaustive O(C²) pairwise piece-swap hill climb.
+/// NOVEL — exhaustive O(C²) pairwise piece-swap hill climb.
 /// For each pair of cells (a, b) where at least one has a mismatched
 /// edge, evaluate the score delta of swapping pieces a and b (with
 /// all rotation combinations). Apply the best swap. Iterate.
@@ -2066,7 +2066,7 @@ pub fn piece_swap_hillclimb(
     let mut b = board.clone();
     let w = puzzle.width;
     let h = puzzle.height;
-    // Vol-34 fix — compute actual score before and after each swap.
+ // fix — compute actual score before and after each swap.
     // The local-delta accumulation had cases (notably adjacent pairs;
     // possibly other shared-neighbour topologies) where reported gain
     // diverged from actual. Anchor on the real score_board metric to
@@ -2162,7 +2162,7 @@ pub fn piece_swap_hillclimb(
     (b, total_gain)
 }
 
-/// Vol-17 — deterministic post-ALNS polish: for each cell, try all 4
+/// deterministic post-ALNS polish: for each cell, try all 4
 /// rotations of its current piece. Keep the rotation that yields the
 /// highest neighbour-edge match count. Iterate until no improvement
 /// (single-cell-rotation fixed point).
@@ -2271,7 +2271,7 @@ fn count_neighbour_matches(puzzle: &Puzzle, board: &Board, pos: Position, e: [u8
     c
 }
 
-/// Vol-17 — embarrassingly parallel best-of-K ALNS portfolio.
+/// embarrassingly parallel best-of-K ALNS portfolio.
 ///
 /// Run `n_chains` independent ALNS chains in parallel via rayon,
 /// each with the SAME initial board but a DIFFERENT seed (seed,
@@ -2346,7 +2346,7 @@ where
     (best_board, stats_with_scores)
 }
 
-/// Vol-17 NOVEL — Parallel Tempering on ALNS (PT-on-ALNS).
+/// NOVEL — Parallel Tempering on ALNS (PT-on-ALNS).
 ///
 /// N chains at fixed temperatures `[t_min, ..., t_max]` (geometric ladder
 /// by default; linear if `linear_ladder=true`). Each chain runs ALNS

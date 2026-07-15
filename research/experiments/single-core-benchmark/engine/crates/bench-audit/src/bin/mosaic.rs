@@ -1,7 +1,7 @@
-// MOSAIC — window/block composition solver for Eternity II (vol-206/207).
+// MOSAIC — window/block composition solver for Eternity II.
 //
 // Composes EXACT block fills (per-block MaxScore via small DFS+B&B) into a full
-// board, with scarcity-aware piece reservation (the vol-204 piece-theft fix) and
+// board, with scarcity-aware piece reservation (the piece-theft fix) and
 // SOFT boundaries (blocks never go infeasible — pay for mismatches). Hints are
 // hard pins (strict-canonical compatible).
 //

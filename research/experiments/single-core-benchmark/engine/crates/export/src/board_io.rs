@@ -1,4 +1,4 @@
-// Board serialization — vol-118 T8 consolidation.
+// Board serialization — T8 consolidation.
 //
 // Two on-disk formats are supported:
 // 1. CANONICAL (placement-sparse): the format `save_board` writes.
@@ -84,7 +84,7 @@ pub fn read_dump(path: &Path) -> std::io::Result<DumpedBoard> {
 }
 
 // =============================================================================
-// CANONICAL load_board / save_board — vol-118 T8.
+// CANONICAL load_board / save_board — T8.
 // =============================================================================
 
 /// Metadata attached to a saved board.

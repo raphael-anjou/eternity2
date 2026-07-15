@@ -1,4 +1,4 @@
-// Vol-125 T37 — property test: lsap (JV) and pathfinding kuhn_munkres
+// T37 — property test: lsap (JV) and pathfinding kuhn_munkres
 // should produce the same OPTIMAL score (up to ties) on small LAPs.
 
 use pathfinding::kuhn_munkres::kuhn_munkres;

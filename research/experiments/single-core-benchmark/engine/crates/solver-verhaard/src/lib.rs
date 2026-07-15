@@ -3,7 +3,7 @@
 // Source: louis.verhaard, groups.io 105190116 (2008-04-11). The algorithm
 // behind Verhaard's 467/480 ceiling. See also:
 //
-//   reference_verhaard_actual_method.md — auto-memory, corrects vol-7's
+// reference_verhaard_actual_method.md — auto-memory, corrects 's
 //     "2x3 ranking + depth banding" memory which was wrong.
 //
 // Structure (top-down):

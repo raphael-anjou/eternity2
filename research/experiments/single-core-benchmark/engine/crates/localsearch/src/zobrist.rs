@@ -1,4 +1,4 @@
-// Vol-17 idea D — Zobrist hash for E2 boards.
+// idea D — Zobrist hash for E2 boards.
 //
 // A Zobrist hash maintains an O(1)-updatable 64-bit fingerprint of a
 // fully-placed board as `XOR_{pos} table[pos][piece_id][rotation]`. On
@@ -9,7 +9,7 @@
 //        ^ table[b][old_b_pid][old_b_rot]
 //        ^ table[b][new_b_pid][new_b_rot]
 // independent of board size. So an LRU "tabu" set keyed on the
-// fingerprint can detect chain stagnation in PT (vol-14 finding:
+// fingerprint can detect chain stagnation in PT (finding:
 // pt_e2 lacks any explicit tabu mechanism; cold chains can drift in
 // iso-score plateaus undetected).
 //

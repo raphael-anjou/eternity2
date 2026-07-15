@@ -1,16 +1,16 @@
 // Blackwood-schedule factories + heuristic-side selection.
 //
-// Vol-15 introduced the [[blackwood-algorithm]] family. The schedules are
+// introduced the [[blackwood-algorithm]] family. The schedules are
 // pure factories: they consume a Puzzle and return Option<BlackwoodSchedule>.
-// Calibration variants (v17a..v17e) were tuned per vol-17 measurements.
+// Calibration variants (v17a..v17e) were tuned per measurements.
 //
-// Moved here in vol-33 T3 (split solver-engine/src/lib.rs into modules).
+// Moved here in T3 (split solver-engine/src/lib.rs into modules).
 
 use eternity2_core::{Color, Puzzle, BORDER};
 
 use crate::BlackwoodSchedule;
 
-/// Vol-15 — compute Blackwood's 3 "heuristic colors" from a Puzzle +
+/// compute Blackwood's 3 "heuristic colors" from a Puzzle +
 /// canonical hints. Selection rules per Blackwood msg #22 (2020):
 ///
 ///   1. **Many occurrences**: pick colors with highest total
@@ -22,7 +22,7 @@ use crate::BlackwoodSchedule;
 ///      preserves start-piece flexibility.
 ///
 /// Blackwood's literal triple `[17, 2, 18]` does NOT apply to our
-/// color labels (vol-14 verified: color 2 IS on 2 of our corners).
+/// color labels (verified: color 2 IS on 2 of our corners).
 /// This helper recomputes from first principles. Returns `(colors,
 /// pool_size)` where `pool_size` is the total occurrence count of
 /// the 3 colors across all 256 piece edges.
@@ -30,7 +30,7 @@ pub fn compute_heuristic_sides(
     puzzle: &Puzzle,
     hints: &eternity2_core::Hints,
 ) -> Vec<Color> {
-    // Vol-79 — allow explicit override via env var, e.g.
+ // allow explicit override via env var, e.g.
     //   E2_HEURISTIC_SIDES_OVERRIDE="15,16,17"
     // Used to sweep alternative triples among the 11 frequency-tied
     // canonical colors {12..22}. Per docs/community-mining/09: Blackwood's
@@ -122,7 +122,7 @@ pub fn compute_heuristic_sides(
     candidates.into_iter().take(3).map(|(c, _)| c).collect()
 }
 
-/// Vol-15 — total occurrence count of a set of edge colors across
+/// total occurrence count of a set of edge colors across
 /// all piece edges in a puzzle (BORDER excluded).
 pub fn count_color_occurrences(puzzle: &Puzzle, colors: &[Color]) -> u32 {
     let set: std::collections::HashSet<Color> = colors.iter().copied().collect();
@@ -137,7 +137,7 @@ pub fn count_color_occurrences(puzzle: &Puzzle, colors: &[Color]) -> u32 {
     n
 }
 
-/// Vol-15 — Blackwood's 469-recipe schedule, AFFINE-REMAPPED into
+/// Blackwood's 469-recipe schedule, AFFINE-REMAPPED into
 /// our scan's post-border range. Critical history:
 ///
 /// - First attempt (proportional rescale on both axes) prunes
@@ -231,7 +231,7 @@ pub fn blackwood_schedule_469(
     Some(s)
 }
 
-/// Vol-17 (idea A) — Blackwood schedule **calibrated empirically** from
+/// (idea A) — Blackwood schedule **calibrated empirically** from
 /// the McGavin 469 community board on canonical Eternity2. Each control
 /// point `(depth, count)` is the cumulative count of heuristic-color
 /// piece-edges placed in cells 0..depth under bottom-up row-major scan
@@ -241,8 +241,8 @@ pub fn blackwood_schedule_469(
 /// curve from Blackwood's different piece set.
 ///
 /// Comparison to `blackwood_schedule_469` (affine-remapped Blackwood):
-/// at depth 80 our vol-15 schedule demanded ~60 heuristic edges placed;
-/// the actual McGavin 469 board has 32 at depth 80. The vol-15 schedule
+/// at depth 80 our schedule demanded ~60 heuristic edges placed;
+/// the actual McGavin 469 board has 32 at depth 80. The schedule
 /// was OVER-DEMANDING by ~2× and pruned the search prematurely. This
 /// calibrated schedule should not have the same cliff failure.
 ///
@@ -274,7 +274,7 @@ pub fn blackwood_schedule_calibrated_v17a(
         (last_idx, pool_size.min(150)),
     ];
 
-    // Use the same proportional break schedule as vol-15 — empirical
+ // Use the same proportional break schedule as — empirical
     // mismatch calibration is a future task (would need a 469 board
     // with the break locations annotated).
     let bw_breaks: [u32; 12] = [201, 206, 211, 216, 221, 225, 229, 233, 237, 239, 241, 256];
@@ -301,7 +301,7 @@ pub fn blackwood_schedule_calibrated_v17a(
     Some(s)
 }
 
-/// Vol-17 (idea A) — same calibration data as
+/// (idea A) — same calibration data as
 /// `blackwood_schedule_calibrated_v17a` but at the 25th-percentile
 /// (more permissive — demands fewer heuristic edges at each depth).
 /// With N=1 corpus board this collapses to the same curve. Kept as
@@ -314,8 +314,8 @@ pub fn blackwood_schedule_calibrated_v17a_p25(
     blackwood_schedule_calibrated_v17a(puzzle, hints)
 }
 
-/// Vol-17 (idea A, V17C revision) — like v17b but with break indexes
-/// shifted EARLIER. Vol-17 measured the depth wall at ~193, which is
+/// (idea A, V17C revision) — like v17b but with break indexes
+/// shifted EARLIER. measured the depth wall at ~193, which is
 /// BELOW v17b's first break at 201. The engine never uses any break
 /// in practice because it can't even reach depth 201 cleanly under
 /// the strict no-break placement rule. Moving breaks earlier (180,
@@ -325,7 +325,7 @@ pub fn blackwood_schedule_calibrated_v17a_p25(
 /// This is a hypothesis — by allowing 1 break at depth 180, the
 /// engine can spread mismatch tolerance over a wider range, and may
 /// reach higher matched scores at the end.
-/// Vol-17 (idea H21, V17E revision) — NOISE-INJECTED schedule.
+/// (idea H21, V17E revision) — NOISE-INJECTED schedule.
 /// Take the v17b base targets and apply per-control-point jitter
 /// scaled by `noise_amplitude` * seed-derived RNG. Different seeds
 /// produce different perturbed schedules. Hypothesis: each perturbed
@@ -386,7 +386,7 @@ pub fn blackwood_schedule_calibrated_v17e(
     Some(s)
 }
 
-/// Vol-17 (idea H20, V17D revision) — calibrate the Blackwood schedule
+/// (idea H20, V17D revision) — calibrate the Blackwood schedule
 /// from OUR own 455-board (v17a + WorstBand) rather than the McGavin
 /// 469 community board. Hypothesis: our 455 board has a MUCH higher
 /// heuristic-color trajectory than McGavin's (e.g., 63 at depth 80
@@ -462,7 +462,7 @@ pub fn blackwood_schedule_calibrated_v17c(
     let n_pos = puzzle.cell_count();
     let last_idx = n_pos.saturating_sub(1);
     // EMPIRICALLY DERIVED from the McGavin 469 board's actual mismatch
-    // positions in bottom-up row-major scan order (vol-17 measurement,
+ // positions in bottom-up row-major scan order (measurement,
     // `scripts/find_mcgavin_breaks.py`). McGavin's 11 mismatched edges
     // have their "later cell" at these 11 scan indices. So if our
     // engine searches in the SAME order as McGavin and accepts breaks
@@ -472,7 +472,7 @@ pub fn blackwood_schedule_calibrated_v17c(
     Some(s)
 }
 
-/// Vol-17 (idea A, V17B revision) — TIGHT empirical envelope of the
+/// (idea A, V17B revision) — TIGHT empirical envelope of the
 /// McGavin 469 cumulative heuristic-color curve, sampled at every 16
 /// cells with a 1-edge floor margin. Designed so that
 /// `target_at(d) ≤ McGavin_actual[d]` for ALL d (verified offline);

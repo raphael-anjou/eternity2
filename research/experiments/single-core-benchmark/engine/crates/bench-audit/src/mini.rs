@@ -1,4 +1,4 @@
-// Vol-218 BANDSAW testbed: parametric N×N E2-like instances with
+// BANDSAW testbed: parametric N×N E2-like instances with
 // hints, exact band machinery (distinct-piece counts, exhaustive B&B,
 // meet-in-the-middle band-split solve) and the repeats-allowed
 // counting/tropical oracle — all selftested against brute force.
@@ -7,7 +7,7 @@
 // coupling (N edges + border structure of the bottom row) binds at
 // every column instead of after a full free row — the same collapse
 // that makes conditioned band sub-problems enumerable at all
-// (vol-217 finding; row-major free-row enumeration is ~1e8× wider).
+// (finding; row-major free-row enumeration is ~1e8× wider).
 //
 // Cost convention (stage4_finish-compatible): each cell pays its N
 // edge and its W edge; board-edge sides are structural (candidates
@@ -91,7 +91,7 @@ impl Mini {
         })
         .expect("generator must succeed");
         // pieces() is SHUFFLED by the generator — index rot by piece id,
-        // not iteration order (vol-218 M0 catch: 30 phantom breaks).
+ // not iteration order (M0 catch: 30 phantom breaks).
         let mut rot = vec![[[0u8; 4]; 4]; n * n];
         for p in puzzle.pieces() {
             let e = [p.edges.top(), p.edges.right(), p.edges.bottom(), p.edges.left()];
@@ -669,7 +669,7 @@ pub struct FugacityResult {
     pub max_usage_err: f64,
 }
 
-/// Equal-case fugacity correction (vol-216 method) for the
+/// Equal-case fugacity correction (method) for the
 /// distinct-piece count of fillings at cost <= bmax:
 ///   ln N ≈ min_z [ ln Z_{<=bmax}(z) − Σ_p ln z_p ]
 /// solved by damped Sinkhorn z_p ← z_p / u_p^damp with
@@ -1200,7 +1200,7 @@ fn bb_scan_core(
         let list = &cands[d];
         // three cost passes straight into the retained-capacity order
         // buffer — per-entry Vec allocation here dominated the whole
-        // solver (malloc/free ≈ half the vol-218 hot-zone samples)
+ // solver (malloc/free ≈ half the hot-zone samples)
         let o = &mut order[d];
         o.clear();
         for want in 0u8..3 {
@@ -1303,7 +1303,7 @@ fn bb_scan_core(
 
 
 /// EXPERIMENTAL indexed variant of `bb_min_break` (per-cell (tn,tw)
-/// cost-sorted lists). Vol-218 contended A/B: label phase 2.1×
+/// cost-sorted lists). contended A/B: label phase 2.1×
 /// faster, deterministic proof tree 1.86× SLOWER — the ~27 MB index
 /// thrashes M1's L2 where the scan's ~100 KB tables stay hot. Bench
 /// on a quiet machine before adopting; the scan core stays default.
