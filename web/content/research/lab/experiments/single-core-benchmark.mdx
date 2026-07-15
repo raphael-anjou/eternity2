@@ -1,11 +1,12 @@
 ---
 title: Single-core benchmark
 description: >-
-  Seventeen solvers, ours and the community's, each run once on ten corner-pinned
+  Competing solvers, ours and the community's, each run once on ten corner-pinned
   variants of the official puzzle, single core, 60 seconds per run. The finding:
   throughput does not equal score.
-metaDescription: "Seventeen Eternity II solvers, each run once on ten corner-pinned variants, single core, 60 seconds. The finding: throughput does not equal score."
+metaDescription: "Eternity II solvers compared on ten corner-pinned variants, single core, 60 seconds each. The finding: throughput does not equal score."
 kind: experiment
+contribution: measurement
 author: raphael-anjou
 rigor: measured
 hardware:
@@ -37,26 +38,51 @@ sources:
 import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
 
 Give every solver the same budget, one core and one minute, and which one wins?
-The answer overturns the obvious intuition. Seventeen solvers, ours and the
-community's (Blackwood, Verhaard), each ran once on ten corner-pinned variants of
-the official puzzle, single-threaded, 60 seconds a run. Every board was re-scored
-by one canonical scorer; no engine's self-reported score is trusted. The maximum
-possible score is 480. On the leaderboard, our own engines carry an `anjou-`
-prefix; the two community backtrackers stay bare.
+The answer overturns the obvious intuition. Several solvers, ours and our
+implementations of the community's two record backtrackers, each ran once on ten
+corner-pinned variants of the official puzzle, single-threaded, 60 seconds a run.
+Every board was re-scored by one canonical scorer; no engine's self-reported
+score is trusted. The maximum possible score is 480.
+
+<Callout kind="caution" title="Every engine here is our code">
+  `blackwood_style` and `verhaard_style` are **our from-scratch
+  implementations** of Joshua Blackwood's and Louis Verhaard's published
+  algorithms, not the authors' own programs. Verhaard's `eii` only ever shipped
+  as a Win32 binary, so a re-implementation (its constants recovered from
+  `eii.exe`) is the only way to run it at all. Blackwood's real C# *is*
+  [public](https://github.com/jblackwood345/EternityII_Solver), but it hardcodes
+  its 256 pieces and its thread count, so it cannot read this grid's variants or
+  be pinned to one core without editing it. Scores here measure our reading of
+  each algorithm, not the authors' engineering, and should not be quoted as
+  "Blackwood scores N".
+</Callout>
+
+The leaderboard below shows the methods that compete on score. A second family,
+the CSP presets (one arc-consistency engine run under a dozen ordering knobs),
+is a different category: its best preset reaches about 183, less than half a
+contender's score, so it earns no leaderboard row. That preset sweep is a study
+in its own right, on its [own page](/research/lab/experiments/single-core-benchmark/csp-presets).
 
 ## Throughput does not equal score
 
-The Blackwood backtracker, the algorithm behind the community's record, explores
-**40.6 million** search-nodes per second. Our beam producer explores **273
-thousand** beam-nodes per second, roughly 150 times fewer. On a single core for
-one minute, the producer reaches **456** and Blackwood reaches **436**.
+Our implementation of the Blackwood algorithm, the search behind the community's
+record, explores **40.6 million** search-nodes per second. Our beam producer
+explores **273 thousand** beam-nodes per second, roughly 150 times fewer. On a
+single core for one minute, the producer reaches **456** and the
+Blackwood-style backtracker reaches **436**.
 
-Blackwood explores 149 times more nodes per second and still finishes 20 points
-lower. At one core the win comes from node quality, not node count: the beam
-front-loads its intelligence (comb fill-order, edge-match greedy, a wide
+The backtracker explores 149 times more nodes per second and still finishes 20
+points lower. At one core the win comes from node quality, not node count: the
+beam front-loads its intelligence (comb fill-order, edge-match greedy, a wide
 frontier) where the backtracker relies on brute persistence. This is measured
 proof of the compute-regime split. Our efficient engine dominates at small
-scale; Blackwood only wins with a farm behind it.
+scale; the depth-gated backtracker only wins with a farm behind it.
+
+The comparison is between *algorithms as we implement them*, and one caveat
+bounds it: our Blackwood-style engine may simply be slower than Joshua
+Blackwood's own C#, which we have not measured. If his engineering is worth more
+than 20 points at this budget, the ranking flips. Measuring his published solver
+directly is [open work](#open-work).
 
 <Figure title="The leaderboard: mean score over ten corner variants, single core, 60 s">
   <BenchmarkLeaderboard />
@@ -65,20 +91,18 @@ scale; Blackwood only wins with a farm behind it.
 ## Reading the table
 
 The producer is remarkably consistent, 453 to 456 on every variant with a
-standard deviation of 1.0. It wins on skill, not luck. The CSP engines below the
-top four are bimodal: on a friendly corner arrangement they reach 340 to 349, on
-a hostile one they collapse to about 55, because the arc-consistency search gets
-pinned in a bad basin and cannot escape inside 60 seconds. That fragility is the
-real story of the lower half of the table.
+standard deviation of 1.0. It wins on skill, not luck. Below it, ALNS trails the
+raw producer by a whisker at this budget, and the two community-algorithm
+backtrackers land in the 436 to 441 band. The naive baseline is the floor: a fast, junk-filled 365
+that shows what raw matched-edge count looks like without any board quality.
 
 Throughput units differ by family and are never cross-compared. The producer
 counts beam-nodes per second, the backtrackers search-nodes per second, ALNS
-counts repair iterations per second. The CSP engines sit at 5 to 10 thousand
-nodes per second because each node runs full arc-consistency; they trade
-throughput for pruning, which is why they explore far fewer nodes yet still beat
-naive DFS on good variants.
+counts repair iterations per second. That the producer wins while exploring 150
+times fewer nodes than Blackwood is the whole point: the units are not
+commensurable, and node count is not the thing that decides the score.
 
-## What each family is doing
+## What each contender is doing
 
 - **Producer (beam, rank 1).** Wide-beam constructive search over the comb fill
   order (Verhaard and Max's high-score geometry). It keeps thousands of partial
@@ -95,18 +119,13 @@ naive DFS on good variants.
   the endgame needs far more compute than 60 seconds allows. Blackwood found his
   470 after about a month on a single PC, and called it "a stroke of luck"
   ([message 10194](https://groups.io/g/eternity2/message/10194)).
-- **CSP with AC-3 (the rest of the table).** Arc-consistency propagation makes
-  each node expensive but well-pruned. Strong on friendly variants, fragile on
-  hostile ones. Three of them (`anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1`,
-  `anjou-verhaard_preferred`) produced byte-identical boards on this puzzle: NS-1
-  and preferred ordering add nothing here at this depth. Least-constraining-value
-  ordering, though, does help: `anjou-gacolor_ac3_lcv` reaches a mean of 114
-  against those three's 76.
-- **Naive DFS (ranks 5 and 13).** Fills the whole board allowing every break. In
+- **Naive DFS (the baseline).** Fills the whole board allowing every break. In
   row-major order (`anjou-naive_rowmajor`) it reaches a high matched-edge count
-  (365) but a low-quality board full of breaks. Fast, and junk. The same DFS in
-  spiral visit order (`anjou-naive_spiral`) collapses to a mean of 78: the
-  visit-order choice alone costs the naive search nearly 290 points.
+  (365) but a low-quality board full of breaks. Fast, and junk. It sits on the
+  board as a floor: the number a method has to clear to be worth
+  anything. (The visit-order sensitivity of naive DFS, and why the spiral variant
+  collapses to 78, is on the [CSP presets page](/research/lab/experiments/single-core-benchmark/csp-presets)
+  alongside the other same-engine ablations.)
 
 ## Where these numbers sit
 
@@ -139,16 +158,19 @@ emits a bucas `.url`, and the score is the canonical matched-edge count from the
 same scorer, never the engine's self-report. There were zero failures across all
 170 runs.
 
-Every one of the seventeen solvers is open source and runs from this repository.
-The crate workspace, the ten variants, the committed per-run results and the grid
-scripts all live under the experiment's
+Every engine in the grid is our own open-source code and runs from this
+repository, including the two written from the community's published algorithms;
+no third-party solver is vendored here. The grid measures all
+of them; the leaderboard above shows only the five that compete on score, and the
+[CSP presets page](/research/lab/experiments/single-core-benchmark/csp-presets)
+shows the rest. The crate workspace, the ten variants, the committed per-run
+results and the grid scripts all live under the experiment's
 [backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
 and `just experiments single-core-benchmark` builds the engines and reruns the
-whole grid. The native family (the thirteen naive and CSP presets, ranks 5 to 17)
-is one binary selected by preset; the four strong engines (producer, ALNS,
-Verhaard, Blackwood, ranks 1 to 4) are a binary each, driven by a small wrapper.
-Both speak the same puzzle-in, bucas-url-out contract, and every board is
-re-scored by the one canonical scorer.
+whole grid. The native family (the naive and CSP presets) is one binary selected
+by preset; the four strong engines (producer, ALNS, Verhaard, Blackwood) are a
+binary each, driven by a small wrapper. Both speak the same puzzle-in,
+bucas-url-out contract, and every board is re-scored by the one canonical scorer.
 
 ## Companion findings
 
@@ -161,3 +183,30 @@ transfer across colour labelings: its published privileged colours scored 387 in
 our labeling versus 435 for a re-fit, a 48-point gap that our Blackwood closes by
 re-fitting only the labeling-relative colour IDs while matching every structural
 element of the published spec.
+
+## Open work
+
+The grid runs our implementations. Two of the community's three record engines
+can in principle be run directly, and that is the obvious next measurement:
+
+- **Peter McGavin's C generator.** He posted the source to the list in January
+  2026 as `genbody71.zip`
+  ([message 11749](https://groups.io/g/eternity2/message/11749)). It builds on
+  Apple silicon with `clang` and its generate pass emits a 10,363-line `body.c`
+  specialised to one puzzle. It is the fastest engine the community has
+  measured, at 295M placements/s on Joe's CPU
+  ([message 11750](https://groups.io/g/eternity2/message/11750)), and it is
+  absent from this grid.
+- **Joshua Blackwood's C#.** [Public and
+  GPL-3.0](https://github.com/jblackwood345/EternityII_Solver); it builds
+  unmodified on .NET 8. But it hardcodes all 256 pieces in `Util.cs`, fixes
+  `number_virtual_cores = 64`, and takes no arguments, so pinning it to one core
+  or feeding it this grid's variants means editing his source, at which point
+  the artifact is no longer purely his. Running it as published, on the plain
+  puzzle, is the honest form of that measurement.
+- **Louis Verhaard's `eii`** cannot be run at all: the download from his own
+  site ships `eii.exe` and no source, which is why our engine reconstructs it
+  from the binary.
+
+Neither engine is vendored into this repository; both are fetched and run
+locally when measured.
