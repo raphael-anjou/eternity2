@@ -97,9 +97,9 @@ def main():
 
     md.append("\n## Ranking (across the 10 corner variants)\n")
     md.append("Throughput (`nps`) is the engine's NATIVE unit -- search-nodes/s "
-              "(DFS/CSP + backtrackers), beam-nodes/s (producer), or iters/s "
-              "(ALNS). **These units are NOT comparable across families**; nps "
-              "ranks throughput *within* a family only.\n")
+              "for every engine in the current grid (DFS/CSP + backtrackers). "
+              "**Units are NOT comparable across families**; nps ranks "
+              "throughput *within* a family only.\n")
     md.append("| rank | algorithm | mean | best | worst | median | std | n | fails | nps (native unit) |")
     md.append("|---:|:--|---:|---:|---:|---:|---:|---:|---:|:--|")
     for i, a in enumerate(algos, 1):
@@ -136,9 +136,9 @@ def main():
               f"--seed {meta.get('seed', 1)} --parallel {meta['parallel']}")
     md.append("python3 scripts/make_report.py --run results/rerun")
     md.append("```")
-    md.append("\nThe four standalone strong engines (`producer`, `blackwood`, "
-              "`verhaard`, `alns`) run from the private v2 vault and are not "
-              "reproducible from this repo; their committed rows above are the "
+    md.append("\nThe two standalone backtrackers (`blackwood`, `verhaard`) are "
+              "built from a separate engine checkout and are not reproducible "
+              "from this repo alone; their committed rows above are the "
               "published result.\n")
 
     out_md = run / "REPORT.md"

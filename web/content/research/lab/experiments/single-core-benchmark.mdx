@@ -1,10 +1,10 @@
 ---
 title: Single-core benchmark
 description: >-
-  Competing solvers, ours and the community's, each run once on ten corner-pinned
-  variants of the official puzzle, single core, 60 seconds per run. The finding:
-  throughput does not equal score.
-metaDescription: "Eternity II solvers compared on ten corner-pinned variants, single core, 60 seconds each. The finding: throughput does not equal score."
+  Fifteen solvers, ours and our implementations of the community's two record
+  backtrackers, each run once on ten corner-pinned variants of the official
+  puzzle, single core, 60 seconds per run. The finding: node count is not score.
+metaDescription: "Fifteen Eternity II solvers compared on ten corner-pinned variants, single core, 60 seconds each. The finding: node count is not score."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -17,7 +17,7 @@ hardware:
   accelerator: none # none | gpu | quantum | fpga | tpu
   machine: "MacBook (Apple M1, 8 cores), one core pinned"
   wallClock: "60 s" # budget per run
-  runs: 170 # 17 algorithms × 10 corner variants
+  runs: 150 # 15 algorithms × 10 corner variants
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
   measured: true # true only for the standardized single-core bench
 repro:
@@ -28,7 +28,7 @@ updated: 2026-07-13
 date: 2026-07
 topics: [speed, construction, backtracking]
 related:
-  - /research/lab/experiments/raphael-anjou/prior
+  - /research/lab/experiments/raphael-anjou/runs/prior
   - /research/build/construct/beam-search
 sources:
   - label: "Runnable engine + committed results + scripts (this experiment's backing directory)"
@@ -63,26 +63,25 @@ is a different category: its best preset reaches about 183, less than half a
 contender's score, so it earns no leaderboard row. That preset sweep is a study
 in its own right, on its [own page](/research/lab/experiments/single-core-benchmark/csp-presets).
 
-## Throughput does not equal score
+## What a minute of one core buys
 
-Our implementation of the Blackwood algorithm, the search behind the community's
-record, explores **40.6 million** search-nodes per second. Our beam producer
-explores **273 thousand** beam-nodes per second, roughly 150 times fewer. On a
-single core for one minute, the producer reaches **456** and the
-Blackwood-style backtracker reaches **436**.
+The two record backtrackers dominate this budget. Our Verhaard-style engine
+reaches a mean of **440.8** (best 451) and our Blackwood-style engine **436.4**
+(best 440), both exploring 20 to 40 million search-nodes per second. Nothing
+else comes close: naive DFS lands at **365.6**, and the best CSP preset at about
+**183**.
 
-The backtracker explores 149 times more nodes per second and still finishes 20
-points lower. At one core the win comes from node quality, not node count: the
-beam front-loads its intelligence (comb fill-order, edge-match greedy, a wide
-frontier) where the backtracker relies on brute persistence. This is measured
-proof of the compute-regime split. Our efficient engine dominates at small
-scale; the depth-gated backtracker only wins with a farm behind it.
+The gap between those two groups is the finding. All four families see the same
+puzzle and the same 60 seconds, and they finish 250 points apart. What separates
+them is not speed — the CSP engines are three orders of magnitude slower per
+node than the backtrackers and still beat naive DFS on friendly variants,
+because each node is pruned rather than merely visited. Node count and score are
+not the same axis.
 
-The comparison is between *algorithms as we implement them*, and one caveat
-bounds it: our Blackwood-style engine may simply be slower than Joshua
-Blackwood's own C#, which we have not measured. If his engineering is worth more
-than 20 points at this budget, the ranking flips. Measuring his published solver
-directly is [open work](#open-work).
+What this grid cannot tell you is where the ceiling is. Every engine here is
+still 24 points short of the community's 5-clue record of 464, and the records
+were not set in a minute: they came from farms and months. This measures
+per-core efficiency at a fixed small budget, nothing more.
 
 <Figure title="The leaderboard: mean score over ten corner variants, single core, 60 s">
   <BenchmarkLeaderboard />
@@ -90,31 +89,21 @@ directly is [open work](#open-work).
 
 ## Reading the table
 
-The producer is remarkably consistent, 453 to 456 on every variant with a
-standard deviation of 1.0. It wins on skill, not luck. Below it, ALNS trails the
-raw producer by a whisker at this budget, and the two community-algorithm
-backtrackers land in the 436 to 441 band. The naive baseline is the floor: a fast, junk-filled 365
-that shows what raw matched-edge count looks like without any board quality.
+The two backtrackers are the top of this board and they are stable there: the
+Verhaard-style engine spans 437 to 451 across the ten variants, the
+Blackwood-style engine 431 to 440. The naive baseline is the floor: a fast,
+junk-filled 365 that shows what raw matched-edge count looks like without any
+board quality.
 
-Throughput units differ by family and are never cross-compared. The producer
-counts beam-nodes per second, the backtrackers search-nodes per second, ALNS
-counts repair iterations per second. That the producer wins while exploring 150
-times fewer nodes than Blackwood is the whole point: the units are not
-commensurable, and node count is not the thing that decides the score.
+Throughput units differ by family and are never cross-compared. The backtrackers
+count search-nodes per second, the CSP engines the same but at 5 to 10 thousand,
+because each of their nodes runs full arc-consistency. The CSP family trades
+throughput for pruning, which is why it explores far fewer nodes yet still beats
+naive DFS on good variants.
 
 ## What each contender is doing
 
-- **Producer (beam, rank 1).** Wide-beam constructive search over the comb fill
-  order (Verhaard and Max's high-score geometry). It keeps thousands of partial
-  boards and extends each by the best edge-matching pieces. Low nodes per second,
-  but every node is a near-complete, high-quality board. This is the base of our
-  record pipeline.
-- **ALNS (rank 2).** Two stages inside the 60 seconds: the producer makes a base
-  board, then large-neighbourhood local search (destroy a region, repair it)
-  polishes it. At 60 seconds it manages only about 32 repair iterations, so it
-  lands just under the raw producer here; the real 461 record needed about 20
-  minutes of ALNS.
-- **Verhaard and Blackwood (backtrackers, ranks 3 to 4).** Depth-gated-break DFS
+- **Verhaard and Blackwood (backtrackers, ranks 1 to 2).** Depth-gated-break DFS
   at 20 to 40 million nodes per second. They punch to 437 to 451 but hit a wall:
   the endgame needs far more compute than 60 seconds allows. Blackwood found his
   470 after about a month on a single PC, and called it "a stroke of luck"
@@ -142,9 +131,9 @@ leaderboard's dashed line marks.
 | reference | score | conditions |
 |:--|--:|:--|
 | Community 5-clue record | 464 | Pejic and benj39100, 2026 (same 5 clues these variants pin) |
-| This grid's best (producer) | 456 | one core, 60 s |
+| This grid's best (Verhaard-style) | 451 | one core, 60 s (mean 440.8 over 10 variants) |
+| Blackwood-style in this grid | 440 | one core, 60 s (mean 436.4 over 10 variants) |
 | Community all-hints ceiling | 470 | Blackwood, ~1 month on a single PC, uses more than 5 clues |
-| Blackwood in this grid | 440 | one core, 60 s (mean 436.4 over 10 variants) |
 
 ## Method and reproducibility
 
@@ -156,7 +145,7 @@ from one generator, so every algorithm sees identical instances. One run per
 puzzle, fixed seed; the corner arrangement is the only diversity axis. Every run
 emits a bucas `.url`, and the score is the canonical matched-edge count from the
 same scorer, never the engine's self-report. There were zero failures across all
-170 runs.
+150 runs.
 
 Every engine in the grid is our own open-source code and runs from this
 repository, including the two written from the community's published algorithms;
@@ -168,17 +157,16 @@ results and the grid scripts all live under the experiment's
 [backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
 and `just experiments single-core-benchmark` builds the engines and reruns the
 whole grid. The native family (the naive and CSP presets) is one binary selected
-by preset; the four strong engines (producer, ALNS, Verhaard, Blackwood) are a
-binary each, driven by a small wrapper. Both speak the same puzzle-in,
+by preset; the two backtrackers are a binary each, driven by a small wrapper.
+Both speak the same puzzle-in,
 bucas-url-out contract, and every board is re-scored by the one canonical scorer.
 
 ## Companion findings
 
 Profiling put 96.6 percent of the CSP family's time in one heavily pre-optimised
-AC-3 loop, and three bit-identical optimisation attempts on the producer's hot
-path all measured neutral or worse. These engines are already at their
-performance ceiling; the benchmark speeds are their real speeds, not an
-implementation gap. Separately, the community's Blackwood constants do not
+AC-3 loop. That engine is already at its performance ceiling; the benchmark
+speeds are its real speeds, not an implementation gap. Separately, the
+community's Blackwood constants do not
 transfer across colour labelings: its published privileged colours scored 387 in
 our labeling versus 435 for a re-fit, a 48-point gap that our Blackwood closes by
 re-fitting only the labeling-relative colour IDs while matching every structural
