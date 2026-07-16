@@ -435,13 +435,79 @@ pub fn board_to_bucas_edges(puzzle: &Puzzle, board: &Board) -> String {
     s
 }
 
+/// Extract a board's per-cell URDL edge quads (row-major, empty -> `[0;4]`).
+#[must_use]
+pub fn board_to_cells(puzzle: &Puzzle, board: &Board) -> Vec<[u8; 4]> {
+    let mut cells = vec![[0u8; 4]; puzzle.cell_count() as usize];
+    for pos in 0..puzzle.cell_count() {
+        if let Some((pid, rot)) = board.get(pos) {
+            if let Some(piece) = puzzle.piece(pid) {
+                cells[pos as usize] = piece.edges.rotated(rot).as_array();
+            }
+        }
+    }
+    cells
+}
+
+/// Extract a board's row-major `piece_id*4 + rot` codes (`-1` empty).
+#[must_use]
+pub fn board_to_codes(puzzle: &Puzzle, board: &Board) -> Vec<i32> {
+    (0..puzzle.cell_count())
+        .map(|pos| match board.get(pos) {
+            Some((pid, rot)) => i32::from(pid) * 4 + i32::from(rot.as_u8()),
+            None => -1,
+        })
+        .collect()
+}
+
+/// The legacy bucas viewer URL for a board. Delegates to `e2_io::bucas_url` so
+/// there is one bucas encoder across the whole blog. NOT the default any engine
+/// writes to disk — see [`viewer_url`] / [`board_to_doc`] for that.
 #[must_use]
 pub fn bucas_url(puzzle: &Puzzle, board: &Board, puzzle_name: &str) -> String {
-    let edges = board_to_bucas_edges(puzzle, board);
-    format!(
-        "https://e2.bucas.name/#puzzle={}&board_w={}&board_h={}&board_edges={}",
-        puzzle_name, puzzle.width, puzzle.height, edges
+    let cells = board_to_cells(puzzle, board);
+    e2_io::bucas_url(puzzle_name, puzzle.width as u8, puzzle.height as u8, &cells)
+}
+
+/// The canonical eternity2.dev viewer URL for a board.
+#[must_use]
+pub fn viewer_url(puzzle: &Puzzle, board: &Board, puzzle_name: &str) -> String {
+    let cells = board_to_cells(puzzle, board);
+    let codes = board_to_codes(puzzle, board);
+    e2_io::viewer_url(puzzle_name, puzzle.width as u8, &cells, &codes)
+}
+
+/// Build the canonical [`e2_io::BoardDoc`] for a board: extracts cells + codes,
+/// computes every derived string and the eternity2.dev URL. This is the helper
+/// every caller that needs to write a canonical board `.json` should use.
+#[must_use]
+pub fn board_to_doc(puzzle: &Puzzle, board: &Board, name: &str, score: u32) -> e2_io::BoardDoc {
+    let cells = board_to_cells(puzzle, board);
+    let codes = board_to_codes(puzzle, board);
+    let (w, h) = (u32::from(puzzle.width), u32::from(puzzle.height));
+    let max_score = 2 * w * h - w - h;
+    e2_io::BoardDoc::new(
+        name,
+        puzzle.width as u8,
+        score,
+        max_score,
+        &cells,
+        &codes,
+        board_hash(&codes),
     )
+}
+
+/// FNV-1a over the row-major `piece*4+rot` codes — a stable board fingerprint.
+#[must_use]
+pub fn board_hash(codes: &[i32]) -> u64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for &c in codes {
+        for b in c.to_le_bytes() {
+            h ^= u64::from(b);
+            h = h.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+    }
+    h
 }
 
 #[cfg(test)]

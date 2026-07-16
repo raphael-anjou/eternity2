@@ -15,13 +15,12 @@ mod report;
 mod score;
 mod verify;
 
-pub use board_io::{
-    load_board, load_board_csv, read_dump, save_board, save_board_csv, write_dump,
-    BoardMetadata, DumpedBoard, LoadError,
-};
+pub use board_io::{load_board, save_board, BoardMetadata, LoadError};
 pub use bucas::{
-    board_to_bucas_edges, bucas_url, decode_bucas_board, BucasDecode, BucasDecodeError,
+    board_to_bucas_edges, board_to_cells, board_to_codes, board_to_doc, board_hash, bucas_url,
+    decode_bucas_board, viewer_url, BucasDecode, BucasDecodeError,
 };
+pub use e2_io::BoardDoc;
 pub use report::{puzzle_name_from_path, write_report, RunReport};
 pub use score::{internal_edge_count, placed_count, render_board, score_board};
 pub use verify::{

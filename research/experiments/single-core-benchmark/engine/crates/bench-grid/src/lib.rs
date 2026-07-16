@@ -67,7 +67,8 @@ pub struct SolveOutput {
     /// Canonical matched-edge count via [`score_cells`] — the single source of
     /// truth. Engines never self-report here.
     pub score: u32,
-    pub bucas_url: String,
+    /// The canonical `https://eternity2.dev/viewer?…` URL for this board.
+    pub url: String,
 }
 
 impl SiteInstance {
@@ -155,12 +156,25 @@ impl SiteInstance {
     pub fn finish(&self, board: Vec<i32>) -> SolveOutput {
         let cells = board_to_cells(self, &board);
         let score = score_cells(self, &cells);
-        let bucas_url = cells_to_bucas_url(self, &cells);
-        SolveOutput {
-            board,
+        let url = cells_to_bucas_url(self, &cells, &board);
+        SolveOutput { board, score, url }
+    }
+
+    /// Build the canonical [`e2_io::BoardDoc`] for a row-major `piece*4 + rot`
+    /// board (`-1` empty). Scores it canonically and carries the eternity2.dev
+    /// viewer URL. `board_hash` is a caller-supplied stable fingerprint.
+    pub fn to_doc(&self, board: &[i32], board_hash: u64) -> e2_io::BoardDoc {
+        let cells = board_to_cells(self, board);
+        let score = score_cells(self, &cells);
+        e2_io::BoardDoc::new(
+            &self.name,
+            self.width,
             score,
-            bucas_url,
-        }
+            self.max_score(),
+            &cells,
+            board,
+            board_hash,
+        )
     }
 }
 
@@ -218,26 +232,12 @@ pub fn score_cells(inst: &SiteInstance, cells: &[[u8; 4]]) -> u32 {
     score
 }
 
-fn color_to_bucas(c: u8) -> char {
-    if c as usize > 22 {
-        'a'
-    } else {
-        (b'a' + c) as char
-    }
-}
-
-/// Render a cell grid as a bucas viewer URL (4 URDL letters per cell).
-pub fn cells_to_bucas_url(inst: &SiteInstance, cells: &[[u8; 4]]) -> String {
-    let mut edges = String::with_capacity(cells.len() * 4);
-    for c in cells {
-        for &color in c {
-            edges.push(color_to_bucas(color));
-        }
-    }
-    format!(
-        "https://e2.bucas.name/#puzzle={}&board_w={}&board_h={}&board_edges={}",
-        inst.name, inst.width, inst.height, edges
-    )
+/// Render a board as the canonical eternity2.dev viewer URL. `cells` are the
+/// per-cell URDL edge quads (row-major); `codes` are the row-major
+/// `piece*4 + rot` (`-1` empty) that supply `board_pieces`. Delegates to the
+/// shared `e2-io` encoder so every engine emits byte-identical URLs.
+pub fn cells_to_bucas_url(inst: &SiteInstance, cells: &[[u8; 4]], codes: &[i32]) -> String {
+    e2_io::viewer_url(&inst.name, inst.width, cells, codes)
 }
 
 /// Convert a v2 `eternity2_core::Board` to the row-major `piece*4 + rot` board.
@@ -273,7 +273,8 @@ mod tests {
         let inst = SiteInstance::official(OFFICIAL_CSV).unwrap();
         let out = inst.finish(vec![-1; 256]);
         assert_eq!(out.score, 0);
-        assert!(out.bucas_url.matches('a').count() >= 1024);
+        assert!(out.url.starts_with("https://eternity2.dev/viewer?"));
+        assert!(out.url.matches('a').count() >= 1024);
     }
 
     // McGavin/Blackwood 469/480 board, bucas board_edges (from the site engine's

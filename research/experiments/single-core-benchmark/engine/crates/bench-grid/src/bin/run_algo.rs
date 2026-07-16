@@ -65,7 +65,10 @@ fn main() {
     let nps = (run.nodes as f64 / secs) as u64;
 
     if let Some(p) = &emit {
-        std::fs::write(p, &out.bucas_url).expect("write url");
+        // Canonical board document (one .json with an eternity2.dev viewer URL).
+        inst.to_doc(&out.board, board_hash)
+            .write_json(p)
+            .expect("write board json");
     }
     if let Some(p) = &json_out {
         std::fs::write(p, serde_json::to_string(&out).unwrap()).expect("write json");

@@ -1700,6 +1700,34 @@ impl AdaptiveWeights {
 /// atomic write of a single best-board JSON checkpoint.
 /// Format mirrors what other bins emit (placement array +
 /// matched score). Overwrites the file each call.
+/// Encode a board as the viewer's `board_edges` (4 URDL letters/cell) and
+/// `board_pieces` (3-digit 1-based piece id/cell) strings — the same encoding
+/// `e2_io::viewer_url` produces, inlined here so localsearch keeps its zero
+/// external-serialization footprint.
+fn checkpoint_edges_pieces(puzzle: &Puzzle, board: &Board) -> (String, String) {
+    let color = |c: u8| -> char {
+        if c as usize > 22 { 'a' } else { (b'a' + c) as char }
+    };
+    let n = puzzle.cell_count();
+    let mut edges = String::with_capacity(n as usize * 4);
+    let mut pieces = String::with_capacity(n as usize * 3);
+    for pos in 0..n {
+        match board.get(pos).and_then(|(pid, rot)| puzzle.piece(pid).map(|p| (pid, p.edges.rotated(rot)))) {
+            Some((pid, e)) => {
+                for &c in &e.as_array() {
+                    edges.push(color(c));
+                }
+                pieces.push_str(&format!("{:03}", u32::from(pid) + 1));
+            }
+            None => {
+                edges.push_str("aaaa");
+                pieces.push_str("000");
+            }
+        }
+    }
+    (edges, pieces)
+}
+
 fn write_alns_checkpoint(
     puzzle: &Puzzle,
     board: &Board,
@@ -1711,12 +1739,20 @@ fn write_alns_checkpoint(
     let n = puzzle.cell_count();
     // Build a JSON string by hand to avoid pulling serde_json into
     // the localsearch crate (which currently has no serde_json dep).
+    // The checkpoint carries the canonical eternity2.dev viewer URL so a
+    // rolling snapshot opens straight in /viewer (no bucas default anywhere).
+    let (edges, pieces) = checkpoint_edges_pieces(puzzle, board);
+    let url = format!(
+        "https://eternity2.dev/viewer?puzzle=alns_checkpoint&puzzle_size={}&board_edges={}&board_pieces={}",
+        puzzle.width, edges, pieces
+    );
     let mut s = String::with_capacity(8192);
     s.push_str(&format!(
-        "{{\n  \"matched\": {},\n  \"iters\": {},\n  \"timestamp\": \"{}\",\n  \"placement\": [\n",
+        "{{\n  \"matched\": {},\n  \"iters\": {},\n  \"timestamp\": \"{}\",\n  \"url\": \"{}\",\n  \"placement\": [\n",
         score, iters,
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
+        url,
     ));
     let mut first = true;
     for pos in 0..n {

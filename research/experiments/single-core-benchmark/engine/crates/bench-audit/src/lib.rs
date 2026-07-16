@@ -282,7 +282,7 @@ fn cell_local_score_for_edges(puzzle: &eternity2_core::Puzzle, board: &eternity2
 ///   3. build a solver + opts, call solver.solve()
 ///   4. pattern-match SolveOutcome → (verdict, best_partial_board)
 ///   5. format a human summary (verdict, wall-clock, FinalStats, score)
-///   6. serialize a JSON post-mortem (placement + stats + bucas URL)
+///   6. serialize a JSON post-mortem (placement + stats + viewer URL)
 ///
 /// Steps 4–6 are the largest copy-paste. The helpers below collapse
 /// them into ~3 calls. The bins remain free-form because every bin
@@ -291,7 +291,7 @@ fn cell_local_score_for_edges(puzzle: &eternity2_core::Puzzle, board: &eternity2
 pub mod harness {
     use eternity2_core::{Board, Puzzle};
     use eternity2_events::FinalStats;
-    use eternity2_export::{bucas_url, placed_count, score_board};
+    use eternity2_export::{placed_count, score_board, viewer_url};
     use eternity2_solver_trait::SolveOutcome;
     use serde_json::{json, Value};
 
@@ -343,7 +343,7 @@ pub mod harness {
     }
 
     /// Append the standard "FINAL RESULT" block to `out`: verdict,
-    /// wall-clock, FinalStats, score+placed, ASCII board, bucas URL.
+    /// wall-clock, FinalStats, score+placed, ASCII board, viewer URL.
     /// If `board` is None, omits the score/board parts.
     pub fn write_summary(
         out: &mut String,
@@ -383,13 +383,13 @@ pub mod harness {
             ));
             out.push_str("\nBoard (piece_id:rotation):\n");
             out.push_str(&eternity2_export::render_board(puzzle, b));
-            let bucas = bucas_url(puzzle, b, puzzle_name);
-            out.push_str(&format!("\nbucas: {bucas}\n"));
+            let url = viewer_url(puzzle, b, puzzle_name);
+            out.push_str(&format!("\nviewer: {url}\n"));
         }
     }
 
     /// Serialize the standard postmortem JSON: verdict, elapsed, score,
-    /// stats, per-cell placement, bucas URL. Caller writes it to disk.
+    /// stats, per-cell placement, viewer URL. Caller writes it to disk.
     #[must_use]
     pub fn build_postmortem_json(
         puzzle: &Puzzle,
@@ -415,7 +415,7 @@ pub mod harness {
         if let Some(b) = board {
             let (matched, total) = score_board(puzzle, b);
             let placed = placed_count(b, puzzle);
-            let bucas = bucas_url(puzzle, b, puzzle_name);
+            let url = viewer_url(puzzle, b, puzzle_name);
             let placement: Vec<Value> = (0..puzzle.cell_count())
                 .map(|pos| match b.get(pos) {
                     Some((pid, rot)) => json!({
@@ -434,7 +434,7 @@ pub mod harness {
                 "edge_matches": matched,
                 "edge_total": total,
                 "internal_total_edges": internal_total,
-                "bucas_url": bucas,
+                "url": url,
                 "placement": placement,
                 "final_stats": stats_json,
             })

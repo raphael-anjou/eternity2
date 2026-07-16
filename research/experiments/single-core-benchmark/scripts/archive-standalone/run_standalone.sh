@@ -2,13 +2,14 @@
 # run_standalone.sh — uniform single-core, ~60s-wall wrappers around the 4
 # "standalone" solver binaries (benchmark grid). Each function:
 #
-# run_producer <variant.csv> <seed> <budget_s> <out.url>
-# run_blackwood <variant.csv> <seed> <budget_s> <out.url>
-# run_verhaard <variant.csv> <seed> <budget_s> <out.url>
-# run_alns <variant.csv> <seed> <budget_s> <out.url>
+# run_producer <variant.csv> <seed> <budget_s> <out.json>
+# run_blackwood <variant.csv> <seed> <budget_s> <out.json>
+# run_verhaard <variant.csv> <seed> <budget_s> <out.json>
+# run_alns <variant.csv> <seed> <budget_s> <out.json>
 #
 # runs the engine SINGLE-CORE for approximately budget_s seconds wall-clock,
-# writes a bucas .url to out.url, and ALWAYS prints:
+# writes ONE canonical board .json (an eternity2.dev viewer URL, rewritten from
+# the vault bins' legacy bucas .url -- see _rsa_verify_and_emit) and ALWAYS prints:
 # - a line containing `canonical_score=NNN/480` from an independent
 # target/release/verify_bucas re-score (never trust the binary's
 # self-reported score);
@@ -74,26 +75,43 @@ _rsa_scratch() {
  echo "$d"
 }
 
-# _rsa_verify_and_emit <variant.csv> <url-string> <out.url>
-# Writes url-string to out.url (even if empty/invalid -- hard rule: always
-# emit a url artifact), then independently re-scores it with verify_bucas
-# and prints the resulting `canonical_score=NNN/480` line. If url-string is
-# empty (engine produced nothing at all, e.g. crashed before any board),
-# writes a sentinel file and prints canonical_score=0/480 without invoking
-# verify_bucas (which requires a decodable board_edges parameter).
+# _rsa_verify_and_emit <variant.csv> <bucas-url-string> <out.json>
+# Emits ONE canonical board .json to out.json (hard rule: always emit an
+# artifact), then independently re-scores the board with verify_bucas and prints
+# the resulting `canonical_score=NNN/480` line.
+#
+# ARCHIVED-SCRIPT NOTE: this wrapper drives the historical *vault* binaries
+# (V2_ROOT/target/release), which still emit a legacy bucas `.url` string
+# internally -- they predate the BoardDoc `.json` standardization. Rather than
+# rebuild those frozen binaries, this is the pragmatic string-rewrite fallback
+# the standardization allows: verify against the bucas URL as before, then
+# rewrite it to the canonical eternity2.dev viewer form
+# (`s|https://e2.bucas.name/#|https://eternity2.dev/viewer?|` and
+# `board_w=16&board_h=16` -> `puzzle_size=16`) and wrap it in a minimal
+# {"url": ...} document -- so the COMMITTED artifact is canonical json even
+# though the internal engine strings stay bucas. The live script
+# (../run_standalone.sh) drives the rebuilt bins and emits BoardDoc json
+# directly; this archived copy stays byte-faithful to the vault it documents.
 _rsa_verify_and_emit() {
  local variant_csv="$1"
  local url="$2"
- local out_url="$3"
- mkdir -p "$(dirname "$out_url")"
+ local out_json="$3"
+ mkdir -p "$(dirname "$out_json")"
  if [[ -z "$url" ]]; then
- echo "NO_BOARD_PRODUCED" > "$out_url"
+ printf '{"url": "", "note": "NO_BOARD_PRODUCED"}\n' > "$out_json"
  echo "canonical_score=0/480 (NO BOARD PRODUCED -- see stderr above)"
  return 1
  fi
- printf '%s' "$url" > "$out_url"
+ # Verify against the raw bucas URL (verify_bucas decodes both forms).
  "$VERIFY_BIN" "$variant_csv" "$url"
- return 0
+ local rc=$?
+ # Rewrite bucas -> eternity2.dev viewer for the committed artifact.
+ local viewer_url
+ viewer_url="$(printf '%s' "$url" \
+ | sed -e 's|https://e2.bucas.name/#|https://eternity2.dev/viewer?|' \
+ -e 's|board_w=16&board_h=16|puzzle_size=16|')"
+ printf '{"url": "%s"}\n' "$viewer_url" > "$out_json"
+ return $rc
 }
 
 # ---------------------------------------------------------------------------
