@@ -57,10 +57,11 @@ The loop itself is short. One iteration, walked through below.
   <RepairLoopDiagram />
 </Figure>
 
-The point is not to win. The strongest variant here finishes in the low 400s,
-well short of the mid-450s that constructive methods reach, because sixty seconds
-of a plain repair loop on a mediocre starting board is a small thing next to the
-pipelines the records use. The point is to isolate *what each decision in the
+The point is not to win. Most variants finish in the low 400s, and the one that
+does best does so by starting from a strong backtracked board rather than a
+constructed one, which is itself the study's central lesson. Repairing a plain
+greedy board on one core for a minute is a small thing next to the pipelines the
+records use; what the study measures is *what each decision in the
 loop is worth* by changing one at a time and measuring the result with the same
 canonical scorer the DFS study and the rest of the site use.
 
@@ -78,24 +79,29 @@ the loop stalls.
 
 ## What the study found
 
-- **Random destroy wins outright, and targeting the breaks backfires.** A
-  geometry-blind destroy that lifts twelve *random* cells finishes highest of all,
-  at a mean of 401 (best 409), and keeps improving deep into the run. Every
-  operator that targets the broken cells finishes below it, and the more precisely
-  it fixates, the worse it does: the mismatched-cells anchor lands at 366, and a
-  larger connected-component destroy at 350. This is the study's sharpest result
-  and the opposite of the natural intuition. On a mediocre board there is
-  improvement available everywhere, so exploring beats attacking where it already
-  hurts. That inverts on a near-record board, where the few remaining mismatches
-  are the only thing left to fix.
+- **Starting from a strong backtracked board wins the whole study.** The variant
+  that spends its first twenty seconds running the DFS study's break-DFS, then
+  repairs the resulting low-440s board, finishes highest of all, at a mean of 446
+  (best 449). Repair adds only a handful of edges on top of that board, but the board it
+  starts from is a hundred points better than a greedy construction, and that
+  carries through. This is the construct-then-refine division of labour the records
+  use, reproduced end to end on one core in one minute.
+- **Among the greedy-start variants, random destroy wins and targeting the breaks
+  backfires.** A geometry-blind destroy that lifts twelve *random* cells finishes
+  at a mean of 402 (best 409) and keeps improving deep into the run. Every operator
+  that targets the broken cells finishes below it, and the more precisely it
+  fixates, the worse it does: the mismatched-cells anchor lands at 366, a larger
+  connected-component destroy at 350. On a mediocre board there is improvement
+  available everywhere, so exploring beats attacking where it already hurts. That
+  inverts on a near-record board, where the few remaining mismatches are the only
+  thing left to fix.
 - **The starting board sets the floor.** A greedy construction starts around 348;
   a random one starts near 18, and although the loop lifts it a spectacular 308
   points, it still finishes below where the greedy start *began*. Construction is
-  the lever, repair is the polish, and a rarest-colour-first construction is the
-  best start of all.
+  the lever, repair is the polish.
 - **The acceptance rule is the other real lever.** Simulated annealing, which
   steps downhill occasionally to leave a plateau, is the strongest acceptance rule
-  by a clear margin (mean 375, best 388, second only to random destroy), well
+  by a clear margin (mean 377, best 394, second only to random destroy), well
   ahead of a strict hill-climb (361). How much a non-improving move is allowed is
   worth a fourteen-point swing on the same loop.
 - **The clever refinements buy nothing here.** A whole-band destroy is inert (zero

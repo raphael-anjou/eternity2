@@ -44,10 +44,21 @@ iterations, still finishes below where the greedy start *began*.
 This is the study's first and firmest result: **construction is the lever, repair
 is the polish.** A rarest-colour-first greedy construction (the Selby and Riordan
 heuristic that a scarce colour should be spent where it is forced) starts a little
-higher still and finishes at a mean of 373, the best of the starting-board family.
-The lesson matches the construct-then-refine pipelines behind this project's
-record-approaching boards: the board that reaches the top is *built* well and then
-repaired, never repaired from nothing.
+higher still and finishes at a mean of 373, the best of the *greedy* starts.
+
+The clearest proof of the point is to start from a genuinely strong board rather
+than a greedy one. The final starting-board variant hands the loop a board built
+by the [DFS study's](/research/lab/experiments/raphael-anjou/dfs-study) break-DFS:
+the run spends its first twenty seconds backtracking to a board in the low 440s,
+then repairs it for the remaining forty. That start is a hundred points above a
+greedy construction, and it carries straight through to the finish. It is the
+highest-scoring variant in the whole study, at a mean of 446 (best 449), far above
+the random-destroy loop's 402, and it settles the construct-then-refine question the
+rest of the study circles: repair *does* add a few edges on top of a strong
+backtracked board, but only a few, and the board it starts from decides almost
+everything. This is exactly the division of labour the records use, and this study
+reproduces it end to end on one core in one minute: a backtracker to build a good
+board, then a repair loop to squeeze the last edges out of it.
 
 ## The destroy operator: attacking the breaks can backfire
 
@@ -58,19 +69,20 @@ the axis with the study's most surprising result.
   <DestroyOperatorDiagram />
 </Figure>
 
-- **A geometry-blind random destroy wins outright, at a mean of 401 (best 409).**
-  Lifting twelve *random* cells instead of the broken ones, it keeps sampling
-  fresh regions of the board, accepts nearly three quarters of its moves, and its
-  best score keeps improving deep into the run: its last improvement lands past
-  three million iterations, where every conflict-driven variant has long since
-  frozen. It is the highest score in the whole study.
+- **A geometry-blind random destroy wins the destroy comparison, at a mean of 402
+  (best 409).** Lifting twelve *random* cells instead of the broken ones, it keeps
+  sampling fresh regions of the board, accepts nearly three quarters of its moves,
+  and its best score keeps improving deep into the run: its last improvement lands
+  past three million iterations, where every conflict-driven variant has long since
+  frozen. It is the best of every variant that starts from a greedy board (only the
+  DFS-seeded start, a different lever entirely, finishes higher).
 - **Every conflict-driven operator finishes below it, and the more it fixates on
   the breaks, the worse it does.** The mismatched-cells anchor, which lifts up to
   a dozen of the broken cells, averages 366 and stalls early: it rips out the same
   clustered tangle, greedily rebuilds it to almost the same placement, and its best
   score stops moving within a few thousand iterations. The component-plus-halo
   operator, which lifts one whole connected tangle (a much larger hole), does worse
-  still, at 350, and its best last improves at iteration 76: a hole that size hands
+  still, at 350, and its best last improves at iteration 211: a hole that size hands
   the greedy refill a subproblem it cannot improve, so almost nothing is ever kept.
 - **A whole-band destroy is inert.** Lifting the two rows with the most breaks
   leaves the greedy refill a subproblem nearly as hard as the puzzle itself; on
@@ -129,7 +141,7 @@ axes, this one moves the score the most after the destroy operator.
   sideways moves let it drift across the equal-score plateaus that dominate this
   landscape.
 - **A cooling simulated-annealing rule is the strongest acceptance by a clear
-  margin, at 375 (best 388), second only to random destroy in the whole study.**
+  margin, at 377 (best 394), among the best of the greedy-start variants.**
   Allowing occasional *worsening* moves early, then cooling, lets it leave a
   plateau that pure sideways drift is trapped on, and its best score keeps
   improving to around iteration twenty thousand rather than freezing in the first
