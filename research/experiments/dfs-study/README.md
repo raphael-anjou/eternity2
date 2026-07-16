@@ -12,11 +12,13 @@ each variant is one declared change over a parent.
 ## Layout
 
 ```
-engine/                 self-contained Cargo workspace
+../common/              shared central lib (also used by the repair study)
   crates/
-    dfs-core/           board, pieces, the one canonical scorer, search stats
-    dfs-io/             shared IO contract + lossless converters (site JSON, CSV,
+    e2-core/            board, pieces, the one canonical scorer, search stats
+    e2-io/              shared IO contract + lossless converters (site JSON, CSV,
                         bucas URL, hints) — every study algorithm speaks this
+engine/                 this study's own Cargo workspace (depends on ../common)
+  crates/
     dfs-engine/         the composable DFS + the variant registry
     dfs-codegen/        NAIVE-CODEGEN: a 16x16-specialised row-major hot loop
     dfs-run/            run_dfs, dfs-convert binaries

@@ -1,0 +1,49 @@
+# e2-common — the shared substrate for the blog's from-scratch Eternity II
+# engines. Two crates, both search-strategy-agnostic, so a backtracker and a
+# repair engine can sit on the exact same board, piece set, canonical scorer,
+# and IO contract without either depending on the other:
+#
+#   e2-core   board, pieces, THE one canonical scorer, search-state stat counters
+#   e2-io     the shared Instance/Board io contract + lossless converters
+#             (site JSON, CSV, bucas URL, hint/clue files)
+#
+# The DFS study (../dfs-study) and the repair study (../repair-study) both
+# depend on these two crates by relative path, so a score from either study is
+# produced by the same scorer and a board moves losslessly between them. Keeping
+# the shared code here — rather than duplicated per study — is what makes the
+# "two ways people attack E2, each taken apart, on one common substrate" pairing
+# honest: the substrate really is one piece of code.
+#
+#   cargo test        # scorer parity + io round-trips
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+e2-core = { path = "crates/e2-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+doc_markdown = "allow"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

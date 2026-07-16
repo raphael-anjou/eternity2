@@ -6,7 +6,7 @@
 //! orders where other neighbours are constrained, the search falls back to a
 //! direct four-edge match over a single-sided candidate list.
 
-use dfs_core::{Pieces, Rot};
+use e2_core::{Pieces, Rot};
 
 /// An oriented piece: a piece id at a specific rotation, with its resolved URDL
 /// edges cached so the hot loop never recomputes a rotation.

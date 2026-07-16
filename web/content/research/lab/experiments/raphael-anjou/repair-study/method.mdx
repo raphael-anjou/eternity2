@@ -1,0 +1,142 @@
+---
+title: How the study is built
+description: >-
+  The engine behind the repair study: one composable destroy-and-repair loop
+  where a variant is a declared change over a parent, the shared IO and scorer it
+  sits on with the DFS study, an incrementally-maintained mismatch map, and the
+  definitions of every statistic the study raises.
+metaDescription: "The repair study's engine: a composable destroy-and-repair loop, an incremental mismatch map, and definitions of the stall, lift and accept rate."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/findings
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "The engine workspace (repair-engine, repair-run) on the shared e2-core / e2-io library"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/engine
+---
+
+This page is the apparatus behind the [repair study](/research/lab/experiments/raphael-anjou/repair-study):
+how the engine is built, why a new variant is cheap to add, and what every number
+on the results means. It is the deliberate twin of the
+[DFS study's method page](/research/lab/experiments/raphael-anjou/dfs-study/method),
+and it sits on the *same* shared library: the board, the piece set, the one
+canonical scorer and the IO contract all come from a common `e2-core` / `e2-io`
+crate that the backtracking study uses too. A repaired board and a backtracked
+board are therefore scored by the identical code, which is what lets numbers from
+the two studies sit on one axis.
+
+## A variant is a declared change over a parent
+
+Every algorithm in the study is the *same* destroy-and-repair loop, parameterised
+by five independent choices:
+
+- **starting board**: the board the loop begins from (random, greedy
+  construction, or a rarest-colour-first greedy construction);
+- **destroy operator**: which cells each iteration lifts (random, the mismatched
+  cells, the worst row band, or one connected mismatch component plus a halo);
+- **repair**: how the hole is refilled (greedy most-constrained-first, the same
+  with jittered tie-breaks, or a bounded exact refill for small holes);
+- **acceptance**: whether a candidate replaces the working board (keep if not
+  worse, strict improvements only, simulated annealing, or late-acceptance);
+- **restart**: what happens on a stall (nothing, a random kick, or a revert to
+  the best board so far).
+
+A variant is a small record naming those five choices, together with **the parent
+it derives from and a one-line description of the single change it adds**. Adding
+a variant means adding one record to the registry, with no new loop code unless
+the idea is a genuinely new strategy. The "what stacks on what" matrix on the
+results page is generated from those descriptions, so it cannot drift from the
+code that ran.
+
+## The mismatch map, maintained incrementally
+
+A backtracker builds a board up from nothing; a repair loop always holds a
+*complete* board and edits it. The cells worth attacking are the ones touching a
+broken edge, so the engine keeps a live count, per cell, of the broken interior
+edges incident to it. Placing or lifting a piece updates only the edges around
+that one cell, never the whole board, so a conflict-driven destroy operator can
+ask "which cells touch a mismatch?" without rescanning. The running score is kept
+the same way: each placement adjusts it by the handful of seams that changed. A
+full rescan happens exactly once, when the starting board is built; from then on
+the loop is incremental. This is what makes hundreds of thousands of iterations
+in sixty seconds possible, and it is the same discipline the
+[ALNS theory page](/research/build/local-search/local-search-alns) describes as
+keeping destroy at cost proportional to the hole, not the board.
+
+## The scorer is the single source of truth
+
+No engine's self-reported score is trusted. The loop's incremental score is a
+performance device; the *published* number is always a fresh canonical re-score
+of the output board, through the same scorer the site and the DFS study use
+(matched, non-border, interior adjacencies, counted right and down per cell). A
+test asserts the incremental score and the canonical score agree after thousands
+of random place-and-lift edits, so the fast path can be trusted to track the
+truth rather than drift from it.
+
+## The statistics the study raises
+
+For every run the engine records, and the results carry all the way to the page:
+
+- **final score**: the canonical matched edges (of 480) of the best board found.
+- **lift**: final score minus the starting board's score. This isolates the
+  repair loop's own contribution from the construction it began with: a variant
+  that starts high can add little and still finish high, and the lift is what
+  separates the two.
+- **the stall (last-best iteration vs total iterations)**: the iteration at which
+  the global best last improved, against how many iterations the budget bought.
+  This is the study's headline axis: when the first is far below the second, the
+  run found its answer early and then moved nothing.
+- **accept rate**: the fraction of iterations the acceptance rule kept. A rate
+  near zero means the loop is proposing changes it almost always rejects, often
+  a sign it is re-attacking the same region.
+- **mean destroy size**: cells lifted per iteration, so a large-hole operator is
+  not silently compared to a small-hole one.
+- **iterations per second**: reported per variant and **never compared across
+  families**, because an iteration running an exact refill is not the same unit of
+  work as one running a greedy fill.
+- **restarts**: perturbations fired, zero for a variant with no restart policy.
+
+The page also draws a **convergence curve** for a few representative variants: the
+best score so far, sampled every two hundred iterations, as a typical run
+progresses. It is the clearest picture of the stall: the curve rises steeply,
+then goes flat while the iteration count keeps climbing.
+
+## Honesty about the greedy engine's speed
+
+Like the DFS study's MRV engine, the repair loop here is written for clarity
+first. The greedy refill rescans the remaining piece pool for every cell it
+fills, rather than maintaining candidate lists incrementally, so its
+iterations-per-second is this clean engine's rather than the best a tuned repair
+kernel could reach. The ranking by score does not depend on it, since throughput
+is a separate axis never mixed into the score comparison, but the iteration rates
+should be read as this engine's, not as the ceiling for destroy-and-repair.
+
+## What this study deliberately does not claim
+
+This is a study of the *plain* repair loop, one decision at a time, at a small
+fixed budget. It is not the record pipeline: the boards that reach the mid-450s
+and beyond combine a strong constructive producer, longer runs, and repair as a
+final polish, and several of the operator findings here would read differently on
+a near-record board than they do on the mediocre greedy start the loop begins
+from. Where a result depends on the starting board's quality, the findings page
+says so. The community's own tuning found, for instance, that conflict-driven and
+component operators are valuable precisely on near-optimal boards where the few
+remaining mismatches are the only thing left to fix, the regime this study's
+short runs never reach.
+
+## Reproducibility
+
+The engine, the ten variants, the committed per-run results and the grid scripts
+all live under the study's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study).
+`just experiments repair-study` rebuilds the engine and reruns the whole grid;
+the run is deterministic at a fixed seed, and the corner arrangement is the only
+diversity axis.

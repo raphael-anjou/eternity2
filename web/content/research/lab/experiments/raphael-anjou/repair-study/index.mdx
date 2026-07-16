@@ -1,0 +1,136 @@
+---
+title: The repair study
+description: >-
+  The sibling of the DFS study, for the other way people attack Eternity II:
+  destroy part of a board, rebuild it, keep the change if it helps. One question,
+  asked carefully. What does each decision in that loop buy: which region to
+  destroy, how to rebuild it, when to keep a move, when to restart, and what
+  board to start from?
+metaDescription: "A study of destroy-and-repair local search for Eternity II: what each decision in the loop buys, measured on ten variants, single core, 60 s."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s"
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments repair-study
+order: 26
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Runnable engine + committed results + scripts (this study's backing directory)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study
+---
+
+import { RepairStudyLeaderboard } from "@/components/research/RepairStudyLeaderboard";
+import { RepairLoopDiagram } from "@/components/research/RepairLoopDiagram";
+
+There are two ways people actually attack Eternity II. One is to build a board
+cell by cell and backtrack when it fails; the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study)
+takes that apart. The other is to hold a whole board and *repair* it: rip out a
+region, rebuild it, keep the change if it helped, and repeat. Repair is the last
+stage of the construct-then-refine pipelines behind this project's own
+record-approaching boards, and it is the method the literature reaches for once a
+board is too good for a single-piece move to improve. This study takes the repair
+loop apart the same way its sibling took backtracking apart: one decision at a
+time, on the same ten corner-pinned variants, single core, sixty seconds a run.
+The maximum score is 480 matched edges.
+
+The loop itself is short. One iteration, walked through below.
+
+<Figure title="One destroy-and-repair iteration, step by step">
+  <RepairLoopDiagram />
+</Figure>
+
+The point is not to win. The strongest variant here finishes in the low 400s,
+well short of the mid-450s that constructive methods reach, because sixty seconds
+of a plain repair loop on a mediocre starting board is a small thing next to the
+pipelines the records use. The point is to isolate *what each decision in the
+loop is worth* by changing one at a time and measuring the result with the same
+canonical scorer the DFS study and the rest of the site use.
+
+## The family, and the leaderboard
+
+Five families, laid out so that neighbours differ by a single decision, all
+branching off one plain anchor loop (greedy start, destroy the mismatched cells,
+greedy refill, keep the result unless it loses score, never restart). **Starting
+board** changes where the loop begins. **Destroy operator** changes which cells
+each iteration lifts. **Repair** changes how the hole is rebuilt. **Acceptance**
+changes when a non-improving move is kept. **Restart** changes what happens once
+the loop stalls.
+
+<RepairStudyLeaderboard />
+
+## What the study found
+
+- **Random destroy wins outright, and targeting the breaks backfires.** A
+  geometry-blind destroy that lifts twelve *random* cells finishes highest of all,
+  at a mean of 401 (best 409), and keeps improving deep into the run. Every
+  operator that targets the broken cells finishes below it, and the more precisely
+  it fixates, the worse it does: the mismatched-cells anchor lands at 366, and a
+  larger connected-component destroy at 350. This is the study's sharpest result
+  and the opposite of the natural intuition. On a mediocre board there is
+  improvement available everywhere, so exploring beats attacking where it already
+  hurts. That inverts on a near-record board, where the few remaining mismatches
+  are the only thing left to fix.
+- **The starting board sets the floor.** A greedy construction starts around 348;
+  a random one starts near 18, and although the loop lifts it a spectacular 308
+  points, it still finishes below where the greedy start *began*. Construction is
+  the lever, repair is the polish, and a rarest-colour-first construction is the
+  best start of all.
+- **The acceptance rule is the other real lever.** Simulated annealing, which
+  steps downhill occasionally to leave a plateau, is the strongest acceptance rule
+  by a clear margin (mean 375, best 388, second only to random destroy), well
+  ahead of a strict hill-climb (361). How much a non-improving move is allowed is
+  worth a fourteen-point swing on the same loop.
+- **The clever refinements buy nothing here.** A whole-band destroy is inert (zero
+  improvements on nine of ten instances). A bounded *exact* refill of a small hole
+  does not beat a plain greedy refill of the same hole, a clean negative result:
+  its locally-perfect rebuilds cost enough iterations that more, cheaper greedy
+  rebuilds reach just as far. Neither a random kick nor a revert-to-best on a stall
+  moves the score off the no-restart baseline.
+
+Each of these has its own treatment: how the engine is built and what every
+raised statistic means is on the [method page](/research/lab/experiments/raphael-anjou/repair-study/method),
+and the destroy, repair, acceptance, restart and starting-board comparisons are
+worked through on the [findings page](/research/lab/experiments/raphael-anjou/repair-study/findings).
+
+## How to read the numbers
+
+Every board is re-scored by the one canonical scorer, and no engine's
+self-reported score is trusted. The loop maintains its score incrementally as it
+places and lifts pieces, but the published number is always a fresh canonical
+re-score of the output board. Throughput is reported in repair-iterations per
+second and is **never compared across families**, because an iteration that runs
+an exact refill is not the same unit of work as one that runs a greedy fill.
+
+The axis to watch is the *stall*: the iteration at which the global best last
+improved, against the total iterations run. When the first is a few thousand and
+the second is hundreds of thousands, the run found its answer early and then
+ground the same basin for the rest of the minute. That gap is the measured form
+of a long-standing observation about this puzzle, that destroy-and-repair is a
+superb basin-explorer and essentially never escapes the basin it lands in.
+
+The whole apparatus (the engine, the ten variants, the committed per-run results
+and the grid scripts) lives under the study's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study),
+and `just experiments repair-study` rebuilds the engine and reruns the whole
+grid. The board, scorer and IO layer come from a
+[shared library](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/common)
+the DFS study uses too, so a repaired board and a backtracked one are scored by
+exactly the same code.

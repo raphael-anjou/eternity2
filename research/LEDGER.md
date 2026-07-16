@@ -892,3 +892,78 @@ DfsStudyLeaderboard (score bars by family + the generated matrix + community
 panel). Reproducibility: `just experiments dfs-study`. Verified at close: cargo
 test 21/21, research style 0/0, links + citations green, typecheck, lint, build
 all green. Working-state (NOTES.md) kept out of the committed record.
+
+### 2026-07-16 — The repair study, on a shared central lib, and the audit that changed its findings
+
+Built the **repair study**, the sibling of the DFS study, for the other way E2 is
+attacked: destroy-and-repair local search taken apart one decision at a time, on
+the same ten corner-pinned variants, single core, 60 s, seed 1. First, a
+central-lib refactor: `dfs-core` and `dfs-io` were extracted out of the DFS study
+into `research/experiments/common/` (crates renamed `e2-core`, `e2-io`), so both
+studies now sit on the *same* board, canonical scorer and IO contract. A repaired
+board and a backtracked board are scored by identical code. The DFS study kept only
+its own crates and still builds + passes 15/15; the shared lib carries its own
+`fixtures/variant_00.*` and passes 6/6.
+
+The repair engine (`repair-study/engine/crates/repair-engine`) is one composable
+destroy-repair loop with the same variant-as-delta registry idiom as dfs-engine.
+Five axes: starting board (random / greedy / greedy-rare), destroy (random /
+mismatched / worst-band / component-halo), repair (greedy / jitter / exact-small),
+acceptance (greedy-equal / strict / annealing / late-acceptance), restart (none /
+kick / revert-best). An incrementally-maintained mismatch map makes conflict-driven
+destroy O(k). `run_repair` emits a RESULT line with the raised stats; the site JSON
+carries a 60-point convergence curve per variant. Site: three MDX pages
+(index/method/findings), a `RepairStudyLeaderboard` (leaderboard + lift + a
+convergence-curve stall figure + the generated matrix), a four-phase animated
+`RepairLoopDiagram` stepper, and a `DestroyOperatorDiagram`. Palette = the DFS
+study's validated five-hue set. Cross-linked from the ALNS theory page, the
+raphael-anjou hub, and `/algorithms`.
+
+An **adversarial audit** (a subagent tasked to find research-poisoning) earned its
+keep. It found two real defects the first "green" run had hidden by testing only in
+`--release`: (1) the incremental conflict-map counter was not seam-symmetric (it
+gated on one cell's own edge, not the seam), so `place` and `clear` disagreed and
+the u8 counter leaked; the study's own tests in fact *panicked on overflow in dev
+profile*, and in release the counter silently wrapped, leaving the map wrong on up
+to 248/256 cells. The published scores were untouched (the score gate is symmetric
+and every board is canonically re-scored), but the conflict-driven variants were
+picking cells from a corrupt map. (2) REPAIR-EXACT was a confounded two-axis change
+whose "exact" refill rarely even ran (12-cell holes, 8-cell cap). Fixed both: a
+single symmetric `seam_kind` classifier shared by place / clear / recompute; release
+profile now keeps `debug-assertions` + `overflow-checks` on (these are 60 s research
+runs, not throughput-critical); a new test churns multi-cell destroy/refill and
+asserts the whole incremental map equals a from-scratch recompute; and REPAIR-EXACT
+was rebuilt as a true one-axis change over a new REPAIR-SMALL baseline (same 6-cell
+destroy, only greedy→exact, so exact fires every iteration). Also verified, not
+assumed: every output board is a valid 256-piece permutation (dedicated test, run in
+both profiles).
+
+The fix **changed real conclusions**, which is the whole point of running the audit
+before publishing. On the corrected 60 s grid (14 variants, 140 runs, 0 failures):
+RANDOM-DESTROY still wins outright at 400.5 (best 409) and is untouched by the fix
+(it never reads the map). But every conflict-targeting operator now finishes clearly
+below it and the more it fixates the worse it does (GREEDY-MISMATCH 366,
+COMPONENT-DESTROY 350 stalling at iteration 76, BAND-DESTROY inert). ACCEPT-ANNEAL is
+now the strong second at 374.9 (best 388), a real 14-point acceptance lever, not the
+near-null the buggy run implied. And REPAIR-EXACT (360) does *not* beat REPAIR-SMALL's
+greedy refill (363): a clean negative result, the reverse of the confounded first
+run. The through-line: on a mediocre board, the moves that keep the loop *exploring*
+(random destroy, annealing) beat the ones that *exploit* a stuck region (fixated
+destroy, exact refill, restarts), which inverts on a near-record board and is exactly
+why the records divide labour into a strong producer plus repair-as-last-mile.
+
+Scout-mindset side-fix (user asked to solve problems even if not ours): cleared all
+13 pre-existing hardware-disclosure failures honestly. Added `measured: false,
+cores: 8` M1 blocks to the raphael-anjou runs/analyses (exact wall-clock was never
+logged, so not fabricated), and relabelled Verhaard's `eii.mdx` from
+`kind: experiment` to `kind: page` (it is an exposition on why his binary will not
+run here, nothing was measured). Hardware check went 13 problems → 0.
+
+Reproducibility: `just experiments repair-study`. Verified at close: cargo test
+6 (common) + 15 (dfs) + 7 (repair, both dev and release) all green; research style
+0/0, links + citations + hardware green; typecheck, lint, build green. Committed
+results (results.jsonl, report.md, matrix.json, run_meta.json, 140 urls + 140
+curves) promoted to `results/`; working-state (rerun/, *_grid.log) kept out of the
+record by .gitignore. Deferred to a later deliberate pass, per the user: tag the
+named runs with their pipeline stages, and an editorial audit of the published
+engines/runs for what each brings (retiring dead-ends honestly).

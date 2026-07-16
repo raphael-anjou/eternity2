@@ -38,6 +38,22 @@ dfs-study budget_s="60" parallel="6":
     python3 dfs-study/scripts/make_site_json.py \
         --run dfs-study/results/rerun
 
+# Repair study: build the from-scratch destroy-and-repair (local search) family,
+# run every variant on the ten corner-pinned variants (single core, fixed
+# budget), and regenerate the report and the site JSON the study page reads. The
+# board, scorer and IO come from the shared ../common library (also used by the
+# DFS study), so a repaired board is scored by the exact same scorer.
+repair-study budget_s="60" parallel="6":
+    cargo build --release --manifest-path repair-study/engine/Cargo.toml
+    python3 repair-study/scripts/run_grid.py \
+        --variants repair-study/variants \
+        --out repair-study/results/rerun \
+        --budget-s {{budget_s}} --seed 1 --parallel {{parallel}}
+    python3 repair-study/scripts/make_report.py \
+        --run repair-study/results/rerun
+    python3 repair-study/scripts/make_site_json.py \
+        --run repair-study/results/rerun
+
 # BANDSAW (analysis tool, not a solver): prove the optimal completion of a
 # board's endgame band by meet-in-the-middle. Runs the committed worked example.
 bandsaw rung_ms="15000" label_ms="1500":

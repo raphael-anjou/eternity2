@@ -1,0 +1,185 @@
+---
+title: What each decision buys
+description: >-
+  The five comparisons at the heart of the repair study, worked through: blind
+  random destroy wins while every conflict-targeting operator loses; construction
+  sets the floor; simulated annealing is the strongest acceptance rule; and the
+  clever refinements (exact refill, restarts) buy nothing at this budget.
+metaDescription: "The repair study's findings: random destroy beats conflict-driven, construction dominates repair, and every variant stalls early."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/method
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Committed per-run results (results.jsonl) and per-family report (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/results
+---
+
+import { DestroyOperatorDiagram } from "@/components/research/DestroyOperatorDiagram";
+
+Five comparisons carry the [repair study](/research/lab/experiments/raphael-anjou/repair-study).
+Each isolates one decision by holding the other four fixed at a plain anchor loop:
+greedy start, destroy the mismatched cells, greedy refill, keep the result unless
+it loses score, never restart. All scores are the mean matched-edge count over the
+ten corner-pinned variants, single core, sixty seconds. Iteration rate is never
+compared across families.
+
+## The starting board: the lever the loop cannot replace
+
+Change only the board the loop begins from, and everything else about the run is
+downstream of it. A greedy construction begins around 348 and the loop lifts it
+to a mean of 366. A random board begins near 18 and the loop lifts it an enormous
+308 points, to a mean of 326. That larger lift is not the loop doing better; it is
+the loop doing the construction's job badly. The random start, after millions of
+iterations, still finishes below where the greedy start *began*.
+
+This is the study's first and firmest result: **construction is the lever, repair
+is the polish.** A rarest-colour-first greedy construction (the Selby and Riordan
+heuristic that a scarce colour should be spent where it is forced) starts a little
+higher still and finishes at a mean of 373, the best of the starting-board family.
+The lesson matches the construct-then-refine pipelines behind this project's
+record-approaching boards: the board that reaches the top is *built* well and then
+repaired, never repaired from nothing.
+
+## The destroy operator: attacking the breaks can backfire
+
+Now fix the greedy start and change only which cells each iteration lifts. This is
+the axis with the study's most surprising result.
+
+<Figure title="The four destroy operators, on one board of broken seams">
+  <DestroyOperatorDiagram />
+</Figure>
+
+- **A geometry-blind random destroy wins outright, at a mean of 401 (best 409).**
+  Lifting twelve *random* cells instead of the broken ones, it keeps sampling
+  fresh regions of the board, accepts nearly three quarters of its moves, and its
+  best score keeps improving deep into the run: its last improvement lands past
+  three million iterations, where every conflict-driven variant has long since
+  frozen. It is the highest score in the whole study.
+- **Every conflict-driven operator finishes below it, and the more it fixates on
+  the breaks, the worse it does.** The mismatched-cells anchor, which lifts up to
+  a dozen of the broken cells, averages 366 and stalls early: it rips out the same
+  clustered tangle, greedily rebuilds it to almost the same placement, and its best
+  score stops moving within a few thousand iterations. The component-plus-halo
+  operator, which lifts one whole connected tangle (a much larger hole), does worse
+  still, at 350, and its best last improves at iteration 76: a hole that size hands
+  the greedy refill a subproblem it cannot improve, so almost nothing is ever kept.
+- **A whole-band destroy is inert.** Lifting the two rows with the most breaks
+  leaves the greedy refill a subproblem nearly as hard as the puzzle itself; on
+  nine of the ten instances it makes *zero* improvements over the whole minute, so
+  its reported score is simply its starting board.
+
+The pattern is clean and worth stating plainly: on this mediocre greedy start,
+the more precisely an operator targets the existing breaks, the worse it does, and
+blind random destroy wins. This is the opposite of the natural intuition, and of
+what works on a *near-record* board, where the whole board is close to optimal and
+the community's tuning found conflict-driven and component operators most valuable
+precisely because the few remaining mismatches are the only thing left to fix. This
+study never reaches that regime. Sixty seconds on a mediocre board leaves broad
+improvement available everywhere, and there an operator that keeps re-attacking the
+same broken cluster, or that tears out a hole too large to rebuild well, both lose
+to one that simply keeps trying fresh small regions. The finding is not
+"conflict-driven destroy is bad" but "which operator wins depends on how good the
+board already is, and on a mediocre board, exploring beats both fixating and
+over-destroying."
+
+## Repair: how the hole is rebuilt
+
+Fix the destroy and change only the refill. Breaking the greedy refill's exact
+score ties with a seeded coin, rather than deterministically, adds a little
+exploration and helps slightly, to a mean of 365. The sharper comparison is greedy
+against *exact* refill, and it has to be set up carefully to be a clean one-axis
+test: the exact refill only pays off when the hole is small enough to search, so
+the study pairs it with a small destroy (at most six mismatched cells) and compares
+it against the *same* small destroy refilled greedily, so the only thing that
+changes between the two is the refill. Set up this way, the exact refill runs on
+every iteration rather than falling back to greedy, rebuilding each small hole to
+its true optimum.
+
+The result is a clean negative one. The exact refill (mean 360) does **not** beat
+the greedy refill of the same small hole (mean 363); if anything it is a shade
+behind. Two things explain it. The exact refill accepts nearly every iteration,
+because a locally-optimal rebuild of a six-cell hole almost never lowers the score,
+so the loop drifts sideways rather than climbing. And it buys that local optimality
+at roughly a third of the iteration count, so over a fixed minute it explores less
+of the board. On this puzzle, at this budget, a locally-perfect rebuild of a tiny
+region is not worth what it costs: the greedy refill's cheaper, slightly worse
+rebuilds, run more often, reach just as far. This is the same node-rate-is-not-score
+question the DFS study's heuristic engines raise, and here the answer comes out on
+the side of more, cheaper iterations, which is worth recording precisely because the
+opposite is so often assumed.
+
+## Acceptance: how much a non-improving move is allowed matters
+
+Fix the loop and change only when a non-improving candidate is kept. Of the five
+axes, this one moves the score the most after the destroy operator.
+
+- **A strict hill-climb, which keeps only strict improvements, is the weakest, at
+  a mean of 361.** Refusing every sideways move locks it into the first basin it
+  finds; its accept rate is essentially zero.
+- **Allowing equal-or-better moves (the anchor) does better, at 366.** The
+  sideways moves let it drift across the equal-score plateaus that dominate this
+  landscape.
+- **A cooling simulated-annealing rule is the strongest acceptance by a clear
+  margin, at 375 (best 388), second only to random destroy in the whole study.**
+  Allowing occasional *worsening* moves early, then cooling, lets it leave a
+  plateau that pure sideways drift is trapped on, and its best score keeps
+  improving to around iteration twenty thousand rather than freezing in the first
+  few thousand. A late-acceptance rule, which compares against the score some tens
+  of iterations ago, lands between the two at 369.
+
+So the acceptance rule is a real lever here, not a detail: strict to annealing is a
+fourteen-point swing on the same loop. That is worth stating against a known
+observation from the community's own ALNS tuning, that across a wide range of
+annealing temperatures the final scores were essentially identical. The two are not
+in conflict. That tuning was done on near-record boards, where the landscape is a
+sea of equal-score plateaus and any temperature accepts almost everything; this
+study's mediocre starting board still has real downhill structure to exploit, so
+whether the rule will step downhill to escape a plateau genuinely matters. Which
+acceptance rule wins, like which destroy operator wins, depends on how good the
+board already is.
+
+## Restart: neither perturbation moves the needle
+
+Fix the loop and change only what happens once it stalls. Doing nothing lets the
+run grind the same basin for the rest of the minute. A random *kick*, which
+unplaces and randomly refills a couple of dozen cells when the best has not moved
+for a while, and a *revert to the best board so far*, which re-attacks the
+incumbent, are the two perturbations tested. Both land within a point of the
+no-restart anchor (365 and 365, against the anchor's 366). This is a clean null
+result: bolting a stall-detector and a perturbation onto the greedy-mismatch loop
+does not help it, because the perturbation either throws away the structure that
+made the board good (the kick) or returns to a board the same operator has already
+stalled on (the revert). Neither turns the loop into a basin-escaper; on this
+puzzle, escaping a basin needs a different move than perturb-and-repair, which is
+exactly what the [rigidity wall](/research/why/rigidity-wall) and the
+[σ-cycle structure](/research/why/sigma-cycles) explain.
+
+## The through-line
+
+Two themes run through the five comparisons. The first is that **the two decisions
+that move the score are the destroy operator and the acceptance rule**, and both
+move it in the same counterintuitive direction: the winning choices are the ones
+that keep the loop *exploring* rather than *exploiting*. Random destroy beats every
+operator that targets the breaks; annealing, which steps downhill to leave a
+plateau, beats every rule that only moves sideways or uphill. Refining the refill
+and bolting on a restart, the two decisions that try to be cleverer about a region
+the loop is already stuck on, buy nothing.
+
+The second is why exploring wins here and fixating wins on a near-record board:
+**the repair loop is a basin explorer, not a basin escaper.** On a mediocre board
+there is broad downhill structure everywhere, so the moves that cover more of it
+win; on a near-record board there is none left but a single interlocking cycle, so
+the moves that target it precisely win. Neither regime lets perturb-and-repair
+escape a basin once it is in one. That is why the construct-then-refine pipelines
+that reach this project's best boards divide the labour the way they do: a strong
+constructive producer to choose a good basin, and repair as the last mile inside
+it, never asked to climb out.

@@ -18,15 +18,15 @@
 //!   iterative loop over a 256-deep cursor stack; the board, the used-set
 //!   (a `u64` bitset over ≤256 pieces), and the running score are flat arrays.
 //!
-//! It reads the same [`Instance`] and emits the same [`dfs_io::SolveOutput`] as
+//! It reads the same [`Instance`] and emits the same [`e2_io::SolveOutput`] as
 //! every other variant, so it sits on the same leaderboard.
 
 #![forbid(unsafe_code)]
 
 use std::time::Instant;
 
-use dfs_core::{Board, SearchStats, N, W};
-use dfs_io::Instance;
+use e2_core::{Board, SearchStats, N, W};
+use e2_io::Instance;
 
 /// The 22 real colours plus border fit comfortably; we size the index table to
 /// the instance's colour count at build time.
@@ -113,7 +113,7 @@ pub struct RunResult {
 
 impl RunResult {
     #[must_use]
-    pub fn output(&self, inst: &Instance) -> dfs_io::SolveOutput {
+    pub fn output(&self, inst: &Instance) -> e2_io::SolveOutput {
         inst.finish(&self.best)
     }
 }
@@ -162,7 +162,7 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
     // Running matched-edge score at each level.
     let mut score_at = vec![0u32; depth + 1];
 
-    let mut best_score = dfs_core::score_board(&seed, &inst.pieces);
+    let mut best_score = e2_core::score_board(&seed, &inst.pieces);
     // Snapshot the best board as a (piece,rot) grid — a cheap 512-byte memcpy
     // per improvement, instead of rebuilding a Board on the hot path.
     let mut best_cell_pr = cell_pr;

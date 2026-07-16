@@ -10,7 +10,7 @@
 
 use std::process::ExitCode;
 
-use dfs_io::{load_puzzle_csv, Instance};
+use e2_io::{load_puzzle_csv, Instance};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
