@@ -31,12 +31,16 @@ here, with the byte-level rules — including the one detail that bites everyone
 what it can and cannot recover. If you only take one thing away: paste any board
 into the [format converter](/convert) and read the others straight back.
 
-<Callout kind="note" title="One canonical output now">
-Every algorithm on this site emits **one** artifact per board: a canonical
-`.json` document (the `BoardDoc`, below) carrying a ready-to-open
-[eternity2.dev](/viewer) URL as a field. Everything else here is either an
-*input* the tools accept or a *derived* format the converter can hand you. There
-is no longer a `.url`-here, `.json`-there, two-files-sometimes split.
+<Callout kind="note" title="One input, one output">
+The IO contract is symmetric and small. **In:** one puzzle instance as JSON
+(the site `Puzzle` schema, below) — every algorithm is invoked with
+`--puzzle <file>.json`. **Out:** one board document as JSON (the `BoardDoc`,
+below), carrying a ready-to-open [eternity2.dev](/viewer) URL as a field. That
+is the whole thing: puzzle-JSON in, board-JSON out, both single self-describing
+files. Everything else on this page is either a legacy *input* the tools still
+accept (CSV, bare `board_edges`) or a *derived* format the [converter](/convert)
+can hand you. There is no longer a `.url`-here, `.json`-there,
+two-files-sometimes split.
 </Callout>
 
 ## The vocabulary
@@ -149,11 +153,14 @@ sentinel choice, kept for byte-compatibility with the engines that read it.
 - **Recovers:** the full puzzle — pieces and hints. This is a *puzzle* format
   (the tile set), not just a placed board.
 
-## Site JSON (`Puzzle`) — the instance schema
+## Site JSON (`Puzzle`) — the canonical input
 
-The schema the site's engine and the benchmark's variant files share, so the two
-experiments run the *same* instances. It carries the piece set at rotation 0 and
-the pinned hints explicitly.
+The one format every algorithm is fed: `--puzzle variant_NN.json`. The site's
+engine, the DFS/repair studies and the single-core benchmark all read the *same*
+schema (byte-compatible with the web's `Puzzle` type), so every experiment runs
+the same instances. It carries the piece set at rotation 0 and the pinned hints
+explicitly — that is what makes it an input a solver can start from, rather than
+a board it has already filled.
 
 ```json
 {
