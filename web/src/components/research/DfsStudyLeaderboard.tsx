@@ -88,6 +88,10 @@ const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
+// The depth the strongest strict variants top out at (row-major 208). Marked on
+// the depth chart so the "only breaks pass the wall" reading is immediate.
+const STRICT_WALL = 208;
+
 const T = {
   en: {
     boardTitle: "The leaderboard — mean score by variant",
@@ -97,9 +101,11 @@ const T = {
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
     depthIntro:
-      "Two axes this study foregrounds. Left: the deepest placement each variant reached (out of 256) — the strict wall sits near 205, breaks push past it. Right: median node throughput, in search-nodes per second, never compared across families (a propagating node is not a naive node).",
+      "The deepest placement each variant reached, out of 256. The dashed line marks the strict backtracking wall near 208; only the break family passes it, reaching depth 243 to 245. The table below adds median throughput, in search-nodes per second, which is never compared across families because a propagating node is not a naive node.",
     depthAxis: "max depth reached (of 256)",
     npsAxis: "median throughput",
+    depthReached: "reached depth",
+    strictWall: "strict wall ≈ 208",
     matrixTitle: "What stacks on what",
     matrixIntro:
       "Every variant is a depth-first backtracker declared as one change over its parent. This table is generated from the engine registry, so it always matches the code that ran.",
@@ -130,9 +136,11 @@ const T = {
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
     depthIntro:
-      "Deux axes mis en avant par cette étude. À gauche : la profondeur maximale atteinte (sur 256) — le mur strict est vers 205, les cassures le franchissent. À droite : le débit médian en nœuds de recherche par seconde, jamais comparé entre familles (un nœud avec propagation n'est pas un nœud naïf).",
+      "La profondeur maximale atteinte par chaque variante, sur 256. La ligne pointillée marque le mur du backtracking strict, vers 208 ; seule la famille des cassures le franchit, atteignant 243 à 245. Le tableau ci-dessous ajoute le débit médian, en nœuds de recherche par seconde, jamais comparé entre familles car un nœud avec propagation n'est pas un nœud naïf.",
     depthAxis: "profondeur max atteinte (sur 256)",
     npsAxis: "débit médian",
+    depthReached: "profondeur atteinte",
+    strictWall: "mur strict ≈ 208",
     matrixTitle: "Ce qui s'empile sur quoi",
     matrixIntro:
       "Chaque variante est un backtracking en profondeur déclaré comme un seul changement par rapport à son parent. Ce tableau est généré depuis le registre du moteur : il correspond toujours au code exécuté.",
@@ -174,6 +182,16 @@ export function DfsStudyLeaderboard() {
         .filter((v) => v.mean != null)
         .slice()
         .sort((a, b) => (b.mean ?? 0) - (a.mean ?? 0)),
+    [],
+  );
+
+  // Same variants, ordered by how deep the search reached, for the depth panel.
+  const byDepth = useMemo(
+    () =>
+      D.variants
+        .filter((v) => v.max_depth != null)
+        .slice()
+        .sort((a, b) => (b.max_depth ?? 0) - (a.max_depth ?? 0)),
     [],
   );
 
@@ -266,6 +284,82 @@ export function DfsStudyLeaderboard() {
       <section>
         <h3 className="text-base font-semibold tracking-tight">{t.depthTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.depthIntro}</p>
+
+        {/* Depth reached vs the 256-cell ceiling, coloured by family, with the
+            strict-backtracking wall marked. Breaks are the only family past it. */}
+        <div className="mt-4 h-[520px] w-full">
+          {isClient ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="vertical"
+                data={byDepth}
+                margin={{ top: 16, right: 40, bottom: 8, left: 8 }}
+              >
+                <XAxis
+                  type="number"
+                  domain={[0, 256]}
+                  tick={{ fontSize: 11, fill: "currentColor" }}
+                  className="text-muted-foreground"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="display"
+                  width={150}
+                  tick={{ fontSize: 11, fill: "currentColor" }}
+                  className="text-muted-foreground"
+                />
+                <Tooltip
+                  cursor={{ fill: "currentColor", opacity: 0.06 }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const v = payload[0]?.payload as Variant | undefined;
+                    if (!v) return null;
+                    return (
+                      <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                        <div className="font-semibold">{v.display}</div>
+                        <div className="mt-1">
+                          {t.depthReached} {v.max_depth} / 256
+                        </div>
+                        <div className="text-muted-foreground">
+                          {familyLabel(v.family)} · mean {v.mean}
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+                <ReferenceLine
+                  x={STRICT_WALL}
+                  stroke="currentColor"
+                  strokeDasharray="4 4"
+                  className="text-muted-foreground"
+                  label={{
+                    value: t.strictWall,
+                    position: "top",
+                    fontSize: 10,
+                    fill: "currentColor",
+                  }}
+                />
+                <Bar dataKey="max_depth" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                  {byDepth.map((v) => (
+                    <Cell key={v.name} fill={familyFill(v.family)} />
+                  ))}
+                  <LabelList
+                    dataKey="max_depth"
+                    position="right"
+                    fontSize={11}
+                    className="fill-foreground"
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              {t.busy}
+            </div>
+          )}
+        </div>
+        <FamilyLegend lang={lang} />
+
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-sm">
             <thead>

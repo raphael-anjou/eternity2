@@ -24,6 +24,7 @@ sources:
 ---
 
 import { PathOrderDiagram } from "@/components/research/PathOrderDiagram";
+import { PinCollapseDiagram } from "@/components/research/PinCollapseDiagram";
 
 Three comparisons carry the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study).
 Each isolates one decision by holding everything else fixed. All scores are the
@@ -51,7 +52,7 @@ changes.
 Fix the engine (strict, no heuristics) and change only the order cells are filled.
 The six orders differ only in where the search sends its frontier, shown below.
 
-<Figure title="The six fill orders, shaded early (pale) to late (deep green)">
+<Figure title="The six fill orders, traced as the path the search walks">
   <PathOrderDiagram />
 </Figure>
 
@@ -145,6 +146,10 @@ constrains its neighbourhood at once and dead-ends the fixed path almost
 immediately. Blackwood's C# reaches only about 34 of 256 cells on the pinned
 five-clue in a minute, because its break heuristic is tuned for the
 near-unconstrained one-clue instance where its 470 record was set.
+
+<Figure title="The corner-pin collapse: cells placed out of 256">
+  <PinCollapseDiagram />
+</Figure>
 
 That collapse is the point. A record engine built around one clue configuration
 does not transfer to another, and a fixed scan path cannot absorb an arbitrary
