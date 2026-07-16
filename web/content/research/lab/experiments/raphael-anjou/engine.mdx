@@ -1,0 +1,116 @@
+---
+title: "The reference engine behind this site"
+description: >-
+  The Rust-to-WebAssembly backtracker that runs every live demo and checks every
+  number on this wiki. Not a record machine but a reference engine, ported four
+  times and parity-tested byte-for-byte, built so the claims here can be re-run.
+metaDescription: "This site's Rust-to-WebAssembly Eternity II backtracker: a reference engine, not a record machine, ported four times and parity-tested so claims re-run."
+kind: page
+contribution: exposition
+author: raphael-anjou
+order: 4
+updated: 2026-07-17
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/engines
+  - /research/build/run-it-yourself
+  - /research/lab/experiments/joshua-blackwood/solver
+sources:
+  - label: The eternity2 repository on GitHub
+    url: https://github.com/raphael-anjou/eternity2
+---
+
+<Callout kind="note" title="Whose work this is">
+  This page is about the engine behind the site you are reading, written by the
+  person who wrote it, [Raphaël Anjou](/research/people/raphael-anjou). It is not
+  a community record solver: those are studied elsewhere in this lab
+  ([Blackwood](/research/lab/experiments/joshua-blackwood/solver),
+  [McGavin](/research/lab/experiments/peter-mcgavin/backtracker),
+  [Verhaard](/research/lab/experiments/louis-verhaard/eii)). This one sits among
+  them as a peer, and a modest one: the record solvers hold the records; this one
+  holds the receipts.
+</Callout>
+
+Where the [named experiments](/research/lab/experiments/raphael-anjou) each ask a
+question and the [shared engines](/research/lab/experiments/raphael-anjou/engines)
+are the apparatus those studies run on, this page is a third thing: the small
+reference engine that powers the site itself, checks the numbers the other pages
+quote, and animates every live demo. It scores no records. Its job is
+verifiability and teaching.
+
+## What it is
+
+A small Rust crate compiled to WebAssembly, running live in your browser on every
+interactive page of this wiki. It implements the classics, plainly: the official
+16×16 piece set, a generator that builds solvable puzzles of any size (with an
+optional real-E2-style mode that restricts border colours to the frame band),
+nine cell-visit orders, a strict depth-first backtracker, a scorer, and a
+break-tolerant variant of the search, a reimplementation of the break-index idea
+from [Blackwood's solver](/research/lab/experiments/joshua-blackwood/solver),
+built so the labs here can demonstrate it.
+
+One design choice matters more than the algorithms: the solver is a step-able
+machine, not a recursive function. Callers run it one bounded step at a time, one
+placement or one backtrack, and read the board between steps. That is what lets a
+web page animate a real search instead of a canned recording:
+[the watch page](/playground/watch) is stepping this exact engine, not a video of
+it.
+
+## Four ports, one output
+
+The site can be built against four interchangeable backends: the Rust/WASM crate
+(the default and the canonical reference), a pure TypeScript port, a C port, and a
+C++ port. All four expose the identical surface, and each is validated
+byte-for-byte against golden data the Rust crate emits: generated puzzles down to
+the RNG output, all nine fill paths at several sizes, and full solver runs with
+exact node, attempt, and backtrack counts.
+
+That discipline exists for one reason: an interactive demo you cannot cross-check
+is just an animation. Two independent implementations that agree to the last
+backtrack are much harder to get wrong the same way twice, and four are harder
+still. (The repository also carries literal translations in Python, Lua, COBOL,
+and Brainfuck, held to the same golden data. Those are for joy.)
+
+## What it does not claim
+
+This is not a record machine, and it would be misleading to dress it as one. The
+strict solver carries none of the hand-tuned quota schedules or restart strategies
+that make [Blackwood's solver](/research/lab/experiments/joshua-blackwood/solver)
+the engine behind the community's best boards, and it is not engineered for
+[McGavin-class throughput](/research/lab/experiments/peter-mcgavin/backtracker).
+The best score produced by [the experiments here](/research/lab/experiments) is
+463 of 480; the community's best on the same puzzle is 470. The record solvers
+studied in this lab are simply better at finding boards.
+
+This engine's job is different: verifiability and teaching. When this wiki states
+a node count, a feasibility number, or a score, the claim is checked by this
+engine, and because it runs in your browser and its source is public, you can
+check it too.
+
+## How it powers the wiki
+
+Every interactive element in this research section is this engine: the live DFS
+demos, the fill-order races on [the paths page](/playground/paths), the
+break-index lab on [the solver hub](/research/build/solvers), the board viewer's
+scoring and verification, and the committed reference counts that research pages
+quote. The engine's own test suite cross-checks against real community boards, so
+a change that broke scoring or rotation conventions would fail loudly rather than
+silently corrupting the site's numbers.
+
+## Where to get it
+
+Everything is in one repository,
+[github.com/raphael-anjou/eternity2](https://github.com/raphael-anjou/eternity2),
+and [run it yourself](/research/build/run-it-yourself) walks through building the
+engine, running its tests, and reproducing the published results command by
+command.
+
+## What drives it
+
+The engine does not grow on its own schedule; it grows when
+[an experiment](/research/lab/experiments) needs something. The break-tolerant
+solver exists because demonstrating break indices required one; the
+frame-restricted generator exists because a lab needed puzzles that behave like
+the real E2 border. That keeps the engine small, and it keeps every feature
+attached to a question someone actually asked.

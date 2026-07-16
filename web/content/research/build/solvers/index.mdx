@@ -1,72 +1,102 @@
 ---
-title: Solver catalogue
+title: How the record solvers search
 description: >-
-  How the solvers that hold the records actually search. They are all, at
-  heart, depth-first backtrackers; what separates them is the order they try
-  things and how they bend the rules near the end.
-metaDescription: "How the record-holding Eternity II solvers search: all depth-first backtrackers at heart, set apart by the order they try and how they bend the endgame."
+  How the solvers that hold the records actually search. They are all, at heart,
+  depth-first backtrackers; what separates them is the order they try things and
+  how they bend the rules near the end.
+metaDescription: "How the record Eternity II solvers search: all depth-first backtrackers at heart, set apart by the order they try and how they bend the endgame."
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-01
+updated: 2026-07-17
 topics: [backtracking, speed]
 ---
 
 import { DfsDemo } from "@/components/learn/DfsDemo";
 import { BreakIndexLab } from "@/components/research/BreakIndexLab";
 
-How the solvers that hold the records actually search. They are all, at heart,
-depth-first backtrackers; what separates them is the order they try things and
-how they bend the rules near the end.
+Every solver that holds a serious Eternity II record is, at heart, the same
+machine: a depth-first backtracker. What separates them is not the loop but three
+choices layered on top of it, the order they visit cells, the heuristics that
+decide which piece to try first, and how they bend the endgame when a perfect
+match runs out. This page is the neutral tour of those choices. The full,
+first-party engine story for each solver (decoded from the source and the
+literature, then built and measured) lives on its own lab page, linked from each
+section below.
 
 ## Plain backtracking
 
-Fill the board cell by cell in some fixed order. At each cell, try every piece
-and rotation whose edges match what's already placed; if none fit, back up and
-try the previous cell differently. Correct but slow: the search tree is
-astronomically wide.
+Fill the board cell by cell in some fixed order. At each cell, try every piece and
+rotation whose edges match what's already placed; if none fit, back up and try the
+previous cell differently. Correct but slow: the search tree is astronomically
+wide.
 
-Here is exactly that, in slow motion: a real backtracker on a 3×3, one
-decision at a time. Step through it and watch a piece go down, a dead end
-appear, and the search un-place and try again.
+Here is exactly that, in slow motion: a real backtracker on a 3×3, one decision at
+a time. Step through it and watch a piece go down, a dead end appear, and the
+search un-place and try again.
 
 <DfsDemo />
 
 ## Order matters: the fill path
 
-The order you visit cells changes the difficulty by orders of magnitude,
-because some orders force conflicts to surface early (good) and others defer
-them until a lot of work is wasted (bad). Border-first beats row-major by a
-wide margin on the same puzzle.
+The order you visit cells changes the difficulty by orders of magnitude, because
+some orders force conflicts to surface early (good) and others defer them until a
+lot of work is wasted (bad). Border-first beats row-major by a wide margin on the
+same puzzle. It is the single lever every record engine tunes: Verhaard's
+comb-search orders, Blackwood's bottom-left row scan with border pieces
+interspersed late, and McGavin's per-puzzle choice of scan-row, spiral-in, or
+frame-first are all answers to the same question.
 
-## Blackwood: schedule and break-index
+## Heuristics: which piece first
 
-Joshua Blackwood's solver, the one behind the community's best boards, adds
-two ideas to plain backtracking. A heuristic schedule pre-commits to placing a
-few high-frequency edge colors on a set timetable by depth, pruning branches
-that fall behind. And a break-index allowance lets a handful of fixed late
-positions carry one mismatch instead of demanding a perfect match, which is
-what makes a 470 (ten mismatches) reachable at all.
+A plain backtracker tries candidates in an arbitrary order. A record engine
+scores them, so the pieces most likely to matter go down first, and prunes any
+branch that falls behind a schedule. Blackwood's solver, for instance, privileges
+three colours and enforces a per-depth quota that must be met to keep descending;
+Verhaard prunes forward against hand-tuned score thresholds. The details differ,
+but the shape is shared: commit the constrained pieces early, cut the branches
+that cannot pay their way.
+
+## Bending the endgame: breaks and edge-slipping
+
+A perfect 256-piece tiling has never been found. Every record board instead
+tolerates a handful of late mismatches, and the engines reach them by *scheduling*
+imperfection: a per-depth budget of mismatched edges that unlocks deep in the
+search. Verhaard called his a slip array; Blackwood calls his the break indexes.
+Same idea, gated by depth so the early board stays clean and the mismatches are
+spent only where they buy the most.
+
+The lab below lets you move that budget around and watch the reachable score
+change:
 
 <BreakIndexLab />
 
-## McGavin: raw throughput
+## Read the full engine story
 
-The first 469 board came from Peter McGavin running Blackwood's solver
-as released, "a few days on about a couple of hundred cores"
-([msg 10045](https://groups.io/g/eternity2/message/10045)). No new idea over
-Blackwood's schedule, just parallel scale aimed at the right parameter set. His
-own auto-generated C engines are a separate story of raw throughput, told in
-[McGavin's engine](/research/build/solvers/mcgavin).
-The standing 470 record (Blackwood, 2021) came out of the same machinery:
-a retuned schedule, not a new algorithm.
+Each record engine has a dedicated page that decodes how it works and then builds
+and measures it on one machine, single core:
+
+- **[Blackwood's solver, decoded and run here](/research/lab/experiments/joshua-blackwood/solver)**:
+  the schedule-and-break-index backtracker behind the standing 470, with Jef
+  Bucas's parameter study and a build that flies unconstrained but stalls once the
+  five clues are pinned.
+- **[Verhaard's eii](/research/lab/experiments/louis-verhaard/eii)**: the engine
+  behind the 467, the only prize the contest ever paid: forward pruning,
+  comb-search orders, a Markov-tuned slip schedule, and why its source-less binary
+  cannot be run today.
+- **[McGavin's C backtracker](/research/lab/experiments/peter-mcgavin/backtracker)**:
+  the community's fastest engine, a 2007 optimization recipe compounded for two
+  decades, built here and pushed past 200 of 256 pieces at over 100 million
+  placements a second.
+- **[This site's reference engine](/research/lab/experiments/raphael-anjou/engine)**:
+  not a record machine but the Rust/WASM backtracker that runs every demo on this
+  wiki and checks its numbers.
 
 ## See it run
 
 The playground runs a real depth-first solver in your browser.
 [Watch it search live](/playground/watch), or
-[draw your own fill order](/playground/paths) and race it against the classics
-to feel how much the order matters.
+[draw your own fill order](/playground/paths) and race it against the classics to
+feel how much the order matters.
 
-For approaches that don't work, see the
-[dead ends](/research/build/dead-ends).
+For approaches that don't work, see the [dead ends](/research/build/dead-ends).
