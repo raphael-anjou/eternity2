@@ -44,19 +44,79 @@ function cellsToE2Pieces(cells: (Edges | null)[]): string {
   return lines.join("\n");
 }
 
-// A canonical bucas URL for any decoded board, built straight from its cells.
-// We deliberately rebuild it rather than reuse encodeBucasUrl(), which needs an
-// engine Puzzle and piece matching; the converter must work for any size.
-function canonicalUrl(board: BucasBoard): string {
-  const name = (board.puzzleName ?? "eternity2-board").replace(/[^A-Za-z0-9_]+/g, "_");
+// Sanitize a puzzle name to the URL-safe subset, matching e2-io's sanitize_name
+// so a board carries the same name string through every tool on the site.
+function safeName(board: BucasBoard): string {
+  const raw = (board.puzzleName ?? "eternity2-board").replace(/[^A-Za-z0-9_]+/g, "_");
+  return raw.length > 0 ? raw : "eternity2_board";
+}
+
+// The canonical eternity2.dev viewer URL — the format every algorithm on the
+// site now emits. Boards are square on the site, so we emit a single
+// `puzzle_size`; the viewer also reads bucas's board_w/board_h. Built straight
+// from cells so the converter works for any size (no engine, no piece matching).
+function viewerUrl(board: BucasBoard): string {
+  const name = safeName(board);
   const edges = cellsToEdges(board.cells);
   const pieces = cellsToPieces(board.pieceNumbers);
-  let params =
-    `puzzle=${name}` +
-    `&board_w=${board.width}&board_h=${board.height}` +
-    `&board_edges=${edges}`;
+  let params = `puzzle=${name}&puzzle_size=${board.width}&board_edges=${edges}`;
+  if (pieces) params += `&board_pieces=${pieces}`;
+  return `https://eternity2.dev/viewer?${params}`;
+}
+
+// The legacy e2.bucas.name viewer URL, kept as a derived converter for interop
+// with the community viewer. No longer the default output.
+function bucasUrl(board: BucasBoard): string {
+  const name = safeName(board);
+  const edges = cellsToEdges(board.cells);
+  const pieces = cellsToPieces(board.pieceNumbers);
+  let params = `puzzle=${name}&board_w=${board.width}&board_h=${board.height}&board_edges=${edges}`;
   if (pieces) params += `&board_pieces=${pieces}`;
   return `https://e2.bucas.name/#${params}`;
+}
+
+// The canonical board JSON — byte-for-byte the schema the Rust `e2-io` crate's
+// BoardDoc emits, so a board pasted here and a board written by any solver are
+// the same document. `board` is the row-major piece*4+rot vector (-1 empty);
+// without explicit piece numbers we can't recover piece identity from a board
+// alone, so those cells are left as -1 and board_pieces is all-000.
+function canonicalJson(board: BucasBoard): string {
+  const n = board.width * board.height;
+  const edges = cellsToEdges(board.cells);
+  const pieces = cellsToPieces(board.pieceNumbers) ?? "0".repeat(n * 3);
+  const codes: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const pn = board.pieceNumbers?.[i] ?? 0;
+    // We only know the placement code when a real piece number is present; a
+    // board carries rotated edges, not a rotation, so rot is unknown here.
+    codes.push(pn >= 1 ? (pn - 1) * 4 : -1);
+  }
+  const summary = scoreSummary(board);
+  const doc = {
+    name: safeName(board),
+    size: board.width,
+    score: summary.score,
+    breaks: summary.max - summary.score,
+    board: codes,
+    board_edges: edges,
+    board_pieces: pieces,
+    url: viewerUrl(board),
+  };
+  return JSON.stringify(doc, null, 2);
+}
+
+// The legacy puzzle CSV the standalone community engines read: a size header,
+// then one `top,right,bottom,left` row per filled cell in reading order, each
+// color a 16-bit zero-padded binary word (border 0 = 1111111111111111).
+function canonicalCsv(board: BucasBoard): string {
+  const colorWord = (c: number): string =>
+    c === 0 ? "1".repeat(16) : c.toString(2).padStart(16, "0");
+  const lines: string[] = [String(board.width)];
+  for (const cell of board.cells) {
+    if (!cell) continue;
+    lines.push(cell.map(colorWord).join(","));
+  }
+  return lines.join("\n");
 }
 
 const EXAMPLE_ID = "Joshua_Blackwood_470";
@@ -66,11 +126,17 @@ const T = {
     title: "Format converter",
     intro: (
       <>
-        The community's board formats never quite line up: bucas URLs,
-        <code> board_edges</code> letter strings, and numeric{" "}
-        <code>e2pieces.txt</code> files all say the same thing in different
-        alphabets. Paste any one of them here and read back the others, with a
-        preview so you can see the file is right.
+        The community's board formats never quite line up: viewer URLs,{" "}
+        <code>board_edges</code> letter strings, numeric <code>e2pieces.txt</code>{" "}
+        files, and CSV puzzles all say the same thing in different alphabets.
+        Paste any one of them here and read back the others — including the
+        canonical <code>eternity2.dev</code> URL and the one board <code>JSON</code>{" "}
+        every solver on this site now emits — with a preview so you can see the
+        file is right. New to the formats?{" "}
+        <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
+          Read the format reference
+        </Link>
+        .
       </>
     ),
     inputTitle: "Paste a board",
@@ -97,8 +163,14 @@ const T = {
     outPiecesTitle: "board_pieces",
     outPiecesHelp: "Three digits per cell, the 1-based piece number, 000 for an empty cell.",
     outPiecesNone: "This board carries no piece numbers, so there is nothing to derive here. board_edges above is enough to render and score it.",
-    outUrlTitle: "Canonical bucas URL",
-    outUrlHelp: "A clean e2.bucas.name link rebuilt from the board above. Open it to view or share.",
+    outUrlTitle: "eternity2.dev URL",
+    outUrlHelp: "The canonical viewer link, rebuilt from the board above. This is the format every solver on this site emits. Open it to view or share.",
+    outJsonTitle: "Canonical board JSON",
+    outJsonHelp: "The one board document every solver on this site writes: score, breaks, the placement vector, both letter blobs, and the eternity2.dev URL. Byte-compatible with the e2-io BoardDoc schema.",
+    outCsvTitle: "Puzzle CSV",
+    outCsvHelp: "The legacy row-per-cell format the standalone community engines read: a size header, then top,right,bottom,left per filled cell as 16-bit binary color words (border = 1111111111111111).",
+    outBucasTitle: "bucas.name URL (community viewer)",
+    outBucasHelp: "A legacy e2.bucas.name link, kept for interop with Jef Bucas's original viewer. Derived from the same board.",
     outE2Title: "e2pieces.txt (pieces as placed)",
     outE2Help: "One line per filled cell, in reading order: four edge numbers (top, right, bottom, left), 0 for grey. These are the pieces as placed and rotated, not a canonical rotation-0 catalogue; a board alone cannot recover the original piece order.",
     copy: "Copy",
@@ -111,10 +183,17 @@ const T = {
     intro: (
       <>
         Les formats de plateau de la communauté ne collent jamais tout à fait :
-        liens bucas, chaînes de lettres <code>board_edges</code> et fichiers
-        numériques <code>e2pieces.txt</code> disent la même chose dans des
-        alphabets différents. Collez-en un ici et récupérez les autres, avec un
-        aperçu pour vérifier d'un coup d'œil que le fichier est bon.
+        liens du visualiseur, chaînes de lettres <code>board_edges</code>,
+        fichiers numériques <code>e2pieces.txt</code> et puzzles CSV disent la
+        même chose dans des alphabets différents. Collez-en un ici et récupérez
+        les autres — dont l'URL canonique <code>eternity2.dev</code> et le{" "}
+        <code>JSON</code> unique que produit désormais chaque solveur du site —
+        avec un aperçu pour vérifier d'un coup d'œil que le fichier est bon. Vous
+        découvrez les formats ?{" "}
+        <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
+          Lisez la référence des formats
+        </Link>
+        .
       </>
     ),
     inputTitle: "Collez un plateau",
@@ -141,8 +220,14 @@ const T = {
     outPiecesTitle: "board_pieces",
     outPiecesHelp: "Trois chiffres par case, le numéro de pièce (base 1), 000 pour une case vide.",
     outPiecesNone: "Ce plateau ne porte aucun numéro de pièce : rien à déduire ici. Le board_edges ci-dessus suffit à le dessiner et à le noter.",
-    outUrlTitle: "URL bucas canonique",
-    outUrlHelp: "Un lien e2.bucas.name propre, reconstruit à partir du plateau ci-dessus. Ouvrez-le pour le voir ou le partager.",
+    outUrlTitle: "URL eternity2.dev",
+    outUrlHelp: "Le lien canonique du visualiseur, reconstruit à partir du plateau ci-dessus. C'est le format que produit chaque solveur du site. Ouvrez-le pour le voir ou le partager.",
+    outJsonTitle: "JSON de plateau canonique",
+    outJsonHelp: "Le document unique que chaque solveur du site écrit : score, ruptures, le vecteur de placement, les deux chaînes de lettres et l'URL eternity2.dev. Compatible octet pour octet avec le schéma BoardDoc d'e2-io.",
+    outCsvTitle: "Puzzle CSV",
+    outCsvHelp: "Le format historique une ligne par case que lisent les moteurs de la communauté : un en-tête de taille, puis haut,droite,bas,gauche par case remplie en mots de couleur binaires 16 bits (bordure = 1111111111111111).",
+    outBucasTitle: "URL bucas.name (visualiseur communautaire)",
+    outBucasHelp: "Un lien e2.bucas.name historique, conservé pour l'interopérabilité avec le visualiseur d'origine de Jef Bucas. Dérivé du même plateau.",
     outE2Title: "e2pieces.txt (pièces telles que posées)",
     outE2Help: "Une ligne par case remplie, dans l'ordre de lecture : quatre numéros de côté (haut, droite, bas, gauche), 0 pour le gris. Ce sont les pièces telles que posées et tournées, pas un catalogue canonique en rotation 0 ; un plateau seul ne permet pas de retrouver l'ordre d'origine des pièces.",
     copy: "Copier",
@@ -232,7 +317,10 @@ export default function Convert() {
   const summary = useMemo(() => (board ? scoreSummary(board) : null), [board]);
   const edges = useMemo(() => (board ? cellsToEdges(board.cells) : ""), [board]);
   const pieces = useMemo(() => (board ? cellsToPieces(board.pieceNumbers) : null), [board]);
-  const url = useMemo(() => (board ? canonicalUrl(board) : ""), [board]);
+  const url = useMemo(() => (board ? viewerUrl(board) : ""), [board]);
+  const json = useMemo(() => (board ? canonicalJson(board) : ""), [board]);
+  const csv = useMemo(() => (board ? canonicalCsv(board) : ""), [board]);
+  const bucas = useMemo(() => (board ? bucasUrl(board) : ""), [board]);
   const e2 = useMemo(() => (board ? cellsToE2Pieces(board.cells) : ""), [board]);
 
   return (
@@ -359,9 +447,30 @@ export default function Convert() {
                 copiedLabel={t.copied}
               />
               <OutputBlock
+                title={t.outJsonTitle}
+                help={t.outJsonHelp}
+                value={json}
+                copyLabel={t.copy}
+                copiedLabel={t.copied}
+              />
+              <OutputBlock
+                title={t.outCsvTitle}
+                help={t.outCsvHelp}
+                value={csv}
+                copyLabel={t.copy}
+                copiedLabel={t.copied}
+              />
+              <OutputBlock
                 title={t.outE2Title}
                 help={t.outE2Help}
                 value={e2}
+                copyLabel={t.copy}
+                copiedLabel={t.copied}
+              />
+              <OutputBlock
+                title={t.outBucasTitle}
+                help={t.outBucasHelp}
+                value={bucas}
                 copyLabel={t.copy}
                 copiedLabel={t.copied}
               />
