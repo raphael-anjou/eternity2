@@ -61,7 +61,8 @@ bandsaw rung_ms="15000" label_ms="1500":
         --manifest-path single-core-benchmark/engine/Cargo.toml \
         --bin mini_e2 --bin dump_board_json
     single-core-benchmark/engine/target/release/dump_board_json \
-        "$(cat bandsaw/example/board.url)" > /tmp/bandsaw_raw.json
+        "$(python3 -c 'import json;print(json.load(open("bandsaw/example/board.json"))["url"])')" \
+        > /tmp/bandsaw_raw.json
     python3 bandsaw/scripts/to_entry.py /tmp/bandsaw_raw.json > /tmp/bandsaw_entry.json
     single-core-benchmark/engine/target/release/mini_e2 \
         --entry /tmp/bandsaw_entry.json --rung-ms {{rung_ms}} --label-ms {{label_ms}} \
