@@ -41,16 +41,25 @@ impl Repair {
     /// Refill `cells` (currently empty in `st`) using the pieces in `pool`
     /// (currently lifted, i.e. not on the board). On return every cell in `cells`
     /// is filled and every pool piece is placed. Assumes `cells.len() ==
-    /// pool.len()`.
-    pub fn refill(self, st: &mut State, cells: &[usize], pool: &[u16], rng: &mut Rng) {
+    /// pool.len()`. `remaining`/`open` are reused scratch buffers (cleared here),
+    /// so the refill allocates nothing on the hot path.
+    pub fn refill(
+        self,
+        st: &mut State,
+        cells: &[usize],
+        pool: &[u16],
+        rng: &mut Rng,
+        remaining: &mut Vec<u16>,
+        open: &mut Vec<usize>,
+    ) {
         match self {
-            Self::Greedy => self.greedy(st, cells, pool, false, rng),
-            Self::GreedyJitterTies => self.greedy(st, cells, pool, true, rng),
+            Self::Greedy => self.greedy(st, cells, pool, false, rng, remaining, open),
+            Self::GreedyJitterTies => self.greedy(st, cells, pool, true, rng, remaining, open),
             Self::ExactSmall { exact_max } => {
                 if cells.len() <= exact_max {
                     self.exact(st, cells, pool, rng);
                 } else {
-                    self.greedy(st, cells, pool, true, rng);
+                    self.greedy(st, cells, pool, true, rng, remaining, open);
                 }
             }
         }
@@ -59,9 +68,21 @@ impl Repair {
     /// Most-constrained-cell-first greedy refill. Places one piece per step: pick
     /// the empty target cell with the most placed neighbours, then the (piece,
     /// rotation) from the remaining pool that gains the most matched edges.
-    fn greedy(self, st: &mut State, cells: &[usize], pool: &[u16], jitter: bool, rng: &mut Rng) {
-        let mut remaining: Vec<u16> = pool.to_vec();
-        let mut open: Vec<usize> = cells.to_vec();
+    #[allow(clippy::too_many_arguments)]
+    fn greedy(
+        self,
+        st: &mut State,
+        cells: &[usize],
+        pool: &[u16],
+        jitter: bool,
+        rng: &mut Rng,
+        remaining: &mut Vec<u16>,
+        open: &mut Vec<usize>,
+    ) {
+        remaining.clear();
+        remaining.extend_from_slice(pool);
+        open.clear();
+        open.extend_from_slice(cells);
 
         while !open.is_empty() {
             // Most-constrained cell: the empty target with the fewest still-empty
@@ -73,10 +94,17 @@ impl Repair {
                 .expect("open non-empty");
             let target = open.swap_remove(ti);
 
+            // The target's neighbour context is the same for every candidate piece
+            // and rotation, so compute it once here instead of re-walking the
+            // neighbourhood inside delta_if_placed 4x per piece.
+            let ctx = st.target_context(target);
+
             let mut best: Option<(i32, usize, u8)> = None; // (score, pool index, rot)
             for (pi, &pid) in remaining.iter().enumerate() {
+                let base = st.pieces.get(pid).map_or([e2_core::BORDER; 4], |p| p.edges);
                 for r in 0..4u8 {
-                    let gain = st.delta_if_placed(target, pid, r);
+                    let e = e2_core::rotated(base, r);
+                    let gain = crate::state::delta_against(&e, &ctx);
                     let key = if jitter { gain * 2 + (rng.next_u64() & 1) as i32 } else { gain * 2 };
                     if best.is_none_or(|(bk, _, _)| key > bk) {
                         best = Some((key, pi, r));
@@ -125,15 +153,20 @@ impl Repair {
                 return;
             }
             let target = order[placed.len()];
+            // The neighbour context at `target` is fixed for this recursion level
+            // (it only changes as cells are placed, which happens deeper), so
+            // compute it once here rather than inside delta_if_placed per rotation.
+            let ctx = st.target_context(target);
             for (pi, &pid) in pool.iter().enumerate() {
                 if used[pi] {
                     continue;
                 }
                 // Best rotation for this piece at this cell in the current context.
+                let base = st.pieces.get(pid).map_or([e2_core::BORDER; 4], |p| p.edges);
                 let mut br = 0u8;
                 let mut bg = i32::MIN;
                 for r in 0..4u8 {
-                    let g = st.delta_if_placed(target, pid, r);
+                    let g = crate::state::delta_against(&e2_core::rotated(base, r), &ctx);
                     if g > bg {
                         bg = g;
                         br = r;

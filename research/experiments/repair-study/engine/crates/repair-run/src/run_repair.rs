@@ -85,7 +85,10 @@ fn main() -> ExitCode {
         }
     };
 
-    let cfg = RunConfig { budget_ms: (budget_s * 1000.0) as u64, seed };
+    // Optional --max-iters caps iterations for deterministic, wall-clock-
+    // independent A/B testing (same iterations => bit-identical board for a seed).
+    let max_iters = get("--max-iters").and_then(|s| s.parse::<u64>().ok());
+    let cfg = RunConfig { budget_ms: (budget_s * 1000.0) as u64, seed, max_iters };
     let result = run(&inst, &spec, cfg);
     let out = result.output(&inst);
     let ips = result.stats.iters_per_sec(result.elapsed_s);

@@ -17,7 +17,7 @@ use e2_core::{score_cells, Board, N};
 use e2_io::Instance;
 
 use crate::spec::Spec;
-use crate::state::{Rng, State};
+use crate::state::{Rng, Scratch, State};
 use crate::stats::{RepairStats, CURVE_STRIDE};
 use crate::strategy::restart::Restart;
 
@@ -26,6 +26,20 @@ use crate::strategy::restart::Restart;
 pub struct RunConfig {
     pub budget_ms: u64,
     pub seed: u64,
+    /// Optional hard cap on iterations, independent of the time budget. `None`
+    /// means "time only". Used for deterministic, wall-clock-independent testing:
+    /// a fixed iteration count yields a bit-identical board for a given seed, so
+    /// an optimization can be proved to preserve results by comparing the board
+    /// hash at a fixed `max_iters` before and after.
+    pub max_iters: Option<u64>,
+}
+
+impl RunConfig {
+    /// A time-only config (no iteration cap), the normal grid mode.
+    #[must_use]
+    pub const fn timed(budget_ms: u64, seed: u64) -> Self {
+        Self { budget_ms, seed, max_iters: None }
+    }
 }
 
 /// The result of one run: the best board and the statistics behind it.
@@ -64,8 +78,12 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
         is_hint[h.pos as usize] = true;
     }
 
-    // Build the starting board and the working state from it.
-    let start_codes = spec.start.build(inst, &mut rng);
+    // Build the starting board and the working state from it. The seed and the
+    // run budget are passed through so a DFS-seeded start is deterministic and can
+    // cap its seed time to a fraction of the run (never starving the repair loop).
+    // The clock is already running, so any time the start spends is charged to the
+    // run's budget, leaving the loop the remainder.
+    let start_codes = spec.start.build(inst, &mut rng, cfg.seed, cfg.budget_ms);
     let mut st = State::from_codes(&inst.pieces, &start_codes);
 
     let mut stats = RepairStats::new();
@@ -82,8 +100,18 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
     let patience = spec.restart.patience();
     let mut stalled: u64 = 0; // iterations since the last global-best improvement
 
+    // Reusable per-iteration buffers: allocated once, cleared each iteration, so
+    // the hot loop makes no heap allocations after warm-up.
+    let mut scratch = Scratch::new();
+
     let mut elapsed;
     loop {
+        // Optional iteration cap (deterministic, wall-clock-independent testing).
+        if let Some(cap) = cfg.max_iters {
+            if stats.iterations >= cap {
+                break;
+            }
+        }
         // Clock check every CLOCK_STRIDE iterations.
         if stats.iterations % CLOCK_STRIDE == 0 {
             elapsed = start_time.elapsed().as_secs_f64();
@@ -95,8 +123,12 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
 
         let before = st.score();
 
+        // Split `scratch` into disjoint field borrows so destroy, snapshot and
+        // repair can each hold their own buffer at once.
+        let Scratch { cells, conflicted, snapshot, pool, remaining, open } = &mut scratch;
+
         // --- destroy: choose cells, snapshot them, lift their pieces ---
-        let cells = spec.destroy.select(&st, &is_hint, &mut rng);
+        spec.destroy.select(&st, &is_hint, &mut rng, cells, conflicted);
         if cells.is_empty() {
             // A conflict-driven operator on a board with no conflicts left: there
             // is nothing to repair. Perturb if we can, else we are done.
@@ -107,14 +139,13 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
             break;
         }
         // Snapshot the (cell, piece, rot) we are about to change, to revert.
-        let snapshot: Vec<(usize, i32)> = cells
-            .iter()
-            .map(|&p| (p, cell_code(&st, p)))
-            .collect();
-        let pool: Vec<u16> = cells.iter().filter_map(|&p| st.clear(p).map(|(pid, _)| pid)).collect();
+        snapshot.clear();
+        snapshot.extend(cells.iter().map(|&p| (p, cell_code(&st, p))));
+        pool.clear();
+        pool.extend(cells.iter().filter_map(|&p| st.clear(p).map(|(pid, _)| pid)));
 
         // --- repair: refill the hole ---
-        spec.repair.refill(&mut st, &cells, &pool, &mut rng);
+        spec.repair.refill(&mut st, cells, pool, &mut rng, remaining, open);
 
         let after = st.score();
         stats.iterations += 1;
@@ -134,10 +165,10 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
             }
         } else {
             // Revert: clear the repaired cells, restore the snapshot placements.
-            for &p in &cells {
+            for &p in cells.iter() {
                 st.clear(p);
             }
-            for &(p, code) in &snapshot {
+            for &(p, code) in snapshot.iter() {
                 if code >= 0 {
                     st.place(p, (code / 4) as u16, (code % 4) as u8);
                 }

@@ -43,38 +43,39 @@ impl Destroy {
         }
     }
 
-    /// Select the cells to destroy. `is_hint[pos]` marks a pinned cell that must
-    /// never be selected. Returns positions to unplace (possibly empty, e.g. a
-    /// conflict-driven operator on a board with no conflicts left).
-    #[must_use]
-    pub fn select(self, st: &State, is_hint: &[bool], rng: &mut Rng) -> Vec<usize> {
-        let out = match self {
-            Self::RandomCells { k } => self.random(st, is_hint, k, rng),
-            Self::MismatchedCells { k } => self.mismatched(st, k, rng),
-            Self::WorstBand { rows } => self.worst_band(st, rows),
-            Self::ComponentHalo { max } => self.component_halo(st, max, rng),
-        };
-        out.into_iter().filter(|&p| !is_hint[p]).collect()
+    /// Select the cells to destroy into `out` (cleared first). `is_hint[pos]` marks
+    /// a pinned cell that must never be selected. `scratch` is a reused buffer for
+    /// the conflicted-cell list. Leaves `out` possibly empty (e.g. a conflict-driven
+    /// operator on a board with no conflicts left). No heap allocation on the hot
+    /// path: both `out` and `scratch` keep their capacity between calls.
+    pub fn select(self, st: &State, is_hint: &[bool], rng: &mut Rng, out: &mut Vec<usize>, scratch: &mut Vec<usize>) {
+        out.clear();
+        match self {
+            Self::RandomCells { k } => self.random(st, is_hint, k, rng, out),
+            Self::MismatchedCells { k } => self.mismatched(st, k, rng, out),
+            Self::WorstBand { rows } => self.worst_band(st, rows, out),
+            Self::ComponentHalo { max } => self.component_halo(st, max, rng, out, scratch),
+        }
+        // Drop any hint cell in place (retain keeps capacity).
+        out.retain(|&p| !is_hint[p]);
     }
 
-    fn random(self, st: &State, is_hint: &[bool], k: usize, rng: &mut Rng) -> Vec<usize> {
-        let mut pool: Vec<usize> = (0..W * H).filter(|&p| !is_hint[p] && !st.is_empty_at(p)).collect();
-        rng.shuffle(&mut pool);
-        pool.truncate(k);
-        pool
+    fn random(self, st: &State, is_hint: &[bool], k: usize, rng: &mut Rng, out: &mut Vec<usize>) {
+        out.extend((0..W * H).filter(|&p| !is_hint[p] && !st.is_empty_at(p)));
+        rng.shuffle(out);
+        out.truncate(k);
     }
 
-    fn mismatched(self, st: &State, k: usize, rng: &mut Rng) -> Vec<usize> {
-        let mut cells = st.conflicted_cells();
+    fn mismatched(self, st: &State, k: usize, rng: &mut Rng, out: &mut Vec<usize>) {
+        st.conflicted_cells_into(out);
         // Most-conflicted first, then a shuffle within equal conflict counts so
         // the operator is not deterministic across seeds.
-        rng.shuffle(&mut cells);
-        cells.sort_by_key(|&p| std::cmp::Reverse(st.conflicts_at(p)));
-        cells.truncate(k);
-        cells
+        rng.shuffle(out);
+        out.sort_by_key(|&p| std::cmp::Reverse(st.conflicts_at(p)));
+        out.truncate(k);
     }
 
-    fn worst_band(self, st: &State, rows: usize) -> Vec<usize> {
+    fn worst_band(self, st: &State, rows: usize, out: &mut Vec<usize>) {
         let rows = rows.clamp(1, H);
         // Conflicts per row, then the sliding window of `rows` rows with the most.
         let mut per_row = [0u32; H];
@@ -89,65 +90,68 @@ impl Destroy {
                 best_start = start;
             }
         }
-        (best_start * W..(best_start + rows) * W).filter(|&p| !st.is_empty_at(p)).collect()
+        out.extend((best_start * W..(best_start + rows) * W).filter(|&p| !st.is_empty_at(p)));
     }
 
-    fn component_halo(self, st: &State, max: usize, rng: &mut Rng) -> Vec<usize> {
-        let conflicted = st.conflicted_cells();
-        if conflicted.is_empty() {
-            return Vec::new();
+    fn component_halo(self, st: &State, max: usize, rng: &mut Rng, out: &mut Vec<usize>, scratch: &mut Vec<usize>) {
+        st.conflicted_cells_into(scratch);
+        if scratch.is_empty() {
+            return;
         }
         // Seed from a random conflicted cell, grow the connected component along
         // broken edges (BFS over conflict-adjacency) up to `max` cells.
-        let seed = conflicted[rng.below(conflicted.len())];
-        let mut in_set = vec![false; W * H];
-        let mut comp = Vec::new();
-        let mut queue = vec![seed];
+        let seed = scratch[rng.below(scratch.len())];
+        let mut in_set = [false; W * H];
+        // BFS the connected conflict component into `out`, capped at `max`. `out`
+        // holds the component cells in discovery order; `comp_len` marks where the
+        // component ends and (below) the halo begins, so no separate `comp` clone
+        // is needed. `head` is the queue cursor (a plain index into `out`, so `out`
+        // doubles as the BFS queue).
+        out.push(seed);
         in_set[seed] = true;
-        while let Some(pos) = queue.pop() {
-            comp.push(pos);
-            if comp.len() >= max {
-                break;
-            }
+        let mut head = 0usize;
+        while head < out.len() && out.len() < max {
+            let pos = out[head];
+            head += 1;
             for np in neighbours(pos) {
+                if out.len() >= max {
+                    break;
+                }
                 // Grow only into cells that are themselves conflicted, so the
                 // component tracks the tangle rather than flooding the board.
                 if !in_set[np] && st.conflicts_at(np) > 0 {
                     in_set[np] = true;
-                    queue.push(np);
+                    out.push(np);
                 }
             }
         }
         // One-cell halo: every placed neighbour of a component cell.
-        let mut with_halo = comp.clone();
-        for &pos in &comp {
+        let comp_len = out.len();
+        for i in 0..comp_len {
+            let pos = out[i];
             for np in neighbours(pos) {
                 if !in_set[np] && !st.is_empty_at(np) {
                     in_set[np] = true;
-                    with_halo.push(np);
+                    out.push(np);
                 }
             }
         }
-        with_halo
     }
 }
 
-/// The 4-neighbourhood of a cell, on-board only.
+/// The 4-neighbourhood of a cell, on-board only, in URDL order. Allocation-free:
+/// yields from a fixed-size array rather than a heap `Vec`, so the BFS/halo passes
+/// that call this per expanded cell make no per-iteration allocations. The yield
+/// order (up, right, down, left) is preserved, so BFS visit order is unchanged.
 #[inline]
-fn neighbours(pos: usize) -> Vec<usize> {
+fn neighbours(pos: usize) -> impl Iterator<Item = usize> {
     let (y, x) = (pos / W, pos % W);
-    let mut v = Vec::with_capacity(4);
-    if y > 0 {
-        v.push(pos - W);
-    }
-    if x + 1 < W {
-        v.push(pos + 1);
-    }
-    if y + 1 < H {
-        v.push(pos + W);
-    }
-    if x > 0 {
-        v.push(pos - 1);
-    }
-    v
+    [
+        if y > 0 { Some(pos - W) } else { None },
+        if x + 1 < W { Some(pos + 1) } else { None },
+        if y + 1 < H { Some(pos + W) } else { None },
+        if x > 0 { Some(pos - 1) } else { None },
+    ]
+    .into_iter()
+    .flatten()
 }

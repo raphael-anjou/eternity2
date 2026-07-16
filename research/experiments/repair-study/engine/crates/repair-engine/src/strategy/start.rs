@@ -26,6 +26,16 @@ pub enum StartBoard {
     /// first — the Selby/Riordan heuristic that a scarce color should be spent
     /// where it is forced. A one-change delta over [`Self::GreedyConstruct`].
     GreedyRareFirst,
+    /// Start from a *strong backtracked board*: run the DFS study's break-DFS
+    /// (`break-1`) for `dfs_budget_ms`, then hand its best board to the repair
+    /// loop. This is the construct-then-refine pipeline the records use, and it
+    /// answers the question the greedy starts cannot: does repair add anything on
+    /// top of a board that is already near the backtracking wall? The DFS time is
+    /// spent from the *same* run budget, so a 60 s run with a 20 s DFS seed leaves
+    /// the loop 40 s to repair. A break-DFS board is only partially filled (it
+    /// stops at the depth wall), so the empty tail is greedily completed before
+    /// the loop begins, keeping the start a full board like every other.
+    FromDfsBoard { dfs_budget_ms: u64 },
 }
 
 impl StartBoard {
@@ -35,13 +45,22 @@ impl StartBoard {
             Self::Random => "random",
             Self::GreedyConstruct => "greedy",
             Self::GreedyRareFirst => "greedy-rare",
+            Self::FromDfsBoard { .. } => "from-dfs",
         }
     }
 
     /// Build the starting board's cell codes for `inst`, using `rng` for random
-    /// choices and greedy tie-breaks. Hints are always pre-placed.
+    /// choices and greedy tie-breaks, `seed` for the deterministic DFS seed, and
+    /// `run_budget_ms` to cap the DFS seed time to at most half the run (so a
+    /// short run never starves the repair loop). Hints are always pre-placed.
     #[must_use]
-    pub fn build(self, inst: &Instance, rng: &mut Rng) -> Vec<i32> {
+    pub fn build(self, inst: &Instance, rng: &mut Rng, seed: u64, run_budget_ms: u64) -> Vec<i32> {
+        if let Self::FromDfsBoard { dfs_budget_ms } = self {
+            // Never let the seed eat more than half the run.
+            let dfs_ms = dfs_budget_ms.min(run_budget_ms / 2).max(1);
+            return self.build_from_dfs(inst, dfs_ms, seed, rng);
+        }
+
         let n = (inst.width as usize) * (inst.height as usize);
         let mut codes = vec![-1i32; n];
         let mut used = vec![false; inst.pieces.len()];
@@ -58,7 +77,29 @@ impl StartBoard {
             Self::GreedyConstruct | Self::GreedyRareFirst => {
                 self.fill_greedy(inst, &mut codes, &mut used, rng);
             }
+            Self::FromDfsBoard { .. } => unreachable!("handled above"),
         }
+        codes
+    }
+
+    /// Run break-DFS for `dfs_budget_ms`, take its best board, and greedily fill
+    /// any cells it left empty at the depth wall so the result is a full board.
+    fn build_from_dfs(self, inst: &Instance, dfs_budget_ms: u64, seed: u64, rng: &mut Rng) -> Vec<i32> {
+        let spec = dfs_engine::find("break-1").expect("break-1 is a registered DFS variant");
+        let result = dfs_engine::run(inst, &spec, dfs_engine::RunConfig { budget_ms: dfs_budget_ms, seed });
+        let mut codes = result.best.to_cell_codes();
+
+        // The break-DFS board stops at the depth wall, so a tail of cells is
+        // still empty. Complete it greedily (respecting used pieces) so the repair
+        // loop begins from a full board, exactly like the other starts.
+        let mut used = vec![false; inst.pieces.len()];
+        for &c in &codes {
+            if c >= 0 {
+                used[(c / 4) as usize] = true;
+            }
+        }
+        // Hints are already on the DFS board (it pins them), so no separate pass.
+        self.fill_greedy(inst, &mut codes, &mut used, rng);
         codes
     }
 

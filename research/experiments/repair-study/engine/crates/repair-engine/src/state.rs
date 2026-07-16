@@ -70,6 +70,41 @@ impl Rng {
 /// A placement: piece id and rotation. `None` is an empty cell.
 pub type Cell = Option<(u16, Rot)>;
 
+/// Reusable per-iteration scratch buffers, allocated once and cleared (not freed)
+/// each iteration, so the hot loop makes no heap allocations after warm-up. Held
+/// by the search loop and passed by `&mut` into the destroy and repair steps.
+#[derive(Default)]
+pub struct Scratch {
+    /// The destroy operator's chosen cells (the hole to refill).
+    pub cells: Vec<usize>,
+    /// The conflicted-cell list a conflict-driven operator draws from.
+    pub conflicted: Vec<usize>,
+    /// The snapshot of `(cell, code)` taken before a destroy, for revert.
+    pub snapshot: Vec<(usize, i32)>,
+    /// The pieces lifted from the hole, refilled back by the repair step.
+    pub pool: Vec<u16>,
+    /// The repair step's working copy of the lifted pieces.
+    pub remaining: Vec<u16>,
+    /// The repair step's working list of still-empty target cells.
+    pub open: Vec<usize>,
+}
+
+impl Scratch {
+    #[must_use]
+    pub fn new() -> Self {
+        // Reserve enough for the largest holes any variant produces, so warm-up
+        // itself does not realloc.
+        Self {
+            cells: Vec::with_capacity(N),
+            conflicted: Vec::with_capacity(N),
+            snapshot: Vec::with_capacity(64),
+            pool: Vec::with_capacity(64),
+            remaining: Vec::with_capacity(64),
+            open: Vec::with_capacity(64),
+        }
+    }
+}
+
 /// The mutable board state a repair run works on. Holds the placement grid, the
 /// resolved URDL edges per cell (so neighbour colors are array reads, never a
 /// rotation recompute on the hot path), and the live count of broken interior
@@ -193,20 +228,27 @@ impl<'a> State<'a> {
     /// so this is `O(1)`. Used by greedy repair to pick the best placement.
     #[must_use]
     pub fn delta_if_placed(&self, pos: usize, pid: u16, r: Rot) -> i32 {
-        debug_assert!(self.piece[pos] == EMPTY);
         let e = self.pieces.get(pid).map_or([BORDER; 4], |p| rotated(p.edges, r));
-        let mut delta = 0i32;
+        delta_against(&e, &self.target_context(pos))
+    }
+
+    /// The URDL edges a placed piece at `pos` would face, in this cell's own URDL
+    /// frame: `[up-neighbour's down, right-neighbour's left, down-neighbour's up,
+    /// left-neighbour's right]`, or [`BORDER`] where the neighbour is off-board or
+    /// empty. Computed once per target cell so the greedy refill can score all of a
+    /// candidate's rotations against it without re-walking the neighbourhood.
+    #[inline]
+    #[must_use]
+    pub fn target_context(&self, pos: usize) -> [u8; 4] {
+        let mut ctx = [BORDER; 4];
         for (dir, npos) in self.neighbours(pos) {
-            let Some(npos) = npos else { continue };
-            if self.piece[npos] == EMPTY {
-                continue;
-            }
-            let (mine, theirs) = (e[dir], self.edges[npos][opposite(dir)]);
-            if mine != BORDER && mine == theirs {
-                delta += 1;
+            if let Some(npos) = npos {
+                if self.piece[npos] != EMPTY {
+                    ctx[dir] = self.edges[npos][opposite(dir)];
+                }
             }
         }
-        delta
+        ctx
     }
 
     /// Place a piece into an empty cell, updating the edge cache, the conflict
@@ -294,11 +336,13 @@ impl<'a> State<'a> {
             .collect()
     }
 
-    /// Cells currently incident to at least one broken interior edge — the
-    /// candidate pool every conflict-driven destroy operator draws from.
-    #[must_use]
-    pub fn conflicted_cells(&self) -> Vec<usize> {
-        (0..N).filter(|&p| self.conflicts[p] > 0).collect()
+    /// Cells currently incident to at least one broken interior edge (the
+    /// candidate pool every conflict-driven destroy operator draws from), appended
+    /// in ascending position order into a reused buffer (cleared first) so the hot
+    /// path allocates nothing.
+    pub fn conflicted_cells_into(&self, out: &mut Vec<usize>) {
+        out.clear();
+        out.extend((0..N).filter(|&p| self.conflicts[p] > 0));
     }
 
     /// Test-only integrity check: does the incrementally-maintained score and
@@ -342,6 +386,21 @@ enum SeamKind {
     Match,
     Conflict,
     Neither,
+}
+
+/// Matched non-border seams between a candidate piece's URDL edges `e` and a
+/// target cell's precomputed neighbour context (see [`State::target_context`]).
+/// This is the inner scoring kernel of the greedy refill.
+#[inline]
+#[must_use]
+pub fn delta_against(e: &[u8; 4], ctx: &[u8; 4]) -> i32 {
+    let mut d = 0i32;
+    for dir in 0..4 {
+        if e[dir] != BORDER && e[dir] == ctx[dir] {
+            d += 1;
+        }
+    }
+    d
 }
 
 #[inline]

@@ -33,6 +33,10 @@ publish = false
 [workspace.dependencies]
 e2-core = { path = "../../common/crates/e2-core" }
 e2-io = { path = "../../common/crates/e2-io" }
+# The DFS study's backtracker, reused so a repair variant can start from a strong
+# break-DFS board (the FROM-DFS-BOARD start). Both crates already share e2-core /
+# e2-io, so a DFS board hands straight to the repair loop with no conversion.
+dfs-engine = { path = "../../dfs-study/engine/crates/dfs-engine" }
 repair-engine = { path = "crates/repair-engine" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -50,15 +54,16 @@ missing_panics_doc = "allow"
 doc_markdown = "allow"
 
 # Mirror the sibling studies' release profile so throughput numbers are
-# comparable across the three experiments. Unlike a throughput-critical binary,
-# these are 60 s research runs, so we keep `debug-assertions` and `overflow-checks`
-# ON even in release: an integer overflow in the incremental score or conflict
-# map must abort loudly, never wrap silently and corrupt a published number. The
-# cost is negligible next to the science of getting the numbers right.
+# comparable across the three experiments. We keep `overflow-checks` ON even in
+# release: an integer overflow in the incremental score or conflict map (the exact
+# class of bug the audit caught) must abort loudly, never wrap silently and corrupt
+# a published number. It costs a few percent, cheap next to getting the numbers
+# right. `debug-assertions` (the `debug_assert!` macros) stays OFF: those checks are
+# now redundant with the recompute-equality test, and dropping them recovers ~13 %
+# throughput.
 [profile.release]
 opt-level = 3
 lto = "thin"
 codegen-units = 1
 strip = "symbols"
-debug-assertions = true
 overflow-checks = true

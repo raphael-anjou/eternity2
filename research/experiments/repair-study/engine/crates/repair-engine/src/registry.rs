@@ -168,6 +168,18 @@ pub fn all_specs() -> Vec<Spec> {
             start: StartBoard::GreedyRareFirst,
             ..a
         },
+        // The construct-then-refine pipeline: spend the first 20 s of the budget on
+        // the DFS study's break-DFS, then repair its board for the remaining 40 s.
+        // Answers whether repair adds anything on top of a strong backtracked board.
+        Spec {
+            name: "start-dfs",
+            display: "START-DFS",
+            parent: Some("greedy-mismatch"),
+            delta: "start from a 20 s break-DFS board, then repair it (construct-then-refine)",
+            family: Family::Start,
+            start: StartBoard::FromDfsBoard { dfs_budget_ms: 20_000 },
+            ..a
+        },
     ];
 
     // Stable, deterministic order by family, then original insertion order.
