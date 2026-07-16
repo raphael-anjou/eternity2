@@ -1056,3 +1056,28 @@ scrubbed of the "honest" tic the checker hard-fails on), links (150 routes),
 citations --no-fetch (the capstone cites the rigidity-wall page so no page is
 source-less), hardware (0 problems), typecheck, lint, build all green; all 7 pages
 prerender and their .md exports carry the child lists + related rails.
+
+---
+
+## 2026-07-16 — Content review of the learning section: reproducibility + a false-claim fix
+
+Reviewed whether the five learning experiments can actually be run. Answer: no,
+and by design. Unlike the DFS and repair studies (which ship full engines +
+`just experiments <study>`), none of the five corpus-mining runs
+(PRIOR/KEYRING/PALIMPSEST/LODESTONE/REPLAY) have runnable search code in the repo.
+The only backing code for this family is `research/topics/record-boards/compute/`,
+a board *verifier* (recomputes matched-edge score from a board's bucas edges), not
+a solver. The pages already treat these as exploratory `measured: false` runs whose
+artifact of record is the board, not a re-run; making one runnable would be a
+from-scratch engine on the scale of a whole study, plus the private strong-board
+corpus. So "runnable" is a project, not a review fixup — left as-is intentionally.
+
+The review did catch one real defect (pre-existing, not from the section build):
+two pages claimed a board "checkable in the viewer" that is not in the committed
+viewer data. record-boards.ts / boards.json hold only four boards (prior-460,
+keyring-460, gauntlet-458, palimpsest-463); LODESTONE's 451 and REPLAY's targets
+are not among them, and neither page even renders a <RecordBoard>. Fixed the prose:
+LODESTONE now says its reproducible artifact is the tiebreak *effect* across five
+seeds (true), not a viewer board; REPLAY now says the boards it rebuilds are the
+community's own strict-460 records (on the record timeline), and what the experiment
+adds is the replay. Style + links green.
