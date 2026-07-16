@@ -1,0 +1,253 @@
+---
+title: "Board & puzzle formats, written down"
+description: >-
+  Every format an Eternity II board or puzzle travels in on this site and in the
+  community: board_edges and board_pieces letter strings, e2pieces.txt, the
+  legacy puzzle CSV, the site's Puzzle JSON, and the two viewer URLs — with the
+  exact byte-level rules (how the grey border is encoded in each) and, crucially,
+  what each format can and cannot recover.
+metaDescription: "The byte-level spec for every Eternity II board format: board_edges, board_pieces, e2pieces.txt, CSV, site JSON and the viewer URLs — how each encodes the border."
+kind: reference
+order: 8
+group: Start here
+author: raphael-anjou
+updated: 2026-07-16
+topics: []
+related:
+  - /research/build/tooling
+  - /research/build/benchmarks
+  - /research/build/dataset
+---
+
+A board is a simple thing — 256 tiles, each with four coloured edges, each
+placed at a cell and a rotation — but the community has written it down a dozen
+ways over nineteen years, and the ways never quite line up. A letter string, a
+digit string, a URL, a CSV, a JSON. They say the same thing in different
+alphabets, and the moment you move a board between two tools you hit the seam.
+
+This page is the seam, written down: every format a board or puzzle travels in
+here, with the byte-level rules — including the one detail that bites everyone,
+**how each format encodes the grey border** — and, for each, the honest note on
+what it can and cannot recover. If you only take one thing away: paste any board
+into the [format converter](/convert) and read the others straight back.
+
+<Callout kind="note" title="One canonical output now">
+Every algorithm on this site emits **one** artifact per board: a canonical
+`.json` document (the `BoardDoc`, below) carrying a ready-to-open
+[eternity2.dev](/viewer) URL as a field. Everything else here is either an
+*input* the tools accept or a *derived* format the converter can hand you. There
+is no longer a `.url`-here, `.json`-there, two-files-sometimes split.
+</Callout>
+
+## The vocabulary
+
+A **colour** is a small integer. `0` is the grey outer border; interior colours
+run `1..=22` for the official puzzle (22 is exactly how many motifs exist). An
+**edge quad** is a cell's four colours in **URDL** order — up, right, down, left
+— reading the tile *as placed and rotated*, not as a catalogue tile. A cell is
+either filled (a real quad) or empty; an empty cell is written as if it were all
+border, `[0, 0, 0, 0]`.
+
+Two facts follow from "as placed", and they are the source of most format
+confusion:
+
+- A board carries **rotated** edges. It does **not** carry a rotation number.
+  You can recover the rotation only by matching the quad back against a known
+  piece catalogue.
+- A board carries no **piece identity** unless a separate piece-number channel
+  is present. The edge quad `[3, 7, 1, 0]` does not say "piece 118"; it says
+  "these four colours". Identity comes from `board_pieces`, or from matching
+  against the official set.
+
+So a *board alone* can always be rendered and scored, but it cannot, on its own,
+recover the original catalogue order or the per-tile rotation. The formats that
+claim to (site JSON, the piece-numbered URL) do so by carrying the extra channel
+explicitly.
+
+## board_edges — the letter string
+
+The lingua franca. Four lowercase letters per cell, row by row, URDL, with
+`letter = 'a' + colour`. So the border is **`a`**, interior colour 1 is `b`, up
+to colour 22 = `w`. An empty cell is **`aaaa`** — indistinguishable from a real
+all-border tile, which never happens on a legal board, so the ambiguity is
+harmless. The official 16×16 board is `256 × 4 = 1024` letters.
+
+```text
+adca beaa …            cell 0 = [0,3,2,0], cell 1 = [1,4,0,0], …
+```
+
+- **Border:** the letter `a` (colour 0).
+- **Recovers:** the full rendering and the exact score. Nothing else.
+- **Cannot recover:** piece identity or rotation (see above).
+
+A rare wrinkle: some tools permute which glyph each letter draws
+(`motifs_order`). The orders `marie` and `jblackwood` are identical to each
+other; `jef` is a different permutation. The converter and viewer translate
+these back to the default alphabet on the way in, so you never have to think
+about it — but if you see a board whose colours look scrambled, an untranslated
+`motifs_order` is why.
+
+## board_pieces — the identity string
+
+The companion channel that *does* carry identity. Three decimal digits per cell,
+the **1-based** piece number, `000` for an empty cell. So the official board is
+`256 × 3 = 768` digits.
+
+```text
+001 005 007 …          piece 1 at cell 0, piece 5 at cell 1, …
+```
+
+- **Border / empty:** `000`.
+- **Recovers, with `board_edges` alongside:** piece identity *and* rotation — for
+  each cell you know the piece number, and matching its catalogue quad against
+  the placed quad gives the rotation. This is the only board-level way to
+  recover rotation.
+- **On its own:** useless without the edges; it is an overlay, not a board.
+
+## e2pieces.txt — the pieces as placed
+
+The oldest interchange format, written down by the community in 2007 (see the
+[toolbox census](/research/build/tooling)). One line per **filled** cell, in
+reading order, four whitespace-separated edge integers in URDL order.
+
+```text
+0 3 2 0
+1 4 0 0
+…
+```
+
+- **Border:** the integer `0`.
+- **Recovers:** rendering and score, same as `board_edges` — it is the same data
+  in decimal. It lists the pieces **as placed and rotated**, so it is *not* a
+  canonical rotation-0 catalogue, and a board alone cannot turn it back into one.
+
+## Puzzle CSV — what the standalone engines read
+
+The format McGavin's C and Blackwood's C# consume, and the shape the benchmark's
+`variant_NN.csv` files are written in. A size header, then one row per piece:
+`top,right,bottom,left` followed optionally by `x,y,rotation` for a pinned hint.
+
+```text
+16
+1111111111111111,0000000000000001,0000000000000010,1111111111111111,0,0,0
+…
+```
+
+Each colour is a **16-bit zero-padded binary word**. And here is the detail that
+trips everyone, and the reason this page exists:
+
+<Callout kind="warn" title="The border is all ones in the CSV">
+In the puzzle CSV, the grey border is **`1111111111111111`** — all ones, the
+16-bit word `65535` — *not* all zeros. Interior colours are their small integer
+in binary, so colour 1 is `0000000000000001`. A reader maps the `65535` word
+back to interior id `0`. This is the opposite of every other format on this
+page, where the border is the *low* value (`a`, `0`, `000`). It is a legacy
+sentinel choice, kept for byte-compatibility with the engines that read it.
+</Callout>
+
+- **Border:** the all-ones word `1111111111111111` (65535).
+- **Recovers:** the full puzzle — pieces and hints. This is a *puzzle* format
+  (the tile set), not just a placed board.
+
+## Site JSON (`Puzzle`) — the instance schema
+
+The schema the site's engine and the benchmark's variant files share, so the two
+experiments run the *same* instances. It carries the piece set at rotation 0 and
+the pinned hints explicitly.
+
+```json
+{
+  "name": "e2_official_variant00_pin3corners",
+  "width": 16, "height": 16, "numColors": 22,
+  "pieces": [[0,1,2,0], [0,0,3,1], …],
+  "hints": [{ "pos": 34, "piece": 118, "rot": 2 }, …]
+}
+```
+
+- **Border:** colour `0`, as an integer in the `pieces` quads.
+- **Recovers:** everything about the *instance* — canonical rotation-0 tiles,
+  colour count, and every pinned clue with its exact rotation. This is the one
+  format that carries rotation and catalogue order by construction, because it
+  describes the puzzle, not a placement on it.
+
+## The canonical board JSON (`BoardDoc`) — the one output
+
+What every solver on this site now writes: one self-describing `.json` per
+board. It folds the board, its score, its content hash, both letter strings, and
+the viewer URL into a single document, so a downstream tool needs nothing else.
+
+```json
+{
+  "name": "…",
+  "size": 16,
+  "score": 466,
+  "breaks": 14,
+  "board": [3, 16, 24, …],
+  "board_hash": 2059303548241384230,
+  "board_edges": "abda…",
+  "board_pieces": "001005…",
+  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…&board_pieces=…"
+}
+```
+
+`board` is the row-major **`piece*4 + rot`** placement vector (`-1` for an empty
+cell) — the same encoding the site's `Puzzle` round-trips through. `breaks` is
+`max_score − score` (the unmatched interior edges; on a full board, the break
+count). `board_hash` is an FNV-1a hash of the placement grid — the bit-identical
+gate for "did these two runs produce the same board".
+
+- **Border:** as in `board_edges` (`a`) and `board_pieces` (`000`); the `board`
+  vector uses `-1` for empty.
+- **Recovers:** everything a board can — rendering, score, identity and rotation
+  (via `board_pieces` and `board`), plus provenance (`name`, `board_hash`) and a
+  one-click view (`url`).
+
+## The viewer URLs
+
+Two URLs, same board, two hosts.
+
+**eternity2.dev — the canonical link.** The format every algorithm here emits.
+Square boards, so a single `puzzle_size` (the viewer also reads bucas's
+`board_w`/`board_h`), and every value stays in the URL-safe `[A-Za-z0-9_]` range
+so the link needs no percent-encoding:
+
+```text
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
+```
+
+**e2.bucas.name — the community viewer.** Jef Bucas's original, the viewer whose
+URL format *became* this whole vocabulary (the [toolbox](/research/build/tooling)
+tells that story). Still fully supported as an input and available as a derived
+output, using its `board_w`/`board_h` pair and a `#` fragment:
+
+```text
+https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…
+```
+
+The [viewer](/viewer) reads either transparently; the [converter](/convert)
+hands you both. The eternity2.dev form is canonical here only because it opens
+*this* site's viewer, with its scoring, clue overlay and piece-set verification;
+the bucas form remains the community's shared original, credited accordingly.
+
+## Moving between them
+
+<div className="not-prose">
+
+| Format | Border | Carries rotation? | Carries identity? | It is a… |
+| --- | --- | --- | --- | --- |
+| `board_edges` | `a` | no | no | placed board |
+| `board_pieces` | `000` | with edges | yes | overlay |
+| `e2pieces.txt` | `0` | no | no | placed board |
+| Puzzle CSV | `1111…1` (all ones) | hints only | yes (tiles) | puzzle |
+| Site JSON | `0` | yes | yes | puzzle |
+| `BoardDoc` JSON | `a` / `000` / `-1` | with pieces | yes | placed board |
+| eternity2.dev URL | `a` | with pieces | with pieces | link to a board |
+| bucas URL | `a` | with pieces | with pieces | link to a board |
+
+</div>
+
+Every conversion in that table is one paste away in the
+[format converter](/convert): drop in a URL, a bare `board_edges` string, or a
+params blob, and read back the eternity2.dev URL, the canonical JSON, the CSV,
+`board_pieces`, `e2pieces.txt`, and the bucas URL — with a live preview and the
+score, so you can see the file is right before you trust it.

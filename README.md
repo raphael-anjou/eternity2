@@ -20,7 +20,8 @@ nginx container).
 | **Playground / Watch** | A live, speed-controllable DFS with real stats (placements, backtracks, nodes/s) on generated puzzles or the official 16×16 |
 | **Playground / Paths** | Draw a custom cell-visit order (mouse or finger) and race it against the classic orders on the same puzzle, all lanes to the finish |
 | **Algorithms** | DFS and backtracking explained for high-schoolers: a scrubbable slow-motion 3×3 demo, the exponential wall (with all 557 zeros written out), live binary demos, difficulty charts measured by the engine itself |
-| **Board Viewer** | Import/export of `e2.bucas.name` URLs (board_edges/board_pieces/motifs_order), live scoring, conflict marks, verification card (official set, duplicates, clues n/5), famous boards (467/468/469/470), and a solvable-board generator |
+| **Board Viewer** | Imports any `e2.bucas.name` or `eternity2.dev` URL (board_edges/board_pieces/motifs_order) and exports the canonical `eternity2.dev` link; live scoring, conflict marks, verification card (official set, duplicates, clues n/5), famous boards (467/468/469/470), and a solvable-board generator |
+| **Format converter** | Paste any board and read back every format — the canonical `eternity2.dev` URL, the one board JSON every solver emits, `board_edges`/`board_pieces`, `e2pieces.txt`, puzzle CSV, and the legacy bucas link — with a live preview; see the [format reference](https://eternity2.dev/research/build/formats) |
 | **Research** | Three doors: *Why it's hard* (the design and the structural walls, e.g. forbidden patterns), *Build a solver* (validation data, papers, records, and how to run the code), and *The lab notebook* (original findings, all reproducible from source) |
 
 ## Quick start (local development)

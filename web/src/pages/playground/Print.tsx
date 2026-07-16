@@ -113,7 +113,9 @@ function setCode(b: { size: number; colors: number; seed: number }): string {
 }
 
 function answerKeyUrl(b: Block): string {
-  return `https://eternity2.dev/#/viewer?g=${b.size}.${b.colors}.${b.seed}`;
+  // Path-routed viewer (the site is not hash-routed): a `#/viewer` link would
+  // drop the query into the fragment where useSearchParams never sees it.
+  return `https://eternity2.dev/viewer?g=${b.size}.${b.colors}.${b.seed}`;
 }
 
 function clampToPage(b: Block): Block {
