@@ -134,29 +134,43 @@ Blackwood-style and Verhaard-style reimplementations, which reach the high 430s 
 the same five clues. The agreement from an independent engine cross-validates the
 break machinery here.
 
-## Where the community engines sit, and why they cannot take our grid
+## Where the community engines sit: two grids
 
 Blackwood and McGavin are the high end of this same family, and both build and run
-on this machine, so this study ran them; the result is a finding in its own right.
-**Neither can take the corner-pinned variants.** McGavin's C reaches depth 205 on
-the plain five-clue puzzle at about 110 million tiles per second, roughly three
-times our fastest strict engine, yet pinning three corners collapses it to depth
-21. Its generated scan path never visits the corners early, so a pinned corner
-constrains its neighbourhood at once and dead-ends the fixed path almost
-immediately. Blackwood's C# reaches only about 34 of 256 cells on the pinned
-five-clue in a minute, because its break heuristic is tuned for the
-near-unconstrained one-clue instance where its 470 record was set.
+on this machine, so this study ran them on both a pinned and an unpinned grid, with
+every score canonically rescored from the engine's own board. The result is a
+finding in its own right, and it has two halves.
+
+**On the pinned grid, they collapse.** McGavin's C, built with its author's own ARM
+flags (native tuning plus link-time optimisation), reaches depth 211 on the plain
+centre-clue puzzle at about 85 million tiles per second, well ahead of our fastest
+strict engine, yet pinning three corners collapses it to depth 21, a canonical
+score of 13. Its generated scan path never visits the corners early, so a pinned
+corner constrains its neighbourhood at once and dead-ends the fixed path almost
+immediately. Blackwood's C# hardcodes its piece set and scan, so it cannot even
+express an arbitrary corner pin; on the matching five-clue constraint its break
+heuristic thrashes to depth 47, a canonical score of 75, because it is tuned for
+the near-unconstrained one-clue instance where its 470 record was set.
 
 <Figure title="The corner-pin collapse: cells placed out of 256">
   <PinCollapseDiagram />
 </Figure>
 
 That collapse is the point. A record engine built around one clue configuration
-does not transfer to another, and a fixed scan path cannot absorb an arbitrary
-pin. Our from-scratch engines treat a pin as a pre-placed cell the scan simply
-skips, which is why they, rather than the community binaries, are the runnable
-stand-ins on this grid. The community engines are reported on their native
-instances, in the reference panel above, and not as rows on the leaderboard.
+does not transfer to another, and a fixed scan path cannot absorb an arbitrary pin.
+Our from-scratch engines treat a pin as a pre-placed cell the scan simply skips,
+which is why they, rather than the community binaries, are the stand-ins on the
+pinned grid.
+
+**On a fair unpinned grid, they run as designed.** Give every engine the official
+pieces with only the one mandatory centre clue, and nothing dead-ends on a corner.
+In sixty seconds on one core, McGavin reaches 392, our strongest break engine 344,
+the Verhaard reimplementation 286, and Blackwood 214. Read those as what a single
+core buys in a minute from a cold start, not as any engine's ceiling: Blackwood's
+470 and McGavin's deep runs came from days on hundreds of cores, which this budget
+cannot show. What the grid does show is that all four run properly once the pins
+that break a fixed scan path are gone, which is exactly what the pinned grid denied
+the two foreign engines. Both grids are on the study's leaderboard above.
 
 ## The through-line
 

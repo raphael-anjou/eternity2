@@ -28,9 +28,10 @@ import data from "@/data/dfs-study.json";
 //   3. the matrix — every variant as a delta over its parent (the "what stacks
 //      on what" story), generated from the engine registry, not hand-kept.
 //
-// Community reference engines (mcgavin-c, blackwood-cs) carry no measured score
-// here — they run their own instance, not our variants — so they appear only in
-// the matrix, labelled as cited, never on the score chart.
+// Community reference engines (mcgavin-c, blackwood-cs) cannot take the pinned
+// grid, so they are measured on their own two grids in section 4: a fair
+// unpinned grid (centre clue only), and the pinned collapse shown as a score.
+// Every one of their scores is canonically rescored from the engine's own board.
 
 type Variant = {
   name: string;
@@ -60,10 +61,33 @@ type CommunityEngine = {
   display: string;
   language: string;
   instance: string;
+  score?: number | null;
   max_depth: number | null;
   throughput: string;
   note: string;
   collapse?: string;
+  collapse_score?: number | null;
+  collapse_depth?: number | null;
+};
+
+// A row of the unpinned "fair" grid: the community engines and our break-family
+// baseline, all run on the single mandatory centre clue, one core, sixty
+// seconds. Every score is canonically rescored from the engine's own board.
+type UnpinnedRow = {
+  name: string;
+  display: string;
+  family: string;
+  kind: string;
+  instance: string;
+  n: number;
+  score: number;
+  best?: number | null;
+  worst?: number | null;
+  placed?: number | null;
+  max_depth?: number | null;
+  throughput: string;
+  nps_unit: string;
+  note: string;
 };
 
 const D = data as {
@@ -74,6 +98,13 @@ const D = data as {
   community_5clue_record: number;
   variants: Variant[];
   community?: CommunityEngine[];
+  unpinned?: {
+    hint: string;
+    seeds: number[];
+    budget_s: number;
+    max_score: number;
+    rows: UnpinnedRow[];
+  };
 };
 
 // One hue per family. Validated (dataviz skill, --pairs adjacent): worst
@@ -96,7 +127,7 @@ const T = {
   en: {
     boardTitle: "The leaderboard — mean score by variant",
     boardIntro:
-      "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. Community reference engines run their own instance and are not scored here.",
+      "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. The community record engines cannot take these corner pins, so they appear on their own two grids further down, not on this one.",
     ceiling: "5-clue record 464",
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
@@ -121,17 +152,27 @@ const T = {
     strict: "strict",
     commTitle: "The community's record engines, run here",
     commIntro:
-      "McGavin's C and Blackwood's C# both build and run on the same machine — but neither can take the corner-pinned variants: each is built around one clue configuration and collapses when it changes. So they are measured on their native instance, as reference points, not on the leaderboard above. This is exactly why the from-scratch break variants (which handle a pin as a pre-placed cell) are the runnable stand-ins.",
+      "McGavin's C and Blackwood's C# both build and run on the same machine. Neither can take the corner-pinned grid above: each is built around one clue configuration, so an arbitrary corner pin its scan never reaches early dead-ends it at once. The two panels below show both sides of that. First, the pins the study uses collapse them. Second, on a fair grid with only the one mandatory centre clue, they run as designed.",
     commEngine: "engine",
     commInstance: "instance run",
     commDepth: "depth reached",
     commThroughput: "throughput",
     collapseLabel: "The corner-pin collapse",
+    unpinnedTitle: "The unpinned grid — the fair head-to-head",
+    unpinnedIntro:
+      "The same engines on the official pieces with only the mandatory centre clue pinned, so nothing dead-ends on an arbitrary corner. Every score is canonically rescored from the engine's own board, single core, 60 seconds. Read this as what one core buys in one minute from a cold start, not as each engine's ceiling: Blackwood's record 470 and McGavin's deep runs came from days on hundreds of cores, which a 60-second single-core budget cannot show. What it does show is that all four run properly here, which the pinned grid denied the two foreign engines.",
+    unpinnedCaveat:
+      "Throughput is labelled per engine (McGavin counts tiles, the others search-nodes) and is never compared across engines, because the units are not the same work. McGavin is built with its author's own ARM flags (native tuning and link-time optimisation).",
+    collapsePanelTitle: "Pinned: the collapse, as a score",
+    collapsePanelIntro:
+      "The same two foreign engines on the study's pinned configuration. The bar is the canonical score their board reaches before the fixed scan path strands them; the faint bar behind is what the same engine reaches unpinned. The gap is the collapse.",
+    unpinnedGrid: "centre clue only",
+    pinnedGrid: "corner-pinned",
   },
   fr: {
     boardTitle: "Le classement — score moyen par variante",
     boardIntro:
-      "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Les moteurs de référence de la communauté tournent sur leur propre instance et ne sont pas notés ici.",
+      "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Les moteurs record de la communauté ne peuvent prendre ces coins fixés ; ils figurent sur leurs deux grilles plus bas, pas sur celle-ci.",
     ceiling: "record 5 indices 464",
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
@@ -156,12 +197,22 @@ const T = {
     strict: "strict",
     commTitle: "Les moteurs record de la communauté, exécutés ici",
     commIntro:
-      "Le C de McGavin et le C# de Blackwood se compilent et tournent sur la même machine — mais aucun ne peut prendre les variantes à coins fixés : chacun est bâti autour d'une configuration d'indices précise et s'effondre dès qu'elle change. Ils sont donc mesurés sur leur instance native, comme points de repère, hors du classement ci-dessus. C'est précisément pourquoi les variantes à cassures écrites de zéro (qui traitent un indice comme une case déjà posée) sont les substituts exécutables.",
+      "Le C de McGavin et le C# de Blackwood se compilent et tournent sur la même machine. Aucun ne peut prendre la grille à coins fixés ci-dessus : chacun est bâti autour d'une configuration d'indices précise, si bien qu'un coin fixé que son parcours n'atteint jamais tôt le bloque aussitôt. Les deux panneaux ci-dessous en montrent les deux faces. D'abord, les coins fixés de l'étude les effondrent. Ensuite, sur une grille équitable réduite au seul indice central obligatoire, ils tournent comme prévu.",
     commEngine: "moteur",
     commInstance: "instance exécutée",
     commDepth: "profondeur atteinte",
     commThroughput: "débit",
     collapseLabel: "L'effondrement dû aux coins fixés",
+    unpinnedTitle: "La grille libre — la comparaison équitable",
+    unpinnedIntro:
+      "Les mêmes moteurs sur les pièces officielles avec le seul indice central obligatoire, si bien que rien ne se bloque sur un coin arbitraire. Chaque score est recalculé canoniquement depuis le plateau du moteur, un cœur, 60 secondes. À lire comme ce qu'un cœur obtient en une minute à froid, non comme le plafond de chaque moteur : le record 470 de Blackwood et les runs profonds de McGavin venaient de jours sur des centaines de cœurs, qu'un budget d'une minute sur un cœur ne peut montrer. Ce que la grille montre : les quatre tournent correctement ici, ce que la grille fixée refusait aux deux moteurs étrangers.",
+    unpinnedCaveat:
+      "Le débit est étiqueté par moteur (McGavin compte des tuiles, les autres des nœuds de recherche) et n'est jamais comparé entre moteurs, car les unités ne mesurent pas le même travail. McGavin est compilé avec les propres options ARM de son auteur (réglage natif et optimisation à l'édition de liens).",
+    collapsePanelTitle: "Fixé : l'effondrement, en score",
+    collapsePanelIntro:
+      "Les deux mêmes moteurs étrangers sur la configuration fixée de l'étude. La barre est le score canonique que leur plateau atteint avant que le parcours figé ne les bloque ; la barre pâle derrière est ce que le même moteur atteint sans coins fixés. L'écart est l'effondrement.",
+    unpinnedGrid: "indice central seul",
+    pinnedGrid: "coins fixés",
   },
 };
 
@@ -428,55 +479,214 @@ export function DfsStudyLeaderboard() {
         </div>
       </section>
 
-      {/* 4. Community reference engines, measured on their native instances */}
-      {D.community && D.community.length > 0 && (
-        <section>
-          <h3 className="text-base font-semibold tracking-tight">{t.commTitle}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.commIntro}</p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[560px] border-collapse text-sm">
-              <thead>
-                <tr className="border-b text-left text-xs text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">{t.commEngine}</th>
-                  <th className="py-2 pr-4 font-medium">{t.commInstance}</th>
-                  <th className="py-2 pr-4 text-right font-medium">{t.commDepth}</th>
-                  <th className="py-2 text-right font-medium">{t.commThroughput}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {D.community.map((e) => (
-                  <tr key={e.name} className="border-b align-top last:border-0">
-                    <td className="py-2 pr-4">
-                      <span className="font-medium">{e.display}</span>
-                      <span className="ml-1.5 text-xs text-muted-foreground">({e.language})</span>
-                    </td>
-                    <td className="py-2 pr-4 text-muted-foreground">{e.instance}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums">{e.max_depth ?? "—"}</td>
-                    <td className="py-2 text-right tabular-nums text-muted-foreground">
-                      {e.throughput}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* 4. Community engines: the two-grid story. First the fair unpinned
+          leaderboard, then the pinned collapse as a score. */}
+      {(D.unpinned || (D.community && D.community.length > 0)) && (
+        <section className="space-y-8">
+          <div>
+            <h3 className="text-base font-semibold tracking-tight">{t.commTitle}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.commIntro}</p>
           </div>
-          {D.community.map(
-            (e) =>
-              e.collapse && (
-                <p key={`${e.name}-collapse`} className="mt-4 text-sm leading-relaxed">
-                  <span className="font-semibold">{t.collapseLabel}. </span>
-                  <span className="text-muted-foreground">{e.collapse}</span>
-                </p>
-              ),
+
+          {/* 4a. The unpinned "fair grid" leaderboard. */}
+          {D.unpinned && D.unpinned.rows.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold tracking-tight">{t.unpinnedTitle}</h4>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.unpinnedIntro}</p>
+              <div className="mt-4 h-[300px] w-full">
+                {isClient ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={[...D.unpinned.rows].sort((a, b) => b.score - a.score)}
+                      margin={{ top: 8, right: 56, bottom: 8, left: 8 }}
+                    >
+                      <XAxis
+                        type="number"
+                        domain={[0, 480]}
+                        tick={{ fontSize: 11, fill: "currentColor" }}
+                        className="text-muted-foreground"
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="display"
+                        width={150}
+                        tick={{ fontSize: 11, fill: "currentColor" }}
+                        className="text-muted-foreground"
+                      />
+                      <Tooltip
+                        cursor={{ fill: "currentColor", opacity: 0.06 }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const r = payload[0]?.payload as UnpinnedRow | undefined;
+                          if (!r) return null;
+                          return (
+                            <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                              <div className="font-semibold">{r.display}</div>
+                              <div className="mt-1">
+                                {r.score} {t.of}
+                              </div>
+                              <div className="text-muted-foreground">
+                                {r.max_depth != null ? `depth ${r.max_depth} · ` : ""}
+                                {r.throughput}
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+                      <ReferenceLine
+                        x={D.community_5clue_record}
+                        stroke="currentColor"
+                        strokeDasharray="4 4"
+                        className="text-muted-foreground"
+                        label={{ value: t.ceiling, position: "top", fontSize: 10, fill: "currentColor" }}
+                      />
+                      <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                        {[...D.unpinned.rows]
+                          .sort((a, b) => b.score - a.score)
+                          .map((r) => (
+                            <Cell key={r.name} fill={familyFill(r.family)} />
+                          ))}
+                        <LabelList dataKey="score" position="right" fontSize={11} className="fill-foreground" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    {t.busy}
+                  </div>
+                )}
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.unpinnedCaveat}</p>
+              {/* Per-row throughput and note, with unit labels kept explicit. */}
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full min-w-[560px] border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground">
+                      <th className="py-2 pr-4 font-medium">{t.commEngine}</th>
+                      <th className="py-2 pr-2 text-right font-medium">{t.colScore}</th>
+                      <th className="py-2 pr-4 text-right font-medium">{t.commDepth}</th>
+                      <th className="py-2 text-right font-medium">{t.commThroughput}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...D.unpinned.rows]
+                      .sort((a, b) => b.score - a.score)
+                      .map((r) => (
+                        <tr key={r.name} className="border-b align-top last:border-0">
+                          <td className="py-2 pr-4">
+                            <FamilyTag family={r.family} label={r.display} />
+                          </td>
+                          <td className="py-2 pr-2 text-right tabular-nums">{r.score}</td>
+                          <td className="py-2 pr-4 text-right tabular-nums text-muted-foreground">
+                            {r.max_depth ?? r.placed ?? "—"}
+                          </td>
+                          <td className="py-2 text-right tabular-nums text-muted-foreground">
+                            {r.throughput}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
-          {D.community.map((e) => (
-            <p key={`${e.name}-note`} className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">{e.display}: </span>
-              {e.note}
-            </p>
-          ))}
+
+          {/* 4b. The pinned collapse, as a score: each foreign engine's pinned
+              score with its unpinned score faded behind for contrast. */}
+          {D.community && D.community.some((e) => e.collapse_score != null) && (
+            <div>
+              <h4 className="text-sm font-semibold tracking-tight">{t.collapsePanelTitle}</h4>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.collapsePanelIntro}</p>
+              <div className="mt-4 space-y-3">
+                {D.community
+                  .filter((e) => e.collapse_score != null)
+                  .map((e) => (
+                    <CollapseBar
+                      key={e.name}
+                      display={e.display}
+                      language={e.language}
+                      unpinned={e.score ?? null}
+                      pinned={e.collapse_score ?? null}
+                      pinnedDepth={e.collapse_depth ?? null}
+                      max={D.max_score}
+                      unpinnedLabel={t.unpinnedGrid}
+                      pinnedLabel={t.pinnedGrid}
+                    />
+                  ))}
+              </div>
+              {D.community.map(
+                (e) =>
+                  e.collapse && (
+                    <p key={`${e.name}-collapse`} className="mt-4 text-sm leading-relaxed">
+                      <span className="font-semibold">{t.collapseLabel}. </span>
+                      <span className="text-muted-foreground">{e.collapse}</span>
+                    </p>
+                  ),
+              )}
+            </div>
+          )}
         </section>
       )}
+    </div>
+  );
+}
+
+// One engine's pinned-vs-unpinned score as a horizontal pair: the faded bar is
+// the unpinned (fair-grid) score, the solid bar the pinned score it collapses
+// to. The visual gap is the collapse. Plain divs, not recharts, so the two
+// scores read as one before/after unit per engine.
+function CollapseBar({
+  display,
+  language,
+  unpinned,
+  pinned,
+  pinnedDepth,
+  max,
+  unpinnedLabel,
+  pinnedLabel,
+}: {
+  display: string;
+  language: string;
+  unpinned: number | null;
+  pinned: number | null;
+  pinnedDepth: number | null;
+  max: number;
+  unpinnedLabel: string;
+  pinnedLabel: string;
+}) {
+  const fill = familyFill("community");
+  const pct = (v: number | null) => (v == null ? 0 : Math.max(1.5, (v / max) * 100));
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="font-medium">
+          {display}
+          <span className="ml-1.5 text-xs text-muted-foreground">({language})</span>
+        </span>
+        <span className="tabular-nums text-muted-foreground">
+          {pinnedLabel} {pinned} · {unpinnedLabel} {unpinned}
+        </span>
+      </div>
+      {/* The track carries the faded unpinned bar; the solid pinned bar sits on
+          top from the same left origin, so the collapse is the visible gap. */}
+      <div className="relative mt-1.5 h-5 w-full overflow-hidden rounded-sm bg-muted/40">
+        <div
+          className="absolute inset-y-0 left-0 rounded-sm opacity-25"
+          style={{ width: `${pct(unpinned)}%`, backgroundColor: fill }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-y-0 left-0 rounded-sm"
+          style={{ width: `${pct(pinned)}%`, backgroundColor: fill }}
+          aria-hidden
+        />
+        {pinnedDepth != null && (
+          <span className="absolute inset-y-0 left-2 flex items-center text-xs font-medium text-foreground">
+            depth {pinnedDepth}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
