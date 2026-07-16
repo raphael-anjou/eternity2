@@ -29,6 +29,14 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Build a board from empty, ranking each next piece by three learned signals voted together"
+    learns: "Three corpus signals: a 2x2-patch log-odds prior, piece-in-position and piece-pair frequencies"
+    published: false
+  - engine: refinement
+    does: "A local-refinement tail lifts the high-450s construction to the committed 460"
+    published: false
 order: 20
 updated: 2026-07-10
 date: 2026-07

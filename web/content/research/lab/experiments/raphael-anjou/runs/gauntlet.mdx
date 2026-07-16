@@ -30,6 +30,16 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "A scan-order sweep builds many diverse boards, sampling different regions"
+    learns: "A positional corpus prior plus a swappable scan order for construction diversity"
+    published: false
+  - engine: alns
+    does: "Destroy-and-repair lifts a promising build; the committed 458 is a lifted board"
+    published: false
+  - engine: clustering
+    does: "Group results by corner arrangement to flag genuinely new basins (not a solver stage)"
 order: 50
 updated: 2026-07-10
 date: 2026-07
