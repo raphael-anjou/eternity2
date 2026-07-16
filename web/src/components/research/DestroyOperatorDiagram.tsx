@@ -16,8 +16,11 @@ const CELL = 26;
 // same board.
 const BROKEN = new Set([19, 20, 27, 28, 35, 12, 44, 51]);
 
-// Each operator's selected cells on that board.
-const SELECT: Record<string, Set<number>> = {
+const ORDER = ["random", "mismatch", "band", "component"] as const;
+
+// Each operator's selected cells on that board. Keyed by the exact ORDER union so
+// SELECT[key] is total (no undefined under noUncheckedIndexedAccess).
+const SELECT: Record<(typeof ORDER)[number], Set<number>> = {
   // random: a scatter, mostly missing the broken cells (geometry-blind).
   random: new Set([2, 13, 19, 33, 41, 46, 55, 60]),
   // mismatched: exactly the broken cells, up to k.
@@ -28,8 +31,6 @@ const SELECT: Record<string, Set<number>> = {
   // one-cell halo ring around it.
   component: new Set([19, 20, 27, 28, 35, 11, 12, 13, 18, 21, 26, 29, 34, 36, 43]),
 };
-
-const ORDER = ["random", "mismatch", "band", "component"] as const;
 
 const T = {
   en: {
