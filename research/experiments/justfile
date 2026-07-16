@@ -24,6 +24,20 @@ single-core-benchmark budget_s="60" parallel="6":
     python3 single-core-benchmark/scripts/make_site_json.py \
         --run single-core-benchmark/results/rerun
 
+# DFS study: build the from-scratch backtracker family, run every runnable
+# variant on the ten corner-pinned variants (single core, fixed budget), and
+# regenerate the report and the site JSON the study page reads.
+dfs-study budget_s="60" parallel="6":
+    cargo build --release --manifest-path dfs-study/engine/Cargo.toml
+    python3 dfs-study/scripts/run_grid.py \
+        --variants dfs-study/variants \
+        --out dfs-study/results/rerun \
+        --budget-s {{budget_s}} --seed 1 --parallel {{parallel}}
+    python3 dfs-study/scripts/make_report.py \
+        --run dfs-study/results/rerun
+    python3 dfs-study/scripts/make_site_json.py \
+        --run dfs-study/results/rerun
+
 # BANDSAW (analysis tool, not a solver): prove the optimal completion of a
 # board's endgame band by meet-in-the-middle. Runs the committed worked example.
 bandsaw rung_ms="15000" label_ms="1500":

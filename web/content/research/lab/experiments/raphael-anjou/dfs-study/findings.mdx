@@ -1,0 +1,163 @@
+---
+title: What each idea buys
+description: >-
+  The three comparisons at the heart of the DFS study, worked through: fill order
+  (row-major wins, a bad order is catastrophic), heuristics (MRV rescues
+  border-first but costs throughput; more propagation did not help), and breaks
+  (they smash the depth wall; the break schedule is the lever, not the per-cell cap).
+metaDescription: "The DFS study's findings: fill order, heuristics and breaks compared. Row-major wins; MRV rescues border-first; breaks smash the depth wall."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/method
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Committed per-run results (results.jsonl) and per-family report (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/results
+---
+
+import { PathOrderDiagram } from "@/components/research/PathOrderDiagram";
+
+Three comparisons carry the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study).
+Each isolates one decision by holding everything else fixed. All scores are the
+mean matched-edge count over the ten corner-pinned variants, single core, sixty
+seconds. Throughput is search-nodes per second and is never compared across
+families.
+
+## What low-level specialisation buys: throughput, and only that
+
+The two baselines run the *same* strict row-major algorithm: `NAIVE-CLEAN` as a
+readable general engine, `NAIVE-CODEGEN` as a hand-specialised, row-major-only
+16×16 hot loop. The specialisation delivers what it should on the axis it targets.
+`NAIVE-CODEGEN` is meaningfully faster per node, by up to a third on some
+instances. On *score* the two are a wash, a point or two apart at sixty seconds
+and well inside the run-to-run spread, which is the fair reading rather than a
+claim that specialisation *hurts*. At a fixed wall-clock a faster engine reaches a
+different point of the same tree, and a backtracker's best partial does not move
+monotonically with how fast it got there. The baselines are therefore a clean
+*speed* comparison and are deliberately not presented as a *score* comparison. The
+score effects worth studying are all on the axes below, where the search itself
+changes.
+
+## Fill order: row-major wins, and the wrong order is catastrophic
+
+Fix the engine (strict, no heuristics) and change only the order cells are filled.
+The six orders differ only in where the search sends its frontier, shown below.
+
+<Figure title="The six fill orders, shaded early (pale) to late (deep green)">
+  <PathOrderDiagram />
+</Figure>
+
+- **Row-major** is the strong baseline, averaging 377. Its damage zone stays
+  constant, since every new cell has the same two placed neighbours, so it reaches
+  deep before the strict wall.
+- **A strict border-first or spiral fill collapses.** Filling the border ring
+  first, with no look-ahead, walks straight into the hardest corner and edge
+  constraints and stalls almost at once, near a mean of 67 at depth 66 or so. The
+  spiral pays the same closure tax.
+- **Bottom-up row-major fares worse still on this clue geometry** (mean 226, but
+  as low as 18 on some variants), because the pinned clues sit in rows the
+  bottom-up fill reaches early and cannot satisfy.
+
+Same engine, same sixty seconds, a swing of more than 300 points from the fill
+order alone. This is the measured form of a piece of community wisdom: border-first
+is only good *with* a heuristic to choose cells within the ring. On its own it is
+one of the worst orders available.
+
+## Heuristics: MRV rescues border-first, but throughput craters
+
+Now fix the path near the frame and add one thing at a time. The largest lever is
+**MRV**, filling the most-constrained empty cell next, chosen dynamically. It
+turns the stalled border-first (mean 67) into a search that averages 324 (best
+341) at depth 190 or so. It also recomputes the most-constrained cell over the
+whole frontier at every step, so node throughput falls by three orders of
+magnitude, from tens of millions of nodes per second to a few thousand. Each node
+is worth far more, and far fewer of them are visited. Node rate and score are
+different axes.
+
+Adding heavier look-ahead on top did **not** buy more score at this budget.
+
+- **Forward-checking** (reject a placement that empties a neighbour's domain)
+  averaged 322.
+- **Arc-consistency** and the **per-colour supply check** averaged 321 each. With
+  a per-variant score spread of about 11 points over the ten instances, that
+  one-point gap is well within the noise: the three propagators are statistically
+  indistinguishable here, so the fair reading is that heavier look-ahead neither
+  helped nor clearly hurt, rather than that forward-checking won.
+- A **rare-colour-first** value ordering was inert, no better than plain insertion
+  order, echoing the community's repeated negative result on within-bucket value
+  orders.
+
+The lesson is not that propagation is useless. It is that at a small fixed budget,
+on this instance, the cheapest useful prune (forward-checking) already captures
+whatever benefit is available, and more expensive reasoning does not recover its
+extra per-node cost within sixty seconds.
+
+## Breaks: past the wall, and the schedule is the lever
+
+Strict backtracking, whatever its order or heuristic, hits a wall well short of a
+full board, with row-major topping out around depth 208 of 256. The record engines
+get past it by *breaking*: allowing a bounded number of interior edge mismatches,
+released on a depth schedule, with a rule that no cell may carry too many broken
+edges. The score of a full board is then `480 − #breaks`.
+
+- **Breaks clear the wall.** A depth-gated break budget reaches past depth 245 and
+  averages the low 430s (break-1 means 431 of 480, best 435), a large gain over the
+  strict high-370s on the same instances and budget. This is the mechanism behind
+  the community's record backtrackers, not a different paradigm but a depth-gated
+  relaxation of the matching rule.
+- **Allowing a second break per cell did not help here.** One-break and two-break
+  reach the same best board (435), and their means (431.3 against 428.5) sit within
+  the two-break variant's own spread, so neither leads on average. What does
+  separate them is consistency: the one-break variant is tightly clustered (never
+  below 427), while the two-break variant ranges down to 402. The double-break
+  geometry the community's 460-boards use appears to need more than sixty seconds
+  to pay off; at this budget the extra freedom mostly widens the branching without
+  reaching better boards. This is a null result, reported as measured rather than
+  the gain one might expect.
+- **The schedule is the decisive lever.** Verhaard's slip ladder unlocks breaks
+  much earlier than Blackwood's (depth 193 against 201) and here scores markedly
+  worse (mean 399 against 431), because unlocking early spends the budget on
+  shallow breaks. When and how fast breaks open is a tuning decision rather than a
+  detail.
+
+These break numbers sit alongside the sibling benchmark's from-scratch
+Blackwood-style and Verhaard-style reimplementations, which reach the high 430s on
+the same five clues. The agreement from an independent engine cross-validates the
+break machinery here.
+
+## Where the community engines sit, and why they cannot take our grid
+
+Blackwood and McGavin are the high end of this same family, and both build and run
+on this machine, so this study ran them; the result is a finding in its own right.
+**Neither can take the corner-pinned variants.** McGavin's C reaches depth 205 on
+the plain five-clue puzzle at about 110 million tiles per second, roughly three
+times our fastest strict engine, yet pinning three corners collapses it to depth
+21. Its generated scan path never visits the corners early, so a pinned corner
+constrains its neighbourhood at once and dead-ends the fixed path almost
+immediately. Blackwood's C# reaches only about 34 of 256 cells on the pinned
+five-clue in a minute, because its break heuristic is tuned for the
+near-unconstrained one-clue instance where its 470 record was set.
+
+That collapse is the point. A record engine built around one clue configuration
+does not transfer to another, and a fixed scan path cannot absorb an arbitrary
+pin. Our from-scratch engines treat a pin as a pre-placed cell the scan simply
+skips, which is why they, rather than the community binaries, are the runnable
+stand-ins on this grid. The community engines are reported on their native
+instances, in the reference panel above, and not as rows on the leaderboard.
+
+## The through-line
+
+One theme runs through all three comparisons: **node count is not score.** The
+fastest variants per node (the codegen baseline and the strict row-major engine)
+do not reach the best boards; the slowest per node (MRV with propagation) reaches
+far better ones; and the breaks that win do so by changing *which* branch is
+legal, not by visiting branches faster. Raw speed is a constant factor, while
+where and whether the search is allowed to go is the exponential one.

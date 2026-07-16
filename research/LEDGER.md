@@ -837,3 +837,58 @@ no-source pages, typecheck, lint, build (193 prerendered pages) all green.
 The three-pass arc (Discord mining, citation audit, style) is complete: the
 wiki now reads like one researcher wrote it carefully, with every claim
 sourced and no machine tells.
+
+---
+
+2026-07-16 — The DFS study. A new, dedicated experiment
+(`research/experiments/dfs-study/`, peer of single-core-benchmark) that takes
+the depth-first backtracker apart: what does each fill order, each heuristic,
+and the break mechanism actually buy? Reason for a fresh build rather than
+reusing bench-grid: the goal was clean software engineering and an explicit
+"what stacks on what" story, where every variant is one declared change over a
+parent. A self-contained five-crate Rust workspace (dfs-core: board + the one
+canonical scorer, parity-tested against a known 469 board; dfs-io: a shared IO
+contract with lossless converters to site-JSON/CSV/bucas/hints, exposed via a
+dfs-convert binary; dfs-engine: the composable DFS + a registry where the site
+matrix is generated from the code, not hand-kept; dfs-codegen: NAIVE-CODEGEN, a
+16x16-specialised row-major hot loop; dfs-run). 17 runnable variants across four
+families plus two cited community engines, run on the same ten corner-pinned
+variants the benchmark uses, single core, 60 s, seed 1. Every stat the study
+raises is committed: score (canonical re-score), node/sec (labelled, never
+cross-family), max depth, depth-at-timeout, true break count, backtracks.
+
+Findings (committed grid, results.jsonl + report.md): path order is the largest
+free lever (row-major mean 377 vs strict border-first/spiral ~67, a 300-point
+swing); MRV rescues border-first to mean 324 at a 1000x throughput cost; more
+propagation did not help at 60 s (fc/ac3/gacolor all within one point, inside an
+11-point spread, so statistically indistinguishable); breaks clear the strict
+~208 depth wall to mean 431 / depth 245, with the schedule the decisive lever
+(Verhaard's early ladder 399 vs Blackwood's 431) and a second break per cell a
+measured null.
+
+Two adversarial audit passes before publishing caught real issues and fixed
+them: depth_at_timeout meant max-vs-frontier across the two engines (now both
+frontier); the published "break count" on a timed-out partial was actually the
+whole unmatched-edge deficit (now the true committed-break count, strict = 0);
+the fairness timer checked every 4096 nodes, giving the slow MRV family ~0.5 %
+extra budget (now every 256); "soundness verified by tests" was unsupported
+(downgraded to sound-by-construction, which a reviewer confirmed holds); and the
+"double-breaks beat single" claim was contradicted by the corrected numbers
+(rewritten as the null it is). A performance audit found the numbers fair; the
+one research-relevant note (MRV recomputes domains from scratch, not
+incrementally) is footnoted so the throughput is not misread as MRV's best
+possible.
+
+Both community record engines were built and run on the M1, and the result is a
+finding: neither can take the corner-pinned grid. McGavin's C reaches depth 205
+at ~109 M tiles/s on its native 5-clue puzzle but collapses to depth 21 with
+three corner pins (its fixed scan path cannot absorb a pin); Blackwood's C#
+(.NET 8, one thread) reaches only ~34 of 256 cells on the pinned 5-clue, since
+its heuristic is tuned for the 1-clue instance. They are reported in a separate
+community panel on their native instances, with the corner-pin collapse as the
+finding that motivates the whole from-scratch study. Illustrated with a
+PathOrderDiagram (the six fill orders shaded by fill sequence) and the
+DfsStudyLeaderboard (score bars by family + the generated matrix + community
+panel). Reproducibility: `just experiments dfs-study`. Verified at close: cargo
+test 21/21, research style 0/0, links + citations green, typecheck, lint, build
+all green. Working-state (NOTES.md) kept out of the committed record.
