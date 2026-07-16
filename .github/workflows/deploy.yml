@@ -130,3 +130,26 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+      # After the site is live, ping IndexNow with every URL in the shipped
+      # sitemap so Bing (and the other IndexNow participants) re-crawl changed
+      # pages promptly. This is the Bing/answer-engine channel that classic SEO
+      # leaves open for this site; Google ignores IndexNow. The submitter reads
+      # build/client/sitemap.xml, so we fetch the exact built artifact the build
+      # job produced rather than rebuilding. Best-effort: a failed ping must not
+      # fail the deploy (the script exits 0 unless INDEXNOW_STRICT=1), and the
+      # whole step is guarded so a hiccup here never marks the run red.
+      - name: Fetch built site (for the sitemap)
+        continue-on-error: true
+        uses: actions/download-artifact@v6
+        with:
+          name: web-dist
+          path: web/build/client
+      - uses: actions/setup-node@v5
+        continue-on-error: true
+        with:
+          node-version: 26
+      - name: Notify IndexNow
+        continue-on-error: true
+        working-directory: web
+        run: node scripts/indexnow-submit.mjs
