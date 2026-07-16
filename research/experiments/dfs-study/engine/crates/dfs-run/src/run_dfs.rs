@@ -5,7 +5,7 @@
 //!
 //! Usage:
 //!   run_dfs --list
-//!   run_dfs --puzzle P.json --algo naive-clean --seed 1 --budget-s 60 [--emit out.url]
+//!   run_dfs --puzzle P.json --algo naive-clean --seed 1 --budget-s 60 [--emit out.json]
 
 use std::process::ExitCode;
 
@@ -109,7 +109,10 @@ fn main() -> ExitCode {
     let nps = result.stats.nodes_per_sec(result.elapsed_s);
 
     if let Some(path) = get("--emit") {
-        let _ = std::fs::write(&path, &out.bucas_url);
+        // The one canonical artifact per board: a self-describing .json holding
+        // the score, placement vector, hash, both letter blobs, and a ready-to-
+        // open eternity2.dev viewer URL.
+        let _ = out.write_json(&path);
     }
 
     // The single machine-readable line.
@@ -127,7 +130,7 @@ fn main() -> ExitCode {
         result.stats.depth_at_timeout,
         nps,
         out.board_hash,
-        out.bucas_url,
+        out.url,
     );
     ExitCode::SUCCESS
 }

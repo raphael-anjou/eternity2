@@ -2,7 +2,8 @@
 """Repair study grid runner.
 
 Runs every repair variant once on each of the ten corner-pinned variants, single
-core, fixed wall budget, at most PARALLEL at a time. Every run emits a bucas .url
+core, fixed wall budget, at most PARALLEL at a time. Every run emits one
+canonical board .json (with an eternity2.dev viewer URL) plus a convergence curve
 and a convergence-curve sidecar; the score is the canonical matched-edge count
 from the RESULT line. Raw results stream to results.jsonl.
 
@@ -43,12 +44,12 @@ def load_matrix():
     return json.loads(out)
 
 
-def run_one(spec, variant_json, seed, budget_s, url_path, curve_path):
+def run_one(spec, variant_json, seed, budget_s, board_path, curve_path):
     """Run a single (variant, instance). Returns a result dict."""
     name = spec["name"]
     cmd = [str(RUN_REPAIR), "--puzzle", str(variant_json), "--algo", name,
            "--seed", str(seed), "--budget-s", str(budget_s),
-           "--emit", str(url_path), "--emit-curve", str(curve_path)]
+           "--emit", str(board_path), "--emit-curve", str(curve_path)]
     # Single core: the engine is single-threaded, but pin anyway.
     env = dict(os.environ, RAYON_NUM_THREADS="1")
     t0 = time.time()
@@ -71,7 +72,7 @@ def run_one(spec, variant_json, seed, budget_s, url_path, curve_path):
     um = UNIT_RE.search(stdout)
     ok = rc == 0 and ival("score") is not None
     row = {"algo": name, "ok": ok, "wall_s": round(wall, 2),
-           "url_file": str(url_path.name), "curve_file": str(curve_path.name),
+           "board_file": str(board_path.name), "curve_file": str(curve_path.name),
            "ips_unit": um.group(1) if um else "repair-iters/s",
            "err": "" if ok else stderr.strip()[-400:]}
     for k in INT_FIELDS:
@@ -108,18 +109,18 @@ def main():
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    url_dir = out_dir / "urls"
+    board_dir = out_dir / "boards"
     curve_dir = out_dir / "curves"
-    url_dir.mkdir(exist_ok=True)
+    board_dir.mkdir(exist_ok=True)
     curve_dir.mkdir(exist_ok=True)
 
     jobs = []
     for spec in specs:
         for vf in variant_files:
             vid = int(re.search(r"variant_(\d+)", vf.name).group(1))
-            url_path = url_dir / f"{spec['name']}_v{vid:02d}.url"
+            board_path = board_dir / f"{spec['name']}_v{vid:02d}.json"
             curve_path = curve_dir / f"{spec['name']}_v{vid:02d}.csv"
-            jobs.append((spec, vf, vid, url_path, curve_path))
+            jobs.append((spec, vf, vid, board_path, curve_path))
 
     print(f"{len(specs)} variants x {len(variant_files)} instances "
           f"= {len(jobs)} runs, {args.budget_s}s each, parallel={args.parallel}")
@@ -133,8 +134,8 @@ def main():
     with open(results_path, "w") as fh, \
             cf.ThreadPoolExecutor(max_workers=args.parallel) as ex:
         futs = {
-            ex.submit(run_one, spec, vf, args.seed, args.budget_s, url_path, curve_path): (spec, vid)
-            for spec, vf, vid, url_path, curve_path in jobs
+            ex.submit(run_one, spec, vf, args.seed, args.budget_s, board_path, curve_path): (spec, vid)
+            for spec, vf, vid, board_path, curve_path in jobs
         }
         done = 0
         for fut in cf.as_completed(futs):

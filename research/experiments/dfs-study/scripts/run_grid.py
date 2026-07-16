@@ -2,8 +2,10 @@
 """DFS study grid runner.
 
 Runs every runnable DFS variant once on each of the ten corner-pinned variants,
-single core, fixed wall budget, at most PARALLEL at a time. Every run emits a
-bucas .url; the score is the canonical matched-edge count from the RESULT line.
+single core, fixed wall budget, at most PARALLEL at a time. Every run emits one
+canonical board .json (score, placement, hash, board_edges/board_pieces, and an
+eternity2.dev viewer URL); the score is the canonical matched-edge count from
+the RESULT line.
 Raw results stream to results.jsonl.
 
 The variant list comes from the engine registry itself (`run_dfs --matrix-json`),
@@ -48,15 +50,15 @@ def runnable(spec):
     return spec["kind"] in ("engine", "codegen")
 
 
-def run_one(spec, variant_json, seed, budget_s, url_path):
+def run_one(spec, variant_json, seed, budget_s, board_path):
     """Run a single (variant, instance). Returns a result dict."""
     name = spec["name"]
     if spec["kind"] == "codegen":
         cmd = [str(RUN_CODEGEN), "--puzzle", str(variant_json),
-               "--seed", str(seed), "--budget-s", str(budget_s), "--emit", str(url_path)]
+               "--seed", str(seed), "--budget-s", str(budget_s), "--emit", str(board_path)]
     else:
         cmd = [str(RUN_DFS), "--puzzle", str(variant_json), "--algo", name,
-               "--seed", str(seed), "--budget-s", str(budget_s), "--emit", str(url_path)]
+               "--seed", str(seed), "--budget-s", str(budget_s), "--emit", str(board_path)]
     # Single core: the engine is single-threaded, but pin anyway.
     env = dict(os.environ, RAYON_NUM_THREADS="1")
     t0 = time.time()
@@ -87,7 +89,7 @@ def run_one(spec, variant_json, seed, budget_s, url_path):
         "nps_unit": um.group(1) if um else "search-nodes/s",
         "elapsed_s": float(fm.group(1)) if fm else wall,
         "wall_s": round(wall, 2),
-        "url_file": str(url_path.name),
+        "board_file": str(board_path.name),
         "ok": ok,
         "err": "" if ok else stderr.strip()[-400:],
     }
@@ -120,15 +122,15 @@ def main():
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    url_dir = out_dir / "urls"
-    url_dir.mkdir(exist_ok=True)
+    board_dir = out_dir / "boards"
+    board_dir.mkdir(exist_ok=True)
 
     jobs = []
     for spec in runnable_specs:
         for vf in variant_files:
             vid = int(re.search(r"variant_(\d+)", vf.name).group(1))
-            url_path = url_dir / f"{spec['name']}_v{vid:02d}.url"
-            jobs.append((spec, vf, vid, url_path))
+            board_path = board_dir / f"{spec['name']}_v{vid:02d}.json"
+            jobs.append((spec, vf, vid, board_path))
 
     print(f"{len(runnable_specs)} variants x {len(variant_files)} instances "
           f"= {len(jobs)} runs, {args.budget_s}s each, parallel={args.parallel}")
@@ -142,8 +144,8 @@ def main():
     with open(results_path, "w") as fh, \
             cf.ThreadPoolExecutor(max_workers=args.parallel) as ex:
         futs = {
-            ex.submit(run_one, spec, vf, args.seed, args.budget_s, url_path): (spec, vid)
-            for spec, vf, vid, url_path in jobs
+            ex.submit(run_one, spec, vf, args.seed, args.budget_s, board_path): (spec, vid)
+            for spec, vf, vid, board_path in jobs
         }
         done = 0
         for fut in cf.as_completed(futs):

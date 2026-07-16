@@ -7,7 +7,7 @@
 //! Usage:
 //!   run_repair --list
 //!   run_repair --matrix-json
-//!   run_repair --puzzle P.json --algo greedy-mismatch --seed 1 --budget-s 60 [--emit out.url]
+//!   run_repair --puzzle P.json --algo greedy-mismatch --seed 1 --budget-s 60 [--emit out.json]
 
 use std::process::ExitCode;
 
@@ -95,7 +95,7 @@ fn main() -> ExitCode {
     let lift = i64::from(result.best_score) - i64::from(result.stats.start_score);
 
     if let Some(path) = get("--emit") {
-        let _ = std::fs::write(&path, &out.bucas_url);
+        let _ = out.write_json(&path);
     }
     // The convergence curve, emitted to a sidecar file if requested.
     if let Some(path) = get("--emit-curve") {
@@ -124,7 +124,7 @@ fn main() -> ExitCode {
         result.elapsed_s,
         ips,
         out.board_hash,
-        out.bucas_url,
+        out.url,
     );
     ExitCode::SUCCESS
 }

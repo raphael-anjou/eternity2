@@ -38,12 +38,12 @@ def agg(rows):
         "nps_unit": rows[0].get("nps_unit", "search-nodes/s") if rows else "search-nodes/s",
         "max_depth": max(depths) if depths else None,
         "median_breaks": median([r.get("breaks") for r in rows]),
-        # A representative board url (the best-scoring run) so the page can link
-        # to /viewer. Guard the falsy-zero trap: a real score of 0 must not sort
-        # as -1 (missing).
-        "best_url_file": max(
+        # The best-scoring run's canonical board .json (which itself carries an
+        # eternity2.dev viewer URL), so the page can link to it. Guard the
+        # falsy-zero trap: a real score of 0 must not sort as -1 (missing).
+        "best_board_file": max(
             rows, key=lambda r: r["score"] if r.get("score") is not None else -1
-        ).get("url_file"),
+        ).get("board_file"),
     }
 
 

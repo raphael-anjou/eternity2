@@ -89,9 +89,9 @@ def agg(run_dir, rows):
         "ips_unit": rows[0].get("ips_unit", "repair-iters/s") if rows else "repair-iters/s",
         "restarts": median([r.get("restarts") for r in rows]),
         "curve": representative_curve(run_dir, rows),
-        "best_url_file": max(
+        "best_board_file": max(
             rows, key=lambda r: r["score"] if r.get("score") is not None else -1
-        ).get("url_file"),
+        ).get("board_file"),
     }
 
 
