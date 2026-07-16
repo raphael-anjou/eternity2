@@ -100,10 +100,10 @@ fn main() -> ExitCode {
         }
     }
 
-    let cfg = RunConfig {
-        budget_ms: (budget_s * 1000.0) as u64,
-        seed,
-    };
+    // Optional --max-nodes caps search nodes for deterministic, wall-clock-
+    // independent A/B testing of node-loop changes.
+    let max_nodes = get("--max-nodes").and_then(|s| s.parse::<u64>().ok());
+    let cfg = RunConfig { budget_ms: (budget_s * 1000.0) as u64, seed, max_nodes };
     let result = run(&inst, &spec, cfg);
     let out = result.output(&inst);
     let nps = result.stats.nodes_per_sec(result.elapsed_s);
