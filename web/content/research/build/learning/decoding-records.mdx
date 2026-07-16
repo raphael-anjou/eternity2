@@ -1,0 +1,84 @@
+---
+title: Decoding records
+description: >-
+  The most literal way to learn from a strong board: rebuild it exactly, piece
+  for piece, until your search can reproduce it. What the reconstruction forces
+  you to add is the ingredient your search was missing, and the reproduction is
+  the proof.
+metaDescription: "Decoding record Eternity II boards: rebuild a known record exactly until your search reproduces it; the ingredient that lets it is what your search was missing."
+kind: concept
+order: 53
+group: Learned guidance
+updated: 2026-07-16
+topics: [backtracking, learning]
+sources:
+  - label: "Community record boards (this project's records timeline): the witnesses a replay reconstructs"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/records.mdx
+related:
+  - /research/build/learning/anti-pattern-mining
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/analyses/replay
+  - /research/records
+  - /research/build/reduce/nogood-learning
+---
+
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
+
+Corpus priors and anti-pattern mining learn a *statistic* from many boards. This
+technique learns from a *single* board, and it learns the hardest thing to see
+from a distance: the one move an ordinary search cannot make. The method is
+brutally literal. Take a known record board, and try to make your own search
+rebuild it exactly, piece for piece. Whatever you have to add to your search
+before it can walk that path is precisely the ingredient it was missing, and the
+exact reconstruction is the proof that the ingredient is real.
+
+## Reproduction as proof
+
+The setup is a depth-first search run in a deliberately constrained mode, aimed at
+a specific witness board rather than searching freely:
+
+- **Prior-over-cost ordering.** An ordinary break-tolerant backtracker ranks
+  candidate placements by immediate mismatch cost, cheapest first. A replay flips
+  the priority so that the placements the witness board actually used outrank
+  cheaper-looking ones. The search is pulled down the known good path instead of
+  wandering off it.
+- **An exact tail.** The last handful of cells are solved exactly rather than
+  heuristically, so the endgame an ordinary run fumbles is closed deterministically.
+- **The relaxation under test.** With the ordering and the tail fixed, you vary the
+  one rule you suspect is the barrier, and watch for the moment the witness rebuilds.
+
+This is the [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay)
+experiment, and what it found on the community's strict-460 boards is a clean
+example of the payoff. The project's own break-tolerant search had saturated at
+457 or 458 no matter what, and the reason turned out to be a single rule nobody had
+questioned: it allowed at most *one* mismatched edge per cell. The record boards
+each contain four or five cells that pay *two* mismatches at once. A search capped
+at one break per cell literally cannot represent those boards, so it was fenced off
+from the very targets it was chasing.
+
+<Figure collapsible title="Interactive: the double-break cells">
+  <DoubleBreakDiagram />
+</Figure>
+
+<Figure collapsible title="Interactive: replay the break schedule">
+  <DoubleBreakLab />
+</Figure>
+
+Raise the per-cell budget from one to two, and both community strict-460 witnesses
+rebuild exactly, every piece in place, the score checking out edge by edge. The
+reconstruction *is* the finding: a search-completeness result dressed as a record
+attempt. The wall was in the move set, not the compute.
+
+## What decoding can and cannot buy
+
+Decoding a record is the sharpest diagnostic in this family, because it turns a
+vague suspicion ("our search is missing something") into a specific, checkable
+claim ("it cannot pay two breaks at one cell"). It is also the most candid about
+its limits, and in the same breath. Recovering the double break lifts the strict
+ladder to 460, but it does not, by itself, say whether two breaks per cell open a
+path to 461 and beyond or merely to the known 460s. Decoding tells you the
+ingredient a witness used; it does not promise that ingredient carries any further
+than the witness did. That gap, a learned move that reaches the plateau without
+proving anything past it, is the theme of the
+[collapse page](/research/build/learning/when-learning-collapses).

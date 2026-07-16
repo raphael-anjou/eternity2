@@ -1,0 +1,85 @@
+---
+title: Anti-pattern mining
+description: >-
+  The subtle idea in learning from strong boards: not every agreement between
+  them is good. Some shared placements are real structure; some are a shared trap
+  that caps every search just short of the top. Separate the two, and attack the
+  trap.
+metaDescription: "Anti-pattern mining for Eternity II: separate the real structure strong boards share from the shared trap that caps them, then steer a search to attack the trap."
+kind: concept
+order: 52
+group: Learned guidance
+updated: 2026-07-16
+topics: [local-search, learning]
+sources:
+  - label: "Ropke & Pisinger 2006, adaptive large-neighbourhood search (the destroy-and-repair frame this steers)"
+    url: https://doi.org/10.1287/trsc.1050.0135
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/runs/palimpsest
+  - /research/build/local-search/local-search-alns
+  - /research/why/rigidity-wall
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+
+Every technique so far treats agreement between strong boards as a good thing:
+where the good boards concur, follow them. This one takes agreement apart, because
+some of it is a trap. When many independent searches all reach a high but
+imperfect board, they agree on a great many placements, and some of that agreement
+is genuine structure while some of it is a shared bad habit: a local choice that
+looks good, feels forced, and quietly caps every search just short of the top. The
+whole idea is to tell the two apart, then attack the trap.
+
+## Two frequencies, not one
+
+A single count cannot separate real structure from a trap, because both show up
+almost everywhere. The trick is to compute *two* frequencies for each candidate
+pattern and compare them. Over a corpus of boards scoring across a wide band, for
+every adjacent cell-pair and every piece-pair that ever sits there, measure:
+
+$$
+p_\text{high} = \frac{\#\{\text{boards with the pair, score} \ge 460\}}{\#\{\text{boards} \ge 460\}}, \qquad
+p_\text{all} = \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
+$$
+
+together with a *ceiling*: the best score of any board that contains the pattern.
+Two categories fall out. **Good consensus** is high $p_\text{all}$ with a high
+ceiling, a pattern that strong boards share *and* the very best boards keep: real,
+trustworthy structure. A **consensus trap** is high $p_\text{all}$ with a ceiling
+stuck just below the top, a pattern almost every board adopts but no top board
+does: the agreed-upon wrong choice that locks a whole family below the record. The
+single-frequency view cannot distinguish them; splitting by basin is the entire
+move.
+
+<Figure collapsible title="Interactive: the trap map, corner-family by corner-family">
+  <PalimpsestDiagram />
+</Figure>
+
+## Steering, not banning
+
+Knowing where the traps are turns the corpus into a map of which placements to
+trust and which to pull apart. The [PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest)
+experiment uses it to steer an [ALNS](/research/build/local-search/local-search-alns)
+search: take a board caught in the trap basin, find the wedge whose removal breaks
+the most trap patterns while sparing the good-consensus ones, deliberately break
+those cells, and hand the board back to the repair loop, whose destroy operator
+tears open exactly those broken regions and rebuilds them. Steered this way, it
+reached 463, the best board this project has produced.
+
+The caveat is the lesson. Trying to use the trap list *directly*, forcing the
+search to avoid every trapped placement, did not work and made boards worse. The
+value was in reading the corpus to choose *where to aim* the search, not in
+hard-coding its conclusions as a ban. A learned map is a good place to point a
+search and a bad set of shackles to bolt onto it, which is the same boundary
+between tiebreak and objective that runs through
+[corpus priors](/research/build/learning/corpus-priors), seen from the other side:
+here the danger is not over-weighting a good signal but over-trusting a signal
+about what is *bad*.
+
+Even steered perfectly, this does not clear the top. Rebuilding the trapped regions
+tends to land back on the same known top board rather than a genuinely new one,
+because the trap is not a mistake a smarter search avoids; it is the
+[rigidity wall](/research/why/rigidity-wall) itself. That is the subject of the
+[collapse page](/research/build/learning/when-learning-collapses).

@@ -59,6 +59,7 @@ export const BUILD_GROUP_ORDER = [
   "Go faster",
   "Build boards up",
   "Local search",
+  "Learned guidance",
   "Exact methods",
   "Analysis",
   "GPU & hardware",
