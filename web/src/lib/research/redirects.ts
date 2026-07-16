@@ -73,6 +73,14 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   "/research/lab/experiments/raphael-anjou/pipelines/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
   "/research/lab/experiments/raphael-anjou/pipelines/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
   "/research/lab/experiments/raphael-anjou/analyses/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
+  // The four solver deep-dives moved out of the neutral theory section and were
+  // merged into each engine's owner's lab page, so each author ends with one
+  // rich page combining "how it works" and "what it scored when I ran it"
+  // (2026-07). The build/solvers hub stays as a short conceptual overview.
+  "/research/build/solvers/blackwood": "/research/lab/experiments/joshua-blackwood/solver",
+  "/research/build/solvers/verhaard-eii": "/research/lab/experiments/louis-verhaard/eii",
+  "/research/build/solvers/mcgavin": "/research/lab/experiments/peter-mcgavin/backtracker",
+  "/research/build/solvers/this-site": "/research/lab/experiments/raphael-anjou/engine",
   // The publishing methodology moved under Experiments (2026-07).
   "/research/lab/methodology": "/research/lab/experiments/methodology",
   // Pages moved into the History & community section (2026-07).
