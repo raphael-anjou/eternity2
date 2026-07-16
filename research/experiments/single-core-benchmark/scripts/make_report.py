@@ -56,7 +56,9 @@ def main():
         scores[a].append(s)
         by_variant[a][r["variant"]].append(s)
         if a not in best_url or s > best_url[a][0]:
-            best_url[a] = (s, r["url"])
+            # Canonical board .json is `board_file`; fall back to the legacy
+            # `url` key so older result runs still render.
+            best_url[a] = (s, r.get("board_file") or r.get("url", ""))
 
     algos = sorted(scores.keys(), key=lambda a: -st.mean(scores[a]) if scores[a] else 0)
     variant_ids = meta["variant_ids"]
@@ -77,7 +79,8 @@ def main():
     md.append(f"**Diversity axis = the puzzle.** Each algorithm solves the SAME 10 "
               f"instances (official E2 + 3 pinned corners, distinct corner arrangements). "
               f"The score spread across the 10 variants is the reported distribution.\n")
-    md.append(f"**Scoring:** every run emits a bucas `.url`; score is the canonical "
+    md.append(f"**Scoring:** every run emits one canonical board `.json` (with an "
+              f"eternity2.dev viewer URL); score is the canonical "
               f"matched-edge count (max 480), the single source of truth (engines' "
               f"self-reports are never trusted).\n")
     md.append(f"**Repro:** git `{sha}`, seed {meta.get('seed', 1)}.\n")
@@ -120,7 +123,7 @@ def main():
         md.append(f"| `{a}` | " + " | ".join(cells) + f" | **{overall}** |")
 
     md.append("\n## Best board found per algorithm\n")
-    md.append("| algorithm | best score | bucas url |")
+    md.append("| algorithm | best score | board file |")
     md.append("|:--|---:|:--|")
     for a in algos:
         if a in best_url:
@@ -147,10 +150,11 @@ def main():
     import csv
     with open(run / "results.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["algo", "variant", "seed", "score", "wall_s", "url"])
+        w.writerow(["algo", "variant", "seed", "score", "wall_s", "board_file"])
         for r in rows:
             w.writerow([r["algo"], r["variant"], r.get("seed"),
-                        r.get("score"), r.get("wall_s"), r.get("url")])
+                        r.get("score"), r.get("wall_s"),
+                        r.get("board_file") or r.get("url")])
 
     print(f"report  -> {out_md}")
     print(f"csv     -> {run/'results.csv'}")

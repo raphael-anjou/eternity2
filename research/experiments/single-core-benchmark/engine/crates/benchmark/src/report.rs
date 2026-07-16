@@ -3,5 +3,6 @@
 // imports; new code should import from `eternity2_export` directly.
 
 pub use eternity2_export::{
-    board_to_bucas_edges, bucas_url, puzzle_name_from_path, write_report, RunReport,
+    board_to_bucas_edges, board_to_doc, bucas_url, puzzle_name_from_path, viewer_url, write_report,
+    BoardDoc, RunReport,
 };

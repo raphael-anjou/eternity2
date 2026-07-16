@@ -2,13 +2,14 @@
 # run_standalone.sh — uniform single-core, ~60s-wall wrappers around the 4
 # "standalone" solver binaries (benchmark grid). Each function:
 #
-# run_producer <variant.csv> <seed> <budget_s> <out.url>
-# run_blackwood <variant.csv> <seed> <budget_s> <out.url>
-# run_verhaard <variant.csv> <seed> <budget_s> <out.url>
-# run_alns <variant.csv> <seed> <budget_s> <out.url>
+# run_producer <variant.csv> <seed> <budget_s> <out.json>
+# run_blackwood <variant.csv> <seed> <budget_s> <out.json>
+# run_verhaard <variant.csv> <seed> <budget_s> <out.json>
+# run_alns <variant.csv> <seed> <budget_s> <out.json>
 #
 # runs the engine SINGLE-CORE for approximately budget_s seconds wall-clock,
-# writes a bucas .url to out.url, and ALWAYS prints:
+# writes ONE canonical board .json (an e2_io::BoardDoc carrying an
+# https://eternity2.dev/viewer?... URL) to out.json, and ALWAYS prints:
 # - a line containing `canonical_score=NNN/480` from an independent
 # target/release/verify_bucas re-score (never trust the binary's
 # self-reported score);
@@ -94,24 +95,36 @@ _rsa_scratch() {
  echo "$d"
 }
 
-# _rsa_verify_and_emit <variant.csv> <url-string> <out.url>
-# Writes url-string to out.url (even if empty/invalid -- hard rule: always
-# emit a url artifact), then independently re-scores it with verify_bucas
-# and prints the resulting `canonical_score=NNN/480` line. If url-string is
-# empty (engine produced nothing at all, e.g. crashed before any board),
-# writes a sentinel file and prints canonical_score=0/480 without invoking
-# verify_bucas (which requires a decodable board_edges parameter).
+# _rsa_verify_and_emit <variant.csv> <viewer_url> <board_json_src_or_empty> <out.json>
+# Emits ONE canonical board .json to out.json (hard rule: always emit an
+# artifact), then independently re-scores the board with verify_bucas and prints
+# the resulting `canonical_score=NNN/480` line. verify_bucas decodes the
+# eternity2.dev viewer URL directly (it reads puzzle_size/board_edges/
+# board_pieces just like the legacy bucas params).
+#
+# The engines emit a BoardDoc .json themselves; pass its path as <board_json_src>
+# and it is copied verbatim to out.json. If only a URL string is available
+# (e.g. the ALNS fallback path), pass "" for the src and a minimal
+# {"url": ...} document is written. If the URL is empty (engine produced
+# nothing), a sentinel is written and canonical_score=0/480 is printed without
+# invoking verify_bucas (which needs a decodable board_edges parameter).
 _rsa_verify_and_emit() {
  local variant_csv="$1"
  local url="$2"
- local out_url="$3"
- mkdir -p "$(dirname "$out_url")"
+ local board_json_src="$3"
+ local out_json="$4"
+ mkdir -p "$(dirname "$out_json")"
  if [[ -z "$url" ]]; then
- echo "NO_BOARD_PRODUCED" > "$out_url"
+ printf '{"url": "", "note": "NO_BOARD_PRODUCED"}\n' > "$out_json"
  echo "canonical_score=0/480 (NO BOARD PRODUCED -- see stderr above)"
  return 1
  fi
- printf '%s' "$url" > "$out_url"
+ if [[ -n "$board_json_src" && -s "$board_json_src" ]]; then
+ cp "$board_json_src" "$out_json"
+ else
+ # Only a URL string is available; synthesize a minimal canonical doc.
+ printf '{"url": "%s"}\n' "$url" > "$out_json"
+ fi
  "$VERIFY_BIN" "$variant_csv" "$url"
  return 0
 }
@@ -127,7 +140,7 @@ _rsa_verify_and_emit() {
 # so a pathological variant can never hang the grid.
 # ---------------------------------------------------------------------------
 run_producer() {
- local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
+ local variant_csv="$1" seed="$2" budget_s="$3" out_json="$4"
  # Calibration knobs default to the committed-run literals; run_grid.py may
  # override them from solvers.toml ([solver.calibration]) via env vars, so the
  # calibration lives with the solver in the manifest, not only here.
@@ -135,7 +148,7 @@ run_producer() {
  local order="${BENCH_PRODUCER_ORDER:-comb:14}"
  local tol="${BENCH_PRODUCER_TOL:-0}"
  local scratch; scratch="$(_rsa_scratch "producer")"
- local emit="${scratch}/best.url"
+ local emit="${scratch}/best.json"
 
  local t0 t1 wall
  t0=$(date +%s.%N)
@@ -166,9 +179,11 @@ run_producer() {
  nps=$(awk -v n="$nodes" -v w="$wall" 'BEGIN{ if (w>0) printf "%.0f", n/w; else print 0 }')
  echo "run_producer: wall=${wall}s nodes=${nodes} nps=${nps} nps_unit=beam-nodes/s" >&2
 
+ # The engine writes a canonical BoardDoc .json; pull its viewer URL for the
+ # independent re-score and hand the .json straight through to out_json.
  local url=""
- [[ -s "$emit" ]] && url="$(cat "$emit")"
- _rsa_verify_and_emit "$variant_csv" "$url" "$out_url"
+ [[ -s "$emit" ]] && url="$(jq -r '.url // empty' "$emit")"
+ _rsa_verify_and_emit "$variant_csv" "$url" "$emit" "$out_json"
  echo "nodes=${nodes} nps=${nps} nps_unit=beam-nodes/s wall_s=${wall}"
 }
 
@@ -183,7 +198,7 @@ run_producer() {
 # wall-clock result.
 # ---------------------------------------------------------------------------
 run_blackwood() {
- local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
+ local variant_csv="$1" seed="$2" budget_s="$3" out_json="$4"
  local scratch; scratch="$(_rsa_scratch "blackwood")"
 
  # nodecap=20M (not 200M): small enough that MANY restarts complete
@@ -215,9 +230,10 @@ run_blackwood() {
  fi
  echo "run_blackwood: nodes=${nodes} nps=${nps} nps_unit=search-nodes/s (from: ${prog_line:-no progress line})" >&2
 
+ local cp="${scratch}/best_so_far.json"
  local url=""
- [[ -s "${scratch}/best_so_far.url" ]] && url="$(cat "${scratch}/best_so_far.url")"
- _rsa_verify_and_emit "$variant_csv" "$url" "$out_url"
+ [[ -s "$cp" ]] && url="$(jq -r '.url // empty' "$cp")"
+ _rsa_verify_and_emit "$variant_csv" "$url" "$cp" "$out_json"
  echo "nodes=${nodes} nps=${nps} nps_unit=search-nodes/s"
 }
 
@@ -228,7 +244,7 @@ run_blackwood() {
 # convention).
 # ---------------------------------------------------------------------------
 run_verhaard() {
- local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
+ local variant_csv="$1" seed="$2" budget_s="$3" out_json="$4"
  local scratch; scratch="$(_rsa_scratch "verhaard")"
 
  # Same nodecap=20M rationale as run_blackwood (see there).
@@ -251,9 +267,10 @@ run_verhaard() {
  fi
  echo "run_verhaard: nodes=${nodes} nps=${nps} nps_unit=search-nodes/s (from: ${prog_line:-no progress line})" >&2
 
+ local cp="${scratch}/best_so_far.json"
  local url=""
- [[ -s "${scratch}/best_so_far.url" ]] && url="$(cat "${scratch}/best_so_far.url")"
- _rsa_verify_and_emit "$variant_csv" "$url" "$out_url"
+ [[ -s "$cp" ]] && url="$(jq -r '.url // empty' "$cp")"
+ _rsa_verify_and_emit "$variant_csv" "$url" "$cp" "$out_json"
  echo "nodes=${nodes} nps=${nps} nps_unit=search-nodes/s"
 }
 
@@ -287,14 +304,14 @@ run_verhaard() {
 # does not matter here.
 # ---------------------------------------------------------------------------
 run_alns() {
- local variant_csv="$1" seed="$2" budget_s="$3" out_url="$4"
+ local variant_csv="$1" seed="$2" budget_s="$3" out_json="$4"
  local scratch; scratch="$(_rsa_scratch "alns")"
 
  local convert_overhead_s=2
 
  # --- stage A: producer base board (fixed calibrated beam) ------------
  local beam=16384
- local prod_emit="${scratch}/base.url"
+ local prod_emit="${scratch}/base.json"
  local ta0 ta1 prod_wall
  ta0=$(date +%s.%N)
  timeout 30 "$PRODUCER_BIN" "$variant_csv" \
@@ -317,10 +334,12 @@ run_alns() {
 
  if [[ ! -s "$prod_emit" ]]; then
  echo "run_alns: stage A (producer base board) produced nothing" >&2
- _rsa_verify_and_emit "$variant_csv" "" "$out_url"
+ _rsa_verify_and_emit "$variant_csv" "" "" "$out_json"
  return 1
  fi
- local base_url; base_url="$(cat "$prod_emit")"
+ # Stage A emits a canonical BoardDoc .json; its viewer URL is the decodable
+ # board string every downstream step (verify_bucas, dump_board_json) reads.
+ local base_url; base_url="$(jq -r '.url // empty' "$prod_emit")"
  local base_score_line
  base_score_line="$("$VERIFY_BIN" "$variant_csv" "$base_url" 2>/dev/null | grep '^board\[0\]')"
  echo "run_alns: stage A base board -- ${base_score_line}" >&2
@@ -333,13 +352,13 @@ run_alns() {
  > "${scratch}/dump.json" 2> "${scratch}/dump_stderr.log"
  if [[ ! -s "${scratch}/dump.json" ]]; then
  echo "run_alns: dump_board_json failed, see ${scratch}/dump_stderr.log" >&2
- _rsa_verify_and_emit "$variant_csv" "$base_url" "$out_url"
+ _rsa_verify_and_emit "$variant_csv" "$base_url" "$prod_emit" "$out_json"
  return 1
  fi
  jq '{placement: .board}' "${scratch}/dump.json" > "$cpboard_json"
 
  # --- stage B: alns_only, time-bounded via --alns-budget-ms -----------
- # NOTE: alns_only's `bucas:` and `ALNS: elapsed=... iters=...` summary
+ # NOTE: alns_only's `viewer:` and `ALNS: elapsed=... iters=...` summary
  # lines are eprintln!'d (stderr), not stdout -- must grep alns_stderr.log,
  # not alns_stdout.log (alns_only's stdout is empty/unused in this mode).
  local alns_stderr="${scratch}/alns_stderr.log"
@@ -356,11 +375,13 @@ run_alns() {
  echo "run_alns: alns_only exited rc=$rc (see ${alns_stderr})" >&2
  fi
 
- local url
- url="$(grep '^bucas: ' "$alns_stderr" | tail -1 | sed 's/^bucas: //')"
+ local url alns_json_src=""
+ url="$(grep '^viewer: ' "$alns_stderr" | tail -1 | sed 's/^viewer: //')"
  if [[ -z "$url" ]]; then
- echo "run_alns: alns_only produced no bucas url; falling back to stage A board" >&2
+ echo "run_alns: alns_only produced no viewer url; falling back to stage A board" >&2
  url="$base_url"
+ # The stage-A producer board is a full canonical BoardDoc; reuse it.
+ alns_json_src="$prod_emit"
  fi
 
  # Node accounting: alns_only has no "node" concept -- its unit of work is
@@ -379,6 +400,6 @@ run_alns() {
  echo "run_alns: stage B ${alns_summary:-<no ALNS summary line>}" >&2
  echo "run_alns: nodes=${iters} nps=${nps} nps_unit=iters/s" >&2
 
- _rsa_verify_and_emit "$variant_csv" "$url" "$out_url"
+ _rsa_verify_and_emit "$variant_csv" "$url" "$alns_json_src" "$out_json"
  echo "nodes=${iters} nps=${nps} nps_unit=iters/s"
 }

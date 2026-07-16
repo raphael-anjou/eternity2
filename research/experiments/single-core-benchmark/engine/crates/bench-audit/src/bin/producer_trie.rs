@@ -69,7 +69,7 @@
 // Usage: producer, plus [--threads N] (default 1).
 
 use eternity2_core::{Board, Piece, PieceId, Puzzle, Rotation, BORDER};
-use eternity2_export::bucas_url;
+use eternity2_export::board_to_doc;
 use eternity2_puzzle_io::load_puzzle_with_hints;
 use rayon::prelude::*;
 use std::env;
@@ -1420,7 +1420,7 @@ fn write_final_beam_jsonl(
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("usage: producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--threads N] [--emit-best out.url] [--emit-final-beam dir]");
+        eprintln!("usage: producer_trie <puzzle.csv> --order O --beam B --tol T [--seed S | --seed-lo A --seed-hi Z] [--threads N] [--emit-best out.json] [--emit-final-beam dir]");
         eprintln!("  --threads 1 (default): historical serial search, bit-identical to producer.");
         eprintln!("  --threads N (0 = all cores): parallel; deterministic for a given seed and equal");
         eprintln!("              across thread counts, but NOT bit-identical to the serial stream.");
@@ -1615,8 +1615,10 @@ fn finish(
                 b.place(pos as u32, pid, r);
             }
         }
-        let url = bucas_url(puzzle, &b, "size_16_official_eternity");
-        std::fs::write(path, url).expect("write url");
+        let score = best_overall.0.max(0) as u32;
+        board_to_doc(puzzle, &b, "size_16_official_eternity", score)
+            .write_json(path)
+            .expect("write board json");
         eprintln!("# emitted best board (score={}) -> {path}", best_overall.0);
     }
 }

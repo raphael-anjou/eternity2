@@ -4,12 +4,13 @@
 Lifted from the v2 research vault and made repo-relative. The diversity axis is
 the puzzle: each algorithm runs ONCE per corner-pinned variant (10 puzzles => 10
 runs per algorithm), single-core, fixed wall budget, at most PARALLEL at a time.
-Every run emits a bucas .url; the score is the canonical matched-edge count from
-the RESULT line. Raw results stream to results.jsonl (timestamped run dir).
+Every run emits one canonical board .json (with an eternity2.dev viewer URL);
+the score is the canonical matched-edge count from the RESULT line. Raw results
+stream to results.jsonl (timestamped run dir).
 
-Two engine families share one puzzle-in / url-out interface:
+Two engine families share one puzzle-in / board-.json-out interface:
 
-  * native      -> ../engine/target/release/run_algo  (JSON variant in, url out)
+  * native      -> ../engine/target/release/run_algo  (JSON variant in, json out)
                    RUNNABLE HERE. This is the ported engine family (naive + CSP
                    presets, ranks 5-15 in the report).
   * standalone  -> the four strong engines (producer, blackwood, verhaard, alns)
@@ -81,14 +82,14 @@ NPS_RE = re.compile(r"nps=(\d+)")
 NPS_UNIT_RE = re.compile(r"nps_unit=(\S+)")
 
 
-def run_native(algo, variant_json, seed, budget_s, url_path):
+def run_native(algo, variant_json, seed, budget_s, board_path):
     cmd = [
         str(RUN_ALGO),
         "--puzzle", str(variant_json),
         "--algo", algo,
         "--seed", str(seed),
         "--budget-ms", str(budget_s * 1000),
-        "--emit", str(url_path),
+        "--emit", str(board_path),
     ]
     # Single core: run_algo uses only single-core presets, but pin anyway.
     env = dict(os.environ, RAYON_NUM_THREADS="1")
@@ -105,15 +106,16 @@ def run_native(algo, variant_json, seed, budget_s, url_path):
     return score, wall, p.stdout.strip(), p.stderr.strip()[-500:], nodes, nps, nps_unit
 
 
-def run_standalone(algo, variant_csv, seed, budget_s, url_path):
+def run_standalone(algo, variant_csv, seed, budget_s, board_path):
     # Delegates to a bash function in run_standalone.sh (opt-in via
-    # BENCH_STANDALONE_SH): run_<algo> <csv> <seed> <budget_s> <out.url>.
+    # BENCH_STANDALONE_SH): run_<algo> <csv> <seed> <budget_s> <out.json>.
+    # The wrapper emits ONE canonical board .json (eternity2.dev viewer URL).
     if not STANDALONE_SH:
         raise RuntimeError(
             f"{algo} needs the standalone wrapper; set BENCH_STANDALONE_SH to a "
             f"file that defines run_{algo}, or omit it from --algos")
     cmd = ["bash", "-c",
-           f'source "{STANDALONE_SH}"; run_{algo} "{variant_csv}" {seed} {budget_s} "{url_path}"']
+           f'source "{STANDALONE_SH}"; run_{algo} "{variant_csv}" {seed} {budget_s} "{board_path}"']
     env = dict(os.environ, RAYON_NUM_THREADS="1")
     # Pass this solver's calibration knobs (solvers.toml [solver.calibration]) as
     # BENCH_<ALGO>_<KNOB> env vars; run_standalone.sh reads them with the
@@ -166,7 +168,7 @@ def main():
     if not variant_ids:
         raise SystemExit(f"no variant_*.json in {variants_dir}")
     run_dir = Path(args.out)
-    (run_dir / "urls").mkdir(parents=True, exist_ok=True)
+    (run_dir / "boards").mkdir(parents=True, exist_ok=True)
 
     if args.algos:
         algos = args.algos.split(",")
@@ -203,7 +205,7 @@ def main():
         algo, vid = job
         seed = args.seed
         tag = f"{algo}__v{vid:02d}"
-        url_path = run_dir / "urls" / f"{tag}.url"
+        board_path = run_dir / "boards" / f"{tag}.json"
         try:
             # kind + input format both come from the manifest, so how a solver is
             # driven and which variant file it gets are never name-guessed here.
@@ -212,23 +214,23 @@ def main():
             vfile = variants_dir / f"variant_{vid:02d}.{fmt}"
             if spec.get("kind") == "standalone":
                 score, wall, out, err, nodes, nps, unit = run_standalone(
-                    algo, vfile, seed, args.budget_s, url_path)
+                    algo, vfile, seed, args.budget_s, board_path)
             else:
                 score, wall, out, err, nodes, nps, unit = run_native(
-                    algo, vfile, seed, args.budget_s, url_path)
+                    algo, vfile, seed, args.budget_s, board_path)
             return dict(algo=algo, variant=vid, seed=seed,
                         score=score, wall_s=round(wall, 1),
                         nodes=nodes, nps=nps, nps_unit=unit,
-                        url=str(url_path), ok=score is not None, err=err[:200])
+                        board_file=str(board_path), ok=score is not None, err=err[:200])
         except subprocess.TimeoutExpired:
             return dict(algo=algo, variant=vid, seed=seed,
                         score=None, wall_s=None, nodes=None, nps=None,
-                        nps_unit=None, url=str(url_path),
+                        nps_unit=None, board_file=str(board_path),
                         ok=False, err="TIMEOUT")
         except Exception as e:  # noqa
             return dict(algo=algo, variant=vid, seed=seed,
                         score=None, wall_s=None, nodes=None, nps=None,
-                        nps_unit=None, url=str(url_path),
+                        nps_unit=None, board_file=str(board_path),
                         ok=False, err=f"EXC {e}")
 
     with open(results_path, "w") as rf, \

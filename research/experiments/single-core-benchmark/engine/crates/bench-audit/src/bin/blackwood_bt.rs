@@ -31,7 +31,7 @@ use std::time::Instant;
 use rayon::prelude::*;
 
 use eternity2_core::{Board, Rotation};
-use eternity2_export::bucas_url;
+use eternity2_export::{board_to_doc, BoardDoc};
 use eternity2_puzzle_io::load_puzzle_with_hints;
 
 const N: usize = 256; // cells
@@ -1141,15 +1141,20 @@ fn run_attempt_scored(solver: &mut Solver, seed: u64, attempt: usize, shuffle: b
     AttemptOutcome { score, board, physical, native, deepest: solver.deepest, nodes: solver.nodes }
 }
 
-// Build a bucas URL string from a complete board.
-fn board_url(puzzle: &eternity2_core::Puzzle, bp: &[u16; N], br: &[u8; N]) -> String {
+// Rebuild a Board from the packed piece/rotation arrays.
+fn board_from_packed(puzzle: &eternity2_core::Puzzle, bp: &[u16; N], br: &[u8; N]) -> Board {
     let mut b = Board::empty(puzzle);
     for pos in 0..N {
         if bp[pos] != EMPTYP {
             b.place(pos as u32, bp[pos], Rotation::from_u8(br[pos]).unwrap());
         }
     }
-    bucas_url(puzzle, &b, "size_16_official_eternity")
+    b
+}
+
+// Canonical board document (one .json with an eternity2.dev viewer URL).
+fn board_doc(puzzle: &eternity2_core::Puzzle, bp: &[u16; N], br: &[u8; N], score: u32) -> BoardDoc {
+    board_to_doc(puzzle, &board_from_packed(puzzle, bp, br), "size_16_official_eternity", score)
 }
 
 // ---------------------------------------------------------------------------
@@ -1314,7 +1319,7 @@ fn main() {
 
     let emit_dir_s = emit_dir.clone().unwrap_or_else(|| ".".into());
     std::fs::create_dir_all(&emit_dir_s).ok();
-    let checkpoint_path = Path::new(&emit_dir_s).join("best_so_far.url");
+    let checkpoint_path = Path::new(&emit_dir_s).join("best_so_far.json");
     let log_path = Path::new(&emit_dir_s).join(format!("{emit_prefix}_portfolio.log"));
 
     let shuffle = stage >= 4 || restarts > 1;
@@ -1366,8 +1371,9 @@ fn main() {
                 );
                 eprintln!("{msg}");
                 if let Some((bp, br)) = &self.global_best_board {
-                    let url = board_url(self.puzzle, bp, br);
-                    std::fs::write(&self.checkpoint_path, &url).ok();
+                    let doc = board_doc(self.puzzle, bp, br, u32::from(self.global_best));
+                    let url = doc.url.clone();
+                    doc.write_json(&self.checkpoint_path).ok();
                     use std::io::Write;
                     if let Ok(mut f) =
                         std::fs::OpenOptions::new().create(true).append(true).open(&self.log_path)
@@ -1383,10 +1389,10 @@ fn main() {
                             .unwrap()
                             .as_secs();
                         let rec = Path::new(&self.emit_dir_s).join(format!(
-                            "RECORD_{}_{}_{ts}.url",
+                            "RECORD_{}_{}_{ts}.json",
                             self.global_best, self.emit_prefix
                         ));
-                        std::fs::write(&rec, &url).ok();
+                        doc.write_json(&rec).ok();
                         eprintln!("# ***** NEW FROM-SCRATCH RECORD CANDIDATE score={} native={} *****", self.global_best, o.native);
                         eprintln!("# ***** banked -> {} — VERIFY 3 WAYS *****", rec.display());
                     }
@@ -1476,15 +1482,15 @@ fn main() {
 
     // emit best board (timestamped, never overwrites)
     if let Some((bp, br)) = &global_best_board {
-        let url = board_url(&puzzle, bp, br);
+        let doc = board_doc(&puzzle, bp, br, u32::from(global_best));
         let ts = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
         let path = Path::new(&emit_dir_s).join(format!(
-            "{emit_prefix}_stage{stage}_score{global_best}_{ts}.url"
+            "{emit_prefix}_stage{stage}_score{global_best}_{ts}.json"
         ));
-        std::fs::write(&path, &url).expect("write url");
+        doc.write_json(&path).expect("write board json");
         eprintln!("# emitted best board -> {}", path.display());
         println!("{}", path.display());
     }

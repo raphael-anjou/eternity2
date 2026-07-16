@@ -30,7 +30,7 @@ use std::time::Instant;
 
 use eternity2_bench_audit::{placed_count, score_board_dense as score_board};
 use eternity2_benchmark::loader::load_puzzle_with_hints;
-use eternity2_benchmark::report::bucas_url;
+use eternity2_benchmark::report::viewer_url;
 use eternity2_core::{Board, Rotation};
 use eternity2_localsearch::{
     piece_swap_hillclimb, polish_rotations, run_alns, run_alns_portfolio, Acceptance, AlnsConfig,
@@ -514,7 +514,7 @@ fn main() {
 
     let (am, _) = score_board(&puzzle, &alns_board);
     let ap = placed_count(&alns_board, &puzzle);
-    let url = bucas_url(&puzzle, &alns_board, "v17_alns_only");
+    let url = viewer_url(&puzzle, &alns_board, "v17_alns_only");
 
     eprintln!(
         "ALNS: elapsed={:.1}s iters={} placed={ap}/256 matched={am}/480 polish_rot=+{rg} polish_swap=+{sg}",
@@ -533,13 +533,13 @@ fn main() {
         let rate = if inv > 0 { 100.0 * acc as f64 / inv as f64 } else { 0.0 };
         eprintln!("  {name:<24}  inv={inv:>4}  acc={acc:>4}  rate={rate:>5.1}%");
     }
-    eprintln!("bucas: {url}");
+    eprintln!("viewer: {url}");
     let json = serde_json::json!({
         "matched": am, "placed": ap,
         "ops_preset": ops_preset, "repair_kind": repair_kind,
         "repair_budget_ms": repair_budget_ms, "t": t, "alns_ms": alns_ms,
         "polish_rot_gain": rg, "polish_swap_gain": sg,
-        "bucas_url": url,
+        "url": url,
         "placement": (0..puzzle.cell_count()).map(|p| {
             alns_board.get(p).map(|(pid, rot)| serde_json::json!({
                 "pos": p, "piece_id": u32::from(pid), "rotation": rot.as_u8(),

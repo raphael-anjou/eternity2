@@ -19,7 +19,7 @@ use std::time::Instant;
 
 use eternity2_benchmark::loader::load_puzzle_with_hints;
 use eternity2_core::{Board, Color, Puzzle, Rotation, BORDER};
-use eternity2_export::{bucas_url, save_board, BoardMetadata};
+use eternity2_export::{save_board, viewer_url, BoardMetadata};
 
 const SIDE_N: usize = 0;
 const SIDE_E: usize = 1;
@@ -444,8 +444,8 @@ fn main() {
         if board.get(pos as u32) == Some((pid as u16, Rotation::from_u8(rot).unwrap())) { ho += 1; }
     }
     println!("matched={matched}/480 hints_obeyed={ho}/5 solve={secs:.1}s");
-    let url = bucas_url(&puzzle, &board, "mosaic");
-    println!("bucas: {url}");
+    let url = viewer_url(&puzzle, &board, "mosaic");
+    println!("viewer: {url}");
     if !out.is_empty() {
         let dir = PathBuf::from(&out);
         std::fs::create_dir_all(&dir).ok();
