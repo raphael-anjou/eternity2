@@ -11,7 +11,7 @@ use std::process::ExitCode;
 
 use dfs_engine::{find, all_specs, SpecKind};
 use dfs_engine::{run, RunConfig};
-use dfs_io::Instance;
+use e2_io::Instance;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();

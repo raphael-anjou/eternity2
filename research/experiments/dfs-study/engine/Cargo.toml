@@ -9,14 +9,15 @@
 #   * the software engineering is clean and the "what stacks on what" story is
 #     explicit (each variant declares its parent and the one delta it adds),
 #   * dozens of one-toggle-apart variants are cheap to add and self-documenting,
-#   * every algorithm shares ONE io contract (`dfs-io`) with lossless converters
+#   * every algorithm shares ONE io contract (`e2-io`) with lossless converters
 #     to the formats the blog's other engines use (site JSON, CSV, bucas URL).
 #
-# Crates:
-#   dfs-core    board, pieces, the one canonical scorer, search-state stats
-#   dfs-io      the shared Instance/Board io contract + conversion utilities
+# The board, canonical scorer and IO contract are shared with the sibling repair
+# study, so they live in ../common (e2-core, e2-io). This workspace holds only
+# the DFS-specific crates:
 #   dfs-engine  the composable DFS and the variant registry
 #   dfs-run     the run_dfs / dfs-convert binaries
+#   dfs-codegen the hand-specialised NAIVE-CODEGEN hot loop
 #
 #   cargo build --release
 #   ./target/release/run_dfs --list
@@ -33,9 +34,12 @@ rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 publish = false
 
+# The board, canonical scorer, stat counters and the IO contract are shared with
+# the sibling repair study, so they live in ../common (crates e2-core, e2-io) and
+# are pulled in by path. dfs-engine / dfs-run / dfs-codegen are this study's own.
 [workspace.dependencies]
-dfs-core = { path = "crates/dfs-core" }
-dfs-io = { path = "crates/dfs-io" }
+e2-core = { path = "../../common/crates/e2-core" }
+e2-io = { path = "../../common/crates/e2-io" }
 dfs-engine = { path = "crates/dfs-engine" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

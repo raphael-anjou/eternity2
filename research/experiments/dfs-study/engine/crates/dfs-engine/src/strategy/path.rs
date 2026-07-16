@@ -6,7 +6,7 @@
 //! findings page; the orders known to be poor (spiral-in's closure tax,
 //! hint-centric) are kept here as controls, not silently dropped.
 
-use dfs_core::{H, N, W};
+use e2_core::{H, N, W};
 
 /// Which cell-visitation order a variant uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

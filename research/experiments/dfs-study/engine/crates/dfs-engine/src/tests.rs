@@ -3,8 +3,8 @@
 //! ever reports a board it actually built, and a strict search never claims a
 //! score above what its placed edges justify.
 
-use dfs_core::N;
-use dfs_io::Instance;
+use e2_core::N;
+use e2_io::Instance;
 
 use crate::{all_specs, find, run, RunConfig, SpecKind};
 

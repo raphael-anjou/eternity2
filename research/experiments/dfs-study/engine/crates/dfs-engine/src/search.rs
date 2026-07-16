@@ -7,14 +7,14 @@
 //! timed-out run still reports its best partial — the anytime behaviour the
 //! record engines rely on.
 //!
-//! Statistics ([`dfs_core::SearchStats`]) are updated inline: nodes per
+//! Statistics ([`e2_core::SearchStats`]) are updated inline: nodes per
 //! attempted placement, backtracks per retreat, max depth, depth at timeout,
 //! and the break count of the best board.
 
 use std::time::Instant;
 
-use dfs_core::{Board, Pieces, SearchStats, N, W};
-use dfs_io::Instance;
+use e2_core::{Board, Pieces, SearchStats, N, W};
+use e2_io::Instance;
 
 use crate::geometry::Geometry;
 use crate::strategy::breaks::BreakPolicy;
@@ -40,7 +40,7 @@ pub struct RunResult {
 impl RunResult {
     /// Package the best board through the instance's canonical output contract.
     #[must_use]
-    pub fn output(&self, inst: &Instance) -> dfs_io::SolveOutput {
+    pub fn output(&self, inst: &Instance) -> e2_io::SolveOutput {
         inst.finish(&self.best)
     }
 }
@@ -152,7 +152,7 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
 
     let start = Instant::now();
     let deadline = start + std::time::Duration::from_millis(cfg.budget_ms);
-    let initial_score = dfs_core::score_board(&seed_board, pieces);
+    let initial_score = e2_core::score_board(&seed_board, pieces);
 
     // Seed the resolved-edge cache from the pinned board.
     let mut cell_edges = [[255u8; 4]; N];

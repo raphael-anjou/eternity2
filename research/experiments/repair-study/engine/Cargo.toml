@@ -1,0 +1,64 @@
+# Repair study — a self-contained workspace for an extensive comparison of
+# destroy-and-repair local searchers for Eternity II. The sibling of the DFS
+# study: where that one takes backtracking apart one decision at a time, this
+# one does the same for the repair loop the records actually reach the top with.
+#
+# The question: given a board, a destroy-and-repair loop rips out part of it and
+# rebuilds it, keeping the change if it helps. What does each decision in that
+# loop buy — which region to destroy, how to rebuild it, when to keep a
+# non-improving move, when to restart, and what board to start from?
+#
+# Every algorithm here is a fresh from-scratch reimplementation. The board, the
+# canonical scorer and the IO contract are shared with the DFS study, so they
+# live in ../common (e2-core, e2-io) and are pulled in by path — a repaired board
+# is scored by the exact same scorer a backtracked one is. This workspace holds
+# only the repair-specific crates:
+#   repair-engine  the composable destroy-repair loop + the variant registry
+#   repair-run     the run_repair binary
+#
+#   cargo build --release
+#   ./target/release/run_repair --list
+#   ./target/release/run_repair --puzzle ../variants/variant_00.json \
+#       --algo greedy-mismatch --seed 1 --budget-s 60
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+e2-core = { path = "../../common/crates/e2-core" }
+e2-io = { path = "../../common/crates/e2-io" }
+repair-engine = { path = "crates/repair-engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+doc_markdown = "allow"
+
+# Mirror the sibling studies' release profile so throughput numbers are
+# comparable across the three experiments. Unlike a throughput-critical binary,
+# these are 60 s research runs, so we keep `debug-assertions` and `overflow-checks`
+# ON even in release: an integer overflow in the incremental score or conflict
+# map must abort loudly, never wrap silently and corrupt a published number. The
+# cost is negligible next to the science of getting the numbers right.
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+debug-assertions = true
+overflow-checks = true

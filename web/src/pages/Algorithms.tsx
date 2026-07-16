@@ -218,8 +218,11 @@ const T = {
     s6P1: (
       <>
         State-of-the-art attacks add constraint propagation (deduce forced placements before
-        trying any), clever piece orderings, parallel search, and local-repair heuristics that
-        fix imperfect boards. They reach 469 and 470 of 480 matched edges. Extraordinary, and
+        trying any), clever piece orderings, parallel search, and{" "}
+        <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
+          local-repair heuristics
+        </Link>{" "}
+        that fix imperfect boards. They reach 469 and 470 of 480 matched edges. Extraordinary, and
         still short. The gap between "almost solved" and "solved" is where the open research
         lives: see the <Link className="underline" to="/research">Research</Link> section.
       </>
@@ -373,7 +376,11 @@ const T = {
       <>
         Les attaques de pointe ajoutent à tout cela la propagation de contraintes (déduire les
         placements forcés avant le moindre essai), des ordres de pièces malins, la recherche en
-        parallèle et des heuristiques de réparation locale qui rafistolent les plateaux
+        parallèle et des{" "}
+        <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
+          heuristiques de réparation locale
+        </Link>{" "}
+        qui rafistolent les plateaux
         imparfaits. Elles atteignent 469, voire 470 côtés appariés sur 480. C'est
         prodigieux — et toujours insuffisant. Cet écart entre « presque résolu » et « résolu »,
         c'est précisément là que se joue la recherche ouverte : rendez-vous dans la section{" "}
