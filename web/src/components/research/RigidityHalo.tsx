@@ -74,7 +74,7 @@ export function RigidityHalo() {
     );
   }
 
-  const board = RECORD_BOARDS.find((b) => b.id === "v129-palimpsest-463");
+  const board = RECORD_BOARDS.find((b) => b.id === "palimpsest-463");
   if (!board) return null;
   const decoded = decodeBucas(board.viewerParams);
   const conflicts = conflictEdges(decoded);

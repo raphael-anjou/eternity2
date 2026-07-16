@@ -38,8 +38,8 @@ const CHOICES: BoardChoice[] = (
   [
     { id: "JBlackwood+PMcGavin_469", params: COMMUNITY.get("JBlackwood+PMcGavin_469") ?? "", camp: "community" },
     { id: "Louis_Verhaard_467", params: COMMUNITY.get("Louis_Verhaard_467") ?? "", camp: "community" },
-    { id: "v181-keyring-460", params: SCRATCH.get("v181-keyring-460") ?? "", camp: "scratch" },
-    { id: "v175-gauntlet-458", params: SCRATCH.get("v175-gauntlet-458") ?? "", camp: "scratch" },
+    { id: "keyring-460", params: SCRATCH.get("keyring-460") ?? "", camp: "scratch" },
+    { id: "gauntlet-458", params: SCRATCH.get("gauntlet-458") ?? "", camp: "scratch" },
   ] satisfies BoardChoice[]
 ).filter((c) => c.params);
 
@@ -51,8 +51,8 @@ const T = {
     labels: {
       "JBlackwood+PMcGavin_469": "McGavin 469",
       Louis_Verhaard_467: "Verhaard 467",
-      "v181-keyring-460": "KEYRING 460",
-      "v175-gauntlet-458": "GAUNTLET 458",
+      "keyring-460": "KEYRING 460",
+      "gauntlet-458": "GAUNTLET 458",
     } as Record<string, string>,
     rowAxis: "row (0 = top)",
     countAxis: "mismatches",
@@ -70,8 +70,8 @@ const T = {
     labels: {
       "JBlackwood+PMcGavin_469": "McGavin 469",
       Louis_Verhaard_467: "Verhaard 467",
-      "v181-keyring-460": "KEYRING 460",
-      "v175-gauntlet-458": "GAUNTLET 458",
+      "keyring-460": "KEYRING 460",
+      "gauntlet-458": "GAUNTLET 458",
     } as Record<string, string>,
     rowAxis: "rangée (0 = haut)",
     countAxis: "défauts",

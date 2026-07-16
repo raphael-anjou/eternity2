@@ -12,6 +12,11 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   // score chart already live at /research/records, so that url is where the old
   // hub now lands. The `records` tag stays valid on pages for search and metadata.
   "/research/topics/records": "/research/records",
+  // The engines section had a second, thinner CSP-presets page (a concept stub)
+  // duplicating the measured one under single-core-benchmark. It was removed so
+  // there is one canonical, leaderboard-backed page; its old url lands there.
+  "/research/lab/experiments/raphael-anjou/engines/csp-presets":
+    "/research/lab/experiments/single-core-benchmark/csp-presets",
 
   // Experiments re-homed under a per-author folder, so the lab opens to more
   // than one researcher (2026-07), then sorted into per-kind sub-hubs under
