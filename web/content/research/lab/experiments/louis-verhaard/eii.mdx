@@ -1,72 +1,270 @@
 ---
-title: eii, and why it will not run here
+title: "Verhaard's eii: the solver that won the only prize"
 description: >-
-  Louis Verhaard's eii shipped as a Windows binary with no source, so his own
-  program cannot be built or run on this machine. What his method was, how its
-  constants survive, and why running "Verhaard" at all means a reimplementation.
-metaDescription: "Verhaard's eii ships as a source-less Win32 binary and won't run here. His method, how its constants survive, and why running it means a reimplementation."
+  The engine behind the 467, the only Eternity II score ever paid, read from
+  Louis Verhaard's own mailing-list posts: forward pruning, comb-search fill
+  orders, depth-gated edge slipping, a Markov-tuned slip schedule. And why his
+  own source-less Win32 binary cannot be built or run on this machine at all.
+metaDescription: "Verhaard's eii, the engine behind the 467 and only Eternity II prize: forward pruning, comb-search orders, a Markov-tuned slip schedule, and why it won't run here."
 kind: page
 contribution: exposition
 author: louis-verhaard
 order: 10
-updated: 2026-07-15
+updated: 2026-07-17
 date: 2026-07
-topics: [speed, local-search]
+topics: [backtracking, local-search, speed]
 related:
   - /research/lab/experiments/raphael-anjou/engines/verhaard-reimpl
   - /research/lab/experiments/joshua-blackwood/solver
-  - /research/build/local-search/local-search-alns
+  - /research/build/reduce/edge-slipping
+  - /research/records
 sources:
   - label: "Louis Verhaard's eii solver details (the original, Win32 only)"
     url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "The release: “I am stuck… my only hope is brute force” (groups.io message 5940)"
+    url: https://groups.io/g/eternity2/message/5940
+  - label: "Decoder and internals documentation released; 467 found 40+ times (groups.io message 6275)"
+    url: https://groups.io/g/eternity2/message/6275
+  - label: "The method disclosed: depth-gated edge slipping, clean score 247 (groups.io message 7321)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "JSA's independent benchmark: a 467 in 82 days with the public binary (groups.io message 6687)"
+    url: https://groups.io/g/eternity2/message/6687
+  - label: "The solver's long-term home: shortestpath.se/eii (groups.io message 7439)"
+    url: https://groups.io/g/eternity2/message/7439
   - label: "Verhaard on his method (groups.io msg 6891)"
     url: https://groups.io/g/eternity2/message/6891
 ---
 
 <Callout kind="note" title="Whose work this is">
-  The method and the eii solver are **Louis Verhaard's**. This page, written up by
-  [Raphaël Anjou](/research/people/raphael-anjou), records what that method was
-  and why the original binary cannot be run here. The runnable engine is a
+  The solver, called **eii**, and its documentation are **Louis Verhaard's**,
+  hosted on his own site
+  ([shortestpath.se/eii](http://www.shortestpath.se/eii/)). The winning entry was
+  submitted under the name of his wife, Anna Karlsson; Verhaard's own words
+  settle the credit: "My wife submitted my best solution last year and won 10 000
+  dollars" ([groups.io message 7451](https://groups.io/g/eternity2/message/7451)).
+  This page, written up by [Raphaël Anjou](/research/people/raphael-anjou),
+  reconstructs the machine from Verhaard's mailing-list posts of 2008–2010 and
+  from JSA's public benchmark of the released binary, and records why the original
+  binary cannot be run here at all. The runnable engine is a separate
   [reimplementation](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl),
-  and it is filed under Raphaël's section because that code is not Verhaard's.
+  filed under Raphaël's section because that code is not Verhaard's.
 </Callout>
 
-Louis Verhaard is the only person the puzzle ever paid: his eii solver found the
-467 that won the $10,000 scrutiny prize in 2008. Unlike McGavin and Blackwood,
-he never released source. This page is about that gap, and about what it means to
-run "Verhaard" at all.
+Louis Verhaard's eii is the solver behind the 467/480 that won the $10,000
+runner-up prize at the first scrutiny date, the only money the Eternity II
+contest ever paid out. The same score then stood as the record for twelve years,
+until Joshua Blackwood's 468 in 2020. Like
+[Blackwood's engine](/research/lab/experiments/joshua-blackwood/solver), it is at
+heart a depth-first backtracker with hand-tuned heuristics layered on top. Unlike
+Blackwood's, its internals were never open-sourced as code; what we have instead
+is unusually good testimony: Verhaard documented the heuristics and search order
+himself, discussed the design on the mailing list in first person, and shipped a
+public binary that an independent user benchmarked all the way back to the prize
+score. That missing source is why, of the three community engines studied in this
+lab, his is the one that cannot be run at all; the last section here says exactly
+why.
 
-## Why there is no original to run
+## The arc: stuck past 463, so release it
 
-What Verhaard shipped is `eii-1.0-win32.zip` from
-[shortestpath.se/eii](https://www.shortestpath.se/eii/eii_details.html): a
-Windows `eii.exe`, a readme, and some `.bat` files. There are **zero source
-files**, and it is Win32 only. It does not run on Apple silicon, and there is no
-Windows or emulation layer on this machine to run it under. His artifact is,
-here, unrunnable, and there is nothing of his to fetch and build. The only thing
-to link is his own page.
+Verhaard's own origin story is disarming. His first high-score program only
+placed perfectly matching pieces, and stalled around a 450: hundreds of
+248-piece clean partials, no way forward. Only when he tried Bob Cousins'
+(originally Dave Clark's) solver, which found a 458 within a minute, did he grasp
+that the contest scored *matching edges*, so half-fitting placements count
+([groups.io message 5767](https://groups.io/g/eternity2/message/5767)). He had, in
+his own telling, never bothered to read the rules; Jef Bucas was still pointing
+readers at that admission in Verhaard's documentation in 2021
+([groups.io message 10582](https://groups.io/g/eternity2/message/10582)).
 
-## What the method was
+Through the summer of 2008 the community's publicly visible ceiling was 463
+([groups.io message 5688](https://groups.io/g/eternity2/message/5688)), and in a
+remarkable exchange Verhaard and Max compared notes as the only two known to be
+past what they called the "don't-talk-about-limit"
+([messages 5767–5787](https://groups.io/g/eternity2/message/5767)). Then, on 22
+September 2008, with the first scrutiny date three months away, Verhaard
+published the solver for anyone to run at fingerboys.se: "This because I am stuck
+and my only hope to improve my best score is by using brute force"
+([message 5940](https://groups.io/g/eternity2/message/5940)). The terms mirrored
+eternity2.net's: you needed to own the real puzzle, and any prize would be split
+50-50 between the best-scoring user and Verhaard. The community became his compute
+farm.
 
-Verhaard described his approach on the mailing list: **set-composition
-swap-annealing** under a 2x2-tiling metric. In short, pick a roughly
-180-piece subset of the interior, swap-anneal its composition until the number
-of achievable 2x2 sub-tilings is locally maximised, front-load the pieces that
-performed worst, and search the rest under that scaffold. It is a local-search
-method for choosing *which* pieces to commit to, not a raw backtracker.
+It worked. On 6 January 2009 he released a decoder for the solver's `.eii` output
+files, documented the internals (heuristics and search order), and disclosed the
+number the farm had reached: 467, found more than 40 times by different users
+([message 6275](https://groups.io/g/eternity2/message/6275)). Nine days later,
+Tomy's announcement surfaced: no complete solution, and a $10,000 runner-up prize
+to Anna Karlsson of Lund for 467 of 480
+([message 6337](https://groups.io/g/eternity2/message/6337)). The list took about
+an hour to decode "Lund + 467". The rest of the contest story belongs to
+[the history page](/research/community/hunt): the silence from Tomy, the press
+coverage, the aftermath. What follows here is the machine.
 
-Its numeric constants survive only inside `eii.exe`: the comb-search fill orders
-and depth-gated edge slipping that became community canon were recovered
-byte-exact from the strings in the binary, because that is the only record of
-them that exists.
+## Forward pruning against static thresholds
 
-## Running it means a reimplementation
+The base loop is a depth-first backtracker over a fixed
+[fill order](/research/build/backtracking/fill-order), but one that prunes
+forward: branches whose heuristic score falls below a threshold are cut before
+they are explored. Verhaard described his thresholds as static and hand-tuned:
+"mostly based on pure guesswork and only on limited amount on theory or
+measurements," slow to tune but predictable over long runs
+([groups.io message 5771](https://groups.io/g/eternity2/message/5771), quoted back
+at him in [message 5772](https://groups.io/g/eternity2/message/5772)).
 
-Because the source is gone, the only way to run his approach is to rebuild it.
+What are the thresholds *for*? The design he and Max converged on in that exchange
+is the interesting part: you can only influence piece selection early in the
+search, but what you want to maximize is the **tileability of the remaining
+pieces** deep in the fill, around pieces 160–200, where the branching factor
+collapses toward forced moves. So the early thresholds are tuned, semi-manually,
+to answer: which heuristic score must early partials reach so that the survivors
+carry a leftover piece set that still tiles well? Verhaard's verdict on Max's
+description: "I think we work in a very similar way after all"
+([message 5780](https://groups.io/g/eternity2/message/5780)).
+
+## The dashboard: where the node distribution peaks
+
+How do you know a heuristic is strong? The measure the two settled on (proposed
+by Max, adopted by Verhaard) is where the peak of the node-depth distribution
+sits. An unheuristic full search on E2 spends most of its time around depth 161,
+Brendan Owen's baseline figure
+([message 6112](https://groups.io/g/eternity2/message/6112)); both of their
+heuristic searches had pushed the peak to just under 170
+([message 5780](https://groups.io/g/eternity2/message/5780)). Max supplied the
+interpretation: a peak at 170 is roughly equivalent to eliminating one interior
+colour from the puzzle entirely; a "killer heuristic" that eliminates two seemed
+out of reach ([message 5787](https://groups.io/g/eternity2/message/5787)).
+
+## Comb search: a fill order for high scores
+
+A full-solution search wants a row-by-row scan; a high-score search lives deeper
+in the board, and wants a different frontier. When Brendan Owen posed exactly
+that question, Verhaard revealed the shape of his answer: the best orders he had
+found resemble a **comb search** (most rows searched horizontally, then the
+remaining rows searched vertically), with the tooth length tied to the target:
+"The lower the score you aim for, the longer the teeth of the comb become"
+([groups.io message 6112](https://groups.io/g/eternity2/message/6112)). Max had
+independently converged on nearly the same geometry (twelve rows of scanline,
+then column scan) and reported his scores ran about one edge below "the results
+that Louis solver accomplishes"
+([message 6126](https://groups.io/g/eternity2/message/6126)).
+
+## Edge slipping, gated by depth
+
+The lever that actually bought the 467 is deliberate imperfection. Asked about it
+directly a year later, Verhaard was precise: the 467 program searches "normally,"
+but at certain depths it allows **edge slipping**: placing a piece with one
+mismatching edge against an already-placed neighbour. It does not first build a
+clean partial and then patch holes; the mismatches are budgeted *into the
+descent*, unlocked at chosen depths. And the anatomy of the result is telling:
+most of the 467 boards he examined had a clean score of only 247, with thirteen
+slipped edges spent where the schedule allowed them
+([groups.io message 7321](https://groups.io/g/eternity2/message/7321)). The 467
+was no fluke, either: he found it more than 50 times
+([same message](https://groups.io/g/eternity2/message/7321)).
+
+The technique itself has [its own page](/research/build/reduce/edge-slipping): why
+scheduled mismatches reach boards a clean search never could, and the counting
+theory behind the cost of each extra matched edge. What belongs here is the
+solver-side machinery: the per-depth mismatch budget is a **slip array**, one
+entry per depth, and it is a tuned object, not a guess.
+
+## The slip array's optimizer: a Markov chain
+
+In January 2009, in the thread where Owen was extending
+[complex theory](/research/why/complex-theory) to cover slips, Verhaard posted
+the outline (with Java snippets) of the algorithm he used to optimize eii's
+search order and slip array
+([groups.io message 6423](https://groups.io/g/eternity2/message/6423)). The input
+is a candidate search order plus a slip array. For every depth he estimates two
+numbers from experimental runs (theory would do to start, he noted): the
+probability that a random remaining piece fits perfectly, and the probability
+that it fits with one slipped edge. From these he builds a Markov chain whose
+state is *(depth, slipped edges so far)*, with transitions for a clean placement
+and, where the slip array permits, for a slipped one. Running the chain end to
+end yields the probability of reaching the bottom and the expected node count: a
+cheap, closed-loop evaluator for any (order, slip-schedule) pair, memoized for
+efficiency. He flagged its limit himself: the simple model ignores slip parity,
+so it gets unreliable at very high target scores.
+
+The family resemblance to what came a decade later is hard to miss: Blackwood's
+break indexes are also a depth-gated mismatch budget, and his quota schedule is
+also a pre-committed, per-depth curve, hand-tuned rather than chain-optimized.
+The lineage runs through this solver.
+
+## The clean-score sibling
+
+The same heuristics powered a second program with a different late-game move:
+instead of slipping an edge, it may *skip a square*, that is, leave a cell empty
+and keep going. The name is his own
+([message 7321](https://groups.io/g/eternity2/message/7321)). That is the
+clean-score (no mismatches) hunter. With it, Verhaard filled 14 complete rows plus
+two pieces, a 226-piece flawless partial and the record he knew of at the time
+([groups.io message 6303](https://groups.io/g/eternity2/message/6303)). In a
+one-day return in December 2009, after estimating ~2,000 248s per 249, he landed
+three 249s in a row and stopped, putting a 250 at roughly 4,000 times harder
+([message 7306](https://groups.io/g/eternity2/message/7306)). Asked about it a
+decade later, he confirmed the 249 on his site is real: about a week of compute on
+one machine ([message 9890](https://groups.io/g/eternity2/message/9890)).
+
+## The public reproduction: 82 days to a 467
+
+Because the binary was public, the 467 is the rare contest-era record with an
+independent, quantified reproduction. JSA ran eii continuously on one PC and
+logged the score distribution as it accumulated:
+
+- **43 days:** 2,008,484 463s · 109,195 464s · 6,048 465s · 250 466s · nothing
+  higher ([groups.io message 6571](https://groups.io/g/eternity2/message/6571))
+- **62 days:** 427 466s, arriving at roughly 5–6 per day, and still no 467
+  ([message 6653](https://groups.io/g/eternity2/message/6653))
+- **82 days:** two 467s, alongside 4,017,182 463s · 227,245 464s · 13,637 465s ·
+  625 466s ([message 6687](https://groups.io/g/eternity2/message/6687))
+
+That last log is the cleanest public measurement of the exponential rarity ladder
+near the top: four million 463s for every couple of 467s, and a 466→467 step that
+took a single machine nearly three months. JSA's sign-off, "Congratulations to
+Louis on a well-thought-out algorithm", doubles as the verification verdict.
+
+## What it taught the community
+
+Beyond the score, eii set a precedent: when you are stuck, release the solver and
+let the community's machines hunt, with the prize split as the contract. The 467
+was found by *users* of a published binary, 40+ times, before it won anything.
+Twelve years later
+[Joshua Blackwood repeated the pattern](/research/lab/experiments/joshua-blackwood/solver),
+posting a 468 and open-sourcing the engine days later, and got the same reward: a
+wave of community records on his own algorithm. The other lesson is methodological
+and runs through this whole page: Verhaard tuned his solver against *models*
+rather than raw vibes (the node-peak dashboard, the Markov-chain evaluator), at a
+time when that discipline was rare.
+
+## Where the code lives, and why it won't run here
+
+The original home, fingerboys.se, was his band's website; when the band gave up
+maintaining the site, the solver went offline with it for months. In January 2010
+Verhaard republished it, unchanged, at
+[shortestpath.se/eii](http://www.shortestpath.se/eii/)
+([groups.io message 7439](https://groups.io/g/eternity2/message/7439)); that
+address is still its home, and the first-party source behind the 467 row in
+[the records table](/research/records). One operational footnote from the Q&A that
+followed: the solver keeps no memory of past positions, so its thousands of
+463–465 boards are not deduplicated
+([message 7451](https://groups.io/g/eternity2/message/7451)).
+
+What "the code lives there" hides is that no *source* lives anywhere. What
+Verhaard shipped is `eii-1.0-win32.zip`: a Windows `eii.exe`, a readme, and some
+`.bat` files. There are **zero source files**, and it is Win32 only. It does not
+run on Apple silicon, and there is no Windows or emulation layer on this machine to
+run it under. His artifact is, here, unrunnable, and there is nothing of his to
+fetch and build. The comb-search fill orders and depth-gated slip schedule
+described above became community canon precisely because they were recovered from
+his posts and, where numeric, byte-exact from the strings inside `eii.exe`, since
+that binary is the only surviving record of them.
+
+So "running Verhaard" at all means rebuilding his method from that documentation.
 That is what the
 [Verhaard reimplementation](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
 does, and on the real five-clue puzzle it reaches 438 of 480, single core. That
 engine is filed under Raphaël's section, not this one, because it is a reading of
 Verhaard's method, not Verhaard's code. Naming that distinction is part of the
-finding: of the three community engines run here, his is the one that cannot be
-run at all.
+finding: of the three community engines studied here, his is the one that cannot
+be run at all.

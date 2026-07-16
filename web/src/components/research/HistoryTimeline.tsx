@@ -114,7 +114,7 @@ const MILESTONES: Milestone[] = [
       en: "An outsider posts a 468 on Reddit, open-sources the solver, and the record climbs 468 → 469 within weeks.",
       fr: "Un inconnu publie un 468 sur Reddit, ouvre le code du solveur, et le record grimpe de 468 à 469 en quelques semaines.",
     },
-    to: "/research/build/solvers/blackwood",
+    to: "/research/lab/experiments/joshua-blackwood/solver",
     src: "https://groups.io/g/eternity2/message/10045",
   },
   {
@@ -125,7 +125,7 @@ const MILESTONES: Milestone[] = [
       en: "Joshua Blackwood reaches 470/480 with a retuned schedule. No one has beaten it since; the last 10 edges hold.",
       fr: "Joshua Blackwood atteint 470/480 avec un ordonnancement réglé à neuf. Personne ne l'a battu depuis ; les 10 dernières arêtes tiennent.",
     },
-    to: "/research/build/solvers/blackwood",
+    to: "/research/lab/experiments/joshua-blackwood/solver",
     src: "https://groups.io/g/eternity2/message/10117",
   },
   {
