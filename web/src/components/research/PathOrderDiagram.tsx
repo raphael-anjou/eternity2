@@ -1,17 +1,22 @@
 import { useT, useLang } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 
-// The fill orders the DFS study compares, drawn as small 16x16 grids. Each cell
-// is shaded by WHEN it is filled: light for early in the sequence, dark for
-// late, using the same single-hue emerald ramp the leaderboard heatmap uses, so
-// the pages read as one system. The sequences are the exact orders the engine's
-// `path.rs` produces (row-major, bottom-up, spiral-in, spiral-out, border-first,
-// Verhaard comb), recomputed here so the picture cannot drift from the engine.
+// The fill orders the DFS study compares, each drawn as an arrowed path that
+// traces the order cells are visited, in the same arrow style the learn
+// section's PathDiagrams uses (per-segment red-to-green hue ramp, a start dot,
+// a shared arrowhead marker). The path is shown on a small representative grid
+// (the shape of each order is identical in character at any size, and a 256-cell
+// path is unreadable), so the direction of travel is legible: a row-major sweep,
+// an inward spiral, the border ring then the interior, or Verhaard's comb. The
+// sequences are the exact orders the engine's `path.rs` produces, recomputed
+// here so the picture cannot drift from the code. Verhaard's comb and the
+// bottom-up order are study-specific, so the paths are computed here rather than
+// pulled from the engine's built-in path kinds.
 
-const W = 16;
-const H = 16;
-const N = W * H;
-const CELL = 7;
+const G = 8; // representative grid side (the real board is 16x16)
+const N = G * G;
+const CELL = 22;
+const PAD = CELL / 2; // centre offset
 
 type Order = { key: string; en: string; fr: string; seq: number[] };
 
@@ -20,20 +25,20 @@ function rowMajor(): number[] {
 }
 function rowMajorBottomUp(): number[] {
   const v: number[] = [];
-  for (let r = H - 1; r >= 0; r--) for (let c = 0; c < W; c++) v.push(r * W + c);
+  for (let r = G - 1; r >= 0; r--) for (let c = 0; c < G; c++) v.push(r * G + c);
   return v;
 }
 function spiralIn(): number[] {
   let top = 0,
-    bottom = H - 1,
+    bottom = G - 1,
     left = 0,
-    right = W - 1;
+    right = G - 1;
   const v: number[] = [];
   while (top <= bottom && left <= right) {
-    for (let c = left; c <= right; c++) v.push(top * W + c);
-    for (let r = top + 1; r <= bottom; r++) v.push(r * W + right);
-    if (top < bottom) for (let c = right - 1; c >= left; c--) v.push(bottom * W + c);
-    if (left < right) for (let r = bottom - 1; r > top; r--) v.push(r * W + left);
+    for (let c = left; c <= right; c++) v.push(top * G + c);
+    for (let r = top + 1; r <= bottom; r++) v.push(r * G + right);
+    if (top < bottom) for (let c = right - 1; c >= left; c--) v.push(bottom * G + c);
+    if (left < right) for (let r = bottom - 1; r > top; r--) v.push(r * G + left);
     top++;
     bottom--;
     left++;
@@ -45,17 +50,17 @@ function spiralOut(): number[] {
   return spiralIn().reverse();
 }
 function borderFirst(): number[] {
-  const isBorder = (r: number, c: number) => r === 0 || r === H - 1 || c === 0 || c === W - 1;
+  const isBorder = (r: number, c: number) => r === 0 || r === G - 1 || c === 0 || c === G - 1;
   const border: number[] = [];
   const interior: number[] = [];
-  for (let r = 0; r < H; r++)
-    for (let c = 0; c < W; c++) (isBorder(r, c) ? border : interior).push(r * W + c);
+  for (let r = 0; r < G; r++)
+    for (let c = 0; c < G; c++) (isBorder(r, c) ? border : interior).push(r * G + c);
   return border.concat(interior);
 }
-function verhaardComb(horiz = 10): number[] {
+function verhaardComb(horiz = Math.round(G * 0.6)): number[] {
   const v: number[] = [];
-  for (let r = 0; r < horiz; r++) for (let c = 0; c < W; c++) v.push(r * W + c);
-  for (let c = 0; c < W; c++) for (let r = horiz; r < H; r++) v.push(r * W + c);
+  for (let r = 0; r < horiz; r++) for (let c = 0; c < G; c++) v.push(r * G + c);
+  for (let c = 0; c < G; c++) for (let r = horiz; r < G; r++) v.push(r * G + c);
   return v;
 }
 
@@ -68,27 +73,18 @@ const ORDERS: Order[] = [
   { key: "comb", en: "Verhaard comb", fr: "Peigne de Verhaard", seq: verhaardComb() },
 ];
 
-// order index -> emerald alpha over the card surface (early light, late dark).
-function shade(orderIndex: number): string {
-  const t = orderIndex / (N - 1); // 0..1
-  const alpha = 0.12 + 0.82 * t;
-  return `rgba(16, 185, 129, ${alpha.toFixed(3)})`;
-}
+const xy = (pos: number) => ({ x: (pos % G) * CELL + PAD, y: Math.floor(pos / G) * CELL + PAD });
 
 const T = {
   en: {
     caption:
-      "The six fill orders the study compares, each on the 16x16 board. A cell's shade shows when it is filled: pale for the first placements, deep green for the last. Row-major keeps a constant two-neighbour frontier and reaches deepest; the spirals and border-first drive that frontier through the hard corners early, which is why, without a heuristic, they stall.",
+      "The six fill orders the study compares, each traced as the path the search walks, from red at the start to green at the end (shown on a small grid; the real board is 16x16). Row-major keeps a constant two-neighbour frontier and reaches deepest. The spirals and border-first drive that frontier through the hard corners early, which is why, without a heuristic, they stall. The comb runs a band of rows, then vertical teeth.",
     busy: "Loading…",
-    early: "filled first",
-    late: "filled last",
   },
   fr: {
     caption:
-      "Les six ordres de remplissage comparés par l'étude, chacun sur le plateau 16x16. La teinte d'une case indique quand elle est posée : pâle pour les premières, vert foncé pour les dernières. Le parcours ligne par ligne garde un front à deux voisins constant et va le plus profond ; les spirales et la bordure-d'abord poussent ce front à travers les coins difficiles très tôt, ce qui explique leur blocage sans heuristique.",
+      "Les six ordres de remplissage comparés par l'étude, chacun tracé comme le chemin parcouru par la recherche, du rouge au départ au vert à la fin (sur une petite grille ; le vrai plateau est 16x16). Le parcours ligne par ligne garde un front à deux voisins constant et va le plus profond. Les spirales et la bordure-d'abord poussent ce front à travers les coins difficiles très tôt, d'où leur blocage sans heuristique. Le peigne remplit une bande de lignes, puis des dents verticales.",
     busy: "Chargement…",
-    early: "posée en premier",
-    late: "posée en dernier",
   },
 };
 
@@ -109,33 +105,62 @@ export function PathOrderDiagram() {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {ORDERS.map((o) => {
-          // pos -> order index (seq is a full permutation, so every pos is set)
-          const orderOf = new Array<number>(N).fill(0);
-          o.seq.forEach((pos, i) => (orderOf[pos] = i));
+          const markerId = `arr-${o.key}`;
+          const first = xy(o.seq[0] ?? 0);
           return (
             <figure key={o.key} className="space-y-1.5">
               <svg
-                viewBox={`0 0 ${W * CELL} ${H * CELL}`}
-                className="w-full rounded border bg-card"
+                viewBox={`0 0 ${G * CELL} ${G * CELL}`}
+                className="aspect-square w-full rounded-md border bg-card"
                 role="img"
-                aria-label={`${o.en} fill order on a 16 by 16 board, shaded from pale (filled first) to deep green (filled last)`}
+                aria-label={`${o.en} fill order, drawn as the path the search walks across the grid, from red at the start to green at the end`}
               >
-                {Array.from({ length: N }, (_, pos) => {
-                  const r = Math.floor(pos / W);
-                  const c = pos % W;
+                <defs>
+                  <marker
+                    id={markerId}
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+                  </marker>
+                </defs>
+                {/* faint grid lines */}
+                {Array.from({ length: G + 1 }, (_, i) => (
+                  <g key={i} className="stroke-border">
+                    <line x1={i * CELL} y1={0} x2={i * CELL} y2={G * CELL} strokeWidth={1} />
+                    <line x1={0} y1={i * CELL} x2={G * CELL} y2={i * CELL} strokeWidth={1} />
+                  </g>
+                ))}
+                {/* one arrow per step, hued red (start) to green (end) */}
+                {o.seq.slice(0, -1).map((c, i) => {
+                  const next = o.seq[i + 1];
+                  if (next === undefined) return null;
+                  const hue = (i / (o.seq.length - 2)) * 120;
+                  const p1 = xy(c);
+                  const p2 = xy(next);
+                  const dx = p2.x - p1.x;
+                  const dy = p2.y - p1.y;
+                  const len = Math.hypot(dx, dy) || 1;
+                  const trim = Math.min(8, len / 4);
                   return (
-                    <rect
-                      key={pos}
-                      x={c * CELL}
-                      y={r * CELL}
-                      width={CELL}
-                      height={CELL}
-                      fill={shade(orderOf[pos] ?? 0)}
-                      stroke="rgba(0,0,0,0.06)"
-                      strokeWidth={0.4}
+                    <line
+                      key={i}
+                      x1={p1.x + (dx / len) * trim}
+                      y1={p1.y + (dy / len) * trim}
+                      x2={p2.x - (dx / len) * trim}
+                      y2={p2.y - (dy / len) * trim}
+                      stroke={`hsl(${hue} 75% 45%)`}
+                      strokeWidth={2}
+                      markerEnd={`url(#${markerId})`}
+                      color={`hsl(${hue} 75% 45%)`}
                     />
                   );
                 })}
+                <circle cx={first.x} cy={first.y} r={4} fill="hsl(0 75% 45%)" />
               </svg>
               <figcaption className="text-center text-xs font-medium text-muted-foreground">
                 {lang === "fr" ? o.fr : o.en}
@@ -143,11 +168,6 @@ export function PathOrderDiagram() {
             </figure>
           );
         })}
-      </div>
-      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <span>{t.early}</span>
-        <span className="inline-block h-2.5 w-24 rounded" style={{ background: "linear-gradient(to right, rgba(16,185,129,0.12), rgba(16,185,129,0.94))" }} aria-hidden />
-        <span>{t.late}</span>
       </div>
       <p className="text-sm leading-relaxed text-muted-foreground">{t.caption}</p>
     </div>

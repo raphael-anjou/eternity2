@@ -185,6 +185,19 @@ const T = {
     pathChartTitle: "Median nodes on the same 6×6 puzzles, by fill order (log scale)",
     pathChartNote:
       "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same — any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first.",
+    pathChartDeeper: (
+      <>
+        The same question, taken all the way on the full 16×16 puzzle, is the{" "}
+        <Link
+          className="underline"
+          to="/research/lab/experiments/raphael-anjou/dfs-study/findings"
+        >
+          DFS study
+        </Link>
+        : it measures what each fill order, heuristic and break rule buys, and finds the
+        wrong order can cost more than 300 points of score.
+      </>
+    ),
     s5Title: "5 · Why computers think in binary here",
     s5P1: (
       <>
@@ -322,6 +335,20 @@ const T = {
       "Médiane des nœuds sur les mêmes puzzles 6×6, selon le parcours de remplissage (échelle log)",
     pathChartNote:
       "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil — tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord.",
+    pathChartDeeper: (
+      <>
+        La même question, poussée jusqu'au bout sur le vrai plateau 16×16, c'est l'
+        <Link
+          className="underline"
+          to="/research/lab/experiments/raphael-anjou/dfs-study/findings"
+        >
+          étude DFS
+        </Link>{" "}
+        : elle mesure ce qu'apportent chaque ordre de remplissage, chaque heuristique et
+        chaque règle de cassure, et montre que le mauvais ordre peut coûter plus de 300
+        points de score.
+      </>
+    ),
     s5Title: "5 · Pourquoi, ici, les ordinateurs raisonnent en binaire",
     s5P1: (
       <>
@@ -480,6 +507,7 @@ export default function Algorithms() {
           </CardContent>
         </Card>
         <p className="max-w-3xl text-sm text-muted-foreground">{t.pathChartNote}</p>
+        <p className="max-w-3xl text-sm text-muted-foreground">{t.pathChartDeeper}</p>
       </section>
 
       <section className="space-y-3">
