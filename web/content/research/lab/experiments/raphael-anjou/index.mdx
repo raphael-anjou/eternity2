@@ -15,18 +15,25 @@ import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
 
 export const scores = [
-  { key: "prior", label: "PRIOR", score: 460, family: "scratch" },
-  { key: "keyring", label: "KEYRING", score: 460, family: "scratch" },
-  { key: "gauntlet", label: "GAUNTLET", score: 458, family: "scratch" },
-  { key: "lodestone", label: "LODESTONE", score: 451, family: "scratch" },
-  { key: "staged", label: "STAGED", score: 436, family: "scratch" },
-  { key: "palimpsest", label: "PALIMPSEST", score: 463, family: "corpus" },
-  { key: "ladder", label: "LADDER", score: 451, family: "concentrate" },
-  { key: "cloister", label: "CLOISTER", score: 453, family: "anchor" },
-  { key: "midden", label: "MIDDEN", score: 452, family: "anchor" },
-  { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact" },
-  { key: "mosaic", label: "MOSAIC", score: 448, family: "exact" },
-  { key: "replay", label: "REPLAY", score: 460, family: "decode" },
+  // Group 1: the best board each method reached. Exploratory runs on 8 cores,
+  // wall-clock not logged. These are the numbers the write-ups quote.
+  { key: "prior", label: "PRIOR", score: 460, family: "scratch", group: "explore" },
+  { key: "keyring", label: "KEYRING", score: 460, family: "scratch", group: "explore" },
+  { key: "gauntlet", label: "GAUNTLET", score: 458, family: "scratch", group: "explore" },
+  { key: "lodestone", label: "LODESTONE", score: 451, family: "scratch", group: "explore" },
+  { key: "staged", label: "STAGED", score: 436, family: "scratch", group: "explore" },
+  { key: "palimpsest", label: "PALIMPSEST", score: 463, family: "corpus", group: "explore" },
+  { key: "ladder", label: "LADDER", score: 451, family: "concentrate", group: "explore" },
+  { key: "cloister", label: "CLOISTER", score: 453, family: "anchor", group: "explore" },
+  { key: "midden", label: "MIDDEN", score: 452, family: "anchor", group: "explore" },
+  { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact", group: "explore" },
+  { key: "mosaic", label: "MOSAIC", score: 448, family: "exact", group: "explore" },
+  { key: "replay", label: "REPLAY", score: 460, family: "decode", group: "explore" },
+  // Group 2: the standardized single-core bench, one core, 60 s each. Best board
+  // reached by each study/engine on that budget. Lower, and directly comparable.
+  { key: "bench-verhaard", label: "VERHAARD", score: 451, family: "bench", group: "bench" },
+  { key: "bench-repair", label: "REPAIR START-DFS", score: 449, family: "bench", group: "bench" },
+  { key: "bench-dfs", label: "DFS BREAK-1", score: 435, family: "bench", group: "bench" },
 ];
 
 These are [Raphaël Anjou's](/research/people/raphael-anjou) search experiments.
@@ -66,8 +73,10 @@ as well as their study home.
 
 <ExperimentScoreChart data={scores} />
 
-The same results as a sortable table (click a column head to reorder by score,
-name, method, or month). Author, month, rigor and reproducibility are read
-from each experiment's own page, so this summary stays in step with them.
+The named experiments as a sortable table (click a column head to reorder by
+score, name, method, or month). Author, month, rigor and reproducibility are read
+from each experiment's own page, so this summary stays in step with them. The
+single-core bench rows above are study results, not standalone experiment pages,
+so they appear only on the chart.
 
-<ExperimentResultsTable data={scores} />
+<ExperimentResultsTable data={scores.filter((s) => s.group !== "bench")} />
