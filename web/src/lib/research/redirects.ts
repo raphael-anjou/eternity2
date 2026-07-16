@@ -4,6 +4,15 @@
 // lands on the new page instead of a 404. Language-neutral paths (no /fr, no
 // trailing slash), matching neutralPath() in the doc route.
 export const RESEARCH_REDIRECTS: Record<string, string> = {
+  // The "All themes" index duplicated the Overview page (which already lists every
+  // topic hub in its left rail), so it was removed and its url now lands on
+  // Overview. The per-topic hubs themselves stay, reachable from that rail.
+  "/research/topics": "/research",
+  // The records topic hub was just a list of links; the rich record timeline and
+  // score chart already live at /research/records, so that url is where the old
+  // hub now lands. The `records` tag stays valid on pages for search and metadata.
+  "/research/topics/records": "/research/records",
+
   // Experiments re-homed under a per-author folder, so the lab opens to more
   // than one researcher (2026-07), then sorted into per-kind sub-hubs under
   // that author (runs / analyses / engines) so the sidebar can fold them.

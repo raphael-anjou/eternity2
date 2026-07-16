@@ -418,10 +418,10 @@ export function searchEntries(lang: Lang): SearchEntry[] {
 export function researchPagePaths(): string[] {
   const pages = buildManifest("en").map((d) => d.url.slice(1));
   const topics = researchTopics();
-  const topicPaths =
-    topics.length > 0
-      ? ["research/topics", ...topics.map((t) => `research/topics/${t.slug}`)]
-      : [];
+  // The per-topic hubs are crawlable pages; the /research/topics INDEX is not
+  // emitted (it duplicated Overview and now redirects there), so it is left out
+  // of the prerender + sitemap list. The hubs stay reachable from the left rail.
+  const topicPaths = topics.map((t) => `research/topics/${t.slug}`);
   // Per-researcher hubs (the /research/people index is a real content page,
   // already covered by `pages`). Every registered author gets a prerendered
   // hub: the profile (bio + links) is the page's substance, whether or not the
