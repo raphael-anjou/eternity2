@@ -1,0 +1,79 @@
+---
+title: Learned move-ordering
+description: >-
+  When several pieces fit, which do you place next? Instead of one rule of thumb,
+  carry several signals learned from strong boards and let them vote. Voting keeps
+  the search from over-trusting any one hunch and marching into the same dead end.
+metaDescription: "Learned move-ordering for Eternity II: rank candidate placements by several signals learned from strong boards and let them vote, instead of one fixed rule."
+kind: concept
+order: 51
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "Beam search (this project's concept page): the construction whose value-ordering is learned"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/anti-pattern-mining
+  - /research/lab/experiments/raphael-anjou/runs/keyring
+  - /research/build/construct/beam-search
+  - /research/why/forbidden-patterns
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+
+Building a board one piece at a time, the hard decision is which piece to place
+next when several would fit equally well. A single rule of thumb, cheapest cost
+first, most-constrained cell first, tends to march the search into the same dead
+end every run. A [corpus prior](/research/build/learning/corpus-priors) improves
+on that with one learned signal. This technique improves on it again by carrying
+*several* learned signals at once and letting them vote, so no single hunch owns
+the decision.
+
+## Several signals, one vote
+
+From the corpus of strong boards you can learn more than one thing at a time, and
+the signals are cheap counts over the same board set:
+
+- **Piece-in-position.** How often a piece appears in a given cell across good
+  boards, the positional prior of the previous page.
+- **Piece-pair adjacency.** How often two particular pieces end up touching. A
+  neighbourliness the positional count does not see.
+- **The 2×2 patch prior.** For every little four-cell patch, a Laplace-smoothed
+  log-odds ratio of how often it appears in high-scoring boards versus low-scoring
+  ones. A patch common in strong boards and rare in weak ones scores positive; a
+  consensus-trap patch scores negative. This is the sharpest of the three, because
+  it is the only one that contrasts good against bad rather than merely counting
+  good.
+
+At each step the beam scores every candidate placement by its matched-edge gain
+plus a weighted sum of the three signals, and keeps the top few. A little injected
+randomness stops the parallel beams collapsing onto one path.
+
+<Figure collapsible title="Interactive: the three-signal placement vote">
+  <KeyringDiagram />
+</Figure>
+
+This is the [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring)
+experiment, a keyring of hunches rather than one. It reached 460 in a corner
+family no earlier search had cracked, which is the real payoff: because the strong
+boards are known to sit in isolated basins, a signal diverse enough to reach a
+*new* family is worth more than one that re-derives a known board.
+
+## Why voting beats one signal
+
+A single learned signal has the same failure mode as a single hand-written rule:
+wherever it is wrong, it is wrong every time, and it drags every beam the same way.
+Three signals that were learned from different views of the corpus, position,
+adjacency, and patch quality, disagree in different places, and their disagreement
+is exactly the randomness that keeps the beams exploring different regions. The
+patch prior carries the most weight because it alone encodes *bad*: it can push the
+search away from a placement, not just toward one, which is the seed of the idea
+that grows into [anti-pattern mining](/research/build/learning/anti-pattern-mining).
+
+The same caveat as every learned signal applies. The three priors are mined from a
+corpus that is itself sub-perfect, so they encode the community's ceiling as much
+as its wisdom, and the vote reaches the top of the search's range reliably without
+lifting that range. Where that boundary sits is
+[its own page](/research/build/learning/when-learning-collapses).

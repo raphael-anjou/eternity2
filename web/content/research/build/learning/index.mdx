@@ -1,0 +1,79 @@
+---
+title: Learn from strong boards
+description: >-
+  Most attacks on Eternity II search from first principles. A distinct family
+  does the opposite: it mines the corpus of boards people have already found for
+  structure, then feeds that structure back into the search. Position priors,
+  learned move-ordering, anti-pattern mining, record decoding, and the failure
+  mode where a learned signal collapses.
+metaDescription: "Learning from strong Eternity II boards: mine the corpus of known boards for structure and feed it back into the search, and where that signal collapses."
+kind: page
+order: 44
+group: Learned guidance
+updated: 2026-07-16
+related:
+  - /research/build/approaches-map
+  - /research/build/techniques
+  - /research/lab/experiments/raphael-anjou/learning
+---
+
+Every other family on this shelf searches from first principles: a backtracker
+digs, a beam builds, a local search polishes, each reasoning only from the rules
+of the puzzle and the board in front of it. This family does something different.
+It takes the corpus of strong boards people have already found, reads it for
+structure, and feeds that structure back into a search as a bias. It is closer to
+imitation learning than to search design: the question is not "what is a good
+move" from first principles but "what did the boards that scored well tend to do,
+and can that be reused."
+
+The pages below go technique by technique. Each is genuinely its own method, so
+they do not share a shape the way the local-search polishers do: a position prior,
+a learned move-ranking, an anti-pattern miner, and a witness replay share a thesis
+but not a mechanism. For the whole territory at once, start with
+[a map of every known approach](/research/build/approaches-map). For the runnable
+experiments that embody these techniques, with their boards and numbers, see the
+[learning-from-boards experiments](/research/lab/experiments/raphael-anjou/learning).
+
+## The thesis, and its limit
+
+A learned signal helps when it captures real, transferable structure: something
+true of good boards that a from-scratch search would otherwise have to rediscover
+by luck. Where each piece tends to sit, which pieces like to touch, which scarce
+demand a rare piece is the only one that can serve. Wired into a search as a gentle
+bias, that structure reliably carries a build to the top of its own range.
+
+The limit is the part that makes this research rather than a bag of tricks. The
+corpus these signals are learned from is itself sub-perfect: every board in it is
+stuck somewhere below 480. So a signal mined from the corpus encodes the
+community's *ceiling* as much as its wisdom, and a signal that merely re-encodes
+the plateau every strong board is already caught on raises nothing. Push a learned
+prior from a tiebreak into the objective and the search collapses, because it starts
+trading the edge in front of it against a statistical hunch. The plain through-line
+of this whole family: learning from strong boards helps you reach the plateau fast
+and reliably, but it does not, on its own, get you past it. The ceiling is the
+[rigidity wall](/research/why/rigidity-wall), and no amount of corpus mining moves it.
+
+## The techniques
+
+- **[Corpus priors](/research/build/learning/corpus-priors)** are the simplest
+  form: count where each piece sits in strong boards, or how often a piece serves a
+  scarce demand, and use the count as a tiebreak in construction. The
+  [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior) and
+  [LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) experiments.
+- **[Learned move-ordering](/research/build/learning/learned-value-ordering)**
+  ranks candidate placements by several learned signals at once, and lets them vote,
+  so no single hunch marches the search into the same dead end. The
+  [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring) experiment.
+- **[Anti-pattern mining](/research/build/learning/anti-pattern-mining)** is the
+  subtler idea: not every agreement across strong boards is good. Separate the real
+  structure from the shared trap, and attack the trap. The
+  [PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest) experiment,
+  which reached this project's best board.
+- **[Decoding records](/research/build/learning/decoding-records)** reconstructs a
+  known record board exactly, piece for piece, to recover the ingredient an ordinary
+  search was missing. Reproduction as proof. The
+  [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay) experiment.
+- **[When learning collapses](/research/build/learning/when-learning-collapses)** is
+  the failure-mode capstone: exactly when a learned signal stops helping, why
+  over-trusting it wrecks the search, and why none of these methods raise the ceiling.
+  This is the page that keeps the section from reading as boosterism.

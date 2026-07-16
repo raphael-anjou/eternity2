@@ -1,0 +1,90 @@
+---
+title: Corpus priors
+description: >-
+  The simplest way to learn from strong boards: count where each piece tends to
+  sit, or how often it serves a scarce demand, and use that count as a gentle
+  tiebreak in construction. It has to stay a tiebreak; the moment it becomes part
+  of the objective it collapses the search.
+metaDescription: "Corpus priors for Eternity II: count where pieces sit in strong boards and use it as a construction tiebreak, safe only as a tiebreak, never the objective."
+kind: concept
+order: 50
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "Beam search (this project's concept page): the bounded-width construction a prior biases"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/runs/prior
+  - /research/lab/experiments/raphael-anjou/runs/lodestone
+  - /research/build/construct/beam-search
+  - /research/why/rare-color-geography
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+
+The simplest thing you can learn from a pile of strong boards is a count. For
+each cell of the board, how often does each piece sit there across the good
+boards? That single tally is a *prior*: a gentle statistical preference for what
+tends to belong where. It copies no board in particular; it reads the whole crowd
+of them at once and distils a bias.
+
+## The count matrix
+
+Take every board in the corpus that scores above a threshold, and tally a matrix
+$M[c][p]$: how many strong boards place piece $p$ in cell $c$. Normalised per
+cell, $M[c][\cdot]$ is a distribution over pieces for that position, the learned
+preference. It costs one linear pass over the corpus to build, and nothing at
+search time beyond a lookup.
+
+<Figure collapsible title="Interactive: the position-prior heatmap">
+  <PriorDiagram />
+</Figure>
+
+The prior is only ever used to break ties. A [beam search](/research/build/construct/beam-search)
+extends its partial boards cell by cell; when two candidate placements match the
+same number of edges, the prior tips the choice toward the piece that is more
+typical of strong boards in that spot. The matched-edge count still decides;
+the prior only speaks when the count is silent. This is the
+[PRIOR](/research/lab/experiments/raphael-anjou/runs/prior) experiment, which
+builds a competitive board from an empty grid with no board to anchor to, and
+reaches 460 that way.
+
+Three sharpenings of the same count are worth naming, because each trades signal
+strength against noise:
+
+- **Rotation-aware.** Split each piece by its four rotations, so the prior prefers
+  not just the right piece but the right orientation. The matrix grows from
+  $256 \times 256$ to $1024 \times 256$; the signal is finer but thinner per cell.
+- **Per corner-family.** Strong boards fall into families by their four corner
+  pieces. A prior built from a single family's boards captures structure the pooled
+  matrix averages away, which is what let PRIOR reach a fresh basin rather than the
+  crowded common one.
+- **Sharper threshold.** Rebuild the prior from only the very best boards. The
+  ceiling of the construction rises, at the cost of a thinner, noisier signal
+  learned from fewer examples.
+
+## A prior on demand, not position
+
+The count does not have to be over positions. A subtler prior asks, for each
+*piece*, how often it ends up serving a **scarce demand**: a cell whose north and
+west colours can be served by only one or two pieces in the whole set. The strong
+boards increasingly satisfy the same scarce demands as they climb, so a piece that
+is often the one spending itself on a rare colour earns a high weight. Ranking
+candidates by matched edges plus a small multiple of that weight nudges the search
+to commit rare pieces early, before they are stolen. This is the
+[LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) experiment, and
+it connects to the puzzle's [rare-colour geography](/research/why/rare-color-geography).
+
+## Why it stays a tiebreak
+
+The load-bearing detail, for both the positional and the scarce-demand prior, is
+that the multiple on the prior must be *tiny*. A prior is a pure tiebreaker: it
+decides between equally-matching moves and nothing more. Turn the weight up even
+slightly and the search starts trading a real matched edge against a statistical
+hunch, and the score collapses, LODESTONE falls from 451 to 422 to 380 as the
+weight climbs. That collapse is not an implementation bug; it is the shape of the
+whole family, and it has its own page:
+[when learning collapses](/research/build/learning/when-learning-collapses).

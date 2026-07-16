@@ -1,0 +1,89 @@
+---
+title: When learning collapses
+description: >-
+  The sobering half of learning from strong boards. A learned signal reaches the
+  top of a search's own range reliably, and then stops. Over-trust it and the
+  search collapses; even used perfectly it does not raise the ceiling, because
+  the ceiling is not a thing the corpus knows.
+metaDescription: "Where learning from strong Eternity II boards stops: a learned signal reaches the top of a search's range but never raises the ceiling, and over-trust collapses it."
+kind: concept
+order: 54
+group: Learned guidance
+updated: 2026-07-16
+topics: [learning, search-space]
+sources:
+  - label: "The rigidity wall (this project): the measured ceiling every learned signal reaches and none passes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/web/content/research/why/rigidity-wall.mdx
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/anti-pattern-mining
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/lab/experiments/raphael-anjou/runs/lodestone
+---
+
+The other four pages in this section are about what learning from strong boards
+*buys*. This one is about where it stops, and it is the page that keeps the family
+grounded, because every technique here has the same two failure modes and it is
+better to state them plainly than to let a reader mistake a bag of learned tricks
+for a way past the wall.
+
+## Failure one: the signal becomes the objective
+
+Every learned signal in this section is safe only as a *tiebreak*. It decides
+between moves that are otherwise equal on the one thing that actually counts, the
+matched edge in front of you, and it must never outweigh that thing. The moment a
+learned prior is promoted from tiebreak to part of the objective, the search starts
+trading a real matched edge against a statistical hunch, and it collapses.
+
+[LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) is the cleanest
+measurement of this. At a tiny weight its scarce-piece-early prior lifts the median
+from-scratch score from 449 to 451 and tightens the spread. Turn the weight up even
+slightly and the score falls to 422, then 380, because chasing the corpus's scarce
+demands then trades directly against matching the edge in front of you. The same
+shape appears in [anti-pattern mining](/research/build/learning/anti-pattern-mining)
+from the other direction: using the trap list as a gentle steer reached 463, but
+hard-*banning* trapped placements made boards worse. A learned signal is a good
+nudge and a bad law. The collapse is not a tuning accident to be engineered away;
+it is the signal telling you it was only ever a hunch.
+
+## Failure two: the ceiling is not in the corpus
+
+The deeper limit is quieter, because it looks like success. Used correctly, as a
+tiebreak, a learned signal reliably carries a search to the top of *its own range*
+and no further. LODESTONE is explicit that it "does not touch the basin ceiling
+that stops every method near the top." [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior)
+and [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring) reach 460 from
+scratch, the top of the from-scratch range, but not past it.
+[PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest), the strongest
+of them, reaches 463 and then finds that rebuilding the trapped regions lands back
+on the same known top board rather than a new one.
+
+The reason is structural, and it is the thesis of the whole section turned around.
+Every board in the corpus is itself stuck below 480. A signal mined from that corpus
+encodes where the strong boards *are*, which is the plateau, so a learned signal that
+merely re-encodes the plateau cannot lift a search above it. The corpus knows the
+shape of the basin its boards are caught in; it does not know the way out, because
+none of its boards found one. What stops every method near the top is the
+[rigidity wall](/research/why/rigidity-wall): near a strong board the remaining
+mismatches lock into a single interlocking [σ-cycle](/research/why/sigma-cycles)
+that no local move can open. That wall is a property of the puzzle, not of any
+search's ignorance, and no amount of corpus mining moves it, because the corpus is
+made of boards that hit the very same wall.
+
+## What the family is actually for
+
+None of this makes learning from strong boards worthless. It makes it *precise*. A
+learned signal is the fastest, most reliable way to get a search *to* the plateau:
+to build a competitive board from nothing (PRIOR, KEYRING), to reach it in a fresh
+basin (KEYRING's new corner family), to land at the top of the range every time
+rather than sometimes stumbling (LODESTONE's tightened spread), or to diagnose the
+exact move a search was missing to reach a known height
+([REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay)'s double break).
+
+What it is not for is getting *past* the plateau, and a section on learning from
+strong boards that pretended otherwise would be selling the reader the one thing the
+corpus provably cannot contain. The construct-then-refine pipelines that reach this
+project's best boards divide the labour cleanly: a learned constructor to reach the
+top of the range fast, and then a separate reckoning with the rigidity wall, which
+learning from strong boards can describe but cannot dissolve.

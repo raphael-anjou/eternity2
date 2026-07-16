@@ -1,0 +1,73 @@
+---
+title: Learning from strong boards
+description: >-
+  Five experiments that do the opposite of searching from first principles: they
+  mine the corpus of boards already found for structure and feed it back into a
+  search. A position prior, a learned move-vote, an anti-pattern miner, a record
+  decode, and a scarce-demand compass, and the wall all five reach and none pass.
+metaDescription: "Five Eternity II experiments that learn from strong boards: position priors, a learned move-vote, anti-pattern mining, record decoding, and where all five stop."
+kind: page
+order: 25
+author: raphael-anjou
+updated: 2026-07-16
+topics: [learning, construction]
+related:
+  - /research/build/learning
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/why/rigidity-wall
+---
+
+Most experiments in this notebook search from first principles: a beam builds, a
+backtracker digs, a repair loop polishes, each reasoning only from the rules of the
+puzzle. The five gathered here do the opposite. They read the corpus of strong
+boards the community and this project have already found, mine it for structure, and
+feed that structure back into a search as a bias. It is closer to imitation learning
+than to search design, and it is a recurring enough pattern to deserve one home. The
+method-agnostic write-up of each technique lives in the theory section on
+[learning from strong boards](/research/build/learning); this page is the lab side,
+the five runs that embody it, with their boards and their numbers.
+
+## The five, and what each learns
+
+| Experiment | What it learns from the corpus | How the search uses it | Reached |
+|---|---|---|---|
+| [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior) | where each piece tends to sit in strong boards | beam-construction tiebreak | 460 |
+| [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring) | three ranking signals (position, adjacency, patch), voted | beam-construction ranking | 460 |
+| [LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) | which pieces serve a scarce colour demand | construction tiebreak (a faint compass) | 451 |
+| [PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest) | the shared bad habits that cap strong boards | ALNS destroy aimed at the traps | 463 |
+| [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay) | the exact move a record board used | constrained DFS replay | 460 |
+
+They line up with the theory pages one to one. [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior)
+and [LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) are
+[corpus priors](/research/build/learning/corpus-priors), one over positions and one
+over scarce demands. [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring)
+is [learned move-ordering](/research/build/learning/learned-value-ordering), several
+signals voting so no one hunch owns the choice.
+[PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest) is
+[anti-pattern mining](/research/build/learning/anti-pattern-mining), and it produced
+this project's best board at 463 by separating the structure strong boards share from
+the trap they share. [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay)
+is [decoding records](/research/build/learning/decoding-records): it rebuilt the
+community's strict-460 boards exactly and, in doing so, found the double-break move an
+ordinary search could not make.
+
+## The wall all five reach
+
+The through-line matters more than any single score. Every one of these signals is
+safe only as a gentle bias, and over-trusting it collapses the search, LODESTONE
+falls from 451 to 380 as its weight climbs, and PALIMPSEST's trap list helps as a
+steer but hurts as a ban. And even used perfectly, none of them raises the ceiling:
+they reach the top of a search's own range reliably and stop, because the corpus they
+learn from is made of boards that all hit the same
+[rigidity wall](/research/why/rigidity-wall). Learning from strong boards is the
+fastest way *to* the plateau and, on its own, no way *past* it. That failure mode is
+the point of the [collapse capstone](/research/build/learning/when-learning-collapses),
+and it is what makes this a study rather than a list of tricks.
+
+These are five runs from the wider [experiments notebook](/research/lab/experiments/raphael-anjou);
+their two structural siblings, the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study)
+and the [repair study](/research/lab/experiments/raphael-anjou/repair-study), take a
+single search paradigm apart one decision at a time instead of learning from the
+corpus.

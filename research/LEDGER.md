@@ -1010,3 +1010,49 @@ and promoted the glossary into the research subnav.
 Verified at close: cargo 6+15+7 (both profiles), research style/links/citations/
 hardware, typecheck, lint, build all green. Reproducibility: `just experiments
 repair-study`.
+
+---
+
+## 2026-07-16 — The "learning from strong boards" section (theory hub + lab hub)
+
+Built the section the `learning` topic had promised since it was defined (topics.json
+order 80) but never had a home for: a whole family of methods that, unlike every
+other approach on the site, does not reason only from the puzzle's rules but mines
+the corpus of strong boards already found for structure and feeds it back into a
+search as a bias. Closer to imitation learning than to search design.
+
+Two hubs, mirroring the DFS/repair studies' theory-vs-experiment split. Theory hub
+`build/learning/` (new build subsection, group "Learned guidance", slotted after
+"Local search" in BUILD_GROUP_ORDER): an index plus four technique pages and a
+failure-mode capstone. `corpus-priors` (PRIOR's position count + LODESTONE's
+scarce-demand weight, safe only as a tiebreak), `learned-value-ordering` (KEYRING's
+three-signal vote), `anti-pattern-mining` (PALIMPSEST separating shared structure
+from the shared trap via basin-split frequencies, steering not banning),
+`decoding-records` (REPLAY rebuilding a witness exactly to recover the double-break
+move), and `when-learning-collapses` (the capstone: over-trust collapses the search,
+LODESTONE 451→380 as the weight climbs, and even used perfectly none of these raise
+the ceiling because the corpus is made of boards stuck at the same rigidity wall).
+Lab hub `lab/experiments/raphael-anjou/learning/`: a curated index framing the five
+runs, a table of what each learns / how the search uses it / what it reached, and the
+common wall.
+
+The section is a genuine scientific arc, not a bag of tricks: the load-bearing claim
+is the failure mode. A learned signal reaches the top of a search's own range fast
+and reliably, and no learned signal raises the ceiling, because the ceiling is the
+[rigidity wall] and the corpus cannot contain a way past a wall all its boards hit.
+
+Consistency fix folded in (the plan's honesty item): REPLAY and LODESTONE genuinely
+learn from the corpus but were not tagged `learning` — re-tagged both, so the topic
+page and hubs now list all five experiments plus the four technique pages. Cross-linked
+each experiment ↔ its technique page ↔ the lab hub; added the family to the
+approaches-map (new "Learning from strong boards" section) and a door on the
+raphael-anjou hub. No new components — reused PriorDiagram, KeyringDiagram,
+PalimpsestDiagram, DoubleBreakDiagram/Lab where each technique's experiment already
+uses them; the lab hub's five-way comparison is a plain markdown table (short
+enumerable facts). No routes.ts/seo.ts edits — the MDX scanner registers the pages.
+
+Verified: research style (0 em dashes, 0 banned phrases — the capstone's prose was
+scrubbed of the "honest" tic the checker hard-fails on), links (150 routes),
+citations --no-fetch (the capstone cites the rigidity-wall page so no page is
+source-less), hardware (0 problems), typecheck, lint, build all green; all 7 pages
+prerender and their .md exports carry the child lists + related rails.
