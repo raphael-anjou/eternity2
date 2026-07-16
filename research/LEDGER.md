@@ -967,3 +967,46 @@ curves) promoted to `results/`; working-state (rerun/, *_grid.log) kept out of t
 record by .gitignore. Deferred to a later deliberate pass, per the user: tag the
 named runs with their pipeline stages, and an editorial audit of the published
 engines/runs for what each brings (retiring dead-ends honestly).
+
+### 2026-07-16 — Repair study: DFS-seeded pipeline, engine 2.5-4x faster, final 15-variant grid
+
+Added a START-DFS starting board to the repair study: the loop spends its first
+20 s running the DFS study's break-DFS, then repairs that board for the rest.
+repair-engine now depends on dfs-engine by path (both share e2-core/e2-io, so the
+board hands over with no conversion). On the final grid it is the study's top
+score by a wide margin — mean 446 / best 449 — settling the construct-then-refine
+question: repair adds only a handful of edges on top of a strong backtracked
+board (+6.6), and the board it starts from decides almost everything. This
+reproduces the records' division of labour end to end on one core in one minute.
+
+Optimised both engines (behaviour-preserving, verified by tests + unchanged
+scores). Repair loop 2.5-4x faster: hoist the target cell's neighbour context out
+of the greedy/exact refill inner loop (the big win), reusable Scratch buffers
+(zero per-iteration heap allocation), allocation-free destroy internals, and a
+tuned profile (overflow-checks on, debug-assertions off). DFS MRV family 6-7x
+faster: early-out on the candidate count (a minimum search needs no exact count
+above the best) and skipping the edge checks the candidate list is already indexed
+on; the strict engines (44M nodes/s) were already optimal and left untouched. A
+profiler subagent + fixed-iteration/node A/B gates confirmed the wins. The faster
+engine buys more compute in the same 60 s wall-clock, not a shorter grid.
+
+Final 15-variant grid (150 runs, 0 failures): START-DFS 446, RANDOM-DESTROY 402,
+ACCEPT-ANNEAL 377 (best 394), START-RARE 373, greedy-mismatch 366; every
+conflict-targeting destroy loses to random, exact refill (360) does not beat greedy
+small (363), restarts null, band inert. The findings/index prose was finalised to
+these numbers.
+
+Two adjacent fixes shipped alongside. (1) The per-page raw-markdown exports
+(…/research/<slug>.md) were lossy — only the intro prose, JSX tags left as noise.
+Now they carry the hub's child-page list and the related rail (derived from the
+manifest), unwrap <Callout>/<Door>/<ProseLink> into markdown keeping their prose,
+and reduce <Figure>/charts/labs to explicit "[Interactive: Name] rendered on the
+canonical page" notes so a crawling agent knows to look. (2) Navigation cleanup
+per review: removed the /research/topics index (duplicated Overview, now redirects
+there; the per-topic hubs stay, reachable from the left rail), removed the
+`records` topic entirely (the hub was just links; several pages were mis-tagged),
+and promoted the glossary into the research subnav.
+
+Verified at close: cargo 6+15+7 (both profiles), research style/links/citations/
+hardware, typecheck, lint, build all green. Reproducibility: `just experiments
+repair-study`.
