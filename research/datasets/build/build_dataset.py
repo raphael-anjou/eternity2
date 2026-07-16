@@ -101,18 +101,24 @@ def build_corpus():
             stale += 1
         pl = d.get("placement")
         vec = None
+        placement = None
         if pl and len(pl) == 256:
             vec = [None] * 256
+            placement = []
             good = True
             for i, e in enumerate(pl):
                 pos = e.get("pos", i)
-                if pos is None or pos >= 256:
+                if pos is None or pos >= 256 or "piece_id" not in e or "rotation" not in e:
                     good = False
                     break
                 vec[pos] = e["piece_id"]
+                placement.append({"pos": pos, "piece_id": e["piece_id"], "rotation": e["rotation"]})
             if not good:
                 vec = None
-        rows.append({"score": s, "edges": edges, "vec": tuple(vec) if vec else None})
+                placement = None
+        rows.append(
+            {"score": s, "edges": edges, "vec": tuple(vec) if vec else None, "placement": placement}
+        )
 
     # dedup on edge string (the board content the scorer sees). Exact copies go.
     seen = {}
@@ -142,26 +148,34 @@ def build_corpus():
 
     records = []
     for idx, r in enumerate(uniq, 1):
+        # Underscore ids so the id, the BoardDoc `name`, and the viewer URL are
+        # all identical (the canonical format sanitizes names to [A-Za-z0-9_]).
         records.append(
             {
-                "id": f"e2b-{idx:05d}",
+                "id": f"e2b_{idx:05d}",
                 "score": r["score"],
                 "family": f"f{fam_rank[r['family_key']]:03d}",
                 "edges": r["edges"],
+                "placement": r["placement"],
             }
         )
 
+    missing_placement = [r["id"] for r in records if not r["placement"]]
+    if missing_placement:
+        raise RuntimeError(
+            f"{len(missing_placement)} boards have no placement, cannot build a "
+            f"canonical BoardDoc (edge-only matching is ambiguous): {missing_placement[:5]}"
+        )
+
     os.makedirs(OUT_CORPUS, exist_ok=True)
-    # JSONL
-    with open(os.path.join(OUT_CORPUS, "boards.jsonl"), "w") as fh:
-        for rec in records:
-            fh.write(json.dumps(rec, separators=(",", ":")) + "\n")
-    # CSV
-    with open(os.path.join(OUT_CORPUS, "boards.csv"), "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["id", "score", "family", "edges"])
-        for rec in records:
-            w.writerow([rec["id"], rec["score"], rec["family"], rec["edges"]])
+    boards_dir = os.path.join(OUT_CORPUS, "boards")
+    _emit_board_docs(records, boards_dir)
+
+    # A small index maps each board's id to its score and family (structure the
+    # BoardDoc itself does not carry), so the corpus is queryable without opening
+    # every file. The board content lives in the per-board canonical documents.
+    index = [{"id": r["id"], "score": r["score"], "family": r["family"]} for r in records]
+    write_json({"boards": index}, os.path.join(OUT_CORPUS, "index.json"))
 
     stats = {
         "boards": len(records),
@@ -176,12 +190,66 @@ def build_corpus():
     return records, stats
 
 
+def _emit_board_docs(records, boards_dir):
+    """Convert each board to one canonical BoardDoc `.json` via the e2-io
+    `board_doc` binary, so the published files use the exact same format code
+    every solver on the site emits through (no reimplementation, no drift)."""
+    import subprocess
+
+    binary = os.path.join(
+        REPO, "research", "experiments", "common", "target", "release", "board_doc"
+    )
+    if not os.path.exists(binary):
+        # Build it (release) if absent, so a fresh checkout regenerates cleanly.
+        subprocess.run(
+            ["cargo", "build", "--release", "--bin", "board_doc"],
+            cwd=os.path.join(REPO, "research", "experiments", "common"),
+            check=True,
+        )
+    official = os.path.join(VARIANTS_SRC, "variant_00.json")
+
+    os.makedirs(boards_dir, exist_ok=True)
+    # Feed all boards as one stdin stream; the binary emits one BoardDoc per line.
+    # The explicit placement (not the edges) is the authority: recovering piece
+    # identity from edges alone is ambiguous for a few near-record boards.
+    stdin_lines = "\n".join(
+        json.dumps({"name": r["id"], "placement": r["placement"]}, separators=(",", ":"))
+        for r in records
+    )
+    proc = subprocess.run(
+        [binary, "--official", official],
+        input=stdin_lines,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    docs = [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]
+    if len(docs) != len(records):
+        raise RuntimeError(f"board_doc emitted {len(docs)} docs for {len(records)} boards")
+    for rec, doc in zip(records, docs):
+        # The binary re-derives the score canonically; assert it matches the
+        # builder's own recomputed score before publishing.
+        if doc["score"] != rec["score"]:
+            raise RuntimeError(f"{rec['id']}: BoardDoc score {doc['score']} != {rec['score']}")
+        write_json(doc, os.path.join(boards_dir, f"{rec['id']}.json"))
+
+
 def zip_corpus():
     zpath = os.path.join(OUT, "e2-strong-boards.zip")
+    boards_dir = os.path.join(OUT_CORPUS, "boards")
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-        for name in ("boards.csv", "boards.jsonl"):
-            z.write(os.path.join(OUT_CORPUS, name), arcname=f"e2-strong-boards/{name}")
-        # README + license travel inside the zip too
+        # One canonical BoardDoc file per board.
+        for fn in sorted(os.listdir(boards_dir)):
+            z.write(
+                os.path.join(boards_dir, fn),
+                arcname=f"e2-strong-boards/boards/{fn}",
+            )
+        # The id -> score/family index.
+        z.write(
+            os.path.join(OUT_CORPUS, "index.json"),
+            arcname="e2-strong-boards/index.json",
+        )
+        # README + license travel inside the zip too.
         for name in ("README.md", "LICENSE"):
             p = os.path.join(OUT, name)
             if os.path.exists(p):
@@ -280,7 +348,7 @@ if __name__ == "__main__":
     # top-level dataset manifest
     manifest = {
         "name": "eternity2-dataset",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "license": "CC0-1.0",
         "parts": {
             "instances": {"count": len(inst), "path": "instances/"},

@@ -58,25 +58,51 @@ Each instance file has the shape:
 
 **1,078 distinct boards** scoring 400–480, the raw material for methods that
 learn from strong boards (position priors, learned move-ordering, anti-pattern
-mining). Unzips to `boards.csv` and `boards.jsonl`, same rows in both:
+mining). Unzips to a `boards/` directory holding **one file per board**, each a
+complete self-describing document in the project's canonical board format:
 
 ```
-id,score,family,edges
-e2b-00001,469,f008,adcaaendadwe…   (1024 lowercase letters)
+boards/e2b_00001.json
+boards/e2b_00002.json
+…
+index.json                # id -> score, family, for querying without opening files
 ```
 
-- **`id`** — a neutral, stable identifier (`e2b-NNNNN`), assigned by sorting on
-  (score descending, then edge string), so the numbering is reproducible.
-- **`score`** — matched interior edges, **recomputed from the edge string**, not
-  copied from any source field (see "How the scores are verified" below).
-- **`family`** — the board's corner family (`fNNN`), its four corner pieces. A
-  proxy for which basin the board sits in; families are numbered by size, so
-  `f001` is the most populous. There are **28** distinct families.
-- **`edges`** — the board itself: 256 cells × 4 sides = 1024 lowercase letters,
-  row-major, each cell in **up, right, down, left** order, `a` = the grey rim
-  (colour 0), `b`, `c`, … the interior colours. This is the same `board_edges`
-  string the [e2.bucas.name](https://e2.bucas.name) viewer reads, so any board
-  can be pasted straight into that viewer to see it.
+Each board file is a canonical **BoardDoc**, the exact same format every solver
+on the site emits and the [format spec](https://eternity2.dev/research/build/formats)
+describes in full. Given one of these files, a tool can render the board,
+identify every piece, re-derive any other format, or open it in a viewer, with no
+companion file:
+
+```json
+{
+  "name": "e2b_00001",
+  "size": 16,
+  "score": 469,
+  "breaks": 11,
+  "board": [15, 160, 140, …],
+  "board_hash": 2059303548241384230,
+  "board_edges": "adcaaendadwe…",
+  "board_pieces": "016161141…",
+  "url": "https://eternity2.dev/viewer?puzzle=e2b_00001&puzzle_size=16&board_edges=…&board_pieces=…"
+}
+```
+
+- **`name`** — a neutral, stable identifier (`e2b_NNNNN`), assigned by sorting on
+  (score descending, then edge string), so the numbering is reproducible. It is
+  the same string in the filename, the `name` field, and the viewer `url`.
+- **`score`** — matched interior edges, and **`breaks`** = `480 − score`. The
+  score is recomputed from the board's pieces, never copied from a source field
+  (see "How the scores are verified").
+- **`board`** — the row-major `piece*4 + rot` placement vector (the piece
+  identity edge-only formats cannot recover); **`board_pieces`** is the 1-based
+  piece number per cell, **`board_edges`** the URDL colour letters (`a` = grey
+  rim). **`board_hash`** is the FNV-1a fingerprint of the placement.
+- **`url`** — a ready-to-open [eternity2.dev](https://eternity2.dev/viewer)
+  viewer link; paste it in a browser to see the board.
+- **`index.json`** carries each board's **family** (`fNNN`), its four corner
+  pieces, a proxy for which basin it sits in; families are numbered by size
+  (`f001` most populous). There are **28** distinct families.
 
 Score distribution: a clean bell curve peaking at 452–456 (roughly 55–70 boards
 each), tailing to **21 boards at 460 or above**, of which the very best are one
@@ -100,18 +126,22 @@ single basin re-found a thousand times.
 
 ## How the scores are verified
 
-Every score in this dataset is recomputed from the board's own edge string by
-counting matched interior adjacencies, never trusted from a stored field. In the
-source data one board carried a stale score (it claimed 453 but its edges score
-456); recomputing from edges corrects it automatically. If you re-derive the
-scores yourself with the definition above, you will get the published numbers
-exactly.
+Every score in this dataset is recomputed by counting matched interior
+adjacencies on the board's pieces, never trusted from a stored field. In the
+source data one board carried a stale score (it claimed 453 but actually scores
+456); recomputing corrects it automatically. Each board file is produced by the
+project's canonical scorer and format code, the same code every solver on the
+site emits through, so re-derive the score yourself and you will get the
+published number exactly. The build asserts each board's independently recomputed
+score before writing it.
 
 ## Rebuilding this dataset
 
 `build/build_dataset.py` regenerates everything from the in-repo instances and
 the local board store. The benchmark instances are assembled from the public
-variant files; the corpus is deduplicated, rescored from edges, stripped of all
+variant files; the corpus is deduplicated, rescored, stripped of all
 working-store provenance (source paths, internal preset and seed labels,
-filenames), and re-keyed with neutral ids. Only board content and verified
-scores are published.
+filenames), and re-keyed with neutral ids. Each board is then converted to a
+canonical BoardDoc by the `board_doc` binary in the `e2-io` crate, so the
+published files use the exact site format with no reimplementation. Only board
+content and verified scores are published.

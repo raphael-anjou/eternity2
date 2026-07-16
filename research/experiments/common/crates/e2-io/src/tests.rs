@@ -68,6 +68,33 @@ fn match_board_recovers_full_placement_from_edges() {
 }
 
 #[test]
+fn placement_to_edges_round_trips_via_rotated() {
+    // The exact path the `board_doc` binary uses to build a canonical BoardDoc
+    // from a board's explicit (piece_id, rotation) placement: rebuild each cell's
+    // URDL quad with e2_core::rotated and confirm the board re-emits its own edge
+    // string. This pins the rotation convention the published dataset depends on.
+    use e2_core::rotated;
+    let inst = Instance::from_site_json(VARIANT_00).expect("load variant 00");
+    let source_cells = crate::parse_board_edges(MCGAVIN_469_EDGES).expect("parse edges");
+    // Recover a concrete placement (piece*4+rot codes) for the known board.
+    let codes = inst.match_board(&source_cells).board;
+    assert_eq!(codes.len(), N);
+
+    // Rebuild cells straight from the codes, as the binary does from placement.
+    let mut rebuilt = vec![[0u8; 4]; N];
+    for (pos, &code) in codes.iter().enumerate() {
+        if code < 0 {
+            continue;
+        }
+        let piece_id = (code >> 2) as u16;
+        let rot = (code & 0b11) as u8;
+        rebuilt[pos] = rotated(inst.pieces.edges(piece_id), rot);
+    }
+    assert_eq!(rebuilt, source_cells, "placement re-emits the exact source edges");
+    assert_eq!(e2_core::score_cells(&rebuilt), 469, "and re-scores canonically");
+}
+
+#[test]
 fn empty_board_scores_zero_and_full_breaks() {
     let inst = Instance::from_site_json(VARIANT_00).expect("load variant 00");
     let out = inst.finish(&Board::new());
