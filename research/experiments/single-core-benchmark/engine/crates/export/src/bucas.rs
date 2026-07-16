@@ -498,16 +498,10 @@ pub fn board_to_doc(puzzle: &Puzzle, board: &Board, name: &str, score: u32) -> e
 }
 
 /// FNV-1a over the row-major `piece*4+rot` codes — a stable board fingerprint.
+/// Delegates to `e2_io::board_hash` so every workspace computes the same hash.
 #[must_use]
 pub fn board_hash(codes: &[i32]) -> u64 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for &c in codes {
-        for b in c.to_le_bytes() {
-            h ^= u64::from(b);
-            h = h.wrapping_mul(0x0000_0100_0000_01b3);
-        }
-    }
-    h
+    e2_io::board_hash(codes)
 }
 
 #[cfg(test)]

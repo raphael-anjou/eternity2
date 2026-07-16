@@ -105,6 +105,22 @@ pub fn cells_to_e2pieces(cells: &[[u8; 4]]) -> String {
     lines.join("\n")
 }
 
+/// FNV-1a hash over the row-major `piece*4 + rot` codes — a stable board
+/// fingerprint that does not need an engine's `Board` type, so every workspace
+/// computes the *same* hash for the same placement. `-1` (empty) hashes like any
+/// other code value.
+#[must_use]
+pub fn board_hash(codes: &[i32]) -> u64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for &c in codes {
+        for b in c.to_le_bytes() {
+            h ^= u64::from(b);
+            h = h.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+    }
+    h
+}
+
 /// Pull the `board_edges` letter blob out of any viewer input — a full
 /// eternity2.dev or bucas URL, a bare params string, or the blob on its own —
 /// and decode it into per-cell URDL edge quads. `'a' + colour`, `"aaaa"` ⇒
