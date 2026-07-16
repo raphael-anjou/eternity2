@@ -6,7 +6,7 @@ description: >-
   legacy puzzle CSV, the site's Puzzle JSON, and the two viewer URLs, with the
   exact byte-level rules (how the grey border is encoded in each) and, most of
   all, what each format can and cannot recover.
-metaDescription: "The byte-level spec for every Eternity II board format: board_edges, board_pieces, e2pieces.txt, CSV, site JSON and the viewer URLs — how each encodes the border."
+metaDescription: "The byte-level spec for every Eternity II board format: board_edges, board_pieces, e2pieces.txt, CSV, site JSON and the viewer URLs, and how each encodes the border."
 kind: reference
 order: 8
 group: Start here
@@ -17,6 +17,9 @@ related:
   - /research/build/tooling
   - /research/build/benchmarks
   - /research/build/dataset
+sources:
+  - label: "The canonical IO layer that defines these formats (e2-io: the one board format, derived everywhere)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/common/crates/e2-io
 ---
 
 A board is a simple thing, 256 tiles, each with four coloured edges, each
@@ -141,8 +144,8 @@ Each colour is a **16-bit zero-padded binary word**. And here is the detail that
 trips everyone, and the reason this page exists:
 
 <Callout kind="warn" title="The border is all ones in the CSV">
-In the puzzle CSV, the grey border is **`1111111111111111`** — all ones, the
-16-bit word `65535` — *not* all zeros. Interior colours are their small integer
+In the puzzle CSV, the grey border is **`1111111111111111`**, all ones, the
+16-bit word `65535`, *not* all zeros. Interior colours are their small integer
 in binary, so colour 1 is `0000000000000001`. A reader maps the `65535` word
 back to interior id `0`. This is the opposite of every other format on this
 page, where the border is the *low* value (`a`, `0`, `000`). It is a legacy
@@ -150,7 +153,7 @@ sentinel choice, kept for byte-compatibility with the engines that read it.
 </Callout>
 
 - **Border:** the all-ones word `1111111111111111` (65535).
-- **Recovers:** the full puzzle — pieces and hints. This is a *puzzle* format
+- **Recovers:** the full puzzle, pieces and hints. This is a *puzzle* format
   (the tile set), not just a placed board.
 
 ## Site JSON (`Puzzle`): the canonical input
@@ -159,7 +162,7 @@ The one format every algorithm is fed: `--puzzle variant_NN.json`. The site's
 engine, the DFS/repair studies and the single-core benchmark all read the *same*
 schema (byte-compatible with the web's `Puzzle` type), so every experiment runs
 the same instances. It carries the piece set at rotation 0 and the pinned hints
-explicitly — that is what makes it an input a solver can start from, rather than
+explicitly, which is what makes it an input a solver can start from, rather than
 a board it has already filled.
 
 ```json
@@ -172,7 +175,7 @@ a board it has already filled.
 ```
 
 - **Border:** colour `0`, as an integer in the `pieces` quads.
-- **Recovers:** everything about the *instance* — canonical rotation-0 tiles,
+- **Recovers:** everything about the *instance*: canonical rotation-0 tiles,
   colour count, and every pinned clue with its exact rotation. This is the one
   format that carries rotation and catalogue order by construction, because it
   describes the puzzle, not a placement on it.
@@ -198,14 +201,14 @@ the viewer URL into a single document, so a downstream tool needs nothing else.
 ```
 
 `board` is the row-major **`piece*4 + rot`** placement vector (`-1` for an empty
-cell) — the same encoding the site's `Puzzle` round-trips through. `breaks` is
+cell), the same encoding the site's `Puzzle` round-trips through. `breaks` is
 `max_score − score` (the unmatched interior edges; on a full board, the break
-count). `board_hash` is an FNV-1a hash of the placement grid — the bit-identical
+count). `board_hash` is an FNV-1a hash of the placement grid, the bit-identical
 gate for "did these two runs produce the same board".
 
 - **Border:** as in `board_edges` (`a`) and `board_pieces` (`000`); the `board`
   vector uses `-1` for empty.
-- **Recovers:** everything a board can — rendering, score, identity and rotation
+- **Recovers:** everything a board can: rendering, score, identity and rotation
   (via `board_pieces` and `board`), plus provenance (`name`, `board_hash`) and a
   one-click view (`url`).
 
@@ -213,7 +216,7 @@ gate for "did these two runs produce the same board".
 
 Two URLs, same board, two hosts.
 
-**eternity2.dev — the canonical link.** The format every algorithm here emits.
+**eternity2.dev, the canonical link.** The format every algorithm here emits.
 Square boards, so a single `puzzle_size` (the viewer also reads bucas's
 `board_w`/`board_h`), and every value stays in the URL-safe `[A-Za-z0-9_]` range
 so the link needs no percent-encoding:
@@ -222,7 +225,7 @@ so the link needs no percent-encoding:
 https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
 ```
 
-**e2.bucas.name — the community viewer.** Jef Bucas's original, the viewer whose
+**e2.bucas.name, the community viewer.** Jef Bucas's original, the viewer whose
 URL format *became* this whole vocabulary (the [toolbox](/research/build/tooling)
 tells that story). Still fully supported as an input and available as a derived
 output, using its `board_w`/`board_h` pair and a `#` fragment:
@@ -256,5 +259,5 @@ the bucas form remains the community's shared original, credited accordingly.
 Every conversion in that table is one paste away in the
 [format converter](/convert): drop in a URL, a bare `board_edges` string, or a
 params blob, and read back the eternity2.dev URL, the canonical JSON, the CSV,
-`board_pieces`, `e2pieces.txt`, and the bucas URL — with a live preview and the
+`board_pieces`, `e2pieces.txt`, and the bucas URL, with a live preview and the
 score, so you can see the file is right before you trust it.
