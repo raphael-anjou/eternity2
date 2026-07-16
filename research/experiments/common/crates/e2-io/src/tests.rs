@@ -51,13 +51,37 @@ fn scorer_agrees_with_known_469() {
 }
 
 #[test]
+fn match_board_recovers_full_placement_from_edges() {
+    // The known 469 board, expressed as edges only, matched back against the
+    // official set, re-scores 469 and recovers all 256 pieces — this is the
+    // url2json migration path: an edge-only URL becomes a complete document.
+    let inst = Instance::from_site_json(VARIANT_00).expect("load variant 00");
+    let cells = crate::parse_board_edges(MCGAVIN_469_EDGES).expect("parse edges");
+    assert_eq!(cells.len(), N);
+    let out = inst.match_board(&cells);
+    assert_eq!(out.score, 469);
+    let doc = out.to_doc();
+    let placed = doc.board.iter().filter(|&&c| c >= 0).count();
+    assert_eq!(placed, N, "all 256 pieces recovered by matching");
+    assert!(doc.board_pieces.chars().any(|c| c != '0'));
+    assert!(doc.url.starts_with("https://eternity2.dev/viewer?"));
+}
+
+#[test]
 fn empty_board_scores_zero_and_full_breaks() {
     let inst = Instance::from_site_json(VARIANT_00).expect("load variant 00");
     let out = inst.finish(&Board::new());
     assert_eq!(out.score, 0);
     assert_eq!(out.breaks, MAX_SCORE_16);
-    // Bucas URL for an empty board is all 'a' (border color 0).
-    assert!(out.bucas_url.contains(&"a".repeat(8)));
+    // The canonical URL is now an eternity2.dev viewer link, and an empty
+    // board's board_edges is all 'a' (border color 0).
+    assert!(out.url.starts_with("https://eternity2.dev/viewer?"));
+    let doc = out.to_doc();
+    assert!(doc.board_edges.contains(&"a".repeat(8)));
+    assert_eq!(doc.board_edges.len(), N * 4);
+    // The doc round-trips through its own canonical JSON.
+    let back: crate::BoardDoc = serde_json::from_str(&doc.to_json()).expect("doc json");
+    assert_eq!(back, doc);
 }
 
 #[test]
