@@ -97,6 +97,36 @@ const complexitySchema = z.object({
   note: z.string().optional(),
 });
 
+// A pipeline stage of a run. Most named runs are not one algorithm but an
+// ordered composition (e.g. beam-produce -> ALNS-lift -> refine). Declaring the
+// stages makes the composition queryable and, via `published`, states honestly
+// when a stage runs on an engine that does not yet have its own write-up here
+// (the beam producer and ALNS). `engine` is a closed vocabulary so the section
+// can be filtered by what each run actually uses.
+const stageSchema = z.object({
+  engine: z.enum([
+    "beam-producer",
+    "alns",
+    "break-dfs",
+    "exact-tail",
+    "maxsat",
+    "restart-tournament",
+    "refinement",
+    "corpus-mining",
+    "clustering",
+    "frame-input",
+  ]),
+  // One line: what this stage does in the run.
+  does: z.string().min(1),
+  // The learned/applied technique this stage carries, if any (a corpus prior, a
+  // trap map, a rare-colour ordering). Free text.
+  learns: z.string().optional(),
+  // Whether the engine this stage runs on has a published write-up on the site.
+  // Defaults true; set false for the still-unpublished beam producer and ALNS,
+  // so a run never silently leans on a page a reader cannot open.
+  published: z.boolean().default(true),
+});
+
 // The hardware an experiment ran on. Quantitative fields are the comparable
 // numbers; qualitative name the kit; protocol fields say what a number means.
 // `coreHours` is derived by the widget, never authored. `measured: true` is the
@@ -183,6 +213,9 @@ const frontmatterSchema = z.object({
     .optional(),
   repro: reproSchema.optional(),
   hardware: hardwareSchema.optional(),
+  // Ordered pipeline stages of a run (see stageSchema). Present on the named
+  // runs, which are compositions rather than single algorithms.
+  stages: z.array(stageSchema).optional(),
   sources: z.array(z.object({ label: z.string(), url: z.string().url() })).default([]),
   topics: z.array(z.string()).default([]),
   related: z.array(z.string().startsWith("/")).default([]),
@@ -351,6 +384,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
+      ...(e.fm.stages !== undefined ? { stages: e.fm.stages } : {}),
       // zod infers optional fields as `T | undefined`, which trips
       // exactOptionalPropertyTypes against HardwareInfo's `nodes?: number` etc.
       // The schema mirrors HardwareInfo exactly (and has just validated the

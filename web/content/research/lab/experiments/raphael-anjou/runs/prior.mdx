@@ -29,6 +29,14 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Build a board from empty, cell by cell, breaking ties by the learned prior"
+    learns: "Positional corpus prior: a 256x256 count of where each piece sits in strong boards"
+    published: false
+  - engine: refinement
+    does: "A short local-refinement tail lifts the mid-450s construction to the committed 460"
+    published: false
 order: 30
 updated: 2026-07-10
 date: 2026-07

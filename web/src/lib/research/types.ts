@@ -74,6 +74,32 @@ export interface ReproInfo {
   topic?: string | undefined;
 }
 
+/** The engine/method a pipeline stage runs on. A closed vocabulary so the runs
+ *  can be filtered by what they actually use. Mirrors the schema in
+ *  content.config.ts. */
+export type StageEngine =
+  | "beam-producer"
+  | "alns"
+  | "break-dfs"
+  | "exact-tail"
+  | "maxsat"
+  | "restart-tournament"
+  | "refinement"
+  | "corpus-mining"
+  | "clustering"
+  | "frame-input";
+
+/** One stage of a run's pipeline. Named runs are compositions, not single
+ *  algorithms; the stage list makes that composition explicit, and `published`
+ *  records honestly when a stage leans on an engine that has no write-up yet. */
+export interface PipelineStage {
+  engine: StageEngine;
+  does: string;
+  learns?: string | undefined;
+  /** Whether the engine this stage uses has a published page on the site. */
+  published: boolean;
+}
+
 /** The class of compute a run leaned on — kept small and explicit so the
  *  widget can badge it. `none` = plain CPU; the rest name the accelerator that
  *  did the heavy lifting. Quantum/FPGA/TPU are in the vocabulary from the start
@@ -193,6 +219,9 @@ export interface ResearchDoc {
   /** Month an experiment was run / first written (YYYY-MM), for the gallery. */
   date?: string;
   repro?: ReproInfo;
+  /** Ordered pipeline stages, for runs that are compositions of several engines
+   *  rather than a single algorithm. */
+  stages?: PipelineStage[];
   /** The hardware a measured run leaned on (mandatory on experiment pages). */
   hardware?: HardwareInfo;
   /** External resources supporting the page's claims (groups.io posts,
