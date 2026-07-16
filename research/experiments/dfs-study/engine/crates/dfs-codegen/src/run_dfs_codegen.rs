@@ -32,7 +32,7 @@ fn main() -> ExitCode {
     let nps = result.stats.nodes_per_sec(result.elapsed_s);
 
     if let Some(path) = get("--emit") {
-        let _ = std::fs::write(&path, &out.bucas_url);
+        let _ = out.write_json(&path);
     }
 
     println!(
@@ -49,7 +49,7 @@ fn main() -> ExitCode {
         result.stats.depth_at_timeout,
         nps,
         out.board_hash,
-        out.bucas_url,
+        out.url,
     );
     ExitCode::SUCCESS
 }
