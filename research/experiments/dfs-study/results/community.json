@@ -1,0 +1,24 @@
+{
+  "_comment": "Measured on the M1 (single core, 60 s). Community record engines on their NATIVE instances — they cannot take the study's corner-pinned variants. See community.md. Reported in a panel separate from the from-scratch leaderboard.",
+  "engines": [
+    {
+      "name": "mcgavin-c",
+      "display": "MCGAVIN-C",
+      "language": "C",
+      "instance": "official 5-clue (its native build)",
+      "max_depth": 205,
+      "throughput": "109M tiles/s",
+      "note": "Strict backtracker; comparable to our strict wall (~208) on depth, ~3x our node throughput. Optimises for depth, not matched-edge score.",
+      "collapse": "Pinning our 3 corners collapses its fixed scan path 203 -> 21 (confirmed on multiple variants): the path never visits the corners early, so a pinned corner dead-ends it at once. This is why a fixed-scan-path engine can't take arbitrary pins."
+    },
+    {
+      "name": "blackwood-cs",
+      "display": "BLACKWOOD-CS",
+      "language": "C#",
+      "instance": "official 5-clue",
+      "max_depth": 34,
+      "throughput": "18.9M nodes/s",
+      "note": "Break-DFS whose record (470) was set on the 1-clue variant; its heuristic phase thrashes on the pinned 5-clue, reaching only ~34 of 256 cells in 60 s. Adapted to run (net8.0 retarget, one thread) — the search is unchanged."
+    }
+  ]
+}

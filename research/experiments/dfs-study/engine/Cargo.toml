@@ -1,0 +1,63 @@
+# DFS study — a self-contained workspace for an extensive comparison of
+# depth-first backtrackers for Eternity II.
+#
+# The study asks one question: among depth-first backtrackers, what does each
+# path order, each heuristic, and the break mechanism actually buy? Every
+# algorithm here is a fresh from-scratch reimplementation (no community source,
+# no dependency on the sibling `single-core-benchmark` crates) so that:
+#
+#   * the software engineering is clean and the "what stacks on what" story is
+#     explicit (each variant declares its parent and the one delta it adds),
+#   * dozens of one-toggle-apart variants are cheap to add and self-documenting,
+#   * every algorithm shares ONE io contract (`dfs-io`) with lossless converters
+#     to the formats the blog's other engines use (site JSON, CSV, bucas URL).
+#
+# Crates:
+#   dfs-core    board, pieces, the one canonical scorer, search-state stats
+#   dfs-io      the shared Instance/Board io contract + conversion utilities
+#   dfs-engine  the composable DFS and the variant registry
+#   dfs-run     the run_dfs / dfs-convert binaries
+#
+#   cargo build --release
+#   ./target/release/run_dfs --list
+#   ./target/release/run_dfs --puzzle ../variants/variant_00.json \
+#       --algo naive-clean --seed 1 --budget-s 60
+
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+dfs-core = { path = "crates/dfs-core" }
+dfs-io = { path = "crates/dfs-io" }
+dfs-engine = { path = "crates/dfs-engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[workspace.lints.rust]
+# Denied workspace-wide; the one crate that needs codegen-style unsafe opts back
+# in locally with an explicit `#![allow(unsafe_code)]` and a written rationale.
+unsafe_code = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+doc_markdown = "allow"
+
+# Mirror the sibling benchmark's release profile so throughput numbers are
+# comparable across the two experiments.
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

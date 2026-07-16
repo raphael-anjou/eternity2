@@ -1,0 +1,139 @@
+---
+title: How the study is built
+description: >-
+  The engine behind the DFS study: one composable backtracker where a variant is
+  a declared change over a parent, a shared IO layer every algorithm speaks, and
+  the definitions of every statistic the study raises: node rate, depth, breaks.
+metaDescription: "The DFS study's engine: a composable backtracker where each variant is one change over a parent, a shared IO layer, and definitions of node rate, depth and breaks."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "The engine workspace (dfs-core, dfs-io, dfs-engine, dfs-run)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/engine
+---
+
+This page is the apparatus behind the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study):
+how the engine is built, why a new variant is cheap to add, and what every number
+on the results means. None of it depends on the sibling
+[single-core benchmark](/research/lab/experiments/single-core-benchmark)'s engine.
+The whole point was to reimplement the family from scratch, keeping the software
+engineering clean and the "what stacks on what" story explicit.
+
+## A variant is a declared change over a parent
+
+Every algorithm in the study is the *same* recursive depth-first backtracker,
+parameterised by four independent choices:
+
+- **path order**: the sequence cells are filled in (row-major, spiral,
+  border-first, Verhaard's comb, or dynamic most-constrained-cell);
+- **value order**: the order a cell's candidate pieces are tried;
+- **propagator**: the look-ahead run after each placement (none,
+  forward-checking, arc-consistency, per-colour reasoning);
+- **break policy**: whether an edge may mismatch, and under what depth-gated
+  budget.
+
+A variant is a small record naming those four choices, together with **the parent
+it derives from and a one-line description of the single change it adds**. Adding
+a variant means adding one record to the registry, with no new search code unless
+the idea is a genuinely new strategy. The "what stacks on what" matrix on the
+results page is generated from those descriptions, so it cannot drift from the
+code that ran. That is what keeps an extensive study, with dozens of
+one-change-apart variants, maintainable rather than a pile of copy-pasted solvers.
+
+## One IO layer, and conversions between engines
+
+Every algorithm in the study consumes one instance type and emits one output: the
+best board, its canonical score, and a bucas URL. Around that sits a shared IO
+layer with lossless converters between the formats the site's other engines
+speak: the benchmark's site-schema JSON, the standalone community engines' CSV,
+bucas URLs, and hint files. The study reads the *same* ten corner-pinned variants
+the single-core benchmark uses, through this layer, so the two experiments are
+directly comparable. A small `dfs-convert` utility exposes the conversions from
+the shell, so any blog engine's output can be fed to any other.
+
+## The scorer is the single source of truth
+
+No engine's self-reported score is trusted. Every board, strict or broken, is
+re-scored by one canonical scorer: matched, non-border, interior adjacencies,
+counted right and down per cell. It is byte-for-byte the same formula the site's
+scorer and the benchmark use, checked by a test that re-scores a known 469-board
+and asserts 469. This is what lets scores from different variants, and from the
+sibling benchmark, sit on one axis.
+
+## The statistics the study raises
+
+For every run the engine records, and the results carry all the way to the page:
+
+- **score**: canonical matched edges (of 480). For a full board with breaks,
+  this equals `480 − #breaks`.
+- **node throughput**: search-nodes per second, one node per attempted placement.
+  Reported per variant and **never compared across families**, because a node that
+  runs full arc-consistency is not the same unit of work as a naive placement.
+  Heavy propagation trades throughput for node quality, and the study measures
+  both axes rather than collapsing them into one. The slowest variants carry a
+  caveat worth stating plainly: the MRV engine recomputes every empty cell's
+  domain from scratch at each node to pick the most-constrained one, rather than
+  maintaining those counts incrementally. A tuned CSP solver would keep them
+  updated and run far faster, so the low MRV throughput here reflects a deliberate
+  simplicity, not a claim that most-constrained-first search is inherently that
+  slow. The ranking by score does not depend on it, since throughput is a separate
+  axis, but the MRV node rate should be read as this clean engine's rather than as
+  MRV's best possible.
+- **max depth reached**: the deepest placement the search made, out of 256, the
+  study's measure of how far a variant got. Strict backtracking hits a wall near
+  208; breaks push past it.
+- **depth at timeout**: where the search frontier stood when the clock struck, so
+  a variant that never completes still records where it was working.
+- **number of breaks**: the interior edges the search actually *broke* on the best
+  board. This is zero for a strict variant, and for a break variant it is the count
+  its own budget accounting committed rather than the score deficit. On a completed
+  board it equals `480 − score`; on a timed-out partial the deficit also counts
+  still-empty edges, so the study reports the true break count instead. Every
+  board's bucas URL makes both checkable in the [viewer](/viewer).
+- **backtracks**: retreats out of a cell after its candidates are exhausted.
+
+## The two baselines, and what specialisation costs
+
+The rawest variant, `NAIVE-CLEAN`, is a readable general engine: sentinel-free
+per-cell candidate lists indexed by the two already-placed neighbours, a resolved
+edge cache so no rotation is recomputed on the hot path, and no allocation inside
+the search. Its twin, `NAIVE-CODEGEN`, is the *same algorithm* re-expressed as a
+hand-specialised, 16×16-only, row-major hot loop, kept as a separate program so
+the general engine stays clean. Running them head to head prices the low-level
+engineering: on this puzzle it buys a modest, instance-dependent throughput gain
+and, notably, no better score. The numbers are on the
+[findings page](/research/lab/experiments/raphael-anjou/dfs-study/findings).
+
+## Soundness of the propagators
+
+Forward-checking, arc-consistency and the per-colour supply check are sound *by
+construction*. Each only ever rejects a state in which some cell already has an
+empty domain, a cell that no unused piece can fill, so none of them can remove a
+branch that leads to a real completion. The arc-consistency revise is deliberately
+conservative where it is imprecise: wherever it might be unsure it prunes *less*
+rather than more, staying on the safe side. The propagators are sound only under
+strict placement, because under a break budget a local look-ahead can prune a
+branch the global budget could still rescue, so the break variants deliberately
+run no propagator. The registry enforces this: a variant that pairs breaks with a
+strict-only propagator fails to build. The engine tests check that constraint and
+the score and break bookkeeping, though the soundness of the prune itself rests on
+the argument above rather than on a test.
+
+## Reproducibility
+
+The engine workspace, the ten variants, the committed per-run results and the
+grid scripts all live under the study's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study).
+`just experiments dfs-study` rebuilds the engine and reruns the whole grid; the
+run is deterministic at a fixed seed, and the corner arrangement is the only
+diversity axis.
