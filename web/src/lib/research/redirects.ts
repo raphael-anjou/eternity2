@@ -23,47 +23,56 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   // that author (runs / analyses / engines) so the sidebar can fold them.
   // Targets below point at the CURRENT url, so a pre-author bookmark still
   // lands in one hop.
-  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/pipelines/prior",
-  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/pipelines/keyring",
+  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
+  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
   "/research/lab/experiments/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/pipelines/lodestone",
+  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
   "/research/lab/experiments/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
-  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/pipelines/palimpsest",
+  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
   "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
   "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
   "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
   "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
   "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
-  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/analyses/replay",
+  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
   // …and from the flat per-author urls those pages held until the sub-hubs
   // landed (2026-07). Same pages, one level deeper.
-  "/research/lab/experiments/raphael-anjou/prior": "/research/lab/experiments/raphael-anjou/pipelines/prior",
-  "/research/lab/experiments/raphael-anjou/keyring": "/research/lab/experiments/raphael-anjou/pipelines/keyring",
+  "/research/lab/experiments/raphael-anjou/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
+  "/research/lab/experiments/raphael-anjou/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
   "/research/lab/experiments/raphael-anjou/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/raphael-anjou/lodestone": "/research/lab/experiments/raphael-anjou/pipelines/lodestone",
+  "/research/lab/experiments/raphael-anjou/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
   "/research/lab/experiments/raphael-anjou/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
-  "/research/lab/experiments/raphael-anjou/palimpsest": "/research/lab/experiments/raphael-anjou/pipelines/palimpsest",
+  "/research/lab/experiments/raphael-anjou/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
   "/research/lab/experiments/raphael-anjou/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
   "/research/lab/experiments/raphael-anjou/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
   "/research/lab/experiments/raphael-anjou/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
   "/research/lab/experiments/raphael-anjou/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
   "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
-  "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/analyses/replay",
+  "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
   // The "runs" sub-hub was renamed to "pipelines" (2026-07): tagging each run
   // with its stages made clear these are multi-engine compositions, not single
   // algorithms, so the folder and section name now say so. Old /runs/ urls land
   // on the same page under /pipelines/.
   "/research/lab/experiments/raphael-anjou/runs": "/research/lab/experiments/raphael-anjou/pipelines",
-  "/research/lab/experiments/raphael-anjou/runs/prior": "/research/lab/experiments/raphael-anjou/pipelines/prior",
-  "/research/lab/experiments/raphael-anjou/runs/keyring": "/research/lab/experiments/raphael-anjou/pipelines/keyring",
-  "/research/lab/experiments/raphael-anjou/runs/lodestone": "/research/lab/experiments/raphael-anjou/pipelines/lodestone",
+  "/research/lab/experiments/raphael-anjou/runs/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
+  "/research/lab/experiments/raphael-anjou/runs/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
+  "/research/lab/experiments/raphael-anjou/runs/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
   "/research/lab/experiments/raphael-anjou/runs/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/raphael-anjou/runs/palimpsest": "/research/lab/experiments/raphael-anjou/pipelines/palimpsest",
+  "/research/lab/experiments/raphael-anjou/runs/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
   "/research/lab/experiments/raphael-anjou/runs/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
   "/research/lab/experiments/raphael-anjou/runs/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
   "/research/lab/experiments/raphael-anjou/runs/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
   "/research/lab/experiments/raphael-anjou/runs/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
   "/research/lab/experiments/raphael-anjou/runs/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
+  // The four corpus-mining runs and the record decode were gathered out of
+  // pipelines/ and analyses/ into their own learning/ study directory (2026-07),
+  // so "learning from strong boards" is a real section with the algos under it,
+  // not an index pointing elsewhere. Old urls land on the new home.
+  "/research/lab/experiments/raphael-anjou/pipelines/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
+  "/research/lab/experiments/raphael-anjou/pipelines/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
+  "/research/lab/experiments/raphael-anjou/pipelines/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
+  "/research/lab/experiments/raphael-anjou/pipelines/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
+  "/research/lab/experiments/raphael-anjou/analyses/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
   // The publishing methodology moved under Experiments (2026-07).
   "/research/lab/methodology": "/research/lab/experiments/methodology",
   // Pages moved into the History & community section (2026-07).
