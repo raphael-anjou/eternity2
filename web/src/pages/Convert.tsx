@@ -1,7 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useMemo, useState } from "react";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
-import { BoardSvg } from "@/components/board/BoardSvg";
+import { BoardEditor, type BoardEditorLabels } from "@/components/BoardEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +119,100 @@ function canonicalCsv(board: BucasBoard): string {
   return lines.join("\n");
 }
 
+// Decode a 16-bit color word from the puzzle CSV back to a color number, the
+// inverse of `canonicalCsv`'s encoding: all-ones is the grey border (0), any
+// other word is the plain binary value of the interior color.
+function colorFromWord(word: string): number | null {
+  const w = word.trim();
+  if (!/^[01]{1,16}$/.test(w)) return null;
+  if (/^1+$/.test(w) && w.length === 16) return 0; // border sentinel 1111111111111111
+  return parseInt(w, 2);
+}
+
+// The converter accepts any format the page also emits, auto-detected, so a
+// board can enter as a URL, a bare edge string, a binary puzzle CSV, an
+// e2pieces list, a board_pieces digit blob, or the canonical JSON — and read
+// back as all the others. Each branch returns decoded cells + size, or throws.
+// `size` seeds a size when the format does not carry one (bare edges, e2pieces).
+function parseAnyFormat(raw: string, size: number): BucasBoard {
+  const text = raw.trim();
+  if (!text) throw new Error("empty");
+
+  // 1. Canonical board JSON (or any JSON carrying board_edges / a viewer url).
+  if (text.startsWith("{")) {
+    const doc = JSON.parse(text) as {
+      board_edges?: string;
+      url?: string;
+      size?: number;
+      name?: string;
+      board_pieces?: string;
+    };
+    if (doc.board_edges) {
+      return decodeBucas({
+        board_edges: doc.board_edges,
+        puzzle_size: String(doc.size ?? size),
+        ...(doc.name ? { puzzle: doc.name } : {}),
+        ...(doc.board_pieces ? { board_pieces: doc.board_pieces } : {}),
+      });
+    }
+    if (doc.url) return decodeBucas(parseParams(doc.url));
+    throw new Error("json has no board_edges or url");
+  }
+
+  // 2. Anything with key=value params (a full URL, a hash, a params string).
+  if (text.includes("board_edges=") || text.includes("=")) {
+    return decodeBucas(parseParams(text));
+  }
+
+  // 3. A bare board_edges letter string: only lowercase letters, no separators.
+  if (/^[a-z]+$/.test(text)) {
+    return decodeBucas({ board_edges: text, puzzle_size: String(size) });
+  }
+
+  // 4. A board_pieces digit blob: only digits, length a multiple of 3. Piece
+  //    numbers alone can't render edges, but we surface them as the placement.
+  if (/^\d+$/.test(text) && text.length % 3 === 0) {
+    const n = text.length / 3;
+    const w = Math.round(Math.sqrt(n));
+    if (w * w !== n) throw new Error("board_pieces length is not a square board");
+    const pieceNumbers = Array.from({ length: n }, (_, i) => parseInt(text.slice(i * 3, i * 3 + 3), 10));
+    return { width: w, height: w, cells: Array.from({ length: n }, () => null), pieceNumbers, puzzleName: null };
+  }
+
+  // 5. Line-oriented: either the binary puzzle CSV (comma-separated 16-bit
+  //    words, optional size header) or e2pieces.txt (whitespace-separated small
+  //    integers, one cell per line). Detect by the separator inside a data row.
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  const first = lines[0];
+  if (first !== undefined) {
+    // Drop a lone leading size header (a single integer on the first line).
+    let header = size;
+    let rows = lines;
+    if (/^\d+$/.test(first) && !first.includes(",")) {
+      header = parseInt(first, 10);
+      rows = lines.slice(1);
+    }
+    const isBinaryCsv = rows.some((l) => l.includes(",") && /[01]{4,}/.test(l));
+    const cellsList: (Edges | null)[] = [];
+    for (const line of rows) {
+      const parts = isBinaryCsv ? line.split(",") : line.split(/[\s,]+/);
+      if (parts.length !== 4) throw new Error(`expected 4 edges per cell, got "${line}"`);
+      const quad = parts.map((p) => (isBinaryCsv ? colorFromWord(p) : (/^\d+$/.test(p) ? parseInt(p, 10) : null)));
+      if (quad.some((c) => c == null)) throw new Error(`bad edge in "${line}"`);
+      const e = quad as Edges;
+      cellsList.push(e.every((c) => c === 0) ? null : e);
+    }
+    const n = cellsList.length;
+    // These formats list only filled cells in reading order. Size = the header,
+    // else the square that fits, else pad to the requested size.
+    const w = header && header * header >= n ? header : Math.max(size, Math.ceil(Math.sqrt(n)));
+    while (cellsList.length < w * w) cellsList.push(null);
+    return { width: w, height: w, cells: cellsList, pieceNumbers: null, puzzleName: null };
+  }
+
+  throw new Error("unrecognised format");
+}
+
 const EXAMPLE_ID = "Joshua_Blackwood_470";
 
 const T = {
@@ -139,21 +233,24 @@ const T = {
         .
       </>
     ),
-    inputTitle: "Paste a board",
+    inputTitle: "Paste a board — any format",
     inputHelp: (
       <>
-        A full <code>e2.bucas.name</code> link, a bare params string, or just a{" "}
-        <code>board_edges</code> letter string on its own. For a lone{" "}
-        <code>board_edges</code> string, set the size below.
+        Any format this page also emits, auto-detected: a viewer or{" "}
+        <code>e2.bucas.name</code> link, a params string, a bare{" "}
+        <code>board_edges</code> letter string, a binary puzzle <code>CSV</code>,
+        an <code>e2pieces.txt</code> list, a <code>board_pieces</code> digit
+        string, or the canonical board <code>JSON</code>. For a format that
+        carries no size (a bare edge string, an e2pieces list), set the size
+        below. Then click any cell to edit it.
       </>
     ),
     placeholder:
-      "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=… (or paste board_edges letters alone)",
-    sizeLabel: "Board size (for a bare board_edges string)",
+      "Paste any format: a viewer/bucas URL, board_edges letters, a binary CSV, an e2pieces list, a board_pieces digit string, or board JSON",
+    sizeLabel: "Board size (for a format without one)",
     convert: "Convert",
     loadExample: "Load an example (Blackwood 470)",
-    badInput: "Could not read that input. Check it is a bucas link, a params string, or a board_edges letter string with the matching size.",
-    previewTitle: "Preview",
+    badInput: "Could not read that input. It should be a viewer/bucas URL, a board_edges string, a binary puzzle CSV, an e2pieces list, a board_pieces digit string, or board JSON (set the size for formats that lack one).",
     previewEmpty: "Convert a board to see it here.",
     scoreTitle: "Score",
     matchedEdges: "matched edges",
@@ -177,6 +274,23 @@ const T = {
     copied: "Copied",
     viewerLink: "Want to inspect and share a board instead?",
     viewerLinkCta: "Open the viewer",
+    editorTitle: "Edit a cell",
+    editHint: "Click any cell to edit its four edge colours. Invalid values are flagged in red and left out of the outputs until fixed.",
+    selectPrompt: "Click a cell on the board to edit its edges.",
+    cellLabel: (row: string, col: number) => `Cell ${row}${col} — edges (U, R, D, L)`,
+    dirU: "Up",
+    dirR: "Right",
+    dirD: "Down",
+    dirL: "Left",
+    clearCell: "Clear cell",
+    faultNan: "whole number only",
+    faultRange: (max: number) => `0 to ${max}`,
+    faultsSummary: (n: number) => `${n} cell${n === 1 ? "" : "s"} with an out-of-range edge.`,
+    noFaults: "Every filled cell is valid.",
+    resetBoard: "Clear board",
+    startBlank: "Start a blank board",
+    editTab: "Edit the board",
+    fieldInvalid: "Could not read a board from this. It stays as you typed it; the fields below still show the last valid board.",
   },
   fr: {
     title: "Convertisseur de formats",
@@ -196,21 +310,25 @@ const T = {
         .
       </>
     ),
-    inputTitle: "Collez un plateau",
+    inputTitle: "Collez un plateau — n'importe quel format",
     inputHelp: (
       <>
-        Un lien <code>e2.bucas.name</code> complet, une chaîne de paramètres, ou
-        simplement une chaîne de lettres <code>board_edges</code> seule. Pour une
-        chaîne <code>board_edges</code> isolée, indiquez la taille ci-dessous.
+        Tout format que cette page produit aussi, détecté automatiquement : un
+        lien du visualiseur ou <code>e2.bucas.name</code>, une chaîne de
+        paramètres, une chaîne de lettres <code>board_edges</code>, un{" "}
+        <code>CSV</code> binaire, une liste <code>e2pieces.txt</code>, une chaîne
+        de chiffres <code>board_pieces</code>, ou le <code>JSON</code> canonique.
+        Pour un format sans taille (chaîne de côtés seule, liste e2pieces),
+        indiquez la taille ci-dessous. Cliquez ensuite sur une case pour la
+        modifier.
       </>
     ),
     placeholder:
-      "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=… (ou collez seulement les lettres board_edges)",
-    sizeLabel: "Taille du plateau (pour une chaîne board_edges seule)",
+      "Collez n'importe quel format : une URL visualiseur/bucas, des lettres board_edges, un CSV binaire, une liste e2pieces, une chaîne board_pieces, ou un JSON de plateau",
+    sizeLabel: "Taille du plateau (pour un format qui n'en porte pas)",
     convert: "Convertir",
     loadExample: "Charger un exemple (Blackwood 470)",
-    badInput: "Lecture impossible. Vérifiez qu'il s'agit d'un lien bucas, d'une chaîne de paramètres ou d'une chaîne board_edges à la bonne taille.",
-    previewTitle: "Aperçu",
+    badInput: "Lecture impossible. Attendu : une URL visualiseur/bucas, une chaîne board_edges, un CSV binaire, une liste e2pieces, une chaîne board_pieces, ou un JSON de plateau (indiquez la taille pour les formats qui n'en portent pas).",
     previewEmpty: "Convertissez un plateau pour le voir ici.",
     scoreTitle: "Score",
     matchedEdges: "côtés appariés",
@@ -234,31 +352,78 @@ const T = {
     copied: "Copié",
     viewerLink: "Vous préférez inspecter et partager un plateau ?",
     viewerLinkCta: "Ouvrir le visualiseur",
+    editorTitle: "Modifier une case",
+    editHint: "Cliquez sur une case pour modifier ses quatre couleurs de côté. Les valeurs invalides sont signalées en rouge et exclues des sorties jusqu'à correction.",
+    selectPrompt: "Cliquez sur une case du plateau pour modifier ses côtés.",
+    cellLabel: (row: string, col: number) => `Case ${row}${col} — côtés (H, D, B, G)`,
+    dirU: "Haut",
+    dirR: "Droite",
+    dirD: "Bas",
+    dirL: "Gauche",
+    clearCell: "Vider la case",
+    faultNan: "entier uniquement",
+    faultRange: (max: number) => `de 0 à ${max}`,
+    faultsSummary: (n: number) => `${n} case${n === 1 ? "" : "s"} avec un côté hors plage.`,
+    noFaults: "Chaque case remplie est valide.",
+    resetBoard: "Vider le plateau",
+    startBlank: "Partir d'un plateau vide",
+    editTab: "Modifier le plateau",
+    fieldInvalid: "Lecture impossible ici. Le texte reste tel quel ; les champs ci-dessous montrent toujours le dernier plateau valide.",
   },
 };
 
-// A copyable, format-labelled output block: a monospaced value plus its own
-// copy button. Value can wrap freely; long strings scroll rather than push the
-// page wide.
-function OutputBlock({
+// A two-way, format-labelled field: it shows the board rendered into this
+// format, and it is editable — typing a board in this format re-derives every
+// other field. Editing keeps the raw text; when it parses, the board updates
+// and this field snaps to the canonical rendering; when it does not, a red
+// message names the fault and the board is left untouched. A field can also be
+// read-only (the derived URLs), in which case it is a copyable value with no
+// parsing.
+function FormatField({
   title,
   help,
   value,
+  onCommit,
+  readOnly,
+  invalidLabel,
   copyLabel,
   copiedLabel,
 }: {
   title: string;
   help: string;
   value: string;
+  onCommit?: (text: string) => boolean; // returns true if the text parsed
+  readOnly?: boolean;
+  invalidLabel: string;
   copyLabel: string;
   copiedLabel: string;
 }) {
   const [copied, setCopied] = useState(false);
+  // While the user is typing, the field is "dirty": it shows their draft, not
+  // the derived value. On a parse it goes clean and follows the board again.
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
+
+  const shown = draft ?? value;
+
   const copy = () => {
-    void navigator.clipboard.writeText(value);
+    void navigator.clipboard.writeText(shown);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+
+  const onType = (text: string) => {
+    setDraft(text);
+    if (!onCommit) return;
+    if (text.trim() === "") {
+      setInvalid(false);
+      return;
+    }
+    const ok = onCommit(text);
+    setInvalid(!ok);
+    if (ok) setDraft(null); // parsed: follow the board again
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2">
@@ -270,10 +435,23 @@ function OutputBlock({
           {copied ? copiedLabel : copyLabel}
         </Button>
       </CardHeader>
-      <CardContent>
-        <pre className="max-h-56 overflow-auto rounded-md border bg-muted/40 p-2.5 font-mono text-xs break-all whitespace-pre-wrap">
-          {value}
-        </pre>
+      <CardContent className="space-y-1.5">
+        {readOnly ? (
+          <pre className="max-h-56 overflow-auto rounded-md border bg-muted/40 p-2.5 font-mono text-xs break-all whitespace-pre-wrap">
+            {shown}
+          </pre>
+        ) : (
+          <textarea
+            value={shown}
+            onChange={(e) => onType(e.target.value)}
+            spellCheck={false}
+            className={
+              "block max-h-56 min-h-[72px] w-full overflow-auto rounded-md border bg-muted/40 p-2.5 font-mono text-xs break-all whitespace-pre-wrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50 " +
+              (invalid ? "border-red-500 focus-visible:border-red-500" : "border-input focus-visible:border-ring")
+            }
+          />
+        )}
+        {invalid && <p className="text-xs text-red-500">{invalidLabel}</p>}
       </CardContent>
     </Card>
   );
@@ -283,26 +461,49 @@ export default function Convert() {
   const t = useT(T);
   const [input, setInput] = useState("");
   const [size, setSize] = useState(16);
-  const [board, setBoard] = useState<BucasBoard | null>(null);
+  // The board is held as its editable cells plus the metadata a decoded board
+  // carries (name, piece numbers). Editing a cell, pasting a board, or starting
+  // blank all funnel through here, and every output below is derived from it, so
+  // a hand-edited board round-trips through the same formats as a pasted one.
+  const [cells, setCells] = useState<(Edges | null)[] | null>(null);
+  const [meta, setMeta] = useState<{ width: number; height: number; puzzleName: string | null; pieceNumbers: number[] | null }>(
+    { width: 16, height: 16, puzzleName: null, pieceNumbers: null },
+  );
   const [error, setError] = useState<string | null>(null);
+
+  // The live board object every output consumes. Editing drops piece numbers,
+  // because a hand-changed edge no longer corresponds to the pasted piece id.
+  const board: BucasBoard | null = useMemo(
+    () =>
+      cells
+        ? {
+            width: meta.width,
+            height: meta.height,
+            cells,
+            pieceNumbers: meta.pieceNumbers,
+            puzzleName: meta.puzzleName,
+          }
+        : null,
+    [cells, meta],
+  );
 
   const convert = (raw: string, boardSize: number) => {
     const text = raw.trim();
     if (!text) return;
     try {
-      // A bare board_edges string (only lowercase letters, no key=value) has no
-      // params wrapper, so hand decodeBucas an explicit param map with the size.
-      const looksLikeBareEdges = /^[a-z]+$/.test(text) && !text.includes("=");
-      const decoded = looksLikeBareEdges
-        ? decodeBucas({
-            board_edges: text,
-            puzzle_size: String(boardSize),
-          })
-        : decodeBucas(parseParams(text));
-      setBoard(decoded);
+      // Auto-detect the input format: a URL/params string, a bare edge string, a
+      // binary puzzle CSV, an e2pieces list, a board_pieces blob, or board JSON.
+      const decoded = parseAnyFormat(text, boardSize);
+      setCells(decoded.cells);
+      setMeta({
+        width: decoded.width,
+        height: decoded.height,
+        puzzleName: decoded.puzzleName,
+        pieceNumbers: decoded.pieceNumbers,
+      });
       setError(null);
     } catch {
-      setBoard(null);
+      setCells(null);
       setError(t.badInput);
     }
   };
@@ -312,6 +513,55 @@ export default function Convert() {
     if (!kb) return;
     setInput(kb.params);
     convert(kb.params, size);
+  };
+
+  // Start (or reset to) a blank board at the current size, ready to hand-build.
+  const startBlank = () => {
+    const n = size * size;
+    setCells(Array.from({ length: n }, () => null));
+    setMeta({ width: size, height: size, puzzleName: null, pieceNumbers: null });
+    setError(null);
+  };
+
+  // An edit invalidates the pasted piece numbers, so drop them on first change.
+  const onEdit = (next: (Edges | null)[]) => {
+    setCells(next);
+    setMeta((m) => (m.pieceNumbers ? { ...m, pieceNumbers: null } : m));
+  };
+
+  // Commit a board typed into one of the format fields. Every format is
+  // auto-detected by the same parser the paste box uses, so a field for any one
+  // format accepts a board in that format and re-derives all the others. Returns
+  // whether the text parsed, so the field can flag itself red on a bad edit.
+  const commitFrom = (text: string): boolean => {
+    try {
+      const decoded = parseAnyFormat(text, size);
+      setCells(decoded.cells);
+      setMeta({
+        width: decoded.width,
+        height: decoded.height,
+        puzzleName: decoded.puzzleName,
+        pieceNumbers: decoded.pieceNumbers,
+      });
+      setError(null);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const editorLabels: BoardEditorLabels = {
+    editorTitle: t.editorTitle,
+    editHint: t.editHint,
+    selectPrompt: t.selectPrompt,
+    cellLabel: t.cellLabel,
+    dir: { u: t.dirU, r: t.dirR, d: t.dirD, l: t.dirL },
+    clearCell: t.clearCell,
+    faultNan: t.faultNan,
+    faultRange: t.faultRange,
+    faultsSummary: t.faultsSummary,
+    noFaults: t.noFaults,
+    reset: t.resetBoard,
   };
 
   const summary = useMemo(() => (board ? scoreSummary(board) : null), [board]);
@@ -355,6 +605,9 @@ export default function Convert() {
               />
             </label>
             <div className="flex-1" />
+            <Button variant="ghost" size="sm" onClick={startBlank}>
+              {t.startBlank}
+            </Button>
             <Button variant="outline" size="sm" onClick={loadExample}>
               {t.loadExample}
             </Button>
@@ -366,28 +619,35 @@ export default function Convert() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr]">
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t.previewTitle}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {board ? (
-                <BoardSvg
-                  width={board.width}
-                  height={board.height}
-                  cells={board.cells}
-                  className="max-w-full"
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-                  {t.previewEmpty}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-base">{t.editTab}</CardTitle>
+          {!board && (
+            <Button variant="outline" size="sm" onClick={startBlank}>
+              {t.startBlank}
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {board ? (
+            <BoardEditor
+              width={board.width}
+              height={board.height}
+              cells={board.cells}
+              onChange={onEdit}
+              onReset={startBlank}
+              labels={editorLabels}
+            />
+          ) : (
+            <div className="flex aspect-[2/1] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+              {t.previewEmpty}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,300px)_1fr]">
+        <div className="space-y-4">
           {board && summary && (
             <Card>
               <CardHeader>
@@ -412,76 +672,72 @@ export default function Convert() {
         </div>
 
         <div className="space-y-4">
-          {board ? (
-            <>
-              <OutputBlock
-                title={t.outEdgesTitle}
-                help={t.outEdgesHelp}
-                value={edges}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-              {pieces ? (
-                <OutputBlock
-                  title={t.outPiecesTitle}
-                  help={t.outPiecesHelp}
-                  value={pieces}
-                  copyLabel={t.copy}
-                  copiedLabel={t.copied}
-                />
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-mono">{t.outPiecesTitle}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{t.outPiecesNone}</p>
-                  </CardContent>
-                </Card>
-              )}
-              <OutputBlock
-                title={t.outUrlTitle}
-                help={t.outUrlHelp}
-                value={url}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-              <OutputBlock
-                title={t.outJsonTitle}
-                help={t.outJsonHelp}
-                value={json}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-              <OutputBlock
-                title={t.outCsvTitle}
-                help={t.outCsvHelp}
-                value={csv}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-              <OutputBlock
-                title={t.outE2Title}
-                help={t.outE2Help}
-                value={e2}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-              <OutputBlock
-                title={t.outBucasTitle}
-                help={t.outBucasHelp}
-                value={bucas}
-                copyLabel={t.copy}
-                copiedLabel={t.copied}
-              />
-            </>
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                {t.previewEmpty}
-              </CardContent>
-            </Card>
-          )}
+          {/* Every field is editable and empty until a board exists. Typing a
+              board in any one format re-derives all the others; the derived
+              URLs are copy-only since they are not a canonical input format. */}
+          <FormatField
+            title={t.outEdgesTitle}
+            help={t.outEdgesHelp}
+            value={edges}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outPiecesTitle}
+            help={pieces ? t.outPiecesHelp : t.outPiecesNone}
+            value={pieces ?? ""}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outJsonTitle}
+            help={t.outJsonHelp}
+            value={json}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outCsvTitle}
+            help={t.outCsvHelp}
+            value={csv}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outE2Title}
+            help={t.outE2Help}
+            value={e2}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outUrlTitle}
+            help={t.outUrlHelp}
+            value={url}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
+          <FormatField
+            title={t.outBucasTitle}
+            help={t.outBucasHelp}
+            value={bucas}
+            onCommit={commitFrom}
+            invalidLabel={t.fieldInvalid}
+            copyLabel={t.copy}
+            copiedLabel={t.copied}
+          />
         </div>
       </div>
 
