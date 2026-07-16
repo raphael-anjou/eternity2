@@ -44,7 +44,7 @@ topics: [construction, learning]
 related:
   - /research/build/learning/learned-value-ordering
   - /research/lab/experiments/raphael-anjou/learning
-  - /research/lab/experiments/raphael-anjou/pipelines/prior
+  - /research/lab/experiments/raphael-anjou/learning/prior
   - /research/why/sigma-cycles
   - /research/why/forbidden-patterns
   - /research/build/construct/beam-search
@@ -56,11 +56,14 @@ sources:
 import { KeyringDiagram } from "@/components/research/KeyringDiagram";
 import { RecordBoard } from "@/components/research/RecordBoard";
 
-Building a board one piece at a time, the hard part is deciding which piece
-to place next when several would fit. A single rule of thumb tends to march
-the search into the same dead ends every time. KEYRING carries three
-different learned hunches at once, a keyring of them, and lets them vote,
-which keeps the search from over-trusting any one signal.
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) trusted one
+learned signal, a position count, to break its ties. KEYRING is the next step in
+the [study](/research/lab/experiments/raphael-anjou/learning): what if one signal
+is not enough? Building a board one piece at a time, the hard part is deciding
+which piece to place next when several would fit, and a single rule of thumb, even
+a learned one, tends to march the search into the same dead ends every time.
+KEYRING carries three different learned hunches at once, a keyring of them, and
+lets them vote, which keeps the search from over-trusting any one signal.
 
 ## How it works
 
@@ -122,7 +125,7 @@ is what let KEYRING reach a *new* corner family rather than re-deriving a known
 board. Patches pack into a `u64` key (piece ≤ 8 bits, rotation 2 bits, ×4
 cells = 40 bits) so the prior lookup is a hash hit.
 
-As with [PRIOR](/research/lab/experiments/raphael-anjou/pipelines/prior), the beam
+As with [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), the beam
 build reaches the high 450s on its own; the committed 460 board takes that
 construction and a local-refinement tail on top, the same construct-then-refine
 split the record pipelines use. The three signals are what carry the *construction*
@@ -130,7 +133,7 @@ into a fresh family; the last few edges are the refinement's.
 
 One limit worth stating: the priors are learned from a corpus that is itself
 sub-perfect, so they encode the community's ceiling as much as its wisdom:
-the same double edge that [PALIMPSEST](/research/lab/experiments/raphael-anjou/pipelines/palimpsest)
+the same double edge that [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)
 turns into a feature by separating good consensus from traps.
 
 ## Reproduce

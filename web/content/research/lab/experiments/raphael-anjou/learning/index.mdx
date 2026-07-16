@@ -1,13 +1,14 @@
 ---
 title: Learning from strong boards
 description: >-
-  Five experiments that do the opposite of searching from first principles: they
-  mine the corpus of boards already found for structure and feed it back into a
-  search. A position prior, a learned move-vote, an anti-pattern miner, a record
-  decode, and a scarce-demand compass, and the wall all five reach and none pass.
-metaDescription: "Five Eternity II experiments that learn from strong boards: position priors, a learned move-vote, anti-pattern mining, record decoding, and where all five stop."
+  A study in five experiments of one idea: instead of searching Eternity II from
+  first principles, mine the corpus of strong boards already found for structure
+  and feed it back into a search. A position prior, a learned move-vote, a
+  scarce-demand compass, an anti-pattern miner, and a record decode, ordered from
+  the simplest signal to the subtlest, and the one wall all five reach.
+metaDescription: "A five-experiment study of learning from strong Eternity II boards: position priors, a move-vote, scarce-demand, anti-pattern mining, record decoding, one wall."
 kind: page
-order: 25
+order: 5
 author: raphael-anjou
 updated: 2026-07-16
 topics: [learning, construction]
@@ -20,58 +21,83 @@ related:
   - /research/why/rigidity-wall
 ---
 
-Most experiments in this notebook search from first principles: a beam builds, a
-backtracker digs, a repair loop polishes, each reasoning only from the rules of the
-puzzle. The five gathered here do the opposite. They read the corpus of strong
-boards the community and this project have already found, mine it for structure, and
-feed that structure back into a search as a bias. It is closer to imitation learning
-than to search design, and it is a recurring enough pattern to deserve one home. The
-method-agnostic write-up of each technique lives in the theory section on
-[learning from strong boards](/research/build/learning); this page is the lab side,
-the five runs that embody it, with their boards and their numbers.
+Most of this notebook searches Eternity II from first principles: a beam builds a
+board from an empty grid, a backtracker digs and retreats, a repair loop polishes
+a full board by moves. Each reasons only from the rules of the puzzle and the
+board in front of it. This study is the exception, and it is a study rather than a
+loose set of runs because all five experiments in it ask one question from
+different angles: **what can a search learn from the boards people have already
+found, and how far does that carry it?**
 
-## The five, and what each learns
+The raw material is a corpus of strong boards, every arrangement the community and
+this project have pushed above 400 of 480. The move, in every experiment here, is
+to read that corpus for structure (where pieces sit, which pieces touch, which
+local patterns recur, which agreements are traps) and feed the structure back into
+a search as a bias. It is closer to imitation learning than to search design, and
+it earns its own home because the same handful of ideas keep returning, each a
+little sharper than the last.
 
-| Experiment | What it learns from the corpus | How the search uses it | Reached |
+The corpus itself is [published](/research/build/dataset): 1,078 distinct boards
+scoring 400 to 469, released under CC0, with the diversity check that stops a
+learned signal from merely re-encoding one board. The method-agnostic write-up of
+each technique lives in the theory section on
+[learning from strong boards](/research/build/learning); the pages here are the
+lab side, the runs that put each technique on the real 16×16 board, with their
+scores and the questions they left open.
+
+## The five experiments, simplest signal to subtlest
+
+The study reads as a sequence. Each experiment adds one turn of the screw over the
+one before it, and the pages are ordered to be read in that order.
+
+| # | Experiment | The learned signal | Reached |
 |---|---|---|---|
-| [PRIOR](/research/lab/experiments/raphael-anjou/pipelines/prior) | where each piece tends to sit in strong boards | beam-construction tiebreak | 460 |
-| [KEYRING](/research/lab/experiments/raphael-anjou/pipelines/keyring) | three ranking signals (position, adjacency, patch), voted | beam-construction ranking | 460 |
-| [LODESTONE](/research/lab/experiments/raphael-anjou/pipelines/lodestone) | which pieces serve a scarce colour demand | construction tiebreak (a faint compass) | 451 |
-| [PALIMPSEST](/research/lab/experiments/raphael-anjou/pipelines/palimpsest) | the shared bad habits that cap strong boards | ALNS destroy aimed at the traps | 463 |
-| [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay) | the exact move a record board used | constrained DFS replay | 460 |
+| 1 | [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) | where each piece tends to sit, a single position count | 460 |
+| 2 | [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) | three signals (position, adjacency, 2×2 patch) voting together | 460 |
+| 3 | [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) | which pieces serve a scarce colour demand, a faint compass | 451 |
+| 4 | [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest) | the shared bad habits that cap boards, mining the trap not the structure | 463 |
+| 5 | [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay) | the one move a single record board used that our search could not | 460 |
 
-The corpus these five mine is published: the
-[strong-board dataset](/research/build/dataset) is 1,078 distinct boards scoring
-400 to 469, released under CC0, with the diversity check that keeps a learned
-signal from just re-encoding one board. They line up with the theory pages one to one. [PRIOR](/research/lab/experiments/raphael-anjou/pipelines/prior)
-and [LODESTONE](/research/lab/experiments/raphael-anjou/pipelines/lodestone) are
-[corpus priors](/research/build/learning/corpus-priors), one over positions and one
-over scarce demands. [KEYRING](/research/lab/experiments/raphael-anjou/pipelines/keyring)
-is [learned move-ordering](/research/build/learning/learned-value-ordering), several
-signals voting so no one hunch owns the choice.
-[PALIMPSEST](/research/lab/experiments/raphael-anjou/pipelines/palimpsest) is
-[anti-pattern mining](/research/build/learning/anti-pattern-mining), and it produced
-this project's best board at 463 by separating the structure strong boards share from
-the trap they share. [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay)
-is [decoding records](/research/build/learning/decoding-records): it rebuilt the
-community's strict-460 boards exactly and, in doing so, found the double-break move an
-ordinary search could not make.
+**[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)** is the simplest
+form the idea can take, a count: over the strong boards, how often does each piece
+sit in each cell? Used as a construction tiebreak it builds a competitive board
+from nothing and reaches 460. **[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring)**
+adds signals rather than trusting one, letting a position count, an adjacency
+count, and a learned 2×2-patch quality vote on each placement, which carries a
+build into a corner family no earlier search had cracked.
+**[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone)** goes the
+other way, to a single deliberately faint signal (a per-piece scarce-demand
+weight) and, in doing so, finds the knife-edge that runs through the whole study:
+the moment a learned signal stops being a tiebreak and starts being the objective,
+the search collapses.
 
-## The wall all five reach
+**[PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)** is the
+subtle turn. Every experiment before it trusts agreement between strong boards;
+this one asks which agreements are *traps*, placements every board adopts but no
+top board keeps, and steers a repair search to attack them. It produced this
+project's best board, 463. **[REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)**
+learns from a single board rather than a statistic: rebuild a community record
+exactly, and whatever you must add to your search to make it walk that path is the
+ingredient it was missing. Here that was the double break, the move that lifted the
+strict ladder from 458 to 460.
 
-The through-line matters more than any single score. Every one of these signals is
-safe only as a gentle bias, and over-trusting it collapses the search, LODESTONE
-falls from 451 to 380 as its weight climbs, and PALIMPSEST's trap list helps as a
-steer but hurts as a ban. And even used perfectly, none of them raises the ceiling:
-they reach the top of a search's own range reliably and stop, because the corpus they
-learn from is made of boards that all hit the same
+## The one wall all five reach
+
+The through-line is what makes this a study and not a bag of tricks, and it is a
+sobering one. Every signal here is safe only as a gentle bias: over-trust it and
+the search falls apart (LODESTONE drops from 451 to 380 as its weight climbs;
+PALIMPSEST's trap list helps as a steer and hurts as a ban). And even used
+perfectly, none of these signals raises the ceiling. They reach the top of a
+search's own range, fast and reliably, and stop, because the corpus they learn
+from is made of boards that all hit the same
 [rigidity wall](/research/why/rigidity-wall). Learning from strong boards is the
-fastest way *to* the plateau and, on its own, no way *past* it. That failure mode is
-the point of the [collapse capstone](/research/build/learning/when-learning-collapses),
-and it is what makes this a study rather than a list of tricks.
+fastest way *to* the plateau and, on its own, no way *past* it. That failure mode
+is the subject of the theory section's
+[collapse capstone](/research/build/learning/when-learning-collapses), and it is
+the note the whole study resolves on.
 
-These are five runs from the wider [experiments notebook](/research/lab/experiments/raphael-anjou);
-their two structural siblings, the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study)
+This is one of three studies in the [experiments notebook](/research/lab/experiments/raphael-anjou).
+Its siblings, the [DFS study](/research/lab/experiments/raphael-anjou/dfs-study)
 and the [repair study](/research/lab/experiments/raphael-anjou/repair-study), take a
-single search paradigm apart one decision at a time instead of learning from the
-corpus.
+single search paradigm apart one decision at a time; this one holds the paradigm
+loose and varies what the search is allowed to *know*.
