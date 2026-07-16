@@ -49,7 +49,7 @@ fn naive_clean_reports_a_consistent_score() {
     // returned board, and score + breaks must equal the max (480).
     let inst = inst();
     let spec = find("naive-clean").unwrap();
-    let res = run(&inst, &spec, RunConfig { budget_ms: 500, seed: 1 });
+    let res = run(&inst, &spec, RunConfig::timed(500, 1));
     let out = res.output(&inst);
     assert_eq!(out.score, res.best_score, "reported score != canonical re-score");
     assert_eq!(out.score + out.breaks, 480);
@@ -64,7 +64,7 @@ fn best_board_is_a_real_placement() {
     // search placed, with no piece used twice.
     let inst = inst();
     let spec = find("rowmajor").unwrap();
-    let res = run(&inst, &spec, RunConfig { budget_ms: 300, seed: 1 });
+    let res = run(&inst, &spec, RunConfig::timed(300, 1));
     let codes = res.best.to_cell_codes();
     let mut used = vec![false; inst.pieces.len()];
     let mut placed = 0;
@@ -90,7 +90,7 @@ fn break_variants_beat_the_strict_wall_and_stay_consistent() {
     // the strict row-major depth wall (~205) and reports a canonically
     // consistent board (score + breaks == 480).
     let inst = inst();
-    let brk = run(&inst, &find("break-1").unwrap(), RunConfig { budget_ms: 6000, seed: 1 });
+    let brk = run(&inst, &find("break-1").unwrap(), RunConfig::timed(6000, 1));
     assert!(
         brk.stats.max_depth > 205,
         "breaks should reach past the strict wall, got depth {}",
@@ -115,7 +115,7 @@ fn break_one_never_exceeds_one_mismatch_per_cell() {
     // The non-adjacency rule: on the best board of BREAK-1, no interior cell is
     // incident to more than one broken (mismatched, non-border) edge.
     let inst = inst();
-    let res = run(&inst, &find("break-1").unwrap(), RunConfig { budget_ms: 1500, seed: 1 });
+    let res = run(&inst, &find("break-1").unwrap(), RunConfig::timed(1500, 1));
     let cells = res.best.to_edge_cells(&inst.pieces);
     for pos in 0..N {
         let (row, col) = (pos / 16, pos % 16);
@@ -161,7 +161,7 @@ fn propagators_report_consistent_boards() {
     // catches any propagator that mis-scores or returns an illegal board.)
     let inst = inst();
     for name in ["mrv-fc", "mrv-ac3", "mrv-gacolor"] {
-        let res = run(&inst, &find(name).unwrap(), RunConfig { budget_ms: 800, seed: 1 });
+        let res = run(&inst, &find(name).unwrap(), RunConfig::timed(800, 1));
         let out = res.output(&inst);
         assert_eq!(out.score, res.best_score, "{name}: reported score != canonical re-score");
         // No piece is placed twice on the returned board.
@@ -183,7 +183,7 @@ fn forward_check_never_reports_a_strictly_higher_score_than_it_holds() {
     // Cross-check that the frontier-at-timeout is never deeper than the deepest
     // depth reached (a coherence check on the two depth stats after the fix).
     let inst = inst();
-    let res = run(&inst, &find("mrv-fc").unwrap(), RunConfig { budget_ms: 800, seed: 1 });
+    let res = run(&inst, &find("mrv-fc").unwrap(), RunConfig::timed(800, 1));
     assert!(
         res.stats.depth_at_timeout <= res.stats.max_depth,
         "depth_at_timeout {} exceeds max_depth {}",
@@ -198,7 +198,7 @@ fn engine_kind_variants_all_run() {
     // returns a legal score.
     let inst = inst();
     for s in all_specs().into_iter().filter(|s| s.kind == SpecKind::Engine) {
-        let res = run(&inst, &s, RunConfig { budget_ms: 60, seed: 1 });
+        let res = run(&inst, &s, RunConfig::timed(60, 1));
         assert!(res.best_score <= 480, "{} reported impossible score", s.name);
     }
 }

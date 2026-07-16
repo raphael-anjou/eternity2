@@ -27,6 +27,20 @@ use crate::Spec;
 pub struct RunConfig {
     pub budget_ms: u64,
     pub seed: u64,
+    /// Optional hard cap on search nodes, independent of the time budget. `None`
+    /// means "time only". Used for deterministic, wall-clock-independent testing:
+    /// a fixed node count yields a bit-identical board for a given seed, so an
+    /// optimization to the node loop can be proved to preserve behaviour by
+    /// comparing the board hash at a fixed `max_nodes` before and after.
+    pub max_nodes: Option<u64>,
+}
+
+impl RunConfig {
+    /// A time-only config (no node cap), the normal grid mode.
+    #[must_use]
+    pub const fn timed(budget_ms: u64, seed: u64) -> Self {
+        Self { budget_ms, seed, max_nodes: None }
+    }
 }
 
 /// The result of one run: the best board and the statistics behind it.
@@ -119,6 +133,8 @@ struct SearchState<'a> {
     deadline: Instant,
     start: Instant,
     timed_out: bool,
+    /// Optional node cap for deterministic testing (see [`RunConfig::max_nodes`]).
+    max_nodes: Option<u64>,
     rng: Rng,
 }
 
@@ -179,6 +195,7 @@ pub fn run(inst: &Instance, spec: &Spec, cfg: RunConfig) -> RunResult {
         deadline,
         start,
         timed_out: false,
+        max_nodes: cfg.max_nodes,
         rng: Rng::new(cfg.seed),
     };
 
@@ -219,6 +236,14 @@ impl SearchState<'_> {
     fn out_of_time(&mut self) -> bool {
         if self.timed_out {
             return true;
+        }
+        // Optional node cap (deterministic, wall-clock-independent testing).
+        if let Some(cap) = self.max_nodes {
+            if self.stats.nodes >= cap {
+                self.timed_out = true;
+                self.stats.depth_at_timeout = self.cur_depth;
+                return true;
+            }
         }
         if self.stats.nodes & 0xFF == 0 && Instant::now() >= self.deadline {
             self.timed_out = true;
@@ -515,11 +540,39 @@ impl SearchState<'_> {
                 continue;
             }
             let (u, l, d, r) = self.neighbor_colors(pos);
+            // Count placeable candidates, but stop as soon as the count exceeds the
+            // current best: a most-constrained search only needs to know whether a
+            // cell has *fewer* candidates than the best so far (or ties it and is a
+            // border cell). Any count strictly greater than `best` can never win, so
+            // there is no need to count past `limit`. This early-out is what turns
+            // the per-node cost from "count every candidate of every empty cell"
+            // into "count at most a handful," while picking the identical cell.
+            let limit = best.map_or(usize::MAX, |(bc, _, _)| bc);
+            // The candidate list is already filtered by whichever of (up, left) it
+            // indexes on (see `candidates`), so re-checking those edges is wasted
+            // work. `by_up_left` filters both up and left; `by_up` filters up (and
+            // left is unconstrained here anyway); `all` filters neither, but is only
+            // used when up is unconstrained, so up never needs a check. The only
+            // side the list might leave unchecked besides down/right is left, when
+            // the list is `all` and left is constrained. The common MRV frontier
+            // cell (up+left constrained, down+right empty) reduces the inner test to
+            // just the used-set.
+            let check_l = u == NO_CONSTRAINT && l != NO_CONSTRAINT; // `all` list, left constrained
             let mut count = 0usize;
             for &oi in self.candidates(u, l) {
                 let o = self.geom.oriented(oi);
-                if !self.used[o.piece as usize] && self.fits(pos, o.edges, u, l, d, r) {
+                if self.used[o.piece as usize] {
+                    continue;
+                }
+                let e = o.edges;
+                let ok = (d == NO_CONSTRAINT || e[2] == d)
+                    && (r == NO_CONSTRAINT || e[1] == r)
+                    && (!check_l || e[3] == l);
+                if ok {
                     count += 1;
+                    if count > limit {
+                        break; // cannot beat or tie the best; stop counting this cell
+                    }
                 }
             }
             if count == 0 {

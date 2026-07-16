@@ -86,7 +86,7 @@ impl StartBoard {
     /// any cells it left empty at the depth wall so the result is a full board.
     fn build_from_dfs(self, inst: &Instance, dfs_budget_ms: u64, seed: u64, rng: &mut Rng) -> Vec<i32> {
         let spec = dfs_engine::find("break-1").expect("break-1 is a registered DFS variant");
-        let result = dfs_engine::run(inst, &spec, dfs_engine::RunConfig { budget_ms: dfs_budget_ms, seed });
+        let result = dfs_engine::run(inst, &spec, dfs_engine::RunConfig::timed(dfs_budget_ms, seed));
         let mut codes = result.best.to_cell_codes();
 
         // The break-DFS board stops at the depth wall, so a tail of cells is

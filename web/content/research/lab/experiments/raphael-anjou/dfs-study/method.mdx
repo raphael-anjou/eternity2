@@ -81,14 +81,20 @@ For every run the engine records, and the results carry all the way to the page:
   runs full arc-consistency is not the same unit of work as a naive placement.
   Heavy propagation trades throughput for node quality, and the study measures
   both axes rather than collapsing them into one. The slowest variants carry a
-  caveat worth stating plainly: the MRV engine recomputes every empty cell's
-  domain from scratch at each node to pick the most-constrained one, rather than
-  maintaining those counts incrementally. A tuned CSP solver would keep them
-  updated and run far faster, so the low MRV throughput here reflects a deliberate
-  simplicity, not a claim that most-constrained-first search is inherently that
-  slow. The ranking by score does not depend on it, since throughput is a separate
-  axis, but the MRV node rate should be read as this clean engine's rather than as
-  MRV's best possible.
+  caveat worth stating plainly: the MRV engine picks the most-constrained cell by
+  scanning every empty cell's candidate list at each node, which is inherently
+  heavier than a fixed fill order. Two behaviour-preserving optimisations bring it
+  within a few times of the fast engines rather than the thousands it once was: the
+  most-constrained search stops counting a cell's candidates the moment they exceed
+  the best cell found so far (a minimum search never needs the exact count of a
+  cell that cannot win), and it skips re-checking the edges the candidate list is
+  already indexed on. What it still does not do is maintain each cell's candidate
+  count fully incrementally across placements, which a production CSP solver would;
+  that last step would need to track how a newly-used piece affects every cell's
+  count, and it is left out here to keep the engine legible. The ranking by score
+  does not depend on any of this, since throughput is a separate axis, but the MRV
+  node rate should be read as this clean engine's rather than as MRV's best
+  possible.
 - **max depth reached**: the deepest placement the search made, out of 256, the
   study's measure of how far a variant got. Strict backtracking hits a wall near
   208; breaks push past it.
