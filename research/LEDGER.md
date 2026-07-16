@@ -1156,3 +1156,47 @@ got the corrected (compacted) colour numbering; the corpus is unchanged (still 1
 boards, 28 families) and its zip re-verified provenance-clean. Prose on the
 clue-puzzles page updated to mention the data download. typecheck/lint/style/links/
 build all green; both buttons render for all four clues in the prerendered page.
+
+---
+
+## 2026-07-16 — Engines audit, run pipeline tags, and the "Combination pipelines" rename
+
+Closed the two long-deferred lab tasks (28: tag runs with stages; 29: editorial
+audit of engines/runs), plus two follow-ons the user asked for mid-session.
+
+**Engine audit (task 29), via two parallel Explore agents (audit + stage-extract).**
+The "engines section published the easy way" concern was justified for 2 of 3 pages.
+Fixes: removed the duplicate engines/csp-presets.mdx concept stub (the measured
+version under single-core-benchmark has the leaderboard + numbers + repro), redirect
+added, index door repointed; stopped the engines index leaning on the unpublished
+beam/ALNS engines as if visible (they are not on the leaderboard, stated plainly);
+Verhaard page reconciled the cross-metric slip (438 matched edges vs McGavin's 204
+pieces-deep are different scales) and pointed at the committed rerunnable 438 board.
+Caught + corrected a false claim I nearly introduced ("producer is on the
+leaderboard" — it is not).
+
+**KEYRING honesty:** read the actual v181_keyring.rs source — a pure beam that saves
+its board "for ALNS feed", so the committed 460, like PRIOR's, takes beam + a
+refinement tail. Said so, matching PRIOR's disclosure, instead of presenting 460 as
+the raw beam result.
+
+**vXXX id strip (user request):** v155-prior-460 -> prior-460 etc. across data files,
+components and pages; joins verified consistent. Never leak internal volume numbers.
+
+**Run stage tags (task 28):** added a `stages` frontmatter field (closed engine
+vocabulary + `does` + optional `learns` + a `published` flag), wired through the
+zod schema, the manifest, and the ResearchDoc type. All ten runs tagged. The
+`published: false` flag records honestly, as data, when a stage runs on the still-
+unpublished beam producer or ALNS. Decision (with user): keep the beam-dependent
+runs, make the dependency honest rather than pull them.
+
+**Rename runs -> Combination pipelines (user request):** the tagging proved these
+are multi-engine compositions, not single algorithms. URL folder
+raphael-anjou/runs/ -> raphael-anjou/pipelines/, title "Combination pipelines",
+~112 inbound links rewritten, /runs/ redirects added for every moved page.
+
+Scope discipline: a parallel IO-standardization effort was live this whole session
+(e2-io format.rs/bucas.rs, Convert.tsx, Print.tsx, build/formats.mdx, dfs/repair
+study scripts). Kept every commit strictly to my files; explicitly un-staged
+formats.mdx when a blanket add swept it in. Verified per commit: research style/
+links/citations/hardware, typecheck, lint, build all green.
