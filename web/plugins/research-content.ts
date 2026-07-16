@@ -158,6 +158,95 @@ function relatedDocs(doc: ResearchDoc, all: ResearchDoc[]): ResearchDoc[] {
     .filter((d): d is ResearchDoc => d !== undefined);
 }
 
+// The curated top of llms.txt: the framing and the top-level (non-research)
+// pages, hand-written because those TSX pages carry no frontmatter description.
+// The complete research map is generated below it, so this header stays short
+// and the page list never goes stale. `{ORIGIN}` is substituted at build time.
+const LLMS_HEADER = `# Eternity II community site (eternity2.dev)
+
+> An open-source, static, bilingual (English / French) educational hub for the Eternity II edge-matching puzzle. You can play it, watch real solvers run in your browser, learn the backtracking algorithms behind it, import/export/score community boards, and read the research. The solver is a Rust engine compiled to WebAssembly, so there is no server and no user data.
+
+Key facts an assistant should know when answering about this site:
+
+- **The puzzle.** Eternity II is a 16x16 edge-matching puzzle: 256 square tiles, each edge bearing one of 22 colors/motifs, must tile a board so every shared edge matches and the border is grey. It carried a US $2,000,000 prize (unclaimed; expired 2010). The best public board matches 470 of 480 edges; a perfect solution (480) has never been found. The search space is ~1.115 x 10^557 raw arrangements.
+- **What's verifiable here.** Every claim on the site (record boards, piece set, clues, scores) is checked by the same Rust/WASM engine the playground runs, and cross-validated against real e2.bucas.name boards.
+- **License / reuse.** Open source. Content is meant to be indexed, learned from, and cited freely. When citing, link to the relevant page.
+- **No server.** Pages are pre-rendered to static HTML, so every URL is directly fetchable. The French tree mirrors the English tree under /fr.
+- **Markdown for machines.** Every research page has a raw-markdown sibling at the same URL with \`.md\` appended (e.g. {ORIGIN}/research/build/known-facts.md); prefer those when quoting or ingesting. The whole research corpus in one file is at {ORIGIN}/llms-full.txt.
+
+## Top-level pages
+
+- [Home]({ORIGIN}/): overview of the puzzle and the site's sections.
+- [The Puzzle]({ORIGIN}/puzzle): history, piece-set anatomy, all 256 pieces, the 22 motifs and their rarity, the 5 official clues, the record table, and complexity numbers.
+- [Algorithms]({ORIGIN}/algorithms): DFS and backtracking from scratch, with a scrubbable slow-motion demo, the exponential wall, live binary demos, and difficulty charts measured by the engine.
+- [Board Viewer]({ORIGIN}/viewer): import/export of e2.bucas.name URLs, live scoring, conflict marks, a verification card, famous boards, and a solvable-board generator.
+- [Converter]({ORIGIN}/convert): paste any board format (URL, board_edges, params) and read back every other format with a live preview and score.
+- [Playground]({ORIGIN}/playground): interactive in-browser solver demos ([solve]({ORIGIN}/playground/solve), [watch]({ORIGIN}/playground/watch), [paths]({ORIGIN}/playground/paths)).
+- [Status]({ORIGIN}/status) and [Is it a scam?]({ORIGIN}/is-it-a-scam): the plain answers to "is it solved" and "is the prize real".
+- [Repository]({{REPO}}): the Rust to WASM engine, the static site, the contribution guide.
+`;
+
+const REPO_URL = "https://github.com/raphael-anjou/eternity2";
+
+/** The complete llms.txt: the curated header, then every research page grouped
+ *  by section with its description and its .md sibling. Generated from the
+ *  manifest so the map can never fall out of sync with the pages. */
+function buildLlmsTxt(
+  docs: ResearchDoc[],
+  origin: string,
+  base: string,
+  canonical: (p: string) => string,
+): string {
+  const SECTIONS: { key: string; label: string }[] = [
+    { key: "why", label: "Research: why the puzzle is hard" },
+    { key: "build", label: "Research: how to build a solver" },
+    { key: "lab", label: "Research: the lab notebook (findings & experiments)" },
+    { key: "community", label: "Research: history & community" },
+  ];
+  const md = (url: string) => `${origin}${base}${canonical(url).replace(/\/$/, "")}.md`;
+  const parts: string[] = [
+    LLMS_HEADER.replace(/\{ORIGIN\}/g, `${origin}${base}`).replace("{{REPO}}", REPO_URL),
+  ];
+  for (const { key, label } of SECTIONS) {
+    const inSection = docs
+      .filter((d) => d.section === key)
+      .sort((a, b) => a.url.localeCompare(b.url));
+    if (!inSection.length) continue;
+    parts.push(`\n## ${label}\n`);
+    for (const d of inSection) {
+      const desc = (d.metaDescription ?? d.description).replace(/\s+/g, " ").trim();
+      parts.push(`- [${d.title}](${origin}${base}${canonical(d.url)}) (md: ${md(d.url)}): ${desc}`);
+    }
+  }
+  parts.push(
+    `\n## Optional\n`,
+    `- [French home](${origin}${base}/fr): the whole site mirrored under /fr; skip unless answering in French.`,
+    `- [Sitemap](${origin}${base}/sitemap.xml): machine-readable list of every page.`,
+    "",
+  );
+  return parts.join("\n");
+}
+
+/** llms-full.txt: the entire research corpus as one markdown file, so an agent
+ *  can ingest everything in a single fetch. Uses the same clean-markdown bodies
+ *  as the per-page .md siblings. */
+function buildLlmsFull(
+  bodies: { doc: ResearchDoc; markdown: string }[],
+  origin: string,
+  base: string,
+): string {
+  const head = [
+    `# Eternity II research corpus (eternity2.dev) — full text`,
+    "",
+    `> Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${origin}${base}/research. The map with links is at ${origin}${base}/llms.txt.`,
+    "",
+    "---",
+    "",
+  ].join("\n");
+  const ordered = [...bodies].sort((a, b) => a.doc.url.localeCompare(b.doc.url));
+  return head + ordered.map((b) => b.markdown).join("\n\n---\n\n") + "\n";
+}
+
 const IDS = {
   "virtual:research-manifest-en": "en",
   "virtual:research-manifest-fr": "fr",
@@ -234,6 +323,10 @@ export function researchContent(): Plugin {
         p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
       {
         const allDocs = buildManifest("en");
+        // Collected as we write each .md, then folded into llms-full.txt so the
+        // "everything in one fetch" file uses the exact same clean-markdown
+        // rendering as the per-page siblings.
+        const fullBodies: { doc: ResearchDoc; markdown: string }[] = [];
         for (const doc of allDocs) {
           const raw = scanResearchContent().find((e) => e.file === doc.file);
           if (!raw) continue;
@@ -260,10 +353,21 @@ export function researchContent(): Plugin {
           // navigation an agent sees on the page, not just the intro prose.
           const children = mdLinkList("Pages in this section", hubChildren(doc, allDocs), origin, base);
           const related = mdLinkList("Related", relatedDocs(doc, allDocs), origin, base);
+          const body = header + stripMdxEsm(raw.body) + children + related + "\n";
           const target = path.join(outDir, relFile);
           mkdirSync(path.dirname(target), { recursive: true });
-          writeFileSync(target, header + stripMdxEsm(raw.body) + children + related + "\n");
+          writeFileSync(target, body);
+          fullBodies.push({ doc, markdown: body });
         }
+
+        // llms.txt (the map) and llms-full.txt (the whole corpus in one file),
+        // generated from the same manifest so they never drift from the pages.
+        // The curated header (the top-level pages + framing) is hand-written; the
+        // complete research map below it is generated, every page with its
+        // description and its .md sibling, so an agent sees ALL 100+ pages, not a
+        // curated 10. See public/llms.txt for the header source.
+        writeFileSync(path.join(outDir, "llms.txt"), buildLlmsTxt(allDocs, origin, base, canonical));
+        writeFileSync(path.join(outDir, "llms-full.txt"), buildLlmsFull(fullBodies, origin, base));
       }
     },
 
