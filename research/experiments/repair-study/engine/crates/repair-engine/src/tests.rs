@@ -28,7 +28,7 @@ fn incremental_score_tracks_canonical_under_random_edits() {
     let inst = load();
     // Start from a greedy build so there is real structure to perturb.
     let mut rng = Rng::new(7);
-    let codes = crate::StartBoard::GreedyConstruct.build(&inst, &mut rng);
+    let codes = crate::StartBoard::GreedyConstruct.build(&inst, &mut rng, 7, 60000);
     let mut st = State::from_codes(&inst.pieces, &codes);
     assert_eq!(st.score(), canonical(&st, &inst.pieces), "score wrong at start");
 
@@ -61,7 +61,7 @@ fn incremental_conflict_map_tracks_recompute_under_multi_cell_churn() {
     // incremental map (not just the score) stays equal to a from-scratch recompute.
     let inst = load();
     let mut rng = Rng::new(11);
-    let codes = crate::StartBoard::GreedyConstruct.build(&inst, &mut rng);
+    let codes = crate::StartBoard::GreedyConstruct.build(&inst, &mut rng, 7, 60000);
     let mut st = State::from_codes(&inst.pieces, &codes);
     assert!(st.matches_recompute(), "map wrong at start");
 
@@ -96,7 +96,7 @@ fn is_hint(inst: &Instance, pos: usize) -> bool {
 fn every_variant_runs_and_never_regresses_below_start() {
     let inst = load();
     for spec in all_specs() {
-        let res = run(&inst, &spec, RunConfig { budget_ms: 300, seed: 1 });
+        let res = run(&inst, &spec, RunConfig::timed(300, 1));
         // The published score is the canonical re-score of the best board.
         let out = res.output(&inst);
         assert_eq!(out.score, res.best_score, "{}: output disagrees with best_score", spec.name);
@@ -119,7 +119,7 @@ fn every_output_board_is_a_valid_256_piece_permutation() {
     // score from a corrupted board" failure the accept/revert path could hide.
     let inst = load();
     for spec in all_specs() {
-        let res = run(&inst, &spec, RunConfig { budget_ms: 400, seed: 1 });
+        let res = run(&inst, &spec, RunConfig::timed(400, 1));
         let mut seen = vec![false; inst.pieces.len()];
         let mut empties = 0;
         for &code in &res.best_codes {
@@ -146,7 +146,7 @@ fn hints_are_preserved_across_a_run() {
     let inst = load();
     for name in ["greedy-mismatch", "restart-kick", "band-destroy", "start-random"] {
         let spec = find(name).unwrap();
-        let res = run(&inst, &spec, RunConfig { budget_ms: 300, seed: 3 });
+        let res = run(&inst, &spec, RunConfig::timed(300, 3));
         for h in &inst.hints {
             let code = res.best_codes[h.pos as usize];
             assert!(code >= 0, "{name}: hint cell {} became empty", h.pos);
@@ -181,9 +181,9 @@ fn greedy_start_beats_random_start_on_average() {
     // random one at t=0. If this ever fails the greedy builder is broken.
     let inst = load();
     let mut rng = Rng::new(1);
-    let g = State::from_codes(&inst.pieces, &crate::StartBoard::GreedyConstruct.build(&inst, &mut rng));
+    let g = State::from_codes(&inst.pieces, &crate::StartBoard::GreedyConstruct.build(&inst, &mut rng, 7, 60000));
     let mut rng2 = Rng::new(1);
-    let r = State::from_codes(&inst.pieces, &crate::StartBoard::Random.build(&inst, &mut rng2));
+    let r = State::from_codes(&inst.pieces, &crate::StartBoard::Random.build(&inst, &mut rng2, 1, 60000));
     assert!(
         g.score() > r.score(),
         "greedy start {} did not beat random start {}",
