@@ -36,6 +36,10 @@ const T = {
       "Open source (MIT). Piece motifs by Jef Bucas (GPL-3.0). Everything runs in your browser. There is no server.",
     builtBy: "Built by Raphaël Anjou.",
     sourceCode: "Source code on GitHub",
+    forAgents: "For AI agents and crawlers:",
+    llmsLabel: "llms.txt",
+    llmsFullLabel: "full text",
+    sitemapLabel: "sitemap",
   },
   fr: {
     nav: [
@@ -60,6 +64,10 @@ const T = {
       "Logiciel libre (MIT). Motifs des pièces par Jef Bucas (GPL-3.0). Tout se passe dans votre navigateur : aucun serveur n'est sollicité.",
     builtBy: "Réalisé par Raphaël Anjou.",
     sourceCode: "Code source sur GitHub",
+    forAgents: "Pour les agents IA et robots :",
+    llmsLabel: "llms.txt",
+    llmsFullLabel: "texte complet",
+    sitemapLabel: "plan du site",
   },
 };
 
@@ -221,6 +229,23 @@ export default function Layout() {
             rel="noreferrer"
           >
             {t.sourceCode}
+          </a>
+        </p>
+        {/* A visible, machine-followable pointer to the site's agent-readable
+            index. These are static build-emitted files, not React routes, so
+            they use plain anchors. */}
+        <p className="text-xs">
+          {t.forAgents}{" "}
+          <a className="underline hover:text-foreground" href="/llms.txt">
+            {t.llmsLabel}
+          </a>
+          {" · "}
+          <a className="underline hover:text-foreground" href="/llms-full.txt">
+            {t.llmsFullLabel}
+          </a>
+          {" · "}
+          <a className="underline hover:text-foreground" href="/sitemap.xml">
+            {t.sitemapLabel}
           </a>
         </p>
       </footer>
