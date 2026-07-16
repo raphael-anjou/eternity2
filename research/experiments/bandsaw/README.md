@@ -31,7 +31,8 @@ cargo build --release \
 # a worked example: prove the endgame band of a committed official-puzzle board.
 # 1. decode a board to placement JSON (any board on the official 16x16 catalog):
 single-core-benchmark/engine/target/release/dump_board_json \
-  "$(cat bandsaw/example/board.url)" > /tmp/entry_raw.json
+  "$(python3 -c 'import json;print(json.load(open("bandsaw/example/board.json"))["url"])')" \
+  > /tmp/entry_raw.json
 python3 bandsaw/scripts/to_entry.py /tmp/entry_raw.json > /tmp/entry.json
 
 # 2. run BANDSAW on its endgame band:
@@ -63,7 +64,7 @@ bracket is a proof. Give it a longer `--rung-ms` to tighten the certified bound.
 bandsaw/
 ├── README.md
 ├── example/
-│   └── board.url        a committed official-puzzle board (the worked example's input)
+│   └── board.json       a committed official-puzzle board (canonical JSON; the worked example's input)
 ├── scripts/
 │   └── to_entry.py      dump_board_json output -> mini_e2 --entry placement JSON
 └── results/
