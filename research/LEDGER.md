@@ -1081,3 +1081,49 @@ LODESTONE now says its reproducible artifact is the tiebreak *effect* across fiv
 seeds (true), not a viewer board; REPLAY now says the boards it rebuilds are the
 community's own strict-460 records (on the record timeline), and what the experiment
 adds is the replay. Style + links green.
+
+---
+
+## 2026-07-16 — Published dataset: benchmark instances + strong-board corpus (CC0)
+
+Aggregated a public dataset under research/datasets/, two parts, CC0. First did
+the data analysis the user asked for (are the corpus boards derivatives of one
+another?). Answer: NO. Of 1,089 source boards only 11 are exact copies; the median
+board differs from its nearest sibling by 60 of 256 placements; 28 distinct corner
+families. Genuinely diverse, so publishing ~1,078 is honest — and the diversity
+check itself is published as content.
+
+Part A — benchmark instances (loose JSON, research/datasets/instances/): the 10
+corner-pinned 16x16 variants (all three engine studies use the identical 10,
+md5-confirmed) + 4 clue sub-puzzles (6x6/12x6), normalized to one schema
+(id/family/width/height/numColors/pieces URDL/hints/maxScore). All 4 clue instances
+validate against their known solutions (piece count, dims, internal-edge max).
+
+Part B — strong-board corpus (research/datasets/e2-strong-boards.zip, ~620 KB):
+1,078 distinct boards scoring 400-469, each {id, score, family, edges}. Ships as
+CSV + JSONL inside the zip with README + LICENSE. Loose corpus/boards.{csv,jsonl}
+(2 MB each) are gitignored — regenerable, fully contained in the zip. stats.json
+tracked.
+
+Two correctness properties enforced by the builder (research/datasets/build/
+build_dataset.py): (1) every score RECOMPUTED from the 1024-char URDL edge string,
+never trusted — caught 1 stale source score (453 claimed, edges score 456). (2)
+edge extraction bug found + fixed mid-build: some bucas_url variants concatenate
+&board_types/&board_pieces with no separator, so a naive lowercase filter pulled
+"boardtypes...boardpieces" into the edges; fixed by taking exactly the first 1024
+lowercase chars. After the fix all 1078 edges are exactly 1024 chars and all scores
+recompute to the published value (0 mismatches). The fix also exposed 1 more exact
+dup (1079->1078).
+
+Provenance scrub (user: strip ALL vault identifiers): dropped source_path,
+ops_preset, seeds, filenames, bucas puzzle names, any vol-NNN; kept only board
+content + verified score + derived corner-family. grep-verified 0 leaks in the
+committed outputs.
+
+Site: new page build/dataset.mdx (kind: reference, "Check your code" group),
+topics [structure, learning]. Describes both parts, the recompute-verify property,
+and the diversity analysis. Cross-linked from the learning lab hub (the corpus
+those 5 experiments mine). Links to the GitHub tree for downloads (repo is the
+delivery mechanism, matching how other backing dirs are linked). Verified: research
+style/links/citations/hardware, typecheck, lint, build all green; page prerenders
+with .md export. `python3 research/datasets/build/build_dataset.py` rebuilds it.

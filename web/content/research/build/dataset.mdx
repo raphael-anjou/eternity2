@@ -1,0 +1,119 @@
+---
+title: The dataset
+description: >-
+  A public, CC0 dataset for Eternity II in two parts: fourteen benchmark
+  instances to solve, and a corpus of 1,078 distinct strong boards to learn
+  from. Every score is recomputed from the board itself, and the corpus is
+  checked to be genuinely diverse rather than a thousand copies of one board.
+metaDescription: "A public CC0 Eternity II dataset: 14 benchmark instances to solve plus 1,078 distinct verified strong boards to learn from, with a diversity analysis."
+kind: reference
+order: 55
+group: Check your code
+updated: 2026-07-16
+topics: [structure, learning]
+related:
+  - /research/build/known-facts
+  - /research/reference
+  - /research/lab/experiments/raphael-anjou/learning
+sources:
+  - label: "The dataset (this repo): instances, the strong-board corpus zip, README, and the build script"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/datasets
+---
+
+Two things recur when you work on Eternity II: you need instances to run a
+solver against, and, if you want to learn from strong boards, you need a corpus
+of them. This dataset packages both, released into the public domain under
+[CC0](https://creativecommons.org/publicdomain/zero/1.0/) so it can be reused for
+anything without attribution. It has two parts, and both live in the
+[dataset directory](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets).
+
+## Part A: benchmark instances
+
+Fourteen instances a solver runs on, each a self-contained JSON file with the
+piece set, any pinned hints, and the maximum reachable score.
+
+- **Ten 16×16 instances** (`e2-16x16-v00` … `v09`): the official Eternity II
+  piece set with three corners pinned, in ten different corner arrangements.
+  Pinning the corners gives ten distinct but equally hard instances off one
+  piece set, which is what lets a study compare engines on a diversity axis
+  rather than a single board. All three of this project's engine studies (the
+  [DFS study](/research/lab/experiments/raphael-anjou/dfs-study), the
+  [repair study](/research/lab/experiments/raphael-anjou/repair-study), and the
+  [single-core benchmark](/research/lab/experiments/single-core-benchmark)) solve
+  exactly these ten. Maximum score 480.
+- **Four clue sub-puzzles** (`e2-clue-clue1` … `clue4`): the smaller 6×6 and
+  12×6 boards from the puzzle's official clue set. Each is known to have a full
+  solution, which makes them a fast correctness fixture: a solver that cannot
+  close a clue board has a bug before it ever meets the full puzzle.
+
+Each cell is described in up, right, down, left order, colour 0 is the grey rim,
+and `pos` is the row-major cell index. The shape of an instance file:
+
+```json
+{
+  "id": "e2-16x16-v00",
+  "family": "official-16x16-pin3corners",
+  "width": 16, "height": 16, "numColors": 22,
+  "pieces": [[up, right, down, left], ...],
+  "hints": [{"pos": 0, "piece": 0, "rot": 3}, ...],
+  "maxScore": 480
+}
+```
+
+## Part B: a corpus of strong boards
+
+**1,078 distinct boards** scoring 400 to 469, the raw material for methods that
+[learn from strong boards](/research/lab/experiments/raphael-anjou/learning):
+position priors, learned move-ordering, anti-pattern mining. It ships as a zip
+(`e2-strong-boards.zip`, about 620 KB) that unpacks to the same rows as CSV and
+as JSON-lines:
+
+```
+id,score,family,edges
+e2b-00001,469,f008,adcaaendadwe…   (1024 lowercase letters)
+```
+
+The `edges` field is the board itself: 256 cells times four sides, row-major, in
+up-right-down-left order, `a` for the grey rim. It is the same string the
+[e2.bucas.name](https://e2.bucas.name) viewer reads, so any board pastes straight
+into the viewer. The `family` is the board's four corner pieces, a proxy for
+which basin it sits in; there are 28 distinct families. The score distribution is
+a clean bell curve peaking at 452 to 456, with 21 boards at 460 or above and the
+best at 469.
+
+## Every score is recomputed, not trusted
+
+No score in this dataset is copied from a source field. Each one is recomputed
+from the board's own edge string by counting matched interior adjacencies. This
+is not a formality: in the source data one board carried a stale score, claiming
+453 when its edges actually score 456, and recomputing from edges corrects it
+automatically. Re-derive the scores yourself from the edge strings and you will
+get the published numbers exactly.
+
+## The corpus is diverse, not derivative
+
+A pile of a thousand boards is only worth publishing if the boards are actually
+different. Before releasing this one we checked that they are not just
+perturbations of a single board, and they are not:
+
+- Only 11 of the 1,089 source boards were exact duplicates; the rest are
+  distinct, leaving 1,078.
+- The *median* board differs from its closest sibling by 60 of its 256 piece
+  placements. Only 3% of boards sit within 10 placements of another, and only 7%
+  within 25.
+- The boards spread across 28 distinct corner families rather than piling into
+  one.
+
+So the corpus is a genuinely varied sample of the strong-board landscape. That
+matters for anything that mines it: a learned prior built from a thousand copies
+of one board would encode that board, not the structure of good boards in
+general.
+
+## Rebuilding it
+
+The [build script](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets)
+regenerates the whole dataset. The instances are assembled from the public
+variant files; the corpus is deduplicated, rescored from edges, stripped of every
+working-store label (source paths, internal preset and seed names, filenames),
+and re-keyed with neutral ids, so what ships is board content and verified scores
+and nothing else.
