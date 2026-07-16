@@ -52,18 +52,18 @@ ceiling on this puzzle is 470; the full solution is 480.
 
 | Method | Best | [Forced moves](/research/why/no-forced-moves) | [Hardness peak](/research/why/phase-transition) | [Area law](/research/why/entropy-area-law) | [Rigidity](/research/why/rigidity-wall) | New basin |
 | --- | --- | :-: | :-: | :-: | :-: | --- |
-| [PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest) · from the corpus | 463/480 | | | | ● | no |
-| [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior) · from scratch | 460/480 | | ● | | ● | no |
-| [KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring) · from scratch | 460/480 | | | | ● | new family |
+| [PALIMPSEST](/research/lab/experiments/raphael-anjou/pipelines/palimpsest) · from the corpus | 463/480 | | | | ● | no |
+| [PRIOR](/research/lab/experiments/raphael-anjou/pipelines/prior) · from scratch | 460/480 | | ● | | ● | no |
+| [KEYRING](/research/lab/experiments/raphael-anjou/pipelines/keyring) · from scratch | 460/480 | | | | ● | new family |
 | [REPLAY](/research/lab/experiments/raphael-anjou/analyses/replay) · decode & replay | 460/480 | | | | ● | no |
-| [GAUNTLET](/research/lab/experiments/raphael-anjou/runs/gauntlet) · from scratch | 458/480 | | | | ● | new family |
-| [CLOISTER](/research/lab/experiments/raphael-anjou/runs/cloister) · anchor & constrain | 453/480 | | | ● | ● | no |
-| [MIDDEN](/research/lab/experiments/raphael-anjou/runs/midden) · anchor & constrain | 452/480 | | | ● | ● | no |
-| [LADDER](/research/lab/experiments/raphael-anjou/runs/ladder) · concentrate effort | 451/480 | ● | ● | | | new family |
-| [LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone) · from scratch | 451/480 | ● | | | | no |
-| [MOSAIC](/research/lab/experiments/raphael-anjou/runs/mosaic) · solve a piece exactly | 448/480 | ● | ● | | | no |
+| [GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet) · from scratch | 458/480 | | | | ● | new family |
+| [CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) · anchor & constrain | 453/480 | | | ● | ● | no |
+| [MIDDEN](/research/lab/experiments/raphael-anjou/pipelines/midden) · anchor & constrain | 452/480 | | | ● | ● | no |
+| [LADDER](/research/lab/experiments/raphael-anjou/pipelines/ladder) · concentrate effort | 451/480 | ● | ● | | | new family |
+| [LODESTONE](/research/lab/experiments/raphael-anjou/pipelines/lodestone) · from scratch | 451/480 | ● | | | | no |
+| [MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic) · solve a piece exactly | 448/480 | ● | ● | | | no |
 | [BANDSAW](/research/lab/experiments/raphael-anjou/analyses/bandsaw) · solve a piece exactly | 437/480 | ● | ● | | | no |
-| [STAGED](/research/lab/experiments/raphael-anjou/runs/staged) · from scratch | 436/480 | ● | | ● | | no |
+| [STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) · from scratch | 436/480 | ● | | ● | | no |
 
 ### How to read it
 
@@ -83,15 +83,15 @@ no method gets through all four.
 The ceiling is never arbitrary. For each method, its own write-up records the
 exact reason the score stopped climbing, quoted here in one line.
 
-- **[PALIMPSEST](/research/lab/experiments/raphael-anjou/runs/palimpsest)** (463/480). Reached
+- **[PALIMPSEST](/research/lab/experiments/raphael-anjou/pipelines/palimpsest)** (463/480). Reached
   463, the project best, by reading the corpus to find which shared choices
   are traps and steering a 15-basin sweep around them. Forcing the search to
   avoid the traps directly made boards worse: the value was in where to look,
   not a hard rule.
-- **[PRIOR](/research/lab/experiments/raphael-anjou/runs/prior)** (460/480). Plateaus at 460:
+- **[PRIOR](/research/lab/experiments/raphael-anjou/pipelines/prior)** (460/480). Plateaus at 460:
   the learned position prior gets a from-scratch build into the 460 class
   fast, but the corpus signal alone is not enough to leave it.
-- **[KEYRING](/research/lab/experiments/raphael-anjou/runs/keyring)** (460/480). Three learned
+- **[KEYRING](/research/lab/experiments/raphael-anjou/pipelines/keyring)** (460/480). Three learned
   signals voting (position, adjacency, 2×2 patch) reached 460 in a corner
   arrangement no board had cracked before, a new family, but the patch
   signal is marginal and the polish still caps at 460.
@@ -99,28 +99,28 @@ exact reason the score stopped climbing, quoted here in one line.
   community's strict-460 boards exactly and reveals the move ordinary search
   misses: 4–5 cells that take two mismatches at once, unreachable for a search
   that allows at most one.
-- **[GAUNTLET](/research/lab/experiments/raphael-anjou/runs/gauntlet)** (458/480). Running the
+- **[GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet)** (458/480). Running the
   beam in nine scan directions opened a brand-new 458 family (scan order is a
   stronger diversity axis than the random seed), but a second round topped
   out at 457 with no 461: the new family saturates like the others.
-- **[CLOISTER](/research/lab/experiments/raphael-anjou/runs/cloister)** (453/480). As a
+- **[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister)** (453/480). As a
   standalone interior solver it confirms a real rim-compatibility bonus, but
   that bonus cannot be retrofitted after the fact (the same rigidity as the
   full board), so it settles in the low 450s.
-- **[MIDDEN](/research/lab/experiments/raphael-anjou/runs/midden)** (452/480). Choosing where
+- **[MIDDEN](/research/lab/experiments/raphael-anjou/pipelines/midden)** (452/480). Choosing where
   (not when) the board may break extends the perfect run from 153 to 167–174
   cells, but the dispersed geometry still fails at the endgame: nothing
   absorbs the last damage.
-- **[LADDER](/research/lab/experiments/raphael-anjou/runs/ladder)** (451/480). Floods cheap
+- **[LADDER](/research/lab/experiments/raphael-anjou/pipelines/ladder)** (451/480). Floods cheap
   probes and promotes the deepest, reaching a 451 strict board with no record
   to copy, the first escape from the universal 444–450 band, but the supply
   of perfect openings runs out and the rungs all converge to one ceiling.
-- **[LODESTONE](/research/lab/experiments/raphael-anjou/runs/lodestone)** (451/480). A
+- **[LODESTONE](/research/lab/experiments/raphael-anjou/pipelines/lodestone)** (451/480). A
   scarce-demand prior used only as a tiebreaker lifts the from-scratch median
   by two (449→451) and tightens the variance, but any larger weight collapses
   it: scarcity is a real but weak signal, and it never touches the basin
   ceiling.
-- **[MOSAIC](/research/lab/experiments/raphael-anjou/runs/mosaic)** (448/480). Composes exact
+- **[MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)** (448/480). Composes exact
   4×4 block solutions with soft seams, reaching 448 from scratch, but the
   shortfall lands almost entirely in the last three corner blocks, where the
   piece pool runs thin: the same piece-theft, now a single bright spot.
@@ -128,7 +128,7 @@ exact reason the score stopped climbing, quoted here in one line.
   endgame band to proven optimality, and in doing so measures the exactness
   wall: the search tree grows about twentyfold per extra allowed mismatch, on
   both sides, so meeting in the middle stops paying at full size.
-- **[STAGED](/research/lab/experiments/raphael-anjou/runs/staged)** (436/480). Builds the whole
+- **[STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged)** (436/480). Builds the whole
   board with no pre-set frame and an emergent border, reaching 436, well
   below the records. That gap is the finding: it measures exactly how
   much the usual frame-first anchor is worth.
