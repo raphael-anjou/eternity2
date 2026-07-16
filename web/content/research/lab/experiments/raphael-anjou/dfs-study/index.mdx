@@ -37,6 +37,7 @@ sources:
 ---
 
 import { DfsStudyLeaderboard } from "@/components/research/DfsStudyLeaderboard";
+import { StartingPuzzleCarousel } from "@/components/research/StartingPuzzleCarousel";
 
 Every record-holding Eternity II solver (Blackwood, Verhaard, McGavin) is a
 depth-first backtracker. What separates them from a first-week homework
@@ -53,18 +54,21 @@ core is a small fraction of the compute the records took. The point is to isolat
 *what each idea is worth* by changing one thing at a time and measuring the result
 with the same canonical scorer for every board.
 
+<StartingPuzzleCarousel />
+
 ## The family, and the leaderboard
 
-Five families, laid out so that neighbours differ by a single decision.
+Four families, laid out so that neighbours differ by a single decision.
 **Baseline** is the rawest possible backtracker, alongside a hand-specialised twin
 that prices the low-level engineering. **Path order** fixes everything but the
 sequence in which cells are filled. **Heuristic** fixes the order and adds one
 propagator at a time. **Break** is the elite axis: the depth-gated edge-break
-mechanism the records rely on. The **community** engines (McGavin's C and
-Blackwood's C#) were built and run on the same machine, but on their native
-instances, because neither can accept our corner-pinned variants. Seeing exactly
-how they fail is a result in its own right, so they appear in a reference panel of
-their own rather than on the leaderboard.
+mechanism the records rely on. The community record engines, McGavin's C and
+Blackwood's C#, are themselves break backtrackers, so they sit in the break
+family too, not in a category of their own. Whose code an engine is stays a
+matter of labelling, not colour. Both appear on the leaderboard at their
+corner-pinned score, badged where they collapse, and again on a fair unpinned
+grid further down where they run as designed.
 
 <DfsStudyLeaderboard />
 

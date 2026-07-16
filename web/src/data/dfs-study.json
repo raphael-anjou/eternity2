@@ -399,36 +399,46 @@
   {
    "name": "mcgavin-c",
    "display": "MCGAVIN-C",
-   "family": "community",
+   "family": "break",
    "kind": "external",
    "parent": "break-1",
-   "delta": "the community's own record engine (run as published, cited not re-run here)",
+   "delta": "the community's fastest DFS, run here; it collapses on our corner pins",
    "path": "RowMajor",
    "value": "insertion",
    "propagate": "none",
    "breaks": "break (\u22641/cell)",
    "allows_breaks": true,
-   "note": "the fastest DFS the community has measured (~295M nodes/s): a codegen backtracker with Blackwood's break scheme. Runs on its own puzzle build, not our variants.",
-   "n": 0,
-   "mean": null,
-   "best": null
+   "note": "Peter McGavin's codegen C backtracker, built with its author's ARM flags. On the corner-pinned grid its fixed scan path dead-ends at depth 21 (canonical 13); on the unpinned centre-clue grid it reaches 392. See the two-grid panels below.",
+   "n": 1,
+   "mean": 13,
+   "best": 13,
+   "worst": 13,
+   "max_depth": 21,
+   "median_nps": null,
+   "nps_unit": "tiles/s",
+   "collapsed": true
   },
   {
    "name": "blackwood-cs",
    "display": "BLACKWOOD-CS",
-   "family": "community",
+   "family": "break",
    "kind": "external",
    "parent": "break-1",
-   "delta": "the community's own record engine (run as published, cited not re-run here)",
+   "delta": "Blackwood's C# record engine, run here; it stalls on our pins",
    "path": "RowMajor",
    "value": "insertion",
    "propagate": "none",
    "breaks": "break (\u22641/cell)",
    "allows_breaks": true,
-   "note": "Joshua Blackwood's own C# record engine. Public, builds on .NET, but hardcodes its 256 pieces and thread count, so it runs the plain puzzle, not our corner-pinned grid.",
-   "n": 0,
-   "mean": null,
-   "best": null
+   "note": "Joshua Blackwood's C# record engine (net8, one thread). It hardcodes its pieces and scan, so on the matching pinned five-clue it thrashes to depth 47 (canonical 75); unpinned it reaches 214. See the two-grid panels below.",
+   "n": 1,
+   "mean": 75,
+   "best": 75,
+   "worst": 75,
+   "max_depth": 47,
+   "median_nps": null,
+   "nps_unit": "search-nodes/s",
+   "collapsed": true
   }
  ],
  "community": [
@@ -443,7 +453,12 @@
    "note": "Codegen strict/break backtracker, built with its author's documented ARM flags (native tuning plus LTO). On the centre-clue grid it reaches depth 211 (392 matched edges, canonically rescored) in 60 s. Optimises depth, not score.",
    "collapse": "Adding the study's three corner pins collapses its fixed scan path to depth 21 (canonical score 13), confirmed on 2 pinned variants: the scan never reaches a corner early, so a pinned corner dead-ends it at once.",
    "collapse_score": 13,
-   "collapse_depth": 21
+   "collapse_depth": 21,
+   "record": {
+    "score": 480,
+    "label": "full 480 solve (long multi-core)",
+    "cited": true
+   }
   },
   {
    "name": "blackwood-cs",
@@ -456,7 +471,16 @@
    "note": "Break-DFS (net8.0 retarget, one thread; search unchanged). On the centre-clue grid it reaches depth 119 (214 matched edges) in 60 s.",
    "collapse": "It hardcodes its piece set and scan, so it cannot express the study's arbitrary corner pins; the matching constrained test is the five official clues, where its heuristic phase thrashes to depth 47 (canonical score 75) in 60 s.",
    "collapse_score": 75,
-   "collapse_depth": 47
+   "collapse_depth": 47,
+   "record": {
+    "score": 470,
+    "label": "record ~470 (long multi-core)",
+    "cited": true
+   },
+   "longer_run_here": {
+    "score": 454,
+    "note": "its own longer unconstrained run on this M1, still short of its record"
+   }
   }
  ],
  "unpinned": {
@@ -483,12 +507,13 @@
     "max_depth": 192,
     "throughput": "33M search-nodes/s",
     "nps_unit": "search-nodes/s",
-    "note": "The DFS study's strongest break-family engine, as the from-scratch baseline the community engines are measured against on the same grid."
+    "note": "The DFS study's strongest break-family engine, as the from-scratch baseline the community engines are measured against on the same grid.",
+    "record": null
    },
    {
     "name": "verhaard-reimpl",
     "display": "Verhaard (our reimpl)",
-    "family": "community",
+    "family": "break",
     "kind": "reimpl",
     "instance": "centre clue, 3 seeds",
     "n": 3,
@@ -499,12 +524,13 @@
     "max_depth": null,
     "throughput": "8k search-nodes/s",
     "nps_unit": "search-nodes/s",
-    "note": "Our comb-order reimplementation of the Verhaard search (the original binary is Win32-only). Runs on the JSON instance directly."
+    "note": "Our comb-order reimplementation of the Verhaard search (the original binary is Win32-only). Runs on the JSON instance directly.",
+    "record": null
    },
    {
     "name": "mcgavin-c",
     "display": "McGavin (C)",
-    "family": "community",
+    "family": "break",
     "kind": "foreign",
     "instance": "centre clue (seed-invariant, one run)",
     "n": 1,
@@ -515,12 +541,17 @@
     "max_depth": 211,
     "throughput": "85M tiles/s",
     "nps_unit": "tiles/s",
-    "note": "Its codegen backtracker specialises to the hint set; with only the centre clue it fills deep. Built with McGavin's own ARM flags (native tuning + LTO). Optimises depth, not matched-edge score."
+    "note": "Its codegen backtracker specialises to the hint set; with only the centre clue it fills deep. Built with McGavin's own ARM flags (native tuning + LTO). Optimises depth, not matched-edge score.",
+    "record": {
+     "score": 480,
+     "label": "full 480 solve (long multi-core)",
+     "cited": true
+    }
    },
    {
     "name": "blackwood-cs",
     "display": "Blackwood (C#)",
-    "family": "community",
+    "family": "break",
     "kind": "foreign",
     "instance": "centre clue (unseeded, one run)",
     "n": 1,
@@ -531,7 +562,16 @@
     "max_depth": 119,
     "throughput": "9M search-nodes/s",
     "nps_unit": "search-nodes/s",
-    "note": "Break-DFS. Reaches its plateau inside 60 s on a single centre clue; run to run it lands on the same depth."
+    "note": "Break-DFS. Reaches its plateau inside 60 s on a single centre clue; run to run it lands on the same depth.",
+    "record": {
+     "score": 470,
+     "label": "record ~470 (long multi-core)",
+     "cited": true
+    },
+    "longer_run_here": {
+     "score": 454,
+     "note": "its own longer unconstrained run on this M1, still short of its record"
+    }
    }
   ]
  }

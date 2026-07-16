@@ -1,17 +1,6 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  Cell,
-  LabelList,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { useT, useLang } from "@/i18n";
-import { useIsClient } from "@/lib/utils";
+import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import data from "@/data/dfs-study.json";
 
 // The DFS-study results, rendered from the committed run data
@@ -54,6 +43,9 @@ type Variant = {
   nps_unit?: string;
   max_depth?: number | null;
   median_breaks?: number | null;
+  // A foreign community engine whose score/depth here is a pin-collapse, not a
+  // real result: badged so the low bar reads as the finding, not weakness.
+  collapsed?: boolean;
 };
 
 type CommunityEngine = {
@@ -73,6 +65,9 @@ type CommunityEngine = {
 // A row of the unpinned "fair" grid: the community engines and our break-family
 // baseline, all run on the single mandatory centre clue, one core, sixty
 // seconds. Every score is canonically rescored from the engine's own board.
+type EngineRecord = { score: number; label: string; cited: boolean };
+type LongerRun = { score: number; note: string };
+
 type UnpinnedRow = {
   name: string;
   display: string;
@@ -88,6 +83,8 @@ type UnpinnedRow = {
   throughput: string;
   nps_unit: string;
   note: string;
+  record?: EngineRecord | null;
+  longer_run_here?: LongerRun | null;
 };
 
 const D = data as {
@@ -110,12 +107,17 @@ const D = data as {
 // One hue per family. Validated (dataviz skill, --pairs adjacent): worst
 // adjacent CVD ΔE 8.1, normal-vision ΔE 26.5, both light and dark. Family is
 // also always named in text, so colour is secondary, never the sole signal.
+// Families are ALGORITHMIC types, not provenance. "Community" is deliberately
+// not here: whose code an engine is (ours, a reimplementation, a foreign
+// binary) is provenance, carried by the row's `kind` and its labels, never by a
+// colour. McGavin and Blackwood are break-DFS engines, so they wear the break
+// colour like every other break variant; that they are third-party is said in
+// words, not hue.
 const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
   baseline: { fill: "#f59e0b", en: "baseline", fr: "référence" },
   path: { fill: "#3b82f6", en: "path order", fr: "ordre de parcours" },
   heuristic: { fill: "#10b981", en: "heuristic", fr: "heuristique" },
   break: { fill: "#ef4444", en: "breaks", fr: "cassures" },
-  community: { fill: "#8b5cf6", en: "community", fr: "communauté" },
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
@@ -127,7 +129,7 @@ const T = {
   en: {
     boardTitle: "The leaderboard — mean score by variant",
     boardIntro:
-      "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. The community record engines cannot take these corner pins, so they appear on their own two grids further down, not on this one.",
+      "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. McGavin's C and Blackwood's C# appear here too, at the score their fixed scan path reaches before a corner pin dead-ends it, badged where they stall; the two-grid section below shows them running properly once the pins are gone.",
     ceiling: "5-clue record 464",
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
@@ -148,6 +150,7 @@ const T = {
     colScore: "mean",
     colDepth: "depth",
     cited: "cited, not run here",
+    stallsOnPins: "stalls on pins",
     busy: "Drawing…",
     strict: "strict",
     commTitle: "The community's record engines, run here",
@@ -158,11 +161,13 @@ const T = {
     commDepth: "depth reached",
     commThroughput: "throughput",
     collapseLabel: "The corner-pin collapse",
-    unpinnedTitle: "The unpinned grid — the fair head-to-head",
+    unpinnedTitle: "Same budget, same core: 60 s from scratch",
     unpinnedIntro:
-      "The same engines on the official pieces with only the mandatory centre clue pinned, so nothing dead-ends on an arbitrary corner. Every score is canonically rescored from the engine's own board, single core, 60 seconds. Read this as what one core buys in one minute from a cold start, not as each engine's ceiling: Blackwood's record 470 and McGavin's deep runs came from days on hundreds of cores, which a 60-second single-core budget cannot show. What it does show is that all four run properly here, which the pinned grid denied the two foreign engines.",
+      "The same engines on the official pieces with only the mandatory centre clue pinned, so nothing dead-ends on an arbitrary corner. Every score is canonically rescored from the engine's own board, single core, 60 seconds, cold start. This is a controlled-budget comparison, identical conditions for all four, not a contest of best strength: it shows how far each gets in one core-minute, not each engine's ceiling. The faint marker on the two foreign engines is their documented record, which needs long multi-core runs a 60-second budget cannot reach. What the grid does show is that all four run properly once the pins that break a fixed scan path are gone, which the pinned grid denied the two foreign engines.",
     unpinnedCaveat:
       "Throughput is labelled per engine (McGavin counts tiles, the others search-nodes) and is never compared across engines, because the units are not the same work. McGavin is built with its author's own ARM flags (native tuning and link-time optimisation).",
+    recordMarkerNote:
+      "The dashed line on each foreign engine marks its documented record (Blackwood ~470, McGavin a full 480 solve), which needs long multi-core runs a 60-second single-core budget cannot reach; Blackwood's own longer run on this same machine already rescored to 454.",
     collapsePanelTitle: "Pinned: the collapse, as a score",
     collapsePanelIntro:
       "The same two foreign engines on the study's pinned configuration. The bar is the canonical score their board reaches before the fixed scan path strands them; the faint bar behind is what the same engine reaches unpinned. The gap is the collapse.",
@@ -172,7 +177,7 @@ const T = {
   fr: {
     boardTitle: "Le classement — score moyen par variante",
     boardIntro:
-      "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Les moteurs record de la communauté ne peuvent prendre ces coins fixés ; ils figurent sur leurs deux grilles plus bas, pas sur celle-ci.",
+      "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Le C de McGavin et le C# de Blackwood y figurent aussi, au score que leur parcours figé atteint avant qu'un coin fixé ne le bloque, étiquetés là où ils calent ; la section à deux grilles plus bas les montre tourner correctement une fois les coins ôtés.",
     ceiling: "record 5 indices 464",
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
@@ -193,6 +198,7 @@ const T = {
     colScore: "moy.",
     colDepth: "prof.",
     cited: "cité, non exécuté ici",
+    stallsOnPins: "bloqué par les coins",
     busy: "Tracé…",
     strict: "strict",
     commTitle: "Les moteurs record de la communauté, exécutés ici",
@@ -203,11 +209,13 @@ const T = {
     commDepth: "profondeur atteinte",
     commThroughput: "débit",
     collapseLabel: "L'effondrement dû aux coins fixés",
-    unpinnedTitle: "La grille libre — la comparaison équitable",
+    unpinnedTitle: "Même budget, même cœur : 60 s à froid",
     unpinnedIntro:
-      "Les mêmes moteurs sur les pièces officielles avec le seul indice central obligatoire, si bien que rien ne se bloque sur un coin arbitraire. Chaque score est recalculé canoniquement depuis le plateau du moteur, un cœur, 60 secondes. À lire comme ce qu'un cœur obtient en une minute à froid, non comme le plafond de chaque moteur : le record 470 de Blackwood et les runs profonds de McGavin venaient de jours sur des centaines de cœurs, qu'un budget d'une minute sur un cœur ne peut montrer. Ce que la grille montre : les quatre tournent correctement ici, ce que la grille fixée refusait aux deux moteurs étrangers.",
+      "Les mêmes moteurs sur les pièces officielles avec le seul indice central obligatoire, si bien que rien ne se bloque sur un coin arbitraire. Chaque score est recalculé canoniquement depuis le plateau du moteur, un cœur, 60 secondes, à froid. C'est une comparaison à budget contrôlé, conditions identiques pour les quatre, non un concours de force maximale : elle montre jusqu'où chacun va en une minute sur un cœur, pas le plafond de chaque moteur. Le repère pâle sur les deux moteurs étrangers est leur record documenté, qui exige de longs runs multi-cœurs qu'un budget d'une minute ne peut atteindre. Ce que la grille montre : les quatre tournent correctement une fois ôtés les coins fixés qui brisent un parcours figé, ce que la grille fixée refusait aux deux moteurs étrangers.",
     unpinnedCaveat:
       "Le débit est étiqueté par moteur (McGavin compte des tuiles, les autres des nœuds de recherche) et n'est jamais comparé entre moteurs, car les unités ne mesurent pas le même travail. McGavin est compilé avec les propres options ARM de son auteur (réglage natif et optimisation à l'édition de liens).",
+    recordMarkerNote:
+      "La ligne pointillée sur chaque moteur étranger marque son record documenté (Blackwood ~470, McGavin une résolution complète à 480), qui exige de longs runs multi-cœurs qu'un budget d'une minute sur un cœur ne peut atteindre ; le propre run plus long de Blackwood sur cette même machine atteignait déjà 454.",
     collapsePanelTitle: "Fixé : l'effondrement, en score",
     collapsePanelIntro:
       "Les deux mêmes moteurs étrangers sur la configuration fixée de l'étude. La barre est le score canonique que leur plateau atteint avant que le parcours figé ne les bloque ; la barre pâle derrière est ce que le même moteur atteint sans coins fixés. L'écart est l'effondrement.",
@@ -224,7 +232,6 @@ function npsNum(nps: number | null | undefined): string {
 export function DfsStudyLeaderboard() {
   const t = useT(T);
   const { lang } = useLang();
-  const isClient = useIsClient();
 
   // Scored variants, best-first, for the leaderboard and stat panels.
   const scored = useMemo(
@@ -246,6 +253,17 @@ export function DfsStudyLeaderboard() {
     [],
   );
 
+  // The unpinned rows, best-first, each carrying `recordScore` (its documented
+  // record, faded behind the measured bar) so the chart data and the coloured
+  // cells stay in one order.
+  const unpinnedSorted = useMemo(
+    () =>
+      (D.unpinned?.rows ?? [])
+        .map((r) => ({ ...r, recordScore: r.record?.score ?? null }))
+        .sort((a, b) => b.score - a.score),
+    [],
+  );
+
   const familyLabel = (f: string) => FAMILY[f]?.[lang] ?? f;
 
   return (
@@ -254,79 +272,38 @@ export function DfsStudyLeaderboard() {
       <section>
         <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.boardIntro}</p>
-        <div className="mt-4 h-[520px] w-full">
-          {isClient ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                layout="vertical"
-                data={scored}
-                margin={{ top: 8, right: 56, bottom: 8, left: 8 }}
-              >
-                <XAxis
-                  type="number"
-                  domain={[0, 480]}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="display"
-                  width={150}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  cursor={{ fill: "currentColor", opacity: 0.06 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const v = payload[0]?.payload as Variant | undefined;
-                    if (!v) return null;
-                    return (
-                      <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                        <div className="font-semibold">{v.display}</div>
-                        <div className="mt-1 text-muted-foreground">
-                          {familyLabel(v.family)} · {v.breaks}
-                        </div>
-                        <div className="mt-1">
-                          mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
-                        </div>
-                        <div className="text-muted-foreground">
-                          depth {v.max_depth} · {npsNum(v.median_nps)} {v.nps_unit}
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-                <ReferenceLine
-                  x={D.community_5clue_record}
-                  stroke="currentColor"
-                  strokeDasharray="4 4"
-                  className="text-muted-foreground"
-                  label={{
-                    value: t.ceiling,
-                    position: "top",
-                    fontSize: 10,
-                    fill: "currentColor",
-                  }}
-                />
-                <Bar dataKey="mean" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  {scored.map((v) => (
-                    <Cell key={v.name} fill={familyFill(v.family)} />
-                  ))}
-                  <LabelList
-                    dataKey="mean"
-                    position="right"
-                    fontSize={11}
-                    className="fill-foreground"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t.busy}
-            </div>
-          )}
+        <div className="mt-4">
+          <HorizontalScoreChart
+            rows={scored}
+            valueKey="mean"
+            domainMax={480}
+            colorOf={(v) => familyFill(v.family)}
+            barLabel={(v) => (v.collapsed ? `${v.mean} · ${t.stallsOnPins}` : `${v.mean}`)}
+            referenceLines={[{ x: D.community_5clue_record, label: t.ceiling }]}
+            busyLabel={t.busy}
+            tooltip={(v) => (
+              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                <div className="font-semibold">{v.display}</div>
+                <div className="mt-1 text-muted-foreground">
+                  {familyLabel(v.family)} · {v.breaks}
+                </div>
+                <div className="mt-1">
+                  {v.collapsed ? (
+                    <>
+                      {v.mean} {t.of} · {t.stallsOnPins}
+                    </>
+                  ) : (
+                    <>
+                      mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
+                    </>
+                  )}
+                </div>
+                <div className="text-muted-foreground">
+                  depth {v.max_depth} · {npsNum(v.median_nps)} {v.nps_unit}
+                </div>
+              </div>
+            )}
+          />
         </div>
         <FamilyLegend lang={lang} />
       </section>
@@ -338,76 +315,27 @@ export function DfsStudyLeaderboard() {
 
         {/* Depth reached vs the 256-cell ceiling, coloured by family, with the
             strict-backtracking wall marked. Breaks are the only family past it. */}
-        <div className="mt-4 h-[520px] w-full">
-          {isClient ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                layout="vertical"
-                data={byDepth}
-                margin={{ top: 16, right: 40, bottom: 8, left: 8 }}
-              >
-                <XAxis
-                  type="number"
-                  domain={[0, 256]}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="display"
-                  width={150}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  cursor={{ fill: "currentColor", opacity: 0.06 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const v = payload[0]?.payload as Variant | undefined;
-                    if (!v) return null;
-                    return (
-                      <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                        <div className="font-semibold">{v.display}</div>
-                        <div className="mt-1">
-                          {t.depthReached} {v.max_depth} / 256
-                        </div>
-                        <div className="text-muted-foreground">
-                          {familyLabel(v.family)} · mean {v.mean}
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-                <ReferenceLine
-                  x={STRICT_WALL}
-                  stroke="currentColor"
-                  strokeDasharray="4 4"
-                  className="text-muted-foreground"
-                  label={{
-                    value: t.strictWall,
-                    position: "top",
-                    fontSize: 10,
-                    fill: "currentColor",
-                  }}
-                />
-                <Bar dataKey="max_depth" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  {byDepth.map((v) => (
-                    <Cell key={v.name} fill={familyFill(v.family)} />
-                  ))}
-                  <LabelList
-                    dataKey="max_depth"
-                    position="right"
-                    fontSize={11}
-                    className="fill-foreground"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t.busy}
-            </div>
-          )}
+        <div className="mt-4">
+          <HorizontalScoreChart
+            rows={byDepth}
+            valueKey="max_depth"
+            domainMax={256}
+            colorOf={(v) => familyFill(v.family)}
+            barLabel={(v) => (v.collapsed ? `${v.max_depth} · ${t.stallsOnPins}` : `${v.max_depth}`)}
+            referenceLines={[{ x: STRICT_WALL, label: t.strictWall }]}
+            busyLabel={t.busy}
+            tooltip={(v) => (
+              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                <div className="font-semibold">{v.display}</div>
+                <div className="mt-1">
+                  {t.depthReached} {v.max_depth} / 256
+                </div>
+                <div className="text-muted-foreground">
+                  {familyLabel(v.family)} · mean {v.mean}
+                </div>
+              </div>
+            )}
+          />
         </div>
         <FamilyLegend lang={lang} />
 
@@ -493,71 +421,57 @@ export function DfsStudyLeaderboard() {
             <div>
               <h4 className="text-sm font-semibold tracking-tight">{t.unpinnedTitle}</h4>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.unpinnedIntro}</p>
-              <div className="mt-4 h-[300px] w-full">
-                {isClient ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      layout="vertical"
-                      data={[...D.unpinned.rows].sort((a, b) => b.score - a.score)}
-                      margin={{ top: 8, right: 56, bottom: 8, left: 8 }}
-                    >
-                      <XAxis
-                        type="number"
-                        domain={[0, 480]}
-                        tick={{ fontSize: 11, fill: "currentColor" }}
-                        className="text-muted-foreground"
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="display"
-                        width={150}
-                        tick={{ fontSize: 11, fill: "currentColor" }}
-                        className="text-muted-foreground"
-                      />
-                      <Tooltip
-                        cursor={{ fill: "currentColor", opacity: 0.06 }}
-                        content={({ active, payload }) => {
-                          if (!active || !payload?.length) return null;
-                          const r = payload[0]?.payload as UnpinnedRow | undefined;
-                          if (!r) return null;
-                          return (
-                            <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                              <div className="font-semibold">{r.display}</div>
-                              <div className="mt-1">
-                                {r.score} {t.of}
-                              </div>
-                              <div className="text-muted-foreground">
-                                {r.max_depth != null ? `depth ${r.max_depth} · ` : ""}
-                                {r.throughput}
-                              </div>
-                            </div>
-                          );
-                        }}
-                      />
-                      <ReferenceLine
-                        x={D.community_5clue_record}
-                        stroke="currentColor"
-                        strokeDasharray="4 4"
-                        className="text-muted-foreground"
-                        label={{ value: t.ceiling, position: "top", fontSize: 10, fill: "currentColor" }}
-                      />
-                      <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                        {[...D.unpinned.rows]
-                          .sort((a, b) => b.score - a.score)
-                          .map((r) => (
-                            <Cell key={r.name} fill={familyFill(r.family)} />
-                          ))}
-                        <LabelList dataKey="score" position="right" fontSize={11} className="fill-foreground" />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    {t.busy}
-                  </div>
-                )}
+              <div className="mt-4">
+                <HorizontalScoreChart
+                  rows={unpinnedSorted}
+                  valueKey="score"
+                  domainMax={480}
+                  height={320}
+                  colorOf={(r) => familyFill(r.family)}
+                  busyLabel={t.busy}
+                  referenceLines={[
+                    { x: D.community_5clue_record, label: t.ceiling },
+                    ...unpinnedSorted
+                      .filter((r) => r.recordScore != null)
+                      .map((r, i) => ({
+                        x: r.recordScore as number,
+                        color: familyFill(r.family),
+                        opacity: 0.7,
+                        label: `${r.display.replace(/\s*\(.*\)/, "")} ${r.recordScore}`,
+                        labelPosition:
+                          i % 2 === 0
+                            ? ("insideTopRight" as const)
+                            : ("insideBottomRight" as const),
+                        angle: -90,
+                      })),
+                  ]}
+                  tooltip={(r) => (
+                    <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                      <div className="font-semibold">{r.display}</div>
+                      <div className="mt-1">
+                        {r.score} {t.of}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {r.max_depth != null ? `depth ${r.max_depth} · ` : ""}
+                        {r.throughput}
+                      </div>
+                      {r.record && (
+                        <div className="mt-1 text-muted-foreground">
+                          {r.record.label}: {r.record.score}
+                        </div>
+                      )}
+                      {r.longer_run_here && (
+                        <div className="text-muted-foreground">
+                          {r.longer_run_here.score} {r.longer_run_here.note}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                />
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.unpinnedCaveat}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {t.recordMarkerNote} {t.unpinnedCaveat}
+              </p>
               {/* Per-row throughput and note, with unit labels kept explicit. */}
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[560px] border-collapse text-sm">
@@ -655,7 +569,9 @@ function CollapseBar({
   unpinnedLabel: string;
   pinnedLabel: string;
 }) {
-  const fill = familyFill("community");
+  // McGavin and Blackwood are break-DFS engines, so their bars wear the break
+  // colour, like every other break variant on the page.
+  const fill = familyFill("break");
   const pct = (v: number | null) => (v == null ? 0 : Math.max(1.5, (v / max) * 100));
   return (
     <div>
