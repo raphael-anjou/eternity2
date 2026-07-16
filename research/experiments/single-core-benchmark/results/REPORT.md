@@ -4,7 +4,7 @@
 
 **Diversity axis = the puzzle.** Each algorithm solves the SAME 10 instances (official E2 + 3 pinned corners, distinct corner arrangements). The score spread across the 10 variants is the reported distribution.
 
-**Scoring:** every run emits a bucas `.url`; score is the canonical matched-edge count (max 480), the single source of truth (engines' self-reports are never trusted).
+**Scoring:** every run emits one canonical board `.json` (in `boards/`, each carrying an eternity2.dev viewer URL); score is the canonical matched-edge count (max 480), the single source of truth (engines' self-reports are never trusted).
 
 **Repro:** git `22e5be1`, seed 1.
 
@@ -53,23 +53,23 @@ Throughput (`nps`) is the engine's NATIVE unit -- search-nodes/s for every engin
 
 ## Best board found per algorithm
 
-| algorithm | best score | bucas url |
+| algorithm | best score | board file |
 |:--|---:|:--|
-| `verhaard` | 451 | `verhaard__v03.url` |
-| `blackwood` | 440 | `blackwood__v00.url` |
-| `naive_rowmajor` | 380 | `naive_rowmajor__v04.url` |
-| `border_first_lcv` | 349 | `border_first_lcv__v01.url` |
-| `rare_color_first` | 349 | `rare_color_first__v01.url` |
-| `joe_depth150` | 249 | `joe_depth150__v01.url` |
-| `joe_depth150_bp` | 249 | `joe_depth150_bp__v01.url` |
-| `border_first_full` | 344 | `border_first_full__v01.url` |
-| `gacolor_ac3_lcv` | 145 | `gacolor_ac3_lcv__v09.url` |
-| `gacolor_ac3_random` | 160 | `gacolor_ac3_random__v01.url` |
-| `naive_spiral` | 91 | `naive_spiral__v01.url` |
-| `gacolor_ac3` | 96 | `gacolor_ac3__v02.url` |
-| `gacolor_ac3_ns1` | 96 | `gacolor_ac3_ns1__v02.url` |
-| `verhaard_preferred` | 96 | `verhaard_preferred__v02.url` |
-| `border_first_random` | 43 | `border_first_random__v04.url` |
+| `verhaard` | 451 | `verhaard__v03.json` |
+| `blackwood` | 440 | `blackwood__v00.json` |
+| `naive_rowmajor` | 380 | `naive_rowmajor__v04.json` |
+| `border_first_lcv` | 349 | `border_first_lcv__v01.json` |
+| `rare_color_first` | 349 | `rare_color_first__v01.json` |
+| `joe_depth150` | 249 | `joe_depth150__v01.json` |
+| `joe_depth150_bp` | 249 | `joe_depth150_bp__v01.json` |
+| `border_first_full` | 344 | `border_first_full__v01.json` |
+| `gacolor_ac3_lcv` | 145 | `gacolor_ac3_lcv__v09.json` |
+| `gacolor_ac3_random` | 160 | `gacolor_ac3_random__v01.json` |
+| `naive_spiral` | 91 | `naive_spiral__v01.json` |
+| `gacolor_ac3` | 96 | `gacolor_ac3__v02.json` |
+| `gacolor_ac3_ns1` | 96 | `gacolor_ac3_ns1__v02.json` |
+| `verhaard_preferred` | 96 | `verhaard_preferred__v02.json` |
+| `border_first_random` | 43 | `border_first_random__v04.json` |
 
 ## Reproduction (native family)
 

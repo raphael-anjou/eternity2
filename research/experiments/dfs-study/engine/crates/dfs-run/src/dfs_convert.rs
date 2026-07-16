@@ -8,9 +8,9 @@
 //!
 //! All conversions round-trip through the one `Instance` type, so any blog
 //! engine's input can be fed to any other without a bespoke script. `url2json`
-//! is the migration path: it matches an edge-only viewer URL back against a
-//! piece set to recover the full placement, then writes the one canonical board
-//! document (with an eternity2.dev URL) that every algorithm now emits.
+//! matches an edge-only viewer URL back against a piece set to recover the full
+//! placement, then writes the one canonical board document (with an
+//! eternity2.dev URL) that every algorithm emits.
 
 use std::process::ExitCode;
 
