@@ -42,8 +42,9 @@ and are driven by the grid runner. There are two families by interface only:
 | native (naive + CSP presets) | 5–17 | `run_algo` (one binary, `--algo NAME`) | JSON |
 | standalone strong engines (`producer`, `blackwood`, `verhaard`, `alns`) | 1–4 | one binary each, driven by `scripts/run_standalone.sh` | CSV |
 
-Both speak the same puzzle-in / bucas-`.url`-out contract, and every board is
-re-scored by the one canonical scorer (`verify_bucas`).
+Both speak the same puzzle-in / canonical-board-`.json`-out contract (each board
+document carries an eternity2.dev viewer URL), and every board is re-scored by
+the one canonical scorer (`verify_bucas`).
 
 ## Layout
 
@@ -57,7 +58,7 @@ single-core-benchmark/
 ├── variants/            the 10 corner-pinned puzzles: variant_NN.json (native)
 │                        + variant_NN.csv (strong engines) + manifest.json
 ├── results/             results.jsonl (170 runs), results.csv, run_meta.json,
-│   └── urls/            REPORT.md, and one bucas .url per run
+│   └── boards/          REPORT.md, and one canonical board .json per run
 └── scripts/
     ├── run_grid.py      the grid runner (reads solvers.toml)
     ├── run_standalone.sh   wrapper that drives the 4 strong-engine binaries
@@ -85,7 +86,7 @@ cargo build --release --manifest-path engine/Cargo.toml
 # one native algorithm, one variant (see the full registry with `--list`)
 engine/target/release/run_algo \
   --puzzle variants/variant_00.json --algo border_first_lcv \
-  --seed 1 --budget-ms 60000 --emit /tmp/board.url
+  --seed 1 --budget-ms 60000 --emit /tmp/board.json
 
 # the whole grid (17 algos × 10 variants) + report + site JSON
 python3 scripts/run_grid.py --variants variants --out results/rerun \
@@ -114,8 +115,9 @@ sub-20 s budget cuts it off and it reports 0, so give the strong engines the ful
   cells, so all ten share the 256-piece set + 5 clue hints but differ in 3 corner
   constraints. Emitted as both site-schema JSON (native) and CSV (standalone)
   from one generator — identical instances for every algorithm.
-- **One scorer.** Every run emits a bucas `.url`; the score is the canonical
-  matched-edge count (max 480), never the engine's self-report.
+- **One scorer.** Every run emits one canonical board `.json` (carrying an
+  eternity2.dev viewer URL); the score is the canonical matched-edge count
+  (max 480), never the engine's self-report.
 - **Single core.** `RAYON_NUM_THREADS=1`; the native presets are single-core by
   construction.
 
