@@ -12,7 +12,7 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
-use bench_grid::{algos, algos::RunParams, SiteInstance};
+use bench_grid::{algos, algos::RunParams, SiteInstance, SiteInstanceExt};
 
 fn main() {
     let mut puzzle: Option<PathBuf> = None;

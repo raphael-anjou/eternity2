@@ -31,6 +31,22 @@ pub struct SiteInstance {
     pub hints: Vec<SiteHint>,
 }
 
+impl SiteInstance {
+    /// Number of cells on the board (`width * height`).
+    #[must_use]
+    pub fn cell_count(&self) -> usize {
+        self.width as usize * self.height as usize
+    }
+
+    /// Maximum matched-edge score for a square board: `2wh - w - h`
+    /// (480 for the official 16×16).
+    #[must_use]
+    pub fn max_score(&self) -> u32 {
+        let (w, h) = (u32::from(self.width), u32::from(self.height));
+        2 * w * h - w - h
+    }
+}
+
 impl From<SiteInstance> for Instance {
     fn from(s: SiteInstance) -> Self {
         Instance {

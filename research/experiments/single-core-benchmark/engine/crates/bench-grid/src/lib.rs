@@ -32,33 +32,13 @@ pub mod algos;
 
 pub const BORDER: u8 = 0;
 
-/// A puzzle instance in the **site schema** (`eternity2-engine::Puzzle`).
-///
-/// This is the wire format the whole grid speaks. `camelCase` field renames
-/// match the site's serde derive so a `SiteInstance` round-trips through the
-/// site's `Puzzle` type unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SiteInstance {
-    pub name: String,
-    pub width: u8,
-    pub height: u8,
-    /// Number of interior colors (border color 0 excluded).
-    pub num_colors: u8,
-    /// Piece edges at rotation 0, URDL, indexed by piece id.
-    pub pieces: Vec<[u8; 4]>,
-    /// Pinned placements (the 5 official clues + any corner pins).
-    pub hints: Vec<SiteHint>,
-}
-
-/// A pinned placement: piece `piece` at cell `pos`, clockwise rotation `rot`.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SiteHint {
-    pub pos: u16,
-    pub piece: u16,
-    pub rot: u8,
-}
+/// The puzzle instance wire schema is the *one* shared definition in `e2-io`
+/// (`SiteInstance` / `SiteHint`), so the studies and this benchmark cannot drift
+/// on the format. The benchmark-specific behaviour — loading the official CSV
+/// and converting to this workspace's `eternity2_core` types — lives in the
+/// [`SiteInstanceExt`] trait below, which is why `e2-io` can stay free of any
+/// engine dependency.
+pub use e2_io::{SiteHint, SiteInstance};
 
 /// What every solver returns. `board` is row-major `piece*4 + rot` (`-1` empty).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,22 +51,26 @@ pub struct SolveOutput {
     pub url: String,
 }
 
-impl SiteInstance {
-    pub fn cell_count(&self) -> usize {
-        self.width as usize * self.height as usize
-    }
+/// Benchmark-local behaviour on the shared [`SiteInstance`]: everything that
+/// touches this workspace's `eternity2_core` types (which `e2-io` deliberately
+/// knows nothing about). Bring it into scope with `use bench_grid::SiteInstanceExt`.
+pub trait SiteInstanceExt {
+    /// Load the official puzzle + its 5 clue hints from the canonical CSV,
+    /// re-expressed in the site schema. The base every variant pins corners onto.
+    fn official<P: AsRef<Path>>(csv: P) -> Result<SiteInstance, String>;
+    /// Convert to the `eternity2_core::Puzzle` every native engine consumes.
+    fn to_core_puzzle(&self) -> Puzzle;
+    /// Convert the hints to the core `Hints`.
+    fn to_core_hints(&self) -> eternity2_core::Hints;
+    /// Build a [`SolveOutput`] from a row-major `piece*4 + rot` board (`-1`
+    /// empty): canonically scored, carrying the eternity2.dev viewer URL.
+    fn finish(&self, board: Vec<i32>) -> SolveOutput;
+    /// Build the canonical [`e2_io::BoardDoc`] for a `piece*4 + rot` board.
+    fn to_doc(&self, board: &[i32], board_hash: u64) -> e2_io::BoardDoc;
+}
 
-    /// Max matched-edge score: `2wh - w - h` (480 for 16x16).
-    pub fn max_score(&self) -> u32 {
-        let (w, h) = (self.width as u32, self.height as u32);
-        2 * w * h - w - h
-    }
-
-    /// Load the official puzzle + its 5 clue hints from the canonical CSV
-    /// (`data/puzzles/size_16_official_eternity.csv`) via the shared loader,
-    /// then re-express it in the site schema. This is the base every variant
-    /// pins corners onto.
-    pub fn official<P: AsRef<Path>>(csv: P) -> Result<Self, String> {
+impl SiteInstanceExt for SiteInstance {
+    fn official<P: AsRef<Path>>(csv: P) -> Result<Self, String> {
         let (puzzle, hints) =
             eternity2_puzzle_io::load_puzzle_with_hints(csv).map_err(|e| format!("{e:?}"))?;
         let mut pieces = vec![[0u8; 4]; puzzle.pieces().len()];
@@ -118,7 +102,7 @@ impl SiteInstance {
     }
 
     /// Convert to the v2 `eternity2_core::Puzzle` every native engine consumes.
-    pub fn to_core_puzzle(&self) -> Puzzle {
+    fn to_core_puzzle(&self) -> Puzzle {
         let pieces = self
             .pieces
             .iter()
@@ -137,7 +121,7 @@ impl SiteInstance {
     }
 
     /// Convert the hints to the v2 core `Hints`.
-    pub fn to_core_hints(&self) -> eternity2_core::Hints {
+    fn to_core_hints(&self) -> eternity2_core::Hints {
         let hints = self
             .hints
             .iter()
@@ -153,7 +137,7 @@ impl SiteInstance {
     /// Build a [`SolveOutput`] from a row-major `piece*4 + rot` board (`-1`
     /// empty). Scores it canonically and renders the bucas URL — the uniform
     /// output contract for every solver.
-    pub fn finish(&self, board: Vec<i32>) -> SolveOutput {
+    fn finish(&self, board: Vec<i32>) -> SolveOutput {
         let cells = board_to_cells(self, &board);
         let score = score_cells(self, &cells);
         let url = cells_to_bucas_url(self, &cells, &board);
@@ -163,7 +147,7 @@ impl SiteInstance {
     /// Build the canonical [`e2_io::BoardDoc`] for a row-major `piece*4 + rot`
     /// board (`-1` empty). Scores it canonically and carries the eternity2.dev
     /// viewer URL. `board_hash` is a caller-supplied stable fingerprint.
-    pub fn to_doc(&self, board: &[i32], board_hash: u64) -> e2_io::BoardDoc {
+    fn to_doc(&self, board: &[i32], board_hash: u64) -> e2_io::BoardDoc {
         let cells = board_to_cells(self, board);
         let score = score_cells(self, &cells);
         e2_io::BoardDoc::new(
