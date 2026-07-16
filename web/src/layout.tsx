@@ -130,7 +130,7 @@ export default function Layout() {
       <FirstVisitRedirect />
       <MotifDefs />
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:gap-6 sm:px-4">
+        <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-3 py-3 sm:gap-6 sm:px-4">
           <NavLink to={link("/")} className="flex shrink-0 items-center gap-2 font-bold tracking-tight">
             <svg viewBox="-130 -130 260 260" width="28" height="28" aria-hidden>
               <use href="#e2m-9" transform="rotate(90)" />
@@ -183,7 +183,7 @@ export default function Layout() {
         </div>
         {menuOpen && (
           <nav className="border-t md:hidden">
-            <div className="mx-auto flex max-w-6xl flex-col gap-1 px-3 py-2">
+            <div className="mx-auto flex max-w-[90rem] flex-col gap-1 px-3 py-2">
               {t.nav.map((item) => (
                 <NavLink
                   key={item.to}
@@ -207,7 +207,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto max-w-[90rem] px-4 py-8">
         <Outlet />
       </main>
 
