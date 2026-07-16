@@ -73,11 +73,23 @@ Single core, 120 seconds, all five official clues pinned:
 - All five clues respected (a strict clue solution), 42 broken edges, at roughly
   40 million nodes a second.
 
+The run and its output board are committed in the engine's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
+and `just experiments single-core-benchmark` reruns it, so the 438 is checkable
+rather than asserted. This is the five-clue instance, a harder puzzle than the
+corner-pinned variants the [leaderboard](/research/lab/experiments/single-core-benchmark)
+scores, where the same engine reaches a best of 451.
+
 It found 438 within about twelve seconds and then plateaued for the rest of the
-budget: a genuine local optimum for that seed and time. That is the same ballpark
-as the other [engine](/research/lab/experiments/raphael-anjou/engines) results on
-the corner-pinned variants, and it is the only one of the three community engines
-here that solves the real, constrained puzzle well rather than an easier version
-of it: [Blackwood](/research/lab/experiments/joshua-blackwood/solver) stalls near
-45 with the clues pinned, and [McGavin](/research/lab/experiments/peter-mcgavin/backtracker)
-reaches about 204 pieces deep but by a different measure.
+budget: a genuine local optimum for that seed and time. It is the only one of the
+three community reimplementations here that solves the real, five-clue puzzle well
+rather than an easier version of it, but the three are not measuring the same
+thing, so the comparison needs care.
+[Blackwood](/research/lab/experiments/joshua-blackwood/solver) is measured on the
+same footing, matched edges with the clues pinned, and stalls near 45.
+[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) is not: its figure
+is a placement *depth* (about 204 of 256 pieces reached), not a matched-edge score,
+so it cannot be read on the same axis as the 438 here, and the two numbers are not
+directly comparable. What the three share is only the verdict that the constrained
+puzzle is far harder than the unconstrained one; the numbers behind that verdict
+are on different scales.

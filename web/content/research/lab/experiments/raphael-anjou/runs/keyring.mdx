@@ -74,7 +74,7 @@ the same path.
 
 ## The board
 
-<RecordBoard id="v181-keyring-460" />
+<RecordBoard id="keyring-460" />
 
 ## The result
 
@@ -113,6 +113,12 @@ injected randomness stops the $W$ beams from collapsing onto one path, which
 is what let KEYRING reach a *new* corner family rather than re-deriving a known
 board. Patches pack into a `u64` key (piece ≤ 8 bits, rotation 2 bits, ×4
 cells = 40 bits) so the prior lookup is a hash hit.
+
+As with [PRIOR](/research/lab/experiments/raphael-anjou/runs/prior), the beam
+build reaches the high 450s on its own; the committed 460 board takes that
+construction and a local-refinement tail on top, the same construct-then-refine
+split the record pipelines use. The three signals are what carry the *construction*
+into a fresh family; the last few edges are the refinement's.
 
 One limit worth stating: the priors are learned from a corpus that is itself
 sub-perfect, so they encode the community's ceiling as much as its wisdom:
