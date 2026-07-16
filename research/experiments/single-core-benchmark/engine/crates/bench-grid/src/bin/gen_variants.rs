@@ -13,7 +13,7 @@
 //! `manifest.json` recording the exact arrangement of each variant for
 //! reproducibility.
 
-use bench_grid::{rotated, SiteHint, SiteInstance, BORDER};
+use bench_grid::{rotated, SiteHint, SiteInstance, SiteInstanceExt, BORDER};
 use serde::Serialize;
 
 // The official 16x16 puzzle CSV, resolved at build time relative to this crate

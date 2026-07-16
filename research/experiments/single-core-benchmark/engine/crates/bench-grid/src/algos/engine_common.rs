@@ -3,7 +3,7 @@
 //! the opts wiring, MaxScore objective, stats capture, and board extraction
 //! live ONCE, here.
 
-use crate::{core_board_to_vec, SiteInstance};
+use crate::{core_board_to_vec, SiteInstance, SiteInstanceExt};
 use eternity2_events::{EventBody, EventSink, FinalStats, SolverEvent};
 use eternity2_solver_trait::{Objective, SolveMode, SolveOpts, SolveOutcome, Solver};
 
