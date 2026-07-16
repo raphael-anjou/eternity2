@@ -1127,3 +1127,32 @@ those 5 experiments mine). Links to the GitHub tree for downloads (repo is the
 delivery mechanism, matching how other backing dirs are linked). Verified: research
 style/links/citations/hardware, typecheck, lint, build all green; page prerenders
 with .md export. `python3 research/datasets/build/build_dataset.py` rebuilds it.
+
+---
+
+## 2026-07-16 — Clue puzzle pieces as machine-readable downloads (+ a consistency fix)
+
+Follow-up to the dataset: the clue-puzzles page already offered each clue's pieces
+as a per-piece SVG zip (visual), but not as solver-ready DATA. Added a second
+"Pieces (.json)" download button per clue in CluePuzzlePieces.tsx, next to the
+existing SVG one, generating the exact dataset instance schema
+(id/family/width/height/numColors/pieces URDL/hints/maxScore) client-side from the
+component's own piece data. Exported downloadBlob from pieceSvg.ts to reuse it.
+
+Found and fixed a real consistency bug in the process. The dataset builder's clue
+parser used raw colour numbers from the source .txt files (jwortmann's clue3/4
+leave gaps and run up to 22), while the site's clue-puzzle-pieces.ts compacts
+colours to a dense 0..k. So the published dataset and the site DISAGREED on the
+clue piece definitions (same puzzles, different colour numbering). Verified against
+the authoritative topic solver (compute/src/main.rs), which does the same first-seen
+compaction, that compacting makes the raw parse EXACTLY equal the site data for all
+four clues. Updated the builder to compact identically; now dataset == site data,
+and the in-browser JSON download byte-matches the committed instance file for all
+four clues (verified). Also gave instance files a trailing newline (via a write_json
+helper) so file and download agree byte for byte.
+
+Net: the 16x16 instances changed only by a trailing newline; the 4 clue instances
+got the corrected (compacted) colour numbering; the corpus is unchanged (still 1,078
+boards, 28 families) and its zip re-verified provenance-clean. Prose on the
+clue-puzzles page updated to mention the data download. typecheck/lint/style/links/
+build all green; both buttons render for all four clues in the prerendered page.

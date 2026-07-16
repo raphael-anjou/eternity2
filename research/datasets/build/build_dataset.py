@@ -41,6 +41,13 @@ OUT_CORPUS = os.path.join(OUT, "corpus")
 W = H = 16
 
 
+def write_json(obj, path):
+    """Write pretty JSON with a trailing newline, so an instance file matches the
+    site's in-browser download of the same record byte for byte."""
+    with open(path, "w") as fh:
+        fh.write(json.dumps(obj, indent=2) + "\n")
+
+
 # --------------------------------------------------------------------------
 # canonical scorer: matched interior edges from a URDL edge string
 # 4 lowercase letters per cell, row-major, order up/right/down/left, 'a' = rim.
@@ -205,7 +212,7 @@ def build_instances():
             "maxScore": d["width"] * (d["height"] - 1) + d["height"] * (d["width"] - 1),
         }
         out = os.path.join(OUT_INSTANCES, f"{rec['id']}.json")
-        json.dump(rec, open(out, "w"), indent=2)
+        write_json(rec, out)
         manifest.append({"id": rec["id"], "family": rec["family"], "size": f"{d['width']}x{d['height']}", "pieces": len(d["pieces"]), "hints": len(rec["hints"]), "maxScore": rec["maxScore"]})
 
     # the 4 clue sub-puzzles (piece lists already in-repo). Normalize to the same schema.
@@ -219,15 +226,25 @@ def build_instances():
         path = os.path.join(CLUE_SRC, "data", fname)
         if not os.path.exists(path):
             continue
-        pieces = []
+        raw = []
         for line in open(path):
-            parts = line.split()
-            if not parts:
-                continue
-            nums = [int(x) for x in parts]
-            # tolerate a leading index column: keep the last 4 as URDL colours
-            pieces.append(nums[-4:])
-        ncol = max((max(p) for p in pieces), default=0) + 1
+            nums = [int(x) for x in line.split()]
+            # 5 columns => leading piece id then URDL; 4 columns => URDL already.
+            if len(nums) == 5:
+                raw.append(nums[1:5])
+            elif len(nums) == 4:
+                raw.append(nums[0:4])
+        # Compact colours to a dense 0..k (0 = grey rim), first-seen order. The
+        # source files number colours arbitrarily (jwortmann's clue3/4 leave gaps
+        # up to 22); this is the same compaction the clue-puzzle-pieces solver and
+        # the site's rendered piece data use, so the dataset agrees with both.
+        remap = {0: 0}
+        for p in raw:
+            for c in p:
+                if c not in remap:
+                    remap[c] = len(remap)
+        pieces = [[remap[c] for c in p] for p in raw]
+        ncol = len(remap)
         rec = {
             "id": f"e2-clue-{cid}",
             "family": "clue-subpuzzle",
@@ -238,7 +255,7 @@ def build_instances():
             "hints": [],
             "maxScore": cw * (ch - 1) + ch * (cw - 1),
         }
-        json.dump(rec, open(os.path.join(OUT_INSTANCES, f"{rec['id']}.json"), "w"), indent=2)
+        write_json(rec, os.path.join(OUT_INSTANCES, f"{rec['id']}.json"))
         manifest.append({"id": rec["id"], "family": rec["family"], "size": f"{cw}x{ch}", "pieces": len(pieces), "hints": 0, "maxScore": rec["maxScore"]})
 
     json.dump({"instances": manifest}, open(os.path.join(OUT_INSTANCES, "index.json"), "w"), indent=2)

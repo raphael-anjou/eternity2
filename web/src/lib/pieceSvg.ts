@@ -37,7 +37,7 @@ export function pieceToSvg(edges: Edges): string {
 }
 
 /** Trigger a browser download of a Blob under the given filename. */
-function downloadBlob(blob: Blob, filename: string): void {
+export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

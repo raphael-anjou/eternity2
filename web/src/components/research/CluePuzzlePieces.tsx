@@ -1,14 +1,15 @@
 // The four recovered clue puzzles: each solved board rendered with the real
 // Eternity II motifs (same BoardSvg the record boards use, so no flat-triangle
-// stand-ins and no clipped border), plus a download of the puzzle as one SVG
-// per piece — mirroring the main puzzle's affordance (/puzzle). Clues 1 & 2 come
-// from Le Bail's SHORTER solver, Clues 3 & 4 from jwortmann's Eternity2Puzzles.jl;
-// see research/topics/clue-puzzle-pieces for provenance and the solve.
+// stand-ins and no clipped border), plus two downloads per puzzle — the pieces as
+// solver-ready data (the dataset instance JSON) and as one SVG per piece,
+// mirroring the main puzzle's affordance (/puzzle). Clues 1 & 2 come from Le
+// Bail's SHORTER solver, Clues 3 & 4 from jwortmann's Eternity2Puzzles.jl; see
+// research/topics/clue-puzzle-pieces for provenance and the solve.
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BoardSvg } from "@/components/board/BoardSvg";
-import { downloadPiecesZip } from "@/lib/pieceSvg";
+import { downloadPiecesZip, downloadBlob } from "@/lib/pieceSvg";
 import {
   CLUE1_PIECES,
   CLUE2_PIECES,
@@ -31,16 +32,37 @@ interface Clue {
   pieces: Edges[];
   solved: ClueSolution;
   filename: string;
+  dataId: string;
 }
 
 const CLUES: Clue[] = [
-  { n: 1, label: "Clue Puzzle 1", dims: "36 pieces · 6×6", pieces: CLUE1_PIECES, solved: CLUE1_SOLVED, filename: "eternity2-clue-puzzle-1.svg.zip" },
-  { n: 2, label: "Clue Puzzle 2", dims: "72 pieces · 12×6", pieces: CLUE2_PIECES, solved: CLUE2_SOLVED, filename: "eternity2-clue-puzzle-2.svg.zip" },
-  { n: 3, label: "Clue Puzzle 3", dims: "36 pieces · 6×6", pieces: CLUE3_PIECES, solved: CLUE3_SOLVED, filename: "eternity2-clue-puzzle-3.svg.zip" },
-  { n: 4, label: "Clue Puzzle 4", dims: "72 pieces · 12×6", pieces: CLUE4_PIECES, solved: CLUE4_SOLVED, filename: "eternity2-clue-puzzle-4.svg.zip" },
+  { n: 1, label: "Clue Puzzle 1", dims: "36 pieces · 6×6", pieces: CLUE1_PIECES, solved: CLUE1_SOLVED, filename: "eternity2-clue-puzzle-1.svg.zip", dataId: "e2-clue-clue1" },
+  { n: 2, label: "Clue Puzzle 2", dims: "72 pieces · 12×6", pieces: CLUE2_PIECES, solved: CLUE2_SOLVED, filename: "eternity2-clue-puzzle-2.svg.zip", dataId: "e2-clue-clue2" },
+  { n: 3, label: "Clue Puzzle 3", dims: "36 pieces · 6×6", pieces: CLUE3_PIECES, solved: CLUE3_SOLVED, filename: "eternity2-clue-puzzle-3.svg.zip", dataId: "e2-clue-clue3" },
+  { n: 4, label: "Clue Puzzle 4", dims: "72 pieces · 12×6", pieces: CLUE4_PIECES, solved: CLUE4_SOLVED, filename: "eternity2-clue-puzzle-4.svg.zip", dataId: "e2-clue-clue4" },
 ];
 
-function DownloadButton({ pieces, filename }: { pieces: Edges[]; filename: string }) {
+/** The dataset instance record for a clue puzzle: the exact schema published in
+ *  research/datasets/instances/, built here from the same piece data the board
+ *  is drawn from, so the download matches the committed dataset byte for byte. */
+function instanceJson(clue: Clue): string {
+  const w = clue.solved.w;
+  const h = clue.solved.h;
+  const numColors = Math.max(0, ...clue.pieces.flat()) + 1;
+  const record = {
+    id: clue.dataId,
+    family: "clue-subpuzzle",
+    width: w,
+    height: h,
+    numColors,
+    pieces: clue.pieces,
+    hints: [] as never[],
+    maxScore: w * (h - 1) + h * (w - 1),
+  };
+  return JSON.stringify(record, null, 2) + "\n";
+}
+
+function SvgDownloadButton({ pieces, filename }: { pieces: Edges[]; filename: string }) {
   const [zipping, setZipping] = useState(false);
   return (
     <Button
@@ -59,7 +81,22 @@ function DownloadButton({ pieces, filename }: { pieces: Edges[]; filename: strin
         }, 0);
       }}
     >
-      {zipping ? "Preparing…" : "Download pieces (.zip)"}
+      {zipping ? "Preparing…" : "Pieces (.svg.zip)"}
+    </Button>
+  );
+}
+
+function DataDownloadButton({ clue }: { clue: Clue }) {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        const blob = new Blob([instanceJson(clue)], { type: "application/json" });
+        downloadBlob(blob, `${clue.dataId}.json`);
+      }}
+    >
+      Pieces (.json)
     </Button>
   );
 }
@@ -73,7 +110,10 @@ function ClueCard({ clue }: { clue: Clue }) {
           <span className="font-medium">{clue.label}</span>{" "}
           <span className="text-muted-foreground">· {clue.dims}</span>
         </span>
-        <DownloadButton pieces={clue.pieces} filename={clue.filename} />
+        <span className="flex flex-wrap gap-2">
+          <DataDownloadButton clue={clue} />
+          <SvgDownloadButton pieces={clue.pieces} filename={clue.filename} />
+        </span>
       </figcaption>
     </figure>
   );
