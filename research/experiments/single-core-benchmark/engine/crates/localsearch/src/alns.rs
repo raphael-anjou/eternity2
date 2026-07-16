@@ -1697,37 +1697,36 @@ impl AdaptiveWeights {
     pub fn weights(&self) -> &[f64] { &self.weights }
 }
 
-/// atomic write of a single best-board JSON checkpoint.
-/// Format mirrors what other bins emit (placement array +
-/// matched score). Overwrites the file each call.
-/// Encode a board as the viewer's `board_edges` (4 URDL letters/cell) and
-/// `board_pieces` (3-digit 1-based piece id/cell) strings — the same encoding
-/// `e2_io::viewer_url` produces, inlined here so localsearch keeps its zero
-/// external-serialization footprint.
-fn checkpoint_edges_pieces(puzzle: &Puzzle, board: &Board) -> (String, String) {
-    let color = |c: u8| -> char {
-        if c as usize > 22 { 'a' } else { (b'a' + c) as char }
-    };
+/// Extract a board's per-cell URDL edge quads and `piece*4 + rot` codes — the
+/// two plain-data inputs `e2_io::BoardDoc` builds every derived format from.
+fn checkpoint_cells_codes(puzzle: &Puzzle, board: &Board) -> (Vec<[u8; 4]>, Vec<i32>) {
     let n = puzzle.cell_count();
-    let mut edges = String::with_capacity(n as usize * 4);
-    let mut pieces = String::with_capacity(n as usize * 3);
+    let mut cells = Vec::with_capacity(n as usize);
+    let mut codes = Vec::with_capacity(n as usize);
     for pos in 0..n {
-        match board.get(pos).and_then(|(pid, rot)| puzzle.piece(pid).map(|p| (pid, p.edges.rotated(rot)))) {
-            Some((pid, e)) => {
-                for &c in &e.as_array() {
-                    edges.push(color(c));
-                }
-                pieces.push_str(&format!("{:03}", u32::from(pid) + 1));
+        match board
+            .get(pos)
+            .and_then(|(pid, rot)| puzzle.piece(pid).map(|p| (pid, rot, p.edges.rotated(rot))))
+        {
+            Some((pid, rot, e)) => {
+                cells.push(e.as_array());
+                codes.push(i32::from(pid) * 4 + i32::from(rot.as_u8()));
             }
             None => {
-                edges.push_str("aaaa");
-                pieces.push_str("000");
+                cells.push([0u8; 4]);
+                codes.push(-1);
             }
         }
     }
-    (edges, pieces)
+    (cells, codes)
 }
 
+/// Atomic write of a single rolling best-board checkpoint. The board itself is
+/// the canonical `e2_io::BoardDoc` (score, placement, hash, letter blobs, and an
+/// eternity2.dev viewer URL), so a snapshot opens straight in `/viewer` and is
+/// the same document every other bin emits — augmented with the two
+/// checkpoint-only progress fields (`iters`, `timestamp`) a rolling snapshot
+/// wants. Overwrites the file each call.
 fn write_alns_checkpoint(
     puzzle: &Puzzle,
     board: &Board,
@@ -1736,38 +1735,33 @@ fn write_alns_checkpoint(
     path: &std::path::Path,
 ) {
     use std::io::Write;
-    let n = puzzle.cell_count();
-    // Build a JSON string by hand to avoid pulling serde_json into
-    // the localsearch crate (which currently has no serde_json dep).
-    // The checkpoint carries the canonical eternity2.dev viewer URL so a
-    // rolling snapshot opens straight in /viewer (no bucas default anywhere).
-    let (edges, pieces) = checkpoint_edges_pieces(puzzle, board);
-    let url = format!(
-        "https://eternity2.dev/viewer?puzzle=alns_checkpoint&puzzle_size={}&board_edges={}&board_pieces={}",
-        puzzle.width, edges, pieces
+    let (cells, codes) = checkpoint_cells_codes(puzzle, board);
+    // Max matched-edge score for a square board: 2wh - w - h.
+    let (w, h) = (puzzle.width, puzzle.height);
+    let max_score = 2 * w * h - w - h;
+    let doc = e2_io::BoardDoc::new(
+        "alns_checkpoint",
+        puzzle.width as u8,
+        score,
+        max_score,
+        &cells,
+        &codes,
+        e2_io::board_hash(&codes),
     );
-    let mut s = String::with_capacity(8192);
-    s.push_str(&format!(
-        "{{\n  \"matched\": {},\n  \"iters\": {},\n  \"timestamp\": \"{}\",\n  \"url\": \"{}\",\n  \"placement\": [\n",
-        score, iters,
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
-        url,
-    ));
-    let mut first = true;
-    for pos in 0..n {
-        if !first { s.push_str(",\n"); }
-        first = false;
-        if let Some((pid, rot)) = board.get(pos) {
-            s.push_str(&format!(
-                "    {{\"pos\": {}, \"piece_id\": {}, \"rotation\": {}}}",
-                pos, u32::from(pid), rot.as_u8()
-            ));
-        } else {
-            s.push_str("    null");
-        }
+    // Serialize the canonical doc, then splice in the checkpoint-only progress
+    // fields so nothing is lost from the rolling snapshot.
+    let mut value = serde_json::to_value(&doc).unwrap_or(serde_json::Value::Null);
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert("iters".into(), serde_json::json!(iters));
+        obj.insert(
+            "timestamp".into(),
+            serde_json::json!(std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0)),
+        );
     }
-    s.push_str("\n  ]\n}\n");
+    let s = serde_json::to_string_pretty(&value).unwrap_or_default();
     // Write atomically via tmp + rename.
     let tmp = path.with_extension("tmp");
     if let Ok(mut f) = std::fs::File::create(&tmp) {
