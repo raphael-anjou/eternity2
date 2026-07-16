@@ -1,24 +1,107 @@
 {
-  "_comment": "Measured on the M1 (single core, 60 s). Community record engines on their NATIVE instances — they cannot take the study's corner-pinned variants. See community.md. Reported in a panel separate from the from-scratch leaderboard.",
-  "engines": [
-    {
-      "name": "mcgavin-c",
-      "display": "MCGAVIN-C",
-      "language": "C",
-      "instance": "official 5-clue (its native build)",
-      "max_depth": 205,
-      "throughput": "109M tiles/s",
-      "note": "Strict backtracker; comparable to our strict wall (~208) on depth, ~3x our node throughput. Optimises for depth, not matched-edge score.",
-      "collapse": "Pinning our 3 corners collapses its fixed scan path 203 -> 21 (confirmed on multiple variants): the path never visits the corners early, so a pinned corner dead-ends it at once. This is why a fixed-scan-path engine can't take arbitrary pins."
-    },
-    {
-      "name": "blackwood-cs",
-      "display": "BLACKWOOD-CS",
-      "language": "C#",
-      "instance": "official 5-clue",
-      "max_depth": 34,
-      "throughput": "18.9M nodes/s",
-      "note": "Break-DFS whose record (470) was set on the 1-clue variant; its heuristic phase thrashes on the pinned 5-clue, reaching only ~34 of 256 cells in 60 s. Adapted to run (net8.0 retarget, one thread) — the search is unchanged."
-    }
+ "_comment": "Measured on the M1 (single core, 60 s). Every score is canonically rescored from the engine's own board output (community/canonical_rescore.py, validated to reproduce the known 469 board); engine self-reports are not trusted. Throughput is per-engine and never cross-compared. Rerun with community/run_community.sh then community/build_site_data.py.",
+ "engines": [
+  {
+   "name": "mcgavin-c",
+   "display": "MCGAVIN-C",
+   "language": "C",
+   "instance": "centre clue (unpinned grid)",
+   "score": 392,
+   "max_depth": 211,
+   "throughput": "85M tiles/s",
+   "note": "Codegen strict/break backtracker. On the centre-clue grid it reaches depth 207 (385 matched edges, canonically rescored) in 60 s. Optimises depth, not score.",
+   "collapse": "Adding the study's three corner pins collapses its fixed scan path to depth 21 (canonical score 13), confirmed on 2 pinned variants: the scan never reaches a corner early, so a pinned corner dead-ends it at once.",
+   "collapse_score": 13,
+   "collapse_depth": 21
+  },
+  {
+   "name": "blackwood-cs",
+   "display": "BLACKWOOD-CS",
+   "language": "C#",
+   "instance": "centre clue (unpinned grid)",
+   "score": 214,
+   "max_depth": 119,
+   "throughput": "9M search-nodes/s",
+   "note": "Break-DFS (net8.0 retarget, one thread; search unchanged). On the centre-clue grid it reaches depth 119 (214 matched edges) in 60 s.",
+   "collapse": "It hardcodes its piece set and scan, so it cannot express the study's arbitrary corner pins; the matching constrained test is the five official clues, where its heuristic phase thrashes to depth 47 (canonical score 75) in 60 s.",
+   "collapse_score": 75,
+   "collapse_depth": 47
+  }
+ ],
+ "unpinned": {
+  "hint": "centre clue only (piece 139 @ I8)",
+  "seeds": [
+   1,
+   7,
+   13
+  ],
+  "budget_s": 60,
+  "max_score": 480,
+  "rows": [
+   {
+    "name": "break-2",
+    "display": "break-2 (ours)",
+    "family": "break",
+    "kind": "engine",
+    "instance": "centre clue, 3 seeds",
+    "n": 3,
+    "score": 344,
+    "best": 344,
+    "worst": 344,
+    "placed": 192,
+    "max_depth": 192,
+    "throughput": "33M search-nodes/s",
+    "nps_unit": "search-nodes/s",
+    "note": "The DFS study's strongest break-family engine, as the from-scratch baseline the community engines are measured against on the same grid."
+   },
+   {
+    "name": "verhaard-reimpl",
+    "display": "Verhaard (our reimpl)",
+    "family": "community",
+    "kind": "reimpl",
+    "instance": "centre clue, 3 seeds",
+    "n": 3,
+    "score": 286,
+    "best": 286,
+    "worst": 286,
+    "placed": 172,
+    "max_depth": null,
+    "throughput": "8k search-nodes/s",
+    "nps_unit": "search-nodes/s",
+    "note": "Our comb-order reimplementation of the Verhaard search (the original binary is Win32-only). Runs on the JSON instance directly."
+   },
+   {
+    "name": "mcgavin-c",
+    "display": "McGavin (C)",
+    "family": "community",
+    "kind": "foreign",
+    "instance": "centre clue (seed-invariant, one run)",
+    "n": 1,
+    "score": 392,
+    "best": 385,
+    "worst": 385,
+    "placed": 207,
+    "max_depth": 211,
+    "throughput": "85M tiles/s",
+    "nps_unit": "tiles/s",
+    "note": "Its codegen backtracker specialises to the hint set; with only the centre clue it fills deep. Optimises depth, not matched-edge score."
+   },
+   {
+    "name": "blackwood-cs",
+    "display": "Blackwood (C#)",
+    "family": "community",
+    "kind": "foreign",
+    "instance": "centre clue (unseeded, one run)",
+    "n": 1,
+    "score": 214,
+    "best": 214,
+    "worst": 214,
+    "placed": 119,
+    "max_depth": 119,
+    "throughput": "9M search-nodes/s",
+    "nps_unit": "search-nodes/s",
+    "note": "Break-DFS. Reaches its plateau inside 60 s on a single centre clue; run to run it lands on the same depth."
+   }
   ]
+ }
 }
