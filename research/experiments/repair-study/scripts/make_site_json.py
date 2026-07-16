@@ -42,9 +42,19 @@ def read_curve(run_dir, curve_file):
     return [int(x) for x in txt.split(",") if x != ""]
 
 
+# The engine samples the best score every CURVE_STRIDE iterations (see
+# repair-engine::stats::CURVE_STRIDE), so raw-curve point i is at iteration
+# i * CURVE_STRIDE. We keep that true iteration when we downsample, so the site's
+# log-scale x-axis is labelled by real iteration count, not sample index.
+CURVE_STRIDE = 200
+
+
 def representative_curve(run_dir, runs):
-    """The curve of the run whose final score is the median — a typical run, not
-    the luckiest. Downsample to at most ~60 points so the JSON stays small."""
+    """The curve of the run whose final score is the median (a typical run, not the
+    luckiest), as [iteration, score] pairs. Downsampled to at most ~60 points so
+    the JSON stays small, but each point keeps its TRUE iteration so a log x-axis
+    reads correctly. The first point is at iteration 1 (not 0), since a log scale
+    cannot plot 0."""
     scored = [r for r in runs if r.get("score") is not None and r.get("curve_file")]
     if not scored:
         return None
@@ -53,10 +63,13 @@ def representative_curve(run_dir, runs):
     curve = read_curve(run_dir, mid["curve_file"])
     if not curve:
         return None
-    if len(curve) > 60:
-        step = len(curve) / 60.0
-        curve = [curve[min(int(i * step), len(curve) - 1)] for i in range(60)]
-    return curve
+    n = len(curve)
+    idxs = range(n) if n <= 60 else (min(int(i * (n / 60.0)), n - 1) for i in range(60))
+    pairs = []
+    for i in idxs:
+        it = i * CURVE_STRIDE
+        pairs.append([max(1, it), curve[i]])
+    return pairs
 
 
 def agg(run_dir, rows):

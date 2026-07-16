@@ -6,7 +6,6 @@ import {
   LabelList,
   Line,
   LineChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -62,10 +61,12 @@ type Variant = {
   median_ips?: number | null;
   ips_unit?: string;
   restarts?: number | null;
-  curve?: number[] | null;
+  // Convergence curve as [iteration, best-score] pairs (downsampled, true
+  // iteration preserved so a log x-axis reads correctly; first point at iter 1).
+  curve?: [number, number][] | null;
 };
 
-const D = data as {
+const D = data as unknown as {
   budget_s: number;
   seed: number;
   n_instances: number;
@@ -182,23 +183,25 @@ export function RepairStudyLeaderboard() {
     [],
   );
 
-  // The convergence-curve series, aligned on a shared iteration axis.
+  // The convergence-curve series. Each variant has its own [iter, score] pairs
+  // with independent iteration positions, so we give each Line its own data
+  // rather than merging on a shared index. Points are {iter, score}; the shared
+  // log x-axis spans the widest iteration range across the picks.
   const curveData = useMemo(() => {
     const picks = CURVE_KEYS.map((k) => D.variants.find((v) => v.name === k)).filter(
-      (v): v is Variant => !!v && !!v.curve,
+      (v): v is Variant => !!v && Array.isArray(v.curve) && v.curve.length > 0,
     );
-    const maxLen = Math.max(0, ...picks.map((v) => v.curve?.length ?? 0));
-    const stride = D.curve_stride;
-    const rows: Record<string, number>[] = [];
-    for (let i = 0; i < maxLen; i++) {
-      const row: Record<string, number> = { iter: i * stride };
-      for (const v of picks) {
-        const c = v.curve as number[];
-        if (i < c.length) row[v.name] = c[i] ?? 0;
-      }
-      rows.push(row);
-    }
-    return { rows, picks };
+    const series = picks.map((v) => ({
+      variant: v,
+      points: (v.curve as [number, number][]).map(([iter, score]) => ({ iter, score })),
+    }));
+    const allIters = series.flatMap((s) => s.points.map((p) => p.iter));
+    const allScores = series.flatMap((s) => s.points.map((p) => p.score));
+    const iterMin = allIters.length ? Math.min(...allIters) : 1;
+    const iterMax = allIters.length ? Math.max(...allIters) : 1;
+    const scoreMin = allScores.length ? Math.min(...allScores) : 0;
+    const scoreMax = allScores.length ? Math.max(...allScores) : 1;
+    return { series, picks, iterMin, iterMax, scoreMin, scoreMax };
   }, []);
 
   return (
@@ -317,54 +320,56 @@ export function RepairStudyLeaderboard() {
         <div className="mt-4 h-[420px] w-full">
           {isClient ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={curveData.rows} margin={{ top: 8, right: 24, bottom: 24, left: 8 }}>
+              <LineChart margin={{ top: 8, right: 24, bottom: 24, left: 8 }}>
                 <XAxis
                   dataKey="iter"
                   type="number"
                   scale="log"
-                  domain={["dataMin", "dataMax"]}
+                  allowDataOverflow
+                  domain={[curveData.iterMin, curveData.iterMax]}
                   tickFormatter={(n: number) => fmtInt(n)}
                   tick={{ fontSize: 11, fill: "currentColor" }}
                   className="text-muted-foreground"
                   label={{ value: t.stallAxis, position: "insideBottom", offset: -12, fontSize: 11, fill: "currentColor" }}
                 />
                 <YAxis
+                  dataKey="score"
+                  type="number"
                   tick={{ fontSize: 11, fill: "currentColor" }}
                   className="text-muted-foreground"
-                  domain={["dataMin - 5", "dataMax + 5"]}
+                  domain={[curveData.scoreMin - 5, curveData.scoreMax + 5]}
                   width={44}
                 />
                 <Tooltip
-                  content={({ active, payload, label }) => {
+                  content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
+                    const point = payload[0]?.payload as { iter?: number } | undefined;
+                    const iter = point?.iter;
                     return (
                       <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
                         <div className="font-semibold">
-                          {t.stallAxis} {fmtInt(Number(label))}
+                          {t.stallAxis} {fmtInt(Number(iter))}
                         </div>
-                        {payload.map((p) => {
-                          const v = curveData.picks.find((x) => x.name === p.dataKey);
-                          return (
-                            <div key={String(p.dataKey)} className="mt-0.5" style={{ color: p.color }}>
-                              {v?.display}: {p.value}
-                            </div>
-                          );
-                        })}
+                        {payload.map((p) => (
+                          <div key={String(p.name)} className="mt-0.5" style={{ color: p.color }}>
+                            {p.name}: {p.value}
+                          </div>
+                        ))}
                       </div>
                     );
                   }}
                 />
-                <ReferenceLine y={0} stroke="transparent" />
-                {curveData.picks.map((v) => (
+                {curveData.series.map((s) => (
                   <Line
-                    key={v.name}
+                    key={s.variant.name}
+                    data={s.points}
+                    name={s.variant.display}
                     type="monotone"
-                    dataKey={v.name}
-                    stroke={familyFill(v.family)}
+                    dataKey="score"
+                    stroke={familyFill(s.variant.family)}
                     strokeWidth={2}
                     dot={false}
                     isAnimationActive={false}
-                    connectNulls
                   />
                 ))}
               </LineChart>
