@@ -1,12 +1,13 @@
-// Shared presentation for the nine solving-path themes (the topic registry
-// minus the meta "records" theme). Labels live in the topic registry
-// (content/research/topics.json) — the single source of truth — so they never
-// drift; this file only adds the accent colour and one-line hook that the
+// Shared presentation for the nine solving-path themes. Labels live in the topic
+// registry (content/research/topics.json) — the single source of truth — so they
+// never drift; this file only adds the accent colour and one-line hook that the
 // registry doesn't carry, used by the homepage tree, the navbar chips, and the
 // left rail alike.
 
-/** Themes that are meta (not a solving method) and stay off the "paths" views. */
-export const NON_PATH_THEMES = new Set(["records"]);
+/** Themes that are meta (not a solving method) and stay off the "paths" views.
+ *  Currently empty: every remaining theme is a solving path. Kept as the seam so
+ *  a future meta theme can be added without touching the sidebar logic. */
+export const NON_PATH_THEMES = new Set<string>([]);
 
 export interface ThemeRootStyle {
   /** One-line hook, shown on the tree node's tooltip. */

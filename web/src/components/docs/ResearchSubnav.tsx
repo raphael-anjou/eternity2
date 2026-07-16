@@ -1,9 +1,10 @@
 // The research section's own navigation bar, under the site header: the reading
-// MODES (Overview + the three door sections) + an all-themes tab + search. The
+// MODES (Overview + the three door sections) + People + Glossary + search. The
 // nine solving PATHS are not repeated here — they live in the homepage tree and
 // in the persistent left rail ("The nine roads"), so a third navbar row would
 // only duplicate them. The left sidebar shows the ACTIVE section's tree; this
-// bar is how a reader changes territory.
+// bar is how a reader changes territory. (There is no "All themes" tab: it
+// duplicated Overview, whose left rail already lists every topic hub.)
 
 import { useLocation } from "react-router";
 import { useLang, useT } from "@/i18n";
@@ -13,8 +14,8 @@ import { researchNav } from "@/lib/research/nav";
 import { SearchDialog } from "./SearchDialog";
 
 const T = {
-  en: { overview: "Overview", themes: "All themes", people: "People" },
-  fr: { overview: "Vue d'ensemble", themes: "Tous les thèmes", people: "Contributeurs" },
+  en: { overview: "Overview", people: "People", glossary: "Glossary" },
+  fr: { overview: "Vue d'ensemble", people: "Contributeurs", glossary: "Glossaire" },
 };
 
 export function ResearchSubnav() {
@@ -25,6 +26,7 @@ export function ResearchSubnav() {
   const sections = researchNav(lang);
   const onTopics = active === "/research/topics" || active.startsWith("/research/topics/");
   const onPeople = active === "/research/people" || active.startsWith("/research/people/");
+  const onGlossary = active === "/research/glossary";
 
   const tab = (to: string, label: string, isActive: boolean) => (
     <LocalizedLink
@@ -54,13 +56,14 @@ export function ResearchSubnav() {
             s.label,
             (!onTopics &&
               !onPeople &&
+              !onGlossary &&
               (active === s.url || active.startsWith(s.url + "/"))) ||
               // The re-homed flat pages (reference/papers/records) highlight Build.
               (s.key === "build" && /^\/research\/(reference|papers|records)$/.test(active)),
           ),
         )}
         {tab("/research/people", t.people, onPeople)}
-        {tab("/research/topics", t.themes, onTopics)}
+        {tab("/research/glossary", t.glossary, onGlossary)}
         <SearchDialog />
       </nav>
     </div>

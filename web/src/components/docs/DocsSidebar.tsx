@@ -260,10 +260,10 @@ function TopicsList() {
   return (
     <nav className="space-y-0.5 pb-4 text-sm">
       <LocalizedLink
-        to="/research/topics"
+        to="/research"
         className={cn(
           "mb-1.5 block px-2 text-xs font-semibold uppercase tracking-wide",
-          active === "/research/topics"
+          active === "/research"
             ? "text-foreground"
             : "text-muted-foreground hover:text-foreground",
         )}
@@ -280,9 +280,11 @@ function TopicsList() {
           active={active}
         />
       ))}
-      <div className="mt-3 mb-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t.more}
-      </div>
+      {meta.length > 0 && (
+        <div className="mt-3 mb-1.5 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t.more}
+        </div>
+      )}
       {meta.map((topic) => (
         <TopicRow
           key={topic.slug}
