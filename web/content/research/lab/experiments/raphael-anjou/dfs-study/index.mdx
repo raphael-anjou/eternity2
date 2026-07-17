@@ -87,12 +87,14 @@ grid further down where they run as designed.
   321, 321), a gap far inside the run-to-run spread, so heavier look-ahead neither
   helped nor clearly hurt. It spends the sixty seconds proving small regions
   rather than reaching deeper.
-- **Breaks clear the depth wall.** Strict backtracking tops out near depth 208 of
-  256; a depth-gated break budget reaches past 245 and averages the low 430s. The
-  decisive factor is the break *schedule*: unlocking breaks too early (Verhaard's
-  ladder, mean 399) scores well below the later Blackwood ladder (mean 431).
-  Raising the per-cell cap from one to two did not help at this budget, a null
-  result reported as measured.
+- **Breaks reach deeper than any strict search.** Strict backtrackers top out in
+  the low 200s (the fastest, NAIVE-CODEGEN, at 216); a depth-gated break budget
+  reaches past 245 and averages the low 430s, because it can push past a locally
+  unmatchable edge instead of backtracking out of it. The decisive factor is the
+  break *schedule*: unlocking breaks too early (Verhaard's ladder, mean 399)
+  scores well below the later Blackwood ladder (mean 431). Raising the per-cell
+  cap from one to two did not help at this budget, a null result reported as
+  measured.
 
 Each of these has its own page: how the engine is built and what every raised
 statistic means is on the [method page](/research/lab/experiments/raphael-anjou/dfs-study/method),

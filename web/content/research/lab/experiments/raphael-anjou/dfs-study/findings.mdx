@@ -104,8 +104,9 @@ extra per-node cost within sixty seconds.
 ## Breaks: past the wall, and the schedule is the lever
 
 Strict backtracking, whatever its order or heuristic, hits a wall well short of a
-full board, with row-major topping out around depth 208 of 256. The record engines
-get past it by *breaking*: allowing a bounded number of interior edge mismatches,
+full board: row-major tops out around depth 208 of 256, and even the fastest
+strict variant (NAIVE-CODEGEN) only reaches 216. The record engines get past it
+by *breaking*: allowing a bounded number of interior edge mismatches,
 released on a depth schedule, with a rule that no cell may carry too many broken
 edges. The score of a full board is then `480 − #breaks`.
 

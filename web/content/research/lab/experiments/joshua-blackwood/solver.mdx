@@ -336,7 +336,7 @@ the number of cores", "change the save function"):
   not finish still yields a number.
 - **A lower save threshold, and clue pinning** for the constrained run below.
 
-### Left as published: fast, but on an easier puzzle
+### Left as published: fast, and aimed at the one clue that binds
 
 Run as his code stands, single core for 60 seconds, it is fast and it gets far:
 
@@ -344,29 +344,35 @@ Run as his code stands, single core for 60 seconds, it is fast and it gets far:
   edges.
 - **~18.9 million nodes per second** (one node is one placement attempt).
 
-But there is a catch that the raw 454 hides. His solver places the five special
-clue pieces wherever they fit best, so the board it reaches satisfies only **one
-of the five official clues**. It is solving a looser, easier puzzle than the real
-Eternity II. The number is real, but it is not on the puzzle the prize was set
-on. This is the schedule-and-restart machinery decoded above doing exactly what
-it was tuned to do: maximise raw matched edges, clues be damned.
+His published program has no notion of clues at all: it treats every piece,
+including the special ones, as ordinary and maximises raw matched edges. This is
+less of a compromise than it first looks, because a legal Eternity II board has
+exactly **one** binding constraint, the mandatory centre clue (piece 139 in its
+centre cell, in its given orientation); the puzzle's other four "clues" were bonus
+hints the maker released, not requirements. His celebrated **470** board is the
+proof: in the [viewer](/viewer) it verifies as clues respected **1 / 5**, the one
+respected being the centre, and one is all a legal board needs. Maximising edges
+without clue logic is not a shortcut around the puzzle; it is a legitimate way to
+attack the one that binds.
 
 The last eight cells of that 454 board are a genuine dead end: no arrangement of
 the eight leftover pieces completes them edge-perfectly. (For fun, handing that
 board to [our ALNS](/research/build/local-search/local-search-alns) for 30
-seconds filled all eight and pushed it to 462 by rearranging the region, but
-still with only one clue respected, so still not a legal board.)
+seconds filled all eight and pushed it to 462 by rearranging the region.)
 
-### With the five clues pinned: it stalls
+### With the clues pinned: it stalls
 
-Pinning all five official clues into their cells forces the engine to solve the
-actual puzzle. The same code, 120 seconds, single core:
+Pinning the clue pieces into their cells forces the engine to respect them
+instead of placing them wherever they fit. The same code, all five official
+clues pinned, 120 seconds, single core:
 
 - **Deepest placement: about 45 / 256.**
 
 His scan-order heuristic has nothing to grip once the special pieces are fixed
-mid-board: it thrashes near the bottom rows and never climbs. This is the true
-measure of his published program on the real puzzle, and it is far below the
+mid-board: it thrashes near the bottom rows and never climbs. Pinning all five is
+stricter than the puzzle strictly requires (only the centre clue is mandatory),
+but it is the same constraint the other engines are held to here, and Blackwood
+lands far below the
 [Verhaard reimplementation's 438](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
 or [McGavin's 204](/research/lab/experiments/peter-mcgavin/backtracker) under the
 same constraint.
