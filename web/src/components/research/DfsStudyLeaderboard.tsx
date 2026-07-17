@@ -121,10 +121,6 @@ const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
-// The depth the strongest strict variants top out at (row-major 208). Marked on
-// the depth chart so the "only breaks pass the wall" reading is immediate.
-const STRICT_WALL = 208;
-
 const T = {
   en: {
     boardTitle: "The leaderboard — mean score by variant",
@@ -134,11 +130,10 @@ const T = {
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
     depthIntro:
-      "The deepest placement each variant reached, out of 256. The dashed line marks the strict backtracking wall near 208; only the break family passes it, reaching depth 243 to 245. The table below adds median throughput, in search-nodes per second, which is never compared across families because a propagating node is not a naive node.",
+      "The deepest placement each variant reached, out of 256. Strict backtrackers top out in the low 200s (the fastest, NAIVE-CODEGEN, reaches 216); the break family reaches materially deeper, 243 to 245, because it can push past a locally unmatchable edge instead of backtracking out of it. The table below adds median throughput, in search-nodes per second, which is never compared across families because a propagating node is not a naive node.",
     depthAxis: "max depth reached (of 256)",
     npsAxis: "median throughput",
     depthReached: "reached depth",
-    strictWall: "strict wall ≈ 208",
     matrixTitle: "What stacks on what",
     matrixIntro:
       "Every variant is a depth-first backtracker declared as one change over its parent. This table is generated from the engine registry, so it always matches the code that ran.",
@@ -163,11 +158,11 @@ const T = {
     collapseLabel: "The corner-pin collapse",
     unpinnedTitle: "Same budget, same core: 60 s from scratch",
     unpinnedIntro:
-      "The same engines on the official pieces with only the mandatory centre clue pinned, so nothing dead-ends on an arbitrary corner. Every score is canonically rescored from the engine's own board, single core, 60 seconds, cold start. This is a controlled-budget comparison, identical conditions for all four, not a contest of best strength: it shows how far each gets in one core-minute, not each engine's ceiling. The faint marker on the two foreign engines is their documented record, which needs long multi-core runs a 60-second budget cannot reach. What the grid does show is that all four run properly once the pins that break a fixed scan path are gone, which the pinned grid denied the two foreign engines.",
+      "The same engines on the official pieces with only the mandatory centre clue pinned, so nothing dead-ends on an arbitrary corner. Every score is canonically rescored from the engine's own board, single core, 60 seconds, cold start. This is a controlled-budget comparison, identical conditions for all four, not a contest of best strength: it shows how far each gets in one core-minute, not each engine's ceiling. That one pinned clue still bites: Blackwood scores 214 here, well below the 454 it reaches on its solver page, where its search places every piece freely instead of committing the centre clue up front (a legal board still, since only the centre clue binds, but an easier search). The faint marker on the two foreign engines is their best documented score, which needs long multi-core runs a 60-second budget cannot reach. What the grid does show is that all four run properly once the pins that break a fixed scan path are gone, which the pinned grid denied the two foreign engines.",
     unpinnedCaveat:
       "Throughput is labelled per engine (McGavin counts tiles, the others search-nodes) and is never compared across engines, because the units are not the same work. McGavin is built with its author's own ARM flags (native tuning and link-time optimisation).",
     recordMarkerNote:
-      "The dashed line on each foreign engine marks its documented record (Blackwood ~470, McGavin a full 480 solve), which needs long multi-core runs a 60-second single-core budget cannot reach; Blackwood's own longer run on this same machine already rescored to 454.",
+      "The dashed line on each foreign engine marks its best documented score (Blackwood ~470, McGavin 469): the official puzzle has never been solved, so no engine has a genuine 480. These records need long multi-core runs a 60-second single-core budget cannot reach; Blackwood's own longer run on this same machine already rescored to 454.",
     collapsePanelTitle: "Pinned: the collapse, as a score",
     collapsePanelIntro:
       "The same two foreign engines on the study's pinned configuration. The bar is the canonical score their board reaches before the fixed scan path strands them; the faint bar behind is what the same engine reaches unpinned. The gap is the collapse.",
@@ -182,11 +177,10 @@ const T = {
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
     depthIntro:
-      "La profondeur maximale atteinte par chaque variante, sur 256. La ligne pointillée marque le mur du backtracking strict, vers 208 ; seule la famille des cassures le franchit, atteignant 243 à 245. Le tableau ci-dessous ajoute le débit médian, en nœuds de recherche par seconde, jamais comparé entre familles car un nœud avec propagation n'est pas un nœud naïf.",
+      "La profondeur maximale atteinte par chaque variante, sur 256. Les backtrackers stricts plafonnent autour de 200 (le plus rapide, NAIVE-CODEGEN, atteint 216) ; la famille des cassures va nettement plus loin, 243 à 245, parce qu'elle peut franchir une arête localement inappariable au lieu de rebrousser chemin. Le tableau ci-dessous ajoute le débit médian, en nœuds de recherche par seconde, jamais comparé entre familles car un nœud avec propagation n'est pas un nœud naïf.",
     depthAxis: "profondeur max atteinte (sur 256)",
     npsAxis: "débit médian",
     depthReached: "profondeur atteinte",
-    strictWall: "mur strict ≈ 208",
     matrixTitle: "Ce qui s'empile sur quoi",
     matrixIntro:
       "Chaque variante est un backtracking en profondeur déclaré comme un seul changement par rapport à son parent. Ce tableau est généré depuis le registre du moteur : il correspond toujours au code exécuté.",
@@ -211,11 +205,11 @@ const T = {
     collapseLabel: "L'effondrement dû aux coins fixés",
     unpinnedTitle: "Même budget, même cœur : 60 s à froid",
     unpinnedIntro:
-      "Les mêmes moteurs sur les pièces officielles avec le seul indice central obligatoire, si bien que rien ne se bloque sur un coin arbitraire. Chaque score est recalculé canoniquement depuis le plateau du moteur, un cœur, 60 secondes, à froid. C'est une comparaison à budget contrôlé, conditions identiques pour les quatre, non un concours de force maximale : elle montre jusqu'où chacun va en une minute sur un cœur, pas le plafond de chaque moteur. Le repère pâle sur les deux moteurs étrangers est leur record documenté, qui exige de longs runs multi-cœurs qu'un budget d'une minute ne peut atteindre. Ce que la grille montre : les quatre tournent correctement une fois ôtés les coins fixés qui brisent un parcours figé, ce que la grille fixée refusait aux deux moteurs étrangers.",
+      "Les mêmes moteurs sur les pièces officielles avec le seul indice central obligatoire, si bien que rien ne se bloque sur un coin arbitraire. Chaque score est recalculé canoniquement depuis le plateau du moteur, un cœur, 60 secondes, à froid. C'est une comparaison à budget contrôlé, conditions identiques pour les quatre, non un concours de force maximale : elle montre jusqu'où chacun va en une minute sur un cœur, pas le plafond de chaque moteur. Cet unique indice fixé pèse quand même : Blackwood n'obtient ici que 214, bien en deçà des 454 de sa page solveur, où sa recherche place chaque pièce librement au lieu d'ancrer l'indice central d'emblée (un plateau légal malgré tout, puisque seul l'indice central est contraignant, mais une recherche plus facile). Le repère pâle sur les deux moteurs étrangers est leur meilleur score documenté, qui exige de longs runs multi-cœurs qu'un budget d'une minute ne peut atteindre. Ce que la grille montre : les quatre tournent correctement une fois ôtés les coins fixés qui brisent un parcours figé, ce que la grille fixée refusait aux deux moteurs étrangers.",
     unpinnedCaveat:
       "Le débit est étiqueté par moteur (McGavin compte des tuiles, les autres des nœuds de recherche) et n'est jamais comparé entre moteurs, car les unités ne mesurent pas le même travail. McGavin est compilé avec les propres options ARM de son auteur (réglage natif et optimisation à l'édition de liens).",
     recordMarkerNote:
-      "La ligne pointillée sur chaque moteur étranger marque son record documenté (Blackwood ~470, McGavin une résolution complète à 480), qui exige de longs runs multi-cœurs qu'un budget d'une minute sur un cœur ne peut atteindre ; le propre run plus long de Blackwood sur cette même machine atteignait déjà 454.",
+      "La ligne pointillée sur chaque moteur étranger marque son meilleur score documenté (Blackwood ~470, McGavin 469) : le puzzle officiel n'a jamais été résolu, aucun moteur n'atteint donc un véritable 480. Ces records exigent de longs runs multi-cœurs qu'un budget d'une minute sur un cœur ne peut atteindre ; le propre run plus long de Blackwood sur cette même machine atteignait déjà 454.",
     collapsePanelTitle: "Fixé : l'effondrement, en score",
     collapsePanelIntro:
       "Les deux mêmes moteurs étrangers sur la configuration fixée de l'étude. La barre est le score canonique que leur plateau atteint avant que le parcours figé ne les bloque ; la barre pâle derrière est ce que le même moteur atteint sans coins fixés. L'écart est l'effondrement.",
@@ -313,8 +307,8 @@ export function DfsStudyLeaderboard() {
         <h3 className="text-base font-semibold tracking-tight">{t.depthTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.depthIntro}</p>
 
-        {/* Depth reached vs the 256-cell ceiling, coloured by family, with the
-            strict-backtracking wall marked. Breaks are the only family past it. */}
+        {/* Depth reached vs the 256-cell ceiling, coloured by family. The break
+            family reaches materially deeper than any strict variant. */}
         <div className="mt-4">
           <HorizontalScoreChart
             rows={byDepth}
@@ -322,7 +316,6 @@ export function DfsStudyLeaderboard() {
             domainMax={256}
             colorOf={(v) => familyFill(v.family)}
             barLabel={(v) => (v.collapsed ? `${v.max_depth} · ${t.stallsOnPins}` : `${v.max_depth}`)}
-            referenceLines={[{ x: STRICT_WALL, label: t.strictWall }]}
             busyLabel={t.busy}
             tooltip={(v) => (
               <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
