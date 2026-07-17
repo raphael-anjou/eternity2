@@ -31,3 +31,8 @@ declare module "virtual:research-search-fr" {
   import type { SearchEntry } from "@/lib/research/types";
   export const entries: SearchEntry[];
 }
+
+declare module "virtual:research-translated-fr" {
+  // Language-neutral URLs ("/research/…") that have a genuine French rendering.
+  export const translatedFr: string[];
+}

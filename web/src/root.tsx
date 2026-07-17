@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./index.css";
 import { LangProvider, langFromPath, pathForLang } from "@/i18n";
 import { canonicalUrl } from "@/site";
+import { hasFrenchTwin } from "@/lib/research/i18n-routes";
 // The Latin subset of the Geist variable font, imported as a hashed URL so it
 // can be preloaded. This is the one woff2 that basic Latin text (EN + FR body
 // and the big hero headline) resolves to; preloading it means it arrives
@@ -88,6 +89,10 @@ export function Layout({ children }: { children: ReactNode }) {
   // translations of each other, and which is canonical for this page.
   const enPath = pathForLang(pathname, "en");
   const frPath = pathForLang(pathname, "fr");
+  // Only advertise a French alternate when this page actually has one. An
+  // untranslated research page has no prerendered /fr URL, so pointing a crawler
+  // at it via hreflang would send it to the SPA fallback, not a real page.
+  const frTwin = hasFrenchTwin(enPath);
   return (
     <html lang={lang}>
       <head>
@@ -108,8 +113,8 @@ export function Layout({ children }: { children: ReactNode }) {
         <Meta />
         <Links />
         <link rel="canonical" href={canonicalUrl(pathname)} />
-        <link rel="alternate" hrefLang="en" href={canonicalUrl(enPath)} />
-        <link rel="alternate" hrefLang="fr" href={canonicalUrl(frPath)} />
+        {frTwin && <link rel="alternate" hrefLang="en" href={canonicalUrl(enPath)} />}
+        {frTwin && <link rel="alternate" hrefLang="fr" href={canonicalUrl(frPath)} />}
         <link rel="alternate" hrefLang="x-default" href={canonicalUrl(enPath)} />
         {/* Invariant site-wide social + structured-data tags. These live here as
             literal elements (not in a route `meta` export) because in React
