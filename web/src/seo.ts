@@ -16,12 +16,12 @@ const HOME_PAGE: { en: Entry; fr: Entry } = {
   en: {
     title: "Eternity II: the puzzle that beat everyone",
     description:
-      "Play it, watch real solvers run in your browser, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
+      "Play the Eternity II puzzle online, free and in your browser: solve it by hand, watch real solvers run, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
   },
   fr: {
     title: "Eternity II : le puzzle que personne n'a battu",
     description:
-      "Jouez, regardez de vrais solveurs à l'œuvre dans votre navigateur, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
+      "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur : résolvez-le à la main, regardez de vrais solveurs, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
   },
 };
 
@@ -77,14 +77,14 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   },
   playground: {
     en: {
-      title: "Playground" + SUFFIX,
+      title: "Play Eternity II online" + SUFFIX,
       description:
-        "Watch solvers run, race fill orders, and solve puzzles by hand — all powered by a Rust engine in your browser.",
+        "Play the Eternity II puzzle online, free and in your browser — no app, no download. Solve one by hand, watch a real solver run at a million steps a second, or design its search path.",
     },
     fr: {
-      title: "Aire de jeu" + SUFFIX,
+      title: "Jouer à Eternity II en ligne" + SUFFIX,
       description:
-        "Regardez les solveurs à l'œuvre, comparez les ordres de remplissage et résolvez le puzzle à la main, propulsé par un moteur Rust dans votre navigateur.",
+        "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur — sans appli ni téléchargement. Résolvez-en un à la main, regardez un vrai solveur à un million d'étapes par seconde, ou dessinez son parcours.",
     },
   },
   watch: {
@@ -99,12 +99,14 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
   },
   solve: {
     en: {
-      title: "Solve by hand" + SUFFIX,
-      description: "Place edge-matching tiles yourself and feel why Eternity II is so hard.",
+      title: "Solve the Eternity II puzzle online" + SUFFIX,
+      description:
+        "Play Eternity II online: place the edge-matching tiles yourself, beat the clock, and feel why the puzzle is so hard. Free, in your browser, no download.",
     },
     fr: {
-      title: "Résoudre à la main" + SUFFIX,
-      description: "Placez vous-même les tuiles à côtés appariés et comprenez pourquoi Eternity II est si redoutable.",
+      title: "Résoudre le puzzle Eternity II en ligne" + SUFFIX,
+      description:
+        "Jouez à Eternity II en ligne : placez vous-même les tuiles à côtés appariés, battez le chrono et comprenez pourquoi ce puzzle est si redoutable. Gratuit, dans votre navigateur, sans téléchargement.",
     },
   },
   paths: {
@@ -320,6 +322,45 @@ function faqLd(pageKey: keyof typeof PAGES, lang: Lang) {
   };
 }
 
+// Pages that are genuine in-browser applications, not articles. A
+// WebApplication node lets them qualify as software/app results and advertise
+// that they run free in the browser — the intent behind "eternity 2 puzzle
+// online" and the tool queries. Values are schema.org applicationCategory terms.
+const PAGE_APP: Partial<Record<keyof typeof PAGES, string>> = {
+  playground: "GameApplication",
+  solve: "GameApplication",
+  watch: "GameApplication",
+  paths: "GameApplication",
+  viewer: "UtilitiesApplication",
+  convert: "UtilitiesApplication",
+};
+
+/** A WebApplication JSON-LD node for a page that is a real in-browser tool/game,
+ *  or null. Declares it free (offers price 0) and browser-only, so it can
+ *  surface as an app result and answer "play Eternity II online" directly. */
+function appLd(pageKey: keyof typeof PAGES, lang: Lang, pathname: string) {
+  const category = PAGE_APP[pageKey];
+  if (!category) return null;
+  const entry = (PAGES[pageKey] ?? HOME_PAGE)[lang];
+  return {
+    "script:ld+json": {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: entry.title.replace(SUFFIX, ""),
+      description: entry.description,
+      url: canonicalUrl(pathname),
+      applicationCategory: category,
+      operatingSystem: "Any (modern web browser)",
+      browserRequirements: "Requires JavaScript and WebAssembly",
+      inLanguage: lang,
+      isPartOf: { "@id": "https://eternity2.dev/#website" },
+      publisher: { "@id": "https://eternity2.dev/#org" },
+      // Free to play: an explicit zero-price Offer is the schema.org idiom.
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  };
+}
+
 /** A WebPage JSON-LD node carrying the page's declared last-update date, or
  *  null if the page has no declared date. Gives search and answer engines a
  *  machine-readable freshness signal to match the sitemap <lastmod>. */
@@ -340,8 +381,8 @@ function updatedLd(pathname: string, lang: Lang) {
 /**
  * Build a React Router `meta` descriptor list for a page. `pageKey` matches a
  * PAGES entry; the language comes from the URL of the page being prerendered.
- * Pages registered in PAGE_FAQ also get a FAQPage structured-data node, and
- * every page carries a WebPage node with its declared dateModified.
+ * Pages registered in PAGE_FAQ also get a FAQPage node, pages in PAGE_APP a
+ * WebApplication node, and every page a WebPage node with its dateModified.
  */
 export function pageMeta(pageKey: keyof typeof PAGES) {
   return ({ location }: { location: { pathname: string } }) => {
@@ -349,6 +390,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
     const group = PAGES[pageKey];
     const entry = (group ?? HOME_PAGE)[lang];
     const faq = faqLd(pageKey, lang);
+    const app = appLd(pageKey, lang, location.pathname);
     const updated = updatedLd(location.pathname, lang);
     return [
       { title: entry.title },
@@ -357,6 +399,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
       { property: "og:description", content: entry.description },
       { property: "og:url", content: canonicalUrl(location.pathname) },
       ...(faq ? [faq] : []),
+      ...(app ? [app] : []),
       ...(updated ? [updated] : []),
     ];
   };

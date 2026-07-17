@@ -29,7 +29,7 @@ const T = {
       </>
     ),
     ctaStart: "Start here",
-    ctaPlayground: "Try the playground",
+    ctaPlayground: "Play Eternity II online",
     ctaPuzzle: "What is Eternity II?",
     heroCaption:
       "A full 16×16 board, every edge matched and the border grey — this is what a solved Eternity II looks like. (It's a randomly generated board, not the official puzzle.)",
@@ -85,7 +85,7 @@ const T = {
       </>
     ),
     ctaStart: "Par où commencer",
-    ctaPlayground: "Essayer l'aire de jeu",
+    ctaPlayground: "Jouer à Eternity II en ligne",
     ctaPuzzle: "C'est quoi, Eternity II ?",
     heroCaption:
       "Un plateau 16×16 complet, tous les côtés appariés et le bord gris : voilà à quoi ressemble un Eternity II résolu. (C'est un plateau généré au hasard, pas le puzzle officiel.)",
