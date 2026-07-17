@@ -168,22 +168,37 @@ function ComplexityBlock({ doc }: { doc: ResearchDoc }) {
   );
 }
 
-/** Author credit line — links to the researcher's auto-generated hub. */
+/** Author credit line — links to the researcher's auto-generated hub, and lists
+ *  any secondary contributors beside them (e.g. "· method by …"). */
 function Byline({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   const { lang } = useLang();
   if (!doc.author) return null;
   const author = researchAuthor(lang, doc.author);
   if (!author) return null;
+  const linkClass =
+    "font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground";
+  // Drop any contributor whose slug is missing from the registry rather than
+  // rendering a dead credit; the content check already rejects unknown slugs.
+  const contributors = (doc.contributors ?? []).flatMap((c) => {
+    const a = researchAuthor(lang, c.slug);
+    return a ? [{ role: c.role, slug: a.slug, name: a.name }] : [];
+  });
   return (
     <p className="text-sm text-muted-foreground">
       {t.by}{" "}
-      <LocalizedLink
-        to={authorUrl(author.slug)}
-        className="font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
-      >
+      <LocalizedLink to={authorUrl(author.slug)} className={linkClass}>
         {author.name}
       </LocalizedLink>
+      {contributors.map((c) => (
+        <span key={c.slug}>
+          {" · "}
+          {c.role} {t.by}{" "}
+          <LocalizedLink to={authorUrl(c.slug)} className={linkClass}>
+            {c.name}
+          </LocalizedLink>
+        </span>
+      ))}
     </p>
   );
 }
