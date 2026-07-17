@@ -192,6 +192,14 @@ const frontmatterSchema = z.object({
   // Registry slug of the researcher who authored the page. Validated against
   // authors.json in scanResearchContent (below), like topics.
   author: z.string().optional(),
+  // Secondary contributors, credited in the byline alongside `author` (e.g. the
+  // method behind a reimplementation, or the write-up of someone else's solver).
+  // Each `slug` is validated against authors.json like `author`; `role` is a
+  // short free-text label ("method", "write-up", "parameter study"). This is
+  // credit only: it does not change hub membership, the score chart, or nav.
+  contributors: z
+    .array(z.object({ slug: z.string().min(1), role: z.string().min(1) }))
+    .optional(),
   tier: z.number().int().min(1).max(3).optional(),
   rigor: z.enum(["proven", "measured", "conjectured"]).optional(),
   complexity: complexitySchema.optional(),
@@ -334,6 +342,28 @@ export function scanResearchContent(fresh = false): RawEntry[] {
           `(registry: content/research/authors.json)`,
       );
     }
+    // Contributor slugs are validated the same way, and must be distinct from
+    // each other and from the primary author (a person is credited once).
+    const seen = new Set<string>();
+    for (const c of e.fm.contributors ?? []) {
+      if (!knownAuthors.has(c.slug)) {
+        throw new Error(
+          `research content: ${e.file} references unknown contributor "${c.slug}" ` +
+            `(registry: content/research/authors.json)`,
+        );
+      }
+      if (c.slug === e.fm.author) {
+        throw new Error(
+          `research content: ${e.file} lists "${c.slug}" as both author and contributor`,
+        );
+      }
+      if (seen.has(c.slug)) {
+        throw new Error(
+          `research content: ${e.file} lists contributor "${c.slug}" more than once`,
+        );
+      }
+      seen.add(c.slug);
+    }
   }
   // Frontmatter topics must exist in the registry (catches typos).
   const known = new Set(researchTopics(fresh).map((t) => t.slug));
@@ -377,6 +407,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       status: e.fm.status,
       ...(e.fm.contribution !== undefined ? { contribution: e.fm.contribution } : {}),
       ...(e.fm.author !== undefined ? { author: e.fm.author } : {}),
+      ...(e.fm.contributors !== undefined ? { contributors: e.fm.contributors } : {}),
       ...(e.fm.tier !== undefined ? { tier: e.fm.tier } : {}),
       ...(e.fm.rigor !== undefined ? { rigor: e.fm.rigor } : {}),
       ...(e.fm.complexity !== undefined ? { complexity: e.fm.complexity } : {}),
