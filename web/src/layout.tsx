@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { initEngine } from "@/engine";
 import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { loadAnalyticsWhenIdle } from "@/lib/analytics";
@@ -103,18 +102,34 @@ function FirstVisitRedirect() {
   return null;
 }
 
+// Routes that actually use the WebAssembly engine (piece matching / solving).
+// The read-only pages — the whole research wiki, Home, Algorithms — never touch
+// it, so they must not pay its download + compile cost. Convert is deliberately
+// engine-free (it only reshuffles cells), so it is not listed. initEngine() is
+// idempotent, so warming again on navigation into one of these is a no-op.
+const ENGINE_ROUTES =
+  /^\/(fr\/)?(puzzle|start|viewer|playground(\/|$))/;
+
 export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { lang, setLang } = useLang();
   const t = useT(T);
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    // Warm the WebAssembly engine in the background so interactive pages
-    // (playground, solver, convert) don't pay the compile cost on first use.
-    void initEngine().catch(() => {});
     // Load analytics once idle, keeping it off the critical render path.
     return loadAnalyticsWhenIdle();
   }, []);
+
+  useEffect(() => {
+    // Warm the WebAssembly engine in the background, but only on the routes that
+    // use it, so a research reader never downloads the solver for nothing. The
+    // engine module is imported dynamically here (not at the top of the file) so
+    // its .wasm asset is never even pulled into a read-only page's module graph.
+    if (ENGINE_ROUTES.test(pathname)) {
+      void import("@/engine").then((m) => m.initEngine()).catch(() => {});
+    }
+  }, [pathname]);
 
   // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle).
   const link = (to: string) => pathForLang(to, lang);
