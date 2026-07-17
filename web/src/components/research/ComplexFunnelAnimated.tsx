@@ -1,8 +1,66 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import data from "@/data/complex-theory.json";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 import { formatScientific, superscript } from "@/lib/format";
+
+// User-facing strings, keyed by regime where relevant. Regime style/geometry
+// stays in REGIMES below; only the human-readable label + line live here.
+const T = {
+  en: {
+    chartAria: "Expected search branches at each depth, sweeping from 1 to 256 cells placed",
+    depthAxis: "depth (cells placed, of 256)",
+    depthReadout: "depth",
+    waysToExtend: "ways to extend",
+    regime: "regime",
+    play: "Play the sweep",
+    replay: "Replay the sweep",
+    pause: "Pause",
+    scrub: "scrub",
+    scrubAria: "Scrub search depth",
+    regimes: {
+      growth: {
+        label: "Growth",
+        line: "Every placement still has dozens of legal successors. The tree widens fast.",
+      },
+      plateau: {
+        label: "Plateau — the wall",
+        line: "The tree is astronomically wide and almost nothing prunes. A backtracker burns ~99% of its time crossing this band.",
+      },
+      collapse: {
+        label: "Collapse",
+        line: "The last ~60 pieces are tightly constrained: each one kills orders of magnitude of branches, funnelling down to the expected solutions.",
+      },
+    },
+  },
+  fr: {
+    chartAria: "Branches de recherche attendues à chaque profondeur, balayées de 1 à 256 cases posées",
+    depthAxis: "profondeur (cases posées, sur 256)",
+    depthReadout: "profondeur",
+    waysToExtend: "façons de prolonger",
+    regime: "régime",
+    play: "Lancer le balayage",
+    replay: "Rejouer le balayage",
+    pause: "Pause",
+    scrub: "défiler",
+    scrubAria: "Faire défiler la profondeur de recherche",
+    regimes: {
+      growth: {
+        label: "Croissance",
+        line: "Chaque placement a encore des dizaines de successeurs légaux. L'arbre s'élargit vite.",
+      },
+      plateau: {
+        label: "Plateau — le mur",
+        line: "L'arbre est astronomiquement large et presque rien n'élague. Un backtracker passe ~99 % de son temps à traverser cette bande.",
+      },
+      collapse: {
+        label: "Effondrement",
+        line: "Les ~60 dernières pièces sont fortement contraintes : chacune élimine des ordres de grandeur de branches, resserrant l'entonnoir jusqu'aux solutions attendues.",
+      },
+    },
+  },
+};
 
 // The E2 funnel as an animated explainer. A "search head" sweeps depth 1 → 256
 // along the expected-branches curve (Brendan Owen's complex-theory numbers). As
@@ -33,31 +91,25 @@ const REGIMES = [
     from: 1,
     to: 50,
     key: "growth",
-    label: "Growth",
     fill: "fill-emerald-400/12",
     accent: "text-emerald-600 dark:text-emerald-400",
     dot: "bg-emerald-500",
-    line: "Every placement still has dozens of legal successors. The tree widens fast.",
   },
   {
     from: 50,
     to: 200,
     key: "plateau",
-    label: "Plateau — the wall",
     fill: "fill-amber-400/16",
     accent: "text-amber-600 dark:text-amber-400",
     dot: "bg-amber-500",
-    line: "The tree is astronomically wide and almost nothing prunes. A backtracker burns ~99% of its time crossing this band.",
   },
   {
     from: 200,
     to: 256,
     key: "collapse",
-    label: "Collapse",
     fill: "fill-sky-400/12",
     accent: "text-sky-600 dark:text-sky-400",
     dot: "bg-sky-500",
-    line: "The last ~60 pieces are tightly constrained: each one kills orders of magnitude of branches, funnelling down to the expected solutions.",
   },
 ] as const;
 
@@ -93,6 +145,7 @@ const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 export function ComplexFunnelAnimated() {
+  const t = useT(T);
   const { ref, visible } = useRunWhileVisible();
   const [depth, setDepth] = useState(1); // 1 … 256, may be fractional while animating
   const [playing, setPlaying] = useState(false);
@@ -165,6 +218,7 @@ export function ComplexFunnelAnimated() {
   const headX = x(depth);
   const headY = y(headLog);
   const regime = regimeAt(intDepth);
+  const rt = t.regimes[regime.key];
 
   // The swept portion of the curve, as a highlighted overlay up to the head.
   const sweptPts = useMemo(() => {
@@ -181,7 +235,7 @@ export function ComplexFunnelAnimated() {
   return (
     <div ref={ref} className="space-y-3">
       <div className="mx-auto max-w-2xl">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card" role="img" aria-label="Expected search branches at each depth, sweeping from 1 to 256 cells placed">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-lg border bg-card" role="img" aria-label={t.chartAria}>
           {/* regime bands, brightened once the head has entered them */}
           {REGIMES.map((b) => {
             const entered = intDepth >= b.from;
@@ -222,7 +276,7 @@ export function ComplexFunnelAnimated() {
             </text>
           ))}
           <text x={(padL + W - padR) / 2} y={H - 2} textAnchor="middle" className="fill-muted-foreground text-[9px]">
-            depth (cells placed, of 256)
+            {t.depthAxis}
           </text>
         </svg>
       </div>
@@ -230,33 +284,33 @@ export function ComplexFunnelAnimated() {
       {/* live readout */}
       <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 text-center">
         <div className="rounded-md border p-2">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">depth</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t.depthReadout}</div>
           <div className="text-lg font-semibold tabular-nums">{intDepth}<span className="text-xs text-muted-foreground">/256</span></div>
         </div>
         <div className="rounded-md border p-2">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">ways to extend</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t.waysToExtend}</div>
           <div className="text-lg font-semibold tabular-nums">{formatScientific(branches)}</div>
         </div>
         <div className="rounded-md border p-2">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">regime</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t.regime}</div>
           <div className={`flex items-center justify-center gap-1.5 text-sm font-semibold ${regime.accent}`}>
             <span className={`inline-block h-2 w-2 rounded-full ${regime.dot}`} />
-            {regime.label}
+            {rt.label}
           </div>
         </div>
       </div>
 
       <p className="mx-auto max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
-        <span className={`font-medium ${regime.accent}`}>{regime.label}.</span> {regime.line}
+        <span className={`font-medium ${regime.accent}`}>{rt.label}.</span> {rt.line}
       </p>
 
       {/* controls */}
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Button size="sm" onClick={toggle}>
-          {playing ? "Pause" : depth >= MAX_DEPTH ? "Replay the sweep" : "Play the sweep"}
+          {playing ? t.pause : depth >= MAX_DEPTH ? t.replay : t.play}
         </Button>
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
-          scrub
+          {t.scrub}
           <input
             type="range"
             min={1}
@@ -268,7 +322,7 @@ export function ComplexFunnelAnimated() {
               setDepth(Number(e.target.value));
             }}
             className="w-40 accent-foreground"
-            aria-label="Scrub search depth"
+            aria-label={t.scrubAria}
           />
         </label>
       </div>
