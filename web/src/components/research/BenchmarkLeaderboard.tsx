@@ -268,6 +268,7 @@ export function BenchmarkLeaderboard({
           {isClient ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart
+                accessibilityLayer
                 layout="vertical"
                 data={algos}
                 margin={{ top: 28, right: 44, bottom: 6, left: 8 }}

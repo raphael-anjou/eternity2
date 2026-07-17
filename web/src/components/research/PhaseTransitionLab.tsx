@@ -107,7 +107,7 @@ export function PhaseTransitionLab() {
       <div className="h-96 w-full rounded-lg border p-2" role="img" aria-label={`${t.title}. ${t.intro}`}>
         {isClient ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-            <LineChart margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <LineChart accessibilityLayer margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="colors"

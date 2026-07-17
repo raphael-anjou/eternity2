@@ -267,7 +267,7 @@ export function LodestoneRarityLab() {
             <div className="h-40 rounded-lg border bg-background p-2" role="img" aria-label={t.a11y}>
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <AreaChart data={series} margin={{ top: 6, right: 10, bottom: 16, left: 0 }}>
+                  <AreaChart accessibilityLayer data={series} margin={{ top: 6, right: 10, bottom: 16, left: 0 }}>
                     <XAxis
                       dataKey="placed"
                       type="number"
