@@ -581,10 +581,20 @@ impl DestroyOp for PriorDestroy {
             if acc >= r { seed = pos as u32; break; }
         }
         // BFS-grow, popping by max weight among neighbors of the region.
+        // `in_region` / `queued` are O(1) membership maps replacing the
+        // former `s.contains` (BTreeSet, O(log n)) + `frontier.contains`
+        // (linear scan) tests, which made the grow loop quadratic in the
+        // frontier size. Behaviour is identical — same cells, same order.
         let mut s = BTreeSet::new();
         s.insert(seed);
+        let mut in_region = vec![false; n];
+        in_region[seed as usize] = true;
+        let mut queued = vec![false; n];
         let mut frontier: Vec<Position> = Vec::new();
-        let push_nbrs = |p: Position, frontier: &mut Vec<Position>, s: &BTreeSet<Position>| {
+        let push_nbrs = |p: Position,
+                         frontier: &mut Vec<Position>,
+                         in_region: &[bool],
+                         queued: &mut [bool]| {
             let x = (p % w) as i32;
             let y = (p / w) as i32;
             for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
@@ -592,12 +602,13 @@ impl DestroyOp for PriorDestroy {
                 let ny = y + dy;
                 if nx < 0 || ny < 0 || nx as u32 >= w || ny as u32 >= h { continue; }
                 let np = ny as u32 * w + nx as u32;
-                if !s.contains(&np) && !frontier.contains(&np) {
+                if !in_region[np as usize] && !queued[np as usize] {
+                    queued[np as usize] = true;
                     frontier.push(np);
                 }
             }
         };
-        push_nbrs(seed, &mut frontier, &s);
+        push_nbrs(seed, &mut frontier, &in_region, &mut queued);
         while (s.len() as u32) < self.max_size && !frontier.is_empty() {
             // Pick frontier cell with highest weakness weight.
             let mut best_i = 0usize;
@@ -616,7 +627,8 @@ impl DestroyOp for PriorDestroy {
                 break;
             }
             s.insert(p);
-            push_nbrs(p, &mut frontier, &s);
+            in_region[p as usize] = true;
+            push_nbrs(p, &mut frontier, &in_region, &mut queued);
         }
         s
     }
@@ -1010,20 +1022,35 @@ impl DestroyOp for ComponentClusterDestroy {
         if mismatches.is_empty() {
             return RandomRegion { k: 4 }.destroy(puzzle, board, rng);
         }
-        // Step 1: per-cell mismatch incidence; pick the max.
-        let mut incidence: std::collections::HashMap<Position, u32> = std::collections::HashMap::new();
+        // Step 1: per-cell mismatch incidence; pick the max. Indexed by
+        // position (a dense `Vec`) rather than a `HashMap` — O(1) bumps,
+        // and the core tie-break is now deterministic (earliest cell with
+        // the max). The former `HashMap::iter().max_by_key` broke ties in
+        // nondeterministic hash order, quietly making this operator
+        // irreproducible run-to-run.
+        let n = (w * h) as usize;
+        let mut incidence = vec![0u32; n];
         for m in &mismatches {
-            *incidence.entry(m.cell_a).or_insert(0) += 1;
-            *incidence.entry(m.cell_b).or_insert(0) += 1;
+            incidence[m.cell_a as usize] += 1;
+            incidence[m.cell_b as usize] += 1;
         }
-        let core = *incidence.iter().max_by_key(|(_, &v)| v).map(|(p, _)| p).unwrap();
+        let mut core = 0u32;
+        let mut core_v = 0u32;
+        for (p, &v) in incidence.iter().enumerate() {
+            if v > core_v {
+                core_v = v;
+                core = p as u32;
+            }
+        }
         let core_x = (core % w) as i32;
         let core_y = (core / w) as i32;
         let r = self.cluster_radius as i32;
         // Step 2: collect every cell that touches a mismatch AND lies
         // within L∞ ≤ r of the core.
         let mut cluster: BTreeSet<Position> = BTreeSet::new();
-        for (&p, _) in &incidence {
+        for (p, &v) in incidence.iter().enumerate() {
+            if v == 0 { continue; }
+            let p = p as u32;
             let x = (p % w) as i32;
             let y = (p / w) as i32;
             if (x - core_x).abs() <= r && (y - core_y).abs() <= r {

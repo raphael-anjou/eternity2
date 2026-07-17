@@ -20,6 +20,20 @@
 // Each propagator is a pure function of (puzzle, placed, remaining
 // piece pool). The engine calls them in order after baseline
 // propagation and treats Wipeout as a backtrack.
+//
+// PERFORMANCE NOTE. These are `&PropagatorContext -> PropagatorResult`
+// free functions: each `check` allocates a couple of `vec![0; color_count]`
+// counters (color_count ≈ 22) and sweeps every cell + piece once, i.e.
+// O(cells + pieces) time with a small per-call heap allocation. That is
+// acceptable *because* the engine only runs them on the depth-gated,
+// opt-in "Step-8" path (see `run_extra_propagators`), not on every node
+// of the bare edge-equality + AC-3 hot loop. Do NOT wire them into an
+// inner loop that fires unconditionally per node without first hoisting
+// their scratch onto the caller. `gacolor_check` in particular is the
+// slow *reference* implementation kept for unit-test parity — the hot
+// path uses the incremental `GaColorState` (O(color_count), no per-node
+// allocation) instead. `island_check` and the `GaColorState` deltas are
+// the only pieces here shaped for a truly hot loop.
 
 #![forbid(unsafe_code)]
 
@@ -275,6 +289,12 @@ pub fn parity_check(ctx: &PropagatorContext<'_>) -> PropagatorResult {
 // bipartite-matching feasibility per color is a follow-up.
 // =============================================================================
 
+/// Reference (full-recompute) gacolor feasibility check. Allocates two
+/// `color_count` counters and rescans the whole board every call. The
+/// engine's hot path does NOT call this — it maintains the same invariant
+/// incrementally in [`GaColorState`] (`apply_place`/`apply_unplace` +
+/// O(color_count) `feasible()`). Kept for unit-test parity against that
+/// incremental version.
 pub fn gacolor_check(ctx: &PropagatorContext<'_>) -> PropagatorResult {
     let puzzle = ctx.puzzle;
     let color_count = puzzle.color_count.max(1) as usize;
