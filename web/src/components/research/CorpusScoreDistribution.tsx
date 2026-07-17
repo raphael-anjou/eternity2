@@ -12,12 +12,13 @@ import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/dataset-corpus.json";
 
-// The score distribution of the 1,078-board strong-board corpus: one vertical
-// bar per score value across the full 400..469 range, gaps included as zero-
-// height bars so the shape is read honestly (a clean rise to a peak near 454,
-// then a thin tail into the 460s). Data is derived from the dataset build's
-// stats.json (web/src/data/dataset-corpus.json), so the chart never drifts from
-// the published corpus.
+// The score distribution of the strong-board corpus: one vertical bar per score
+// value across the full 400..469 range, gaps included as zero-height bars so the
+// shape is read honestly. The corpus is dominated by a large beam-producer
+// harvest concentrated in the low-450s, so the histogram spikes sharply at 453
+// and thins to a long tail into the 460s. Data is derived from the dataset
+// build's stats.json (web/src/data/dataset-corpus.json), and the board count is
+// read from that same file, so the chart never drifts from the published corpus.
 //
 // One measure, one hue: this is a magnitude histogram, so it uses a single
 // sequential blue (no categorical palette, no legend). The peak bin and the
@@ -45,7 +46,7 @@ const T = {
   en: {
     title: "How many boards score what",
     intro:
-      "Every one of the 1,078 boards, counted by its score. One bar per score from 400 to 469; a missing score is a zero-height gap, so the true shape shows through: a steady climb to a peak in the mid-450s, then a thin tail of rare boards into the 460s. The dashed line marks where that 460-and-up tail begins.",
+      "Every board in the corpus, counted by its score. One bar per score from 400 to 469; a missing score is a zero-height gap, so the true shape shows through: a sharp spike in the low-450s, where a large single-core beam harvest concentrates, then a thin tail of rarer, higher-scoring boards into the 460s. The dashed line marks where that 460-and-up tail begins.",
     xAxis: "score (matched edges, out of 480)",
     yAxis: "number of boards",
     peak: "peak",
@@ -57,7 +58,7 @@ const T = {
   fr: {
     title: "Combien de plateaux à chaque score",
     intro:
-      "Chacun des 1 078 plateaux, compté par son score. Une barre par score de 400 à 469 ; un score absent est un creux de hauteur nulle, si bien que la vraie forme apparaît : une montée régulière vers un pic au milieu des 450, puis une fine traîne de plateaux rares jusque dans les 460. La ligne pointillée marque le début de cette traîne à partir de 460.",
+      "Chaque plateau du corpus, compté par son score. Une barre par score de 400 à 469 ; un score absent est un creux de hauteur nulle, si bien que la vraie forme apparaît : un pic marqué dans le bas des 450, là où se concentre une grande récolte par faisceau mono-cœur, puis une fine traîne de plateaux plus rares et mieux notés jusque dans les 460. La ligne pointillée marque le début de cette traîne à partir de 460.",
     xAxis: "score (arêtes appariées, sur 480)",
     yAxis: "nombre de plateaux",
     peak: "pic",

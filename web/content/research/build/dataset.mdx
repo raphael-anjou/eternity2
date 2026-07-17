@@ -2,10 +2,10 @@
 title: The dataset
 description: >-
   A public, CC0 dataset for Eternity II in two parts: fourteen benchmark
-  instances to solve, and a corpus of 1,078 distinct strong boards to learn
+  instances to solve, and a corpus of 7,658 distinct strong boards to learn
   from. Every score is recomputed from the board itself, and the corpus is
   checked to be genuinely diverse rather than a thousand copies of one board.
-metaDescription: "A public CC0 Eternity II dataset: 14 benchmark instances to solve plus 1,078 distinct verified strong boards to learn from, with a diversity analysis."
+metaDescription: "A public CC0 Eternity II dataset: 14 benchmark instances to solve plus 7,658 distinct verified strong boards to learn from, with a diversity analysis."
 kind: reference
 order: 55
 group: Check your code
@@ -64,10 +64,10 @@ and `pos` is the row-major cell index. The shape of an instance file:
 
 ## Part B: a corpus of strong boards
 
-**1,078 distinct boards** scoring 400 to 469, the raw material for methods that
+**7,658 distinct boards** scoring 400 to 470, the raw material for methods that
 [learn from strong boards](/research/lab/experiments/raphael-anjou/learning):
 position priors, learned move-ordering, anti-pattern mining. It ships as a zip
-(`e2-strong-boards.zip`, about 620 KB) that unpacks to the same rows as CSV and
+(`e2-strong-boards.zip`, about 16 MB) that unpacks to the same rows as CSV and
 as JSON-lines:
 
 ```
@@ -79,9 +79,10 @@ The `edges` field is the board itself: 256 cells times four sides, row-major, in
 up-right-down-left order, `a` for the grey rim. It is the same string the
 [e2.bucas.name](https://e2.bucas.name) viewer reads, so any board pastes straight
 into the viewer. The `family` is the board's four corner pieces, a proxy for
-which basin it sits in; there are 28 distinct families. The score distribution is
-a clean bell curve peaking at 452 to 456, with 21 boards at 460 or above and the
-best at 469.
+which basin it sits in; there are 28 distinct families. The score distribution
+spikes sharply in the low-450s, where a large single-core beam harvest
+concentrates, then thins to a long tail, with 38 boards at 460 or above and the
+best at 470.
 
 <CorpusScoreDistribution />
 
@@ -96,21 +97,22 @@ get the published numbers exactly.
 
 ## The corpus is diverse, not derivative
 
-A pile of a thousand boards is only worth publishing if the boards are actually
-different. Before releasing this one we checked that they are not just
+A pile of several thousand boards is only worth publishing if the boards are
+actually different. Before releasing this one we checked that they are not just
 perturbations of a single board, and they are not:
 
-- Only 11 of the 1,089 source boards were exact duplicates; the rest are
-  distinct, leaving 1,078.
-- The *median* board differs from its closest sibling by 60 of its 256 piece
-  placements. Only 3% of boards sit within 10 placements of another, and only 7%
-  within 25.
+- Only 13 of the 7,671 source boards were exact duplicates; the rest are
+  distinct, leaving 7,658.
+- The *median* board differs from its closest sibling by 235 of its 256 piece
+  placements. Almost no board sits within 10 placements of another, and only 1%
+  within 25. Even though most boards share a narrow score band, they are
+  structurally almost entirely different.
 - The boards spread across 28 distinct corner families rather than piling into
   one.
 
 So the corpus is a genuinely varied sample of the strong-board landscape. That
-matters for anything that mines it: a learned prior built from a thousand copies
-of one board would encode that board, not the structure of good boards in
+matters for anything that mines it: a learned prior built from thousands of
+copies of one board would encode that board, not the structure of good boards in
 general.
 
 ## Rebuilding it
