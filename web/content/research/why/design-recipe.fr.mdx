@@ -1,0 +1,276 @@
+---
+title: "Conçu pour être insoluble : la recette"
+description: >-
+  Eternity II applique une recette pour obtenir le casse-tête à raccords de
+  bords le plus difficile possible : forme compacte, aucune pièce symétrique
+  ni dupliquée, palettes cloisonnées, fréquences plates, une seule solution
+  attendue. La communauté a rétro-conçu chaque ingrédient dès l'année du
+  lancement.
+metaDescription: "La recette de la difficulté d'Eternity II : forme compacte, aucune pièce symétrique ni dupliquée, palettes cloisonnées, fréquences plates, solution unique."
+kind: finding
+contribution: reconstruction
+rigor: conjectured
+tier: 2
+order: 45
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "guenter stertenbrink pose le problème de conception : un casse-tête ayant ~1 % de chances de tomber en dix ans (msg 15, février 2001)"
+    url: https://groups.io/g/eternity2/message/15
+  - label: "Brendan Owen, Concevoir le casse-tête le plus difficile : la recette complète et la dérivation du 17,14 (msg 1947, août 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "Brendan Owen, Estimations du casse-tête le plus difficile : le tableau des paramètres les plus durs pour chaque taille de plateau (msg 2164)"
+    url: https://groups.io/g/eternity2/message/2164
+  - label: "Brendan Owen, Fréquences des pièces : la distribution plate qui a tué la méthode d'Eternity I (msg 1667)"
+    url: https://groups.io/g/eternity2/message/1667
+  - label: "Brendan Owen citant The Times : Selby et Riordan ont écrit le générateur pour Monckton (msg 3373)"
+    url: https://groups.io/g/eternity2/message/3373
+  - label: "Le récit par Dave Clark d'un appel téléphonique avec Christopher Monckton sur la façon dont le casse-tête a été généré (msg 4177)"
+    url: https://groups.io/g/eternity2/message/4177
+  - label: "Le recensement de l'espace de conception des pièces : 256 pièces sur environ 21 000 possibles, formes symétriques évitées (msgs 8014–8034 ; recensement au msg 8025)"
+    url: https://groups.io/g/eternity2/message/8025
+  - label: "Brendan Owen sur la solution des concepteurs enfermée dans un coffre (msg 8823)"
+    url: https://groups.io/g/eternity2/message/8823
+related:
+  - /research/why/phase-transition
+  - /research/why/rare-color-geography
+  - /research/community/hunt
+---
+
+Eternity II n'est pas un casse-tête qui se trouve être difficile. C'est le
+produit d'une recette : une courte liste de règles de conception qui,
+appliquées ensemble, produisent le casse-tête à raccords de bords le plus
+difficile qu'un nombre donné de pièces puisse former, tout en garantissant
+l'existence d'une solution. Le plus remarquable, c'est que la recette n'a pas
+été divulguée ni publiée par les concepteurs. La communauté l'a reconstituée,
+ingrédient par ingrédient, en quelques semaines après le lancement, pour
+l'essentiel dans un unique message d'août 2007 signé Brendan Owen et intitulé,
+fort à propos, « Concevoir le casse-tête le plus difficile »
+([msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+Cette page parcourt cette recette : ce qu'est chaque règle, ce qu'elle coûte à
+quiconque tente de résoudre le casse-tête, et d'où provient chaque affirmation.
+La mesure de l'ingrédient le plus tranchant (le nombre de couleurs situé
+exactement sur le pic de difficulté) fait l'objet de
+[sa propre page](/research/why/phase-transition) ; ici, elle prend simplement
+place parmi les autres.
+
+## Le problème a précédé le casse-tête
+
+Le problème de conception a été énoncé sur la liste de diffusion six ans avant
+que quiconque ait à le résoudre. En février 2001, alors qu'Eternity I était à
+peine refroidi et qu'Eternity II n'était encore qu'une rumeur, guenter
+stertenbrink a demandé au groupe comment on concevrait un casse-tête assorti
+d'un prix de 5 M£ de sorte qu'il n'ait qu'environ 1 % de probabilité d'être
+résolu en dix ans ([msg 15](https://groups.io/g/eternity2/message/15)). Les
+réponses ont évoqué la mise à l'échelle d'une difficulté de type Eternity I,
+voire la dissimulation de problèmes cryptographiques dans les bords.
+
+C'est exactement le fil du rasoir sur lequel un casse-tête à prix doit avancer.
+Rendez-le trop facile et le prix est perdu ; c'est ce qui est arrivé à
+Eternity I, tombé en 2000 parce qu'il avait infiniment plus de solutions que
+son concepteur ne le croyait. Rendez-le littéralement impossible et le concours
+est une escroquerie. La cible, c'est un casse-tête dont on peut prouver qu'il
+possède une solution, positionné de telle sorte qu'aucune quantité réaliste de
+calcul ne la trouve dans la fenêtre du concours. Les concepteurs d'Eternity II
+avaient vu mourir Eternity I, et la recette qui suit se lit comme une réponse
+point par point.
+
+## La recette, ingrédient par ingrédient
+
+### Garder une forme compacte
+
+La première règle de la dérivation d'Owen : utiliser un plateau compact, le
+carré 16×16, plutôt qu'une forme allongée ou irrégulière
+([msg 1947](https://groups.io/g/eternity2/message/1947)). Une forme compacte
+maximise la part des jointures intérieures, là où l'incertitude est la plus
+forte, et ne laisse ni bras étroits ni couloirs qu'un solveur pourrait épuiser
+à bon compte et utiliser comme point d'ancrage. Owen a ensuite vérifié la
+conséquence par l'expérience : sur des conceptions 16×16 comparables à palettes
+déséquilibrées, il existe toujours une région moins coûteuse à paver en premier
+(pour un partage 2/19, démarrer au milieu revient plus de cent fois moins cher
+qu'un balayage par lignes), mais sur les paramètres réels d'E2, aucune région
+de ce genre n'existe. La conception ne présente, selon ses propres mots,
+« aucune zone faible par où commencer le pavage »
+([msg 5263](https://groups.io/g/eternity2/message/5263), comparaison de
+conceptions [msg 5243](https://groups.io/g/eternity2/message/5243)).
+
+### Aucune pièce symétrique, aucun doublon
+
+Chacune des 256 pièces est unique, et aucune n'est symétrique par rotation
+([msg 1947](https://groups.io/g/eternity2/message/1947)). En 2010, la
+communauté a dénombré l'espace de conception pour mesurer à quel point ce choix
+est délibéré : avec 5 motifs de cadre et 17 motifs intérieurs, il existe
+environ 21 000 conceptions de pièces possibles, y compris des formes comme
+*aaaa*, *abab* et *aabb* qui se répètent sous rotation. Le jeu réel les évite
+toutes, ostensiblement ([msgs 8014–8034](https://groups.io/g/eternity2/message/8014)).
+
+La conséquence, c'est l'absence de cadeaux. Une paire dupliquée permettrait de
+réécrire n'importe quelle solution en échangeant les deux pièces, doublant
+gratuitement le nombre de solutions ; une pièce à symétrie de rotation
+regrouperait des orientations et rétrécirait l'espace de décision. Refuser les
+deux maintient le nombre de solutions attendu exactement là où les concepteurs
+le voulaient et ne laisse au solveur strictement aucune symétrie à exploiter :
+chaque placement est une décision pleine et indépendante parmi 4 orientations
+de pièces distinctes.
+
+Il y a une seconde raison, plus discrète, d'interdire les pièces symétriques,
+et Owen l'a mesurée. Une pièce symétrique n'est pas seulement structurellement
+redondante, elle est aussi plus facile à *placer*, parce qu'elle s'insère dans
+davantage de contextes. Il a construit un jeu de 289 pièces (les 17 formes à
+symétrie de 90 degrés, les 136 formes à symétrie de 180 degrés, et 136 pièces
+asymétriques aléatoires), pavé un petit rectangle de toutes les façons
+possibles, et compté la fréquence d'apparition de chaque pièce sur l'ensemble
+des 759 millions de solutions. Les pièces asymétriques apparaissaient
+**2,08 fois** plus souvent que les pièces à symétrie de 180 degrés et
+**4,14 fois** plus souvent que celles à symétrie de 90 degrés
+([msg 2076](https://groups.io/g/eternity2/message/2076)). Les pièces
+symétriques sont donc les *plus difficiles à paver*, et un casse-tête qui les
+aurait incluses aurait remis au solveur précisément la prise offerte par une
+pavabilité inégale - celle-là même que les
+[fréquences de couleurs plates](#rendre-chaque-fréquence-plate) sont censées
+supprimer. Les bannir maintient chaque pièce à peu près aussi difficile à
+placer, sans aucune pièce facile à garder pour la fin.
+
+### Deux palettes, strictement séparées
+
+Les 22 couleurs se répartissent en 17 couleurs intérieures et 5 qui
+n'apparaissent que sur les raccords entre pièces de bordure, jamais à
+l'intérieur ([msg 1947](https://groups.io/g/eternity2/message/1947)). Cela
+transforme le cadre en un sous-casse-tête à part entière, dont la difficulté
+peut être réglée indépendamment de l'intérieur, de sorte qu'aucune des deux
+parties n'offre un point d'entrée facile : le même exercice d'équilibre que la
+forme compacte, appliqué à la palette. Les cinq couleurs réservées au cadre
+sont aussi les rares, mises en quarantaine sur le pourtour, là où leur rareté
+ne peut pas créer de cellules intérieures sur-contraintes dont la propagation
+ferait son festin. Cette signature visible fait l'objet de
+[sa propre page](/research/why/rare-color-geography).
+
+### Rendre chaque fréquence plate
+
+Lorsque Owen a numérisé son jeu le jour du lancement, il a trouvé la
+distribution des couleurs de bords « aussi plate que possible » : 24 arêtes
+pour chacune des 5 couleurs de raccord de bordure, 48 à 50 pour chacune des 17
+couleurs intérieures ([msg 1054](https://groups.io/g/eternity2/message/1054)).
+
+C'est cet ingrédient unique qui a tué la stratégie d'Eternity I. Eternity I a
+été cassé en grande partie par l'ordonnancement selon la difficulté des pièces :
+les pavabilités de ses pièces variaient énormément, de sorte que les solveurs
+pouvaient garder les pièces les plus faciles pour la fin et laisser les
+statistiques les mener à bon port. Deux semaines après le lancement, Owen a
+montré que la distribution plate d'E2 rend cette approche inutile : quand chaque
+couleur est également fréquente, chaque pièce est à peu près également pavable,
+et aucune heuristique d'ordonnancement ne prend prise
+([msg 1667](https://groups.io/g/eternity2/message/1667)). Comme l'a formulé en
+réponse doc_s_smith, l'une des personnes ayant réellement résolu Eternity I, la
+sélection de la position la plus contrainte est devenue « notre seul autre
+espoir » ([msg 1722](https://groups.io/g/eternity2/message/1722)).
+
+### Viser exactement une solution
+
+Le dernier ingrédient fixe les décomptes de couleurs eux-mêmes. Owen a
+raisonné à rebours à partir de l'exigence « environ une solution attendue » :
+en imposant que le nombre attendu de pavages intérieurs soit égal à 1 et en
+résolvant pour le nombre de couleurs intérieures, on obtient
+
+$$I = (196! \cdot 4^{196})^{1/392} \approx 17.14$$
+
+Arrondissez à 17, ajoutez les 5 couleurs de bordure réglées séparément, et
+vous avez la palette exacte d'Eternity II
+([msg 1947](https://groups.io/g/eternity2/message/1947)). Owen a étayé la
+dérivation par des simulations, défendu le 17+5 contre la conception voisine
+16+8 issue de la même famille à une solution attendue - car elle équilibre
+mieux la pavabilité des pièces de bordure et intérieures et ne laisse aucune
+entrée facile par le cadre ([msg 2426](https://groups.io/g/eternity2/message/2426)) -puis complété par un tableau des paramètres les plus durs pour chaque taille de
+plateau, une recette générale dont E2 est la ligne 16×16
+([msg 2164](https://groups.io/g/eternity2/message/2164)).
+
+Une solution attendue n'est pas un caprice esthétique arbitraire. C'est le
+réglage où les solutions sont aussi rares qu'elles peuvent l'être tout en
+existant encore : le sommet de la transition de phase, le point où l'on peut
+prouver que la recherche est à son pire. Cette mesure, et les analyses publiées
+qui ont plus tard confirmé le nombre d'Owen, se trouvent sur la
+[page du pic de difficulté](/research/why/phase-transition). Le revers prouve
+que le curseur est réel : une conception 16×16 délibérément *relâchée* discutée
+sur la liste compte environ 10^42 solutions attendues, quoiqu'Owen ait prévenu
+que même celle-là n'a rien d'une promenade de santé
+([msg 4968](https://groups.io/g/eternity2/message/4968)).
+
+## Qui l'a réellement conçu
+
+Christopher Monckton a inventé la franchise Eternity et mis le prix en jeu,
+mais son idée originale pour la suite était un casse-tête tridimensionnel de
+1001 pièces. Owen l'a rapporté en notant que « la conception réelle est
+d'Alex et Oliver » ([msg 2697](https://groups.io/g/eternity2/message/2697)).
+Alex Selby et Oliver Riordan sont les deux mathématiciens qui ont remporté
+Eternity I en découvrant qu'il avait bien plus de solutions que prévu ;
+Monckton a engagé ceux qui l'avaient battu. Le groupe l'a soupçonné des
+semaines avant le lancement ([msg 716](https://groups.io/g/eternity2/message/716)),
+l'a vu confirmé dans un dépliant officiel Tomy (l'inventeur a rencontré les
+vainqueurs d'E1 lors d'une émission télévisée du matin et leur a demandé de
+travailler au développement d'E2 ;
+[msg 901](https://groups.io/g/eternity2/message/901)), et l'a enfin recoupé
+avec un article du Times : Selby et Riordan ont conçu le programme générateur
+du casse-tête ([msg 3373](https://groups.io/g/eternity2/message/3373)).
+
+Cette provenance explique la précision de la recette. La seule équipe au monde
+ayant une expérience de première main de la façon dont un casse-tête à prix
+échoue statistiquement a été payée pour s'assurer que ce mode de défaillance
+avait disparu. Chaque ingrédient ci-dessus (platitude, absence de doublons,
+palettes équilibrées, une solution attendue) ferme une porte que Selby et
+Riordan avaient eux-mêmes franchie en 2000.
+
+## Comment les pièces ont été générées : un récit de seconde main
+
+Le seul récit détaillé du processus de génération présent dans l'archive est de
+seconde main et doit être lu comme tel. Dave Clark, fondateur du projet
+distribué eternity2.net, a rapporté une longue conversation téléphonique qu'il
+a eue avec Monckton le 26 juillet 2007 : le casse-tête a été généré à partir de
+l'entropie saisie au clavier par les juges du concours (quelque 200 entrées),
+régénéré jusqu'à satisfaction des juges, puis imprimé une seule fois et mis en
+coffre. Monckton lui a décrit le générateur de nombres aléatoires comme
+utilisant « des résidus gaussiens de puissances de nombres premiers
+convenablement choisis », ce que Clark a interprété comme l'implémentation
+propre à Selby et Riordan
+([msg 4177](https://groups.io/g/eternity2/message/4177)). Le fil a brièvement
+envisagé l'idée d'attaquer un générateur cryptographiquement faible ; une
+réponse a souligné que si la construction était de type Blum-Blum-Shub, elle
+serait prouvablement difficile
+([msg 4180](https://groups.io/g/eternity2/message/4180)). Rien n'est sorti de
+cette piste, mais le récit demeure la meilleure source quasi primaire de
+l'archive sur l'origine réelle des 256 pièces.
+
+## La police d'assurance
+
+Un casse-tête conçu pour ne jamais être résolu doit tout de même prouver qu'il
+*peut* l'être. Le matériel de lancement de Tomy indiquait que personne, ni
+l'inventeur ni les concepteurs, ne connaît la solution : le générateur l'a
+imprimée « entre des pages de texte aléatoire pendant que toutes les parties
+étaient hors de la pièce », et la sortie a été scellée devant témoins
+([msg 901](https://groups.io/g/eternity2/message/901)). Une fois le concours
+clos sans vainqueur, Owen a livré la formule encore citée aujourd'hui : « Je
+suis certain qu'Alex et Oliver ont créé une solution lorsque Chris les a payés
+pour générer un casse-tête pratiquement impossible », et qu'elle repose cachée
+au milieu de rames de texte imprimé enfermées dans un coffre, comme assurance
+contre toute contestation en justice de la bonne foi du concours
+([msg 8823](https://groups.io/g/eternity2/message/8823)).
+
+Ce coffre est l'ingrédient final de la recette. La solution conçue est ce qui
+permet au casse-tête de se poser à une solution attendue plutôt qu'à zéro :
+existence garantie par construction, découverte tarifée au-delà de la portée de
+tout concurrent.
+
+## Ce que la recette signifie si vous attaquez le casse-tête aujourd'hui
+
+Chaque raccourci générique que vous pourriez être tenté de saisir a été anticipé
+et facturé il y a près de vingt ans. L'ordonnancement selon la fréquence des
+pièces est mort avec la distribution plate. Les astuces de symétrie et de
+doublons n'ont rien à quoi s'accrocher. Il n'y a aucune région molle à paver en
+premier, aucun déséquilibre de palette à faire levier, et le nombre de couleurs
+se tient au réglage exact où la recherche est au pire. Les vingt ans de records
+de la communauté (467 en 2008, 470 en 2021, rien depuis) sont le relevé
+empirique d'une conception qui a fonctionné précisément comme prévu. Cela ne
+rend pas le casse-tête impossible : une solution existe de façon certifiée,
+imprimée et mise sous clé. Cela signifie que l'écart restant n'est pas un
+problème de réglage. Ce qui le comblera devra être une idée que les concepteurs
+n'ont pas pu anticiper. C'est là, au fond, la raison d'être de ce wiki.

@@ -1,0 +1,144 @@
+---
+title: Contribuez vos recherches
+description: >-
+  Ce wiki est le foyer de recherche de la communauté, et il y a de la place pour
+  votre travail. Trois façons de le faire publier, du message sur la liste de
+  diffusion à la pull request, plus le petit jeu de règles maison qui garde
+  chaque page digne de confiance.
+metaDescription: "Publiez vos recherches sur Eternity II sur ce wiki communautaire : trois voies, du message sur la liste de diffusion à la pull request, plus les règles maison."
+kind: tool
+order: 70
+updated: 2026-07-02
+topics: []
+related:
+  - /research/build/run-it-yourself
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+Ce wiki n'est pas le blog d'une seule personne, porte close. Il se veut le
+foyer de recherche de la communauté : l'endroit où dix-neuf ans de travail sur
+Eternity II (records, méthodes, résultats structurels,
+[impasses](/research/build/dead-ends) comprises) sont consignés, sourcés et
+gardés trouvables. Chaque page [du labo](/research/lab) porte la signature de
+son auteur et se rassemble sur la [page contributeur](/research/people) de ce
+chercheur, aujourd'hui surtout [celle de Raphaël](/research/people/raphael-anjou),
+parce que c'est lui qui prend la peine de tout écrire, mais la structure crédite
+chaque contributeur par son nom. La vôtre peut prendre place juste à côté de la
+sienne.
+
+Il existe déjà un précédent. La page sur
+[l'algorithme de Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+repose sur les notes et l'étude de paramètres de Jef Bucas, republiées avec son
+accord explicite, ses figures et son nom sur chacune d'elles. C'est le modèle :
+le travail reste le vôtre, le wiki lui offre un foyer permanent et citable.
+
+## Trois portes d'entrée
+
+**1. Postez-le et signalez-le : la voie la plus légère.** Partagez votre
+découverte là où la communauté discute déjà : la
+[liste de diffusion](https://groups.io/g/eternity2) ou le
+[serveur Discord](https://discord.gg/Ny5xs3q8w). Si vous souhaitez la voir sur
+le wiki, dites-le simplement dans votre message. Quelqu'un (généralement
+Raphaël) en rédigera une page, vous la soumettra, et la publiera avec tout le
+crédit qui vous revient. C'est exactement ainsi que la page Blackwood est née
+des notes de Jef. Vous n'avez jamais à toucher au dépôt.
+
+**2. Ouvrez une issue ou une pull request.** Le wiki est
+[un dépôt ouvert](https://github.com/raphael-anjou/eternity2), et une page de
+recherche n'est rien de plus qu'un fichier MDX sous
+`web/content/research/`. Ajouter le fichier *est* l'enregistrement : la barre
+latérale, la recherche et le sitemap le prennent en compte automatiquement.
+Chaque page commence par un petit bloc de frontmatter :
+
+```yaml
+title: Your finding, in one line
+description: >-
+  Two or three sentences that can stand alone in a search result.
+kind: finding # or experiment, concept, reference...
+updated: 2026-07-02
+topics: [backtracking]
+sources:
+  - label: Hopfer's statement of the NS-1 condition (2022)
+    url: https://groups.io/g/eternity2/message/10754
+```
+
+Si la page est une **expérience** (une recherche que vous avez mesurée), un bloc
+supplémentaire est requis : le matériel sur lequel elle a tourné. C'est ce qui
+permet à un lecteur de comparer votre résultat à celui de tous les autres, et le
+build refuse une page d'expérience qui en est dépourvue.
+
+```yaml
+kind: experiment
+hardware:
+  cores: 1 # logical cores used; sum across nodes for a cluster
+  cpu: "AMD Ryzen 9 7950X"
+  ramGb: 64
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "desktop, single box"
+  wallClock: "10 × 60 s" # budget per run × repeats
+  runs: 10
+  seedPolicy: "randomized corner permutation per run"
+  measured: true # true only for the standardized single-core bench
+```
+
+La page en fait une fiche technique avec un seul chiffre-titre dérivé : les
+**cœurs-heures** (cœurs × heures de temps réel), le coût véritable de la
+recherche. C'est ce chiffre unique qui met une recherche à un cœur et une minute
+et un balayage sur 400 cœurs en centre de données dans la même table sans que
+l'un flatte l'autre. Ne mettez `measured: true` que pour une référence
+mono-cœur standardisée (un cœur, un budget de temps fixe) ; une recherche
+multi-cœurs est un `native run` et consigne son matériel réel ainsi que le
+meilleur score atteint.
+
+Pas sûr de la tuyauterie ? Ouvrez une issue avec votre brouillon en markdown
+simple et nous nous occupons du reste.
+[Faites-le tourner vous-même](/research/build/run-it-yourself) explique comment
+lancer le site en local si vous voulez prévisualiser votre page.
+
+**3. Partagez données et plateaux.** Tout n'a pas besoin de prose. Un bon
+plateau, un balayage de paramètres, un jeu de données issu d'une longue
+recherche : tout cela est le bienvenu. Chaque plateau de ce site est vérifiable
+dans le [visualiseur](/viewer), qui parle nativement le format d'URL standard de
+la communauté, si bien que n'importe qui peut contrôler votre résultat en un
+clic. Postez le plateau ou les données avec une note sur leur production, et
+cela peut étayer une page ou en devenir une.
+
+## Les règles maison
+
+Elles existent pour une seule raison : que quiconque tombe sur n'importe quelle
+page puisse faire confiance à ce qu'il lit.
+
+- **Chaque affirmation renvoie à une source.** Un message de la liste de
+  diffusion, un dépôt, un article : quelque chose que le lecteur peut suivre.
+- **Chaque chiffre est reproductible ou étiqueté pour ce qu'il est.** Les
+  résultats déterministes s'accompagnent d'une commande qui les régénère à
+  l'identique. Les calculs à graine, stochastiques ou lourds le disent
+  clairement (« ne se reproduira pas à l'identique », « ~40 h sur 8 cœurs ») et
+  livrent le plateau qu'ils ont trouvé pour qu'il reste vérifiable.
+- **Chaque expérience dit sur quoi elle a tourné.** Une recherche mesurée n'a
+  aucun sens sans son matériel ; une page d'expérience doit donc porter le bloc
+  `hardware:` ci-dessus (cœurs, matériel, budget de temps). Le build l'impose.
+  Un score sans calcul derrière lui n'est pas un résultat que l'on peut
+  comparer.
+- **Les pages françaises sont écrites, pas traduites.** Chaque page existe dans
+  les deux langues, et la version française est de la vraie prose française, pas
+  une passe automatique. Si vous n'écrivez qu'une seule langue, ce n'est pas
+  grave ; un mainteneur peut faire traduire l'autre.
+- **Votre nom reste sur votre travail.** Encarts de crédit, liens de source,
+  attributions de figures : la page Blackwood montre ce que cela donne en
+  pratique. Rien n'est absorbé anonymement.
+
+## Ce que le wiki rend en retour
+
+En échange du respect de ces règles, votre travail reçoit une infrastructure
+qu'un message de forum n'aura jamais : une page stable dans l'habillage de la
+documentation avec barre latérale, recherche et fil d'Ariane ; un rangement dans
+les [pôles thématiques](/research) pour qu'on la trouve par thème, et pas
+seulement par date ; un export en markdown brut de chaque page (ajoutez `.md` à
+son URL) pour qu'elle reste lisible par machine ; et une URL permanente que
+d'autres chercheurs pourront citer, des années plus tard et pas seulement cette
+semaine.
+
+Le puzzle a résisté à tout le monde jusqu'ici. Le moins que l'on puisse faire,
+c'est de veiller à ce que les progrès de personne contre lui ne se perdent.

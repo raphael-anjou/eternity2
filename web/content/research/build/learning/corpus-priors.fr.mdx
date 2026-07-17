@@ -1,0 +1,96 @@
+---
+title: Priors de corpus
+description: >-
+  La façon la plus simple d'apprendre des bons plateaux : compter où chaque pièce
+  tend à se placer, ou à quelle fréquence elle satisfait une demande rare, et se
+  servir de ce décompte comme d'un léger départage en construction. Ce doit rester
+  un départage ; dès qu'il entre dans l'objectif, il fait s'effondrer la recherche.
+metaDescription: "Priors de corpus pour Eternity II : compter où les pièces se placent dans les bons plateaux, sûr seulement comme départage de construction, jamais comme objectif."
+kind: concept
+order: 50
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "Recherche en faisceau (page concept de ce projet) : la construction à largeur bornée qu'un prior biaise"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/learning/lodestone
+  - /research/build/construct/beam-search
+  - /research/why/rare-color-geography
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+
+La chose la plus simple qu'on puisse apprendre d'un tas de bons plateaux est un
+décompte. Pour chaque case du plateau, à quelle fréquence chaque pièce s'y
+place-t-elle à travers les bons plateaux ? Ce simple relevé est un *prior* : une
+préférence statistique légère pour ce qui a tendance à appartenir à tel endroit.
+Il ne copie aucun plateau en particulier ; il lit toute la foule d'un coup et en
+distille un biais.
+
+## La matrice de décomptes
+
+Prenez chaque plateau du corpus qui dépasse un seuil de score, et relevez une
+matrice $M[c][p]$ : combien de bons plateaux placent la pièce $p$ dans la case
+$c$. Normalisée par case, $M[c][\cdot]$ est une distribution sur les pièces pour
+cette position, la préférence apprise. Sa construction coûte une seule passe
+linéaire sur le corpus, et rien de plus au moment de la recherche qu'une
+consultation.
+
+<Figure collapsible title="Interactif : la carte de chaleur du prior de position">
+  <PriorDiagram />
+</Figure>
+
+Le prior ne sert jamais qu'à départager. Une [recherche en faisceau](/research/build/construct/beam-search)
+étend ses plateaux partiels case par case ; quand deux placements candidats
+apparient le même nombre d'arêtes, le prior fait pencher le choix vers la pièce
+la plus typique des bons plateaux à cet endroit. Le décompte d'arêtes appariées
+décide toujours ; le prior ne parle que lorsque le décompte est muet. C'est
+l'expérience [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), qui
+bâtit un plateau compétitif à partir d'une grille vide, sans plateau où
+s'ancrer, et atteint ainsi 460.
+
+Trois affûtages du même décompte méritent d'être nommés, car chacun échange la
+force du signal contre du bruit :
+
+- **Sensible à la rotation.** On scinde chaque pièce selon ses quatre rotations,
+  de sorte que le prior préfère non seulement la bonne pièce mais la bonne
+  orientation. La matrice passe de $256 \times 256$ à $1024 \times 256$ ; le
+  signal est plus fin mais plus mince par case.
+- **Par famille de coins.** Les bons plateaux se répartissent en familles selon
+  leurs quatre pièces de coin. Un prior bâti à partir des plateaux d'une seule
+  famille capture une structure que la matrice mise en commun gomme par moyenne,
+  ce qui a permis à PRIOR d'atteindre un bassin neuf plutôt que le bassin commun
+  et encombré.
+- **Seuil plus sévère.** On reconstruit le prior à partir des seuls tout meilleurs
+  plateaux. Le plafond de la construction s'élève, au prix d'un signal plus mince
+  et plus bruité, appris à partir de moins d'exemples.
+
+## Un prior sur la demande, pas la position
+
+Le décompte n'a pas à porter sur les positions. Un prior plus subtil demande,
+pour chaque *pièce*, à quelle fréquence elle finit par satisfaire une **demande
+rare** : une case dont les couleurs nord et ouest ne peuvent être servies que par
+une ou deux pièces de tout le jeu. Les bons plateaux satisfont de plus en plus
+les mêmes demandes rares à mesure qu'ils progressent, si bien qu'une pièce qui
+est souvent celle qui se dépense sur une couleur rare gagne un poids élevé.
+Classer les candidats selon les arêtes appariées plus un petit multiple de ce
+poids pousse la recherche à engager tôt les pièces rares, avant qu'elles ne
+soient dérobées. C'est l'expérience [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone),
+et elle se rattache à la [géographie des couleurs rares](/research/why/rare-color-geography)
+du puzzle.
+
+## Pourquoi cela reste un départage
+
+Le détail porteur, pour le prior positionnel comme pour celui de la demande rare,
+est que le multiple sur le prior doit être *minuscule*. Un prior est un pur
+départageur : il tranche entre des coups qui apparient également, et rien de plus.
+Montez le poids ne serait-ce qu'un peu et la recherche se met à troquer une arête
+appariée réelle contre une intuition statistique, et le score s'effondre :
+LODESTONE tombe de 451 à 422 à 380 à mesure que le poids grimpe. Cet effondrement
+n'est pas un bogue d'implémentation ; c'est la forme de toute la famille, et il a
+sa propre page : [quand l'apprentissage s'effondre](/research/build/learning/when-learning-collapses).

@@ -1,0 +1,162 @@
+---
+title: KEYRING
+description: >-
+  Construire un plateau de zéro en classant chaque pièce suivante selon trois
+  signaux appris de plateaux forts passés. A atteint 460 dans une famille de
+  plateaux qu'aucune recherche antérieure n'avait percée.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "beam search O(W·n·|moves|) for beam width W over n = 256 placements; prior build O(B) in the corpus"
+  space: "O(H) for the patch table (H distinct 2×2 patches seen) + O(W·n) live beams"
+  note: >-
+    The learned priors are a one-off preprocessing pass; the run cost is the
+    beam search they bias.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Build a board from empty, ranking each next piece by three learned signals voted together"
+    learns: "Three corpus signals: a 2x2-patch log-odds prior, piece-in-position and piece-pair frequencies"
+    published: false
+  - engine: refinement
+    does: "A local-refinement tail lifts the high-450s construction to the committed 460"
+    published: false
+order: 20
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, learning]
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/why/sigma-cycles
+  - /research/why/forbidden-patterns
+  - /research/build/construct/beam-search
+sources:
+  - label: "La recherche en faisceau comme construction best-first à largeur bornée (page conceptuelle de ce projet)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) se fiait à un
+seul signal appris, un décompte de positions, pour départager ses égalités.
+KEYRING est l'étape suivante de l'[étude](/research/lab/experiments/raphael-anjou/learning) :
+et si un seul signal ne suffisait pas ? Lorsqu'on construit un plateau une pièce
+à la fois, le point difficile consiste à décider quelle pièce placer ensuite
+quand plusieurs conviendraient, et une règle empirique unique, même apprise, tend
+à conduire la recherche vers les mêmes impasses à chaque fois. KEYRING porte trois
+intuitions apprises différentes en même temps, un trousseau, et les laisse voter,
+ce qui empêche la recherche de trop se fier à un signal en particulier.
+
+## Fonctionnement
+
+À partir de la bibliothèque de plateaux forts, KEYRING apprend trois choses.
+Premièrement, où chaque pièce aime se placer : à quelle fréquence une pièce
+apparaît à chaque position dans les bons plateaux. Deuxièmement, quelles pièces
+aiment être voisines : à quelle fréquence deux pièces finissent en contact.
+Troisièmement, quels petits carrés 2×2 apparaissent dans les bons plateaux plutôt
+que dans les mauvais.
+
+Il remplit ensuite le plateau par une recherche en faisceau, en gardant de
+nombreux plateaux partiels vivants à la fois. Lorsqu'il doit choisir la pièce
+suivante, il note chaque option d'après le nombre d'arêtes qu'elle apparie, ajusté
+par les trois signaux appris conjointement. Une petite dose d'aléa empêche les
+nombreuses tentatives parallèles de s'effondrer sur un même chemin.
+
+<Figure collapsible title="Interactif : le vote de placement à trois signaux">
+  <KeyringDiagram />
+</Figure>
+
+## Le plateau
+
+<RecordBoard id="keyring-460" />
+
+## Le résultat
+
+KEYRING a atteint 460 sur 480, et l'a fait dans une disposition de coins où aucun
+plateau n'était parvenu à ce niveau auparavant : ce n'est donc pas une nouvelle
+route vers un plateau connu, mais une région véritablement inédite. Sur des runs
+répétés, il a décroché un plateau fort bien plus souvent que la version à signal
+unique, plus simple, dont il est issu.
+
+Ce n'est pas le meilleur score du projet (c'est 463), mais trouver un plateau
+élevé dans une famille inédite compte : les plateaux forts sont réputés isolés les
+uns des autres, si bien que chaque nouvelle famille constitue son propre point
+d'appui.
+
+## Méthode
+
+Les trois signaux, rendus précis, puis la manière dont ils orientent le faisceau.
+
+Le plus fort des trois est le **prior de carré 2×2**. Sur le corpus, on sépare les
+plateaux en *hauts* (score ≥ 460) et *bas* (< 460), et pour chaque carré 2×2 $q$
+(quatre pièces avec leurs rotations) on le note par un rapport de log-odds lissé
+à la Laplace :
+
+$$
+\text{score}(q) = \log\big(\text{count}_\text{high}(q) + \alpha\big) - \log\big(\text{count}_\text{low}(q) + \alpha\big), \quad \alpha = 0{,}5
+$$
+
+Un carré qui apparaît dans les plateaux forts et non dans les faibles obtient un
+score positif ; un carré piège à consensus obtient un score négatif. (Dans le run
+qui a trouvé le 460, le corpus se répartissait en 23 plateaux hauts contre 1255
+bas.) Les deux autres signaux sont des décomptes plus simples : une fréquence de
+**pièce-en-position** et une fréquence d'**adjacence de paires de pièces**, chacune
+comptabilisée sur le même ensemble de plateaux forts.
+
+La construction est une **recherche en faisceau** : on garde $W$ plateaux partiels
+vivants, et à chaque étape on étend chaque faisceau en notant chaque placement
+candidat comme son gain en arêtes appariées plus une somme pondérée des trois
+priors, puis on conserve les $W$ meilleurs. Un peu d'aléa injecté empêche les $W$
+faisceaux de s'effondrer sur un seul chemin, ce qui a permis à KEYRING d'atteindre
+une *nouvelle* famille de coins plutôt que de redériver un plateau connu. Les
+carrés se compactent dans une clé `u64` (pièce ≤ 8 bits, rotation 2 bits, ×4
+cellules = 40 bits), de sorte que la consultation du prior est un accès de hachage.
+
+Comme pour [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), la
+construction en faisceau atteint seule la zone haute des 450 ; le plateau 460
+retenu prend cette construction et ajoute par-dessus une queue de raffinement
+local, la même séparation construire-puis-raffiner qu'emploient les pipelines de
+record. Les trois signaux sont ce qui porte la *construction* dans une famille
+inédite ; les dernières arêtes relèvent du raffinement.
+
+Une limite qu'il vaut la peine d'énoncer : les priors sont appris d'un corpus
+lui-même sous-optimal, et encodent donc autant le plafond de la communauté que sa
+sagesse : cette même double arête que [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)
+transforme en atout en séparant le bon consensus des pièges.
+
+## Reproduire
+
+`just research-record-boards` vérifie octet par octet le score du plateau 460
+retenu à partir de sa chaîne Bucas stockée. La recherche est stochastique
+(recherche en faisceau avec aléa injecté), si bien qu'un nouveau run ne
+reproduira pas le même plateau ; le plateau est l'artefact de référence. Le moteur
+est le producteur en faisceau partagé ; le changement décrit par cette page tient
+aux trois signaux de classement appris. Ces signaux sont extraits d'un corpus de
+plateaux forts, de sorte que le run n'est pas reproduit de zéro ici.
+
+## Questions ouvertes
+
+Graduer le signal de carré par degré, plutôt que de traiter les carrés comme
+simplement bons ou mauvais, aiderait-il davantage ? Les poids des trois signaux
+pourraient-ils évoluer à mesure que le plateau se remplit, en se fiant davantage à
+la structure en fin de construction ? Et cette nouvelle famille peut-elle être
+poussée au-delà de 460 avec un raffinement plus long ?

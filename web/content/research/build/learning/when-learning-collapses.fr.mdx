@@ -1,0 +1,101 @@
+---
+title: Quand l'apprentissage s'effondre
+description: >-
+  La moitié désenchantée de l'apprentissage à partir des grilles fortes. Un
+  signal appris atteint fiablement le sommet de la plage propre à une recherche,
+  puis s'arrête. Faites-lui trop confiance et la recherche s'effondre ; même
+  utilisé parfaitement il ne relève pas le plafond, car le plafond n'est pas une
+  chose que le corpus connaît.
+metaDescription: "Les limites de l'apprentissage sur Eternity II : le signal appris atteint le haut de la plage sans relever le plafond, et l'excès de confiance l'effondre."
+kind: concept
+order: 54
+group: Learned guidance
+updated: 2026-07-16
+topics: [learning, search-space]
+sources:
+  - label: "Le mur de rigidité (ce projet) : le plafond mesuré que tout signal appris atteint et qu'aucun ne franchit"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/rigidity-wall.mdx
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/anti-pattern-mining
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/lab/experiments/raphael-anjou/learning/lodestone
+---
+
+Les quatre autres pages de cette section traitent de ce que l'apprentissage à
+partir des grilles fortes *rapporte*. Celle-ci traite de l'endroit où il
+s'arrête, et c'est la page qui maintient toute la famille les pieds sur terre,
+car chaque technique présentée ici partage les deux mêmes modes d'échec et il
+vaut mieux les énoncer clairement que de laisser un lecteur prendre un sac
+d'astuces apprises pour un moyen de franchir le mur.
+
+## Échec un : le signal devient l'objectif
+
+Chaque signal appris de cette section n'est sûr qu'en tant que *départage*. Il
+tranche entre des coups par ailleurs équivalents sur la seule chose qui compte
+vraiment, le bord apparié devant vous, et il ne doit jamais l'emporter sur cette
+chose. Dès l'instant où un a priori appris passe du rang de départage à celui de
+composante de l'objectif, la recherche se met à échanger un vrai bord apparié
+contre une intuition statistique, et elle s'effondre.
+
+[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) en est la
+mesure la plus nette. À un poids infime, son a priori de pièces rares en premier
+fait passer le score médian de départ de 449 à 451 et resserre la dispersion.
+Augmentez le poids ne serait-ce que légèrement et le score chute à 422, puis 380,
+car courir après les demandes rares du corpus s'échange alors directement contre
+l'appariement du bord devant vous. La même forme apparaît dans le
+[minage d'anti-patrons](/research/build/learning/anti-pattern-mining) par l'autre
+bout : utiliser la liste des pièges comme un guidage doux atteignait 463, mais
+*interdire* durement les placements piégés dégradait les grilles. Un signal appris
+est un bon coup de pouce et une mauvaise loi. L'effondrement n'est pas un accident
+de réglage qu'on pourrait faire disparaître par l'ingénierie ; c'est le signal qui
+vous dit qu'il n'a jamais été qu'une intuition.
+
+## Échec deux : le plafond n'est pas dans le corpus
+
+La limite plus profonde est plus discrète, parce qu'elle ressemble à un succès.
+Utilisé correctement, comme départage, un signal appris porte fiablement une
+recherche jusqu'au sommet de *sa propre plage*, et pas plus loin. LODESTONE dit
+explicitement qu'il « ne touche pas le plafond du bassin qui arrête toute méthode
+près du sommet ». [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)
+et [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) atteignent
+460 en partant de zéro, le sommet de la plage de construction depuis zéro, mais
+pas au-delà. [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest),
+le plus fort d'entre eux, atteint 463 puis constate que reconstruire les régions
+piégées ramène sur la même grille sommet déjà connue plutôt que sur une nouvelle.
+
+La raison est structurelle, et c'est la thèse de toute la section retournée.
+Chaque grille du corpus est elle-même bloquée sous 480. Un signal miné à partir de
+ce corpus encode *où se trouvent* les grilles fortes, c'est-à-dire le plateau, si
+bien qu'un signal appris qui se contente de ré-encoder le plateau ne peut pas
+hisser une recherche au-dessus. Le corpus connaît la forme du bassin dans lequel
+ses grilles sont prises ; il ne connaît pas la sortie, parce qu'aucune de ses
+grilles ne l'a trouvée. Ce qui arrête toute méthode près du sommet, c'est le
+[mur de rigidité](/research/why/rigidity-wall) : près d'une grille forte, les
+désappariements restants se verrouillent en un unique
+[σ-cycle](/research/why/sigma-cycles) imbriqué qu'aucun coup local ne peut ouvrir.
+Ce mur est une propriété du casse-tête, non de l'ignorance d'une recherche, et
+aucun minage de corpus ne le déplace, car le corpus est fait de grilles qui
+butent contre ce même mur.
+
+## À quoi sert vraiment cette famille
+
+Rien de tout cela ne rend l'apprentissage à partir des grilles fortes inutile.
+Cela le rend *précis*. Un signal appris est le moyen le plus rapide et le plus
+fiable d'amener une recherche *jusqu'au* plateau : construire une grille
+compétitive à partir de rien (PRIOR, KEYRING), l'atteindre dans un bassin inédit
+(la nouvelle famille de coins de KEYRING), se poser à chaque fois au sommet de la
+plage plutôt que de trébucher parfois (la dispersion resserrée de LODESTONE), ou
+diagnostiquer le coup exact qui manquait à une recherche pour atteindre une
+hauteur connue (le double déblocage de
+[REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)).
+
+Ce à quoi il ne sert pas, c'est à passer *au-delà* du plateau, et une section sur
+l'apprentissage à partir des grilles fortes qui prétendrait le contraire vendrait
+au lecteur la seule chose que le corpus, de façon prouvée, ne peut pas contenir.
+Les pipelines construire-puis-raffiner qui atteignent les meilleures grilles de ce
+projet répartissent le travail proprement : un constructeur appris pour atteindre
+vite le sommet de la plage, puis une confrontation distincte avec le mur de
+rigidité, que l'apprentissage à partir des grilles fortes sait décrire mais ne
+sait pas dissoudre.

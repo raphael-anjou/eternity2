@@ -1,0 +1,336 @@
+---
+title: Ordres de remplissage
+description: >-
+  L'ordre dans lequel un algorithme de retour arrière visite les 256 cases est
+  son unique liberté : il ne coûte rien à l'exécution et fait varier la taille
+  de l'arbre de recherche de plusieurs ordres de grandeur. Vingt ans de science
+  communautaire, des guerres fixe-contre-dynamique aux courses de stratégies,
+  jusqu'au carré magique 10×16 et à la recherche en peigne de Verhaard,
+  répondent tous à la même question : quel chemin à travers le plateau est le
+  moins coûteux ?
+metaDescription: "L'ordre de visite des 256 cases fait varier la taille de l'arbre de retour arrière : fixe contre dynamique, carré 10×16, recherche en peigne de Verhaard."
+kind: concept
+order: 110
+group: Backtracking
+updated: 2026-07-02
+topics: [backtracking, search-space]
+sources:
+  - label: Le « meilleur ordre de recherche » d'Owen, le balayage quasi optimal et l'argument par comptage de formes (septembre 2007)
+    url: https://groups.io/g/eternity2/message/2714
+  - label: Le débat fixe contre dynamique, où les chemins fixes l'emportent empiriquement (msg 2392 ; le verdict d'Owen, msg 2425)
+    url: https://groups.io/g/eternity2/message/2392
+  - label: Vitesse, la réponse d'istarinz en un mot à la question du triomphe des chemins fixes (septembre 2008)
+    url: https://groups.io/g/eternity2/message/5860
+  - label: Le « carré magique 10×16 » de Verhaard (msg 5868 ; l'explication en profondeur 160, msg 5879)
+    url: https://groups.io/g/eternity2/message/5868
+  - label: Max mesure les orientations de balayage, 2,3 contre 2,7 × 10⁴⁰ nœuds (octobre 2008 ; le fil commence au msg 6015)
+    url: https://groups.io/g/eternity2/message/6023
+  - label: L'expérience de conception d'Owen montrant que le balayage ne gagne que parce que la répartition 5/17 d'E2 est équilibrée (msg 5263 ; tableaux msg 5243)
+    url: https://groups.io/g/eternity2/message/5263
+  - label: Verhaard dévoile la recherche en peigne pour les scores élevés (octobre 2008)
+    url: https://groups.io/g/eternity2/message/6112
+  - label: L'ordre pour scores élevés de Max, quasi identique, douze rangées puis colonnes (octobre 2008)
+    url: https://groups.io/g/eternity2/message/6126
+  - label: La course de stratégies à 89 794 nœuds, conception d'ordre automatisée contre réglage manuel (msg 2896 ; la riposte msg 2928)
+    url: https://groups.io/g/eternity2/message/2896
+  - label: La chaîne de Markov de Verhaard, optimiser conjointement l'ordre de remplissage et le tableau de glissements (janvier 2009)
+    url: https://groups.io/g/eternity2/message/6423
+  - label: "Le duel 8×8 de Markus Zajc, la valeur restante minimale bat le balayage qui bat la réduction maximale (septembre 2008)"
+    url: https://groups.io/g/eternity2/message/5918
+related:
+  - /research/why/complex-theory
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
+
+Un algorithme de retour arrière n'a presque aucune liberté. Les pièces sont
+données, la règle d'appariement est donnée, le plateau est donné. La seule
+chose qui vous revient entièrement, c'est l'*ordre de remplissage* : la
+séquence dans laquelle les 256 cases sont remplies. Cela ressemble à un détail
+(la recherche est exhaustive quoi qu'il arrive), et c'est en réalité la
+décision à plus fort effet de levier de tout le solveur. Brendan Owen l'a dit
+sans détour en 2007 : « L'une des plus grosses économies de nombre de nœuds
+que vous puissiez faire consiste à choisir un bon ordre de recherche »
+([msg 2714](https://groups.io/g/eternity2/message/2714)). Le même puzzle,
+parcouru dans un ordre différent, peut coûter dix ordres de grandeur de nœuds
+en plus. Et le choix est gratuit, arrêté avant même que la première pièce ne
+soit posée.
+
+Voilà pourquoi la liste de diffusion en a débattu pendant vingt ans. Le
+premier grand débat, à l'été 2007, opposait le *fixe au dynamique* : les
+vétérans d'Eternity I plaidaient pour le choix dynamique, à chaque étape, de la
+case la plus contrainte, l'heuristique CSP classique
+([msg 2392](https://groups.io/g/eternity2/message/2392)). Les empiristes ont
+répondu par des comptages de nœuds : les meilleurs résultats venaient de
+chemins fixes, précalculés, et le verdict d'Owen fut qu'« un balayage par
+lignes après la pose de la pièce indice semble le meilleur »
+([msg 2425](https://groups.io/g/eternity2/message/2425)). Un an plus tard,
+quand on lui a demandé pourquoi personne ne s'embêtait avec un placement
+entièrement dynamique, istarinz a résumé le volet ingénierie de la réponse en
+un mot, vitesse : un chemin fixe garde la boucle interne sans branchements et
+pilotée par tables
+([msg 5860](https://groups.io/g/eternity2/message/5860)). Le volet théorique a
+demandé plus de temps, et fait l'objet de cette page.
+
+## Le point de vue du comptage de contraintes
+
+Une idée sous-jacente à tout le reste : un placement de pièce n'est jamais
+testé que contre les voisins *déjà présents sur le plateau*. Une grille 16×16
+possède exactement 480 jonctions internes, et tout ordre de remplissage complet
+(balayage par lignes, spirale, n'importe quoi) finit par vérifier les 480. L'ordre
+ne change que l'*ordonnancement* : quelles jonctions sont payées tôt, tant que
+l'arbre est encore étroit, et lesquelles sont reportées là où il est large. Une
+case qui arrive avec deux voisins déjà posés n'admet que peu de pièces
+candidates ; une case qui arrive sans aucun voisin les admet presque toutes et
+n'élague rien. Les bons ordres sont ceux qui nourrissent la recherche d'un
+régime régulier de cases contraintes, ce que fait précisément un balayage par
+lignes : après la première rangée, presque chaque nouvelle case touche une pièce
+à sa gauche et une pièce en dessous.
+
+Owen en a fait une méthode. Pour un ordre fixe, les nœuds à la profondeur $D$
+valent (en espérance) le nombre de façons de paver la *forme* que l'ordre a
+construite à la profondeur $D$. Tout ordre candidat peut donc être noté, forme
+par forme, sans l'exécuter. Sa conclusion, tirée d'une analyse exhaustive : les
+formes qui dominent le total sont celles de tailles 121 à 185, et les meilleures
+formes dans cette fenêtre critique « forment un simple ordre de balayage par
+lignes » ([msg 2714](https://groups.io/g/eternity2/message/2714)). Toute la
+machinerie, probabilités de jonction comprises, est devenue la
+[théorie complexe](/research/why/complex-theory) ; cette page montre à quoi
+ressemblent ses réponses en pratique.
+
+Le laboratoire ci-dessous rend l'ordonnancement visible. Il anime la séquence de
+visite de quatre ordres prédéfinis sur une grille 16×16 et trace, en direct, le
+comptage de contraintes (combien de voisins déjà posés possède chaque nouvelle
+case) ainsi que le cumul des jonctions collectées. (Il montre la *géométrie* ;
+pour faire courir de vraies résolutions le long de chemins que vous tracez
+vous-même, le pendant pratique est le
+[terrain de jeu des chemins de recherche](/playground/paths).)
+
+<Figure collapsible title="Interactif : ordre de remplissage contre ramification">
+  <FillOrderLab />
+</Figure>
+
+## Ce que la communauté a mesuré
+
+**Les courses de stratégies.** À la fin de 2007, la question était devenue
+quantitative : puzzles de référence partagés, comptages de nœuds en recherche
+complète et tableau de scores public. Le sommet du genre fut l'algorithme
+entièrement automatique de recherche de stratégie de doc_s_smith, qui a conçu
+un ordre de recherche épuisant le benchmark de taille 14 `hints15_2` en
+89 794 nœuds, battant les 141 628 réglés à la main de Txibilis : la machine
+sur l'humain ([msg 2896](https://groups.io/g/eternity2/message/2896)).
+Txibilis a répliqué en deux jours avec 85 729
+([msg 2928](https://groups.io/g/eternity2/message/2928)) ; doc_s_smith
+s'interrogeait déjà sur les raisons de la force des humains dans cette
+discipline ([msg 2883](https://groups.io/g/eternity2/message/2883)). La leçon
+qui a survécu à la course : la qualité d'un ordre est mesurable, et les écarts
+ne sont jamais petits.
+
+**Dynamique contre fixe, mesuré.** L'argument fixe-contre-dynamique de 2007 a
+fait l'objet d'un petit test contrôlé en septembre 2008. Markus Zajc a exécuté
+trois ordres sur le 8×8 sans indice, chacun sur dix ordres de tuiles
+aléatoires pour annuler les effets de l'ordre d'entrée, tous sous un résolveur
+de contraintes : balayage simple, un ordre par valeur restante minimale qui
+prend toujours la case ayant le moins de candidats, et un ordre par réduction
+maximale qui prend la case dont le placement élague le plus. La valeur restante
+minimale l'a emporté ; le balayage est arrivé deuxième mais oscillait avec
+l'ordre d'entrée (sa meilleure exécution restait ~2× le vainqueur) ; la
+réduction maximale a fini dernière, car ensemencer tôt l'intérieur ouvert
+achète une grosse première coupe mais entraîne ensuite un facteur de
+ramification punitif à chaque retour arrière
+([msg 5918](https://groups.io/g/eternity2/message/5918) ; les vidages de
+domaines par ordre sont dans son dossier de la zone de fichiers). C'est un
+petit plateau, mais c'est le duel le plus net de l'heuristique CSP classique
+contre un balayage fixe, et il atterrit là où les comptages de nœuds ultérieurs
+de la communauté aboutissent : la valeur réside dans le fait de nourrir la
+recherche de cases contraintes, qu'une règle dynamique ou un bon chemin fixe
+vous y mène.
+
+**La victoire du balayage est un fait de conception d'E2.** En avril 2008, Owen
+a construit des puzzles 16×16 où l'équilibre de couleurs bordure/intérieur était
+délibérément déséquilibré (2 couleurs de bordure et 19 d'intérieur, puis 14 et
+15) et a noté les ordres balayage, centre d'abord et bordure d'abord sur chacun.
+Les conceptions déséquilibrées sont attaquables : le centre d'abord bat le
+balayage d'environ 150× sur la conception 2/19, la bordure d'abord l'emporte sur
+la 14/15. Sur la véritable répartition 5/17 d'E2, chaque écart *perd* : le centre
+d'abord coûte $1,22\times10^{60}$ nœuds contre $1,07\times10^{50}$ pour le
+balayage, parce que la conception équilibre la pavabilité de la bordure et de
+l'intérieur, donnant au puzzle « aucune zone faible par laquelle commencer à
+paver » ([msg 5263](https://groups.io/g/eternity2/message/5263),
+[5243](https://groups.io/g/eternity2/message/5243)). Le balayage par lignes
+n'est pas une loi de la nature ; c'est la bonne réponse à une conception
+adverse bien précise.
+
+**Le carré magique 10×16.** Pourquoi le balayage par lignes et pas, disons, un
+ordre par blocs 4×4 ? La règle empirique de la forme de frontière de Louis
+Verhaard : la plupart des ordres atteignent leur maximum de comptage de nœuds
+autour de la profondeur 160, donc ce qui compte, c'est la forme que votre ordre
+a construite *à cet endroit*, et la meilleure forme connue en profondeur 160 pour
+E2 est un rectangle 10×16 (avec deux coins remplis). Les ordres dont la frontière
+passe par « le carré magique 10×16 » sont quasi optimaux ; un balayage par blocs
+2×2 le fait, un 4×4 non, ce qui est exactement l'écart que Max venait de mesurer
+([msg 5868](https://groups.io/g/eternity2/message/5868),
+[5879](https://groups.io/g/eternity2/message/5879)). C'est la pièce que la seule
+courbe de comptage de contraintes ne peut pas voir : deux ordres peuvent payer
+les jonctions selon le même ordonnancement tout en différant par le périmètre de
+la région qu'ils construisent.
+
+**Pourquoi « résoudre la bordure d'abord » est un piège.** L'instinct humain le
+plus naturel, construire le cadre facile puis remplir le milieu, est
+quantitativement l'un des pires ordres, et en 2025 Owen et Peter McGavin ont
+détaillé pourquoi, précisément sur ce pic en profondeur 160. La bordure est
+réellement facile : après la pièce de départ, il y a environ
+$5,17\times10^{37}$ façons de la compléter, dont seulement 14 702 peuvent être
+remplies par les 196 pièces d'intérieur, si bien qu'environ $3,5\times10^{33}$
+cadres doivent être essayés avant que l'un puisse ne serait-ce que *finir*
+([msg 11572](https://groups.io/g/eternity2/message/11572)). Cela seul est déjà
+sans espoir, mais ce n'est pas le vrai problème. Le problème, c'est qu'avec le
+cadre fixé en premier, le comptage de nœuds continue de *grimper* après la
+bordure jusqu'à un pic d'environ $10^{57}$ vers 160 pièces, contre environ
+$10^{43}$ pour le balayage par rangées. Un ordre bordure d'abord s'engage tôt
+sur la bordure puis fonce droit dans un pic de quatorze ordres de grandeur plus
+haut que celui du balayage par rangées, car seul environ 1 cadre sur $10^{31}$
+mène quelque part et chacun est coûteux à écarter
+([msg 11573](https://groups.io/g/eternity2/message/11573)). Le balayage par
+lignes ne gagne pas en construisant une plus belle frontière, mais en ne payant
+jamais pour une bordure dont il ne peut pas encore savoir qu'elle est condamnée.
+
+**Mais quel balayage ?** Même au sein des balayages par lignes, il y a huit
+orientations : quatre coins de départ, rangées ou colonnes
+([msg 6018](https://groups.io/g/eternity2/message/6018)). Max a mené sur
+plusieurs jours des estimations par échantillonnage de la taille de l'arbre
+complet par orientation : de droite à gauche se maintenait stable juste sous
+$2,7\times10^{40}$ nœuds, tandis que de bas en haut, de gauche à droite
+(l'orientation qui connecte le plus tôt la pièce de départ obligatoire, et
+celle qu'utilisait déjà Verhaard) tournait autour de $2,3\times10^{40}$
+([msg 6015](https://groups.io/g/eternity2/message/6015),
+[6023](https://groups.io/g/eternity2/message/6023)). Un choix de folklore
+devenu un ~15 % mesuré : minuscule à côté des ordres de grandeur ci-dessus,
+mais gratuit.
+
+**Des écarts qui ont payé.** L'orthodoxie de l'ordre de balayage a été
+constamment mise à l'épreuve, et l'a le plus souvent emporté, mais pas
+toujours. Owen lui-même a résolu son défi 14×14 avec un ordre en *carrés
+décroissants* après le blocage du balayage ; sur les plateaux irréguliers,
+l'argument d'équilibre ne tient plus
+([msg 3124](https://groups.io/g/eternity2/message/3124)). Des hybrides ont été
+proposés, débutant en carrés croissants (moins coûteux au départ) puis basculant
+vers le balayage avant le pic de mi-profondeur
+([msg 6142](https://groups.io/g/eternity2/message/6142)). Et Max a trouvé une
+véritable amélioration intra-balayage : au début d'une rangée, les candidats de
+bordure qui ne diffèrent que par leur seconde couleur de bordure non appariée
+sont équivalents : réfutez-en un et vous les avez tous réfutés. Verhaard, ravi
+(« Enfin quelque chose qui bat le simple balayage par rangées ! »), l'a
+implémentée et a confirmé ~10 % de l'espace de recherche éliminé à un coût quasi
+nul ([msg 5980](https://groups.io/g/eternity2/message/5980),
+[5983](https://groups.io/g/eternity2/message/5983),
+[6062](https://groups.io/g/eternity2/message/6062)).
+
+### La recherche en peigne : la géométrie des scores élevés
+
+Tout ce qui précède optimise une recherche *complète*, dont le comptage de
+nœuds culmine près de la profondeur 161. En octobre 2008, alors qu'il gardait
+en privé les plateaux qui allaient remporter le prix d'examen de 10 000 dollars,
+Verhaard a répondu à une autre question d'Owen : quel est le meilleur ordre
+lorsqu'on poursuit un *score* partiel, et qu'on vit donc bien plus profond dans
+le plateau ([msg 6111](https://groups.io/g/eternity2/message/6111)) ? Sa réponse
+nommait une géométrie : les meilleurs ordres qu'il avait trouvés ressemblent à
+une **recherche en peigne** (la plupart des rangées parcourues horizontalement,
+puis les rangées restantes parcourues verticalement), avec la longueur des dents
+liée à la cible : « Plus le score que vous visez est bas, plus les dents du
+peigne s'allongent »
+([msg 6112](https://groups.io/g/eternity2/message/6112)). Max avait convergé de
+façon indépendante vers presque le même ordre (douze rangées de balayage, puis
+balayage par colonnes) et a rapporté des scores « d'environ 1 arête plus bas »
+que ce qu'accomplissait le solveur de Louis
+([msg 6126](https://groups.io/g/eternity2/message/6126)).
+
+L'intuition : une recherche complète doit franchir le goulet d'étranglement de
+la profondeur 160 le plus économiquement possible ; une recherche de score élevé
+veut au contraire de nombreuses façons peu coûteuses de *terminer*. Chaque dent
+verticale est une colonne courte, presque indépendante, dont les échecs sont
+locaux, si bien que des frontières profondes et à score élevé sont atteintes
+encore et encore. Le peigne était l'une des deux moitiés de la machine derrière
+le 467 ; l'autre moitié, le
+[glissement d'arêtes à seuil de profondeur](/research/build/reduce/edge-slipping),
+décidait de ce que les dents avaient le droit de placer. Et les deux étaient
+réglées *conjointement* : Verhaard optimisait l'ordre de remplissage et le
+tableau de glissements ensemble à l'aide d'une chaîne de Markov sur (profondeur,
+glissements utilisés), construite à partir de probabilités d'ajustement par
+profondeur mesurées
+([msg 6423](https://groups.io/g/eternity2/message/6423)). Conception d'ordre par
+le calcul, non par le folklore. Le moteur complet est sur
+[la page eii de Verhaard](/research/lab/experiments/louis-verhaard/eii).
+
+## Étape par étape
+
+1. **Observez le balayage par lignes.** Après la première rangée, presque chaque
+   placement rencontre exactement deux voisins posés : à gauche et en dessous. La
+   courbe de contraintes se stabilise à 2, et le cumul des jonctions grimpe
+   régulièrement : la recherche paie au fur et à mesure.
+2. **Passez à la spirale.** Tout le premier anneau (60 placements) arrive avec au
+   plus un voisin posé : soixante choix quasiment sans contrainte empilés avant
+   que l'intérieur ne commence à les rembourser. La courbe cumulée fléchit
+   sous la référence du balayage par lignes exactement là où l'arbre peut le
+   moins se le permettre.
+3. **Essayez la diagonale.** Surprise : les comptages ressemblent presque à ceux
+   du balayage par lignes. C'est la limite du point de vue par comptage de
+   voisins : la frontière de la diagonale est plus longue que celle d'un balayage
+   pendant une bonne partie du milieu de partie, un effet de forme que seule la
+   [théorie complexe](/research/why/complex-theory) (ou la règle magique du
+   10×16) peut noter.
+4. **Sélectionnez le peigne à des dents de 4.** Douze rangées de balayage, puis
+   des dents verticales, l'ordre de Max du
+   [msg 6126](https://groups.io/g/eternity2/message/6126). Remarquez la petite
+   falaise à chaque nouvelle dent : la première colonne paie une case faible, à 1
+   voisin, à sa base, le prix de la géométrie des scores élevés.
+5. **Allongez les dents.** Une plus grande part du plateau passe en mode vertical
+   et les placements faibles se multiplient. C'est le compromis de Verhaard, dit
+   visuellement : plus le score que vous visez est bas (plus vous autoriserez de
+   glissements), plus les dents que vous pouvez vous permettre sont longues.
+6. **Puis faites-le courir pour de vrai.** Le
+   [terrain de jeu des chemins de recherche](/playground/paths) vous permet de
+   tracer n'importe lequel de ces chemins, ou le vôtre, sur un vrai puzzle et de
+   regarder des solveurs les parcourir en course, avec une estimation de pic de
+   plateau en direct à côté.
+
+## Ce que cela coûte
+
+À l'exécution, rien : un ordre de remplissage fixe est un tableau précalculé de
+256 indices de case, et « choisir la case suivante » est un incrément d'indice :
+$O(1)$, zéro branchement, ce qui est précisément l'argument de vitesse qui a tué
+l'ordonnancement dynamique pour E2
+([msg 5860](https://groups.io/g/eternity2/message/5860)). Tout le coût et tout le
+bénéfice résident dans l'arbre que l'ordre induit :
+
+- **Entre familles d'ordres, des ordres de grandeur.** Le centre d'abord sur E2
+  est $10^{10}$ fois plus coûteux que le balayage
+  ([msg 5263](https://groups.io/g/eternity2/message/5263)) ; un ordre par blocs
+  4×4 coûte ~70× de plus que le balayage 1×1 selon les estimations de théorie
+  complexe de Max, l'écart que résume la règle magique du 10×16
+  ([msg 5867](https://groups.io/g/eternity2/message/5867)).
+- **Au sein d'une famille, des pourcentages mesurables.** Bas-haut-gauche-droite
+  contre balayage droite-à-gauche : ~15 %
+  ([msg 6023](https://groups.io/g/eternity2/message/6023)) ; élagage par
+  équivalence des pièces de bordure : ~10 %
+  ([msg 6062](https://groups.io/g/eternity2/message/6062)). Bon à prendre,
+  jamais décisif.
+- **Choisir de travers est invisible.** Un mauvais ordre ne produit aucune
+  erreur, juste un arbre $10^{10}$ fois plus gros, silencieusement. Voilà
+  pourquoi la véritable avancée de la communauté ne fut aucun ordre en
+  particulier, mais la capacité à *noter un ordre avant de l'exécuter* : les
+  comptages de formes d'Owen, puis la
+  [théorie complexe](/research/why/complex-theory), puis le réglage par chaîne de
+  Markov de Verhaard combinant ordre et calendrier de glissements
+  ([msg 6423](https://groups.io/g/eternity2/message/6423)).
+
+Chaque moteur record depuis lors a traité l'ordre comme un objet conçu et
+calculé : le peigne-plus-tableau-de-glissements de Verhaard
+([eii](/research/lab/experiments/louis-verhaard/eii)), le balayage bas-gauche
+choisi par théorie complexe de McGavin, et l'ordre de balayage fixe sous les
+coupures à seuil de profondeur de
+[Blackwood](/research/lab/experiments/joshua-blackwood/solver). Vingt ans de
+science de l'ordre de balayage se condensent en une seule instruction : avant de
+dépenser la moindre heure-CPU, dépensez une milliseconde à noter le chemin.

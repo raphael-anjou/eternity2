@@ -1,0 +1,113 @@
+---
+title: Comment cherchent les solveurs record
+description: >-
+  Comment cherchent réellement les solveurs qui détiennent les records. Ce sont
+  tous, au fond, des backtrackers en profondeur d'abord ; ce qui les distingue,
+  c'est l'ordre dans lequel ils essaient les choses et la manière dont ils
+  assouplissent les règles à l'approche de la fin.
+metaDescription: "Comment cherchent les solveurs record d'Eternity II : tous des backtrackers en profondeur, distingués par l'ordre d'essai et la gestion de la fin."
+kind: page
+order: 40
+group: The engines
+updated: 2026-07-17
+topics: [backtracking, speed]
+---
+
+import { DfsDemo } from "@/components/learn/DfsDemo";
+import { BreakIndexLab } from "@/components/research/BreakIndexLab";
+
+Tout solveur qui détient un record sérieux à Eternity II est, au fond, la même
+machine : un backtracker en profondeur d'abord. Ce qui les distingue, ce n'est
+pas la boucle, mais trois choix qui se superposent à celle-ci : l'ordre dans
+lequel ils visitent les cases, les heuristiques qui décident quelle pièce
+essayer en premier, et la manière dont ils assouplissent la fin de partie
+lorsqu'il n'existe plus de correspondance parfaite. Cette page est la visite
+neutre de ces choix. L'histoire complète et de première main de chaque moteur
+(décodée à partir du code source et de la littérature, puis reconstruite et
+mesurée) vit sur sa propre page de laboratoire, reliée depuis chaque section
+ci-dessous.
+
+## Le backtracking élémentaire
+
+Remplir le plateau case par case selon un ordre fixé. À chaque case, essayer
+toute pièce et toute rotation dont les bords correspondent à ce qui est déjà
+posé ; si aucune ne convient, revenir en arrière et essayer autrement la case
+précédente. Correct mais lent : l'arbre de recherche est d'une largeur
+astronomique.
+
+Voici exactement cela, au ralenti : un vrai backtracker sur une grille 3×3, une
+décision à la fois. Avancez pas à pas et observez une pièce se poser, une impasse
+apparaître, puis la recherche retirer la pièce et réessayer.
+
+<DfsDemo />
+
+## L'ordre compte : le chemin de remplissage
+
+L'ordre dans lequel vous visitez les cases modifie la difficulté de plusieurs
+ordres de grandeur, car certains ordres forcent les conflits à apparaître tôt
+(c'est bon) tandis que d'autres les repoussent jusqu'à ce que beaucoup de
+travail soit gaspillé (c'est mauvais). Commencer par la bordure l'emporte
+largement sur un parcours ligne par ligne sur le même puzzle. C'est l'unique
+levier que règle chaque moteur record : les ordres de recherche en peigne de
+Verhaard, le balayage de Blackwood en lignes depuis le coin inférieur gauche
+avec les pièces de bordure intercalées tardivement, et le choix par McGavin,
+puzzle par puzzle, entre balayage en lignes, spirale vers l'intérieur ou bordure
+d'abord sont tous des réponses à la même question.
+
+## Heuristiques : quelle pièce en premier
+
+Un backtracker élémentaire essaie les candidats dans un ordre arbitraire. Un
+moteur record les note, de sorte que les pièces les plus susceptibles de compter
+se posent en premier, et il élague toute branche qui prend du retard sur un
+calendrier. Le solveur de Blackwood, par exemple, privilégie trois couleurs et
+impose un quota par profondeur qui doit être atteint pour continuer à descendre ;
+Verhaard élague vers l'avant en s'appuyant sur des seuils de score réglés à la
+main. Les détails diffèrent, mais la forme est partagée : engager tôt les pièces
+contraintes, couper les branches qui ne peuvent pas rentabiliser leur coût.
+
+## Assouplir la fin de partie : ruptures et glissement de bords
+
+Un pavage parfait de 256 pièces n'a jamais été trouvé. Chaque plateau record
+tolère plutôt une poignée de non-correspondances tardives, et les moteurs les
+atteignent en *planifiant* l'imperfection : un budget par profondeur de bords
+non appariés qui se débloque au plus profond de la recherche. Verhaard appelait
+le sien un tableau de glissement (slip array) ; Blackwood appelle le sien les
+indices de rupture (break indexes). Même idée, conditionnée par la profondeur
+pour que le début du plateau reste propre et que les non-correspondances ne
+soient dépensées que là où elles rapportent le plus.
+
+Le laboratoire ci-dessous vous permet de déplacer ce budget et d'observer
+comment le score atteignable évolue :
+
+<BreakIndexLab />
+
+## Lire l'histoire complète du moteur
+
+Chaque moteur record dispose d'une page dédiée qui décode son fonctionnement,
+puis le reconstruit et le mesure sur une seule machine, en mono-cœur :
+
+- **[Le solveur de Blackwood, décodé et exécuté ici](/research/lab/experiments/joshua-blackwood/solver)** :
+  le backtracker à calendrier et indices de rupture derrière le 470 en vigueur,
+  avec l'étude de paramètres de Jef Bucas et une reconstruction qui file sans
+  contraintes mais cale dès que les cinq indices sont épinglés.
+- **[L'eii de Verhaard](/research/lab/experiments/louis-verhaard/eii)** : le
+  moteur derrière le 467, le seul prix que le concours ait jamais versé : élagage
+  vers l'avant, ordres de recherche en peigne, calendrier de glissement réglé par
+  chaîne de Markov, et pourquoi son binaire sans source ne peut plus être exécuté
+  aujourd'hui.
+- **[Le backtracker en C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker)** :
+  le moteur le plus rapide de la communauté, une recette d'optimisation de 2007
+  affinée durant deux décennies, reconstruite ici et poussée au-delà de 200 pièces
+  sur 256 à plus de 100 millions de placements par seconde.
+- **[Le moteur de référence de ce site](/research/lab/experiments/raphael-anjou/engine)** :
+  non pas une machine à records, mais le backtracker Rust/WASM qui fait tourner
+  chaque démonstration de ce wiki et en vérifie les chiffres.
+
+## Le voir tourner
+
+Le bac à sable exécute un vrai solveur en profondeur d'abord dans votre
+navigateur. [Regardez-le chercher en direct](/playground/watch), ou
+[dessinez votre propre ordre de remplissage](/playground/paths) et lancez-le en
+course contre les classiques pour ressentir à quel point l'ordre compte.
+
+Pour les approches qui ne fonctionnent pas, voir les [impasses](/research/build/dead-ends).

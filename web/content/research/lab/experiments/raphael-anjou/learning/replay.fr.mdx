@@ -1,0 +1,140 @@
+---
+title: REPLAY
+description: >-
+  Reconstruire à l'identique les plateaux stricts à 460 de la communauté, et
+  découvrir au passage le coup que les solveurs ordinaires ne savent pas
+  jouer : payer deux désaccords sur une même case.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: reconstruction
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "DFS with an exact 14-cell tail; 8 threads, 5 s restart cadence, per-witness budget"
+  space: "bounded by the DFS frontier plus the fixed frame and the witness schedule"
+  note: >-
+    La recherche par backtracking est exponentielle dans le pire cas ; la
+    queue exacte et l'ordonnancement des témoins la domestiquent en une
+    reconstitution ciblée plutôt qu'une battue à l'aveugle.
+repro:
+  kind: seeded
+order: 50
+updated: 2026-07-10
+date: 2026-07
+topics: [backtracking, learning]
+related:
+  - /research/build/learning/decoding-records
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/records
+  - /research/why/rigidity-wall
+  - /research/build/reduce/nogood-learning
+sources:
+  - label: "Plateaux stricts à 460 de la communauté (chronologie des records) : les témoins que REPLAY reconstruit"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/records.mdx
+---
+
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
+
+REPLAY clôt l'[étude](/research/lab/experiments/raphael-anjou/learning) sur une
+forme d'apprentissage différente. Chaque expérience qui l'a précédée extrayait une
+*statistique* de l'ensemble du corpus ; REPLAY apprend d'un *seul* plateau, et il
+apprend la chose qu'une statistique ne peut pas montrer : le coup exact qu'un record
+a joué et que notre recherche ne savait pas faire. Les plateaux publics entièrement
+indicés servant d'étalon à ce projet atteignent 460 (le record communautaire est
+depuis passé à 464), mais la propre recherche à ruptures autorisées de ce projet
+plafonnait à 457 ou 458, quoi qu'il arrive. REPLAY s'est donné pour but de reproduire
+ces plateaux 460 à l'identique, pièce par pièce, afin d'apprendre ce qu'ils faisaient
+que notre recherche ne savait pas faire. La réponse s'est révélée être un unique coup
+resté inaperçu.
+
+## Fonctionnement
+
+Une recherche à ruptures autorisées ne laisse normalement une case porter qu'un seul
+désaccord au moment où on la place. REPLAY assouplit cette règle pour en admettre deux
+sur certaines cases, et réordonne le classement des placements candidats de sorte que
+les coups réellement joués par un bon plateau connu passent devant ceux qui semblent
+moins coûteux. Avec ces deux changements, elle peut suivre le chemin même qu'a emprunté
+le plateau témoin.
+
+Rejoués ainsi, les plateaux 460 de la communauté se reconstruisent à l'identique,
+chaque pièce à sa place, et le score se vérifie. La reproduction est la preuve que
+l'ingrédient manquant était bien réel.
+
+<Figure collapsible title="Interactif : les cases à double rupture">
+  <DoubleBreakDiagram />
+</Figure>
+
+<Figure collapsible title="Interactif : rejouer l'ordonnancement des ruptures">
+  <DoubleBreakLab />
+</Figure>
+
+## Le résultat
+
+Les deux plateaux stricts à 460 de la communauté se rejouent exactement jusqu'à 460.
+La découverte : chacun contient quatre ou cinq cases qui paient deux désaccords à la
+fois. Une recherche qui n'autorise qu'un seul désaccord par case ne peut littéralement
+pas atteindre ces plateaux, et c'est précisément pour cela que les runs antérieurs du
+projet saturaient à 457-458. Autoriser la double rupture hisse l'échelle stricte
+jusqu'à 460.
+
+C'est une explication nette d'un plateau de longue date, et une mise en garde : une
+règle d'apparence raisonnable (une rupture par case) barrait en silence l'accès aux
+plateaux mêmes que nous poursuivions.
+
+## Méthode
+
+Le rejeu est une recherche en profondeur d'abord menée dans un mode délibérément
+contraint.
+
+- **Ordonnancement prior-sur-coût.** Un DFS ordinaire tolérant aux ruptures classe les
+  placements candidats par coût de désaccord immédiat, le moins cher d'abord. REPLAY
+  inverse la priorité en *prior-sur-coût* : les candidats réellement utilisés par le
+  plateau témoin passent devant ceux qui semblent moins coûteux, si bien que la
+  recherche est attirée le long du bon chemin connu au lieu de s'en écarter. C'est le
+  drapeau `--prior-over-cost` piloté par l'ordonnancement propre au plateau témoin.
+- **Queue exacte.** Les 14 dernières cases sont résolues exactement (`--exact-tail 14`)
+  plutôt qu'heuristiquement, si bien que la finale que les runs ordinaires bâclent se
+  referme de façon déterministe.
+- **Le relâchement qui a compté.** Le budget de désaccords par case passe de un à deux.
+  C'est ce seul changement qui rend les plateaux témoins accessibles.
+
+Menés sur un cadre 460 fixe, 8 threads, une cadence de redémarrage de 5 secondes et un
+budget par run, les deux témoins stricts à 460 de la communauté se reconstruisent pièce
+par pièce et le score se vérifie : la reproduction *est* la preuve que l'ingrédient
+manquant était la double rupture.
+
+**Le constat.** Chaque témoin contient quatre ou cinq cases qui paient deux désaccords
+à la fois. Une recherche plafonnée à une rupture par case ne peut pas représenter ces
+plateaux, et c'est exactement pour cela que les runs antérieurs du projet, tolérants aux
+ruptures, saturaient à 457-458. C'est un résultat de complétude de recherche déguisé en
+tentative de record : le mur était dans le jeu de coups, non dans le calcul.
+
+## Reproduire
+
+Celle-ci est initialisée par graine et plus proche du déterminisme que les
+constructeurs stochastiques : le rejeu DFS à partir d'un cadre fixe et d'un
+ordonnancement de témoin reconstruit les plateaux 460 de façon fiable. Les cibles qu'il
+reconstitue sont les [records](/research/records) stricts à 460 propres à la communauté,
+si bien que les plateaux eux-mêmes figurent dans la chronologie des records ; ce que
+cette expérience ajoute, c'est le rejeu qui les reconstruit. Le rejeu réclame deux
+entrées au-delà du puzzle, un cadre de bordure et le plateau témoin de la communauté
+qu'il reconstitue ; un répertoire d'appui exécutable livrant les deux est prévu.
+
+## Questions ouvertes
+
+Autoriser deux ruptures par case ouvre-t-il une voie vers 461 et au-delà, ou seulement
+vers les 460 connus ? Existe-t-il des plateaux nécessitant une triple rupture ? Et
+peut-on prédire les cases à double rupture à partir d'un plateau partiel plutôt que de
+les découvrir par rejeu ?

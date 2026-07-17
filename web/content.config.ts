@@ -498,6 +498,24 @@ export function researchPagePaths(): string[] {
   return [...pages, ...topicPaths, ...peoplePaths, "research/glossary"];
 }
 
+/** Research paths that have a genuine French rendering, so the build prerenders
+ *  a real /fr/research/* HTML file and the sitemap lists it. Two kinds qualify:
+ *   - MDX doc pages that ship a `<slug>.fr.mdx` sidecar (translated:true in the
+ *     FR manifest). Untranslated pages are deliberately excluded — they fall
+ *     back to English client-side, and prerendering them under /fr would put
+ *     duplicate English content on a French URL (bad for crawlers).
+ *   - The route-generated hubs (topics, people, glossary): their content comes
+ *     from the {en,fr} registries, so every one is genuinely bilingual and
+ *     always gets a /fr twin. */
+export function researchPagePathsFr(): string[] {
+  const translatedDocs = buildManifest("fr")
+    .filter((d) => d.translated)
+    .map((d) => d.url.slice(1));
+  const topicPaths = researchTopics().map((t) => `research/topics/${t.slug}`);
+  const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
+  return [...translatedDocs, ...topicPaths, ...peoplePaths, "research/glossary"];
+}
+
 /** Basename-relative path → last-modified date (YYYY-MM-DD) for research MDX
  *  pages that declare `updated:` in frontmatter. Feeds <lastmod> in the sitemap
  *  so crawlers get a real freshness signal, computed from the same manifest the

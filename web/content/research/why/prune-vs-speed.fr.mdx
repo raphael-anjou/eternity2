@@ -1,0 +1,135 @@
+---
+title: Pourquoi un ordinateur plus rapide ne change rien
+description: >-
+  L'idée la plus importante de la recherche combinatoire difficile : réduire
+  l'espace que l'on explore l'emporte, d'une marge exponentielle, sur le fait
+  de l'explorer plus vite. Eternity II est conçu pour qu'on ne puisse presque
+  pas le réduire.
+metaDescription: "Sur Eternity II, réduire l'espace de recherche l'emporte d'une marge exponentielle sur chercher plus vite : un ordinateur plus rapide n'y change presque rien."
+kind: finding
+contribution: negative
+rigor: measured
+order: 10
+updated: 2026-07-01
+topics: [speed, search-space, backtracking]
+sources:
+  - label: Article, source et résultats sur GitHub (research/topics/prune-vs-speed)
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/prune-vs-speed
+  - label: "Peter McGavin : l'élagage par détection précoce d'impasse est en général trop coûteux pour en valoir la peine (groups.io msg 11848)"
+    url: https://groups.io/g/eternity2/message/11848
+  - label: "@95A31 : toute une batterie de tests de faisabilité s'est révélée inutile sur une recherche 8×8 (groups.io msg 11856)"
+    url: https://groups.io/g/eternity2/message/11856
+related:
+  - /research/why/walls-and-methods
+  - /research/why/complex-theory
+  - /research/why/no-forced-moves
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+  - /research/build/reduce/arc-consistency
+repro:
+  kind: exact
+  cmd: just research-prune-vs-speed
+  topic: prune-vs-speed
+---
+
+import { PruneVsSpeedLab } from "@/components/research/PruneVsSpeedLab";
+
+Voyez la recherche comme un arbre. Depuis le plateau vide, vous choisissez une
+pièce pour la première case ; de là une pièce pour la deuxième ; et ainsi de
+suite, sur 256 cases de profondeur. Le nombre de feuilles tout en bas est le
+facteur de branchement élevé à la puissance de la profondeur, un nombre
+astronomiquement grand. Pour prouver qu'une région n'a pas de solution, une
+recherche doit parcourir cet arbre.
+
+Il y a alors deux façons de faire moins de travail. Vous pouvez aller plus
+**vite** : un meilleur moteur, plus de cœurs, des boucles internes optimisées à
+la main. Ou vous pouvez rendre l'arbre plus **petit**, en élaguant les branches
+qui ne peuvent mener à aucune solution, de sorte que le facteur de branchement
+effectif diminue. Cela paraît similaire. Ce n'est même pas comparable.
+
+## Constant contre exponentiel
+
+Une accélération est un diviseur constant. Rendez la machine 1000× plus rapide
+et vous attendez 1000× moins, que l'arbre fasse dix niveaux de profondeur ou
+dix mille. Elle vous achète un multiple fixe, un point c'est tout.
+
+Un élagage, lui, se compose. Rognez ne serait-ce que quelques pour cent sur le
+facteur de branchement et vous économisez cette fraction à chaque niveau. Sur
+256 niveaux, les économies se multiplient entre elles : faire passer le facteur
+de branchement de $b$ à $b'$ divise le travail par $(b/b')^{256}$. Une coupe de
+5 %, appliquée jusqu'au bout, vaut $(1/0.95)^{256} \approx 5\times10^{5}$, soit
+l'équivalent d'une accélération de cinq cent mille fois, à partir d'une seule
+idée structurelle peu coûteuse. Cela bat presque toute accélération qu'une
+machine réelle peut offrir.
+
+## Sentez l'écart
+
+Mettez une accélération brute en balance avec un petit élagage par niveau et
+regardez l'élagage l'emporter de plusieurs ordres de grandeur.
+
+<Figure collapsible title="Interactif : puissance de l'élagage contre vitesse brute">
+  <PruneVsSpeedLab />
+</Figure>
+
+## En quoi c'est exactement la malédiction d'E2
+
+Si l'élagage est le levier qui compte, les casse-têtes difficiles sont ceux
+qu'on ne peut pas élaguer. Eternity II a été réglé pour être précisément cela.
+Quatre de ses murs disent, au fond, la même chose : il n'y a rien de local à
+élaguer.
+
+- **[Aucun coup forcé](/research/why/no-forced-moves)** : chaque case
+  intérieure a encore 73 à 137 voisins légaux, si bien que la propagation ne
+  réduit presque jamais une case à un seul choix. Le facteur de branchement
+  reste obstinément élevé.
+- **[Au sommet de la difficulté](/research/why/phase-transition)** : les
+  décomptes de pièces et de couleurs se situent là où l'on attend environ une
+  solution, ne laissant aucune région dense en solutions vers laquelle diriger
+  un raccourci statistique, l'astuce qui a fait tomber Eternity I.
+- **[La loi d'aire](/research/why/entropy-area-law)** : le nombre de plateaux
+  partiels véritablement distincts s'effondre au-delà de ~80 cases, mais aucun
+  signal de score local ne peut voir cet effondrement global, si bien qu'on ne
+  peut pas élaguer vers lui à bon compte.
+- **[La rigidité](/research/why/rigidity-wall)** : même à partir d'un plateau
+  record, le passage à un meilleur est énorme et indivisible, sans gradient à
+  suivre ni rien à proximité à élaguer.
+
+## Ce que cela signifie pour tout le reste ici
+
+C'est la grille de lecture de toute la section recherche. Un moteur bien plus
+rapide rend la même recherche moins coûteuse, pas plus petite, et ne fait pas
+bouger le record. Chaque expérience qui a vraiment fait bouger les choses a
+plutôt changé la forme de la recherche : un ordre de parcours différent, un
+a priori appris sur l'emplacement des pièces, une région confinée pour les
+défauts d'appariement. Et chaque impasse est, au fond, un élagage que la
+structure globale du casse-tête refuse d'honorer. La vitesse donne d'abord un
+sentiment de productivité ; ce n'est presque jamais là que se cache l'écart
+avec 480.
+
+## La communauté a abouti là aussi, à la dure
+
+Le versant contre-intuitif, c'est que même un élagage *légal* est souvent
+perdant. Un test qui détecte un plateau partiel condamné et rebrousse chemin
+tôt semble être un gain gratuit, mais si le test coûte plus cher que le
+sous-arbre qu'il économise, un simple backtracker qui fonce tout droit est plus
+rapide. Peter McGavin a exposé sans détour le consensus établi sur la liste
+groups.io : les méthodes qui tentent de détecter un placement partiel condamné
+et de rebrousser chemin tôt « sont en général considérées comme trop coûteuses
+pour en valoir la peine ». Un nouveau venu faisant tourner un solveur à
+diagramme de décision, @95A31, l'a ensuite confirmé de zéro : après avoir
+construit toute une batterie de tests de faisabilité, il a rapporté que « tous
+les tests de faisabilité que j'ai implémentés se sont révélés inutiles », une
+recherche 8×8 complète peinant encore à traverser 953 milliards de nœuds en
+17 heures. La leçon n'est pas que l'élagage est mauvais, c'est qu'un élagage ne
+paie que s'il est *moins coûteux que la recherche qu'il supprime*, et sur ce
+casse-tête presque rien de local ne franchit ce seuil.
+
+<Callout kind="note">
+  Les nombres de l'arbre dans la démo sont illustratifs : un facteur de
+  branchement et une profondeur choisis pour être proches d'E2 et lisibles, non
+  la mesure d'un solveur précis. La courbe de difficulté et les décomptes de
+  nœuds, en revanche, sont de vraies mesures de moteur sur de petits
+  casse-têtes, déterministes et reproductibles avec `just research-prune-vs-speed`.
+  Le principe lui-même, diviseur constant contre diviseur exponentiel, est
+  exact.
+</Callout>

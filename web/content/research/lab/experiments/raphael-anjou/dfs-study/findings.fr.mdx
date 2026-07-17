@@ -1,0 +1,184 @@
+---
+title: Ce que chaque idée apporte
+description: >-
+  Les trois comparaisons au cœur de l'étude DFS, menées jusqu'au bout : l'ordre de
+  remplissage (le balayage par lignes gagne, un mauvais ordre est catastrophique),
+  les heuristiques (MRV sauve le remplissage du bord d'abord mais coûte du débit ;
+  davantage de propagation n'a rien apporté) et les ruptures (elles brisent le mur
+  de profondeur ; le levier, c'est le calendrier de ruptures, pas le plafond par cellule).
+metaDescription: "Résultats de l'étude DFS : ordre de remplissage, heuristiques et ruptures comparés. Le balayage par lignes gagne ; MRV sauve le bord d'abord."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/method
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Résultats par exécution versionnés (results.jsonl) et rapport par famille (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/results
+---
+
+import { PathOrderDiagram } from "@/components/research/PathOrderDiagram";
+import { PinCollapseDiagram } from "@/components/research/PinCollapseDiagram";
+
+Trois comparaisons portent l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study).
+Chacune isole une décision en maintenant tout le reste fixe. Tous les scores sont le
+nombre moyen d'arêtes appariées sur les dix variantes à coins épinglés, mono-cœur, soixante
+secondes. Le débit se mesure en nœuds de recherche par seconde et n'est jamais comparé d'une
+famille à l'autre.
+
+## Ce qu'apporte la spécialisation bas niveau : du débit, et rien d'autre
+
+Les deux références exécutent le *même* algorithme strict de balayage par lignes : `NAIVE-CLEAN`
+comme moteur généraliste lisible, `NAIVE-CODEGEN` comme boucle chaude 16×16 spécialisée à la
+main, réservée au balayage par lignes. La spécialisation livre ce qu'elle promet sur l'axe
+qu'elle vise. `NAIVE-CODEGEN` est sensiblement plus rapide par nœud, jusqu'à un tiers de plus sur
+certaines instances. Sur le *score*, les deux se valent, à un point ou deux d'écart à soixante
+secondes et bien à l'intérieur de la dispersion entre exécutions, ce qui est la lecture honnête
+plutôt qu'une affirmation selon laquelle la spécialisation *nuirait*. À temps de calcul fixé, un
+moteur plus rapide atteint un point différent du même arbre, et la meilleure solution partielle
+d'un retour sur trace ne varie pas de façon monotone avec la vitesse à laquelle il y est parvenu.
+Les références constituent donc une comparaison de *vitesse* propre et ne sont délibérément pas
+présentées comme une comparaison de *score*. Les effets sur le score qui méritent d'être étudiés
+se trouvent tous sur les axes ci-dessous, là où la recherche elle-même change.
+
+## Ordre de remplissage : le balayage par lignes gagne, et le mauvais ordre est catastrophique
+
+Fixons le moteur (strict, sans heuristique) et changeons uniquement l'ordre dans lequel les
+cellules sont remplies. Les six ordres ne diffèrent que par l'endroit où la recherche envoie son
+front, montré ci-dessous.
+
+<Figure title="Les six ordres de remplissage, tracés comme le chemin que parcourt la recherche">
+  <PathOrderDiagram />
+</Figure>
+
+- **Le balayage par lignes** est la référence forte, avec une moyenne de 377. Sa zone
+  d'endommagement reste constante, puisque chaque nouvelle cellule a les deux mêmes voisines déjà
+  placées, si bien qu'il atteint une grande profondeur avant le mur strict.
+- **Un remplissage strict du bord d'abord ou en spirale s'effondre.** Remplir d'abord l'anneau du
+  bord, sans anticipation, mène droit dans les contraintes de coin et de bord les plus dures et
+  cale presque aussitôt, autour d'une moyenne de 67 à une profondeur d'environ 66. La spirale paie
+  la même taxe de fermeture.
+- **Le balayage par lignes de bas en haut fait encore pire sur cette géométrie d'indices**
+  (moyenne 226, mais aussi bas que 18 sur certaines variantes), parce que les indices épinglés se
+  trouvent dans des lignes que le remplissage de bas en haut atteint tôt et ne peut pas satisfaire.
+
+Même moteur, mêmes soixante secondes, un écart de plus de 300 points dû au seul ordre de
+remplissage. C'est la forme mesurée d'un savoir de la communauté : le bord d'abord n'est bon
+qu'*avec* une heuristique pour choisir les cellules à l'intérieur de l'anneau. Seul, c'est l'un
+des pires ordres disponibles.
+
+## Heuristiques : MRV sauve le bord d'abord, mais le débit s'effondre
+
+Fixons maintenant le chemin près du cadre et ajoutons une chose à la fois. Le plus grand levier
+est **MRV**, qui remplit ensuite la cellule vide la plus contrainte, choisie dynamiquement. Il
+transforme le bord d'abord qui calait (moyenne 67) en une recherche dont la moyenne est de 324
+(meilleur 341) à une profondeur d'environ 190. Il recalcule aussi la cellule la plus contrainte
+sur tout le front à chaque étape, si bien que le débit en nœuds chute de trois ordres de grandeur,
+de dizaines de millions de nœuds par seconde à quelques milliers. Chaque nœud vaut bien plus, et
+on en visite bien moins. Le débit en nœuds et le score sont des axes différents.
+
+Ajouter une anticipation plus lourde par-dessus n'a **pas** rapporté davantage de score à ce budget.
+
+- **La vérification en avant** (rejeter un placement qui vide le domaine d'une voisine) a atteint
+  une moyenne de 322.
+- **La cohérence d'arc** et la **vérification d'approvisionnement par couleur** ont atteint chacune
+  une moyenne de 321. Avec une dispersion de score par variante d'environ 11 points sur les dix
+  instances, cet écart d'un point est bien dans le bruit : les trois propagateurs sont ici
+  statistiquement indiscernables, si bien que la lecture honnête est qu'une anticipation plus lourde
+  n'a ni aidé ni clairement nui, plutôt que la vérification en avant l'aurait emporté.
+- Un ordonnancement des valeurs **couleurs rares d'abord** est resté inerte, pas meilleur que le
+  simple ordre d'insertion, faisant écho au résultat négatif répété de la communauté sur les ordres
+  de valeurs à l'intérieur d'un même seau.
+
+La leçon n'est pas que la propagation est inutile. C'est qu'à petit budget fixe, sur cette instance,
+l'élagage utile le moins cher (la vérification en avant) capte déjà tout le bénéfice disponible, et
+qu'un raisonnement plus coûteux ne récupère pas son surcoût par nœud en soixante secondes.
+
+## Ruptures : au-delà du mur, et le calendrier est le levier
+
+Le retour sur trace strict, quel que soit son ordre ou son heuristique, frappe un mur bien avant un
+plateau complet : le balayage par lignes plafonne autour de la profondeur 208 sur 256, et même la
+variante stricte la plus rapide (NAIVE-CODEGEN) n'atteint que 216. Les moteurs recordmen le
+franchissent en *rompant* : ils autorisent un nombre borné d'incompatibilités d'arêtes intérieures,
+libérées selon un calendrier de profondeur, avec une règle interdisant qu'une cellule porte trop
+d'arêtes rompues. Le score d'un plateau complet est alors `480 − #ruptures`.
+
+- **Les ruptures franchissent le mur.** Un budget de ruptures conditionné par la profondeur atteint
+  au-delà de la profondeur 245 et tourne autour des 430 (rupture-1 donne 431 sur 480, meilleur 435),
+  un gain important sur les 370 et quelques du strict, sur les mêmes instances et le même budget.
+  C'est le mécanisme derrière les retours sur trace recordmen de la communauté, non pas un paradigme
+  différent mais un relâchement de la règle d'appariement conditionné par la profondeur.
+- **Autoriser une seconde rupture par cellule n'a pas aidé ici.** Une rupture et deux ruptures
+  atteignent le même meilleur plateau (435), et leurs moyennes (431,3 contre 428,5) sont dans la
+  dispersion propre à la variante à deux ruptures, si bien qu'aucune ne domine en moyenne. Ce qui
+  les distingue, c'est la régularité : la variante à une rupture est étroitement groupée (jamais en
+  dessous de 427), tandis que la variante à deux ruptures descend jusqu'à 402. La géométrie à double
+  rupture qu'emploient les plateaux 460 de la communauté semble avoir besoin de plus de soixante
+  secondes pour porter ses fruits ; à ce budget, la liberté supplémentaire élargit surtout le
+  branchement sans atteindre de meilleurs plateaux. C'est un résultat nul, rapporté tel qu'il a été
+  mesuré plutôt que tel qu'on pourrait l'espérer.
+- **Le calendrier est le levier décisif.** L'échelle de glissement de Verhaard débloque les ruptures
+  bien plus tôt que celle de Blackwood (profondeur 193 contre 201) et obtient ici un score nettement
+  moins bon (moyenne 399 contre 431), parce que débloquer tôt dépense le budget en ruptures peu
+  profondes. Quand et à quelle vitesse les ruptures s'ouvrent est une décision de réglage plutôt
+  qu'un détail.
+
+Ces chiffres de ruptures voisinent avec ceux des réimplémentations à la Blackwood et à la Verhaard,
+reparties de zéro, du benchmark frère, qui atteignent les 430 et quelques sur les mêmes cinq
+indices. L'accord d'un moteur indépendant valide de façon croisée la machinerie de ruptures ici.
+
+## Où se situent les moteurs de la communauté : deux grilles
+
+Blackwood et McGavin sont le haut de gamme de cette même famille, et tous deux se compilent et
+s'exécutent sur cette machine, si bien que cette étude les a fait tourner sur une grille épinglée et
+une grille non épinglée, chaque score étant recalculé canoniquement à partir du plateau propre au
+moteur. Le résultat est un enseignement à part entière, et il a deux moitiés.
+
+**Sur la grille épinglée, ils s'effondrent.** Le C de McGavin, compilé avec les propres options ARM
+de son auteur (réglage natif plus optimisation au moment de l'édition de liens), atteint la
+profondeur 211 sur le puzzle à indice central simple à environ 85 millions de tuiles par seconde,
+bien devant notre moteur strict le plus rapide, et pourtant épingler trois coins l'effondre à la
+profondeur 21, un score canonique de 13. Son chemin de balayage engendré ne visite jamais les coins
+tôt, si bien qu'un coin épinglé contraint aussitôt son voisinage et coince le chemin fixe presque
+immédiatement. Le C# de Blackwood code en dur son jeu de pièces et son balayage, si bien qu'il ne
+peut même pas exprimer un épinglage de coin arbitraire ; sur la contrainte à cinq indices
+correspondante, son heuristique de ruptures s'agite jusqu'à la profondeur 47, un score canonique de
+75, parce qu'il est réglé pour l'instance à un indice, quasi non contrainte, où son record de 470 a
+été établi.
+
+<Figure title="L'effondrement à l'épinglage des coins : cellules placées sur 256">
+  <PinCollapseDiagram />
+</Figure>
+
+Cet effondrement est justement le propos. Un moteur recordman bâti autour d'une configuration
+d'indices ne se transfère pas à une autre, et un chemin de balayage fixe ne peut pas absorber un
+épinglage arbitraire. Nos moteurs repartis de zéro traitent un épinglage comme une cellule
+pré-placée que le balayage saute simplement, ce qui explique pourquoi ce sont eux, et non les
+binaires de la communauté, qui font office de doublures sur la grille épinglée.
+
+**Sur une grille non épinglée équitable, ils tournent comme prévu.** Donnez à chaque moteur les
+pièces officielles avec le seul indice central obligatoire, et rien ne se coince sur un coin. En
+soixante secondes sur un cœur, McGavin atteint 392, notre moteur de ruptures le plus fort 344, la
+réimplémentation de Verhaard 286, et Blackwood 214. Lisez ces chiffres comme ce qu'un seul cœur
+achète en une minute à froid, non comme le plafond d'un moteur : le 470 de Blackwood et les
+exécutions profondes de McGavin sont venus de journées sur des centaines de cœurs, que ce budget ne
+peut pas montrer. Ce que la grille montre, en revanche, c'est que les quatre tournent correctement
+une fois disparus les épinglages qui brisent un chemin de balayage fixe, ce qui est exactement ce
+que la grille épinglée refusait aux deux moteurs étrangers. Les deux grilles figurent sur le
+classement de l'étude ci-dessus.
+
+## Le fil conducteur
+
+Un thème traverse les trois comparaisons : **le nombre de nœuds n'est pas le score.** Les variantes
+les plus rapides par nœud (la référence en codegen et le moteur strict de balayage par lignes)
+n'atteignent pas les meilleurs plateaux ; la plus lente par nœud (MRV avec propagation) en atteint
+de bien meilleurs ; et les ruptures qui l'emportent le font en changeant *quelle* branche est
+légale, non en visitant les branches plus vite. La vitesse brute est un facteur constant, tandis
+qu'où la recherche peut aller et si elle en a le droit est le facteur exponentiel.

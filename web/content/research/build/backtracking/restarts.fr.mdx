@@ -1,0 +1,280 @@
+---
+title: Redémarrages et lois à queue lourde
+description: >-
+  Lancez deux fois le même backtracker sur le même casse-tête et les temps
+  d'exécution diffèrent d'un facteur dix, cent, mille. La communauté l'a mesuré
+  en 2007 ; la littérature CSP l'avait déjà nommé. Le remède (couper, rebattre,
+  redémarrer) explique pourquoi chaque solveur record depuis est un portefeuille
+  de redémarrages.
+metaDescription: "Backtrackers d'Eternity II : des temps d'exécution à queue lourde variant par puissances de dix, et pourquoi les redémarrages animent les solveurs records."
+kind: concept
+order: 130
+group: Backtracking
+updated: 2026-07-02
+topics: [backtracking, search-space]
+sources:
+  - label: "L'expérience de Txibilis sur 500 casse-têtes : les redémarrages gagnent 52 % des courses, mais toute la queue (groups.io message 2822)"
+    url: https://groups.io/g/eternity2/message/2822
+  - label: L'affirmation originale d'antminder, backtracking avec redémarrages multiples (groups.io message 2420)
+    url: https://groups.io/g/eternity2/message/2420
+  - label: Verhaard sur ce que l'échantillonnage par redémarrages a révélé du paysage des scores (groups.io message 5182)
+    url: https://groups.io/g/eternity2/message/5182
+  - label: antminder sur la recherche sous contrainte de délai, où la probabilité dans la fenêtre l'emporte sur une meilleure moyenne (groups.io message 3089)
+    url: https://groups.io/g/eternity2/message/3089
+  - label: Blackwood sur le plafond de 50 milliards, un nombre « arbitraire » (groups.io message 10066)
+    url: https://groups.io/g/eternity2/message/10066
+  - label: La ferme de 20 PC redémarrés à la main de McGavin pour le recensement 9×9 (groups.io message 9342)
+    url: https://groups.io/g/eternity2/message/9342
+  - label: "La résolution 10×10 de McGavin : 92 907 recherches de rangée redémarrées et la loi des grands nombres (groups.io message 9688)"
+    url: https://groups.io/g/eternity2/message/9688
+  - label: Le fil sur l'hygiène du PRNG, période du générateur contre campagnes de redémarrages (groups.io message 6798)
+    url: https://groups.io/g/eternity2/message/6798
+  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+    url: https://doi.org/10.1023/A:1006314320276
+  - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
+  - label: Luby, Sinclair & Zuckerman, Optimal Speedup of Las Vegas Algorithms (Information Processing Letters, 1993)
+    url: https://doi.org/10.1016/0020-0190(93)90029-9
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/backtracking/fill-order
+  - /research/why/complex-theory
+---
+
+import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
+
+Lancez le même backtracker sur deux casse-têtes tirés de la même distribution
+et les temps de résolution ne diffèrent pas de quelques pourcents ; ils
+diffèrent par puissances de dix. La communauté Eternity II l'a mesuré en
+octobre 2007. En réponse à l'affirmation d'antminder selon laquelle le
+« backtracking avec redémarrages multiples » battait le backtracking simple
+([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
+un Txibilis sceptique a généré 500 casse-têtes 7×7 aléatoires et fait courir
+les deux politiques sur chacun, le solveur à redémarrages coupant à 10 millions
+de nœuds par tentative. Le redémarreur n'a gagné que 52 % des courses, à pile
+ou face. Il a alors examiné les *marges* : parmi les 240 courses gagnées par
+le backtracker simple, sa plus grande marge de victoire était de 90 millions de
+nœuds. Parmi les 260 gagnées par le redémarreur, la plus grande marge était de
+**50 463 millions**, et dans 45 de ces courses la seule marge du redémarreur
+dépassait la meilleure victoire du solveur simple
+([message 2822](https://groups.io/g/eternity2/message/2822)). Une colonne du
+registre est bornée ; l'autre ne l'est pas.
+
+Cette asymétrie porte un nom dans la littérature : une **distribution des temps
+d'exécution à queue lourde**. Gomes, Selman et Kautz avaient décrit exactement
+ce phénomène dans la recherche SAT et CSP une décennie plus tôt
+([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), et l'avaient
+formalisé dans [leur article de 2000](https://doi.org/10.1023/A:1006314320276) :
+pour le backtracking sur des instances difficiles, la fonction de survie
+décroît comme une loi de puissance, $P(T > t) \approx C\,t^{-\alpha}$, et non
+comme une exponentielle. La décroissance est si lente que pour $\alpha \le 1$
+la *moyenne* du temps d'exécution est infinie. Chaque record d'Eternity II
+depuis, du [467 de Verhaard](/research/lab/experiments/louis-verhaard/eii) et
+du [10×10 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) à la
+[vague des 468–470](/research/lab/experiments/joshua-blackwood/solver), a été
+trouvé par un solveur bâti autour de ce fait.
+
+## Pourquoi les queues apparaissent
+
+Un backtracker en profondeur d'abord avec un
+[ordre de remplissage](/research/build/backtracking/fill-order) fixe prend ses
+décisions les moins coûteuses en premier, puis ne les revisite jamais : un
+solveur à balayage par rangées parvenu à la profondeur 150 a, en pratique,
+définitivement figé ses trois premières rangées. Si l'un de ces placements
+précoces est faux (légal, plausible, mais sur aucun plateau complétable), tout
+le sous-arbre en dessous est stérile, et le solveur doit *épuiser* ce sous-arbre
+avant que le mécanisme ordinaire de backtracking ne remonte assez haut pour
+défaire l'erreur. La taille des sous-arbres est exponentielle en la hauteur du
+mauvais tournant, si bien qu'un mauvais engagement à la profondeur 3 coûte
+exponentiellement plus cher qu'un à la profondeur 30. La queue de la
+distribution des temps d'exécution est précisément la distribution des mauvais
+engagements précoces, hérités pour toujours.
+
+Le revers est une *gauche* également épaisse : certaines exécutions réussissent
+toutes leurs décisions précoces par chance et se terminent d'une rapidité
+absurde. Le point de Gomes, Selman et Kautz est que les deux queues procèdent
+du même mécanisme d'amplification de la variance, et que la bonne réponse n'est
+pas une meilleure exécution moyenne mais *plus de tirages de la distribution*.
+
+Louis Verhaard a ajouté une observation propre à Eternity II. Il s'était
+d'abord servi des redémarrages comme instrument de sondage, dans l'espoir que
+les régions à haut score se regroupent comme des chaînes de montagnes :
+trouver l'Himalaya par échantillonnage grossier, puis grimper. Ce que son
+échantillonnage a réellement trouvé, c'est que les hauts scores sont dispersés
+« comme des gratte-ciels dans les villes » : un ou quelques-uns n'importe où,
+et en trouver un ne dit rien sur l'endroit où se dresse le suivant
+([message 5182](https://groups.io/g/eternity2/message/5182)). Il n'y a aucun
+signal régional qui vaille qu'on s'attarde, ce qui ôte le dernier argument en
+faveur de la fidélité à une exécution qui peine.
+
+Le fil d'origine portait une réserve : Txibilis raisonnait que les
+redémarrages ne devraient payer que lorsque l'instance a *beaucoup* de
+solutions (autant de chances d'un préfixe chanceux) et moins sur un banc
+d'essai à solution unique. Pour Eternity II la distinction est sans objet, à
+l'avantage du chercheur : la [théorie complexe](/research/why/complex-theory)
+situe le casse-tête complet sans indice à environ $1{,}15 \times 10^7$
+solutions, dont chacune l'emporte, et la chasse aux scores partiels compte des
+cibles astronomiquement plus nombreuses encore.
+
+## Le remède
+
+Le remède est d'une simplicité presque gênante, et la recette de 2007
+d'antminder le contient déjà tout entier : lancer le backtracker pour un budget
+fixe, et si aucune solution n'est apparue, **arrêter, rebattre l'ordre des
+pièces, et repartir du plateau vide**
+([message 2420](https://groups.io/g/eternity2/message/2420)). Deux ingrédients
+comptent :
+
+- **La coupure** tronque la queue droite par décret. Aucune tentative ne peut
+  coûter plus que le budget $c$, si bien que la colonne non bornée du registre
+  de Txibilis cesse simplement d'exister.
+- **Une randomisation fraîche** (un ordre de candidats rebattu, une ouverture
+  différente) fait de chaque tentative un tirage indépendant de la distribution
+  des temps d'exécution, plutôt qu'un rejeu de la même descente vouée à
+  l'échec. Sans elle, redémarrer n'est que la même exécution frappée
+  d'amnésie.
+
+Quand la distribution est connue, il existe une coupure *fixe* optimale. Quand
+elle ne l'est pas, ce qui est le cas usuel, [Luby, Sinclair et
+Zuckerman](https://doi.org/10.1016/0020-0190(93)90029-9) ont prouvé qu'on n'en
+a guère besoin : leur planning universel $1,1,2,1,1,2,4,1,1,2,\ldots$ (chaque
+puissance de deux apparaissant selon un motif autosimilaire) reste à un facteur
+logarithmique près de la coupure fixe optimale sur *toute* distribution, et
+aucun planning universel ne peut faire mieux en général.
+
+À quoi ressemble la production, vingt ans plus tard :
+
+- **Le moteur de Blackwood** plafonne chaque tentative à 50 milliards de nœuds
+  et rebat les pièces d'ouverture, le premier coin et la rangée du bas avant
+  chaque nouvelle exécution, si bien qu'aucune paire de tentatives ne reparcourt
+  le même préfixe
+  ([la page du solveur](/research/lab/experiments/joshua-blackwood/solver)
+  couvre la machinerie). Interrogé sur le choix du chiffre de 50 milliards,
+  Blackwood a répondu : « Le nombre 50 G était arbitraire. J'ai essayé
+  quelques grands nombres (au-delà de 1 G) et ça ne changeait pas grand-chose »
+  ([message 10066](https://groups.io/g/eternity2/message/10066)). Cette
+  insensibilité est elle-même une signature de queue lourde : quand l'ennemi
+  est la queue, presque n'importe quelle coupure qui épargne le corps de la
+  distribution fonctionne.
+- **Les fermes de McGavin** sont la même politique à l'échelle humaine. Son
+  recensement des solutions 9×9 tournait sur « environ 20 PC » glanés pour
+  atteindre 60 cœurs, chacun exécutant un backtracker à balayage par rangées à
+  partir d'un tableau de pièces rebattu aléatoirement, et il « redémarrait
+  manuellement ceux qui semblaient bloqués »
+  ([message 9342](https://groups.io/g/eternity2/message/9342)). Sa résolution
+  en 2017 du 10×10 de Brendan Owen, le banc d'essai résolu le plus difficile de
+  la communauté, était un portefeuille de redémarrages par construction :
+  92 907 recherches indépendantes de première rangée, réparties sur plus de
+  400 cœurs, là où la théorie prédisait environ un succès pour 70 000. Son
+  propre résumé : « aucune méthode nouvelle, juste de la persévérance
+  systématique et la loi des grands nombres »
+  ([message 9688](https://groups.io/g/eternity2/message/9688)).
+
+Il existe aussi une lecture stratégique, énoncée sur la liste dès 2007 : sous
+la contrainte d'un délai de concours, un solveur à *moins bonne moyenne* mais
+dont davantage de masse de probabilité tombe dans la fenêtre de temps est le
+meilleur solveur
+([message 3089](https://groups.io/g/eternity2/message/3089)). Les redémarrages
+sont exactement ce compromis : ils remodèlent la distribution autour de son
+corps, au prix de jamais mener à terme une exécution de marathon.
+
+<Callout kind="note" title="Alimentez le portefeuille en hasard authentique">
+  Un portefeuille de redémarrages n'est aussi divers que ses rebattages. En
+  2009 un membre s'inquiétait que le générateur standard de son solveur, de
+  période $2^{32}$, puisse silencieusement limiter la part de l'arbre que ses
+  redémarrages pourraient jamais échantillonner
+  ([message 6798](https://groups.io/g/eternity2/message/6798)) ; la réponse de
+  la liste fut le Mersenne Twister, le remède standard pour la simulation non
+  cryptographique ([message 6801](https://groups.io/g/eternity2/message/6801)).
+  Un PRNG faible ne fait pas planter une campagne de redémarrages ; il
+  rétrécit discrètement la distribution dans laquelle on tire.
+</Callout>
+
+## Regardez la queue s'effondrer
+
+Le laboratoire ci-dessous tire 400 exécutions de solveur d'un mélange à queue
+lourde initialisé par graine, calibré pour correspondre à la mesure de 2007 :
+un corps d'exécutions chanceuses autour de quelques millions de nœuds, une
+queue qui s'étire cinq ordres de grandeur au-delà. Puis il vous confie la
+coupure.
+
+<Figure collapsible title="Interactif : temps d'exécution à queue lourde et redémarrages">
+  <RestartTailLab />
+</Figure>
+
+## Pas à pas
+
+1. **Regardez l'histogramme se remplir.** La médiane (marqueur émeraude) se
+   stabilise dès les premières dizaines d'exécutions et ne bouge presque plus.
+   La moyenne (marqueur rose) ne se stabilise jamais : chaque exécution qui
+   tombe dans la queue la tire vers la droite. Une statistique dominée par ses
+   échantillons les plus rares est la définition visuelle d'une queue lourde.
+2. **Lisez l'axe logarithmique.** Le corps se situe près de $10^6$ nœuds ; les
+   pires exécutions dépassent $10^{11}$, le même écart d'ordres de grandeur que
+   le registre 90 M contre 50 463 M de Txibilis, sur une distribution assez
+   petite pour être tracée.
+3. **Maintenant coupez.** La coupure par défaut est de 10 millions de nœuds,
+   celle de Txibilis lui-même. Chaque exécution ambre qui l'aurait pulvérisée
+   est abandonnée à la ligne pointillée puis relancée. La moyenne et le P99 de
+   la ligne à redémarrages chutent bien en dessous de la ligne à exécution
+   unique : à la queue on ne survit pas, on la *supprime*.
+4. **Coupez trop profond.** Faites glisser la coupure en deçà du bord gauche du
+   corps. La probabilité de succès par tentative s'effondre, le nombre de
+   tentatives attendu explose, et le total attendu grimpe. À l'extrême, aucune
+   exécution ne peut aboutir et la politique ne réussit jamais. La coupure doit
+   épargner les exécutions chanceuses sur lesquelles elle mise.
+5. **Remarquez comme le point optimal est plat.** Entre « trop gourmand » et
+   « trop patient » s'étend un plateau large de plusieurs ordres de grandeur où
+   le total attendu ne varie presque pas. Les 50 milliards « arbitraires » de
+   Blackwood, trouvés empiriquement, sont ce plateau qui s'exprime.
+
+## Ce que ça coûte
+
+Fixez une coupure $c$ et soit $F(c) = P(T \le c)$ la chance qu'une tentative
+unique réussisse dans le budget. Les tentatives ratées coûtent $c$ chacune et
+leur nombre est géométrique, si bien que le travail total attendu jusqu'au
+premier succès est
+
+$$
+\mathbb{E}[T_c] \;=\; \frac{1 - F(c)}{F(c)}\,c \;+\; \mathbb{E}[T \mid T \le c].
+$$
+
+Minimiser sur $c$ donne le meilleur temps à coupure fixe
+$\ell^{\ast} = \min_c \mathbb{E}[T_c]$. Face à une queue lourde
+$P(T > t) \approx C\,t^{-\alpha}$ ce n'est pas un raffinement mais un
+sauvetage : pour $\alpha \le 1$ la moyenne sans redémarrage $\mathbb{E}[T]$
+diverge tandis que $\ell^{\ast}$ reste finie : la politique transforme une
+espérance infinie en une espérance finie. Et le théorème de Luby chiffre le
+prix de l'ignorance de $F$ : le planning universel atteint un temps attendu de
+$O(\ell^{\ast} \log \ell^{\ast})$ sans aucune connaissance de la distribution,
+et ce facteur logarithmique est optimal.
+
+Le prix du redémarrage est ce qu'il jette : un plateau partiel profond,
+abandonné. Sur Eternity II ce prix est exceptionnellement bas, pour deux
+raisons. Premièrement, l'[entonnoir de la théorie
+complexe](/research/why/complex-theory) : les exécutions calent contre un mur de
+profondeur à une profondeur caractéristique, et progresser au-delà est rare
+d'une manière qui ne se cumule pas. Les 92 907 recherches de rangée 10×10 de
+McGavin ont enregistré une profondeur de placement maximale de 88 à 99 (sur
+100) pour toutes sauf une, avec bien plus de la moitié de la masse sur trois
+profondeurs seulement
+([message 9688](https://groups.io/g/eternity2/message/9688)). Une exécution
+plantée au mur pendant des heures ne détient aucun actif qu'une exécution
+fraîche ne puisse regagner en quelques minutes ; son « avancement » était un
+billet de loterie, déjà gratté. Deuxièmement, l'état du plateau ne porte aucun
+apprentissage : contrairement à un [solveur SAT à apprentissage de
+clauses](/research/build/reduce/nogood-learning), un backtracker simple qui
+meurt à la profondeur 190 n'a rien consigné du *pourquoi*, si bien que persister
+ne préserve non plus aucune connaissance.
+
+Ce qui est véritablement perdu, c'est le certificat. Un portefeuille de
+redémarrages échantillonne l'arbre ; il ne le balaie pas. McGavin le dit sans
+détour à propos de son recensement 9×9 : « je n'ai pas parcouru
+systématiquement tout l'arbre de recherche, si bien que j'ai pu manquer
+certaines solutions »
+([message 9342](https://groups.io/g/eternity2/message/9342)). Pour prouver
+qu'une région est vide, les redémarrages sont le mauvais outil. Pour trouver
+une solution, ou un plateau record, dans un espace où votre temps d'exécution
+s'étend sur des puissances de dix, ils sont la seule politique sensée, et
+chaque moteur de la [chronologie des records](/research/records) les emploie.

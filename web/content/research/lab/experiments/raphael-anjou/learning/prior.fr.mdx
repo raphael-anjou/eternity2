@@ -1,0 +1,159 @@
+---
+title: PRIOR
+description: >-
+  Construire un plateau à partir de rien, en départageant les égalités selon la
+  position habituelle des pièces dans les bons plateaux déjà connus. Il atteint
+  un score élevé sans aucun plateau de départ à copier.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "prior build O(B·256) over B corpus boards; beam construction O(W·256·|moves|)"
+  space: "256×256 count matrix (65,536 ints); rotation-aware variant 1024×256 (262,144)"
+  note: >-
+    The prior is a single pass over the corpus; the construction cost is the
+    beam search it biases, plus an optional local-refinement tail.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Build a board from empty, cell by cell, breaking ties by the learned prior"
+    learns: "Positional corpus prior: a 256×256 count of where each piece sits in strong boards"
+    published: false
+  - engine: refinement
+    does: "A short local-refinement tail lifts the mid-450s construction to the committed 460"
+    published: false
+order: 10
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, learning]
+related:
+  - /research/build/learning/corpus-priors
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
+  - /research/why/piece-theft
+  - /research/build/construct/beam-search
+sources:
+  - label: "Recherche en faisceau (page de concept de ce projet) : construction meilleur-d'abord à largeur bornée"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+PRIOR ouvre l'[étude sur l'apprentissage à partir des bons plateaux](/research/lab/experiments/raphael-anjou/learning)
+avec la forme la plus simple que l'idée puisse prendre : un comptage. La plupart
+des bons plateaux de ce site sont trouvés en partant d'un plateau déjà correct
+puis en l'améliorant. PRIOR pose une question plus difficile : peut-on construire
+un plateau compétitif à partir d'une grille vide, sans aucun plateau où s'ancrer ?
+L'astuce consiste à laisser la foule des bons plateaux passés guider discrètement
+la construction sans en copier aucun en particulier, et cette guidance n'est rien
+de plus qu'un décompte des positions où les pièces ont tendance à se placer.
+
+## Fonctionnement
+
+À partir de la bibliothèque des plateaux au bon score, PRIOR apprend une seule
+chose toute simple : pour chaque position du plateau, la fréquence à laquelle
+chaque pièce y apparaît. Cela donne une préférence douce, un prior, sur ce qui a
+tendance à aller où.
+
+Il construit ensuite par recherche en faisceau, en gardant simultanément en vie
+de nombreux plateaux partiels qu'il étend case par case. Quand deux options
+raccordent le même nombre d'arêtes, le prior tranche l'égalité en faveur de la
+pièce la plus typique des bons plateaux à cet endroit. Une règle de diversité
+empêche les nombreuses tentatives parallèles de converger vers le même chemin.
+Aucun plateau n'est copié à l'unité ; la guidance est statistique.
+
+<Figure collapsible title="Interactif : la carte de chaleur du prior positionnel">
+  <PriorDiagram />
+</Figure>
+
+## Le plateau
+
+<RecordBoard id="prior-460" />
+
+## Le résultat
+
+En partant de zéro, PRIOR atteint le milieu des 450, et avec un prior plus
+tranché construit à partir des tout meilleurs plateaux uniquement, il monte plus
+haut. Suivi d'un raffinement local, il atteint 460, le plateau montré ici. Le
+fait qu'une construction à partir de rien se rapproche autant des records, c'est
+là tout le propos : la structure des bons plateaux est en partie apprenable, et
+il n'est pas nécessaire d'en partir pour y arriver.
+
+Ce n'est pas le meilleur score du projet (463), et le gain final s'appuie ici
+sur une étape de raffinement, ce que l'étiquette du plateau signale. Mais en tant
+que résultat sur table rase, c'est le plus solide du projet, et c'est la base sur
+laquelle les constructeurs multi-signaux ultérieurs ont grandi.
+
+## Méthode
+
+Le prior est délibérément la chose la plus simple qui puisse marcher : un
+comptage. Sur chaque plateau du corpus dont le score dépasse un seuil (440 pour
+le prior de base), on cumule une matrice $256 \times 256$ $M[p][c]$, le nombre de
+bons plateaux qui placent la pièce $p$ dans la case $c$. Normalisée par case,
+c'est la préférence utilisée pour départager les égalités.
+
+Trois affinements, chacun une variante du même décompte :
+
+- **Sensible à la rotation.** On scinde chaque pièce selon ses quatre rotations :
+  un tenseur $1024 \times 256$ ($256 \times 4$ lignes). Le prior préfère désormais
+  non seulement la bonne pièce mais la bonne orientation, 262 144 entrées contre
+  les 65 536 de base.
+- **Par famille de coins.** Les bons plateaux se répartissent en familles selon
+  leurs quatre pièces de coin. Construire un prior *distinct* à partir des seuls
+  plateaux d'une famille donne un signal que la matrice mise en commun gomme par
+  moyennage ; c'est ce qui a permis à la construction à partir de zéro d'atteindre
+  un 460 inédit plutôt que le bassin commun encombré.
+- **Seuil plus tranché.** Reconstruire le prior à partir des tout meilleurs
+  plateaux uniquement (une coupure plus haute) relève le plafond de la
+  construction, au prix d'un signal plus mince et plus bruité.
+
+La construction est une [recherche en faisceau](/research/build/construct/beam-search) :
+on garde $W$ plateaux partiels, on les étend case par case, et quand des
+candidats sont à égalité sur les arêtes raccordées, on laisse $M$ trancher ; une
+règle de diversité maintient les $W$ faisceaux à l'écart les uns des autres. Le
+460 obtenu ici mène une construction en faisceau à partir de zéro jusqu'au milieu
+des 450, puis un court raffinement local jusqu'à 460.
+
+**La nouveauté a été vérifiée, pas supposée.** Le plateau obtenu est comparé à
+chaque plateau du palier 460 déjà connu, par permutation des coins et distance de
+Hamming sur (pièce, position) ; une correspondance ne compte comme un nouveau
+bassin que lorsque la famille de coins diffère ou que la distance de Hamming est
+grande. Le plateau de PRIOR a passé ce test : c'est un bassin réellement distinct,
+pas une redécouverte.
+
+## Reproduire
+
+`just research-record-boards` vérifie exactement le score du plateau 460 validé,
+arête par arête, à partir de sa chaîne Bucas stockée, de sorte que le résultat
+est vérifiable même si la recherche qui l'a trouvé n'est pas déterministe (son
+gain final utilise un raffinement stochastique). Le plateau est l'artefact de
+référence. La recherche qui l'a produit est le producteur en faisceau partagé,
+avec la seule modification que décrit cette page : le prior positionnel appris qui
+départage ses égalités. Ce prior est une matrice extraite d'un large corpus de
+bons plateaux, raison pour laquelle l'exécution n'est pas reproduite ici à partir
+de zéro.
+
+## Questions ouvertes
+
+Jusqu'où le prior peut-il se resserrer avant de surapprendre ? Construit à partir
+d'une poignée de plateaux de tête seulement, le signal est fort mais mince. Un
+prior distinct par famille de plateaux pourrait-il capturer une structure que le
+prior combiné gomme par moyennage ? Et quelle part de l'écart final tient à la
+construction plutôt qu'au raffinement qui la suit ?

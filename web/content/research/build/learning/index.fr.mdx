@@ -1,0 +1,92 @@
+---
+title: Apprendre des grilles fortes
+description: >-
+  La plupart des attaques contre Eternity II cherchent à partir de zéro. Une
+  famille distincte fait l'inverse : elle fouille le corpus des grilles déjà
+  trouvées pour en extraire de la structure, puis réinjecte cette structure dans
+  la recherche. Priors de position, ordonnancement appris des coups, fouille
+  d'anti-motifs, décodage de records, et le mode de défaillance où un signal
+  appris s'effondre.
+metaDescription: "Apprendre des grilles fortes d'Eternity II : extraire de la structure du corpus connu, la réinjecter dans la recherche, et là où le signal s'effondre."
+kind: page
+order: 44
+group: Learned guidance
+updated: 2026-07-16
+related:
+  - /research/build/approaches-map
+  - /research/build/techniques
+  - /research/lab/experiments/raphael-anjou/learning
+---
+
+Toutes les autres familles de ce rayon cherchent à partir de zéro : un
+backtracker creuse, un beam construit, une recherche locale peaufine, chacun ne
+raisonnant qu'à partir des règles du puzzle et de la grille qu'il a sous les
+yeux. Cette famille-ci procède autrement. Elle prend le corpus des grilles
+fortes déjà trouvées, y lit de la structure, et réinjecte cette structure dans
+une recherche sous forme de biais. Elle tient davantage de l'apprentissage par
+imitation que de la conception d'algorithme de recherche : la question n'est pas
+« quel est un bon coup » à partir de zéro, mais « qu'avaient tendance à faire les
+grilles qui ont bien marqué, et cela peut-il être réutilisé ».
+
+Les pages ci-dessous procèdent technique par technique. Chacune est réellement sa
+propre méthode, si bien qu'elles ne partagent pas une même forme comme le font
+les affineurs de recherche locale : un prior de position, un classement appris
+des coups, un fouilleur d'anti-motifs et un rejeu de témoin partagent une thèse
+mais pas un mécanisme. Pour embrasser tout le territoire d'un coup, commencez par
+[une carte de toutes les approches connues](/research/build/approaches-map). Pour
+les expériences exécutables qui incarnent ces techniques, avec leurs grilles et
+leurs chiffres, voyez les
+[expériences d'apprentissage à partir des grilles](/research/lab/experiments/raphael-anjou/learning).
+
+## La thèse, et sa limite
+
+Un signal appris aide lorsqu'il capture une structure réelle et transférable :
+quelque chose de vrai des bonnes grilles qu'une recherche partant de zéro devrait
+sinon redécouvrir par chance. Où chaque pièce a tendance à se placer, quelles
+pièces aiment à se toucher, quelle demande rare une pièce rare est la seule à
+pouvoir satisfaire. Câblée dans une recherche comme un biais léger, cette
+structure porte de façon fiable une construction vers le haut de sa propre
+fourchette.
+
+La limite est ce qui fait de ceci une recherche plutôt qu'un sac d'astuces. Le
+corpus dont ces signaux sont appris est lui-même sous-parfait : chaque grille
+qu'il contient est bloquée quelque part sous 480. Un signal extrait du corpus
+encode donc le *plafond* de la communauté autant que sa sagesse, et un signal qui
+ne fait que réencoder le plateau sur lequel chaque grille forte est déjà coincée
+ne relève rien. Poussez un prior appris, bon pour départager, jusque dans la
+fonction objectif, et la recherche s'effondre, car elle se met à troquer l'arête
+qu'elle a devant elle contre une intuition statistique. Le fil conducteur limpide
+de toute cette famille : apprendre des grilles fortes vous fait atteindre le
+plateau vite et de façon fiable, mais ne vous fait pas, à lui seul, le franchir.
+Le plafond, c'est le [mur de rigidité](/research/why/rigidity-wall), et aucune
+quantité de fouille de corpus ne le déplace.
+
+## Les techniques
+
+- **[Priors de corpus](/research/build/learning/corpus-priors)** en sont la forme
+  la plus simple : comptez où chaque pièce se place dans les grilles fortes, ou à
+  quelle fréquence une pièce satisfait une demande rare, et servez-vous du compte
+  comme critère de départage en construction. Les expériences
+  [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) et
+  [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone).
+- **[Ordonnancement appris des coups](/research/build/learning/learned-value-ordering)**
+  classe les placements candidats selon plusieurs signaux appris à la fois, et les
+  laisse voter, de sorte qu'aucune intuition isolée ne mène la recherche dans la
+  même impasse. L'expérience
+  [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring).
+- **[Fouille d'anti-motifs](/research/build/learning/anti-pattern-mining)** est
+  l'idée la plus subtile : tout accord entre grilles fortes n'est pas bon. Séparez
+  la structure réelle du piège partagé, et attaquez le piège. L'expérience
+  [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest), qui a
+  atteint la meilleure grille de ce projet.
+- **[Décodage de records](/research/build/learning/decoding-records)** reconstruit
+  exactement une grille record connue, pièce pour pièce, afin de retrouver
+  l'ingrédient qui manquait à une recherche ordinaire. La reproduction comme
+  preuve. L'expérience
+  [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay).
+- **[Quand l'apprentissage s'effondre](/research/build/learning/when-learning-collapses)**
+  est la synthèse sur le mode de défaillance : précisément quand un signal appris
+  cesse d'aider, pourquoi lui accorder trop de confiance ruine la recherche, et
+  pourquoi aucune de ces méthodes ne relève le plafond. Elle pose la limite de
+  toute la section : les signaux appris atteignent le plateau plus vite, mais aucun
+  ne le soulève.

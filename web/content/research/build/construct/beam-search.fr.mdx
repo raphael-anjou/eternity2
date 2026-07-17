@@ -1,0 +1,192 @@
+---
+title: Recherche en faisceau
+description: >-
+  Maintenir en vie les K plaquettes partielles les plus prometteuses à la fois
+  et les faire croître case par case. La recherche en faisceau est le moteur des
+  constructeurs ex nihilo de ce projet, et une illustration limpide des raisons
+  pour lesquelles la largeur seule s'enlise dans les profondeurs de l'intérieur.
+metaDescription: "La recherche en faisceau maintient les K meilleures plaquettes Eternity II partielles et les fait croître case par case : le constructeur ex nihilo du projet."
+kind: concept
+order: 50
+group: Build boards up
+updated: 2026-07-02
+topics: [construction]
+sources:
+  - label: "Zhou & Hansen, Beam-Stack Search : Integrating Backtracking with Beam Search (ICAPS 2005)"
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/lab/experiments/raphael-anjou/learning/lodestone
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+---
+
+import { BeamWidthLab } from "@/components/research/concepts/BeamWidthLab";
+
+Un retour arrière en profondeur d'abord s'engage sur une seule plaquette
+partielle et creuse. La recherche en faisceau, elle, prend ses précautions :
+elle maintient en vie les $K$ meilleures plaquettes partielles à la fois,
+étend chacune d'elles d'une seule case, évalue tous les enfants, puis
+conserve à nouveau les $K$ meilleurs. L'idée remonte au système de
+reconnaissance vocale HARPY de Bruce Lowerre, dans les années 1970 ; l'
+[article sur la beam-stack search](https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf)
+de Zhou et Hansen offre un bon traitement moderne de cette famille de méthodes
+et de ses compromis.
+
+## Comment elle se déroule sur une plaquette
+
+Fixons un ordre de balayage sur les 256 cases. Un état du faisceau est un
+placement partiel, l'ensemble des pièces déjà dépensées et un score de bords
+appariés. Étendre un état à la profondeur $d$ revient à essayer chaque couple
+(pièce, rotation) légal pour la case $d$ (légal au regard des voisins déjà
+posés et de l'inventaire restant) et à ajouter au score le nombre de bords
+nouvellement appariés. On réunit tous les enfants issus des $K$ survivants, on
+trie, on tronque à $K$, on répète 256 fois, et chaque survivant est alors une
+plaquette complète.
+
+C'est l'inventaire qui distingue ce cas de la recherche en faisceau sur un
+problème de contraintes générique : chaque pièce n'existe qu'en un seul
+exemplaire, si bien qu'un placement n'est pas un simple choix local mais un
+prélèvement sur un budget global. Ce détail décide de tout ce qui suit.
+
+## Regarder un faisceau descendre
+
+Le laboratoire ci-dessous fait descendre un faisceau dans un arbre synthétique :
+facteur de branchement $b = 4$, profondeur $d = 14$, scores déterministes
+fondés sur un hachage, sans plaquette, parce que les pathologies sont plus
+faciles à *voir* quand l'instance est assez petite pour être dessinée. Deux
+traits y sont plantés délibérément : les scores des nœuds sont en partie
+héritables (un bon préfixe tend à avoir de bons enfants, ce qui fait
+précisément qu'un faisceau s'effondre sur un seul préfixe), et quelques nœuds
+**pièges** rapportent un gros score immédiat tout en empoisonnant discrètement
+chaque descendant : un modèle synthétique en deux lignes du
+[vol de pièces](/research/why/piece-theft), où un placement qui marque
+maintenant dépense une pièce dont l'intérieur profond aura besoin plus tard.
+
+<Figure collapsible title="Interactif : largeur du faisceau contre survie">
+  <BeamWidthLab />
+</Figure>
+
+## Étape par étape
+
+1. **Profondeur 0.** Le faisceau se réduit à la racine. À chaque tick, chaque
+   survivant engendre ses $b = 4$ enfants, soit au plus $K \cdot 4$ candidats
+   dans le vivier.
+2. **Évaluer, trier, tronquer.** Les enfants réunis sont classés et seuls les
+   $K$ meilleurs survivent. Tout ce qui passe sous le seuil est supprimé
+   *pour toujours* : un faisceau ne revient jamais en arrière, si bien qu'un
+   bon préfixe élagué à la profondeur 5 est inatteignable à la profondeur 10.
+   C'est là qu'on abandonne la complétude.
+3. **Observer l'agglutination.** La position horizontale d'un point encode son
+   préfixe de chemin, de sorte que des branches distinctes vivent dans des
+   grappes distinctes. En quelques niveaux, la plupart des survivants
+   partagent un même préfixe à haut score : le compteur de *préfixes distincts*
+   qui tombe vers 1 marque l'effondrement de la diversité, le faisceau
+   dégénérant en glouton-avec-comptabilité.
+4. **Suivre la trace rose.** C'est $K = 1$, le glouton pur. Quand il avale un
+   piège ambré (gros gain maintenant, sous-arbre empoisonné ensuite), sa
+   courbe de score s'aplatit définitivement. Un faisceau plus large ne survit
+   au même piège que tant que ses survivants sont encore répartis sur
+   plusieurs branches ; une fois effondré, il est tout aussi crédule.
+5. **Faire glisser $K$ de 1 à 64.** Le score final grimpe puis s'aplatit ;
+   chaque doublement de largeur rapporte moins, ces mêmes rendements à peu
+   près logarithmiques que ce projet a mesurés sur des plaquettes réelles.
+   Remarquez ce que le curseur ne change jamais : l'effondrement se produit
+   quand même, seulement quelques niveaux plus tard.
+
+## Ce qu'elle coûte
+
+La recherche en faisceau est une recherche exponentielle dont on a supprimé
+l'exponentielle par décret :
+
+$$
+\text{time} \;=\; O(K \cdot b \cdot d), \qquad
+\text{memory} \;=\; O(K \cdot d),
+$$
+
+pour une largeur $K$, un facteur de branchement $b$ et une profondeur $d$
+(plus un tri en $O(Kb \log Kb)$ par niveau). Les deux sont linéaires en $K$,
+et c'est là tout l'attrait. Le prix, c'est l'*incomplétude* : un faisceau
+n'offre aucune garantie d'optimalité, aucun certificat en cas d'échec, et
+aucun moyen de revenir à un préfixe élagué. Son unique mode de défaillance
+systématique est l'effondrement que montre le laboratoire : quand les
+survivants deviennent $K$ copies d'un même préfixe, la largeur effective
+vaut 1, quel que soit le prix payé.
+
+À l'échelle d'Eternity II l'arithmétique est clémente, et c'est exactement
+pour cela que les faisceaux sont ici le moteur ex nihilo : $d = 256$ cases,
+$b$ = le nombre de candidats (pièce, rotation) légaux par case, quelques
+centaines au début, décroissant à mesure que l'inventaire se vide, si bien que
+même $K = 10^4$ coûte de l'ordre de $10^8$–$10^9$ évaluations d'enfants par
+plaquette complète : des minutes sur un ordinateur portable, incomparablement
+moins cher que tout chiffre exhaustif de la
+[page sur les impasses](/research/build/dead-ends). Ce que dit vraiment
+$O(K \cdot b \cdot d)$, ce n'est pas « bon marché » mais « aussi bon que sa
+seule fonction d'évaluation » : le faisceau évalue une fraction infime de
+l'arbre, et aucun score connu ne prédit quels préfixes de profondeur 100 se
+complètent encore bien. La largeur s'achète en monnaie linéaire ; la
+clairvoyance n'est pas à vendre.
+
+## La largeur rapporte moins qu'on ne l'espère
+
+À $K = 1$ le faisceau est une construction gloutonne pure, et le glouton à
+redémarrages aléatoires a une queue de distribution brutalement lourde : sur
+le moteur de ce projet, des dizaines de milliers d'essais gloutons aléatoires
+ont plafonné autour de 408 sur 480, et l'extrapolation de la queue plaçait un
+440 à des milliards de redémarrages. Élargir le faisceau vaut bien mieux, mais
+les rendements sont à peu près logarithmiques. Un faisceau de quelques
+centaines d'états construit des plaquettes autour de 450 ; pousser $K$ au-delà
+de dix mille a atteint le milieu des 450 puis a plafonné. (Mesuré sur le
+moteur de ce projet ; non reproduit de façon indépendante.)
+
+Il y a une raison structurelle pour laquelle un faisceau pur ne peut guère
+être plus que « glouton, en plus large ». Un état de faisceau à la profondeur
+$d$ fait face exactement aux mêmes contraintes d'appariement de bords et
+d'inventaire qu'un nœud de DFS à la profondeur $d$ ; maintenir de nombreux
+états en vie ne relâche rien. Sans une fonction d'évaluation qui prédise de
+façon fiable quels préfixes de profondeur 100 se complètent encore bien (et
+aucune heuristique de ce genre n'est connue pour Eternity II), la largeur
+supplémentaire du faisceau ne fait pour l'essentiel que reproduire ce que les
+redémarrages aléatoires d'un retour arrière fournissent déjà.
+
+## La diversité est le vrai bouton
+
+Livré à lui-même, un faisceau s'effondre : en quelques dizaines de cases, la
+plupart des survivants partagent un même préfixe à haut score, et le faisceau
+dégénère vers un glouton doté d'un surcroît de comptabilité. Les correctifs
+classiques sont la déduplication de préfixes et l'échantillonnage dans les
+$2K$ meilleurs plutôt que la prise des $K$ meilleurs, et les constructeurs de
+ce projet emploient les deux. Mais le levier de diversité le plus puissant
+trouvé ici ne se situait pas du tout dans le faisceau : c'était l'ordre de
+balayage. Faire tourner le même faisceau sous neuf ordres de visite
+différents ([GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet))
+a produit dix-huit familles de plaquettes distinctes là où seize graines d'un
+seul ordre en avaient produit une.
+
+L'autre bouton fécond est le départage.
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) tranche les
+égalités de score en faveur des pièces fréquentes à cette position dans un
+corpus de plaquettes fortes, relevant le plafond ex nihilo de quelques bords
+et atteignant 460 après raffinement.
+[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) tranche
+les égalités en faveur des pièces qui servent des demandes rares, gagnant une
+petite amélioration médiane et une bien meilleure régularité, puis s'effondrant
+gravement dès que la loi a priori passe du rôle de départage à celui
+d'objectif.
+
+## Le mur de profondeur
+
+Toutes les variantes de faisceau essayées ici s'enlisent de la même manière.
+La bordure et le premier intérieur se remplissent presque parfaitement ; les
+non-appariements se concentrent dans les dernières rangées, là où les pièces
+dont une case a besoin ont été dépensées bien plus tôt au service de cases
+plus faciles : le problème du [vol de pièces](/research/why/piece-theft). Un
+objectif local glouton ne peut pas voir ce budget global, et doubler $K$ ne
+recule le mur que d'un ou deux bords. Sur ce moteur, les faisceaux ex nihilo
+plafonnent au milieu des 450 ; la distance restante s'achète par le
+[polissage par destruction-réparation](/research/build/local-search/local-search-alns),
+et non par plus de largeur. Sur ce puzzle, la recherche en faisceau est un bon
+moyen d'atteindre vite le plateau, et aucunement un moyen de le quitter.

@@ -1,0 +1,142 @@
+---
+title: L'étude DFS
+description: >-
+  Une seule question, posée avec soin : parmi les backtrackers en profondeur
+  d'abord pour Eternity II, qu'apporte réellement chaque ordre de remplissage,
+  chaque heuristique et le mécanisme de rupture ? Une famille de backtrackers
+  écrits de zéro, séparés chacun par un seul changement, exécutés sur les mêmes
+  dix variantes à coins fixés, sur un seul cœur, pendant soixante secondes.
+metaDescription: "Étude des backtrackers en profondeur pour Eternity II : apport de chaque ordre de remplissage, heuristique et rupture, sur dix variantes, un cœur, 60 s."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s"
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments dfs-study
+order: 25
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Moteur exécutable + résultats versionnés + scripts (le répertoire d'appui de cette étude)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study
+---
+
+import { DfsStudyLeaderboard } from "@/components/research/DfsStudyLeaderboard";
+import { StartingPuzzleCarousel } from "@/components/research/StartingPuzzleCarousel";
+
+Tout solveur d'Eternity II détenteur d'un record (Blackwood, Verhaard, McGavin)
+est un backtracker en profondeur d'abord. Ce qui les distingue d'un backtracker
+de premier devoir de la semaine ne tient pas à leur nature mais à une poignée de
+décisions : l'ordre dans lequel ils remplissent les cases, l'anticipation qu'ils
+appliquent, et le fait de laisser ou non une arête *rompre*. Cette étude démonte
+ces décisions. Elle construit de zéro une famille de backtrackers en profondeur
+d'abord, chacun séparé de son voisin par un seul changement, et les exécute tous
+sur les mêmes dix variantes à coins fixés du puzzle officiel, sur un seul cœur,
+soixante secondes par exécution. Le score maximal est de 480 arêtes appariées.
+
+Le but n'est pas de gagner. La variante la plus forte présentée ici tourne en
+moyenne autour de 430 tout juste, bien en deçà des 464 de la communauté sur ces
+cinq indices, car soixante secondes sur un cœur ne représentent qu'une fraction
+infime du calcul qu'ont demandé les records. Le but est d'isoler *ce que vaut
+chaque idée* en ne changeant qu'une chose à la fois et en mesurant le résultat
+avec le même scoreur canonique pour chaque plateau.
+
+<StartingPuzzleCarousel />
+
+## La famille, et le classement
+
+Quatre familles, disposées de sorte que des voisins diffèrent d'une seule
+décision. **Baseline** est le backtracker le plus brut possible, accompagné d'un
+jumeau spécialisé à la main qui chiffre le coût de l'ingénierie bas niveau.
+**Path order** fixe tout sauf la séquence dans laquelle les cases sont remplies.
+**Heuristic** fixe l'ordre et ajoute un propagateur à la fois. **Break** est
+l'axe d'élite : le mécanisme de rupture d'arête à seuil de profondeur sur lequel
+reposent les records. Les moteurs record de la communauté, le C de McGavin et le
+C# de Blackwood, sont eux-mêmes des backtrackers à rupture, ils prennent donc
+place dans la famille break, et non dans une catégorie à part. Savoir de qui est
+le code d'un moteur reste affaire d'étiquetage, non de couleur. Les deux
+apparaissent dans le classement à leur score à coins fixés, marqués d'un badge là
+où ils s'effondrent, puis de nouveau sur une grille sans fixation plus bas, où
+ils tournent tels qu'ils ont été conçus.
+
+<DfsStudyLeaderboard />
+
+## Ce que l'étude a trouvé
+
+- **L'ordre de parcours est le plus grand levier gratuit, et le mauvais ordre est
+  catastrophique.** Un simple parcours ligne par ligne tourne en moyenne à 377 ;
+  un remplissage strict bord d'abord ou en spirale, sans heuristique pour le
+  sauver, plafonne autour de 67. Même moteur, même budget, un écart de plus de
+  300 points dû au seul ordre de remplissage.
+- **L'heuristique de la case la plus contrainte (MRV) est ce qui rend le bord
+  d'abord viable.** Elle fait passer un bord d'abord en panne de la soixantaine à
+  une moyenne de 324, au prix de trois ordres de grandeur sur le débit de nœuds.
+  Le débit de nœuds et le score sont deux axes distincts, une distinction sur
+  laquelle l'étude revient de bout en bout.
+- **Davantage de propagation n'a pas acheté davantage de score à ce budget.** Le
+  forward-checking, l'arc-cohérence et le raisonnement par couleur atterrissent à
+  un point près l'un de l'autre (322, 321, 321), un écart bien à l'intérieur de la
+  dispersion d'une exécution à l'autre : une anticipation plus lourde n'a donc ni
+  aidé ni clairement nui. Elle dépense les soixante secondes à prouver de petites
+  régions plutôt qu'à descendre plus profond.
+- **Les ruptures descendent plus profond que n'importe quelle recherche stricte.**
+  Les backtrackers stricts plafonnent dans les 200 tout juste (le plus rapide,
+  NAIVE-CODEGEN, à 216) ; un budget de rupture à seuil de profondeur dépasse 245 et
+  tourne en moyenne autour de 430, car il peut forcer le passage au-delà d'une
+  arête localement inappariable au lieu de remonter pour en sortir. Le facteur
+  décisif est le *calendrier* des ruptures : déverrouiller les ruptures trop tôt
+  (l'échelle de Verhaard, moyenne 399) score bien en deçà de l'échelle plus
+  tardive de Blackwood (moyenne 431). Relever le plafond par case de un à deux n'a
+  pas aidé à ce budget, un résultat nul rapporté comme mesuré.
+
+Chacun de ces points a sa propre page : la construction du moteur et la
+signification de chaque statistique relevée figurent sur la
+[page de méthode](/research/lab/experiments/raphael-anjou/dfs-study/method), et les
+comparaisons de parcours, d'heuristique et de rupture sont détaillées sur la
+[page des résultats](/research/lab/experiments/raphael-anjou/dfs-study/findings).
+
+## Comment lire les chiffres
+
+Chaque plateau est re-scoré par un unique scoreur canonique, et le score
+auto-déclaré d'aucun moteur n'est pris pour argent comptant. Le débit est rapporté
+en nœuds de recherche par seconde et n'est **jamais comparé d'une famille à
+l'autre**, car un nœud qui exécute une arc-cohérence complète n'est pas la même
+unité de travail qu'un placement naïf. La profondeur est le placement le plus
+profond qu'a atteint une variante, sur 256.
+
+Le nombre de ruptures mérite une définition précise, car il est facile de
+l'énoncer de façon vague. Le *score* d'un plateau est le nombre de ses arêtes
+intérieures appariées, et l'écart `480 − score` est le déficit total d'arêtes
+non appariées du plateau. Sur un plateau **achevé**, chaque arête non appariée est
+une véritable rupture, si bien que là le score vaut exactement `480 − #ruptures`.
+Soixante secondes suffisent rarement à remplir le plateau, cependant, de sorte que
+la plupart des plateaux de variantes à rupture présentés ici sont partiels, et
+leur déficit est dominé par des arêtes simplement encore vides plutôt que rompues.
+Cette étude rapporte donc le **vrai nombre de ruptures**, c'est-à-dire les
+non-appariements intérieurs que la recherche a effectivement engagés sous son
+budget, suivis par la recherche elle-même plutôt qu'inférés du score. Ce nombre
+reste petit même quand le déficit est grand. Chaque plateau porte une `.url` bucas
+qui s'ouvre dans le [visualiseur](/viewer), de sorte que le score comme les arêtes
+rompues peuvent se vérifier directement.
+
+Tout l'appareillage (l'espace de travail du moteur, les dix variantes, les
+résultats par exécution versionnés et les scripts de grille) réside sous le
+[répertoire d'appui](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study)
+de l'étude, et `just experiments dfs-study` reconstruit le moteur et relance toute
+la grille.

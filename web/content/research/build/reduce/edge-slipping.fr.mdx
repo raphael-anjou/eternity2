@@ -1,0 +1,282 @@
+---
+title: Le glissement d'arête
+description: >-
+  Le coup primé de Louis Verhaard : laisser le backtracker poser une pièce
+  non concordante, mais seulement à des profondeurs choisies près du bas du
+  plateau. Chaque glissement autorisé coûte un point de score et multiplie de
+  façon astronomique le nombre de plateaux cibles. Voilà pourquoi son 467 a
+  été trouvé plus de cinquante fois, et l'ancêtre direct des ruptures de
+  Blackwood.
+metaDescription: "Le glissement d'arête de Verhaard : autoriser des pièces non concordantes à des profondeurs choisies, un point par glissement. Son 467 trouvé 50+ fois."
+kind: concept
+order: 100
+group: Reduce the search
+updated: 2026-07-02
+topics: [search-space, local-search]
+sources:
+  - label: Verhaard définit le glissement d'arête (janvier 2009)
+    url: https://groups.io/g/eternity2/message/6328
+  - label: "Verhaard détaille la méthode du 467 : glissement conditionné à des profondeurs choisies, trouvé 50+ fois (décembre 2009)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "Le récit du 467 à la première personne par Verhaard : 247 pièces sans défaut (août 2009)"
+    url: https://groups.io/g/eternity2/message/6891
+  - label: La formule de dénombrement de Max pour N arêtes glissées (janvier 2009)
+    url: https://groups.io/g/eternity2/message/6390
+  - label: Owen étend la théorie complexe aux glissements d'arête (msg 6408 ; la table des glissements est le msg 6412)
+    url: https://groups.io/g/eternity2/message/6408
+  - label: "La chaîne de Markov de Verhaard sur (profondeur, glissements) : comment le tableau de glissements a été optimisé (msg 6423)"
+    url: https://groups.io/g/eternity2/message/6423
+  - label: "JSA reproduit le 467 avec le solveur public : l'échelle de rareté (msg 6687)"
+    url: https://groups.io/g/eternity2/message/6687
+  - label: La discipline « pas de ruptures adjacentes » de Blackwood (msg 10051)
+    url: https://groups.io/g/eternity2/message/10051
+related:
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/analysis/parity-arguments
+  - /research/why/complex-theory
+---
+
+import { EdgeSlipLab } from "@/components/research/concepts/EdgeSlipLab";
+
+Le glissement d'arête, c'est le placement délibéré d'une pièce qui ne
+concorde pas avec l'un de ses voisins. Louis Verhaard, qui a forgé le terme
+sur la liste de diffusion, l'a défini en une phrase : « poser sur le plateau
+une pièce dont la couleur ne concorde pas avec celle d'un ou plusieurs de ses
+voisins »
+([msg 6328](https://groups.io/g/eternity2/message/6328)). Cela ressemble à la
+description d'un échec. C'est en réalité l'idée de score partiel la plus
+lourde de conséquences de toute l'histoire du puzzle : parce que l'échelle
+des prix d'Eternity II récompensait les *arêtes concordantes* plutôt que
+l'achèvement parfait, une non-concordance coûte exactement un point sur 480,
+et tolérer un budget de non-concordances convertit une cible inatteignable,
+le plateau parfait, en un nombre astronomique de cibles atteignables. Tout
+l'art tient dans le mot *budget* : les glissements ne sont pas permis
+n'importe où, mais déverrouillés selon un calendrier, au plus profond de la
+recherche, là où ils sont bon marché. Toute cette page porte sur ce
+calendrier.
+
+## La non-concordance qui remporte des prix
+
+À l'été 2008, Verhaard était bloqué par la voie légitime. Sans aucune
+tolérance à la non-concordance, il avait trouvé des centaines de plateaux
+partiels avec 248 pièces correctement placées (score 450) et estimait son
+plafond aux alentours de 456. Il n'a découvert que les pièces à moitié
+ajustées étaient *autorisées* qu'en exécutant le solveur public de Bob
+Cousins (à l'origine celui de Dave Clark) et en le voyant atteindre 458 en
+moins d'une minute ; de son propre aveu enjoué, il ne s'était jamais donné la
+peine de lire le règlement
+([msg 5767](https://groups.io/g/eternity2/message/5767)). La même découverte a
+frappé Max de façon indépendante ce mois de juillet-là : il a modifié son
+backtracker pour tolérer une seule arête non concordante au-delà de la pièce
+215 et a fait passer sur-le-champ un partiel en balayage de 219 pièces à 461
+([msg 5691](https://groups.io/g/eternity2/message/5691)) ; en septembre, il
+avait dépassé la « limite dont on ne parle pas » de la communauté, 463,
+« assez facilement ». La réponse de Verhaard, « Max, tu es vraiment un homme
+dangereux ! », ouvre l'échange sur la méthode dans lequel tous deux décrivent
+la forme de la technique aboutie : une recherche heuristique en profondeur
+d'abord, réglée pour garder les pièces restantes pavables, avec une tolérance
+à la non-concordance à la fin
+([msgs 5767–5787](https://groups.io/g/eternity2/message/5767)).
+
+Six mois plus tard, le premier examen a payé : 10 000 $ à « Anna Karlsson de
+Lund » (l'épouse de Verhaard, faisant tourner son programme,
+[msg 6891](https://groups.io/g/eternity2/message/6891)) pour un plateau
+totalisant 467 arêtes concordantes sur 480. Le nombre qui importe pour cette
+page n'est pas 467 mais *cinquante* : « le 467 n'était pas un coup unique ;
+je l'ai trouvé plus de 50 fois »
+([msg 7321](https://groups.io/g/eternity2/message/7321)). Un score qu'aucun
+argument exhaustif ne disait devoir être atteignable était trouvé de façon
+répétée, sur du matériel d'amateur, et lorsque Verhaard a publié le solveur,
+JSA l'a reproduit de l'extérieur, enregistrant 4 017 182 plateaux à 463,
+227 245 à 464, 13 637 à 465, 625 à 466 et enfin deux 467 en environ
+quatre-vingts jours de fonctionnement continu
+([msg 6687](https://groups.io/g/eternity2/message/6687)). Cette échelle de
+rareté est gravissable pour une raison : chaque barreau n'est pas un plateau
+unique mais une classe de plateaux combinatoirement énorme, et c'est le
+glissement qui rend la classe atteignable. La plupart des 467 de Verhaard
+avaient un score *propre*, des pièces sans aucune arête non concordante, de
+247 seulement
+([msg 7321](https://groups.io/g/eternity2/message/7321)) ; les
+non-concordances n'étaient pas des défauts sur le résultat, elles en étaient
+le mécanisme.
+
+## Comment ça marche
+
+La description de Verhaard lui-même est concise
+([msg 7321](https://groups.io/g/eternity2/message/7321)). Le programme
+« cherche normalement » (un backtracker en profondeur d'abord sur un ordre de
+remplissage fixe, avec des heuristiques réglées pour maximiser la pavabilité
+des pièces restantes) mais à certaines profondeurs il *autorise le glissement
+d'arête* : une pièce peut être posée avec une arête en désaccord avec un
+voisin déjà placé. Il est explicite sur ce que ce n'est pas : le solveur ne
+construit pas d'abord un partiel propre pour ensuite entasser les pièces
+restantes dans les trous à la fin, et c'est un programme différent de son
+chercheur de score propre, lequel a le droit de sauter des cases plutôt que
+de les rendre non concordantes.
+
+La tolérance est conditionnée à la profondeur et cumulative, structurée en ce
+que sa documentation appelle le *tableau de glissements* : pour chaque
+profondeur, le nombre d'arêtes glissées que la recherche est autorisée à
+avoir accumulées jusque-là. En dessous de la première barrière, le solveur
+est un backtracker exact ordinaire. Au-delà, chaque placement peut soit
+s'ajuster parfaitement, soit, si le budget de cette profondeur le permet,
+s'ajuster à moitié, et le budget déverrouille un glissement à la fois à
+mesure que la profondeur augmente. Deux faits font des barrières tardives
+tout l'enjeu :
+
+- **Le branchement.** Une pièce aléatoire s'ajuste à moitié bien plus souvent
+  qu'elle ne s'ajuste pleinement. La machinerie de Verhaard suit les deux
+  probabilités séparément, par profondeur, sous les noms `fitProb` et
+  `halfFitProb`
+  ([msg 6423](https://groups.io/g/eternity2/message/6423)). Ouvrez la porte du
+  glissement à la profondeur 40 et vous multipliez la largeur de l'arbre là où
+  il est déjà le plus large, noyant la recherche sous des préfixes inutiles.
+  Ouvrez-la à la profondeur 210, où les branches survivantes sont quasiment
+  forcées et où le nombre de candidats avoisine zéro, et la même option
+  supplémentaire ranime des branches moribondes pour presque rien.
+- **L'héritage.** Une recherche en profondeur d'abord ne répare jamais un
+  glissement ; le défaire signifie revenir en arrière à travers tout ce qui a
+  été placé après lui. Un glissement admis à la profondeur 41 est scellé sous
+  215 placements ultérieurs ; un admis à la profondeur 221 en a 35 sous lui.
+  Les glissements précoces dépensent le budget là où il rapporte le moins et
+  coûte le plus.
+
+Et les barrières n'ont pas été devinées. Verhaard a optimisé à la fois
+l'ordre de remplissage et le tableau de glissements au moyen d'une chaîne de
+Markov dont les états sont des paires (profondeur, glissements déjà utilisés),
+avec des probabilités de transition estimées à partir des taux mesurés
+d'ajustement plein et à moitié ; à partir de la chaîne, il a calculé la
+probabilité d'atteindre le bas du plateau et le nombre de nœuds que chaque
+calendrier candidat coûterait
+([msg 6423](https://groups.io/g/eternity2/message/6423)). Le calendrier
+gagnant concentrait tout le budget tardivement : treize glissements, une cible
+de 467.
+
+<Figure collapsible title="Interactif : la transformation par glissement d'arête">
+  <EdgeSlipLab />
+</Figure>
+
+## Étape par étape
+
+1. **Fixez N = 0.** Une seule classe cible : les plateaux parfaits. Personne
+   n'en a jamais trouvé, et la [théorie complexe](/research/why/complex-theory)
+   explique pourquoi personne ne devrait s'y attendre.
+2. **Glissez jusqu'à N = 2.** Déjà ≈ 1,8 × 10⁵ fois plus de cibles, au score
+   478. Chaque glissement supplémentaire autorisé multiplie encore la classe,
+   si bien que les barres grimpent d'environ deux ordres de grandeur par
+   étape.
+3. **Attention au trou à N = 1.** Il n'y a pas de barre : une arête intérieure
+   glissée isolée est interdite par la parité, et la table des glissements
+   d'Owen y a un zéro exact
+   ([msg 6412](https://groups.io/g/eternity2/message/6412)). Les seuls
+   plateaux à non-concordance unique passent par le bord extérieur non compté,
+   la même fuite qui a produit
+   [l'histoire du 479](/research/build/analysis/parity-arguments).
+4. **Arrêtez-vous à N = 10.** Score cible 470, le record actuel, et
+   exactement le budget de ruptures du
+   [solveur de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
+5. **Arrêtez-vous à N = 13.** Score cible 467, multiplicateur ≈ 6,9 × 10²⁷.
+   Voilà pourquoi le programme d'un seul amateur a trouvé le plateau primé plus
+   de cinquante fois.
+6. **Basculez les barrières vers le début.** Même budget, même multiplicateur,
+   mais le glissement le plus précoce se retrouve maintenant sous 215
+   placements ultérieurs au lieu de 55, et le branchement supplémentaire
+   atterrit là où l'arbre est le plus large. C'est le calendrier, non le
+   budget, que la chaîne de Markov de Verhaard était conçue pour bien régler.
+
+## Ce que ça coûte
+
+Interrogé sur le nombre de partiels élevés existants, Max a raisonné à rebours
+à partir des solutions complètes et a produit le décompte empirique de la
+communauté pour les plateaux ayant $N$ arêtes intérieures glissées
+([msg 6390](https://groups.io/g/eternity2/message/6390)):
+
+$$
+S(480-N) \;\approx\; 2^{\,N-1}\binom{420}{N}\,S(480), \qquad N \ge 2,
+$$
+
+où $\binom{420}{N}$ choisit lesquelles des 420 jonctions intérieures se
+rompent, les puissances de deux rendent compte (grossièrement) des manières
+de réaliser chaque rupture, et $S(480)$ est le nombre de plateaux parfaits. En
+injectant l'estimation précoce de la théorie complexe $S(480) = 26{,}700$, il
+a obtenu environ $4{,}7 \times 10^9$ plateaux à 478, $2{,}9 \times 10^{30}$ à
+468 et $1{,}8 \times 10^{32}$ à 467, des nombres que ce projet a revérifiés à
+partir de la formule. Deux conséquences importent plus que les valeurs
+absolues, que Max lui-même a signalées comme simplifiées à l'excès :
+
+- **Le coût d'une arête concordante de plus.** Les rapports consécutifs se
+  télescopent :
+  $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
+  \approx 63$. Chaque arête que vous refusez de glisser réduit la classe cible
+  d'un facteur d'environ soixante, ce qui correspond, comme l'a noté Max, au
+  comportement observé du solveur de Verhaard
+  ([msg 6390](https://groups.io/g/eternity2/message/6390)), et est du même
+  ordre que la règle empirique d'Owen d'environ 100× par arête, publiée le
+  lendemain sur le même fil
+  ([msg 6391](https://groups.io/g/eternity2/message/6391)).
+- **Le plafond.** La multiplication s'achète au prix du score : $N$
+  glissements autorisés plafonnent le plateau à $480 - N$ pour toujours. Le
+  glissement achète de l'atteignabilité, non de la qualité ; il convertit une
+  recherche impossible en une recherche réalisable dont le meilleur résultat
+  possible est strictement inférieur.
+
+Le prix en temps d'exécution, en revanche, est presque nul : par placement, le
+solveur compare un compteur de glissements à l'entrée du tableau de
+glissements correspondant à la profondeur courante (comptabilité en $O(1)$,
+incrémentée sur un placement à moitié ajusté et restaurée au retour en
+arrière). Tout le coût réside dans l'arbre qu'il déverrouille, ce qui explique
+pourquoi le placement des barrières est le problème de conception.
+
+Owen a bouclé la boucle en étendant la
+[théorie complexe](/research/why/complex-theory) aux glissements : remplacer
+la probabilité que les $m$ jonctions concordent toutes par $pm(m,v)$, la
+probabilité qu'exactement $v$ concordent, via la récurrence
+$pm(m,v) = pm(m-1,v) - pm(m,v+1)$, puis pondérer par les manières de
+positionner les glissements
+([msg 6408](https://groups.io/g/eternity2/message/6408)). Sa table place les
+plateaux à 13 glissements à $2{,}05 \times 10^{35}$ fois le nombre de plateaux
+parfaits ([msg 6412](https://groups.io/g/eternity2/message/6412)), sept ordres
+de grandeur au-dessus du chiffre de Max, parce que la théorie compte aussi des
+quasi-plateaux qui ne sont des perturbations d'aucune solution, tandis que Max
+ne comptait que ceux dérivés d'un plateau parfait. Prenez l'un ou l'autre
+nombre : l'ensemble des cibles explose de façon combinatoire, tandis que le
+prix est linéaire en score.
+
+## Du glissement aux ruptures
+
+Pendant douze ans, le 467 a tenu, et la conception aussi. Quand Joshua
+Blackwood est arrivé en 2020, un outsider dont le 468 a été relayé à la liste
+depuis Reddit, son solveur record portait une liste codée en dur :
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Lisez-la à la lumière de cette page et c'est un tableau de glissements : les
+non-concordances (« ruptures », dans son vocabulaire) interdites purement et
+simplement pour les 200 premiers placements, puis déverrouillées de façon
+cumulative, une à la fois, à des profondeurs choisies à la main, dix au total,
+pour un score cible de 470. Le concept, le conditionnement par profondeur et
+la concentration tardive du budget sont la conception de Verhaard de 2008,
+redérivée à force record ; c'est le réglage précis de ces profondeurs de
+déverrouillage qui a fait passer Blackwood de 469 à 470. Il a aussi ajouté une
+discipline que la version de Verhaard n'avait pas : deux ruptures ne peuvent
+jamais se toucher, si bien que chaque non-concordance se tient isolée parmi
+des arêtes concordantes, ce qui explique pourquoi n'importe laquelle de ses
+exécutions atteignant 255 placements se complète jusqu'à 256, et pourquoi un
+plateau à 469 fait aussi office de partiel propre de 249 pièces avec sept
+trous
+([msg 10051](https://groups.io/g/eternity2/message/10051)). La machine
+complète, avec ses calendriers de quotas et son étude de paramètres, est sur
+[la page Blackwood](/research/lab/experiments/joshua-blackwood/solver).
+
+L'arithmétique de la filiation mérite d'être dite à voix haute. Les treize
+glissements de Verhaard visaient 467 ; les dix de Blackwood visent 470. Selon
+le rapport de Max, chaque glissement retiré coûte un facteur d'environ
+soixante, si bien que ces trois arêtes représentent en gros un multiplicateur
+de difficulté de $2 \times 10^5$, payé par douze ans de matériel, une boucle
+interne plus rapide et une communauté faisant tourner le code en parallèle. La
+technique elle-même n'a pas changé. Sur un puzzle scoré par arêtes
+concordantes, le coup gagnant, deux fois et à treize ans d'écart, n'a pas été
+une meilleure recherche de plateaux parfaits. Ce fut une redéfinition
+calendaire et budgétée de ce qui compte comme cible.

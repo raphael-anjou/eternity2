@@ -1,0 +1,379 @@
+---
+title: "Résolution sur FPGA : cartographiée, mais jamais parcourue"
+description: >-
+  Si la boucle de placement est limitée par la latence mémoire, un FPGA semble
+  la réponse exacte : loger les tables de correspondance dans la block RAM
+  embarquée, à un cycle de distance, et pipeliner des dizaines de petits
+  backtrackers sur une même puce. La communauté a cartographié cette route en
+  détail. Michael Field a conçu le solveur, projeté cinq milliards de
+  placements par seconde et par puce, et fait tourner un prototype sur silicium
+  réel. Puis la route n'a jamais été parcourue jusqu'au bout. Le dossier
+  complet, et pourquoi.
+metaDescription: "Résolution sur FPGA pour Eternity II : le solveur de Michael Field projetait 5 milliards de placements/s par puce. Route cartographiée, jamais parcourue."
+kind: concept
+order: 145
+group: GPU & hardware
+updated: 2026-07-02
+topics: [speed, hardware]
+sources:
+  - label: "La première proposition FPGA : la couverture exacte en matériel (groups.io message 2623, 2007)"
+    url: https://groups.io/g/eternity2/message/2623
+  - label: "Le plan Altera de Bob Cousins pour Eternity I et le goulot d'étranglement des communications (groups.io message 3259, 2007)"
+    url: https://groups.io/g/eternity2/message/3259
+  - label: "Le VHDL d'échange d'arêtes de Mike Pringle : le premier HDL réellement écrit (groups.io message 5493, 2008)"
+    url: https://groups.io/g/eternity2/message/5493
+  - label: "'E2 in hardware...', l'échange sur la faisabilité de 2010 (groups.io message 8063)"
+    url: https://groups.io/g/eternity2/message/8063
+  - label: "L'analyse mémoire de Field : 'these problems also carry over to FPGAs' (groups.io message 9003, 2011)"
+    url: https://groups.io/g/eternity2/message/9003
+  - label: "Le design de 2014 : restriction uniforme au 15×15, ~4 Ko de tables, 5 G placements/s/puce projetés (groups.io message 9226)"
+    url: https://groups.io/g/eternity2/message/9226
+  - label: "Les tables de correspondance, bit par bit (groups.io message 9228, 2014)"
+    url: https://groups.io/g/eternity2/message/9228
+  - label: "La refonte hyper-pipelinée après le bug de bande passante mémoire (groups.io message 9232, 2014)"
+    url: https://groups.io/g/eternity2/message/9232
+  - label: "Premier essai sur silicium réel : un thread, une LED (groups.io message 9236, 2014)"
+    url: https://groups.io/g/eternity2/message/9236
+  - label: "Le bug de symétrie corrigé ; le matériel parcourt l'arbre complet du benchmark (groups.io message 9237, 2014)"
+    url: https://groups.io/g/eternity2/message/9237
+  - label: "La rétrospective de Field lui-même : 'a fun deadend' (groups.io message 10649, 2022)"
+    url: https://groups.io/g/eternity2/message/10649
+  - label: "L'unique tentative FPGA académique, ReConFig 2011 (ieeexplore 6044826 ; discutée dans le message 10651)"
+    url: https://ieeexplore.ieee.org/document/6044826
+related:
+  - /research/build/hardware/gpu-solving
+  - /research/build/faster/solver-engineering
+  - /research/why/prune-vs-speed
+---
+
+La [page GPU](/research/build/hardware/gpu-solving) se termine sur un mur : un
+backtracker d'Eternity II n'est pas limité par le calcul, c'est une chaîne de
+petites lectures mémoire dépendantes, et l'analyse de Mike Field en 2011
+montrait que les deux branches GPU (coopérer ou travailler seul) butent toutes
+deux sur le bus mémoire externe
+([message 9003](https://groups.io/g/eternity2/message/9003)). Un FPGA est la
+seule pièce de silicium qui semble répondre précisément à cette objection. Il
+n'y a pas de hiérarchie de cache à manquer : les tables de correspondance
+vivent dans la block RAM embarquée, à un cycle d'horloge, réparties en des
+dizaines de petites mémoires indépendantes que l'on peut toutes lire *dans le
+même cycle*. Les décalages de bits et les masques qui coûtent des instructions
+sur un CPU deviennent gratuits, câblés dans la logique. Et au lieu d'un seul
+gros cœur rapide, on dépose de nombreux petits cœurs lents, chacun un
+backtracker complet avec ses propres tables.
+
+La communauté a repéré cette route très tôt et l'a cartographiée à fond. Un
+membre a conçu le solveur, publié le chemin de données, projeté cinq milliards
+de placements par seconde et par puce, et fait tourner un prototype sur du
+matériel réel. Puis - et cette page existe pour le dire clairement - personne
+n'a jamais parcouru la route jusqu'au bout. Aucune exécution FPGA sur Eternity
+II complet n'a jamais été rapportée, en dix-neuf ans d'archives. Ce qui est
+intéressant, c'est que les raisons figurent elles aussi au dossier, dans les
+propres mots du concepteur.
+
+## Pourquoi les FPGA répondent au mur exact que rencontrent les GPU
+
+Rappelons la bifurcation issue de l'analyse de Field (racontée en entier sur la
+[page GPU](/research/build/hardware/gpu-solving)) : les chercheurs parallèles
+soit partagent de l'information, ce qui exige une bande passante de
+synchronisation dont le tissu logique ne dispose pas, soit travaillent
+indépendamment, ce qui exige un état par ouvrier dépassant les ~8 Ko de mémoire
+rapide alloués à une voie GPU, déversant tout sur un unique bus externe
+partagé. Son message de 2011 appliquait le même argument aux FPGA dans la
+foulée : « either need to store too much information, pass too much information
+around or it choke[s] on memory bandwidth »
+([message 9003](https://groups.io/g/eternity2/message/9003)).
+
+Mais la version FPGA de l'argument comporte une échappatoire que la version GPU
+n'a pas. Sur un GPU, le budget de mémoire rapide par ouvrier est fixé par le
+constructeur. Sur un FPGA, c'est *vous* qui dessinez la carte mémoire : si vous
+parvenez à réduire tout l'univers d'un backtracker (tables de candidats, état
+du plateau, ensemble des pièces utilisées) assez petit, vous pouvez l'instancier
+entièrement en block RAM, le répliquer cinquante fois, et aucun ouvrier ne
+touchera jamais la mémoire externe. Le mur de bande passante n'est pas franchi ;
+il est supprimé. Toute l'histoire FPGA de ces archives est la poursuite de ce
+« si » : rendre l'état du solveur assez petit et *uniforme* pour qu'il devienne
+matériel. Il a fallu six années de réflexion en arrière-plan à un membre pour y
+arriver, et la réponse a exigé de changer le problème.
+
+## Les esquisses : 2007–2012
+
+Les FPGA font leur entrée dans les archives quelques semaines à peine après le
+puzzle lui-même. En août 2007, psykowally, renonçant à un énième brute-forcer
+logiciel, songeait à le faire « in FPGA or something » tout en devinant que cela
+ne ferait « take off a few factors »
+([message 2022](https://groups.io/g/eternity2/message/2022)), une supposition
+que les sept années suivantes ne cesseraient de confirmer. En septembre, Dieter
+Gehrke demandait si quelqu'un avait envisagé la couverture exacte en matériel,
+en pointant une implémentation FPGA académique
+([message 2623](https://groups.io/g/eternity2/message/2623)). Personne ne
+l'avait fait.
+
+Le fil du sondage de novembre 2007 (« purpose built electronics » recueillit
+exactement une voix, comme le nota son unique votant) produisit la première vraie
+discussion d'ingénierie. Bob Cousins avait déjà acheté un kit d'évaluation Altera
+*pour Eternity I*, planifié un accélérateur FPGA pour un backtracker logiciel,
+et abandonné : même à 10 millions de positions par seconde en matériel, le
+goulot d'étranglement était la communication avec le PC
+([message 3259](https://groups.io/g/eternity2/message/3259)). Glen Dudley mit le
+doigt sur ce qui fait que le backtracking gaspille du silicium : placez 200
+pièces, revenez-en de cinq, et la valeur de 195 cellules de matériel dédié reste
+inactive ce cycle-là ([message 3260](https://groups.io/g/eternity2/message/3260)).
+Un autre membre annonça qu'il « just started » un design VHDL et cherchait des
+collaborateurs ([message 3266](https://groups.io/g/eternity2/message/3266)) ; on
+n'entendit plus jamais parler de lui sur le sujet. Un troisième aligna les
+chiffres qui dégrisent : troquer l'horloge d'un cœur de PC contre le
+parallélisme d'un FPGA coûte 10 à 1000× à l'entrée, et l'on serait « better
+off... just using multiple computers »
+([message 3268](https://groups.io/g/eternity2/message/3268)). Le SAT-en-matériel
+subit le même tri en 2008 : des millions de termes de clauses ne tiennent pas
+dans la logique du plus grand FPGA
+([message 4723](https://groups.io/g/eternity2/message/4723)).
+
+Une seule personne écrivit réellement du HDL. En mai 2008, Mike Pringle décrivit
+un chercheur local par échange d'arêtes dont la fonction d'aptitude (compter les
+pièces valides et uniques qu'implique l'affectation d'arêtes courante) était
+conçue pour *échanger et scorer en une seule horloge*. « I have the VHDL done
+for this but I ran out of FPGA resources on the evaluation board I have for
+anything over 8×8 »
+([message 5493](https://groups.io/g/eternity2/message/5493)). Premier HDL du
+dossier, premier mur de ressources du dossier, même message.
+
+Puis vint le protagoniste. En octobre 2010, Michael Field, l'ingénieur dont le
+budget de 26 cycles par placement ancre la
+[page consacrée à l'ingénierie des solveurs](/research/build/faster/solver-engineering),
+ouvrit un fil intitulé « E2 in hardware... », ayant commencé à jouer avec des
+cartes FPGA Digilent. Sa première estimation sobre : un backtracker matériel
+tournerait « roughly as fast as a PC's cpu core » ; le vrai gain serait une
+vérification de contraintes massivement parallèle, la cohérence d'arc évaluée à
+chaque étape ([message 8063](https://groups.io/g/eternity2/message/8063)). La
+réponse coût/bénéfice de Martin (capiman) tint la route : un backtracker
+matériel n'égale qu'un des quatre cœurs déjà présents dans votre PC, donc seuls
+les usages en logique parallèle sont intéressants, et les ~2 816 bits d'état de
+plateau que réclame un tissu de cohérence d'arc complet pourraient ne pas tenir
+dans le plus grand FPGA du marché
+([message 8064](https://groups.io/g/eternity2/message/8064)). Field esquissa un
+tissu de 256 cellules avec 18 bits de motif par côté et un bus de requête de
+pièces, et conclut par la phrase qui pourrait servir de légende à toute cette
+page : « no matter what it won't be a silver bullet »
+([message 8065](https://groups.io/g/eternity2/message/8065)). En 2012, il avait
+conclu que les FPGA étaient « next to useless for implementing an E2
+back-tracker » : la boucle de rétroaction entre plateau et sac est trop serrée,
+si bien que « the clock speed of a CPU wins », et il se demandait plutôt s'il
+fallait utiliser le tissu pour générer des jeux de rotations qu'un CPU
+vérifierait ([message 9069](https://groups.io/g/eternity2/message/9069)).
+
+## Le design de Field en 2014 : acheter l'uniformité, la payer en généralité
+
+Le 7 février 2014, Field publia « Solving Eternity II in FPGA hardware » : le
+problème avait « been sitting in my subconscious, slowly chewing over it for
+about 6 years. Last night I had a bit of an eureka moment »
+([message 9226](https://groups.io/g/eternity2/message/9226)). Son ancien solveur
+logiciel de classe record ne pouvait pas devenir matériel pour deux raisons
+qu'il nomma précisément : il exigeait une table de correspondance de ~6 Mo
+(17×17×17×17×15 entrées de 32 bits) à accès véritablement aléatoire, et la boucle
+placer-vérifier-revenir n'a presque aucun parallélisme à grain fin. L'eurêka fut
+de *relâcher le problème* jusqu'à ce que le chemin de données devienne uniforme :
+
+- **Ne faire du backtracking que sur le 15×15 en haut à gauche** (jamais la
+  colonne de droite ni la ligne du bas), et n'utiliser aucune pièce indice.
+- Remplir du haut-gauche vers le bas-droite, de sorte que la recherche de
+  candidats de **chaque** cellule soit indexée de la même façon : par les
+  couleurs de ses arêtes du haut et de gauche. Aucun cas particulier, aucune
+  table par cellule, un circuit identique, partout.
+
+Cette uniformité fit s'effondrer le problème mémoire. Toute la structure de
+correspondance tenait dans environ **4 096 octets de ROM** plus ~1 Ko d'état par
+solveur ([message 9226](https://groups.io/g/eternity2/message/9226)) : une table
+de tuiles de 1024 entrées, large de 18 bits (numéro de tuile, motif de droite,
+motif du bas, triés par motifs haut/gauche) plus un index de 324 entrées donnant
+pour chaque paire de couleurs son début et son décompte
+([message 9228](https://groups.io/g/eternity2/message/9228)). En matériel,
+notait-il, les décalages et les masques sont du câblage gratuit, les deux tables
+résident dans des BRAM différentes, donc les deux recherches se font en
+parallèle, et la lecture-écriture au même cycle de la block RAM offre un
+test-and-set atomique sur le bit de pièce utilisée : tout le trafic mémoire de
+la boucle interne, à un cycle de distance. Comparez ces 4 Ko au « >8 Ko par
+thread » fatal de la [page GPU](/research/build/hardware/gpu-solving) : voilà à
+quoi ressemble la suppression du mur de bande passante.
+
+La projection : environ **50 instances de solveur sur un Zynq 7020 à ~200 MHz**,
+chaque placement/déplacement coûtant en moyenne ~2 cycles, « up to 5 billion
+tile placements per second per chip »
+([message 9226](https://groups.io/g/eternity2/message/9226)). À titre de
+comparaison, les meilleurs cœurs CPU de l'époque faisaient 70 à 115 millions.
+
+## Ce qui a réellement tourné
+
+Le mois suivant est la mise en route matérielle la mieux documentée des
+archives, et chaque étape mérite d'être consignée, car chacune céda un peu de la
+projection.
+
+- **20 février.** La simulation place ses premières tuiles ; la synthèse annonce
+  >109 MHz sur un Spartan-6 LX9 en utilisant ~10 % de sa logique ; près de 50 M
+  placements/s par instance en début de puzzle, se dégradant à mesure que
+  davantage de pièces sont utilisées et que des cycles sont dépensés à les éviter
+  ([message 9231](https://groups.io/g/eternity2/message/9231)).
+- **25 février.** La première victime au dossier : le design « didn't pan out, I
+  had memory bandwidth issues during a 'tile lift' » (déplacer une pièce exige
+  deux écritures à la fois, et un port de BRAM reste un port de BRAM). Le
+  correctif est élégant : un **hyper-pipeline** à quatre étages, quatre
+  backtrackers indépendants se partageant dans le temps un unique chemin de
+  données, de sorte que l'accès mémoire de chaque étage ait lieu dans son propre
+  cycle. Timing : 132,363 MHz ; coût par cœur de 96 registres et 334 LUT ; une
+  estimation de 10 cœurs sur le petit LX9 ou 50 sur un LX45, « around 5,000M
+  'actions' per second »
+  ([message 9232](https://groups.io/g/eternity2/message/9232)).
+- **1er mars : silicium réel.** Arnaud Carré avait fourni un benchmark 16×16 à
+  29 couleurs que son solveur CPU optimisé parcourt entièrement en 34,75 s à
+  114,5 M récursions/s sur un cœur i7-3770K
+  ([message 9234](https://groups.io/g/eternity2/message/9234)). Field le chargea
+  dans du matériel réel à 200 MHz, la sortie étant limitée, pour l'instant, à une
+  unique LED qui s'allume tant qu'un thread tourne. La LED s'éteignit après
+  1 min 21 s ; son calcul de coin de table estimait chaque thread à environ un
+  tiers d'un thread i7, et un build à quatre cœurs, seize threads, sur sa carte
+  alimentée par USB à ~800 M vérifications/s. Il publia le design sur son site
+  ([message 9236](https://groups.io/g/eternity2/message/9236)). Deux jours plus
+  tard, il trouva le défaut dans cette comparaison et révisa le chiffre à la
+  baisse, à 1/8 ; le nombre corrigé figure plus bas.
+- **3 mars : le bug de symétrie.** La comparaison des décomptes avec Arnaud
+  révéla que la tuile fixe en haut à gauche de Field faisait le quart du travail
+  du benchmark. Corrigé, un thread matériel parcourt l'arbre entier en 199
+  secondes, « about an 1/8th of the speed of Arnaud's i7 solver running on one
+  core », mais 24 threads tiennent sur une carte à moins de 100 $, et un pipeline
+  à 8 étages devrait en permettre 48. Le matériel trouva et imprima les quatre
+  solutions, horodatages et plateaux dans le message
+  ([message 9237](https://groups.io/g/eternity2/message/9237)).
+
+Et c'est là que le dossier s'arrête. Le pipeline à 8 étages, les 48 threads, le
+portage sur Zynq, l'exécution du puzzle complet : aucun d'eux n'apparaît jamais
+dans les archives. mulisak demanda comment se lancer, et Field répondit par des
+liens vers des chaînes d'outils et son propre livre gratuit sur les FPGA
+([message 9245](https://groups.io/g/eternity2/message/9245)) ; le 1er avril,
+mulisak proposa « e2coin », une cryptomonnaie dont la preuve de travail serait
+l'appariement d'arêtes, en soutenant qu'E2 est « CPU friendly - GPU unfriendly -
+but... FPGA friendly »
+([message 9260](https://groups.io/g/eternity2/message/9260)) ; le fil dériva
+vers des benchmarks CPU, et le matériel se tut.
+
+## Pourquoi rien n'a abouti
+
+**Rien n'a abouti, et le concepteur en a dit la raison.** En janvier 2022, Jef
+Bucas demanda si quelqu'un avait accès à un article IEEE sur les FPGA et Eternity
+II, et la réponse de Field est la rétrospective sur laquelle cette page est
+bâtie : « The E2 problem is correctly sized to make an FPGA solver hard :) ». À
+cause de la rétroaction serrée entre plateau et sac, il « couldn't get faster
+than a single core on a low-end PC (~75M tiles per sec) », et la mémoire des
+tables de correspondance « is high enough that you quickly exhaust on-chip RAM
+if you are trying multiple instances. It was a fun deadend for me »
+([message 10649](https://groups.io/g/eternity2/message/10649)). Lisez cela au
+regard de la projection : le chiffre de 5 G/s supposait cinquante instances, et
+la BRAM même qui rendait une instance rapide est ce qui plafonnait le nombre
+d'instances qui tiennent. Les propres rapports de synthèse du prototype
+l'avaient annoncé : un seul cœur de la taille du benchmark réclamait déjà 23 des
+64 blocs RAM du LX9
+([message 9236](https://groups.io/g/eternity2/message/9236)).
+
+**L'économie non plus n'a jamais tenu.** Le seul membre à avoir tenté les deux
+mondes, valy, se souvenait de la carte de Field avec affection (« he was
+crunching 15 Mn/s on an FPGA platform. Perf/W maybe unbeatable »,
+[message 9588](https://groups.io/g/eternity2/message/9588)), puis décrivait le
+coût : le travail sur FPGA est « soooo slow to compile... code... debug... You
+need to be an expert or have plenty of spare time and motivation. I've tried
+once, that was my hardest programming experience »
+([message 9590](https://groups.io/g/eternity2/message/9590)). Des mois de mise en
+route HDL achetèrent ce que le
+[registre de l'ingénierie des solveurs](/research/build/faster/solver-engineering)
+obtient d'un simple drapeau de compilation. Cette asymétrie, et non un quelconque
+mur technique isolé, explique pourquoi chaque fil FPGA des archives se termine
+dans le silence : le « FPGA custom engine in 2022 » promis par un membre en 2021
+([message 10581](https://groups.io/g/eternity2/message/10581)) est le dernier de
+la lignée, et lui non plus n'a jamais refait surface.
+
+**L'unique tentative menée à terme fut académique, et elle fit moins bien que le
+logiciel.** L'article demandé par Bucas, « Exploitation of Parallel Search Space
+Evaluation with FPGAs in Combinatorial Problems: The Eternity II Case »
+(ReConFig 2011, [ieeexplore 6044826](https://ieeexplore.ieee.org/document/6044826)),
+est le seul système FPGA Eternity II achevé et publié de tout le dossier. Son
+bilan, tel que la liste le lut : « After three months, the best available
+solution contained 187/196 center pieces »
+([message 10651](https://groups.io/g/eternity2/message/10651)), bien en deçà de
+ce que produisaient les heuristiques logicielles de l'époque. Le verdict de Bucas
+fut celui de la communauté : « a bit disappointed by the results in term of
+speed... I would expect more from a 'dedicated' HW »
+([message 10655](https://groups.io/g/eternity2/message/10655)).
+
+## Le dossier, en un coup d'œil
+
+| Qui | Quand | Ce qui s'est passé | Msg |
+| --- | --- | --- | --- |
+| psykowally | 2007 | Première mention d'un FPGA ; devine « a few factors » d'accélération | [2022](https://groups.io/g/eternity2/message/2022) |
+| Dieter Gehrke | 2007 | Propose la couverture exacte en matériel FPGA ; aucun preneur | [2623](https://groups.io/g/eternity2/message/2623) |
+| Bob Cousins | 2007 | Plan d'accélérateur Altera de l'ère E1, abandonné sur le goulot des comms PC ; idée hybride | [3259](https://groups.io/g/eternity2/message/3259) |
+| jp_yahoo | 2007 | Démarre un design VHDL, cherche des collaborateurs ; plus jamais entendu | [3266](https://groups.io/g/eternity2/message/3266) |
+| Mike Pringle | 2008 | Recherche locale par échange d'arêtes, VHDL écrit ; à court de ressources au-delà du 8×8 | [5493](https://groups.io/g/eternity2/message/5493) |
+| Field & Martin | 2010 | Échange sur la faisabilité : un backtracker matériel n'égale qu'un cœur de CPU | [8063](https://groups.io/g/eternity2/message/8063), [8064](https://groups.io/g/eternity2/message/8064) |
+| Mike Field | 2011–12 | L'analyse mémoire « carries over to FPGAs » ; verdict « next to useless » pour le backtracking | [9003](https://groups.io/g/eternity2/message/9003), [9069](https://groups.io/g/eternity2/message/9069) |
+| Mike Field | 2014 | Le design : 15×15 uniforme, tables de 4 Ko, 50 instances @ 200 MHz, 5 G/s/puce projetés | [9226](https://groups.io/g/eternity2/message/9226), [9228](https://groups.io/g/eternity2/message/9228) |
+| Mike Field | 2014 | Construit et mesuré : prototype hyper-pipeliné parcourant un benchmark 16×16 sur silicium ; 1 thread ≈ 1/8 de cœur i7 (sa propre correction d'un 1/3 initial) | [9237](https://groups.io/g/eternity2/message/9237) |
+| mulisak | 2014 | e2coin : E2 comme preuve de travail FPGA-friendly ; posté le 1er avril, sans écho | [9260](https://groups.io/g/eternity2/message/9260) |
+| équipe académique | 2011 | Seul système FPGA achevé ; 3 mois → 187/196 pièces du centre | [10651](https://groups.io/g/eternity2/message/10651) |
+| Brahim Hamadicharef | 2021 | Annonce un « FPGA custom engine in 2022 » ; plus jamais mentionné | [10581](https://groups.io/g/eternity2/message/10581) |
+| Mike Field | 2022 | La rétrospective : « a fun deadend », l'épuisement de la BRAM plafonne les instances | [10649](https://groups.io/g/eternity2/message/10649) |
+
+## L'arithmétique qui mord toujours
+
+Accordez à la projection tout ce qu'elle a demandé. Disons que la puce à 50
+cœurs, 200 MHz, ait été livrée à ses pleins **5×10⁹ placements/s**, et disons que
+vous ayez rempli un rack de deux mille d'entre elles : **10¹³ placements par
+seconde**, plus que la flotte combinée de toute la communauté n'en a jamais
+aligné. Une année vaut ~3×10⁷ secondes, donc le rack parcourt ~3×10²⁰ nœuds par
+an. L'arbre de recherche du puzzle complet est, à son plateau, large de l'ordre
+de **10⁴⁵ plateaux partiels**
+([la théorie de la complexité](/research/why/complex-theory) fait cette mesure
+correctement). La division : environ **10²⁴ rack-années**. Chaque ordre de
+grandeur que le matériel gagne déplace cet exposant d'une unité, et il en manque
+vingt-quatre.
+
+C'est la même phrase sur laquelle se termine la page GPU, car c'est la même
+mathématique : le matériel est un diviseur constant, et le mur d'E2 est
+exponentiel.
+[Pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)
+mène l'argument général ; le chapitre FPGA n'en est que l'étude de cas la plus
+nette, car ici même les nombres *projetés* (sans parler des nombres mesurés)
+concèdent le point avant que la division ne commence.
+
+## Ce que viserait aujourd'hui une tentative sur FPGA
+
+La carte est toujours sur la table, et certaines de ses parties ont bien
+vieilli. La propre mise en garde de Field en 2022 joue désormais dans l'autre
+sens : « cheaper FPGAs are now much larger »
+([message 10649](https://groups.io/g/eternity2/message/10649)) : une pièce
+moderne de milieu de gamme porte des mégaoctets de block RAM là où son Spartan-6
+avait des kilooctets, si bien que le plafond du nombre d'instances qui tuait la
+projection de 2014 s'est réellement relevé. Mais la liste des cibles qui
+résistent à l'examen est la même que celle à laquelle aboutit la
+[page GPU](/research/build/hardware/gpu-solving) :
+
+- **Pas la recherche.** Une tentative de record a besoin d'heuristiques, de
+  redémarrages, et de la liberté de changer l'ordre de remplissage en cours de
+  campagne, tout ce que Field a cédé pour rendre le chemin de données uniforme.
+  Le relâchement au 15×15 qui a rendu le matériel possible est exactement ce
+  qu'un chasseur de record ne peut pas accepter.
+- **Énumération et vérification.** Les balayages exhaustifs à forme fixe
+  (re-vérification de recensement, comptage de lignes et de blocs, sous-puzzles
+  bornés) sont uniformes par construction : la propriété que Field a dû acheter,
+  ces charges de travail l'obtiennent gratuitement. Son prototype avait déjà
+  démontré l'acte essentiel, parcourir un arbre de benchmark 16×16 complet sur
+  silicium et y trouver exactement ses quatre solutions
+  ([message 9237](https://groups.io/g/eternity2/message/9237)).
+- **Placements par watt.** Le créneau que personne n'a contesté : le « perf/W
+  maybe unbeatable » de valy
+  ([message 9588](https://groups.io/g/eternity2/message/9588)) tient toujours
+  pour quiconque fait tourner un recensement de fond sur plusieurs années, où le
+  budget est la facture d'électricité, non le débit de placements.
+
+La route, autrement dit, mène quelque part, simplement pas à 480. Elle a été
+cartographiée par quelqu'un qui connaissait à la fois le logiciel et le silicium
+mieux que quiconque sur la liste, parcourue jusqu'à la première sortie, et
+soigneusement balisée au retour : une impasse amusante, correctement
+dimensionnée pour en être une.

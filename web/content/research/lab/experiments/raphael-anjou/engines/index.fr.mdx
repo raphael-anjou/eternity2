@@ -1,0 +1,80 @@
+---
+title: Les moteurs
+description: >-
+  Les moteurs partagés qui sous-tendent les expériences de Raphaël Anjou. Les
+  expériences nommées sont des études qui s'appuient dessus ; voici l'appareillage
+  qu'elles ont en commun. Les préréglages CSP et la réimplémentation de Verhaard
+  sont documentés ici ; les moteurs constructifs ne sont pas encore publiés.
+metaDescription: "Les moteurs partagés des expériences Eternity II de Raphael Anjou : préréglages CSP et réimplémentation Verhaard, l'appareillage des études."
+kind: page
+order: 5
+author: raphael-anjou
+updated: 2026-07-15
+---
+
+import { ProseLink } from "@/components/docs/mdx-components";
+
+export function Door({ to, title, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      <div className="text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
+
+Les [expériences](/research/lab/experiments/raphael-anjou) sont des études :
+chacune pose une question et rend compte du plateau qu'elle a atteint. Mais la
+plupart ne partent pas de rien. Elles s'appuient sur un petit ensemble de
+moteurs partagés, et le même moteur réapparaît d'une expérience à l'autre.
+Cette page documente cet appareillage une fois pour toutes, afin que les études
+puissent pointer ici plutôt que de réexpliquer la machine à chaque fois.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="Les préréglages CSP, mesurés">
+    Un unique moteur de propagation de contraintes doté d'ordonnancements et de
+    propagateurs interchangeables : cohérence d'arc, appariement par graphe de
+    couleurs, plusieurs ordres de remplissage. Des réimplémentations fidèles de
+    techniques connues de la communauté, exécutées selon une douzaine de
+    préréglages sur les dix variantes, de sorte que le coût exact de chaque
+    réglage figure au classement au lieu d'être débattu.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl" title="La réimplémentation de Verhaard">
+    Une réimplémentation intégrale, repartie de zéro, de la méthode eii de Louis
+    Verhaard, son propre binaire n'étant livré sans aucune source et ne tournant
+    pas ici. Recuit par échange sur composition d'ensembles sous la métrique de
+    pavage 2×2 ; sur le véritable puzzle à cinq indices, elle atteint 438 sur
+    480, en monocœur.
+  </Door>
+</div>
+
+Les deux moteurs constructifs sur lesquels ces études s'appuient également, le
+producteur en faisceau et l'étape de polissage ALNS, n'ont pas encore leur
+propre présentation ici ; ces pages sont retenues pour l'instant, et aucun des
+deux ne figure au classement du benchmark. Là où une expérience pilote l'un
+d'eux, sa propre page dit ce que fait ce moteur au niveau dont l'étude a besoin,
+si bien que rien de ce qui suit ne dépend de la lecture d'une page pas encore
+présente ici. Les deux moteurs documentés et mesurés intégralement sont les
+préréglages CSP et la réimplémentation de Verhaard.
+
+## Pourquoi documenter les moteurs à part des expériences
+
+Une étude et son moteur répondent à des questions différentes. Le moteur répond
+à *comment fonctionne la recherche* - les structures de données, l'ordre de
+remplissage, les propagateurs - et il est réutilisé sans modification à travers
+de nombreuses études. L'étude répond à *ce qui se passe quand on braque ce
+moteur sur une idée particulière* : un a priori appris, une bordure fixée, un
+masque de rupture. Les tenir séparés permet à un lecteur qui veut comprendre
+l'a priori de PRIOR de ne pas avoir à relire le fonctionnement d'un faisceau, et
+à un lecteur qui veut le moteur de l'obtenir en un seul endroit, à jour et
+complet.
+
+Là où ces moteurs s'affrontent directement sous un budget fixé, ils
+apparaissent sur le
+[benchmark monocœur](/research/lab/experiments/single-core-benchmark). La
+théorie générale derrière chaque méthode se trouve dans la section
+[construire-un-solveur](/research/build) ; ces pages sont les moteurs
+spécifiques tels que construits et mesurés ici.

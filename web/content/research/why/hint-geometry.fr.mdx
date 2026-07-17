@@ -1,0 +1,128 @@
+---
+title: L'emplacement des indices l'emporte sur leur nombre
+description: >-
+  Sur un casse-tête 16×16 construit à l'image d'Eternity II, dix-huit indices
+  dispersés sur le plateau le résolvent en quelques minutes, là où le même
+  casse-tête réclame quatre-vingts indices ou plus, entassés dans des rangées
+  contiguës, pour devenir aussi facile. C'est la position, non le nombre, qui
+  fait levier, et elle pointe droit vers la fin de partie.
+metaDescription: "Sur Eternity II, la position des indices prime sur leur nombre : 18 indices dispersés résolvent le casse-tête en minutes, quand 80+ entassés peinent à égaler."
+kind: finding
+contribution: measurement
+rigor: measured
+order: 95
+updated: 2026-07-10
+topics: [structure, search-space, backtracking]
+sources:
+  - label: "L'étude de densité d'indices de Joe et la résolution à 18 indices de Peter McGavin (fil groups.io « A method to prune E2 search space by 17-30%+ », msg 11725)"
+    url: https://groups.io/g/eternity2/message/11725
+  - label: "Peter McGavin : 18 indices dispersés résolvent le casse-tête 16×16 façon E2 en moins de 15 minutes (groups.io msg 11746)"
+    url: https://groups.io/g/eternity2/message/11746
+  - label: "Peter McGavin : le backtracker optimisé remonte au message de Mike de 2007 (groups.io msg 3098)"
+    url: https://groups.io/g/eternity2/message/3098
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/no-forced-moves
+  - /research/why/prune-vs-speed
+repro:
+  kind: prose
+---
+
+import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
+
+Donnez gratuitement à un solveur quelques pièces correctes et le casse-tête
+devient plus facile. La question évidente est de savoir combien il en faut. La
+meilleure question, il s'avère, est de savoir *où* les placer. Sur un casse-tête
+16×16 construit avec la recette de couleurs exacte d'Eternity II, dix-huit
+indices posés aux bons endroits le résolvent en quelques minutes ; le même
+casse-tête, lui, en réclame quatre-vingts ou plus, si on les entasse dans des
+rangées contiguës, pour être aussi facile. Un facteur quatre sur le nombre,
+tranché entièrement par la géométrie.
+
+## Deux façons de dépenser les mêmes dix-huit indices
+
+<HintGeometryDiagram />
+
+Le plateau de gauche est la disposition réelle qu'a employée Peter McGavin :
+dix-huit indices sur un réseau régulier, une colonne sur trois, sur quelques
+rangées éparses. Son backtracker à balayage de rangées, sans fioritures, a
+résolu le casse-tête 16×16 façon E2 de Joe (cinq couleurs de bordure, dix-sept
+couleurs intérieures, la même distribution que le casse-tête officiel) en moins
+de quinze minutes sur un seul cœur, en parcourant un arbre de recherche de
+41 160 067 167 placements. Descendre à quinze indices marchait encore ; la
+recherche gonflait simplement à plusieurs heures. Entassez au contraire les
+dix-huit indices dans les premières rangées, à la manière dont un balayage de
+haut en bas les accumule naturellement, et ils n'achètent presque rien : la
+partie difficile du plateau reste entièrement ouverte.
+
+Joe l'avait abordé par l'autre bout, en amorçant des rangées contiguës entières
+à partir d'une solution connue, et il lui en fallait bien davantage avant que le
+casse-tête ne cède :
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">18</div>
+    <div className="mt-1 text-xs text-muted-foreground">indices dispersés, résolu en minutes</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">88+</div>
+    <div className="mt-1 text-xs text-muted-foreground">indices en rangées contiguës pour une facilité comparable</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">99%</div>
+    <div className="mt-1 text-xs text-muted-foreground">du temps de recherche passé au-delà de la profondeur 132</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">70%</div>
+    <div className="mt-1 text-xs text-muted-foreground">du temps de recherche passé au-delà de la profondeur 150</div>
+  </div>
+</div>
+
+## Pourquoi la position gagne : les indices doivent atteindre la fin de partie
+
+Les deux nombres de droite expliquent ceux de gauche. Joe a instrumenté son
+backtracker sur plus d'un milliard d'itérations et constaté que le travail n'est
+pas du tout réparti sur le plateau : 99 % s'effectue après la profondeur 132 sur
+256, et 70 % après la profondeur 150. Presque toute la douleur est dans la
+seconde moitié du remplissage, et l'essentiel au-delà des trois cinquièmes.
+
+Un bloc d'indices contigus en haut est dépensé exactement là où la recherche
+n'allait jamais peiner. Il raccourcit un début facile et laisse intacte la queue
+coûteuse. Les indices dispersés font l'inverse : parsemés à travers le plateau,
+jusque dans la région que la recherche atteint en dernier, ils devancent les
+choix qui, sinon, exploseraient loin dans l'arbre. C'est le même fait que les
+plateaux records portent à leur surface. Un plateau quasi parfait concentre tous
+ses dégâts dans la bande de rangées sur laquelle la recherche s'est terminée,
+parce que
+[ce sont les rangées remplies en dernier qui vous font payer le casse-tête](/research/why/mismatch-geometry).
+Les indices n'aident que dans la mesure où ils atteignent cette bande avant la
+recherche.
+
+Cela cadre aussi avec [le fait que l'intérieur ne donne aucun coup forcé](/research/why/no-forced-moves) :
+chaque cellule intérieure acceptant encore des dizaines de voisines, la valeur
+d'un indice ne tient pas à une propagation locale mais à une contrainte globale,
+qui élague des sous-arbres entiers que la recherche aurait sinon dû parcourir.
+Un indice loin de la région difficile n'élague que des sous-arbres qui étaient
+de toute façon bon marché.
+
+## Ce que cela dit et ne dit pas
+
+C'est un résultat sur un casse-tête 16×16 construit selon la recette de couleurs
+d'Eternity II, et non sur le casse-tête officiel, dont les cinq indices fixes
+constituent un cadeau différent, bien plus modeste, à des endroits différents.
+Ce qui se transpose, c'est la forme de la leçon, et c'est la même que celle que
+l'argument [élagage contre vitesse](/research/why/prune-vs-speed) formule par
+l'autre bout : ce qui compte, c'est de changer l'endroit où la recherche dépense
+son effort, et l'effort réside dans la fin de partie. Une poignée d'indices
+visant cette fin de partie vaut une multitude d'indices visant n'importe où
+ailleurs.
+
+<Callout kind="note">
+  Les décomptes, l'arbre de 41 milliards de nœuds et les statistiques de
+  profondeur sont les mesures de Joe et de Peter McGavin, rapportées sur la
+  liste groups.io eternity2 en janvier 2026 ; la disposition dispersée montrée
+  est décodée du plateau publié par Peter (msg 11746). Le backtracker optimisé
+  qu'a employé Peter remonte au message de Mike de 2007 (msg 3098). Ce sont des
+  résultats communautaires sur un casse-tête façon E2 particulier, consignés ici
+  avec attribution plutôt que redérivés.
+</Callout>

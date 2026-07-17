@@ -1,0 +1,210 @@
+---
+title: Recherche locale et ALNS
+description: >-
+  Détruire une partie du plateau, la reconstruire en mieux, et laisser
+  l'algorithme apprendre quelles démolitions rapportent. La recherche à grand
+  voisinage adaptative est le meilleur outil de finition de ce projet, et la
+  démonstration la plus nette du mur où la finition s'arrête.
+metaDescription: "Recherche à grand voisinage adaptative sur Eternity II : détruire, reconstruire mieux, apprendre quelles démolitions paient. Le meilleur polisseur, puis un mur."
+kind: concept
+order: 60
+group: Local search
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: "L'article JFPC de Pierre Schaus + le voisinage à remplissage hongrois, détaillé pour la première fois sur la liste (groups.io msg 5589, juin 2008)"
+    url: https://groups.io/g/eternity2/message/5589
+  - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
+    url: https://doi.org/10.1287/trsc.1050.0135
+  - label: Shaw, Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (CP 1998, le LNS d'origine)
+    url: https://link.springer.com/chapter/10.1007/3-540-49481-2_30
+  - label: Schaus & Deville, Hybridization of CP and VLNS for Eternity II (JFPC 2008)
+    url: https://hdl.handle.net/2078.5/253676
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/learning/palimpsest
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/construct/beam-search
+  - /research/build/local-search/parallel-tempering
+---
+
+import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
+
+Une fois que l'on tient un plateau solide, les déplacements pièce par pièce
+cessent presque immédiatement de rapporter. La recherche à grand voisinage
+fait le pari inverse : arracher toute une région (des dizaines de cellules)
+et la reconstruire avec quelque chose de plus fin que la passe gloutonne qui
+l'avait posée. L'idée revient à Paul Shaw
+([CP 1998](https://link.springer.com/chapter/10.1007/3-540-49481-2_30)) ;
+la version *adaptative*, ALNS, est due à Ropke et Pisinger
+([Transportation Science 2006](https://doi.org/10.1287/trsc.1050.0135)), qui
+ont ajouté un portefeuille d'opérateurs de destruction et de réparation ainsi
+qu'une règle d'apprentissage qui oriente l'effort vers les opérateurs ayant
+récemment réussi.
+
+## La boucle
+
+Une itération d'ALNS sur un plateau :
+
+1. **Détruire.** Choisir un opérateur de destruction, retirer les $k$ cellules
+   qu'il sélectionne.
+2. **Réparer.** Combler le trou (remplissage glouton,
+   [propagation de contraintes](/research/build/reduce/arc-consistency), ou
+   résolution exacte du petit sous-problème).
+3. **Accepter.** Conserver le nouveau plateau s'il obtient un meilleur score,
+   ou parfois malgré tout selon une règle de recuit simulé.
+4. **Adapter.** Repondérer les opérateurs selon leur succès récent, pour que
+   la roulette favorise ce qui a bien marché.
+
+Eternity II se prête particulièrement bien à l'étape 1, car un plateau partiel
+vous dit exactement où ça fait mal : les arêtes non appariées.
+
+## La regarder tourner
+
+Lire la boucle est une chose ; la regarder apprendre en est une autre.
+Ci-dessous, un vrai plateau 8×8 résolu par le moteur a été volontairement
+endommagé, et la boucle ALNS complète y tourne au ralenti : détruire, remplir
+gloutonnement pièce par pièce, accepter ou annuler, repondérer. Forcez un
+opérateur à la main et regardez sa barre de poids réagir ; ou laissez
+simplement la roulette dériver vers ce qui a payé.
+
+<Figure collapsible title="Interactif : la boucle détruire-réparer">
+  <AlnsLoopLab />
+</Figure>
+
+## Étape par étape
+
+Une itération, exactement comme le laboratoire l'exécute :
+
+1. **Tirer un opérateur.** Sélection par roulette : l'opérateur $o$ est choisi
+   avec la probabilité $w_o / \sum_j w_j$. Tous les poids partent égaux ; la
+   roulette est uniforme jusqu'à ce que les résultats arrivent.
+2. **Détruire.** L'opérateur renvoie $k$ cellules dont les pièces quittent le
+   plateau. Tirer des cellules au hasard ou une forme fixe coûte $O(k)$ ; les
+   opérateurs guidés par les conflits (pire rangée, cellules les plus en
+   conflit) ont aussi besoin de la carte des désappariements, ce qui coûte un
+   balayage linéaire à moins que le moteur ne la maintienne de façon
+   incrémentale. Le nôtre le fait, précisément pour que la destruction reste
+   en $O(k)$.
+3. **Réparer, gloutonnement.** Jusqu'à ce que le trou soit plein : prendre la
+   cellule vide ayant le plus de voisins déjà placés (la plus contrainte
+   d'abord), essayer chaque pièce retirée dans les quatre rotations, garder le
+   placement qui apparie le plus de coutures. Chacun des $k$ placements balaie
+   les candidats restants, donc la passe coûte $O(k \cdot |C|)$ où $|C|$ est le
+   réservoir de candidats (pièces libres × 4 rotations).
+4. **Accepter ou annuler.** Évaluer la région reconstruite ; seules les
+   coutures touchant les $k$ cellules ont changé, donc la réévaluation est en
+   $O(k)$. Conserver le plateau si $\Delta \geq 0$, sinon le conserver quand
+   même avec la probabilité $e^{\Delta/T}$ ; en cas de rejet, restaurer
+   l'instantané.
+5. **Adapter.** Mettre à jour le poids du gagnant,
+   $w_o \leftarrow \lambda\, w_o + (1 - \lambda)\, \psi$, où la récompense
+   $\psi$ est échelonnée : nouveau meilleur global > amélioration > déplacement
+   latéral accepté > rejet. Ce lissage exponentiel est tout ce qu'il y a
+   d'« adaptatif » dans ALNS. L'original de Ropke et Pisinger tient la même
+   comptabilité sur des segments de quelques centaines d'itérations.
+
+## Ce que ça coûte
+
+Par itération, avec $k$ cellules détruites :
+
+$$
+\underbrace{O(k)}_{\text{destruction}}
+\;+\;
+\underbrace{O(k \cdot |C|)}_{\text{réparation gloutonne}}
+\;+\;
+\underbrace{O(k)}_{\text{évaluation}}
+\;+\;
+\underbrace{O(|\mathcal{O}|)}_{\text{adaptation}}
+$$
+
+Trois raffinements qui valent la peine d'être connus :
+
+- **Le remplissage optimal est un problème d'affectation (parfois).** Lorsque
+  les cellules libérées sont deux à deux non adjacentes, le coût de chaque trou
+  ne dépend que de ses voisins fixes, si bien que le remplissage est exactement
+  un problème d'affectation $k \times k$ : l'algorithme hongrois le résout de
+  façon optimale en $O(k^3)$. C'est le voisinage Eternity II de Schaus. Dès que
+  deux trous se touchent, leurs choix se couplent, et la réparation optimale
+  devient une petite recherche CP/exacte, exponentielle dans le pire des cas en
+  $k$, ce qui explique pourquoi les grosses destructions cessent de rapporter.
+- **Anytime, et rien de plus.** ALNS améliore une réponse admissible et peut
+  être arrêté à tout moment ; le meilleur plateau obtenu jusque-là *est* la
+  sortie. Il n'offre aucune garantie de complétude ni d'optimalité : il ne peut
+  jamais certifier qu'aucun meilleur plateau n'existe. Sur ce puzzle, ce
+  certificat doit venir d'ailleurs (l'oracle SAT derrière le
+  [mur de rigidité](/research/why/rigidity-wall)).
+- **À l'échelle d'Eternity II, la boucle est bon marché ; l'évasion ne l'est
+  pas.** Avec $k = 20$ à $80$ des 256 cellules et quelques centaines de
+  candidats par trou, une itération coûte de la microseconde à la milliseconde,
+  et les courbes d'amélioration s'aplatissent en quelques dizaines
+  d'itérations. Le coût contraignant n'est donc pas l'arithmétique mais la
+  probabilité qu'un voisinage de $k$ cellules contienne l'unique
+  [σ-cycle](/research/why/sigma-cycles) imbriqué qui mène vers le haut, et
+  cette probabilité est ce qui s'effondre près du sommet.
+
+## Un portefeuille d'opérateurs pour les plateaux
+
+Les opérateurs de destruction livrés par ce projet sont pour la plupart
+conscients de la géométrie et des conflits : des cellules aléatoires en
+référence de base, les cellules incidentes à des arêtes non appariées, les
+$k$ cellules les plus en conflit, la pire rangée ou bande de rangées, une
+composante connexe du graphe de désappariement (éventuellement avec un halo
+d'une cellule autour), des rectangles et des anneaux concentriques. Deux
+constats issus du réglage du portefeuille, tous deux mesurés sur le moteur de
+ce projet et non répliqués de façon indépendante :
+
+- **La sélection l'emporte sur la couverture.** Un ensemble sélectionné de
+  cinq opérateurs a surpassé l'ensemble complet de onze ; répartir les poids
+  adaptatifs sur trop d'opérateurs dilue le signal d'apprentissage.
+- **La température n'est pas le levier.** Sur une plage de températures
+  d'acceptation d'un facteur dix, les scores finaux étaient identiques, parce
+  que près du sommet le paysage est dominé par des plateaux à score égal où
+  pratiquement chaque déplacement est accepté à n'importe quelle température.
+
+Que détruire-réparer convienne à ce puzzle est une observation ancienne :
+Schaus et Deville avaient hybridé la programmation par contraintes avec la
+recherche à grand voisinage sur Eternity II dès
+[2008](https://hdl.handle.net/2078.5/253676),
+en utilisant la CP comme étape de réparation, la même division du travail qui
+fonctionne ici.
+
+## Ce que ça rapporte de façon fiable
+
+La finition finale. Sur le moteur de ce projet, ALNS est l'étape qui
+transforme une sortie constructive en plateaux dignes des records :
+les constructions par [faisceau](/research/build/construct/beam-search) qui
+atterrissent régulièrement au milieu des 450 gagnent plusieurs arêtes sous une
+passe de raffinement, et les plateaux les plus solides du projet portent tous
+un gain ALNS comme dernière étape. Sur des puzzles générés plus petits, l'effet
+est spectaculaire et reproductible : détruire-réparer comble l'essentiel de la
+distance entre un placement aléatoire et le meilleur score atteignable, sur une
+large plage de serrage du puzzle, avant de saturer sur les instances les plus
+difficiles. (Tout ceci est mesuré ici, et nuancé en conséquence.)
+
+Tout aussi caractéristique : les gains arrivent tôt. Les courbes d'amélioration
+s'aplatissent dès les premières dizaines d'itérations, et laisser une exécution
+tourner dix fois plus longtemps reproduit le même score final. Quand ALNS
+s'arrête, il s'est arrêté.
+
+## Le mur qu'il rencontre
+
+La raison pour laquelle il s'arrête est la partie intéressante, et ce site y
+consacre deux pages entières. Sur chaque plateau de tête, les désappariements
+restants sont prouvablement verrouillés : libérer un voisinage généreux autour
+d'eux et le fouiller exhaustivement ne trouve rien de mieux ; c'est le
+[mur de rigidité](/research/why/rigidity-wall). Et passer d'un plateau de tête
+à un meilleur exige de relocaliser un grand ensemble de pièces dans une seule
+boucle imbriquée, où toute application partielle de la boucle obtient un score
+pire que de ne rien faire : la
+[structure en σ-cycles](/research/why/sigma-cycles).
+
+ALNS a exactement la mauvaise forme pour cela. Un voisinage de destruction de
+20 à 80 cellules ne couvre presque jamais l'unique cycle qui compte, et
+lorsque la destruction est assez grande pour le couvrir, l'étape de réparation
+affronte un sous-problème presque aussi difficile que le puzzle lui-même et
+rend moins que ce qui a été arraché. Détruire-réparer explore un bassin à
+merveille et n'en sort pour ainsi dire jamais. Le résumé que soutiennent les
+mesures de ce projet : ALNS est le meilleur dernier kilomètre dont nous
+disposons, et ce n'est qu'un dernier kilomètre.

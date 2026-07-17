@@ -1,0 +1,208 @@
+---
+title: Ce que chaque décision rapporte
+description: >-
+  Les cinq comparaisons au cœur de l'étude sur la réparation, décortiquées : la
+  destruction aléatoire aveugle l'emporte tandis que tout opérateur ciblant les
+  conflits perd ; la construction fixe le plancher ; le recuit simulé est la règle
+  d'acceptation la plus forte ; et les raffinements astucieux (recharge exacte,
+  redémarrages) ne rapportent rien à ce budget.
+metaDescription: "Étude réparation : la destruction aléatoire bat le ciblage des conflits, la construction domine, et chaque variante stagne tôt."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/method
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Résultats par exécution versionnés (results.jsonl) et rapport par famille (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/results
+---
+
+import { DestroyOperatorDiagram } from "@/components/research/DestroyOperatorDiagram";
+
+Cinq comparaisons portent l'[étude sur la réparation](/research/lab/experiments/raphael-anjou/repair-study).
+Chacune isole une décision en maintenant les quatre autres fixes sur une boucle de
+référence simple : départ glouton, destruction des cellules en défaut, recharge
+gloutonne, conservation du résultat sauf s'il perd du score, jamais de redémarrage.
+Tous les scores sont le nombre moyen d'arêtes concordantes sur les dix variantes à
+coins épinglés, mono-cœur, soixante secondes. Le débit d'itérations n'est jamais
+comparé d'une famille à l'autre.
+
+## Le plateau de départ : le levier que la boucle ne peut remplacer
+
+Ne changez que le plateau depuis lequel la boucle démarre, et tout le reste de
+l'exécution en découle. Une construction gloutonne démarre autour de 348 et la
+boucle la porte à une moyenne de 366. Un plateau aléatoire démarre près de 18 et la
+boucle le porte de 308 points, énormes, jusqu'à une moyenne de 326. Ce gain plus
+important n'est pas la boucle qui fait mieux ; c'est la boucle qui fait mal le travail
+de la construction. Le départ aléatoire, après des millions d'itérations, termine
+encore en dessous de là où le départ glouton *commençait*.
+
+C'est le premier résultat de l'étude, et le plus solide : **la construction est le
+levier, la réparation est le polissage.** Une construction gloutonne « couleur la
+plus rare d'abord » (l'heuristique de Selby et Riordan selon laquelle une couleur
+rare doit être dépensée là où elle est forcée) démarre un peu plus haut encore et
+termine à une moyenne de 373, le meilleur des départs *gloutons*.
+
+La preuve la plus nette de ce point est de partir d'un plateau réellement fort plutôt
+que d'un plateau glouton. La dernière variante de plateau de départ confie à la boucle
+un plateau construit par le break-DFS de l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) :
+l'exécution passe ses vingt premières secondes à revenir en arrière jusqu'à un plateau
+autour de 440, puis le répare pendant les quarante restantes. Ce départ se situe cent
+points au-dessus d'une construction gloutonne, et il se propage directement jusqu'à
+l'arrivée. C'est la variante au plus haut score de toute l'étude, à une moyenne de 446
+(meilleur 449), bien au-dessus des 402 de la boucle à destruction aléatoire, et elle
+tranche la question construire-puis-raffiner autour de laquelle tourne le reste de
+l'étude : la réparation *ajoute* bien quelques arêtes par-dessus un plateau fort obtenu
+par backtracking, mais seulement quelques-unes, et le plateau dont elle part décide
+presque tout. C'est exactement la division du travail qu'emploient les records, et
+cette étude la reproduit de bout en bout sur un cœur en une minute : un backtracker
+pour construire un bon plateau, puis une boucle de réparation pour en extraire les
+dernières arêtes.
+
+## L'opérateur de destruction : attaquer les cassures peut se retourner contre soi
+
+Fixons maintenant le départ glouton et ne changeons que les cellules que chaque
+itération soulève. C'est l'axe qui porte le résultat le plus surprenant de l'étude.
+
+<Figure title="Les quatre opérateurs de destruction, sur un même plateau aux jointures rompues">
+  <DestroyOperatorDiagram />
+</Figure>
+
+- **Une destruction aléatoire aveugle à la géométrie remporte la comparaison des
+  opérateurs, à une moyenne de 402 (meilleur 409).** En soulevant douze cellules
+  *aléatoires* au lieu des cellules rompues, elle continue d'échantillonner de nouvelles
+  régions du plateau, accepte près des trois quarts de ses mouvements, et son meilleur
+  score continue de s'améliorer tard dans l'exécution : sa dernière amélioration survient
+  au-delà de trois millions d'itérations, là où toute variante pilotée par les conflits a
+  gelé depuis longtemps. C'est la meilleure de toutes les variantes qui partent d'un plateau
+  glouton (seul le départ ensemencé par le DFS, un tout autre levier, termine plus haut).
+- **Tout opérateur piloté par les conflits termine en dessous d'elle, et plus il se
+  fixe sur les cassures, moins il réussit.** L'ancre « cellules en défaut », qui soulève
+  jusqu'à une douzaine des cellules rompues, atteint en moyenne 366 et stagne tôt : elle
+  arrache le même enchevêtrement groupé, le reconstruit gloutonnement dans presque la même
+  disposition, et son meilleur score cesse de bouger en quelques milliers d'itérations.
+  L'opérateur « composante plus halo », qui soulève tout un enchevêtrement connexe (un trou
+  bien plus grand), fait pire encore, à 350, et son meilleur ne s'améliore plus après
+  l'itération 211 : un trou de cette taille confie à la recharge gloutonne un sous-problème
+  qu'elle ne sait pas améliorer, de sorte que presque rien n'est jamais conservé.
+- **Une destruction de bande entière est inerte.** Soulever les deux rangées comptant le
+  plus de cassures laisse à la recharge gloutonne un sous-problème presque aussi difficile
+  que le casse-tête lui-même ; sur neuf des dix instances, elle ne fait *aucune* amélioration
+  sur toute la minute, de sorte que le score reporté est simplement son plateau de départ.
+
+Le schéma est net et mérite d'être énoncé clairement : sur ce départ glouton médiocre,
+plus un opérateur cible précisément les cassures existantes, moins il réussit, et la
+destruction aléatoire aveugle l'emporte. C'est l'inverse de l'intuition naturelle, et
+de ce qui fonctionne sur un plateau *proche du record*, où tout le plateau est proche
+de l'optimum et où le réglage de la communauté a jugé les opérateurs pilotés par les
+conflits et par composante les plus précieux, précisément parce que les quelques défauts
+restants sont la seule chose qu'il reste à corriger. Cette étude n'atteint jamais ce
+régime. Soixante secondes sur un plateau médiocre laissent une marge d'amélioration large
+partout, et là un opérateur qui rattaque sans cesse le même amas rompu, ou qui arrache un
+trou trop grand pour être bien reconstruit, perdent tous deux face à un opérateur qui se
+contente d'essayer sans relâche de nouvelles petites régions. Le constat n'est pas « la
+destruction pilotée par les conflits est mauvaise » mais « l'opérateur gagnant dépend de la
+qualité déjà atteinte par le plateau, et sur un plateau médiocre, explorer bat à la fois se
+fixer et sur-détruire ».
+
+## Réparation : comment le trou est reconstruit
+
+Fixons la destruction et ne changeons que la recharge. Rompre les ex æquo exacts de score
+de la recharge gloutonne par une pièce ensemencée, plutôt que de façon déterministe, ajoute
+un peu d'exploration et aide légèrement, jusqu'à une moyenne de 365. La comparaison la plus
+tranchante est gloutonne contre recharge *exacte*, et elle doit être montée avec soin pour
+constituer un test propre à un seul axe : la recharge exacte ne paie que lorsque le trou est
+assez petit pour être exploré, aussi l'étude l'associe-t-elle à une petite destruction (au
+plus six cellules en défaut) et la compare-t-elle à la *même* petite destruction rechargée
+gloutonnement, de sorte que la seule chose qui change entre les deux est la recharge. Montée
+ainsi, la recharge exacte tourne à chaque itération plutôt que de retomber sur la gloutonne,
+reconstruisant chaque petit trou à son véritable optimum.
+
+Le résultat est un franc négatif. La recharge exacte (moyenne 360) ne bat **pas** la
+recharge gloutonne du même petit trou (moyenne 363) ; si tant est qu'elle soit une nuance
+en retrait. Deux choses l'expliquent. La recharge exacte accepte presque chaque itération,
+car une reconstruction localement optimale d'un trou de six cellules ne fait presque jamais
+baisser le score, si bien que la boucle dérive latéralement au lieu de grimper. Et elle paie
+cette optimalité locale à environ un tiers du nombre d'itérations, si bien que sur une minute
+fixe elle explore moins le plateau. Sur ce casse-tête, à ce budget, une reconstruction
+localement parfaite d'une région minuscule ne vaut pas ce qu'elle coûte : les reconstructions
+moins chères et légèrement moins bonnes de la recharge gloutonne, exécutées plus souvent, vont
+tout aussi loin. C'est la même question « le débit de nœuds n'est pas le score » que soulèvent
+les moteurs heuristiques de l'étude DFS, et ici la réponse penche du côté d'itérations plus
+nombreuses et moins chères, ce qui mérite d'être consigné précisément parce que l'on suppose
+si souvent le contraire.
+
+## Acceptation : à quel point on autorise un mouvement non améliorant, cela compte
+
+Fixons la boucle et ne changeons que le moment où un candidat non améliorant est conservé.
+Des cinq axes, c'est celui qui déplace le plus le score après l'opérateur de destruction.
+
+- **Une montée de colline stricte, qui ne conserve que les améliorations strictes, est la
+  plus faible, à une moyenne de 361.** Refuser tout mouvement latéral la verrouille dans le
+  premier bassin qu'elle trouve ; son taux d'acceptation est essentiellement nul.
+- **Autoriser les mouvements égaux ou meilleurs (l'ancre) fait mieux, à 366.** Les mouvements
+  latéraux lui permettent de dériver à travers les plateaux à score égal qui dominent ce
+  paysage.
+- **Une règle de recuit simulé avec refroidissement est l'acceptation la plus forte, avec une
+  marge nette, à 377 (meilleur 394), parmi les meilleures des variantes à départ glouton.**
+  Autoriser occasionnellement des mouvements *aggravants* au début, puis refroidir, lui permet
+  de quitter un plateau où la simple dérive latérale est piégée, et son meilleur score continue
+  de s'améliorer jusqu'aux environs de l'itération vingt mille au lieu de geler dans les
+  premiers milliers. Une règle d'acceptation tardive, qui compare au score de quelques dizaines
+  d'itérations plus tôt, se place entre les deux à 369.
+
+Ainsi la règle d'acceptation est ici un vrai levier, non un détail : du strict au recuit, c'est
+un écart de seize points sur la même boucle (361 à 377). Cela mérite d'être énoncé face à une
+observation connue du propre réglage ALNS de la communauté : sur une large plage de températures
+de recuit, les scores finaux étaient essentiellement identiques. Les deux ne sont pas en
+contradiction. Ce réglage avait été fait sur des plateaux proches du record, où le paysage est
+une mer de plateaux à score égal et où toute température accepte presque tout ; le plateau de
+départ médiocre de cette étude conserve une vraie structure en descente à exploiter, de sorte
+que le fait que la règle veuille bien descendre pour échapper à un plateau importe réellement.
+Quelle règle d'acceptation l'emporte, comme quel opérateur de destruction l'emporte, dépend de
+la qualité déjà atteinte par le plateau.
+
+## Redémarrage : aucune perturbation ne fait bouger l'aiguille
+
+Fixons la boucle et ne changeons que ce qui se passe une fois qu'elle stagne. Ne rien faire
+laisse l'exécution ratisser le même bassin pour le reste de la minute. Un *coup* aléatoire, qui
+déplace et recharge aléatoirement une vingtaine de cellules quand le meilleur n'a pas bougé
+depuis un moment, et un *retour au meilleur plateau atteint*, qui rattaque le titulaire, sont
+les deux perturbations testées. Toutes deux se situent à un point près de l'ancre sans
+redémarrage (365 et 365, contre 366 pour l'ancre). C'est un net résultat nul : greffer un
+détecteur de stagnation et une perturbation sur la boucle glouton-défaut ne l'aide pas, car la
+perturbation soit jette la structure qui rendait le plateau bon (le coup), soit revient à un
+plateau sur lequel le même opérateur a déjà stagné (le retour). Ni l'une ni l'autre ne
+transforme la boucle en évadeuse de bassin ; sur ce casse-tête, s'échapper d'un bassin exige un
+mouvement différent de perturber-et-réparer, ce qu'expliquent précisément le
+[mur de rigidité](/research/why/rigidity-wall) et la
+[structure des σ-cycles](/research/why/sigma-cycles).
+
+## Le fil conducteur
+
+Deux thèmes traversent les cinq comparaisons. Le premier est que **les deux décisions qui
+déplacent le score sont l'opérateur de destruction et la règle d'acceptation**, et toutes deux
+le déplacent dans la même direction contre-intuitive : les choix gagnants sont ceux qui gardent
+la boucle en *exploration* plutôt qu'en *exploitation*. La destruction aléatoire bat tout
+opérateur qui cible les cassures ; le recuit, qui descend pour quitter un plateau, bat toute
+règle qui ne bouge que latéralement ou vers le haut. Raffiner la recharge et greffer un
+redémarrage, les deux décisions qui tentent d'être plus astucieuses au sujet d'une région où la
+boucle est déjà bloquée, ne rapportent rien.
+
+Le second est pourquoi explorer gagne ici tandis que se fixer gagne sur un plateau proche du
+record : **la boucle de réparation est une exploratrice de bassin, non une évadeuse de bassin.**
+Sur un plateau médiocre il y a une large structure en descente partout, de sorte que les
+mouvements qui en couvrent davantage l'emportent ; sur un plateau proche du record il n'en reste
+aucune, hormis un unique cycle imbriqué, de sorte que les mouvements qui le ciblent précisément
+l'emportent. Aucun des deux régimes ne permet à perturber-et-réparer de s'échapper d'un bassin
+une fois qu'elle y est. Voilà pourquoi les pipelines construire-puis-raffiner qui atteignent les
+meilleurs plateaux de ce projet divisent le travail comme ils le font : un producteur constructif
+fort pour choisir un bon bassin, et la réparation comme dernier kilomètre à l'intérieur, jamais
+sommée d'en sortir.

@@ -1,0 +1,164 @@
+---
+title: Comment l'étude est construite
+description: >-
+  Le moteur derrière l'étude DFS : un backtracker composable où une variante est
+  un changement déclaré au-dessus d'un parent, une couche IO partagée que chaque
+  algorithme parle, et les définitions de chaque statistique que l'étude soulève :
+  débit de nœuds, profondeur, ruptures.
+metaDescription: "Le moteur de l'étude DFS : un backtracker composable où chaque variante est un changement au-dessus d'un parent, une couche IO partagée, débit et profondeur."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "L'espace de travail du moteur (dfs-engine, dfs-run) sur la bibliothèque partagée e2-core / e2-io"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/engine
+---
+
+Cette page est l'appareillage derrière l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) :
+comment le moteur est construit, pourquoi une nouvelle variante coûte peu à ajouter,
+et ce que signifie chaque nombre parmi les résultats. Rien de tout cela ne dépend
+du moteur du [benchmark monocœur](/research/lab/experiments/single-core-benchmark)
+voisin. Tout l'enjeu était de réimplémenter la famille de zéro, en gardant le génie
+logiciel propre et le récit du « quoi s'empile sur quoi » explicite.
+
+## Une variante est un changement déclaré au-dessus d'un parent
+
+Chaque algorithme de l'étude est le *même* backtracker récursif en profondeur
+d'abord, paramétré par quatre choix indépendants :
+
+- **ordre de parcours** : la séquence dans laquelle les cases sont remplies (par
+  lignes, en spirale, bordure d'abord, le peigne de Verhaard, ou dynamique par
+  case la plus contrainte) ;
+- **ordre des valeurs** : l'ordre dans lequel les pièces candidates d'une case sont
+  essayées ;
+- **propagateur** : l'anticipation exécutée après chaque placement (aucune,
+  vérification en avant, arc-cohérence, raisonnement par couleur) ;
+- **politique de rupture** : si une arête peut être discordante, et sous quel budget
+  conditionné par la profondeur.
+
+Une variante est un petit enregistrement nommant ces quatre choix, accompagné du
+**parent dont elle dérive et d'une description en une ligne du changement unique
+qu'elle ajoute**. Ajouter une variante revient à ajouter un enregistrement au
+registre, sans nouveau code de recherche à moins que l'idée ne soit une stratégie
+véritablement nouvelle. La matrice du « quoi s'empile sur quoi » de la page des
+résultats est générée à partir de ces descriptions, si bien qu'elle ne peut pas
+diverger du code qui a tourné. C'est ce qui garde une étude étendue, avec des
+dizaines de variantes distantes d'un seul changement, maintenable plutôt qu'un tas
+de solveurs copiés-collés.
+
+## Une couche IO, et des conversions entre moteurs
+
+Chaque algorithme de l'étude consomme un seul type d'instance et émet une seule
+sortie : le meilleur plateau, son score canonique, et une URL bucas. Autour de cela
+s'articule une couche IO partagée dotée de convertisseurs sans perte entre les
+formats que parlent les autres moteurs du site : le JSON au schéma du site du
+benchmark, le CSV des moteurs communautaires autonomes, les URL bucas, et les
+fichiers d'indices. L'étude lit les *mêmes* dix variantes à coins épinglés que le
+benchmark monocœur utilise, à travers cette couche, de sorte que les deux
+expériences sont directement comparables. Un petit utilitaire `dfs-convert` expose
+les conversions depuis le shell, si bien que la sortie de n'importe quel moteur du
+blog peut alimenter n'importe quel autre.
+
+## Le scoreur est l'unique source de vérité
+
+Aucun score auto-déclaré par un moteur n'est digne de confiance. Chaque plateau,
+strict ou rompu, est re-scoré par un unique scoreur canonique : les adjacences
+intérieures, hors bordure, concordantes, comptées à droite et vers le bas pour
+chaque case. C'est octet pour octet la même formule que celle du scoreur du site et
+du benchmark, vérifiée par un test qui re-score un plateau à 469 connu et exige 469.
+C'est ce qui permet aux scores de variantes différentes, et à ceux du benchmark
+voisin, de tenir sur un seul axe.
+
+## Les statistiques que l'étude soulève
+
+Pour chaque exécution, le moteur enregistre - et les résultats les portent jusqu'à
+la page :
+
+- **score** : arêtes concordantes canoniques (sur 480). Pour un plateau complet avec
+  ruptures, cela égale `480 − #breaks`.
+- **débit de nœuds** : nœuds de recherche par seconde, un nœud par placement tenté.
+  Rapporté par variante et **jamais comparé entre familles**, parce qu'un nœud qui
+  exécute une arc-cohérence complète n'est pas la même unité de travail qu'un
+  placement naïf. Une propagation lourde échange du débit contre de la qualité de
+  nœud, et l'étude mesure les deux axes plutôt que de les fondre en un seul. Les
+  variantes les plus lentes portent une réserve qu'il vaut la peine d'énoncer
+  franchement : le moteur MRV choisit la case la plus contrainte en parcourant la
+  liste de candidats de chaque case vide à chaque nœud, ce qui est intrinsèquement
+  plus lourd qu'un ordre de remplissage fixe. Deux optimisations préservant le
+  comportement le ramènent à quelques fois le coût des moteurs rapides, plutôt qu'aux
+  milliers de fois qu'il valait autrefois : la recherche de la case la plus
+  contrainte cesse de compter les candidats d'une case dès qu'ils dépassent la
+  meilleure case trouvée jusqu'ici (une recherche de minimum n'a jamais besoin du
+  décompte exact d'une case qui ne peut pas l'emporter), et elle évite de revérifier
+  les arêtes sur lesquelles la liste de candidats est déjà indexée. Ce qu'elle ne
+  fait toujours pas, c'est maintenir le décompte de candidats de chaque case de façon
+  pleinement incrémentale d'un placement à l'autre, ce que ferait un solveur CSP de
+  production ; cette dernière étape devrait suivre comment une pièce nouvellement
+  utilisée affecte le décompte de chaque case, et elle est laissée de côté ici pour
+  garder le moteur lisible. Le classement par score ne dépend d'aucun de ces points,
+  puisque le débit est un axe distinct, mais le débit de nœuds MRV doit se lire comme
+  celui de ce moteur propre plutôt que comme le meilleur possible de MRV.
+- **profondeur maximale atteinte** : le placement le plus profond effectué par la
+  recherche, sur 256, la mesure par l'étude de la distance parcourue par une variante.
+  Le backtracking strict heurte un mur dans les bas 200 (par lignes 208, la variante
+  stricte la plus rapide 216) ; les ruptures le poussent bien au-delà, jusqu'à 243 à
+  245.
+- **profondeur à l'expiration** : où se tenait le front de recherche quand l'horloge
+  a sonné, de sorte qu'une variante qui n'aboutit jamais enregistre quand même où elle
+  travaillait.
+- **nombre de ruptures** : les arêtes intérieures sur lesquelles la recherche a
+  réellement *rompu* sur le meilleur plateau. C'est zéro pour une variante stricte, et
+  pour une variante à ruptures c'est le décompte que sa propre comptabilité de budget
+  a engagé plutôt que le déficit de score. Sur un plateau achevé, cela égale
+  `480 − score` ; sur un partiel expiré, le déficit compte aussi les arêtes encore
+  vides, donc l'étude rapporte plutôt le vrai nombre de ruptures. L'URL bucas de chaque
+  plateau rend les deux vérifiables dans le [visualiseur](/viewer).
+- **retours arrière** : reculs hors d'une case après épuisement de ses candidats.
+
+## Les deux références, et ce que coûte la spécialisation
+
+La variante la plus brute, `NAIVE-CLEAN`, est un moteur général lisible : des listes
+de candidats par case sans sentinelle, indexées par les deux voisins déjà placés, un
+cache d'arêtes résolues pour qu'aucune rotation ne soit recalculée sur le chemin
+chaud, et aucune allocation à l'intérieur de la recherche. Sa jumelle, `NAIVE-CODEGEN`,
+est le *même algorithme* réexprimé sous forme de boucle chaude spécialisée à la main,
+16×16 uniquement, par lignes, gardée comme programme séparé pour que le moteur général
+reste propre. Les faire tourner face à face chiffre le prix du génie de bas niveau :
+sur ce puzzle, il achète un gain de débit modeste et dépendant de l'instance et,
+notamment, aucun meilleur score. Les chiffres sont sur la
+[page des résultats](/research/lab/experiments/raphael-anjou/dfs-study/findings).
+
+## Correction des propagateurs
+
+La vérification en avant, l'arc-cohérence et le contrôle d'approvisionnement par
+couleur sont corrects *par construction*. Chacun ne rejette jamais qu'un état où une
+case a déjà un domaine vide, une case qu'aucune pièce inutilisée ne peut remplir, si
+bien qu'aucun d'eux ne peut retirer une branche qui mène à un achèvement réel. La
+révision d'arc-cohérence est délibérément prudente là où elle manque de précision :
+partout où elle pourrait être incertaine, elle élague *moins* plutôt que plus, restant
+du côté sûr. Les propagateurs ne sont corrects que sous placement strict, car sous un
+budget de ruptures une anticipation locale peut élaguer une branche que le budget
+global pourrait encore sauver, si bien que les variantes à ruptures n'exécutent
+délibérément aucun propagateur. Le registre l'impose : une variante qui associe des
+ruptures à un propagateur réservé au mode strict échoue à la compilation. Les tests du
+moteur vérifient cette contrainte ainsi que la comptabilité du score et des ruptures,
+même si la correction de l'élagage lui-même repose sur l'argument ci-dessus plutôt que
+sur un test.
+
+## Reproductibilité
+
+L'espace de travail du moteur, les dix variantes, les résultats par exécution
+commités et les scripts de grille vivent tous sous le
+[répertoire de support](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study)
+de l'étude. `just experiments dfs-study` reconstruit le moteur et rejoue toute la
+grille ; l'exécution est déterministe à graine fixée, et l'agencement des coins est
+le seul axe de diversité.

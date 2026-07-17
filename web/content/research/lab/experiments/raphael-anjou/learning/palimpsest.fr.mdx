@@ -1,0 +1,169 @@
+---
+title: PALIMPSEST
+description: >-
+  Lire chaque plateau fort pour repérer les habitudes qui, en silence, plafonnent
+  un plateau, puis les briser. Cette expérience a produit le meilleur plateau du
+  projet : 463 sur 480.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 463
+rigor: measured
+complexity:
+  time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
+  space: "O(P·K) for the persistence table (K distinct piece-pairs per position)"
+  note: >-
+    La passe de fouille est linéaire dans le corpus ; le coût réel est la
+    recherche ALNS qu'elle oriente en aval, non les statistiques.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: corpus-mining
+    does: "Des fréquences séparées par bassin distinguent la structure partagée du piège partagé, construisant une carte des pièges"
+    learns: "Carte des pièges de consensus : les paires fréquentes partout mais absentes des tout meilleurs plateaux"
+  - engine: alns
+    does: "À partir d'un plateau à 461, casser délibérément les cellules-pièges et laisser destruction-réparation les reconstruire, atteignant 463"
+    published: false
+order: 40
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search, learning]
+related:
+  - /research/build/learning/anti-pattern-mining
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Ropke & Pisinger 2006, recherche adaptative à grand voisinage (le cadre destruction-réparation que ceci oriente)"
+    url: https://doi.org/10.1287/trsc.1050.0135
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Jusqu'ici, chaque expérience de l'[étude](/research/lab/experiments/raphael-anjou/learning)
+a fait confiance à l'accord entre plateaux forts : là où les bons plateaux
+concordent, on les suit. PALIMPSEST est le moment où cette confiance est examinée,
+et elle a produit le meilleur plateau du projet. Quand de nombreuses recherches
+indépendantes atteignent toutes un plateau élevé mais imparfait, elles tendent à
+s'accorder sur beaucoup de placements. Une partie de cet accord est une structure
+authentique, une autre partie est une mauvaise habitude partagée : un choix local
+qui paraît bon et maintient chaque recherche bloquée juste en deçà du sommet.
+L'idée de cette expérience est de lire l'ensemble du corpus de plateaux forts, de
+séparer l'accord utile du piège, et d'attaquer les pièges.
+
+## Comment ça marche
+
+On prend chaque plateau que quiconque a trouvé et qui obtient un score
+raisonnable, et pour chaque paire de positions voisines on compte combien de fois
+une paire de pièces donnée s'y trouve, pondérée par la qualité du plateau. Deux
+motifs se dégagent. Certaines adjacences reviennent encore et encore dans les tout
+meilleurs plateaux : ce sont des structures sûres, réelles. D'autres apparaissent
+presque partout mais jamais dans les meilleurs plateaux : ce sont les pièges, les
+choix qui semblent justes et plafonnent le score.
+
+Les pièges se regroupent dans des régions particulières du plateau plutôt que de
+se répartir uniformément. Savoir où ils sont transforme le corpus en une carte :
+quels placements suivre, et lesquels démonter puis reconstruire. Regrouper les
+plateaux selon l'agencement de leurs coins oriente alors la recherche vers la
+famille la plus prometteuse à attaquer.
+
+<Figure collapsible title="Interactif : la carte des pièges, famille de coins par famille de coins">
+  <PalimpsestDiagram />
+</Figure>
+
+## Le plateau
+
+<RecordBoard id="palimpsest-463" />
+
+## Le résultat
+
+Utilisée comme carte pour orienter la recherche, cette approche a atteint 463 des
+480 arêtes appariées, le meilleur plateau que ce projet ait produit. À titre de
+comparaison, le meilleur plateau de la communauté sur ce puzzle est 470, et une
+solution complète en compte 480.
+
+Une réserve mérite d'être dite : tenter d'utiliser directement la liste des
+pièges, en forçant la recherche à éviter les placements piégés, n'a pas fonctionné
+en soi et tendait à dégrader les plateaux. La valeur résidait dans la lecture du
+corpus pour choisir où concentrer l'effort, non dans le codage en dur de ses
+conclusions dans la recherche.
+
+## Méthode
+
+Pour le lecteur qui veut la procédure exacte. Elle se déroule en deux passes.
+
+**1. Fouille de consensus pondérée par le score et séparée par bassin.** Sur un
+corpus de plateaux dont le score va de 400 à 480, pour chaque paire de cellules
+adjacentes $(i, j, \text{dir})$ et chaque paire de pièces qui s'y trouve un jour,
+on calcule deux fréquences plutôt qu'une :
+
+$$
+\begin{aligned}
+p_\text{high}(\text{pair}) &= \frac{\#\{\text{boards with the pair, score} \ge 460\}}{\#\{\text{boards with score} \ge 460\}} \\[4pt]
+p_\text{all}(\text{pair}) &= \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
+\end{aligned}
+$$
+
+ainsi qu'un *plafond* : le score maximal de tout plateau contenant cette paire.
+C'est le plafond, et non $p_\text{high}$, qui sépare les deux catégories. Le **bon
+consensus** correspond à un $p_\text{all}$ élevé assorti d'un plafond qui atteint
+la famille de tête, les plateaux au niveau du meilleur du projet (463) ou à un
+point de celui-ci : des motifs que les plateaux les plus forts conservent, donc
+une structure fiable. Les **pièges de consensus** correspondent à un $p_\text{all}$
+élevé assorti d'un plafond qui cale quelques points plus bas, aucun plateau portant
+la paire ne franchissant le seuil des 460-et-quelques : le mauvais choix consenti
+qui verrouille toute une famille sous le record. La coupure se situe entre
+« atteint le sommet » et « cale juste en dessous » ; sur ce petit corpus (un
+plafond à 463, des plateaux groupés du haut des 450 au bas des 460) elle est fixée
+à la main plutôt que balayée, et $p_\text{high}$ (score $\ge$ 460) est rapporté à
+côté mais n'est pas le discriminant. La vue à fréquence unique (la persistance
+seule) ne peut pas les distinguer ; la séparation par plafond est toute l'astuce.
+
+**2. ALNS de destruction des pièges.** On prend un plateau à 461 (il se situe *à
+l'intérieur* du bassin des pièges par construction), on localise les ~50 paires-
+pièges les mieux classées qu'il contient, et on trouve le coin : la position dont
+le retrait brise le plus de paires-pièges tout en préservant les paires de bon
+consensus. Puis on perturbe ces cellules-pièges, on les échange contre des pièces
+non piégées, introduisant 4 à 8 discordances délibérées, et on renvoie le plateau
+à la [recherche adaptative à grand voisinage](/research/build/local-search/local-search-alns).
+L'opérateur de destruction de la pire bande d'ALNS déchire de préférence
+exactement ces régions intentionnellement brisées et les reconstruit. Exécution :
+30 minutes × 6 graines.
+
+La complexité est banale : la passe de fouille est linéaire dans la taille du
+corpus, et le coût réel est la recherche ALNS qu'elle oriente. La contribution
+tient à l'*endroit* où elle dirige cette recherche, non à une nouvelle recherche.
+
+## Reproduire
+
+Le vérificateur `just research-record-boards` recalcule le score en arêtes
+appariées du plateau à 463 versionné à partir de ses arêtes Bucas brutes et
+vérifie qu'il égale l'annonce, si bien que le plateau est reproductible et
+vérifiable octet par octet dans le visualiseur. La recherche qui l'*a trouvé* est
+une exécution stochastique du moteur ALNS partagé (30 min × 6 graines), orientée
+par la carte des pièges décrite ci-dessus. Elle ne reproduira pas le même plateau,
+raison pour laquelle l'artefact de référence est le plateau, non une nouvelle
+exécution. L'orientation est lue à partir d'un corpus de plateaux forts, si bien
+que l'exécution n'est pas reproduite ici depuis zéro.
+
+## Questions ouvertes
+
+Pourquoi la reconstruction des régions piégées tend-elle à retomber sur le même
+plateau de tête déjà connu plutôt que sur un plateau réellement nouveau ? Une
+carte distincte par famille de coins révélerait-elle une structure que la carte
+combinée masque ? Et une pénalité douce pour les placements piégés aiderait-elle
+là où une interdiction stricte a nui ?

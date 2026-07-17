@@ -1,0 +1,331 @@
+---
+title: "Les benchmarks de la communauté"
+description: >-
+  Comment une communauté à qui il était interdit de partager les pièces s'est
+  malgré tout dotée d'une culture de test partagée : protocoles de vérification
+  par comptages dérivés, les suites Txibilis et débutants, duels au nombre de
+  nœuds, énumérations complètes, et le seul benchmark qui reste ouvert
+  aujourd'hui.
+metaDescription: "Comment la communauté Eternity II a bâti une culture de benchmarks sans partager les pièces : comptages dérivés, suites Txibilis et duels au nombre de nœuds."
+kind: reference
+order: 17
+group: Check your code
+updated: 2026-07-02
+topics: [backtracking, speed]
+sources:
+  - label: "La proposition de recensement des coins 3×3 : « Suggestion for Benchmark/Test » (arthurhucksake), eternity2@groups.io, 2007-08"
+    url: https://groups.io/g/eternity2/message/2229
+  - label: "Txibilis lance la suite de benchmarks : « New round of benchmarks... », eternity2@groups.io, 2007-08"
+    url: https://groups.io/g/eternity2/message/1610
+  - label: "Les jeux de données « Benchmarks for Beginners » de Geoff, eternity2@groups.io, 2008-02"
+    url: https://groups.io/g/eternity2/message/4322
+  - label: "hints.20.3 entièrement énuméré : « Algorithmic Challenges related to E2 » (doc_s_smith), eternity2@groups.io, 2010-07"
+    url: https://groups.io/g/eternity2/message/7861
+  - label: "Les deux 9×9 explorés exhaustivement (istarinz), eternity2@groups.io, 2011-03"
+    url: https://groups.io/g/eternity2/message/8793
+  - label: "Le set_1 10×10 de Brendan résolu (Peter McGavin), eternity2@groups.io, 2017-09"
+    url: https://groups.io/g/eternity2/message/9686
+  - label: "La suite Sample Puzzles de Dave Clark et son format de fichier documenté (fichiers groups.io)"
+    url: https://groups.io/g/eternity2/files/Sample%20Puzzles
+  - label: "Les plateaux de benchmark de tailles variables, côtés 11 à 16 (fichiers groups.io)"
+    url: https://groups.io/g/eternity2/files/Benchmarks
+related:
+  - /research/reference
+  - /research/build/known-facts
+  - /research/why/complex-theory
+---
+
+Toute communauté de solveurs a besoin de problèmes de test, mais celle
+d'Eternity II subissait une contrainte supplémentaire : en août 2007,
+Christopher Monckton a revendiqué un copyright sur le dessin des pièces et a
+menacé de poursuites « toute circulation de celles-ci, sous quelque forme ou
+support que ce soit », allant jusqu'à disqualifier Brendan Owen à cause d'un
+fichier qui ne contenait même pas les vraies pièces
+([messages 1342](https://groups.io/g/eternity2/message/1342) et
+[1358](https://groups.io/g/eternity2/message/1358)). La communauté a donc bâti
+sa culture de test autour de deux choses qui *pouvaient*, elles, être
+partagées : des comptages dérivés calculés à partir des pièces, et des
+casse-têtes du même type qu'E2 générés à neuf. Ce sont encore aujourd'hui les
+bonnes façons de calibrer un solveur.
+
+## Le protocole de recensement : vérifier sans partager
+
+Si deux personnes transcrivent les mêmes 256 pièces et écrivent du code
+correct, leurs solveurs doivent s'accorder sur les comptages exhaustifs.
+Cette observation, publiée par arthurhucksake en août 2007, est devenue le
+test de correction standard de la communauté : paver le coin supérieur gauche
+3×3 avec toutes les pièces d'E2 et compter. La réponse est **2 633 221**
+solutions, ou **2 582 369** sans la pièce indice imposée
+([message 2229](https://groups.io/g/eternity2/message/2229),
+[2370](https://groups.io/g/eternity2/message/2370)). Le recensement des blocs
+2×2 a suivi le même automne, avec deux programmes indépendants convergeant
+vers **5 248** blocs de coin, **292 012** blocs de bord et **4 059 952** blocs
+intérieurs ([message 3044](https://groups.io/g/eternity2/message/3044),
+[3046](https://groups.io/g/eternity2/message/3046)).
+
+Le protocole a fait ses preuves. Quand apal1969 a publié en 2009 les
+comptages, pièce centrale par pièce centrale, de tous les partiels 3×3
+intérieurs, la vague de programmes indépendants a débusqué des bugs des *deux*
+côtés. Un vérificateur a découvert que sa propre pièce indice était tournée de
+90°, et apal1969 lui-même a trouvé une erreur affectant chaque pièce centrale
+sauf une ([message 6625](https://groups.io/g/eternity2/message/6625),
+[6657](https://groups.io/g/eternity2/message/6657),
+[6666](https://groups.io/g/eternity2/message/6666)).
+Retrouver les nombres du consensus vous valait d'être accueilli, à moitié pour
+rire, dans le « Right Numbers Club »
+([message 6869](https://groups.io/g/eternity2/message/6869)). Partager des
+comptages plutôt que des pièces ne posait aucun problème de copyright, et cela
+attrapait plus de bugs que n'importe quelle relecture de code.
+
+Les formats d'échange se sont cristallisés à la même période : la communauté
+s'est standardisée sur les fichiers `e2pieces.txt` / `e2hints.txt` du projet
+eternity2.net de Dave Clark, consignés explicitement pour que les outils
+puissent interopérer
+([messages 3571](https://groups.io/g/eternity2/message/3571) et
+[3572](https://groups.io/g/eternity2/message/3572)). La métrique, elle, a mis
+plus de temps. Un débat « nœud contre pas » sur ce qu'un solveur devrait au
+juste compter s'est soldé par l'aveu qu'aucune métrique commune ne serait
+adoptée ([message 3946](https://groups.io/g/eternity2/message/3946)). La
+convention de Txibilis, selon laquelle un nœud est un *placement valide
+engagé* et le lookahead n'est pas compté
+([message 3843](https://groups.io/g/eternity2/message/3843)), est celle
+qu'emploient la plupart des chiffres de l'époque, et la raison pour laquelle
+les anciennes affirmations de vitesse demandent de la prudence dès qu'on les
+compare.
+
+## La suite Txibilis et la course au nombre de nœuds
+
+En août 2007, après un débat sur ce à quoi devrait ressembler un substitut
+équitable d'E2 (la distribution plate 17+5 des couleurs, avant tout), Txibilis
+a généré des plateaux du type d'E2 aux côtés 11 à 14 avec des variantes
+d'indices (les fichiers `tiles_N_5.17`), et Craig Easton a mis en place une
+base de résultats
+([message 1610](https://groups.io/g/eternity2/message/1610),
+[1683](https://groups.io/g/eternity2/message/1683),
+[1784](https://groups.io/g/eternity2/message/1784)). La suite est aussitôt
+devenue une arène de compétition : le premier balayage complet du casse-tête
+avec indices de taille 12 par doc_s_smith a coûté 750 226 469 nœuds
+([message 1862](https://groups.io/g/eternity2/message/1862)) ; deux mois de
+duel entre son chercheur automatique de stratégie et les ordres de remplissage
+construits à la main par Txibilis ont fait tomber la recherche complète du
+benchmark de taille 14 `hints15_2` à 89 794 nœuds, puis 85 729
+([message 2896](https://groups.io/g/eternity2/message/2896),
+[2928](https://groups.io/g/eternity2/message/2928)) : des ordres de grandeur
+en dessous du point de départ de la course, avec des stratégies conçues par
+machine et par humain se disputant la tête. Les mêmes semaines ont livré un
+avant-goût de l'autre levier : le solveur à propagation de contraintes du
+nouveau venu Geoff n'a parcouru que 198 nœuds pour trouver une première
+solution sur un benchmark avec indices 14×14
+([message 2902](https://groups.io/g/eternity2/message/2902)). Et à l'extrémité
+des poids lourds, Txibilis a épuisé l'ensemble de l'espace de recherche 14×14
+(environ 2,2 × 10¹³ nœuds) avec l'aide des ordinateurs d'amis
+([message 2550](https://groups.io/g/eternity2/message/2550)).
+
+La leçon de cette course est celle sur laquelle ce wiki revient sans cesse : le
+nombre de nœuds est une propriété de l'*ordre de remplissage*, et l'écart entre
+un ordre naïf et un ordre conçu se mesure en ordres de grandeur, pas en
+pourcentage. C'est précisément cet écart que la
+[théorie de la complexité](/research/why/complex-theory) a rendu par la suite
+calculable à l'avance.
+
+## Benchmarks for Beginners
+
+En février 2008, Geoff a emballé la rampe d'accès : trois casse-têtes tirés du
+« Set 1 » généré par Brendan Owen (un 6×6 avec un indice, un 8×8 avec deux, un
+10×10 avec trois), publiés directement dans le message avec un format
+auto-documenté
+([message 4322](https://groups.io/g/eternity2/message/4322)). Des jeux de
+solutions complets ont suivi (le 6×6 a 65 solutions distinctes, 260 en comptant
+les rotations ; [message 4604](https://groups.io/g/eternity2/message/4604)), et
+la suite a accumulé des nombres de calibration canoniques vers lesquels on
+oriente encore les nouveaux venus : 260 solutions avec rotations et une
+recherche par balayage de lignes complet d'exactement 69 284 103 nœuds pour le
+6×6 ([message 7771](https://groups.io/g/eternity2/message/7771),
+[7777](https://groups.io/g/eternity2/message/7777)). Si votre solveur obtient
+un comptage différent, votre solveur est faux ; c'est toute la proposition de
+valeur.
+
+## Le duel du 12×12 à 40 indices
+
+En mai 2008, Max a mis en ligne une instance conçue à dessein, le 12×12 de
+Brendan à 40 indices (quatre coins 3×3 plus un 2×2 central), pour mesurer de
+combien la connaissance des « environnements » des indices réduit la recherche
+([message 5453](https://groups.io/g/eternity2/message/5453)). Ce qui a suivi
+est la meilleure comparaison mono-instance de l'époque, avec toutes les écoles
+en même temps : l'hybride cohérence d'arc + backtracking de Geoff a trouvé la
+solution en ~7 s et 1,29 × 10⁸ nœuds
+([message 5455](https://groups.io/g/eternity2/message/5455)) ; la théorie de la
+complexité de Brendan a chiffré la recherche complète par simple balayage de
+lignes à 5,6 × 10⁸ nœuds
+([message 5458](https://groups.io/g/eternity2/message/5458)) ; le force-brute
+en C généré d'istarinz a tourné à ~68 millions de placements par seconde
+([message 5459](https://groups.io/g/eternity2/message/5459)) ; et le chemin
+réglé à la main par Txibilis a ramené la recherche complète à 2,89 × 10⁸ nœuds,
+plus de 20× en dessous du balayage de lignes, avec un chemin dérivé de la
+théorie arrivant juste derrière
+([message 5494](https://groups.io/g/eternity2/message/5494),
+[5522](https://groups.io/g/eternity2/message/5522)). Propagation, théorie,
+vitesse brute et conception de chemin, tout cela sur un seul plateau : le
+format de duel dont tout auteur de solveur rêve secrètement.
+
+## hints.20.3 : le défi de l'énumération complète
+
+Quand doc_s_smith est revenu en 2010, il a recadré le jeu : résoudre E2
+lui-même relève de la force brute et est donc ennuyeux ; le problème
+intéressant et *comparable* est de compter exhaustivement les solutions de
+benchmarks riches en indices
+([message 7803](https://groups.io/g/eternity2/message/7803)). Son fleuron était
+le casse-tête 16×16 `hints.20.3`, entièrement énuméré sur un seul cœur à
+3,5 GHz : **29 481 602 025 785 nœuds** (environ 2,9 × 10¹³), 15,6 jours-CPU,
+exactement **une** solution
+([message 7861](https://groups.io/g/eternity2/message/7861)). Il l'a posé comme
+un défi permanent : battre le nombre de nœuds, le temps, ou les deux.
+
+Le défi a fait ce que font les bons benchmarks : il a forcé la collaboration.
+En trois semaines, Martin (capiman), istarinz et doc ont fait converger leurs
+implémentations de cohérence d'arc et de réduction de domaine en échangeant des
+vidages complets des domaines 16×16 pour cette instance précise, s'attrapant
+mutuellement des bugs de miroir de coordonnées et de propagation ; l'estimation
+par doc du nombre de nœuds pour le benchmark est tombée de 1,6 × 10¹³ à
+2,6 × 10¹²
+([message 7890](https://groups.io/g/eternity2/message/7890),
+[7902](https://groups.io/g/eternity2/message/7902)).
+
+## La paire de 9×9 : épuisée, puis re-vérifiée sur GPU
+
+En mars 2011, istarinz a rapporté avoir épuisé l'ensemble des espaces de
+recherche des *deux* casse-têtes 9×9 de Brendan, trois semaines chacun sur un
+Opteron bicœur : 191 750 810 226 600 nœuds pour le set 1, 145 088 777 827 367
+pour le set 2, contre une estimation théorique de ~1,84 × 10¹⁴
+([message 8793](https://groups.io/g/eternity2/message/8793)). Le protocole de
+recensement a alors fait son office sur la réponse elle-même : il avait
+initialement annoncé une solution pour chacun, mais les backtrackers battus
+indépendamment de Peter McGavin ont trouvé une *seconde* solution au set 1
+([message 8801](https://groups.io/g/eternity2/message/8801)), et les décomptes
+corrigés (**2 solutions pour le set 1, 3 pour le set 2**) ont été confirmés
+quand McGavin a trouvé les trois solutions du set 2
+([message 8803](https://groups.io/g/eternity2/message/8803)). La théorie de la
+complexité avait prédit 3,2 solutions pour le set 1 : le bon ordre de grandeur
+sur la plus grande instance jamais explorée exhaustivement.
+
+Sept ans plus tard, les nombres ont été re-vérifiés à partir de zéro par une
+implémentation complètement différente sur un matériel absurdement différent :
+le solveur à compute-shader DirectX 12 d'Adam Miles a parcouru l'arbre complet
+du set 1 9×9 sur une Xbox One X en 25 h 24 m et a trouvé exactement les 2
+solutions connues
+([message 9822](https://groups.io/g/eternity2/message/9822)). Voilà à quoi
+ressemble une culture de benchmarks mûre : un recensement CPU de 2011 et un GPU
+de console de 2018 s'accordant à la solution près.
+
+## Les 10×10 de Brendan : l'un est tombé, l'autre tient encore
+
+Les casse-têtes 10×10 sans indices de Brendan Owen constituaient la frontière
+reconnue de la communauté : « Personne n'a même encore résolu son 10×10. Le
+plus grand résolu est le 9×9 »
+([message 8936](https://groups.io/g/eternity2/message/8936)). En septembre
+2017, Peter McGavin a résolu **set_1** : énumérer les ~20 millions de
+premières lignes, les classer selon la probabilité de solution par nœud de
+l'arbre de recherche que donne la théorie de la complexité, et distribuer le
+backtracking sur plus de 400 cœurs de cartes ARM domestiques et de serveurs
+empruntés. La solution est arrivée après ~2 × 10¹⁷ nœuds (environ **180
+cœurs-années**), à la recherche de ligne ~92 907 sur une prévision d'une pour
+70 000, après avoir couvert moins de 0,5 % de l'arbre entier
+([message 9686](https://groups.io/g/eternity2/message/9686) ; méthode et
+statistiques dans [9688](https://groups.io/g/eternity2/message/9688)). Martin a
+validé le plateau indépendamment
+([message 9725](https://groups.io/g/eternity2/message/9725)), et le verdict de
+la communauté, « stupéfiant que ce soit réellement aussi difficile que prévu »
+([message 9693](https://groups.io/g/eternity2/message/9693)), a fait office de
+plus forte validation empirique que la
+[théorie de la complexité](/research/why/complex-theory) ait jamais reçue.
+Selon les propres mots de McGavin : aucune méthode nouvelle, juste de la
+persévérance systématique et la loi des grands nombres.
+
+**Set_2 n'a jamais été résolu.** À la dernière mise à jour de cette page, il
+reste exactement ce que set_1 fut pendant une décennie : un 10×10 sans indices,
+aux statistiques connues, à la difficulté chiffrée par la théorie, attendant
+les 180 cœurs-années de quelqu'un. Si vous voulez un benchmark où vous faire un
+nom, c'est celui-là.
+
+## Le débit, en termes de 2026
+
+Les affirmations de vitesse de l'époque ci-dessus (les ~68 millions de
+placements par seconde d'istarinz en 2008) méritent une mise à jour, car les
+« placements par seconde » restent la façon dont la communauté jauge un
+solveur, et le plafond a bougé. Interrogé directement en juin 2026 sur ce que
+font les moteurs de pointe, Adam Miles a donné la règle empirique du moment :
+un backtracker CPU bien réglé atteint à peu près **50 millions de placements
+valides par seconde et par cœur**, et les solveurs GPU tournent **au-delà de 10
+milliards de placements par seconde**
+([message 11826](https://groups.io/g/eternity2/message/11826)). Des chiffres
+concrets du même fil le confirment : David Barr a mesuré son propre cœur CPU à
+~23 millions de placements par seconde et son portage GPU à ~2,4 milliards
+([message 11835](https://groups.io/g/eternity2/message/11835)), et le
+backtracker optimisé de Peter McGavin a atteint ~295 millions par seconde sur
+un cœur unique rapide
+([message 11750](https://groups.io/g/eternity2/message/11750)). Deux mises en
+garde héritées de l'ancien débat nœud-contre-pas subsistent : un « placement
+valide » ne compte que les pièces qui passent la recherche d'accord de couleur,
+pas chaque pièce essayée, et la vitesse mono-cœur sur un 16×16 complet vaut
+typiquement environ la moitié du chiffre sur petit casse-tête, parce que la
+recherche passe son temps dans la forêt dense des contraintes proches du bord.
+Rien de tout cela ne change le verdict
+[élagage contre vitesse](/research/why/prune-vs-speed) : un bond de débit de
+400× depuis 2008 n'a pas fait bouger le record, parce qu'il rend l'arbre moins
+coûteux à parcourir, pas plus petit.
+
+## Ce qu'il faut exécuter aujourd'hui
+
+Les suites historiques vivent dans la zone Files du groupe (avec quelques liens
+morts) ; le protocole qu'elles incarnent est plus facile à suivre aujourd'hui
+qu'à l'époque :
+
+1. **Rejoignez d'abord le Right Numbers Club.** Avant de faire confiance à un
+   quelconque chronométrage, confrontez votre solveur aux comptages exhaustifs.
+   Ce site maintient l'équivalent moderne des publications de recensement
+   (comptages exacts de blocs à chaque position du plateau, sous des règles de
+   plus en plus contraintes) sur la page
+   [nombres de référence](/research/reference). Les classiques marchent
+   toujours aussi : 2 633 221 pour le coin 3×3, 69 284 103 nœuds de balayage de
+   lignes pour le 6×6 de Brendan.
+2. **Grimpez l'échelle.** Les casse-têtes générés par Brendan ont des réponses
+   validées : 6×6 (65 solutions), 7×7 (set 1 : 6 297 solutions en
+   67 667 477 364 nœuds, le micro-benchmark standard depuis le
+   [message 9793](https://groups.io/g/eternity2/message/9793)), 8×8 (24
+   solutions à coins fixés,
+   [message 8890](https://groups.io/g/eternity2/message/8890)), la paire de 9×9
+   (2 et 3 solutions), puis `hints.20.3` (exactement 1 solution en 2,9 × 10¹³
+   nœuds).
+3. **Rapportez les nombres de nœuds avec vos temps**, et dites ce que vous
+   comptez : l'ambiguïté nœud-contre-pas de 2007 n'est jamais totalement morte,
+   et un chronométrage sans nombre de nœuds est infalsifiable. C'est
+   l'habitude de publier les deux qui a rendu les résultats de 2017-2018
+   comparables entre un Phenom, un Xeon et une Xbox.
+4. **Puis visez set_2.** La
+   [page des faits établis](/research/build/known-facts) donne les nombres du
+   vrai plateau ; le 10×10 ouvert est le prochain barreau que la communauté
+   s'accorde à placer juste en dessous.
+
+## Où se trouvent réellement les fichiers
+
+Deux de ces suites ont survécu intactes à la migration Yahoo vers groups.io et
+méritent qu'on pointe directement son parseur dessus. Les
+[Sample Puzzles](https://groups.io/g/eternity2/files/Sample%20Puzzles) (2007)
+de Dave Clark sont le jeu de départ le plus propre : des plateaux 16×16 du type
+d'E2 à 16 et 40 couleurs de bord, chacun avec sa solution, dans un format
+auto-documenté. Un fichier de casse-tête `sample_16_16_16_flat.txt` s'ouvre sur
+une ligne `width height borders`, puis une ligne de couleurs
+`Left Top Right Bottom` par case (`0` est le gris) ; le fichier `solution_…`
+correspondant liste des lignes `piece x y orientation`, l'orientation `0`–`3`
+pour 0°/90°/180°/270° dans le sens horaire. Les variantes `flat` répartissent
+les couleurs uniformément ; les variantes `rand` assignent chaque bord
+indépendamment, si bien qu'une paire `flat`/`rand` est un test tout prêt du
+degré auquel votre solveur s'appuie sur une distribution uniforme des couleurs.
+
+Le [dossier Benchmarks](https://groups.io/g/eternity2/files/Benchmarks)
+rassemble les plateaux de tailles variables sur lesquels la course au nombre de
+nœuds ci-dessus s'est jouée (côtés 11 à 16, plus `8x8x8.txt`, un 8×8 à solution
+unique qu'un backtracker correct nettoie en une vingtaine de minutes). Entre ces
+deux dossiers, vous pouvez parcourir toute l'échelle, d'un casse-tête qui se
+résout le temps d'un café jusqu'aux 16×16 générés, sans jamais toucher aux
+pièces du prix protégées par copyright.

@@ -1,0 +1,137 @@
+---
+title: CLOISTER
+description: >-
+  Fixer une bordure parfaite, puis explorer l'intérieur en traitant les arêtes
+  de la bordure comme des contraintes dures dès la toute première case.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 453
+rigor: measured
+complexity:
+  time: "per frame: ~6 s hint-compatibility probe, then a 30 s tail recipe × 8 seeds"
+  space: "one DFS frontier over the 14×14 interior; the 60-piece frame is fixed"
+  note: >-
+    Fixer la bordure fait s'effondrer la recherche conjointe bordure-intérieur
+    en une recherche purement intérieure, ce qui rend la finale exacte tractable.
+repro:
+  kind: seeded
+stages:
+  - engine: frame-input
+    does: "Une bordure parfaite pré-résolue de 60 pièces est fixée comme cadre de départ"
+  - engine: break-dfs
+    does: "Un DFS tolérant aux ruptures remplit l'intérieur 14×14, en élaguant dès la première case les lignes condamnées face au cadre"
+  - engine: exact-tail
+    does: "Une finale exacte de 14 cases scelle l'intérieur contre le rebord de façon déterministe"
+order: 60
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/rare-color-geography
+  - /research/lab/experiments/raphael-anjou/pipelines/midden
+  - /research/build/exact/meet-in-the-middle
+sources:
+  - label: "Géographie de la bordure à couleurs rares (ce projet) : pourquoi le cadre est la coupe naturelle"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/rare-color-geography.mdx
+---
+
+import { BorderAnchorDiagram } from "@/components/research/BorderAnchorDiagram";
+import { CloisterLiveLab } from "@/components/research/CloisterLiveLab";
+
+La bordure et l'intérieur sont d'ordinaire résolus ensemble, ce qui gaspille des
+efforts : l'intérieur ne cesse de proposer des pièces qui ne pourront jamais
+rejoindre la bordure par la suite. CLOISTER épingle d'abord un cadre parfait de
+60 pièces, puis explore l'intérieur 14×14 en prenant les arêtes tournées vers
+l'intérieur du cadre comme de véritables contraintes dès la première case ; un
+intérieur condamné est ainsi rejeté immédiatement plutôt qu'à la fin.
+
+## Fonctionnement
+
+On part d'une bordure complète et parfaitement appariée. La recherche
+intérieure est un remplissage en profondeur d'abord tolérant aux ruptures, mais
+les cases longeant l'arête interne du cadre doivent s'accorder avec le cadre, et
+cette exigence est active dès le premier placement, et non vérifiée seulement
+une fois l'intérieur achevé. Des finales exactes évaluent la dernière région, y
+compris la qualité de sa jonction avec le rebord.
+
+Parce que la bordure est fixée, la recherche recueille quelque chose qu'un
+intérieur reconstitué après coup ne peut pas obtenir : la poignée d'arêtes
+supplémentaires qui découle du fait que l'intérieur épouse réellement le rebord
+contre lequel il a été bâti, au lieu d'être greffé sur un rebord après coup.
+
+<Figure collapsible title="Interactif : comment le cadre ancre l'intérieur">
+  <BorderAnchorDiagram />
+</Figure>
+
+Essayez en direct : fixez un cadre et regardez la recherche intérieure se
+dérouler face à lui dans votre navigateur.
+
+<Figure collapsible title="Interactif : résolvez l'intérieur autonome en direct">
+  <CloisterLiveLab />
+</Figure>
+
+## Le résultat
+
+En tant que solveur d'intérieur autonome, CLOISTER atteint un score intérieur de
+453 sans indices, en quelques minutes, et confirme un effet réel : un intérieur
+bâti contre son propre rebord s'y rattache avec quelques arêtes appariées de plus
+que le même intérieur, de qualité équivalente, rattaché après coup. Avec les cinq
+indices officiels forcés, il se stabilise dans le haut des 440 à le bas des 450.
+
+Il ne bat pas les meilleurs records, et il sature comme tout le reste à
+l'approche du mur. Mais il isole et mesure proprement le couplage
+bordure-intérieur que la recherche sur plateau entier estompe.
+
+## Méthode
+
+La recherche est un DFS tolérant aux ruptures sur l'intérieur, mais le levier
+tient dans le cadrage et dans une campagne en deux phases menée sur *de
+nombreux* cadres.
+
+- **Le cadre comme contrainte dure.** Une bordure complète de 60 pièces est
+  fixée, et les couleurs du cadre tournées vers l'intérieur deviennent des
+  contraintes dures sur les cases du rebord dès le tout premier placement
+  intérieur, et non un contrôle repoussé à la fin. Un intérieur condamné est
+  élagué immédiatement.
+- **Finale exacte.** La région de finale est résolue exactement (une finale
+  exacte de 14 cases), y compris sa jonction avec le rebord, de sorte que les
+  dernières cases sont fermées de façon déterministe plutôt que par heuristique.
+- **Campagne en largeur sur les cadres.** Plutôt qu'une seule bordure, on balaie
+  un répertoire de cadres candidats en deux phases : une sonde de compatibilité
+  avec les indices, peu coûteuse (~6 secondes), écarte les cadres incapables
+  d'accueillir les indices, puis une recette de finale de 30 secondes tourne sur
+  chaque cadre survivant avec 8 graines. Le meilleur intérieur l'emporte.
+
+L'effet mesuré est faible mais réel, et il provient d'une seule chose : le
+couplage bordure-intérieur que la recherche sur plateau entier moyenne et efface,
+mais qu'une construction rebord d'abord peut exploiter tant qu'elle le peut
+encore. 453 sans indices ; du haut des 440 au bas des 450 avec les cinq indices
+forcés.
+
+## Reproduire
+
+Graine fixée et quasi déterministe à cadre donné : la résolution DFS de
+l'intérieur à partir d'un cadre fixe reproduit son score de façon fiable, et le
+plateau enregistré est vérifiable arête par arête dans la visionneuse. La
+résolution requiert une entrée au-delà du puzzle, un cadre de bordure parfaite
+pré-résolu ; un répertoire de support exécutable, livrant ce cadre aux côtés du
+moteur, est prévu.
+
+## Questions ouvertes
+
+Quelle part du bonus de compatibilité au rebord peut-on récolter sans fixer
+d'abord la bordure ? Le balayage de nombreuses bordures, plutôt que d'une seule,
+trouve-t-il un intérieur qui se rattache mieux encore ? Et d'où vient
+exactement le plafond de la version à indices stricts ?

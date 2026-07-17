@@ -1,0 +1,140 @@
+---
+title: Le jeu de données
+description: >-
+  Un jeu de données public sous licence CC0 pour Eternity II, en deux volets :
+  quatorze instances de référence à résoudre, et un corpus de 7 658 plateaux
+  forts distincts dont on peut s'inspirer. Chaque score est recalculé à partir
+  du plateau lui-même, et le corpus est vérifié comme réellement varié, plutôt
+  que mille copies d'un même plateau.
+metaDescription: "Jeu de données public CC0 pour Eternity II : 14 instances de référence et 7 658 plateaux forts distincts et vérifiés, avec analyse de diversité."
+kind: reference
+order: 55
+group: Check your code
+updated: 2026-07-16
+topics: [structure, learning]
+related:
+  - /research/build/known-facts
+  - /research/reference
+  - /research/lab/experiments/raphael-anjou/learning
+sources:
+  - label: "Le jeu de données (ce dépôt) : les instances, l'archive zip du corpus de plateaux forts, le README et le script de génération"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/datasets
+---
+
+import { CorpusScoreDistribution } from "@/components/research/CorpusScoreDistribution";
+
+Deux besoins reviennent sans cesse quand on travaille sur Eternity II : il faut
+des instances contre lesquelles lancer un solveur, et, si l'on veut s'inspirer
+des plateaux forts, il faut un corpus de tels plateaux. Ce jeu de données
+regroupe les deux, versé dans le domaine public sous licence
+[CC0](https://creativecommons.org/publicdomain/zero/1.0/), afin qu'il puisse
+être réutilisé pour n'importe quel usage sans attribution. Il comporte deux
+volets, tous deux hébergés dans le
+[répertoire du jeu de données](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets).
+
+## Volet A : les instances de référence
+
+Quatorze instances sur lesquelles un solveur s'exécute, chacune sous la forme
+d'un fichier JSON autonome contenant le jeu de pièces, les indices épinglés
+éventuels et le score maximal atteignable.
+
+- **Dix instances 16×16** (`e2-16x16-v00` … `v09`) : le jeu de pièces officiel
+  d'Eternity II avec trois coins épinglés, selon dix dispositions de coins
+  différentes. Épingler les coins produit dix instances distinctes mais d'égale
+  difficulté à partir d'un seul jeu de pièces, ce qui permet à une étude de
+  comparer les moteurs sur un axe de diversité plutôt que sur un plateau unique.
+  Les trois études de moteurs de ce projet (l'
+  [étude DFS](/research/lab/experiments/raphael-anjou/dfs-study), l'
+  [étude de réparation](/research/lab/experiments/raphael-anjou/repair-study) et le
+  [banc d'essai mono-cœur](/research/lab/experiments/single-core-benchmark)) résolvent
+  exactement ces dix-là. Score maximal : 480.
+- **Quatre sous-puzzles d'indices** (`e2-clue-clue1` … `clue4`) : les plateaux
+  6×6 et 12×6 plus petits, issus du jeu d'indices officiel du puzzle. Chacun est
+  connu pour admettre une solution complète, ce qui en fait un fixture de
+  correction rapide : un solveur incapable de boucler un plateau d'indices a un
+  bug bien avant même d'affronter le puzzle complet.
+
+Chaque case est décrite dans l'ordre haut, droite, bas, gauche ; la couleur 0
+correspond au liseré gris, et `pos` est l'indice de case en balayage par lignes.
+La forme d'un fichier d'instance :
+
+```json
+{
+  "id": "e2-16x16-v00",
+  "family": "official-16x16-pin3corners",
+  "width": 16, "height": 16, "numColors": 22,
+  "pieces": [[up, right, down, left], ...],
+  "hints": [{"pos": 0, "piece": 0, "rot": 3}, ...],
+  "maxScore": 480
+}
+```
+
+## Volet B : un corpus de plateaux forts
+
+**7 658 plateaux distincts** dont le score va de 400 à 470, la matière première
+des méthodes qui
+[s'inspirent des plateaux forts](/research/lab/experiments/raphael-anjou/learning) :
+a priori de position, ordonnancement de coups appris, extraction d'anti-motifs.
+Il est distribué sous forme d'archive zip (`e2-strong-boards.zip`, environ
+16 Mo) qui se décompresse vers les mêmes lignes au format CSV et au format
+JSON-lines :
+
+```
+id,score,family,edges
+e2b-00001,469,f008,adcaaendadwe…   (1024 lowercase letters)
+```
+
+Le champ `edges` est le plateau lui-même : 256 cases multipliées par quatre
+côtés, en balayage par lignes, dans l'ordre haut-droite-bas-gauche, `a` pour le
+liseré gris. C'est exactement la chaîne que lit le visualiseur
+[e2.bucas.name](https://e2.bucas.name), de sorte que n'importe quel plateau se
+colle directement dans le visualiseur. La `family` correspond aux quatre pièces
+de coin du plateau, un indicateur du bassin dans lequel il se situe ; il existe
+28 familles distinctes. La distribution des scores culmine nettement dans les
+450 et quelques, là où se concentre une large récolte par faisceau mono-cœur,
+puis s'amincit en une longue traîne, avec 38 plateaux à 460 ou plus et le
+meilleur à 470.
+
+<CorpusScoreDistribution />
+
+## Chaque score est recalculé, jamais pris pour argent comptant
+
+Aucun score de ce jeu de données n'est recopié d'un champ source. Chacun est
+recalculé à partir de la propre chaîne d'arêtes du plateau, en comptant les
+adjacences intérieures concordantes. Ce n'est pas une simple formalité : dans
+les données source, un plateau portait un score périmé, annonçant 453 alors que
+ses arêtes en valent en réalité 456, et le recalcul à partir des arêtes corrige
+cela automatiquement. Redérivez vous-même les scores à partir des chaînes
+d'arêtes et vous retrouverez exactement les nombres publiés.
+
+## Le corpus est varié, non redondant
+
+Un tas de plusieurs milliers de plateaux ne mérite d'être publié que si les
+plateaux sont réellement différents. Avant de diffuser celui-ci, nous avons
+vérifié qu'il ne s'agit pas de simples perturbations d'un même plateau, et ce
+n'est pas le cas :
+
+- Seuls 13 des 7 671 plateaux source étaient des doublons exacts ; les autres
+  sont distincts, ce qui en laisse 7 658.
+- Le plateau *médian* diffère de son plus proche voisin par 235 de ses 256
+  placements de pièces. Presque aucun plateau ne se trouve à moins de 10
+  placements d'un autre, et seulement 1 % à moins de 25. Bien que la plupart des
+  plateaux partagent une bande de scores étroite, ils sont structurellement
+  presque entièrement différents.
+- Les plateaux se répartissent entre 28 familles de coins distinctes plutôt que
+  de s'entasser dans une seule.
+
+Le corpus est donc un échantillon réellement varié du paysage des plateaux
+forts. C'est ce qui importe pour tout ce qui l'exploite : un a priori appris à
+partir de milliers de copies d'un même plateau encoderait ce plateau-là, et non
+la structure des bons plateaux en général.
+
+## Le régénérer
+
+Le [script de génération](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets)
+régénère l'intégralité du jeu de données. Les instances sont assemblées à partir
+des fichiers de variantes publics ; le corpus est dédoublonné, rescoré à partir
+des arêtes, débarrassé de toute étiquette d'espace de travail (chemins source,
+noms internes de presets et de graines, noms de fichiers) et ré-indexé avec des
+identifiants neutres, de sorte que ce qui est distribué se réduit au contenu des
+plateaux et aux scores vérifiés, rien d'autre.

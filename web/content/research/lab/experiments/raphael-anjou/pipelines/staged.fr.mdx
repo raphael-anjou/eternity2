@@ -1,0 +1,139 @@
+---
+title: STAGED
+description: >-
+  Construire tout le plateau depuis zéro, sans cadre pré-posé, par étapes, en
+  laissant la bordure émerger en dernier des pièces restantes.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 436
+rigor: measured
+complexity:
+  time: "four stages: two fast top-half beams, a band grow, and an exact bottom finisher"
+  space: "banks the surviving partials between stages; pruned at each handoff by an admissible estimate"
+  note: >-
+    La construction sans cadre supprime l'ancrage habituel de la bordure, si
+    bien que l'espace de recherche est plus grand au départ ; c'est le seuil
+    admissible à chaque passage d'étape qui la maintient traitable.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Two fast top-half beams build from empty with all pieces free and no frame pinned"
+    published: false
+  - engine: exact-tail
+    does: "Admissible-estimate pruning drops doomed partials, then an exact finisher solves the bottom rows, border emerging last"
+order: 120
+updated: 2026-07-10
+date: 2026-07
+topics: [construction]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/lab/experiments/raphael-anjou/analyses/bandsaw
+  - /research/build/construct/beam-search
+sources:
+  - label: "Recherche par faisceau (la page-concept du projet) : la primitive de construction par étapes"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { StageBuildDiagram } from "@/components/research/StageBuildDiagram";
+
+Presque tous les solveurs commencent par verrouiller la bordure, parce que la
+bordure est la partie la plus contrainte et que l'épingler rétrécit la
+recherche. STAGED est une expérience qui refuse cette béquille. Il construit le
+plateau par étapes, du haut vers le bas, avec les 256 pièces libres, et ne
+s'engage jamais sur une bordure avant la toute fin, où la bordure tombe
+simplement de ce qui reste. La question à laquelle il répond : peut-on
+atteindre un plateau solide sans jamais s'ancrer à un cadre ?
+
+## Comment ça marche
+
+La construction se déroule en quatre étapes. Les deux premières remplissent la
+moitié haute du plateau par une recherche simple et rapide, en mettant de côté
+les plateaux partiels qui survivent. Au passage de relais, une estimation
+admissible peu coûteuse écarte tout partiel qui ne peut manifestement pas être
+bien terminé, de sorte que les étapes suivantes ne travaillent que sur des
+départs prometteurs.
+
+La troisième étape fait croître la bande de rangées suivante à partir de ces
+survivants. La quatrième est un finisseur exact sur les rangées du bas qui
+minimise les non-concordances, et il choisit la bordure du bas en dernier,
+contre les pièces encore inutilisées. Le cadre n'est donc pas conçu d'emblée ;
+il émerge comme une conséquence de tout ce qui le surplombe.
+
+<Figure collapsible title="Interactif : la construction étape par étape">
+  <StageBuildDiagram />
+</Figure>
+
+## Le résultat
+
+STAGED atteint 436 sur 480 depuis zéro, avec une bordure émergente et les cinq
+indices officiels respectés, construit de bout en bout sans aucun cadre sur
+lequel s'appuyer. C'est bien en dessous des records, et cet écart est le
+constat même : il mesure ce que vaut l'ancrage habituel du cadre-d'abord, et il
+a montré que la mécanique sans cadre fonctionne à pleine échelle.
+
+Au passage, il a cerné l'anatomie des tout meilleurs plateaux : ce sont un bloc
+parfait couvrant l'essentiel du plateau, plus une fine bande de non-concordances
+concentrée sur quelques rangées du haut. C'est cette forme que les constructeurs
+ultérieurs cherchent à reproduire délibérément.
+
+## Méthode
+
+Quatre étapes, chacune transmettant ses survivants à la suivante à travers un
+filtre admissible.
+
+1. **Faisceaux de la moitié haute (étapes 1–2).** Remplir la moitié haute par
+   une recherche simple et rapide, en mettant de côté les plateaux partiels qui
+   survivent. Les 256 pièces sont libres, aucun cadre n'est épinglé.
+2. **Passage de relais admissible.** À chaque frontière d'étape, une estimation
+   *admissible* peu coûteuse (une borne supérieure optimiste sur la meilleure
+   fin possible) écarte tout partiel qui, de manière prouvable, ne peut pas être
+   bien terminé. Comme l'estimation ne sous-évalue jamais le score atteignable,
+   l'élimination est sûre : elle ne retire que les partiels qui ne peuvent pas
+   gagner.
+3. **Croissance de bande (étape 3).** Prolonger les partiels survivants vers le
+   bas, sur la bande de rangées suivante.
+4. **Finisseur exact (étape 4).** Résoudre exactement les rangées du bas, en
+   minimisant les non-concordances, et *choisir la bordure en dernier* parmi les
+   pièces restantes. Le cadre n'est pas conçu d'emblée ; il tombe de tout ce qui
+   le surplombe.
+
+Le résultat est 436 depuis zéro avec une bordure émergente, les cinq indices
+respectés, bien en dessous des records, et cet écart est la mesure : il chiffre
+ce que vaut l'ancrage habituel du cadre-d'abord. Le sous-produit a compté plus
+que le score : STAGED a cerné l'anatomie des meilleurs plateaux, un grand bloc
+parfait plus une fine bande de non-concordances sur quelques rangées du haut, la
+forme cible que les constructeurs ultérieurs visent délibérément.
+
+## Reproduire
+
+Stochastique (les faisceaux de la moitié haute départagent les égalités de
+façon aléatoire), donc une nouvelle exécution ne reproduira pas le plateau
+exact ; le plateau 436 versionné est l'artefact de référence et est vérifiable
+dans le visualiseur. Le moteur est le producteur par faisceau partagé, exécuté
+par étapes pour que la bordure émerge en dernier plutôt que d'être fixée
+d'abord. Il ne nécessite ni corpus ni plateau de départ, aussi un répertoire de
+support exécutable pour l'ensemble du pipeline par étapes est-il prévu aux côtés
+des autres constructeurs depuis zéro.
+
+## Questions ouvertes
+
+Un générateur qui dépenserait délibérément ses non-concordances sur les rangées
+du haut, pour garder le reste parfait, peut-il atteindre les 450 sans cadre ?
+Quelle part de l'écart de 436 aux records tient à l'ancrage de cadre manquant,
+par opposition à la fin de partie plus difficile ? Et une estimation apprise de
+la qualité de fin sélectionne-t-elle de meilleurs survivants que l'estimation
+admissible peu coûteuse ?

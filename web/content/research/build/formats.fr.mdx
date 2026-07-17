@@ -1,0 +1,281 @@
+---
+title: "Les formats de plateau et de puzzle, couchés sur le papier"
+description: >-
+  Tous les formats sous lesquels un plateau ou un puzzle Eternity II circule sur
+  ce site et dans la communauté : les chaînes de lettres board_edges et
+  board_pieces, e2pieces.txt, le CSV de puzzle historique, le JSON Puzzle du
+  site, et les deux URL de visualiseur, avec les règles exactes au niveau de
+  l'octet (comment la bordure grise est encodée dans chacun) et, surtout, ce que
+  chaque format sait et ne sait pas restituer.
+metaDescription: "Les formats de plateau Eternity II au niveau de l'octet : board_edges, board_pieces, e2pieces.txt, CSV, JSON et URL de visualiseur, et l'encodage de la bordure."
+kind: reference
+order: 8
+group: Start here
+author: raphael-anjou
+updated: 2026-07-16
+topics: []
+related:
+  - /research/build/tooling
+  - /research/build/benchmarks
+  - /research/build/dataset
+sources:
+  - label: "La couche IO canonique qui définit ces formats (e2-io : l'unique format de plateau, dérivé partout ailleurs)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/common/crates/e2-io
+---
+
+Un plateau est chose simple : 256 tuiles, chacune munie de quatre arêtes
+colorées, chacune posée à une case avec une rotation. Mais la communauté l'a
+couché sur le papier d'une douzaine de manières en dix-neuf ans, et ces manières
+ne coïncident jamais tout à fait. Une chaîne de lettres, une chaîne de chiffres,
+une URL, un CSV, un JSON. Ils disent la même chose dans des alphabets
+différents, et à l'instant où l'on déplace un plateau d'un outil à l'autre, on
+bute sur la couture.
+
+Cette page, c'est la couture, couchée sur le papier : tous les formats sous
+lesquels un plateau ou un puzzle circule ici, avec les règles au niveau de
+l'octet, y compris le seul détail qui mord tout le monde, **la façon dont chaque
+format encode la bordure grise**, et, pour chacun, une note claire sur ce qu'il
+sait et ne sait pas restituer. Si vous ne retenez qu'une chose : collez
+n'importe quel plateau dans le [convertisseur de formats](/convert) et relisez
+directement les autres.
+
+<Callout kind="note" title="Une entrée, une sortie">
+Le contrat IO est symétrique et réduit. **Entrée :** une instance de puzzle en
+JSON (le schéma `Puzzle` du site, ci-dessous) ; chaque algorithme est invoqué
+avec `--puzzle <file>.json`. **Sortie :** un document de plateau en JSON (le
+`BoardDoc`, ci-dessous), portant en champ une URL [eternity2.dev](/viewer)
+prête à ouvrir. C'est tout : puzzle-JSON en entrée, plateau-JSON en sortie, deux
+fichiers uniques et autodescriptifs. Tout le reste de cette page est soit une
+*entrée* historique que les outils acceptent encore (CSV, `board_edges` nu),
+soit un format *dérivé* que le [convertisseur](/convert) sait vous fournir. Il
+n'y a plus de séparation `.url`-ici, `.json`-là, deux-fichiers-parfois.
+</Callout>
+
+## Le vocabulaire
+
+Une **couleur** est un petit entier. `0` est la bordure grise extérieure ; les
+couleurs intérieures vont de `1..=22` pour le puzzle officiel (22 est exactement
+le nombre de motifs existants). Un **quadruplet d'arêtes** est l'ensemble des
+quatre couleurs d'une case dans l'ordre **URDL** (haut, droite, bas, gauche), en
+lisant la tuile *telle que posée et tournée*, et non comme une tuile de
+catalogue. Une case est soit remplie (un quadruplet réel), soit vide ; une case
+vide s'écrit comme si elle était toute en bordure, `[0, 0, 0, 0]`.
+
+Deux faits découlent de « telle que posée », et ils sont la source de la plupart
+des confusions entre formats :
+
+- Un plateau porte des arêtes **tournées**. Il ne porte **pas** de numéro de
+  rotation. On ne peut restituer la rotation qu'en réappariant le quadruplet à
+  un catalogue de pièces connu.
+- Un plateau ne porte aucune **identité de pièce** à moins qu'un canal
+  numéro-de-pièce distinct ne soit présent. Le quadruplet d'arêtes `[3, 7, 1, 0]`
+  ne dit pas « pièce 118 » ; il dit « ces quatre couleurs ». L'identité vient de
+  `board_pieces`, ou du réappariement au jeu officiel.
+
+Ainsi un *plateau seul* peut toujours être rendu et scoré, mais il ne peut, à
+lui seul, restituer ni l'ordre de catalogue d'origine ni la rotation par tuile.
+Les formats qui le prétendent (JSON du site, URL numérotée par pièce) le font en
+portant explicitement le canal supplémentaire.
+
+## board_edges : la chaîne de lettres
+
+La lingua franca. Quatre lettres minuscules par case, ligne par ligne, en URDL,
+avec `letter = 'a' + colour`. La bordure est donc **`a`**, la couleur
+intérieure 1 est `b`, jusqu'à la couleur 22 = `w`. Une case vide est **`aaaa`**,
+indistinguable d'une vraie tuile toute en bordure, ce qui n'arrive jamais sur un
+plateau légal ; l'ambiguïté est donc sans danger. Le plateau officiel 16×16 fait
+`256 × 4 = 1024` lettres.
+
+```text
+adca beaa …            cell 0 = [0,3,2,0], cell 1 = [1,4,0,0], …
+```
+
+- **Bordure :** la lettre `a` (couleur 0).
+- **Restitue :** le rendu complet et le score exact. Rien d'autre.
+- **Ne restitue pas :** l'identité de pièce ni la rotation (voir ci-dessus).
+
+Une subtilité rare : certains outils permutent le glyphe que chaque lettre
+dessine (`motifs_order`). Les ordres `marie` et `jblackwood` sont identiques
+entre eux ; `jef` est une permutation différente. Le convertisseur et le
+visualiseur les retraduisent vers l'alphabet par défaut à l'entrée, si bien que
+vous n'avez jamais à y penser ; mais si vous voyez un plateau dont les couleurs
+semblent brouillées, c'est un `motifs_order` non traduit qui en est la cause.
+
+## board_pieces : la chaîne d'identité
+
+Le canal compagnon qui, lui, *porte* l'identité. Trois chiffres décimaux par
+case, le numéro de pièce **en base 1**, `000` pour une case vide. Le plateau
+officiel fait donc `256 × 3 = 768` chiffres.
+
+```text
+001 005 007 …          piece 1 at cell 0, piece 5 at cell 1, …
+```
+
+- **Bordure / vide :** `000`.
+- **Restitue, avec `board_edges` en regard :** l'identité de pièce *et* la
+  rotation. Pour chaque case on connaît le numéro de pièce, et l'appariement de
+  son quadruplet de catalogue au quadruplet posé donne la rotation. C'est le
+  seul moyen, au niveau du plateau, de restituer la rotation.
+- **À lui seul :** inutile sans les arêtes ; c'est une surcouche, pas un plateau.
+
+## e2pieces.txt : les pièces telles que posées
+
+Le plus ancien format d'échange, couché sur le papier par la communauté en 2007
+(voir le [recensement de la boîte à outils](/research/build/tooling)). Une ligne
+par case **remplie**, dans l'ordre de lecture, quatre entiers d'arête séparés par
+des blancs dans l'ordre URDL.
+
+```text
+0 3 2 0
+1 4 0 0
+…
+```
+
+- **Bordure :** l'entier `0`.
+- **Restitue :** rendu et score, comme `board_edges` ; ce sont les mêmes données
+  en décimal. Il liste les pièces **telles que posées et tournées**, ce n'est
+  donc *pas* un catalogue canonique à rotation 0, et un plateau seul ne peut pas
+  l'y ramener.
+
+## Puzzle CSV : ce que lisent les moteurs autonomes
+
+Le format que consomment le C de McGavin et le C# de Blackwood, et la forme sous
+laquelle sont écrits les fichiers `variant_NN.csv` du banc d'essai. Un en-tête de
+taille, puis une ligne par pièce : `top,right,bottom,left`, suivi
+optionnellement de `x,y,rotation` pour un indice épinglé.
+
+```text
+16
+1111111111111111,0000000000000001,0000000000000010,1111111111111111,0,0,0
+…
+```
+
+Chaque couleur est un **mot binaire 16 bits complété par des zéros**. Et voici le
+détail qui fait trébucher tout le monde, et la raison d'être de cette page :
+
+<Callout kind="warn" title="Dans le CSV, la bordure est tout en un">
+Dans le CSV de puzzle, la bordure grise est **`1111111111111111`**, tout en un,
+le mot 16 bits `65535`, et *non* tout en zéros. Les couleurs intérieures sont
+leur petit entier en binaire, donc la couleur 1 est `0000000000000001`. Un
+lecteur remappe le mot `65535` vers l'identifiant intérieur `0`. C'est
+l'inverse de tous les autres formats de cette page, où la bordure est la valeur
+*basse* (`a`, `0`, `000`). C'est un choix de sentinelle historique, conservé
+pour la compatibilité au niveau de l'octet avec les moteurs qui le lisent.
+</Callout>
+
+- **Bordure :** le mot tout-en-un `1111111111111111` (65535).
+- **Restitue :** le puzzle complet, pièces et indices. C'est un format de
+  *puzzle* (le jeu de tuiles), non un simple plateau posé.
+
+## JSON du site (`Puzzle`) : l'entrée canonique
+
+L'unique format dont chaque algorithme est nourri : `--puzzle variant_NN.json`.
+Le moteur du site, les études DFS/repair et le banc d'essai monocœur lisent tous
+le *même* schéma (compatible au niveau de l'octet avec le type `Puzzle` du web),
+de sorte que toutes les expériences tournent sur les mêmes instances. Il porte
+explicitement le jeu de pièces à rotation 0 et les indices épinglés, ce qui en
+fait une entrée depuis laquelle un solveur peut démarrer, plutôt qu'un plateau
+qu'il aurait déjà rempli.
+
+```json
+{
+  "name": "e2_official_variant00_pin3corners",
+  "width": 16, "height": 16, "numColors": 22,
+  "pieces": [[0,1,2,0], [0,0,3,1], …],
+  "hints": [{ "pos": 34, "piece": 118, "rot": 2 }, …]
+}
+```
+
+- **Bordure :** la couleur `0`, comme entier dans les quadruplets `pieces`.
+- **Restitue :** tout ce qui concerne l'*instance* : les tuiles canoniques à
+  rotation 0, le nombre de couleurs, et chaque indice épinglé avec sa rotation
+  exacte. C'est le seul format qui porte la rotation et l'ordre de catalogue par
+  construction, parce qu'il décrit le puzzle, et non un placement sur celui-ci.
+
+## Le JSON de plateau canonique (`BoardDoc`) : l'unique sortie
+
+Ce que chaque solveur du site écrit désormais : un `.json` autodescriptif par
+plateau. Il replie le plateau, son score, son empreinte de contenu, les deux
+chaînes de lettres et l'URL du visualiseur en un seul document, si bien qu'un
+outil en aval n'a besoin de rien d'autre.
+
+```json
+{
+  "name": "…",
+  "size": 16,
+  "score": 466,
+  "breaks": 14,
+  "board": [3, 16, 24, …],
+  "board_hash": 2059303548241384230,
+  "board_edges": "abda…",
+  "board_pieces": "001005…",
+  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…&board_pieces=…"
+}
+```
+
+`board` est le vecteur de placement **`piece*4 + rot`** en ordre ligne par ligne
+(`-1` pour une case vide), le même encodage par lequel le `Puzzle` du site fait
+son aller-retour. `breaks` vaut `max_score − score` (les arêtes intérieures non
+appariées ; sur un plateau plein, le nombre de cassures). `board_hash` est une
+empreinte FNV-1a de la grille de placement, le verrou bit-à-bit qui répond à
+« ces deux exécutions ont-elles produit le même plateau ».
+
+- **Bordure :** comme dans `board_edges` (`a`) et `board_pieces` (`000`) ; le
+  vecteur `board` utilise `-1` pour le vide.
+- **Restitue :** tout ce qu'un plateau peut porter : rendu, score, identité et
+  rotation (via `board_pieces` et `board`), plus la provenance (`name`,
+  `board_hash`) et une vue en un clic (`url`).
+
+## Les URL de visualiseur
+
+Deux URL, même plateau, deux hôtes.
+
+**eternity2.dev, le lien canonique.** Le format qu'émet chaque algorithme ici.
+Plateaux carrés, donc un unique `puzzle_size` (le visualiseur lit aussi les
+`board_w`/`board_h` de bucas), et chaque valeur reste dans la plage
+URL-compatible `[A-Za-z0-9_]`, de sorte que le lien n'a besoin d'aucun
+encodage-pourcent :
+
+```text
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
+```
+
+**e2.bucas.name, le visualiseur communautaire.** L'original de Jef Bucas, le
+visualiseur dont le format d'URL *est devenu* tout ce vocabulaire (la
+[boîte à outils](/research/build/tooling) raconte cette histoire). Toujours
+pleinement pris en charge en entrée et disponible en sortie dérivée, avec sa
+paire `board_w`/`board_h` et un fragment `#` :
+
+```text
+https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…
+```
+
+Le [visualiseur](/viewer) lit l'un comme l'autre de façon transparente ; le
+[convertisseur](/convert) vous fournit les deux. La forme eternity2.dev est
+canonique ici uniquement parce qu'elle ouvre le visualiseur de *ce* site, avec
+son scoring, sa surcouche d'indices et sa vérification du jeu de pièces ; la
+forme bucas reste l'original partagé de la communauté, crédité en conséquence.
+
+## Passer de l'un à l'autre
+
+<div className="not-prose">
+
+| Format | Bordure | Porte la rotation ? | Porte l'identité ? | C'est un… |
+| --- | --- | --- | --- | --- |
+| `board_edges` | `a` | non | non | plateau posé |
+| `board_pieces` | `000` | avec les arêtes | oui | surcouche |
+| `e2pieces.txt` | `0` | non | non | plateau posé |
+| Puzzle CSV | `1111…1` (tout en un) | indices seulement | oui (tuiles) | puzzle |
+| JSON du site | `0` | oui | oui | puzzle |
+| JSON `BoardDoc` | `a` / `000` / `-1` | avec les pièces | oui | plateau posé |
+| URL eternity2.dev | `a` | avec les pièces | avec les pièces | lien vers un plateau |
+| URL bucas | `a` | avec les pièces | avec les pièces | lien vers un plateau |
+
+</div>
+
+Chaque conversion de ce tableau est à un collage de distance dans le
+[convertisseur de formats](/convert) : déposez-y une URL, une chaîne
+`board_edges` nue ou un bloc de paramètres, et relisez l'URL eternity2.dev, le
+JSON canonique, le CSV, `board_pieces`, `e2pieces.txt` et l'URL bucas, avec un
+aperçu en direct et le score, pour voir que le fichier est correct avant de vous
+y fier.

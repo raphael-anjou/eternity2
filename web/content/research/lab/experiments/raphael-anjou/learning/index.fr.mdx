@@ -1,0 +1,113 @@
+---
+title: Apprendre à partir des grilles fortes
+description: >-
+  Une étude en cinq expériences d'une seule idée : plutôt que de chercher
+  Eternity II à partir de zéro, exploiter la structure du corpus de grilles fortes
+  déjà trouvées et la réinjecter dans une recherche. Un a priori de position, un
+  vote de coup appris, une boussole de demande rare, un mineur d'anti-motifs et un
+  décodage de record, du signal le plus simple au plus subtil, et le mur unique
+  que les cinq atteignent.
+metaDescription: "Cinq expériences d'apprentissage sur les grilles fortes d'Eternity II : a priori de position, vote de coup, demande rare, anti-motifs, décodage, un mur."
+kind: page
+order: 5
+author: raphael-anjou
+updated: 2026-07-16
+topics: [learning, construction]
+related:
+  - /research/build/learning
+  - /research/build/dataset
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/why/rigidity-wall
+---
+
+L'essentiel de ce carnet cherche Eternity II à partir de zéro : un beam construit
+une grille depuis une grille vide, un backtracker creuse et rebrousse chemin, une
+boucle de réparation polit une grille complète coup par coup. Chacun ne raisonne
+qu'à partir des règles du puzzle et de la grille qu'il a sous les yeux. Cette étude
+fait exception, et c'est bien une étude plutôt qu'un ensemble décousu de runs parce
+que ses cinq expériences posent une même question sous des angles différents :
+**que peut apprendre une recherche des grilles que les gens ont déjà trouvées, et
+jusqu'où cela la porte-t-il ?**
+
+La matière première est un corpus de grilles fortes, tout arrangement que la
+communauté et ce projet ont poussé au-delà de 400 sur 480. Le geste, dans chacune
+des expériences ici, consiste à lire ce corpus pour en tirer une structure (où se
+placent les pièces, quelles pièces se touchent, quels motifs locaux reviennent,
+quels accords sont des pièges) et à réinjecter cette structure dans une recherche
+comme un biais. On est plus proche de l'apprentissage par imitation que de la
+conception d'algorithmes de recherche, et l'idée mérite son propre espace parce que
+la même poignée de concepts revient sans cesse, chacun un peu plus affûté que le
+précédent.
+
+Le corpus lui-même est [publié](/research/build/dataset) : 7 658 grilles distinctes
+scorant de 400 à 469, diffusées sous CC0, avec le contrôle de diversité qui empêche
+un signal appris de se contenter de ré-encoder une seule grille. La présentation
+agnostique de chaque technique vit dans la section théorique
+[apprendre à partir des grilles fortes](/research/build/learning) ; les pages ici
+en sont le versant laboratoire, les runs qui mettent chaque technique à l'épreuve
+de la vraie grille 16×16, avec leurs scores et les questions qu'ils ont laissées
+ouvertes.
+
+## Les cinq expériences, du signal le plus simple au plus subtil
+
+L'étude se lit comme une séquence. Chaque expérience donne un tour de vis de plus
+que la précédente, et les pages sont ordonnées pour être lues dans cet ordre.
+
+| # | Expérience | Le signal appris | Atteint (sur 480) |
+|---|---|---|---|
+| 1 | [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) | où chaque pièce tend à se placer, un simple comptage de positions | 460 |
+| 2 | [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) | trois signaux (position, adjacence, patch 2×2) qui votent ensemble | 460 |
+| 3 | [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) | quelles pièces répondent à une demande de couleur rare, une faible boussole | 451 |
+| 4 | [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest) | les mauvaises habitudes partagées qui plafonnent les grilles, en minant le piège et non la structure | 463 |
+| 5 | [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay) | l'unique coup qu'une seule grille record a joué et que notre recherche ne savait pas jouer | 460 |
+
+**[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)** est la forme la
+plus simple que l'idée puisse prendre, un comptage : sur les grilles fortes, à
+quelle fréquence chaque pièce se place-t-elle dans chaque case ? Utilisé comme
+départage lors de la construction, il bâtit une grille compétitive à partir de rien
+et atteint 460. **[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring)**
+additionne les signaux plutôt que de se fier à un seul, laissant un comptage de
+position, un comptage d'adjacence et une qualité de patch 2×2 apprise voter sur
+chaque placement, ce qui mène une construction jusqu'à une famille de coins qu'aucune
+recherche antérieure n'avait forcée.
+**[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone)** prend le
+chemin inverse, vers un unique signal délibérément faible (un poids de demande rare
+par pièce) et, ce faisant, découvre le fil du rasoir qui traverse toute l'étude :
+dès qu'un signal appris cesse d'être un départage pour devenir l'objectif, la
+recherche s'effondre.
+
+**[PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)** est le
+tournant subtil. Toutes les expériences qui la précèdent font confiance à l'accord
+entre grilles fortes ; celle-ci demande quels accords sont des *pièges*, des
+placements que toute grille adopte mais qu'aucune grille de tête ne conserve, et
+oriente une recherche de réparation pour les attaquer. Elle a produit la meilleure
+grille de ce projet, 463. **[REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)**
+apprend d'une seule grille plutôt que d'une statistique : reconstruire exactement un
+record de la communauté, et tout ce qu'il faut ajouter à votre recherche pour
+qu'elle emprunte ce chemin est précisément l'ingrédient qui lui manquait. Ici,
+c'était le double break, le coup qui a fait passer l'échelle stricte de 458 à 460.
+
+## Le mur unique que les cinq atteignent
+
+Le fil conducteur est ce qui fait de ceci une étude et non un sac de tours, et il
+donne à réfléchir. Chaque signal ici n'est sûr qu'en tant que biais léger :
+faites-lui trop confiance et la recherche se disloque (LODESTONE tombe de 451 à 380
+à mesure que son poids monte ; la liste de pièges de PALIMPSEST aide comme guide et
+nuit comme interdit). Et même parfaitement exploité, aucun de ces signaux ne relève
+le plafond. Ils atteignent le sommet de la portée propre d'une recherche, vite et de
+façon fiable, puis s'arrêtent, parce que le corpus dont ils apprennent est fait de
+grilles qui butent toutes sur le même
+[mur de rigidité](/research/why/rigidity-wall). Apprendre à partir des grilles
+fortes est le chemin le plus rapide *vers* le plateau et, à lui seul, aucun chemin
+*au-delà*. Ce mode d'échec est le sujet de la
+[synthèse sur l'effondrement](/research/build/learning/when-learning-collapses) de la
+section théorique, et c'est la note sur laquelle toute l'étude se résout.
+
+C'est l'une des trois études du
+[carnet d'expériences](/research/lab/experiments/raphael-anjou). Ses sœurs, l'[étude
+DFS](/research/lab/experiments/raphael-anjou/dfs-study) et l'[étude de
+réparation](/research/lab/experiments/raphael-anjou/repair-study), démontent un
+unique paradigme de recherche décision par décision ; celle-ci tient le paradigme
+lâche et fait varier ce que la recherche a le droit de *savoir*.

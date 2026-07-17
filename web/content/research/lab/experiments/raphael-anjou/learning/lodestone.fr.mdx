@@ -1,0 +1,151 @@
+---
+title: LODESTONE
+description: >-
+  Une boussole ténue pour une recherche partie de zéro : l'inciter à engager
+  les pièces rares tôt, là où elles sont nécessaires. Elle ne relève pas le
+  plafond ; elle fait que la recherche atteint de façon fiable le sommet de sa
+  propre plage.
+metaDescription: "LODESTONE incite une recherche Eternity II à engager tôt les pièces rares : sans relever le plafond, elle atteint fiablement le haut de sa plage."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 451
+rigor: measured
+complexity:
+  time: "prior build O(B) over the corpus; beam construction as PRIOR/KEYRING, plus a tiebreak lookup"
+  space: "one scarce-demand weight per piece (a 256-vector)"
+  note: >-
+    The prior is a per-piece scalar; it costs nothing at search time beyond a
+    tiebreak, which is exactly why over-weighting it (making it part of the
+    objective) is what breaks it.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Build from empty; a scarce-demand weight breaks ties as a pure tiebreak, never the objective"
+    learns: "Rare-colour prior: a per-piece weight for how often a piece serves a scarce north-west demand"
+    published: false
+order: 30
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, search-space, learning]
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/why/piece-theft
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/why/rare-color-geography
+sources:
+  - label: "Géographie des couleurs rares (ce projet) : où se situent les demandes (N,O) rares"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/rare-color-geography.mdx
+---
+
+import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
+
+[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) ajoutait des
+signaux ; LODESTONE, la troisième expérience de l'
+[étude](/research/lab/experiments/raphael-anjou/learning), se réduit à un unique
+signal délibérément ténu, et ce faisant met au jour la lame de rasoir sur
+laquelle chaque signal appris tient ici en équilibre. Les bonnes grilles
+s'accordent discrètement sur un point : à mesure que le score monte, elles
+satisfont de plus en plus un ensemble particulier de demandes rares, ces
+emplacements où seules une ou deux pièces de tout le jeu peuvent servir les
+couleurs nord et ouest d'une case. LODESTONE se demande si le fait de renseigner
+une recherche partie de zéro sur ces demandes l'aide à engager les bonnes pièces
+rares avant qu'elles ne soient volées.
+
+## Fonctionnement
+
+À partir du corpus des bonnes grilles, LODESTONE construit un prior : pour chaque
+pièce, la fréquence à laquelle elle finit par servir l'une de ces demandes rares
+nord-ouest dans une bonne grille, pondérée fortement à la hausse pour les plus
+rares, de sorte qu'une pièce qui est le seul serveur possible reçoit le plus gros
+bonus. La recherche par faisceau classe alors ses placements candidats selon le
+score d'arêtes appariées habituel, augmenté d'un petit multiple de ce prior ;
+ainsi, parmi des coups par ailleurs équivalents, elle préfère placer les pièces
+que les bonnes grilles ont appris à dépenser tôt.
+
+Le détail crucial, c'est la taille de ce multiple. Le prior doit être un pur
+départage, pas une composante de l'objectif : il tranche entre des coups qui
+s'apparient également, rien de plus.
+
+<Figure collapsible title="Interactif : carte d'attraction des couleurs rares">
+  <LodestoneRarityLab />
+</Figure>
+
+## Le résultat
+
+À un poids infime, le prior apporte un gain faible mais constant : sur cinq
+graines, le score médian parti de zéro passe de 449 à 451, et, plus utile encore,
+la dispersion se resserre, d'un éparpillement 446-451 à une plage fiable
+450-451. Il fait atterrir le constructeur au sommet de sa plage au lieu de le
+laisser trébucher par moments.
+
+Montez le poids ne serait-ce qu'un peu et tout s'effondre (422, puis 380), car
+courir après les demandes rares du corpus se paie alors directement au détriment
+de l'appariement de l'arête qui est devant vous. Cet échec est lui-même le
+résultat : la rareté est un vrai signal pour savoir *quelle* pièce préférer, mais
+un signal faible, et sûr uniquement en tant que départage. LODESTONE reste modeste
+sur son ampleur : il améliore la qualité et la régularité de la construction de
+quelques arêtes, et ne touche pas au plafond de bassin qui arrête toute méthode
+près du sommet.
+
+## Méthode
+
+Le signal d'abord, puis la manière délibérément minuscule dont il est employé.
+
+**La mesure.** Une *demande rare* est une case dont les couleurs nord et ouest ne
+peuvent être servies que par une ou deux pièces de tout le jeu. Sur l'ensemble du
+corpus, le nombre de demandes rares satisfaites dans au moins la moitié des
+grilles croît *de façon monotone* avec le score, à peu près 1 → 2 → 3 → 10 à
+mesure que les grilles grimpent vers 458+. Les bonnes grilles ne placent pas
+seulement les pièces rares par hasard ; elles satisfont de plus en plus les
+*mêmes* demandes rares. C'est une structure réelle, corrélée au score, qu'aucun
+constructeur antérieur n'avait intégrée.
+
+**Le prior.** Pour chaque pièce, on pondère la fréquence à laquelle elle sert
+l'une de ces demandes rares nord-ouest dans une bonne grille, avec un fort
+renforcement pour les plus rares (une pièce qui est le *seul* serveur possible
+reçoit le plus gros poids). Le faisceau classe les candidats selon le gain
+d'arêtes appariées habituel, augmenté d'un petit multiple de ce poids.
+
+**Le réglage est toute l'histoire.** Le multiple doit être un pur *départage* :
+il décide entre des coups qui s'apparient également et rien d'autre. À un poids
+infime : score médian parti de zéro 449 → 451 sur cinq graines, et la dispersion
+se resserre de 446-451 à une plage fiable 450-451. Poussez le poids et tout
+s'effondre (422, puis 380), car courir après les demandes rares se paie alors
+directement au détriment de l'appariement de l'arête qui est devant vous.
+L'effondrement *est* le résultat : la rareté dit *quelle* pièce préférer, mais
+faiblement, sûre seulement en tant que départage.
+
+## Reproduire
+
+Graine fixée ; l'artefact reproductible ici est l'*effet* du départage (une
+dispersion plus resserrée et une médiane +2 sur cinq graines), et non une grille
+unique. Le moteur est le producteur par faisceau partagé ; le changement que
+décrit cette page est un ténu départage pièce-rare-tôt. Ce poids de départage est
+dérivé du jeu de pièces et d'un corpus, si bien que le run n'est pas ici reproduit
+depuis zéro.
+
+## Questions ouvertes
+
+Pourrait-on rendre le prior conscient de la position sans qu'il devienne une
+composante de l'objectif, fort uniquement dans les régions où les demandes rares
+se concentrent réellement ? Le combiner aux trois signaux de KEYRING ajoute-t-il
+un quatrième vote utile, ou seulement davantage de bruit ? Et le gain de
+régularité vaut-il plus que le gain de médiane, sachant qu'une recherche plus
+resserrée est plus facile à échafauder en échelle ?
