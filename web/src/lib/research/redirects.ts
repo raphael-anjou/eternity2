@@ -17,6 +17,18 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   // there is one canonical, leaderboard-backed page; its old url lands there.
   "/research/lab/experiments/raphael-anjou/engines/csp-presets":
     "/research/lab/experiments/single-core-benchmark/csp-presets",
+  // The Verhaard reimplementation moved out of Raphaël's engines/ folder into
+  // Louis Verhaard's section, beside the method it rebuilds (2026-07). It keeps
+  // Raphaël's byline (the code is his); only its home changed.
+  "/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl":
+    "/research/lab/experiments/louis-verhaard/verhaard-reimpl",
+  // The one-item analyses/ sub-hub was retired in favour of a meet-in-the-middle/
+  // section named for the technique BANDSAW uses, so more exact endgame ideas can
+  // sit beside it (2026-07). The old section root and its one page land there.
+  "/research/lab/experiments/raphael-anjou/analyses":
+    "/research/lab/experiments/raphael-anjou/meet-in-the-middle",
+  "/research/lab/experiments/raphael-anjou/analyses/bandsaw":
+    "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
 
   // Experiments re-homed under a per-author folder, so the lab opens to more
   // than one researcher (2026-07), then sorted into per-kind sub-hubs under
@@ -32,7 +44,7 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
   "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
   "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
-  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
+  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
   "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
   "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
   // …and from the flat per-author urls those pages held until the sub-hubs
@@ -47,7 +59,7 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   "/research/lab/experiments/raphael-anjou/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
   "/research/lab/experiments/raphael-anjou/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
   "/research/lab/experiments/raphael-anjou/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
-  "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/analyses/bandsaw",
+  "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
   "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
   // The "runs" sub-hub was renamed to "pipelines" (2026-07): tagging each run
   // with its stages made clear these are multi-engine compositions, not single

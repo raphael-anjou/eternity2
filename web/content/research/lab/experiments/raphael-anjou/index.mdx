@@ -1,18 +1,21 @@
 ---
 title: "Raphaël Anjou's experiments"
 description: >-
-  The named search experiments from Raphaël Anjou's notebook: beam-search and
-  local-search runs built to push the Eternity II score, each with its idea,
-  its best board, and the questions it left open. The best reaches 463 of 480.
-metaDescription: "Raphael Anjou's Eternity II experiments: beam-search and local-search runs to push the score, each with idea, best board and open questions."
+  A notebook of Eternity II search experiments, organised into the shared
+  engines they run on, the combination pipelines that chase the score, three
+  studies that take one search paradigm apart a decision at a time, and exact
+  endgame solves. Each has its idea, its best board, and the questions it left
+  open. The best reaches 463 of 480.
+metaDescription: "Raphael Anjou's Eternity II notebook: shared engines, score-chasing pipelines, three single-paradigm studies, and exact endgame solves. Best board 463 of 480."
 kind: page
 order: 20
 author: raphael-anjou
-updated: 2026-07-13
+updated: 2026-07-17
 ---
 
 import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
+import { ProseLink } from "@/components/docs/mdx-components";
 
 export const scores = [
   // Group 1: the best board each method reached. Exploratory runs on 8 cores,
@@ -36,47 +39,130 @@ export const scores = [
   { key: "bench-dfs", label: "DFS BREAK-1", score: 435, family: "bench", group: "bench" },
 ];
 
-These are [Raphaël Anjou's](/research/people/raphael-anjou) search experiments.
-Some are original ideas; some faithfully reimplement a known community
-technique to measure exactly what it buys. Each write-up has the idea, the
-board it reached, and the questions it left open. The best reaches 463 of 480
-matched edges; the community's best on the same puzzle is 470. Methods and
-boards are here in full.
+export function Door({ to, title, kicker, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      {kicker ? (
+        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{kicker}</div>
+      ) : null}
+      <div className="mt-0.5 text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
 
-Most of these experiments are not built from nothing. They run on a small set
-of shared [engines](/research/lab/experiments/raphael-anjou/engines): a
-constructive beam producer, a destroy-and-repair local search, and a family of
-CSP presets, documented once and reused across study after study. If you want
-to know how a search actually works before reading what a particular study did
-with it, start there.
+This is [Raphaël Anjou's](/research/people/raphael-anjou) notebook of Eternity II
+search experiments. Some are original ideas; some faithfully reimplement a known
+community technique to measure exactly what it buys. Every one records its idea,
+the board it reached, and the questions it left open, and every board is real and
+checkable in the [viewer](/viewer). The best reaches **463 of 480** matched edges;
+the community's best on the same puzzle is 470. Methods and boards are here in
+full, nothing withheld.
 
-Three studies stand apart from the combination pipelines below, each holding one
-question steady and varying one thing about it. The
-[DFS study](/research/lab/experiments/raphael-anjou/dfs-study) takes the
-depth-first backtracker apart, building a whole family of them one change at a
-time (fill order, heuristic, break policy). The
-[repair study](/research/lab/experiments/raphael-anjou/repair-study) does the same
-for destroy-and-repair local search (which region to destroy, how to rebuild it,
-when to keep a move, what board to start from), the loop the records actually reach
-the top with. The third,
-[learning from strong boards](/research/lab/experiments/raphael-anjou/learning),
-turns the question inward: rather than varying the search, it varies what the
-search is allowed to *know*, mining the corpus of boards already found for
-structure (PRIOR, KEYRING, LODESTONE, PALIMPSEST, REPLAY) and feeding it back in.
-Its method-agnostic write-up is the
-[learning-from-boards theory section](/research/build/learning). All three measure
-one thing at a time and each has its own home. The DFS and repair studies vary a
-knob across a grid rather than producing one board, so they carry their own
-leaderboards instead of a row on the chart below; the five learning experiments
-each reach a single scored board, so they keep their rows here (labelled by score)
-as well as their study home.
+It is a notebook, not a single result, so it is worth knowing how it is laid out
+before diving in.
+
+## What's in this section
+
+Two kinds of thing live here: the **apparatus** the experiments run on, and the
+**experiments** themselves. The experiments come in three flavours: pipelines that
+chase the whole-board score, studies that isolate one search decision at a time,
+and exact solves that *prove* a small region rather than guess it. Start wherever
+the question you care about lives.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door
+    to="/research/lab/experiments/raphael-anjou/engines"
+    kicker="The apparatus"
+    title="The engines"
+  >
+    The shared machinery the experiments run on: a constructive beam producer, a
+    destroy-and-repair local search, and a family of CSP presets. Documented once
+    here so each study can point back instead of re-explaining the machine. Start
+    here if you want to know how a search works before reading what a study did
+    with it.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/pipelines"
+    kicker="Chase the score"
+    title="Combination pipelines"
+  >
+    The named runs that push the score. Each is a pipeline, not a single
+    algorithm: build a board with one engine, then lift or finish it with another.
+    The interest is in the division of labour between construction, repair and an
+    exact endgame. This is where the record-approaching boards come from.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/dfs-study"
+    kicker="Take one paradigm apart"
+    title="The DFS study"
+  >
+    Depth-first backtracking, dissected. A family of from-scratch backtrackers,
+    each one change apart (fill order, heuristic, break policy), run on the same
+    ten variants under a fixed budget, to price what each idea is worth.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/repair-study"
+    kicker="Take one paradigm apart"
+    title="The repair study"
+  >
+    Its sibling, for destroy-and-repair local search: which region to destroy, how
+    to rebuild it, when to keep a move, what board to start from. The loop the
+    records actually reach the top with, taken apart one decision at a time.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/learning"
+    kicker="Take one paradigm apart"
+    title="Learning from strong boards"
+  >
+    The third study, turned inward: instead of varying the search, vary what it is
+    allowed to *know*. Five experiments mine the corpus of strong boards for
+    structure and feed it back in, and all five hit the same wall.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
+    kicker="Prove a region"
+    title="Meet in the middle"
+  >
+    Exact endgame solves: enumerate a region from two ends and join on the seam to
+    find the true best completion, with a proof nothing scores higher. These
+    measure a small region exactly rather than chase the whole-board score.
+  </Door>
+</div>
+
+The two constructive engines, the beam producer and the ALNS polish stage, do not
+yet have their own write-ups; where a pipeline steers one, its own page says what
+that engine does at the level the study needs. The CSP presets are the one engine
+documented and measured in full.
+
+## How to read the scores
+
+The chart and table below carry two kinds of number that must never be conflated,
+so they are drawn as separate groups.
+
+- **Explore** is the best board each method reached in exploratory runs on 8
+  cores, wall-clock not logged. These are the headline numbers the write-ups
+  quote, and they top out at PALIMPSEST's 463.
+- **Bench** is the standardized single-core benchmark: one core, sixty seconds,
+  every board re-scored by the same canonical scorer. Lower, and *directly
+  comparable* across methods in a way the explore numbers are not.
+
+Not every experiment earns a row. The three studies vary a knob across a grid
+rather than producing one board, so the [DFS](/research/lab/experiments/raphael-anjou/dfs-study)
+and [repair](/research/lab/experiments/raphael-anjou/repair-study) studies carry
+their own leaderboards instead of a chart row; only their single best bench result
+appears here. The five [learning](/research/lab/experiments/raphael-anjou/learning)
+experiments each reach one scored board, so they keep their rows as well as their
+study home. The bench rows above are study results, not standalone pages, so they
+appear only on the chart.
 
 <ExperimentScoreChart data={scores} />
 
 The named experiments as a sortable table (click a column head to reorder by
 score, name, method, or month). Author, month, rigor and reproducibility are read
-from each experiment's own page, so this summary stays in step with them. The
-single-core bench rows above are study results, not standalone experiment pages,
-so they appear only on the chart.
+from each experiment's own page, so this summary stays in step with them.
 
 <ExperimentResultsTable data={scores.filter((s) => s.group !== "bench")} />
