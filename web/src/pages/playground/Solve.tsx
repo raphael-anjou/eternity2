@@ -39,7 +39,7 @@ const T = {
     lockedTitle: "Nobody has ever finished this level",
     lockedBody: (
       <>
-        The puzzle TOMY actually sold is 16×16. No person and no computer has ever placed all 256
+        The puzzle Tomy actually sold is 16×16. No person and no computer has ever placed all 256
         pieces. See{" "}
         <Link className="underline" to="/status">
           where the record stands
@@ -110,7 +110,7 @@ const T = {
     lockedTitle: "Personne n'a jamais bouclé ce niveau",
     lockedBody: (
       <>
-        Le puzzle vendu par TOMY fait 16×16. Ni un humain ni un ordinateur n'a jamais posé les 256
+        Le puzzle vendu par Tomy fait 16×16. Ni un humain ni un ordinateur n'a jamais posé les 256
         pièces. Voyez{" "}
         <Link className="underline" to="/status">
           où en est le record

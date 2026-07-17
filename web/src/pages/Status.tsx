@@ -38,16 +38,16 @@ const T = {
     ),
     viewBoard: "Open this board in the viewer",
     boardCaption:
-      "Blackwood's 470-edge board. Ten of the 480 internal joints do not match; every other edge does.",
+      "Blackwood's 470-edge board. Ten of the 480 internal edges do not match; every other edge does.",
     factsTitle: "The facts, in brief",
     facts: [
       {
         term: "The prize expired unclaimed.",
-        desc: "Tomy offered $2,000,000 for the first complete solution. The competition ran from 28 July 2007 to noon on 31 December 2010, and closed with no winner.",
+        desc: "Tomy offered $2 million for the first complete solution. The competition ran from 28 July 2007 to noon on 31 December 2010, and closed with no winner.",
       },
       {
         term: "480 is the target.",
-        desc: "A finished board has 2×15×16 = 480 internal edges that must match, side to side. The frame's grey outer edges are not counted. A score of 470 means 470 of those 480 joints match.",
+        desc: "A finished board has 2×15×16 = 480 internal edges that must match, side to side. The frame's grey outer edges are not counted. A score of 470 means 470 of those 480 edges match.",
       },
       {
         term: "The record has stood since 2021.",

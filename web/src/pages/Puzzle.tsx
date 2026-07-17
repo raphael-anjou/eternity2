@@ -102,7 +102,7 @@ const T = {
       {
         year: "2010s–today",
         title: "The community keeps climbing",
-        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020), then 470 (Blackwood, 2021) on the official puzzle. That 470 has stood ever since — tied twice, never beaten: ten edges still separate humanity from 480.",
+        text: "Hobbyists with modern hardware push the record to 468, then 469 (Joshua Blackwood & Peter McGavin, 2020), then 470 (Blackwood, 2021) on the official puzzle. That 470 has stood ever since — tied once (Jef Bucas, December 2024), never beaten: ten edges still separate humanity from 480.",
       },
     ],
     anatomyTitle: "Anatomy of the piece set",
@@ -126,8 +126,8 @@ const T = {
     ),
     edgePairs: (
       <>
-        A full board has <strong>480 interior edge-pairs</strong> to match (2·16·16 − 16 − 16).
-        "Score 467" means 467 of those 480 pairs match. No two pieces of the set are identical,
+        A full board has <strong>480 interior edges</strong> to match (2·16·16 − 16 − 16).
+        "Score 467" means 467 of those 480 edges match. No two pieces of the set are identical,
         and none is rotationally symmetric: the designers made sure every piece is genuinely
         distinct.
       </>
@@ -193,7 +193,7 @@ const T = {
       {
         score: "470 / 480",
         who: "Joshua Blackwood, 2021",
-        notes: "the canonical record — tied in 2024 and 2025, never beaten" as ReactNode,
+        notes: "the canonical record — tied once (Jef Bucas, December 2024), never beaten" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
@@ -314,7 +314,7 @@ const T = {
       {
         year: "Des années 2010 à aujourd'hui",
         title: "La communauté grignote, score après score",
-        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020), puis 470 (Blackwood, en 2021) sur le puzzle officiel. Ce 470 tient depuis — égalé deux fois, jamais battu : il manque encore dix côtés pour atteindre le mythique 480.",
+        text: "Armés de machines modernes, des passionnés font grimper le record à 468, puis 469 (Joshua Blackwood et Peter McGavin, en 2020), puis 470 (Blackwood, en 2021) sur le puzzle officiel. Ce 470 tient depuis — égalé une fois (Jef Bucas, décembre 2024), jamais battu : il manque encore dix côtés pour atteindre le mythique 480.",
       },
     ],
     anatomyTitle: "Anatomie du jeu de pièces",
@@ -338,9 +338,9 @@ const T = {
     ),
     edgePairs: (
       <>
-        Un plateau complet, ce sont <strong>480 paires de côtés intérieurs</strong> à faire
+        Un plateau complet, ce sont <strong>480 côtés intérieurs</strong> à faire
         coïncider (2·16·16 − 16 − 16). Un « score de 467 » veut donc dire que 467 de ces 480
-        paires tombent juste. Détail crucial : dans tout le jeu, pas deux pièces ne sont
+        côtés tombent juste. Détail crucial : dans tout le jeu, pas deux pièces ne sont
         identiques, et aucune n'est symétrique par rotation. Les concepteurs ont tout fait pour
         que chacune soit absolument unique.
       </>
@@ -410,7 +410,7 @@ const T = {
       {
         score: "470 / 480",
         who: "Joshua Blackwood, 2021",
-        notes: "le record canonique — égalé en 2024 et 2025, jamais battu" as ReactNode,
+        notes: "le record canonique — égalé une fois (Jef Bucas, décembre 2024), jamais battu" as ReactNode,
         viewId: "Joshua_Blackwood_470" as string | null,
       },
       {
