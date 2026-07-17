@@ -31,14 +31,14 @@ const T = {
     rotation: {
       title: "3 · Rotating = one bit-rotate",
       explainer:
-        "Because a piece is one 20-bit word, a quarter-turn is a single CPU rotate: slide the bits 5 places, the edge that falls off the end wraps back to the front. No drawing is ever turned, and all four orientations cost almost nothing.",
+        "Because a piece is one packed word, a quarter-turn is a single CPU rotate: slide the bits round, and the edge that falls off the end wraps back to the front. No drawing is ever turned. Our own engine goes one step further — it works out all four orientations once at startup and just looks them up, so a rotation costs nothing at all during the search.",
       before: "before",
       after: "after ↻",
     },
     mask: {
       title: "4 · 256 pieces = 256 bits of “still free?”",
       explainer:
-        "Fast solvers track which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. So checking and updating availability stays almost instant even with 256 pieces. Our own engine does exactly this.",
+        "Fast solvers track which pieces are still unused as one 256-bit number, one bit each. “Is piece #137 free?” is a single bit-test; “mark it used” flips one bit. So checking and updating availability stays almost instant even with 256 pieces. Our own engine tracks piece availability exactly this way — one bit per piece.",
       placing: (n: number) => `placing piece #${n}…`,
       free: "free",
       used: "used",
@@ -63,14 +63,14 @@ const T = {
     rotation: {
       title: "3 · Pivoter une pièce = une seule rotation de bits",
       explainer:
-        "Une pièce n'étant qu'un mot de 20 bits, un quart de tour se résume à une rotation du processeur : on fait glisser les bits de 5 crans, et ceux qui débordent par la fin réapparaissent au début. Aucun dessin n'est réellement tourné, et passer d'une orientation à l'autre ne coûte presque rien.",
+        "Une pièce n'étant qu'un mot compact, un quart de tour se résume à une rotation du processeur : on fait glisser les bits, et ceux qui débordent par la fin réapparaissent au début. Aucun dessin n'est réellement tourné. Notre propre moteur va même plus loin : il calcule les quatre orientations une fois pour toutes au démarrage et se contente de les consulter, si bien qu'une rotation ne coûte plus rien pendant la recherche.",
       before: "avant",
       after: "après ↻",
     },
     mask: {
       title: "4 · 256 pièces = 256 bits pour dire « encore libre ? »",
       explainer:
-        "Les solveurs rapides suivent les pièces encore disponibles dans un unique nombre de 256 bits, à raison d'un bit par pièce. « La pièce n°137 est-elle libre ? » se réduit à la lecture d'un seul bit ; la « marquer comme utilisée » revient à en basculer un. Consulter et mettre à jour les disponibilités reste donc quasi instantané, même avec 256 pièces. C'est précisément ainsi que procède notre propre moteur.",
+        "Les solveurs rapides suivent les pièces encore disponibles dans un unique nombre de 256 bits, à raison d'un bit par pièce. « La pièce n°137 est-elle libre ? » se réduit à la lecture d'un seul bit ; la « marquer comme utilisée » revient à en basculer un. Consulter et mettre à jour les disponibilités reste donc quasi instantané, même avec 256 pièces. Notre propre moteur suit la disponibilité des pièces exactement de cette façon — un bit par pièce.",
       placing: (n: number) => `pose de la pièce n°${n}…`,
       free: "libre",
       used: "utilisée",
