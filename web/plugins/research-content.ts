@@ -15,6 +15,7 @@ import {
   buildManifest,
   researchTopics,
   researchAuthors,
+  researchPagePathsFr,
   scanResearchContent,
   searchEntries,
   CONTENT_DIR,
@@ -252,6 +253,13 @@ const IDS = {
   "virtual:research-manifest-fr": "fr",
 } as const;
 
+// A tiny module (just a string[] of language-neutral research URLs that have a
+// genuine French rendering) so the root shell can decide whether to advertise
+// hreflang="fr" for a research page WITHOUT pulling the full ~400KB manifest
+// into every page's chunk. Non-research pages always have a /fr twin, so they
+// are not listed here — the root shell only consults this for /research paths.
+const TRANSLATED_FR_ID = "virtual:research-translated-fr";
+
 // Full-text index payloads, split from the manifest so they only load when
 // the search dialog opens (they carry every page's body text).
 const SEARCH_IDS = {
@@ -271,13 +279,20 @@ export function researchContent(): Plugin {
     },
 
     resolveId(id) {
-      if (id in IDS || id in SEARCH_IDS) return "\0" + id;
+      if (id in IDS || id in SEARCH_IDS || id === TRANSLATED_FR_ID) return "\0" + id;
       return null;
     },
 
     load(id) {
       if (!id.startsWith("\0")) return null;
       const bare = id.slice(1);
+      if (bare === TRANSLATED_FR_ID) {
+        // Language-neutral URLs ("/research/…") that have a real French
+        // rendering. researchPagePathsFr() returns basename-relative paths
+        // ("research/…"); expose them as absolute "/research/…" URLs.
+        const urls = researchPagePathsFr().map((p) => `/${p}`);
+        return `export const translatedFr = ${JSON.stringify(urls)};`;
+      }
       if (bare in SEARCH_IDS) {
         const lang = SEARCH_IDS[bare as keyof typeof SEARCH_IDS];
         return `export const entries = ${JSON.stringify(searchEntries(lang))};`;
