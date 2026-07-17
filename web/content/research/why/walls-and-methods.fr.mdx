@@ -1,0 +1,171 @@
+---
+title: Quel mur arrête quelle méthode
+description: >-
+  La section recherche a deux versants : les murs structurels qui rendent
+  Eternity II difficile, et les algorithmes conçus pour les franchir. Cette page
+  fait le pont : chaque méthode confrontée au mur qu'elle attaque réellement, et
+  le score auquel ce mur l'a arrêtée.
+metaDescription: "Les murs structurels d'Eternity II face aux algorithmes conçus pour les franchir : chaque méthode confrontée au mur qu'elle attaque, et le score où elle cale."
+kind: finding
+contribution: exposition
+rigor: conjectured
+order: 20
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
+    url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/rigidity-wall
+  - /research/lab/experiments
+  - /research/why/no-forced-moves
+---
+
+Chaque case de la carte ci-dessous repose sur les travaux publiés de ce projet.
+Les quatre murs eux-mêmes sont corroborés par la littérature publiée ; les
+résultats d'expériences sont le travail propre de ce projet, chacun documenté sur
+sa propre page ; ils ne sont pas présentés comme vérifiés de l'extérieur.
+
+## Les quatre murs, en une ligne chacun
+
+Chacun d'eux est une version d'un même énoncé : il n'y a rien de local à élaguer.
+
+- **[Aucun coup forcé](/research/why/no-forced-moves)**. Chaque case intérieure
+  conserve 73 à 137 pièces légales, si bien que le facteur de branchement ne
+  s'effondre jamais.
+- **[Le pic de difficulté](/research/why/phase-transition)**. Avec ≈17 couleurs
+  intérieures, le puzzle se situe à la transition de phase : environ une solution
+  attendue, le pire endroit où chercher.
+- **[La loi d'aire](/research/why/entropy-area-law)**. Les plateaux partiels
+  réellement distincts s'effondrent au-delà de ~80 cases, mais aucun score local
+  ne peut percevoir ce fait global.
+- **[La rigidité](/research/why/rigidity-wall)**. Les records sont localement
+  figés ; le pas vers un meilleur plateau est un unique échange géant et
+  indivisible, sans gradient à suivre.
+
+## La carte
+
+Les colonnes sont les murs ; les lignes, les méthodes, meilleur score en tête. Une
+marque pleine (●) signifie que la méthode travaille fondamentalement contre ce
+mur. Le plafond communautaire sur ce puzzle est 470 ; la solution complète est 480.
+
+| Méthode | Meilleur | [Coups forcés](/research/why/no-forced-moves) | [Pic de difficulté](/research/why/phase-transition) | [Loi d'aire](/research/why/entropy-area-law) | [Rigidité](/research/why/rigidity-wall) | Nouveau bassin |
+| --- | --- | :-: | :-: | :-: | :-: | --- |
+| [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest) · depuis le corpus | 463/480 | | | | ● | non |
+| [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) · from scratch | 460/480 | | ● | | ● | non |
+| [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) · from scratch | 460/480 | | | | ● | nouvelle famille |
+| [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay) · décoder et rejouer | 460/480 | | | | ● | non |
+| [GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet) · from scratch | 458/480 | | | | ● | nouvelle famille |
+| [CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) · ancrer et contraindre | 453/480 | | | ● | ● | non |
+| [MIDDEN](/research/lab/experiments/raphael-anjou/pipelines/midden) · ancrer et contraindre | 452/480 | | | ● | ● | non |
+| [LADDER](/research/lab/experiments/raphael-anjou/pipelines/ladder) · concentrer l'effort | 451/480 | ● | ● | | | nouvelle famille |
+| [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) · from scratch | 451/480 | ● | | | | non |
+| [MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic) · résoudre un fragment exactement | 448/480 | ● | ● | | | non |
+| [BANDSAW](/research/lab/experiments/raphael-anjou/analyses/bandsaw) · résoudre un fragment exactement | 437/480 | ● | ● | | | non |
+| [STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) · from scratch | 436/480 | ● | | ● | | non |
+
+### Comment la lire
+
+Presque toutes les méthodes finissent contre la rigidité, le mur qui dit que les
+grands plateaux sont des îlots isolés. Les méthodes construites from scratch ou à
+partir du corpus (PRIOR, KEYRING, PALIMPSEST, GAUNTLET) tentent d'atteindre un
+nouvel îlot en pilotant la construction par un signal appris ; elles plafonnent à
+458–463 et deux d'entre elles atteignent bien des familles réellement nouvelles,
+mais aucune ne passe jusqu'au plafond. Les méthodes de concentration et exactes
+(LADDER, BANDSAW) attaquent plutôt la recherche elle-même (le facteur de
+branchement élevé et le pic infouillable) et le paient en fin de partie. Les
+méthodes d'ancrage (CLOISTER, MIDDEN) localisent les dégâts mais butent sur le mur
+de la loi d'aire à l'intérieur. Aucun mur pris isolément ne raconte toute
+l'histoire, et aucune méthode ne franchit les quatre.
+
+## Où chacune a calé, et pourquoi
+
+Le plafond n'est jamais arbitraire. Pour chaque méthode, son propre compte rendu
+consigne la raison exacte pour laquelle le score a cessé de grimper, citée ici en
+une ligne.
+
+- **[PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)** (463/480).
+  A atteint 463, le meilleur du projet, en lisant le corpus pour repérer quels
+  choix partagés sont des pièges et en pilotant un balayage de 15 bassins pour les
+  contourner. Forcer directement la recherche à éviter les pièges dégradait les
+  plateaux : la valeur résidait dans le lieu où chercher, pas dans une règle stricte.
+- **[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)** (460/480).
+  Plafonne à 460 : le prior de position appris amène rapidement une construction
+  from scratch dans la classe des 460, mais le signal du corpus ne suffit pas à
+  elle seule pour en sortir.
+- **[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring)** (460/480).
+  Trois signaux appris votant ensemble (position, adjacence, patch 2×2) ont atteint
+  460 dans un agencement de coins qu'aucun plateau n'avait percé auparavant, une
+  nouvelle famille, mais le signal de patch est marginal et le polissage plafonne
+  toujours à 460.
+- **[REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)** (460/480).
+  Rejoue exactement les plateaux stricts-460 de la communauté et révèle le coup
+  que la recherche ordinaire manque : 4 à 5 cases qui encaissent deux inadéquations
+  d'un coup, inatteignables pour une recherche qui n'en autorise qu'une au plus.
+- **[GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet)** (458/480).
+  Lancer le beam dans neuf directions de balayage a ouvert une toute nouvelle
+  famille à 458 (l'ordre de balayage est un axe de diversité plus fort que la graine
+  aléatoire), mais une seconde passe a plafonné à 457 sans aucun 461 : la nouvelle
+  famille sature comme les autres.
+- **[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister)** (453/480).
+  En tant que solveur intérieur autonome, il confirme un réel bonus de compatibilité
+  avec le pourtour, mais ce bonus ne peut pas se greffer après coup (la même
+  rigidité que le plateau complet), si bien qu'il se fixe dans le bas des 450.
+- **[MIDDEN](/research/lab/experiments/raphael-anjou/pipelines/midden)** (452/480).
+  Choisir où (et non quand) le plateau peut se rompre allonge la série parfaite de
+  153 à 167–174 cases, mais la géométrie dispersée échoue toujours en fin de partie :
+  rien n'absorbe les derniers dégâts.
+- **[LADDER](/research/lab/experiments/raphael-anjou/pipelines/ladder)** (451/480).
+  Inonde de sondes bon marché et promeut la plus profonde, atteignant un plateau
+  strict-451 sans record à copier, la première évasion hors de la bande universelle
+  444–450, mais le stock d'ouvertures parfaites s'épuise et les échelons convergent
+  tous vers un même plafond.
+- **[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone)** (451/480).
+  Un prior de demande-rare utilisé uniquement comme départage relève la médiane
+  from scratch de deux points (449→451) et resserre la variance, mais tout poids
+  plus élevé l'effondre : la rareté est un signal réel mais faible, et il ne touche
+  jamais au plafond du bassin.
+- **[MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)** (448/480).
+  Compose des solutions exactes de blocs 4×4 avec des coutures souples, atteignant
+  448 from scratch, mais le déficit se concentre presque entièrement dans les trois
+  derniers blocs de coin, où le vivier de pièces s'amenuise : le même vol de pièces,
+  désormais réduit à un seul point vif.
+- **[BANDSAW](/research/lab/experiments/raphael-anjou/analyses/bandsaw)** (437/480).
+  Résout une bande de fin de partie jusqu'à l'optimalité prouvée, et ce faisant
+  mesure le mur de l'exactitude : l'arbre de recherche croît d'environ un facteur
+  vingt par inadéquation supplémentaire autorisée, des deux côtés, si bien que se
+  rejoindre au milieu cesse d'être rentable à pleine taille.
+- **[STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged)** (436/480).
+  Construit le plateau entier sans cadre préétabli et avec une bordure émergente,
+  atteignant 436, bien en deçà des records. C'est cet écart qui constitue le
+  résultat : il mesure exactement ce que vaut l'ancrage cadre-d'abord habituel.
+
+## La forme de l'écart
+
+Parcourez la table de haut en bas et la leçon de tout le projet saute aux yeux :
+les méthodes qui font bouger le score changent la forme de la recherche - un ordre
+de balayage, un prior appris, une région confinée -, jamais sa vitesse brute. Et
+chacune d'elles cale contre un mur qui est global, pas local. Les dix arêtes de 470
+à 480 ne relèvent pas d'un problème de finition ; elles se trouvent de l'autre côté
+des quatre murs à la fois.
+
+Une campagne distincte menée en 2026 par William Millilaw a abouti à la même
+conclusion par le versant de la diversité. En balayant toute la liste des méthodes,
+il a constaté que presque tout (recherche locale adaptative from scratch, placement
+en serpentin, le sommet de la distribution d'un générateur entraîné) redécouvre
+sans cesse la même poignée de bassins, et que seul le parallel tempering produisait
+de façon fiable des bassins réellement nouveaux, des plateaux très éloignés de
+l'ensemble connu. Même celui-là plafonne vite. Sa lecture est celle que cette table
+ne cesse de formuler : le goulot d'étranglement n'est pas le score qu'une méthode
+atteint mais le nombre de bassins distincts qu'elle sait trouver, et aucune méthode
+de l'arsenal standard n'en trouve assez.
+
+<Callout kind="note">
+  Chaque ligne de saturation est distillée du carnet de laboratoire du projet (une
+  entrée par expérience). Les quatre murs sont corroborés par la littérature
+  publiée : la transition de phase à 17 couleurs par Ansótegui, Béjar, Fernández
+  &amp; Mateu, « How Hard is a Commercial Puzzle: the Eternity II Challenge » ; le
+  gradient manquant et les bassins profonds par la littérature de recherche locale
+  sur Eternity II.
+</Callout>

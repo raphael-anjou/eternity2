@@ -1,0 +1,303 @@
+---
+title: "eii de Verhaard : le solveur qui a remporté l'unique prix"
+description: >-
+  Le moteur derrière le 467, le seul score d'Eternity II jamais récompensé,
+  reconstitué à partir des propres messages de Louis Verhaard sur la liste de
+  diffusion : élagage prospectif, ordres de remplissage en peigne, décalage
+  d'arête conditionné par la profondeur, calendrier de décalage réglé par chaîne
+  de Markov. Et pourquoi son propre binaire Win32, sans code source, ne peut être
+  ni compilé ni exécuté sur cette machine.
+metaDescription: "eii de Verhaard, moteur du 467 et de l'unique prix Eternity II : élagage prospectif, ordres en peigne, décalage réglé par Markov, et pourquoi il ne tourne pas."
+kind: page
+contribution: exposition
+author: louis-verhaard
+order: 10
+updated: 2026-07-17
+date: 2026-07
+topics: [backtracking, local-search, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/engines/verhaard-reimpl
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/reduce/edge-slipping
+  - /research/records
+sources:
+  - label: "Détails du solveur eii de Louis Verhaard (l'original, Win32 uniquement)"
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "La mise à disposition : « je suis bloqué… mon seul espoir est la force brute » (groups.io message 5940)"
+    url: https://groups.io/g/eternity2/message/5940
+  - label: "Décodeur et documentation des rouages publiés ; 467 trouvé plus de 40 fois (groups.io message 6275)"
+    url: https://groups.io/g/eternity2/message/6275
+  - label: "La méthode dévoilée : décalage d'arête conditionné par la profondeur, score propre 247 (groups.io message 7321)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "Le banc d'essai indépendant de JSA : un 467 en 82 jours avec le binaire public (groups.io message 6687)"
+    url: https://groups.io/g/eternity2/message/6687
+  - label: "Le point d'ancrage durable du solveur : shortestpath.se/eii (groups.io message 7439)"
+    url: https://groups.io/g/eternity2/message/7439
+  - label: "Verhaard sur sa méthode (groups.io msg 6891)"
+    url: https://groups.io/g/eternity2/message/6891
+---
+
+<Callout kind="note" title="À qui revient ce travail">
+  Le solveur, nommé **eii**, et sa documentation sont l'œuvre de **Louis
+  Verhaard**, hébergée sur son propre site
+  ([shortestpath.se/eii](http://www.shortestpath.se/eii/)). L'entrée gagnante a
+  été soumise au nom de son épouse, Anna Karlsson ; les propres mots de Verhaard
+  tranchent la question du crédit : « Ma femme a soumis ma meilleure solution
+  l'an dernier et a gagné 10 000 dollars »
+  ([groups.io message 7451](https://groups.io/g/eternity2/message/7451)).
+  Cette page, rédigée par [Raphaël Anjou](/research/people/raphael-anjou),
+  reconstruit la machine à partir des messages de Verhaard sur la liste de
+  diffusion de 2008 à 2010 et du banc d'essai public de JSA sur le binaire
+  diffusé, et consigne pourquoi le binaire original ne peut absolument pas être
+  exécuté ici. Le moteur exécutable est une
+  [réimplémentation](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
+  distincte, classée dans la section de Raphaël parce que ce code n'est pas
+  celui de Verhaard.
+</Callout>
+
+L'eii de Louis Verhaard est le solveur derrière le 467/480 qui a remporté le prix
+de finaliste de 10 000 dollars à la première date d'examen, la seule somme jamais
+versée par le concours Eternity II. Ce même score a ensuite tenu le record pendant
+douze ans, jusqu'au 468 de Joshua Blackwood en 2020. Comme
+[le moteur de Blackwood](/research/lab/experiments/joshua-blackwood/solver), il est
+au fond un backtracker en profondeur d'abord, surmonté d'heuristiques réglées à la
+main. À la différence de celui de Blackwood, ses rouages n'ont jamais été publiés
+sous forme de code ; ce dont nous disposons à la place est un témoignage d'une
+qualité rare : Verhaard a lui-même documenté les heuristiques et l'ordre de
+recherche, discuté la conception sur la liste de diffusion à la première personne,
+et livré un binaire public qu'un utilisateur indépendant a mené par banc d'essai
+jusqu'au score du prix. C'est cette absence de code source qui explique pourquoi,
+des trois moteurs communautaires étudiés dans ce laboratoire, le sien est celui qui
+ne peut pas être exécuté du tout ; la dernière section dit exactement pourquoi.
+
+## La trajectoire : bloqué au-delà de 463, alors autant le diffuser
+
+Le récit fondateur de Verhaard désarme. Son premier programme de haut score ne
+plaçait que des pièces s'ajustant parfaitement, et plafonnait vers 450 : des
+centaines de partiels propres à 248 pièces, sans issue. Ce n'est qu'en essayant le
+solveur de Bob Cousins (à l'origine celui de Dave Clark), qui a trouvé un 458 en
+moins d'une minute, qu'il a saisi que le concours comptait les *arêtes
+concordantes*, si bien que les placements à moitié ajustés comptent eux aussi
+([groups.io message 5767](https://groups.io/g/eternity2/message/5767)). De son
+propre aveu, il ne s'était jamais donné la peine de lire les règles ; Jef Bucas
+renvoyait encore les lecteurs vers cet aveu dans la documentation de Verhaard en
+2021 ([groups.io message 10582](https://groups.io/g/eternity2/message/10582)).
+
+Au cours de l'été 2008, le plafond publiquement visible de la communauté était de
+463 ([groups.io message 5688](https://groups.io/g/eternity2/message/5688)), et dans
+un échange remarquable Verhaard et Max ont confronté leurs notes, en tant que seuls
+deux à être connus pour avoir dépassé ce qu'ils appelaient la « limite-dont-on-ne-
+parle-pas »
+([messages 5767–5787](https://groups.io/g/eternity2/message/5767)). Puis, le 22
+septembre 2008, à trois mois de la première date d'examen, Verhaard a publié le
+solveur pour que quiconque puisse le faire tourner sur fingerboys.se : « Ceci parce
+que je suis bloqué et que mon seul espoir d'améliorer mon meilleur score passe par
+la force brute » ([message 5940](https://groups.io/g/eternity2/message/5940)). Les
+conditions calquaient celles d'eternity2.net : il fallait posséder le vrai
+casse-tête, et tout prix serait partagé à parts égales entre l'utilisateur ayant le
+meilleur score et Verhaard. La communauté est devenue sa ferme de calcul.
+
+Cela a marché. Le 6 janvier 2009, il a diffusé un décodeur pour les fichiers de
+sortie `.eii` du solveur, documenté les rouages (heuristiques et ordre de
+recherche), et dévoilé le nombre que la ferme avait atteint : 467, trouvé plus de
+40 fois par différents utilisateurs
+([message 6275](https://groups.io/g/eternity2/message/6275)). Neuf jours plus tard,
+l'annonce de Tomy est apparue : aucune solution complète, et un prix de finaliste
+de 10 000 dollars pour Anna Karlsson de Lund pour 467 sur 480
+([message 6337](https://groups.io/g/eternity2/message/6337)). Il a fallu à la liste
+environ une heure pour décoder « Lund + 467 ». Le reste de l'histoire du concours
+revient à [la page d'histoire](/research/community/hunt) : le silence de Tomy, la
+couverture presse, les suites. Ce qui suit ici, c'est la machine.
+
+## Élagage prospectif contre des seuils statiques
+
+La boucle de base est un backtracker en profondeur d'abord sur un
+[ordre de remplissage](/research/build/backtracking/fill-order) fixe, mais qui
+élague par anticipation : les branches dont le score heuristique tombe sous un
+seuil sont coupées avant d'être explorées. Verhaard décrivait ses seuils comme
+statiques et réglés à la main : « surtout fondés sur de purs tâtonnements et sur une
+part limitée de théorie ou de mesures », lents à régler mais prévisibles sur de
+longues exécutions
+([groups.io message 5771](https://groups.io/g/eternity2/message/5771), qu'on lui
+cite en retour dans le
+[message 5772](https://groups.io/g/eternity2/message/5772)).
+
+À quoi servent les seuils *au juste* ? La conception sur laquelle Max et lui ont
+convergé dans cet échange en est la part intéressante : on ne peut influer sur la
+sélection des pièces que tôt dans la recherche, mais ce que l'on veut maximiser,
+c'est la **pavabilité des pièces restantes** profondément dans le remplissage,
+autour des pièces 160 à 200, là où le facteur de branchement s'effondre vers des
+coups forcés. Les seuils précoces sont donc réglés, de façon semi-manuelle, pour
+répondre à la question : quel score heuristique les partiels précoces doivent-ils
+atteindre pour que les survivants portent un jeu de pièces restantes qui se pave
+encore bien ? Le verdict de Verhaard sur la description de Max : « Je crois qu'après
+tout nous travaillons de manière très semblable »
+([message 5780](https://groups.io/g/eternity2/message/5780)).
+
+## Le tableau de bord : où culmine la distribution des nœuds
+
+Comment sait-on qu'une heuristique est forte ? La mesure sur laquelle les deux se
+sont arrêtés (proposée par Max, adoptée par Verhaard) est l'endroit où se situe le
+pic de la distribution des nœuds par profondeur. Une recherche exhaustive sans
+heuristique sur E2 passe le plus clair de son temps autour de la profondeur 161, le
+chiffre de référence de Brendan Owen
+([message 6112](https://groups.io/g/eternity2/message/6112)) ; leurs deux recherches
+heuristiques avaient poussé le pic juste sous 170
+([message 5780](https://groups.io/g/eternity2/message/5780)). Max a fourni
+l'interprétation : un pic à 170 équivaut à peu près à éliminer entièrement une
+couleur intérieure du casse-tête ; une « heuristique tueuse » qui en éliminerait
+deux semblait hors de portée
+([message 5787](https://groups.io/g/eternity2/message/5787)).
+
+## Recherche en peigne : un ordre de remplissage pour les hauts scores
+
+Une recherche de solution complète veut un balayage ligne par ligne ; une recherche
+de haut score vit plus profondément dans le plateau, et veut une frontière
+différente. Quand Brendan Owen a posé exactement cette question, Verhaard a révélé
+la forme de sa réponse : les meilleurs ordres qu'il avait trouvés ressemblent à une
+**recherche en peigne** (la plupart des lignes parcourues horizontalement, puis les
+lignes restantes parcourues verticalement), avec une longueur de dents liée à la
+cible : « Plus le score que vous visez est bas, plus les dents du peigne
+s'allongent » ([groups.io message 6112](https://groups.io/g/eternity2/message/6112)).
+Max avait convergé indépendamment vers une géométrie presque identique (douze lignes
+en balayage, puis balayage par colonnes) et rapportait que ses scores tournaient à
+environ une arête en dessous des « résultats que le solveur de Louis obtient »
+([message 6126](https://groups.io/g/eternity2/message/6126)).
+
+## Décalage d'arête, conditionné par la profondeur
+
+Le levier qui a réellement décroché le 467 est une imperfection délibérée.
+Interrogé directement à ce sujet un an plus tard, Verhaard a été précis : le
+programme du 467 cherche « normalement », mais à certaines profondeurs il autorise
+le **décalage d'arête** : placer une pièce présentant une arête discordante contre
+un voisin déjà posé. Il ne construit pas d'abord un partiel propre pour ensuite en
+rapiécer les trous ; les discordances sont budgétées *dans la descente elle-même*,
+débloquées à des profondeurs choisies. Et l'anatomie du résultat est parlante : la
+plupart des plateaux à 467 qu'il a examinés avaient un score propre de seulement
+247, avec treize arêtes décalées dépensées là où le calendrier le permettait
+([groups.io message 7321](https://groups.io/g/eternity2/message/7321)). Le 467
+n'était pas non plus un coup de chance : il l'a trouvé plus de 50 fois
+([même message](https://groups.io/g/eternity2/message/7321)).
+
+La technique elle-même a [sa propre page](/research/build/reduce/edge-slipping) :
+pourquoi des discordances programmées atteignent des plateaux qu'une recherche
+propre n'atteindrait jamais, et la théorie du dénombrement derrière le coût de
+chaque arête concordante supplémentaire. Ce qui a sa place ici, c'est la
+machinerie côté solveur : le budget de discordances par profondeur est un **tableau
+de décalage**, une entrée par profondeur, et c'est un objet réglé, non un
+tâtonnement.
+
+## L'optimiseur du tableau de décalage : une chaîne de Markov
+
+En janvier 2009, dans le fil où Owen étendait la
+[théorie du complexe](/research/why/complex-theory) pour couvrir les décalages,
+Verhaard a publié l'esquisse (avec des extraits Java) de l'algorithme qu'il
+utilisait pour optimiser l'ordre de recherche et le tableau de décalage d'eii
+([groups.io message 6423](https://groups.io/g/eternity2/message/6423)). L'entrée est
+un ordre de recherche candidat plus un tableau de décalage. Pour chaque profondeur,
+il estime deux nombres à partir d'exécutions expérimentales (la théorie suffirait
+pour démarrer, notait-il) : la probabilité qu'une pièce restante prise au hasard
+s'ajuste parfaitement, et la probabilité qu'elle s'ajuste avec une arête décalée.
+De là il construit une chaîne de Markov dont l'état est *(profondeur, arêtes
+décalées jusqu'ici)*, avec des transitions pour un placement propre et, là où le
+tableau de décalage l'autorise, pour un placement décalé. Faire tourner la chaîne de
+bout en bout donne la probabilité d'atteindre le bas et le nombre de nœuds attendu :
+un évaluateur en boucle fermée, peu coûteux, pour tout couple (ordre, calendrier de
+décalage), mémoïsé par souci d'efficacité. Il en a signalé lui-même la limite : le
+modèle simple ignore la parité des décalages, si bien qu'il devient peu fiable pour
+des scores cibles très élevés.
+
+L'air de famille avec ce qui est venu une décennie plus tard est difficile à
+manquer : les indices de rupture de Blackwood sont eux aussi un budget de
+discordances conditionné par la profondeur, et son calendrier de quotas est lui
+aussi une courbe pré-engagée, par profondeur, réglée à la main plutôt
+qu'optimisée par chaîne. La filiation passe par ce solveur.
+
+## Le frère jumeau au score propre
+
+Les mêmes heuristiques animaient un second programme doté d'un coup de fin de partie
+différent : au lieu de décaler une arête, il peut *sauter une case*, c'est-à-dire
+laisser une cellule vide et poursuivre. Le nom est de lui
+([message 7321](https://groups.io/g/eternity2/message/7321)). C'est le chasseur de
+score propre (sans discordance). Avec lui, Verhaard a rempli 14 lignes complètes
+plus deux pièces, un partiel impeccable de 226 pièces et le record dont il avait
+connaissance à l'époque
+([groups.io message 6303](https://groups.io/g/eternity2/message/6303)). Lors d'un
+retour d'une journée en décembre 2009, après avoir estimé environ 2 000 partiels de
+248 par 249, il a décroché trois 249 d'affilée et s'est arrêté, situant un 250 à peu
+près 4 000 fois plus difficile
+([message 7306](https://groups.io/g/eternity2/message/7306)). Interrogé à ce sujet
+une décennie plus tard, il a confirmé que le 249 sur son site est réel : environ une
+semaine de calcul sur une seule machine
+([message 9890](https://groups.io/g/eternity2/message/9890)).
+
+## La reproduction publique : 82 jours pour un 467
+
+Parce que le binaire était public, le 467 est le rare record de l'ère du concours
+doté d'une reproduction indépendante et chiffrée. JSA a fait tourner eii en continu
+sur un seul PC et a consigné la distribution des scores à mesure qu'elle
+s'accumulait :
+
+- **43 jours :** 2 008 484 fois 463 · 109 195 fois 464 · 6 048 fois 465 · 250 fois
+  466 · rien de plus haut
+  ([groups.io message 6571](https://groups.io/g/eternity2/message/6571))
+- **62 jours :** 427 fois 466, arrivant à raison d'environ 5 à 6 par jour, et
+  toujours aucun 467
+  ([message 6653](https://groups.io/g/eternity2/message/6653))
+- **82 jours :** deux 467, aux côtés de 4 017 182 fois 463 · 227 245 fois 464 ·
+  13 637 fois 465 · 625 fois 466
+  ([message 6687](https://groups.io/g/eternity2/message/6687))
+
+Ce dernier relevé est la mesure publique la plus nette de l'échelle exponentielle de
+rareté près du sommet : quatre millions de 463 pour deux ou trois 467, et un palier
+466→467 qui a demandé à une seule machine près de trois mois. La formule de clôture
+de JSA, « Félicitations à Louis pour un algorithme bien pensé », fait aussi office de
+verdict de vérification.
+
+## Ce qu'il a enseigné à la communauté
+
+Au-delà du score, eii a établi un précédent : quand on est bloqué, on diffuse le
+solveur et on laisse les machines de la communauté chasser, le partage du prix
+faisant office de contrat. Le 467 a été trouvé par des *utilisateurs* d'un binaire
+publié, plus de 40 fois, avant de remporter quoi que ce soit. Douze ans plus tard,
+[Joshua Blackwood a répété le schéma](/research/lab/experiments/joshua-blackwood/solver),
+en publiant un 468 et en ouvrant le code du moteur quelques jours après, et a
+récolté la même récompense : une vague de records communautaires sur son propre
+algorithme. L'autre leçon est méthodologique et traverse toute cette page : Verhaard
+a réglé son solveur contre des *modèles* plutôt que sur de simples impressions (le
+tableau de bord du pic de nœuds, l'évaluateur par chaîne de Markov), à une époque où
+cette discipline était rare.
+
+## Où vit le code, et pourquoi il ne tournera pas ici
+
+Le point d'ancrage d'origine, fingerboys.se, était le site du groupe de musique de
+Verhaard ; quand le groupe a cessé de maintenir le site, le solveur a disparu avec
+lui pendant des mois. En janvier 2010, Verhaard l'a republié, inchangé, sur
+[shortestpath.se/eii](http://www.shortestpath.se/eii/)
+([groups.io message 7439](https://groups.io/g/eternity2/message/7439)) ; cette
+adresse reste son point d'ancrage, et la source de première main derrière la ligne
+467 dans [le tableau des records](/research/records). Une note opérationnelle issue
+des questions-réponses qui ont suivi : le solveur ne garde aucune mémoire des
+positions passées, si bien que ses milliers de plateaux à 463–465 ne sont pas
+dédoublonnés ([message 7451](https://groups.io/g/eternity2/message/7451)).
+
+Ce que « le code vit là » dissimule, c'est qu'aucun *code source* ne vit nulle part.
+Ce que Verhaard a livré, c'est `eii-1.0-win32.zip` : un `eii.exe` Windows, un lisez-
+moi, et quelques fichiers `.bat`. Il y a **zéro fichier source**, et c'est du Win32
+uniquement. Cela ne tourne pas sur Apple silicon, et il n'y a sur cette machine ni
+couche Windows ni couche d'émulation pour l'exécuter. Son artefact est, ici,
+inexécutable, et il n'y a rien de lui à récupérer et compiler. Les ordres de
+remplissage en peigne et le calendrier de décalage conditionné par la profondeur
+décrits plus haut sont devenus un canon communautaire précisément parce qu'ils ont
+été récupérés depuis ses messages et, quand ils étaient numériques, à l'octet près
+depuis les chaînes de caractères à l'intérieur d'`eii.exe`, puisque ce binaire est
+le seul enregistrement survivant de ces éléments.
+
+Ainsi, « faire tourner Verhaard » tout court signifie reconstruire sa méthode à
+partir de cette documentation. C'est ce que fait la
+[réimplémentation de Verhaard](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl),
+et sur le vrai casse-tête à cinq indices elle atteint 438 sur 480, en monocœur. Ce
+moteur est classé dans la section de Raphaël, pas dans celle-ci, parce qu'il est une
+lecture de la méthode de Verhaard, non le code de Verhaard. Nommer cette distinction
+fait partie du constat : des trois moteurs communautaires étudiés ici, le sien est
+celui qui ne peut pas être exécuté du tout.

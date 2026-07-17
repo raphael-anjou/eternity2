@@ -1,0 +1,173 @@
+---
+title: Calibré sur le pic de difficulté
+description: >-
+  Eternity II utilise 22 couleurs, réparties entre 17 couleurs intérieures et
+  5 réservées au cadre - et ce chiffre de 17 correspond exactement au point où
+  ce type de casse-tête est le plus difficile à résoudre.
+kind: finding
+contribution: measurement
+rigor: measured
+tier: 1
+order: 40
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "Brendan Owen, Concevoir le casse-tête le plus difficile : la dérivation 17+5 (liste de diffusion eternity2, août 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "Ansótegui, Béjar, Fernández & Mateu, On the hardness of solving edge matching puzzles as SAT or CSP problems (Constraints, Springer 2013)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
+    url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+related:
+  - /research/why/design-recipe
+  - /research/why/prune-vs-speed
+  - /research/why/entropy-area-law
+  - /research/why/no-forced-moves
+repro:
+  kind: exact
+  cmd: just research-phase-transition
+  topic: phase-transition
+---
+
+import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
+import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
+import { RectangleTransitionChart } from "@/components/research/RectangleTransitionChart";
+import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { colorToLetter } from "@/lib/motifs";
+import data from "@/data/phase-transition.json";
+
+Les problèmes de recherche difficiles possèdent un bouton de réglage de la
+difficulté. Desserrez-le et les solutions se multiplient : une recherche en
+trouve une presque aussitôt. Serrez-le et il n'en existe plus, ce qui est
+souvent facile à prouver. Entre les deux se trouve une bande étroite où les
+solutions sont rares mais bien réelles, et c'est là que la recherche explose.
+On parle de transition de phase, comme l'eau qui gèle.
+
+Pour les casse-tête à appariement de bords, ce bouton est le nombre de
+couleurs. Trop peu et les pièces s'emboîtent d'innombrables façons ; trop et
+elles ne s'ajustent presque plus. L'
+[analyse publiée](https://link.springer.com/article/10.1007/s10601-012-9128-9)
+situe le pic autour de 17 couleurs intérieures, le réglage pour lequel un
+casse-tête de cette taille possède environ une seule solution. Eternity II en
+utilise 17.
+
+La communauté disposait de ce chiffre quelques semaines après le lancement :
+en août 2007, Brendan Owen a dérivé $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
+couleurs intérieures à partir du critère « environ une solution attendue »,
+exactement les paramètres publiés, des années avant les analyses académiques
+([Concevoir le casse-tête le plus difficile, msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+## Le mur de la difficulté
+
+<Figure collapsible title="Interactif : le pic de difficulté selon le nombre de couleurs">
+  <PhaseTransitionLab />
+</Figure>
+
+## Ou mesurez-le vous-même
+
+Le graphique ci-dessus est précalculé. Celui-ci ne l'est pas : le moteur
+résout en direct des casse-tête inédits, un par nombre de couleurs, et trace le
+pic à partir de véritables exécutions dans votre navigateur.
+
+<Figure collapsible title="Interactif : résoudre en direct de part et d'autre du pic de difficulté">
+  <PhaseTransitionLiveLab />
+</Figure>
+
+## La transition, mesurée sur de vraies pièces
+
+L'argument fondé sur le nombre de couleurs indique *où* se trouve le pic. En
+mars 2008, Brendan Owen est allé observer une transition de phase directement,
+sur les pièces réelles. Il a pris un mince rectangle intérieur de 2 par L et l'a
+pavé avec des ensembles aléatoires de pièces intérieures d'E2 - quatre cents
+ensembles aléatoires pour chaque longueur - en notant combien pouvaient être
+complétés sans aucune non-concordance
+([msg 4909](https://groups.io/g/eternity2/message/4909)).
+
+<RectangleTransitionChart />
+
+La forme obtenue est la transition de phase en miniature. Une bande de 2 par 1
+ou 2 par 2 est si courte que des pièces aléatoires s'y ajustent souvent : 58 %
+de cas résolubles à la longueur 1. Puis tout s'effondre. De la longueur 4 à la
+longueur 15, pas un seul ensemble aléatoire sur quatre cents ne pave le
+rectangle, quelle que soit la longueur : les solutions sont si rares qu'elles
+n'existent pratiquement pas. Et elles reviennent ensuite. À la longueur 16, un
+ensemble sur quatre cents fonctionne ; à 19, on atteint 8,5 % ; à 21, 57 % ; et
+à 22, près de neuf sur dix. La région où les solutions sont extrêmement rares
+sans être encore impossibles est précisément la bande difficile, et ici ce
+n'est ni un récit ni un modèle : c'est un décompte. C'est aussi pourquoi un
+intérieur large de 14 cases est si redoutable : il se situe dans la partie
+raide de cette montée, là où une solution existe mais où presque aucun
+arrangement aléatoire n'en est une.
+
+## La répartition, lue directement sur les pièces
+
+Trier les couleurs de l'ensemble officiel selon l'endroit où elles apparaissent
+révèle clairement l'intention de conception.
+
+<div className="not-prose grid gap-5 sm:grid-cols-2">
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">5 couleurs réservées au cadre</div>
+    <div className="flex flex-wrap gap-3">
+      {data.frameOnlyColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <div className="text-xs text-muted-foreground">
+      Elles n'apparaissent que sur les pièces de bord et de coin, jamais à
+      l'intérieur. Ce sont les couleurs rares, cantonnées au pourtour.
+    </div>
+  </div>
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">17 couleurs intérieures</div>
+    <div className="flex flex-wrap gap-3">
+      {data.interiorColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <div className="text-xs text-muted-foreground">
+      La palette de l'intérieur du plateau, là où se joue la quasi-totalité des
+      appariements.
+    </div>
+  </div>
+</div>
+
+## L'ensemble en chiffres
+
+|                        | Nombre |
+| ---------------------- | -----: |
+| Pièces de coin         |      4 |
+| Pièces de bord         |     56 |
+| Pièces intérieures     |    196 |
+| Couleurs intérieures   |     17 |
+| Couleurs du cadre      |      5 |
+
+## Pourquoi c'est important
+
+C'est le signe le plus net qu'Eternity II a été rendu difficile
+délibérément. La taille du plateau, le nombre de pièces et la répartition des
+couleurs visent tous la même cible : un casse-tête à environ une seule
+solution, placé à l'endroit le plus défavorable qui soit pour n'importe quelle
+recherche. La difficulté a été choisie, comme un bon examen n'est ni trivial ni
+impossible.
+
+Comment savons-nous que ce pic est réel et non un simple récit ? Deux voies se
+rejoignent ici. L'analyse publiée le
+[dérive](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content) :
+pour les casse-tête à appariement de bords avec cadre, le nombre de couleurs
+pour lequel on attendrait environ une solution tombe près de 17, et c'est le
+réglage le plus difficile à explorer. Et vous pouvez en observer une part
+vous-même dans la démonstration ci-dessus : construisez de vrais casse-tête,
+comptez le travail effectué, et voyez-le exploser lorsque les couleurs se font
+rares. La conséquence est concrète. Elle signifie que l'écart jusqu'à une
+solution n'est pas un problème de réglage que l'on peut réduire à force d'une
+machine plus rapide ; le casse-tête a été placé là où la recherche est la pire,
+volontairement, de sorte que le vaincre exige une idée réellement meilleure, et
+non simplement plus d'efforts.
+
+Voyez la difficulté mesurée en direct sur la [page Algorithmes](/algorithms).

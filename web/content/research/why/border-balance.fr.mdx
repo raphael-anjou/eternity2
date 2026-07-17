@@ -1,0 +1,88 @@
+---
+title: L'équilibre du bord
+description: >-
+  Une grille résolue dissimule une loi comptable toute simple : chaque couleur
+  que le bord tend vers l'intérieur, l'intérieur la lui rend aussitôt. La
+  violer, c'est savoir sur-le-champ que la grille est fausse ; la respecter, en
+  revanche, ne garantit rien.
+metaDescription: "L'équilibre du bord dans Eternity II : chaque couleur que le bord tend à l'intérieur, l'intérieur la rend. La violer prouve une grille fausse ; la respecter, non."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 3
+order: 120
+updated: 2026-07-02
+topics: [search-space, structure]
+sources:
+  - label: Équilibre des types d'arêtes du bord observé lors de l'été de lancement (angwin_uk, août 2007)
+    url: https://groups.io/g/eternity2/message/2073
+  - label: "La condition de bord plus forte de mjqxxxx : effectifs pairs, répartis à parts égales entre arêtes gauche et droite (août 2007)"
+    url: https://groups.io/g/eternity2/message/2098
+  - label: Observation de Brendan Owen sur l'appariement des effectifs d'arêtes dans les jeux plantés (juin 2007)
+    url: https://groups.io/g/eternity2/message/422
+  - label: Énoncé de Hopfer (2022) de la condition d'égalité des multiensembles (groups.io msg 10754)
+    url: https://groups.io/g/eternity2/message/10754
+  - label: "Reformulation nette de Hopfer : même mélange d'images internes sur les 56 pièces de bord (msg 10757)"
+    url: https://groups.io/g/eternity2/message/10757
+related:
+  - /research/why/rare-color-geography
+  - /research/why/forbidden-patterns
+  - /research/why/no-forced-moves
+---
+
+import { Ns1Lab } from "@/components/research/Ns1Lab";
+
+Ne considérez que la couture entre l'anneau extérieur de pièces de bord et le
+premier anneau de pièces intérieures. Chaque arête qui traverse cette couture
+présente une couleur, comptée une fois côté bord et une fois côté intérieur.
+Dans toute solution complète, les deux décomptes sont identiques : le
+multiensemble des couleurs que le bord présente vers l'intérieur égale
+exactement le multiensemble que l'intérieur présente vers l'extérieur.
+
+Appelons **déficit** ce déséquilibre, $\Delta$ : la moitié du désaccord total
+entre les deux décomptes. Une grille achevée et correcte a $\Delta = 0$. Les
+quatre solutions complètes connues, sur quatre jeux de pièces différents, la
+satisfont toutes exactement. Ainsi $\Delta > 0$ est un certificat qu'une grille
+ne pourra jamais être complétée : une condition nécessaire, réelle et peu
+coûteuse.
+
+## La loi, en une ligne
+
+À travers la couture bord↔intérieur, les couleurs que le bord montre vers
+l'intérieur et les couleurs que l'intérieur montre vers l'extérieur forment le
+même multiensemble. En notant $A[c]$ et $B[c]$ les deux décomptes par couleur :
+
+$$
+\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
+$$
+
+## Le voir sur une vraie grille
+
+Une grille 8×8 résolue part à l'équilibre ($\Delta = 0$). Retirez une pièce de
+bord et observez quelles couleurs se déséquilibrent, et le déficit grimper.
+Essayez ensuite le bouton d'échange, et observez le piège.
+
+<Figure collapsible title="Interactif : le déficit d'équilibre du bord NS-1">
+  <Ns1Lab />
+</Figure>
+
+## Le piège, et pourquoi il compte
+
+Échanger deux pièces de bord laisse $\Delta$ à 0. L'échange déplace des couleurs
+le long de la couture sans modifier l'un ou l'autre décompte ; l'invariant y est
+donc aveugle. Pire, sur une quasi-solution, la plupart des erreurs restantes ne
+se trouvent pas du tout sur la couture du bord. Elles siègent d'intérieur à
+intérieur, là où NS-1 ne regarde jamais : sur les grilles de la classe 469, plus
+de 85 % des arêtes non appariées lui sont invisibles.
+
+C'est là toute la texture d'Eternity II en miniature. Une vérification aussi
+propre soit-elle ne dit jamais que « assurément cassé », jamais « assurément
+correct ». Le puzzle résiste à tout certificat de progrès à bon marché.
+
+## Est-ce utile, alors ?
+
+Oui, comme élagueur de fin de recherche. Une fois que le solveur a refermé
+l'anneau de bord, imposer $\Delta = 0$ rejette 10 à 28 % des impasses profondes
+au prix d'un seul passage sur les 56 arêtes de la couture. C'est
+nécessaire-mais-lâche : cela écarte les mauvais états à peu de frais et laisse
+intacte la partie difficile, l'intérieur.

@@ -1,0 +1,193 @@
+---
+title: All-different, le filtre par matching de Régin
+description: >-
+  Aucune pièce ne peut servir deux fois : une seule contrainte all-different
+  globale sur 256 cases. Jean-Charles Régin a montré en 1994 comment un matching
+  biparti la filtre complètement en temps polynomial ; sa variante par couleur
+  est le propagateur le plus puissant jamais mesuré sur l'edge matching, avec une
+  réserve nette sur les recherches tolérantes aux erreurs.
+metaDescription: "All-different sur les 256 cases d'Eternity II : le filtre par matching de Régin (1994) et sa variante par couleur, le propagateur le plus fort mesuré ici."
+kind: concept
+order: 20
+group: Reduce the search
+updated: 2026-07-02
+topics: [search-space, exact-methods]
+sources:
+  - label: Régin 1994, « A Filtering Algorithm for Constraints of Difference in CSPs » (AAAI-94)
+    url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
+  - label: 'Ansótegui, Béjar, Fernández & Mateu 2008, « Edge Matching Puzzles as Hard SAT/CSP Benchmarks » (CP 2008) : le filtre par matching par couleur'
+    url: https://doi.org/10.1007/978-3-540-85958-1_42
+  - label: Algorithme de matching de Hopcroft-Karp (Wikipédia)
+    url: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
+related:
+  - /research/build/reduce/arc-consistency
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/why/no-forced-moves
+  - /research/build/dead-ends
+---
+
+import { ReginMatchingLab } from "@/components/research/concepts/ReginMatchingLab";
+
+Sous le matching des couleurs, Eternity II porte une seconde loi globale : les
+256 cases doivent recevoir 256 pièces *distinctes*. Écrite comme une contrainte,
+c'est un unique all-different sur tout le plateau. La plupart des solveurs
+l'imposent de la façon la plus faible possible (quand une pièce est posée, on la
+raye partout ailleurs), ce qui laisse passer toute une classe de positions
+mortes : cinq cases dont les candidats restants ne puisent que dans quatre pièces
+sont déjà insolubles, et un simple rayage ne s'en apercevra que bien plus tard.
+
+## Le filtre de Régin (1994)
+
+Jean-Charles Régin a montré que la contrainte all-different peut être filtrée
+*complètement*, en temps polynomial : tout candidat n'apparaissant dans aucune
+affectation globale valide est supprimé. La construction relève de la pure
+théorie des graphes :
+
+1. Construire le graphe biparti cases contre pièces, avec une arête partout où
+   une pièce reste dans le domaine d'une case.
+2. Calculer un matching maximum (Hopcroft-Karp, $O(m \sqrt{n})$). S'il ne
+   couvre pas toutes les cases, la position est morte ; on remonte
+   immédiatement.
+3. Orienter le graphe autour du matching et calculer ses composantes fortement
+   connexes (Tarjan, temps linéaire). Un théorème de Berge identifie alors, en
+   une seule passe, exactement quelles arêtes appartiennent à *un* matching
+   maximum.
+4. Toute arête qui n'appartient à aucun est un candidat qu'on peut supprimer du
+   domaine de sa case, de façon correcte.
+
+Cet article a de fait fondé le champ des contraintes globales en programmation
+par contraintes : une contrainte sur des centaines de variables, filtrée
+optimalement par un seul algorithme combinatoire plutôt que décomposée en de
+faibles vérifications deux à deux. Les versions incrémentales (Régin 1995 ;
+Mehlhorn & Thiel 2000) réparent le matching après quelques suppressions au lieu
+de le recalculer, ce qui le rend abordable au cœur d'une boucle de recherche.
+
+## Voir le filtre à l'œuvre
+
+La construction est plus facile à croire qu'à imaginer, alors la voici sur une
+instance à six pièces conçue pour contenir un piège : les cases C1 et C2 ne
+puisent toutes deux que dans les pièces P1 et P2, un ensemble de Hall. Le rayage
+ne voit rien de fautif à ce que C3 garde P2 comme candidat ; l'argument du
+matching prouve que cela ne peut jamais arriver. Construisez d'abord le matching
+(observez un chemin augmentant expulser et réaiguiller une affectation
+antérieure), puis lancez le filtre et regardez les composantes fortement
+connexes exposer chaque arête qu'aucun matching maximum ne peut utiliser.
+
+<Figure collapsible title="Interactif : le filtre par matching de Régin à l'œuvre">
+  <ReginMatchingLab />
+</Figure>
+
+Le gain à remarquer : trois arêtes supprimées, et deux cases *forcées*. C3 doit
+prendre P3 et C6 doit prendre P6, des conclusions qu'un raisonnement deux à deux
+n'atteindrait qu'après un branchement. Voilà ce que signifie « filtrer
+optimalement » : après la passe de Régin, tout candidat survivant participe
+réellement à une affectation complète.
+
+## Étape par étape
+
+Le même déroulé, en mots :
+
+1. **Construire le graphe biparti.** Les cases d'un côté, les pièces de l'autre,
+   une arête partout où une pièce reste dans le domaine d'une case : six cases,
+   six pièces, treize arêtes dans la démo.
+2. **Faire croître un matching par chemins augmentants.** C1 prend P1. C2 veut
+   aussi P1 : au lieu d'abandonner, on suit le *chemin alternant* C2-P1-C1-P2.
+   P1 est pris, mais son propriétaire C1 dispose d'une alternative libre, P2. On
+   retourne chaque arête du chemin : C1 glisse vers P2, C2 obtient P1, et le
+   matching a grandi d'une unité. On répète jusqu'à ce que toutes les cases
+   soient couvertes. Si une case épuise un jour ses chemins, il n'existe aucune
+   affectation complète et la recherche remonte sur-le-champ.
+3. **Orienter le graphe.** Les arêtes du matching pointent case → pièce ; les
+   arêtes hors matching pointent pièce → case. Un cycle alternant du graphe
+   original devient alors un cycle orienté dans celui-ci.
+4. **Calculer les composantes fortement connexes** (Tarjan, une passe linéaire).
+   Dans la démo, \{C1, C2, P1, P2\} forment une composante (elles s'échangent
+   leurs deux pièces le long d'un cycle) et \{C4, C5, P4, P5\} une autre.
+5. **Appliquer la règle de Berge.** Une arête hors matching ne peut rejoindre
+   *un* matching maximum que si elle se trouve sur un cycle alternant (même
+   composante) ou sur un chemin alternant issu d'un sommet libre (aucun ici ; le
+   matching est parfait). Tout le reste est mort : C3-P2, C4-P3 et C6-P5
+   traversent chacune deux composantes, elles sont donc supprimées, de manière
+   prouvée et non heuristique.
+6. **Relever les réductions.** Le domaine de C3 se réduit à \{P3\}, celui de C6
+   à \{P6\} : deux placements forcés trouvés sans un seul branchement.
+
+## Ce que cela coûte
+
+Une invocation à partir de zéro, c'est deux passes de graphe :
+
+- **Matching maximum** via Hopcroft-Karp : $O(m \sqrt{n})$ pour $m$ arêtes
+  admissibles sur $n$ sommets, le terme dominant.
+- **Décomposition en composantes fortement connexes** via Tarjan : $O(n + m)$,
+  linéaire, plus autant à nouveau pour balayer les arêtes et supprimer.
+
+Pour l'all-different au niveau des pièces sur Eternity II, $n = 512$ sommets (256
+cases + 256 pièces) et $m$ vaut au plus $256 \times 256 = 65{,}536$ arêtes, si
+bien que $m\sqrt{n} \approx 1{,}5$ million d'opérations sur arêtes pour une
+construction complète. C'est de la menue monnaie sur du matériel moderne, et
+c'est le *pire* cas, à partir de zéro, avec des domaines aussi lâches que
+possible. Au sein d'une recherche, personne ne reconstruit : les versions
+incrémentales citées plus haut conservent le matching précédent, le réparent par
+quelques chemins augmentants après chaque changement de domaine, et relancent la
+passe linéaire des composantes fortement connexes, ce qui revient en pratique à
+un refiltrage quasi linéaire par nœud. La variante par couleur est plus petite
+encore : un graphe par classe de couleur sur les seules demi-arêtes portant cette
+couleur, 22 petits matchings au lieu d'un seul gros. L'étiquette polynomiale est
+le point clé : c'est un filtrage complet d'une contrainte globale au tarif d'un
+algorithme de graphes, pas au tarif d'une recherche.
+
+## Pourquoi cela mord sur Eternity II
+
+Le même théorème s'applique à deux niveaux différents sur ce puzzle.
+
+**Par couleur.** Pour chaque couleur, les demi-arêtes qui la portent doivent
+s'apparier parfaitement entre cases adjacentes : une condition de matching
+parfait par classe de couleur. Ansótegui, Béjar, Fernández et Mateu ont
+construit exactement ce propagateur sur le théorème de Régin pour les CSP
+d'edge matching, et l'ont qualifié de contrainte globale la plus puissante
+qu'ils aient trouvée pour ces puzzles. Cela recoupe l'expérience de ce projet :
+le filtre par couleur est le propagateur le plus fort du moteur de matching
+exact du projet, l'ingrédient qui (conjointement à la
+[cohérence d'arc](/research/build/reduce/arc-consistency)) fait passer un simple
+backtracker à 449 arêtes sur 480 en moins d'une minute (mesuré sur le moteur de
+ce projet, non répliqué de façon indépendante). Il gagne sa place tard : le
+projet le réserve aux positions profondes, où les domaines sont assez serrés
+pour que les matchings échouent et où le coût est amorti.
+
+**Par pièce.** La lecture directe, pièces restantes contre cases vides, attrape
+les pièges de type Hall que le rayage manque : des groupes entiers de cases se
+disputant trop peu de pièces, détectés avant que la machinerie deux à deux ne
+voie la moindre contradiction. Puisque
+[aucun coup n'est jamais forcé](/research/why/no-forced-moves) sur ce puzzle, un
+filtre qui raisonne sur des groupes plutôt que sur des cases isolées est
+exactement le genre de levier qui manque cruellement.
+
+## La réserve Blackwood, dite sans détour
+
+Le filtre par couleur suppose que chaque couleur doit s'apparier *exactement*.
+Une [recherche à la Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+brise cette hypothèse à dessein : ses indices de rupture autorisent un budget
+d'erreurs aux profondeurs tardives, si bien qu'un plateau que le filtre déclare
+« impossible » peut être précisément le 470 que la recherche traque. Faire
+tourner le filtre par matching par couleur au sein d'une recherche tolérante aux
+erreurs est incorrect, point final. Sur le moteur de ce projet, il est désactivé
+dans ce régime, et son retrait (avec le reste des propagateurs stricts) a fait
+partie d'un gros gain de vitesse en mono-thread.
+
+L'all-different au niveau des pièces fait exception, et cela compte : même une
+recherche tolérante aux erreurs n'utilise jamais deux fois une pièce. L'unicité
+des pièces reste stricte là où le matching des couleurs ne l'est plus, si bien
+que le filtre de Régin sur les pièces demeure correct précisément dans le régime
+où tout le reste de la famille de propagation s'effondre. C'est le seul
+propagateur global fort dont dispose un moteur de record.
+
+## Bénéfice, et ce qu'on ignore encore
+
+Le versant coût du bilan est ci-dessus, et il est polynomial de bout en bout. Le
+versant bénéfice, en revanche, a un trou : l'article original de Régin évalue un
+jouet à 25 variables, et il n'existe aucune mesure publiée du filtre sur un
+all-different à 256 variables ayant la forme d'Eternity II. Ce projet n'a pas non
+plus construit la version au niveau des pièces ; sa promesse au sein des
+recherches tolérantes aux erreurs est un argument, pas un chiffre. À traiter
+comme le pari ouvert le mieux étayé du rayon : correct là où plus rien de fort ne
+l'est, coût connu comme polynomial, gain non mesuré.

@@ -161,7 +161,7 @@ export function meta({ location }: { location: { pathname: string } }) {
     "@type": "TechArticle",
     headline: doc.title,
     description: metaDesc,
-    inLanguage: "en",
+    inLanguage: lang,
     url: pageUrl,
     mainEntityOfPage: pageUrl,
     isPartOf: { "@id": "https://eternity2.dev/#website" },
@@ -169,16 +169,16 @@ export function meta({ location }: { location: { pathname: string } }) {
     ...(doc.updated ? { dateModified: doc.updated } : {}),
     ...(doc.date ? { datePublished: doc.date } : {}),
     ...(doc.author
-      ? { author: { "@type": "Person", name: researchAuthor("en", doc.author)?.name ?? doc.author } }
+      ? { author: { "@type": "Person", name: researchAuthor(lang, doc.author)?.name ?? doc.author } }
       : { author: { "@id": "https://eternity2.dev/#org" } }),
   };
   // BreadcrumbList structured data mirrors the visual trail (Research →
   // section → page). Eligible for breadcrumb rich results and reinforces the
   // site hierarchy to crawlers. Built from the same findSection() chain the
   // DocsShell breadcrumb renders, so the two never disagree.
-  const section = findSection("en", doc.url);
+  const section = findSection(lang, doc.url);
   const crumbs: { name: string; url: string }[] = [
-    { name: "Research", url: absoluteUrl("/research") },
+    { name: lang === "fr" ? "Recherche" : "Research", url: absoluteUrl("/research") },
   ];
   if (section && section.url !== doc.url) {
     crumbs.push({ name: section.label, url: absoluteUrl(section.url) });
@@ -235,13 +235,12 @@ export default function ResearchDocPage() {
   const { pathname } = useLocation();
   const path = neutralPath(pathname);
 
-  // The research wiki is English-only. Any /fr/research/* URL (a stray bookmark
-  // from when French pages existed) redirects to the English page. No /fr
-  // research URLs are generated anymore; this route only catches old links.
-  if (langFromPath(pathname) === "fr") {
-    return <Navigate to={path} replace />;
-  }
-  const lang = "en" as const;
+  // The wiki is bilingual: English at /research/**, French at /fr/research/**.
+  // The language comes from the URL. A page whose French translation
+  // (<slug>.fr.mdx) has not been written yet still resolves — buildManifest("fr")
+  // falls back to the English entry with translated:false, and DocsShell shows a
+  // "not yet translated" notice — so a French URL never 404s.
+  const lang = langFromPath(pathname);
 
   // Pages that moved (Build reorg into technique-family sub-hubs) redirect old
   // URLs to their new home, so bookmarks and external links don't 404.

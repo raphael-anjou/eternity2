@@ -1,0 +1,217 @@
+---
+title: Benchmark mono-cœur
+description: >-
+  Quinze solveurs, les nôtres et nos implémentations des deux backtrackers
+  record de la communauté, chacun exécuté une fois sur dix variantes à coins
+  épinglés du casse-tête officiel, un seul cœur, 60 secondes par exécution. Le
+  constat : le nombre de nœuds n'est pas le score.
+metaDescription: "Quinze solveurs Eternity II comparés sur dix variantes à coins épinglés, mono-cœur, 60 s chacun. Le constat : le nombre de nœuds n'est pas le score."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # le banc mono-cœur standardisé
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # budget par exécution
+  runs: 150 # 15 algorithms × 10 corner variants
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true only for the standardized single-core bench
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 10
+updated: 2026-07-13
+date: 2026-07
+topics: [speed, construction, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/build/construct/beam-search
+sources:
+  - label: "Moteur exécutable + résultats commités + scripts (le répertoire de support de cette expérience)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+Donnez à chaque solveur le même budget, un cœur et une minute : lequel l'emporte ?
+La réponse renverse l'intuition évidente. Plusieurs solveurs, les nôtres et nos
+implémentations des deux backtrackers record de la communauté, ont chacun été
+exécutés une fois sur dix variantes à coins épinglés du casse-tête officiel, en
+mono-thread, 60 secondes par exécution. Chaque plateau a été re-noté par un
+unique scoreur canonique ; aucun score auto-déclaré par un moteur n'est
+digne de confiance. Le score maximal possible est 480.
+
+<Callout kind="caution" title="Chaque moteur ici est notre code">
+  `blackwood_style` et `verhaard_style` sont **nos implémentations réécrites
+  de zéro** des algorithmes publiés par Joshua Blackwood et Louis Verhaard, et
+  non les programmes propres des auteurs. Le `eii` de Verhaard n'a jamais été
+  diffusé que sous forme de binaire Win32 ; une ré-implémentation (dont les
+  constantes ont été récupérées depuis `eii.exe`) est donc le seul moyen de
+  l'exécuter. Le vrai C# de Blackwood, lui, *est*
+  [public](https://github.com/jblackwood345/EternityII_Solver), mais il code en
+  dur ses 256 pièces et son nombre de threads : il ne peut donc ni lire les
+  variantes de cette grille ni être épinglé sur un seul cœur sans être modifié.
+  Les scores présentés ici mesurent notre lecture de chaque algorithme, non
+  l'ingénierie des auteurs, et ne doivent pas être cités comme « Blackwood
+  obtient N ».
+</Callout>
+
+Le classement ci-dessous montre les méthodes qui rivalisent au score. Une
+seconde famille, les préréglages CSP (un moteur d'arc-cohérence exécuté sous une
+douzaine de réglages d'ordonnancement), relève d'une catégorie différente : son
+meilleur préréglage atteint environ 183, moins de la moitié du score d'un
+prétendant, il ne mérite donc aucune ligne au classement. Ce balayage de
+préréglages est une étude à part entière, sur sa
+[propre page](/research/lab/experiments/single-core-benchmark/csp-presets).
+
+## Ce qu'achète une minute d'un cœur
+
+Les deux backtrackers record dominent ce budget. Notre moteur de style Verhaard
+atteint une moyenne de **440,8** (meilleur 451) et notre moteur de style
+Blackwood **436,4** (meilleur 440), tous deux explorant de 20 à 40 millions de
+nœuds de recherche par seconde. Rien d'autre n'en approche : le DFS naïf se pose
+à **365,6**, et le meilleur préréglage CSP à environ **183**.
+
+L'écart entre ces deux groupes est le constat. Les quatre familles voient le
+même casse-tête et les mêmes 60 secondes, et elles terminent séparées de 250
+points. Ce qui les distingue n'est pas la vitesse : les moteurs CSP sont trois
+ordres de grandeur plus lents par nœud que les backtrackers et battent tout de
+même le DFS naïf sur les variantes favorables, car chaque nœud est élagué plutôt
+que simplement visité. Le nombre de nœuds et le score ne sont pas le même axe.
+
+Ce que cette grille ne peut pas vous dire, c'est où se situe le plafond. Le
+meilleur plateau ici (451) reste à 13 points du record 5 indices de la
+communauté, 464, et la moyenne du meilleur moteur se situe à environ 24 points
+en dessous ; les records n'ont pas été établis en une minute, ils sont venus de
+fermes de calcul et de mois d'effort. On mesure ici l'efficacité par cœur à
+budget faible et fixe, rien de plus.
+
+<Figure title="Le classement : score moyen sur dix variantes de coins, mono-cœur, 60 s">
+  <BenchmarkLeaderboard />
+</Figure>
+
+## Lire le tableau
+
+Les deux backtrackers sont en tête de ce tableau et ils s'y maintiennent avec
+stabilité : le moteur de style Verhaard couvre 437 à 451 sur les dix variantes,
+le moteur de style Blackwood 431 à 440. La référence naïve est le plancher : un
+365 rapide et bourré de déchets qui montre à quoi ressemble un simple décompte
+d'arêtes appariées sans aucune qualité de plateau.
+
+Les unités de débit diffèrent selon la famille et ne sont jamais comparées entre
+elles. Les backtrackers comptent les nœuds de recherche par seconde, les moteurs
+CSP de même mais entre 5 et 10 milliers, car chacun de leurs nœuds exécute une
+arc-cohérence complète. La famille CSP troque le débit contre l'élagage, ce qui
+explique qu'elle explore bien moins de nœuds tout en battant le DFS naïf sur les
+bonnes variantes.
+
+## Ce que fait chaque prétendant
+
+- **Verhaard et Blackwood (backtrackers, rangs 1 et 2).** DFS à rupture
+  contrôlée par la profondeur, à 20 à 40 millions de nœuds par seconde. Ils
+  poussent jusqu'à 437 à 451 mais heurtent un mur : la fin de partie exige bien
+  plus de calcul que ne le permettent 60 secondes. Blackwood a trouvé son 470
+  après environ un mois sur un seul PC, et l'a qualifié de « coup de chance »
+  ([message 10194](https://groups.io/g/eternity2/message/10194)).
+- **DFS naïf (la référence).** Remplit tout le plateau en autorisant toutes les
+  ruptures. En ordre ligne par ligne (`anjou-naive_rowmajor`) il atteint un
+  décompte d'arêtes appariées élevé (365) mais un plateau de faible qualité,
+  criblé de ruptures. Rapide, et sans valeur. Il siège sur le tableau comme un
+  plancher : le nombre qu'une méthode doit franchir pour valoir quelque chose.
+  (La sensibilité du DFS naïf à l'ordre de visite, et la raison pour laquelle la
+  variante en spirale s'effondre à 78, figurent sur la
+  [page des préréglages CSP](/research/lab/experiments/single-core-benchmark/csp-presets)
+  aux côtés des autres ablations du même moteur.)
+
+## Où se situent ces chiffres
+
+Cette grille plafonne chaque moteur à un cœur pendant 60 secondes, bien en deçà
+du calcul qui a produit les records ci-dessous. Elle mesure l'efficacité par
+cœur et la qualité heuristique, non le score maximal atteignable. Un moteur qui
+se classe bien ici atteint de bons plateaux à moindre coût ; les chiffres record
+exigent de nombreux cœurs multipliés par des heures.
+
+Chaque variante ici épingle les 5 indices officiels (plus 3 coins, soit 8
+amorces au total), si bien que le plafond pertinent est le **record 5 indices de
+la communauté, 464**, et non le 470 tous indices (qui utilise plus que les 5
+indices). C'est ce 464 que marque la ligne pointillée du classement.
+
+| référence | score | conditions |
+|:--|--:|:--|
+| Record communautaire 5 indices | 464 | Benjamin Riotte, juillet 2026 (mêmes 5 indices que ces variantes épinglent) |
+| Meilleur de cette grille (style Verhaard) | 451 | un cœur, 60 s (moyenne 440,8 sur 10 variantes) |
+| Style Blackwood dans cette grille | 440 | un cœur, 60 s (moyenne 436,4 sur 10 variantes) |
+| Plafond communautaire tous indices | 470 | Blackwood, ~1 mois sur un seul PC, utilise plus que 5 indices |
+
+## Méthode et reproductibilité
+
+Chacune des dix variantes est le casse-tête officiel augmenté de trois cellules
+de coin épinglées (des dispositions distinctes des pièces de coin) : les dix
+partagent donc le jeu de 256 pièces et les 5 amorces d'indices mais diffèrent par
+trois contraintes de coin. Elles sont émises à la fois en JSON au schéma du site
+(pour les moteurs natifs) et en CSV (pour les moteurs autonomes) depuis un unique
+générateur, de sorte que chaque algorithme voit des instances identiques. Une
+exécution par casse-tête, graine fixe ; la disposition des coins est le seul axe
+de diversité. Chaque exécution émet une `.url` bucas, et le score est le décompte
+canonique d'arêtes appariées produit par le même scoreur, jamais l'auto-déclaration
+du moteur. Il n'y a eu aucun échec sur l'ensemble des 150 exécutions.
+
+Chaque moteur de la grille est notre propre code open source et s'exécute depuis
+ce dépôt, y compris les deux écrits à partir des algorithmes publiés par la
+communauté ; aucun solveur tiers n'est intégré ici. La grille les mesure tous ;
+le classement ci-dessus ne montre que les cinq qui rivalisent au score, et la
+[page des préréglages CSP](/research/lab/experiments/single-core-benchmark/csp-presets)
+montre le reste. L'espace de travail des crates, les dix variantes, les résultats
+commités par exécution et les scripts de la grille résident tous dans le
+[répertoire de support](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+de l'expérience, et `just experiments single-core-benchmark` compile les moteurs
+et relance la grille entière. La famille native (le naïf et les préréglages CSP)
+est un unique binaire sélectionné par préréglage ; les deux backtrackers sont un
+binaire chacun, pilotés par un petit wrapper. Tous deux parlent le même contrat
+casse-tête-en-entrée, url-bucas-en-sortie, et chaque plateau est re-noté par
+l'unique scoreur canonique.
+
+## Constats connexes
+
+Le profilage a placé 96,6 pour cent du temps de la famille CSP dans une seule
+boucle AC-3 lourdement pré-optimisée. Ce moteur est déjà à son plafond de
+performance ; les vitesses du benchmark sont ses vraies vitesses, non un écart
+d'implémentation. Par ailleurs, les constantes Blackwood de la communauté ne se
+transfèrent pas d'un étiquetage de couleurs à l'autre : ses couleurs privilégiées
+publiées ont obtenu 387 dans notre étiquetage contre 435 pour un ré-ajustement,
+un écart de 48 points que notre Blackwood comble en ré-ajustant seulement les ID
+de couleur relatifs à l'étiquetage tout en respectant chaque élément structurel
+de la spécification publiée.
+
+## Travaux ouverts
+
+La grille exécute nos implémentations. Deux des trois moteurs record de la
+communauté peuvent en principe être exécutés directement, et c'est la prochaine
+mesure évidente :
+
+- **Le générateur en C de Peter McGavin.** Il en a posté le code source sur la
+  liste en janvier 2026 sous le nom `genbody71.zip`
+  ([message 11749](https://groups.io/g/eternity2/message/11749)). Il compile sur
+  Apple silicon avec `clang` et sa passe de génération émet un `body.c` de 10 363
+  lignes spécialisé pour un seul casse-tête. C'est le moteur le plus rapide que
+  la communauté ait mesuré, à 295 M de placements/s sur le CPU de Joe
+  ([message 11750](https://groups.io/g/eternity2/message/11750)), et il est
+  absent de cette grille.
+- **Le C# de Joshua Blackwood.** [Public et sous
+  GPL-3.0](https://github.com/jblackwood345/EternityII_Solver) ; il compile sans
+  modification sur .NET 8. Mais il code en dur ses 256 pièces dans `Util.cs`,
+  fixe `number_virtual_cores = 64`, et ne prend aucun argument : l'épingler sur
+  un seul cœur ou lui fournir les variantes de cette grille suppose de modifier
+  son code source, moment où l'artefact n'est plus purement le sien. L'exécuter
+  tel que publié, sur le casse-tête brut, est la forme fidèle de cette mesure.
+- **Le `eii` de Louis Verhaard** ne peut pas du tout être exécuté : le
+  téléchargement depuis son propre site fournit `eii.exe` et aucun code source,
+  raison pour laquelle notre moteur le reconstruit à partir du binaire.
+
+Aucun de ces moteurs n'est intégré à ce dépôt ; tous deux sont récupérés et
+exécutés localement au moment de la mesure.

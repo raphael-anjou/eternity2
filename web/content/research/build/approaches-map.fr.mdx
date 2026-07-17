@@ -1,0 +1,251 @@
+---
+title: Une carte de toutes les approches connues
+description: >-
+  La synthèse que la communauté réclame sans jamais la trouver : chaque famille
+  d'attaque tentée sur Eternity II, ce que chacune a réellement atteint, où elle
+  bute, et un lien vers la page de fond. Une même idée directrice les traverse
+  toutes.
+metaDescription: "Une synthèse de chaque famille d'attaque tentée sur Eternity II : ce que chacune a atteint, où elle bute, et l'unique idée directrice qui les traverse toutes."
+kind: page
+order: 5
+group: Start here
+updated: 2026-07-08
+sources:
+  - label: "Le bilan que la communauté dresse elle-même de deux décennies d'effort : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io, message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: 'Le record en vigueur, 470, sur le puzzle officiel : Joshua Blackwood, « 470 Found », eternity2@groups.io, 2021 (groups.io, message 10117)'
+    url: https://groups.io/g/eternity2/message/10117
+  - label: "Eternity II (Wikipédia) : le puzzle, le prix et le bilan public"
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/build/techniques
+  - /research/build/solvers
+  - /research/why
+---
+
+Ceux qui travaillent sur Eternity II finissent tous par poser la même question :
+existe-t-il un endroit qui recense *toutes* les approches ? La réponse habituelle
+est non, parce que ceux qui s'y attaquent forment un mélange d'universitaires, de
+solveurs de compétition et d'amateurs, et que personne n'a jamais dressé la carte.
+Cette page est cette carte. Elle n'ajoute aucune méthode nouvelle ; elle aligne
+celles que ce wiki documente déjà, une famille à la fois, pour que l'on embrasse
+tout le territoire avant de choisir une direction.
+
+Pour chaque famille : ce qu'elle est en une ligne, ce qu'elle a réellement atteint
+sur le vrai plateau 16×16, où elle s'arrête, et un lien vers la page de fond avec
+les labos, les mesures et les citations d'archives.
+
+## L'unique idée qui organise toute la carte
+
+Chacune des familles ci-dessous cale au même endroit : le plafond communautaire de
+470 arêtes accordées sur 480, avec
+[les propres expériences de ce projet](/research/lab/experiments/raphael-anjou)
+regroupées autour de 460–463. Elles calent là pour la même raison, et il vaut la
+peine de l'énoncer avant le catalogue pour que le reste se lise comme autant de
+variations sur un même thème.
+
+La raison tient à un problème d'évaluation. Le seul signal peu coûteux dont dispose
+un solveur est le nombre d'arêtes accordées, et ce nombre ne dit pas à quelle
+distance de la solution on se trouve. Un plateau à 470 arêtes et un plateau à 460
+peuvent être tout aussi loin de l'achèvement, car les dix dernières arêtes ne
+relèvent pas d'un travail de finition : elles siègent de l'autre côté d'un mur
+global qu'aucun score local ne perçoit. Ainsi les chercheurs systématiques et les
+chercheurs stochastiques, qui ne se ressemblent en rien, convergent vers la même
+hauteur. C'est le **[mur de rigidité](/research/why/rigidity-wall)** : les plateaux
+record sont localement figés, et le pas d'un excellent plateau à un plateau parfait
+est un unique échange indivisible, sans gradient à suivre. Son pendant est
+**[pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)** :
+lorsqu'on ne peut pas réduire la recherche, la vitesse brute n'achète presque rien.
+La section **[pourquoi c'est difficile](/research/why)** démontre les deux, et
+**[quel mur arrête quelle méthode](/research/why/walls-and-methods)** confronte
+chaque attaque au mur sur lequel elle meurt.
+
+Gardez cela en tête et la carte ci-dessous se lit sans peine : les familles
+diffèrent par la *manière* dont elles grimpent, non par la *hauteur* qu'elles
+atteignent.
+
+## Recherche systématique
+
+La famille du retour arrière : placer les pièces une à une dans un ordre fixé ou
+calculé, élaguer les placements illégaux, et défaire en cas d'échec. Tout ce qui
+détient un record vit ici.
+
+- **[Ordres de remplissage](/research/build/backtracking/fill-order)**. L'ordre
+  dans lequel un solveur à retour arrière visite les 256 cases est son unique
+  degré de liberté, et il fait varier la taille de l'arbre de recherche de
+  plusieurs ordres de grandeur sans coût d'exécution. Vingt ans de science
+  communautaire, du débat fixe-contre-dynamique à la recherche en peigne de
+  Verhaard. C'est le levier, pas un mur.
+- **[Cohérence d'arc](/research/build/reduce/arc-consistency)**. Faire en sorte que
+  la liste de candidats de chaque case se défende contre ses voisines jusqu'à un
+  point fixe, au-delà du simple contrôle anticipé à un coup. L'AC-3 de Mackworth et
+  ses raffinements élaguent fortement sur les petits plateaux ; sur le plateau
+  complet, l'élagage atteignable s'estompe à environ deux cases de distance et ne
+  parvient pas à effondrer le facteur de branchement.
+- **[Tous-différents, le filtre de couplage de Régin](/research/build/reduce/alldiff-regin)**.
+  Aucune pièce ne peut servir deux fois : une seule contrainte globale sur 256
+  cases, filtrée intégralement en temps polynomial par couplage biparti. Le
+  propagateur le plus puissant que l'on ait mesuré ici, avec une réserve marquée dès
+  que la recherche tolère des désaccords.
+- **[Apprentissage de no-goods](/research/build/reduce/nogood-learning)**. Un
+  sous-arbre échoué est un théorème : le consigner et ne jamais y revenir. Tables de
+  transposition et contraintes minées paient toutes deux sur les petits plateaux ;
+  en 16×16, le nombre de no-goods distincts dépasse toute mémoire que l'on puisse
+  détenir.
+- **[Redémarrages et queues lourdes](/research/build/backtracking/restarts)**. Le
+  même solveur à retour arrière sur le même puzzle termine en des temps d'exécution
+  qui diffèrent de plusieurs puissances de dix ; alors on coupe, on rebat les
+  cartes, et on relance. Tout solveur record depuis 2007 est un portefeuille de
+  redémarrages. Cela change les plateaux que l'on atteint, pas le plafond.
+- **[Rencontre au milieu](/research/build/exact/meet-in-the-middle)**. Énumérer
+  deux moitiés et les joindre sur une interface commune, en échangeant de la mémoire
+  contre la moitié de l'exposant. Réel sur des bandes du plateau ; l'expérience
+  BANDSAW de ce projet a mesuré où cela cesse de payer à pleine taille.
+- **[Couverture exacte et dancing links](/research/build/exact/exact-cover-dlx)**.
+  Eternity II s'énonce proprement comme une couverture exacte, et l'algorithme X de
+  Knuth en est la machine classique. Il brille sur les petits plateaux et le
+  dénombrement exhaustif ; en 16×16, l'arbre reste non réduit et un quasi-succès ne
+  vaut aucun crédit partiel.
+- **[Ingénierie de solveur](/research/build/faster/solver-engineering)**. Non pas
+  un algorithme mais l'artisanat qui le sous-tend : tables de correspondance,
+  fonctions de hachage parfaites, structures dimensionnées au cache, code généré.
+  Il décide si un nœud coûte 26 cycles ou 2 600, et c'est ce qui permet aux moteurs
+  record de tourner. Il achète de la vitesse, et la vitesse est précisément ce qui
+  ne déplace pas le mur.
+
+Le **[catalogue de solveurs](/research/build/solvers)** montre comment les moteurs
+record (le 467 de Verhaard, le 470 de Blackwood) assemblent ces pièces.
+
+## Traductions vers d'autres solveurs
+
+Plutôt que d'écrire un solveur à retour arrière, on traduit le puzzle dans le
+langage d'entrée d'un solveur industriel et l'on laisse une décennie d'ingénierie
+mener la recherche.
+
+- **[Encodages SAT et CSP](/research/build/exact/sat-csp-encodings)**. Écrire le
+  puzzle sous forme de clauses et le confier à un solveur complet. Tenté depuis
+  2008. Les solveurs calent sur le plateau complet, mais leurs verdicts gagnent
+  encore leur place comme preuves d'impossibilité sur des sous-plateaux.
+- **[Relaxations PL et PLNE](/research/build/exact/lp-relaxations)**. L'écrire comme
+  un programme en nombres entiers et abandonner l'intégralité : un solveur linéaire
+  atteint une erreur nulle en quelques secondes en plaçant des fractions de pièces.
+  Le confort s'arrête à l'instant où les pièces doivent être entières : un plateau à
+  420–440 arêtes, un mur PLNE dès le 8×8, et un meilleur résultat académique de 461
+  en une heure.
+
+## Recherche locale et stochastique
+
+Partir d'un plateau complet (imparfait) et l'améliorer par des mouvements, guidé
+par un objectif. Ces méthodes ne ressemblent en rien au retour arrière, et elles
+s'arrêtent à la même hauteur.
+
+- **[Recherche locale et ALNS](/research/build/local-search/local-search-alns)**.
+  Détruire une partie d'un plateau, la reconstruire en mieux, et apprendre quelles
+  démolitions paient. Le polisseur le plus fiable ici, et la démonstration la plus
+  nette de là où le polissage s'achève.
+- **[Recuit simulé et parallel tempering](/research/build/local-search/parallel-tempering)**.
+  Traiter les désaccords comme une énergie et la température comme une tolérance à
+  l'aggravation. Le recuit détient le record le plus ancien de cette famille ; le
+  tempering franchit des barrières que le recuit ne peut franchir. Les deux
+  s'arrêtent au même mur.
+- **[Recherche par faisceau](/research/build/construct/beam-search)**. Maintenir en
+  vie les K plateaux partiels les plus prometteurs et les faire croître case par
+  case. Le cheval de trait derrière les constructeurs partant de zéro de ce projet,
+  et une illustration nette de pourquoi la largeur seule cale dans l'intérieur
+  profond.
+- **[Approches évolutionnaires et génétiques](/research/build/local-search/evolutionary)**.
+  Élever une population, garder les plus aptes, recombiner les survivants. La
+  métaphore la plus naturelle de la boîte à outils, et celle dont l'opérateur
+  central, le croisement, se heurte de plein fouet à la structure du puzzle.
+- **[Applications itérées et divide-and-concur](/research/build/exact/iterated-maps)**.
+  Scinder le puzzle en deux ensembles de contraintes faciles à projeter et itérer
+  une application dont les points fixes sont des solutions. La méthode d'Elser a fait
+  la couverture de PNAS ; sur la liste Eternity II, elle a été testée une fois et
+  jamais menée à son terme.
+
+## Apprendre des plateaux forts
+
+Chacune des méthodes ci-dessus ne raisonne qu'à partir des règles du puzzle. Cette
+famille raisonne à partir des plateaux déjà trouvés : exploiter le corpus des
+plateaux forts pour en extraire de la structure et la réinjecter dans une recherche
+comme un biais. Elle atteint vite et sûrement le sommet de la plage d'une recherche,
+et elle ne relève pas le plafond.
+
+- **[Apprendre des plateaux forts](/research/build/learning)**. Le carrefour de la
+  famille : [priors](/research/build/learning/corpus-priors) de position et de
+  demande rare, [ordonnancement de coups appris](/research/build/learning/learned-value-ordering)
+  par vote, [minage d'anti-motifs](/research/build/learning/anti-pattern-mining) qui
+  sépare la structure partagée du piège partagé, et
+  [décodage d'un record](/research/build/learning/decoding-records) pour retrouver le
+  coup qu'une recherche ordinaire manquait. La
+  [synthèse de l'effondrement](/research/build/learning/when-learning-collapses) est
+  l'endroit où la famille s'arrête : accordez trop de confiance à un signal appris et
+  la recherche se disloque, et même exploité parfaitement, aucune de ces méthodes ne
+  franchit le mur de rigidité, car le corpus dont elles apprennent est fait de
+  plateaux bloqués à ce même mur.
+
+## Voies exotiques et matérielles
+
+Tous les quelques ans, quelqu'un propose un matériel neuf ou une physique neuve.
+Ces pages tiennent le registre de ce que chacune a réellement livré.
+
+- **[Résolution sur GPU](/research/build/hardware/gpu-solving)**. Cela ressemble à
+  la charge de travail parfaite (des millions de sous-arbres indépendants), et
+  dix-huit ans de tentatives ont mesuré une tout autre réalité : branchement
+  divergent et état par fil qui déborde la mémoire rapide. Le mur est la mémoire, pas
+  l'arithmétique.
+- **[Résolution sur FPGA](/research/build/hardware/fpga-solving)**. Placer les
+  tables de correspondance à un cycle de distance dans la RAM embarquée et pipeliner
+  des dizaines de minuscules solveurs à retour arrière. Michael Field l'a conçu,
+  projeté 5 milliards de placements par seconde et par puce, et fait tourner un
+  prototype. La voie a été cartographiée en détail et jamais parcourue jusqu'au bout.
+- **[Résolution distribuée](/research/build/faster/distributed-solving)**. Y jeter
+  davantage d'ordinateurs : économiseurs d'écran BOINC, syndicats de partage du prix,
+  grappes de consoles, fermes de cartes monobloc. L'effort total de la communauté a
+  atteint environ 10^19 opérations sans solution ; la seule chose que la distribution
+  fait vraiment bien est le dénombrement exhaustif sur les petits plateaux.
+- **[Approches quantiques](/research/build/hardware/quantum)**. Le plus ancien deus
+  ex machina de la liste, invoqué dès le premier mois du puzzle et tous les quelques
+  ans depuis. Deux histoires réelles (l'accélération quadratique de Grover et le
+  recuit sur un QUBO), l'arithmétique confrontée aux chiffres réels d'Eternity II, et
+  un bilan de zéro exécution.
+
+## Analyse, pas des solveurs
+
+Celles-ci ne cherchent pas à résoudre le puzzle. Elles le mesurent, et c'est ainsi
+que la communauté sait où sont les murs.
+
+- **[Arguments de parité](/research/build/analysis/parity-arguments)**. Compter une
+  quantité du plateau deux fois, une fois de chaque côté, et les totaux doivent
+  coïncider, ce qui fournit des preuves d'impossibilité pour une passe. L'histoire du
+  479 en montre à la fois la puissance et le piège.
+- **[Dénombrement des solutions](/research/build/analysis/solution-counting)**.
+  Personne n'a jamais vu de solution complète, et pourtant la communauté sait à un
+  facteur deux près combien il en existe : recensements exacts sur les petits
+  plateaux et une formule d'espérance qui a convergé vers environ 14 702.
+
+## Impasses
+
+Certaines idées sonnent aussi bien que n'importe laquelle ci-dessus et,
+démontrablement, ne déplacent pas le score. La page **[impasses](/research/build/dead-ends)**
+les rassemble avec la raison de l'échec de chacune, pour vous épargner un mois de
+travail : brisure de symétrie (il n'y a pas de symétrie globale à briser),
+propagation de probabilités qui s'estompe à deux cases de distance, et d'autres.
+
+## Ce que la carte vous dit
+
+Lisez-la de haut en bas et la forme est claire. Les familles systématiques
+détiennent les records parce qu'elles peuvent prouver des choses et élaguer
+fortement sur les petits plateaux, mais elles ne parviennent pas à réduire
+suffisamment la recherche complète pour atteindre la fin. Les familles stochastiques
+polissent magnifiquement et atteignent des plateaux réellement différents, puis
+calent à la même hauteur. Les voies matérielles changent la vitesse et jamais le
+plafond. Et les pages d'analyse expliquent pourquoi : les dix dernières arêtes ne
+sont pas affaire d'effort ou d'ingéniosité dans l'une ou l'autre famille, mais un
+mur global que chaque famille rencontre depuis sa propre direction.
+
+Si vous choisissez où investir votre temps, la question utile n'est pas quelle
+famille est la meilleure. C'est quel mur vous pensez pouvoir franchir, car c'est
+cela qui décide réellement du score.
+**[Quel mur arrête quelle méthode](/research/why/walls-and-methods)** est l'endroit
+par où commencer.

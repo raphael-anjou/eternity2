@@ -1,4 +1,4 @@
-import { researchPagePaths } from "./content.config";
+import { researchPagePaths, researchPagePathsFr } from "./content.config";
 
 // Canonical list of crawlable page paths (basename-relative, no origin).
 // This is the single source of truth shared by the React Router prerender list
@@ -10,9 +10,12 @@ import { researchPagePaths } from "./content.config";
 //      content.config.ts. Adding an MDX file IS the registration; nothing
 //      else to touch.
 //
-// English lives at the root; French mirrors it under /fr — EXCEPT the research
-// wiki, which is English-only (no /fr/research/* URLs are generated; the route
-// exists solely to redirect stray French bookmarks back to the English page).
+// English lives at the root; French mirrors it under /fr. Research pages get a
+// /fr twin only when genuinely translated (a `<slug>.fr.mdx` sidecar, or a
+// route-generated hub whose content is registry-backed) — see
+// researchPagePathsFr. Untranslated research pages have no /fr URL prerendered:
+// they fall back to English client-side, and mirroring them would duplicate
+// English content under a French URL.
 export const PAGE_PATHS = [
   "",
   "start",
@@ -45,16 +48,18 @@ export function allPagePaths(): string[] {
 }
 
 /** Every public URL path, normalized, with the prefix applied. Main pages exist
- *  at the root (English) and mirrored under /fr; research pages are English-only
- *  (no /fr twin is emitted). */
+ *  at the root (English) and mirrored under /fr. Research pages get a /fr twin
+ *  only when translated (researchPagePathsFr); untranslated ones are EN-only. */
 export function allRoutePaths(prefix = ""): string[] {
   const base = prefix.replace(/\/$/, "");
   const research = new Set(researchPagePaths());
+  const researchFr = new Set(researchPagePathsFr());
   return allPagePaths().flatMap((p) => {
     const en = (base + "/" + p).replace(/\/$/, "") || "/";
-    // Research is English-only: skip the /fr mirror for research paths.
-    if (research.has(p)) return [en];
     const fr = (base + "/fr/" + p).replace(/\/$/, "");
-    return [en, fr];
+    // Non-research page: always mirror under /fr.
+    if (!research.has(p)) return [en, fr];
+    // Research page: /fr twin only when a real French rendering exists.
+    return researchFr.has(p) ? [en, fr] : [en];
   });
 }

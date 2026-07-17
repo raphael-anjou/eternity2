@@ -1,0 +1,186 @@
+---
+title: Recuit simulé et tempérage parallèle
+description: >-
+  Voir les désaccords comme de l'énergie et la température comme une tolérance à
+  la dégradation. Le recuit détient le plus ancien record du puzzle ; le
+  tempérage parallèle franchit des barrières que le recuit ne passe pas. Les deux
+  butent sur le même mur.
+metaDescription: "Recuit et tempérage parallèle sur Eternity II : désaccords = énergie, température = tolérance. Le recuit tient un vieux record ; les deux butent sur un mur."
+kind: concept
+order: 70
+group: Local search
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
+    url: https://doi.org/10.1103/PhysRevLett.57.2607
+  - label: "Earl & Deem, Parallel tempering : théorie, applications et nouvelles perspectives (Phys. Chem. Chem. Phys., 2005)"
+    url: https://arxiv.org/abs/physics/0508111
+  - label: La liste de diffusion Eternity II, où Verhaard a décrit sa méthode de recuit de 2008 (groups.io)
+    url: https://groups.io/g/eternity2
+related:
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/local-search/local-search-alns
+---
+
+import { TemperingLadderLab } from "@/components/research/concepts/TemperingLadderLab";
+
+Le recuit simulé lit un plateau comme un système physique : les arêtes non
+appariées sont de l'énergie, les mouvements qui abaissent l'énergie sont
+toujours acceptés, et ceux qui l'augmentent le sont avec une probabilité
+$e^{-\Delta E / T}$. À chaud, la recherche vagabonde ; en refroidissant, le
+plateau se fige dans un arrangement de basse énergie, idéalement un arrangement
+profond, et pas seulement le plus proche. Toute la difficulté tient au
+calendrier de refroidissement : refroidissez trop vite et vous gelez dans un
+optimum local médiocre ; refroidissez assez lentement pour un puzzle de cette
+taille et vous attendez indéfiniment.
+
+## D'une température à une échelle
+
+Le tempérage parallèle (échange de répliques) dissout le problème du
+calendrier en faisant tourner toute l'échelle d'un coup. La méthode vient de
+la physique des verres de spin : l'
+[article de Monte-Carlo par répliques de 1986](https://doi.org/10.1103/PhysRevLett.57.2607)
+de Swendsen et Wang en est le précurseur, l'échange de répliques sous sa forme
+moderne est généralement attribué à Geyer (1991) puis à Hukushima et Nemoto
+(1996), et la [revue de 2005](https://arxiv.org/abs/physics/0508111) d'Earl et
+Deem en est la synthèse moderne de référence. $K$ copies du plateau exécutent
+un recuit simulé à des températures fixes $T_1 < T_2 < \dots < T_K$ ;
+périodiquement, des répliques adjacentes proposent d'échanger leurs états,
+échange accepté selon la règle de Metropolis
+
+$$
+P(\text{swap}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_i - E_j)}\bigr)
+= \min\bigl(1,\; e^{\Delta\beta\,\Delta E}\bigr),
+$$
+
+avec $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ et
+$\Delta E = E_i - E_j$. Lisons-la une fois avec des signes concrets : si la
+réplique $i$ est la plus froide ($\Delta\beta > 0$) et que la réplique la plus
+chaude détient l'énergie la *plus basse* ($\Delta E > 0$), l'exposant est
+positif et l'échange est accepté avec certitude : le bon état est toujours
+transmis gratuitement en descendant l'échelle. Les répliques chaudes parcourent
+les barrières ; les répliques froides exploitent ; les échanges font descendre
+les configurations prometteuses le long de l'échelle pour qu'elles soient
+raffinées. Aucune chaîne unique n'a jamais à survivre à un calendrier de
+refroidissement.
+
+## Voir l'échelle battre une seule chaîne froide
+
+L'affirmation qui vaut d'être vue est la comparaison : la même chaîne froide,
+avec et sans une échelle au-dessus d'elle. Ci-dessous, quatre répliques
+explorent un paysage synthétique accidenté dont le minimum global se cache
+derrière des barrières ; un fantôme gris exécute seul la dynamique froide
+identique. Observez les éclairs d'échange (vert pour accepté) faire descendre
+le bassin de droite jusqu'au barreau froid, tandis que le fantôme reste
+éternellement dans le puits de départ. Puis faites glisser le curseur
+d'espacement vers ses deux extrêmes et reproduisez les deux échecs classiques
+de l'échelle.
+
+<Figure collapsible title="Interactif : l'échelle du tempérage parallèle">
+  <TemperingLadderLab />
+</Figure>
+
+## Pas à pas
+
+Un tour de tempérage parallèle, tel que le laboratoire l'exécute :
+
+1. **Balayage.** Chaque réplique effectue des mouvements de Metropolis à sa
+   propre température fixe : proposer un changement local, calculer $\Delta E$,
+   accepter si cela descend, sinon avec une probabilité $e^{-\Delta E / T_i}$.
+   Sur un plateau, un mouvement d'une seule pièce touche au plus quatre coutures,
+   de sorte que le $\Delta E$ de chaque mouvement est en $O(1)$.
+2. **Tentative d'échange.** Choisir une paire adjacente $(i, i{+}1)$, calculer
+   $\Delta\beta\,\Delta E$ à partir des deux énergies mises en cache, accepter
+   avec $\min(1, e^{\Delta\beta \Delta E})$. En cas d'acceptation, les deux
+   répliques échangent leurs configurations (de manière équivalente : leurs
+   températures) ; rien d'autre ne bouge.
+3. **Comptabilité.** Suivre le taux d'acceptation des échanges par paire de
+   barreaux. Ce nombre *est* le diagnostic de l'échelle : proche de 100 %, les
+   barreaux adjacents voient le même paysage et l'un d'eux est gaspillé ; proche
+   de 0 %, l'échelle s'est découplée en chaînes indépendantes. Les échelles
+   utiles se situent à quelques dizaines de pour cent : fréquentes mais pas
+   gratuites, exactement le régime qu'Earl et Deem recommandent et celui vers
+   lequel nos exécutions ont convergé.
+4. **Recommencer.** Les bons états descendent les barreaux en marche aléatoire ;
+   les états bloqués remontent, sont secoués pour se libérer, et redescendent
+   différents.
+
+## Ce que ça coûte
+
+- **Par balayage :** $R$ répliques × $N$ sites, chaque mouvement demandant une
+  évaluation locale en $O(1)$, soit $O(R \cdot N)$, exactement $R$ fois une seule
+  chaîne. La mémoire est en $O(R \cdot N)$ : chaque réplique est un plateau
+  complet.
+- **Par phase d'échange :** les $R{-}1$ paires adjacentes nécessitent chacune une
+  exponentielle des énergies en cache : $O(R)$ au total, une erreur d'arrondi à
+  côté des balayages.
+- **Le gain porte sur le temps de mélange, pas sur le coût du pas.** Une chaîne
+  froide isolée franchit une barrière d'énergie $\Delta E$ en environ
+  $e^{\Delta E / T_{\text{cold}}}$ tentatives (l'attente d'Arrhenius ; le
+  franchissement de 76 cellules que nous avons mesuré se situait à $e^{-21}$ par
+  tentative à $T = 1$). L'échelle remplace cette attente par de la diffusion :
+  une configuration se promène aléatoirement à travers $R$ barreaux, et avec un
+  espacement géométrique réglé pour une acceptation par barreau constante, un
+  aller-retour coûte de l'ordre de $R^2$ tours d'échange. Vous payez un facteur
+  constant $R$ par balayage pour transformer une attente exponentielle en une
+  navette polynomiale. Cette asymétrie constitue tout l'argument de la méthode.
+- **Aucune garantie, comme tous les échantillonneurs.** Le tempérage parallèle
+  n'est pas complet et ne certifie rien ; il converge finalement vers la bonne
+  distribution, sans borne utile sur ce « finalement ». Et là où le paysage
+  offre des égalités plutôt que des barrières, comme sur les plateaux à
+  iso-score au sommet de ce puzzle, $\Delta E = 0$ fait se comporter tous les
+  barreaux à l'identique, et l'avantage de l'échelle s'évanouit par
+  construction, ce qui est précisément ce que rapporte le verdict ci-dessous.
+
+## Pourquoi ce puzzle a besoin de l'échelle
+
+Les mesures de ce projet (sur notre propre moteur ; non répliquées de manière
+indépendante) donnent une raison inhabituellement concrète. Entre un plateau
+solide et un meilleur, le mouvement qui les relie est une unique relocalisation
+imbriquée de dizaines de pièces dans laquelle *tout* sous-ensemble strict du
+mouvement perd des arêtes : la
+[structure en σ-cycles](/research/why/sigma-cycles). Une transition mesurée a
+exigé un mouvement de 76 cellules dont les états intermédiaires se situaient
+environ 21 arêtes sous le point de départ : à $T = 1$, l'acceptation est de
+l'ordre de $e^{-21}$, sans espoir. Avec la température maximale de l'échelle
+portée à environ 30, le franchissement a réellement eu lieu, et a produit ce
+qui était alors le meilleur plateau à démarrage à froid du projet. La
+température, employée correctement, est un vrai levier contre de vraies
+barrières.
+
+La conception de l'échelle est là où la pratique mord. Lorsque nous avons
+espacé les températures trop étroitement, l'échange de répliques acceptait
+chaque échange. Un taux d'acceptation de 100 % a l'air sain et signifie
+l'inverse : les répliques adjacentes voyaient en pratique le même paysage, et
+l'échelle n'ajoutait rien. Un espacement géométrique avec un barreau supérieur
+véritablement chaud, réglé pour que les échanges soient fréquents mais pas
+gratuits, est le conseil standard d'Earl et Deem, et il correspondait à ce que
+nous avons observé.
+
+## Le record communautaire bâti par le recuit
+
+Le recuit a une histoire distinguée sur ce puzzle. Le record le plus durable
+sur le jeu de pièces canonique (le 467 sur 480 de Louis Verhaard en 2008,
+invaincu jusqu'aux backtrackers de l'ère Blackwood en 2020) provenait d'une
+méthode de recuit, et d'une méthode inhabituelle : comme il l'a décrit sur la
+[liste de diffusion communautaire](https://groups.io/g/eternity2), il recuisait
+la *composition* d'un sous-ensemble de pièces, échangeant des pièces à l'entrée
+et à la sortie d'un groupe candidat sous un score de pavabilité, plutôt que de
+recuire des positions sur le plateau. La leçon se généralise : sur Eternity II,
+le choix de *ce que l'on recuit* comptait davantage que le recuit lui-même.
+
+## Le verdict
+
+À partir des mesures de ce projet, nuancées en conséquence : le tempérage
+parallèle franchit mieux les barrières que le recuit ordinaire, et sur la
+tranche intermédiaire de la montée cette différence est réelle et fiable.
+Près du sommet, elle se dissout. Les plateaux de là-haut sont à iso-score :
+des égalités partout, de sorte que l'acceptation ne dépend plus du tout de la
+température, et pousser la chaleur au lieu de grimper ne fait que randomiser le
+plateau, qui ensuite ne retrouve jamais le chemin du territoire des records.
+Les répliques lancées depuis un plateau de tête plafonnent au score de la
+graine, à chaque chaîne, à chaque échelle que nous avons essayée. Le tempérage
+vous déplace entre les collines ; il n'abroge pas le
+[mur de rigidité](/research/why/rigidity-wall).

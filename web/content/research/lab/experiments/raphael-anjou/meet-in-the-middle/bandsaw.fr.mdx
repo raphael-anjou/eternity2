@@ -1,0 +1,128 @@
+---
+title: BANDSAW
+description: >-
+  Résoudre exactement une bande de rangées en se rejoignant au milieu, pour
+  trouver la vraie meilleure fin et mesurer jusqu'où décider une fin de partie.
+kind: experiment
+contribution: analysis
+author: raphael-anjou
+score: 437
+rigor: proven
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "deterministic exact analysis; the committed example reproduces byte-for-byte"
+  seedPolicy: "none (exact, deterministic)"
+  measured: false
+complexity:
+  time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
+  space: "O(number of top-half partials), the seam/piece-set hash table is the memory bottleneck"
+  note: >-
+    Se rejoindre au milieu échange du temps contre de l'espace : cela remplace
+    une seule marche exponentielle par deux marches plus petites suivies d'une
+    jointure, ce qui explique pourquoi la taille de la bande est limitée par la
+    mémoire, non par le temps.
+repro:
+  kind: exact
+order: 110
+updated: 2026-07-10
+date: 2026-07
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/entropy-area-law
+  - /research/build/exact/meet-in-the-middle
+sources:
+  - label: "Rencontre au milieu (la page conceptuelle de ce projet) : la technique des deux moitiés et de la jointure"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/exact/meet-in-the-middle.mdx
+---
+
+import { MeetInMiddleDiagram } from "@/components/research/MeetInMiddleDiagram";
+
+La recherche heuristique devine ; elle ne sait jamais qu'elle tient la
+meilleure fin possible. BANDSAW mène l'expérience inverse : pour une bande de
+rangées près du bas, il calcule la meilleure complétion exacte, avec la preuve
+que rien ne marque davantage. Le but n'est pas la vitesse mais la certitude, et
+cette certitude sert aussi de règle pour mesurer la difficulté réelle de la fin
+de partie.
+
+## Fonctionnement
+
+On coupe la bande en une moitié haute et une moitié basse. On énumère toutes
+les façons de remplir la moitié haute jusqu'à un petit budget de désaccords,
+indexées par deux éléments : les pièces employées et la rangée de couleurs
+laissée pendante à la couture. On énumère la moitié basse de la même manière,
+mais seulement à partir des pièces que la moitié haute n'a pas utilisées. Puis
+on joint les deux moitiés partout où leurs couleurs de couture concordent et où
+leurs jeux de pièces ne se recouvrent pas. Cette jointure au milieu trouve la
+meilleure complétion exacte sans parcourir tout l'arbre.
+
+Des tables de bornes inférieures exactes, calculées en remontant colonne par
+colonne, lui permettent d'élaguer les branches qui ne peuvent déjà plus battre
+le budget, et il relève le budget pas à pas jusqu'à ce qu'une passe ne trouve
+plus rien de nouveau, ce qui prouve le meilleur score pour cette bande.
+
+<Figure collapsible title="Interactif : l'arbre de fin de partie par rencontre au milieu">
+  <MeetInMiddleDiagram />
+</Figure>
+
+## Le résultat
+
+Sur un banc d'essai 10×10, BANDSAW règle la fin de partie de façon exacte et
+fixe le budget là où l'exactitude cesse d'être abordable : l'arbre de recherche
+croît d'environ un facteur vingt par désaccord supplémentaire, des deux côtés,
+si bien que la rencontre au milieu cesse d'être rentable à la taille pleine du
+plateau. Ce résultat négatif est la partie utile : il indique précisément où
+les méthodes exactes s'épuisent et où les heuristiques doivent prendre le
+relais. Les pièces exactes qui ont survécu - les tables de bornes inférieures
+de suffixe et le branch-and-bound élagué - sont devenues des instruments
+réutilisables. Un plateau sans cadre marquant 437 est sorti de la même
+mécanique.
+
+## Méthode
+
+La jointure est l'idée ; l'élagage est ce qui la rend abordable.
+
+- **Rencontre au milieu.** On coupe la bande en une moitié haute et une moitié
+  basse. On énumère chaque remplissage de la moitié haute jusqu'à un budget de
+  désaccords, indexé par (jeu de pièces utilisé, rangée de couleurs de couture).
+  On énumère la moitié basse de la même façon, en ne puisant que dans les pièces
+  laissées par la moitié haute. On joint les deux moitiés partout où leurs
+  couleurs de couture concordent *et* où leurs jeux de pièces sont disjoints.
+  Cette jointure trouve la meilleure complétion exacte sans jamais parcourir
+  l'arbre entier : le classique compromis temps-contre-espace de la
+  [rencontre au milieu](/research/build/exact/meet-in-the-middle).
+- **Bornes inférieures de suffixe.** Remonter colonne par colonne construit des
+  tables de bornes inférieures exactes, si bien qu'un partiel qui ne peut déjà
+  plus battre le budget courant est élagué avant d'être prolongé.
+- **Cliquet de budget.** On relève le budget de désaccords d'un cran à la fois
+  et on résout à nouveau ; quand une passe ne trouve rien de meilleur, le
+  meilleur précédent est *prouvé* optimal pour cette bande. Cette preuve est la
+  raison pour laquelle cette page est étiquetée **proven**, et non mesurée : le
+  résultat est un certificat, pas un échantillon.
+
+Le plafond mesuré : chaque moitié croît d'environ un facteur 20 par unité de
+budget supplémentaire, si bien qu'à la taille pleine du plateau 16×16 la table
+de la moitié haute ne tient plus ; c'est la mémoire, pas le temps, qui est le
+mur. Ce résultat négatif est le livrable : il fixe précisément où les méthodes
+exactes s'épuisent et où les heuristiques doivent prendre le relais. Le plateau
+437 sans cadre est tombé de la même mécanique.
+
+## Reproduire
+
+Déterministe (`kind: exact`) : la résolution par rencontre au milieu et sa
+preuve d'optimalité se reproduisent à l'octet près pour une bande donnée, et le
+plateau 437 est vérifiable dans le visualiseur. L'énumérateur MITM et les tables
+de bornes de suffixe sont versionnés avec le code de recherche.
+
+## Questions ouvertes
+
+Les tables de bornes inférieures peuvent-elles passer à l'échelle de la fin de
+partie 16×16 complète, ou l'espace d'états de la couture croît-il trop ?
+À quelle taille de bande la mémoire, plutôt que le temps, devient-elle la
+limite ? Et les rares cas où la jointure du milieu se déclenche effectivement
+peuvent-ils être repérés à l'avance et terminés de façon exacte ?

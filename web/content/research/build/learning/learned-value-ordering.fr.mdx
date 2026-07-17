@@ -1,0 +1,89 @@
+---
+title: Ordonnancement des coups appris
+description: >-
+  Quand plusieurs pièces conviennent, laquelle poser ensuite ? Plutôt qu'une
+  seule règle empirique, on transporte plusieurs signaux appris des bons plateaux
+  et on les fait voter. Le vote empêche la recherche de trop se fier à une
+  intuition unique et de foncer vers la même impasse.
+metaDescription: "Ordonnancement appris pour Eternity II : classer les poses candidates par plusieurs signaux appris des bons plateaux qui votent, au lieu d'une règle fixe."
+kind: concept
+order: 51
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "La recherche en faisceau (page concept de ce projet) : la construction dont l'ordonnancement des valeurs est appris"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/anti-pattern-mining
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/construct/beam-search
+  - /research/why/forbidden-patterns
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+
+Lorsqu'on construit un plateau pièce par pièce, la décision difficile est de
+choisir quelle pièce poser ensuite quand plusieurs conviennent tout aussi bien.
+Une règle empirique unique - le coût le plus faible d'abord, la case la plus
+contrainte d'abord - a tendance à conduire la recherche vers la même impasse à
+chaque exécution. Un [a priori de corpus](/research/build/learning/corpus-priors)
+améliore les choses grâce à un signal appris. Cette technique va plus loin encore
+en transportant *plusieurs* signaux appris à la fois et en les faisant voter, de
+sorte qu'aucune intuition ne s'approprie à elle seule la décision.
+
+## Plusieurs signaux, un seul vote
+
+À partir du corpus des bons plateaux, on peut apprendre plus d'une chose à la
+fois, et les signaux sont de simples décomptes bon marché sur le même ensemble de
+plateaux :
+
+- **Pièce-en-position.** À quelle fréquence une pièce apparaît dans une case
+  donnée à travers les bons plateaux : l'a priori positionnel de la page
+  précédente.
+- **Adjacence de paires de pièces.** À quelle fréquence deux pièces particulières
+  finissent au contact. Un voisinage que le décompte positionnel ne voit pas.
+- **L'a priori de patch 2×2.** Pour chaque petit patch de quatre cases, un rapport
+  de log-cotes lissé à la Laplace mesurant combien de fois il apparaît dans les
+  plateaux à haut score par rapport aux plateaux à bas score. Un patch courant
+  dans les bons plateaux et rare dans les mauvais obtient un score positif ; un
+  patch piège-à-consensus obtient un score négatif. C'est le plus tranchant des
+  trois, car c'est le seul qui oppose le bon au mauvais plutôt que de se contenter
+  de compter le bon.
+
+À chaque étape, le faisceau évalue chaque pose candidate par son gain en arêtes
+appariées augmenté d'une somme pondérée des trois signaux, et conserve les
+quelques meilleures. Un peu de hasard injecté empêche les faisceaux parallèles de
+s'effondrer sur un seul chemin.
+
+<Figure collapsible title="Interactif : le vote de pose à trois signaux">
+  <KeyringDiagram />
+</Figure>
+
+C'est l'expérience [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring),
+un trousseau d'intuitions plutôt qu'une seule. Elle a atteint 460 dans une famille
+de coins qu'aucune recherche antérieure n'avait su percer, et c'est là le vrai
+bénéfice : puisque les bons plateaux sont connus pour occuper des bassins isolés,
+un signal assez varié pour atteindre une *nouvelle* famille vaut plus qu'un signal
+qui redécouvre un plateau déjà connu.
+
+## Pourquoi le vote surpasse un signal unique
+
+Un signal appris unique a le même mode d'échec qu'une règle unique écrite à la
+main : partout où il se trompe, il se trompe à chaque fois, et il entraîne tous
+les faisceaux dans la même direction. Trois signaux appris à partir de vues
+différentes du corpus - position, adjacence et qualité de patch - se contredisent
+en des endroits différents, et leur désaccord est précisément le hasard qui
+maintient les faisceaux en exploration de régions différentes. L'a priori de patch
+porte le plus de poids parce qu'il est le seul à encoder le *mauvais* : il peut
+éloigner la recherche d'une pose, et pas seulement l'y attirer, ce qui est le
+germe de l'idée qui mûrit en
+[fouille d'anti-motifs](/research/build/learning/anti-pattern-mining).
+
+La même réserve que pour tout signal appris s'applique. Les trois a priori sont
+extraits d'un corpus lui-même sous-optimal ; ils encodent donc autant le plafond
+de la communauté que sa sagesse, et le vote atteint de façon fiable le sommet de
+la portée de la recherche sans relever cette portée. L'endroit où se situe cette
+frontière fait
+[l'objet de sa propre page](/research/build/learning/when-learning-collapses).

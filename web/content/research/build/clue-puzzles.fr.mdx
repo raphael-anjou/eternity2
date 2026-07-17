@@ -1,0 +1,497 @@
+---
+title: "Les quatre puzzles-indices"
+description: >-
+  Tomy a vendu quatre petits puzzles compagnons pour Eternity II : résolvez-en
+  un, soumettez la solution, et le site officiel révélait la position d'une
+  pièce sur le plateau principal. Ce qu'était chaque puzzle, le vérificateur
+  en ligne défaillant, le marché gris d'eBay, pourquoi les puzzles 5 et 6 ne
+  sont jamais venus, et la seconde vie des puzzles-indices comme cas de test
+  pour la théorie des complexes et comme jeux de pièces donneuses.
+metaDescription: "Les quatre puzzles-indices Eternity II de Tomy : en résoudre un révèle la position d'une pièce sur le plateau principal. Vérificateur défaillant et seconde vie."
+kind: reference
+order: 19
+group: Also worth knowing
+updated: 2026-07-02
+topics: []
+sources:
+  - label: "Les règles officielles : quatre puzzles-indices, deux par an, un indice chacun, eternity2@groups.io, 2007-05"
+    url: https://groups.io/g/eternity2/message/182
+  - label: "Le texte des règles sur les puzzles-indices cité mot pour mot (Jim Towler), eternity2@groups.io, 2008-01"
+    url: https://groups.io/g/eternity2/message/4187
+  - label: "Les puzzles-indices 3 et 4 apparaissent sur le site britannique (Mark Sheppard), eternity2@groups.io, 2008-01"
+    url: https://groups.io/g/eternity2/message/3858
+  - label: "Le vérificateur en ligne accepte une mauvaise réponse à l'indice 4, eternity2@groups.io, 2008-01"
+    url: https://groups.io/g/eternity2/message/4109
+  - label: "Des indices de puzzle vendus sur eBay (Martin / capiman), eternity2@groups.io, 2008-01"
+    url: https://groups.io/g/eternity2/message/3971
+  - label: "TOMY : aucun projet pour les puzzles-indices 5 et 6 (Steve Grant), eternity2@groups.io, 2009-01"
+    url: https://groups.io/g/eternity2/message/6381
+  - label: "Les puzzles-indices 3 et 4 épuisés chez le fournisseur, eternity2@groups.io, 2009-10"
+    url: https://groups.io/g/eternity2/message/7185
+  - label: "Comptages exhaustifs des puzzles-indices face aux estimations de la théorie des complexes (apal1969, Peter McGavin), eternity2@groups.io, 2010-11"
+    url: https://groups.io/g/eternity2/message/8142
+  - label: "Jef Bucas livre la page Indices du visualiseur, eternity2@groups.io, 2021-01"
+    url: https://groups.io/g/eternity2/message/10082
+  - label: "Un « 480 » construit à partir d'un jeu E2 + les pièces des indices 1 et 2 (Peter McGavin), eternity2@groups.io, 2023-10"
+    url: https://groups.io/g/eternity2/message/11169
+  - label: "Le solveur SHORTER d'Armel Le Bail, dont les fichiers d'exemple portent les pièces des indices 1 et 2 (cristal.org, 2007)"
+    url: http://www.cristal.org/Eternity-II/
+  - label: "Eternity2Puzzles.jl de Janos Wortmann, dont les fichiers de pièces portent les quatre puzzles-indices, y compris les indices 3 et 4 (GitHub, 2024–25)"
+    url: https://github.com/jwortmann/Eternity2Puzzles.jl
+  - label: "Les propres fichiers de positions des puzzles-indices d'eternity2.net (Wayback Machine, 2007-10-17)"
+    url: https://web.archive.org/web/20071017024639/http://eternity2.net:80/e2pieces_clue2.txt
+related:
+  - /research/build/known-facts
+  - /research/records
+  - /research/why/complex-theory
+---
+
+import { CluePuzzlePieces } from "@/components/research/CluePuzzlePieces";
+
+À côté du puzzle-prix de 256 pièces, Tomy a vendu quatre petits puzzles
+compagnons, du **puzzle-indice 1** au **puzzle-indice 4**. Chacun était un
+puzzle d'appariement de bords à part entière, et chacun, une fois résolu et
+soumis sur le site officiel, révélait la position d'une pièce sur le plateau
+principal. Cette page traite de ces quatre *produits* : ce qu'ils
+contenaient, comment fonctionnait le mécanisme d'indice, comment ils ont été
+vendus puis discrètement retirés du commerce, et ce que la communauté en a
+fait par la suite.
+
+Ce n'est **pas** la page consacrée aux cinq positions-indices du puzzle
+principal. Ces positions (la pièce centrale obligatoire 139 en I8, plus les
+quatre optionnelles que les puzzles-indices révélaient) sont tabulées avec
+leur provenance dans [Faits et chiffres connus](/research/build/known-facts).
+Les deux sujets se rejoignent à mi-chemin : les quatre lignes optionnelles de
+ce tableau sont exactement ce à quoi servaient les quatre puzzles-indices.
+
+## Le mécanisme : résoudre, soumettre, recevoir une position
+
+Les règles publiées en mai 2007 annonçaient quatre puzzles-indices, portant
+chacun un indice : deux en vente avec le puzzle principal en 2007, deux autres
+à suivre en 2008 ([msg 182](https://groups.io/g/eternity2/message/182)). Le
+texte des règles australiennes explicitait le mécanisme : « Pour chaque
+puzzle-indice que vous résolvez, soumettez votre solution pour obtenir un
+indice donnant la position correcte d'une pièce du puzzle-prix »
+([msg 4187](https://groups.io/g/eternity2/message/4187)). En pratique, la
+récompense était le numéro de la pièce, sa case sur le plateau 16×16 **et sa
+rotation exacte** ([msg 7747](https://groups.io/g/eternity2/message/7747)).
+
+Trois détails de conception avaient leur importance :
+
+- **Les puzzles-indices ont de nombreuses solutions.** Contrairement au
+  puzzle principal, ils contiennent des pièces dupliquées et quasi
+  dupliquées ; les 36 pièces du puzzle-indice 1 ne portent que 110 motifs de
+  bord distincts sur 288 possibles
+  ([msg 2875](https://groups.io/g/eternity2/message/2875)). Tout agencement
+  valide était accepté.
+- **Tout le monde recevait le même indice.** Soumettre des solutions
+  différentes au même puzzle-indice renvoyait la même pièce-indice
+  ([msg 2860](https://groups.io/g/eternity2/message/2860)) ; les indices
+  étaient des propriétés fixes du puzzle principal, non des secrets propres à
+  chaque client.
+- **Les indices étaient optionnels.** Selon les règles du concours, seule la
+  pièce de départ était obligatoire ; les candidatures au prix pouvaient
+  ignorer les quatre positions des puzzles-indices
+  ([msg 11046](https://groups.io/g/eternity2/message/11046)), et la lignée du
+  record ouvert (467→470) les ignore effectivement ; la lignée stricte à cinq
+  indices, qui honore les quatre, est suivie séparément (meilleur score
+  connu : 464, voir [Records et solveurs](/research/records)).
+
+## Les quatre puzzles
+
+| Puzzle | Taille | Pièces | Couleurs (bord / intérieur) | En vente | Solutions |
+| --- | --- | --- | --- | --- | --- |
+| Puzzle-indice 1 | 6×6 | 36 | 4 / 3 | juillet 2007 | ≈ 3,6 × 10¹⁰ (échantillonné) |
+| Puzzle-indice 2 | 12×6 | 72 | 4 / 4 | juillet 2007 | jamais comptées entièrement (≥ 1,4 × 10⁶ trouvées) |
+| Puzzle-indice 3 | 6×6 | 36 | n/a | janvier 2008 | 2 195 647 488 (exact) |
+| Puzzle-indice 4 | 12×6 | 72 | 5 / 4 | janvier 2008 | jamais comptées entièrement |
+
+Tailles et dates de lancement : [msg 4187](https://groups.io/g/eternity2/message/4187),
+[msg 3858](https://groups.io/g/eternity2/message/3858) ; nombres de couleurs :
+[msg 8052](https://groups.io/g/eternity2/message/8052) (indice 1),
+[msg 8137](https://groups.io/g/eternity2/message/8137) (indices 2 et 4) ;
+nombres de solutions : ci-dessous.
+
+### Puzzle-indice 1 : celui qui se résout à la main
+
+Un carré 6×6, lancé avec le puzzle principal en juillet 2007. Il est
+véritablement facile : résolu à la main en une centaine de coups, et un simple
+retour sur trace nécessite de l'ordre de 10²–10⁴ nœuds
+([msg 2873](https://groups.io/g/eternity2/message/2873) ;
+solveur d'Anthony Cole : 108 nœuds,
+[msg 8775](https://groups.io/g/eternity2/message/8775)). L'envers de la
+facilité, c'est la dégénérescence : la recherche exhaustive partielle
+d'apal1969 extrapolait à environ 3,6 × 10¹⁰ solutions non dégénérées
+([msg 8052](https://groups.io/g/eternity2/message/8052)). Ses sommes de
+contrôle CRC-16 sont les seules sommes de contrôle de puzzle-indice jamais
+publiées sur la liste
+([msg 6769](https://groups.io/g/eternity2/message/6769) ; voir plus bas).
+
+<CluePuzzlePieces n={1} />
+
+### Puzzle-indice 2 : le difficile
+
+Un rectangle 12×6, également de juillet 2007, et de l'avis général le plus
+difficile des quatre. « How to solve Clue2 ? » fut un fil de discussion en
+quelques mois ([msg 3381](https://groups.io/g/eternity2/message/3381)). Un
+ordinateur le résout en quelques millisecondes
+([msg 3386](https://groups.io/g/eternity2/message/3386)), mais à la main il a
+déconcerté des gens qui avaient survolé l'indice 1
+([msg 3773](https://groups.io/g/eternity2/message/3773)), et apal1969
+rapportait environ une journée de résolution à la main encore en 2010
+([msg 8137](https://groups.io/g/eternity2/message/8137)). C'est aussi le seul
+puzzle-indice dont les solutions n'ont jamais été comptées de façon
+exhaustive : une exécution de 8 heures avait trouvé ≈ 1,4 × 10⁶ solutions non
+dégénérées « et continuait »
+([msg 8142](https://groups.io/g/eternity2/message/8142)), et Brendan Owen a
+jugé l'espace trop vaste pour une recherche complète
+([msg 8143](https://groups.io/g/eternity2/message/8143)). Pour un solveur, il
+reste trivial : 1 637 300 nœuds, environ une seconde
+([msg 8775](https://groups.io/g/eternity2/message/8775)).
+
+<CluePuzzlePieces n={2} />
+
+### Puzzle-indice 3 : celui compté exactement
+
+Un second 6×6, annoncé sur le site britannique (avec l'indice 4) en janvier
+2008 ([msg 3858](https://groups.io/g/eternity2/message/3858)) ; les premiers
+acheteurs l'avaient résolu et réclamé l'indice dès la mi-janvier
+([msg 3982](https://groups.io/g/eternity2/message/3982)). Sa notoriété est
+venue plus tard : c'est le seul puzzle-indice dont le nombre de solutions est
+connu **exactement**, à 2 195 647 488, grâce à l'exécution exhaustive
+d'environ un jour d'apal1969
+([msg 8168](https://groups.io/g/eternity2/message/8168)). Ce comptage en a
+fait le plus précis des cas de test de puzzle-indice pour la
+[théorie des complexes](/research/why/complex-theory) (section suivante). Un
+retour sur trace trouve une première solution en 78 nœuds
+([msg 8775](https://groups.io/g/eternity2/message/8775)).
+
+<CluePuzzlePieces n={3} />
+
+### Puzzle-indice 4 : le dernier
+
+Un second 12×6, lancé aux côtés de l'indice 3 en janvier 2008, avec 5 couleurs
+de bord et 4 couleurs d'intérieur
+([msg 8137](https://groups.io/g/eternity2/message/8137)). Plus facile que
+l'indice 2 pour une machine (première solution en 4 951 nœuds,
+[msg 8775](https://groups.io/g/eternity2/message/8775)) ; comme l'indice 2,
+ses solutions n'ont jamais été entièrement comptées, si bien que les
+estimations de McGavin issues de la théorie des complexes pour les puzzles
+12×6 tenaient lieu de nombres exacts
+([msg 10236](https://groups.io/g/eternity2/message/10236)). Sa marque durable
+sur les archives est le fiasco du vérificateur, ci-dessous.
+
+<CluePuzzlePieces n={4} />
+
+Le message de référence de Cole nomme aussi un cinquième frère, non
+officiel : la démo « web teaser » de 16 pièces sur le site officiel, résolue
+en 34 nœuds ([msg 8775](https://groups.io/g/eternity2/message/8775)).
+
+## Le fiasco du vérificateur et le marché gris
+
+Le lancement des puzzles-indices ne fut pas sans accroc. Quand les
+formulaires de soumission des indices 3 et 4 ont ouvert en janvier 2008, les
+membres qui les sondaient ont découvert la validation défaillante :
+petzi.petzi a saisi sa solution de l'**indice 2** dans le formulaire de
+l'**indice 4** (avec une pièce erronée « 449 » qui n'existe pas dans un puzzle
+de 72 pièces), et le site l'a acceptée et a livré l'indice 4
+([msg 4109](https://groups.io/g/eternity2/message/4109),
+[4119](https://groups.io/g/eternity2/message/4119),
+[4141](https://groups.io/g/eternity2/message/4141)). La même astuce a échoué
+pour un autre membre
+([msg 4117](https://groups.io/g/eternity2/message/4117)), donc le
+vérificateur n'était pas seulement laxiste mais incohérent. La meilleure
+hypothèse de la communauté pour une explication partielle : la forte
+redondance des pièces des puzzles-indices implique un nombre démesuré
+d'agencements valides, si bien que des soumissions à l'apparence erronée
+peuvent coïncider avec de vraies solutions
+([msg 4118](https://groups.io/g/eternity2/message/4118)). Mais « 449 » exclut
+toute lecture dans laquelle le formulaire validait de vraies pièces. Personne
+n'a jamais signalé que Tomy l'ait corrigé ni reconnu.
+
+Les indices eux-mêmes ont fuité immédiatement :
+
+- **eBay.** Dès janvier 2008, des vendeurs proposaient les informations
+  d'indice des puzzles-indices 1 et 2 comme un produit
+  ([msg 3971](https://groups.io/g/eternity2/message/3971)) ; l'un d'eux les
+  aurait vendues plus de deux douzaines de fois
+  ([msg 3976](https://groups.io/g/eternity2/message/3976)), avec un bref débat
+  pour savoir s'il est même répréhensible de revendre une information que l'on
+  a achetée ([msg 3972](https://groups.io/g/eternity2/message/3972)).
+- **Dérivation.** En juillet 2008, danmayoh a dérivé les indices 3 et 4 d'une
+  « matrice de possibilités » qu'un autre membre avait publiée. La matrice
+  avait été construite à l'aide des indices, et la construction pouvait être
+  inversée malgré des fautes de frappe délibérées. Le modérateur Brendan Owen
+  a supprimé chaque message contenant la matrice « par sécurité »
+  ([msg 5650](https://groups.io/g/eternity2/message/5650),
+  [5651](https://groups.io/g/eternity2/message/5651)) ; danmayoh a confirmé
+  que l'astuce ne pouvait pas faire surgir des indices qui n'étaient pas déjà
+  intégrés ([msg 5732](https://groups.io/g/eternity2/message/5732)).
+
+## Une courte durée de vie : épuisés, et pas de puzzles 5 et 6
+
+La distribution fut irrégulière dès le départ : les indices 1 et 2 étaient au
+début introuvables aux États-Unis
+([msg 2855](https://groups.io/g/eternity2/message/2855) fil de discussion),
+et les indices 3 et 4 sont apparus d'abord au Royaume-Uni, suscitant des
+plaintes de Suède, d'Australie, d'Espagne et des États-Unis
+([msg 3858](https://groups.io/g/eternity2/message/3858),
+[4502](https://groups.io/g/eternity2/message/4502) et
+[7517](https://groups.io/g/eternity2/message/7517) fils de discussion). Puis
+l'approvisionnement s'est entièrement tari :
+
+- **Janvier 2009.** Après que le premier examen approfondi n'a révélé aucun
+  gagnant, Steve Grant a écrit à la Careline de Tomy pour demander quand
+  viendraient les puzzles-indices 5 et 6. La réponse : Tomy n'a **aucun projet
+  de sortir d'autres puzzles-indices**
+  ([msg 6381](https://groups.io/g/eternity2/message/6381)). La plupart du
+  groupe fut soulagée ; davantage d'indices aurait dévalué le défi.
+- **Octobre 2009.** On a dit à un acheteur suédois que les indices 3 et 4
+  s'étaient épuisés au printemps 2009 et que le fournisseur ne pouvait pas se
+  réapprovisionner ([msg 7185](https://groups.io/g/eternity2/message/7185)) ;
+  en novembre, il n'existait plus de stock nulle part, comme si la production
+  avait cessé ([msg 7232](https://groups.io/g/eternity2/message/7232)).
+- **Mai 2010.** Les puzzles avaient quitté le marché britannique depuis
+  environ 18 mois et **n'ont jamais été commercialisés du tout dans certaines
+  régions** ; la seconde main était la seule voie
+  ([msg 7752](https://groups.io/g/eternity2/message/7752)), et les annonces
+  eBay incluaient déjà les positions d'indice résolues elles-mêmes
+  ([msg 7350](https://groups.io/g/eternity2/message/7350)).
+
+Ainsi, les puzzles-indices furent achetables pendant environ deux ans, dans
+certains pays jamais, et l'information qu'ils vendaient est devenue
+inachetable alors que le concours à 2 M$ avait encore un an et demi à courir.
+
+## Les indices ont-ils seulement aidé ?
+
+La plupart du temps non, et la communauté le savait tôt. Brendan Owen ne les
+a jamais achetés (« juste un stratagème marketing »), calculant que les
+indices aident mais qu'« il n'y a pas assez d'indices, loin de là » pour
+rendre E2 traitable
+([msg 2842](https://groups.io/g/eternity2/message/2842)) ; ses simulations de
+théorie des indices situaient le besoin à environ 20 indices bien placés ou
+plus ([msg 1107](https://groups.io/g/eternity2/message/1107)), affiné plus
+tard à ~12–13 indices répartis
+([msg 5652](https://groups.io/g/eternity2/message/5652)). Répartis vaut mieux
+que groupés, une conclusion encore en cours d'affinage en 2026
+([msg 11736](https://groups.io/g/eternity2/message/11736)). Le tableau
+quantitatif, en trois nombres :
+
+- **Un indice réduit l'espace de recherche local d'environ 767×** : Verhaard
+  a compté 3 366 façons de remplir le rectangle du coin jusqu'à une
+  pièce-indice contre 2 582 369 sans elle
+  ([msg 3543](https://groups.io/g/eternity2/message/3543)).
+- **Les quatre réduisent le nombre attendu de solutions de ≈ 14 702 à
+  ≈ 4 × 10⁻⁸**
+  ([théorie des complexes](/research/why/complex-theory) ;
+  [msg 11193](https://groups.io/g/eternity2/message/11193)) ; les indices
+  achètent l'*unicité*, à dessein.
+- **Mais le nombre attendu de nœuds par solution ne bouge quasiment pas** :
+  McGavin a mesuré un coût de retour sur trace essentiellement identique avec
+  et sans la contrainte supplémentaire
+  ([msg 8924](https://groups.io/g/eternity2/message/8924)). Moins d'aiguilles,
+  botte de foin proportionnellement plus petite.
+
+D'où le verdict établi, prononcé par Jef Bucas lorsqu'il a enfin publié les
+positions sur son visualiseur : « jusqu'à présent, l'essentiel des progrès a
+été accompli *sans* les indices »
+([msg 10082](https://groups.io/g/eternity2/message/10082)). Le meilleur
+plateau qui respecte les cinq positions score 464 (Benjamin Riotte, 2026) ;
+le record ouvert, qui ne respecte que la pièce de départ obligatoire, est de
+470 ([Records et solveurs](/research/records)).
+
+## Vérifier un jeu-indice sans les pièces
+
+Comme le jeu principal, les motifs des pièces des puzzles-indices tombaient
+sous la revendication de droit d'auteur de l'inventeur, si bien qu'ils n'ont
+jamais été publiés. La réponse de la communauté, comme pour le puzzle-prix,
+fut des sommes de contrôle à la place des données
+([msg 983](https://groups.io/g/eternity2/message/983),
+[msg 1063](https://groups.io/g/eternity2/message/1063) : le schéma CRC-16
+d'Owen de la semaine du lancement). Les demandes de l'étendre aux
+puzzles-indices ont commencé en 2007
+([msg 3417](https://groups.io/g/eternity2/message/3417)), mais ce n'est qu'en
+2009 que Thomas (l'auteur d'E2_Manual) a publié des sommes de contrôle CRC-16,
+pour le seul puzzle-indice 1, demandant à d'autres de les confirmer et de
+couvrir les indices 2 à 4
+([msg 6768](https://groups.io/g/eternity2/message/6768),
+[6769](https://groups.io/g/eternity2/message/6769)). **Aucune confirmation ni
+aucune somme de contrôle pour les indices 2, 3 ou 4 n'est jamais apparue sur
+la liste** : quiconque saisit aujourd'hui un jeu-indice de seconde main n'a
+toujours aucun moyen public de le valider. Il existait aussi une somme de
+contrôle au niveau des positions : un CRC sur e2hints.txt pour vérifier vos
+données d'*indice* sans les publier
+([msg 1147](https://groups.io/g/eternity2/message/1147)).
+
+## Postérité
+
+### Les indices deviennent le folklore de la communauté
+
+Une fois les puzzles retirés de la vente, les positions qu'ils vendaient ont
+circulé sur la liste comme données non officielles : une liste
+pièce/position en 2009 ([msg 6778](https://groups.io/g/eternity2/message/6778)),
+ressortie chaque fois que quelqu'un le demandait
+([msg 8808](https://groups.io/g/eternity2/message/8808),
+[8809](https://groups.io/g/eternity2/message/8809)), reformulée avec les
+rotations en 2012 ([msg 9067](https://groups.io/g/eternity2/message/9067)). Le
+propriétaire du groupe a refusé de cautionner la publication
+(« Ce serait une violation du droit d'auteur de M. Moncton ! »,
+[msg 9210](https://groups.io/g/eternity2/message/9210)), mais les données ont
+survécu à l'objection : en janvier 2021, Jef Bucas a ajouté une page Indices
+au visualiseur de la communauté
+([msg 10082](https://groups.io/g/eternity2/message/10082)), la pièce 181 fut
+confirmée de première main par un membre qui avait résolu son puzzle-indice et
+reçu cet indice de Tomy
+([msg 10085](https://groups.io/g/eternity2/message/10085)), et les rotations
+furent recoupées une fois de plus en 2021
+([msg 10542](https://groups.io/g/eternity2/message/10542)). Les positions qui
+en résultent sont les quatre lignes optionnelles de
+[Faits et chiffres connus](/research/build/known-facts).
+
+### Cas de test pour la théorie des complexes
+
+La seconde carrière des puzzles-indices fut celle de cibles de calibration
+pour la [théorie des complexes de Brendan Owen](/research/why/complex-theory).
+En novembre 2010, apal1969 a mené des comptages exhaustifs (indice 3 :
+exactement 2 195 647 488 solutions) et les a comparés aux estimations de Peter
+McGavin issues de la théorie ; l'écart initial de 10² fut attribué à McGavin
+ayant oublié de diviser par deux les comptages de types de bord, et après
+correction les estimations sont tombées à un ordre de grandeur près,
+exactement la précision qu'Owen revendiquait pour les petits plateaux
+([msgs 8142–8172](https://groups.io/g/eternity2/message/8142) ; note de
+précision d'Owen [8171](https://groups.io/g/eternity2/message/8171), le
+correctif [8172](https://groups.io/g/eternity2/message/8172)). McGavin a
+ensuite déposé des estimations de retour sur trace pour tous les
+puzzles-indices dans la base de données du groupe
+([msg 8901](https://groups.io/g/eternity2/message/8901)). Ce furent les
+premiers des [bancs d'essai](/research/build/benchmarks)
+exhaustif-contre-estimé qui ont fini par amener la communauté à faire
+confiance aux nombres de la théorie à l'échelle d'E2. Dès 2011, les puzzles
+eux-mêmes étaient des échauffements pour solveurs : les quatre tombent en
+moins d'une seconde
+([msg 8773](https://groups.io/g/eternity2/message/8773),
+[8775](https://groups.io/g/eternity2/message/8775)).
+
+### Jeux de pièces donneuses pour les « 480 » mixtes
+
+Enfin, les pièces physiques ont trouvé un usage que les concepteurs n'avaient
+jamais prévu. En 2014, Peter McGavin a présenté des « solutions » 16×16
+complètes assemblées à partir d'un jeu E2 plus des pièces de puzzle-indice
+([msg 9309](https://groups.io/g/eternity2/message/9309),
+[9310](https://groups.io/g/eternity2/message/9310)), et en 2023 il a construit
+un plateau complet 480/480 à partir des pièces d'**un jeu E2, un jeu Indice 1
+et un jeu Indice 2** ([msg 11169](https://groups.io/g/eternity2/message/11169)),
+dans le défi de tuiles distinctes maximales de Vlastislav W.
+([msg 11167](https://groups.io/g/eternity2/message/11167)). Pour être
+parfaitement clair : **ces plateaux ne sont pas des solutions d'Eternity
+II**. Ils utilisent des pièces qui ne font pas partie du jeu officiel de 256
+pièces, et c'est pourquoi les revendications de « 480 » en une seule phrase
+doivent toujours être vérifiées face à la liste des pièces
+([Records et solveurs](/research/records)).
+
+## Retrouvés et résolus : les quatre
+
+La seule chose que tout le monde supposait perdue s'avère récupérable, et pas
+seulement pour les deux premiers. La communauté a retenu les motifs des pièces
+des puzzles-indices pour des motifs de droit d'auteur, et personne n'a publié
+les agencements sur la liste. Mais deux projets de solveurs indépendants les
+ont tout de même livrés comme exemples résolus.
+
+Le solveur **SHORTER** d'Armel Le Bail, un programme Fortran publié sur
+cristal.org en août 2007, en livre trois : un 6×6 de 36 pièces, un 12×6 de 72
+pièces, et le plateau complet de 256 pièces. Le fichier de 256 pièces est le
+véritable jeu officiel Eternity II, et c'est ainsi que la provenance se
+vérifie : Le Bail lisait de véritables données Tomy au format
+eternity2.net. Les deux autres sont le **puzzle-indice 1 et le
+puzzle-indice 2**, motifs compris.
+
+Les **indices 3 et 4** ont surgi dans une seconde source, bien plus récente :
+[`Eternity2Puzzles.jl`](https://github.com/jwortmann/Eternity2Puzzles.jl) de
+Janos Wortmann, un paquet Julia qui porte les quatre puzzles-indices sous
+forme de simples fichiers de pièces (`clue1.txt` … `clue4.txt`). Ses
+`clue1`/`clue2` sont les deux mêmes puzzles que ceux livrés par Le Bail : nous
+avons canonicalisé chacun en un multiensemble de pièces invariant par
+rotation et réétiqueté en couleurs, et ils correspondent exactement aux
+indices 1 et 2 de Le Bail, pièce par pièce. Une source qui reproduit les deux
+puzzles que nous pouvons déjà recouper est une source digne de confiance pour
+les deux que nous ne pouvons pas, si bien que ses indices 3 et 4 reposent sur
+la même base.
+
+Les fichiers qu'eternity2.net a publiés lui-même, récupérés depuis la Wayback
+Machine, corroborent les tailles et les positions sur le plateau des indices 1
+et 2, mais pas les motifs. Ils disposent chacun sous forme d'un bloc sur une
+grille 16×16, le 6×6 aux lignes 5–10 et colonnes 5–10, le 6×12 aux lignes 5–10
+et colonnes 2–13, et réduisent chaque bord intérieur à une unique couleur de
+remplissage. (Le site n'a jamais hébergé de fichiers pour les indices 3 ou 4,
+qui ont été lancés après sa dernière capture.) Ainsi les fichiers officiels
+fixent *où* siégeaient les indices 1 et 2 ; les fichiers des solveurs sont le
+témoignage public de *ce que* sont les pièces, pour les quatre.
+
+Chacun fut résolu à partir de zéro pour confirmer qu'il s'agit de puzzles
+réels et cohérents. La résolution encode « placer chaque pièce de sorte que
+tous les bords s'apparient et que le gris siège sur le pourtour » comme une
+instance SAT et la confie à un solveur ; une passe distincte vérifie ensuite
+la réponse de manière indépendante (chaque pièce utilisée une fois, chaque
+bord interne apparié, le gris uniquement sur l'anneau extérieur). Les quatre
+se ferment parfaitement : les indices 1 et 3 sur la totalité de leurs 60 bords
+internes, les indices 2 et 4 sur la totalité des 126. Chaque plateau résolu
+est présenté dans sa propre section ci-dessus
+([Indice 1](#puzzle-indice-1--celui-qui-se-résout-à-la-main),
+[Indice 2](#puzzle-indice-2--le-difficile),
+[Indice 3](#puzzle-indice-3--celui-compté-exactement),
+[Indice 4](#puzzle-indice-4--le-dernier)), dessiné avec les vrais motifs
+Eternity II. Chaque puzzle offre deux téléchargements : les pièces sous forme
+de données prêtes pour un solveur (le même JSON d'instance publié dans le
+[jeu de données](/research/build/dataset), bords dans l'ordre
+haut-droite-bas-gauche, la couleur 0 étant le pourtour) et sous forme d'un jeu
+de SVG par pièce, de la même manière que les pièces du puzzle principal sont
+proposées sur la [page du puzzle](/puzzle).
+
+Une mise en garde sur les motifs. Les *pièces* sont assurément correctes :
+elles sont les données de bord récupérées, elles se recoupent entre les deux
+sources pour les indices 1 et 2, et chacune se résout en un plateau complet
+aux bords appariés, ce qu'un jeu de pièces erroné ne ferait pas. Les *motifs*
+présentés sont les vrais glyphes Eternity II, assignés dans l'ordre aux
+numéros de couleur de chaque indice ; ce ne sont presque certainement pas les
+motifs imprimés exacts de Tomy pour les puzzles-indices, qu'aucune source
+publique ne consigne. Lisez donc les plateaux et les téléchargements comme les
+pièces correctes dessinées dans l'art propre d'Eternity II, non comme un
+fac-similé des tuiles physiques.
+
+La récupération complète, les données de pièces des quatre, et la résolution
+reproductible sont dans le
+[topic clue-puzzle-pieces](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/clue-puzzle-pieces).
+Cela ne dit rien sur le droit d'auteur au nom duquel les agencements ont été
+retenus ; cela consigne simplement qu'ils étaient déjà publics dans les
+fichiers d'exemple de deux solveurs, et les montre résolus.
+
+## Ce qui n'est pas publiquement documenté
+
+Des lacunes qu'un lecteur attentif devrait connaître :
+
+- **Les définitions des pièces des puzzles-indices n'ont jamais été publiées
+  sur la liste** (droit d'auteur), et les seules sommes de contrôle de la
+  communauté couvrent le puzzle-indice 1 et restent non confirmées
+  ([msg 6769](https://groups.io/g/eternity2/message/6769)). Elles survivent
+  tout de même dans les fichiers d'exemple de deux projets de solveurs, les
+  indices 1 et 2 dans SHORTER de Le Bail et les quatre dans
+  `Eternity2Puzzles.jl` de Wortmann, recoupés et résolus ci-dessus.
+- **Quel puzzle révélait quelle position.** Les archives ne rattachent jamais
+  proprement le puzzle-indice *n* à une case précise parmi C3, C14, N3, N14.
+  Seule la pièce 181 dispose d'une attestation de première main
+  puzzle-vers-indice
+  ([msg 10085](https://groups.io/g/eternity2/message/10085)), et même ce
+  message ne dit pas quel puzzle numéroté l'a produite.
+- **Les nombres exacts de solutions pour les indices 2 et 4.** Seuls des
+  estimations et des comptages partiels existent
+  ([msg 8142](https://groups.io/g/eternity2/message/8142),
+  [10236](https://groups.io/g/eternity2/message/10236)).
+- **Les chiffres de production et de ventes.** Combien de puzzles-indices ont
+  été fabriqués ou vendus, et pourquoi la production s'est arrêtée début 2009,
+  n'a jamais été indiqué par Tomy ; l'histoire de l'épuisement est
+  reconstituée à partir des réponses des détaillants
+  ([msg 7185](https://groups.io/g/eternity2/message/7185)).
+- **Les registres officiels des indices.** On ignore si la base de données de
+  soumissions de Tomy et les réponses-indices canoniques survivent quelque
+  part ; les positions reposent sur les recoupements de la communauté, non sur
+  une publication officielle.

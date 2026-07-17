@@ -1,0 +1,244 @@
+---
+title: "Cette instance est-elle NP-complète, et comment l'encoder ?"
+description: >-
+  L'appariement de bords est NP-complet en tant que famille, mais cela ne dit
+  rien d'un plateau 16×16 fixé : une instance isolée est une constante, pas un
+  problème. Ce qui est vrai, c'est la dureté au pire cas de la famille et la
+  dureté empirique de cette instance, et comment écrire le puzzle pour un
+  solveur SAT, de couverture exacte ou de PLNE, avec de petits croquis détaillés.
+metaDescription: "L'appariement de bords est NP-complet en tant que famille, mais une instance 16×16 fixée est une constante. Pire cas, dureté empirique d'E2 et encodages."
+kind: concept
+contribution: exposition
+order: 25
+updated: 2026-07-08
+topics: [exact-methods]
+sources:
+  - label: 'Demaine & Demaine 2007, « Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity » (Graphs and Combinatorics 23) : l''appariement de bords est NP-complet'
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+  - label: 'Knuth, The Art of Computer Programming, Volume 4B : Algorithme X et Algorithme C (couverture exacte avec couleurs)'
+    url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
+  - label: Puzzle Eternity II (Wikipédia)
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/why/complex-theory
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/exact/exact-cover-dlx
+  - /research/build/reduce/arc-consistency
+---
+
+Cette page répond à une question qui ressurgit sans cesse sur les Stack Exchange
+de mathématiques et d'informatique, et qui domine la liste des différends sur la
+page de discussion Wikipédia du puzzle : l'appariement de bords est NP-complet en
+général, alors cela nous apprend-il quelque chose sur *ce* plateau 16×16 fixé, et
+concrètement, comment confierait-on Eternity II à un solveur ? Les réponses
+brèves sont : non, pas directement, et voici trois encodages.
+
+## D'abord, l'erreur de catégorie
+
+La NP-complétude est une propriété d'un *problème*, ce qui, en théorie de la
+complexité, désigne une famille infinie d'instances indexée par un paramètre de
+taille $n$. Les « puzzles d'appariement de bords » forment une telle famille :
+étant donné $n$, un ensemble de tuiles carrées et un alphabet de couleurs,
+décider si les tuiles pavent un cadre $n \times n$ avec tous les bords adjacents
+qui concordent. Ce problème de décision est NP-complet
+([Demaine & Demaine 2007](https://doi.org/10.1007/s00373-007-0713-4)), ce qui
+signifie à la fois qu'une solution proposée est vérifiable en temps polynomial et
+que tout problème de NP s'y réduit.
+
+Un plateau fixé unique n'est pas une famille. L'instance Eternity II a une
+réponse bien définie, « oui, elle est résoluble » (les concepteurs l'ont
+construite à partir d'une solution) ou, dans la forme de compétition à 5 indices,
+« oui, avec exactement cet agencement ». Cette réponse tient en un seul bit. Un
+seul bit est une constante, et « cette constante est-elle NP-complète ? » n'est
+pas une question bien formée : il existe un algorithme en temps constant qui
+affiche la réponse (`return true`), la réponse y est simplement inscrite en dur.
+Demander si une instance isolée est NP-complète relève de la même erreur de
+catégorie que demander si le nombre 17 est de temps polynomial.
+
+La famille est donc dure et l'instance est une constante. Qu'y a-t-il, alors, de
+réellement vrai et utile à dire sur la difficulté du plateau posé sur votre
+bureau ?
+
+## Ce qui est réellement vrai
+
+Deux énoncés distincts, tenus séparés :
+
+- **Dureté au pire cas de la famille.** Parce que le problème général est
+  NP-complet, on ne connaît aucun algorithme qui batte le temps exponentiel dans
+  le pire cas lorsque $n$ croît, et en trouver un prouverait
+  $\mathrm{P}=\mathrm{NP}$. Cela borne ce que tout solveur d'appariement de bords
+  générique peut promettre. Cela ne dit rien de la manière dont se comporte une
+  entrée *spécifique*.
+- **Dureté empirique de cette instance.** Une dureté que l'on peut mesurer. Le
+  plateau 16×16 compte de l'ordre de $1.115\times10^{557}$ agencements distincts
+  de pièces et de rotations, et le puzzle semble n'admettre que très peu de
+  solutions (la forme à 5 indices est conçue pour n'en avoir essentiellement
+  qu'une ; voir la [théorie de la complexité](/research/why/complex-theory) pour
+  l'estimation du nombre attendu). Une recherche par retour sur trace faufile
+  donc un espace astronomiquement vaste vers un ensemble de solutions quasi vide,
+  et passe ainsi presque tout son temps à explorer des impasses. Voilà pourquoi
+  le puzzle est dur *en pratique*, et c'est une affirmation sur ce plateau, non
+  sur la famille.
+
+Le théorème du pire cas et la difficulté empirique pointent ici dans la même
+direction, mais ce sont des énoncés de nature différente et un seul des deux est
+un théorème. Une famille peut être NP-complète alors qu'une instance donnée est
+triviale (beaucoup le sont), et une instance peut être brutalement difficile à
+résoudre en pratique même au sein d'une famille polynomiale. Ansótegui et al. ont
+plaidé exactement ce cas empirique pour Eternity II, en en tirant des jeux de
+tests pour solveurs et en mesurant la difficulté directement plutôt qu'en
+invoquant le théorème général
+([CCIA 2008](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download)).
+
+<Callout kind="note" title="La version en une ligne">
+  « Eternity II est-il NP-complet ? » Non : une instance n'a pas de classe de
+  complexité. « Le problème d'appariement de bords est-il NP-complet ? » Oui.
+  « Cette instance est-elle difficile à résoudre ? » Empiriquement oui, parce que
+  l'espace de recherche est large de ~$10^{557}$ et que l'ensemble des solutions
+  est quasi vide, si bien que la recherche se noie dans les impasses.
+</Callout>
+
+## L'encodage : la mise en place
+
+Le reste est pratique : comment écrire le plateau pour qu'un solveur puisse le
+mâcher ? Les trois encodages ci-dessous partagent le même squelette. Numérotons
+les cases $c = 1 \dots 256$, les pièces $p = 1 \dots 256$, et les rotations
+$r \in \{0, 1, 2, 3\}$. Un *placement* est un triplet $(c, p, r)$ : la pièce $p$
+déposée dans la case $c$ tournée de $r$ quarts de tour. Chaque encodage doit
+exprimer trois choses :
+
+1. chaque case reçoit exactement un placement,
+2. chaque pièce est utilisée exactement une fois,
+3. partout où deux cases se touchent, les couleurs du bord partagé concordent.
+
+Les encodages ne diffèrent que par la façon dont ils expriment la contrainte 3,
+l'appariement des couleurs, et cette différence est toute l'affaire. Les croquis
+ci-dessous utilisent un plateau 2×2 ou 3×3 pour que l'on puisse voir toutes les
+clauses ; le 16×16 a la même forme à plus grande échelle.
+
+## SAT / FNC
+
+Introduisons une variable booléenne $x_{c,p,r}$, vraie lorsque la pièce $p$ se
+trouve à la case $c$ dans la rotation $r$. Sur le plateau complet, cela fait
+$256 \times 256 \times 4 \approx 262{,}000$ variables avant la moindre
+contrainte. Ensuite :
+
+- **Exactement un placement par case.** Pour chaque case $c$, une clause « au
+  moins un » sur tous ses placements, $\bigvee_{p,r} x_{c,p,r}$, plus des clauses
+  « au plus un » interdisant toute paire, $\lnot x_{c,p,r} \lor \lnot x_{c,p',r'}$
+  pour des placements distincts.
+- **Exactement une case par pièce.** L'image miroir : pour chaque pièce $p$, une
+  clause « au moins un » sur les cases qu'elle pourrait occuper, plus des clauses
+  « au plus un » pour qu'elle ne soit placée qu'une fois.
+- **Appariement de bords.** Pour chaque adjacence intérieure et chaque placement
+  dont le bord exposé montre la couleur $k$, interdire tout placement de la case
+  voisine dont le bord en vis-à-vis n'est pas $k$ : une clause binaire
+  $\lnot x_{c,p,r} \lor \lnot x_{c',p',r'}$ pour chaque paire en conflit.
+
+Un croquis 2×2 rend la troisième famille concrète. Les cases $A$ (en haut à
+gauche) et $B$ (en haut à droite) partagent un bord vertical ; le bord est de $A$
+doit être égal au bord ouest de $B$. Pour chaque placement $(A,p,r)$ montrant la
+couleur est $k$, et chaque placement $(B,p',r')$ dont la couleur ouest n'est pas
+$k$, ajouter $\lnot x_{A,p,r} \lor \lnot x_{B,p',r'}$. Faire de même pour $A$/$C$
+verticalement et pour les deux autres adjacences intérieures. Voilà tout ce
+qu'est la contrainte 3 : un grand tas de clauses binaires « ces deux placements
+ne peuvent pas être vrais tous les deux ».
+
+Le hic, c'est que le tas est énorme. Les clauses de conflit dominent, les
+encodages « au plus un » ajoutent leur propre explosion (l'approche naïve par
+paires est quadratique ; les encodages en échelle ou par commandant l'échangent
+contre des variables auxiliaires), et le résultat est une formule à des millions
+de clauses dont la structure ne donne presque rien à apprendre à la recherche
+guidée par les conflits. Cela a été tenté dès 2008 et les solveurs SAT complets
+s'enlisent sur le plateau complet ; Blackwood, parmi d'autres, a rapporté que SAT
+n'aidait pas. L'encodage est propre, le solveur n'est pas le goulot
+d'étranglement, c'est l'*instance* qui l'est. Voir
+[Encodages SAT et CSP](/research/build/exact/sat-csp-encodings) pour l'historique
+des jeux de tests et les cas où les verdicts SAT gagnent encore leur place comme
+preuves d'impossibilité sur de petites régions.
+
+## Couverture exacte et liens dansants
+
+La vue par couverture exacte est plus soignée, et elle cache un piège qui fait
+trébucher presque tous ceux qui se tournent vers les liens dansants de Knuth.
+
+Posons 512 *items* : un par case (« la case $c$ est remplie ») et un par pièce
+(« la pièce $p$ est utilisée »). Chaque *option* est un placement $(c,p,r)$, et
+elle couvre exactement deux items : la case $c$ et la pièce $p$. Un ensemble
+d'options couvrant chaque item exactement une fois est un plateau où chaque case
+est remplie et chaque pièce utilisée une fois. C'est une instance de couverture
+exacte propre, et l'**Algorithme X** de Knuth avec liens dansants résout la
+couverture exacte à merveille.
+
+Voici le piège. Les contraintes 1 et 2 sont des conditions de couverture unique,
+ce qui est exactement ce qu'exprime la couverture exacte. Mais la contrainte 3,
+l'appariement des couleurs, n'est pas du tout une condition de couverture unique :
+un bord partagé n'est pas « utilisé une fois », il se voit « attribuer une
+couleur sur laquelle les deux voisins s'accordent ». L'Algorithme X ordinaire n'a
+aucun moyen de dire cela. On l'encode, on le lance, et on obtient des plateaux
+aux bords discordants, ou bien l'on tente de greffer des items supplémentaires et
+la sémantique de couverture unique nous résiste. Cette confusion précise a sa
+propre question sur le CS Stack Exchange.
+
+La solution est l'extension de Knuth lui-même, l'**Algorithme C**, pour XCC, la
+couverture exacte avec couleurs (TAOCP Volume 4B). À côté des items *primaires*
+(couverts exactement une fois), on ajoute des items *secondaires* qui peuvent
+être couverts un nombre quelconque de fois, *pourvu que toutes les options
+couvrant un item secondaire donné lui attribuent la même couleur*. On donne à
+chaque bord intérieur de la grille un item secondaire. Un placement qui expose la
+couleur $k$ sur un bord partagé attribue la couleur $k$ à l'item secondaire de ce
+bord. Deux placements ne peuvent alors coexister de part et d'autre du bord que
+s'ils le colorent de façon identique, ce qui est précisément la contrainte
+d'appariement de bords, désormais exprimée nativement.
+
+Un croquis 3×3 : 9 items de case et 9 items de pièce (primaires), plus 12 items
+de bord intérieur (secondaires, un par jonction horizontale ou verticale). Les
+placements de la case centrale touchent chacun quatre items de bord secondaires
+et doivent s'accorder en couleur avec les quatre voisins ; les placements d'une
+case de coin en touchent deux. L'Algorithme C faufile tout cela sans jamais
+produire de plateau discordant. Le point que les étudiants manquent :
+**la couverture exacte par DLX pour Eternity II requiert l'Algorithme C, pas
+l'Algorithme X.** La page
+[couverture exacte et liens dansants](/research/build/exact/exact-cover-dlx)
+déroule la construction XCC complète et montre où le DLX brille véritablement
+(petits plateaux, dénombrement exhaustif des solutions) par opposition aux cas où
+il s'enlise sur le 16×16.
+
+## PLNE et clique maximale, brièvement
+
+Deux cadrages de plus, utiles surtout comme aiguillages :
+
+- **Programmation linéaire en nombres entiers.** Réutiliser les variables SAT
+  comme entiers 0/1 $x_{c,p,r}$. Les contraintes 1 et 2 deviennent des égalités
+  $\sum_{p,r} x_{c,p,r} = 1$ par case et $\sum_{c,r} x_{c,p,r} = 1$ par pièce.
+  L'appariement de bords devient, pour chaque bord intérieur et chaque couleur
+  $k$, une condition de liaison reliant les placements de couleur $k$ des deux
+  voisins (une forme propre : une nouvelle variable binaire de couleur de bord
+  $y_{e,k}$ avec $\sum_k y_{e,k} = 1$, les placements de chaque côté impliquant le
+  $y$ correspondant). C'est une PLNE de faisabilité, sans objectif, et la
+  relaxation linéaire est faible, si bien que la séparation-évaluation se comporte
+  à peu près comme la recherche SAT. Voir
+  [Relaxations linéaires](/research/build/exact/lp-relaxations).
+- **Clique maximale.** Construire un graphe dont les sommets sont les placements
+  légaux et dont les arêtes joignent deux placements mutuellement compatibles
+  (cases différentes, pièces différentes, et accord sur tout bord partagé). Un
+  plateau complet est une clique de taille 256. C'est élégant sur le papier, mais
+  le graphe est immense et les solveurs de clique ne s'en sortent pas mieux ; cela
+  vaut d'être connu comme réduction, non comme attaque pratique.
+
+## Où cela vous laisse
+
+Si vous êtes venu demander si la théorie de la NP-complétude rend cette instance
+prouvablement difficile, la réponse est qu'elle ne le fait pas, et ne le peut
+pas : les classes de complexité décrivent des familles, et ce plateau est une
+entrée fixée avec une réponse fixée. Le problème général d'appariement de bords
+est NP-complet, ce qui plafonne ce que tout solveur peut promettre lorsque $n$
+croît, mais la difficulté que vous ressentez réellement est empirique : un espace
+large de $10^{557}$ au-dessus d'un ensemble de solutions quasi vide. Chaque
+encodage ci-dessus capture fidèlement le puzzle ; aucun ne le rend facile, parce
+que la dureté réside dans l'instance, non dans le choix du formalisme. Une fois le
+plateau encodé, le levier qui subsiste est la
+[cohérence d'arc](/research/build/reduce/arc-consistency) et un ordre de recherche
+avisé, ce dont s'empare la suite de cette section.

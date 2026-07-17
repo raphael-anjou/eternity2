@@ -1,0 +1,173 @@
+---
+title: GAUNTLET
+description: >-
+  Lancer la même recherche en faisceau selon neuf ordres de parcours
+  différents, pour qu'elle atterrisse dans des régions distinctes au lieu de
+  toujours converger vers la même. L'ordre en zigzag a trouvé un plateau 458
+  inédit.
+metaDescription: "GAUNTLET lance une recherche en faisceau sur neuf ordres de parcours pour explorer des régions distinctes : le zigzag a trouvé un 458 inédit."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 458
+rigor: measured
+complexity:
+  time: "9 scans × 4 seeds beam builds, then 5-min ALNS lift per strong build"
+  space: "one live beam per (scan, seed); shares PRIOR's 256×256 prior matrix"
+  note: >-
+    L'ordre de parcours est un choix de prétraitement, pas un coût : les neuf
+    ordres réutilisent la même machinerie de faisceau et le même a priori.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Un balayage sur les ordres de parcours construit de nombreux plateaux diversifiés, en échantillonnant des régions différentes"
+    learns: "Un a priori de corpus positionnel, plus un ordre de parcours interchangeable pour diversifier la construction"
+    published: false
+  - engine: alns
+    does: "La destruction-réparation rehausse une construction prometteuse ; le 458 retenu est un plateau rehaussé"
+    published: false
+  - engine: clustering
+    does: "Regrouper les résultats par disposition des coins pour repérer les bassins véritablement nouveaux (ce n'est pas une étape de solveur)"
+order: 50
+updated: 2026-07-10
+date: 2026-07
+topics: [construction]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/construct/beam-search
+sources:
+  - label: "Recherche en faisceau (la page de concept de ce projet) : la construction dont on fait varier l'ordre de parcours"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { GauntletDiagram } from "@/components/research/GauntletDiagram";
+import { GauntletStepThrough } from "@/components/research/GauntletStepThrough";
+import { GauntletLiveRace } from "@/components/research/GauntletLiveRace";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Une recherche en faisceau qui remplit toujours le plateau dans le même ordre a
+tendance à découvrir le même genre de plateau, quelle que soit la graine
+aléatoire. L'ordre dans lequel on visite les cases décide en sourdine de la
+région où l'on aboutit, et sur seize graines, un même ordre de parcours n'a
+produit qu'une seule famille de disposition des coins. GAUNTLET en fait un
+outil : lancer la recherche selon neuf ordres de parcours véritablement
+différents, et l'on échantillonne des régions véritablement différentes.
+
+## Fonctionnement
+
+GAUNTLET dérive le faisceau constructif de PRIOR et lui confie un ordre de
+parcours interchangeable : ligne, ligne inversée, colonne, colonne inversée,
+zigzag, zigzag inversé, spirale entrante, spirale sortante et diagonale, neuf
+en tout. Comme l'ordre des cases modifie quels plateaux partiels survivent à
+chaque étape, chaque ordre explore une trajectoire différente au lieu de
+s'agglutiner sur une seule. Un balayage de 9 parcours × 4 graines a produit
+**18 signatures de disposition des coins distinctes**, contre une seule sur
+seize graines du faisceau à parcours unique dont il est issu.
+
+Chaque exécution complète produit un plateau entier ; les plus solides sont
+ensuite polis par un rehaussement ALNS de 30 minutes. Le constat est net :
+*l'ordre de parcours est un axe de diversité plus puissant que la graine
+aléatoire.* Voilà le levier, et c'est sur lui que s'appuient KEYRING et PRIOR
+par la suite.
+
+<Figure collapsible title="Interactif : le calendrier de l'ordre de construction">
+  <GauntletDiagram />
+</Figure>
+
+Déroulez un parcours pour voir comment l'ordre de visite oriente le faisceau.
+
+<Figure collapsible title="Interactif : dérouler l'ordre de construction">
+  <GauntletStepThrough />
+</Figure>
+
+Ou faites courir les neuf ordres les uns contre les autres, en direct, dans
+votre navigateur.
+
+<Figure collapsible title="Interactif : faire courir les stratégies de construction">
+  <GauntletLiveRace />
+</Figure>
+
+## Le plateau
+
+La recherche est stochastique, elle ne reproduira donc pas ce plateau exact,
+mais le plateau qu'elle a trouvé est figé, fourni ici, et vérifiable arête par
+arête.
+
+<RecordBoard id="gauntlet-458" />
+
+## Le résultat
+
+L'ordre en zigzag à la graine 99, rehaussé, a atteint 458 sur 480 dans la
+disposition des coins cp=(3,0,1,2), le premier plateau égal ou supérieur à 458
+jamais trouvé dans cette disposition au sein de notre base. Il se situe à au
+moins 246 cases sur 256 de tout ce que nous avions à ce niveau : un bassin
+véritablement nouveau, pas une autre route vers un bassin connu.
+
+La contribution de GAUNTLET est donc une portée plutôt qu'un record : il a
+ouvert une nouvelle région de plateaux solides. Un second tour (32
+rehaussements supplémentaires) a plafonné à 457 sans aucun 461, ce qui indique
+que la nouvelle famille sature comme les autres, mais la famille elle-même était
+la prise.
+
+## Méthode
+
+Le pipeline comporte trois étapes, et les paramètres sont l'essentiel.
+
+**Étape 1 : construction diversifiée.** On dérive le faisceau de PRIOR et on
+lui confie un ordre de parcours interchangeable sur les 256 cases : `row`,
+`row_rev`, `col`, `col_rev`, `zigzag`, `zigzag_rev`, `spiral_in`,
+`spiral_out`, `diagonal`, neuf ordres, croisés avec les graines
+`{1, 7, 42, 99}`. Tous partagent un même a priori (la matrice `high459`) à
+faible température de softmax (0,05), de sorte que le faisceau est guidé par
+l'a priori sans être déterministe. L'ordre modifie quels plateaux partiels
+survivent à chaque étape, si bien que chaque couple (parcours, graine) suit une
+trajectoire différente.
+
+**Étape 2 : rehaussement.** Chaque construction solide reçoit un rehaussement
+ALNS (opérateurs d'évasion d'a priori + destruction/réparation `basic_lkh`),
+5 minutes par construction durant le balayage, plus longtemps pour les
+finalistes.
+
+**Étape 3 : regroupement.** On regroupe toutes les sorties par permutation des
+coins et on signale les signatures absentes de la base existante. C'est ainsi
+que le balayage 9×4 a fait émerger **18 familles de coins distinctes** là où
+seize graines d'un parcours unique n'en avaient fait émerger qu'une, la
+constatation mesurée selon laquelle *l'ordre de parcours est un axe de
+diversité plus puissant que la graine.*
+
+Le plateau gagnant, zigzag, graine 99, rehaussé, se trouve en
+cp = (3, 0, 1, 2), à une distance de Hamming ≥ 246/256 de tout ce qui était
+précédemment à ce niveau : un nouveau bassin selon le même test permutation des
+coins plus Hamming qu'emploie [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior).
+
+## Reproduire
+
+`just research-record-boards` vérifie le score du plateau 458 retenu,
+exactement, à partir de sa chaîne Bucas stockée. Le balayage est stochastique
+(neuf parcours × quatre graines, puis une passe de polissage), il ne
+reproduira donc pas le même plateau ; le plateau est l'artefact de référence.
+Le moteur est le producteur en faisceau partagé, exécuté selon neuf ordres de
+remplissage ; il utilise le même a priori extrait du corpus que
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), si bien que
+l'exécution n'est pas reproduite ici à partir de zéro.
+
+## Questions ouvertes
+
+Cette nouvelle famille présente-t-elle la même structure locale rigide que les
+autres, ou une forme différente ? Et un raffinement plus long peut-il la hisser
+au-delà de 458, comme une famille fraîche a parfois plus de marge qu'une famille
+bien rodée ?

@@ -1,0 +1,306 @@
+---
+title: Impasses
+description: >-
+  Des approches que nous avons essayées, séduisantes en apparence, mais qui ne
+  font pas bouger les lignes sur Eternity II, consignées avec nos constats pour
+  que vous investissiez votre temps ailleurs.
+kind: reference
+order: 50
+group: Skip these
+updated: 2026-07-02
+topics: [search-space, learning, exact-methods]
+sources:
+  - label: "Fermeture d'eternity2.net : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "Max sur la propagation de probabilités : l'influence des contraintes s'estompe à environ deux cases (groups.io message 6208)"
+    url: https://groups.io/g/eternity2/message/6208
+  - label: "Markus Zajc : les macro-tuiles accélèrent mais ne réduisent pas le domaine (groups.io message 5883)"
+    url: https://groups.io/g/eternity2/message/5883
+  - label: "Markus Zajc évalue l'élagage par offre de bordure : 0,0014 % de tests en moins, 8 % plus lent (groups.io message 6060)"
+    url: https://groups.io/g/eternity2/message/6060
+related:
+  - /research/build/run-it-yourself
+---
+
+Des approches que nous avons essayées, séduisantes en apparence, mais qui ne
+font pas bouger les lignes sur Eternity II. Aucune n'est une mauvaise idée en
+soi ; elles ne suffisent simplement pas à résoudre ce casse-tête. Nous
+consignons nos constats pour que vous investissiez votre temps ailleurs.
+
+Chaque entrée ouvre son verdict par une étiquette de fermeté : **Prouvé**
+signifie qu'un théorème ou un calcul exact ferme la porte ; **Mesuré** signifie
+que nous l'avons exécuté (ou que la communauté l'a fait) et vu échouer ;
+**Rapporté** signifie qu'un autre chercheur l'a exécuté et a documenté l'échec,
+sans que nous l'ayons rejoué nous-mêmes. Lorsque le verdict provient de nos
+propres exécutions, la page « pourquoi » liée porte la commande de reproduction
+exacte, et [exécutez-le vous-même](/research/build/run-it-yourself) en détaille
+la mise en place ; lorsque la communauté est arrivée là avant nous, nous citons
+le message d'archive.
+
+## Briser la symétrie
+
+*Supposer que le plateau possède des symétries de rotation ou de miroir, et
+fixer certaines pièces pour réduire la recherche.*
+
+**Prouvé.** Le jeu officiel a été conçu sans pièce à symétrie de rotation et
+sans doublon, et l'unique indice central fixe l'orientation. Il n'y a aucune
+symétrie globale à briser : fixer des coins ne fait donc qu'un choix
+arbitraire, non un choix gratuit. [Pourquoi c'est un mur →](/research/why/rare-color-geography)
+
+## Il suffit d'y jeter plus de puissance de calcul
+
+*Lancer le même solveur SAT ou de recherche sur une machine plus grosse, un
+GPU, un FPGA ou du matériel quantique.*
+
+**Mesuré.** Le mur n'est pas la fréquence d'horloge, c'est la qualité de
+l'encodage du problème et la forme de l'espace de recherche. Les solveurs SAT
+sur GPU offrent au mieux une petite accélération constante ; les recuits
+quantiques ne montrent aucun avantage à l'échelle qu'il faudrait ici. Le même
+algorithme, plus rapide, atteint le même mur un peu plus tôt. La communauté a
+mené cette expérience à grande échelle : la grille eternity2.net a lancé 1,6
+téraflops et plus de $10^{19}$ opérations CPU sur le casse-tête, puis a fermé
+sans solution
+([msg 3511](https://groups.io/g/eternity2/message/3511)). Et l'espoir quantique
+est régulièrement remis à flot, de
+[2007](https://groups.io/g/eternity2/message/1446) à
+[2024](https://groups.io/g/eternity2/message/11407).
+[Pourquoi c'est un mur →](/research/why/prune-vs-speed)
+
+## La propagation par sondage (survey propagation)
+
+*La méthode de passage de messages qui a résolu d'immenses instances SAT
+aléatoires en repérant les grappes de solutions.*
+
+**Prouvé.** Elle suppose que le problème ressemble localement à un arbre.
+Eternity II est une grille avec un court cycle dans chaque bloc 2×2, ce qui
+invalide cette hypothèse. En pratique, les messages s'aplatissent au lieu de
+s'affiner, l'inverse exact de ce qui la fait fonctionner sur le SAT aléatoire.
+Aucun succès publié n'existe pour elle sur les casse-tête en grille. La
+communauté a remarqué cet aplatissement très tôt : en 2008, des expériences de
+propagation de probabilités de pièces ont constaté que l'influence des
+contraintes issues des indices et des coins semble « s'estomper » à environ deux
+cases de distance
+([msg 6208](https://groups.io/g/eternity2/message/6208)).
+
+## Ordonner les coups par propagation de croyances
+
+*Faire tourner une propagation de croyances sur les couleurs et utiliser ses
+indications par case pour décider quelle pièce essayer en premier.*
+
+**Mesuré.** Les indications ressortent presque uniformes : elles ne
+départagent donc guère les candidats. Lors d'une confrontation directe, choisir
+le coup suivant au hasard s'en tirait aussi bien, voire mieux, parce qu'un ordre
+informé fixe tend à répéter les mêmes erreurs. [Pourquoi c'est un mur →](/research/why/no-forced-moves)
+
+## Le comptage par réseaux de tenseurs
+
+*Traiter le plateau comme un réseau de tenseurs et le contracter pour compter
+ou évaluer les coloriages cohérents aux frontières.*
+
+**Prouvé.** Il ne peut imposer que la concordance des bords en contact, jamais
+que chaque pièce soit utilisée exactement une fois. Cet angle mort est énorme :
+il dénombre de l'ordre de $10^{90}$ coloriages cohérents aux frontières contre
+l'unique solution réelle, ou presque, du casse-tête. Le passage de messages
+local est tout simplement incapable de voir la règle globale d'une pièce par
+case. [Pourquoi c'est un mur →](/research/why/entropy-area-law)
+
+## Résoudre les couleurs d'abord, placer les pièces ensuite
+
+*Reformuler le plateau comme un graphe adjoint sur les couleurs, résoudre pour
+un agencement d'adjacences de couleurs partout cohérent aux bords, puis espérer
+que cet agencement soit plus facile à transformer en pavage réel qu'une
+résolution directe sur les pièces.*
+
+**Mesuré.** L'idée est élégante et a été explorée sur la liste de 2023 à 2025 :
+dépouiller le casse-tête pour ne garder que « quelle couleur touche quelle
+couleur », résoudre cet objet plus petit et s'en servir d'échafaudage.
+L'ennui, c'est que l'objet plus petit n'est pas petit. Énumérer seulement les
+agencements de couleurs intérieures pour E2 laisse environ
+$6.6\times10^{11}$ permutations, et le 17×17 explose à $2.97\times10^{13}$
+([msg 11182](https://groups.io/g/eternity2/message/11182)) ; et chacune d'elles
+doit encore être vérifiée contre une véritable affectation de pièces, car un
+agencement cohérent en couleurs n'a nullement à être pavable par les 256 pièces
+réelles. C'est l'angle mort du réseau de tenseurs sous un autre déguisement :
+satisfaire les adjacences de couleurs est nécessaire mais loin d'être suffisant,
+et la contrainte d'utiliser chaque pièce une seule fois, celle qui fait le vrai
+travail, est précisément ce que la vue « couleurs seules » laisse tomber. Le
+résumé de l'auteur lui-même après l'énumération : on « passerait beaucoup de
+temps à n'en valider qu'un seul » agencement contre toutes ses permutations de
+couleurs internes. [Pourquoi c'est un mur →](/research/why/entropy-area-law)
+
+## Les bornes par relaxation
+
+*Résoudre la relaxation en programmation linéaire pour obtenir un plafond serré
+sur le nombre de bords qu'un plateau peut faire concorder.*
+
+**Mesuré.** La relaxation autorise des pièces fractionnaires réparties sur
+plusieurs cases, ce qui fabrique des concordances qu'aucun plateau réel ne peut
+avoir. Le résultat est un plafond autour de 478 alors que les meilleurs plateaux
+réels tournent autour de 458, un écart bien trop grand pour certifier quoi que
+ce soit. La contrainte agissante est l'unicité globale des pièces, que la
+relaxation jette. Les formulations en PL étaient à l'ordre du jour de la
+communauté dès le premier été, et déjà là un 4×4 mettait plus d'une heure à se
+résoudre
+([msg 1678](https://groups.io/g/eternity2/message/1678)).
+
+## Apprendre une heuristique sur de petits plateaux
+
+*Entraîner un réseau de neurones sur de petits casse-tête, puis le transférer
+au plateau complet 16×16 pour guider la recherche.*
+
+**Mesuré.** Nous avons entraîné un modèle qui excellait sur les petits plateaux
+et l'avons vu s'effondrer sur le vrai. Il apprend à partir de coups candidats
+filtrés d'une façon, puis on l'interroge sur des coups filtrés très
+différemment, et les couleurs du casse-tête complet n'apparaissent jamais à
+l'entraînement. Le savoir-faire ne franchit pas l'écart de taille et de
+couleurs. [Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## Énumérer d'abord les grappes locales
+
+*Lister toute grappe 3×3 ou 4×4 valide, puis coudre les grappes ensemble en un
+plateau complet.*
+
+**Mesuré.** Les dénombrements explosent avant d'être utiles. Lors de notre
+essai, les grappes valides autour d'une seule région se comptaient déjà en
+dizaines de millions, et combiner quatre coins atteint l'ordre de $10^{12}$
+uplets à pièces disjointes. On épuise le temps et le disque bien avant que les
+contraintes n'élaguent quoi que ce soit. L'idée ne cesse d'être redécouverte.
+Fin 2024, les « macro-pièces » 2×2 sont revenues, avec quelque 4 millions de
+blocs avant même que la disjonction des pièces n'entre en jeu
+([msg 11428](https://groups.io/g/eternity2/message/11428)), et des vétérans ont
+renvoyé aux années de travaux 2×2 antérieurs présents dans l'archive
+([msg 11429](https://groups.io/g/eternity2/message/11429)).
+[Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## Découper et conquérir (cube and conquer)
+
+*Scinder l'instance SAT en des millions de sous-cas (cubes), résoudre chacun
+indépendamment, puis recombiner. La technique qui a réglé le nombre de Schur
+cinq et le problème des triplets pythagoriciens.*
+
+**Rapporté.** William Millilaw l'a testée exhaustivement en mai 2026 et elle ne
+vide pas le plateau. En 16×16, la phase de découpage ne partitionne l'instance
+en rien de traitable sans un lourd prétraitement, et l'étape de conquête (un
+solveur à anticipation sur chaque cube) était elle-même plus lente que de lancer
+kissat directement. Le résultat, net, était une frontière ferme : la méthode
+fonctionne jusqu'à environ 8×8 et s'arrête là. Elle rejoint la longue lignée des
+méthodes exactes qui butent sur le même mur que la programmation en nombres
+entiers et la décision SAT, sans prise pour le franchir.
+
+## Générer des plateaux avec un transformeur
+
+*Entraîner un modèle de type GPT sur un corpus de plateaux, le conditionner sur
+un score cible, et lui faire produire de nouveaux plateaux à haut score que la
+recherche n'a jamais trouvés.*
+
+**Rapporté.** William Millilaw a parcouru tout l'arc en mai 2026, et chaque
+étape a échoué pour une raison propre. Un modèle de 51 millions de paramètres a
+appris la grammaire d'un plateau (chaque pièce utilisée une fois, 96 pour cent
+structurellement valides) mais non la physique : sans conditionnement, ses
+plateaux affichaient en moyenne autour de 250 bords concordants, proche du
+hasard. Le conditionnement sur un score cible a relevé la moyenne, mais chaque
+plateau qu'il produisait en haut de la fourchette était une copie exacte,
+jeton pour jeton, d'un plateau communautaire mémorisé, dont le 469 de McGavin.
+Avec seulement une vingtaine de plateaux d'élite distincts dans le jeu
+d'entraînement contre des dizaines de millions de paramètres, le modèle les
+avait tout bonnement mémorisés ; la condition de score devenait une consultation
+d'index. Une passe finale d'apprentissage par renforcement l'a aggravé, non
+amélioré, car la queue d'élite est échantillonnée bien trop rarement pour donner
+un gradient stable. La leçon rejoint le résultat du
+[transfert depuis de petits plateaux](/research/why/rigidity-wall) sur cette
+page : l'imitation apprend la distribution qu'on lui montre et ne peut inventer
+la structure rare qu'exige un record.
+
+## Recombiner deux bons plateaux
+
+*Prendre deux plateaux à haut score, garder les cases où ils s'accordent, et
+recourir au croisement par partition pour raccorder les régions en désaccord en
+un enfant au moins aussi bon que ses deux parents. L'opérateur génétique doté
+d'une garantie de tunnelisation sur les problèmes pseudo-booléens.*
+
+**Rapporté.** William Millilaw l'a implémenté et évalué sur des paires de
+plateaux scorant 455 et plus. Il dégénère. La contrainte de permutation (une
+pièce ne peut être réutilisée) force les régions en désaccord à fusionner en une
+seule composante dès qu'on les ferme sous l'unicité des pièces ; l'opérateur
+se réduit donc à « prendre le meilleur parent » sur plus de 99 pour cent des
+paires. Les rares raccords améliorants plafonnaient à 469, le score des parents,
+jamais au-dessus. C'est la même leçon que le [mur de rigidité](/research/why/rigidity-wall),
+vue du côté de la recombinaison : les bons plateaux logent tous dans un unique
+bassin étroit, si bien que les mélanger produit davantage du même plutôt que du
+neuf.
+
+## Forcer une bordure diversifiée, puis remplir
+
+*La bordure est un sous-casse-tête plus petit. Résoudre d'abord pour de
+nombreux cadres valides différents, sur la théorie que la variété du cadre
+ensemence la variété du plateau entier.*
+
+**Rapporté.** William Millilaw l'a essayé et a trouvé la prémisse inversée. La
+bordure est la partie facile : à partir de rien, elle est déjà variée et rapide
+à poser. La ressource rare, c'est le remplissage intérieur, là où les pièces se
+raréfient et où les discordances se concentrent. Forcer la diversité du cadre
+dépense de l'effort là où il n'y a pas de pénurie et n'achète rien là où il y
+en a une. C'est un thème récurrent des expériences propres à ce projet aussi :
+le cadre vaut étonnamment peu
+([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mesure au juste combien peu), et
+les dégâts de fin de partie tombent dans les coins intérieurs
+([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+## Construire un faux 480, puis le réparer
+
+*Partir d'un plateau où chaque bord concorde en autorisant les pièces en
+double, puis y échanger gloutonnement les vraies pièces une à une, dans l'espoir
+de maintenir le score à 480.*
+
+**Rapporté.** William Millilaw l'a exécuté et cela vire au jeu de la taupe :
+chaque vraie pièce que l'on force à entrer casse des bords ailleurs, et la
+réparation ne converge jamais, plafonnant autour de 463. La raison est la leçon
+qui sous-tend toute cette page. L'obstacle au 480 n'est pas que les bords soient
+durs à faire concorder ; un faux plateau à pièces répétées les fait toutes
+concorder sans peine. L'obstacle est la contrainte globale que chacune des 256
+pièces soit utilisée exactement une fois, et c'est précisément ce que la
+construction du faux 480 jette. Le mur est informationnel, non affaire de
+réparation locale de bords.
+
+## Précalculer des macro-tuiles 2×2 (ou plus grandes)
+
+*Résoudre chaque bloc 2×2 une fois, stocker les blocs valides, et placer quatre
+cases à la fois pour raccourcir la recherche.*
+
+**Mesuré.** Markus Zajc l'a décortiqué en 2008 : construire les macro-tuiles ne
+fait que déplacer le travail, il ne le supprime pas. On échange un petit
+ensemble de pièces isolées contre un très grand ensemble de blocs 2×2 : placer
+un bloc est donc plus rapide, mais le nombre de plateaux partiels distincts est
+inchangé, toujours de l'ordre de $10^{40}$ là où il faudrait $10^{4}$. Une
+accélération de 10× ou 100× sur un arbre hors d'atteinte reste hors d'atteinte
+([msg 5883](https://groups.io/g/eternity2/message/5883)). Les macro-tuiles sont
+un gain réel à facteur constant pour un solveur rapide, ce pourquoi le
+[bac à sable de l'ordre des blocs](/playground/paths) les prend en charge ;
+elles ne sont simplement pas une réduction de domaine, et seule une réduction de
+domaine ferait bouger les lignes.
+
+## L'élagage par offre de bordure (le test « lollypop »)
+
+*Avant de récurser, compter la demande restante en couleurs de bordure contre
+les pièces encore disponibles ; si l'offre ne peut satisfaire la demande,
+couper la branche tôt.*
+
+**Mesuré.** Markus Zajc a implémenté ce test offre-contre-demande en complément
+de son solveur de contraintes et l'a évalué sur le 8×8 : il coupait environ
+0,0014 % des tests tout en ajoutant 8 % au temps d'exécution, une perte nette
+claire. La raison est instructive : sur presque toute branche où le test d'offre
+de bordure aurait échoué, la propagation de contraintes ordinaire a *déjà*
+échoué une étape ou deux plus tôt ; la comptabilité supplémentaire paie donc
+pour une coupe que le solveur était sur le point de faire gratuitement
+([msg 6060](https://groups.io/g/eternity2/message/6060)). Une règle d'élagage
+n'aide que si elle se déclenche avant les vérifications déjà en place, pas après.
+
+## Ce que toute impasse a en commun
+
+L'écart entre le meilleur plateau connu et une solution complète ne ressemble
+pas à une optimisation manquante. Les bons plateaux sont localement figés et
+globalement contraints de façons que les correctifs locaux, un matériel plus
+rapide et les relaxations standard n'atteignent pas. Atteindre la fin semble
+exiger une idée d'une autre nature, non davantage de la même.
+
+Voir [pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed).

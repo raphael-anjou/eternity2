@@ -1,0 +1,201 @@
+---
+title: Rendez-vous au milieu
+description: >-
+  Énumérer deux moitiés d'un problème et les recoller sur une interface
+  partagée, en échangeant de la mémoire contre un exposant divisé par deux.
+  L'astuce classique de Horowitz–Sahni, ce qu'elle donne sur des bandes du
+  plateau, et ce que l'expérience BANDSAW de ce projet a mesuré, y compris la
+  méthode unilatérale qui l'a battue.
+metaDescription: "Le rendez-vous au milieu sur Eternity II : l'astuce de Horowitz-Sahni échange la mémoire contre un exposant divisé par deux, mesurée par l'expérience BANDSAW."
+kind: concept
+order: 40
+group: Exact methods
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: 'Horowitz & Sahni 1974, « Computing Partitions with Applications to the Knapsack Problem » (JACM), l''origine classique'
+    url: https://doi.org/10.1145/321812.321823
+  - label: L'attaque par rendez-vous au milieu (Wikipédia), la branche cryptanalytique de la même idée
+    url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
+  - label: Recherche bidirectionnelle (Wikipédia)
+    url: https://en.wikipedia.org/wiki/Bidirectional_search
+related:
+  - /research/lab/experiments/raphael-anjou/analyses/bandsaw
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/build/exact/exact-cover-dlx
+  - /research/build/dead-ends
+---
+
+import { MitmCostLab } from "@/components/research/concepts/MitmCostLab";
+
+Le rendez-vous au milieu est la plus ancienne astuce de découpe d'exposant en
+recherche combinatoire : au lieu d'explorer un arbre de profondeur $n$, on
+explore deux arbres de profondeur $n/2$ et on recolle leurs feuilles sur une
+interface partagée. Ellis Horowitz et Sartaj Sahni l'ont introduite en 1974
+pour le problème du sac à dos, transformant un temps $O(2^n)$ en un temps
+$O(2^{n/2})$, au prix du stockage des $2^{n/2}$ résultats d'une moitié dans une
+table indexée de sorte que l'autre moitié puisse les y retrouver. La même idée
+resurgit sous la forme de l'attaque par rendez-vous au milieu en cryptanalyse
+(pourquoi le double DES n'apporte presque rien de plus que le DES simple) et de
+la recherche bidirectionnelle en calcul de chemins. Le schéma est toujours le
+même : deux énumérations bon marché plus un recollement, à la place d'une seule
+énumération impossible.
+
+## Ce que cela donne sur le plateau
+
+Eternity II offre une découpe naturelle : une couture horizontale. Prenons une
+bande de rangées à compléter ; scindons-la en une moitié haute et une moitié
+basse. Énumérons toutes les façons de remplir la moitié haute, indexées par
+deux choses : l'ensemble exact des pièces qu'elle a consommées, et le vecteur
+des couleurs de bord qu'elle laisse pendantes sur la couture. Énumérons la
+moitié basse de manière symétrique. Puis recollons : toute paire haut/bas dont
+les couleurs de couture s'accordent et dont les ensembles de pièces sont
+disjoints forme un remplissage complet, trouvé sans jamais avoir parcouru
+l'arbre de la bande entière.
+
+La clause de disjonction est la douleur propre à E2, et elle n'est pas
+optionnelle. Dans le sac à dos, les deux moitiés sont indépendantes par
+construction ; ici, elles puisent dans un unique pool de pièces partagé, si
+bien que les moitiés hautes doivent être regroupées par leur empreinte exacte
+de pool et chaque groupe recollé uniquement contre des moitiés basses
+construites à partir des pièces complémentaires. Négligez cette comptabilité et
+le recollement produira allègrement des plateaux fantômes qui utilisent une
+pièce deux fois. Établir correctement la comptabilité exacte des pools
+complémentaires a été une leçon de correction durement acquise dans
+l'expérience du projet ci-dessous.
+
+## Le compromis
+
+Le compromis de manuel, c'est du temps contre de la mémoire : l'exposant est
+divisé par deux, et l'énumération d'une moitié doit être conservée dans une
+table de hachage. Sur le plateau, l'état d'interface est une rangée de couleurs
+de bord (16 cellules de large sur le puzzle complet) plus l'empreinte de pool,
+si bien que l'espace des clés de la table croît vite avec la largeur de la
+bande, et c'est la mémoire, non le temps, qui constitue en général le premier
+mur. Le recollement lui-même est bon marché (du hachage) ; tout tient au nombre
+d'entrées que chaque côté doit stocker et à la fréquence à laquelle les
+signatures de couture coïncident réellement.
+
+## Sentir la racine carrée
+
+Les chiffres fixent le compromis d'une manière que la prose ne peut pas. Le
+laboratoire ci-dessous propose deux vues. *Le compromis* place les trois
+factures côte à côte sur une échelle logarithmique à mesure que l'on fait
+croître le problème : temps unilatéral $2^n$, temps MITM $2 \cdot 2^{n/2}$,
+mémoire MITM $2^{n/2}$ entrées de table. *Le recollement* fait passer une
+micro-instance complète ($n = 10$, deux moitiés de $2^5 = 32$ candidats
+chacune) par la phase de stockage et la phase de sondage, pour que l'on puisse
+voir d'où vient la vitesse et où passe la mémoire.
+
+<Figure collapsible title="Interactif : le coût mémoire du rendez-vous au milieu">
+  <MitmCostLab />
+</Figure>
+
+## Pas à pas
+
+1. **Faites glisser $n$ dans la vue du compromis.** Chaque $+2$ sur le curseur
+   *quadruple* la barre rouge unilatérale mais ne fait que *doubler* les deux
+   barres MITM. Cette différence d'un facteur deux dans le taux de croissance
+   est toute l'astuce : l'exposant est divisé par deux, donc sur une échelle
+   logarithmique les barres MITM montent à la moitié de la pente.
+2. **Regardez la barre de mémoire arriver.** Vers $n \approx 56$, la table (à
+   16 octets par entrée, dans une hypothèse optimiste) dépasse une machine de
+   16 Gio, alors que la barre de *temps* MITM reste confortable. La mémoire
+   frappe le mur en premier : c'est le même ordre d'événements que BANDSAW a
+   enregistré, où les entrées réelles portent une empreinte de pool et un
+   vecteur de couture et sont bien plus lourdes que 16 octets.
+3. **Passez à la vue du recollement.** La moitié gauche énumère ses 32
+   candidats et stocke chacun d'eux dans une table de hachage indexée par sa
+   signature de couture (une parmi 48). C'est la phase qui paie la facture de
+   mémoire : le compteur sous *mémoire de la table* est la facture qui arrive,
+   entrée par entrée.
+4. **La phase de sondage.** Les 32 candidats de la moitié droite arrivent un
+   par tick, et chacun effectue exactement une consultation. Un seau vide écarte
+   toute une famille de combinaisons en une seule étape ; un seau occupé fournit
+   une solution recollée par partenaire stocké, trouvée sans parcourir l'arbre
+   entier.
+5. **Lisez le décompte final.** $2 \cdot 32 = 64$ étapes d'énumération plus $32$
+   entrées stockées remplacent $2^{10} = 1{,}024$ parcours complets. Sur
+   Eternity II, la même arithmétique tient, à ceci près qu'un recollement ne
+   compte que si les couleurs de couture s'accordent *et* si les pools de pièces
+   sont disjoints, ce à quoi sert la comptabilité par regroupement selon
+   l'empreinte évoquée plus haut.
+
+## Ce que cela coûte
+
+La comptabilité classique de Horowitz–Sahni, pour un problème à $n$ choix
+binaires :
+
+$$
+\underbrace{O(2^n)\ \text{time},\ O(n)\ \text{space}}_{\text{one-sided enumeration}}
+\quad\longrightarrow\quad
+\underbrace{O(2^{n/2})\ \text{time},\ O(2^{n/2})\ \text{space}}_{\text{meet in the middle}}
+$$
+
+(plus un facteur $\log$ si les moitiés sont triées plutôt que hachées). Notons
+ce qui est conservé : le *produit* du temps et de l'espace reste de l'ordre de
+$2^n$. Le rendez-vous au milieu ne détruit jamais l'exponentielle ; il scinde
+une facture impayable en deux plus petites, et toutes deux doivent être
+soldées. La racine carrée du temps d'exécution s'achète par une facture de
+mémoire exponentielle, raison pour laquelle la méthode l'emporte exactement
+quand $2^{n/2}$ entrées tiennent encore en RAM et perd dès l'instant où elles
+n'y tiennent plus.
+
+Sur Eternity II, le modèle propre à $n$ choix demande deux corrections.
+Premièrement, l'interface n'est pas un seul nombre mais un état large (un
+vecteur de couture pouvant aller jusqu'à 16 couleurs de bord plus l'empreinte
+exacte du pool de pièces), si bien que les clés de la table sont grosses, les
+entrées lourdes, et le mur de mémoire arrive bien avant le point de bascule du
+manuel. Deuxièmement, les moitiés sont couplées par le pool de pièces partagé,
+si bien que le recollement n'est pas un simple accès de hachage gratuit mais un
+accès de hachage *filtré par pools complémentaires*. BANDSAW en a mesuré la
+conséquence : à l'intérieur de petits budgets de discordance, les deux côtés
+restent énumérables et la méthode est exacte, mais chaque unité de budget
+supplémentaire gonfle les deux arbres d'environ un facteur vingt par côté, et
+près de l'horizon, le projet a payé pour des millions de moitiés hautes
+stockées dont aucune moitié basse n'a jamais sondé le seau avec succès.
+
+## Ce que BANDSAW a mesuré
+
+Ce projet a mené l'idée jusqu'au bout, rigoureusement, dans
+l'[expérience BANDSAW](/research/lab/experiments/raphael-anjou/analyses/bandsaw) :
+complétion optimale exacte d'une bande, recollement par rendez-vous au milieu
+avec comptabilité exacte des pools, approfondissement itératif sur le budget de
+discordance, le tout validé sur un banc d'essai 10×10 contre la force brute.
+Trois constats, mesurés sur le moteur de ce projet et non répliqués de manière
+indépendante :
+
+- **Ça marche, mais à la quasi-perfection seulement.** À l'intérieur de petits
+  budgets de discordance, la méthode est exacte et abordable. Mais chaque unité
+  de budget de discordance gonfle les arbres d'énumération d'environ un facteur
+  vingt *par côté*, si bien que le régime où l'exactitude reste payable se
+  dissout au bout d'une poignée de défauts autorisés.
+- **Une méthode unilatérale l'a battue.** Armé des mêmes tables de bornes
+  inférieures exactes (bornes de suffixe min-plus calculées colonne par
+  colonne), un simple branch-and-bound à approfondissement itératif a prouvé
+  l'optimalité en une douzaine de secondes sur un barreau où le recollement
+  bidirectionnel n'a pas terminé. Le MITM paie l'énumération complète des *deux*
+  moitiés même lorsqu'un unique optimum accompagné d'une preuve d'épuisement
+  suffirait ; près de l'horizon de décidabilité, son recollement ne s'est
+  presque jamais déclenché : des millions de moitiés hautes stockées, zéro
+  moitié basse concordante, les deux factures payées pour rien.
+- **Les sorties durables ont été les bornes.** Ce qui a survécu à l'expérience,
+  ce n'est pas le recollement mais les tables de bornes inférieures admissibles
+  et les certificats de budget exacts qu'elles permettent, des instruments
+  désormais utilisés ailleurs. La conclusion consignée était sans détour :
+  aucun déploiement du rendez-vous au milieu à la taille du plateau complet.
+
+## Limites, et ce qui reste ouvert
+
+La leçon générale rejoint la littérature classique : le rendez-vous au milieu
+l'emporte quand l'interface est étroite, quand les moitiés sont véritablement
+indépendantes, et quand une réponse résolu/non résolu suffit. Eternity II met
+ces trois conditions à rude épreuve : la couture porte un large vecteur de
+couleurs, le pool de pièces partagé couple les moitiés, et la partie record se
+joue au crédit partiel, ce qui regonfle les deux arbres. Ce qui reste
+authentiquement inexploré ici, c'est le cousin *heuristique* : deux faisceaux
+croissant depuis les bords opposés du plateau, filtrés en croix par des hachages
+de leurs couleurs de couture, se rencontrant sur une rangée médiane. Ce design a
+été couché sur le papier dans ce projet mais jamais exécuté ; savoir si
+l'élagage bidirectionnel aide un faisceau autant qu'il fait échouer un
+recollement exact reste une question ouverte, non un verdict.

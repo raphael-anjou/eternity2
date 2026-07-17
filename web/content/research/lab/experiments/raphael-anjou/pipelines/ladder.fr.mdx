@@ -1,0 +1,141 @@
+---
+title: LADDER
+description: >-
+  Lancer des centaines de courtes recherches bon marché sur le plateau, ne
+  garder que les départs les plus profonds, et faire monter les survivants à
+  travers des tours de plus en plus longs.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 451
+rigor: measured
+complexity:
+  time: "round 1: hundreds of 5 s probes; finish: 300 s × 8 exact-tail-14 runs from the deepest prefixes"
+  space: "keeps only the banked prefixes and their live continuations between rounds"
+  note: >-
+    Halving successif : l'effort total est à peu près constant par tour, mais
+    chaque tour le dépense sur des survivants moins nombreux et plus profonds,
+    si bien que le coût se concentre là où il rapporte.
+repro:
+  kind: seeded
+stages:
+  - engine: restart-tournament
+    does: "Flood hundreds of short probes from random seeds, rank by perfect-prefix depth, ratchet-pin the deepest and probe beyond it"
+  - engine: exact-tail
+    does: "From the deepest banked prefixes, a 14-cell exact finisher converts an opening into a full board"
+order: 80
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/replay
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/build/backtracking/restarts
+sources:
+  - label: "Halving successif / stratégies de redémarrage (la page concept sur les redémarrages de ce projet)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/backtracking/restarts.mdx
+---
+
+import { LadderDiagram } from "@/components/research/LadderDiagram";
+import { LadderLiveLab } from "@/components/research/LadderLiveLab";
+
+L'essentiel d'une longue recherche est gaspillé sur des départs condamnés
+dès le début. LADDER ne dépense presque rien pour découvrir quels débuts
+valent la peine d'être poursuivis. Il lance une avalanche de sondages très
+courts, garde les quelques-uns qui sont allés le plus loin, et ne paie
+qu'ensuite pour des exécutions plus longues, sur ceux-là seuls. C'est une
+sélection par tournoi appliquée aux départs de recherche.
+
+## Comment ça marche
+
+Le premier tour, ce sont des centaines de sondages de cinq secondes partant
+de graines aléatoires différentes, chacun cherchant à poser une longue suite
+de cellules parfaitement raccordées. On garde les préfixes les plus profonds,
+et on écarte ceux qui sont de quasi-doublons les uns des autres pour que les
+survivants restent diversifiés.
+
+On promeut ces derniers vers un tour plus long doté de critères de qualité
+plus stricts, puis on promeut les meilleurs d'entre eux vers une exécution de
+pleine longueur. Chaque échelon consacre davantage de temps à des candidats
+moins nombreux et meilleurs, à la manière dont les tournois par halving
+successif allouent l'effort aux concurrents qui continuent de gagner.
+
+<Figure collapsible title="Interactif : la progression échelon par échelon">
+  <LadderDiagram />
+</Figure>
+
+<Figure collapsible title="Interactif : lancer la recherche en échelle en direct">
+  <LadderLiveLab />
+</Figure>
+
+## Le résultat
+
+LADDER a produit un plateau à 451 respectant les cinq indices officiels, sans
+aucune aide d'un quelconque record connu, la première fois que le projet
+s'est échappé de la bande de 444 à 450 dans laquelle la recherche non guidée
+n'arrêtait pas de retomber. Les finitions sont déterminées par leur préfixe :
+une fois un début suffisamment fort mis en banque, le reste suit. Une
+exécution plus longue a par la suite atteint 452, une arête de plus, même si
+451 est le plateau retenu et reproductible ici.
+
+Il a aussi cartographié les limites : la réserve de débuts parfaits s'épuise,
+et au-delà d'un certain point les échelons convergent tous vers le même
+plafond. LADDER est donc un bon moyen de trouver le meilleur départ, non un
+moyen de franchir les murs structurels qui arrêtent toute méthode près du
+sommet.
+
+## Méthode
+
+L'échelle est un tournoi récursif par halving successif sur les *départs* de
+recherche, notés par la profondeur de préfixe.
+
+- **Premier tour : avalanche.** Des centaines de sondages de 5 secondes
+  partant de graines différentes, chacun posant une suite aussi longue que
+  possible de cellules parfaitement raccordées. On classe par la profondeur de
+  ce préfixe parfait ; on garde les plus profonds, et on écarte les
+  quasi-doublons (des préfixes trop semblables à un survivant) pour que
+  l'ensemble conservé reste diversifié.
+- **Cliquet.** Chaque tour suivant épingle le préfixe le plus profond mis en
+  banque au tour précédent (un épinglage à profondeur 15 dans l'exécution
+  enregistrée) et sonde *au-delà* de lui, poussant la frontière du préfixe
+  parfait d'un cran de plus. La récursion s'arrête lorsqu'un tour gagne moins
+  de quatre cellules de profondeur : la réserve de débuts plus profonds est à
+  sec.
+- **Finition.** À partir des trois préfixes distincts les plus profonds, on
+  lance de longs échelons exact-tail-14 (300 s × 8 graines chacun) pour
+  convertir le début mis en banque en un plateau complet.
+
+Le constat est que *la finition est déterminée par le préfixe* : une fois un
+début parfait suffisamment profond mis en banque, la fin de partie suit.
+C'est pourquoi concentrer le calcul sur la découverte du meilleur départ,
+plutôt que de le répartir sur des exécutions complètes, a permis de s'échapper
+de la bande 444-450 dans laquelle la recherche non guidée n'arrêtait pas de
+retomber. Un tour de finition plus long a par la suite atteint 452 ; le
+plateau retenu et reproductible ici est le 451.
+
+## Reproduire
+
+À graine fixée ; la structure sondage-et-promotion reproduit le *comportement*
+de façon fiable, même si le plateau exact dépend des graines. Le plateau 451
+retenu est vérifiable dans la visionneuse. La montée n'a besoin d'aucun
+corpus, cadre ni témoin : elle part du puzzle seul, aussi un répertoire
+d'accompagnement exécutable est-il prévu pour elle aux côtés des autres
+expériences parties de zéro.
+
+## Questions ouvertes
+
+Quel est le vrai plafond de la sélection par préfixe d'abord si l'on donne
+davantage de calcul aux premiers échelons ? La règle de diversité pourrait-elle
+être plus fine sur les quasi-doublons à conserver ? Et combiner les préfixes
+les plus profonds de familles différentes bat-il la promotion au sein d'une
+seule ?

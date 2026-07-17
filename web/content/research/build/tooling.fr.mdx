@@ -1,0 +1,397 @@
+---
+title: "La boîte à outils de la communauté, 2007-2026"
+description: >-
+  Dix-neuf ans de logiciels communautaires pour Eternity II (interfaces de
+  placement manuel, éditeurs, solveurs publics, générateurs et visualiseurs),
+  plus la couche plus discrète qui les a rendus interopérables : e2pieces.txt,
+  les sommes de contrôle CRC-16 et le format plateau-dans-une-URL devenu la
+  lingua franca. Un recensement de référence, chaque outil rattaché au message
+  qui l'a annoncé.
+metaDescription: "Dix-neuf ans de logiciels Eternity II : GUI, éditeurs, solveurs, générateurs, plus e2pieces.txt, sommes CRC-16 et le format plateau-dans-une-URL."
+kind: reference
+order: 18
+group: Also worth knowing
+updated: 2026-07-02
+topics: []
+sources:
+  - label: "Le format de fichier e2pieces.txt mis par écrit (John Morrison), eternity2@groups.io, 2007-12"
+    url: https://groups.io/g/eternity2/message/3571
+  - label: "Le schéma de somme de contrôle CRC-16, semaine du lancement, eternity2@groups.io, 2007-07"
+    url: https://groups.io/g/eternity2/message/1063
+  - label: "Le Manual Placement Program d'eii4me, le premier outil GUI partagé, eternity2@groups.io, 2007-12"
+    url: https://groups.io/g/eternity2/message/3541
+  - label: "Naissance d'E2Lab (Fred / Eternity Blogger), eternity2@groups.io, 2009-10"
+    url: https://groups.io/g/eternity2/message/7071
+  - label: "Jef Bucas lance e2.bucas.name, le visualiseur de plateaux, eternity2@groups.io, 2019-11"
+    url: https://groups.io/g/eternity2/message/9955
+  - label: "Publication de libblackwood (Jef Bucas), eternity2@groups.io, 2020-11"
+    url: https://groups.io/g/eternity2/message/10078
+  - label: "Recensement des fichiers e2pieces.txt : « c'est le bazar ! » (Vasily V.), eternity2@groups.io, 2023-03"
+    url: https://groups.io/g/eternity2/message/11033
+  - label: e2.bucas.name (Jef Bucas), le visualiseur communautaire et le format de plateau partagé d'aujourd'hui
+    url: https://e2.bucas.name
+related:
+  - /research/build/benchmarks
+  - /research/community/hunt
+  - /research/community/boards
+---
+
+La communauté Eternity II a écrit beaucoup de logiciels : des solveurs, bien
+sûr, mais aussi des programmes de placement manuel pour les joueurs à la main,
+des éditeurs de plateaux, des explorateurs de chemins de remplissage, des
+générateurs de puzzles, des rendus et des visualiseurs. Cette page est le
+recensement de cette boîte à outils : qui a construit chaque outil, quand, ce
+qu'il faisait, et où il vit aujourd'hui. Les [pages d'histoire](/research/community/hunt)
+racontent le récit dans lequel ces outils apparaissent, et les
+[pages solveurs](/research/build/solvers) couvrent les algorithmes. Les liens
+morts sont signalés comme morts ; rien ici n'est une recommandation de
+téléchargement.
+
+Une contrainte a tout façonné. En août 2007, l'inventeur du puzzle a
+revendiqué un droit d'auteur sur le dessin des pièces et menacé les
+participants qui les faisaient circuler
+([msg 1342](https://groups.io/g/eternity2/message/1342)) ; aucun outil
+communautaire n'a donc jamais pu livrer les pièces. Chaque programme ci-dessous
+attend de vous que vous saisissiez votre propre jeu : « un rite de passage dans
+la confrérie E2. Nous l'avons TOUS fait. », comme l'a formulé Alan O'Donnell
+lorsque la querelle a resurgi pour la énième fois
+([msg 7578](https://groups.io/g/eternity2/message/7578)). Les modérateurs, de
+leur côté, retiraient les fichiers de pièces des archives d'outils mises en
+ligne quand les auteurs dérapaient
+([msg 7609](https://groups.io/g/eternity2/message/7609)). C'est pourquoi la
+boîte à outils comporte une seconde couche, moins visible : des formats de
+fichiers partagés et des protocoles de somme de contrôle qui permettent aux
+outils et aux personnes d'interopérer sans que quiconque transmette les données
+protégées. Les deux couches sont cataloguées ici.
+
+## 2007-2008 : les outils du lancement
+
+Les premiers outils précèdent le puzzle. Brendan Owen a publié du code source
+C++ pour générer des puzzles de type Eternity II en janvier 2007, six mois
+avant le lancement ; ce code est la graine de toute la culture des jeux
+d'essai ([msg 41](https://groups.io/g/eternity2/message/41)). Sergio
+« Zerjillo » Alonso a mis en ligne un corpus de 10 080 plateaux de test générés,
+plus le générateur et un tableur statistique, au printemps
+([msg 201](https://groups.io/g/eternity2/message/201),
+[msg 202](https://groups.io/g/eternity2/message/202),
+[msg 203](https://groups.io/g/eternity2/message/203)). Owen avait aussi écrit un
+programme de vision par ordinateur pour lire les panneaux de pièces scannés,
+qui a numérisé le vrai puzzle la veille du lancement
+([msg 789](https://groups.io/g/eternity2/message/789),
+[msg 1054](https://groups.io/g/eternity2/message/1054)).
+
+Le fleuron de l'année du lancement fut **eternity2.net** de Dave Clark, le
+[solveur distribué](/research/build/faster/distributed-solving) fondé sur BOINC
+([msg 756](https://groups.io/g/eternity2/message/756)). Il a moins compté pour
+son calcul (le projet a fermé en décembre 2007 sans rien avoir changé,
+[msg 3511](https://groups.io/g/eternity2/message/3511)) que pour son héritage :
+les fichiers `e2pieces.txt` / `e2hints.txt` de son client sont devenus les
+formats standard de la communauté (voir plus bas), son solveur et ses fichiers
+de données ont été préservés dans l'archive du groupe avec la bénédiction de
+Clark ([msg 3633](https://groups.io/g/eternity2/message/3633)), Bob Cousins a
+livré des versions « rmc » du solveur corrigées par la communauté
+([msg 3654](https://groups.io/g/eternity2/message/3654)), et Clark a rendu
+open-source son programme de R&D personnel, un solveur de recherche capable
+d'exporter des encodages SAT et LP et de générer des puzzles de type E2
+([msg 3716](https://groups.io/g/eternity2/message/3716)). Le premier
+backtracker *public* rapide fut le solveur C++ de Marc Lebel sur squaro.fr,
+dont la liste a disséqué les rouages dans le meilleur fil d'ingénierie de
+solveurs de l'époque
+([msg 1704](https://groups.io/g/eternity2/message/1704)).
+
+Le rendu a été résolu tôt et astucieusement. Henk van der Griendt a
+photographié ses propres pièces et construit un visualiseur HTML à partir des
+clichés ([msg 2499](https://groups.io/g/eternity2/message/2499)) ; Ignacio Ruiz
+de Conejo est allé plus loin avec **EPiecesV2.ps**, un programme PostScript qui
+restitue n'importe quel plateau 16×16 ou jeu de 256 pièces à partir de la
+numérotation officielle des arêtes. Il a livré le *moteur de rendu* plutôt que
+les données des pièces, précisément pour rester du bon côté de la ligne du droit
+d'auteur ([msg 2616](https://groups.io/g/eternity2/message/2616)). Owen l'a
+adopté pour sa propre visualisation
+([msg 2617](https://groups.io/g/eternity2/message/2617)).
+
+Les non-programmeurs ont eu leur outil en décembre 2007 : le **Manual Placement
+Program** d'eii4me (EternManShare.EXE), une interface VB6 pour placer les pièces
+à la main, publiée avec le source et itérée jusqu'à la version S3.00 en huit
+jours au gré des retours de la communauté
+([msg 3541](https://groups.io/g/eternity2/message/3541),
+[msg 3719](https://groups.io/g/eternity2/message/3719)). Et en février 2008,
+Yannick Kirschhoffer a publié **Eternity II Editor 1.0.0**, un éditeur de
+plateaux Java multiplateforme qui allait devenir l'outil le plus durable de
+tous ([msg 4544](https://groups.io/g/eternity2/message/4544)).
+
+## 2008-2010 : l'ère des éditeurs et la vague open-source
+
+La sortie centrale de l'époque fut **eii** de Louis Verhaard, le solveur qui a
+remporté le seul prix en argent qu'Eternity II ait jamais versé. Publié en
+septembre 2008 sur fingerboys.se avec ces mots : « Je suis bloqué et mon seul
+espoir d'améliorer mon meilleur score est de recourir à la force brute »
+([msg 5940](https://groups.io/g/eternity2/message/5940)), il était distribué
+sous forme de binaire à faire tourner par des volontaires ; la documentation et
+un décodeur de ses fichiers de sortie `.eii` ont suivi en janvier 2009,
+accompagnés de la révélation que les utilisateurs avaient trouvé 467 plus de
+quarante fois ([msg 6275](https://groups.io/g/eternity2/message/6275)). Son
+hébergement est une leçon de pourrissement des liens : fingerboys.se était le
+site web du groupe de musique de Verhaard et a disparu avec le groupe
+([msg 7446](https://groups.io/g/eternity2/message/7446)), si bien qu'en janvier
+2010 le solveur a migré tel quel vers
+[shortestpath.se/eii](http://www.shortestpath.se/eii/), son propre site et son
+foyer de long terme ([msg 7439](https://groups.io/g/eternity2/message/7439)).
+Des amateurs le faisaient encore tourner à des scores de niveau 466 en 2011
+([msg 8840](https://groups.io/g/eternity2/message/8840)), et des vétérans
+guidaient encore les nouveaux venus à travers `eii.exe` en 2021
+([msg 10202](https://groups.io/g/eternity2/message/10202)). La machine
+elle-même a [sa propre page solveur](/research/lab/experiments/louis-verhaard/eii).
+
+Autour de lui, toute une étagère s'est remplie :
+
+- **E2_Manual**, le programme de placement manuel DirectX de trans.spam
+  (Thomas), en v1.0.0.18 à la mi-2008
+  ([msg 5686](https://groups.io/g/eternity2/message/5686)), migré vers un
+  projet SourceForge avec binaires et source en juin 2009
+  ([msg 6765](https://groups.io/g/eternity2/message/6765)).
+- **Eternity II Editor** est passé du statut d'éditeur à celui de solveur : 1.3
+  en mars 2009, puis 1.4.0 avec les vrais motifs E2, un solveur intégré et un
+  générateur de plateaux aléatoires
+  ([msg 6594](https://groups.io/g/eternity2/message/6594),
+  [msg 6679](https://groups.io/g/eternity2/message/6679)), puis la v1.5 dans la
+  journée suivant les demandes de fonctionnalités d'un utilisateur
+  ([msg 6978](https://groups.io/g/eternity2/message/6978)). Il vit sur
+  SourceForge (sourceforge.net/projects/eternityii) ; Kirschhoffer a refait
+  surface en 2012 en proposant toujours de l'aide sur le code
+  ([msg 9064](https://groups.io/g/eternity2/message/9064)), et en 2023 le 460 de
+  Bruno Gauthier (le meilleur plateau à cinq indices jusqu'en 2026) a été
+  « réalisé avec mon propre programme et Eternity II Editor »
+  ([msg 11074](https://groups.io/g/eternity2/message/11074)), converti au format
+  du visualiseur partagé par Peter McGavin
+  ([msg 11081](https://groups.io/g/eternity2/message/11081)).
+- **E2Lab.** Fred (« Eternity Blogger ») a publié un éditeur+solveur Windows en
+  octobre 2009 et itéré presque quotidiennement
+  ([msg 7071](https://groups.io/g/eternity2/message/7071)) ; il a pris le nom
+  E2Lab à la v1.0.0.20
+  ([msg 7148](https://groups.io/g/eternity2/message/7148)), et la v1.0.0.21 a
+  retiré un « bouton magique » explicitement « pour respecter les règles du
+  jeu » ([msg 7150](https://groups.io/g/eternity2/message/7150)). E2Lab est
+  aussi à l'origine de la leçon canonique de la communauté sur la fiabilité des
+  outils : en décembre 2009, un utilisateur a rapporté une fenêtre surgissante
+  annonçant un 471 sur un plateau qui n'a jamais été enregistré, une
+  affirmation invérifiable qui hante encore les discussions sur les records
+  ([msg 7284](https://groups.io/g/eternity2/message/7284)).
+- **e2walker.** L'explorateur de chemins de remplissage de Philippe Coustaux,
+  dans la section Fichiers du groupe depuis août 2007
+  ([msg 2313](https://groups.io/g/eternity2/message/2313)), révisé par Ole
+  Knudsen (« Kron ») et, lors de l'inventaire dressé par la liste en 2009,
+  toujours « le seul programme de son espèce » : un solveur qui permet de
+  spécifier un chemin de remplissage arbitraire de 256 pas
+  ([msg 7056](https://groups.io/g/eternity2/message/7056),
+  [msg 7067](https://groups.io/g/eternity2/message/7067)).
+- **WhichWayToGo.jar.** L'interface d'okifinoki (Benjamin) pour noter des
+  chemins de remplissage candidats selon le nombre d'options attendu par
+  placement ; trois implémentations indépendantes ont convergé sur ses
+  statistiques au fil du fil de discussion
+  ([msg 6572](https://groups.io/g/eternity2/message/6572)). Son générateur de
+  puzzles graphique E2Generator.jar avait rejoint l'espace Fichiers l'automne
+  précédent ([msg 6036](https://groups.io/g/eternity2/message/6036)).
+- **Le source ouvert des solveurs** est arrivé par vagues : le solveur C++ à
+  propagation de contraintes de Markus Zajc
+  ([msg 6748](https://groups.io/g/eternity2/message/6748)) ; le backtracker Java
+  de Martin Hapl sur hapl.net, mis au jour par la liste et profilé par la
+  communauté de 1,2 M à 2,9 M d'itérations/s
+  ([msg 6794](https://groups.io/g/eternity2/message/6794),
+  [msg 6916](https://groups.io/g/eternity2/message/6916)) ; le solveur C# à
+  parallélisme de tâches de snazzyflapper, aussitôt remis en ligne sans le
+  fichier de pièces que les modérateurs avaient signalé
+  ([msg 7606](https://groups.io/g/eternity2/message/7606),
+  [msg 7610](https://groups.io/g/eternity2/message/7610)) ; et l'**Eternity II
+  Java Toolbox** de doc_s_smith, une suite de cinq outils (backtracker
+  configurable, placement piloté par contraintes, recherche tolérante aux
+  discordances avec réparation par échange, estimateur de nœuds Monte-Carlo,
+  chercheur de stratégie de remplissage) qui a marqué le retour du vétéran
+  d'Eternity I en juin 2010
+  ([msg 7755](https://groups.io/g/eternity2/message/7755)).
+
+## 2011-2018 : les outils des années creuses
+
+À mesure que le concours mourait, les outils sont devenus plus étranges et plus
+personnels. Dan Hansen, après « 4 années captivantes » d'algorithmes E2, a
+livré **Edge Match Puzzles** pour iPhone, la première fois que l'expertise de la
+communauté devenait un produit grand public
+([msg 8943](https://groups.io/g/eternity2/message/8943)) ; le groupe
+universitaire de Tony Wauters a publié une application Android de correspondance
+d'arêtes ([msg 9057](https://groups.io/g/eternity2/message/9057)). Juraj
+Pivovarov a mis en ligne un visualiseur d'ordre de balayage, qu'il présentait
+avec autodérision comme une « perte de temps totale »
+([msg 9013](https://groups.io/g/eternity2/message/9013)). La théorie est devenue
+un document : le complex_theory.pdf de Peter McGavin, la transcription LaTeX du
+modèle d'Owen, était dans les Fichiers du groupe dès 2013
+([msg 9188](https://groups.io/g/eternity2/message/9188)).
+
+Le flambeau de l'open-source est passé à David Barr : un solveur OpenCL publié
+sur GitHub en 2015 ([msg 9360](https://groups.io/g/eternity2/message/9360),
+[msg 9367](https://groups.io/g/eternity2/message/9367)). Le dépôt,
+github.com/david3x3x3/eternity2, reste la base de code la plus réutilisée de
+l'époque, suivie de montages en grappe de Raspberry Pi avec une page d'état
+publique ([msg 9582](https://groups.io/g/eternity2/message/9582)), d'un solveur
+Python dans le navigateur via Pyodide
+([msg 9854](https://groups.io/g/eternity2/message/9854)) et d'expériences de
+liens dansants (dancing-links) avec visualisations
+([msg 10095](https://groups.io/g/eternity2/message/10095),
+[msg 10100](https://groups.io/g/eternity2/message/10100)). Le web a eu son
+premier terrain de jeu de solveur aussi : le backtracker de navigateur de
+Guillaume L. sur 16x16tetravex.xyz, dont les résolutions instantanées se sont
+effondrées en « sans fin » dès que les puzzles étaient régénérés avec des
+statistiques de couleurs de type E2, une démonstration en direct de l'endroit
+où réside la difficulté
+([msg 9449](https://groups.io/g/eternity2/message/9449),
+[msg 9458](https://groups.io/g/eternity2/message/9458)).
+
+## 2019-2026 : la pile moderne
+
+La chaîne d'outils moderne commence par un sauvetage. Quand Yahoo a annoncé
+qu'il effacerait le contenu de Groups en 2019, la migration vers groups.io a
+transféré les messages, fichiers et photos à quelques semaines près
+([msg 9934](https://groups.io/g/eternity2/message/9934)), ce qui explique
+pourquoi les outils de l'espace Fichiers cités plus haut existent encore, à
+l'abri du mur d'adhésion du groupe.
+
+Deux semaines après la migration, Jef Bucas a lancé
+**[e2.bucas.name](https://e2.bucas.name)** : des plateaux rendus en SVG et
+encodés entièrement dans les paramètres d'URL (« puisque les paramètres sont
+après le '#', rien n'est réellement transmis au serveur »), avec un menu
+déroulant des meilleurs plateaux qui est discrètement devenu le livre des
+records de la communauté
+([msg 9955](https://groups.io/g/eternity2/message/9955)). Une page Indices
+répondant aux éternelles questions sur les pièces-indices a suivi en 2021
+([msg 10082](https://groups.io/g/eternity2/message/10082)), et une refonte avec
+raccourcis clavier et affichage du score en 2022
+([msg 10590](https://groups.io/g/eternity2/message/10590)). Pratiquement chaque
+plateau partiel partagé depuis est une URL e2.bucas.name.
+
+La lignée des solveurs de records est une histoire à trois dépôts. Joshua
+Blackwood a rendu open-source son **EternityII_Solver** en C# (le code derrière
+le 468) en septembre 2020, après avoir d'abord demandé un fichier de pièces
+standard pour que son dépôt ne livre pas de données protégées
+([msg 10037](https://groups.io/g/eternity2/message/10037),
+[msg 10034](https://groups.io/g/eternity2/message/10034)). Bucas l'a eu en état
+de marche sous Mono en quelques heures
+([msg 10038](https://groups.io/g/eternity2/message/10038)), l'a réécrit en C
+pour environ le double de la vitesse
+([msg 10065](https://groups.io/g/eternity2/message/10065)), et a publié le
+générateur derrière le portage sous le nom de **libblackwood** (du Python qui
+émet du C rapide) sur github.com/jfbucas/libblackwood
+([msg 10078](https://groups.io/g/eternity2/message/10078)). Quand le dépôt
+d'origine est discrètement passé en privé, le « Où est le logiciel que vous
+utilisez tous ? » d'un nouveau venu l'a fait republier : « C'est exactement le
+code utilisé pour trouver un 470 »
+([msg 10161](https://groups.io/g/eternity2/message/10161)). Le portage,
+l'original et le visualiseur constituent la pile derrière chaque record depuis
+2020 ; la [page du solveur Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+couvre l'algorithme lui-même.
+
+Le reste de l'étagère moderne : **E2Play** de mtmidgee, un ancien plateau de jeu
+manuel VB recodé en C# et rendu open-source depuis le confinement australien,
+« pas un solveur (en aucune manière, forme ou façon) »
+([msg 10208](https://groups.io/g/eternity2/message/10208)) ; **solveforscore** de
+David Barr, un maximiseur de score en Python publié dans son dépôt GitHub, qui a
+produit un 462 sans indices
+([msg 11088](https://groups.io/g/eternity2/message/11088),
+[msg 11101](https://groups.io/g/eternity2/message/11101)) ;
+**Eternity2Puzzles.jl** de jwortmann, un paquet Julia qui étend la théorie de la
+complexité avec les jointures invalides et un tableau de glissement
+([msg 11603](https://groups.io/g/eternity2/message/11603)) ; et **eii-puzzles**
+de Michal Dobrogost (github.com/michal-dobrogost/eii-puzzles), un générateur de
+puzzles bien testé doté d'une bibliothèque d'analyse C en-têtes seulement,
+générant des instances à 5 indices à la manière de l'original
+([msg 11752](https://groups.io/g/eternity2/message/11752)).
+
+## La couche des conventions
+
+Les formats ont survécu à la plupart des outils, et ce sont eux qu'un nouveau
+venu a réellement besoin de connaître.
+
+**e2pieces.txt / e2hints.txt.** Le format du fichier de pièces a été fixé par le
+client BOINC d'eternity2.net (un solveur distribué a besoin d'une entrée
+standard, [msg 10952](https://groups.io/g/eternity2/message/10952)), et a été
+consciemment mis par écrit comme standard de la communauté en décembre 2007,
+John Morrison publiant des descriptions explicites du format
+([msg 3571](https://groups.io/g/eternity2/message/3571),
+[msg 3572](https://groups.io/g/eternity2/message/3572)). Quinze ans de dérive
+ont suivi : lorsque Vasily V. a recensé en 2023 tous les `e2pieces.txt` qu'il a
+pu trouver sur GitHub, son verdict fut « c'est le bazar ! ». Il a trouvé des
+numérotations et palettes incohérentes et au moins un mauvais fichier qui avait
+été recommandé aux nouveaux venus
+([msg 11033](https://groups.io/g/eternity2/message/11033)). Le fil sur la
+confusion des formats qui l'avait immédiatement précédé avait déjà produit la
+liste de pièces de référence dans la numérotation devenue standard de facto
+vers laquelle on oriente les nouveaux venus aujourd'hui
+([msg 10970](https://groups.io/g/eternity2/message/10970)), vérifiée
+conforme-somme-de-contrôle dans le suivi du recensement
+([msg 11034](https://groups.io/g/eternity2/message/11034)). Les conventions de
+numérotation elles-mêmes sont des décisions de la semaine du lancement : les
+types d'arêtes numérotés d'après le livret, actés avant que le puzzle n'ait deux
+semaines ([msg 983](https://groups.io/g/eternity2/message/983)) ; une
+proposition de 2009 de renuméroter les motifs « universellement » a été refusée
+précisément parce que des standards de facto existaient déjà
+([msg 6804](https://groups.io/g/eternity2/message/6804)).
+
+**Sommes de contrôle CRC-16.** Puisque personne ne peut partager les pièces, la
+communauté vérifie les transcriptions à la place : on publie des sommes de
+contrôle CRC-16 par bloc de 8 pièces et on compare. Les membres ont convergé sur
+des CRC identiques dans la journée suivant le lancement
+([msg 1063](https://groups.io/g/eternity2/message/1063),
+[msg 1073](https://groups.io/g/eternity2/message/1073)) ; les utilitaires de
+somme de contrôle (Checksum-v4.txt, ChecksumCalc.zip) se sont installés dans la
+section Fichiers comme réponse standard à « mon fichier de pièces est-il
+correct ? » ([msg 7591](https://groups.io/g/eternity2/message/7591)), et le
+protocole a été étendu aux puzzles à indices en 2009
+([msg 6769](https://groups.io/g/eternity2/message/6769)).
+
+**Le format plateau-dans-une-URL.** Depuis 2019, un plateau *est* une URL
+e2.bucas.name : largeur, hauteur, liste de pièces et arêtes dans le fragment,
+rendu côté client, rien d'envoyé à aucun serveur
+([msg 9955](https://groups.io/g/eternity2/message/9955)). C'est le format dans
+lequel les records sont annoncés, vérifiés et archivés : la lingua franca
+d'aujourd'hui, comme `e2pieces.txt` l'était en 2008. Ce site est une branche de
+plus de cette lignée : son [visualiseur](/viewer) lit le même format d'URL, et
+les plateaux communautaires qu'il embarque sont catalogués dans
+[les plateaux notables](/research/community/boards).
+
+## Le recensement
+
+| Outil | Auteur | Naissance | Statut | Source |
+| --- | --- | --- | --- | --- |
+| Générateur de puzzles de type E2 (C++) | Brendan Owen | 2007-01 | Fichiers du groupe (membres) | [41](https://groups.io/g/eternity2/message/41) |
+| Corpus d'essai + générateur | Sergio "Zerjillo" Alonso | 2007-05 | Fichiers du groupe (membres) | [201](https://groups.io/g/eternity2/message/201) |
+| eternity2.net (BOINC) + solveur R&D | Dave Clark | 2007-07 | fermé 2007-12 ; fichiers archivés | [756](https://groups.io/g/eternity2/message/756), [3716](https://groups.io/g/eternity2/message/3716) |
+| Solveur C++ public (squaro.fr) | Marc Lebel | 2007-08 | statut actuel inconnu | [1704](https://groups.io/g/eternity2/message/1704) |
+| e2walker (explorateur de chemins) | Philippe Coustaux | 2007-08 | Fichiers du groupe (membres) | [2313](https://groups.io/g/eternity2/message/2313), [7056](https://groups.io/g/eternity2/message/7056) |
+| Visualiseur HTML à base de photos | Henk van der Griendt | 2007-09 | personnel ; jamais distribué | [2499](https://groups.io/g/eternity2/message/2499) |
+| EPiecesV2.ps (moteur de rendu PostScript) | Ignacio Ruiz de Conejo | 2007-09 | Fichiers du groupe (membres) | [2616](https://groups.io/g/eternity2/message/2616) |
+| Manual Placement Program | eii4me | 2007-12 | Fichiers du groupe (membres) | [3541](https://groups.io/g/eternity2/message/3541) |
+| Eternity II Editor | Yannick Kirschhoffer | 2008-02 | SourceForge ; utilisé jusqu'en 2023 | [4544](https://groups.io/g/eternity2/message/4544), [11074](https://groups.io/g/eternity2/message/11074) |
+| E2_Manual | trans.spam (Thomas) | 2008-07 | SourceForge (2009) | [5686](https://groups.io/g/eternity2/message/5686), [6765](https://groups.io/g/eternity2/message/6765) |
+| eii (solveur distribué + décodeur) | Louis Verhaard | 2008-09 | shortestpath.se/eii ; fingerboys.se mort | [5940](https://groups.io/g/eternity2/message/5940), [7439](https://groups.io/g/eternity2/message/7439) |
+| E2Generator.jar | okifinoki (Benjamin) | 2008-10 | Fichiers du groupe (membres) | [6036](https://groups.io/g/eternity2/message/6036) |
+| WhichWayToGo.jar | okifinoki (Benjamin) | 2009-03 | Fichiers du groupe (membres) | [6572](https://groups.io/g/eternity2/message/6572) |
+| Solveur C++ à contraintes | Markus Zajc | 2009-05 | Fichiers du groupe (membres) | [6748](https://groups.io/g/eternity2/message/6748) |
+| Backtracker Java (hapl.net) | Martin Hapl | 2009-07 | hapl.net ; statut actuel inconnu | [6794](https://groups.io/g/eternity2/message/6794) |
+| E2Lab (éditeur + solveur) | Fred ("Eternity Blogger") | 2009-10 | blog de l'auteur ; statut actuel inconnu | [7071](https://groups.io/g/eternity2/message/7071) |
+| Eternity II Java Toolbox | doc_s_smith (Dietmar Wolz) | 2010-06 | Fichiers du groupe (membres) | [7755](https://groups.io/g/eternity2/message/7755) |
+| Edge Match Puzzles (iPhone) | Dan Hansen | 2011-07 | sortie App Store ; statut inconnu | [8943](https://groups.io/g/eternity2/message/8943) |
+| Visualiseur d'ordre de balayage | Juraj Pivovarov | 2012-01 | Fichiers du groupe (membres) | [9013](https://groups.io/g/eternity2/message/9013) |
+| complex_theory.pdf | Peter McGavin | 2013-07 | Fichiers du groupe (membres) | [9188](https://groups.io/g/eternity2/message/9188) |
+| Solveurs OpenCL/CPU, solveforscore | David Barr | 2015-04 | GitHub (david3x3x3/eternity2) | [9367](https://groups.io/g/eternity2/message/9367), [11088](https://groups.io/g/eternity2/message/11088) |
+| Solveur de navigateur (16x16tetravex.xyz) | Guillaume L. | 2015-09 | statut actuel inconnu | [9449](https://groups.io/g/eternity2/message/9449) |
+| e2.bucas.name (visualiseur de plateaux) | Jef Bucas | 2019-11 | en ligne | [9955](https://groups.io/g/eternity2/message/9955) |
+| EternityII_Solver | Joshua Blackwood | 2020-09 | GitHub (public à nouveau depuis 2021) | [10037](https://groups.io/g/eternity2/message/10037), [10161](https://groups.io/g/eternity2/message/10161) |
+| libblackwood (générateur de portage C) | Jef Bucas | 2020-11 | GitHub (jfbucas/libblackwood) | [10078](https://groups.io/g/eternity2/message/10078) |
+| E2Play (plateau de jeu manuel) | mtmidgee | 2021-08 | rendu open-source | [10208](https://groups.io/g/eternity2/message/10208) |
+| Eternity2Puzzles.jl | jwortmann | 2025-08 | GitHub | [11603](https://groups.io/g/eternity2/message/11603) |
+| eii-puzzles (générateur + bibliothèque C) | Michal Dobrogost | 2026-01 | GitHub (michal-dobrogost/eii-puzzles) | [11752](https://groups.io/g/eternity2/message/11752) |
+
+Là où un statut indique « Fichiers du groupe (membres) », l'artefact a survécu à
+la migration Yahoo-vers-groups.io de 2019
+([msg 9934](https://groups.io/g/eternity2/message/9934)) et est accessible aux
+[membres du groupe](https://groups.io/g/eternity2). Les *jeux* d'essai qui ont
+transité par ces outils (celui de Txibilis, de Geoff, de Benoist, les 9×9 et
+10×10 d'Owen) ont [leur propre page](/research/build/benchmarks).

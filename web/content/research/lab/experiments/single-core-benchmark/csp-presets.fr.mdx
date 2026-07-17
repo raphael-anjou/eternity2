@@ -1,0 +1,108 @@
+---
+title: Presets CSP, à la mesure
+description: >-
+  Un seul moteur de propagation de contraintes, exécuté sous une douzaine de
+  presets d'ordonnancement et de propagateurs, sur les dix mêmes variantes à
+  coins fixés que le classement. Une étude de ce qu'apporte chaque réglage,
+  tenue à l'écart du classement principal parce que le meilleur preset atteint
+  moins de la moitié du score d'un prétendant.
+metaDescription: "Un moteur CSP sous douze presets d'ordre et de propagation, mesuré sur dix variantes d'Eternity II : le gain de chaque réglage, et pourquoi aucun ne rivalise."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # le banc mono-cœur standardisé
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # budget par exécution
+  runs: 120 # 12 algorithmes preset/variante × 10 variantes à coins
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true uniquement pour le banc mono-cœur standardisé
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 11
+updated: 2026-07-15
+date: 2026-07
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/reduce/arc-consistency
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Moteur exécutable + résultats versionnés + scripts (le répertoire support de cette expérience)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+Le classement du [benchmark mono-cœur](/research/lab/experiments/single-core-benchmark)
+montre les méthodes qui rivalisent sur le score. Cette page montre le reste :
+une douzaine de presets d'un seul moteur de satisfaction de contraintes, plus le
+DFS naïf dans son ordre de visite le plus faible. Ce ne sont pas une douzaine de
+solveurs. C'est un unique cœur d'arc-cohérence coiffé de têtes différentes, tenu
+pour que le coût exact de chaque technique classique se lise sur un nombre plutôt
+que se discute.
+
+<Figure title="Presets CSP : score moyen sur dix variantes à coins, mono-cœur, 60 s">
+  <BenchmarkLeaderboard view="presets" />
+</Figure>
+
+## Ce qu'apporte chaque réglage
+
+Les presets font varier deux choses : l'ordre dans lequel le moteur affecte les
+cellules, et l'intensité de la propagation avant qu'il ne s'engage. À puzzle et
+budget fixés, l'écart de score entre deux presets est la valeur de ce seul
+réglage.
+
+- **L'ordonnancement par valeur la moins contraignante aide.** `anjou-gacolor_ac3_lcv`
+  atteint une moyenne de 114 contre 76 pour le simple `anjou-gacolor_ac3` :
+  choisir la valeur qui élimine le moins de voisins vaut ici environ 38 points.
+- **Certains réglages sont inertes à cette profondeur.** Trois presets
+  (`anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1`, `anjou-verhaard_preferred`) ont
+  produit des plateaux identiques au bit près sur ce puzzle. NS-1 et
+  l'ordonnancement préféré n'ajoutent rien en 60 secondes : le moteur ne descend
+  jamais assez profond pour qu'ils mordent.
+- **L'ordonnancement bord d'abord est le preset le plus fort.** `anjou-border_first_lcv`
+  et `anjou-rare_color_first` dominent la campagne à environ 183, en fixant le
+  cadre sur-contraint avant l'intérieur libre. Cela reste moins de la moitié du
+  score d'un prétendant.
+
+## Pourquoi aucun d'eux ne rivalise
+
+Chaque preset est bimodal. Sur une disposition de coins favorable, la recherche
+par arc-cohérence atteint 340 à 349 ; sur une disposition hostile, elle s'effondre
+à environ 55, piégée dans un mauvais bassin dont elle ne peut sortir en 60
+secondes. La moyenne reste basse parce que les mauvais coins la tirent vers le
+bas, et aucun réglage d'ordonnancement ne corrige le problème du bassin. Voilà la
+vraie histoire de cette famille : la propagation rend chaque nœud bien élagué mais
+coûteux, si bien que la recherche est forte là où l'instance est clémente et
+impuissante là où elle ne l'est pas. Les moteurs constructifs du classement
+n'entrent jamais dans ce piège, et c'est pourquoi un preset à 183 se trouve sur
+une page différente des prétendants du classement, qui plafonnent à 451.
+
+## Le DFS naïf est ici aussi, pour une seule raison
+
+La recherche en profondeur naïve, toutes ruptures autorisées, n'est pas un preset
+CSP, mais son ordre de visite relève de la même leçon. En ordre ligne par ligne
+(`anjou-naive_rowmajor`, présent au classement comme référence) il atteint 365 ;
+le même DFS en ordre de visite en spirale (`anjou-naive_spiral`) s'effondre à une
+moyenne de 78. Le seul choix de l'ordre de visite coûte à la recherche naïve près
+de 290 points, la même sensibilité à l'ordonnancement que montrent les presets
+CSP, à plus grande échelle.
+
+## Méthode et reproductibilité
+
+Ces presets ont tourné dans la même grille que le classement : dix variantes du
+puzzle officiel, chacune avec trois cellules de coin fixées, mono-cœur, 60
+secondes, graine fixe, une exécution par variante. Chaque plateau est re-scoré
+par l'unique scoreur canonique à arêtes appariées, jamais par l'auto-déclaration
+du moteur. Le moteur, les dix variantes, les résultats versionnés par exécution
+et les scripts vivent sous le
+[répertoire support](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+de l'expérience, et `just experiments single-core-benchmark` rejoue la grille
+entière, prétendants et presets ensemble.

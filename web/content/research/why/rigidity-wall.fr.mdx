@@ -1,0 +1,196 @@
+---
+title: Le mur de rigidité
+description: >-
+  Chaque plateau record dont nous disposons est figé sur place. Impossible de
+  progresser par petites retouches d'un excellent plateau vers un plateau
+  parfait, et nous pouvons le démontrer.
+kind: finding
+contribution: theory
+tier: 1
+rigor: proven
+author: raphael-anjou
+order: 50
+updated: 2026-07-10
+topics: [structure, local-search, exact-methods]
+complexity:
+  time: "une résolution PLNE par région ; de ~70 s (48 cellules) à ~1800 s (halo-1 conjoint de 59 cellules) sur CBC"
+  space: "≈18,7 k variables binaires d'affectation pour une région de 64 cellules"
+  note: >-
+    Exponentiel dans le pire des cas (la programmation en nombres entiers est
+    NP-difficile), mais chaque région est assez petite pour être fermée à
+    l'optimalité ou à un écart serré en quelques minutes.
+related:
+  - /research/why/sigma-cycles
+  - /research/why/walls-and-methods
+  - /research/why/prune-vs-speed
+  - /research/lab/experiments/raphael-anjou/learning/palimpsest
+  - /research/lab/experiments/raphael-anjou/pipelines/midden
+  - /research/build/exact/lp-relaxations
+repro:
+  kind: heavy
+sources:
+  - label: "Théorème de rigidité locale (article du projet, 2026-05-16) : ≥13 preuves PLNE d'optimalité de halo sur 3 à 4 bassins, jusqu'au halo-4"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research
+  - label: "Land & Doig 1960, séparation et évaluation, la méthode exacte derrière chaque résolution de région"
+    url: https://doi.org/10.2307/1910129
+  - label: "benj39100 : le recuit sur GPU appliqué au plateau strict à 5 indices bute sur le même cœur figé ; le meilleur score croît avec la distance au sortant (message groups.io 11902)"
+    url: https://groups.io/g/eternity2/message/11902
+  - label: "Tests indépendants de résidu SAT sur halo et de gel des répliques de William Millilaw, reproduits ici sur les plateaux records publics (tous UNSAT jusqu'à un halo de deux cellules)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
+---
+
+import { RigidityHalo } from "@/components/research/RigidityHalo";
+import { RigidityLab } from "@/components/research/RigidityLab";
+
+Voici l'intuition par laquelle presque tout le monde commence : s'approcher,
+puis nettoyer les dernières discordances. Échanger deux ou trois pièces, en
+faire pivoter quelques-unes, et le score va sûrement grimper jusqu'à 480.
+
+Ce n'est pas le cas. Sur chaque plateau de tête que nous avons testé, les
+dernières discordances sont verrouillées. Déplacez quoi que ce soit dans le
+voisinage et le score reste identique ou baisse. Les bons plateaux ne sont pas
+des quasi-solutions attendant un polissage ; ce sont des points isolés qui
+n'ont nulle part de meilleur où aller à côté.
+
+## Regardez la région grandir
+
+<RigidityHalo />
+
+## Essayez de faire mieux vous-même
+
+Un vrai petit plateau parfait. Échangez n'importe quelles deux pièces, ou
+laissez le moteur essayer tous les échanges. Rien ne le bat ; c'est la
+rigidité, en direct.
+
+<Figure collapsible title="Interactif : échangez des pièces et regardez le score refuser de monter">
+  <RigidityLab />
+</Figure>
+
+## Comment le sait-on
+
+Le résultat ne repose pas sur le fait d'essayer un grand nombre d'échanges puis
+d'abandonner. Il provient d'une question exacte posée à un solveur de
+programmation en nombres entiers : prendre une région du plateau, libérer chaque
+pièce qui s'y trouve, et trouver l'unique meilleure façon de la remplir à
+nouveau. Le solveur explore tout cet espace local de manière exacte, non par
+échantillonnage.
+
+La réponse revient toujours la même : le meilleur agencement est celui qui est
+déjà là. Nous l'avons démontré région après région, sur trois plateaux records
+différents, et jusqu'à un rayon de quatre cellules, soit un bloc de dizaines de
+cellules d'un coup. À chaque fois, aucune amélioration n'existe.
+
+## Méthode : la preuve PLNE
+
+La question exacte, énoncée précisément. Autour de chaque cellule défectueuse,
+on prend la région *halo-$r$* : toute cellule à moins de $r$ pas. On libère
+toutes les pièces qu'elle contient, on garde le reste du plateau fixé comme
+frontière, et on résout un programme en nombres entiers pour le meilleur
+remplissage légal. Des variables binaires $x_{c,p,\theta} \in \{0,1\}$ placent
+la pièce $p$ à la rotation $\theta$ dans la cellule $c$ ; des contraintes
+d'une-pièce-par-cellule et d'une-cellule-par-pièce en font un problème
+d'affectation ; l'objectif maximise les arêtes concordantes, en comptant la
+frontière fixée. Une région de 64 cellules représente environ 18 700 variables
+binaires. La séparation et évaluation trouve alors soit un remplissage
+strictement meilleur, soit prouve, à l'aide d'une borne duale, qu'il n'en
+existe aucun.
+
+Elle n'en trouve jamais. Les preuves, région par région :
+
+| Région | Plateau | Cellules | Temps solveur | Résultat |
+|---|---|---:|---:|---|
+| halo-2, par composante (×8) | 3 bassins (469, 459, 458) | 2–32 | quelques secondes chacune | tous Δ = +0, **prouvé** |
+| halo-1 conjoint | McGavin 469 | 37 | 895 s | Δ = +0, **prouvé** |
+| halo-1 conjoint | Local 459 | 59 | 1800 s | Δ = +0, **prouvé** |
+| halo-3, par composante | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **prouvé** |
+| halo-4, composante 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **prouvé** |
+
+Sur quatre bassins et ≥13 régions, la réponse est invariante : le plateau
+sortant est localement PLNE-optimal, jusqu'au halo-4 pour le 469 de McGavin.
+L'unique région laissée avec un écart, les quatre rangées supérieures, 64
+cellules, donne encore un résultat *rigoureux* : une borne duale de 123 contre
+les 116 du sortant, de sorte que même le cas non fermé ne peut dépasser le mur
+que de peu (cela implique une borne de ≤ 476 à l'échelle du plateau).
+
+Le badge indique *prouvé* plutôt que *conjecturé* pour les régions
+effectivement fermées ; l'énoncé général sur *tous* les plateaux reste une
+conjecture, étayée par chaque région testée à ce jour.
+
+## Pourquoi c'est important
+
+Cela recadre tout l'écart jusqu'à 480. La distance entre le meilleur plateau
+connu et une solution n'est pas un amas de petites corrections en attente d'être
+trouvées. Si c'était le cas, ce type de recherche locale les aurait trouvées.
+L'obstacle, c'est que les bons plateaux siègent au fond de leurs propres petites
+vallées, et que les parois de ces vallées sont exactes, non approximatives.
+
+Cela dit aussi ce qui ne marchera pas. Le polissage, l'ascension de colline et
+la plupart des heuristiques de réparation locale tentent de remonter la pente
+depuis un point figé. Il n'y a pas de pente à remonter. Atteindre une solution
+exige un mouvement qui réagence une grande région d'un seul coup, ou un point de
+départ entièrement différent, non un meilleur polissage.
+
+## Quelqu'un a heurté le même mur du côté du recuit
+
+La preuve PLNE aborde le mur de façon analytique. En juin 2026, un autre
+chercheur s'y est heurté de plein fouet, empiriquement. En travaillant le
+plateau strict à cinq indices avec un solveur de recuit simulé sur GPU (4096
+répliques parallèles), benj39100 a rapporté deux choses qui se lisent comme une
+reformulation de cette page. Premièrement, le meilleur score qu'une exécution
+pouvait atteindre *augmentait avec la distance au meilleur plateau courant* :
+pour grimper de 429 vers 432, les perturbations gagnantes devaient migrer
+régulièrement plus loin, parce qu'au voisinage du sortant il n'y avait aucun
+mouvement améliorant à trouver. Deuxièmement, à travers tous leurs meilleurs
+plateaux, les mêmes quelque quarante-deux arêtes brisées formaient un « noyau
+dur » figé que la recherche locale ne touchait jamais, si bien qu'ils ont dû
+ajouter un terme explicite qui *récompensait* le fait d'ouvrir ce noyau de
+force. Un sortant localement figé sans gradient à proximité, et un petit
+ensemble verrouillé de défauts que rien de local ne déplace : voilà le mur de
+rigidité, vu depuis une méthode complètement différente.
+
+## Et encore, depuis un solveur SAT
+
+Un troisième chercheur est parvenu à la même conclusion avec un troisième outil.
+William Millilaw, travaillant le plafond de façon indépendante, a mené deux
+tests. Le premier était un test de gel : perturber la racine d'un plateau de
+tête, ré-optimiser, et voir quelles cellules reviennent. Sur ses meilleurs
+plateaux, 93 à 100 pour cent des cellules revenaient exactement à leur place, un
+noyau figé que la recherche ne pouvait déplacer. Le second était une question de
+décision pour un solveur SAT. Libérer les cellules autour des discordances,
+exiger que chaque arête libérée concorde, et demander si un quelconque agencement
+de ces pièces la satisfait. Son solveur a répondu UNSAT.
+
+Nous avons [reproduit ce test SAT](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
+sur les plateaux records publics, avec notre propre encodeur et un témoin
+positif pour nous assurer qu'une région concordante revient satisfiable. Chaque
+plateau record que nous avons essayé, du 467 de Verhaard au 470 de Blackwood,
+est UNSAT jusqu'à un halo de deux cellules : aucun réagencement local des
+propres pièces d'un plateau record ne referme une seule discordance. La
+programmation en nombres entiers optimise et borne ; le recuit se cogne au mur à
+la main ; SAT décide et renvoie une réfutation. Trois méthodes, une seule
+réponse.
+
+Ses travaux antérieurs sur le serpent et la recherche locale ont chiffré le
+pourquoi. Le plus grand pavé qu'un quelconque de ses opérateurs de réparation
+pouvait réécrire en un mouvement faisait environ 48 cellules, alors que deux des
+bons plateaux connus, tous deux proches du plafond, diffèrent sur environ 225
+cellules. Un mouvement qui ne peut toucher que 48 cellules ne peut franchir un
+écart de 225 cellules, si bien qu'aucune suite de tels mouvements n'atteint un
+bassin différent. Il a cherché une chaîne de petits mouvements améliorants qui
+permettrait de percer un tunnel vers la sortie et n'en a trouvé aucune : zéro
+amélioration sur vingt-huit millions de combinaisons de quatre et cinq
+mouvements au plateau. C'est le même mur, énoncé comme un budget. La réparation
+locale réécrit trop peu à la fois pour quitter la vallée, ce qui explique
+pourquoi s'en échapper exige un mouvement qui réagence une grande région d'un
+seul coup, exactement comme le conclut la section de preuve ci-dessus.
+
+<Callout kind="insight" title="La pièce suivante du tableau">
+  Si vous ne pouvez pas améliorer un plateau localement, peut-être pouvez-vous
+  sauter d'un bon plateau à un autre. Cela échoue aussi, pour une raison
+  connexe : [voyez pourquoi le saut de bassin est impossible](/research/why/sigma-cycles).
+</Callout>
+
+*Les preuves utilisent la programmation en nombres entiers sur des régions de
+chaque plateau ; elles tournent plusieurs minutes par région sur un solveur, et
+ne sont donc pas reproduites en direct ici. Les plateaux eux-mêmes sont fournis
+et vérifiables dans la visionneuse.*

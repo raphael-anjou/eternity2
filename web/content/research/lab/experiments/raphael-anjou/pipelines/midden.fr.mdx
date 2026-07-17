@@ -1,0 +1,131 @@
+---
+title: MIDDEN
+description: >-
+  Décider à l'avance non pas quand un plateau peut casser, mais où : confiner
+  chaque désaccord à une forme de cellules choisie, et chercher la meilleure forme.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 452
+rigor: measured
+complexity:
+  time: "per mask: a 300 s × 8-seed break-tolerant DFS run; plus a sweep over mask shapes/densities"
+  space: "the mask is a 256-bit cell set; otherwise a standard DFS frontier"
+  note: >-
+    Le masque n'ajoute aucun coût de recherche, il change seulement quelles
+    cellules peuvent porter un désaccord, transformant une règle fixe en un axe
+    de conception à balayer.
+repro:
+  kind: seeded
+stages:
+  - engine: frame-input
+    does: "A pre-solved border frame plus a break-cell mask are fixed as inputs"
+  - engine: break-dfs
+    does: "Break-tolerant DFS off the frame allows mismatches only inside the mask, perfect match outside"
+order: 70
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/why/piece-theft
+sources:
+  - label: "Vol de pièces (ce projet) : la vue spatiale de l'endroit où les plateaux échouent, ce que MIDDEN contrôle en amont"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/piece-theft.mdx
+---
+
+import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
+
+La plupart des solveurs tolérant les cassures contrôlent quand un désaccord est
+permis : à certaines profondeurs, au-delà d'un certain remplissage. MIDDEN
+contrôle où, à la place. Il fixe un masque, un ensemble de cellules choisi, et
+impose que les désaccords ne puissent être payés qu'à l'intérieur ; partout
+ailleurs, l'accord doit être parfait. Puis il cherche sur la forme de ce masque.
+Les méthodes existantes disent quand encaisser des dégâts ; cette expérience
+demande où les dégâts doivent se loger.
+
+## Fonctionnement
+
+Choisir un masque : deux ou trois lignes, deux ou trois colonnes, un treillis
+dispersé de cellules, ou un ensemble choisi par couleur. Lancer la recherche en
+forçant des accords parfaits hors du masque et en autorisant les désaccords
+uniquement à l'intérieur. Des formes de masque différentes conduisent la
+recherche dans des parties différentes de l'espace, si bien que le masque devient
+un bouton de réglage plutôt qu'une règle figée.
+
+Comparer les formes révèle quelle géométrie de dégâts autorisés permet à un
+plateau de faire croître une longue série parfaite avant de devoir dépenser un
+désaccord.
+
+<Figure collapsible title="Interactif : les masques de cassure par géométrie des dégâts">
+  <MaskShapeDiagram />
+</Figure>
+
+## Le résultat
+
+Un treillis dispersé de cellules à dégâts autorisés allonge nettement plus la
+plus longue série parfaite que le fait de concentrer les dégâts sur une ligne ou
+deux, poussant le mur parfait d'environ 150 cellules jusque dans les 170. Le
+mécanisme est clair ; ce qui reste ouvert, c'est l'économie de l'affaire :
+convertir une série parfaite plus longue en un score final plus élevé, une fois
+que la fin de partie doit absorber les dégâts différés.
+
+Le masque est donc un vrai levier, le complément spatial des contrôles de timing
+habituels, avec un effet mesuré sur la distance à laquelle un plateau reste
+parfait, mais pas encore une voie aboutie vers un record.
+
+## Méthode
+
+Toutes les autres recherches tolérant les cassures régulent les dégâts par
+*quand* : une profondeur, une fraction de remplissage. MIDDEN régule par *où*.
+C'est le premier contrôle de dégâts par ensemble de cellules (OÙ) face aux
+régulations par profondeur (QUAND) de tous les autres.
+
+- **Le masque.** Un ensemble de cellules choisi (un masque de 256 bits) est
+  passé via `--break-cells`. À l'intérieur du masque, les désaccords sont
+  autorisés ; partout ailleurs, l'accord doit être parfait. La recherche est par
+  ailleurs un DFS tolérant les cassures standard, à partir d'un cadre fixe.
+- **Le balayage.** La *forme* du masque devient la variable de conception : deux
+  ou trois lignes, deux ou trois colonnes, un treillis dispersé, ou un ensemble
+  choisi par couleur, balayés sur les formes et les densités, chacun à 300 s × 8
+  graines.
+
+Le résultat mesuré est une règle de conception à densité graduée : un **treillis
+dispersé** de cellules à dégâts autorisés allonge la plus longue série parfaite
+d'environ 153 cellules à 167-174 (**+21**), bien plus que le fait de concentrer
+les dégâts sur une ligne ou deux. Le mécanisme est clair ; l'économie qui reste
+ouverte, c'est la fin de partie : une série parfaite plus longue ne sert que si
+la queue peut absorber les dégâts différés, et le masque dispersé qui maximise le
+mur ne scelle pas à lui seul la fin de partie. L'étape suivante naturelle
+(composer un masque de corps dispersé avec une queue ouverte) est exactement ce
+que le balayage MIDDEN-v2 s'est proposé de tester.
+
+## Reproduire
+
+Amorcé sur un cadre fixe ; l'effet d'allongement du mur se reproduit d'un masque
+à l'autre, même si le plateau exact dépend des graines, et le plateau 452
+committé est vérifiable dans la visionneuse. Comme [CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister),
+il lui faut un cadre de bordure pré-résolu (plus le masque de cellules de
+cassure, qui est un intrant littéral) ; un répertoire d'appui exécutable, livrant
+le cadre, est prévu.
+
+## Questions ouvertes
+
+Quelles formes de masque convertissent une série parfaite plus longue en arêtes
+réellement accordées à la fin, plutôt que de simplement différer les dégâts ?
+Peut-on combiner des masques spatiaux avec des contrôles de timing, de sorte
+qu'un plateau soit régulé à la fois sur où et sur quand il peut casser ? Et
+existe-t-il un masque qui reflète l'endroit où les meilleurs plateaux connus
+portent réellement leurs désaccords ?

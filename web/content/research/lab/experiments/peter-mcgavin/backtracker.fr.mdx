@@ -1,0 +1,386 @@
+---
+title: "Le backtracker C de McGavin : l'histoire du débit, reconstruit ici"
+description: >-
+  Le backtracker C de Peter McGavin, le plus rapide de la communauté : une recette
+  d'optimisation de 2007 capitalisée pendant deux décennies via code généré, tables
+  de correspondance et astuces de compteur, puis compilée sur mon M1 et pointée vers
+  le vrai puzzle à 256 pièces, où en mono-cœur elle dépasse 200 des 256 pièces à
+  ~109M placements/s.
+metaDescription: "Le backtracker C de McGavin décodé et compilé sur un M1 : recette de vitesse de 2007 capitalisée 20 ans, ~204/256 pièces à ~109M placements/s, mono-cœur."
+kind: experiment
+contribution: measurement
+author: peter-mcgavin
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), single-threaded binary"
+  wallClock: "30 s per run"
+  seedPolicy: "time-seeded; deterministic on Joe's puzzle, non-terminating on real E2"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "fetch genbody71.zip from groups.io msg 11749; gcc -Ofast -DG then without -DG"
+order: 10
+updated: 2026-07-17
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/complex-theory
+  - /research/build/benchmarks
+sources:
+  - label: "Le genbody71.zip de Peter McGavin (groups.io msg 11749, la source d'origine)"
+    url: https://groups.io/g/eternity2/message/11749
+  - label: "La recette d'optimisation de Mike Field : « Brute force does not work » (groups.io message 3098, 2007)"
+    url: https://groups.io/g/eternity2/message/3098
+  - label: "McGavin retrouve le fil de Field : « I found the old thread » (groups.io message 11338)"
+    url: https://groups.io/g/eternity2/message/11338
+  - label: "La méthode 10×10 et les statistiques : 180 années-cœur (groups.io message 9688)"
+    url: https://groups.io/g/eternity2/message/9688
+  - label: "L'annonce du 469 : quelques jours sur deux centaines de cœurs (groups.io message 10045)"
+    url: https://groups.io/g/eternity2/message/10045
+  - label: "Table de débit multi-cœur, du Raspberry Pi au double Xeon (groups.io message 11369)"
+    url: https://groups.io/g/eternity2/message/11369
+  - label: "Vitesses mono-cœur sur neuf combinaisons CPU/compilateur (groups.io message 11643)"
+    url: https://groups.io/g/eternity2/message/11643
+  - label: "L'astuce du compteur et le manuel du compilateur (groups.io message 11751)"
+    url: https://groups.io/g/eternity2/message/11751
+  - label: "295M placements/s mesurés sur le code de McGavin (groups.io message 11750)"
+    url: https://groups.io/g/eternity2/message/11750
+---
+
+<Callout kind="note" title="À qui ce travail appartient">
+  L'algorithme et le C sont le moteur auto-généré de **Peter McGavin** lui-même,
+  publié sur la liste de diffusion. De son propre aveu, il repose sur une recette
+  d'optimisation que Mike Field a publiée en 2007
+  ([message 3098](https://groups.io/g/eternity2/message/3098)), une dette qu'il a
+  reconnue à deux reprises
+  ([message 11338](https://groups.io/g/eternity2/message/11338),
+  [message 11780](https://groups.io/g/eternity2/message/11780)). Un record est
+  délibérément exclu de cette lignée : son 469 provient de l'exécution du
+  [solveur de Joshua Blackwood](/research/lab/experiments/joshua-blackwood/solver),
+  et non du sien ([message 10045](https://groups.io/g/eternity2/message/10045)).
+  Cette page, c'est [Raphaël Anjou](/research/people/raphael-anjou) qui compile et
+  exécute le code de McGavin sur une seule machine et qui documente ce qu'il a fait ;
+  les seules modifications apportées à sa source sont les deux petites décrites
+  ci-dessous.
+</Callout>
+
+De fin 2010 à aujourd'hui, Peter McGavin est le bureau des théoriciens de la liste
+de diffusion et son chronomètre. C'est lui qui a mis en forme la
+[théorie complexe](/research/why/complex-theory) de Brendan Owen dans un article
+LaTeX ([message 9188](https://groups.io/g/eternity2/message/9188)), l'a réimplémentée
+comme référence C en 2024
+([message 11197](https://groups.io/g/eternity2/message/11197)), a résolu le
+[benchmark](/research/build/benchmarks) ouvert le plus difficile de la communauté et
+établi le record de 469 qui a tenu jusqu'au 470 de Blackwood. Mais sous tout cela
+court un projet plus discret, vieux de vingt ans : un simple backtracker à balayage
+de lignes en C, réglé jusqu'à compter les placements de tuiles par centaines de
+millions par seconde. Cette page retrace ce projet à travers ses propres chiffres
+publiés (d'où venait la vitesse, ce qu'elle a rapporté et ce que lui-même a dit
+qu'elle ne pourrait jamais faire), puis le compile ici et le pointe vers le vrai
+puzzle.
+
+## La recette date de 2007, et il le dit
+
+En octobre 2007, en réponse à la question « d'où avez-vous entendu parler de
+70 millions de pièces par seconde ? », Mike Field a publié un manuel complet
+d'optimisation sous le titre acéré « Brute force does not work »
+([message 3098](https://groups.io/g/eternity2/message/3098)). Ses ingrédients : une
+table de correspondance indexée par les couleurs nord et ouest d'une cellule, si
+bien que trouver les pièces candidates ne coûte qu'un seul accès mémoire ; un ordre
+de recherche **fixe** exploité sans pitié (placer une pièce ne met à jour que ses
+voisins sud et est) ; aucune boucle du tout, mais du code monolithique *généré*
+procéduralement, un bloc en ligne droite par cellule ; un état minimal (reconstruire
+la jolie sortie plus tard, ne pas la stocker dans le chemin critique) ; les côtés
+d'une pièce empaquetés dans un seul entier ; et la lecture de l'assembleur généré à
+la chasse aux vidages de pipeline et aux défauts de cache L1. Le code de Field se
+compilait en environ 33 instructions par cellule et tournait à 60-80 millions de
+placements par seconde et par cœur sur un ordinateur de bureau de 2007, culminant
+près de 100 millions quand le jeu de travail restait dans le cache L1.
+
+Ce message est le génome du moteur de McGavin. Quand il a montré un extrait de son
+« affreux code source auto-généré » en 2024, on y reconnaissait le même organisme :
+un bloc étiqueté par cellule (`cell_9_2_next:`), une table `LookupNW` indexée par les
+couleurs nord et ouest, un tableau `tileFree`, des indications `register` et un
+`goto` de retour vers le bloc de la cellule précédente en cas d'épuisement
+([message 11337](https://groups.io/g/eternity2/message/11337)). Il est parti à la
+recherche de l'origine quelques minutes plus tard et a publié le lien : « I found the
+old thread » ([message 11338](https://groups.io/g/eternity2/message/11338)) ; en 2026
+il a répété l'attribution : son code C de backtracker optimisé « is based on » le
+message de Mike de 2007
+([message 11780](https://groups.io/g/eternity2/message/11780)).
+
+Field lui-même fournit la référence de l'époque. En 2011, il a rapporté son propre
+backtracker à 75 millions de tuiles placées par seconde et par cœur sur un AMD à
+2 GHz, soit environ 26 cycles d'horloge par tuile, avec plus de la moitié du temps
+bloqué en attente d'accès mémoire
+([message 9003](https://groups.io/g/eternity2/message/9003)). Ce chiffre, grosso
+modo 40 à 80 millions par cœur, est ce qu'un moteur communautaire sérieux a délivré
+pendant la décennie suivante, celui de McGavin compris.
+
+## Ce qu'il a ajouté, dans ses propres mots
+
+La recette était publique ; la capitalisation est de McGavin. Les raffinements qu'il
+a décrits sur la liste, à peu près dans l'ordre où ils apparaissent :
+
+- **Un générateur de code, pas un programme.** Le C par cellule est régénéré pour
+  chaque puzzle, jeu d'indices et
+  [chemin de placement](/research/build/backtracking/fill-order). Son flux de travail
+  de 2026 est un cycle compilation/exécution/compilation/exécution : la première
+  passe reconstruit `body.c`, le code de cellule en ligne droite, et la seconde
+  compile le solveur qui l'embarque. Sautez une étape après avoir modifié un fichier
+  d'entrée et le programme « won't be doing anything sensible »
+  ([message 11751](https://groups.io/g/eternity2/message/11751),
+  [message 11782](https://groups.io/g/eternity2/message/11782)). En janvier 2026, il
+  a publié l'ensemble sur la liste sous le nom `genbody71.zip` : 1 455 lignes de
+  `genbody.c` plus un README, compilé avec `-DG` pour émettre `body.c` puis à nouveau
+  sans pour construire le solveur qui l'inclut. Son propre avertissement ouvre le
+  README : « This is experimental development code that evolved over several years
+  --- not nice, elegant code at all »
+  ([message 11749](https://groups.io/g/eternity2/message/11749)).
+- **Un compteur qui ne coûte presque rien.** `ntpll` (« number of tile placements
+  per second long long », selon sa propre glose) n'est pas incrémenté directement.
+  Un registre 16 bits est augmenté à chaque placement, et `0x10000` est ajouté au
+  compteur 64 bits chaque fois qu'il déborde : un héritage des machines 32 bits où
+  une incrémentation 64 bits gaspillait des registres ou touchait la RAM lente. Il a
+  chronométré les deux approches il y a des années ; l'astuce l'a emporté. Sur les
+  premières machines 64 bits, il était même plus rapide d'installer les bibliothèques
+  de compatibilité 32 bits et de compiler avec `gcc -m32`
+  ([message 11751](https://groups.io/g/eternity2/message/11751)).
+- **Archéologie du compilateur.** Compiler avec clang plutôt que gcc a donné « a
+  significant speed boost »
+  ([message 11330](https://groups.io/g/eternity2/message/11330)) ; sur ARM, clang-15
+  bat clang-19 et gcc ; ajoutez `-march=native` et `-mtune=native` ; essayez icc et
+  icx ; utilisez l'optimisation guidée par profil
+  ([message 11751](https://groups.io/g/eternity2/message/11751)). Rien de tout cela ne
+  change la recherche. Cela change le nombre de recherches qu'un euro d'électricité
+  permet d'acheter.
+- **Le chemin de placement comme choix mesuré.** Le balayage de lignes est le
+  meilleur pour E2, mais la spirale entrante l'emporte sur les puzzles à indices 1 et
+  3, la bordure d'abord sur les 2 et 4, et la spirale sortante sur les variantes sans
+  cadre ; il vérifie en lançant le solveur ou en interrogeant la théorie complexe,
+  s'étant découvert « poor at judging solving orders » à l'œil
+  ([message 9703](https://groups.io/g/eternity2/message/9703),
+  [message 9713](https://groups.io/g/eternity2/message/9713)).
+
+## Les chiffres, de 2007 à 2026
+
+Chaque valeur ci-dessous provient de l'archive, dans les propres unités de son auteur.
+
+| Quand | Chiffre | Contexte | Source |
+| --- | --- | --- | --- |
+| 2007-10 | 60-80M placements/s/cœur, ~100M en pointe | Recette de Mike Field, AMD X2 3800+ | [3098](https://groups.io/g/eternity2/message/3098) |
+| 2011-02 | ~38M placements/s/cœur (2 300 × 10⁶/min) | McGavin comptant les coins 5x5 du 10x10 de Brendan, 4 cœurs ; 8672 est sa propre correction des unités (placements, pas solutions) | [8672](https://groups.io/g/eternity2/message/8672) |
+| 2011-06 | ~50M nœuds/s, mono-cœur | AMD Phenom II, balayage de lignes, 8x8 de Brendan | [8863](https://groups.io/g/eternity2/message/8863) |
+| 2011-11 | 75M/s/cœur (~26 cycles/tuile) | Référence de Field, AMD à 2 GHz, bloqué mémoire | [9003](https://groups.io/g/eternity2/message/9003) |
+| 2013-06 | 44,6M nœuds/s soutenus | un test de première ligne 10x10 à 683 milliards de nœuds | [9167](https://groups.io/g/eternity2/message/9167) |
+| 2014-04 | 67M placements/s, mono-cœur | Benchmark d'Arnaud Carré : les 4 solutions en moins d'une minute | [9263](https://groups.io/g/eternity2/message/9263) |
+| 2024-10 | 60-140M placements/s par backtracker | « depending on CPU type » | [11329](https://groups.io/g/eternity2/message/11329) |
+| 2024-11 | 99M → 10 160M nœuds/s par machine | Raspberry Pi 4 (4 processus) au double Xeon Gold 6338 (128) | [11369](https://groups.io/g/eternity2/message/11369) |
+| 2025-09 | 38-84M placements/s, mono-cœur | neuf combinaisons OS/compilateur/CPU sur le 8x8 de Brendan | [11643](https://groups.io/g/eternity2/message/11643) |
+| 2026-01 | ~225M placements/s, mono-cœur | Orange Pi 6 Plus sur petits puzzles ; « halves on 16x16 » | [11751](https://groups.io/g/eternity2/message/11751) |
+| 2026-01 | 295M placements/s, mono-cœur | Joe exécutant le code de McGavin sur un CPU plus récent, contre son propre C# à 27-37M | [11750](https://groups.io/g/eternity2/message/11750) |
+| 2026-02 | 44,0M contre 105,1M tuiles/s | arbre identique de 2,12 mille milliards de nœuds : Phenom II de 2010 contre Ryzen 5 5600H | [11782](https://groups.io/g/eternity2/message/11782) |
+
+Deux lectures de cette table. D'abord, l'accroche : le chiffre de ~295M/s (celui que
+notre [page des records](/research/records) cite) est réel, mais c'est la mesure de
+Joe, faite en janvier 2026 quand McGavin a partagé sa source et que Joe l'a exécutée
+sur du matériel plus récent que tout ce que McGavin possède ; le propre solveur C# de
+Joe atteignait 27-37M/s sur la même machine, et la meilleure vitesse qu'il avait vue
+mentionnée sur la liste était 70-90M/s
+([message 11750](https://groups.io/g/eternity2/message/11750)). Le meilleur chiffre de
+McGavin lui-même est les ~225M/s de l'Orange Pi sur de petits puzzles
+([message 11751](https://groups.io/g/eternity2/message/11751)).
+
+Deuxième lecture, plus discrète et plus instructive : la vitesse mono-cœur n'a
+quasiment pas bougé pendant quinze ans. McGavin l'a dit lui-même quand il a publié la
+table de 2025 : les vitesses sur les CPU les plus récents « are only a little faster »
+que sur son Phenom II de 2010
+([message 11643](https://groups.io/g/eternity2/message/11643)). Le moteur était déjà
+près du mur mémoire que Field décrivait en 2011. Ce qui a réellement grandi, c'est le
+nombre de cœurs qu'il pouvait pointer vers un problème.
+
+## Des centaines de cœurs pour un budget de loisir
+
+Le chapitre de McGavin dans l'histoire de la
+[résolution distribuée](/research/build/faster/distributed-solving) de la communauté a
+un charme domestique. Pour la campagne 10×10, il a commencé avec une vingtaine de
+cœurs à la maison, puis a ajouté trois Odroid XU4 octa-cœur et vingt-cinq Orange Pi
+Lite quad-cœur à 12 dollars pièce (plus de 130 cœurs, chaque cœur ARM valant environ
+un tiers de la vitesse d'un cœur de PC) et, quand cela était permis, des serveurs
+multi-cœurs au travail, pour un total de plus de 400
+([message 9688](https://groups.io/g/eternity2/message/9688)). Les Orange Pi tournaient
+sur des chargeurs USB 12 ports (il a définitivement tué un chargeur en branchant douze
+cartes exécutant 48 backtrackers, et est redescendu à huit par chargeur) avec un
+réseau WiFi : un seul câble par carte, pour l'alimentation
+([message 9690](https://groups.io/g/eternity2/message/9690)). L'orchestration tient en
+deux scripts shell : l'un démarre autant de backtrackers qu'un nœud a de cœurs,
+l'autre le lance sur ~20 nœuds via ssh, chacun avec 16 à 48 cœurs, quoique « well,
+they are hyperthreads, strictly speaking »
+([message 9753](https://groups.io/g/eternity2/message/9753)). Au pic, « more than 400
+backtrackers running at once »
+([message 9751](https://groups.io/g/eternity2/message/9751)).
+
+## Ce que la vitesse a rapporté
+
+**Les décomptes vérifiés, d'abord.** Les énumérations complètes rapides sont ce qui
+permet à la communauté de confronter la théorie à la réalité. En 2011, une exécution
+nocturne a compté 4 739 821 621 743 blocs de coin 5×5 du 10×10 de Brendan, contre une
+estimation de la théorie complexe de 5,0077 × 10¹², « pretty close… if I do say so
+myself » ([message 8672](https://groups.io/g/eternity2/message/8672)). En 2014, son
+mono-cœur a parcouru l'arbre du benchmark à 256 pièces d'Arnaud Carré (3 979 209 754
+placements, les 4 solutions) en moins d'une minute
+([message 9263](https://groups.io/g/eternity2/message/9263)). En 2026, deux machines
+différentes ont parcouru le même arbre à 2 120 424 701 160 nœuds d'un puzzle proche
+d'E2 et ont trouvé la même unique solution : le déterminisme comme fonctionnalité, le
+décompte de nœuds comme somme de contrôle
+([message 11782](https://groups.io/g/eternity2/message/11782)).
+
+**Le 10×10, avant tout.** Le 10×10 set_1 de Brendan, un benchmark resté ouvert
+pendant une décennie, est tombé en septembre 2017 sous exactement cette machinerie :
+énumérer ~20 millions de premières lignes candidates, les classer par le nombre de
+solutions par nœud de recherche de la théorie complexe, et laisser la ferme les tester
+une par une, environ un jour-cœur chacune. La solution est arrivée au test de ligne
+~92 907 sur une sur 70 000 prédite, après près de 2 × 10¹⁷ nœuds, soit environ **180
+années-cœur**, moins de 0,5 % de l'arbre entier
+([message 9686](https://groups.io/g/eternity2/message/9686),
+[message 9688](https://groups.io/g/eternity2/message/9688)), étalés sur environ quatre
+ans ([message 9804](https://groups.io/g/eternity2/message/9804)). Son résumé : « no new
+methods, just systematic persistence and the law of large numbers. » La
+[page des benchmarks](/research/build/benchmarks) raconte cette histoire comme la
+validation la plus forte de la théorie complexe ; ici, elle se dresse comme le point
+culminant de l'histoire du débit.
+
+**Et un record, sur le moteur d'un autre.** En septembre 2020, quelques jours après
+que Joshua Blackwood a ouvert le code de son solveur, McGavin l'a exécuté « for a few
+days on about a couple of hundred cores and hit the jackpot. New record score of
+469! » ([message 10045](https://groups.io/g/eternity2/message/10045)), avec des
+statistiques d'exécution à l'avenant (2 832 plateaux atteignant 252 pièces, un à 255,
+un à 256 : [message 10049](https://groups.io/g/eternity2/message/10049)). Notez ce qui
+s'est combiné là : les [heuristiques de Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+ont fourni la forme de la recherche ; la ferme de McGavin a fourni les placements. Son
+propre moteur C ne détient aucun record de score E2 ; ses 226 en balayage de lignes de
+février 2020 ont égalé l'ancienne marque de placements consécutifs de
+[Verhaard](/research/lab/experiments/louis-verhaard/eii), sans plus
+([message 10523](https://groups.io/g/eternity2/message/10523)).
+
+## Ce que la vitesse n'a pas pu acheter
+
+McGavin est aussi le témoin le plus constant de l'archive *contre* la vitesse brute.
+Ses propres chiffres font le procès. Avec l'ordre de balayage de lignes, la théorie
+complexe situe l'arbre de recherche complet d'E2 à environ 1,6 × 10⁴⁷ placements
+([message 9710](https://groups.io/g/eternity2/message/9710)), soit quelque 9,3 × 10⁴²
+par solution attendue ([message 9713](https://groups.io/g/eternity2/message/9713)).
+Même sur son meilleur chemin de placement à 5 indices (un arbre bien plus petit,
+environ 3,1 × 10⁴⁰ nœuds), il a calculé 4,9 × 10³² années à 100 millions de nœuds par
+seconde, et ajouter des milliards de cœurs vous laisse encore « orders of magnitude
+longer than the age of the Universe »
+([message 11201](https://groups.io/g/eternity2/message/11201)). Il en avait tiré la
+conclusion bien avant, en 2013 : « It seems clear to me that E2 will not be solved by
+brute force. If it is to be solved at all, it will be by deep analysis and/or clever
+insight, in my opinion » ([message 9117](https://groups.io/g/eternity2/message/9117)).
+
+C'est pourquoi la plus grande accélération isolée qu'il ait jamais rapportée n'était
+pas du tout une accélération. Pour les chasses aux sous-solutions sans cadre, il a
+utilisé la théorie complexe comme une anticipation à la manière des échecs : estimer
+les solutions par nœud à chaque feuille 13 ou 14 plis en avance, mettre en cache les
+statistiques répétées, et diriger vers la meilleure branche. Gain global : un facteur
+d'environ 25 à la profondeur 81
+([message 9751](https://groups.io/g/eternity2/message/9751)). Aucune option de
+compilateur ne lui a jamais donné 25×. Façonner l'arbre a battu réduire les
+nanosecondes. C'est la [leçon centrale](/research/why/prune-vs-speed) de ce site,
+rapportée ici comme l'expérience de vingt ans d'un praticien : il a construit le moteur
+le plus rapide de l'histoire de la communauté, tout mesuré, et conclu que l'écart
+jusqu'à 480 ne s'est jamais joué sur le chronomètre.
+
+## Le faire tourner ici
+
+Tout ce qui précède est tiré de l'archive. Le reste de cette page, c'est ce même
+moteur, compilé sur ma machine et pointé vers le vrai puzzle, pour que l'histoire du
+débit porte une mesure de première main et pas seulement une mesure relayée.
+
+### D'où vient le code
+
+La source est `genbody.c`, jointe sous forme de `genbody71.zip` au
+[message 11749 de groups.io](https://groups.io/g/eternity2/message/11749). C'est
+1 455 lignes de C, avec un README, un fichier de pièces et un fichier d'indices. Elle
+n'est pas copiée dans ce dépôt : elle reste sur la liste, là où son auteur l'a mise.
+
+C'est un programme à deux passes, et le README est franc sur le style (« dreadful C
+source code ... it really needs a lot of work to clean it up »). Compilée avec `-DG`,
+elle génère un second fichier C, `body.c`, spécialisé pour un puzzle. Recompilée sans
+`-DG`, elle inclut ce fichier généré et exécute la recherche. Ce flux de travail à
+deux passes est exactement la conception de générateur de code décrite plus haut,
+désormais devant moi.
+
+### Ce qui a été changé pour le faire tourner
+
+Deux choses, toutes deux minimes :
+
+- **Rien, pour le compiler.** Il compile proprement sur silicium Apple avec `clang`
+  (un avertissement de variable inutilisée). L'affichage de statut POSIX qu'il
+  utilise, `setitimer` et `termios`, fonctionne sur macOS sans adaptateur.
+- **Le puzzle qu'il lit.** Les noms de fichiers étaient codés en dur vers le puzzle de
+  test de Joe. Je les ai rendus lisibles depuis la ligne de commande pour pouvoir lui
+  fournir le vrai Eternity II, et j'ai écrit les pièces et indices officiels dans son
+  format `.puz` / `.hnt` à partir du fichier canonique du puzzle. Son chemin de
+  recherche est construit de façon générique (cellules d'indice d'abord, puis un
+  balayage de lignes), donc aucune autre modification n'a été nécessaire.
+
+### Ce qu'il fait sur le puzzle de Joe
+
+Configuré tel que livré, sur le puzzle de test 16×16 à 18 indices de Joe, il est très
+rapide et il termine :
+
+- **~279 millions de placements de tuiles par seconde**, mono-cœur.
+- Résout le puzzle jusqu'au bout en environ 13 secondes (3,577 milliards de placements
+  jusqu'à la première solution), à l'identique à chaque exécution.
+
+C'est le chiffre que la communauté entend par « McGavin est rapide ». Il est réel, et
+il est sur du matériel actuel, pas une machine vieille de sept ans : parfaitement dans
+la ligne des ~295M/s mesurés par Joe, et confortablement au-delà des ~225M/s de
+l'Orange Pi de McGavin lui-même.
+
+### Ce qu'il fait sur le vrai Eternity II
+
+Alimenté avec le véritable puzzle à 256 pièces, une fois avec le seul indice central
+obligatoire et une fois avec les cinq indices officiels : son solveur ne sauvegarde un
+plateau que lorsqu'il trouve une solution **complète**, et le vrai puzzle n'a jamais
+été résolu, donc il ne sauvegarde rien et tourne sans s'arrêter. Ce qu'il rapporte, en
+direct, c'est la profondeur maximale qu'il a atteinte :
+
+| Puzzle | Placement le plus profond, 30 s | Débit | Solutions |
+| --- | --- | --- | --- |
+| Vrai E2, 1 indice | **205 / 256** | ~108 M placements/s | 0 |
+| Vrai E2, 5 indices | **204 / 256** | ~109 M placements/s | 0 |
+
+Deux choses méritent d'être dites clairement. D'abord, il s'agit d'une **profondeur**
+(jusqu'où la recherche est allée avant de rebrousser chemin), et non d'un score
+d'arêtes sur 480 : son programme n'émet pas de plateau partiel à re-scorer.
+Deuxièmement, le débit sur le vrai puzzle est d'environ 109 millions de placements par
+seconde, à peu près 40 % de sa vitesse sur le puzzle de Joe, parce que les contraintes
+du vrai puzzle élaguent plus dur. Le nombre d'indices ne le bouge quasiment pas : 205
+avec un indice, 204 avec cinq. C'est la même leçon que ses propres messages
+atteignent, désormais sur mon propre matériel : le moteur brut est superbe pour
+parcourir un arbre et ne dit rien, à lui seul, sur l'endroit où se cache un plateau à
+score élevé.
+
+### Mono-cœur, confirmé
+
+Le binaire ne lie que la bibliothèque système, n'a aucune primitive de threading dans
+sa source, et maintient un CPU à 100 % (pas 800 %) avec un seul thread du début à la
+fin. La vitesse est celle d'un cœur. C'est l'unité juste pour comparer les moteurs, et
+c'est celle qu'utilise le
+[benchmark mono-cœur](/research/lab/experiments/single-core-benchmark) pour placer ce
+moteur aux côtés de
+[celui de Blackwood](/research/lab/experiments/joshua-blackwood/solver) et de la
+[réimplémentation Verhaard](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl).
+Les trois ne mesurent pas le même axe (le chiffre de McGavin est une profondeur de
+placement, pas un score d'arêtes concordantes), donc lisez la comparaison avec
+prudence.

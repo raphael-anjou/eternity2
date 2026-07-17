@@ -1,0 +1,228 @@
+---
+title: Arguments de parité
+description: >-
+  Comptez n'importe quoi sur un plateau à appariement d'arêtes deux fois, une
+  fois de chaque côté, et les totaux doivent coïncider, livrant des preuves
+  d'impossibilité au prix d'un seul passage. L'histoire du 479 en montre à la
+  fois la puissance et le piège : un argument de parité limpide, vrai pour tout
+  coup intérieur, mis en défaut par les soixante arêtes de bordure que personne
+  ne comptabilise.
+metaDescription: "Compter un plateau à appariement d'arêtes des deux côtés livre des preuves d'impossibilité, et pourquoi l'argument de parité du 479 échoue sur la bordure."
+kind: concept
+order: 90
+group: Analysis
+updated: 2026-07-02
+topics: [structure, search-space]
+sources:
+  - label: L'argument de parité de kubzpa selon lequel un score de 479 est impossible (août 2007)
+    url: https://groups.io/g/eternity2/message/1640
+  - label: "La construction du 478 de psykowally : faire pivoter une pièce intérieure aux arêtes opposées identiques (msg 1642)"
+    url: https://groups.io/g/eternity2/message/1642
+  - label: "La réfutation de Verhaard : 479 par une pièce de bordure retournée (janvier 2009)"
+    url: https://groups.io/g/eternity2/message/6317
+  - label: angwin_uk & mjqxxxx sur l'équilibre des types d'arêtes de bordure, 12 par côté (août 2007)
+    url: https://groups.io/g/eternity2/message/2073
+  - label: "Le méga-fil de 2011 sur la parité : damier et jeux de pièces équilibrés en rotation"
+    url: https://groups.io/g/eternity2/message/8898
+  - label: "Le résultat négatif de John Gilbert : les jeux équilibrés bloquent les backtrackers plus vite (msg 8913)"
+    url: https://groups.io/g/eternity2/message/8913
+  - label: Le jeu quasi équilibré de Nick au papier-crayon, et la vérification de la somme globale par Jamison (msgs 8977/8978)
+    url: https://groups.io/g/eternity2/message/8977
+related:
+  - /research/why/border-balance
+  - /research/build/known-facts
+---
+
+import { ParityFlipLab } from "@/components/research/concepts/ParityFlipLab";
+
+Un argument de parité, c'est de la comptabilité en partie double appliquée à un
+plateau de jeu. Chaque arête intérieure au puzzle a deux côtés : tout ce qui se
+compte sur l'ensemble du plateau (occurrences de couleurs, arêtes appariées,
+sommes d'orientations) se trouve compté deux fois, une fois de chaque côté, et
+les deux livres de comptes doivent s'accorder. Un état où ils divergent n'est
+pas seulement peu prometteur : il est impossible, et aucune recherche n'est
+nécessaire pour le prouver. Sur un puzzle où [aucun coup n'est jamais
+forcé](/research/why/no-forced-moves) et où l'anticipation coûte cher, un
+invariant qui ne coûte qu'un passage sur le plateau et ne ment jamais mérite
+qu'on le prenne au sérieux, pour peu qu'on se souvienne dans quelle direction il
+pointe.
+
+## L'histoire du 479, en trois actes
+
+Le plus beau récit de parité de la communauté commence deux semaines après le
+lancement. En août 2007, kubzpa soutint qu'un placement à *exactement* 479
+arêtes appariées, une seule discordance, ne peut pas exister
+([msg 1640](https://groups.io/g/eternity2/message/1640)). L'intuition est celle
+d'un basculement de parité : perturbez une pièce quelconque et les arêtes
+qu'elle touche changent d'état ensemble, de sorte que les discordances devraient
+venir par paires. psykowally fournit aussitôt le pendant constructif pour 478 :
+prenez un plateau résolu et faites pivoter de 180° une pièce intérieure dont les
+arêtes opposées portent des couleurs identiques : exactement deux arêtes se
+brisent ([msg 1642](https://groups.io/g/eternity2/message/1642)).
+
+L'argument est correct pour tout coup intérieur. Il échoue au cadre. En janvier
+2009, Louis Verhaard pointa la fuite : les 60 arêtes grises tournées vers
+l'extérieur ne sont *pas comptabilisées*, si bien qu'une pièce de bordure dont
+les deux côtés tournés vers l'anneau partagent une couleur peut être retournée
+bout pour bout, brisant exactement une arête comptabilisée (l'arête de couture
+derrière elle) tandis que le changement du côté gris ne coûte rien
+([msg 6317](https://groups.io/g/eternity2/message/6317)). Une discordance, score
+479, parité mise en défaut par les arêtes que la convention de scoring ignore.
+Ce projet a vérifié l'affirmation sur le jeu de pièces officiel : 14 pièces de
+bordure sont éligibles (calculé), de sorte que toute solution complète implique
+un 479. C'est cette version de l'histoire que porte désormais [les faits
+établis](/research/build/known-facts).
+Verhaard ajouta une chute bureaucratique : le formulaire d'inscription au prix
+enregistrait les numéros de pièces mais pas les rotations, de sorte que le
+correcteur de Tomy aurait lu un tel plateau comme un 480.
+
+La leçon se généralise. Un argument de parité ne vaut que par les conditions de
+bord qu'il prend en compte, et les règles de scoring d'Eternity II percent le
+bord en soixante endroits.
+
+## Retournez-la vous-même
+
+Les trois actes tiennent sur un petit plateau. Ci-dessous, un 8×8 encadré
+réellement résolu, généré par le moteur : chaque arête comptabilisée appariée,
+et un liseré gris extérieur que le score ignore, exactement comme les 60 arêtes
+grises du vrai puzzle (32 à cette taille). Chaque affirmation du récit ci-dessus
+tient ici en un clic.
+
+<Figure collapsible title="Interactif : l'argument de parité">
+  <ParityFlipLab />
+</Figure>
+
+## Pas à pas
+
+1. **Partez du résolu.** Les 112 arêtes comptabilisées sont appariées, l'avatar
+   du 480/480 sur ce plateau. La bande grise est le liseré que la convention de
+   scoring ne lit jamais.
+2. **Acte un : cliquez sur n'importe quelle pièce intérieure non marquée.** Un
+   demi-tour échange ensemble les arêtes haut/bas et ensemble les arêtes
+   gauche/droite, de sorte que les arêtes comptabilisées se brisent par paires
+   selon chaque axe : 0, 2 ou 4 à la fois, jamais un compte impair. Essayez-en
+   autant que vous voulez ; aucun clic intérieur ne produira jamais exactement
+   une discordance. C'est l'argument de kubzpa, et pour les coups intérieurs il
+   est imparable.
+3. **Acte deux : cliquez sur une pièce intérieure cerclée de ciel.** Une paire
+   opposée identique, l'autre non : exactement deux arêtes comptabilisées se
+   brisent, et le badge affiche un plateau de classe 478, le pendant constructif
+   de psykowally.
+4. **Acte trois : cliquez sur une pièce de bordure cerclée d'émeraude.** Ses deux
+   côtés tournés vers l'anneau partagent une couleur, si bien que le retournement
+   à 180° laisse les deux arêtes latérales appariées. Seule l'arête de couture
+   derrière elle se brise (*une* arête comptabilisée), tandis que le changement
+   vers l'extérieur se gare sur le liseré gris (flashé en ambre), là où aucun
+   correcteur ne regarde jamais. Une discordance. 479. La réfutation de Verhaard,
+   en un clic.
+5. **Auditez le bord.** Le panneau de comptage vous indique combien de pièces de
+   ce tirage sont éligibles pour chaque coup ; sur le jeu officiel, 14 pièces de
+   bordure sont éligibles (calculé), de sorte que toute solution complète
+   implique un 479. La preuve était correcte partout où le scoring regardait ; la
+   fuite, ce sont précisément les arêtes qu'il a exemptées.
+
+## Ce que ça coûte
+
+Une vérification de parité ou d'équilibre, c'est un seul passage sur les arêtes
+comptabilisées :
+
+$$
+O(\text{edges}) \;=\; O(480) \ \text{on the full board},
+\qquad O(56) \ \text{for NS-1's seam},
+$$
+
+avec une constante si petite qu'elle est de fait gratuite : 480 lectures
+d'arêtes tiennent en microsecondes, contre des pas de recherche qui se comptent
+en milliards. C'est cette asymétrie de prix qui fait que de telles
+vérifications se composent avec tout : NS-1, après la fermeture de la bordure,
+rejette 10 à 28 % des impasses profondes pour 56 lectures, l'élagage le moins
+cher que ce projet connaisse. Mais l'asymétrie d'*information*, elle, joue en
+sens inverse, et elle ne fléchit jamais : un invariant violé est une preuve
+d'impossibilité, un invariant satisfait ne prouve absolument rien. Un passage sur
+les arêtes achète un certificat qui ne dit jamais que non. Il vaut exactement son
+prix, pourvu que personne ne le prenne pour une boussole.
+
+## Sommes de couleurs et équilibre de multiensembles
+
+La seconde famille d'arguments de comptage dénombre les couleurs plutôt que les
+discordances. Dès août 2007, angwin_uk observa que la bordure est construite
+équilibrée : cinq types d'arêtes de bordure, douze de chacun de part et d'autre
+de l'arête grise de chaque pièce de bordure
+([msg 2073](https://groups.io/g/eternity2/message/2073)). mjqxxxx affûta le
+point : les pièces de bordure occupent une orientation fixe, de sorte que chaque
+type doit se répartir *à parts égales* en arêtes tournées vers la gauche et vers
+la droite, une condition strictement plus forte que de simples comptes pairs
+([msg 2098](https://groups.io/g/eternity2/message/2098)).
+
+Poussez ce raisonnement vers l'intérieur et vous atteignez la couture. Dans
+toute solution complète, le multiensemble des couleurs que l'anneau de bordure
+présente à l'intérieur doit égaler le multiensemble que l'intérieur lui présente
+en retour : chaque couleur reçue est rendue. C'est la condition NS-1 de Hopfer,
+formalisée en 2022 et traitée en détail sur [la page de l'équilibre de
+bordure](/research/why/border-balance) : une véritable condition nécessaire, peu
+coûteuse à vérifier, et aveugle à tout ce qui se passe d'intérieur à intérieur.
+Même mathématique, deux usages. En 2007, l'équilibre servait à [estimer combien
+de solutions de bordure existent](/research/build/analysis/solution-counting) ;
+en 2022, on le retourna en certificat d'élagage.
+
+## L'expédition de 2011 : l'équilibre est abondant et n'achète rien
+
+Une fois le concours terminé, la liste passa l'été 2011 à pousser la parité
+aussi loin qu'elle pouvait aller. Juraj Pivovarov posa le problème du *jeu
+orienté* : partager les 256 pièces en deux tas de damier A et B de telle sorte
+que les comptes d'arêtes directionnelles de chaque couleur s'équilibrent, car
+connaître soit les orientations, soit l'affectation aux tas d'une solution
+rendrait le reste facile
+([msg 8898](https://groups.io/g/eternity2/message/8898)). Peter McGavin réduisit
+la condition à des sommes par couleur, gauche égale droite et haut égale bas
+([msg 8906](https://groups.io/g/eternity2/message/8906)). Juraj dénombra alors
+les jeux de damier équilibrés en rotation qui satisfont la condition : sa
+première estimation d'environ $4.5 \times 10^{485}$
+([msg 8929](https://groups.io/g/eternity2/message/8929)) tira un « il y a
+forcément une erreur » à Michael Field
+([msg 8930](https://groups.io/g/eternity2/message/8930)), et le compte corrigé se
+stabilisa autour de $3 \times 10^{147}$
+([msg 8931](https://groups.io/g/eternity2/message/8931)). Tout du long, il
+présenta la recherche ne serait-ce que d'un seul de ces jeux comme une instance
+difficile de PARTITION.
+
+Deux résultats mirent fin à l'expédition, tous deux à conserver. John Gilbert
+mena l'expérience : on peut trouver des jeux de damier équilibrés un à un, mais
+fournir l'équilibre à un backtracker comme contrainte le fait bloquer *plus
+vite* : chaque placement puise désormais dans la moitié des pièces candidates, et
+la restriction coûte plus qu'elle n'élague
+([msg 8913](https://groups.io/g/eternity2/message/8913)). Et Nick, travaillant au
+papier-crayon alors qu'il s'ennuyait dans un train
+([msg 8960](https://groups.io/g/eternity2/message/8960)), conduisit une
+affectation complète des 256 pièces (damier plus rotation) à un seul basculement
+d'arête de l'équilibre ([msg 8977](https://groups.io/g/eternity2/message/8977)) ;
+Jason Jamison vérifia les sommes globales sous le codage de Nick (tous les hauts
+égaux à tous les bas à 2 809, tous les gauches égaux à tous les droits à 2 881)
+et rapporta que le jeu quasi équilibré bloquait tout de même son backtracker à
+environ 19 pièces d'un coin
+([msg 8978](https://groups.io/g/eternity2/message/8978)). L'équilibre est réel,
+abondant, et n'achète rien à la recherche.
+
+## Ce que la parité rapporte à l'auteur d'un solveur
+
+Trois choses, dont aucune n'est une solution.
+
+**Des conditions nécessaires peu coûteuses.** Une vérification de parité ou
+d'équilibre coûte un passage et se compose avec tout : un backtracker, une
+[recherche locale](/research/build/local-search/local-search-alns), un contrôle
+de cohérence sur le plateau qu'un autre prétend avoir. Les chiffres NS-1
+ci-dessus donnent le tarif en vigueur.
+
+**L'asymétrie du certificat.** Chaque argument de cette page pointe dans un seul
+sens : un invariant violé dit *assurément cassé*, un invariant satisfait ne dit
+jamais *assurément bon*. Échangez deux pièces de bordure et NS-1 reste à zéro ;
+équilibrez parfaitement un jeu de pièces et le backtracker bloque quand même. La
+parité élague ; elle ne guide pas.
+
+**Un réflexe de conditions de bord.** La preuve du 479 était correcte partout où
+le prouveur regardait, et fausse parce que les règles de scoring créaient
+soixante arêtes qu'il n'avait pas à regarder. Avant de faire confiance à un
+argument de comptage sur ce puzzle, y compris ceux de ce projet, auditez ce que
+le cadre, la convention de scoring et le gris non comptabilisé exemptent en
+silence. Sur Eternity II, les exceptions vivent à la bordure, et la bordure est
+là où les arguments vont mourir.

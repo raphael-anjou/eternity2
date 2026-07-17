@@ -1,0 +1,140 @@
+---
+title: Le vol de pièce, là où meurent les solveurs
+description: >-
+  Un solveur remplit quelques rangées sans effort, puis se heurte à un mur au
+  milieu du plateau. Voici le mécanisme : une pièce rare dépensée au mauvais
+  endroit, plusieurs rangées plus tôt.
+kind: finding
+contribution: analysis
+rigor: measured
+tier: 3
+order: 100
+updated: 2026-07-01
+topics: [structure, search-space]
+related:
+  - /research/why/no-forced-moves
+  - /research/lab/experiments/raphael-anjou/learning/prior
+repro:
+  kind: exact
+  cmd: just research-piece-theft
+  topic: piece-theft
+sources:
+  - label: "Régin 1994, « A Filtering Algorithm for Constraints of Difference in CSPs » (AAAI-94), le raisonnement all-different qui prédit la pénurie"
+    url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { PieceTheftDiagram } from "@/components/research/PieceTheftDiagram";
+import { PieceTheftLab } from "@/components/research/PieceTheftLab";
+import data from "@/data/piece-theft.json";
+
+export function ServersChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+            <XAxis
+              dataKey="servers"
+              label={{
+                value: "pièces pouvant satisfaire la demande",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              label={{ value: "demandes", angle: -90, position: "insideLeft", fontSize: 12 }}
+              width={40}
+              fontSize={12}
+            />
+            <Tooltip
+              formatter={(v) => [String(v), "demandes"]}
+              labelFormatter={(s) => `${String(s)} pièces pouvant satisfaire la demande`}
+            />
+            <Bar dataKey="demands" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Chargement du graphique…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Remplissez le plateau du coin haut-gauche vers le coin bas-droite, et chaque
+nouvelle case connaît déjà deux de ses couleurs : la couleur nord vient de la
+pièce du dessus, la couleur ouest de la pièce à gauche. La case réclame une
+pièce inutilisée capable d'afficher exactement cette paire. Ces demandes sont
+rares, avec seulement trois pièces possibles en moyenne, et 47 d'entre elles
+n'en ont qu'une seule.
+
+Ainsi, un plateau qui paraît en bonne santé, avec la plupart des pièces encore
+dans la boîte, peut déjà être condamné. Quelque part plus haut sur le plateau,
+l'unique pièce qui aurait pu servir une case à venir a été employée à autre
+chose. Lorsque le solveur atteint enfin cette case, il n'a plus rien à poser.
+
+## Comment une case meurt
+
+<PieceTheftDiagram />
+
+## Combien de pièces peuvent satisfaire une demande
+
+<div className="mx-auto grid max-w-2xl grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums text-red-600">{data.uniqueServerDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">demandes satisfaites par une seule pièce</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanServers}</div>
+    <div className="mt-1 text-xs text-muted-foreground">pièces par demande, en moyenne</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.occurringDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">demandes distinctes rencontrées</div>
+  </div>
+</div>
+
+<Figure caption="Chaque demande (nord, ouest) qu'une case peut présenter, répartie selon le nombre de pièces intérieures qui pourraient la satisfaire. La plupart des demandes en ont une à trois.">
+  <ServersChart />
+</Figure>
+
+## Affamez une case vous-même
+
+Le moteur remplit un plateau jusqu'à une case n'ayant qu'un seul fournisseur
+légal ; volez cette pièce et regardez la case mourir alors que la boîte est
+encore pleine.
+
+<Figure collapsible title="Interactif : là où les solveurs meurent du vol de pièce">
+  <PieceTheftLab />
+</Figure>
+
+## Pourquoi c'est important
+
+Un correctif tentant serait une vérification globale : les pièces restantes
+couvrent-elles encore les cases restantes ? Cela n'aide en rien. Globalement,
+l'offre est suffisante ; l'échec tient à une seule pièce rare mal affectée, non
+à une pénurie. Un contrôle global en avant ne voit donc rien d'anormal, jusqu'au
+moment où la case se révèle sans fournisseur, ce qui explique pourquoi ce mur a
+résisté à tant de tentatives d'élagage précoce.
+
+Mettez cela en regard de l'[absence de coups forcés](/research/why/no-forced-moves)
+et le piège est complet. Chaque pièce dispose de dizaines d'emplacements
+possibles, si bien que le solveur ne sait jamais où une pièce rare doit être
+réservée, alors même que chaque pièce rare a exactement une demande pour laquelle
+elle doit être préservée. Liberté de poser, aucune indication sur ce qu'il faut
+garder.

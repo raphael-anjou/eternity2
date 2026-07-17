@@ -1,0 +1,90 @@
+---
+title: "Les expériences de Raphaël Anjou"
+description: >-
+  Les expériences de recherche nommées du carnet de Raphaël Anjou : des runs de
+  beam-search et de local-search conçus pour pousser le score d'Eternity II,
+  chacun avec son idée, sa meilleure grille et les questions qu'il laisse
+  ouvertes. La meilleure atteint 463 sur 480 ; le meilleur de la communauté sur
+  le même puzzle est 470.
+metaDescription: "Expériences Eternity II de Raphael Anjou : runs beam-search et local-search pour pousser le score, avec idée, meilleure grille et questions ouvertes."
+kind: page
+order: 20
+author: raphael-anjou
+updated: 2026-07-13
+---
+
+import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
+import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
+
+export const scores = [
+  // Group 1: the best board each method reached. Exploratory runs on 8 cores,
+  // wall-clock not logged. These are the numbers the write-ups quote.
+  { key: "prior", label: "PRIOR", score: 460, family: "scratch", group: "explore" },
+  { key: "keyring", label: "KEYRING", score: 460, family: "scratch", group: "explore" },
+  { key: "gauntlet", label: "GAUNTLET", score: 458, family: "scratch", group: "explore" },
+  { key: "lodestone", label: "LODESTONE", score: 451, family: "scratch", group: "explore" },
+  { key: "staged", label: "STAGED", score: 436, family: "scratch", group: "explore" },
+  { key: "palimpsest", label: "PALIMPSEST", score: 463, family: "corpus", group: "explore" },
+  { key: "ladder", label: "LADDER", score: 451, family: "concentrate", group: "explore" },
+  { key: "cloister", label: "CLOISTER", score: 453, family: "anchor", group: "explore" },
+  { key: "midden", label: "MIDDEN", score: 452, family: "anchor", group: "explore" },
+  { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact", group: "explore" },
+  { key: "mosaic", label: "MOSAIC", score: 448, family: "exact", group: "explore" },
+  { key: "replay", label: "REPLAY", score: 460, family: "decode", group: "explore" },
+  // Group 2: the standardized single-core bench, one core, 60 s each. Best board
+  // reached by each study/engine on that budget. Lower, and directly comparable.
+  { key: "bench-verhaard", label: "VERHAARD", score: 451, family: "bench", group: "bench" },
+  { key: "bench-repair", label: "REPAIR START-DFS", score: 449, family: "bench", group: "bench" },
+  { key: "bench-dfs", label: "DFS BREAK-1", score: 435, family: "bench", group: "bench" },
+];
+
+Voici les expériences de recherche de [Raphaël Anjou](/research/people/raphael-anjou).
+Certaines sont des idées originales ; d'autres réimplémentent fidèlement une
+technique connue de la communauté pour mesurer exactement ce qu'elle apporte.
+Chaque compte rendu expose l'idée, la grille atteinte et les questions qu'il
+laisse ouvertes. La meilleure atteint 463 sur 480 arêtes appariées ; le meilleur
+de la communauté sur le même puzzle est 470. Méthodes et grilles sont ici au
+complet.
+
+La plupart de ces expériences ne partent pas de rien. Elles s'appuient sur un
+petit ensemble de [moteurs](/research/lab/experiments/raphael-anjou/engines)
+partagés : un producteur beam constructif, une recherche locale par
+destruction-réparation, et une famille de préréglages CSP, documentés une fois
+et réutilisés d'étude en étude. Si vous voulez comprendre comment une recherche
+fonctionne réellement avant de lire ce qu'une étude particulière en a fait,
+commencez par là.
+
+Trois études se tiennent à part des pipelines de combinaison ci-dessous, chacune
+maintenant une question fixe et faisant varier une seule chose à son sujet.
+L'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) démonte le
+backtracker en profondeur d'abord, en construisant toute une famille de variantes
+un changement à la fois (ordre de remplissage, heuristique, politique de rupture).
+L'[étude de réparation](/research/lab/experiments/raphael-anjou/repair-study) fait
+de même pour la recherche locale par destruction-réparation (quelle région
+détruire, comment la reconstruire, quand conserver un mouvement, de quelle grille
+partir), la boucle avec laquelle les records atteignent réellement le sommet. La
+troisième,
+[apprendre à partir de grilles fortes](/research/lab/experiments/raphael-anjou/learning),
+retourne la question vers l'intérieur : plutôt que de faire varier la recherche,
+elle fait varier ce que la recherche a le droit de *savoir*, en fouillant le
+corpus de grilles déjà trouvées à la recherche de structure (PRIOR, KEYRING,
+LODESTONE, PALIMPSEST, REPLAY) pour la réinjecter. Son compte rendu, indépendant
+de la méthode, constitue la
+[section théorique sur l'apprentissage à partir de grilles](/research/build/learning).
+Toutes trois mesurent une seule chose à la fois et chacune a son propre foyer.
+Les études DFS et de réparation font varier un curseur sur une grille de valeurs
+plutôt que de produire une seule grille, elles portent donc leurs propres
+classements au lieu d'une ligne sur le graphe ci-dessous ; les cinq expériences
+d'apprentissage atteignent chacune une unique grille scorée, elles gardent donc
+leurs lignes ici (étiquetées par le score) en plus de leur foyer d'étude.
+
+<ExperimentScoreChart data={scores} />
+
+Les expériences nommées sous forme de tableau triable (cliquez sur un en-tête de
+colonne pour réordonner par score, nom, méthode ou mois). L'auteur, le mois, la
+rigueur et la reproductibilité sont lus depuis la page propre à chaque expérience,
+si bien que ce récapitulatif reste en phase avec elles. Les lignes du banc
+mono-cœur ci-dessus sont des résultats d'étude, non des pages d'expérience
+autonomes, elles n'apparaissent donc que sur le graphe.
+
+<ExperimentResultsTable data={scores.filter((s) => s.group !== "bench")} />

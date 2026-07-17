@@ -1,0 +1,160 @@
+---
+title: L'étude de la réparation
+description: >-
+  La jumelle de l'étude DFS, pour l'autre manière d'attaquer Eternity II :
+  détruire une partie d'un plateau, la reconstruire, garder le changement s'il
+  aide. Une question, posée avec soin. Que rapporte chaque décision de cette
+  boucle : quelle région détruire, comment la reconstruire, quand garder un
+  mouvement, quand redémarrer, et de quel plateau partir ?
+metaDescription: "La recherche locale destruction-réparation sur Eternity II : ce que rapporte chaque décision de la boucle, mesuré sur dix variantes, un cœur, 60 s."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s"
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments repair-study
+order: 26
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Moteur exécutable + résultats commités + scripts (le répertoire de référence de cette étude)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study
+---
+
+import { RepairStudyLeaderboard } from "@/components/research/RepairStudyLeaderboard";
+import { RepairLoopDiagram } from "@/components/research/RepairLoopDiagram";
+
+Il existe deux façons concrètes d'attaquer Eternity II. La première consiste à
+construire un plateau case par case et à revenir en arrière lorsqu'il échoue ;
+l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) la décortique.
+La seconde consiste à tenir un plateau entier et à le *réparer* : arracher une
+région, la reconstruire, garder le changement s'il a aidé, et recommencer. La
+réparation est l'ultime étape des chaînes construire-puis-affiner derrière les
+plateaux quasi-record de ce projet, et c'est la méthode vers laquelle la
+littérature se tourne dès qu'un plateau est trop bon pour qu'un déplacement d'une
+seule pièce l'améliore. Cette étude décortique la boucle de réparation comme sa
+jumelle a décortiqué le retour arrière : une décision à la fois, sur les mêmes
+dix variantes à coins épinglés, un cœur, soixante secondes par exécution. Le
+score maximal est de 480 arêtes appariées.
+
+La boucle elle-même est courte. Une itération, parcourue ci-dessous.
+
+<Figure title="Une itération de destruction-réparation, étape par étape">
+  <RepairLoopDiagram />
+</Figure>
+
+Le but n'est pas de gagner. La plupart des variantes terminent entre 360 et 379,
+et celle qui fait le mieux (446) y parvient en partant d'un plateau solide obtenu
+par retour arrière plutôt que d'un plateau construit, ce qui constitue en soi la
+leçon centrale de l'étude. Réparer un simple plateau glouton sur un cœur pendant
+une minute est peu de chose à côté des chaînes qu'emploient les records ; ce que
+l'étude mesure, c'est *ce que vaut chaque décision de la boucle*, en changeant
+une chose à la fois et en mesurant le résultat avec le même scoreur canonique
+qu'utilisent l'étude DFS et le reste du site.
+
+## La famille, et le classement
+
+Cinq familles, disposées de sorte que les voisines ne diffèrent que par une seule
+décision, toutes issues d'une même boucle d'ancrage épurée (départ glouton,
+destruction des cases dépareillées, recomplétion gloutonne, conservation du
+résultat sauf s'il perd du score, jamais de redémarrage). Le **plateau de départ**
+change le point où la boucle commence. L'**opérateur de destruction** change quelles
+cases chaque itération soulève. La **réparation** change la manière dont le trou
+est reconstruit. L'**acceptation** change le moment où un mouvement non améliorant
+est conservé. Le **redémarrage** change ce qui se passe une fois que la boucle
+s'enlise.
+
+<RepairStudyLeaderboard />
+
+## Ce que l'étude a trouvé
+
+- **Partir d'un plateau solide obtenu par retour arrière remporte l'étude
+  entière.** La variante qui consacre ses vingt premières secondes à exécuter le
+  break-DFS de l'étude DFS, puis répare le plateau à un peu plus de 440 qui en
+  résulte, termine la plus haute de toutes, avec une moyenne de 446 (meilleur
+  résultat 449). La réparation n'ajoute qu'une poignée d'arêtes par-dessus ce
+  plateau, mais le plateau dont elle part vaut cent points de plus qu'une
+  construction gloutonne, et cela se répercute jusqu'au bout. C'est la division du
+  travail construire-puis-affiner qu'emploient les records, reproduite de bout en
+  bout sur un cœur en une minute.
+- **Parmi les variantes à départ glouton, la destruction aléatoire l'emporte et
+  cibler les défauts se retourne contre soi.** Une destruction aveugle à la
+  géométrie qui soulève douze cases *aléatoires* termine à une moyenne de 402
+  (meilleur résultat 409) et continue de s'améliorer tard dans l'exécution. Tout
+  opérateur qui cible les cases dépareillées termine en dessous, et plus il se
+  fixe précisément, plus il fait mal : l'ancre des cases dépareillées atterrit à
+  366, une destruction par composante connexe plus large à 350. Sur un plateau
+  médiocre, il y a de l'amélioration disponible partout, si bien qu'explorer vaut
+  mieux qu'attaquer là où ça fait déjà mal. Cela s'inverse sur un plateau
+  quasi-record, où les quelques défauts restants sont la seule chose qu'il reste à
+  corriger.
+- **Le plateau de départ fixe le plancher.** Une construction gloutonne démarre
+  autour de 348 ; une construction aléatoire démarre près de 18, et bien que la
+  boucle la fasse gagner un spectaculaire 308 points, elle termine tout de même en
+  dessous de là où le départ glouton *commençait*. La construction est le levier,
+  la réparation est le polissage.
+- **La règle d'acceptation est l'autre véritable levier.** Le recuit simulé, qui
+  descend occasionnellement pour quitter un plateau, est la règle d'acceptation la
+  plus forte avec une nette marge (moyenne 377, meilleur résultat 394), bien devant
+  une montée de colline stricte (361). Le degré de tolérance accordé à un mouvement
+  non améliorant vaut un écart de seize points sur la même boucle.
+- **Les raffinements astucieux ne rapportent rien ici.** Une destruction de bande
+  entière est inerte (zéro amélioration sur neuf instances sur dix). Une
+  recomplétion *exacte* bornée d'un petit trou ne bat pas une recomplétion
+  gloutonne simple du même trou, un résultat négatif net : ses reconstructions
+  localement parfaites coûtent assez d'itérations pour que davantage de
+  reconstructions gloutonnes moins chères aillent tout aussi loin. Ni un coup de
+  pied aléatoire ni un retour-au-meilleur en cas d'enlisement ne décollent le score
+  de la référence sans redémarrage.
+
+Chacun de ces points a son propre traitement : la manière dont le moteur est
+construit et la signification de chaque statistique avancée sont sur la [page
+méthode](/research/lab/experiments/raphael-anjou/repair-study/method), et les
+comparaisons de destruction, réparation, acceptation, redémarrage et plateau de
+départ sont détaillées sur la [page des
+résultats](/research/lab/experiments/raphael-anjou/repair-study/findings).
+
+## Comment lire les chiffres
+
+Chaque plateau est re-scoré par l'unique scoreur canonique, et le score
+auto-déclaré d'aucun moteur n'est cru. La boucle maintient son score de manière
+incrémentale à mesure qu'elle place et soulève des pièces, mais le nombre publié
+est toujours un re-score canonique frais du plateau produit. Le débit est reporté
+en itérations de réparation par seconde et n'est **jamais comparé d'une famille à
+l'autre**, car une itération qui exécute une recomplétion exacte n'est pas la même
+unité de travail qu'une itération qui exécute un remplissage glouton.
+
+L'axe à surveiller est le *plateau d'enlisement* : l'itération à laquelle le
+meilleur global s'est amélioré pour la dernière fois, face au nombre total
+d'itérations exécutées. Quand la première est de quelques milliers et le second de
+centaines de milliers, l'exécution a trouvé sa réponse tôt puis a rabâché le même
+bassin pour le reste de la minute. Cet écart est la forme mesurée d'une
+observation de longue date sur ce casse-tête : la destruction-réparation est une
+superbe exploratrice de bassin et ne s'échappe pour ainsi dire jamais du bassin où
+elle atterrit.
+
+Tout l'appareillage (le moteur, les dix variantes, les résultats par exécution
+commités et les scripts de la grille) réside sous le [répertoire de
+référence](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study)
+de l'étude, et `just experiments repair-study` reconstruit le moteur et réexécute
+toute la grille. Le plateau, le scoreur et la couche d'E/S proviennent d'une
+[bibliothèque
+partagée](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/common)
+qu'utilise aussi l'étude DFS, de sorte qu'un plateau réparé et un plateau obtenu
+par retour arrière sont scorés par exactement le même code.

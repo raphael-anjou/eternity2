@@ -1,0 +1,407 @@
+---
+title: "Le solveur de Blackwood, décodé et exécuté ici"
+description: >-
+  Le backtracker record de Joshua Blackwood, décodé grâce aux notes de Jef Bucas
+  (un échéancier de quotas de couleurs et une tolérance aux mismatchs en fin de
+  partie, réglés presque optimalement), puis construit et exécuté sur mon M1 : tel
+  que publié, il file jusqu'à 248 des 256 pièces en ignorant les indices ; épinglez
+  les cinq indices officiels et le même moteur cale autour de 45.
+metaDescription: "Le backtracker C# record de Blackwood décodé via Jef Bucas, puis exécuté sur un M1 : 248/256 sans contrainte, mais cale vers 45/256 dès les 5 indices épinglés."
+kind: experiment
+contribution: measurement
+author: joshua-blackwood
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), pinned to one search thread"
+  wallClock: "60-120 s per run"
+  seedPolicy: "randomised per restart (his Random); one thread"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "git clone github.com/jblackwood345/EternityII_Solver; dotnet build -c Release"
+order: 10
+updated: 2026-07-17
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/single-core-benchmark
+  - /research/records
+sources:
+  - label: "Le solveur de Joshua Blackwood (GitHub, GPL-3.0, la source d'origine)"
+    url: https://github.com/jblackwood345/EternityII_Solver
+  - label: Les notes de Jef Bucas sur le solveur Blackwood (dépôt wrapper_blackwood)
+    url: https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md
+  - label: L'annonce de l'étude de Jef et l'autorisation de republier (groups.io message 11905)
+    url: https://groups.io/g/eternity2/message/11905
+  - label: "Le plan de réglage de Blackwood : les quatre leviers et le réajustement du 470 (groups.io message 10076)"
+    url: https://groups.io/g/eternity2/message/10076
+  - label: Le dépôt republié, « le code exact utilisé pour trouver un 470 » (groups.io message 10161)
+    url: https://groups.io/g/eternity2/message/10161
+  - label: "L'annonce du 470 par Blackwood (msg 10117)"
+    url: https://groups.io/g/eternity2/message/10117
+---
+
+import patternsA from "@/assets/research/blackwood/patterns_priorization_470_a.jpg";
+import patternsB from "@/assets/research/blackwood/patterns_priorization_470_b.jpg";
+import scheduleTraces from "@/assets/research/blackwood/jblackwood_heuristics.png";
+import boardOrder from "@/assets/research/blackwood/board_order.svg";
+import sweep from "@/assets/research/blackwood/heuristic_array.jpg";
+
+<Callout kind="note" title="À qui appartient ce travail">
+  L'algorithme et le code C# sont ceux de **Joshua Blackwood**
+  ([EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver),
+  public sur GitHub sous licence GPL-3.0). Le décodage des rouages internes, ainsi
+  que l'étude paramétrique rapportée ci-dessous, sont l'œuvre de Jef Bucas, dans son
+  projet [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) ; les
+  sections décodées reformulent et prolongent
+  [ses notes](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/Notes/Notes.md)
+  avec son autorisation explicite
+  ([groups.io message 11905](https://groups.io/g/eternity2/message/11905)), et
+  les figures sont les siennes, reproduites depuis ces mêmes notes. La dernière
+  section, c'est [Raphaël Anjou](/research/people/raphael-anjou) construisant et
+  exécutant le code de Blackwood sur une seule machine et rendant compte de ce
+  qu'il a fait ; les trois petites modifications apportées à sa source y sont
+  listées, chacune invitée par son propre README.
+</Callout>
+
+Joshua Blackwood détient le record actuel de 470, trouvé avec un code qu'il a rendu
+public. Son solveur est, au fond, un backtracker classique en profondeur d'abord
+qui exécute la même boucle que n'importe quel autre : placer, vérifier, revenir en
+arrière. Ce qui en fait le moteur derrière les meilleures grilles de la communauté,
+c'est un ensemble d'heuristiques façonnées à la main et empilées par-dessus : une
+règle de score qui décide *quelles* pièces essayer en premier, un échéancier de
+quotas par profondeur qui élague les branches prenant du retard, un
+[ordre de remplissage](/research/build/backtracking/fill-order) réglé pour être
+« ni trop serré, ni trop lâche », et une tolérance aux mismatchs en fin de partie.
+Chacun de ces choix comporte des nombres, et l'étude de Jef Bucas a posé la question
+évidente : les nombres de Blackwood valent-ils quelque chose ? Oui, et c'en est
+gênant. Comme le code est un vrai programme C# compilable, on peut alors l'exécuter
+exactement tel que son auteur l'a écrit, ce que fait la dernière section ici.
+
+## Noter les pièces selon trois couleurs
+
+Le solveur note chaque pièce d'après les couleurs de ses côtés, et il en privilégie
+exactement trois, une couleur de bordure et deux couleurs intérieures :
+
+```csharp
+heuristic_sides = new List<int>() { 13, 16, 10 };
+```
+
+Les pièces portant ces couleurs sont triées en tête de chaque liste de candidats,
+de sorte que la recherche les engage tôt. Pourquoi ces trois-là ? C'est l'un des
+deux boutons que l'étude de Jef a manipulés (voir plus bas). Son échantillonnage
+suggère que les meilleurs scores connus proviennent de deux jeux de motifs distincts :
+
+<Figure caption="Les deux jeux de motifs derrière les meilleures exécutions de classe 470, projetés sur la grille : les trois motifs privilégiés se concentrent dans la région que le balayage remplit en premier. Figures de Jef Bucas (wrapper_blackwood), reproduites avec permission.">
+  <div className="grid gap-3 sm:grid-cols-2">
+    <img src={patternsA} alt="Premier jeu de motifs priorisés projeté sur la grille 16×16" loading="lazy" className="rounded-lg border" />
+    <img src={patternsB} alt="Second jeu de motifs priorisés projeté sur la grille 16×16" loading="lazy" className="rounded-lg border" />
+  </div>
+</Figure>
+
+## L'échéancier : une courbe de quotas sur 256 profondeurs
+
+Prioriser trois couleurs ne sert que si la recherche est *forcée* de les placer
+réellement. Le solveur porte donc un tableau de 256 entrées, une par profondeur, où
+chaque valeur est le nombre minimal de ces trois couleurs devant déjà figurer sur la
+grille pour continuer à descendre. Passez sous le quota et la branche est coupée
+sur-le-champ : retour en arrière, sans discussion.
+
+Blackwood a rempli ce tableau à la main, sous forme de rampe linéaire par morceaux :
+
+```csharp
+heuristic_array = new int[256];
+for (int i = 0; i < 256; i++) {
+  if (i <= 16)
+     heuristic_array[i] = 0;
+  else if (i <= 26)
+     heuristic_array[i] = (int)(((float)i - 16) * (float)2.8);
+  else if (i <= 56)
+     heuristic_array[i] = (int)((((float)i - 26) * (float)1.43333) + 28);
+  else if (i <= 76)
+     heuristic_array[i] = (int)(((((float)i - 56) * (float)0.9)) + 71);
+  else if (i <= 102)
+     heuristic_array[i] = (int)(((((float)i - 76) * (float)0.6538)) + 89);
+  else if (i <= 160)
+     heuristic_array[i] = (int)(((((float)i - 102) / 4.4615)) + 106);
+}
+```
+
+Libre jusqu'à la profondeur 16, raide dans la vingtaine, puis s'aplatissant jusqu'à
+la profondeur 160. C'est l'« échéancier » du schedule-and-break-index : un calendrier
+fixé d'avance pour épuiser les couleurs à forte fréquence, imposé comme un élagage
+strict.
+
+<Figure caption="L'échéancier tracé : les courbes de quotas montent jusqu'à environ 115 placements privilégiés à la profondeur ~155, puis relâchent. Figure de Jef Bucas (wrapper_blackwood), reproduite avec permission.">
+  <img src={scheduleTraces} alt="Courbes de l'échéancier de quotas sur la profondeur 0 à 256" loading="lazy" className="rounded-lg border bg-white" />
+</Figure>
+
+## L'ordre de remplissage : ni trop serré, ni trop lâche
+
+La recherche démarre en bas à gauche de la grille (le coin le plus proche de la
+pièce centrale obligatoire) et effectue un balayage de lignes standard jusqu'à la
+profondeur 180. Ensuite, elle intercale les pièces de bordure restantes (y compris
+le troisième coin) tous les quelques pas, parmi les placements intérieurs.
+
+C'est une voie médiane délibérée. Rentrer en spirale (l'anneau de bordure d'abord)
+engage trop tôt les pièces les plus contraintes ; un balayage de lignes pur les
+laisse toutes pour la fin, où elles vous tendent une embuscade. L'ordre de Blackwood
+relâche la pression de bordure progressivement. Pourquoi l'ordre compte-t-il autant,
+et comment le noter avant de l'exécuter, c'est exactement ce que formalise la
+[théorie de la complexité](/research/why/complex-theory).
+
+<Figure caption="L'ordre de remplissage de Blackwood : un balayage de lignes en bas à gauche jusqu'à la profondeur 180, les pièces de bordure intercalées ensuite. Figure de Jef Bucas (wrapper_blackwood), reproduite avec permission.">
+  <img src={boardOrder} alt="L'ordre dans lequel le solveur de Blackwood remplit la grille 16×16" loading="lazy" className="mx-auto max-w-md rounded-lg border bg-white p-2" />
+</Figure>
+
+## Les breaks : acheter la fin de partie avec des mismatchs
+
+À l'approche de la fin de la recherche, le solveur cesse d'exiger la perfection. Un
+budget de mismatchs d'arêtes se déverrouille avec la profondeur, de façon cumulative :
+un break est autorisé à partir de la profondeur 201 (il peut être dépensé à 201 ou à
+n'importe quelle profondeur ultérieure), un deuxième à partir de 206, et ainsi de
+suite :
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Dix breaks au total, le dernier se déverrouillant à la profondeur 239. C'est ce qui
+rend les [grilles record](/research/records) atteignables tout court : un 256 parfait
+n'a jamais été trouvé, mais une grille qui tolère une poignée de mismatchs tardifs,
+c'est quelque chose qu'un backtracker peut réellement terminer.
+
+Deux détails affinent le tableau. D'abord, le budget s'accompagne d'une discipline :
+jamais deux breaks ne sont autorisés à se toucher : chaque mismatch doit rester isolé
+au milieu d'arêtes appariées. Blackwood en énonce lui-même la conséquence : toute
+exécution qui atteint 255 placements se complète automatiquement à 256, et une grille
+469 est de manière équivalente un partiel de 249 pièces avec sept trous
+([groups.io message 10051](https://groups.io/g/eternity2/message/10051)). Ensuite,
+la liste de dix entrées ci-dessus est elle-même un réajustement : en planifiant le
+passage de 469 à 470, Blackwood a ramené le budget de breaks de onze profondeurs à
+dix, un changement qu'il a documenté, levier par levier, dans son propre plan de
+réglage
+([groups.io message 10076](https://groups.io/g/eternity2/message/10076)). Les points
+de déverrouillage décalés qu'il esquissait dans ce plan n'ont jamais été adoptés (le
+code 470 publié conserve les points de l'ère 469 et abandonne simplement le onzième),
+et c'est cet échéancier resserré qui a trouvé le 470.
+
+## Redémarrages, aléatoire, et un plafond de 50 milliards de nœuds
+
+Un backtracker par balayage de lignes remonte rarement jusqu'à ses premières lignes,
+si bien qu'une mauvaise ouverture peut échouer une exécution entière dans une région
+impossible. La réponse de Blackwood est économique et efficace : rendre l'ouverture
+aléatoire (le premier coin et les pièces de la ligne du bas sont mélangés à chaque
+tentative, de sorte que deux exécutions ne retracent jamais le même préfixe) et
+plafonner chaque tentative à 50 milliards de nœuds explorés. Atteignez le plafond,
+abandonnez, [redémarrez](/research/build/backtracking/restarts) avec une nouvelle
+ouverture, et partez en chercher une plus fertile.
+
+## Le faire tenir en cache
+
+Le dernier ingrédient est la sympathie mécanique. Les pièces candidates vivent dans
+des tables de correspondance par position, et chaque entrée est une structure
+compacte (numéro de pièce, rotation, les deux côtés exposés, un compteur de breaks et
+un compteur heuristique) dimensionnée pour que l'ensemble de travail tienne dans le
+cache du processeur :
+
+```csharp
+public struct RotatedPiece
+{
+    public ushort PieceNumber { get; set; }
+    public byte Rotations { get; set; }
+    public byte TopSide { get; set; }
+    public byte RightSide { get; set; }
+    public byte Break_Count { get; set; }
+    public byte Heuristic_Side_Count { get; set; }
+}
+```
+
+C'est la moitié « débit » de l'histoire : la même conception que
+[Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker) a plus tard
+poussée jusqu'à des centaines de millions de placements par seconde.
+
+## D'un unique 468 à une vague de records
+
+L'histoire du solveur est aussi instructive que ses rouages. Blackwood est arrivé en
+parfait outsider : son 468, la première avancée au-delà du
+[467 de Louis Verhaard](/research/lab/experiments/louis-verhaard/eii) en douze ans, a
+atteint la liste de diffusion de seconde main, relayé depuis un post Reddit
+([groups.io message 10032](https://groups.io/g/eternity2/message/10032)). Trois jours
+plus tard, il a ouvert le code du solveur, avec des heuristiques qu'il estimait
+« deux fois meilleures » que l'exécution du 468
+([message 10037](https://groups.io/g/eternity2/message/10037)) ; Jef Bucas l'avait en
+marche sous Mono sur Ubuntu presque immédiatement
+([message 10038](https://groups.io/g/eternity2/message/10038)). En une semaine, Peter
+McGavin, en l'exécutant « sur environ deux cents cœurs », a atteint 469
+([message 10045](https://groups.io/g/eternity2/message/10045)). Bucas a ensuite
+réécrit l'algorithme en C pour environ le double de vitesse
+([message 10065](https://groups.io/g/eternity2/message/10065)), une vague de nouvelles
+grilles 469 a suivi en quelques semaines, et le générateur de code derrière la
+réécriture a été publié sous le nom de
+[libblackwood](https://github.com/jfbucas/libblackwood)
+([message 10078](https://groups.io/g/eternity2/message/10078)). Quand Blackwood a
+posté son 470 en mars 2021, il provenait de ce même code public. Ses propres mots,
+au sujet de la republication du dépôt après qu'il fut discrètement passé en privé :
+« C'est le code exact utilisé pour trouver un 470 »
+([message 10161](https://groups.io/g/eternity2/message/10161)). Un record, mis en
+open source, est devenu une machine à records communautaire.
+
+## L'étude paramétrique de Jef : wrapper_blackwood
+
+Tout ce qui précède décrit *comment* le solveur fonctionne. Jef Bucas a construit
+[wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) pour se demander si
+ses nombres sont *justes*. Le dispositif est une petite
+[expérience distribuée](/research/build/faster/distributed-solving) : un serveur
+Python distribue des tâches par HTTP, où chaque tâche est une variante des paramètres
+du solveur. Les clients (un worker par cœur) récupèrent une tâche, génèrent la source
+C# à partir de templates avec cette variante intégrée, la compilent avec Mono,
+l'exécutent, et renvoient le résultat au serveur pour analyse.
+
+Deux paramètres ont eu droit au traitement :
+
+- **Les trois couleurs priorisées.** En échantillonnant de nombreux jeux différents
+  de trois motifs, et en enregistrant la profondeur atteinte par l'algorithme avec
+  chacun, sa
+  [page de résultats](https://github.com/jfbucas/wrapper_blackwood/blob/main/doc/batch00_edge_combos_stats.html)
+  associe chaque combinaison d'une couleur de bordure et de deux couleurs intérieures
+  à la profondeur qu'elle a atteinte, accompagnée d'une carte de chaleur indiquant où,
+  sur la grille, la recherche a passé son temps. Les meilleurs scores connus se
+  concentrent sur deux jeux de motifs distincts.
+- **L'échéancier de quotas.** En exécutant de nombreuses variantes aléatoires du
+  tableau heuristique de 256 entrées et en traçant la profondeur atteinte par chacune
+  (plus c'est vert, mieux c'est), la courbe façonnée à la main par Blackwood tombe en
+  plein milieu de la région verte.
+
+<Figure caption="Des centaines de variantes aléatoires de l'échéancier de quotas, colorées selon la profondeur atteinte par la recherche (vert = plus profond, rouge/noir = plus superficiel). La ligne bleue est l'échéancier réglé à la main par Blackwood, franchement à l'intérieur de la bande la plus performante. Figure de Jef Bucas (wrapper_blackwood), reproduite avec permission.">
+  <img src={sweep} alt="Variantes aléatoires de l'échéancier de quotas colorées selon la profondeur de recherche, avec la courbe réglée à la main par Blackwood en bleu au milieu de la bande verte" loading="lazy" className="rounded-lg border" />
+</Figure>
+
+## Ce que le réglage manuel a réussi
+
+Ce dernier résultat mérite qu'on insiste. Blackwood a rempli son échéancier à la main :
+cinq segments linéaires, des coefficients estimés à l'œil. Lorsqu'un balayage
+aléatoire a exploré le voisinage autour de lui, la ligne réglée à la main se situait
+franchement dans la zone la plus performante. La conclusion de Jef, et la nôtre : les
+paramètres d'origine étaient presque optimaux. Le vieux conseil tient toujours. Avant
+de refondre les heuristiques d'un solveur record, vérifiez si son auteur n'a pas déjà
+trouvé l'optimum local à la main.
+
+<Callout kind="note" title="Les propres résultats négatifs de Blackwood">
+  Blackwood a mené le même audit sur lui-même. Après le 469, il a catalogué ses
+  impasses sur la liste de diffusion
+  ([groups.io message 10056](https://groups.io/g/eternity2/message/10056)) :
+  éliminer quatre couleurs tôt au lieu de trois (aucun gain), réserver des couleurs
+  pour la fin de partie (pire), des solveurs SAT tels que kissat, cryptominisat et
+  Google OR-tools (médiocre), l'accélération GPU, et la mise en cache de tous les
+  blocs 2×2 pré-résolus (mesurée, puis abandonnée). La seule chose qui ait jamais
+  payé, c'est le raffinement des heuristiques elles-mêmes, valant encore un facteur
+  ~2. C'est la même conclusion que le balayage de Jef, atteinte par l'autre bout :
+  l'échéancier est la magie, pas la technologie brute.
+</Callout>
+
+## Répliquer l'étude
+
+Une réserve sur l'étude paramétrique, et elle est de Jef lui-même : les effectifs
+d'échantillons derrière ces résultats sont faibles, et il n'est pas sûr à 100 % de
+ses conclusions. Ses notes le disent clairement : il serait bon de tenter de
+reproduire ces résultats, pour les valider ou les invalider. Il offre ses échantillons,
+et le harnais [wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) est
+public : dirigez quelques machines vers le serveur, relancez les balayages, et postez
+ce que vous trouvez sur la [liste de diffusion](https://groups.io/g/eternity2). Une
+réplication indépendante confirmerait ou réfuterait les conclusions, et l'un comme
+l'autre serait une véritable contribution.
+
+## L'exécuter ici
+
+L'étude ci-dessus audite les paramètres de Blackwood ; cette dernière section audite
+autre chose : ce que fait son programme publié quand on le construit soi-même et
+qu'on le confronte au vrai puzzle, sur un seul cœur, sur ma machine.
+
+### D'où vient le code
+
+La source est son dépôt public,
+[github.com/jblackwood345/EternityII_Solver](https://github.com/jblackwood345/EternityII_Solver),
+sous licence GPL-3.0. Il se construit sans modification sur .NET 8. Il n'est pas
+recopié ici : la licence comme les bonnes manières commandent de le lier, non de
+l'embarquer ; il a donc été cloné dans un répertoire temporaire, exécuté, et seuls
+les nombres ont été conservés.
+
+### Ce qui a été modifié pour l'exécuter
+
+Son programme est écrit pour tourner sur le nombre total de cœurs d'une machine et
+pour ne sauvegarder que les grilles quasi complètes. Pour le mesurer sur un seul cœur,
+et pour voir quoi que ce soit en deçà d'une résolution complète, trois modifications
+ont été faites, chacune invitée par son propre README (« changez le nombre de cœurs »,
+« changez la fonction de sauvegarde ») :
+
+- **Un seul thread de recherche.** Sa constante `number_virtual_cores` vaut 64 par
+  défaut. Son `Parallel.For(1, N)` lance `N-1` workers, donc la fixer à 2 donne
+  exactement un thread de recherche.
+- **Une ligne de progression.** Sans modification, dans une exécution bornée, il
+  n'affiche que « Solving... ». Une seule ligne ajoutée rapporte le placement le plus
+  profond atteint, de sorte qu'une exécution qui ne se termine pas produise tout de
+  même un nombre.
+- **Un seuil de sauvegarde plus bas, et l'épinglage des indices** pour l'exécution
+  contrainte ci-dessous.
+
+### Tel que publié : rapide, et visant l'unique indice qui contraint
+
+Exécuté tel que son code se présente, sur un seul cœur pendant 60 secondes, il est
+rapide et va loin :
+
+- **248 / 256 pièces placées**, une grille qui se recote à **454 / 480** arêtes
+  appariées.
+- **~18,9 millions de nœuds par seconde** (un nœud est une tentative de placement).
+
+Son programme publié n'a aucune notion d'indice : il traite chaque pièce, y compris
+les pièces spéciales, comme ordinaire et maximise les arêtes appariées brutes. C'est
+moins un compromis qu'il n'y paraît d'abord, car une grille Eternity II légale n'a
+qu'**une** contrainte contraignante, l'indice central obligatoire (la pièce 139 dans
+sa cellule centrale, dans son orientation donnée) ; les quatre autres « indices » du
+puzzle étaient des indices bonus lâchés par le concepteur, non des exigences. Sa
+fameuse grille **470** en est la preuve : dans le [visualiseur](/viewer), elle se
+vérifie comme indices respectés **1 / 5**, le seul respecté étant le centre, et un
+seul suffit à une grille légale. Maximiser les arêtes sans logique d'indices n'est
+pas un raccourci contournant le puzzle ; c'est une manière légitime de s'attaquer à
+la seule contrainte qui compte.
+
+Les huit dernières cellules de cette grille 454 sont une véritable impasse : aucun
+agencement des huit pièces restantes ne les complète de façon parfaitement appariée.
+(Pour le plaisir, en confiant cette grille à
+[notre ALNS](/research/build/local-search/local-search-alns) pendant 30 secondes, il
+a rempli les huit et l'a poussée à 462 en réarrangeant la région.)
+
+### Avec les indices épinglés : ça cale
+
+Épingler les pièces indices dans leurs cellules force le moteur à les respecter au
+lieu de les placer là où elles s'ajustent. Le même code, les cinq indices officiels
+épinglés, 120 secondes, un seul cœur :
+
+- **Placement le plus profond : environ 45 / 256.**
+
+Son heuristique d'ordre de balayage n'a rien à quoi s'accrocher dès que les pièces
+spéciales sont fixées en milieu de grille : elle patauge près des lignes du bas et ne
+remonte jamais. Épingler les cinq est plus strict que le puzzle ne l'exige à
+proprement parler (seul l'indice central est obligatoire), mais c'est la même
+contrainte à laquelle sont soumis les autres moteurs ici, et Blackwood atterrit bien
+en dessous du
+[438 de la réimplémentation Verhaard](/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl)
+ou du [204 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) sous la
+même contrainte.
+
+<Callout kind="note" title="Une réserve honnête">
+  Cet épinglage d'indices est grossier : il interdit toute autre pièce aux cinq
+  cellules d'indices et réserve ces pièces. Une refonte tenant compte des indices
+  chercherait au contraire vers l'extérieur à partir des indices, et ferait mieux. 45
+  est donc un plancher pour « son code publié avec des indices boulonnés dessus », non
+  un verdict sur l'approche. Son record 470 a été trouvé avec ce code plus une grande
+  quantité de calcul et de chance, pas en deux minutes.
+</Callout>

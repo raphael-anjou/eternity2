@@ -1,0 +1,96 @@
+---
+title: Réimplémentation de Verhaard
+description: >-
+  Une réimplémentation intégrale de la méthode eii de Louis Verhaard, son propre
+  binaire n'étant livré sans aucune source et refusant de tourner ici. Recuit par
+  échange de composition d'ensemble sous la métrique de pavage 2×2 ; sur le vrai
+  puzzle à cinq indices, elle atteint 438 sur 480, en monocœur.
+metaDescription: "Réimplémentation intégrale de la méthode eii de Verhaard : recuit par échange de composition, 438/480 sur le vrai puzzle à cinq indices, monocœur."
+kind: experiment
+contribution: reconstruction
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "120 s"
+  seedPolicy: "fixed seed 1"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 20
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, local-search]
+related:
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Moteur exécutable + résultats versionnés + scripts (répertoire de référence de cette expérience)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "Détails du solveur eii de Louis Verhaard (l'original, Win32 uniquement)"
+    url: https://www.shortestpath.se/eii/eii_details.html
+---
+
+<Callout kind="note" title="À qui revient ce travail">
+  La **méthode** est [celle de Louis Verhaard](/research/lab/experiments/louis-verhaard/eii).
+  Le **code** présenté ici est une réimplémentation intégrale par
+  [Raphaël Anjou](/research/people/raphael-anjou). Il est classé ici, dans la section
+  de Verhaard, aux côtés de la méthode qu'il reconstruit, comme une reconstruction :
+  une lecture de sa méthode, non son programme. La signature reste celle de Raphaël,
+  car le code est le sien ; la section est celle de Verhaard, car l'idée l'est.
+</Callout>
+
+L'eii original de Verhaard est un binaire Windows sans source qui
+[refuse de tourner ici](/research/lab/experiments/louis-verhaard/eii). Le seul moyen
+d'exécuter son approche est de la reconstruire, et c'est précisément cette reconstruction :
+le moteur même qui apparaît sous le nom `verhaard` sur la
+[grille](/research/lab/experiments/single-core-benchmark).
+
+## Ce qu'elle réimplémente
+
+La méthode documentée de Verhaard : le **recuit par échange de composition d'ensemble**
+sous la métrique de pavage 2×2. On choisit un sous-ensemble intérieur d'environ 180 pièces,
+on recuit sa composition par échanges jusqu'à maximiser localement le nombre de sous-pavages
+2×2 réalisables, on place en tête les pièces les plus problématiques, puis on cherche le reste
+sous cette ossature. Les constantes numériques du moteur ont été récupérées au bit près à partir
+des chaînes de caractères contenues dans `eii.exe`, ce binaire étant leur unique trace subsistante.
+
+Dire que l'on « fait tourner Verhaard » est un raccourci qu'il faut assumer : c'est une lecture
+de sa méthode, non de son code. Que ce soit le seul moyen d'exécuter son approche fait partie
+du constat.
+
+## Ce qu'elle donne sur le vrai puzzle à cinq indices
+
+En monocœur, 120 secondes, les cinq indices officiels épinglés :
+
+- **438 / 480** arêtes appariées, un plateau **entièrement rempli** (256 pièces sur 256).
+- Les cinq indices respectés (une solution stricte aux indices), 42 arêtes rompues, à environ
+  40 millions de nœuds par seconde.
+
+L'exécution et le plateau produit sont versionnés dans le
+[répertoire de référence](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+du moteur, et `just experiments single-core-benchmark` le relance, si bien que le 438 est
+vérifiable plutôt qu'affirmé. Il s'agit de l'instance à cinq indices, un puzzle plus difficile
+que les variantes à coins épinglés que note le [classement](/research/lab/experiments/single-core-benchmark),
+où le même moteur atteint un meilleur score de 451.
+
+Elle a trouvé 438 en une douzaine de secondes environ, puis a stagné sur le reste du budget :
+un authentique optimum local pour cette graine et ce temps. C'est la seule des trois
+réimplémentations communautaires présentes ici qui résolve bien le vrai puzzle à cinq indices,
+plutôt qu'une version plus facile, mais les trois ne mesurent pas la même chose, et la comparaison
+demande donc de la prudence.
+[Blackwood](/research/lab/experiments/joshua-blackwood/solver) est mesuré sur la même base,
+arêtes appariées avec les indices épinglés, et cale autour de 45.
+[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) ne l'est pas : son chiffre est
+une *profondeur* de placement (environ 204 pièces sur 256 atteintes), non un score d'arêtes
+appariées, si bien qu'il ne peut se lire sur le même axe que le 438 d'ici, et les deux nombres
+ne sont pas directement comparables. Ce que les trois partagent, c'est seulement le verdict selon
+lequel le puzzle contraint est bien plus dur que le puzzle libre ; les nombres qui sous-tendent
+ce verdict sont sur des échelles différentes.

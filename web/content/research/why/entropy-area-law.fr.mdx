@@ -1,0 +1,229 @@
+---
+title: L'entropie et la loi d'aire
+description: >-
+  Eternity II a deux règles : les bords doivent coïncider, et chaque pièce
+  ne sert qu'une fois. La première est généreuse. Toute la difficulté tient
+  dans la seconde.
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 130
+updated: 2026-07-01
+topics: [structure]
+related:
+  - /research/why/phase-transition
+  - /research/why/prune-vs-speed
+  - /research/why/forbidden-patterns
+  - /research/build/analysis/solution-counting
+repro:
+  kind: exact
+  cmd: just research-entropy-area-law
+  topic: entropy-area-law
+sources:
+  - label: "Le lemme de sous-additivité de Fekete, le théorème qui garantit l'existence même de la limite d'entropie h∞"
+    url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
+  - label: "L'entropie de Shannon d'une source, les quantités h(n) mesurées ici"
+    url: https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+---
+
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
+import data from "@/data/entropy-area-law.json";
+
+export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
+  const n = i + 1;
+  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
+});
+
+export function EntropyChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={data.hByWidth} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="width"
+              type="number"
+              domain={[1, 4]}
+              tickCount={4}
+              label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
+              fontSize={12}
+            />
+            <YAxis domain={[0.5, 1.8]} width={40} fontSize={12} />
+            <Tooltip
+              formatter={(v) => [Number(v).toFixed(4), "entropy density h(n)"]}
+              labelFormatter={(w) => `strip width n = ${String(w)}`}
+            />
+            <Line
+              type="monotone"
+              dataKey="h"
+              stroke="#38bdf8"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function RhoChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="cells"
+              type="number"
+              domain={[0, 170]}
+              tickCount={7}
+              label={{
+                value: "patch size (cells)",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              scale="log"
+              domain={[1e-7, 1]}
+              allowDataOverflow
+              tickFormatter={(n) => Number(n).toExponential(0)}
+              width={52}
+              fontSize={11}
+            />
+            <Tooltip
+              formatter={(v) => [Number(v).toExponential(2), "ρ"]}
+              labelFormatter={(c) => `${String(c)} patch size (cells)`}
+            />
+            <Line
+              type="monotone"
+              dataKey="rho"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Oublions un instant la règle qui impose d'utiliser chaque pièce une seule
+fois et traitons les 196 pièces intérieures comme des tuiles réutilisables.
+En dénombrant les blocs entièrement compatibles, on constate qu'ils
+croissent exponentiellement avec la taille : les façons localement valides
+de paver ne manquent pas. La grammaire d'appariement est riche, et non
+restrictive.
+
+Cette richesse se mesure exactement. Pour une bande de largeur $n$, le taux
+de croissance par cellule est une densité d'entropie $h(n)$, et la suite
+décroît vers la vraie valeur bidimensionnelle à mesure que la bande
+s'élargit.
+
+## L'entropie de la grammaire, largeur par largeur
+
+<Figure caption="Décroissance vers la limite ≈ 0,67. Les deux premiers points sont calculés exactement ici ; les autres proviennent d'un balayage hors ligne.">
+  <EntropyChart />
+</Figure>
+
+## Puis la loi d'aire frappe
+
+Rétablissons maintenant la règle qui impose d'utiliser chaque pièce une
+seule fois, et demandons-nous à quelle fréquence un bloc $n \times n$
+compatible en couleurs, tiré au hasard, emploie effectivement des pièces
+distinctes. Notons cette proportion $\rho(n)$. Elle s'effondre, et elle
+s'effondre selon l'aire, non selon le périmètre :
+
+$$
+\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
+$$
+
+Une décroissance en loi d'aire est brutale, car l'aire croît de façon
+quadratique. La proportion de blocs réalisables passe sous le seuil du
+millième aux alentours de quatre-vingts cellules.
+
+<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes.">
+  <RhoChart />
+</Figure>
+
+## Voir l'écart se creuser
+
+La même idée appliquée aux pièces réelles, dénombrées exactement. Faites
+varier la taille du bloc et observez combien de blocs compatibles en
+couleurs survivent à la règle d'usage unique des pièces.
+
+<Figure collapsible title="Interactif : effondrement de la distinction et décroissance de rho">
+  <EntropyScarcityLab />
+</Figure>
+
+## Pourquoi c'est important
+
+Quatre-vingts cellules, ce n'est pas un chiffre arbitraire. C'est la taille
+des plus petits mouvements qui séparent les meilleurs blocs connus. La
+grammaire d'appariement reste riche jusqu'à cette échelle environ, puis la
+règle de distinction l'effondre. Le mur ne se dresse donc pas là où le
+problème paraît difficile, dans l'appariement des couleurs ; il se dresse
+dans la règle discrète selon laquelle chaque pièce ne sert qu'une fois, dont
+le coût croît avec l'aire, sur un plateau juste assez grand pour qu'elle
+morde.
+
+Voir [pourquoi le basin-hopping est impossible](/research/why/sigma-cycles).
+
+## Le théorème, en bref
+
+L'entropie par largeur possède une limite bien définie. Accoler côte à côte
+une bande de largeur $n_1$ et une bande de largeur $n_2$ n'ajoute qu'une
+contrainte de couture, si bien que les valeurs propres vérifient
+
+$$
+\lambda_{n_1+n_2} \;\le\; \lambda_{n_1}\,\lambda_{n_2}.
+$$
+
+En passant au logarithme, $\log \lambda_n$ devient sous-additif, et le lemme
+de Fekete donne la limite comme un infimum - ce qui explique précisément
+pourquoi la courbe ci-dessus décroît :
+
+$$
+h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
+$$
+
+La borne supérieure est le taux purement horizontal : ignorer les
+contraintes verticales ne fait qu'ajouter des blocs, donc
+
+$$
+0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+$$
+
+avec $\lambda_H = 46.18$ le rayon spectral de la matrice de compatibilité
+des couleurs à l'horizontale. La positivité tient parce que la grammaire
+admet exponentiellement de nombreuses chaînes, si bien que la densité est
+strictement comprise entre zéro et 1,6645, mesurée aux environs de 0,67.

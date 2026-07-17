@@ -1,0 +1,164 @@
+---
+title: Comment l'étude est construite
+description: >-
+  Le moteur derrière l'étude sur la réparation : une unique boucle composable de
+  destruction-réparation où une variante est un changement déclaré par rapport à
+  un parent, l'IO et le scoreur partagés avec l'étude DFS, une carte des
+  désaccords maintenue de façon incrémentale, et la définition de chaque
+  statistique que l'étude fait ressortir.
+metaDescription: "Le moteur de l'étude : boucle de destruction-réparation composable, carte incrémentale des désaccords, définitions du blocage, du gain et du taux d'acceptation."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/findings
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "L'espace de travail du moteur (repair-engine, repair-run) sur la bibliothèque partagée e2-core / e2-io"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/engine
+---
+
+Cette page décrit l'appareillage derrière l'[étude sur la réparation](/research/lab/experiments/raphael-anjou/repair-study) :
+comment le moteur est construit, pourquoi une nouvelle variante est peu coûteuse à
+ajouter, et ce que signifie chaque nombre des résultats. Elle est le jumeau
+délibéré de la
+[page méthode de l'étude DFS](/research/lab/experiments/raphael-anjou/dfs-study/method),
+et elle repose sur la *même* bibliothèque partagée : le plateau, le jeu de
+pièces, l'unique scoreur canonique et le contrat d'IO proviennent tous d'un crate
+`e2-core` / `e2-io` commun qu'utilise aussi l'étude sur le backtracking. Un
+plateau réparé et un plateau issu du backtracking sont donc évalués par le code
+identique, ce qui permet aux nombres des deux études de se placer sur un même axe.
+
+## Une variante est un changement déclaré par rapport à un parent
+
+Chaque algorithme de l'étude est la *même* boucle de destruction-réparation,
+paramétrée par cinq choix indépendants :
+
+- **plateau de départ** : le plateau à partir duquel la boucle commence
+  (aléatoire, construction gloutonne, ou construction gloutonne priorisant la
+  couleur la plus rare) ;
+- **opérateur de destruction** : quelles cellules chaque itération retire
+  (aléatoires, les cellules en désaccord, la pire bande de lignes, ou une
+  composante connexe de désaccords plus son halo) ;
+- **réparation** : comment le trou est comblé (glouton le plus contraint d'abord,
+  le même avec départage bruité, ou un remplissage exact borné pour les petits
+  trous) ;
+- **acceptation** : si un candidat remplace le plateau de travail (garder si ce
+  n'est pas pire, améliorations strictes uniquement, recuit simulé, ou acceptation
+  différée) ;
+- **redémarrage** : ce qui se produit lors d'un blocage (rien, une secousse
+  aléatoire, ou un retour au meilleur plateau obtenu jusque-là).
+
+Une variante est un petit enregistrement nommant ces cinq choix, accompagné du
+**parent dont elle dérive et d'une description en une ligne de l'unique changement
+qu'elle ajoute**. Ajouter une variante revient à ajouter un enregistrement au
+registre, sans nouveau code de boucle sauf si l'idée constitue une stratégie
+véritablement nouvelle. La matrice « quoi s'empile sur quoi » de la page des
+résultats est générée à partir de ces descriptions, de sorte qu'elle ne peut pas
+diverger du code qui a réellement tourné.
+
+## La carte des désaccords, maintenue de façon incrémentale
+
+Un backtracker construit un plateau à partir de rien ; une boucle de réparation
+détient toujours un plateau *complet* et le modifie. Les cellules qui valent la
+peine d'être attaquées sont celles qui touchent une arête cassée ; le moteur tient
+donc à jour, par cellule, un décompte vivant des arêtes intérieures cassées qui
+lui sont incidentes. Poser ou retirer une pièce ne met à jour que les arêtes
+autour de cette seule cellule, jamais tout le plateau, si bien qu'un opérateur de
+destruction guidé par les conflits peut demander « quelles cellules touchent un
+désaccord ? » sans réexaminer l'ensemble. Le score courant est tenu de la même
+manière : chaque placement l'ajuste en fonction de la poignée de coutures qui ont
+changé. Un rebalayage complet a lieu exactement une fois, lorsque le plateau de
+départ est construit ; à partir de là, la boucle est incrémentale. C'est ce qui
+rend possibles des centaines de milliers d'itérations en soixante secondes, et
+c'est la même discipline que la
+[page théorique sur l'ALNS](/research/build/local-search/local-search-alns) décrit
+comme maintenir la destruction à un coût proportionnel au trou, non au plateau.
+
+## Le scoreur est l'unique source de vérité
+
+Le score auto-déclaré d'aucun moteur n'est digne de confiance. Le score
+incrémental de la boucle est un dispositif de performance ; le nombre *publié* est
+toujours un re-score canonique frais du plateau de sortie, à travers le même
+scoreur qu'utilisent le site et l'étude DFS (arêtes appariées, non bordurières,
+adjacences intérieures, comptées vers la droite et vers le bas par cellule). Un
+test vérifie que le score incrémental et le score canonique concordent après des
+milliers de poses-et-retraits aléatoires, afin que l'on puisse faire confiance au
+chemin rapide pour suivre la vérité plutôt que de s'en écarter.
+
+## Les statistiques que l'étude fait ressortir
+
+Pour chaque exécution, le moteur enregistre - et les résultats transportent
+jusqu'à la page :
+
+- **score final** : les arêtes canoniquement appariées (sur 480) du meilleur
+  plateau trouvé.
+- **gain** : le score final moins le score du plateau de départ. Cela isole la
+  contribution propre de la boucle de réparation par rapport à la construction
+  dont elle est partie : une variante qui démarre haut peut n'ajouter que peu et
+  finir tout de même haut, et c'est le gain qui distingue les deux.
+- **le blocage (dernière itération record vs itérations totales)** : l'itération à
+  laquelle le meilleur global s'est amélioré pour la dernière fois, comparée au
+  nombre d'itérations que le budget a permis. C'est l'axe phare de l'étude :
+  lorsque le premier est très en dessous du second, l'exécution a trouvé sa
+  réponse tôt puis n'a plus rien bougé.
+- **taux d'acceptation** : la fraction d'itérations conservées par la règle
+  d'acceptation. Un taux proche de zéro signifie que la boucle propose des
+  changements qu'elle rejette presque toujours, souvent le signe qu'elle
+  ré-attaque la même région.
+- **taille moyenne de destruction** : cellules retirées par itération, afin qu'un
+  opérateur à grand trou ne soit pas comparé en silence à un opérateur à petit
+  trou.
+- **itérations par seconde** : rapportées par variante et **jamais comparées entre
+  familles**, car une itération exécutant un remplissage exact n'est pas la même
+  unité de travail qu'une itération exécutant un remplissage glouton.
+- **redémarrages** : perturbations déclenchées, zéro pour une variante sans
+  politique de redémarrage.
+
+La page trace aussi une **courbe de convergence** pour quelques variantes
+représentatives : le meilleur score obtenu jusque-là, échantillonné toutes les
+deux cents itérations, à mesure qu'une exécution typique progresse. C'est l'image
+la plus claire du blocage : la courbe monte fortement, puis s'aplatit tandis que
+le compteur d'itérations continue de grimper.
+
+## Honnêteté sur la vitesse du moteur glouton
+
+Comme le moteur MRV de l'étude DFS, la boucle de réparation ici est écrite d'abord
+pour la clarté. Le remplissage glouton réexamine le réservoir de pièces restantes
+pour chaque cellule qu'il remplit, plutôt que de maintenir des listes de candidats
+de façon incrémentale ; ses itérations par seconde sont donc celles de ce moteur
+au code propre, non le meilleur qu'un noyau de réparation optimisé pourrait
+atteindre. Le classement par score n'en dépend pas, puisque le débit est un axe
+distinct jamais mêlé à la comparaison des scores, mais les cadences d'itération
+doivent être lues comme celles de ce moteur, non comme le plafond de la
+destruction-réparation.
+
+## Ce que cette étude se garde délibérément d'affirmer
+
+Il s'agit d'une étude de la boucle de réparation *nue*, une décision à la fois, à
+un petit budget fixe. Ce n'est pas le pipeline record : les plateaux qui
+atteignent le milieu des 450 et au-delà combinent un producteur constructif
+puissant, des exécutions plus longues, et la réparation comme polissage final, et
+plusieurs des observations sur les opérateurs se liraient ici différemment sur un
+plateau proche du record que sur le départ glouton médiocre dont la boucle est
+issue. Là où un résultat dépend de la qualité du plateau de départ, la page des
+observations le précise. Le réglage propre de la communauté a par exemple trouvé
+que les opérateurs guidés par les conflits et par composantes sont précieux
+précisément sur des plateaux quasi optimaux, où les rares désaccords restants sont
+la seule chose qu'il reste à corriger - le régime que les courtes exécutions de
+cette étude n'atteignent jamais.
+
+## Reproductibilité
+
+Le moteur, les dix variantes, les résultats par exécution versionnés et les
+scripts de grille vivent tous sous le
+[répertoire support](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study)
+de l'étude. `just experiments repair-study` reconstruit le moteur et relance toute
+la grille ; l'exécution est déterministe à une graine fixe, et l'agencement des
+coins est le seul axe de diversité.

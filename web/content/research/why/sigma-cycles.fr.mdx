@@ -1,0 +1,92 @@
+---
+title: Pourquoi le basin-hopping semble impossible
+description: >-
+  Si l'on ne peut pas améliorer une excellente grille en la peaufinant, peut-être
+  peut-on sauter vers une autre excellente grille. Sur chaque paire de records
+  testée, c'est impossible, et la raison structurelle mérite qu'on la voie.
+kind: finding
+contribution: theory
+rigor: conjectured
+tier: 1
+order: 60
+updated: 2026-07-02
+topics: [structure, local-search]
+sources:
+  - label: "Annonce du record 469 de Peter McGavin : la grille contre laquelle les cycles sont calculés (groups.io msg 10045, septembre 2020)"
+    url: https://groups.io/g/eternity2/message/10045
+related:
+  - /research/why/rigidity-wall
+  - /research/why/mismatch-geometry
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+repro:
+  kind: heavy
+---
+
+import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
+import { SigmaCycleLab } from "@/components/research/SigmaCycleLab";
+
+Deux grilles de haut niveau paraissent totalement différentes, et pourtant elles
+sont liées : on peut transformer l'une en l'autre en prélevant un ensemble de
+pièces et en déplaçant chacune vers l'emplacement qu'occupait la suivante, tout
+le long d'une boucle. Les mathématiciens appellent cette boucle un cycle.
+Parcourez la boucle entière et vous arrivez à l'autre grille.
+
+Voici le hic. Entre les meilleures grilles, cette boucle est énorme et il n'en
+existe qu'une seule. Passer d'une grille à 459 à celle à 469 de McGavin, c'est
+un unique cycle imbriqué de 154 cellules, couvrant l'intégralité de l'intérieur
+de la grille.
+
+## Une seule boucle, tout ou rien
+
+<SigmaCycleDiagram />
+
+## Essayez sur un vrai petit puzzle
+
+Ce n'est pas un schéma : le moteur en direct trouve deux solutions réelles,
+calcule les cycles effectifs entre elles, et note chaque étape que vous
+franchissez.
+
+<Figure collapsible title="Interactif : appliquer une partie du cycle de permutation">
+  <SigmaCycleLab />
+</Figure>
+
+## Comment nous le savons
+
+Nous avons calculé les cycles exacts entre trois grilles-records différentes,
+puis essayé chaque mouvement partiel : n'appliquer qu'une portion de la boucle et
+observer ce que devient le score. Le résultat est sans appel. Toute application
+partielle dégrade le score, avec des chutes allant de quelques points à plus
+d'une centaine. Il n'existe aucun sous-ensemble de la boucle qui aide, pas un
+seul.
+
+C'est ce qui en fait un mur. Pour passer d'une bonne grille vers une meilleure,
+il faudrait s'engager à déplacer jusqu'à 154 cellules d'un coup, sans aucune
+étape améliorante en chemin pour vous y guider. Toute recherche qui procède par
+étapes est aveugle à un mouvement de ce genre.
+
+## Les cycles, mesurés
+
+- 459 vers 458 : 14 cycles, le plus grand de 85 cellules.
+- 458 vers le 469 de McGavin : un cycle géant de 80 cellules, couvrant les
+  lignes 1 à 14.
+- 459 vers le 469 de McGavin : un cycle géant de 154 cellules.
+- **Dans tous les cas, chaque fragment plus petit du cycle donne un score
+  moins bon : la propriété s'est vérifiée sur les trois paires de bassins
+  testées, même si trois paires forment un faible échantillon et qu'il n'est
+  pas prouvé qu'elle vaille en général.**
+
+## Pourquoi c'est important
+
+Conjuguée avec [le mur de rigidité](/research/why/rigidity-wall), cette
+observation ferme d'un coup les deux voies de sortie évidentes. On ne peut pas
+s'extraire localement d'une bonne grille, et (sur chaque paire de records
+mesurée ici) on ne peut pas non plus sauter vers une voisine, car la meilleure
+grille la plus proche se trouve à un unique mouvement indivisible de 80 à 154
+cellules. C'est une explication plausible de la raison pour laquelle le record
+de 470 tient depuis 2021 : les mouvements qui le battraient semblent trop
+vastes pour qu'une recherche pas à pas puisse les trouver.
+
+*Les cycles sont calculés exactement à partir de paires de grilles-records en
+composant leurs permutations de pièces ; les tests de sous-ensembles énumèrent
+les sous-cycles et les re-notent. L'animation ci-dessus est une schématisation
+du mécanisme, non le cycle de 154 cellules lui-même.*
