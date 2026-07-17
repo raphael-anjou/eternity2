@@ -80,6 +80,11 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   MDX (`@/components/...`) — per-page code splitting is preserved, and prerender
   waits for them (full prose ends up in the static HTML). Do NOT add research
   pages to `routes.ts`/`seo.ts` — those are only for non-research pages now.
+  **`sources[].url` is zod `.url()` — absolute URLs only.** A relative internal
+  path (`/research/...`) fails the build. To cite one of the site's own
+  experiments as evidence for a number, put the page in `related[]` (which takes
+  site paths) and add an inline prose link at the claim; never a relative
+  `sources[]` url.
 
 - **Research writing rules.** French pages are *written*, never translated
   literally. The project's own algorithms are **experiments** (never
@@ -87,6 +92,14 @@ at the root, French under `/fr`). See `README.md` for the user-facing tour and
   structurally equal to other researchers' work (Bucas, Blackwood, McGavin).
   Every number is fact-checked against `research/topics/*/results` before
   publication; `repro.cmd` should be a real `just research-<topic>` recipe.
+  **A CI style gate (`pnpm --dir web check:research`, script
+  `check-research-style.mjs`) fails on ANY em dash (—) outside code/quotes and
+  on a banned-phrase list (e.g. "honest"/"honestly").** Join clauses with a
+  period, semicolon, colon, or parentheses instead of an em dash; verbatim
+  archive quotes are exempt. `check:research` also validates that every
+  groups.io `message/N` citation exists in the local archive
+  (`../../v2/community-exports/messages.jsonl`), so never invent a `msg_num` —
+  grep the archive for the number before citing it.
 
 - **Keep the research ledger.** `research/LEDGER.md` is an append-only,
   oldest-first record of every research-section step: findings, pages,

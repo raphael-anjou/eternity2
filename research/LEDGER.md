@@ -1200,3 +1200,54 @@ Scope discipline: a parallel IO-standardization effort was live this whole sessi
 study scripts). Kept every commit strictly to my files; explicitly un-staged
 formats.mdx when a blanket add swept it in. Verified per commit: research style/
 links/citations/hardware, typecheck, lint, build all green.
+
+### 2026-07-17 — Full-site content quality audit + fixes (multi-agent)
+
+A scientific-publisher content quality audit across the whole site, then the
+fixes. Method: a 70-agent workflow reviewed all 113 research MDX pages + 14 TSX
+product pages against a 7-dimension rubric (correctness/evidence, clarity,
+metadata, consistency, language, tone, accessibility), with corpus-wide checks
+(terminology, numbers, links) and adversarial re-verification of every
+critical/major finding. 182 raw findings -> 39 verified serious (7 rejected as
+false positives) + 136 minor. Report + machine-readable findings saved under
+`research/audits/`. Overall grade: A-.
+
+Fixes applied across 87 files (81 MDX + 6 TSX):
+- **One critical fact resolved.** Status/RecordsView/boards/hunt-part-2/people all
+  say the 470 record was tied *once* (Bucas, Dec 2024); Puzzle.tsx alone said
+  "twice / 2024 and 2025" (EN+FR). The 2025 tie is unsupported anywhere — Puzzle.tsx
+  was wrong, corrected to match. (See memory [[e2-470-tie-count]].)
+- **Self-contradicting numbers** fixed against each page's own data: repair-study
+  swing 14->16 and "low 400s"->"360s-370s" (recomputed from results.jsonl),
+  single-core "24 points short" (best 451 is 13 short; only the mean is ~24),
+  solver-engineering "4x"->"~1x to 4x", sat-csp 262,144 reconciled by pruning,
+  how-hard mantissa 1.15->1.115, known-facts date-range overlap.
+- **Convention/voice:** three "invention"->"experiment" (AGENTS.md rule); sigma-cycles
+  rigor proven->conjectured with title/470 claim scoped; we-voice process-narration
+  recast on several pages; superlative/puffery trimmed.
+- **8 truncated frontmatter descriptions** completed; `/tree/`->`/blob/` on 14
+  file-pointing source URLs; engines hub gained a Door to the unlinked
+  verhaard-reimpl (438) engine; garbled DLX/mismatch-geometry sentences fixed.
+- **Terminology:** `16x16`->`16×16` in prose (~130, careful script skipping
+  slugs/domains/code); metric name unified to the "edges" family on TSX
+  (EN+FR); `frame-first`->`border-first` for the *fill-order name* (3 spots),
+  but the `frame-first anchor`/`frame-free` compound deliberately kept.
+- **Source archaeology** (17-agent workflow over the local groups.io archive at
+  `../../v2/community-exports/messages.jsonl`, 11,511 msgs, every proposed
+  citation adversarially re-verified against the exact message): caught a real
+  misattribution (the "modified Blackwood's DFS" phrase is Igor Pejic's words,
+  wrongly credited to Riotte — boards.mdx fixed, memory updated); clarified the
+  kubzpa 479-parity entry (interior parity holds; loophole is the unscored rim,
+  +msg 6319); added msg 10117 (Blackwood "470 Found") to approaches-map and an
+  inline PALIMPSEST link for the 463; softened 5 genuinely-unsourced claims
+  (producer-455->451, "brand-new 458", palimpsest 461/462 threshold,
+  Annaert/onesmallstep Discord anchors marked unlinkable). Left dead-ends and
+  the raphael-anjou scores alone (verified as non-defects: the "Reported" tier
+  honestly promises no repro; Millilaw has zero archive posts).
+
+Gotcha caught on myself: `sources[].url` is zod `.url()` (absolute only) — a
+relative internal path fails the build loudly. Internal experiment evidence goes
+in `related[]` + an inline prose link, never `sources[]`.
+
+Citations 723 -> 725 (both new msgs verified in the archive). Verified: research
+style (0 em dashes, 0 banned phrases), links, citations, typecheck all green.
