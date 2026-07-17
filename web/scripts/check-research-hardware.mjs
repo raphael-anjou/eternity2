@@ -11,10 +11,9 @@
 //
 // Run: node web/scripts/check-research-hardware.mjs
 //
-// NOT yet in the CI gate (`check:research`/`check:research:ci`): it stays a
-// standalone `npm run check:research:hardware` until the 12 experiment pages
-// carry their measured hardware blocks. Wire it into the gate in the same
-// commit that adds those blocks, so main never goes red on undocumented runs.
+// Part of the CI gate: wired into `check:research` and `check:research:ci` (and
+// therefore the deploy workflow's `quality` job), now that every experiment
+// page carries its hardware block.
 
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
