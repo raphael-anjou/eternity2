@@ -46,7 +46,7 @@ that, and it has a fifty-year paper trail.
 ## Domains that police each other
 
 Give every empty cell a *domain*: the set of piece-and-rotation candidates
-still allowed there. On the full puzzle that starts at roughly 760 tuples per
+still allowed there. On the full puzzle that starts at roughly 764 tuples per
 interior cell. **Forward checking** is the one-step discipline: when a piece
 is placed, delete it from every other domain and delete every candidate that
 clashes with the newly exposed edges. Cheap, and every serious solver does at
@@ -67,7 +67,7 @@ delete unsupported candidates), and whenever a domain shrinks, requeue the
 arcs that point at it. It is short, correct, and easy to make incremental
 inside a search, which is why it is still the default everywhere. Worst case
 it costs $O(e d^3)$ for $e$ arcs and domain size $d$; on the 16×16 board $e$
-is the 480 interior adjacencies taken in both directions and $d \approx 764$.
+is $e = 960$ (the 480 interior adjacencies, both directions) and $d \approx 764$.
 
 Its known flaw: every revision searches for supports from scratch, so the same
 support gets rediscovered thousands of times as the search dives and
