@@ -29,7 +29,7 @@ sources:
     url: https://groups.io/g/eternity2/message/8854
   - label: "DeVincentis's fix: one restore list per edge, plus one for used pieces (groups.io message 8886)"
     url: https://groups.io/g/eternity2/message/8886
-  - label: "Measured on the 6x6 border ring: 133,326,155 → 30,496,808 nodes (groups.io message 8875)"
+  - label: "Measured on the 6×6 border ring: 133,326,155 → 30,496,808 nodes (groups.io message 8875)"
     url: https://groups.io/g/eternity2/message/8875
   - label: "Mocsi's Failure Lookup Table, abandoned over a bug (groups.io message 8887)"
     url: https://groups.io/g/eternity2/message/8887
@@ -39,7 +39,7 @@ sources:
     url: https://groups.io/g/eternity2/message/9618
   - label: "Verhaard: eii keeps no memory of past positions, and it won the $10,000 (groups.io message 7451, 2010)"
     url: https://groups.io/g/eternity2/message/7451
-  - label: "Blackwood's ledger: 2x2 caching measured and dropped (groups.io message 10056, 2020)"
+  - label: "Blackwood's ledger: 2×2 caching measured and dropped (groups.io message 10056, 2020)"
     url: https://groups.io/g/eternity2/message/10056
   - label: "Lindström's invalid-placement mining and collaboration call (groups.io message 6743, 2009)"
     url: https://groups.io/g/eternity2/message/6743
@@ -83,7 +83,7 @@ colours and leave the same 128 pieces unused have *identical* subtrees. If
 the first failed, the second must fail, and searching it is pure waste.
 
 [Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker) caught this happening in
-the wild in 2016: two top-row combinations in his 10x10
+the wild in 2016: two top-row combinations in his 10×10
 [farming](/research/build/faster/distributed-solving) logs used the same
 ten pieces with the same permutation of colours along their lower edge, and
 their search trees came back with exactly the same node count:
@@ -155,7 +155,7 @@ candidate list, and a piece refuted at one cell is removed from that list
 and parked on a "restore list" attached to the earlier cell whose undoing
 would make it valid again; memoized pruning, in effect
 ([message 8854](https://groups.io/g/eternity2/message/8854)). It cut node
-counts beautifully and silently lost solutions: his 8x8 runs missed some of
+counts beautifully and silently lost solutions: his 8×8 runs missed some of
 the 52 known solutions. Over thirty-plus messages McGavin pressed
 objections and probing test cases
 ([message 8866](https://groups.io/g/eternity2/message/8866))
@@ -165,13 +165,13 @@ neighbouring edge plus one for pieces used elsewhere, restored at different
 moments of the backtrack
 ([message 8871](https://groups.io/g/eternity2/message/8871),
 [message 8886](https://groups.io/g/eternity2/message/8886)). The prize the
-scheme was chasing was real: Lindström had already measured the 6x6 border
+scheme was chasing was real: Lindström had already measured the 6×6 border
 ring falling from 133,326,155 nodes to 30,496,808
 ([message 8875](https://groups.io/g/eternity2/message/8875)). In the same
 thread Mocsi recognised his own Failure Lookup Table (spiral search,
 record the outer-colour arrangement at each forced retreat to the border,
 consult before descending), abandoned because a bug kept it from solving
-even 6x6 and "debugging is not so easy, when you have to wait for several
+even 6×6 and "debugging is not so easy, when you have to wait for several
 thousand iterations, till the bug occurs"
 ([message 8887](https://groups.io/g/eternity2/message/8887)).
 
@@ -268,7 +268,7 @@ a cache probe per node is a proposal to add a DRAM-latency roundtrip to a
 loop that lives or dies by L1.
 
 **The hit rates were measured, and they are thin.** In 2016, 21valy
-instrumented a 10x10 scan-line solver: exact duplicate states (same
+instrumented a 10×10 scan-line solver: exact duplicate states (same
 borders, same inner tiles, same exposed norths) occur at about 1% halfway
 through the board, prompting his "morality #1: do not care true duplicates". Relaxed
 keys (inner tiles only) show 30–40% repetition, but the theoretical gain
@@ -279,7 +279,7 @@ and a table whose working set exceeds RAM within minutes: that is the
 break-even problem in one measurement.
 
 The pattern across all three: nobody refuted the theorem. Failed subtrees
-*are* reusable. What failed is the exchange rate: at 16x16 the frontier
+*are* reusable. What failed is the exchange rate: at 16×16 the frontier
 key is too wide, the state space too large for any table to cover a useful
 fraction, and the probe cost lands on the exact resource (memory bandwidth)
 that fast backtrackers have already exhausted.
@@ -289,7 +289,7 @@ that fast backtrackers have already exhausted.
 Shrink the board or close the search, and the same idea changes sign.
 
 - **Small boards and rings.** Lindström's restore-list scheme cut the
-  6x6 border ring by 4.4×
+  6×6 border ring by 4.4×
   ([message 8875](https://groups.io/g/eternity2/message/8875)). On a small
   state space the table *can* cover a meaningful fraction of reachable
   frontiers, so hit rates climb from per-mille to per-cent and beyond.
@@ -300,7 +300,7 @@ Shrink the board or close the search, and the same idea changes sign.
   core-hours that a signature check would have saved with certainty.
   Deduplicating enumerated row lists before farming them out is exactly
   this, applied at the tree's top, and the community's census culture
-  (the 9x9 exhausts, the fully-enumerated hint puzzles) is where
+  (the 9×9 exhausts, the fully-enumerated hint puzzles) is where
   enumeration discipline visibly wins (see
   [benchmarks](/research/build/benchmarks)).
 - **Endgames.** Deep in the board the remaining-piece set is small, the
@@ -325,7 +325,7 @@ Shrink the board or close the search, and the same idea changes sign.
   the key population grows like $e^{h \cdot \ell}$ for a frontier of
   length $\ell$: a perimeter law, the same boundary term as the
   [area law's](/research/why/entropy-area-law), which is why small boards
-  are cheap and 16x16 is not.
+  are cheap and 16×16 is not.
 - **The table: coverage is memory over population.** A hash table of $M$
   entries facing $K$ reachable keys covers $M/K$ of them; with
   $K \approx 4 \times 10^{18}$, a 64 GiB table ($M \approx 2^{33}$ entries)
