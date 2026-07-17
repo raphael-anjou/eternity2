@@ -185,6 +185,14 @@ export interface Author {
 }
 
 /** One research wiki page, in one language. */
+/** A secondary contributor credited in a page's byline: a registry `slug`
+ *  (validated like `author`) and a short free-text `role` ("method", "write-up",
+ *  "parameter study"). */
+export interface Contributor {
+  slug: string;
+  role: string;
+}
+
 export interface ResearchDoc {
   /** Content path without extension/lang, e.g. "why/border-balance". */
   slug: string;
@@ -206,6 +214,10 @@ export interface ResearchDoc {
   /** Registry slug of the page's author (drives the byline + researcher hub).
    *  Undefined for structural/community pages with no single researcher. */
   author?: string;
+  /** Secondary contributors credited in the byline beside `author` (e.g. the
+   *  method behind a reimplementation, or the write-up of someone else's
+   *  solver). Credit only — no effect on hub membership or the score chart. */
+  contributors?: Contributor[];
   /** 1 = flagship, 2 = finding, 3 = supporting. */
   tier?: number;
   /** How firmly the central claim is established (badge). */
