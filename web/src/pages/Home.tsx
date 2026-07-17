@@ -37,7 +37,7 @@ const T = {
       {
         to: "/puzzle",
         title: "The Puzzle",
-        text: "256 pieces, 22 motifs, a $2,000,000 prize nobody ever claimed. The full story and anatomy of Eternity II.",
+        text: "256 pieces, 22 motifs, a $2 million prize nobody ever claimed. The full story and anatomy of Eternity II.",
       },
       {
         to: "/playground",

@@ -58,7 +58,7 @@ const T = {
         verdict: "Half true, and it cuts the other way.",
         body: (
           <>
-            A TOMY leaflet quoted on the mailing list says{" "}
+            A Tomy leaflet quoted on the mailing list says{" "}
             <a className="underline" href={msg(902)} target="_blank" rel="noreferrer">
               "the ETERNITY II solution was printed between pages of random text
               whilst all parties were out of the room"
@@ -211,7 +211,7 @@ const T = {
         verdict: "À moitié vrai, et l'argument se retourne.",
         body: (
           <>
-            Un dépliant de TOMY, cité sur la liste, indique que{" "}
+            Un dépliant de Tomy, cité sur la liste, indique que{" "}
             <a className="underline" href={msg(902)} target="_blank" rel="noreferrer">
               « la solution d'ETERNITY II a été imprimée entre des pages de texte
               aléatoire, toutes les parties ayant quitté la pièce »
