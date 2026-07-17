@@ -14,7 +14,7 @@ colour on each of its four sides, must tile the board so that every pair of
 touching sides shares a colour, with a grey border colour on the rim. A board's
 score is its number of matched interior edges; the maximum is **480**
 (the 16×15 horizontal plus 15×16 vertical interior adjacencies). No full 480
-solution is publicly known; the best boards here reach 469.
+solution is publicly known; the best boards here reach 470.
 
 ## Part A — benchmark instances (`instances/`)
 
@@ -56,7 +56,7 @@ Each instance file has the shape:
 
 ## Part B — strong-board corpus (`e2-strong-boards.zip`)
 
-**1,078 distinct boards** scoring 400–480, the raw material for methods that
+**7,658 distinct boards** scoring 400–480, the raw material for methods that
 learn from strong boards (position priors, learned move-ordering, anti-pattern
 mining). Unzips to a `boards/` directory holding **one file per board**, each a
 complete self-describing document in the project's canonical board format:
@@ -104,25 +104,26 @@ companion file:
   pieces, a proxy for which basin it sits in; families are numbered by size
   (`f001` most populous). There are **28** distinct families.
 
-Score distribution: a clean bell curve peaking at 452–456 (roughly 55–70 boards
-each), tailing to **21 boards at 460 or above**, of which the very best are one
-at 466 and two at 469.
+Score distribution: a sharp spike in the low-450s, where a large single-core
+beam harvest concentrates, tailing to **38 boards at 460 or above**, of which the
+very best are one at 466 and two at 470.
 
 ### This corpus is diverse, not derivative
 
-Before releasing 1,078 boards, we checked they are not just perturbations of one
+Before releasing 7,658 boards, we checked they are not just perturbations of one
 another (which would make the count misleading). They are not:
 
-- **Exact copies removed:** only 11 of the 1,089 source boards were exact
+- **Exact copies removed:** only 13 of the 7,671 source boards were exact
   duplicates; the rest are distinct.
 - **Nearest-neighbour distance:** the *median* board differs from its closest
-  sibling by **60 of 256 piece placements**. Only 3% of boards sit within 10
-  placements of another, and only 7% within 25.
+  sibling by **235 of 256 piece placements**. Almost no board sits within 10
+  placements of another, and only 1% within 25; even boards sharing a narrow
+  score band are structurally almost entirely different.
 - **Basins:** 28 distinct corner families, spread across the corpus rather than
   concentrated in one.
 
 So the corpus is a genuinely varied sample of the strong-board landscape, not a
-single basin re-found a thousand times.
+single basin re-found many times over.
 
 ## How the scores are verified
 
