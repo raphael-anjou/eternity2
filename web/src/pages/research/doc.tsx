@@ -19,7 +19,14 @@ import "katex/dist/katex.min.css";
 import type { MDXContent } from "mdx/types";
 import { langFromPath, useT } from "@/i18n";
 import { canonicalUrl, absoluteUrl } from "@/site";
-import { researchDoc, researchTopic, researchAuthor, metaDescriptionFor } from "@/lib/research/manifest";
+import {
+  researchDoc,
+  researchTopic,
+  researchAuthor,
+  topicUpdated,
+  authorUpdated,
+  metaDescriptionFor,
+} from "@/lib/research/manifest";
 import { findSection } from "@/lib/research/nav";
 import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
@@ -89,13 +96,32 @@ export function meta({ location }: { location: { pathname: string } }) {
     { property: "og:url", content: canonicalUrl(location.pathname) },
   ];
 
+  // A WebPage node carrying a route-generated hub's derived dateModified, so its
+  // freshness signal matches the sitemap <lastmod>. Empty (no node) when the hub
+  // aggregates no dated pages — a missing date beats a fabricated one.
+  const webPageLd = (updated: string | undefined) =>
+    updated
+      ? [
+          {
+            "script:ld+json": {
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              url: canonicalUrl(location.pathname),
+              dateModified: updated,
+              inLanguage: lang,
+            },
+          },
+        ]
+      : [];
+
   if (path === "/research/glossary") return pack(GLOSSARY_TITLE[lang] + SUFFIX, GLOSSARY_DESC[lang]);
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return pack(TOPICS_TITLE[lang] + SUFFIX, TOPICS_DESC[lang]);
   if (topicSlug !== null) {
     const topic = researchTopic(lang, topicSlug);
-    if (topic) return pack(topic.label + SUFFIX, topic.description);
+    if (topic)
+      return [...pack(topic.label + SUFFIX, topic.description), ...webPageLd(topicUpdated(topicSlug))];
   }
 
   const personSlug = personSlugFor(path);
@@ -108,7 +134,7 @@ export function meta({ location }: { location: { pathname: string } }) {
         (lang === "fr"
           ? `Les travaux de ${author.name} sur Eternity II.`
           : `${author.name}'s work on Eternity II.`);
-      return pack(author.name + SUFFIX, desc);
+      return [...pack(author.name + SUFFIX, desc), ...webPageLd(authorUpdated(personSlug))];
     }
   }
 
