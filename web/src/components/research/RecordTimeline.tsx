@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
+import { useT } from "@/i18n";
 import { RECORDS, type RecordRow } from "@/data/records-timeline";
+
+const T = {
+  en: { chartAria: "Eternity II community record score over time, 2008 to 2026" },
+  fr: { chartAria: "Score record de la communauté Eternity II au fil du temps, de 2008 à 2026" },
+};
 
 // The community record climb, plotted. The records table lists every
 // announcement; this chart shows the *shape* of the history — the 467 of 2008,
@@ -33,6 +39,7 @@ function toYear(date: string): number {
 const STRICT_AUTHORS = new Set(["Bruno Gauthier", "Benjamin Riotte"]);
 
 export function RecordTimeline() {
+  const t = useT(T);
   const [active, setActive] = useState<number | null>(null);
 
   const points = useMemo<Plotted[]>(() => {
@@ -83,7 +90,7 @@ export function RecordTimeline() {
           viewBox={`0 0 ${W} ${H}`}
           className="w-full rounded-lg border bg-card"
           role="img"
-          aria-label="Eternity II community record score over time, 2008 to 2026"
+          aria-label={t.chartAria}
         >
           {/* the 480 solution line — the unreached target */}
           <line x1={padL} y1={y(480)} x2={W - padR} y2={y(480)} className="stroke-emerald-500/50" strokeWidth={1} strokeDasharray="4 3" />

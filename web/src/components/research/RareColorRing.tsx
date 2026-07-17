@@ -1,7 +1,47 @@
 import { useState } from "react";
 import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { useT } from "@/i18n";
 import { motifFor } from "@/lib/motifs";
 import data from "@/data/rare-color-geography.json";
+
+const T = {
+  en: {
+    pickPrompt: "Rare colours (border-only) — pick one:",
+    rareLabel: (c: number) => `Rare colour ${c}`,
+    vsCommon: "vs a common one:",
+    commonLabel: (c: number) => `Common colour ${c}`,
+    boardLabel: (c: number, frame: number, interior: number) =>
+      `Board map: where colour ${c} lives — ${frame} frame edges, ${interior} interior`,
+    colour: (c: number) => `Colour ${c}`,
+    rare: "rare",
+    common: "common",
+    onFrame: "on the frame ring",
+    inInterior: "in the interior",
+    totalEdges: "total edges",
+    rareNote:
+      "Every one of this colour's edges sits on the frame ring. Not a single one appears in the 14×14 interior — that empty middle is the whole finding.",
+    commonNote:
+      "A common colour fills the interior and barely touches the frame — the mirror image of the rare five.",
+  },
+  fr: {
+    pickPrompt: "Couleurs rares (bordure uniquement) — choisissez-en une :",
+    rareLabel: (c: number) => `Couleur rare ${c}`,
+    vsCommon: "contre une commune :",
+    commonLabel: (c: number) => `Couleur commune ${c}`,
+    boardLabel: (c: number, frame: number, interior: number) =>
+      `Carte du plateau : où vit la couleur ${c} — ${frame} arêtes de cadre, ${interior} à l'intérieur`,
+    colour: (c: number) => `Couleur ${c}`,
+    rare: "rare",
+    common: "commune",
+    onFrame: "sur l'anneau du cadre",
+    inInterior: "à l'intérieur",
+    totalEdges: "arêtes au total",
+    rareNote:
+      "Chaque arête de cette couleur se trouve sur l'anneau du cadre. Pas une seule n'apparaît dans l'intérieur 14×14 — ce centre vide, c'est tout le résultat.",
+    commonNote:
+      "Une couleur commune remplit l'intérieur et ne touche presque pas le cadre — l'image inverse des cinq couleurs rares.",
+  },
+};
 
 // The spatial companion to the rare-colour bar chart: a 16×16 board where the
 // frame ring is drawn apart from the interior, so the finding — the five rare
@@ -32,6 +72,7 @@ function isFrame(r: number, c: number): boolean {
 }
 
 export function RareColorRing() {
+  const t = useT(T);
   // Default to the first rare colour so the finding shows on first paint.
   const [selected, setSelected] = useState<number>(RARE[0] ?? 1);
   const row = COLORS.find((c) => c.color === selected);
@@ -42,9 +83,7 @@ export function RareColorRing() {
     <div className="space-y-4">
       {/* colour picker */}
       <div className="space-y-1.5">
-        <div className="text-xs font-medium text-muted-foreground">
-          Rare colours (border-only) — pick one:
-        </div>
+        <div className="text-xs font-medium text-muted-foreground">{t.pickPrompt}</div>
         <div className="flex flex-wrap gap-1.5">
           {RARE.map((c) => (
             <button
@@ -54,12 +93,12 @@ export function RareColorRing() {
                 selected === c ? "ring-2 ring-foreground" : "hover:shadow"
               }`}
               aria-pressed={selected === c}
-              aria-label={`Rare colour ${c}`}
+              aria-label={t.rareLabel(c)}
             >
               <MotifSwatch color={c} width={26} />
             </button>
           ))}
-          <span className="mx-1 self-center text-xs text-muted-foreground">vs a common one:</span>
+          <span className="mx-1 self-center text-xs text-muted-foreground">{t.vsCommon}</span>
           {COLORS.filter((c) => !c.rare)
             .slice(0, 4)
             .map((c) => (
@@ -70,7 +109,7 @@ export function RareColorRing() {
                   selected === c.color ? "opacity-100 ring-2 ring-foreground" : "hover:shadow"
                 }`}
                 aria-pressed={selected === c.color}
-                aria-label={`Common colour ${c.color}`}
+                aria-label={t.commonLabel(c.color)}
               >
                 <MotifSwatch color={c.color} width={26} />
               </button>
@@ -84,7 +123,7 @@ export function RareColorRing() {
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           className="w-full max-w-[280px] rounded-lg border bg-card"
           role="img"
-          aria-label={`Board map: where colour ${selected} lives — ${row?.frame ?? 0} frame edges, ${row?.interior ?? 0} interior`}
+          aria-label={t.boardLabel(selected, row?.frame ?? 0, row?.interior ?? 0)}
         >
           {Array.from({ length: GRID }, (_, r) =>
             Array.from({ length: GRID }, (_, c) => {
@@ -136,7 +175,7 @@ export function RareColorRing() {
         <div className="w-full max-w-[16rem] space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <MotifSwatch color={selected} width={28} />
-            <span className="font-semibold">Colour {selected}</span>
+            <span className="font-semibold">{t.colour(selected)}</span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                 isRare
@@ -144,29 +183,27 @@ export function RareColorRing() {
                   : "bg-muted text-muted-foreground"
               }`}
             >
-              {isRare ? "rare" : "common"}
+              {isRare ? t.rare : t.common}
             </span>
           </div>
           <dl className="space-y-1 tabular-nums">
             <div className="flex justify-between border-b pb-1">
-              <dt className="text-muted-foreground">on the frame ring</dt>
+              <dt className="text-muted-foreground">{t.onFrame}</dt>
               <dd className="font-semibold">{row?.frame ?? 0}</dd>
             </div>
             <div className="flex justify-between border-b pb-1">
-              <dt className="text-muted-foreground">in the interior</dt>
+              <dt className="text-muted-foreground">{t.inInterior}</dt>
               <dd className={`font-semibold ${row?.interior === 0 ? "text-amber-600 dark:text-amber-400" : ""}`}>
                 {row?.interior ?? 0}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">total edges</dt>
+              <dt className="text-muted-foreground">{t.totalEdges}</dt>
               <dd className="font-semibold">{row?.total ?? 0}</dd>
             </div>
           </dl>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            {isRare
-              ? "Every one of this colour's edges sits on the frame ring. Not a single one appears in the 14×14 interior — that empty middle is the whole finding."
-              : "A common colour fills the interior and barely touches the frame — the mirror image of the rare five."}
+            {isRare ? t.rareNote : t.commonNote}
           </p>
         </div>
       </div>
