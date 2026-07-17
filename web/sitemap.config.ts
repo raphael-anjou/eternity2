@@ -63,3 +63,20 @@ export function allRoutePaths(prefix = ""): string[] {
     return researchFr.has(p) ? [en, fr] : [en];
   });
 }
+
+/** One entry per crawlable page, carrying its English URL and — when the page
+ *  is genuinely bilingual — its French twin, so the sitemap can emit
+ *  <xhtml:link rel="alternate" hreflang="…"> pairs. A page with no French twin
+ *  (an untranslated research page) has `fr: null` and gets no alternates, so a
+ *  crawler is never pointed at a French URL that was not prerendered. */
+export function routePairs(prefix = ""): { en: string; fr: string | null }[] {
+  const base = prefix.replace(/\/$/, "");
+  const research = new Set(researchPagePaths());
+  const researchFr = new Set(researchPagePathsFr());
+  return allPagePaths().map((p) => {
+    const en = (base + "/" + p).replace(/\/$/, "") || "/";
+    const fr = (base + "/fr/" + p).replace(/\/$/, "");
+    const hasFr = !research.has(p) || researchFr.has(p);
+    return { en, fr: hasFr ? fr : null };
+  });
+}

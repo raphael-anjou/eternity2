@@ -11,7 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
-import { allRoutePaths } from "./sitemap.config";
+import { routePairs } from "./sitemap.config";
 import { researchPageLastmod, researchHubLastmod } from "./content.config";
 import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
 import { researchContent } from "./plugins/research-content";
@@ -43,10 +43,10 @@ function sitemap(): Plugin {
       // by the basename-relative page path (e.g. "research/build/known-facts",
       // "status", "" for home), which we recover from each full route path by
       // stripping the base + leading slash. A /fr mirror shares its English
-      // source's date (pageUpdatedKey drops the "fr/" prefix); research is
-      // English-only so its fallback never fires. Hubs/topics/people pages have
-      // no declared date and get no <lastmod> — a partial-coverage sitemap is
-      // valid and better than a fabricated date.
+      // source's date (pageUpdatedKey drops the "fr/" prefix), so a translated
+      // /fr/research/* page inherits its EN twin's `updated:` date. Hubs/topics/
+      // people pages have no declared date and get no <lastmod> — a
+      // partial-coverage sitemap is valid and better than a fabricated date.
       const lastmod = { ...researchPageLastmod(), ...researchHubLastmod(), ...mainPageLastmod() };
       const lastmodFor = (fullPath: string): string | undefined => {
         let rel = fullPath;
@@ -54,18 +54,33 @@ function sitemap(): Plugin {
         rel = rel.replace(/^\//, "");
         return lastmod[rel] ?? lastmod[pageUpdatedKey(rel)];
       };
-      const urls = allRoutePaths(base)
-        .map((p) => {
-          const lm = lastmodFor(p);
-          const loc = `<loc>${origin}${canonical(p)}</loc>`;
-          return lm
-            ? `  <url>${loc}<lastmod>${lm}</lastmod></url>`
-            : `  <url>${loc}</url>`;
+      // For a bilingual page, both its <url> entries (EN and FR) carry the same
+      // set of <xhtml:link> alternates — en, fr, and x-default (→ English), per
+      // Google's reciprocal-hreflang requirement. Pages with no French twin get
+      // no alternates. Built from the same routePairs() the app's <head>
+      // hreflang uses, so the two channels never disagree.
+      const abs = (p: string) => `${origin}${canonical(p)}`;
+      const altLinks = (en: string, fr: string) =>
+        `<xhtml:link rel="alternate" hreflang="en" href="${abs(en)}"/>` +
+        `<xhtml:link rel="alternate" hreflang="fr" href="${abs(fr)}"/>` +
+        `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(en)}"/>`;
+      const urlEntry = (loc: string, alts: string) => {
+        const lm = lastmodFor(loc);
+        const locTag = `<loc>${abs(loc)}</loc>`;
+        const lmTag = lm ? `<lastmod>${lm}</lastmod>` : "";
+        return `  <url>${locTag}${lmTag}${alts}</url>`;
+      };
+      const urls = routePairs(base)
+        .flatMap(({ en, fr }) => {
+          if (fr === null) return [urlEntry(en, "")]; // EN-only page, no alternates
+          const alts = altLinks(en, fr);
+          return [urlEntry(en, alts), urlEntry(fr, alts)];
         })
         .join("\n");
       const xml =
         `<?xml version="1.0" encoding="UTF-8"?>\n` +
-        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ` +
+        `xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
       writeFileSync(path.join(outDir, "sitemap.xml"), xml);
     },
   };
