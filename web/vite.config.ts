@@ -12,7 +12,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
 import { allRoutePaths } from "./sitemap.config";
-import { researchPageLastmod } from "./content.config";
+import { researchPageLastmod, researchHubLastmod } from "./content.config";
 import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
 import { researchContent } from "./plugins/research-content";
 
@@ -47,7 +47,7 @@ function sitemap(): Plugin {
       // English-only so its fallback never fires. Hubs/topics/people pages have
       // no declared date and get no <lastmod> — a partial-coverage sitemap is
       // valid and better than a fabricated date.
-      const lastmod = { ...researchPageLastmod(), ...mainPageLastmod() };
+      const lastmod = { ...researchPageLastmod(), ...researchHubLastmod(), ...mainPageLastmod() };
       const lastmodFor = (fullPath: string): string | undefined => {
         let rel = fullPath;
         if (base && rel.startsWith(base)) rel = rel.slice(base.length);

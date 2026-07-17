@@ -470,13 +470,42 @@ export function researchPagePaths(): string[] {
 /** Basename-relative path → last-modified date (YYYY-MM-DD) for research MDX
  *  pages that declare `updated:` in frontmatter. Feeds <lastmod> in the sitemap
  *  so crawlers get a real freshness signal, computed from the same manifest the
- *  prerender list uses (no drift, no hand-maintenance). Pages without an
- *  `updated` date (and the route-generated hubs/topics/people) are simply
- *  absent from the map — the sitemap then omits <lastmod> for them. */
+ *  prerender list uses (no drift, no hand-maintenance). MDX pages without an
+ *  `updated` date are absent from the map; the route-generated topic/person
+ *  hubs are handled by researchHubLastmod() below. */
 export function researchPageLastmod(): Record<string, string> {
   const out: Record<string, string> = {};
   for (const d of buildManifest("en")) {
     if (d.updated) out[d.url.slice(1)] = d.updated;
+  }
+  return out;
+}
+
+/** Basename-relative path → <lastmod> for the route-generated research hub
+ *  pages (per-topic hubs and per-researcher hubs). These carry no frontmatter
+ *  of their own, so each inherits the newest `updated` date among the pages it
+ *  aggregates: a topic hub from its tagged pages, a person hub from that
+ *  author's pages. Hubs that aggregate no dated page (e.g. a profile-only
+ *  researcher, or the glossary, which is not derived here) stay absent, and the
+ *  sitemap omits <lastmod> for them rather than inventing one. The client
+ *  renderer derives the same dates via topicUpdated()/authorUpdated(). */
+export function researchHubLastmod(): Record<string, string> {
+  const docs = buildManifest("en");
+  const newest = (subset: ResearchDoc[]): string | undefined => {
+    let max: string | undefined;
+    for (const d of subset) {
+      if (d.updated && (max === undefined || d.updated > max)) max = d.updated;
+    }
+    return max;
+  };
+  const out: Record<string, string> = {};
+  for (const t of researchTopics()) {
+    const lm = newest(docs.filter((d) => d.topics.includes(t.slug)));
+    if (lm) out[`research/topics/${t.slug}`] = lm;
+  }
+  for (const a of researchAuthors()) {
+    const lm = newest(docs.filter((d) => d.author === a.slug));
+    if (lm) out[`research/people/${a.slug}`] = lm;
   }
   return out;
 }

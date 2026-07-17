@@ -73,3 +73,27 @@ export function authorUrl(slug: string): string {
 export function authorDocs(lang: Lang, slug: string): ResearchDoc[] {
   return researchDocs(lang).filter((d) => d.author === slug);
 }
+
+/** Newest `updated` date (YYYY-MM-DD) among a set of docs, or undefined if none
+ *  carry one. String compare is a correct chronological order for ISO dates. */
+function newestUpdated(docs: ResearchDoc[]): string | undefined {
+  let newest: string | undefined;
+  for (const d of docs) {
+    if (d.updated && (newest === undefined || d.updated > newest)) newest = d.updated;
+  }
+  return newest;
+}
+
+/** Derived last-update date for a topic hub: the newest `updated` among the
+ *  pages tagged with it. These hubs are route-generated (no frontmatter of
+ *  their own), so their freshness is inherited from the docs they aggregate.
+ *  Dates are language-neutral, so this reads the EN manifest. */
+export function topicUpdated(slug: string): string | undefined {
+  return newestUpdated(researchDocs("en").filter((d) => d.topics.includes(slug)));
+}
+
+/** Derived last-update date for a researcher hub: the newest `updated` among
+ *  their authored pages, or undefined for a profile-only figure with none. */
+export function authorUpdated(slug: string): string | undefined {
+  return newestUpdated(authorDocs("en", slug));
+}
