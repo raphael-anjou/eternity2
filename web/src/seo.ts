@@ -4,6 +4,7 @@
 
 import type { Lang } from "@/i18n";
 import { langFromPath } from "@/i18n";
+import { pageUpdated } from "@/page-updated";
 import { canonicalUrl } from "@/site";
 
 type Entry = { title: string; description: string };
@@ -319,10 +320,28 @@ function faqLd(pageKey: keyof typeof PAGES, lang: Lang) {
   };
 }
 
+/** A WebPage JSON-LD node carrying the page's declared last-update date, or
+ *  null if the page has no declared date. Gives search and answer engines a
+ *  machine-readable freshness signal to match the sitemap <lastmod>. */
+function updatedLd(pathname: string, lang: Lang) {
+  const updated = pageUpdated(pathname);
+  if (!updated) return null;
+  return {
+    "script:ld+json": {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      url: canonicalUrl(pathname),
+      dateModified: updated,
+      inLanguage: lang,
+    },
+  };
+}
+
 /**
  * Build a React Router `meta` descriptor list for a page. `pageKey` matches a
  * PAGES entry; the language comes from the URL of the page being prerendered.
- * Pages registered in PAGE_FAQ also get a FAQPage structured-data node.
+ * Pages registered in PAGE_FAQ also get a FAQPage structured-data node, and
+ * every page carries a WebPage node with its declared dateModified.
  */
 export function pageMeta(pageKey: keyof typeof PAGES) {
   return ({ location }: { location: { pathname: string } }) => {
@@ -330,6 +349,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
     const group = PAGES[pageKey];
     const entry = (group ?? HOME_PAGE)[lang];
     const faq = faqLd(pageKey, lang);
+    const updated = updatedLd(location.pathname, lang);
     return [
       { title: entry.title },
       { name: "description", content: entry.description },
@@ -337,6 +357,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
       { property: "og:description", content: entry.description },
       { property: "og:url", content: canonicalUrl(location.pathname) },
       ...(faq ? [faq] : []),
+      ...(updated ? [updated] : []),
     ];
   };
 }

@@ -13,6 +13,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
 import { allRoutePaths } from "./sitemap.config";
 import { researchPageLastmod } from "./content.config";
+import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
 import { researchContent } from "./plugins/research-content";
 
 // Emit sitemap.xml into the build output from the same page list React Router
@@ -36,19 +37,22 @@ function sitemap(): Plugin {
       // indexing). Keep the root and any path with a file extension as-is.
       const canonical = (p: string) =>
         p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
-      // Research MDX pages carry an `updated:` frontmatter date; surface it as
-      // <lastmod> so crawlers get a real freshness signal. Keyed by the
-      // basename-relative page path (e.g. "research/build/known-facts"), which
-      // we recover from each full route path by stripping the base + leading
-      // slash. Pages without a date (main TSX pages, hubs, /fr mirrors) get no
-      // <lastmod> — a partial-coverage sitemap is valid and better than a
-      // fabricated date.
-      const lastmod = researchPageLastmod();
+      // Research MDX pages carry an `updated:` frontmatter date; main TSX pages
+      // carry a declared date in src/page-updated.ts. Surface either as
+      // <lastmod> so crawlers get a real freshness signal. Both maps are keyed
+      // by the basename-relative page path (e.g. "research/build/known-facts",
+      // "status", "" for home), which we recover from each full route path by
+      // stripping the base + leading slash. A /fr mirror shares its English
+      // source's date (pageUpdatedKey drops the "fr/" prefix); research is
+      // English-only so its fallback never fires. Hubs/topics/people pages have
+      // no declared date and get no <lastmod> — a partial-coverage sitemap is
+      // valid and better than a fabricated date.
+      const lastmod = { ...researchPageLastmod(), ...mainPageLastmod() };
       const lastmodFor = (fullPath: string): string | undefined => {
         let rel = fullPath;
         if (base && rel.startsWith(base)) rel = rel.slice(base.length);
         rel = rel.replace(/^\//, "");
-        return lastmod[rel];
+        return lastmod[rel] ?? lastmod[pageUpdatedKey(rel)];
       };
       const urls = allRoutePaths(base)
         .map((p) => {
