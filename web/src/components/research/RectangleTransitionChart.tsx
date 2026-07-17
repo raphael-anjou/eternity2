@@ -54,7 +54,7 @@ export function RectangleTransitionChart() {
     <div className="space-y-2">
       <div className="h-72 rounded-lg border p-2" role="img" aria-label={t.caption}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-          <AreaChart data={data.rows} margin={{ top: 10, right: 16, bottom: 20, left: 8 }}>
+          <AreaChart accessibilityLayer data={data.rows} margin={{ top: 10, right: 16, bottom: 20, left: 8 }}>
             <defs>
               <linearGradient id="rectFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.7} />

@@ -89,7 +89,7 @@ export function CorpusScoreDistribution() {
       <div className="mt-4 h-[360px] w-full">
         {isClient ? (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={D.histogram} margin={{ top: 24, right: 12, bottom: 24, left: 8 }} barCategoryGap={1}>
+            <BarChart accessibilityLayer data={D.histogram} margin={{ top: 24, right: 12, bottom: 24, left: 8 }} barCategoryGap={1}>
               <XAxis
                 dataKey="score"
                 type="category"

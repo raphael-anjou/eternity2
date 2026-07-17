@@ -73,6 +73,7 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
       {isClient ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
+            accessibilityLayer
             layout="vertical"
             data={rows}
             // Top margin is generous on purpose: a reference line with a `top`

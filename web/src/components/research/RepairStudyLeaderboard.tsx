@@ -213,7 +213,7 @@ export function RepairStudyLeaderboard() {
         <div className="mt-4 h-[520px] w-full">
           {isClient ? (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart layout="vertical" data={scored} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
+              <BarChart accessibilityLayer layout="vertical" data={scored} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
                 <XAxis
                   type="number"
                   domain={[0, 480]}
@@ -269,7 +269,7 @@ export function RepairStudyLeaderboard() {
         <div className="mt-4 h-[520px] w-full">
           {isClient ? (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart layout="vertical" data={byLift} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
+              <BarChart accessibilityLayer layout="vertical" data={byLift} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
                 <XAxis
                   type="number"
                   tick={{ fontSize: 11, fill: "currentColor" }}
@@ -320,7 +320,7 @@ export function RepairStudyLeaderboard() {
         <div className="mt-4 h-[420px] w-full">
           {isClient ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart margin={{ top: 8, right: 24, bottom: 24, left: 8 }}>
+              <LineChart accessibilityLayer margin={{ top: 8, right: 24, bottom: 24, left: 8 }}>
                 <XAxis
                   dataKey="iter"
                   type="number"
