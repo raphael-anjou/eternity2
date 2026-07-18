@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient, cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 import { Button } from "@/components/ui/button";
 
 // Fill orders, made watchable. Two linked views driven by one choice of
@@ -270,12 +271,7 @@ export function FillOrderLab() {
   ];
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.footnote}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex flex-wrap gap-2">
           {presets.map((p) => (
@@ -473,8 +469,6 @@ export function FillOrderLab() {
           </p>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.footnote}</p>
-    </div>
+    </Lab>
   );
 }

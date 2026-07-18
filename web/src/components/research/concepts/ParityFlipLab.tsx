@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Lab } from "@/components/research/Lab";
 import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { getGeneratedSolvedPuzzleFramed } from "@/engine";
@@ -344,12 +345,7 @@ export function ParityFlipLab() {
   );
 
   return (
-    <div className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab title={t.title} intro={t.intro} note={t.note}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-80 space-y-2">
           <BoardSvg
@@ -428,8 +424,6 @@ export function ParityFlipLab() {
           {t.hints}
         </Button>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }
