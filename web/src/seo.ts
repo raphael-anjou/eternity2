@@ -262,16 +262,6 @@ const PAGES: Record<string, Dict<Entry>> = {
   },
 };
 
-/**
- * Bare page title (suffix stripped) for a registered page key — used by the
- * research sidebar to label not-yet-migrated TSX pages without duplicating
- * their titles. Goes away when the research migration to MDX completes.
- */
-export function pageTitle(pageKey: string, lang: Lang): string {
-  const entry = pick(PAGES[pageKey] ?? HOME_PAGE, lang);
-  return entry.title.replace(SUFFIX, "");
-}
-
 /** Page description for a registered page key (research search + nav). */
 export function pageDescription(pageKey: string, lang: Lang): string {
   return pick(PAGES[pageKey] ?? HOME_PAGE, lang).description;

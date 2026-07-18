@@ -58,6 +58,7 @@ const T = {
     reportBadge: "technical report",
     reportTitle:
       "a technical report: published, but not yet independently reviewed. Its claims are stated in good faith and may still be revised.",
+    flagship: "flagship result",
     complexity: "Complexity",
     time: "Time",
     space: "Space",
@@ -96,6 +97,7 @@ const T = {
     reportBadge: "rapport technique",
     reportTitle:
       "un rapport technique : publié, mais pas encore relu de façon indépendante. Ses affirmations sont faites de bonne foi et peuvent encore être révisées.",
+    flagship: "résultat phare",
     complexity: "Complexité",
     time: "Temps",
     space: "Espace",
@@ -134,6 +136,7 @@ const T = {
     reportBadge: "informe técnico",
     reportTitle:
       "un informe técnico: publicado, pero aún no revisado de forma independiente. Sus afirmaciones se hacen de buena fe y todavía pueden revisarse.",
+    flagship: "resultado destacado",
     complexity: "Complejidad",
     time: "Tiempo",
     space: "Espacio",
@@ -277,7 +280,7 @@ function Badges({ doc }: { doc: ResearchDoc }) {
       {doc.tier !== undefined && (
         <span
           className="rounded-full border px-2 py-0.5 font-medium text-amber-600 dark:text-amber-400"
-          title={lang === "en" ? "flagship result" : "résultat phare"}
+          title={t.flagship}
         >
           {"★".repeat(4 - doc.tier)}
         </span>
