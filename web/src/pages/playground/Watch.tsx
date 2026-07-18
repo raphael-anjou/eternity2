@@ -370,6 +370,7 @@ export default function Watch() {
                   <div className="space-y-1.5">
                     <Label>{t.colorsLabel(colors)}</Label>
                     <Slider
+                      aria-label={t.colorsLabel(colors)}
                       min={2}
                       max={maxColorsForSize}
                       step={1}
@@ -428,12 +429,14 @@ export default function Watch() {
                   <Button
                     variant={fullSpeed ? "default" : "outline"}
                     size="xs"
+                    aria-pressed={fullSpeed}
                     onClick={() => setFullSpeed((f) => !f)}
                   >
                     {t.fullSpeed}
                   </Button>
                 </div>
                 <Slider
+                  aria-label={t.speedLabel(formatCompact(stepsPerSecond))}
                   min={0}
                   max={6}
                   step={0.1}

@@ -50,9 +50,14 @@ function Tree({ roots }: { roots: Root[] }) {
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="w-full"
-      role="img"
-      aria-label="A tree of the nine ways to attack Eternity II, each a link to its topic hub."
+      aria-labelledby="roots-diagram-title"
     >
+      {/* Named via <title>, NOT role="img": role="img" would flatten the graphic
+          into one node and hide the nine topic-hub links inside it from assistive
+          tech. Without it, the links keep their own names and stay navigable. */}
+      <title id="roots-diagram-title">
+        A tree of the nine ways to attack Eternity II, each a link to its topic hub.
+      </title>
       {/* trunk */}
       <line
         x1={trunkX}

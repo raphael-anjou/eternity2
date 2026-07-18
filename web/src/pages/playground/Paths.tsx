@@ -611,6 +611,7 @@ export default function Paths() {
           <div className="inline-flex rounded-md border p-0.5 text-sm">
             <button
               onClick={() => setMode("path")}
+              aria-pressed={mode === "path"}
               className={cn(
                 "rounded px-3 py-1 font-medium transition-colors",
                 mode === "path" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
@@ -620,6 +621,7 @@ export default function Paths() {
             </button>
             <button
               onClick={() => setMode("hint")}
+              aria-pressed={mode === "hint"}
               className={cn(
                 "rounded px-3 py-1 font-medium transition-colors",
                 mode === "hint" ? "bg-amber-400 text-amber-950" : "text-muted-foreground",
@@ -638,6 +640,8 @@ export default function Paths() {
                   <button
                     key={`${s.w}x${s.h}`}
                     onClick={() => setBrush({ w: s.w, h: s.h })}
+                    aria-pressed={active}
+                    aria-label={`${t.brushLabel} ${s.w}×${s.h}`}
                     className={cn(
                       "rounded border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
                       active
@@ -768,6 +772,7 @@ export default function Paths() {
                 <div className="space-y-1.5">
                   <Label>{t.colorsLabel(colors)}</Label>
                   <Slider
+                    aria-label={t.colorsLabel(colors)}
                     min={2}
                     max={engineReady ? getMaxColors(size) : 10}
                     step={1}
