@@ -40,6 +40,7 @@ const T = {
     llmsFullLabel: "full text",
     sitemapLabel: "sitemap",
     langPicker: "Choose language",
+    skipToContent: "Skip to content",
   },
   fr: {
     nav: [
@@ -69,6 +70,7 @@ const T = {
     llmsFullLabel: "texte complet",
     sitemapLabel: "plan du site",
     langPicker: "Choisir la langue",
+    skipToContent: "Aller au contenu",
   },
   es: {
     nav: [
@@ -98,6 +100,7 @@ const T = {
     llmsFullLabel: "texto completo",
     sitemapLabel: "mapa del sitio",
     langPicker: "Elegir idioma",
+    skipToContent: "Saltar al contenido",
   },
 };
 
@@ -179,6 +182,15 @@ export default function Layout() {
       <PageTracking />
       <FirstVisitRedirect />
       <MotifDefs />
+      {/* Skip link: the first focusable element, hidden until focused, so a
+          keyboard/SR user can jump past the header nav + research sidebar
+          straight to the page content (WCAG 2.4.1). */}
+      <a
+        href="#main"
+        className="sr-only rounded-md border bg-background px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:ring-2 focus:ring-ring"
+      >
+        {t.skipToContent}
+      </a>
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-3 py-3 sm:gap-6 sm:px-4">
           <NavLink to={link("/")} className="flex shrink-0 items-center gap-2 font-bold tracking-tight">
@@ -276,7 +288,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-[90rem] px-4 py-8">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-[90rem] px-4 py-8 focus:outline-none">
         <Outlet />
       </main>
 

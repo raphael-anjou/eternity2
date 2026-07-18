@@ -51,7 +51,7 @@ export function SigmaCycleDiagram() {
   const isClient = useIsClient();
   const [applied, setApplied] = useState(0);
   const [auto, setAuto] = useState(true);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!auto || !visible) return;

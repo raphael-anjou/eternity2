@@ -57,7 +57,7 @@ export function PriorDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [front, setFront] = useState(0); // diagonal fill front 0..2N
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

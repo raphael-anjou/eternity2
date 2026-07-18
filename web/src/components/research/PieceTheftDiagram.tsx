@@ -62,7 +62,7 @@ export function PieceTheftDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [phase, setPhase] = useState(0);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

@@ -56,7 +56,7 @@ export function PalimpsestDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [n, setN] = useState(0); // boards stacked so far
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

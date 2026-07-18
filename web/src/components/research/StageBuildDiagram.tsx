@@ -54,7 +54,7 @@ export function StageBuildDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [shown, setShown] = useState(0); // how many stages revealed (0..5)
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

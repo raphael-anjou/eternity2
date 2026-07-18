@@ -70,7 +70,7 @@ export function KeyringDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [frame, setFrame] = useState(0);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

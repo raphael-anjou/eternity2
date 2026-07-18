@@ -63,7 +63,7 @@ export function GauntletDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [step, setStep] = useState(0); // 0..maxStep, fraction of board filled
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   const maxStep = (N - 1) * 2; // max value of grow()
   useEffect(() => {

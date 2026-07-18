@@ -53,7 +53,7 @@ export function DoubleBreakDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [showDouble, setShowDouble] = useState(true);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;
