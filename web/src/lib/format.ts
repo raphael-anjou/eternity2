@@ -8,6 +8,21 @@ export function formatCompact(n: number): string {
   return Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 }
 
+/**
+ * Uppercase-K/M compaction for the leaderboard tables and tooltips (throughput,
+ * iteration counts): `1.2M`, `440K`, `—` for null/undefined. `exactBelow` is the
+ * threshold under which a value is shown as a plain rounded integer instead of
+ * being compacted to `K`: the default 0 always compacts (the nps style, e.g.
+ * `500` -> `1K`), while `1000` keeps sub-thousand values exact (the
+ * iteration-count style, e.g. `500` -> `500`).
+ */
+export function formatKM(n: number | null | undefined, exactBelow = 0): string {
+  if (n == null) return "—";
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n < exactBelow) return `${Math.round(n)}`;
+  return `${Math.round(n / 1e3)}K`;
+}
+
 export function formatSeconds(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = Math.floor(totalSeconds % 60);

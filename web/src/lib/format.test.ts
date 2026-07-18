@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatInt,
   formatCompact,
+  formatKM,
   formatSeconds,
   superscript,
   formatScientific,
@@ -23,6 +24,27 @@ describe("formatCompact", () => {
   it("uses compact notation at/above 10k", () => {
     expect(formatCompact(12_300)).toBe("12.3K");
     expect(formatCompact(1_200_000_000)).toBe("1.2B");
+  });
+});
+
+describe("formatKM", () => {
+  it("returns an em dash for null/undefined", () => {
+    expect(formatKM(null)).toBe("—");
+    expect(formatKM(undefined)).toBe("—");
+  });
+  it("compacts to one-decimal M at/above a million", () => {
+    expect(formatKM(1_000_000)).toBe("1.0M");
+    expect(formatKM(5_234_000)).toBe("5.2M");
+  });
+  it("default (exactBelow=0) always compacts to rounded K, even below 1000", () => {
+    expect(formatKM(440_000)).toBe("440K");
+    expect(formatKM(500)).toBe("1K"); // Math.round(0.5) -> 1
+    expect(formatKM(300)).toBe("0K");
+  });
+  it("exactBelow=1000 keeps sub-thousand values exact", () => {
+    expect(formatKM(500, 1000)).toBe("500");
+    expect(formatKM(5000, 1000)).toBe("5K");
+    expect(formatKM(999, 1000)).toBe("999");
   });
 });
 
