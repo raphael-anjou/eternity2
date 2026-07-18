@@ -3,7 +3,7 @@
 // hand-played boards alike.
 
 import { memo } from "react";
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { DIRECTION_ROTATION } from "@/lib/motifs";
 import type { Edges } from "@/lib/bucas";
 
@@ -23,11 +23,23 @@ export interface BoardSvgProps {
   onCellClick?: (pos: number) => void;
   /** HTML5 drop target per cell; receives the dataTransfer text payload. */
   onCellDrop?: (pos: number, data: string) => void;
+  /** Accessible name for the pos-th interactive cell (used when onCellClick is
+   *  set). Defaults to a grid coordinate like "cell B3". */
+  cellLabel?: (pos: number) => string;
   /** Extra SVG painted above the pieces (path arrows, ranks…). */
   overlay?: ReactNode;
   /** Show A,B,C… row labels on the left and 1,2,3… column labels on top. */
   coordinates?: boolean;
   className?: string;
+}
+
+/** Default accessible cell name: a spreadsheet-style coordinate, e.g. "cell B3"
+ *  (row letter from the top, column number from the left, both 1-based). */
+function defaultCellLabel(pos: number, width: number): string {
+  const row = Math.floor(pos / width);
+  const col = pos % width;
+  const rowLetter = String.fromCharCode(65 + (row % 26));
+  return `cell ${rowLetter}${col + 1}`;
 }
 
 function PieceUses({ pos, x, y, edges }: { pos: number; x: number; y: number; edges: Edges }) {
@@ -70,6 +82,7 @@ export const BoardSvg = memo(function BoardSvg({
   pieceNumbers,
   onCellClick,
   onCellDrop,
+  cellLabel,
   overlay,
   coordinates,
   className,
@@ -188,7 +201,25 @@ export const BoardSvg = memo(function BoardSvg({
             height={CELL}
             fill="transparent"
             style={{ cursor: "pointer" }}
-            onClick={onCellClick ? () => onCellClick(pos) : undefined}
+            // When cells are clickable, expose each as a keyboard-operable
+            // button so the board is usable without a mouse (WCAG 2.1.1 /
+            // 4.1.2). Drop-only cells stay non-focusable (drag/drop has no
+            // keyboard path here; those boards pair with a clickable mode).
+            {...(onCellClick
+              ? {
+                  role: "button" as const,
+                  tabIndex: 0,
+                  className: "board-cell-button",
+                  "aria-label": (cellLabel ?? ((p: number) => defaultCellLabel(p, width)))(pos),
+                  onClick: () => onCellClick(pos),
+                  onKeyDown: (e: KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onCellClick(pos);
+                    }
+                  },
+                }
+              : {})}
             onDragOver={onCellDrop ? (e) => e.preventDefault() : undefined}
             onDrop={
               onCellDrop
