@@ -10,6 +10,7 @@
 //! No clocks in here; wall-time is the caller's business (std::time::Instant
 //! panics on wasm32-unknown-unknown).
 
+use crate::bitset::BitSet;
 use crate::types::{rotated, Color, Puzzle, BORDER};
 use serde::Serialize;
 
@@ -34,38 +35,6 @@ pub struct Report {
     pub placed: u32,
     /// Deepest the search has ever been, hints included.
     pub best_placed: u32,
-}
-
-/// Dense bitset over piece ids: "is piece p still available?" is one bit.
-/// This is the standard fast-solver representation (and what the website's
-/// binary demo describes): a `Vec<u64>` of words, tested and flipped with
-/// single bit operations instead of byte-per-piece booleans.
-#[derive(Clone)]
-struct BitSet {
-    words: Vec<u64>,
-}
-
-impl BitSet {
-    fn new(n: usize) -> Self {
-        Self {
-            words: vec![0u64; n.div_ceil(64)],
-        }
-    }
-
-    #[inline]
-    fn contains(&self, i: usize) -> bool {
-        (self.words[i >> 6] >> (i & 63)) & 1 == 1
-    }
-
-    #[inline]
-    fn insert(&mut self, i: usize) {
-        self.words[i >> 6] |= 1u64 << (i & 63);
-    }
-
-    #[inline]
-    fn remove(&mut self, i: usize) {
-        self.words[i >> 6] &= !(1u64 << (i & 63));
-    }
 }
 
 struct Frame {
@@ -413,6 +382,45 @@ mod tests {
         let mut s = Solver::new(&p, &path, true, false, 0).unwrap();
         while s.step(1_000_000).status == Status::Running {}
         assert_eq!(score_board(&p, s.board()), p.max_score());
+    }
+
+    #[test]
+    fn score_board_on_partial_board_skips_empty_cells_and_grey_contacts() {
+        // A 2x2 hand-built board exercising the scorer's three distinctive
+        // rules directly (the solved-board test can't reach them):
+        //   - an empty cell (-1) contributes no seams,
+        //   - a grey-grey (BORDER) interior contact does NOT score,
+        //   - a genuine interior color match DOES score.
+        // Pieces (URDL): 0 = [grey, red, grey, grey], 1 = [grey, grey, grey, red].
+        // Placed unrotated at (0,0) and (0,1): piece 0's right edge (red) meets
+        // piece 1's left edge (red) -> one matched interior seam.
+        let p = Puzzle {
+            name: "scorer-probe".into(),
+            width: 2,
+            height: 2,
+            num_colors: 1,
+            pieces: vec![
+                [BORDER, 1, BORDER, BORDER],
+                [BORDER, BORDER, BORDER, 1],
+                [BORDER, BORDER, BORDER, BORDER],
+            ],
+            hints: vec![],
+        };
+        // Top row: piece 0 rot 0, piece 1 rot 0 (cell = piece*4 + rot).
+        // Bottom row: both empty (-1).
+        let board = [0, 4, -1, -1];
+        // The single red-red horizontal contact scores; the vertical contacts
+        // into the empty row don't, and no grey-grey seam is counted.
+        assert_eq!(score_board(&p, &board), 1);
+
+        // Swap in a grey-edged piece so the horizontal contact is grey-grey:
+        // it must NOT score.
+        let all_grey = [BORDER; 4];
+        let p2 = Puzzle {
+            pieces: vec![all_grey, all_grey, all_grey],
+            ..p.clone()
+        };
+        assert_eq!(score_board(&p2, &board), 0);
     }
 
     #[test]

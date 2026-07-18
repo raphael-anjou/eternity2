@@ -15,6 +15,7 @@
 
 #![forbid(unsafe_code)]
 
+mod bitset;
 pub mod break_solver;
 pub mod generator;
 pub mod official;

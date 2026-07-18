@@ -21,7 +21,7 @@ fn main() {
     // 2. Official puzzle summary.
     let off = official_puzzle();
     println!("OFF pieces={} colors={} hints={}", off.pieces.len(), off.num_colors, off.hints.len());
-    for h in &off.hints { print!("OFFHINT {} {} {}\n", h.pos, h.piece, h.rot); }
+    for h in &off.hints { println!("OFFHINT {} {} {}", h.pos, h.piece, h.rot); }
     // 3. Paths (full permutation for a few sizes).
     for &kind in PATH_KINDS {
         for &(w,h) in &[(3u8,3u8),(4,4),(5,5)] {
