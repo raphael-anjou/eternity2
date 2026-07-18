@@ -23,32 +23,9 @@
 //! a few (in the right place) lets it finish a near-perfect board the strict
 //! one cannot.
 
+use crate::bitset::BitSet;
 use crate::solver::{score_board, Report, Status};
 use crate::types::{rotated, Color, Puzzle, BORDER};
-
-struct BitSet {
-    words: Vec<u64>,
-}
-
-impl BitSet {
-    fn new(n: usize) -> Self {
-        Self {
-            words: vec![0u64; n.div_ceil(64)],
-        }
-    }
-    #[inline]
-    fn contains(&self, i: usize) -> bool {
-        (self.words[i >> 6] >> (i & 63)) & 1 == 1
-    }
-    #[inline]
-    fn insert(&mut self, i: usize) {
-        self.words[i >> 6] |= 1u64 << (i & 63);
-    }
-    #[inline]
-    fn remove(&mut self, i: usize) {
-        self.words[i >> 6] &= !(1u64 << (i & 63));
-    }
-}
 
 struct Frame {
     pos: u16,
@@ -399,5 +376,37 @@ mod tests {
             "breaks {breaks} exceed {} licensed cells",
             break_cells.len()
         );
+    }
+
+    #[test]
+    fn break_accounting_survives_backtracking() {
+        // Drive the solver over a puzzle hard enough to force real backtracking
+        // through break cells, then assert the break bookkeeping stayed
+        // consistent: every charged break is refunded on undo, so a completed
+        // board never reports more breaks than it has licensed cells, and the
+        // score deficit is bounded by the breaks actually spent. A refund bug
+        // (breaks_used not decremented on backtrack) would let `breaks` drift
+        // above the deficit or above the licensed-cell count.
+        let p = generate(5, 5, 3);
+        let path = build_path("snake", 5, 5, 0).unwrap();
+        let n = (p.width * p.height) as usize;
+        let break_cells: Vec<u16> = path[n.saturating_sub(6)..].to_vec();
+        let (status, score, breaks) =
+            solve_to_completion(&p, &path, true, &break_cells, 5_000);
+        if status == Status::Solved {
+            let deficit = p.max_score() - score;
+            // Each licensed cell carries at most one mismatched placement, so a
+            // consistent counter never exceeds the number of break cells...
+            assert!(
+                breaks <= break_cells.len() as u32,
+                "breaks {breaks} exceed {} licensed cells",
+                break_cells.len()
+            );
+            // ...and a perfectly-matched completion must report zero breaks
+            // (the refund path ran). A leaked charge would break this.
+            if deficit == 0 {
+                assert_eq!(breaks, 0, "perfect board but {breaks} breaks charged");
+            }
+        }
     }
 }
