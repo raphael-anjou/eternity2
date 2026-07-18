@@ -1,0 +1,207 @@
+---
+title: Búsqueda local y ALNS
+description: >-
+  Destruir una parte del tablero, reconstruirla mejor y dejar que el algoritmo
+  aprenda qué demoliciones rinden. La búsqueda de gran vecindario adaptativa es
+  el pulidor más fiable de este proyecto, y la demostración más nítida del muro
+  donde el pulido se detiene.
+metaDescription: "ALNS en Eternity II: destruir parte del tablero, reconstruirla mejor y aprender qué demoliciones rinden. El mejor pulidor del proyecto, y luego un muro."
+kind: concept
+order: 60
+group: Local search
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: "El artículo de JFPC de Pierre Schaus + el vecindario de relleno húngaro, detallado por primera vez en la lista (groups.io msg 5589, junio de 2008)"
+    url: https://groups.io/g/eternity2/message/5589
+  - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
+    url: https://doi.org/10.1287/trsc.1050.0135
+  - label: Shaw, Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems (CP 1998, el LNS original)
+    url: https://link.springer.com/chapter/10.1007/3-540-49481-2_30
+  - label: Schaus & Deville, Hybridization of CP and VLNS for Eternity II (JFPC 2008)
+    url: https://hdl.handle.net/2078.5/253676
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/learning/palimpsest
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/construct/beam-search
+  - /research/build/local-search/parallel-tempering
+---
+
+import { AlnsLoopLab } from "@/components/research/concepts/AlnsLoopLab";
+
+Una vez que se tiene un tablero sólido, los movimientos pieza a pieza dejan de
+rendir casi de inmediato. La búsqueda de gran vecindario hace la apuesta
+contraria: arrancar toda una región (docenas de celdas) y reconstruirla con
+algo más fino que la pasada voraz que la colocó. La idea es de Paul Shaw
+([CP 1998](https://link.springer.com/chapter/10.1007/3-540-49481-2_30));
+la versión *adaptativa*, ALNS, se debe a Ropke y Pisinger
+([Transportation Science 2006](https://doi.org/10.1287/trsc.1050.0135)), que
+añadieron un portafolio de operadores de destrucción y reparación y una regla
+de aprendizaje que orienta el esfuerzo hacia los operadores que han tenido
+éxito recientemente.
+
+## El bucle
+
+Una iteración de ALNS sobre un tablero:
+
+1. **Destruir.** Elegir un operador de destrucción, retirar las $k$ celdas que
+   selecciona.
+2. **Reparar.** Rellenar el hueco (relleno voraz,
+   [propagación de restricciones](/research/build/reduce/arc-consistency), o una
+   resolución exacta del pequeño subproblema).
+3. **Aceptar.** Conservar el nuevo tablero si obtiene mejor puntuación, o a
+   veces de todos modos según una regla de recocido simulado.
+4. **Adaptar.** Reponderar los operadores según su éxito reciente, para que la
+   ruleta favorezca lo que ha estado funcionando.
+
+Eternity II se presta particularmente bien al paso 1, porque un tablero parcial
+te dice exactamente dónde duele: las aristas no apareadas.
+
+## Verlo en marcha
+
+Leer el bucle es una cosa; verlo aprender es otra. Abajo, un tablero 8×8 real
+resuelto por el motor se ha dañado deliberadamente, y el bucle ALNS completo
+corre sobre él a cámara lenta: destruir, rellenar voraz pieza por pieza,
+aceptar o revertir, reponderar. Fuerza un operador a mano y observa cómo
+responde su barra de peso; o simplemente deja que la ruleta derive hacia lo que
+haya estado rindiendo.
+
+<Figure collapsible title="Interactivo: el bucle destruir-reparar">
+  <AlnsLoopLab />
+</Figure>
+
+## Paso a paso
+
+Una iteración, exactamente como la ejecuta el laboratorio:
+
+1. **Sortear un operador.** Selección por ruleta: el operador $o$ se elige con
+   probabilidad $w_o / \sum_j w_j$. Todos los pesos parten iguales; la ruleta es
+   uniforme hasta que llegan los resultados.
+2. **Destruir.** El operador devuelve $k$ celdas cuyas piezas salen del tablero.
+   Tomar celdas al azar o una forma fija cuesta $O(k)$; los operadores guiados
+   por conflictos (peor fila, celdas más en conflicto) también necesitan el mapa
+   de desapareamientos, lo que cuesta un barrido lineal a menos que el motor lo
+   mantenga de forma incremental. El nuestro lo hace, precisamente para que la
+   destrucción se quede en $O(k)$.
+3. **Reparar, de forma voraz.** Hasta que el hueco esté lleno: tomar la celda
+   vacía con más vecinos ya colocados (la más restringida primero), probar cada
+   pieza retirada en las cuatro rotaciones, conservar la colocación que aparee
+   más costuras. Cada una de las $k$ colocaciones recorre los candidatos
+   restantes, de modo que la pasada cuesta $O(k \cdot |C|)$ donde $|C|$ es la
+   reserva de candidatos (piezas libres × 4 rotaciones).
+4. **Aceptar o revertir.** Puntuar la región reconstruida; solo cambiaron las
+   costuras que tocan las $k$ celdas, así que la reevaluación es $O(k)$.
+   Conservar el tablero si $\Delta \geq 0$, si no conservarlo de todos modos con
+   probabilidad $e^{\Delta/T}$; en caso de rechazo, restaurar la instantánea.
+5. **Adaptar.** Actualizar el peso del ganador,
+   $w_o \leftarrow \lambda\, w_o + (1 - \lambda)\, \psi$, donde la recompensa
+   $\psi$ está escalonada: nuevo mejor global > mejora > movimiento lateral
+   aceptado > rechazo. Ese suavizado exponencial es todo lo "adaptativo" que hay
+   en ALNS. El original de Ropke y Pisinger lleva la misma contabilidad sobre
+   segmentos de unos cientos de iteraciones.
+
+## Lo que cuesta
+
+Por iteración, con $k$ celdas destruidas:
+
+$$
+\underbrace{O(k)}_{\text{destruir}}
+\;+\;
+\underbrace{O(k \cdot |C|)}_{\text{reparación voraz}}
+\;+\;
+\underbrace{O(k)}_{\text{evaluar}}
+\;+\;
+\underbrace{O(|\mathcal{O}|)}_{\text{adaptar}}
+$$
+
+Tres refinamientos que vale la pena conocer:
+
+- **El relleno óptimo es un problema de asignación (a veces).** Cuando las
+  celdas liberadas son dos a dos no adyacentes, el coste de cada hueco depende
+  solo de sus vecinos fijos, de modo que el relleno es exactamente un problema
+  de asignación $k \times k$: el algoritmo húngaro lo resuelve de forma óptima
+  en $O(k^3)$. Ese es el vecindario Eternity II de Schaus. En cuanto dos huecos
+  se tocan, sus elecciones se acoplan, y la reparación óptima se convierte en
+  una pequeña búsqueda CP/exacta, exponencial en el peor caso en $k$, que es por
+  lo que las destrucciones grandes dejan de rendir.
+- **Anytime, y nada más.** ALNS mejora una respuesta factible y puede detenerse
+  en cualquier momento; el mejor tablero hasta ese punto *es* la salida. No
+  ofrece garantía alguna de completitud ni de optimalidad: nunca puede
+  certificar que no exista un tablero mejor. En este puzzle ese certificado
+  tiene que venir de otro lado (el oráculo SAT tras el
+  [muro de rigidez](/research/why/rigidity-wall)).
+- **A escala de Eternity II el bucle es barato; el escape no lo es.** Con
+  $k = 20$–$80$ de las 256 celdas y unos pocos cientos de candidatos por hueco,
+  una iteración cuesta de microsegundos a milisegundos, y las curvas de mejora
+  se aplanan en unas pocas decenas de iteraciones. El coste vinculante no es,
+  por tanto, la aritmética sino la probabilidad de que un vecindario de $k$
+  celdas contenga el único [σ-cycle](/research/why/sigma-cycles) entrelazado que
+  lleva hacia arriba, y esa probabilidad es la que se desploma cerca de la cima.
+
+## Un portafolio de operadores para tableros
+
+Los operadores de destrucción que este proyecto entregó son en su mayoría
+conscientes de la geometría y de los conflictos: celdas aleatorias como línea
+base, celdas incidentes a aristas no apareadas, las $k$ celdas más en conflicto,
+la peor fila o banda de filas, una componente conexa del grafo de
+desapareamiento (opcionalmente con un halo de una celda a su alrededor),
+rectángulos y anillos concéntricos. Dos hallazgos del ajuste del portafolio,
+ambos medidos en el motor de este proyecto y no replicados de forma
+independiente:
+
+- **La selección le gana a la cobertura.** Un conjunto seleccionado de cinco
+  operadores superó al conjunto completo de once; repartir los pesos adaptativos
+  entre demasiados operadores diluye la señal de aprendizaje.
+- **La temperatura no es la palanca.** A lo largo de un rango de temperaturas de
+  aceptación de un factor diez, las puntuaciones finales fueron idénticas,
+  porque cerca de la cima el paisaje está dominado por mesetas de igual
+  puntuación donde prácticamente cada movimiento se acepta a cualquier
+  temperatura.
+
+Que destruir-reparar convenga a este puzzle es una observación antigua: Schaus
+y Deville hibridaron la programación con restricciones con la búsqueda de gran
+vecindario en Eternity II ya en
+[2008](https://hdl.handle.net/2078.5/253676),
+usando CP como el paso de reparación, la misma división del trabajo que funciona
+aquí.
+
+## Lo que rinde de forma fiable
+
+El pulido final. En el motor de este proyecto, ALNS es el paso que convierte una
+salida constructiva en tableros dignos de récord:
+las construcciones por [haz](/research/build/construct/beam-search) que aterrizan
+consistentemente a mediados de los 450 ganan varias aristas bajo una pasada de
+refinamiento, y los tableros más sólidos del proyecto llevan todos un empuje de
+ALNS como su última etapa. En puzzles generados más pequeños el efecto es
+espectacular y repetible: destruir-reparar cierra la mayor parte de la distancia
+entre una colocación aleatoria y la mejor puntuación alcanzable, a lo largo de un
+amplio rango de aprieto del puzzle, antes de saturar en las instancias más
+difíciles. (Todo esto está medido aquí, y matizado en consecuencia.)
+
+Igual de característico: las ganancias llegan pronto. Las curvas de mejora se
+aplanan dentro de las primeras decenas de iteraciones, y dejar una ejecución
+correr diez veces más reproduce la misma puntuación final. Cuando ALNS se
+detiene, se ha detenido.
+
+## El muro con el que choca
+
+Por qué se detiene es la parte interesante, y este sitio le dedica dos páginas
+enteras. En cada tablero de cabeza, los desapareamientos restantes están
+demostrablemente bloqueados: liberar un vecindario generoso a su alrededor y
+buscarlo exhaustivamente no encuentra nada mejor; ese es el
+[muro de rigidez](/research/why/rigidity-wall). Y pasar de un tablero de cabeza a
+uno mejor exige reubicar un gran conjunto de piezas en un único bucle
+entrelazado, donde toda aplicación parcial del bucle puntúa peor que no hacer
+nada: la
+[estructura en σ-cycles](/research/why/sigma-cycles).
+
+ALNS tiene exactamente la forma equivocada para eso. Un vecindario de
+destrucción de 20 a 80 celdas casi nunca cubre el único ciclo que importa, y
+cuando la destrucción es lo bastante grande para cubrirlo, el paso de reparación
+se enfrenta a un subproblema casi tan difícil como el propio puzzle y devuelve
+menos de lo que se arrancó. Destruir-reparar explora una cuenca de maravilla y
+prácticamente nunca sale de ella. El resumen que sostienen las mediciones de
+este proyecto: ALNS es el mejor último kilómetro que tenemos, y no es más que un
+último kilómetro.

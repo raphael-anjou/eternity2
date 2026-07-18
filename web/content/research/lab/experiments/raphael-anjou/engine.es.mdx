@@ -1,0 +1,126 @@
+---
+title: "El motor de referencia que impulsa este sitio"
+description: >-
+  El backtracker de Rust a WebAssembly que anima cada demo en vivo y verifica
+  cada número de este wiki. No una máquina de récords sino un motor de
+  referencia, portado cuatro veces y validado byte a byte, construido para que
+  las afirmaciones de aquí puedan volver a ejecutarse.
+metaDescription: "El backtracker Eternity II de Rust a WebAssembly: un motor de referencia, no de récords, portado cuatro veces y validado byte a byte para reejecutar las cifras."
+kind: page
+contribution: exposition
+author: raphael-anjou
+order: 4
+updated: 2026-07-17
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/engines
+  - /research/build/run-it-yourself
+  - /research/lab/experiments/joshua-blackwood/solver
+sources:
+  - label: El repositorio eternity2 en GitHub
+    url: https://github.com/raphael-anjou/eternity2
+---
+
+<Callout kind="note" title="De quién es este trabajo">
+  Esta página trata del motor detrás del sitio que estás leyendo, escrita por la
+  persona que lo escribió, [Raphaël Anjou](/research/people/raphael-anjou). No es
+  un solucionador de récords de la comunidad: esos se estudian en otro lugar de
+  este laboratorio
+  ([Blackwood](/research/lab/experiments/joshua-blackwood/solver),
+  [McGavin](/research/lab/experiments/peter-mcgavin/backtracker),
+  [Verhaard](/research/lab/experiments/louis-verhaard/eii)). Este se sitúa entre
+  ellos como un par, y un par modesto: los solucionadores de récords tienen los
+  récords; este tiene los comprobantes.
+</Callout>
+
+Donde los [experimentos con nombre](/research/lab/experiments/raphael-anjou)
+plantean cada uno una pregunta y los [motores compartidos](/research/lab/experiments/raphael-anjou/engines)
+son el aparato sobre el que corren esos estudios, esta página es una tercera
+cosa: el pequeño motor de referencia que impulsa el sitio mismo, verifica las
+cifras que citan las otras páginas y anima cada demo en vivo. No marca ningún
+récord. Su misión es la verificabilidad y la enseñanza.
+
+## Qué es
+
+Un pequeño crate de Rust compilado a WebAssembly, corriendo en vivo en tu
+navegador en cada página interactiva de este wiki. Implementa los clásicos, sin
+rodeos: el conjunto oficial de piezas 16×16, un generador que construye puzzles
+resolubles de cualquier tamaño (con un modo opcional al estilo del E2 real que
+restringe los colores de borde a la banda del marco), nueve órdenes de visita de
+celdas, un backtracker en profundidad estricto, un puntuador y una variante
+tolerante a rupturas de la búsqueda, una reimplementación de la idea del índice
+de ruptura del [solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver),
+construida para que los laboratorios de aquí puedan demostrarla.
+
+Una decisión de diseño importa más que los algoritmos: el solucionador es una
+máquina que avanza por pasos, no una función recursiva. Quienes lo invocan lo
+hacen avanzar un paso acotado a la vez, una colocación o un retroceso, y leen el
+tablero entre pasos. Eso es lo que permite que una página web anime una búsqueda
+real en lugar de una grabación enlatada:
+[la página de observación](/playground/watch) hace avanzar exactamente este
+motor, y no un vídeo de él.
+
+## Cuatro portes, una sola salida
+
+El sitio puede construirse sobre cuatro backends intercambiables: el crate
+Rust/WASM (el predeterminado y la referencia canónica), un porte en TypeScript
+puro, un porte en C y un porte en C++. Los cuatro exponen la misma superficie, de
+forma idéntica, y cada uno se valida byte a byte contra los datos de referencia
+que produce el crate de Rust: puzzles generados hasta la salida del RNG, los
+nueve caminos de relleno en varios tamaños y ejecuciones completas del
+solucionador con los conteos exactos de nodos, intentos y retrocesos.
+
+Esa disciplina existe por una sola razón: una demo interactiva que no puedes
+contrastar no es más que una animación. Dos implementaciones independientes que
+concuerdan hasta el último retroceso son mucho más difíciles de equivocar de la
+misma manera dos veces, y cuatro lo son aún más. (El repositorio también lleva
+traducciones literales en Python, Lua, COBOL y Brainfuck, sujetas a los mismos
+datos de referencia. Esas son por gusto.)
+
+## Lo que no reclama
+
+Esto no es una máquina de récords, y sería engañoso presentarlo como tal. El
+solucionador estricto no lleva ninguno de los calendarios de cuotas ajustados a
+mano ni las estrategias de reinicio que hacen del
+[solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver) el
+motor detrás de los mejores tableros de la comunidad, y no está diseñado para un
+[rendimiento de la clase de McGavin](/research/lab/experiments/peter-mcgavin/backtracker).
+La mejor puntuación producida por [los experimentos de aquí](/research/lab/experiments)
+es 463 de 480; la mejor de la comunidad sobre el mismo puzzle es 470. Los
+solucionadores de récords estudiados en este laboratorio son sencillamente
+mejores encontrando tableros.
+
+La misión de este motor es otra: la verificabilidad y la enseñanza. Cuando este
+wiki enuncia un conteo de nodos, una cifra de factibilidad o una puntuación, la
+afirmación la verifica este motor, y como corre en tu navegador y su código
+fuente es público, tú también puedes verificarla.
+
+## Cómo impulsa el wiki
+
+Cada elemento interactivo de esta sección de investigación es este motor: las
+demos de DFS en vivo, las carreras de orden de relleno en
+[la página de caminos](/playground/paths), el laboratorio del índice de ruptura
+en [el centro de solucionadores](/research/build/solvers), la puntuación y la
+verificación del visor de tableros, y los conteos de referencia versionados que
+citan las páginas de investigación. La propia suite de pruebas del motor
+contrasta contra tableros reales de la comunidad, de modo que un cambio que
+rompiera la puntuación o las convenciones de rotación fallaría ruidosamente en
+lugar de corromper en silencio las cifras del sitio.
+
+## Dónde conseguirlo
+
+Todo está en un solo repositorio,
+[github.com/raphael-anjou/eternity2](https://github.com/raphael-anjou/eternity2),
+y [ejecútalo tú mismo](/research/build/run-it-yourself) recorre la construcción
+del motor, la ejecución de sus pruebas y la reproducción de los resultados
+publicados, comando por comando.
+
+## Qué lo impulsa
+
+El motor no crece según su propio calendario; crece cuando
+[un experimento](/research/lab/experiments) necesita algo. El solucionador
+tolerante a rupturas existe porque demostrar los índices de ruptura requería uno;
+el generador restringido al marco existe porque un laboratorio necesitaba puzzles
+que se comportaran como el borde real del E2. Eso mantiene el motor pequeño, y
+mantiene cada funcionalidad ligada a una pregunta que alguien realmente hizo.

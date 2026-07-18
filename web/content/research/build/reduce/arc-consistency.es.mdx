@@ -1,0 +1,256 @@
+---
+title: La consistencia de arco, desde AC-3 en adelante
+description: >-
+  El forward checking mira un movimiento por delante; la consistencia de arco
+  obliga a la lista de candidatos de cada celda a defenderse frente a la de cada
+  vecina, hasta un punto fijo. El AC-3 de Mackworth, los refinamientos óptimos que
+  vinieron después, y lo que toda esa familia midió realmente en este puzzle,
+  incluido dónde deja de ser correcta.
+metaDescription: "Consistencia de arco en Eternity II: el AC-3 de Mackworth y sus refinamientos hacen que los candidatos de cada celda se defiendan de sus vecinos, y dónde falla."
+kind: concept
+order: 10
+group: Reduce the search
+updated: 2026-07-02
+topics: [search-space]
+rigor: measured
+complexity:
+  time: "AC-3 O(e·d³) · AC-2001 O(e·d²) (óptimo para la revisión de arcos)"
+  space: "AC-3 O(e) · AC-2001 O(e·d)"
+  note: >-
+    En el tablero de 16×16, e = 960 arcos interiores orientados y d ≈ 764 tuplas
+    candidatas por celda, de modo que la brecha en el peor caso es de ~4×10¹¹
+    frente a ~5,6×10⁸ comprobaciones; pero las propagaciones reales solo tocan
+    unas pocas celdas, y el coste se paga en cada nodo de búsqueda.
+sources:
+  - label: 'Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8): AC-3'
+    url: https://doi.org/10.1016/0004-3702(77)90007-8
+  - label: 'Bessière, Régin, Yap & Zhang 2005, "An Optimal Coarse-grained Arc Consistency Algorithm" (AIJ): AC-2001/AC-3.1'
+    url: https://doi.org/10.1016/j.artint.2005.02.004
+  - label: Algoritmo AC-3 (Wikipedia)
+    url: https://en.wikipedia.org/wiki/AC-3_algorithm
+related:
+  - /research/why/no-forced-moves
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/reduce/alldiff-regin
+  - /research/build/dead-ends
+---
+
+import { AcThreeLab } from "@/components/research/concepts/AcThreeLab";
+
+En Eternity II, un backtracker gasta la mayor parte de su esfuerzo no en colocar
+piezas sino en descartarlas. Puesto que [ninguna celda queda nunca
+forzada](/research/why/no-forced-moves) (toda posición interior conserva decenas
+de candidatos vivos hasta muy adentro de la búsqueda), la única palanca
+disponible es reducir esas listas de candidatos con la mayor dureza y el menor
+coste posibles. La consistencia de arco es la maquinaria estándar para ello, y
+arrastra tras de sí medio siglo de publicaciones.
+
+## Dominios que se vigilan mutuamente
+
+Asignemos a cada celda vacía un *dominio*: el conjunto de candidatos
+pieza-y-rotación aún permitidos en ese lugar. En el puzzle completo, eso arranca
+en unas 764 tuplas por celda interior. El **forward checking** es la disciplina
+de un solo paso: cuando se coloca una pieza, se elimina de todos los demás
+dominios y se elimina todo candidato que choque con las aristas recién
+expuestas. Es barato, y todo solucionador serio hace al menos esto.
+
+La **consistencia de arco** exige más. Para cada par de celdas adyacentes, todo
+candidato de un dominio debe tener al menos un compañero compatible en el otro,
+un *soporte*. Cuando una eliminación, en cualquier parte, deja un candidato sin
+soporte, ese candidato desaparece a su vez, y la comprobación se propaga hacia
+afuera hasta que no queda nada más por retirar. Para el emparejamiento de aristas
+esto significa exactamente: "una pieza solo puede permanecer en una celda si
+cada celda vecina puede seguir respondiendo a sus colores".
+
+## AC-3, y dónde desperdicia trabajo
+
+El AC-3 de Alan Mackworth (1977) es la forma de grano grueso de alcanzar ese
+punto fijo: se mantiene una cola de arcos orientados, se revisa un arco a la vez
+(se recorre un dominio, se eliminan los candidatos sin soporte), y cada vez que
+un dominio se encoge, se reencolan los arcos que apuntan hacia él. Es corto,
+correcto y fácil de hacer incremental dentro de una búsqueda, y por eso sigue
+siendo la opción por defecto en todas partes. En el peor caso cuesta $O(e d^3)$
+para $e$ arcos y un tamaño de dominio $d$; en el tablero de 16×16, $e$ vale
+$e = 960$ (las 480 adyacencias interiores, en ambos sentidos) y $d \approx 764$.
+
+Su defecto conocido: cada revisión busca los soportes desde cero, de modo que el
+mismo soporte se redescubre miles de veces a medida que la búsqueda se sumerge y
+retrocede.
+
+## Míralo en marcha
+
+Las descripciones de algoritmos de lista de trabajo suenan todas iguales; es al
+ver a uno estabilizarse cuando todo encaja. Abajo está AC-3 sobre una versión
+en miniatura del problema: un tablero de 4×4, 3 colores de arista, cada celda
+arrancando con sus 64 candidatos (16 piezas × 4 rotaciones). Coloca una pieza y
+sigue la cola: qué arcos entran en ella, qué elimina cada revisión, cómo una
+eliminación rearma los arcos que apuntan al dominio encogido, y cómo se apaga la
+onda. Los contadores comparan el trabajo de AC-3 con el del bucle ingenuo de
+punto fijo (AC-1: rebarrer cada arco hasta que una pasada completa quede limpia)
+ejecutándose sobre exactamente las mismas posiciones.
+
+<Figure collapsible title="Interactivo: mira a AC-3 estabilizarse hacia un punto fijo">
+  <AcThreeLab />
+</Figure>
+
+Dos cosas merecen atención. Las primeras colocaciones apenas propagan: un anillo
+de vecinas se encoge y la onda se detiene, porque el segundo anillo aún
+encuentra soportes para los tres colores entre los supervivientes. Las
+colocaciones tardías se propagan mucho más lejos: los dominios están apretados, y
+una sola eliminación deja aislados candidatos a dos y tres celdas de distancia.
+Ese es exactamente el comportamiento en el puzzle real: la consistencia de arco
+se gana el pan en el final de partida, no en la apertura.
+
+## Paso a paso
+
+La misma ejecución, en palabras. Esto es todo AC-3:
+
+1. **Inicio.** Cada celda tiene un dominio de 64 candidatos. La cola de arcos
+   está vacía; sin ninguna eliminación aún, no hay nada que comprobar.
+2. **Una pieza aterriza en B2.** Su dominio se colapsa al único candidato
+   colocado. Todo arco *dirigido hacia* B2 entra en la cola, uno por vecina:
+   aquí (B1→B2), (C2→B2), (B3→B2), (A2→B2). Nada más lo hace: ningún otro
+   dominio cambió, así que ningún otro arco pudo perder un soporte.
+3. **Se desencola un arco, se revisa.** Tomemos (B1→B2): se recorren los 64
+   candidatos de B1 y, para cada uno, se busca en el dominio de B2 un compañero
+   compatible, un *soporte*. B2 tiene ahora una sola pieza, así que solo
+   sobreviven los candidatos cuya arista sur coincide con su color norte: en
+   torno a un tercio. El resto se elimina.
+4. **Las eliminaciones rearman arcos.** El dominio de B1 se encogió, así que los
+   candidatos en otros lugares que se apoyaban en los eliminados pueden quedar
+   aislados: todo arco que apunta a B1 reentra en la cola, salvo el que viene de
+   B2 y acaba de dispararse. Esta es la onda.
+5. **Sin eliminación, sin reencolado.** Cuando una revisión no retira nada, el
+   arco simplemente se descarta. Al principio de la partida el segundo anillo
+   casi siempre sobrevive intacto, y la cola se vacía en un puñado de revisiones.
+6. **Punto fijo.** La cola está vacía: cada candidato, en todas partes, tiene un
+   soporte en cada dominio vecino. Ningún orden de procesamiento cambia este
+   estado final: el punto fijo es único, y la disciplina de cola solo cambia con
+   qué rapidez lo alcanzas.
+
+La comparación con AC-1 en la demo es todo el argumento a favor de la lista de
+trabajo: el bucle ingenuo rerevisa los 48 arcos por barrido hasta que un barrido
+queda limpio, haciendo las mismas eliminaciones a costa de varias veces más
+comprobaciones, y la brecha se ensancha a medida que el tablero crece.
+
+## Qué aportan las variantes más fuertes
+
+La literatura pasó dos décadas corrigiendo esa redundancia. AC-4 (Mohr &
+Henderson 1986) cuenta los soportes explícitamente: tiempo óptimo $O(e d^2)$,
+pero $O(e d^2)$ de memoria y una penosa restauración de estado al retroceder.
+AC-6 y AC-7 (Bessière; Bessière, Freuder & Régin) almacenan los soportes de
+forma perezosa y explotan la bidireccionalidad, manteniendo el tiempo óptimo con
+$O(e d)$ de espacio a costa de una contabilidad de grano fino.
+
+La versión que vale la pena conocer hoy es **AC-2001/AC-3.1**, hallada de forma
+independiente por Bessière & Régin y por Zhang & Yap en 2001: se conserva el
+bucle simple de AC-3, pero se recuerda para cada par candidato-arco el *último
+soporte encontrado*, se comprueba que sigue vivo antes de volver a buscar, y se
+reanuda el recorrido donde se detuvo en lugar de desde cero. Ese único entero por
+par entrega la cota óptima $O(e d^2)$ con solo $O(e d)$ de memoria; en este
+puzzle eso son unos 367 000 enteros pequeños, despreciable. El estudio de revista
+de 2005 mide entre 1,5 y 9 veces menos CPU que AC-3 en una búsqueda con
+consistencia de arco mantenida, y muestra que la ventaja sobre AC-6 *crece* con
+el tamaño del dominio al otro lado del arco. Eternity II tiene dominios enormes a
+ambos lados de cada arco, lo que hace de AC-2001 la elección de manual.
+
+## El techo: ¿por qué no la consistencia de camino?
+
+La consistencia de arco comprueba pares de celdas. El siguiente peldaño, la
+*consistencia de camino*, comprueba tripletes: retira todo par de asignaciones
+que ninguna tercera celda pueda soportar, propagando una condición mucho más
+fuerte. Encoge el árbol de búsqueda enormemente, y la comunidad midió
+exactamente cuánto, y exactamente por qué nadie la usa. En marzo de 2008, Geoff
+ejecutó toda la escalera sobre los puzzles para principiantes de Brendan Owen
+([msg 4827](https://groups.io/g/eternity2/message/4827)):
+
+- En el de 6×6, la simple consistencia nodal deja un árbol de búsqueda de más de
+  **40 000 nodos**. La consistencia de camino-1 parcial lo baja a unos 10 000. La
+  consistencia de camino-2 parcial lo baja a **138 nodos**, el mínimo estricto
+  necesario para recorrer las ocho soluciones. Pero el tiempo de ejecución pasa
+  de 0,25 segundos a más de **10 segundos**.
+- En el de 8×8, el trato empeora. La consistencia de arco por sí sola lo resuelve
+  en menos de **6 millones de nodos y unos 36 segundos**. Añadir un
+  preprocesamiento de camino-1 recorta el árbol a aproximadamente 1 millón de
+  nodos pero cuesta unos **14 minutos** de preprocesamiento; el preprocesamiento
+  de camino-2 seguía corriendo tras **7 horas**.
+
+El patrón es inequívoco: cada nivel más fuerte de consistencia recorta
+realmente el árbol en varios órdenes de magnitud, y cada uno cuesta más de lo que
+ahorra. La propia conclusión de Geoff fue que la consistencia de camino "no tiene
+sencillamente un efecto coste-beneficio positivo" en este puzzle. Eso es [podar
+frente a velocidad](/research/why/prune-vs-speed) enunciado en el lenguaje de un
+algoritmo real: la poda es genuina y grande, pero aquí la maquinaria para
+calcularla es más cara que la búsqueda que elimina, y por eso los motores
+recordistas se detienen en la consistencia de arco (o por debajo) y dedican el
+tiempo ahorrado a colocaciones en bruto.
+
+## Lo que cuesta
+
+La contabilidad, con $e$ el número de arcos orientados y $d$ el tamaño máximo de
+dominio:
+
+- **AC-3** corre en $O(e d^3)$ de tiempo en el peor caso: cada arco puede
+  reencolarse hasta $d$ veces (una por eliminación en su dominio lejano), y cada
+  revisión cuesta hasta $d^2$ comprobaciones de soporte. Su memoria de trabajo se
+  reduce a la cola, $O(e)$.
+- **AC-2001** corre en $O(e d^2)$ de tiempo, lo que es *óptimo* para cualquier
+  algoritmo basado en la revisión de arcos: hay $e d$ pares candidato–arco y cada
+  uno puede necesitar que su soporte se recorra una vez sobre un dominio de tamaño
+  $d$. El precio es la tabla del último soporte: un entero por par candidato–arco,
+  $O(e d)$ de espacio.
+
+A la escala de Eternity II, esos símbolos valen: $e = 960$ (480 adyacencias
+interiores, en ambos sentidos) y $d \approx 764$ tuplas candidatas por celda
+interior. Así que las cotas del peor caso se sitúan cerca de
+$e d^3 \approx 4 \times 10^{11}$ comprobaciones elementales para AC-3 frente a
+$e d^2 \approx 5.6 \times 10^8$ para AC-2001, tres órdenes de magnitud de
+diferencia sobre el papel. Los peores casos son pesimistas (las propagaciones
+reales tocan unas pocas celdas, como muestra la demo de arriba), pero esa razón
+es por la que la literatura señala la cota de AC-3 como la cosa a corregir, y la
+corrección solo cuesta $O(e d)$ enteros de memoria. La trampa en este puzzle no
+es el coste de propagación por nodo; es que dentro de una búsqueda ese coste se
+paga en *cada* nodo, millones de veces por segundo, y por eso los factores
+constantes y el comportamiento de la caché acaban importando tanto como el
+exponente de $d$.
+
+## Medido en este puzzle
+
+En el motor de este proyecto (medido aquí; no replicado de forma
+independiente):
+
+- Un backtracker simple que propaga AC-3 junto con el
+  [filtro de emparejamiento por color](/research/build/reduce/alldiff-regin)
+  alcanza 449 de 480 aristas en el puzzle canónico en unos 44 segundos en un
+  solo hilo, alrededor de 2,5 segundos en 8 núcleos.
+- La mejor aceleración algorítmica hallada dentro del propio AC-3 fue mundana:
+  una tabla precalculada de qué rotaciones de la misma pieza comparten colores de
+  arista, para que las revisiones dejen de rederivarla, con un valor de 2,9× de
+  ganancia de rendimiento en el banco de referencia del motor.
+- La parte no construida: AC-2001 se recomendó dos veces en las notas de este
+  proyecto y nunca se construyó realmente, de modo que su ganancia proyectada de
+  2 a 5× aquí es una lectura de la literatura, no una medición. Y la creencia de
+  que AC-3 dominaba el perfil de ejecución nunca la confirmó un profiler. Medir
+  antes de portar.
+
+## La salvedad sobre la corrección
+
+La consistencia de arco supone que cada arista debe coincidir perfectamente. Los
+motores recordistas no lo hacen: las [búsquedas al estilo
+Blackwood](/research/lab/experiments/joshua-blackwood/solver) permiten un
+presupuesto de desajustes deliberados a grandes profundidades, y bajo ese régimen
+la consistencia de arco es *incorrecta*: poda tableros que un desajuste
+autorizado haría perfectamente legales. En el motor de este proyecto, toda la
+familia AC se desactiva en las ejecuciones tolerantes a rupturas, exactamente por
+esa razón. El único propagador fuerte que sobrevive al régimen de desajuste es el
+all-different a nivel de pieza; véase [el filtro de
+Régin](/research/build/reduce/alldiff-regin).
+
+## Veredicto
+
+Para cualquier búsqueda de emparejamiento exacto, la consistencia de arco es
+obligatoria y barata: es la diferencia entre un backtracker que patina y uno que
+alcanza los 440. El forward checking por sí solo deja podas sobre la mesa; AC-3
+las recoge; AC-2001 recoge las mismas por menos CPU, si primero verificas que la
+propagación es donde de verdad se van tus ciclos. Para la caza de récords
+tolerante a desajustes, déjalo fuera; la corrección va primero.

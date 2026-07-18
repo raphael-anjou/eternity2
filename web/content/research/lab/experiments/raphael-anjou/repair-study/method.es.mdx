@@ -1,0 +1,160 @@
+---
+title: Cómo está construido el estudio
+description: >-
+  El motor detrás del estudio de reparación: un único bucle componible de
+  destrucción-reparación donde una variante es un cambio declarado sobre un
+  padre, la IO y el scorer que comparte con el estudio DFS, un mapa de
+  desajustes mantenido de forma incremental, y las definiciones de cada
+  estadística que el estudio pone de relieve.
+metaDescription: "El motor del estudio de reparación: un bucle componible de destrucción-reparación, un mapa incremental de desajustes y las métricas de ganancia y aceptación."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/findings
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "El espacio de trabajo del motor (repair-engine, repair-run) sobre la biblioteca compartida e2-core / e2-io"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/engine
+---
+
+Esta página es el aparato que hay detrás del [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study):
+cómo está construido el motor, por qué una nueva variante es barata de añadir, y
+qué significa cada número de los resultados. Es el gemelo deliberado de la
+[página de método del estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study/method),
+y se apoya en la *misma* biblioteca compartida: el tablero, el conjunto de
+piezas, el único scorer canónico y el contrato de IO provienen todos de un crate
+`e2-core` / `e2-io` común que usa también el estudio de backtracking. Un tablero
+reparado y un tablero obtenido por backtracking se puntúan, por tanto, con el
+código idéntico, que es lo que permite que los números de ambos estudios se
+sitúen sobre un mismo eje.
+
+## Una variante es un cambio declarado sobre un padre
+
+Cada algoritmo del estudio es el *mismo* bucle de destrucción-reparación,
+parametrizado por cinco elecciones independientes:
+
+- **tablero inicial**: el tablero desde el que arranca el bucle (aleatorio,
+  construcción voraz, o una construcción voraz que prioriza el color más raro);
+- **operador de destrucción**: qué celdas retira cada iteración (aleatorias, las
+  celdas en desajuste, la peor banda de filas, o una componente conexa de
+  desajustes más su halo);
+- **reparación**: cómo se rellena el hueco (voraz con el más restringido
+  primero, el mismo con desempates con ruido, o un relleno exacto acotado para
+  huecos pequeños);
+- **aceptación**: si un candidato reemplaza al tablero de trabajo (conservar si
+  no es peor, solo mejoras estrictas, recocido simulado, o aceptación diferida);
+- **reinicio**: qué ocurre ante un estancamiento (nada, una sacudida aleatoria,
+  o una vuelta al mejor tablero obtenido hasta el momento).
+
+Una variante es un pequeño registro que nombra esas cinco elecciones, junto con
+**el padre del que deriva y una descripción en una línea del único cambio que
+añade**. Añadir una variante consiste en añadir un registro al registro, sin
+código de bucle nuevo salvo que la idea sea una estrategia genuinamente nueva.
+La matriz de «qué se apila sobre qué» de la página de resultados se genera a
+partir de esas descripciones, de modo que no puede divergir del código que
+realmente se ejecutó.
+
+## El mapa de desajustes, mantenido de forma incremental
+
+Un backtracker construye un tablero desde la nada; un bucle de reparación siempre
+sostiene un tablero *completo* y lo edita. Las celdas que merece la pena atacar
+son las que tocan una arista rota, así que el motor mantiene un recuento vivo,
+por celda, de las aristas interiores rotas incidentes a ella. Colocar o retirar
+una pieza actualiza solo las aristas alrededor de esa única celda, nunca el
+tablero entero, de modo que un operador de destrucción guiado por conflictos
+puede preguntar «¿qué celdas tocan un desajuste?» sin volver a recorrer todo. La
+puntuación en curso se mantiene del mismo modo: cada colocación la ajusta según
+el puñado de costuras que cambiaron. Un rebarrido completo ocurre exactamente una
+vez, cuando se construye el tablero inicial; a partir de ahí el bucle es
+incremental. Esto es lo que hace posibles cientos de miles de iteraciones en
+sesenta segundos, y es la misma disciplina que la
+[página teórica sobre ALNS](/research/build/local-search/local-search-alns)
+describe como mantener la destrucción a un coste proporcional al hueco, no al
+tablero.
+
+## El scorer es la única fuente de verdad
+
+No se confía en la puntuación autodeclarada de ningún motor. La puntuación
+incremental del bucle es un dispositivo de rendimiento; el número *publicado* es
+siempre una repuntuación canónica fresca del tablero de salida, a través del
+mismo scorer que usan el sitio y el estudio DFS (aristas apareadas, no
+bordurías, adyacencias interiores, contadas a la derecha y hacia abajo por
+celda). Un test comprueba que la puntuación incremental y la puntuación canónica
+coinciden tras miles de colocaciones-y-retiradas aleatorias, de modo que se pueda
+confiar en que el camino rápido sigue la verdad en vez de apartarse de ella.
+
+## Las estadísticas que el estudio pone de relieve
+
+Para cada ejecución el motor registra, y los resultados lo transportan hasta la
+página:
+
+- **puntuación final**: las aristas canónicamente apareadas (de 480) del mejor
+  tablero encontrado.
+- **ganancia**: la puntuación final menos la puntuación del tablero inicial. Esto
+  aísla la contribución propia del bucle de reparación respecto de la
+  construcción de la que partió: una variante que arranca alta puede añadir poco
+  y aun así terminar alta, y es la ganancia la que distingue a las dos.
+- **el estancamiento (última iteración récord vs iteraciones totales)**: la
+  iteración en la que el mejor global mejoró por última vez, comparada con
+  cuántas iteraciones compró el presupuesto. Este es el eje estrella del estudio:
+  cuando el primero está muy por debajo del segundo, la ejecución halló su
+  respuesta pronto y luego no movió nada.
+- **tasa de aceptación**: la fracción de iteraciones que la regla de aceptación
+  conservó. Una tasa cercana a cero significa que el bucle propone cambios que
+  casi siempre rechaza, a menudo señal de que está reatacando la misma región.
+- **tamaño medio de destrucción**: celdas retiradas por iteración, para que un
+  operador de hueco grande no se compare en silencio con uno de hueco pequeño.
+- **iteraciones por segundo**: reportadas por variante y **nunca comparadas entre
+  familias**, porque una iteración que ejecuta un relleno exacto no es la misma
+  unidad de trabajo que una que ejecuta un relleno voraz.
+- **reinicios**: perturbaciones disparadas, cero para una variante sin política
+  de reinicio.
+
+La página también traza una **curva de convergencia** para unas pocas variantes
+representativas: la mejor puntuación obtenida hasta el momento, muestreada cada
+doscientas iteraciones, a medida que avanza una ejecución típica. Es la imagen
+más clara del estancamiento: la curva sube con fuerza, luego se aplana mientras
+el recuento de iteraciones sigue trepando.
+
+## Honestidad sobre la velocidad del motor voraz
+
+Como el motor MRV del estudio DFS, el bucle de reparación de aquí está escrito
+primero para la claridad. El relleno voraz vuelve a recorrer el reservorio de
+piezas restantes por cada celda que rellena, en vez de mantener listas de
+candidatos de forma incremental, así que sus iteraciones por segundo son las de
+este motor de código limpio, no lo mejor que un núcleo de reparación afinado
+podría alcanzar. La clasificación por puntuación no depende de ello, puesto que
+el rendimiento es un eje aparte nunca mezclado con la comparación de
+puntuaciones, pero las cadencias de iteración deben leerse como las de este
+motor, no como el techo de la destrucción-reparación.
+
+## Lo que este estudio se abstiene deliberadamente de afirmar
+
+Este es un estudio del bucle de reparación *desnudo*, una decisión a la vez, con
+un presupuesto fijo pequeño. No es el pipeline récord: los tableros que alcanzan
+mediados de los 450 y más allá combinan un productor constructivo potente,
+ejecuciones más largas, y la reparación como pulido final, y varias de las
+observaciones sobre los operadores que aparecen aquí se leerían de otro modo en
+un tablero cercano al récord que en el mediocre arranque voraz del que parte el
+bucle. Allí donde un resultado depende de la calidad del tablero inicial, la
+página de observaciones lo dice. El propio afinamiento de la comunidad halló,
+por ejemplo, que los operadores guiados por conflictos y por componentes son
+valiosos precisamente en tableros casi óptimos, donde los pocos desajustes
+restantes son lo único que queda por corregir, el régimen que las cortas
+ejecuciones de este estudio nunca alcanzan.
+
+## Reproducibilidad
+
+El motor, las diez variantes, los resultados por ejecución versionados y los
+scripts de rejilla viven todos bajo el
+[directorio de soporte](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study)
+del estudio. `just experiments repair-study` reconstruye el motor y vuelve a
+lanzar toda la rejilla; la ejecución es determinista a una semilla fija, y la
+disposición de las esquinas es el único eje de diversidad.

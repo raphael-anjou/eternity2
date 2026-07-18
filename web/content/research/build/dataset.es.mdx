@@ -1,0 +1,138 @@
+---
+title: El conjunto de datos
+description: >-
+  Un conjunto de datos público bajo licencia CC0 para Eternity II, en dos
+  partes: catorce instancias de referencia para resolver, y un corpus de 7658
+  tableros fuertes distintos de los que aprender. Cada puntuación se recalcula a
+  partir del propio tablero, y se verifica que el corpus sea realmente variado,
+  en lugar de mil copias de un mismo tablero.
+metaDescription: "Conjunto de datos público CC0 para Eternity II: 14 instancias de referencia y 7658 tableros fuertes distintos y verificados, con análisis de diversidad."
+kind: reference
+order: 55
+group: Check your code
+updated: 2026-07-16
+topics: [structure, learning]
+related:
+  - /research/build/known-facts
+  - /research/reference
+  - /research/lab/experiments/raphael-anjou/learning
+sources:
+  - label: "El conjunto de datos (este repositorio): las instancias, el archivo zip del corpus de tableros fuertes, el README y el script de generación"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/datasets
+---
+
+import { CorpusScoreDistribution } from "@/components/research/CorpusScoreDistribution";
+
+Cuando se trabaja en Eternity II, dos necesidades se repiten sin cesar: hacen
+falta instancias contra las que lanzar un solucionador y, si se quiere aprender
+de los tableros fuertes, hace falta un corpus de ellos. Este conjunto de datos
+reúne ambas cosas, liberado al dominio público bajo licencia
+[CC0](https://creativecommons.org/publicdomain/zero/1.0/) para que pueda
+reutilizarse con cualquier fin sin atribución. Consta de dos partes, ambas
+alojadas en el
+[directorio del conjunto de datos](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets).
+
+## Parte A: las instancias de referencia
+
+Catorce instancias sobre las que se ejecuta un solucionador, cada una en forma
+de un archivo JSON autónomo que contiene el conjunto de piezas, las pistas
+fijadas que hubiera y la puntuación máxima alcanzable.
+
+- **Diez instancias 16×16** (`e2-16x16-v00` … `v09`): el conjunto de piezas
+  oficial de Eternity II con tres esquinas fijadas, en diez disposiciones de
+  esquinas diferentes. Fijar las esquinas produce diez instancias distintas pero
+  de igual dificultad a partir de un solo conjunto de piezas, lo que permite a un
+  estudio comparar los motores sobre un eje de diversidad en lugar de sobre un
+  tablero único. Los tres estudios de motores de este proyecto (el
+  [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study), el
+  [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study) y el
+  [banco de pruebas mono-núcleo](/research/lab/experiments/single-core-benchmark)) resuelven
+  exactamente esas diez. Puntuación máxima: 480.
+- **Cuatro subpuzzles de pistas** (`e2-clue-clue1` … `clue4`): los tableros 6×6
+  y 12×6 más pequeños, procedentes del conjunto de pistas oficial del puzzle.
+  Se sabe que cada uno admite una solución completa, lo que los convierte en un
+  fixture de corrección rápido: un solucionador incapaz de cerrar un tablero de
+  pistas tiene un fallo mucho antes de enfrentarse siquiera al puzzle completo.
+
+Cada celda se describe en el orden arriba, derecha, abajo, izquierda; el color 0
+es el borde gris, y `pos` es el índice de celda en recorrido por filas. La forma
+de un archivo de instancia:
+
+```json
+{
+  "id": "e2-16x16-v00",
+  "family": "official-16x16-pin3corners",
+  "width": 16, "height": 16, "numColors": 22,
+  "pieces": [[up, right, down, left], ...],
+  "hints": [{"pos": 0, "piece": 0, "rot": 3}, ...],
+  "maxScore": 480
+}
+```
+
+## Parte B: un corpus de tableros fuertes
+
+**7658 tableros distintos** con puntuaciones de 400 a 470, la materia prima de
+los métodos que
+[aprenden de los tableros fuertes](/research/lab/experiments/raphael-anjou/learning):
+priors de posición, ordenación de movimientos aprendida, minería de
+antipatrones. Se distribuye como un archivo zip (`e2-strong-boards.zip`, unos
+16 MB) que se descomprime en las mismas filas en formato CSV y en formato
+JSON-lines:
+
+```
+id,score,family,edges
+e2b-00001,469,f008,adcaaendadwe…   (1024 lowercase letters)
+```
+
+El campo `edges` es el tablero en sí: 256 celdas por cuatro lados, en recorrido
+por filas, en el orden arriba-derecha-abajo-izquierda, `a` para el borde gris.
+Es exactamente la cadena que lee el visualizador
+[e2.bucas.name](https://e2.bucas.name), de modo que cualquier tablero se pega
+directamente en el visualizador. La `family` son las cuatro piezas de esquina
+del tablero, un indicador de en qué cuenca se sitúa; hay 28 familias distintas.
+La distribución de puntuaciones tiene un pico marcado en la franja baja de los
+450, donde se concentra una gran cosecha por haz mono-núcleo, y luego se afina en
+una larga cola, con 38 tableros en 460 o más y el mejor en 470.
+
+<CorpusScoreDistribution />
+
+## Cada puntuación se recalcula, nunca se da por buena
+
+Ninguna puntuación de este conjunto de datos se copia de un campo de origen.
+Cada una se recalcula a partir de la propia cadena de aristas del tablero,
+contando las adyacencias interiores concordantes. No es una mera formalidad: en
+los datos de origen un tablero llevaba una puntuación obsoleta, declarando 453
+cuando sus aristas valen en realidad 456, y el recálculo a partir de las aristas
+lo corrige automáticamente. Vuelva a derivar usted mismo las puntuaciones a
+partir de las cadenas de aristas y obtendrá exactamente los números publicados.
+
+## El corpus es variado, no redundante
+
+Un montón de varios miles de tableros solo merece publicarse si los tableros son
+realmente diferentes. Antes de difundir este comprobamos que no son simples
+perturbaciones de un mismo tablero, y no lo son:
+
+- Solo 13 de los 7671 tableros de origen eran duplicados exactos; el resto son
+  distintos, lo que deja 7658.
+- El tablero *mediano* difiere de su vecino más próximo en 235 de sus 256
+  colocaciones de piezas. Casi ningún tablero se sitúa a menos de 10
+  colocaciones de otro, y solo el 1 % a menos de 25. Aunque la mayoría de los
+  tableros comparten una banda de puntuaciones estrecha, son estructuralmente
+  casi por completo diferentes.
+- Los tableros se reparten entre 28 familias de esquinas distintas en lugar de
+  amontonarse en una sola.
+
+Así que el corpus es una muestra realmente variada del paisaje de los tableros
+fuertes. Eso importa para todo lo que lo explote: un prior aprendido a partir de
+miles de copias de un mismo tablero codificaría ese tablero, no la estructura de
+los buenos tableros en general.
+
+## Cómo regenerarlo
+
+El [script de generación](https://github.com/raphael-anjou/eternity2/tree/main/research/datasets)
+regenera todo el conjunto de datos. Las instancias se ensamblan a partir de los
+archivos de variantes públicos; el corpus se deduplica, se vuelve a puntuar a
+partir de las aristas, se despoja de toda etiqueta de espacio de trabajo (rutas
+de origen, nombres internos de presets y de semillas, nombres de archivo) y se
+reindexa con identificadores neutros, de modo que lo que se distribuye se reduce
+al contenido de los tableros y a las puntuaciones verificadas, nada más.

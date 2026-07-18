@@ -1,0 +1,100 @@
+---
+title: Reimplementación de Verhaard
+description: >-
+  Una reimplementación desde cero del método eii de Louis Verhaard, ya que su
+  propio binario no incluye código fuente y no se ejecuta aquí. Recocido por
+  intercambio de composición de conjunto bajo la métrica de teselado 2×2; en el
+  puzzle real de cinco pistas alcanza 438 de 480, en un solo núcleo.
+metaDescription: "Reimplementación desde cero del método eii de Verhaard: recocido por intercambio de composición; alcanza 438/480 en el puzzle de cinco pistas, en un solo núcleo."
+kind: experiment
+contribution: reconstruction
+author: raphael-anjou
+contributors:
+  - { slug: louis-verhaard, role: method }
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "120 s"
+  seedPolicy: "fixed seed 1"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 20
+updated: 2026-07-15
+date: 2026-07
+topics: [speed, local-search]
+related:
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Motor ejecutable + resultados versionados + scripts (directorio de referencia de este experimento)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+  - label: "Detalles del solucionador eii de Louis Verhaard (el original, solo Win32)"
+    url: https://www.shortestpath.se/eii/eii_details.html
+---
+
+<Callout kind="note" title="De quién es este trabajo">
+  El **método** es [de Louis Verhaard](/research/lab/experiments/louis-verhaard/eii).
+  El **código** que aquí se presenta es una reimplementación desde cero de
+  [Raphaël Anjou](/research/people/raphael-anjou). Está archivado aquí, en la sección
+  de Verhaard, junto al método que reconstruye, como una reconstrucción: una lectura
+  de su método, no su programa. La firma sigue siendo la de Raphaël, porque el código
+  es suyo; la sección es la de Verhaard, porque la idea lo es.
+</Callout>
+
+El eii original de Verhaard es un binario de Windows sin código fuente que
+[no se ejecuta aquí](/research/lab/experiments/louis-verhaard/eii). La única manera
+de ejecutar su enfoque es reconstruirlo, y esto es precisamente esa reconstrucción:
+el mismo motor que aparece como `verhaard` en la
+[grilla](/research/lab/experiments/single-core-benchmark).
+
+## Qué reimplementa
+
+El método documentado de Verhaard: el **recocido por intercambio de composición de
+conjunto** bajo la métrica de teselado 2×2. Se elige un subconjunto interior de unas
+180 piezas, se recuece su composición mediante intercambios hasta maximizar localmente
+el número de subteselados 2×2 alcanzables, se colocan primero las piezas más
+problemáticas y luego se busca el resto bajo ese armazón. Las constantes numéricas del
+motor se recuperaron bit a bit a partir de las cadenas contenidas en `eii.exe`, ya que
+ese binario es el único registro que se conserva de ellas.
+
+Decir que se "ejecuta Verhaard" es un atajo que conviene reconocer: es una lectura de
+su método, no de su código. Que esta sea la única manera de ejecutar su enfoque forma
+parte del hallazgo.
+
+## Qué logra en el puzzle real de cinco pistas
+
+En un solo núcleo, 120 segundos, con las cinco pistas oficiales fijadas:
+
+- **438 / 480** aristas emparejadas, un tablero **completamente colocado** (256 de 256 piezas).
+- Las cinco pistas respetadas (una solución estricta de pistas), 42 aristas rotas, a unos
+  40 millones de nodos por segundo.
+
+La ejecución y el tablero resultante están versionados en el
+[directorio de referencia](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+del motor, y `just experiments single-core-benchmark` la vuelve a ejecutar, de modo que
+el 438 es verificable en lugar de afirmado. Se trata de la instancia de cinco pistas, un
+puzzle más difícil que las variantes con esquinas fijadas que puntúa la
+[clasificación](/research/lab/experiments/single-core-benchmark), donde el mismo motor
+alcanza un mejor resultado de 451.
+
+Encontró 438 en unos doce segundos y luego se estancó durante el resto del presupuesto:
+un auténtico óptimo local para esa semilla y ese tiempo. Es la única de las tres
+reimplementaciones comunitarias presentes aquí que resuelve bien el puzzle real de cinco
+pistas, en lugar de una versión más fácil, pero las tres no miden lo mismo, así que la
+comparación exige cautela.
+[Blackwood](/research/lab/experiments/joshua-blackwood/solver) se mide sobre la misma
+base, aristas emparejadas con las pistas fijadas, y se atasca cerca de 45.
+[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) no: su cifra es una
+*profundidad* de colocación (unas 204 de 256 piezas alcanzadas), no una puntuación de
+aristas emparejadas, de modo que no puede leerse en el mismo eje que el 438 de aquí, y
+los dos números no son directamente comparables. Lo que las tres comparten es solo el
+veredicto de que el puzzle restringido es mucho más difícil que el no restringido; los
+números que sustentan ese veredicto están en escalas diferentes.

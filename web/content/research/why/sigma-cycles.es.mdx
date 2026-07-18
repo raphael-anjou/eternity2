@@ -1,0 +1,88 @@
+---
+title: Por qué el basin-hopping parece imposible
+description: >-
+  Si no puedes mejorar un tablero excelente puliéndolo, quizá puedas saltar a
+  otro tablero excelente. En cada par de récords probado, no puedes, y vale la
+  pena ver la razón estructural que lo explica.
+kind: finding
+contribution: theory
+rigor: conjectured
+tier: 1
+order: 60
+updated: 2026-07-02
+topics: [structure, local-search]
+sources:
+  - label: "Anuncio del récord 469 de Peter McGavin: el tablero contra el que se calculan los ciclos (groups.io msg 10045, septiembre de 2020)"
+    url: https://groups.io/g/eternity2/message/10045
+related:
+  - /research/why/rigidity-wall
+  - /research/why/mismatch-geometry
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+repro:
+  kind: heavy
+---
+
+import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
+import { SigmaCycleLab } from "@/components/research/SigmaCycleLab";
+
+Dos tableros de alto nivel parecen totalmente distintos y, sin embargo, están
+relacionados: puedes transformar uno en el otro tomando un conjunto de piezas y
+desplazando cada una al lugar que ocupaba la siguiente, a lo largo de todo un
+bucle. Los matemáticos llaman a ese bucle un ciclo. Recorre el bucle entero y
+llegas al otro tablero.
+
+Aquí está el truco. Entre los mejores tableros, ese bucle es enorme y solo
+existe uno. Pasar de un tablero de 459 al de 469 de McGavin es un único ciclo
+entrelazado de 154 celdas, que abarca todo el interior del tablero.
+
+## Un solo bucle, todo o nada
+
+<SigmaCycleDiagram />
+
+## Pruébalo en un puzzle pequeño real
+
+Esto no es un diagrama: el motor en vivo encuentra dos soluciones reales,
+calcula los ciclos efectivos entre ellas y puntúa cada paso que das.
+
+<Figure collapsible title="Interactivo: aplicar parte del ciclo de permutación">
+  <SigmaCycleLab />
+</Figure>
+
+## Cómo lo sabemos
+
+Calculamos los ciclos exactos entre tres tableros-récord distintos y luego
+probamos cada movimiento parcial: aplicar solo una porción del bucle y observar
+qué le pasa a la puntuación. El resultado es rotundo. Toda aplicación parcial
+empeora la puntuación, con caídas que van desde unos pocos puntos hasta más de
+un centenar. No existe ningún subconjunto del bucle que ayude, ni uno solo.
+
+Eso es lo que lo convierte en un muro. Para pasar de un buen tablero a uno
+mejor tendrías que comprometerte a desplazar hasta 154 celdas de golpe, sin
+ningún paso de mejora en el camino que te guíe hasta allí. Toda búsqueda que
+avanza por pasos es ciega ante un movimiento así.
+
+## Los ciclos, medidos
+
+- De 459 a 458: 14 ciclos, el mayor de 85 celdas.
+- De 458 al 469 de McGavin: un ciclo gigante de 80 celdas, que abarca las
+  filas 1 a 14.
+- De 459 al 469 de McGavin: un ciclo gigante de 154 celdas.
+- **En todos los casos, cada fragmento más pequeño del ciclo da una puntuación
+  peor: la propiedad se cumplió en los tres pares de cuencas probados, aunque
+  tres pares son una muestra pequeña y no está demostrado que valga en
+  general.**
+
+## Por qué importa
+
+Junto con [el muro de rigidez](/research/why/rigidity-wall), esto cierra de un
+golpe las dos vías de escape evidentes. No puedes salir localmente de un buen
+tablero y (en cada par de récords medido aquí) tampoco puedes saltar a uno
+vecino, porque el mejor tablero más cercano está a un único movimiento
+indivisible de 80 a 154 celdas. Esta es una explicación plausible de por qué el
+récord de 470 se mantiene desde 2021: los movimientos que lo superarían parecen
+demasiado grandes para que cualquier búsqueda paso a paso pueda encontrarlos.
+
+*Los ciclos se calculan de forma exacta a partir de pares de tableros-récord
+componiendo sus permutaciones de piezas; los tests de subconjuntos enumeran los
+subciclos y los vuelven a puntuar. La animación de arriba es un esquema del
+mecanismo, no el ciclo de 154 celdas en sí.*

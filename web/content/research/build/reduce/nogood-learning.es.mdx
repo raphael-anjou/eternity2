@@ -1,0 +1,382 @@
+---
+title: "Aprendizaje de no-goods: recordar por qué fallaste"
+description: >-
+  Un subárbol fallido es un teorema: este estado parcial nunca podrá
+  extenderse. Memorízalo y no vuelvas a entrar en él. La comunidad probó ambas
+  variantes: tablas de transposición al estilo del ajedrez sobre la frontera de
+  búsqueda, y restricciones extraídas del propio puzzle. El balance completo de
+  lo que la memoria compra a la escala de E2, y los tableros pequeños donde
+  realmente rinde.
+metaDescription: "Aprendizaje de no-goods en Eternity II: un subárbol fallido es un teorema al que nunca volver. Tablas de transposición, restricciones y dónde rinde la memoria."
+kind: concept
+order: 190
+group: Reduce the search
+updated: 2026-07-02
+topics: [search-space, exact-methods]
+sources:
+  - label: "El esquema de índice de frontera de Max: 16 aristas no apareadas más un bitmap de piezas (groups.io message 6137, 2008)"
+    url: https://groups.io/g/eternity2/message/6137
+  - label: "Lindström lo prueba, «aprende de sus errores» (groups.io message 6138)"
+    url: https://groups.io/g/eternity2/message/6138
+  - label: "El consejo de Verhaard al estilo del ajedrez: memoria fija, hash, sobrescritura (groups.io message 6144)"
+    url: https://groups.io/g/eternity2/message/6144
+  - label: "El tamaño de clave corregido: 76 bits de estado de frontera; tasa de aciertos 0,1 % → 1 % antes de agotarse la memoria (groups.io message 6145)"
+    url: https://groups.io/g/eternity2/message/6145
+  - label: "El recuento de Max de firmas de frontera distintas: 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
+    url: https://groups.io/g/eternity2/message/6143
+  - label: "El método mejorado: memoria mínima, 75–80 % de las ramas descartadas (groups.io message 6218)"
+    url: https://groups.io/g/eternity2/message/6218
+  - label: "Comienza la saga de las restore-lists (groups.io message 8854, 2011)"
+    url: https://groups.io/g/eternity2/message/8854
+  - label: "La corrección de DeVincentis: una restore-list por arista, más una para las piezas usadas (groups.io message 8886)"
+    url: https://groups.io/g/eternity2/message/8886
+  - label: "Medido en el anillo de borde 6×6: 133 326 155 → 30 496 808 nodos (groups.io message 8875)"
+    url: https://groups.io/g/eternity2/message/8875
+  - label: "La Failure Lookup Table de Mocsi, abandonada por un bug (groups.io message 8887)"
+    url: https://groups.io/g/eternity2/message/8887
+  - label: "Las filas superiores duplicadas de McGavin: 40 horas-núcleo demostrablemente desperdiciadas (groups.io message 9610, 2016)"
+    url: https://groups.io/g/eternity2/message/9610
+  - label: "Las mediciones de tasa de duplicados de 21valy: ~1 % en clave exacta a mitad de camino; la tabla relajada se satura en minutos (groups.io message 9618)"
+    url: https://groups.io/g/eternity2/message/9618
+  - label: "Verhaard: eii no guarda memoria de posiciones pasadas, y ganó los 10 000 $ (groups.io message 7451, 2010)"
+    url: https://groups.io/g/eternity2/message/7451
+  - label: "El balance de Blackwood: caché de 2×2 medido y descartado (groups.io message 10056, 2020)"
+    url: https://groups.io/g/eternity2/message/10056
+  - label: "La extracción de colocaciones inválidas y la llamada a colaborar de Lindström (groups.io message 6743, 2009)"
+    url: https://groups.io/g/eternity2/message/6743
+  - label: "La combinación de dos piezas inválida de capiman para el puzzle de 5 pistas (groups.io message 10832, 2022)"
+    url: https://groups.io/g/eternity2/message/10832
+  - label: "El recuento: ~68 M de pares inválidos hallados, ~8,1×10⁹ indeterminados, y los ~32 000 pares de una solución deben sobrevivir a todos (groups.io message 10973, 2023)"
+    url: https://groups.io/g/eternity2/message/10973
+  - label: "Una combinación de tres piezas inválida, diseccionada hasta tres celdas del anillo 0 (groups.io message 11131)"
+    url: https://groups.io/g/eternity2/message/11131
+  - label: "SAT como servicio de invalidación: reducir un parcial sin salida a 28 piezas (groups.io messages 10289/10292, 2021)"
+    url: https://groups.io/g/eternity2/message/10289
+  - label: "El pipeline CNF de capiman: 130 180 variables, cryptominisat, parciales y anillos (groups.io message 11822, 2026)"
+    url: https://groups.io/g/eternity2/message/11822
+related:
+  - /research/lab/experiments/raphael-anjou/learning/replay
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/faster/solver-engineering
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+Un backtracker que se rinde ante un subárbol acaba de demostrar un teorema:
+*este estado parcial no puede extenderse hasta una solución*. Luego tira el
+teorema y, horas después, lo vuelve a demostrar desde otra rama. El
+aprendizaje de no-goods es la negativa a desperdiciar esa prueba: memorizar el
+estado fallido, consultar el almacén antes de descender, no volver a entrar
+jamás. Los motores de ajedrez funcionan con esta idea (las tablas de
+transposición), y los solucionadores SAT la industrializaron como aprendizaje
+de cláusulas. La comunidad de Eternity II lleva intentando rentabilizarla
+desde 2008, en dos variantes distintas, y el archivo registra tanto los
+intentos como las autopsias.
+
+## Por qué un subárbol fallido es siquiera reutilizable
+
+Una búsqueda en profundidad sobre un
+[orden de relleno](/research/build/backtracking/fill-order) por líneas de
+barrido es función de una cantidad sorprendentemente reducida de entradas.
+Cuando el solucionador se encuentra a la profundidad $d$, todo el subárbol de
+debajo queda determinado por dos cosas: la **frontera abierta** (la secuencia
+de colores expuesta a lo largo del límite entre celdas colocadas y vacías) y el
+**conjunto de piezas todavía en mano**. Nada más del historial importa. Dos
+parciales de 128 piezas distintos que exponen los mismos dieciséis colores de
+arista y dejan las mismas 128 piezas sin usar tienen subárboles *idénticos*. Si
+el primero falló, el segundo debe fallar, y recorrerlo es puro desperdicio.
+
+[Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker) sorprendió
+este fenómeno en plena acción en 2016: dos combinaciones de fila superior en
+sus registros de [farming](/research/build/faster/distributed-solving) 10×10
+usaban las mismas diez piezas con la misma permutación de colores a lo largo de
+su arista inferior, y sus árboles de búsqueda devolvieron exactamente el mismo
+recuento de nodos:
+5 602 741 481 523 nodos, dos veces.
+Las aproximadamente 40 horas-núcleo invertidas en la segunda «fueron una
+completa pérdida de tiempo, ya que podíamos predecir con facilidad de antemano
+que el resultado sería el mismo»
+([message 9610](https://groups.io/g/eternity2/message/9610)).
+
+Así que el teorema es real y el desperdicio es real. Todo lo demás en esta
+página trata de si *recordar* sale más barato que *volver a derivar*. A la
+escala de E2 esa pregunta tiene una respuesta sorprendentemente constante.
+
+## Variante uno: tablas de transposición sobre la frontera
+
+La idea llegó a la lista de correo en un solo hilo en el otoño de 2008.
+Max propuso indexar cada parcial de 128 piezas (ocho filas completas) por sus
+dieciséis aristas no apareadas, almacenando junto al índice un bitmap de las
+piezas que estaban disponibles-más-no-consideradas cuando el subárbol falló;
+que se alcance otro parcial con el mismo índice cuyas piezas disponibles sean un
+*subconjunto* del bitmap almacenado, y se puede saltar el subárbol entero
+([message 6137](https://groups.io/g/eternity2/message/6137)). Michael
+Lindström ya llevaba experimentando: «funciona bastante bien, aprende de sus
+errores y cortará cada vez más ramas temprano en la búsqueda»
+([message 6138](https://groups.io/g/eternity2/message/6138)).
+[Louis Verhaard](/research/lab/experiments/louis-verhaard/eii) aportó la
+respuesta de ingeniería estándar del ajedrez por computadora: no intentes
+almacenarlo todo; fija un presupuesto de memoria, haz hash de la posición,
+sobrescribe las entradas antiguas
+([message 6144](https://groups.io/g/eternity2/message/6144)). Añadió una
+advertencia: cuanto más difieran los conjuntos de piezas de dos fronteras
+coincidentes, más corto será el subárbol que el acierto puede cortar
+legítimamente.
+
+Luego llegaron las mediciones, y son el corazón de la historia.
+La contabilidad corregida de Lindström fijaba la clave en 76 bits de estado de
+frontera (3 bits para cada una de las dos aristas orientadas al borde, 5 bits
+para cada una de las catorce aristas interiores), de modo que una tabla directa
+necesita $2^{76}/8$ bytes, y Max contó aproximadamente
+$5^2 \cdot 17^{14} \approx 4 \times 10^{18}$ firmas distintas para esa
+única línea de prueba
+([message 6145](https://groups.io/g/eternity2/message/6145),
+[message 6143](https://groups.io/g/eternity2/message/6143)). Al ejecutar la
+cosa real con el punto de ruptura en 128 piezas, la tasa de descarte comenzó en
+0,1 % y trepó lentamente hasta cerca del 1 % antes de que se agotara la memoria
+([message 6145](https://groups.io/g/eternity2/message/6145)). El veredicto de
+Max sobre ese 1 %: «no deberíamos esperar milagros de este método»
+([message 6152](https://groups.io/g/eternity2/message/6152)). Un mes después
+Lindström informó de una versión refinada: sin estado por pieza almacenado, el
+punto de prueba movible, memoria mínima, «descarta alrededor del 75-80 % de
+media» ([message 6218](https://groups.io/g/eternity2/message/6218)). La
+afirmación es llamativa, pero nadie más la midió nunca y nunca apareció en
+ningún solucionador récord; cuando regresó en 2010 fue para pedir al grupo que
+detectara el fallo en su esquema de reducción dinámica, y no llegó ninguna
+respuesta sustancial
+([message 7938](https://groups.io/g/eternity2/message/7938)).
+
+Nótese lo que hacía la clave tan grande: la frontera por líneas de barrido de
+E2 es *ancha*. Una posición de ajedrez cabe en unas pocas decenas de bytes con
+independencia de la profundidad de la partida; una frontera E2 son dieciséis
+aristas abiertas de diecisiete colores interiores **más** un conjunto de
+disponibilidad de 256 piezas, y el número de firmas alcanzables crece
+exponencialmente con la longitud de la frontera. Esa es la misma magnitud de
+entropía de frontera que gobierna la
+[ley de área de la entropía](/research/why/entropy-area-law): la frontera es
+donde reside la información del puzzle, y una clave de transposición debe
+llevarla toda o ser incorrecta.
+
+## Las trampas de corrección
+
+Incorrectas es exactamente lo que resultaron ser las variantes más baratas, y
+la contribución más instructiva del archivo sobre este tema es una autopsia
+pública. En 2011 Lindström describió un backtracker en el que cada celda
+mantiene una lista de candidatos viva, y una pieza refutada en una celda se
+retira de esa lista y se aparca en una «restore-list» adjunta a la celda
+anterior cuya deshecha la volvería válida de nuevo; poda memoizada, en efecto
+([message 8854](https://groups.io/g/eternity2/message/8854)). Reducía los
+recuentos de nodos de forma hermosa y perdía soluciones en silencio: sus
+ejecuciones 8×8 se saltaban algunas de las 52 soluciones conocidas. A lo largo
+de más de treinta mensajes McGavin insistió con objeciones y casos de prueba
+inquisitivos ([message 8866](https://groups.io/g/eternity2/message/8866))
+hasta que Joseph DeVincentis diagnosticó el fallo: una única restore-list
+confunde el *porqué* de la eliminación de una pieza. Cada celda necesita una
+restore-list por arista vecina más una para las piezas usadas en otro lugar,
+restauradas en momentos distintos del backtrack
+([message 8871](https://groups.io/g/eternity2/message/8871),
+[message 8886](https://groups.io/g/eternity2/message/8886)). El premio que el
+esquema perseguía era real: Lindström ya había medido el anillo de borde 6×6
+cayendo de 133 326 155 nodos a 30 496 808
+([message 8875](https://groups.io/g/eternity2/message/8875)). En el mismo
+hilo Mocsi reconoció su propia Failure Lookup Table (búsqueda en espiral,
+registro de la disposición de colores exteriores en cada repliegue forzado
+hacia el borde, consulta antes de descender), abandonada porque un bug le
+impedía resolver siquiera el 6×6 y «depurar no es tan fácil, cuando hay que
+esperar varios miles de iteraciones hasta que el bug se produce»
+([message 8887](https://groups.io/g/eternity2/message/8887)).
+
+La lección se generaliza. Un no-good es una *prueba*, y cachear pruebas
+significa que tu clave de caché debe capturar cada hipótesis que la prueba
+usó. Subindéxala olvidando una arista vecina, una pieza usada o un momento de
+restauración, y cacheas una falsedad que borra soluciones en silencio. Por eso
+la versión correcta de la idea dentro de los motores CSP registra los no-goods
+solo en los fallos de propagación con sus conjuntos de razones completos,
+comprobados al estilo SAT con literales vigilados; los mecanismos están en la
+[página sobre codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings).
+
+## Variante dos: no-goods sobre el propio puzzle
+
+Una entrada de transposición dice «este estado, en esta búsqueda, está
+muerto». Un tipo de no-good más fuerte dice «esta configuración local no
+aparece en **ninguna solución de Eternity II en absoluto**»: una restricción
+aprendida sobre el puzzle, no sobre la ejecución, válida para todo
+solucionador y compartible como archivo.
+
+Ese programa también arranca en 2009 con Lindström: dados las esquinas y las
+pistas, contó ~4500 colocaciones individuales intrínsecamente inválidas, estimó
+entre 20 y 50 millones de combinaciones de dos piezas inválidas, y llamó
+abiertamente a colaboradores para verificar e intercambiar ficheros de
+«colocaciones inválidas» que cualquier solucionador pudiera usar para la poda
+temprana de ramas
+([message 6743](https://groups.io/g/eternity2/message/6743)); comparar
+matrices de posibilidad con otro miembro
+([message 6951](https://groups.io/g/eternity2/message/6951)) hizo surgir de
+inmediato una discrepancia de 618 frente a 624
+([message 6956](https://groups.io/g/eternity2/message/6956)) que Lindström
+atribuyó a una confusión de rotación en su propio lado
+([message 6957](https://groups.io/g/eternity2/message/6957)).
+
+La forma moderna e industrializada es la de capiman. Usando un CNF generado del
+puzzle de 5 pistas (130 180 variables, ~4 GB, resuelto con un antiguo
+cryptominisat; el pipeline se describe de primera mano en el
+[message 11822](https://groups.io/g/eternity2/message/11822)), extrae
+colocaciones de dos piezas demostrablemente inválidas, pares que no pueden
+coexistir en sus posiciones en ninguna solución
+([message 10832](https://groups.io/g/eternity2/message/10832)), e incluso
+diseccionó una combinación de *tres* piezas inválida hasta las tres celdas del
+anillo 0 que estrangula
+([message 11131](https://groups.io/g/eternity2/message/11131)). La misma
+maquinaria funcionó como servicio para otros miembros: dado un parcial sin
+salida, retiraba las piezas una a una, conservando cada retirada solo si el
+solucionador SAT seguía respondiendo UNSAT
+([message 10292](https://groups.io/g/eternity2/message/10292)), y devolvía
+un núcleo de 28 piezas que ya es no extensible
+([message 10289](https://groups.io/g/eternity2/message/10289)). Eso es
+minimización de cláusula de conflicto hecha a mano, exactamente lo que un
+solucionador CDCL hace internamente después de cada conflicto.
+
+La contabilidad, sin embargo, invita a la reflexión y capiman la publicó él
+mismo: en febrero de 2023 la mina contenía ~68 millones de pares inválidos
+confirmados, frente a aproximadamente $8.1 \times 10^9$ pares todavía
+indeterminados; escondidos entre los indeterminados, según su estimación,
+están los ~32 000 pares de una solución real, los que ninguna campaña de
+invalidación tiene derecho a tocar
+([message 10973](https://groups.io/g/eternity2/message/10973)). Sesenta y ocho
+millones de teoremas, cada uno individualmente verdadero, que cubren
+colectivamente menos del 1 % del espacio de pares, sin modo de adivinar el
+resto sin arriesgar uno de los 32 000 que deben sobrevivir. Las restricciones
+aprendidas sobre E2 son activos reales. Solo que se están depositando en una
+cuenta con pasivos astronómicos. Por qué la versión automatizada de este
+aprendizaje por CDCL también se agota en el tablero completo (cadenas de
+implicación planas, conflictos tardíos y anchos) se trata en la
+[página sobre codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings);
+es el mismo fenómeno, encontrado desde el lado de la extracción.
+
+## El palmarés: medido y luego descartado
+
+Ahora el contrapeso, porque sobre este tema los negativos del archivo están
+mejor documentados que sus positivos.
+
+**El solucionador premiado no recordaba nada.** Preguntado en 2010 sobre si su
+solucionador público desduplicaba los miles de tableros de 463–465 que
+encontraba, Verhaard respondió sin rodeos: «no los recuerda». No había memoria
+alguna de posiciones pasadas, y dados los volúmenes de nodos, alguien casi con
+certeza ya se había reencontrado con cualquier posición dada
+([message 7451](https://groups.io/g/eternity2/message/7451)). Es el mismo
+Verhaard que había dado el consejo de transposición al estilo del ajedrez dos
+años antes ([message 6144](https://groups.io/g/eternity2/message/6144)), cuyo
+motor mantuvo el récord de 467 durante más de una década. Conocía la técnica;
+lo entregó sin ella.
+
+**El motor récord midió el caché y lo descartó.** Al catalogar lo que probó
+tras el 469, Joshua Blackwood enumeró solucionadores SAT, GPUs, «y el caché de
+todos los 2 por 2 preresueltos», todo medido, nada conservado; solo el afinado
+de las heurísticas de colocación rindió, con un valor de aproximadamente 2×
+([message 10056](https://groups.io/g/eternity2/message/10056)). Sus razones
+declaradas para rechazar un diseño de caché por hilo emparentado son pura
+aritmética de memoria: el coste de reconstrucción cuando la búsqueda vuelve a
+cruzar la frontera del caché, y la certeza de que las tablas por hilo ya no
+cabrían en L3. Los motores más rápidos ya pasan más de la mitad de sus ciclos
+detenidos sobre la memoria (véase
+[ingeniería de solucionadores](/research/build/faster/solver-engineering));
+un sondeo de caché por nodo es una propuesta de añadir un viaje de ida y vuelta
+a la latencia DRAM a un bucle que vive o muere por el L1.
+
+**Las tasas de aciertos se midieron, y son magras.** En 2016, 21valy
+instrumentó un solucionador 10×10 por líneas de barrido: los estados
+exactamente duplicados (mismos bordes, mismas piezas interiores, mismos nortes
+expuestos) ocurren a razón de cerca del 1 % a mitad de camino del tablero, de
+donde su «moraleja n.º 1: no te preocupes por los duplicados verdaderos». Las
+claves relajadas (solo piezas interiores) muestran un 30–40 % de repetición,
+pero la ganancia teórica se topa por debajo del 25 % y su tabla de hash «crece
+demasiado rápido … saturada en unos minutos»
+([message 9618](https://groups.io/g/eternity2/message/9618)). Un uno por ciento
+de aciertos, cada uno ahorrando un subárbol, frente a un sondeo en cada nodo y
+una tabla cuyo conjunto de trabajo supera la RAM en minutos: ese es el problema
+del punto de equilibrio en una sola medición.
+
+El patrón a lo largo de los tres casos: nadie refutó el teorema. Los subárboles
+fallidos *son* reutilizables. Lo que falló es el tipo de cambio: en 16×16 la
+clave de frontera es demasiado ancha, el espacio de estados demasiado grande
+para que cualquier tabla cubra una fracción útil, y el coste del sondeo recae
+sobre el recurso exacto (el ancho de banda de memoria) que los backtrackers
+rápidos ya han agotado.
+
+## Dónde rinde de verdad
+
+Reduce el tablero o cierra la búsqueda, y la misma idea cambia de signo.
+
+- **Tableros y anillos pequeños.** El esquema de restore-lists de Lindström
+  redujo el anillo de borde 6×6 en un factor de 4,4×
+  ([message 8875](https://groups.io/g/eternity2/message/8875)). En un espacio
+  de estados pequeño la tabla *puede* cubrir una fracción significativa de las
+  fronteras alcanzables, de modo que las tasas de aciertos suben del por-mil al
+  por-ciento y más allá.
+- **Enumeración y conteo exhaustivos.** Cuando el árbol se recorra hasta el
+  final, cada subárbol duplicado es una revisita garantizada, no una
+  probabilística: las filas superiores gemelas de McGavin
+  ([message 9610](https://groups.io/g/eternity2/message/9610)) son 40
+  horas-núcleo que una comprobación de firma habría ahorrado con certeza.
+  Desduplicar listas de filas enumeradas antes de distribuirlas es exactamente
+  esto, aplicado en lo alto del árbol, y la cultura de censo de la comunidad
+  (los 9×9 exhaustivos, los puzzles de pistas íntegramente enumerados) es donde
+  la disciplina de enumeración vence de forma visible (véase
+  [benchmarks](/research/build/benchmarks)).
+- **Finales.** Muy dentro del tablero el conjunto de piezas restantes es
+  pequeño, la frontera corta, y el subproblema se repite a lo largo de muchas
+  mitades superiores: el régimen donde una tabla de memoización se mantiene
+  pequeña, caliente y fiable.
+- **Dentro de un motor de propagación.** Registrar un no-good duro con su
+  conjunto de razones completo en cada fallo de propagación es correcto por
+  construcción y barato de comprobar: la herencia del lado CSP de CDCL descrita
+  en la [página de codificaciones](/research/build/exact/sat-csp-encodings).
+
+## Lo que cuesta
+
+- **La clave: entropía de frontera, pagada por entrada.** Una clave de
+  transposición correcta es la frontera abierta más el conjunto de piezas
+  restantes. En una línea de prueba a media altura del tablero eso son
+  $2 \cdot 3 + 14 \cdot 5 = 76$ bits de estado de arista
+  ([message 6145](https://groups.io/g/eternity2/message/6145)) más un bitmap de
+  piezas de 256 bits para la prueba de subconjunto
+  ([message 6137](https://groups.io/g/eternity2/message/6137)), y el número de
+  claves *alcanzables* en esa única línea es de alrededor de
+  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$
+  ([message 6143](https://groups.io/g/eternity2/message/6143)). En general
+  la población de claves crece como $e^{h \cdot \ell}$ para una frontera de
+  longitud $\ell$: una ley de perímetro, el mismo término de frontera que el de
+  la [ley de área](/research/why/entropy-area-law), y por eso los tableros
+  pequeños son baratos y el 16×16 no lo es.
+- **La tabla: la cobertura es la memoria dividida por la población.** Una tabla
+  de hash de $M$ entradas frente a $K$ claves alcanzables cubre $M/K$ de ellas;
+  con $K \approx 4 \times 10^{18}$, una tabla de 64 GiB ($M \approx 2^{33}$
+  entradas) cubre alrededor de $10^{-9}$ del espacio. Los aciertos vienen
+  entonces solo de la localidad a corto plazo, que es lo que Lindström
+  observó: 0,1 % trepando a 1 % y estancándose contra el muro de la memoria
+  ([message 6145](https://groups.io/g/eternity2/message/6145)).
+- **El sondeo: un viaje de ida y vuelta a DRAM por nodo.** Un motor moderno
+  coloca $\sim$70 M de piezas por segundo (unos $14$ ns por nodo) mientras que
+  un sondeo aleatorio de tabla cuesta un bloqueo de memoria de $\sim$100 ns, es
+  decir $c \approx 7$ nodos de búsqueda. El caché solo rinde si
+  $$
+  p_{\text{hit}} \cdot \bar{S} \;>\; c \;\approx\; 7 \text{ nodos},
+  $$
+  donde $\bar{S}$ es el tamaño medio de un subárbol saltado. Con el
+  $p_{\text{hit}} \approx 1\%$ medido
+  ([message 9618](https://groups.io/g/eternity2/message/9618)) necesitas
+  $\bar{S} > 700$ nodos *y* una tabla que retenga efectivamente esas entradas,
+  la misma que 21valy vio saturarse en minutos. Con un
+  $p_{\text{hit}} \sim 10^{-9}$ efectivo, ningún $\bar{S}$ realista equilibra
+  las cuentas.
+- **Corrección: el conjunto de razones completo, o nada.** Cada hipótesis que
+  la prueba de fallo usó debe estar en la clave: restore-lists por arista,
+  listas de piezas usadas, todo
+  ([message 8886](https://groups.io/g/eternity2/message/8886)), y el modo de
+  fallo del subindexado son soluciones perdidas en silencio, el bug más caro
+  que una búsqueda exhaustiva puede tener.
+
+Ese es el resumen que el archivo se ganó a lo largo de dieciocho años: el
+teorema es gratis, la memoria no. Un subárbol fallido es de verdad un hecho que
+te pertenece, pero a la escala del tablero completo, almacenar hechos cuesta
+más que redescubrirlos, y los dos solucionadores que establecieron récords
+eligieron ambos, tras medir, olvidar.

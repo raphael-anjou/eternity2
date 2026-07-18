@@ -1,0 +1,298 @@
+---
+title: "Contar soluciones: medir lo que no se puede encontrar"
+description: >-
+  Nadie ha visto jamás una solución completa de Eternity II y, sin embargo, la
+  comunidad sabe, con un margen de un factor de dos, cuántas existen. Esta página
+  cuenta la historia y el oficio de ese número: censos exactos en tableros
+  pequeños, la fórmula de esperanza y su convergencia sobre 14 702 a lo largo de
+  veinte años, y las estimaciones por búsqueda podada en las que solo se confió
+  cuando cuatro ejecuciones independientes coincidieron.
+metaDescription: "Cómo la comunidad estima el número de soluciones de Eternity II con un factor de dos: censos en tableros pequeños y una fórmula de esperanza que converge en 14 702."
+kind: concept
+order: 180
+group: Analysis
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "La estimación de Brendan Owen el día del lanzamiento: 5 930 con la pista, ~4,65 M sin ella, reconciliando los «aproximadamente 5 millones» que Monckton había dado a Dave Clark (msg 987, 2007-07)"
+    url: https://groups.io/g/eternity2/message/987
+  - label: "El producto cerrado de la esperanza del número de soluciones publicado en la lista (msg 3385, 2007-11)"
+    url: https://groups.io/g/eternity2/message/3385
+  - label: "El artículo de kubzpa «E2 has 15 millions of solutions» (msg 3497, 2007-12; v2 tras revisión por pares, msg 3583)"
+    url: https://groups.io/g/eternity2/message/3497
+  - label: "Las cuatro búsquedas de borde podadas e independientes de Owen convergen sobre ≈ 4,05×10³⁷ (msg 2696, 2007-09; primera cifra msg 1225)"
+    url: https://groups.io/g/eternity2/message/2696
+  - label: "McGavin: 1,1527×10⁷ soluciones sin la pieza de inicio frente a 14 702 con ella, y nodos por solución sin cambios (msg 8924, 2011)"
+    url: https://groups.io/g/eternity2/message/8924
+  - label: "El enunciado canónico de McGavin: 14 702 con la pieza de inicio, 4×10⁻⁸ con las cinco pistas (msg 11193, 2024)"
+    url: https://groups.io/g/eternity2/message/11193
+  - label: "La pista n.º 3 contada exactamente: 2 195 647 488 soluciones (msg 8168, 2010)"
+    url: https://groups.io/g/eternity2/message/8168
+  - label: "Los dos benchmarks 9×9 agotados: 2 y 3 soluciones frente a las 3,2 predichas (msg 8793, 2011; correcciones 8801–8803)"
+    url: https://groups.io/g/eternity2/message/8793
+related:
+  - /research/why/complex-theory
+  - /research/build/benchmarks
+  - /research/build/known-facts
+---
+
+Nadie ha exhibido jamás una solución completa de Eternity II. La comunidad, sin
+embargo, se pone de acuerdo sobre cuántas existen, con un margen de un factor de
+dos según lo que sostiene: alrededor de **14 702** con la pieza de inicio
+obligatoria, y alrededor de **4×10⁻⁸**, es decir, exactamente una, una vez
+colocadas las cinco pistas
+([msg 11193](https://groups.io/g/eternity2/message/11193)). Esta página trata de
+cómo un grupo de personas aprendió a contar algo que ninguna de ellas podía
+encontrar, y por qué se molestaron en hacerlo.
+
+El *porqué* no es la curiosidad. Un puzzle con 14 702 soluciones y un puzzle con
+1 son bestias distintas en todo lo que importa. **Diseño**: los parámetros del
+puzzle se ajustaron para que el número esperado quedara cerca de uno; la
+comunidad hizo ingeniería inversa de la perilla del diseñador en cuestión de
+semanas tras el anuncio de 2007, cuando Alan O'Donnell escribió el número como
+función del número de colores $B$ y descubrió que cruza $1$ en $B \approx 14.67$
+([msg 94](https://groups.io/g/eternity2/message/94)); los
+[17 colores interiores](/research/why/phase-transition) del puzzle real se
+sitúan justo pasado ese filo del cuchillo. **Dificultad**: el número de
+soluciones dividido entre el tamaño del árbol de búsqueda (nodos por solución) es
+el verdadero precio de la caza, y se comporta de forma contraintuitiva: Peter
+McGavin calculó que retirar la restricción de la pieza de inicio multiplica las
+soluciones por 784 mientras deja los nodos por solución esencialmente sin
+cambios, $9.2766\times10^{42}$ frente a $9.2751\times10^{42}$
+([msg 8924](https://groups.io/g/eternity2/message/8924)). Más soluciones no
+significan un puzzle más fácil; significan un pajar proporcionalmente más grande.
+**Verificación**: los conteos exactos sobre regiones pequeñas son la moneda de
+corrección de la comunidad: la forma en que dos solucionadores prueban que leen
+las mismas piezas sin compartirlas jamás (véase
+[la cultura de los benchmarks](/research/build/benchmarks)).
+
+Una razón más por la que el número importa: las soluciones no son variaciones
+sobre un mismo tema. Brendan Owen y otros insistieron en que las soluciones
+distintas son "por lo general una reestructuración completa de todo el puzzle",
+y no permutaciones locales de unas pocas piezas
+([msgs 7364/7365](https://groups.io/g/eternity2/message/7365)), de modo que
+14 702 es un conteo de tableros genuinamente diferentes, dispersos por el espacio
+de búsqueda.
+
+## Tres formas de contar
+
+Veinte años de tráfico en la lista ordenan cada resultado de conteo en tres
+regímenes, cada uno con sus propias garantías, su propio precio y sus propios
+modos de fallo.
+
+| Régimen | Lo que da | Lo que cuesta | Resultado insignia |
+| --- | --- | --- | --- |
+| Enumeración exacta | El conteo verdadero | El árbol de búsqueda entero | Pista n.º 3: exactamente 2 195 647 488 |
+| Esperanza de primer momento | Un promedio sobre puzzles de este tipo | Aritmética con lápiz y papel | 14 702 con la pieza de inicio |
+| Búsqueda muestreada / podada | Una estimación con barras de error informales | Un presupuesto de nodos fijo por ejecución | Anillo de borde ≈ 4,05×10³⁷ |
+
+### Enumeración exacta: contar agotando
+
+Allí donde el árbol es lo bastante pequeño para recorrerlo por completo, contar
+no es más que buscar sin detenerse en el primer éxito. La comunidad lo empleó
+desde las primeras semanas como un *protocolo de verificación*: recubre la
+esquina superior izquierda 3×3 con las 256 piezas y deberás encontrar exactamente
+**2 633 221** soluciones
+([msg 2229](https://groups.io/g/eternity2/message/2229)), un número que se puede
+publicar sin infringir el derecho de autor sobre el juego de piezas, e imposible
+de reproducir aunque sea con una sola pieza mal introducida. Las esquinas 5×5
+siguieron en 2009, verificadas de forma cruzada por tres programas independientes
+(superior izquierda: 1 596 901 885 652 soluciones parciales con las cinco pistas,
+[msg 7103](https://groups.io/g/eternity2/message/7103),
+[7105](https://groups.io/g/eternity2/message/7105)). Alcanzar el consenso te
+hacía entrar en el medio en broma "Right Numbers Club" de la comunidad; toda la
+historia está en la [página de benchmarks](/research/build/benchmarks).
+
+Dos resultados exactos destacan por encima del resto. En 2010, apal1969 agotó el
+puzzle oficial de la Pista n.º 3 (una instancia comercial real de Tomy) y
+encontró exactamente **2 195 647 488** soluciones
+([msg 8168](https://groups.io/g/eternity2/message/8168)): la única instancia
+comercializada de la familia cuyo número de soluciones se conoce exactamente en
+lugar de estimarse. Y en 2011, los dos puzzles de referencia 9×9 de Brendan Owen
+fueron agotados, a un coste de en torno a $1.9\times10^{14}$ y
+$1.45\times10^{14}$ nodos y tres semanas cada uno en un Opteron de doble núcleo.
+Rindieron **2** y **3** soluciones;
+[la teoría compleja](/research/why/complex-theory) había predicho 3,2 para el
+primero ([msg 8793](https://groups.io/g/eternity2/message/8793)). Hasta el conteo
+tuvo que contarse con cuidado: el primer informe afirmaba una solución cada uno,
+y hicieron falta los backtrackers barajados de forma independiente de McGavin
+para hacer aflorar los tableros que faltaban
+([msgs 8801–8803](https://groups.io/g/eternity2/message/8801)). Exhaustivo no
+significa libre de errores; solo la replicación lo es.
+
+### El primer momento: contar por esperanza
+
+Para el tablero completo 16×16, el agotamiento está descartado, así que la
+herramienta principal de la comunidad siempre ha sido el cálculo del *primer
+momento* (valor esperado): multiplicar el número de formas de disponer las piezas
+por la probabilidad de que cada arista interna concuerde, tratando los colores de
+las aristas como extracciones independientes. Las primeras versiones aparecieron
+en cuestión de **días** tras el anuncio de enero de 2007, meses antes de que
+nadie tuviera piezas
+([msg 38](https://groups.io/g/eternity2/message/38),
+[94](https://groups.io/g/eternity2/message/94)). El día del lanzamiento, con las
+estadísticas reales de las piezas en mano, Owen calculó ≈ **5 930** soluciones
+con la pista obligatoria y ≈ **4,65 millones** sin ella, y luego usó la
+separación para auditar el marketing: Christopher Monckton había dado a Dave
+Clark de eternity2.net una mejor estimación de "aproximadamente 5 millones" de
+soluciones, así que Owen concluyó que los matemáticos de Monckton simplemente
+habían olvidado la restricción de la pista
+([msg 987](https://groups.io/g/eternity2/message/987)). David Eddy añadió el mismo
+día que las
+[correcciones de paridad](/research/build/analysis/parity-arguments) (el número
+de aristas de cada color debe ser par) aportan un factor de aproximadamente
+$2^{16}$ que pone de acuerdo a las familias de estimaciones
+([msg 992](https://groups.io/g/eternity2/message/992)).
+
+La convergencia llevó años, y no fue monótona. El producto cerrado se publicó en
+noviembre de 2007
+([msg 3385](https://groups.io/g/eternity2/message/3385)); mjqxxxx ya había
+iniciado un marco de conteo plenamente riguroso ese julio
+([msg 1221](https://groups.io/g/eternity2/message/1221)); el artículo de kubzpa
+de diciembre de 2007 defendía ~**15 millones** de soluciones con la pieza de
+inicio. Recibió una auténtica revisión por pares en la lista: las correcciones de
+la lista produjeron una segunda versión corregida
+([msg 3497](https://groups.io/g/eternity2/message/3497),
+[3583](https://groups.io/g/eternity2/message/3583)), y entonces mjqxxxx detectó
+una inconsistencia de Monte-Carlo en la v2
+([msg 3589](https://groups.io/g/eternity2/message/3589)) que kubzpa rastreó hasta
+un barajado sesgado, revisando de nuevo su estimación
+([msg 3591](https://groups.io/g/eternity2/message/3591)). Una cifra de "20 000
+soluciones" circuló durante años antes de rastrearse hasta el sitio oficial
+francés archivado ([msg 8515](https://groups.io/g/eternity2/message/8515)). El
+número que sobrevivió es el de la teoría compleja: jagbrain derivó **14 702** de
+un modelo de Markov cerrado e independiente en 2008, coincidiendo exactamente con
+el método iterativo de Owen
+([msg 5758](https://groups.io/g/eternity2/message/5758)); McGavin publicó la misma
+cifra en 2011 ([msg 8924](https://groups.io/g/eternity2/message/8924)) y la
+reenunció como la respuesta canónica en 2024: 14 702 con la pieza de inicio,
+"probablemente exacta con un margen de un factor de 2", y $4\times10^{-8}$ con
+las cinco pistas, "sugiriendo muy fuertemente… una solución única, unívoca"
+([msg 11193](https://groups.io/g/eternity2/message/11193)). La maquinaria detrás
+de esos números, la esperanza profundidad a profundidad y lo que predice sobre el
+árbol de búsqueda, vive en la
+[página de la teoría compleja](/research/why/complex-theory); esta página solo
+necesita su resultado.
+
+Una salvedad que la propia comunidad planteó tiene aquí su lugar. E2 fue
+*generado a partir de una solución*, y elegir un puzzle eligiendo una solución
+sobremuestrea los juegos de piezas ricos en soluciones, así que el conteo
+condicionado por el proceso de generación debería resultar *más alto* que la
+esperanza a secas, en una cantidad que el hilo intentó acotar sin éxito
+([msgs 6892/6894](https://groups.io/g/eternity2/message/6892)). Las fórmulas de
+esperanza tarifan un puzzle aleatorio con las estadísticas de E2; E2 no es del
+todo un puzzle aleatorio de ese tipo.
+
+### Búsqueda muestreada y podada: contar sobreviviendo
+
+Entre lo exacto y lo esperado se sitúa el tercer régimen: lanzar una búsqueda
+real, pero podarla al azar hasta un presupuesto fijo, y volver a escalar los
+supervivientes. La joya metodológica del archivo es el censo del anillo de borde
+que hizo Owen en septiembre de 2007. Lanzó **cuatro búsquedas separadas** del
+marco de 60 piezas, cada una podando el árbol al azar mientras mantenía unos 10
+millones de nodos activos por profundidad. Cada una de las cuatro estimó de forma
+independiente **≈ 4,05×10³⁷** soluciones de borde
+([msg 2696](https://groups.io/g/eternity2/message/2696), publicada por primera vez
+en [msg 1225](https://groups.io/g/eternity2/message/1225)). La cifra discrepaba
+de la estimación publicada por eternity2.net en trece órdenes de magnitud, y la
+replicación es exactamente la razón por la que la comunidad se puso del lado de
+Owen. Una única ejecución podada puede estar silenciosamente sesgada por
+cualquier cosa; cuatro ejecuciones independientes que coinciden son una barra de
+error que se puede ver. Ese hábito (la replicación como control de error, no como
+argumento de autoridad) es el mismo que más tarde rigió los censos de las
+esquinas y los recuentos de los 9×9.
+
+## Paso a paso: la fórmula de esperanza en un tablero minúsculo
+
+El cálculo del primer momento merece hacerse una vez a mano. Tomemos un E2 en
+miniatura: un tablero 3×3 enmarcado (4 piezas de esquina, 4 piezas de borde, 1
+pieza interior) con una única paleta de $c$ colores en cada arista interna.
+
+**Paso 1: contar las disposiciones.** Las esquinas van a las celdas de esquina
+con su orientación forzada por los dos lados grises; las piezas de borde,
+igualmente; la única pieza interior conserva sus 4 rotaciones:
+
+$$
+A \;=\; 4! \times 4! \times 4 \;=\; 2304 .
+$$
+
+**Paso 2: contar las restricciones.** El tablero tiene $2\cdot3\cdot2 = 12$
+aristas internas. Si los colores fueran extracciones uniformes independientes,
+cada arista concordaría con probabilidad $1/c$.
+
+**Paso 3: multiplicar.**
+
+$$
+\mathbb{E}[S] \;=\; \frac{2304}{c^{12}}
+\quad\Longrightarrow\quad
+c=2:\ 0.56, \qquad c=3:\ 0.0043 .
+$$
+
+Ese es todo el dilema del diseñador en una línea: con dos colores el puzzle
+minúsculo espera alrededor de media solución, con tres es casi con seguridad
+irresoluble. Una fracción de color mueve la esperanza de un lado a otro de la
+línea "exactamente una". Escala el mismo producto hasta el tablero real, con $4!$
+disposiciones de esquinas, $56!$ disposiciones de bordes,
+$195!\cdot4^{195}$ disposiciones interiores (la pieza de inicio está fijada), 60
+aristas del anillo del marco a $1/5$ y $56+364=420$ aristas restantes a $1/17$, y
+obtienes la forma publicada en la lista en noviembre de 2007
+([msg 3385](https://groups.io/g/eternity2/message/3385)):
+
+$$
+\mathbb{E}[S] \;=\; 4!\;56!\;195!\;4^{195}
+\left(\tfrac{1}{5}\right)^{60}\left(\tfrac{1}{17}\right)^{420}
+\;\approx\; 0.02 .
+$$
+
+No hay manera de esconder la brecha: **0,02 no es 14 702**. El producto ingenuo
+es casi seis órdenes de magnitud demasiado pequeño, y la comunidad sabía por qué
+desde el principio. Tratar cada arista como una moneda al aire independiente de
+$1/17$ tarifa la última pieza como la primera, cuando en realidad el juego de
+piezas real se empareja a la perfección (cada color tiene un conteo par, con
+[holgura cero](/research/build/known-facts)), de modo que las probabilidades de
+concordancia del final de la partida quedan condicionadas muy por encima de
+$1/17$ por todo lo ya colocado. Esas correcciones de paridad y de agotamiento se
+señalaron en el mismísimo mensaje que publicó la fórmula, y el factor de conteo
+par $\sim 2^{16}$ de Eddy
+([msg 992](https://groups.io/g/eternity2/message/992)) es el mayor de ellos.
+[La teoría compleja](/research/why/complex-theory) es precisamente este cálculo
+hecho correctamente, siguiendo los conteos de piezas y colores supervivientes
+profundidad a profundidad en lugar de suponer una probabilidad fija, y *esa* es
+la versión que aterriza en 14 702 y coincide con los conteos exhaustivos sobre
+tableros pequeños con el margen de un factor de dos que sostiene. La estructura de
+la fórmula (disposiciones × probabilidad de concordancia) es correcta; de dónde
+sacas la probabilidad es todo el juego.
+
+## Lo que cuesta
+
+Los tres regímenes son en realidad tres puntos sobre una curva
+coste–conocimiento.
+
+**La enumeración exacta cuesta el árbol mismo.** Contar es una búsqueda
+exhaustiva que se niega a detenerse: cada censo 9×9 costó del orden de $10^{14}$
+nodos y tres semanas de hardware de 2011, y el precio crece con el espacio de
+búsqueda, no con la respuesta. Para el puzzle completo, el árbol tiene una
+anchura de $\sim 10^{45}$ en su meseta; el conteo exacto de las soluciones de E2
+no lo calculará nadie, jamás, por esta vía.
+
+**La esperanza no cuesta casi nada, y ahí está su trampa.** La fórmula de primer
+momento es aritmética $O(1)$ (la versión refinada de la teoría compleja son unos
+pocos cientos de multiplicaciones, una por celda), y por eso existía antes de que
+el puzzle saliera a la venta. Pero un primer momento no lleva información alguna
+sobre la *varianza*: te dice el conteo promedio sobre puzzles con las estadísticas
+de E2, no si la masa se encuentra en las instancias típicas o en raros bichos
+ricos en soluciones, ni si los tableros parciales que se cuentan a cada
+profundidad son genuinamente distintos. Los
+[resultados de entropía y de ley de área](/research/why/entropy-area-law)
+muestran exactamente dónde muerde esa ceguera: pasadas ~80 celdas, la distinción
+se derrumba de una manera que ningún modelo de independencia puede ver. Usa las
+esperanzas para comparar órdenes de magnitud y encuadrar las expectativas, nunca
+como cotas.
+
+**El muestreo solo compra barras de error mediante la repetición.** Una búsqueda
+podada cuesta un presupuesto de nodos por ejecución y da una estimación de sesgo
+desconocido; Owen pagó cuatro presupuestos por el anillo de borde y compró la
+única clase de confianza que ofrece este régimen. La regla en la que la comunidad
+se asentó es la que merece llevarse de esta página: un conteo muestreado que has
+visto una sola vez es una anécdota; el mismo conteo a partir de ejecuciones,
+semillas y autores independientes es una medición.

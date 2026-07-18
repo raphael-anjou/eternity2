@@ -1,0 +1,267 @@
+---
+title: "Diseñado para ser irresoluble: la receta"
+description: >-
+  Eternity II sigue una receta para lograr el puzzle de emparejamiento de aristas
+  más difícil posible: forma compacta, sin piezas simétricas ni duplicadas,
+  paletas separadas, frecuencias planas, una sola solución esperada. La comunidad
+  aplicó ingeniería inversa a cada ingrediente en el año del lanzamiento.
+metaDescription: "La receta tras la dificultad de Eternity II: forma compacta, piezas sin simetrías ni duplicados, paletas separadas y una única solución esperada."
+kind: finding
+contribution: reconstruction
+rigor: conjectured
+tier: 2
+order: 45
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "guenter stertenbrink plantea el problema de diseño: un puzzle con ~1 % de probabilidad de caer en diez años (msg 15, febrero de 2001)"
+    url: https://groups.io/g/eternity2/message/15
+  - label: "Brendan Owen, Diseñar el puzzle más difícil: la receta completa y la derivación del 17,14 (msg 1947, agosto de 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "Brendan Owen, Estimaciones del puzzle más difícil: la tabla de parámetros más duros para cada tamaño de tablero (msg 2164)"
+    url: https://groups.io/g/eternity2/message/2164
+  - label: "Brendan Owen, Frecuencias de las piezas: la distribución plana que acabó con el método de Eternity I (msg 1667)"
+    url: https://groups.io/g/eternity2/message/1667
+  - label: "Brendan Owen citando The Times: Selby y Riordan escribieron el generador para Monckton (msg 3373)"
+    url: https://groups.io/g/eternity2/message/3373
+  - label: "El relato de Dave Clark de una llamada telefónica con Christopher Monckton sobre cómo se generó el puzzle (msg 4177)"
+    url: https://groups.io/g/eternity2/message/4177
+  - label: "El censo del espacio de diseño de las piezas: 256 piezas de unas 21 000 posibles, formas simétricas evitadas (msgs 8014–8034; censo en msg 8025)"
+    url: https://groups.io/g/eternity2/message/8025
+  - label: "Brendan Owen sobre la solución de los diseñadores guardada bajo llave en una caja fuerte (msg 8823)"
+    url: https://groups.io/g/eternity2/message/8823
+related:
+  - /research/why/phase-transition
+  - /research/why/rare-color-geography
+  - /research/community/hunt
+---
+
+Eternity II no es un puzzle que resulte ser difícil por casualidad. Es el
+producto de una receta: una breve lista de reglas de diseño que, aplicadas en
+conjunto, producen el puzzle de emparejamiento de aristas más difícil que un
+número dado de piezas puede formar, garantizando al mismo tiempo que existe una
+solución. Lo notable es que la receta no fue filtrada ni publicada por los
+diseñadores. La comunidad la reconstruyó, ingrediente a ingrediente, en cuestión
+de semanas tras el lanzamiento, en su mayor parte en un único mensaje de agosto
+de 2007 firmado por Brendan Owen y titulado, muy apropiadamente, «Diseñar el
+puzzle más difícil»
+([msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+Esta página recorre esa receta: qué es cada regla, qué le cuesta a cualquiera que
+intente resolver el puzzle y de dónde procede cada afirmación. La medición del
+ingrediente más afilado (el número de colores situado exactamente sobre el pico
+de dificultad) tiene [su propia página](/research/why/phase-transition); aquí
+ocupa su lugar entre los demás.
+
+## El problema precedió al puzzle
+
+El problema de diseño se planteó en la lista de correo seis años antes de que
+nadie tuviera que resolverlo. En febrero de 2001, con Eternity I apenas frío y
+Eternity II aún como rumor, guenter stertenbrink preguntó al grupo cómo se
+diseñaría un puzzle con un premio de 5 M£ de modo que tuviera solo alrededor de
+un 1 % de probabilidad de ser resuelto en diez años
+([msg 15](https://groups.io/g/eternity2/message/15)). Las respuestas
+discutieron escalar una dificultad al estilo de Eternity I e incluso ocultar
+problemas criptográficos en las aristas.
+
+Esa es exactamente la cuerda floja que debe recorrer un puzzle con premio.
+Hágalo demasiado fácil y el premio se pierde; eso es lo que le ocurrió a
+Eternity I, que cayó en 2000 porque tenía muchísimas más soluciones de las que
+su diseñador creía. Hágalo literalmente imposible y el concurso es un fraude. La
+meta es un puzzle del que se puede demostrar que tiene una solución, situado de
+tal manera que ninguna cantidad realista de cómputo la encuentre dentro de la
+ventana del concurso. Los diseñadores de Eternity II habían visto morir a
+Eternity I, y la receta que sigue se lee como una respuesta punto por punto.
+
+## La receta, ingrediente a ingrediente
+
+### Mantener la forma compacta
+
+La primera regla de la derivación de Owen: usar un tablero compacto, el cuadrado
+16×16, en lugar de cualquier forma alargada o irregular
+([msg 1947](https://groups.io/g/eternity2/message/1947)). Una forma compacta
+maximiza la proporción de uniones interiores, donde la incertidumbre es mayor, y
+no deja brazos estrechos ni pasillos que un solucionador pudiera agotar a bajo
+coste y usar como punto de anclaje. Owen verificó después la consecuencia de
+forma experimental: en diseños 16×16 comparables con paletas desequilibradas
+siempre hay alguna región más barata de teselar primero (para un reparto 2/19,
+empezar por el centro sale más de cien veces más barato que un barrido por
+filas), pero con los parámetros reales de E2 no existe ninguna región así. El
+diseño no tiene, en sus propias palabras, «ninguna zona débil por donde empezar
+a teselar»
+([msg 5263](https://groups.io/g/eternity2/message/5263), comparación de diseños
+[msg 5243](https://groups.io/g/eternity2/message/5243)).
+
+### Sin piezas simétricas, sin duplicados
+
+Cada una de las 256 piezas es única, y ninguna es simétrica por rotación
+([msg 1947](https://groups.io/g/eternity2/message/1947)). En 2010 la comunidad
+contabilizó el espacio de diseño para ver hasta qué punto esto es deliberado:
+con 5 patrones de marco y 17 patrones interiores hay aproximadamente 21 000
+diseños de pieza posibles, incluidas formas como *aaaa*, *abab* y *aabb* que se
+repiten bajo rotación. El conjunto real las evita todas de forma ostensible
+([msgs 8014–8034](https://groups.io/g/eternity2/message/8014)).
+
+La consecuencia es la ausencia de regalos. Un par duplicado permitiría reescribir
+cualquier solución intercambiando las dos piezas, duplicando gratis el número de
+soluciones; una pieza con simetría de rotación colapsaría orientaciones y
+encogería el espacio de decisión. Negar ambas cosas mantiene el número esperado
+de soluciones fijado exactamente donde los diseñadores lo querían y entrega al
+solucionador exactamente cero simetría que explotar: cada colocación es una
+decisión plena e independiente entre 4 orientaciones de piezas distintas.
+
+Hay una segunda razón, más discreta, para prohibir las piezas simétricas, y Owen
+la midió. Una pieza simétrica no solo es estructuralmente redundante, sino que
+además es más fácil de *colocar*, porque encaja en más contextos. Construyó un
+conjunto de 289 piezas (las 17 formas con simetría de 90 grados, las 136 formas
+con simetría de 180 grados y 136 piezas asimétricas aleatorias), teseló un
+pequeño rectángulo de todas las maneras posibles y contó con qué frecuencia
+aparecía cada pieza en el conjunto de los 759 millones de soluciones. Las piezas
+asimétricas aparecían **2,08 veces** más a menudo que las de simetría de 180
+grados y **4,14 veces** más a menudo que las de simetría de 90 grados
+([msg 2076](https://groups.io/g/eternity2/message/2076)). Así que las piezas
+simétricas son las *difíciles de teselar*, y un puzzle que las hubiera incluido
+habría entregado al solucionador precisamente el asidero de teselabilidad
+desigual que las [frecuencias de color planas](#hacer-que-toda-frecuencia-sea-plana)
+están destinadas a eliminar. Prohibirlas mantiene cada pieza más o menos
+igual de difícil de colocar, sin ninguna fácil que reservar para el final.
+
+### Dos paletas, estrictamente separadas
+
+Los 22 colores se reparten en 17 colores interiores y 5 que solo aparecen en las
+uniones entre piezas de borde, nunca en el interior
+([msg 1947](https://groups.io/g/eternity2/message/1947)). Esto convierte el marco
+en su propio subpuzzle, cuya dificultad puede ajustarse de forma independiente
+del interior, de modo que ninguna de las dos partes es un punto de entrada
+blando: el mismo acto de equilibrio que la forma compacta, aplicado a la paleta.
+Los cinco colores exclusivos del marco son además los raros, puestos en
+cuarentena en el borde, donde su escasez no puede crear celdas interiores
+sobrerrestringidas de las que la propagación se daría un festín. Esa firma
+visible tiene [su propia página](/research/why/rare-color-geography).
+
+### Hacer que toda frecuencia sea plana
+
+Cuando Owen digitalizó su conjunto el día del lanzamiento, encontró la
+distribución de colores de arista «tan plana como podía ser»: 24 aristas de cada
+uno de los 5 colores de unión de borde, 48–50 de cada uno de los 17 colores
+interiores ([msg 1054](https://groups.io/g/eternity2/message/1054)).
+
+Este único ingrediente es el que acabó con la estrategia de Eternity I.
+Eternity I se resolvió en gran parte mediante el ordenamiento por dificultad de
+las piezas: las teselabilidades de sus piezas variaban enormemente, de modo que
+los solucionadores podían reservar las piezas más fáciles para el final y dejar
+que las estadísticas los llevaran a buen puerto. Dos semanas después del
+lanzamiento, Owen mostró que la distribución plana de E2 vuelve inútil ese
+enfoque: cuando cada color es igual de común, cada pieza es más o menos igual de
+teselable, y ninguna heurística de ordenamiento gana tracción
+([msg 1667](https://groups.io/g/eternity2/message/1667)). Como lo expresó en
+respuesta doc_s_smith, una de las personas que realmente resolvieron Eternity I,
+la selección de la posición más restringida se convirtió en «nuestra única otra
+esperanza» ([msg 1722](https://groups.io/g/eternity2/message/1722)).
+
+### Apuntar a exactamente una solución
+
+El último ingrediente fija los propios recuentos de colores. Owen razonó hacia
+atrás a partir del requisito de «alrededor de una solución esperada»: imponer que
+el número esperado de teselados interiores sea 1 y resolver para el número de
+colores interiores da
+
+$$I = (196! \cdot 4^{196})^{1/392} \approx 17.14$$
+
+Redondee a 17, añada los 5 colores de borde ajustados por separado, y tiene la
+paleta exacta de Eternity II
+([msg 1947](https://groups.io/g/eternity2/message/1947)). Owen respaldó la
+derivación con simulaciones, defendió el 17+5 frente al diseño vecino 16+8 de la
+misma familia de una solución esperada, ya que equilibra mejor la teselabilidad
+de las piezas de borde e interiores y no deja ninguna entrada barata por el marco
+([msg 2426](https://groups.io/g/eternity2/message/2426)), y lo completó con una
+tabla de los parámetros más duros para cada tamaño de tablero, una receta general
+de la que E2 es la fila 16×16
+([msg 2164](https://groups.io/g/eternity2/message/2164)).
+
+Una solución esperada no es un capricho estético arbitrario. Es el ajuste en el
+que las soluciones son tan escasas como pueden serlo sin dejar de existir: el
+pico de la transición de fase, el punto en el que se puede demostrar que la
+búsqueda está en su peor momento. Esa medición, y los análisis publicados que más
+tarde confirmaron el número de Owen, viven en la
+[página del pico de dificultad](/research/why/phase-transition). El reverso
+prueba que la perilla es real: un diseño 16×16 deliberadamente *relajado* que se
+discutió en la lista tiene alrededor de 10^42 soluciones esperadas, aunque Owen
+advirtió que incluso ese no es ningún paseo
+([msg 4968](https://groups.io/g/eternity2/message/4968)).
+
+## Quién lo diseñó realmente
+
+Christopher Monckton inventó la franquicia Eternity y puso el premio, pero su
+idea original para la secuela era un puzzle tridimensional de 1001 piezas. Owen
+lo relató señalando que «el diseño real es de Alex y Oliver»
+([msg 2697](https://groups.io/g/eternity2/message/2697)). Alex Selby y Oliver
+Riordan son los dos matemáticos que ganaron Eternity I al descubrir que tenía
+muchas más soluciones de las previstas; Monckton contrató a quienes lo habían
+vencido. El grupo lo sospechó semanas antes del lanzamiento
+([msg 716](https://groups.io/g/eternity2/message/716)), lo vio confirmado en un
+folleto oficial de Tomy (el inventor se reunió con los ganadores de E1 en un
+programa matutino de televisión y les pidió que trabajaran en el desarrollo de
+E2; [msg 901](https://groups.io/g/eternity2/message/901)), y finalmente lo
+rastreó hasta un artículo de The Times: Selby y Riordan diseñaron el programa
+generador del puzzle ([msg 3373](https://groups.io/g/eternity2/message/3373)).
+
+Esa procedencia explica la precisión de la receta. El único equipo del planeta
+con experiencia de primera mano de cómo fracasa estadísticamente un puzzle con
+premio fue pagado para asegurarse de que ese modo de fallo había desaparecido.
+Cada ingrediente anterior (planitud, ausencia de duplicados, paletas
+equilibradas, una solución esperada) cierra una puerta que el propio Selby y
+Riordan habían atravesado en 2000.
+
+## Cómo se generaron las piezas: un relato de segunda mano
+
+El único relato detallado del proceso de generación que hay en el archivo es de
+segunda mano y debe leerse como tal. Dave Clark, fundador del proyecto
+distribuido eternity2.net, contó una larga conversación telefónica que mantuvo
+con Monckton el 26 de julio de 2007: el puzzle se generó a partir de la entropía
+tecleada al teclado por los jueces del concurso (unas 200 entradas), regenerado
+hasta que los jueces quedaron satisfechos, luego impreso una sola vez y guardado
+en la caja fuerte. Monckton le describió el generador de números aleatorios como
+uno que usa «residuos gaussianos de potencias de números primos elegidos
+adecuadamente», lo que Clark interpretó como la propia implementación de Selby y
+Riordan ([msg 4177](https://groups.io/g/eternity2/message/4177)). El hilo
+consideró brevemente la idea de atacar un generador criptográficamente débil; una
+respuesta señaló que si la construcción era de tipo Blum–Blum–Shub sería
+demostrablemente difícil ([msg 4180](https://groups.io/g/eternity2/message/4180)).
+Nada salió de esa vía, pero el relato sigue siendo la mejor fuente casi primaria
+del archivo sobre el verdadero origen de las 256 piezas.
+
+## La póliza de seguro
+
+Un puzzle diseñado para no ser resuelto nunca todavía tiene que demostrar que
+*puede* serlo. El material de lanzamiento de Tomy declaraba que nadie, ni el
+inventor ni los diseñadores, conoce la solución: el generador la imprimió «entre
+páginas de texto aleatorio mientras todas las partes estaban fuera de la sala», y
+la salida se selló ante testigos
+([msg 901](https://groups.io/g/eternity2/message/901)). Una vez que el concurso
+terminó sin ganador, Owen dio la afirmación que aún se cita hoy: «Estoy seguro de
+que Alex y Oliver crearon una solución cuando Chris les pagó para generar un
+puzzle prácticamente imposible», y que yace oculta entre resmas de texto impreso
+guardadas bajo llave en una caja fuerte, como seguro frente a cualquier
+impugnación legal de la buena fe del concurso
+([msg 8823](https://groups.io/g/eternity2/message/8823)).
+
+Esa caja fuerte es el ingrediente final de la receta. La solución diseñada es lo
+que permite al puzzle situarse en una solución esperada en lugar de en cero:
+existencia garantizada por construcción, descubrimiento tarificado más allá del
+alcance de cualquier concursante.
+
+## Qué significa la receta si atacas el puzzle hoy
+
+Cada atajo genérico al que podrías recurrir fue anticipado y tarificado hace casi
+dos décadas. El ordenamiento por frecuencia de las piezas murió con la
+distribución plana. Los trucos de simetría y de duplicados no tienen nada a lo
+que aferrarse. No hay ninguna región blanda que teselar primero, ningún
+desequilibrio de paleta que usar como palanca, y el número de colores se sitúa en
+el ajuste exacto donde la búsqueda es peor. Los veinte años de récords de la
+comunidad (467 en 2008, 470 en 2021, ninguno desde entonces) son la lectura
+empírica de un diseño que funcionó precisamente como se pretendía. Eso no vuelve
+el puzzle imposible: una solución existe de forma certificada, impresa y guardada
+bajo llave. Significa que la brecha restante no es un problema de ajuste. Lo que
+la cierre tendrá que ser una idea que los diseñadores no pudieran anticipar. Eso
+es, al fin y al cabo, para lo que sirve este wiki.

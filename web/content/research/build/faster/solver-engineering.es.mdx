@@ -1,0 +1,270 @@
+---
+title: "Ingeniería de solucionadores: el oficio bajo el algoritmo"
+description: >-
+  Todos los solucionadores récord ejecutan el mismo backtracking en profundidad.
+  Lo que los distingue es la capa de debajo: tablas de consulta, hashes perfectos,
+  structs a medida del caché, código generado, arqueología del compilador. Ese
+  oficio decide si un nodo cuesta 26 ciclos o 2.600. Veinte años del registro de
+  ingeniería de la comunidad, técnica por técnica, y lo que todo ello rindió.
+metaDescription: "Ingeniería de solucionadores de Eternity II: tablas de consulta, hashes perfectos, código generado y trucos de compilador deciden el coste por nodo."
+kind: concept
+order: 120
+group: Go faster
+updated: 2026-07-02
+topics: [speed]
+sources:
+  - label: "El hilo de Lebel diseccionado: el solucionador C++ de referencia de la época puesto al descubierto (groups.io message 1704, 2007)"
+    url: https://groups.io/g/eternity2/message/1704
+  - label: "El hash perfecto mínimo de 1024 claves de Nathan que reemplaza un arreglo de un millón de entradas (groups.io message 1831)"
+    url: https://groups.io/g/eternity2/message/1831
+  - label: "La receta de optimización de Mike Field: «La fuerza bruta no funciona» (groups.io message 3098)"
+    url: https://groups.io/g/eternity2/message/3098
+  - label: "El presupuesto por ciclo de Field: 75 M tiles/s, ~26 ciclos, la mitad detenida en memoria (groups.io message 9003)"
+    url: https://groups.io/g/eternity2/message/9003
+  - label: "Instrucciones de extracción de bits BMI/BMI2: de 78 a 90 M colocaciones/s (groups.io message 9796)"
+    url: https://groups.io/g/eternity2/message/9796
+  - label: "Los resultados negativos de Blackwood: solo las heurísticas rindieron alguna vez (groups.io message 10056)"
+    url: https://groups.io/g/eternity2/message/10056
+  - label: "Qué es un «nodo»: el hilo sobre la convención de conteo (groups.io message 3843, 2008)"
+    url: https://groups.io/g/eternity2/message/3843
+  - label: "La convención de piezas por segundo fijada (groups.io message 9739, 2017)"
+    url: https://groups.io/g/eternity2/message/9739
+  - label: "Cifras modernas en un solo núcleo: 72,7 M/s en C++, 68,4 M/s en Rust (groups.io message 11633, 2025)"
+    url: https://groups.io/g/eternity2/message/11633
+  - label: "El manual de compilación de McGavin: versiones de clang, flags nativos, PGO (groups.io message 11751, 2026)"
+    url: https://groups.io/g/eternity2/message/11751
+related:
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/why/prune-vs-speed
+---
+
+Reduce cualquier solucionador récord a su esqueleto y encontrarás el mismo
+bucle: colocar una pieza, comprobar las aristas, retroceder cuando te atascas.
+El algoritmo quedó fijado en 2007. Aquello en lo que la comunidad ha competido
+realmente durante veinte años es la capa *por debajo* del algoritmo: el oficio
+que decide si visitar un nodo de ese árbol cuesta unos 26 ciclos de reloj, como
+Mike Field midió en su propio motor
+([message 9003](https://groups.io/g/eternity2/message/9003)), o cien veces eso en
+un intérprete ingenuo. Mismo árbol, misma búsqueda, dos órdenes de magnitud de
+diferencia en colocaciones por segundo.
+
+Esta página reúne ese oficio, técnica por técnica, cada una con su fuente
+primaria en el archivo de la lista de correo. La cronología de cómo un motor las
+acumuló durante dos décadas se cuenta en la
+[página de McGavin](/research/lab/experiments/peter-mcgavin/backtracker); la anatomía del motor
+detrás de los tableros récord está en la
+[página de Blackwood](/research/lab/experiments/joshua-blackwood/solver). Aquí está el estante del
+que ambos se surten.
+
+## Tablas de consulta de candidatos: el truco universal
+
+Todo backtracker rápido comparte una idea portante: nunca *buscar* piezas
+candidatas, sino consultarlas. Fija el
+[orden de relleno](/research/build/backtracking/fill-order) (un recorrido por filas, por
+lo general), y cada celda expone exactamente dos restricciones conocidas cuando
+llega su turno, el color de su arista norte y el color de su arista oeste. Así
+que precalculas una tabla indexada por ese par de colores, y encontrar todas las
+piezas que pueden ocupar legalmente la celda actual se convierte en un único
+acceso a memoria. La receta de Field de 2007 la ponía la primera en la lista,
+junto con su corolario: un orden de búsqueda **fijo** es lo que hace posible la
+clave de dos aristas en primer lugar, y colocar una pieza entonces solo actualiza
+sus vecinas sur y este
+([message 3098](https://groups.io/g/eternity2/message/3098)). El mismo diseño se
+diseccionaba ese mismo año en torno al solucionador C++ público de Marc Lebel, el
+backtracker rápido de referencia de la época, en el hilo que hace también las
+veces del primer seminario de ingeniería de la comunidad
+([message 1704](https://groups.io/g/eternity2/message/1704)).
+
+Todo lo demás en esta página es un refinamiento de esa tabla: hacerla más
+pequeña, densificar sus entradas o desenrollar el código a su alrededor.
+
+## Hash perfecto mínimo: la tabla, encogida a la medida
+
+La tabla de consulta tiene un problema de tamaño en cuanto la indexas por más de
+dos aristas. En el hilo de Lebel, Nathan describió la versión de fuerza bruta: un
+arreglo de 4 dimensiones indexado por los cuatro colores de arista,
+`combo4[32][32][32][32]`. Un millón de entradas, en su mayoría ceros, fallos de
+caché garantizados. Su solución se apoyaba en el generador de hash perfecto
+mínimo de Bob Jenkins, un enlace que él mismo había compartido con la lista. Dado
+que las 256 piezas en 4 rotaciones producen solo 1024 cuádruples de aristas
+distintos, un hash perfecto mínimo hace corresponder la clave empaquetada de 32
+bits a una tabla de 1024 entradas sin colisiones: «lo bastante pequeña para caber
+en el caché la mayor parte del tiempo», con un sobrecoste de hash casi nulo, y
+las claves ausentes simplemente leen un conteo de cero
+([message 1831](https://groups.io/g/eternity2/message/1831)). Un millón de
+entradas reducidas a mil, únicamente para que el conjunto de trabajo viva en L1.
+Él trazó la frontera él mismo: la tabla de cuatro aristas solo se gana el sustento
+cuando el orden de relleno puede dejar huecos; un solucionador de recorrido
+estricto por líneas nunca la necesita.
+
+## Empaquetado de bits y dimensionado de structs: el caché, el verdadero adversario
+
+El presupuesto de ciclos de Field explica por qué tanto de este oficio trata de
+la disposición en memoria: a 75 M tiles por segundo por núcleo, más de la mitad
+del tiempo estaba detenido en el acceso a memoria, no en el cálculo
+([message 9003](https://groups.io/g/eternity2/message/9003)). La respuesta es
+hacer que cada byte que la búsqueda toca cuente. Empaqueta los cuatro lados de
+una pieza en un único entero ([message 3098](https://groups.io/g/eternity2/message/3098)).
+Mantén el conjunto de piezas usadas como una palabra de 64 bits por grupo y
+cortocircuita todo un bucle de candidatos con una única comprobación de máscara,
+una optimización que Arnaud Carré y Adam Miles descubrieron haber implementado de
+forma independiente, línea por línea
+([message 9808](https://groups.io/g/eternity2/message/9808),
+[message 9809](https://groups.io/g/eternity2/message/9809)). Dimensiona la entrada
+de la tabla de candidatos para que toda la tabla quepa en el caché. Ese es
+exactamente el diseño de la struct `RotatedPiece` de seis bytes de Blackwood, ya
+contada en [la página de Blackwood](/research/lab/experiments/joshua-blackwood/solver): número
+de pieza, rotación, los dos lados expuestos, un conteo de rupturas y un conteo
+heurístico, y nada más.
+
+## Bipiezas y metateselas: precomponer, y pagar en memoria
+
+Si una consulta te da las piezas candidatas, ¿por qué no precomponer pares en
+«bipiezas» 1×2 y colocar dos celdas por nodo? Medido sobre el código de Lebel en
+agosto de 2007, funcionaba: alrededor de un 20–30 % más rápido
+([message 1734](https://groups.io/g/eternity2/message/1734)). Pero el trueque es
+duro y el archivo documenta ambas caras. Al pasar a bloques 2×2, un miembro midió
+aproximadamente 4,2× *más lento* y rechazó de plano las piezas más grandes
+([message 1730](https://groups.io/g/eternity2/message/1730)). Ninguna sorpresa una
+vez contadas las tablas: cerca de 4 millones de combinaciones 2×2 interiores
+distintas ([message 3044](https://groups.io/g/eternity2/message/3044)). Louis
+Verhaard reportó que las bipiezas ayudaban «solo muy marginalmente» en su propio
+backtracker rápido
+([message 3061](https://groups.io/g/eternity2/message/3061)). Y en 2008 la lista
+zanjó la cuestión teórica subyacente: un solucionador de metateselas visita
+esencialmente la misma frontera de restricciones que un solucionador 1×1
+(«sincronizados cada 4 piezas»), de modo que la ganancia es a nivel de
+implementación, nunca una reducción del espacio de búsqueda
+([message 5842](https://groups.io/g/eternity2/message/5842),
+[message 5899](https://groups.io/g/eternity2/message/5899)). La precomposición es
+una aceleración que se paga con memoria, y más allá del 1×2 el precio se vuelve
+negativo.
+
+## Generación de código: escribir el programa que escribe el solucionador
+
+Las últimas indirecciones del bucle interno («¿en qué celda estoy?, ¿cuáles son
+sus vecinas?») se pueden eliminar sencillamente no teniendo bucle. La receta de
+Field: *generar* procedimentalmente código monolítico en línea recta, un bloque
+por celda, cada bloque conociendo sus propias vecinas como constantes; su código
+generado se compilaba en unas 33 instrucciones por celda
+([message 3098](https://groups.io/g/eternity2/message/3098)). La idea se propagó
+rápido: ya a mediados de 2008, istarinz generaba un solucionador C no recursivo
+por puzzle y por camino de relleno, compilado con el compilador de Intel
+([message 5480](https://groups.io/g/eternity2/message/5480),
+[message 5438](https://groups.io/g/eternity2/message/5438)), en la misma temporada
+en que la lista comparaba notas sobre backtrackers no recursivos en general
+([message 4683](https://groups.io/g/eternity2/message/4683)). El `body.c` de Peter
+McGavin es esta idea acumulada durante veinte años: bloques etiquetados como
+`cell_9_2_next:`, cadenas de `goto` que regresan a la celda anterior al agotarse,
+el fichero entero regenerado para cada puzzle y cada conjunto de pistas
+([message 11337](https://groups.io/g/eternity2/message/11337),
+[message 11782](https://groups.io/g/eternity2/message/11782)). Y funciona entre
+lenguajes: libblackwood de Jef Bucas, un generador en Python que emite C, hizo el
+algoritmo C# de Blackwood aproximadamente el doble de rápido en la misma máquina
+([message 10065](https://groups.io/g/eternity2/message/10065),
+[message 10078](https://groups.io/g/eternity2/message/10078)).
+
+## Realidades del compilador: el último 20 %, no los 10²⁰ que faltan
+
+Por debajo del código fuente todavía queda rendimiento por cosechar, en
+instrucciones y flags más que en ideas. Adam Miles llevó su solucionador de 78 a
+90 millones de colocaciones por segundo con las instrucciones de extracción de
+bits `bextr` de BMI y `pext` de BMI2, a la vez que señalaba que se estaba
+volviendo «cada vez más difícil» llegar más lejos
+([message 9796](https://groups.io/g/eternity2/message/9796)). El manual de McGavin
+de 2026 es el folclore acumulado: prueba clang, icc e icx frente a gcc; prueba
+*versiones* (clang-15 le gana a clang-19 en sus placas ARM); añade
+`-march=native` y `-mtune=native`; usa optimización guiada por perfiles. Ninguno
+de estos consejos es una bala de plata
+([message 11751](https://groups.io/g/eternity2/message/11751)). Su truco de
+contador del mismo mensaje es el género en miniatura: el contador de colocaciones
+de 64 bits se alimenta de un registro de 16 bits que se desborda, sumando
+`0x10000` cada vez, porque cronometró ambas formas hace años en hardware de 32
+bits y el truco ganó.
+
+El mismo realismo se aplica al hardware. El multithreading escala de la manera
+obvia: los solucionadores multinúcleo rebasaron los 100 M colocaciones/s en 2008
+([message 5804](https://groups.io/g/eternity2/message/5804)), y un solo Core i7
+alcanzó los 558 M/s aquel diciembre
+([message 6212](https://groups.io/g/eternity2/message/6212)). El progreso en un
+solo núcleo, en cambio, se detuvo en gran medida. Al publicar su tabla de 2025 de
+nueve combinaciones CPU/compilador (38–84 M colocaciones/s), McGavin señaló que
+las velocidades en las CPU más recientes «son solo un poco más rápidas» que en su
+Phenom II de 2010
+([message 11643](https://groups.io/g/eternity2/message/11643)). Los motores
+chocaron contra el muro de memoria de Field hace quince años y desde entonces se
+apoyan en él.
+
+## Disciplina de medición: ¿qué es un «nodo», exactamente?
+
+Una cultura de ingeniería vale tanto como sus bancos de prueba, y el archivo tuvo
+que construir esa disciplina a las malas. En enero de 2008, comparar afirmaciones
+de velocidad forzó la pregunta de definición: Txibilis contaba un nodo como cada
+pieza *válida* comprometida en el tablero, sin anticipación
+([message 3843](https://groups.io/g/eternity2/message/3843)); otros contaban
+colocaciones intentadas, o pasos, y el hilo concluyó que quizá no exista una
+métrica en la que todos coincidan
+([message 3946](https://groups.io/g/eternity2/message/3946)). La pregunta volvió
+en 2017 y recibió la respuesta estándar: las «piezas por segundo» de la comunidad
+cuentan las piezas *colocadas* por segundo, al estilo del ajedrez
+([message 9739](https://groups.io/g/eternity2/message/9739),
+[message 9740](https://groups.io/g/eternity2/message/9740)). La objeción estándar
+la acompañaba: la métrica favorece los órdenes de relleno por recorrido de líneas
+y no dice nada sobre la cobertura del espacio de búsqueda por unidad de tiempo
+([message 9746](https://groups.io/g/eternity2/message/9746)).
+
+Dos consecuencias prácticas. Primera: nunca compares las cifras de M/s de dos
+solucionadores sin comprobar qué cuentan; un solucionador «más rápido» puede
+simplemente tener una definición más generosa. Segunda, el hábito positivo que
+surgió de ahí: publicar **conteos de nodos junto a los tiempos**. Un backtracker
+determinista que recorre un árbol fijo debe contar los mismos nodos en cualquier
+máquina, de modo que los conteos exactos de nodos se convirtieron en las sumas de
+verificación de la comunidad, la forma en que los portes, reescrituras y hardware
+nuevo prueban que recorren el mismo árbol antes de que su velocidad signifique
+nada.
+
+## El estante de un vistazo
+
+| Técnica | Lo que cuesta | Lo que rindió | Fuente |
+| --- | --- | --- | --- |
+| Tablas de candidatos por posición (clave de dos aristas) | memoria para las tablas; un orden de relleno fijo | los candidatos en un solo acceso a memoria, la base que comparte todo solucionador rápido | [3098](https://groups.io/g/eternity2/message/3098) |
+| Hash perfecto mínimo | construcción de hash fuera de línea | tabla de un millón de entradas → 1024 entradas, residente en caché | [1831](https://groups.io/g/eternity2/message/1831) |
+| Empaquetado de bits, structs a medida del caché | contorsiones de código | menos detenciones donde >50 % del tiempo es memoria; cortocircuitos por máscara de 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
+| Bipiezas (precomposición 1×2) | las tablas crecen rápido; sin reducción del espacio de búsqueda | +20–30 % en 1×2; ~4,2× *más lento* en 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
+| Generación de código (código en línea recta por celda) | un pipeline de compilación; regenerar por puzzle | ~33 instrucciones/celda (2007); ~2× gracias al C de libblackwood (2020) | [3098](https://groups.io/g/eternity2/message/3098), [10065](https://groups.io/g/eternity2/message/10065) |
+| Instrucciones de extracción de bits BMI/BMI2 | portabilidad | 78 → 90 M colocaciones/s | [9796](https://groups.io/g/eternity2/message/9796) |
+| Comparativa de compiladores, flags nativos, PGO | ensayo y error, por máquina | ganancias «significativas» pero sin cuantificar, de un solo dígito porcentual a decenas | [11751](https://groups.io/g/eternity2/message/11751) |
+| Trucos de contador (alimentación por desbordamiento de 16 bits) | oscuridad | medible solo en hardware de la era de 32 bits | [11751](https://groups.io/g/eternity2/message/11751) |
+
+## Veinte años, de ~1× a 4× por núcleo
+
+Ahora tomemos distancia. La receta de Field de 2007 ya hacía 60–80 millones de
+colocaciones por segundo por núcleo
+([message 3098](https://groups.io/g/eternity2/message/3098)). Veinte años de
+oficio desde entonces han ensanchado ese rango en lugar de multiplicarlo de manera
+uniforme. Sobre código portable comparable la ganancia es modesta: 72,7 M/s de un
+solucionador C++ afinado y 68,4 M/s de un descendiente en Rust del de Blackwood en
+2025 ([message 11633](https://groups.io/g/eternity2/message/11633),
+[message 11634](https://groups.io/g/eternity2/message/11634)), apenas por encima de
+la base de 2007. El ~4× solo aparece con C generado por celda en el hardware más
+reciente: alrededor de 225–295 M/s para el de McGavin
+([message 11751](https://groups.io/g/eternity2/message/11751),
+[message 11750](https://groups.io/g/eternity2/message/11750)), así que mezcla una
+ganancia de generación de código con una ganancia de hardware, no oficio a secas.
+A lo largo de esos mismos veinte años, el récord se movió tres aristas: de 467 a
+470.
+
+Los practicantes lo dijeron ellos mismos. Joshua Blackwood, catalogando sus
+callejones sin salida tras el 469 ([solucionadores SAT](/research/build/exact/sat-csp-encodings),
+[GPU](/research/build/hardware/gpu-solving), bloques 2×2 en caché, todos medidos y
+descartados), constató que solo refinar las *heurísticas* rindió alguna vez, con
+otro ~2× ([message 10056](https://groups.io/g/eternity2/message/10056)). Y cuando
+el hilo de velocidad de 2025 se apagó, Razvan escribió su epitafio: por rápido que
+podamos comprobar, «no haremos ni una mella» en el espacio de búsqueda de E2
+([message 11657](https://groups.io/g/eternity2/message/11657)). El oficio de esta
+página es real, medible y vale la pena aprenderlo; es lo que permite que una
+granja de aficionados recorra 10¹⁷ nodos. Pero un factor constante es un factor
+constante.
+[Por qué encoger el árbol le gana a acelerar el recorrido](/research/why/prune-vs-speed)
+es la aritmética de esa frase; esta página es su registro de ingeniería.

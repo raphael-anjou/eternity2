@@ -1,0 +1,294 @@
+---
+title: "Relajaciones LP y PLE: media pieza en todas partes"
+description: >-
+  Escribe Eternity II como un programa entero, abandona la integralidad, y un
+  solucionador lineal alcanza error cero en segundos, con un 30 % de una pieza y
+  un 20 % de otra compartiendo una esquina. Dieciocho años de campañas
+  comunitarias midieron dónde termina la comodidad fraccionaria: una meseta de
+  420–440 aristas en cuanto las piezas deben ser enteras, un muro PLE ya en el
+  8×8, y un récord académico de 461 en una hora. Lo que enseña el camino del
+  optimizador, y dónde el LP sigue ganándose su lugar.
+metaDescription: "Eternity II como programa entero: el LP alcanza error cero en segundos, pero las piezas enteras fuerzan una meseta de 420-440 aristas y un muro PLE ya en el 8×8."
+kind: concept
+order: 160
+group: Exact methods
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: "La formulación de clique máximo: 262 144 vértices de colocación, encontrar un clique de 256 (groups.io message 627, 2007)"
+    url: https://groups.io/g/eternity2/message/627
+  - label: "Conjuntos de rotación resueltos por PLE (glpsol) en unos 5 segundos cada uno (groups.io message 3320, 2007)"
+    url: https://groups.io/g/eternity2/message/3320
+  - label: "Informe de estado LP de Vlasta: 160 254 binarias; la PLE «aplicable solo a puzzles 8×8» (groups.io message 5602, 2008)"
+    url: https://groups.io/g/eternity2/message/5602
+  - label: "La formulación de ascenso continuo de Andrew y la estimación de 800 000 días (groups.io message 5304, 2008)"
+    url: https://groups.io/g/eternity2/message/5304
+  - label: "El LP de 50 000 variables de Benjamin y su esquina fraccionaria: 30 % pieza 1, 20 % pieza 2 (groups.io message 6905, 2009)"
+    url: https://groups.io/g/eternity2/message/6905
+  - label: "Recuento de restricciones de Benjamin (7 952 ecuaciones) y el truco de integralidad cuadrática (groups.io messages 6910/6913, 2009)"
+    url: https://groups.io/g/eternity2/message/6913
+  - label: "Andrew sobre el solucionador implícito: «cada pieza está en todas partes», Newton–Raphson sobre 250 000 pesos (groups.io message 6911, 2009)"
+    url: https://groups.io/g/eternity2/message/6911
+  - label: "El programa entero binario AMPL/CPLEX de Timmermans: 272 704 variables, 24 566 ecuaciones (groups.io message 6728, 2009)"
+    url: https://groups.io/g/eternity2/message/6728
+  - label: "La «solución» 12×12 en dominio real con un 5,3 % de infactibilidad (groups.io message 6745, 2009)"
+    url: https://groups.io/g/eternity2/message/6745
+  - label: "Retrospectiva de Munjak: asignación con restricciones laterales, 200–224 piezas, sin backtracking (groups.io message 8791, 2011)"
+    url: https://groups.io/g/eternity2/message/8791
+  - label: "Wauters: la línea académica, 461/480 aristas coincidentes en una hora (groups.io message 9023, 2012)"
+    url: https://groups.io/g/eternity2/message/9023
+  - label: "Wauters: conjuntos de rotación por MILP en milisegundos (groups.io message 9071, 2012)"
+    url: https://groups.io/g/eternity2/message/9071
+  - label: "El artículo MILP + Max-Clique llega a la lista (groups.io message 9683, 2017)"
+    url: https://groups.io/g/eternity2/message/9683
+  - label: "Salassa, Vancroonenburg, Wauters, Della Croce & Vanden Berghe, MILP and Max-Clique based heuristics for the Eternity II puzzle (arXiv:1709.00252, 2017)"
+    url: https://arxiv.org/abs/1709.00252
+  - label: "Wauters, Vancroonenburg & Vanden Berghe, A guide-and-observe hyper-heuristic approach to the Eternity II puzzle (JMMA, 2012)"
+    url: https://link.springer.com/article/10.1007/s10852-012-9178-4
+  - label: "La PLE moderna de Garvie: una instancia 10×10 de 6 colores resuelta en unos 19 minutos (groups.io message 11502, 2025)"
+    url: https://groups.io/g/eternity2/message/11502
+related:
+  - /research/why/rigidity-wall
+  - /research/build/dead-ends
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/reduce/alldiff-regin
+---
+
+Hay tres caminos clásicos hacia Eternity II. El backtracking recorre el árbol.
+Los [codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings) entregan
+la lógica a un solucionador industrial. El tercer camino pertenece a los
+optimizadores: escribir el puzzle como un programa entero (variables,
+restricciones lineales, un objetivo) y llamar a CPLEX. Es el camino que toda
+persona de investigación operativa prueba primero, porque viene con una jugada
+que los otros dos no tienen: la *relajación*. Elimina el requisito de que las
+variables sean números enteros y el programa entero, NP-difícil, se convierte en
+un programa lineal, resoluble en tiempo polinómico. Resuelve la versión fácil,
+confía en que la respuesta sea casi entera, repara el resto.
+
+La comunidad recorrió este camino una y otra vez entre 2007 y 2025, con
+solucionadores que iban desde `glpsol` hasta CPLEX pasando por Newton–Raphson
+hechos a mano, y el resultado se midió con precisión suficiente para merecer una
+página: la relajación se resuelve rápido y reporta un tablero casi perfecto,
+hecho de fracciones de piezas. Fuerza las piezas a ser enteras y la puntuación
+se desploma sobre una meseta en torno a 420–440 de 480 aristas. La brecha entre
+el óptimo fraccionario y el entero no es un tecnicismo. Es exactamente el lugar
+donde vive el puzzle.
+
+## La formulación
+
+Una variable binaria por colocación, exactamente como en la codificación SAT:
+sea $x_{c,p,r} \in \{0,1\}$ el significado «la pieza $p$ ocupa la celda $c$ con
+rotación $r$». Dos familias de restricciones de asignación y una contabilidad
+por costura dan el modelo completo:
+
+$$
+\begin{aligned}
+\max \;\; & \sum_{s} y_s
+  && \text{(matched seams)} \\
+\text{s.t.} \;\;
+  & \sum_{p,\,r} x_{c,p,r} = 1 && \forall\, \text{cell } c \\
+  & \sum_{c,\,r} x_{c,p,r} = 1 && \forall\, \text{piece } p \\
+  & y_s \,\le\, \sum_{k} \min\!\big( f_{s,k}^{1},\, f_{s,k}^{2} \big)
+  && \forall\, \text{seam } s
+\end{aligned}
+$$
+
+donde $f_{s,k}^{i}$ es el flujo de color, el peso total de las colocaciones en
+el lado $i$ de la costura $s$ que muestran el color $k$ a través de ella,
+$f_{s,k}^{i} = \sum_{(p,r)\,\text{showing}\,k} x_{c_i,p,r}$. El $\min$ se
+linealiza con una variable auxiliar por costura y color; para la versión de
+*factibilidad* se exige en cambio un flujo de color igual a ambos lados de cada
+costura. Los modelos de la comunidad aterrizan exactamente donde la aritmética
+dice que deberían. El LP de Benjamin de 2009 tenía ~50 000 variables
+(colocaciones podadas a posiciones válidas) y 7 952 ecuaciones: 256 por celda,
+256 por pieza, y $60 \times 5 + 420 \times 17 = 7{,}440$ restricciones de
+equilibrio color-costura
+([message 6910](https://groups.io/g/eternity2/message/6910)). El modelo de
+Vlasta de 2008 cargaba 160 254 binarias
+([message 5602](https://groups.io/g/eternity2/message/5602)); el programa
+binario AMPL/CPLEX de Jimmy Timmermans, 272 704 variables y 24 566 ecuaciones
+([message 6728](https://groups.io/g/eternity2/message/6728)). Günter
+Stertenbrink ya había planteado la forma de grafo equivalente en 2007: hacer de
+las 262 144 colocaciones vértices, unir los pares compatibles, y pedir un clique
+de tamaño 256 ([message 627](https://groups.io/g/eternity2/message/627)), la
+formulación a la que la literatura académica volvió una década más tarde.
+
+## Relájalo, y se resuelve en segundos
+
+La relajación no exige más que una edición: reemplazar
+$x_{c,p,r} \in \{0,1\}$ por $0 \le x_{c,p,r} \le 1$. Ese único cambio hace que
+el problema cruce la frontera más importante de la optimización. El programa
+entero es NP-difícil: la programación entera 0–1 es uno de los 21 problemas
+completos originales de Karp. El programa lineal es resoluble en tiempo
+polinómico (elipsoide, puntos interiores), y en la práctica el símplex despacha
+estos tamaños de modelo casi al instante. Benjamin lo midió: su sistema de
+50 000 variables alcanzó un error inferior a 0,01 en unos diez segundos
+([message 6913](https://groups.io/g/eternity2/message/6913)).
+
+Dos propiedades hacen que la relajación sea genuinamente útil, no solo rápida.
+Toda solución entera es también una fraccionaria, así que el óptimo del LP es
+una *cota*: ningún tablero real puede puntuar nunca más de lo que dice la
+relajación. Y los solucionadores LP devuelven certificados (valores duales,
+pruebas de infactibilidad) que los métodos sin variables enteras no ofrecen.
+Toda la cuestión es cuánta de esa velocidad sobrevive al viaje de vuelta hacia
+las piezas enteras.
+
+## El tablero fraccionario
+
+Así es como se ve realmente el óptimo del LP, en palabras de quien lo calculó.
+El sistema de Benjamin «convergió relativamente rápido a error cero» (un tablero
+perfecto, hasta donde las restricciones podían ver), y la esquina superior
+izquierda contenía «30 % pieza 1, 20 % pieza 2, 10 % pieza 3, 40 % pieza 4»
+([message 6905](https://groups.io/g/eternity2/message/6905)). El experimento
+paralelo de Andrew llevaba la misma idea como un ascenso iterado sobre una
+malla de pesos 256×256×4: «cada pieza está en todas partes»
+([message 6911](https://groups.io/g/eternity2/message/6911)).
+
+La relajación está contenta porque una superposición puede cubrirse. Un cuarto
+de una pieza de arista azul más tres cuartos de una de arista rosa presenta una
+mezcla que a la vez coincide en parte con un vecino azul y con uno rosa, una
+coincidencia que ningún tablero físico puede realizar. Las restricciones
+lineales saben poner precio a cuánta parte de cada pieza va dónde; no pueden
+expresar «exactamente una de estas es real», porque *una-de-varias* no es un
+hecho lineal. Hace falta una restricción cuadrática (o una de integralidad) para
+decirlo. Benjamin usó $(\sum v_i)^2 - \sum v_i^2 = 0$, que fuerza a cero todas
+las variables de un grupo salvo una
+([message 6913](https://groups.io/g/eternity2/message/6913)), y en el momento en
+que la añadió, la convergencia murió: el sistema «se estanca en valores más
+altos que se parecen a resultados del tipo 420-440 / 480 aristas correctas»
+([message 6905](https://groups.io/g/eternity2/message/6905)).
+
+Hay una teoría limpia bajo la observación. Las dos familias de asignación por sí
+solas definen un politopo cuyos vértices son todos enteros (eso es
+Birkhoff–von Neumann, y es exactamente por lo que el algoritmo húngaro resuelve
+la asignación pura en tiempo polinómico). Añade las restricciones de costura y
+esa propiedad de integralidad queda destruida: el politopo adquiere vértices
+fraccionarios, y el óptimo del LP se posa sobre uno de ellos. La retrospectiva
+de David Munjak comprime esto en una línea, listando entre sus enfoques
+probados «Problema de asignación (soluciones enteras)» seguido de «Problema de
+asignación con restricciones laterales (soluciones no necesariamente enteras)»
+([message 8791](https://groups.io/g/eternity2/message/8791)). Las restricciones
+laterales (las aristas, el puzzle de verdad) son precisamente lo que rompe la
+garantía. Eternity II es un problema de asignación fácil soldado a un
+acoplamiento difícil, y la relajación optimiza discretamente solo la mitad
+fácil.
+
+## La meseta medida
+
+Cada pocos años alguien nuevo recorría el camino, con mejores solucionadores y
+más memoria, y chocaba con los mismos tres muros: la PLE completa es irresoluble
+más allá de tamaños de juguete; el LP es resoluble y fraccionario; redondear o
+restringir hacia la integralidad aterriza en los 400 y pico. Las campañas, en
+orden:
+
+| Año | Quién | Modelo | Dónde se detuvo | Msg |
+| --- | --- | --- | --- | --- |
+| 2007 | Günter Stertenbrink | Clique máximo, 262 144 vértices | Solo formulación; nunca escaló | [166](https://groups.io/g/eternity2/message/166), [627](https://groups.io/g/eternity2/message/627) |
+| 2007 | dmitri_ulitski | PLE (glpsol) sobre conjuntos de rotación | Resuelto en ~5 s por conjunto; el subproblema es fácil | [3320](https://groups.io/g/eternity2/message/3320) |
+| 2008 | Vlasta | PLE, 160 254 binarias | «Aplicable solo a puzzles 8x8»; pasó a SAT, alcanzó 428 | [5602](https://groups.io/g/eternity2/message/5602) |
+| 2008–09 | Andrew (bozmo2004) | Ascenso continuo, Newton–Raphson sobre ~250k pesos | ~800 000 días proyectados con su prototipo VBA | [5304](https://groups.io/g/eternity2/message/5304), [6911](https://groups.io/g/eternity2/message/6911) |
+| 2009 | Benjamin (okifinoki) | LP, ~50 000 vars, 7 952 restricciones | Error cero en ~10 s, fraccionario; forzado a entero: se estanca en 420–440/480 | [6905](https://groups.io/g/eternity2/message/6905), [6913](https://groups.io/g/eternity2/message/6913) |
+| 2009–10 | Jimmy Timmermans | Ideales tóricos; BIP AMPL/CPLEX, 272 704 y luego 153k vars | Límite de 32k variables de Singular; un 12x12 «resuelto» con un 5,3 % de infactibilidad (converge, la integralidad no) | [6716](https://groups.io/g/eternity2/message/6716), [6728](https://groups.io/g/eternity2/message/6728), [6745](https://groups.io/g/eternity2/message/6745), [8077](https://groups.io/g/eternity2/message/8077) |
+| 2010 | Vlasta | MILP (164 256 booleanos) convertido a SAT | 8x8 en ~1 min; a la par con los backtrackers, sin ir más allá | [7858](https://groups.io/g/eternity2/message/7858) |
+| 2008–10 | David Munjak | Asignación con restricciones laterales, valores fraccionarios como probabilidades | 200–224 piezas colocadas, luego un callejón sin salida detectado; nunca hizo backtracking | [8791](https://groups.io/g/eternity2/message/8791) |
+| 2012 | Grupo Wauters | Hiperheurística (revisada por pares) | 461/480 en una hora (la línea académica) | [9023](https://groups.io/g/eternity2/message/9023) |
+| 2012 | Tony Wauters | MILP para conjuntos de rotación | Milisegundos; de nuevo, el subproblema fácil | [9071](https://groups.io/g/eternity2/message/9071) |
+| 2017 | Salassa, Vancroonenburg, Wauters et al. | Formulaciones MILP + Max-Clique | «Computacionalmente intratable para instancias de tamaño medio y grande»; recicladas como descomposiciones heurísticas | [9683](https://groups.io/g/eternity2/message/9683), [arXiv](https://arxiv.org/abs/1709.00252) |
+| 2025 | Marcus Garvie | PLE moderna | 10x10 con 6 colores en ~19 min; el E2 completo fuera de alcance | [11502](https://groups.io/g/eternity2/message/11502) |
+
+Tres lecturas de la tabla. Primero, fíjate en dónde la PLE *gana*: los conjuntos
+de rotación, donde fijas solo la orientación de cada pieza de modo que los
+recuentos de aristas direccionales se equilibran, cayeron ante `glpsol` en cinco
+segundos en 2007 y ante CPLEX en milisegundos en 2012. Cuando la estructura
+entera es genuinamente fácil, el solucionador lo dice de inmediato; el silencio
+del puzzle completo es un veredicto, no un problema de herramientas. Segundo,
+los números de la meseta coinciden a través de maquinarias totalmente
+distintas: los 420–440 de Benjamin por LP penalizado, las 200–224 piezas
+colocadas sin desajuste de Munjak por asignación iterada, los 461 del grupo
+Wauters con una hora de reparación metaheurística por encima. Todo lo que tiene
+forma de optimizador aterriza en la misma banda de los 400 y pico que la
+[búsqueda local](/research/build/local-search/local-search-alns) simple alcanza
+sin ningún LP en absoluto. Tercero, el artículo de 2017, el tratamiento
+académico más sólido, con tanto una formulación MILP como una de Max-Clique,
+concede la intratabilidad en su resumen y pivota hacia usar las formulaciones
+*dentro* de heurísticas. Los propios constructores del camino pusieron la señal
+de desvío.
+
+El lado de la cota de la historia tiene la misma forma y vive en el
+[registro de callejones sin salida](/research/build/dead-ends): el techo LP
+medido de este proyecto se sitúa en torno a 478 mientras que los mejores
+tableros reales rondan 458, una brecha demasiado ancha para certificar nada,
+por exactamente la razón de cobertura fraccionaria de arriba.
+
+## Lo que cuesta
+
+- **El LP: polinómico, genuinamente rápido.** Los métodos de puntos interiores
+  resuelven programas lineales en tiempo polinómico; en modelos de este tamaño
+  (50k–270k variables, de miles a cientos de miles de restricciones) los
+  solucionadores modernos terminan en segundos a minutos. Es el único objeto
+  genuinamente barato de la página.
+- **La PLE: NP-difícil, y no de forma abstracta.** La ramificación y acotación
+  es backtracking con una cota LP en cada nodo: exponencial en el peor caso, y
+  una instancia [construida en el pico de dureza](/research/why/phase-transition)
+  está diseñada para realizar ese peor caso. La forma medida del coste: un
+  solucionador que maneja el 8×8 (64 piezas) no devuelve nada en el 16×16,
+  porque el árbol bajo la raíz se eleva al cuadrado, no se duplica.
+- **La brecha de integralidad es la moneda real.** Todo el valor del método es
+  la distancia entre el óptimo del LP y la mejor solución entera. Aquí esa
+  distancia es de aproximadamente 478 frente a 458-y-estancándose: la relajación
+  gasta su presupuesto polinómico respondiendo a una pregunta sobre un puzzle
+  distinto, fraccionario. Los planos de corte existen para reducir la brecha;
+  nadie ha reportado cortes que le cierren ni una muesca en el E2, y la
+  estructura por costura que finge coincidencias regenera la holgura en todas
+  partes.
+- **La ramificación y acotación poda con la cota que tiene.** Un nodo se corta
+  solo cuando su cota LP cae por debajo del incumbente. Con la cota flotando
+  ~20 aristas por encima de cualquier cosa real, casi nada se poda: el análogo
+  exacto de las cláusulas aprendidas anchas e inútiles en
+  [CDCL](/research/build/exact/sat-csp-encodings), un camino más allá.
+
+## Para qué sirven todavía el LP y el MIP
+
+La conclusión justa es una reubicación, no un rechazo, la misma a la que llega
+la [página SAT](/research/build/exact/sat-csp-encodings) para el CDCL.
+
+- **Cotas, enunciadas con sus barras de error.** La relajación *es* un techo
+  válido, calculado en tiempo polinómico; solo que aquí es flojo. La
+  [entrada de callejones sin salida](/research/build/dead-ends) registra el
+  veredicto para que nadie lo vuelva a deducir esperando un certificado.
+- **Subproblemas de asignación, donde la integralidad es gratis.** Dentro de los
+  bucles de reparación, rellenar $k$ agujeros no adyacentes dos a dos es un puro
+  problema de asignación $k \times k$: politopo de Birkhoff, vértices enteros,
+  algoritmo húngaro en $O(k^3)$. Ese es el vecindario Eternity II de Schaus, y
+  es el único lugar de este wiki donde la maquinaria del optimizador corre a
+  plena potencia: véase
+  [búsqueda local y ALNS](/research/build/local-search/local-search-alns).
+- **Subproblemas enteros fáciles, despachados al instante.** Los conjuntos de
+  rotación por MILP en milisegundos
+  ([message 9071](https://groups.io/g/eternity2/message/9071)) son el patrón:
+  cuando una subpregunta tiene estructura tratable, un solucionador MIP es la
+  forma fiable más rápida de zanjarla, incluido zanjar que la respuesta no
+  ayuda.
+- **La infactibilidad como teorema.** Una PLE que vuelve infactible sobre una
+  región fijada prueba la misma imposibilidad que una llamada SAT UNSAT: la
+  moneda-certificado detrás del
+  [muro de rigidez](/research/why/rigidity-wall). Este proyecto acuña esos
+  certificados con SAT, que es más rápido en esta codificación; un solucionador
+  MIP es una segunda casa de moneda legítima, y el colocador de Munjak usó
+  exactamente esa señal, «identificando un problema que impediría colocar las
+  256 piezas» ([message 8791](https://groups.io/g/eternity2/message/8791)).
+- **Formulaciones como generadores de vecindarios.** La contribución duradera
+  del artículo de 2017 es metodológica: métodos constructivos basados en MILP
+  que siembran una búsqueda local de vecindarios múltiples, más nuevas
+  instancias de referencia difíciles para la comunidad
+  ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). La formulación
+  sobrevive como una *pieza*, dentro de una heurística que se apropia del
+  problema de integralidad en lugar de relajarlo.
+
+El camino del optimizador, recorrido hasta el final, enseña un hecho limpio
+sobre Eternity II: el puzzle es exactamente la restricción de integralidad. Todo
+lo lineal en él, los flujos, los equilibrios, el esqueleto de asignación, es
+polinómico y quedó resuelto ya en 2009, a error cero, en diez segundos. Lo que
+queda es el requisito de que cada pieza esté en algún sitio *entera*, una vez. El
+alegre tablero fraccionario de la relajación es la imagen más nítida que nadie
+ha dibujado de cómo se ve el 99 % fácil sin el 1 % difícil.

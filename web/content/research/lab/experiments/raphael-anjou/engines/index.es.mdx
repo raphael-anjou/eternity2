@@ -1,0 +1,78 @@
+---
+title: Los motores
+description: >-
+  Los motores compartidos que sustentan los experimentos de Raphaël Anjou. Los
+  experimentos con nombre son estudios que se ejecutan sobre ellos; este es el
+  aparato que comparten. Los preajustes CSP y la reimplementación de Verhaard
+  están documentados aquí; los motores constructivos aún no están publicados.
+metaDescription: "Los motores de los experimentos Eternity II de Raphael Anjou: los preajustes CSP y la reimplementación de Verhaard, el aparato sobre el que corren los estudios."
+kind: page
+order: 5
+author: raphael-anjou
+updated: 2026-07-15
+---
+
+import { ProseLink } from "@/components/docs/mdx-components";
+
+export function Door({ to, title, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      <div className="text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
+
+Los [experimentos](/research/lab/experiments/raphael-anjou) son estudios: cada
+uno plantea una pregunta y da cuenta del tablero que alcanzó. Pero la mayoría no
+se construyen desde cero. Se ejecutan sobre un pequeño conjunto de motores
+compartidos, y el mismo motor reaparece experimento tras experimento. Esta
+página documenta ese aparato una sola vez, para que los estudios puedan apuntar
+aquí en lugar de reexplicar la máquina cada vez.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="Los preajustes CSP, medidos">
+    Un único motor de propagación de restricciones con ordenamientos y
+    propagadores intercambiables: consistencia de arco, emparejamiento por grafo
+    de colores, varios órdenes de relleno. Reimplementaciones fieles de técnicas
+    conocidas de la comunidad, ejecutadas bajo una docena de preajustes sobre las
+    diez variantes, de modo que el coste exacto de cada parámetro figure en la
+    tabla de clasificación en lugar de discutirse.
+  </Door>
+  <Door to="/research/lab/experiments/louis-verhaard/verhaard-reimpl" title="La reimplementación de Verhaard">
+    Una reimplementación desde cero del método eii de Louis Verhaard, ya que su
+    propio binario no incluye código fuente y no se ejecuta aquí. Recocido por
+    intercambio sobre composición de conjuntos bajo la métrica de teselado 2×2;
+    sobre el verdadero puzzle de cinco pistas alcanza 438 de 480, en un solo
+    núcleo.
+  </Door>
+</div>
+
+Los dos motores constructivos en los que estos estudios también se apoyan, el
+productor por haz y la etapa de pulido ALNS, aún no tienen su propia
+presentación aquí; esas páginas están retenidas por ahora, y ninguno de los dos
+figura en la tabla de clasificación del benchmark. Allí donde un experimento
+dirige a uno de ellos, su propia página dice qué hace ese motor al nivel que el
+estudio necesita, de modo que nada de lo que sigue depende de leer una página
+que aún no está aquí. Los dos motores documentados y medidos por completo son
+los preajustes CSP y la reimplementación de Verhaard.
+
+## Por qué documentar los motores aparte de los experimentos
+
+Un estudio y su motor responden a preguntas distintas. El motor responde a *cómo
+funciona la búsqueda*: las estructuras de datos, el orden de relleno, los
+propagadores, y se reutiliza sin cambios en muchos estudios. El estudio responde
+a *qué ocurre cuando se apunta ese motor a una idea concreta*: un prior
+aprendido, un borde fijo, una máscara de ruptura. Mantenerlos aparte significa
+que un lector que quiera entender el prior de PRIOR no tenga que releer cómo
+funciona un haz, y que un lector que quiera el motor lo obtenga en un solo lugar,
+actualizado y completo.
+
+Allí donde estos motores compiten cara a cara bajo un presupuesto fijo, aparecen
+en el [benchmark de un solo núcleo](/research/lab/experiments/single-core-benchmark).
+La teoría general que hay detrás de cada método vive en la sección
+[construir-un-solucionador](/research/build); estas páginas son los motores
+específicos tal como se construyeron y midieron aquí.

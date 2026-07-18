@@ -1,0 +1,131 @@
+---
+title: Por qué un ordenador más rápido no ayuda
+description: >-
+  La idea más importante de la búsqueda combinatoria difícil: reducir el
+  espacio que se explora vence, por un margen exponencial, a explorarlo más
+  rápido. Eternity II está diseñado para que apenas puedas reducirlo.
+metaDescription: "Por qué un ordenador más rápido no ayuda en Eternity II: reducir el espacio de búsqueda vence a buscar más rápido por un margen exponencial, y E2 apenas se reduce."
+kind: finding
+contribution: negative
+rigor: measured
+order: 10
+updated: 2026-07-01
+topics: [speed, search-space, backtracking]
+sources:
+  - label: Artículo, código y resultados en GitHub (research/topics/prune-vs-speed)
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/prune-vs-speed
+  - label: "Peter McGavin: la poda por detección temprana de callejones sin salida suele ser demasiado costosa para que merezca la pena (groups.io msg 11848)"
+    url: https://groups.io/g/eternity2/message/11848
+  - label: "@95A31: toda una batería de comprobaciones de factibilidad resultó inútil en una búsqueda 8×8 (groups.io msg 11856)"
+    url: https://groups.io/g/eternity2/message/11856
+related:
+  - /research/why/walls-and-methods
+  - /research/why/complex-theory
+  - /research/why/no-forced-moves
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+  - /research/build/reduce/arc-consistency
+repro:
+  kind: exact
+  cmd: just research-prune-vs-speed
+  topic: prune-vs-speed
+---
+
+import { PruneVsSpeedLab } from "@/components/research/PruneVsSpeedLab";
+
+Imagina la búsqueda como un árbol. Desde el tablero vacío eliges una pieza para
+la primera celda; a partir de ahí una pieza para la segunda; y así
+sucesivamente, hasta 256 celdas de profundidad. El número de hojas en la base
+es el factor de ramificación elevado a la profundidad, un número
+astronómicamente grande. Para demostrar que una región no tiene solución, una
+búsqueda tiene que recorrer ese árbol.
+
+Ahora bien, hay dos maneras de hacer menos trabajo. Puedes ir más **rápido**: un
+motor mejor, más núcleos, bucles internos afinados a mano. O puedes hacer el
+árbol más **pequeño**, podando las ramas que no pueden llevar a ninguna
+solución, de modo que el factor de ramificación efectivo disminuya. Suenan
+parecidas. Ni siquiera se acercan.
+
+## Constante frente a exponencial
+
+Una aceleración es un divisor constante. Haz la máquina 1000× más rápida y
+esperarás 1000× menos, lo mismo tanto si el árbol tiene diez niveles de
+profundidad como si tiene diez mil. Te compra un múltiplo fijo, punto.
+
+Una poda, en cambio, se compone. Recorta aunque sea un pequeño porcentaje del
+factor de ramificación y ahorrarás esa fracción en cada uno de los niveles. A lo
+largo de 256 niveles, los ahorros se multiplican entre sí: reducir el factor de
+ramificación de $b$ a $b'$ divide el trabajo por $(b/b')^{256}$. Un recorte del
+5 %, aplicado hasta el fondo, vale $(1/0.95)^{256} \approx 5\times10^{5}$, el
+equivalente a una aceleración de quinientas mil veces, a partir de una sola idea
+estructural barata. Eso vence a casi cualquier aceleración que una máquina real
+pueda ofrecer.
+
+## Siente la diferencia
+
+Pon una aceleración bruta en la balanza frente a una pequeña poda por nivel y
+observa cómo la poda gana por varios órdenes de magnitud.
+
+<Figure collapsible title="Interactivo: poder de la poda frente a velocidad bruta">
+  <PruneVsSpeedLab />
+</Figure>
+
+## Por qué esto es exactamente la maldición de E2
+
+Si la poda es la palanca que importa, los puzzles difíciles son aquellos que no
+se pueden podar. Eternity II fue calibrado para ser precisamente eso. Cuatro de
+sus muros dicen, en el fondo, lo mismo: no hay nada local que podar.
+
+- **[Sin jugadas forzadas](/research/why/no-forced-moves)**: cada celda interior
+  aún tiene de 73 a 137 vecinos legales, así que la propagación casi nunca reduce
+  una celda a una sola opción. El factor de ramificación se mantiene
+  obstinadamente alto.
+- **[En el pico de dificultad](/research/why/phase-transition)**: los recuentos
+  de piezas y colores se sitúan donde se espera alrededor de una solución, sin
+  dejar ninguna región densa en soluciones a la que apuntar un atajo
+  estadístico, el truco que hizo caer Eternity I.
+- **[La ley de área](/research/why/entropy-area-law)**: el recuento de tableros
+  parciales genuinamente distintos se desploma más allá de ~80 celdas, pero
+  ninguna señal de puntuación local puede ver ese colapso global, así que no
+  puedes podar hacia él de forma barata.
+- **[La rigidez](/research/why/rigidity-wall)**: incluso a partir de un tablero
+  récord, el salto a uno mejor es enorme e indivisible, sin gradiente que seguir
+  ni nada cercano que podar.
+
+## Lo que significa para todo lo demás aquí
+
+Esta es la lente para toda la sección de investigación. Un motor mucho más
+rápido hace la misma búsqueda más barata, no más pequeña, y no mueve el récord.
+Cada experimento que sí movió la aguja cambió en su lugar la forma de la
+búsqueda: un orden de recorrido distinto, un a priori aprendido sobre dónde se
+sitúan las piezas, una región confinada para los desajustes. Y cada callejón sin
+salida es, en el fondo, una poda que la estructura global del puzzle se niega a
+honrar. La velocidad al principio da sensación de productividad; casi nunca es
+ahí donde se esconde la distancia hasta 480.
+
+## La comunidad también llegó aquí, por las malas
+
+La mitad contraintuitiva de esto es que incluso la poda *legal* a menudo pierde.
+Una comprobación que detecta un tablero parcial condenado y retrocede pronto
+suena como una victoria gratis, pero si la comprobación cuesta más que el
+subárbol que ahorra, un backtracker simple que sigue avanzando sin más es más
+rápido. Peter McGavin expuso sin rodeos la opinión asentada en la lista de
+groups.io: los métodos que intentan detectar una colocación parcial condenada y
+retroceder pronto "generalmente se consideran demasiado costosos para que
+merezcan la pena". Un recién llegado que ejecutaba un solucionador de diagramas
+de decisión, @95A31, lo confirmó después desde cero: tras construir toda una
+batería de comprobaciones de factibilidad, informó de que "todas las
+comprobaciones de factibilidad que implementé resultaron inútiles", con una
+búsqueda 8×8 completa todavía abriéndose paso a través de 953 mil millones de
+nodos durante 17 horas. La lección no es que la poda sea mala, sino que una poda
+solo compensa si es *más barata que la búsqueda que elimina*, y en este puzzle
+casi nada local supera ese listón.
+
+<Callout kind="note">
+  Los números del árbol en la demo son ilustrativos: un factor de ramificación y
+  una profundidad elegidos para ser parecidos a E2 y legibles, no la medición de
+  un solucionador concreto. La curva de dificultad y los recuentos de nodos, en
+  cambio, son mediciones reales de motor sobre puzzles pequeños, deterministas y
+  reproducibles con `just research-prune-vs-speed`. El principio en sí, divisor
+  constante frente a divisor exponencial, es exacto.
+</Callout>

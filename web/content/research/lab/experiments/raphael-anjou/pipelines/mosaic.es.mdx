@@ -1,0 +1,139 @@
+---
+title: MOSAIC
+description: >-
+  Dividir el tablero en pequeños bloques, resolver cada uno hasta el óptimo
+  demostrado y volver a pegarlos, pagando las costuras en lugar de prohibirlas.
+  Partiendo de cero, sin ningún récord que copiar, el método alcanza 448.
+metaDescription: "MOSAIC divide el tablero de Eternity II en pequeños bloques, resuelve cada uno hasta el óptimo demostrado y los pega, pagando las costuras. Desde cero, alcanza 448."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 448
+rigor: measured
+complexity:
+  time: "por bloque 4×4 ~30 s hasta el óptimo MaxSAT (3×3 ~11 s); 16 niveles de bloque con backtracking"
+  space: "un enumerador de soluciones MaxSAT por nivel de bloque mantenido en la pila de backtracking"
+  note: >-
+    Cada bloque es exacto (óptimo en el sentido MaxSAT), pero componer 16 de
+    ellos equivale a una búsqueda por backtracking gruesa sobre 16 niveles,
+    exponencial en el peor caso, tratable porque cada nodo es un bloque entero
+    demostrado óptimo.
+repro:
+  kind: exact
+stages:
+  - engine: maxsat
+    does: "Resolver cada bloque 4×4 hasta un óptimo demostrable con MaxSAT ponderado guiado por núcleos; las aristas compartidas son cláusulas suaves"
+    learns: "Reserva por escasez: retener el ~8% de las piezas globalmente más escasas para combatir el robo de piezas"
+  - engine: exact-tail
+    does: "Un backtracking grueso sobre los enumeradores de soluciones MaxSAT de cada bloque compone los bloques en un tablero completo"
+order: 100
+updated: 2026-07-10
+date: 2026-07
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+  - /research/build/exact/sat-csp-encodings
+sources:
+  - label: "RC2 MaxSAT (el solucionador de bloques exacto): un algoritmo MaxSAT ponderado guiado por núcleos"
+    url: https://doi.org/10.3233/SAT190116
+---
+
+import { MosaicBlockLab } from "@/components/research/MosaicBlockLab";
+
+Eternity II no posee ninguna estructura local que se pueda explotar a escala
+global, pero una pequeña ventana de ella, un bloque 4×4, se resuelve hasta la
+optimalidad perfecta en segundos. MOSAIC es un experimento construido sobre ese
+único hecho: si sabes resolver un bloque exactamente, ¿puedes componer dieciséis
+bloques exactos en un tablero entero?
+
+## Cómo funciona
+
+El tablero 16×16 se recorta en dieciséis bloques 4×4, que se rellenan uno a uno.
+Cada bloque se entrega a un solucionador MaxSAT exacto, que encuentra la mejor
+colocación posible de las piezas que contiene. El truco está en cómo un bloque
+se encuentra con sus vecinos ya colocados: esas aristas compartidas no son
+requisitos estrictos, sino objetivos *suaves* que el bloque es recompensado por
+igualar. Así un bloque nunca puede volverse imposible; simplemente paga por
+cualquier costura que no pueda igualar, y siempre se completa.
+
+La segunda idea combate directamente el robo de piezas. Antes de rellenar un
+bloque, MOSAIC retiene las piezas globalmente más escasas, de modo que a los
+últimos bloques no les falten las piezas raras que sus costuras exigirán. Ajustar
+cuánto reservar es la única perilla real; demasiado poco y la esquina se queda
+sin recursos, demasiado y los primeros bloques lo sufren.
+
+<Figure collapsible title="Interactivo: la búsqueda de ensamblaje de bloques">
+  <MosaicBlockLab />
+</Figure>
+
+## El resultado
+
+La primitiva de ventana cumple su promesa: un bloque 4×4 se resuelve hasta su
+óptimo de 24 aristas en unos treinta segundos, un 3×3 en once, confirmando que
+el puzzle es efectivamente tratable a pequeña escala. Compuesto sobre todo el
+tablero, desde cero y sin arranque en caliente, MOSAIC alcanza 448 de 480. El
+punto óptimo de reserva se sitúa en torno al ocho por ciento del reservorio.
+
+El déficit es informativo: casi todo él está en los tres últimos bloques de la
+esquina inferior derecha, donde el reservorio finalmente se agota: el robo de
+piezas de nuevo, ahora visible como un único punto brillante en el tablero. La
+exactitud a pequeña escala sí compone, pero el orden de composición gasta su
+libertad temprano y la paga al final, la misma forma con la que se topa cada
+método aquí.
+
+## Método
+
+La exactitud es genuina, y también lo es el backtracking que la cose.
+
+- **Bloques exactos.** Cada bloque 4×4 se codifica como un problema *MaxSAT
+  ponderado* y se resuelve con RC2, un solucionador guiado por núcleos, hasta un
+  relleno demostrablemente óptimo. Las aristas compartidas con los vecinos ya
+  colocados son cláusulas *suaves* (recompensadas, no exigidas), de modo que un
+  bloque nunca puede ser inviable: paga por cualquier costura que no pueda
+  igualar y siempre se completa.
+- **Backtracking sobre las soluciones.** MOSAIC no es un pegado de un solo tiro.
+  Cada nivel de bloque mantiene un *enumerador* de soluciones MaxSAT, las mejores
+  primero, mediante RC2 más cláusulas de bloqueo que descartan los rellenos ya
+  vistos. Cuando un bloque posterior se queda sin recursos o un nivel se agota,
+  la búsqueda retrocede y extrae la *siguiente* solución del bloque anterior
+  (liberando un conjunto de piezas distinto). Es una búsqueda por backtracking
+  gruesa sobre 16 niveles, donde cada nodo es un bloque entero óptimo.
+- **Reserva por escasez.** Antes de rellenar, MOSAIC retiene las piezas
+  globalmente más escasas, de modo que a los bloques finales no les falten las
+  piezas raras que sus costuras exigen. Esa fracción de reserva es la única
+  perilla real; el punto óptimo medido es ~8% del reservorio.
+
+La primitiva de ventana es real: un bloque 4×4 alcanza su óptimo de 24 aristas
+en ~30 s, un 3×3 en ~11 s, el puzzle *es* tratable a pequeña escala. Compuesto
+desde cero alcanza 448, con el déficit residual concentrado en los tres últimos
+bloques de la esquina inferior derecha: el [robo de piezas](/research/why/piece-theft)
+hecho visible como un único punto brillante.
+
+## Reproducir
+
+Determinista: las resoluciones de bloque MaxSAT y la composición por backtracking
+son exactas, de ahí `kind: exact`; el tablero de 448 se reproduce y se verifica
+arista por arista en el visor. El motor de bloque funciona a partir del puzzle
+solo, sin corpus ni tablero de partida, siendo su única dependencia externa un
+solucionador MaxSAT, por lo que se prevé un directorio ejecutable de respaldo
+para él junto a los demás experimentos exactos.
+
+## Preguntas abiertas
+
+¿Un orden de bloques no por filas, en espiral hacia el interior o resolviendo
+primero la esquina más restringida, desplazaría el agotamiento fuera del bloque
+más difícil? ¿Podrían solaparse los bloques, de modo que las costuras se
+resuelvan dos veces y se reconcilien? ¿Y haría una primitiva más rápida (en Rust)
+asequible un tamaño de bloque mayor, con su garantía de exactitud más fuerte?

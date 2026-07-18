@@ -1,0 +1,136 @@
+---
+title: LADDER
+description: >-
+  Lanzar cientos de búsquedas cortas y baratas sobre el tablero, conservar solo
+  los arranques más profundos y hacer ascender a los supervivientes a través de
+  rondas cada vez más largas.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 451
+rigor: measured
+complexity:
+  time: "ronda 1: cientos de sondeos de 5 s; final: 300 s × 8 ejecuciones exact-tail-14 desde los prefijos más profundos"
+  space: "conserva solo los prefijos guardados y sus continuaciones vivas entre rondas"
+  note: >-
+    Halving sucesivo: el esfuerzo total es aproximadamente constante por ronda,
+    pero cada ronda lo gasta en supervivientes menos numerosos y más profundos,
+    de modo que el coste se concentra allí donde rinde.
+repro:
+  kind: seeded
+stages:
+  - engine: restart-tournament
+    does: "Inunda con cientos de sondeos cortos desde semillas aleatorias, ordena por profundidad de prefijo perfecto, fija el más profundo con trinquete y sondea más allá de él"
+  - engine: exact-tail
+    does: "Desde los prefijos guardados más profundos, un finalizador exacto de 14 celdas convierte una apertura en un tablero completo"
+order: 80
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/replay
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/build/backtracking/restarts
+sources:
+  - label: "Halving sucesivo / estrategias de reinicio (la página conceptual sobre reinicios de este proyecto)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/backtracking/restarts.mdx
+---
+
+import { LadderDiagram } from "@/components/research/LadderDiagram";
+import { LadderLiveLab } from "@/components/research/LadderLiveLab";
+
+La mayor parte de una búsqueda larga se malgasta en arranques que estaban
+condenados desde el principio. LADDER gasta casi nada para averiguar qué
+comienzos vale la pena perseguir. Lanza una avalancha de sondeos muy cortos,
+conserva los pocos que llegaron más lejos y solo entonces paga por ejecuciones
+más largas, únicamente sobre esos. Es selección por torneo aplicada a los
+arranques de búsqueda.
+
+## Cómo funciona
+
+La primera ronda son cientos de sondeos de cinco segundos que parten de
+semillas aleatorias distintas, cada uno intentando trazar una larga tirada de
+celdas perfectamente encajadas. Conserva los prefijos más profundos y descarta
+los que son casi duplicados entre sí para que los supervivientes sigan siendo
+diversos.
+
+Promueve esos a una ronda más larga con controles de calidad más estrictos, y
+luego promueve los mejores de entre ellos a una ejecución de longitud completa.
+Cada peldaño dedica más tiempo a candidatos menos numerosos y mejores, del
+mismo modo que los torneos por halving sucesivo asignan el esfuerzo a los
+contendientes que siguen ganando.
+
+<Figure collapsible title="Interactivo: la progresión peldaño a peldaño">
+  <LadderDiagram />
+</Figure>
+
+<Figure collapsible title="Interactivo: ejecutar la búsqueda en escalera en directo">
+  <LadderLiveLab />
+</Figure>
+
+## El resultado
+
+LADDER produjo un tablero de 451 que respeta las cinco pistas oficiales, sin
+ninguna guía de ningún récord conocido, la primera vez que el proyecto escapó
+de la banda de 444 a 450 en la que la búsqueda no guiada no dejaba de caer. Los
+finales quedan determinados por su prefijo: una vez que se guarda una apertura
+lo bastante fuerte, el resto se sigue. Una ejecución más larga tocó después el
+452, una arista más, aunque el 451 es el tablero fijado y reproducible aquí.
+
+También cartografió los límites: la reserva de aperturas perfectas se agota, y
+más allá de cierto punto los peldaños convergen todos hacia el mismo techo. Así
+que LADDER es una buena manera de encontrar el mejor arranque, no una manera de
+franquear los muros estructurales que detienen a todo método cerca de la cima.
+
+## Método
+
+La escalera es un torneo recursivo por halving sucesivo sobre los *arranques*
+de búsqueda, puntuados por la profundidad del prefijo.
+
+- **Primera ronda: avalancha.** Cientos de sondeos de 5 segundos que parten de
+  semillas distintas, cada uno trazando una tirada tan larga como sea posible
+  de celdas perfectamente encajadas. Se ordena por la profundidad de ese
+  prefijo perfecto; se conservan los más profundos y se descartan los casi
+  duplicados (prefijos demasiado parecidos a un superviviente) para que el
+  conjunto conservado siga siendo diverso.
+- **Trinquete.** Cada ronda posterior fija el prefijo más profundo guardado en
+  la ronda anterior (una fijación a profundidad 15 en la ejecución registrada) y
+  sondea *más allá* de él, empujando la frontera del prefijo perfecto un paso
+  más. La recursión se detiene cuando una ronda gana menos de cuatro celdas de
+  profundidad: la reserva de aperturas más profundas se ha secado.
+- **Final.** A partir de los tres prefijos distintos más profundos, se lanzan
+  peldaños largos exact-tail-14 (300 s × 8 semillas cada uno) para convertir la
+  apertura guardada en un tablero completo.
+
+El hallazgo es que *el final queda determinado por el prefijo*: una vez que se
+guarda una apertura perfecta lo bastante profunda, el juego final se sigue. Por
+eso concentrar el cómputo en encontrar el mejor arranque, en lugar de
+repartirlo entre ejecuciones completas, permitió escapar de la banda 444-450 en
+la que la búsqueda no guiada no dejaba de caer. Una ronda de final más larga
+tocó después el 452; el tablero fijado y reproducible aquí es el 451.
+
+## Reproducir
+
+Con semilla fijada; la estructura de sondeo-y-promoción reproduce el
+*comportamiento* de forma fiable, aunque el tablero exacto depende de las
+semillas. El tablero 451 fijado es verificable en el visor. La subida no
+necesita ningún corpus, marco ni testigo: parte del puzzle solo, de modo que
+está previsto un directorio de acompañamiento ejecutable para ella junto a los
+demás experimentos partidos de cero.
+
+## Preguntas abiertas
+
+¿Cuál es el verdadero techo de la selección por prefijo primero si se da más
+cómputo a los primeros peldaños? ¿Podría la regla de diversidad ser más fina
+sobre qué casi duplicados conservar? ¿Y combinar los prefijos más profundos de
+familias distintas supera a promover dentro de una sola?

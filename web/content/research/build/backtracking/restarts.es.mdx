@@ -1,0 +1,278 @@
+---
+title: Reinicios y colas pesadas
+description: >-
+  Ejecute el mismo backtracker sobre el mismo puzzle dos veces y los tiempos de
+  ejecución diferirán por potencias de diez. La comunidad lo midió en 2007; la
+  literatura CSP ya lo había bautizado. La cura (cortar, rebarajar, reiniciar) es
+  la razón por la que todo solucionador récord desde entonces es un portafolio de
+  reinicios.
+metaDescription: "Los backtrackers de Eternity II tienen tiempos de cola pesada que varían por potencias de diez; los portafolios de cortar-y-reiniciar impulsan cada récord moderno."
+kind: concept
+order: 130
+group: Backtracking
+updated: 2026-07-02
+topics: [backtracking, search-space]
+sources:
+  - label: "El experimento de Txibilis sobre 500 puzzles: los reinicios ganan el 52 % de las carreras, pero toda la cola (groups.io message 2822)"
+    url: https://groups.io/g/eternity2/message/2822
+  - label: La afirmación original de antminder, backtracking con múltiples reinicios (groups.io message 2420)
+    url: https://groups.io/g/eternity2/message/2420
+  - label: Verhaard sobre lo que el muestreo por reinicios reveló acerca del paisaje de puntuaciones (groups.io message 5182)
+    url: https://groups.io/g/eternity2/message/5182
+  - label: antminder sobre la búsqueda con conciencia de plazo, donde la probabilidad dentro de la ventana vence a un mejor promedio (groups.io message 3089)
+    url: https://groups.io/g/eternity2/message/3089
+  - label: Blackwood sobre el tope de 50 mil millones, un número «arbitrario» (groups.io message 10066)
+    url: https://groups.io/g/eternity2/message/10066
+  - label: La granja de 20 PC reiniciados a mano de McGavin para el censo 9×9 (groups.io message 9342)
+    url: https://groups.io/g/eternity2/message/9342
+  - label: "La resolución 10×10 de McGavin: 92 907 búsquedas de fila reiniciadas y la ley de los grandes números (groups.io message 9688)"
+    url: https://groups.io/g/eternity2/message/9688
+  - label: El hilo sobre la higiene del PRNG, periodo del generador frente a campañas de reinicios (groups.io message 6798)
+    url: https://groups.io/g/eternity2/message/6798
+  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+    url: https://doi.org/10.1023/A:1006314320276
+  - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
+  - label: Luby, Sinclair & Zuckerman, Optimal Speedup of Las Vegas Algorithms (Information Processing Letters, 1993)
+    url: https://doi.org/10.1016/0020-0190(93)90029-9
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/backtracking/fill-order
+  - /research/why/complex-theory
+---
+
+import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
+
+Ejecute el mismo backtracker sobre dos puzzles extraídos de la misma
+distribución y los tiempos de resolución no difieren en porcentajes; difieren
+por potencias de diez. La comunidad de Eternity II lo midió en octubre de 2007.
+En respuesta a la afirmación de antminder de que el «backtracking con múltiples
+reinicios» batía al backtracking simple
+([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
+un escéptico Txibilis generó 500 puzzles 7×7 aleatorios e hizo competir ambas
+políticas en cada uno, con el solucionador con reinicios cortando a 10 millones
+de nodos por intento. El reiniciador ganó solo el 52 % de las carreras, un
+cara o cruz. Entonces observó los *márgenes*: entre las 240 carreras que ganó
+el backtracker simple, su mayor margen de victoria fue de 90 millones de nodos.
+Entre las 260 que ganó el reiniciador, el mayor margen fue de **50 463
+millones**, y en 45 de esas carreras el solo margen del reiniciador superaba la
+mejor victoria del solucionador simple
+([message 2822](https://groups.io/g/eternity2/message/2822)). Una columna del
+registro está acotada; la otra no lo está.
+
+Esa asimetría tiene un nombre en la literatura: una **distribución de tiempos
+de ejecución de cola pesada**. Gomes, Selman y Kautz habían descrito
+exactamente este fenómeno en la búsqueda SAT y CSP una década antes
+([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), y lo formalizaron
+en [su artículo de 2000](https://doi.org/10.1023/A:1006314320276): para el
+backtracking sobre instancias difíciles, la función de supervivencia decae como
+una ley de potencia, $P(T > t) \approx C\,t^{-\alpha}$, no como una
+exponencial. El decaimiento es tan lento que para $\alpha \le 1$ el *promedio*
+del tiempo de ejecución es infinito. Cada récord de Eternity II desde entonces,
+desde el [467 de Verhaard](/research/lab/experiments/louis-verhaard/eii) y el
+[10×10 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) hasta la
+[oleada de 468–470](/research/lab/experiments/joshua-blackwood/solver), fue
+hallado por un solucionador construido en torno a este hecho.
+
+## Por qué aparecen las colas
+
+Un backtracker en profundidad con un
+[orden de relleno](/research/build/backtracking/fill-order) fijo toma sus
+decisiones más baratas primero y luego no las revisa jamás: un solucionador de
+recorrido por filas que ha alcanzado la profundidad 150 ha fijado, en la
+práctica, definitivamente sus tres primeras filas. Si una de esas colocaciones
+tempranas es errónea (legal, plausible, pero sobre ningún tablero completable),
+todo el subárbol por debajo de ella es estéril, y el solucionador debe *agotar*
+ese subárbol antes de que el mecanismo ordinario de backtracking suba lo
+bastante alto como para deshacer el error. Los tamaños de subárbol son
+exponenciales en la altura del giro equivocado, de modo que un mal compromiso a
+la profundidad 3 cuesta exponencialmente más que uno a la profundidad 30. La
+cola de la distribución de tiempos de ejecución es precisamente la distribución
+de los malos compromisos tempranos, heredados para siempre.
+
+El reverso es una cola *izquierda* igualmente gruesa: algunas ejecuciones
+aciertan todas sus decisiones tempranas por suerte y terminan con una rapidez
+absurda. El punto de Gomes, Selman y Kautz es que ambas colas proceden del
+mismo mecanismo amplificador de la varianza, y que la respuesta correcta no es
+una mejor ejecución promedio, sino *más extracciones de la distribución*.
+
+Louis Verhaard añadió una observación propia de Eternity II. Al principio había
+usado los reinicios como instrumento de sondeo, con la esperanza de que las
+regiones de alta puntuación se agruparan como cordilleras: encontrar el Himalaya
+por muestreo grueso y luego escalar. Lo que su muestreo halló en realidad es
+que las puntuaciones altas están dispersas «como rascacielos en las ciudades»:
+uno o unos pocos en cualquier parte, y encontrar uno no dice nada sobre dónde se
+alza el siguiente
+([message 5182](https://groups.io/g/eternity2/message/5182)). No hay señal
+regional que valga la pena para quedarse, lo que elimina el último argumento en
+favor de la lealtad a una ejecución que penosamente avanza.
+
+El hilo original llevaba una salvedad: Txibilis razonaba que los reinicios solo
+deberían rendir cuando la instancia tiene *muchas* soluciones (muchas
+oportunidades de un prefijo afortunado) y menos en un banco de pruebas de
+solución única. Para Eternity II la distinción es irrelevante, a favor del
+buscador: la [teoría compleja](/research/why/complex-theory) sitúa el puzzle
+completo sin pistas en aproximadamente $1.15 \times 10^7$ soluciones, cualquiera
+de las cuales gana, y la caza de puntuaciones parciales cuenta con
+astronómicamente más objetivos todavía.
+
+## El remedio
+
+El remedio es de una simplicidad casi embarazosa, y la receta de 2007 de
+antminder ya lo contiene por completo: ejecutar el backtracker durante un
+presupuesto fijo y, si no ha aparecido ninguna solución, **detener, rebarajar
+el orden de las piezas y empezar de nuevo desde el tablero vacío**
+([message 2420](https://groups.io/g/eternity2/message/2420)). Dos ingredientes
+importan:
+
+- **El corte** trunca la cola derecha por decreto. Ningún intento puede costar
+  más que el presupuesto $c$, de modo que la columna no acotada del registro de
+  Txibilis simplemente deja de existir.
+- **Una aleatorización fresca** (un orden de candidatos rebarajado, una apertura
+  distinta) hace de cada intento una extracción independiente de la distribución
+  de tiempos de ejecución, en lugar de una repetición del mismo descenso
+  condenado. Sin ella, reiniciar no es más que la misma ejecución aquejada de
+  amnesia.
+
+Cuando la distribución es conocida, existe un corte *fijo* óptimo. Cuando no lo
+es, que es el caso habitual, [Luby, Sinclair y
+Zuckerman](https://doi.org/10.1016/0020-0190(93)90029-9) demostraron que apenas
+se necesita: su planificación universal $1,1,2,1,1,2,4,1,1,2,\ldots$ (cada
+potencia de dos apareciendo según un patrón autosimilar) queda a un factor
+logarítmico del corte fijo óptimo sobre *toda* distribución, y ninguna
+planificación universal puede hacerlo mejor en general.
+
+Cómo se ve la producción, veinte años después:
+
+- **El motor de Blackwood** limita cada intento a 50 mil millones de nodos y
+  rebaraja las piezas de apertura, la primera esquina y la fila inferior, antes
+  de cada nueva ejecución, de modo que ningún par de intentos vuelve a recorrer
+  el mismo prefijo
+  ([la página del solucionador](/research/lab/experiments/joshua-blackwood/solver)
+  cubre la maquinaria). Preguntado por cómo se eligió la cifra de 50 mil
+  millones, Blackwood respondió: «El número de 50 G era arbitrario. Probé unos
+  cuantos números grandes (más de 1 G) y no marcaban demasiada diferencia»
+  ([message 10066](https://groups.io/g/eternity2/message/10066)). Esa
+  insensibilidad es en sí misma una firma de cola pesada: cuando el enemigo es
+  la cola, casi cualquier corte que respete el cuerpo de la distribución
+  funciona.
+- **Las granjas de McGavin** son la misma política a escala humana. Su censo de
+  soluciones 9×9 corría en «unos 20 PC» recolectados para alcanzar hasta 60
+  núcleos, cada uno ejecutando un backtracker de recorrido por filas a partir de
+  un arreglo de piezas rebarajado aleatoriamente, y él «reiniciaba manualmente
+  los que parecían atascados»
+  ([message 9342](https://groups.io/g/eternity2/message/9342)). Su resolución en
+  2017 del 10×10 de Brendan Owen, el banco de pruebas resuelto más difícil de la
+  comunidad, fue un portafolio de reinicios por construcción: 92 907 búsquedas
+  independientes de primera fila, repartidas en más de 400 núcleos, donde la
+  teoría predecía alrededor de un éxito por cada 70 000. Su propio resumen:
+  «ningún método nuevo, solo persistencia sistemática y la ley de los grandes
+  números»
+  ([message 9688](https://groups.io/g/eternity2/message/9688)).
+
+Existe también una lectura estratégica, enunciada en la lista ya en 2007: bajo
+el plazo de un concurso, un solucionador con un *peor promedio* pero con más
+masa de probabilidad dentro de la ventana de tiempo es el mejor solucionador
+([message 3089](https://groups.io/g/eternity2/message/3089)). Los reinicios son
+exactamente ese trueque: remodelan la distribución en torno a su cuerpo, a costa
+de nunca llevar a término una ejecución de maratón.
+
+<Callout kind="note" title="Alimente el portafolio con azar genuino">
+  Un portafolio de reinicios es tan diverso como sus rebarajados. En 2009 un
+  miembro se preocupaba de que el generador estándar de su solucionador, con su
+  periodo de $2^{32}$, pudiera limitar silenciosamente cuánto del árbol podrían
+  llegar a muestrear sus reinicios
+  ([message 6798](https://groups.io/g/eternity2/message/6798)); la respuesta de
+  la lista fue el Mersenne Twister, el remedio estándar para la simulación no
+  criptográfica ([message 6801](https://groups.io/g/eternity2/message/6801)). Un
+  PRNG débil no hace caer una campaña de reinicios; estrecha discretamente la
+  distribución de la que se extrae.
+</Callout>
+
+## Vea colapsar la cola
+
+El laboratorio de abajo extrae 400 ejecuciones de solucionador de una mezcla de
+cola pesada inicializada por semilla, calibrada para coincidir con la medición
+de 2007: un cuerpo de ejecuciones afortunadas en torno a unos pocos millones de
+nodos, una cola que se extiende cinco órdenes de magnitud más allá. Luego le
+confía el corte.
+
+<Figure collapsible title="Interactivo: tiempos de ejecución de cola pesada y reinicios">
+  <RestartTailLab />
+</Figure>
+
+## Paso a paso
+
+1. **Observe cómo se llena el histograma.** La mediana (marcador esmeralda) se
+   estabiliza dentro de las primeras decenas de ejecuciones y ya casi no se
+   mueve. La media (marcador rosa) no se estabiliza jamás: cada ejecución que
+   cae en la cola la tira hacia la derecha. Un estadístico dominado por sus
+   muestras más raras es la definición visual de una cola pesada.
+2. **Lea el eje logarítmico.** El cuerpo se sitúa cerca de $10^6$ nodos; las
+   peores ejecuciones superan los $10^{11}$, la misma dispersión de órdenes de
+   magnitud que el registro de 90 M frente a 50 463 M de Txibilis, sobre una
+   distribución lo bastante pequeña como para dibujarla.
+3. **Ahora corte.** El corte por defecto es de 10 millones de nodos, el propio
+   de Txibilis. Cada ejecución ámbar que lo habría rebasado se abandona en la
+   línea discontinua y se reintenta. La media y el P99 de la fila de reinicios
+   caen muy por debajo de la fila de ejecución única: la cola no se sobrevive,
+   se *elimina*.
+4. **Corte demasiado profundo.** Arrastre el corte por debajo del borde
+   izquierdo del cuerpo. La probabilidad de éxito por intento se desploma, el
+   número esperado de intentos estalla y el total esperado asciende. En el
+   extremo, ninguna ejecución puede terminar y la política nunca tiene éxito. El
+   corte debe respetar las ejecuciones afortunadas sobre las que apuesta.
+5. **Fíjese en lo plano que es el punto óptimo.** Entre «demasiado codicioso» y
+   «demasiado paciente» se extiende una meseta de varios órdenes de magnitud de
+   ancho donde el total esperado apenas cambia. Los 50 mil millones
+   «arbitrarios» de Blackwood, hallados empíricamente, son esa meseta que se
+   expresa.
+
+## Lo que cuesta
+
+Fije un corte $c$ y sea $F(c) = P(T \le c)$ la probabilidad de que un único
+intento tenga éxito dentro del presupuesto. Los intentos fallidos cuestan $c$
+cada uno y su número es geométrico, de modo que el trabajo total esperado hasta
+el primer éxito es
+
+$$
+\mathbb{E}[T_c] \;=\; \frac{1 - F(c)}{F(c)}\,c \;+\; \mathbb{E}[T \mid T \le c].
+$$
+
+Minimizar sobre $c$ da el mejor tiempo con corte fijo
+$\ell^{\ast} = \min_c \mathbb{E}[T_c]$. Frente a una cola pesada
+$P(T > t) \approx C\,t^{-\alpha}$ esto no es un refinamiento sino un rescate:
+para $\alpha \le 1$ el promedio sin reinicio $\mathbb{E}[T]$ diverge mientras
+que $\ell^{\ast}$ permanece finito: la política convierte una esperanza infinita
+en una finita. Y el teorema de Luby pone precio a la ignorancia de no conocer
+$F$: la planificación universal alcanza un tiempo esperado de
+$O(\ell^{\ast} \log \ell^{\ast})$ sin conocimiento alguno de la distribución, y
+ese factor logarítmico es óptimo.
+
+El precio del reinicio es aquello que desecha: un tablero parcial profundo,
+abandonado. En Eternity II ese precio es inusualmente bajo, por dos razones.
+Primero, el [embudo de la teoría compleja](/research/why/complex-theory): las
+ejecuciones se atascan contra un muro de profundidad a una profundidad
+característica, y el progreso más allá de él es raro de un modo que no se
+acumula. Las 92 907 búsquedas de fila 10×10 de McGavin registraron una
+profundidad de colocación máxima de 88–99 (sobre 100) para todas menos una, con
+bastante más de la mitad de la masa en solo tres profundidades
+([message 9688](https://groups.io/g/eternity2/message/9688)). Una ejecución
+plantada en el muro durante horas no posee ningún activo que una ejecución
+fresca no pueda volver a ganar en minutos; su «progreso» era un boleto de
+lotería, ya rascado. Segundo, el estado del tablero no lleva aprendizaje
+alguno: a diferencia de un
+[solucionador SAT con aprendizaje de cláusulas](/research/build/reduce/nogood-learning),
+un backtracker simple que muere a la profundidad 190 no ha registrado nada sobre
+el *porqué*, de modo que persistir tampoco preserva conocimiento alguno.
+
+Lo que se pierde de verdad es el certificado. Un portafolio de reinicios
+muestrea el árbol; no lo barre. McGavin lo dice sin rodeos a propósito de su
+censo 9×9: «no recorrí sistemáticamente todo el árbol de búsqueda, así que
+podría haber pasado por alto algunas soluciones»
+([message 9342](https://groups.io/g/eternity2/message/9342)). Para probar que
+una región está vacía, los reinicios son la herramienta equivocada. Para
+encontrar una solución, o un tablero récord, en un espacio donde su tiempo de
+ejecución abarca potencias de diez, son la única política sensata, y todo motor
+de la [cronología de récords](/research/records) los emplea.

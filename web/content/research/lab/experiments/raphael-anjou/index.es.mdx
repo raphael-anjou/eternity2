@@ -1,0 +1,181 @@
+---
+title: "Los experimentos de Raphaël Anjou"
+description: >-
+  Un cuaderno de experimentos de búsqueda sobre Eternity II, organizado en torno
+  a los motores compartidos sobre los que se ejecutan, las pipelines de
+  combinación que persiguen la puntuación, tres estudios que desmontan un
+  paradigma de búsqueda una decisión a la vez, y resoluciones exactas de final de
+  partida. Cada uno expone su idea, su mejor tablero y las preguntas que deja
+  abiertas. El mejor alcanza 463 de 480.
+metaDescription: "Cuaderno de Eternity II de Raphael Anjou: motores compartidos, pipelines de puntuación, tres estudios monoparadigma y resoluciones exactas. Mejor tablero 463 de 480."
+kind: page
+order: 20
+author: raphael-anjou
+updated: 2026-07-17
+---
+
+import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
+import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
+import { ProseLink } from "@/components/docs/mdx-components";
+
+export const scores = [
+  // Group 1: the best board each method reached. Exploratory runs on 8 cores,
+  // wall-clock not logged. These are the numbers the write-ups quote.
+  { key: "prior", label: "PRIOR", score: 460, family: "scratch", group: "explore" },
+  { key: "keyring", label: "KEYRING", score: 460, family: "scratch", group: "explore" },
+  { key: "gauntlet", label: "GAUNTLET", score: 458, family: "scratch", group: "explore" },
+  { key: "lodestone", label: "LODESTONE", score: 451, family: "scratch", group: "explore" },
+  { key: "staged", label: "STAGED", score: 436, family: "scratch", group: "explore" },
+  { key: "palimpsest", label: "PALIMPSEST", score: 463, family: "corpus", group: "explore" },
+  { key: "ladder", label: "LADDER", score: 451, family: "concentrate", group: "explore" },
+  { key: "cloister", label: "CLOISTER", score: 453, family: "anchor", group: "explore" },
+  { key: "midden", label: "MIDDEN", score: 452, family: "anchor", group: "explore" },
+  { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact", group: "explore" },
+  { key: "mosaic", label: "MOSAIC", score: 448, family: "exact", group: "explore" },
+  { key: "replay", label: "REPLAY", score: 460, family: "decode", group: "explore" },
+  // Group 2: the standardized single-core bench, one core, 60 s each. Best board
+  // reached by each study/engine on that budget. Lower, and directly comparable.
+  { key: "bench-verhaard", label: "VERHAARD", score: 451, family: "bench", group: "bench" },
+  { key: "bench-repair", label: "REPAIR START-DFS", score: 449, family: "bench", group: "bench" },
+  { key: "bench-dfs", label: "DFS BREAK-1", score: 435, family: "bench", group: "bench" },
+];
+
+export function Door({ to, title, kicker, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      {kicker ? (
+        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{kicker}</div>
+      ) : null}
+      <div className="mt-0.5 text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
+
+Este es el cuaderno de experimentos de búsqueda sobre Eternity II de [Raphaël
+Anjou](/research/people/raphael-anjou). Algunos son ideas originales; otros
+reimplementan fielmente una técnica conocida de la comunidad para medir con
+exactitud lo que aporta. Cada uno registra su idea, el tablero que alcanzó y las
+preguntas que deja abiertas, y cada tablero es real y comprobable en el
+[visor](/viewer). El mejor alcanza **463 de 480** aristas casadas; el mejor de
+la comunidad en el mismo puzzle es 470. Los métodos y los tableros están aquí al
+completo, sin ocultar nada.
+
+Es un cuaderno, no un resultado único, así que conviene conocer cómo está
+organizado antes de adentrarse en él.
+
+## Qué contiene esta sección
+
+Aquí conviven dos tipos de cosas: el **aparato** sobre el que se ejecutan los
+experimentos, y los **experimentos** mismos. Estos últimos vienen en tres
+variantes: pipelines que persiguen la puntuación del tablero completo, estudios
+que aíslan una decisión de búsqueda a la vez, y resoluciones exactas que
+*prueban* una región pequeña en lugar de adivinarla. Empieza allí donde esté la
+pregunta que te importa.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door
+    to="/research/lab/experiments/raphael-anjou/engines"
+    kicker="El aparato"
+    title="Los motores"
+  >
+    La maquinaria compartida sobre la que se ejecutan los experimentos: un
+    productor constructivo por haz, una búsqueda local de destrucción y
+    reparación, y una familia de preajustes CSP. Documentada una sola vez aquí
+    para que cada estudio pueda remitirse a ella en lugar de reexplicar la
+    máquina. Empieza aquí si quieres saber cómo funciona una búsqueda antes de
+    leer qué hizo un estudio con ella.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/pipelines"
+    kicker="Perseguir la puntuación"
+    title="Pipelines de combinación"
+  >
+    Las ejecuciones con nombre que hacen subir la puntuación. Cada una es una
+    pipeline, no un algoritmo aislado: construir un tablero con un motor y luego
+    elevarlo o rematarlo con otro. El interés reside en el reparto del trabajo
+    entre construcción, reparación y un final de partida exacto. De aquí salen
+    los tableros que se acercan al récord.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/dfs-study"
+    kicker="Desmontar un paradigma"
+    title="El estudio DFS"
+  >
+    El backtracking en profundidad, diseccionado. Una familia de backtrackers
+    partiendo de cero, separados cada uno por un solo cambio (orden de relleno,
+    heurística, política de ruptura), ejecutados sobre las mismas diez variantes
+    con un presupuesto fijo, para poner precio a lo que vale cada idea.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/repair-study"
+    kicker="Desmontar un paradigma"
+    title="El estudio de reparación"
+  >
+    Su hermano, para la búsqueda local de destrucción y reparación: qué región
+    destruir, cómo reconstruirla, cuándo conservar un movimiento, de qué tablero
+    partir. El bucle con el que los récords alcanzan de verdad la cima,
+    desmontado una decisión a la vez.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/learning"
+    kicker="Desmontar un paradigma"
+    title="Aprender de los tableros fuertes"
+  >
+    El tercer estudio, vuelto hacia adentro: en lugar de variar la búsqueda,
+    variar lo que se le permite *saber*. Cinco experimentos minan el corpus de
+    tableros fuertes en busca de estructura y la reinyectan, y los cinco chocan
+    contra el mismo muro.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
+    kicker="Probar una región"
+    title="Encuentro en el medio"
+  >
+    Resoluciones exactas de final de partida: enumerar una región desde dos
+    extremos y unirla en la costura para hallar la verdadera mejor compleción,
+    con una prueba de que ninguna puntúa más alto. Miden con exactitud una
+    región pequeña en lugar de perseguir la puntuación del tablero completo.
+  </Door>
+</div>
+
+Los dos motores constructivos, el productor por haz y la etapa de pulido ALNS,
+todavía no tienen su propio exposé; allí donde una pipeline dirige uno, su
+propia página indica qué hace ese motor al nivel que el estudio necesita. Los
+preajustes CSP son el único motor documentado y medido por completo.
+
+## Cómo leer las puntuaciones
+
+El gráfico y la tabla de abajo contienen dos tipos de número que nunca deben
+confundirse, por lo que se dibujan como grupos separados.
+
+- **Exploración** es el mejor tablero que cada método alcanzó en ejecuciones
+  exploratorias sobre 8 núcleos, sin registrar el tiempo de reloj. Son los
+  números destacados que citan los exposés, y culminan en el 463 de PALIMPSEST.
+- **Banco** es el banco de pruebas estandarizado de un solo núcleo: un núcleo,
+  sesenta segundos, cada tablero re-puntuado por el mismo baremo canónico. Más
+  bajo, y *directamente comparable* entre métodos de una forma que los números
+  de exploración no permiten.
+
+No todos los experimentos merecen una fila. Los tres estudios varían una
+perilla a lo largo de una rejilla en lugar de producir un solo tablero, de modo
+que los estudios [DFS](/research/lab/experiments/raphael-anjou/dfs-study) y de
+[reparación](/research/lab/experiments/raphael-anjou/repair-study) llevan sus
+propias clasificaciones en vez de una fila en el gráfico; aquí solo aparece su
+mejor resultado de banco. Los cinco experimentos de
+[aprendizaje](/research/lab/experiments/raphael-anjou/learning) alcanzan cada uno
+un tablero puntuado, así que conservan sus filas además de su hogar de estudio.
+Las filas de banco de arriba son resultados de estudio, no páginas autónomas, de
+modo que solo aparecen en el gráfico.
+
+<ExperimentScoreChart data={scores} />
+
+Los experimentos con nombre en forma de tabla ordenable (haz clic en una
+cabecera de columna para reordenar por puntuación, nombre, método o mes). El
+autor, el mes, el rigor y la reproducibilidad se leen de la propia página de
+cada experimento, de modo que este resumen se mantiene al día con ellas.
+
+<ExperimentResultsTable data={scores.filter((s) => s.group !== "bench")} />

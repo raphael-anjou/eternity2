@@ -1,0 +1,137 @@
+---
+title: STAGED
+description: >-
+  Construir todo el tablero desde cero, sin marco prefijado, por etapas,
+  dejando que el borde emerja al final a partir de las piezas restantes.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 436
+rigor: measured
+complexity:
+  time: "cuatro etapas: dos beams rápidos de la mitad superior, un crecimiento de banda y un finalizador exacto de la parte baja"
+  space: "guarda los parciales supervivientes entre etapas; se podan en cada relevo mediante una estimación admisible"
+  note: >-
+    La construcción sin marco elimina el anclaje habitual del borde, de modo que
+    el espacio de búsqueda es mayor al principio; es el umbral admisible en cada
+    paso de etapa lo que la mantiene tratable.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Dos beams rápidos de la mitad superior construyen desde vacío con todas las piezas libres y ningún marco fijado"
+    published: false
+  - engine: exact-tail
+    does: "La poda por estimación admisible descarta los parciales condenados, y luego un finalizador exacto resuelve las filas de abajo, con el borde emergiendo al final"
+order: 120
+updated: 2026-07-10
+date: 2026-07
+topics: [construction]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
+  - /research/build/construct/beam-search
+sources:
+  - label: "Búsqueda por haz (la página-concepto de este proyecto): la primitiva de construcción por etapas"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { StageBuildDiagram } from "@/components/research/StageBuildDiagram";
+
+Casi todos los solucionadores empiezan por bloquear el borde, porque el borde
+es la parte más restringida y fijarlo reduce la búsqueda. STAGED es un
+experimento que rechaza esa muleta. Construye el tablero por etapas, de arriba
+hacia abajo, con las 256 piezas libres, y nunca se compromete con un borde
+hasta el final, cuando el borde simplemente cae de lo que queda. La pregunta
+que responde: ¿se puede alcanzar un tablero sólido sin anclarse nunca a un
+marco?
+
+## Cómo funciona
+
+La construcción se desarrolla en cuatro etapas. Las dos primeras llenan la
+mitad superior del tablero con una búsqueda simple y rápida, guardando los
+tableros parciales que sobreviven. En el relevo, una estimación admisible de
+bajo coste descarta cualquier parcial que claramente no puede terminarse bien,
+de modo que las etapas posteriores solo trabajan sobre arranques prometedores.
+
+La tercera etapa hace crecer la siguiente banda de filas a partir de esos
+supervivientes. La cuarta es un finalizador exacto sobre las filas de abajo que
+minimiza las discrepancias, y elige el borde inferior al final, contra las
+piezas que aún quedan sin usar. Así, el marco no se diseña de antemano; emerge
+como consecuencia de todo lo que está por encima.
+
+<Figure collapsible title="Interactivo: la construcción etapa por etapa">
+  <StageBuildDiagram />
+</Figure>
+
+## El resultado
+
+STAGED alcanza 436 de 480 desde cero, con un borde emergente y las cinco pistas
+oficiales respetadas, construido de principio a fin sin ningún marco en el que
+apoyarse. Eso queda muy por debajo de los récords, y esa brecha es el hallazgo:
+mide cuánto vale el anclaje habitual del marco-primero, y demostró que la
+maquinaria sin marco funciona a plena escala.
+
+Por el camino fijó la anatomía de los mejores tableros: son un bloque perfecto
+que cubre casi todo el tablero más una fina banda de discrepancias concentrada
+en unas pocas filas superiores. Esa forma es la que los constructores
+posteriores buscan reproducir a propósito.
+
+## Método
+
+Cuatro etapas, cada una entregando sus supervivientes a la siguiente a través
+de un filtro admisible.
+
+1. **Beams de la mitad superior (etapas 1–2).** Llenar la mitad superior con una
+   búsqueda simple y rápida, guardando los tableros parciales que sobreviven.
+   Las 256 piezas están libres, ningún marco está fijado.
+2. **Relevo admisible.** En cada frontera de etapa, una estimación *admisible*
+   de bajo coste (una cota superior optimista sobre el mejor final posible)
+   descarta cualquier parcial que, de forma demostrable, no puede completarse
+   bien. Como la estimación nunca subestima la puntuación alcanzable, la
+   eliminación es segura: solo retira los parciales que no pueden ganar.
+3. **Crecimiento de banda (etapa 3).** Prolongar los parciales supervivientes
+   hacia abajo, sobre la siguiente banda de filas.
+4. **Finalizador exacto (etapa 4).** Resolver exactamente las filas de abajo,
+   minimizando las discrepancias, y *elegir el borde al final* entre las piezas
+   restantes. El marco no se diseña de antemano; cae de todo lo que está por
+   encima.
+
+El resultado es 436 desde cero con un borde emergente, las cinco pistas
+respetadas, muy por debajo de los récords, y esa brecha es la medida: cuantifica
+cuánto vale el anclaje habitual del marco-primero. El subproducto importó más
+que la puntuación: STAGED fijó la anatomía de los mejores tableros, un gran
+bloque perfecto más una fina banda de discrepancias en unas pocas filas
+superiores, la forma objetivo a la que los constructores posteriores apuntan
+deliberadamente.
+
+## Reproducir
+
+Estocástico (los beams de la mitad superior deshacen los empates de forma
+aleatoria), por lo que una nueva ejecución no reproducirá el tablero exacto; el
+tablero 436 versionado es el artefacto de referencia y puede verificarse en el
+visor. El motor es el productor por haz compartido, ejecutado por etapas para
+que el borde emerja al final en lugar de fijarse primero. No necesita corpus ni
+tablero de partida, así que se prevé un directorio de soporte ejecutable para
+todo el pipeline por etapas junto a los demás constructores desde cero.
+
+## Preguntas abiertas
+
+¿Puede un generador que gaste deliberadamente sus discrepancias en las filas
+superiores, para mantener el resto perfecto, alcanzar los 450 sin marco? ¿Qué
+parte de la brecha de 436 a los récords se debe al anclaje de marco ausente,
+frente al final de partida más difícil? ¿Y una estimación aprendida de la
+calidad del final selecciona mejores supervivientes que la estimación admisible
+de bajo coste?

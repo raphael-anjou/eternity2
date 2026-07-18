@@ -1,0 +1,138 @@
+---
+title: El robo de piezas, donde mueren los solucionadores
+description: >-
+  Un solucionador rellena unas pocas filas sin esfuerzo y luego choca contra un
+  muro en mitad del tablero. He aquí el mecanismo: una pieza escasa gastada en
+  el lugar equivocado, varias filas atrás.
+kind: finding
+contribution: analysis
+rigor: measured
+tier: 3
+order: 100
+updated: 2026-07-01
+topics: [structure, search-space]
+related:
+  - /research/why/no-forced-moves
+  - /research/lab/experiments/raphael-anjou/learning/prior
+repro:
+  kind: exact
+  cmd: just research-piece-theft
+  topic: piece-theft
+sources:
+  - label: "Régin 1994, «A Filtering Algorithm for Constraints of Difference in CSPs» (AAAI-94), el razonamiento all-different que predice la escasez"
+    url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { PieceTheftDiagram } from "@/components/research/PieceTheftDiagram";
+import { PieceTheftLab } from "@/components/research/PieceTheftLab";
+import data from "@/data/piece-theft.json";
+
+export function ServersChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+            <XAxis
+              dataKey="servers"
+              label={{
+                value: "piezas que pueden satisfacer la demanda",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              label={{ value: "demandas", angle: -90, position: "insideLeft", fontSize: 12 }}
+              width={40}
+              fontSize={12}
+            />
+            <Tooltip
+              formatter={(v) => [String(v), "demandas"]}
+              labelFormatter={(s) => `${String(s)} piezas que pueden satisfacer la demanda`}
+            />
+            <Bar dataKey="demands" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Cargando gráfico…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Rellena el tablero de la esquina superior izquierda hacia la inferior derecha y
+cada celda nueva ya conoce dos de sus colores: el color norte proviene de la
+pieza de arriba, el color oeste de la pieza de la izquierda. La celda necesita
+una pieza sin usar capaz de mostrar exactamente ese par. Esas demandas son
+escasas, con solo unas tres piezas posibles en promedio, y 47 de ellas tienen
+una sola.
+
+Así, un tablero que parece sano, con la mayoría de las piezas todavía en la
+caja, puede estar ya condenado. En algún punto más arriba del tablero, la única
+pieza que jamás podría satisfacer una celda futura se empleó en otra cosa.
+Cuando el solucionador alcanza por fin esa celda, no hay nada que colocar.
+
+## Cómo muere una celda
+
+<PieceTheftDiagram />
+
+## Cuántas piezas pueden satisfacer una demanda
+
+<div className="mx-auto grid max-w-2xl grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums text-red-600">{data.uniqueServerDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">demandas satisfechas por una sola pieza</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanServers}</div>
+    <div className="mt-1 text-xs text-muted-foreground">piezas por demanda, en promedio</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.occurringDemands}</div>
+    <div className="mt-1 text-xs text-muted-foreground">demandas distintas que aparecen</div>
+  </div>
+</div>
+
+<Figure caption="Cada demanda (norte, oeste) que puede presentar una celda, agrupada según cuántas piezas interiores podrían satisfacerla. La mayoría de las demandas tienen entre una y tres.">
+  <ServersChart />
+</Figure>
+
+## Deja morir de hambre a una celda tú mismo
+
+El motor rellena un tablero hasta una celda con un único proveedor legal; roba
+esa pieza y observa cómo la celda muere con la caja todavía llena.
+
+<Figure collapsible title="Interactivo: dónde mueren los solucionadores por el robo de piezas">
+  <PieceTheftLab />
+</Figure>
+
+## Por qué importa
+
+Un arreglo tentador es una comprobación global: ¿siguen las piezas restantes
+cubriendo las celdas restantes? No sirve de nada. A nivel global la oferta es
+suficiente; el fallo es una sola pieza escasa mal asignada, no una carencia.
+Por eso una anticipación global no ve nada anormal hasta el momento en que la
+celda resulta no tener proveedor, lo que explica por qué este muro resistió
+tantos intentos de podarlo pronto.
+
+Ponlo junto a la [ausencia de jugadas forzadas](/research/why/no-forced-moves) y
+la trampa queda completa. Cada pieza tiene decenas de lugares donde podría ir,
+de modo que al solucionador nunca se le indica dónde debe reservarse una pieza
+escasa, y sin embargo cada pieza escasa tiene exactamente una demanda para la
+que debe preservarse. Libertad para colocar, ninguna guía sobre qué guardar.

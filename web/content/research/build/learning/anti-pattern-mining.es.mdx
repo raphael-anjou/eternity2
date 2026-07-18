@@ -1,0 +1,93 @@
+---
+title: Minería de anti-patrones
+description: >-
+  La idea sutil detrás de aprender de los tableros fuertes: no todo acuerdo entre
+  ellos es bueno. Algunos emplazamientos compartidos son estructura real; otros
+  son una trampa común que limita cada búsqueda justo por debajo de la cima.
+  Distinguir ambos y atacar la trampa.
+metaDescription: "Minería de anti-patrones en Eternity II: separar la estructura real de los tableros fuertes de la trampa común que los limita, y dirigir la búsqueda a atacarla."
+kind: concept
+order: 52
+group: Learned guidance
+updated: 2026-07-16
+topics: [local-search, learning]
+sources:
+  - label: "Ropke & Pisinger 2006, búsqueda adaptativa de gran vecindario (el marco de destrucción-reparación que aquí se dirige)"
+    url: https://doi.org/10.1287/trsc.1050.0135
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning/palimpsest
+  - /research/build/local-search/local-search-alns
+  - /research/why/rigidity-wall
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+
+Cada técnica vista hasta ahora trata el acuerdo entre tableros fuertes como algo
+bueno: allí donde los buenos tableros concuerdan, se los sigue. Esta descompone
+ese acuerdo, porque una parte de él es una trampa. Cuando muchas búsquedas
+independientes alcanzan todas un tablero alto pero imperfecto, coinciden en un
+enorme número de emplazamientos, y una parte de ese acuerdo es estructura genuina
+mientras que otra es un mal hábito compartido: una elección local que parece
+buena, se siente forzada y limita silenciosamente cada búsqueda justo por debajo
+de la cima. Toda la idea consiste en distinguir ambos y luego atacar la trampa.
+
+## Dos frecuencias, no una
+
+Un simple recuento no puede separar la estructura real de la trampa, porque ambas
+aparecen casi en todas partes. El truco está en calcular *dos* frecuencias para
+cada patrón candidato y compararlas. Sobre un corpus de tableros repartidos en una
+amplia franja de puntuaciones, para cada par de celdas adyacentes y cada par de
+piezas que alguna vez ocupa ese lugar, se mide:
+
+$$
+p_\text{high} = \frac{\#\{\text{boards with the pair, score} \ge 460\}}{\#\{\text{boards} \ge 460\}}, \qquad
+p_\text{all} = \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
+$$
+
+junto con un *techo*: la mejor puntuación de cualquier tablero que contenga el
+patrón. Emergen dos categorías. Un **buen consenso** es un $p_\text{all}$ alto con
+un techo alto, un patrón que los tableros fuertes comparten *y* que los mejores
+tableros conservan: estructura real y fiable. Una **trampa de consenso** es un
+$p_\text{all}$ alto con un techo estancado justo por debajo de la cima, un patrón
+que casi todos los tableros adoptan pero que ningún tablero de cabeza retiene: la
+elección equivocada consensuada que bloquea a toda una familia por debajo del
+récord. La vista de frecuencia única no puede distinguirlos; separar por cuenca es
+todo el movimiento.
+
+<Figure collapsible title="Interactivo: el mapa de trampas, familia de esquinas por familia de esquinas">
+  <PalimpsestDiagram />
+</Figure>
+
+## Dirigir, no prohibir
+
+Saber dónde están las trampas convierte el corpus en un mapa de qué
+emplazamientos merecen confianza y cuáles hay que desmontar. El experimento
+[PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)
+lo usa para dirigir una búsqueda [ALNS](/research/build/local-search/local-search-alns):
+se toma un tablero atrapado en la cuenca de la trampa, se busca la cuña cuya
+eliminación rompe el mayor número de patrones-trampa preservando los de buen
+consenso, se rompen deliberadamente esas celdas y se devuelve el tablero al bucle
+de reparación, cuyo operador de destrucción abre precisamente esas regiones rotas
+y las reconstruye. Dirigida así, alcanzó 463, el mejor tablero que ha producido
+este proyecto (el
+[experimento PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest),
+cuyo tablero versionado se reproduce mediante `just research-record-boards`).
+
+La salvedad es la lección. Intentar usar la lista de trampas *directamente*,
+forzando a la búsqueda a evitar cada emplazamiento atrapado, no funcionó y empeoró
+los tableros. El valor estaba en leer el corpus para elegir *hacia dónde apuntar*
+la búsqueda, no en codificar en duro sus conclusiones como una prohibición. Un
+mapa aprendido es un buen lugar hacia el que orientar una búsqueda y un mal juego
+de grilletes que atornillarle, que es la misma frontera entre desempate y objetivo
+que atraviesa los [a priori de corpus](/research/build/learning/corpus-priors),
+vista desde el otro lado: aquí el peligro no es sobreponderar una buena señal, sino
+confiar en exceso en una señal sobre lo que es *malo*.
+
+Incluso perfectamente dirigida, esta vía no franquea la cima. Reconstruir las
+regiones atrapadas tiende a caer de nuevo en el mismo tablero de cabeza ya
+conocido en lugar de en uno genuinamente nuevo, porque la trampa no es un error
+que una búsqueda más astuta evite; es el
+[muro de rigidez](/research/why/rigidity-wall) en sí. Ese es el tema de la
+[página sobre el colapso](/research/build/learning/when-learning-collapses).

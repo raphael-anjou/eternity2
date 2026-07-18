@@ -1,0 +1,308 @@
+---
+title: "Resolver de forma distribuida: enjambres, sindicatos y granjas de núcleos"
+description: >-
+  Cada pocos años, la comunidad lanzaba más ordenadores contra Eternity II:
+  salvapantallas BOINC, sindicatos con reparto de premio, clústeres de
+  PlayStation, granjas de placas únicas rescatadas. Lo que compraron 10^19
+  operaciones, cómo se particiona realmente una búsqueda en profundidad, y la
+  única tarea para la que la distribución resultó ser buena.
+metaDescription: "Resolución distribuida de Eternity II: BOINC, sindicatos, granjas de PlayStation y de placas únicas, lo que compraron 10^19 operaciones, y cómo se particiona un DFS."
+kind: concept
+order: 150
+group: Go faster
+updated: 2026-07-02
+topics: [speed, backtracking]
+sources:
+  - label: "eternity2.net se lanza en BOINC, y los escépticos responden (groups.io message 756)"
+    url: https://groups.io/g/eternity2/message/756
+  - label: "El balance de cierre: 1,6 TFlops, más de 10^19 operaciones, mediados de los 460 (groups.io message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "El Eternity 2 Syndicate: partes del premio proporcionales a las colocaciones (groups.io message 3021)"
+    url: https://groups.io/g/eternity2/message/3021
+  - label: "Verhaard publica eii con términos de premio 50-50 (groups.io message 5940)"
+    url: https://groups.io/g/eternity2/message/5940
+  - label: "El clúster de François Galea y sus PlayStation 3 (groups.io message 6918)"
+    url: https://groups.io/g/eternity2/message/6918
+  - label: "La lista de filas superiores del 10×10: 4.318.956 filas por reservar (groups.io message 9164)"
+    url: https://groups.io/g/eternity2/message/9164
+  - label: "La granja de filas de más de 400 núcleos de McGavin resuelve el 10×10 (groups.io message 9688)"
+    url: https://groups.io/g/eternity2/message/9688
+  - label: "El 469: unos días sobre unos doscientos núcleos (groups.io message 10045)"
+    url: https://groups.io/g/eternity2/message/10045
+  - label: "El wrapper_blackwood de Jef Bucas, un servidor de tareas para estudios paramétricos"
+    url: https://github.com/jfbucas/wrapper_blackwood
+related:
+  - /research/community/hunt
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/peter-mcgavin/backtracker
+---
+
+La idea llegó antes que el propio puzzle. En mayo de 2007, dos meses antes de
+que Eternity II saliera a la venta, la lista de correo barajó un esfuerzo
+comunitario al estilo SETI@home, y la respuesta de Brendan Owen fue la primera
+formulación clara de la tesis que los siguientes quince años no dejarían de
+confirmar: existen conjuntos de piezas que "serán imposibles con los
+algoritmos de backtracking actuales", por más máquinas que reclutes
+([groups.io message 222](https://groups.io/g/eternity2/message/222),
+[message 226](https://groups.io/g/eternity2/message/226)). La comunidad
+construyó los proyectos distribuidos de todos modos, más de una vez y en dos
+formas distintas. Ambas merecen entenderse, porque una de ellas resultó ser
+genuinamente útil. La historia social (el auge y la caída de eternity2.net, la
+política del concurso a su alrededor) vive en
+[las páginas de historia](/research/community/hunt); esta página es la vista de
+sistemas.
+
+## Enjambres de voluntarios
+
+La primera forma es la multitud: desconocidos descargan un cliente, donan
+ciclos y se reparten cualquier premio por contrato.
+
+**eternity2.net** fue el buque insignia. Dave Clark, autor de un solucionador
+distribuido de Eternity I, lo lanzó sobre la infraestructura BOINC de Berkeley
+el mismo mes en que se distribuyó el puzzle, julio de 2007
+([message 756](https://groups.io/g/eternity2/message/756)). En el lanzamiento,
+los escépticos decían que sin avances algorítmicos ni siquiera 100.000 máquinas
+tenían prácticamente ninguna posibilidad
+([message 763](https://groups.io/g/eternity2/message/763)); la multitud vino de
+todos modos. En seis semanas superaba los 1.300 miembros registrados; 160 de
+ellos estaban en EE. UU., donde el puzzle aún no se había puesto a la venta
+([message 2122](https://groups.io/g/eternity2/message/2122),
+[message 2132](https://groups.io/g/eternity2/message/2132)). El proyecto envió
+a Tomy una parcial de 462 aristas, y luego una de 463
+([message 2663](https://groups.io/g/eternity2/message/2663)), la cifra que
+sirvió de techo público de la comunidad durante más de un año. Cinco meses tras
+el lanzamiento, Clark lo cerró y publicó el balance: más de 1,6 TFlops de
+cómputo agregado, más de 10¹⁹ operaciones de CPU, mejores puntuaciones "en
+torno a mediados de los 460", y su propio veredicto de que una solución por
+fuerza bruta "siempre iba a ser claramente imposible"
+([message 3511](https://groups.io/g/eternity2/message/3511)). Al retirarse,
+liberó el código de su solucionador de investigación
+([message 3716](https://groups.io/g/eternity2/message/3716)), y sus formatos de
+archivo se convirtieron en el estándar de intercambio de la comunidad.
+
+**El Eternity 2 Syndicate** añadió la letra pequeña. Lanzado en octubre de 2007
+en eternity2syndicate.co.uk, sus miembros ejecutaban un backtracker rápido
+sobre un espacio de búsqueda particionado (la misma arquitectura que
+eternity2.net) pero con un contrato explícito: el dinero del premio repartido
+en proporción a las colocaciones aportadas. En una semana informaba de ~20
+máquinas con una media de 300 millones de colocaciones por segundo; pronto 40
+miembros ejecutaban 50 instancias del solucionador, con estadísticas de
+progreso exclusivas para miembros
+([message 3021](https://groups.io/g/eternity2/message/3021),
+[message 3078](https://groups.io/g/eternity2/message/3078),
+[message 3105](https://groups.io/g/eternity2/message/3105)). Un sitio francés de
+resolución distribuida funcionaba en paralelo; Clark celebró la "competencia"
+([message 1254](https://groups.io/g/eternity2/message/1254)). En mayo de 2008
+llegó la versión a microescala: el "E2@home" de e2dude, una sola persona que
+reivindicaba puntuaciones por encima de 460 por semana y por PC y reclutaba
+voluntarios a cambio de una parte del premio menor de 10.000 $
+([message 5474](https://groups.io/g/eternity2/message/5474)).
+
+Ninguno de estos enjambres batió un récord. La única campaña de voluntarios que
+ganó dinero invirtió la receta: en lugar de un cliente débil en muchas
+máquinas, Louis Verhaard publicó el *solucionador más potente que existía*,
+eii, para que cualquiera lo ejecutara, con el premio repartido 50-50 entre él y
+el usuario con mejor puntuación
+([message 5940](https://groups.io/g/eternity2/message/5940)). Las máquinas de la
+comunidad encontraron su 467 más de cuarenta veces
+([message 6275](https://groups.io/g/eternity2/message/6275)), y ganó el único
+premio que Eternity II llegó a pagar.
+[La página de eii](/research/lab/experiments/louis-verhaard/eii) cuenta esa
+historia completa; la lección para esta página es contundente: el algoritmo era
+el activo, y la multitud no era más que su multiplicador.
+
+## Flotas en propiedad
+
+La segunda forma es más discreta y sobrevivió a la primera: un investigador,
+muchas máquinas que controla personalmente, apuntando a un objetivo *finito*.
+
+**El clúster de François Galea.** En 2009, Galea informó de haber resuelto
+exactamente el banco de pruebas 10×9 de Brendan Owen (93 días sobre un clúster
+de 7 nodos de Pentium 4 dobles) y de tener el 10×10 en marcha desde ~110 días
+sobre un clúster de tres PlayStation 3, aún sin resolver (istarinz había
+abandonado el mismo 10×10 tras un mes en un Xeon de cuatro núcleos)
+([message 6918](https://groups.io/g/eternity2/message/6918)). Este es el ejemplo
+limpio más antiguo del buen caso de uso: el 10×9 tiene un árbol conocible y
+finito, así que más núcleos compran una fecha de finalización real en lugar de
+un billete de lotería.
+
+**[La granja rescatada de Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker).**
+McGavin construyó su flota con lo que fuera barato: ~20 núcleos en casa, tres
+ODROID XU4, veinticinco Orange Pi Lite de 12 $ (más de 130 núcleos), y luego
+servidores de trabajo prestados para 400+ en total. Ese pico era intermitente,
+no sostenido: el trabajo estuvo "repartido a lo largo de unos 4 años y usando
+de forma intermitente hasta unos 400 núcleos a la vez"
+([message 9804](https://groups.io/g/eternity2/message/9804)), los servidores
+prestados solo durante el último mes más o menos, y según su propia nota los
+núcleos de servidor "son hyperthreads, hablando con propiedad"
+([message 9753](https://groups.io/g/eternity2/message/9753)) mientras que las
+placas ARM funcionan a alrededor de un tercio de un núcleo de PC. En 2017 esa
+granja resolvió el set_1 10×10 de Brendan, el banco de pruebas comunal de la
+comunidad, de una década de antigüedad: ~2×10¹⁷ nodos, unos 180 núcleos-año,
+menos del 0,5 % del árbol completo, "sin métodos nuevos, solo persistencia
+sistemática y la ley de los grandes números"
+([message 9686](https://groups.io/g/eternity2/message/9686),
+[message 9688](https://groups.io/g/eternity2/message/9688)). Tres años después
+apuntó "unos un par de cientos" de núcleos al solucionador recién publicado de
+Joshua Blackwood durante unos días y consiguió el 469, entonces el récord
+absoluto en el puzzle real
+([message 10045](https://groups.io/g/eternity2/message/10045)).
+
+La nube hizo apariciones fugaces: Amazon EC2 se sugirió ya en 2010
+([message 8106](https://groups.io/g/eternity2/message/8106)), y David Barr
+probó su programa de búsqueda en AWS Lambda en 2016
+([message 9642](https://groups.io/g/eternity2/message/9642)). Pero las flotas
+alquiladas nunca desplazaron a las propias; la economía de un puzzle sin plazo
+favorece el hardware que puedes dejar funcionando durante años.
+
+## El censo
+
+| Esfuerzo | Modelo | Escala | Resultado | Fuente |
+| --- | --- | --- | --- | --- |
+| eternity2.net (Dave Clark, 2007) | Enjambre de voluntarios (BOINC) | 1.300+ miembros, 1,6 TFlops | 462–463 enviados; >10¹⁹ ops; cerrado tras 5 meses | [756](https://groups.io/g/eternity2/message/756), [3511](https://groups.io/g/eternity2/message/3511) |
+| Sitio distribuido francés (royale_zerezo, 2007) | Enjambre de voluntarios | desconocido | Se apagó sin resultado | [1253](https://groups.io/g/eternity2/message/1253) |
+| Eternity 2 Syndicate (Amos, 2007) | Enjambre de voluntarios + contrato de premio | ~40 miembros, 50 instancias, ~300M colocaciones/s | Sin récord; se apagó con el sitio | [3021](https://groups.io/g/eternity2/message/3021), [3078](https://groups.io/g/eternity2/message/3078), [3105](https://groups.io/g/eternity2/message/3105) |
+| E2@home (e2dude, 2008) | Microsindicato | Unos pocos voluntarios | Reivindica más de 460; sin récord verificado | [5474](https://groups.io/g/eternity2/message/5474) |
+| Publicación de eii (Verhaard, 2008–09) | Binario publicado, reparto de premio 50-50 | PC de la comunidad | 467 encontrado 40+ veces; el único premio jamás pagado | [5940](https://groups.io/g/eternity2/message/5940), [6275](https://groups.io/g/eternity2/message/6275) |
+| Clúster + PS3 de Galea (2009) | Flota en propiedad | 14 CPU + 3 PlayStation 3 | 10x9 resuelto exactamente en 93 días; 10x10 sin resolver | [6918](https://groups.io/g/eternity2/message/6918) |
+| Reservas de filas superiores (2013) | Protocolo de lista de correo | Un puñado de miembros | 4.318.956 filas listadas; solución conocida verificada; se disipó | [9164](https://groups.io/g/eternity2/message/9164), [9177](https://groups.io/g/eternity2/message/9177) |
+| Granja de filas de McGavin (2016–17) | Flota en propiedad (rescatada) | 400+ núcleos en el pico, intermitente durante ~4 años (muchos son hyperthreads) | set_1 10×10 de Brendan resuelto, ~180 núcleos-año | [9688](https://groups.io/g/eternity2/message/9688), [9804](https://groups.io/g/eternity2/message/9804) |
+| McGavin sobre el solucionador de Blackwood (2020) | Flota en propiedad | "unos un par de cientos" de núcleos, unos días | 469/480, el récord de su época | [10045](https://groups.io/g/eternity2/message/10045) |
+| wrapper_blackwood (Bucas, 2021–) | Servidor de tareas + clientes por núcleo | Un trabajador por núcleo | Mapas de parámetros, no récords | [repo](https://github.com/jfbucas/wrapper_blackwood) |
+
+## ¿Cómo se particiona una búsqueda en profundidad?
+
+El backtracking parece secuencial, pero se distribuye de maravilla: fija un
+prefijo de la búsqueda y cada subárbol por debajo de él es una tarea
+independiente que no necesita comunicación alguna. La comunidad usó tres
+recetas concretas.
+
+**Bandas de prefijos.** Trocear el espacio de las primeras colocaciones en
+rangos y entregar cada rango a un trabajador. Esto es lo que hicieron
+eternity2.net y el Syndicate, el "espacio de búsqueda particionado" del
+[message 3021](https://groups.io/g/eternity2/message/3021), y es la forma más
+débil, porque en el puzzle completo cada banda es igual de desesperada.
+
+**Listas de primeras filas.** Enumerar todas las compleciones legales de la
+primera fila, y luego tratar cada fila como una tarea: un backtracking acotado
+sobre el resto del tablero. En 2013, por sugerencia de McGavin, Martin
+(capiman) enumeró las 4.318.956 filas superiores legales del set 1 10×10 de
+Brendan y publicó la lista
+([message 9164](https://groups.io/g/eternity2/message/9164)). McGavin recorrió
+hasta el final la fila que contenía la solución conocida, la fila 1.407.888, en
+15.310 segundos, encontrando exactamente esa solución
+([message 9167](https://groups.io/g/eternity2/message/9167)), y Michel Gaillard
+"reservó" las entradas 1000002–1000035 publicando en la lista
+([message 9177](https://groups.io/g/eternity2/message/9177)). Aquel esfuerzo de
+2013 se disipó; el de 2017 añadió el ingrediente que faltaba: la *clasificación*.
+McGavin puntuó ~20 millones de permutaciones de primera fila según su
+probabilidad, en el sentido de la
+[teoría del complejo](/research/why/complex-theory), de solución por nodo del
+árbol de búsqueda y puso en la granja primero las mejores filas. La solución
+llegó en la búsqueda de fila ~92.907 frente a una predicción de una por cada
+~70.000
+([message 9688](https://groups.io/g/eternity2/message/9688)). La clasificación
+marcaba la diferencia entre una lotería y un calendario. Las tareas tienen un
+valor tremendamente desigual; un buen modelo estático de qué rebanadas son
+prometedoras vale más que cualquier cantidad de hardware adicional.
+
+**Barridos de parámetros.** La variante moderna distribuye *configuraciones* en
+lugar de subárboles. El
+[wrapper_blackwood](https://github.com/jfbucas/wrapper_blackwood) de Jef Bucas
+es un pequeño servidor Python que reparte tareas por HTTP, donde cada tarea es
+una variación de los parámetros del
+[solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver);
+los clientes (un trabajador por núcleo) generan el código fuente C# a partir de
+plantillas con esa variación incorporada, lo compilan, lo ejecutan e informan.
+La salida no es un récord sino un mapa: qué tríos de colores y qué calendarios
+de cuotas alcanzan la profundidad, agregados a lo largo de cientos de
+ejecuciones.
+
+## Coordinación y confianza
+
+La maquinaria de coordinación era llamativamente informal. El protocolo de
+reserva de 2013 se basaba en el honor: reivindicabas un rango de filas
+publicando un mensaje
+([message 9177](https://groups.io/g/eternity2/message/9177)), y funcionaba
+porque los participantes se contaban con los dedos de una mano.
+
+La verificación, en cambio, se tomaba en serio, y siempre era el mismo método:
+el recálculo independiente. Cuando McGavin verificó la fila 1.407.888, apal1969
+volvió a ejecutar la misma fila con código distinto y la confirmó con 6,77×10¹¹
+nodos
+([message 9168](https://groups.io/g/eternity2/message/9168)); cuando el 10×10
+cayó en 2017, Martin validó la solución de forma independiente
+([message 9725](https://groups.io/g/eternity2/message/9725)); los tableros
+récord se publicaban con la lista completa de piezas y se comprobaban en el
+visor en línea de Jef Bucas
+([message 10045](https://groups.io/g/eternity2/message/10045)). Nada entraba en
+el registro de la comunidad por la sola palabra de alguien.
+
+El verdadero problema de coordinación de la era de los enjambres era económico,
+y el concurso lo empeoraba: las inscripciones al premio podían quedar
+descalificadas si se publicaban, así que eternity2.net dejó de publicar las
+puntuaciones por encima de 463: un proyecto distribuido incapaz de decir a sus
+propios voluntarios lo que habían encontrado
+([message 3511](https://groups.io/g/eternity2/message/3511)). Los contratos de
+reparto de premio (las partes proporcionales a las colocaciones del Syndicate,
+el 50-50 de eii, la parte del premio menor de E2@home) eran intentos de impedir
+que los voluntarios se guardaran un hallazgo para sí mismos, y de mantenerlos
+motivados, dentro de ese secreto forzoso. Cuando el concurso murió, el problema
+se evaporó: los esfuerzos modernos publican todo, y la confianza descansa en la
+reproducibilidad en lugar de en contratos.
+
+## Lo que compraron 10^19 operaciones
+
+Nada, y la comunidad sabía por qué antes de empezar. Las propias estimaciones
+de árbol del grupo, convergiendo desde implementaciones independientes en 2008,
+situaban la búsqueda completa en aproximadamente 2,2×10⁴³ nodos por solución,
+del orden de 10²⁷ núcleos-año
+([message 5193](https://groups.io/g/eternity2/message/5193),
+[message 5197](https://groups.io/g/eternity2/message/5197)). Frente a eso, el
+total acumulado de 10¹⁹ operaciones de eternity2.net es alrededor de 10⁻²⁴ del
+trabajo de una sola solución: multiplicar tu flota por mil, o por un millón, no
+mueve un número así en absoluto. Owen lo dijo dos meses antes de que saliera el
+puzzle
+([message 226](https://groups.io/g/eternity2/message/226)); la carta de cierre
+de Clark lo concedía casi con las mismas palabras
+([message 3511](https://groups.io/g/eternity2/message/3511)).
+
+El punto más profundo es aquel al que este wiki no deja de volver: el hardware
+multiplica una búsqueda, mientras que la poda la *reconfigura*.
+[Poda contra velocidad](/research/why/prune-vs-speed) desarrolla el argumento
+general, y [la teoría del complejo](/research/why/complex-theory) aporta la
+aritmética exacta de por qué el árbol del puzzle completo empequeñece cualquier
+flota concebible. Todo esfuerzo distribuido sobre el puzzle completo confirmó
+el argumento de conteo; ninguno lo mermó.
+
+## Para qué sirve realmente la distribución
+
+Los esfuerzos que funcionaron comparten una propiedad: el objetivo era finito y
+las matemáticas lo decían de antemano.
+
+- **Resolución exhaustiva en la frontera de la viabilidad.** El 10×9 de Galea y
+  el 10×10 de McGavin son árboles de ~10¹⁵–10¹⁷ nodos: monstruosos para una
+  sola máquina, tratables para una flota. La distribución convirtió "algún día"
+  en 93 días y 180 núcleos-año respectivamente.
+- **Medición.** El 10×10 de McGavin sirvió también como la validación más sólida
+  que [la teoría del complejo](/research/why/complex-theory) haya recibido
+  jamás: la solución llegó según el calendario predicho, y los histogramas de
+  nodos publicados coincidían con el modelo
+  ([message 9688](https://groups.io/g/eternity2/message/9688)). Una granja de
+  núcleos es un buen instrumento para medir una teoría.
+- **Estudios paramétricos.** wrapper_blackwood es la plantilla moderna: cuando
+  la pregunta es "¿cuál de estas mil configuraciones busca más profundo?", las
+  tareas son verificables, acotadas e independientes, que es exactamente lo que
+  la distribución busca.
+- **Récords solo aguas abajo de un algoritmo.** El 469 vino de ~200 núcleos
+  ejecutando un solucionador que ya era, por sí solo, de clase récord
+  ([message 10045](https://groups.io/g/eternity2/message/10045)). Los núcleos
+  multiplicaron el algoritmo de Blackwood; en ningún momento de este archivo lo
+  sustituyeron.
+
+<Callout kind="note" title="El resumen en una línea">
+  Quince años de cómputo colectivo, destilados: las multitudes sin un algoritmo
+  no compraron nada; las flotas apuntadas a objetivos finitos y bien modelados
+  compraron exactamente lo que el modelo prometía. El multiplicador es real;
+  solo multiplica lo que ya tienes.
+</Callout>

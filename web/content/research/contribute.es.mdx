@@ -1,0 +1,143 @@
+---
+title: Contribuye con tus investigaciones
+description: >-
+  Este wiki es el hogar de investigación de la comunidad, y hay sitio en él para
+  tu trabajo. Tres formas de publicarlo, desde un mensaje en la lista de correo
+  hasta una pull request, más el pequeño conjunto de reglas de la casa que
+  mantiene cada página digna de confianza.
+metaDescription: "Publica tus investigaciones sobre Eternity II en este wiki comunitario: tres vías, desde un mensaje en la lista de correo hasta una pull request."
+kind: tool
+order: 70
+updated: 2026-07-02
+topics: []
+related:
+  - /research/build/run-it-yourself
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+Este wiki no es el blog de una sola persona con la puerta cerrada. Pretende ser
+el hogar de investigación de la comunidad: el lugar donde diecinueve años de
+trabajo sobre Eternity II (récords, métodos, hallazgos estructurales,
+[callejones sin salida](/research/build/dead-ends) incluidos) quedan
+consignados, referenciados y a mano para encontrarlos. Cada página del
+[laboratorio](/research/lab) lleva la firma de su autor y se reúne en la
+[página de contribuidor](/research/people) de ese investigador, hoy sobre todo
+[la de Raphaël](/research/people/raphael-anjou), porque es quien se toma la
+molestia de escribirlo todo, pero la estructura acredita a cada contribuidor
+por su nombre. La tuya puede situarse justo al lado de la suya.
+
+Ya existe un precedente. La página sobre
+[el algoritmo de Blackwood](/research/lab/experiments/joshua-blackwood/solver) se
+apoya en las notas y el estudio de parámetros de Jef Bucas, republicados con su
+permiso explícito, sus figuras y su nombre en cada una de ellas. Ese es el
+modelo: el trabajo sigue siendo tuyo, el wiki le da un hogar permanente y
+citable.
+
+## Tres formas de entrar
+
+**1. Publícalo y señálalo: la vía más ligera.** Comparte tu hallazgo allí donde
+la comunidad ya conversa: la [lista de correo](https://groups.io/g/eternity2) o
+el [servidor de Discord](https://discord.gg/Ny5xs3q8w). Si quieres verlo en el
+wiki, basta con decirlo en tu mensaje. Alguien (normalmente Raphaël) lo
+redactará como página, te la someterá a revisión y la publicará con todo el
+crédito. Así es exactamente como nació la página de Blackwood a partir de las
+notas de Jef. Nunca tienes que tocar el repositorio.
+
+**2. Abre una issue o una pull request.** El wiki es
+[un repositorio abierto](https://github.com/raphael-anjou/eternity2), y una
+página de investigación no es más que un archivo MDX bajo
+`web/content/research/`. Añadir el archivo *es* el registro: la barra lateral,
+la búsqueda y el sitemap lo recogen automáticamente. Cada página empieza con un
+pequeño bloque de frontmatter:
+
+```yaml
+title: Your finding, in one line
+description: >-
+  Two or three sentences that can stand alone in a search result.
+kind: finding # or experiment, concept, reference...
+updated: 2026-07-02
+topics: [backtracking]
+sources:
+  - label: Hopfer's statement of the NS-1 condition (2022)
+    url: https://groups.io/g/eternity2/message/10754
+```
+
+Si la página es un **experimento** (una búsqueda que has medido), se requiere un
+bloque más: el hardware sobre el que se ejecutó. Es lo que permite a un lector
+comparar tu resultado con el de todos los demás, y el build rechaza una página
+de experimento que carezca de él.
+
+```yaml
+kind: experiment
+hardware:
+  cores: 1 # logical cores used; sum across nodes for a cluster
+  cpu: "AMD Ryzen 9 7950X"
+  ramGb: 64
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "desktop, single box"
+  wallClock: "10 × 60 s" # budget per run × repeats
+  runs: 10
+  seedPolicy: "randomized corner permutation per run"
+  measured: true # true only for the standardized single-core bench
+```
+
+La página lo representa como una ficha técnica con una sola cifra-titular
+derivada: los **núcleos-hora** (núcleos × horas de tiempo real), el coste
+verdadero de la ejecución. Esa única cifra es lo que sitúa una búsqueda de un
+núcleo y un minuto y un barrido de 400 núcleos en un centro de datos en la misma
+tabla sin que uno favorezca al otro. Pon `measured: true` solo para una
+referencia mononúcleo estandarizada (un núcleo, un presupuesto de tiempo fijo);
+una ejecución multinúcleo es un `native run` y consigna su equipo real y la
+mejor puntuación que alcanzó.
+
+¿No lo tienes claro con la fontanería? Abre una issue con tu borrador en
+markdown simple y nosotros nos ocupamos del resto.
+[Ejecútalo tú mismo](/research/build/run-it-yourself) explica cómo poner el sitio
+en marcha en local si quieres previsualizar tu página.
+
+**3. Comparte datos y tableros.** No todo necesita prosa. Un buen tablero, un
+barrido de parámetros, un conjunto de datos de una ejecución larga: todo ello es
+bienvenido. Cada tablero de este sitio es verificable en el
+[visualizador](/viewer), que habla de forma nativa el formato de URL estándar de
+la comunidad, de modo que cualquiera puede comprobar tu resultado con un clic.
+Publica el tablero o los datos con una nota sobre cómo se produjeron, y puede
+respaldar una página o convertirse en una.
+
+## Las reglas de la casa
+
+Existen por una sola razón: para que cualquiera que llegue a cualquier página
+pueda confiar en lo que lee.
+
+- **Cada afirmación enlaza una fuente.** Un mensaje de la lista de correo, un
+  repositorio, un artículo: algo que un lector pueda seguir.
+- **Cada cifra es reproducible o está etiquetada por lo que es.** Los resultados
+  deterministas vienen con una orden que los regenera exactamente. Los cálculos
+  con semilla, estocásticos o pesados lo dicen con claridad ("no se reproducirá
+  exactamente", "~40 h en 8 núcleos") y entregan el tablero que encontraron para
+  que siga siendo verificable.
+- **Cada experimento dice sobre qué se ejecutó.** Una búsqueda medida no tiene
+  sentido sin su hardware, así que una página de experimento debe llevar el
+  bloque `hardware:` de arriba (núcleos, equipo, presupuesto de tiempo). El build
+  lo exige. Una puntuación sin cómputo detrás no es un resultado que nadie pueda
+  comparar.
+- **Las páginas en francés se escriben, no se traducen.** Cada página existe en
+  ambos idiomas, y la versión francesa es prosa francesa de verdad, no una pasada
+  automática. Si solo escribes en un idioma, no pasa nada; un mantenedor puede
+  encargarse de traducir el otro.
+- **Tu nombre permanece en tu trabajo.** Notas de crédito, enlaces a fuentes,
+  atribuciones de figuras: la página de Blackwood muestra cómo se ve esto en la
+  práctica. Nada se absorbe de forma anónima.
+
+## Lo que el wiki devuelve a cambio
+
+A cambio de cumplir esas reglas, tu trabajo recibe una infraestructura que un
+mensaje de foro nunca tendrá: una página estable en el armazón de la
+documentación con barra lateral, búsqueda y migas de pan; una ubicación en los
+[centros temáticos](/research) para que se encuentre por tema, y no solo por
+fecha; una exportación en markdown en bruto de cada página (añade `.md` a su URL)
+para que siga siendo legible por máquina; y una URL permanente que otros
+investigadores podrán citar, dentro de años y no solo esta semana.
+
+El puzzle ha resistido a todo el mundo hasta ahora. Lo mínimo que podemos hacer
+es asegurarnos de que el progreso de nadie contra él se pierda.

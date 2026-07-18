@@ -1,0 +1,110 @@
+---
+title: Aprender a partir de tableros fuertes
+description: >-
+  Un estudio en cinco experimentos de una sola idea: en lugar de buscar Eternity
+  II desde cero, extraer estructura del corpus de tableros fuertes ya encontrados
+  y reinyectarla en una búsqueda. Un prior de posición, un voto de jugada
+  aprendido, una brújula de demanda escasa, un minero de antipatrones y un
+  decodificado de récord, ordenados de la señal más simple a la más sutil, y el
+  único muro que los cinco alcanzan.
+metaDescription: "Un estudio en cinco experimentos sobre aprender de tableros fuertes de Eternity II: priors de posición, voto de jugada, demanda escasa y minería de antipatrones."
+kind: page
+order: 5
+author: raphael-anjou
+updated: 2026-07-16
+topics: [learning, construction]
+related:
+  - /research/build/learning
+  - /research/build/dataset
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/why/rigidity-wall
+---
+
+La mayor parte de este cuaderno busca Eternity II desde cero: un beam construye un
+tablero a partir de una rejilla vacía, un backtracker excava y retrocede, un bucle
+de reparación pule un tablero completo mediante jugadas. Cada uno razona solo a
+partir de las reglas del puzzle y del tablero que tiene delante. Este estudio es la
+excepción, y es un estudio y no un conjunto suelto de runs porque sus cinco
+experimentos plantean una misma pregunta desde ángulos distintos: **¿qué puede
+aprender una búsqueda de los tableros que la gente ya ha encontrado, y hasta dónde
+la lleva eso?**
+
+La materia prima es un corpus de tableros fuertes, todo arreglo que la comunidad y
+este proyecto han empujado por encima de 400 de 480. El gesto, en cada experimento
+aquí, consiste en leer ese corpus en busca de estructura (dónde se sitúan las
+piezas, qué piezas se tocan, qué patrones locales se repiten, qué acuerdos son
+trampas) y reinyectar la estructura en una búsqueda como un sesgo. Está más cerca
+del aprendizaje por imitación que del diseño de búsqueda, y merece su propio hogar
+porque el mismo puñado de ideas sigue regresando, cada una un poco más afilada que
+la anterior.
+
+El corpus en sí está [publicado](/research/build/dataset): 7658 tableros distintos
+que puntúan de 400 a 469, publicados bajo CC0, con el control de diversidad que
+impide que una señal aprendida se limite a recodificar un solo tablero. La
+exposición agnóstica al método de cada técnica vive en la sección teórica sobre
+[aprender a partir de tableros fuertes](/research/build/learning); las páginas aquí
+son su vertiente de laboratorio, los runs que ponen cada técnica sobre el tablero
+real de 16×16, con sus puntuaciones y las preguntas que dejaron abiertas.
+
+## Los cinco experimentos, de la señal más simple a la más sutil
+
+El estudio se lee como una secuencia. Cada experimento aprieta una vuelta de tuerca
+más que el anterior, y las páginas están ordenadas para leerse en ese orden.
+
+| # | Experimento | La señal aprendida | Alcanzado (de 480) |
+|---|---|---|---|
+| 1 | [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) | dónde tiende a situarse cada pieza, un simple recuento de posiciones | 460 |
+| 2 | [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) | tres señales (posición, adyacencia, parche 2×2) votando juntas | 460 |
+| 3 | [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) | qué piezas sirven a una demanda de color escasa, una brújula tenue | 451 |
+| 4 | [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest) | los malos hábitos compartidos que limitan los tableros, minando la trampa y no la estructura | 463 |
+| 5 | [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay) | la única jugada que un tablero récord empleó y que nuestra búsqueda no sabía hacer | 460 |
+
+**[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)** es la forma más
+simple que la idea puede adoptar, un recuento: sobre los tableros fuertes, ¿con qué
+frecuencia se sitúa cada pieza en cada celda? Usado como desempate de construcción,
+levanta un tablero competitivo desde la nada y alcanza 460.
+**[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring)** suma señales
+en lugar de fiarse de una sola, dejando que un recuento de posición, un recuento de
+adyacencia y una calidad de parche 2×2 aprendida voten sobre cada colocación, lo
+que lleva una construcción hasta una familia de esquinas que ninguna búsqueda
+anterior había forzado.
+**[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone)** toma el
+camino inverso, hacia una única señal deliberadamente tenue (un peso de demanda
+escasa por pieza) y, al hacerlo, encuentra el filo de la navaja que atraviesa todo
+el estudio: en cuanto una señal aprendida deja de ser un desempate y pasa a ser el
+objetivo, la búsqueda se derrumba.
+
+**[PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)** es el
+giro sutil. Todos los experimentos que la preceden confían en el acuerdo entre
+tableros fuertes; este pregunta qué acuerdos son *trampas*, colocaciones que todo
+tablero adopta pero que ningún tablero de cabeza conserva, y orienta una búsqueda de
+reparación para atacarlas. Produjo el mejor tablero de este proyecto, 463.
+**[REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)** aprende de un
+solo tablero y no de una estadística: reconstruir exactamente un récord de la
+comunidad, y todo lo que tengas que añadir a tu búsqueda para que recorra ese camino
+es precisamente el ingrediente que le faltaba. Aquí fue el double break, la jugada
+que hizo pasar la escala estricta de 458 a 460.
+
+## El único muro que los cinco alcanzan
+
+El hilo conductor es lo que hace de esto un estudio y no un saco de trucos, y da que
+pensar. Cada señal aquí es segura solo como un sesgo suave: confía demasiado en ella
+y la búsqueda se descompone (LODESTONE cae de 451 a 380 a medida que sube su peso;
+la lista de trampas de PALIMPSEST ayuda como guía y perjudica como prohibición). E
+incluso usada a la perfección, ninguna de estas señales eleva el techo. Alcanzan la
+cima del alcance propio de una búsqueda, rápido y de forma fiable, y se detienen,
+porque el corpus del que aprenden está hecho de tableros que topan todos con el
+mismo [muro de rigidez](/research/why/rigidity-wall). Aprender a partir de tableros
+fuertes es el camino más rápido *hacia* la meseta y, por sí solo, ningún camino *más
+allá* de ella. Ese modo de fallo es el tema de la
+[síntesis sobre el colapso](/research/build/learning/when-learning-collapses) de la
+sección teórica, y es la nota sobre la que se resuelve todo el estudio.
+
+Este es uno de los tres estudios del
+[cuaderno de experimentos](/research/lab/experiments/raphael-anjou). Sus hermanos, el
+[estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study) y el [estudio de
+reparación](/research/lab/experiments/raphael-anjou/repair-study), desmontan un único
+paradigma de búsqueda decisión por decisión; este mantiene el paradigma suelto y
+hace variar lo que a la búsqueda se le permite *saber*.

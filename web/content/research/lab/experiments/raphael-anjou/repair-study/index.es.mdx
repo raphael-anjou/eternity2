@@ -1,0 +1,156 @@
+---
+title: El estudio de la reparación
+description: >-
+  La hermana del estudio DFS, para la otra manera en que se ataca Eternity II:
+  destruir parte de un tablero, reconstruirla, conservar el cambio si ayuda. Una
+  pregunta, planteada con cuidado. Qué aporta cada decisión de ese bucle: qué
+  región destruir, cómo reconstruirla, cuándo conservar un movimiento, cuándo
+  reiniciar, y desde qué tablero partir.
+metaDescription: "Un estudio de la búsqueda local de destrucción-reparación en Eternity II: qué aporta cada decisión del bucle, medido sobre diez variantes, un núcleo, 60 s."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s"
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments repair-study
+order: 26
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Motor ejecutable + resultados commiteados + scripts (el directorio de referencia de este estudio)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study
+---
+
+import { RepairStudyLeaderboard } from "@/components/research/RepairStudyLeaderboard";
+import { RepairLoopDiagram } from "@/components/research/RepairLoopDiagram";
+
+Hay dos maneras concretas en que se ataca Eternity II. La primera consiste en
+construir un tablero celda a celda y retroceder cuando falla; el [estudio
+DFS](/research/lab/experiments/raphael-anjou/dfs-study) lo disecciona. La segunda
+consiste en sostener un tablero entero y *repararlo*: arrancar una región,
+reconstruirla, conservar el cambio si ayudó, y repetir. La reparación es la
+última etapa de las cadenas construir-y-luego-refinar que hay detrás de los
+tableros casi récord de este proyecto, y es el método al que recurre la
+literatura en cuanto un tablero es demasiado bueno para que el desplazamiento de
+una sola pieza lo mejore. Este estudio disecciona el bucle de reparación de la
+misma manera en que su hermana diseccionó el backtracking: una decisión a la vez,
+sobre las mismas diez variantes con esquinas fijadas, un núcleo, sesenta segundos
+por ejecución. La puntuación máxima es de 480 aristas apareadas.
+
+El bucle en sí es corto. Una iteración, recorrida a continuación.
+
+<Figure title="Una iteración de destrucción-reparación, paso a paso">
+  <RepairLoopDiagram />
+</Figure>
+
+El objetivo no es ganar. La mayoría de las variantes terminan entre 360 y 379, y
+la que mejor lo hace (446) lo logra partiendo de un tablero sólido obtenido por
+backtracking en lugar de uno construido, lo que constituye en sí la lección
+central del estudio. Reparar un simple tablero voraz en un núcleo durante un
+minuto es poca cosa frente a las cadenas que emplean los récords; lo que el
+estudio mide es *cuánto vale cada decisión del bucle*, cambiando una cosa a la vez
+y midiendo el resultado con el mismo puntuador canónico que usan el estudio DFS y
+el resto del sitio.
+
+## La familia, y la clasificación
+
+Cinco familias, dispuestas de modo que las vecinas difieran por una sola
+decisión, todas ramificándose de un mismo bucle ancla depurado (arranque voraz,
+destruir las celdas desapareadas, rellenado voraz, conservar el resultado salvo
+que pierda puntuación, nunca reiniciar). El **tablero de partida** cambia el punto
+donde el bucle comienza. El **operador de destrucción** cambia qué celdas levanta
+cada iteración. La **reparación** cambia la manera en que se reconstruye el hueco.
+La **aceptación** cambia el momento en que se conserva un movimiento no
+mejorante. El **reinicio** cambia lo que ocurre una vez que el bucle se estanca.
+
+<RepairStudyLeaderboard />
+
+## Lo que el estudio encontró
+
+- **Partir de un tablero sólido obtenido por backtracking gana el estudio
+  entero.** La variante que dedica sus primeros veinte segundos a ejecutar el
+  break-DFS del estudio DFS, y luego repara el tablero de poco más de 440 que
+  resulta, termina la más alta de todas, con una media de 446 (mejor resultado
+  449). La reparación solo añade un puñado de aristas por encima de ese tablero,
+  pero el tablero del que parte vale cien puntos más que una construcción voraz, y
+  eso se propaga hasta el final. Es la división del trabajo construir-y-luego-refinar
+  que emplean los récords, reproducida de principio a fin en un núcleo en un
+  minuto.
+- **Entre las variantes con arranque voraz, la destrucción aleatoria se impone y
+  apuntar a los defectos resulta contraproducente.** Una destrucción ciega a la
+  geometría que levanta doce celdas *aleatorias* termina en una media de 402 (mejor
+  resultado 409) y sigue mejorando bien entrada la ejecución. Todo operador que
+  apunta a las celdas rotas termina por debajo, y cuanto más precisamente se
+  fija, peor lo hace: el ancla de las celdas desapareadas aterriza en 366, una
+  destrucción por componente conexa más grande en 350. Sobre un tablero mediocre
+  hay mejora disponible en todas partes, de modo que explorar vale más que atacar
+  donde ya duele. Eso se invierte en un tablero casi récord, donde los pocos
+  defectos restantes son lo único que queda por corregir.
+- **El tablero de partida fija el suelo.** Una construcción voraz arranca en torno
+  a 348; una aleatoria arranca cerca de 18, y aunque el bucle la eleva unos
+  espectaculares 308 puntos, aun así termina por debajo de donde el arranque voraz
+  *comenzaba*. La construcción es la palanca, la reparación es el pulido.
+- **La regla de aceptación es la otra palanca real.** El recocido simulado, que
+  desciende de vez en cuando para dejar una meseta, es la regla de aceptación más
+  fuerte por un margen claro (media 377, mejor resultado 394), muy por delante de
+  una escalada de colina estricta (361). Cuánto se permite un movimiento no
+  mejorante vale una diferencia de dieciséis puntos sobre el mismo bucle.
+- **Los refinamientos ingeniosos no aportan nada aquí.** Una destrucción de banda
+  entera es inerte (cero mejoras en nueve de diez instancias). Un rellenado
+  *exacto* acotado de un hueco pequeño no supera a un rellenado voraz simple del
+  mismo hueco, un resultado negativo limpio: sus reconstrucciones localmente
+  perfectas cuestan suficientes iteraciones como para que más reconstrucciones
+  voraces y más baratas lleguen igual de lejos. Ni una patada aleatoria ni un
+  retorno-al-mejor ante un estancamiento despegan la puntuación de la referencia
+  sin reinicio.
+
+Cada uno de estos puntos tiene su propio tratamiento: cómo está construido el
+motor y qué significa cada estadística presentada están en la [página de
+método](/research/lab/experiments/raphael-anjou/repair-study/method), y las
+comparaciones de destrucción, reparación, aceptación, reinicio y tablero de
+partida se desarrollan en la [página de
+resultados](/research/lab/experiments/raphael-anjou/repair-study/findings).
+
+## Cómo leer los números
+
+Cada tablero se vuelve a puntuar con el único puntuador canónico, y no se confía
+en la puntuación autodeclarada de ningún motor. El bucle mantiene su puntuación de
+forma incremental a medida que coloca y levanta piezas, pero el número publicado
+es siempre una nueva puntuación canónica del tablero producido. El rendimiento se
+reporta en iteraciones de reparación por segundo y **nunca se compara entre
+familias**, porque una iteración que ejecuta un rellenado exacto no es la misma
+unidad de trabajo que una que ejecuta un rellenado voraz.
+
+El eje a vigilar es el *estancamiento*: la iteración en la que el mejor global
+mejoró por última vez, frente al total de iteraciones ejecutadas. Cuando la
+primera es de unos pocos miles y la segunda de cientos de miles, la ejecución
+encontró su respuesta pronto y luego molió la misma cuenca durante el resto del
+minuto. Esa brecha es la forma medida de una observación de larga data sobre este
+rompecabezas: la destrucción-reparación es una exploradora de cuencas soberbia y
+prácticamente nunca escapa de la cuenca en la que aterriza.
+
+Todo el aparato (el motor, las diez variantes, los resultados por ejecución
+commiteados y los scripts de la grilla) reside bajo el [directorio de
+referencia](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study)
+del estudio, y `just experiments repair-study` reconstruye el motor y reejecuta
+toda la grilla. El tablero, el puntuador y la capa de E/S provienen de una
+[biblioteca
+compartida](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/common)
+que usa también el estudio DFS, de modo que un tablero reparado y uno obtenido por
+backtracking se puntúan con exactamente el mismo código.

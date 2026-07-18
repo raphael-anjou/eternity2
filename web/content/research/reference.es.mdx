@@ -1,0 +1,46 @@
+---
+title: Números de referencia
+description: >-
+  Recuentos exactos de cuántas maneras válidas hay de rellenar un bloque
+  pequeño en una posición dada del tablero oficial de Eternity II, bajo reglas
+  cada vez más restrictivas: números fiables para contrastar el código de
+  emparejamiento de aristas y de restricciones de tu solucionador.
+metaDescription: "Recuentos exactos de las formas válidas de rellenar un bloque en una posición de Eternity II, con reglas más estrictas: números fiables para tu solucionador."
+kind: reference
+order: 60
+group: Check your code
+author: raphael-anjou
+updated: 2026-07-11
+topics: [backtracking]
+sources:
+  - label: "Recuentos de subcuadrículas publicados por sylvogel (mensaje groups.io 11879)"
+    url: https://groups.io/g/eternity2/message/11879
+  - label: "Generador Rust reproducible de este proyecto + resultados versionados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/subgrid-placement-counts
+related:
+  - /research/build/known-facts
+  - /research/build/benchmarks
+  - /research/people/raphael-anjou
+repro:
+  kind: exact
+  cmd: just research-subgrid
+  topic: subgrid-placement-counts
+---
+
+import { ReferenceTableView } from "@/components/research/views/ReferenceTableView";
+
+¿De cuántas maneras distintas, respetando el emparejamiento de aristas, se puede
+rellenar un bloque pequeño del tablero oficial? Estos recuentos son la verdad de
+referencia contra la que probar un solucionador: si tu código de emparejamiento
+de aristas y de restricciones discrepa con los números de abajo en una esquina
+2×2, el error está en tu código, no en la tabla.
+
+Las cifras en redonda están calculadas a partir del juego de piezas oficial por
+el generador Rust reproducible de este proyecto (enlazado más abajo), de modo que
+cualquiera puede volver a calcularlas. El puñado de cifras en cursiva son
+recuentos demasiado grandes para enumerarlos exactamente en segundos (de decenas
+de miles de millones a decenas de billones de rellenos); esos son **los valores
+publicados por sylvogel**, reproducidos aquí por exhaustividad y acreditados en
+las fuentes. Todo lo demás se recalcula aquí desde cero.
+
+<ReferenceTableView />

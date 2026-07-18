@@ -1,0 +1,168 @@
+---
+title: PALIMPSEST
+description: >-
+  Leer cada tablero fuerte para detectar los hábitos que, en silencio, limitan
+  un tablero, y luego romperlos. Este experimento produjo el mejor tablero del
+  proyecto: 463 de 480.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 463
+rigor: measured
+complexity:
+  time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
+  space: "O(P·K) for the persistence table (K distinct piece-pairs per position)"
+  note: >-
+    La pasada de minería es lineal en el corpus; el coste real es la búsqueda
+    ALNS que orienta después, no las estadísticas.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: corpus-mining
+    does: "Frecuencias separadas por cuenca distinguen la estructura compartida de la trampa compartida, construyendo un mapa de trampas"
+    learns: "Mapa de trampas de consenso: pares frecuentes en todas partes pero ausentes de los mejores tableros"
+  - engine: alns
+    does: "Partiendo de un tablero de 461, romper deliberadamente las celdas trampa y dejar que destrucción-reparación las reconstruya, alcanzando 463"
+    published: false
+order: 40
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search, learning]
+related:
+  - /research/build/learning/anti-pattern-mining
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Ropke & Pisinger 2006, búsqueda adaptativa de gran vecindario (el marco de destrucción-reparación que esto orienta)"
+    url: https://doi.org/10.1287/trsc.1050.0135
+---
+
+import { PalimpsestDiagram } from "@/components/research/PalimpsestDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Hasta ahora, cada experimento del [estudio](/research/lab/experiments/raphael-anjou/learning)
+ha confiado en el acuerdo entre tableros fuertes: allí donde los buenos tableros
+concuerdan, se los sigue. PALIMPSEST es el momento en que esa confianza se examina,
+y produjo el mejor tablero del proyecto. Cuando muchas búsquedas independientes
+alcanzan todas un tablero alto pero imperfecto, tienden a coincidir en muchas
+colocaciones. Parte de ese acuerdo es estructura auténtica, y otra parte es un mal
+hábito compartido: una elección local que parece buena y mantiene cada búsqueda
+atascada justo por debajo de la cima. La idea de este experimento es leer todo el
+corpus de tableros fuertes, separar el acuerdo útil de la trampa, y atacar las
+trampas.
+
+## Cómo funciona
+
+Se toma cada tablero que alguien haya encontrado y que puntúe razonablemente bien,
+y para cada par de posiciones vecinas se cuenta cuántas veces se sitúa allí un par
+de piezas dado, ponderado por lo bueno que era el tablero. Emergen dos patrones.
+Algunas adyacencias aparecen una y otra vez en los mejores tableros: son estructura
+segura, real. Otras aparecen casi en todas partes pero nunca en los tableros de
+cabeza: esas son las trampas, las elecciones que parecen acertadas y limitan la
+puntuación.
+
+Las trampas se agrupan en regiones concretas del tablero en lugar de repartirse de
+forma uniforme. Saber dónde están convierte el corpus en un mapa: qué colocaciones
+seguir, y cuáles desmontar y reconstruir. Agrupar los tableros según cómo están
+dispuestas sus esquinas orienta entonces la búsqueda hacia la familia más
+prometedora a atacar.
+
+<Figure collapsible title="Interactivo: el mapa de trampas, familia de esquinas por familia de esquinas">
+  <PalimpsestDiagram />
+</Figure>
+
+## El tablero
+
+<RecordBoard id="palimpsest-463" />
+
+## El resultado
+
+Utilizada como un mapa para orientar la búsqueda, esta aproximación alcanzó 463 de
+las 480 aristas emparejadas, el mejor tablero que este proyecto ha producido. A
+título de comparación, el mejor tablero de la comunidad en este puzzle es 470, y
+una solución completa cuenta 480.
+
+Una salvedad que merece señalarse: intentar usar directamente la lista de trampas,
+forzando la búsqueda a evitar las colocaciones atrapadas, no funcionó por sí solo y
+tendía a empeorar los tableros. El valor estaba en leer el corpus para elegir dónde
+concentrar el esfuerzo, no en codificar en duro sus conclusiones dentro de la
+búsqueda.
+
+## Método
+
+Para el lector que quiere el procedimiento exacto. Se ejecuta en dos pasadas.
+
+**1. Minería de consenso ponderada por la puntuación y separada por cuenca.** Sobre
+un corpus de tableros cuya puntuación va de 400 a 480, para cada par de celdas
+adyacentes $(i, j, \text{dir})$ y cada par de piezas que alguna vez se sitúa allí,
+se calculan dos frecuencias en lugar de una:
+
+$$
+\begin{aligned}
+p_\text{high}(\text{pair}) &= \frac{\#\{\text{boards with the pair, score} \ge 460\}}{\#\{\text{boards with score} \ge 460\}} \\[4pt]
+p_\text{all}(\text{pair}) &= \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
+\end{aligned}
+$$
+
+junto con un *techo*: la puntuación máxima de cualquier tablero que contenga ese
+par. Es el techo, y no $p_\text{high}$, lo que separa las dos categorías. El **buen
+consenso** es un $p_\text{all}$ alto con un techo que alcanza la familia de cabeza,
+tableros al nivel del mejor del proyecto (463) o a un punto de él: patrones que los
+tableros más fuertes conservan, así que estructura fiable. Las **trampas de
+consenso** son un $p_\text{all}$ alto con un techo que se cala un par de puntos más
+abajo, sin que ningún tablero portador del par supere los 460-y-pico: la elección
+errónea consensuada que bloquea a toda una familia por debajo del récord. El corte
+se sitúa entre «alcanza la cima» y «se cala justo por debajo»; en este corpus
+pequeño (un techo de 463, tableros agrupados desde los 450 altos hasta los 460
+bajos) se fija a mano en lugar de barrerse, y $p_\text{high}$ (puntuación $\ge$ 460)
+se reporta al lado pero no es el discriminante. La vista de frecuencia única (la
+persistencia sola) no puede distinguirlos; separar por techo es todo el truco.
+
+**2. ALNS de destrucción de trampas.** Se toma un tablero de 461 (se sitúa *dentro*
+de la cuenca de trampas por construcción), se localizan los ~50 pares-trampa mejor
+clasificados que contiene, y se encuentra la cuña: la posición cuya eliminación
+rompe la mayor cantidad de pares-trampa mientras preserva los de buen consenso.
+Luego se perturban esas celdas trampa, se cambian por piezas no atrapadas,
+introduciendo de 4 a 8 discordancias deliberadas, y se devuelve el tablero a la
+[búsqueda adaptativa de gran vecindario](/research/build/local-search/local-search-alns).
+El operador de destrucción de la peor banda de ALNS rasga preferentemente
+exactamente esas regiones rotas intencionadamente y las reconstruye. Ejecución: 30
+minutos × 6 semillas.
+
+La complejidad es poco notable: la pasada de minería es lineal en el tamaño del
+corpus, y el coste real es la búsqueda ALNS que orienta. La contribución reside en
+el *dónde* dirige esa búsqueda, no en una nueva búsqueda.
+
+## Reproducir
+
+El verificador `just research-record-boards` recalcula la puntuación en aristas
+emparejadas del tablero de 463 versionado a partir de sus aristas Bucas en bruto y
+comprueba que iguala lo anunciado, de modo que el tablero es reproducible y
+verificable byte a byte en el visor. La búsqueda que lo *encontró* es una ejecución
+estocástica del motor ALNS compartido (30 min × 6 semillas), orientada por el mapa
+de trampas descrito arriba. No reproducirá el mismo tablero, razón por la cual el
+artefacto de referencia es el tablero, no una nueva ejecución. La orientación se lee
+de un corpus de tableros fuertes, de modo que la ejecución no se reproduce aquí
+desde cero.
+
+## Preguntas abiertas
+
+¿Por qué la reconstrucción de las regiones atrapadas tiende a recaer sobre el mismo
+tablero de cabeza ya conocido en lugar de sobre uno realmente nuevo? ¿Revelaría un
+mapa distinto por familia de esquinas una estructura que el mapa combinado oculta?
+¿Y ayudaría una penalización suave para las colocaciones atrapadas allí donde una
+prohibición estricta perjudicó?

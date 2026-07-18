@@ -1,0 +1,148 @@
+---
+title: LODESTONE
+description: >-
+  Una brújula tenue para una búsqueda partida de cero: incitarla a comprometer
+  las piezas raras pronto, allí donde se necesitan. No eleva el techo; hace que
+  la búsqueda alcance de forma fiable la cima de su propio rango.
+metaDescription: "LODESTONE incita a una búsqueda de Eternity II partida de cero a comprometer pronto las piezas raras: no eleva el techo, pero alcanza de forma fiable su cima."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 451
+rigor: measured
+complexity:
+  time: "construcción del prior O(B) sobre el corpus; construcción por haz como PRIOR/KEYRING, más una consulta de desempate"
+  space: "un peso de demanda escasa por pieza (un vector de 256)"
+  note: >-
+    El prior es un escalar por pieza; en tiempo de búsqueda no cuesta nada más
+    allá de un desempate, que es justamente la razón por la que sobreponderarlo
+    (convertirlo en parte del objetivo) es lo que lo rompe.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Construye desde vacío; un peso de demanda escasa desempata como puro desempate, nunca como objetivo"
+    learns: "Prior de color raro: un peso por pieza para cuántas veces una pieza sirve una demanda escasa noroeste"
+    published: false
+order: 30
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, search-space, learning]
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/why/piece-theft
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/why/rare-color-geography
+sources:
+  - label: "Geografía de los colores raros (este proyecto): dónde viven las demandas (N,O) escasas"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/rare-color-geography.mdx
+---
+
+import { LodestoneRarityLab } from "@/components/research/LodestoneRarityLab";
+
+[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) añadía
+señales; LODESTONE, el tercer experimento del
+[estudio](/research/lab/experiments/raphael-anjou/learning), se reduce a una única
+señal deliberadamente tenue, y al hacerlo deja al descubierto el filo de navaja
+sobre el que cada señal aprendida aquí se sostiene en equilibrio. Los tableros
+fuertes coinciden discretamente en algo: a medida que la puntuación sube,
+satisfacen cada vez más un conjunto particular de demandas escasas, lugares donde
+solo una o dos piezas de todo el juego pueden servir los colores norte y oeste de
+una celda. LODESTONE se pregunta si informar a una búsqueda partida de cero acerca
+de esas demandas la ayuda a comprometer las piezas raras correctas antes de que se
+las roben.
+
+## Cómo funciona
+
+A partir del corpus de tableros fuertes, LODESTONE construye un prior: para cada
+pieza, cuántas veces acaba sirviendo una de esas demandas escasas noroeste en un
+buen tablero, ponderada fuertemente al alza para las más raras, de modo que una
+pieza que es el único servidor posible recibe el mayor impulso. La búsqueda por
+haz clasifica entonces sus colocaciones candidatas según la puntuación habitual de
+aristas apareadas más un pequeño múltiplo de este prior, de modo que, entre
+jugadas por lo demás equivalentes, prefiere colocar las piezas que los buenos
+tableros aprendieron a gastar pronto.
+
+El detalle crucial es el tamaño de ese múltiplo. El prior tiene que ser un puro
+desempate, no una parte del objetivo: desempata entre jugadas que aparean por
+igual y nada más.
+
+<Figure collapsible title="Interactivo: mapa de atracción de colores raros">
+  <LodestoneRarityLab />
+</Figure>
+
+## El resultado
+
+Con un peso ínfimo, el prior aporta una ganancia pequeña pero constante: a lo
+largo de cinco semillas, la puntuación mediana partida de cero sube de 449 a 451
+y, más útil aún, la dispersión se estrecha, de un esparcimiento 446-451 a un rango
+fiable 450-451. Hace que el constructor aterrice en la cima de su rango en lugar
+de tropezar a veces.
+
+Sube el peso aunque sea un poco y todo se derrumba (422, luego 380), porque
+perseguir las demandas escasas del corpus se paga entonces directamente a costa de
+aparear la arista que tienes delante. Ese fracaso es en sí mismo el hallazgo: la
+escasez es una señal real para saber *qué* pieza preferir, pero una señal débil, y
+segura solo como desempate. LODESTONE es modesto sobre su magnitud: mejora la
+calidad y la regularidad de la construcción en un par de aristas, y no toca el
+techo de cuenca que detiene a todo método cerca de la cima.
+
+## Método
+
+Primero la señal, luego la forma deliberadamente diminuta en que se emplea.
+
+**La medición.** Una *demanda escasa* es una celda cuyos colores norte y oeste
+solo pueden ser servidos por una o dos piezas de todo el juego. Sobre el conjunto
+del corpus, el número de demandas escasas satisfechas en al menos la mitad de los
+tableros crece *de forma monótona* con la puntuación, aproximadamente 1 → 2 → 3 →
+10 a medida que los tableros trepan hacia 458+. Los tableros fuertes no colocan
+bien las piezas raras solo por casualidad; satisfacen cada vez más las *mismas*
+demandas escasas. Es una estructura real, correlacionada con la puntuación, que
+ningún constructor anterior había integrado.
+
+**El prior.** Para cada pieza, se pondera cuántas veces sirve una de esas demandas
+escasas noroeste en un buen tablero, con un fuerte refuerzo para las más raras
+(una pieza que es el *único* servidor posible recibe el mayor peso). El haz
+clasifica los candidatos según la ganancia habitual de aristas apareadas más un
+pequeño múltiplo de este peso.
+
+**El ajuste es toda la historia.** El múltiplo debe ser un puro *desempate*:
+decide entre jugadas que aparean por igual y nada más. Con un peso ínfimo:
+puntuación mediana partida de cero 449 → 451 a lo largo de cinco semillas, y la
+dispersión se estrecha de 446-451 a un rango fiable 450-451. Sube el peso y todo
+se derrumba (422, luego 380), porque perseguir las demandas escasas se paga
+entonces directamente a costa de aparear la arista que tienes delante. El derrumbe
+*es* el resultado: la escasez dice *qué* pieza preferir, pero débilmente, segura
+solo como desempate.
+
+## Reproducir
+
+Con semilla fijada; el artefacto reproducible aquí es el *efecto* del desempate
+(una dispersión más estrecha y una mediana +2 a lo largo de cinco semillas), no un
+tablero único. El motor es el productor por haz compartido; el cambio que describe
+esta página es un tenue desempate pieza-rara-pronto. Ese peso de desempate se
+deriva del juego de piezas y de un corpus, de modo que la ejecución no se reproduce
+aquí desde cero.
+
+## Preguntas abiertas
+
+¿Podría hacerse el prior consciente de la posición sin que se convierta en parte
+del objetivo, fuerte solo en las regiones donde las demandas escasas realmente se
+concentran? Combinarlo con las tres señales de KEYRING, ¿añade un cuarto voto útil
+o solo más ruido? Y la ganancia de regularidad, ¿vale más que la ganancia de
+mediana, dado que una búsqueda más estrecha es más fácil de escalonar en escalera?

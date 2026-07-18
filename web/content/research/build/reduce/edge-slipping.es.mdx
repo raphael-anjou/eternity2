@@ -1,0 +1,271 @@
+---
+title: El deslizamiento de arista
+description: >-
+  La jugada premiada de Louis Verhaard: dejar que el backtracker coloque una
+  pieza no concordante, pero solo a profundidades escogidas cerca del final del
+  tablero. Cada deslizamiento permitido cuesta un punto de puntuación y
+  multiplica de forma astronómica el número de tableros objetivo. Por eso su 467
+  se encontró más de cincuenta veces, y el ancestro directo de las rupturas de
+  Blackwood.
+metaDescription: "El deslizamiento de arista de Verhaard: permitir piezas no concordantes a ciertas profundidades; cada desliz cuesta un punto y multiplica los tableros objetivo."
+kind: concept
+order: 100
+group: Reduce the search
+updated: 2026-07-02
+topics: [search-space, local-search]
+sources:
+  - label: Verhaard define el deslizamiento de arista (enero de 2009)
+    url: https://groups.io/g/eternity2/message/6328
+  - label: "Verhaard detalla el método del 467: deslizamiento condicionado a profundidades escogidas, encontrado 50+ veces (diciembre de 2009)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "El relato en primera persona del 467 por Verhaard: 247 piezas sin defecto (agosto de 2009)"
+    url: https://groups.io/g/eternity2/message/6891
+  - label: La fórmula de conteo de Max para N aristas deslizadas (enero de 2009)
+    url: https://groups.io/g/eternity2/message/6390
+  - label: Owen extiende la teoría compleja a los deslizamientos de arista (msg 6408; la tabla de deslizamientos es el msg 6412)
+    url: https://groups.io/g/eternity2/message/6408
+  - label: "La cadena de Markov de Verhaard sobre (profundidad, deslizamientos): cómo se optimizó el arreglo de deslizamientos (msg 6423)"
+    url: https://groups.io/g/eternity2/message/6423
+  - label: "JSA reproduce el 467 con el solucionador público: la escalera de rareza (msg 6687)"
+    url: https://groups.io/g/eternity2/message/6687
+  - label: La disciplina de «sin rupturas adyacentes» de Blackwood (msg 10051)
+    url: https://groups.io/g/eternity2/message/10051
+related:
+  - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/analysis/parity-arguments
+  - /research/why/complex-theory
+---
+
+import { EdgeSlipLab } from "@/components/research/concepts/EdgeSlipLab";
+
+El deslizamiento de arista es la colocación deliberada de una pieza que no
+concuerda con uno de sus vecinos. Louis Verhaard, que acuñó el término en la
+lista de correo, lo definió en una sola frase: «poner sobre el tablero una
+pieza cuyo color no concuerda con el de uno o más de sus vecinos»
+([msg 6328](https://groups.io/g/eternity2/message/6328)). Eso suena como la
+descripción de un fracaso. En realidad es la idea de puntuación parcial más
+trascendental de toda la historia del puzzle: como la escalera de premios de
+Eternity II puntuaba las *aristas concordantes* en lugar de la finalización
+perfecta, una no concordancia cuesta exactamente un punto de 480, y tolerar un
+presupuesto de ellas convierte un objetivo inalcanzable, el tablero perfecto,
+en un número astronómico de objetivos alcanzables. El arte está en la palabra
+*presupuesto*: los deslizamientos no se permiten en cualquier lugar, sino que
+se desbloquean según un calendario, en lo más profundo de la búsqueda, donde
+resultan baratos. Todo lo de esta página trata sobre ese calendario.
+
+## La no concordancia que gana premios
+
+En el verano de 2008, Verhaard estaba atascado por la vía legítima. Sin ninguna
+tolerancia a la no concordancia había encontrado cientos de parciales con 248
+piezas correctamente colocadas (puntuación 450) y calculaba su techo en torno a
+456. Solo descubrió que las piezas a medio ajustar estaban *permitidas* cuando
+ejecutó el solucionador público de Bob Cousins (originalmente el de Dave Clark)
+y lo vio alcanzar 458 en menos de un minuto; por su propia y jovial admisión,
+nunca se había molestado en leer las reglas
+([msg 5767](https://groups.io/g/eternity2/message/5767)). El mismo
+descubrimiento le llegó a Max de forma independiente aquel mes de julio: ajustó
+su backtracker para tolerar una sola arista no concordante más allá de la pieza
+215 y llevó al instante un parcial en barrido de 219 piezas hasta 461
+([msg 5691](https://groups.io/g/eternity2/message/5691)); en septiembre ya
+había superado el «límite del que no se habla» de la comunidad, 463, «con
+bastante facilidad». La respuesta de Verhaard, «¡Max, eres realmente un hombre
+peligroso!», abre el intercambio sobre el método en el que ambos describen la
+forma de la técnica madura: una búsqueda heurística en profundidad, ajustada
+para mantener embaldosables las piezas restantes, con una tolerancia a la no
+concordancia al final
+([msgs 5767–5787](https://groups.io/g/eternity2/message/5767)).
+
+Seis meses más tarde, el primer escrutinio dio sus frutos: 10 000 $ a «Anna
+Karlsson de Lund» (la esposa de Verhaard, ejecutando su programa,
+[msg 6891](https://groups.io/g/eternity2/message/6891)) por un tablero con 467
+de 480 aristas concordantes. El número que importa para esta página no es 467
+sino *cincuenta*: «el 467 no fue algo aislado; lo encontré más de 50 veces»
+([msg 7321](https://groups.io/g/eternity2/message/7321)). Una puntuación que
+ningún argumento exhaustivo decía que debiera ser hallable en absoluto se
+encontraba de forma repetida, en hardware de aficionado, y cuando Verhaard
+publicó el solucionador, JSA lo reprodujo desde fuera, registrando 4 017 182
+tableros a 463, 227 245 a 464, 13 637 a 465, 625 a 466 y finalmente dos 467 a
+lo largo de unos ochenta días de funcionamiento continuo
+([msg 6687](https://groups.io/g/eternity2/message/6687)). Esa escalera de
+rareza es escalable por una razón: cada peldaño no es un tablero único sino una
+clase de tableros combinatoriamente enorme, y el deslizamiento es lo que hace
+alcanzable la clase. La mayoría de los 467 de Verhaard tenían una puntuación
+*limpia*, piezas sin ninguna arista no concordante en absoluto, de solo 247
+([msg 7321](https://groups.io/g/eternity2/message/7321)); las no concordancias
+no eran defectos sobre el resultado, eran el mecanismo.
+
+## Cómo funciona
+
+La propia descripción de Verhaard es concisa
+([msg 7321](https://groups.io/g/eternity2/message/7321)). El programa «busca
+normalmente» (un backtracker en profundidad sobre un orden de relleno fijo, con
+heurísticas ajustadas para maximizar la embaldosabilidad de las piezas
+restantes) pero a ciertas profundidades *permite el deslizamiento de arista*:
+una pieza puede colocarse con una arista en desacuerdo con un vecino ya
+colocado. Es explícito sobre lo que no es: el solucionador no construye primero
+un parcial limpio para después embutir las piezas sobrantes en los huecos al
+final, y es un programa distinto de su buscador de puntuación limpia, al que se
+le permite saltar casillas en lugar de dejarlas no concordantes.
+
+La tolerancia está condicionada por la profundidad y es acumulativa,
+estructurada en lo que su documentación llama el *arreglo de deslizamientos*:
+para cada profundidad, el número de aristas deslizadas que la búsqueda tiene
+permitido haber acumulado hasta ese punto. Por debajo de la primera barrera, el
+solucionador es un backtracker exacto ordinario. Más allá, cada colocación
+puede o bien ajustarse perfectamente o, si el presupuesto a esa profundidad lo
+permite, ajustarse a medias, y el presupuesto desbloquea un deslizamiento cada
+vez a medida que aumenta la profundidad. Dos hechos hacen de las barreras
+tardías todo el juego:
+
+- **La ramificación.** Una pieza aleatoria se ajusta a medias mucho más a
+  menudo de lo que se ajusta del todo. La maquinaria de Verhaard sigue las dos
+  probabilidades por separado, por profundidad, bajo los nombres `fitProb` y
+  `halfFitProb`
+  ([msg 6423](https://groups.io/g/eternity2/message/6423)). Abre la puerta del
+  deslizamiento a la profundidad 40 y multiplicas el ancho del árbol allí donde
+  ya es más ancho, ahogando la búsqueda bajo prefijos inútiles. Ábrela a la
+  profundidad 210, donde las ramas supervivientes están casi forzadas y el
+  número de candidatos ronda el cero, y la misma opción adicional reanima ramas
+  moribundas casi por nada.
+- **La herencia.** Una búsqueda en profundidad nunca repara un deslizamiento;
+  deshacerlo significa retroceder a través de todo lo colocado después de él.
+  Un deslizamiento admitido a la profundidad 41 queda sellado bajo 215
+  colocaciones posteriores; uno admitido a la profundidad 221 tiene 35 debajo.
+  Los deslizamientos tempranos gastan el presupuesto allí donde menos rinde y
+  más cuesta.
+
+Y las barreras no se adivinaron. Verhaard optimizó tanto el orden de relleno
+como el arreglo de deslizamientos mediante una cadena de Markov cuyos estados
+son pares (profundidad, deslizamientos ya usados), con probabilidades de
+transición estimadas a partir de las tasas medidas de ajuste pleno y a medias;
+a partir de la cadena calculó la probabilidad de alcanzar el fondo del tablero
+y el número de nodos que cada calendario candidato costaría
+([msg 6423](https://groups.io/g/eternity2/message/6423)). El calendario
+ganador concentraba todo el presupuesto al final: trece deslizamientos, un
+objetivo de 467.
+
+<Figure collapsible title="Interactivo: la transformación por deslizamiento de arista">
+  <EdgeSlipLab />
+</Figure>
+
+## Paso a paso
+
+1. **Fija N = 0.** Una sola clase objetivo: los tableros perfectos. Nadie ha
+   encontrado jamás uno, y la [teoría compleja](/research/why/complex-theory)
+   explica por qué nadie debería esperarlo.
+2. **Desliza hasta N = 2.** Ya ≈ 1,8 × 10⁵ veces más objetivos, a puntuación
+   478. Cada deslizamiento adicional permitido multiplica de nuevo la clase, de
+   modo que las barras trepan alrededor de dos órdenes de magnitud por paso.
+3. **Cuidado con el hueco en N = 1.** No hay barra: una sola arista interior
+   deslizada aislada está prohibida por la paridad, y la tabla de
+   deslizamientos de Owen tiene ahí un cero exacto
+   ([msg 6412](https://groups.io/g/eternity2/message/6412)). Los únicos tableros
+   de no concordancia única pasan por el borde exterior no contabilizado, la
+   misma fuga que produjo
+   [la historia del 479](/research/build/analysis/parity-arguments).
+4. **Detente en N = 10.** Puntuación objetivo 470, el récord actual, y
+   exactamente el presupuesto de rupturas del
+   [solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
+5. **Detente en N = 13.** Puntuación objetivo 467, multiplicador ≈ 6,9 × 10²⁷.
+   Por eso el programa de un solo aficionado encontró el tablero premiado más
+   de cincuenta veces.
+6. **Bascula las barreras hacia el principio.** Mismo presupuesto, mismo
+   multiplicador, pero el deslizamiento más temprano queda ahora bajo 215
+   colocaciones posteriores en lugar de 55, y la ramificación adicional aterriza
+   allí donde el árbol es más ancho. Es el calendario, no el presupuesto, lo que
+   la cadena de Markov de Verhaard estaba diseñada para acertar.
+
+## Lo que cuesta
+
+Preguntado por cuántos parciales altos existen, Max razonó hacia atrás a partir
+de las soluciones completas y produjo el conteo empírico de la comunidad para
+tableros con $N$ aristas interiores deslizadas
+([msg 6390](https://groups.io/g/eternity2/message/6390)):
+
+$$
+S(480-N) \;\approx\; 2^{\,N-1}\binom{420}{N}\,S(480), \qquad N \ge 2,
+$$
+
+donde $\binom{420}{N}$ escoge cuáles de las 420 uniones interiores se rompen,
+las potencias de dos dan cuenta (a grandes rasgos) de las maneras de realizar
+cada ruptura, y $S(480)$ es el número de tableros perfectos. Introduciendo la
+estimación temprana de la teoría compleja $S(480) = 26{,}700$ obtuvo unos $4.7
+\times 10^9$ tableros a 478, $2.9 \times 10^{30}$ a 468 y $1.8 \times 10^{32}$
+a 467, números que este proyecto ha reverificado a partir de la fórmula. Dos
+consecuencias importan más que los valores absolutos, que el propio Max señaló
+como excesivamente simplificados:
+
+- **El coste de una arista concordante más.** Los cocientes consecutivos se
+  telescopan:
+  $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
+  \approx 63$. Cada arista que te niegas a deslizar reduce la clase objetivo en
+  un factor de alrededor de sesenta, lo que coincide, como señaló Max, con el
+  comportamiento observado del solucionador de Verhaard
+  ([msg 6390](https://groups.io/g/eternity2/message/6390)), y es del mismo orden
+  que la regla empírica de Owen de ~100× por arista, publicada en el mismo hilo
+  al día siguiente
+  ([msg 6391](https://groups.io/g/eternity2/message/6391)).
+- **El techo.** La multiplicación se compra al precio de la puntuación: $N$
+  deslizamientos permitidos limitan el tablero a $480 - N$ para siempre. El
+  deslizamiento compra alcanzabilidad, no calidad; convierte una búsqueda
+  imposible en una factible cuyo mejor resultado posible es estrictamente peor.
+
+El precio en tiempo de ejecución, en cambio, es casi nulo: por colocación el
+solucionador compara un contador de deslizamientos con la entrada del arreglo de
+deslizamientos correspondiente a la profundidad actual (contabilidad en $O(1)$,
+incrementada en una colocación a medio ajustar y restaurada al retroceder). Todo
+el coste reside en el árbol que desbloquea, y por eso la colocación de las
+barreras es el problema de diseño.
+
+Owen cerró el círculo extendiendo la
+[teoría compleja](/research/why/complex-theory) a los deslizamientos:
+reemplazar la probabilidad de que todas las $m$ uniones concuerden por
+$pm(m,v)$, la probabilidad de que exactamente $v$ lo hagan, mediante la
+recurrencia $pm(m,v) = pm(m-1,v) - pm(m,v+1)$, y después ponderar por las
+maneras de posicionar los deslizamientos
+([msg 6408](https://groups.io/g/eternity2/message/6408)). Su tabla sitúa los
+tableros con 13 deslizamientos en $2.05 \times 10^{35}$ veces el número de
+tableros perfectos ([msg 6412](https://groups.io/g/eternity2/message/6412)),
+siete órdenes de magnitud por encima de la cifra de Max, porque la teoría
+también cuenta casi-tableros que no son perturbaciones de ninguna solución,
+mientras que Max solo contaba los derivados de un tablero perfecto. Toma
+cualquiera de los dos números: el conjunto de objetivos explota de forma
+combinatoria, mientras que el precio es lineal en puntuación.
+
+## Del deslizamiento a las rupturas
+
+Durante doce años el 467 se mantuvo, y el diseño también. Cuando Joshua
+Blackwood llegó en 2020, un outsider cuyo 468 se transmitió a la lista desde
+Reddit, su solucionador récord llevaba una lista codificada a mano:
+
+```csharp
+break_indexes_allowed = new List<int>() { 201, 206, 211, 216, 221, 225, 229, 233, 237, 239 };
+```
+
+Léela a la luz de esta página y es un arreglo de deslizamientos: las no
+concordancias («rupturas», en su vocabulario) prohibidas de plano durante las
+primeras 200 colocaciones, luego desbloqueadas de forma acumulativa, una a la
+vez, a profundidades escogidas a mano, diez en total, para una puntuación
+objetivo de 470. El concepto, el condicionamiento por profundidad y la
+concentración tardía del presupuesto son el diseño de Verhaard de 2008,
+rederivado a fuerza récord; el reajuste preciso de esas mismas profundidades de
+desbloqueo es lo que llevó a Blackwood de 469 a 470. Añadió además una
+disciplina que la versión de Verhaard no tenía: dos rupturas no pueden nunca
+tocarse, de modo que cada no concordancia queda aislada entre aristas
+concordantes, y por eso cualquiera de sus ejecuciones que alcance 255
+colocaciones se completa hasta 256, y por eso un tablero a 469 hace también las
+veces de un parcial limpio de 249 piezas con siete huecos
+([msg 10051](https://groups.io/g/eternity2/message/10051)). La máquina
+completa, con sus calendarios de cupos y su estudio de parámetros, está en
+[la página de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
+
+Vale la pena decir en voz alta la aritmética del linaje. Los trece
+deslizamientos de Verhaard apuntaban a 467; los diez de Blackwood apuntan a
+470. Según el cociente de Max, cada deslizamiento retirado cuesta un factor de
+alrededor de sesenta, de modo que esas tres aristas representan a grandes rasgos
+un multiplicador de dificultad de $2 \times 10^5$, pagado por doce años de
+hardware, un bucle interno más rápido y una comunidad ejecutando el código en
+paralelo. La técnica en sí no cambió. En un puzzle puntuado por aristas
+concordantes, la jugada ganadora, dos veces y con trece años de diferencia, no
+fue una mejor búsqueda de tableros perfectos. Fue una redefinición calendarizada
+y presupuestada de lo que cuenta como objetivo.

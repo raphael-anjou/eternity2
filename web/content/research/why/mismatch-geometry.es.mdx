@@ -1,0 +1,97 @@
+---
+title: Dónde viven los desajustes
+description: >-
+  Un tablero casi perfecto no reparte sus escasos errores de forma uniforme.
+  Los concentra en una sola banda de cinco filas y deja todo lo demás
+  impecable. ¿Qué banda? Lo decide la dirección en la que la búsqueda rellenó
+  el tablero, y puede verse el reflejo en los tableros récord reales.
+metaDescription: "Un tablero Eternity II casi perfecto concentra sus escasos errores en una sola banda de cinco filas, fijada por la dirección de relleno del tablero."
+kind: finding
+contribution: measurement
+rigor: measured
+order: 70
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "Anuncio del récord 469 de Peter McGavin: el tablero cuyas once aristas no apareadas analiza esta página (groups.io msg 10045, septiembre de 2020)"
+    url: https://groups.io/g/eternity2/message/10045
+related:
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/walls-and-methods
+  - /research/why/sigma-cycles
+repro:
+  kind: exact
+---
+
+import { MismatchGeometryLab } from "@/components/research/MismatchGeometryLab";
+
+Puntúa un tablero récord arista por arista y aparece algo llamativo: los
+desajustes no están repartidos. El 469 de McGavin tiene sus once aristas no
+apareadas, todas ellas, en las cinco primeras filas (filas 0 a 4); las filas
+5 a 15 son localmente perfectas.
+El tablero es, en efecto, una losa impecable de 11 filas con todos los daños
+barridos contra una sola arista.
+
+Puntúa ahora de la misma manera los mejores tableros construidos desde cero de
+este proyecto. Los daños vuelven a estar en una banda de cinco filas, pero
+abajo. Los desajustes de KEYRING y de GAUNTLET se asientan en las filas 11 a
+15, con las filas 0 a 10 perfectas. Es la misma imagen volteada de arriba
+abajo.
+
+## Verlo en los tableros reales
+
+Elige un tablero. La banda sombreada es donde caen realmente sus desajustes,
+calculada en vivo con la regla de puntuación propia del motor: los tableros de
+la comunidad arriba, los de este proyecto abajo.
+
+<Figure collapsible title="Interactivo: dónde se ven obligados a vivir los desajustes">
+  <MismatchGeometryLab />
+</Figure>
+
+## Por qué se voltea: el orden de recorrido
+
+El vuelco no es una coincidencia; es la huella de cómo se construyó cada
+tablero. Una búsqueda que rellena el tablero de abajo hacia arriba gasta pronto
+sus colocaciones perfectas, abajo, y se ve obligada a absorber todo el conflicto
+acumulado en las últimas filas que alcanza: arriba. Una búsqueda que rellena de
+arriba hacia abajo hace exactamente lo contrario y amontona los daños abajo. Los
+desajustes siempre acaban apiñados contra la arista donde el solucionador
+terminó. Mismo puzzle, mismo tipo de tablero, orden de construcción opuesto.
+
+## La misma banda, bajo un objetivo distinto
+
+El patrón no es un artefacto de cómo puntuamos. Algunos solucionadores optimizan
+algo completamente distinto: no las aristas apareadas en un tablero completo,
+sino el mayor número de piezas que puedes colocar sin conflicto alguno, dejando
+huecos en lugar de desajustes. Persigue ese objetivo y los huecos caen en el
+mismo sitio. El tablero «Only seven holes» de Louis Verhaard coloca 249 de las
+256 piezas sin conflicto, y los siete huecos se asientan todos en las filas 1 a
+4, la banda de arriba una vez más. Laurent Zamofing, alcanzando un techo similar
+en 2026 recombinando los tableros récord de la comunidad, observó lo mismo: «el
+residuo sin resolver siempre cae en esa banda de arriba»
+([msg 11901](https://groups.io/g/eternity2/message/11901)). Dos objetivos que no
+comparten nada salvo el puzzle, y el daño sobrante se reúne contra la misma
+arista. Es el orden de construcción, no la regla de puntuación, lo que decide
+dónde termina alojándose la dificultad. (Más sobre esta variante en la
+[página de variantes](/research/build/variants).)
+
+## Lo que nos dice
+
+Esta es la forma visible de dos hechos más profundos. Primero, los grandes
+tableros son de verdad casi completos: la distancia hasta 480 está concentrada,
+no difusa, y por eso la programación entera los encuentra localmente congelados
+en todas partes salvo en esa única banda (el muro de rigidez). Segundo, dice que
+el final de partida es toda la partida: las filas que rellenas en último lugar
+son donde el puzzle te hace pagar, de modo que el orden en el que buscas decide
+dónde aterriza la dificultad. Es la misma lección que la carrera de caminos del
+espacio de juego te hace sentir, aquí inscrita en la estructura de cada tablero
+récord.
+
+<Callout kind="note">
+  Los recuentos por fila y la banda resaltada se calculan en tu navegador a
+  partir de las aristas reales del tablero (la misma regla de puntuación que usa
+  el motor), no colocados a mano. El hallazgo subyacente y la explicación por el
+  orden de recorrido están consignados en el cuaderno de laboratorio del
+  proyecto.
+</Callout>

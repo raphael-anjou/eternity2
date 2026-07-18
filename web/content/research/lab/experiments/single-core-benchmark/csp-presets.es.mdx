@@ -1,0 +1,108 @@
+---
+title: Presets CSP, medidos
+description: >-
+  Un solo motor de propagación de restricciones, ejecutado bajo una docena de
+  presets de ordenación y de propagadores, sobre las mismas diez variantes con
+  esquinas fijadas que el ranking. Un estudio de lo que aporta cada ajuste,
+  mantenido fuera del ranking principal porque el mejor preset alcanza menos de
+  la mitad de la puntuación de un contendiente.
+metaDescription: "Un motor CSP medido bajo una docena de presets de ordenación y propagación sobre diez variantes de Eternity II: lo que aporta cada ajuste, y por qué ninguno compite."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # el banco mono-núcleo estandarizado
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # presupuesto por ejecución
+  runs: 120 # 12 algoritmos preset/variante × 10 variantes con esquinas
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true únicamente para el banco mono-núcleo estandarizado
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 11
+updated: 2026-07-15
+date: 2026-07
+topics: [backtracking, search-space]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/reduce/arc-consistency
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Motor ejecutable + resultados versionados + scripts (el directorio de respaldo de este experimento)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+El ranking del [benchmark mono-núcleo](/research/lab/experiments/single-core-benchmark)
+muestra los métodos que compiten en puntuación. Esta página muestra el resto:
+una docena de presets de un solo motor de satisfacción de restricciones, más el
+DFS ingenuo en su orden de visita más débil. No son una docena de solucionadores.
+Son un único núcleo de arco-consistencia con distintas cabezas puestas, conservado
+para que el coste exacto de cada técnica clásica se lea en un número en lugar de
+discutirse.
+
+<Figure title="Presets CSP: puntuación media sobre diez variantes con esquinas, un núcleo, 60 s">
+  <BenchmarkLeaderboard view="presets" />
+</Figure>
+
+## Lo que aporta cada ajuste
+
+Los presets varían dos cosas: el orden en que el motor asigna las celdas, y con
+cuánta fuerza propaga antes de comprometerse. Manteniendo fijos el puzzle y el
+presupuesto, la diferencia de puntuación entre dos presets es el valor de ese
+único ajuste.
+
+- **La ordenación por el valor menos restrictivo ayuda.** `anjou-gacolor_ac3_lcv`
+  alcanza una media de 114 frente al simple `anjou-gacolor_ac3` en 76: elegir el
+  valor que descarta la menor cantidad de vecinos vale aquí unos 38 puntos.
+- **Algunos ajustes son inertes a esta profundidad.** Tres presets
+  (`anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1`, `anjou-verhaard_preferred`)
+  produjeron tableros idénticos al byte en este puzzle. NS-1 y la ordenación
+  preferida no añaden nada en 60 segundos: el motor nunca busca lo bastante hondo
+  para que muerdan.
+- **La ordenación borde primero es el preset más fuerte.** `anjou-border_first_lcv`
+  y `anjou-rare_color_first` encabezan el barrido en torno a 183, al fijar el
+  marco sobre-restringido antes que el interior libre. Aun así es menos de la
+  mitad de la puntuación de un contendiente.
+
+## Por qué ninguno compite
+
+Cada preset es bimodal. En una disposición de esquinas favorable, la búsqueda por
+arco-consistencia alcanza de 340 a 349; en una hostil, se desploma hasta unos 55,
+atrapada en una cuenca mala de la que no puede salir en 60 segundos. La media se
+mantiene baja porque las esquinas malas la arrastran hacia abajo, y ningún ajuste
+de ordenación corrige el problema de la cuenca. Esa es la verdadera historia de
+esta familia: la propagación hace que cada nodo esté bien podado pero sea costoso,
+de modo que la búsqueda es fuerte donde la instancia es indulgente e impotente
+donde no lo es. Los motores constructivos del ranking nunca caen en esa trampa,
+razón por la cual un preset en 183 está en una página distinta de la de los
+contendientes del ranking, que llegan hasta 451.
+
+## El DFS ingenuo también está aquí, por una sola razón
+
+La búsqueda en profundidad ingenua con todas las rupturas permitidas no es un
+preset CSP, pero su orden de visita pertenece a la misma lección. En orden por
+filas (`anjou-naive_rowmajor`, en el ranking como referencia) alcanza 365; el
+mismo DFS en orden de visita en espiral (`anjou-naive_spiral`) se desploma a una
+media de 78. La sola elección del orden de visita cuesta a la búsqueda ingenua
+casi 290 puntos, la misma clase de sensibilidad a la ordenación que muestran los
+presets CSP, a mayor escala.
+
+## Método y reproducibilidad
+
+Estos presets se ejecutaron en la misma cuadrícula que el ranking: diez variantes
+del puzzle oficial, cada una con tres celdas de esquina fijadas, un núcleo, 60
+segundos, semilla fija, una ejecución por variante. Cada tablero se vuelve a
+puntuar con el único puntuador canónico de aristas emparejadas, nunca con la
+auto-declaración del motor. El motor, las diez variantes, los resultados
+versionados por ejecución y los scripts viven bajo el
+[directorio de respaldo](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+del experimento, y `just experiments single-core-benchmark` reejecuta la
+cuadrícula entera, contendientes y presets juntos.

@@ -1,0 +1,246 @@
+---
+title: "¿Es NP-completa esta instancia y cómo la codifico?"
+description: >-
+  El emparejamiento de aristas es NP-completo como familia, pero eso no dice
+  nada de un tablero 16×16 fijo: una instancia aislada es una constante, no un
+  problema. Lo que sí es cierto es la dureza en el peor caso de la familia y la
+  dureza empírica de esta instancia, y cómo escribir el puzzle para un
+  solucionador SAT, de cobertura exacta o de PLE, con pequeños esbozos detallados.
+metaDescription: "El emparejamiento de aristas es NP-completo como familia, pero un tablero 16×16 fijo es una constante. Peor caso, dureza empírica de E2 y cómo codificarla."
+kind: concept
+contribution: exposition
+order: 25
+updated: 2026-07-08
+topics: [exact-methods]
+sources:
+  - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): el emparejamiento de aristas es NP-completo'
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+  - label: 'Knuth, The Art of Computer Programming, Volume 4B: Algoritmo X y Algoritmo C (cobertura exacta con colores)'
+    url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
+  - label: Puzzle Eternity II (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/why/complex-theory
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/exact/exact-cover-dlx
+  - /research/build/reduce/arc-consistency
+---
+
+Esta página responde a una pregunta que reaparece una y otra vez en los Stack
+Exchange de matemáticas e informática y que encabeza la lista de disputas en la
+página de discusión de Wikipedia sobre el puzzle: el emparejamiento de aristas
+es NP-completo en general, así que ¿nos dice eso algo sobre *este* tablero
+16×16 fijo y, en concreto, cómo se le entregaría Eternity II a un solucionador?
+Las respuestas breves son: no, no directamente, y aquí van tres codificaciones.
+
+## Primero, el error de categoría
+
+La NP-completitud es una propiedad de un *problema*, lo que en teoría de la
+complejidad designa una familia infinita de instancias indexada por un parámetro
+de tamaño $n$. Los «puzzles de emparejamiento de aristas» forman una familia de
+ese tipo: dados $n$, un conjunto de piezas cuadradas y un alfabeto de colores,
+decidir si las piezas embaldosan un marco $n \times n$ con todas las aristas
+adyacentes en concordancia. Ese problema de decisión es NP-completo
+([Demaine & Demaine 2007](https://doi.org/10.1007/s00373-007-0713-4)), lo que
+significa tanto que una solución propuesta es verificable en tiempo polinómico
+como que todo problema de NP se reduce a él.
+
+Un único tablero fijo no es una familia. La instancia de Eternity II tiene una
+respuesta bien definida, «sí, tiene solución» (los diseñadores la construyeron a
+partir de una solución) o, en la forma de competición con 5 pistas, «sí, con
+exactamente esta disposición». Esa respuesta cabe en un solo bit. Un solo bit es
+una constante, y «¿es NP-completa esta constante?» no es una pregunta bien
+formada: existe un algoritmo en tiempo constante que imprime la respuesta
+(`return true`), sencillamente lleva la respuesta grabada dentro. Preguntar si
+una instancia aislada es NP-completa incurre en el mismo error de categoría que
+preguntar si el número 17 es de tiempo polinómico.
+
+Así pues, la familia es dura y la instancia es una constante. ¿Qué hay,
+entonces, de realmente cierto y útil que decir sobre la dificultad del tablero
+que tienes sobre el escritorio?
+
+## Lo que sí es cierto
+
+Dos afirmaciones distintas, mantenidas por separado:
+
+- **Dureza en el peor caso de la familia.** Como el problema general es
+  NP-completo, no se conoce ningún algoritmo que supere el tiempo exponencial en
+  el peor caso a medida que $n$ crece, y encontrar uno probaría
+  $\mathrm{P}=\mathrm{NP}$. Esto acota lo que puede prometer cualquier
+  solucionador de emparejamiento de aristas genérico. No dice nada sobre cómo se
+  comporta una entrada *específica*.
+- **Dureza empírica de esta instancia.** Una dureza que se puede medir. El
+  tablero 16×16 tiene del orden de $1.115\times10^{557}$ disposiciones distintas
+  de piezas y rotaciones, y el puzzle parece admitir muy pocas soluciones (la
+  forma con 5 pistas está diseñada para tener esencialmente una; véase la
+  [teoría de la complejidad](/research/why/complex-theory) para la estimación del
+  número esperado). Por tanto, una búsqueda con backtracking enhebra un espacio
+  astronómicamente amplio hacia un conjunto de soluciones casi vacío, y así pasa
+  casi todo su tiempo explorando callejones sin salida. Por eso el puzzle es
+  duro *en la práctica*, y es una afirmación sobre este tablero, no sobre la
+  familia.
+
+El teorema del peor caso y la dificultad empírica apuntan aquí en la misma
+dirección, pero son enunciados de naturaleza distinta y solo uno de ellos es un
+teorema. Una familia puede ser NP-completa mientras que una instancia dada es
+trivial (muchas lo son), y una instancia puede ser brutalmente difícil de
+resolver en la práctica incluso dentro de una familia polinómica. Ansótegui et
+al. plantearon exactamente ese caso empírico para Eternity II, construyendo a
+partir de él bancos de pruebas para solucionadores y midiendo la dificultad
+directamente en lugar de apelar al teorema general
+([CCIA 2008](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download)).
+
+<Callout kind="note" title="La versión en una línea">
+  «¿Es Eternity II NP-completo?» No: una instancia no tiene clase de
+  complejidad. «¿Es NP-completo el problema de emparejamiento de aristas?» Sí.
+  «¿Es difícil de resolver esta instancia?» Empíricamente sí, porque el espacio
+  de búsqueda es de ~$10^{557}$ de ancho y el conjunto de soluciones está casi
+  vacío, de modo que la búsqueda se ahoga en callejones sin salida.
+</Callout>
+
+## Codificarlo: el montaje
+
+Lo demás es práctico: ¿cómo escribes el tablero para que un solucionador pueda
+masticarlo? Las tres codificaciones de abajo comparten el mismo esqueleto.
+Numera las celdas $c = 1 \dots 256$, las piezas $p = 1 \dots 256$ y las
+rotaciones $r \in \{0, 1, 2, 3\}$. Una *colocación* es un triple $(c, p, r)$: la
+pieza $p$ depositada en la celda $c$ girada $r$ cuartos de vuelta. Toda
+codificación tiene que expresar tres cosas:
+
+1. cada celda recibe exactamente una colocación,
+2. cada pieza se usa exactamente una vez,
+3. dondequiera que dos celdas se toquen, los colores de la arista compartida
+   concuerdan.
+
+Las codificaciones solo se diferencian en cómo expresan la restricción 3, el
+emparejamiento de colores, y esa diferencia es toda la historia. Los esbozos de
+abajo usan un tablero 2×2 o 3×3 para que puedas ver todas las cláusulas; el
+16×16 tiene la misma forma a mayor escala.
+
+## SAT / FNC
+
+Introduce una variable booleana $x_{c,p,r}$, verdadera cuando la pieza $p$ se
+asienta en la celda $c$ en la rotación $r$. En el tablero completo eso son
+$256 \times 256 \times 4 \approx 262{,}000$ variables antes de cualquier
+restricción. Luego:
+
+- **Exactamente una colocación por celda.** Para cada celda $c$, una cláusula de
+  «al menos una» sobre todas sus colocaciones, $\bigvee_{p,r} x_{c,p,r}$, más
+  cláusulas de «a lo sumo una» que prohíben cualquier par,
+  $\lnot x_{c,p,r} \lor \lnot x_{c,p',r'}$ para colocaciones distintas.
+- **Exactamente una celda por pieza.** La imagen especular: para cada pieza $p$,
+  una cláusula de «al menos una» sobre las celdas que podría ocupar, más
+  cláusulas de «a lo sumo una» para que se coloque solo una vez.
+- **Emparejamiento de aristas.** Para cada adyacencia interior y cada colocación
+  cuya arista expuesta muestra el color $k$, prohíbe toda colocación de la celda
+  vecina cuya arista enfrentada no sea $k$: una cláusula binaria
+  $\lnot x_{c,p,r} \lor \lnot x_{c',p',r'}$ por cada par en conflicto.
+
+Un esbozo 2×2 concreta la tercera familia. Las celdas $A$ (arriba a la
+izquierda) y $B$ (arriba a la derecha) comparten una arista vertical; la arista
+este de $A$ debe ser igual a la arista oeste de $B$. Para cada colocación
+$(A,p,r)$ que muestra el color este $k$, y cada colocación $(B,p',r')$ cuyo
+color oeste no es $k$, añade $\lnot x_{A,p,r} \lor \lnot x_{B,p',r'}$. Haz lo
+mismo para $A$/$C$ verticalmente y las otras dos adyacencias interiores. Eso es
+todo lo que es la restricción 3: un gran montón de cláusulas binarias «estas dos
+colocaciones no pueden ser ambas verdaderas».
+
+El problema es que el montón es enorme. Las cláusulas de conflicto dominan, las
+codificaciones de «a lo sumo una» añaden su propia explosión (el enfoque ingenuo
+por pares es cuadrático; las codificaciones en escalera o por comandante lo
+cambian por variables auxiliares), y el resultado es una fórmula con millones de
+cláusulas cuya estructura le da casi nada que aprender a la búsqueda guiada por
+conflictos. Esto se ha intentado desde 2008 y los solucionadores SAT completos
+se atascan en el tablero completo; Blackwood, entre otros, informó de que SAT no
+ayudaba. La codificación es limpia, el solucionador no es el cuello de botella,
+lo es la *instancia*. Véase
+[codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings) para el
+historial de bancos de pruebas y dónde los veredictos SAT todavía se ganan su
+sitio como pruebas de imposibilidad en regiones pequeñas.
+
+## Cobertura exacta y enlaces danzantes
+
+La visión por cobertura exacta es más pulcra, y esconde una trampa que hace
+tropezar a casi todo el que recurre a los enlaces danzantes de Knuth.
+
+Plantea 512 *ítems*: uno por celda («la celda $c$ está rellena») y uno por pieza
+(«la pieza $p$ se usa»). Cada *opción* es una colocación $(c,p,r)$, y cubre
+exactamente dos ítems: la celda $c$ y la pieza $p$. Un conjunto de opciones que
+cubre cada ítem exactamente una vez es un tablero con cada celda rellena y cada
+pieza usada una vez. Esa es una instancia de cobertura exacta limpia, y el
+**Algoritmo X** de Knuth con enlaces danzantes resuelve la cobertura exacta a la
+perfección.
+
+Aquí está la trampa. Las restricciones 1 y 2 son condiciones de cubrir-una-vez,
+que es exactamente lo que expresa la cobertura exacta. Pero la restricción 3, el
+emparejamiento de colores, no es en absoluto una condición de cubrir-una-vez:
+una arista compartida no se «usa una vez», se le «asigna un color en el que
+ambos vecinos coinciden». El Algoritmo X sin más no tiene forma de decir esto.
+La gente lo codifica, lo ejecuta y obtiene tableros con aristas discordantes, o
+intenta injertar ítems adicionales y descubre que la semántica de cubrir-una-vez
+se le resiste. Esta confusión concreta tiene su propia pregunta en el CS Stack
+Exchange.
+
+La solución es la propia extensión de Knuth, el **Algoritmo C**, para XCC, la
+cobertura exacta con colores (TAOCP Volume 4B). Junto a los ítems *primarios*
+(cubiertos exactamente una vez) añades ítems *secundarios* que pueden cubrirse
+cualquier número de veces, *siempre que todas las opciones que cubren un ítem
+secundario dado le asignen el mismo color*. Da a cada arista interior de la
+cuadrícula un ítem secundario. Una colocación que expone el color $k$ en una
+arista compartida asigna el color $k$ al ítem secundario de esa arista. Dos
+colocaciones pueden entonces coexistir a ambos lados de la arista solo si la
+colorean de forma idéntica, que es precisamente la restricción de emparejamiento
+de aristas, ahora expresada de forma nativa.
+
+Un esbozo 3×3: 9 ítems de celda y 9 ítems de pieza (primarios), más 12 ítems de
+arista interior (secundarios, uno por cada unión horizontal o vertical). Las
+colocaciones de la celda central tocan cada una cuatro ítems de arista
+secundarios y deben concordar en color con los cuatro vecinos; las colocaciones
+de una celda de esquina tocan dos. El Algoritmo C enhebra todo esto sin emitir
+jamás un tablero discordante. Lo que los estudiantes pasan por alto:
+**la cobertura exacta por DLX para Eternity II necesita el Algoritmo C, no el
+Algoritmo X.** La página
+[cobertura exacta y enlaces danzantes](/research/build/exact/exact-cover-dlx)
+recorre la construcción XCC completa y dónde el DLX brilla de verdad (tableros
+pequeños, recuento exhaustivo de soluciones) frente a dónde se atasca en el
+16×16.
+
+## PLE y clique máxima, brevemente
+
+Dos encuadres más, útiles sobre todo como indicadores:
+
+- **Programación lineal entera.** Reutiliza las variables SAT como enteros 0/1
+  $x_{c,p,r}$. Las restricciones 1 y 2 se convierten en igualdades
+  $\sum_{p,r} x_{c,p,r} = 1$ por celda y $\sum_{c,r} x_{c,p,r} = 1$ por pieza. El
+  emparejamiento de aristas pasa a ser, para cada arista interior y cada color
+  $k$, una condición de enlace que ata las colocaciones de color $k$ de los dos
+  vecinos (una forma limpia: una nueva variable binaria de color de arista
+  $y_{e,k}$ con $\sum_k y_{e,k} = 1$, y las colocaciones de cada lado implicando
+  el $y$ correspondiente). Es una PLE de factibilidad, sin objetivo, y la
+  relajación lineal es débil, de modo que la ramificación y acotación se comporta
+  muy parecido a la búsqueda SAT. Véase
+  [relajaciones lineales](/research/build/exact/lp-relaxations).
+- **Clique máxima.** Construye un grafo cuyos vértices son las colocaciones
+  legales y cuyas aristas unen cualesquiera dos colocaciones mutuamente
+  compatibles (celdas distintas, piezas distintas y concordancia en cualquier
+  arista compartida). Un tablero completo es una clique de tamaño 256. Es
+  elegante sobre el papel, pero el grafo es inmenso y los solucionadores de
+  clique no salen mejor parados; vale la pena conocerlo como reducción, no como
+  ataque práctico.
+
+## Dónde te deja esto
+
+Si viniste a preguntar si la teoría de la NP-completitud vuelve a esta instancia
+demostrablemente difícil, la respuesta es que no lo hace, ni puede: las clases de
+complejidad describen familias, y este tablero es una entrada fija con una
+respuesta fija. El problema general de emparejamiento de aristas es NP-completo,
+lo que pone un techo a lo que puede prometer cualquier solucionador a medida que
+$n$ crece, pero la dificultad que realmente sientes es empírica: un espacio de
+$10^{557}$ de ancho sobre un conjunto de soluciones casi vacío. Cada
+codificación de arriba captura fielmente el puzzle; ninguna lo vuelve fácil,
+porque la dureza reside en la instancia, no en la elección del formalismo. Una
+vez codificado el tablero, la palanca que queda es la
+[consistencia de arco](/research/build/reduce/arc-consistency) y un orden de
+búsqueda inteligente, que es donde retoma el resto de esta sección.

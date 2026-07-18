@@ -1,0 +1,159 @@
+---
+title: PRIOR
+description: >-
+  Construir un tablero desde cero, resolviendo los empates según la posición
+  habitual de las piezas en los buenos tableros ya conocidos. Alcanza una
+  puntuación alta sin ningún tablero de partida que copiar.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "construcción del prior O(B·256) sobre B tableros del corpus; construcción por beam O(W·256·|movimientos|)"
+  space: "matriz de conteo 256×256 (65.536 enteros); variante sensible a la rotación 1024×256 (262.144)"
+  note: >-
+    El prior es una única pasada sobre el corpus; el coste de construcción es la
+    búsqueda beam que sesga, más una cola opcional de refinamiento local.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Construir un tablero desde vacío, celda a celda, resolviendo los empates con el prior aprendido"
+    learns: "Prior posicional del corpus: un conteo 256×256 de dónde se sitúa cada pieza en los tableros fuertes"
+    published: false
+  - engine: refinement
+    does: "Una breve cola de refinamiento local eleva la construcción de mediados de los 450 hasta el 460 comprometido"
+    published: false
+order: 10
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, learning]
+related:
+  - /research/build/learning/corpus-priors
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
+  - /research/why/piece-theft
+  - /research/build/construct/beam-search
+sources:
+  - label: "Búsqueda beam (página de concepto de este proyecto): construcción primero-el-mejor de ancho acotado"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+PRIOR abre el [estudio del aprendizaje a partir de los tableros fuertes](/research/lab/experiments/raphael-anjou/learning)
+con la forma más simple que la idea puede tomar: un conteo. La mayoría de los
+tableros fuertes de este sitio se encuentran partiendo de un buen tablero
+existente y mejorándolo. PRIOR plantea una pregunta más difícil: ¿se puede
+construir un tablero competitivo desde una cuadrícula vacía, sin ningún tablero
+al que anclarse? El truco consiste en dejar que la multitud de buenos tableros
+pasados guíe discretamente la construcción sin copiar ninguno en particular, y
+esa guía no es más que un recuento de dónde tienden a situarse las piezas.
+
+## Cómo funciona
+
+A partir de la biblioteca de tableros con buena puntuación, PRIOR aprende una
+sola cosa muy simple: para cada posición del tablero, con qué frecuencia aparece
+cada pieza allí. Eso da una preferencia suave, un prior, sobre lo que tiende a
+ir dónde.
+
+Luego construye mediante una búsqueda beam, manteniendo vivos muchos tableros
+parciales a la vez y extendiéndolos celda a celda. Cuando dos opciones encajan
+el mismo número de aristas, el prior resuelve el empate a favor de la pieza más
+típica de los tableros fuertes en ese lugar. Una regla de diversidad evita que
+los muchos intentos paralelos colapsen sobre el mismo camino. No se copia ningún
+tablero individual; la guía es estadística.
+
+<Figure collapsible title="Interactivo: el mapa de calor del prior posicional">
+  <PriorDiagram />
+</Figure>
+
+## El tablero
+
+<RecordBoard id="prior-460" />
+
+## El resultado
+
+Desde cero, PRIOR alcanza mediados de los 450, y con un prior más afilado
+construido solo a partir de los mejores tableros sube más alto. Seguido de un
+refinamiento local, alcanza 460, el tablero mostrado aquí. Que una construcción
+desde la nada quede tan cerca de los récords es justamente el punto: la
+estructura de los buenos tableros es en parte aprendible, y no hace falta partir
+de uno para llegar hasta ahí.
+
+No es la puntuación máxima del proyecto (463), y el impulso final aquí se apoya
+en un paso de refinamiento, lo que la etiqueta del tablero señala. Pero como
+resultado desde una hoja en blanco es el más fuerte que tiene el proyecto, y es
+el cimiento del que crecieron los constructores multi-señal posteriores.
+
+## Método
+
+El prior es deliberadamente la cosa más simple que podría funcionar: un conteo.
+Sobre cada tablero del corpus cuya puntuación supera un umbral (440 para el prior
+base), se acumula una matriz $256 \times 256$ $M[p][c]$, cuántos tableros fuertes
+colocan la pieza $p$ en la celda $c$. Normalizada por celda, esa es la
+preferencia usada para resolver los empates.
+
+Tres afinamientos, cada uno una variante del mismo conteo:
+
+- **Sensible a la rotación.** Se divide cada pieza según sus cuatro rotaciones:
+  un tensor $1024 \times 256$ ($256 \times 4$ filas). El prior ahora prefiere no
+  solo la pieza correcta sino la orientación correcta, 262.144 entradas frente a
+  las 65.536 de base.
+- **Por familia de esquinas.** Los tableros fuertes se agrupan en familias según
+  sus cuatro piezas de esquina. Construir un prior *separado* a partir de los
+  tableros de una sola familia da una señal que la matriz agrupada difumina por
+  promediado; esto es lo que permitió que la construcción desde cero alcanzara un
+  460 inédito en lugar del abarrotado cuenco común.
+- **Umbral más afilado.** Reconstruir el prior solo a partir de los mejores
+  tableros (un corte más alto) eleva el techo de la construcción, a costa de una
+  señal más fina y más ruidosa.
+
+La construcción es una [búsqueda beam](/research/build/construct/beam-search):
+se mantienen $W$ tableros parciales, se extienden celda a celda, y cuando los
+candidatos empatan en aristas encajadas se deja que $M$ resuelva el empate; una
+regla de diversidad mantiene los $W$ beams separados entre sí. El 460 obtenido
+aquí lleva una construcción beam desde cero hasta mediados de los 450, y luego
+una breve cola de refinamiento local hasta 460.
+
+**La novedad se verificó, no se supuso.** El tablero resultante se compara con
+cada tablero del nivel 460 ya conocido, por permutación de esquinas y distancia
+de Hamming sobre (pieza, posición); una coincidencia solo cuenta como un nuevo
+cuenco cuando la familia de esquinas difiere o la distancia de Hamming es grande.
+El tablero de PRIOR pasó esa prueba: es un cuenco genuinamente distinto, no un
+redescubrimiento.
+
+## Reproducir
+
+`just research-record-boards` verifica exactamente la puntuación del tablero 460
+comprometido, arista a arista, a partir de su cadena Bucas almacenada, de modo
+que el resultado es comprobable aunque la búsqueda que lo encontró no sea
+determinista (su impulso final usa una cola de refinamiento estocástica). El
+tablero es el artefacto de referencia. La búsqueda que lo produjo es el productor
+beam compartido, con el único cambio que describe esta página: el prior
+posicional aprendido que resuelve sus empates. Ese prior es una matriz extraída
+de un amplio corpus de tableros fuertes, razón por la cual la ejecución no se
+reproduce aquí desde cero.
+
+## Preguntas abiertas
+
+¿Hasta dónde puede afilarse el prior antes de sobreajustar? Construido a partir
+de solo un puñado de tableros de cabeza, la señal es fuerte pero fina. ¿Podría un
+prior separado por familia de tableros capturar una estructura que el prior
+combinado difumina por promediado? ¿Y qué parte de la brecha final se debe a la
+construcción frente al refinamiento que la sigue?

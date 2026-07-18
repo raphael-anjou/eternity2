@@ -1,0 +1,197 @@
+---
+title: Cobertura exacta y enlaces danzantes
+description: >-
+  Eternity II se formula limpiamente como un problema de cobertura exacta, y el
+  algoritmo X de Knuth con enlaces danzantes es la máquina clásica para ellos.
+  Dónde brilla de verdad (tableros pequeños, conteo exhaustivo) y las dos razones
+  por las que no vence al 16×16: un árbol de búsqueda que nunca se reduce, y
+  ningún crédito parcial.
+metaDescription: "Eternity II como cobertura exacta con el algoritmo X de Knuth y enlaces danzantes (DLX): dónde brilla en tableros pequeños y por qué no vence al 16×16."
+kind: concept
+order: 30
+group: Exact methods
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Knuth 2000, "Dancing Links" (arXiv cs/0011047)
+    url: https://arxiv.org/abs/cs/0011047
+  - label: El algoritmo X de Knuth (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
+  - label: Cobertura exacta (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Exact_cover
+related:
+  - /research/build/dead-ends
+  - /research/why/no-forced-moves
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+import { DancingLinksLab } from "@/components/research/concepts/DancingLinksLab";
+
+Algunos rompecabezas hay que forzarlos para que encajen en un formalismo;
+Eternity II cae en la cobertura exacta casi por sí solo. Un problema de cobertura
+exacta plantea lo siguiente: dado un conjunto de elementos y una colección de
+opciones, cada una de las cuales cubre algunos elementos, hay que elegir opciones
+de modo que cada elemento quede cubierto *exactamente una vez*. Los teselados con
+pentominós, el sudoku y el problema de las n reinas son los clientes de manual, y
+el emparejamiento de bordes es el vecino de al lado.
+
+## El tablero como cobertura exacta
+
+Tomemos 512 elementos: uno por celda («la celda $c$ está rellena») y uno por
+pieza («la pieza $p$ está usada»). Cada opción es una colocación concreta, la
+pieza $p$ en la celda $c$ con la rotación $r$, que cubre exactamente dos
+elementos, su celda y su pieza. Una selección de opciones que cubra cada elemento
+exactamente una vez es precisamente un tablero con todas las celdas rellenas y
+cada pieza usada una vez.
+
+Lo que la cobertura exacta pura no sabe expresar es que los bordes en contacto
+deben concordar. La propia extensión de Knuth se encarga de ello: XCC, cobertura
+exacta con colores, donde los elementos secundarios (aquí, uno por cada arista
+interior de la cuadrícula) llevan un color, y dos opciones solo pueden compartir
+un elemento secundario si le asignan el mismo color. Una solución XCC completa es
+entonces exactamente un tablero Eternity II perfecto. La codificación es fiel:
+nada del rompecabezas se aproxima por el camino.
+
+## El algoritmo X, y por qué danzan los enlaces
+
+El algoritmo X de Knuth resuelve la cobertura exacta mediante ensayo y error
+disciplinado: elegir el elemento con menos opciones restantes (la regla de
+«fallar primero»), probar cada opción que lo cubre, retirar todo lo que esa
+opción vuelve imposible, y recurrir; ante un fallo, restaurar y probar la
+siguiente.
+
+Los enlaces danzantes (DLX) son la estructura de datos que hace elegante el paso
+de restauración. La matriz de opciones reside en listas doblemente enlazadas
+circulares, y retirar un elemento son dos escrituras de punteros,
+`left.right = right; right.left = left`, lo que deja intactos los propios
+punteros del nodo retirado. Deshacer el retiro son esas mismas dos escrituras a
+la inversa. El backtracking se convierte en cirugía de punteros sin copia
+alguna, y la memoria tocada es exactamente proporcional al trabajo realizado. Es
+uno de los algoritmos más elegantes de la caja de herramientas combinatoria, y el
+artículo de Knuth es un verdadero placer de leer.
+
+## Mira danzar los enlaces
+
+Aquí está la búsqueda completa sobre la instancia exacta que Knuth usa en el
+artículo: siete elementos A–G, seis opciones R1–R6, exactamente una solución.
+Recórrela paso a paso y observa los tres movimientos que componen todo el
+algoritmo: elegir la columna más vacía, cubrirla (columnas y filas se desprenden
+del retículo) y, ante un fallo, descubrir en orden inverso (los mismos enlaces se
+vuelven a unir). El callejón sin salida en la columna E es el momento que merece
+ir despacio: todo lo que la decisión errónea retiró vuelve exactamente en el
+orden opuesto, con dos escrituras de punteros por enlace.
+
+<Figure collapsible title="Interactivo: cubrir y descubrir con enlaces danzantes">
+  <DancingLinksLab />
+</Figure>
+
+Fíjate en lo que nunca ocurre: ninguna copia, ninguna reconstrucción, ningún
+barrido para averiguar qué restaurar. Los nodos retirados conservan sus propios
+punteros mientras están desprendidos, y ese es todo el truco, así que deshacer
+una cobertura es tan barato como hacerla.
+
+## Paso a paso
+
+El mismo recorrido, en palabras. La matriz es R1 \{C,E,F\}, R2 \{A,D,G\},
+R3 \{B,C,F\}, R4 \{A,D\}, R5 \{B,G\}, R6 \{D,E,G\}:
+
+1. **Elegir la columna A.** Dos opciones vivas, empatadas para el mínimo;
+   «fallar primero» dice ramificar sobre el elemento más restringido. Probar su
+   primera opción, R2 \{A,D,G\}: cubrir las columnas A, D y G. Toda fila que las
+   toque (R2, R4, R5, R6) se desprende.
+2. **Recurrir.** Solo sobreviven R1 y R3. La columna B tiene ahora una única
+   opción viva, así que elegirla, probar R3 \{B,C,F\}: cubrir B, C, F, lo que
+   desprende R1.
+3. **Callejón sin salida.** La columna E sigue sin cubrir y ninguna opción viva
+   la cubre. Esta rama no puede completarse jamás, así que ni siquiera se intenta
+   una búsqueda más profunda.
+4. **La danza.** Descubrir F, C, B, luego G, D, A, en orden exactamente inverso,
+   cada restauración la imagen especular del retiro. La matriz está bit a bit de
+   vuelta en su estado inicial, sin haber sido guardada en ningún sitio.
+5. **Probar la otra opción de A, R4 \{A,D\}.** Cubrir A, D. La columna E tiene
+   ahora exactamente una opción viva, R1 \{C,E,F\}: cubrir C, E, F. A la columna B
+   le queda una opción, R5 \{B,G\}: cubrir B, G.
+6. **No queda ninguna columna**, cada elemento cubierto exactamente una vez.
+   Solución: R1 + R4 + R5, hallada a profundidad 3 con un solo callejón sin
+   salida. La búsqueda se desanda entonces por completo, verifica que no existe
+   ninguna otra rama, e informa de exactamente una solución, y esa certeza de
+   exhaustividad es todo el producto.
+
+## Lo que cuesta
+
+El balance tiene dos líneas muy distintas:
+
+- **El problema es NP-completo.** La cobertura exacta figura en la lista original
+  de Karp de 1972, así que no se conoce ningún algoritmo polinómico para ella, y
+  el algoritmo X es exponencial en el peor caso: es una búsqueda por backtracking
+  completa, y su árbol puede crecer como el producto de la ramificación en cada
+  nivel.
+- **Lo barato es la estructura de datos.** DLX hace que cada retiro de enlace y
+  cada restauración sean $O(1)$: dos escrituras de punteros, con un deshacer
+  exacto, de modo que el tiempo total es $O(1)$ por enlace tocado, proporcional
+  al árbol que la búsqueda explora realmente. Los enlaces danzantes compran un
+  soberbio factor constante y coste de restauración nulo; no reducen el árbol ni
+  un solo nodo.
+
+A la escala de Eternity II: la propia matriz XCC es perfectamente manejable, con
+512 elementos primarios (256 celdas + 256 piezas), 480 elementos secundarios para
+las aristas interiores y sus 22 colores, y a lo sumo
+$256 \times 256 \times 4 = 262{,}144$ opciones antes de la poda por simetría y por
+borde. Construirla son minutos de trabajo. El árbol que hay encima es el muro: sin
+[ningún movimiento forzado](/research/why/no-forced-moves) la ramificación se
+mantiene ancha hasta el fondo, sobre un espacio habitualmente estimado en torno a
+$10^{100}$, y $O(1)$ por nodo multiplicado por un número astronómico de nodos
+sigue siendo astronómico. Ese es el sentido preciso en que DLX es la herramienta
+correcta para tableros pequeños y el arma equivocada para el 16×16.
+
+## Dónde brilla
+
+DLX es la herramienta correcta cuando quieres *todas* las soluciones, o un
+conteo, o una prueba de unicidad, sobre instancias lo bastante pequeñas para
+agotarlas. En tableros pequeños de emparejamiento de bordes hace exactamente eso:
+enumeración completa con excelentes factores constantes, ninguna solución
+perdida, ningún estado repetido. Contar los teselados completos de regiones del
+tamaño de una pista, verificar que un minirrompecabezas generado tiene solución
+única, cotejar los conteos exhaustivos de otro solucionador: ese es su terreno de
+juego, y ahí nada heurístico compite.
+
+Una nota de proyecto salida de la trinchera, ofrecida como advertencia más que
+como resultado: una implementación XCC hecha desde cero se validó aquí sin
+problemas en las n reinas y en tableros triviales, y luego pasó días rota en todo
+lo que fuera más grande, porque la interacción entre la purificación guiada por
+colores y la restauración cubrir/descubrir es genuinamente sutil. Si la
+construyes, sigue al pie de la letra el algoritmo publicado por Knuth; los días
+perdidos arriba fueron cosa de este proyecto.
+
+## Por qué no vence al 16×16
+
+Dos muros independientes, cualquiera de los cuales bastaría.
+
+**El árbol es el mismo árbol.** La cobertura exacta redescribe la búsqueda; no la
+reduce. La elección de elemento «fallar primero» es un buen orden de variables,
+pero [ningún movimiento está jamás forzado](/research/why/no-forced-moves) en este
+rompecabezas: el elemento menos cubierto sigue ofreciendo docenas de opciones
+vivas muy adentro de la búsqueda, así que la ramificación se mantiene enorme hasta
+el fondo, sobre un espacio habitualmente estimado en torno a $10^{100}$ tableros.
+Un motor DLX recorre ese árbol por completo o no de forma útil en absoluto; y su
+bucle interno de persecución de punteros está limitado por la memoria, un orden de
+magnitud por detrás de los motores de arreglos ajustados a la caché que usan los
+[mejores backtrackers con récord](/research/lab/experiments/joshua-blackwood/solver).
+
+**Ningún crédito parcial.** DLX responde una sola pregunta: cubierto exactamente,
+o no. Toda la economía de Eternity II se sustenta en puntuaciones parciales (467,
+469, 470) y en búsquedas que toleran deliberadamente unas cuantas aristas mal
+emparejadas para llegar allí. La cobertura exacta no tiene ningún modo nativo de
+dejar una arista sin emparejar y pagar una penalización; relajarla hasta ese punto
+significa reconstruirla como una ramificación y acotación, momento en que la
+elegancia que la justificaba se ha esfumado.
+
+## Veredicto
+
+Guarda DLX en el estante por lo que es: el instrumento exhaustivo. Conteo, pruebas
+de unicidad, verdad de terreno sobre tableros pequeños: imbatible, y digno del
+cuidado de implementación que exige. Como ataque al rompecabezas completo es un
+[callejón sin salida](/research/build/dead-ends), por razones estructurales que
+ningún factor constante corregirá: el árbol que debe agotar es astronómico, y el
+juego de las puntuaciones parciales que juega todo método con récord es uno en el
+que no puede entrar.

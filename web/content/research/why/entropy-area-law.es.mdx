@@ -1,0 +1,226 @@
+---
+title: La entropía y la ley de área
+description: >-
+  Eternity II tiene dos reglas: los bordes deben coincidir y cada pieza se
+  usa una sola vez. La primera es generosa. Toda la dificultad reside en la
+  segunda.
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 130
+updated: 2026-07-01
+topics: [structure]
+related:
+  - /research/why/phase-transition
+  - /research/why/prune-vs-speed
+  - /research/why/forbidden-patterns
+  - /research/build/analysis/solution-counting
+repro:
+  kind: exact
+  cmd: just research-entropy-area-law
+  topic: entropy-area-law
+sources:
+  - label: "El lema de subaditividad de Fekete, el teorema que garantiza la existencia misma del límite de entropía h∞"
+    url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
+  - label: "La entropía de Shannon de una fuente, las cantidades h(n) medidas aquí"
+    url: https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+---
+
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { EntropyScarcityLab } from "@/components/research/EntropyScarcityLab";
+import data from "@/data/entropy-area-law.json";
+
+export const rhoCurve = Array.from({ length: 13 }, (_, i) => {
+  const n = i + 1;
+  return { cells: n * n, rho: Math.exp(-data.areaLawExponent * n * n) };
+});
+
+export function EntropyChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={data.hByWidth} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="width"
+              type="number"
+              domain={[1, 4]}
+              tickCount={4}
+              label={{ value: "strip width n", position: "insideBottom", offset: -8, fontSize: 12 }}
+              fontSize={12}
+            />
+            <YAxis domain={[0.5, 1.8]} width={40} fontSize={12} />
+            <Tooltip
+              formatter={(v) => [Number(v).toFixed(4), "entropy density h(n)"]}
+              labelFormatter={(w) => `strip width n = ${String(w)}`}
+            />
+            <Line
+              type="monotone"
+              dataKey="h"
+              stroke="#38bdf8"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function RhoChart() {
+  const isClient = useIsClient();
+  return (
+    <div className="mx-auto h-72 max-w-2xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <LineChart data={rhoCurve} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              dataKey="cells"
+              type="number"
+              domain={[0, 170]}
+              tickCount={7}
+              label={{
+                value: "patch size (cells)",
+                position: "insideBottom",
+                offset: -8,
+                fontSize: 12,
+              }}
+              fontSize={12}
+            />
+            <YAxis
+              scale="log"
+              domain={[1e-7, 1]}
+              allowDataOverflow
+              tickFormatter={(n) => Number(n).toExponential(0)}
+              width={52}
+              fontSize={11}
+            />
+            <Tooltip
+              formatter={(v) => [Number(v).toExponential(2), "ρ"]}
+              labelFormatter={(c) => `${String(c)} patch size (cells)`}
+            />
+            <Line
+              type="monotone"
+              dataKey="rho"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Olvidemos por un momento la regla de usar cada pieza una sola vez y tratemos
+las 196 piezas interiores como piezas reutilizables. Al contar los bloques
+enteramente compatibles, se observa que crecen exponencialmente con el
+tamaño: no faltan formas localmente válidas de teselar. La gramática de
+coincidencia es rica, no restrictiva.
+
+Esa riqueza se puede medir exactamente. Para una banda de ancho $n$, la tasa
+de crecimiento por celda es una densidad de entropía $h(n)$, y la sucesión
+decrece hacia el verdadero valor bidimensional a medida que la banda se
+ensancha.
+
+## La entropía de la gramática, ancho a ancho
+
+<Figure caption="Decreciendo hacia el límite ≈ 0,67. Los dos primeros puntos se calculan exactamente aquí; el resto proviene de un barrido fuera de línea.">
+  <EntropyChart />
+</Figure>
+
+## Luego golpea la ley de área
+
+Ahora restablezcamos la regla de usar cada pieza una sola vez y preguntémonos
+con qué frecuencia un bloque $n \times n$ compatible en colores, tomado al
+azar, emplea realmente piezas distintas. Llamémoslo $\rho(n)$. Se derrumba, y
+se derrumba según el área, no según el perímetro:
+
+$$
+\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
+$$
+
+Un decaimiento por ley de área es brutal porque el área crece de forma
+cuadrática. La fracción de bloques realizables cae por debajo de uno entre
+mil en torno a las ochenta celdas.
+
+<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas.">
+  <RhoChart />
+</Figure>
+
+## Ver cómo se abre la brecha
+
+La misma idea aplicada a las piezas reales, contadas exactamente. Varía el
+tamaño del bloque y observa cuántos bloques compatibles en colores sobreviven
+a la regla de usar cada pieza una sola vez.
+
+<Figure collapsible title="Interactivo: colapso de la distinción y decaimiento de rho">
+  <EntropyScarcityLab />
+</Figure>
+
+## Por qué importa
+
+Ochenta celdas no es un número arbitrario. Es el tamaño de los movimientos
+más pequeños que separan los mejores tableros conocidos. La gramática de
+coincidencia se mantiene rica hasta más o menos esa escala, y luego la regla
+de distinción la colapsa. Así que el muro no está en la parte que parece
+difícil, la coincidencia de colores; está en la regla silenciosa de que cada
+pieza se usa una sola vez, cuyo coste crece con el área, sobre un tablero
+apenas lo bastante grande como para que muerda.
+
+Ver [por qué el basin-hopping es imposible](/research/why/sigma-cycles).
+
+## El teorema, en breve
+
+La entropía por ancho tiene un límite bien definido. Unir lado a lado una
+banda de ancho $n_1$ y una de ancho $n_2$ solo añade una restricción de
+costura, de modo que los valores propios satisfacen
+
+$$
+\lambda_{n_1+n_2} \;\le\; \lambda_{n_1}\,\lambda_{n_2}.
+$$
+
+Al tomar logaritmos, $\log \lambda_n$ se vuelve subaditiva, y el lema de
+Fekete da el límite como un ínfimo, que es exactamente la razón por la que la
+curva de arriba decrece:
+
+$$
+h_\infty \;=\; \lim_{n\to\infty}\frac{\log_{10}\lambda_n}{n} \;=\; \inf_n \frac{\log_{10}\lambda_n}{n}.
+$$
+
+La cota superior es la tasa puramente horizontal: ignorar las restricciones
+verticales solo añade bloques, de modo que
+
+$$
+0 \;<\; h_\infty \;\le\; \log_{10}\lambda_H \;=\; 1.6645,
+$$
+
+con $\lambda_H = 46.18$ el radio espectral de la matriz de compatibilidad de
+colores en horizontal. La positividad se cumple porque la gramática admite
+exponencialmente muchas cadenas, de modo que la densidad está estrictamente
+comprendida entre cero y 1,6645, medida en torno a 0,67.

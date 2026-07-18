@@ -1,0 +1,181 @@
+---
+title: Recocido simulado y tempering paralelo
+description: >-
+  Tratar los desajustes como energía y la temperatura como tolerancia a empeorar
+  las cosas. El recocido ostenta el récord más longevo del puzzle; el tempering
+  paralelo cruza barreras que el recocido no puede. Ambos se detienen en el mismo
+  muro.
+metaDescription: "Recocido simulado y tempering paralelo en Eternity II: desajustes como energía, temperatura como tolerancia. Récord longevo, pero ambos topan con un muro."
+kind: concept
+order: 70
+group: Local search
+updated: 2026-07-02
+topics: [local-search]
+sources:
+  - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
+    url: https://doi.org/10.1103/PhysRevLett.57.2607
+  - label: "Earl & Deem, Tempering paralelo: teoría, aplicaciones y nuevas perspectivas (Phys. Chem. Chem. Phys., 2005)"
+    url: https://arxiv.org/abs/physics/0508111
+  - label: La lista de correo de Eternity II, donde Verhaard describió su método de recocido de 2008 (groups.io)
+    url: https://groups.io/g/eternity2
+related:
+  - /research/why/rigidity-wall
+  - /research/why/sigma-cycles
+  - /research/build/local-search/local-search-alns
+---
+
+import { TemperingLadderLab } from "@/components/research/concepts/TemperingLadderLab";
+
+El recocido simulado lee un tablero como un sistema físico: las aristas sin
+emparejar son energía, los movimientos que reducen la energía se aceptan
+siempre, y los que la aumentan se aceptan con probabilidad
+$e^{-\Delta E / T}$. En caliente, la búsqueda deambula; al enfriarla, el
+tablero se asienta en una disposición de baja energía, idealmente una profunda,
+y no simplemente la más cercana. La trampa está en el calendario: enfría
+demasiado rápido y te congelas en un óptimo local mediocre; enfría lo bastante
+despacio para un puzzle de este tamaño y esperarás una eternidad.
+
+## De una temperatura a una escalera
+
+El tempering paralelo (intercambio de réplicas) disuelve el problema del
+calendario ejecutando toda la escalera a la vez. El método procede de la física
+de los vidrios de espín: el
+[artículo de Monte Carlo por réplicas de 1986](https://doi.org/10.1103/PhysRevLett.57.2607)
+de Swendsen y Wang es el precursor, el intercambio de réplicas en su forma
+moderna suele atribuirse a Geyer (1991) y a Hukushima y Nemoto (1996), y la
+[revisión de 2005](https://arxiv.org/abs/physics/0508111) de Earl y Deem es la
+síntesis moderna de referencia. $K$ copias del tablero ejecutan recocido
+simulado a temperaturas fijas $T_1 < T_2 < \dots < T_K$; periódicamente,
+réplicas adyacentes proponen intercambiar sus estados, intercambio aceptado
+según la regla de Metropolis
+
+$$
+P(\text{swap}) = \min\bigl(1,\; e^{(\beta_i - \beta_j)(E_i - E_j)}\bigr)
+= \min\bigl(1,\; e^{\Delta\beta\,\Delta E}\bigr),
+$$
+
+con $\beta = 1/T$, $\Delta\beta = \beta_i - \beta_j$ y
+$\Delta E = E_i - E_j$. Léela una vez con signos concretos: si la réplica $i$
+es la más fría ($\Delta\beta > 0$) y la réplica más caliente tiene la energía
+*más baja* ($\Delta E > 0$), el exponente es positivo y el intercambio se
+acepta con certeza: el buen estado siempre se transmite escalera abajo de forma
+gratuita. Las réplicas calientes recorren las barreras; las réplicas frías
+explotan; los intercambios trasladan las configuraciones prometedoras escalera
+abajo para ser refinadas. Ninguna cadena individual tiene que sobrevivir nunca a
+un calendario de enfriamiento.
+
+## Ver a la escalera vencer a una sola cadena fría
+
+La afirmación que vale la pena ver es la comparación: la misma cadena fría, con
+y sin una escalera por encima de ella. A continuación, cuatro réplicas exploran
+un paisaje sintético accidentado cuyo mínimo global se esconde detrás de
+barreras; un fantasma gris ejecuta a solas la dinámica fría idéntica. Observa los
+destellos de intercambio (verde para los aceptados) llevar la cuenca de la
+derecha hasta el peldaño frío, mientras el fantasma permanece para siempre en el
+pozo de partida. Luego arrastra el deslizador de espaciado a ambos extremos y
+reproduce los dos fallos clásicos de la escalera.
+
+<Figure collapsible title="Interactivo: la escalera del tempering paralelo">
+  <TemperingLadderLab />
+</Figure>
+
+## Paso a paso
+
+Una ronda de tempering paralelo, tal como la ejecuta el laboratorio:
+
+1. **Barrido.** Cada réplica realiza movimientos de Metropolis a su propia
+   temperatura fija: proponer un cambio local, calcular $\Delta E$, aceptar si
+   va cuesta abajo, si no con probabilidad $e^{-\Delta E / T_i}$. En un tablero,
+   un movimiento de una sola pieza toca como mucho cuatro costuras, de modo que
+   el $\Delta E$ de cada movimiento es $O(1)$.
+2. **Intento de intercambio.** Elegir un par adyacente $(i, i{+}1)$, calcular
+   $\Delta\beta\,\Delta E$ a partir de las dos energías en caché, aceptar con
+   $\min(1, e^{\Delta\beta \Delta E})$. Si se acepta, las dos réplicas
+   intercambian sus configuraciones (de forma equivalente: sus temperaturas);
+   nada más se mueve.
+3. **Contabilidad.** Seguir la tasa de aceptación de intercambios por par de
+   peldaños. Ese número *es* el diagnóstico de la escalera: cerca del 100 %, los
+   peldaños adyacentes ven el mismo paisaje y uno de ellos se desperdicia; cerca
+   del 0 %, la escalera se ha desacoplado en cadenas independientes. Las
+   escaleras útiles se sitúan en las decenas de por ciento: frecuentes pero no
+   gratuitas, exactamente el régimen que recomiendan Earl y Deem y aquel al que
+   convergieron nuestras ejecuciones.
+4. **Repetir.** Los buenos estados descienden los peldaños en caminata
+   aleatoria; los estados atascados suben, se sacuden hasta soltarse y regresan
+   distintos.
+
+## Lo que cuesta
+
+- **Por barrido:** $R$ réplicas × $N$ sitios, cada movimiento con una evaluación
+  local $O(1)$, así que $O(R \cdot N)$, exactamente $R$ veces una sola cadena. La
+  memoria es $O(R \cdot N)$: cada réplica es un tablero completo.
+- **Por fase de intercambio:** los $R{-}1$ pares adyacentes necesitan cada uno
+  una exponencial de las energías en caché: $O(R)$ en total, un error de redondeo
+  al lado de los barridos.
+- **La ganancia está en el tiempo de mezcla, no en el coste del paso.** Una
+  cadena fría aislada cruza una barrera de energía $\Delta E$ en aproximadamente
+  $e^{\Delta E / T_{\text{cold}}}$ intentos (la espera de Arrhenius; nuestro
+  cruce de 76 celdas medido se situaba en $e^{-21}$ por intento a $T = 1$). La
+  escalera reemplaza esa espera por difusión: una configuración camina
+  aleatoriamente a través de $R$ peldaños, y con un espaciado geométrico ajustado
+  para una aceptación por peldaño constante, un viaje de ida y vuelta cuesta del
+  orden de $R^2$ rondas de intercambio. Pagas un factor constante $R$ por barrido
+  para convertir una espera exponencial en una lanzadera polinómica. Esa
+  asimetría es todo el argumento del método.
+- **Sin garantías, igual que todos los muestreadores.** El tempering paralelo no
+  es completo y no certifica nada; converge a la distribución correcta con el
+  tiempo, sin ninguna cota útil sobre ese «con el tiempo». Y allí donde el
+  paisaje ofrece empates en lugar de barreras, como en las mesetas de
+  iso-puntuación en lo alto de este puzzle, $\Delta E = 0$ hace que todos los
+  peldaños se comporten de forma idéntica, y la ventaja de la escalera se
+  desvanece por construcción, que es precisamente lo que informa el veredicto de
+  más abajo.
+
+## Por qué este puzzle necesita la escalera
+
+Las mediciones de este proyecto (sobre nuestro propio motor; no replicadas de
+forma independiente) dan una razón inusualmente concreta. Entre un tablero fuerte
+y otro mejor, el movimiento que los conecta es una única relocalización
+entrelazada de docenas de piezas en la que *todo* subconjunto estricto del
+movimiento pierde aristas: la [estructura de σ-ciclos](/research/why/sigma-cycles).
+Una transición medida requirió un movimiento de 76 celdas cuyos estados
+intermedios se situaban unas 21 aristas por debajo del punto de partida: a
+$T = 1$ la aceptación es del orden de $e^{-21}$, sin esperanza. Con la
+temperatura máxima de la escalera elevada a aproximadamente 30, el cruce ocurrió
+realmente, y produjo lo que entonces era el mejor tablero de arranque en frío del
+proyecto. La temperatura, empleada correctamente, es una palanca real contra
+barreras reales.
+
+El diseño de la escalera es donde la práctica muerde. Cuando espaciamos las
+temperaturas demasiado juntas, el intercambio de réplicas aceptaba todos los
+intercambios. Una tasa de aceptación del 100 % suena sana y significa lo
+contrario: las réplicas adyacentes veían en la práctica el mismo paisaje, y la
+escalera no añadía nada. Un espaciado geométrico con un peldaño superior
+genuinamente caliente, ajustado para que los intercambios sean frecuentes pero no
+gratuitos, es el consejo estándar de Earl y Deem, y coincidió con lo que
+observamos.
+
+## El récord comunitario que construyó el recocido
+
+El recocido tiene una historia distinguida en este puzzle. El récord más longevo
+sobre el conjunto de piezas canónico (el 467 de 480 de Louis Verhaard en 2008,
+invicto hasta los backtrackers de la era Blackwood de 2020) provino de un método
+de recocido, y de uno inusual: como lo describió en la
+[lista de correo de la comunidad](https://groups.io/g/eternity2), recocía la
+*composición* de un subconjunto de piezas, intercambiando piezas dentro y fuera
+de un grupo candidato bajo una puntuación de teselabilidad, en lugar de recocer
+posiciones sobre el tablero. La lección se generaliza: en Eternity II, la
+elección de *qué recocer* importó más que el recocido en sí.
+
+## El veredicto
+
+A partir de las mediciones de este proyecto, matizadas en consecuencia: el
+tempering paralelo cruza mejor las barreras que el recocido simple, y en el tramo
+intermedio de la subida esa diferencia es real y fiable. Cerca de la cima se
+disuelve. Las mesetas de allí arriba son de iso-puntuación: empates por todas
+partes, de modo que la aceptación ya no depende en absoluto de la temperatura, y
+subir el calor en lugar de escalar solo aleatoriza el tablero, que después nunca
+encuentra el camino de vuelta al territorio de los récords. Las réplicas lanzadas
+desde un tablero de cabeza se estancan en la puntuación de la semilla, en cada
+cadena, en cada escalera que probamos. El tempering te desplaza entre colinas; no
+deroga el [muro de rigidez](/research/why/rigidity-wall).
