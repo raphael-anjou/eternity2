@@ -141,6 +141,19 @@ html {
   font-size: 17px;
 }
 
+/* Keyboard focus for the interactive board cells (BoardSvg). The rects are
+   transparent overlays inside a scaled viewBox, so a normal outline is
+   inconsistent across browsers; draw a high-contrast inset stroke instead. It
+   only shows for keyboard focus (:focus-visible), never on mouse click. */
+.board-cell-button {
+  outline: none;
+}
+.board-cell-button:focus-visible {
+  stroke: var(--ring);
+  stroke-width: 10px;
+  stroke-opacity: 0.9;
+}
+
 /* ---- Research wiki (MDX) ---------------------------------------------
    Shiki code blocks carry a dual theme: light colors are inlined at build
    time, dark ones live in CSS variables and are swapped in under .dark. */
