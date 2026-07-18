@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
+import { useT, useLang, pick, type Dict } from "@/i18n";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
+import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
 import data from "@/data/dfs-study.json";
 
 // The DFS-study results, rendered from the committed run data
@@ -346,7 +347,7 @@ export function DfsStudyLeaderboard() {
             )}
           />
         </div>
-        <FamilyLegend lang={lang} />
+        <FamilyLegend families={FAMILY} lang={lang} />
       </section>
 
       {/* 2. Raised-stats panel: depth + throughput */}
@@ -377,7 +378,7 @@ export function DfsStudyLeaderboard() {
             )}
           />
         </div>
-        <FamilyLegend lang={lang} />
+        <FamilyLegend families={FAMILY} lang={lang} />
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-sm">
@@ -394,7 +395,7 @@ export function DfsStudyLeaderboard() {
                 <tr key={v.name} className="border-b last:border-0">
                   <td className="py-1.5 pr-4 font-medium">{v.display}</td>
                   <td className="py-1.5 pr-4">
-                    <FamilyTag family={v.family} label={familyLabel(v.family)} />
+                    <FamilyTag color={familyFill(v.family)} label={familyLabel(v.family)} />
                   </td>
                   <td className="py-1.5 pr-4 text-right tabular-nums">{v.max_depth ?? "—"}</td>
                   <td className="py-1.5 text-right tabular-nums text-muted-foreground">
@@ -428,7 +429,7 @@ export function DfsStudyLeaderboard() {
                 <tr key={v.name} className="border-b align-top last:border-0">
                   <td className="py-2 pr-4 font-medium">{v.display}</td>
                   <td className="py-2 pr-4">
-                    <FamilyTag family={v.family} label={familyLabel(v.family)} />
+                    <FamilyTag color={familyFill(v.family)} label={familyLabel(v.family)} />
                   </td>
                   <td className="py-2 pr-4 text-muted-foreground">{v.delta}</td>
                   <td className="py-2 pr-4 tabular-nums">
@@ -529,7 +530,7 @@ export function DfsStudyLeaderboard() {
                       .map((r) => (
                         <tr key={r.name} className="border-b align-top last:border-0">
                           <td className="py-2 pr-4">
-                            <FamilyTag family={r.family} label={r.display} />
+                            <FamilyTag color={familyFill(r.family)} label={r.display} />
                           </td>
                           <td className="py-2 pr-2 text-right tabular-nums">{r.score}</td>
                           <td className="py-2 pr-4 text-right tabular-nums text-muted-foreground">
@@ -647,32 +648,3 @@ function CollapseBar({
   );
 }
 
-function FamilyTag({ family, label }: { family: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
-        style={{ backgroundColor: familyFill(family) }}
-        aria-hidden
-      />
-      <span className="text-muted-foreground">{label}</span>
-    </span>
-  );
-}
-
-function FamilyLegend({ lang }: { lang: Lang }) {
-  return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-      {Object.entries(FAMILY).map(([key, f]) => (
-        <span key={key} className="inline-flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-sm"
-            style={{ backgroundColor: f.fill }}
-            aria-hidden
-          />
-          {pick(f, lang)}
-        </span>
-      ))}
-    </div>
-  );
-}
