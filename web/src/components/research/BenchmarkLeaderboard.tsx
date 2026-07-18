@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
+import { Swatch } from "@/components/research/FamilyLegend";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import data from "@/data/single-core-benchmark.json";
 
@@ -260,17 +261,11 @@ export function BenchmarkLeaderboard({
         <p className="mb-1 mt-1 text-sm text-muted-foreground">
           {isContenders ? t.boardIntro : t.presetsIntro}
         </p>
-        {/* legend: family identity, always present (>2 series) */}
+        {/* legend: family identity, always present (>2 series). Only the
+            families this view actually draws, in the mono label style. */}
         <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
           {familiesPresent.map((f) => (
-            <span key={f} className="inline-flex items-center gap-1.5">
-              <i
-                aria-hidden
-                className="inline-block h-2.5 w-2.5 rounded-sm"
-                style={{ background: familyFill(f) }}
-              />
-              {FAMILY[f] ? pick(FAMILY[f], lang) : f}
-            </span>
+            <Swatch key={f} color={familyFill(f)} label={FAMILY[f] ? pick(FAMILY[f], lang) : f} />
           ))}
         </div>
         <div role="img" aria-label={`${t.boardTitle}. ${t.boardIntro}`}>

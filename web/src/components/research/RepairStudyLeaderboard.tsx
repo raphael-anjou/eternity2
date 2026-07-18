@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
-import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
+import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
+import { useT, useLang, pick, type Dict } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/repair-study.json";
 
@@ -259,7 +260,7 @@ export function RepairStudyLeaderboard() {
             )}
           />
         </div>
-        <FamilyLegend lang={lang} />
+        <FamilyLegend families={FAMILY} lang={lang} />
       </section>
 
       {/* 2. Lift: the loop's own contribution */}
@@ -384,7 +385,7 @@ export function RepairStudyLeaderboard() {
                 <tr key={v.name} className="border-b align-top last:border-0">
                   <td className="py-2 pr-4 font-medium">{v.display}</td>
                   <td className="py-2 pr-4">
-                    <FamilyTag family={v.family} label={familyLabel(v.family)} />
+                    <FamilyTag color={familyFill(v.family)} label={familyLabel(v.family)} />
                   </td>
                   <td className="py-2 pr-4 text-muted-foreground">{v.delta}</td>
                   <td className="py-2 pr-2 text-right tabular-nums">{v.mean ?? "—"}</td>
@@ -416,28 +417,3 @@ function Busy({ label }: { label: string }) {
   );
 }
 
-function FamilyTag({ family, label }: { family: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
-        style={{ backgroundColor: familyFill(family) }}
-        aria-hidden
-      />
-      <span className="text-muted-foreground">{label}</span>
-    </span>
-  );
-}
-
-function FamilyLegend({ lang }: { lang: Lang }) {
-  return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-      {Object.entries(FAMILY).map(([key, f]) => (
-        <span key={key} className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: f.fill }} aria-hidden />
-          {pick(f, lang)}
-        </span>
-      ))}
-    </div>
-  );
-}
