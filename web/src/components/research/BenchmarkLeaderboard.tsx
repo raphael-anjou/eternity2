@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { Swatch } from "@/components/research/FamilyLegend";
+import { formatKM } from "@/lib/format";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import data from "@/data/single-core-benchmark.json";
 
@@ -150,12 +151,8 @@ const T = {
 };
 
 // Compact throughput number, null-safe: 40.6M, 273K.
-function npsNum(nps: number | null): string {
-  if (nps == null) return "—";
-  return nps >= 1e6 ? `${(nps / 1e6).toFixed(1)}M` : `${Math.round(nps / 1e3)}K`;
-}
 function fmtNps(nps: number | null, unit: string): string {
-  return nps == null ? "—" : `${npsNum(nps)} ${unit}`;
+  return nps == null ? "—" : `${formatKM(nps)} ${unit}`;
 }
 
 // Heatmap cell colour: a single-hue sequential ramp over the score range, so a
@@ -237,7 +234,7 @@ export function BenchmarkLeaderboard({
                 <div className="font-semibold">{who}</div>
                 <div className="mb-3 text-xs text-muted-foreground">{sub}</div>
                 <div className="font-mono text-3xl font-semibold tabular-nums">
-                  {npsNum(a.nps)}
+                  {formatKM(a.nps)}
                   <span className="ml-1 text-sm font-normal text-muted-foreground">
                     {a.npsUnit}
                   </span>

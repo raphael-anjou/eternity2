@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
+import { formatKM } from "@/lib/format";
 import data from "@/data/dfs-study.json";
 
 // The DFS-study results, rendered from the committed run data
@@ -266,11 +267,6 @@ const T = {
   },
 };
 
-function npsNum(nps: number | null | undefined): string {
-  if (nps == null) return "—";
-  return nps >= 1e6 ? `${(nps / 1e6).toFixed(1)}M` : `${Math.round(nps / 1e3)}K`;
-}
-
 export function DfsStudyLeaderboard() {
   const t = useT(T);
   const { lang } = useLang();
@@ -341,7 +337,7 @@ export function DfsStudyLeaderboard() {
                   )}
                 </div>
                 <div className="text-muted-foreground">
-                  depth {v.max_depth} · {npsNum(v.median_nps)} {v.nps_unit}
+                  depth {v.max_depth} · {formatKM(v.median_nps)} {v.nps_unit}
                 </div>
               </div>
             )}
@@ -399,7 +395,7 @@ export function DfsStudyLeaderboard() {
                   </td>
                   <td className="py-1.5 pr-4 text-right tabular-nums">{v.max_depth ?? "—"}</td>
                   <td className="py-1.5 text-right tabular-nums text-muted-foreground">
-                    {npsNum(v.median_nps)}
+                    {formatKM(v.median_nps)}
                   </td>
                 </tr>
               ))}

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
+import { formatKM } from "@/lib/format";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/repair-study.json";
@@ -86,13 +87,6 @@ const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 // (greedy-mismatch), and the component destroy that collapses almost at once.
 // Kept small so the chart stays legible; every variant's numbers are in the table.
 const CURVE_KEYS = ["random-destroy", "accept-anneal", "greedy-mismatch", "component-destroy"];
-
-function fmtInt(n: number | null | undefined): string {
-  if (n == null) return "—";
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `${Math.round(n / 1e3)}K`;
-  return `${Math.round(n)}`;
-}
 
 const T = {
   en: {
@@ -254,7 +248,7 @@ export function RepairStudyLeaderboard() {
                   mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
                 </div>
                 <div className="text-muted-foreground">
-                  lift +{v.mean_lift} · {fmtInt(v.mean_iterations)} iters
+                  lift +{v.mean_lift} · {formatKM(v.mean_iterations, 1000)} iters
                 </div>
               </div>
             )}
@@ -301,7 +295,7 @@ export function RepairStudyLeaderboard() {
                   scale="log"
                   allowDataOverflow
                   domain={[curveData.iterMin, curveData.iterMax]}
-                  tickFormatter={(n: number) => fmtInt(n)}
+                  tickFormatter={(n: number) => formatKM(n, 1000)}
                   tick={{ fontSize: 11, fill: "currentColor" }}
                   className="text-muted-foreground"
                   label={{ value: t.stallAxis, position: "insideBottom", offset: -12, fontSize: 11, fill: "currentColor" }}
@@ -322,7 +316,7 @@ export function RepairStudyLeaderboard() {
                     return (
                       <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
                         <div className="font-semibold">
-                          {t.stallAxis} {fmtInt(Number(iter))}
+                          {t.stallAxis} {formatKM(Number(iter), 1000)}
                         </div>
                         {payload.map((p) => (
                           <div key={String(p.name)} className="mt-0.5" style={{ color: p.color }}>
@@ -393,10 +387,10 @@ export function RepairStudyLeaderboard() {
                     {v.mean_lift == null ? "—" : `+${v.mean_lift}`}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-muted-foreground">
-                    {fmtInt(v.mean_last_best_iter)}
+                    {formatKM(v.mean_last_best_iter, 1000)}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-muted-foreground">
-                    {fmtInt(v.mean_iterations)}
+                    {formatKM(v.mean_iterations, 1000)}
                   </td>
                   <td className="py-2 text-right tabular-nums text-muted-foreground">
                     {v.accept_rate ?? "—"}
