@@ -1,0 +1,86 @@
+---
+title: Ordenación de jugadas aprendida
+description: >-
+  Cuando varias piezas encajan, ¿cuál colocas a continuación? En lugar de una
+  sola regla empírica, transporta varias señales aprendidas de los buenos tableros
+  y deja que voten. El voto evita que la búsqueda confíe en exceso en una única
+  corazonada y avance hacia el mismo callejón sin salida.
+metaDescription: "Ordenación de jugadas aprendida para Eternity II: clasifica las colocaciones candidatas con varias señales aprendidas de buenos tableros, sin una regla fija."
+kind: concept
+order: 51
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "La búsqueda en haz (página de concepto de este proyecto): la construcción cuya ordenación de valores se aprende"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/corpus-priors
+  - /research/build/learning/anti-pattern-mining
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/construct/beam-search
+  - /research/why/forbidden-patterns
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+
+Al construir un tablero pieza a pieza, la decisión difícil es qué pieza colocar a
+continuación cuando varias encajarían igual de bien. Una única regla empírica -el
+coste más bajo primero, la celda más restringida primero- tiende a llevar la
+búsqueda hacia el mismo callejón sin salida en cada ejecución. Un
+[prior de corpus](/research/build/learning/corpus-priors) mejora eso con una sola
+señal aprendida. Esta técnica lo mejora de nuevo transportando *varias* señales
+aprendidas a la vez y dejándolas votar, de modo que ninguna corazonada se apropie
+por sí sola de la decisión.
+
+## Varias señales, un solo voto
+
+A partir del corpus de buenos tableros puedes aprender más de una cosa a la vez, y
+las señales son recuentos baratos sobre el mismo conjunto de tableros:
+
+- **Pieza-en-posición.** Con qué frecuencia una pieza aparece en una celda dada a
+  lo largo de los buenos tableros: el prior posicional de la página anterior.
+- **Adyacencia de pares de piezas.** Con qué frecuencia dos piezas concretas
+  acaban en contacto. Una vecindad que el recuento posicional no ve.
+- **El prior de parche 2×2.** Para cada pequeño parche de cuatro celdas, un
+  cociente de log-probabilidades suavizado a la Laplace de cuántas veces aparece en
+  tableros de puntuación alta frente a los de puntuación baja. Un parche común en
+  los buenos tableros y raro en los malos obtiene una puntuación positiva; un
+  parche trampa-de-consenso obtiene una puntuación negativa. Este es el más
+  afilado de los tres, porque es el único que contrasta lo bueno frente a lo malo
+  en lugar de limitarse a contar lo bueno.
+
+En cada paso, el haz puntúa cada colocación candidata por su ganancia en aristas
+apareadas más una suma ponderada de las tres señales, y conserva las mejores. Un
+poco de aleatoriedad inyectada impide que los haces paralelos colapsen sobre un
+único camino.
+
+<Figure collapsible title="Interactivo: el voto de colocación de tres señales">
+  <KeyringDiagram />
+</Figure>
+
+Esta es la experiencia [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring),
+un llavero de corazonadas en lugar de una sola. Alcanzó 460 en una familia de
+esquinas que ninguna búsqueda anterior había logrado descifrar, y ese es el
+verdadero beneficio: puesto que se sabe que los buenos tableros ocupan cuencas
+aisladas, una señal lo bastante variada para alcanzar una familia *nueva* vale más
+que una que redescubre un tablero ya conocido.
+
+## Por qué el voto supera a una sola señal
+
+Una única señal aprendida tiene el mismo modo de fallo que una única regla escrita
+a mano: dondequiera que se equivoque, se equivoca siempre, y arrastra todos los
+haces en la misma dirección. Tres señales aprendidas a partir de vistas distintas
+del corpus -posición, adyacencia y calidad de parche- se contradicen en lugares
+distintos, y su desacuerdo es precisamente la aleatoriedad que mantiene a los
+haces explorando regiones diferentes. El prior de parche lleva el mayor peso
+porque es el único que codifica lo *malo*: puede alejar la búsqueda de una
+colocación, no solo atraerla hacia ella, lo cual es la semilla de la idea que
+madura hasta convertirse en la
+[minería de antipatrones](/research/build/learning/anti-pattern-mining).
+
+Se aplica la misma advertencia que a toda señal aprendida. Los tres priors se
+extraen de un corpus que es en sí mismo subóptimo, de modo que codifican tanto el
+techo de la comunidad como su sabiduría, y el voto alcanza de forma fiable la cima
+del rango de la búsqueda sin elevar ese rango. Dónde se sitúa esa frontera es
+[objeto de su propia página](/research/build/learning/when-learning-collapses).

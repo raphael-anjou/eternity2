@@ -1,0 +1,162 @@
+---
+title: Los colores raros viven en el marco
+description: >-
+  Cinco de los 22 colores de Eternity II aparecen solo a lo largo del anillo de
+  borde, cada uno en exactamente 24 aristas, nunca una sola vez en el interior.
+  Una separación estructural que moldea la forma en que cada solucionador trata
+  el marco.
+metaDescription: "Cinco de los 22 colores de Eternity II aparecen solo en el anillo de borde, cada uno en 24 aristas, nunca en el interior: una división que moldea la resolución."
+kind: finding
+contribution: measurement
+rigor: proven
+tier: 2
+order: 110
+updated: 2026-07-01
+topics: [structure]
+related:
+  - /research/why/design-recipe
+  - /research/why/forbidden-patterns
+  - /research/why/border-balance
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+repro:
+  kind: exact
+  cmd: just research-rare-color-geography
+  topic: rare-color-geography
+sources:
+  - label: "Brendan Owen deriva el diseño de 17+5 colores como el puzzle más difícil posible (mensaje groups.io 1947)"
+    url: https://groups.io/g/eternity2/message/1947
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { RareColorLab } from "@/components/research/RareColorLab";
+import { RareColorRing } from "@/components/research/RareColorRing";
+import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { colorToLetter } from "@/lib/motifs";
+import data from "@/data/rare-color-geography.json";
+
+export function RareSwatches() {
+  return (
+    <div className="flex flex-wrap justify-center gap-4">
+      {data.rareColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-1">
+          <MotifSwatch color={c} width={52} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function FrameInteriorChart() {
+  const isClient = useIsClient();
+  const chartData = data.colors.map((c) => ({ color: c.color, frame: c.frame, interior: c.interior }));
+  return (
+    <div className="mx-auto h-72 max-w-3xl rounded-lg border p-2">
+      {isClient ? (
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <BarChart data={chartData} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+            <XAxis
+              dataKey="color"
+              label={{ value: "color", position: "insideBottom", offset: -8, fontSize: 12 }}
+              fontSize={11}
+            />
+            <YAxis
+              label={{ value: "edges", angle: -90, position: "insideLeft", fontSize: 12 }}
+              width={40}
+              fontSize={12}
+            />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="frame" name="frame" stackId="a" fill="#f59e0b" />
+            <Bar dataKey="interior" name="interior" stackId="a" fill="#38bdf8" radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Loading chart…
+        </div>
+      )}
+    </div>
+  );
+}
+
+Los 22 colores no juegan roles equivalentes. Ordénalos según dónde se sitúan sus
+aristas y se dividen en dos clases nítidas: cinco colores raros confinados al
+borde, y diecisiete colores comunes que hacen casi todo su trabajo dentro del
+tablero.
+
+## Dónde se permiten los colores raros
+
+Elige uno de los cinco colores raros y observa el tablero: sus 24 aristas se
+encienden todo alrededor del anillo del marco, y el interior de 14×14 permanece
+completamente en blanco. Cambia a un color común y en cambio se llena el
+interior. Ese centro vacío, para cada color raro, es todo el resultado.
+
+<Figure caption="El mapa de las aristas de un solo color sobre el tablero. Los colores raros son puro marco (0 en el interior); los colores comunes son la imagen espejo. Los conteos son exactos, tomados del juego de piezas oficial.">
+  <RareColorRing />
+</Figure>
+
+## Los cinco colores raros
+
+<RareSwatches />
+
+<div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-3">
+    <div className="text-2xl font-bold tabular-nums">{data.edgesPerRareColor}</div>
+    <div className="text-xs text-muted-foreground">aristas cada uno</div>
+  </div>
+  <div className="rounded-lg border p-3">
+    <div className="text-2xl font-bold tabular-nums">{data.rareEdgesTotal}</div>
+    <div className="text-xs text-muted-foreground">aristas raras, todas en el marco</div>
+  </div>
+  <div className="rounded-lg border p-3">
+    <div className="text-2xl font-bold tabular-nums text-emerald-600">0</div>
+    <div className="text-xs text-muted-foreground">aristas raras en el interior</div>
+  </div>
+</div>
+
+## Marco frente a interior, color por color
+
+<Figure caption="Los colores 1 a 5 son puro marco. El resto son mayoritariamente interiores.">
+  <FrameInteriorChart />
+</Figure>
+
+<Figure collapsible title="Interactivo: la geografía de borde de los colores raros">
+  <RareColorLab />
+</Figure>
+
+## Por qué importa
+
+La separación en sí misma es estructural, no es un truco defensivo. Como el
+reborde exterior es de un gris uniforme, cada pieza de borde mantiene su arista
+gris orientada hacia afuera, de modo que sus aristas coloreadas solo llegan a
+encontrarse con otras aristas de borde o con el interior: los colores de borde
+y de interior viven en reservas separadas, pase lo que pase. Los cinco colores
+de borde se leen como "raros" simplemente porque hay muchas menos aristas de
+borde que colorear, y podrían reetiquetarse con cualesquiera cinco valores
+(incluso reutilizando los del interior) sin cambiar en nada el puzzle. (Consulta
+la [nota de diseño sobre el porqué](/research/why#diseñado-para-resistir-el-ingenio),
+con nuestro agradecimiento a Vasily V. en la lista groups.io por la corrección.)
+
+Lo que sí es real, y lo que importa para resolver, es la consecuencia: el
+interior de 14×14 queda a merced de diecisiete colores comunes sin ninguna señal
+rara, fuertemente restrictiva, en ninguna parte de él, lo que explica en gran
+medida por qué la búsqueda en el interior tiene tan poco a lo que aferrarse. El
+borde, donde la reserva de colores es pequeña y las coincidencias son ajustadas,
+es en consecuencia la parte que todo tablero sólido logra prácticamente perfecta.
+Los conteos de colores de Eternity II se equilibraron para eliminar los apoyos
+estadísticos que hundieron a Eternity I; esta geografía es donde se siente el
+resultado.
+
+Consulta [por qué el interior no ofrece movimientos forzados](/research/why/no-forced-moves).

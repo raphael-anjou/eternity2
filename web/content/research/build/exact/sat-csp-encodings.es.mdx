@@ -1,0 +1,212 @@
+---
+title: Codificaciones SAT y CSP
+description: >-
+  Escribir el puzzle como cláusulas y entregárselo a un solucionador
+  industrial: el movimiento evidente, intentado desde 2008. Por qué los
+  solucionadores completos se atascan en el tablero completo, y dónde sus
+  veredictos siguen ganándose el sustento como pruebas de imposibilidad.
+metaDescription: "Codificar Eternity II como cláusulas SAT/CSP: por qué los solucionadores completos se atascan en el tablero y dónde sus veredictos prueban la imposibilidad."
+kind: concept
+order: 80
+group: Exact methods
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: Heule, Solving edge-matching problems with satisfiability solvers (2008)
+    url: https://www.cs.cmu.edu/~mheule/publications/eternity.pdf
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, Edge Matching Puzzles as Hard SAT/CSP Benchmarks (CP 2008)
+    url: https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39
+  - label: Ansótegui, Béjar, Fernàndez & Mateu, On the hardness of solving edge matching puzzles as SAT or CSP problems (Constraints, Springer)
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
+    url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/mosaic
+  - /research/papers
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+---
+
+import { EncodingSizeLab } from "@/components/research/concepts/EncodingSizeLab";
+
+Los solucionadores SAT modernos resuelven problemas industriales con millones
+de variables, así que el movimiento evidente es escribir Eternity II como
+cláusulas y dejar que CDCL excave. La gente lleva haciendo exactamente este
+movimiento desde 2008. Las codificaciones son limpias y las tallas pequeñas
+caen al instante; el puzzle completo, en cambio, no se inmuta. Entender por
+qué es una lección sobre de qué se alimenta realmente la búsqueda guiada por
+conflictos.
+
+## La codificación
+
+La codificación directa introduce una variable $x_{c,p,r}$ para «la pieza $p$
+ocupa la celda $c$ con la rotación $r$», y luego tres familias de
+restricciones: cada celda alberga exactamente un emplazamiento, cada pieza se
+usa como mucho una vez, y dos emplazamientos que discrepan a lo largo de una
+arista compartida se excluyen mutuamente. El mismo modelo se lee con
+naturalidad como un CSP: una variable por celda, los emplazamientos como
+valores del dominio, un *alldifferent* sobre las piezas, y restricciones de
+tabla sobre las celdas adyacentes. Esa formulación es la que los artículos de
+referencia estudian junto a la forma clausal.
+
+La forma clausal directa explota rápido, porque las cláusulas de discrepancia
+de arista, tomadas de dos en dos, se multiplican. El
+[artículo de 2008](https://www.cs.cmu.edu/~mheule/publications/eternity.pdf)
+de Marijn Heule mostró el remedio estándar: introducir variables auxiliares
+para el color mostrado en cada costura interna, de modo que un emplazamiento
+implique sus cuatro colores de costura y la discrepancia se excluya una vez por
+costura en lugar de una vez por par. Con codificaciones compactas, ruptura de
+simetría y ajuste fino del solucionador, Heule resolvió instancias de
+emparejamiento de aristas mucho más allá de lo que alcanzaba la codificación
+ingenua. Aun así, las CNF del puzzle completo 16×16 construidas por la
+comunidad llegan a alrededor de cien mil variables y cientos de millones de
+cláusulas (según se reporta en la
+[lista de correo comunitaria](https://groups.io/g/eternity2)). Se cargan sin
+problema, y permanecen totalmente sin resolver.
+
+## Tomarle la medida
+
+Los números de catorce dígitos dejan de significar nada en un texto, así que
+más vale medirlos. El explorador de abajo calcula ambas codificaciones en vivo
+a partir de la derivación anterior. Desliza el tamaño del tablero a través del
+techo del SAT puro de la comunidad, en 10×10, y hasta el 16×16 completo, y
+observa las barras en escala logarítmica. Debajo, una instancia de seis
+cláusulas muestra la otra mitad de la historia: la cascada de propagación
+unitaria de la que se alimenta el aprendizaje de cláusulas de CDCL, y que este
+puzzle deja hambrienta.
+
+<Figure collapsible title="Interactivo: explosión del tamaño de las codificaciones SAT/CSP">
+  <EncodingSizeLab />
+</Figure>
+
+## Paso a paso
+
+Deriva los tamaños una vez a mano; dejan de ser folclore.
+
+1. **Variables de emplazamiento.** $p = n^2$ piezas, $4$ rotaciones, $n^2$
+   celdas: $x_{c,p,r}$ da $n^2 \cdot p \cdot 4 = 4n^4$ variables. En $n = 16$
+   eso son $262{,}144$ emplazamientos en bruto; podar los imposibles (las
+   piezas de borde solo se asientan en el perímetro, las esquinas solo en las
+   esquinas) reduce esto a las «alrededor de cien mil variables» que
+   realmente cargan las CNF comunitarias.
+2. **Restricciones de celda y de pieza.** Cada celda alberga exactamente un
+   emplazamiento: una cláusula larga más, de dos en dos, $\binom{4n^2}{2}$
+   exclusiones por celda. Cada pieza se usa como mucho una vez: otras
+   $\binom{4n^2}{2}$ por pieza. El «como mucho uno» por pares es cuadrático;
+   esto es lo que las codificaciones compactas (secuencial, commander) reducen
+   a $O(4n^2)$ cláusulas cada una, al precio de variables auxiliares.
+3. **Las cláusulas de conflicto directas: la explosión.** El tablero tiene
+   $2n(n-1)$ costuras internas. Para cada costura, cada par de emplazamientos
+   que discrepa a través de ella recibe una cláusula binaria: alrededor de
+   $(4n^2)^2 (1 - 1/c)$ pares por costura si los colores fueran uniformes. En
+   $n = 16$, $c = 17$: $480 \times 1024^2 \times \tfrac{16}{17} \approx 4.7
+   \times 10^8$ cláusulas, los «cientos de millones» reportados para las CNF
+   del tablero completo, recuperados desde primeros principios.
+4. **El truco de costura de Heule.** Nombrar el color de cada costura:
+   $2n(n-1) \cdot c$ variables auxiliares ($8{,}160$ a tamaño completo). Ahora
+   cada emplazamiento *implica* sus cuatro colores de costura (como mucho
+   $16n^4$ cláusulas binarias) y la discrepancia queda prohibida una vez por
+   costura, no una vez por par: $\binom{c}{2}$ cláusulas por costura, unas
+   $65{,}000$ en total. La maquinaria de conflictos se colapsa en tres órdenes
+   de magnitud. Eso es exactamente por qué las instancias de Heule alcanzaron
+   tamaños que la codificación ingenua nunca rozó, y por qué el techo sigue
+   estando cerca de 10×10 y no de 16×16: el tamaño nunca fue el único problema.
+
+## Lo que cuesta
+
+- **El solucionador, en el peor caso: exponencial.** SAT es NP-completo, y
+  CDCL es un procedimiento basado en resolución: en familias con cotas
+  inferiores de resolución exponenciales, *ninguna* de sus ejecuciones puede
+  ser subexponencial. Su éxito industrial es una afirmación sobre la estructura
+  típica, no sobre el coste en el peor caso, y una instancia construida en el
+  pico de dureza está tan lejos de lo típico como es posible.
+- **Propagación unitaria: barata por diseño.** Con dos literales vigilados por
+  cláusula, una cláusula solo se examina cuando uno de sus dos vigías queda
+  falsificado, y cada visita cuesta $O(\text{longitud de la cláusula})$ para
+  encontrar un nuevo vigía. La propagación es la razón por la que CDCL puede
+  permitirse millones de decisiones por segundo incluso en CNF enormes; cargar
+  Eternity II nunca fue el problema.
+- **Análisis de conflicto: pagar en proporción al grafo de implicación.** Cada
+  conflicto se analiza recorriendo el grafo de implicación hacia atrás hasta un
+  corte (primer-UIP), con un coste de tiempo lineal en el grafo recorrido, y
+  produce una cláusula aprendida cuyo poder de poda depende de ser *corta*. Ese
+  es el paso que este puzzle deja hambriento: las cadenas de implicación planas
+  vuelven trivial el recorrido y ancha la cláusula aprendida. Tarifa completa,
+  sin producto.
+- **El lado CSP tiene la misma forma.** Imponer la
+  [consistencia de arco](/research/build/reduce/arc-consistency) sobre las
+  restricciones de tabla es polinómico por nodo, y el filtro GAC *alldifferent*
+  de Régin ejecuta un emparejamiento bipartito en $O(m\sqrt{n})$ por llamada
+  (véase la [página alldifferent](/research/build/reduce/alldiff-regin)).
+  Propagación polinómica sobre un árbol de búsqueda exponencial: fuerte
+  localmente, impotente globalmente.
+- **Donde el balance cuadra.** En el tablero completo, el comportamiento del
+  peor caso es el comportamiento observado. En subproblemas fijados, la misma
+  maquinaria devuelve UNSAT en menos de dos segundos: un teorema de
+  imposibilidad por consulta, al precio de una búsqueda en base de datos. Los
+  costes no cambiaron; la pregunta, sí.
+
+## Lo que mostraron los benchmarks publicados
+
+El estudio sistemático se debe a Ansótegui, Béjar, Fernàndez y Mateu, en un
+[artículo de CP 2008](https://link.springer.com/chapter/10.1007/978-3-540-85958-1_39)
+y una
+[versión de revista ampliada en Constraints](https://link.springer.com/article/10.1007/s10601-012-9128-9),
+acompañados de un artículo que pregunta, textualmente,
+[cuán difícil es realmente el puzzle comercial](https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download).
+Su conclusión estrella: los puzzles de emparejamiento de aristas generalizados
+son excelentes benchmarks SAT/CSP precisamente porque la dificultad es
+ajustable: al variar el número de colores, el tiempo de resolución sube hasta
+un pico agudo donde las soluciones son escasas pero reales. Los recuentos de
+colores de Eternity II se sitúan en ese pico, por diseño; la
+[página sobre la transición de fase](/research/why/phase-transition) lo recorre
+en detalle. En la práctica, los solucionadores completos despachan los tableros
+pequeños en segundos y luego chocan con un acantilado exponencial; los
+experimentos comunitarios a lo largo de los años sitúan el techo práctico del
+SAT puro sobre las instancias de estilo Eternity en torno a la escala 10×10,
+muy por debajo de 16×16. Consulta la [página de artículos](/research/papers)
+para el rastro completo de la literatura.
+
+## Por qué CDCL se atasca en el tablero completo
+
+CDCL obtiene su poder del aprendizaje de cláusulas: cuando la propagación se
+topa con un conflicto, el solucionador recorre el grafo de implicación hacia
+atrás hasta un pequeño conjunto de decisiones que lo causaron, y registra esa
+combinación como prohibida. La cláusula aprendida es corta y general cuando los
+conflictos nacen de largas cadenas de propagación unitaria.
+
+Eternity II deja hambriento a ese mecanismo. El análisis por este proyecto de
+su propio motor CSP (matizado en consecuencia: medido aquí, no replicado de
+forma independiente) halló que la estructura de implicación es casi plana (una
+eliminación de dominio se remonta a un único emplazamiento vecino, no a una
+cadena profunda), de modo que el análisis de conflicto casi no tiene nada que
+comprimir, y los [no-goods](/research/build/reduce/nogood-learning) aprendidos
+salen anchos y específicos en lugar de cortos y generales. Peor aún, los
+conflictos surgen tarde: con una propagación fuerte en marcha, los vaciados de
+dominio prácticamente nunca ocurrían antes de la profundidad 50, con la mediana
+bien adentro del tablero. Una cláusula ancha sobre una configuración profunda y
+específica no poda casi nada más. Añade una instancia deliberadamente ajustada
+al pico de dureza, y el puzzle completo se acerca a un peor caso para la
+búsqueda guiada por conflictos.
+
+## Dónde los veredictos exactos siguen pagando
+
+Nada de esto vuelve inútiles las codificaciones; las reubica. La respuesta
+UNSAT de un solucionador completo es un teorema, y en subproblemas esos
+teoremas salen baratos. El uso más productivo del SAT en este proyecto (con el
+mismo matiz de arriba) es como *oráculo sobre regiones*: fijar la mayor parte
+de un tablero fuerte, liberar un vecindario de sus discrepancias restantes, y
+pedir una completación totalmente emparejada. La respuesta vuelve UNSAT,
+típicamente en menos de dos segundos, y prueba que ninguna reordenación local
+de esa región puede jamás terminar el tablero, que es la maquinaria detrás del
+[muro de rigidez](/research/why/rigidity-wall). El mismo truco criba anillos de
+borde enteros: fijar un borde candidato, liberar las 191 celdas interiores, y
+un UNSAT en menos de un segundo certifica que ese borde nunca podrá sostener un
+interior perfecto. Y dentro de un motor de búsqueda CSP, la misma idea en
+miniatura (registrar no-goods duros en los fallos de propagación para no volver
+a entrar jamás en un callejón sin salida estructural) es correcta por
+construcción y barata de verificar con literales vigilados al estilo SAT.
+
+Esa es la división del trabajo: como solucionador frontal del puzzle completo,
+CDCL está superado; como generador rápido de certificados de imposibilidad para
+piezas de él, nada más se le acerca.

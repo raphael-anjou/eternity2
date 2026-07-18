@@ -1,0 +1,144 @@
+---
+title: El estudio DFS
+description: >-
+  Una sola pregunta, planteada con cuidado: entre los backtrackers en
+  profundidad para Eternity II, ¿qué aporta realmente cada orden de relleno, cada
+  heurística y el mecanismo de ruptura? Una familia de backtrackers escritos
+  desde cero, separados cada uno por un único cambio, ejecutados sobre las mismas
+  diez variantes con esquinas fijadas, en un solo núcleo, durante sesenta
+  segundos.
+metaDescription: "Estudio de los backtrackers en profundidad para Eternity II: qué aportan cada orden de relleno, heurística y ruptura, medido en diez variantes, un núcleo, 60 s."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s"
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments dfs-study
+order: 25
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/single-core-benchmark
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Motor ejecutable + resultados versionados + scripts (el directorio de respaldo de este estudio)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study
+---
+
+import { DfsStudyLeaderboard } from "@/components/research/DfsStudyLeaderboard";
+import { StartingPuzzleCarousel } from "@/components/research/StartingPuzzleCarousel";
+
+Todo solucionador de Eternity II poseedor de un récord (Blackwood, Verhaard,
+McGavin) es un backtracker en profundidad. Lo que los distingue de un backtracker
+del primer trabajo de la semana no es su naturaleza, sino un puñado de decisiones:
+el orden en que rellenan las celdas, la anticipación que aplican y el hecho de
+dejar o no que una arista *rompa*. Este estudio desmonta esas decisiones.
+Construye desde cero una familia de backtrackers en profundidad, cada uno
+separado de su vecino por un único cambio, y los ejecuta a todos sobre las mismas
+diez variantes con esquinas fijadas del puzzle oficial, en un solo núcleo,
+sesenta segundos por ejecución. La puntuación máxima es de 480 aristas casadas.
+
+El objetivo no es ganar. La variante más fuerte que aquí se presenta ronda de
+media los 430 justos, muy por debajo de los 464 de la comunidad sobre estas cinco
+pistas, porque sesenta segundos en un núcleo son apenas una fracción ínfima del
+cómputo que exigieron los récords. El objetivo es aislar *lo que vale cada idea*
+cambiando una sola cosa a la vez y midiendo el resultado con el mismo
+solucionador canónico de puntuación para cada tablero.
+
+<StartingPuzzleCarousel />
+
+## La familia, y el clasificatorio
+
+Cuatro familias, dispuestas de modo que los vecinos difieran en una sola decisión.
+**Baseline** es el backtracker más crudo posible, acompañado de un gemelo
+especializado a mano que pone precio al coste de la ingeniería de bajo nivel.
+**Path order** fija todo salvo la secuencia en que se rellenan las celdas.
+**Heuristic** fija el orden y añade un propagador cada vez. **Break** es el eje de
+élite: el mecanismo de ruptura de arista con umbral de profundidad sobre el que se
+apoyan los récords. Los motores récord de la comunidad, el C de McGavin y el C# de
+Blackwood, son ellos mismos backtrackers de ruptura, de modo que ocupan su lugar
+en la familia break, y no en una categoría aparte. De quién es el código de un
+motor sigue siendo cuestión de etiquetado, no de color. Ambos aparecen en el
+clasificatorio con su puntuación de esquinas fijadas, marcados con una insignia
+allí donde se derrumban, y de nuevo sobre una rejilla sin fijación más abajo,
+donde funcionan tal como fueron diseñados.
+
+<DfsStudyLeaderboard />
+
+## Lo que el estudio encontró
+
+- **El orden de recorrido es la mayor palanca gratuita, y el orden equivocado es
+  catastrófico.** Un simple recorrido fila por fila promedia 377; un relleno
+  estricto de borde primero o en espiral, sin heurística que lo rescate, se estanca
+  cerca de 67. Mismo motor, mismo presupuesto, una oscilación de más de 300 puntos
+  debida al solo orden de relleno.
+- **La heurística de la celda más restringida (MRV) es lo que hace viable el borde
+  primero.** Eleva un borde primero estancado desde los sesenta hasta una media de
+  324, a un coste de tres órdenes de magnitud en el rendimiento de nodos. El
+  rendimiento de nodos y la puntuación son dos ejes distintos, una distinción sobre
+  la que el estudio vuelve de principio a fin.
+- **Más propagación no compró más puntuación con este presupuesto.** El
+  forward-checking, la arco-consistencia y el razonamiento por color aterrizan a un
+  punto unos de otros (322, 321, 321), una brecha muy dentro de la dispersión de
+  una ejecución a otra, de modo que una anticipación más pesada ni ayudó ni
+  perjudicó claramente. Gasta los sesenta segundos en demostrar regiones pequeñas
+  en lugar de descender más profundo.
+- **Las rupturas descienden más profundo que cualquier búsqueda estricta.** Los
+  backtrackers estrictos se topan con un techo en los 200 justos (el más rápido,
+  NAIVE-CODEGEN, en 216); un presupuesto de ruptura con umbral de profundidad
+  supera 245 y promedia los 430 justos, porque puede forzar el paso más allá de una
+  arista localmente incasable en lugar de retroceder para salir de ella. El factor
+  decisivo es el *calendario* de las rupturas: desbloquear las rupturas demasiado
+  pronto (la escalera de Verhaard, media 399) puntúa muy por debajo de la escalera
+  más tardía de Blackwood (media 431). Elevar el tope por celda de uno a dos no
+  ayudó con este presupuesto, un resultado nulo reportado como medido.
+
+Cada uno de estos puntos tiene su propia página: cómo se construye el motor y qué
+significa cada estadística registrada está en la
+[página de método](/research/lab/experiments/raphael-anjou/dfs-study/method), y las
+comparaciones de recorrido, heurística y ruptura se desarrollan en la
+[página de resultados](/research/lab/experiments/raphael-anjou/dfs-study/findings).
+
+## Cómo leer las cifras
+
+Cada tablero se vuelve a puntuar con un único solucionador canónico de puntuación,
+y no se da por buena la puntuación autodeclarada de ningún motor. El rendimiento
+se reporta en nodos de búsqueda por segundo y **nunca se compara de una familia a
+otra**, porque un nodo que ejecuta una arco-consistencia completa no es la misma
+unidad de trabajo que una colocación ingenua. La profundidad es la colocación más
+profunda que alcanzó una variante, sobre 256.
+
+El número de rupturas merece una definición precisa, porque es fácil enunciarlo de
+forma vaga. La *puntuación* de un tablero es el número de sus aristas interiores
+casadas, y la brecha `480 − score` es el déficit total de aristas no casadas del
+tablero. Sobre un tablero **completado**, cada arista no casada es una ruptura
+genuina, de modo que allí la puntuación vale exactamente `480 − #breaks`. Sesenta
+segundos rara vez bastan para rellenar el tablero, sin embargo, de manera que la
+mayoría de los tableros de las variantes de ruptura aquí presentados son parciales,
+y su déficit está dominado por aristas simplemente aún vacías más que rotas. Este
+estudio reporta por tanto el **verdadero número de rupturas**, es decir, los
+desapareamientos interiores que la búsqueda comprometió efectivamente bajo su
+presupuesto, seguidos por la propia búsqueda en lugar de inferidos de la
+puntuación. Ese número se mantiene pequeño incluso cuando el déficit es grande.
+Cada tablero lleva una `.url` bucas que se abre en el [visualizador](/viewer), de
+modo que tanto la puntuación como las aristas rotas pueden verificarse
+directamente.
+
+Todo el aparato (el espacio de trabajo del motor, las diez variantes, los
+resultados por ejecución versionados y los scripts de la rejilla) reside bajo el
+[directorio de respaldo](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study)
+del estudio, y `just experiments dfs-study` reconstruye el motor y relanza toda la
+rejilla.

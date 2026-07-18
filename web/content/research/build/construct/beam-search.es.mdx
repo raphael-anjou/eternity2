@@ -1,0 +1,187 @@
+---
+title: Búsqueda en haz
+description: >-
+  Mantener con vida los K tableros parciales más prometedores a la vez y hacerlos
+  crecer celda a celda. La búsqueda en haz es el motor de los constructores desde
+  cero de este proyecto, y una ilustración nítida de por qué la anchura por sí sola
+  se estanca en las profundidades del interior.
+metaDescription: "La búsqueda en haz mantiene vivos los K mejores tableros parciales de Eternity II y los hace crecer celda a celda: el constructor desde cero de este proyecto."
+kind: concept
+order: 50
+group: Build boards up
+updated: 2026-07-02
+topics: [construction]
+sources:
+  - label: "Zhou y Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/lab/experiments/raphael-anjou/learning/lodestone
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+---
+
+import { BeamWidthLab } from "@/components/research/concepts/BeamWidthLab";
+
+Un backtracker en profundidad se compromete con un único tablero parcial y
+excava. La búsqueda en haz, en cambio, toma precauciones: mantiene con vida los
+$K$ mejores tableros parciales a la vez, extiende cada uno de ellos una sola
+celda, puntúa todos los hijos y vuelve a conservar los $K$ mejores. La idea se
+remonta al sistema de reconocimiento de voz HARPY de Bruce Lowerre, en los años
+setenta; el
+[artículo sobre la beam-stack search](https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf)
+de Zhou y Hansen ofrece un buen tratamiento moderno de esta familia de métodos
+y de sus concesiones.
+
+## Cómo se desarrolla sobre un tablero
+
+Fijemos un orden de recorrido sobre las 256 celdas. Un estado del haz es una
+colocación parcial, el conjunto de piezas ya gastadas y una puntuación de
+aristas apareadas. Extender un estado a la profundidad $d$ consiste en probar
+cada par (pieza, rotación) legal para la celda $d$ (legal respecto a los vecinos
+ya colocados y al inventario restante) y sumar a la puntuación el número de
+aristas recién apareadas. Se reúnen todos los hijos de los $K$ supervivientes,
+se ordena, se trunca a $K$, se repite 256 veces, y cada superviviente es
+entonces un tablero completo.
+
+Es el inventario lo que distingue este caso de la búsqueda en haz sobre un
+problema de restricciones genérico: cada pieza existe exactamente una vez, de
+modo que una colocación no es un simple elección local, sino una retirada de un
+presupuesto global. Ese detalle decide todo lo que sigue.
+
+## Ver descender un haz
+
+El laboratorio de abajo hace descender un haz por un árbol sintético: factor de
+ramificación $b = 4$, profundidad $d = 14$, puntuaciones deterministas basadas
+en un hash, sin tablero, porque las patologías son más fáciles de *ver* cuando
+la instancia es lo bastante pequeña para dibujarla. Se plantan dos rasgos
+deliberadamente: las puntuaciones de los nodos son en parte heredables (un buen
+prefijo tiende a tener buenos hijos, que es precisamente lo que hace que un haz
+colapse sobre un solo prefijo), y unos pocos nodos **trampa** rinden una gran
+puntuación inmediata mientras envenenan discretamente a cada descendiente: un
+modelo sintético de dos líneas del
+[robo de piezas](/research/why/piece-theft), donde una colocación que puntúa
+ahora gasta una pieza que el interior profundo necesitará más tarde.
+
+<Figure collapsible title="Interactivo: anchura del haz frente a supervivencia">
+  <BeamWidthLab />
+</Figure>
+
+## Paso a paso
+
+1. **Profundidad 0.** El haz se reduce a la raíz. En cada tick, cada
+   superviviente engendra sus $b = 4$ hijos, a lo sumo $K \cdot 4$ candidatos
+   en el vivero.
+2. **Puntuar, ordenar, truncar.** Los hijos reunidos se clasifican y solo los
+   $K$ mejores sobreviven. Todo lo que queda por debajo del corte se elimina
+   *para siempre*: un haz nunca retrocede, de modo que un buen prefijo podado a
+   la profundidad 5 es inalcanzable a la profundidad 10. Aquí es donde se
+   renuncia a la completitud.
+3. **Observar el amontonamiento.** La posición horizontal de un punto codifica
+   su prefijo de camino, de modo que ramas distintas viven en agrupaciones
+   distintas. En unos pocos niveles la mayoría de los supervivientes comparten
+   un mismo prefijo de alta puntuación: el contador de *prefijos distintos*
+   cayendo hacia 1 es el colapso de la diversidad, el haz degenerando en
+   goloso-con-contabilidad.
+4. **Seguir la traza rosa.** Eso es $K = 1$, goloso puro. Cuando engulle una
+   trampa ámbar (gran ganancia ahora, subárbol envenenado después), su curva de
+   puntuación se aplana para siempre. Un haz más ancho sobrevive a la misma
+   trampa solo mientras sus supervivientes siguen repartidos entre ramas; una
+   vez colapsado, es igual de crédulo.
+5. **Deslizar $K$ de 1 a 64.** La puntuación final sube y luego se aplana; cada
+   duplicación de la anchura rinde menos, los mismos rendimientos aproximadamente
+   logarítmicos que este proyecto midió sobre tableros reales. Fíjese en lo que
+   el deslizador nunca cambia: el colapso sigue ocurriendo, solo que unos pocos
+   niveles más tarde.
+
+## Lo que cuesta
+
+La búsqueda en haz es una búsqueda exponencial a la que se le ha suprimido la
+exponencial por decreto:
+
+$$
+\text{time} \;=\; O(K \cdot b \cdot d), \qquad
+\text{memory} \;=\; O(K \cdot d),
+$$
+
+para una anchura $K$, un factor de ramificación $b$ y una profundidad $d$ (más
+una ordenación en $O(Kb \log Kb)$ por nivel). Ambas son lineales en $K$, que es
+todo el atractivo. El precio es la *incompletitud*: un haz no ofrece ninguna
+garantía de optimalidad, ningún certificado en caso de fracaso y ninguna forma
+de volver a un prefijo podado. Su único modo de fallo sistemático es el colapso
+que muestra el laboratorio: cuando los supervivientes se convierten en $K$
+copias de un mismo prefijo, la anchura efectiva vale 1, sea cual sea el precio
+pagado.
+
+A la escala de Eternity II la aritmética es clemente, y es exactamente por eso
+que los haces son aquí el motor desde cero: $d = 256$ celdas, $b$ = el número de
+candidatos (pieza, rotación) legales por celda, unos pocos cientos al principio,
+decreciendo a medida que el inventario se vacía, de modo que incluso
+$K = 10^4$ cuesta del orden de $10^8$–$10^9$ evaluaciones de hijos por tablero
+completo: minutos en un portátil, incomparablemente más barato que cualquier
+cifra exhaustiva de la [página de callejones sin salida](/research/build/dead-ends).
+Lo que realmente dice $O(K \cdot b \cdot d)$ no es «barato» sino «tan bueno como
+su función de puntuación»: el haz evalúa una fracción ínfima del árbol, y ningún
+score conocido predice qué prefijos de profundidad 100 aún se completan bien. La
+anchura se compra en moneda lineal; la clarividencia no está en venta.
+
+## La anchura rinde menos de lo que uno esperaría
+
+En $K = 1$ el haz es una construcción golosa pura, y el goloso con reinicios
+aleatorios tiene una cola de distribución brutalmente pesada: en el motor de
+este proyecto, decenas de miles de ejecuciones golosas aleatorias toparon en
+torno a 408 de 480, y la extrapolación de la cola situaba un 440 en miles de
+millones de reinicios. Ensanchar el haz es mucho mejor, pero los rendimientos
+son aproximadamente logarítmicos. Un haz de unos pocos cientos de estados
+construye tableros en torno a 450; empujar $K$ más allá de diez mil alcanzó la
+zona media de los 450 y luego se aplanó. (Medido en el motor de este proyecto;
+no reproducido de forma independiente.)
+
+Hay una razón estructural por la que un haz puro no puede ser mucho más que
+«goloso, más ancho». Un estado de haz a la profundidad $d$ afronta exactamente
+las mismas restricciones de apareamiento de aristas y de inventario que un nodo
+de DFS a la profundidad $d$; mantener muchos estados con vida no relaja nada.
+Sin una función de puntuación que prediga de forma fiable qué prefijos de
+profundidad 100 aún se completan bien (y no se conoce ninguna heurística de ese
+tipo para Eternity II), la anchura adicional del haz en lo esencial no hace más
+que duplicar lo que los reinicios aleatorios de un backtracker ya proporcionan.
+
+## La diversidad es el verdadero mando
+
+Librado a sí mismo, un haz colapsa: en unas pocas docenas de celdas la mayoría
+de los supervivientes comparten un mismo prefijo de alta puntuación, y el haz
+degenera hacia un goloso dotado de contabilidad adicional. Los remedios
+habituales son la deduplicación de prefijos y el muestreo entre los $2K$ mejores
+en lugar de tomar los $K$ mejores, y los constructores de este proyecto emplean
+ambos. Pero la palanca de diversidad más potente que se encontró aquí no estaba
+en absoluto dentro del haz: era el orden de recorrido. Hacer correr el mismo haz
+bajo nueve órdenes de visita distintos ([GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet)) produjo dieciocho
+familias de tableros distintas allí donde dieciséis semillas de un solo orden
+habían producido una.
+
+El otro mando fecundo es el desempate.
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) rompe los empates
+de puntuación a favor de las piezas que son frecuentes en esa posición dentro de
+un corpus de tableros fuertes, elevando el techo desde cero en unas pocas aristas
+y alcanzando 460 tras el refinamiento.
+[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) rompe los
+empates a favor de las piezas que sirven demandas escasas, ganando una pequeña
+mejora en la mediana y una regularidad mucho mayor, para luego colapsar
+gravemente en cuanto la ley a priori pasa de desempate a objetivo.
+
+## El muro de profundidad
+
+Todas las variantes de haz probadas aquí se estancan de la misma manera. El
+borde y el primer interior se rellenan casi a la perfección; los desapareamientos
+se concentran en las últimas filas, donde las piezas que una celda necesita
+fueron gastadas mucho antes al servicio de celdas más fáciles: el problema del
+[robo de piezas](/research/why/piece-theft). Un objetivo local goloso no puede
+ver ese presupuesto global, y duplicar $K$ solo retrasa el muro una o dos
+aristas. Los haces desde cero en este motor topan en la zona media de los 450;
+la distancia restante se compra con
+[pulido por destrucción y reparación](/research/build/local-search/local-search-alns),
+no con más anchura. En este puzzle, la búsqueda en haz es una buena manera de
+alcanzar rápido la meseta, y de ninguna manera una forma de abandonarla.

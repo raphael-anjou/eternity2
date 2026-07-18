@@ -1,0 +1,166 @@
+---
+title: GAUNTLET
+description: >-
+  Ejecutar la misma búsqueda en haz según nueve órdenes de recorrido distintos,
+  para que aterrice en regiones diferentes en lugar de converger siempre a la
+  misma. El orden en zigzag encontró un tablero 458 inédito.
+metaDescription: "GAUNTLET ejecuta una búsqueda en haz sobre nueve órdenes de recorrido para explorar regiones distintas en vez de converger: el zigzag encontró un 458 inédito."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 458
+rigor: measured
+complexity:
+  time: "9 recorridos × 4 semillas de construcción en haz, luego un realce ALNS de 5 min por construcción sólida"
+  space: "un haz activo por (recorrido, semilla); comparte la matriz de a priori 256×256 de PRIOR"
+  note: >-
+    El orden de recorrido es una decisión de preprocesamiento, no un coste: los
+    nueve órdenes reutilizan la misma maquinaria de haz y el mismo a priori.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Un barrido sobre los órdenes de recorrido construye numerosos tableros diversos, muestreando regiones distintas"
+    learns: "Un a priori posicional de corpus, más un orden de recorrido intercambiable para diversificar la construcción"
+    published: false
+  - engine: alns
+    does: "La destrucción-reparación realza una construcción prometedora; el 458 retenido es un tablero realzado"
+    published: false
+  - engine: clustering
+    does: "Agrupar los resultados por disposición de las esquinas para señalar cuencas genuinamente nuevas (no es una etapa de solucionador)"
+order: 50
+updated: 2026-07-10
+date: 2026-07
+topics: [construction]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/construct/beam-search
+sources:
+  - label: "Búsqueda en haz (la página de concepto de este proyecto): la construcción cuyo orden de recorrido se hace variar"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { GauntletDiagram } from "@/components/research/GauntletDiagram";
+import { GauntletStepThrough } from "@/components/research/GauntletStepThrough";
+import { GauntletLiveRace } from "@/components/research/GauntletLiveRace";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+Una búsqueda en haz que rellena siempre el tablero en el mismo orden tiende a
+descubrir el mismo tipo de tablero, sea cual sea la semilla aleatoria. El orden
+en que se visitan las celdas decide en silencio en qué región se acaba, y a lo
+largo de dieciséis semillas, un mismo orden de recorrido produjo una sola
+familia de disposición de las esquinas. GAUNTLET lo convierte en una
+herramienta: ejecutar la búsqueda según nueve órdenes de recorrido
+genuinamente distintos, y así muestrear regiones genuinamente distintas.
+
+## Cómo funciona
+
+GAUNTLET deriva el haz constructivo de PRIOR y le confía un orden de recorrido
+intercambiable: fila, fila invertida, columna, columna invertida, zigzag,
+zigzag invertido, espiral entrante, espiral saliente y diagonal, nueve en
+total. Como el orden de las celdas modifica qué tableros parciales sobreviven
+en cada paso, cada orden explora una trayectoria diferente en lugar de
+apiñarse en una sola. Un barrido de 9 recorridos × 4 semillas produjo **18
+firmas de disposición de esquinas distintas**, frente a una sola a lo largo de
+dieciséis semillas del haz de recorrido único del que surgió.
+
+Cada ejecución completa produce un tablero entero; los más sólidos se pulen
+luego con un realce ALNS de 30 minutos. La constatación es nítida: *el orden de
+recorrido es un eje de diversidad más potente que la semilla aleatoria.* Ese es
+el resorte, y es sobre él que se apoyan KEYRING y PRIOR más adelante.
+
+<Figure collapsible title="Interactivo: el calendario del orden de construcción">
+  <GauntletDiagram />
+</Figure>
+
+Recorra un orden paso a paso para ver cómo el orden de visita dirige el haz.
+
+<Figure collapsible title="Interactivo: recorrer el orden de construcción">
+  <GauntletStepThrough />
+</Figure>
+
+O haga competir los nueve órdenes entre sí, en directo, en su navegador.
+
+<Figure collapsible title="Interactivo: competir las estrategias de construcción">
+  <GauntletLiveRace />
+</Figure>
+
+## El tablero
+
+La búsqueda es estocástica, así que no reproducirá este tablero exacto, pero el
+tablero que encontró está fijado, incluido aquí y verificable arista por
+arista.
+
+<RecordBoard id="gauntlet-458" />
+
+## El resultado
+
+El orden en zigzag con la semilla 99, realzado, alcanzó 458 de 480 en la
+disposición de esquinas cp=(3,0,1,2), el primer tablero igual o superior a 458
+jamás encontrado en esa disposición dentro de nuestra base de datos. Se sitúa a
+al menos 246 celdas de 256 de todo lo que teníamos a ese nivel: una cuenca
+genuinamente nueva, no otra ruta hacia una conocida.
+
+Así que la contribución de GAUNTLET es alcance más que un récord: abrió una
+nueva región de tableros sólidos. Una segunda ronda (32 realces más) topó en
+457 sin ningún 461, lo que indica que la nueva familia se satura como las
+demás, pero la familia en sí era el premio.
+
+## Método
+
+El pipeline consta de tres etapas, y los parámetros son lo esencial.
+
+**Etapa 1: construcción diversa.** Se deriva el haz de PRIOR y se le confía un
+orden de recorrido intercambiable sobre las 256 celdas: `row`, `row_rev`,
+`col`, `col_rev`, `zigzag`, `zigzag_rev`, `spiral_in`, `spiral_out`,
+`diagonal`, nueve órdenes, cruzados con las semillas `{1, 7, 42, 99}`. Todos
+comparten un mismo a priori (la matriz `high459`) a baja temperatura de softmax
+(0,05), de modo que el haz está guiado por el a priori sin ser determinista. El
+orden modifica qué tableros parciales sobreviven en cada paso, de manera que
+cada par (recorrido, semilla) recorre una trayectoria diferente.
+
+**Etapa 2: realce.** Cada construcción sólida recibe un realce ALNS (operadores
+de escape del a priori + destrucción/reparación `basic_lkh`), 5 minutos por
+construcción durante el barrido, más tiempo para los finalistas.
+
+**Etapa 3: agrupamiento.** Se agrupan todas las salidas por permutación de las
+esquinas y se señalan las firmas ausentes de la base de datos existente. Así es
+como el barrido 9×4 hizo emerger **18 familias de esquinas distintas** allí
+donde dieciséis semillas de un recorrido único habían hecho emerger una sola, la
+afirmación medida de que *el orden de recorrido es un eje de diversidad más
+potente que la semilla.*
+
+El tablero ganador, zigzag, semilla 99, realzado, se sitúa en cp = (3, 0, 1, 2),
+a una distancia de Hamming ≥ 246/256 de todo lo que estaba previamente a ese
+nivel: una nueva cuenca según el mismo test de permutación de esquinas más
+Hamming que emplea [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior).
+
+## Reproducir
+
+`just research-record-boards` verifica la puntuación del tablero 458 retenido,
+exactamente, a partir de su cadena Bucas almacenada. El barrido es estocástico
+(nueve recorridos × cuatro semillas, luego una pasada de pulido), así que no
+reproducirá el mismo tablero; el tablero es el artefacto de referencia. El motor
+es el productor en haz compartido, ejecutado según nueve órdenes de relleno;
+usa el mismo a priori extraído del corpus que
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), de modo que la
+ejecución no se reproduce aquí desde cero.
+
+## Preguntas abiertas
+
+¿Presenta esta nueva familia la misma estructura local rígida que las demás, o
+una forma diferente? ¿Y puede un refinamiento más largo elevarla por encima de
+458, como una familia fresca a veces tiene más margen que una bien rodada?

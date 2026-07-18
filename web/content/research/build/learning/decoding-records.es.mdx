@@ -1,0 +1,92 @@
+---
+title: Decodificar récords
+description: >-
+  La forma más literal de aprender de un tablero fuerte: reconstruirlo con
+  exactitud, pieza por pieza, hasta que tu búsqueda sepa reproducirlo. Lo que la
+  reconstrucción te obliga a añadir es el ingrediente que le faltaba a tu
+  búsqueda, y la reproducción es la prueba.
+metaDescription: "Decodificar tableros récord de Eternity II: reconstruir un récord conocido hasta reproducirlo; el ingrediente que lo permite es lo que a tu búsqueda le faltaba."
+kind: concept
+order: 53
+group: Learned guidance
+updated: 2026-07-16
+topics: [backtracking, learning]
+sources:
+  - label: "Tableros récord de la comunidad (cronología de récords de este proyecto): los testigos que un rejuego reconstruye"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/records.mdx
+related:
+  - /research/build/learning/anti-pattern-mining
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning/replay
+  - /research/records
+  - /research/build/reduce/nogood-learning
+---
+
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
+
+Los priors de corpus y el minado de anti-patrones aprenden un *estadístico* a
+partir de muchos tableros. Esta técnica aprende de un *único* tablero, y aprende
+lo más difícil de percibir desde la distancia: la única jugada que una búsqueda
+ordinaria no puede hacer. El método es brutalmente literal. Toma un tablero
+récord conocido e intenta que tu propia búsqueda lo reconstruya con exactitud,
+pieza por pieza. Todo lo que tengas que añadir a tu búsqueda antes de que pueda
+recorrer ese camino es precisamente el ingrediente que le faltaba, y la
+reconstrucción exacta es la prueba de que ese ingrediente es real.
+
+## La reproducción como prueba
+
+El montaje es una búsqueda en profundidad ejecutada en un modo deliberadamente
+restringido, apuntada a un tablero testigo concreto en lugar de buscar
+libremente:
+
+- **Ordenación del prior por encima del coste.** Un backtracker ordinario
+  tolerante a rupturas clasifica los emplazamientos candidatos por coste de
+  desajuste inmediato, primero el más barato. Un rejuego invierte la prioridad,
+  de modo que los emplazamientos que el tablero testigo realmente usó imponen su
+  rango sobre los que parecen más baratos. La búsqueda es arrastrada por el buen
+  camino conocido en lugar de desviarse de él.
+- **Una cola exacta.** Las últimas celdas se resuelven de forma exacta en lugar
+  de heurística, de modo que el final que una ejecución ordinaria chapucea se
+  cierra de manera determinista.
+- **La relajación bajo prueba.** Con la ordenación y la cola fijadas, varías la
+  única regla que sospechas que es la barrera, y vigilas el instante en que el
+  testigo se reconstruye.
+
+Este es el experimento [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay),
+y lo que encontró en los tableros strict-460 de la comunidad es un ejemplo
+limpio de la recompensa. La búsqueda tolerante a rupturas propia del proyecto se
+había saturado en 457 o 458 hiciera lo que hiciera, y la razón resultó ser una
+única regla que nadie había cuestionado: permitía a lo sumo *una* arista en
+desajuste por celda. Los tableros récord contienen cada uno cuatro o cinco
+celdas que pagan *dos* desajustes de una vez. Una búsqueda limitada a una ruptura
+por celda es literalmente incapaz de representar esos tableros, así que quedaba
+apartada de los mismísimos objetivos que perseguía.
+
+<Figure collapsible title="Interactivo: las celdas de doble ruptura">
+  <DoubleBreakDiagram />
+</Figure>
+
+<Figure collapsible title="Interactivo: reproducir el calendario de rupturas">
+  <DoubleBreakLab />
+</Figure>
+
+Sube el presupuesto por celda de uno a dos, y ambos testigos strict-460 de la
+comunidad se reconstruyen con exactitud, cada pieza en su sitio, con la
+puntuación cuadrando arista por arista. La reconstrucción *es* el hallazgo: un
+resultado de completitud de búsqueda disfrazado de intento de récord. El muro
+estaba en el conjunto de jugadas, no en el cómputo.
+
+## Qué puede y qué no puede comprar el decodificado
+
+Decodificar un récord es el diagnóstico más afilado de esta familia, porque
+convierte una sospecha vaga ("a nuestra búsqueda le falta algo") en una
+afirmación concreta y verificable ("no puede pagar dos rupturas en una misma
+celda"). Es también, en el mismo aliento, el más franco sobre sus límites.
+Recuperar la doble ruptura eleva la escalera estricta a 460, pero no dice, por sí
+solo, si dos rupturas por celda abren un camino hacia 461 y más allá o meramente
+hacia los 460 conocidos. El decodificado te dice el ingrediente que un testigo
+usó; no promete que ese ingrediente llegue más lejos de lo que llegó el testigo.
+Esa brecha, una jugada aprendida que alcanza la meseta sin probar nada más allá
+de ella, es el tema de la
+[página sobre el colapso](/research/build/learning/when-learning-collapses).

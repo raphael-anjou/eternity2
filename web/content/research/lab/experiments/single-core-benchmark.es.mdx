@@ -1,0 +1,215 @@
+---
+title: Benchmark mono-núcleo
+description: >-
+  Quince solucionadores, los nuestros y nuestras implementaciones de los dos
+  backtrackers récord de la comunidad, cada uno ejecutado una vez sobre diez
+  variantes del puzzle oficial con las esquinas fijadas, un solo núcleo, 60
+  segundos por ejecución. El hallazgo: el número de nodos no es la puntuación.
+metaDescription: "Quince solucionadores de Eternity II sobre diez variantes con esquinas fijadas, un núcleo, 60 segundos cada uno. Hallazgo: el número de nodos no es la puntuación."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1 # el banco mono-núcleo estandarizado
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none # none | gpu | quantum | fpga | tpu
+  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  wallClock: "60 s" # presupuesto por ejecución
+  runs: 150 # 15 algorithms × 10 corner variants
+  seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
+  measured: true # true only for the standardized single-core bench
+repro:
+  kind: seeded
+  cmd: just experiments single-core-benchmark
+order: 10
+updated: 2026-07-13
+date: 2026-07
+topics: [speed, construction, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/build/construct/beam-search
+sources:
+  - label: "Motor ejecutable + resultados commiteados + scripts (el directorio de soporte de este experimento)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark
+---
+
+import { BenchmarkLeaderboard } from "@/components/research/BenchmarkLeaderboard";
+
+Dele a cada solucionador el mismo presupuesto, un núcleo y un minuto: ¿cuál gana?
+La respuesta desmonta la intuición evidente. Varios solucionadores, los nuestros
+y nuestras implementaciones de los dos backtrackers récord de la comunidad, se
+ejecutaron cada uno una vez sobre diez variantes del puzzle oficial con las
+esquinas fijadas, en mono-hilo, 60 segundos por ejecución. Cada tablero se volvió
+a puntuar con un único solucionador canónico; no se confía en la puntuación
+autodeclarada de ningún motor. La puntuación máxima posible es 480.
+
+<Callout kind="caution" title="Cada motor aquí es código nuestro">
+  `blackwood_style` y `verhaard_style` son **nuestras implementaciones
+  reescritas desde cero** de los algoritmos publicados por Joshua Blackwood y
+  Louis Verhaard, no los programas propios de los autores. El `eii` de Verhaard
+  solo se distribuyó como binario Win32, así que una reimplementación (cuyas
+  constantes se recuperaron de `eii.exe`) es la única forma de ejecutarlo
+  siquiera. El C# real de Blackwood sí *es*
+  [público](https://github.com/jblackwood345/EternityII_Solver), pero codifica de
+  forma fija sus 256 piezas y su número de hilos, de modo que no puede leer las
+  variantes de esta cuadrícula ni fijarse a un solo núcleo sin editarlo. Las
+  puntuaciones de aquí miden nuestra lectura de cada algoritmo, no la ingeniería
+  de los autores, y no deben citarse como «Blackwood obtiene N».
+</Callout>
+
+El ranking siguiente muestra los métodos que compiten por puntuación. Una segunda
+familia, los preajustes CSP (un motor de arco-consistencia ejecutado bajo una
+docena de perillas de ordenamiento), es una categoría distinta: su mejor preajuste
+alcanza alrededor de 183, menos de la mitad de la puntuación de un contendiente,
+por lo que no merece ninguna fila en el ranking. Ese barrido de preajustes es un
+estudio por derecho propio, en su
+[propia página](/research/lab/experiments/single-core-benchmark/csp-presets).
+
+## Lo que compra un minuto de un núcleo
+
+Los dos backtrackers récord dominan este presupuesto. Nuestro motor de estilo
+Verhaard alcanza una media de **440,8** (mejor 451) y nuestro motor de estilo
+Blackwood **436,4** (mejor 440), ambos explorando de 20 a 40 millones de
+nodos de búsqueda por segundo. Nada más se acerca: el DFS ingenuo se posa en
+**365,6**, y el mejor preajuste CSP en torno a **183**.
+
+La brecha entre esos dos grupos es el hallazgo. Las cuatro familias ven el mismo
+puzzle y los mismos 60 segundos, y terminan separadas por 250 puntos. Lo que las
+distingue no es la velocidad: los motores CSP son tres órdenes de magnitud más
+lentos por nodo que los backtrackers y aun así vencen al DFS ingenuo en las
+variantes favorables, porque cada nodo se poda en lugar de solo visitarse. El
+número de nodos y la puntuación no son el mismo eje.
+
+Lo que esta cuadrícula no puede decirte es dónde está el techo. El mejor tablero
+de aquí (451) sigue quedándose a 13 puntos del récord de 5 pistas de la comunidad,
+464, y la media del mejor motor se sitúa unos 24 por debajo; los récords no se
+establecieron en un minuto, vinieron de granjas de cómputo y meses de esfuerzo.
+Esto mide la eficiencia por núcleo con un presupuesto pequeño y fijo, nada más.
+
+<Figure title="El ranking: puntuación media sobre diez variantes de esquinas, un solo núcleo, 60 s">
+  <BenchmarkLeaderboard />
+</Figure>
+
+## Leer la tabla
+
+Los dos backtrackers encabezan este tablero y se mantienen ahí con estabilidad:
+el motor de estilo Verhaard abarca de 437 a 451 a lo largo de las diez variantes,
+el motor de estilo Blackwood de 431 a 440. La referencia ingenua es el suelo: un
+365 rápido y lleno de basura que muestra a qué se parece un simple recuento de
+aristas emparejadas sin ninguna calidad de tablero.
+
+Las unidades de rendimiento difieren según la familia y nunca se comparan entre
+sí. Los backtrackers cuentan nodos de búsqueda por segundo, los motores CSP lo
+mismo pero entre 5 y 10 mil, porque cada uno de sus nodos ejecuta una
+arco-consistencia completa. La familia CSP cambia rendimiento por poda, y por eso
+explora muchísimos menos nodos y aun así vence al DFS ingenuo en las buenas
+variantes.
+
+## Qué hace cada contendiente
+
+- **Verhaard y Blackwood (backtrackers, puestos 1 y 2).** DFS con ruptura
+  controlada por la profundidad, a 20 a 40 millones de nodos por segundo. Empujan
+  hasta 437 a 451 pero chocan contra un muro: el final de partida necesita mucho
+  más cómputo del que permiten 60 segundos. Blackwood encontró su 470 tras
+  alrededor de un mes en un solo PC, y lo calificó de «golpe de suerte»
+  ([mensaje 10194](https://groups.io/g/eternity2/message/10194)).
+- **DFS ingenuo (la referencia).** Rellena todo el tablero permitiendo cada
+  ruptura. En orden fila por fila (`anjou-naive_rowmajor`) alcanza un recuento
+  elevado de aristas emparejadas (365) pero un tablero de baja calidad lleno de
+  rupturas. Rápido, y basura. Se asienta en el tablero como un suelo: el número
+  que un método tiene que superar para valer algo. (La sensibilidad del DFS
+  ingenuo al orden de visita, y por qué la variante en espiral se desploma a 78,
+  está en la [página de preajustes CSP](/research/lab/experiments/single-core-benchmark/csp-presets)
+  junto a las demás ablaciones del mismo motor.)
+
+## Dónde se sitúan estos números
+
+Esta cuadrícula limita cada motor a un núcleo durante 60 segundos, muy por debajo
+del cómputo que produjo los récords de abajo. Mide la eficiencia por núcleo y la
+calidad heurística, no la puntuación máxima alcanzable. Un motor que se clasifica
+alto aquí alcanza buenos tableros a bajo coste; los números récord necesitan
+muchos núcleos multiplicados por horas.
+
+Cada variante de aquí fija las 5 pistas oficiales (más 3 esquinas, es decir 8
+pistas en total), de modo que el techo pertinente es el **récord de 5 pistas de la
+comunidad, 464**, y no el 470 con todas las pistas (que usa más que las 5 pistas).
+Ese 464 es lo que marca la línea discontinua del ranking.
+
+| referencia | puntuación | condiciones |
+|:--|--:|:--|
+| Récord comunitario de 5 pistas | 464 | Benjamin Riotte, julio de 2026 (las mismas 5 pistas que fijan estas variantes) |
+| Mejor de esta cuadrícula (estilo Verhaard) | 451 | un núcleo, 60 s (media 440,8 sobre 10 variantes) |
+| Estilo Blackwood en esta cuadrícula | 440 | un núcleo, 60 s (media 436,4 sobre 10 variantes) |
+| Techo comunitario con todas las pistas | 470 | Blackwood, ~1 mes en un solo PC, usa más que 5 pistas |
+
+## Método y reproducibilidad
+
+Cada una de las diez variantes es el puzzle oficial más tres celdas de esquina
+fijadas (disposiciones distintas de las piezas de esquina), de modo que las diez
+comparten el conjunto de 256 piezas y las 5 pistas pero difieren en tres
+restricciones de esquina. Se emiten tanto en JSON con el esquema del sitio (para
+los motores nativos) como en CSV (para los motores autónomos) desde un único
+generador, de manera que cada algoritmo ve instancias idénticas. Una ejecución
+por puzzle, semilla fija; la disposición de las esquinas es el único eje de
+diversidad. Cada ejecución emite una `.url` bucas, y la puntuación es el recuento
+canónico de aristas emparejadas producido por el mismo solucionador, nunca la
+autodeclaración del motor. No hubo ningún fallo en las 150 ejecuciones.
+
+Cada motor de la cuadrícula es nuestro propio código de código abierto y se
+ejecuta desde este repositorio, incluidos los dos escritos a partir de los
+algoritmos publicados por la comunidad; ningún solucionador de terceros está
+integrado aquí. La cuadrícula los mide todos; el ranking de arriba solo muestra
+los cinco que compiten por puntuación, y la
+[página de preajustes CSP](/research/lab/experiments/single-core-benchmark/csp-presets)
+muestra el resto. El workspace de crates, las diez variantes, los resultados
+commiteados por ejecución y los scripts de la cuadrícula residen todos bajo el
+[directorio de soporte](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
+del experimento, y `just experiments single-core-benchmark` compila los motores y
+relanza toda la cuadrícula. La familia nativa (el ingenuo y los preajustes CSP)
+es un único binario seleccionado por preajuste; los dos backtrackers son un
+binario cada uno, gobernados por un pequeño wrapper. Ambos hablan el mismo
+contrato de puzzle-de-entrada, url-bucas-de-salida, y cada tablero se vuelve a
+puntuar con el único solucionador canónico.
+
+## Hallazgos complementarios
+
+El perfilado situó el 96,6 por ciento del tiempo de la familia CSP en un único
+bucle AC-3 fuertemente preoptimizado. Ese motor ya está en su techo de
+rendimiento; las velocidades del benchmark son sus velocidades reales, no una
+brecha de implementación. Por otra parte, las constantes Blackwood de la comunidad
+no se transfieren de un etiquetado de colores a otro: sus colores privilegiados
+publicados obtuvieron 387 en nuestro etiquetado frente a 435 para un reajuste, una
+brecha de 48 puntos que nuestro Blackwood cierra reajustando solo los ID de color
+relativos al etiquetado y respetando cada elemento estructural de la
+especificación publicada.
+
+## Trabajo abierto
+
+La cuadrícula ejecuta nuestras implementaciones. Dos de los tres motores récord de
+la comunidad pueden en principio ejecutarse directamente, y esa es la siguiente
+medición evidente:
+
+- **El generador en C de Peter McGavin.** Publicó el código fuente en la lista en
+  enero de 2026 como `genbody71.zip`
+  ([mensaje 11749](https://groups.io/g/eternity2/message/11749)). Compila en
+  Apple silicon con `clang` y su pasada de generación emite un `body.c` de 10 363
+  líneas especializado para un solo puzzle. Es el motor más rápido que la
+  comunidad ha medido, a 295 M de colocaciones/s en la CPU de Joe
+  ([mensaje 11750](https://groups.io/g/eternity2/message/11750)), y está ausente
+  de esta cuadrícula.
+- **El C# de Joshua Blackwood.** [Público y bajo
+  GPL-3.0](https://github.com/jblackwood345/EternityII_Solver); compila sin
+  modificar en .NET 8. Pero codifica de forma fija las 256 piezas en `Util.cs`,
+  fija `number_virtual_cores = 64`, y no toma argumentos, de modo que fijarlo a un
+  solo núcleo o alimentarlo con las variantes de esta cuadrícula supone editar su
+  código fuente, punto en el que el artefacto ya no es puramente suyo. Ejecutarlo
+  tal como se publicó, sobre el puzzle simple, es la forma fiel de esa medición.
+- **El `eii` de Louis Verhaard** no puede ejecutarse en absoluto: la descarga
+  desde su propio sitio entrega `eii.exe` y ningún código fuente, razón por la
+  cual nuestro motor lo reconstruye a partir del binario.
+
+Ninguno de estos motores está integrado en este repositorio; ambos se descargan y
+ejecutan localmente en el momento de la medición.

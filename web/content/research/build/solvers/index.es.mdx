@@ -1,0 +1,108 @@
+---
+title: Cómo buscan los solucionadores récord
+description: >-
+  Cómo buscan en realidad los solucionadores que ostentan los récords. Todos
+  son, en el fondo, backtrackers en profundidad; lo que los distingue es el orden
+  en que prueban las cosas y cómo doblan las reglas al acercarse al final.
+metaDescription: "Cómo buscan los solucionadores récord de Eternity II: todos son backtrackers en profundidad, distinguidos por el orden de prueba y el manejo del final."
+kind: page
+order: 40
+group: The engines
+updated: 2026-07-17
+topics: [backtracking, speed]
+---
+
+import { DfsDemo } from "@/components/learn/DfsDemo";
+import { BreakIndexLab } from "@/components/research/BreakIndexLab";
+
+Todo solucionador que ostenta un récord serio en Eternity II es, en el fondo, la
+misma máquina: un backtracker en profundidad. Lo que los distingue no es el bucle,
+sino tres decisiones que se superponen a él: el orden en que visitan las celdas,
+las heurísticas que deciden qué pieza probar primero y cómo doblan el final de la
+partida cuando ya no queda una coincidencia perfecta. Esta página es el recorrido
+neutral por esas decisiones. La historia completa y de primera mano de cada motor
+(descifrada a partir del código fuente y la literatura, y luego reconstruida y
+medida) vive en su propia página de laboratorio, enlazada desde cada sección más
+abajo.
+
+## Backtracking elemental
+
+Rellenar el tablero celda por celda en un orden fijo. En cada celda, probar toda
+pieza y rotación cuyas aristas coincidan con lo ya colocado; si ninguna encaja,
+retroceder y probar la celda anterior de otra manera. Correcto pero lento: el
+árbol de búsqueda es de una anchura astronómica.
+
+Esto es exactamente eso, a cámara lenta: un backtracker real sobre un 3×3, una
+decisión a la vez. Recórrelo paso a paso y observa cómo se coloca una pieza,
+aparece un callejón sin salida y la búsqueda retira la pieza y vuelve a intentarlo.
+
+<DfsDemo />
+
+## El orden importa: el camino de relleno
+
+El orden en que visitas las celdas cambia la dificultad en varios órdenes de
+magnitud, porque algunos órdenes fuerzan a que los conflictos afloren pronto
+(bueno) y otros los posponen hasta que se ha desperdiciado mucho trabajo (malo).
+Empezar por el borde supera con amplio margen a un recorrido fila por fila sobre
+el mismo puzzle. Es la única palanca que ajusta cada motor récord: los órdenes de
+búsqueda en peine de Verhaard, el barrido de Blackwood en filas desde la esquina
+inferior izquierda con las piezas de borde intercaladas tardíamente y la elección
+por McGavin, puzzle a puzzle, entre barrido en filas, espiral hacia el interior o
+borde primero son todas respuestas a la misma pregunta.
+
+## Heurísticas: qué pieza primero
+
+Un backtracker elemental prueba los candidatos en un orden arbitrario. Un motor
+récord los puntúa, de modo que las piezas con más probabilidad de importar se
+colocan primero, y poda toda rama que se quede rezagada respecto a un calendario.
+El solucionador de Blackwood, por ejemplo, privilegia tres colores e impone una
+cuota por profundidad que debe cumplirse para seguir descendiendo; Verhaard poda
+hacia adelante apoyándose en umbrales de puntuación ajustados a mano. Los detalles
+difieren, pero la forma es compartida: comprometer pronto las piezas restringidas,
+cortar las ramas que no pueden rentabilizar su coste.
+
+## Doblar el final de la partida: rupturas y deslizamiento de aristas
+
+Nunca se ha encontrado un teselado perfecto de 256 piezas. En su lugar, cada
+tablero récord tolera un puñado de discordancias tardías, y los motores las
+alcanzan *planificando* la imperfección: un presupuesto por profundidad de aristas
+no coincidentes que se desbloquea en lo más hondo de la búsqueda. Verhaard llamó
+al suyo un array de deslizamiento (slip array); Blackwood llama al suyo los índices
+de ruptura (break indexes). La misma idea, condicionada por la profundidad para
+que el inicio del tablero se mantenga limpio y las discordancias solo se gasten
+allí donde más rinden.
+
+El laboratorio de abajo te permite mover ese presupuesto y observar cómo cambia la
+puntuación alcanzable:
+
+<BreakIndexLab />
+
+## Lee la historia completa del motor
+
+Cada motor récord tiene una página dedicada que descifra cómo funciona y luego lo
+reconstruye y lo mide en una sola máquina, en un solo núcleo:
+
+- **[El solucionador de Blackwood, descifrado y ejecutado aquí](/research/lab/experiments/joshua-blackwood/solver)**:
+  el backtracker de calendario e índices de ruptura que hay detrás del 470 vigente,
+  con el estudio de parámetros de Jef Bucas y una reconstrucción que vuela sin
+  restricciones pero se atasca en cuanto se fijan las cinco pistas.
+- **[El eii de Verhaard](/research/lab/experiments/louis-verhaard/eii)**: el motor
+  detrás del 467, el único premio que el concurso llegó a pagar: poda hacia
+  adelante, órdenes de búsqueda en peine, un calendario de deslizamiento ajustado
+  por Markov y por qué su binario sin código fuente no puede ejecutarse hoy.
+- **[El backtracker en C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker)**:
+  el motor más rápido de la comunidad, una receta de optimización de 2007 refinada
+  durante dos décadas, reconstruida aquí y llevada más allá de 200 de 256 piezas a
+  más de 100 millones de colocaciones por segundo.
+- **[El motor de referencia de este sitio](/research/lab/experiments/raphael-anjou/engine)**:
+  no una máquina de récords, sino el backtracker Rust/WASM que hace funcionar cada
+  demostración de este wiki y comprueba sus cifras.
+
+## Míralo funcionar
+
+El área de pruebas ejecuta un solucionador en profundidad real en tu navegador.
+[Míralo buscar en directo](/playground/watch) o
+[dibuja tu propio orden de relleno](/playground/paths) y ponlo a competir contra
+los clásicos para sentir cuánto importa el orden.
+
+Para los enfoques que no funcionan, consulta los [callejones sin salida](/research/build/dead-ends).

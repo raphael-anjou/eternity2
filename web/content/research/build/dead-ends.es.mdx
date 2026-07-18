@@ -1,0 +1,301 @@
+---
+title: Callejones sin salida
+description: >-
+  Enfoques que probamos que parecen prometedores y no mueven la aguja en
+  Eternity II, documentados con lo que encontramos para que inviertas tu tiempo
+  en otra parte.
+kind: reference
+order: 50
+group: Skip these
+updated: 2026-07-02
+topics: [search-space, learning, exact-methods]
+sources:
+  - label: "Cierre de eternity2.net: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io message 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: "Max sobre la propagación de probabilidades: la influencia de las restricciones se desvanece a unas dos celdas (groups.io message 6208)"
+    url: https://groups.io/g/eternity2/message/6208
+  - label: "Markus Zajc: las macropiezas aceleran pero no reducen el dominio (groups.io message 5883)"
+    url: https://groups.io/g/eternity2/message/5883
+  - label: "Markus Zajc evalúa la poda por oferta de borde: 0,0014 % menos pruebas, 8 % más lento (groups.io message 6060)"
+    url: https://groups.io/g/eternity2/message/6060
+related:
+  - /research/build/run-it-yourself
+---
+
+Enfoques que probamos que parecen prometedores y no mueven la aguja en
+Eternity II. Ninguno es una mala idea en general; simplemente no resuelven
+este puzzle. Documentamos lo que encontramos para que inviertas tu tiempo en
+otra parte.
+
+Cada entrada abre su veredicto con una etiqueta de firmeza: **Demostrado**
+significa que un teorema o un cálculo exacto cierra la puerta; **Medido**
+significa que lo ejecutamos (o lo hizo la comunidad) y lo vimos fracasar;
+**Reportado** significa que otro investigador lo ejecutó y documentó el
+fracaso, y nosotros no lo hemos vuelto a ejecutar. Cuando el veredicto proviene
+de nuestras propias ejecuciones, la página «por qué» enlazada lleva el comando
+de reproducción exacto, y [ejecútalo tú mismo](/research/build/run-it-yourself)
+detalla la puesta a punto; cuando la comunidad llegó allí primero, citamos el
+mensaje de archivo.
+
+## Romper la simetría
+
+*Suponer que el tablero posee simetrías de rotación o de espejo y fijar algunas
+piezas para reducir la búsqueda.*
+
+**Demostrado.** El juego oficial se construyó sin piezas con simetría de
+rotación y sin duplicados, y la única pista central fija la orientación. No hay
+ninguna simetría global que romper, así que fijar esquinas solo hace una
+elección arbitraria, no una elección gratuita. [Por qué esto es un muro →](/research/why/rare-color-geography)
+
+## Basta con lanzarle más cómputo
+
+*Ejecutar el mismo solucionador SAT o de búsqueda en una máquina más grande, una
+GPU, una FPGA o hardware cuántico.*
+
+**Medido.** El muro no es la frecuencia de reloj, es qué tan bien está
+codificado el problema y cómo está conformado el espacio de búsqueda. Los
+solucionadores SAT sobre GPU dan, en el mejor caso, una pequeña aceleración
+constante; los recocidos cuánticos no muestran ninguna ventaja a la escala que
+esto necesitaría. El mismo algoritmo, más rápido, choca contra el mismo muro un
+poco antes. La comunidad ejecutó este experimento a gran escala: la grilla de
+eternity2.net lanzó 1,6 teraflops y más de $10^{19}$ operaciones de CPU sobre el
+puzzle, y luego cerró sin una solución
+([msg 3511](https://groups.io/g/eternity2/message/3511)). Y la esperanza
+cuántica se ha vuelto a plantear con regularidad, de
+[2007](https://groups.io/g/eternity2/message/1446) a
+[2024](https://groups.io/g/eternity2/message/11407).
+[Por qué esto es un muro →](/research/why/prune-vs-speed)
+
+## Propagación por sondeo (survey propagation)
+
+*El método de paso de mensajes que resolvió enormes instancias SAT aleatorias al
+encontrar clústeres de soluciones.*
+
+**Demostrado.** Supone que el problema se parece localmente a un árbol. Eternity
+II es una grilla con un ciclo corto en cada bloque 2×2, lo que rompe esa
+suposición. En la práctica los mensajes se aplanan en lugar de afinarse, lo
+opuesto a lo que la hace funcionar en el SAT aleatorio. No hay éxitos publicados
+para ella en puzzles en grilla. La comunidad notó el aplanamiento pronto: en
+2008, experimentos de propagación de probabilidades de piezas encontraron que la
+influencia de las restricciones desde las pistas y las esquinas parece
+«desvanecerse» a unas dos celdas de distancia
+([msg 6208](https://groups.io/g/eternity2/message/6208)).
+
+## Ordenar los movimientos por propagación de creencias
+
+*Ejecutar propagación de creencias sobre los colores y usar sus indicaciones por
+celda para decidir qué pieza probar primero.*
+
+**Medido.** Las indicaciones salen casi uniformes, así que apenas clasifican a
+los candidatos. Cuando la enfrentamos cara a cara, elegir el siguiente
+movimiento al azar rendía igual o mejor, porque un orden informado fijo tiende a
+repetir los mismos errores. [Por qué esto es un muro →](/research/why/no-forced-moves)
+
+## Conteo por redes de tensores
+
+*Tratar el tablero como una red de tensores y contraerla para contar o puntuar
+los coloreados consistentes en las fronteras.*
+
+**Demostrado.** Solo puede imponer que las aristas en contacto concuerden, no
+que cada pieza se use exactamente una vez. Ese punto ciego es enorme: cuenta del
+orden de $10^{90}$ coloreados consistentes en las fronteras frente a la
+aproximadamente única solución real del puzzle. El paso de mensajes local
+sencillamente no puede ver la regla global de una pieza por celda. [Por qué esto es un muro →](/research/why/entropy-area-law)
+
+## Resolver primero los colores, colocar las piezas después
+
+*Reformular el tablero como un grafo de líneas sobre los colores, resolver un
+arreglo de adyacencias de colores que sea consistente en las aristas en todas
+partes, y luego esperar que ese arreglo sea más fácil de convertir en un
+teselado real que resolver directamente por piezas.*
+
+**Medido.** Es una idea limpia, explorada en la lista de 2023 a 2025: reducir el
+puzzle a qué color se encuentra con qué, resolver ese objeto más pequeño y
+usarlo como andamiaje. El problema es que el objeto más pequeño no es pequeño.
+Enumerar solo los arreglos de colores interiores para E2 deja unas
+$6.6\times10^{11}$ permutaciones, y el 17×17 se dispara a $2.97\times10^{13}$
+([msg 11182](https://groups.io/g/eternity2/message/11182)), y cada una de ellas
+todavía tiene que verificarse contra una asignación real de piezas, porque un
+arreglo consistente en colores no tiene por qué ser teselable en absoluto por
+las 256 piezas reales. Es el punto ciego de la red de tensores con otro disfraz:
+satisfacer las adyacencias de colores es necesario pero está lejos de ser
+suficiente, y la restricción de usar cada pieza una sola vez, la que hace el
+trabajo de verdad, es precisamente lo que la vista de solo colores descarta. El
+propio resumen del autor tras la enumeración fue que uno «pasaría mucho tiempo
+solo validando uno» de los arreglos contra todas sus permutaciones de colores
+internos. [Por qué esto es un muro →](/research/why/entropy-area-law)
+
+## Cotas por relajación
+
+*Resolver la relajación de programación lineal para obtener un techo ajustado de
+cuántas aristas puede hacer concordar un tablero.*
+
+**Medido.** La relajación permite que las piezas sean fraccionarias y se
+repartan entre celdas, lo que finge concordancias que ningún tablero real puede
+tener. El resultado es un techo en torno a 478 mientras que los mejores tableros
+reales rondan 458, una brecha demasiado grande para certificar nada. La
+restricción vinculante es la unicidad global de las piezas, que la relajación
+descarta. Las formulaciones de PL estaban sobre la mesa de la comunidad ya el
+primer verano, y ya entonces un 4×4 tardaba más de una hora en resolverse
+([msg 1678](https://groups.io/g/eternity2/message/1678)).
+
+## Aprender una heurística en tableros pequeños
+
+*Entrenar una red neuronal en puzzles pequeños y luego transferirla al 16×16
+completo para guiar la búsqueda.*
+
+**Medido.** Entrenamos un modelo que clavaba los tableros pequeños y lo vimos
+derrumbarse en el real. Aprende de movimientos candidatos filtrados de una
+forma, y luego se le pregunta sobre movimientos filtrados de forma muy distinta,
+y los colores del puzzle completo nunca aparecieron en el entrenamiento. La
+destreza no cruza la brecha de tamaño y color. [Por qué esto es un muro →](/research/why/rigidity-wall)
+
+## Enumerar primero los clústeres locales
+
+*Listar todo clúster 3×3 o 4×4 válido, y luego coser los clústeres entre sí en un
+tablero completo.*
+
+**Medido.** Los conteos se disparan antes de ayudar. Cuando lo intentamos, los
+clústeres válidos en torno a una sola región ya llegaban a las decenas de
+millones, y combinar cuatro esquinas alcanza el orden de $10^{12}$ tuplas
+disjuntas en piezas. Te quedas sin tiempo y sin disco mucho antes de que las
+restricciones poden nada. La idea no deja de redescubrirse. A finales de 2024,
+las «macropiezas» 2×2 volvieron a surgir, con unos 4 millones de bloques antes
+incluso de que entre la disjunción de piezas
+([msg 11428](https://groups.io/g/eternity2/message/11428)), y los veteranos
+remitieron a años de trabajo 2×2 anterior presente en el archivo
+([msg 11429](https://groups.io/g/eternity2/message/11429)).
+[Por qué esto es un muro →](/research/why/rigidity-wall)
+
+## Cube and conquer
+
+*Dividir la instancia SAT en millones de subcasos (cubos), resolver cada uno de
+forma independiente y recombinar. La técnica que resolvió el número de Schur
+cinco y el problema de los tripletes pitagóricos.*
+
+**Reportado.** William Millilaw la probó exhaustivamente en mayo de 2026 y no
+despeja el tablero. En 16×16 la fase de cubos no particiona la instancia en nada
+tratable sin un preprocesamiento pesado, y el paso de conquista (un
+solucionador con anticipación sobre cada cubo) era en sí mismo más lento que
+ejecutar kissat directamente. El resultado limpio fue una frontera firme: el
+método funciona hasta alrededor de 8×8 y se detiene ahí. Se une a la larga
+estirpe de métodos exactos que chocan contra el mismo muro que la programación
+entera y la decisión SAT, sin un asidero para superarlo.
+
+## Generar tableros con un transformer
+
+*Entrenar un modelo tipo GPT sobre un corpus de tableros, condicionarlo a una
+puntuación objetivo y hacer que emita tableros nuevos de alta puntuación que la
+búsqueda nunca encontró.*
+
+**Reportado.** William Millilaw recorrió el arco completo en mayo de 2026 y cada
+etapa falló por su propia razón. Un modelo de 51 millones de parámetros aprendió
+la gramática de un tablero (cada pieza usada una vez, 96 por ciento
+estructuralmente válido) pero no la física: sin condicionar, sus tableros
+promediaban unas 250 aristas concordantes, cerca del azar. Condicionar a una
+puntuación objetivo elevó el promedio, pero cada tablero que emitía en la parte
+alta del rango era una copia exacta, token por token, de un tablero comunitario
+memorizado, entre ellos el 469 de McGavin. Con apenas un par de decenas de
+tableros de élite distintos en el conjunto de entrenamiento frente a decenas de
+millones de parámetros, el modelo simplemente los había memorizado; la condición
+de puntuación se convirtió en una consulta de índice. Una pasada final de
+aprendizaje por refuerzo lo empeoró, no lo mejoró, porque la cola de élite se
+muestrea demasiado rara vez para dar un gradiente estable. La lección coincide
+con el resultado de la
+[transferencia desde tableros pequeños](/research/why/rigidity-wall) de esta
+página: la imitación aprende la distribución que se le muestra y no puede
+inventar la estructura rara que un récord necesita.
+
+## Recombinar dos buenos tableros
+
+*Tomar dos tableros de alta puntuación, conservar las celdas en las que
+coinciden y usar el cruce por partición para empalmar las regiones en desacuerdo
+en un hijo al menos tan bueno como ambos padres. El operador genético con una
+garantía de tunelización en problemas pseudobooleanos.*
+
+**Reportado.** William Millilaw lo implementó y lo evaluó sobre pares de
+tableros que puntuaban 455 y más. Degenera. La restricción de permutación (una
+pieza no puede reutilizarse) obliga a las regiones en desacuerdo a fusionarse en
+un único componente en el momento en que las cierras bajo la unicidad de piezas,
+de modo que el operador colapsa en «elegir al mejor padre» en más del 99 por
+ciento de los pares. Los raros empalmes mejorantes tocaban techo en 469, la
+puntuación de los padres, nunca por encima. Es la misma lección que el
+[muro de rigidez](/research/why/rigidity-wall) desde el lado de la
+recombinación: los buenos tableros se alojan todos en una única cuenca estrecha,
+así que mezclarlos produce más de lo mismo en lugar de algo nuevo.
+
+## Forzar un borde diverso y luego rellenar
+
+*El borde es un subpuzzle más pequeño. Resolver primero muchos marcos válidos
+distintos, bajo la teoría de que la variedad en el marco siembra variedad en
+todo el tablero.*
+
+**Reportado.** William Millilaw lo intentó y encontró la premisa al revés. El
+borde es la parte fácil: desde cero ya es variado y rápido de colocar. El
+recurso escaso es el relleno interior, donde las piezas escasean y las
+discordancias se concentran. Forzar la diversidad del marco gasta esfuerzo donde
+no hay escasez y no compra nada donde sí la hay. Es un tema recurrente también en
+los propios experimentos de este proyecto: el marco vale sorprendentemente poco
+([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mide exactamente cuán poco), y
+el daño de la fase final cae en las esquinas interiores
+([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+## Construir un 480 falso y repararlo
+
+*Partir de un tablero con cada arista concordante permitiendo piezas duplicadas,
+y luego cambiar con avidez las piezas reales una a una, con la esperanza de
+mantener la puntuación en 480.*
+
+**Reportado.** William Millilaw lo ejecutó y colapsa en un juego de golpear al
+topo: cada pieza real que fuerzas a entrar rompe aristas en otro sitio, y la
+reparación nunca converge, tocando techo en torno a 463. La razón es la lección
+que subyace a toda esta página. La barrera para el 480 no es que las aristas
+sean difíciles de hacer concordar; un tablero falso con piezas repetidas las
+hace concordar todas con facilidad. La barrera es la restricción global de que
+cada una de las 256 piezas se use exactamente una vez, y eso es justamente lo que
+la construcción del 480 falso descarta. El muro es informacional, no una cuestión
+de reparación local de aristas.
+
+## Precalcular macropiezas 2×2 (o mayores)
+
+*Resolver cada bloque 2×2 una vez, almacenar los válidos y colocar cuatro celdas
+a la vez para que la búsqueda sea más corta.*
+
+**Medido.** Markus Zajc lo trabajó a fondo en 2008: construir las macropiezas
+solo desplaza el trabajo, no lo elimina. Cambias un conjunto pequeño de piezas
+individuales por un conjunto muy grande de bloques 2×2, así que colocar un bloque
+es más rápido pero el número de tableros parciales distintos no cambia, todavía
+del orden de $10^{40}$ donde necesita ser $10^{4}$. Una aceleración de 10× o 100×
+en un árbol fuera de alcance sigue estando fuera de alcance
+([msg 5883](https://groups.io/g/eternity2/message/5883)). Las macropiezas son una
+ganancia real de factor constante para un solucionador rápido, y por eso el
+[terreno de juego del orden de bloques](/playground/paths) las admite, solo que
+no son una reducción de dominio, y únicamente una reducción de dominio movería la
+aguja.
+
+## Poda por oferta de borde (la prueba «lollypop»)
+
+*Antes de recursar, contar la demanda restante de colores de borde frente a las
+piezas todavía disponibles; si la oferta no puede satisfacer la demanda, cortar
+la rama temprano.*
+
+**Medido.** Markus Zajc implementó esta prueba de oferta-frente-a-demanda como
+complemento de su solucionador de restricciones y la evaluó en el 8×8: cortaba
+alrededor del 0,0014 % de las pruebas mientras añadía un 8 % al tiempo de
+ejecución, una pérdida neta clara. La razón es instructiva: en casi toda rama
+donde la comprobación de oferta de borde habría fracasado, la propagación de
+restricciones ordinaria *ya* ha fracasado un paso o dos antes, así que la
+contabilidad extra paga por un corte que el solucionador estaba a punto de hacer
+gratis ([msg 6060](https://groups.io/g/eternity2/message/6060)). Una regla de
+poda solo ayuda si se dispara antes de las comprobaciones que ya ejecutas, no
+después.
+
+## Qué tienen en común todos los callejones sin salida
+
+La brecha entre el mejor tablero conocido y una solución completa no parece una
+optimización que falta. Los buenos tableros están localmente congelados y
+globalmente restringidos de maneras que los arreglos locales, el hardware más
+rápido y las relajaciones estándar no tocan. Llegar al final parece necesitar
+una idea de otra índole, no más de lo mismo.
+
+Ver [por qué una computadora más rápida no ayuda](/research/why/prune-vs-speed).

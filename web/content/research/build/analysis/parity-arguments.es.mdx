@@ -1,0 +1,226 @@
+---
+title: Argumentos de paridad
+description: >-
+  Cuente cualquier cosa en un tablero de emparejamiento de aristas dos veces,
+  una desde cada lado, y los totales deben coincidir, entregando pruebas de
+  imposibilidad al precio de una sola pasada. La historia del 479 muestra tanto
+  su poder como su trampa: un argumento de paridad limpio, cierto para todo
+  movimiento interior, derrotado por las sesenta aristas de borde que nadie
+  puntúa.
+metaDescription: "Contar las aristas de un tablero por ambos lados da pruebas de imposibilidad en una pasada; el argumento de paridad del 479 cayó por las 60 aristas de borde."
+kind: concept
+order: 90
+group: Analysis
+updated: 2026-07-02
+topics: [structure, search-space]
+sources:
+  - label: El argumento de paridad de kubzpa según el cual una puntuación de 479 es imposible (agosto de 2007)
+    url: https://groups.io/g/eternity2/message/1640
+  - label: "La construcción del 478 de psykowally: rotar una pieza interior con aristas opuestas iguales (msg 1642)"
+    url: https://groups.io/g/eternity2/message/1642
+  - label: "La refutación de Verhaard: 479 mediante una pieza de borde volteada (enero de 2009)"
+    url: https://groups.io/g/eternity2/message/6317
+  - label: angwin_uk y mjqxxxx sobre el equilibrio de tipos de arista de borde, 12 por lado (agosto de 2007)
+    url: https://groups.io/g/eternity2/message/2073
+  - label: "El megahilo de paridad de 2011: tablero de ajedrez y conjuntos de piezas equilibrados en rotación"
+    url: https://groups.io/g/eternity2/message/8898
+  - label: "El resultado negativo de John Gilbert: los conjuntos equilibrados bloquean a los backtrackers más rápido (msg 8913)"
+    url: https://groups.io/g/eternity2/message/8913
+  - label: El conjunto casi equilibrado de Nick a lápiz y papel, y la verificación de la suma global de Jamison (msgs 8977/8978)
+    url: https://groups.io/g/eternity2/message/8977
+related:
+  - /research/why/border-balance
+  - /research/build/known-facts
+---
+
+import { ParityFlipLab } from "@/components/research/concepts/ParityFlipLab";
+
+Un argumento de paridad es contabilidad por partida doble aplicada a un tablero
+de juego. Cada arista interior al puzzle tiene dos lados, así que cualquier cosa
+contada sobre todo el tablero (ocurrencias de color, aristas emparejadas, sumas
+de orientaciones) queda contada dos veces, una desde cada lado, y los dos libros
+de cuentas deben coincidir. Un estado donde discrepan no es meramente poco
+prometedor: es imposible, y no hace falta ninguna búsqueda para probarlo. En un
+puzzle donde [ningún movimiento está jamás
+forzado](/research/why/no-forced-moves) y la anticipación cuesta cara, un
+invariante que solo cuesta una pasada sobre el tablero y nunca miente merece que
+se lo tome en serio, siempre que se recuerde en qué dirección apunta.
+
+## La historia del 479, en tres actos
+
+El mejor relato de paridad de la comunidad empieza dos semanas después del
+lanzamiento. En agosto de 2007, kubzpa sostuvo que una colocación con
+*exactamente* 479 aristas emparejadas, una sola discordancia, no puede existir
+([msg 1640](https://groups.io/g/eternity2/message/1640)). La intuición es un
+basculamiento de paridad: perturbe cualquier pieza y las aristas que toca cambian
+de estado juntas, de modo que las discordancias deberían venir en pares.
+psykowally aportó de inmediato el complemento constructivo para el 478: tome un
+tablero resuelto y rote 180° una pieza interior cuyas aristas opuestas lleven
+colores iguales: exactamente dos aristas se rompen
+([msg 1642](https://groups.io/g/eternity2/message/1642)).
+
+El argumento es correcto para todo movimiento interior. Falla en el marco. En
+enero de 2009, Louis Verhaard señaló la fuga: las 60 aristas grises orientadas
+hacia el exterior *no se puntúan*, de modo que una pieza de borde cuyos dos lados
+orientados hacia el anillo comparten un color puede voltearse de punta a punta,
+rompiendo exactamente una arista puntuada (la arista de costura tras ella)
+mientras que el cambio en el lado gris no cuesta nada
+([msg 6317](https://groups.io/g/eternity2/message/6317)). Una discordancia,
+puntuación 479, paridad derrotada por las aristas que la convención de puntuación
+ignora. Este proyecto verificó la afirmación contra el conjunto de piezas
+oficial: 14 piezas de borde califican (calculado), de modo que toda solución
+completa implica un 479. Esa es la versión de la historia que ahora recogen [los
+hechos establecidos](/research/build/known-facts).
+Verhaard añadió una coda burocrática: el formulario de inscripción al premio
+registraba los números de pieza pero no las rotaciones, de modo que el corrector
+de Tomy habría leído un tablero así como un 480.
+
+La lección se generaliza. Un argumento de paridad solo es tan fuerte como las
+condiciones de frontera que contempla, y las reglas de puntuación de Eternity II
+perforan la frontera en sesenta lugares.
+
+## Voltéela usted mismo
+
+Los tres actos caben en un tablero pequeño. Debajo hay un 8×8 enmarcado
+genuinamente resuelto, generado por el motor: cada arista puntuada emparejada, y
+un ribete gris exterior que la puntuación ignora, exactamente como las 60 aristas
+grises del puzzle real (32 a este tamaño). Cada afirmación del relato anterior es
+un solo clic aquí.
+
+<Figure collapsible title="Interactivo: el argumento de paridad">
+  <ParityFlipLab />
+</Figure>
+
+## Paso a paso
+
+1. **Parta del resuelto.** Las 112 aristas puntuadas coinciden, el sustituto de
+   480/480 en este tablero. La banda gris es el ribete que la convención de
+   puntuación nunca lee.
+2. **Acto uno: haga clic en cualquier pieza interior sin marcar.** Un giro de
+   180° intercambia juntas las aristas arriba/abajo y juntas las aristas
+   izquierda/derecha, de modo que las aristas puntuadas se rompen en pares por
+   eje: 0, 2 o 4 a la vez, nunca un conteo impar. Pruebe cuantas quiera; ningún
+   clic interior producirá jamás exactamente una discordancia. Ese es el
+   argumento de kubzpa, y para los movimientos interiores es inatacable.
+3. **Acto dos: haga clic en una pieza interior con anillo celeste.** Un par
+   opuesto igual, el otro no: exactamente dos aristas puntuadas se rompen, y la
+   insignia marca un tablero de clase 478, el complemento constructivo de
+   psykowally.
+4. **Acto tres: haga clic en una pieza de borde con anillo esmeralda.** Sus dos
+   lados orientados hacia el anillo comparten un color, de modo que el volteo de
+   180° deja emparejadas ambas aristas laterales. Solo se rompe la arista de
+   costura tras ella (*una* arista puntuada) mientras que el cambio hacia el
+   exterior se estaciona en el ribete gris (destellado en ámbar), donde ningún
+   corrector mira jamás. Una discordancia. 479. La refutación de Verhaard, en un
+   clic.
+5. **Audite la frontera.** El panel del contador le indica cuántas piezas de este
+   sorteo califican para cada movimiento; en el conjunto oficial, 14 piezas de
+   borde califican (calculado), de modo que toda solución completa implica un 479.
+   La prueba era correcta en todas partes donde la puntuación miraba; la fuga son
+   precisamente las aristas que ella eximió.
+
+## Lo que cuesta
+
+Una comprobación de paridad o equilibrio es una sola pasada sobre las aristas
+puntuadas:
+
+$$
+O(\text{edges}) \;=\; O(480) \ \text{on the full board},
+\qquad O(56) \ \text{for NS-1's seam},
+$$
+
+con una constante tan pequeña que es de hecho gratuita: 480 lecturas de aristas
+tardan microsegundos, frente a pasos de búsqueda que se cuentan por miles de
+millones. Esa asimetría de precio es lo que hace que tales comprobaciones se
+compongan con todo: NS-1, tras el cierre del borde, rechaza el 10-28 % de los
+callejones sin salida profundos por 56 lecturas, la poda más barata que este
+proyecto conoce. Pero la asimetría de *información* corre en sentido contrario, y
+nunca se ablanda: un invariante violado es una prueba de imposibilidad, uno
+satisfecho no prueba absolutamente nada. Una pasada sobre las aristas compra un
+certificado que solo dice no. Vale exactamente su precio, siempre que nadie lo
+confunda con una guía.
+
+## Sumas de color y equilibrio de multiconjuntos
+
+La segunda familia de argumentos de conteo cuenta colores en lugar de
+discordancias. Ya en agosto de 2007, angwin_uk observó que el borde se construye
+equilibrado: cinco tipos de arista de borde, doce de cada uno a cada lado de la
+arista gris de cada pieza de borde
+([msg 2073](https://groups.io/g/eternity2/message/2073)). mjqxxxx afinó el punto:
+las piezas de borde ocupan una orientación fija, de modo que cada tipo debe
+repartirse *por igual* en aristas orientadas a la izquierda y a la derecha, una
+condición estrictamente más fuerte que meros conteos pares
+([msg 2098](https://groups.io/g/eternity2/message/2098)).
+
+Siga ese razonamiento hacia adentro y llegará a la costura. En toda solución
+completa, el multiconjunto de colores que el anillo de borde presenta al interior
+debe igualar al multiconjunto que el interior le presenta de vuelta: cada color
+entregado es devuelto. Esa es la condición NS-1 de Hopfer, formalizada en 2022 y
+tratada en detalle en [la página del equilibrio de
+borde](/research/why/border-balance): una condición necesaria genuina, barata de
+comprobar, y ciega a todo lo que ocurre de interior a interior. La misma
+matemática, dos usos. En 2007 el equilibrio servía para [estimar cuántas
+soluciones de borde existen](/research/build/analysis/solution-counting); en 2022
+se lo dio la vuelta hasta convertirlo en un certificado de poda.
+
+## La expedición de 2011: el equilibrio es abundante y no compra nada
+
+Una vez terminado el concurso, la lista pasó el verano de 2011 llevando la
+paridad tan lejos como podía llegar. Juraj Pivovarov planteó el problema del
+*conjunto orientado*: dividir las 256 piezas en dos montones de tablero de
+ajedrez A y B de modo que los conteos de aristas direccionales de cada color se
+equilibren, porque conocer las orientaciones o la asignación de montones de una
+solución haría fácil el resto
+([msg 8898](https://groups.io/g/eternity2/message/8898)). Peter McGavin redujo la
+condición a sumas por color, izquierda igual a derecha y arriba igual a abajo
+([msg 8906](https://groups.io/g/eternity2/message/8906)). Juraj contó entonces
+los conjuntos de tablero de ajedrez equilibrados en rotación que califican: su
+primera estimación de aproximadamente $4.5 \times 10^{485}$
+([msg 8929](https://groups.io/g/eternity2/message/8929)) arrancó un «algo debe
+estar mal» a Michael Field
+([msg 8930](https://groups.io/g/eternity2/message/8930)), y el conteo corregido se
+estabilizó en torno a $3 \times 10^{147}$
+([msg 8931](https://groups.io/g/eternity2/message/8931)). Todo el tiempo, planteó
+la búsqueda de aunque fuera uno solo como una instancia difícil de PARTITION.
+
+Dos resultados pusieron fin a la expedición, ambos dignos de conservar. John
+Gilbert hizo el experimento: los conjuntos de tablero de ajedrez equilibrados
+pueden encontrarse uno a uno, pero darle el equilibrio a un backtracker como
+restricción hace que se bloquee *más rápido*: cada colocación recurre ahora a la
+mitad de las piezas candidatas, y la restricción cuesta más de lo que poda
+([msg 8913](https://groups.io/g/eternity2/message/8913)). Y Nick, trabajando a
+lápiz y papel mientras se aburría en un tren
+([msg 8960](https://groups.io/g/eternity2/message/8960)), llevó una asignación
+completa de las 256 piezas (tablero de ajedrez más rotación) hasta un único
+basculamiento de arista del equilibrio
+([msg 8977](https://groups.io/g/eternity2/message/8977)); Jason Jamison verificó
+las sumas globales bajo la codificación de Nick (todos los arribas iguales a
+todos los abajos en 2809, todas las izquierdas iguales a todas las derechas en
+2881) e informó de que el conjunto casi equilibrado seguía bloqueando su
+backtracker a unas 19 piezas de una esquina
+([msg 8978](https://groups.io/g/eternity2/message/8978)). El equilibrio es real,
+abundante, y no le compra nada a la búsqueda.
+
+## Lo que la paridad le rinde al autor de un solucionador
+
+Tres cosas, ninguna de ellas una solución.
+
+**Condiciones necesarias baratas.** Una comprobación de paridad o equilibrio
+cuesta una pasada y se compone con cualquier cosa: un backtracker, una [búsqueda
+local](/research/build/local-search/local-search-alns), un control de cordura
+sobre el tablero que otro afirma haber logrado. Las cifras de NS-1 de arriba dan
+la tarifa vigente.
+
+**Asimetría del certificado.** Todo argumento de esta página apunta en un solo
+sentido: un invariante violado dice *definitivamente roto*, uno satisfecho nunca
+dice *definitivamente bien*. Intercambie dos piezas de borde y NS-1 se queda en
+cero; equilibre a la perfección un conjunto de piezas y el backtracker se bloquea
+de todos modos. La paridad poda; no guía.
+
+**Un reflejo de condiciones de frontera.** La prueba del 479 era correcta en todas
+partes donde el probador miraba, y errónea porque las reglas de puntuación creaban
+sesenta aristas que él no tenía que mirar. Antes de confiar en cualquier argumento
+de conteo sobre este puzzle, incluidos los del propio proyecto, audite qué están
+eximiendo en silencio el marco, la convención de puntuación y el gris no puntuado.
+En Eternity II, las excepciones viven en el borde, y el borde es donde los
+argumentos van a morir.

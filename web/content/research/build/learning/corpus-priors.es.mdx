@@ -1,0 +1,95 @@
+---
+title: Priors de corpus
+description: >-
+  La forma más simple de aprender de los tableros fuertes: contar dónde tiende a
+  situarse cada pieza, o con qué frecuencia satisface una demanda escasa, y usar
+  ese recuento como un suave desempate en la construcción. Debe seguir siendo un
+  desempate; en cuanto pasa a formar parte del objetivo, hace colapsar la búsqueda.
+metaDescription: "Priors de corpus para Eternity II: contar dónde se sitúan las piezas en tableros fuertes y usarlo como desempate en la construcción, nunca como objetivo."
+kind: concept
+order: 50
+group: Learned guidance
+updated: 2026-07-16
+topics: [construction, learning]
+sources:
+  - label: "Búsqueda en haz (página de concepto de este proyecto): la construcción de anchura acotada que un prior sesga"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/build/learning/when-learning-collapses
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/lab/experiments/raphael-anjou/learning/lodestone
+  - /research/build/construct/beam-search
+  - /research/why/rare-color-geography
+---
+
+import { PriorDiagram } from "@/components/research/PriorDiagram";
+
+Lo más simple que se puede aprender de un montón de tableros fuertes es un
+recuento. Para cada celda del tablero, ¿con qué frecuencia se sitúa allí cada
+pieza a lo largo de los buenos tableros? Ese único registro es un *prior*: una
+suave preferencia estadística por lo que tiende a pertenecer a cada sitio. No
+copia ningún tablero en particular; lee de una sola vez a toda la multitud de
+ellos y destila un sesgo.
+
+## La matriz de recuentos
+
+Tome cada tablero del corpus que supere un umbral de puntuación y registre una
+matriz $M[c][p]$: cuántos tableros fuertes colocan la pieza $p$ en la celda $c$.
+Normalizada por celda, $M[c][\cdot]$ es una distribución sobre las piezas para
+esa posición, la preferencia aprendida. Su construcción cuesta una única pasada
+lineal sobre el corpus, y nada más en el momento de la búsqueda salvo una
+consulta.
+
+<Figure collapsible title="Interactivo: el mapa de calor del prior de posición">
+  <PriorDiagram />
+</Figure>
+
+El prior solo se usa para desempatar. Una [búsqueda en haz](/research/build/construct/beam-search)
+extiende sus tableros parciales celda a celda; cuando dos colocaciones candidatas
+casan el mismo número de aristas, el prior inclina la elección hacia la pieza más
+típica de los tableros fuertes en ese sitio. El recuento de aristas casadas sigue
+decidiendo; el prior solo habla cuando el recuento calla. Esta es la
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) experimento, que
+construye un tablero competitivo a partir de una cuadrícula vacía, sin tablero al
+que anclarse, y alcanza así 460.
+
+Vale la pena nombrar tres afilados del mismo recuento, porque cada uno cambia
+fuerza de señal por ruido:
+
+- **Sensible a la rotación.** Se desdobla cada pieza según sus cuatro rotaciones,
+  de modo que el prior prefiere no solo la pieza correcta sino la orientación
+  correcta. La matriz crece de $256 \times 256$ a $1024 \times 256$; la señal es
+  más fina pero más delgada por celda.
+- **Por familia de esquinas.** Los tableros fuertes se reparten en familias según
+  sus cuatro piezas de esquina. Un prior construido a partir de los tableros de
+  una sola familia captura una estructura que la matriz agrupada promedia y borra,
+  que es lo que permitió a PRIOR alcanzar una cuenca nueva en lugar de la común y
+  concurrida.
+- **Umbral más severo.** Se reconstruye el prior a partir solo de los muy mejores
+  tableros. El techo de la construcción se eleva, a costa de una señal más delgada
+  y ruidosa, aprendida de menos ejemplos.
+
+## Un prior sobre la demanda, no la posición
+
+El recuento no tiene por qué recaer sobre las posiciones. Un prior más sutil
+pregunta, para cada *pieza*, con qué frecuencia acaba satisfaciendo una **demanda
+escasa**: una celda cuyos colores norte y oeste solo pueden ser servidos por una
+o dos piezas de todo el conjunto. Los tableros fuertes satisfacen cada vez más las
+mismas demandas escasas a medida que ascienden, de modo que una pieza que suele
+ser la que se gasta en un color raro se gana un peso alto. Ordenar los candidatos
+según las aristas casadas más un pequeño múltiplo de ese peso empuja a la búsqueda
+a comprometer las piezas raras temprano, antes de que se las roben. Esta es la
+[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) experimento, y
+se conecta con la [geografía de colores raros](/research/why/rare-color-geography) del puzzle.
+
+## Por qué sigue siendo un desempate
+
+El detalle portante, tanto para el prior posicional como para el de demanda
+escasa, es que el múltiplo sobre el prior debe ser *minúsculo*. Un prior es un
+puro desempatador: decide entre movimientos que casan por igual y nada más. Suba
+el peso aunque sea un poco y la búsqueda empieza a trocar una arista casada real
+por una corazonada estadística, y la puntuación colapsa: LODESTONE cae de 451 a
+422 a 380 a medida que el peso sube. Ese colapso no es un fallo de implementación;
+es la forma de toda la familia, y tiene su propia página:
+[cuando el aprendizaje colapsa](/research/build/learning/when-learning-collapses).

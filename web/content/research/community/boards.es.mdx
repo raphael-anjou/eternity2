@@ -1,0 +1,309 @@
+---
+title: Los tableros notables
+description: >-
+  Los famosos tableros de Eternity II, tratados como objetos de estudio de pleno
+  derecho: el 467 premiado de Verhaard, la línea de récords Blackwood hasta 470,
+  el récord estricto de cinco pistas hasta 464, y los tableros propios de este
+  proyecto: quién encontró cada uno, cuándo, y qué lo hace estructuralmente
+  interesante. Cada tablero incluido se abre en el visor.
+metaDescription: "Los tableros notables de Eternity II: el 467 de Verhaard, la línea Blackwood hasta 470, el 464 de cinco pistas y los propios del proyecto, con autor y fecha."
+kind: basin
+order: 40
+updated: 2026-07-02
+topics: []
+sources:
+  - label: "msg 6337: el resultado del escrutinio de enero de 2009, 10 000 $ para Anna Karlsson de Lund por 467/480"
+    url: https://groups.io/g/eternity2/message/6337
+  - label: "msg 10032: el 468 de Blackwood llega a la lista desde Reddit"
+    url: https://groups.io/g/eternity2/message/10032
+  - label: "msg 10045: McGavin anuncia el 469"
+    url: https://groups.io/g/eternity2/message/10045
+  - label: "msg 10074: el 469 de Fernandez obtenido por intercambio de una sola pieza"
+    url: https://groups.io/g/eternity2/message/10074
+  - label: "msg 10117: el 470 de Blackwood"
+    url: https://groups.io/g/eternity2/message/10117
+  - label: "msg 11401: Bucas iguala el 470"
+    url: https://groups.io/g/eternity2/message/11401
+  - label: "msg 11074: el 460 estricto de cinco pistas de Gauthier (el récord 2023-2026)"
+    url: https://groups.io/g/eternity2/message/11074
+  - label: "El 464 de Riotte, el nuevo récord estricto de cinco pistas (groups.io, julio de 2026)"
+    url: https://groups.io/g/eternity2/message/11919
+  - label: e2.bucas.name (Jef Bucas), el visor comunitario donde estos tableros se compartieron por primera vez
+    url: https://e2.bucas.name
+related:
+  - /research/records
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+---
+
+import { LocalizedLink } from "@/components/LocalizedLink";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
+import { KNOWN_BOARDS } from "@/data/known-boards";
+import { RecordBoard } from "@/components/research/RecordBoard";
+import { BoardsFoundGallery } from "@/components/research/BoardsFoundGallery";
+
+export const CommunityBoard = ({ id, caption }) => {
+  const b = KNOWN_BOARDS.find((k) => k.id === id);
+  if (!b) return null;
+  return (
+    <div className="my-6 max-w-md space-y-2">
+      <LocalizedLink
+        to={`/viewer?${b.params}`}
+        className="block rounded-lg border p-2 transition-shadow hover:shadow-md"
+      >
+        <LazyBoardPreview params={b.params} />
+      </LocalizedLink>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{caption}</p>
+        <LocalizedLink
+          to={`/viewer?${b.params}`}
+          className="shrink-0 text-sm font-medium underline hover:text-foreground"
+        >
+          Abrir en el visor
+        </LocalizedLink>
+      </div>
+    </div>
+  );
+};
+
+La historia de Eternity II suele contarse a través de las personas y los
+solucionadores. Esta página la cuenta a través de los tableros mismos: el puñado
+de objetos que sostienen toda la línea de récords, sea quien sea su autor. Cada
+entrada indica quién anunció el tablero y dónde, y qué se sabe públicamente sobre
+su estructura. Todos los tableros que aquí se muestran vienen incluidos con este
+sitio: haz clic en cualquier vista previa para cargarlo en el
+[visor](/viewer) y volver a puntuarlo arista por arista. La cronología completa
+y el historial de métodos viven en la
+[página de récords](/research/records); esto es la galería.
+
+## La línea de récords: 467 → 468 → 469 → 470
+
+### El 467 de Verhaard (2008): el tablero premiado
+
+El tablero que ganó el único premio en metálico que Eternity II llegó a pagar. El
+[solucionador distribuido *eii*](/research/lab/experiments/louis-verhaard/eii) de Louis
+Verhaard, distribuido a los voluntarios en septiembre de 2008 con estas palabras, "I am stuck"
+([msg 5940](https://groups.io/g/eternity2/message/5940)), había encontrado un 467/480
+más de 40 veces, por usuarios distintos, en el momento en que lo
+documentó ([msg 6275](https://groups.io/g/eternity2/message/6275)). En el
+escrutinio del 31 de diciembre de 2008 la entrada, presentada bajo el nombre de Anna
+Karlsson de Lund (el hogar de Verhaard), se llevó el premio de 10 000 $ a la mejor solución parcial
+([msg 6337](https://groups.io/g/eternity2/message/6337), con el grupo
+reconociendo de inmediato a la ganadora en el
+[msg 6349](https://groups.io/g/eternity2/message/6349)).
+
+Dos notas al pie posteriores cambian cómo se lee el tablero. Al releer el propio
+relato de Verhaard, Jef Bucas observó que el 467 se había logrado bajo una desventaja
+autoimpuesta: Verhaard había malinterpretado las reglas y había restringido el tipo de tablero que
+se permitía presentar
+([msg 10582](https://groups.io/g/eternity2/message/10582)). Y ya en 2023 la
+puntuación se había convertido en un objetivo de calibración: "la semana pasada encontré unos 30
+x 467. Uso este objetivo para calibrar el código que estoy ejecutando"
+([msg 11001](https://groups.io/g/eternity2/message/11001)). Aun así, se mantuvo como
+récord durante doce años.
+
+<CommunityBoard
+  id="Louis_Verhaard_467"
+  caption="467/480, Louis Verhaard, mejor tablero en el escrutinio del premio de 2008."
+/>
+
+El visor también incluye, en su menú de tableros, tres 467 hermanos (Verhaard 467a, 467b, 467c)
+de la misma campaña.
+
+### El 468 de Blackwood (2020): el tablero de fuera
+
+El primer avance más allá de 467 en doce años llegó desde fuera de la
+comunidad: una publicación en Reddit de Joshua Blackwood, entonces desconocido para la lista de
+correo, retransmitida en el [msg 10032](https://groups.io/g/eternity2/message/10032). Un
+tablero con solo 12 rupturas, 468/480. Bucas lo verificó, lo añadió al
+visor y transmitió la asombrosa afirmación de que el autor podía "encontrar un 468
+cada 4 días" ([msg 10033](https://groups.io/g/eternity2/message/10033)).
+Días más tarde, Blackwood liberó el código
+[del solucionador que lo encontró](/research/lab/experiments/joshua-blackwood/solver)
+([msg 10037](https://groups.io/g/eternity2/message/10037)). Todos los tableros que
+siguen se remontan a ese código.
+
+<CommunityBoard
+  id="Joshua_Blackwood_468"
+  caption="468/480, Joshua Blackwood, agosto de 2020, anunciado en Reddit."
+/>
+
+### El 469 de McGavin (2020): el tablero techo
+
+"¡¡Tu solucionador es fantástico!! Lo ejecuté durante unos días en un par de
+cientos de núcleos y me toco el gordo. ¡Nueva puntuación récord de 469! ¡Solo 11 rupturas!"
+Así escribió Peter McGavin, ejecutando el solucionador recién publicado por Blackwood
+([msg 10045](https://groups.io/g/eternity2/message/10045)). Blackwood
+explicó en el mismo hilo la disciplina de rupturas del solucionador: las rupturas nunca
+pueden tocarse, de modo que este 469 equivale a un parcial de 249 piezas con 7
+huecos ([msg 10051](https://groups.io/g/eternity2/message/10051)).
+
+Estructuralmente, este tablero tiene una firma que puedes comprobar tú mismo:
+sus once aristas no emparejadas se alojan todas en las cinco primeras filas,
+dejando una losa de once filas localmente impecable: los daños quedan
+barridos contra el borde donde terminó la búsqueda. Esa geometría, y por qué se
+invierte en los tableros construidos en sentido contrario, se analiza en
+[Dónde viven los defectos](/research/why/mismatch-geometry).
+
+<CommunityBoard
+  id="JBlackwood+PMcGavin_469"
+  caption="469/480, Peter McGavin con el solucionador de Blackwood, septiembre de 2020."
+/>
+
+### La oleada de 469 (octubre-noviembre de 2020)
+
+Bucas publicó sus dos primeros 469 en octubre
+([msg 10052](https://groups.io/g/eternity2/message/10052), "Here are 2
+other 469"), portó el algoritmo de Blackwood a C, duplicando aproximadamente su velocidad
+([msg 10065](https://groups.io/g/eternity2/message/10065)), y el flujo
+siguió llegando: los tableros c a g en noviembre, desde el
+[msg 10067](https://groups.io/g/eternity2/message/10067) ("Another one yay
+\o/") hasta el [msg 10078](https://groups.io/g/eternity2/message/10078),
+que salió junto con el portado de código abierto, *libblackwood*. Los siete
+están en el menú de tableros del visor como Bucas 469a-g.
+
+La excepción es el de Carlos Fernandez. Pasó el 469 de McGavin a un
+programa de intercambio de piezas de su propia autoría y encontró otro 469 que difería en una
+sola pieza ([msg 10074](https://groups.io/g/eternity2/message/10074)),
+prueba, en palabras de Bucas cuando lo añadió al visor, de que "incluso a 469,
+todavía queda un poquito de flexibilidad"
+([msg 10075](https://groups.io/g/eternity2/message/10075)). Esa flexibilidad
+es escasa: es exactamente el tipo de empate aislado que predice el análisis de
+rigidez de más abajo, y no un camino hacia arriba.
+
+### Los 470 (2021 y 2024): el techo actual
+
+Blackwood cerró su propio arco con un mensaje casi sin palabras: una URL de
+visor, una lista de piezas (470/480, 10 rupturas) y esta única línea, "I haven't physically
+put it together yet, but I found one!"
+([msg 10117](https://groups.io/g/eternity2/message/10117)). Más tarde
+confirmó que lo había encontrado con exactamente el código del repositorio público
+([msg 10161](https://groups.io/g/eternity2/message/10161)), con la
+planificación reajustada que había publicado de antemano, y luego se detuvo: "No he escrito
+una línea de código ni ejecutado ningún algoritmo desde que encontré un 470"
+([msg 10185](https://groups.io/g/eternity2/message/10185)).
+
+<CommunityBoard
+  id="Joshua_Blackwood_470"
+  caption="470/480, Joshua Blackwood, marzo de 2021. Sigue siendo el mejor tablero conocido."
+/>
+
+La puntuación se ha igualado una vez, no superado. En diciembre de 2024 Bucas reinició "unos
+cuantos hilos del código de Joshua" y apareció otro 470
+([msg 11401](https://groups.io/g/eternity2/message/11401)); Fernandez advirtió
+que sus tres figuras de borde no emparejadas permitían un reordenamiento y publicó un 470b
+([msg 11403](https://groups.io/g/eternity2/message/11403)). La clase de los 470
+sigue siendo un monopolio del solucionador de Blackwood, y 470 sigue siendo el techo: "Nadie está
+ni siquiera cerca… El mejor resultado hasta la fecha es la solución parcial de Joshua
+Blackwood, 470/480 aristas emparejadas"
+([msg 11343](https://groups.io/g/eternity2/message/11343)).
+
+<CommunityBoard
+  id="JBlackwood+Jef_470"
+  caption="470/480, Jef Bucas, diciembre de 2024, con el algoritmo de Blackwood."
+/>
+
+## Lo que comparten los tableros récord
+
+Tres hechos documentados públicamente valen para toda la línea 468/469/470.
+
+**Mismo régimen de pistas.** Todos colocan la pieza de inicio obligatoria en su
+lugar oficial y ninguna de las cuatro piezas pista opcionales en el suyo. La
+comunidad lo comprobó para el 470
+([msg 10554](https://groups.io/g/eternity2/message/10554)), y Blackwood
+confirmó que disponía de las piezas pista y que deliberadamente no las
+usó ([msg 10185](https://groups.io/g/eternity2/message/10185)). Bajo
+las reglas originales del concurso solo la pieza de inicio era obligatoria, así que estos
+tableros eran elegibles para el premio tal como se presentaron.
+
+**Defectos en bandas.** Las pocas aristas no emparejadas no están dispersas;
+se apiñan en una sola banda de filas contra el borde donde terminó la búsqueda.
+[Dónde viven los defectos](/research/why/mismatch-geometry) puntúa los tableros
+reales en vivo y muestra la banda; también muestra los tableros de este proyecto
+exhibiendo la misma banda, en espejo.
+
+**Rigidez local.** Ninguno de estos tableros es una casi-solución a la espera
+de un pulido. [El muro de rigidez](/research/why/rigidity-wall) recurre a
+resoluciones exactas de programación entera para demostrar que, en los tableros récord,
+liberar regiones enteras y rellenarlas de nuevo de forma óptima devuelve la misma
+disposición: los mejores tableros se asientan en el fondo de sus propios valles.
+El 469 de Fernandez obtenido por intercambio de una sola pieza es la excepción que confirma
+la regla: un empate al lado, nunca un paso hacia arriba.
+
+## La línea estricta de cinco pistas: del 460 de Gauthier al 464 de Riotte
+
+La mayoría de los tableros récord publicados conservan solo la pieza de inicio
+obligatoria. En marzo de 2023 un hilo planteó la pregunta más exigente: ¿cuál es el
+mejor tablero que respeta **las cinco** pistas oficiales
+([msg 11037](https://groups.io/g/eternity2/message/11037))? Una escalera se subió
+en unos días: 412, luego 452 y 457 (Carlos Fernandez), luego 453/455/456/458
+(David Barr), deteniéndose en el **460 de Bruno Gauthier**, "hecho con mi propio
+programa y el Eternity II Editor"
+([msg 11074](https://groups.io/g/eternity2/message/11074)); McGavin lo convirtió
+al formato compartido del visor
+([msg 11081](https://groups.io/g/eternity2/message/11081)).
+
+Ese 460 se mantuvo más de tres años. A finales de junio de 2026 un nuevo hilo,
+"Record of Eternity2 with 5 hints?", reabrió la línea: **Benjamin Riotte**
+publicó un 461, luego una oleada de resultados que trepaba hasta **464/480 (solo 16 aristas
+rotas)**, el primer avance en el récord estricto desde 2023
+([groups.io msg 11919](https://groups.io/g/eternity2/message/11919)).
+**Igor Pejic** alcanzó el mismo rango 463-464 de forma independiente en el mismo
+hilo, apoyándose en lo que describió como un "algoritmo DFS de Blackwood modificado". Todos
+los tableros respetan las cinco pistas en sus celdas oficiales (inicio n.º 139,
+pistas n.º 208, n.º 255, n.º 181, n.º 249).
+
+La línea estricta importa por lo que implican las cinco pistas: la estimación
+comunitaria del número de soluciones con las cinco pistas colocadas es de
+aproximadamente 0,00000004 (un objetivo prácticamente único), frente a unas 14 702
+"soluciones" esperadas con la sola pieza de inicio
+([msg 11193](https://groups.io/g/eternity2/message/11193)). Un tablero de cinco
+pistas juega exactamente el juego que definieron los diseñadores. El 464 se sitúa dieciséis aristas
+por debajo de la solución completa, y esa brecha es en sí misma un dato.
+
+<BoardsFoundGallery />
+
+## Los tableros de este proyecto
+
+Los experimentos propios de este sitio produjeron cuatro tableros que vale la pena
+conservar, etiquetados por lo que son: experimentos varios peldaños por debajo de la
+línea comunitaria, y documentados de principio a fin. Cada uno enlaza
+al experimento que lo encontró; cada puntuación se recalcula a partir de las aristas
+propias del tablero.
+
+### PALIMPSEST (463)
+
+El mejor del proyecto, encontrado leyendo todo el corpus de tableros fuertes para
+separar la estructura genuinamente compartida de los malos hábitos compartidos, y luego atacando
+las trampas. La historia completa está en
+[el experimento PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest).
+
+<RecordBoard id="palimpsest-463" />
+
+### KEYRING (460)
+
+Construido desde cero dejando que tres señales aprendidas voten sobre cada
+colocación, alcanzando 460 en una familia de tableros que ninguna búsqueda anterior
+aquí había logrado descifrar;
+véase [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring). Sus defectos
+se agrupan en banda en las filas de abajo, la imagen especular del 469 de McGavin.
+Esa huella ligada al orden de recorrido se explica en [Dónde viven los defectos](/research/why/mismatch-geometry).
+
+<RecordBoard id="keyring-460" />
+
+### PRIOR (460)
+
+Desde cero más destrucción-y-reparación, desempatando las igualdades de
+construcción por dónde tienden a asentarse las piezas en los tableros fuertes (véase
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior)).
+
+<RecordBoard id="prior-460" />
+
+### GAUNTLET (458)
+
+La misma [búsqueda en haz](/research/build/construct/beam-search) ejecutada sobre nueve
+órdenes de recorrido para que aterrice en regiones distintas del espacio de tableros;
+el orden en zigzag encontró este 458. El informe completo está redactado en
+[GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntlet).
+
+<RecordBoard id="gauntlet-458" />

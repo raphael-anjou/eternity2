@@ -1,0 +1,128 @@
+---
+title: Sin jugadas forzadas
+description: >-
+  La manera habitual de resolver un puzzle lógico es encontrar un lugar donde
+  solo encaja una pieza, colocarla y repetir. Aquí ese recurso no existe: cada
+  pieza interior tiene entre 73 y 137 vecinas posibles, y ninguna queda jamás
+  fijada a una sola opción.
+metaDescription: "En Eternity II no hay jugadas forzadas: cada pieza interior tiene de 73 a 137 vecinas posibles y nunca queda fijada a una sola opción."
+kind: finding
+contribution: measurement
+rigor: proven
+tier: 2
+order: 90
+updated: 2026-07-01
+topics: [structure, search-space]
+sources:
+  - label: "Sin jugadas forzadas: artículo, código y resultados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-forced-moves
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/piece-theft
+  - /research/why/phase-transition
+  - /research/build/reduce/arc-consistency
+repro:
+  kind: exact
+  cmd: just research-no-forced-moves
+  topic: no-forced-moves
+---
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useIsClient } from "@/lib/utils";
+import { ForcedMovesLab } from "@/components/research/ForcedMovesLab";
+import data from "@/data/no-forced-moves.json";
+
+export function PartnerHistogram() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="flex h-72 items-center justify-center rounded-lg border text-sm text-muted-foreground">
+        Loading chart…
+      </div>
+    );
+  }
+  return (
+    <div className="h-72 rounded-lg border p-2">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+        <BarChart data={data.histogram} margin={{ top: 10, right: 16, bottom: 18, left: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+          <XAxis
+            dataKey="bucket"
+            label={{ value: "right-hand partners", position: "insideBottom", offset: -8, fontSize: 12 }}
+            fontSize={11}
+          />
+          <YAxis
+            label={{ value: "pieces", angle: -90, position: "insideLeft", fontSize: 12 }}
+            width={40}
+            fontSize={12}
+          />
+          <Tooltip
+            formatter={(v) => [String(v), "pieces"]}
+            labelFormatter={(b) => `${String(b)} right-hand partners`}
+          />
+          <Bar dataKey="count" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+Cada una de las 196 piezas interiores tiene entre 73 y 137 otras piezas que
+pueden situarse legalmente a su derecha (contando las parejas de la derecha,
+como hace el gráfico anterior). La pieza típica dispone de más de un centenar de
+opciones. Ni una sola pieza queda jamás fijada a una única elección.
+
+Este es el reverso de los patrones prohibidos. Allí, casi toda combinación de
+piezas es imposible. Cabría pensar que todas esas reglas acabarían acorralando a
+las piezas en su sitio. No lo hacen: las restricciones descartan combinaciones
+sin acorralar jamás a una pieza individual, de modo que un solucionador nunca
+recibe una jugada libre y forzada sobre la que construir.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.forcedPieces}</div>
+    <div className="mt-1 text-xs text-muted-foreground">piezas forzadas a una sola opción</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.minPartners}–{data.maxPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">parejas por pieza (del mín. al máx.)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">{data.meanPartners}</div>
+    <div className="mt-1 text-xs text-muted-foreground">parejas en promedio</div>
+  </div>
+</div>
+
+## Cuántas vecinas admite cada pieza
+
+Las 196 piezas interiores, agrupadas según cuántas vecinas de la derecha acepta
+cada una. La distribución entera se mantiene muy lejos de uno.
+
+<PartnerHistogram />
+
+## Verlo en un puzzle real
+
+El motor rellena unas cuantas celdas; luego contamos, en vivo, cuántas piezas
+encajan legalmente en la siguiente. Casi nunca baja a uno.
+
+<Figure collapsible title="Interactivo: número de candidatas, celda a celda">
+  <ForcedMovesLab />
+</Figure>
+
+## Por qué importa
+
+Coloca esto junto a los patrones prohibidos y aparece la verdadera forma de la
+dificultad. A escala local el puzzle parece holgado: cualquier pieza encaja al
+lado de muchas otras, así que no hay nada que propagar ni cadena de jugadas
+forzadas que aprovechar. A escala global casi toda combinación es ilegal. La
+dureza vive en esa brecha: mucha libertad local, casi ninguna coherencia global.
+Un solucionador tiene que encadenar una larga sucesión de elecciones de
+apariencia libre que solo resultan erróneas mucho más tarde.

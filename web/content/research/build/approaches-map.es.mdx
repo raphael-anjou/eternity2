@@ -1,0 +1,250 @@
+---
+title: Un mapa de todos los enfoques conocidos
+description: >-
+  La síntesis que la comunidad reclama sin encontrarla nunca: cada familia de
+  ataque probada en Eternity II, lo que cada una alcanzó realmente, dónde se
+  estrella, y un enlace a la página de fondo. Una misma idea rectora las
+  atraviesa todas.
+metaDescription: "Una síntesis de cada familia de ataque probada en Eternity II: lo que cada una alcanzó, dónde se estrella, y la única idea rectora que las atraviesa todas."
+kind: page
+order: 5
+group: Start here
+updated: 2026-07-08
+sources:
+  - label: "El balance que la propia comunidad hace de dos décadas de esfuerzo: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io, mensaje 3511)"
+    url: https://groups.io/g/eternity2/message/3511
+  - label: 'El récord vigente, 470, en el puzzle oficial: Joshua Blackwood, "470 Found", eternity2@groups.io, 2021 (groups.io, mensaje 10117)'
+    url: https://groups.io/g/eternity2/message/10117
+  - label: "Eternity II (Wikipedia): el puzzle, el premio y el registro público"
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+related:
+  - /research/build/techniques
+  - /research/build/solvers
+  - /research/why
+---
+
+Quienes trabajan en Eternity II acaban planteándose siempre la misma pregunta:
+¿existe un lugar que recoja *todos* los enfoques? La respuesta habitual es que
+no, porque quienes lo abordan forman una mezcla de académicos, solucionadores de
+competición y aficionados, y nadie llegó a trazar el mapa. Esta página es ese
+mapa. No añade ningún método nuevo; alinea los que este wiki ya documenta, una
+familia cada vez, para que abarques todo el territorio antes de elegir una
+dirección.
+
+Para cada familia: lo que es en una línea, lo que alcanzó realmente en el
+verdadero tablero 16×16, dónde se detiene, y un enlace a la página de fondo con
+los laboratorios, las mediciones y las citas de archivo.
+
+## La única idea que organiza todo el mapa
+
+Cada una de las familias siguientes se atasca en el mismo punto: el techo
+comunitario de 470 aristas casadas de 480, con
+[los propios experimentos de este proyecto](/research/lab/experiments/raphael-anjou)
+agrupados en torno a 460–463. Se atascan ahí por la misma razón, y vale la pena
+enunciarla antes del catálogo para que el resto se lea como otras tantas
+variaciones sobre un mismo tema.
+
+La razón radica en un problema de evaluación. La única señal barata de la que
+dispone un solucionador es el número de aristas casadas, y ese número no dice a
+qué distancia de la solución te encuentras. Un tablero de 470 aristas y uno de
+460 pueden estar igual de lejos de terminarse, porque las diez últimas aristas no
+son una tarea de acabado: se sitúan al otro lado de un muro global que ninguna
+puntuación local percibe. Así, los buscadores sistemáticos y los buscadores
+estocásticos, que no se parecen en nada, convergen hacia la misma altura. Es el
+**[muro de rigidez](/research/why/rigidity-wall)**: los tableros récord están
+localmente congelados, y el paso de un tablero excelente a uno perfecto es un
+único intercambio indivisible, sin gradiente que seguir. Su contrapartida es
+**[por qué un ordenador más rápido no ayuda](/research/why/prune-vs-speed)**:
+cuando no puedes reducir la búsqueda, la velocidad bruta apenas compra nada. La
+sección **[por qué es difícil](/research/why)** demuestra ambos, y
+**[qué muro detiene a qué método](/research/why/walls-and-methods)** confronta
+cada ataque con el muro en el que muere.
+
+Ten esto presente y el mapa de abajo se lee sin esfuerzo: las familias difieren
+en el *cómo* trepan, no en la *altura* que alcanzan.
+
+## Búsqueda sistemática
+
+La familia del backtracking: colocar las piezas una a una en un orden fijo o
+calculado, podar las colocaciones ilegales, y deshacer en caso de fallo. Todo lo
+que ostenta un récord vive aquí.
+
+- **[Órdenes de relleno](/research/build/backtracking/fill-order)**. El orden en
+  que un backtracker visita las 256 celdas es su único grado de libertad, y hace
+  variar el tamaño del árbol de búsqueda en órdenes de magnitud sin coste de
+  ejecución. Veinte años de ciencia comunitaria, desde el debate fijo-contra-
+  dinámico hasta la búsqueda en peine de Verhaard. Esto es la palanca, no un muro.
+- **[Consistencia de arco](/research/build/reduce/arc-consistency)**. Hacer que la
+  lista de candidatos de cada celda se defienda frente a sus vecinas hasta un
+  punto fijo, más allá del simple control anticipado a un movimiento. El AC-3 de
+  Mackworth y sus refinamientos podan con fuerza en los tableros pequeños; en el
+  tablero completo, la poda alcanzable se desvanece a unas dos celdas de distancia
+  y no logra colapsar el factor de ramificación.
+- **[All-different, el filtro de emparejamiento de Régin](/research/build/reduce/alldiff-regin)**.
+  Ninguna pieza puede usarse dos veces: una sola restricción global sobre 256
+  celdas, filtrada por completo en tiempo polinómico mediante emparejamiento
+  bipartito. El propagador más potente que se ha medido aquí, con una salvedad
+  marcada en cuanto la búsqueda tolera desajustes.
+- **[Aprendizaje de no-goods](/research/build/reduce/nogood-learning)**. Un
+  subárbol fallido es un teorema: regístralo y no vuelvas a entrar nunca. Las
+  tablas de transposición y las restricciones minadas rinden ambas en los
+  tableros pequeños; en 16×16, el número de no-goods distintos desborda cualquier
+  memoria que puedas retener.
+- **[Reinicios y colas pesadas](/research/build/backtracking/restarts)**. El mismo
+  backtracker sobre el mismo puzzle termina en tiempos de ejecución que difieren
+  en varias potencias de diez, así que corta, baraja de nuevo y reinicia. Todo
+  solucionador récord desde 2007 es una cartera de reinicios. Cambia qué tableros
+  alcanzas, no el techo.
+- **[Encuentro en el medio](/research/build/exact/meet-in-the-middle)**. Enumerar
+  dos mitades y unirlas en una interfaz compartida, cambiando memoria por la mitad
+  del exponente. Real en bandas del tablero; el experimento BANDSAW de este
+  proyecto midió dónde deja de rendir a tamaño completo.
+- **[Cobertura exacta y dancing links](/research/build/exact/exact-cover-dlx)**.
+  Eternity II se enuncia limpiamente como cobertura exacta, y el Algoritmo X de
+  Knuth es la máquina clásica para ello. Brilla en los tableros pequeños y en el
+  conteo exhaustivo; en el 16×16 el árbol queda sin reducir y un casi-acierto no
+  vale ningún crédito parcial.
+- **[Ingeniería de solucionadores](/research/build/faster/solver-engineering)**.
+  No un algoritmo, sino el oficio que lo sostiene: tablas de consulta, funciones
+  de hash perfectas, structs dimensionados al caché, código generado. Decide si un
+  nodo cuesta 26 ciclos o 2600, y es la razón de que los motores récord funcionen
+  siquiera. Compra velocidad, y la velocidad es precisamente lo que no mueve el
+  muro.
+
+El **[catálogo de solucionadores](/research/build/solvers)** muestra cómo los
+motores récord (el 467 de Verhaard, el 470 de Blackwood) ensamblan estas piezas.
+
+## Codificaciones hacia otros solucionadores
+
+En lugar de escribir un backtracker, se traduce el puzzle al lenguaje de entrada
+de un solucionador industrial y se deja que una década de ingeniería lleve la
+búsqueda.
+
+- **[Codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings)**.
+  Escribir el puzzle en forma de cláusulas y entregarlo a un solucionador
+  completo. Intentado desde 2008. Los solucionadores se atascan en el tablero
+  completo, pero sus veredictos siguen ganándose el sitio como pruebas de
+  imposibilidad en subtableros.
+- **[Relajaciones LP y ILP](/research/build/exact/lp-relaxations)**. Escribirlo
+  como un programa entero y abandonar la integralidad: un solucionador lineal
+  alcanza error cero en segundos colocando fracciones de piezas. La comodidad
+  termina en el instante en que las piezas deben ser enteras: una meseta en
+  420–440 aristas, un muro ILP ya en el 8×8, y un mejor resultado académico de 461
+  en una hora.
+
+## Búsqueda local y estocástica
+
+Partir de un tablero completo (imperfecto) y mejorarlo mediante movimientos,
+guiado por un objetivo. Estos métodos no se parecen en nada al backtracking, y se
+detienen a la misma altura.
+
+- **[Búsqueda local y ALNS](/research/build/local-search/local-search-alns)**.
+  Destruir una parte de un tablero, reconstruirla mejor, y aprender qué
+  demoliciones rinden. El pulidor más fiable aquí, y la demostración más nítida de
+  dónde termina el pulido.
+- **[Recocido simulado y parallel tempering](/research/build/local-search/parallel-tempering)**.
+  Tratar los desajustes como energía y la temperatura como tolerancia a empeorar.
+  El recocido ostenta el récord más longevo de esta familia; el tempering cruza
+  barreras que el recocido no puede cruzar. Ambos se detienen en el mismo muro.
+- **[Búsqueda por haz](/research/build/construct/beam-search)**. Mantener con vida
+  los K tableros parciales más prometedores y hacerlos crecer celda a celda. El
+  caballo de tiro tras los constructores desde cero de este proyecto, y una
+  ilustración nítida de por qué la anchura por sí sola se atasca en el interior
+  profundo.
+- **[Enfoques evolutivos y genéticos](/research/build/local-search/evolutionary)**.
+  Criar una población, quedarse con los más aptos, recombinar a los
+  supervivientes. La metáfora más natural de la caja de herramientas y aquella cuyo
+  operador central, el cruce, choca de frente con la estructura del puzzle.
+- **[Mapas iterados y divide-and-concur](/research/build/exact/iterated-maps)**.
+  Escindir el puzzle en dos conjuntos de restricciones fáciles de proyectar e
+  iterar un mapa cuyos puntos fijos son soluciones. El método de Elser hizo la
+  portada de PNAS; en la lista de Eternity II se probó una vez y nunca se llevó
+  hasta el final.
+
+## Aprender de los tableros fuertes
+
+Cada uno de los métodos anteriores razona únicamente a partir de las reglas del
+puzzle. Esta familia razona a partir de los tableros ya encontrados: explotar el
+corpus de tableros fuertes para extraerle estructura y reinyectarla en una
+búsqueda como sesgo. Alcanza rápida y fiablemente la cima del rango de una
+búsqueda, y no eleva el techo.
+
+- **[Aprender de los tableros fuertes](/research/build/learning)**. El nudo de la
+  familia: [priors](/research/build/learning/corpus-priors) de posición y de
+  demanda escasa, [ordenamiento de movimientos aprendido](/research/build/learning/learned-value-ordering)
+  por voto, [minería de antipatrones](/research/build/learning/anti-pattern-mining)
+  que separa la estructura compartida de la trampa compartida, y
+  [decodificar un récord](/research/build/learning/decoding-records) para recuperar
+  el movimiento que una búsqueda ordinaria pasaba por alto. La
+  [síntesis del colapso](/research/build/learning/when-learning-collapses) es donde
+  la familia se detiene: concede demasiada confianza a una señal aprendida y la
+  búsqueda se desmorona, y aun aprovechada a la perfección, ninguno de estos
+  métodos franquea el muro de rigidez, porque el corpus del que aprenden está hecho
+  de tableros bloqueados en ese mismo muro.
+
+## Vías exóticas y de hardware
+
+Cada pocos años alguien propone hardware nuevo o física nueva. Estas páginas
+llevan el registro de lo que cada una entregó realmente.
+
+- **[Resolución en GPU](/research/build/hardware/gpu-solving)**. Parece la carga
+  de trabajo perfecta (millones de subárboles independientes), y dieciocho años de
+  intentos midieron una realidad muy distinta: ramificación divergente y estado por
+  hilo que desborda la memoria rápida. El muro es la memoria, no la aritmética.
+- **[Resolución en FPGA](/research/build/hardware/fpga-solving)**. Colocar las
+  tablas de consulta a un ciclo de distancia en la RAM embebida y encauzar en
+  pipeline docenas de backtrackers diminutos. Michael Field lo diseñó, proyectó
+  5000 millones de colocaciones por segundo y por chip, e hizo funcionar un
+  prototipo. La vía se cartografió en detalle y nunca se recorrió hasta el final.
+- **[Resolución distribuida](/research/build/faster/distributed-solving)**.
+  Echarle más ordenadores: salvapantallas BOINC, sindicatos de reparto del premio,
+  clústeres de consolas, granjas de placas monobloque. El esfuerzo total de la
+  comunidad alcanzó unas 10^19 operaciones sin solución; lo único que la
+  distribución hace de verdad bien es el conteo exhaustivo en los tableros
+  pequeños.
+- **[Enfoques cuánticos](/research/build/hardware/quantum)**. El deus ex machina
+  más antiguo de la lista, invocado ya en el primer mes del puzzle y cada pocos
+  años desde entonces. Dos historias reales (la aceleración cuadrática de Grover y
+  el recocido sobre un QUBO), la aritmética confrontada con las cifras reales de
+  Eternity II, y un balance de cero ejecuciones.
+
+## Análisis, no solucionadores
+
+Estos no intentan resolver el puzzle. Lo miden, y así es como la comunidad sabe
+dónde están los muros.
+
+- **[Argumentos de paridad](/research/build/analysis/parity-arguments)**. Contar
+  una cantidad del tablero dos veces, una vez desde cada lado, y los totales deben
+  coincidir, lo que aporta pruebas de imposibilidad para una pasada. La historia
+  del 479 muestra a la vez la potencia y la trampa.
+- **[Conteo de soluciones](/research/build/analysis/solution-counting)**. Nadie ha
+  visto jamás una solución completa, y sin embargo la comunidad sabe, hasta un
+  factor de dos, cuántas existen: censos exactos en los tableros pequeños y una
+  fórmula de esperanza que convergió en torno a 14 702.
+
+## Callejones sin salida
+
+Algunas ideas suenan tan bien como cualquiera de las anteriores y, de forma
+demostrable, no mueven la puntuación. La página **[callejones sin salida](/research/build/dead-ends)**
+las reúne con la razón por la que cada una falla, para ahorrarte un mes de
+trabajo: ruptura de simetría (no hay ninguna simetría global que romper),
+propagación de probabilidades que se desvanece a dos celdas de distancia, y
+otras.
+
+## Lo que el mapa te dice
+
+Léelo de arriba abajo y la forma es clara. Las familias sistemáticas ostentan los
+récords porque pueden demostrar cosas y podar con fuerza en los tableros
+pequeños, pero no consiguen reducir lo suficiente la búsqueda completa para llegar
+al final. Las familias estocásticas pulen de maravilla y alcanzan tableros
+realmente distintos, y luego se atascan a la misma altura. Las vías de hardware
+cambian la velocidad y nunca el techo. Y las páginas de análisis explican por qué:
+las diez últimas aristas no son cuestión de esfuerzo ni de ingenio en ninguna
+familia concreta, sino un muro global que cada familia encuentra desde su propia
+dirección.
+
+Si estás eligiendo dónde invertir tu tiempo, la pregunta útil no es qué familia
+es la mejor. Es qué muro crees que puedes franquear, porque eso es lo que decide
+realmente la puntuación.
+**[Qué muro detiene a qué método](/research/why/walls-and-methods)** es el lugar
+por donde empezar.

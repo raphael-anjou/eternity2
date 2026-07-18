@@ -1,0 +1,131 @@
+---
+title: MIDDEN
+description: >-
+  Decidir de antemano no cuándo puede romperse un tablero, sino dónde: confinar
+  cada desajuste a una forma de celdas elegida, y buscar la mejor forma.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 452
+rigor: measured
+complexity:
+  time: "por máscara: una ejecución de DFS tolerante a roturas de 300 s × 8 semillas; más un barrido sobre formas/densidades de máscara"
+  space: "la máscara es un conjunto de celdas de 256 bits; por lo demás, una frontera de DFS estándar"
+  note: >-
+    La máscara no añade ningún coste de búsqueda, solo cambia qué celdas pueden
+    portar un desajuste, convirtiendo una regla fija en un eje de diseño que
+    barrer.
+repro:
+  kind: seeded
+stages:
+  - engine: frame-input
+    does: "Un marco de borde ya resuelto más una máscara de celdas de rotura se fijan como entradas"
+  - engine: break-dfs
+    does: "Un DFS tolerante a roturas a partir del marco permite desajustes solo dentro de la máscara, con coincidencia perfecta fuera"
+order: 70
+updated: 2026-07-10
+date: 2026-07
+topics: [local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/why/rigidity-wall
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/why/piece-theft
+sources:
+  - label: "Robo de piezas (este proyecto): la vista espacial de dónde fallan los tableros, aquello que MIDDEN controla de antemano"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/piece-theft.mdx
+---
+
+import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
+
+La mayoría de los solucionadores que permiten roturas controlan cuándo se
+permite un desajuste: a ciertas profundidades, más allá de cierto relleno.
+MIDDEN controla dónde, en cambio. Fija una máscara, un conjunto de celdas
+elegido, e impone que los desajustes solo puedan pagarse dentro de ella; en
+todos los demás sitios la coincidencia debe ser perfecta. Después busca sobre
+la forma de esa máscara. Los métodos existentes dicen cuándo encajar los daños;
+este experimento pregunta dónde deben alojarse los daños.
+
+## Cómo funciona
+
+Elige una máscara: un par de filas, un par de columnas, un enrejado disperso de
+celdas, o un conjunto elegido por color. Ejecuta la búsqueda forzando
+coincidencias perfectas fuera de la máscara y permitiendo desajustes solo dentro
+de ella. Formas de máscara distintas conducen la búsqueda a partes distintas del
+espacio, de modo que la máscara se convierte en una perilla de ajuste en lugar
+de una regla fija.
+
+Comparar formas revela qué geometría de daño permitido deja que un tablero haga
+crecer una serie perfecta larga antes de tener que gastar un desajuste.
+
+<Figure collapsible title="Interactivo: las máscaras de rotura por geometría del daño">
+  <MaskShapeDiagram />
+</Figure>
+
+## El resultado
+
+Un enrejado disperso de celdas de daño permitido alarga notablemente más la
+serie perfecta más larga que concentrar el daño en una fila o dos, empujando el
+muro perfecto desde alrededor de 150 celdas hasta los 170. El mecanismo es
+claro; lo que queda abierto es la economía del asunto: convertir una serie
+perfecta más larga en una puntuación final más alta una vez que el final de
+partida tiene que absorber el daño diferido.
+
+Así que la máscara es una palanca real, el complemento espacial de los controles
+de tiempo habituales, con un efecto medido sobre hasta dónde permanece perfecto
+un tablero, pero todavía no una vía acabada hacia un récord.
+
+## Método
+
+Cualquier otra búsqueda tolerante a roturas regula el daño por *cuándo*: una
+profundidad, una fracción de relleno. MIDDEN regula por *dónde*. Es el primer
+control de daño por conjunto de celdas (DÓNDE) frente a las regulaciones por
+profundidad (CUÁNDO) de todos los demás.
+
+- **La máscara.** Un conjunto de celdas elegido (una máscara de 256 bits) se
+  pasa mediante `--break-cells`. Dentro de la máscara, los desajustes están
+  permitidos; en todos los demás sitios la coincidencia debe ser perfecta. Por
+  lo demás, la búsqueda es un DFS tolerante a roturas estándar, a partir de un
+  marco fijo.
+- **El barrido.** La *forma* de la máscara se convierte en la variable de
+  diseño: un par de filas, un par de columnas, un enrejado disperso, o un
+  conjunto elegido por color, barridos sobre formas y densidades, cada uno a
+  300 s × 8 semillas.
+
+El resultado medido es una regla de diseño de densidad graduada: un **enrejado
+disperso** de celdas de daño permitido alarga la serie perfecta más larga de
+~153 celdas a 167-174 (**+21**), mucho más que concentrar el daño en una fila o
+dos. El mecanismo es claro; la economía que queda abierta es el final de
+partida: una serie perfecta más larga solo ayuda si la cola puede absorber el
+daño diferido, y la máscara dispersa que maximiza el muro no sella por sí sola
+el final. El paso siguiente natural (componer una máscara de cuerpo dispersa con
+una cola abierta) es exactamente lo que el barrido MIDDEN-v2 se propuso probar.
+
+## Reproducir
+
+Sembrado a partir de un marco fijo; el efecto de alargamiento del muro se
+reproduce de una máscara a otra, aunque el tablero exacto depende de las
+semillas, y el tablero 452 confirmado es verificable en el visor. Como
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister), necesita
+un marco de borde ya resuelto (más la máscara de celdas de rotura, que es una
+entrada literal); se prevé un directorio de respaldo ejecutable que incluya el
+marco.
+
+## Preguntas abiertas
+
+¿Qué formas de máscara convierten una serie perfecta más larga en aristas
+realmente coincidentes al final, en lugar de solo diferir el daño? ¿Se pueden
+combinar máscaras espaciales con controles de tiempo, de modo que un tablero
+quede regulado tanto en dónde como en cuándo puede romperse? ¿Y existe una
+máscara que refleje el lugar donde los mejores tableros conocidos portan
+realmente sus desajustes?

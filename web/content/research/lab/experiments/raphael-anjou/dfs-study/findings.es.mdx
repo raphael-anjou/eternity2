@@ -1,0 +1,184 @@
+---
+title: Qué aporta cada idea
+description: >-
+  Las tres comparaciones en el corazón del estudio DFS, llevadas hasta el final:
+  el orden de relleno (el recorrido por filas gana, un mal orden es catastrófico),
+  las heurísticas (MRV rescata el borde primero pero cuesta rendimiento; más
+  propagación no aportó nada) y las rupturas (rompen el muro de profundidad; el
+  calendario de rupturas es la palanca, no el tope por celda).
+metaDescription: "Hallazgos del estudio DFS: orden de relleno, heurísticas y rupturas comparados. El recorrido por filas gana; MRV rescata el borde; las rupturas rompen el muro."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/method
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "Resultados por ejecución versionados (results.jsonl) e informe por familia (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/results
+---
+
+import { PathOrderDiagram } from "@/components/research/PathOrderDiagram";
+import { PinCollapseDiagram } from "@/components/research/PinCollapseDiagram";
+
+Tres comparaciones sostienen el [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study).
+Cada una aísla una decisión manteniendo todo lo demás fijo. Todas las puntuaciones son el
+número medio de aristas apareadas sobre las diez variantes con esquinas fijadas, un solo núcleo,
+sesenta segundos. El rendimiento se mide en nodos de búsqueda por segundo y nunca se compara
+entre familias.
+
+## Qué aporta la especialización de bajo nivel: rendimiento, y solo eso
+
+Las dos referencias ejecutan el *mismo* algoritmo estricto de recorrido por filas: `NAIVE-CLEAN`
+como motor general legible, `NAIVE-CODEGEN` como bucle caliente 16×16 especializado a mano,
+reservado al recorrido por filas. La especialización entrega lo que debe en el eje que persigue.
+`NAIVE-CODEGEN` es notablemente más rápido por nodo, hasta un tercio más en algunas instancias.
+En cuanto a la *puntuación*, las dos empatan, a un punto o dos de distancia a sesenta segundos y
+bien dentro de la dispersión entre ejecuciones, que es la lectura honesta más que una afirmación
+de que la especialización *perjudique*. A tiempo de reloj fijo, un motor más rápido alcanza un
+punto distinto del mismo árbol, y la mejor solución parcial de un backtracker no varía de forma
+monótona con la velocidad a la que llegó allí. Las referencias son, por tanto, una comparación
+limpia de *velocidad* y deliberadamente no se presentan como una comparación de *puntuación*. Los
+efectos sobre la puntuación que merece la pena estudiar están todos en los ejes de abajo, donde la
+búsqueda misma cambia.
+
+## Orden de relleno: el recorrido por filas gana, y el orden equivocado es catastrófico
+
+Fijemos el motor (estricto, sin heurísticas) y cambiemos solo el orden en que se rellenan las
+celdas. Los seis órdenes solo se diferencian en el lugar donde la búsqueda envía su frente, que se
+muestra abajo.
+
+<Figure title="Los seis órdenes de relleno, trazados como el camino que recorre la búsqueda">
+  <PathOrderDiagram />
+</Figure>
+
+- **El recorrido por filas** es la referencia fuerte, con una media de 377. Su zona de daño se
+  mantiene constante, ya que cada celda nueva tiene las dos mismas celdas vecinas ya colocadas, de
+  modo que alcanza gran profundidad antes del muro estricto.
+- **Un relleno estricto de borde primero o en espiral se colapsa.** Rellenar primero el anillo del
+  borde, sin anticipación, conduce directo a las restricciones de esquina y de borde más duras y se
+  atasca casi de inmediato, cerca de una media de 67 a una profundidad de 66 aproximadamente. La
+  espiral paga el mismo impuesto de cierre.
+- **El recorrido por filas de abajo hacia arriba va aún peor en esta geometría de pistas**
+  (media 226, pero tan bajo como 18 en algunas variantes), porque las pistas fijadas se sitúan en
+  filas que el relleno de abajo hacia arriba alcanza pronto y no puede satisfacer.
+
+Mismo motor, mismos sesenta segundos, una oscilación de más de 300 puntos debida únicamente al
+orden de relleno. Esta es la forma medida de un saber de la comunidad: el borde primero solo es
+bueno *con* una heurística para elegir las celdas dentro del anillo. Por sí solo es uno de los
+peores órdenes disponibles.
+
+## Heurísticas: MRV rescata el borde primero, pero el rendimiento se desploma
+
+Fijemos ahora el camino cerca del marco y añadamos una cosa cada vez. La mayor palanca es
+**MRV**, que rellena a continuación la celda vacía más restringida, elegida dinámicamente.
+Convierte el borde primero atascado (media 67) en una búsqueda cuya media es 324 (mejor 341) a una
+profundidad de 190 aproximadamente. También recalcula la celda más restringida sobre todo el frente
+en cada paso, de modo que el rendimiento en nodos cae tres órdenes de magnitud, de decenas de
+millones de nodos por segundo a unos pocos miles. Cada nodo vale mucho más, y se visitan muchos
+menos. El ritmo de nodos y la puntuación son ejes distintos.
+
+Añadir una anticipación más pesada por encima **no** aportó más puntuación con este presupuesto.
+
+- **La verificación hacia delante** (rechazar una colocación que vacíe el dominio de una vecina)
+  obtuvo una media de 322.
+- **La consistencia de arco** y la **verificación de suministro por color** obtuvieron cada una una
+  media de 321. Con una dispersión de puntuación por variante de unos 11 puntos sobre las diez
+  instancias, esa diferencia de un punto está bien dentro del ruido: los tres propagadores son aquí
+  estadísticamente indistinguibles, de modo que la lectura honesta es que una anticipación más
+  pesada ni ayudó ni perjudicó claramente, más que la verificación hacia delante hubiera ganado.
+- Una ordenación de valores de **colores raros primero** fue inerte, no mejor que el simple orden de
+  inserción, haciendo eco al resultado negativo repetido de la comunidad sobre los órdenes de
+  valores dentro de un mismo cubo.
+
+La lección no es que la propagación sea inútil. Es que con un presupuesto pequeño y fijo, sobre esta
+instancia, la poda útil más barata (la verificación hacia delante) ya capta cualquier beneficio
+disponible, y un razonamiento más caro no recupera su coste adicional por nodo en sesenta segundos.
+
+## Rupturas: más allá del muro, y el calendario es la palanca
+
+El backtracking estricto, sea cual sea su orden o su heurística, choca contra un muro muy antes de
+un tablero completo: el recorrido por filas se estanca en torno a la profundidad 208 de 256, e
+incluso la variante estricta más rápida (NAIVE-CODEGEN) solo alcanza 216. Los motores recordistas
+lo superan *rompiendo*: permiten un número acotado de incompatibilidades de aristas interiores,
+liberadas según un calendario de profundidad, con una regla que impide que una celda cargue con
+demasiadas aristas rotas. La puntuación de un tablero completo es entonces `480 − #rupturas`.
+
+- **Las rupturas superan el muro.** Un presupuesto de rupturas condicionado por la profundidad
+  alcanza más allá de la profundidad 245 y ronda los 430 bajos (ruptura-1 da 431 de 480, mejor 435),
+  una gran ganancia sobre los 370 altos del estricto, sobre las mismas instancias y presupuesto.
+  Este es el mecanismo tras los backtrackers recordistas de la comunidad, no un paradigma distinto
+  sino una relajación de la regla de apareamiento condicionada por la profundidad.
+- **Permitir una segunda ruptura por celda no ayudó aquí.** Una ruptura y dos rupturas alcanzan el
+  mismo mejor tablero (435), y sus medias (431,3 frente a 428,5) se sitúan dentro de la dispersión
+  propia de la variante de dos rupturas, de modo que ninguna domina en media. Lo que sí las separa
+  es la regularidad: la variante de una ruptura está estrechamente agrupada (nunca por debajo de
+  427), mientras que la variante de dos rupturas desciende hasta 402. La geometría de doble ruptura
+  que emplean los tableros 460 de la comunidad parece necesitar más de sesenta segundos para dar
+  fruto; con este presupuesto, la libertad adicional sobre todo ensancha el ramaje sin alcanzar
+  mejores tableros. Es un resultado nulo, reportado tal como se midió y no como cabría esperar.
+- **El calendario es la palanca decisiva.** La escalera de deslizamiento de Verhaard desbloquea las
+  rupturas mucho antes que la de Blackwood (profundidad 193 frente a 201) y aquí puntúa
+  notablemente peor (media 399 frente a 431), porque desbloquear pronto gasta el presupuesto en
+  rupturas superficiales. Cuándo y con qué rapidez se abren las rupturas es una decisión de ajuste
+  más que un detalle.
+
+Estas cifras de rupturas conviven con las de las reimplementaciones al estilo Blackwood y al estilo
+Verhaard, rehechas desde cero, del benchmark hermano, que alcanzan los 430 altos sobre las mismas
+cinco pistas. La concordancia de un motor independiente valida de forma cruzada la maquinaria de
+rupturas aquí.
+
+## Dónde se sitúan los motores de la comunidad: dos rejillas
+
+Blackwood y McGavin son la gama alta de esta misma familia, y ambos se compilan y ejecutan en esta
+máquina, de modo que este estudio los hizo correr tanto en una rejilla fijada como en una no
+fijada, con cada puntuación recalculada canónicamente a partir del tablero propio del motor. El
+resultado es un hallazgo por derecho propio, y tiene dos mitades.
+
+**En la rejilla fijada, se colapsan.** El C de McGavin, compilado con las propias opciones ARM de
+su autor (ajuste nativo más optimización en tiempo de enlace), alcanza la profundidad 211 en el
+puzzle de pista central simple a unos 85 millones de piezas por segundo, muy por delante de nuestro
+motor estricto más rápido, y sin embargo fijar tres esquinas lo colapsa a la profundidad 21, una
+puntuación canónica de 13. Su camino de recorrido generado nunca visita las esquinas pronto, de modo
+que una esquina fijada restringe su vecindad de inmediato y bloquea el camino fijo casi al instante.
+El C# de Blackwood codifica en duro su conjunto de piezas y su recorrido, de modo que ni siquiera
+puede expresar una fijación de esquina arbitraria; sobre la restricción de cinco pistas
+correspondiente, su heurística de rupturas se agita hasta la profundidad 47, una puntuación canónica
+de 75, porque está ajustada para la instancia de una pista, casi sin restricciones, donde se
+estableció su récord de 470.
+
+<Figure title="El colapso al fijar las esquinas: celdas colocadas de 256">
+  <PinCollapseDiagram />
+</Figure>
+
+Ese colapso es justamente el punto. Un motor recordista construido en torno a una configuración de
+pistas no se transfiere a otra, y un camino de recorrido fijo no puede absorber una fijación
+arbitraria. Nuestros motores rehechos desde cero tratan una fijación como una celda pre-colocada que
+el recorrido simplemente salta, razón por la cual son ellos, y no los binarios de la comunidad, los
+sustitutos en la rejilla fijada.
+
+**En una rejilla no fijada equitativa, corren como se diseñaron.** Dad a cada motor las piezas
+oficiales con la única pista central obligatoria, y nada se bloquea en una esquina. En sesenta
+segundos sobre un núcleo, McGavin alcanza 392, nuestro motor de rupturas más fuerte 344, la
+reimplementación de Verhaard 286, y Blackwood 214. Leed esas cifras como lo que un solo núcleo
+compra en un minuto desde arranque en frío, no como el techo de ningún motor: el 470 de Blackwood y
+las ejecuciones profundas de McGavin vinieron de días sobre cientos de núcleos, que este presupuesto
+no puede mostrar. Lo que la rejilla sí muestra es que los cuatro corren correctamente una vez
+desaparecidas las fijaciones que rompen un camino de recorrido fijo, que es exactamente lo que la
+rejilla fijada les negaba a los dos motores ajenos. Ambas rejillas figuran en la clasificación del
+estudio de arriba.
+
+## El hilo conductor
+
+Un tema atraviesa las tres comparaciones: **el número de nodos no es la puntuación.** Las variantes
+más rápidas por nodo (la referencia en codegen y el motor estricto de recorrido por filas) no
+alcanzan los mejores tableros; la más lenta por nodo (MRV con propagación) alcanza otros mucho
+mejores; y las rupturas que ganan lo hacen cambiando *qué* rama es legal, no visitando ramas más
+rápido. La velocidad bruta es un factor constante, mientras que dónde y si a la búsqueda se le
+permite ir es el factor exponencial.

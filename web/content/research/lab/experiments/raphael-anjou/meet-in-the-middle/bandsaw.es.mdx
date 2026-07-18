@@ -1,0 +1,128 @@
+---
+title: BANDSAW
+description: >-
+  Resolver exactamente una banda de filas encontrándose en el medio, para hallar
+  el verdadero mejor final y medir hasta qué punto puede decidirse por
+  anticipado una fin de partida.
+kind: experiment
+contribution: analysis
+author: raphael-anjou
+score: 437
+rigor: proven
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "deterministic exact analysis; the committed example reproduces byte-for-byte"
+  seedPolicy: "none (exact, deterministic)"
+  measured: false
+complexity:
+  time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
+  space: "O(number of top-half partials), the seam/piece-set hash table is the memory bottleneck"
+  note: >-
+    Encontrarse en el medio cambia tiempo por espacio: reemplaza un único
+    recorrido exponencial por dos recorridos más pequeños seguidos de una unión,
+    lo que explica por qué el tamaño de la banda está limitado por la memoria, no
+    por el tiempo.
+repro:
+  kind: exact
+order: 110
+updated: 2026-07-10
+date: 2026-07
+topics: [exact-methods]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/entropy-area-law
+  - /research/build/exact/meet-in-the-middle
+sources:
+  - label: "Encuentro en el medio (la página conceptual de este proyecto): la técnica de las dos mitades y la unión"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/exact/meet-in-the-middle.mdx
+---
+
+import { MeetInMiddleDiagram } from "@/components/research/MeetInMiddleDiagram";
+
+La búsqueda heurística adivina; nunca sabe si tiene el mejor final posible.
+BANDSAW es el experimento opuesto: para una banda de filas cerca del fondo,
+calcula la mejor completación exacta, con una prueba de que nada puntúa más
+alto. El objetivo no es la velocidad, sino la certeza, y esa certeza sirve
+además de regla para medir lo difícil que es realmente la fin de partida.
+
+## Cómo funciona
+
+Se corta la banda en una mitad superior y una mitad inferior. Se enumera cada
+forma de rellenar la mitad superior hasta un pequeño presupuesto de
+desajustes, indexada por dos cosas: qué piezas empleó y la fila de colores que
+deja colgando en la costura. Se enumera la mitad inferior de la misma manera,
+pero solo a partir de las piezas que la mitad superior no usó. Luego se unen
+las dos mitades allí donde sus colores de costura concuerdan y sus conjuntos de
+piezas no se solapan. Esa unión de encuentro en el medio halla la mejor
+completación exacta sin recorrer todo el árbol.
+
+Unas tablas de cotas inferiores exactas, calculadas trabajando hacia atrás
+columna por columna, le permiten podar las ramas que ya no pueden superar el
+presupuesto, y eleva el presupuesto paso a paso hasta que una ronda no
+encuentra nada nuevo, lo que prueba la mejor puntuación para esa banda.
+
+<Figure collapsible title="Interactivo: el árbol de fin de partida por encuentro en el medio">
+  <MeetInMiddleDiagram />
+</Figure>
+
+## El resultado
+
+En un banco de pruebas 10×10, BANDSAW resuelve la fin de partida de forma
+exacta y fija el presupuesto justo donde la exactitud deja de ser asumible: el
+árbol de búsqueda crece unas veinte veces por cada desajuste adicional, en
+ambos lados, de modo que encontrarse en el medio deja de compensar al tamaño
+completo del tablero. Ese resultado negativo es la parte útil: te dice
+exactamente dónde se agotan los métodos exactos y dónde las heurísticas deben
+tomar el relevo. Las piezas exactas que sobrevivieron, las tablas de cotas
+inferiores de sufijo y el branch-and-bound podado, se convirtieron en
+instrumentos reutilizables. Un tablero sin marco que puntúa 437 salió de la
+misma maquinaria.
+
+## Método
+
+La unión es la idea; la poda es lo que la hace asumible.
+
+- **Encuentro en el medio.** Se corta la banda en una mitad superior y una
+  inferior. Se enumera cada relleno de la mitad superior hasta un presupuesto de
+  desajustes, indexado por (conjunto de piezas usado, fila de colores de
+  costura). Se enumera la mitad inferior de la misma forma, tomando solo de las
+  piezas que dejó la mitad superior. Se unen las dos mitades allí donde sus
+  colores de costura concuerdan *y* sus conjuntos de piezas son disjuntos. Esa
+  unión halla la mejor completación exacta sin recorrer nunca el árbol entero:
+  el clásico compromiso tiempo-por-espacio del
+  [encuentro en el medio](/research/build/exact/meet-in-the-middle).
+- **Cotas inferiores de sufijo.** Trabajar hacia atrás columna por columna
+  construye tablas de cotas inferiores exactas, de modo que un parcial que ya no
+  puede superar el presupuesto actual se poda antes de extenderse.
+- **Trinquete de presupuesto.** Se eleva el presupuesto de desajustes un escalón
+  a la vez y se vuelve a resolver; cuando una ronda no encuentra nada mejor, el
+  mejor anterior queda *probado* como óptimo para esa banda. Esa prueba es la
+  razón por la que esta página está etiquetada como **proven**, y no medida: el
+  resultado es un certificado, no una muestra.
+
+El techo medido: cada mitad crece ~20× por unidad adicional de presupuesto, de
+modo que al tamaño completo de tablero 16×16 la tabla de la mitad superior ya no
+cabe; es la memoria, no el tiempo, la que es el muro. Ese resultado negativo es
+el entregable: fija con precisión dónde se agotan los métodos exactos y dónde
+las heurísticas deben tomar el relevo. El tablero 437 sin marco cayó de la misma
+maquinaria.
+
+## Reproducir
+
+Determinista (`kind: exact`): la resolución por encuentro en el medio y su
+prueba de optimalidad se reproducen byte a byte para una banda dada, y el
+tablero 437 es verificable en el visor. El enumerador MITM y las tablas de cotas
+de sufijo están versionados con el código de investigación.
+
+## Preguntas abiertas
+
+¿Pueden las tablas de cotas inferiores escalar a la fin de partida 16×16
+completa, o el espacio de estados de la costura crece demasiado? ¿A qué tamaño
+de banda pasa a ser la memoria, y no el tiempo, el límite? Y los raros casos en
+que la unión del medio sí se dispara, ¿pueden detectarse por anticipado y
+terminarse de forma exacta?

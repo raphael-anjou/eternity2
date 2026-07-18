@@ -1,0 +1,196 @@
+---
+title: Encuentro en el medio
+description: >-
+  Enumerar dos mitades de un problema y unirlas en una interfaz compartida,
+  intercambiando memoria por un exponente reducido a la mitad. El truco clásico
+  de Horowitz–Sahni, qué aspecto tiene sobre bandas del tablero, y qué midió el
+  experimento BANDSAW de este proyecto, incluido el método unilateral que lo
+  superó.
+metaDescription: "Encuentro en el medio en Eternity II: el truco de Horowitz-Sahni que cambia memoria por un exponente a la mitad, sobre bandas del tablero, medido por BANDSAW."
+kind: concept
+order: 40
+group: Exact methods
+updated: 2026-07-02
+topics: [exact-methods]
+sources:
+  - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), el origen clásico'
+    url: https://doi.org/10.1145/321812.321823
+  - label: Ataque de encuentro en el medio (Wikipedia), la rama criptoanalítica de la misma idea
+    url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
+  - label: Búsqueda bidireccional (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Bidirectional_search
+related:
+  - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/build/exact/exact-cover-dlx
+  - /research/build/dead-ends
+---
+
+import { MitmCostLab } from "@/components/research/concepts/MitmCostLab";
+
+El encuentro en el medio es el truco más antiguo para recortar exponentes en la
+búsqueda combinatoria: en lugar de explorar un árbol de profundidad $n$, se
+exploran dos árboles de profundidad $n/2$ y se unen sus hojas en una interfaz
+compartida. Ellis Horowitz y Sartaj Sahni lo introdujeron en 1974 para el
+problema de la mochila, convirtiendo un tiempo $O(2^n)$ en un tiempo
+$O(2^{n/2})$, al precio de almacenar los $2^{n/2}$ resultados de una mitad en
+una tabla indexada de modo que la otra mitad pueda consultarlos allí. La misma
+idea reaparece como el ataque de encuentro en el medio en criptoanálisis (por
+qué el DES doble apenas aporta nada frente al DES simple) y como la búsqueda
+bidireccional en el cálculo de rutas. El patrón es siempre el mismo: dos
+enumeraciones baratas más una unión, en lugar de una única enumeración
+imposible.
+
+## Qué aspecto tiene sobre el tablero
+
+Eternity II ofrece un corte natural: una costura horizontal. Tomemos una banda
+de filas por completar; dividámosla en una mitad superior y una mitad inferior.
+Enumeremos todas las formas de rellenar la mitad superior, indexadas por dos
+cosas: el conjunto exacto de piezas que consumió, y el vector de colores de
+arista que deja colgando en la costura. Enumeremos la mitad inferior de forma
+simétrica. Luego unamos: cualquier par superior/inferior cuyos colores de
+costura coincidan y cuyos conjuntos de piezas sean disjuntos forma un relleno
+completo, hallado sin haber recorrido jamás el árbol de la banda entera.
+
+La cláusula de disjunción es el dolor propio de E2, y no es opcional. En la
+mochila, las dos mitades son independientes por construcción; aquí extraen de un
+único pool de piezas compartido, de modo que las mitades superiores deben
+agruparse por su huella exacta de pool y cada grupo unirse únicamente contra
+mitades inferiores construidas a partir de las piezas complementarias. Descuide
+esa contabilidad y la unión producirá alegremente tableros fantasma que usan una
+pieza dos veces. Acertar con la contabilidad exacta de pools complementarios fue
+una lección de corrección ganada a pulso en el experimento del proyecto que
+figura más abajo.
+
+## El compromiso
+
+El compromiso de manual es tiempo a cambio de memoria: el exponente se reduce a
+la mitad, y la enumeración de una mitad debe conservarse en una tabla hash.
+Sobre el tablero, el estado de interfaz es una fila de colores de arista (16
+celdas de ancho en el puzzle completo) más la huella de pool, de modo que el
+espacio de claves de la tabla crece rápido con el ancho de la banda, y es la
+memoria, no el tiempo, la que suele constituir el primer muro. La unión en sí es
+barata (hashing); todo depende de cuántas entradas debe almacenar cada lado y de
+con qué frecuencia coinciden realmente las firmas de costura.
+
+## Sentir la raíz cuadrada
+
+Los números fijan el compromiso de una manera que la prosa no puede. El
+laboratorio de abajo tiene dos vistas. *El compromiso* coloca las tres facturas
+una junto a otra en una escala logarítmica a medida que se hace crecer el
+problema: tiempo unilateral $2^n$, tiempo MITM $2 \cdot 2^{n/2}$, memoria MITM
+$2^{n/2}$ entradas de tabla. *La unión* hace pasar una microinstancia completa
+($n = 10$, dos mitades de $2^5 = 32$ candidatos cada una) por la fase de
+almacenamiento y la fase de sondeo, para que puedas ver de dónde viene la
+velocidad y a dónde se va la memoria.
+
+<Figure collapsible title="Interactivo: el coste en memoria del encuentro en el medio">
+  <MitmCostLab />
+</Figure>
+
+## Paso a paso
+
+1. **Arrastra $n$ en la vista del compromiso.** Cada $+2$ en el deslizador
+   *cuadruplica* la barra roja unilateral pero solo *duplica* las dos barras
+   MITM. Esa diferencia de un factor dos en la tasa de crecimiento es todo el
+   truco: el exponente se reduce a la mitad, así que en escala logarítmica las
+   barras MITM suben con la mitad de la pendiente.
+2. **Observa cómo llega la barra de memoria.** Hacia $n \approx 56$ la tabla (a
+   unos optimistas 16 bytes por entrada) supera a una máquina de 16 GiB,
+   mientras que la barra de *tiempo* MITM sigue holgada. La memoria golpea el
+   muro primero: el mismo orden de sucesos que registró BANDSAW, donde las
+   entradas reales llevan una huella de pool y un vector de costura y son mucho
+   más pesadas que 16 bytes.
+3. **Cambia a la vista de la unión.** La mitad izquierda enumera sus 32
+   candidatos y almacena cada uno en una tabla hash indexada por su firma de
+   costura (una de 48). Esta es la fase que paga la factura de memoria: el
+   contador bajo *memoria de la tabla* es la factura que va llegando, entrada
+   por entrada.
+4. **La fase de sondeo.** Los 32 candidatos de la mitad derecha llegan uno por
+   tick, y cada uno realiza exactamente una consulta. Un cubo vacío descarta
+   toda una familia de combinaciones en un solo paso; uno ocupado produce una
+   solución unida por cada compañero almacenado, hallada sin recorrer el árbol
+   entero.
+5. **Lee el recuento final.** $2 \cdot 32 = 64$ pasos de enumeración más $32$
+   entradas almacenadas reemplazan a $2^{10} = 1{,}024$ recorridos completos. En
+   Eternity II se cumple la misma aritmética, con la salvedad de que una unión
+   solo cuenta si los colores de costura coinciden *y* los pools de piezas son
+   disjuntos, que es para lo que sirve la contabilidad por agrupación según la
+   huella mencionada más arriba.
+
+## Cuánto cuesta
+
+La contabilidad clásica de Horowitz–Sahni, para un problema de $n$ elecciones
+binarias:
+
+$$
+\underbrace{O(2^n)\ \text{time},\ O(n)\ \text{space}}_{\text{one-sided enumeration}}
+\quad\longrightarrow\quad
+\underbrace{O(2^{n/2})\ \text{time},\ O(2^{n/2})\ \text{space}}_{\text{meet in the middle}}
+$$
+
+(más un factor $\log$ si las mitades se ordenan en vez de hashearse). Nótese qué
+se conserva: el *producto* del tiempo y el espacio se mantiene en torno a $2^n$.
+El encuentro en el medio nunca destruye la exponencial; parte una factura
+impagable en dos más pequeñas, y ambas deben saldarse. La raíz cuadrada del
+tiempo de ejecución se compra con una factura de memoria exponencial, razón por
+la cual el método gana exactamente cuando $2^{n/2}$ entradas todavía caben en
+RAM y pierde en el instante en que dejan de caber.
+
+En Eternity II, el modelo limpio de $n$ elecciones necesita dos correcciones.
+Primero, la interfaz no es un solo número sino un estado ancho (un vector de
+costura de hasta 16 colores de arista más la huella exacta del pool de piezas),
+de modo que las claves de la tabla son grandes, las entradas pesadas, y el muro
+de memoria llega mucho antes del punto de cruce del manual. Segundo, las mitades
+están acopladas a través del pool de piezas compartido, de modo que la unión no
+es un acceso hash gratuito sino un acceso hash *filtrado por pools
+complementarios*. BANDSAW midió la consecuencia: dentro de presupuestos
+pequeños de discordancia ambos lados siguen siendo enumerables y el método es
+exacto, pero cada unidad extra de presupuesto infla ambos árboles en torno a un
+factor veinte por lado, y cerca del horizonte el proyecto pagó por millones de
+mitades superiores almacenadas cuyos cubos ninguna mitad inferior sondeó jamás
+con éxito.
+
+## Qué midió BANDSAW
+
+Este proyecto llevó la idea hasta el final, con rigor, en el
+[experimento BANDSAW](/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw): la mejor
+completación exacta de una banda, unión por encuentro en el medio con
+contabilidad exacta de pools, profundización iterativa sobre el presupuesto de
+discordancia, todo validado en un banco de pruebas 10×10 contra la fuerza bruta.
+Tres hallazgos, medidos sobre el motor de este proyecto y no replicados de forma
+independiente:
+
+- **Funciona, pero solo cerca de la perfección.** Dentro de presupuestos
+  pequeños de discordancia el método es exacto y asequible. Pero cada unidad de
+  presupuesto de discordancia infla los árboles de enumeración en torno a un
+  factor veinte *por lado*, de modo que el régimen donde la exactitud sigue
+  siendo pagable se disuelve al cabo de un puñado de defectos permitidos.
+- **Un método unilateral lo superó.** Armado con las mismas tablas de cotas
+  inferiores exactas (cotas de sufijo min-plus calculadas columna por columna),
+  un simple branch-and-bound con profundización iterativa demostró la
+  optimalidad en unos 12 segundos en un peldaño donde la unión bidireccional no
+  terminó. El MITM paga la enumeración completa de *ambas* mitades incluso
+  cuando bastaría un único óptimo más una prueba de agotamiento; cerca del
+  horizonte de decidibilidad su unión casi nunca se disparó: millones de mitades
+  superiores almacenadas, cero mitades inferiores concordantes, ambas facturas
+  pagadas por nada.
+- **Los productos duraderos fueron las cotas.** Lo que sobrevivió al experimento
+  no fue la unión sino las tablas de cotas inferiores admisibles y los
+  certificados de presupuesto exactos que estas habilitan, instrumentos ahora
+  usados en otros lugares. La conclusión registrada fue tajante: ningún
+  despliegue del encuentro en el medio al tamaño del tablero completo.
+
+## Límites, y qué queda abierto
+
+La lección general coincide con la literatura clásica: el encuentro en el medio
+gana cuando la interfaz es estrecha, las mitades son verdaderamente
+independientes, y basta una respuesta de resuelto/no resuelto. Eternity II pone
+a prueba las tres condiciones: la costura porta un vector de colores ancho, el
+pool de piezas compartido acopla las mitades, y la partida por el récord se
+juega a crédito parcial, lo que vuelve a inflar ambos árboles. Lo que queda
+genuinamente sin probar aquí es el primo *heurístico*: dos haces creciendo desde
+los bordes opuestos del tablero, filtrados en cruz por hashes de sus colores de
+costura, encontrándose en una fila central. Ese diseño quedó escrito en este
+proyecto pero nunca se ejecutó; si la poda bidireccional ayuda a un haz tanto
+como hace fracasar una unión exacta es una pregunta abierta, no un veredicto.

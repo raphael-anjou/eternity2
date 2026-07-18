@@ -1,0 +1,327 @@
+---
+title: Órdenes de relleno
+description: >-
+  El orden en que un algoritmo de backtracking visita las 256 celdas es su
+  única libertad: no cuesta nada en tiempo de ejecución y mueve el tamaño del
+  árbol de búsqueda en varios órdenes de magnitud. Veinte años de ciencia
+  comunitaria, desde las guerras entre fijo y dinámico y las carreras de
+  estrategias hasta el cuadrado mágico 10×16 y la búsqueda en peine de
+  Verhaard, responden todos a la misma pregunta: ¿qué camino a través del
+  tablero es el más barato?
+metaDescription: "El orden en que un backtracking visita las 256 celdas mueve el tamaño del árbol de búsqueda: fijo contra dinámico, el cuadrado 10×16 y el peine de Verhaard."
+kind: concept
+order: 110
+group: Backtracking
+updated: 2026-07-02
+topics: [backtracking, search-space]
+sources:
+  - label: El «mejor orden de búsqueda» de Owen, el barrido casi óptimo y el argumento por conteo de formas (septiembre de 2007)
+    url: https://groups.io/g/eternity2/message/2714
+  - label: El debate entre fijo y dinámico, donde los caminos fijos ganan empíricamente (msg 2392; el veredicto de Owen, msg 2425)
+    url: https://groups.io/g/eternity2/message/2392
+  - label: Velocidad, la respuesta de istarinz en una palabra a por qué ganan los caminos fijos (septiembre de 2008)
+    url: https://groups.io/g/eternity2/message/5860
+  - label: El «cuadrado mágico 10×16» de Verhaard (msg 5868; la explicación en profundidad 160 es el msg 5879)
+    url: https://groups.io/g/eternity2/message/5868
+  - label: Max mide las orientaciones de barrido, 2,3 contra 2,7 × 10⁴⁰ nodos (octubre de 2008; el hilo empieza en el msg 6015)
+    url: https://groups.io/g/eternity2/message/6023
+  - label: El experimento de diseño de Owen que muestra que el barrido gana solo porque la partición 5/17 de E2 está equilibrada (msg 5263; tablas msg 5243)
+    url: https://groups.io/g/eternity2/message/5263
+  - label: Verhaard revela la búsqueda en peine para las puntuaciones altas (octubre de 2008)
+    url: https://groups.io/g/eternity2/message/6112
+  - label: El orden de puntuación alta de Max, casi idéntico, doce filas y luego columnas (octubre de 2008)
+    url: https://groups.io/g/eternity2/message/6126
+  - label: La carrera de estrategias de 89.794 nodos, diseño de orden automatizado contra ajuste manual (msg 2896; la réplica msg 2928)
+    url: https://groups.io/g/eternity2/message/2896
+  - label: La cadena de Markov de Verhaard, optimizando conjuntamente el orden de relleno y el arreglo de deslizamientos (enero de 2009)
+    url: https://groups.io/g/eternity2/message/6423
+  - label: "El duelo 8×8 de Markus Zajc, el valor restante mínimo bate al barrido que bate a la reducción máxima (septiembre de 2008)"
+    url: https://groups.io/g/eternity2/message/5918
+related:
+  - /research/why/complex-theory
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/joshua-blackwood/solver
+---
+
+import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
+
+Un algoritmo de backtracking apenas tiene libertad. Las piezas están dadas, la
+regla de emparejamiento está dada, el tablero está dado. Lo único que depende
+enteramente de ti es el *orden de relleno*: la secuencia en que se rellenan las
+256 celdas. Parece un detalle (la búsqueda es exhaustiva de cualquier modo), y
+en realidad es la decisión de mayor apalancamiento de todo el solucionador.
+Brendan Owen lo dijo sin rodeos en 2007: «Uno de los mayores ahorros de conteo
+de nodos que puedes lograr consiste en elegir un buen orden de búsqueda»
+([msg 2714](https://groups.io/g/eternity2/message/2714)). El mismo puzzle,
+recorrido en un orden distinto, puede costar diez órdenes de magnitud más de
+nodos. Y la elección es gratuita, decidida antes de colocar la primera pieza.
+
+Por eso la lista de correo lo debatió durante veinte años. El primer gran
+debate, en el verano de 2007, fue *fijo contra dinámico*: los veteranos de
+Eternity I abogaban por elegir dinámicamente, en cada paso, la celda más
+restringida, la heurística CSP clásica
+([msg 2392](https://groups.io/g/eternity2/message/2392)). Los empiristas
+respondieron con conteos de nodos: los mejores resultados venían de caminos
+fijos, precalculados, y el veredicto de Owen fue que «un barrido por líneas
+después de colocar la pieza pista parece lo mejor»
+([msg 2425](https://groups.io/g/eternity2/message/2425)). Un año más tarde,
+cuando le preguntaron por qué nadie se molestaba con la colocación
+completamente dinámica, istarinz comprimió la mitad de ingeniería de la
+respuesta en una palabra, velocidad: un camino fijo mantiene el bucle interno
+sin ramificaciones y guiado por tablas
+([msg 5860](https://groups.io/g/eternity2/message/5860)). La mitad teórica
+tardó más, y es el tema de esta página.
+
+## El punto de vista del conteo de restricciones
+
+Una idea que subyace a todo lo demás: la colocación de una pieza solo se
+comprueba jamás contra los vecinos *ya presentes en el tablero*. Una cuadrícula
+16×16 tiene exactamente 480 uniones internas, y todo orden de relleno completo
+(barrido por líneas, espiral, lo que sea) acaba comprobando las 480. El orden
+solo cambia la *planificación*: qué uniones se pagan temprano, mientras el árbol
+sigue siendo estrecho, y cuáles se posponen hasta donde es ancho. Una celda que
+llega con dos vecinos ya colocados admite pocas piezas candidatas; una celda que
+llega sin ninguno las admite casi todas y no poda nada. Los buenos órdenes son
+los que alimentan a la búsqueda con una dieta constante de celdas restringidas,
+que es exactamente lo que hace un barrido por líneas: tras la primera fila, casi
+cada celda nueva toca una pieza a su izquierda y una pieza debajo.
+
+Owen lo convirtió en un método. Para un orden fijo, los nodos a la profundidad
+$D$ son (en esperanza) el número de formas de teselar la *forma* que el orden ha
+construido a la profundidad $D$. Cualquier orden candidato puede por tanto
+puntuarse, forma a forma, sin ejecutarlo. Su conclusión, extraída de hacerlo de
+manera exhaustiva: las formas que dominan el total son las de tamaños 121 a 185,
+y las mejores formas en esa ventana crítica «forman un simple orden de barrido
+por líneas» ([msg 2714](https://groups.io/g/eternity2/message/2714)). Toda la
+maquinaria, probabilidades de unión incluidas, se convirtió en la
+[teoría compleja](/research/why/complex-theory); esta página muestra a qué se
+parecen sus respuestas en la práctica.
+
+El laboratorio de abajo hace visible la planificación. Anima la secuencia de
+visita de cuatro órdenes predefinidos sobre una cuadrícula 16×16 y traza, en
+directo, el conteo de restricciones (cuántos vecinos ya colocados tiene cada
+celda nueva) junto con el acumulado de uniones recogidas. (Muestra la
+*geometría*; para hacer correr resoluciones reales a lo largo de caminos que
+tú mismo dibujas, el complemento práctico es el
+[campo de juego de caminos de búsqueda](/playground/paths).)
+
+<Figure collapsible title="Interactivo: orden de relleno contra ramificación">
+  <FillOrderLab />
+</Figure>
+
+## Lo que la comunidad midió
+
+**Las carreras de estrategias.** A finales de 2007 la pregunta se había vuelto
+cuantitativa: puzzles de referencia compartidos, conteos de nodos en búsqueda
+completa y un marcador público. La cima del estilo fue el algoritmo
+completamente automático de búsqueda de estrategias de doc_s_smith, que diseñó
+un orden de búsqueda que agotó el benchmark de tamaño 14 `hints15_2` en 89.794
+nodos, batiendo los 141.628 ajustados a mano de Txibilis: la máquina sobre el
+humano ([msg 2896](https://groups.io/g/eternity2/message/2896)). Txibilis
+contraatacó en dos días con 85.729
+([msg 2928](https://groups.io/g/eternity2/message/2928)); doc_s_smith ya venía
+reflexionando sobre por qué los humanos son tan fuertes en esta disciplina
+([msg 2883](https://groups.io/g/eternity2/message/2883)). La lección que
+sobrevivió a la carrera: la calidad de un orden es medible, y las diferencias
+nunca son pequeñas.
+
+**Dinámico contra fijo, medido.** El argumento entre fijo y dinámico de 2007
+obtuvo una pequeña prueba controlada en septiembre de 2008. Markus Zajc ejecutó
+tres órdenes sobre el 8×8 sin pistas, cada uno sobre diez órdenes de piezas
+aleatorizados para cancelar los efectos del orden de entrada, todos bajo un
+resolvedor de restricciones: barrido simple, un orden por valor restante mínimo
+que toma siempre la celda con menos candidatos, y un orden por reducción máxima
+que toma la celda cuya colocación poda más. El valor restante mínimo ganó; el
+barrido quedó segundo pero oscilaba con el orden de entrada (su mejor ejecución
+seguía siendo ~2× el ganador); la reducción máxima quedó última, porque sembrar
+temprano el interior abierto compra un gran primer corte pero luego un factor de
+ramificación castigador en cada retroceso
+([msg 5918](https://groups.io/g/eternity2/message/5918); los volcados de
+dominios por orden están en su carpeta del área de archivos). Es un tablero
+pequeño, pero es el duelo más limpio de la heurística CSP clásica contra un
+barrido fijo, y aterriza donde aterrizan los conteos de nodos posteriores de la
+comunidad: el valor reside en alimentar a la búsqueda con celdas restringidas,
+ya sea una regla dinámica o un buen camino fijo el que te lleve allí.
+
+**La victoria del barrido es un hecho sobre el diseño de E2.** En abril de 2008
+Owen construyó puzzles 16×16 con el equilibrio de colores borde/interior
+deliberadamente inclinado (2 colores de borde y 19 de interior, luego 14 y 15) y
+puntuó los órdenes barrido, centro primero y borde primero en cada uno. Los
+diseños inclinados son atacables: el centro primero bate al barrido en ~150× en
+el diseño 2/19, el borde primero gana en el 14/15. En la partición 5/17 real de
+E2, toda desviación *pierde*: el centro primero cuesta $1,22\times10^{60}$ nodos
+frente a los $1,07\times10^{50}$ del barrido, porque el diseño equilibra la
+teselabilidad del borde y del interior, dando al puzzle «ninguna zona débil por
+la que empezar a teselar»
+([msg 5263](https://groups.io/g/eternity2/message/5263),
+[5243](https://groups.io/g/eternity2/message/5243)). El barrido por líneas no es
+una ley de la naturaleza; es la respuesta correcta a un diseño específico y
+adversario.
+
+**El cuadrado mágico 10×16.** ¿Por qué el barrido por líneas y no, digamos, un
+orden por bloques 4×4? La regla empírica de la forma de frontera de Louis
+Verhaard: la mayoría de los órdenes alcanzan su máximo de conteo de nodos en
+torno a la profundidad 160, así que lo que importa es la forma que tu orden ha
+construido *ahí*, y la mejor forma conocida en profundidad 160 para E2 es un
+rectángulo 10×16 (con dos esquinas rellenas). Los órdenes cuya frontera pasa por
+«el cuadrado mágico 10×16» son casi óptimos; un barrido por bloques 2×2 lo hace,
+un 4×4 no, que es exactamente la brecha que Max acababa de medir
+([msg 5868](https://groups.io/g/eternity2/message/5868),
+[5879](https://groups.io/g/eternity2/message/5879)). Esta es la pieza que la
+curva de conteo de restricciones por sí sola no puede ver: dos órdenes pueden
+pagar uniones según la misma planificación y aun así diferir por el perímetro de
+la región que construyen.
+
+**Por qué «resolver el borde primero» es una trampa.** El instinto humano más
+natural, construir el marco fácil y luego rellenar el medio, es
+cuantitativamente uno de los peores órdenes, y en 2025 Owen y Peter McGavin
+detallaron por qué, precisamente sobre este pico en profundidad 160. El borde es
+realmente fácil: tras la pieza de partida hay unas $5,17\times10^{37}$ formas de
+completarlo, de las cuales solo 14.702 pueden rellenarse con las 196 piezas de
+interior, de modo que unos $3,5\times10^{33}$ marcos deben probarse antes de que
+uno siquiera *pueda* terminar
+([msg 11572](https://groups.io/g/eternity2/message/11572)). Eso por sí solo es
+desesperante, pero no es el verdadero problema. El problema es que con el marco
+fijado primero, el conteo de nodos sigue *subiendo* después del borde hasta un
+pico de unos $10^{57}$ hacia las 160 piezas, frente a unos $10^{43}$ del barrido
+por filas. Un orden borde primero se compromete temprano con el borde y luego se
+mete de lleno en un pico catorce órdenes de magnitud más alto que el del barrido
+por filas, porque solo alrededor de 1 marco de cada $10^{31}$ lleva a alguna
+parte y cada uno es caro de descartar
+([msg 11573](https://groups.io/g/eternity2/message/11573)). El barrido por
+líneas no gana construyendo una frontera más bonita, sino no pagando nunca por
+un borde que aún no puede saber que está condenado.
+
+**Pero ¿qué barrido?** Incluso dentro de los barridos por filas hay ocho
+orientaciones: cuatro esquinas de partida, filas o columnas
+([msg 6018](https://groups.io/g/eternity2/message/6018)). Max ejecutó durante
+varios días estimaciones por muestreo del tamaño del árbol completo por
+orientación: de derecha a izquierda se mantuvo estable justo por debajo de
+$2,7\times10^{40}$ nodos, mientras que de abajo arriba, de izquierda a derecha
+(la orientación que conecta más pronto la pieza de partida obligatoria, y la que
+Verhaard ya usaba) salió en torno a $2,3\times10^{40}$
+([msg 6015](https://groups.io/g/eternity2/message/6015),
+[6023](https://groups.io/g/eternity2/message/6023)). Una elección de folclore
+convertida en un ~15% medido: minúsculo al lado de los órdenes de magnitud de
+arriba, pero gratis.
+
+**Desviaciones que pagaron.** La ortodoxia del orden de barrido se puso a prueba
+constantemente, y en su mayoría ganó, pero no siempre. El propio Owen resolvió
+su desafío 14×14 con un orden de *cuadrados decrecientes* después de que el
+barrido se atascara; en tableros irregulares el argumento de equilibrio ya no se
+sostiene ([msg 3124](https://groups.io/g/eternity2/message/3124)). Se propusieron
+híbridos que empiezan como cuadrados crecientes (más baratos al principio) y
+cambian al barrido antes del pico de profundidad media
+([msg 6142](https://groups.io/g/eternity2/message/6142)). Y Max encontró una
+mejora genuina dentro del barrido: al comienzo de una fila, los candidatos de
+borde que difieren únicamente en su segundo color de borde no emparejado son
+equivalentes: refuta uno y los has refutado todos. Verhaard, encantado
+(«¡Por fin algo que bate al simple barrido por filas!»), la implementó y
+confirmó ~10% del espacio de búsqueda eliminado a un coste casi nulo
+([msg 5980](https://groups.io/g/eternity2/message/5980),
+[5983](https://groups.io/g/eternity2/message/5983),
+[6062](https://groups.io/g/eternity2/message/6062)).
+
+### La búsqueda en peine: la geometría de las puntuaciones altas
+
+Todo lo anterior optimiza una búsqueda *completa*, cuyo conteo de nodos culmina
+cerca de la profundidad 161. En octubre de 2008, mientras guardaba en privado
+los tableros que ganarían el premio de escrutinio de 10.000 dólares, Verhaard
+respondió a una pregunta distinta de Owen: ¿cuál es el mejor orden cuando
+persigues una *puntuación* parcial y por tanto vives mucho más profundo en el
+tablero ([msg 6111](https://groups.io/g/eternity2/message/6111))? Su respuesta
+nombraba una geometría: los mejores órdenes que había encontrado se parecen a
+una **búsqueda en peine** (la mayoría de las filas recorridas horizontalmente, y
+luego las filas restantes recorridas verticalmente), con la longitud de los
+dientes ligada al objetivo: «Cuanto más baja sea la puntuación que persigues, más
+largos se vuelven los dientes del peine»
+([msg 6112](https://groups.io/g/eternity2/message/6112)). Max había convergido de
+forma independiente hacia casi el mismo orden (doce filas de barrido, luego
+barrido por columnas) y reportó puntuaciones «aproximadamente 1 arista más bajas»
+que lo que lograba el solucionador de Louis
+([msg 6126](https://groups.io/g/eternity2/message/6126)).
+
+La intuición: una búsqueda completa debe cruzar el cuello de botella de la
+profundidad 160 lo más barato posible; una búsqueda de puntuación alta, en
+cambio, quiere muchas maneras baratas de *terminar*. Cada diente vertical es una
+columna corta, casi independiente, cuyos fallos son locales, de modo que
+fronteras profundas y de puntuación alta se alcanzan una y otra vez. El peine
+era una de las dos mitades de la máquina detrás del 467; la otra mitad, el
+[deslizamiento de aristas con umbral de profundidad](/research/build/reduce/edge-slipping),
+decidía qué se les permitía colocar a los dientes. Y las dos se ajustaron
+*conjuntamente*: Verhaard optimizó el orden de relleno y el arreglo de
+deslizamientos juntos con una cadena de Markov sobre (profundidad, deslizamientos
+usados), construida a partir de probabilidades de ajuste por profundidad medidas
+([msg 6423](https://groups.io/g/eternity2/message/6423)). Diseño de orden por
+cálculo, no por folclore. El motor completo está en
+[la página eii de Verhaard](/research/lab/experiments/louis-verhaard/eii).
+
+## Paso a paso
+
+1. **Observa el barrido por filas.** Tras la primera fila, casi cada colocación
+   encuentra exactamente dos vecinos colocados: a la izquierda y debajo. La
+   curva de restricciones se aplana en 2, y el acumulado de uniones sube de
+   forma constante: la búsqueda paga a medida que avanza.
+2. **Cambia a la espiral.** Todo el primer anillo (60 colocaciones) llega con
+   como mucho un vecino colocado: sesenta elecciones casi sin restricción
+   apiladas antes de que el interior empiece a devolverlas. La línea acumulada
+   se hunde por debajo de la referencia del barrido por filas exactamente donde
+   el árbol menos se lo puede permitir.
+3. **Prueba la diagonal.** Sorpresa: los conteos se parecen casi a los del
+   barrido por filas. Este es el límite del punto de vista por conteo de vecinos:
+   la frontera de la diagonal es más larga que la de un barrido durante buena
+   parte del medio juego, un efecto de forma que solo la
+   [teoría compleja](/research/why/complex-theory) (o la regla mágica del 10×16)
+   puede puntuar.
+4. **Selecciona el peine con dientes de 4.** Doce filas de barrido, luego dientes
+   verticales, el orden de Max del
+   [msg 6126](https://groups.io/g/eternity2/message/6126). Fíjate en el pequeño
+   acantilado en cada nuevo diente: la primera columna paga una celda débil, de 1
+   vecino, en su base, el precio de la geometría de las puntuaciones altas.
+5. **Alarga los dientes.** Una mayor parte del tablero pasa a modo vertical y las
+   colocaciones débiles se multiplican. Ese es el compromiso de Verhaard, dicho
+   visualmente: cuanto más baja sea la puntuación que persigues (cuantos más
+   deslizamientos permitas), más largos serán los dientes que puedes permitirte.
+6. **Luego hazlo correr de verdad.** El
+   [campo de juego de caminos de búsqueda](/playground/paths) te permite dibujar
+   cualquiera de estos caminos, o el tuyo propio, sobre un puzzle real y ver a
+   los solucionadores correrlos en carrera, con una estimación de pico de meseta
+   en directo al lado.
+
+## Lo que cuesta
+
+En tiempo de ejecución, nada: un orden de relleno fijo es un arreglo precalculado
+de 256 índices de celda, y «elegir la siguiente celda» es un incremento de
+índice: $O(1)$, cero ramificaciones, que es precisamente el argumento de
+velocidad que mató al ordenamiento dinámico para E2
+([msg 5860](https://groups.io/g/eternity2/message/5860)). Todo el coste y todo el
+beneficio residen en el árbol que el orden induce:
+
+- **Entre familias de órdenes, órdenes de magnitud.** El centro primero en E2 es
+  $10^{10}$ veces más caro que el barrido
+  ([msg 5263](https://groups.io/g/eternity2/message/5263)); un orden por bloques
+  4×4 cuesta ~70× sobre el barrido 1×1 según las estimaciones de teoría compleja
+  de Max, la brecha que resume la regla mágica del 10×16
+  ([msg 5867](https://groups.io/g/eternity2/message/5867)).
+- **Dentro de una familia, porcentajes medibles.** Abajo-arriba-izquierda-derecha
+  contra barrido de derecha a izquierda: ~15%
+  ([msg 6023](https://groups.io/g/eternity2/message/6023)); poda por equivalencia
+  de piezas de borde: ~10%
+  ([msg 6062](https://groups.io/g/eternity2/message/6062)). Vale la pena tenerlo,
+  nunca decisivo.
+- **Elegir mal es invisible.** Un mal orden no produce ningún error, solo un
+  árbol $10^{10}$ veces más grande, en silencio. Por eso el verdadero avance de
+  la comunidad no fue ningún orden en particular, sino la capacidad de *puntuar
+  un orden antes de ejecutarlo*: los conteos de formas de Owen, luego la
+  [teoría compleja](/research/why/complex-theory), luego el ajuste por cadena de
+  Markov de Verhaard combinando orden y calendario de deslizamientos
+  ([msg 6423](https://groups.io/g/eternity2/message/6423)).
+
+Cada motor récord desde entonces ha tratado el orden como un objeto diseñado y
+calculado: el peine-más-arreglo-de-deslizamientos de Verhaard
+([eii](/research/lab/experiments/louis-verhaard/eii)), el barrido inferior-
+izquierdo elegido por teoría compleja de McGavin, y el orden de barrido fijo bajo
+los cortes con umbral de profundidad de
+[Blackwood](/research/lab/experiments/joshua-blackwood/solver). Veinte años de
+ciencia del orden de barrido se condensan en una sola instrucción: antes de
+gastar una sola hora-CPU, gasta un milisegundo puntuando el camino.

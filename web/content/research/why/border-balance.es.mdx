@@ -1,0 +1,87 @@
+---
+title: El equilibrio del borde
+description: >-
+  Un tablero resuelto esconde una sencilla ley contable: cada color que el borde
+  entrega al interior, el interior se lo devuelve al instante. Rómpela y sabrás
+  de inmediato que el tablero es incorrecto; respetarla, en cambio, no garantiza
+  nada.
+metaDescription: "El equilibrio del borde en Eternity II: cada color que el borde da al interior, el interior lo devuelve. Romperlo delata un tablero erróneo; cumplirlo no basta."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 3
+order: 120
+updated: 2026-07-02
+topics: [search-space, structure]
+sources:
+  - label: Equilibrio de los tipos de arista del borde observado en el verano de lanzamiento (angwin_uk, agosto de 2007)
+    url: https://groups.io/g/eternity2/message/2073
+  - label: 'La condición de borde más fuerte de mjqxxxx: recuentos pares, repartidos a partes iguales entre aristas izquierda y derecha (agosto de 2007)'
+    url: https://groups.io/g/eternity2/message/2098
+  - label: Observación de Brendan Owen sobre el emparejamiento de recuentos de aristas en los juegos plantados (junio de 2007)
+    url: https://groups.io/g/eternity2/message/422
+  - label: Enunciado de Hopfer (2022) de la condición de igualdad de multiconjuntos (groups.io msg 10754)
+    url: https://groups.io/g/eternity2/message/10754
+  - label: 'Reformulación nítida de Hopfer: la misma mezcla de imágenes internas en las 56 piezas de borde (msg 10757)'
+    url: https://groups.io/g/eternity2/message/10757
+related:
+  - /research/why/rare-color-geography
+  - /research/why/forbidden-patterns
+  - /research/why/no-forced-moves
+---
+
+import { Ns1Lab } from "@/components/research/Ns1Lab";
+
+Fíjate solo en la costura entre el anillo exterior de piezas de borde y el
+primer anillo de piezas interiores. Cada arista que cruza esa costura muestra un
+color, contado una vez desde el lado del borde y una vez desde el lado del
+interior. En cualquier solución completa los dos recuentos son idénticos: el
+multiconjunto de colores que el borde presenta hacia dentro iguala exactamente
+al multiconjunto que el interior presenta hacia fuera.
+
+Llamemos **déficit** a ese desequilibrio, $\Delta$: la mitad del desajuste total
+entre los dos recuentos. Un tablero terminado y correcto tiene $\Delta = 0$. Las
+cuatro soluciones completas conocidas, sobre cuatro juegos de piezas distintos,
+la satisfacen todas exactamente. Así, $\Delta > 0$ es un certificado de que un
+tablero nunca podrá completarse: una condición necesaria, real y de bajo coste.
+
+## La ley, en una línea
+
+A través de la costura borde↔interior, los colores que el borde muestra hacia
+dentro y los colores que el interior muestra hacia fuera forman el mismo
+multiconjunto. Escribiendo $A[c]$ y $B[c]$ para los dos recuentos por color:
+
+$$
+\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
+$$
+
+## Verlo en un tablero real
+
+Un tablero 8×8 resuelto parte en equilibrio ($\Delta = 0$). Levanta una pieza de
+borde y observa qué colores se desequilibran, y cómo trepa el déficit. Prueba
+luego el botón de intercambio, y observa la trampa.
+
+<Figure collapsible title="Interactivo: el déficit de equilibrio del borde NS-1">
+  <Ns1Lab />
+</Figure>
+
+## La trampa, y por qué importa
+
+Intercambiar dos piezas de borde deja $\Delta$ en 0. El intercambio mueve
+colores a lo largo de la costura sin modificar ninguno de los dos recuentos, de
+modo que el invariante es ciego a ello. Peor aún, en una casi-solución la mayor
+parte de los errores restantes no están en la costura del borde en absoluto. Se
+asientan de interior a interior, allí donde NS-1 nunca mira: en los tableros de
+la clase 469, más del 85 % de las aristas no emparejadas le resultan invisibles.
+
+Ahí está toda la textura de Eternity II en miniatura. Una comprobación por
+limpia que sea nunca dice más que "definitivamente roto", jamás "definitivamente
+correcto". El puzzle resiste todo certificado barato de progreso.
+
+## ¿Es útil, entonces?
+
+Sí, como podador de fin de búsqueda. Una vez que el solucionador ha cerrado el
+anillo de borde, imponer $\Delta = 0$ rechaza entre el 10 y el 28 % de los
+callejones sin salida profundos al precio de una sola pasada sobre las 56
+aristas de la costura. Es necesario-pero-laxo: descarta los estados malos a bajo
+coste y deja intacta la parte difícil, el interior.

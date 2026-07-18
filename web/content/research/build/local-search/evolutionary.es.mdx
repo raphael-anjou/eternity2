@@ -1,0 +1,292 @@
+---
+title: Enfoques evolutivos y genéticos
+description: >-
+  Criar una población de tableros, conservar los más aptos, recombinar a los
+  supervivientes. La metáfora más natural de la caja de herramientas, y el único
+  método cuyo operador central, el cruce, choca de frente con la estructura de
+  Eternity II. El registro completo de lo que la comunidad crió, midió y
+  abandonó.
+metaDescription: "Enfoques evolutivos de Eternity II: por qué el cruce choca de frente con la estructura del puzzle, y qué midió y abandonó la comunidad."
+kind: concept
+order: 200
+group: Local search
+updated: 2026-07-02
+topics: [local-search, learning]
+sources:
+  - label: "El plan completo de GA de simon.chapple: genoma en espiral, genes restringidos por clase, fitness (groups.io message 302)"
+    url: https://groups.io/g/eternity2/message/302
+  - label: El estudio de GA de dos semanas de Steve Moyer, «El cruce parece no tener impacto» (groups.io message 565)
+    url: https://groups.io/g/eternity2/message/565
+  - label: "cambdacambda: el cruce no es útil; población x10 = CPU x10, las mismas iteraciones (groups.io message 578)"
+    url: https://groups.io/g/eternity2/message/578
+  - label: "sam_maes: la mutación es obvia, un operador de cruce plausible no lo es (groups.io message 1468)"
+    url: https://groups.io/g/eternity2/message/1468
+  - label: sam_maes sobre el verdadero problema, las buenas soluciones parciales son difíciles de combinar (groups.io message 1492)
+    url: https://groups.io/g/eternity2/message/1492
+  - label: "TD: mezclar dos padres es mezclar dos permutaciones; duplicados, huecos y la idea de reparación (groups.io message 1500)"
+    url: https://groups.io/g/eternity2/message/1500
+  - label: El estancamiento del GA de mobaladje cerca de 406/480 (groups.io message 2360)
+    url: https://groups.io/g/eternity2/message/2360
+  - label: La receta clásica de mobaladje, y desajustes repartidos uniformemente por el tablero (groups.io message 2516)
+    url: https://groups.io/g/eternity2/message/2516
+  - label: "Lyman: dos soluciones parciales probablemente necesiten las mismas piezas en lugares distintos (groups.io message 2591)"
+    url: https://groups.io/g/eternity2/message/2591
+  - label: El esbozo de cruce-reparación de Lyman, con su propio veredicto (groups.io message 2612)
+    url: https://groups.io/g/eternity2/message/2612
+  - label: El híbrido backtracker+GA de antminder, 462/480 en aproximadamente un día con un operador de reparación de Munkres (groups.io message 5589)
+    url: https://groups.io/g/eternity2/message/5589
+  - label: Pierre Schaus explica el vecindario de asignación óptima detrás de esa reparación (groups.io message 5601)
+    url: https://groups.io/g/eternity2/message/5601
+  - label: antminder lo archiva; una semana para llegar a 463, y el eii de Verhaard «lo aplasta por completo» (groups.io message 5950)
+    url: https://groups.io/g/eternity2/message/5950
+  - label: La autopsia de 2011 de jagbrain sobre por qué las suposiciones de GA/SA fallan en este espacio de búsqueda (groups.io message 8257)
+    url: https://groups.io/g/eternity2/message/8257
+  - label: Niang, Solving the Eternity II Puzzle using Evolutionary Computing Techniques (tesis de MASc, Concordia, 2011)
+    url: https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf
+  - label: Wauters, Vancroonenburg & Vanden Berghe, A guide-and-observe hyper-heuristic approach to the Eternity II puzzle (JMMA 11, 2012)
+    url: https://link.springer.com/article/10.1007/s10852-012-9178-4
+related:
+  - /research/build/local-search/local-search-alns
+  - /research/build/dead-ends
+  - /research/why/sigma-cycles
+---
+
+import { CrossoverClashLab } from "@/components/research/concepts/CrossoverClashLab";
+
+Diez días después del lanzamiento del puzzle, la lista de correo ya tenía sobre
+la mesa un diseño completo de algoritmo genético: numerar las piezas, ensartar
+el tablero en un genoma en espiral que parte de la pieza-pista, puntuar la
+conectividad, criar
+([groups.io message 302](https://groups.io/g/eternity2/message/302)). Es la
+metáfora más natural de la caja de herramientas: una población de tableros, la
+supervivencia de los mejor emparejados, hijos que heredan buenos fragmentos de
+dos buenos padres. En los años siguientes la comunidad construyó estos
+solucionadores, los midió con cuidado, y vio cómo cada uno de ellos se estancaba
+en los 400 bajos mientras simples backtrackers los adelantaban sin esfuerzo.
+Esta página enseña la receta, y luego la razón de su fracaso. Esa razón merece
+entenderse bien, porque no es que «los GA sean débiles» sino un choque
+estructural preciso entre el cruce y los problemas de permutación. A partir de
+ahí, la página sigue las ideas que sobrevivieron hasta las páginas donde viven
+hoy.
+
+## La receta sobre un tablero
+
+Un algoritmo genético necesita cuatro ingredientes, y Eternity II ofrece cada
+uno casi con demasiada facilidad:
+
+1. **Genoma.** Una solución candidata codificada para la reproducción. Aquí: una
+   asignación de las 256 piezas a las 256 celdas, más una rotación para cada una
+   (de forma equivalente, una permutación de la lista de piezas). El plan de
+   Chapple, ya en la semana del lanzamiento, ensartaba las celdas en una espiral
+   que parte de la pieza-pista hacia fuera, con los genes de borde y de esquina
+   restringidos a piezas de borde y de esquina
+   ([message 302](https://groups.io/g/eternity2/message/302)); la mayoría de las
+   implementaciones posteriores usaron directamente el tablero plano.
+2. **Fitness.** Contar las aristas emparejadas, la misma puntuación de 0 a 480 en
+   la que está denominada la [escala de récords](/research/records). El
+   solucionador de mobaladje era exactamente ese bucle clásico: generar una
+   población aleatoria, evaluar, seleccionar los mejores, cruzarlos, mutar un
+   poco, repetir
+   ([message 2516](https://groups.io/g/eternity2/message/2516)).
+3. **Mutación.** Intercambiar dos piezas, rotar una en su sitio, revolver un
+   pequeño parche. Todos coincidían en que esta parte era fácil: «los operadores
+   de mutación son obvios», como lo formuló el primer hilo serio sobre GA
+   ([message 1468](https://groups.io/g/eternity2/message/1468)).
+4. **Cruce.** Tomar dos padres de alta puntuación y producir un hijo que herede
+   de ambos. Este es el ingrediente que hace que un GA sea un GA en lugar de una
+   población de escaladores de colinas, y en este puzzle es donde todo se
+   tuerce.
+
+## El problema central: el cruce sobre una permutación
+
+La promesa del cruce es la recombinación de bloques de construcción: una
+criatura que sobresale volando y otra que sobresale nadando podrían producir una
+que hace ambas cosas. Lyman Hurd enunció la premisa en la lista (y su propia
+duda) en una sola frase: dos soluciones parciales probablemente necesiten *las
+mismas piezas en lugares distintos*
+([message 2591](https://groups.io/g/eternity2/message/2591)).
+
+Concretémoslo. Un genoma es una permutación de 256 piezas. Tome dos buenos
+padres y córtelos en un punto (o mézclelos uniformemente): el hijo conserva las
+celdas 1 a $k$ del padre A y el resto del padre B. Como los padres disponen las
+*mismas* piezas de forma distinta, el hijo ahora tiene algunas piezas por
+duplicado y carece de otras por completo; no es un tablero en absoluto. TD lo
+detalló pocas horas después de que se planteara la pregunta: mezclar dos padres
+es mezclar dos permutaciones de 1..256, y el resultado «no es una permutación
+válida porque algunos valores están duplicados y otros valores faltan»
+([message 1500](https://groups.io/g/eternity2/message/1500)).
+
+Véalo ocurrir. Dos padres *perfectos* (el mismo tablero resuelto y su rotación
+de un cuarto de vuelta, ambos disposiciones impecables de las mismas piezas)
+producen un hijo ilegal en casi todos los cortes:
+
+<Figure collapsible title="Interactivo: choques de cruce en la recombinación">
+  <CrossoverClashLab />
+</Figure>
+
+El fitness del hijo ingenuo es casi perfecto, y ahí está la trampa: cada mitad
+heredada está resuelta internamente, de modo que una función de fitness que
+cuenta aristas adora un genoma que ni siquiera es un tablero. Toda corrección
+práctica es un **operador de reparación**: eliminar los duplicados, insertar las
+piezas que faltan
+([message 1500](https://groups.io/g/eternity2/message/1500)), o intercambiar las
+entradas duplicadas entre los dos hijos para preservar tantas «buenas ideas»
+como sea posible, como esbozó Lyman antes de concluir que tenía «pocas
+esperanzas de que dé por casualidad con la solución real»
+([message 2612](https://groups.io/g/eternity2/message/2612)). Pero los genes
+reparados aterrizan en celdas cuyos vecinos se heredaron del *otro* padre, donde
+no emparejan nada. La reparación convierte el cruce en una mutación grande y mal
+dirigida. En ese punto la población no es más que un conjunto de escaladores de
+colinas por mutación en paralelo que pagan el sobrecoste del cruce.
+
+<Callout kind="note" title="¿Pero el cruce funciona en el TSP?">
+  sam_maes planteó la objeción natural: los GA manejan el problema del viajante
+  de comercio, que también es un problema de permutación
+  ([message 1492](https://groups.io/g/eternity2/message/1492)). La diferencia
+  está en qué es un «bloque de construcción». El valor de un recorrido reside en
+  sus adyacencias, y los cruces que preservan el orden (OX, PMX) heredan
+  fragmentos de adyacencia de forma significativa. El valor de un tablero de
+  Eternity II reside en colocaciones exactas de pieza-en-celda comprobadas contra
+  22 colores, y dos buenos tableros no coinciden en casi ninguna. El propio
+  diagnóstico de sam_maes era el acertado: el problema no es el tamaño del
+  espacio de búsqueda sino que «las buenas soluciones parciales son difíciles de
+  combinar».
+</Callout>
+
+La versión más profunda de este argumento se midió en este sitio años más tarde:
+dos tableros de alta puntuación están relacionados por grandes
+[σ-ciclos](/research/why/sigma-cycles) entrelazados, y toda aplicación *parcial*
+de un ciclo obtiene una puntuación peor que cualquiera de los dos extremos. El
+cruce es exactamente una aplicación parcial de la permutación que conecta a los
+padres. El valle entre dos buenos padres no es un accidente del operador: es la
+estructura del paisaje.
+
+## Lo que la comunidad midió
+
+El registro, en orden cronológico, es notablemente coherente.
+
+- **2007, el estudio de dos semanas.** Steve Moyer ejecutó un GA de 1000
+  individuos con cruce que preserva el orden y comunicó las cifras que zanjaron
+  la cuestión temprano: «El cruce parece no tener impacto», y el tamaño de la
+  población apenas importa, ya que una población de 100 individuos convergía
+  aproximadamente igual de rápido a una décima parte del coste
+  ([message 565](https://groups.io/g/eternity2/message/565)).
+  Una respuesta independiente confirmó ambos hallazgos a partir de experimentos
+  separados
+  ([message 578](https://groups.io/g/eternity2/message/578)).
+- **2007, los estancamientos.** El GA de insurrectors sobre el interior de 14×14
+  alcanzó 326–330 de 364 aristas y se atascó, concluyendo que los GA «son
+  bastante malos en este tipo de problemas combinatorios»
+  ([message 1311](https://groups.io/g/eternity2/message/1311)). El GA de tablero
+  completo de mobaladje tocó su óptimo local «hacia 406 (/480)»
+  ([message 2360](https://groups.io/g/eternity2/message/2360)), con los
+  desajustes repartidos uniformemente por el tablero, sin región débil
+  reparable
+  ([message 2516](https://groups.io/g/eternity2/message/2516)). JSA señaló el
+  problema subyacente: la métrica sobre 480 es una mala guía, y nadie encontró
+  una mejor ([message 2683](https://groups.io/g/eternity2/message/2683)).
+- **2008, el híbrido serio.** antminder construyó el solucionador evolutivo más
+  fuerte del archivo: un backtracker corre durante ~3 minutos y rellena
+  legalmente la mayor parte del tablero, y luego un GA de estado estacionario
+  (cada individuo forzado a ser único) pule el resto. El cruce disruptivo se
+  compensa con un operador de reparación que él ya había usado antes en
+  problemas de seguimiento: extraer piezas no adyacentes y dejar que el
+  algoritmo de Munkres/húngaro las recoloque *de forma óptima*. En promedio,
+  sobre siete ejecuciones: 462/480 en poco más de un día
+  ([message 5589](https://groups.io/g/eternity2/message/5589)). Pierre Schaus,
+  de cuyo artículo JFPC provenía el operador, confirmó el mecanismo en la lista
+  ([message 5601](https://groups.io/g/eternity2/message/5601)).
+  Nótese lo que le ocurrió a la arquitectura: el GA ya no cría tableros desde
+  cero; gestiona un bucle de reinicio en torno a un backtracker y aplica una
+  reparación local exacta. La capa genética se convirtió en andamiaje.
+- **2008, el archivado.** Tres meses después antminder informó de que su
+  programa necesitaba «una semana para alcanzar una puntuación parcial de 463» y
+  de que el [eii](/research/lab/experiments/louis-verhaard/eii) de Louis
+  Verhaard, basado en backtracking, «lo aplasta por completo»
+  ([message 5950](https://groups.io/g/eternity2/message/5950)). Lo archivó.
+  eii pasó a impulsar el récord de 467; ningún solucionador evolutivo aparece
+  en ninguna parte del linaje de récords después de este punto.
+- **La cola larga.** Un blog de 2009 preguntó a la lista qué cruce usaba la
+  gente; la única respuesta de fondo desaconsejaba esperar que los GA
+  progresaran sin «retroceder y arruinar los avances previos»
+  ([message 6835](https://groups.io/g/eternity2/message/6835)). Un
+  solucionador de 2010 de red neuronal con GA se compartió con la escueta
+  advertencia «de todos modos no resolverá tu puzzle»
+  ([message 7454](https://groups.io/g/eternity2/message/7454)). Un censo de
+  solucionadores de 2011 registró 190 piezas por backtracking puro frente a 209
+  con un híbrido genético ([message 8787](https://groups.io/g/eternity2/message/8787)):
+  respetable, y unas cincuenta piezas por debajo del mejor de la misma época.
+  jagbrain escribió la autopsia de la comunidad ese mismo año: el GA y el temple
+  simulado suponen un paisaje que se puede escalar, y este es enorme,
+  «fractalizado», con una colocación de soluciones casi aleatoria
+  ([message 8257](https://groups.io/g/eternity2/message/8257)).
+- **Donde un GA *sí* brilló.** En el suave subproblema de los conjuntos de
+  rotaciones (elegir una rotación por pieza de modo que todos los recuentos de
+  colores se equilibren), el GA de antminder «casi nunca se queda atascado en un
+  mínimo local»
+  ([message 3443](https://groups.io/g/eternity2/message/3443)) y el de Varga
+  encontraba conjuntos equilibrados en segundos donde el backtracking fallaba
+  ([message 8900](https://groups.io/g/eternity2/message/8900)). El
+  contraste es la lección: la evolución maneja bien la relajación; simplemente
+  resultó que la relajación no podaba nada.
+
+El registro académico concuerda con el de la lista. El único tratamiento de
+extensión de tesis dedicado a la computación evolutiva sobre Eternity II
+([Niang 2011](https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf))
+recorre el espacio de diseño de los GA sin destronar las metaheurísticas de la
+literatura de 2008–2012, y las heurísticas publicadas más fuertes de esa línea
+(búsqueda tabú, VLNS,
+[hiperheurísticas](https://link.springer.com/article/10.1007/s10852-012-9178-4))
+abandonaron todas la recombinación de tableros.
+
+## Adónde fueron las ideas supervivientes
+
+Nada en este wiki está más muerto que la cría de tableros, pero tres ideas de la
+era de los GA sobrevivieron mudándose:
+
+- **La población se convirtió en reinicios.** Una vez que el cruce no aporta
+  nada, una población de tableros que mutan es exactamente una cartera de
+  reinicios independientes. El hallazgo de Moyer de que el tamaño de la población
+  apenas importa es la lección de los reinicios disfrazada: extracciones
+  independientes de la misma distribución, no una evolución que se acumula. El
+  caso medido a favor de las carteras de reinicio está en la
+  [página de reinicios](/research/build/backtracking/restarts).
+- **Mutación + selección + reparación inteligente se convirtió en ALNS.** El
+  operador de reparación de Munkres de antminder dentro de un bucle de
+  destrucción/reconstrucción *es* el rellenado basado en asignación de la
+  [búsqueda local y ALNS](/research/build/local-search/local-search-alns), donde
+  sigue siendo el pulidor más fiable que tiene este proyecto. La parte ganadora
+  del híbrido de 2008 nunca fue la genética; fue el vecindario.
+- **La evolución subió un nivel.** La línea de las hiperheurísticas
+  ([Wauters et al. 2012](https://link.springer.com/article/10.1007/s10852-012-9178-4))
+  conserva la selección y la adaptación pero las aplica a los *operadores*, no a
+  los tableros: aprender qué movimientos están rindiendo y apoyarse en ellos. Ese
+  es literalmente el paso «adaptar» de ALNS. Hacer evolucionar los parámetros de
+  la búsqueda sobrevivió; hacer evolucionar sus soluciones no.
+
+## Lo que cuesta
+
+- **Por generación: $O(P \cdot (f + g))$** para un tamaño de población $P$, un
+  coste de fitness $f$ (un recuento lineal de aristas, barato) y un coste de
+  operador $g$, que es barato para las mutaciones por intercambio, $O(k^3)$ por
+  reparación húngara de $k$ celdas, y sin valor entre medias para el cruce
+  reparado. El multiplicador $P$ es la parte dolorosa: las mediciones de la
+  comunidad dicen que compra una diversidad que la mutación por sí sola replica
+  a una décima parte del coste
+  ([message 578](https://groups.io/g/eternity2/message/578)).
+- **Ninguna garantía de ningún tipo.** Sin completitud, sin certificado de
+  optimalidad, y, a diferencia de [ALNS](/research/build/local-search/local-search-alns),
+  que al menos pule un buen tablero que se le entrega, un GA criado a partir de
+  poblaciones aleatorias gasta la mayor parte de su presupuesto en redescubrir lo
+  que un constructor voraz produce en milisegundos.
+- **Dónde topan realmente los GA.** Los GA puros se estancan en torno a 406/480
+  en el tablero completo ([message 2360](https://groups.io/g/eternity2/message/2360)).
+  El mejor híbrido jamás reportado en la lista promedió 462 por día en 2008 al
+  degradar el GA a una capa de gestión sobre un backtracker y una reparación
+  exacta ([message 5589](https://groups.io/g/eternity2/message/5589)), y su
+  autor lo archivó la semana en que apareció un solucionador de backtracking
+  puro ([message 5950](https://groups.io/g/eternity2/message/5950)). El cruce,
+  la única idea que aporta la evolución y que nada más en este catálogo posee,
+  es estructuralmente inadecuado para un puzzle cuyas buenas soluciones
+  [no comparten casi nada trasplantable](/research/why/sigma-cycles). Lo que
+  sobrevivió de la era de los GA es real, y nada de ello es genético.

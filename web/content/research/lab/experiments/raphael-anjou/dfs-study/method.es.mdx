@@ -1,0 +1,163 @@
+---
+title: Cómo está construido el estudio
+description: >-
+  El motor detrás del estudio DFS: un backtracker componible donde una variante
+  es un cambio declarado sobre un padre, una capa IO compartida que cada
+  algoritmo habla, y las definiciones de cada estadística que el estudio plantea:
+  tasa de nodos, profundidad, rupturas.
+metaDescription: "El motor del estudio DFS: un backtracker componible donde cada variante es un cambio sobre su padre, una capa IO común y métricas de nodos, profundidad y rupturas."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-16
+date: 2026-07
+topics: [backtracking, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
+  - /research/build/backtracking/fill-order
+sources:
+  - label: "El espacio de trabajo del motor (dfs-engine, dfs-run) sobre la biblioteca compartida e2-core / e2-io"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study/engine
+---
+
+Esta página es el aparato detrás del [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study):
+cómo está construido el motor, por qué una nueva variante cuesta poco añadir, y qué
+significa cada número entre los resultados. Nada de esto depende del motor del
+[benchmark de un solo núcleo](/research/lab/experiments/single-core-benchmark)
+vecino. Todo el objetivo era reimplementar la familia desde cero, manteniendo la
+ingeniería de software limpia y el relato del «qué se apila sobre qué» explícito.
+
+## Una variante es un cambio declarado sobre un padre
+
+Cada algoritmo del estudio es el *mismo* backtracker recursivo en profundidad,
+parametrizado por cuatro elecciones independientes:
+
+- **orden de recorrido**: la secuencia en que se rellenan las celdas (por filas,
+  en espiral, borde primero, el peine de Verhaard, o dinámico por celda más
+  restringida);
+- **orden de valores**: el orden en que se prueban las piezas candidatas de una
+  celda;
+- **propagador**: la anticipación ejecutada tras cada colocación (ninguna,
+  verificación hacia adelante, arco-consistencia, razonamiento por color);
+- **política de ruptura**: si una arista puede ser discordante, y bajo qué
+  presupuesto condicionado por la profundidad.
+
+Una variante es un pequeño registro que nombra esas cuatro elecciones, junto con
+**el padre del que deriva y una descripción de una línea del cambio único que
+añade**. Añadir una variante equivale a añadir un registro al registro, sin nuevo
+código de búsqueda a menos que la idea sea una estrategia genuinamente nueva. La
+matriz del «qué se apila sobre qué» de la página de resultados se genera a partir
+de esas descripciones, de modo que no puede divergir del código que se ejecutó.
+Eso es lo que mantiene un estudio extenso, con decenas de variantes a un solo
+cambio de distancia, mantenible en lugar de un montón de solucionadores copiados y
+pegados.
+
+## Una capa IO, y conversiones entre motores
+
+Cada algoritmo del estudio consume un único tipo de instancia y emite una única
+salida: el mejor tablero, su puntuación canónica, y una URL bucas. Alrededor de
+eso se articula una capa IO compartida con convertidores sin pérdida entre los
+formatos que hablan los demás motores del sitio: el JSON con el esquema del sitio
+del benchmark, el CSV de los motores comunitarios autónomos, las URL bucas, y los
+archivos de pistas. El estudio lee las *mismas* diez variantes con esquinas
+fijadas que usa el benchmark de un solo núcleo, a través de esta capa, de modo que
+los dos experimentos son directamente comparables. Una pequeña utilidad
+`dfs-convert` expone las conversiones desde el shell, de modo que la salida de
+cualquier motor del blog puede alimentar a cualquier otro.
+
+## El scorer es la única fuente de verdad
+
+Ningún score auto-reportado por un motor es digno de confianza. Cada tablero,
+estricto o roto, es re-puntuado por un único scorer canónico: las adyacencias
+interiores, no de borde, concordantes, contadas a la derecha y hacia abajo por
+cada celda. Es, byte por byte, la misma fórmula que la del scorer del sitio y la
+del benchmark, verificada por un test que re-puntúa un tablero de 469 conocido y
+exige 469. Esto es lo que permite que puntuaciones de variantes distintas, y las
+del benchmark vecino, se asienten sobre un solo eje.
+
+## Las estadísticas que el estudio plantea
+
+Para cada ejecución, el motor registra, y los resultados los llevan hasta la
+página:
+
+- **puntuación**: aristas concordantes canónicas (de 480). Para un tablero
+  completo con rupturas, esto equivale a `480 − #breaks`.
+- **rendimiento de nodos**: nodos de búsqueda por segundo, un nodo por colocación
+  intentada. Reportado por variante y **nunca comparado entre familias**, porque un
+  nodo que ejecuta arco-consistencia completa no es la misma unidad de trabajo que
+  una colocación ingenua. Una propagación pesada intercambia rendimiento por calidad
+  de nodo, y el estudio mide ambos ejes en lugar de fundirlos en uno solo. Las
+  variantes más lentas llevan una salvedad que vale la pena enunciar con
+  franqueza: el motor MRV elige la celda más restringida recorriendo la lista de
+  candidatos de cada celda vacía en cada nodo, lo cual es intrínsecamente más pesado
+  que un orden de relleno fijo. Dos optimizaciones que preservan el comportamiento lo
+  acercan a unas pocas veces el coste de los motores rápidos, en lugar de los miles de
+  veces que valía antes: la búsqueda de la celda más restringida deja de contar los
+  candidatos de una celda en cuanto superan la mejor celda encontrada hasta ahora
+  (una búsqueda de mínimo nunca necesita el recuento exacto de una celda que no puede
+  ganar), y evita reverificar las aristas sobre las que la lista de candidatos ya está
+  indexada. Lo que aún no hace es mantener el recuento de candidatos de cada celda de
+  forma plenamente incremental de una colocación a otra, cosa que sí haría un
+  solucionador CSP de producción; ese último paso tendría que rastrear cómo una pieza
+  recién usada afecta al recuento de cada celda, y se deja de lado aquí para mantener
+  el motor legible. La clasificación por puntuación no depende de nada de esto, puesto
+  que el rendimiento es un eje aparte, pero la tasa de nodos MRV debe leerse como la de
+  este motor limpio y no como la mejor posible de MRV.
+- **profundidad máxima alcanzada**: la colocación más profunda que hizo la
+  búsqueda, de 256, la medida del estudio de cuánto avanzó una variante. El
+  backtracking estricto choca contra un muro en los 200 bajos (por filas 208, la
+  variante estricta más rápida 216); las rupturas lo empujan mucho más allá, hasta
+  243 a 245.
+- **profundidad a la expiración**: dónde se hallaba el frente de búsqueda cuando el
+  reloj dio la hora, de modo que una variante que nunca termina registra igualmente
+  dónde estaba trabajando.
+- **número de rupturas**: las aristas interiores en las que la búsqueda realmente
+  *rompió* en el mejor tablero. Es cero para una variante estricta, y para una
+  variante con rupturas es el recuento que su propia contabilidad de presupuesto
+  comprometió, en lugar del déficit de puntuación. En un tablero completado equivale a
+  `480 − score`; en un parcial expirado el déficit cuenta además las aristas todavía
+  vacías, así que el estudio reporta en su lugar el verdadero número de rupturas. La
+  URL bucas de cada tablero hace ambos verificables en el [visualizador](/viewer).
+- **retrocesos**: repliegues fuera de una celda tras agotarse sus candidatos.
+
+## Las dos referencias, y lo que cuesta la especialización
+
+La variante más cruda, `NAIVE-CLEAN`, es un motor general legible: listas de
+candidatos por celda sin centinela, indexadas por los dos vecinos ya colocados, una
+caché de aristas resueltas para que ninguna rotación se recompute en el camino
+caliente, y ninguna asignación dentro de la búsqueda. Su gemela, `NAIVE-CODEGEN`, es
+el *mismo algoritmo* reexpresado como un bucle caliente especializado a mano, solo
+16×16, por filas, mantenido como programa separado para que el motor general se
+conserve limpio. Ponerlos a competir cara a cara pone precio a la ingeniería de bajo
+nivel: en este puzzle compra una ganancia de rendimiento modesta y dependiente de la
+instancia y, notablemente, ninguna mejor puntuación. Los números están en la
+[página de hallazgos](/research/lab/experiments/raphael-anjou/dfs-study/findings).
+
+## Corrección de los propagadores
+
+La verificación hacia adelante, la arco-consistencia y el control de suministro por
+color son correctos *por construcción*. Cada uno solo rechaza un estado en el que
+alguna celda ya tiene un dominio vacío, una celda que ninguna pieza no usada puede
+rellenar, de modo que ninguno de ellos puede eliminar una rama que lleve a una
+finalización real. La revisión de arco-consistencia es deliberadamente prudente allí
+donde es imprecisa: dondequiera que pudiera estar insegura, poda *menos* en lugar de
+más, quedándose del lado seguro. Los propagadores son correctos solo bajo colocación
+estricta, porque bajo un presupuesto de rupturas una anticipación local puede podar
+una rama que el presupuesto global aún podría rescatar, así que las variantes con
+rupturas deliberadamente no ejecutan ningún propagador. El registro lo impone: una
+variante que empareja rupturas con un propagador reservado al modo estricto falla al
+compilar. Los tests del motor comprueban esa restricción así como la contabilidad de
+la puntuación y de las rupturas, aunque la corrección de la poda en sí descansa sobre
+el argumento anterior y no sobre un test.
+
+## Reproducibilidad
+
+El espacio de trabajo del motor, las diez variantes, los resultados por ejecución
+commiteados y los scripts de la grilla viven todos bajo el
+[directorio de soporte](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/dfs-study)
+del estudio. `just experiments dfs-study` reconstruye el motor y reejecuta toda la
+grilla; la ejecución es determinista con semilla fija, y la disposición de las
+esquinas es el único eje de diversidad.

@@ -1,0 +1,154 @@
+---
+title: Patrones prohibidos
+description: >-
+  Casi todo pequeño conjunto de piezas que podrías construir es imposible. Para
+  un cuadrado 2×2, el 99,72 % de las formas de colocar cuatro piezas nunca podrá
+  encajar.
+kind: finding
+contribution: theory
+rigor: proven
+tier: 1
+order: 80
+updated: 2026-07-01
+topics: [structure, search-space]
+sources:
+  - label: "Patrones prohibidos: artículo, código fuente y resultados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/forbidden-patterns
+related:
+  - /research/why/entropy-area-law
+  - /research/lab/experiments/raphael-anjou/learning/keyring
+  - /research/build/reduce/arc-consistency
+repro:
+  kind: exact
+  cmd: just research-forbidden-patterns
+  topic: forbidden-patterns
+---
+
+import { BoardSvg } from "@/components/board/BoardSvg";
+import { ForbiddenPatchLab } from "@/components/research/ForbiddenPatchLab";
+import { ForbiddenCountLab } from "@/components/research/ForbiddenCountLab";
+
+export const feasible = [[7, 3, 12, 5], [7, 9, 11, 3], [12, 4, 8, 5], [11, 6, 8, 4]];
+export const forbidden = [[7, 3, 12, 5], [7, 9, 11, 2], [12, 4, 8, 5], [11, 6, 8, 4]];
+export const forbiddenConflicts = [[0, 1], [1, 3]];
+
+Eternity II tiene 256 piezas cuadradas, cada una con un color en sus cuatro
+lados. 196 de ellas son piezas interiores, las que no tienen ninguna arista de
+borde gris, así que son las únicas que llegan a situarse dentro del tablero.
+Toma unas cuantas, colócalas en una pequeña forma y gíralas como quieras. La
+mayoría de las veces, los colores simplemente no cuadrarán, hagas lo que hagas.
+
+Cuanto más grande es la forma, peor se pone. Dos piezas una al lado de la otra
+no encajan aproximadamente el 39 % de las veces. Añade una tercera en L y te
+quedas atascado el 83 % de las veces. Cierra un cuadrado 2×2 y el 99,72 % de
+todas las colocaciones nacen muertas: solo funciona alrededor de 1 de cada 358.
+
+## Una que encaja, otra que no puede
+
+<div className="grid max-w-2xl gap-6 sm:grid-cols-2">
+  <Figure caption="Encaja: cada arista interior comparte un color.">
+    <div className="rounded-lg border p-2">
+      <BoardSvg width={2} height={2} cells={feasible} />
+    </div>
+  </Figure>
+  <Figure caption="Prohibido: las dos piezas centrales no tienen ningún color en común, y ninguna rotación lo arregla.">
+    <div className="rounded-lg border p-2">
+      <BoardSvg width={2} height={2} cells={forbidden} conflicts={forbiddenConflicts} />
+    </div>
+  </Figure>
+</div>
+
+## Pruébalo: saca cuatro piezas
+
+<Figure collapsible title="Interactivo: pinta un conjunto y míralo prohibirse a sí mismo">
+  <ForbiddenPatchLab />
+</Figure>
+
+## De dónde sale el 99,72 %
+
+Una estimación aproximada explica por qué el número es tan alto. Dos piezas
+adyacentes comparten una arista. Cada pieza interior lleva colores de la paleta
+interior de 17 colores, de modo que un par aleatorio de medias aristas encaja
+con una probabilidad de aproximadamente
+
+$$
+\Pr[\text{one edge matches}] \;\approx\; \frac{1}{17} \;\approx\; 6\%.
+$$
+
+Un cuadrado 2×2 tiene cuatro aristas internas que satisfacer a la vez. Las
+rotaciones dan cuatro oportunidades a cada pieza, pero las cuatro aristas están
+acopladas, de modo que una estimación de independencia hecha a ojo sitúa la
+probabilidad de que las cuatro encajen en, muy aproximadamente,
+
+$$
+\Pr[\text{2}\times\text{2 feasible}] \;\sim\; 1 - \left(1 - \tfrac{1}{17}\right)^{\!c} \ \text{per rotation budget} \;\Rightarrow\; \lesssim 1\%,
+$$
+
+lo cual ya está por debajo del uno por ciento. El recuento exhaustivo exacto
+llega al 0,28 % de configuraciones factibles, es decir, el 99,72 % prohibidas
+$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. La estimación es
+burda porque las aristas no son independientes y los colores no son uniformes,
+pero acierta el orden de magnitud y muestra por qué cerrar un cuadrado es mucho
+más difícil que colocar un solo par.
+
+## Los recuentos exactos
+
+Toda colocación de piezas distintas de cada forma, verificada exhaustivamente,
+sin muestreo.
+
+| Forma            |     Colocaciones |     Prohibidas | % prohibidas |
+| ---------------- | -------------: | ------------: | ----------: |
+| Dos una al lado de otra |         38,220 |        14,890 |      38.96% |
+| Dos apiladas     |         38,220 |        14,890 |      38.96% |
+| L de tres        |      7,414,680 |     6,173,828 |      83.26% |
+| Cuadrado 2×2     |  1,431,033,240 | 1,427,039,544 |      99.72% |
+
+Calculado exactamente a partir del conjunto oficial; la ejecución se reproduce
+de forma idéntica cada vez (unos veinte segundos). El
+[artículo, el código fuente y los resultados están en GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/forbidden-patterns).
+
+## Prohibido antes incluso de elegir una pieza
+
+La escasez empieza un nivel por debajo de las piezas enteras, en los colores.
+Una celda interior muestra dos de los 17 colores interiores en cualquier
+esquina dada, las dos aristas que se encuentran allí, lo que da
+$17 \times 17 = 289$ pares de colores ordenados posibles. No todos existen. Ya
+en 2008 la comunidad notó que **20 de esos 289 pares son ausencias**: ninguna
+pieza interior, en ninguna rotación, presenta ese par concreto de colores en
+aristas adyacentes
+([msg 5027](https://groups.io/g/eternity2/message/5027)). Así que un tablero
+parcial que obliga a una celda a responder con uno de esos 20 pares de esquina
+está muerto en el acto, antes de probar una sola pieza, y un solucionador rápido
+puede rechazarlo con una única consulta de tabla. Es la misma lección que el
+recuento 2×2, llevada hasta la unidad más pequeña que puede ser imposible: las
+restricciones muerden tan pronto que categorías enteras de demanda local no
+tienen ninguna respuesta legal en absoluto.
+
+## Por qué importa
+
+Un tablero terminado y correcto tiene cero conjuntos prohibidos: por
+definición, todo encaja. Así que contar los conjuntos prohibidos de un tablero
+indica aproximadamente a qué distancia está de una solución real, incluso
+cuando dos tableros tienen el mismo número de aristas encajadas. Los tableros
+débiles están llenos de cuadrados prohibidos; los mejores tableros jamás
+encontrados solo conservan un par de docenas.
+
+También muestra, desde otro ángulo, por qué el puzzle se sacude los arreglos
+locales ingeniosos. Cuando el 99,72 % de los pequeños cuadrados son imposibles,
+las piezas que sí encajan entre sí son raras y específicas. No hay casi margen
+para reordenar las cosas sin romper algo. Los buenos arreglos son escasos y
+rígidos.
+
+## Un segundo eje de progreso
+
+Contar los cuadrados prohibidos convierte la idea en una señal utilizable. Toma
+un tablero récord real: el número de ventanas 2×2 prohibidas disminuye a medida
+que sube la puntuación de aristas encajadas. Dos tableros con la misma
+puntuación de aristas aún pueden diferir aquí: el que tiene menos cuadrados
+prohibidos está estructuralmente más cerca de una solución, y por eso algunos
+solucionadores siguen el recuento de conjuntos prohibidos como criterio de
+desempate.
+
+<Figure collapsible title="Interactivo: cuenta las colocaciones factibles frente a las prohibidas">
+  <ForbiddenCountLab />
+</Figure>

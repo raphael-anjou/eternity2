@@ -1,0 +1,249 @@
+---
+title: Hechos y cifras establecidos
+description: >-
+  Las cifras que todo investigador de Eternity II acaba redemostrando,
+  reunidas en un solo lugar con su procedencia: la definición del puzzle, la
+  colocación de las pistas, las convenciones de puntuación, la tabla de récords,
+  el tamaño del espacio de búsqueda y los recuentos estructurales.
+metaDescription: "Las cifras de Eternity II que los investigadores redemuestran sin cesar, con su procedencia: definición, pistas, puntuación, récords y espacio de búsqueda."
+kind: reference
+order: 15
+group: Check your code
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: Wikipedia, «Eternity II puzzle» (el premio, la fecha límite, el 467 de Verhaard y la estimación de 10^557)
+    url: https://en.wikipedia.org/wiki/Eternity_II_puzzle
+  - label: "469: hilo «EternityII Solver» (el tablero de Blackwood y McGavin), eternity2@groups.io, 2020-09"
+    url: https://groups.io/g/eternity2/message/10045
+  - label: "470: «470 Found» (Joshua Blackwood), eternity2@groups.io, 2021-03"
+    url: https://groups.io/g/eternity2/message/10117
+  - label: "460 con las cinco pistas: hilo «Highest points (of 480) with using all 5 (!) hints?», eternity2@groups.io, 2023-03"
+    url: https://groups.io/g/eternity2/message/11074
+  - label: "464 con las cinco pistas (Benjamin Riotte): hilo «Record of Eternity2 with 5 hints?», eternity2@groups.io, 2026-07"
+    url: https://groups.io/g/eternity2/message/11919
+  - label: Estimaciones del número esperado de soluciones de Brendan Owen (groups.io message 5197)
+    url: https://groups.io/g/eternity2/message/5197
+  - label: Louis Verhaard, detalles del algoritmo y de la puntuación del 467 (shortestpath.se)
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: e2.bucas.name (Jef Bucas), el visualizador de tableros de la comunidad; cada tablero récord se vuelve a puntuar ahí
+    url: https://e2.bucas.name
+related:
+  - /research/reference
+  - /research/records
+  - /research/why/phase-transition
+---
+
+import { CluePositionsDiagram } from "@/components/research/CluePositionsDiagram";
+
+Toda conversación sobre Eternity II acaba deteniéndose mientras alguien
+redemuestra el mismo puñado de cifras. Esta página es ese puñado, anotado de
+una vez por todas. Los hechos marcados como **calculado** se redemuestran de
+forma exacta a partir del juego de piezas oficial, los mismos datos con los que
+se contrastan nuestras páginas de [cifras de referencia](/research/reference) y
+[¿Por qué es difícil?](/research/why), y cualquiera puede reproducirlos. Los
+hechos sobre récords proceden de los mensajes primarios de la lista de correo;
+los hechos enciclopédicos, de Wikipedia.
+
+## El puzzle en cifras
+
+| Hecho | Valor | Procedencia |
+| --- | --- | --- |
+| Tablero | 16×16 = 256 celdas, enmarcado | oficial |
+| Piezas | 256, todas distintas | oficial; calculado |
+| Piezas de esquina (2 lados grises) | 4 | calculado |
+| Piezas de borde (1 lado gris) | 56 | calculado |
+| Piezas interiores (0 lados grises) | 196 | calculado |
+| Colores (borde gris excluido) | 22 | calculado |
+| de los cuales colores exclusivos del marco | 5 | calculado |
+| de los cuales colores de la paleta interior | 17 | calculado |
+| Aristas internas (pares de celdas adyacentes) | 480 = 2 · 16 · 15 | calculado |
+| Colocaciones de pistas fijadas | 5 | oficial |
+| Premio | 2.000.000 $, sin reclamar; fecha límite mediodía, 31 dic. 2010 | Wikipedia |
+
+El color gris del borde exterior no forma parte de los 22: nunca aparece en una
+arista interna. La división de colores 5 + 17 no es casual: 17 colores
+interiores es [exactamente el pico de dificultad](/research/why/phase-transition)
+para un puzzle de este tamaño.
+
+## Las cinco pistas
+
+La hoja de reglas fija una pieza; Tomy vendió cuatro
+[puzzles-pista](/research/build/clue-puzzles) más pequeños cuyas soluciones
+revelaban cada una una colocación adicional, y las colocaciones restantes se
+publicaron más tarde. Las casillas usan la notación de tablero de
+[e2.bucas.name](https://e2.bucas.name): filas A–P desde arriba, columnas 1–16
+desde la izquierda. Los números de pieza van del 1 al 256 en el orden de la
+lista oficial, y la rotación se cuenta en el sentido de las agujas del reloj a
+partir de la orientación almacenada de la pieza.
+
+| Casilla | Pieza | Rotación | Qué pista |
+| --- | --- | --- | --- |
+| I8 | 139 | 0° | obligatoria (en el libro de reglas) |
+| C3 | 208 | 90° | puzzle-pista |
+| C14 | 255 | 90° | puzzle-pista |
+| N3 | 181 | 90° | puzzle-pista |
+| N14 | 249 | 180° | puzzle-pista |
+
+<Figure caption="Las cinco colocaciones fijas de pistas, a escala sobre el tablero.">
+  <CluePositionsDiagram />
+</Figure>
+
+Un tablero que respeta las cinco pistas se denomina **estrictamente canónico**;
+la mayoría de los tableros récord solo respetan la pista central obligatoria
+(«canónico»). Esa distinción divide en dos la tabla de récords; véase más abajo.
+
+Las pistas también zanjan una cuestión de recuento: con solo la pieza
+obligatoria colocada, la [teoría compleja](/research/why/complex-theory) prevé
+≈ 14.702 soluciones completas; con las cinco, ≈ 1. El puzzle de 5 pistas tiene,
+por diseño, una única solución esperada.
+
+## Convenciones de puntuación
+
+- **Puntuación = aristas internas apareadas, sobre 480.** Las 60 aristas grises
+  orientadas hacia el exterior, alrededor del marco, no se cuentan. Es la
+  convención del jurado del premio, de todos los récords de la tabla de más
+  abajo, y de este wiki.
+- **«Rupturas» = 480 − puntuación.** Los autores de solucionadores a menudo
+  informan del número de desapareamientos en su lugar: el 468 de Blackwood se
+  anunció en la lista de correo como «12 breaks».
+- **479 es posible, pero solo a través del borde.** Un
+  [argumento de paridad](/research/build/analysis/parity-arguments) del verano
+  del lanzamiento afirmaba que un único desapareamiento no puede existir
+  ([kubzpa, 2007](https://groups.io/g/eternity2/message/1640)), y se sostiene
+  para los movimientos interiores (rotar una pieza interior con aristas opuestas
+  iguales rompe dos, dando 478,
+  [msg 1642](https://groups.io/g/eternity2/message/1642)). Pero la paridad se
+  fuga a través de las 60 aristas de borde exterior *no puntuadas*: voltear una
+  pieza de borde cuyos dos lados orientados hacia el anillo comparten un color
+  rompe exactamente una arista puntuada
+  ([Verhaard, 2009](https://groups.io/g/eternity2/message/6317)). El juego
+  oficial tiene 14 piezas de borde de este tipo (calculado), de modo que toda
+  solución completa implica un 479.
+- **Comprueba el juego de piezas antes de comparar puntuaciones.** Varios
+  tableros «480» que acaparan titulares usan
+  [juegos de piezas variantes](/research/build/variants) (diseños Clue-1/Clue-2,
+  juegos mixtos, la variante sin marco de TopCoder). Son puzzles distintos;
+  véase [Récords y solucionadores](/research/records).
+
+Las 480 aristas internas se reparten en tres familias (calculado):
+
+| Familia de aristas | Número |
+| --- | --- |
+| Borde ↔ borde (alrededor del anillo del marco de 60 piezas) | 60 |
+| Borde ↔ interior (la costura, 4 × 14) | 56 |
+| Interior ↔ interior (dentro del núcleo 14×14) | 364 |
+| **Total** | **480** |
+
+## La tabla de récords
+
+La cronología completa, con vistas previas de tableros y referencias por
+récord, se encuentra en [Récords y solucionadores](/research/records). Las
+cifras en sí:
+
+| Puntuación | Quién | Cuándo | Categoría |
+| --- | --- | --- | --- |
+| 467 | Equipo de Louis Verhaard | Sept. 2008 | canónico; ganó el premio parcial de 10.000 $ |
+| 468 | Joshua Blackwood | Ago. 2020 | canónico |
+| 469 | Peter McGavin (solucionador de Blackwood) | Sept. 2020 | canónico |
+| 469 | varios (~7 tableros, hallazgos independientes más un simple intercambio del de McGavin) | Nov. 2020 | canónico |
+| **470** | **Joshua Blackwood** | **Mar. 2021** | **canónico, el techo desde entonces** |
+| 470 | Jef Bucas | Dic. 2024 | canónico (empate del 470) |
+| 460 | Bruno Gauthier | Mar. 2023 | estrictamente canónico; mejor tablero que respeta las cuatro pistas opcionales, de 2023 hasta ser batido en jul. 2026 |
+| **464** | **Benjamin Riotte** | **Jul. 2026** | **récord estrictamente canónico; batió el 460 de Gauthier, con las cinco pistas respetadas** |
+| «480» | varios | 2023 | juegos de piezas variantes, no el puzzle canónico |
+
+Los 469 se citaron durante mucho tiempo como el techo, pero la verificación a
+nivel de tablero muestra que los tableros 468/469/470 pertenecen todos al mismo
+régimen de solo la pieza inicial (las reglas del concurso fijaban únicamente la
+pieza inicial), de modo que el 470 es el récord sobre el mismo puzzle, no sobre
+una variante más fácil. Nunca nadie ha reportado una solución canónica completa
+(480/480), en ninguna fuente pública. La brecha de 10 aristas se mantiene desde
+marzo de 2021.
+
+## Cuál es el tamaño de la búsqueda
+
+| Recuento | Valor | Procedencia |
+| --- | --- | --- |
+| Todas las colocaciones, sin restricciones: 256! · 4²⁵⁶ | ≈ 1,15 × 10⁶⁶¹ | calculado |
+| Esquinas en esquinas, bordes en el borde (orientación forzada), pista fijada: 4! · 56! · 195! · 4¹⁹⁵ | ≈ 1,115 × 10⁵⁵⁷ | calculado; coincide con la cifra ampliamente citada de Wikipedia |
+| Punto más ancho del árbol de búsqueda (estimación por teoría compleja, recorrido por filas) | ≈ 10⁴⁵ maneras de extender, en torno a la profundidad 50–200 | Owen / McGavin, véase [teoría compleja](/research/why/complex-theory) |
+| Soluciones completas esperadas, 1 pista / 5 pistas | ≈ 14.702 / ≈ 1 | ídem |
+
+La cifra de 10⁵⁵⁷ merece que uno sepa redemostrarla en lugar de citarla: las 4
+piezas de esquina van a las 4 esquinas (orientación forzada por los dos lados
+grises), las 56 piezas de borde a las 56 ranuras de borde (orientación forzada),
+y las 195 piezas interiores libres restantes (196 menos la pista fijada) toman
+cada una una de las 4 rotaciones.
+
+## Hechos de simetría
+
+Todos calculados a partir del juego de piezas oficial:
+
+- **Ninguna pieza es simétrica por rotación.** Cada una de las 256 piezas tiene
+  4 orientaciones distintas, de modo que la rotación nunca reduce el conjunto de
+  candidatos de una pieza.
+- **No hay dos piezas idénticas, ni siquiera salvo rotación.** No existen
+  duplicados intercambiables que explotar.
+- **Cinco pares comparten un multiconjunto de colores sin ser la misma pieza**:
+  las piezas 3 y 4, 6 y 15, 8 y 52, 110 y 111, 172 y 182 (numeración oficial
+  desde 1) llevan los mismos cuatro colores en un orden cíclico diferente.
+- **Las pistas rompen todas las simetrías del tablero.** Un tablero 16×16 no
+  tiene celda central, así que toda rotación o reflexión desplaza la casilla I8
+  de la pista obligatoria: ninguna simetría no trivial aplica el puzzle con
+  pistas sobre sí mismo, y la ruptura de simetría no ofrece ninguna reducción
+  adicional del espacio de búsqueda.
+
+## Los colores, arista por arista
+
+Las 256 piezas llevan 1.024 pegatinas de arista; 64 son grises (2 por pieza de
+esquina, 1 por pieza de borde), lo que deja 960 instancias de arista coloreadas.
+Su censo (calculado; véase
+[geografía de los colores raros](/research/why/rare-color-geography)):
+
+| Grupo de colores | Colores | Instancias de arista cada uno | Total |
+| --- | --- | --- | --- |
+| Exclusivos del marco («raros») | 5 | 24 (todas en piezas del marco, ninguna interior) | 120 |
+| Paleta interior, baja | 5 | 48 | 240 |
+| Paleta interior, alta | 12 | 50 | 600 |
+| **Total** | **22** | | **960** |
+
+Dos consecuencias que los investigadores no dejan de redescubrir:
+
+- **Cada recuento por color es par, y las mitades suman exactamente 480.** Una
+  arista interna apareada consume dos instancias de un mismo color, así que una
+  solución perfecta necesita $\sum_c N_c / 2 = 480$ apareamientos, que es
+  exactamente el número de aristas internas. No hay **ningún margen**: en una
+  solución completa, cada instancia de arista de cada color encuentra a su
+  pareja.
+- **Los cinco colores raros solo viven en el marco** (24 instancias cada uno),
+  lo que convierte el anillo del marco en un subpuzzle casi autónomo; la
+  geometría se detalla en
+  [geografía de los colores raros](/research/why/rare-color-geography).
+
+## Estructura local
+
+Recuentos exactos y exhaustivos sobre las piezas interiores oficiales
+(calculado; detalles y demos interactivas en las páginas enlazadas):
+
+| Hecho | Valor | Véase |
+| --- | --- | --- |
+| Colocaciones interiores aleatorias de 2 celdas inviables | 14.890 / 38.220 ≈ 39 % | [patrones prohibidos](/research/why/forbidden-patterns) |
+| Colocaciones de L-tromino aleatorias inviables | ≈ 83,3 % | ídem |
+| Colocaciones interiores aleatorias 2×2 inviables | 1.427.039.544 / 1.431.033.240 ≈ 99,72 % | ídem |
+| Piezas interiores con un vecino forzado | 0: cada pieza tiene de 73 a 137 vecinos de la derecha posibles | [sin movimientos forzados](/research/why/no-forced-moves) |
+| Equilibrio de color borde↔interior en toda solución completa | déficit $\Delta = 0$ (una condición necesaria, Hopfer 2022) | [el equilibrio del borde](/research/why/border-balance) |
+
+## Leer la procedencia
+
+- **calculado**: redemostrado de forma exacta a partir del juego oficial de 256
+  piezas; las páginas correspondientes llevan los comandos de reproducción
+  `just research-…` y los resultados en bruto viven en el
+  [repositorio](https://github.com/raphael-anjou/eternity2).
+- **groups.io**: las puntuaciones récord (468, 469, 470, el 464 estricto) solo
+  existen en los mensajes de la lista de correo y en el visualizador de tableros
+  de la comunidad; los mensajes de anuncio exactos están enlazados desde
+  [Récords y solucionadores](/research/records), y cada tablero puede volver a
+  puntuarse en [e2.bucas.name](https://e2.bucas.name).
+- **Wikipedia**: cubre solo la capa enciclopédica (el premio, la fecha límite y
+  el 467 de Verhaard).

@@ -1,0 +1,203 @@
+---
+title: "La teoría compleja: contar el árbol de búsqueda antes de recorrerlo"
+description: >-
+  La teoría compleja de Brendan Owen estima la anchura del árbol de búsqueda a
+  cada profundidad, e incluso cuántas soluciones existen en total. Muchos en la
+  comunidad la consideran lo más importante que hay que entender sobre
+  Eternity II.
+metaDescription: "La teoría compleja de Brendan Owen estima la anchura del árbol de búsqueda de Eternity II a cada profundidad, y cuántas soluciones existen: la idea clave."
+kind: finding
+contribution: exposition
+rigor: conjectured
+order: 30
+updated: 2026-07-02
+topics: [structure, backtracking]
+sources:
+  - label: "La forma cerrada del pico de profundidad de Brendan Owen, 256·(1−1/e) (groups.io msg 8125, 2010)"
+    url: https://groups.io/g/eternity2/message/8125
+  - label: "La resolución 10×10 de Peter McGavin que valida la teoría compleja (groups.io msg 9686, 2017)"
+    url: https://groups.io/g/eternity2/message/9686
+  - label: Las estimaciones del número de soluciones de Brendan Owen (groups.io message 5209)
+    url: https://groups.io/g/eternity2/message/5209
+  - label: La implementación de referencia y la tabla de profundidades de Peter McGavin (groups.io message 11197)
+    url: https://groups.io/g/eternity2/message/11197
+  - label: 'La tabulación «Backtracker estimates» de Brendan Owen para los puzzles con pistas y E2 (groups.io Databases)'
+    url: https://groups.io/g/eternity2/databases
+  - label: 'La validación estimado-frente-a-real de Brendan Owen, «NxM puzzles using Eternity II subset pieces» (groups.io Files, carpeta Brendan)'
+    url: https://groups.io/g/eternity2/files/Brendan/NxM_actual_theory.pdf
+  - label: 'El estudio heurística-frente-a-número-de-nodos de Brendan Owen, «Heuristics: 20×2 rectangle» (groups.io Files, carpeta Brendan)'
+    url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
+related:
+  - /research/why/prune-vs-speed
+  - /research/why/phase-transition
+  - /research/why/entropy-area-law
+repro:
+  kind: exact
+  topic: complex-theory
+---
+
+import { ComplexFunnelAnimated } from "@/components/research/ComplexFunnelAnimated";
+import { ComplexFunnelLab } from "@/components/research/ComplexFunnelLab";
+import { ClueEstimatesTable } from "@/components/research/ClueEstimatesTable";
+
+<Callout kind="note" title="De quién es esta idea">
+  La teoría compleja se debe a Brendan Owen, uno de los verificadores del puzzle;
+  Peter McGavin la [implementó en C](https://groups.io/g/eternity2/message/11197)
+  con aritmética de precisión arbitraria y publicó las cifras. La recogemos aquí
+  porque un miembro de la comunidad (Dan Karlsson) señaló con razón que faltaba,
+  y porque sustenta casi todas las buenas decisiones que se pueden tomar sobre un
+  solucionador, ante todo la elección del orden de búsqueda.
+</Callout>
+
+## La idea
+
+Toma un orden de recorrido y recórrelo celda a celda. En cada celda nueva, una
+pieza sin usar tomada al azar encaja con sus vecinas ya colocadas con cierta
+probabilidad: un producto de probabilidades de coincidencia de color por arista.
+Multiplica eso por cuántas piezas quedan y obtienes el número esperado de formas
+de extender el tablero una celda más. Encadena este cálculo por las 256 celdas y
+tienes una estimación en forma cerrada de la anchura del árbol de búsqueda a cada
+profundidad y, en la última celda, de cuántas soluciones completas tiene el
+puzzle.
+
+Es un promedio, no un recuento exacto: supone que los 22 colores de arista se
+extraen de forma independiente, cosa que no ocurre (cuatro aristas están soldadas
+a una misma pieza rígida). Pero, calibrado contra puzzles pequeños cuyo número
+real se conoce, acierta con un margen de un factor de dos. Es más que suficiente
+para ver la forma.
+
+## Las cifras destacadas
+
+| Pistas colocadas                     | Soluciones esperadas |
+| ------------------------------------ | -------------------- |
+| Una pista (solo la pieza central)    | ≈ 14,702             |
+| Las cinco pistas oficiales           | ≈ 1                  |
+
+Con solo la pieza central obligatoria, el puzzle tiene del orden de quince mil
+soluciones; añade las otras cuatro pistas y el número esperado cae a
+aproximadamente $4\times10^{-8}$: de forma abrumadora, exactamente una. Esta es
+la razón formal por la que el puzzle de 5 pistas tiene una única solución
+diseñada.
+
+## Las mismas cifras, contrastadas con la realidad
+
+Brendan tabuló la estimación no solo para E2, sino también para los cuatro
+*puzzles con pistas* más pequeños, y es aquí donde se gana la confianza. Los
+puzzles con pistas son lo bastante pequeños como para que sus árboles se hayan
+explorado exhaustivamente, de modo que la estimación queda justo al lado del
+número real. Acierta con un margen de un factor de dos, la calibración que esta
+página no deja de prometer. La tabla también registra el mejor orden de relleno
+conocido para cada puzzle, y no todos son iguales: el orden es una elección que
+la forma del espacio de búsqueda recompensa o penaliza, no una propiedad del
+puzzle.
+
+<ClueEstimatesTable />
+
+Los puzzles con pistas son cuatro puntos de datos; Brendan comprobó el modelo de
+forma mucho más amplia. Su estudio **«NxM puzzles using Eternity II subset
+pieces»** representa los nodos por solución estimados frente al número *real*
+para del orden de un centenar de tableros más pequeños construidos con las
+propias piezas de E2, y sobre un eje log-log la nube se ciñe a la diagonal a lo
+largo de once órdenes de magnitud, desde diez nodos hasta $10^{11}$. Ese es el
+fundamento real para confiar en la estimación sobre un tablero demasiado grande
+como para explorarlo alguna vez: ha acertado en todas partes donde *podía*
+comprobarse. Un estudio complementario muestra incluso que una puntuación
+estática facilísima (la suma de los recuentos de coincidencias de arista por
+celda, al cuadrado) predice el número total de nodos de un rectángulo con un
+$R^2$ de alrededor de 0,84, más evidencia de que el coste de la búsqueda está
+inscrito en la estructura del tablero antes de colocar una pieza.
+
+## El embudo
+
+Representa la anchura esperada a cada profundidad y aparecen tres regímenes. Su
+forma es lo que la comunidad llama el embudo de E2. Lanza el barrido de abajo y
+observa el contador: sube hasta los miles de millones, luego apenas se mueve
+durante un centenar de celdas a lo largo de la meseta, ese avance plano por una
+banda astronómicamente ancha es el muro, antes de que las últimas sesenta piezas
+lo hagan bajar de nuevo en embudo.
+
+<Figure caption="Un cabezal de búsqueda barriendo la profundidad 1 → 256 a lo largo de la curva de ramas esperadas. El número sobre la meseta indica cuántas formas legales hay de extender un tablero parcial en ese punto, y lo poco que poda cada colocación.">
+  <ComplexFunnelAnimated />
+</Figure>
+
+## Pruébalo: el orden decide el embudo
+
+La misma estimación, ejecutada en vivo para distintos órdenes de recorrido. El
+pico de la meseta (el punto más ancho que la búsqueda debe cruzar) lo decide el
+orden por sí solo, antes de colocar un solo nodo.
+
+<Figure collapsible title="Interactivo: el embudo del espacio de búsqueda">
+  <ComplexFunnelLab />
+</Figure>
+
+## Tres regímenes
+
+- **Crecimiento (profundidad 1–50).** Las soluciones se multiplican
+  geométricamente de una a unas $10^{27}$. Cada colocación es prácticamente
+  gratuita; todavía nada te limita.
+- **Meseta (profundidad 50–200).** El árbol está en su punto más ancho, unas
+  $10^{45}$ formas de extender, mientras que el número de soluciones apenas se
+  mueve. Aquí es donde los backtrackers pasan aproximadamente el 99 % de su
+  tiempo, en línea con el hallazgo empírico de Joe de que la mayor parte del
+  tiempo se consume por debajo de la profundidad 150.
+- **Colapso (profundidad 200–256).** La anchura cae de $10^{45}$ de vuelta a
+  unas $10^{4}$. Las ~60 últimas piezas están fuertemente restringidas: cada una
+  colocada elimina órdenes de magnitud de ramas. El final de partida es
+  localmente fácil; lo difícil es llegar a él.
+
+## Por qué cambia tu forma de buscar
+
+Si casi todo el trabajo está en la meseta, el objetivo no es la velocidad bruta.
+Es cruzar la meseta hasta la entrada del embudo (en torno a la profundidad 200),
+tras la cual la búsqueda se encadena de forma determinista. Y como la teoría
+compleja puntúa un orden de recorrido antes de ejecutarlo, se pueden comparar
+órdenes por la altura del pico de su meseta en lugar de por ensayo y error. Esa
+es la versión rigurosa de una regla que este sitio enuncia por todas partes: el
+orden de relleno es una elección de primer orden, y el recorrido de McGavin, de
+la esquina inferior izquierda y de izquierda a derecha, se eligió porque la
+teoría compleja decía que era bueno.
+
+## Piezas más grandes
+
+La misma idea funciona si colocas piezas de 2×2 o 3×3 en lugar de piezas sueltas:
+un bloque entero de celdas se compromete de golpe, con sus aristas internas ya
+coincidentes. El [terreno de juego de rutas de búsqueda](/playground/paths) te
+permite hacerlo de verdad: elige una forma de bloque (1×1, 2×1, 2×2, 3×3, …) y
+estampa bloques sobre la cuadrícula para construir una ruta por bloques. Lánzala
+a competir y un solucionador de macropiezas dedicado compromete un subensamblaje
+válido entero por bloque en lugar de una pieza cada vez, de modo que la búsqueda
+avanza región por región. La estimación del pico de meseta que va al lado sigue
+puntuando el orden de celdas que implican tus bloques, prediciendo el coste antes
+de que ejecutes un solo nodo.
+
+## Lo que no puede ver
+
+La teoría compleja es una estimación de primer momento, así que es ciega a una
+cosa: si los numerosos tableros parciales contados son genuinamente distintos.
+Los [resultados de entropía y ley de área](/research/why/entropy-area-law)
+muestran que la distinción se colapsa más allá de ~80 celdas, un efecto de
+segundo orden que el modelo de aristas independientes no puede captar. Así que
+usa la teoría compleja para elegir órdenes y leer la forma del árbol, nunca como
+un recuento exacto ni como una cota.
+
+## Procedencia y validación
+
+El rastro escrito de la teoría corre a través de la lista de correo. Brendan
+Owen publicó el modelo terminado en abril de 2008
+([msg 5197](https://groups.io/g/eternity2/message/5197),
+[5209](https://groups.io/g/eternity2/message/5209)), y más tarde demostró una
+elegante forma cerrada: para un orden de recorrido, el pico del número de nodos
+se sitúa a la profundidad
+$256\,(1 - 1/e) \approx 161.8$
+([msg 8125](https://groups.io/g/eternity2/message/8125)); el embudo de arriba
+culmina ahí empíricamente. Peter McGavin compuso la teoría
+([msg 9188](https://groups.io/g/eternity2/message/9188)), publicó la cifra de
+14,702 soluciones esperadas ya en 2011
+([msg 8924](https://groups.io/g/eternity2/message/8924)), y en 2017 entregó su
+validación más contundente: resolvió el benchmark 10×10 sin pistas de Brendan
+explorando las primeras filas ordenadas por teoría compleja: unos 180 años-núcleo,
+cayendo dentro de las predicciones de la teoría
+([msg 9686](https://groups.io/g/eternity2/message/9686),
+[9688](https://groups.io/g/eternity2/message/9688)). Su implementación C de
+referencia de 2024 ([msg 11197](https://groups.io/g/eternity2/message/11197)) es
+lo que el estimador en vivo de esta página porta, línea por línea.

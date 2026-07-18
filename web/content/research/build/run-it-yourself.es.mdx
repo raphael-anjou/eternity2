@@ -1,0 +1,107 @@
+---
+title: Ejecútalo tú mismo
+description: >-
+  Todo el sitio, el motor y cada resultado de esta sección se ejecutan desde
+  un único repositorio. Aquí tienes cómo ponerlo en marcha, recompilar el motor
+  WebAssembly y reproducir las cifras.
+metaDescription: "Cómo ejecutar el wiki de Eternity II, el motor y cada resultado desde un único repositorio: ponerlo en marcha, recompilar el motor WebAssembly y reproducir."
+kind: tool
+order: 60
+group: Start here
+updated: 2026-07-01
+sources:
+  - label: El repositorio eternity2 en GitHub
+    url: https://github.com/raphael-anjou/eternity2
+related:
+  - /research/build/dead-ends
+---
+
+Todo el sitio, el motor y cada resultado de esta sección se ejecutan desde un
+único repositorio. Aquí tienes cómo ponerlo en marcha y reproducir las cifras.
+
+## Consigue el código
+
+Clona el repositorio. Todo está aquí: el motor Rust, el sitio web y los temas
+de investigación con sus scripts de cómputo.
+
+```bash
+git clone https://github.com/raphael-anjou/eternity2
+cd eternity2
+```
+
+## Qué necesitas
+
+Tres cadenas de herramientas. El motor está escrito en Rust, el sitio es una
+aplicación Node, y el motor se entrega al navegador como WebAssembly.
+
+- **Rust**, versión estable, con el target `wasm32-unknown-unknown`
+- **Node.js 22+ y pnpm** para el sitio web (`corepack enable` te consigue pnpm)
+- **wasm-pack** para compilar el motor a WebAssembly
+- **just** (opcional), un pequeño ejecutor de tareas que envuelve los comandos de abajo
+
+## Compila y ejecuta el sitio
+
+Con `just` instalado, dos comandos. El primero compila el motor a WebAssembly
+e instala las dependencias web; el segundo arranca el sitio en
+`localhost:5173` con recarga en caliente.
+
+```bash
+just setup
+just dev
+```
+
+¿Prefieres ejecutar las cosas directamente? Cada receta de `just` no es más
+que un envoltorio de una sola línea, así que puedes prescindir por completo de
+`just`:
+
+```bash
+# build the engine to WebAssembly
+cd engine && wasm-pack build --target web --out-dir ../web/src/engine/pkg --release
+# install and run the site
+cd ../web && pnpm install && pnpm dev
+```
+
+## Trabaja sobre el motor
+
+El motor es una crate Rust corriente que además compila a WebAssembly. Ejecuta
+sus tests y luego recompila el WASM cada vez que lo modifiques. Los tests
+incluyen comprobaciones cruzadas frente a tableros reales de la comunidad, de
+modo que detectan cualquier cambio en el conjunto de piezas, la rotación o el
+cálculo de la puntuación.
+
+```bash
+just test    # cargo test --release
+just wasm    # rebuild the WebAssembly after a change
+```
+
+## Reproduce un resultado de investigación
+
+Cada tema de esta sección es autónomo: un artículo, un script de cómputo y la
+salida versionada que produce. Reejecutar el script regenera esa salida. Los
+resultados deterministas vuelven idénticos byte a byte; las ejecuciones que
+dependen del azar o que tardan horas lo dicen con claridad, y entregan el
+tablero que encontraron para que aun así puedas comprobarlo en el visor.
+
+Por ejemplo, el recuento de patrones prohibidos (unos veinte segundos):
+
+```bash
+just research-forbidden-patterns
+# or directly:
+cd research/topics/forbidden-patterns/compute
+cargo run --release > ../results/feasibility.json
+```
+
+Ejecutar `just` sin argumentos lista todas las tareas, incluidas las demás
+recetas de reproducción (`research-subgrid`, `research-index`) y las
+ejecuciones nativas `bench` y `stats` del motor.
+
+## Ejecuta todas las comprobaciones
+
+Un solo comando ejecuta lo que hace la integración continua: tests del motor,
+verificación de tipos, lint y build de producción.
+
+```bash
+just check   # engine tests, typecheck, lint, build
+```
+
+[Explora el repositorio en GitHub](https://github.com/raphael-anjou/eternity2).

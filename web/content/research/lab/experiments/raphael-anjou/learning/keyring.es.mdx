@@ -1,0 +1,160 @@
+---
+title: KEYRING
+description: >-
+  Construir un tablero desde cero, clasificando cada pieza siguiente según tres
+  señales aprendidas de tableros fuertes anteriores. Alcanzó 460 en una familia
+  de tableros que ninguna búsqueda previa había resuelto.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "búsqueda en haz O(W·n·|moves|) para un ancho de haz W sobre n = 256 colocaciones; construcción del prior O(B) en el corpus"
+  space: "O(H) para la tabla de parches (H parches 2×2 distintos vistos) + O(W·n) haces vivos"
+  note: >-
+    Los priors aprendidos son una pasada de preprocesamiento única; el coste de
+    la ejecución es la búsqueda en haz que sesgan.
+repro:
+  kind: stochastic
+  cmd: just research-record-boards
+  topic: record-boards
+stages:
+  - engine: beam-producer
+    does: "Construye un tablero desde vacío, clasificando cada pieza siguiente según tres señales aprendidas que votan juntas"
+    learns: "Tres señales del corpus: un prior de log-odds de parches 2x2, y frecuencias de pieza-en-posición y de pares de piezas"
+    published: false
+  - engine: refinement
+    does: "Una cola de refinamiento local eleva la construcción de los 450 altos hasta el 460 confirmado"
+    published: false
+order: 20
+updated: 2026-07-10
+date: 2026-07
+topics: [construction, learning]
+related:
+  - /research/build/learning/learned-value-ordering
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/learning/prior
+  - /research/why/sigma-cycles
+  - /research/why/forbidden-patterns
+  - /research/build/construct/beam-search
+sources:
+  - label: "La búsqueda en haz como construcción best-first de ancho acotado (página conceptual de este proyecto)"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/build/construct/beam-search.mdx
+---
+
+import { KeyringDiagram } from "@/components/research/KeyringDiagram";
+import { RecordBoard } from "@/components/research/RecordBoard";
+
+[PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) confiaba en una
+sola señal aprendida, un conteo de posiciones, para deshacer sus empates. KEYRING
+es el siguiente paso del [estudio](/research/lab/experiments/raphael-anjou/learning):
+¿y si una sola señal no basta? Al construir un tablero pieza a pieza, la parte
+difícil consiste en decidir qué pieza colocar a continuación cuando varias
+encajarían, y una única regla empírica, aun aprendida, tiende a llevar la búsqueda
+a los mismos callejones sin salida una y otra vez. KEYRING lleva tres corazonadas
+aprendidas distintas a la vez, un llavero de ellas, y las deja votar, lo que evita
+que la búsqueda confíe en exceso en una sola señal.
+
+## Cómo funciona
+
+A partir de la biblioteca de tableros fuertes, KEYRING aprende tres cosas.
+Primero, dónde le gusta situarse a cada pieza: con qué frecuencia una pieza
+aparece en cada posición a lo largo de los buenos tableros. Segundo, qué piezas
+tienden a ser vecinas: con qué frecuencia dos piezas acaban en contacto. Tercero,
+qué pequeños parches 2×2 aparecen en los buenos tableros frente a los malos.
+
+Luego rellena el tablero con una búsqueda en haz, manteniendo muchos tableros
+parciales vivos a la vez. Cuando tiene que elegir la pieza siguiente, puntúa cada
+opción según cuántas aristas empareja, ajustada por las tres señales aprendidas en
+conjunto. Una pequeña dosis de aleatoriedad evita que los muchos intentos
+paralelos se desplomen sobre un mismo camino.
+
+<Figure collapsible title="Interactivo: el voto de colocación de tres señales">
+  <KeyringDiagram />
+</Figure>
+
+## El tablero
+
+<RecordBoard id="keyring-460" />
+
+## El resultado
+
+KEYRING alcanzó 460 de 480, y lo hizo en una disposición de esquinas donde ningún
+tablero había llegado a ese nivel antes, así que no es simplemente otra ruta hacia
+un tablero conocido, sino una región genuinamente nueva. A lo largo de ejecuciones
+repetidas logró un tablero fuerte mucho más a menudo que la versión más simple de
+señal única de la que surgió.
+
+No es la mejor puntuación del proyecto (esa es 463), pero encontrar un tablero
+alto en una familia nueva importa: se sabe que los tableros fuertes están aislados
+unos de otros, de modo que cada familia nueva es su propio punto de apoyo.
+
+## Método
+
+Las tres señales, precisadas, y luego cómo orientan el haz.
+
+La más fuerte de las tres es el **prior de parches 2×2**. Sobre el corpus, se
+separan los tableros en *altos* (puntuación ≥ 460) y *bajos* (< 460), y para cada
+parche 2×2 $q$ (cuatro piezas con sus rotaciones) se puntúa mediante un cociente
+de log-odds suavizado a la Laplace:
+
+$$
+\text{score}(q) = \log\big(\text{count}_\text{high}(q) + \alpha\big) - \log\big(\text{count}_\text{low}(q) + \alpha\big), \quad \alpha = 0.5
+$$
+
+Un parche que aparece en los tableros fuertes y no en los débiles obtiene una
+puntuación positiva; un parche trampa de consenso obtiene una puntuación negativa.
+(En la ejecución que encontró el 460, el corpus se repartía en 23 tableros altos
+frente a 1255 bajos.) Las otras dos señales son conteos más simples: una
+frecuencia de **pieza-en-posición** y una frecuencia de **adyacencia de pares de
+piezas**, cada una contabilizada sobre el mismo conjunto de tableros fuertes.
+
+La construcción es una **búsqueda en haz**: se mantienen $W$ tableros parciales
+vivos, y en cada paso se extiende cada haz puntuando cada colocación candidata
+como su ganancia en aristas emparejadas más una suma ponderada de los tres priors,
+y luego se conservan los $W$ mejores. Un poco de aleatoriedad inyectada impide que
+los $W$ haces se desplomen sobre un solo camino, que es lo que permitió a KEYRING
+alcanzar una familia de esquinas *nueva* en lugar de rederivar un tablero conocido.
+Los parches se compactan en una clave `u64` (pieza ≤ 8 bits, rotación 2 bits, ×4
+celdas = 40 bits), de modo que la consulta del prior es un acierto de hash.
+
+Como con [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), la
+construcción en haz alcanza por sí sola los 450 altos; el tablero 460 confirmado
+toma esa construcción y le añade encima una cola de refinamiento local, la misma
+separación construir-luego-refinar que emplean los pipelines de récord. Las tres
+señales son lo que lleva la *construcción* a una familia nueva; las últimas aristas
+son del refinamiento.
+
+Un límite que vale la pena enunciar: los priors se aprenden de un corpus que es él
+mismo subóptimo, de modo que codifican tanto el techo de la comunidad como su
+sabiduría: esa misma doble arista que [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)
+convierte en una ventaja al separar el buen consenso de las trampas.
+
+## Reproducir
+
+`just research-record-boards` verifica byte a byte la puntuación del tablero 460
+confirmado a partir de su cadena Bucas almacenada. La búsqueda es estocástica
+(búsqueda en haz con aleatoriedad inyectada), de modo que una nueva ejecución no
+reproducirá el mismo tablero; el tablero es el artefacto de referencia. El motor es
+el productor en haz compartido; el cambio que describe esta página son las tres
+señales de clasificación aprendidas. Esas señales se extraen de un corpus de
+tableros fuertes, así que la ejecución no se reproduce desde cero aquí.
+
+## Preguntas abiertas
+
+¿Graduar la señal de parches por grado, en lugar de tratar los parches como
+simplemente buenos o malos, ayudaría aún más? ¿Podrían los pesos de las tres
+señales desplazarse a medida que el tablero se llena, confiando más en la
+estructura al final de la construcción? ¿Y puede empujarse esta nueva familia más
+allá de 460 con un refinamiento más largo?

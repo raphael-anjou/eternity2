@@ -1,0 +1,90 @@
+---
+title: Aprender de los tableros fuertes
+description: >-
+  La mayoría de los ataques a Eternity II buscan partiendo de cero. Una familia
+  distinta hace lo contrario: explora el corpus de tableros que la gente ya ha
+  encontrado en busca de estructura, y luego reinyecta esa estructura en la
+  búsqueda. Priors de posición, ordenación aprendida de jugadas, minería de
+  antipatrones, decodificación de récords y el modo de fallo en el que una señal
+  aprendida se derrumba.
+metaDescription: "Aprender de tableros fuertes de Eternity II: minar el corpus de tableros conocidos en busca de estructura, reinyectarla en la búsqueda y dónde la señal falla."
+kind: page
+order: 44
+group: Learned guidance
+updated: 2026-07-16
+related:
+  - /research/build/approaches-map
+  - /research/build/techniques
+  - /research/lab/experiments/raphael-anjou/learning
+---
+
+Todas las demás familias de este estante buscan partiendo de cero: un
+backtracker excava, un beam construye, una búsqueda local pule, cada uno
+razonando únicamente a partir de las reglas del puzzle y del tablero que tiene
+delante. Esta familia hace algo distinto. Toma el corpus de tableros fuertes que
+la gente ya ha encontrado, lo lee en busca de estructura y reinyecta esa
+estructura en una búsqueda como sesgo. Está más cerca del aprendizaje por
+imitación que del diseño de búsqueda: la pregunta no es «cuál es una buena
+jugada» partiendo de cero, sino «qué tendían a hacer los tableros que puntuaron
+bien, y puede eso reutilizarse».
+
+Las páginas siguientes van técnica por técnica. Cada una es realmente su propio
+método, de modo que no comparten una forma común como sí lo hacen los pulidores
+de búsqueda local: un prior de posición, una ordenación aprendida de jugadas, un
+minero de antipatrones y un rejuego de testigo comparten una tesis pero no un
+mecanismo. Para abarcar todo el territorio de una vez, empieza por
+[un mapa de todos los enfoques conocidos](/research/build/approaches-map). Para
+los experimentos ejecutables que encarnan estas técnicas, con sus tableros y sus
+cifras, consulta los
+[experimentos de aprendizaje a partir de tableros](/research/lab/experiments/raphael-anjou/learning).
+
+## La tesis, y su límite
+
+Una señal aprendida ayuda cuando captura estructura real y transferible: algo
+cierto de los buenos tableros que una búsqueda partiendo de cero tendría que
+redescubrir de otro modo por suerte. Dónde tiende a situarse cada pieza, qué
+piezas gustan de tocarse, qué demanda escasa una pieza rara es la única capaz de
+satisfacer. Cableada en una búsqueda como un sesgo leve, esa estructura lleva de
+forma fiable una construcción a lo más alto de su propio rango.
+
+El límite es lo que hace de esto investigación y no un saco de trucos. El corpus
+del que se aprenden estas señales es él mismo subperfecto: cada tablero que
+contiene está atascado en algún punto por debajo de 480. Así que una señal
+extraída del corpus codifica el *techo* de la comunidad tanto como su sabiduría, y
+una señal que se limita a recodificar la meseta en la que cada tablero fuerte ya
+está atrapado no eleva nada. Empuja un prior aprendido, bueno para desempatar,
+hasta el interior de la función objetivo y la búsqueda se derrumba, porque empieza
+a cambiar la arista que tiene delante por una corazonada estadística. El hilo
+conductor nítido de toda esta familia: aprender de los tableros fuertes te hace
+alcanzar la meseta rápido y de forma fiable, pero no te hace, por sí solo,
+superarlo. El techo es el [muro de rigidez](/research/why/rigidity-wall), y
+ninguna cantidad de minería del corpus lo mueve.
+
+## Las técnicas
+
+- **[Priors de corpus](/research/build/learning/corpus-priors)** son la forma más
+  simple: cuenta dónde se sitúa cada pieza en los tableros fuertes, o con qué
+  frecuencia una pieza satisface una demanda escasa, y usa el recuento como
+  desempate en la construcción. Los experimentos
+  [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) y
+  [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone).
+- **[Ordenación aprendida de jugadas](/research/build/learning/learned-value-ordering)**
+  clasifica las colocaciones candidatas según varias señales aprendidas a la vez,
+  y las deja votar, de modo que ninguna corazonada aislada lleve la búsqueda al
+  mismo callejón sin salida. El experimento
+  [KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring).
+- **[Minería de antipatrones](/research/build/learning/anti-pattern-mining)** es la
+  idea más sutil: no todo acuerdo entre tableros fuertes es bueno. Separa la
+  estructura real de la trampa compartida, y ataca la trampa. El experimento
+  [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest), que
+  alcanzó el mejor tablero de este proyecto.
+- **[Decodificación de récords](/research/build/learning/decoding-records)**
+  reconstruye exactamente un tablero récord conocido, pieza por pieza, para
+  recuperar el ingrediente que le faltaba a una búsqueda ordinaria. La
+  reproducción como prueba. El experimento
+  [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay).
+- **[Cuando el aprendizaje se derrumba](/research/build/learning/when-learning-collapses)**
+  es la síntesis sobre el modo de fallo: exactamente cuándo una señal aprendida
+  deja de ayudar, por qué confiar en exceso en ella arruina la búsqueda, y por qué
+  ninguno de estos métodos eleva el techo. Fija el límite de toda la sección: las
+  señales aprendidas alcanzan la meseta más rápido, pero ninguna lo levanta.

@@ -1,0 +1,171 @@
+---
+title: Calibrado en el pico de dificultad
+description: >-
+  Eternity II utiliza 22 colores, repartidos entre 17 colores interiores y
+  5 reservados al marco, y ese número de 17 coincide exactamente con el punto
+  donde este tipo de puzzle es más difícil de resolver.
+kind: finding
+contribution: measurement
+rigor: measured
+tier: 1
+order: 40
+updated: 2026-07-02
+topics: [structure]
+sources:
+  - label: "Brendan Owen, Diseñar el puzzle más difícil: la derivación 17+5 (lista de correo eternity2, agosto de 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "Ansótegui, Béjar, Fernández & Mateu, On the hardness of solving edge matching puzzles as SAT or CSP problems (Constraints, Springer 2013)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
+    url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+related:
+  - /research/why/design-recipe
+  - /research/why/prune-vs-speed
+  - /research/why/entropy-area-law
+  - /research/why/no-forced-moves
+repro:
+  kind: exact
+  cmd: just research-phase-transition
+  topic: phase-transition
+---
+
+import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
+import { PhaseTransitionLiveLab } from "@/components/research/PhaseTransitionLiveLab";
+import { RectangleTransitionChart } from "@/components/research/RectangleTransitionChart";
+import { MotifSwatch } from "@/components/board/MotifSwatch";
+import { colorToLetter } from "@/lib/motifs";
+import data from "@/data/phase-transition.json";
+
+Los problemas de búsqueda difíciles tienen una perilla de dificultad. Aflójela
+y habrá muchas soluciones, de modo que una búsqueda tropieza con alguna
+enseguida. Apriétela y no habrá ninguna, algo que a menudo es fácil de probar.
+En medio se sitúa una banda estrecha donde las soluciones son escasas pero
+reales, y ahí es donde la búsqueda estalla. Se le llama transición de fase,
+como el agua al congelarse.
+
+En los puzzles de emparejamiento de aristas, esa perilla es el número de
+colores. Demasiado pocos y las piezas encajan de innumerables maneras;
+demasiados y apenas encajan. El
+[análisis publicado](https://link.springer.com/article/10.1007/s10601-012-9128-9)
+sitúa el pico en torno a 17 colores interiores, el ajuste con el que un puzzle
+de este tamaño tiene aproximadamente una única solución. Eternity II utiliza 17.
+
+La comunidad ya disponía de ese número pocas semanas después del lanzamiento:
+en agosto de 2007, Brendan Owen dedujo $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
+colores interiores a partir del criterio de «aproximadamente una solución
+esperada», exactamente los parámetros publicados, años antes de los análisis
+académicos
+([Diseñar el puzzle más difícil, msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+## El muro de la dificultad
+
+<Figure collapsible title="Interactivo: el pico de dificultad según el número de colores">
+  <PhaseTransitionLab />
+</Figure>
+
+## O mídalo usted mismo
+
+El gráfico anterior está precalculado. Este no lo está: el motor resuelve en
+vivo puzzles inéditos, uno por cada número de colores, y traza el pico a partir
+de ejecuciones reales en su navegador.
+
+<Figure collapsible title="Interactivo: resolver en vivo a lo largo del pico de dificultad">
+  <PhaseTransitionLiveLab />
+</Figure>
+
+## La transición, medida sobre piezas reales
+
+El argumento basado en el número de colores indica *dónde* está el pico. En
+marzo de 2008, Brendan Owen fue a observar una transición de fase directamente,
+sobre las piezas reales. Tomó un fino rectángulo interior de 2 por L y lo cubrió
+con conjuntos aleatorios de piezas interiores de E2, cuatrocientos conjuntos
+aleatorios por cada longitud, y anotó cuántos podían completarse sin ninguna
+discordancia
+([msg 4909](https://groups.io/g/eternity2/message/4909)).
+
+<RectangleTransitionChart />
+
+La forma resultante es la transición de fase en miniatura. Una tira de 2 por 1
+o 2 por 2 es tan corta que las piezas aleatorias a menudo simplemente encajan:
+58 % de casos resolubles en la longitud 1. Luego se apaga por completo. De la
+longitud 4 a la 15, ni un solo conjunto aleatorio de cuatrocientos cubre el
+rectángulo en ninguna longitud: las soluciones son tan escasas que
+prácticamente no existen. Y entonces reaparecen. En la longitud 16, un conjunto
+de cuatrocientos funciona; en 19 es el 8,5 %; en 21 es el 57 %; y en 22, casi
+nueve de cada diez. La región donde las soluciones son extremadamente raras
+pero aún no imposibles es precisamente la banda difícil, y aquí no es ni un
+relato ni un modelo: es un recuento. También es la razón por la que un interior
+de 14 celdas de ancho resulta tan implacable: se sitúa en la parte empinada de
+esa subida, donde una solución existe pero casi ningún arreglo aleatorio lo es.
+
+## La división, leída directamente en las piezas
+
+Ordenar los colores del conjunto oficial según dónde aparecen deja el diseño a
+la vista.
+
+<div className="not-prose grid gap-5 sm:grid-cols-2">
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">5 colores reservados al marco</div>
+    <div className="flex flex-wrap gap-3">
+      {data.frameOnlyColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <div className="text-xs text-muted-foreground">
+      Solo aparecen en las piezas de borde y de esquina, nunca en el interior.
+      Son los colores raros, confinados al perímetro.
+    </div>
+  </div>
+  <div className="space-y-2 rounded-lg border p-4">
+    <div className="text-sm font-semibold">17 colores interiores</div>
+    <div className="flex flex-wrap gap-3">
+      {data.interiorColors.map((c) => (
+        <div key={c} className="flex flex-col items-center gap-0.5">
+          <MotifSwatch color={c} width={44} />
+          <span className="font-mono text-xs text-muted-foreground">'{colorToLetter(c)}'</span>
+        </div>
+      ))}
+    </div>
+    <div className="text-xs text-muted-foreground">
+      La paleta del interior del tablero, donde ocurre casi todo el
+      emparejamiento.
+    </div>
+  </div>
+</div>
+
+## El conjunto en cifras
+
+|                     | Cantidad |
+| ------------------- | -------: |
+| Piezas de esquina   |        4 |
+| Piezas de borde     |       56 |
+| Piezas interiores   |      196 |
+| Colores interiores  |       17 |
+| Colores del marco   |        5 |
+
+## Por qué importa
+
+Es la señal individual más clara de que Eternity II se hizo difícil a
+propósito. El tamaño del tablero, el número de piezas y la división de colores
+apuntan todos al mismo objetivo: un puzzle con aproximadamente una única
+solución, colocado en el peor lugar posible para que cualquier búsqueda la
+encuentre. La dificultad fue elegida, igual que un buen examen no es ni trivial
+ni imposible.
+
+¿Cómo sabemos que el pico es real y no un mero relato? Aquí confluyen dos vías.
+El análisis publicado lo
+[deriva](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content):
+para los puzzles de emparejamiento de aristas con marco, el número de colores
+con el que se esperaría aproximadamente una solución cae cerca de 17, y ese es
+el ajuste más difícil de explorar. Y usted mismo puede observar una parte de
+ello en la demostración anterior: construya puzzles reales, cuente el trabajo, y
+véalo explotar cuando los colores escasean. El impacto es concreto. Significa
+que la distancia hasta una solución no es un problema de ajuste que se pueda
+limar con una máquina más rápida; el puzzle se colocó donde la búsqueda es peor
+a propósito, de modo que vencerlo exige una idea genuinamente mejor, no
+simplemente más esfuerzo.
+
+Vea la dificultad medida en vivo en la [página de Algoritmos](/algorithms).

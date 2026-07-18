@@ -1,0 +1,138 @@
+---
+title: REPLAY
+description: >-
+  Reconstruir de forma idéntica los tableros estrictos de 460 de la comunidad
+  y descubrir, de paso, la jugada que los solucionadores corrientes no saben
+  hacer: pagar dos desajustes en una misma celda.
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  seedPolicy: "stochastic; see the run's repro command"
+  measured: false
+contribution: reconstruction
+author: raphael-anjou
+score: 460
+rigor: measured
+complexity:
+  time: "DFS con una cola exacta de 14 celdas; 8 hilos, cadencia de reinicio de 5 s, presupuesto por testigo"
+  space: "acotado por la frontera del DFS más el marco fijo y la programación del testigo"
+  note: >-
+    La búsqueda por backtracking es exponencial en el peor caso; la cola exacta
+    y la programación de los testigos la domestican hasta convertirla en una
+    reconstrucción dirigida en lugar de una batida a ciegas.
+repro:
+  kind: seeded
+order: 50
+updated: 2026-07-10
+date: 2026-07
+topics: [backtracking, learning]
+related:
+  - /research/build/learning/decoding-records
+  - /research/lab/experiments/raphael-anjou/learning
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+  - /research/records
+  - /research/why/rigidity-wall
+  - /research/build/reduce/nogood-learning
+sources:
+  - label: "Tableros estrictos de 460 de la comunidad (cronología de récords): los testigos que REPLAY reconstruye"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/records.mdx
+---
+
+import { DoubleBreakDiagram } from "@/components/research/DoubleBreakDiagram";
+import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
+
+REPLAY cierra el [estudio](/research/lab/experiments/raphael-anjou/learning) con una
+forma de aprendizaje distinta. Cada experimento anterior extraía una *estadística* del
+corpus completo; REPLAY aprende de un *solo* tablero, y aprende justo lo que una
+estadística no puede mostrar: la jugada exacta que un récord empleó y que nuestra
+búsqueda no sabía hacer. Los tableros públicos totalmente pistados que sirvieron de
+patrón a este proyecto llegan a 460 (el récord comunitario ha avanzado desde entonces
+hasta 464), pero la propia búsqueda con roturas permitidas de este proyecto se estancaba
+en 457 o 458, pasara lo que pasara. REPLAY se propuso reproducir esos tableros de 460 de
+forma idéntica, pieza a pieza, para aprender qué hacían que nuestra búsqueda no sabía
+hacer. La respuesta resultó ser una única jugada que había pasado inadvertida.
+
+## Cómo funciona
+
+Una búsqueda con roturas permitidas normalmente deja que una celda cargue como mucho un
+desajuste al colocarse. REPLAY relaja esa regla para admitir dos en ciertas celdas y
+reordena cómo se clasifican los emplazamientos candidatos, de modo que las jugadas que
+un buen tablero conocido usó de verdad pasan por delante de las que parecen más baratas.
+Con esos dos cambios puede recorrer el mismo camino que tomó el tablero testigo.
+
+Reproducidos de esta manera, los tableros de 460 de la comunidad se reconstruyen de
+forma idéntica, cada pieza en su sitio, y la puntuación cuadra. La reproducción es la
+prueba de que el ingrediente que faltaba era real.
+
+<Figure collapsible title="Interactivo: las celdas de doble rotura">
+  <DoubleBreakDiagram />
+</Figure>
+
+<Figure collapsible title="Interactivo: reproducir la programación de roturas">
+  <DoubleBreakLab />
+</Figure>
+
+## El resultado
+
+Ambos tableros estrictos de 460 de la comunidad se reproducen exactamente hasta 460. El
+hallazgo: cada uno contiene cuatro o cinco celdas que pagan dos desajustes a la vez. Una
+búsqueda que solo permite un desajuste por celda literalmente no puede alcanzar esos
+tableros, y eso es exactamente por lo que las ejecuciones anteriores del proyecto se
+saturaban en 457 a 458. Permitir la doble rotura eleva la escala estricta hasta 460.
+
+Es una explicación nítida de un estancamiento de larga data y una advertencia: una regla
+de apariencia razonable (una rotura por celda) vedaba en silencio el acceso a los mismos
+tableros que perseguíamos.
+
+## Método
+
+La reproducción es una búsqueda en profundidad ejecutada en un modo deliberadamente
+restringido.
+
+- **Ordenación prior-sobre-coste.** El DFS corriente tolerante a roturas clasifica los
+  emplazamientos candidatos por coste de desajuste inmediato, el más barato primero.
+  REPLAY invierte la prioridad a *prior-sobre-coste*: los candidatos que el tablero
+  testigo usó de verdad se clasifican por delante de los que parecen más baratos, de modo
+  que la búsqueda es atraída por el buen camino conocido en lugar de desviarse de él. Es
+  el indicador `--prior-over-cost` gobernado por la propia programación del tablero
+  testigo.
+- **Cola exacta.** Las últimas 14 celdas se resuelven de forma exacta (`--exact-tail 14`)
+  en lugar de heurística, de modo que la fase final que las ejecuciones corrientes
+  chapucean se cierra de forma determinista.
+- **La relajación que importó.** El presupuesto de desajustes por celda pasa de uno a dos.
+  Ese único cambio es lo que admite los tableros testigo en absoluto.
+
+Ejecutados sobre un marco fijo de 460, 8 hilos, una cadencia de reinicio de 5 segundos y
+un presupuesto por ejecución, ambos testigos estrictos de 460 de la comunidad se
+reconstruyen pieza a pieza y la puntuación cuadra: la reproducción *es* la prueba de que
+el ingrediente que faltaba era la doble rotura.
+
+**El hallazgo.** Cada testigo contiene cuatro o cinco celdas que pagan dos desajustes a
+la vez. Una búsqueda limitada a una rotura por celda no puede representar esos tableros, y
+es precisamente por eso que las ejecuciones anteriores del proyecto, tolerantes a roturas,
+se saturaban en 457-458. Es un resultado de completitud de búsqueda disfrazado de intento
+de récord: el muro estaba en el conjunto de jugadas, no en el cómputo.
+
+## Reproducir
+
+Esta está inicializada por semilla y más cerca del determinismo que los constructores
+estocásticos: la reproducción DFS a partir de un marco fijo y una programación de testigo
+reconstruye los tableros de 460 de forma fiable. Los objetivos que reconstruye son los
+[récords](/research/records) estrictos de 460 propios de la comunidad, de modo que los
+propios tableros figuran en la cronología de récords; lo que este experimento añade es la
+reproducción que los reconstruye. La reproducción necesita dos entradas más allá del
+puzzle, un marco de borde y el tablero testigo de la comunidad que reconstruye; está
+previsto un directorio de apoyo ejecutable que entregue ambos.
+
+## Preguntas abiertas
+
+¿Permitir dos roturas por celda abre una vía hacia 461 y más allá, o solo hacia los 460
+conocidos? ¿Existen tableros que necesiten una triple rotura? ¿Y se pueden predecir las
+celdas de doble rotura a partir de un tablero parcial en lugar de descubrirlas por
+reproducción?

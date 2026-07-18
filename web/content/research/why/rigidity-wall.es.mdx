@@ -1,0 +1,191 @@
+---
+title: El muro de rigidez
+description: >-
+  Cada tablero récord que tenemos está congelado en su sitio. No se puede
+  progresar a base de pequeños retoques desde un tablero excelente hacia uno
+  perfecto, y podemos demostrarlo.
+kind: finding
+contribution: theory
+tier: 1
+rigor: proven
+author: raphael-anjou
+order: 50
+updated: 2026-07-10
+topics: [structure, local-search, exact-methods]
+complexity:
+  time: "una resolución MIP por región; de ~70 s (48 celdas) a ~1800 s (halo-1 conjunto de 59 celdas) en CBC"
+  space: "≈18,7 k variables binarias de asignación para una región de 64 celdas"
+  note: >-
+    Exponencial en el peor de los casos (la programación entera es NP-difícil),
+    pero cada región es lo bastante pequeña como para cerrarse a la optimalidad
+    o a una brecha ajustada en cuestión de minutos.
+related:
+  - /research/why/sigma-cycles
+  - /research/why/walls-and-methods
+  - /research/why/prune-vs-speed
+  - /research/lab/experiments/raphael-anjou/learning/palimpsest
+  - /research/lab/experiments/raphael-anjou/pipelines/midden
+  - /research/build/exact/lp-relaxations
+repro:
+  kind: heavy
+sources:
+  - label: "Teorema de rigidez local (artículo del proyecto, 2026-05-16): ≥13 pruebas MIP de optimalidad de halo en 3 a 4 cuencas, hasta el halo-4"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research
+  - label: "Land & Doig 1960, ramificación y acotación, el método exacto detrás de cada resolución de región"
+    url: https://doi.org/10.2307/1910129
+  - label: "benj39100: el recocido en GPU aplicado al tablero estricto de 5 pistas topa con el mismo núcleo congelado; la mejor puntuación crece con la distancia al titular (mensaje groups.io 11902)"
+    url: https://groups.io/g/eternity2/message/11902
+  - label: "Pruebas independientes de residuo SAT sobre halo y de congelación de réplicas de William Millilaw, reproducidas aquí sobre los tableros récord públicos (todas UNSAT hasta un halo de dos celdas)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
+---
+
+import { RigidityHalo } from "@/components/research/RigidityHalo";
+import { RigidityLab } from "@/components/research/RigidityLab";
+
+Esta es la intuición con la que casi todo el mundo empieza: acercarse y luego
+arreglar las últimas discordancias. Intercambiar un par de piezas, rotar unas
+cuantas, y seguro que la puntuación sube poco a poco hasta 480.
+
+Pues no. En cada tablero de cabeza que hemos probado, las últimas discordancias
+están bloqueadas. Mueva cualquier cosa en el entorno y la puntuación se mantiene
+igual o baja. Los buenos tableros no son casi-soluciones a la espera de un
+pulido; son puntos aislados sin ningún sitio mejor al que ir al lado.
+
+## Observe cómo crece la región
+
+<RigidityHalo />
+
+## Intente superarlo usted mismo
+
+Un tablero pequeño de verdad, perfecto. Intercambie cualquier par de piezas, o
+deje que el motor pruebe todos los intercambios. Nada lo supera; eso es la
+rigidez, en directo.
+
+<Figure collapsible title="Interactivo: intercambie piezas y observe cómo la puntuación se niega a subir">
+  <RigidityLab />
+</Figure>
+
+## Cómo se sabe esto
+
+El resultado no se apoya en probar muchos intercambios y darse por vencido.
+Proviene de una pregunta exacta planteada a un solucionador de programación
+entera: tomar una región del tablero, liberar cada pieza que hay dentro y
+encontrar la única mejor manera de rellenarla de nuevo. El solucionador explora
+todo ese espacio local de forma exacta, no por muestreo.
+
+La respuesta vuelve siempre igual: la mejor disposición es la que ya está ahí.
+Lo demostramos región tras región, a lo largo de tres tableros récord distintos,
+y hasta un radio de cuatro celdas, que es un bloque de decenas de celdas a la
+vez. Cada vez, no existe mejora alguna.
+
+## Método: la prueba MIP
+
+La pregunta exacta, enunciada con precisión. Alrededor de cada celda defectuosa
+tomamos la región *halo-$r$*: toda celda a menos de $r$ pasos. Liberamos todas
+las piezas que contiene, mantenemos el resto del tablero fijo como frontera y
+resolvemos un programa entero para el mejor relleno legal. Variables binarias
+$x_{c,p,\theta} \in \{0,1\}$ colocan la pieza $p$ con rotación $\theta$ en la
+celda $c$; restricciones de una-pieza-por-celda y una-celda-por-pieza lo
+convierten en un problema de asignación; el objetivo maximiza las aristas
+concordantes, contando la frontera fija. Una región de 64 celdas representa unas
+18.700 variables binarias. La ramificación y acotación encuentra entonces o bien
+un relleno estrictamente mejor, o bien prueba, con una cota dual, que no existe
+ninguno.
+
+Nunca encuentra ninguno. Las pruebas, región por región:
+
+| Región | Tablero | Celdas | Tiempo del solucionador | Resultado |
+|---|---|---:|---:|---|
+| halo-2, por componente (×8) | 3 cuencas (469, 459, 458) | 2–32 | segundos cada una | todos Δ = +0, **probado** |
+| halo-1 conjunto | McGavin 469 | 37 | 895 s | Δ = +0, **probado** |
+| halo-1 conjunto | Local 459 | 59 | 1800 s | Δ = +0, **probado** |
+| halo-3, por componente | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **probado** |
+| halo-4, componente 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **probado** |
+
+A lo largo de cuatro cuencas y ≥13 regiones la respuesta es invariante: el
+tablero titular es localmente MIP-óptimo, hasta el halo-4 para el 469 de
+McGavin. La única región que queda con una brecha, las cuatro filas superiores,
+64 celdas, sigue dando un resultado *sólido*: una cota dual de 123 frente a los
+116 del titular, de modo que ni siquiera el caso no cerrado puede superar el muro
+por mucho (implica una cota a escala de tablero de ≤ 476).
+
+La insignia dice *probado* en lugar de *conjeturado* para las regiones
+efectivamente cerradas; el enunciado general sobre *todos* los tableros sigue
+siendo una conjetura, respaldada por cada región probada hasta la fecha.
+
+## Por qué importa
+
+Esto replantea toda la brecha hasta 480. La distancia entre el mejor tablero
+conocido y una solución no es un montón de pequeñas correcciones a la espera de
+ser encontradas. Si lo fuera, este tipo de búsqueda local las habría encontrado.
+El obstáculo es que los buenos tableros se asientan en el fondo de sus propios
+pequeños valles, y las paredes de esos valles son exactas, no aproximadas.
+
+También indica lo que no va a funcionar. El pulido, la ascensión de colina y la
+mayoría de las heurísticas de reparación local intentan subir la pendiente desde
+un punto congelado. No hay pendiente que subir. Alcanzar una solución exige un
+movimiento que reorganice una región grande de una sola vez, o un punto de
+partida enteramente distinto, no un mejor pulido.
+
+## Alguien topó con el mismo muro desde el lado del recocido
+
+La prueba MIP aborda el muro de forma analítica. En junio de 2026, otro
+investigador se estrelló contra él de manera empírica. Trabajando el tablero
+estricto de cinco pistas con un solucionador de recocido simulado en GPU (4096
+réplicas en paralelo), benj39100 reportó dos cosas que se leen como una
+reformulación de esta página. Primero, la mejor puntuación que una ejecución
+podía alcanzar *aumentaba con la distancia al mejor tablero actual*: para subir
+de 429 hacia 432, las perturbaciones ganadoras tenían que migrar cada vez más
+lejos, porque cerca del titular no había ningún movimiento de mejora que
+encontrar. Segundo, a lo largo de todos sus mejores tableros, las mismas unas
+cuarenta y dos aristas rotas formaban un «núcleo duro» congelado que la búsqueda
+local nunca tocaba, de modo que tuvieron que añadir un término explícito que
+*recompensaba* forzar la apertura de ese núcleo. Un titular localmente congelado
+sin gradiente cercano, y un pequeño conjunto bloqueado de defectos que nada local
+va a mover: ese es el muro de rigidez, visto desde un método completamente
+distinto.
+
+## Y de nuevo, desde un solucionador SAT
+
+Un tercer investigador llegó a la misma conclusión con una tercera herramienta.
+William Millilaw, trabajando el techo de forma independiente, realizó dos
+pruebas. La primera fue una prueba de congelación: perturbar la raíz de un
+tablero de cabeza, reoptimizar y ver qué celdas vuelven. En sus mejores tableros,
+del 93 al 100 por ciento de las celdas regresaban exactamente a su sitio, un
+núcleo congelado que la búsqueda no podía mover. La segunda fue una pregunta de
+decisión para un solucionador SAT. Liberar las celdas alrededor de las
+discordancias, exigir que cada arista liberada concuerde y preguntar si alguna
+disposición de esas piezas la satisface. Su solucionador respondió UNSAT.
+
+Nosotros [reprodujimos esa prueba SAT](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
+sobre los tableros récord públicos, con nuestro propio codificador y un control
+positivo para asegurarnos de que una región concordante vuelve satisfacible. Cada
+tablero récord que probamos, desde el 467 de Verhaard hasta el 470 de Blackwood,
+es UNSAT hasta un halo de dos celdas: ningún reordenamiento local de las propias
+piezas de un tablero récord cierra una sola discordancia. La programación entera
+optimiza y acota; el recocido choca con el muro a mano; SAT decide y devuelve una
+refutación. Tres métodos, una sola respuesta.
+
+Sus trabajos anteriores sobre la serpiente y la búsqueda local pusieron un número
+al porqué. El mayor parche que cualquiera de sus operadores de reparación podía
+reescribir en un movimiento era de unas 48 celdas, mientras que dos de los buenos
+tableros conocidos, ambos cerca del techo, difieren en unas 225 celdas. Un
+movimiento que solo puede tocar 48 celdas no puede cruzar una brecha de 225
+celdas, así que ninguna secuencia de ellos alcanza una cuenca distinta. Buscó una
+cadena de pequeños movimientos de mejora que abriera un túnel hacia la salida y no
+encontró ninguna: cero mejoras a lo largo de veintiocho millones de combinaciones
+de cuatro y cinco movimientos en la meseta. Es el mismo muro, enunciado como un
+presupuesto. La reparación local reescribe demasiado poco a la vez para
+abandonar el valle, y por eso escapar exige un movimiento que reorganice una
+región grande de una sola vez, exactamente como concluye la sección de prueba de
+arriba.
+
+<Callout kind="insight" title="La siguiente pieza del cuadro">
+  Si no puede mejorar un tablero localmente, quizá pueda saltar de un buen
+  tablero a otro. Eso también fracasa, por una razón afín: [vea por qué el salto
+  entre cuencas es imposible](/research/why/sigma-cycles).
+</Callout>
+
+*Las pruebas usan programación entera sobre regiones de cada tablero; corren
+varios minutos por región en un solucionador, así que no se reproducen en directo
+aquí. Los tableros en sí van incluidos y son verificables en el visor.*

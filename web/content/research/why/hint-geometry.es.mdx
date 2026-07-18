@@ -1,0 +1,125 @@
+---
+title: Dónde colocas las pistas importa más que cuántas
+description: >-
+  En un puzzle de 16×16 construido como Eternity II, dieciocho pistas repartidas
+  por el tablero lo resuelven en minutos, mientras que el mismo puzzle necesita
+  ochenta pistas o más amontonadas en filas contiguas para resultar igual de
+  fácil. La posición, no la cantidad, es la palanca, y apunta directamente a la
+  fase final.
+metaDescription: "En Eternity II, dónde colocas las pistas importa más que cuántas: 18 repartidas lo resuelven en minutos, frente a 80+ amontonadas en filas. Apunta a la fase final."
+kind: finding
+contribution: measurement
+rigor: measured
+order: 95
+updated: 2026-07-10
+topics: [structure, search-space, backtracking]
+sources:
+  - label: "El estudio de densidad de pistas de Joe y la resolución con 18 pistas de Peter McGavin (hilo de groups.io «A method to prune E2 search space by 17-30%+», msg 11725)"
+    url: https://groups.io/g/eternity2/message/11725
+  - label: "Peter McGavin: 18 pistas repartidas resuelven el puzzle 16×16 tipo E2 en menos de 15 minutos (groups.io msg 11746)"
+    url: https://groups.io/g/eternity2/message/11746
+  - label: "Peter McGavin: el backtracker optimizado se remonta al mensaje de Mike de 2007 (groups.io msg 3098)"
+    url: https://groups.io/g/eternity2/message/3098
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/no-forced-moves
+  - /research/why/prune-vs-speed
+repro:
+  kind: prose
+---
+
+import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
+
+Regala a un solucionador algunas piezas correctas y el puzzle se vuelve más
+fácil. La pregunta obvia es cuántas necesitas. La mejor pregunta, resulta, es
+*dónde* van. En un puzzle de 16×16 construido con la receta de colores exacta
+de Eternity II, dieciocho pistas colocadas en los sitios adecuados lo resuelven
+en minutos; el mismo puzzle pide ochenta pistas o más, si las amontonas en
+filas contiguas, para ser así de fácil. Una diferencia de cuatro veces en la
+cantidad, decidida enteramente por la geometría.
+
+## Dos maneras de gastar las mismas dieciocho pistas
+
+<HintGeometryDiagram />
+
+El tablero de la izquierda es la disposición real que usó Peter McGavin:
+dieciocho pistas en un retículo regular, cada tercera columna en unas pocas
+filas sueltas. Su backtracker sencillo, de recorrido por filas, resolvió el
+puzzle 16×16 tipo E2 de Joe (cinco colores de borde, diecisiete colores
+interiores, la misma distribución que el puzzle oficial) en menos de quince
+minutos en un solo núcleo, recorriendo un árbol de búsqueda de 41 160 067 167
+colocaciones. Bajar a quince pistas seguía funcionando; la búsqueda simplemente
+crecía a varias horas. Amontona en cambio las dieciocho pistas en las primeras
+filas, tal como un recorrido de arriba abajo las acumula de forma natural, y no
+compran casi nada: la parte difícil del tablero sigue completamente abierta.
+
+Joe lo había abordado por el otro lado, sembrando filas contiguas enteras a
+partir de una solución conocida, y necesitaba muchas más antes de que el puzzle
+cediera:
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">18</div>
+    <div className="mt-1 text-xs text-muted-foreground">pistas repartidas, resuelto en minutos</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">88+</div>
+    <div className="mt-1 text-xs text-muted-foreground">pistas en filas contiguas para una facilidad comparable</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">99%</div>
+    <div className="mt-1 text-xs text-muted-foreground">del tiempo de búsqueda transcurre más allá de la profundidad 132</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">70%</div>
+    <div className="mt-1 text-xs text-muted-foreground">del tiempo de búsqueda transcurre más allá de la profundidad 150</div>
+  </div>
+</div>
+
+## Por qué gana la posición: las pistas tienen que llegar a la fase final
+
+Los dos números de la derecha explican los de la izquierda. Joe instrumentó su
+backtracker a lo largo de mil millones de iteraciones y descubrió que el trabajo
+no está repartido por el tablero en absoluto: el 99 % ocurre después de la
+profundidad 132 de 256, y el 70 % después de la profundidad 150. Casi todo el
+sufrimiento está en la mitad final del relleno, y la mayor parte pasado el punto
+de las tres quintas partes.
+
+Un bloque de pistas contiguas arriba se gasta justo donde la búsqueda nunca iba
+a costar. Acorta un comienzo fácil y deja intacta la cola cara. Las pistas
+repartidas hacen lo contrario: salpicadas por el tablero, hasta bien dentro de
+la región que la búsqueda alcanza en último lugar, se anticipan a las decisiones
+que, de otro modo, estallarían en lo profundo del árbol. Este es el mismo hecho
+que los tableros récord llevan en su superficie. Un tablero casi perfecto
+concentra todos sus daños en la banda de filas en la que la búsqueda terminó,
+porque
+[las filas que rellenas en último lugar son donde el puzzle te hace pagar](/research/why/mismatch-geometry).
+Las pistas solo ayudan en la medida en que alcanzan esa banda antes que la
+búsqueda.
+
+También encaja con [por qué el interior no da jugadas forzadas](/research/why/no-forced-moves):
+con cada celda interior aún aceptando decenas de vecinas, el valor de una pista
+no es la propagación local sino la restricción global, que corta subárboles
+enteros que la búsqueda habría tenido que recorrer. Una pista lejos de la región
+difícil corta subárboles que de todos modos eran baratos.
+
+## Lo que dice y lo que no dice
+
+Este es un resultado sobre un puzzle de 16×16 construido según la receta de
+colores de Eternity II, no sobre el puzzle oficial, cuyas cinco pistas fijas son
+un regalo distinto, mucho más pequeño, en sitios distintos. Lo que se transfiere
+es la forma de la lección, y es la misma que el argumento de
+[poda frente a velocidad](/research/why/prune-vs-speed) formula desde el otro
+lado: lo que importa es cambiar dónde gasta su esfuerzo la búsqueda, y el
+esfuerzo vive en la fase final. Un puñado de pistas dirigidas a esa fase final
+vale muchísimo más que otras tantas dirigidas a cualquier otro sitio.
+
+<Callout kind="note">
+  Los recuentos, el árbol de 41 mil millones de nodos y las estadísticas de
+  profundidad son las mediciones de Joe y de Peter McGavin, publicadas en la
+  lista de groups.io eternity2 en enero de 2026; la disposición repartida que se
+  muestra está decodificada del tablero publicado por Peter (msg 11746). El
+  backtracker optimizado que usó Peter se remonta al mensaje de Mike de 2007
+  (msg 3098). Estos son resultados de la comunidad sobre un puzzle tipo E2
+  concreto, registrados aquí con atribución en lugar de re-derivados.
+</Callout>

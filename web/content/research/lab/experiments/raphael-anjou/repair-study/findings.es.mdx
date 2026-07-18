@@ -1,0 +1,216 @@
+---
+title: Qué aporta cada decisión
+description: >-
+  Las cinco comparaciones en el corazón del estudio de reparación, desarrolladas:
+  la destrucción aleatoria ciega gana mientras que todo operador que apunta a los
+  conflictos pierde; la construcción fija el suelo; el recocido simulado es la regla
+  de aceptación más fuerte; y los refinamientos ingeniosos (recarga exacta,
+  reinicios) no aportan nada con este presupuesto.
+metaDescription: "Hallazgos del estudio de reparación: la destrucción aleatoria supera al enfoque dirigido por conflictos, la construcción domina y cada variante se estanca pronto."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-16
+date: 2026-07
+topics: [local-search, search-space, speed]
+related:
+  - /research/lab/experiments/raphael-anjou/repair-study
+  - /research/lab/experiments/raphael-anjou/repair-study/method
+  - /research/build/local-search/local-search-alns
+sources:
+  - label: "Resultados por ejecución versionados (results.jsonl) e informe por familia (report.md)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/repair-study/results
+---
+
+import { DestroyOperatorDiagram } from "@/components/research/DestroyOperatorDiagram";
+
+Cinco comparaciones sostienen el [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study).
+Cada una aísla una decisión manteniendo las otras cuatro fijas en un bucle de
+referencia simple: inicio voraz, destruir las celdas en desajuste, recarga voraz,
+conservar el resultado salvo que pierda puntuación, nunca reiniciar. Todas las
+puntuaciones son el número medio de aristas concordantes sobre las diez variantes
+con esquinas fijadas, un solo núcleo, sesenta segundos. La tasa de iteración nunca
+se compara entre familias.
+
+## El tablero de partida: la palanca que el bucle no puede reemplazar
+
+Cambie solo el tablero desde el que arranca el bucle, y todo lo demás de la
+ejecución se deriva de él. Una construcción voraz empieza en torno a 348 y el bucle
+la eleva a una media de 366. Un tablero aleatorio empieza cerca de 18 y el bucle lo
+eleva unos enormes 308 puntos, hasta una media de 326. Esa elevación mayor no es el
+bucle haciéndolo mejor; es el bucle haciendo mal el trabajo de la construcción. El
+inicio aleatorio, tras millones de iteraciones, todavía termina por debajo de donde
+el inicio voraz *empezaba*.
+
+Este es el primer resultado del estudio, y el más firme: **la construcción es la
+palanca, la reparación es el pulido.** Una construcción voraz de "color más escaso
+primero" (la heurística de Selby y Riordan según la cual un color escaso debe
+gastarse allí donde queda forzado) empieza un poco más alto aún y termina en una
+media de 373, la mejor de los inicios *voraces*.
+
+La prueba más nítida de este punto es partir de un tablero genuinamente fuerte en
+lugar de uno voraz. La última variante de tablero de partida entrega al bucle un
+tablero construido por el break-DFS del [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study):
+la ejecución dedica sus primeros veinte segundos a hacer backtracking hasta un
+tablero en torno a 440, y luego lo repara durante los cuarenta restantes. Ese inicio
+está cien puntos por encima de una construcción voraz, y se propaga directamente
+hasta la llegada. Es la variante de mayor puntuación de todo el estudio, con una
+media de 446 (mejor 449), muy por encima de los 402 del bucle de destrucción
+aleatoria, y zanja la pregunta de construir-y-luego-refinar en torno a la cual gira
+el resto del estudio: la reparación *sí* añade unas pocas aristas sobre un tablero
+fuerte obtenido por backtracking, pero solo unas pocas, y el tablero del que parte
+decide casi todo. Esta es exactamente la división del trabajo que emplean los
+récords, y este estudio la reproduce de principio a fin en un núcleo en un minuto: un
+backtracker para construir un buen tablero, y luego un bucle de reparación para
+exprimir de él las últimas aristas.
+
+## El operador de destrucción: atacar las roturas puede volverse en contra
+
+Ahora fijemos el inicio voraz y cambiemos solo qué celdas levanta cada iteración.
+Este es el eje que porta el resultado más sorprendente del estudio.
+
+<Figure title="Los cuatro operadores de destrucción, sobre un mismo tablero de junturas rotas">
+  <DestroyOperatorDiagram />
+</Figure>
+
+- **Una destrucción aleatoria ciega a la geometría gana la comparación de
+  destrucción, con una media de 402 (mejor 409).** Al levantar doce celdas
+  *aleatorias* en lugar de las rotas, sigue muestreando nuevas regiones del tablero,
+  acepta casi tres cuartas partes de sus movimientos, y su mejor puntuación sigue
+  mejorando bien entrada la ejecución: su última mejora llega más allá de tres
+  millones de iteraciones, allí donde toda variante dirigida por conflictos hace
+  tiempo que se ha congelado. Es la mejor de todas las variantes que parten de un
+  tablero voraz (solo el inicio sembrado por DFS, una palanca completamente distinta,
+  termina más alto).
+- **Todo operador dirigido por conflictos termina por debajo de ella, y cuanto más
+  se fija en las roturas, peor le va.** El ancla de "celdas en desajuste", que
+  levanta hasta una docena de las celdas rotas, promedia 366 y se estanca temprano:
+  arranca la misma maraña agrupada, la reconstruye vorazmente en casi la misma
+  disposición, y su mejor puntuación deja de moverse en unos pocos miles de
+  iteraciones. El operador de "componente más halo", que levanta toda una maraña
+  conexa (un hueco mucho mayor), lo hace peor aún, en 350, y su mejor ya no mejora
+  tras la iteración 211: un hueco de ese tamaño entrega a la recarga voraz un
+  subproblema que no sabe mejorar, de modo que casi nada llega a conservarse.
+- **Una destrucción de banda entera es inerte.** Levantar las dos filas con más
+  roturas deja a la recarga voraz un subproblema casi tan difícil como el propio
+  puzzle; en nueve de las diez instancias no hace *ninguna* mejora en todo el minuto,
+  de modo que su puntuación reportada es simplemente su tablero de partida.
+
+El patrón es limpio y merece enunciarse sin rodeos: sobre este inicio voraz
+mediocre, cuanto más precisamente un operador apunta a las roturas existentes, peor
+le va, y la destrucción aleatoria ciega gana. Esto es lo contrario de la intuición
+natural, y de lo que funciona sobre un tablero *cercano al récord*, donde todo el
+tablero está próximo al óptimo y donde el ajuste de la comunidad halló que los
+operadores dirigidos por conflictos y por componentes eran los más valiosos,
+precisamente porque los pocos desajustes restantes son lo único que queda por
+corregir. Este estudio nunca alcanza ese régimen. Sesenta segundos sobre un tablero
+mediocre dejan un amplio margen de mejora en todas partes, y ahí un operador que
+reataca sin cesar el mismo grupo roto, o que arranca un hueco demasiado grande para
+reconstruirlo bien, pierden ambos frente a uno que simplemente sigue intentando
+nuevas regiones pequeñas. El hallazgo no es "la destrucción dirigida por conflictos
+es mala" sino "qué operador gana depende de lo bueno que ya sea el tablero, y sobre
+un tablero mediocre, explorar supera tanto a fijarse como a sobredestruir".
+
+## Reparación: cómo se reconstruye el hueco
+
+Fijemos la destrucción y cambiemos solo la recarga. Romper los empates exactos de
+puntuación de la recarga voraz con una moneda sembrada, en lugar de forma
+determinista, añade un poco de exploración y ayuda ligeramente, hasta una media de
+365. La comparación más tajante es voraz contra recarga *exacta*, y hay que montarla
+con cuidado para que sea una prueba limpia de un solo eje: la recarga exacta solo
+compensa cuando el hueco es lo bastante pequeño para explorarlo, así que el estudio
+la empareja con una destrucción pequeña (a lo sumo seis celdas en desajuste) y la
+compara contra la *misma* destrucción pequeña recargada vorazmente, de modo que lo
+único que cambia entre ambas es la recarga. Montada así, la recarga exacta corre en
+cada iteración en lugar de replegarse a la voraz, reconstruyendo cada hueco pequeño a
+su verdadero óptimo.
+
+El resultado es un negativo limpio. La recarga exacta (media 360) **no** supera a la
+recarga voraz del mismo hueco pequeño (media 363); si acaso queda un matiz por
+detrás. Dos cosas lo explican. La recarga exacta acepta casi cada iteración, porque
+una reconstrucción localmente óptima de un hueco de seis celdas casi nunca baja la
+puntuación, de modo que el bucle deriva lateralmente en lugar de escalar. Y compra
+esa optimalidad local a alrededor de un tercio del número de iteraciones, de modo que
+en un minuto fijo explora menos el tablero. Sobre este puzzle, con este presupuesto,
+una reconstrucción localmente perfecta de una región minúscula no vale lo que cuesta:
+las reconstrucciones más baratas y ligeramente peores de la recarga voraz, ejecutadas
+más a menudo, llegan igual de lejos. Esta es la misma pregunta de "la tasa de nodos
+no es la puntuación" que plantean los motores heurísticos del estudio DFS, y aquí la
+respuesta cae del lado de más iteraciones, más baratas, lo cual merece consignarse
+precisamente porque tan a menudo se supone lo contrario.
+
+## Aceptación: cuánto se permite un movimiento no mejorante importa
+
+Fijemos el bucle y cambiemos solo cuándo se conserva un candidato no mejorante. De
+los cinco ejes, este es el que más mueve la puntuación después del operador de
+destrucción.
+
+- **Una escalada de colina estricta, que conserva solo las mejoras estrictas, es la
+  más débil, con una media de 361.** Rechazar todo movimiento lateral la encierra en
+  la primera cuenca que encuentra; su tasa de aceptación es esencialmente cero.
+- **Permitir movimientos iguales o mejores (el ancla) lo hace mejor, en 366.** Los
+  movimientos laterales le permiten derivar a través de las mesetas de puntuación
+  igual que dominan este paisaje.
+- **Una regla de recocido simulado con enfriamiento es la aceptación más fuerte por un
+  margen claro, en 377 (mejor 394), entre las mejores de las variantes de inicio
+  voraz.** Permitir movimientos *empeorantes* ocasionales al principio, y luego
+  enfriar, le permite abandonar una meseta en la que la pura deriva lateral queda
+  atrapada, y su mejor puntuación sigue mejorando hasta alrededor de la iteración
+  veinte mil en lugar de congelarse en los primeros miles. Una regla de aceptación
+  tardía, que compara con la puntuación de unas decenas de iteraciones atrás, se sitúa
+  entre las dos en 369.
+
+Así que la regla de aceptación es aquí una palanca real, no un detalle: de estricta a
+recocido hay un vaivén de dieciséis puntos sobre el mismo bucle (361 a 377). Eso
+merece enunciarse frente a una observación conocida del propio ajuste ALNS de la
+comunidad: que a lo largo de un amplio rango de temperaturas de recocido las
+puntuaciones finales eran esencialmente idénticas. Las dos no están en conflicto. Ese
+ajuste se hizo sobre tableros cercanos al récord, donde el paisaje es un mar de
+mesetas de puntuación igual y cualquier temperatura acepta casi todo; el tablero de
+partida mediocre de este estudio todavía tiene estructura cuesta abajo real que
+explotar, de modo que si la regla dará un paso cuesta abajo para escapar de una
+meseta importa genuinamente. Qué regla de aceptación gana, como qué operador de
+destrucción gana, depende de lo bueno que ya sea el tablero.
+
+## Reinicio: ninguna perturbación mueve la aguja
+
+Fijemos el bucle y cambiemos solo lo que ocurre una vez que se estanca. No hacer nada
+deja a la ejecución triturando la misma cuenca durante el resto del minuto. Un
+*golpe* aleatorio, que desplaza y recarga aleatoriamente un par de docenas de celdas
+cuando el mejor no se ha movido en un rato, y un *retorno al mejor tablero hasta el
+momento*, que reataca al titular, son las dos perturbaciones probadas. Ambas caen a
+un punto del ancla sin reinicio (365 y 365, frente al 366 del ancla). Este es un
+resultado nulo limpio: atornillar un detector de estancamiento y una perturbación al
+bucle voraz-desajuste no lo ayuda, porque la perturbación o bien tira la estructura
+que hacía bueno al tablero (el golpe) o bien retorna a un tablero en el que el mismo
+operador ya se ha estancado (el retorno). Ninguna convierte el bucle en un evasor de
+cuencas; sobre este puzzle, escapar de una cuenca requiere un movimiento distinto de
+perturbar-y-reparar, que es exactamente lo que explican el
+[muro de rigidez](/research/why/rigidity-wall) y la
+[estructura de σ-ciclos](/research/why/sigma-cycles).
+
+## El hilo conductor
+
+Dos temas atraviesan las cinco comparaciones. El primero es que **las dos decisiones
+que mueven la puntuación son el operador de destrucción y la regla de aceptación**, y
+ambas la mueven en la misma dirección contraintuitiva: las elecciones ganadoras son
+las que mantienen el bucle *explorando* en lugar de *explotando*. La destrucción
+aleatoria supera a todo operador que apunta a las roturas; el recocido, que da un paso
+cuesta abajo para abandonar una meseta, supera a toda regla que solo se mueve
+lateralmente o cuesta arriba. Refinar la recarga y atornillar un reinicio, las dos
+decisiones que intentan ser más ingeniosas acerca de una región en la que el bucle ya
+está atascado, no aportan nada.
+
+El segundo es por qué explorar gana aquí mientras que fijarse gana sobre un tablero
+cercano al récord: **el bucle de reparación es un explorador de cuencas, no un evasor
+de cuencas.** Sobre un tablero mediocre hay amplia estructura cuesta abajo en todas
+partes, de modo que los movimientos que cubren más de ella ganan; sobre un tablero
+cercano al récord no queda ninguna salvo un único ciclo entrelazado, de modo que los
+movimientos que lo apuntan con precisión ganan. Ninguno de los dos regímenes permite a
+perturbar-y-reparar escapar de una cuenca una vez que está en una. Por eso los
+pipelines de construir-y-luego-refinar que alcanzan los mejores tableros de este
+proyecto dividen el trabajo como lo hacen: un productor constructivo fuerte para
+elegir una buena cuenca, y la reparación como último kilómetro dentro de ella, nunca
+requerida a salir de ella.
