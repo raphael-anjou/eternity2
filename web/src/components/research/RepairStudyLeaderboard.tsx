@@ -1,16 +1,6 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  Cell,
-  LabelList,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/repair-study.json";
@@ -213,6 +203,13 @@ export function RepairStudyLeaderboard() {
         .sort((a, b) => (b.mean_lift ?? 0) - (a.mean_lift ?? 0)),
     [],
   );
+  // The lift chart previously let recharts auto-scale the x-axis (no explicit
+  // domain); the shared chart needs an explicit max, so round the largest lift
+  // up to a tidy tick to keep the same visual headroom.
+  const liftMax = useMemo(() => {
+    const max = Math.max(0, ...byLift.map((v) => v.mean_lift ?? 0));
+    return Math.ceil(max / 20) * 20 || 1;
+  }, [byLift]);
 
   // The convergence-curve series. Each variant has its own [iter, score] pairs
   // with independent iteration positions, so we give each Line its own data
@@ -241,54 +238,26 @@ export function RepairStudyLeaderboard() {
       <section>
         <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.boardIntro}</p>
-        <div className="mt-4 h-[520px] w-full">
-          {isClient ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart accessibilityLayer layout="vertical" data={scored} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
-                <XAxis
-                  type="number"
-                  domain={[0, 480]}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="display"
-                  width={150}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  cursor={{ fill: "currentColor", opacity: 0.06 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const v = payload[0]?.payload as Variant | undefined;
-                    if (!v) return null;
-                    return (
-                      <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                        <div className="font-semibold">{v.display}</div>
-                        <div className="mt-1 text-muted-foreground">{familyLabel(v.family)}</div>
-                        <div className="mt-1">
-                          mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
-                        </div>
-                        <div className="text-muted-foreground">
-                          lift +{v.mean_lift} · {fmtInt(v.mean_iterations)} iters
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar dataKey="mean" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  {scored.map((v) => (
-                    <Cell key={v.name} fill={familyFill(v.family)} />
-                  ))}
-                  <LabelList dataKey="mean" position="right" fontSize={11} className="fill-foreground" />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <Busy label={t.busy} />
-          )}
+        <div className="mt-4">
+          <HorizontalScoreChart
+            rows={scored}
+            valueKey="mean"
+            domainMax={480}
+            colorOf={(v) => familyFill(v.family)}
+            busyLabel={t.busy}
+            tooltip={(v) => (
+              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                <div className="font-semibold">{v.display}</div>
+                <div className="mt-1 text-muted-foreground">{familyLabel(v.family)}</div>
+                <div className="mt-1">
+                  mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
+                </div>
+                <div className="text-muted-foreground">
+                  lift +{v.mean_lift} · {fmtInt(v.mean_iterations)} iters
+                </div>
+              </div>
+            )}
+          />
         </div>
         <FamilyLegend lang={lang} />
       </section>
@@ -297,49 +266,22 @@ export function RepairStudyLeaderboard() {
       <section>
         <h3 className="text-base font-semibold tracking-tight">{t.liftTitle}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.liftIntro}</p>
-        <div className="mt-4 h-[520px] w-full">
-          {isClient ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart accessibilityLayer layout="vertical" data={byLift} margin={{ top: 8, right: 48, bottom: 8, left: 8 }}>
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="display"
-                  width={150}
-                  tick={{ fontSize: 11, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  cursor={{ fill: "currentColor", opacity: 0.06 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const v = payload[0]?.payload as Variant | undefined;
-                    if (!v) return null;
-                    return (
-                      <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                        <div className="font-semibold">{v.display}</div>
-                        <div className="mt-1">
-                          start {v.start_score} → {v.mean} (lift +{v.mean_lift})
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar dataKey="mean_lift" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  {byLift.map((v) => (
-                    <Cell key={v.name} fill={familyFill(v.family)} />
-                  ))}
-                  <LabelList dataKey="mean_lift" position="right" fontSize={11} className="fill-foreground" />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <Busy label={t.busy} />
-          )}
+        <div className="mt-4">
+          <HorizontalScoreChart
+            rows={byLift}
+            valueKey="mean_lift"
+            domainMax={liftMax}
+            colorOf={(v) => familyFill(v.family)}
+            busyLabel={t.busy}
+            tooltip={(v) => (
+              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                <div className="font-semibold">{v.display}</div>
+                <div className="mt-1">
+                  start {v.start_score} → {v.mean} (lift +{v.mean_lift})
+                </div>
+              </div>
+            )}
+          />
         </div>
         <p className="mt-2 text-xs text-muted-foreground">{t.liftAxis}</p>
       </section>

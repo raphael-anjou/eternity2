@@ -32,9 +32,15 @@ export type RefLine = {
   angle?: number;
   dashed?: boolean;
   opacity?: number;
+  // Anchor the label text to its end (grows leftward) and nudge it, so a
+  // near-the-right-edge reference label never clips off the plot.
+  textAnchor?: "start" | "middle" | "end";
+  dx?: number;
 };
 
-export type ScoreChartRow = { name: string } & Record<string, unknown>;
+// A row is just a bag of fields; the caller names the value and category keys.
+// (React keys come from the category value, which is unique per bar.)
+export type ScoreChartRow = Record<string, unknown>;
 
 export function HorizontalScoreChart<Row extends ScoreChartRow>({
   rows,
@@ -43,9 +49,13 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
   domainMax,
   colorOf,
   fillOpacityOf,
+  domainMin = 0,
   referenceLines = [],
   height = 520,
   categoryWidth = 150,
+  tickCount,
+  allowDecimals = true,
+  barCategoryGap,
   busyLabel = "Drawing…",
   tooltip,
   barLabel,
@@ -56,11 +66,15 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
   valueKey: string;
   categoryKey?: string;
   domainMax: number;
+  domainMin?: number;
   colorOf: (row: Row) => string;
   fillOpacityOf?: (row: Row) => number;
   referenceLines?: RefLine[];
   height?: number;
   categoryWidth?: number;
+  tickCount?: number;
+  allowDecimals?: boolean;
+  barCategoryGap?: number;
   busyLabel?: string;
   tooltip?: (row: Row) => ReactNode;
   // A custom right-side label per bar; falls back to the raw value.
@@ -81,10 +95,13 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
             // tight top margin clips it. This was the bug that motivated the
             // shared component.
             margin={{ top: 28, right: 64, bottom: 8, left: 8 }}
+            {...(barCategoryGap != null ? { barCategoryGap } : {})}
           >
             <XAxis
               type="number"
-              domain={[0, domainMax]}
+              domain={[domainMin, domainMax]}
+              allowDecimals={allowDecimals}
+              {...(tickCount != null ? { tickCount } : {})}
               tick={{ fontSize: 11, fill: "currentColor" }}
               className="text-muted-foreground"
             />
@@ -122,19 +139,25 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
                         fontSize: r.labelPosition && r.labelPosition !== "top" ? 9 : 10,
                         fill: r.color ?? "currentColor",
                         ...(r.angle != null ? { angle: r.angle } : {}),
+                        ...(r.textAnchor ? { textAnchor: r.textAnchor } : {}),
+                        ...(r.dx != null ? { dx: r.dx } : {}),
                       },
                     }
                   : {})}
               />
             ))}
             <Bar dataKey={valueKey} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-              {rows.map((row) => (
-                <Cell
-                  key={row.name}
-                  fill={colorOf(row)}
-                  fillOpacity={fillOpacityOf ? fillOpacityOf(row) : 1}
-                />
-              ))}
+              {rows.map((row, i) => {
+                const cat = row[categoryKey];
+                const key = typeof cat === "string" || typeof cat === "number" ? cat : i;
+                return (
+                  <Cell
+                    key={key}
+                    fill={colorOf(row)}
+                    fillOpacity={fillOpacityOf ? fillOpacityOf(row) : 1}
+                  />
+                );
+              })}
               <LabelList
                 dataKey={valueKey}
                 position="right"

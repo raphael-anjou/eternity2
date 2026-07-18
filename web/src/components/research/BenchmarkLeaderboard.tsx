@@ -1,17 +1,6 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  Cell,
-  LabelList,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { useT, useLang, pick, type Dict } from "@/i18n";
-import { useIsClient } from "@/lib/utils";
 import data from "@/data/single-core-benchmark.json";
 
 // The single-core benchmark leaderboard, rendered from the committed run data
@@ -206,7 +195,6 @@ export function BenchmarkLeaderboard({
 }) {
   const t = useT(T);
   const { lang } = useLang();
-  const isClient = useIsClient();
   const isContenders = view === "contenders";
   const algos = D.algos.filter((a) =>
     isContenders ? a.role === "contender" : a.role !== "contender",
@@ -285,81 +273,41 @@ export function BenchmarkLeaderboard({
             </span>
           ))}
         </div>
-        <div
-          className="rounded-lg border p-3"
-          style={{ height }}
-          role="img"
-          aria-label={`${t.boardTitle}. ${t.boardIntro}`}
-        >
-          {isClient ? (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <BarChart
-                accessibilityLayer
-                layout="vertical"
-                data={algos}
-                margin={{ top: 28, right: 44, bottom: 6, left: 8 }}
-                barCategoryGap={6}
-              >
-                <XAxis
-                  type="number"
-                  domain={[DOMAIN_LO, D.maxScore]}
-                  tickCount={7}
-                  fontSize={11}
-                  allowDecimals={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="algo"
-                  width={172}
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  cursor={{ fill: "transparent" }}
-                  formatter={(_v, _n, item) => {
-                    const a = item.payload as Algo;
-                    return [
-                      `mean ${a.mean} · range ${a.worst}–${a.best} · σ${a.std} · ${fmtNps(a.nps, a.npsUnit)}`,
-                      a.algo,
-                    ];
-                  }}
-                />
-                {/* These variants pin all 5 clues, so the meaningful ceiling is
-                    the 5-clue community record (464), not the all-hints 470.
-                    Anchor the label to the END (grows leftward, never clips)
-                    with room from the top margin. One line only, no overlap. */}
-                <ReferenceLine
-                  x={D.community}
-                  stroke="#f59e0b"
-                  strokeDasharray="4 3"
-                  label={{
-                    value: t.ceiling,
-                    position: "top",
-                    fontSize: 10,
-                    fill: "#f59e0b",
-                    textAnchor: "end",
-                    dx: -2,
-                  }}
-                />
-                <Bar dataKey="mean" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  <LabelList
-                    dataKey="mean"
-                    position="right"
-                    fontSize={11}
-                    className="fill-foreground"
-                  />
-                  {algos.map((a) => (
-                    <Cell key={a.algo} fill={familyFill(a.family)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t.busy}
-            </div>
-          )}
+        <div role="img" aria-label={`${t.boardTitle}. ${t.boardIntro}`}>
+          <HorizontalScoreChart
+            rows={algos}
+            valueKey="mean"
+            categoryKey="algo"
+            domainMin={DOMAIN_LO}
+            domainMax={D.maxScore}
+            tickCount={7}
+            allowDecimals={false}
+            categoryWidth={172}
+            barCategoryGap={6}
+            height={height}
+            colorOf={(a) => familyFill(a.family)}
+            busyLabel={t.busy}
+            tooltip={(a) => (
+              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                <div className="font-semibold">{a.algo}</div>
+                <div className="mt-1 text-muted-foreground">
+                  mean {a.mean} · range {a.worst}–{a.best} · σ{a.std} · {fmtNps(a.nps, a.npsUnit)}
+                </div>
+              </div>
+            )}
+            // These variants pin all 5 clues, so the meaningful ceiling is the
+            // 5-clue community record (464), not the all-hints 470. Anchor the
+            // label to the END so it grows leftward and never clips.
+            referenceLines={[
+              {
+                x: D.community,
+                color: "#f59e0b",
+                label: t.ceiling,
+                textAnchor: "end",
+                dx: -2,
+              },
+            ]}
+          />
         </div>
       </div>
 
