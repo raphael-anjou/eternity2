@@ -9,7 +9,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
+import { driveSolver, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // Basin-hopping, on a real small puzzle. We generate a puzzle, find TWO distinct
 // real solutions with the engine, then compute the actual permutation σ that
@@ -45,17 +45,12 @@ async function findTwoSolutions(
       if (cancelled()) return null;
       const path = getPath(kind, puzzle.width, puzzle.height, s);
       const solver = createSolver(puzzle, path, { useHints: false, shufflePieces: true, seed: s + 1 });
-      let r = solver.report();
-      let spent = 0;
       try {
-        while (r.status === "running" && spent < STEP_CAP && !cancelled()) {
-          const deadline = performance.now() + FRAME_BUDGET_MS;
-          do {
-            r = solver.step(5_000);
-            spent += 5_000;
-          } while (r.status === "running" && spent < STEP_CAP && performance.now() < deadline);
-          if (r.status === "running" && spent < STEP_CAP) await yieldToBrowser();
-        }
+        const r = await driveSolver(solver, {
+          batch: 5_000,
+          cancelled,
+          budgetCap: STEP_CAP,
+        });
         if (r.status === "solved") {
           const board = solver.board();
           found.set(Array.from(board).join(","), Int32Array.from(board));

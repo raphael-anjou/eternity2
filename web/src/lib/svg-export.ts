@@ -2,11 +2,15 @@
 // Both work purely client-side off the live DOM node, so whatever the viewer
 // shows (conflicts, numbers, coordinates) is exactly what gets saved.
 //
+// The anchor-click download itself is the shared `downloadBlob` helper.
+//
 // The board SVG references its motif artwork via <use href="#e2m-N">, but those
 // <defs> live in a separate global <svg> (see MotifDefs). A standalone export
 // must carry that artwork with it, so we resolve every referenced symbol from
 // the document and inline a <defs> into the clone — otherwise only the
 // background rect survives and the board comes out blank.
+
+import { downloadBlob } from "./pieceSvg";
 
 function inlineReferencedDefs(clone: SVGSVGElement) {
   const ids = new Set<string>();
@@ -63,21 +67,10 @@ function shortHash(s: string): string {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
-function triggerDownload(href: string, filename: string) {
-  const a = document.createElement("a");
-  a.href = href;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
 export function downloadSvg(svg: SVGSVGElement, name: string) {
   const data = serialize(svg);
   const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  triggerDownload(url, `${name}-${shortHash(data)}.svg`);
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `${name}-${shortHash(data)}.svg`);
 }
 
 export async function downloadPng(svg: SVGSVGElement, name: string, scale = 2) {
@@ -102,11 +95,7 @@ export async function downloadPng(svg: SVGSVGElement, name: string, scale = 2) {
     ctx.drawImage(img, 0, 0, w, h);
     await new Promise<void>((resolve) =>
       canvas.toBlob((png) => {
-        if (png) {
-          const pngUrl = URL.createObjectURL(png);
-          triggerDownload(pngUrl, `${name}-${shortHash(data)}.png`);
-          URL.revokeObjectURL(pngUrl);
-        }
+        if (png) downloadBlob(png, `${name}-${shortHash(data)}.png`);
         resolve();
       }, "image/png"),
     );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { SolverHandle, SolverReport } from "@/lib/types";
 
 // Shared machinery for the animated / live-solver components embedded in the
 // research pages. Two problems it solves:
@@ -20,6 +21,57 @@ export const FRAME_BUDGET_MS = 8;
 /** Await a macrotask so the browser can process input / paint / navigation. */
 export function yieldToBrowser(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/**
+ * Drive a step-able solver to completion off the main thread: run `step(batch)`
+ * in `FRAME_BUDGET_MS`-bounded slices, yielding to the browser between slices so
+ * input, paint and navigation stay responsive. Stops when the solver is no
+ * longer running, when `cancelled()` flips (component unmounted, new run
+ * started), or when a supplied cap is reached:
+ *   - `keepGoing(report)` returns false — a cap on a report field (e.g. nodes);
+ *   - `budgetCap` is exceeded — a cap on the total step budget *requested*
+ *     (the sum of `batch` over all slices), matching the labs' old
+ *     `spent += batch; spent < CAP` loops exactly.
+ *
+ * The live research labs share this loop; each supplies only its own batch size
+ * and cap. The caller owns the solver's lifecycle (`free()`), since some want to
+ * read `board()`/`score()` off it afterward.
+ *
+ * Returns the final report.
+ */
+export async function driveSolver(
+  solver: SolverHandle,
+  {
+    batch,
+    cancelled,
+    keepGoing = () => true,
+    budgetCap = Infinity,
+  }: {
+    batch: number;
+    cancelled: () => boolean;
+    keepGoing?: (report: SolverReport) => boolean;
+    budgetCap?: number;
+  },
+): Promise<SolverReport> {
+  let r = solver.report();
+  let spent = 0;
+  const running = () =>
+    r.status === "running" && spent < budgetCap && keepGoing(r) && !cancelled();
+  while (running()) {
+    const deadline = performance.now() + FRAME_BUDGET_MS;
+    do {
+      r = solver.step(batch);
+      spent += batch;
+    } while (
+      r.status === "running" &&
+      spent < budgetCap &&
+      keepGoing(r) &&
+      performance.now() < deadline
+    );
+    if (running()) await yieldToBrowser();
+  }
+  return r;
 }
 
 /**

@@ -6,7 +6,7 @@ import type { Puzzle } from "@/lib/types";
 import { boardFromEngine } from "@/lib/bucas";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
-import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
+import { driveSolver } from "@/lib/useRunWhileVisible";
 
 // Rigidity, hands-on. We hand you a real perfect solution of a small puzzle and
 // invite you to beat it: click two cells to swap their pieces, and the real
@@ -33,17 +33,12 @@ async function solveSmall(
   const path = getPath("row-major", puzzle.width, puzzle.height, 0);
   const solver = createSolver(puzzle, path, { useHints: false });
   const STEP_CAP = 400_000_000; // same per-solve cap as the old 4000 × 100k loop
-  let r = solver.report();
-  let spent = 0;
   try {
-    while (r.status === "running" && spent < STEP_CAP && !cancelled()) {
-      const deadline = performance.now() + FRAME_BUDGET_MS;
-      do {
-        r = solver.step(5_000);
-        spent += 5_000;
-      } while (r.status === "running" && spent < STEP_CAP && performance.now() < deadline);
-      if (r.status === "running" && spent < STEP_CAP) await yieldToBrowser();
-    }
+    const r = await driveSolver(solver, {
+      batch: 5_000,
+      cancelled,
+      budgetCap: STEP_CAP,
+    });
     if (r.status !== "solved") return null;
     const board = Int32Array.from(solver.board());
     return { puzzle, board, maxScore: getBoardScore(puzzle, board) };
