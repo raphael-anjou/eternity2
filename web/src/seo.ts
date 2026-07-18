@@ -262,11 +262,6 @@ const PAGES: Record<string, Dict<Entry>> = {
   },
 };
 
-/** Page description for a registered page key (research search + nav). */
-export function pageDescription(pageKey: string, lang: Lang): string {
-  return pick(PAGES[pageKey] ?? HOME_PAGE, lang).description;
-}
-
 // FAQ structured data for the two question-titled pages. Both answer a real
 // query people type ("has Eternity II been solved?", "is it a scam?"), so a
 // FAQPage node makes them eligible for FAQ rich results and gives AI answers a

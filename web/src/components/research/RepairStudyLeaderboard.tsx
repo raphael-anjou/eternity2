@@ -66,6 +66,9 @@ type Variant = {
   curve?: [number, number][] | null;
 };
 
+// `as unknown as` (not a plain `as`): the JSON infers `curve` as number[][],
+// which doesn't structurally overlap `[number, number][]`, so TS rejects the
+// direct cast. The shape is guaranteed by the generating script (see below).
 const D = data as unknown as {
   budget_s: number;
   seed: number;
