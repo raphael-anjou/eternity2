@@ -82,6 +82,26 @@ const T = {
     legendUnique: "exactement 1 restant (serveur unique)",
     a11y: "Graphique linéaire suivant les cases rares à mesure que le plateau se remplit : le nombre de cases encore vides servies par une ou deux pièces restantes grimpe régulièrement vers la fin de partie.",
   },
+  es: {
+    title: "Observa cómo se agotan las piezas raras",
+    intro:
+      "Un solucionador real rellena este tablero de 6×6. Tras cada pieza, contamos las celdas aún vacías cuyos colores solo pueden satisfacer una o dos de las piezas que quedan en la caja: las demandas escasas. Míralas acumularse a medida que el tablero se llena: las piezas raras que necesita una celda se gastan en otra parte, y hacia el final casi todas las celdas abiertas se quedan con su último servidor o dos. Esa escasez, aprendida de tableros fuertes, es la señal que LODESTONE aporta a la búsqueda.",
+    speed: (n: string) => `Velocidad: ${n} pasos/s`,
+    run: "Iniciar",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    placed: "piezas colocadas",
+    scarce: "celdas escasas (≤2 servidores)",
+    unique: "reducidas a un servidor",
+    chartScarce: "≤ 2 servidores",
+    chartUnique: "exactamente 1",
+    xAxis: "piezas colocadas",
+    busy: "Dibujando…",
+    loading: "Cargando el motor…",
+    legendScarce: "≤ 2 servidores restantes",
+    legendUnique: "exactamente 1 restante (servidor único)",
+    a11y: "Gráfico de líneas que sigue las celdas escasas a medida que el tablero se llena: el número de celdas aún vacías atendidas por solo una o dos piezas restantes sube de forma constante hacia el final de la partida.",
+  },
 };
 
 export function LodestoneRarityLab() {

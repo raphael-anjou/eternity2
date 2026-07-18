@@ -5,14 +5,27 @@
 // — this fills that gap. Uses the SAME github-slugger the app's rehype-slug and
 // content.config extractToc use, so computed slugs match runtime IDs exactly.
 //
-// Usage: node check-anchors.mjs [--fr-only]   (run from web/)
+// Usage: node check-anchors.mjs [--<lang>-only]   (run from web/)
+//        e.g. --fr-only, --es-only
 
 import fs from "node:fs";
 import path from "node:path";
 import GithubSlugger from "github-slugger";
 
 const CONTENT = path.resolve("content/research");
-const frOnly = process.argv.includes("--fr-only");
+// Non-English languages that ship translated sidecars (mirrors the language
+// registry in content.config.ts; a literal here to keep the script dep-free).
+const TRANSLATION_LANGS = ["fr", "es"];
+const SIDECAR_RE = new RegExp(`\\.(${TRANSLATION_LANGS.join("|")})\\.mdx$`);
+// --<lang>-only restricts the check to one language's sidecars.
+const onlyLang = TRANSLATION_LANGS.find((l) => process.argv.includes(`--${l}-only`)) ?? null;
+
+/** The language of a content file from its name: a `.<lang>.mdx` sidecar, else
+ *  English. */
+function fileLang(file) {
+  const m = SIDECAR_RE.exec(file);
+  return m ? m[1] : "en";
+}
 
 function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -43,26 +56,24 @@ function headingSlugs(src) {
 }
 
 // slug -> Set of heading slugs (page URL keyed by content slug)
-const files = walk(CONTENT).filter((f) => !frOnly || f.endsWith(".fr.mdx"));
+const files = walk(CONTENT).filter((f) => !onlyLang || fileLang(f) === onlyLang);
 const allFiles = walk(CONTENT);
 
 // Build a map: page slug (language-neutral) -> heading slugs, per language.
 function pageSlug(file) {
   const rel = path.relative(CONTENT, file).split(path.sep).join("/");
-  return rel.replace(/\.fr\.mdx$/, "").replace(/\.mdx$/, "").replace(/(^|\/)index$/, "$1").replace(/\/$/, "");
+  return rel.replace(SIDECAR_RE, "").replace(/\.mdx$/, "").replace(/(^|\/)index$/, "$1").replace(/\/$/, "");
 }
 const headingsByUrlLang = new Map(); // `${lang}:${url}` -> Set<slug>
 for (const file of allFiles) {
-  const isFr = file.endsWith(".fr.mdx");
   const s = pageSlug(file);
   const url = s === "" ? "/research" : `/research/${s}`;
-  headingsByUrlLang.set(`${isFr ? "fr" : "en"}:${url}`, headingSlugs(fs.readFileSync(file, "utf8")));
+  headingsByUrlLang.set(`${fileLang(file)}:${url}`, headingSlugs(fs.readFileSync(file, "utf8")));
 }
 
 let broken = 0;
 for (const file of files) {
-  const isFr = file.endsWith(".fr.mdx");
-  const lang = isFr ? "fr" : "en";
+  const lang = fileLang(file);
   const src = fs.readFileSync(file, "utf8");
   const selfUrl = (() => { const s = pageSlug(file); return s === "" ? "/research" : `/research/${s}`; })();
   const rel = path.relative(CONTENT, file).split(path.sep).join("/");

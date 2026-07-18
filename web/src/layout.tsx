@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { useLang, useT, pathForLang, preferredLang, type Lang } from "@/i18n";
+import { useLang, useT, pathForLang, preferredLang, langDef, LANGS } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { loadAnalyticsWhenIdle } from "@/lib/analytics";
 
@@ -39,6 +39,7 @@ const T = {
     llmsLabel: "llms.txt",
     llmsFullLabel: "full text",
     sitemapLabel: "sitemap",
+    langPicker: "Choose language",
   },
   fr: {
     nav: [
@@ -67,6 +68,36 @@ const T = {
     llmsLabel: "llms.txt",
     llmsFullLabel: "texte complet",
     sitemapLabel: "plan du site",
+    langPicker: "Choisir la langue",
+  },
+  es: {
+    nav: [
+      { to: "/", label: "Inicio" },
+      { to: "/start", label: "Por dónde empezar" },
+      { to: "/playground", label: "Zona de pruebas" },
+      { to: "/algorithms", label: "Algoritmos" },
+      { to: "/viewer", label: "Visor de tableros" },
+      { to: "/research", label: "Investigación" },
+    ],
+    footerNav: [
+      { to: "/puzzle", label: "El puzzle" },
+      { to: "/status", label: "¿Se ha resuelto?" },
+      { to: "/is-it-a-scam", label: "¿Es una estafa?" },
+      { to: "/algorithms", label: "Algoritmos" },
+      { to: "/playground", label: "Zona de pruebas" },
+      { to: "/viewer", label: "Visor de tableros" },
+      { to: "/convert", label: "Conversor de formatos" },
+      { to: "/research", label: "Investigación" },
+    ],
+    footer:
+      "Código abierto (MIT). Motivos de las piezas por Jef Bucas (GPL-3.0). Todo se ejecuta en tu navegador. No hay servidor.",
+    builtBy: "Creado por Raphaël Anjou.",
+    sourceCode: "Código fuente en GitHub",
+    forAgents: "Para agentes de IA y rastreadores:",
+    llmsLabel: "llms.txt",
+    llmsFullLabel: "texto completo",
+    sitemapLabel: "mapa del sitio",
+    langPicker: "Elegir idioma",
   },
 };
 
@@ -84,20 +115,23 @@ function PageTracking() {
   return null;
 }
 
-// On a first visit to the bare English root "/", send French visitors to /fr
-// (honoring an earlier explicit choice or the browser language). This must run
-// SYNCHRONOUSLY during render — not in a post-paint effect — because an effect
-// can fire *after* the user has already clicked a nav link, and would then
-// redirect away from the page they navigated to (the "click The Puzzle, flicker,
-// bounce to home" bug). Rendering <Navigate> reacts to the live location, so a
-// real navigation away from "/" simply makes this component render null.
+// On a first visit to the bare English root "/", send visitors whose preferred
+// language is not English to that language's tree (/fr, /es, …), honoring an
+// earlier explicit choice or the browser language. This must run SYNCHRONOUSLY
+// during render — not in a post-paint effect — because an effect can fire
+// *after* the user has already clicked a nav link, and would then redirect away
+// from the page they navigated to (the "click The Puzzle, flicker, bounce to
+// home" bug). Rendering <Navigate> reacts to the live location, so a real
+// navigation away from "/" simply makes this component render null.
 function FirstVisitRedirect() {
   const { pathname, search } = useLocation();
   // Only the exact bare root with no query is eligible; any other path already
   // carries its own language/segments and is left untouched.
   const eligible = pathname === "/" && search.length === 0;
-  if (eligible && preferredLang() === "fr") {
-    return <Navigate to="/fr" replace />;
+  if (eligible) {
+    const preferred = preferredLang();
+    const def = langDef(preferred);
+    if (def.prefix) return <Navigate to={`/${def.prefix}`} replace />;
   }
   return null;
 }
@@ -107,8 +141,15 @@ function FirstVisitRedirect() {
 // it, so they must not pay its download + compile cost. Convert is deliberately
 // engine-free (it only reshuffles cells), so it is not listed. initEngine() is
 // idempotent, so warming again on navigation into one of these is a no-op.
-const ENGINE_ROUTES =
-  /^\/(fr\/)?(puzzle|start|viewer|playground(\/|$))/;
+// Any language prefix may precede the engine routes (/puzzle, /fr/puzzle,
+// /es/puzzle, …), so a translated app page warms the engine too. The prefix
+// group is built from the registry so a new language is covered automatically.
+const ENGINE_PREFIX = LANGS.map((l) => l.prefix)
+  .filter(Boolean)
+  .join("|");
+const ENGINE_ROUTES = new RegExp(
+  `^/((${ENGINE_PREFIX})/)?(puzzle|start|viewer|playground(/|$))`,
+);
 
 export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -133,7 +174,6 @@ export default function Layout() {
 
   // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle).
   const link = (to: string) => pathForLang(to, lang);
-  const other: Lang = lang === "en" ? "fr" : "en";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -174,13 +214,34 @@ export default function Layout() {
             ))}
           </nav>
           <div className="flex-1 md:hidden" />
-          <button
-            onClick={() => setLang(other)}
-            className="shrink-0 rounded-md border px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title={lang === "en" ? "Passer en français" : "Switch to English"}
+          {/* Language picker: a segmented control, one segment per registry
+              language, the active one highlighted. Switching navigates to the
+              same page under the chosen language's URL (pathForLang). */}
+          <div
+            className="flex shrink-0 overflow-hidden rounded-md border text-xs font-semibold"
+            role="group"
+            aria-label={t.langPicker}
           >
-            {lang === "en" ? "FR" : "EN"}
-          </button>
+            {LANGS.map((l) => {
+              const active = l.code === lang;
+              return (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  aria-current={active ? "true" : undefined}
+                  title={l.native}
+                  className={cn(
+                    "px-2 py-1 transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {l.label}
+                </button>
+              );
+            })}
+          </div>
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="shrink-0 rounded-md border px-2.5 py-1 text-base leading-none md:hidden"

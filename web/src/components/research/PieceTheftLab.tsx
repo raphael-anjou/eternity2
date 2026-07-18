@@ -70,6 +70,23 @@ const T = {
     loading: "Préparation d'un puzzle avec le moteur…",
     note: "Sur le vrai 16×16, 47 demandes (haut, gauche) distinctes sont servies par une seule pièce, et une case a besoin d'environ 3 fournisseurs en moyenne. Le test de légalité ici est celui du moteur. Dépensez un fournisseur unique au mauvais endroit et une case future meurt alors que la boîte est pleine — le piège où tombent les vrais solveurs au fond de la recherche.",
   },
+  es: {
+    title: "Observa cómo una celda se queda sin salida — en vivo",
+    intro:
+      "Rellenamos un tablero pequeño hasta la celda roja y luego leemos lo que ahora necesita: una pieza cuyo lado superior coincida con la celda de arriba y cuyo lado izquierdo coincida con la celda contigua. El motor enumera cada pieza sin usar que puede satisfacer esa demanda. Cuando solo una puede hacerlo, puedes «robarla» —colocarla en otro sitio— y ver cómo las opciones de la celda roja caen a cero. El tablero aún tiene piezas, pero ya no se puede terminar.",
+    demand: (n: number, w: number) => `La celda roja exige: arriba = color ${n}, izquierda = color ${w}`,
+    servers: (k: number) => `${k} pieza${k === 1 ? "" : "s"} puede${k === 1 ? "" : "n"} satisfacerla`,
+    soleServer: "Exactamente un proveedor: un único punto de fallo.",
+    multiServer: "Aquí hay más de un proveedor: prueba con un nuevo puzzle para encontrar una celda de proveedor único.",
+    steal: "Robar el único proveedor (colocarlo en otro sitio)",
+    stolen: "Robado: la celda roja ahora tiene 0 proveedores. El tablero está muerto, pero la caja sigue pareciendo llena.",
+    reset: "Reiniciar",
+    newPuzzle: "Nuevo puzzle",
+    supply: "Reserva de piezas",
+    supplyHint: "Verde = puede satisfacer la celda roja. Anillo rojo = el proveedor único. Atenuada = ya colocada.",
+    loading: "Preparando un puzzle con el motor…",
+    note: "En el 16×16 real, 47 demandas (arriba, izquierda) distintas se satisfacen con una sola pieza, y una celda necesita unos 3 proveedores de media. La prueba de legalidad aquí es la del motor. Gasta un proveedor único en el lugar equivocado y una celda futura muere mientras la caja sigue llena: la trampa en la que caen los solucionadores reales en lo más profundo de la búsqueda.",
+  },
 };
 
 export function PieceTheftLab() {

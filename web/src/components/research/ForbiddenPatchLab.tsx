@@ -71,6 +71,23 @@ const T = {
     statusForbidden: "Interdit — aucune rotation n'accorde les quatre bords.",
     busy: "Chargement des pièces…",
   },
+  es: {
+    title: "Saca cuatro piezas e intenta encajarlas",
+    intro:
+      "Cada ronda saca cuatro piezas interiores al azar y prueba todas las rotaciones en busca de un 2x2 que encaje. Observa lo pocas veces que funciona.",
+    start: "Empezar a sacar",
+    stop: "Detener",
+    speed: "Velocidad",
+    feasible: "encaja",
+    forbidden: "prohibido",
+    triesLabel: "extracciones",
+    fitsLabel: "encajes hallados",
+    rateLabel: "tasa de prohibidos",
+    exact: "valor exacto: 99,72 %",
+    statusFits: "Este encaja.",
+    statusForbidden: "Prohibido: ninguna rotación hace coincidir las cuatro aristas.",
+    busy: "Cargando piezas…",
+  },
 };
 
 export function ForbiddenPatchLab() {

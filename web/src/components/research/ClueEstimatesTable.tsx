@@ -1,4 +1,4 @@
-import { useLang } from "@/i18n";
+import { useLang, pick } from "@/i18n";
 
 // Brendan Owen's own complex-theory tabulation, transcribed verbatim from the
 // community's "Backtracker estimates" database on groups.io (table 19128). It
@@ -32,6 +32,7 @@ type Row = {
   key: string;
   en: string;
   fr: string;
+  es: string;
   vals: Partial<Record<Col, string>>;
   empirical?: boolean;
 };
@@ -41,6 +42,7 @@ const ROWS: Row[] = [
     key: "sol-est",
     en: "Estimated solutions",
     fr: "Solutions estimées",
+    es: "Soluciones estimadas",
     vals: {
       clue1: "2.6e11",
       clue2: "7.6e36",
@@ -54,6 +56,7 @@ const ROWS: Row[] = [
     key: "sol-emp",
     en: "Solutions, actually counted",
     fr: "Solutions, comptées réellement",
+    es: "Soluciones, contadas realmente",
     empirical: true,
     vals: {
       clue1: "115,071,633,408",
@@ -64,6 +67,7 @@ const ROWS: Row[] = [
     key: "nodes-est",
     en: "Estimated search-tree nodes",
     fr: "Nœuds estimés de l'arbre",
+    es: "Nodos estimados del árbol de búsqueda",
     vals: {
       clue1: "1.3e13",
       clue2: "2.0e40",
@@ -77,6 +81,7 @@ const ROWS: Row[] = [
     key: "nodes-emp",
     en: "Search-tree nodes, actually counted",
     fr: "Nœuds de l'arbre, comptés réellement",
+    es: "Nodos del árbol de búsqueda, contados realmente",
     empirical: true,
     vals: {
       clue1: "1.0e13",
@@ -87,6 +92,7 @@ const ROWS: Row[] = [
     key: "order",
     en: "Best known fill order",
     fr: "Meilleur ordre de remplissage connu",
+    es: "Mejor orden de relleno conocido",
     vals: {
       clue1: "spiral-in",
       clue2: "border first, then vertical scans",
@@ -117,11 +123,20 @@ const T = {
       "Transcrit tel quel depuis la table communautaire « Backtracker estimates » sur groups.io. Les cellules vides le sont dans la source (puzzles à indices trop grands pour un comptage exhaustif, et colonnes E2 non parcourues).",
     source: "Source : groups.io/g/eternity2 · Databases · Backtracker estimates",
   },
+  es: {
+    itemHdr: "cantidad",
+    empirical: "contado",
+    caption:
+      "Las cifras de teoría compleja de Brendan Owen para los cuatro puzzles con pistas y el tablero E2 real. En los puzzles pequeños con pistas se recorrió el árbol entero, así que la estimación puede contrastarse con el conteo exacto: se queda dentro de un factor de dos. El mejor orden de relleno varía de un puzzle a otro; el orden es una elección, no algo dado.",
+    footnote:
+      "Transcrito tal cual desde la tabla comunitaria «Backtracker estimates» en groups.io. Las celdas vacías lo están en la fuente (los puzzles con pistas demasiado grandes para un conteo exhaustivo, y las columnas E2 sin recorrer).",
+    source: "Fuente: groups.io/g/eternity2 · Databases · Backtracker estimates",
+  },
 };
 
 export function ClueEstimatesTable() {
   const { lang } = useLang();
-  const t = T[lang];
+  const t = pick(T, lang);
   return (
     <figure className="not-prose my-6">
       <div className="overflow-x-auto rounded-lg border">
@@ -143,7 +158,7 @@ export function ClueEstimatesTable() {
                   scope="row"
                   className="px-3 py-2 text-left font-normal text-muted-foreground"
                 >
-                  {row[lang]}
+                  {pick(row, lang)}
                   {row.empirical && (
                     <span className="ml-1.5 rounded bg-emerald-500/15 px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
                       {t.empirical}

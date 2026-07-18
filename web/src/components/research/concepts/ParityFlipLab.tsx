@@ -110,6 +110,46 @@ const T = {
     note: "Sur le jeu officiel 16×16, 14 pièces de bordure se qualifient pour le retournement du 479 (calculé par ce projet) : toute solution complète implique donc un 479. Le rebord compte ici 32 arêtes non comptées ; le vrai plateau en a 60 — les soixante trous de la preuve de kubzpa.",
     loading: "Génération d'un plateau résolu…",
   },
+  es: {
+    title: "Gíralo tú mismo — el 478 y el 479",
+    intro:
+      "Un tablero resuelto (generado por el motor, todas las aristas puntuadas coincidentes). Haz clic en cualquier pieza para girarla 180°. Los anillos azul cielo señalan las piezas interiores con un par de aristas opuestas iguales — la jugada del 478. Los anillos esmeralda señalan las piezas de borde cuyos dos lados que bordean el anillo comparten color — la jugada del 479. La banda gris es el borde no puntuado: lo que cae ahí no cuesta nada.",
+    score: "aristas coincidentes",
+    mismatches: "desajustes",
+    stateSolved: "resuelto — el equivalente del 480/480",
+    state479: "un único desajuste — un tablero de clase 479, que la paridad de la puntuación daba por imposible",
+    state478: "dos desajustes — el tablero de clase 478 del argumento original",
+    stateOther: (m: number) => `${m} desajustes`,
+    click: "Haz clic en cualquier pieza para girarla 180°.",
+    reset: "Reiniciar",
+    newDraw: "Nuevo sorteo",
+    hints: "Jugadas de la historia",
+    legendInterior: "jugada del 478: interior, un par opuesto igual",
+    legendBorder: "jugada del 479: borde, lados que bordean el anillo iguales",
+    legendRim: "borde gris no puntuado",
+    legendLanded: "cambio exterior aparcado en el borde — gratis",
+    moves: {
+      repaired: (n: number) => `Reparaste ${n} arista${n === 1 ? "" : "s"} puntuada${n === 1 ? "" : "s"}.`,
+      invisible:
+        "Nada se rompió — los dos pares de aristas opuestas de esta pieza son iguales, así que el giro de 180° es invisible.",
+      interior2:
+        "Se rompieron exactamente dos aristas puntuadas: un par opuesto era igual y el otro no. En el tablero real esta es la construcción del 478.",
+      interior4:
+        "Se rompieron cuatro aristas puntuadas — sigue siendo un número par. Los giros interiores cambian arriba/abajo a la vez e izquierda/derecha a la vez; no pueden romper un número impar.",
+      border1:
+        "Se rompió UNA sola arista puntuada — la costura detrás de la pieza. El otro cambio cayó en la arista gris exterior, que la puntuación nunca lee. Esta es la jugada del 479 que derrotó la prueba de paridad.",
+      border3:
+        "Se rompieron tres aristas puntuadas — un número impar. El borde absorbió exactamente uno de los cuatro cambios; la fuga de paridad es la arista no puntuada del borde.",
+      corner2:
+        "Se rompieron dos aristas puntuadas. Un giro de esquina manda sus dos grises hacia el interior, así que ambos cambios se puntúan — las esquinas no filtran paridad.",
+      generic: (d: number) =>
+        `Cambió${Math.abs(d) === 1 ? "" : "n"} ${Math.abs(d)} arista${Math.abs(d) === 1 ? "" : "s"} puntuada${Math.abs(d) === 1 ? "" : "s"} — giros que interactúan con giros anteriores pueden compensarse entre sí.`,
+    },
+    qualifying: (i: number, b: number) =>
+      `En este sorteo: ${i} pieza${i === 1 ? "" : "s"} interior${i === 1 ? "" : "es"} permite${i === 1 ? "" : "n"} la jugada del 478, ${b} pieza${b === 1 ? "" : "s"} de borde la del 479.`,
+    note: "En el juego oficial de 16×16, 14 piezas de borde cumplen los requisitos para el giro del 479 (calculado por este proyecto), así que cualquier solución completa implica un 479. El borde aquí tiene 32 aristas no puntuadas; el tablero real tiene 60 — los sesenta agujeros de la prueba de kubzpa.",
+    loading: "Generando un tablero resuelto…",
+  },
 };
 
 function cellKind(pos: number): CellKind {

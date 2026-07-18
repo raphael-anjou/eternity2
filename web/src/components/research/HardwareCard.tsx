@@ -1,4 +1,4 @@
-import { useLang } from "@/i18n";
+import { useLang, pick } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { coreHours, formatCoreHours } from "@/lib/research/hardware-cost";
 import type { AcceleratorKind, HardwareInfo } from "@/lib/research/types";
@@ -71,6 +71,36 @@ const T = {
       tpu: "TPU",
     } as Record<AcceleratorKind, string>,
   },
+  es: {
+    title: "Hardware y ejecución",
+    standardized: "Banco estandarizado",
+    standardizedTitle:
+      "un núcleo lógico, presupuesto de tiempo fijo — una base comparable entre todas",
+    native: "Ejecución nativa",
+    nativeTitle:
+      "ejecutado en su propio hardware y presupuesto — registrado para trazabilidad, no directamente comparable",
+    coreHours: "núcleos·hora",
+    coreHoursTitle:
+      "núcleos × horas de reloj — el cómputo que esta ejecución realmente costó",
+    cores: "Núcleos",
+    nodes: "Nodos",
+    threads: "Hilos",
+    ram: "RAM",
+    gpus: "GPU",
+    cpu: "CPU",
+    gpu: "GPU",
+    machine: "Máquina",
+    wallClock: "Presupuesto",
+    runs: "Ejecuciones",
+    seed: "Inicio",
+    accel: {
+      none: "Solo CPU",
+      gpu: "Acelerado por GPU",
+      quantum: "Cuántico",
+      fpga: "FPGA",
+      tpu: "TPU",
+    } as Record<AcceleratorKind, string>,
+  },
 };
 
 const ACCEL_STYLE: Record<AcceleratorKind, string> = {
@@ -92,7 +122,7 @@ function Spec({ label, value }: { label: string; value: string }) {
 
 export function HardwareCard({ hardware }: { hardware: HardwareInfo }) {
   const { lang } = useLang();
-  const t = T[lang];
+  const t = pick(T, lang);
   const hw = hardware;
   const accel = hw.accelerator ?? (hw.gpus && hw.gpus > 0 ? "gpu" : "none");
   const ch = coreHours(hw);

@@ -11,6 +11,7 @@ import { pageFaq } from "@/seo";
 const T = {
   en: { heading: "Common questions" },
   fr: { heading: "Questions fréquentes" },
+  es: { heading: "Preguntas frecuentes" },
 };
 
 export function PageFaq({ pageKey }: { pageKey: Parameters<typeof pageFaq>[0] }) {

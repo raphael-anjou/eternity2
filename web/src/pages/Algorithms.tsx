@@ -388,6 +388,157 @@ const T = {
       </>
     ),
   },
+  es: {
+    title: "¿Cómo se resuelve Eternity II con un ordenador?",
+    intro: (
+      <>
+        Aquí no hay magia, solo tres grandes ideas: <strong>probar posibilidades una a
+        una</strong>, <strong>deshacer los errores</strong> y{" "}
+        <strong>calcular hasta dónde puede dispararse el coste</strong>. Cada número y cada
+        gráfico de esta página los midió el mismo motor Rust que impulsa el{" "}
+        <Link className="underline" to="/playground">área de juego</Link>, ejecutándose sobre
+        puzzles que él mismo generó.
+      </>
+    ),
+    s1Title: "1 · Búsqueda en profundidad: la estrategia del laberinto",
+    s1P1: (
+      <>
+        Imagina que exploras un laberinto: en cada cruce tomas el primer pasillo que aún no has
+        probado; y en cuanto topas con un callejón sin salida, vuelves al último cruce y tomas
+        el siguiente pasillo. Eso es la <strong>búsqueda en profundidad (DFS)</strong>, y es
+        exactamente como nuestro solucionador ataca Eternity II. El «cruce» es una casilla
+        vacía; los «pasillos» son cada pieza × rotación que todavía encaja; y a esa «vuelta
+        atrás» se la llama <strong>backtracking</strong>.
+      </>
+    ),
+    s1P2: (
+      <>
+        El DFS es <em>completo</em>: dale tiempo suficiente y lo prueba todo, así que si existe
+        una solución, acabará encontrándola. La trampa está en esas palabras: «tiempo
+        suficiente». Aquí lo tienes, ralentizado a una decisión por segundo:
+      </>
+    ),
+    watchFullSpeed: "▶ Ahora míralo a toda velocidad",
+    s2Title: "2 · El muro exponencial",
+    s2P1: (
+      <>
+        Y ese «todo», ¿cómo de grande es? Para un puzzle n×n hay aproximadamente n²! formas de
+        ordenar las piezas, multiplicadas por sus 4 rotaciones cada una. El gráfico de abajo
+        muestra el <em>número de cifras</em> de esa cuenta. Fíjate en que es una línea casi
+        recta: cada escalón de tamaño multiplica el trabajo por un factor astronómico. La caja
+        16×16 que tienes en la estantería se sitúa en unas 560 cifras.
+      </>
+    ),
+    spaceChartTitle: "Cifras del tamaño del espacio de búsqueda, según el tamaño del tablero",
+    axisDigits: "cifras",
+    boardTooltip: (s: number | string) => `tablero ${s}×${s}`,
+    legendNaive: "todas las disposiciones",
+    legendRefined: "tras deducciones de esquinas/bordes",
+    s2P2: (
+      <>
+        La línea azul encierra la primera lección del diseño de algoritmos: <strong>una
+        deducción encoge mundos</strong>. Con solo notar que las piezas de esquina van en las
+        esquinas y las de borde en el perímetro, ya se tachan unas 100 cifras. Los
+        solucionadores de verdad encadenan muchas deducciones así. Y aún no basta ni de lejos.
+      </>
+    ),
+    s2P3: <>La palabra «cifras» sigue siendo abstracta, así que hagámoslo personal:</>,
+    zeroWallTitle: "¿Cuánto ocupa un número de 560 cifras? Esto:",
+    zeroWallCaption:
+      "Un 1 seguido de 559 ceros: 560 cifras, exactamente tantas como la cuenta real (unos 9 × 10^559). Cada cero de más multiplica la cuenta por diez.",
+    s3Title: "3 · La dificultad, medida: tamaño y colores",
+    s3Intro: (seeds: number | undefined) => (
+      <>
+        Generamos cientos de mini-puzzles y dejamos que el motor resolviera cada uno, contando
+        los <strong>nodos</strong> (los emplazamientos de pieza puestos a prueba) hasta la
+        primera solución (mediana de {seeds} puzzles aleatorios por punto; ¡escala
+        logarítmica!). Hay tres cosas que ver. Cada fila de más en el tablero multiplica el
+        trabajo: las líneas se separan por varios órdenes de magnitud. <em>Añadir</em> colores
+        suele hacer el puzzle <em>más fácil</em>, porque un emplazamiento erróneo se rechaza
+        antes en lugar de arrastrar la búsqueda al fondo de un callejón sin salida. Y cada
+        línea revela algo célebre: un marcado <strong>pico de dificultad</strong>. Muy pocos
+        colores → soluciones a montones, fáciles de encontrar por azar. Muchos colores → un
+        puzzle tan restringido que la búsqueda apenas se ramifica. El pico se aloja justo en
+        medio y, sobre todo, <strong>se desplaza hacia la derecha a medida que crece el
+        tablero</strong>: la línea 6×6 culmina en <strong>4 colores</strong>, la línea 8×8 en{" "}
+        <strong>6 colores</strong>, más o menos un color más por cada fila añadida. En su pico,
+        el puzzle 8×8 mediano exige más de <strong>2 mil millones</strong> de emplazamientos de
+        piezas, y la mayoría de las semillas allí tardaron tanto que tuvimos que dejar de
+        medirlas (las mesetas planas son esos puntos censurados). Un color a un lado u otro y
+        todo se derrumba por un factor de cien. Prolonga esa tendencia de un color por fila
+        hasta un tablero 16×16 y el pico cae justo en torno a los <strong>22 colores</strong>:
+        exactamente donde se diseñó Eternity II para situarse. No es casualidad que quede más
+        allá del pico; está calibrado para caer <em>sobre</em> él.
+      </>
+    ),
+    workChartTitle:
+      "Trabajo para resolver (mediana de nodos, escala log) según el número de colores",
+    axisColors: "colores",
+    fitChecks: "nodos",
+    s4Title: "4 · El orden en que buscas importa. Y mucho.",
+    s4P1: (
+      <>
+        Mismos puzzles, mismo solucionador. Lo único que cambia es el <em>orden</em> en que se
+        rellenan las casillas. Los órdenes que mantienen cada nuevo emplazamiento pegado a
+        vecinos ya colocados (snake, spiral) restringen cada paso y podan pronto. Los que
+        dispersan los emplazamientos (random) dejan las piezas sin restricción y lo pagan más
+        adelante. Es un tema de investigación de verdad, y puedes{" "}
+        <Link className="underline" to="/playground/paths">diseñar tu propio orden</Link>{" "}
+        y echarlo a correr. Este es el aspecto real de los órdenes clásicos; sigue las flechas
+        (rojo = primera casilla, verde = última):
+      </>
+    ),
+    pathChartTitle:
+      "Mediana de nodos en los mismos puzzles 6×6, según el orden de relleno (escala log)",
+    pathChartNote:
+      "Una sutileza que conviene nombrar (gracias a Dan Karlsson): por filas y por columnas son el mismo orden salvo por voltear el tablero sobre su diagonal, así que en muchos puzzles deberían costar lo mismo; cualquier diferencia aquí es ruido de muestreo, no una diferencia real. Los órdenes que difieren de verdad son los de forma distinta: una espiral, una diagonal, el borde primero.",
+    pathChartDeeper: (
+      <>
+        La misma pregunta, llevada hasta el final sobre el puzzle 16×16 completo, es el{" "}
+        <Link
+          className="underline"
+          to="/research/lab/experiments/raphael-anjou/dfs-study/findings"
+        >
+          estudio DFS
+        </Link>
+        : mide lo que aporta cada orden de relleno, cada heurística y cada regla de ruptura, y
+        descubre que el orden equivocado puede costar más de 300 puntos de puntuación.
+      </>
+    ),
+    s5Title: "5 · Por qué aquí los ordenadores piensan en binario",
+    s5P1: (
+      <>
+        Una pieza no es más que cuatro números pequeños (los motivos de arriba, derecha, abajo
+        e izquierda). Ni imágenes, ni geometría. Estas cuatro demos funcionan en directo;
+        obsérvalas unos segundos cada una:
+      </>
+    ),
+    s5P2: (
+      <>
+        Guardado como números, el conjunto oficial entero ocupa alrededor de 1&nbsp;KB. Los
+        solucionadores serios van más allá con los <strong>bitsets</strong>: un único número de
+        64 bits transporta una respuesta sí/no sobre 64 piezas a la vez, de modo que una sola
+        instrucción de la CPU filtra 64 candidatas de golpe. Así es como los motores más
+        rápidos alcanzan cientos de millones de nodos por segundo. La representación, y no solo
+        el algoritmo, forma parte del oficio.
+      </>
+    ),
+    s6Title: "6 · Entonces, ¿hasta dónde te lleva la astucia?",
+    s6P1: (
+      <>
+        Los ataques de vanguardia añaden propagación de restricciones (deducir los
+        emplazamientos forzados antes de probar ninguno), ordenaciones de piezas ingeniosas,
+        búsqueda en paralelo y{" "}
+        <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
+          heurísticas de reparación local
+        </Link>{" "}
+        que arreglan tableros imperfectos. Alcanzan 469 y 470 de 480 aristas coincidentes.
+        Extraordinario, y aún insuficiente. El hueco entre «casi resuelto» y «resuelto» es
+        donde vive la investigación abierta: consulta la sección{" "}
+        <Link className="underline" to="/research">Investigación</Link>.
+      </>
+    ),
+  },
 };
 
 export default function Algorithms() {

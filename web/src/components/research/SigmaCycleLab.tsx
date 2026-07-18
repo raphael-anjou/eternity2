@@ -131,6 +131,28 @@ const T = {
     verdictFull: "Toutes les boucles, entièrement appliquées — le plateau est maintenant l'autre solution parfaite. Le saut ne marche que d'un seul coup.",
     verdictNone: "Faites glisser pour déplacer les pièces le long de la/des boucle(s) sélectionnée(s).",
   },
+  es: {
+    title: "Salta entre dos soluciones reales — y observa cómo se hunde la puntuación",
+    intro:
+      "Este puzzle tiene dos soluciones perfectas genuinas, ambas halladas por el motor. Las piezas que difieren forman bucles (ciclos). Aplica un bucle por sí solo y la puntuación cae — se rompe allí donde se encuentra con el resto del tablero. Solo al aplicar todos los bucles a la vez (el salto completo) se alcanza la otra solución perfecta. No hay ningún camino de mejora entre ellas; ese es el muro.",
+    newPuzzle: "Nuevo puzzle",
+    loading: "Buscando dos soluciones con el motor…",
+    cycleLabel: "Bucle a aplicar",
+    allLoops: "Todos los bucles (el salto completo)",
+    cycleN: (i: number, len: number) => `Bucle ${i + 1} (${len} celdas)`,
+    applied: (p: number) => `Aplicado: ${p}% del bucle`,
+    score: "Puntuación en vivo (motor real)",
+    perfect: "perfecto",
+    ofMax: (s: number, m: number) => `${s} / ${m}`,
+    boardA: "Solución A",
+    working: "Tablero de trabajo",
+    drop: "puntuación frente a un tablero perfecto",
+    note: "Las dos soluciones, la permutación entre ellas, sus ciclos y cada puntuación aquí se calculan en vivo mediante el motor WebAssembly sobre un puzzle recién generado — nada precalculado. En el 16×16 completo el ciclo análogo abarca hasta 154 celdas y se cumple la misma propiedad de todo o nada; aquí es lo bastante pequeño para poder observarlo.",
+    verdictPartial: "Un solo bucle, aplicado por sí solo — rompe las aristas allí donde se encuentra con el resto del tablero, así que la puntuación es peor que la de cualquiera de las dos soluciones. Ningún bucle por separado es un paso hacia el otro tablero.",
+    verdictPartialAll: "Todos los bucles, pero solo a medias — las piezas movidas a medio camino aún no encajan, así que la puntuación baja. Llévalo al 100 %.",
+    verdictFull: "Todos los bucles, aplicados por completo — el tablero es ahora la otra solución perfecta. El salto solo funciona de una sola vez.",
+    verdictNone: "Desliza para empezar a mover las piezas a lo largo del bucle o bucles seleccionados.",
+  },
 };
 
 function MiniBoard({

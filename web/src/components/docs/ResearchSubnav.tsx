@@ -7,7 +7,7 @@
 // duplicated Overview, whose left rail already lists every topic hub.)
 
 import { useLocation } from "react-router";
-import { useLang, useT } from "@/i18n";
+import { useLang, useT, neutralPath } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { researchNav } from "@/lib/research/nav";
@@ -16,13 +16,14 @@ import { SearchDialog } from "./SearchDialog";
 const T = {
   en: { overview: "Overview", people: "People", glossary: "Glossary" },
   fr: { overview: "Vue d'ensemble", people: "Contributeurs", glossary: "Glossaire" },
+  es: { overview: "Panorama general", people: "Colaboradores", glossary: "Glosario" },
 };
 
 export function ResearchSubnav() {
   const t = useT(T);
   const { lang } = useLang();
   const { pathname } = useLocation();
-  const active = pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "") || "/";
+  const active = neutralPath(pathname).replace(/\/$/, "") || "/";
   const sections = researchNav(lang);
   const onTopics = active === "/research/topics" || active.startsWith("/research/topics/");
   const onPeople = active === "/research/people" || active.startsWith("/research/people/");

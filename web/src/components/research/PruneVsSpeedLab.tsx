@@ -46,6 +46,19 @@ const T = {
       "Une accélération est un diviseur constant — elle offre un multiple fixe, quelle que soit la profondeur. Un élagage abaisse le facteur de branchement à chacun des ~64 niveaux ici, donc son effet se compose : (réduit ⁄ original) à la puissance 64. Même quelques pour cent retirés au facteur de branchement écrasent une grosse accélération brute. C'est pourquoi les meilleurs solveurs gagnent sur ce qu'ils élaguent, pas sur la fréquence — et pourquoi un puzzle conçu pour résister à l'élagage est si dur.",
     depthNote: `Arbre illustratif : facteur de branchement ${B}, profondeur ${D}. Celui d'Eternity II est bien plus profond (256), donc l'écart est encore bien plus grand.`,
   },
+  es: {
+    title: "La velocidad divide; la poda divide exponencialmente",
+    speedLabel: (x: string) => `Aceleración bruta: ${x}× más rápido`,
+    pruneLabel: (p: number) => `Poda: −${p}% del factor de ramificación, en cada nivel`,
+    baseline: "Trabajo base para agotar el árbol",
+    withSpeed: "…dividido por la aceleración",
+    withPrune: "…dividido por la poda",
+    verdict: (ratio: string) =>
+      `Con este ajuste, la poda hace el trabajo de una aceleración de ${ratio}×.`,
+    caption:
+      "Una aceleración es un divisor constante: aporta un múltiplo fijo, sin importar la profundidad de la búsqueda. Una poda reduce el factor de ramificación en cada uno de los ~64 niveles de aquí, así que su efecto se compone: (reducido ⁄ original) elevado a la 64. Incluso restar unos pocos por ciento al factor de ramificación empequeñece una gran aceleración bruta. Por eso los solucionadores récord ganan por lo que podan, no por la frecuencia de reloj, y por eso un puzzle diseñado para resistir la poda es tan difícil.",
+    depthNote: `Árbol ilustrativo: factor de ramificación ${B}, profundidad ${D}. El de Eternity II es mucho más profundo (256), así que la diferencia es aún mayor.`,
+  },
 };
 
 export function PruneVsSpeedLab() {

@@ -189,6 +189,31 @@ const T = {
     loading: "Chargement…",
     suffixes: ["k", "M", "Md", "Bn"] as [string, string, string, string],
   },
+  es: {
+    title: "La cola, y el cuchillo",
+    intro:
+      "400 ejecuciones del mismo solucionador sobre la misma clase de puzzle, extraídas de una mezcla de cola pesada con semilla fija (determinista — repetirla cuenta la misma historia). El eje x mide los nodos, en escala logarítmica. Las ejecuciones azules terminan por debajo del umbral de reinicio; las ámbar lo superarían: se cortan en la línea punteada y se reintentan con un azar nuevo. Observa cómo la mediana se estabiliza en segundos mientras la media sigue saltando hacia la derecha — cada ejecución de la cola tira de ella.",
+    cutoff: "umbral de reinicio",
+    nodes: "nodos",
+    runs: "ejecuciones",
+    drawn: "extraídas",
+    replay: "repetir",
+    colOne: "una sola ejecución larga",
+    colRestart: "reinicio en el umbral",
+    median: "mediana",
+    mean: "media",
+    p99: "P99",
+    metric: "trabajo hasta la primera solución",
+    successShare: (pct: string, attempts: string) =>
+      `${pct} de las ejecuciones terminan por debajo del umbral — alrededor de ${attempts} intento(s) esperados por éxito.`,
+    noSuccess: "Ninguna ejecución termina por debajo de este umbral: la política nunca tiene éxito — el tiempo esperado es infinito.",
+    speedup: (x: string) => `Aceleración esperada al reiniciar: ×${x}.`,
+    slowdown: (x: string) => `Este umbral es demasiado agresivo: reiniciar es ×${x} más lento que dejar correr la ejecución.`,
+    meanMarker: "media",
+    medianMarker: "mediana",
+    loading: "Cargando…",
+    suffixes: ["k", "M", "MM", "B"] as [string, string, string, string],
+  },
 };
 
 const W = 560;

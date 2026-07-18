@@ -56,6 +56,23 @@ const T = {
     loading: "Chargement du moteur…",
     note: "Sur le vrai 16×16, c'est une vraie condition nécessaire : les quatre plateaux 480 connus vérifient A = B exactement. Comme test de solveur, cela élague 10 à 28 % des nœuds profonds — mais ≥85 % des erreurs d'une quasi-solution sont intérieur-à-intérieur, que cet invariant ne voit jamais. Calculé en direct depuis le plateau du moteur.",
   },
+  es: {
+    title: "Observa el equilibrio del borde — en directo",
+    intro:
+      "Un tablero resuelto está equilibrado: cada color que el borde muestra al interior es un color que el interior le devuelve (Δ = 0). Levanta una pieza de borde y el equilibrio se rompe — el déficit cuenta las aristas de interfaz que ahora no coinciden. Prueba también el botón de intercambio: intercambiar dos piezas de borde mantiene Δ en 0, porque baraja los colores sin alterar el multiconjunto. Ese punto ciego es justamente la razón por la que NS-1 solo rechaza tableros malos, sin confirmar nunca los buenos.",
+    deficit: "déficit Δ",
+    balanced: "equilibrado — todavía es posible una solución",
+    broken: (d: number) => `${d} arista${d === 1 ? "" : "s"} de interfaz desequilibrada${d === 1 ? "" : "s"}`,
+    swapInvisible: "el intercambio mantuvo Δ = 0 — NS-1 no ve una permutación",
+    lift: "Haz clic en una celda de borde para levantar su pieza.",
+    swap: "Intercambiar dos piezas de borde",
+    reset: "Reiniciar",
+    newPuzzle: "Nuevo puzzle",
+    aLabel: "borde → interior (A)",
+    bLabel: "interior → borde (B)",
+    loading: "Cargando el motor…",
+    note: "En el 16×16 real es una verdadera condición necesaria: los cuatro tableros 480 conocidos cumplen A = B exactamente. Como comprobación del solucionador poda entre el 10 y el 28 % de los nodos profundos — pero ≥85 % de los errores de una casi-solución son de interior a interior, algo que este invariante nunca ve. Calculado en directo a partir del tablero del motor.",
+  },
 };
 
 /** The board's own motif background for this colour, so the balance-table

@@ -55,6 +55,21 @@ const T = {
     loading: "Chargement du moteur…",
     note: "Sur le vrai 16×16, c'est pareil sur tout l'intérieur : chaque pièce a entre 73 et 137 voisines droites légales et aucune case n'est jamais réduite à une seule option. Beaucoup de liberté locale, presque aucune cohérence globale — ce qui rend la recherche si large. Les comptes ici sont le test de légalité du moteur en direct sur un puzzle fraîchement généré.",
   },
+  es: {
+    title: "Cuenta las opciones en la siguiente celda — en directo",
+    intro:
+      "Colocamos unas cuantas piezas con el motor real, luego apuntamos a la siguiente celda vacía (roja) y contamos, con la prueba de legalidad real, cuántas piezas sin usar podrían ubicarse ahí de forma legal. Un «movimiento forzado» sería un recuento de exactamente 1 — colocable sin ramificación. Avanza: el recuento casi nunca baja a 1.",
+    frontierCount: (n: number) => `${n} piezas encajan en la celda roja`,
+    forced: "un movimiento forzado (recuento = 1)",
+    notForced: "aquí no hay movimiento forzado — la búsqueda debe ramificarse",
+    step: "Colocar la siguiente",
+    reset: "Reiniciar",
+    newPuzzle: "Nuevo puzzle",
+    supply: "Reserva de piezas",
+    supplyHint: "Verde = legal en la celda roja ahora. Atenuada = ya colocada.",
+    loading: "Cargando el motor…",
+    note: "En el 16×16 real ocurre lo mismo en todo el interior: cada pieza tiene entre 73 y 137 vecinas a la derecha legales y ninguna celda queda nunca reducida a una sola opción. Mucha libertad local, casi ninguna coherencia global — que es justo lo que hace la búsqueda tan amplia. Los recuentos aquí son la prueba de legalidad del motor en directo sobre un puzzle recién generado.",
+  },
 };
 
 export function ForcedMovesLab() {

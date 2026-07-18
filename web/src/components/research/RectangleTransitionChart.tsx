@@ -36,6 +36,15 @@ const T = {
       "Chaque point pave un rectangle 2xL avec 400 jeux de pièces intérieures tirés au hasard (60 à la longueur 22) et donne la proportion qui se complète sans défaut. Les bandes courtes sont faciles, puis les solutions disparaissent totalement de la longueur 4 à 15, avant de réapparaître et de grimper fortement au-delà de 18 : une transition de phase mesurée directement, non modélisée.",
     busy: "Chargement du graphique…",
   },
+  es: {
+    x: "longitud del rectángulo (2 x L)",
+    y: "% de conjuntos de piezas aleatorios resolubles",
+    dead: "zona muerta: 0 %",
+    tip: "resolubles",
+    caption:
+      "Cada punto cubre un rectángulo 2xL con 400 conjuntos aleatorios de piezas interiores (60 en la longitud 22) e indica la proporción que se completa sin ningún desajuste. Las tiras cortas son fáciles; luego las soluciones desaparecen por completo de la longitud 4 a la 15, para reaparecer y ascender con fuerza a partir de 18: una transición de fase medida directamente, no modelada.",
+    busy: "Cargando el gráfico…",
+  },
 };
 
 export function RectangleTransitionChart() {

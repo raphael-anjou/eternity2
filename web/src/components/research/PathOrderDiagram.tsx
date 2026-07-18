@@ -1,4 +1,4 @@
-import { useT, useLang } from "@/i18n";
+import { useT, useLang, pick, type Dict } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 
 // The fill orders the DFS study compares, each drawn as an arrowed path that
@@ -18,7 +18,7 @@ const N = G * G;
 const CELL = 22;
 const PAD = CELL / 2; // centre offset
 
-type Order = { key: string; en: string; fr: string; seq: number[] };
+type Order = { key: string; seq: number[] } & Dict<string>;
 
 function rowMajor(): number[] {
   return Array.from({ length: N }, (_, i) => i);
@@ -65,12 +65,12 @@ function verhaardComb(horiz = Math.round(G * 0.6)): number[] {
 }
 
 const ORDERS: Order[] = [
-  { key: "row-major", en: "Row-major (best)", fr: "Ligne par ligne (meilleur)", seq: rowMajor() },
-  { key: "bottom-up", en: "Bottom-up", fr: "De bas en haut", seq: rowMajorBottomUp() },
-  { key: "spiral-in", en: "Spiral-in", fr: "Spirale entrante", seq: spiralIn() },
-  { key: "spiral-out", en: "Spiral-out", fr: "Spirale sortante", seq: spiralOut() },
-  { key: "border-first", en: "Border-first", fr: "Bordure d'abord", seq: borderFirst() },
-  { key: "comb", en: "Verhaard comb", fr: "Peigne de Verhaard", seq: verhaardComb() },
+  { key: "row-major", en: "Row-major (best)", fr: "Ligne par ligne (meilleur)", es: "Por filas (el mejor)", seq: rowMajor() },
+  { key: "bottom-up", en: "Bottom-up", fr: "De bas en haut", es: "De abajo arriba", seq: rowMajorBottomUp() },
+  { key: "spiral-in", en: "Spiral-in", fr: "Spirale entrante", es: "Espiral hacia dentro", seq: spiralIn() },
+  { key: "spiral-out", en: "Spiral-out", fr: "Spirale sortante", es: "Espiral hacia fuera", seq: spiralOut() },
+  { key: "border-first", en: "Border-first", fr: "Bordure d'abord", es: "Borde primero", seq: borderFirst() },
+  { key: "comb", en: "Verhaard comb", fr: "Peigne de Verhaard", es: "Peine de Verhaard", seq: verhaardComb() },
 ];
 
 const xy = (pos: number) => ({ x: (pos % G) * CELL + PAD, y: Math.floor(pos / G) * CELL + PAD });
@@ -85,6 +85,11 @@ const T = {
     caption:
       "Les six ordres de remplissage comparés par l'étude, chacun tracé comme le chemin parcouru par la recherche, du rouge au départ au vert à la fin (sur une petite grille ; le vrai plateau est 16x16). Le parcours ligne par ligne garde un front à deux voisins constant et va le plus profond. Les spirales et la bordure-d'abord poussent ce front à travers les coins difficiles très tôt, d'où leur blocage sans heuristique. Le peigne remplit une bande de lignes, puis des dents verticales.",
     busy: "Chargement…",
+  },
+  es: {
+    caption:
+      "Los seis órdenes de relleno que compara el estudio, cada uno trazado como el camino que recorre la búsqueda, del rojo al inicio al verde al final (sobre una cuadrícula pequeña; el tablero real es de 16x16). El orden por filas mantiene un frente constante de dos vecinos y llega más profundo. Las espirales y el borde-primero empujan ese frente por las esquinas difíciles muy pronto, y por eso, sin heurística, se atascan. El peine recorre una banda de filas y luego dientes verticales.",
+    busy: "Cargando…",
   },
 };
 
@@ -163,7 +168,7 @@ export function PathOrderDiagram() {
                 <circle cx={first.x} cy={first.y} r={4} fill="hsl(0 75% 45%)" />
               </svg>
               <figcaption className="text-center text-xs font-medium text-muted-foreground">
-                {lang === "fr" ? o.fr : o.en}
+                {pick(o, lang)}
               </figcaption>
             </figure>
           );

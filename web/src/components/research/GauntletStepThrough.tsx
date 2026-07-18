@@ -1,5 +1,5 @@
 import { StepThroughSolver, type Snapshot, type NarrationContext } from "./StepThroughSolver";
-import { useT } from "@/i18n";
+import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
 
 // GAUNTLET's heart, one decision at a time, on the real engine. We step a single
 // fill direction (a spiral, here) and narrate *why* the order matters: at each
@@ -8,22 +8,22 @@ import { useT } from "@/i18n";
 // it next to the live four-lane race: this explains, slowly, why two orders on
 // the same pieces end up on different boards.
 
-function cellName(pos: number, w: number, h: number, en: boolean): string {
+const CELL_NAME: Record<"corner" | "edge" | "interior", Dict<string>> = {
+  corner: { en: "a corner", fr: "un coin", es: "una esquina" },
+  edge: { en: "an edge cell", fr: "une case de bord", es: "una celda de borde" },
+  interior: { en: "an interior cell", fr: "une case intérieure", es: "una celda interior" },
+};
+
+function cellName(pos: number, w: number, h: number, lang: Lang): string {
   const x = pos % w;
   const y = Math.floor(pos / w);
-  const corner =
+  const which =
     (x === 0 || x === w - 1) && (y === 0 || y === h - 1)
-      ? en
-        ? "a corner"
-        : "un coin"
+      ? "corner"
       : x === 0 || x === w - 1 || y === 0 || y === h - 1
-        ? en
-          ? "an edge cell"
-          : "une case de bord"
-        : en
-          ? "an interior cell"
-          : "une case intérieure";
-  return corner;
+        ? "edge"
+        : "interior";
+  return pick(CELL_NAME[which], lang);
 }
 
 const T = {
@@ -36,6 +36,11 @@ const T = {
     title: "Pourquoi l'ordre de parcours décide le plateau (vraie exécution, pas à pas)",
     footer:
       "Mêmes pièces, mêmes règles — seul l'ordre d'attaque change. La spirale s'engage tôt sur le cadre, où peu de pièces conviennent, et ses choix forcés se propagent vers l'intérieur. Un autre ordre forcerait d'autres cases d'abord et atterrirait ailleurs. C'est précisément pourquoi GAUNTLET lance plusieurs ordres à la fois.",
+  },
+  es: {
+    title: "Por qué el orden de recorrido decide el tablero (ejecución real, paso a paso)",
+    footer:
+      "Las mismas piezas, las mismas reglas: solo cambia el orden de ataque. La espiral se compromete pronto con el marco, donde encajan pocas piezas, y sus decisiones forzadas se propagan hacia el interior. Otro orden forzaría primero otras celdas y acabaría en un tablero completamente distinto. Por eso precisamente GAUNTLET lanza varios órdenes a la vez.",
   },
 };
 
@@ -62,11 +67,22 @@ const NARR = {
     placedTight: (cell: string, cands: number) =>
       `Posée sur ${cell} — seulement ${cands} pièce${cands === 1 ? "" : "s"} possible(s). Les cases serrées comme celle-ci, atteintes tôt par la spirale, orientent tout le plateau.`,
   },
+  es: {
+    fresh: (cell: string) => `Tablero vacío. El orden en espiral empieza por ${cell}.`,
+    solved: (nodes: number, bt: number) =>
+      `¡Completo! ${nodes} colocaciones, ${bt} vueltas atrás para este orden. Otro orden llega a un tablero distinto — reiniciando…`,
+    deadEnd:
+      "Ninguna pieza encaja en la celda a la que llegó este orden. Callejón sin salida — se retira la última pieza y se prueba su siguiente opción. Otro orden de relleno aún no habría preguntado por esta celda.",
+    placed: (cell: string, cands: number, tries: number) =>
+      `Colocada en ${cell}: ${cands} pieza${cands === 1 ? "" : "s"} encaja${cands === 1 ? "" : "n"} aquí, elegida tras ${tries} intento${tries === 1 ? "" : "s"}. El orden situó esta celda a continuación, así que aquí es donde la búsqueda se vio forzada a comprometerse.`,
+    placedTight: (cell: string, cands: number) =>
+      `Colocada en ${cell} — solo ${cands} pieza${cands === 1 ? "" : "s"} podía${cands === 1 ? "" : "n"} ir aquí. Las celdas ajustadas como esta, alcanzadas pronto por la espiral, son las que dirigen todo el tablero.`,
+  },
 };
 
 export function GauntletStepThrough() {
   const t = useT(T);
-  const lang = useT({ en: true, fr: false });
+  const { lang } = useLang();
   const n = useT(NARR);
 
   const narrate = (snap: Snapshot, prev: Snapshot | null, ctx: NarrationContext) => {

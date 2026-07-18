@@ -36,6 +36,15 @@ const T = {
     prev: "Précédent",
     next: "Suivant",
   },
+  es: {
+    title: "Los diez puzzles de partida",
+    intro:
+      "Cada motor se ejecuta sobre estas diez instancias: el puzzle oficial de 256 piezas con ocho celdas fijadas (las cinco pistas oficiales y tres esquinas), dispuestas de forma distinta cada vez. Solo se muestran las celdas fijadas; el resto es lo que la búsqueda debe rellenar.",
+    of: "de",
+    hints: "celdas fijadas",
+    prev: "Anterior",
+    next: "Siguiente",
+  },
 };
 
 export function StartingPuzzleCarousel() {

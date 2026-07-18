@@ -5,6 +5,7 @@ import { RECORDS, type RecordRow } from "@/data/records-timeline";
 const T = {
   en: { chartAria: "Eternity II community record score over time, 2008 to 2026" },
   fr: { chartAria: "Score record de la communauté Eternity II au fil du temps, de 2008 à 2026" },
+  es: { chartAria: "Puntuación récord de la comunidad de Eternity II a lo largo del tiempo, de 2008 a 2026" },
 };
 
 // The community record climb, plotted. The records table lists every

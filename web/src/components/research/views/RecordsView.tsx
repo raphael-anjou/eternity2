@@ -144,6 +144,63 @@ const T = {
       "Tiré de l'historique communautaire de notre carnet de recherche, lui-même distillé de ≈11 500 messages de la liste de diffusion et du Discord de la communauté.",
     referencesTitle: "Références",
   },
+  es: {
+    bestTitle: "El estado del arte",
+    best:
+      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 — Joshua Blackwood, 2021, igualado una sola vez desde entonces (Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida» —incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 464 (Benjamin Riotte, julio de 2026), que por fin batió el 460 de Bruno Gauthier tras más de tres años. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
+    timelineTitle: "Cronología de récords",
+    cols: { date: "Fecha", score: "Puntuación", author: "Autor", puzzle: "Puzzle", method: "Método", source: "Fuente", preview: "Vista previa" },
+    canonical: "piezas oficiales",
+    variant: "otro conjunto",
+    view: "Ver tablero",
+    timelineNote:
+      "Las fuentes de la lista de correo enlazan al mensaje exacto de anuncio en el archivo de eternity2 en groups.io; leerlas requiere una cuenta gratuita de groups.io. Las entradas sin enlace solo se comunicaron en espacios sin archivo público (por ejemplo, Discord).",
+    falsePositiveTitle: "Por qué algunos tableros «480» no cuentan",
+    falsePositive:
+      "El puzzle real es el tablero que vendió TOMY: 256 piezas concretas, un marco de 16×16, 22 colores, la pieza de partida fijada en I8 (las otras cuatro pistas eran ayudas opcionales según el reglamento). Varios tableros publicados como 480/480 usan otros conjuntos de piezas —los diseños Clue-1 / Clue-2 más pequeños de Brendan Owen, la variante sin marco de TopCoder, o tableros que mezclan piezas de varios conjuntos de expansión—. Tienen solución, pero esa solución no se traslada al puzzle oficial. El 480 oficial sigue sin encontrarse.",
+    methodsTitle: "Los algoritmos clave",
+    methods: [
+      [
+        "Generador de Selby–Riordan (2007)",
+        "El puzzle se generó para tener alrededor de una única solución esperada. Brendan Owen y Günter Stertenbrink dedujeron en 2007 que ≈17 colores interiores y ≈5 de borde lo sitúan justo en la frontera de solución única —confirmado después como el pico de transición de fase SAT/CSP—. La dificultad es intencionada.",
+      ],
+      [
+        "Recocido sobre conjuntos de Verhaard (2008)",
+        "El 467 de Louis Verhaard aplicaba recocido a la composición de los conjuntos de piezas entre regiones, no solo a las posiciones —una metaheurística temprana que mantuvo el récord durante más de una década.",
+      ],
+      [
+        "Programación heurística + índice de ruptura de Blackwood (2020)",
+        "El algoritmo moderno dominante detrás de cada tablero 469/470. Un backtracker por barrido de filas guiado por un objetivo de agotamiento de colores lineal por tramos más un pequeño conjunto de profundidades de «ruptura» permitidas, ejecutado durante decenas de miles de millones de iteraciones antes de reiniciar. Blackwood informó de que los solucionadores SAT, las GPU y las cachés de 2×2 preresueltas no ayudaban.",
+      ],
+      [
+        "El motor de McGavin (2020–2026)",
+        "Un backtracker en C que alcanza ≈295 millones de colocaciones de piezas por segundo en un solo núcleo —unas 4× más que un motor comunitario típico— mediante PGO, opciones de compilación agresivas y código desenrollado por celda generado automáticamente. La velocidad bruta más el orden de recorrido adecuado (inicio abajo a la izquierda, filas de izquierda a derecha) es la mitad de la historia del 469.",
+      ],
+      [
+        "La política de poda-atrás de Joe (2026)",
+        "Una idea reciente y concreta: casi todo el tiempo de backtracking se pasa a mucha profundidad, así que si una búsqueda tarda demasiado por debajo de un umbral de profundidad sin avanzar, se poda hasta ese umbral y se reinicia. Se midió un 17–49 % menos de iteraciones según el número de pistas.",
+      ],
+    ],
+    castTitle: "Elenco de colaboradores",
+    castNote: "Un quién es quién no exhaustivo de las personas detrás de los récords y la infraestructura.",
+    cast: [
+      ["Peter McGavin", "El 469 (2020, con el solucionador de Blackwood sobre ~200 núcleos); sus propios motores en C generados automáticamente y las implementaciones de la teoría compleja —el ancla de rendimiento y teoría de la comunidad."],
+      ["Joshua Blackwood", "El algoritmo de clase 469/470 (programación heurística + índice de ruptura); el estándar moderno."],
+      ["Jef Bucas", "libblackwood (un port en C del solucionador de Blackwood) y bucas.name —el visor de tableros y el formato de URL con el que la comunidad comparte tableros."],
+      ["Louis Verhaard", "El récord 467 (2008) y el recocido por intercambio de composición de conjuntos."],
+      ["Brendan Owen & Günter Stertenbrink", "La deducción de la dificultad de 2007: por qué 17/5 colores se sitúan en la frontera de solución única."],
+      ["Marijn Heule", "La codificación SAT canónica (2008) y experimentos SAT en curso."],
+      ["Al Hopfer", "El invariante de déficit NS-1 (2022) —la condición de igualdad de multiconjuntos borde↔interior; Carlos Fernandez demostró que los cuadrantes 14×14 se resuelven entonces en minutos."],
+      ["Ramon van der Werf", "Un blog público sobre solucionadores y un análisis del puzzle con teselas de Wang."],
+    ],
+    linkBlackwoodSrc: "El solucionador de Blackwood (C# original)",
+    linkBlackwood: "libblackwood de Bucas (port en C)",
+    linkBlog: "El blog de solucionadores de Ramon van der Werf",
+    linkVerhaard: "Los detalles del algoritmo de Louis Verhaard",
+    sourceNote:
+      "Extraído del historial comunitario de nuestro cuaderno de investigación, a su vez destilado de ≈11 500 mensajes de la lista de correo y del Discord de la comunidad.",
+    referencesTitle: "Referencias",
+  },
 };
 
 const BADGE: Record<RecordRow["canonical"], string> = {

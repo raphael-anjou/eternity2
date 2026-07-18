@@ -150,6 +150,7 @@ export function Figure({
 const FIGURE_T = {
   en: { explore: "Explore →", fallback: "Interactive figure" },
   fr: { explore: "Explorer →", fallback: "Figure interactive" },
+  es: { explore: "Explorar →", fallback: "Figura interactiva" },
 };
 
 /** Responsive table wrapper (wide research tables scroll, not overflow). */

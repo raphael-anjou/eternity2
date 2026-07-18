@@ -327,6 +327,166 @@ const T = {
       </>
     ),
   },
+  es: {
+    title: "¿Es Eternity II una estafa? ¿Tiene siquiera solución?",
+    lede: (
+      <>
+        La pregunta reaparece en Hacker News, en Discord, y ya había surgido en la
+        lista de correo de los propios jugadores allá por 2007. Un premio de 2
+        millones de dólares, un plazo que venció sin ganador y una regla que te
+        prohíbe anunciar que lo has resuelto: la verdad es que resulta
+        sospechoso.
+      </>
+    ),
+    shortAnswerTitle: "Respuesta breve",
+    shortAnswer: (
+      <>
+        No, no es una estafa, y sí, es casi seguro que existe una solución
+        completa. El concurso se celebró del 28 de julio de 2007 al 31 de
+        diciembre de 2010 al mediodía y expiró sin ganador, pero eso es una
+        cuestión de dificultad, no de engaño. El puzzle se diseñó para tener muy
+        pocas soluciones, tan pocas que, según su creador, roza la unicidad:
+        encontrar una entre aproximadamente 1,15×10<sup>557</sup> disposiciones es
+        astronómicamente difícil. «Pocas soluciones por diseño» no es lo mismo que
+        «no existe ninguna solución».
+      </>
+    ),
+    communityHookTitle: "La comunidad se lo preguntó primero",
+    communityHook: (
+      <>
+        Estás en buena compañía. El 6 de agosto de 2007, un jugador que firmaba
+        como jagbrain lo planteó sin rodeos en la lista oficial:{" "}
+        <a className="underline" href={msg(1407)} target="_blank" rel="noreferrer">
+          «¿Cómo sabemos que Eternity II no es una gran ESTAFA? ... ¿Hay un notario
+          en el comité? Si lo hay, su nombre debe ser público.»
+        </a>{" "}
+        Es exactamente la misma inquietud que se oye hoy: quién custodia la
+        solución y si alguien imparcial lo verifica. Esto es lo que dicen
+        realmente los hechos.
+      </>
+    ),
+    misconceptionsTitle: "Tres cosas que la gente entiende mal",
+    misconceptions: [
+      {
+        claim: "«Ni siquiera el creador tiene una solución.»",
+        verdict: "Verdad a medias, y el argumento se vuelve en contra.",
+        body: (
+          <>
+            Un folleto de Tomy citado en la lista de correo dice que{" "}
+            <a className="underline" href={msg(902)} target="_blank" rel="noreferrer">
+              «la solución de ETERNITY II se imprimió entre páginas de texto
+              aleatorio mientras todas las partes estaban fuera de la sala»
+            </a>{" "}
+            (el folleto lo transmitió Dave Clark en{" "}
+            <a className="underline" href={msg(901)} target="_blank" rel="noreferrer">
+              un mensaje relacionado
+            </a>
+            ). El diseño evitó deliberadamente que nadie conservara una solución
+            maestra legible. Eso es una salvaguarda contra las trampas internas, no
+            una prueba de que no exista solución. El puzzle se construyó en torno a
+            una solución; sus autores simplemente optaron por no tenerla a la
+            vista.
+          </>
+        ),
+      },
+      {
+        claim: "«Solo un ordenador cuántico podría resolverlo.»",
+        verdict: "Un planteamiento engañoso.",
+        body: (
+          <>
+            El hardware cuántico no es una llave mágica para este tipo de búsqueda,
+            y no hace falta ninguna máquina cuántica para que la afirmación «existe
+            una solución» se sostenga. Eternity I, su predecesor de 1999, se
+            resolvió en unos dieciocho meses gracias a Alex Selby y Oliver Riordan
+            con ordenadores corrientes, apoyándose en un mejor razonamiento antes
+            que en más potencia bruta. Después, Eternity II se blindó justamente
+            contra los trucos que habían derrotado a Eternity I: por eso es más
+            difícil, no por lo cual sea imposible.
+          </>
+        ),
+      },
+      {
+        claim: "«Es cruel, o sencillamente imposible.»",
+        verdict: "Ni lo uno ni lo otro.",
+        body: (
+          <>
+            El mejor tablero parcial hallado hasta ahora hace coincidir 470 de las
+            480 aristas interiores (Joshua Blackwood, 2021). Diez aristas sin
+            coincidir de 480 es una diferencia estrecha, y el avance ha sido real:
+            467 en 2008, 469 en 2020, 470 en 2021. Una búsqueda tan difícil puede
+            pasar muchísimo tiempo sin dar en el blanco mientras una solución sigue
+            en algún punto del espacio. Difícil no es lo mismo que imposible.
+          </>
+        ),
+      },
+    ] as Misconception[],
+    verificationTitle: "¿Hubo alguna verificación real?",
+    verification: (
+      <>
+        Sí, y contaba con un precedente que funcionó. Eternity I fue revisado por{" "}
+        <a className="underline" href={msg(901)} target="_blank" rel="noreferrer">
+          «peritos de siniestros especializados actuando por cuenta de las
+          aseguradoras»
+        </a>{" "}
+        y el premio se pagó. Para Eternity II estaban previstas fechas anuales de
+        «escrutinio» en las que se juzgarían los tableros presentados (véanse{" "}
+        <a className="underline" href={msg(1129)} target="_blank" rel="noreferrer">
+          las notas de los jugadores sobre el calendario de escrutinio
+        </a>{" "}
+        y{" "}
+        <a className="underline" href={msg(1135)} target="_blank" rel="noreferrer">
+          la continuación
+        </a>
+        ). La regla de «no le digas a nadie que lo has resuelto» (planteada en la
+        lista por{" "}
+        <a className="underline" href={msg(314)} target="_blank" rel="noreferrer">
+          simon.chapple
+        </a>
+        ) protegía el premio de las filtraciones, y de paso alimentaba la
+        sospecha. Una solución real tenía un camino real para ser verificada y
+        pagada; nadie llegó a producir ninguna antes del plazo.
+      </>
+    ),
+    distinctionTitle: "Pocas por diseño no es imposible",
+    distinction: (
+      <>
+        Este es el punto que conviene retener. Selby y Riordan ayudaron a diseñar
+        Eternity II precisamente para que no tuviera la abundancia de
+        casi-soluciones que les permitió vencer a Eternity I. Menos soluciones
+        objetivo significa que la búsqueda casi no tiene nada hacia lo que
+        converger: tanto la fuerza bruta como las heurísticas ingeniosas vagan por
+        un espacio inmenso. La solución existe por construcción; lo que falta es un
+        método lo bastante rápido para encontrarla. Por eso el puzzle es famoso, y
+        por eso no es un truco.
+      </>
+    ),
+    learnMoreTitle: "Para saber más",
+    learnMoreMath: (
+      <>
+        Para la combinatoria detrás de ese 10<sup>557</sup>, la NP-completitud del
+        encaje de bordes y cómo atacan realmente el tablero los solucionadores,
+        consulta{" "}
+        <Link className="underline" to="/algorithms">
+          Algoritmos
+        </Link>{" "}
+        y las páginas de{" "}
+        <Link className="underline" to="/research">
+          Investigación
+        </Link>
+        .
+      </>
+    ),
+    learnMoreRecord: (
+      <>
+        Para los mejores tableros del momento, incluido el récord de 470/480,
+        consulta la tabla de récords en{" "}
+        <Link className="underline" to="/puzzle">
+          El Puzzle
+        </Link>
+        .
+      </>
+    ),
+  },
 };
 
 export default function ScamPage() {

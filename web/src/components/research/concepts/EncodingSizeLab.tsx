@@ -102,6 +102,49 @@ const T = {
     learned: "clause apprise : ¬x₁ — un littéral, qui élague la moitié de l'arbre",
     note: "Les comptes sont exacts pour les familles montrées, sauf le désaccord de couture, qui traite les couleurs comme uniformes (×(1−1/c)) ; les jeux de pièces réels s'en écartent un peu. L'encodage à coutures utilise un au-plus-un séquentiel pour les contraintes de cases et de pièces, comme les encodages compacts de l'article de Heule. Le plafond 10×10 et les tailles de CNF du plateau entier sont ceux que cette page rapporte des expériences communautaires.",
   },
+  es: {
+    title: "¿Qué tamaño tiene la CNF? Desliza y compruébalo",
+    intro:
+      "Ambas codificaciones se calculan en vivo a partir de la propia derivación de la página: p = n² piezas, 4 rotaciones, n² celdas dan 4n⁴ variables de colocación. La codificación directa prohíbe cada par de colocaciones en desacuerdo sobre cada costura; la codificación por costuras de Heule nombra el color de cada costura y prohíbe el desacuerdo una sola vez por costura. Las barras están en escala logarítmica: cada marca vale ×10.",
+    boardSize: (n: number) => `Tamaño del tablero n = ${n} (${n}×${n})`,
+    colors: (c: number) => `Colores de arista c = ${c}`,
+    variables: "variables",
+    clauses: "cláusulas",
+    direct: "Codificación directa (conflictos por pares)",
+    seam: "Codificación por costuras de Heule (compacta)",
+    breakdown: "A dónde van las cláusulas",
+    rowCellEO: "cada celda contiene exactamente una colocación",
+    rowPieceAMO: "cada pieza se usa como máximo una vez",
+    rowConflict: "desacuerdo de costura (por pares, colores ≈ uniformes)",
+    rowImplication: "colocación ⇒ sus colores de costura",
+    rowSeamAMO: "un color por costura",
+    ceiling: "≈ techo práctico del SAT puro en tableros de tipo Eternity (experimentos comunitarios)",
+    ceilingShort: "techo del SAT puro",
+    e2: "Eternity II",
+    withinReach: "Dentro del rango que los solucionadores completos han despachado realmente.",
+    beyondReach:
+      "Más allá de todo éxito demostrado del SAT puro en instancias de tipo Eternity: cargable, y sin resolver.",
+    e2Note: (v: string, cl: string) =>
+      `Con n = 16, c = 17 la forma directa alcanza ${v} variables y ≈ ${cl} cláusulas de conflicto: los mismos «cientos de millones» que la comunidad reportó para las CNF del tablero completo.`,
+    upTitle: "De qué se alimenta el CDCL: una cascada de propagación unitaria",
+    upIntro:
+      "Seis cláusulas, una decisión. Fijar x₁ = verdadero fuerza x₂, luego x₃, x₄, x₅ —cada paso es una cláusula con un solo literal vivo— hasta que la cláusula 6 no tiene ninguno: conflicto. Al remontar la cadena, todo el conflicto se comprime en una decisión, así que el solucionador aprende la cláusula corta ¬x₁. Eternity II mata de hambre justo esto: sus cadenas tienen un solo eslabón, de modo que sus cláusulas aprendidas salen anchas e inútiles.",
+    step: "Paso",
+    reset: "Reiniciar",
+    play: "Reproducción automática",
+    pause: "Pausar",
+    msg: [
+      "Nada asignado todavía.",
+      "Decisión: x₁ = verdadero.",
+      "c2 tiene un solo literal vivo: x₂ = verdadero (forzado).",
+      "c3 fuerza x₃ = verdadero.",
+      "c4 fuerza x₄ = verdadero.",
+      "c5 fuerza x₅ = verdadero: una cadena de cuatro eslabones a partir de una decisión.",
+      "c6 no tiene ningún literal vivo: CONFLICTO. Cada eslabón se remonta a x₁: se aprende la cláusula de 1 literal ¬x₁.",
+    ],
+    learned: "cláusula aprendida: ¬x₁ — un literal, poda la mitad del árbol",
+    note: "Los recuentos son exactos para las familias de restricciones mostradas, salvo el desacuerdo de costura, que trata los colores como uniformes (×(1−1/c)); los conjuntos de piezas reales se desvían un poco. La codificación por costuras usa un al-máximo-uno secuencial para las restricciones de celda y de pieza, como las codificaciones compactas del artículo de Heule. El techo de 10×10 y los tamaños de CNF del tablero completo son los que esta página reporta a partir de experimentos comunitarios.",
+  },
 };
 
 const choose2 = (k: number): number => (k * (k - 1)) / 2;

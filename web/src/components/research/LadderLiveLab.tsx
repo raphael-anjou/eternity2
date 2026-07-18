@@ -65,6 +65,21 @@ const T = {
     note: "Chaque barre est la profondeur d'une vraie sonde sur un puzzle 6×6, en direct. Le LADDER complet ajoute une déduplication de diversité (ne pas promouvoir des préfixes quasi identiques) et des fins de partie exactes ; sur le 16×16 il a atteint un plateau 451 sans record à copier. Le levier montré ici est l'essentiel : la promotion des plus profonds concentre le budget là où le progrès est réel.",
     idle: "Appuyez pour inonder le plateau de sondes.",
   },
+  es: {
+    title: "Inundar, luego promover las más profundas — en vivo",
+    intro:
+      "El peldaño 1 lanza doce sondas económicas, cada una una búsqueda real con un presupuesto mínimo. Nos quedamos con las seis que llegaron más profundo. El peldaño 2 les da un presupuesto mayor y conserva tres; el peldaño 3 les da el máximo a las finalistas. Concentrar el esfuerzo en los arranques más profundos, en lugar de reiniciar al azar, es lo que permite que una de ellas termine.",
+    run: "Ejecutar la escalera",
+    again: "Ejecutar de nuevo",
+    rung: (i: number) => `Peldaño ${i + 1}`,
+    kept: "promovida",
+    out: "descartada",
+    solved: "¡resuelto!",
+    depth: "profundidad alcanzada",
+    loading: "Cargando el motor…",
+    note: "Cada barra es la profundidad de una sonda real sobre un puzzle 6×6, en vivo. El LADDER completo añade deduplicación por diversidad (no promover prefijos casi idénticos) y finales de partida exactos; en el 16×16 alcanzó un tablero de 451 sin ningún récord que copiar. La palanca que se muestra aquí es la esencial: la promoción de las más profundas concentra el presupuesto donde el progreso es real.",
+    idle: "Pulsa ejecutar para inundar el tablero de sondas.",
+  },
 };
 
 export function LadderLiveLab() {

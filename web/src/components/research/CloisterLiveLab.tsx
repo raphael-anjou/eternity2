@@ -82,6 +82,22 @@ const T = {
     idle: "Appuyez pour résoudre le même puzzle des deux façons.",
     note: "Les deux exécutions sont le vrai moteur sur le même puzzle 6×6 ; seul l'ordre de remplissage change. L'effet varie d'un puzzle à l'autre (et un puzzle difficile peut atteindre le plafond de nœuds avant de résoudre), mais « cadre d'abord » l'emporte d'ordinaire en rejetant les intérieurs incompatibles avec le cadre. Le CLOISTER complet va plus loin : il fixe un cadre 16×16 prouvé parfait et collecte des bords appariés supplémentaires d'intérieurs bâtis contre lui — une valeur non récupérable après coup.",
   },
+  es: {
+    title: "Borde primero vs. tablero completo — cuenta el trabajo desperdiciado",
+    intro:
+      "El mismo puzzle pequeño, resuelto dos veces por el motor real. «Borde primero» rellena el marco y luego el interior, de modo que las aristas del marco restringen cada colocación interior desde el principio: un interior condenado se descarta pronto. «Tablero completo» rellena fila a fila y descubre los conflictos del marco tarde. Ejecútalo y compara los nodos que exploró cada uno.",
+    run: "Resolver de ambas formas",
+    again: "Nuevo puzzle",
+    bf: "Borde primero (CLOISTER)",
+    wb: "Tablero completo (por filas)",
+    nodes: "nodos explorados",
+    saved: (pct: number) => `Borde primero hizo un ${pct}% menos de trabajo`,
+    moreWork: (pct: number) => `Borde primero hizo un ${pct}% más de trabajo en este caso`,
+    tie: "Aproximadamente igual en este puzzle",
+    loading: "Cargando el motor…",
+    idle: "Pulsa para resolver el mismo puzzle de ambas formas.",
+    note: "Ambas ejecuciones son el motor real sobre el mismo puzzle 6×6; solo cambia el orden de relleno. El efecto varía de un puzzle a otro (y uno difícil puede alcanzar el tope de nodos antes de resolverse), pero «borde primero» suele ganar al descartar interiores que no encajan con el marco. El CLOISTER completo va más allá: fija un marco 16×16 demostrado perfecto y recoge aristas coincidentes adicionales de interiores construidos contra él — un valor que no se puede recuperar a posteriori.",
+  },
 };
 
 export function CloisterLiveLab() {

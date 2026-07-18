@@ -50,6 +50,20 @@ const T = {
     sourceName: "implémentation de référence de McGavin",
     loading: "Chargement du moteur…",
   },
+  es: {
+    title: "Elige un orden de recorrido — observa el embudo",
+    intro:
+      "La teoría compleja evalúa un orden de relleno antes de ejecutarlo. Elige uno: la curva es el número esperado de formas de extender un tablero parcial a cada profundidad — la anchura del árbol de búsqueda. El pico de meseta es el punto más ancho que un backtracker debe atravesar. Cuanto más bajo, mejor, y el orden por sí solo lo decide.",
+    peak: "pico de meseta",
+    atDepth: (d: number) => `más ancho en la profundidad ${d}`,
+    best: "pico más bajo",
+    yAxis: "ramas esperadas (log)",
+    xAxis: "profundidad (celdas colocadas)",
+    note: "Un port exacto de la implementación de referencia de McGavin de la teoría de Owen — reproduce su curva 16×16 publicada. Una frontera compacta (por filas, serpiente) mantiene el pico bajo; un orden disperso (aleatorio) lo dispara, porque una frontera extendida casi no impone restricciones. Por eso todo buen solucionador rellena el tablero en una banda estrecha que avanza.",
+    sourcePrefix: "Método:",
+    sourceName: "implementación de referencia de McGavin",
+    loading: "Cargando el motor…",
+  },
 };
 
 const ORDER_COLOR: Record<string, string> = {

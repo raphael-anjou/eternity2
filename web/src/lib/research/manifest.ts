@@ -11,11 +11,24 @@ import {
   topics as topicsFr,
   authors as authorsFr,
 } from "virtual:research-manifest-fr";
+import {
+  docs as docsEs,
+  topics as topicsEs,
+  authors as authorsEs,
+} from "virtual:research-manifest-es";
 import type { Lang } from "@/i18n";
 import type { ResearchDoc, Topic, Author } from "./types";
 
+// Each language's compiled manifest (docs/topics/authors). English is the
+// canonical fallback: an unknown language reads it. A non-English manifest
+// already has EN-fallback baked in per field by the build (see buildManifest /
+// pickLang), so a page/label with no translation still resolves to English.
+const DOCS: Record<Lang, ResearchDoc[]> = { en: docsEn, fr: docsFr, es: docsEs };
+const TOPICS: Record<Lang, Topic[]> = { en: topicsEn, fr: topicsFr, es: topicsEs };
+const AUTHORS: Record<Lang, Author[]> = { en: authorsEn, fr: authorsFr, es: authorsEs };
+
 export function researchDocs(lang: Lang): ResearchDoc[] {
-  return lang === "fr" ? docsFr : docsEn;
+  return DOCS[lang] ?? docsEn;
 }
 
 /** Look up a doc by its language-neutral site path ("/research/…"). */
@@ -45,7 +58,7 @@ export function metaDescriptionFor(doc: Pick<ResearchDoc, "description" | "metaD
 
 /** The topic registry, labels in the given language (registry order). */
 export function researchTopics(lang: Lang): Topic[] {
-  return lang === "fr" ? topicsFr : topicsEn;
+  return TOPICS[lang] ?? topicsEn;
 }
 
 export function researchTopic(lang: Lang, slug: string): Topic | undefined {
@@ -58,7 +71,7 @@ export function topicUrl(slug: string): string {
 
 /** The author registry, profile fields in the given language. */
 export function researchAuthors(lang: Lang): Author[] {
-  return lang === "fr" ? authorsFr : authorsEn;
+  return AUTHORS[lang] ?? authorsEn;
 }
 
 export function researchAuthor(lang: Lang, slug: string): Author | undefined {

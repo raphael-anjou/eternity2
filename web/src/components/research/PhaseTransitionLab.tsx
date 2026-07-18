@@ -71,6 +71,18 @@ const T = {
     seeAlso: "Voir les graphiques de difficulté complets sur la page Algorithmes",
     busy: "Chargement du graphique…",
   },
+  es: {
+    title: "El muro, medido",
+    intro:
+      "Son los mismos datos que grafica la página Algoritmos: el trabajo mediano para resolver un puzzle generado, según el tamaño del tablero y el número de colores. El eje vertical es logarítmico, así que cada línea vale diez veces la de abajo. Léelo como la perilla de dificultad del puzzle.",
+    read: "En un tablero de 7x7, el trabajo supera los sesenta millones en torno a cinco o seis colores y luego cae por un factor de cien mil a medida que aumentan los colores. Cuanto mayor es el tablero, más marcado y desplazado hacia la derecha queda el pico. El 16x16 completo se sitúa mucho más arriba y a la derecha de todo lo que puede graficarse aquí, y por eso su ajuste de 17 colores cae de lleno en la región difícil.",
+    yLabel: "trabajo para resolver (mediana, log)",
+    xLabel: "colores",
+    size: "Tamaño del tablero",
+    note: "El trabajo es el número de colocaciones que hace el solucionador; los valores son medianas sobre muchos puzzles generados. Los puntos del extremo con pocos colores son cotas inferiores donde una ejecución se detuvo antes de tiempo.",
+    seeAlso: "Ver los gráficos de dificultad completos en la página Algoritmos",
+    busy: "Cargando gráfico…",
+  },
 };
 
 export function PhaseTransitionLab() {

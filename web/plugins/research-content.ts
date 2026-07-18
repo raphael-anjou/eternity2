@@ -15,10 +15,14 @@ import {
   buildManifest,
   researchTopics,
   researchAuthors,
-  researchPagePathsFr,
+  researchPagePathsFor,
   scanResearchContent,
   searchEntries,
+  pickLang,
+  LANG_CODES,
+  TRANSLATION_LANGS,
   CONTENT_DIR,
+  type Lang,
 } from "../content.config";
 import type { ResearchDoc } from "../src/lib/research/types";
 
@@ -165,14 +169,14 @@ function relatedDocs(doc: ResearchDoc, all: ResearchDoc[]): ResearchDoc[] {
 // and the page list never goes stale. `{ORIGIN}` is substituted at build time.
 const LLMS_HEADER = `# Eternity II community site (eternity2.dev)
 
-> An open-source, static, bilingual (English / French) educational hub for the Eternity II edge-matching puzzle. You can play it, watch real solvers run in your browser, learn the backtracking algorithms behind it, import/export/score community boards, and read the research. The solver is a Rust engine compiled to WebAssembly, so there is no server and no user data.
+> An open-source, static, multilingual (English / French / Spanish) educational hub for the Eternity II edge-matching puzzle. You can play it, watch real solvers run in your browser, learn the backtracking algorithms behind it, import/export/score community boards, and read the research. The solver is a Rust engine compiled to WebAssembly, so there is no server and no user data.
 
 Key facts an assistant should know when answering about this site:
 
 - **The puzzle.** Eternity II is a 16x16 edge-matching puzzle: 256 square tiles, each edge bearing one of 22 colors/motifs, must tile a board so every shared edge matches and the border is grey. It carried a US $2,000,000 prize (unclaimed; expired 2010). The best public board matches 470 of 480 edges; a perfect solution (480) has never been found. The search space is ~1.115 x 10^557 raw arrangements.
 - **What's verifiable here.** Every claim on the site (record boards, piece set, clues, scores) is checked by the same Rust/WASM engine the playground runs, and cross-validated against real e2.bucas.name boards.
 - **License / reuse.** Open source. Content is meant to be indexed, learned from, and cited freely. When citing, link to the relevant page.
-- **No server.** Pages are pre-rendered to static HTML, so every URL is directly fetchable. The French tree mirrors the English tree under /fr.
+- **No server.** Pages are pre-rendered to static HTML, so every URL is directly fetchable. The French tree mirrors the English tree under /fr, the Spanish tree under /es.
 - **Markdown for machines.** Every research page has a raw-markdown sibling at the same URL with \`.md\` appended (e.g. {ORIGIN}/research/build/known-facts.md); prefer those when quoting or ingesting. The whole research corpus in one file is at {ORIGIN}/llms-full.txt.
 
 ## Top-level pages
@@ -222,6 +226,7 @@ function buildLlmsTxt(
   parts.push(
     `\n## Optional\n`,
     `- [French home](${origin}${base}/fr): the whole site mirrored under /fr; skip unless answering in French.`,
+    `- [Spanish home](${origin}${base}/es): the whole site mirrored under /es; skip unless answering in Spanish.`,
     `- [Sitemap](${origin}${base}/sitemap.xml): machine-readable list of every page.`,
     "",
   );
@@ -248,24 +253,32 @@ function buildLlmsFull(
   return head + ordered.map((b) => b.markdown).join("\n\n---\n\n") + "\n";
 }
 
-const IDS = {
-  "virtual:research-manifest-en": "en",
-  "virtual:research-manifest-fr": "fr",
-} as const;
-
+// The per-language virtual modules, derived from the language registry so a new
+// language wires itself up. For each language:
+//   virtual:research-manifest-<lang>    → docs/topics/authors, resolved to <lang>
+//   virtual:research-search-<lang>      → the full-text index for <lang>
+// and for each NON-English language:
+//   virtual:research-translated-<lang>  → the URLs with a genuine <lang> rendering
+const MANIFEST_ID = (lang: Lang) => `virtual:research-manifest-${lang}`;
+const SEARCH_ID = (lang: Lang) => `virtual:research-search-${lang}`;
 // A tiny module (just a string[] of language-neutral research URLs that have a
-// genuine French rendering) so the root shell can decide whether to advertise
-// hreflang="fr" for a research page WITHOUT pulling the full ~400KB manifest
-// into every page's chunk. Non-research pages always have a /fr twin, so they
+// genuine <lang> rendering) so the root shell can decide whether to advertise
+// hreflang="<lang>" for a research page WITHOUT pulling the full ~400KB manifest
+// into every page's chunk. Non-research pages always have a /<lang> twin, so they
 // are not listed here — the root shell only consults this for /research paths.
-const TRANSLATED_FR_ID = "virtual:research-translated-fr";
+const TRANSLATED_ID = (lang: Lang) => `virtual:research-translated-${lang}`;
 
-// Full-text index payloads, split from the manifest so they only load when
-// the search dialog opens (they carry every page's body text).
-const SEARCH_IDS = {
-  "virtual:research-search-en": "en",
-  "virtual:research-search-fr": "fr",
-} as const;
+// Reverse lookup: bare virtual id → { kind, lang }, or null if not ours.
+function parseId(bare: string): { kind: "manifest" | "search" | "translated"; lang: Lang } | null {
+  for (const lang of LANG_CODES) {
+    if (bare === MANIFEST_ID(lang)) return { kind: "manifest", lang };
+    if (bare === SEARCH_ID(lang)) return { kind: "search", lang };
+  }
+  for (const lang of TRANSLATION_LANGS) {
+    if (bare === TRANSLATED_ID(lang)) return { kind: "translated", lang };
+  }
+  return null;
+}
 
 export function researchContent(): Plugin {
   let devServer: ViteDevServer | undefined;
@@ -279,42 +292,42 @@ export function researchContent(): Plugin {
     },
 
     resolveId(id) {
-      if (id in IDS || id in SEARCH_IDS || id === TRANSLATED_FR_ID) return "\0" + id;
+      if (parseId(id)) return "\0" + id;
       return null;
     },
 
     load(id) {
       if (!id.startsWith("\0")) return null;
-      const bare = id.slice(1);
-      if (bare === TRANSLATED_FR_ID) {
-        // Language-neutral URLs ("/research/…") that have a real French
-        // rendering. researchPagePathsFr() returns basename-relative paths
+      const parsed = parseId(id.slice(1));
+      if (!parsed) return null;
+      const { kind, lang } = parsed;
+      if (kind === "translated") {
+        // Language-neutral URLs ("/research/…") that have a real <lang>
+        // rendering. researchPagePathsFor() returns basename-relative paths
         // ("research/…"); expose them as absolute "/research/…" URLs.
-        const urls = researchPagePathsFr().map((p) => `/${p}`);
-        return `export const translatedFr = ${JSON.stringify(urls)};`;
+        const urls = researchPagePathsFor(lang).map((p) => `/${p}`);
+        return `export const translated = ${JSON.stringify(urls)};`;
       }
-      if (bare in SEARCH_IDS) {
-        const lang = SEARCH_IDS[bare as keyof typeof SEARCH_IDS];
+      if (kind === "search") {
         return `export const entries = ${JSON.stringify(searchEntries(lang))};`;
       }
-      if (!(bare in IDS)) return null;
-      const lang = IDS[bare as keyof typeof IDS];
+      // kind === "manifest"
       // Drafts stay reachable in dev so they can be written/previewed, but are
       // stripped from production builds (matching the prerender list).
       const docs = buildManifest(lang, { includeDrafts: !isBuild });
-      // Topic registry, labels resolved to this language.
+      // Topic registry, labels resolved to this language (EN fallback per field).
       const topics = researchTopics().map((t) => ({
         slug: t.slug,
-        label: t.label[lang],
-        description: t.description[lang],
+        label: pickLang(t.label, lang),
+        description: pickLang(t.description, lang),
       }));
-      // Author registry, profile fields resolved to this language.
+      // Author registry, profile fields resolved to this language (EN fallback).
       const authors = researchAuthors().map((a) => ({
         slug: a.slug,
         name: a.name,
-        ...(a.tagline ? { tagline: a.tagline[lang] } : {}),
-        ...(a.affiliation ? { affiliation: a.affiliation[lang] } : {}),
-        ...(a.bio ? { bio: a.bio[lang] } : {}),
+        ...(a.tagline ? { tagline: pickLang(a.tagline, lang) } : {}),
+        ...(a.affiliation ? { affiliation: pickLang(a.affiliation, lang) } : {}),
+        ...(a.bio ? { bio: pickLang(a.bio, lang) } : {}),
         links: a.links,
       }));
       return (
@@ -394,7 +407,14 @@ export function researchContent(): Plugin {
         researchTopics(true); // bust all caches
         researchAuthors(true);
         scanResearchContent(true);
-        for (const bare of [...Object.keys(IDS), ...Object.keys(SEARCH_IDS)]) {
+        // Invalidate every per-language virtual module (manifest + search +
+        // translated list) so a content edit reloads in dev.
+        const bareIds = [
+          ...LANG_CODES.map(MANIFEST_ID),
+          ...LANG_CODES.map(SEARCH_ID),
+          ...TRANSLATION_LANGS.map(TRANSLATED_ID),
+        ];
+        for (const bare of bareIds) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);
           if (mod) devServer?.moduleGraph.invalidateModule(mod);
         }

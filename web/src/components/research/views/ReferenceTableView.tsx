@@ -1,4 +1,4 @@
-import { useT } from "@/i18n";
+import { useT, useLang, pick, type Dict } from "@/i18n";
 import {
   Table,
   TableBody,
@@ -59,25 +59,25 @@ function NumCell({ computed, published }: { computed: number | null; published?:
   return <TableCell className="text-right tabular-nums">{DASH}</TableCell>;
 }
 
-const ROW_LABELS: Record<string, { en: string; fr: string }> = {
-  "2x2-tl": { en: "2×2 — top-left corner", fr: "2×2 — coin haut-gauche" },
-  "2x2-tr": { en: "2×2 — top-right corner", fr: "2×2 — coin haut-droit" },
-  "2x2-br": { en: "2×2 — bottom-right corner", fr: "2×2 — coin bas-droit" },
-  "2x2-bl": { en: "2×2 — bottom-left corner", fr: "2×2 — coin bas-gauche" },
-  "2x2-side": { en: "2×2 — on a side", fr: "2×2 — sur un bord" },
-  "2x2-middle": { en: "2×2 — in the middle", fr: "2×2 — au milieu" },
-  "3x3-tl": { en: "3×3 — top-left corner", fr: "3×3 — coin haut-gauche" },
-  "3x3-tr": { en: "3×3 — top-right corner", fr: "3×3 — coin haut-droit" },
-  "3x3-br": { en: "3×3 — bottom-right corner", fr: "3×3 — coin bas-droit" },
-  "3x3-bl": { en: "3×3 — bottom-left corner", fr: "3×3 — coin bas-gauche" },
-  "3x3-side": { en: "3×3 — on a side", fr: "3×3 — sur un bord" },
-  "3x3-middle": { en: "3×3 — in the middle", fr: "3×3 — au milieu" },
-  "3x3-encircle": { en: "3×3 — encircling the centre clue", fr: "3×3 — autour de l'indice central" },
-  "4x4-tl": { en: "4×4 — top-left corner", fr: "4×4 — coin haut-gauche" },
-  "4x4-tr": { en: "4×4 — top-right corner", fr: "4×4 — coin haut-droit" },
-  "4x4-br": { en: "4×4 — bottom-right corner", fr: "4×4 — coin bas-droit" },
-  "4x4-bl": { en: "4×4 — bottom-left corner", fr: "4×4 — coin bas-gauche" },
-  "4x4-side": { en: "4×4 — on a side", fr: "4×4 — sur un bord" },
+const ROW_LABELS: Record<string, Dict<string>> = {
+  "2x2-tl": { en: "2×2 — top-left corner", fr: "2×2 — coin haut-gauche", es: "2×2 — esquina superior izquierda" },
+  "2x2-tr": { en: "2×2 — top-right corner", fr: "2×2 — coin haut-droit", es: "2×2 — esquina superior derecha" },
+  "2x2-br": { en: "2×2 — bottom-right corner", fr: "2×2 — coin bas-droit", es: "2×2 — esquina inferior derecha" },
+  "2x2-bl": { en: "2×2 — bottom-left corner", fr: "2×2 — coin bas-gauche", es: "2×2 — esquina inferior izquierda" },
+  "2x2-side": { en: "2×2 — on a side", fr: "2×2 — sur un bord", es: "2×2 — en un borde" },
+  "2x2-middle": { en: "2×2 — in the middle", fr: "2×2 — au milieu", es: "2×2 — en el centro" },
+  "3x3-tl": { en: "3×3 — top-left corner", fr: "3×3 — coin haut-gauche", es: "3×3 — esquina superior izquierda" },
+  "3x3-tr": { en: "3×3 — top-right corner", fr: "3×3 — coin haut-droit", es: "3×3 — esquina superior derecha" },
+  "3x3-br": { en: "3×3 — bottom-right corner", fr: "3×3 — coin bas-droit", es: "3×3 — esquina inferior derecha" },
+  "3x3-bl": { en: "3×3 — bottom-left corner", fr: "3×3 — coin bas-gauche", es: "3×3 — esquina inferior izquierda" },
+  "3x3-side": { en: "3×3 — on a side", fr: "3×3 — sur un bord", es: "3×3 — en un borde" },
+  "3x3-middle": { en: "3×3 — in the middle", fr: "3×3 — au milieu", es: "3×3 — en el centro" },
+  "3x3-encircle": { en: "3×3 — encircling the centre clue", fr: "3×3 — autour de l'indice central", es: "3×3 — rodeando la pista central" },
+  "4x4-tl": { en: "4×4 — top-left corner", fr: "4×4 — coin haut-gauche", es: "4×4 — esquina superior izquierda" },
+  "4x4-tr": { en: "4×4 — top-right corner", fr: "4×4 — coin haut-droit", es: "4×4 — esquina superior derecha" },
+  "4x4-br": { en: "4×4 — bottom-right corner", fr: "4×4 — coin bas-droit", es: "4×4 — esquina inferior derecha" },
+  "4x4-bl": { en: "4×4 — bottom-left corner", fr: "4×4 — coin bas-gauche", es: "4×4 — esquina inferior izquierda" },
+  "4x4-side": { en: "4×4 — on a side", fr: "4×4 — sur un bord", es: "4×4 — en un borde" },
 };
 
 const T = {
@@ -121,11 +121,31 @@ const T = {
     rules:
       "Règles de comptage : chaque case utilise une pièce de la classe correspondant à ses côtés bordant le cadre (coin / bord / intérieur) ; les bords du cadre sont gris ; les bords de la frontière du bloc tournés vers l'intérieur sont non gris ; les bords internes partagés concordent ; les pièces sont distinctes dans le bloc.",
   },
+  es: {
+    computedFrom: "Calculado a partir de",
+    article: "la nota de investigación abierta + el generador Rust reproducible",
+    onGithub: "en GitHub",
+    colBlock: "Bloque",
+    colVide: "Vacío",
+    colFixe: "Fijo",
+    colFixe4: "Fijo + 4 pistas",
+    legendTitle: "Qué significan las columnas",
+    legend: [
+      ["Vacío", "Todas las formas de rellenar el bloque con piezas oficiales distintas de la clase correcta, con las aristas coincidentes."],
+      ["Fijo", "Igual, pero la pieza-pista central se retira del conjunto (queda fija en el centro del tablero)."],
+      ["Fijo + 4 pistas", "Las cinco piezas-pista se retiran del conjunto; cualquier pista dentro del bloque queda anclada en su lugar oficial."],
+      ["c0 – c3", "Solo bloques de esquina: de los rellenos Fijo + 4 pistas, cuántos colocan cada una de las cuatro piezas de esquina en la esquina. Su suma iguala el total de Fijo + 4 pistas."],
+    ],
+    italicNote:
+      "Los valores en cursiva son las cifras publicadas por sylvogel, reproducidas aquí por exhaustividad: sus conteos son demasiado grandes para enumerarlos con exactitud en segundos (de decenas de miles de millones a decenas de billones de rellenos), por lo que este sitio no los recalcula de forma independiente. Todo valor en redonda se calcula aquí a partir del conjunto oficial de piezas.",
+    rules:
+      "Reglas de conteo: cada celda usa una pieza de la clase correspondiente a sus lados que dan al marco (esquina / borde / interior); las aristas del marco son grises; las aristas de la frontera del bloque orientadas hacia el interior no son grises; las aristas internas compartidas coinciden; las piezas son distintas dentro del bloque.",
+  },
 };
 
 export function ReferenceTableView() {
   const t = useT(T);
-  const lang = useT({ en: { l: "en" as const }, fr: { l: "fr" as const } }).l;
+  const { lang } = useLang();
 
   return (
     <div className="space-y-10">
@@ -158,7 +178,8 @@ export function ReferenceTableView() {
           </TableHeader>
           <TableBody>
             {ROWS.map((r) => {
-              const label = ROW_LABELS[r.key]?.[lang] ?? r.key;
+              const rowLabel = ROW_LABELS[r.key];
+              const label = rowLabel ? pick(rowLabel, lang) : r.key;
               const pub = PUBLISHED[r.key] ?? {};
               return (
                 <TableRow key={r.key}>

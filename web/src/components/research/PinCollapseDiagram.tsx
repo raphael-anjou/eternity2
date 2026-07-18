@@ -1,4 +1,4 @@
-import { useT, useLang } from "@/i18n";
+import { useT, useLang, pick } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 
 // The corner-pin collapse, drawn to scale. McGavin's C fills 205 of 256 cells on
@@ -9,13 +9,14 @@ import { useIsClient } from "@/lib/utils";
 
 const CEIL = 256;
 
-type Row = { key: string; en: string; fr: string; depth: number; strong?: boolean };
+type Row = { key: string; en: string; fr: string; es: string; depth: number; strong?: boolean };
 
 const ROWS: Row[] = [
   {
     key: "mcgavin-native",
     en: "McGavin C — native 5-clue",
     fr: "McGavin C — 5 indices natif",
+    es: "McGavin C — 5 pistas nativo",
     depth: 205,
     strong: true,
   },
@@ -23,12 +24,14 @@ const ROWS: Row[] = [
     key: "mcgavin-pinned",
     en: "McGavin C — our corner-pinned",
     fr: "McGavin C — nos coins fixés",
+    es: "McGavin C — con nuestras esquinas fijadas",
     depth: 21,
   },
   {
     key: "blackwood",
     en: "Blackwood C# — pinned 5-clue",
     fr: "Blackwood C# — 5 indices fixés",
+    es: "Blackwood C# — 5 pistas fijadas",
     depth: 34,
   },
 ];
@@ -45,6 +48,12 @@ const T = {
       "Profondeur atteinte sur 256. Le moteur de McGavin pose 205 cases sur le puzzle pour lequel son parcours a été compilé, mais fixer trois coins le fait chuter à 21 : le parcours figé rencontre un coin fixé qu'il ne peut satisfaire et se bloque presque aussitôt. Blackwood, réglé pour l'instance à un seul indice, plafonne à 34 sur les cinq indices fixés. Voilà pourquoi un moteur bâti autour d'une configuration d'indices ne peut être transposé à une autre, et pourquoi les moteurs de l'étude, qui gèrent nativement les indices, sont les substituts exécutables.",
     axis: "cases posées (sur 256)",
     busy: "Chargement…",
+  },
+  es: {
+    caption:
+      "Profundidad alcanzada sobre 256. El motor de McGavin coloca 205 celdas en el puzzle para el que se compiló su recorrido, pero fijar tres esquinas lo hace caer a 21: el recorrido rígido encuentra una esquina fijada que no puede satisfacer y se estanca casi de inmediato. Blackwood, ajustado para la instancia de una sola pista, casi sin restricciones, se detiene en 34 sobre las cinco pistas fijadas. Por eso un motor construido en torno a una configuración de pistas no puede trasladarse a otra, y por eso los propios motores del estudio, que gestionan las pistas de forma nativa, son los sustitutos ejecutables.",
+    axis: "celdas colocadas (de 256)",
+    busy: "Cargando…",
   },
 };
 
@@ -69,7 +78,7 @@ export function PinCollapseDiagram() {
           return (
             <div key={r.key} className="text-sm">
               <div className="mb-1 flex items-baseline justify-between">
-                <span className="font-medium">{lang === "fr" ? r.fr : r.en}</span>
+                <span className="font-medium">{pick(r, lang)}</span>
                 <span className="tabular-nums text-muted-foreground">{r.depth} / 256</span>
               </div>
               <div

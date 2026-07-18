@@ -67,6 +67,18 @@ const T = {
     at: "à",
     busy: "Tracé…",
   },
+  es: {
+    title: "Cuántos tableros logran cada puntuación",
+    intro:
+      "Cada tablero del corpus, contado por su puntuación. Una barra por puntuación de 400 a 469; una puntuación ausente es un hueco de altura nula, de modo que la forma real se hace visible: un pico pronunciado en la franja baja de los 450, donde se concentra una gran cosecha por haz de un solo núcleo, seguido de una fina cola de tableros más raros y de mayor puntuación hasta los 460. La línea discontinua marca el inicio de esa cola a partir de 460.",
+    xAxis: "puntuación (aristas coincidentes, sobre 480)",
+    yAxis: "número de tableros",
+    peak: "pico",
+    tail: "460+",
+    boards: "tableros",
+    at: "en",
+    busy: "Dibujando…",
+  },
 };
 
 export function CorpusScoreDistribution() {

@@ -43,6 +43,14 @@ const T = {
       "PRIOR apprend, pour chaque position, à quel point le choix de pièce est concentré dans les bons plateaux. Le cadre est nettement déterminé ; l'intérieur profond est presque un pile ou face. En cas d'égalité, le prior tranche vers la pièce typique de cet endroit — un guidage fort là où c'est pointu, inoffensif là où c'est plat.",
     busy: "Chargement…",
   },
+  es: {
+    title: "Qué tan marcado es el prior, celda por celda",
+    sharp: "prior marcado (casi siempre la misma pieza)",
+    flat: "prior plano (cara o cruz)",
+    caption:
+      "PRIOR aprende, para cada posición, qué tan concentrada está la elección de pieza en los tableros fuertes. El marco está nítidamente determinado; el interior profundo es casi cara o cruz. En caso de empate, el prior lo resuelve hacia la pieza típica de ese lugar: una guía fuerte donde es marcado, inofensiva donde es plano.",
+    busy: "Cargando…",
+  },
 };
 
 export function PriorDiagram() {

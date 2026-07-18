@@ -41,6 +41,15 @@ const T = {
       "Même nombre d'indices, portée très différente. Leur emplacement compte bien plus que leur nombre : l'ensemble dispersé contraint tout le plateau d'un coup, le bloc contigu ne fait que retarder le moment où la recherche rencontre une zone sans contrainte.",
     busy: "Chargement…",
   },
+  es: {
+    scattered: "18 pistas dispersas",
+    contiguous: "18 pistas contiguas",
+    scatteredCap: "Repartidas por el tablero en una retícula regular. Resolvieron el puzzle de Joe en menos de 15 minutos con un solo núcleo.",
+    contiguousCap: "El mismo presupuesto amontonado en las primeras filas. Deja completamente abierta la difícil zona inferior.",
+    caption:
+      "El mismo número de pistas, pero un alcance muy distinto. Dónde se sitúan importa mucho más que cuántas hay: el conjunto disperso restringe todo el tablero de golpe, mientras que el bloque contiguo solo retrasa el momento en que la búsqueda topa con una zona sin restringir.",
+    busy: "Cargando…",
+  },
 };
 
 function Grid({ hints, label }: { hints: Array<[number, number]>; label: string }) {

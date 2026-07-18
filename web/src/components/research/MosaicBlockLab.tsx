@@ -65,6 +65,16 @@ const T = {
     note: (n: string) => `Chaque bloc résolu à son optimum (${BLOCK_MAX}/${BLOCK_MAX} bords) en environ ${n} essais de pose — des millisecondes. Le 16×16 complet, c'est la même astuce, seize fois, plus la partie difficile : les jointures.`,
     loading: "Chargement du moteur…",
   },
+  es: {
+    title: "Un bloque se resuelve exactamente — al instante",
+    intro:
+      "MOSAIC se apoya en un hecho: un pequeño bloque del puzzle se resuelve a su óptimo en un abrir y cerrar de ojos. Aquí hay cuatro bloques 4×4 independientes, cada uno resuelto por el motor real hasta un tablero perfectamente encajado — cada arista interior concuerda. Yuxtaponerlos es la mitad fácil; el verdadero trabajo del método es componer las junturas entre ellos.",
+    blockLabel: (i: number) => `bloque ${i + 1}`,
+    perfect: "perfecto",
+    reshuffle: "Nuevos bloques",
+    note: (n: string) => `Cada bloque resuelto a su óptimo (${BLOCK_MAX}/${BLOCK_MAX} aristas) en unos ${n} intentos de colocación — milisegundos. El 16×16 completo es el mismo truco, dieciséis veces, más la parte difícil: las junturas.`,
+    loading: "Cargando el motor…",
+  },
 };
 
 export function MosaicBlockLab() {

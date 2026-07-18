@@ -66,6 +66,37 @@ const T = {
       },
     ],
   },
+  es: {
+    title: "Zona de juego",
+    intro:
+      "Cuatro formas de meterte de lleno en el puzzle: sin instalar nada, sin cuenta, todo funciona aquí mismo en tu navegador.",
+    modes: [
+      {
+        to: "/playground/solve",
+        emoji: "🧩",
+        title: "Resuélvelo tú mismo",
+        text: "Un auténtico puzzle de encaje de bordes, a escala humana (de 3×3 a 5×5). Vence al reloj y luego descubre cuántas veces lo habría resuelto un ordenador mientras jugabas.",
+      },
+      {
+        to: "/playground/watch",
+        emoji: "🤖",
+        title: "Observa cómo piensa la máquina",
+        text: "Una auténtica búsqueda por backtracking, en directo en tu navegador. Mírala colocar piezas, quedarse atascada y deshacer. Desde un paso por segundo hasta millones.",
+      },
+      {
+        to: "/playground/paths",
+        emoji: "🗺️",
+        title: "Inventa un recorrido de búsqueda",
+        text: "Dibuja el orden en que el solucionador explora el tablero (¿en espiral? ¿en zigzag? ¿al azar?) y enfrenta tu idea a las estrategias clásicas.",
+      },
+      {
+        to: "/playground/print",
+        emoji: "🖨️",
+        title: "Imprime y recorta",
+        text: "Fabrica puzzles de verdad para la mesa: elige tamaños y colores, imprime a doble cara con los números de pieza al dorso y recorta por las líneas.",
+      },
+    ],
+  },
 };
 
 export default function Hub() {

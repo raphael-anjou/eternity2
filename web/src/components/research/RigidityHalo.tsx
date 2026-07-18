@@ -49,6 +49,16 @@ const T = {
     pause: "Pause",
     busy: "Chargement…",
   },
+  es: {
+    radius: "Radio de la región",
+    cellsChecked: "celdas comprobadas",
+    proven: "ninguna reordenación puntúa más alto — demostrado",
+    caption:
+      "El mejor tablero, con sus desajustes restantes marcados. Amplía la región y la programación entera demuestra que ninguna forma de recolocar las piezas de su interior lo mejora. Los buenos tableros están congelados en su sitio.",
+    play: "Reproducir",
+    pause: "Pausa",
+    busy: "Cargando…",
+  },
 };
 
 export function RigidityHalo() {

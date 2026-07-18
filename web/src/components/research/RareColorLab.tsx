@@ -86,6 +86,21 @@ const T = {
     interiorMost: "Très majoritairement intérieure — une couleur commune qui fait le travail du plateau.",
     loading: "Chargement du jeu de pièces…",
   },
+  es: {
+    title: "¿Dónde vive cada color?",
+    intro:
+      "Elige un color. Recorremos las piezas oficiales reales y contamos sus aristas según el tipo de pieza en que se encuentran. Los cinco colores raros solo iluminan el marco: cero en el interior.",
+    pick: "Color",
+    corner: "piezas de esquina",
+    border: "piezas de borde",
+    interior: "piezas interiores",
+    edges: (n: number) => `${n} arista${n === 1 ? "" : "s"}`,
+    rare: "raro · solo en el marco",
+    common: "común",
+    interiorZero: "Ni una sola vez en el interior: un color raro, confinado al marco.",
+    interiorMost: "Interior en su inmensa mayoría: un color común que hace el trabajo del tablero.",
+    loading: "Cargando el conjunto de piezas…",
+  },
 };
 
 export function RareColorLab() {

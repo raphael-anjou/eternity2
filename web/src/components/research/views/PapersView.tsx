@@ -444,6 +444,95 @@ const T = {
         "Survey propagation — passage de messages conçu pour les espaces de solutions en grappes près de la transition de phase SAT. La propagation de croyance simple donne ≈19 % de réduction intérieure sur E2 mais la SP pure a été réfutée tôt ; la variante backtracking-SP reste à tester ici.",
     } as Record<string, string>,
   },
+  es: {
+    usefulnessTitle: "¿Cuáles resultan realmente útiles?",
+    usefulness: [
+      [
+        "Para entender el muro",
+        "Empieza por Demaine & Demaine (la demostración de NP-completitud) y Ansótegui–Béjar–Fernández–Mateu: juntos explican por qué no se conoce ningún algoritmo rápido general y, sobre todo, por qué se eligieron los parámetros exactos de Eternity II: el puzzle se sitúa en la transición de fase SAT/CSP (≈17 colores interiores), donde las instancias tienen alrededor de una solución esperada y son las más difíciles de hallar.",
+      ],
+      [
+        "Para ideas que aceleran un solucionador",
+        "El filtrado global en O(1) por nodo de Benoist & Bourreau y la búsqueda CP + vecindario muy grande de Schaus & Deville son el linaje detrás de la mayoría de los tableros récord. La hiperheurística de Wauters et al. y las formulaciones MILP + clique máxima de Salassa et al. son las mejores metaheurísticas publicadas. Harris/Vanstone/Gepp se apoyan en el conocimiento estructural y en la distribución uniforme de colores en lugar del forward-checking genérico, y reportan hasta tres órdenes de magnitud sobre los solucionadores anteriores.",
+      ],
+      [
+        "El núcleo de la propagación de restricciones",
+        "Si implementas una poda de verdad, el filtrado AllDifferent de Régin (consistencia de arco generalizada mediante emparejamiento bipartito) es la piedra angular: el suministro acotado de piezas por color en Eternity II convierte un AllDifferent por color en el propagador global más potente. Compact-Table es el algoritmo al que recurrir si algún día codificas tablas de parches precalculadas.",
+      ],
+      [
+        "Otro paradigma que conviene conocer",
+        "Kovalsky–Basri–Glasner resuelven el ensamblaje de puzzles como un único programa lineal global en vez de por colocación secuencial. NO se traslada directamente a E2 (la compatibilidad de imagen es de valor real; las aristas de E2 son discretas) —los propios autores lo dicen—, pero el enfoque de optimización global es un contraste útil frente al backtracking y la semilla de cualquier intento de relajación SDP.",
+      ],
+      [
+        "Un truco práctico que los artículos infravaloran",
+        "Precalcular los pares de dos piezas legales (esquina+borde, borde+interior, interior+interior) y buscar sobre pares en lugar de sobre piezas sueltas es una aceleración recurrente en la comunidad: adelanta la comprobación de restricción más barata y reduce el factor de ramificación. Es tanto folclore como literatura, pero conviene conocerlo antes de reinventarlo.",
+      ],
+      [
+        "Hasta dónde llega la literatura",
+        "Ningún método publicado resuelve realmente el tablero de 16×16. Las codificaciones SAT/CSP topan empíricamente en torno a subpuzzles de 10×10; las mejores heurísticas se estancan muy por debajo de 480 aristas coincidentes. El récord de la comunidad (470/480, Blackwood 2021, con su propio solucionador; igualado desde entonces) supera a todos los solucionadores publicados en la academia. La frontera vive hoy en la comunidad (groups.io, Discord) y en cuadernos de laboratorio abiertos como este, no en un artículo.",
+      ],
+    ],
+    sections: {
+      complexity: "Complejidad y por qué es difícil",
+      solvers: "Solucionadores de Eternity II",
+      cp: "Maquinaria de propagación de restricciones",
+      global: "Otro paradigma: la optimización global",
+      crossdomain: "Métodos de otros dominios que hemos probado en E2",
+    } as Record<Section, string>,
+    tier: {
+      foundational: "Fundacional",
+      practical: "Práctico",
+      context: "Contexto",
+    } as Record<Tier, string>,
+    notes: {
+      demaine2007:
+        "Demuestra que los puzzles de encaje de bordes son NP-completos: el aval teórico de «no se conoce ningún algoritmo rápido».",
+      demaine2019:
+        "Mapea la complejidad de las variantes de edge-matching (desigualdades, triángulos, rotaciones); útil cuando planteas relajaciones.",
+      rotations2017:
+        "El edge-matching sigue siendo NP-difícil incluso con rotaciones y en entornos restringidos: cierra la esperanza obvia de que «quizá las rotaciones lo vuelvan fácil».",
+      mateu2012:
+        "El resultado de transición de fase: el reparto de ≈17 colores interiores / 5 de borde coloca a E2 justo en el pico de dificultad SAT/CSP, con alrededor de una solución esperada. Este es el *porqué* de que los parámetros sean los que son.",
+      ansotegui2008cp:
+        "Codifica los puzzles de tipo Eternity para solucionadores SAT/CSP y muestra que las instancias generadas caen justo en el pico de dificultad.",
+      bejar2009:
+        "Acota la transición de fase de forma analítica (mediante medidas estadísticas de segundo momento), y no solo empírica: una cota superior que sirve además como buen estimador para localizar las instancias más difíciles. El armazón teórico bajo la afirmación de que «E2 está justo en el pico de dificultad».",
+      benoist2008edges:
+        "Un resultado breve y elegante del e-lab (mismo autor que Fast Global Filtering): el número máximo exacto de aristas compartidas que N piezas cuadradas pueden alcanzar en un tablero, con una h(N) en forma cerrada y una demostración. Una condición necesaria de factibilidad y un ladrillo limpio para los argumentos de paridad y conteo de soluciones.",
+      ansotegui2008ccia:
+        "La propia instancia de Eternity II, diseccionada como benchmark CSP difícil: un análisis temprano y accesible del puzzle real.",
+      heule2008:
+        "La codificación SAT canónica (variables pieza-posición-rotación; cláusulas de borde y de unicidad). Verdad de terreno: el SAT puro topa cerca de subpuzzles de 10×10, no es el camino hacia 480.",
+      benoist2008:
+        "Maquinaria de propagación diseñada a medida para E2: un filtrado global en O(1) por nodo que descarta pronto y a bajo coste las regiones imposibles. Un ancestro directo de los solucionadores rápidos.",
+      schaus2008:
+        "Programación con restricciones más reparación por vecindarios muy grandes: la familia de métodos detrás de la mayoría de los tableros récord.",
+      coelho2010:
+        "Una metaheurística general de búsqueda por vecindario variable con cinco tipos de movimiento; robusta a distintos tamaños, pero no alcanza la optimalidad.",
+      wang2010:
+        "Una búsqueda tabú en dos fases: resolver primero el marco y luego el interior condicionado a él. Una ilustración clara de la descomposición «borde primero» en la que se apoyan muchos solucionadores.",
+      niang2011:
+        "Un tratamiento extenso (a nivel de tesina) de los enfoques evolutivos/genéticos para E2, útil como panorámica de lo que los métodos de tipo AG pueden y no pueden hacer aquí.",
+      wauters2012:
+        "Hiperheurísticas: un algoritmo que aprende cuáles de sus propios movimientos funcionan y luego se apoya en ellos.",
+      salassa2017:
+        "Programación entera mixta y búsqueda de cliques como herramientas de reparación para tableros casi completos; publica además nuevas instancias-benchmark difíciles.",
+      harris2018:
+        "Genera instancias auténticas de tipo E2 y las resuelve aprovechando el conocimiento estructural y la distribución uniforme de colores, reportando grandes aceleraciones sobre solucionadores publicados anteriormente.",
+      regin1994:
+        "Consistencia de arco generalizada para AllDifferent mediante emparejamiento bipartito máximo. El propagador más potente para E2: aplícalo por color, donde el suministro está acotado.",
+      compacttable2016:
+        "Filtrado de restricciones en tabla al estado del arte mediante conjuntos de bits dispersos reversibles. El algoritmo a usar si codificas tablas de parches precalculadas.",
+      kovalsky2014:
+        "Ensambla un puzzle entero como un único programa lineal en vez de colocar las piezas en secuencia. No se traslada a E2 (aristas continuas frente a discretas), pero enmarca la alternativa de optimización global al backtracking.",
+      helsgaun2009:
+        "LKH: la heurística TSP de Lin–Kernighan al estado del arte, con movimientos k-opt generales. Construimos una variante 2D para el edge-matching (cadenas de intercambio de profundidad variable); perdió frente a la reparación por recocido simulado con igual presupuesto, pero la idea es sólida.",
+      gomes2004:
+        "Streamlining: imponer regularidades estructurales conjeturadas como restricciones duras para colapsar el espacio de búsqueda (distinto del symmetry-breaking). Sin probar en serio en E2; una dirección abierta real.",
+      braunstein2005:
+        "Survey propagation: paso de mensajes concebido para espacios de solución agrupados cerca de la transición de fase SAT. La propagación de creencias simple da ≈19 % de reducción interior en E2, pero la SP pura fue refutada pronto; la variante backtracking-SP sigue sin probarse aquí.",
+    } as Record<string, string>,
+  },
 };
 
 const TIER_CLASS: Record<Tier, string> = {

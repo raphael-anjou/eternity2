@@ -34,6 +34,13 @@ const T = {
       "Les cinq pièces fixes, à l'échelle sur la grille 16x16. L'indice central obligatoire est proche du milieu ; les quatre autres sont en retrait de trois cases de chaque coin, en anneau symétrique. Un plateau respectant les cinq est strict-canonique ; la plupart des records ne respectent que le centre.",
     busy: "Chargement…",
   },
+  es: {
+    centre: "pista central obligatoria (I8)",
+    corner: "cuatro colocaciones de los puzzles-pista",
+    caption:
+      "Las cinco piezas fijas, a escala sobre la cuadrícula de 16x16. La pista central obligatoria queda cerca del medio; las otras cuatro están a tres celdas de cada esquina, formando un anillo simétrico. Un tablero que respeta las cinco es estrictamente canónico; la mayoría de los récords solo respetan el centro.",
+    busy: "Cargando…",
+  },
 };
 
 export function CluePositionsDiagram() {

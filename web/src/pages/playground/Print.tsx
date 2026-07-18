@@ -90,6 +90,32 @@ const T = {
     removePage: "Supprimer cette page et ses puzzles",
     loading: "Chargement du moteur…",
   },
+  es: {
+    title: "Imprimir y recortar",
+    intro:
+      "Fabrica puzzles reales para tener en la mano: añade tableros, arrástralos a cualquier punto de la página, ajústales el tamaño desde la esquina y luego imprime a doble cara y recorta por las líneas. El reverso de cada pieza muestra su número y el código del juego, para volver a ordenar un lote mezclado. Los números nunca revelan la solución.",
+    addCustom: "Añadir",
+    sizeLabel: "Tamaño",
+    addPage: "+ Página",
+    sheets: (n: number) => (n === 1 ? "1 hoja" : `${n} hojas`),
+    duplexHint:
+      "Imprime al 100 %, a doble cara, girando por el borde largo. Los anversos y los reversos se alternan para que el número de cada pieza quede impreso justo detrás.",
+    dragHint:
+      "Arrastra los tableros para moverlos, incluso de una página a otra; tira de la esquina azul para redimensionarlos. Haz clic para seleccionar.",
+    print: "Imprimir",
+    empty: "Añade un tablero para empezar.",
+    colors: "Colores",
+    duplicate: "Duplicar en la página siguiente",
+    newSeed: "Volver a generar",
+    set: "Juego",
+    answerKey: "Solución:",
+    cutHint: "recorta por las líneas",
+    front: "anverso",
+    back: "reverso (en espejo)",
+    pageLabel: (i: number, n: number) => `página ${i} de ${n} (anverso + reverso)`,
+    removePage: "Eliminar esta página y sus puzzles",
+    loading: "Cargando el motor…",
+  },
 };
 
 interface Block {

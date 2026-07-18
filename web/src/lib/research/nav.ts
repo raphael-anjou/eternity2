@@ -2,7 +2,7 @@
 // and topic membership all derive from the content manifest — the MDX files
 // under web/content/research are the single source of truth.
 
-import type { Lang } from "@/i18n";
+import { pick, type Dict, type Lang } from "@/i18n";
 import { researchDocs } from "./manifest";
 import type { ResearchKind } from "./types";
 
@@ -31,18 +31,18 @@ export interface NavSection {
   items: NavItem[];
 }
 
-const SECTION_LABELS: Record<string, { en: string; fr: string }> = {
-  why: { en: "Why it's hard", fr: "Pourquoi c'est dur" },
-  build: { en: "Build a solver", fr: "Écrire un solveur" },
+const SECTION_LABELS: Record<string, Dict<string>> = {
+  why: { en: "Why it's hard", fr: "Pourquoi c'est dur", es: "Por qué es difícil" },
+  build: { en: "Build a solver", fr: "Écrire un solveur", es: "Crear un solucionador" },
   // The open notebook: structural findings and named search experiments, each
   // credited to its author by a byline (see the `author` frontmatter field and
   // the per-researcher hubs at /research/people/<slug>). Deliberately named for
   // the work, not one person — it scales to any contributor.
-  lab: { en: "The lab", fr: "Le laboratoire" },
+  lab: { en: "The lab", fr: "Le laboratoire", es: "El laboratorio" },
   // The record & the people behind it: the history, the record boards, the
   // record-holders, the papers, and how to contribute. Community memory, not
   // solver-building — kept out of Build so that section stays a curriculum.
-  community: { en: "History & community", fr: "Histoire & communauté" },
+  community: { en: "History & community", fr: "Histoire & communauté", es: "Historia y comunidad" },
 };
 
 /** Order of the sidebar sections. */
@@ -204,7 +204,7 @@ export function researchNav(lang: Lang): NavSection[] {
     return {
       key,
       url: `/research/${key}`,
-      label: label ? label[lang] : key,
+      label: label ? pick(label, lang) : key,
       items: roots,
     };
   });
@@ -242,17 +242,17 @@ export function topicMembers(lang: Lang, slug: string): NavItem[] {
 
 /** Localized labels for page kinds (badges, related rail). */
 export function kindLabel(kind: ResearchKind, lang: Lang): string {
-  const L: Record<ResearchKind, { en: string; fr: string }> = {
-    finding: { en: "finding", fr: "résultat" },
-    experiment: { en: "experiment", fr: "expérience" },
-    tool: { en: "tool", fr: "outil" },
-    reference: { en: "reference", fr: "référence" },
-    concept: { en: "concept", fr: "concept" },
-    basin: { en: "board study", fr: "étude de plateau" },
-    paper: { en: "papers", fr: "articles" },
-    page: { en: "page", fr: "page" },
+  const L: Record<ResearchKind, Dict<string>> = {
+    finding: { en: "finding", fr: "résultat", es: "resultado" },
+    experiment: { en: "experiment", fr: "expérience", es: "experimento" },
+    tool: { en: "tool", fr: "outil", es: "herramienta" },
+    reference: { en: "reference", fr: "référence", es: "referencia" },
+    concept: { en: "concept", fr: "concept", es: "concepto" },
+    basin: { en: "board study", fr: "étude de plateau", es: "estudio de tablero" },
+    paper: { en: "papers", fr: "articles", es: "artículos" },
+    page: { en: "page", fr: "page", es: "página" },
   };
-  return L[kind][lang];
+  return pick(L[kind], lang);
 }
 
 /** Dot color per kind — matches the related-rail convention. */

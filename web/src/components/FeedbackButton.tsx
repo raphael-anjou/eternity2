@@ -77,6 +77,32 @@ const COPY = {
     ],
     more: "Autre chose — toutes les options sur GitHub",
   },
+  es: {
+    trigger: "Opiniones",
+    heading: "¿Viste algo?",
+    sub: "Cada opción abre una incidencia ya rellenada en GitHub.",
+    items: (): Item[] => [
+      {
+        icon: Bug,
+        href: newIssue("bug_report.yml"),
+        title: "Reportar un error",
+        desc: "Algo está roto o funciona mal",
+      },
+      {
+        icon: Lightbulb,
+        href: newIssue("idea.yml"),
+        title: "Proponer una idea",
+        desc: "Una función o una mejora",
+      },
+      {
+        icon: BookOpen,
+        href: newIssue("content_correction.yml"),
+        title: "Corregir el contenido",
+        desc: "Un error o errata del wiki",
+      },
+    ],
+    more: "Otra cosa — todas las opciones en GitHub",
+  },
 };
 
 export function FeedbackButton() {

@@ -44,6 +44,18 @@ const T = {
     filled: "rempli",
     busy: "Chargement…",
   },
+  es: {
+    phases: [
+      "El solucionador coloca aquí una pieza escasa, muy pronto. Es la única pieza que puede satisfacer una demanda venidera.",
+      "Sigue rellenando, de arriba-izquierda hacia abajo-derecha. Todo parece ir bien.",
+      "Varias filas después llega a la celda que necesitaba justo esa pieza…",
+      "…y no hay nada que colocar. Muerta, con casi toda la caja aún llena.",
+    ],
+    scarce: "la pieza escasa (usada aquí)",
+    dead: "la celda que la necesitaba (ahora muerta)",
+    filled: "rellenado",
+    busy: "Cargando…",
+  },
 };
 
 export function PieceTheftDiagram() {

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// EN/FR translation-parity auditor. For every `<slug>.fr.mdx`, compare it to its
-// English twin `<slug>.mdx` and flag structural drift a translation must not
-// introduce — the failures the per-file translate-verify pass can miss because
-// it never sees both files side by side at build time:
+// Translation-parity auditor. For every translated sidecar `<slug>.<lang>.mdx`
+// (French, Spanish, …), compare it to its English twin `<slug>.mdx` and flag
+// structural drift a translation must not introduce — the failures the per-file
+// translate-verify pass can miss because it never sees both files side by side
+// at build time:
 //
 //  - machine frontmatter must match exactly (kind, contribution, rigor, tier,
 //    score, order, status, author, topics, related, group, repro, hardware,
@@ -126,11 +127,17 @@ function multisetEq(a, b) {
 const problems = [];
 const warnings = [];
 
-const frFiles = walk(CONTENT).filter((f) => f.endsWith(".fr.mdx"));
+// Every non-English language that ships translated sidecars. Mirrors the
+// language registry (content.config.ts LANG_PREFIXES / TRANSLATION_LANGS); kept
+// as a literal here so this script stays dependency-free.
+const TRANSLATION_LANGS = ["fr", "es"];
+const sidecarRe = new RegExp(`\\.(${TRANSLATION_LANGS.join("|")})\\.mdx$`);
 
-for (const frPath of frFiles) {
+const trFiles = walk(CONTENT).filter((f) => sidecarRe.test(f));
+
+for (const frPath of trFiles) {
   const rel = path.relative(CONTENT, frPath).split(path.sep).join("/");
-  const enPath = frPath.replace(/\.fr\.mdx$/, ".mdx");
+  const enPath = frPath.replace(sidecarRe, ".mdx");
   if (!fs.existsSync(enPath)) {
     // check-research/content.config already enforces the EN twin exists; guard anyway.
     problems.push(`${rel}: no English twin (${path.basename(enPath)})`);
@@ -202,7 +209,7 @@ for (const frPath of frFiles) {
   }
 }
 
-console.log(`== EN/FR translation parity — ${frFiles.length} translated page(s)\n`);
+console.log(`== translation parity — ${trFiles.length} translated page(s)\n`);
 if (warnings.length) {
   console.log("warnings (non-fatal):");
   for (const w of warnings) console.log(`  ⚠ ${w}`);
@@ -213,4 +220,4 @@ if (problems.length) {
   console.log(`\n${problems.length} parity problem(s)`);
   process.exit(1);
 }
-console.log(`parity OK — every .fr.mdx matches its English twin's structure`);
+console.log(`parity OK — every translated sidecar matches its English twin's structure`);

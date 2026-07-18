@@ -74,8 +74,9 @@ for (const f of files) {
     if (!extUrls.has(url)) extUrls.set(url, []);
     if (!extUrls.get(url).includes(rel)) extUrls.get(url).push(rel);
   }
-  // missing sources check (EN files only; FR mirrors EN)
-  if (!rel.endsWith(".fr.mdx")) {
+  // missing sources check (English canonical files only; translated sidecars
+  // — .fr.mdx, .es.mdx, … — mirror the EN frontmatter, so they're skipped).
+  if (!/\.(fr|es)\.mdx$/.test(rel)) {
     const fm = src.split("---")[1] ?? "";
     const kind = /kind:\s*(\w+)/.exec(fm)?.[1];
     const hasSources = /sources:\s*\n\s+-/.test(fm);

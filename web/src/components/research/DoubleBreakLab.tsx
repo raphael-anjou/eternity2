@@ -66,6 +66,20 @@ const T = {
     note: "Les cellules à double défaut sont calculées ici à partir des bords du plateau (la même règle de bords appariés que le moteur et le classement Bucas) — pas placées à la main. Ouvrez le plateau dans le visualiseur pour inspecter chaque bord. Sur les plateaux strict-460 de la communauté, il y a 4 à 5 telles cellules ; l'ordre prior-over-cost de REPLAY plus un opérateur de défaut de coût 2 les rend atteignables.",
     openCta: "Ouvrir ce plateau dans le visualiseur",
   },
+  es: {
+    title: "Encuentra las celdas de doble defecto en un tablero real",
+    intro:
+      "Elige un tablero récord. Lo puntuamos en vivo, localizamos cada arista no coincidente y marcamos las celdas que arrastran dos defectos a la vez. Un solucionador que solo admite un defecto por celda —casi todos— es literalmente incapaz de colocar estas celdas, así que se estanca unos puntos por debajo. Ese es el movimiento que REPLAY tuvo que añadir para reproducir con exactitud los tableros de la comunidad.",
+    boardLabel: "Tablero",
+    score: (s: number) => `${s} / 480`,
+    brokenLabel: "celdas rotas",
+    doubleLabel: "celdas de doble defecto",
+    legendDouble: "celda de doble defecto (dos defectos)",
+    legendBoard: "el resto del tablero encaja a la perfección",
+    none: "Este tablero no tiene celdas de doble defecto.",
+    note: "Las celdas de doble defecto se calculan aquí a partir de las propias aristas del tablero (la misma regla de aristas coincidentes que usan el motor y la clasificación de Bucas), no se colocan a mano. Abre el tablero en el visor para inspeccionar cada arista. En los tableros strict-460 de la comunidad hay entre 4 y 5 de estas celdas; el orden prior-over-cost de REPLAY junto con un operador de defecto de coste 2 es lo que las hace alcanzables.",
+    openCta: "Abrir este tablero en el visor",
+  },
 };
 
 export function DoubleBreakLab() {

@@ -52,6 +52,20 @@ const T = {
     n3note: "Le compte distinct en 3×3 dépasse l'énumération exacte ici ; le compte réutilisable est 1,96×10¹¹.",
     note: "La fraction réalisable distincte s'effondre avec l'AIRE du patch, pas son périmètre — et l'aire croît en n². Vers quatre-vingts cellules elle est tombée sous un sur mille : la taille des plus petits mouvements entre les meilleurs plateaux connus. La difficulté n'est pas dans l'accord des couleurs (cette grammaire reste riche) ; elle est dans la règle discrète « une fois chacune », dont le coût se compose sur l'aire.",
   },
+  es: {
+    title: "Observa cómo muerde la escasez, bloque a bloque",
+    intro:
+      "Dos recuentos exactos sobre las piezas reales de Eternity II. Reutilizables: cuántos bloques n×n válidos en color existen si las piezas pueden repetirse — la riqueza de las reglas de encaje. Distintas: cuántos sobreviven a la regla de usar cada pieza una sola vez. Sube n y observa cómo se abre la brecha.",
+    sizeLabel: "Tamaño de bloque",
+    reusable: "bloques válidos en color (piezas repetibles)",
+    distinct: "…que usan piezas distintas",
+    ratio: "sobreviven a la regla de distinción",
+    densityLabel: "libertad por celda (densidad de entropía)",
+    densityHint:
+      "Incluso con piezas repetibles, cada celda añadida aporta menos libertad que la anterior — la gramática por sí sola se estrecha a medida que crecen los bloques.",
+    n3note: "El recuento de piezas distintas en 3×3 queda más allá de la enumeración exacta aquí; el recuento reutilizable es 1,96×10¹¹.",
+    note: "La fracción realizable con piezas distintas se desploma con el ÁREA del parche, no con su perímetro — y el área crece como n². Hacia las ochenta celdas ya ha caído por debajo de uno entre mil: el tamaño de los movimientos más pequeños entre los mejores tableros conocidos. La dificultad no está en encajar los colores (esa gramática sigue siendo rica); está en la discreta regla de usar cada pieza una vez, cuyo coste se acumula sobre el área.",
+  },
 };
 
 function fmt(x: number): string {

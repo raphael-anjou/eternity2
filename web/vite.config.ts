@@ -11,7 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
-import { routePairs } from "./sitemap.config";
+import { routeEntries } from "./sitemap.config";
 import { researchPageLastmod, researchHubLastmod } from "./content.config";
 import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
 import { researchContent } from "./plugins/research-content";
@@ -54,27 +54,29 @@ function sitemap(): Plugin {
         rel = rel.replace(/^\//, "");
         return lastmod[rel] ?? lastmod[pageUpdatedKey(rel)];
       };
-      // For a bilingual page, both its <url> entries (EN and FR) carry the same
-      // set of <xhtml:link> alternates — en, fr, and x-default (→ English), per
-      // Google's reciprocal-hreflang requirement. Pages with no French twin get
-      // no alternates. Built from the same routePairs() the app's <head>
-      // hreflang uses, so the two channels never disagree.
+      // Every localized <url> for a page carries the same set of <xhtml:link>
+      // alternates — one per language the page is available in, plus x-default
+      // (→ English), per Google's reciprocal-hreflang requirement. A page
+      // available in one language only (an untranslated research page) lists
+      // just itself + x-default. Built from the same routeEntries() the app's
+      // <head> hreflang uses, so the two channels never disagree.
       const abs = (p: string) => `${origin}${canonical(p)}`;
-      const altLinks = (en: string, fr: string) =>
-        `<xhtml:link rel="alternate" hreflang="en" href="${abs(en)}"/>` +
-        `<xhtml:link rel="alternate" hreflang="fr" href="${abs(fr)}"/>` +
-        `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(en)}"/>`;
+      const altLinks = (alternates: { lang: string; loc: string }[], xDefault: string) =>
+        alternates
+          .map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${abs(a.loc)}"/>`)
+          .join("") +
+        `<xhtml:link rel="alternate" hreflang="x-default" href="${abs(xDefault)}"/>`;
       const urlEntry = (loc: string, alts: string) => {
         const lm = lastmodFor(loc);
         const locTag = `<loc>${abs(loc)}</loc>`;
         const lmTag = lm ? `<lastmod>${lm}</lastmod>` : "";
         return `  <url>${locTag}${lmTag}${alts}</url>`;
       };
-      const urls = routePairs(base)
-        .flatMap(({ en, fr }) => {
-          if (fr === null) return [urlEntry(en, "")]; // EN-only page, no alternates
-          const alts = altLinks(en, fr);
-          return [urlEntry(en, alts), urlEntry(fr, alts)];
+      const urls = routeEntries(base)
+        .map(({ loc, alternates, xDefault }) => {
+          // A single-language page (no translated twin) gets no alternates.
+          const alts = alternates.length > 1 ? altLinks(alternates, xDefault) : "";
+          return urlEntry(loc, alts);
         })
         .join("\n");
       const xml =

@@ -67,6 +67,26 @@ const T = {
     note: "Essayez d'abord une seule rangée : où les ruptures sont autorisées compte autant que combien. Dispersez-en autant en haut et le plateau ne finira pas — les conflits que cet ordre de balayage accumule tombent en bas.",
     loading: "Chargement du moteur…",
   },
+  es: {
+    title: "El índice de rotura, en vivo",
+    intro:
+      "Un puzzle 8×8 fijo, el solucionador real ejecutándose en tu navegador. Una rotura —un único desajuste permitido— solo se admite en las filas inferiores que autorices más abajo, reflejando cómo los solucionadores récord confinan las roturas a unas pocas posiciones fijas. Sin ninguna, la búsqueda estricta se estanca por debajo de un tablero completo. Autoriza una fila o dos y lo completa, casi perfecto.",
+    breakRows: (n: number) => `Filas con rotura autorizada (desde abajo): ${n}`,
+    speed: (n: string) => `Velocidad: ${n} pasos/s`,
+    run: "Ejecutar",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    score: "aristas coincidentes",
+    breaks: "roturas usadas",
+    placed: "piezas colocadas",
+    statusStuckRun: "Estricta (sin roturas): la búsqueda sigue persiguiendo una pieza perfecta que nunca hallará para las últimas filas — no puede completar el tablero.",
+    statusStuckStall: "Estricta (sin roturas) estancada: no puede rellenar el tablero con todas las aristas coincidentes. Se muestra el mejor resultado alcanzado.",
+    statusDone: (s: number, b: number) =>
+      `Completado — ${s} de ${MAX_SCORE} aristas, pagando ${b} rotura${b === 1 ? "" : "s"}, todas en las filas autorizadas. Esos pocos desajustes autorizados son justo lo que permite terminar el tablero.`,
+    statusRunning: "Buscando…",
+    note: "Prueba primero con una sola fila: dónde se autorizan las roturas importa tanto como cuántas. Reparte esa misma cantidad arriba y el tablero no terminará — los conflictos que este orden de recorrido acumula caen abajo.",
+    loading: "Cargando el motor…",
+  },
 };
 
 export function BreakIndexLab() {

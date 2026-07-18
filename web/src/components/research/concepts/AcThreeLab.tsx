@@ -338,6 +338,33 @@ const T = {
       `Révision de ${a} contre ${b} : chaque candidat de ${a} garde un support dans ${b}. Rien à supprimer, l'arc est simplement retiré — c'est ainsi que l'onde s'éteint.`,
     note: "Les compteurs sont tout l'enjeu : AC-3 ne revisite que les arcs dont le domaine d'en face a réellement changé, quand la boucle naïve rebalaye les 48 arcs jusqu'à une passe complète sans changement. Mêmes suppressions, travail radicalement différent — et AC-2001 réduirait encore les tests de support en mémorisant où chaque recherche s'était arrêtée.",
   },
+  es: {
+    title: "Observa cómo AC-3 se propaga — un arco a la vez",
+    intro:
+      "Un juguete de encaje de bordes de 4×4 con 3 colores: cada celda arranca con sus 64 candidatos (16 piezas × 4 rotaciones). Coloca una pieza y observa la lista de trabajo: los arcos que apuntan a la celda modificada entran en la cola, cada revisión elimina los candidatos sin soporte, y cada eliminación reencola los arcos que apuntan al dominio reducido — hasta que la cola se vacía.",
+    place: "Colocar la siguiente pieza",
+    step: "Paso",
+    play: "Reproducir",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    placed: "colocadas",
+    queueLen: "arcos en cola",
+    fixedPoint: "punto fijo — cola vacía",
+    ac3: "AC-3 (lista de trabajo)",
+    ac1: "rebarrido ingenuo (AC-1)",
+    revisions: "revisiones de arcos",
+    checks: "comprobaciones de soporte",
+    legend: "El número = candidatos que quedan en el dominio de la celda. Las flechas = arcos que esperan en la cola (la flecha gruesa es el arco que se está revisando).",
+    narStart:
+      "Tablero nuevo: cada celda conserva sus 64 candidatos. Todavía no ha cambiado nada, así que la cola está vacía.",
+    narPlace: (c: string, q: number) =>
+      `Pieza colocada en ${c} — su dominio se reduce a 1 candidato. Los ${q} arcos que apuntan a ${c} entran en la cola: cada vecina debe volver a comprobar sus soportes.`,
+    narHit: (a: string, b: string, k: number, m: number) =>
+      `Revisar ${a} contra ${b}: ${k} candidato${k === 1 ? "" : "s"} de ${a} ya no ten${k === 1 ? "ía" : "ían"} soporte y ${k === 1 ? "fue eliminado" : "fueron eliminados"}.${m > 0 ? ` ${a} se redujo, así que ${m} arco${m === 1 ? "" : "s"} que apunta${m === 1 ? "" : "n"} a ella vuelve${m === 1 ? "" : "n"} a la cola — la onda se propaga.` : " Ningún arco nuevo que encolar."}`,
+    narMiss: (a: string, b: string) =>
+      `Revisar ${a} contra ${b}: cada candidato de ${a} conserva un soporte en ${b}. Nada que eliminar, el arco simplemente se descarta — así es como la onda se apaga.`,
+    note: "Los contadores son lo esencial: AC-3 solo vuelve a visitar los arcos cuyo dominio del otro extremo realmente cambió, mientras que el bucle ingenuo de punto fijo rebarre los 48 arcos hasta que una pasada completa no cambia nada. Las mismas eliminaciones, un trabajo radicalmente distinto — y AC-2001 recortaría aún más las comprobaciones de soporte al recordar dónde se detuvo cada búsqueda.",
+  },
 };
 
 export function AcThreeLab() {

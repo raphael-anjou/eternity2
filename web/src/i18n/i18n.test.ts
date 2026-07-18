@@ -11,15 +11,23 @@ describe("langFromPath", () => {
     expect(langFromPath("/fr/")).toBe("fr");
     expect(langFromPath("/fr/research/records")).toBe("fr");
   });
+  it("treats the /es prefix (and exactly /es) as Spanish", () => {
+    expect(langFromPath("/es")).toBe("es");
+    expect(langFromPath("/es/")).toBe("es");
+    expect(langFromPath("/es/research/records")).toBe("es");
+  });
   it("treats the root and every other path as English", () => {
     expect(langFromPath("/")).toBe("en");
     expect(langFromPath("/research/records")).toBe("en");
     expect(langFromPath("/puzzle")).toBe("en");
   });
-  it("does not mistake a path that merely starts with 'fr' for French", () => {
-    // "/french" or "/frames" must stay English — the boundary is /fr then / or end.
+  it("does not mistake a path that merely starts with a prefix for that language", () => {
+    // "/french"/"/frames"/"/estimate" must stay English — the boundary is the
+    // prefix then / or end.
     expect(langFromPath("/french")).toBe("en");
     expect(langFromPath("/frames")).toBe("en");
+    expect(langFromPath("/estimate")).toBe("en");
+    expect(langFromPath("/españa")).toBe("en");
   });
 });
 

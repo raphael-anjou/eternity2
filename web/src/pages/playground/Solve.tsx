@@ -167,6 +167,78 @@ const T = {
     ),
     racing: "La machine s'élance…",
   },
+  es: {
+    title: "Resuélvelo tú mismo",
+    levelsLabel: "Nivel",
+    levels: [
+      { size: 3, name: "Calentamiento", note: "3×3, suave" },
+      { size: 4, name: "Se complica", note: "4×4" },
+      { size: 5, name: "Reto de verdad", note: "5×5" },
+    ],
+    lockedLevel: {
+      name: "El de verdad",
+      note: "16×16 — nunca resuelto",
+    },
+    lockedTitle: "Nadie ha terminado nunca este nivel",
+    lockedBody: (
+      <>
+        El puzzle que Tomy realmente vendió es de 16×16. Ni una persona ni una computadora han
+        colocado nunca las 256 piezas. Mira{" "}
+        <Link className="underline" to="/status">
+          en qué punto está el récord
+        </Link>
+        .
+      </>
+    ),
+    intro:
+      "Elige un nivel y arrastra las piezas desde la bandeja hasta el tablero; muévelas por el tablero o devuélvelas a la bandeja para reorganizarlas. Haz clic en una pieza colocada para girarla; haz clic derecho para retirarla. Las aristas grises van por fuera, y las aristas que se tocan deben coincidir. El reloj arranca con tu primer movimiento…",
+    introTouch:
+      "Toca una pieza de la bandeja y luego toca una casilla para colocarla. Toca una pieza colocada para girarla; mantén pulsado para retirarla. Las aristas grises van por fuera, y las aristas que se tocan deben coincidir. El reloj arranca con tu primer movimiento…",
+    trayHintTouch: "Ahora toca una casilla para colocarla.",
+    newPuzzle: "Nuevo puzzle",
+    mistakes: (n: number) => (n === 1 ? "1 error" : `${n} errores`),
+    loadingEngine: "Cargando el motor…",
+    piecesLeft: (n: number) => `Piezas (${n} restante${n === 1 ? "" : "s"})`,
+    pieceTitle: (n: number) => `pieza ${n}`,
+    trayHint:
+      "Ahora arrástrala hasta el tablero. Las piezas caen sin girar; haz clic en una pieza colocada para girarla.",
+    candidateHint: (n: number) =>
+      n === 0
+        ? "Esta pieza no encaja en ningún sitio ahora mismo (en ninguna rotación)."
+        : n === 1
+          ? "La celda verde es el único sitio donde esta pieza encaja, en alguna rotación."
+          : `Las celdas verdes son los ${n} sitios donde esta pieza podría encajar, en alguna rotación.`,
+    solvedIn: (time: string) => `🎉 ¡Resuelto en ${time}!`,
+    machineSolved: (ms: string, attempts: string) => (
+      <>
+        La computadora resolvió el mismo puzzle en <strong>{ms} ms</strong> ({attempts} nodos
+        explorados).
+      </>
+    ),
+    couldHave: (times: string) => (
+      <>
+        Mientras jugabas, habría podido resolver este puzzle unas{" "}
+        <strong className="text-lg">{times}×</strong>.
+      </>
+    ),
+    beforeSecondPiece: (
+      <>
+        Resolvió el puzzle entero{" "}
+        <strong>antes de que hubieras colocado siquiera tu segunda pieza</strong>.
+      </>
+    ),
+    exponential: (
+      <>
+        Y aun así nadie, ni humano ni máquina, ha resuelto jamás el de 16×16. Esa es la magia del
+        crecimiento exponencial. Mira{" "}
+        <Link className="underline" to="/algorithms">
+          Algoritmos
+        </Link>
+        .
+      </>
+    ),
+    racing: "Compitiendo contra la máquina…",
+  },
 };
 
 interface Placement {

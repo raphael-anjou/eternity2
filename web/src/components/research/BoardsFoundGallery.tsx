@@ -65,6 +65,30 @@ const T = {
     dist: (n: string) => `${n} tuiles du 460 public`,
     piecesPlaced: "posées",
   },
+  es: {
+    recordsHeading: "Tableros récord con cinco pistas (464 → 460)",
+    recordsIntro:
+      "Cada tablero de abajo es una disposición completa de 256 piezas que respeta las cinco pistas oficiales, puntuada por aristas coincidentes sobre 480. El 464 de Benjamin Riotte superó el 460 de Bruno Gauthier, que se mantenía desde 2023; Igor Pejic alcanzó el mismo rango 463–464 de forma independiente. Estos son los tableros para los que se compartió un enlace de verificación: el censo completo es mucho mayor (10 tableros a 464, 290 a 463, 2213 a 462, 38 a 461). Haz clic en cualquier tablero para volver a puntuarlo arista por arista en el visor.",
+    partialsHeading: "Parciales en espiral, las cinco pistas",
+    partialsIntro:
+      "Una búsqueda paralela y distinta: tableros parciales que colocan tantas piezas como sea posible respetando las cinco pistas oficiales, construidos con un relleno en espiral. El número indica las piezas colocadas, no una puntuación de aristas. Peter McGavin y Patrick Hegland los publicaron en el hilo SAT de groups.io en 2024; One Small Step continuó la línea en Discord en 2025–26. Los recuentos están reverificados a partir de cada tablero. Gracias a Peter McGavin por señalar que los tableros del hilo SAT tenían su lugar aquí.",
+    partialsOtherHeading: "Otros parciales y récords de serie continua",
+    partialsOtherIntro:
+      "Conservados para dejar constancia, pero fuera de la escala limpia de arriba: tableros que solo respetan la pista inicial, tableros de una fuente sin identificadores de pieza (por lo que no se puede verificar el cumplimiento de las pistas) y tableros reportados como una longitud de serie continua en lugar de un recuento de piezas colocadas. Cada uno lleva su advertencia.",
+    hintsFull: "las 5 pistas",
+    hintsPartial: (n: number) => `${n}/5 pistas`,
+    hintsUnverified: "pistas sin verificar",
+    metricRun: "serie continua",
+    metricLinear: "lineal",
+    placedLabel: "colocadas",
+    open: "Abrir en el visor",
+    census: "Tableros distintos reportados, por puntuación",
+    censusCols: { score: "Puntuación", broken: "Aristas rotas", found: "Tableros distintos encontrados" },
+    censusNote:
+      "El recuento del propio autor. Muchos tableros con puntuaciones más bajas son variantes cercanas dentro de una misma cuenca, de modo que los totales brutos sobrestiman el número de soluciones estructuralmente independientes.",
+    dist: (n: string) => `${n} piezas del 460 público`,
+    piecesPlaced: "colocadas",
+  },
 };
 
 const CENSUS: { score: number; broken: number; found: number }[] = [

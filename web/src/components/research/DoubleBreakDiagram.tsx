@@ -37,6 +37,16 @@ const T = {
     needCaption: "Les plateaux 460 de la communauté portent quatre ou cinq cellules à double défaut. Autoriser le double défaut est ce qui les rend atteignables.",
     busy: "Chargement…",
   },
+  es: {
+    toggleReach: "Lo que alcanza una búsqueda de un solo defecto",
+    toggleNeed: "Lo que exige el tablero 460",
+    perfect: "coincidencia perfecta",
+    single: "un defecto",
+    double: "dos defectos en una celda",
+    reachCaption: "Una búsqueda de un defecto por celda puede colocar los defectos simples, pero nunca las celdas de doble defecto, así que se estanca en 457-458.",
+    needCaption: "Los tableros 460 de la comunidad tienen cuatro o cinco celdas de doble defecto. Permitir el doble defecto es lo que los hace alcanzables.",
+    busy: "Cargando…",
+  },
 };
 
 export function DoubleBreakDiagram() {

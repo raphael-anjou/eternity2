@@ -42,6 +42,14 @@ const T = {
       "Superposez de nombreux bons plateaux et la plupart des cellules atteignent un consensus normal. Quelques-unes s'accordent trop : tout le corpus y a fait le même choix, et ce choix partagé est ce qui plafonne chaque plateau sous le sommet. PALIMPSEST repère ces cellules et oriente la recherche vers leur déverrouillage.",
     busy: "Chargement…",
   },
+  es: {
+    title: "Apila los tableros fuertes; halla la elección compartida",
+    boards: "tableros superpuestos",
+    locked: "celda sobreacordada: un cerrojo silencioso que PALIMPSEST ataca",
+    caption:
+      "Superpón muchos tableros fuertes y la mayoría de las celdas alcanza un consenso normal. Unas pocas concuerdan en exceso: todo el corpus tomó allí la misma elección, y esa elección compartida es lo que limita cada tablero por debajo de la cima. PALIMPSEST señala esas celdas y dirige la búsqueda a desbloquearlas.",
+    busy: "Cargando…",
+  },
 };
 
 export function PalimpsestDiagram() {

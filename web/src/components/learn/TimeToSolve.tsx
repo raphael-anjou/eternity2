@@ -87,6 +87,43 @@ const T = {
       universeAgesExp: (exp: number) => `10^${exp} fois l'âge de l'Univers`,
     },
   },
+  es: {
+    title: (
+      <>
+        ¿Cuánto tardaría <em>tu</em> ordenador en probarlo todo?
+      </>
+    ),
+    measuring: "Midiendo tu máquina…",
+    measured: (rate: string) => (
+      <>
+        Tu navegador acaba de medir su propia velocidad:{" "}
+        <strong className="text-foreground">{rate} nodos por segundo</strong>. A ese ritmo,
+        recorrer todas las disposiciones una por una (tras deducir las esquinas y los bordes)
+        llevaría:
+      </>
+    ),
+    note: (
+      <>
+        (Este es el techo de la <em>fuerza bruta</em>, el peor de los casos. Los solucionadores
+        reales rinden mucho mejor: el backtracking abandona cuanto antes las ramas sin salida, y
+        las mejores búsquedas sobre Eternity II añaden una poda inteligente y propagación de
+        restricciones que reducen el trabajo en muchos órdenes de magnitud. Un hardware más rápido
+        también ayuda. Aun así, la brecha es tan enorme que todo ello junto sigue quedándose corto
+        para el 16×16, y esa es precisamente la razón de que el puzzle siga sin resolverse.)
+      </>
+    ),
+    units: {
+      blink: "más rápido de lo que puedes parpadear",
+      milliseconds: (n: number) => `${n} milisegundos`,
+      seconds: (s: string) => `${s} segundos`,
+      minutes: (n: number) => `${n} minutos`,
+      hours: (n: number) => `${n} horas`,
+      days: (n: number) => `${n} días`,
+      years: (s: string) => `${s} años`,
+      universeAges: (s: string) => `${s} veces la edad del Universo`,
+      universeAgesExp: (exp: number) => `10^${exp} veces la edad del Universo`,
+    },
+  },
 };
 
 // Same math as before, with the unit phrases supplied by the active language.

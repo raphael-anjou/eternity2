@@ -79,6 +79,18 @@ const UI = {
     supplyHint:
       "En vert : les pièces posables sur la case rouge à cet instant. En estompé : déjà sur le plateau.",
   },
+  es: {
+    pause: "Pausa",
+    play: "Reproducir",
+    back: "◀ Atrás",
+    forward: "Avanzar ▶",
+    restart: "Reiniciar",
+    loading: "Cargando el motor…",
+    stepCounter: (i: number, n: number) => `paso ${i} / ${n}`,
+    supplyTitle: "Reserva de piezas",
+    supplyHint:
+      "En verde: las piezas que caben ahora mismo en la celda roja. Atenuadas: ya están en el tablero.",
+  },
 };
 
 function buildHistory(puzzle: Puzzle, path: Uint16Array, useHints: boolean): Snapshot[] {

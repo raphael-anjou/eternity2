@@ -17,7 +17,7 @@ import { Navigate, useLocation } from "react-router";
 // lets Vite load it only with this route's chunk. See src/index.css.
 import "katex/dist/katex.min.css";
 import type { MDXContent } from "mdx/types";
-import { langFromPath, useT } from "@/i18n";
+import { langFromPath, useT, pick, neutralPath as langNeutral } from "@/i18n";
 import { canonicalUrl, absoluteUrl } from "@/site";
 import {
   researchDoc,
@@ -47,9 +47,11 @@ const pages: ReadonlyMap<string, ComponentType<{ components?: typeof mdxComponen
   Object.entries(modules).map(([p, load]) => [p, lazy(load)]),
 );
 
-/** Language-neutral site path for the current location ("/fr/research/x" → "/research/x"). */
+/** Language-neutral site path for the current location ("/fr/research/x" or
+ *  "/es/research/x" → "/research/x"), with any trailing slash trimmed. Wraps the
+ *  shared registry-driven stripper so a new language is handled automatically. */
 function neutralPath(pathname: string): string {
-  return pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "");
+  return langNeutral(pathname).replace(/\/$/, "");
 }
 
 const SUFFIX = " · Eternity II";
@@ -68,16 +70,22 @@ function personSlugFor(path: string): string | null {
   return m?.[1] ?? null;
 }
 
-const TOPICS_TITLE = { en: "Research topics", fr: "Thèmes de recherche" } as const;
+const TOPICS_TITLE = {
+  en: "Research topics",
+  fr: "Thèmes de recherche",
+  es: "Temas de investigación",
+} as const;
 const TOPICS_DESC = {
   en: "The Eternity II research wiki sliced by theme: structure, search-space reduction, backtracking, speed, local search, exact methods, hardware and more.",
   fr: "Le wiki de recherche Eternity II par thème : structure, réduction de l'espace de recherche, retour arrière, vitesse, recherche locale, méthodes exactes, matériel…",
+  es: "El wiki de investigación de Eternity II ordenado por tema: estructura, reducción del espacio de búsqueda, backtracking, velocidad, búsqueda local, métodos exactos, hardware y más.",
 } as const;
 
-const GLOSSARY_TITLE = { en: "Glossary", fr: "Glossaire" } as const;
+const GLOSSARY_TITLE = { en: "Glossary", fr: "Glossaire", es: "Glosario" } as const;
 const GLOSSARY_DESC = {
   en: "Every Eternity II term the research wiki uses, defined once: community jargon, the loaded computer-science words, and the board notation, each linking to the page that goes deep.",
   fr: "Chaque terme d'Eternity II qu'emploie le wiki, défini une fois : jargon de la communauté, mots d'informatique au sens précis, et notation des plateaux, chacun renvoyant à la page qui approfondit.",
+  es: "Cada término de Eternity II que emplea el wiki, definido una sola vez: la jerga de la comunidad, los términos precisos de informática y la notación de los tableros, cada uno enlazando con la página que profundiza.",
 } as const;
 
 export function meta({ location }: { location: { pathname: string } }) {
@@ -114,10 +122,11 @@ export function meta({ location }: { location: { pathname: string } }) {
         ]
       : [];
 
-  if (path === "/research/glossary") return pack(GLOSSARY_TITLE[lang] + SUFFIX, GLOSSARY_DESC[lang]);
+  if (path === "/research/glossary")
+    return pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, pick(GLOSSARY_DESC, lang));
 
   const topicSlug = topicSlugFor(path);
-  if (topicSlug === "") return pack(TOPICS_TITLE[lang] + SUFFIX, TOPICS_DESC[lang]);
+  if (topicSlug === "") return pack(pick(TOPICS_TITLE, lang) + SUFFIX, pick(TOPICS_DESC, lang));
   if (topicSlug !== null) {
     const topic = researchTopic(lang, topicSlug);
     if (topic)
@@ -131,9 +140,14 @@ export function meta({ location }: { location: { pathname: string } }) {
       const desc =
         author.bio ??
         author.tagline ??
-        (lang === "fr"
-          ? `Les travaux de ${author.name} sur Eternity II.`
-          : `${author.name}'s work on Eternity II.`);
+        pick(
+          {
+            en: `${author.name}'s work on Eternity II.`,
+            fr: `Les travaux de ${author.name} sur Eternity II.`,
+            es: `El trabajo de ${author.name} sobre Eternity II.`,
+          },
+          lang,
+        );
       return [...pack(author.name + SUFFIX, desc), ...webPageLd(authorUpdated(personSlug))];
     }
   }
@@ -178,7 +192,10 @@ export function meta({ location }: { location: { pathname: string } }) {
   // DocsShell breadcrumb renders, so the two never disagree.
   const section = findSection(lang, doc.url);
   const crumbs: { name: string; url: string }[] = [
-    { name: lang === "fr" ? "Recherche" : "Research", url: absoluteUrl("/research") },
+    {
+      name: pick({ en: "Research", fr: "Recherche", es: "Investigación" }, lang),
+      url: absoluteUrl("/research"),
+    },
   ];
   if (section && section.url !== doc.url) {
     crumbs.push({ name: section.label, url: absoluteUrl(section.url) });
@@ -212,6 +229,11 @@ const NF = {
     title: "Page introuvable",
     body: "Aucune page de recherche n'existe à cette adresse.",
     back: "← Vue d'ensemble de la recherche",
+  },
+  es: {
+    title: "Página no encontrada",
+    body: "No existe ninguna página de investigación en esta dirección.",
+    back: "← Visión general de la investigación",
   },
 };
 

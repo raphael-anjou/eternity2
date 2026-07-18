@@ -370,6 +370,84 @@ const T = {
     editTab: "Modifier le plateau",
     fieldInvalid: "Lecture impossible ici. Le texte reste tel quel ; les champs ci-dessous montrent toujours le dernier plateau valide.",
   },
+  es: {
+    title: "Conversor de formatos",
+    intro: (
+      <>
+        Los formatos de tablero de la comunidad nunca terminan de cuadrar: URL
+        del visor, cadenas de letras <code>board_edges</code>, archivos numéricos{" "}
+        <code>e2pieces.txt</code> y puzzles CSV dicen lo mismo en alfabetos
+        distintos. Pega cualquiera de ellos aquí y obtén los demás — incluida la
+        URL canónica <code>eternity2.dev</code> y el <code>JSON</code> único de
+        tablero que ahora emite cada solucionador del sitio — con una vista
+        previa para comprobar de un vistazo que el archivo está bien. ¿Los
+        formatos te resultan nuevos?{" "}
+        <Link to="/research/build/formats" className="font-medium text-primary underline-offset-4 hover:underline">
+          Lee la referencia de formatos
+        </Link>
+        .
+      </>
+    ),
+    inputTitle: "Pega un tablero — cualquier formato",
+    inputHelp: (
+      <>
+        Cualquier formato que esta página también emite, detectado
+        automáticamente: un enlace del visor o <code>e2.bucas.name</code>, una
+        cadena de parámetros, una cadena de letras <code>board_edges</code>, un{" "}
+        <code>CSV</code> binario, una lista <code>e2pieces.txt</code>, una cadena
+        de dígitos <code>board_pieces</code> o el <code>JSON</code> canónico de
+        tablero. Para un formato que no lleva tamaño (una cadena de aristas
+        suelta, una lista e2pieces), indica el tamaño abajo. Luego haz clic en
+        cualquier celda para editarla.
+      </>
+    ),
+    placeholder:
+      "Pega cualquier formato: una URL de visor/bucas, letras board_edges, un CSV binario, una lista e2pieces, una cadena board_pieces o un JSON de tablero",
+    sizeLabel: "Tamaño del tablero (para un formato que no lo lleva)",
+    convert: "Convertir",
+    loadExample: "Cargar un ejemplo (Blackwood 470)",
+    badInput: "No se pudo leer esa entrada. Debe ser una URL de visor/bucas, una cadena board_edges, un CSV binario de puzzle, una lista e2pieces, una cadena board_pieces o un JSON de tablero (indica el tamaño para los formatos que no lo llevan).",
+    previewEmpty: "Convierte un tablero para verlo aquí.",
+    scoreTitle: "Puntuación",
+    matchedEdges: "aristas coincidentes",
+    piecesPlaced: (placed: number, total: number) => `${placed} / ${total} celdas rellenas`,
+    outEdgesTitle: "board_edges",
+    outEdgesHelp: "Cuatro letras minúsculas por celda, fila a fila (URDL: arriba, derecha, abajo, izquierda). «a» es el borde gris; «aaaa» es una celda vacía.",
+    outPiecesTitle: "board_pieces",
+    outPiecesHelp: "Tres dígitos por celda, el número de pieza (base 1), 000 para una celda vacía.",
+    outPiecesNone: "Este tablero no lleva números de pieza, así que no hay nada que derivar aquí. Con el board_edges de arriba basta para dibujarlo y puntuarlo.",
+    outUrlTitle: "URL eternity2.dev",
+    outUrlHelp: "El enlace canónico del visor, reconstruido a partir del tablero de arriba. Es el formato que emite cada solucionador del sitio. Ábrelo para verlo o compartirlo.",
+    outJsonTitle: "JSON de tablero canónico",
+    outJsonHelp: "El documento único que escribe cada solucionador del sitio: puntuación, rupturas, el vector de colocación, ambas cadenas de letras y la URL eternity2.dev. Compatible byte a byte con el esquema BoardDoc de e2-io.",
+    outCsvTitle: "Puzzle CSV",
+    outCsvHelp: "El formato histórico de una fila por celda que leen los motores independientes de la comunidad: un encabezado de tamaño y luego arriba,derecha,abajo,izquierda por celda rellena como palabras de color binarias de 16 bits (borde = 1111111111111111).",
+    outBucasTitle: "URL bucas.name (visor comunitario)",
+    outBucasHelp: "Un enlace e2.bucas.name histórico, conservado para la interoperabilidad con el visor original de Jef Bucas. Derivado del mismo tablero.",
+    outE2Title: "e2pieces.txt (piezas tal como se colocaron)",
+    outE2Help: "Una línea por celda rellena, en orden de lectura: cuatro números de arista (arriba, derecha, abajo, izquierda), 0 para el gris. Son las piezas tal como se colocaron y rotaron, no un catálogo canónico en rotación 0; un tablero por sí solo no permite recuperar el orden original de las piezas.",
+    copy: "Copiar",
+    copied: "Copiado",
+    viewerLink: "¿Prefieres inspeccionar y compartir un tablero?",
+    viewerLinkCta: "Abrir el visor",
+    editorTitle: "Editar una celda",
+    editHint: "Haz clic en cualquier celda para editar sus cuatro colores de arista. Los valores no válidos se marcan en rojo y se excluyen de las salidas hasta corregirlos.",
+    selectPrompt: "Haz clic en una celda del tablero para editar sus aristas.",
+    cellLabel: (row: string, col: number) => `Celda ${row}${col} — aristas (A, D, B, I)`,
+    dirU: "Arriba",
+    dirR: "Derecha",
+    dirD: "Abajo",
+    dirL: "Izquierda",
+    clearCell: "Vaciar celda",
+    faultNan: "solo números enteros",
+    faultRange: (max: number) => `de 0 a ${max}`,
+    faultsSummary: (n: number) => `${n} celda${n === 1 ? "" : "s"} con una arista fuera de rango.`,
+    noFaults: "Cada celda rellena es válida.",
+    resetBoard: "Vaciar el tablero",
+    startBlank: "Empezar con un tablero vacío",
+    editTab: "Editar el tablero",
+    fieldInvalid: "No se pudo leer un tablero de aquí. El texto queda tal como lo escribiste; los campos de abajo siguen mostrando el último tablero válido.",
+  },
 };
 
 // A two-way, format-labelled field: it shows the board rendered into this

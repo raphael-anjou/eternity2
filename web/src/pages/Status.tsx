@@ -149,6 +149,73 @@ const T = {
     ctaPuzzle: "C'est quoi, Eternity II ?",
     ctaAlgorithms: "Comment les solveurs s'y attaquent",
   },
+  es: {
+    dateStamp: "Actualizado en julio de 2026",
+    title: "¿Se ha resuelto Eternity II?",
+    answer: (
+      <>
+        <strong>No.</strong> Nadie ha encontrado nunca la solución completa, ni una persona ni una
+        máquina. El mejor tablero jamás construido hace coincidir{" "}
+        <strong>470 de las 480 aristas interiores</strong>. Todavía quedan diez aristas entre la
+        comunidad y un puzzle terminado, y esa diferencia no se ha movido desde 2021.
+      </>
+    ),
+    recordLabel: "Récord actual",
+    recordScore: "470 / 480",
+    recordWho: "Joshua Blackwood, 2021",
+    recordNote: (
+      <>
+        Igualado una sola vez desde entonces, por Jef Bucas en diciembre de 2024, nunca superado. Es
+        el récord abierto sobre el puzzle oficial: las 256 piezas que vendió Tomy, con solo la pista
+        central obligatoria colocada.
+      </>
+    ),
+    viewBoard: "Abrir este tablero en el visor",
+    boardCaption:
+      "El tablero de 470 aristas de Blackwood. Diez de las 480 aristas interiores no coinciden; todas las demás sí.",
+    factsTitle: "Lo esencial, en breve",
+    facts: [
+      {
+        term: "El premio expiró sin reclamar.",
+        desc: "Tomy ofreció 2 000 000 $ por la primera solución completa. El concurso estuvo abierto desde el 28 de julio de 2007 hasta el mediodía del 31 de diciembre de 2010, y se cerró sin ganador.",
+      },
+      {
+        term: "El objetivo es 480.",
+        desc: "Un tablero terminado tiene 2×15×16 = 480 aristas interiores que deben coincidir, lado con lado. El borde gris exterior del marco no cuenta. Una puntuación de 470 significa que 470 de esas 480 aristas coinciden.",
+      },
+      {
+        term: "El récord se mantiene desde 2021.",
+        desc: "El ascenso pasó por 467 (2008), luego 468, 469 y 470 (2020–2021). El 470 se ha igualado, pero nunca superado. Las últimas diez aristas son la parte más difícil del puzzle.",
+      },
+      {
+        term: "Los tableros que usan las cinco pistas opcionales se contabilizan aparte.",
+        desc: "Tomy vendió cuatro puzzles de pista que fijaban cada uno una pieza más. El mejor tablero que respeta las cinco colocaciones de pista es 464 (Benjamin Riotte, julio de 2026), que superó el 460 de Bruno Gauthier.",
+      },
+    ],
+    notCountTitle: "Sobre esos tableros «480 resueltos» que circulan por internet",
+    notCount: (
+      <>
+        Varios tableros publicados como 480/480 son soluciones reales, pero no de este puzzle. Usan
+        conjuntos de piezas distintos: los diseños Clue-1 y Clue-2 más pequeños de Brendan Owen, la
+        variante sin marco de TopCoder, o tableros que mezclan piezas de varios conjuntos de
+        expansión. Esas soluciones no se trasladan al Eternity II oficial. El 480 oficial sigue sin
+        encontrarse.
+      </>
+    ),
+    whyTitle: "Por qué las últimas diez aristas son tan difíciles",
+    why: (
+      <>
+        Eternity II se diseñó para resistir a la búsqueda. Hay del orden de 10<sup>560</sup> formas
+        de disponer las piezas, y el puzzle se generó para tener casi una única solución, justo en el
+        punto donde el problema es más difícil. Llegar a 470 es ya obra de solucionadores hechos a
+        medida, ejecutados durante decenas de miles de millones de pasos. Cerrar la última diferencia
+        es un problema de otra índole: hace falta una idea mejor, no solo una máquina más rápida.
+      </>
+    ),
+    ctaRecords: "Ver la cronología completa de los récords",
+    ctaPuzzle: "¿Qué es Eternity II?",
+    ctaAlgorithms: "Cómo lo atacan los solucionadores",
+  },
 };
 
 export default function StatusPage() {

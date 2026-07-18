@@ -35,6 +35,17 @@ const T = {
     ],
     busy: "Chargement…",
   },
+  es: {
+    top: "mitad superior (crece hacia abajo)",
+    bottom: "mitad inferior (crece hacia arriba)",
+    phases: [
+      "Enumerar cada mitad superior hasta un pequeño presupuesto de desajustes…",
+      "…y cada mitad inferior, con las piezas que la superior no usó.",
+      "Intentar unir en la costura: aquí los colores chocan, no hay unión.",
+      "La unión solo tiene éxito donde los colores de la costura coinciden exactamente.",
+    ],
+    busy: "Cargando…",
+  },
 };
 
 export function MeetInMiddleDiagram() {

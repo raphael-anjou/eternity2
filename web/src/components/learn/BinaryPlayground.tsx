@@ -76,6 +76,38 @@ const T = {
       used: "utilisée",
     },
   },
+  es: {
+    motif: {
+      title: "1 · Una pieza entera cabe en 20 bits",
+      pieceWord: "un solo número de 20 bits",
+      explainer:
+        "El ordenador nunca ve el dibujo. A cada uno de los 22 motivos le corresponde un número que cabe en 5 bits, y como una pieza reúne cuatro, son 4 × 5 = 20 bits: un número muy pequeño. El juego oficial completo ocupa apenas 1 KB.",
+      dirLabels: ["arriba", "derecha", "abajo", "izquierda"],
+    },
+    compare: {
+      title: '2 · «¿Encaja?» equivale a «¿son iguales los números?»',
+      fits: "todos los bits coinciden → la pieza ENCAJA ✓",
+      rejected: "un bit difiere → se descarta y se prueba la siguiente pieza",
+      comparing: "comparando…",
+      explainer:
+        "Es una «comprobación de encaje». El procesador compara todos los bits de una vez, en una sola instrucción, en menos de un nanosegundo.",
+    },
+    rotation: {
+      title: "3 · Rotar una pieza = una sola rotación de bits",
+      explainer:
+        "Como una pieza no es más que una palabra de 20 bits, un cuarto de vuelta se reduce a una rotación del procesador: se desplazan los bits 5 posiciones y los que se salen por el final reaparecen al principio. Ningún dibujo se gira de verdad, y pasar por las cuatro orientaciones apenas cuesta nada.",
+      before: "antes",
+      after: "después ↻",
+    },
+    mask: {
+      title: "4 · 256 piezas = 256 bits para decir «¿aún libre?»",
+      explainer:
+        "Los solucionadores rápidos registran las piezas aún sin usar en un único número de 256 bits, un bit por pieza. «¿Está libre la pieza n.º 137?» se reduce a leer un solo bit; «marcarla como usada» invierte un bit. Así, consultar y actualizar la disponibilidad sigue siendo casi instantáneo incluso con 256 piezas. Nuestro propio motor hace exactamente esto.",
+      placing: (n: number) => `colocando la pieza n.º ${n}…`,
+      free: "libre",
+      used: "usada",
+    },
+  },
 };
 
 function bits5(n: number): string[] {

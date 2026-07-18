@@ -97,6 +97,44 @@ const T = {
       </>
     ),
   },
+  es: {
+    title: "Predice el coste antes de la carrera",
+    intro: (
+      <>
+        La{" "}
+        <LocalizedLink className="underline" to="/research/why/complex-theory">
+          teoría compleja
+        </LocalizedLink>{" "}
+        de Brendan Owen evalúa un orden de relleno sin ejecutarlo: el número esperado de nodos que la
+        búsqueda visita en su profundidad más ancha (el <em>pico de meseta</em>) predice qué orden
+        gana. Cuanto más bajo, mejor.
+      </>
+    ),
+    yourPath: "Tu trayecto",
+    peak: "pico de meseta",
+    atDepth: (d: number) => `a profundidad ${d}`,
+    drawPrompt: "Traza un trayecto en la cuadrícula para compararlo.",
+    best: "mejor predicho",
+    chartTitle: "Ramas esperadas en cada profundidad (escala logarítmica)",
+    chartX: "profundidad (celdas colocadas)",
+    sourcePrefix: "Método:",
+    sourceName: "implementación de referencia de McGavin de la teoría compleja de Owen",
+    caveat: (
+      <>
+        Un port exacto de la{" "}
+        <a className="underline" href={COMPLEX_THEORY_SOURCE_URL} target="_blank" rel="noreferrer">
+          implementación de referencia
+        </a>{" "}
+        de Peter McGavin de la teoría de Owen (validado para reproducir su tabla publicada: 14 702
+        soluciones en la última celda). Sigue siendo una estimación de primer momento: trata los
+        colores como independientes, así que es precisa hasta ~×2 y{" "}
+        <LocalizedLink className="underline" to="/research/why/entropy-area-law">
+          ciega al colapso de distinción
+        </LocalizedLink>
+        . Úsala para comparar órdenes, no como un recuento real.
+      </>
+    ),
+  },
 };
 
 /** Compact "m×10^x" / plain number for a log10 value. */

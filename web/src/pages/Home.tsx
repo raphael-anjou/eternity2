@@ -129,6 +129,61 @@ const T = {
       </>
     ),
   },
+  es: {
+    heroTitleTop: "Eternity II:",
+    heroTitleAccent: "el puzzle que venció a todos.",
+    heroLede: (
+      <>
+        Eternity II parece un rompecabezas infantil: 256 piezas cuadradas y colores que hay que
+        hacer coincidir. Lanzado en 2007 con un premio de <strong>2 millones de dólares</strong>,
+        nunca se ha resuelto: ni por personas, ni por superordenadores. Este sitio te permite{" "}
+        <em>sentir</em> por qué, directamente en tu navegador.
+      </>
+    ),
+    ctaStart: "Empieza aquí",
+    ctaPlayground: "Jugar a Eternity II en línea",
+    ctaPuzzle: "¿Qué es Eternity II?",
+    heroCaption:
+      "Un tablero 16×16 completo, con todas las aristas coincidentes y el borde gris: así se ve un Eternity II resuelto. (Es un tablero generado al azar, no el puzzle oficial.)",
+    cards: [
+      {
+        to: "/puzzle",
+        title: "El Puzzle",
+        text: "256 piezas, 22 motivos y un premio de 2 millones de dólares que nadie reclamó jamás. Toda la historia y la anatomía de Eternity II.",
+      },
+      {
+        to: "/playground",
+        title: "Zona de juego",
+        text: "Resuelve uno pequeño tú mismo, observa un solucionador real avanzar a un millón de pasos por segundo o diseña su ruta de búsqueda.",
+      },
+      {
+        to: "/algorithms",
+        title: "Algoritmos",
+        text: "Backtracking, trucos binarios y muros exponenciales: cómo atacan realmente el puzzle los informáticos, explicado desde cero.",
+      },
+      {
+        to: "/viewer",
+        title: "Visor de tableros",
+        text: "Muestra y comparte cualquier tablero. Totalmente compatible con los enlaces de e2.bucas.name, incluidos los famosos tableros récord de 467/469/470.",
+      },
+      {
+        to: "/research",
+        title: "Investigación",
+        text: "Artículos científicos, récords de la comunidad, las entrañas de los solucionadores y un cuaderno de laboratorio abierto sobre los intentos de alcanzar las 480 completas.",
+      },
+    ],
+    classroomTitle: "Para las aulas",
+    classroomText: (
+      <>
+        Pensado para{" "}
+        <a className="underline" href="https://terra-numerica.org" target="_blank" rel="noreferrer">
+          Terra Numerica
+        </a>
+        : una forma práctica de descubrir la explosión combinatoria, los algoritmos y por qué algo
+        «de apariencia sencilla» puede resultar «imposiblemente difícil». Sin conocimientos previos.
+      </>
+    ),
+  },
 };
 
 export default function Home() {

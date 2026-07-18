@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useT, useLang } from "@/i18n";
+import { useT, useLang, pick, type Dict } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/single-core-benchmark.json";
 
@@ -65,12 +65,12 @@ const D = data as {
 
 // One hue per family, reused from the site's existing family palette
 // (ExperimentScoreChart) so the research pages read as one system.
-const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
-  producer: { fill: "#a78bfa", en: "beam producer", fr: "producteur (beam)" },
-  alns: { fill: "#34d399", en: "ALNS local search", fr: "recherche locale ALNS" },
-  backtracker: { fill: "#fb7185", en: "backtracker", fr: "backtracking" },
-  csp: { fill: "#38bdf8", en: "CSP + AC-3", fr: "CSP + AC-3" },
-  naive: { fill: "#fbbf24", en: "naive DFS", fr: "DFS naïf" },
+const FAMILY: Record<string, { fill: string } & Dict<string>> = {
+  producer: { fill: "#a78bfa", en: "beam producer", fr: "producteur (beam)", es: "productor beam" },
+  alns: { fill: "#34d399", en: "ALNS local search", fr: "recherche locale ALNS", es: "búsqueda local ALNS" },
+  backtracker: { fill: "#fb7185", en: "backtracker", fr: "backtracking", es: "backtracking" },
+  csp: { fill: "#38bdf8", en: "CSP + AC-3", fr: "CSP + AC-3", es: "CSP + AC-3" },
+  naive: { fill: "#fbbf24", en: "naive DFS", fr: "DFS naïf", es: "DFS ingenuo" },
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
@@ -129,6 +129,32 @@ const T = {
       "Un run de 60 s par cellule. Les préréglages sont bimodaux : plusieurs coins se résolvent près du sommet, puis les mêmes réglages s'effondrent à ~55 sur les coins hostiles.",
     busy: "Tracé…",
     legendTitle: "famille",
+    of: "/ 480",
+  },
+  es: {
+    paradoxHead: "El resultado que importa — el rendimiento no es la puntuación",
+    blackwoodWho: "Backtracker de Blackwood",
+    blackwoodSub: "el algoritmo del récord de la comunidad",
+    producerWho: "Nuestro productor beam",
+    producerSub: "orden de relleno en peine, 150× menos nodos/s",
+    reaches: "alcanza",
+    verdict:
+      "Blackwood explora 149× más nodos por segundo y aun así termina 20 puntos por debajo. En un solo núcleo, la victoria viene de la calidad de los nodos, no de su cantidad.",
+    boardTitle: "La clasificación",
+    boardIntro:
+      "Puntuación media sobre diez variantes con esquinas fijadas, un solo núcleo, 60 s cada una. Los métodos que compiten por la puntuación; las ablaciones de preajustes CSP tienen su propia página. El color marca la familia.",
+    presetsTitle: "Preajustes CSP: un motor, muchos ajustes",
+    presetsIntro:
+      "Puntuación media sobre diez variantes con esquinas fijadas, un solo núcleo, 60 s cada una. No son solucionadores distintos: son un único motor CSP (consistencia de arco + un orden de variable/valor) ejecutado con distintos preajustes. El mejor alcanza ~183, menos de la mitad de la puntuación de un contendiente, así que ninguno obtiene una fila en la clasificación.",
+    ceiling: "récord 5 pistas 464",
+    npsUnit: "rendimiento mediano (unidad nativa, nunca comparada entre familias)",
+    heatTitle: "Cada algoritmo sobre las diez variantes de esquinas",
+    heatIntro:
+      "Una ejecución de 60 s por celda, sombreada según el rango propio de esta tabla. Los backtrackers se agrupan cerca del máximo; los motores CSP son bimodales y se desploman a ~55 en las esquinas hostiles.",
+    heatIntroPresets:
+      "Una ejecución de 60 s por celda. Los preajustes son bimodales: varias esquinas se resuelven cerca del máximo, luego los mismos ajustes se desploman a ~55 en las esquinas hostiles.",
+    busy: "Dibujando…",
+    legendTitle: "familia",
     of: "/ 480",
   },
 };
@@ -255,7 +281,7 @@ export function BenchmarkLeaderboard({
                 className="inline-block h-2.5 w-2.5 rounded-sm"
                 style={{ background: familyFill(f) }}
               />
-              {FAMILY[f] ? (lang === "fr" ? FAMILY[f].fr : FAMILY[f].en) : f}
+              {FAMILY[f] ? pick(FAMILY[f], lang) : f}
             </span>
           ))}
         </div>
