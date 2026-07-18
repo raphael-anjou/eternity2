@@ -4,6 +4,7 @@ import { pageMeta } from "@/seo";
 // (placements + backtracks) run per second.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -217,6 +218,10 @@ export default function Watch() {
   const solverRef = useRef<SolverHandle | null>(null);
   const rafRef = useRef(0);
   const lastTickRef = useRef(0);
+  // Pause the solver loop while the board is scrolled offscreen: it keeps
+  // stepping WASM and re-rendering otherwise (background *tabs* already pause
+  // rAF, but same-tab-offscreen does not). The run resumes on scroll-back.
+  const { ref: boardRef, visible: boardVisible } = useRunWhileVisible();
 
   const stepsPerSecond = Math.round(10 ** speedExp);
 
@@ -250,7 +255,7 @@ export default function Watch() {
   }, [rebuild]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || !boardVisible) return;
     lastTickRef.current = performance.now();
     let nodesAtLast = report?.nodes ?? 0;
     let lastRateUpdate = performance.now();
@@ -297,7 +302,7 @@ export default function Watch() {
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, stepsPerSecond, showBest, fullSpeed]);
+  }, [running, boardVisible, stepsPerSecond, showBest, fullSpeed]);
 
   const cells = useMemo(() => {
     if (!puzzle || !boardCells) return null;
@@ -320,7 +325,7 @@ export default function Watch() {
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
           {cells && puzzle ? (
-            <div className="max-w-3xl space-y-2">
+            <div ref={boardRef} className="max-w-3xl space-y-2">
               <BoardSvg
                 width={puzzle.width}
                 height={puzzle.height}

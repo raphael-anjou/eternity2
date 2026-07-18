@@ -5,6 +5,7 @@
 // own clock, no interaction needed.
 
 import { useEffect, useMemo, useState } from "react";
+import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieceSvg } from "@/components/board/PieceSvg";
 import { rotateEdges } from "@/lib/types";
@@ -146,6 +147,7 @@ const PIECE1: [number, number, number, number] = [8, 9, 12, 17];
 function PieceAsBits() {
   const t = useT(T);
   const [seed, setSeed] = useState(0);
+  const { ref, visible } = useRunWhileVisible({ respectReducedMotion: true });
   // cycle through a few real-looking pieces
   const piece = useMemo<[number, number, number, number]>(() => {
     const pieces: [number, number, number, number][] = [
@@ -157,11 +159,12 @@ function PieceAsBits() {
     return pieces[seed % pieces.length] ?? PIECE1;
   }, [seed]);
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setSeed((s) => s + 1), 2600);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <CardTitle className="text-sm">{t.motif.title}</CardTitle>
       </CardHeader>
@@ -215,8 +218,10 @@ function EdgeCompare() {
   const t = useT(T);
   const [pair, setPair] = useState<[number, number]>([7, 7]);
   const [revealed, setRevealed] = useState(0);
+  const { ref, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
+    if (!visible) return;
     let bit = 0;
     const newRound = () => {
       const a = 1 + Math.floor(Math.random() * 22);
@@ -241,7 +246,7 @@ function EdgeCompare() {
       }
     }, 350);
     return () => clearInterval(timer);
-  }, []);
+  }, [visible]);
 
   const [a, b] = pair;
   const bitsA = bits5(a);
@@ -250,7 +255,7 @@ function EdgeCompare() {
   const same = a === b;
 
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <CardTitle className="text-sm">{t.compare.title}</CardTitle>
       </CardHeader>
@@ -301,10 +306,12 @@ function packedBits(edges: readonly number[]): string {
 function RotationDemo() {
   const t = useT(T);
   const [rot, setRot] = useState(0);
+  const { ref, visible } = useRunWhileVisible({ respectReducedMotion: true });
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => setRot((r) => r + 1), 2600);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
   const before = useMemo(() => rotateEdges(DEMO_PIECE, rot & 3), [rot]);
   const after = useMemo(() => rotateEdges(DEMO_PIECE, (rot + 1) & 3), [rot]);
   const beforeBits = packedBits(before);
@@ -313,7 +320,7 @@ function RotationDemo() {
   // The wrapped group: a clockwise turn rotates the 20-bit word right by 5,
   // so the last 5 bits (the 'left' edge) wrap to the front.
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <CardTitle className="text-sm">{t.rotation.title}</CardTitle>
       </CardHeader>
@@ -361,8 +368,10 @@ function AvailabilityMask() {
   const N = 64;
   const [used, setUsed] = useState<Set<number>>(new Set());
   const [placing, setPlacing] = useState<number | null>(null);
+  const { ref, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
+    if (!visible) return;
     const id = setInterval(() => {
       setUsed((prev) => {
         if (prev.size >= N) return new Set();
@@ -377,10 +386,10 @@ function AvailabilityMask() {
       });
     }, 700);
     return () => clearInterval(id);
-  }, []);
+  }, [visible]);
 
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <CardTitle className="text-sm">{t.mask.title}</CardTitle>
       </CardHeader>
