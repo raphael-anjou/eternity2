@@ -90,9 +90,12 @@ export function RecordTimeline() {
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="w-full rounded-lg border bg-card"
-          role="img"
-          aria-label={t.chartAria}
+          aria-labelledby="record-timeline-title"
         >
+          {/* Named via <title>, NOT role="img": role="img" would flatten the
+              chart and hide the focusable record points (role="button") inside
+              it from assistive tech. */}
+          <title id="record-timeline-title">{t.chartAria}</title>
           {/* the 480 solution line — the unreached target */}
           <line x1={padL} y1={y(480)} x2={W - padR} y2={y(480)} className="stroke-emerald-500/50" strokeWidth={1} strokeDasharray="4 3" />
           <text x={W - padR} y={y(480) - 4} textAnchor="end" className="fill-emerald-600 text-[8px] dark:fill-emerald-400">
