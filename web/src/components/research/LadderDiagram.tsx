@@ -42,7 +42,7 @@ export function LadderDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [round, setRound] = useState(0);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;

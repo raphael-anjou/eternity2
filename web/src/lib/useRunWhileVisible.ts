@@ -75,19 +75,44 @@ export async function driveSolver(
 }
 
 /**
+ * Reports whether the user has asked the OS to reduce motion
+ * (`prefers-reduced-motion: reduce`), reacting to changes. `false` during SSR /
+ * prerender and where matchMedia is unavailable.
+ */
+export function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof matchMedia === "undefined") return;
+    const mq = matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+/**
  * Tracks whether a component is worth animating: its root element intersects
  * the viewport (IntersectionObserver) AND the tab is visible (visibilitychange).
  *
  * Attach the returned `ref` to the component's root element (it is a callback
  * ref, so it also works on elements that mount late, e.g. after a client-only
  * or engine-ready guard) and gate the animation effect on `visible`.
+ *
+ * Pass `{ respectReducedMotion: true }` for animations that auto-play (loops
+ * that start on scroll-into-view, with no user gesture): they then also stop
+ * when the user has asked the OS to reduce motion (WCAG 2.2.2). Leave it off for
+ * animations the user explicitly starts with a control — reducing motion should
+ * not disable a solver the reader just pressed "run" on.
  */
-export function useRunWhileVisible(): {
+export function useRunWhileVisible(opts?: { respectReducedMotion?: boolean }): {
   ref: (el: Element | null) => void;
   visible: boolean;
 } {
   const [inView, setInView] = useState(false);
   const [tabVisible, setTabVisible] = useState(true);
+  const reducedMotion = usePrefersReducedMotion();
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   const ref = useCallback((el: Element | null) => {
@@ -120,5 +145,6 @@ export function useRunWhileVisible(): {
     };
   }, []);
 
-  return { ref, visible: inView && tabVisible };
+  const gateOnMotion = opts?.respectReducedMotion ? !reducedMotion : true;
+  return { ref, visible: inView && tabVisible && gateOnMotion };
 }

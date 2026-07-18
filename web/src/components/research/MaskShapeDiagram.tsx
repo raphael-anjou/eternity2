@@ -49,7 +49,7 @@ export function MaskShapeDiagram() {
   const isClient = useIsClient();
   const [idx, setIdx] = useState(2); // start on the lattice (the interesting one)
   const [auto, setAuto] = useState(true);
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!auto || !visible) return;

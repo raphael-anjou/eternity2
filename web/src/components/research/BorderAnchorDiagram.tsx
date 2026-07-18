@@ -39,7 +39,7 @@ export function BorderAnchorDiagram() {
   const t = useT(T);
   const isClient = useIsClient();
   const [fill, setFill] = useState(0); // interior rows filled (0..N-2)
-  const { ref: rootRef, visible } = useRunWhileVisible();
+  const { ref: rootRef, visible } = useRunWhileVisible({ respectReducedMotion: true });
 
   useEffect(() => {
     if (!visible) return;
