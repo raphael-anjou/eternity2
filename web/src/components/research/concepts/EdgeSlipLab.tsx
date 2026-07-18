@@ -116,6 +116,37 @@ const T = {
       "Les portes tardives pour N = 10 tombent sur 201, 205, 209, … 239 — presque exactement les vrais break indexes de Blackwood (201–239). Le graphique et la bande calculent exactement les formules énoncées ; la formule elle-même est l'estimation approchée de la communauté, pas un théorème.",
     fmtMant: (x: number) => x.toFixed(1).replace(".", ","),
   },
+  es: {
+    title: "El presupuesto de deslizamiento — más objetivos, una arista cada uno",
+    intro:
+      "Un solo control, dos consecuencias. Permitir N aristas deslizadas multiplica la cantidad de tableros que vale la pena encontrar (a la izquierda, escala logarítmica — la estimación comunitaria de Max, msg 6390) a la vez que limita la puntuación a 480 − N. Dónde se permite que caigan los deslizamientos (a la derecha) decide si el presupuesto es barato o fatal.",
+    slider: "deslizamientos permitidos N",
+    target: (n: number) => `puntuación objetivo ${480 - n} / 480`,
+    chartTitle: "Tableros casi perfectos por tablero perfecto (escala logarítmica)",
+    axisNote: "relativo a los 480 — estimación de Max, msg 6390",
+    multPerfect: "×1 — los propios tableros perfectos, que nadie ha encontrado jamás",
+    multParity:
+      "×0 — un desajuste interior aislado está prohibido por paridad; aquí la tabla de deslizamientos marca un cero exacto",
+    mult: (mant: string, exp: number, score: number) =>
+      `≈ ${mant} × 10^${exp} veces más tableros con puntuación ${score} que con 480`,
+    markRecord: "N = 10 → 470, el récord actual (el presupuesto de rupturas de Blackwood)",
+    markVerhaard: "N = 13 → 467, el tablero premiado de Verhaard",
+    stripTitle: "Dónde pueden caer los deslizamientos (orden de recorrido, 256 colocaciones)",
+    gateLate: "Puertas tardías (201–239)",
+    gateEarly: "Puertas tempranas (41–79)",
+    legendGate: "profundidad de desbloqueo (un deslizamiento más permitido de aquí en adelante)",
+    legendZone: "zona de deslizamiento — aquí pueden aparecer desajustes",
+    legendPlaced: "frontera de búsqueda (barrido animado)",
+    noGates: "N = 0: sin puertas — la búsqueda debe ser impecable en las 256 colocaciones.",
+    slipsUnlocked: (k: number, n: number) => `deslizamientos desbloqueados en la frontera: ${k} de ${n}`,
+    lateMsg: (g: number, tail: number) =>
+      `Primer deslizamiento permitido en la colocación ${g} de 256: como mucho ${tail} colocaciones posteriores pueden asentarse sobre un defecto, y la ramificación adicional se abre solo donde el árbol ya se ha estrechado hasta movimientos casi forzados.`,
+    earlyMsg: (g: number, tail: number) =>
+      `Primer deslizamiento permitido en la colocación ${g} de 256: hasta ${tail} colocaciones posteriores heredan el defecto, y la ramificación adicional multiplica la parte más ancha del árbol — el presupuesto se gasta donde menos rinde y más cuesta.`,
+    footnote:
+      "Las puertas tardías para N = 10 caen en 201, 205, 209, … 239 — casi exactamente los break indexes reales de Blackwood (201–239). El gráfico y la banda calculan con exactitud las fórmulas enunciadas; la fórmula en sí es la estimación aproximada de la comunidad, no un teorema.",
+    fmtMant: (x: number) => x.toFixed(1).replace(".", ","),
+  },
 };
 
 export function EdgeSlipLab() {

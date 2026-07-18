@@ -86,6 +86,34 @@ const T = {
     loading: "Chargement du moteur…",
     note: "Tout ici est le vrai mécanisme, à échelle jouet : la réparation gloutonne maximise les coutures accordées parmi les pièces levées, l'acceptation suit la règle du recuit simulé, et le poids de chaque opérateur est une moyenne à décroissance exponentielle de ses récompenses récentes. Le moteur grandeur nature fait tourner la même boucle avec un portefeuille trié de cinq opérateurs sur un 16×16.",
   },
+  es: {
+    title: "Un ciclo ALNS, a cámara lenta",
+    intro:
+      "Un 8×8 resuelto de verdad (por el motor), dañado a propósito. En cada iteración: un operador de destrucción levanta una región (celdas oscuras), una pasada voraz la rellena pieza a pieza, y el nuevo tablero se conserva o se descarta según la puntuación. Observa los pesos de los operadores: cada acierto realimenta la ruleta, que se inclina hacia las demoliciones que rinden.",
+    play: "Reproducir",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    damage: "Dañar de nuevo",
+    forceOp: "Ejecutar una iteración con un operador elegido:",
+    ops: { patch: "Parche aleatorio", rows: "Peor fila", worst: "Peor región" } as Record<Op, string>,
+    score: "puntuación",
+    best: "mejor",
+    iterations: "iteraciones",
+    weights: "Pesos adaptativos de los operadores",
+    uses: (n: number) => `${n}×`,
+    trace: "Traza de la puntuación",
+    phase: {
+      idle: "en pausa — pulsa Reproducir o elige un operador",
+      destroy: "destrucción: levantando celdas",
+      repair: "reparación: relleno voraz, primero la celda más restringida",
+      decide: "aceptar o rechazar…",
+    },
+    accepted: (d: number) => (d > 0 ? `aceptado (+${d})` : "aceptado (movimiento lateral)"),
+    rejected: (d: number) => `rechazado (${d}) — tablero restaurado`,
+    newBest: " — ¡nuevo récord!",
+    loading: "Cargando el motor…",
+    note: "Todo lo que ves es el mecanismo real, a escala de juguete: la reparación voraz maximiza las aristas coincidentes entre las piezas levantadas, la aceptación sigue la regla del recocido simulado, y el peso de cada operador es una media con decaimiento exponencial de sus recompensas recientes. El motor a tamaño real ejecuta el mismo ciclo con una cartera seleccionada de cinco operadores sobre un tablero 16×16.",
+  },
 };
 
 /** Deterministic PRNG (mulberry32). */

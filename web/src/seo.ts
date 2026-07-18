@@ -2,8 +2,8 @@
 // previews. Keyed by route id (see routes.ts). Each page's `meta` export reads
 // its entry via pageMeta(); root.tsx supplies sensible site-wide fallbacks.
 
-import type { Lang } from "@/i18n";
-import { langFromPath } from "@/i18n";
+import type { Dict, Lang } from "@/i18n";
+import { langFromPath, pick } from "@/i18n";
 import { pageUpdated } from "@/page-updated";
 import { canonicalUrl } from "@/site";
 
@@ -12,7 +12,7 @@ type Entry = { title: string; description: string };
 const SUFFIX = " · Eternity II";
 
 // Default page metadata, used as the fallback for any unknown page key.
-const HOME_PAGE: { en: Entry; fr: Entry } = {
+const HOME_PAGE: Dict<Entry> = {
   en: {
     title: "Eternity II: the puzzle that beat everyone",
     description:
@@ -23,9 +23,14 @@ const HOME_PAGE: { en: Entry; fr: Entry } = {
     description:
       "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur : résolvez-le à la main, regardez de vrais solveurs, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
   },
+  es: {
+    title: "Eternity II: el puzzle que venció a todos",
+    description:
+      "Juega al puzzle Eternity II en línea, gratis y en tu navegador: resuélvelo a mano, mira correr solucionadores reales, aprende los algoritmos y explora la investigación. El puzzle de 2 000 000 $ que nadie llegó a resolver.",
+  },
 };
 
-const PAGES: Record<string, { en: Entry; fr: Entry }> = {
+const PAGES: Record<string, Dict<Entry>> = {
   home: HOME_PAGE,
   start: {
     en: {
@@ -37,6 +42,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "Par où commencer" + SUFFIX,
       description:
         "Nouveau sur Eternity II, ou perdu ? Dites-nous qui vous êtes, du simple curieux au chercheur, et suivez un court parcours guidé à travers le site.",
+    },
+    es: {
+      title: "Por dónde empezar" + SUFFIX,
+      description:
+        "¿Nuevo en Eternity II o no sabes por dónde mirar? Dinos quién eres, desde el simple curioso hasta el investigador, y sigue un breve recorrido guiado por el sitio.",
     },
   },
   status: {
@@ -50,6 +60,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Non. Le record est de 470 arêtes sur 480 (Joshua Blackwood, 2021), égalé mais jamais battu. La solution complète reste introuvable. À jour en juillet 2026.",
     },
+    es: {
+      title: "¿Se ha resuelto Eternity II?" + SUFFIX,
+      description:
+        "No. El récord actual es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021), igualado pero nunca superado. La solución completa nunca se ha encontrado. Actualizado en julio de 2026.",
+    },
   },
   puzzle: {
     en: {
@@ -61,6 +76,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "Qu'est-ce que le puzzle Eternity II ?" + SUFFIX,
       description:
         "Le puzzle Eternity II en clair : 256 tuiles à côtés appariés, 22 couleurs, un plateau 16×16 et un prix de 2 000 000 $ jamais remporté.",
+    },
+    es: {
+      title: "¿Qué es el puzzle Eternity II?" + SUFFIX,
+      description:
+        "Qué es en realidad el puzzle Eternity II: 256 piezas de encaje de bordes, 22 colores, un tablero de 16×16 y un premio de 2 000 000 $ que quedó sin reclamar.",
     },
   },
   scam: {
@@ -74,6 +94,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Non, ce n'est pas une arnaque, et oui, une solution existe presque à coup sûr. Les faits sourcés sur le puzzle à 2 000 000 $ resté sans vainqueur.",
     },
+    es: {
+      title: "¿Es Eternity II una estafa? ¿Tiene solución?" + SUFFIX,
+      description:
+        "No, no es una estafa, y sí, casi con total seguridad existe una solución. Los hechos documentados sobre el puzzle de 2 000 000 $ que caducó sin ganador.",
+    },
   },
   playground: {
     en: {
@@ -86,6 +111,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur — sans appli ni téléchargement. Résolvez-en un à la main, regardez un vrai solveur à un million d'étapes par seconde, ou dessinez son parcours.",
     },
+    es: {
+      title: "Jugar a Eternity II en línea" + SUFFIX,
+      description:
+        "Juega al puzzle Eternity II en línea, gratis y en tu navegador, sin app ni descargas. Resuelve uno a mano, mira correr un solucionador real a un millón de pasos por segundo o diseña su recorrido de búsqueda.",
+    },
   },
   watch: {
     en: {
@@ -95,6 +125,10 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Regarder un solveur" + SUFFIX,
       description: "Suivez en direct un vrai solveur explorer Eternity II, étape par étape.",
+    },
+    es: {
+      title: "Ver un solucionador" + SUFFIX,
+      description: "Observa en directo cómo un solucionador en profundidad busca Eternity II, paso a paso.",
     },
   },
   solve: {
@@ -108,6 +142,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Jouez à Eternity II en ligne : placez vous-même les tuiles à côtés appariés, battez le chrono et comprenez pourquoi ce puzzle est si redoutable. Gratuit, dans votre navigateur, sans téléchargement.",
     },
+    es: {
+      title: "Resolver el puzzle Eternity II en línea" + SUFFIX,
+      description:
+        "Juega a Eternity II en línea: coloca tú mismo las piezas de encaje de bordes, gana al reloj y comprende por qué el puzzle es tan difícil. Gratis, en tu navegador, sin descargas.",
+    },
   },
   paths: {
     en: {
@@ -118,6 +157,10 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "Ordres de remplissage" + SUFFIX,
       description: "Choisissez l'ordre dans lequel le solveur remplit le plateau, puis défiez les ordres classiques.",
     },
+    es: {
+      title: "Órdenes de relleno" + SUFFIX,
+      description: "Diseña el orden en que un solucionador rellena el tablero y compítelo contra los órdenes clásicos.",
+    },
   },
   print: {
     en: {
@@ -127,6 +170,10 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Imprimer & jouer" + SUFFIX,
       description: "Générez des planches de pièces Eternity II à imprimer, à découper et à résoudre sur papier.",
+    },
+    es: {
+      title: "Imprimir y jugar" + SUFFIX,
+      description: "Genera láminas de piezas de Eternity II listas para imprimir, recortar y resolver sobre papel.",
     },
   },
   algorithms: {
@@ -140,6 +187,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Comment les ordinateurs s'attaquent à Eternity II : recherche en profondeur, retour en arrière, mur exponentiel et pic de difficulté, mesures à l'appui.",
     },
+    es: {
+      title: "Cómo resolver Eternity II con un ordenador" + SUFFIX,
+      description:
+        "Cómo atacan las máquinas Eternity II: búsqueda en profundidad, backtracking, el muro exponencial y el pico de dificultad de color y tamaño, con mediciones en directo.",
+    },
   },
   basins: {
     en: {
@@ -151,6 +203,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       title: "Plateaux notables" + SUFFIX,
       description:
         "Une galerie de plateaux Eternity II notables : records de la communauté et meilleurs plateaux de ce projet, chacun s'ouvrant dans le visualiseur pour vérifier bord par bord.",
+    },
+    es: {
+      title: "Tableros destacados" + SUFFIX,
+      description:
+        "Una galería de tableros de Eternity II destacados: récords de la comunidad y los mejores tableros de este proyecto, cada uno abriéndose en el visor para comprobarlo arista por arista.",
     },
   },
   inventions: {
@@ -164,6 +221,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Les algorithmes nommés conçus pour pousser le score d'Eternity II : PALIMPSEST (463), KEYRING (460), GAUNTLET (458) et d'autres. Chaque idée, son résultat et les questions ouvertes, avec des plateaux vérifiés.",
     },
+    es: {
+      title: "Invenciones" + SUFFIX,
+      description:
+        "Los algoritmos con nombre creados para elevar la puntuación de Eternity II: PALIMPSEST (463), KEYRING (460), GAUNTLET (458) y más. Cada idea, su resultado y las preguntas abiertas, con tableros verificados.",
+    },
   },
   // "border-balance" migrated to web/content/research/why/border-balance.mdx —
   // MDX pages carry their SEO meta in frontmatter.
@@ -175,6 +237,10 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
     fr: {
       title: "Visualiseur" + SUFFIX,
       description: "Collez un plateau et passez-le au crible : score, conflits et meilleures solutions connues d'Eternity II.",
+    },
+    es: {
+      title: "Visor de tableros" + SUFFIX,
+      description: "Pega un tablero e inspecciónalo: puntuación, conflictos y las soluciones récord conocidas de Eternity II.",
     },
   },
   convert: {
@@ -188,6 +254,11 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
       description:
         "Passez d'un format de plateau Eternity II à l'autre : liens bucas, chaînes board_edges, numéros board_pieces. Collez-en un, récupérez les autres.",
     },
+    es: {
+      title: "Conversor de formatos" + SUFFIX,
+      description:
+        "Convierte entre los formatos de tablero de Eternity II: enlaces bucas, cadenas board_edges y números board_pieces. Pega uno y obtén los demás, con vista previa en vivo.",
+    },
   },
 };
 
@@ -197,13 +268,13 @@ const PAGES: Record<string, { en: Entry; fr: Entry }> = {
  * their titles. Goes away when the research migration to MDX completes.
  */
 export function pageTitle(pageKey: string, lang: Lang): string {
-  const entry = (PAGES[pageKey] ?? HOME_PAGE)[lang];
+  const entry = pick(PAGES[pageKey] ?? HOME_PAGE, lang);
   return entry.title.replace(SUFFIX, "");
 }
 
 /** Page description for a registered page key (research search + nav). */
 export function pageDescription(pageKey: string, lang: Lang): string {
-  return (PAGES[pageKey] ?? HOME_PAGE)[lang].description;
+  return pick(PAGES[pageKey] ?? HOME_PAGE, lang).description;
 }
 
 // FAQ structured data for the two question-titled pages. Both answer a real
@@ -212,7 +283,7 @@ export function pageDescription(pageKey: string, lang: Lang): string {
 // clean, sourced Q&A to lift. Answers mirror the sourced facts on the pages
 // themselves; keep them in sync when a record changes.
 type QA = { q: string; a: string };
-const PAGE_FAQ: Partial<Record<keyof typeof PAGES, { en: QA[]; fr: QA[] }>> = {
+const PAGE_FAQ: Partial<Record<keyof typeof PAGES, Dict<QA[]>>> = {
   puzzle: {
     en: [
       {
@@ -240,6 +311,20 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, { en: QA[]; fr: QA[] }>> = {
       {
         q: "Pourquoi Eternity II est-il si difficile ?",
         a: "Le nombre d'arrangements possibles est d'environ 1,115 × 10^557 — bien plus que le nombre d'atomes dans l'univers observable. Aucun algorithme ne peut tous les vérifier, et le puzzle a été conçu pour résister à la recherche par force brute.",
+      },
+    ],
+    es: [
+      {
+        q: "¿Qué es el puzzle Eternity II?",
+        a: "Eternity II es un puzzle de encaje de bordes lanzado en 2007: 256 piezas cuadradas deben llenar un tablero de 16×16 de modo que cada arista compartida muestre el mismo patrón de color, con los bordes exteriores en gris. Ofrecía un premio de 2 000 000 $ por la primera solución completa.",
+      },
+      {
+        q: "¿Cuántas piezas tiene Eternity II?",
+        a: "256 piezas cuadradas, cada una con medio motivo de color en sus cuatro aristas, tomados de 22 colores/motivos distintos. Llenan una cuadrícula de 16×16: 480 aristas internas que deben coincidir todas.",
+      },
+      {
+        q: "¿Por qué es tan difícil Eternity II?",
+        a: "El número de formas de disponer las piezas es de unos 1,115 × 10^557, muchísimo más que los átomos del universo observable. Ningún algoritmo puede comprobarlas todas, y el puzzle se diseñó a propósito para resistir la búsqueda por fuerza bruta.",
       },
     ],
   },
@@ -272,6 +357,20 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, { en: QA[]; fr: QA[] }>> = {
         a: "Non. La date limite du prix, le 31 décembre 2010, est passée sans solution complète soumise : les 2 000 000 $ n'ont jamais été remportés et le concours est clos.",
       },
     ],
+    es: [
+      {
+        q: "¿Se ha resuelto Eternity II?",
+        a: "No. A fecha de julio de 2026, el puzzle nunca se ha resuelto por completo. El mejor tablero público hace coincidir 470 de 480 aristas (Joshua Blackwood, 2021), igualado pero nunca superado, y nunca se ha encontrado una solución perfecta de 480 aristas.",
+      },
+      {
+        q: "¿Cuál es el récord de puntuación de Eternity II?",
+        a: "470 de 480 aristas coincidentes, logrado por Joshua Blackwood en 2021. Tableros destacados anteriores alcanzaron 467 (Louis Verhaard) y 469 (Blackwood y McGavin).",
+      },
+      {
+        q: "¿Sigue disponible el premio de 2 000 000 $?",
+        a: "No. El plazo del premio venció el 31 de diciembre de 2010 sin que se presentara una solución completa, así que los 2 000 000 $ quedaron sin reclamar y el concurso está cerrado.",
+      },
+    ],
   },
   scam: {
     en: [
@@ -294,6 +393,16 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, { en: QA[]; fr: QA[] }>> = {
         a: "Presque certainement oui. Les estimations statistiques du jeu de pièces impliquent l'existence de nombreuses solutions parfaites ; la difficulté est d'en trouver une dans un espace de recherche d'environ 1,1 × 10^557 arrangements, pas de savoir s'il en existe une.",
       },
     ],
+    es: [
+      {
+        q: "¿Es Eternity II una estafa?",
+        a: "No. Fue un concurso auténtico con un premio real de 2 000 000 $ depositado en garantía. El premio simplemente caducó sin reclamar en 2010 porque nadie encontró a tiempo una solución completa: el puzzle es extraordinariamente difícil, no está amañado.",
+      },
+      {
+        q: "¿Tiene solución Eternity II?",
+        a: "Casi con total seguridad, sí. Las estimaciones estadísticas del conjunto de piezas implican que existen muchas soluciones perfectas; la dificultad está en encontrar una en un espacio de búsqueda de unos 1,1 × 10^557 disposiciones, no en si existe.",
+      },
+    ],
   },
 };
 
@@ -302,12 +411,14 @@ const PAGE_FAQ: Partial<Record<keyof typeof PAGES, { en: QA[]; fr: QA[] }>> = {
  *  to be visible on the page; rendering from this shared source keeps the markup
  *  and the visible text identical. Empty array if the page has no FAQ. */
 export function pageFaq(pageKey: keyof typeof PAGES, lang: Lang): QA[] {
-  return PAGE_FAQ[pageKey]?.[lang] ?? [];
+  const faq = PAGE_FAQ[pageKey];
+  return faq ? pick(faq, lang) : [];
 }
 
 /** A FAQPage JSON-LD node for a page's Q&A, or null if the page has none. */
 function faqLd(pageKey: keyof typeof PAGES, lang: Lang) {
-  const qa = PAGE_FAQ[pageKey]?.[lang];
+  const faq = PAGE_FAQ[pageKey];
+  const qa = faq ? pick(faq, lang) : undefined;
   if (!qa || qa.length === 0) return null;
   return {
     "script:ld+json": {
@@ -341,7 +452,7 @@ const PAGE_APP: Partial<Record<keyof typeof PAGES, string>> = {
 function appLd(pageKey: keyof typeof PAGES, lang: Lang, pathname: string) {
   const category = PAGE_APP[pageKey];
   if (!category) return null;
-  const entry = (PAGES[pageKey] ?? HOME_PAGE)[lang];
+  const entry = pick(PAGES[pageKey] ?? HOME_PAGE, lang);
   return {
     "script:ld+json": {
       "@context": "https://schema.org",
@@ -388,7 +499,7 @@ export function pageMeta(pageKey: keyof typeof PAGES) {
   return ({ location }: { location: { pathname: string } }) => {
     const lang: Lang = langFromPath(location.pathname);
     const group = PAGES[pageKey];
-    const entry = (group ?? HOME_PAGE)[lang];
+    const entry = pick(group ?? HOME_PAGE, lang);
     const faq = faqLd(pageKey, lang);
     const app = appLd(pageKey, lang, location.pathname);
     const updated = updatedLd(location.pathname, lang);

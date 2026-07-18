@@ -43,6 +43,11 @@ const T = {
     caption: "L'ordre de construction, de haut en bas, la bordure remplie en dernier à partir des pièces restantes. Un schéma des quatre étapes, pas une vraie résolution.",
     busy: "Chargement…",
   },
+  es: {
+    stages: ["Mitad superior", "Banda oráculo", "Tercera banda", "Cierre exacto", "Borde (emerge al final)"],
+    caption: "El orden de construcción, de arriba abajo, con el borde rellenado al final a partir de las piezas que queden. Un esquema de las cuatro etapas, no una resolución real.",
+    busy: "Cargando…",
+  },
 };
 
 export function StageBuildDiagram() {

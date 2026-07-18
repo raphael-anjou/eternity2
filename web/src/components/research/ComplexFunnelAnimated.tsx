@@ -60,6 +60,32 @@ const T = {
       },
     },
   },
+  es: {
+    chartAria: "Ramas de búsqueda esperadas en cada profundidad, recorriendo de 1 a 256 celdas colocadas",
+    depthAxis: "profundidad (celdas colocadas, de 256)",
+    depthReadout: "profundidad",
+    waysToExtend: "formas de prolongar",
+    regime: "régimen",
+    play: "Iniciar el recorrido",
+    replay: "Repetir el recorrido",
+    pause: "Pausar",
+    scrub: "desplazar",
+    scrubAria: "Desplazar la profundidad de búsqueda",
+    regimes: {
+      growth: {
+        label: "Crecimiento",
+        line: "Cada colocación todavía tiene decenas de sucesores válidos. El árbol se ensancha rápido.",
+      },
+      plateau: {
+        label: "Meseta — el muro",
+        line: "El árbol es astronómicamente ancho y casi nada se poda. Un backtracker consume ~99 % de su tiempo cruzando esta franja.",
+      },
+      collapse: {
+        label: "Colapso",
+        line: "Las ~60 últimas piezas están fuertemente restringidas: cada una elimina órdenes de magnitud de ramas, estrechando el embudo hasta las soluciones esperadas.",
+      },
+    },
+  },
 };
 
 // The E2 funnel as an animated explainer. A "search head" sweeps depth 1 → 256

@@ -28,6 +28,14 @@ const T = {
     depth: "profondeur atteinte",
     busy: "Chargement…",
   },
+  es: {
+    round: "Ronda",
+    kept: "conservados",
+    of: "de",
+    caption: "Cada ronda conserva solo los inicios más profundos y les concede una búsqueda más larga, de modo que los supervivientes ascienden mientras el grupo se reduce. El último en pie asciende a una ejecución completa.",
+    depth: "profundidad alcanzada",
+    busy: "Cargando…",
+  },
 };
 
 export function LadderDiagram() {

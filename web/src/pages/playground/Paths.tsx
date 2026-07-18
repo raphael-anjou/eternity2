@@ -160,6 +160,58 @@ const T = {
     laneStats: (placed: number, total: number, deepest: number, backtracks: string) =>
       `placées ${placed}/${total} · profondeur max ${deepest} · retours en arrière ${backtracks}`,
   },
+  es: {
+    title: "Inventa tu propio camino de búsqueda",
+    intro: (
+      <>
+        El solucionador rellena el tablero en el orden que tú decidas. Haz clic (o arrastra) sobre
+        las celdas en el orden en que quieres que se rellenen y luego haz que tu camino compita
+        contra los clásicos en el mismo puzzle. Sorpresa: el orden importa <em>muchísimo</em>.
+        También puedes <em>revelar</em> algunas piezas como pistas y ver cómo se desploma la
+        búsqueda, igual que con las pistas reales del puzzle.{" "}
+        ¿Quieres predecir qué orden gana antes de la carrera? Eso es exactamente lo que estima la{" "}
+        <LocalizedLink className="underline" to="/research/why/complex-theory">
+          teoría compleja
+        </LocalizedLink>{" "}
+        — el número de nodos esperado de un camino, nivel de profundidad a nivel de profundidad.
+      </>
+    ),
+    clear: "Limpiar",
+    autoFinish: "Completar el camino",
+    modePath: "Trazar camino",
+    modeHint: "Revelar pista",
+    gridHelpHint:
+      "Haz clic en una celda para revelar su pieza real como pista. Las celdas con pista quedan fijadas y salen del camino. Vuelve a hacer clic para ocultarlas.",
+    hintsBadge: (k: number) => `${k} pista${k === 1 ? "" : "s"}`,
+    gridHelp:
+      "Clic izquierdo o arrastrar para añadir celdas en orden · clic derecho sobre una celda para cortar el camino ahí.",
+    gridHelpBlock:
+      "Haz clic para estampar un bloque de celdas de una vez · clic derecho sobre una celda para cortar el camino en su bloque. Los bloques se rellenan como una unidad durante la carrera.",
+    brushLabel: "Bloque",
+    blocksBadge: (k: number) => `${k} bloque${k === 1 ? "" : "s"}`,
+    blockMode: "Modo bloque",
+    blockModeHelp:
+      "Tu camino se construye a partir de bloques. Lanza la carrera y el solucionador confirma cada bloque como un movimiento atómico — un subensamblaje válido completo a la vez — en lugar de una sola pieza.",
+    raceSetup: "Configuración de la carrera",
+    colorsLabel: (n: number) => `Colores: ${n}`,
+    newPuzzle: (seed: number) => `Nuevo puzzle (semilla ${seed})`,
+    framed: "Colores reservados al marco",
+    framedHint:
+      "Como el Eternity II real: confina algunos colores a la banda de borde y el resto al interior profundo (requiere tamaño ≥ 4, colores ≥ 2).",
+    raceWithCustom: "Compite tu camino contra los clásicos",
+    raceClassics: "Lanzar la carrera de los clásicos",
+    stop: "Detener",
+    finishPath: (done: number, total: number) =>
+      `Completa tu camino (${done}/${total} celdas) para inscribirlo en la carrera.`,
+    yourPath: "Tu camino",
+    finishedBadge: (rank: number | undefined, checks: string) =>
+      rank === 1 ? `🏆 ${checks} nodos` : `#${rank} · ${checks} nodos`,
+    racingBadge: () => "compitiendo…",
+    nodesLabel: "nodos explorados",
+    depthTip: "máxima profundidad alcanzada por la búsqueda hasta ahora",
+    laneStats: (placed: number, total: number, deepest: number, backtracks: string) =>
+      `colocadas ${placed}/${total} · profundidad máx ${deepest} · retrocesos ${backtracks}`,
+  },
 };
 
 function rankColor(rank: number, total: number): string {

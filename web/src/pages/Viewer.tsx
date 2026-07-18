@@ -215,6 +215,79 @@ const T = {
     convertLink: "Besoin de passer entre board_edges, board_pieces et les liens bucas ?",
     convertLinkCta: "Ouvrir le convertisseur de formats",
   },
+  es: {
+    title: "Visor de tableros",
+    intro: (
+      <>
+        Pega cualquier enlace de e2.bucas.name o elige un tablero célebre. Totalmente
+        compatible con el formato de URL de la comunidad, incluida la traducción de{" "}
+        <code>motifs_order</code>.
+      </>
+    ),
+    credit: (
+      <>
+        Ilustración de los motivos y formato de URL de los tableros de{" "}
+        <a className="underline" href="https://e2.bucas.name" target="_blank" rel="noreferrer">
+          e2.bucas.name
+        </a>{" "}
+        (© Jef Bucas,{" "}
+        <a
+          className="underline"
+          href="https://github.com/jfbucas/eternityII-viewer"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GPL-3.0
+        </a>
+        ).
+      </>
+    ),
+    officialById: "Piezas oficiales, por número",
+    officialClues: "Pistas oficiales",
+    officialCluesName: "Pistas oficiales",
+    pickBoard: "Elige un tablero…",
+    groups: {
+      records: "Récords",
+      class469: "Tableros 469",
+      class467: "Tableros 460–468",
+      linear: "Lineales",
+      other: "Otros",
+    } as Record<BoardGroupKey, string>,
+    generatedName: (s: number) => `generado ${s}×${s}`,
+    placeholder: "https://e2.bucas.name/#puzzle=…&board_w=16&board_h=16&board_edges=…",
+    load: "Mostrar",
+    emptyState: "Elige un tablero arriba, pega un enlace o genera uno →",
+    importedBoard: "Tablero importado",
+    matchedEdges: "aristas coincidentes",
+    piecesPlaced: (placed: number, total: number) => `${placed} / ${total} piezas colocadas`,
+    showConflicts: "Mostrar conflictos",
+    pieceNumbers: "Números de las piezas",
+    coordinates: "Coordenadas",
+    cluePositions: "Posición de las pistas",
+    verification: "Verificación",
+    officialSet: "Juego de piezas oficial",
+    verified: "✓ verificado",
+    notOfficial: "✗ no",
+    duplicates: "Piezas duplicadas",
+    noDuplicates: "✓ ninguna",
+    cluesRespected: "Pistas respetadas",
+    hintTitle: (n: number, cell: string) => `pieza ${n} en ${cell}`,
+    share: "Compartir",
+    copyLink: "Copiar el enlace",
+    downloadImage: "Descargar la imagen",
+    copied: "¡Copiado!",
+    generator: "Generador de tableros",
+    generatorIntro:
+      "Crea un puzzle inédito con solución garantizada y contempla su solución. (Máximo 22 colores: es la cantidad de motivos disponibles.)",
+    sizeLabel: (n: number) => `Tamaño: ${n}×${n}`,
+    colorsLabel: (n: number) => `Colores: ${n}`,
+    framed: "Colores reservados al marco",
+    framedHint:
+      "Como el auténtico Eternity II: confina algunos colores a la banda del borde y el resto al interior profundo (requiere tamaño ≥ 4, colores ≥ 2).",
+    generate: "Generar tablero",
+    convertLink: "¿Necesitas pasar entre board_edges, board_pieces y los enlaces bucas?",
+    convertLinkCta: "Abrir el conversor de formatos",
+  },
 };
 
 /** Identity board: piece i at cell i, rotation 0. */

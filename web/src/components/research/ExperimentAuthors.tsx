@@ -1,5 +1,5 @@
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { useLang } from "@/i18n";
+import { useLang, pick } from "@/i18n";
 import { researchDocs, researchAuthors } from "@/lib/research/manifest";
 
 // The experiment gallery's author grid, discovered from the manifest rather than
@@ -36,11 +36,17 @@ const T = {
     inviteBody:
       "Le carnet est ouvert. Si vous avez une recherche à consigner, elle aura sa propre section, créditée à votre nom, aux côtés des autres.",
   },
+  es: {
+    experiments: (n: number) => `${n} experimento${n === 1 ? "" : "s"}`,
+    inviteTitle: "Tu sección aquí",
+    inviteBody:
+      "El cuaderno está abierto. Si tienes una búsqueda que merezca dejar por escrito, tendrá su propia sección, acreditada a tu nombre, junto a las demás.",
+  },
 };
 
 export function ExperimentAuthors() {
   const { lang } = useLang();
-  const t = T[lang];
+  const t = pick(T, lang);
   const docs = researchDocs(lang);
   const authors = researchAuthors(lang);
 

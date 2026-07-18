@@ -86,6 +86,29 @@ const T = {
     note: "L'enfant naïf a un score presque parfait — chaque moitié est résolue en interne — mais ce n'est pas une permutation du jeu de pièces : sa fitness est un mensonge. La réparation garde les premières occurrences et replace les pièces manquantes (meilleure rotation, gloutonnement) : la légalité revient, le score s'effondre. Cet effondrement, c'est le problème de l'opérateur de croisement des fils de 2007.",
     loading: "Génération d'un plateau résolu…",
   },
+  es: {
+    title: "Dos padres perfectos, un hijo roto",
+    intro:
+      "El padre A es un tablero resuelto; el padre B es la misma solución girada un cuarto de vuelta: una disposición distinta, igual de perfecta, de las mismas 64 piezas. Arrastra el corte: el hijo toma las primeras k celdas de A y el resto de B. Los anillos rosa marcan las piezas que el hijo tiene ahora por duplicado; otras tantas faltan por completo.",
+    parentA: "Padre A — resuelto",
+    parentB: "Padre B — resuelto (girado 90°)",
+    childNaive: "Hijo ingenuo",
+    childRepaired: "Hijo reparado",
+    cut: (k: number) => `corte de cruce: ${k} celdas de A, ${N - k} de B`,
+    duplicates: (d: number) =>
+      d === 0
+        ? "un clon de uno de los padres: legal, pero no se ha recombinado nada"
+        : `${d} pieza${d === 1 ? "" : "s"} duplicada${d === 1 ? "" : "s"}, ${d} ausente${d === 1 ? "" : "s"}: no es un tablero legal`,
+    naiveScore: "hijo ingenuo (ilegal)",
+    repairedScore: "hijo reparado (legal)",
+    edges: "aristas coincidentes",
+    repair: "Reparar duplicados",
+    naive: "Ver el hijo ingenuo",
+    sweep: "Barrer",
+    pause: "Pausar",
+    note: "El hijo ingenuo obtiene una puntuación casi perfecta —cada mitad está resuelta internamente—, pero no es una permutación del conjunto de piezas: su aptitud es una mentira. La reparación conserva las primeras apariciones y vuelve a colocar las piezas ausentes (mejor rotación, de forma voraz): la legalidad regresa y la puntuación se desploma. Ese desplome es el problema del operador de cruce de los hilos de 2007.",
+    loading: "Generando un tablero resuelto…",
+  },
 };
 
 /** Parent B: the same solution turned 90° clockwise. The piece from A cell

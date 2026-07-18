@@ -42,6 +42,17 @@ const T = {
     neighbours: "Voies voisines",
     allRoads: "Les neuf voies",
   },
+  es: {
+    research: "Investigación",
+    topics: "Temas",
+    topicsLede:
+      "La investigación organizada por tema en lugar de por sección: elige el muro que te interese y todo lo que la wiki sabe sobre él estará en un mismo lugar.",
+    pages: (n: number) => (n === 1 ? "1 página" : `${n} páginas`),
+    empty:
+      "Aún no hay nada publicado sobre este tema — la historia de la comunidad existe y los artículos están en camino.",
+    neighbours: "Vías vecinas",
+    allRoads: "Las nueve vías",
+  },
 };
 
 function Crumbs({ current }: { current: string }) {

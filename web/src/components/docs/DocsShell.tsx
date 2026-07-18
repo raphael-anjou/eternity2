@@ -100,6 +100,44 @@ const T = {
     time: "Temps",
     space: "Espace",
   },
+  es: {
+    research: "Investigación",
+    notTranslated:
+      "Esta página aún no se ha traducido al español — se muestra la versión en inglés.",
+    reproduce: "Reproducir este resultado",
+    reproKind: {
+      exact: "determinista — se reproduce bit a bit",
+      seeded: "con semilla — se reproduce con la semilla indicada",
+      stochastic: "estocástico — no se reproduce exactamente; el tablero es verificable",
+      heavy: "cómputo intensivo — el script y los resultados están en el repositorio",
+      prose: "prosa — no hay ningún cálculo detrás de esta página",
+    } as Record<ReproKind, string>,
+    computedFrom: "Código y datos en GitHub",
+    source: "Fuentes",
+    previous: "Anterior",
+    next: "Siguiente",
+    keepExploring: "Seguir explorando",
+    editOnGitHub: "Fuente de la página",
+    viewMarkdown: "Ver como Markdown",
+    updated: "Actualizado",
+    by: "por",
+    rigor: {
+      proven: "demostrado",
+      measured: "medido",
+      conjectured: "conjeturado",
+    } as Record<RigorKind, string>,
+    rigorTitle: {
+      proven: "establecido por una demostración formal o exhaustiva / un certificado",
+      measured: "un resultado empírico medido en el motor de este proyecto",
+      conjectured: "una hipótesis o lectura de la literatura, aún no establecida aquí",
+    } as Record<RigorKind, string>,
+    reportBadge: "informe técnico",
+    reportTitle:
+      "un informe técnico: publicado, pero aún no revisado de forma independiente. Sus afirmaciones se hacen de buena fe y todavía pueden revisarse.",
+    complexity: "Complejidad",
+    time: "Tiempo",
+    space: "Espacio",
+  },
 };
 
 const RIGOR_STYLE: Record<RigorKind, string> = {
@@ -526,9 +564,12 @@ export function DocsShell({
           >
             {t.editOnGitHub}
           </a>
-          {/* Raw-markdown sibling, emitted at build time (404 on dev servers). */}
+          {/* Raw-markdown sibling, emitted at build time (404 on dev servers).
+              Siblings are English-only (the wiki's canonical markdown), so every
+              language links the same neutral `/research/<slug>.md` — `doc.url` is
+              already language-neutral. */}
           <a
-            href={`${(lang === "fr" ? "/fr" : "") + doc.url}.md`}
+            href={`${doc.url}.md`}
             target="_blank"
             rel="noreferrer"
             className="underline hover:text-foreground"

@@ -77,6 +77,20 @@ const T = {
     busy: "Tracé…",
     tip: "/ 480",
   },
+  es: {
+    title: "Cada experimento, por mejor puntuación",
+    intro:
+      "Las barras son el mejor tablero que produjo cada método; la línea ámbar es el techo de la comunidad (470), el borde derecho una solución completa (480).",
+    exploreTitle: "Mejores tableros encontrados",
+    exploreNote:
+      "Ejecuciones exploratorias en 8 núcleos; tiempo de reloj no registrado. Son los tableros más altos que alcanzó cada método, las cifras que citan los artículos.",
+    benchTitle: "En un núcleo, 60 segundos cada uno",
+    benchNote:
+      "El banco estandarizado de un solo núcleo: los estudios DFS y de reparación y los motores reimplementados, cada ejecución fijada a un núcleo durante sesenta segundos. Más bajo, y directamente comparable.",
+    ceiling: "techo de la comunidad 470",
+    busy: "Dibujando…",
+    tip: "/ 480",
+  },
 };
 
 function ScorePanel({

@@ -54,6 +54,16 @@ const T = {
       "Chaque pièce candidate est notée par trois signaux appris à la fois, puis on les additionne. La pile la plus haute gagne. Comme aucun signal ne domine, le gagnant change selon le mélange — ce qui empêche justement la recherche de filer dans la même impasse à chaque fois.",
     busy: "Chargement…",
   },
+  es: {
+    title: "Tres señales votan por la siguiente pieza",
+    pos: "dónde encaja",
+    nbr: "a quién limita",
+    patch: "parches 2×2",
+    winner: "colocada",
+    caption:
+      "Cada pieza candidata se puntúa con tres señales aprendidas a la vez y se suman. Gana la pila más alta. Como ninguna señal domina por sí sola, el ganador cambia según la mezcla, que es justo lo que impide que la búsqueda acabe en el mismo callejón sin salida una y otra vez.",
+    busy: "Cargando…",
+  },
 };
 
 export function KeyringDiagram() {

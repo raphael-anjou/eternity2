@@ -187,6 +187,33 @@ const T = {
     nDone: (n: number) =>
       `Recherche épuisée : ${n} solution${n === 1 ? "" : "s"} dans tout l'arbre, chaque état visité une fois, rien copié — seuls des pointeurs ont bougé.`,
   },
+  es: {
+    title: "El algoritmo X con dancing links — cubrir, recurrir, descubrir",
+    intro:
+      "El propio ejemplo de Knuth: 7 elementos A–G, 6 opciones R1–R6, exactamente una cobertura exacta. Recorre la búsqueda paso a paso: se elige la columna con menos unos (fallo primero), cubrirla desprende columnas y filas del entramado de enlaces, un callejón sin salida desata la danza — las mismas escrituras de punteros, deshechas en orden inverso — y la búsqueda se reanuda donde se había quedado.",
+    step: "Paso",
+    play: "Reproducir",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    depth: "profundidad",
+    solutions: "soluciones",
+    partial: "Solución parcial",
+    empty: "(vacío)",
+    legend: "Columnas = elementos por cubrir, filas = opciones. Atenuado = desprendido del entramado de enlaces. El número bajo cada letra es la cantidad de opciones vivas que la cubren.",
+    nStart: "La matriz completa: cada opción está enlazada a cada elemento que cubre. Aún no se ha tomado ninguna decisión.",
+    nChoose: (col: string, size: number) =>
+      `Se elige la columna ${col} — con ${size} opción${size === 1 ? "" : "es"} viva${size === 1 ? "" : "s"}, es el elemento más restringido. Ramificar aquí mantiene el árbol lo más pequeño posible (fallo primero).`,
+    nDead: (col: string) =>
+      `La columna ${col} ya no tiene opciones vivas: este elemento no podrá cubrirse desde aquí. Callejón sin salida — se retrocede.`,
+    nCover: (row: string, items: string, cols: string) =>
+      `Se prueba ${row} {${items}}: cubrir ${cols.length > 1 ? "las columnas" : "la columna"} ${cols} — dos escrituras de punteros por enlace las desprenden, y toda fila que las toca sale del entramado.`,
+    nUncover: (row: string, cols: string) =>
+      `Retroceso desde ${row}: se descubre ${cols} en orden exactamente inverso. Los nodos retirados conservaron sus propios punteros, así que las dos mismas escrituras lo recomponen todo — los enlaces danzan.`,
+    nSolution: (n: number, rows: string) =>
+      `Cada columna cubierta exactamente una vez — solución n.º ${n}: ${rows}. La búsqueda continúa, en busca de más.`,
+    nDone: (n: number) =>
+      `Búsqueda agotada: ${n} solución${n === 1 ? "" : "es"} en todo el árbol, cada estado visitado una vez, nada copiado — solo se movieron punteros.`,
+  },
 };
 
 function noteText(note: DNote, t: (typeof T)["en"]): string {

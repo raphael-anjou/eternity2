@@ -168,6 +168,30 @@ const T = {
       "Calcul exact, aucun aléa : la courbe est une propriété de l'ordre seul. Elle compte des jointures, pas des formes — deux ordres à courbes identiques peuvent encore différer par la forme de leur front, ce que notent le carré magique 10×16 et la théorie complexe.",
     fmt: (x: number) => x.toFixed(2).replace(".", ","),
   },
+  es: {
+    title: "El laboratorio de órdenes de relleno — un camino, un árbol",
+    intro:
+      "Elige un orden y observa dos cosas a la vez: la secuencia de visita que barre el tablero (azul primero, rojo al final) y cuántos vecinos ya colocados encuentra cada celda nueva. Todo orden completo reúne exactamente las mismas 480 uniones — la única elección es cuándo se paga cada una, y pagarlas pronto es lo que poda.",
+    presetRows: "Recorrido por filas",
+    presetSpiral: "En espiral",
+    presetDiagonal: "Diagonal",
+    presetComb: "Peine",
+    teeth: "longitud de los dientes",
+    gridCaption: "secuencia de visita — el color indica la posición en el orden (azul → rojo)",
+    chartTitle: "Vecinos ya colocados de cada celda nueva",
+    axisJoins: "uniones reunidas",
+    legendCount: "vecinos en la colocación k (eje izquierdo, 0–4)",
+    legendCum: "uniones reunidas hasta ahora (eje derecho, de 480)",
+    legendRef: "referencia del recorrido por filas (uniones reunidas)",
+    legendBand: "colocaciones 121–185 — la banda que decide el número de nodos (msg 2714)",
+    weak: (n: number) => `colocaciones débilmente restringidas (≤ 1 vecino): ${n}`,
+    avgBand: (v: string) => `media de vecinos en la banda 121–185: ${v}`,
+    cumAt: (j: number, ref: number) =>
+      `uniones emparejadas en la colocación 185: ${j} de 480 (recorrido por filas: ${ref})`,
+    footnote:
+      "Cálculo exacto, sin azar: la curva es una propiedad del orden en sí mismo. Cuenta uniones, no formas — dos órdenes con curvas idénticas aún pueden diferir por la forma de su frontera, que es lo que puntúan el cuadrado mágico de 10×16 y la teoría de la complejidad.",
+    fmt: (x: number) => x.toFixed(2).replace(".", ","),
+  },
 };
 
 export function FillOrderLab() {

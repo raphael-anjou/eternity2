@@ -46,6 +46,18 @@ const T = {
     scatterY: "2×2 interdits",
     note: "Sur tous les plateaux connus, la tendance est monotone : les 470 sont autour de 18 carrés interdits, les 467 autour de 23, et les plateaux plus faibles en ont des dizaines. Donc deux plateaux de même score ne sont pas équivalents — celui qui a le moins de carrés interdits est structurellement plus proche d'une vraie solution. C'est un second axe de progrès que le compte de bords seul masque. (Comptes sur les fenêtres intérieures entièrement posées, calculés en direct depuis les bords de chaque plateau.)",
   },
+  es: {
+    title: "Cuenta los cuadrados prohibidos — en vivo",
+    intro:
+      "Elige un tablero récord real. Escaneamos sus 225 ventanas 2×2 y, para cada una, planteamos la pregunta exacta: ¿se pueden rotar esas cuatro piezas para que el pequeño cuadrado encaje? Aquellas donde la respuesta es no están prohibidas — remarcadas en rojo. Un tablero 480 perfecto no tendría ninguna. Observa cómo cae la cuenta a medida que el tablero mejora.",
+    boardLabel: "Tablero",
+    forbidden: (n: number, total: number) => `${n} prohibidas de ${total} ventanas`,
+    scoreLabel: (s: number) => `${s} / 480 aristas coincidentes`,
+    scatterTitle: "Cuenta de prohibidos vs puntuación — todos los mejores tableros conocidos",
+    scatterX: "aristas coincidentes",
+    scatterY: "2×2 prohibidos",
+    note: "En todos los tableros conocidos la tendencia es monótona: los 470 rondan los 18 cuadrados prohibidos, los 467 los 23, y los tableros más flojos tienen decenas. Así que dos tableros con la misma puntuación no son equivalentes — el que tiene menos cuadrados prohibidos está estructuralmente más cerca de una solución real. Es un segundo eje de progreso que la cuenta de aristas por sí sola oculta. (Cuentas sobre las ventanas interiores totalmente colocadas, calculadas en vivo a partir de las aristas de cada tablero.)",
+  },
 };
 
 interface Decoded {

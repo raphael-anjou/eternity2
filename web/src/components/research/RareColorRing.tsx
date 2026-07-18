@@ -41,6 +41,24 @@ const T = {
     commonNote:
       "Une couleur commune remplit l'intérieur et ne touche presque pas le cadre — l'image inverse des cinq couleurs rares.",
   },
+  es: {
+    pickPrompt: "Colores raros (solo en el borde) — elige uno:",
+    rareLabel: (c: number) => `Color raro ${c}`,
+    vsCommon: "frente a uno común:",
+    commonLabel: (c: number) => `Color común ${c}`,
+    boardLabel: (c: number, frame: number, interior: number) =>
+      `Mapa del tablero: dónde vive el color ${c} — ${frame} aristas del marco, ${interior} en el interior`,
+    colour: (c: number) => `Color ${c}`,
+    rare: "raro",
+    common: "común",
+    onFrame: "en el anillo del marco",
+    inInterior: "en el interior",
+    totalEdges: "aristas en total",
+    rareNote:
+      "Cada arista de este color se encuentra en el anillo del marco. Ni una sola aparece en el interior de 14×14 — ese centro vacío es todo el hallazgo.",
+    commonNote:
+      "Un color común llena el interior y apenas toca el marco — la imagen inversa de los cinco colores raros.",
+  },
 };
 
 // The spatial companion to the rare-colour bar chart: a 16×16 board where the

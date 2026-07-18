@@ -35,6 +35,13 @@ const T = {
     caption: "Chaque forme indique où le plateau peut casser. Le réseau dispersé répartit les dégâts finement et laisse la région parfaite courir le plus longtemps.",
     busy: "Chargement…",
   },
+  es: {
+    shapes: { rows: "Dos filas", cols: "Dos columnas", lattice: "Retícula dispersa" },
+    legend: "celdas con desajuste permitido",
+    rest: "todo lo demás debe encajar a la perfección",
+    caption: "Cada forma indica dónde puede romperse el tablero. La retícula dispersa reparte el daño de forma tenue y deja que la región perfecta se extienda el mayor tiempo posible.",
+    busy: "Cargando…",
+  },
 };
 
 export function MaskShapeDiagram() {

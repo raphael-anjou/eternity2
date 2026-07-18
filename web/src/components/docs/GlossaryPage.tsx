@@ -36,6 +36,13 @@ const T = {
     see: "Voir",
     jump: "Aller à",
   },
+  es: {
+    research: "Investigación",
+    title: "Glosario",
+    lede: "Las palabras en las que se apoya el wiki, definidas de una vez por todas: la jerga de la comunidad, los términos informáticos que aquí tienen un sentido preciso y la notación con la que se escriben los tableros, cada uno con un enlace a la página que lo profundiza.",
+    see: "Ver",
+    jump: "Ir a",
+  },
 };
 
 function Crumbs({ current }: { current: string }) {

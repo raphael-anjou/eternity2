@@ -89,6 +89,24 @@ const T = {
     step: "Phase",
     busy: "Chargement…",
   },
+  es: {
+    title: "Una iteración de destrucción y reparación, paso a paso",
+    phases: ["Tablero de trabajo", "Destruir", "Reparar", "Aceptar o revertir"],
+    caps: [
+      "Un tablero completo. Cada arista interior está coincidente (verde) o rota (rojo). La puntuación es el número de aristas coincidentes; este bucle intenta aumentarla reconstruyendo una parte del tablero cada vez.",
+      "El operador de destrucción retira un conjunto de celdas (aquí un pequeño grupo alrededor de las aristas rotas) y reúne sus piezas. Las aristas que sostenían esas celdas han desaparecido; el tablero queda temporalmente incompleto. Qué celdas retirar es el eje central del estudio.",
+      "La reparación rellena el hueco a partir de las piezas reunidas, primero la celda más restringida, eligiendo la pieza que hace coincidir más aristas vecinas. Las celdas rellenadas se resaltan; una arista tenaz no pudo coincidir, pero la región está mejor que antes.",
+      "Se puntúa el tablero reconstruido. Si no perdió puntuación, se conserva y se itera; si la perdió, se restaura la instantánea y la próxima vez se prueba otra destrucción. La regla de aceptación (conservar-si-no-empeora, estricta, recocido o aceptación tardía) es todo un eje en sí mismo.",
+    ],
+    matched: "arista coincidente",
+    broken: "arista rota",
+    destroyed: "retirada (destruida)",
+    refilled: "rellenada",
+    prev: "Anterior",
+    next: "Siguiente",
+    step: "Fase",
+    busy: "Cargando…",
+  },
 };
 
 export function RepairLoopDiagram() {

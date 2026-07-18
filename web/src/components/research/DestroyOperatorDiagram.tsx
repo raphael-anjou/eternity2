@@ -55,6 +55,17 @@ const T = {
       "Les quatre opérateurs de destruction sur un même plateau de jointures cassées (rouge). Chacun retire un ensemble de cases de forme différente (violet). Aléatoire ignore où le plateau est cassé ; en-conflit vise exactement les cases cassées ; pire-bande prend toute la bande de lignes portant le plus de cassures ; composante-plus-halo prend un amas connecté et un anneau autour. Sur un bon plateau de départ, ces formes se comportent très différemment, et l'étude mesure comment.",
     busy: "Chargement…",
   },
+  es: {
+    labels: {
+      random: "Celdas aleatorias",
+      mismatch: "Celdas en conflicto",
+      band: "Peor banda",
+      component: "Componente + halo",
+    },
+    caption:
+      "Los cuatro operadores de destrucción sobre un mismo tablero de juntas rotas (rojo). Cada uno retira un conjunto de celdas con una forma distinta (violeta). El aleatorio ignora dónde está roto el tablero; el de conflicto apunta exactamente a las celdas rotas; el de peor banda toma toda la banda de filas que concentra más roturas; el de componente más halo toma un amasijo conexo y un anillo a su alrededor. Sobre un buen tablero de partida, estas formas se comportan de maneras muy distintas, y el estudio mide cómo.",
+    busy: "Cargando…",
+  },
 };
 
 export function DestroyOperatorDiagram() {

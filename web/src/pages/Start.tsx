@@ -222,6 +222,104 @@ const T = {
       },
     ] as Profile[],
   },
+  es: {
+    title: "¿Por dónde quieres empezar?",
+    intro:
+      "Este sitio contiene muchas cosas: un área de juego, un visor de tableros y un extenso wiki de investigación. Dinos a qué vienes y te tendemos un recorrido breve por las partes pensadas para ti. Siempre puedes salirte de él.",
+    bigQuestions: "Las dos preguntas con las que casi todo el mundo empieza:",
+    q1: { to: "/puzzle", title: "¿Qué es Eternity II?", why: "El puzzle, el premio y toda la historia." },
+    q2: { to: "/status", title: "¿Se ha resuelto?", why: "La respuesta directa, y la mejor puntuación que alguien ha alcanzado." },
+    pick: "O elige el perfil que mejor encaje contigo. Nada queda bloqueado; cada recorrido no es más que un conjunto de enlaces.",
+    trailLabel: "Tu recorrido",
+    surpriseLabel: "Quizá no se te habría ocurrido mirar",
+    profiles: [
+      {
+        key: "curious",
+        emoji: "🤔",
+        who: "Solo curiosidad",
+        tagline: "Oíste hablar del puzzle de 2 M$ que nadie ha resuelto y quieres la historia.",
+        trail: [
+          { to: "/puzzle", title: "¿Qué es Eternity II?", why: "Toda la historia, desde el lanzamiento hasta el premio sin reclamar." },
+          { to: "/status", title: "¿Se ha resuelto?", why: "La respuesta directa, y lo mejor que se ha logrado nunca." },
+          { to: "/is-it-a-scam", title: "¿Es una estafa?", why: "Por qué sigue sin resolverse pero casi con certeza no es imposible." },
+          { to: "/playground/solve", title: "Prueba uno pequeño", why: "Siente el puzzle en tus manos, a escala humana." },
+        ],
+        surprise: {
+          to: "/research/why/rare-color-geography",
+          title: "Los colores raros se esconden en el marco",
+          why: "Un dato pequeño y curioso sobre cómo está construido el puzzle.",
+        },
+      },
+      {
+        key: "teacher",
+        emoji: "🧒",
+        who: "Un niño, o un docente",
+        tagline: "Quieres mostrar la explosión combinatoria, con las manos y sin código.",
+        trail: [
+          { to: "/playground/solve", title: "Juega un nivel", why: "Empieza en 3×3 y sube; el último nivel es el verdadero 16×16 que nadie gana." },
+          { to: "/playground/print", title: "Imprime y recorta", why: "Crea puzzles de papel de verdad para la mesa." },
+          { to: "/algorithms", title: "Por qué lo simple parece difícil", why: "El backtracking y el crecimiento exponencial, explicados desde cero." },
+          { to: "/playground/watch", title: "Mira pensar a la máquina", why: "Una búsqueda real colocando y retirando piezas, en directo." },
+        ],
+        surprise: {
+          to: "/status",
+          title: "Nadie ha terminado nunca el de verdad",
+          why: "El récord se mantiene desde 2021. A diez aristas del final.",
+        },
+      },
+      {
+        key: "hobbyist",
+        emoji: "🧩",
+        who: "Alguien que resuelve y trastea",
+        tagline: "Quieres el récord, las piezas y qué método probar.",
+        trail: [
+          { to: "/status", title: "El récord actual", why: "470/480, quién lo ostenta, y qué cuenta como el puzzle de verdad." },
+          { to: "/research/build/tooling", title: "Piezas, pistas y formatos", why: "Las convenciones de e2pieces.txt y de las pistas, y por qué se desvían." },
+          { to: "/convert", title: "Convierte un tablero", why: "Pasa de un enlace bucas a listas de aristas y piezas, y de vuelta." },
+          { to: "/research/build/approaches-map", title: "Todos los enfoques conocidos", why: "El mapa de métodos, hasta dónde llegó cada uno y dónde topa." },
+        ],
+        surprise: {
+          to: "/research/why/rigidity-wall",
+          title: "Por qué todos se atascan en la misma puntuación",
+          why: "El muro que frena por igual a los solucionadores rápidos y a los astutos.",
+        },
+      },
+      {
+        key: "student",
+        emoji: "🎓",
+        who: "Un estudiante de informática",
+        tagline: "Tienes un trabajo, o quieres el ángulo de la complejidad.",
+        trail: [
+          { to: "/research/why/how-hard-is-this-instance", title: "¿Es NP-completa esta instancia?", why: "El error de categoría, y cómo codificarla de verdad (SAT, DLX, ILP)." },
+          { to: "/algorithms", title: "El backtracking, medido", why: "Tiempos reales del propio motor del sitio a medida que crece el tamaño." },
+          { to: "/research/build/techniques", title: "El estante de técnicas", why: "Cada método con lo que cuesta y lo que aportó en este puzzle." },
+          { to: "/research/build/run-it-yourself", title: "Ejecuta tú un solucionador", why: "Pon las manos en un solucionador que funciona, no solo la teoría." },
+        ],
+        surprise: {
+          to: "/research/why/complex-theory",
+          title: "Contar la búsqueda antes de ejecutarla",
+          why: "Estimar el tamaño del árbol sin tocar un solucionador.",
+        },
+      },
+      {
+        key: "researcher",
+        emoji: "🔬",
+        who: "Un investigador",
+        tagline: "Quieres la frontera: lo que se sabe y lo que queda abierto.",
+        trail: [
+          { to: "/research/build/approaches-map", title: "La reseña que nadie escribió", why: "Todos los enfoques en un mapa, con el techo donde cada uno se detiene." },
+          { to: "/research/why", title: "Por qué es difícil", why: "Los resultados estructurales: muros, transición de fase, patrones prohibidos." },
+          { to: "/research/lab/experiments", title: "El cuaderno del laboratorio", why: "Búsquedas con nombre, cada una con el hardware en que corrió y lo que dejó abierto." },
+          { to: "/research/papers", title: "La literatura", why: "La lista de lectura académica, ordenada por utilidad si vas a escribir un solucionador." },
+        ],
+        surprise: {
+          to: "/research/why/sigma-cycles",
+          title: "Por qué el salto entre cuencas es imposible",
+          why: "Una razón estructural por la que toda una clase de búsqueda local no puede funcionar.",
+        },
+      },
+    ] as Profile[],
+  },
 };
 
 export default function Start() {

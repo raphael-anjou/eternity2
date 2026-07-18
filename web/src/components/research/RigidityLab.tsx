@@ -97,6 +97,23 @@ const T = {
     loading: "Résolution d'un petit puzzle avec le moteur…",
     note: "Chaque score ici est celui du vrai moteur. Sur le 16×16 complet, c'est bien plus fort : la programmation en nombres entiers prouve que libérer et re-remplir n'importe quelle région d'un plateau record — jusqu'à des dizaines de cellules — ne bat jamais ce qui est déjà là. Les bons plateaux sont au fond de petites vallées exactes.",
   },
+  es: {
+    title: "Intenta superar un tablero perfecto",
+    intro:
+      "Esta es una solución perfecta real de un puzzle pequeño. Haz clic en dos celdas cualesquiera para intercambiar sus piezas; el motor real vuelve a puntuar al instante. Cada intercambio empata o empeora — un tablero perfecto no tiene mejor vecino. O deja que el motor pruebe todos los intercambios posibles a la vez.",
+    pick: "Haz clic en dos celdas para intercambiarlas.",
+    swapResult: (s: number, max: number) => `Tras tu intercambio: ${s} / ${max}`,
+    tie: "misma puntuación — ninguna mejora",
+    worse: (d: number) => `−${d} — peor, como siempre`,
+    perfect: "sigue siendo perfecto (intercambiaste dos celdas de encaje idéntico)",
+    testAll: "Probar todos los intercambios",
+    testing: "Probando…",
+    reset: "Reiniciar tablero",
+    newPuzzle: "Nuevo puzzle",
+    allResult: (n: number) => `Se probaron los ${n} intercambios con el motor — 0 mejoraron el tablero.`,
+    loading: "Resolviendo un puzzle pequeño con el motor…",
+    note: "Cada puntuación aquí es la del motor real. En el 16×16 completo esto se cumple con mucha más fuerza: la programación entera demuestra que liberar y volver a rellenar cualquier región de un tablero récord — hasta docenas de celdas a la vez — nunca supera lo que ya está ahí. Los buenos tableros se asientan en el fondo de pequeños valles exactos.",
+  },
 };
 
 export function RigidityLab() {

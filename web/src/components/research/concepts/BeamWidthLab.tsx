@@ -145,6 +145,23 @@ const T = {
       `Bilan : faisceau(${k}) = ${beam}, glouton = ${greedy}. Faites glisser K — chaque doublement rapporte moins.`,
     loading: "Chargement…",
   },
+  es: {
+    title: "Observa cómo desciende un haz",
+    intro:
+      "Un árbol sintético: ramificación 4, profundidad 14, puntuaciones deterministas. En cada paso, cada superviviente engendra sus 4 hijos; los hijos reunidos se ordenan y solo sobreviven los K mejores. La posición horizontal codifica el prefijo del camino: observa cómo los supervivientes se apiñan. Los nodos ámbar son trampas: una gran puntuación inmediata y, después, un subárbol envenenado (el equivalente sintético del robo de piezas). El trazo rosa es K = 1, el voraz puro.",
+    width: "anchura del haz K",
+    depth: "profundidad",
+    beamBest: "mejor del haz",
+    greedy: "voraz (K = 1)",
+    distinct: "prefijos distintos",
+    of: "de",
+    collapsed: "colapsado en una sola rama",
+    scoreCurve: "mejor puntuación por profundidad",
+    diversityCurve: "prefijos de profundidad 3 distintos entre los supervivientes",
+    finalNote: (k: number, beam: string, greedy: string) =>
+      `Resultado: haz(${k}) = ${beam}, voraz = ${greedy}. Desliza K: cada duplicación aporta menos.`,
+    loading: "Cargando…",
+  },
 };
 
 const W = 560;

@@ -75,6 +75,30 @@ const T = {
     healthy: "échanges fréquents mais pas gratuits — une échelle qui travaille",
     note: "Le paysage est synthétique, le mécanisme est exact : propositions de Metropolis dans chaque barreau, et la vraie règle d'échange de répliques entre barreaux. Poussez l'espacement aux extrêmes pour reproduire les pannes décrites par la page : trop serré, tout échange est accepté (les barreaux adjacents sont redondants) ; trop large, plus aucun ne l'est (l'échelle se disloque). Graine déterministe — Rejouer reproduit la trajectoire à l'identique.",
   },
+  es: {
+    title: "Cuatro temperaturas, una escalera — frente a una sola cadena fría",
+    intro:
+      "Un paisaje de energía accidentado con una cuenca poco profunda a la izquierda (donde todo comienza) y el mínimo global a la derecha, tras las barreras. Cuatro réplicas ejecutan Metropolis a temperaturas espaciadas geométricamente; los pares adyacentes proponen intercambiar sus estados de forma periódica. El fantasma gris es el control: la misma cadena fría, sola. La réplica fría escapa por la escalera — los peldaños calientes cruzan las barreras y los intercambios van cediendo los buenos estados hacia abajo. El fantasma no sale nunca.",
+    ratio: "Espaciado de la escalera (razón geométrica)",
+    play: "Reproducir",
+    pause: "Pausa",
+    reset: "Repetir",
+    rung: (i: number, temp: number) => `T${i + 1} = ${temp.toFixed(2)}`,
+    swapRate: "aceptación de intercambios",
+    lastSwap: "Último intento de intercambio",
+    accepted: "aceptado",
+    rejected: "rechazado",
+    none: "ninguno aún",
+    coldBest: "réplica fría, mejor E",
+    ghostBest: "cadena fría sola, mejor E",
+    globalMin: "mínimo global",
+    found: "alcanzó el mínimo global — a través de la escalera",
+    ghost: "cadena fría sola (control)",
+    tooTight: "≈100 % de aceptación: los peldaños ven el mismo paisaje — la escalera no aporta nada",
+    tooWide: "≈0 % de aceptación: los peldaños nunca se comunican — la escalera se desacopla",
+    healthy: "intercambios frecuentes pero no gratuitos — una escalera que funciona",
+    note: "El paisaje es sintético, el mecanismo es exacto: propuestas de Metropolis dentro de cada peldaño y la verdadera regla de intercambio de réplicas entre peldaños. Lleva el espaciado a sus extremos para reproducir los fallos que describe la página: demasiado estrecho y todo intercambio se acepta (los peldaños adyacentes son redundantes), demasiado amplio y ninguno lo hace (la escalera se deshace). Semilla determinista — Repetir reproduce la misma trayectoria.",
+  },
 };
 
 /** Deterministic PRNG (mulberry32). */

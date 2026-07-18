@@ -487,6 +487,221 @@ const T = {
       </>
     ),
   },
+  es: {
+    title: "El puzzle Eternity II",
+    intro: (
+      <>
+        Eternity II es un <strong>puzzle de encaje de bordes</strong>: 256 piezas cuadradas en un
+        tablero de 16×16. Allí donde dos piezas se tocan, sus medios dibujos deben formar el mismo
+        motivo, y todo el contorno del tablero debe ser gris. Esa es toda la regla. Cabe en una mesa
+        de café y, sin embargo, ha resistido cuanto intento humano o máquina se le ha echado encima
+        desde 2007.
+      </>
+    ),
+    historyTitle: "Un duelo de venganza por dos millones de dólares",
+    timeline: [
+      {
+        year: "1999",
+        title: "Nace Eternity I",
+        text: "Christopher Monckton lanza un puzzle de teselado de 209 piezas con un premio de 1 000 000 £, convencido de que aguantará años sin resolverse.",
+      },
+      {
+        year: "2000",
+        title: "…y cae en dieciocho meses",
+        text: "Los matemáticos de Cambridge Alex Selby y Oliver Riordan se llevan el millón. Su secreto no fue buscar más rápido que nadie, sino ganarle la partida al propio puzzle: demostraron que escondía muchas más soluciones de las previstas y dirigieron sus ordenadores justo hacia las más accesibles.",
+      },
+      {
+        year: "2005–2007",
+        title: "El arte de preparar la revancha",
+        text: "Para la secuela, Monckton recurre precisamente a quienes lo habían humillado. Selby y Riordan someten a prueba, ordenador en mano, decenas de diseños candidatos hasta lograr un puzzle inmune a todos los trucos que acabaron con Eternity I: una solución diseñada de antemano, recuentos de color cuidadosamente equilibrados y ninguna estructura estadística que explotar.",
+      },
+      {
+        year: "Julio de 2007",
+        title: "Eternity II llega a todo el mundo",
+        text: "256 piezas, 22 motivos de borde, publicado por Tomy. El premio: 2 000 000 de dólares para la primera solución completa. Cuatro pequeños «puzzles pista» revelaban cada uno la colocación de una pieza.",
+      },
+      {
+        year: "2008",
+        title: "Mejor solución parcial: 467 / 480",
+        text: "En el primer examen oficial de las candidaturas, el equipo de Louis Verhaard, de Lund (Suecia), tiene la mejor solución parcial: 467 aristas coincidentes de 480, y se lleva el premio de consolación de 10 000 dólares.",
+      },
+      {
+        year: "31 de diciembre de 2010",
+        title: "El premio expira sin reclamar",
+        text: "Nadie llega nunca a entregar una solución completa. Los 2 000 000 de dólares jamás se pagan. El puzzle desaparece discretamente de las tiendas y entra en la leyenda.",
+      },
+      {
+        year: "De los años 2010 hasta hoy",
+        title: "La comunidad sigue escalando",
+        text: "Con hardware moderno, los aficionados elevan el récord a 468, luego a 469 (Joshua Blackwood y Peter McGavin, 2020) y después a 470 (Blackwood, 2021) sobre el puzzle oficial. Ese 470 se mantiene desde entonces: igualado una vez (Jef Bucas, diciembre de 2024), nunca superado. Todavía separan diez aristas a la humanidad del 480.",
+      },
+    ],
+    anatomyTitle: "Anatomía del juego de piezas",
+    cornerCard: (
+      <>
+        <strong className="text-foreground">piezas de esquina</strong>: dos aristas grises. Cada
+        una encaja en una esquina del tablero en una única orientación.
+      </>
+    ),
+    borderCard: (
+      <>
+        <strong className="text-foreground">piezas de borde</strong>: una sola arista gris, que las
+        obliga a situarse en el contorno con el gris hacia fuera.
+      </>
+    ),
+    interiorCard: (
+      <>
+        <strong className="text-foreground">piezas interiores</strong>: cuatro aristas de color,
+        cuatro rotaciones posibles cada una. Aquí es donde vive la explosión combinatoria.
+      </>
+    ),
+    edgePairs: (
+      <>
+        Un tablero completo tiene <strong>480 aristas interiores</strong> que hacer coincidir
+        (2·16·16 − 16 − 16). «Puntuación 467» significa que 467 de esas 480 aristas coinciden.
+        En todo el juego no hay dos piezas idénticas, y ninguna es simétrica por rotación: los
+        diseñadores se aseguraron de que cada pieza fuera realmente única.
+      </>
+    ),
+    motifsTitle: "Los 22 motivos (y un gris)",
+    pieceAnatomyText: (
+      <>
+        Una pieza son <strong>cuatro motivos triangulares</strong> (arriba, derecha, abajo,
+        izquierda) que se encuentran en el centro (aquí, la famosa pieza de la pista central,
+        la n.º 139). Por eso un motivo es siempre un <em>medio</em> dibujo: el diseño completo solo
+        aparece cuando dos piezas se juntan y sus triángulos se complementan. Eso es lo que
+        significa «hacer coincidir una arista».
+      </>
+    ),
+    motifDistribution: (
+      <>
+        Cada arista lleva uno de los 22 motivos, más el gris del contorno exterior. La distribución
+        no es casual: al contarlos aparece una firma deliberada. Cinco <strong>motivos raros</strong>{" "}
+        aparecen solo 24 veces cada uno y únicamente en el marco (uniones de borde con borde); otros
+        cinco aparecen 48 veces; los doce restantes, 50 veces. Todos los recuentos son pares, porque
+        cada arista de la solución oculta forma parte de una pareja coincidente. En la notación de la
+        comunidad, a cada motivo se le asigna una letra (el formato de URL de e2.bucas.name).
+      </>
+    ),
+    rareFrameBadge: "raro · marco",
+    borderBadge: "el borde",
+    loadingPieceSet: "Cargando el juego de piezas…",
+    allPiecesTitle: "Las 256 piezas",
+    allPiecesText: (
+      <>
+        El juego oficial al completo, ordenado por número de pieza (1–256) y mostrado en su
+        orientación de referencia (rotación 0°). También puedes colocarlas sobre un tablero en el{" "}
+        <Link className="underline" to="/viewer">Visor de tableros</Link>.
+      </>
+    ),
+    showPieceSet: "Mostrar el juego de piezas completo",
+    downloadPieces: "Descargar todas en SVG (.zip)",
+    downloadingPieces: "Comprimiendo…",
+    cluesTitle: "Las cinco pistas oficiales",
+    cluesText1: (
+      <>
+        La hoja de reglas fija una pieza, <strong>la pieza 139 en la casilla I8</strong>, y Tomy
+        vendió cuatro pequeños «puzzles pista» (dos en 2007, dos en 2008), cada uno de los cuales
+        revelaba otra colocación. Un tablero que respeta las cinco se denomina{" "}
+        <strong>estricto-canónico</strong>; la mayoría de los tableros récord solo respetan la pista
+        central obligatoria, por lo que el mejor tablero con las cinco pistas (464, Benjamin Riotte,
+        2026) queda por debajo del récord canónico libre (470).
+      </>
+    ),
+    cluesText2: (
+      <>
+        Las piezas de abajo se muestran <strong>tal como se colocan en el tablero</strong>, ya
+        giradas a la rotación de su pista (indicada bajo cada pieza). A 0°, una pieza queda
+        exactamente como en la lista oficial de piezas.
+      </>
+    ),
+    pieceLabel: (n: number) => `pieza ${n}`,
+    cellAndRot: (cell: string, deg: number) => `${cell} · rot ${deg}°`,
+    mandatoryBadge: "obligatoria",
+    recordsTitle: "Los mejores tableros conocidos",
+    colScore: "Puntuación",
+    colWho: "Quién",
+    colNotes: "Notas",
+    records: [
+      {
+        score: "470 / 480",
+        who: "Joshua Blackwood, 2021",
+        notes: "el récord canónico — igualado una vez (Jef Bucas, diciembre de 2024), nunca superado" as ReactNode,
+        viewId: "Joshua_Blackwood_470" as string | null,
+      },
+      {
+        score: "469 / 480",
+        who: "Blackwood & McGavin, 2020",
+        notes: "el récord anterior — durante mucho tiempo citado como el techo" as ReactNode,
+        viewId: "JBlackwood+PMcGavin_469" as string | null,
+      },
+      {
+        score: "468 / 480",
+        who: "Joshua Blackwood",
+        notes: "" as ReactNode,
+        viewId: "Joshua_Blackwood_468" as string | null,
+      },
+      {
+        score: "467 / 480",
+        who: "El equipo de Louis Verhaard, 2008",
+        notes: "ganó el premio de 10 000 $ a la mejor solución parcial" as ReactNode,
+        viewId: "Louis_Verhaard_467" as string | null,
+      },
+      {
+        score: "464 / 480",
+        who: "Benjamin Riotte, 2026",
+        notes: (
+          <>
+            mejor tablero <em>estricto-canónico</em> (las 5 pistas respetadas) — superó el 460 de Gauthier de 2023
+          </>
+        ) as ReactNode,
+        viewId: "Benjamin_Riotte_464" as string | null,
+      },
+    ],
+    viewLabel: "ver",
+    complexityTitle: "Por qué la fuerza bruta no tiene ninguna posibilidad",
+    bigNumber: (
+      <>
+        ~10<sup>560</sup>
+      </>
+    ),
+    bigNumberText: (
+      <>
+        formas de disponer las piezas, incluso tras aprovechar que las esquinas y los bordes quedan
+        confinados a sus zonas (4! · 56! · 196! · 4<sup>196</sup>). Escribir el número por completo
+        ocupa 560 dígitos.
+      </>
+    ),
+    universeAges: (
+      <>
+        10<sup>450+</sup> edades del universo
+      </>
+    ),
+    universeText: (
+      <>
+        Dale a cada átomo del universo observable (10<sup>80</sup>) mil millones de tableros por
+        segundo desde el Big Bang, y cubrirás alrededor de 10<sup>106</sup> tableros. El problema no
+        es que «haga falta un ordenador más grande». Es un imposible de otra clase: los
+        solucionadores deben ser <em>listos</em>, no rápidos. Consulta{" "}
+        <Link className="underline" to="/algorithms">
+          Algoritmos
+        </Link>
+        .
+      </>
+    ),
+    npComplete: (
+      <>
+        Formalmente, los puzzles de encaje de bordes son <strong>NP-completos</strong> (Demaine y
+        Demaine, 2007); pertenecen a la familia de problemas para los que no se conoce ningún
+        algoritmo general eficiente. Eternity II está considerado una de las instancias más difíciles
+        jamás metidas en una caja. Los métodos ingeniosos conocidos que quebraron Eternity I fueron
+        desactivados a propósito: consulta{" "}
+        <Link className="underline" to="/research">Investigación</Link>. ¿Te preguntas si siquiera
+        tiene solución, o si es una estafa? Consulta{" "}
+        <Link className="underline" to="/is-it-a-scam">¿Es una estafa? ¿Se puede resolver?</Link>
+      </>
+    ),
+  },
 };
 
 export default function PuzzlePage() {

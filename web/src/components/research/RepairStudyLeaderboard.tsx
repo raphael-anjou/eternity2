@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useT, useLang } from "@/i18n";
+import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import data from "@/data/repair-study.json";
 
@@ -77,12 +77,12 @@ const D = data as unknown as {
 
 // One hue per family (the DFS study's validated set). Family is also always named
 // in text, so colour is secondary, never the sole signal.
-const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
-  start: { fill: "#f59e0b", en: "starting board", fr: "plateau de départ" },
-  destroy: { fill: "#3b82f6", en: "destroy operator", fr: "opérateur de destruction" },
-  repair: { fill: "#10b981", en: "repair", fr: "réparation" },
-  accept: { fill: "#8b5cf6", en: "acceptance", fr: "acceptation" },
-  restart: { fill: "#ef4444", en: "restart", fr: "redémarrage" },
+const FAMILY: Record<string, { fill: string } & Dict<string>> = {
+  start: { fill: "#f59e0b", en: "starting board", fr: "plateau de départ", es: "tablero de partida" },
+  destroy: { fill: "#3b82f6", en: "destroy operator", fr: "opérateur de destruction", es: "operador de destrucción" },
+  repair: { fill: "#10b981", en: "repair", fr: "réparation", es: "reparación" },
+  accept: { fill: "#8b5cf6", en: "acceptance", fr: "acceptation", es: "aceptación" },
+  restart: { fill: "#ef4444", en: "restart", fr: "redémarrage", es: "reinicio" },
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
@@ -157,13 +157,41 @@ const T = {
     tblStatsTitle: "Chaque variante, chaque statistique relevée",
     busy: "Tracé…",
   },
+  es: {
+    boardTitle: "La clasificación — puntuación final media por variante",
+    boardIntro:
+      "Puntuación media (aristas coincidentes) del tablero con el que terminó cada variante, sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal.",
+    of: "/ 480",
+    liftTitle: "Lo que el bucle añadió sobre su tablero de partida",
+    liftIntro:
+      "Las mismas ejecuciones, pero mostrando solo la mejora: la ganancia media que cada variante logró sobre el tablero del que partió. Esto aísla la contribución propia del bucle de reparación de la construcción con la que empezó — una variante que parte alto puede añadir poco y aun así terminar alto.",
+    liftAxis: "mejora media (aristas coincidentes)",
+    stallTitle: "Dónde se detiene la mejora",
+    stallIntro:
+      "Para cuatro variantes representativas, la mejor puntuación hasta el momento frente al número de iteraciones (muestreada cada 200 iteraciones, medianas sobre las diez instancias). El sentido del estudio en una sola imagen: sobre un buen tablero de partida, el bucle guiado por conflictos se aplana en pocos miles de iteraciones y los cientos de miles restantes no mueven nada, mientras que la destrucción aleatoria ciega sigue encontrando ganancias durante mucho más tiempo.",
+    stallAxis: "iteraciones",
+    stallY: "mejor puntuación hasta el momento",
+    matrixTitle: "Qué se apila sobre qué",
+    matrixIntro:
+      "Cada variante es el mismo bucle de destrucción y reparación declarado como un único cambio sobre su padre. Esta tabla se genera a partir del registro del motor, por lo que siempre coincide con el código que se ejecutó. «último mejor» es la iteración media en la que el mejor global mejoró por última vez; compárala con «iter.» para leer cuán pronto se estancó cada ejecución.",
+    colVariant: "variante",
+    colFamily: "familia",
+    colDelta: "el único cambio que añade sobre su padre",
+    colMean: "media",
+    colLift: "mejora",
+    colLastBest: "último mejor",
+    colIters: "iter.",
+    colAccept: "acept.",
+    tblStatsTitle: "Cada variante, cada estadística registrada",
+    busy: "Dibujando…",
+  },
 };
 
 export function RepairStudyLeaderboard() {
   const t = useT(T);
   const { lang } = useLang();
   const isClient = useIsClient();
-  const familyLabel = (f: string) => FAMILY[f]?.[lang] ?? f;
+  const familyLabel = (f: string) => (FAMILY[f] ? pick(FAMILY[f], lang) : f);
 
   const scored = useMemo(
     () =>
@@ -456,13 +484,13 @@ function FamilyTag({ family, label }: { family: string; label: string }) {
   );
 }
 
-function FamilyLegend({ lang }: { lang: "en" | "fr" }) {
+function FamilyLegend({ lang }: { lang: Lang }) {
   return (
     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
       {Object.entries(FAMILY).map(([key, f]) => (
         <span key={key} className="inline-flex items-center gap-1.5">
           <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: f.fill }} aria-hidden />
-          {f[lang]}
+          {pick(f, lang)}
         </span>
       ))}
     </div>

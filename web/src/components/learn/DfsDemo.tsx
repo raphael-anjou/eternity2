@@ -33,6 +33,18 @@ const T = {
     footer:
       "La case rouge, c'est là où le solveur travaille. Regardez bien ce qui se passe quand plus aucune pièce ne convient : il défait la dernière pièce posée et repart de là. Ce simple retour en arrière, c'est tout le principe du backtracking.",
   },
+  es: {
+    title: "El backtracking en un 3×3, a cámara lenta",
+    fresh: "Un tablero vacío. Empezamos por la casilla superior izquierda.",
+    solved: (nodes: number, backtracks: number) =>
+      `¡Resuelto! ${nodes} colocaciones, ${backtracks} vueltas atrás. Reiniciando…`,
+    deadEnd:
+      "Aquí no encaja nada. Callejón sin salida: retira la pieza anterior y prueba su siguiente opción.",
+    placed: (tries: number) =>
+      `Una pieza encaja (encontrada tras probar ${tries} candidata${tries === 1 ? "" : "s"}). Pasamos a la siguiente casilla.`,
+    footer:
+      "La casilla roja es donde está trabajando el solucionador. Fíjate en lo que ocurre cuando ninguna pieza encaja: deshace la última pieza colocada y continúa desde ahí. Ese deshacer es todo el secreto del backtracking.",
+  },
 };
 
 export function DfsDemo() {

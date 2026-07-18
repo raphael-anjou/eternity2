@@ -82,6 +82,25 @@ const T = {
     caption:
       "La bande ombrée est l'endroit où tombent réellement les défauts, surlignée sur le vrai plateau ; les barres les comptent par rangée. Changez de plateau : le tas de la communauté est en haut, celui de ce projet en bas — le même puzzle, des sens de balayage opposés.",
   },
+  es: {
+    pick: "Tablero",
+    community: "Comunidad (concentrado arriba)",
+    scratch: "Este proyecto (concentrado abajo)",
+    labels: {
+      "JBlackwood+PMcGavin_469": "McGavin 469",
+      Louis_Verhaard_467: "Verhaard 467",
+      "keyring-460": "KEYRING 460",
+      "gauntlet-458": "GAUNTLET 458",
+    } as Record<string, string>,
+    rowAxis: "fila (0 = arriba)",
+    countAxis: "desajustes",
+    total: (n: number) => `${n} aristas no coincidentes`,
+    band: (a: number, b: number) => `todas en las filas ${a}–${b}`,
+    perfect: "todas las demás filas son perfectas",
+    busy: "Calculando…",
+    caption:
+      "La banda sombreada es donde caen realmente los desajustes, resaltada sobre el tablero real; las barras los cuentan por fila. Cambia de tablero: el montón de la comunidad se sitúa arriba y el de este proyecto abajo — el mismo puzzle, con sentidos de recorrido opuestos.",
+  },
 };
 
 export function MismatchGeometryLab() {

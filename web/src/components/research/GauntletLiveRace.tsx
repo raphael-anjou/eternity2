@@ -74,6 +74,22 @@ const T = {
     running: "recherche",
     note: "Une vraie recherche en profondeur, pas à pas dans votre navigateur — l'ordre de parcours est la seule différence entre les quatre couloirs (mêmes pièces, mêmes règles). Le GAUNTLET de production utilise une recherche en faisceau guidée par un prior plutôt que ce DFS simple, mais le levier est le même qu'ici : changez l'ordre de parcours, changez la région atteinte. Les grands puzzles divergent bien plus violemment ; celui-ci reste en 6×6 pour que chaque pose soit suivable.",
   },
+  es: {
+    title: "Míralo de verdad: cuatro órdenes de recorrido compitiendo",
+    intro:
+      "El mismo puzzle pequeño, resuelto cuatro veces a la vez por el motor real: cada carril ataca las celdas en un orden de recorrido distinto (cuatro de los nueve de GAUNTLET). Míralos divergir. Esa divergencia es justo la clave: un orden aterriza siempre en la misma región; varios órdenes cubren varias.",
+    race: "Iniciar",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    newPuzzle: "Nuevo sorteo",
+    loading: "Cargando el motor…",
+    best: "mejor",
+    placed: "colocadas",
+    solved: "resuelto",
+    stuck: "agotado",
+    running: "buscando",
+    note: "Una búsqueda en profundidad real, paso a paso en tu navegador: el orden de recorrido es la única diferencia entre los cuatro carriles (mismas piezas, mismas reglas). El GAUNTLET de producción usa una búsqueda en haz guiada por un prior en lugar de este DFS simple, pero la palanca es la misma que se muestra aquí: cambia el orden de recorrido, cambia la región a la que llegas. Los puzzles más grandes divergen mucho más violentamente; este se mantiene en 6×6 para que cada colocación sea observable.",
+  },
 };
 
 export function GauntletLiveRace() {

@@ -6,7 +6,7 @@
 // instead of topic. The community-gallery index still lives at the real
 // content page /research/people (people.mdx).
 
-import { useLang, useT } from "@/i18n";
+import { useLang, useT, pick, type Dict } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { kindLabel, KIND_DOT } from "@/lib/research/nav";
@@ -34,6 +34,15 @@ const T = {
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     backToGallery: "Tous les contributeurs",
   },
+  es: {
+    research: "Investigación",
+    people: "Colaboradores",
+    empty:
+      "Esta es una página de perfil. Las contribuciones de este investigador están documentadas por todo el wiki, desde los récords hasta la historia, en lugar de reunidas bajo su sola firma.",
+    emptyLink: "Ver su entrada en el «Quién es quién»",
+    pages: (n: number) => (n === 1 ? "1 página" : `${n} páginas`),
+    backToGallery: "Todos los colaboradores",
+  },
 };
 
 // Order the kind groups so a researcher's headline work reads first.
@@ -48,15 +57,15 @@ const KIND_ORDER: ResearchKind[] = [
   "page",
 ];
 
-const KIND_GROUP: Record<ResearchKind, { en: string; fr: string }> = {
-  finding: { en: "Findings", fr: "Résultats" },
-  experiment: { en: "Experiments", fr: "Expériences" },
-  basin: { en: "Board studies", fr: "Études de plateau" },
-  concept: { en: "Concepts", fr: "Concepts" },
-  tool: { en: "Tools", fr: "Outils" },
-  reference: { en: "References", fr: "Références" },
-  paper: { en: "Papers", fr: "Articles" },
-  page: { en: "Pages", fr: "Pages" },
+const KIND_GROUP: Record<ResearchKind, Dict<string>> = {
+  finding: { en: "Findings", fr: "Résultats", es: "Resultados" },
+  experiment: { en: "Experiments", fr: "Expériences", es: "Experimentos" },
+  basin: { en: "Board studies", fr: "Études de plateau", es: "Estudios de tablero" },
+  concept: { en: "Concepts", fr: "Concepts", es: "Conceptos" },
+  tool: { en: "Tools", fr: "Outils", es: "Herramientas" },
+  reference: { en: "References", fr: "Références", es: "Referencias" },
+  paper: { en: "Papers", fr: "Articles", es: "Artículos" },
+  page: { en: "Pages", fr: "Pages", es: "Páginas" },
 };
 
 function Crumbs({ name }: { name: string }) {
@@ -174,7 +183,7 @@ export function PersonHub({ slug }: { slug: string }) {
           {orderedGroups.map(([kind, items]) => (
             <section key={kind}>
               <h2 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {KIND_GROUP[kind][lang]}
+                {pick(KIND_GROUP[kind], lang)}
                 <span className="tabular-nums font-normal">{t.pages(items.length)}</span>
               </h2>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">

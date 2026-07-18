@@ -9,6 +9,7 @@ import type { TocItem } from "@/lib/research/types";
 const T = {
   en: { onThisPage: "On this page" },
   fr: { onThisPage: "Sur cette page" },
+  es: { onThisPage: "En esta página" },
 };
 
 export function DocsToc({ toc }: { toc: TocItem[] }) {

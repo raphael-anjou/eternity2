@@ -23,13 +23,40 @@ export const CONTENT_DIR = path.join(HERE, "content", "research");
 const TOPICS_FILE = path.join(CONTENT_DIR, "topics.json");
 const AUTHORS_FILE = path.join(CONTENT_DIR, "authors.json");
 
+// The languages the site speaks, English first. Kept in sync with the client
+// registry in src/i18n/index.tsx (the build side can't import the client tree).
+// English is the canonical tree and the fallback for every other language.
+export type Lang = "en" | "fr" | "es";
+
+/** The URL prefix for each language (English at the root, others under
+ *  /<prefix>). This is the pure-data half of the language registry; the client
+ *  registry in src/i18n/index.tsx carries the same codes plus display metadata
+ *  and MUST stay in sync. Kept here (not imported from src/i18n) so Node-side
+ *  config — the sitemap + prerender list — need not pull the React client tree.
+ *  English MUST stay first (canonical tree + fallback). */
+export const LANG_PREFIXES: readonly { code: Lang; prefix: string }[] = [
+  { code: "en", prefix: "" },
+  { code: "fr", prefix: "fr" },
+  { code: "es", prefix: "es" },
+];
+export const LANG_CODES: readonly Lang[] = LANG_PREFIXES.map((l) => l.code);
+/** The non-English languages, in registry order — each carries a `.<lang>.mdx`
+ *  sidecar convention and a `/<lang>` URL tree. */
+export const TRANSLATION_LANGS: readonly Lang[] = LANG_CODES.filter((l) => l !== "en");
+
+// A curated localized string: English is required (canonical + fallback), every
+// other language is optional. A missing translation resolves to English, so a
+// registry entry (a topic label, an author bio) need not be translated into
+// every language at once. Mirrors useT's EN-fallback on the client.
+const localized = z.object({ en: z.string() }).catchall(z.string());
+
 // ---- Topic registry ------------------------------------------------------
 
 const topicSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   order: z.number(),
-  label: z.object({ en: z.string(), fr: z.string() }),
-  description: z.object({ en: z.string(), fr: z.string() }),
+  label: localized,
+  description: localized,
 });
 
 export type TopicDef = z.infer<typeof topicSchema>;
@@ -57,11 +84,17 @@ export function researchTopics(fresh = false): TopicDef[] {
 const authorSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string().min(1),
-  tagline: z.object({ en: z.string(), fr: z.string() }).optional(),
-  affiliation: z.object({ en: z.string(), fr: z.string() }).optional(),
-  bio: z.object({ en: z.string(), fr: z.string() }).optional(),
+  tagline: localized.optional(),
+  affiliation: localized.optional(),
+  bio: localized.optional(),
   links: z.array(z.object({ label: z.string(), url: z.string().url() })).default([]),
 });
+
+/** Resolve a localized string to a language, falling back to English (the
+ *  canonical entry) when that language has no translation. Mirrors useT. */
+export function pickLang(value: Record<string, string>, lang: Lang): string {
+  return value[lang] ?? value["en"] ?? "";
+}
 
 export type AuthorDef = z.infer<typeof authorSchema>;
 
@@ -233,8 +266,6 @@ const frontmatterSchema = z.object({
   group: z.string().optional(),
 });
 
-export type Lang = "en" | "fr";
-
 interface RawEntry {
   slug: string;
   lang: Lang;
@@ -283,14 +314,20 @@ let cache: RawEntry[] | null = null;
  *  busts the cache on content changes. */
 export function scanResearchContent(fresh = false): RawEntry[] {
   if (cache && !fresh) return cache;
+  // A translated sidecar is "<slug>.<lang>.mdx" for any non-English registry
+  // language; an "<slug>.mdx" with no language suffix is the canonical English
+  // page. Built from the registry so a new language's sidecars are recognized
+  // automatically.
+  const sidecarRe = new RegExp(`\\.(${TRANSLATION_LANGS.join("|")})\\.mdx$`);
   const entries: RawEntry[] = [];
   for (const abs of walk(CONTENT_DIR)) {
     const rel = path.relative(CONTENT_DIR, abs).split(path.sep).join("/");
-    const isFr = rel.endsWith(".fr.mdx");
+    const sidecar = sidecarRe.exec(rel);
+    const lang: Lang = sidecar ? (sidecar[1] as Lang) : "en";
     // "<dir>/index.mdx" is the hub page of <dir> ("index.mdx" at the root is
     // /research itself, slug "").
     const slug = rel
-      .replace(/\.fr\.mdx$/, "")
+      .replace(sidecarRe, "")
       .replace(/\.mdx$/, "")
       .replace(/(^|\/)index$/, "$1")
       .replace(/\/$/, "");
@@ -304,16 +341,16 @@ export function scanResearchContent(fresh = false): RawEntry[] {
     }
     entries.push({
       slug,
-      lang: isFr ? "fr" : "en",
+      lang,
       file: rel,
       fm: parsed.data,
       toc: extractToc(content),
       body: content,
     });
   }
-  // Every FR file must have an EN twin (EN is the canonical tree).
+  // Every translated sidecar must have an EN twin (EN is the canonical tree).
   for (const e of entries) {
-    if (e.lang === "fr" && !entries.some((o) => o.lang === "en" && o.slug === e.slug)) {
+    if (e.lang !== "en" && !entries.some((o) => o.lang === "en" && o.slug === e.slug)) {
       throw new Error(`research content: ${e.file} has no English counterpart (${e.slug}.mdx)`);
     }
   }
@@ -387,13 +424,15 @@ function sortKey(d: ResearchDoc): [number, string] {
 }
 
 /** Build the per-language manifest the client consumes.
- *  For FR, untranslated pages fall back to the EN entry with translated:false. */
+ *  For a non-English language, untranslated pages fall back to the EN entry
+ *  with translated:false. */
 export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): ResearchDoc[] {
   const entries = scanResearchContent();
   const en = entries.filter((e) => e.lang === "en");
   const docs = en.map((e) => {
-    const fr = lang === "fr" ? entries.find((o) => o.lang === "fr" && o.slug === e.slug) : undefined;
-    const use = fr ?? e;
+    const translation =
+      lang === "en" ? undefined : entries.find((o) => o.lang === lang && o.slug === e.slug);
+    const use = translation ?? e;
     const doc: ResearchDoc = {
       slug: e.slug,
       url: e.slug === "" ? "/research" : `/research/${e.slug}`,
@@ -428,7 +467,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(e.fm.group !== undefined ? { group: e.fm.group } : {}),
       ...(e.fm.provenance !== undefined ? { provenance: e.fm.provenance } : {}),
       toc: use.toc,
-      translated: lang === "en" || fr !== undefined,
+      translated: lang === "en" || translation !== undefined,
       file: use.file,
     };
     return doc;
@@ -498,17 +537,19 @@ export function researchPagePaths(): string[] {
   return [...pages, ...topicPaths, ...peoplePaths, "research/glossary"];
 }
 
-/** Research paths that have a genuine French rendering, so the build prerenders
- *  a real /fr/research/* HTML file and the sitemap lists it. Two kinds qualify:
- *   - MDX doc pages that ship a `<slug>.fr.mdx` sidecar (translated:true in the
- *     FR manifest). Untranslated pages are deliberately excluded — they fall
- *     back to English client-side, and prerendering them under /fr would put
- *     duplicate English content on a French URL (bad for crawlers).
+/** Research paths that have a genuine rendering in the given (non-English)
+ *  language, so the build prerenders a real /<lang>/research/* HTML file and the
+ *  sitemap lists it. Two kinds qualify:
+ *   - MDX doc pages that ship a `<slug>.<lang>.mdx` sidecar (translated:true in
+ *     that language's manifest). Untranslated pages are deliberately excluded —
+ *     they fall back to English client-side, and prerendering them under
+ *     /<lang> would put duplicate English content on a translated URL (bad for
+ *     crawlers).
  *   - The route-generated hubs (topics, people, glossary): their content comes
- *     from the {en,fr} registries, so every one is genuinely bilingual and
- *     always gets a /fr twin. */
-export function researchPagePathsFr(): string[] {
-  const translatedDocs = buildManifest("fr")
+ *     from the localized registries (which fall back to English per field), so
+ *     every one is reachable in every language and always gets a /<lang> twin. */
+export function researchPagePathsFor(lang: Lang): string[] {
+  const translatedDocs = buildManifest(lang)
     .filter((d) => d.translated)
     .map((d) => d.url.slice(1));
   const topicPaths = researchTopics().map((t) => `research/topics/${t.slug}`);

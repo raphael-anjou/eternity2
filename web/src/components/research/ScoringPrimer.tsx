@@ -44,6 +44,18 @@ const T = {
       `${n} bord${n === 1 ? "" : "s"} ${n === 1 ? "est" : "sont"} désormais non apparié${n === 1 ? "" : "s"} (marqué${n === 1 ? "" : "s"} en rouge). Le score a chuté d'exactement autant. Sur le vrai puzzle, le meilleur jamais atteint est 470 — dix de moins que la perfection.`,
     loading: "Génération d'un plateau soluble…",
   },
+  es: {
+    title: "Primero: ¿qué significa «aristas coincidentes»?",
+    intro:
+      "Cada puntuación de este sitio es un recuento de aristas interiores coincidentes. Aquí tienes un puzzle 4×4 real y resoluble, dispuesto en su solución: cada par de colores en contacto concuerda, por lo que la puntuación es la máxima. Haz clic en una pieza para girarla y observa cómo se rompen las aristas coincidentes.",
+    score: "aristas coincidentes",
+    rotateHint: "Haz clic en cualquier pieza para girarla 90°.",
+    reset: "Volver a la solución",
+    perfect: "Perfecto: cada arista interior concuerda. Esto es lo que sería 480/480 en el 16×16 completo.",
+    broken: (n: number) =>
+      `${n} ${n === 1 ? "arista está ahora descuadrada" : "aristas están ahora descuadradas"} (marcada${n === 1 ? "" : "s"} en rojo). La puntuación bajó exactamente esa cantidad. En el puzzle real, lo mejor que nadie ha alcanzado es 470: diez por debajo de la perfección.`,
+    loading: "Generando un tablero resoluble…",
+  },
 };
 
 export function ScoringPrimer() {

@@ -136,6 +136,56 @@ const T = {
       </>
     ),
   },
+  es: {
+    title: "Observa pensar a la máquina",
+    intro:
+      "Esta es una verdadera búsqueda en profundidad ejecutándose en tu navegador. Míra cómo coloca piezas, choca con callejones sin salida y vuelve atrás. Sube la velocidad al máximo para ver por qué ni siquiera millones de nodos por segundo bastan frente al puzzle de 16×16.",
+    buildingSolver: "Construyendo el solucionador…",
+    loadingEngine: "Cargando el motor WASM…",
+    puzzleCard: "Puzzle",
+    official: "Eternity II oficial (16×16)",
+    sizeLabel: (s: number) => `Tamaño: ${s}×${s}`,
+    colorsLabel: (n: number) => `Colores: ${n}`,
+    framed: "Colores reservados al marco",
+    framedHint:
+      "Como el Eternity II real: confina algunos colores a la banda del borde y el resto al interior profundo (requiere tamaño ≥ 4).",
+    seedLabel: (n: number) => `Semilla: ${n}`,
+    newPuzzle: "Nuevo puzzle",
+    searchPath: "Orden de recorrido",
+    runCard: "Ejecución",
+    speedFull: "Velocidad: todo lo que tu máquina es capaz de dar",
+    speedLabel: (steps: string) => `Velocidad: ${steps} pasos/s`,
+    fullSpeed: "Máxima velocidad",
+    pause: "Pausar",
+    run: "Ejecutar",
+    step: "Paso a paso",
+    reset: "Reiniciar",
+    showBest: "Mostrar el tablero más lleno alcanzado",
+    liveStats: "Estadísticas en vivo",
+    solved: "RESUELTO",
+    noSolution: "sin solución",
+    placed: "Colocadas",
+    deepestEver: "Mejor resultado",
+    placements: "Nodos",
+    placementsTip:
+      "Un nodo = una pieza colocada (la métrica de referencia de los solucionadores en la comunidad).",
+    undoneNote: (n: string) =>
+      `De esas colocaciones, ${n} acabaron deshaciéndose. Una búsqueda difícil desmonta casi todo lo que construye; lo único que perdura es el recuento de «Colocadas».`,
+    nodesPerSecond: "Nodos / s",
+    elapsed: "Tiempo transcurrido",
+    boardCompletion: "Llenado del tablero",
+    whyNotFast: (
+      <>
+        ¿Ves cómo el contador de nodos se dispara mientras la barra de profundidad apenas se
+        mueve? Ahí está toda la historia: en el puzzle de 16×16, ninguna velocidad alcanzable
+        basta. La velocidad bruta solo divide el trabajo por una constante; lo que de verdad hace
+        avanzar el récord es la <em>poda</em> de la búsqueda.{" "}
+        <Link className="underline" to="/research/why/prune-vs-speed">
+          Por qué podar gana a la velocidad →
+        </Link>
+      </>
+    ),
+  },
 };
 
 export default function Watch() {

@@ -26,6 +26,13 @@ const T = {
     caption: "La bordure est verrouillée d'abord ; l'intérieur se remplit ensuite contre elle, les cellules voisines du cadre étant contraintes dès le départ, pas vérifiées seulement à la fin.",
     busy: "Chargement…",
   },
+  es: {
+    border: "borde fijado",
+    interior: "interior, se rellena hacia el centro",
+    constraint: "debe encajar con el marco desde la primera celda",
+    caption: "El borde se bloquea primero; el interior se rellena luego contra él, con las celdas contiguas al marco restringidas desde el inicio, no comprobadas solo al final.",
+    busy: "Cargando…",
+  },
 };
 
 export function BorderAnchorDiagram() {

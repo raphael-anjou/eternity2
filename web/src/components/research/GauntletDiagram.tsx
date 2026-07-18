@@ -48,6 +48,15 @@ const T = {
       "Un seul ordre de parcours converge toujours vers une région. GAUNTLET balaye neuf ordres, si bien que les exécutions se posent dans des régions différentes — ici quatre des neuf, en éventail depuis différents coins. Davantage du paysage couvert par balayage.",
     busy: "Chargement…",
   },
+  es: {
+    title: "Nueve órdenes de recorrido, nueve regiones",
+    one: "una dirección → una región",
+    many: "cuatro direcciones → cuatro regiones",
+    landings: "dónde aterriza cada búsqueda en el espacio de tableros",
+    caption:
+      "Un único orden de recorrido siempre converge hacia una misma región. GAUNTLET barre nueve órdenes de recorrido, de modo que las ejecuciones se asientan en regiones distintas — aquí cuatro de las nueve, abriéndose en abanico desde distintas esquinas. Se cubre más del paisaje por cada barrido.",
+    busy: "Cargando…",
+  },
 };
 
 export function GauntletDiagram() {

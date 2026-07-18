@@ -36,6 +36,14 @@ const T = {
     fullCta: "Appliquer le cycle entier",
     busy: "Chargement…",
   },
+  es: {
+    applied: "celdas movidas",
+    full: "Ciclo completo aplicado: cada celda encaja al aterrizar.",
+    partial: "Solo una parte aplicada: la cadena se rompe y la puntuación cae.",
+    sub: "Desliza el control: un ciclo parcial siempre deja una costura rota.",
+    fullCta: "Aplicar el ciclo completo",
+    busy: "Cargando…",
+  },
 };
 
 export function SigmaCycleDiagram() {

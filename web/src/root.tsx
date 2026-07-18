@@ -1,9 +1,9 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router";
 import type { ReactNode } from "react";
 import "./index.css";
-import { LangProvider, langFromPath, pathForLang } from "@/i18n";
+import { LangProvider, langFromPath, pathForLang, neutralPath, LANGS, LANG_CODES } from "@/i18n";
 import { canonicalUrl } from "@/site";
-import { hasFrenchTwin } from "@/lib/research/i18n-routes";
+import { hasTwin } from "@/lib/research/i18n-routes";
 // The Latin subset of the Geist variable font, imported as a hashed URL so it
 // can be preloaded. This is the one woff2 that basic Latin text (EN + FR body
 // and the big hero headline) resolves to; preloading it means it arrives
@@ -49,8 +49,8 @@ const SITE_JSONLD = {
       url: "https://eternity2.dev/",
       name: "Eternity II · community",
       description:
-        "An open, bilingual educational hub for the Eternity II edge-matching puzzle: play it, watch real solvers run in your browser, learn the algorithms, and read the community research.",
-      inLanguage: ["en", "fr"],
+        "An open, multilingual educational hub for the Eternity II edge-matching puzzle: play it, watch real solvers run in your browser, learn the algorithms, and read the community research.",
+      inLanguage: [...LANG_CODES],
       publisher: { "@id": "https://eternity2.dev/#org" },
     },
     {
@@ -85,14 +85,19 @@ export function Layout({ children }: { children: ReactNode }) {
   // see the right language. Derived from the URL (/fr/... → fr).
   const { pathname } = useLocation();
   const lang = langFromPath(pathname);
-  // hreflang + canonical: tell search engines the EN and FR URLs are
-  // translations of each other, and which is canonical for this page.
+  // hreflang + canonical: tell search engines which localized URLs are
+  // translations of each other, and which is canonical for this page. The
+  // English (neutral) path is x-default. Only advertise a language's alternate
+  // when this page actually has one: an untranslated research page has no
+  // prerendered /<lang> URL, so pointing a crawler there via hreflang would send
+  // it to the SPA fallback, not a real page. Non-research pages and the English
+  // page itself always qualify (hasTwin).
   const enPath = pathForLang(pathname, "en");
-  const frPath = pathForLang(pathname, "fr");
-  // Only advertise a French alternate when this page actually has one. An
-  // untranslated research page has no prerendered /fr URL, so pointing a crawler
-  // at it via hreflang would send it to the SPA fallback, not a real page.
-  const frTwin = hasFrenchTwin(enPath);
+  const neutral = neutralPath(enPath);
+  const alternates = LANGS.filter((l) => hasTwin(neutral, l.code)).map((l) => ({
+    lang: l.code,
+    href: canonicalUrl(pathForLang(pathname, l.code)),
+  }));
   return (
     <html lang={lang}>
       <head>
@@ -113,8 +118,13 @@ export function Layout({ children }: { children: ReactNode }) {
         <Meta />
         <Links />
         <link rel="canonical" href={canonicalUrl(pathname)} />
-        {frTwin && <link rel="alternate" hrefLang="en" href={canonicalUrl(enPath)} />}
-        {frTwin && <link rel="alternate" hrefLang="fr" href={canonicalUrl(frPath)} />}
+        {/* Reciprocal hreflang: emit an alternate per language the page exists
+            in (only when there is more than one — a single-language page needs
+            no alternates), plus x-default → English. */}
+        {alternates.length > 1 &&
+          alternates.map((a) => (
+            <link key={a.lang} rel="alternate" hrefLang={a.lang} href={a.href} />
+          ))}
         <link rel="alternate" hrefLang="x-default" href={canonicalUrl(enPath)} />
         {/* Invariant site-wide social + structured-data tags. These live here as
             literal elements (not in a route `meta` export) because in React

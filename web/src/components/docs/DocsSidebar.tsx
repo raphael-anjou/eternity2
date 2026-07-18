@@ -5,7 +5,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useLocation } from "react-router";
-import { useLang, useT } from "@/i18n";
+import { useLang, useT, neutralPath } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { KIND_DOT, groupedItems, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
@@ -15,10 +15,11 @@ import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 const T = {
   en: { browse: "Browse this section", topics: "Topics", roads: "The nine roads", more: "More", glossary: "Glossary", people: "People", allPeople: "Who's who" },
   fr: { browse: "Parcourir cette section", topics: "Thèmes", roads: "Les neuf voies", more: "Plus", glossary: "Glossaire", people: "Contributeurs", allPeople: "Qui est qui" },
+  es: { browse: "Explorar esta sección", topics: "Temas", roads: "Las nueve vías", more: "Más", glossary: "Glosario", people: "Contribuidores", allPeople: "Quién es quién" },
 };
 
 function activePath(pathname: string): string {
-  return pathname.replace(/^\/fr(?=\/|$)/, "").replace(/\/$/, "") || "/";
+  return neutralPath(pathname).replace(/\/$/, "") || "/";
 }
 
 /** Indent for a nested row. Each level adds a rule + padding, so a page inside

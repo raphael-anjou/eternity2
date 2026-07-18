@@ -302,6 +302,41 @@ const T = {
     nFiltered: (r: number, f: number) =>
       `Filtre terminé : ${r} arêtes supprimées en un couplage + une passe de composantes, ${f} cases désormais forcées. Le rayage par paires n'en aurait trouvé aucune.`,
   },
+  es: {
+    title: "El filtro de Régin, en directo: emparejamiento, componentes, supresiones",
+    intro:
+      "Seis piezas, seis celdas y las aristas factibles entre unas y otras. Primero construimos un emparejamiento máximo mediante caminos aumentantes: observa cómo una pieza ya tomada se re-enruta. Luego llega la idea de Régin: orienta el grafo en torno al emparejamiento, calcula sus componentes fuertemente conexas, y toda arista no emparejada que cruza dos componentes no pertenece a ningún emparejamiento máximo. Se suprimen, de forma correcta; aquí eso fuerza dos celdas que el simple tachado nunca detectaría.",
+    findMatching: "1 · Hallar el emparejamiento máximo",
+    runFilter: "2 · Ejecutar el filtro de Régin",
+    step: "Paso",
+    reset: "Reiniciar",
+    matchingSize: "emparejamiento",
+    removedCount: "aristas suprimidas",
+    pieces: "piezas",
+    cells: "celdas",
+    domains: "Dominios",
+    forced: "¡forzada!",
+    nStart: "El grafo bipartito: una arista allí donde una pieza sigue figurando en la lista de candidatas de una celda.",
+    nConsider: (c: string) => `${c} necesita una pieza: se inicia la búsqueda de un camino aumentante.`,
+    nTryFree: (c: string, p: string) => `${c} prueba ${p}: ¡libre! Se emparejan.`,
+    nConflict: (c: string, p: string, o: string) =>
+      `${c} quiere ${p}, pero ${p} ya la tiene ${o}. Se intenta re-enrutar ${o} hacia otra pieza…`,
+    nDeadEdge: (c: string, p: string) => `Ningún re-enrutamiento pasa por ${p}: se retrocede y se prueba la siguiente arista de ${c}.`,
+    nAugmentShort: (c: string) => `${c} emparejada directamente.`,
+    nAugmentLong: (c: string, len: number) =>
+      `Camino aumentante encontrado (${len} aristas): se invierte — las aristas no emparejadas pasan a estar emparejadas y viceversa. ${c} queda atendida y nadie perdió su pieza.`,
+    nMatchedAll: "Emparejamiento máximo encontrado: las 6 celdas quedan cubiertas. Si hubiera fallado, la posición ya estaría muerta.",
+    nOrient: "Ahora se orienta cada arista: las emparejadas van de la celda a la pieza, las demás de la pieza a la celda. Los caminos alternantes se vuelven caminos dirigidos.",
+    nScc: (i: number, size: number) =>
+      `Componente fuertemente conexa ${i}: ${size} nodos intercambian sus piezas entre sí a lo largo de un ciclo alternante.`,
+    nSingles: "Cada nodo restante es su propia componente diminuta: ningún ciclo pasa por él.",
+    nKeep: (c: string, p: string) =>
+      `${c}–${p} se mantiene: ambos extremos están en la misma componente, así que un ciclo alternante puede incorporarla a algún emparejamiento máximo.`,
+    nDrop: (c: string, p: string) =>
+      `${c}–${p} cruza dos componentes y no está emparejada: no pertenece a ningún emparejamiento máximo. Suprimida, de forma correcta.`,
+    nFiltered: (r: number, f: number) =>
+      `Filtro terminado: ${r} aristas suprimidas en un emparejamiento + una pasada de componentes, ${f} celdas ahora forzadas. El tachado por pares no habría encontrado ninguna de estas.`,
+  },
 };
 
 function noteText(note: Note, t: (typeof T)["en"]): string {

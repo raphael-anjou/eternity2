@@ -130,6 +130,43 @@ const T = {
     bucketAxis: `${BUCKETS} signatures de couture (seaux de hachage)`,
     loading: "Chargement…",
   },
+  es: {
+    title: "Sentir la raíz cuadrada",
+    intro:
+      "Un único mando: el número de decisiones binarias n. El meet in the middle nunca elimina la exponencial — la parte en dos raíces cuadradas, una pagada en tiempo y otra en memoria.",
+    tabTrade: "El intercambio",
+    tabJoin: "La unión",
+    n: "tamaño del problema n",
+    oneTime: "tiempo unilateral",
+    mitmTime: "tiempo MITM",
+    mitmMem: "memoria MITM",
+    oneMem: "memoria unilateral",
+    steps: "pasos",
+    entries: "entradas",
+    atSpeed: "a 10⁹ pasos/s:",
+    oneSidedTakes: "unilateral",
+    mitmTakes: "MITM",
+    tableCosts: "la tabla cuesta",
+    ramWall: "→ más grande que una máquina de 16 GiB",
+    ramOk: "(cabe en RAM)",
+    logNote: "Las barras están en escala logarítmica — cada línea de la cuadrícula vale ×256. En escala lineal serían inservibles: con n = 64 la barra roja sería 2³² veces más larga que las azules.",
+    joinCaption: (
+      <>
+        Una ejecución completa de la micro-instancia n = {JOIN_N}: dos enumeraciones de 2<sup>5</sup> = {HALF} medios candidatos en lugar de un único recorrido de 2<sup>{JOIN_N}</sup> = 1024 — pero solo si la tabla de uno de los lados se mantiene en memoria.
+      </>
+    ),
+    phaseStore: (i: number) => `Almacenando las mitades superiores: ${i} / ${HALF} — cada una indexada por su firma de costura`,
+    phaseProbe: (j: number) => `Sondeando con las mitades inferiores: ${j} / ${HALF} — una consulta a la tabla cada una`,
+    phaseDone: `Listo: ${2 * HALF} pasos de enumeración + ${HALF} entradas almacenadas, en lugar de 1024 recorridos completos.`,
+    stored: "superiores almacenadas",
+    memory: "memoria de tabla",
+    probes: "sondeos",
+    pairs: "soluciones unidas",
+    hit: "acierto",
+    miss: "cubeta vacía",
+    bucketAxis: `${BUCKETS} firmas de costura (cubetas hash)`,
+    loading: "Cargando…",
+  },
 };
 
 /** "1.8×10¹⁹" as JSX (plain number below 10 000). */

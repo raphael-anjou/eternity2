@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useT, useLang } from "@/i18n";
+import { useT, useLang, pick, type Dict, type Lang } from "@/i18n";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import data from "@/data/dfs-study.json";
 
@@ -113,11 +113,11 @@ const D = data as {
 // colour. McGavin and Blackwood are break-DFS engines, so they wear the break
 // colour like every other break variant; that they are third-party is said in
 // words, not hue.
-const FAMILY: Record<string, { fill: string; en: string; fr: string }> = {
-  baseline: { fill: "#f59e0b", en: "baseline", fr: "référence" },
-  path: { fill: "#3b82f6", en: "path order", fr: "ordre de parcours" },
-  heuristic: { fill: "#10b981", en: "heuristic", fr: "heuristique" },
-  break: { fill: "#ef4444", en: "breaks", fr: "cassures" },
+const FAMILY: Record<string, { fill: string } & Dict<string>> = {
+  baseline: { fill: "#f59e0b", en: "baseline", fr: "référence", es: "referencia" },
+  path: { fill: "#3b82f6", en: "path order", fr: "ordre de parcours", es: "orden de recorrido" },
+  heuristic: { fill: "#10b981", en: "heuristic", fr: "heuristique", es: "heurística" },
+  break: { fill: "#ef4444", en: "breaks", fr: "cassures", es: "rupturas" },
 };
 const familyFill = (f: string) => FAMILY[f]?.fill ?? "#94a3b8";
 
@@ -216,6 +216,53 @@ const T = {
     unpinnedGrid: "indice central seul",
     pinnedGrid: "coins fixés",
   },
+  es: {
+    boardTitle: "El ranking — puntuación media por variante",
+    boardIntro:
+      "Puntuación media (aristas coincidentes) sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal. El C de McGavin y el C# de Blackwood también figuran aquí, en la puntuación que su orden de recorrido fijo alcanza antes de que una esquina fijada lo bloquee, etiquetados donde se atascan; la sección de dos rejillas más abajo los muestra funcionando correctamente una vez retiradas las esquinas.",
+    ceiling: "récord de 5 pistas 464",
+    of: "/ 480",
+    depthTitle: "Hasta dónde llegó cada búsqueda, y a qué velocidad",
+    depthIntro:
+      "La profundidad máxima alcanzada por cada variante, de 256. Los backtrackers estrictos se estancan en torno a 200 (el más rápido, NAIVE-CODEGEN, llega a 216); la familia de rupturas llega bastante más lejos, de 243 a 245, porque puede atravesar una arista localmente incoincidente en lugar de retroceder. La tabla de abajo añade el rendimiento medio, en nodos de búsqueda por segundo, que nunca se compara entre familias porque un nodo con propagación no es un nodo ingenuo.",
+    depthAxis: "profundidad máx. alcanzada (de 256)",
+    npsAxis: "rendimiento medio",
+    depthReached: "profundidad alcanzada",
+    matrixTitle: "Qué se apila sobre qué",
+    matrixIntro:
+      "Cada variante es un backtracking en profundidad declarado como un único cambio respecto a su variante padre. Esta tabla se genera a partir del registro del motor, así que siempre coincide con el código que se ejecutó.",
+    colVariant: "variante",
+    colFamily: "familia",
+    colDelta: "el cambio que añade sobre su padre",
+    colPath: "recorrido",
+    colBreaks: "rupturas",
+    colScore: "media",
+    colDepth: "prof.",
+    cited: "citado, no ejecutado aquí",
+    stallsOnPins: "se atasca en las esquinas",
+    busy: "Dibujando…",
+    strict: "estricto",
+    commTitle: "Los motores récord de la comunidad, ejecutados aquí",
+    commIntro:
+      "El C de McGavin y el C# de Blackwood se compilan y ejecutan en la misma máquina. Ninguno puede afrontar la rejilla con esquinas fijadas de arriba: cada uno está construido en torno a una configuración de pistas concreta, de modo que una esquina fijada que su recorrido nunca alcanza pronto lo bloquea de inmediato. Los dos paneles de abajo muestran ambas caras de esto. Primero, las esquinas fijadas del estudio los hacen colapsar. Después, en una rejilla equitativa con solo la única pista central obligatoria, funcionan según su diseño.",
+    commEngine: "motor",
+    commInstance: "instancia ejecutada",
+    commDepth: "profundidad alcanzada",
+    commThroughput: "rendimiento",
+    collapseLabel: "El colapso por las esquinas fijadas",
+    unpinnedTitle: "Mismo presupuesto, mismo núcleo: 60 s desde cero",
+    unpinnedIntro:
+      "Los mismos motores sobre las piezas oficiales con solo la pista central obligatoria fijada, de modo que nada se bloquea en una esquina arbitraria. Cada puntuación se recalcula canónicamente a partir del tablero del propio motor, un solo núcleo, 60 segundos, arranque en frío. Es una comparación con presupuesto controlado, condiciones idénticas para los cuatro, no un concurso de fuerza máxima: muestra hasta dónde llega cada uno en un minuto de núcleo, no el techo de cada motor. Esa única pista fijada aún pesa: Blackwood obtiene aquí 214, muy por debajo de los 454 que alcanza en su página de solucionador, donde su búsqueda coloca cada pieza libremente en lugar de comprometer la pista central de entrada (un tablero legal aun así, ya que solo la pista central obliga, pero una búsqueda más fácil). El marcador tenue sobre los dos motores externos es su mejor puntuación documentada, que exige largas ejecuciones multinúcleo inalcanzables con un presupuesto de un minuto. Lo que la rejilla sí muestra es que los cuatro funcionan correctamente una vez retiradas las esquinas que rompen un recorrido fijo, algo que la rejilla fijada negaba a los dos motores externos.",
+    unpinnedCaveat:
+      "El rendimiento se etiqueta por motor (McGavin cuenta piezas, los demás nodos de búsqueda) y nunca se compara entre motores, porque las unidades no miden el mismo trabajo. McGavin se compila con las propias opciones ARM de su autor (ajuste nativo y optimización en el enlazado).",
+    recordMarkerNote:
+      "La línea discontinua en cada motor externo marca su mejor puntuación documentada (Blackwood ~470, McGavin 469): el puzzle oficial nunca se ha resuelto, así que ningún motor alcanza un 480 genuino. Estos récords exigen largas ejecuciones multinúcleo inalcanzables con un presupuesto de un minuto en un solo núcleo; la propia ejecución más larga de Blackwood en esta misma máquina ya se recalculó a 454.",
+    collapsePanelTitle: "Con esquinas fijadas: el colapso, como puntuación",
+    collapsePanelIntro:
+      "Los dos mismos motores externos sobre la configuración con esquinas fijadas del estudio. La barra es la puntuación canónica que su tablero alcanza antes de que el recorrido fijo los deje varados; la barra tenue detrás es lo que el mismo motor alcanza sin esquinas fijadas. La diferencia es el colapso.",
+    unpinnedGrid: "solo pista central",
+    pinnedGrid: "con esquinas fijadas",
+  },
 };
 
 function npsNum(nps: number | null | undefined): string {
@@ -258,7 +305,7 @@ export function DfsStudyLeaderboard() {
     [],
   );
 
-  const familyLabel = (f: string) => FAMILY[f]?.[lang] ?? f;
+  const familyLabel = (f: string) => (FAMILY[f] ? pick(FAMILY[f], lang) : f);
 
   return (
     <div className="not-prose space-y-10">
@@ -613,7 +660,7 @@ function FamilyTag({ family, label }: { family: string; label: string }) {
   );
 }
 
-function FamilyLegend({ lang }: { lang: "en" | "fr" }) {
+function FamilyLegend({ lang }: { lang: Lang }) {
   return (
     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
       {Object.entries(FAMILY).map(([key, f]) => (
@@ -623,7 +670,7 @@ function FamilyLegend({ lang }: { lang: "en" | "fr" }) {
             style={{ backgroundColor: f.fill }}
             aria-hidden
           />
-          {f[lang]}
+          {pick(f, lang)}
         </span>
       ))}
     </div>

@@ -26,6 +26,12 @@ const T = {
     empty: "Aucun résultat — essayez un autre mot.",
     hint: "Tapez pour chercher dans toutes les pages de recherche.",
   },
+  es: {
+    button: "Buscar",
+    placeholder: "Buscar en el wiki…",
+    empty: "Sin resultados — prueba con otra palabra.",
+    hint: "Escribe para buscar en todas las páginas de investigación.",
+  },
 };
 
 interface Hit extends SearchEntry {
@@ -75,11 +81,22 @@ export function SearchDialog() {
     if (!open || indexLang.current === lang) return;
     let cancelled = false;
     void (async () => {
+      // Per-language search index, loaded only when the dialog opens. Each
+      // specifier is static so the bundler can code-split it; the switch picks
+      // the active language (English is the fallback for any other).
+      const loadIndex = () => {
+        switch (lang) {
+          case "fr":
+            return import("virtual:research-search-fr");
+          case "es":
+            return import("virtual:research-search-es");
+          default:
+            return import("virtual:research-search-en");
+        }
+      };
       const [{ default: MiniSearchCtor }, mod] = await Promise.all([
         import("minisearch"),
-        lang === "fr"
-          ? import("virtual:research-search-fr")
-          : import("virtual:research-search-en"),
+        loadIndex(),
       ]);
       const mini = new MiniSearchCtor<Hit>({
         fields: ["title", "description", "text"],

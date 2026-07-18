@@ -4,14 +4,15 @@
 // conflictEdges), so the red mismatch marks are consistent site-wide. The delta
 // between them ("+N edges") makes what the refinement bought visible at a glance.
 
-import { useLang } from "@/i18n";
+import { useLang, pick, type Dict } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import { RECORD_BOARDS } from "@/data/record-boards";
 
-const T = {
+const T: Dict<{ before: string; after: string; edges: string; open: string; missing: string }> = {
   en: { before: "Raw builder", after: "After ALNS", edges: "edges", open: "Open", missing: "board not found:" },
   fr: { before: "Constructeur brut", after: "Après ALNS", edges: "arêtes", open: "Ouvrir", missing: "plateau introuvable :" },
+  es: { before: "Constructor bruto", after: "Después de ALNS", edges: "aristas", open: "Abrir", missing: "tablero no encontrado:" },
 };
 
 interface Side {
@@ -35,7 +36,7 @@ function resolve(side: Side): { params: string; score?: number } | null {
 }
 
 function BoardCol({ side, fallbackLabel }: { side: Side; fallbackLabel: string }) {
-  const t = T[useLang().lang];
+  const t = pick(T, useLang().lang);
   const r = resolve(side);
   const label = side.label ?? fallbackLabel;
   if (!r) {
@@ -68,7 +69,7 @@ function BoardCol({ side, fallbackLabel }: { side: Side; fallbackLabel: string }
 }
 
 export function BeforeAfterBoards({ before, after }: { before: Side; after: Side }) {
-  const t = T[useLang().lang];
+  const t = pick(T, useLang().lang);
   const b = resolve(before);
   const a = resolve(after);
   const delta = a?.score !== undefined && b?.score !== undefined ? a.score - b.score : undefined;

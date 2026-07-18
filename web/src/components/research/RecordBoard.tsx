@@ -18,6 +18,11 @@ const T = {
     note: "Score recalculé depuis le plateau lui-même. Ouvrez-le pour vérifier chaque arête.",
     missing: "plateau introuvable :",
   },
+  es: {
+    cta: "Abrir en el visor",
+    note: "Puntuación recalculada a partir del propio tablero. Ábrelo para verificar cada arista.",
+    missing: "tablero no encontrado:",
+  },
 };
 
 export function RecordBoard({ id }: { id: string }) {

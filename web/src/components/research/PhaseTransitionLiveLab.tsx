@@ -86,6 +86,20 @@ const T = {
     note: "Chaque point est une médiane sur quelques vraies résolutions sur un plateau 6×6, en direct dans votre navigateur. La forme — facile, puis un pic, puis facile à nouveau — est la transition de phase SAT/CSP. Le 16×16 complet avec ses ~17 couleurs intérieures est sur le pic analogue ; c'est ce placement qu'Ansótegui et al. ont identifié comme le maximum empirique de difficulté.",
     idle: "Appuyez sur le bouton pour mesurer.",
   },
+  es: {
+    title: "Construye la curva de dificultad, en directo",
+    intro:
+      "Pulsa reproducir. Para cada número de colores, el motor resuelve aquí y ahora un pequeño puzzle nuevo y anota el trabajo que le costó. La curva sube hasta un pico y vuelve a bajar: ese pico es la transición de fase, donde hay alrededor de una solución que encontrar y la búsqueda es más difícil. Los diseñadores de Eternity II colocaron el puzzle real justo sobre él.",
+    run: "Medir todos los números de colores",
+    running: (c: number) => `Resolviendo con ${c} colores…`,
+    again: "Volver a ejecutar",
+    yLabel: "nodos explorados (mediana, log)",
+    xLabel: "número de colores",
+    peakAt: (c: number) => `Lo más difícil con ${c} colores: el pico`,
+    loading: "Cargando el motor…",
+    note: "Cada punto es una mediana sobre unas pocas resoluciones reales en un tablero de 6×6, ejecutadas en directo en tu navegador. La forma —fácil, luego un pico y de nuevo fácil— es la transición de fase SAT/CSP. El 16×16 completo, con sus ~17 colores interiores, se sitúa sobre el pico análogo; ese emplazamiento es el que Ansótegui et al. identificaron como el máximo empírico de dificultad.",
+    idle: "Pulsa el botón para medir.",
+  },
 };
 
 export function PhaseTransitionLiveLab() {
