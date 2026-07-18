@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient, cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // A runtime-distribution simulator for restart policies:
 //
@@ -281,17 +282,18 @@ export function RestartTailLab() {
       : [];
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="text-sm font-semibold">{t.title}</h3>
-          <span className="text-[10px] tabular-nums text-muted-foreground">
+    <Lab
+      ref={rootRef}
+      title={
+        <span className="flex items-baseline justify-between gap-2">
+          <span>{t.title}</span>
+          <span className="text-[10px] font-normal tabular-nums text-muted-foreground">
             {revealed}/{N_RUNS} {t.runs} {t.drawn}
           </span>
-        </div>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+        </span>
+      }
+      intro={t.intro}
+    >
       <svg viewBox={`0 0 ${W} ${HIST_H + AXIS_H}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A log-x histogram of node counts over 400 solver runs from a heavy-tailed distribution, blue runs finishing under the restart cutoff and amber runs cut at the dashed threshold line">
         {/* bars */}
         {bins.map((c, i) => {
@@ -426,6 +428,6 @@ export function RestartTailLab() {
             (speedup >= 1 ? t.speedup(speedup.toFixed(1)) : t.slowdown((1 / speedup).toFixed(1)))}
         </p>
       )}
-    </div>
+    </Lab>
   );
 }

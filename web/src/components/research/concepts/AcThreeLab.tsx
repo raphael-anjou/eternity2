@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // AC-3, made watchable. A synthetic 4×4 edge-matching CSP with 3 colours:
 // every cell starts with all 64 candidates (16 tiles × 4 rotations). The user
@@ -410,12 +411,7 @@ export function AcThreeLab() {
           : t.narMiss(cellName(frame.cell), cellName(frame.against));
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.note}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-72">
           <svg viewBox={`0 0 ${W} ${W}`} className="w-full" role="img" aria-label="A grid of cells showing AC-3 arc consistency propagate, each cell's candidate-domain size shrinking as one arc is revised per tick, with the current cell and the arc it is checked against highlighted">
@@ -569,8 +565,6 @@ export function AcThreeLab() {
           {t.reset}
         </Button>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }

@@ -9,6 +9,7 @@ import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // The ALNS loop, made watchable. We take a real solved 8×8 from the engine,
 // damage it down to roughly 80% of its score, then run destroy-and-repair live:
@@ -509,12 +510,7 @@ export function AlnsLoopLab() {
     : t.phase[snap.phase === "flash" ? "decide" : snap.phase];
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.note}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-72 space-y-2">
           <BoardSvg
@@ -618,9 +614,7 @@ export function AlnsLoopLab() {
           ))}
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }
 

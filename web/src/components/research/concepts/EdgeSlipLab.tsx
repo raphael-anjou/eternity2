@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient, cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 import { Button } from "@/components/ui/button";
 
 // Edge slipping, made slidable. Two linked views driven by one slider (the
@@ -207,12 +208,7 @@ export function EdgeSlipLab() {
   const gateSet = new Set(gates);
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.footnote}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <label className="flex min-w-56 flex-1 items-center gap-3 text-sm">
           <span className="whitespace-nowrap text-muted-foreground">{t.slider}</span>
@@ -426,8 +422,6 @@ export function EdgeSlipLab() {
           </p>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.footnote}</p>
-    </div>
+    </Lab>
   );
 }

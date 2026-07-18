@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // Algorithm X on Knuth's own 7-item exact-cover instance, animated. Each frame
 // shows the live matrix: choose the column with fewest 1s, cover it (its rows
@@ -268,12 +269,7 @@ export function DancingLinksLab() {
   const isSolutionFrame = frame.note.k === "solution";
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-80">
           <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full">
@@ -440,6 +436,6 @@ export function DancingLinksLab() {
           {t.reset}
         </Button>
       </div>
-    </div>
+    </Lab>
   );
 }

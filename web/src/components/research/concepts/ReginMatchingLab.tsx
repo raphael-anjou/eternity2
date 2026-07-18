@@ -3,6 +3,7 @@ import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // Régin's all-different filter, made watchable on a fixed 6-cell / 6-piece
 // instance. Phase 1 animates Kuhn's augmenting-path construction of a maximum
@@ -418,12 +419,7 @@ export function ReginMatchingLab() {
   const nodeY = (i: number): number => Y0 + i * DY;
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="w-full max-w-80">
           <svg viewBox={`0 0 340 ${H}`} className="w-full" role="img" aria-label="Bipartite graph of six cells and six pieces with feasible edges, showing the maximum matching, strongly connected components, and the cross-component edges Régin's filter deletes">
@@ -612,6 +608,6 @@ export function ReginMatchingLab() {
           {t.reset}
         </Button>
       </div>
-    </div>
+    </Lab>
   );
 }

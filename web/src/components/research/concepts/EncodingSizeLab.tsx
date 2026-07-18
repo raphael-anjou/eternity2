@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Math as InlineMath } from "@/components/research/Math";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // Interactive encoding-size explorer. Slide the board size n and colour count c
 // and watch the direct clausal encoding blow up against Heule's seam-colour
@@ -275,12 +276,7 @@ export function EncodingSizeLab() {
   const conflict = step >= MAX_STEP;
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.note}>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>{t.boardSize(n)}</Label>
@@ -448,8 +444,6 @@ export function EncodingSizeLab() {
           </Button>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }
