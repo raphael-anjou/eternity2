@@ -184,9 +184,24 @@ export function SearchDialog() {
               onKeyDown={onInputKey}
               placeholder={t.placeholder}
               className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+              // Combobox pattern: the input owns the results listbox and points
+              // at the active option, so arrow-key navigation is announced.
+              role="combobox"
+              aria-expanded={results.length > 0}
+              aria-controls="search-results"
+              aria-activedescendant={
+                results.length > 0 && results[selected] ? `search-opt-${selected}` : undefined
+              }
+              aria-autocomplete="list"
+              aria-label={t.button}
             />
           </div>
-          <div className="max-h-80 overflow-y-auto p-2">
+          <div
+            id="search-results"
+            role="listbox"
+            aria-label={t.button}
+            className="max-h-80 overflow-y-auto p-2"
+          >
             {query.trim().length < 2 ? (
               <p className="px-2 py-6 text-center text-sm text-muted-foreground">{t.hint}</p>
             ) : results.length === 0 ? (
@@ -195,6 +210,9 @@ export function SearchDialog() {
               results.map((hit, i) => (
                 <button
                   key={hit.url}
+                  id={`search-opt-${i}`}
+                  role="option"
+                  aria-selected={i === selected}
                   onClick={() => go(hit.url)}
                   onMouseEnter={() => setSelected(i)}
                   className={cn(
