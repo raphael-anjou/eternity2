@@ -183,14 +183,20 @@ const hardwareSchema = z.object({
 const frontmatterSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
-  // Optional short form used ONLY for the <meta name="description"> / og tag.
-  // Many `description` ledes run 200–450 chars — great as the visible page
-  // subtitle, but Google truncates a SERP snippet around 155–160 chars. When a
-  // page sets `metaDescription`, that (tighter) string feeds the meta tag while
-  // `description` stays the on-page lede. When absent, the meta tag falls back
-  // to `description`, cleanly truncated at a word boundary (see metaDescription
-  // in the manifest). Capped so it can't itself overflow.
-  metaDescription: z.string().min(1).max(165).optional(),
+  // Optional form used ONLY for the <meta name="description"> / og tag. When a
+  // page sets `metaDescription`, that string feeds the meta tag verbatim while
+  // `description` stays the on-page lede; when absent, the meta tag falls back
+  // to `description`, cleanly truncated at a word boundary (see metaDescriptionFor
+  // in the manifest).
+  //
+  // Length: the meta description is NOT a ranking factor, so a longer value
+  // carries no SEO penalty — Google simply renders ~920px (~155–160 chars on
+  // desktop, ~120 on mobile) in the SERP snippet and drops the rest. We front-load
+  // the essential message in the first ~160 chars (what a searcher sees) and let
+  // the description run fuller (up to 300) so AI answer engines and full-text
+  // crawlers, which read the whole tag, get more context. Capped at 300 to keep
+  // the tag a description, not an essay.
+  metaDescription: z.string().min(1).max(300).optional(),
   kind: z
     .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),

@@ -91,18 +91,22 @@ const GLOSSARY_DESC = {
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
-  // Meta/og description is trimmed to a SERP-safe length (~155 chars, word
-  // boundary). This covers the route-generated pages too — glossary, topics and
-  // the person hubs, whose descriptions come from long author bios. MDX docs
-  // pass their own already-resolved short form (see the doc branch below), which
-  // is short enough to pass through untouched.
+  // pack() takes the FINAL meta/og description verbatim — it does not trim. The
+  // route-generated callers below (glossary, topics, person hubs) whose text
+  // comes from long registry prose pre-trim it to a SERP-safe length with
+  // metaDescriptionFor(); the MDX-doc branch passes its authored `metaDescription`
+  // (or the fallback metaDescriptionFor already resolved), which must reach the
+  // tag in full so the deliberately fuller descriptions are not re-truncated.
   const pack = (title: string, description: string) => [
     { title },
-    { name: "description", content: metaDescriptionFor({ description }) },
+    { name: "description", content: description },
     { property: "og:title", content: title },
-    { property: "og:description", content: metaDescriptionFor({ description }) },
+    { property: "og:description", content: description },
     { property: "og:url", content: canonicalUrl(location.pathname) },
   ];
+  // A raw registry string trimmed to a SERP-safe length for the route-generated
+  // hub pages (their descriptions are long author bios / section blurbs).
+  const trimmed = (description: string) => metaDescriptionFor({ description });
 
   // A WebPage node carrying a route-generated hub's derived dateModified, so its
   // freshness signal matches the sitemap <lastmod>. Empty (no node) when the hub
@@ -123,14 +127,18 @@ export function meta({ location }: { location: { pathname: string } }) {
       : [];
 
   if (path === "/research/glossary")
-    return pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, pick(GLOSSARY_DESC, lang));
+    return pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, trimmed(pick(GLOSSARY_DESC, lang)));
 
   const topicSlug = topicSlugFor(path);
-  if (topicSlug === "") return pack(pick(TOPICS_TITLE, lang) + SUFFIX, pick(TOPICS_DESC, lang));
+  if (topicSlug === "")
+    return pack(pick(TOPICS_TITLE, lang) + SUFFIX, trimmed(pick(TOPICS_DESC, lang)));
   if (topicSlug !== null) {
     const topic = researchTopic(lang, topicSlug);
     if (topic)
-      return [...pack(topic.label + SUFFIX, topic.description), ...webPageLd(topicUpdated(topicSlug))];
+      return [
+        ...pack(topic.label + SUFFIX, trimmed(topic.description)),
+        ...webPageLd(topicUpdated(topicSlug)),
+      ];
   }
 
   const personSlug = personSlugFor(path);
@@ -148,7 +156,7 @@ export function meta({ location }: { location: { pathname: string } }) {
           },
           lang,
         );
-      return [...pack(author.name + SUFFIX, desc), ...webPageLd(authorUpdated(personSlug))];
+      return [...pack(author.name + SUFFIX, trimmed(desc)), ...webPageLd(authorUpdated(personSlug))];
     }
   }
 
