@@ -99,6 +99,15 @@ research-entropy-area-law:
 research-record-boards:
     cd research/topics/record-boards/compute && cargo run --release > ../results/verified-scores.json
 
+# Reproduce the clue-puzzle-pieces topic's results (SAT-solve + verify the four
+# recovered clue puzzles). Requires kissat and python3; see the topic's run.sh.
+research-clue-puzzle-pieces:
+    cd research/topics/clue-puzzle-pieces && ./run.sh
+
+# Reproduce the rigidity-sat-halo topic's results (self-test + SAT halo search).
+research-rigidity-sat-halo:
+    cd research/topics/rigidity-sat-halo && ./run.sh
+
 # Regenerate the experiments-log data from the research vault concepts.
 research-experiments-log:
     cd research/topics/experiments-log && python3 extract.py > ../../../web/src/data/experiments.json

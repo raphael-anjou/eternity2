@@ -126,7 +126,7 @@ docker push registry.example.org/eternity2/site:1.0.0
 ### Behind a reverse proxy (Traefik)
 
 Both setups below are verified end-to-end against a real Traefik v3 instance —
-assets, the WASM engine, French routes, the sitemap and the SPA fallback all
+assets, the WASM engine, the localized routes (`/fr`, `/es`), the sitemap and the SPA fallback all
 resolve, and the app hydrates in the browser. The container ships a healthcheck
 and Traefik only routes to healthy containers, so both cases "just work" once
 the container reports healthy (a few seconds after start).

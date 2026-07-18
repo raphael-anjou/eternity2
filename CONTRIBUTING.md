@@ -73,7 +73,7 @@ community boards. If you change one, that suite will tell you.
   panics on wasm32; JS numbers can't hold u64). Counters cross as f64; the browser does
   all timing.
 
-## Internationalization (English + French)
+## Internationalization (English, French, Spanish)
 
 Every page colocates its strings:
 
@@ -81,16 +81,21 @@ Every page colocates its strings:
 const T = {
   en: { title: "Hello", solved: (n: number) => `Solved in ${n}!` },
   fr: { title: "Bonjour", solved: (n: number) => `Résolu en ${n} !` },
+  es: { title: "Hola", solved: (n: number) => `¡Resuelto en ${n}!` },
 };
 // inside the component
 const t = useT(T);
 ```
 
-Rules: both languages must have an identical dictionary shape (TypeScript enforces
-usage); JSX fragments and functions are fine as values; French is written for the
-general public including young students ("vous" form, science-museum register, never a
-literal translation); path-kind names (`row-major`, `snake`, ...) stay in English in
-both languages.
+Rules: `en` is the source of truth and the only required entry; a dictionary that
+omits `fr` or `es` falls back to its whole `en` dictionary for that language (so a
+component can ship before it is translated), and a language that *is* present must
+have the same dictionary shape as `en` (TypeScript enforces usage); JSX fragments
+and functions are fine as values; French
+and Spanish are written for the general public including young students (French uses
+the "vous" form and a science-museum register; Spanish is neutral international
+Spanish), never a literal translation; path-kind names (`row-major`, `snake`, ...)
+stay in English in every language.
 
 ## Testing expectations
 
