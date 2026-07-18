@@ -74,7 +74,3 @@ export function directionRotation(dir: number): number {
 export function colorToLetter(color: number): string {
   return String.fromCharCode(97 + color);
 }
-
-export function letterToColor(letter: string): number {
-  return letter.charCodeAt(0) - 97;
-}

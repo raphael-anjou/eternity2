@@ -84,17 +84,6 @@ export function rotateEdges(
   }
 }
 
-/** Edges of a board cell given the engine encoding pieceId*4+rot. */
-export function cellEdges(
-  puzzle: Puzzle,
-  cell: number,
-): [number, number, number, number] | null {
-  if (cell < 0) return null;
-  const piece = puzzle.pieces[cell >> 2];
-  if (!piece) return null;
-  return rotateEdges(piece, cell & 3);
-}
-
 export function maxScore(width: number, height: number): number {
   return 2 * width * height - width - height;
 }
