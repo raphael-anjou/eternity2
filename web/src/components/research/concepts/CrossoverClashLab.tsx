@@ -9,6 +9,7 @@ import { BoardSvg, CELL } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // The crossover-conflict argument (groups.io msgs 1500/2591), made visible.
 //
@@ -299,12 +300,7 @@ export function CrossoverClashLab() {
   };
 
   return (
-    <div ref={ref} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={ref} title={t.title} intro={t.intro} note={t.note}>
       <div className="flex flex-wrap items-start justify-center gap-6">
         <div className="flex w-full max-w-44 flex-col gap-3 sm:w-44">
           <div className="space-y-1">
@@ -390,8 +386,6 @@ export function CrossoverClashLab() {
           </div>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }

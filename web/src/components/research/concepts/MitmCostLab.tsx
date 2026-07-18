@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useT } from "@/i18n";
 import { useIsClient, cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 import { Button } from "@/components/ui/button";
 
 // The time-memory trade of meet in the middle, made tangible. Two views:
@@ -443,11 +444,7 @@ export function MitmCostLab() {
   }
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
+    <Lab ref={rootRef} title={t.title} intro={t.intro}>
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -465,6 +462,6 @@ export function MitmCostLab() {
         </Button>
       </div>
       {view === "trade" ? <TradeView t={t} /> : <JoinView t={t} visible={visible} />}
-    </div>
+    </Lab>
   );
 }

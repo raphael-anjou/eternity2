@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n";
 import { useIsClient, cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // A synthetic search tree descended by a beam, to make three things visible:
 //
@@ -234,12 +235,12 @@ export function BeamWidthLab() {
   const xOf = (f: number) => 14 + f * (W - 28);
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab
+      ref={rootRef}
+      title={t.title}
+      intro={t.intro}
+      note={t.finalNote(k, sim.final.toFixed(2), greedySim.final.toFixed(2))}
+    >
       <label className="flex items-center gap-3 text-sm">
         <span className="whitespace-nowrap text-muted-foreground">{t.width}</span>
         <input
@@ -356,10 +357,6 @@ export function BeamWidthLab() {
           series={[{ values: sim.levels.map((l) => l.distinct), className: "stroke-emerald-500" }]}
         />
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        {t.finalNote(k, sim.final.toFixed(2), greedySim.final.toFixed(2))}
-      </p>
-    </div>
+    </Lab>
   );
 }

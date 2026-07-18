@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Math as InlineMath } from "@/components/research/Math";
 import { cn } from "@/lib/utils";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
+import { Lab } from "@/components/research/Lab";
 
 // Parallel tempering on a synthetic rugged 1-D landscape. Four replicas run
 // Metropolis at geometrically spaced temperatures; every few sweeps an adjacent
@@ -318,12 +319,7 @@ export function TemperingLadderLab() {
     .join(" ");
 
   return (
-    <div ref={rootRef} className="space-y-4 rounded-lg border bg-card p-4">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{t.title}</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t.intro}</p>
-      </div>
-
+    <Lab ref={rootRef} title={t.title} intro={t.intro} note={t.note}>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md border bg-muted/20" role="img" aria-label="A rugged one-dimensional energy landscape with a shallow left basin and the global minimum on the right, marked with a dashed line, where four tempering replicas and one lone cold control chain move">
         {/* landscape */}
         <path d={path} fill="none" className="stroke-muted-foreground/70" strokeWidth={1.6} />
@@ -468,8 +464,6 @@ export function TemperingLadderLab() {
           {t.reset}
         </Button>
       </div>
-
-      <p className="text-xs text-muted-foreground">{t.note}</p>
-    </div>
+    </Lab>
   );
 }
