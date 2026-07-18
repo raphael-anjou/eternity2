@@ -1,0 +1,73 @@
+# Pull-request / branch CI. The deploy workflow (deploy.yml) already runs the
+# full quality gate, but only *after* a push to the default branch — so a PR got
+# no automated feedback before merge. This workflow runs the same checks on every
+# pull request and on pushes to non-default branches, without touching the Pages
+# deploy. It also adds the two gates the deploy pipeline doesn't run: the i18n
+# coverage check and the engine's clippy lint.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, master]
+  workflow_dispatch:
+
+# A newer push to the same PR/branch cancels the in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Web quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+      - name: Enable pnpm
+        run: npm install -g corepack@latest && corepack enable
+      - name: Install web deps
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+      - name: TypeScript typecheck (strict)
+        working-directory: web
+        run: pnpm typecheck
+      - name: ESLint
+        working-directory: web
+        run: pnpm lint
+      - name: Unit tests (vitest)
+        working-directory: web
+        run: pnpm test
+      - name: i18n coverage
+        working-directory: web
+        run: pnpm run check:i18n
+      - name: Research content checks (house style, links, citations)
+        working-directory: web
+        # Same CI variant the deploy uses: skips the live external-URL probe and
+        # the local bulk-archive existence check (see deploy.yml for why).
+        run: pnpm run check:research:ci
+
+  engine:
+    name: Engine tests + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Rust toolchain (with clippy)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+      - name: Clippy (deny warnings)
+        working-directory: engine
+        run: cargo clippy --release --all-targets -- -D warnings
+      - name: Engine tests (bucas interop cross-validation)
+        working-directory: engine
+        run: cargo test --release

@@ -4,8 +4,8 @@
 
 An open-source hub for the [Eternity II](https://en.wikipedia.org/wiki/Eternity_II_puzzle)
 puzzle: play it, watch real solvers run **in your browser**, learn the algorithms behind
-it, view/share community boards, and dig into the research. Available in English and
-French.
+it, view/share community boards, and dig into the research. Available in English,
+French, and Spanish.
 
 **Everything is static.** The solver is a Rust engine compiled to WebAssembly; there is
 no server. Host it on any static host, or run the provided Docker image (one stateless
@@ -76,7 +76,7 @@ engine/   Rust crate (eternity2-engine): puzzle types, official piece set,
           interop (piece set, rotations, clues, scoring) on real boards.
 web/      React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui frontend.
           web/src/engine/pkg is the wasm-pack output (committed for now).
-          web/src/i18n holds the EN/FR language context; each page colocates
+          web/src/i18n holds the EN/FR/ES language registry; each page colocates
           its translations. Research wiki prose lives in web/content/research
           (MDX); prerendered to build/client by react-router.
 research/  Reproducible research backing the wiki. topics/<id>/ holds shared

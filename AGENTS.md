@@ -1,8 +1,9 @@
 # AGENTS.md — notes for AI agents working on this repo
 
 The Eternity II community site: a Rust→WASM solver engine (`engine/`) plus a
-static React Router 7 site (`web/`). Static-only, no server, bilingual (English
-at the root, French under `/fr`). See `README.md` for the user-facing tour and
+static React Router 7 site (`web/`). Static-only, no server, trilingual (English
+at the root, French under `/fr`, Spanish under `/es`). See `README.md` for the
+user-facing tour and
 `DEPLOYMENT.md` for build/deploy details.
 
 ## Conventions & gotchas
