@@ -39,7 +39,7 @@ const T = {
       quantum: "Quantum",
       fpga: "FPGA",
       tpu: "TPU",
-    } as Record<AcceleratorKind, string>,
+    } satisfies Record<AcceleratorKind, string>,
   },
   fr: {
     title: "Matériel & exécution",
@@ -69,7 +69,7 @@ const T = {
       quantum: "Quantique",
       fpga: "FPGA",
       tpu: "TPU",
-    } as Record<AcceleratorKind, string>,
+    } satisfies Record<AcceleratorKind, string>,
   },
   es: {
     title: "Hardware y ejecución",
@@ -99,7 +99,7 @@ const T = {
       quantum: "Cuántico",
       fpga: "FPGA",
       tpu: "TPU",
-    } as Record<AcceleratorKind, string>,
+    } satisfies Record<AcceleratorKind, string>,
   },
 };
 

@@ -300,12 +300,12 @@ const T = {
       cp: "Constraint-propagation machinery",
       global: "A different paradigm: global optimization",
       crossdomain: "Cross-domain methods we've tried on E2",
-    } as Record<Section, string>,
+    } satisfies Record<Section, string>,
     tier: {
       foundational: "Foundational",
       practical: "Practical",
       context: "Context",
-    } as Record<Tier, string>,
+    } satisfies Record<Tier, string>,
     notes: {
       demaine2007:
         "Proves edge-matching puzzles NP-complete — the theoretical license for 'there is no known fast algorithm'.",
@@ -389,12 +389,12 @@ const T = {
       cp: "Mécanique de propagation de contraintes",
       global: "Un autre paradigme : l'optimisation globale",
       crossdomain: "Méthodes d'autres domaines testées sur E2",
-    } as Record<Section, string>,
+    } satisfies Record<Section, string>,
     tier: {
       foundational: "Fondateur",
       practical: "Pratique",
       context: "Contexte",
-    } as Record<Tier, string>,
+    } satisfies Record<Tier, string>,
     notes: {
       demaine2007:
         "Prouve que les casse-tête d'assemblage par les bords sont NP-complets — la caution théorique du « on ne connaît aucun algorithme rapide ».",
@@ -478,12 +478,12 @@ const T = {
       cp: "Maquinaria de propagación de restricciones",
       global: "Otro paradigma: la optimización global",
       crossdomain: "Métodos de otros dominios que hemos probado en E2",
-    } as Record<Section, string>,
+    } satisfies Record<Section, string>,
     tier: {
       foundational: "Fundacional",
       practical: "Práctico",
       context: "Contexto",
-    } as Record<Tier, string>,
+    } satisfies Record<Tier, string>,
     notes: {
       demaine2007:
         "Demuestra que los puzzles de encaje de bordes son NP-completos: el aval teórico de «no se conoce ningún algoritmo rápido».",
