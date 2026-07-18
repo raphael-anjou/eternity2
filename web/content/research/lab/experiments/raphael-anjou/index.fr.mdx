@@ -1,20 +1,22 @@
 ---
 title: "Les expériences de Raphaël Anjou"
 description: >-
-  Les expériences de recherche nommées du carnet de Raphaël Anjou : des runs de
-  beam-search et de local-search conçus pour pousser le score d'Eternity II,
-  chacun avec son idée, sa meilleure grille et les questions qu'il laisse
-  ouvertes. La meilleure atteint 463 sur 480 ; le meilleur de la communauté sur
-  le même puzzle est 470.
-metaDescription: "Expériences Eternity II de Raphael Anjou : runs beam-search et local-search pour pousser le score, avec idée, meilleure grille et questions ouvertes."
+  Un carnet d'expériences de recherche sur Eternity II, organisé autour des
+  moteurs partagés qui les font tourner, des pipelines de combinaison qui
+  courent après le score, de trois études qui décortiquent un paradigme de
+  recherche une décision à la fois, et de résolutions exactes de fin de partie.
+  Chacune expose son idée, son meilleur plateau et les questions qu'elle laisse
+  ouvertes. La meilleure atteint 463 sur 480.
+metaDescription: "Le carnet Eternity II de Raphaël Anjou : moteurs partagés, pipelines, trois études mono-paradigme, résolutions exactes. Meilleur plateau 463 sur 480."
 kind: page
 order: 20
 author: raphael-anjou
-updated: 2026-07-13
+updated: 2026-07-17
 ---
 
 import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
+import { ProseLink } from "@/components/docs/mdx-components";
 
 export const scores = [
   // Group 1: the best board each method reached. Exploratory runs on 8 cores,
@@ -38,53 +40,145 @@ export const scores = [
   { key: "bench-dfs", label: "DFS BREAK-1", score: 435, family: "bench", group: "bench" },
 ];
 
-Voici les expériences de recherche de [Raphaël Anjou](/research/people/raphael-anjou).
-Certaines sont des idées originales ; d'autres réimplémentent fidèlement une
-technique connue de la communauté pour mesurer exactement ce qu'elle apporte.
-Chaque compte rendu expose l'idée, la grille atteinte et les questions qu'il
-laisse ouvertes. La meilleure atteint 463 sur 480 arêtes appariées ; le meilleur
-de la communauté sur le même puzzle est 470. Méthodes et grilles sont ici au
-complet.
+export function Door({ to, title, kicker, children }) {
+  return (
+    <ProseLink
+      href={to}
+      className="group block rounded-xl border p-5 no-underline transition-shadow hover:shadow-md"
+    >
+      {kicker ? (
+        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{kicker}</div>
+      ) : null}
+      <div className="mt-0.5 text-base font-semibold tracking-tight group-hover:underline">{title}</div>
+      <div className="mt-1.5 text-sm leading-relaxed text-muted-foreground [&>p]:m-0">{children}</div>
+    </ProseLink>
+  );
+}
 
-La plupart de ces expériences ne partent pas de rien. Elles s'appuient sur un
-petit ensemble de [moteurs](/research/lab/experiments/raphael-anjou/engines)
-partagés : un producteur beam constructif, une recherche locale par
-destruction-réparation, et une famille de préréglages CSP, documentés une fois
-et réutilisés d'étude en étude. Si vous voulez comprendre comment une recherche
-fonctionne réellement avant de lire ce qu'une étude particulière en a fait,
-commencez par là.
+Voici le carnet des expériences de recherche sur Eternity II de [Raphaël
+Anjou](/research/people/raphael-anjou). Certaines sont des idées originales ;
+d'autres réimplémentent fidèlement une technique connue de la communauté pour
+mesurer exactement ce qu'elle apporte. Chacune consigne son idée, le plateau
+qu'elle a atteint et les questions qu'elle laisse ouvertes, et chaque plateau
+est réel et vérifiable dans le [visualiseur](/viewer). Le meilleur atteint
+**463 sur 480** arêtes appariées ; le meilleur de la communauté sur le même
+puzzle est 470. Méthodes et plateaux sont ici au complet, rien n'est passé sous
+silence.
 
-Trois études se tiennent à part des pipelines de combinaison ci-dessous, chacune
-maintenant une question fixe et faisant varier une seule chose à son sujet.
-L'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) démonte le
-backtracker en profondeur d'abord, en construisant toute une famille de variantes
-un changement à la fois (ordre de remplissage, heuristique, politique de rupture).
-L'[étude de réparation](/research/lab/experiments/raphael-anjou/repair-study) fait
-de même pour la recherche locale par destruction-réparation (quelle région
-détruire, comment la reconstruire, quand conserver un mouvement, de quelle grille
-partir), la boucle avec laquelle les records atteignent réellement le sommet. La
-troisième,
-[apprendre à partir de grilles fortes](/research/lab/experiments/raphael-anjou/learning),
-retourne la question vers l'intérieur : plutôt que de faire varier la recherche,
-elle fait varier ce que la recherche a le droit de *savoir*, en fouillant le
-corpus de grilles déjà trouvées à la recherche de structure (PRIOR, KEYRING,
-LODESTONE, PALIMPSEST, REPLAY) pour la réinjecter. Son compte rendu, indépendant
-de la méthode, constitue la
-[section théorique sur l'apprentissage à partir de grilles](/research/build/learning).
-Toutes trois mesurent une seule chose à la fois et chacune a son propre foyer.
-Les études DFS et de réparation font varier un curseur sur une grille de valeurs
-plutôt que de produire une seule grille, elles portent donc leurs propres
-classements au lieu d'une ligne sur le graphe ci-dessous ; les cinq expériences
-d'apprentissage atteignent chacune une unique grille scorée, elles gardent donc
-leurs lignes ici (étiquetées par le score) en plus de leur foyer d'étude.
+C'est un carnet, non un résultat unique : mieux vaut donc en connaître
+l'agencement avant de s'y plonger.
+
+## Ce que contient cette section
+
+Deux natures de choses cohabitent ici : l'**appareillage** sur lequel tournent
+les expériences, et les **expériences** elles-mêmes. Ces dernières se déclinent
+en trois genres : les pipelines qui courent après le score du plateau entier,
+les études qui isolent une décision de recherche à la fois, et les résolutions
+exactes qui *prouvent* une petite région au lieu de la deviner. Commencez là où
+se trouve la question qui vous tient à cœur.
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <Door
+    to="/research/lab/experiments/raphael-anjou/engines"
+    kicker="L'appareillage"
+    title="Les moteurs"
+  >
+    La machinerie partagée sur laquelle tournent les expériences : un producteur
+    constructif par faisceau, une recherche locale par destruction-réparation et
+    une famille de préréglages CSP. Documentée une seule fois ici pour que chaque
+    étude puisse y renvoyer au lieu de réexpliquer la machine. Commencez ici si
+    vous voulez comprendre comment fonctionne une recherche avant de lire ce
+    qu'une étude en a fait.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/pipelines"
+    kicker="Courir après le score"
+    title="Pipelines de combinaison"
+  >
+    Les exécutions nommées qui font grimper le score. Chacune est un pipeline, et
+    non un algorithme isolé : construire un plateau avec un moteur, puis
+    l'améliorer ou l'achever avec un autre. Tout l'intérêt réside dans la
+    répartition du travail entre construction, réparation et fin de partie exacte.
+    C'est de là que viennent les plateaux qui approchent le record.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/dfs-study"
+    kicker="Décortiquer un paradigme"
+    title="L'étude DFS"
+  >
+    Le retour sur trace en profondeur d'abord, disséqué. Une famille de solveurs
+    à rebroussement partant de zéro, séparés chacun par un seul changement (ordre
+    de remplissage, heuristique, politique de rupture), exécutés sur les dix mêmes
+    variantes à budget fixe, pour chiffrer la valeur de chaque idée.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/repair-study"
+    kicker="Décortiquer un paradigme"
+    title="L'étude de réparation"
+  >
+    Sa jumelle, pour la recherche locale par destruction-réparation : quelle
+    région détruire, comment la reconstruire, quand conserver un coup, de quel
+    plateau partir. La boucle avec laquelle les records atteignent réellement le
+    sommet, décortiquée une décision à la fois.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/learning"
+    kicker="Décortiquer un paradigme"
+    title="Apprendre des plateaux forts"
+  >
+    La troisième étude, tournée vers l'intérieur : plutôt que de faire varier la
+    recherche, on fait varier ce qu'elle a le droit de *savoir*. Cinq expériences
+    fouillent le corpus des plateaux forts pour en extraire de la structure et la
+    réinjectent, et toutes cinq se heurtent au même mur.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
+    kicker="Prouver une région"
+    title="Rencontre au milieu"
+  >
+    Résolutions exactes de fin de partie : énumérer une région par les deux bouts
+    et les raccorder sur la couture pour trouver la véritable meilleure complétion,
+    avec la preuve qu'aucune ne fait mieux. Elles mesurent exactement une petite
+    région au lieu de courir après le score du plateau entier.
+  </Door>
+</div>
+
+Les deux moteurs constructifs, le producteur par faisceau et l'étape de
+polissage ALNS, n'ont pas encore leur propre exposé ; là où un pipeline en
+pilote un, la page de ce pipeline indique ce que fait ce moteur au niveau dont
+l'étude a besoin. Les préréglages CSP sont le seul moteur documenté et mesuré en
+intégralité.
+
+## Comment lire les scores
+
+Le graphique et le tableau ci-dessous portent deux natures de chiffres à ne
+jamais confondre : c'est pourquoi ils sont représentés en deux groupes distincts.
+
+- **Exploration** est le meilleur plateau que chaque méthode a atteint lors
+  d'exécutions exploratoires sur 8 cœurs, sans que le temps d'horloge soit
+  consigné. Ce sont les chiffres phares que citent les exposés, et ils plafonnent
+  au 463 de PALIMPSEST.
+- **Banc** est le banc d'essai standardisé sur un seul cœur : un cœur, soixante
+  secondes, chaque plateau étant re-noté par le même barème canonique. Plus bas,
+  et *directement comparable* d'une méthode à l'autre, ce que ne permettent pas
+  les chiffres d'exploration.
+
+Toutes les expériences ne méritent pas une ligne. Les trois études font varier un
+curseur sur une grille de valeurs plutôt que de produire un seul plateau : les
+études [DFS](/research/lab/experiments/raphael-anjou/dfs-study) et
+[réparation](/research/lab/experiments/raphael-anjou/repair-study) portent donc
+leur propre classement au lieu d'une ligne sur le graphique ; seul leur meilleur
+résultat de banc figure ici. Les cinq expériences
+[d'apprentissage](/research/lab/experiments/raphael-anjou/learning) atteignent
+chacune un plateau scoré : elles gardent donc leur ligne en plus de leur foyer
+d'étude. Les lignes de banc ci-dessus sont des résultats d'étude, non des pages
+autonomes : elles n'apparaissent donc que sur le graphique.
 
 <ExperimentScoreChart data={scores} />
 
 Les expériences nommées sous forme de tableau triable (cliquez sur un en-tête de
 colonne pour réordonner par score, nom, méthode ou mois). L'auteur, le mois, la
-rigueur et la reproductibilité sont lus depuis la page propre à chaque expérience,
-si bien que ce récapitulatif reste en phase avec elles. Les lignes du banc
-mono-cœur ci-dessus sont des résultats d'étude, non des pages d'expérience
-autonomes, elles n'apparaissent donc que sur le graphe.
+rigueur et la reproductibilité sont lus depuis la page propre à chaque
+expérience, si bien que ce récapitulatif reste en phase avec elles.
 
 <ExperimentResultsTable data={scores.filter((s) => s.group !== "bench")} />
