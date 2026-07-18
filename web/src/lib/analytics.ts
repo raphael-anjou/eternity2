@@ -5,6 +5,16 @@
 // first), after hydration. Page views are sent by the router (see PageTracking
 // in layout.tsx); window.gtag safely no-ops until this has run.
 
+// The gtag/dataLayer globals GA installs on window, declared once so the whole
+// app can read window.gtag without per-call casts. (requestIdleCallback and its
+// canceller are standard DOM lib types; only these two need augmenting.)
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 const GA_ID = import.meta.env["VITE_GA_ID"];
 const VALID = typeof GA_ID === "string" && /^G-[A-Z0-9]{4,}$/.test(GA_ID);
 
@@ -15,18 +25,14 @@ function inject(): void {
   if (started || !VALID) return;
   started = true;
 
-  const w = window as unknown as {
-    dataLayer: unknown[];
-    gtag: (...args: unknown[]) => void;
-  };
-  w.dataLayer = w.dataLayer || [];
+  window.dataLayer = window.dataLayer || [];
   // Match GA's own bootstrap: gtag pushes its argument list onto dataLayer.
-  w.gtag = function gtag() {
+  window.gtag = function gtag() {
     // eslint-disable-next-line prefer-rest-params
-    w.dataLayer.push(arguments);
+    window.dataLayer?.push(arguments);
   };
-  w.gtag("js", new Date());
-  w.gtag("config", GA_ID, { anonymize_ip: true, send_page_view: false });
+  window.gtag("js", new Date());
+  window.gtag("config", GA_ID, { anonymize_ip: true, send_page_view: false });
 
   const s = document.createElement("script");
   s.async = true;
@@ -48,20 +54,14 @@ export function loadAnalyticsWhenIdle(): () => void {
   const go = () => {
     inject();
     for (const e of events) window.removeEventListener(e, go);
-    if (idleHandle !== undefined) {
-      const ric = (window as unknown as { cancelIdleCallback?: (h: number) => void })
-        .cancelIdleCallback;
-      ric?.(idleHandle);
-    }
+    if (idleHandle !== undefined) window.cancelIdleCallback?.(idleHandle);
   };
 
-  const ric = (
-    window as unknown as {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-    }
-  ).requestIdleCallback;
-  if (ric) idleHandle = ric(go, { timeout: 4000 });
-  else idleHandle = window.setTimeout(go, 2500);
+  if (typeof window.requestIdleCallback === "function") {
+    idleHandle = window.requestIdleCallback(go, { timeout: 4000 });
+  } else {
+    idleHandle = window.setTimeout(go, 2500);
+  }
 
   for (const e of events) window.addEventListener(e, go, { once: true, passive: true });
 

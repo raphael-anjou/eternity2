@@ -3,7 +3,7 @@ import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath, getMaxColors } from "@/engine";
 import { Button } from "@/components/ui/button";
-import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
+import { driveSolver, yieldToBrowser } from "@/lib/useRunWhileVisible";
 
 // The hardness peak, measured live. For a fixed small board we solve a generated
 // puzzle at each colour count, right now, with the real engine, and plot the
@@ -37,15 +37,8 @@ async function medianNodesAt(
     const puzzle = getGeneratedPuzzle(size, colors, seed);
     const path = getPath("row-major", puzzle.width, puzzle.height, 0);
     const solver = createSolver(puzzle, path, { useHints: false });
-    let r = solver.report();
     try {
-      while (r.status === "running" && !cancelled()) {
-        const deadline = performance.now() + FRAME_BUDGET_MS;
-        do {
-          r = solver.step(2_000);
-        } while (r.status === "running" && performance.now() < deadline);
-        if (r.status === "running") await yieldToBrowser();
-      }
+      const r = await driveSolver(solver, { batch: 2_000, cancelled });
       runs.push(r.nodes);
       if (r.status === "solved") solved++;
     } finally {

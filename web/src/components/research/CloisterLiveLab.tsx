@@ -3,7 +3,7 @@ import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
 import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
 import { Button } from "@/components/ui/button";
-import { FRAME_BUDGET_MS, yieldToBrowser } from "@/lib/useRunWhileVisible";
+import { driveSolver } from "@/lib/useRunWhileVisible";
 
 // CLOISTER's idea, measured live: does anchoring the border first save work?
 // We solve the same small puzzle two ways with the real engine — once border-
@@ -34,19 +34,16 @@ async function solveCount(
   const puzzle = getGeneratedPuzzle(size, 5, seed);
   const path = getPath(kind, puzzle.width, puzzle.height, 0);
   const solver = createSolver(puzzle, path, { useHints: false });
-  let r = solver.report();
   try {
-    while (r.status === "running" && r.nodes < NODE_CAP && !cancelled()) {
-      const deadline = performance.now() + FRAME_BUDGET_MS;
-      do {
-        r = solver.step(2_000);
-      } while (r.status === "running" && r.nodes < NODE_CAP && performance.now() < deadline);
-      if (r.status === "running" && r.nodes < NODE_CAP) await yieldToBrowser();
-    }
+    const r = await driveSolver(solver, {
+      batch: 2_000,
+      cancelled,
+      keepGoing: (report) => report.nodes < NODE_CAP,
+    });
+    return { nodes: r.nodes, solved: r.status === "solved" };
   } finally {
     solver.free();
   }
-  return { nodes: r.nodes, solved: r.status === "solved" };
 }
 
 const T = {

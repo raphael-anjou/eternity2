@@ -105,8 +105,7 @@ const T = {
 function PageTracking() {
   const { pathname } = useLocation();
   useEffect(() => {
-    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
-    gtag?.("event", "page_view", {
+    window.gtag?.("event", "page_view", {
       page_path: pathname,
       page_location: window.location.href,
       page_title: document.title,
