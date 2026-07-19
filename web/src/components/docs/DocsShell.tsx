@@ -570,9 +570,10 @@ export function DocsShell({
           {/* Raw-markdown sibling, emitted at build time (404 on dev servers).
               Siblings are English-only (the wiki's canonical markdown), so every
               language links the same neutral `/research/<slug>.md` — `doc.url` is
-              already language-neutral. */}
+              already language-neutral. The root hub (`/research`) is emitted as
+              `/research/index.md`, not `/research.md`, so link that explicitly. */}
           <a
-            href={`${doc.url}.md`}
+            href={doc.url === "/research" ? "/research/index.md" : `${doc.url}.md`}
             target="_blank"
             rel="noreferrer"
             className="underline hover:text-foreground"
