@@ -198,24 +198,22 @@ fn emit_slice_i32(s: &mut String, name: &str, v: &[i32]) {
 const RUNTIME: &str = r#"
 #[inline(always)]
 fn unpack_pid(w: u64) -> u16 { (w >> 48) as u16 }
+// Edges packed URDL into the low 32 bits of a candidate word, and — identically
+// — into a board cell. up=byte3, right=byte2, down=byte1, left=byte0.
 #[inline(always)]
-fn unpack_edges(w: u64) -> [u8;4] {
-    let e = (w >> 8) as u32;
-    [(e>>24) as u8,(e>>16) as u8,(e>>8) as u8, e as u8]
-}
+fn edges32(w: u64) -> u32 { (w >> 8) as u32 }
 const NC: u8 = 255;
+const CELL_EMPTY: u32 = 0xFFFF_FFFF;
 
 fn main() {
-    // Board state: resolved edges per cell (NC = empty), packed piece per cell.
-    let mut cell: [[u8;4]; N] = [[NC;4]; N];
-    let mut cell_word: [u64; N] = [u64::MAX; N];
+    // Board cells as packed u32 edges (McGavin's `tilesides` layout): one load +
+    // shift to read a neighbour's facing colour, no [u8;4] byte-array indexing.
+    let mut cell: [u32; N] = [CELL_EMPTY; N];
     let mut used = [0u64; (NP + 63)/64];
-    // seed the pins
     for pos in 0..N {
         let w = PIN_WORD[pos];
         if w != u64::MAX {
-            cell[pos] = unpack_edges(w);
-            cell_word[pos] = w;
+            cell[pos] = edges32(w);
             let pid = unpack_pid(w) as usize;
             used[pid>>6] |= 1u64 << (pid & 63);
         }
@@ -223,15 +221,14 @@ fn main() {
     // initial score from the pinned board
     let mut base_score: u32 = 0;
     for pos in 0..N {
-        if cell[pos][0]==NC { continue; }
-        let r = pos % W; let c_pos = pos;
-        // right neighbour
-        if r != W-1 { let n = c_pos+1; if cell[n][0]!=NC {
-            let a = cell[c_pos][1]; let b = cell[n][3];
+        if cell[pos] == CELL_EMPTY { continue; }
+        let r = pos % W;
+        if r != W-1 { let n = pos+1; if cell[n]!=CELL_EMPTY {
+            let a = (cell[pos]>>16) as u8; let b = cell[n] as u8; // my right vs their left
             if a==b && a!=0 { base_score += 1; }
         }}
-        if pos/W != W-1 { let n = c_pos+W; if cell[n][0]!=NC {
-            let a = cell[c_pos][2]; let b = cell[n][0];
+        if pos/W != W-1 { let n = pos+W; if cell[n]!=CELL_EMPTY {
+            let a = (cell[pos]>>8) as u8; let b = (cell[n]>>24) as u8; // my down vs their up
             if a==b && a!=0 { base_score += 1; }
         }}
     }
@@ -249,11 +246,8 @@ fn main() {
     let mut level: usize = 0;
     cursor[0] = 0;
 
-    // SAFETY: every index below is provably in range — `level` is in `0..=DEPTH`,
-    // `FREE[level]`/`FREE_UP`/`FREE_LEFT` are baked to valid cell positions, pool
-    // offsets come from the baked `*_START` tables, and `pid < NP`. The generated
-    // program owns all this data, so bounds checks are pure overhead here (the
-    // k-corrset result: ~1.16x from removing them in a hot search loop).
+    // SAFETY: every index is provably in range (baked tables, level in 0..=DEPTH,
+    // pid<NP). Bounds checks are pure overhead in this owned-data hot loop.
     macro_rules! g { ($a:expr, $i:expr) => { unsafe { *$a.get_unchecked($i) } } }
     macro_rules! gs { ($a:expr, $i:expr, $v:expr) => { unsafe { *$a.get_unchecked_mut($i) = $v } } }
 
@@ -267,7 +261,7 @@ fn main() {
             let pid = g!(placed, level) as usize;
             if pid != u16::MAX as usize {
                 unsafe { *used.get_unchecked_mut(pid >> 6) &= !(1u64 << (pid & 63)); }
-                gs!(cell, g!(FREE, level), [NC;4]);
+                gs!(cell, g!(FREE, level), CELL_EMPTY);
                 gs!(placed, level, u16::MAX);
             }
             continue;
@@ -275,8 +269,9 @@ fn main() {
         let pos = g!(FREE, level);
         let up_p = g!(FREE_UP, level);
         let left_p = g!(FREE_LEFT, level);
-        let up = if up_p < 0 { 0 } else { g!(cell, up_p as usize)[2] };
-        let left = if left_p < 0 { 0 } else { g!(cell, left_p as usize)[1] };
+        // up = up-neighbour's DOWN edge (byte1); left = left-neighbour's RIGHT (byte2).
+        let up = if up_p < 0 { 0 } else { (g!(cell, up_p as usize) >> 8) as u8 };
+        let left = if left_p < 0 { 0 } else { (g!(cell, left_p as usize) >> 16) as u8 };
         // pick candidate pool — the (up,left) fit filter is precomputed
         let (pool, base): (&[u64], usize) = if up != NC && left != NC {
             (&POOL_UL, g!(UL_START, up as usize * COLORS + left as usize) as usize)
@@ -297,30 +292,28 @@ fn main() {
             let pid = unpack_pid(w) as usize;
             // used-check first, before touching edges (McGavin's tileFree-first).
             if g!(used, pid >> 6) & (1u64 << (pid & 63)) != 0 { continue; }
-            let e = unpack_edges(w);
+            let ew = edges32(w);           // this candidate's URDL edges, packed
+            let e_up = (ew >> 24) as u8; let e_r = (ew >> 16) as u8; let e_d = (ew >> 8) as u8; let e_l = ew as u8;
             let r = pos % W;
-            // The (up,left) bucket only guarantees up/left match. Down/right must
-            // match any ALREADY-fixed neighbour — but that is only possible when
-            // the neighbour is the rim or a pin (a free neighbour is still empty
-            // here). FREE_NEED_D/R are baked true only in those cases, so the
-            // common interior/unhinted cell skips these checks entirely.
+            // Down/right must match any ALREADY-fixed neighbour (rim or pin).
             if g!(FREE_NEED_D, level) != 0 {
-                if pos + W >= N { if e[2] != 0 { continue; } }
-                else { let cn = g!(cell, pos + W); if cn[0] != NC && e[2] != cn[0] { continue; } }
+                if pos + W >= N { if e_d != 0 { continue; } }
+                else { let cn = g!(cell, pos + W); if cn != CELL_EMPTY && e_d != (cn >> 24) as u8 { continue; } }
             }
             if g!(FREE_NEED_R, level) != 0 {
-                if r == W-1 { if e[1] != 0 { continue; } }
-                else { let cn = g!(cell, pos + 1); if cn[0] != NC && e[1] != cn[3] { continue; } }
+                if r == W-1 { if e_r != 0 { continue; } }
+                else { let cn = g!(cell, pos + 1); if cn != CELL_EMPTY && e_r != cn as u8 { continue; } }
             }
             nodes += 1;
             // Credit matches with ALL already-placed neighbours (pins can leave a
-            // free cell with filled down/right neighbours too).
+            // free cell with filled down/right neighbours too). Neighbour edges
+            // read as one u32 load + shift.
             let mut gain = 0u32;
-            if pos >= W { let n = pos - W; let cn = g!(cell, n); if cn[0]!=NC && e[0]!=0 && e[0]==cn[2] { gain += 1; } }
-            if pos + W < N { let n = pos + W; let cn = g!(cell, n); if cn[0]!=NC && e[2]!=0 && e[2]==cn[0] { gain += 1; } }
-            if r != 0 { let n = pos - 1; let cn = g!(cell, n); if cn[0]!=NC && e[3]!=0 && e[3]==cn[1] { gain += 1; } }
-            if r != W-1 { let n = pos + 1; let cn = g!(cell, n); if cn[0]!=NC && e[1]!=0 && e[1]==cn[3] { gain += 1; } }
-            gs!(cell, pos, e);
+            if pos >= W { let cn = g!(cell, pos - W); if cn!=CELL_EMPTY && e_up!=0 && e_up==(cn>>8) as u8 { gain += 1; } }
+            if pos + W < N { let cn = g!(cell, pos + W); if cn!=CELL_EMPTY && e_d!=0 && e_d==(cn>>24) as u8 { gain += 1; } }
+            if r != 0 { let cn = g!(cell, pos - 1); if cn!=CELL_EMPTY && e_l!=0 && e_l==(cn>>16) as u8 { gain += 1; } }
+            if r != W-1 { let cn = g!(cell, pos + 1); if cn!=CELL_EMPTY && e_r!=0 && e_r==cn as u8 { gain += 1; } }
+            gs!(cell, pos, ew);
             unsafe { *used.get_unchecked_mut(pid >> 6) |= 1u64 << (pid & 63); }
             gs!(placed, level, pid as u16);
             let ns = g!(score_at, level) + gain;
@@ -340,7 +333,7 @@ fn main() {
             let pid = g!(placed, level) as usize;
             if pid != u16::MAX as usize {
                 unsafe { *used.get_unchecked_mut(pid >> 6) &= !(1u64 << (pid & 63)); }
-                gs!(cell, g!(FREE, level), [NC;4]);
+                gs!(cell, g!(FREE, level), CELL_EMPTY);
                 gs!(placed, level, u16::MAX);
             }
         }
