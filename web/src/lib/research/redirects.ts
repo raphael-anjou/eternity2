@@ -1,8 +1,13 @@
-// Old → new research URLs, for pages that moved when the Build section was
-// reorganised into per-technique-family sub-hubs (2026-07). The catch-all doc
-// route consults this before rendering, so an old bookmark or external link
-// lands on the new page instead of a 404. Language-neutral paths (no /fr, no
-// trailing slash), matching neutralPath() in the doc route.
+// Old → new research URLs. The catch-all doc route consults this before
+// rendering, so a moved URL lands on its new home instead of 404ing.
+// Language-neutral paths (no /fr, no /es, no trailing slash), matching
+// neutralPath() in the doc route; the route re-applies the visitor's language.
+//
+// The site's URLs were reshuffled heavily during the July 2026 rebuild, but the
+// site had no external inbound links then, so those transient reorg URLs need no
+// redirect — they're gone. The only entries kept are the two whose OLD path
+// still names a page a reader might reach for: the retired "topics index" and
+// its records theme, both of which now fold into an existing page.
 export const RESEARCH_REDIRECTS: Record<string, string> = {
   // The "All themes" index duplicated the Overview page (which already lists every
   // topic hub in its left rail), so it was removed and its url now lands on
@@ -12,124 +17,4 @@ export const RESEARCH_REDIRECTS: Record<string, string> = {
   // score chart already live at /research/records, so that url is where the old
   // hub now lands. The `records` tag stays valid on pages for search and metadata.
   "/research/topics/records": "/research/records",
-  // The engines section had a second, thinner CSP-presets page (a concept stub)
-  // duplicating the measured one under single-core-benchmark. It was removed so
-  // there is one canonical, leaderboard-backed page; its old url lands there.
-  "/research/lab/experiments/raphael-anjou/engines/csp-presets":
-    "/research/lab/experiments/single-core-benchmark/csp-presets",
-  // The Verhaard reimplementation moved out of Raphaël's engines/ folder into
-  // Louis Verhaard's section, beside the method it rebuilds (2026-07). It keeps
-  // Raphaël's byline (the code is his); only its home changed.
-  "/research/lab/experiments/raphael-anjou/engines/verhaard-reimpl":
-    "/research/lab/experiments/louis-verhaard/verhaard-reimpl",
-  // The one-item analyses/ sub-hub was retired in favour of a meet-in-the-middle/
-  // section named for the technique BANDSAW uses, so more exact endgame ideas can
-  // sit beside it (2026-07). The old section root and its one page land there.
-  "/research/lab/experiments/raphael-anjou/analyses":
-    "/research/lab/experiments/raphael-anjou/meet-in-the-middle",
-  "/research/lab/experiments/raphael-anjou/analyses/bandsaw":
-    "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
-
-  // Experiments re-homed under a per-author folder, so the lab opens to more
-  // than one researcher (2026-07), then sorted into per-kind sub-hubs under
-  // that author (runs / analyses / engines) so the sidebar can fold them.
-  // Targets below point at the CURRENT url, so a pre-author bookmark still
-  // lands in one hop.
-  "/research/lab/experiments/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
-  "/research/lab/experiments/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
-  "/research/lab/experiments/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
-  "/research/lab/experiments/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
-  "/research/lab/experiments/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
-  "/research/lab/experiments/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
-  "/research/lab/experiments/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
-  "/research/lab/experiments/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
-  "/research/lab/experiments/bandsaw": "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
-  "/research/lab/experiments/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
-  "/research/lab/experiments/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
-  // …and from the flat per-author urls those pages held until the sub-hubs
-  // landed (2026-07). Same pages, one level deeper.
-  "/research/lab/experiments/raphael-anjou/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
-  "/research/lab/experiments/raphael-anjou/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
-  "/research/lab/experiments/raphael-anjou/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/raphael-anjou/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
-  "/research/lab/experiments/raphael-anjou/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
-  "/research/lab/experiments/raphael-anjou/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
-  "/research/lab/experiments/raphael-anjou/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
-  "/research/lab/experiments/raphael-anjou/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
-  "/research/lab/experiments/raphael-anjou/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
-  "/research/lab/experiments/raphael-anjou/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
-  "/research/lab/experiments/raphael-anjou/bandsaw": "/research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw",
-  "/research/lab/experiments/raphael-anjou/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
-  // The "runs" sub-hub was renamed to "pipelines" (2026-07): tagging each run
-  // with its stages made clear these are multi-engine compositions, not single
-  // algorithms, so the folder and section name now say so. Old /runs/ urls land
-  // on the same page under /pipelines/.
-  "/research/lab/experiments/raphael-anjou/runs": "/research/lab/experiments/raphael-anjou/pipelines",
-  "/research/lab/experiments/raphael-anjou/runs/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
-  "/research/lab/experiments/raphael-anjou/runs/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
-  "/research/lab/experiments/raphael-anjou/runs/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
-  "/research/lab/experiments/raphael-anjou/runs/gauntlet": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
-  "/research/lab/experiments/raphael-anjou/runs/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
-  "/research/lab/experiments/raphael-anjou/runs/cloister": "/research/lab/experiments/raphael-anjou/pipelines/cloister",
-  "/research/lab/experiments/raphael-anjou/runs/midden": "/research/lab/experiments/raphael-anjou/pipelines/midden",
-  "/research/lab/experiments/raphael-anjou/runs/mosaic": "/research/lab/experiments/raphael-anjou/pipelines/mosaic",
-  "/research/lab/experiments/raphael-anjou/runs/staged": "/research/lab/experiments/raphael-anjou/pipelines/staged",
-  "/research/lab/experiments/raphael-anjou/runs/ladder": "/research/lab/experiments/raphael-anjou/pipelines/ladder",
-  // The four corpus-mining runs and the record decode were gathered out of
-  // pipelines/ and analyses/ into their own learning/ study directory (2026-07),
-  // so "learning from strong boards" is a real section with the algos under it,
-  // not an index pointing elsewhere. Old urls land on the new home.
-  "/research/lab/experiments/raphael-anjou/pipelines/prior": "/research/lab/experiments/raphael-anjou/learning/prior",
-  "/research/lab/experiments/raphael-anjou/pipelines/keyring": "/research/lab/experiments/raphael-anjou/learning/keyring",
-  "/research/lab/experiments/raphael-anjou/pipelines/lodestone": "/research/lab/experiments/raphael-anjou/learning/lodestone",
-  "/research/lab/experiments/raphael-anjou/pipelines/palimpsest": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
-  "/research/lab/experiments/raphael-anjou/analyses/replay": "/research/lab/experiments/raphael-anjou/learning/replay",
-  // The four solver deep-dives moved out of the neutral theory section and were
-  // merged into each engine's owner's lab page, so each author ends with one
-  // rich page combining "how it works" and "what it scored when I ran it"
-  // (2026-07). The build/solvers hub stays as a short conceptual overview.
-  "/research/build/solvers/blackwood": "/research/lab/experiments/joshua-blackwood/solver",
-  "/research/build/solvers/verhaard-eii": "/research/lab/experiments/louis-verhaard/eii",
-  "/research/build/solvers/mcgavin": "/research/lab/experiments/peter-mcgavin/backtracker",
-  "/research/build/solvers/this-site": "/research/lab/experiments/raphael-anjou/engine",
-  // The publishing methodology moved under Experiments (2026-07).
-  "/research/lab/methodology": "/research/lab/experiments/methodology",
-  // Pages moved into the History & community section (2026-07).
-  "/research/lab/boards": "/research/community/boards",
-  "/research/build/history": "/research/community/hunt",
-  "/research/build/history-2": "/research/community/hunt-part-2",
-  // Build reorg into per-technique-family sub-hubs.
-  "/research/build/concepts": "/research/build/techniques",
-  "/research/build/concepts/approaches-map": "/research/build/approaches-map",
-  // Reduce the search
-  "/research/build/concepts/arc-consistency": "/research/build/reduce/arc-consistency",
-  "/research/build/concepts/alldiff-regin": "/research/build/reduce/alldiff-regin",
-  "/research/build/concepts/nogood-learning": "/research/build/reduce/nogood-learning",
-  "/research/build/concepts/edge-slipping": "/research/build/reduce/edge-slipping",
-  // Backtracking
-  "/research/build/concepts/fill-order": "/research/build/backtracking/fill-order",
-  "/research/build/concepts/restarts": "/research/build/backtracking/restarts",
-  // Go faster
-  "/research/build/concepts/solver-engineering": "/research/build/faster/solver-engineering",
-  "/research/build/concepts/distributed-solving": "/research/build/faster/distributed-solving",
-  // Build boards up
-  "/research/build/concepts/beam-search": "/research/build/construct/beam-search",
-  // Local search
-  "/research/build/concepts/local-search-alns": "/research/build/local-search/local-search-alns",
-  "/research/build/concepts/parallel-tempering": "/research/build/local-search/parallel-tempering",
-  "/research/build/concepts/evolutionary": "/research/build/local-search/evolutionary",
-  // Exact methods
-  "/research/build/concepts/sat-csp-encodings": "/research/build/exact/sat-csp-encodings",
-  "/research/build/concepts/lp-relaxations": "/research/build/exact/lp-relaxations",
-  "/research/build/concepts/exact-cover-dlx": "/research/build/exact/exact-cover-dlx",
-  "/research/build/concepts/meet-in-the-middle": "/research/build/exact/meet-in-the-middle",
-  "/research/build/concepts/iterated-maps": "/research/build/exact/iterated-maps",
-  // Analysis
-  "/research/build/concepts/parity-arguments": "/research/build/analysis/parity-arguments",
-  "/research/build/concepts/solution-counting": "/research/build/analysis/solution-counting",
-  // GPU & hardware
-  "/research/build/concepts/gpu-solving": "/research/build/hardware/gpu-solving",
-  "/research/build/concepts/fpga-solving": "/research/build/hardware/fpga-solving",
-  "/research/build/concepts/quantum": "/research/build/hardware/quantum",
 };
