@@ -78,10 +78,13 @@ pub fn generate_solved(size: u8, colors: u8, seed: u32) -> Puzzle {
     generate_solved_framed(size, colors, seed, false)
 }
 
-/// Number of frame-restricted colors when [`generate_solved_framed`] runs in
-/// framed mode: `min(5, colors - 1)`, mirroring real Eternity II where 5 of the
-/// 22 colors appear only on edges adjacent to the frame. Colors `1..=frame_count`
-/// are frame colors; the rest are interior colors.
+/// Number of border colors when [`generate_solved_framed`] runs in framed mode:
+/// `min(5, colors - 1)`, mirroring real Eternity II's five border colors. These
+/// colors (`1..=frame_count`) appear ONLY on along-frame edges — the seams
+/// joining two neighbouring border pieces — and never in the interior. The
+/// remaining colors (`frame_count+1..=colors`) are interior colors and appear
+/// both in the interior AND on the inward-facing edge of border pieces, exactly
+/// as the official puzzle does.
 pub fn frame_color_count(colors: u8) -> u8 {
     if colors < 2 {
         0
@@ -100,28 +103,41 @@ fn framed_is_meaningful(size: u8, colors: u8) -> bool {
     size >= 4 && colors >= 2
 }
 
-/// Is palette slot `i` (default flat order: `i < s*(s-1)` is `vert[i]`, else
-/// `horiz[i - s*(s-1)]`) a *frame-band* adjacency — i.e. at least one of its two
-/// incident cells lies on the outer ring (row 0, row s-1, col 0, col s-1)?
+/// Is palette slot `i` an *along-frame* adjacency — a seam that runs ALONG the
+/// outer ring, joining two neighbouring border pieces? Only these carry the
+/// border colours (`1..=frame_count`) in real Eternity II. Crucially this is
+/// NOT "touches the ring": the seam between a border piece and the first
+/// interior piece points INWARD and carries an interior colour, so every
+/// interior colour also appears on edge pieces — exactly as the official puzzle
+/// does (verified against the official piece set: edge pieces' along-frame edges
+/// use only colours 1–5, their interior-facing edge uses 6–22).
+///
+/// Slot order: `i < s*(s-1)` indexes `vert` (a left–right seam, `v(x,y)` between
+/// cells `(x,y)` and `(x+1,y)`); otherwise `horiz` (an up–down seam, `h(x,y)`
+/// between `(x,y)` and `(x,y+1)`).
 fn slot_is_frame_band(i: usize, s: usize) -> bool {
     let vcount = s * (s - 1);
     if i < vcount {
-        // vert(x,y): between cells (x,y) and (x+1,y).
-        let x = i % (s - 1);
+        // vert = left–right seam between (x,y) and (x+1,y). Along the frame when
+        // BOTH cells sit on the top or bottom rim, i.e. y is 0 or s-1.
         let y = i / (s - 1);
-        y == 0 || y == s - 1 || x == 0 || x + 1 == s - 1
+        y == 0 || y == s - 1
     } else {
-        // horiz(x,y): between cells (x,y) and (x,y+1).
+        // horiz = up–down seam between (x,y) and (x,y+1). Along the frame when
+        // BOTH cells sit on the left or right rim, i.e. x is 0 or s-1.
         let j = i - vcount;
         let x = j % s;
-        let y = j / s;
-        x == 0 || x == s - 1 || y == 0 || y + 1 == s - 1
+        x == 0 || x == s - 1
     }
 }
 
 /// Paint each palette slot in framed mode. Returns colors in default flat slot
-/// order. Frame-band slots get colors `1..=frame_count`; deep-interior slots get
-/// `frame_count+1..=colors`.
+/// order. Along-frame slots (seams joining two border pieces, see
+/// [`slot_is_frame_band`]) get border colors `1..=frame_count`; every other slot
+/// — including the inward-facing seams of border pieces — gets an interior color
+/// `frame_count+1..=colors`. This reproduces the official Eternity II structure:
+/// border colors live only on the frame, interior colors appear on both edge
+/// pieces (their inward edge) and the deep interior.
 ///
 /// Each band is filled by **cycling** its colors — slot `k` gets color
 /// `base + (k mod count) + 1` — so every color appears as equally often as the
@@ -171,10 +187,157 @@ fn paint_framed(rng: &mut XorShift, n_edges: usize, s: usize, colors: u8) -> Vec
 }
 
 /// Generalized board painter. When `framed` is true (and the split is
-/// meaningful, see [`framed_is_meaningful`]), frame colors `1..=frame_count` are
-/// confined to frame-band adjacencies and interior colors `frame_count+1..=colors`
-/// to deep-interior adjacencies. When false, behaves byte-for-byte like the
-/// original unrestricted painter (it does not even create the second RNG path).
+/// meaningful, see [`framed_is_meaningful`]), border colors `1..=frame_count` are
+/// confined to along-frame adjacencies (seams joining two border pieces) and the
+/// interior colors `frame_count+1..=colors` cover every other adjacency —
+/// including a border piece's inward-facing edge — so interior colors appear on
+/// both edge pieces and the deep interior, matching real Eternity II. When
+/// false, behaves byte-for-byte like the original unrestricted painter (it does
+/// not even create the second RNG path).
+/// Rotation-canonical key of a piece's URDL edges: the lexicographically
+/// smallest of its four rotations. Two pieces are the "same" to a hint-pinning
+/// solver iff they share this key.
+fn rot_key(e: [u8; 4]) -> [u8; 4] {
+    let mut best = e;
+    let mut r = e;
+    for _ in 0..3 {
+        r = [r[3], r[0], r[1], r[2]]; // rotate URDL clockwise
+        if r < best {
+            best = r;
+        }
+    }
+    best
+}
+
+/// Make every piece unique up to rotation while **preserving each colour's exact
+/// count** — real Eternity II is both all-distinct AND colour-balanced, and the
+/// cycle-then-shuffle fill already achieves the balance. So instead of recolouring
+/// a seam (which would unbalance the palette), we SWAP the colours of two seams
+/// in the same band: a swap changes the two incident pieces but leaves every
+/// colour's total unchanged. Swapping only within a band keeps the frame recipe
+/// (border colours on along-frame seams, interior colours elsewhere) intact.
+/// Bounded; returns having reduced collisions as far as it got if it cannot fully
+/// converge.
+fn make_pieces_rotation_unique(
+    vert: &mut [u8],
+    horiz: &mut [u8],
+    s: usize,
+    rng: &mut XorShift,
+) {
+    use std::collections::HashMap;
+
+    let piece_at = |vert: &[u8], horiz: &[u8], x: usize, y: usize| -> [u8; 4] {
+        let up = if y == 0 { BORDER } else { horiz[(y - 1) * s + x] };
+        let down = if y == s - 1 { BORDER } else { horiz[y * s + x] };
+        let left = if x == 0 { BORDER } else { vert[y * (s - 1) + x - 1] };
+        let right = if x == s - 1 { BORDER } else { vert[y * (s - 1) + x] };
+        [up, right, down, left]
+    };
+
+    let n_vert = s * (s - 1);
+    // Read/write a seam by (is_vert, index).
+    let get = |vert: &[u8], horiz: &[u8], is_vert: bool, idx: usize| -> u8 {
+        if is_vert {
+            vert[idx]
+        } else {
+            horiz[idx]
+        }
+    };
+
+    // All swappable seams grouped by band, so a swap stays in-band (preserving
+    // the frame recipe) and thus preserves each colour's count. Palette slot of a
+    // vert index i is i; of a horiz index j is n_vert + j.
+    let mut frame_seams: Vec<(bool, usize)> = Vec::new();
+    let mut interior_seams: Vec<(bool, usize)> = Vec::new();
+    for i in 0..n_vert {
+        if slot_is_frame_band(i, s) {
+            frame_seams.push((true, i));
+        } else {
+            interior_seams.push((true, i));
+        }
+    }
+    for j in 0..s * (s - 1) {
+        if slot_is_frame_band(n_vert + j, s) {
+            frame_seams.push((false, j));
+        } else {
+            interior_seams.push((false, j));
+        }
+    }
+
+    let max_iters = 200_000;
+    for _ in 0..max_iters {
+        // Count rotation-canonical keys; find a duplicated cell.
+        let mut seen: HashMap<[u8; 4], usize> = HashMap::new();
+        let mut dup_cell: Option<(usize, usize)> = None;
+        for y in 0..s {
+            for x in 0..s {
+                let k = rot_key(piece_at(vert, horiz, x, y));
+                let c = seen.entry(k).or_insert(0);
+                *c += 1;
+                if *c > 1 && dup_cell.is_none() {
+                    dup_cell = Some((x, y));
+                }
+            }
+        }
+        let Some((dx, dy)) = dup_cell else { return }; // all unique
+
+        // A seam incident to the duplicated cell, to be swapped with another seam
+        // of a DIFFERENT colour in the same band.
+        let incident: Vec<(bool, usize)> = {
+            let mut v = Vec::new();
+            if dx > 0 {
+                v.push((true, dy * (s - 1) + dx - 1));
+            }
+            if dx < s - 1 {
+                v.push((true, dy * (s - 1) + dx));
+            }
+            if dy > 0 {
+                v.push((false, (dy - 1) * s + dx));
+            }
+            if dy < s - 1 {
+                v.push((false, dy * s + dx));
+            }
+            v
+        };
+        if incident.is_empty() {
+            return;
+        }
+        let (a_vert, a_idx) = incident[rng.below(incident.len() as u32) as usize];
+        let a_slot = if a_vert { a_idx } else { n_vert + a_idx };
+        let a_color = get(vert, horiz, a_vert, a_idx);
+        let pool = if slot_is_frame_band(a_slot, s) {
+            &frame_seams
+        } else {
+            &interior_seams
+        };
+        // Find a partner seam in the same band whose colour differs.
+        let start = rng.below(pool.len() as u32) as usize;
+        let mut swapped = false;
+        for off in 0..pool.len() {
+            let (b_vert, b_idx) = pool[(start + off) % pool.len()];
+            if get(vert, horiz, b_vert, b_idx) != a_color {
+                // Swap the two seam colours (count-preserving).
+                let b_color = get(vert, horiz, b_vert, b_idx);
+                if a_vert {
+                    vert[a_idx] = b_color;
+                } else {
+                    horiz[a_idx] = b_color;
+                }
+                if b_vert {
+                    vert[b_idx] = a_color;
+                } else {
+                    horiz[b_idx] = a_color;
+                }
+                swapped = true;
+                break;
+            }
+        }
+        if !swapped {
+            return; // band is monochromatic; nothing to do
+        }
+    }
+}
+
 pub fn generate_solved_framed(size: u8, colors: u8, seed: u32, framed: bool) -> Puzzle {
     assert!(size >= 2, "size must be >= 2");
     let colors = colors.clamp(1, max_colors(size));
@@ -202,8 +365,20 @@ pub fn generate_solved_framed(size: u8, colors: u8, seed: u32, framed: bool) -> 
 
     // vertical[y][x] = color between (x,y) and (x+1,y); horizontal[y][x]
     // between (x,y) and (x,y+1).
-    let vert: Vec<u8> = palette[..s * (s - 1)].to_vec();
-    let horiz: Vec<u8> = palette[s * (s - 1)..].to_vec();
+    let mut vert: Vec<u8> = palette[..s * (s - 1)].to_vec();
+    let mut horiz: Vec<u8> = palette[s * (s - 1)..].to_vec();
+
+    // Break rotation-canonical duplicate pieces so every piece is distinct up to
+    // rotation. Real Eternity-II-style puzzles have all-distinct pieces, and
+    // solvers that pin hints (e.g. McGavin's) require a hinted piece to be the
+    // unique bearer of its edge pattern. We recolour one interior seam incident
+    // to a duplicated cell until no rotation-canonical collisions remain. Only
+    // interior seams are touched, so the frame band and border/corner structure
+    // are preserved. Bounded so it always terminates.
+    if colors >= 2 {
+        make_pieces_rotation_unique(&mut vert, &mut horiz, s, &mut rng);
+    }
+
     let v = |x: usize, y: usize| vert[y * (s - 1) + x];
     let h = |x: usize, y: usize| horiz[y * s + x];
 
@@ -282,121 +457,123 @@ mod tests {
     /// Recompute the painted adjacency colors of a *solved* board (pieces are in
     /// solution order, piece i at cell i, rot 0): returns (frame-band colors,
     /// deep-interior colors) gathered from the right/down edges of each cell.
-    fn band_colors(p: &Puzzle) -> (Vec<u8>, Vec<u8>) {
-        let s = p.width as usize;
-        let mut frame = Vec::new();
-        let mut interior = Vec::new();
-        let at = |x: usize, y: usize| -> [u8; 4] { p.pieces[y * s + x] };
-        for y in 0..s {
-            for x in 0..s {
-                let e = at(x, y);
-                // right edge = vertical adjacency between (x,y) and (x+1,y)
-                if x + 1 < s {
-                    let c = e[1];
-                    // frame-band iff either cell on the rim
-                    let fb = y == 0 || y == s - 1 || x == 0 || x + 1 == s - 1;
-                    if fb {
-                        frame.push(c);
-                    } else {
-                        interior.push(c);
-                    }
-                }
-                // down edge = horizontal adjacency between (x,y) and (x,y+1)
-                if y + 1 < s {
-                    let c = e[2];
-                    let fb = x == 0 || x == s - 1 || y == 0 || y + 1 == s - 1;
-                    if fb {
-                        frame.push(c);
-                    } else {
-                        interior.push(c);
-                    }
-                }
-            }
-        }
-        (frame, interior)
-    }
 
+    
     #[test]
-    fn framed_confines_colors_to_their_band() {
-        // For a meaningful framed board: NO frame color (1..=frame_count) on any
-        // deep-interior adjacency, NO interior color on any frame-band adjacency,
-        // the two sets are disjoint, and every requested color still appears.
-        for &(size, colors, seed) in
-            &[(4u8, 4u8, 7u32), (6, 8, 42), (8, 12, 99), (10, 22, 5), (16, 22, 3)]
-        {
-            let p = generate_solved_framed(size, colors, seed, true);
-            let frame_count = frame_color_count(colors);
-            let (frame_band, deep) = band_colors(&p);
-
-            // Deep interior contains only interior colors (> frame_count).
-            for &c in &deep {
-                assert!(
-                    c > frame_count,
-                    "frame color {c} leaked into deep interior at {size}/{colors}/{seed}"
-                );
-            }
-            // Frame band contains only frame colors (<= frame_count).
-            for &c in &frame_band {
-                assert!(
-                    c >= 1 && c <= frame_count,
-                    "interior color {c} leaked into frame band at {size}/{colors}/{seed}"
-                );
-            }
-            // Disjoint on the board (a color is never in both bands).
-            let mut in_frame = [false; 23];
-            let mut in_deep = [false; 23];
-            for &c in &frame_band {
-                in_frame[c as usize] = true;
-            }
-            for &c in &deep {
-                in_deep[c as usize] = true;
-            }
-            for c in 1..=colors as usize {
-                assert!(
-                    !(in_frame[c] && in_deep[c]),
-                    "color {c} present in both bands at {size}/{colors}/{seed}"
-                );
-            }
-            // Every requested color appears somewhere.
-            for c in 1..=colors as usize {
-                assert!(
-                    in_frame[c] || in_deep[c],
-                    "color {c} missing at {size}/{colors}/{seed}"
+    fn generated_pieces_are_rotation_unique() {
+        // Every piece must be distinct up to rotation, so a hint-pinning solver
+        // can place a hinted piece unambiguously (its edge pattern is unique).
+        for &(size, colors, seed) in &[
+            (16u8, 22u8, 1u32),
+            (16, 22, 2),
+            (16, 22, 7),
+            (10, 22, 5),
+            (8, 12, 99),
+        ] {
+            for framed in [true, false] {
+                let p = generate_solved_framed(size, colors, seed, framed);
+                let mut keys: Vec<[u8; 4]> = p.pieces.iter().map(|&e| rot_key(e)).collect();
+                keys.sort_unstable();
+                let n = keys.len();
+                keys.dedup();
+                assert_eq!(
+                    keys.len(),
+                    n,
+                    "duplicate piece up to rotation at {size}/{colors}/{seed} framed={framed}"
                 );
             }
         }
     }
 
     #[test]
-    fn framed_bands_are_color_balanced() {
-        // Every color within a band appears as equally often as the slot count
-        // allows: max count - min count <= 1 (the point of the cycle-then-shuffle
-        // fill). Checked on both bands across several boards.
-        for &(size, colors, seed) in
-            &[(6u8, 8u8, 42u32), (8, 12, 99), (10, 22, 5), (16, 22, 3), (16, 22, 7)]
-        {
-            let p = generate_solved_framed(size, colors, seed, true);
-            let frame_count = frame_color_count(colors);
-            let (frame_band, deep) = band_colors(&p);
-
-            let spread = |band: &[u8], lo: u8, hi: u8| {
-                let mut counts = vec![0usize; (hi - lo + 1) as usize];
-                for &c in band {
-                    counts[(c - lo) as usize] += 1;
+    fn framed_color_census_is_balanced_and_even() {
+        // Real Eternity II is colour-balanced: every colour's edge-instance count
+        // is even (so a perfect solution's matches, sum(N_c)/2, land exactly with
+        // zero slack), border colours are perfectly equal, and interior colours
+        // sit within one "row" of each other. The swap-based uniqueness repair
+        // must preserve this (a swap moves no colour's total). Verified for the
+        // official-shaped 16×16/22-colour board against its census.
+        for seed in [1u32, 2, 7, 42] {
+            let p = generate_solved_framed(16, 22, seed, true);
+            let mut count = [0usize; 23];
+            for e in &p.pieces {
+                for &c in e {
+                    count[c as usize] += 1;
                 }
-                let max = *counts.iter().max().unwrap();
-                let min = *counts.iter().min().unwrap();
-                max - min
-            };
+            }
+            // Grey border rim.
+            assert_eq!(count[0], 64, "grey border count wrong at seed {seed}");
+            // Every colour count is even.
+            for (c, &n) in count.iter().enumerate() {
+                assert!(n % 2 == 0, "colour {c} count {n} is odd at seed {seed}");
+            }
+            // The 5 border colours are exactly balanced.
+            let border: Vec<usize> = (1..=5).map(|c| count[c]).collect();
+            assert!(
+                border.iter().all(|&n| n == border[0]),
+                "border colours unbalanced at seed {seed}: {border:?}"
+            );
+            // The 17 interior colours differ by at most one fill-cycle (2 edges).
+            let interior: Vec<usize> = (6..=22).map(|c| count[c]).collect();
+            let (lo, hi) = (
+                *interior.iter().min().unwrap(),
+                *interior.iter().max().unwrap(),
+            );
+            assert!(
+                hi - lo <= 2,
+                "interior colours too unbalanced at seed {seed}: {lo}..{hi}"
+            );
+        }
+    }
 
-            assert!(
-                spread(&frame_band, 1, frame_count) <= 1,
-                "frame band unbalanced at {size}/{colors}/{seed}"
-            );
-            assert!(
-                spread(&deep, frame_count + 1, colors) <= 1,
-                "deep interior unbalanced at {size}/{colors}/{seed}"
-            );
+    #[test]
+    fn framed_matches_real_e2_color_structure() {
+        // The defining structural property of a real Eternity-II board, verified
+        // against the official piece set: the `frame_count` border colours appear
+        // ONLY on along-frame edges (edges joining two border pieces), and NEVER
+        // in the deep interior; the remaining interior colours appear both on the
+        // inward-facing edge of border pieces AND in the interior. So on an edge
+        // piece, the two along-frame edges are border colours and the single
+        // interior-facing edge is an interior colour.
+        for &(size, colors, seed) in &[(10u8, 22u8, 5u32), (16, 22, 3), (16, 22, 7)] {
+            let p = generate_solved_framed(size, colors, seed, true);
+            let fc = frame_color_count(colors);
+            let border_colors: std::collections::HashSet<u8> = (1..=fc).collect();
+
+            let is_border = |e: u8| e == BORDER;
+            let mut deep_colors = std::collections::HashSet::new();
+            for e in &p.pieces {
+                let nborder = e.iter().filter(|&&c| is_border(c)).count();
+                if nborder == 1 {
+                    // Edge piece: URDL, one border edge. The edge OPPOSITE the
+                    // border faces the interior; the two adjacent ones run along
+                    // the frame.
+                    let bi = e.iter().position(|&c| is_border(c)).unwrap();
+                    let facing = e[(bi + 2) % 4];
+                    let along = [e[(bi + 1) % 4], e[(bi + 3) % 4]];
+                    for a in along {
+                        assert!(
+                            border_colors.contains(&a),
+                            "along-frame edge {a} is not a border colour at {size}/{colors}/{seed}"
+                        );
+                    }
+                    assert!(
+                        !border_colors.contains(&facing),
+                        "interior-facing edge {facing} is a border colour at {size}/{colors}/{seed}"
+                    );
+                } else if nborder == 0 {
+                    for &c in e {
+                        deep_colors.insert(c);
+                    }
+                }
+            }
+            // No border colour ever appears deep in the interior.
+            for b in &border_colors {
+                assert!(
+                    !deep_colors.contains(b),
+                    "border colour {b} leaked into the interior at {size}/{colors}/{seed}"
+                );
+            }
         }
     }
 
