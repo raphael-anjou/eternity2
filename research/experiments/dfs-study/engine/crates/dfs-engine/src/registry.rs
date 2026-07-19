@@ -170,6 +170,14 @@ pub fn all_specs() -> Vec<Spec> {
             Family::Path,
             PathOrder::VerhaardComb { horiz_rows: 10 },
         ),
+        strict_engine(
+            "clue-rows-first",
+            "CLUE-ROWS-FIRST",
+            Some("rowmajor"),
+            "row-major, but the official-E2 clue rows (2,8,13) are swept first",
+            Family::Path,
+            PathOrder::ClueRowsFirst,
+        ),
         // ---- Heuristic family: fix the path, add one propagator/order ----
         // The chain starts from border-first (the frame is where the rare
         // colours live) and adds, in order: dynamic MRV cell selection, then a

@@ -28,6 +28,17 @@ pub enum PathOrder {
     /// vertical teeth. `horiz_rows` rows are filled row-major top-down; the rest
     /// column-major.
     VerhaardComb { horiz_rows: usize },
+    /// Row-major, but the rows that contain the official Eternity II clues (rows
+    /// 2, 8, 13) are swept FIRST, then the remaining rows top-down. The intent
+    /// was a hybrid of "reach the pinned clues ASAP" and "keep the frontier
+    /// compact". MEASURED VERDICT: poor, kept as a control. Sweeping non-adjacent
+    /// rows first fragments the fill into disconnected horizontal strips — three
+    /// open frontiers instead of one — and a backtracker's branching is
+    /// exponential in the open frontier, so it plateaus far below plain RowMajor
+    /// (≈60/480 vs RowMajor's 370+ on 5-clue boards). It demonstrates that
+    /// reaching the hints early cannot beat a single compact sweep: frontier
+    /// compactness dominates hint-proximity.
+    ClueRowsFirst,
     /// Dynamic minimum-remaining-values: at each step, fill the empty cell with
     /// the fewest candidates given its placed neighbours. Border-first is used
     /// to break ties toward the frame. Chosen at search time, so this variant
@@ -54,6 +65,7 @@ impl PathOrder {
             PathOrder::SpiralOut => spiral_out(),
             PathOrder::BorderFirst => border_first(),
             PathOrder::VerhaardComb { horiz_rows } => verhaard_comb(horiz_rows),
+            PathOrder::ClueRowsFirst => clue_rows_first(),
             PathOrder::Mrv => panic!("MRV has no precomputed sequence"),
         };
         raw.into_iter().filter(|&pos| !pinned[pos]).collect()
@@ -67,6 +79,30 @@ fn pos(r: usize, c: usize) -> usize {
 
 fn row_major() -> Vec<usize> {
     (0..N).collect()
+}
+
+/// Row-major, but the official-E2 clue rows (2, 8, 13) are swept first, then the
+/// rest top-down. Same tight one-row frontier as row-major; the clue rows come
+/// first so any pinned clue constrains the search from the opening. Rows are
+/// still filled left-to-right, so the frontier never fragments the way an
+/// anchor-seeded flood would.
+fn clue_rows_first() -> Vec<usize> {
+    let clue_rows = [2usize, 8, 13];
+    let mut v = Vec::with_capacity(N);
+    for &r in &clue_rows {
+        for c in 0..W {
+            v.push(pos(r, c));
+        }
+    }
+    for r in 0..H {
+        if clue_rows.contains(&r) {
+            continue;
+        }
+        for c in 0..W {
+            v.push(pos(r, c));
+        }
+    }
+    v
 }
 
 fn row_major_bottom_up() -> Vec<usize> {
