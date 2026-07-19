@@ -271,17 +271,18 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
             }
         }
         s.push_str("        st.nodes += 1;\n");
-        s.push_str("        let mut gain = 0u32;\n");
-        if pos >= W {
-            s.push_str(&format!("        {{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_up!=0 && e_up==(cn>>8) as u8 {{ gain+=1; }} }}\n", pos - W));
-        }
-        if pos + W < N {
+        // Gain from up and left uses the `up`/`left` colours ALREADY computed for
+        // the pool select — no neighbour re-read. In row-major free order the up
+        // and left neighbours are always placed here (or the border colour 0,
+        // which correctly yields no gain since we require the edge != 0). Branchless
+        // via boolean-to-u32.
+        s.push_str("        let mut gain = u32::from(up != 0 && e_up == up) + u32::from(left != 0 && e_l == left);\n");
+        // Down/right can contribute only when that neighbour is already fixed (a
+        // pin) — the same `need_d`/`need_r` cells that carry the fit check above.
+        if need_d && pos + W < N {
             s.push_str(&format!("        {{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_d!=0 && e_d==(cn>>24) as u8 {{ gain+=1; }} }}\n", pos + W));
         }
-        if r != 0 {
-            s.push_str(&format!("        {{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_l!=0 && e_l==(cn>>16) as u8 {{ gain+=1; }} }}\n", pos - 1));
-        }
-        if r != W - 1 {
+        if need_r && r != W - 1 {
             s.push_str(&format!("        {{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_r!=0 && e_r==cn as u8 {{ gain+=1; }} }}\n", pos + 1));
         }
         s.push_str(&format!("        unsafe {{ *st.cell.get_unchecked_mut({pos}) = ew; }}\n"));
