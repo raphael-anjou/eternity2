@@ -293,9 +293,16 @@ export default function Layout() {
       </main>
 
       <footer className="space-y-4 border-t py-8 text-center text-sm text-muted-foreground">
-        <nav className="mx-auto flex max-w-3xl flex-wrap justify-center gap-x-4 gap-y-2">
+        {/* One line, all links: no wrap; on a viewport too narrow to fit the
+            full row it scrolls horizontally rather than breaking onto a second
+            line. Every link stays in the DOM, so the internal-link SEO job holds. */}
+        <nav className="flex justify-center gap-x-4 overflow-x-auto px-4">
           {t.footerNav.map((item) => (
-            <NavLink key={item.to} to={link(item.to)} className="hover:text-foreground hover:underline">
+            <NavLink
+              key={item.to}
+              to={link(item.to)}
+              className="whitespace-nowrap hover:text-foreground hover:underline"
+            >
               {item.label}
             </NavLink>
           ))}
