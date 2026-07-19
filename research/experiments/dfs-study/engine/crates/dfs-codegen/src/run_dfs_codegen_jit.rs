@@ -7,7 +7,7 @@
 
 use std::process::{Command, Stdio};
 
-use dfs_codegen::emit::emit_program;
+use dfs_codegen::emit::{emit_program, emit_program_chain};
 use e2_io::Instance;
 
 fn main() -> std::process::ExitCode {
@@ -31,7 +31,13 @@ fn main() -> std::process::ExitCode {
         }
     };
 
-    let src = emit_program(&inst, (budget_s * 1000.0) as u64);
+    let chain = args.iter().any(|a| a == "--chain");
+    let budget_ms = (budget_s * 1000.0) as u64;
+    let src = if chain {
+        emit_program_chain(&inst, budget_ms)
+    } else {
+        emit_program(&inst, budget_ms)
+    };
 
     // Write the generated source, optionally to a caller-named path.
     let dir = std::env::temp_dir();
@@ -53,6 +59,8 @@ fn main() -> std::process::ExitCode {
         .arg("2021")
         .arg("-C")
         .arg("panic=abort")
+        .arg("-C")
+        .arg("opt-level=3") // `-O` alone is opt-level=2; force 3 (McGavin uses -Ofast)
         .arg("-C")
         .arg("codegen-units=1");
     if native {
