@@ -28,6 +28,8 @@ use std::time::Instant;
 use e2_core::{Board, SearchStats, N, W};
 use e2_io::Instance;
 
+pub mod emit;
+
 /// The 22 real colours plus border fit comfortably; we size the index table to
 /// the instance's colour count at build time.
 /// A candidate packed into one 64-bit word so the hot loop reads it with a
@@ -283,17 +285,61 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
                 continue;
             }
             let e = unpack_edges(w);
-            // Strict fit: up and left already guaranteed by the (up,left) index;
-            // border-facing edges are keyed too (border colour 0 is a normal
-            // key). Down/right are empty → no check.
-            stats.nodes += 1;
-            // Matched-edge gain: up and left, when non-border and equal.
-            let mut gain = 0;
-            if up != NC && up != 0 && e[0] == up {
-                gain += 1;
+            // The (up,left) bucket only guarantees up/left. Down and right must
+            // still match any ALREADY-fixed neighbour — the rim (off-board → must
+            // be border 0) or a PINNED cell — exactly as the reference engine's
+            // fits() does. Without this, pinned neighbours below/right are ignored
+            // and the search explores invalid boards (never reaching a solution
+            // that respects the pins).
+            let rr = pos % W;
+            if pos + W >= N {
+                if e[2] != 0 {
+                    continue;
+                }
+            } else {
+                let cn = cell[pos + W];
+                if cn[0] != NC && e[2] != cn[0] {
+                    continue;
+                }
             }
-            if left != NC && left != 0 && e[3] == left {
-                gain += 1;
+            if rr == W - 1 {
+                if e[1] != 0 {
+                    continue;
+                }
+            } else {
+                let cn = cell[pos + 1];
+                if cn[0] != NC && e[1] != cn[3] {
+                    continue;
+                }
+            }
+            stats.nodes += 1;
+            // Matched-edge gain, credited against ALL already-placed neighbours
+            // (a pin can leave a free cell with filled down/right neighbours too,
+            // whose seams must be counted or the score undershoots).
+            let mut gain = 0;
+            if pos >= W {
+                let cn = cell[pos - W];
+                if cn[0] != NC && e[0] != 0 && e[0] == cn[2] {
+                    gain += 1;
+                }
+            }
+            if pos + W < N {
+                let cn = cell[pos + W];
+                if cn[0] != NC && e[2] != 0 && e[2] == cn[0] {
+                    gain += 1;
+                }
+            }
+            if rr != 0 {
+                let cn = cell[pos - 1];
+                if cn[0] != NC && e[3] != 0 && e[3] == cn[1] {
+                    gain += 1;
+                }
+            }
+            if rr != W - 1 {
+                let cn = cell[pos + 1];
+                if cn[0] != NC && e[1] != 0 && e[1] == cn[3] {
+                    gain += 1;
+                }
             }
             cell[pos] = e;
             cell_pr[pos] = (pid, unpack_rot(w));
@@ -397,4 +443,67 @@ fn rebuild_board(cell_pr: &[(u16, u8); N]) -> Board {
         }
     }
     board
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use e2_io::{SiteHint, SiteInstance};
+
+    /// A solved 16×16 whose pieces are laid out so that cell `i` at rotation 0 is
+    /// its solution: horizontal seam colours and vertical seam colours are chosen
+    /// so adjacent pieces share an edge. Border edges are 0. Returns the
+    /// `SiteInstance` plus the solution `(piece, rot)` per cell (identity: piece i
+    /// at cell i, rot 0).
+    fn solved_board() -> SiteInstance {
+        // Interior seam palette: give every horizontal seam a colour and every
+        // vertical seam a colour, all >= 1 so no interior edge is border.
+        let color_h = |r: usize, c: usize| -> u8 { ((r * 15 + c) % 17 + 1) as u8 }; // seam right of (r,c)
+        let color_v = |r: usize, c: usize| -> u8 { ((c * 15 + r) % 17 + 1) as u8 + 17 }; // seam below (r,c)
+        let mut pieces = Vec::with_capacity(256);
+        for r in 0..16usize {
+            for c in 0..16usize {
+                let up = if r == 0 { 0 } else { color_v(r - 1, c) };
+                let down = if r == 15 { 0 } else { color_v(r, c) };
+                let left = if c == 0 { 0 } else { color_h(r, c - 1) };
+                let right = if c == 15 { 0 } else { color_h(r, c) };
+                pieces.push([up, right, down, left]);
+            }
+        }
+        SiteInstance {
+            name: "codegen-parity".into(),
+            width: 16,
+            height: 16,
+            num_colors: 34,
+            pieces,
+            hints: Vec::new(),
+        }
+    }
+
+    /// Regression test for the down/right constraint check. Pin every cell EXCEPT
+    /// one interior cell whose down and right neighbours are therefore pinned: the
+    /// engine must place the unique correct piece there, which is only possible if
+    /// it validates the down/right edges (the (up,left) bucket alone does not).
+    /// Before the fix, the engine ignored the pinned down/right neighbours and
+    /// could "solve" to a board that violates them — here it would fail to reach
+    /// the full score.
+    #[test]
+    fn respects_pinned_down_right_neighbours() {
+        let mut site = solved_board();
+        // Free cell: an interior cell with all four neighbours interior. Pin all
+        // others to their solution (identity: piece i at cell i, rot 0).
+        let free_pos = 8 * 16 + 8;
+        site.hints = (0..256u16)
+            .filter(|&p| p as usize != free_pos)
+            .map(|p| SiteHint { pos: p, piece: p, rot: 0 })
+            .collect();
+        let inst: crate::Instance = site.into();
+        let result = run(&inst, 5_000);
+        // Max score for 16×16 is 480; the unique completion is the identity board.
+        assert_eq!(
+            result.best_score, 480,
+            "codegen must place the piece consistent with the pinned down/right \
+             neighbours (down/right constraint check)"
+        );
+    }
 }
