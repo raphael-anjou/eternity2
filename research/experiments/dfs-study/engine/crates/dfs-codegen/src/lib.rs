@@ -30,25 +30,64 @@ use e2_io::Instance;
 
 /// The 22 real colours plus border fit comfortably; we size the index table to
 /// the instance's colour count at build time.
+/// A candidate packed into one 64-bit word so the hot loop reads it with a
+/// single contiguous load (no `pool → oriented` pointer-chase) and can test
+/// `is_used(pid)` before touching the edges. Layout:
+///   bits 48..64 = piece id (u16)
+///   bits 40..48 = rotation (u8)
+///   bits  8..40 = URDL edges as a u32 (e0<<24 | e1<<16 | e2<<8 | e3)
+///   bits  0.. 8 = unused
+/// The all-ones value `u64::MAX` is the bucket terminator.
+type Packed = u64;
+const PACK_END: Packed = u64::MAX;
+
+#[inline]
+fn pack(pid: u16, rot: u8, e: [u8; 4]) -> Packed {
+    let edges = (u32::from(e[0]) << 24)
+        | (u32::from(e[1]) << 16)
+        | (u32::from(e[2]) << 8)
+        | u32::from(e[3]);
+    ((pid as u64) << 48) | ((rot as u64) << 40) | ((edges as u64) << 8)
+}
+
+#[inline]
+fn unpack_pid(w: Packed) -> u16 {
+    (w >> 48) as u16
+}
+#[inline]
+fn unpack_rot(w: Packed) -> u8 {
+    (w >> 40) as u8
+}
+#[inline]
+fn unpack_edges(w: Packed) -> [u8; 4] {
+    let edges = (w >> 8) as u32;
+    [
+        (edges >> 24) as u8,
+        (edges >> 16) as u8,
+        (edges >> 8) as u8,
+        edges as u8,
+    ]
+}
+
 struct Index {
     colors: usize,
-    /// Oriented pieces: (piece_id, rot, [urdl]).
-    oriented: Vec<(u16, u8, [u8; 4])>,
-    /// `by_ul[up * colors + left]` → indices into `oriented`, sentinel `u32::MAX`
-    /// terminated, stored as offsets into `pool`.
+    /// `by_ul_start[up * colors + left]` → offset into `pool` of that bucket's
+    /// first packed candidate; the bucket is `PACK_END`-terminated.
     by_ul_start: Vec<u32>,
-    pool: Vec<u32>,
+    pool: Vec<Packed>,
     /// Same, keyed only by up-colour (left unconstrained: the first column).
     by_u_start: Vec<u32>,
-    pool_u: Vec<u32>,
-    /// Candidates with neither constraint (cell 0 only): all oriented indices.
-    all: Vec<u32>,
+    pool_u: Vec<Packed>,
+    /// Candidates with neither constraint (cell 0 only): all oriented pieces.
+    all: Vec<Packed>,
 }
 
 impl Index {
     fn build(inst: &Instance) -> Self {
         let colors = inst.pieces.max_color() as usize + 1;
-        let mut oriented: Vec<(u16, u8, [u8; 4])> = Vec::with_capacity(inst.pieces.len() * 4);
+        // Every distinct oriented piece, packed. Buckets store the packed word
+        // directly so the hot loop needs no `oriented` array at all.
+        let mut oriented: Vec<Packed> = Vec::with_capacity(inst.pieces.len() * 4);
         for (pid, p) in inst.pieces.iter() {
             let mut seen: Vec<[u8; 4]> = Vec::with_capacity(4);
             for rot in 0..4u8 {
@@ -57,30 +96,28 @@ impl Index {
                     continue;
                 }
                 seen.push(e);
-                oriented.push((pid, rot, e));
+                oriented.push(pack(pid, rot, e));
             }
         }
 
-        // Build the (up,left) buckets, then flatten into one pool with sentinels.
-        let mut buckets_ul: Vec<Vec<u32>> = vec![Vec::new(); colors * colors];
-        let mut buckets_u: Vec<Vec<u32>> = vec![Vec::new(); colors];
-        let mut all: Vec<u32> = Vec::with_capacity(oriented.len());
-        for (i, &(_, _, e)) in oriented.iter().enumerate() {
-            let i = i as u32;
-            buckets_ul[e[0] as usize * colors + e[3] as usize].push(i);
-            buckets_u[e[0] as usize].push(i);
-            all.push(i);
+        // Build the (up,left) buckets of packed candidates, then flatten.
+        let mut buckets_ul: Vec<Vec<Packed>> = vec![Vec::new(); colors * colors];
+        let mut buckets_u: Vec<Vec<Packed>> = vec![Vec::new(); colors];
+        let mut all: Vec<Packed> = Vec::with_capacity(oriented.len() + 1);
+        for &w in &oriented {
+            let e = unpack_edges(w);
+            buckets_ul[e[0] as usize * colors + e[3] as usize].push(w);
+            buckets_u[e[0] as usize].push(w);
+            all.push(w);
         }
-        // `all` is iterated by the same sentinel-terminated loop as the pooled
-        // buckets (the neither-constrained case, e.g. a free cell 0), so it must
-        // carry the same terminator.
-        all.push(u32::MAX);
+        // `all` is iterated by the same terminator-based loop as the pooled
+        // buckets (the neither-constrained case, e.g. a free cell 0).
+        all.push(PACK_END);
 
         let (by_ul_start, pool) = flatten(&buckets_ul);
         let (by_u_start, pool_u) = flatten(&buckets_u);
         Self {
             colors,
-            oriented,
             by_ul_start,
             pool,
             by_u_start,
@@ -90,15 +127,15 @@ impl Index {
     }
 }
 
-/// Flatten a vector of buckets into (start-offsets, pool) with a `u32::MAX`
-/// sentinel after each bucket.
-fn flatten(buckets: &[Vec<u32>]) -> (Vec<u32>, Vec<u32>) {
+/// Flatten a vector of packed-candidate buckets into (start-offsets, pool) with
+/// a `PACK_END` terminator after each bucket.
+fn flatten(buckets: &[Vec<Packed>]) -> (Vec<u32>, Vec<Packed>) {
     let mut start = Vec::with_capacity(buckets.len());
     let mut pool = Vec::new();
     for b in buckets {
         start.push(pool.len() as u32);
         pool.extend_from_slice(b);
-        pool.push(u32::MAX);
+        pool.push(PACK_END);
     }
     (start, pool)
 }
@@ -212,7 +249,7 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
         let left = if pos % W == 0 { 0 } else { cell[pos - 1][1] };
 
         // Candidate pool for this (up,left).
-        let (pool, base): (&[u32], usize) = candidate_pool(&idx, up, left);
+        let (pool, base): (&[Packed], usize) = candidate_pool(&idx, up, left);
 
         let observed = pins + level as u32;
         if observed > stats.max_depth {
@@ -224,18 +261,23 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
         let mut advanced = false;
         let mut c = cursor[level];
         loop {
-            let oi = pool[base + c];
-            if oi == u32::MAX {
+            // One contiguous load of the packed candidate — no pool→oriented
+            // pointer-chase. Extract the piece id and test `is_used` BEFORE
+            // touching the edges, so already-placed pieces are skipped with a
+            // single load + bitset probe (McGavin's `tileFree[t]`-first pattern).
+            let w = pool[base + c];
+            if w == PACK_END {
                 break; // exhausted this cell
             }
             c += 1;
-            let (pid, rot, e) = idx.oriented[oi as usize];
+            let pid = unpack_pid(w);
             if is_used(&used, pid) {
                 continue;
             }
+            let e = unpack_edges(w);
             // Strict fit: up and left already guaranteed by the (up,left) index;
-            // border-facing edges must be border (checked via the index too, as
-            // border colour 0 is a normal key). Down/right are empty → no check.
+            // border-facing edges are keyed too (border colour 0 is a normal
+            // key). Down/right are empty → no check.
             stats.nodes += 1;
             // Matched-edge gain: up and left, when non-border and equal.
             let mut gain = 0;
@@ -246,7 +288,7 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
                 gain += 1;
             }
             cell[pos] = e;
-            cell_pr[pos] = (pid, rot);
+            cell_pr[pos] = (pid, unpack_rot(w));
             set_used(&mut used, pid);
             placed_piece[level] = pid;
             score_at[level + 1] = score_at[level] + gain;
@@ -290,7 +332,7 @@ pub fn run(inst: &Instance, budget_ms: u64) -> RunResult {
 const NC: u8 = 255;
 
 #[inline]
-fn candidate_pool<'a>(idx: &'a Index, up: u8, left: u8) -> (&'a [u32], usize) {
+fn candidate_pool<'a>(idx: &'a Index, up: u8, left: u8) -> (&'a [Packed], usize) {
     match (up == NC, left == NC) {
         (false, false) => (&idx.pool, idx.by_ul_start[up as usize * idx.colors + left as usize] as usize),
         (false, true) => (&idx.pool_u, idx.by_u_start[up as usize] as usize),
