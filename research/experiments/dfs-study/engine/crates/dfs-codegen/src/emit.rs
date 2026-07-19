@@ -253,7 +253,7 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         s.push_str("        if w == u64::MAX { break; }\n");
         s.push_str("        c += 1;\n");
         s.push_str("        let pid = (w >> 48) as usize;\n");
-        s.push_str("        if unsafe { *st.used.get_unchecked(pid >> 6) } & (1u64 << (pid & 63)) != 0 { continue; }\n");
+        s.push_str("        if unsafe { *st.free_pc.get_unchecked(pid) } == 0 { continue; }\n");
         s.push_str("        let ew = (w >> 8) as u32;\n");
         s.push_str("        let e_up = (ew>>24) as u8; let e_r = (ew>>16) as u8; let e_d = (ew>>8) as u8; let e_l = ew as u8;\n");
         if need_d {
@@ -286,7 +286,7 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
             s.push_str(&format!("        {{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_r!=0 && e_r==cn as u8 {{ gain+=1; }} }}\n", pos + 1));
         }
         s.push_str(&format!("        unsafe {{ *st.cell.get_unchecked_mut({pos}) = ew; }}\n"));
-        s.push_str("        unsafe { *st.used.get_unchecked_mut(pid >> 6) |= 1u64 << (pid & 63); }\n");
+        s.push_str("        unsafe { *st.free_pc.get_unchecked_mut(pid) = 0; }\n");
         s.push_str("        let saved = st.score; st.score += gain;\n");
         s.push_str("        if st.score > st.best { st.best = st.score; }\n");
         // Pass our right edge to the next cell iff it is our horizontal-right
@@ -295,7 +295,7 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         let next_arg = if next_takes_arg { "e_r" } else { "0" };
         s.push_str(&format!("        if {next}(st, {next_arg}) {{ return true; }}\n"));
         s.push_str("        st.score = saved;\n");
-        s.push_str("        unsafe { *st.used.get_unchecked_mut(pid >> 6) &= !(1u64 << (pid & 63)); }\n");
+        s.push_str("        unsafe { *st.free_pc.get_unchecked_mut(pid) = 1; }\n");
         s.push_str(&format!("        unsafe {{ *st.cell.get_unchecked_mut({pos}) = CELL_EMPTY; }}\n"));
         s.push_str("    }\n");
         s.push_str("    false\n");
@@ -383,7 +383,10 @@ static TIMED_OUT: AtomicBool = AtomicBool::new(false);
 
 struct St {
     cell: [u32; N],
-    used: [u64; (NP + 63)/64],
+    // A byte per piece: 1 = free, 0 = placed (McGavin's `tileFree` layout). A
+    // byte load + compare-to-zero beats the shift/mask/test of a bitset for the
+    // per-candidate used-check, which is the hottest branch in the scan.
+    free_pc: [u8; NP],
     score: u32,
     best: u32,
     nodes: u64,
@@ -403,13 +406,13 @@ fn terminal(st: &mut St, _left_arg: u8) -> bool {
 const CHAIN_MAIN: &str = r#"
 fn main() {
     let mut cell = [CELL_EMPTY; N];
-    let mut used = [0u64; (NP + 63)/64];
+    let mut free_pc = [1u8; NP]; // 1 = free, 0 = placed
     for pos in 0..N {
         let w = PIN_WORD[pos];
         if w != u64::MAX {
             cell[pos] = (w >> 8) as u32;
             let pid = (w >> 48) as usize;
-            used[pid>>6] |= 1u64 << (pid & 63);
+            free_pc[pid] = 0;
         }
     }
     let mut base_score: u32 = 0;
@@ -426,7 +429,7 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_millis(BUDGET_MS));
         TIMED_OUT.store(true, Ordering::Relaxed);
     });
-    let mut st = St { cell, used, score: base_score, best: base_score, nodes: 0 };
+    let mut st = St { cell, free_pc, score: base_score, best: base_score, nodes: 0 };
     run_search(&mut st);
     let elapsed = start.elapsed().as_secs_f64();
     let nps = if elapsed > 0.0 { (st.nodes as f64 / elapsed) as u64 } else { 0 };
