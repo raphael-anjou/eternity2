@@ -47,19 +47,24 @@ fn pack(pid: u16, rot: u8, e: [u8; 4]) -> Packed {
         | (u32::from(e[1]) << 16)
         | (u32::from(e[2]) << 8)
         | u32::from(e[3]);
-    ((pid as u64) << 48) | ((rot as u64) << 40) | ((edges as u64) << 8)
+    (u64::from(pid) << 48) | (u64::from(rot) << 40) | (u64::from(edges) << 8)
 }
 
+// The unpack helpers deliberately truncate — they extract fixed bit fields from
+// the packed word, so the narrowing casts are exact by construction.
 #[inline]
-fn unpack_pid(w: Packed) -> u16 {
+#[allow(clippy::cast_possible_truncation)]
+const fn unpack_pid(w: Packed) -> u16 {
     (w >> 48) as u16
 }
 #[inline]
-fn unpack_rot(w: Packed) -> u8 {
+#[allow(clippy::cast_possible_truncation)]
+const fn unpack_rot(w: Packed) -> u8 {
     (w >> 40) as u8
 }
 #[inline]
-fn unpack_edges(w: Packed) -> [u8; 4] {
+#[allow(clippy::cast_possible_truncation)]
+const fn unpack_edges(w: Packed) -> [u8; 4] {
     let edges = (w >> 8) as u32;
     [
         (edges >> 24) as u8,
@@ -83,6 +88,9 @@ struct Index {
 }
 
 impl Index {
+    // `by_u_start` / `by_ul_start` are the up-only and up+left bucket offsets —
+    // the one-letter difference is meaningful, not a typo.
+    #[allow(clippy::similar_names)]
     fn build(inst: &Instance) -> Self {
         let colors = inst.pieces.max_color() as usize + 1;
         // Every distinct oriented piece, packed. Buckets store the packed word
