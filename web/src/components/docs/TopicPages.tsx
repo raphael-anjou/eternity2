@@ -67,7 +67,7 @@ function Crumbs({ current }: { current: string }) {
         <span className="text-foreground">{t.topics}</span>
       ) : (
         <>
-          <LocalizedLink to="/research/topics" className="hover:text-foreground">
+          <LocalizedLink to="/research" className="hover:text-foreground">
             {t.topics}
           </LocalizedLink>
           <span aria-hidden>/</span>
@@ -189,7 +189,7 @@ function NeighbourRoads({ slug, lang }: { slug: string; lang: Lang }) {
           {t.neighbours}
         </h2>
         <LocalizedLink
-          to="/research/topics"
+          to="/research"
           className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
         >
           {t.allRoads}

@@ -17,7 +17,7 @@ import { Navigate, useLocation } from "react-router";
 // lets Vite load it only with this route's chunk. See src/index.css.
 import "katex/dist/katex.min.css";
 import type { MDXContent } from "mdx/types";
-import { langFromPath, useT, pick, neutralPath as langNeutral } from "@/i18n";
+import { langFromPath, useT, pick, pathForLang, neutralPath as langNeutral } from "@/i18n";
 import { canonicalUrl, absoluteUrl } from "@/site";
 import {
   researchDoc,
@@ -91,6 +91,13 @@ const GLOSSARY_DESC = {
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
+  // A moved URL renders as a redirect (see the component below), so its tags
+  // must describe the DESTINATION, not the old path — otherwise the head
+  // advertises a titled, self-canonical page that immediately bounces. Recurse
+  // once on the target (the table has no chains) in the visitor's language, so
+  // title / og:url / canonical all match where the reader actually lands.
+  const moved = RESEARCH_REDIRECTS[path];
+  if (moved) return meta({ location: { pathname: pathForLang(moved, lang) } });
   // pack() takes the FINAL meta/og description verbatim — it does not trim. The
   // route-generated callers below (glossary, topics, person hubs) whose text
   // comes from long registry prose pre-trim it to a SERP-safe length with
@@ -273,9 +280,11 @@ export default function ResearchDocPage() {
   const lang = langFromPath(pathname);
 
   // Pages that moved (Build reorg into technique-family sub-hubs) redirect old
-  // URLs to their new home, so bookmarks and external links don't 404.
+  // URLs to their new home, so bookmarks and external links don't 404. The
+  // redirect map is language-neutral, so re-apply the current language prefix —
+  // a French/Spanish visitor must land on the same-language new page, not English.
   const moved = RESEARCH_REDIRECTS[path];
-  if (moved) return <Navigate to={moved} replace />;
+  if (moved) return <Navigate to={pathForLang(moved, lang)} replace />;
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "") return <TopicsIndex />;
