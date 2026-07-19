@@ -269,17 +269,17 @@ fn main() {
         let pos = g!(FREE, level);
         let up_p = g!(FREE_UP, level);
         let left_p = g!(FREE_LEFT, level);
-        // up = up-neighbour's DOWN edge (byte1); left = left-neighbour's RIGHT (byte2).
+        // In row-major free order, the up (pos-W) and left (pos-1) neighbours are
+        // ALWAYS already filled when this cell is visited (they precede it), except
+        // at the top row / first column where they are the border colour 0. So up
+        // and left are never the empty sentinel NC here — the candidate pool is
+        // always the two-sided (up,left) bucket, and the NC branch is dead. up =
+        // up-neighbour's DOWN edge (byte1); left = left-neighbour's RIGHT (byte2);
+        // a negative baked position means the rim → colour 0.
         let up = if up_p < 0 { 0 } else { (g!(cell, up_p as usize) >> 8) as u8 };
         let left = if left_p < 0 { 0 } else { (g!(cell, left_p as usize) >> 16) as u8 };
-        // pick candidate pool — the (up,left) fit filter is precomputed
-        let (pool, base): (&[u64], usize) = if up != NC && left != NC {
-            (&POOL_UL, g!(UL_START, up as usize * COLORS + left as usize) as usize)
-        } else if up != NC {
-            (&POOL_U, g!(U_START, up as usize) as usize)
-        } else {
-            (&ALL, 0)
-        };
+        let (pool, base): (&[u64], usize) =
+            (&POOL_UL, g!(UL_START, up as usize * COLORS + left as usize) as usize);
         let observed = PINS + level as u32;
         if observed > max_depth { max_depth = observed; }
 
