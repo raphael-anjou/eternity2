@@ -221,9 +221,12 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
             "terminal".to_string()
         };
         s.push_str(&format!("#[inline(never)]\nfn cell_{k}(st: &mut St) -> bool {{\n"));
-        // budget check (cheap: counter in st)
-        s.push_str("    st.nodes_since_check += 1;\n");
-        s.push_str("    if st.nodes_since_check >= 4096 { st.nodes_since_check = 0; if Instant::now() >= st.deadline { return true; } }\n");
+        // Budget check: read a flag a background timer thread flips at the
+        // deadline. This is a single relaxed atomic LOAD — no `Instant::now` call
+        // — so the cell functions stay leaf-ish and don't spill the whole
+        // callee-saved register set on every call (which is McGavin's edge). The
+        // flag is checked every cell entry, cheaply.
+        s.push_str("    if TIMED_OUT.load(Ordering::Relaxed) { return true; }\n");
         // up/left colours
         let up_expr = if up_p < 0 { "0u8".to_string() } else { format!("(unsafe {{ *st.cell.get_unchecked({up_p}) }} >> 8) as u8") };
         let left_expr = if left_p < 0 { "0u8".to_string() } else { format!("(unsafe {{ *st.cell.get_unchecked({left_p}) }} >> 16) as u8") };
@@ -344,7 +347,12 @@ fn emit_slice_i32(s: &mut String, name: &str, v: &[i32]) {
 /// but with no `%W` tests (baked in FREE_UP/FREE_LEFT) and a flat used-bitset.
 /// Prelude for the function-chain program: state struct + terminal cell.
 const CHAIN_PRELUDE: &str = r#"
+use std::sync::atomic::{AtomicBool, Ordering};
 const CELL_EMPTY: u32 = 0xFFFF_FFFF;
+
+// Flipped by a background timer thread at the deadline; every cell reads it as a
+// single relaxed load (no clock syscall on the hot path).
+static TIMED_OUT: AtomicBool = AtomicBool::new(false);
 
 struct St {
     cell: [u32; N],
@@ -352,8 +360,6 @@ struct St {
     score: u32,
     best: u32,
     nodes: u64,
-    nodes_since_check: u32,
-    deadline: Instant,
 }
 
 // Terminal: a full board has been reached (all free cells placed). Record best
@@ -387,10 +393,13 @@ fn main() {
         if pos/W != W-1 { let n = pos+W; if cell[n]!=CELL_EMPTY { let a=(cell[pos]>>8) as u8; let b=(cell[n]>>24) as u8; if a==b && a!=0 { base_score+=1; } } }
     }
     let start = Instant::now();
-    let mut st = St {
-        cell, used, score: base_score, best: base_score, nodes: 0,
-        nodes_since_check: 0, deadline: start + std::time::Duration::from_millis(BUDGET_MS),
-    };
+    // Background timer: flip TIMED_OUT at the deadline. The search thread only
+    // ever reads the flag, never the clock, on its hot path.
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_millis(BUDGET_MS));
+        TIMED_OUT.store(true, Ordering::Relaxed);
+    });
+    let mut st = St { cell, used, score: base_score, best: base_score, nodes: 0 };
     run_search(&mut st);
     let elapsed = start.elapsed().as_secs_f64();
     let nps = if elapsed > 0.0 { (st.nodes as f64 / elapsed) as u64 } else { 0 };
