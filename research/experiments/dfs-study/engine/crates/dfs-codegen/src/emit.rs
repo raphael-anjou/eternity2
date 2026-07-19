@@ -215,12 +215,21 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         let left_p: i64 = if pos % W == 0 { -1 } else { (pos - 1) as i64 };
         let need_d = pos + W >= N || (pos + W < N && pinned[pos + W]);
         let need_r = pos % W == W - 1 || (pos % W != W - 1 && pinned[pos + 1]);
+        // Optimisation: the left neighbour is the CELL PLACED BY THE CALLER when
+        // it is the immediately-preceding free cell in the chain AND is our
+        // horizontal left (pos-1). In that (94% common) case the caller passes its
+        // placed right edge as `left_arg`, so this cell skips a board read.
+        let left_from_arg = pos % W != 0 && k > 0 && free[k - 1] == pos - 1;
+        // Whether the NEXT cell in the chain is our horizontal-right neighbour, in
+        // which case we pass our right edge to it as its `left_arg`.
+        let next_takes_arg =
+            k + 1 < free.len() && (pos + 1) % W != 0 && free[k + 1] == pos + 1;
         let next = if k + 1 < free.len() {
             format!("cell_{}", k + 1)
         } else {
             "terminal".to_string()
         };
-        s.push_str(&format!("#[inline(never)]\nfn cell_{k}(st: &mut St) -> bool {{\n"));
+        s.push_str(&format!("#[inline(never)]\nfn cell_{k}(st: &mut St, left_arg: u8) -> bool {{\n"));
         // Budget check: read a flag a background timer thread flips at the
         // deadline. This is a single relaxed atomic LOAD — no `Instant::now` call
         // — so the cell functions stay leaf-ish and don't spill the whole
@@ -229,8 +238,14 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         s.push_str("    if TIMED_OUT.load(Ordering::Relaxed) { return true; }\n");
         // up/left colours
         let up_expr = if up_p < 0 { "0u8".to_string() } else { format!("(unsafe {{ *st.cell.get_unchecked({up_p}) }} >> 8) as u8") };
-        let left_expr = if left_p < 0 { "0u8".to_string() } else { format!("(unsafe {{ *st.cell.get_unchecked({left_p}) }} >> 16) as u8") };
-        s.push_str(&format!("    let up = {up_expr}; let left = {left_expr};\n"));
+        let left_expr = if left_from_arg {
+            "left_arg".to_string()
+        } else if left_p < 0 {
+            "0u8".to_string()
+        } else {
+            format!("(unsafe {{ *st.cell.get_unchecked({left_p}) }} >> 16) as u8")
+        };
+        s.push_str(&format!("    let _ = left_arg;\n    let up = {up_expr}; let left = {left_expr};\n"));
         s.push_str("    let base = unsafe { *UL_START.get_unchecked(up as usize * COLORS + left as usize) } as usize;\n");
         s.push_str("    let mut c = 0usize;\n");
         s.push_str("    loop {\n");
@@ -273,7 +288,11 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         s.push_str("        unsafe { *st.used.get_unchecked_mut(pid >> 6) |= 1u64 << (pid & 63); }\n");
         s.push_str("        let saved = st.score; st.score += gain;\n");
         s.push_str("        if st.score > st.best { st.best = st.score; }\n");
-        s.push_str(&format!("        if {next}(st) {{ return true; }}\n"));
+        // Pass our right edge to the next cell iff it is our horizontal-right
+        // neighbour (so it can use it as its left constraint without a board read);
+        // otherwise the arg is unused there and 0 is fine.
+        let next_arg = if next_takes_arg { "e_r" } else { "0" };
+        s.push_str(&format!("        if {next}(st, {next_arg}) {{ return true; }}\n"));
         s.push_str("        st.score = saved;\n");
         s.push_str("        unsafe { *st.used.get_unchecked_mut(pid >> 6) &= !(1u64 << (pid & 63)); }\n");
         s.push_str(&format!("        unsafe {{ *st.cell.get_unchecked_mut({pos}) = CELL_EMPTY; }}\n"));
@@ -282,11 +301,18 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         s.push_str("}\n");
     }
 
-    // Entry point into the chain (or a no-op when every cell is pinned).
+    // Entry point into the chain (or a no-op when every cell is pinned). cell_0's
+    // left is the border (0) if it is in column 0, else read once from the board.
     if free.is_empty() {
         s.push_str("#[inline(always)]\nfn run_search(_st: &mut St) {}\n");
     } else {
-        s.push_str("#[inline(always)]\nfn run_search(st: &mut St) { cell_0(st); }\n");
+        let first = free[0];
+        let l0 = if first % W == 0 {
+            "0u8".to_string()
+        } else {
+            format!("(unsafe {{ *st.cell.get_unchecked({}) }} >> 16) as u8", first - 1)
+        };
+        s.push_str(&format!("#[inline(always)]\nfn run_search(st: &mut St) {{ let l0 = {l0}; cell_0(st, l0); }}\n"));
     }
 
     s.push_str(CHAIN_MAIN);
@@ -365,7 +391,7 @@ struct St {
 // Terminal: a full board has been reached (all free cells placed). Record best
 // and return false so the search continues (best-score search, not first-only).
 #[inline(never)]
-fn terminal(st: &mut St) -> bool {
+fn terminal(st: &mut St, _left_arg: u8) -> bool {
     if st.score > st.best { st.best = st.score; }
     false
 }
