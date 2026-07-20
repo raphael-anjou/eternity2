@@ -38,11 +38,18 @@ fn main() -> std::process::ExitCode {
         .position(|a| a == "--group")
         .and_then(|i| args.get(i + 1))
         .and_then(|s| s.parse().ok());
+    // Candidate-order seed for search diversity across otherwise-identical runs.
+    let seed: u64 = args
+        .iter()
+        .position(|a| a == "--seed")
+        .and_then(|i| args.get(i + 1))
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
     let budget_ms = (budget_s * 1000.0) as u64;
     let src = if let Some(g) = group {
-        emit_program_chain_g(&inst, budget_ms, g)
-    } else if chain2 {
-        emit_program_chain2(&inst, budget_ms)
+        emit_program_chain_g(&inst, budget_ms, g, seed)
+    } else if chain2 || seed != 0 {
+        emit_program_chain_g(&inst, budget_ms, 6, seed)
     } else if chain {
         emit_program_chain(&inst, budget_ms)
     } else {
