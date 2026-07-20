@@ -37,6 +37,16 @@ const textOf = (n: HastNode): string => {
 };
 const diffLinesTransformer = {
   name: "diff-line-bg",
+  // After all lines are built, drop the literal "\n" text nodes Shiki inserts
+  // *between* the `.line` spans. For diff blocks the `.line`s are `display:block`
+  // (so the full-width green/red background reaches the edge), and those inter-line
+  // newlines would otherwise render as blank lines in the `white-space:pre` <pre>.
+  code(this: { options: { lang: string } }, node: HastElement) {
+    if (this.options.lang !== "diff") return;
+    node.children = node.children.filter(
+      (c) => !(c.type === "text" && (c as HastText).value.trim() === ""),
+    );
+  },
   line(this: { options: { lang: string } }, node: HastElement) {
     // `this.options.lang` is the fenced-block language for this run.
     if (this.options.lang !== "diff") return;
