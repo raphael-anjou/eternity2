@@ -129,8 +129,12 @@ export function decodeBucas(input: string | Record<string, string>): BucasBoard 
 }
 
 /** Parse the `hints` blob (`pos.rot` entries joined by `-`) into cell positions.
- *  The piece and rotation at each cell come from board_edges, so only the
- *  position is needed to mark it as a clue. Returns null when absent. */
+ *
+ *  We keep only the positions. The `.rot` half is carried for interop and to
+ *  match the CSV/JSON `(pos, rot)` clue convention, but it is *redundant*, not
+ *  lost: the piece and its rotation at a hinted cell are fully recovered from
+ *  `board_edges` (pieces are distinct up to rotation). The position alone is
+ *  what marks a cell as a clue for the overlay. Returns null when absent. */
 export function parseHints(blob: string | undefined): number[] | null {
   if (!blob) return null;
   const positions: number[] = [];
@@ -140,6 +144,23 @@ export function parseHints(blob: string | undefined): number[] | null {
     if (Number.isInteger(pos) && pos >= 0) positions.push(pos);
   }
   return positions.length ? positions : null;
+}
+
+/** Parse the `hints` blob preserving each clue's `(pos, rot)` — the full form,
+ *  for a tool that wants the encoded orientation rather than re-deriving it from
+ *  the edges. The overlay uses {@link parseHints} (positions only). */
+export function parseHintsFull(blob: string | undefined): { pos: number; rot: number }[] {
+  if (!blob) return [];
+  const out: { pos: number; rot: number }[] = [];
+  for (const entry of blob.split("-")) {
+    if (!entry) continue;
+    const [p, r] = entry.split(".");
+    const pos = parseInt(p ?? "", 10);
+    if (!Number.isInteger(pos) || pos < 0) continue;
+    const rot = ((parseInt(r ?? "0", 10) || 0) & 3);
+    out.push({ pos, rot });
+  }
+  return out;
 }
 
 /** Encode clue cells as the `hints` blob: `pos.rot` entries joined by `-`. */
@@ -305,17 +326,20 @@ export function ourParams(
 
 /** Bucas URL parameters for any board (default motif letters). Works for any
  *  size/piece set; bucas only *verifies* the official 16×16, but displays
- *  everything. Bucas needs the explicit `board_w`/`board_h` pair. */
+ *  everything. Bucas needs the explicit `board_w`/`board_h` pair. Edges-only:
+ *  the board rides entirely in `board_edges` (bucas recovers piece identity from
+ *  the edges for a distinct-piece set), matching what the Rust `bucas_url`
+ *  emitter produces so the two agree. */
 export function bucasParams(
   puzzle: Puzzle,
   board: BoardCells,
   name = "eternity2-community",
 ): string {
-  const { edges, pieces } = encodeCells(puzzle, board);
+  const { edges } = encodeCells(puzzle, board);
   return (
     `puzzle=${encodeURIComponent(name)}` +
     `&board_w=${puzzle.width}&board_h=${puzzle.height}` +
-    `&board_edges=${edges}&board_pieces=${pieces}`
+    `&board_edges=${edges}`
   );
 }
 

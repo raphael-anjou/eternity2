@@ -62,19 +62,126 @@ impl Budget {
     }
 }
 
+/// The kind of a bound, kept distinct so a *proven* bound can never be recorded
+/// as if it were an *achieved* score.
+///
+/// A greedy relaxation, an LP upper bound, and a MIP upper bound are all numbers
+/// that bound the optimum, not boards anyone placed. Carrying the kind on the
+/// value at the type level is what stops the single most dangerous reporting
+/// mistake on this puzzle: writing down a relaxation's number as if a solver had
+/// reached it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum BoundKind {
+    /// An LP-relaxation upper bound.
+    LpUb,
+    /// A MIP upper bound (LP + integrality, still a bound, not a placement).
+    MipUb,
+    /// A combinatorial / greedy relaxation bound (e.g. sum of best local fits).
+    GreedyRelaxed,
+}
+
+/// What a solve produced, beyond the board itself. This is the honest answer to
+/// "what does this number mean?".
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type", rename_all = "kebab-case")]
+pub enum OutcomeKind {
+    /// The search finished on its own terms with a **full** board — every cell
+    /// placed — and this is the answer it settled on. Use it only for a complete
+    /// board; a search that stopped with holes or on the budget is `Improved`,
+    /// and one that *proved* nothing better exists is `Exhausted`. Also the
+    /// default when a stored result carries no explicit outcome.
+    #[default]
+    Complete,
+    /// The search space (or the assigned sub-space) was **exhausted**: no better
+    /// board exists there. The board is the best found; the *fact of exhaustion*
+    /// is the result. This is what LEDGER / tail-enumeration work returns.
+    Exhausted,
+    /// The solver improved on its starting board and stopped on the budget. The
+    /// board is the best-so-far; it is neither complete nor exhaustive.
+    Improved,
+    /// The result is a **bound**, not a placed board: `value` bounds the optimum
+    /// from above, and `kind` says how it was obtained. The board field is
+    /// whatever partial board the relaxation was read off (often empty).
+    Bound {
+        /// The bounding value (an upper bound on the achievable matched-edge score).
+        value: u32,
+        /// How the bound was obtained — never `Complete`/an achieved score.
+        kind: BoundKind,
+    },
+}
+
+/// Everything a solve returns: the board, what the result *means*, and the work
+/// it took. The kit re-scores `board` canonically, so `OutcomeKind` describes
+/// the search, never the score — the two are kept separate on purpose.
+#[derive(Debug, Clone)]
+pub struct SolveOutcome {
+    /// The best board the solver found (may be partial, or empty for a pure bound).
+    pub board: Board,
+    /// What the search actually established.
+    pub kind: OutcomeKind,
+    /// Search work done — nodes/placements explored, `0` if not tracked.
+    pub nodes: u64,
+}
+
+impl SolveOutcome {
+    /// A completed solve returning `board`.
+    #[must_use]
+    pub fn complete(board: Board) -> Self {
+        Self { board, kind: OutcomeKind::Complete, nodes: 0 }
+    }
+
+    /// An improved-but-unfinished solve (stopped on the budget).
+    #[must_use]
+    pub fn improved(board: Board) -> Self {
+        Self { board, kind: OutcomeKind::Improved, nodes: 0 }
+    }
+
+    /// An exhaustive result: the (sub-)space held no better board than `board`.
+    #[must_use]
+    pub fn exhausted(board: Board) -> Self {
+        Self { board, kind: OutcomeKind::Exhausted, nodes: 0 }
+    }
+
+    /// A bound result: `value` bounds the optimum from above, obtained via `kind`.
+    #[must_use]
+    pub fn bound(board: Board, value: u32, kind: BoundKind) -> Self {
+        Self { board, kind: OutcomeKind::Bound { value, kind }, nodes: 0 }
+    }
+
+    /// Attach a node count (builder style).
+    #[must_use]
+    pub fn with_nodes(mut self, nodes: u64) -> Self {
+        self.nodes = nodes;
+        self
+    }
+}
+
 /// A solver: your idea, in one method.
 ///
-/// Implement `name` (used in run directories and reports) and `solve`. Keep any
-/// per-run state on `self`; the runner calls `solve` once per instance and may
-/// reuse the same solver across instances, so reset anything stateful at the top
-/// of `solve` if you need to.
+/// Implement `name` (for run directories and reports) and `solve`. `solve` is
+/// handed a **starting board** to continue from. Through the [`sweep`] runner
+/// that start is always `instance.seed_board()` (a fresh board carrying only the
+/// pinned clues), because a sweep's job is one independent board per seed. To
+/// continue from an *arbitrary* partial board — seed-and-grow, band/column, or
+/// repair-a-known-board — call `solve` **directly** with your own start board
+/// (see the continuation demo at the bottom of `examples/my_solver.rs`); you are
+/// not limited to what the sweep passes.
+///
+/// Return a [`SolveOutcome`] so the result's *meaning* (complete, exhausted,
+/// improved, or a bound) travels with the board.
+///
+/// Keep per-run state on `self`; the runner calls `solve` once per instance and
+/// may reuse the solver, so reset anything stateful at the top of `solve`.
+///
+/// [`sweep`]: crate::sweep
 pub trait Solver {
     /// A short, stable identifier — it names the run directory and appears in
     /// reports. Prefer kebab-case, e.g. `"greedy-mrv"`.
     fn name(&self) -> String;
 
-    /// Fill and return a board for `instance` within `budget`. Start from
-    /// `instance.seed_board()` to honour pinned hints. Returning a partial board
-    /// is allowed; it scores what it scores.
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board;
+    /// Search from `start` (already carries any pinned clues) within `budget`,
+    /// and return what you found and what it means. A partial board is fine; a
+    /// pure bound need not place anything.
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome;
 }

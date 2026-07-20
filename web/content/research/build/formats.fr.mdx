@@ -113,7 +113,7 @@ quart de tour horaire, joints par `-`. Cinq indices officiels font environ
 trente caractères.
 
 ```text
-hints=72.2-135.0-210.3-34.1-221.0
+hints=34.1-45.2-135.0-210.3-221.0
 ```
 
 La pièce de chaque case-indice est déjà connue par `board_edges`, donc un indice
@@ -268,7 +268,7 @@ aussi les `board_w`/`board_h` de bucas), et chaque valeur reste dans la plage
 URL-compatible, de sorte que le lien n'a besoin d'aucun encodage-pourcent :
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=135.0-210.1
 ```
 
 `hints` est omis pour un plateau sans indices. Comme les arêtes portent
@@ -278,8 +278,11 @@ indices tiennent dans ces deux champs.
 **e2.bucas.name, le visualiseur communautaire.** L'original de Jef Bucas, le
 visualiseur dont le format d'URL *est devenu* tout ce vocabulaire (la
 [boîte à outils](/research/build/tooling) raconte cette histoire). Pleinement
-pris en charge en entrée et disponible en sortie dérivée, avec sa paire
-`board_w`/`board_h`, un canal `board_pieces` et un fragment `#` :
+pris en charge en entrée, et disponible en sortie dérivée avec sa paire
+`board_w`/`board_h` et un fragment `#`. Nous l'émettons en arêtes seules (bucas
+retrouve les pièces à partir des arêtes pour un jeu distinct) ; les liens bucas
+d'autres outils portent souvent aussi un canal `board_pieces`, que nous lisons en
+entrée :
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…

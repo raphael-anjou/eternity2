@@ -28,10 +28,22 @@ of `experiments/` inside the repo.
 solver:
 
 1. Copy `examples/my_solver.rs` to a new example (e.g. `examples/my_idea.rs`).
-2. Replace the body of `solve`. Start from `instance.seed_board()` (this applies
-   pinned hints). Poll `budget.expired()` in the inner loop and return the best
-   board found. Return a partial board if out of time — it scores what it scores.
-3. Never score inside the solver. The kit re-scores every board canonically via
+2. Replace the body of `solve(&mut self, instance, start, budget) -> SolveOutcome`.
+   `start` is the board to continue from — `instance.seed_board()` by default (so
+   pinned clues are in place), but any partial board can be handed in for
+   seed-and-grow, band/column, or repair-a-known-board work. Poll
+   `budget.expired()` and return the best board found.
+3. Return the right **outcome**, because it is what stops a proven result being
+   read as an ordinary score:
+   - `SolveOutcome::complete(board)` — the search finished / filled what it could.
+   - `SolveOutcome::improved(board)` — better than the start, stopped on budget.
+   - `SolveOutcome::exhausted(board)` — a (sub-)space held nothing better; the
+     *fact of exhaustion* is the result (LEDGER / tail-enumeration).
+   - `SolveOutcome::bound(board, value, BoundKind::{LpUb,MipUb,GreedyRelaxed})` —
+     the result is an **upper bound**, not a placed board. Never report a bound as
+     a score; the type keeps them separate, so use it.
+   Add `.with_nodes(n)` to record search work.
+4. Never score inside the solver. The kit re-scores every board canonically via
    `Instance::finish`, so the reported number is trustworthy by construction.
 
 Everything else — the sweep runner, run directories, the compare tool — works on
@@ -58,22 +70,37 @@ delta with its standard error.
 | Batch-generate with clues | `cargo run --release --example generate_batch -- --n 100 --pins 5 --framed --out boards` |
 | Convert formats | `cargo run --release --example convert -- "<URL>"` |
 | Benchmark plumbing | `cargo run --release --example bench` |
+| Verify / diff a board | `cargo run --release --example verify -- "<URL>" ["<URL B>"]` |
+
+## The official puzzle
+
+The real 256-piece set and the five official clues ship with the kit as
+`data/official.json`, in the site's canonical `Puzzle`/`SiteInstance` format (see
+`data/README.md`). Load the real instance with
+`e2_kit::official_instance(with_clues)` — it goes through `e2-io`'s own
+`SiteInstance` loader, so the kit does no parsing of its own. This is the board a
+record attempt or a re-measurement runs on, not a generated seed. `verify` checks
+a board against it: score, all-official-pieces, and clue compliance.
 
 ## The anti-duplication rule (important)
 
-Scoring, generation, and formats live in `e2-core` / `e2-io`. Route through them:
+Scoring, generation, formats, and the official set live in `e2-core` / `e2-io` /
+the kit's data. Route through them:
 
 - **Score** → `e2_kit::score_url`, or `Instance::finish` / `e2-core::score_cells`.
   Never write a scorer. The canonical convention: matched interior edges, rim
   (colour 0) excluded. A solved 16×16 scores **480**.
 - **Generate** → `e2_kit::generator` (`generate_framed` etc.). Real colour
   balance and determinism are already handled.
+- **Official pieces / clues** → `e2_kit::official_instance(..)`. Don't re-embed or
+  re-transcribe the piece set; it's shipped as `data/official.json` and
+  test-locked to Eternity II's border census (4/56/196) and the five clue cells.
 - **Formats** → `e2-io::format` and `Instance` (`from_site_json`, `to_csv`,
-  `to_site`). Board-in-a-URL, CSV, `e2pieces.txt`, `board_edges`/`board_pieces`
-  all exist. Never hand-roll a parser or a bucas encoder.
+  `to_site`). Board-in-a-URL, CSV, `e2pieces.txt`, `board_edges` all exist. Never
+  hand-roll a parser or a bucas encoder.
 
-If you think you need a new scorer/parser/generator, you don't — find it in
-`src/lib.rs`'s re-exports first.
+If you think you need a new scorer/parser/generator/piece set, you don't — find it
+in `src/lib.rs`'s re-exports first.
 
 ## Scientific rigor (do not skip)
 

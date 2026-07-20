@@ -229,9 +229,11 @@ pub fn sanitize_name(name: &str) -> String {
 /// eternity2.dev URL as a field (not a separate file).
 ///
 /// It is deliberately self-describing: given only this JSON, a tool can render
-/// the board (`board_edges`), identify the pieces (`board_pieces`), re-derive
-/// any other format, or open it in the viewer (`url`) — no companion file, no
-/// out-of-band size or piece set required beyond the standard official set.
+/// the board (`board_edges`), identify the pieces (`board_pieces`, or from the
+/// edges directly for a distinct set), re-derive any other format, or open it in
+/// the viewer (`url`, which carries `board_edges` + any `hints`) — no companion
+/// file, no out-of-band size or piece set required beyond the standard official
+/// set.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BoardDoc {
     /// Human name, carried into the URL.

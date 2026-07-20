@@ -108,7 +108,7 @@ como `pos.rot`, el índice de celda en orden fila por fila y el cuarto de vuelta
 horario, unidas por `-`. Cinco pistas oficiales ocupan unos treinta caracteres.
 
 ```text
-hints=72.2-135.0-210.3-34.1-221.0
+hints=34.1-45.2-135.0-210.3-221.0
 ```
 
 La pieza de cada celda-pista ya se conoce por `board_edges`, así que una pista
@@ -263,7 +263,7 @@ los `board_w`/`board_h` de bucas), y cada valor permanece en el rango URL-seguro
 de modo que el enlace no necesita ningún encodeo por porcentaje:
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=135.0-210.1
 ```
 
 `hints` se omite en un tablero sin pistas. Como las aristas llevan la identidad
@@ -273,8 +273,11 @@ estos dos campos.
 **e2.bucas.name, el visor comunitario.** El original de Jef Bucas, el visor cuyo
 formato de URL *se convirtió* en todo este vocabulario (la
 [caja de herramientas](/research/build/tooling) cuenta esa historia). Plenamente
-soportado como entrada y disponible como salida derivada, usando su par
-`board_w`/`board_h`, un canal `board_pieces` y un fragmento `#`:
+soportado como entrada, y disponible como salida derivada usando su par
+`board_w`/`board_h` y un fragmento `#`. Lo emitimos solo con aristas (bucas
+recupera las piezas a partir de las aristas para un conjunto distinto); los
+enlaces bucas de otras herramientas suelen llevar además un canal `board_pieces`,
+que leemos en la entrada:
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…

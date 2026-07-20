@@ -41,9 +41,10 @@ and iterate.
 
 ## What's in the box
 
-- **Score any board**, from an `eternity2.dev` / `e2.bucas.name` URL or a bare
-  `board_edges` blob, through the canonical scorer. A bundled verified 469 board
-  proves it agrees with the record archive.
+- **Score and verify any board**, from an `eternity2.dev` / `e2.bucas.name` URL
+  or a bare `board_edges` blob, through the canonical scorer, and check it
+  against the real official piece set (all-distinct-pieces, clue compliance),
+  which the kit now ships.
 - **Generate boards** with real Eternity-II colour balance: five border colours
   confined to the frame, the interior balanced, every piece distinct, fully
   deterministic per seed.
@@ -73,17 +74,17 @@ numbers stay comparable to everyone else's.
 The whole kit is built around one trait:
 
 ```rust
-use e2_kit::{Board, Budget, Instance, Solver};
+use e2_kit::{Board, Budget, Instance, SolveOutcome, Solver};
 
 struct MySolver;
 
 impl Solver for MySolver {
     fn name(&self) -> String { "my-solver".into() }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
-        let mut board = instance.seed_board();   // starts from any pinned clues
-        // ...your search here. Poll budget.expired(); return the best board.
-        board
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
+        let mut board = start.clone();   // `start` already carries any pinned clues
+        // ...your search here. Poll budget.expired().
+        SolveOutcome::complete(board)    // or ::improved / ::exhausted / ::bound
     }
 }
 ```

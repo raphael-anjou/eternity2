@@ -49,11 +49,11 @@ You need Rust stable (1.85+). Nothing else.
 ## The 60-second tour
 
 ```bash
-cargo run --release --example score                 # score the bundled 469 board
+cargo run --release --example score                 # score a generated solved board (480)
 cargo run --release --example generate              # one official 16×16 board
 cargo run --release --example my_solver             # run the baseline solver once
 cargo run --release --example sweep -- --n 40       # sweep it over 40 seeds
-cargo run --release --bin e2kit -- --help           # the CLI: gen | run | compare
+cargo run --release --bin e2kit -- --help           # the CLI: gen | compare | score | verify
 ```
 
 ---
@@ -129,6 +129,32 @@ cargo run --release --example convert -- "<board URL>"      # edges in, every fo
 cargo run --release --example convert -- boards/3.json      # full instance → CSV too
 ```
 
+## The official puzzle, and verifying a board
+
+The real 256-piece set and the five official clues ship with the kit as
+`data/official.json`, in the site's canonical `Puzzle` format. Load the real
+instance (through `e2-io`'s own loader, so the kit parses nothing itself):
+
+```rust
+use e2_kit::official_instance;
+
+let puzzle = official_instance(true); // true = pin the five official clues
+// score any candidate board against the true set, canonically:
+let out = puzzle.match_board(&cells);
+println!("{} / 480", out.score);
+```
+
+Before you claim anything, verify it — re-measure, never trust:
+
+```bash
+cargo run --release --example verify -- "<board URL>"          # score + official-set + clue check
+cargo run --release --example verify -- "<URL A>" "<URL B>"    # diff two boards cell by cell
+```
+
+`verify` re-scores from the board's own edges, confirms every cell is a distinct
+official piece, checks the five clues, and (for two boards) reports how many cells
+differ. A record claim has to survive this.
+
 ## Benchmark the plumbing
 
 The kit has no search engine — that's your part — so this measures what you build
@@ -154,23 +180,27 @@ One trait, one method. Copy [`examples/my_solver.rs`](./examples/my_solver.rs)
 (a complete, working greedy baseline) and replace the body of `solve`:
 
 ```rust
-use e2_kit::{Board, Budget, Instance, Solver};
+use e2_kit::{Board, Budget, Instance, SolveOutcome, Solver};
 
 struct MySolver;
 
 impl Solver for MySolver {
     fn name(&self) -> String { "my-solver".into() }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
-        let mut board = instance.seed_board();   // starts from pinned hints
-        // ... your search here; poll budget.expired() and return the best board.
-        board
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
+        let mut board = start.clone();   // `start` already carries any pinned clues
+        // ... your search here; poll budget.expired().
+        SolveOutcome::complete(board)    // or ::improved / ::exhausted / ::bound
     }
 }
 ```
 
 You never score yourself — the kit re-scores every board canonically, so your
-reported number is trustworthy by construction.
+reported number is trustworthy by construction. Return the honest **outcome**:
+`SolveOutcome::complete` only for a full board, `::improved` for a best-effort
+partial, `::exhausted` if you proved nothing better exists, or `::bound` for an
+upper bound (which the kit keeps out of the score statistics — never averaged as
+a score). See `examples/bound.rs` for a worked bound.
 
 ## 2. Sweep it over a seed grid
 
@@ -217,16 +247,19 @@ this: it refuses to call a sub-noise difference a win.
 
 | Path | What it is |
 | --- | --- |
-| `src/solver.rs` | the `Solver` trait + `Budget` — **your extension point** |
+| `src/solver.rs` | the `Solver` trait, `Budget`, and `SolveOutcome` — **your extension point** |
 | `src/runner.rs` | the sweep runner (`sweep`, `SweepConfig`) |
 | `src/run.rs` | run-directory types (`RunConfig`, `CellResult`, `Summary`) |
-| `src/lib.rs` | re-exports + helpers (`instance_from_generated`, `pin_solution_hints`, `score_url`) |
+| `src/lib.rs` | re-exports + helpers (`instance_from_generated`, `pin_solution_hints`, `score_url`, `official_instance`) |
+| `data/official.json` | the real 256-piece official set + clues (site `Puzzle` schema) |
 | `examples/my_solver.rs` | **copy this** — a worked baseline solver |
 | `examples/sweep.rs` | run a solver across a seed grid |
+| `examples/bound.rs` | a solver that returns an upper *bound*, not a board |
+| `examples/verify.rs` | re-score + official-set check + two-board diff |
 | `examples/{score,generate,generate_batch,convert,bench}.rs` | the cookbook, runnable |
-| `bin/e2kit.rs` | CLI: `gen`, `compare`, `score` |
+| `bin/e2kit.rs` | CLI: `gen`, `compare`, `score`, `verify` |
 | `scripts/compare.py` | the compare tool, in Python |
-| `tests/kit.rs` | correctness guards (scoring, pinned-hint validity) |
+| `tests/kit.rs` | correctness guards (scoring, pinned hints, official set, outcome type) |
 
 ## Testing your own work
 

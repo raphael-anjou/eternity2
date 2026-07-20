@@ -29,6 +29,15 @@ def read_results(run_dir: str):
     return cells
 
 
+def is_achieved(row):
+    """A cell whose score is an achieved board score (not a bound/exhaustion).
+    Rows written before the outcome field existed default to achieved."""
+    outcome = row.get("outcome")
+    if outcome is None:
+        return True
+    return outcome.get("type") in ("complete", "improved")
+
+
 def mean(xs):
     return sum(xs) / len(xs) if xs else 0.0
 
@@ -47,15 +56,20 @@ def main():
     a_dir, b_dir = sys.argv[1], sys.argv[2]
     a, b = read_results(a_dir), read_results(b_dir)
 
-    shared = sorted(set(a) & set(b))
+    # Only pair seeds where both sides achieved a score; a bound or an exhaustion
+    # result is not a score and must not be averaged as one.
+    shared_all = set(a) & set(b)
+    shared = sorted(s for s in shared_all if is_achieved(a[s]) and is_achieved(b[s]))
+    skipped = len(shared_all) - len(shared)
     if not shared:
-        print("no shared seeds — did the two runs sweep the same grid?", file=sys.stderr)
+        print("no shared seeds with an achieved score on both sides — nothing comparable.",
+              file=sys.stderr)
         sys.exit(1)
 
     deltas = [b[s]["score"] - a[s]["score"] for s in shared]
     n = len(shared)
-    mean_a = mean([c["score"] for c in a.values()])
-    mean_b = mean([c["score"] for c in b.values()])
+    mean_a = mean([c["score"] for c in a.values() if is_achieved(c)])
+    mean_b = mean([c["score"] for c in b.values() if is_achieved(c)])
     md = mean(deltas)
     sdd = sd(deltas)
     stderr = sdd / math.sqrt(n) if n else 0.0
@@ -65,9 +79,12 @@ def main():
 
     print(f"A: {a_dir}")
     print(f"B: {b_dir}")
-    print(f"paired on {n} shared seeds\n")
-    print(f"  mean A      {mean_a:.2f}")
-    print(f"  mean B      {mean_b:.2f}")
+    print(f"paired on {n} shared seeds with an achieved score on both sides")
+    if skipped:
+        print(f"  ({skipped} shared seed(s) skipped: a bound or exhaustion, not a score)")
+    print()
+    print(f"  mean A      {mean_a:.2f}   (achieved cells only)")
+    print(f"  mean B      {mean_b:.2f}   (achieved cells only)")
     print(f"  mean Δ(B−A) {md:+.2f}   sd {sdd:.2f}")
     print(f"  B wins {wins}   losses {losses}   ties {ties}")
     print(f"\n  standard error of the mean Δ: {stderr:.2f}")

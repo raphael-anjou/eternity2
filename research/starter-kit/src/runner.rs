@@ -82,16 +82,20 @@ pub fn sweep(
         }
 
         let budget = Budget::seconds(config.budget_s);
-        let board = solver.solve(&instance, budget);
+        // Every solver starts from the seeded board (pinned clues in place); a
+        // solver that wants a blank board simply ignores what's placed.
+        let start = instance.seed_board();
+        let outcome = solver.solve(&instance, &start, budget);
         let elapsed_s = budget.elapsed_secs();
 
         // Canonical re-score — the solver's own opinion is never trusted here.
-        let out = instance.finish(&board);
+        let out = instance.finish(&outcome.board);
         cells.push(CellResult {
             seed,
             score: out.score,
             breaks: out.breaks,
-            nodes: 0, // solvers that track nodes can extend this later
+            outcome: outcome.kind,
+            nodes: outcome.nodes,
             elapsed_s,
             url: out.url,
         });

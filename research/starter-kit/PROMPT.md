@@ -37,9 +37,10 @@ the exact commands, and the scientific-rigor rules that matter on this puzzle.
 Run one of each so they see the plumbing live, and read the output back to them:
 
 ```bash
-cargo run --release --example score       # scores a bundled 469 board
-cargo run --release --example generate    # generates one official board
+cargo run --release --example score       # scores a generated solved board (480)
+cargo run --release --example generate    # generates one official-shaped board
 cargo run --release --example my_solver   # runs the baseline solver once
+cargo run --release --example verify -- "<board URL>"   # verify against the official set
 ```
 
 ## 5. Help them write their solver
