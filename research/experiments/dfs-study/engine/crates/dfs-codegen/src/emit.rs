@@ -358,6 +358,38 @@ fn emit_cell_scan(
     s.push_str(&format!("{i2}if unsafe {{ *st.free_pc.get_unchecked(pid_{sf}) }} == 0 {{ continue; }}\n"));
     s.push_str(&format!("{i2}let ew_{sf} = (w_{sf} >> 8) as u32;\n"));
     s.push_str(&format!("{i2}let e_up_{sf} = (ew_{sf}>>24) as u8; let e_r_{sf} = (ew_{sf}>>16) as u8; let e_d_{sf} = (ew_{sf}>>8) as u8; let e_l_{sf} = ew_{sf} as u8;\n"));
+    // Structural rim constraint: a border colour (0) may ONLY appear on a side
+    // that faces off-board (the rim). On an interior-facing side it is illegal —
+    // that is a border/corner piece placed in the interior, which colour-matching
+    // alone (0 == 0 is a valid seam) does not forbid. This is exactly the "grey
+    // wall down the middle" artefact. Reject any candidate that puts a 0 edge on a
+    // non-rim side, or a non-0 edge on a rim side. Conditions are per-cell
+    // constants, so most collapse away.
+    let rim_up = pos < W;
+    let rim_down = pos + W >= N;
+    let rim_left = pos % W == 0;
+    let rim_right = pos % W == W - 1;
+    // up
+    if rim_up {
+        s.push_str(&format!("{i2}if e_up_{sf} != 0 {{ continue; }}\n"));
+    } else {
+        s.push_str(&format!("{i2}if e_up_{sf} == 0 {{ continue; }}\n"));
+    }
+    if rim_left {
+        s.push_str(&format!("{i2}if e_l_{sf} != 0 {{ continue; }}\n"));
+    } else {
+        s.push_str(&format!("{i2}if e_l_{sf} == 0 {{ continue; }}\n"));
+    }
+    if rim_down {
+        s.push_str(&format!("{i2}if e_d_{sf} != 0 {{ continue; }}\n"));
+    } else {
+        s.push_str(&format!("{i2}if e_d_{sf} == 0 {{ continue; }}\n"));
+    }
+    if rim_right {
+        s.push_str(&format!("{i2}if e_r_{sf} != 0 {{ continue; }}\n"));
+    } else {
+        s.push_str(&format!("{i2}if e_r_{sf} == 0 {{ continue; }}\n"));
+    }
     if need_d {
         if pos + W >= N {
             s.push_str(&format!("{i2}if e_d_{sf} != 0 {{ continue; }}\n"));
