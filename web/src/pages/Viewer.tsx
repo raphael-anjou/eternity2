@@ -337,6 +337,9 @@ export default function Viewer() {
       setBoard(decoded);
       setEnginePair(null);
       setError(null);
+      // Auto-reveal the clue overlay when the loaded board carries hints, so a
+      // pasted/shared hinted link shows its clues without a manual toggle.
+      if ((decoded.hints?.length ?? 0) > 0) setShowHints(true);
       setSearchParams(toOurParams(parseParams(params)), { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -391,11 +394,15 @@ export default function Viewer() {
     if (!m) return;
     const [, sizeStr, colorsStr, seedStr] = m;
     if (sizeStr === undefined || colorsStr === undefined || seedStr === undefined) return;
-    const puzzle = getGeneratedSolvedPuzzle(
-      parseInt(sizeStr, 10),
-      parseInt(colorsStr, 10),
-      parseInt(seedStr, 10),
-    );
+    const size = parseInt(sizeStr, 10);
+    const colors = parseInt(colorsStr, 10);
+    const seed = parseInt(seedStr, 10);
+    // Guard the wasm generator against a crafted `g=` link: `assert!(size >= 2)`
+    // in the engine would TRAP the wasm instance (unrecoverable) on size 0/1, and
+    // an out-of-range colours/size is nonsense. Bail on anything out of bounds
+    // rather than crash the viewer.
+    if (size < 2 || size > 16 || colors < 1 || !Number.isFinite(seed)) return;
+    const puzzle = getGeneratedSolvedPuzzle(size, colors, seed);
     // Initialize the view from a URL param (external system) once the engine
     // is ready; loadEngine seeds board/engine state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -592,7 +599,7 @@ export default function Viewer() {
                     <Label htmlFor="v-coord">{t.coordinates}</Label>
                     <Switch id="v-coord" checked={showCoords} onCheckedChange={setShowCoords} />
                   </div>
-                  {is16 && (
+                  {(is16 || (board?.hints?.length ?? 0) > 0) && (
                     <div className="flex items-center justify-between">
                       <Label htmlFor="v-hint">{t.cluePositions}</Label>
                       <Switch id="v-hint" checked={showHints} onCheckedChange={setShowHints} />

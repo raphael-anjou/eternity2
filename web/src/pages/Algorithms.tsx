@@ -184,7 +184,7 @@ const T = {
     ),
     pathChartTitle: "Median nodes on the same 6×6 puzzles, by fill order (log scale)",
     pathChartNote:
-      "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same — any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first.",
+      "A subtlety worth naming (thanks to Dan Karlsson): row-major and column-major are the same order up to flipping the board across its diagonal, so over many puzzles they should cost the same — any gap between them here is sampling noise, not a real difference. The orders that genuinely differ are the ones with a different shape: a spiral, a diagonal, border-first. One caveat: the random-order bar is a lower bound, not a measured median — every sampled run hit the search cap without finishing, so its true cost is higher than shown.",
     pathChartDeeper: (
       <>
         The same question, taken all the way on the full 16×16 puzzle, is the{" "}
@@ -337,7 +337,7 @@ const T = {
     pathChartTitle:
       "Médiane des nœuds sur les mêmes puzzles 6×6, selon le parcours de remplissage (échelle log)",
     pathChartNote:
-      "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil — tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord.",
+      "Une subtilité à nommer (merci à Dan Karlsson) : « rangées » et « colonnes » sont le même ordre à une symétrie diagonale près du plateau, donc sur de nombreux puzzles ils devraient coûter pareil — tout écart ici est du bruit d'échantillonnage, pas une vraie différence. Les ordres qui diffèrent vraiment sont ceux de forme différente : une spirale, une diagonale, le cadre d'abord. Une réserve : la barre de l'ordre aléatoire est une borne inférieure, pas une médiane mesurée — chaque exécution échantillonnée a atteint le plafond de recherche sans finir, donc son coût réel est plus élevé que ce qui est montré.",
     pathChartDeeper: (
       <>
         La même question, poussée jusqu'au bout sur le vrai plateau 16×16, c'est l'
@@ -491,7 +491,7 @@ const T = {
     pathChartTitle:
       "Mediana de nodos en los mismos puzzles 6×6, según el orden de relleno (escala log)",
     pathChartNote:
-      "Una sutileza que conviene nombrar (gracias a Dan Karlsson): por filas y por columnas son el mismo orden salvo por voltear el tablero sobre su diagonal, así que en muchos puzzles deberían costar lo mismo; cualquier diferencia aquí es ruido de muestreo, no una diferencia real. Los órdenes que difieren de verdad son los de forma distinta: una espiral, una diagonal, el borde primero.",
+      "Una sutileza que conviene nombrar (gracias a Dan Karlsson): por filas y por columnas son el mismo orden salvo por voltear el tablero sobre su diagonal, así que en muchos puzzles deberían costar lo mismo; cualquier diferencia aquí es ruido de muestreo, no una diferencia real. Los órdenes que difieren de verdad son los de forma distinta: una espiral, una diagonal, el borde primero. Una salvedad: la barra del orden aleatorio es una cota inferior, no una mediana medida: cada ejecución muestreada alcanzó el tope de búsqueda sin terminar, así que su coste real es mayor que el mostrado.",
     pathChartDeeper: (
       <>
         La misma pregunta, llevada hasta el final sobre el puzzle 16×16 completo, es el{" "}

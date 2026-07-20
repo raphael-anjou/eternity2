@@ -129,10 +129,15 @@ interface Block {
   yMm: number;
 }
 
+// The "Answer key: …" URL line printed under a front-sheet grid, below the
+// caption. Included in blockH so clampToPage keeps it inside the page margin.
+const ANSWER_KEY_MM = 3.4;
 const blockW = (b: Block) => b.size * b.cellMm;
-const blockH = (b: Block) => b.size * b.cellMm + CAPTION_MM;
+const blockH = (b: Block) => b.size * b.cellMm + CAPTION_MM + ANSWER_KEY_MM;
 const maxCellMm = (size: number) =>
-  Math.floor(Math.min((PAGE_W - 2 * MARGIN) / size, (PAGE_H - 2 * MARGIN - CAPTION_MM) / size));
+  Math.floor(
+    Math.min((PAGE_W - 2 * MARGIN) / size, (PAGE_H - 2 * MARGIN - CAPTION_MM - ANSWER_KEY_MM) / size),
+  );
 
 function setCode(b: { size: number; colors: number; seed: number }): string {
   return `${b.size}x${b.size}-${b.colors}c-${b.seed.toString(36).toUpperCase()}`;

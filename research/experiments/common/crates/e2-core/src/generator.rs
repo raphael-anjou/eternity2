@@ -521,13 +521,49 @@ mod tests {
         }
     }
 
-    /// The port-parity guard. These 16-byte piece vectors are the blog engine's
-    /// `generate_solved_framed(16, 22, seed, true)` output, captured from
-    /// `engine/src/generator.rs`. If this crate's port ever drifts from the
-    /// engine, this test fails — that is the whole point of promoting the
-    /// generator to one canonical copy. (The full boards are large; we assert on
-    /// a stable digest of the flattened edges plus the balanced-census invariant
-    /// the engine also checks, which together pin the output.)
+    /// FNV-1a over a solved board's flattened edges — the fingerprint the parity
+    /// test pins against the engine's captured output.
+    fn board_digest(size: u8, colors: u8, seed: u32, framed: bool) -> u64 {
+        let p = generate_solved_framed(size, colors, seed, framed);
+        let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+        for e in &p.pieces {
+            for &b in e {
+                h ^= u64::from(b);
+                h = h.wrapping_mul(0x0000_0100_0000_01b3);
+            }
+        }
+        h
+    }
+
+    /// The REAL port-parity guard. These digests were captured from the blog
+    /// engine's `generate_solved_framed(...)` output (`engine/src/generator.rs`).
+    /// If this crate's port ever drifts from the engine — a changed RNG constant,
+    /// a different painting order, an altered uniqueness pass — the digest changes
+    /// and this test fails. That is the whole point of promoting the generator to
+    /// one canonical copy: recapture these values from the engine only when an
+    /// intentional, matched change is made to BOTH copies.
+    #[test]
+    fn digest_matches_engine_output() {
+        let expected: &[(u8, u8, u32, u64)] = &[
+            (16, 22, 1, 0x6228_a0cd_0ed8_fb0d),
+            (16, 22, 7, 0xf842_01ed_2613_1309),
+            (16, 22, 42, 0xc985_38cd_4238_caf1),
+            (10, 22, 5, 0x972d_6783_b7e4_f095),
+            (8, 12, 99, 0x1444_c5fa_a3ce_1131),
+        ];
+        for &(s, c, seed, want) in expected {
+            assert_eq!(
+                board_digest(s, c, seed, true),
+                want,
+                "generator port drifted from the engine at ({s},{c},{seed}) — \
+                 recapture only if the engine's generator changed intentionally"
+            );
+        }
+    }
+
+    /// A structural invariant the engine also checks (colour balance). Kept as a
+    /// second, human-readable guard; the byte-exact parity above is the one that
+    /// catches drift.
     #[test]
     fn framed_census_matches_official_shape() {
         // Real Eternity II is colour-balanced: every colour's edge-instance count
