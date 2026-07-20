@@ -320,6 +320,201 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
     s
 }
 
+/// Emit ONE cell's scan block into `s`, at indentation `ind`. `pos` is the board
+/// position; `left_src` is the Rust expression for this cell's left colour;
+/// `suffix` disambiguates locals when two cells are fused into one function
+/// (e.g. "a"/"b"); `pinned` marks fixed cells; `inner` is the code to run after a
+/// successful placement (either the recursive call or the second cell's scan).
+/// The block places, recurses via `inner`, then unplaces on the way out.
+#[allow(clippy::too_many_arguments)]
+fn emit_cell_scan(
+    s: &mut String,
+    ind: &str,
+    pos: usize,
+    left_src: &str,
+    suffix: &str,
+    pinned: &[bool; N],
+    inner: &str,
+) {
+    let r = pos % W;
+    let up_p: i64 = if pos < W { -1 } else { (pos - W) as i64 };
+    let need_d = pos + W >= N || (pos + W < N && pinned[pos + W]);
+    let need_r = pos % W == W - 1 || (pos % W != W - 1 && pinned[pos + 1]);
+    let up_expr = if up_p < 0 {
+        "0u8".to_string()
+    } else {
+        format!("(unsafe {{ *st.cell.get_unchecked({up_p}) }} >> 8) as u8")
+    };
+    let sf = suffix;
+    s.push_str(&format!("{ind}let up_{sf} = {up_expr}; let left_{sf} = {left_src};\n"));
+    s.push_str(&format!("{ind}let base_{sf} = unsafe {{ *UL_START.get_unchecked(up_{sf} as usize * COLORS + left_{sf} as usize) }} as usize;\n"));
+    s.push_str(&format!("{ind}let mut c_{sf} = 0usize;\n"));
+    s.push_str(&format!("{ind}loop {{\n"));
+    let i2 = format!("{ind}    ");
+    s.push_str(&format!("{i2}let w_{sf} = unsafe {{ *POOL_UL.get_unchecked(base_{sf} + c_{sf}) }};\n"));
+    s.push_str(&format!("{i2}if w_{sf} == u64::MAX {{ break; }}\n"));
+    s.push_str(&format!("{i2}c_{sf} += 1;\n"));
+    s.push_str(&format!("{i2}let pid_{sf} = (w_{sf} >> 48) as usize;\n"));
+    s.push_str(&format!("{i2}if unsafe {{ *st.free_pc.get_unchecked(pid_{sf}) }} == 0 {{ continue; }}\n"));
+    s.push_str(&format!("{i2}let ew_{sf} = (w_{sf} >> 8) as u32;\n"));
+    s.push_str(&format!("{i2}let e_up_{sf} = (ew_{sf}>>24) as u8; let e_r_{sf} = (ew_{sf}>>16) as u8; let e_d_{sf} = (ew_{sf}>>8) as u8; let e_l_{sf} = ew_{sf} as u8;\n"));
+    if need_d {
+        if pos + W >= N {
+            s.push_str(&format!("{i2}if e_d_{sf} != 0 {{ continue; }}\n"));
+        } else {
+            s.push_str(&format!("{i2}{{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn != CELL_EMPTY && e_d_{sf} != (cn>>24) as u8 {{ continue; }} }}\n", pos + W));
+        }
+    }
+    if need_r {
+        if r == W - 1 {
+            s.push_str(&format!("{i2}if e_r_{sf} != 0 {{ continue; }}\n"));
+        } else {
+            s.push_str(&format!("{i2}{{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn != CELL_EMPTY && e_r_{sf} != cn as u8 {{ continue; }} }}\n", pos + 1));
+        }
+    }
+    s.push_str(&format!("{i2}st.nodes += 1;\n"));
+    s.push_str(&format!("{i2}let mut gain_{sf} = u32::from(up_{sf} != 0 && e_up_{sf} == up_{sf}) + u32::from(left_{sf} != 0 && e_l_{sf} == left_{sf});\n"));
+    if need_d && pos + W < N {
+        s.push_str(&format!("{i2}{{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_d_{sf}!=0 && e_d_{sf}==(cn>>24) as u8 {{ gain_{sf}+=1; }} }}\n", pos + W));
+    }
+    if need_r && r != W - 1 {
+        s.push_str(&format!("{i2}{{ let cn = unsafe {{ *st.cell.get_unchecked({}) }}; if cn!=CELL_EMPTY && e_r_{sf}!=0 && e_r_{sf}==cn as u8 {{ gain_{sf}+=1; }} }}\n", pos + 1));
+    }
+    s.push_str(&format!("{i2}unsafe {{ *st.cell.get_unchecked_mut({pos}) = ew_{sf}; }}\n"));
+    s.push_str(&format!("{i2}unsafe {{ *st.free_pc.get_unchecked_mut(pid_{sf}) = 0; }}\n"));
+    s.push_str(&format!("{i2}let saved_{sf} = st.score; st.score += gain_{sf};\n"));
+    s.push_str(&format!("{i2}if st.score > st.best {{ st.best = st.score; }}\n"));
+    s.push_str(inner); // the recursive call or the fused inner cell's scan
+    s.push_str(&format!("{i2}st.score = saved_{sf};\n"));
+    s.push_str(&format!("{i2}unsafe {{ *st.free_pc.get_unchecked_mut(pid_{sf}) = 1; }}\n"));
+    s.push_str(&format!("{i2}unsafe {{ *st.cell.get_unchecked_mut({pos}) = CELL_EMPTY; }}\n"));
+    s.push_str(&format!("{ind}}}\n"));
+}
+
+/// Function-chain engine with TWO cells fused per function: one `bl` call per two
+/// placed cells instead of one, halving the recursive-call/register-save overhead
+/// that is the chain's only disadvantage vs McGavin's `goto`-based backtracking.
+#[must_use]
+pub fn emit_program_chain2(inst: &Instance, budget_ms: u64) -> String {
+    let colors = inst.pieces.max_color() as usize + 1;
+    let mut oriented: Vec<u64> = Vec::new();
+    for (pid, p) in inst.pieces.iter() {
+        let mut seen: Vec<[u8; 4]> = Vec::with_capacity(4);
+        for rot in 0..4u8 {
+            let e = p.rotated(rot);
+            if seen.contains(&e) {
+                continue;
+            }
+            seen.push(e);
+            let edges = (u32::from(e[0]) << 24)
+                | (u32::from(e[1]) << 16)
+                | (u32::from(e[2]) << 8)
+                | u32::from(e[3]);
+            oriented.push((u64::from(pid) << 48) | (u64::from(rot) << 40) | (u64::from(edges) << 8));
+        }
+    }
+    let mut buckets_ul: Vec<Vec<u64>> = vec![Vec::new(); colors * colors];
+    for &w in &oriented {
+        let e0 = (w >> 32) as u8;
+        let e3 = (w >> 8) as u8;
+        buckets_ul[e0 as usize * colors + e3 as usize].push(w);
+    }
+    let (ul_start, pool_ul) = flatten(&buckets_ul);
+
+    let mut pinned = [false; N];
+    let mut pin_word = [u64::MAX; N];
+    for h in &inst.hints {
+        pinned[h.pos as usize] = true;
+        let e = inst.pieces.get(h.piece).expect("hint piece id").rotated(h.rot);
+        let edges = (u32::from(e[0]) << 24)
+            | (u32::from(e[1]) << 16)
+            | (u32::from(e[2]) << 8)
+            | u32::from(e[3]);
+        pin_word[h.pos as usize] =
+            (u64::from(h.piece) << 48) | (u64::from(h.rot) << 40) | (u64::from(edges) << 8);
+    }
+    let free: Vec<usize> = (0..N).filter(|&p| !pinned[p]).collect();
+
+    let mut s = String::new();
+    s.push_str("// @generated by dfs-codegen::emit_program_chain2 — 2-cell-fused chain.\n");
+    s.push_str("#![allow(clippy::all, clippy::pedantic, unused)]\n");
+    s.push_str("use std::time::Instant;\n");
+    s.push_str(&format!("const W: usize = {W};\nconst N: usize = {N};\nconst COLORS: usize = {colors};\n"));
+    s.push_str(&format!("const NP: usize = {};\n", inst.pieces.len()));
+    s.push_str(&format!("const MAX_SCORE: u32 = {};\n", 2 * W * W - W - W));
+    s.push_str(&format!("const BUDGET_MS: u64 = {budget_ms};\n"));
+    s.push_str(&format!("const PINS: u32 = {};\n", inst.hints.len()));
+    emit_slice_u64(&mut s, "POOL_UL", &pool_ul);
+    emit_slice_u32(&mut s, "UL_START", &ul_start);
+    emit_slice_u64(&mut s, "PIN_WORD", &pin_word);
+    s.push_str(CHAIN_PRELUDE);
+
+    // `left_src` for a free cell at chain index `k`: uses the passed `left_arg`
+    // when the previous free cell is its horizontal-left neighbour, else reads the
+    // board (or border 0 at column 0).
+    let left_src = |k: usize| -> String {
+        let pos = free[k];
+        let from_arg = pos % W != 0 && k > 0 && free[k - 1] == pos - 1;
+        if from_arg {
+            "left_arg".to_string()
+        } else if pos % W == 0 {
+            "0u8".to_string()
+        } else {
+            format!("(unsafe {{ *st.cell.get_unchecked({}) }} >> 16) as u8", pos - 1)
+        }
+    };
+    // Whether cell at chain index k passes its right edge to the NEXT free cell.
+    let passes_right = |k: usize| -> bool {
+        k + 1 < free.len() && (free[k] + 1) % W != 0 && free[k + 1] == free[k] + 1
+    };
+
+    // Emit fused-pair functions. Pair p covers free cells 2p and 2p+1.
+    let npairs = free.len().div_ceil(2);
+    for p in 0..npairs {
+        let ka = 2 * p;
+        let kb = 2 * p + 1;
+        s.push_str(&format!("#[inline(never)]\nfn pair_{p}(st: &mut St, left_arg: u8) -> bool {{\n"));
+        s.push_str("    if TIMED_OUT.load(Ordering::Relaxed) { return true; }\n");
+        s.push_str("    let _ = left_arg;\n");
+        if kb < free.len() {
+            // Inner block for cell a = the second cell's scan, whose `inner` is the
+            // call to the next pair.
+            let next_call = if 2 * (p + 1) < free.len() {
+                let arg = if passes_right(kb) { "e_r_b" } else { "0" };
+                format!("            if pair_{}(st, {arg}) {{ return true; }}\n", p + 1)
+            } else {
+                "            if terminal(st, 0) { return true; }\n".to_string()
+            };
+            // cell b's left: from a's right edge if b is a's horizontal right.
+            let b_left = if passes_right(ka) { "e_r_a".to_string() } else { left_src(kb) };
+            let mut inner_b = String::new();
+            emit_cell_scan(&mut inner_b, "        ", free[kb], &b_left, "b", &pinned, &next_call);
+            // cell a's inner is cell b's scan.
+            emit_cell_scan(&mut s, "    ", free[ka], &left_src(ka), "a", &pinned, &inner_b);
+        } else {
+            // Odd tail: only cell a, whose inner is the terminal call.
+            let inner = "        if terminal(st, 0) { return true; }\n".to_string();
+            emit_cell_scan(&mut s, "    ", free[ka], &left_src(ka), "a", &pinned, &inner);
+        }
+        s.push_str("    false\n}\n");
+    }
+
+    // Entry.
+    if free.is_empty() {
+        s.push_str("#[inline(always)]\nfn run_search(_st: &mut St) {}\n");
+    } else {
+        let first = free[0];
+        let l0 = if first % W == 0 {
+            "0u8".to_string()
+        } else {
+            format!("(unsafe {{ *st.cell.get_unchecked({}) }} >> 16) as u8", first - 1)
+        };
+        s.push_str(&format!("#[inline(always)]\nfn run_search(st: &mut St) {{ let l0 = {l0}; pair_0(st, l0); }}\n"));
+    }
+    s.push_str(CHAIN_MAIN);
+    s
+}
+
 /// Flatten buckets into (start-offsets, pool) with a `u64::MAX` sentinel per
 /// bucket. Empty buckets point at a shared sentinel-only run.
 fn flatten(buckets: &[Vec<u64>]) -> (Vec<u32>, Vec<u64>) {
