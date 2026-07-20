@@ -63,18 +63,55 @@ pub fn codes_to_pieces(codes: &[i32]) -> String {
     s
 }
 
+/// The `hints` blob: the pinned clue cells, each as `pos.rot` (row-major cell
+/// index and clockwise quarter-turn), joined by `-`. Empty when there are no
+/// hints. The piece at each hinted cell is read straight from `board_edges` —
+/// pieces are distinct up to rotation, so the edges name the piece — which is
+/// why a clue needs only its position and orientation, never a piece id.
+#[must_use]
+pub fn hints_to_param(hints: &[(u16, u8)]) -> String {
+    hints
+        .iter()
+        .map(|&(pos, rot)| format!("{pos}.{}", rot & 3))
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+/// Parse a `hints` blob back into `(pos, rot)` pairs. Accepts the `pos.rot`
+/// form and a bare `pos` (rotation defaults to 0), separated by `-`. Unparseable
+/// entries are skipped rather than failing the whole board.
+#[must_use]
+pub fn parse_hints(blob: &str) -> Vec<(u16, u8)> {
+    blob.split('-')
+        .filter(|s| !s.is_empty())
+        .filter_map(|entry| {
+            let mut parts = entry.split('.');
+            let pos: u16 = parts.next()?.parse().ok()?;
+            let rot: u8 = parts.next().and_then(|r| r.parse().ok()).unwrap_or(0) & 3;
+            Some((pos, rot))
+        })
+        .collect()
+}
+
 /// The canonical eternity2.dev viewer URL. Boards are square on the site, so we
 /// emit a single `puzzle_size` (the viewer also accepts `board_w`/`board_h`).
-/// Every value stays in the URL-safe `[A-Za-z0-9_]` range, so no
-/// percent-encoding is needed and the link is copy-pasteable as-is.
+///
+/// The board rides entirely in `board_edges` — four letters per cell, which fix
+/// the render, the score, and (because pieces are distinct up to rotation) each
+/// piece's identity and rotation. Any pinned clues ride in `hints` as `pos.rot`,
+/// so a board and its clue set share one coordinate system in one link. Every
+/// value stays in the URL-safe range, so the link is copy-pasteable as-is.
 #[must_use]
-pub fn viewer_url(name: &str, size: u8, cells: &[[u8; 4]], codes: &[i32]) -> String {
+pub fn viewer_url(name: &str, size: u8, cells: &[[u8; 4]], hints: &[(u16, u8)]) -> String {
     let name = sanitize_name(name);
     let edges = cells_to_edges(cells);
-    let pieces = codes_to_pieces(codes);
-    format!(
-        "{VIEWER_ORIGIN}/viewer?puzzle={name}&puzzle_size={size}&board_edges={edges}&board_pieces={pieces}"
-    )
+    let mut url =
+        format!("{VIEWER_ORIGIN}/viewer?puzzle={name}&puzzle_size={size}&board_edges={edges}");
+    if !hints.is_empty() {
+        url.push_str("&hints=");
+        url.push_str(&hints_to_param(hints));
+    }
+    url
 }
 
 /// The legacy `e2.bucas.name` viewer URL, kept as a derived converter for
@@ -220,8 +257,9 @@ pub struct BoardDoc {
 
 impl BoardDoc {
     /// Assemble a document from the plain pieces every engine can produce: the
-    /// per-cell edge quads, the `piece*4 + rot` codes, the score, and the hash.
-    /// All derived strings are built here so they are guaranteed consistent.
+    /// per-cell edge quads, the `piece*4 + rot` codes, the score, the hash, and
+    /// any pinned clue cells (`(pos, rot)`). All derived strings are built here so
+    /// they are guaranteed consistent. Pass an empty slice for a hintless board.
     #[must_use]
     pub fn new(
         name: &str,
@@ -231,6 +269,7 @@ impl BoardDoc {
         cells: &[[u8; 4]],
         codes: &[i32],
         board_hash: u64,
+        hints: &[(u16, u8)],
     ) -> Self {
         Self {
             name: sanitize_name(name),
@@ -241,7 +280,7 @@ impl BoardDoc {
             board_hash,
             board_edges: cells_to_edges(cells),
             board_pieces: codes_to_pieces(codes),
-            url: viewer_url(name, size, cells, codes),
+            url: viewer_url(name, size, cells, hints),
         }
     }
 
@@ -294,17 +333,32 @@ mod format_tests {
     }
 
     #[test]
-    fn viewer_url_uses_the_dev_origin() {
-        let url = viewer_url("t", 16, &[[1, 2, 3, 4]; 256], &[0i32; 256]);
+    fn viewer_url_carries_edges_and_hints() {
+        // Hintless: the board rides entirely in board_edges, nothing else.
+        let url = viewer_url("t", 16, &[[1, 2, 3, 4]; 256], &[]);
         assert!(url.starts_with("https://eternity2.dev/viewer?"));
         assert!(url.contains("puzzle_size=16"));
         assert!(url.contains("board_edges="));
-        assert!(url.contains("board_pieces="));
+        assert!(!url.contains("hints="));
+
+        // With clues: the pinned cells ride in hints as pos.rot.
+        let url = viewer_url("t", 16, &[[1, 2, 3, 4]; 256], &[(72, 2), (215, 0)]);
+        assert!(url.contains("&hints=72.2-215.0"));
+    }
+
+    #[test]
+    fn hints_round_trip() {
+        let hints = [(72u16, 2u8), (215, 0), (34, 3)];
+        assert_eq!(hints_to_param(&hints), "72.2-215.0-34.3");
+        assert_eq!(parse_hints("72.2-215.0-34.3"), hints);
+        // Tolerant: a bare position defaults to rotation 0; empty is empty.
+        assert_eq!(parse_hints("5-9.1"), vec![(5, 0), (9, 1)]);
+        assert_eq!(parse_hints(""), Vec::new());
     }
 
     #[test]
     fn doc_round_trips_through_json() {
-        let doc = BoardDoc::new("demo", 16, 469, 480, &[[1, 2, 3, 4]; 256], &[0i32; 256], 42);
+        let doc = BoardDoc::new("demo", 16, 469, 480, &[[1, 2, 3, 4]; 256], &[0i32; 256], 42, &[]);
         let back: BoardDoc = serde_json::from_str(&doc.to_json()).unwrap();
         assert_eq!(doc, back);
         assert_eq!(back.breaks, 480 - 469);

@@ -2,12 +2,11 @@
 title: "Los formatos de tablero y de puzzle, puestos por escrito"
 description: >-
   Todos los formatos en los que un tablero o un puzzle de Eternity II circula en
-  este sitio y en la comunidad: las cadenas de letras board_edges y
-  board_pieces, e2pieces.txt, el CSV de puzzle heredado, el JSON Puzzle del
-  sitio, y las dos URL de visor, con las reglas exactas a nivel de byte (cómo se
-  codifica el borde gris en cada uno) y, sobre todo, qué puede y qué no puede
-  recuperar cada formato.
-metaDescription: "La especificación a nivel de byte de cada formato de tablero y puzzle de Eternity II: board_edges, board_pieces, e2pieces.txt, CSV, JSON Puzzle del sitio, salida BoardDoc y ambas URL de visor. Cómo codifica cada uno el borde gris, y si recupera la rotación y la identidad de pieza."
+  este sitio y en la comunidad: la cadena de letras board_edges y la lista de
+  pistas hints, e2pieces.txt, el CSV de puzzle, el JSON Puzzle del sitio, y la URL
+  de visor, con las reglas exactas a nivel de byte (cómo se codifica el borde gris
+  en cada uno) y, sobre todo, qué puede y qué no puede recuperar cada formato.
+metaDescription: "La especificación a nivel de byte de cada formato de Eternity II: board_edges, la lista de pistas hints, e2pieces.txt, CSV, JSON Puzzle, BoardDoc y la URL de visor. Cómo codifica cada uno el borde gris, y por qué las aristas solas recuperan la identidad de pieza y la rotación."
 kind: reference
 order: 8
 group: Start here
@@ -59,21 +58,20 @@ leyendo la pieza *tal como está colocada y rotada*, no como una pieza de
 catálogo. Una celda está o bien llena (un cuádruple real) o bien vacía; una
 celda vacía se escribe como si fuera toda borde, `[0, 0, 0, 0]`.
 
-Dos hechos se derivan de «tal como está colocada», y son la fuente de la mayor
-parte de la confusión entre formatos:
+Un hecho se deriva de «tal como está colocada», y es la fuente de la mayor parte
+de la confusión entre formatos: un tablero lleva aristas **rotadas**, no un
+número de rotación. Pero no es una pérdida. Las piezas de Eternity II son
+**todas distintas salvo rotación** (el conjunto oficial lo es, y cualquier
+generador fiel lo mantiene), así que el cuádruple de aristas de una celda
+identifica exactamente una pieza, y la rotación es el giro que lleva el cuádruple
+de catálogo de esa pieza sobre el colocado. Aparear el cuádruple contra el
+conjunto recupera **ambos**: la identidad y la rotación.
 
-- Un tablero lleva aristas **rotadas**. **No** lleva un número de rotación. Solo
-  puedes recuperar la rotación reapareando el cuádruple contra un catálogo de
-  piezas conocido.
-- Un tablero no lleva ninguna **identidad de pieza** a menos que haya presente
-  un canal de número de pieza aparte. El cuádruple de aristas `[3, 7, 1, 0]` no
-  dice «pieza 118»; dice «estos cuatro colores». La identidad viene de
-  `board_pieces`, o de reaparear contra el conjunto oficial.
-
-Así que un *tablero solo* siempre puede renderizarse y puntuarse, pero no puede,
-por sí mismo, recuperar ni el orden de catálogo original ni la rotación por
-pieza. Los formatos que pretenden hacerlo (JSON del sitio, la URL numerada por
-pieza) lo consiguen llevando explícitamente el canal adicional.
+Así que las aristas son el tablero entero: lo renderizan, lo puntúan y nombran
+cada pieza y su orientación. El único caso en que se quedan cortas es un conjunto
+artificial con dos piezas que comparten un patrón de aristas salvo rotación, algo
+que el Eternity II real nunca tiene, y ahí un canal de número de pieza
+desambigua. Esa es la única razón de ser de `board_pieces`.
 
 ## board_edges: la cadena de letras
 
@@ -89,8 +87,11 @@ adca beaa …            cell 0 = [0,3,2,0], cell 1 = [1,4,0,0], …
 ```
 
 - **Borde:** la letra `a` (color 0).
-- **Recupera:** el renderizado completo y la puntuación exacta. Nada más.
-- **No puede recuperar:** la identidad de pieza ni la rotación (ver arriba).
+- **Recupera:** todo del tablero, el renderizado completo, la puntuación exacta
+  y, como las piezas son distintas salvo rotación, la identidad de cada pieza y
+  su rotación por apareo contra el conjunto.
+- **No puede recuperar:** qué celdas se *dieron como pistas* en vez de resolverse;
+  eso es una propiedad del puzzle, no del tablero, y viaja en `hints`.
 
 Un matiz poco frecuente: algunas herramientas permutan qué glifo dibuja cada
 letra (`motifs_order`). Los órdenes `marie` y `jblackwood` son idénticos entre
@@ -99,22 +100,48 @@ alfabeto por defecto a la entrada, así que nunca tienes que pensar en ello; per
 si ves un tablero cuyos colores parecen revueltos, un `motifs_order` sin traducir
 es la causa.
 
-## board_pieces: la cadena de identidad
+## hints: las celdas-pista
 
-El canal compañero que, ese sí, *lleva* la identidad. Tres dígitos decimales por
-celda, el número de pieza **en base 1**, `000` para una celda vacía. Así que el
-tablero oficial tiene `256 × 3 = 768` dígitos.
+Un tablero y las pistas de las que surge tienen su lugar en el mismo sitio,
+direccionadas de la misma forma. `hints` lista las celdas-pista fijadas, cada una
+como `pos.rot`, el índice de celda en orden fila por fila y el cuarto de vuelta
+horario, unidas por `-`. Cinco pistas oficiales ocupan unos treinta caracteres.
+
+```text
+hints=72.2-135.0-210.3-34.1-221.0
+```
+
+La pieza de cada celda-pista ya se conoce por `board_edges`, así que una pista
+solo necesita su posición y su orientación, nunca un identificador de pieza. Es
+la misma forma `(celda, rotación)` que emplea todo formato duradero para una
+pieza fijada: el `x,y,rotación` del CSV, el `{pos, rot}` del JSON del sitio.
+
+- **Recupera:** qué celdas son pistas, para que el visor las marque y un
+  solucionador parta de ellas. Ausente significa «sin pistas», un tablero
+  resuelto o parcial normal.
+- **Se combina con:** `board_edges`. Juntos llevan un *puzzle-con-pistas* entero
+  en un solo enlace, algo que un tablero desnudo nunca podría.
+
+## board_pieces: el canal de interoperabilidad
+
+Algunas herramientas de la comunidad, en particular los enlaces e2.bucas.name,
+llevan un canal de piezas explícito: tres dígitos decimales por celda, el número
+de pieza **en base 1**, `000` para una celda vacía (el tablero oficial tiene
+`256 × 3 = 768` dígitos). Lo **leemos** cuando está presente, pero nunca
+necesitamos emitirlo, porque `board_edges` ya nombra cada pieza en un conjunto de
+piezas distintas.
 
 ```text
 001 005 007 …          piece 1 at cell 0, piece 5 at cell 1, …
 ```
 
 - **Borde / vacío:** `000`.
-- **Recupera, con `board_edges` al lado:** la identidad de pieza *y* la rotación.
-  Para cada celda conoces el número de pieza, y aparear su cuádruple de catálogo
-  contra el cuádruple colocado da la rotación. Es la única manera, a nivel de
-  tablero, de recuperar la rotación.
+- **Recupera:** la identidad de pieza directamente (y la rotación, apareada
+  contra el conjunto), lo mismo que las aristas recuperan por sí solas en un
+  tablero real.
 - **Por sí solo:** inútil sin las aristas; es una capa superpuesta, no un tablero.
+  Su único uso irremplazable es un conjunto artificial con piezas que se repiten
+  salvo rotación, donde las aristas solas son ambiguas.
 
 ## e2pieces.txt: las piezas tal como están colocadas
 
@@ -208,7 +235,7 @@ herramienta aguas abajo no necesita nada más.
   "board_hash": 2059303548241384230,
   "board_edges": "abda…",
   "board_pieces": "001005…",
-  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…&board_pieces=…"
+  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…"
 }
 ```
 
@@ -230,19 +257,24 @@ a «¿produjeron estas dos ejecuciones el mismo tablero?».
 Dos URL, mismo tablero, dos anfitriones.
 
 **eternity2.dev, el enlace canónico.** El formato que emite cada algoritmo aquí.
-Tableros cuadrados, así que un único `puzzle_size` (el visor también lee los
-`board_w`/`board_h` de bucas), y cada valor permanece en el rango URL-seguro
-`[A-Za-z0-9_]`, de modo que el enlace no necesita ningún encodeo por porcentaje:
+El tablero viaja entero en `board_edges`; cualquier pista fijada viaja en
+`hints`. Tableros cuadrados, así que un único `puzzle_size` (el visor también lee
+los `board_w`/`board_h` de bucas), y cada valor permanece en el rango URL-seguro,
+de modo que el enlace no necesita ningún encodeo por porcentaje:
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
 ```
+
+`hints` se omite en un tablero sin pistas. Como las aristas llevan la identidad
+de las piezas, aquí no hay canal de piezas: el tablero y sus pistas caben en
+estos dos campos.
 
 **e2.bucas.name, el visor comunitario.** El original de Jef Bucas, el visor cuyo
 formato de URL *se convirtió* en todo este vocabulario (la
-[caja de herramientas](/research/build/tooling) cuenta esa historia). Sigue
-plenamente soportado como entrada y disponible como salida derivada, usando su
-par `board_w`/`board_h` y un fragmento `#`:
+[caja de herramientas](/research/build/tooling) cuenta esa historia). Plenamente
+soportado como entrada y disponible como salida derivada, usando su par
+`board_w`/`board_h`, un canal `board_pieces` y un fragmento `#`:
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…
@@ -260,13 +292,14 @@ compartido de la comunidad, acreditado en consecuencia.
 
 | Formato | Borde | ¿Lleva rotación? | ¿Lleva identidad? | Es un… |
 | --- | --- | --- | --- | --- |
-| `board_edges` | `a` | no | no | tablero colocado |
+| `board_edges` | `a` | sí (por apareo) | sí (por apareo) | tablero colocado |
+| `hints` | n/a | sí (`pos.rot`) | vía aristas | juego de pistas |
 | `board_pieces` | `000` | con las aristas | sí | capa superpuesta |
-| `e2pieces.txt` | `0` | no | no | tablero colocado |
+| `e2pieces.txt` | `0` | sí (por apareo) | sí (por apareo) | tablero colocado |
 | Puzzle CSV | `1111…1` (todo unos) | solo pistas | sí (piezas) | puzzle |
 | JSON del sitio | `0` | sí | sí | puzzle |
-| JSON `BoardDoc` | `a` / `000` / `-1` | con las piezas | sí | tablero colocado |
-| URL eternity2.dev | `a` | con las piezas | con las piezas | enlace a un tablero |
+| JSON `BoardDoc` | `a` / `000` / `-1` | sí | sí | tablero colocado |
+| URL eternity2.dev | `a` | sí (por apareo) | sí (por apareo) | enlace a un tablero |
 | URL bucas | `a` | con las piezas | con las piezas | enlace a un tablero |
 
 </div>

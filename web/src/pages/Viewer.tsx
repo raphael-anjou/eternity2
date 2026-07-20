@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Slider, singleSliderValue } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -40,12 +39,7 @@ import {
   encodeBucasUrl,
 } from "@/lib/bucas";
 import type { BucasBoard } from "@/lib/bucas";
-import {
-  getOfficialPuzzle,
-  getGeneratedSolvedPuzzle,
-  getGeneratedSolvedPuzzleFramed,
-  getMaxColors,
-} from "@/engine";
+import { getOfficialPuzzle, getGeneratedSolvedPuzzle } from "@/engine";
 import { useEngine } from "@/engine/useEngine";
 import { useT } from "@/i18n";
 import { auditBoard } from "@/lib/audit";
@@ -131,6 +125,9 @@ const T = {
     downloadImage: "Download image",
     copied: "Copied!",
     generator: "Board generator",
+    genMovedIntro:
+      "The board generator now lives in the builder's toolkit, where you can also make a whole batch at once. Generate there, then paste any board's link back here to score it.",
+    genMovedCta: "Open the toolkit generator →",
     generatorIntro:
       "Build a brand-new solvable puzzle and see its solution. (Colors cap at 22: that's how many motifs exist.)",
     sizeLabel: (n: number) => `Size: ${n}×${n}`,
@@ -204,6 +201,9 @@ const T = {
     downloadImage: "Télécharger l'image",
     copied: "Copié !",
     generator: "Générateur de plateaux",
+    genMovedIntro:
+      "Le générateur de plateaux se trouve désormais dans la boîte à outils, où vous pouvez aussi en produire tout un lot d'un coup. Générez là-bas, puis collez le lien d'un plateau ici pour le scorer.",
+    genMovedCta: "Ouvrir le générateur de la boîte à outils →",
     generatorIntro:
       "Fabriquez un puzzle inédit qui a bien une solution, puis admirez-la. (Pas plus de 22 couleurs : c'est le nombre de motifs disponibles.)",
     sizeLabel: (n: number) => `Taille : ${n}×${n}`,
@@ -277,6 +277,9 @@ const T = {
     downloadImage: "Descargar la imagen",
     copied: "¡Copiado!",
     generator: "Generador de tableros",
+    genMovedIntro:
+      "El generador de tableros ahora está en la caja de herramientas, donde también puedes crear un lote entero de una vez. Genera allí y luego pega aquí el enlace de cualquier tablero para puntuarlo.",
+    genMovedCta: "Abrir el generador de la caja de herramientas →",
     generatorIntro:
       "Crea un puzzle inédito con solución garantizada y contempla su solución. (Máximo 22 colores: es la cantidad de motivos disponibles.)",
     sizeLabel: (n: number) => `Tamaño: ${n}×${n}`,
@@ -310,10 +313,6 @@ export default function Viewer() {
   const [showCoords, setShowCoords] = useState(false);
   const [showHints, setShowHints] = useState(false);
 
-  const [genSize, setGenSize] = useState(8);
-  const [genColors, setGenColors] = useState(8);
-  const [genSeed, setGenSeed] = useState(1);
-  const [genFramed, setGenFramed] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -353,49 +352,17 @@ export default function Viewer() {
     const b = boardFromEngine(puzzle, cells);
     b.puzzleName = name;
     if (numbered) b.pieceNumbers = cells.map((v) => (v >= 0 ? (v >> 2) + 1 : 0));
+    // A puzzle's pinned clues ride in the URL's `hints`, so a clue set stays
+    // shareable and the overlay can mark exactly those cells.
+    const hints = puzzle.hints.map((h) => ({ pos: h.pos, rot: h.rot }));
+    b.hints = hints.length ? hints.map((h) => h.pos) : null;
     setBoard(b);
     setEnginePair({ puzzle, board: cells });
     setError(null);
-    setSearchParams(ourParams(puzzle, cells, name), {
+    setSearchParams(ourParams(puzzle, cells, name, hints), {
       replace: true,
       preventScrollReset: preventScroll,
     });
-  };
-
-  // Generate (or regenerate) a solvable board. Pass a seed to keep the same
-  // board while only size/colors change; omit it to roll a fresh one.
-  const generate = (size: number, colors: number, seed = genSeed, framed = genFramed) => {
-    if (!engineReady) return;
-    const puzzle = framed
-      ? getGeneratedSolvedPuzzleFramed(size, colors, seed, true)
-      : getGeneratedSolvedPuzzle(size, colors, seed);
-    loadEngine(puzzle, identityBoard(puzzle), t.generatedName(size), { preventScroll: true });
-  };
-
-  // Live regeneration as a slider drags: each tick can fire many times per
-  // frame, and generating a solved board is a synchronous WASM search, so we
-  // coalesce to at most one generation per animation frame using the latest
-  // params. The label still updates instantly off the slider's own value.
-  const genFrame = useRef<{
-    id: number;
-    size: number;
-    colors: number;
-    framed: boolean;
-  } | null>(null);
-  const generateLive = (size: number, colors: number, framed = genFramed) => {
-    if (!engineReady) return;
-    if (genFrame.current) {
-      genFrame.current.size = size;
-      genFrame.current.colors = colors;
-      genFrame.current.framed = framed;
-      return;
-    }
-    const pending = { id: 0, size, colors, framed };
-    pending.id = requestAnimationFrame(() => {
-      genFrame.current = null;
-      generate(pending.size, pending.colors, genSeed, pending.framed);
-    });
-    genFrame.current = pending;
   };
 
   // Shared links: the board params (puzzle_size, board_edges, …) sit directly
@@ -581,7 +548,9 @@ export default function Viewer() {
               cells={board.cells}
               conflicts={conflicts}
               pieceNumbers={pieceNumbers}
-              highlight={showHints && is16 ? HINT_POSITIONS : undefined}
+              highlight={
+                showHints ? (board.hints ?? (is16 ? HINT_POSITIONS : undefined)) : undefined
+              }
               coordinates={showCoords}
               className="max-w-3xl"
             />
@@ -732,62 +701,14 @@ export default function Viewer() {
             <CardHeader>
               <CardTitle className="text-base">{t.generator}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-muted-foreground">{t.generatorIntro}</p>
-              <div className="space-y-1.5">
-                <Label>{t.sizeLabel(genSize)}</Label>
-                <Slider
-                  min={2}
-                  max={16}
-                  step={1}
-                  value={genSize}
-                  onValueChange={(v) => {
-                    const s = singleSliderValue(v);
-                    const c = Math.min(genColors, engineReady ? getMaxColors(s) : 4);
-                    setGenSize(s);
-                    setGenColors(c);
-                    generateLive(s, c);
-                  }}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t.colorsLabel(genColors)}</Label>
-                <Slider
-                  min={2}
-                  max={engineReady ? getMaxColors(genSize) : 22}
-                  step={1}
-                  value={genColors}
-                  onValueChange={(v) => {
-                    const c = singleSliderValue(v);
-                    setGenColors(c);
-                    generateLive(genSize, c);
-                  }}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-3">
-                  <Label htmlFor="v-framed">{t.framed}</Label>
-                  <Switch
-                    id="v-framed"
-                    checked={genFramed}
-                    onCheckedChange={(checked) => {
-                      setGenFramed(checked);
-                      generate(genSize, genColors, genSeed, checked);
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">{t.framedHint}</p>
-              </div>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground">{t.genMovedIntro}</p>
               <Button
+                variant="outline"
                 className="w-full"
-                disabled={!engineReady}
-                onClick={() => {
-                  const seed = Math.floor(Math.random() * 1_000_000);
-                  setGenSeed(seed);
-                  generate(genSize, genColors, seed, genFramed);
-                }}
+                render={<Link to="/research/build/toolkit" />}
               >
-                {t.generate}
+                {t.genMovedCta}
               </Button>
             </CardContent>
           </Card>

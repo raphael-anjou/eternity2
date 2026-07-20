@@ -17,11 +17,14 @@
 #![forbid(unsafe_code)]
 
 mod board;
+pub mod generator;
 mod piece;
 mod score;
 mod stats;
 
 pub use board::Board;
+pub use generator::{generate, generate_framed, generate_solved, generate_solved_framed,
+    max_colors, GeneratedPuzzle};
 pub use piece::{Piece, Pieces, EMPTY};
 pub use score::{score_board, score_cells, MAX_SCORE_16};
 pub use stats::SearchStats;

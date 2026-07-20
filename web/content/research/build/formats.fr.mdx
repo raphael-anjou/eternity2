@@ -2,12 +2,12 @@
 title: "Les formats de plateau et de puzzle, couchés sur le papier"
 description: >-
   Tous les formats sous lesquels un plateau ou un puzzle Eternity II circule sur
-  ce site et dans la communauté : les chaînes de lettres board_edges et
-  board_pieces, e2pieces.txt, le CSV de puzzle historique, le JSON Puzzle du
-  site, et les deux URL de visualiseur, avec les règles exactes au niveau de
-  l'octet (comment la bordure grise est encodée dans chacun) et, surtout, ce que
-  chaque format sait et ne sait pas restituer.
-metaDescription: "La spec au niveau de l'octet de chaque format de plateau et de puzzle Eternity II : board_edges, board_pieces, e2pieces.txt, CSV, JSON Puzzle du site, sortie BoardDoc et les deux URL de visualiseur. Comment chacun encode la bordure grise, et s'il restitue la rotation et l'identité de pièce."
+  ce site et dans la communauté : la chaîne de lettres board_edges et la liste
+  d'indices hints, e2pieces.txt, le CSV de puzzle, le JSON Puzzle du site, et
+  l'URL de visualiseur, avec les règles exactes au niveau de l'octet (comment la
+  bordure grise est encodée dans chacun) et, surtout, ce que chaque format sait
+  et ne sait pas restituer.
+metaDescription: "La spec au niveau de l'octet de chaque format Eternity II : board_edges, la liste d'indices hints, e2pieces.txt, CSV, JSON Puzzle, BoardDoc et l'URL de visualiseur. Comment chacun encode la bordure grise, et pourquoi les arêtes seules restituent l'identité de pièce et la rotation."
 kind: reference
 order: 8
 group: Start here
@@ -61,21 +61,20 @@ lisant la tuile *telle que posée et tournée*, et non comme une tuile de
 catalogue. Une case est soit remplie (un quadruplet réel), soit vide ; une case
 vide s'écrit comme si elle était toute en bordure, `[0, 0, 0, 0]`.
 
-Deux faits découlent de « telle que posée », et ils sont la source de la plupart
-des confusions entre formats :
+Un fait découle de « telle que posée », et il est la source de la plupart des
+confusions entre formats : un plateau porte des arêtes **tournées**, pas un
+numéro de rotation. Mais ce n'est pas une perte. Les pièces d'Eternity II sont
+**toutes distinctes à rotation près** (le jeu officiel l'est, et tout générateur
+fidèle le maintient), donc le quadruplet d'arêtes d'une case identifie une seule
+pièce, et la rotation est le tour qui amène le quadruplet de catalogue de cette
+pièce sur celui qui est posé. Apparier le quadruplet au jeu restitue **les
+deux** : l'identité et la rotation.
 
-- Un plateau porte des arêtes **tournées**. Il ne porte **pas** de numéro de
-  rotation. On ne peut restituer la rotation qu'en réappariant le quadruplet à
-  un catalogue de pièces connu.
-- Un plateau ne porte aucune **identité de pièce** à moins qu'un canal
-  numéro-de-pièce distinct ne soit présent. Le quadruplet d'arêtes `[3, 7, 1, 0]`
-  ne dit pas « pièce 118 » ; il dit « ces quatre couleurs ». L'identité vient de
-  `board_pieces`, ou du réappariement au jeu officiel.
-
-Ainsi un *plateau seul* peut toujours être rendu et scoré, mais il ne peut, à
-lui seul, restituer ni l'ordre de catalogue d'origine ni la rotation par tuile.
-Les formats qui le prétendent (JSON du site, URL numérotée par pièce) le font en
-portant explicitement le canal supplémentaire.
+Ainsi les arêtes sont le plateau tout entier : elles le rendent, le scorent, et
+nomment chaque pièce et son orientation. Le seul cas où elles échouent est un jeu
+artificiel où deux pièces partagent un motif d'arêtes à rotation près, ce que le
+vrai Eternity II n'a jamais, et là un canal numéro-de-pièce désambiguïse. C'est
+l'unique raison d'être de `board_pieces`.
 
 ## board_edges : la chaîne de lettres
 
@@ -91,8 +90,12 @@ adca beaa …            cell 0 = [0,3,2,0], cell 1 = [1,4,0,0], …
 ```
 
 - **Bordure :** la lettre `a` (couleur 0).
-- **Restitue :** le rendu complet et le score exact. Rien d'autre.
-- **Ne restitue pas :** l'identité de pièce ni la rotation (voir ci-dessus).
+- **Restitue :** tout du plateau, le rendu complet, le score exact, et, parce que
+  les pièces sont distinctes à rotation près, l'identité de chaque pièce et sa
+  rotation par appariement au jeu.
+- **Ne restitue pas :** quelles cases étaient *données comme indices* plutôt que
+  résolues ; c'est une propriété du puzzle, pas du plateau, et cela voyage dans
+  `hints`.
 
 Une subtilité rare : certains outils permutent le glyphe que chaque lettre
 dessine (`motifs_order`). Les ordres `marie` et `jblackwood` sont identiques
@@ -101,22 +104,50 @@ visualiseur les retraduisent vers l'alphabet par défaut à l'entrée, si bien q
 vous n'avez jamais à y penser ; mais si vous voyez un plateau dont les couleurs
 semblent brouillées, c'est un `motifs_order` non traduit qui en est la cause.
 
-## board_pieces : la chaîne d'identité
+## hints : les cases-indices
 
-Le canal compagnon qui, lui, *porte* l'identité. Trois chiffres décimaux par
-case, le numéro de pièce **en base 1**, `000` pour une case vide. Le plateau
-officiel fait donc `256 × 3 = 768` chiffres.
+Un plateau et les indices dont il est issu ont leur place au même endroit,
+adressés de la même façon. `hints` liste les cases-indices épinglées, chacune
+sous la forme `pos.rot`, l'indice de case en ordre ligne par ligne et le
+quart de tour horaire, joints par `-`. Cinq indices officiels font environ
+trente caractères.
+
+```text
+hints=72.2-135.0-210.3-34.1-221.0
+```
+
+La pièce de chaque case-indice est déjà connue par `board_edges`, donc un indice
+n'a besoin que de sa position et de son orientation, jamais d'un identifiant de
+pièce. C'est la même forme `(case, rotation)` que tout format durable emploie
+pour une pièce épinglée : le `x,y,rotation` du CSV, le `{pos, rot}` du JSON du
+site.
+
+- **Restitue :** quelles cases sont des indices, pour que le visualiseur les
+  marque et qu'un solveur en parte. Absent signifie « aucun indice », un simple
+  plateau résolu ou partiel.
+- **Se marie avec :** `board_edges`. Ensemble ils portent un
+  *puzzle-avec-indices* entier dans un seul lien, ce qu'un plateau nu ne
+  pourrait jamais.
+
+## board_pieces : le canal d'interopérabilité
+
+Certains outils de la communauté, notamment les liens e2.bucas.name, portent un
+canal de pièces explicite : trois chiffres décimaux par case, le numéro de pièce
+**en base 1**, `000` pour une case vide (le plateau officiel fait
+`256 × 3 = 768` chiffres). Nous le **lisons** quand il est présent, mais n'avons
+jamais besoin de l'émettre, car `board_edges` nomme déjà chaque pièce sur un jeu
+aux pièces distinctes.
 
 ```text
 001 005 007 …          piece 1 at cell 0, piece 5 at cell 1, …
 ```
 
 - **Bordure / vide :** `000`.
-- **Restitue, avec `board_edges` en regard :** l'identité de pièce *et* la
-  rotation. Pour chaque case on connaît le numéro de pièce, et l'appariement de
-  son quadruplet de catalogue au quadruplet posé donne la rotation. C'est le
-  seul moyen, au niveau du plateau, de restituer la rotation.
+- **Restitue :** l'identité de pièce directement (et la rotation, par appariement
+  au jeu), la même chose que les arêtes restituent seules pour un vrai plateau.
 - **À lui seul :** inutile sans les arêtes ; c'est une surcouche, pas un plateau.
+  Son seul usage irremplaçable est un jeu artificiel dont des pièces se répètent
+  à rotation près, où les arêtes seules sont ambiguës.
 
 ## e2pieces.txt : les pièces telles que posées
 
@@ -209,7 +240,7 @@ outil en aval n'a besoin de rien d'autre.
   "board_hash": 2059303548241384230,
   "board_edges": "abda…",
   "board_pieces": "001005…",
-  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…&board_pieces=…"
+  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…"
 }
 ```
 
@@ -231,20 +262,24 @@ empreinte FNV-1a de la grille de placement, le verrou bit-à-bit qui répond à
 Deux URL, même plateau, deux hôtes.
 
 **eternity2.dev, le lien canonique.** Le format qu'émet chaque algorithme ici.
-Plateaux carrés, donc un unique `puzzle_size` (le visualiseur lit aussi les
-`board_w`/`board_h` de bucas), et chaque valeur reste dans la plage
-URL-compatible `[A-Za-z0-9_]`, de sorte que le lien n'a besoin d'aucun
-encodage-pourcent :
+Le plateau voyage entièrement dans `board_edges` ; les indices épinglés voyagent
+dans `hints`. Plateaux carrés, donc un unique `puzzle_size` (le visualiseur lit
+aussi les `board_w`/`board_h` de bucas), et chaque valeur reste dans la plage
+URL-compatible, de sorte que le lien n'a besoin d'aucun encodage-pourcent :
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
 ```
+
+`hints` est omis pour un plateau sans indices. Comme les arêtes portent
+l'identité des pièces, il n'y a pas de canal de pièces ici : le plateau et ses
+indices tiennent dans ces deux champs.
 
 **e2.bucas.name, le visualiseur communautaire.** L'original de Jef Bucas, le
 visualiseur dont le format d'URL *est devenu* tout ce vocabulaire (la
-[boîte à outils](/research/build/tooling) raconte cette histoire). Toujours
-pleinement pris en charge en entrée et disponible en sortie dérivée, avec sa
-paire `board_w`/`board_h` et un fragment `#` :
+[boîte à outils](/research/build/tooling) raconte cette histoire). Pleinement
+pris en charge en entrée et disponible en sortie dérivée, avec sa paire
+`board_w`/`board_h`, un canal `board_pieces` et un fragment `#` :
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…
@@ -262,13 +297,14 @@ forme bucas reste l'original partagé de la communauté, crédité en conséquen
 
 | Format | Bordure | Porte la rotation ? | Porte l'identité ? | C'est un… |
 | --- | --- | --- | --- | --- |
-| `board_edges` | `a` | non | non | plateau posé |
+| `board_edges` | `a` | oui (par appariement) | oui (par appariement) | plateau posé |
+| `hints` | n/a | oui (`pos.rot`) | via les arêtes | jeu d'indices |
 | `board_pieces` | `000` | avec les arêtes | oui | surcouche |
-| `e2pieces.txt` | `0` | non | non | plateau posé |
+| `e2pieces.txt` | `0` | oui (par appariement) | oui (par appariement) | plateau posé |
 | Puzzle CSV | `1111…1` (tout en un) | indices seulement | oui (tuiles) | puzzle |
 | JSON du site | `0` | oui | oui | puzzle |
-| JSON `BoardDoc` | `a` / `000` / `-1` | avec les pièces | oui | plateau posé |
-| URL eternity2.dev | `a` | avec les pièces | avec les pièces | lien vers un plateau |
+| JSON `BoardDoc` | `a` / `000` / `-1` | oui | oui | plateau posé |
+| URL eternity2.dev | `a` | oui (par appariement) | oui (par appariement) | lien vers un plateau |
 | URL bucas | `a` | avec les pièces | avec les pièces | lien vers un plateau |
 
 </div>

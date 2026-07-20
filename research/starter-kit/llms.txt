@@ -1,0 +1,30 @@
+# Eternity II starter kit
+
+> A ready-to-use Rust workspace for building an Eternity II solver or running
+> research. The kit provides scoring, board generation (with real colour
+> balance), batch generation with pinned clues, format conversion, benchmarking,
+> and a solve→sweep→compare iteration loop. You write only one `Solver`; nothing
+> else is re-implemented — scoring, generation, and formats come from the shared
+> `e2-core` / `e2-io` crates, so results match the site exactly.
+
+## Kit docs
+
+- [README](./README.md): the Rust cookbook — every utility with a runnable command.
+- [AGENTS.md](./AGENTS.md): the agent reference — setup, where the solver goes, the anti-duplication rule, rigor rules.
+- [PROMPT.md](./PROMPT.md): paste-and-go setup instructions for a coding agent.
+
+## Key source files
+
+- [src/solver.rs](./src/solver.rs): the `Solver` trait and `Budget` — the extension point.
+- [src/runner.rs](./src/runner.rs): the sweep runner.
+- [src/run.rs](./src/run.rs): reproducible run-directory types.
+- [src/lib.rs](./src/lib.rs): re-exports and helpers (`instance_from_generated`, `pin_solution_hints`, `score_url`).
+- [examples/my_solver.rs](./examples/my_solver.rs): a worked baseline solver to copy.
+
+## Eternity II background (on eternity2.dev)
+
+- [Why it's hard](https://eternity2.dev/research/why): the design and the structural walls.
+- [Build a solver](https://eternity2.dev/research/build): validation data, the approaches map, the technique shelf.
+- [Formats](https://eternity2.dev/research/build/formats): every board format and how they convert.
+- [The dataset](https://eternity2.dev/research/build/dataset): CC0 benchmark instances and strong boards to test against.
+- [Records](https://eternity2.dev/research/records): the record timeline (public best is 470/480; a 480 is known to exist).

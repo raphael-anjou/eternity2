@@ -473,8 +473,8 @@ pub fn bucas_url(puzzle: &Puzzle, board: &Board, puzzle_name: &str) -> String {
 #[must_use]
 pub fn viewer_url(puzzle: &Puzzle, board: &Board, puzzle_name: &str) -> String {
     let cells = board_to_cells(puzzle, board);
-    let codes = board_to_codes(puzzle, board);
-    e2_io::viewer_url(puzzle_name, puzzle.width as u8, &cells, &codes)
+    // A finished board carries no separate clue set; the board rides in edges.
+    e2_io::viewer_url(puzzle_name, puzzle.width as u8, &cells, &[])
 }
 
 /// Build the canonical [`e2_io::BoardDoc`] for a board: extracts cells + codes,
@@ -494,6 +494,7 @@ pub fn board_to_doc(puzzle: &Puzzle, board: &Board, name: &str, score: u32) -> e
         &cells,
         &codes,
         board_hash(&codes),
+        &[],
     )
 }
 

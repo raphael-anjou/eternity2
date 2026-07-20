@@ -53,6 +53,17 @@ build:
 # Everything CI checks, in order: engine tests, typecheck, lint, build.
 check: test typecheck lint build
 
+# --- Starter kit -----------------------------------------------------------
+
+# Build the starter kit and run its tests (the 469-scorer + pinned-hint guards).
+starter-kit:
+    cd research/starter-kit && cargo build --release && cargo test --release
+
+# Run one of the kit's examples end to end, e.g.
+# `just starter-kit-example generate` or `just starter-kit-example sweep`.
+starter-kit-example name="score":
+    cd research/starter-kit && cargo run --release --example {{name}}
+
 # --- Research --------------------------------------------------------------
 
 # Shared research experiments. `just experiments` lists them;

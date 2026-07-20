@@ -176,7 +176,7 @@ function parseAnyFormat(raw: string, size: number): BucasBoard {
     const w = Math.round(Math.sqrt(n));
     if (w * w !== n) throw new Error("board_pieces length is not a square board");
     const pieceNumbers = Array.from({ length: n }, (_, i) => parseInt(text.slice(i * 3, i * 3 + 3), 10));
-    return { width: w, height: w, cells: Array.from({ length: n }, () => null), pieceNumbers, puzzleName: null };
+    return { width: w, height: w, cells: Array.from({ length: n }, () => null), pieceNumbers, hints: null, puzzleName: null };
   }
 
   // 5. Line-oriented: either the binary puzzle CSV (comma-separated 16-bit
@@ -207,7 +207,7 @@ function parseAnyFormat(raw: string, size: number): BucasBoard {
     // else the square that fits, else pad to the requested size.
     const w = header && header * header >= n ? header : Math.max(size, Math.ceil(Math.sqrt(n)));
     while (cellsList.length < w * w) cellsList.push(null);
-    return { width: w, height: w, cells: cellsList, pieceNumbers: null, puzzleName: null };
+    return { width: w, height: w, cells: cellsList, pieceNumbers: null, hints: null, puzzleName: null };
   }
 
   throw new Error("unrecognised format");
@@ -559,6 +559,7 @@ export default function Convert() {
             height: meta.height,
             cells,
             pieceNumbers: meta.pieceNumbers,
+            hints: null,
             puzzleName: meta.puzzleName,
           }
         : null,

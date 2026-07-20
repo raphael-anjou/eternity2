@@ -377,6 +377,7 @@ export default function Solve() {
       height: h,
       cells,
       pieceNumbers: null,
+      hints: null,
       puzzleName: null,
     })) {
       marks.set(`${pos}:${dir}`, [pos, dir]);

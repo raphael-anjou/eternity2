@@ -150,6 +150,7 @@ impl SiteInstanceExt for SiteInstance {
     fn to_doc(&self, board: &[i32], board_hash: u64) -> e2_io::BoardDoc {
         let cells = board_to_cells(self, board);
         let score = score_cells(self, &cells);
+        let hints: Vec<(u16, u8)> = self.hints.iter().map(|h| (h.pos, h.rot)).collect();
         e2_io::BoardDoc::new(
             &self.name,
             self.width,
@@ -158,6 +159,7 @@ impl SiteInstanceExt for SiteInstance {
             &cells,
             board,
             board_hash,
+            &hints,
         )
     }
 }
@@ -217,11 +219,12 @@ pub fn score_cells(inst: &SiteInstance, cells: &[[u8; 4]]) -> u32 {
 }
 
 /// Render a board as the canonical eternity2.dev viewer URL. `cells` are the
-/// per-cell URDL edge quads (row-major); `codes` are the row-major
-/// `piece*4 + rot` (`-1` empty) that supply `board_pieces`. Delegates to the
-/// shared `e2-io` encoder so every engine emits byte-identical URLs.
-pub fn cells_to_bucas_url(inst: &SiteInstance, cells: &[[u8; 4]], codes: &[i32]) -> String {
-    e2_io::viewer_url(&inst.name, inst.width, cells, codes)
+/// per-cell URDL edge quads (row-major); the board rides entirely in
+/// `board_edges`, and any pinned clues in `hints`. Delegates to the shared
+/// `e2-io` encoder so every engine emits byte-identical URLs.
+pub fn cells_to_bucas_url(inst: &SiteInstance, cells: &[[u8; 4]], _codes: &[i32]) -> String {
+    let hints: Vec<(u16, u8)> = inst.hints.iter().map(|h| (h.pos, h.rot)).collect();
+    e2_io::viewer_url(&inst.name, inst.width, cells, &hints)
 }
 
 /// Convert a v2 `eternity2_core::Board` to the row-major `piece*4 + rot` board.
