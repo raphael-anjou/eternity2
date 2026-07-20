@@ -7,6 +7,14 @@
 //! Deterministic for a given (size, colors, seed) on every platform: no
 //! getrandom, just xorshift — which is exactly why every port can reproduce
 //! these puzzles byte-for-byte.
+//!
+//! MATCHED PAIR: the generation algorithm here is duplicated, byte-for-byte, in
+//! `research/experiments/common/crates/e2-core/src/generator.rs` (which the
+//! starter kit uses). The two differ ONLY in the return type — this one builds
+//! the engine's `Puzzle`, the other a crate-local `GeneratedPuzzle`. If you
+//! change the algorithm (painting, the uniqueness pass, the RNG, the frame
+//! recipe), change BOTH or generated boards will silently diverge between the
+//! site and the kit. The e2-core copy's census test guards its output.
 
 use crate::types::{rotated, Puzzle, BORDER};
 

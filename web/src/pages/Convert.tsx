@@ -7,23 +7,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { KNOWN_BOARDS } from "@/data/known-boards";
-import { decodeBucas, parseParams, scoreSummary } from "@/lib/bucas";
+import {
+  decodeBucas,
+  parseParams,
+  scoreSummary,
+  viewerUrlFromBoard,
+  bucasUrlFromBoard,
+  cellsToBoardEdges,
+} from "@/lib/bucas";
 import type { BucasBoard, Edges } from "@/lib/bucas";
 import { useT } from "@/i18n";
 
-// Re-encode decoded cells into the default bucas board_edges letters, so we can
-// echo a clean string for any input (URL, hash, or bare board_edges alike).
-// Mirrors the private encoder in bucas.ts but works straight off BucasBoard
-// cells, which is all a converter needs (no engine, no piece matching).
-function cellsToEdges(cells: (Edges | null)[]): string {
-  let out = "";
-  for (const cell of cells) {
-    if (!cell) out += "aaaa";
-    else out += cell.map((c) => String.fromCharCode(97 + c)).join("");
-  }
-  return out;
-}
+// The viewer / bucas URLs and the board_edges encoder are the ONE canonical
+// implementation in bucas.ts, so the converter, the viewer and the generator all
+// emit byte-identical links. The converter still *derives* board_pieces below as
+// one of the formats it shows, but the viewer URL itself is edges + hints only.
+const cellsToEdges = cellsToBoardEdges;
+const viewerUrl = viewerUrlFromBoard;
+const bucasUrl = bucasUrlFromBoard;
 
+// board_pieces: three digits per cell, the 1-based piece number, 000 empty. A
+// derived format the converter shows; it is not part of the viewer URL.
 function cellsToPieces(pieceNumbers: number[] | null): string | null {
   if (!pieceNumbers) return null;
   return pieceNumbers.map((n) => String(n).padStart(3, "0")).join("");
@@ -31,10 +35,8 @@ function cellsToPieces(pieceNumbers: number[] | null): string | null {
 
 // e2pieces.txt: one line per placed cell, in reading order (row by row), four
 // whitespace-separated edge integers in top,right,bottom,left order, 0 = grey
-// border. A board_edges string carries pieces already rotated into place, so
-// this lists them AS PLACED, not as a canonical rotation-0 piece set. We can't
-// recover the original catalogue order or canonical rotation from a board alone,
-// so we do not claim to; this is the honest, useful export.
+// border. It lists the pieces AS PLACED (already rotated), which for a
+// distinct-piece set names each piece and its rotation.
 function cellsToE2Pieces(cells: (Edges | null)[]): string {
   const lines: string[] = [];
   for (const cell of cells) {
@@ -44,35 +46,10 @@ function cellsToE2Pieces(cells: (Edges | null)[]): string {
   return lines.join("\n");
 }
 
-// Sanitize a puzzle name to the URL-safe subset, matching e2-io's sanitize_name
-// so a board carries the same name string through every tool on the site.
+// Sanitize a puzzle name to the URL-safe subset, matching e2-io's sanitize_name.
 function safeName(board: BucasBoard): string {
   const raw = (board.puzzleName ?? "eternity2-board").replace(/[^A-Za-z0-9_]+/g, "_");
   return raw.length > 0 ? raw : "eternity2_board";
-}
-
-// The canonical eternity2.dev viewer URL — the format every algorithm on the
-// site now emits. Boards are square on the site, so we emit a single
-// `puzzle_size`; the viewer also reads bucas's board_w/board_h. Built straight
-// from cells so the converter works for any size (no engine, no piece matching).
-function viewerUrl(board: BucasBoard): string {
-  const name = safeName(board);
-  const edges = cellsToEdges(board.cells);
-  const pieces = cellsToPieces(board.pieceNumbers);
-  let params = `puzzle=${name}&puzzle_size=${board.width}&board_edges=${edges}`;
-  if (pieces) params += `&board_pieces=${pieces}`;
-  return `https://eternity2.dev/viewer?${params}`;
-}
-
-// The legacy e2.bucas.name viewer URL, kept as a derived converter for interop
-// with the community viewer. No longer the default output.
-function bucasUrl(board: BucasBoard): string {
-  const name = safeName(board);
-  const edges = cellsToEdges(board.cells);
-  const pieces = cellsToPieces(board.pieceNumbers);
-  let params = `puzzle=${name}&board_w=${board.width}&board_h=${board.height}&board_edges=${edges}`;
-  if (pieces) params += `&board_pieces=${pieces}`;
-  return `https://e2.bucas.name/#${params}`;
 }
 
 // The canonical board JSON — byte-for-byte the schema the Rust `e2-io` crate's
