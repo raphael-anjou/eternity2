@@ -288,7 +288,7 @@ pub fn emit_program_chain(inst: &Instance, budget_ms: u64) -> String {
         s.push_str(&format!("        unsafe {{ *st.cell.get_unchecked_mut({pos}) = ew; }}\n"));
         s.push_str("        unsafe { *st.free_pc.get_unchecked_mut(pid) = 0; }\n");
         s.push_str("        let saved = st.score; st.score += gain;\n");
-        s.push_str("        if st.score > st.best { st.best = st.score; }\n");
+        s.push_str("        if st.score > st.best { st.best = st.score; st.best_cell = st.cell; }\n");
         // Pass our right edge to the next cell iff it is our horizontal-right
         // neighbour (so it can use it as its left constraint without a board read);
         // otherwise the arg is unused there and 0 is fine.
@@ -383,7 +383,7 @@ fn emit_cell_scan(
     s.push_str(&format!("{i2}unsafe {{ *st.cell.get_unchecked_mut({pos}) = ew_{sf}; }}\n"));
     s.push_str(&format!("{i2}unsafe {{ *st.free_pc.get_unchecked_mut(pid_{sf}) = 0; }}\n"));
     s.push_str(&format!("{i2}let saved_{sf} = st.score; st.score += gain_{sf};\n"));
-    s.push_str(&format!("{i2}if st.score > st.best {{ st.best = st.score; }}\n"));
+    s.push_str(&format!("{i2}if st.score > st.best {{ st.best = st.score; st.best_cell = st.cell; }}\n"));
     s.push_str(inner); // the recursive call or the fused inner cell's scan
     s.push_str(&format!("{i2}st.score = saved_{sf};\n"));
     s.push_str(&format!("{i2}unsafe {{ *st.free_pc.get_unchecked_mut(pid_{sf}) = 1; }}\n"));
@@ -608,6 +608,11 @@ struct St {
     free_pc: [u8; NP],
     score: u32,
     best: u32,
+    // Snapshot of the edge board at the best score (packed URDL per cell, or
+    // CELL_EMPTY). Copied only when `best` improves — bounded to <=480 times over
+    // a whole run, so off the hot path. The wrapper recovers piece ids by matching
+    // each cell's edges against the (rotation-unique) piece set.
+    best_cell: [u32; N],
     nodes: u64,
 }
 
@@ -615,7 +620,7 @@ struct St {
 // and return false so the search continues (best-score search, not first-only).
 #[inline(never)]
 fn terminal(st: &mut St, _left_arg: u8) -> bool {
-    if st.score > st.best { st.best = st.score; }
+    if st.score > st.best { st.best = st.score; st.best_cell = st.cell; }
     false
 }
 "#;
@@ -648,13 +653,22 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_millis(BUDGET_MS));
         TIMED_OUT.store(true, Ordering::Relaxed);
     });
-    let mut st = St { cell, free_pc, score: base_score, best: base_score, nodes: 0 };
+    let mut st = St { cell, free_pc, score: base_score, best: base_score, best_cell: cell, nodes: 0 };
     run_search(&mut st);
     let elapsed = start.elapsed().as_secs_f64();
     let nps = if elapsed > 0.0 { (st.nodes as f64 / elapsed) as u64 } else { 0 };
     let breaks = MAX_SCORE - st.best;
     println!("RESULT algo=naive-codegen-jit-chain seed=1 score={} breaks={} elapsed_s={:.3} nodes={} backtracks=0 max_depth=0 depth_at_timeout=0 nodes_to_solution=0 secs_to_solution=0.000 nps={} nps_unit=search-nodes/s board_hash=0 url=none",
         st.best, breaks, elapsed, st.nodes, nps);
+    // Emit the best board's edges (URDL per cell, space-separated, CELL_EMPTY for
+    // holes) on a BEST line, so the wrapper can build the eternity2.dev URL.
+    print!("BEST");
+    for pos in 0..N {
+        let w = st.best_cell[pos];
+        if w == CELL_EMPTY { print!(" -"); }
+        else { print!(" {}", w); }
+    }
+    println!();
 }
 "#;
 
