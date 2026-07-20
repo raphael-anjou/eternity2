@@ -118,7 +118,8 @@ fn main() -> ExitCode {
     // The single machine-readable line.
     println!(
         "RESULT algo={} seed={} score={} breaks={} elapsed_s={:.3} nodes={} backtracks={} \
-         max_depth={} depth_at_timeout={} nps={:.0} nps_unit=search-nodes/s board_hash={:016x} url={}",
+         max_depth={} depth_at_timeout={} nodes_to_solution={} secs_to_solution={:.3} \
+         nps={:.0} nps_unit=search-nodes/s board_hash={:016x} url={}",
         spec.name,
         seed,
         out.score,
@@ -128,6 +129,8 @@ fn main() -> ExitCode {
         result.stats.backtracks,
         result.stats.max_depth,
         result.stats.depth_at_timeout,
+        result.stats.nodes_to_solution,
+        result.stats.secs_to_solution,
         nps,
         out.board_hash,
         out.url,

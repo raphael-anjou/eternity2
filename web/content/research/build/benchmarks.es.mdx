@@ -255,13 +255,20 @@ del mismo hilo lo corroboran: David Barr midió su propio núcleo de CPU en ~23
 millones de colocaciones por segundo y su portación a GPU en ~2400 millones
 ([mensaje 11835](https://groups.io/g/eternity2/message/11835)), y el backtracker
 optimizado de Peter McGavin alcanzó ~295 millones por segundo en un núcleo único
-rápido ([mensaje 11750](https://groups.io/g/eternity2/message/11750)). Dos
+rápido ([mensaje 11750](https://groups.io/g/eternity2/message/11750)) - aunque esa
+es una cifra de *tablero fácil*; en un tablero difícil el mismo motor corre a ~105 M,
+donde un
+[motor en Rust portable en este sitio](/research/lab/experiments/raphael-anjou/jit-backtracker)
+lo iguala. Dos
 advertencias heredadas del viejo debate nodo-contra-paso subsisten: una
 "colocación válida" cuenta solo las piezas que pasan la búsqueda de ajuste de
 color, no cada pieza probada, y la velocidad en un solo núcleo sobre un 16×16
 completo suele valer aproximadamente la mitad de la cifra en un puzzle pequeño,
 porque la búsqueda pasa su tiempo en el bosque denso de restricciones cercanas al
-borde. Nada de esto cambia el veredicto
+borde. (Estas cifras de colocaciones/s son un eje de «rápido», sin relación con el
+puntaje en aristas casadas de un tablero; el
+[registro de ingeniería de solucionadores](/research/build/faster/solver-engineering)
+fija los tres sentidos de la palabra.) Nada de esto cambia el veredicto
 [poda contra velocidad](/research/why/prune-vs-speed): un salto de rendimiento de
 400× desde 2008 no ha movido el récord, porque hace el árbol más barato de
 recorrer, no más pequeño.

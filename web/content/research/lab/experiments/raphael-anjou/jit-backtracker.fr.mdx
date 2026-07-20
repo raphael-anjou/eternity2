@@ -1,0 +1,487 @@
+---
+title: "Le backtracker JIT : du Rust portable à égalité avec du C optimisé sur les plateaux difficiles"
+description: >-
+  Un backtracker Rust en profondeur d'abord, sûr et portable, spécialisé à
+  l'exécution en émettant puis compilant du Rust propre à chaque puzzle, porté de
+  43 à 123 millions de nœuds de recherche par seconde sur un cœur. Mesuré
+  équitablement face au C de Peter McGavin sur la même machine : à égalité sur les
+  plateaux difficiles et profonds comme le vrai Eternity II, et à environ 44 % de sa
+  vitesse sur les faciles. Chaque échelon parcourt l'arbre identique ; tout le gain
+  vient du code, pas de l'algorithme.
+metaDescription: "Un backtracker Eternity II en Rust portable qui compile du Rust propre à chaque puzzle à l'exécution, porté de 43 à 123 millions de nœuds/s sur un cœur. Mesuré sans affichage face au C de McGavin sur le même Apple M1 : à égalité sur les plateaux difficiles, ~44 % sur les faciles."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+contributors:
+  - { slug: peter-mcgavin, role: method }
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), single-threaded generated binary"
+  wallClock: "6–30 s per benchmark run"
+  seedPolicy: "deterministic search; a candidate-order --seed only reorders equal buckets for portfolio diversity"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- --puzzle P.json --chain2 --opt native"
+order: 6
+updated: 2026-07-20
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/raphael-anjou/going-fast
+  - /research/build/faster/solver-engineering
+  - /research/why/prune-vs-speed
+sources:
+  - label: "Peter McGavin's genbody71.zip — the C reference this engine chases (groups.io msg 11749)"
+    url: https://groups.io/g/eternity2/message/11749
+  - label: "rust-lang/rust#80630 — LLVM cannot lower loop+match to a computed goto (why the function-chain design exists)"
+    url: https://github.com/rust-lang/rust/issues/80630
+  - label: "The eternity2 repository on GitHub"
+    url: https://github.com/raphael-anjou/eternity2
+---
+
+<Callout kind="note" title="Ce qu'est cette expérience, et ce qu'elle n'est pas">
+  C'est une expérience de **vitesse**, pas de résolution. Elle pose une seule
+  question : un backtracker Rust *sûr et portable* peut-il atteindre le débit du
+moteur le plus rapide de la communauté - le
+[C optimisé à la main de Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker) - 
+  sans quitter Rust ni descendre à l'assembleur ? La réponse dépend du plateau : sur
+  les plateaux **difficiles et profonds comme le vrai Eternity II, il égale son C** ;
+  sur les plateaux faciles et peu ramifiés, son C est environ **2,3× plus rapide**. Il
+  ne dit rien des *scores* : parcourir l'arbre vite et trouver un plateau à haut score
+  sont [deux axes entièrement distincts](/research/lab/experiments/raphael-anjou/going-fast).
+  Le meilleur que ce moteur atteint sur le vrai puzzle est dans les hauts 300 sur 480,
+exactement là où un backtracker strict doit s'arrêter - les plateaux record viennent
+  des métaheuristiques, pas d'une marche plus rapide.
+</Callout>
+
+Tout moteur Eternity II rapide est, en dessous, le même backtracker en profondeur
+d'abord : remplir les cases dans un ordre fixe, essayer chaque pièce qui convient,
+descendre, remonter à la première impasse. La
+[page de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) raconte
+l'histoire du débit du moteur C qui détient depuis des années la couronne de vitesse
+mono-cœur de la communauté. Cette page en est l'autre versant : jusqu'où du *Rust
+portable* peut s'en approcher, et où tombe la ligne honnête.
+
+Le résultat dépend du plateau, et c'est là qu'est l'intérêt. Mesuré sur mon Apple M1,
+sur un cœur, les deux moteurs compilés sans affichage avec génération de code native
+et exécutés dos à dos :
+
+| Plateau | C de McGavin (sans affichage) | Ce moteur | Résultat |
+| --- | --- | --- | --- |
+| Facile (71.puz de Joe, 18 indices) | ~287 M/s | ~122 M/s | McGavin **~2,3×** |
+| **Difficile (16×16 profond, comme le vrai E2)** | **~102–105 M/s** | **~104–111 M/s** | **~égalité** |
+
+Sur les plateaux qui ressemblent vraiment à Eternity II - profonds, densément
+contraints, où la recherche passe son temps à revenir en arrière - un moteur Rust sûr
+et portable **égale du C optimisé à la main**. Sur les plateaux faciles et peu
+ramifiés, où il n'y a presque rien à faire par nœud, le C en ligne droite de McGavin
+est plus de deux fois plus rapide. Les deux nombres sont réels ; l'ingénierie
+ci-dessous est ce qui a hissé Rust jusqu'à l'égalité sur les plateaux difficiles.
+
+Tout ce qui suit vient de la **génération de code et de la disposition des données**,
+pas d'une recherche plus fine : chaque échelon parcourt l'arbre *identique* et, sur un
+plateau soluble de test, s'arrête au *nombre de nœuds identique*. Cet invariant est la
+colonne vertébrale de toute l'expérience, alors autant l'énoncer d'abord.
+
+<Callout kind="warn" title="Mesurez la référence à pleine vitesse, ou vous vous tromperez vous-même">
+  Une version antérieure de ce travail annonçait que nous *battions* McGavin nettement.
+  C'était faux, et la raison est instructive. Le moteur de McGavin est livré avec un
+  affichage terminal en direct (`#define INTERACTIVE`) : un état qu'il redessine sans
+cesse. Cet affichage lui coûte environ **2,7× de son débit** - sa vitesse sans
+  affichage est de ~287 M sur le plateau facile, mais avec l'affichage il affiche ~106 M.
+  La première comparaison opposait notre moteur sans affichage à son binaire *bridé* et
+  produisait une victoire fantôme. Reconstruit sans affichage (`-mcpu=native`), le vrai
+  tableau est celui ci-dessus : il gagne le plateau facile largement, et nous égalisons
+sur les difficiles. La leçon est générale - construisez toujours la référence telle
+  qu'elle tourne à pleine vitesse avant de faire confiance à un ratio.
+</Callout>
+
+## La règle du jeu : le même arbre, à chaque échelon
+
+Un backtracker en profondeur d'abord est déterministe. Étant donné un plateau et un
+ordre de remplissage fixe, il visite exactement une seule suite de nœuds, sur
+n'importe quelle machine, dans n'importe quel langage. Il existe donc un test
+implacable pour savoir si une « optimisation » n'est bien qu'une accélération et non
+une modification silencieuse de la recherche : **le nombre de nœuds ne doit pas
+bouger.**
+
+Tout au long de ce travail, l'oracle a été un 16×16 soluble à 60 indices. Chaque
+version du moteur le résout à 480 et annonce **251 815 nœuds** - le même nombre, au
+chiffre près, de la référence la plus lente au build fusionné le plus rapide. Tout
+changement qui déplaçait ce nombre était un bug déguisé et a été annulé. C'est cette
+seule discipline qui permet de lire l'échelle de vitesse ci-dessous comme une
+comparaison à conditions égales, et non comme une collection de programmes au
+comportement différent.
+
+<Callout kind="insight" title="Ici la correction est un invariant de base, pas une étape">
+  Le moteur vérifie les quatre arêtes de chaque placement contre chaque voisin déjà
+  fixé (pièce posée ou bordure du cadre), et il interdit à une arête de bordure/grise
+  de faire face à l'intérieur. Ce ne sont pas des optimisations « ajoutées plus tard »
+ - c'est la définition d'un placement Eternity II légal, présente dans chaque version
+  de cette page. L'échelle ne fait varier *que* la vitesse d'une recherche fixe et
+  correcte.
+</Callout>
+
+## L'idée centrale : générer le programme, ne pas interpréter le puzzle
+
+Un backtracker générique paie, à chaque nœud, des questions dont la réponse ne change
+jamais pendant une exécution : *sur quelle case suis-je ? où sont ses voisins ? quel
+vivier de candidats lire ?* Une boucle pilotée par tables les cherche dans des
+tableaux, à chaque nœud, indéfiniment.
+
+Le C de McGavin y répond **une fois, à la compilation**, en générant un programme
+spécialisé pour un puzzle : `genbody -DG` écrit un second fichier C avec un bloc en
+ligne droite par case, les adresses des voisins gravées en constantes, et des chaînes
+de `goto` reliant les blocs. Cette spécialisation est la source de sa vitesse - même
+algorithme, exécuté au ras du métal.
+
+Ce moteur fait la même chose en Rust, à l'exécution :
+
+1. `emit_program(&instance)` écrit un **programme Rust autonome et spécialisé pour le
+puzzle** - pièces, viviers de candidats, indices et ordre de remplissage tous
+   gravés en données `const`, sans crate externe.
+2. L'enveloppe le compile avec `rustc -O` (environ 0,15 s pour le build simple, ~1,7 s
+   pour le fusionné).
+3. Le binaire généré exécute la recherche et imprime son résultat.
+
+C'est le flux `genbody -DG → compile → exécute` de McGavin, en Rust, appelé comme une
+bibliothèque. Rien d'exotique - juste sortir les faits fixes du puzzle hors de la
+boucle chaude pour les confier au compilateur. Tout ce qui suit consiste à extraire
+des facteurs constants du code généré, et chaque extraction est un petit changement
+autonome qu'un diff illustre au mieux.
+
+## L'échelle, un changement à la fois
+
+Les diffs ci-dessous sont **simplifiés pour la lecture** : le vrai moteur émet sa boucle
+interne en Rust généré (des constantes comme la position d'une case et ses voisins sont
+gravées par case, et la source fait quelques centaines de lignes par puzzle). Chaque diff
+montre l'idée du changement, pas le texte généré littéral - lancez le moteur avec
+`--emit-src out.rs` pour voir le vrai code d'un plateau donné.
+
+### 1 · Empaqueter chaque candidat dans un mot
+
+La première boucle générée chassait encore un pointeur : lire un index `u32`, le
+suivre dans un tableau `oriented[]` pour le `(id, rotation, arêtes)` de la pièce,
+*puis* tester si la pièce était déjà utilisée. Trois chargements dépendants pour
+considérer un candidat.
+
+```diff
+- let idx = pool[i];                 // load an index …
+- let (pid, rot, edges) = oriented[idx as usize];  // … chase it into a second array …
+- if !used[pid] { /* consider */ }   // … then test usage
++ let cand = pool[i];                // one contiguous load: pid<<48 | rot<<40 | edges<<8
++ let pid = (cand >> 48) as usize;
++ if free[pid] != 0 { let edges = (cand >> 8) as u32; /* consider */ }
+```
+
+Chaque candidat devient un unique `u64` empaqueté, stocké directement dans son vivier
+`(up, left)`. La boucle chaude fait **un** chargement, extrait l'id de la pièce, et
+teste l'usage *avant* de dépaqueter les arêtes - le motif « vérifier `tileFree`
+d'abord » de McGavin. **+12 %**, et cela met en place la représentation empaquetée dont
+dépend tout le reste du travail.
+
+### 2 · Stocker les cases du plateau en un `u32`, pas quatre octets
+
+Le plateau stockait les quatre arêtes de chaque case en `[u8; 4]`. Lire l'arête d'un
+voisin pour la comparer demandait quatre chargements d'octets séparés. McGavin garde
+les arêtes de chaque tuile posée en **un seul `u32`** et les pousse vers les voisins
+par décalages.
+
+```diff
+- let cell: [[u8; 4]; N];            // four byte loads to read one neighbour
+- let up_edge = cell[up_pos][2];     // …and index arithmetic each time
++ let cell: [u32; N];                // one u32 per cell, URDL packed, empty = 0xFFFF_FFFF
++ let up_edge = (cell[up_pos] >> 8) as u8;  // one load + one shift
+```
+
+Ce fut le plus grand levier de disposition des données : **34 → 57 M nœuds/s, +67 %**.
+Nombre de nœuds inchangé. Bien représenter la structure de données la plus chaude (le
+plateau) a compté davantage que toute micro-optimisation venue ensuite.
+
+### 3 · Émettre une fonction par case - le pivot
+
+Voici le geste qui a rendu « égaler McGavin » plausible. La taxe restante était la
+boucle pilotée par tables elle-même : `free_order[level]`, `cursor[level]`,
+`score_at[level]` - des chargements de tableaux indexés à *chaque nœud*, pour des
+valeurs que McGavin a en constantes de compilation. La façon évidente de les graver - 
+un unique gros `loop { match level { …256 branches… } }` - ne marche pas : `rustc` met
+plus d'une minute à compiler une seule fonction énorme, et
+[LLVM ne sait pas abaisser un `loop`/`match` en goto calculé](https://github.com/rust-lang/rust/issues/80630)
+de toute façon, donc il ne reproduirait même pas la structure de `goto` de McGavin.
+
+La façon qui *marche* est d'émettre **une petite fonction `#[inline(never)]` par
+case** :
+
+```diff
+- // one generic loop, indexing arrays by depth on every node
+- loop {
+-   let pos = free_order[level];
+-   let (up_pos, left_pos) = neigh[level];
+-   // …scan, place, advance level, or back out…
+- }
++ // one function per cell; its position and neighbours are baked constants
++ fn cell_37(st: &mut St, left_arg: u8) -> bool {
++   const POS: usize = 138; const UP: usize = 122;   // this cell's facts, as constants
++   for cand in POOL_UL[/* up*COLORS+left */] {       // its exact candidate pool
++     // place …
++     if cell_38(st, right_edge) { return true; }     // advance = call the next cell
++     // unplace …
++   }
++   false                                             // exhausted = plain return (backtrack)
++ }
+```
+
+Avancer, c'est appeler la fonction de la case suivante ; revenir en arrière, c'est un
+simple `return`. Environ 256 *petites* fonctions se compilent en deux secondes (une
+chaîne de 200 fonctions compile en ~1 s ; la fonction géante unique prenait >60 s).
+C'est le code en ligne droite par case de McGavin, exprimé en une chaîne de fonctions
+minuscules que Rust acceptera réellement de compiler. **58 → 92 M nœuds/s, +56 %** - le
+plus grand levier de l'échelle. Nombre de nœuds inchangé.
+
+### 4 · Cesser de recalculer ce qu'on a déjà chargé
+
+Deux changements plus modestes, même thème : ne jamais relire en mémoire ce qu'on a
+déjà dans un registre.
+
+Le **voisin de gauche** d'une case est, 94 % du temps (240 des 256 cases, toutes sauf
+les débuts de ligne), exactement la pièce que la case *appelante* vient de poser.
+L'appelant passe donc sa propre arête droite en argument, et la case dérive sa
+contrainte de gauche sans aucune lecture du plateau :
+
+```diff
+- let left_edge = (cell[LEFT] >> 24) as u8;   // re-read the neighbour we just placed
++ fn cell_38(st: &mut St, left_arg: u8) -> bool {  // caller handed us its right edge
++   let left = left_arg;                            // …no board read
+```
+
+Et le **gain de correspondance** - le nombre d'arêtes nouvellement appariées qu'ajoute
+un placement - relisait ses quatre voisins. Or les arêtes du haut et de gauche
+étaient *déjà chargées* pour choisir le vivier de candidats, et dans l'ordre par ligne
+ces voisins sont toujours posés (ou une arête de cadre, sans gain). Le gain
+haut/gauche devient donc deux additions `bool → u32` sans branche sur des valeurs déjà
+en main ; seuls des voisins bas/droite réellement fixés coûtent une lecture :
+
+```diff
+- let gain = matched(up) + matched(left) + matched(down) + matched(right); // 4 reads
++ let gain = u32::from(e_up == up) + u32::from(e_left == left)             // 0 reads: cached
++          + need_down_read + need_right_read;                            // only if pinned
+```
+
+Ensemble : **92 → 106 M nœuds/s** - sur le plateau difficile, cela met à niveau avec le
+C sans affichage de McGavin (~102–105 M là-bas). Nombre de nœuds inchangé.
+
+### 5 · Un tableau d'octets pour l'ensemble des pièces utilisées
+
+Le moteur suivait les pièces posées avec un masque de bits `u64` : décalage, masque,
+et, test. McGavin utilise un `unsigned char tileFree[256]` plat ; son test est un
+chargement d'octet et une comparaison à zéro.
+
+```diff
+- if used[pid >> 6] & (1u64 << (pid & 63)) == 0 { /* free */ }  // shift, mask, and, test
++ if free_pc[pid] != 0 { /* free */ }                            // one byte load + compare
+```
+
+**106 → 108 M.** Nombre de nœuds inchangé.
+
+### 6 · Fusionner des cases pour amortir l'appel - le coup gagnant
+
+Le dernier obstacle entre la chaîne de fonctions et le `goto` de McGavin était l'appel
+lui-même : un `goto` vers la case précédente est un saut nu ; un `return` de fonction
+restaure d'abord les registres sauvegardés par l'appelé. Alors **fusionnons plusieurs
+cases en une fonction** - imbriquons le balayage de la deuxième case *dans* la boucle
+de placement de la première, la troisième dans la deuxième, et ainsi de suite, pour
+n'avoir qu'un `call` par *groupe* de cases posées au lieu d'un par case :
+
+```diff
+- fn cell_37(st){ for c in pool { place; if cell_38(st, r) {return true} unplace } }
+- fn cell_38(st){ for c in pool { place; if cell_39(st, r) {return true} unplace } }
++ fn cells_37_38_39(st){                 // three cells, one function, one call in/out
++   for c37 in pool37 { place37;
++     for c38 in pool38 { place38;
++       for c39 in pool39 { place39;
++         if next_group(st, r) {return true}
++       unplace39 }
++     unplace38 }
++   unplace37 }
+```
+
+La fusion échange moins d'appels contre plus de pression sur les registres, il y a donc
+un optimum, et il est peu marqué. En balayant la taille du groupe sur `bench-hard`,
+trois essais chacun, dos à dos :
+
+| groupe | 1 | 2 | 4 | 6 | 8 |
+| --- | --- | --- | --- | --- | --- |
+| nœuds/s | ~102 M | ~107 M | **~110 M** | ~108 M | ~108 M |
+
+La fusion bat nettement l'absence de fusion (groupe 1), mais au-delà du groupe 2 les
+écarts sont dans le bruit d'une exécution à l'autre : le pic erre entre les groupes 4 et
+6 selon le plateau et l'humeur de l'allocateur de registres de LLVM, et ne dépasse jamais
+quelques pour cent. Le défaut de `--chain2` est le groupe 6 ; le groupe 4 a devancé sur
+ce plateau précis. Ce qui compte, c'est le saut depuis le groupe 1, pas le vainqueur
+exact. Le nombre de nœuds est préservé à travers l'imbrication dans tous les cas.
+
+## L'échelle d'un coup d'œil
+
+Trois points d'ancrage sont revérifiés aujourd'hui sur les plateaux `bench-*.json`
+commités ; les étapes entre eux sont les écarts relevés en cours de développement
+(chacun un commit autonome), qui dérivent de quelques pour cent selon l'état de la
+machine - lisez donc les lignes du milieu comme la *forme* de la montée, pas des
+constantes de laboratoire.
+
+| Échelon | Moteur | Changement | statut |
+| --- | --- | --- | --- |
+| **naive-clean** | récursif | DFS Rust portable simple, la référence honnête | **~44 M, vérifié** |
+| **JIT piloté par tables** | codegen | programme généré, boucle interne par tables | **~61 M, vérifié** |
+| cases plateau en u32 | codegen | un chargement + décalage par voisin | +~65 % (journal) |
+| chaîne de fonctions | codegen | une fonction par case | +~55 % (journal) ★ |
+| haut/gauche en cache + octets | codegen | cesser de relire les voisins posés | +~15 % (journal) |
+| **fusion (groupe 4–6)** | codegen | **un appel pour plusieurs cases** | **~108–110 M difficile / ~122 M facile, vérifié** |
+| *C de McGavin (sans affichage)* | C | *même machine, pour référence* | *~102 M difficile / ~287 M facile* |
+
+Deux moteurs partagent ce tableau : `naive-clean` est un backtracker récursif à part
+(lançable avec `run_dfs --algo naive-clean`), et tout depuis « JIT piloté par tables »
+est le chemin codegen dont parle cette page (`run_dfs_codegen_jit`). Le résumé honnête
+est un **gain de ~2,5× de la référence naive-clean au champion fusionné sur le plateau
+difficile** (~44 M → ~110 M) et **~2,8× sur le facile** (~44 M → ~122 M) - atterrissant,
+sur le difficile, à niveau avec le C sans affichage de McGavin. Trois méta-leçons en
+découlent, la part transférable :
+
+1. **La représentation prime sur les micro-opérations.** Les deux plus grands gains
+isolés - cases u32 (+67 %) et chaîne de fonctions (+56 %) - portaient tous deux sur
+   la *forme* des données et du code, pas sur le rognage d'instructions. Aucun réglage
+   de branche n'en a approché.
+2. **Réutiliser ce qu'on a déjà calculé.** Le gain en cache et la gauche-en-argument
+   étaient de purs gains « cesse de le recharger ».
+3. **La structure prime sur les cycles.** La fusion s'est attaquée à la *structure
+d'appel*, pas à un cycle isolé - et c'est ce qui a hissé Rust à niveau avec du C
+   optimisé à la main sur les plateaux difficiles.
+
+## Reproduisez-le
+
+Le moteur et deux plateaux de référence commités vivent dans le dépôt public sous
+`research/experiments/dfs-study/engine/crates/dfs-codegen` (`bench/bench-easy.json`,
+`bench/bench-hard.json`, et un `bench/README.md` avec la recette complète). Les trois
+points d'ancrage de l'échelle - la référence naive-clean, le plancher codegen et le
+champion fusionné - sont chacun lançables directement, pour que quiconque puisse les
+rejouer sur sa propre machine, dos à dos. Depuis `research/experiments/dfs-study/engine` :
+
+```bash
+# naive-clean : la référence honnête (backtracker récursif simple à part) ~44 M
+cargo run --release -p dfs-run --bin run_dfs -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --algo naive-clean --seed 1 --budget-s 10
+
+# plancher JIT piloté par tables : le chemin codegen sans chaîne/fusion ~61 M
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --opt native
+
+# champion fusionné (groupe = 6) : le moteur dont parle cette page ~108–110 M difficile, ~122 M facile
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --chain2 --opt native
+
+# n'importe quelle largeur de fusion, pour balayer les groupes vous-même
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --group 4 --opt native
+```
+
+Pointez `--puzzle` sur `bench-easy.json` et chaque configuration imprime `score=480` au
+**même nombre de nœuds** (3 577 121 570) - l'égalité qui prouve que l'échelle est une
+échelle de vitesse et rien d'autre. Sur le `bench-hard.json` non terminant, elles
+impriment le même score partiel à des `nps` différents. (Donnez-lui un vrai budget : un
+budget très court mesure la mise en route du compilateur, pas le débit. Le plateau facile
+demande ≥30 s pour se résoudre.) Les trois micro-étapes intermédiaires du tableau
+ci-dessus - candidats empaquetés, gain en cache, ensemble utilisé en octets - ne sont pas
+des drapeaux séparés ; elles sont la suite de commits dans `bench/README.md`, reproductible
+avec `git checkout`.
+
+Pour reproduire équitablement la comparaison avec McGavin, construisez **son** moteur
+sans affichage - commentez `#define INTERACTIVE` près du haut de `genbody.c` pour que
+l'affichage en direct ne le bride pas - puis lisez le vrai débit :
+
+```bash
+# McGavin, sans affichage + natif : émettre le C spécialisé, puis lier et exécuter
+gcc -o genbody genbody.c -lm -Ofast -mcpu=native -DG   # émet body.c pour ce puzzle
+./genbody PUZZLE.puz HINTS.hnt
+gcc -o solve genbody.c -lm -Ofast -mcpu=native         # lie body.c, lance la recherche
+./solve PUZZLE.puz HINTS.hnt
+# lisez la ligne « Rate: » (= placements / temps écoulé) sur un plateau difficile, ou
+# le résumé final « tiles/second » sur un plateau soluble — c'est sa vraie vitesse
+```
+
+Avec l'affichage laissé actif, le même binaire affiche environ un tiers de cela - c'est
+exactement le piège qui a produit le faux « nous le battons ».
+
+<Callout kind="warn" title="D'abord : comptons-nous seulement la même chose ?">
+  Une comparaison de vitesse n'a aucun sens tant que les deux moteurs ne comptent pas
+  les mêmes événements ; avant de faire confiance à un ratio, nous avons lu la source
+  de McGavin. Son compteur (`ntp`, la fameuse astuce de débordement 16 bits)
+s'incrémente **une fois par pièce posée sur le plateau** - après que le candidat a
+  passé la table de correspondance des couleurs et le contrôle d'usage, à l'instant où
+  il est placé (`genbody.c`, le `ntp++` juste après `square[x][y].tile = t`). Notre
+  `st.nodes` fait exactement la même chose : il s'incrémente après qu'un candidat a
+  passé les contrôles d'arêtes et d'usage, au moment où la pièce est posée. Aucun ne
+  compte les candidats qui échouent à ces contrôles ; les deux comptent les placements
+  qui seront ensuite annulés. Donc les « tuiles posées par seconde » de McGavin et nos
+« nœuds de recherche par seconde » sont **la même mesure** - des placements
+  effectifs, pas des tentatives. (La seule asymétrie : il compte la poignée de
+placements d'indices forcés et nous les extrayons - ≤18 sur un compte de milliards,
+  soit rien.) Le nombre dont il faut se méfier est le « M/s » d'un *troisième* moteur :
+  c'est là que « placements tentés » et « placements effectués » peuvent différer d'un
+  ordre de grandeur, ce qui est la mise en garde de longue date de la communauté sur
+  [ce qu'est un « nœud »](/research/build/faster/solver-engineering).
+</Callout>
+
+<Callout kind="note" title="Mesurer honnêtement, ou ne pas mesurer">
+Le débit absolu en nœuds/s dérive avec la charge et la température de la machine et - 
+comme le montre la correction plus haut - avec la façon dont le moteur *de référence*
+  est construit. **Seuls les ratios pris dans le même état, dos à dos, sans affichage,
+  machine par ailleurs au repos, sont fiables.** Chaque comparaison de cette page a été
+  prise sans rien d'autre en cours, les deux moteurs compilés sans affichage avec
+  génération de code native et exécutés à quelques secondes d'écart. Le vieux folklore
+  « McGavin est 5× plus rapide » était aussi un mirage, dans l'autre sens : il comparait
+  son exécution sur un puzzle facile à la nôtre sur un difficile. Faites correspondre le
+plateau, faites correspondre le build, mesurez dos à dos - sinon le nombre ne signifie
+  rien.
+</Callout>
+
+## L'écart sur plateau facile est un levier réel et ouvert
+
+Pourquoi le C de McGavin gagne-t-il le plateau facile de 2,3× tout en n'égalisant que
+sur les difficiles ? Parce que sur un plateau peu ramifié il n'y a presque rien à faire
+par nœud - choisir la ou les deux candidates, poser, avancer - et son code en ligne
+droite, où la liste de candidats de chaque case est réduite à une recherche par hachage
+parfait minimal, le fait avec le moins d'instructions possible. Notre travail par nœud
+(indexer le vivier, calculer le gain, vérifier le bord) est peu coûteux mais pas *nul*,
+et quand l'arbre est peu profond et large, ce surcoût se voit. Sur un plateau difficile,
+les mêmes nœuds sont dominés par le retour arrière et les défauts de cache, où les deux
+moteurs convergent. Refermer l'écart facile signifierait adopter sa génération de liste
+de candidats plus serrée - une étape suivante concrète, pas un mur. C'est consigné ici
+comme ouvert plutôt que masqué.
+
+## Ce que vaut la vitesse
+
+Pointé sur le vrai Eternity II à 256 pièces - six cœurs, quinze minutes, l'indice
+central obligatoire fixé - ce moteur parcourt l'arbre à des dizaines de millions de
+nœuds par seconde et par cœur, et plafonne, d'une graine à l'autre, dans les hauts 300
+sur 480. Ce n'est pas une déception ; c'est
+[tout le propos de la leçon centrale du site](/research/why/prune-vs-speed). Un
+backtracker strict est un superbe arpenteur d'arbre et un piètre solveur : l'espace de
+recherche est si vaste qu'aucune vitesse atteignable n'y fait une brèche, ce qui est
+précisément pourquoi les records viennent des
+[heuristiques et de la réparation](/research/lab/experiments/raphael-anjou/repair-study),
+pas du débit brut.
+
+Le résultat ici est donc délibérément étroit et, je crois, mérite d'être dit
+franchement : un moteur Rust *sûr et portable* peut **égaler du C optimisé à la main
+sur les plateaux difficiles et profonds qui ressemblent au vrai puzzle**, en parcourant
+le même arbre sur le même matériel - tandis que le C gagne encore de ~2,3× sur les
+faciles. Et même à égalité, il ne sait pas résoudre Eternity II, parce que la vitesse
+n'a jamais été l'obstacle. L'argument plus long sur ce compromis - pourquoi certains
+algorithmes dépensent leur budget en vitesse et d'autres en jugement - a sa propre
+page : [aller vite](/research/lab/experiments/raphael-anjou/going-fast).

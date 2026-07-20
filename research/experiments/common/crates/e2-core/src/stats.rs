@@ -26,6 +26,16 @@ pub struct SearchStats {
     /// strict (constraint-respecting) variant; for a break variant the
     /// published score is `MAX - breaks`.
     pub breaks: u32,
+    /// Search nodes visited at the instant the best board FIRST reached the
+    /// maximum matched-edge score (a full solution). `0` means no full solution
+    /// was found within the budget. This is the deterministic "size of the tree
+    /// explored to solve" — the quantity the hint-geometry study compares, free
+    /// of wall-clock variance.
+    pub nodes_to_solution: u64,
+    /// Wall-clock seconds elapsed when the first full solution was found. `0.0`
+    /// if none. Reported alongside `nodes_to_solution` for context only; the
+    /// node count is the machine-independent metric.
+    pub secs_to_solution: f64,
 }
 
 impl SearchStats {

@@ -77,11 +77,21 @@ and Brainfuck, held to the same golden data. Those are for joy.)
 This is not a record machine, and it would be misleading to dress it as one. The
 strict solver carries none of the hand-tuned quota schedules or restart strategies
 that make [Blackwood's solver](/research/lab/experiments/joshua-blackwood/solver)
-the engine behind the community's best boards, and it is not engineered for
-[McGavin-class throughput](/research/lab/experiments/peter-mcgavin/backtracker).
-The best score produced by [the experiments here](/research/lab/experiments) is
-463 of 480; the community's best on the same puzzle is 470. The record solvers
-studied in this lab are simply better at finding boards.
+the engine behind the community's best boards. The best score produced by
+[the experiments here](/research/lab/experiments) is 463 of 480; the community's
+best on the same puzzle is 470. The record solvers studied in this lab are simply
+better at finding boards.
+
+Throughput is a separate axis, and one this reference engine deliberately does not
+chase - but a sibling experiment does. The
+[JIT backtracker](/research/lab/experiments/raphael-anjou/jit-backtracker) asks how
+fast a *portable* Rust search can go, and reaches
+[McGavin-class throughput](/research/lab/experiments/peter-mcgavin/backtracker) on the
+hard, deep boards that resemble the real puzzle - a tie with his hand-tuned C on the
+same machine (his C stays ~2.3× faster on easy boards). That is a speed result, not a
+solving one: it still plateaus where every strict backtracker does. Speed and score are
+[different axes](/research/lab/experiments/raphael-anjou/going-fast), and this page's
+engine optimises for neither - only for being checkable.
 
 This engine's job is different: verifiability and teaching. When this wiki states
 a node count, a feasibility number, or a score, the claim is checked by this

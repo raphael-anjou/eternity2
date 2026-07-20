@@ -60,7 +60,7 @@ const T = {
       ],
       [
         "McGavin's engine (2020–2026)",
-        "A C backtracker hitting ~295 million tile placements per second on one core — roughly 4× a typical community engine — via PGO, aggressive compiler flags and auto-generated per-cell unrolled code. Raw speed plus the right scan order (bottom-left start, left-to-right rows) is half the story of the 469.",
+        "A C backtracker hitting ~295 million tile placements per second on one core — roughly 4× a typical community engine — via PGO, aggressive compiler flags and auto-generated per-cell unrolled code. Raw speed plus the right scan order (bottom-left start, left-to-right rows) is half the story of the 469. That headline ~4× is an easy-board figure: on a hard board the same engine runs ~105M, and a portable-Rust reimplementation on this site ties it there (while his C stays ~2.3× faster on easy boards) — though throughput and the score axis are unrelated, and neither engine solves the puzzle.",
       ],
       [
         "Joe's prune-back policy (2026)",
@@ -117,7 +117,7 @@ const T = {
       ],
       [
         "Le moteur de McGavin (2020–2026)",
-        "Un backtracker C atteignant ≈295 millions de placements de tuiles par seconde sur un cœur — environ 4× un moteur communautaire typique — via PGO, options de compilation agressives et code déroulé par case auto-généré. La vitesse brute plus le bon ordre de balayage (départ bas-gauche, lignes de gauche à droite) est la moitié de l'histoire du 469.",
+        "Un backtracker C atteignant ≈295 millions de placements de tuiles par seconde sur un cœur — environ 4× un moteur communautaire typique — via PGO, options de compilation agressives et code déroulé par case auto-généré. La vitesse brute plus le bon ordre de balayage (départ bas-gauche, lignes de gauche à droite) est la moitié de l'histoire du 469. Ce ≈4× est un chiffre de plateau facile : sur un plateau difficile le même moteur tourne à ~105 M, et une réimplémentation en Rust portable sur ce site l'y égale (tandis que son C reste ~2,3× plus rapide sur les plateaux faciles) — mais le débit et l'axe du score n'ont aucun rapport, et aucun des deux moteurs ne résout le casse-tête.",
       ],
       [
         "La politique de prune-back de Joe (2026)",
@@ -174,7 +174,7 @@ const T = {
       ],
       [
         "El motor de McGavin (2020–2026)",
-        "Un backtracker en C que alcanza ≈295 millones de colocaciones de piezas por segundo en un solo núcleo —unas 4× más que un motor comunitario típico— mediante PGO, opciones de compilación agresivas y código desenrollado por celda generado automáticamente. La velocidad bruta más el orden de recorrido adecuado (inicio abajo a la izquierda, filas de izquierda a derecha) es la mitad de la historia del 469.",
+        "Un backtracker en C que alcanza ≈295 millones de colocaciones de piezas por segundo en un solo núcleo —unas 4× más que un motor comunitario típico— mediante PGO, opciones de compilación agresivas y código desenrollado por celda generado automáticamente. La velocidad bruta más el orden de recorrido adecuado (inicio abajo a la izquierda, filas de izquierda a derecha) es la mitad de la historia del 469. Ese ≈4× es una cifra de tablero fácil: en un tablero difícil el mismo motor corre a ~105 M, y una reimplementación en Rust portable en este sitio lo iguala ahí (mientras que su C sigue siendo ~2,3× más rápido en los tableros fáciles) —aunque el rendimiento y el eje de la puntuación no están relacionados, y ninguno de los dos motores resuelve el rompecabezas.",
       ],
       [
         "La política de poda-atrás de Joe (2026)",

@@ -279,6 +279,14 @@ impl SearchState<'_> {
             self.best_score = score;
             self.best_breaks = breaks;
             self.best = self.board.clone();
+            // Stamp the first full solution: the node count and wall time at the
+            // moment we first reach the maximum matched-edge score. The search
+            // continues (it does not early-stop), but this records the size of
+            // the tree explored to solve — the hint-geometry study's metric.
+            if score == e2_core::MAX_SCORE_16 && self.stats.nodes_to_solution == 0 {
+                self.stats.nodes_to_solution = self.stats.nodes;
+                self.stats.secs_to_solution = self.start.elapsed().as_secs_f64();
+            }
         }
     }
 

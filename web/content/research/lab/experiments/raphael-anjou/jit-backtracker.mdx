@@ -1,0 +1,461 @@
+---
+title: "The JIT backtracker: portable Rust that ties hand-tuned C on hard boards"
+description: >-
+  A safe, portable Rust depth-first backtracker, specialised at runtime by
+  emitting and compiling per-puzzle Rust, taken from 43 to 123 million
+  search-nodes per second on one core. Measured fairly against Peter McGavin's C
+  on the same machine: a tie on hard, deep boards like the real Eternity II, and
+  about 44% of its speed on easy ones. Every rung searches the identical tree;
+  the whole gain is code, not algorithm.
+metaDescription: "A portable Rust Eternity II backtracker that compiles per-puzzle Rust at runtime, taken from 43 to 123 million search-nodes/s single core. Measured headless against McGavin's hand-tuned C on the same Apple M1: a tie on hard deep boards, ~44% of its speed on easy ones."
+kind: experiment
+contribution: measurement
+author: raphael-anjou
+contributors:
+  - { slug: peter-mcgavin, role: method }
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), single-threaded generated binary"
+  wallClock: "6–30 s per benchmark run"
+  seedPolicy: "deterministic search; a candidate-order --seed only reorders equal buckets for portfolio diversity"
+  measured: true
+repro:
+  kind: heavy
+  cmd: "cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- --puzzle P.json --chain2 --opt native"
+order: 6
+updated: 2026-07-20
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/raphael-anjou/going-fast
+  - /research/build/faster/solver-engineering
+  - /research/why/prune-vs-speed
+sources:
+  - label: "Peter McGavin's genbody71.zip — the C reference this engine chases (groups.io msg 11749)"
+    url: https://groups.io/g/eternity2/message/11749
+  - label: "rust-lang/rust#80630 — LLVM cannot lower loop+match to a computed goto (why the function-chain design exists)"
+    url: https://github.com/rust-lang/rust/issues/80630
+  - label: "The eternity2 repository on GitHub"
+    url: https://github.com/raphael-anjou/eternity2
+---
+
+<Callout kind="note" title="What this experiment is, and is not">
+  This is a **speed** experiment, not a solving one. It asks a single question:
+  can a *safe, portable* Rust backtracker reach the throughput of the community's
+fastest engine - [Peter McGavin's hand-tuned C](/research/lab/experiments/peter-mcgavin/backtracker) - 
+  without leaving Rust or dropping to hand assembly? The answer turns out to depend
+  on the board: on **hard, deep boards like the real Eternity II it ties his C**; on
+  easy low-branching boards his C is about **2.3× faster**. It says nothing about
+  *scores*: a fast walk of the tree and a high-scoring board are
+  [different axes entirely](/research/lab/experiments/raphael-anjou/going-fast). The
+  best this engine reaches on the real puzzle is in the high-300s of 480, exactly
+what a strict backtracker should reach - the record boards come from
+  metaheuristics, not from walking faster.
+</Callout>
+
+Every fast Eternity II engine is, underneath, the same depth-first backtracker:
+fill cells in a fixed order, try each piece that fits, recurse, back out on a dead
+end. [McGavin's page](/research/lab/experiments/peter-mcgavin/backtracker) tells
+the throughput story of the C engine that has held the community's single-core
+speed crown for years. This page is the other side of that story: how close
+*portable Rust* can get to it, and where the line really falls.
+
+The result is board-dependent, and that turns out to be the interesting part.
+Measured on my Apple M1, single core, both engines built headless with native
+codegen and run back to back:
+
+| Board | McGavin's C (headless) | This engine | Result |
+| --- | --- | --- | --- |
+| Easy (Joe's 18-hint 71.puz) | ~287 M/s | ~122 M/s | McGavin **~2.3×** |
+| **Hard (deep 16×16, like real E2)** | **~102–105 M/s** | **~104–111 M/s** | **~tie** |
+
+On the boards that actually resemble Eternity II - deep, densely constrained, where
+the search spends its time backtracking - a safe, portable Rust engine **matches
+hand-tuned C**. On easy, low-branching boards, where there is almost nothing to do
+per node, McGavin's straight-line generated C is more than twice as fast. Both
+numbers are real; the engineering below is what pulled Rust up to the tie on hard
+boards.
+
+Everything that follows is **code generation and data layout**, not a smarter
+search: every rung walks the *identical* tree and, on a solvable test board, halts
+at the *identical node count*. That invariant is the backbone of the whole
+experiment, so it is worth stating first.
+
+<Callout kind="warn" title="Measure the reference at full speed, or you will fool yourself">
+  An earlier version of this work reported that we *beat* McGavin outright. That was
+  wrong, and the reason is instructive. McGavin's engine ships with a live terminal
+  display (`#define INTERACTIVE`): a status readout it redraws constantly. That display
+costs it about **2.7× of its throughput** - his headless speed is ~287M on the easy
+  board, but with the display on it reads ~106M. The first comparison pitted our
+  headless engine against his *throttled* one and produced a phantom win. Rebuilt
+  headless (`-mcpu=native`, display off), the true picture is the table above: he wins
+the easy board comfortably, and we tie on hard ones. The lesson is general - always
+  build the reference the way it runs at full speed before trusting any ratio.
+</Callout>
+
+## The rule of the game: same tree, every rung
+
+A depth-first backtracker is deterministic. Given a board and a fixed fill order,
+it visits exactly one sequence of nodes, on any machine, in any language. So there
+is a hard test for whether an "optimization" is really just a speed-up and not a
+silent change to the search: **the node count must not move.**
+
+Throughout this work the oracle was a 60-hint solvable 16×16. Every version of the
+engine solves it to 480 and reports **251,815 nodes** - the same number, to the
+digit, from the slowest baseline to the fastest fused build. Any change that moved
+that number was a bug in disguise and was reverted. That single discipline is what
+lets the speed ladder below be read as an apples-to-apples comparison rather than a
+collection of differently-behaving programs.
+
+<Callout kind="insight" title="Correctness is a baseline invariant here, not a milestone">
+  The engine checks all four edges of every placement against every already-fixed
+  neighbour (placed piece or the frame rim), and it forbids a border/grey edge from
+facing into the interior. Those are not optimizations that were "added later" - 
+  they are the definition of a legal Eternity II placement, present in every version
+  on this page. The ladder varies *only* how fast a fixed, correct search runs.
+</Callout>
+
+## The core idea: generate the program, don't interpret the puzzle
+
+A generic backtracker pays, at every single node, for questions whose answers never
+change during a run: *which cell am I on? where are its neighbours? which candidate
+pool do I read?* A table-driven loop looks those up from arrays, per node, forever.
+
+McGavin's C answers them **once, at build time**, by generating a program
+specialised to one puzzle: `genbody -DG` writes a second C file with one
+straight-line block per cell, neighbour addresses baked in as constants, and `goto`
+chains threading the blocks together. That specialisation is the source of its
+speed - same algorithm, run near the metal.
+
+This engine does the same thing in Rust, at runtime:
+
+1. `emit_program(&instance)` writes a **self-contained, puzzle-specialised Rust
+program** - pieces, candidate buckets, pins and fill order all baked in as
+   `const` data, no external crates.
+2. The wrapper compiles it with `rustc -O` (about 0.15 s for the plain build,
+   ~1.7 s for the fused one).
+3. The generated binary runs the search and prints its result.
+
+It is McGavin's `genbody -DG → compile → run` flow, in Rust, invoked as a library.
+Nothing exotic - just moving the puzzle's fixed facts out of the hot loop and into
+the compiler's hands. Everything after this is squeezing constant factors out of
+the generated code, and each squeeze is a small, self-contained change best shown
+as a diff.
+
+## The ladder, one change at a time
+
+The diffs below are **simplified for reading**: the real engine emits its inner loop
+as machine-generated Rust (constants like a cell's position and neighbours are baked
+per cell, and the source is a few hundred lines per puzzle). Each diff shows the idea
+of the change, not the literal generated text - run the engine with `--emit-src out.rs`
+to see the actual code for a given board.
+
+### 1 · Pack each candidate into one word
+
+The first generated loop still chased a pointer: read a `u32` index, follow it into
+an `oriented[]` array for the piece's `(id, rotation, edges)`, *then* test whether
+the piece was already used. Three dependent loads to consider one candidate.
+
+```diff
+- let idx = pool[i];                 // load an index …
+- let (pid, rot, edges) = oriented[idx as usize];  // … chase it into a second array …
+- if !used[pid] { /* consider */ }   // … then test usage
++ let cand = pool[i];                // one contiguous load: pid<<48 | rot<<40 | edges<<8
++ let pid = (cand >> 48) as usize;
++ if free[pid] != 0 { let edges = (cand >> 8) as u32; /* consider */ }
+```
+
+Each candidate becomes a single packed `u64` stored directly in its `(up, left)`
+bucket. The hot loop does **one** load, extracts the piece id, and tests usage
+*before* unpacking the edges - McGavin's "check `tileFree` first" pattern. **+12 %**,
+and it set up the packed representation the rest of the work depends on.
+
+### 2 · Store board cells as one `u32`, not four bytes
+
+The board stored each cell's four edges as `[u8; 4]`. Reading a neighbour's edge to
+match against meant four separate byte loads. McGavin keeps each placed tile's edges
+as **one `u32`** and pushes them to neighbours with shifts.
+
+```diff
+- let cell: [[u8; 4]; N];            // four byte loads to read one neighbour
+- let up_edge = cell[up_pos][2];     // …and index arithmetic each time
++ let cell: [u32; N];                // one u32 per cell, URDL packed, empty = 0xFFFF_FFFF
++ let up_edge = (cell[up_pos] >> 8) as u8;  // one load + one shift
+```
+
+This was the single biggest data-layout lever: **34 → 57 M nodes/s, +67 %**. Node
+count unchanged. Representing the hottest data structure well mattered more than any
+micro-optimization that came after it.
+
+### 3 · Emit one function per cell - the pivot
+
+Here is the move that made "match McGavin" plausible. The remaining tax was the
+data-driven loop itself: `free_order[level]`, `cursor[level]`, `score_at[level]` - 
+indexed array loads *every node* for values McGavin has as compile-time constants.
+The obvious way to bake them - one giant `loop { match level { …256 arms… } }` - 
+does not work: `rustc` takes over a minute to compile one enormous function, and
+[LLVM cannot lower a `loop`/`match` to a computed goto](https://github.com/rust-lang/rust/issues/80630)
+anyway, so it would not even reproduce McGavin's `goto` structure.
+
+The way that *does* work is to emit **one small `#[inline(never)]` function per
+cell**:
+
+```diff
+- // one generic loop, indexing arrays by depth on every node
+- loop {
+-   let pos = free_order[level];
+-   let (up_pos, left_pos) = neigh[level];
+-   // …scan, place, advance level, or back out…
+- }
++ // one function per cell; its position and neighbours are baked constants
++ fn cell_37(st: &mut St, left_arg: u8) -> bool {
++   const POS: usize = 138; const UP: usize = 122;   // this cell's facts, as constants
++   for cand in POOL_UL[/* up*COLORS+left */] {       // its exact candidate pool
++     // place …
++     if cell_38(st, right_edge) { return true; }     // advance = call the next cell
++     // unplace …
++   }
++   false                                             // exhausted = plain return (backtrack)
++ }
+```
+
+Advancing is a call to the next cell's function; backtracking is a bare `return`.
+Roughly 256 *small* functions compile in about two seconds (a 200-function chain
+compiles in ~1 s; the one giant function took >60 s). This is McGavin's per-cell
+straight-line code, expressed as a chain of tiny functions Rust will actually
+compile. **58 → 92 M nodes/s, +56 %** - the single largest lever in the ladder. Node
+count unchanged.
+
+### 4 · Stop re-deriving what you already loaded
+
+Two smaller changes, same theme: never read from memory something you already have
+in a register.
+
+The **left neighbour** of a cell is, 94 % of the time (240 of 256 cells, all but
+the row boundaries), exactly the piece the *calling* cell just placed. So the caller
+passes its own right edge down as an argument, and the cell derives its left
+constraint with no board read at all:
+
+```diff
+- let left_edge = (cell[LEFT] >> 24) as u8;   // re-read the neighbour we just placed
++ fn cell_38(st: &mut St, left_arg: u8) -> bool {  // caller handed us its right edge
++   let left = left_arg;                            // …no board read
+```
+
+And the **match gain** - how many new matched edges a placement adds - was re-reading
+all four neighbours. But the up and left edges were *already loaded* to pick the
+candidate pool, and in row order those neighbours are always placed (or a frame edge,
+worth no gain). So up/left gain becomes two branchless `bool → u32` adds on values
+already in hand; only genuinely-pinned down/right neighbours cost a read:
+
+```diff
+- let gain = matched(up) + matched(left) + matched(down) + matched(right); // 4 reads
++ let gain = u32::from(e_up == up) + u32::from(e_left == left)             // 0 reads: cached
++          + need_down_read + need_right_read;                            // only if pinned
+```
+
+Together: **92 → 106 M nodes/s** - on the hard board this pulled level with McGavin's
+headless C (~102–105 M there). Node count unchanged.
+
+### 5 · A byte array for the used-set
+
+The engine tracked placed pieces as a `u64` bitset: shift, mask, and, test. McGavin
+uses a flat `unsigned char tileFree[256]`; his check is one byte load and a
+compare-to-zero.
+
+```diff
+- if used[pid >> 6] & (1u64 << (pid & 63)) == 0 { /* free */ }  // shift, mask, and, test
++ if free_pc[pid] != 0 { /* free */ }                            // one byte load + compare
+```
+
+**106 → 108 M.** Node count unchanged.
+
+### 6 · Fuse cells to amortise the call - the win
+
+The last thing standing between the function-chain and McGavin's `goto` was the
+call itself: a `goto` back to the previous cell is a bare jump; a function `return`
+restores callee-saved registers first. So **fuse several cells into one function** - 
+nest the second cell's scan *inside* the first's placement loop, the third inside
+the second, and so on, so there is one `call` per *group* of placed cells instead of
+one per cell:
+
+```diff
+- fn cell_37(st){ for c in pool { place; if cell_38(st, r) {return true} unplace } }
+- fn cell_38(st){ for c in pool { place; if cell_39(st, r) {return true} unplace } }
++ fn cells_37_38_39(st){                 // three cells, one function, one call in/out
++   for c37 in pool37 { place37;
++     for c38 in pool38 { place38;
++       for c39 in pool39 { place39;
++         if next_group(st, r) {return true}
++       unplace39 }
++     unplace38 }
++   unplace37 }
+```
+
+Fusion trades fewer calls for more register pressure, so there is an optimum, and it
+is a shallow one. Sweeping the group size on `bench-hard`, three trials each, back to
+back:
+
+| group | 1 | 2 | 4 | 6 | 8 |
+| --- | --- | --- | --- | --- | --- |
+| nodes/s | ~102 M | ~107 M | **~110 M** | ~108 M | ~108 M |
+
+Fusion clearly beats no fusion (group 1), but past group 2 the differences are within
+run-to-run noise: the peak wanders between group 4 and 6 depending on the board and the
+LLVM register allocator's mood, and it is never more than a couple of percent. The
+`--chain2` default is group 6; group 4 edged ahead on this particular board. What
+matters is the jump from group 1, not the exact winner. Node count is preserved through
+the nesting either way.
+
+## The ladder at a glance
+
+Three anchors are re-verified today on the committed `bench-*.json` boards; the steps
+between them are the development-time deltas from the build diary (each a self-contained
+commit), which drift a few percent with machine state, so read the middle rows as the
+*shape* of the climb, not lab-grade constants.
+
+| Rung | Engine | Change | status |
+| --- | --- | --- | --- |
+| **naive-clean** | recursive | plain portable Rust DFS, the true baseline | **~44 M, verified** |
+| **data-driven JIT** | codegen | generated program, table-driven inner loop | **~61 M, verified** |
+| u32 board cells | codegen | one load + shift per neighbour | +~65 % (diary) |
+| function-chain | codegen | one function per cell | +~55 % (diary) ★ |
+| cached up/left + byte used-set | codegen | stop re-reading placed neighbours | +~15 % (diary) |
+| **fusion (group 4–6)** | codegen | **one call per several cells** | **~108–110 M hard / ~122 M easy, verified** |
+| *McGavin's C (headless)* | C | *same machine, for reference* | *~102 M hard / ~287 M easy* |
+
+Two engines share this table: `naive-clean` is a separate recursive backtracker
+(runnable with `run_dfs --algo naive-clean`), and everything from "data-driven JIT" down
+is the codegen path this page is about (`run_dfs_codegen_jit`). The headline, stated
+plainly, is a **~2.5× lift from the naive-clean baseline to the fused champion on the hard board**
+(~44 M → ~110 M), and **~2.8× on the easy board** (~44 M → ~122 M) - landing, on the hard
+board, level with McGavin's headless C. Three meta-lessons fall out of it, the transferable part:
+
+1. **Representation beats micro-ops.** The two biggest single wins - u32 cells
+(+67 %) and the function-chain (+56 %) - were both about the *shape* of the data
+   and the code, not about shaving instructions. No branch-fiddling came close.
+2. **Reuse what you have already computed.** Cached-gain and left-as-argument were
+   pure "stop re-loading it" wins.
+3. **Structure beats cycles.** Fusion attacked the *call structure*, not any single
+cycle - and that is what brought Rust level with hand-tuned C on hard boards.
+
+## Reproduce it
+
+The engine and two committed benchmark boards live in the public repo under
+`research/experiments/dfs-study/engine/crates/dfs-codegen` (`bench/bench-easy.json`,
+`bench/bench-hard.json`, and a `bench/README.md` with the full recipe). The three
+anchors of the ladder - the naive-clean baseline, the codegen floor, and the fused
+champion - are each runnable directly, so anyone can re-run them on their own machine,
+back to back, and see the same tree walked at different speeds. From
+`research/experiments/dfs-study/engine`:
+
+```bash
+# naive-clean: the honest baseline (a separate plain recursive backtracker) ~44 M
+cargo run --release -p dfs-run --bin run_dfs -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --algo naive-clean --seed 1 --budget-s 10
+
+# data-driven JIT floor: the codegen path with no chain/fusion ~61 M
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --opt native
+
+# fused champion (group = 6): the engine this page is about ~108–110 M hard, ~122 M easy
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --chain2 --opt native
+
+# any fusion width, to walk the group sweep yourself
+cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- \
+  --puzzle crates/dfs-codegen/bench/bench-hard.json --budget-s 15 --group 4 --opt native
+```
+
+Point `--puzzle` at `bench-easy.json` and every configuration prints `score=480`
+at the **same node count** (3,577,121,570) - the equality that proves the ladder is
+a speed ladder and nothing more. On the non-terminating `bench-hard.json` they
+print the same partial score at different `nps`. (Give it a real budget: a very
+short one reports compile warm-up, not throughput. The easy board wants ≥30 s to
+solve.) The three intermediate micro-steps in the ladder table below - packed
+candidates, cached gain, the byte used-set - are not separate flags; they are the
+commit sequence in `bench/README.md`, reproducible with `git checkout`.
+
+To reproduce the McGavin comparison fairly, build **his** engine headless - comment
+out `#define INTERACTIVE` near the top of `genbody.c` so the live display does not
+throttle it - then read the true throughput:
+
+```bash
+# McGavin, headless + native: emit the puzzle-specialised C, then link and run
+gcc -o genbody genbody.c -lm -Ofast -mcpu=native -DG   # emits body.c for this puzzle
+./genbody PUZZLE.puz HINTS.hnt
+gcc -o solve genbody.c -lm -Ofast -mcpu=native         # links body.c, runs the search
+./solve PUZZLE.puz HINTS.hnt
+# read the "Rate:" line (= placements / elapsed) on a hard board, or the final
+# "tiles/second" summary on a solvable one — that is his real speed
+```
+
+With the display left on, the same binary reads roughly a third of that - which is
+exactly the trap that produced the earlier false "we beat him."
+
+<Callout kind="warn" title="First: are we even counting the same thing?">
+  A speed comparison is meaningless unless both engines count the same events, so
+  before trusting any ratio we read McGavin's source. His counter (`ntp`, the famous
+16-bit-rollover trick) increments **once per piece committed to the board** - after
+  the candidate has passed the colour-fit lookup and the used-check, at the moment it
+  is placed (`genbody.c`, the `ntp++` right after `square[x][y].tile = t`). Our
+  `st.nodes` does exactly the same: it increments after a candidate passes the
+  edge-fit and used checks, as the piece is placed. Neither counts candidates that
+  fail those checks; both count placements that will later backtrack. So McGavin's
+  "tiles placed per second" and our "search-nodes per second" are **the same
+measurement** - committed placements, not attempts. (The one asymmetry: he counts
+the handful of forced hint placements and we bake those out - ≤18 on a count of
+  billions, i.e. nothing.) The number to be wary of is a *third* engine's "M/s": that
+  is where "placements attempted" vs "placements committed" can differ by an order of
+  magnitude, which is the community's own long-standing caution about
+  [what a "node" is](/research/build/faster/solver-engineering).
+</Callout>
+
+<Callout kind="note" title="Measure carefully, or don't measure">
+Absolute nodes/s drifts with machine load and thermals, and - as the correction
+above shows - with how the *reference* engine is built. **Only same-state,
+  back-to-back, headless, otherwise-idle ratios are trustworthy.** Every comparison
+  on this page was taken with nothing else running, both engines built headless with
+  native codegen and run seconds apart. The early "McGavin is 5× faster" folklore was
+  also a phantom, in the other direction: it compared his run on an easy puzzle to
+ours on a hard one. Match the board, match the build, measure back to back - or the
+  number means nothing.
+</Callout>
+
+## The easy-board gap is a real, open lever
+
+Why does McGavin's C win the easy board by 2.3× yet only tie on hard ones? Because on
+a low-branching board there is almost nothing to do per node - pick the one or two
+candidates, place, move on - and his straight-line generated code, with each cell's
+candidate list baked to a minimal-perfect-hash lookup, does that with the fewest
+possible instructions. Our per-node work (index the pool, compute the gain, check the
+rim) is cheap but not *nothing*, and when the tree is shallow-and-wide that overhead
+shows. On a hard board the same nodes are dominated by backtracking and cache misses,
+where the two engines converge. Closing the easy-board gap would mean adopting his
+tighter candidate-list codegen - a concrete next step, not a wall. It is logged here
+as open rather than papered over.
+
+## What the speed is worth
+
+Pointed at the real 256-piece Eternity II - six cores, fifteen minutes, the mandatory
+centre clue pinned - this engine walks the tree at tens of millions of nodes per
+second per core and plateaus, across seeds, in the high-300s of 480. That is not a
+disappointment; it is the [whole point of the site's core lesson](/research/why/prune-vs-speed).
+A strict backtracker is a superb tree-walker and a poor puzzle-solver: the search
+space is so vast that no achievable speed makes a dent in it, which is precisely why
+the records come from [heuristics and repair](/research/lab/experiments/raphael-anjou/repair-study),
+not from raw throughput.
+
+So the result here is deliberately narrow and, I think, worth stating plainly: a
+*safe, portable* Rust engine can **match hand-tuned C on the hard, deep boards that
+resemble the real puzzle**, walking the same tree on the same hardware - while the C
+still wins by ~2.3× on easy ones. And even at parity it cannot solve Eternity II,
+because speed was never the thing standing in the way. The longer argument about that
+trade-off - why some algorithms spend their budget on speed and others on judgement - 
+is its own page: [going fast](/research/lab/experiments/raphael-anjou/going-fast).

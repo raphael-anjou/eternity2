@@ -1,0 +1,146 @@
+---
+title: "Aller vite : quand un solveur dépense son budget en vitesse"
+description: >-
+  Certains moteurs Eternity II mettent tout leur effort à parcourir l'arbre de
+  recherche le plus vite possible ; d'autres le mettent dans le jugement sur où
+  chercher. Voici le plaidoyer pour les premiers - ce qu'achète le débit brut, les
+  trois choses différentes qu'on appelle « rapide », et pourquoi le moteur le plus
+  rapide jamais construit ne sait toujours pas résoudre le puzzle.
+metaDescription: "Un guide des solveurs Eternity II axés sur la vitesse : ce qu'achète le débit brut, les trois sens distincts de « rapide » (placements par seconde, arêtes appariées sur 480, et agrégat de la grappe), et pourquoi le moteur le plus rapide de la communauté ne sait toujours pas résoudre le puzzle."
+kind: concept
+author: raphael-anjou
+order: 7
+updated: 2026-07-20
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/jit-backtracker
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/build/faster/solver-engineering
+  - /research/why/prune-vs-speed
+sources:
+  - label: "McGavin: even at 100M nodes/s, the 5-hint tree is 4.9×10³² years (groups.io msg 11201)"
+    url: https://groups.io/g/eternity2/message/11201
+  - label: "Razvan's epitaph for the 2025 speed thread: 'we will not make a dent' (groups.io msg 11657)"
+    url: https://groups.io/g/eternity2/message/11657
+---
+
+Tout solveur Eternity II a un budget fixe d'effort humain et de temps machine, et il
+dépense ce budget à l'un de deux endroits. Il peut le dépenser en **vitesse** - 
+parcourir l'arbre de recherche aussi vite que le matériel le permet, essayer des
+milliards de placements par seconde - ou en **jugement** - être plus fin sur *quels*
+placements essayer, pour parcourir un arbre plus petit et meilleur. Cette page est le
+plaidoyer pour les premiers : ce qu'aller vite achète vraiment, ce qu'il n'achète pas,
+et comment en parler sans se leurrer.
+
+C'est aussi le foyer conceptuel d'un résultat précis : un
+[backtracker Rust portable qui égale le C optimisé à la main de McGavin sur les plateaux difficiles](/research/lab/experiments/raphael-anjou/jit-backtracker)
+ - le moteur le plus rapide de l'histoire de la communauté - et tourne à environ 44 % de
+sa vitesse sur les faciles. Cette page-là est le journal d'ingénierie ; celle-ci est ce
+que le journal *signifie*.
+
+## Trois choses qu'on appelle « rapide »
+
+La plus grande source de confusion en vingt ans de discours sur la vitesse est que
+« rapide » nomme trois quantités sans rapport. Les garder distinctes, c'est déjà
+gagner l'essentiel de la bataille.
+
+<Callout kind="insight" title="Les trois axes, et pourquoi ils ne se convertissent pas">
+  **1 · Placements par seconde (alias pièces/s, nœuds/s).** À quelle vitesse la
+  recherche *avance*. C'est un nombre moteur-*et-plateau* : le C de McGavin fait ~287 M
+  sur un plateau facile mais ~105 M sur un difficile ; le
+  [moteur JIT présenté ici](/research/lab/experiments/raphael-anjou/jit-backtracker)
+fait ~122 M sur le facile et ~110 M sur le difficile - égalant le C là précisément où
+  le puzzle est difficile. Plus grand veut dire plus rapide, mais toujours *sur le même
+  plateau*.
+
+  **2 · Arêtes appariées sur 480.** À quel point un plateau est *bon*. C'est là que
+vivent les [records](/research/records) - le plafond est 470. Cela n'a rien à voir
+  avec l'axe 1 : un moteur lent peut trouver un meilleur plateau qu'un rapide, et le
+  fait couramment.
+
+ **3 · Placements agrégés par seconde.** Un nombre de *grappe* - beaucoup de machines
+  additionnées. Le fameux « ~300 M/s » de la communauté qu'on attache parfois à un seul
+  moteur est en fait la
+  [grappe du Eternity 2 Syndicate](/research/build/faster/distributed-solving) : ~20
+  machines additionnées, pas un cœur.
+
+  Un grand nombre sur l'axe 1 ne dit rien de l'axe 2, et l'axe 3 n'est pas du tout une
+  vitesse de moteur. Toute affirmation honnête de vitesse dit sur quel axe elle porte.
+</Callout>
+
+Pour l'histoire précise et sourcée de la façon dont la communauté a fixé sa définition
+d'un « nœud » - pièces *posées*, à la manière des échecs, et pourquoi même cela flatte
+les ordres de remplissage par ligne - voyez la section sur la discipline de mesure du
+[registre d'ingénierie des solveurs](/research/build/faster/solver-engineering). Cette
+page prend ce vocabulaire pour acquis et demande à quoi sert la vitesse.
+
+## Ce qu'achète la vitesse
+
+Des choses réelles, et il vaut la peine d'être concret, car le plaidoyer *contre* la
+vitesse ne porte qu'une fois qu'on respecte le plaidoyer *pour*.
+
+- **L'énumération vérifiée.** Un moteur rapide et déterministe peut parcourir un arbre
+  de référence jusqu'au dernier nœud et le *compter*, transformant la théorie en fait
+vérifié. Les [benchmarks](/research/build/benchmarks) de la communauté - protocoles de
+recensement, le 10×10 finalement tombé après ~180 années-cœur - sont des victoires de
+  débit. On ne vérifie pas ce qu'on ne peut pas finir.
+- **Le déterminisme comme somme de contrôle.** Deux moteurs rapides qui parcourent le
+  même arbre doivent annoncer le même nombre de nœuds. Cette égalité est la façon dont
+  portages, réécritures et matériel neuf prouvent qu'ils parcourent le même arbre avant
+que leur vitesse ne signifie quoi que ce soit - c'est la colonne vertébrale de
+  l'[échelle d'optimisation du moteur JIT](/research/lab/experiments/raphael-anjou/jit-backtracker),
+  où chaque échelon s'arrête au nombre de nœuds identique.
+- **Plus de tentatives par seconde sous une heuristique.** La vitesse est un
+  multiplicateur du jugement : une bonne boucle de réparation qui tourne deux fois plus
+  vite a deux fois plus de chances d'un meilleur plateau dans le même temps d'horloge.
+  La vitesse ne *remplace* pas le jugement, mais elle amplifie celui qu'on a déjà.
+
+## Ce que la vitesse ne peut pas acheter
+
+Le mur. Et personne n'a été plus clair là-dessus que celui qui a construit le moteur le
+plus rapide. Sur son meilleur chemin de placement à cinq indices - déjà un arbre bien
+plus petit que le puzzle brut - McGavin a calculé que même à cent millions de nœuds par
+seconde, la recherche prendrait environ **4,9 × 10³² ans**, et qu'y jeter des milliards
+de cœurs laisse quand même « des ordres de grandeur au-delà de l'âge de l'Univers »
+([msg 11201](https://groups.io/g/eternity2/message/11201)). Quand le fil sur la vitesse
+de 2025 s'est éteint, Razvan en a écrit l'épitaphe : quelle que soit notre vitesse de
+vérification, « nous n'y ferons pas une brèche » dans l'espace
+([msg 11657](https://groups.io/g/eternity2/message/11657)).
+
+L'arithmétique est implacable et c'est la [leçon centrale](/research/why/prune-vs-speed)
+du site : une accélération à facteur constant, si durement gagnée soit-elle, se
+*multiplie contre* un nombre si grand qu'aucun facteur constant ne compte. Doubler la
+vitesse d'une recherche qui prendrait 10³² ans donne une recherche qui prend 5 × 10³¹
+ans. Rétrécir l'*arbre* est le seul levier doté d'exposants.
+
+## L'expérience contrôlée
+
+C'est exactement pourquoi le [résultat du backtracker JIT](/research/lab/experiments/raphael-anjou/jit-backtracker)
+est présenté comme une expérience de vitesse et rien d'autre. Il répond à une question
+nette et bornée - *du Rust portable et sûr peut-il atteindre le débit d'un C optimisé à
+la main ?* - et la réponse dépend du plateau : sur les plateaux difficiles et profonds
+comme le vrai puzzle, il **égale** le C en parcourant l'arbre identique ; sur les
+plateaux faciles et peu ramifiés, le C est environ 2,3× plus rapide. Cela tranche une
+question ouverte plus petite que la communauté avait laissée en suspens : l'avantage
+fameux de ~4× du moteur de McGavin sur les solveurs « typiques » relevait-il de l'**art
+de la génération de code** ou simplement d'un **matériel plus récent** ? En gardant le
+matériel fixe et en atteignant sa vitesse *sur les plateaux difficiles* depuis du code
+portable, on montre que c'était l'artisanat - le même artisanat, reproductible dans un
+langage sûr, consigné échelon par échelon. (Cela montre aussi où l'artisanat paie le
+plus : sur les plateaux faciles, où le travail par nœud est quasi gratuit, sa génération
+de code plus serrée gagne encore.)
+
+Et il s'arrête ensuite, honnêtement, là où tout moteur rapide s'arrête : pointé sur le
+vrai puzzle, il plafonne dans les hauts 300 sur 480, parce qu'un backtracker strict est
+un superbe arpenteur d'arbre et un piètre solveur. Les records appartiennent aux moteurs
+qui dépensent leur budget dans l'*autre* sens - dans le
+[jugement destruction-réparation](/research/lab/experiments/raphael-anjou/repair-study)
+et dans [ce qu'une recherche a le droit d'apprendre](/research/lab/experiments/raphael-anjou/learning) - 
+et ils y arrivent à une fraction de la vitesse.
+
+Voilà tout le compromis. La vitesse est réelle, apprenable et mérite d'être maîtrisée ;
+le moteur JIT prouve qu'on peut la maîtriser dans un langage sûr. Mais sur Eternity II,
+la voie rapide et la voie gagnante ne sont pas la même voie. C'est pourquoi la question
+d'ingénierie intéressante n'est jamais seulement « à quelle vitesse » - c'est « rapide
+*à quoi*, et est-ce là l'obstacle ? »

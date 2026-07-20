@@ -263,13 +263,20 @@ concrets du même fil le confirment : David Barr a mesuré son propre cœur CPU 
 ([message 11835](https://groups.io/g/eternity2/message/11835)), et le
 backtracker optimisé de Peter McGavin a atteint ~295 millions par seconde sur
 un cœur unique rapide
-([message 11750](https://groups.io/g/eternity2/message/11750)). Deux mises en
+([message 11750](https://groups.io/g/eternity2/message/11750)) - mais c'est un
+chiffre de *plateau facile* ; sur un plateau difficile, le même moteur tourne à
+~105 M, où un
+[moteur en Rust portable sur ce site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+l'égale. Deux mises en
 garde héritées de l'ancien débat nœud-contre-pas subsistent : un « placement
 valide » ne compte que les pièces qui passent la recherche d'accord de couleur,
 pas chaque pièce essayée, et la vitesse mono-cœur sur un 16×16 complet vaut
 typiquement environ la moitié du chiffre sur petit casse-tête, parce que la
 recherche passe son temps dans la forêt dense des contraintes proches du bord.
-Rien de tout cela ne change le verdict
+(Ces chiffres de placements/s sont un axe de « rapide », sans rapport avec le score
+en arêtes appariées d'un plateau ; le
+[registre d'ingénierie des solveurs](/research/build/faster/solver-engineering) fixe
+les trois sens du mot.) Rien de tout cela ne change le verdict
 [élagage contre vitesse](/research/why/prune-vs-speed) : un bond de débit de
 400× depuis 2008 n'a pas fait bouger le record, parce qu'il rend l'arbre moins
 coûteux à parcourir, pas plus petit.
