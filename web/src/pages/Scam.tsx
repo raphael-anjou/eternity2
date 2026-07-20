@@ -34,8 +34,9 @@ const T = {
         2010 and expired with no winner, but that is a story about difficulty,
         not deception. The puzzle was built to have very few solutions, so close
         to one solution by the maker's account, that finding one among roughly
-        1.15×10<sup>557</sup> arrangements is astronomically hard. "Few solutions
-        by design" is not the same claim as "no solution exists."
+        1.15×10<sup>557</sup> arrangements (with the centre clue pinned; ~10
+        <sup>560</sup> without it) is astronomically hard. "Few solutions by
+        design" is not the same claim as "no solution exists."
       </>
     ),
     communityHookTitle: "The community asked this first",

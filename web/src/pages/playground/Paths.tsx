@@ -99,7 +99,7 @@ const T = {
       `Finish your path (${done}/${total} cells) to enter it in the race.`,
     yourPath: "Your path",
     finishedBadge: (rank: number | undefined, checks: string) =>
-      rank === 1 ? `🏆 ${checks} nodes` : `#${rank} · ${checks} nodes`,
+      rank === 1 ? `🏆 ${checks} checks` : `#${rank} · ${checks} checks`,
     racingBadge: () => "racing…",
     nodesLabel: "nodes explored",
     depthTip: "deepest the search has placed so far",
@@ -153,7 +153,7 @@ const T = {
       `Complétez votre parcours (${done}/${total} cases) pour l'engager dans la course.`,
     yourPath: "Votre parcours",
     finishedBadge: (rank: number | undefined, checks: string) =>
-      rank === 1 ? `🏆 ${checks} nœuds` : `#${rank} · ${checks} nœuds`,
+      rank === 1 ? `🏆 ${checks} tests` : `#${rank} · ${checks} tests`,
     racingBadge: () => "en cours…",
     nodesLabel: "nœuds explorés",
     depthTip: "profondeur maximale atteinte par la recherche",
@@ -205,7 +205,7 @@ const T = {
       `Completa tu camino (${done}/${total} celdas) para inscribirlo en la carrera.`,
     yourPath: "Tu camino",
     finishedBadge: (rank: number | undefined, checks: string) =>
-      rank === 1 ? `🏆 ${checks} nodos` : `#${rank} · ${checks} nodos`,
+      rank === 1 ? `🏆 ${checks} comprobaciones` : `#${rank} · ${checks} comprobaciones`,
     racingBadge: () => "compitiendo…",
     nodesLabel: "nodos explorados",
     depthTip: "máxima profundidad alcanzada por la búsqueda hasta ahora",
@@ -449,13 +449,14 @@ export default function Paths() {
   ) => {
     stopRace();
     const puzzle = getGeneratedPuzzleFramed(size, colors, seed, framed);
-    // Block mode partitions the whole board into blocks and can't pre-pin hint
-    // cells, so the macro-piece lane runs hint-free. The single-piece lanes
-    // still honour hints.
-    const anyBlockLane = laneSpecs.some((s) => s.blocks);
-    puzzle.hints = anyBlockLane ? [] : buildHints(puzzle, hintCells);
+    // The single-piece lanes honour the user's hints. A block lane partitions
+    // the whole board and can't pre-pin hint cells, so it runs hint-free — but
+    // that must not strip hints from the OTHER lanes, so give the block solver
+    // its own hint-free puzzle clone rather than mutating the shared one.
+    puzzle.hints = buildHints(puzzle, hintCells);
     puzzleRef.current = puzzle;
     const useHints = puzzle.hints.length > 0;
+    const blockPuzzle = { ...puzzle, hints: [] as typeof puzzle.hints };
     // The engine wants a full-coverage path (it pre-fills hint cells and
     // skips them). Append any cells the visible path omits — the hints first,
     // then any stragglers — so every lane's path is a permutation of all n.
@@ -475,7 +476,7 @@ export default function Paths() {
     };
     const newLanes: Lane[] = laneSpecs.map((spec) => {
       const solver = spec.blocks
-        ? createBlockSolver(puzzle, completeBlocks(spec.blocks))
+        ? createBlockSolver(blockPuzzle, completeBlocks(spec.blocks))
         : createSolver(puzzle, completePath(spec.path), { useHints });
       solversRef.current.set(spec.id, solver);
       return {
@@ -530,7 +531,10 @@ export default function Paths() {
           return {
             ...lane,
             report: r,
-            finishedAttempts: r.nodes,
+            // Rank on `attempts` (per-cell fit checks), which is commensurable
+            // across the single-piece and block solvers — unlike `nodes`, which
+            // counts pieces in one and committed blocks in the other.
+            finishedAttempts: r.attempts,
             cells: boardFromEngine(puzzle, solver.board()).cells,
           };
         }

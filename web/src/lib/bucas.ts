@@ -62,7 +62,9 @@ export function toOurParams(raw: Record<string, string>): Record<string, string>
   const size = raw["puzzle_size"] ?? raw["board_w"] ?? raw["board_h"];
   if (size) out["puzzle_size"] = size;
   if (raw["puzzle"]) out["puzzle"] = raw["puzzle"].replace(/[^A-Za-z0-9_]+/g, "_");
-  for (const k of ["board_edges", "board_pieces", "motifs_order"]) {
+  // `hints` is first-class (emitted by ourParams, read by decodeBucas): keep it
+  // so a hinted board's clue overlay survives a URL round-trip / share.
+  for (const k of ["board_edges", "board_pieces", "motifs_order", "hints"]) {
     if (raw[k]) out[k] = raw[k];
   }
   return out;

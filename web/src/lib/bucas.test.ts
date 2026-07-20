@@ -67,6 +67,16 @@ describe("cellsToBoardEdges", () => {
   });
 });
 
+describe("toOurParams keeps hints (URL round-trip)", () => {
+  it("preserves the hints param so the clue overlay survives share/reload", async () => {
+    const { toOurParams, parseParams } = await import("./bucas");
+    const raw = parseParams(`${TINY}&hints=1.0-3.2`);
+    const out = toOurParams(raw);
+    expect(out["hints"]).toBe("1.0-3.2");
+    expect(out["board_edges"]).toBeTruthy();
+  });
+});
+
 describe("one standard: viewerUrlFromBoard and ourParams agree", () => {
   it("produce the same param shape for the same board", async () => {
     // Decode a board, and build the same board as an engine puzzle+cells, then
