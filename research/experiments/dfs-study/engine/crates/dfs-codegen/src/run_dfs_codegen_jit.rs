@@ -87,12 +87,36 @@ fn main() -> std::process::ExitCode {
     }
     eprintln!("# compiled generated engine in {compile_s:.2}s");
 
-    // Run it; forward its stdout (the RESULT line).
+    // Run it, capturing stdout so we can turn the best board into a viewer URL.
     let out = Command::new(&bin_path)
-        .stdout(Stdio::inherit())
+        .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .status()
+        .output()
         .expect("run generated engine");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+
+    for line in stdout.lines() {
+        if let Some(rest) = line.strip_prefix("BEST ") {
+            // Decode the best board's edges (URDL per cell; "-" = empty) and build
+            // the canonical eternity2.dev viewer URL via the instance.
+            let cells: Vec<[u8; 4]> = rest
+                .split_whitespace()
+                .map(|tok| {
+                    if tok == "-" {
+                        [0u8; 4] // match_board treats all-zero as an empty cell
+                    } else {
+                        let w: u32 = tok.parse().unwrap_or(0);
+                        [(w >> 24) as u8, (w >> 16) as u8, (w >> 8) as u8, w as u8]
+                    }
+                })
+                .collect();
+            let solved = inst.match_board(&cells);
+            println!("BEST_URL {}", solved.url);
+        } else {
+            // Forward the RESULT line (and anything else) unchanged.
+            println!("{line}");
+        }
+    }
 
     if !keep {
         let _ = std::fs::remove_file(&bin_path);
@@ -100,7 +124,7 @@ fn main() -> std::process::ExitCode {
             let _ = std::fs::remove_file(&src_path);
         }
     }
-    if out.success() {
+    if out.status.success() {
         std::process::ExitCode::SUCCESS
     } else {
         std::process::ExitCode::FAILURE
