@@ -195,7 +195,9 @@ export function viewerUrlFromBoard(board: BucasBoard): string {
   const edges = cellsToBoardEdges(board.cells);
   let params = `puzzle=${name}&puzzle_size=${board.width}&board_edges=${edges}`;
   if (board.hints && board.hints.length) {
-    params += `&hints=${board.hints.map((pos) => `${pos}.0`).join("-")}`;
+    // A decoded board carries clue positions only; the rotation is recovered
+    // from the edges, so it encodes as 0. Same `encodeHints` format as ourParams.
+    params += `&hints=${encodeHints(board.hints.map((pos) => ({ pos, rot: 0 })))}`;
   }
   return `https://eternity2.dev/viewer?${params}`;
 }
@@ -357,7 +359,7 @@ export function ourParams(
 ): Record<string, string> {
   const { edges } = encodeCells(puzzle, board);
   const params: Record<string, string> = {
-    puzzle: name.replace(/[^A-Za-z0-9_]+/g, "_"),
+    puzzle: sanitizeName(name),
     puzzle_size: String(puzzle.width),
     board_edges: edges,
   };

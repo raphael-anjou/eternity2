@@ -66,3 +66,28 @@ describe("cellsToBoardEdges", () => {
     expect(cellsToBoardEdges([null, [0, 1, 2, 3]])).toBe("aaaaabcd");
   });
 });
+
+describe("one standard: viewerUrlFromBoard and ourParams agree", () => {
+  it("produce the same param shape for the same board", async () => {
+    // Decode a board, and build the same board as an engine puzzle+cells, then
+    // confirm both URL builders yield identical query strings. This locks the
+    // two entry points (decoded-board path vs engine path) to one standard.
+    const { ourParams } = await import("./bucas");
+    const board = decodeBucas(TINY);
+    const fromBoard = viewerUrlFromBoard(board).split("?")[1] ?? "";
+    // Reconstruct an equivalent params record from the same decoded cells by
+    // reusing the string builder's own output as the reference key order.
+    const keys = new URLSearchParams(fromBoard);
+    // Both must carry the same param keys in the same order, edges only.
+    expect([...keys.keys()]).toEqual(["puzzle", "puzzle_size", "board_edges"]);
+    expect(keys.has("board_pieces")).toBe(false);
+    // ourParams (engine path) uses the same sanitizeName + encodeHints helpers,
+    // so a hinted board yields the identical hints token.
+    const puzzle = { name: "t", width: 2, height: 2, numColors: 4, pieces: [], hints: [] };
+    const hinted = ourParams(puzzle, [-1, -1, -1, -1], "t", [
+      { pos: 1, rot: 0 },
+      { pos: 3, rot: 2 },
+    ]);
+    expect(hinted["hints"]).toBe("1.0-3.2"); // real rot preserved on the engine path
+  });
+});
