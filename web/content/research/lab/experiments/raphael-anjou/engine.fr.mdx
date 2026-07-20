@@ -84,12 +84,22 @@ Ce n'est pas une machine à records, et il serait trompeur de le présenter comm
 tel. Le solveur strict ne porte aucun des calendriers de quotas réglés à la main
 ni aucune des stratégies de redémarrage qui font du
 [solveur de Blackwood](/research/lab/experiments/joshua-blackwood/solver) le
-moteur derrière les meilleurs plateaux de la communauté, et il n'est pas conçu
-pour un [débit de la classe de McGavin](/research/lab/experiments/peter-mcgavin/backtracker).
-Le meilleur score produit par [les expériences d'ici](/research/lab/experiments)
-est de 463 sur 480 ; le meilleur de la communauté sur le même puzzle est de 470.
-Les solveurs à records étudiés dans ce laboratoire sont tout simplement meilleurs
-pour trouver des plateaux.
+moteur derrière les meilleurs plateaux de la communauté. Le meilleur score produit
+par [les expériences d'ici](/research/lab/experiments) est de 463 sur 480 ; le
+meilleur de la communauté sur le même puzzle est de 470. Les solveurs à records
+étudiés dans ce laboratoire sont tout simplement meilleurs pour trouver des plateaux.
+
+Le débit est un axe distinct, que ce moteur de référence ne poursuit délibérément
+pas - mais une expérience sœur, elle, le fait. Le
+[backtracker JIT](/research/lab/experiments/raphael-anjou/jit-backtracker) demande à
+quelle vitesse une recherche Rust *portable* peut aller, et atteint un
+[débit de la classe de McGavin](/research/lab/experiments/peter-mcgavin/backtracker)
+sur les plateaux difficiles et profonds qui ressemblent au vrai puzzle - à égalité
+avec son C optimisé à la main sur la même machine (son C reste ~2,3× plus rapide sur
+les plateaux faciles). C'est un résultat de vitesse, pas de résolution : il plafonne
+là où tout backtracker strict plafonne. Vitesse et score sont
+[des axes différents](/research/lab/experiments/raphael-anjou/going-fast), et le moteur
+de cette page n'optimise ni l'un ni l'autre - seulement le fait d'être vérifiable.
 
 La mission de ce moteur est autre : la vérifiabilité et la pédagogie. Quand ce
 wiki énonce un compte de nœuds, un chiffre de faisabilité ou un score,

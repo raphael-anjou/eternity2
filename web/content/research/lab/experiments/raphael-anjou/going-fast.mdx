@@ -1,0 +1,135 @@
+---
+title: "Going fast: when a solver spends its budget on speed"
+description: >-
+  Some Eternity II engines pour their effort into walking the search tree as
+  fast as possible; others spend it on judgement about where to walk. This is
+  the case for the first kind - what raw throughput buys, the three different
+  things people mean by "fast", and why the fastest engine ever built still
+  cannot solve the puzzle.
+metaDescription: "A field guide to speed-first Eternity II solvers: what raw throughput buys, the three distinct meanings of 'fast' (placements per second, matched edges out of 480, and swarm aggregate), and why the community's fastest engine still cannot solve the puzzle."
+kind: concept
+author: raphael-anjou
+order: 7
+updated: 2026-07-20
+date: 2026-07
+topics: [speed, backtracking]
+related:
+  - /research/lab/experiments/raphael-anjou/jit-backtracker
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/build/faster/solver-engineering
+  - /research/why/prune-vs-speed
+sources:
+  - label: "McGavin: even at 100M nodes/s, the 5-hint tree is 4.9×10³² years (groups.io msg 11201)"
+    url: https://groups.io/g/eternity2/message/11201
+  - label: "Razvan's epitaph for the 2025 speed thread: 'we will not make a dent' (groups.io msg 11657)"
+    url: https://groups.io/g/eternity2/message/11657
+---
+
+Every Eternity II solver has a fixed budget of human effort and machine time, and it
+spends that budget in one of two places. It can spend it on **speed** - walking the
+search tree as fast as the hardware allows, trying billions of placements a second - 
+or on **judgement** - being cleverer about *which* placements to try, so it walks a
+smaller, better tree. This page is the case for the first kind: what going fast
+actually buys, what it doesn't, and how to talk about it without fooling yourself.
+
+It is also the conceptual home of a specific result: a
+[portable Rust backtracker that ties McGavin's hand-tuned C on hard boards](/research/lab/experiments/raphael-anjou/jit-backtracker)
+ - the fastest engine in the community's history - and runs at about 44% of its speed
+on easy ones. That page is the engineering diary; this one is what the diary *means*.
+
+## Three things people mean by "fast"
+
+The single biggest source of confusion in twenty years of speed talk is that "fast"
+names three unrelated quantities. Keeping them apart is most of the battle.
+
+<Callout kind="insight" title="The three axes, and why they don't convert">
+  **1 · Placements per second (a.k.a. pieces/s, nodes/s).** How fast the search
+  *walks*. This is an engine-*and-board* number: McGavin's C does ~287 M on an easy
+  board but ~105 M on a hard one; the
+  [JIT engine here](/research/lab/experiments/raphael-anjou/jit-backtracker) does ~122 M
+on the easy board and ~110 M on the hard one - tying the C exactly where the puzzle is
+  hard. Bigger is faster, but only ever *on the same board*.
+
+  **2 · Matched edges out of 480.** How *good* a board is. This is where
+[records](/research/records) live - the ceiling is 470. It has nothing to do with
+  axis 1: a slow engine can find a better board than a fast one, and routinely does.
+
+ **3 · Aggregate placements per second.** A *fleet* number - many machines summed.
+  The community's "~300 M/s" figure that sometimes gets attached to a single engine
+  is actually the [Eternity 2 Syndicate swarm](/research/build/faster/distributed-solving):
+  ~20 machines added together, not one core.
+
+  A high number on axis 1 tells you nothing about axis 2, and axis 3 is not an engine
+  speed at all. Every speed claim worth trusting says which axis it is on.
+</Callout>
+
+For the precise, sourced history of how the community settled its definition of a
+"node" - pieces *placed*, chess-style, and why even that flatters scan-line fill
+orders - see the measurement-discipline section of the
+[solver-engineering ledger](/research/build/faster/solver-engineering). This page
+takes that vocabulary as given and asks what the speed is for.
+
+## What speed buys
+
+Real things, and it is worth being concrete, because the case *against* speed only
+lands once you respect the case *for* it.
+
+- **Verified enumeration.** A fast, deterministic engine can walk a benchmark tree to
+  the last node and *count* it, turning theory into checked fact. The community's
+[benchmarks](/research/build/benchmarks) - census protocols, the 10×10 that finally
+fell after ~180 core-years - are throughput victories. You cannot verify what you
+  cannot finish.
+- **Determinism as a checksum.** Two fast engines that walk the same tree must report
+  the same node count. That equality is how ports, rewrites and new hardware prove
+they search the same tree before their speed means anything - it is the backbone of
+  the [JIT engine's optimization ladder](/research/lab/experiments/raphael-anjou/jit-backtracker),
+  where every rung halts at the identical node count.
+- **More attempts per second under a heuristic.** Speed is a multiplier on judgement:
+  a good repair loop that runs twice as fast gets twice as many shots at a better
+  board in the same wall-clock. Speed does not *replace* judgement, but it amplifies
+  whatever judgement you already have.
+
+## What speed cannot buy
+
+The wall. And no engine-builder has been clearer about this than the person who built
+the fastest engine. On his best five-hint placement path - already a far smaller tree
+than the raw puzzle - McGavin worked out that even at 100 million nodes per second the
+search would take about **4.9 × 10³² years**, and that throwing billions of cores at
+it still leaves you "orders of magnitude longer than the age of the Universe"
+([msg 11201](https://groups.io/g/eternity2/message/11201)). When the community's 2025
+speed thread wound down, Razvan wrote its epitaph: however fast we can check, "we will
+not make a dent" in the space ([msg 11657](https://groups.io/g/eternity2/message/11657)).
+
+The arithmetic is unforgiving and it is the site's [core lesson](/research/why/prune-vs-speed):
+a constant-factor speed-up, however hard-won, is *multiplied against* a number so
+large that no constant factor matters. Doubling the walking speed of a search that
+would take 10³² years gives you a search that takes 5 × 10³¹ years. Shrinking the
+*tree* is the only lever with exponents on it.
+
+## The controlled experiment
+
+This is exactly why the [JIT backtracker result](/research/lab/experiments/raphael-anjou/jit-backtracker)
+is framed as a speed experiment and nothing more. It answers a clean, bounded
+question - *can portable, safe Rust reach hand-tuned-C throughput?* - and the answer is
+board-dependent: on hard, deep boards like the real puzzle it **ties** the C, walking
+the identical tree; on easy low-branching boards the C is about 2.3× faster. It settles
+a smaller open question the community had left standing: whether the famous ~4× edge of
+McGavin's engine over "typical" solvers was **codegen craft** or merely **newer
+hardware**. Holding the hardware fixed and reaching his speed *on hard boards* from
+portable code shows it was craft - the same craft, reproducible in a safe language, and
+written down rung by rung. (It also shows where the craft pays most: on easy boards,
+where per-node work is nearly free, his tighter codegen still wins.)
+
+And then it stops, plainly, at the same place every fast engine stops: pointed at the
+real puzzle it plateaus in the high-300s of 480, because a strict backtracker is a
+superb tree-walker and a poor solver. The records belong to engines that spend their
+budget the *other* way - on
+[destroy-and-repair judgement](/research/lab/experiments/raphael-anjou/repair-study)
+and [what a search is allowed to learn](/research/lab/experiments/raphael-anjou/learning) - 
+and they get there at a small fraction of the speed.
+
+That is the whole trade. Speed is real, learnable, and worth mastering; the JIT engine
+is proof you can master it in a safe language. But on Eternity II, the fast lane and
+the winning lane are not the same lane. Which is why the interesting engineering
+question is never only "how fast" - it is "fast *at what*, and is that the thing in the
+way?"

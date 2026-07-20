@@ -168,6 +168,32 @@ html {
   color: var(--shiki-dark) !important;
   background-color: var(--shiki-dark-bg) !important;
 }
+/* GitHub-style diff blocks: Shiki colors the +/- glyphs; rehypeDiffLines
+   (vite.config.ts) stamps data-diff on each added/removed line so we can paint
+   the whole line. Lines become block-level within the <code> so the tint spans
+   the full width; a gutter marker echoes the +/- for scannability. */
+.prose pre.shiki code {
+  display: block;
+}
+.prose pre.shiki .line {
+  display: block;
+  padding-inline: 1ch;
+  margin-inline: -1ch;
+}
+.prose pre.shiki .line[data-diff="add"] {
+  background-color: #e6ffec;
+}
+.prose pre.shiki .line[data-diff="remove"] {
+  background-color: #ffebe9;
+}
+.dark .prose pre.shiki .line[data-diff="add"],
+.dark pre.shiki .line[data-diff="add"] {
+  background-color: rgba(46, 160, 67, 0.18) !important;
+}
+.dark .prose pre.shiki .line[data-diff="remove"],
+.dark pre.shiki .line[data-diff="remove"] {
+  background-color: rgba(248, 81, 73, 0.18) !important;
+}
 /* KaTeX display math: scroll horizontally on narrow screens instead of
    overflowing the prose column. */
 .prose .katex-display {

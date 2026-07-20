@@ -224,6 +224,29 @@ verificación de la comunidad, la forma en que los portes, reescrituras y hardwa
 nuevo prueban que recorren el mismo árbol antes de que su velocidad signifique
 nada.
 
+Hay una tercera confusión que conviene nombrar de una vez por todas, porque reaparece
+cuando estos números llegan a un público más amplio. «Rápido» apunta a tres cantidades
+sin relación, y ninguna se convierte en otra:
+
+- **Colocaciones por segundo** (o piezas/s o nodos/s) - cuán rápido *avanza* la
+  búsqueda. Es lo que mide cada cifra de esta página, y depende del tablero tanto como
+  del motor. El C de McGavin hace ~287 M en un tablero fácil pero ~105 M en uno difícil;
+  un [motor en Rust portable en este sitio](/research/lab/experiments/raphael-anjou/jit-backtracker)
+alcanza ~110 M en el mismo tablero difícil - empate allí - y ~122 M en el fácil.
+- **Aristas casadas sobre 480** - cuán *bueno* es un tablero. Es el eje donde viven los
+  [récords](/research/records) (el techo es 470). Es independiente de la velocidad de
+  recorrido: un motor lento suele encontrar un tablero mejor que uno rápido.
+- **Colocaciones agregadas por segundo** - un total de *flota*, muchas máquinas sumadas.
+  El «~300 M/s» que a veces se atribuye a un solo motor es en realidad el
+  [enjambre del Eternity 2 Syndicate](/research/build/faster/distributed-solving), unas
+  veinte máquinas sumadas, no un núcleo.
+
+Un número alto en el primer eje no dice nada del segundo, y el tercero no es en absoluto
+una velocidad de motor. Cuando este sitio cita un rendimiento, siempre es colocaciones/s
+en un núcleo salvo que se diga otra cosa; donde el *compromiso* entre gastar el
+presupuesto de un solucionador en velocidad o en criterio es el tema, ese argumento vive
+en [ir rápido](/research/lab/experiments/raphael-anjou/going-fast).
+
 ## El estante de un vistazo
 
 | Técnica | Lo que cuesta | Lo que rindió | Fuente |
@@ -254,6 +277,20 @@ reciente: alrededor de 225–295 M/s para el de McGavin
 ganancia de generación de código con una ganancia de hardware, no oficio a secas.
 A lo largo de esos mismos veinte años, el récord se movió tres aristas: de 467 a
 470.
+
+Un [experimento de 2026 en este sitio](/research/lab/experiments/raphael-anjou/jit-backtracker)
+separa esas dos ganancias directamente. Toma un backtracker en *Rust portable y seguro*
+y aplica el mismo oficio - código generado por celda, celdas empaquetadas, conjunto
+usado en arreglo de bytes, fusión de celdas - y luego lo mide frente al C de McGavin en
+una máquina, mismo tablero, ambos sin pantalla, uno tras otro. Manteniendo el hardware
+fijo, el motor portable **iguala al C en tableros difíciles y profundos** (≈105 a 110 M
+nodos de búsqueda/s cada uno) mientras que el C sigue siendo ~2,3× más rápido en los
+fáciles y poco ramificados (≈287 M frente a ≈125 M) - cada peldaño verificado como
+recorriendo el árbol idéntico. La lección corta por ambos lados: el oficio de generación
+de código es real y reproducible en un lenguaje moderno - bastante para igualar al C
+afinado a mano donde la búsqueda es difícil - *y* sigue siendo solo el factor constante
+que esta página describe. El mismo motor, apuntado al rompecabezas real, se estanca en
+los 300 altos sobre 480, justo donde la velocidad sola te deja.
 
 Los practicantes lo dijeron ellos mismos. Joshua Blackwood, catalogando sus
 callejones sin salida tras el 469 ([solucionadores SAT](/research/build/exact/sat-csp-encodings),

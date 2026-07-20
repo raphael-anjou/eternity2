@@ -16,6 +16,37 @@ import { researchPageLastmod, researchHubLastmod } from "./content.config";
 import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
 import { researchContent } from "./plugins/research-content";
 
+// Tag added/removed lines inside ```diff code blocks so CSS can paint the
+// GitHub-style full-line green/red backgrounds. Shiki colors the +/- glyphs but
+// leaves each line's background flat. This runs as a Shiki *transformer* (not a
+// separate rehype pass, whose ordering relative to Shiki is not guaranteed under
+// @mdx-js/rollup): the `line` hook fires per line with the source text in hand,
+// so we stamp data-diff only when the block's language is `diff`.
+// Minimal local hast shapes — enough for what the `line` hook touches, without
+// pulling in @types/hast / @shikijs/types as direct deps.
+type HastText = { type: "text"; value: string };
+type HastElement = {
+  type: "element";
+  properties: Record<string, unknown>;
+  children: HastNode[];
+};
+type HastNode = HastText | HastElement | { type: string; children?: HastNode[] };
+const textOf = (n: HastNode): string => {
+  if (n.type === "text") return (n as HastText).value;
+  return ("children" in n && n.children ? n.children.map(textOf).join("") : "");
+};
+const diffLinesTransformer = {
+  name: "diff-line-bg",
+  line(this: { options: { lang: string } }, node: HastElement) {
+    // `this.options.lang` is the fenced-block language for this run.
+    if (this.options.lang !== "diff") return;
+    const first = textOf(node).trimStart()[0];
+    // hast serializes the camelCase `dataDiff` back to the `data-diff` attribute.
+    if (first === "+") node.properties["dataDiff"] = "add";
+    else if (first === "-") node.properties["dataDiff"] = "remove";
+  },
+};
+
 // Emit sitemap.xml into the build output from the same page list React Router
 // prerenders, so crawlers (and the AI bots welcomed in public/robots.txt) get
 // an accurate map with zero hand-maintenance. Origin + base mirror site.ts.
@@ -144,7 +175,12 @@ export default defineConfig({
           rehypeKatex,
           [
             rehypeShiki,
-            { themes: { light: "github-light", dark: "github-dark" }, defaultColor: "light" },
+            {
+              themes: { light: "github-light", dark: "github-dark" },
+              defaultColor: "light",
+              addLanguageClass: true,
+              transformers: [diffLinesTransformer],
+            },
           ],
         ],
       }),

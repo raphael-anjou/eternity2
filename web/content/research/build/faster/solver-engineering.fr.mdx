@@ -225,6 +225,30 @@ contrôle de la communauté, la façon dont les portages, réécritures et nouve
 matériels prouvent qu'ils parcourent le même arbre avant que leur vitesse ne
 signifie quoi que ce soit.
 
+Il y a une troisième confusion à nommer une fois pour toutes, car elle revient dès que
+ces nombres atteignent un public plus large. « Rapide » désigne trois quantités sans
+rapport, et aucune ne se convertit dans l'autre :
+
+- **Placements par seconde** (soit pièces/s ou nœuds/s) - à quelle vitesse la recherche
+  *avance*. C'est ce que mesure chaque chiffre de cette page, et cela dépend du plateau
+  autant que du moteur. Le C de McGavin fait ~287 M sur un plateau facile mais ~105 M sur
+  un difficile ; un
+  [moteur en Rust portable sur ce site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+atteint ~110 M sur le même plateau difficile - à égalité là - et ~122 M sur le facile.
+- **Arêtes appariées sur 480** - à quel point un plateau est *bon*. C'est l'axe où vivent
+  les [records](/research/records) (le plafond est 470). Il est indépendant de la vitesse
+  de marche : un moteur lent trouve régulièrement un meilleur plateau qu'un rapide.
+- **Placements agrégés par seconde** - un total de *grappe*, plusieurs machines
+  additionnées. Le « ~300 M/s » parfois épinglé sur un seul moteur est en fait la
+  [grappe du Eternity 2 Syndicate](/research/build/faster/distributed-solving), une
+  vingtaine de machines additionnées, pas un cœur.
+
+Un grand nombre sur le premier axe ne dit rien du deuxième, et le troisième n'est pas du
+tout une vitesse de moteur. Quand ce site cite un débit, c'est toujours des placements/s
+sur un cœur sauf mention contraire ; là où le *compromis* entre dépenser le budget d'un
+solveur en vitesse ou en jugement est le sujet, cet argument vit sur
+[aller vite](/research/lab/experiments/raphael-anjou/going-fast).
+
 ## L'étagère en un coup d'œil
 
 | Technique | Ce qu'elle coûte | Ce qu'elle a rapporté | Source |
@@ -254,6 +278,20 @@ matériel le plus récent : autour de 225 à 295 M/s pour celui de McGavin
 [message 11750](https://groups.io/g/eternity2/message/11750)), il mêle donc un
 gain de génération de code à un gain matériel, pas de l'artisanat seul. Sur ces
 mêmes vingt ans, le record a bougé de trois arêtes : de 467 à 470.
+
+Une [expérience de 2026 sur ce site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+sépare directement ces deux gains. Elle prend un backtracker en *Rust portable et sûr*
+et applique le même artisanat - code généré par case, cases empaquetées, ensemble
+utilisé en tableau d'octets, fusion de cases - puis le mesure face au C de McGavin sur
+une machine, même plateau, tous deux sans affichage, dos à dos. En gardant le matériel
+fixe, le moteur portable **égale le C sur les plateaux difficiles et profonds** (≈105
+à 110 M nœuds de recherche/s chacun) tandis que le C reste ~2,3× plus rapide sur les
+faciles et peu ramifiés (≈287 M contre ≈125 M) - chaque échelon vérifié comme
+parcourant l'arbre identique. La leçon tranche dans les deux sens : l'art de la
+génération de code est réel et reproductible dans un langage moderne - assez pour égaler
+du C optimisé à la main là où la recherche est difficile - *et* il reste seulement le
+facteur constant que cette page décrit. Le même moteur, pointé sur le vrai puzzle,
+plafonne dans les hauts 300 sur 480, exactement là où la vitesse seule vous laisse.
 
 Les praticiens l'ont dit eux-mêmes. Joshua Blackwood, cataloguant ses impasses
 après le 469 ([solveurs SAT](/research/build/exact/sat-csp-encodings),

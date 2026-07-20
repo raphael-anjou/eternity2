@@ -84,12 +84,22 @@ Esto no es una máquina de récords, y sería engañoso presentarlo como tal. El
 solucionador estricto no lleva ninguno de los calendarios de cuotas ajustados a
 mano ni las estrategias de reinicio que hacen del
 [solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver) el
-motor detrás de los mejores tableros de la comunidad, y no está diseñado para un
-[rendimiento de la clase de McGavin](/research/lab/experiments/peter-mcgavin/backtracker).
-La mejor puntuación producida por [los experimentos de aquí](/research/lab/experiments)
-es 463 de 480; la mejor de la comunidad sobre el mismo puzzle es 470. Los
-solucionadores de récords estudiados en este laboratorio son sencillamente
-mejores encontrando tableros.
+motor detrás de los mejores tableros de la comunidad. La mejor puntuación producida
+por [los experimentos de aquí](/research/lab/experiments) es 463 de 480; la mejor de
+la comunidad sobre el mismo puzzle es 470. Los solucionadores de récords estudiados
+en este laboratorio son sencillamente mejores encontrando tableros.
+
+El rendimiento es un eje aparte, uno que este motor de referencia deliberadamente no
+persigue - pero un experimento hermano sí. El
+[backtracker JIT](/research/lab/experiments/raphael-anjou/jit-backtracker) pregunta
+cuán rápido puede ir una búsqueda Rust *portable*, y alcanza un
+[rendimiento de la clase de McGavin](/research/lab/experiments/peter-mcgavin/backtracker)
+en los tableros difíciles y profundos que se parecen al rompecabezas real - a la par de
+su C afinado a mano en la misma máquina (su C sigue siendo ~2,3× más rápido en los
+tableros fáciles). Es un resultado de velocidad, no de resolución: se estanca donde se
+estanca todo backtracker estricto. Velocidad y puntuación son
+[ejes distintos](/research/lab/experiments/raphael-anjou/going-fast), y el motor de esta
+página no optimiza ninguno - solo el ser verificable.
 
 La misión de este motor es otra: la verificabilidad y la enseñanza. Cuando este
 wiki enuncia un conteo de nodos, una cifra de factibilidad o una puntuación, la

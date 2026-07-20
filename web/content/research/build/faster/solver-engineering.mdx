@@ -214,6 +214,29 @@ fixed tree must count the same nodes on any machine, so exact node counts
 became the community's checksums, the way ports, rewrites and new hardware
 prove they search the same tree before their speed means anything.
 
+There is a third confusion worth naming once and for all, because it recurs
+whenever these numbers reach a wider audience. "Fast" points at three unrelated
+quantities, and no two of them convert:
+
+- **Placements per second** (equivalently pieces/s or nodes/s) - how fast the
+  search *walks*, and it depends on the board as well as the engine. McGavin's C
+  does ~287M on an easy board but ~105M on a hard one; a
+  [portable-Rust engine on this site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+reaches ~110M on the same hard board - a tie there - and ~122M on the easy one.
+- **Matched edges out of 480** - how *good* a board is. This is the axis the
+  [records](/research/records) live on (the ceiling is 470). It is independent of
+  walking speed: a slow engine routinely finds a better board than a fast one.
+- **Aggregate placements per second** - a *fleet* total, many machines summed. The
+  "~300M/s" figure sometimes pinned on a single engine is in fact the
+  [Eternity 2 Syndicate swarm](/research/build/faster/distributed-solving), roughly
+  twenty machines added together, not one core.
+
+A high number on the first axis says nothing about the second, and the third is not
+an engine speed at all. When this site quotes a throughput, it is always
+placements/s on one core unless it says otherwise; where the *trade-off* between
+spending a solver's budget on speed versus on judgement is the point, that argument
+lives on [going fast](/research/lab/experiments/raphael-anjou/going-fast).
+
 ## The shelf at a glance
 
 | Technique | What it costs | What it bought | Source |
@@ -242,6 +265,19 @@ hardware: around 225–295M/s for McGavin's
 [message 11750](https://groups.io/g/eternity2/message/11750)), so it mixes a
 codegen gain with a hardware gain, not craft alone. Over the same twenty years,
 the record moved three edges: 467 to 470.
+
+A [2026 experiment on this site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+separates those two gains directly. It takes a *portable, safe Rust* backtracker
+and applies the same craft - per-cell generated code, packed cells, a byte-array
+used-set, cell fusion - then measures it against McGavin's C on one machine, same
+board, both built headless, back to back. Holding the hardware fixed, the portable
+engine **ties the C on hard, deep boards** (≈105–110M search-nodes/s each) while the
+C stays ~2.3× faster on easy low-branching ones (≈287M vs ≈125M) - every rung verified
+to walk the identical tree. The lesson cuts both ways: the codegen craft is real and
+reproducible in a modern language - enough to match hand-tuned C where the search is
+hard - *and* it is still only the constant factor this page keeps describing. The same
+engine, pointed at the real puzzle, plateaus in the high-300s of 480, exactly where
+speed alone always leaves you.
 
 The practitioners said it themselves. Joshua Blackwood, cataloguing his dead
 ends after the 469 ([SAT solvers](/research/build/exact/sat-csp-encodings),

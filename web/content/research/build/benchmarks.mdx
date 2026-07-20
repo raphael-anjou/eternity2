@@ -240,11 +240,18 @@ numbers from the same thread bear that out: David Barr measured his own single
 CPU core at ~23 million placements per second and his GPU port at ~2.4 billion
 ([message 11835](https://groups.io/g/eternity2/message/11835)), and Peter
 McGavin's optimised backtracker hit ~295 million per second on a fast single
-core ([message 11750](https://groups.io/g/eternity2/message/11750)). Two cautions
+core ([message 11750](https://groups.io/g/eternity2/message/11750)) - though that is
+an *easy-board* figure; on a hard board the same engine runs ~105M, where a
+[portable-Rust engine on this site](/research/lab/experiments/raphael-anjou/jit-backtracker)
+ties it. Two cautions
 carry over from the old node-vs-step debate: a "valid placement" counts only
 pieces that pass the colour-fit lookup, not every piece tried, and single-core
 speed on a full 16×16 is typically about half the small-puzzle figure, because
-the search spends its time in the dense forest of near-border constraints. None
+the search spends its time in the dense forest of near-border constraints. (These
+placements/s figures are one axis of "fast" and unrelated to a board's
+matched-edge score; the
+[solver-engineering ledger](/research/build/faster/solver-engineering) pins down
+all three senses of the word.) None
 of this changes the [prune-versus-speed](/research/why/prune-vs-speed) verdict:
 a 400× throughput jump since 2008 has not moved the record, because it makes the
 tree cheaper to walk, not smaller.
