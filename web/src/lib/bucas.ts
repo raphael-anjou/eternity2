@@ -1,10 +1,17 @@
-// Full interop with the e2.bucas.name viewer URL format.
+// The board-in-a-URL format.
 //
 // board_edges: 4 lowercase letters per cell (URDL), row-major, 'a' = 0 = grey
 // border, "aaaa" = empty cell. Rotation is implicit: the letters are the
-// already-rotated edges. board_pieces: 3 decimal digits per cell, 1-based
-// official piece number, 000 = empty. motifs_order permutes which glyph each
-// letter draws; "marie" and "jblackwood" are identical.
+// already-rotated edges. Because pieces are distinct up to rotation, the edges
+// alone name each piece and its orientation, so board_edges fully carries the
+// board — render, score, and piece identity.
+//
+// hints: the pinned clue cells, each as pos.rot (row-major cell index and
+// clockwise quarter-turn), joined by '-'. A board and its clue set thus share
+// one coordinate system in one link.
+//
+// board_pieces (3 digits per cell, 1-based piece number) and motifs_order are
+// also read when present, for interop with e2.bucas.name links.
 
 import { BORDER, rotateEdges, maxScore } from "./types";
 import type { Puzzle, BoardCells } from "./types";
@@ -18,6 +25,8 @@ export interface BucasBoard {
   cells: (Edges | null)[];
   /** 1-based piece numbers when board_pieces was present (0 = empty). */
   pieceNumbers: number[] | null;
+  /** Pinned clue cells from `hints`: row-major cell positions. */
+  hints: number[] | null;
   puzzleName: string | null;
 }
 
@@ -114,8 +123,28 @@ export function decodeBucas(input: string | Record<string, string>): BucasBoard 
     height,
     cells,
     pieceNumbers,
+    hints: parseHints(params["hints"]),
     puzzleName: params["puzzle"] ?? null,
   };
+}
+
+/** Parse the `hints` blob (`pos.rot` entries joined by `-`) into cell positions.
+ *  The piece and rotation at each cell come from board_edges, so only the
+ *  position is needed to mark it as a clue. Returns null when absent. */
+export function parseHints(blob: string | undefined): number[] | null {
+  if (!blob) return null;
+  const positions: number[] = [];
+  for (const entry of blob.split("-")) {
+    if (!entry) continue;
+    const pos = parseInt(entry.split(".")[0] ?? "", 10);
+    if (Number.isInteger(pos) && pos >= 0) positions.push(pos);
+  }
+  return positions.length ? positions : null;
+}
+
+/** Encode clue cells as the `hints` blob: `pos.rot` entries joined by `-`. */
+export function encodeHints(hints: { pos: number; rot: number }[]): string {
+  return hints.map((h) => `${h.pos}.${h.rot & 3}`).join("-");
 }
 
 /** Match decoded cells to a piece set: cell -> pieceId*4+rot, or -1. */
@@ -226,6 +255,7 @@ export function boardFromEngine(puzzle: Puzzle, board: BoardCells): BucasBoard {
     height: puzzle.height,
     cells,
     pieceNumbers: null,
+    hints: null,
     puzzleName: puzzle.name,
   };
 }
@@ -251,22 +281,26 @@ function encodeCells(puzzle: Puzzle, board: BoardCells): { edges: string; pieces
   return { edges, pieces };
 }
 
-/** Our own clean query params for a board. Boards are always square, so we
- *  emit a single `puzzle_size` instead of bucas's `board_w`/`board_h`, and we
- *  keep every value in the safe `[A-Za-z0-9_]` range so the URL needs no
- *  percent-encoding. `decodeBucas` reads these back transparently. */
+/** Our own clean query params for a board. The board rides entirely in
+ *  `board_edges` (four letters per cell, which fix render, score, and piece
+ *  identity); any pinned clues ride in `hints` as `pos.rot`. Boards are always
+ *  square, so we emit a single `puzzle_size`, and every value stays in the safe
+ *  `[A-Za-z0-9_.\-]` range so the URL needs no percent-encoding. `decodeBucas`
+ *  reads these back transparently. */
 export function ourParams(
   puzzle: Puzzle,
   board: BoardCells,
   name = "eternity2-community",
+  hints?: { pos: number; rot: number }[],
 ): Record<string, string> {
-  const { edges, pieces } = encodeCells(puzzle, board);
-  return {
+  const { edges } = encodeCells(puzzle, board);
+  const params: Record<string, string> = {
     puzzle: name.replace(/[^A-Za-z0-9_]+/g, "_"),
     puzzle_size: String(puzzle.width),
     board_edges: edges,
-    board_pieces: pieces,
   };
+  if (hints && hints.length) params["hints"] = encodeHints(hints);
+  return params;
 }
 
 /** Bucas URL parameters for any board (default motif letters). Works for any

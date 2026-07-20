@@ -1,0 +1,120 @@
+---
+title: La caja de herramientas del constructor
+description: >-
+  Un kit de inicio en Rust listo para usar para construir tu propio solucionador
+  de Eternity II: puntuar, generar tableros con equilibrio de colores real,
+  generar lotes con pistas fijadas, convertir todos los formatos, medir el
+  rendimiento y un bucle resolver→barrer→comparar, donde solo escribes el
+  solucionador. Además, una configuración de una línea para agentes de código y un
+  generador de tableros directamente en el navegador.
+metaDescription: "Un kit de inicio de Eternity II listo para usar: un espacio Rust con puntuación, generación de tableros (equilibrio de colores real), lotes con pistas fijadas, conversión de formatos y un bucle resolver→barrer→comparar. Solo escribes el Solver."
+kind: tool
+order: 2
+group: Start here
+updated: 2026-07-20
+sources:
+  - label: "El kit de inicio (este repositorio): el espacio de trabajo Rust, los ejemplos y los archivos de configuración para agentes"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
+related:
+  - /research/build/run-it-yourself
+  - /research/build/dataset
+  - /research/build/approaches-map
+  - /research/build/formats
+---
+
+import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
+import { BoardGenerator } from "@/components/research/BoardGenerator";
+
+Todo lo que necesitas para *empezar* a construir un solucionador de Eternity II,
+menos el solucionador. El [kit de inicio](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit)
+es una carpeta del repositorio: un pequeño espacio de trabajo Rust que ya hace la
+fontanería. Puntuación, generación de tableros, generación de lotes con pistas
+fijadas, conversión de formatos, benchmarks y un bucle completo
+**resolver → barrer → comparar**: todo está ahí. Escribes un único `Solver`; el
+resto sigue funcionando a su alrededor.
+
+Nada en el kit reimplementa la puntuación, la generación o los formatos. Vienen
+de las mismas bibliotecas compartidas sobre las que corre el propio sitio, así que
+una puntuación del kit es el *mismo* número que producen el [visor](/viewer) y
+cualquier otro motor: el recuento canónico de aristas emparejadas, borde
+excluido. Copia la carpeta, mete tu idea e itera.
+
+<AgentSetupBlock />
+
+## Qué hay en la caja
+
+- **Puntuar cualquier tablero**, desde una URL `eternity2.dev` / `e2.bucas.name`
+  o un simple bloque `board_edges`, a través del puntuador canónico. Se incluye un
+  tablero 469 verificado para probar que concuerda con el archivo de records.
+- **Generar tableros** con el equilibrio de colores real de Eternity II: cinco
+  colores de borde confinados al marco, el interior equilibrado, cada pieza
+  distinta, totalmente determinista según la semilla.
+- **Generar lotes** («dame 100 tableros, estas semillas, cinco pistas fijadas»)
+  como JSON de esquema-sitio reproducible que puedes releer directamente.
+- **Convertir** entre todos los formatos que usa la comunidad: `board_edges`,
+  `board_pieces`, `e2pieces.txt`, las URLs `eternity2.dev` y bucas heredadas, y
+  CSV. Ver la [referencia de formatos](/research/build/formats).
+- **Medir** la fontanería en un solo núcleo, para conocer el presupuesto de
+  sobrecarga de tu solucionador.
+- **El bucle de iteración:** un trait `Solver` estable, un ejecutor de barrido que
+  escribe directorios de ejecución reproducibles y una herramienta `compare` que
+  compara dos ejecuciones, con la disciplina de varianza que este puzzle exige
+  incorporada.
+
+## La única regla que el kit impone por ti
+
+En Eternity II la puntuación varía mucho de una semilla a otra: la desviación
+estándar entre semillas es de aproximadamente 12 a 20 puntos para un solucionador
+de tablero completo. Así que una diferencia de uno o dos puntos de media entre dos
+versiones de solucionador casi siempre es ruido. La herramienta `compare` del kit
+se niega a llamar victoria a una diferencia por debajo del ruido, te dice que
+barras al menos 40 semillas y siempre informa de la dispersión. Mantén todo en un
+solo núcleo, como hacen los [benchmarks](/research/build/benchmarks) del sitio, y
+tus números seguirán siendo comparables con los de los demás.
+
+## Escribe tu primer solucionador
+
+Todo el kit se construye en torno a un único trait:
+
+```rust
+use e2_kit::{Board, Budget, Instance, Solver};
+
+struct MySolver;
+
+impl Solver for MySolver {
+    fn name(&self) -> String { "my-solver".into() }
+
+    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
+        let mut board = instance.seed_board();   // parte de las pistas fijadas
+        // ...tu búsqueda aquí. Consulta budget.expired(); devuelve el mejor tablero.
+        board
+    }
+}
+```
+
+Copia `examples/my_solver.rs` (una base voraz completa y funcional), reemplaza el
+cuerpo de `solve` y luego bárrelo:
+
+```bash
+cargo run --release --example sweep -- --n 40 --budget 3
+cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
+```
+
+Las recetas completas (puntuación, generación, lote, conversión, benchmark)
+están en el [README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme)
+del kit. Los tableros para probar un solucionador están en el
+[conjunto de datos](/research/build/dataset) CC0; los enfoques a probar están
+recogidos en el [mapa de todos los enfoques conocidos](/research/build/approaches-map).
+
+## Genera tableros aquí mismo
+
+El generador del kit, en el navegador: el mismo motor WASM, sin instalación.
+Elige una forma y un rango de semillas y crea un lote reproducible; haz clic en
+cualquier tablero para abrirlo en el [visor](/viewer) y puntuarlo arista por
+arista.
+
+<BoardGenerator />
+
+¿Quieres lo mismo en la línea de comandos, o 10 000 tableros con pistas fijadas?
+Usa el ejemplo `generate_batch` del kit: escribe cada tablero en JSON que puedes
+volver a alimentar directamente a un solucionador.

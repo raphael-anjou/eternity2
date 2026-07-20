@@ -1,0 +1,121 @@
+---
+title: La boîte à outils du bâtisseur
+description: >-
+  Un kit de démarrage Rust prêt à l'emploi pour construire votre propre solveur
+  Eternity II : scorer, générer des plateaux au vrai équilibre des couleurs,
+  générer des lots avec indices épinglés, convertir tous les formats, mesurer les
+  performances, et une boucle résoudre→balayer→comparer, où vous n'écrivez que le
+  solveur. Plus une configuration en une ligne pour les agents de code, et un
+  générateur de plateaux directement dans le navigateur.
+metaDescription: "Un kit de démarrage Eternity II prêt à l'emploi : un espace Rust avec scoring, génération de plateaux (vrai équilibre des couleurs), lots avec indices épinglés, conversion de formats et une boucle résoudre→balayer→comparer. Vous n'écrivez que le Solver."
+kind: tool
+order: 2
+group: Start here
+updated: 2026-07-20
+sources:
+  - label: "Le kit de démarrage (ce dépôt) : l'espace de travail Rust, les exemples et les fichiers de configuration pour agents"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
+related:
+  - /research/build/run-it-yourself
+  - /research/build/dataset
+  - /research/build/approaches-map
+  - /research/build/formats
+---
+
+import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
+import { BoardGenerator } from "@/components/research/BoardGenerator";
+
+Tout ce qu'il faut pour *commencer* à construire un solveur Eternity II, sauf le
+solveur lui-même. Le [kit de démarrage](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit)
+est un dossier du dépôt : un petit espace de travail Rust qui fait déjà la
+plomberie. Scoring, génération de plateaux, génération de lots avec indices
+épinglés, conversion de formats, benchmarks, et une boucle complète
+**résoudre → balayer → comparer** : tout y est. Vous écrivez un seul `Solver` ;
+tout le reste continue de fonctionner autour.
+
+Rien dans le kit ne réimplémente le scoring, la génération ou les formats. Ils
+proviennent des mêmes bibliothèques partagées que le site lui-même utilise, donc
+un score du kit est le *même* nombre que celui produit par le [visualiseur](/viewer)
+et tout autre moteur : le décompte canonique des arêtes appariées, bordure
+exclue. Copiez le dossier, glissez-y votre idée, et itérez.
+
+<AgentSetupBlock />
+
+## Ce qu'il y a dans la boîte
+
+- **Scorer n'importe quel plateau**, depuis une URL `eternity2.dev` /
+  `e2.bucas.name` ou un simple bloc `board_edges`, via le scorer canonique. Un
+  plateau 469 vérifié est inclus pour prouver l'accord avec les archives de
+  records.
+- **Générer des plateaux** au vrai équilibre des couleurs d'Eternity II : cinq
+  couleurs de bordure confinées au cadre, l'intérieur équilibré, chaque pièce
+  distincte, entièrement déterministe selon la graine.
+- **Générer des lots** (« donne-moi 100 plateaux, ces graines, cinq indices
+  épinglés ») en JSON de schéma-site reproductible que vous pouvez relire
+  directement.
+- **Convertir** entre tous les formats de la communauté : `board_edges`,
+  `board_pieces`, `e2pieces.txt`, les URLs `eternity2.dev` et bucas héritées, et
+  le CSV. Voir la [référence des formats](/research/build/formats).
+- **Mesurer** la plomberie en mono-cœur, pour connaître le budget de surcharge de
+  votre solveur.
+- **La boucle d'itération :** un trait `Solver` stable, un lanceur de balayage qui
+  écrit des répertoires de run reproductibles, et un outil `compare` qui compare
+  deux runs, avec la discipline de variance qu'exige ce puzzle intégrée.
+
+## La seule règle que le kit impose pour vous
+
+Sur Eternity II, le score varie beaucoup d'une graine à l'autre : l'écart-type
+entre graines est d'environ 12 à 20 points pour un solveur de plateau complet.
+Une différence d'un ou deux points de moyenne entre deux versions de solveur est
+donc presque toujours du bruit. L'outil `compare` du kit refuse de qualifier de
+gain une différence en dessous du bruit, vous dit de balayer au moins 40 graines,
+et rapporte toujours l'écart. Gardez tout en mono-cœur, comme le font les
+[benchmarks](/research/build/benchmarks) du site, et vos chiffres restent
+comparables à ceux de tous les autres.
+
+## Écrire votre premier solveur
+
+Tout le kit est bâti autour d'un seul trait :
+
+```rust
+use e2_kit::{Board, Budget, Instance, Solver};
+
+struct MySolver;
+
+impl Solver for MySolver {
+    fn name(&self) -> String { "my-solver".into() }
+
+    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
+        let mut board = instance.seed_board();   // part des indices épinglés
+        // ...votre recherche ici. Interrogez budget.expired() ; renvoyez le meilleur plateau.
+        board
+    }
+}
+```
+
+Copiez `examples/my_solver.rs` (une base gloutonne complète et fonctionnelle),
+remplacez le corps de `solve`, puis balayez-le :
+
+```bash
+cargo run --release --example sweep -- --n 40 --budget 3
+cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
+```
+
+Les recettes complètes (scoring, génération, lot, conversion, benchmark) sont
+dans le [README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme)
+du kit. Les plateaux pour tester un solveur sont dans le
+[jeu de données](/research/build/dataset) CC0 ; les approches à essayer sont
+recensées dans la [carte de toutes les approches connues](/research/build/approaches-map).
+
+## Générer des plateaux ici même
+
+Le générateur du kit, dans le navigateur : le même moteur WASM, sans
+installation. Choisissez une forme et une plage de graines, et il produit un lot
+reproductible ; cliquez sur un plateau pour l'ouvrir dans le [visualiseur](/viewer)
+et le scorer arête par arête.
+
+<BoardGenerator />
+
+Vous voulez la même chose en ligne de commande, ou 10 000 plateaux avec indices
+épinglés ? Utilisez l'exemple `generate_batch` du kit : il écrit chaque plateau
+en JSON que vous pouvez réinjecter directement dans un solveur.

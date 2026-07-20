@@ -1747,6 +1747,7 @@ fn write_alns_checkpoint(
         &cells,
         &codes,
         e2_io::board_hash(&codes),
+        &[],
     );
     // Serialize the canonical doc, then splice in the checkpoint-only progress
     // fields so nothing is lost from the rolling snapshot.

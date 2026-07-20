@@ -2,11 +2,11 @@
 title: "Board & puzzle formats, written down"
 description: >-
   Every format an Eternity II board or puzzle travels in on this site and in the
-  community: board_edges and board_pieces letter strings, e2pieces.txt, the
-  legacy puzzle CSV, the site's Puzzle JSON, and the two viewer URLs, with the
-  exact byte-level rules (how the grey border is encoded in each) and, most of
-  all, what each format can and cannot recover.
-metaDescription: "The byte-level spec for every Eternity II board and puzzle format: board_edges, board_pieces, e2pieces.txt, Puzzle CSV, site Puzzle JSON, the BoardDoc output and both viewer URLs. How each encodes the grey border, and whether it recovers rotation and piece identity."
+  community: the board_edges letter string and the hints clue list, e2pieces.txt,
+  the puzzle CSV, the site's Puzzle JSON, and the viewer URL, with the exact
+  byte-level rules (how the grey border is encoded in each) and, most of all,
+  what each format can and cannot recover.
+metaDescription: "The byte-level spec for every Eternity II board and puzzle format: board_edges, the hints clue list, e2pieces.txt, Puzzle CSV, site Puzzle JSON, the BoardDoc output and the viewer URL. How each encodes the grey border, and why the edges alone recover piece identity and rotation."
 kind: reference
 order: 8
 group: Start here
@@ -40,9 +40,9 @@ The IO contract is symmetric and small. **In:** one puzzle instance as JSON
 `--puzzle <file>.json`. **Out:** one board document as JSON (the `BoardDoc`,
 below), carrying a ready-to-open [eternity2.dev](/viewer) URL as a field. That
 is the whole thing: puzzle-JSON in, board-JSON out, both single self-describing
-files. Everything else on this page is either a legacy *input* the tools still
-accept (CSV, bare `board_edges`) or a *derived* format the [converter](/convert)
-can hand you. There is no longer a `.url`-here, `.json`-there,
+files. Everything else on this page is either an *input* the tools also accept
+(CSV, a bare `board_edges` blob, a bucas link) or a *derived* format the
+[converter](/convert) can hand you. There is no `.url`-here, `.json`-there,
 two-files-sometimes split.
 </Callout>
 
@@ -55,21 +55,19 @@ reading the tile *as placed and rotated*, not as a catalogue tile. A cell is
 either filled (a real quad) or empty; an empty cell is written as if it were all
 border, `[0, 0, 0, 0]`.
 
-Two facts follow from "as placed", and they are the source of most format
-confusion:
+One fact follows from "as placed", and it is the source of most format
+confusion: a board carries **rotated** edges, not a rotation number. But this is
+not a loss. Eternity II pieces are **all distinct up to rotation** (the official
+set is, and any faithful generator keeps it that way), so a cell's edge quad
+identifies exactly one piece, and the rotation is the turn that maps that
+piece's catalogue quad onto the placed one. Matching the quad against the piece
+set recovers **both** the identity and the rotation.
 
-- A board carries **rotated** edges. It does **not** carry a rotation number.
-  You can recover the rotation only by matching the quad back against a known
-  piece catalogue.
-- A board carries no **piece identity** unless a separate piece-number channel
-  is present. The edge quad `[3, 7, 1, 0]` does not say "piece 118"; it says
-  "these four colours". Identity comes from `board_pieces`, or from matching
-  against the official set.
-
-So a *board alone* can always be rendered and scored, but it cannot, on its own,
-recover the original catalogue order or the per-tile rotation. The formats that
-claim to (site JSON, the piece-numbered URL) do so by carrying the extra channel
-explicitly.
+So the edges are the whole board: they render it, score it, and name every
+piece and its orientation. The only case where they fall short is a contrived
+set with two pieces sharing an edge pattern up to rotation, which real Eternity
+II never has, and there a piece-number channel disambiguates. That is the one
+job `board_pieces` exists for.
 
 ## board_edges: the letter string
 
@@ -84,8 +82,11 @@ adca beaa …            cell 0 = [0,3,2,0], cell 1 = [1,4,0,0], …
 ```
 
 - **Border:** the letter `a` (colour 0).
-- **Recovers:** the full rendering and the exact score. Nothing else.
-- **Cannot recover:** piece identity or rotation (see above).
+- **Recovers:** everything about the board, the full rendering, the exact score,
+  and, because pieces are distinct up to rotation, each piece's identity and its
+  rotation by matching against the set.
+- **Cannot recover:** which cells were *given as clues* rather than solved, that
+  is a property of the puzzle, not the board, and it travels in `hints`.
 
 A rare wrinkle: some tools permute which glyph each letter draws
 (`motifs_order`). The orders `marie` and `jblackwood` are identical to each
@@ -94,22 +95,45 @@ these back to the default alphabet on the way in, so you never have to think
 about it, but if you see a board whose colours look scrambled, an untranslated
 `motifs_order` is why.
 
-## board_pieces: the identity string
+## hints: the clue cells
 
-The companion channel that *does* carry identity. Three decimal digits per cell,
-the **1-based** piece number, `000` for an empty cell. So the official board is
-`256 × 3 = 768` digits.
+A board and the clues it was built from belong in one place, addressed the same
+way. `hints` lists the pinned clue cells, each as `pos.rot`, the row-major cell
+index and clockwise quarter-turn, joined by `-`. Five official clues are about
+thirty characters.
+
+```text
+hints=72.2-135.0-210.3-34.1-221.0
+```
+
+The piece at each hinted cell is already known from `board_edges`, so a clue
+needs only its position and orientation, never a piece id. This is the same
+`(cell, rotation)` shape every durable format uses for a pinned tile: the CSV's
+`x,y,rotation`, the site JSON's `{pos, rot}`.
+
+- **Recovers:** which cells are clues, so the viewer can mark them and a solver
+  can start from them. Absent means "no clues", a plain solved or partial board.
+- **Pairs with:** `board_edges`. Together they carry a full *puzzle-with-clues*
+  in one link, which a bare board never could.
+
+## board_pieces: the interop channel
+
+Some community tools, notably e2.bucas.name links, carry an explicit piece
+channel: three decimal digits per cell, the **1-based** piece number, `000` for
+an empty cell (the official board is `256 × 3 = 768` digits). We **read** it when
+it is present, but never need to emit it, because `board_edges` already names
+every piece on a distinct-piece set.
 
 ```text
 001 005 007 …          piece 1 at cell 0, piece 5 at cell 1, …
 ```
 
 - **Border / empty:** `000`.
-- **Recovers, with `board_edges` alongside:** piece identity *and* rotation. For
-  each cell you know the piece number, and matching its catalogue quad against
-  the placed quad gives the rotation. This is the only board-level way to
-  recover rotation.
-- **On its own:** useless without the edges; it is an overlay, not a board.
+- **Recovers:** piece identity directly (and rotation, matched against the set),
+  the same thing the edges recover on their own for a real board.
+- **On its own:** useless without the edges; it is an overlay, not a board. Its
+  one irreplaceable use is a contrived set with pieces that repeat up to
+  rotation, where the edges alone are ambiguous.
 
 ## e2pieces.txt: the pieces as placed
 
@@ -196,7 +220,7 @@ the viewer URL into a single document, so a downstream tool needs nothing else.
   "board_hash": 2059303548241384230,
   "board_edges": "abda…",
   "board_pieces": "001005…",
-  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…&board_pieces=…"
+  "url": "https://eternity2.dev/viewer?puzzle=…&puzzle_size=16&board_edges=…"
 }
 ```
 
@@ -217,18 +241,24 @@ gate for "did these two runs produce the same board".
 Two URLs, same board, two hosts.
 
 **eternity2.dev, the canonical link.** The format every algorithm here emits.
+The board rides entirely in `board_edges`; any pinned clues ride in `hints`.
 Square boards, so a single `puzzle_size` (the viewer also reads bucas's
-`board_w`/`board_h`), and every value stays in the URL-safe `[A-Za-z0-9_]` range
-so the link needs no percent-encoding:
+`board_w`/`board_h`), and every value stays in the URL-safe range so the link
+needs no percent-encoding:
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&board_pieces=…
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
 ```
+
+`hints` is omitted for a board with no clues. Because the edges carry piece
+identity, there is no piece channel here: the board and its clues fit in these
+two fields.
 
 **e2.bucas.name, the community viewer.** Jef Bucas's original, the viewer whose
 URL format *became* this whole vocabulary (the [toolbox](/research/build/tooling)
-tells that story). Still fully supported as an input and available as a derived
-output, using its `board_w`/`board_h` pair and a `#` fragment:
+tells that story). Fully supported as an input and available as a derived
+output, using its `board_w`/`board_h` pair, a `board_pieces` channel, and a `#`
+fragment:
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…
@@ -245,13 +275,14 @@ the bucas form remains the community's shared original, credited accordingly.
 
 | Format | Border | Carries rotation? | Carries identity? | It is a… |
 | --- | --- | --- | --- | --- |
-| `board_edges` | `a` | no | no | placed board |
+| `board_edges` | `a` | yes (by match) | yes (by match) | placed board |
+| `hints` | n/a | yes (`pos.rot`) | via edges | clue set |
 | `board_pieces` | `000` | with edges | yes | overlay |
-| `e2pieces.txt` | `0` | no | no | placed board |
+| `e2pieces.txt` | `0` | yes (by match) | yes (by match) | placed board |
 | Puzzle CSV | `1111…1` (all ones) | hints only | yes (tiles) | puzzle |
 | Site JSON | `0` | yes | yes | puzzle |
-| `BoardDoc` JSON | `a` / `000` / `-1` | with pieces | yes | placed board |
-| eternity2.dev URL | `a` | with pieces | with pieces | link to a board |
+| `BoardDoc` JSON | `a` / `000` / `-1` | yes | yes | placed board |
+| eternity2.dev URL | `a` | yes (by match) | yes (by match) | link to a board |
 | bucas URL | `a` | with pieces | with pieces | link to a board |
 
 </div>

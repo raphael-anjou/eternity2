@@ -44,8 +44,8 @@ mod tests;
 pub use bucas::board_to_bucas_url;
 pub use csv::{load_puzzle_csv, parse_puzzle_csv};
 pub use format::{
-    board_hash, bucas_url, cells_to_e2pieces, cells_to_edges, codes_to_pieces, parse_board_edges,
-    parse_puzzle_name, viewer_url, BoardDoc, VIEWER_ORIGIN,
+    board_hash, bucas_url, cells_to_e2pieces, cells_to_edges, codes_to_pieces, hints_to_param,
+    parse_board_edges, parse_hints, parse_puzzle_name, viewer_url, BoardDoc, VIEWER_ORIGIN,
 };
 pub use instance::{Hint, Instance, SolveOutput};
 pub use site::{SiteHint, SiteInstance};

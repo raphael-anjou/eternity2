@@ -1,0 +1,115 @@
+---
+title: The builder's toolkit
+description: >-
+  A ready-to-use Rust starter kit for building your own Eternity II solver:
+  score, generate boards with real colour balance, batch-generate with pinned
+  clues, convert every format, benchmark, and a solve→sweep→compare iteration
+  loop, so you write only the solver. Plus a one-line setup for coding agents,
+  and a board generator right here in the browser.
+metaDescription: "A ready-to-use Eternity II starter kit: a Rust workspace with scoring, board generation (real colour balance), batch generation with pinned clues, format conversion, and a solve→sweep→compare loop. You write only the Solver; set it up in your coding agent with one line."
+kind: tool
+order: 2
+group: Start here
+updated: 2026-07-20
+sources:
+  - label: "The starter kit (this repo): the Rust workspace, examples, and agent setup files"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
+related:
+  - /research/build/run-it-yourself
+  - /research/build/dataset
+  - /research/build/approaches-map
+  - /research/build/formats
+---
+
+import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
+import { BoardGenerator } from "@/components/research/BoardGenerator";
+
+Everything you need to *start* building an Eternity II solver, minus the solver
+itself. The [starter kit](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit)
+is one folder in the repo: a small Rust workspace that already does the plumbing.
+Scoring, board generation, batch generation with pinned clues, format conversion,
+benchmarking, and a full **solve → sweep → compare** iteration loop are all there.
+You write one `Solver`; the rest keeps working around it.
+
+Nothing in the kit re-implements scoring, generation, or formats. Those come from
+the same shared crates the site itself runs on, so a score from the kit is the
+*same* number the [viewer](/viewer) and every other engine produce: the one
+canonical rim-excluding matched-edge count. Copy the folder, drop in your idea,
+and iterate.
+
+<AgentSetupBlock />
+
+## What's in the box
+
+- **Score any board**, from an `eternity2.dev` / `e2.bucas.name` URL or a bare
+  `board_edges` blob, through the canonical scorer. A bundled verified 469 board
+  proves it agrees with the record archive.
+- **Generate boards** with real Eternity-II colour balance: five border colours
+  confined to the frame, the interior balanced, every piece distinct, fully
+  deterministic per seed.
+- **Batch-generate** ("give me 100 boards, these seeds, five clues pinned") as
+  reproducible site-schema JSON you can read straight back.
+- **Convert** between every format the community uses: `board_edges`,
+  `board_pieces`, `e2pieces.txt`, the `eternity2.dev` and legacy bucas URLs, and
+  CSV. See the [format reference](/research/build/formats).
+- **Benchmark** the plumbing single-core, so you know your solver's overhead
+  budget.
+- **The iteration loop:** a stable `Solver` trait, a sweep runner that writes
+  reproducible run directories, and a `compare` tool that diffs two runs, with
+  the variance discipline this puzzle demands baked in.
+
+## The one rule the kit enforces for you
+
+On Eternity II the score swings a lot from seed to seed: the standard deviation
+across seeds is roughly 12 to 20 points for a whole-board solver. So a one- or
+two-point difference in mean between two solver versions is almost always noise.
+The kit's `compare` tool refuses to call a sub-noise difference a win, tells you
+to sweep at least 40 seeds, and always reports the spread. Keep everything
+single-core, as the site's [benchmarks](/research/build/benchmarks) do, and your
+numbers stay comparable to everyone else's.
+
+## Write your first solver
+
+The whole kit is built around one trait:
+
+```rust
+use e2_kit::{Board, Budget, Instance, Solver};
+
+struct MySolver;
+
+impl Solver for MySolver {
+    fn name(&self) -> String { "my-solver".into() }
+
+    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
+        let mut board = instance.seed_board();   // starts from any pinned clues
+        // ...your search here. Poll budget.expired(); return the best board.
+        board
+    }
+}
+```
+
+Copy `examples/my_solver.rs` (a complete, working greedy baseline), replace the
+body of `solve`, then sweep it:
+
+```bash
+cargo run --release --example sweep -- --n 40 --budget 3
+cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
+```
+
+Full recipes (scoring, generation, batch, convert, benchmark) are in the kit's
+[README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme).
+Boards to test a solver against live in the CC0
+[dataset](/research/build/dataset); the approaches to try are surveyed in the
+[map of every known approach](/research/build/approaches-map).
+
+## Generate boards right here
+
+The kit's generator, in the browser: the same WASM engine, no install. Pick a
+shape and a seed range and it makes a reproducible batch; click any board to open
+it in the [viewer](/viewer) and score it edge by edge.
+
+<BoardGenerator />
+
+Want the same thing on the command line, or 10,000 boards with clues pinned? Use
+the kit's `generate_batch` example: it writes each board as JSON you can feed
+straight back to a solver.

@@ -58,17 +58,27 @@ impl Instance {
         let cells = board.to_edge_cells(&self.pieces);
         let score = score_cells(&cells);
         let codes = board.to_cell_codes();
+        let hints = self.hint_cells();
         SolveOutput {
             score,
             breaks: MAX_SCORE_16.saturating_sub(score),
-            url: viewer_url(&self.name, self.width, &cells, &codes),
+            url: viewer_url(&self.name, self.width, &cells, &hints),
             board_hash: board.hash(),
             cells,
             board: codes,
+            hints,
             name: self.name.clone(),
             size: self.width,
             max_score: self.max_score(),
         }
+    }
+
+    /// The pinned clue cells as `(pos, rot)` — the URL's `hints` coordinates. The
+    /// piece at each cell is recoverable from the edges, so only position and
+    /// orientation are carried.
+    #[must_use]
+    pub fn hint_cells(&self) -> Vec<(u16, u8)> {
+        self.hints.iter().map(|h| (h.pos, h.rot)).collect()
     }
 
     /// Rebuild a full board from decoded per-cell edge quads by matching each
@@ -123,6 +133,8 @@ pub struct SolveOutput {
     /// Per-cell URDL edge colors — kept so every derived format (JSON, CSV,
     /// bucas URL) can be produced without re-reading the piece set.
     pub cells: Vec<[u8; 4]>,
+    /// Pinned clue cells as `(pos, rot)`, carried into the URL's `hints`.
+    pub hints: Vec<(u16, u8)>,
     /// Puzzle name carried into the URL and JSON.
     pub name: String,
     /// Board side length (square).
@@ -143,6 +155,7 @@ impl SolveOutput {
             &self.cells,
             &self.board,
             self.board_hash,
+            &self.hints,
         )
     }
 

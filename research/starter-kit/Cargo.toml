@@ -1,0 +1,73 @@
+# The Eternity II starter kit — a ready-to-use Rust workspace for building your
+# own solver or running your own research. Everything the plumbing needs is
+# here; you write only the part that is your idea.
+#
+#   cargo run --release --example my_solver     # a worked baseline solver
+#   cargo run --release --example sweep         # run it across a seed grid
+#   cargo run --release --bin e2kit -- --help   # the CLI: gen | run | compare
+#
+# The kit does NOT re-implement scoring, formats, or generation. Those come from
+# the blog's shared crates by path, so a score here is the same score the site
+# and every other engine produce:
+#
+#   e2-core   the piece set, the ONE canonical (rim-excluding) scorer, the
+#             seeded generator with real Eternity-II colour balance
+#   e2-io     the shared Instance/BoardDoc IO contract + lossless converters
+#             (site JSON, CSV, eternity2.dev / bucas URLs, hints)
+#
+# Copy this whole folder out of the repo and it still builds: the two path deps
+# below are the only thing that reaches back into the tree. If you vendor the
+# kit elsewhere, copy `../experiments/common/crates/{e2-core,e2-io}` alongside it
+# and keep these paths pointing at them.
+
+[package]
+name = "e2-kit"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+publish = false
+description = "Eternity II starter kit: score, generate, convert, benchmark, and the solve-sweep-compare iteration loop."
+
+[lib]
+name = "e2_kit"
+path = "src/lib.rs"
+
+[[bin]]
+name = "e2kit"
+path = "bin/e2kit.rs"
+
+[dependencies]
+e2-core = { path = "../experiments/common/crates/e2-core" }
+e2-io = { path = "../experiments/common/crates/e2-io" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+unused_must_use = "deny"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+doc_markdown = "allow"
+# The kit is intrinsically numeric — colours, seeds, piece ids and cell indices
+# move between u8/u16/u32/usize/f64 within bounds the puzzle guarantees (≤256
+# cells, ≤22 colours). These casts are deliberate; silencing them keeps the
+# example code readable rather than littered with `try_from`/`#[allow]`.
+cast_possible_truncation = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+cast_lossless = "allow"
+# Teaching code: small edge arrays are passed by reference for readability, and
+# short mathematical names (n, s, x, y) read more clearly than verbose ones.
+trivially_copy_pass_by_ref = "allow"
+similar_names = "allow"
+case_sensitive_file_extension_comparisons = "allow"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

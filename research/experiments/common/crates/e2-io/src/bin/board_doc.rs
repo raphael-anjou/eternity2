@@ -83,9 +83,9 @@ fn main() -> io::Result<()> {
         // Canonical matched-edge score from the placed cells, the one scorer.
         let score = score_cells(&cells);
         let hash = board_hash(&codes);
-        let doc = BoardDoc::new(&inb.name, SIZE, score, max_score, &cells, &codes, hash);
-        // Defensive: the URL must be built from the same cells/codes.
-        debug_assert_eq!(doc.url, viewer_url(&inb.name, SIZE, &cells, &codes));
+        let doc = BoardDoc::new(&inb.name, SIZE, score, max_score, &cells, &codes, hash, &[]);
+        // Defensive: the URL must be built from the same cells.
+        debug_assert_eq!(doc.url, viewer_url(&inb.name, SIZE, &cells, &[]));
         writeln!(out, "{}", serde_json::to_string(&doc).expect("serialize BoardDoc"))?;
     }
     Ok(())
