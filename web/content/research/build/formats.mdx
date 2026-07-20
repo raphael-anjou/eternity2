@@ -103,7 +103,7 @@ index and clockwise quarter-turn, joined by `-`. Five official clues are about
 thirty characters.
 
 ```text
-hints=72.2-135.0-210.3-34.1-221.0
+hints=34.1-45.2-135.0-210.3-221.0
 ```
 
 The piece at each hinted cell is already known from `board_edges`, so a clue
@@ -247,7 +247,7 @@ Square boards, so a single `puzzle_size` (the viewer also reads bucas's
 needs no percent-encoding:
 
 ```text
-https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=72.2-135.0
+https://eternity2.dev/viewer?puzzle=NAME&puzzle_size=16&board_edges=…&hints=135.0-210.1
 ```
 
 `hints` is omitted for a board with no clues. Because the edges carry piece
@@ -256,9 +256,11 @@ two fields.
 
 **e2.bucas.name, the community viewer.** Jef Bucas's original, the viewer whose
 URL format *became* this whole vocabulary (the [toolbox](/research/build/tooling)
-tells that story). Fully supported as an input and available as a derived
-output, using its `board_w`/`board_h` pair, a `board_pieces` channel, and a `#`
-fragment:
+tells that story). Fully supported as an input, and available as a derived
+output using its `board_w`/`board_h` pair and a `#` fragment. We emit it
+edges-only (bucas recovers the pieces from the edges for a distinct set), though
+bucas links from other tools often also carry a `board_pieces` channel, which we
+read on input:
 
 ```text
 https://e2.bucas.name/#puzzle=NAME&board_w=16&board_h=16&board_edges=…

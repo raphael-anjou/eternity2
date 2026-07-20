@@ -55,7 +55,7 @@ check: test typecheck lint build
 
 # --- Starter kit -----------------------------------------------------------
 
-# Build the starter kit and run its tests (the 469-scorer + pinned-hint guards).
+# Build the starter kit and run its tests (official-set + pinned-hint + outcome guards).
 starter-kit:
     cd research/starter-kit && cargo build --release && cargo test --release
 

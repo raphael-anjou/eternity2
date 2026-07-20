@@ -46,10 +46,16 @@ pub struct RunConfig {
 pub struct CellResult {
     /// The generation seed for this board.
     pub seed: u32,
-    /// Canonical matched-edge score (rim excluded).
+    /// Canonical matched-edge score (rim excluded). This is an *achieved* score:
+    /// the board was placed and re-scored. A bound is never written here.
     pub score: u32,
     /// `max_score - score`: unmatched interior edges.
     pub breaks: u32,
+    /// What the search established (complete / exhausted / improved / a bound),
+    /// so an exhaustion proof or an upper bound is never read as a plain score.
+    /// A row written before this field existed reads back as `Complete`.
+    #[serde(default)]
+    pub outcome: crate::solver::OutcomeKind,
     /// Nodes/placements the solver reported, if any (0 if it doesn't track them).
     pub nodes: u64,
     /// Wall-clock seconds this instance took.
@@ -60,14 +66,32 @@ pub struct CellResult {
 
 /// Aggregate statistics over a sweep's cells. Written to `summary.json`.
 ///
-/// `sd` is the population standard deviation of the per-cell scores — always
+/// The score statistics (`mean`, `median`, `best`, `worst`, `sd`) are computed
+/// **only over cells that achieved a score** — the [`Complete`] and [`Improved`]
+/// outcomes, where a board was actually placed and re-scored. Cells that returned
+/// a bound or an exhaustion result are *not* placed boards, so folding their
+/// `score` (which is 0 for a pure bound) into the mean would be exactly the
+/// score/bound confusion the outcome type exists to prevent. Those are counted
+/// separately in `bounds` and `exhausted`.
+///
+/// `sd` is the population standard deviation of the achieved scores — always
 /// report it: on this puzzle the score spread across seeds is large (roughly
 /// 12–20 points for a whole-board solver), so a one- or two-point mean
-/// difference between two runs is usually noise until `n` is at least ~40.
+/// difference between two runs is usually noise until `n_scored` is at least ~40.
+///
+/// [`Complete`]: crate::solver::OutcomeKind::Complete
+/// [`Improved`]: crate::solver::OutcomeKind::Improved
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Summary {
     pub solver: String,
+    /// Total cells in the run (all outcomes).
     pub n: usize,
+    /// Cells whose score is an *achieved* board score (the basis for the stats).
+    pub n_scored: usize,
+    /// Cells that returned a bound rather than a placed board.
+    pub bounds: usize,
+    /// Cells that returned an exhaustion result.
+    pub exhausted: usize,
     pub mean: f64,
     pub median: f64,
     pub best: u32,
@@ -77,42 +101,77 @@ pub struct Summary {
     pub total_s: f64,
 }
 
+impl CellResult {
+    /// Whether this cell's `score` is an achieved board score (safe to average),
+    /// as opposed to a bound or an exhaustion result.
+    #[must_use]
+    pub fn is_achieved(&self) -> bool {
+        use crate::solver::OutcomeKind::{Complete, Improved};
+        matches!(self.outcome, Complete | Improved)
+    }
+}
+
 impl Summary {
-    /// Compute the aggregate over a set of cell results.
+    /// Compute the aggregate over a set of cell results. Score statistics cover
+    /// only the achieved-score cells; bounds and exhaustions are counted apart.
     #[must_use]
     pub fn of(solver: &str, cells: &[CellResult]) -> Self {
+        use crate::solver::OutcomeKind;
         let n = cells.len();
-        if n == 0 {
+        let bounds = cells
+            .iter()
+            .filter(|c| matches!(c.outcome, OutcomeKind::Bound { .. }))
+            .count();
+        let exhausted = cells
+            .iter()
+            .filter(|c| matches!(c.outcome, OutcomeKind::Exhausted))
+            .count();
+
+        // Statistics over achieved scores only — never over a bound's 0.
+        let mut scored: Vec<u32> = cells.iter().filter(|c| c.is_achieved()).map(|c| c.score).collect();
+        let n_scored = scored.len();
+        let total_s = cells.iter().map(|c| c.elapsed_s).sum();
+
+        if n_scored == 0 {
             return Self {
                 solver: solver.to_string(),
-                n: 0,
+                n,
+                n_scored: 0,
+                bounds,
+                exhausted,
                 mean: 0.0,
                 median: 0.0,
                 best: 0,
                 worst: 0,
                 sd: 0.0,
-                total_s: 0.0,
+                total_s,
             };
         }
-        let scores: Vec<f64> = cells.iter().map(|c| f64::from(c.score)).collect();
-        let mean = scores.iter().sum::<f64>() / n as f64;
-        let var = scores.iter().map(|s| (s - mean).powi(2)).sum::<f64>() / n as f64;
-        let mut sorted: Vec<u32> = cells.iter().map(|c| c.score).collect();
-        sorted.sort_unstable();
-        let median = if n % 2 == 0 {
-            f64::from(sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+
+        let mean = scored.iter().map(|&s| f64::from(s)).sum::<f64>() / n_scored as f64;
+        let var = scored
+            .iter()
+            .map(|&s| (f64::from(s) - mean).powi(2))
+            .sum::<f64>()
+            / n_scored as f64;
+        scored.sort_unstable();
+        let median = if n_scored % 2 == 0 {
+            f64::from(scored[n_scored / 2 - 1] + scored[n_scored / 2]) / 2.0
         } else {
-            f64::from(sorted[n / 2])
+            f64::from(scored[n_scored / 2])
         };
         Self {
             solver: solver.to_string(),
             n,
+            n_scored,
+            bounds,
+            exhausted,
             mean,
             median,
-            best: *sorted.last().unwrap(),
-            worst: sorted[0],
+            best: *scored.last().unwrap(),
+            worst: scored[0],
             sd: var.sqrt(),
-            total_s: cells.iter().map(|c| c.elapsed_s).sum(),
+            total_s,
         }
     }
 }

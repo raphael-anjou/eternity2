@@ -15,7 +15,9 @@
 //! sweep runner, run directories, the compare tool — keeps working unchanged,
 //! because they only depend on the [`Solver`] trait.
 
-use e2_kit::{generator, instance_from_generated, Board, Budget, Instance, Pieces, Solver};
+use e2_kit::{
+    generator, instance_from_generated, Board, Budget, Instance, Pieces, SolveOutcome, Solver,
+};
 
 /// Greedy row-major placement. Your starting point.
 struct GreedyRowMajor;
@@ -25,13 +27,14 @@ impl Solver for GreedyRowMajor {
         "greedy-row-major".into()
     }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
         let n = usize::from(instance.width) * usize::from(instance.height);
         let w = usize::from(instance.width);
         let pieces = &instance.pieces;
 
-        // Start from the hints so pinned clues are respected.
-        let mut board = instance.seed_board();
+        // Continue from the starting board (it already carries any pinned clues,
+        // and could be a partial board handed in for seed-and-grow work).
+        let mut board = start.clone();
         let mut used = vec![false; pieces.len()];
         for pos in 0..n {
             if let Some((pid, _)) = board.piece_at(pos) {
@@ -39,12 +42,15 @@ impl Solver for GreedyRowMajor {
             }
         }
 
+        let mut nodes = 0u64; // piece+rotation fits tried — the search work done
+        let mut ran_out = false;
         for pos in 0..n {
             if budget.expired() {
+                ran_out = true;
                 break; // return the best-so-far partial board
             }
             if !board.is_empty_at(pos) {
-                continue; // a hint already sits here
+                continue; // a hint or an already-placed cell
             }
             let (x, y) = (pos % w, pos / w);
 
@@ -60,6 +66,7 @@ impl Solver for GreedyRowMajor {
                     continue;
                 }
                 for r in 0..4 {
+                    nodes += 1;
                     let e = piece.rotated(r);
                     if let Some(score) = fit_score(&e, &want) {
                         if best.is_none_or(|(_, _, b)| score > b) {
@@ -77,7 +84,19 @@ impl Solver for GreedyRowMajor {
             // empty; a real solver would backtrack here instead.
         }
 
-        board
+        // Be honest about the outcome. `Complete` means a *full* board — every
+        // cell placed. Greedy has no backtracking, so it routinely leaves cells
+        // empty; a board with holes is NOT complete, and calling a budget cut-off
+        // "complete" would be worse. Either way it's `Improved`: a best-effort
+        // board, neither full nor proven. (Greedy never exhausts a space or
+        // computes a bound — `examples/bound.rs` shows those outcomes.)
+        let full = (0..n).all(|pos| !board.is_empty_at(pos));
+        let outcome = if full && !ran_out {
+            SolveOutcome::complete(board)
+        } else {
+            SolveOutcome::improved(board)
+        };
+        outcome.with_nodes(nodes)
     }
 }
 
@@ -144,13 +163,30 @@ fn main() {
 
     let mut solver = GreedyRowMajor;
     let budget = Budget::seconds(5.0);
-    let board = solver.solve(&instance, budget);
-    let out = instance.finish(&board);
+    let start = instance.seed_board();
+    let outcome = solver.solve(&instance, &start, budget);
+    let out = instance.finish(&outcome.board);
 
     println!("solver:  {}", solver.name());
     println!("seed:    {seed}");
-    println!("score:   {} / {}", out.score, out.max_score);
+    println!("score:   {} / {}   (achieved)", out.score, out.max_score);
+    println!("outcome: {:?}", outcome.kind);
+    println!("nodes:   {}", outcome.nodes);
     println!("breaks:  {}", out.breaks);
     println!("board:   {}", out.url);
+
+    // Continuation demo: `solve` takes a starting board, so you are not limited
+    // to the fresh seeded board the sweep hands you. Here we take the board we
+    // just produced and run the solver AGAIN from it — a stand-in for
+    // seed-and-grow / repair, where each round continues the previous board. A
+    // real repair solver would perturb `out.board` first; greedy just re-fills
+    // any cells it left empty.
+    let outcome2 = solver.solve(&instance, &outcome.board, Budget::seconds(5.0));
+    let out2 = instance.finish(&outcome2.board);
+    println!(
+        "\ncontinued from that board: {} / {}  ({:?})",
+        out2.score, out2.max_score, outcome2.kind
+    );
+
     println!("\nnow open src/solver.rs, then copy this file and replace `solve` with your idea.");
 }

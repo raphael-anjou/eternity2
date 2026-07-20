@@ -43,9 +43,10 @@ excluido. Copia la carpeta, mete tu idea e itera.
 
 ## Qué hay en la caja
 
-- **Puntuar cualquier tablero**, desde una URL `eternity2.dev` / `e2.bucas.name`
-  o un simple bloque `board_edges`, a través del puntuador canónico. Se incluye un
-  tablero 469 verificado para probar que concuerda con el archivo de records.
+- **Puntuar y verificar cualquier tablero**, desde una URL `eternity2.dev` /
+  `e2.bucas.name` o un simple bloque `board_edges`, a través del puntuador
+  canónico, y comprobarlo contra el conjunto de piezas oficial real (piezas todas
+  distintas, cumplimiento de pistas), que el kit ahora incluye.
 - **Generar tableros** con el equilibrio de colores real de Eternity II: cinco
   colores de borde confinados al marco, el interior equilibrado, cada pieza
   distinta, totalmente determinista según la semilla.
@@ -77,17 +78,17 @@ tus números seguirán siendo comparables con los de los demás.
 Todo el kit se construye en torno a un único trait:
 
 ```rust
-use e2_kit::{Board, Budget, Instance, Solver};
+use e2_kit::{Board, Budget, Instance, SolveOutcome, Solver};
 
 struct MySolver;
 
 impl Solver for MySolver {
     fn name(&self) -> String { "my-solver".into() }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
-        let mut board = instance.seed_board();   // parte de las pistas fijadas
-        // ...tu búsqueda aquí. Consulta budget.expired(); devuelve el mejor tablero.
-        board
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
+        let mut board = start.clone();   // `start` ya lleva las pistas fijadas
+        // ...tu búsqueda aquí. Consulta budget.expired().
+        SolveOutcome::complete(board)    // o ::improved / ::exhausted / ::bound
     }
 }
 ```

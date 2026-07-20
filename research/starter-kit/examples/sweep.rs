@@ -15,7 +15,7 @@
 //! inlined so this file is self-contained. Swap it for yours (or `use` your own
 //! module) and the runner, run directory, and compare tool all keep working.
 
-use e2_kit::{Board, Budget, Instance, Pieces, Solver, SweepConfig};
+use e2_kit::{Board, Budget, Instance, Pieces, SolveOutcome, Solver, SweepConfig};
 
 /// The greedy baseline again — replace with your idea. See `my_solver.rs` for
 /// the commented version.
@@ -26,19 +26,22 @@ impl Solver for GreedyRowMajor {
         "greedy-row-major".into()
     }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
         let n = usize::from(instance.width) * usize::from(instance.height);
         let s = usize::from(instance.width);
         let pieces = &instance.pieces;
-        let mut board = instance.seed_board();
+        let mut board = start.clone();
         let mut used = vec![false; pieces.len()];
         for pos in 0..n {
             if let Some((pid, _)) = board.piece_at(pos) {
                 used[pid as usize] = true;
             }
         }
+        let mut nodes = 0u64;
+        let mut ran_out = false;
         for pos in 0..n {
             if budget.expired() {
+                ran_out = true;
                 break;
             }
             if !board.is_empty_at(pos) {
@@ -52,6 +55,7 @@ impl Solver for GreedyRowMajor {
                     continue;
                 }
                 for r in 0..4 {
+                    nodes += 1;
                     let e = piece.rotated(r);
                     if let Some(score) = fit(&e, &want) {
                         if best.is_none_or(|(_, _, b)| score > b) {
@@ -65,7 +69,14 @@ impl Solver for GreedyRowMajor {
                 used[pid as usize] = true;
             }
         }
-        board
+        // Honest outcome: Complete only if the board is actually full (see
+        // my_solver.rs for the reasoning); otherwise it's a best-effort Improved.
+        let full = (0..n).all(|pos| !board.is_empty_at(pos));
+        if full && !ran_out {
+            SolveOutcome::complete(board).with_nodes(nodes)
+        } else {
+            SolveOutcome::improved(board).with_nodes(nodes)
+        }
     }
 }
 
@@ -133,14 +144,20 @@ fn main() {
     match e2_kit::sweep(&mut solver, &config, "runs") {
         Ok((dir, summary)) => {
             println!(
-                "swept {} seeds → mean {:.1}  sd {:.1}  best {}  (n={})",
-                summary.n, summary.mean, summary.sd, summary.best, summary.n
+                "swept {} seeds → mean {:.1}  sd {:.1}  best {}  (n_scored={})",
+                summary.n, summary.mean, summary.sd, summary.best, summary.n_scored
             );
-            if summary.n < 40 {
+            if summary.bounds > 0 || summary.exhausted > 0 {
                 println!(
-                    "note: n={} is small — score sd on this puzzle is large, so treat mean\n\
+                    "     ({} bound(s), {} exhaustion(s) not counted in the score stats)",
+                    summary.bounds, summary.exhausted
+                );
+            }
+            if summary.n_scored < 40 {
+                println!(
+                    "note: n_scored={} is small — score sd on this puzzle is large, so treat mean\n\
                      differences below ~sd as noise. Sweep --n 40+ before trusting a delta.",
-                    summary.n
+                    summary.n_scored
                 );
             }
             println!("run:  {}", dir.path().display());

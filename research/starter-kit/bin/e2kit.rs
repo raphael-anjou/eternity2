@@ -3,10 +3,12 @@
 //!   e2kit gen --n 100 --pins 5 --out runs/boards   # batch-generate boards
 //!   e2kit compare runs/<A> runs/<B>                 # paired diff of two runs
 //!   e2kit score "<board URL>"                       # score one board
+//!   e2kit verify "<URL>" | verify "<A>" "<B>"       # verify one / diff two boards
 //!
-//! `gen` and `score` mirror the same-named examples; `compare` is the tool that
-//! answers "did my change actually help?" by diffing two run directories the
-//! sweep produced. Run a sweep with `cargo run --release --example sweep`.
+//! `gen`, `score`, and `verify` mirror the same-named examples; `compare` is the
+//! tool that answers "did my change actually help?" by diffing two run
+//! directories the sweep produced. Run a sweep with
+//! `cargo run --release --example sweep`.
 
 use std::path::Path;
 
@@ -22,6 +24,7 @@ fn main() {
         "gen" => cmd_gen(rest),
         "compare" => cmd_compare(rest),
         "score" => cmd_score(rest),
+        "verify" => cmd_verify(rest),
         "" | "-h" | "--help" | "help" => usage(),
         other => {
             eprintln!("unknown command: {other}\n");
@@ -39,10 +42,51 @@ fn usage() {
          \x20 e2kit gen [--n N | --seeds A..B] [--size S] [--colors C] [--framed] [--pins K] [--out DIR | --jsonl]\n\
          \x20 e2kit compare <runA> <runB>\n\
          \x20 e2kit score \"<board URL>\"\n\
+         \x20 e2kit verify \"<URL>\" | verify \"<A>\" \"<B>\"\n\
          \n\
          Run a sweep to produce run directories for `compare`:\n\
          \x20 cargo run --release --example sweep -- --n 40\n"
     );
+}
+
+fn cmd_verify(rest: &[String]) {
+    // Re-score + official-set check for one board; piece-id diff for two. The
+    // heavy lifting lives in the verify example; the CLI mirrors its one/two-arg
+    // shape so `e2kit verify …` and `cargo run --example verify -- …` agree.
+    match rest {
+        [a] => {
+            let Some(cells) = e2_kit::parse_board_edges(a) else {
+                die("could not parse board_edges out of that input");
+            };
+            let score = e2_kit::score_cells(&cells);
+            println!("score: {score}   (canonical, rim excluded)");
+            if cells.len() == 256 {
+                let official = e2_kit::official_instance(true);
+                let clues_ok = official.hints.iter().all(|h| {
+                    let want = official.pieces.get(h.piece).unwrap().rotated(h.rot);
+                    cells.get(h.pos as usize) == Some(&want)
+                });
+                println!("official clues: {}", if clues_ok { "in place" } else { "VIOLATED" });
+            }
+        }
+        [a, b] => {
+            let (Some(ca), Some(cb)) =
+                (e2_kit::parse_board_edges(a), e2_kit::parse_board_edges(b))
+            else {
+                die("could not parse both boards");
+            };
+            if ca.len() != cb.len() {
+                die("boards differ in size");
+            }
+            let differ = ca.iter().zip(&cb).filter(|(x, y)| x != y).count();
+            println!("differ: {differ} of {} cells", ca.len());
+            println!("{}", if differ == 0 { "identical boards" } else { "NOT the same board" });
+        }
+        _ => {
+            eprintln!("usage: e2kit verify \"<URL>\"   |   e2kit verify \"<A>\" \"<B>\"");
+            std::process::exit(2);
+        }
+    }
 }
 
 fn cmd_score(rest: &[String]) {
@@ -125,17 +169,25 @@ fn cmd_compare(rest: &[String]) {
     let ra = RunDir::read_results(a).unwrap_or_else(|e| die(&format!("read {a}: {e}")));
     let rb = RunDir::read_results(b).unwrap_or_else(|e| die(&format!("read {b}: {e}")));
 
-    // Pair by seed so the comparison is apples-to-apples per board.
+    // Pair by seed so the comparison is apples-to-apples per board. Only pair
+    // cells where BOTH sides achieved a score (a placed board): a bound or an
+    // exhaustion result is not a score, so comparing it as one would be exactly
+    // the confusion the outcome type prevents.
     let map_b: std::collections::HashMap<u32, &CellResult> =
         rb.iter().map(|c| (c.seed, c)).collect();
     let mut paired: Vec<(&CellResult, &CellResult)> = Vec::new();
+    let mut skipped = 0usize;
     for ca in &ra {
         if let Some(cb) = map_b.get(&ca.seed) {
-            paired.push((ca, *cb));
+            if ca.is_achieved() && cb.is_achieved() {
+                paired.push((ca, *cb));
+            } else {
+                skipped += 1;
+            }
         }
     }
     if paired.is_empty() {
-        die("no shared seeds between the two runs — did they sweep the same grid?");
+        die("no shared seeds with an achieved score on both sides — nothing comparable.");
     }
 
     let n = paired.len();
@@ -143,8 +195,12 @@ fn cmd_compare(rest: &[String]) {
         .iter()
         .map(|(a, b)| f64::from(b.score) - f64::from(a.score))
         .collect();
-    let mean_a = ra.iter().map(|c| f64::from(c.score)).sum::<f64>() / ra.len() as f64;
-    let mean_b = rb.iter().map(|c| f64::from(c.score)).sum::<f64>() / rb.len() as f64;
+    let achieved_mean = |rows: &[CellResult]| {
+        let s: Vec<f64> = rows.iter().filter(|c| c.is_achieved()).map(|c| f64::from(c.score)).collect();
+        if s.is_empty() { 0.0 } else { s.iter().sum::<f64>() / s.len() as f64 }
+    };
+    let mean_a = achieved_mean(&ra);
+    let mean_b = achieved_mean(&rb);
     let mean_delta = deltas.iter().sum::<f64>() / n as f64;
     let sd_delta = {
         let var = deltas.iter().map(|d| (d - mean_delta).powi(2)).sum::<f64>() / n as f64;
@@ -156,9 +212,13 @@ fn cmd_compare(rest: &[String]) {
 
     println!("A: {a}");
     println!("B: {b}");
-    println!("paired on {n} shared seeds\n");
-    println!("  mean A      {mean_a:.2}");
-    println!("  mean B      {mean_b:.2}");
+    println!("paired on {n} shared seeds with an achieved score on both sides");
+    if skipped > 0 {
+        println!("  ({skipped} shared seed(s) skipped: a bound or exhaustion, not a score)");
+    }
+    println!();
+    println!("  mean A      {mean_a:.2}   (achieved cells only)");
+    println!("  mean B      {mean_b:.2}   (achieved cells only)");
     println!("  mean Δ(B−A) {mean_delta:+.2}   sd {sd_delta:.2}");
     println!("  B wins {wins}   losses {losses}   ties {ties}");
 

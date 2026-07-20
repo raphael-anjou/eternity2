@@ -89,6 +89,11 @@ impl Instance {
     /// document: greedy first-fit matching, each piece used at most once — the
     /// same procedure the crate's cross-validation test uses to turn the known
     /// 469 board back into placements. An empty cell (`[0; 4]`) stays empty.
+    ///
+    /// This is unambiguous **only when the piece set is distinct up to rotation**
+    /// (the official set is; a faithful generator keeps it so). If two pieces
+    /// shared an edge pattern up to rotation, greedy first-fit could assign the
+    /// wrong one — recovering identity from edges alone requires distinctness.
     #[must_use]
     pub fn match_board(&self, cells: &[[u8; 4]]) -> SolveOutput {
         let mut used = vec![false; self.pieces.len()];

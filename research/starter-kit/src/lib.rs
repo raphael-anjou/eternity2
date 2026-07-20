@@ -28,13 +28,17 @@ pub use e2_core::{
     generator, score_board, score_cells, Board, GeneratedPuzzle, Piece, Pieces, MAX_SCORE_16,
 };
 pub use e2_io::{
-    board_to_bucas_url, bucas_url, parse_board_edges, viewer_url, BoardDoc, Hint, Instance,
-    SiteInstance, SolveOutput,
+    board_to_bucas_url, bucas_url, hints_to_param, parse_board_edges, parse_hints, viewer_url,
+    BoardDoc, Hint, Instance, SiteInstance, SolveOutput,
 };
 
 pub use run::{CellResult, RunConfig, RunDir, Summary};
 pub use runner::{sweep, SweepConfig};
-pub use solver::{Budget, Solver};
+pub use solver::{BoundKind, Budget, OutcomeKind, SolveOutcome, Solver};
+
+// The official puzzle is available via the `official_instance` / `OFFICIAL_JSON`
+// items defined below, and `pieces_distinct_up_to_rotation` for the invariant
+// the URL format relies on.
 
 /// The official puzzle's side length and its interior-colour count. Handy
 /// defaults for a sweep aimed at the real 16×16 puzzle.
@@ -42,21 +46,67 @@ pub const OFFICIAL_SIZE: u8 = 16;
 /// The official interior-colour count (22 renderable motifs).
 pub const OFFICIAL_COLORS: u8 = 22;
 
+/// The official Eternity II puzzle, in the site's canonical `Puzzle`/[`SiteInstance`]
+/// JSON: all 256 pieces in id order, plus the five official clues. This is the
+/// same schema the site's viewer and every algorithm read (`--puzzle …json`), so
+/// the kit publishes the real set in *our* format, not a foreign one.
+pub const OFFICIAL_JSON: &str = include_str!("../data/official.json");
+
+/// The official Eternity II instance: all 256 real pieces, and — when
+/// `with_clues` — the five official clue pieces pinned at their published cells.
+///
+/// This is the instance a record attempt or a re-measurement actually runs on
+/// (one canonical board, not a generated seed). It is loaded through `e2-io`'s
+/// own [`SiteInstance`] deserialiser and `From<SiteInstance>` conversion — the
+/// same path `Instance::from_site_json` uses — so no parsing lives in the kit.
+/// `official_instance(true).finish(board)` re-scores any candidate board against
+/// the true set through the canonical scorer, the check a "new record" claim has
+/// to survive.
+#[must_use]
+pub fn official_instance(with_clues: bool) -> Instance {
+    let site: SiteInstance =
+        serde_json::from_str(OFFICIAL_JSON).expect("bundled official.json is valid SiteInstance");
+    let mut instance: Instance = site.into();
+    // The official set must be distinct up to rotation — it is what makes
+    // edge-only piece recovery unambiguous. Cheap to check; a corrupt bundled
+    // file would trip it in tests/debug rather than mis-decoding silently.
+    debug_assert!(
+        pieces_distinct_up_to_rotation(&instance.pieces),
+        "official set is not distinct up to rotation — bundled data is corrupt"
+    );
+    if !with_clues {
+        instance.hints.clear();
+    }
+    instance
+}
+
 /// Turn a [`GeneratedPuzzle`] into a solvable [`Instance`] with no hints.
 ///
-/// The generated puzzle already carries all-distinct, colour-balanced pieces;
-/// this just wraps them in the IO layer's [`Instance`] so the scorer, the URL
+/// This wraps the pieces in the IO layer's [`Instance`] so the scorer, the URL
 /// encoders, and the sweep runner all work on it. Use the *scrambled* forms
 /// (`generator::generate` / `generate_framed`) for a genuine puzzle; a *solved*
 /// form would hand the solver the answer.
+///
+/// The generator aims for colour-balanced pieces that are **distinct up to
+/// rotation** — the property edge-only piece recovery relies on — but for a full
+/// 16×16 board it does so **best-effort** (a bounded repair pass). At the
+/// official 16×16/22 shape this always succeeds in practice, and a debug build
+/// asserts it here. For unusual small shapes with very few colours distinctness
+/// may be impossible; there, check [`pieces_distinct_up_to_rotation`] yourself
+/// before relying on edge-only recovery.
 #[must_use]
 pub fn instance_from_generated(name: &str, p: &GeneratedPuzzle) -> Instance {
+    let pieces = Pieces::new(p.pieces.clone());
+    debug_assert!(
+        p.width != 16 || p.height != 16 || pieces_distinct_up_to_rotation(&pieces),
+        "generated 16×16 board is not distinct up to rotation — edge-only recovery is unsafe"
+    );
     Instance {
         name: name.to_string(),
         width: p.width,
         height: p.height,
         num_colors: p.num_colors,
-        pieces: Pieces::new(p.pieces.clone()),
+        pieces,
         hints: Vec::new(),
     }
 }
@@ -161,4 +211,18 @@ fn canonical(e: [u8; 4]) -> [u8; 4] {
         }
     }
     best
+}
+
+/// True when every piece is **distinct up to rotation** — no two pieces share a
+/// canonical (rotation-minimal) edge pattern.
+///
+/// This is the property that lets a board recover piece identity and rotation
+/// from its edges alone (and so lets a board-in-a-URL carry no piece channel).
+/// The official set has it; a generated puzzle is built to have it but only
+/// best-effort. If it fails, edge-only piece recovery ([`Instance::match_board`])
+/// can silently mis-assign, so check it before relying on that path.
+#[must_use]
+pub fn pieces_distinct_up_to_rotation(pieces: &Pieces) -> bool {
+    let mut seen = std::collections::HashSet::with_capacity(pieces.len());
+    pieces.iter().all(|(_, p)| seen.insert(canonical(p.edges)))
 }

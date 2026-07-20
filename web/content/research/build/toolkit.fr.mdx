@@ -43,10 +43,10 @@ exclue. Copiez le dossier, glissez-y votre idée, et itérez.
 
 ## Ce qu'il y a dans la boîte
 
-- **Scorer n'importe quel plateau**, depuis une URL `eternity2.dev` /
-  `e2.bucas.name` ou un simple bloc `board_edges`, via le scorer canonique. Un
-  plateau 469 vérifié est inclus pour prouver l'accord avec les archives de
-  records.
+- **Scorer et vérifier n'importe quel plateau**, depuis une URL `eternity2.dev` /
+  `e2.bucas.name` ou un simple bloc `board_edges`, via le scorer canonique, et le
+  contrôler contre le vrai jeu de pièces officiel (pièces toutes distinctes,
+  conformité des indices), que le kit fournit désormais.
 - **Générer des plateaux** au vrai équilibre des couleurs d'Eternity II : cinq
   couleurs de bordure confinées au cadre, l'intérieur équilibré, chaque pièce
   distincte, entièrement déterministe selon la graine.
@@ -78,17 +78,17 @@ comparables à ceux de tous les autres.
 Tout le kit est bâti autour d'un seul trait :
 
 ```rust
-use e2_kit::{Board, Budget, Instance, Solver};
+use e2_kit::{Board, Budget, Instance, SolveOutcome, Solver};
 
 struct MySolver;
 
 impl Solver for MySolver {
     fn name(&self) -> String { "my-solver".into() }
 
-    fn solve(&mut self, instance: &Instance, budget: Budget) -> Board {
-        let mut board = instance.seed_board();   // part des indices épinglés
-        // ...votre recherche ici. Interrogez budget.expired() ; renvoyez le meilleur plateau.
-        board
+    fn solve(&mut self, instance: &Instance, start: &Board, budget: Budget) -> SolveOutcome {
+        let mut board = start.clone();   // `start` porte déjà les indices épinglés
+        // ...votre recherche ici. Interrogez budget.expired().
+        SolveOutcome::complete(board)    // ou ::improved / ::exhausted / ::bound
     }
 }
 ```
