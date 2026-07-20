@@ -7,7 +7,7 @@
 
 use std::process::{Command, Stdio};
 
-use dfs_codegen::emit::{emit_program, emit_program_chain, emit_program_chain2};
+use dfs_codegen::emit::{emit_program, emit_program_chain, emit_program_chain2, emit_program_chain_g};
 use e2_io::Instance;
 
 fn main() -> std::process::ExitCode {
@@ -33,8 +33,15 @@ fn main() -> std::process::ExitCode {
 
     let chain = args.iter().any(|a| a == "--chain");
     let chain2 = args.iter().any(|a| a == "--chain2");
+    let group: Option<usize> = args
+        .iter()
+        .position(|a| a == "--group")
+        .and_then(|i| args.get(i + 1))
+        .and_then(|s| s.parse().ok());
     let budget_ms = (budget_s * 1000.0) as u64;
-    let src = if chain2 {
+    let src = if let Some(g) = group {
+        emit_program_chain_g(&inst, budget_ms, g)
+    } else if chain2 {
         emit_program_chain2(&inst, budget_ms)
     } else if chain {
         emit_program_chain(&inst, budget_ms)
