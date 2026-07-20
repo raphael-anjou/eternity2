@@ -391,11 +391,21 @@ fn emit_cell_scan(
     s.push_str(&format!("{ind}}}\n"));
 }
 
-/// Function-chain engine with TWO cells fused per function: one `bl` call per two
-/// placed cells instead of one, halving the recursive-call/register-save overhead
-/// that is the chain's only disadvantage vs McGavin's `goto`-based backtracking.
+/// Function-chain engine with `group` cells fused per function: one `bl` call per
+/// `group` placed cells instead of one, cutting the recursive-call/register-save
+/// overhead that is the chain's only disadvantage vs McGavin's `goto`-based
+/// backtracking. Measured sweep on Apple M1 (unhinted 16×16): nps peaks at
+/// `group = 6` (~123M/s), where fewer calls still outweigh the growing register
+/// pressure; beyond that it plateaus/regresses. This wrapper uses the tuned 6.
 #[must_use]
 pub fn emit_program_chain2(inst: &Instance, budget_ms: u64) -> String {
+    emit_program_chain_g(inst, budget_ms, 6)
+}
+
+/// Like [`emit_program_chain2`] but with a caller-chosen fusion `group` size.
+#[must_use]
+pub fn emit_program_chain_g(inst: &Instance, budget_ms: u64, group: usize) -> String {
+    let group = group.max(1);
     let colors = inst.pieces.max_color() as usize + 1;
     let mut oriented: Vec<u64> = Vec::new();
     for (pid, p) in inst.pieces.iter() {
@@ -468,34 +478,48 @@ pub fn emit_program_chain2(inst: &Instance, budget_ms: u64) -> String {
         k + 1 < free.len() && (free[k] + 1) % W != 0 && free[k + 1] == free[k] + 1
     };
 
-    // Emit fused-pair functions. Pair p covers free cells 2p and 2p+1.
-    let npairs = free.len().div_ceil(2);
-    for p in 0..npairs {
-        let ka = 2 * p;
-        let kb = 2 * p + 1;
-        s.push_str(&format!("#[inline(never)]\nfn pair_{p}(st: &mut St, left_arg: u8) -> bool {{\n"));
+    // Distinct suffix per cell-slot within a group (a,b,c,d,...).
+    let slot = |i: usize| -> String { ((b'a' + i as u8) as char).to_string() };
+    // Emit fused-group functions. Group g covers free cells [g*group .. g*group+group).
+    let ngroups = free.len().div_ceil(group);
+    for gi in 0..ngroups {
+        let start = gi * group;
+        let end = (start + group).min(free.len());
+        let members: Vec<usize> = (start..end).collect(); // chain indices in this group
+        s.push_str(&format!("#[inline(never)]\nfn grp_{gi}(st: &mut St, left_arg: u8) -> bool {{\n"));
         s.push_str("    if TIMED_OUT.load(Ordering::Relaxed) { return true; }\n");
         s.push_str("    let _ = left_arg;\n");
-        if kb < free.len() {
-            // Inner block for cell a = the second cell's scan, whose `inner` is the
-            // call to the next pair.
-            let next_call = if 2 * (p + 1) < free.len() {
-                let arg = if passes_right(kb) { "e_r_b" } else { "0" };
-                format!("            if pair_{}(st, {arg}) {{ return true; }}\n", p + 1)
+        // The innermost cell's `inner` calls the next group (or terminal).
+        let last = *members.last().unwrap();
+        let next_inner = if end < free.len() {
+            let arg = if passes_right(last) {
+                format!("e_r_{}", slot(members.len() - 1))
             } else {
-                "            if terminal(st, 0) { return true; }\n".to_string()
+                "0".to_string()
             };
-            // cell b's left: from a's right edge if b is a's horizontal right.
-            let b_left = if passes_right(ka) { "e_r_a".to_string() } else { left_src(kb) };
-            let mut inner_b = String::new();
-            emit_cell_scan(&mut inner_b, "        ", free[kb], &b_left, "b", &pinned, &next_call);
-            // cell a's inner is cell b's scan.
-            emit_cell_scan(&mut s, "    ", free[ka], &left_src(ka), "a", &pinned, &inner_b);
+            format!("if grp_{}(st, {arg}) {{ return true; }}\n", gi + 1)
         } else {
-            // Odd tail: only cell a, whose inner is the terminal call.
-            let inner = "        if terminal(st, 0) { return true; }\n".to_string();
-            emit_cell_scan(&mut s, "    ", free[ka], &left_src(ka), "a", &pinned, &inner);
+            "if terminal(st, 0) { return true; }\n".to_string()
+        };
+        // Build from the innermost cell outward: each cell's `inner` is the next
+        // cell's scan block. Indentation grows one step per nesting level.
+        let mut inner = next_inner;
+        for (rev, &k) in members.iter().enumerate().rev() {
+            let depth = rev; // 0 = outermost
+            let ind = "    ".repeat(depth + 1);
+            let sf = slot(rev);
+            // This cell's left source: from the previous member's right edge when
+            // they are horizontally adjacent; else the passed arg / board / border.
+            let left = if rev > 0 && free[k] == free[members[rev - 1]] + 1 && free[k] % W != 0 {
+                format!("e_r_{}", slot(rev - 1))
+            } else {
+                left_src(k)
+            };
+            let mut block = String::new();
+            emit_cell_scan(&mut block, &ind, free[k], &left, &sf, &pinned, &inner);
+            inner = block;
         }
+        s.push_str(&inner);
         s.push_str("    false\n}\n");
     }
 
@@ -509,7 +533,7 @@ pub fn emit_program_chain2(inst: &Instance, budget_ms: u64) -> String {
         } else {
             format!("(unsafe {{ *st.cell.get_unchecked({}) }} >> 16) as u8", first - 1)
         };
-        s.push_str(&format!("#[inline(always)]\nfn run_search(st: &mut St) {{ let l0 = {l0}; pair_0(st, l0); }}\n"));
+        s.push_str(&format!("#[inline(always)]\nfn run_search(st: &mut St) {{ let l0 = {l0}; grp_0(st, l0); }}\n"));
     }
     s.push_str(CHAIN_MAIN);
     s
