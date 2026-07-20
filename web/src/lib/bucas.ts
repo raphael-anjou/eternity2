@@ -168,6 +168,47 @@ export function encodeHints(hints: { pos: number; rot: number }[]): string {
   return hints.map((h) => `${h.pos}.${h.rot & 3}`).join("-");
 }
 
+/** Re-encode a decoded board's cells into the default bucas `board_edges`
+ *  letters. Works straight off `BucasBoard` cells (`Edges | null`, null → empty
+ *  `"aaaa"`), so any decoded board round-trips without a piece set. */
+export function cellsToBoardEdges(cells: (Edges | null)[]): string {
+  let out = "";
+  for (const cell of cells) {
+    out += cell ? cell.map((c) => String.fromCharCode(97 + c)).join("") : "aaaa";
+  }
+  return out;
+}
+
+/** Sanitize a puzzle name to the URL-safe subset, matching e2-io's
+ *  `sanitize_name` so a board carries the same name through every tool. */
+export function sanitizeName(name: string | null): string {
+  const raw = (name ?? "eternity2-board").replace(/[^A-Za-z0-9_]+/g, "_");
+  return raw.length > 0 ? raw : "eternity2_board";
+}
+
+/** The one canonical eternity2.dev viewer URL for a decoded board. The board
+ *  rides entirely in `board_edges` (pieces are recovered from the edges), and any
+ *  clue cells in `hints`. No `board_pieces` — this is the single source of truth
+ *  for our viewer URL, matching the Rust `viewer_url` and `ourParams`. */
+export function viewerUrlFromBoard(board: BucasBoard): string {
+  const name = sanitizeName(board.puzzleName);
+  const edges = cellsToBoardEdges(board.cells);
+  let params = `puzzle=${name}&puzzle_size=${board.width}&board_edges=${edges}`;
+  if (board.hints && board.hints.length) {
+    params += `&hints=${board.hints.map((pos) => `${pos}.0`).join("-")}`;
+  }
+  return `https://eternity2.dev/viewer?${params}`;
+}
+
+/** The e2.bucas.name viewer URL for a decoded board, edges-only (matching the
+ *  Rust `bucas_url` emitter and `bucasParams`). Uses bucas's `board_w`/`board_h`
+ *  pair and a `#` fragment. */
+export function bucasUrlFromBoard(board: BucasBoard): string {
+  const name = sanitizeName(board.puzzleName);
+  const edges = cellsToBoardEdges(board.cells);
+  return `https://e2.bucas.name/#puzzle=${name}&board_w=${board.width}&board_h=${board.height}&board_edges=${edges}`;
+}
+
 /** Match decoded cells to a piece set: cell -> pieceId*4+rot, or -1. */
 export function matchToPieces(puzzle: Puzzle, board: BucasBoard): Int32Array {
   const out = new Int32Array(board.width * board.height).fill(-1);
