@@ -431,12 +431,17 @@ fn emit_cell_scan(
 /// pressure; beyond that it plateaus/regresses. This wrapper uses the tuned 6.
 #[must_use]
 pub fn emit_program_chain2(inst: &Instance, budget_ms: u64) -> String {
-    emit_program_chain_g(inst, budget_ms, 6)
+    emit_program_chain_g(inst, budget_ms, 6, 0)
 }
 
-/// Like [`emit_program_chain2`] but with a caller-chosen fusion `group` size.
+/// Like [`emit_program_chain2`] but with a caller-chosen fusion `group` size and a
+/// `seed` that rotates each candidate bucket. The seed does NOT change the set of
+/// boards explored, only the ORDER candidates are tried within each cell — so
+/// different seeds explore different branches first and reach different best
+/// partials under a time budget. This is how independent cores diversify a search
+/// on a puzzle with few pins (the engine is otherwise fully deterministic).
 #[must_use]
-pub fn emit_program_chain_g(inst: &Instance, budget_ms: u64, group: usize) -> String {
+pub fn emit_program_chain_g(inst: &Instance, budget_ms: u64, group: usize, seed: u64) -> String {
     let group = group.max(1);
     let colors = inst.pieces.max_color() as usize + 1;
     let mut oriented: Vec<u64> = Vec::new();
@@ -460,6 +465,16 @@ pub fn emit_program_chain_g(inst: &Instance, budget_ms: u64, group: usize) -> St
         let e0 = (w >> 32) as u8;
         let e3 = (w >> 8) as u8;
         buckets_ul[e0 as usize * colors + e3 as usize].push(w);
+    }
+    // Seed diversity: rotate each bucket by a seed-derived offset so different
+    // runs try candidates in a different order (same set, different first-tried).
+    if seed != 0 {
+        for b in &mut buckets_ul {
+            if b.len() > 1 {
+                let off = (seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) as usize) % b.len();
+                b.rotate_left(off);
+            }
+        }
     }
     let (ul_start, pool_ul) = flatten(&buckets_ul);
 
