@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useT } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
@@ -65,7 +65,8 @@ function connectHintsFirst(): number[] {
   for (const h of HINTS) { seen[h] = true; order.push(h); queue.push(h); }
   let head = 0;
   while (head < queue.length) {
-    const cell = queue[head++]!;
+    const cell = queue[head++];
+    if (cell === undefined) break;
     const [r, c] = rc(cell);
     const nbrs = [
       r > 0 ? idx(r - 1, c) : -1,
@@ -175,8 +176,6 @@ export function HintPathFill() {
   const [path, setPath] = useState<Path>("rowmajor");
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const raf = useRef<number | null>(null);
-  const last = useRef<number>(0);
 
   const sequence = useMemo(() => buildPath(path), [path]);
   const hintSet = useMemo(() => new Set(HINTS), []);
@@ -194,29 +193,52 @@ export function HintPathFill() {
 
   const frontier = useMemo(() => frontierSize(filled), [filled]);
 
-  // Track peak frontier across the whole run for the current path.
-  const [peak, setPeak] = useState(0);
-  useEffect(() => setPeak((p) => Math.max(p, frontier)), [frontier]);
-  useEffect(() => { setPeak(0); setStep(0); setPlaying(false); }, [path]);
+  // Peak frontier so far for the current path — derived, not stored: the fill is
+  // monotonic in `step`, so the peak up to now is the max frontier over the cells
+  // placed so far. Computing it as a memo avoids a setState-inside-effect.
+  const peak = useMemo(() => {
+    const s = new Set<number>(HINTS);
+    let mx = frontierSize(s);
+    for (let i = 0; i < step; i++) {
+      const cell = sequence[i];
+      if (cell !== undefined) s.add(cell);
+      const f = frontierSize(s);
+      if (f > mx) mx = f;
+    }
+    return mx;
+  }, [sequence, step]);
 
-  const tick = useCallback(
-    (now: number) => {
-      if (now - last.current > 26) {
-        last.current = now;
+  // Switching path resets the animation — done in the tab handler (`selectPath`)
+  // rather than a path-watching effect, to avoid a setState-inside-effect.
+  const selectPath = (p: Path) => {
+    setPath(p);
+    setStep(0);
+    setPlaying(false);
+  };
+
+  // The play loop, self-contained in one effect: a local rAF handle, no shared
+  // ref mutation and no self-referencing callback, so it satisfies the hooks
+  // lints. Advances one step roughly every 26 ms while playing.
+  useEffect(() => {
+    if (!playing) return;
+    let handle = 0;
+    let previous = 0;
+    const loop = (now: number) => {
+      if (now - previous > 26) {
+        previous = now;
         setStep((s) => {
-          if (s >= total) { setPlaying(false); return s; }
+          if (s >= total) {
+            setPlaying(false);
+            return s;
+          }
           return s + 1;
         });
       }
-      raf.current = requestAnimationFrame(tick);
-    },
-    [total],
-  );
-
-  useEffect(() => {
-    if (playing) { raf.current = requestAnimationFrame(tick); }
-    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [playing, tick]);
+      handle = requestAnimationFrame(loop);
+    };
+    handle = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(handle);
+  }, [playing, total]);
 
   if (!isClient) {
     return (
@@ -247,7 +269,7 @@ export function HintPathFill() {
             key={p}
             role="tab"
             aria-selected={path === p}
-            onClick={() => setPath(p)}
+            onClick={() => selectPath(p)}
             className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
               path === p
                 ? "bg-primary text-primary-foreground"
@@ -304,7 +326,7 @@ export function HintPathFill() {
               {t.step}
             </button>
             <button
-              onClick={() => { setPlaying(false); setStep(0); setPeak(0); }}
+              onClick={() => { setPlaying(false); setStep(0); }}
               className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium"
             >
               {t.reset}

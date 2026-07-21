@@ -225,7 +225,8 @@ export function connectHintsSeq(n: number, hints: number[]): number[] {
   for (const h of hints) { seen[h] = true; order.push(h); queue.push(h); }
   let head = 0;
   while (head < queue.length) {
-    const cell = queue[head++]!;
+    const cell = queue[head++];
+    if (cell === undefined) break;
     for (const nb of nbrs4(n, cell))
       if (!seen[nb]) { seen[nb] = true; order.push(nb); queue.push(nb); }
   }

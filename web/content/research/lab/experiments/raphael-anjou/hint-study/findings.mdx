@@ -2,10 +2,10 @@
 title: What the study found
 description: >-
   The results, worked through: on these boards the five clue-shaped hints never
-  help a backtracker — they range from a mild cost to a catastrophe — and the fill
+  help a backtracker, they range from a mild cost to a catastrophe, and the fill
   order decides how much damage they do; the scores are bimodal, not a smooth
   gradient; and the hint-count question is confounded by a free pinned-seam floor.
-metaDescription: "The hint study's findings: on generated Eternity II boards, five clue-shaped hints never help a chronological backtracker — they cost a compact sweep ~30 points and cripple a hint-seeking order by ~330 — because a pinned piece is a hard constraint a fixed fill order must satisfy on arrival."
+metaDescription: "The hint study's findings: on generated Eternity II boards, five clue-shaped hints never help a chronological backtracker, they cost a compact sweep ~30 points and cripple a hint-seeking order by ~330, because a pinned piece is a hard constraint a fixed fill order must satisfy on arrival."
 kind: page
 contribution: measurement
 author: raphael-anjou
@@ -31,11 +31,11 @@ The study fixes five hints in the shape of Eternity II's own five clues, runs ei
 fill orders on the identical boards, and asks a simple question: what are those five
 hints worth? Every number below is over fifteen distinct generated instances,
 single core, eight seconds a run, re-scored out of 480 by one canonical
-scorer. The comparison is paired — every fill order sees the same boards — and the
+scorer. The comparison is paired, every fill order sees the same boards, and the
 per-instance spread is shown rather than averaged away, because it turns out to
 matter more than any median.
 
-## The hints don't help — and the fill order decides how much they hurt
+## The hints don't help, and the fill order decides how much they hurt
 
 Start with the distribution. Each dot is one board; the tick is the median.
 
@@ -43,21 +43,21 @@ Start with the distribution. Each dot is one board; the tick is the median.
 
 Two things are visible at once. First, the scores are **bimodal**: on most orders a
 board either climbs into the 330s or stalls near 100, with little in between. A
-median drawn through that is a summary of a gap, not a centre — which is exactly why
+median drawn through that is a summary of a gap, not a centre, which is exactly why
 the dots are shown. Second, the orders split hard: the three compact sweeps
 (row-major, its bottom-up mirror, Verhaard's comb) sit high on most boards; the
 fragmenting orders sit low throughout.
 
 But the compact-beats-fragmenting split is not the real finding, because it invites
-the wrong question — "which order best *uses* the hints?" The honest question is
-whether the hints help *at all*. The second chart answers it, and the answer is no.
+the wrong question, "which order best *uses* the hints?" The question that matters
+is whether the hints help *at all*. The second chart answers it, and the answer is no.
 It shows the **paired change** from adding the five hints: each order's score on a
 board minus its score on the *same board with no hints*.
 
 Every bar is at or below zero. The five clue-shaped hints do not help a single fill
 order. On the compact sweeps they cost around thirty points. On spiral-out they cost
 over two hundred. And on the hint-seeking `connect-hints-first` order they cost
-roughly **three hundred and thirty** — the same order scores among the *best* of all
+roughly **three hundred and thirty**, the same order scores among the *best* of all
 eight with no hints and by far the *worst* with them. Handing the solver five correct
 pieces, in the puzzle's own clue geometry, made every version of it worse.
 
@@ -66,7 +66,7 @@ pieces, in the puzzle's own clue geometry, made every version of it worse.
 A pinned piece is not free information to a chronological backtracker; it is a **hard
 constraint the fixed fill order must satisfy on arrival**. When a compact sweep rolls
 down to a pinned interior cell, the piece is already there, and the row it just built
-has to match that piece's edges. Most of the time it can, at a small cost — the
+has to match that piece's edges. Most of the time it can, at a small cost: the
 sweep steers around the constraint and loses a few tens of points. But on some boards
 the pinned piece contradicts what the frontier has committed to, and there is no
 local repair: the search hits a wall it cannot pass and thrashes below it. That is
@@ -74,14 +74,14 @@ the stalled mode, and it is the hints that create it. On row-major, the boards t
 collapse to ~100 are precisely the ones where a clue-shape pin lands where the sweep
 cannot honour it; the same board with no pins climbs into the high 300s.
 
-This reframes the fill-order result. The order still matters — a compact sweep
+This reframes the fill-order result. The order still matters (a compact sweep
 survives the hint constraints with a ~30-point scar while `connect-hints-first` is
-destroyed by them — but what the order is buying is not "using the hints well." It
+destroyed by them), but what the order is buying is not "using the hints well." It
 is **surviving them**. The frontier is why: an order that keeps a single tight
 frontier has room to route around a bad pin; an order that has already fragmented
 into five open blobs has committed everywhere at once and cannot.
 
-That frontier relationship, across the eight orders, is strikingly clean — and it is
+That frontier relationship, across the eight orders, is strikingly clean, and it is
 worth showing precisely because the frontier can be computed from an order's geometry
 with no solver at all, then checked against the measured scores:
 
@@ -95,13 +95,13 @@ direction is exactly what the mechanism predicts: branching cost is multiplicati
 the frontier, so an order that keeps the frontier small keeps the room to absorb a
 hostile pin.
 
-For contrast, the beam solver — which is not a chronological backtracker and does not
-pay the frontier cost the same way — reaches a median in the 450s on these same
+For contrast, the beam solver, which is not a chronological backtracker and does not
+pay the frontier cost the same way, reaches a median in the 450s on these same
 hinted boards. The hints and boards are nowhere near unsolvable. It is specifically
 the *chronological, fixed-order* backtracker that cannot turn five correct pieces
 into progress.
 
-## Count: adding hints doesn't help either — and the raw number hides it
+## Count: adding hints doesn't help either, and the raw number hides it
 
 The same question one level out: does adding *more* hints help? With clustered
 hints the raw score rises, and it is tempting to stop there. But most of that rise
@@ -110,30 +110,30 @@ is bookkeeping, not progress.
 The lower chart above splits each layout's score into two parts. The **floor** is
 the seams the pins complete for free, because both their endpoints are pinned to
 the true solution; the **earned** part is what the search actually found. A solid
-clustered block banks a tall floor — five 4×4 blocks pin a quarter of the whole
-board's seams before the search takes a single step — while a spread lattice, whose
+clustered block banks a tall floor (five 4×4 blocks pin a quarter of the whole
+board's seams before the search takes a single step), while a spread lattice, whose
 hints never touch, banks nothing. So a raw-score comparison hands clustered layouts
 a hundred-point head start that says nothing about whether the search made headway.
 
 Now read the earned column across the spread lattices, whose floor is zero so
 earned *is* the score. It **falls** as the hint count rises: four spread hints earn
 about 340, twenty-five earn under 200. Adding correct spread hints makes the
-row-major backtracker *worse* — the same effect the path axis found, now on the
+row-major backtracker *worse*: the same effect the path axis found, now on the
 count axis. This is not a paradox once you have the mechanism: every extra correct
 pin is one more hard constraint the fixed sweep must satisfy on arrival, one more
 place it can hit a wall. More free information, more ways to trip.
 
-The one layout whose raw score climbs with count is the clustered block — and its
+The one layout whose raw score climbs with count is the clustered block, and its
 climb is almost entirely floor. Five 4×4 blocks (eighty hints, a quarter of the
 board) do eventually **solve every instance**, but that is the lesson's price, not a
 counter-example: you can brute the board into submission by clustering, but only by
 pinning so much of it that you have half-solved it by hand first. Short of that
 regime, the clustered blocks' earned score sits in the double digits above their
-floor — the search is coasting on the free seams, not making headway.
+floor, the search is coasting on the free seams, not making headway.
 
 The [method page](/research/lab/experiments/raphael-anjou/hint-study/method) works
 the floor arithmetic through in full. The short version: strip away the free floor
-and adding hints does not help a chronological backtracker on either axis — spread
+and adding hints does not help a chronological backtracker on either axis, spread
 or clustered, five or twenty-five. The only thing that reliably rises with more
 clustered hints is the bookkeeping.
 
@@ -143,7 +143,7 @@ This is a result about **strict, chronological depth-first backtrackers** on
 generated 16×16 boards built to Eternity II's colour recipe, at a short (eight
 second) budget. Each of those scoping words earns its place. *Chronological*: the
 result is specifically about solvers that fill cells in a fixed order and must
-satisfy a pinned piece when they reach it — a beam solver, which does not, reaches
+satisfy a pinned piece when they reach it, a beam solver, which does not, reaches
 the 450s on the same boards. *Generated*: the boards share E2's colour recipe and
 its five-clue *shape*, but they are not the official puzzle, and the study transfers
 no number to it. *Short budget*: none of these strict backtrackers solves within
@@ -153,7 +153,7 @@ eight seconds, so this measures how far each reaches, not a race to 480; whether
 Within that scope the lesson is sturdy and, we think, counterintuitive: for a
 chronological backtracker, five correct pieces placed in the puzzle's own clue
 geometry are not a gift but a constraint, and can cost far more than they give. What
-decides the damage is not the hints but the fill order that has to live with them —
+decides the damage is not the hints but the fill order that has to live with them
 and the order pays for a hint the way it pays for everything else, in the size of the
 frontier it keeps open. It is one more reading of
 [why the puzzle resists](/research/why/hint-geometry): even correct information helps
