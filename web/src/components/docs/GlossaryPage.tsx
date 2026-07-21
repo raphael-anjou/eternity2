@@ -6,7 +6,7 @@
 
 import { useMemo } from "react";
 import GithubSlugger from "github-slugger";
-import { useT, useLang, type Lang } from "@/i18n";
+import { useT, useLang } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { DocsSidebar } from "./DocsSidebar";
 import { ResearchSubnav } from "./ResearchSubnav";
@@ -79,10 +79,10 @@ export function GlossaryPage() {
   // term (computed from the localized term, matching the auto-linker).
   const { letters, byLetter } = useMemo(() => {
     const localized = TERMS.map((entry) => ({
-      term: entry.term[lang as Lang],
-      def: entry.def[lang as Lang],
+      term: entry.term[lang],
+      def: entry.def[lang],
       see: entry.see,
-      id: termSlug(entry.term[lang as Lang]),
+      id: termSlug(entry.term[lang]),
     }));
     const sorted = localized.sort((a, b) =>
       a.term.localeCompare(b.term, lang, { sensitivity: "base" }),

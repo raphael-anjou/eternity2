@@ -34,12 +34,11 @@ import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
 import { PersonHub } from "@/components/docs/PeoplePages";
 import { GlossaryPage } from "@/components/docs/GlossaryPage";
 import { ReproduceIndexPage } from "@/components/docs/ReproduceIndexPage";
+import { ContributionIndex, ContributionHub } from "@/components/docs/ContributionPages";
 import {
-  ContributionIndex,
-  ContributionHub,
   contributionRouteFor,
   contributionMeta,
-} from "@/components/docs/ContributionPages";
+} from "@/lib/research/contribution";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
