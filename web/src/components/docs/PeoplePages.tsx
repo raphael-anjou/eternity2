@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { kindLabel, KIND_DOT } from "@/lib/research/nav";
 import { authorDocs, researchAuthor } from "@/lib/research/manifest";
 import type { ResearchDoc, ResearchKind } from "@/lib/research/types";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
+import { RECORD_BOARDS } from "@/data/record-boards";
 import { DocsSidebar } from "./DocsSidebar";
 import { ResearchSubnav } from "./ResearchSubnav";
 
@@ -24,6 +26,8 @@ const T = {
     emptyLink: "See their entry in the Who's-who",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     backToGallery: "All contributors",
+    bestBoard: "Best board",
+    openViewer: "Open in the viewer",
   },
   fr: {
     research: "Recherche",
@@ -33,6 +37,8 @@ const T = {
     emptyLink: "Voir son entrée dans le « Qui est qui »",
     pages: (n: number) => (n === 1 ? "1 page" : `${n} pages`),
     backToGallery: "Tous les contributeurs",
+    bestBoard: "Meilleur plateau",
+    openViewer: "Ouvrir dans le visualiseur",
   },
   es: {
     research: "Investigación",
@@ -42,6 +48,8 @@ const T = {
     emptyLink: "Ver su entrada en el «Quién es quién»",
     pages: (n: number) => (n === 1 ? "1 página" : `${n} páginas`),
     backToGallery: "Todos los colaboradores",
+    bestBoard: "Mejor tablero",
+    openViewer: "Abrir en el visor",
   },
 };
 
@@ -132,6 +140,17 @@ export function PersonHub({ slug }: { slug: string }) {
   if (!author) return null;
   const docs = authorDocs(lang, slug);
 
+  // The author's best board: among their pages that carry both a score and a
+  // valid bundled board id, pick the highest-scoring one and show a lazy
+  // in-viewer thumbnail. Absent one, the header keeps its exact prior layout.
+  const bestBoard = docs
+    .filter((d) => d.score !== undefined && d.board !== undefined)
+    .map((d) => ({ doc: d, board: RECORD_BOARDS.find((b) => b.id === d.board) }))
+    .filter((x): x is { doc: ResearchDoc; board: (typeof RECORD_BOARDS)[number] } =>
+      x.board !== undefined,
+    )
+    .sort((a, b) => (b.doc.score ?? 0) - (a.doc.score ?? 0))[0];
+
   // Group by kind, in the curated order.
   const groups = new Map<ResearchKind, ResearchDoc[]>();
   for (const d of docs) {
@@ -167,6 +186,26 @@ export function PersonHub({ slug }: { slug: string }) {
           ))}
         </div>
       </header>
+
+      {bestBoard && (
+        <section className="mt-8 max-w-xs">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t.bestBoard}
+          </h2>
+          <LocalizedLink
+            to={`/viewer?${bestBoard.board.viewerParams}`}
+            className="mt-3 block rounded-lg border p-2 transition-shadow hover:shadow-md"
+          >
+            <LazyBoardPreview params={bestBoard.board.viewerParams} showConflicts={false} />
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold tracking-tight">{bestBoard.doc.title}</span>
+              <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                {bestBoard.doc.score}/480
+              </span>
+            </div>
+          </LocalizedLink>
+        </section>
+      )}
 
       {docs.length === 0 ? (
         <div className="mt-8 space-y-2 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">

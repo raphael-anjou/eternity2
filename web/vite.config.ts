@@ -11,6 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeShiki from "@shikijs/rehype";
+import { rehypeGlossaryAutolink } from "./plugins/research-glossary-autolink";
 import { routeEntries } from "./sitemap.config";
 import { researchPageLastmod, researchHubLastmod } from "./content.config";
 import { mainPageLastmod, pageUpdatedKey } from "./src/page-updated";
@@ -160,6 +161,10 @@ export default defineConfig({
       ...mdx({
         remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkGfm, remarkMath],
         rehypePlugins: [
+          // Runs before slug/katex/shiki so it sees clean prose text nodes and
+          // can wrap the first mention of each glossary term in <Term>. It skips
+          // headings, links, code, math and existing <Term> wraps itself.
+          rehypeGlossaryAutolink,
           rehypeSlug,
           rehypeKatex,
           [

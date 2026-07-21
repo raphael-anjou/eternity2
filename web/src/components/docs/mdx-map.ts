@@ -3,6 +3,7 @@
 // (react-refresh wants that).
 
 import { Callout, Figure, H2, H3, H4, ProseLink, ProseTable } from "./mdx-components";
+import { Term } from "./Term";
 
 export const mdxComponents = {
   a: ProseLink,
@@ -12,4 +13,8 @@ export const mdxComponents = {
   table: ProseTable,
   Callout,
   Figure,
+  // Emitted by the build-time glossary auto-linker (plugins/
+  // research-glossary-autolink.ts), which wraps the first prose mention of each
+  // glossary term per article.
+  Term,
 };

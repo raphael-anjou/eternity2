@@ -6,20 +6,33 @@
 
 import { useMemo } from "react";
 import GithubSlugger from "github-slugger";
-import { useT } from "@/i18n";
+import { useT, useLang, type Lang } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { DocsSidebar } from "./DocsSidebar";
 import { ResearchSubnav } from "./ResearchSubnav";
 import glossary from "../../../content/research/glossary.json";
 
+// term/def are localized {en, fr, es}; the auto-linker (plugins/
+// research-glossary-autolink.ts) computes the anchor from the same localized
+// term string with the same slugger, so a Term popup's link lands on the right
+// entry here.
+type Localized = { en: string; fr: string; es: string };
 interface Term {
-  term: string;
-  def: string;
+  term: Localized;
+  def: Localized;
   tier?: number;
   see?: string;
 }
 
 const TERMS = (glossary.terms as Term[]) ?? [];
+
+/** Stable per-term anchor id: a fresh slugger per call is deterministic and (as
+ *  the glossary carries no per-language slug collisions) never needs the -1
+ *  dedupe suffix, so the plugin can reproduce this id for a single term in
+ *  isolation. */
+function termSlug(term: string): string {
+  return new GithubSlugger().slug(term);
+}
 
 const T = {
   en: {
@@ -32,7 +45,7 @@ const T = {
   fr: {
     research: "Recherche",
     title: "Glossaire",
-    lede: "Les mots sur lesquels le wiki s'appuie, définis une bonne fois. Le jargon de la communauté, les termes d'informatique au sens précis ici, et la notation dans laquelle les plateaux s'écrivent — chacun avec un lien vers la page qui approfondit.",
+    lede: "Les mots sur lesquels le wiki s'appuie, définis une bonne fois. Le jargon de la communauté, les termes d'informatique au sens précis ici, et la notation dans laquelle les plateaux s'écrivent ; chacun avec un lien vers la page qui approfondit.",
     see: "Voir",
     jump: "Aller à",
   },
@@ -60,22 +73,29 @@ function Crumbs({ current }: { current: string }) {
 
 export function GlossaryPage() {
   const t = useT(T);
+  const { lang } = useLang();
 
-  // Group alphabetically; assign a stable slug id per term.
+  // Group alphabetically in the reader's language; assign a stable slug id per
+  // term (computed from the localized term, matching the auto-linker).
   const { letters, byLetter } = useMemo(() => {
-    const slugger = new GithubSlugger();
-    const sorted = [...TERMS].sort((a, b) =>
-      a.term.localeCompare(b.term, undefined, { sensitivity: "base" }),
+    const localized = TERMS.map((entry) => ({
+      term: entry.term[lang as Lang],
+      def: entry.def[lang as Lang],
+      see: entry.see,
+      id: termSlug(entry.term[lang as Lang]),
+    }));
+    const sorted = localized.sort((a, b) =>
+      a.term.localeCompare(b.term, lang, { sensitivity: "base" }),
     );
-    const map = new Map<string, Array<Term & { id: string }>>();
+    const map = new Map<string, Array<(typeof sorted)[number]>>();
     for (const term of sorted) {
       const letter = term.term[0]?.toUpperCase() ?? "#";
       const bucket = map.get(letter) ?? [];
-      bucket.push({ ...term, id: slugger.slug(term.term) });
+      bucket.push(term);
       map.set(letter, bucket);
     }
     return { letters: [...map.keys()], byLetter: map };
-  }, []);
+  }, [lang]);
 
   return (
     <div>
