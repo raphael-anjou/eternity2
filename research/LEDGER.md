@@ -1251,3 +1251,47 @@ in `related[]` + an inline prose link, never `sources[]`.
 
 Citations 723 -> 725 (both new msgs verified in the archive). Verified: research
 style (0 em dashes, 0 banned phrases), links, citations, typecheck all green.
+
+### 2026-07-21 — Structural rework: SOTA surface, open-problems board, newcomer path, article chrome (multi-agent)
+
+A structure-focused pass (the 2026-07-17 audit covered copy quality; this one
+covered organization, article anatomy, and how experiments are showcased).
+Method: an 81-agent gap analysis (6 web best-practice studies with named
+exemplars: Chess Programming Wiki, Complexity Zoo, cube20, PapersWithCode,
+Diataxis, distill/gwern, TASVideos, Erdos problems; 6 site-state readers;
+8 judges; per-finding adversarial verification). 61 raw findings -> 52
+survived (6 refuted against the repo, 3 verifier failures). Then a 6-agent
+implementation workflow on disjoint file sets.
+
+Shipped (commits 8ecf6df, 33edbf7, 1a6adf9, 57b1be0):
+- **Chrome:** contribution/outcome badges, labeled tier chips, scoring-
+  convention pill, header repro strip, verify-vs-reproduce split (record-
+  boards commands now say "Verify the stored board"), stages[] renderer with
+  unpublished markers, sidebar kind labels, Callout kind="open". New optional
+  frontmatter: outcome, repro.produces, repro.scope, scoringConvention.
+- **Records = canonical SOTA:** community-vs-project comparison table,
+  timeline zoom, re-score labeling, sibling-boards accordion, shared census
+  constant, cross-links from the pages that hand-restated the headline.
+- **New /research/open-problems** (EN/FR/ES): status-tagged open angles,
+  unattended vs attempted-and-hard, Owen's set_2 as the newcomer target.
+- **Newcomer path:** numbered start-here on the root, where-to-start on all
+  doors, ordered build list (toolkit step 1), techniques shrunk to a hub,
+  solvers anatomy table, dead-ends "Instead:" pointers, contribute loop-back.
+- **Lab comparability:** outcome/scoringConvention/wallClock backfill,
+  experiment-scores.ts dedup, cross-researcher scored table on the hub,
+  chart legend + strict-464 line, generated /research/build/reproduce and
+  by-contribution hubs (negative results browsable).
+- **Infra:** citation-checker archive path fixed after the v2->research
+  rename (had silently broken the local msg_num validation).
+
+Verified: typecheck, full build (all new routes prerender EN/FR/ES, sitemap
+picks them up), check:research (0 em dashes, 725 citations 0 missing, parity
+100%), check:i18n 100%, 43/43 tests.
+
+Deferred backlog (verified-real but not this pass): glossary inline term
+tooltips (needs localized glossary.json first), auto-backlinks ("Referenced
+by" from the link map), per-variant spread plots (needs make_site_json.py
+rerun for per-instance scores), in-house ladder progress chart, dfs-study
+live path-order widget, hub board thumbnails, repro-presence CI for concept
+pages. The "one overloaded kind field" finding returned a corrupt verifier
+verdict and needs re-judging before any action.
