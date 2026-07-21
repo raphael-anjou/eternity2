@@ -27,10 +27,13 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/NxM_actual_theory.pdf
   - label: 'El estudio heurística-frente-a-número-de-nodos de Brendan Owen, «Heuristics: 20×2 rectangle» (groups.io Files, carpeta Brendan)'
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
+  - label: "La medición profundidad-frente-a-tiempo del backtracker de Joe, muestra de 1 mil millones de iteraciones (groups.io msg 11725, 2026)"
+    url: https://groups.io/g/eternity2/message/11725
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
   - /research/why/entropy-area-law
+  - /research/why/how-hard-is-this-instance
 repro:
   kind: exact
   topic: complex-theory
@@ -70,7 +73,7 @@ para ver la forma.
 
 | Pistas colocadas                     | Soluciones esperadas |
 | ------------------------------------ | -------------------- |
-| Una pista (solo la pieza central)    | ≈ 14,702             |
+| Una pista (solo la pieza central)    | ≈ 14 702             |
 | Las cinco pistas oficiales           | ≈ 1                  |
 
 Con solo la pieza central obligatoria, el puzzle tiene del orden de quince mil
@@ -111,7 +114,7 @@ inscrito en la estructura del tablero antes de colocar una pieza.
 
 Representa la anchura esperada a cada profundidad y aparecen tres regímenes. Su
 forma es lo que la comunidad llama el embudo de E2. Lanza el barrido de abajo y
-observa el contador: sube hasta los miles de millones, luego apenas se mueve
+observa el contador: sube astronómicamente, luego apenas se mueve
 durante un centenar de celdas a lo largo de la meseta, ese avance plano por una
 banda astronómicamente ancha es el muro, antes de que las últimas sesenta piezas
 lo hagan bajar de nuevo en embudo.
@@ -137,9 +140,11 @@ orden por sí solo, antes de colocar un solo nodo.
   gratuita; todavía nada te limita.
 - **Meseta (profundidad 50–200).** El árbol está en su punto más ancho, unas
   $10^{45}$ formas de extender, mientras que el número de soluciones apenas se
-  mueve. Aquí es donde los backtrackers pasan aproximadamente el 99 % de su
-  tiempo, en línea con el hallazgo empírico de Joe de que la mayor parte del
-  tiempo se consume por debajo de la profundidad 150.
+  mueve. Aquí es donde los backtrackers pasan la mayor parte de su tiempo: una
+  muestra empírica ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725),
+  un cálculo de 1 mil millones de iteraciones) midió el 99 % del tiempo del
+  backtracker a profundidad $>132$ y el 70 % a profundidad $>150$, es decir, en
+  el fondo del árbol y no al principio.
 - **Colapso (profundidad 200–256).** La anchura cae de $10^{45}$ de vuelta a
   unas $10^{4}$. Las ~60 últimas piezas están fuertemente restringidas: cada una
   colocada elimina órdenes de magnitud de ramas. El final de partida es
@@ -192,7 +197,7 @@ $256\,(1 - 1/e) \approx 161.8$
 ([msg 8125](https://groups.io/g/eternity2/message/8125)); el embudo de arriba
 culmina ahí empíricamente. Peter McGavin compuso la teoría
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), publicó la cifra de
-14,702 soluciones esperadas ya en 2011
+14 702 soluciones esperadas ya en 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), y en 2017 entregó su
 validación más contundente: resolvió el benchmark 10×10 sin pistas de Brendan
 explorando las primeras filas ordenadas por teoría compleja: unos 180 años-núcleo,

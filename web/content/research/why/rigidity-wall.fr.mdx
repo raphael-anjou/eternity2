@@ -44,11 +44,11 @@ import { RigidityHalo } from "@/components/research/RigidityHalo";
 import { RigidityLab } from "@/components/research/RigidityLab";
 
 Voici l'intuition par laquelle presque tout le monde commence : s'approcher,
-puis nettoyer les dernières discordances. Échanger deux ou trois pièces, en
+puis nettoyer les derniers désaccords. Échanger deux ou trois pièces, en
 faire pivoter quelques-unes, et le score va sûrement grimper jusqu'à 480.
 
 Ce n'est pas le cas. Sur chaque plateau de tête que nous avons testé, les
-dernières discordances sont verrouillées. Déplacez quoi que ce soit dans le
+derniers désaccords sont verrouillés. Déplacez quoi que ce soit dans le
 voisinage et le score reste identique ou baisse. Les bons plateaux ne sont pas
 des quasi-solutions attendant un polissage ; ce sont des points isolés qui
 n'ont nulle part de meilleur où aller à côté.
@@ -96,7 +96,12 @@ binaires. La séparation et évaluation trouve alors soit un remplissage
 strictement meilleur, soit prouve, à l'aide d'une borne duale, qu'il n'en
 existe aucun.
 
-Elle n'en trouve jamais. Les preuves, région par région :
+Elle n'en trouve jamais. Les preuves, région par région. Ces exécutions PLNE
+proviennent du carnet de recherche du projet (l'article du 2026-05-16 cité dans
+les sources) ; le tableau ci-dessous n'est pas encore rejoué par la chaîne de
+résultats validés de ce site, de sorte que ses temps de solveur et ses bornes
+duales ne sont pas vérifiables de façon indépendante depuis ce dépôt, à la
+différence du résultat SAT sur halo plus bas :
 
 | Région | Plateau | Cellules | Temps solveur | Résultat |
 |---|---|---:|---:|---|
@@ -157,7 +162,7 @@ tests. Le premier était un test de gel : perturber la racine d'un plateau de
 tête, ré-optimiser, et voir quelles cellules reviennent. Sur ses meilleurs
 plateaux, 93 à 100 pour cent des cellules revenaient exactement à leur place, un
 noyau figé que la recherche ne pouvait déplacer. Le second était une question de
-décision pour un solveur SAT. Libérer les cellules autour des discordances,
+décision pour un solveur SAT. Libérer les cellules autour des désaccords,
 exiger que chaque arête libérée concorde, et demander si un quelconque agencement
 de ces pièces la satisfait. Son solveur a répondu UNSAT.
 
@@ -166,7 +171,7 @@ sur les plateaux records publics, avec notre propre encodeur et un témoin
 positif pour nous assurer qu'une région concordante revient satisfiable. Chaque
 plateau record que nous avons essayé, du 467 de Verhaard au 470 de Blackwood,
 est UNSAT jusqu'à un halo de deux cellules : aucun réagencement local des
-propres pièces d'un plateau record ne referme une seule discordance. La
+propres pièces d'un plateau record ne referme un seul désaccord. La
 programmation en nombres entiers optimise et borne ; le recuit se cogne au mur à
 la main ; SAT décide et renvoie une réfutation. Trois méthodes, une seule
 réponse.

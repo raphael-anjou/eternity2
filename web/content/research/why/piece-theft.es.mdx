@@ -4,7 +4,7 @@ description: >-
   Un solucionador rellena unas pocas filas sin esfuerzo y luego choca contra un
   muro en mitad del tablero. He aquí el mecanismo: una pieza escasa gastada en
   el lugar equivocado, varias filas atrás.
-metaDescription: "Por qué los solucionadores de Eternity II rellenan unas filas y luego mueren en el centro: una pieza escasa, gastada mal filas antes, deja sin recursos a una celda posterior. El mecanismo es el robo de piezas, y el razonamiento all-different de Régin predice dónde golpea la escasez."
+metaDescription: "Por qué los solucionadores de Eternity II rellenan unas filas y luego mueren en el centro: una pieza escasa, gastada mal, deja sin recursos a una celda posterior. El mecanismo es el robo de piezas, la clase de demanda escasa que el filtrado all-different al estilo de Régin está hecho para atrapar."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -14,13 +14,14 @@ updated: 2026-07-01
 topics: [structure, search-space]
 related:
   - /research/why/no-forced-moves
+  - /research/build/reduce/alldiff-regin
   - /research/lab/experiments/raphael-anjou/learning/prior
 repro:
   kind: exact
   cmd: just research-piece-theft
   topic: piece-theft
 sources:
-  - label: "Régin 1994, «A Filtering Algorithm for Constraints of Difference in CSPs» (AAAI-94), el razonamiento all-different que predice la escasez"
+  - label: "Régin 1994, «A Filtering Algorithm for Constraints of Difference in CSPs» (AAAI-94): el argumento all-different/conjunto de Hall que motiva el recuento de demandas escasas de esta página"
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
 ---
 
@@ -129,8 +130,8 @@ Un arreglo tentador es una comprobación global: ¿siguen las piezas restantes
 cubriendo las celdas restantes? No sirve de nada. A nivel global la oferta es
 suficiente; el fallo es una sola pieza escasa mal asignada, no una carencia.
 Por eso una anticipación global no ve nada anormal hasta el momento en que la
-celda resulta no tener proveedor, lo que explica por qué este muro resistió
-tantos intentos de podarlo pronto.
+celda resulta no tener proveedor, lo que explica por qué una comprobación global
+ingenua no lo detecta.
 
 Ponlo junto a la [ausencia de jugadas forzadas](/research/why/no-forced-moves) y
 la trampa queda completa. Cada pieza tiene decenas de lugares donde podría ir,

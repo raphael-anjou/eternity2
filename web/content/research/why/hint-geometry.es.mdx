@@ -2,11 +2,11 @@
 title: Dónde colocas las pistas importa más que cuántas
 description: >-
   En un puzzle de 16×16 construido como Eternity II, dieciocho pistas repartidas
-  por el tablero lo resuelven en minutos, mientras que el mismo puzzle necesita
-  ochenta pistas o más amontonadas en filas contiguas para resultar igual de
-  fácil. La posición, no la cantidad, es la palanca, y apunta directamente a la
-  fase final.
-metaDescription: "En un puzzle de 16×16 tipo Eternity II, dónde colocas las pistas importa más que cuántas: 18 repartidas lo resuelven en minutos, frente a 80+ amontonadas en filas que apenas igualan, pues el 99 % de la búsqueda ocurre pasada la profundidad 132 de 256. Cuentan las que llegan a la fase final."
+  por el tablero lo resuelven en minutos, mientras que amontonarlas en filas
+  contiguas necesita un centenar solo para bajar la búsqueda a decenas de miles
+  de millones de colocaciones. La posición, no la cantidad, es la palanca, y
+  apunta directamente a la fase final.
+metaDescription: "En un puzzle de 16×16 tipo Eternity II, dónde colocas las pistas importa más que cuántas: 18 repartidas lo resuelven en minutos, frente a filas contiguas que necesitan un centenar, pues el 99 % de la búsqueda ocurre pasada la profundidad 132 de 256. Cuentan las que llegan a la fase final."
 kind: finding
 contribution: measurement
 rigor: measured
@@ -34,9 +34,11 @@ Regala a un solucionador algunas piezas correctas y el puzzle se vuelve más
 fácil. La pregunta obvia es cuántas necesitas. La mejor pregunta, resulta, es
 *dónde* van. En un puzzle de 16×16 construido con la receta de colores exacta
 de Eternity II, dieciocho pistas colocadas en los sitios adecuados lo resuelven
-en minutos; el mismo puzzle pide ochenta pistas o más, si las amontonas en
-filas contiguas, para ser así de fácil. Una diferencia de cuatro veces en la
-cantidad, decidida enteramente por la geometría.
+en minutos; amontonarlas en cambio en filas contiguas, una medición necesitó un
+centenar (sesenta de borde más cuarenta interiores) solo para bajar la búsqueda
+a decenas de miles de millones de colocaciones. Una diferencia de unas cinco
+veces en la cantidad, decidida por la geometría; la cantidad exacta de pistas
+contiguas que igualaría a dieciocho repartidas nunca se determinó.
 
 ## Dos maneras de gastar las mismas dieciocho pistas
 
@@ -48,14 +50,15 @@ filas sueltas. Su backtracker sencillo, de recorrido por filas, resolvió el
 puzzle 16×16 tipo E2 de Joe (cinco colores de borde, diecisiete colores
 interiores, la misma distribución que el puzzle oficial) en menos de quince
 minutos en un solo núcleo, recorriendo un árbol de búsqueda de 41 160 067 167
-colocaciones. Bajar a quince pistas seguía funcionando; la búsqueda simplemente
-crecía a varias horas. Amontona en cambio las dieciocho pistas en las primeras
+colocaciones. Amontona en cambio las dieciocho pistas en las primeras
 filas, tal como un recorrido de arriba abajo las acumula de forma natural, y no
 compran casi nada: la parte difícil del tablero sigue completamente abierta.
 
 Joe lo había abordado por el otro lado, sembrando filas contiguas enteras a
-partir de una solución conocida, y necesitaba muchas más antes de que el puzzle
-cediera:
+partir de una solución conocida, y necesitaba muchas más para bajar la búsqueda
+a un tamaño manejable: un centenar de pistas (sesenta de borde más cuarenta
+filas interiores) todavía dejaba un árbol de unos 47 mil millones de colocaciones
+([msg 11725](https://groups.io/g/eternity2/message/11725)).
 
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
@@ -63,8 +66,8 @@ cediera:
     <div className="mt-1 text-xs text-muted-foreground">pistas repartidas, resuelto en minutos</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">88+</div>
-    <div className="mt-1 text-xs text-muted-foreground">pistas en filas contiguas para una facilidad comparable</div>
+    <div className="text-3xl font-bold tabular-nums">100</div>
+    <div className="mt-1 text-xs text-muted-foreground">pistas en filas contiguas para bajar la búsqueda a decenas de miles de millones de colocaciones</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">99%</div>

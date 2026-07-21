@@ -4,7 +4,7 @@ description: >-
   Un solveur remplit quelques rangées sans effort, puis se heurte à un mur au
   milieu du plateau. Voici le mécanisme : une pièce rare dépensée au mauvais
   endroit, plusieurs rangées plus tôt.
-metaDescription: "Pourquoi les solveurs d'Eternity II remplissent quelques rangées puis meurent au milieu : une pièce rare, dépensée au mauvais endroit des rangées plus tôt, affame une case ultérieure. Le mécanisme est le vol de pièce, et le raisonnement all-different de Régin prédit où survient la pénurie."
+metaDescription: "Pourquoi les solveurs d'Eternity II remplissent quelques rangées puis meurent au milieu : une pièce rare, dépensée au mauvais endroit, affame une case ultérieure. Le mécanisme est le vol de pièce, le genre de motif à demande rare que le filtrage all-different à la Régin est fait pour attraper."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -14,13 +14,14 @@ updated: 2026-07-01
 topics: [structure, search-space]
 related:
   - /research/why/no-forced-moves
+  - /research/build/reduce/alldiff-regin
   - /research/lab/experiments/raphael-anjou/learning/prior
 repro:
   kind: exact
   cmd: just research-piece-theft
   topic: piece-theft
 sources:
-  - label: "Régin 1994, « A Filtering Algorithm for Constraints of Difference in CSPs » (AAAI-94), le raisonnement all-different qui prédit la pénurie"
+  - label: "Régin 1994, « A Filtering Algorithm for Constraints of Difference in CSPs » (AAAI-94) : l'argument all-different/ensemble de Hall que le décompte de demandes rares de cette page motive"
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
 ---
 
@@ -130,8 +131,8 @@ Un correctif tentant serait une vérification globale : les pièces restantes
 couvrent-elles encore les cases restantes ? Cela n'aide en rien. Globalement,
 l'offre est suffisante ; l'échec tient à une seule pièce rare mal affectée, non
 à une pénurie. Un contrôle global en avant ne voit donc rien d'anormal, jusqu'au
-moment où la case se révèle sans fournisseur, ce qui explique pourquoi ce mur a
-résisté à tant de tentatives d'élagage précoce.
+moment où la case se révèle sans fournisseur, ce qui explique pourquoi un
+contrôle global naïf passe à côté.
 
 Mettez cela en regard de l'[absence de coups forcés](/research/why/no-forced-moves)
 et le piège est complet. Chaque pièce dispose de dizaines d'emplacements

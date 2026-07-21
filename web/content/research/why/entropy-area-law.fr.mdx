@@ -21,6 +21,15 @@ repro:
   kind: exact
   cmd: just research-entropy-area-law
   topic: entropy-area-law
+  scope: >-
+    La commande reproduit exactement la moitié « entropie de la grammaire » :
+    la borne horizontale lambdaH et les densités d'entropie h(1), h(2) pour les
+    largeurs 1 et 2, à partir des valeurs propres de la matrice de transfert.
+    Les points de largeur supérieure h(3), h(4), la limite h_infinity aux
+    environs de 0,67, l'exposant de loi d'aire alpha aux environs de 0,085, le
+    seuil des ~80 cellules et le comptage de blocs n=3 du laboratoire
+    interactif proviennent d'une étude hors ligne et ne sont pas régénérés par
+    cette commande.
 sources:
   - label: "Le lemme de sous-additivité de Fekete, le théorème qui garantit l'existence même de la limite d'entropie h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -168,11 +177,16 @@ $$
 \rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
 $$
 
+L'exposant $\alpha \approx 0.085$ et le seuil des quatre-vingts cellules
+ci-dessous proviennent d'un ajustement sur une seule instance issu d'une étude
+hors ligne ; ils ne sont pas recalculés par la commande de reproduction de
+cette page (qui couvre la moitié exacte, celle des valeurs propres).
+
 Une décroissance en loi d'aire est brutale, car l'aire croît de façon
 quadratique. La proportion de blocs réalisables passe sous le seuil du
 millième aux alentours de quatre-vingts cellules.
 
-<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes.">
+<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes. L'alpha et le seuil des quatre-vingts cellules sont mesurés hors site, non recalculés ici par la commande de reproduction.">
   <RhoChart />
 </Figure>
 
@@ -228,3 +242,9 @@ avec $\lambda_H = 46.18$ le rayon spectral de la matrice de compatibilité
 des couleurs à l'horizontale. La positivité tient parce que la grammaire
 admet exponentiellement de nombreuses chaînes, si bien que la densité est
 strictement comprise entre zéro et 1,6645, mesurée aux environs de 0,67.
+
+Ce que le théorème démontre, c'est qu'une limite positive existe et qu'elle
+est majorée par $\log_{10}(46.18) = 1.6645$. Sa valeur précise aux environs de
+0,67, ainsi que l'exposant de loi d'aire $\alpha \approx 0.085$, sont des
+ajustements sur une seule instance propres à ce projet, extrapolés au-delà des
+largeurs comptées exactement ; le théorème ne fixe pas ces valeurs.

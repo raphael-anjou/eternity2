@@ -1,8 +1,8 @@
 ---
 title: Pourquoi le basin-hopping semble impossible
 description: >-
-  Si l'on ne peut pas améliorer une excellente grille en la peaufinant, peut-être
-  peut-on sauter vers une autre excellente grille. Sur chaque paire de records
+  Si l'on ne peut pas améliorer un excellent plateau en le peaufinant, peut-être
+  peut-on sauter vers un autre excellent plateau. Sur chaque paire de records
   testée, c'est impossible, et la raison structurelle mérite qu'on la voie.
 metaDescription: "Si polir un excellent plateau d'Eternity II ne l'améliore pas, peut-être peut-on sauter vers un autre — mais sur chaque paire de records testée, c'est impossible. La structure en cycles sigma entre plateaux forts montre pourquoi le saut de bassin paraît impossible, d'après le record 469 de McGavin."
 kind: finding
@@ -13,7 +13,7 @@ order: 60
 updated: 2026-07-02
 topics: [structure, local-search]
 sources:
-  - label: "Annonce du record 469 de Peter McGavin : la grille contre laquelle les cycles sont calculés (groups.io msg 10045, septembre 2020)"
+  - label: "Annonce du record 469 de Peter McGavin : le plateau contre lequel les cycles sont calculés (groups.io msg 10045, septembre 2020)"
     url: https://groups.io/g/eternity2/message/10045
 related:
   - /research/why/rigidity-wall
@@ -26,16 +26,16 @@ repro:
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
 import { SigmaCycleLab } from "@/components/research/SigmaCycleLab";
 
-Deux grilles de haut niveau paraissent totalement différentes, et pourtant elles
-sont liées : on peut transformer l'une en l'autre en prélevant un ensemble de
+Deux plateaux de haut niveau paraissent totalement différents, et pourtant ils
+sont liés : on peut transformer l'un en l'autre en prélevant un ensemble de
 pièces et en déplaçant chacune vers l'emplacement qu'occupait la suivante, tout
 le long d'une boucle. Les mathématiciens appellent cette boucle un cycle.
-Parcourez la boucle entière et vous arrivez à l'autre grille.
+Parcourez la boucle entière et vous arrivez à l'autre plateau.
 
-Voici le hic. Entre les meilleures grilles, cette boucle est énorme et il n'en
-existe qu'une seule. Passer d'une grille à 459 à celle à 469 de McGavin, c'est
+Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme et il n'en
+existe qu'une seule. Passer d'un plateau à 459 à celui à 469 de McGavin, c'est
 un unique cycle imbriqué de 154 cellules, couvrant l'intégralité de l'intérieur
-de la grille.
+du plateau.
 
 ## Une seule boucle, tout ou rien
 
@@ -53,14 +53,14 @@ franchissez.
 
 ## Comment nous le savons
 
-Nous avons calculé les cycles exacts entre trois grilles-records différentes,
+Nous avons calculé les cycles exacts entre trois plateaux-records différents,
 puis essayé chaque mouvement partiel : n'appliquer qu'une portion de la boucle et
 observer ce que devient le score. Le résultat est sans appel. Toute application
 partielle dégrade le score, avec des chutes allant de quelques points à plus
 d'une centaine. Il n'existe aucun sous-ensemble de la boucle qui aide, pas un
 seul.
 
-C'est ce qui en fait un mur. Pour passer d'une bonne grille vers une meilleure,
+C'est ce qui en fait un mur. Pour passer d'un bon plateau vers un meilleur,
 il faudrait s'engager à déplacer jusqu'à 154 cellules d'un coup, sans aucune
 étape améliorante en chemin pour vous y guider. Toute recherche qui procède par
 étapes est aveugle à un mouvement de ce genre.
@@ -80,14 +80,20 @@ il faudrait s'engager à déplacer jusqu'à 154 cellules d'un coup, sans aucune
 
 Conjuguée avec [le mur de rigidité](/research/why/rigidity-wall), cette
 observation ferme d'un coup les deux voies de sortie évidentes. On ne peut pas
-s'extraire localement d'une bonne grille, et (sur chaque paire de records
-mesurée ici) on ne peut pas non plus sauter vers une voisine, car la meilleure
-grille la plus proche se trouve à un unique mouvement indivisible de 80 à 154
-cellules. C'est une explication plausible de la raison pour laquelle le record
-de 470 tient depuis 2021 : les mouvements qui le battraient semblent trop
-vastes pour qu'une recherche pas à pas puisse les trouver.
+s'extraire localement d'un bon plateau, et (sur les trois paires de records
+mesurées ici) on ne peut pas non plus sauter vers un voisin, car le meilleur
+plateau le plus proche se trouve à un unique mouvement indivisible de 80 à 154
+cellules. Ces cycles sont mesurés par rapport au 469 de McGavin ; lire le même
+mur jusqu'au record de 470 en vigueur revient à extrapoler d'un cran. C'est une
+explication plausible de la raison pour laquelle le record de 470 tient depuis
+2021 : les mouvements qui le battraient semblent trop vastes pour qu'une
+recherche pas à pas puisse les trouver.
 
-*Les cycles sont calculés exactement à partir de paires de grilles-records en
+*Les cycles sont calculés exactement à partir de paires de plateaux-records en
 composant leurs permutations de pièces ; les tests de sous-ensembles énumèrent
-les sous-cycles et les re-notent. L'animation ci-dessus est une schématisation
-du mécanisme, non le cycle de 154 cellules lui-même.*
+les sous-cycles et les re-notent. Les comptages de cycles sur des plateaux-records
+donnés ici ne sont pas encore fournis sous forme d'artefact validé et rejouable
+sur cette page ; le laboratoire interactif ci-dessus calcule plutôt le même
+mécanisme en direct sur de petits puzzles fraîchement générés. L'animation
+ci-dessus est une schématisation du mécanisme, non le cycle de 154 cellules
+lui-même.*

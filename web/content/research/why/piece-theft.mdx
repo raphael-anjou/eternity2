@@ -4,7 +4,7 @@ description: >-
   A solver fills a few rows for free, then hits a wall in the middle of the
   board. Here's the mechanism: a scarce piece spent in the wrong place, rows
   ago.
-metaDescription: "Why Eternity II solvers fill a few rows for free, then die in the middle of the board: a scarce piece was spent in the wrong place rows earlier, starving a later cell. The mechanism is piece theft, and Régin's all-different reasoning predicts exactly where the starvation strikes."
+metaDescription: "Why Eternity II solvers fill a few rows for free, then die in the middle of the board: a scarce piece was spent in the wrong place rows earlier, starving a later cell. The mechanism is piece theft, the kind of scarce-demand pattern Régin-style all-different filtering is built to catch."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -14,13 +14,14 @@ updated: 2026-07-01
 topics: [structure, search-space]
 related:
   - /research/why/no-forced-moves
+  - /research/build/reduce/alldiff-regin
   - /research/lab/experiments/raphael-anjou/learning/prior
 repro:
   kind: exact
   cmd: just research-piece-theft
   topic: piece-theft
 sources:
-  - label: "Régin 1994, “A Filtering Algorithm for Constraints of Difference in CSPs” (AAAI-94), the all-different reasoning that predicts starvation"
+  - label: "Régin 1994, “A Filtering Algorithm for Constraints of Difference in CSPs” (AAAI-94): the all-different/Hall-set argument this page's scarce-demand count motivates"
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
 ---
 
@@ -128,7 +129,7 @@ A tempting fix is a global check: do the remaining pieces still cover the
 remaining cells? It doesn't help. Globally the supply is fine; the failure is
 one scarce piece misallocated, not a shortage. So a global lookahead sees
 nothing wrong right up until the cell turns out to have no server, which is
-why this wall resisted so many attempts to prune it early.
+why a naive global check misses it.
 
 Set this beside [no forced moves](/research/why/no-forced-moves) and the trap
 is complete. Every piece has dozens of places it could go, so the solver is
