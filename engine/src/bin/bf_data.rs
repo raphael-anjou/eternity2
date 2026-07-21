@@ -18,7 +18,7 @@ const CASES: &[(u8, u8, u32)] = &[
 ];
 
 fn main() {
-    let dir = "../engine-side-quests/engine-brainfuck/data";
+    let dir = "../engine-ports/brainfuck/data";
     std::fs::create_dir_all(dir).unwrap();
     for &(s, c, seed) in CASES {
         let p = generate(s, c, seed);

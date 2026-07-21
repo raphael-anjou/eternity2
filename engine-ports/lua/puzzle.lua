@@ -95,7 +95,7 @@ local function parse_color_word(s)
 end
 
 -- path defaults to ../../engine/data relative to this module's directory
--- (engine-side-quests/engine-lua/ -> ../../engine/data).
+-- (engine-ports/lua/ -> ../../engine/data).
 function P.official_puzzle(csv_path)
   csv_path = csv_path or (P._dir() .. "../../engine/data/official_eternity2.csv")
   local f = assert(io.open(csv_path, "r"), "cannot open official CSV: " .. csv_path)

@@ -1,11 +1,8 @@
-// The default engine backend: the canonical Rust engine compiled to
-// WebAssembly via wasm-bindgen. This is the fast, production backend; the
-// alternative backends (../../engine-ts, ../../engine-c, ../../engine-cpp)
-// implement the identical surface and are selected at build time by the
-// VITE_ENGINE switch (see web/README.md and vite.config.ts).
-//
-// All four backends export the same eight functions + createSolver, so the
-// rest of the app imports from "@/engine" and never knows which one it got.
+// The engine: the canonical Rust engine compiled to WebAssembly via
+// wasm-bindgen. It exports the eight functions + createSolver that the rest of
+// the app consumes through "@/engine". Faithful reimplementations in other
+// languages live in the repo's `engine-ports/` collection (a study exhibit,
+// validated against `golden.txt`), not as build backends.
 
 import init, {
   WasmSolver,

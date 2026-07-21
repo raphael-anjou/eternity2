@@ -3,11 +3,11 @@
 A from-scratch **C++** re-implementation of the Eternity II engine, compiled to
 **freestanding `wasm32`** with `clang++` (no Emscripten, no libc, no STL heap).
 It is byte-for-byte identical to the canonical Rust engine and is a drop-in,
-build-time-switchable backend for the community website: `glue.ts` exposes the
+faithful reimplementation of the canonical engine: `glue.ts` exposes the
 exact same surface as [`web/src/engine/index.ts`](../engine/index.ts).
 
 The algorithm itself is **not** documented here — it lives once, authoritatively,
-in [`engine-side-quests/ALGORITHM.md`](../../../engine-side-quests/ALGORITHM.md).
+in [`engine-ports/ALGORITHM.md`](../../../engine-ports/ALGORITHM.md).
 `engine.cpp` is a literal translation of that document and of the Rust source in
 [`engine/src/`](../../../engine/src), cross-referenced section by section in the
 comments. Read those two together.
@@ -25,7 +25,7 @@ comments. Read those two together.
 ## Rebuilding
 
 ```sh
-bash web/src/engine-cpp/build.sh
+bash engine-ports/cpp/build.sh
 ```
 
 Apple's `/usr/bin/clang++` has **no** wasm32 codegen target, so the script uses
@@ -50,14 +50,14 @@ exports survive both dead-code elimination and the `wasm-opt` pass.
 ## Validating
 
 ```sh
-node web/src/engine-cpp/parity.mjs        # "99 passed, 0 failed"
+node engine-ports/cpp/parity.mjs        # "99 passed, 0 failed"
 ```
 
 Optional native cross-check (re-emits golden.txt and diffs it):
 
 ```sh
-clang++ -O2 -std=c++20 -DE2_NATIVE_MAIN web/src/engine-cpp/engine.cpp -o /tmp/e2
-/tmp/e2 | diff - <(grep -v '^$' engine-side-quests/engine-lua/golden.txt)
+clang++ -O2 -std=c++20 -DE2_NATIVE_MAIN engine-ports/cpp/engine.cpp -o /tmp/e2
+/tmp/e2 | diff - <(grep -v '^$' engine-ports/lua/golden.txt)
 ```
 
 ## The ABI

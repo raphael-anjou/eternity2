@@ -1,8 +1,8 @@
 // Parity test: validates the C++/wasm engine against the golden outputs the
-// Rust engine produced (engine-side-quests/engine-lua/golden.txt). Runs under
+// Rust engine produced (engine-ports/lua/golden.txt). Runs under
 // Node 22's built-in WebAssembly — no bundler, no DOM, no emscripten runtime.
 //
-//   node web/src/engine-cpp/parity.mjs
+//   node engine-ports/cpp/parity.mjs
 //
 // Every assertion compares wasm output to a value the Rust engine actually
 // produced: generated puzzles (RNG parity), the official set, every path
@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const goldenPath = join(here, "../../../engine-side-quests/engine-lua/golden.txt");
+const goldenPath = join(here, "../lua/golden.txt");
 const wasmPath = join(here, "engine.wasm");
 
 const PATH_KINDS = [

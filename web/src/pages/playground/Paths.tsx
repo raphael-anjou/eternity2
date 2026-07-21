@@ -30,7 +30,7 @@ import {
 } from "@/engine";
 import { Switch } from "@/components/ui/switch";
 import type { SolverHandle } from "@/engine";
-import { createBlockSolver, type Block } from "@/engine-ts/block-solver";
+import { createBlockSolver, type Block } from "@/engine-extras/block-solver";
 import { useT } from "@/i18n";
 import type { Hint, Puzzle, SolverReport } from "@/lib/types";
 import { rotateEdges } from "@/lib/types";

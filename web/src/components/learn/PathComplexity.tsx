@@ -19,7 +19,7 @@ import {
   estimateComplexity,
   COMPLEX_THEORY_SOURCE_URL,
   type ComplexityEstimate,
-} from "@/engine-ts/complexity";
+} from "@/engine-extras/complexity";
 
 const T = {
   en: {

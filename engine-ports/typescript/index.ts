@@ -6,7 +6,7 @@
 // is no WebAssembly module to load, `initEngine()` resolves immediately and the
 // handle's `free()` is a no-op.
 //
-// Cross-references the language-agnostic spec in engine-side-quests/ALGORITHM.md
+// Cross-references the language-agnostic spec in engine-ports/ALGORITHM.md
 // and the Rust originals under engine/src/.
 
 import type { Puzzle, SolverReport } from "@/lib/types";

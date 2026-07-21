@@ -1,7 +1,7 @@
 # Complex Theory (Brendan Owen / Peter McGavin)
 
 The site's live complex-theory estimator
-([`web/src/engine-ts/complexity.ts`](../../../web/src/engine-ts/complexity.ts))
+([`web/src/engine-extras/complexity.ts`](../../../web/src/engine-extras/complexity.ts))
 is a faithful, validated port of **Peter McGavin's reference C implementation**
 of Brendan Owen's Complex Theory.
 

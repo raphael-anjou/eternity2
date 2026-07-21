@@ -8,7 +8,7 @@
 #
 # Each engine is checked against the board/stats the Rust engine produced. This
 # is a convenience wrapper; each engine also has its own test script
-# (engine-lua/spec.lua, engine-cobol/test.sh, engine-brainfuck/test_solver.sh).
+# (lua/spec.lua, cobol/test.sh, brainfuck/test_solver.sh).
 #
 # Usage:  ./run-all.sh
 set -uo pipefail
@@ -42,18 +42,18 @@ echo
 # ============================================================================
 # ISO PORTS — full golden parity (RNG + 9 paths + solver counts + official set).
 # These are the serious, functionality-matching ports. TS/C/C++ are also the
-# browser-switchable backends (web's VITE_ENGINE switch).
+# faithful reimplementations of the Rust engine.
 # ============================================================================
 if [ "$have_node" = 1 ]; then
   rule; bold "TYPESCRIPT — pure-TS port, full golden parity"
-  ( "$NODE" "$ROOT/../web/src/engine-ts/parity.mjs" | tail -1 )
+  ( "$NODE" "$ROOT/typescript/parity.mjs" | tail -1 )
   echo
   rule; bold "C — clang→WASM port, full golden parity (wasm under node)"
-  ( "$NODE" "$ROOT/../web/src/engine-c/parity.mjs" | tail -1 ) \
+  ( "$NODE" "$ROOT/c/parity.mjs" | tail -1 ) \
     || echo "  (engine.wasm missing? rebuild: web/src/engine-c/build.sh)"
   echo
   rule; bold "C++ — clang++→WASM port, full golden parity (wasm under node)"
-  ( "$NODE" "$ROOT/../web/src/engine-cpp/parity.mjs" | tail -1 ) \
+  ( "$NODE" "$ROOT/cpp/parity.mjs" | tail -1 ) \
     || echo "  (engine.wasm missing? rebuild: web/src/engine-cpp/build.sh)"
   echo
 else
@@ -62,12 +62,12 @@ fi
 
 if [ "$have_py" = 1 ]; then
   rule; bold "PYTHON — pure-Python port, full golden parity"
-  ( cd engine-python && "$PY" spec.py | tail -1 )
+  ( cd python && "$PY" spec.py | tail -1 )
   echo
   for args in "3 2 3" "4 11 5" "5 3 6"; do
     set -- $args
     bold "PYTHON — solve a generated ${1}x${1} (seed ${2}, ${3} colors)"
-    ( cd engine-python && "$PY" demo.py "$1" "$2" "$3" | sed -n '3,5p' )
+    ( cd python && "$PY" demo.py "$1" "$2" "$3" | sed -n '3,5p' )
     echo
   done
 else
@@ -80,14 +80,14 @@ fi
 # ============================================================================
 if [ "$have_lua" = 1 ]; then
   rule; bold "LUA — full parity suite (generated + official, all sizes)"
-  ( cd engine-lua && "$LUA" spec.lua | tail -1 )
+  ( cd lua && "$LUA" spec.lua | tail -1 )
   echo
   # size seed colors — few colors (5/6) so the search actually backtracks
   # (max colors makes every placement forced and the solve trivial).
   for args in "3 2 3" "4 11 5" "5 3 6"; do
     set -- $args
     bold "LUA — solve a generated ${1}x${1} (seed ${2}, ${3} colors)"
-    ( cd engine-lua && "$LUA" demo.lua "$1" "$2" "$3" | sed -n '3,6p' )
+    ( cd lua && "$LUA" demo.lua "$1" "$2" "$3" | sed -n '3,6p' )
     echo
   done
 else
@@ -100,14 +100,14 @@ fi
 # ============================================================================
 if [ "$have_cobol" = 1 ]; then
   rule; bold "COBOL — compile + solve 3x3, 4x4, 5x5"
-  ( cd engine-cobol \
+  ( cd cobol \
     && cobc -x -free eternity2.cbl -o eternity2 \
     && for f in data/p_3_3_1.txt data/p_4_4_11.txt data/p_5_5_3.txt; do
          ./eternity2 "$f"
        done )
   echo
   bold "COBOL — parity test (vs Rust RESULT lines)"
-  ( cd engine-cobol && ./test.sh | tail -1 )
+  ( cd cobol && ./test.sh | tail -1 )
   echo
 else
   rule; echo "COBOL skipped (no cobc)."; echo
@@ -118,7 +118,7 @@ fi
 # checks every 3x3 board against the Rust engine's.
 # ============================================================================
 rule; bold "BRAINFUCK — 3x3 solver parity (vs Rust boards)"
-( cd engine-brainfuck && ./test_solver.sh | tail -5 )
+( cd brainfuck && ./test_solver.sh | tail -5 )
 echo
 
 rule; bold "Done."

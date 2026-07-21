@@ -5,7 +5,7 @@ use std::io::Write;
 fn main() {
     for &(s, c, seed) in &[(4u8,4u8,11u32),(5,5,3),(5,6,42),(3,3,1)] {
         let p = generate(s, c, seed);
-        let path = format!("../engine-side-quests/engine-cobol/data/p_{s}_{c}_{seed}.txt");
+        let path = format!("../engine-ports/cobol/data/p_{s}_{c}_{seed}.txt");
         let mut f = std::fs::File::create(&path).unwrap();
         writeln!(f, "{s} {c} {seed}").unwrap();
         for e in &p.pieces { writeln!(f, "{} {} {} {}", e[0],e[1],e[2],e[3]).unwrap(); }

@@ -6,7 +6,7 @@ import {
   estimateComplexity,
   COMPLEX_THEORY_SOURCE_URL,
   type ComplexityEstimate,
-} from "@/engine-ts/complexity";
+} from "@/engine-extras/complexity";
 import { cn } from "@/lib/utils";
 
 // Complex theory, made interactive. Pick a scan order; the funnel — the expected

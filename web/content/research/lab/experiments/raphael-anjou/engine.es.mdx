@@ -61,22 +61,24 @@ real en lugar de una grabación enlatada:
 [la página de observación](/playground/watch) hace avanzar exactamente este
 motor, y no un vídeo de él.
 
-## Cuatro portes, una sola salida
+## Un motor, muchos portes
 
-El sitio puede construirse sobre cuatro backends intercambiables: el crate
-Rust/WASM (el predeterminado y la referencia canónica), un porte en TypeScript
-puro, un porte en C y un porte en C++. Los cuatro exponen la misma superficie, de
-forma idéntica, y cada uno se valida byte a byte contra los datos de referencia
-que produce el crate de Rust: puzzles generados hasta la salida del RNG, los
-nueve caminos de relleno en varios tamaños y ejecuciones completas del
-solucionador con los conteos exactos de nodos, intentos y retrocesos.
+El sitio ejecuta un solo motor: el crate Rust/WASM, la referencia canónica. Pero
+el repositorio conserva toda una colección de reimplementaciones fieles de ese
+motor en otros lenguajes: un porte en TypeScript puro (cero WASM), un porte en C,
+un porte en C++, y estudios más pequeños en Python, Lua, COBOL, e incluso
+Brainfuck. Cada uno se valida byte a byte contra los datos de referencia que
+produce el crate de Rust: puzzles generados hasta la salida del RNG, los nueve
+caminos de relleno en varios tamaños y ejecuciones completas del solucionador con
+los conteos exactos de nodos, intentos y retrocesos.
 
 Esa disciplina existe por una sola razón: una demo interactiva que no puedes
 contrastar no es más que una animación. Dos implementaciones independientes que
 concuerdan hasta el último retroceso son mucho más difíciles de equivocar de la
-misma manera dos veces, y cuatro lo son aún más. (El repositorio también lleva
-traducciones literales en Python, Lua, COBOL y Brainfuck, sujetas a los mismos
-datos de referencia. Esas son por gusto.)
+misma manera dos veces, y ocho lo son aún más. Los portes son una pieza de
+exposición, no opciones de build (el sitio siempre ejecuta Rust), y viven juntos
+en la colección `engine-ports/` del repositorio. Algunos (el backtracker en
+Brainfuck sobre todo) están ahí por gusto.
 
 ## Lo que no reclama
 

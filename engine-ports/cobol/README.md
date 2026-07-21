@@ -83,7 +83,7 @@ Regenerate the golden reference from the Rust crate if the engine changes:
 
 ```sh
 cd ../../engine && cargo run --quiet --bin cobol_golden | grep '^RESULT' \
-    > ../engine-side-quests/engine-cobol/golden.txt
+    > ../engine-ports/engine-cobol/golden.txt
 ```
 
 ## Conventions (identical to the Rust contract)
