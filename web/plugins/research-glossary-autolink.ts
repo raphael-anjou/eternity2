@@ -67,7 +67,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const GLOSSARY_PATH = path.resolve(HERE, "../content/research/glossary.json");
 const ENTRIES: GlossaryEntry[] = (() => {
   try {
-    return JSON.parse(readFileSync(GLOSSARY_PATH, "utf8")).terms ?? [];
+    const parsed = JSON.parse(readFileSync(GLOSSARY_PATH, "utf8")) as {
+      terms?: GlossaryEntry[];
+    };
+    return parsed.terms ?? [];
   } catch {
     return [];
   }
