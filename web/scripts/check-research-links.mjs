@@ -34,6 +34,24 @@ known.add("/research");
 known.add("/research/topics");
 known.add("/research/people");
 known.add("/research/glossary");
+// Route-generated pages added by the generated-routes wave (no MDX backs them):
+// the reproduce index, the by-contribution index, and one hub per contribution
+// kind. Kept in sync with GENERATED_ROUTE_PATHS in content.config.ts.
+known.add("/research/build/reproduce");
+known.add("/research/lab/experiments/by-contribution");
+for (const k of [
+  "solver",
+  "analysis",
+  "reconstruction",
+  "theory",
+  "method",
+  "measurement",
+  "tool",
+  "exposition",
+  "negative",
+]) {
+  known.add(`/research/lab/experiments/by-contribution/${k}`);
+}
 for (const f of files) {
   const rel = path.relative(CONTENT, f).split(path.sep).join("/");
   const slug = rel.replace(/\.fr\.mdx$/, "").replace(/\.mdx$/, "").replace(/(^|\/)index$/, "$1").replace(/\/$/, "");

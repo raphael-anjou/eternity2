@@ -4,13 +4,16 @@
 
 import { pick, type Dict, type Lang } from "@/i18n";
 import { researchDocs } from "./manifest";
-import type { ResearchKind } from "./types";
+import type { ContributionKind, ResearchKind } from "./types";
 
 export interface NavItem {
   url: string;
   title: string;
   description: string;
   kind: ResearchKind;
+  /** The contribution axis (a dead end carries `negative`), so listings can
+   *  surface a dead-end chip without re-reading the manifest. */
+  contribution?: ContributionKind;
   /** Backed by an MDX page (docs shell) vs a legacy TSX page. */
   mdx: boolean;
   translated: boolean;
@@ -135,6 +138,7 @@ export function researchNav(lang: Lang): NavSection[] {
       title: d.title,
       description: d.description,
       kind: d.kind,
+      ...(d.contribution !== undefined ? { contribution: d.contribution } : {}),
       mdx: true,
       translated: d.translated,
       topics: d.topics,

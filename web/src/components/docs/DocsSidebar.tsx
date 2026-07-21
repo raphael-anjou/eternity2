@@ -8,7 +8,7 @@ import { useLocation } from "react-router";
 import { useLang, useT, neutralPath } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
-import { KIND_DOT, groupedItems, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
+import { KIND_DOT, kindLabel, groupedItems, topicMembers, type NavItem, type NavSection } from "@/lib/research/nav";
 import { researchTopics, topicUrl, researchAuthors, authorDocs, authorUrl } from "@/lib/research/manifest";
 import { THEME_ROOTS, NON_PATH_THEMES } from "@/lib/research/theme-roots";
 
@@ -43,7 +43,17 @@ function containsActive(item: NavItem, active: string): boolean {
  *  runs, the analyses). The author hub itself stays a flat heading — this is
  *  the level below it, where a long list needs folding. Open by default when it
  *  holds the active page; otherwise remembers whatever the reader last chose. */
-function SubHub({ item, depth, active }: { item: NavItem; depth: number; active: string }) {
+function SubHub({
+  item,
+  depth,
+  active,
+  showKind = false,
+}: {
+  item: NavItem;
+  depth: number;
+  active: string;
+  showKind?: boolean;
+}) {
   const hasActive = containsActive(item, active);
   const [open, setOpen] = useState(hasActive);
   // Following a link into a collapsed group must reveal it; without this the
@@ -90,7 +100,7 @@ function SubHub({ item, depth, active }: { item: NavItem; depth: number; active:
       </div>
       {open &&
         item.children.map((c) => (
-          <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+          <SideLink key={c.url} item={c} depth={depth + 1} active={active} showKind={showKind} />
         ))}
     </>
   );
@@ -101,6 +111,7 @@ function SideLink({
   depth,
   active,
   flat = false,
+  showKind = false,
 }: {
   item: NavItem;
   depth: number;
@@ -108,7 +119,11 @@ function SideLink({
   /** When true, render only this item — its children are placed elsewhere
    *  (e.g. flattened into sidebar groups), so don't recurse. */
   flat?: boolean;
+  /** When true, print the page's kind label beside the dot (sections that mix
+   *  more than one kind, so the dot's color is no longer self-explanatory). */
+  showKind?: boolean;
 }) {
+  const { lang } = useLang();
   const isActive = active === item.url;
   // A per-author hub (its own experiments nested beneath) renders as a
   // first-class heading — bold, no bullet, a touch of top space — so the lab
@@ -120,7 +135,7 @@ function SideLink({
   const isAuthorHub = Boolean(item.author) && item.children.length > 0 && depth === 0;
   // Any other page with children nested under a hub is a collapsible group.
   if (!isAuthorHub && !flat && item.children.length > 0 && depth > 0) {
-    return <SubHub item={item} depth={depth} active={active} />;
+    return <SubHub item={item} depth={depth} active={active} showKind={showKind} />;
   }
   if (isAuthorHub) {
     return (
@@ -137,7 +152,7 @@ function SideLink({
         </LocalizedLink>
         {!flat &&
           item.children.map((c) => (
-            <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+            <SideLink key={c.url} item={c} depth={depth + 1} active={active} showKind={showKind} />
           ))}
       </>
     );
@@ -160,10 +175,15 @@ function SideLink({
           aria-hidden
         />
         <span className="truncate">{item.title}</span>
+        {showKind && (
+          <span className="ml-auto shrink-0 pl-1 text-[10px] uppercase tracking-wide text-muted-foreground/60">
+            {kindLabel(item.kind, lang)}
+          </span>
+        )}
       </LocalizedLink>
       {!flat &&
         item.children.map((c) => (
-          <SideLink key={c.url} item={c} depth={depth + 1} active={active} />
+          <SideLink key={c.url} item={c} depth={depth + 1} active={active} showKind={showKind} />
         ))}
     </>
   );
@@ -176,6 +196,16 @@ function SectionTree({ section }: { section: NavSection }) {
   // A grouped section is flattened (each page placed by its own group), so its
   // links must not re-render their children; an ungrouped section keeps nesting.
   const isGrouped = groups.some((g) => g.label !== null);
+  // When a section mixes more than one page kind, print the kind label beside
+  // each row: the color dot alone is not self-explanatory once several kinds
+  // share the rail. A single-kind section keeps the dot only (no clutter).
+  const kinds = new Set<string>();
+  const collectKinds = (item: NavItem) => {
+    kinds.add(item.kind);
+    item.children.forEach(collectKinds);
+  };
+  section.items.forEach(collectKinds);
+  const showKind = kinds.size > 1;
   return (
     <nav className="space-y-0.5 pb-4 text-sm">
       <LocalizedLink
@@ -197,7 +227,14 @@ function SectionTree({ section }: { section: NavSection }) {
             </div>
           )}
           {g.items.map((i) => (
-            <SideLink key={i.url} item={i} depth={0} active={active} flat={isGrouped} />
+            <SideLink
+              key={i.url}
+              item={i}
+              depth={0}
+              active={active}
+              flat={isGrouped}
+              showKind={showKind}
+            />
           ))}
         </div>
       ))}

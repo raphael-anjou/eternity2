@@ -18,7 +18,15 @@ import {
   type NavItem,
 } from "@/lib/research/nav";
 import { researchTopic, topicUrl, researchAuthor, authorUrl } from "@/lib/research/manifest";
-import type { ResearchDoc, ReproKind, RigorKind } from "@/lib/research/types";
+import type {
+  ResearchDoc,
+  ReproKind,
+  RigorKind,
+  OutcomeKind,
+  ContributionKind,
+  ScoringConvention,
+} from "@/lib/research/types";
+import { PipelineStages } from "./PipelineStages";
 import { DocsSidebar } from "./DocsSidebar";
 import { DocsToc } from "./DocsToc";
 import { ResearchSubnav } from "./ResearchSubnav";
@@ -58,6 +66,63 @@ const T = {
     reportBadge: "technical report",
     reportTitle:
       "a technical report: published, but not yet independently reviewed. Its claims are stated in good faith and may still be revised.",
+    tier: {
+      1: "Flagship",
+      2: "Finding",
+      3: "Supporting",
+    } as Record<number, string>,
+    tierTitle: "editorial prominence within this section",
+    contribution: {
+      solver: "solver",
+      analysis: "analysis",
+      reconstruction: "reconstruction",
+      theory: "theory",
+      method: "method",
+      measurement: "measurement",
+      negative: "dead end",
+      tool: "tool",
+      exposition: "explainer",
+    } satisfies Record<ContributionKind, string>,
+    contributionTitle: {
+      solver: "produces a competitive board by searching (a real search score)",
+      analysis: "proves or computes a property of an existing board or the instance",
+      reconstruction: "decodes or rebuilds community work to extract an insight",
+      theory: "a mathematical property, law, or impossibility proof",
+      method: "a technique described for reuse, not a scored run",
+      measurement: "a benchmark or empirical observation about solvers or instances",
+      negative: "a rigorously-run dead end, reported first-class rather than as a footnote",
+      tool: "a software artifact",
+      exposition: "an explainer for an audience",
+    } satisfies Record<ContributionKind, string>,
+    outcome: {
+      plateaued: "plateaued",
+      refuted: "refuted",
+      parked: "parked",
+      "new-basin": "new basin",
+      superseded: "superseded",
+    } satisfies Record<OutcomeKind, string>,
+    outcomeTitle: {
+      plateaued: "reached a measured ceiling",
+      refuted: "a rigorously-run dead end",
+      parked: "set aside, not exhausted",
+      "new-basin": "opened a new family or region",
+      superseded: "beaten by a later result",
+    } satisfies Record<OutcomeKind, string>,
+    scoring: {
+      "matched-edges": "matched edges",
+      "strict-5-clue": "strict 5-clue",
+    } satisfies Record<ScoringConvention, string>,
+    scoringTitle: {
+      "matched-edges": "every matching internal edge counts",
+      "strict-5-clue": "the five-clue-fixed track",
+    } satisfies Record<ScoringConvention, string>,
+    reproStrip: "Reproduce",
+    reproVerify: "Verify the stored board",
+    reproVerifyCaveat: "This verifies the board, not the search that produced it.",
+    reproSearchLabel: "reruns the search",
+    reproArtifactLabel: "re-verifies a stored board",
+    reproSee: "See below",
+    budget: "Budget",
     flagship: "flagship result",
     complexity: "Complexity",
     time: "Time",
@@ -97,6 +162,63 @@ const T = {
     reportBadge: "rapport technique",
     reportTitle:
       "un rapport technique : publié, mais pas encore relu de façon indépendante. Ses affirmations sont faites de bonne foi et peuvent encore être révisées.",
+    tier: {
+      1: "Phare",
+      2: "Résultat",
+      3: "Complément",
+    } as Record<number, string>,
+    tierTitle: "importance éditoriale au sein de cette section",
+    contribution: {
+      solver: "solveur",
+      analysis: "analyse",
+      reconstruction: "reconstruction",
+      theory: "théorie",
+      method: "méthode",
+      measurement: "mesure",
+      negative: "impasse",
+      tool: "outil",
+      exposition: "explication",
+    } satisfies Record<ContributionKind, string>,
+    contributionTitle: {
+      solver: "produit un plateau compétitif par recherche (un vrai score de recherche)",
+      analysis: "prouve ou calcule une propriété d'un plateau existant ou de l'instance",
+      reconstruction: "décode ou reconstruit un travail communautaire pour en tirer un enseignement",
+      theory: "une propriété mathématique, une loi ou une preuve d'impossibilité",
+      method: "une technique décrite pour être réutilisée, pas un run noté",
+      measurement: "un banc d'essai ou une observation empirique sur les solveurs ou les instances",
+      negative: "une impasse étudiée avec rigueur, rapportée de plein droit plutôt qu'en note",
+      tool: "un artefact logiciel",
+      exposition: "une explication pour un public",
+    } satisfies Record<ContributionKind, string>,
+    outcome: {
+      plateaued: "plafonné",
+      refuted: "réfuté",
+      parked: "mis de côté",
+      "new-basin": "nouveau bassin",
+      superseded: "dépassé",
+    } satisfies Record<OutcomeKind, string>,
+    outcomeTitle: {
+      plateaued: "a atteint un plafond mesuré",
+      refuted: "une impasse étudiée avec rigueur",
+      parked: "mis de côté, pas épuisé",
+      "new-basin": "a ouvert une nouvelle famille ou région",
+      superseded: "battu par un résultat ultérieur",
+    } satisfies Record<OutcomeKind, string>,
+    scoring: {
+      "matched-edges": "arêtes appariées",
+      "strict-5-clue": "strict 5 indices",
+    } satisfies Record<ScoringConvention, string>,
+    scoringTitle: {
+      "matched-edges": "chaque arête interne appariée compte",
+      "strict-5-clue": "la piste à cinq indices fixés",
+    } satisfies Record<ScoringConvention, string>,
+    reproStrip: "Reproduire",
+    reproVerify: "Vérifier le plateau enregistré",
+    reproVerifyCaveat: "Ceci vérifie le plateau, pas la recherche qui l'a produit.",
+    reproSearchLabel: "relance la recherche",
+    reproArtifactLabel: "revérifie un plateau enregistré",
+    reproSee: "Voir ci-dessous",
+    budget: "Budget",
     flagship: "résultat phare",
     complexity: "Complexité",
     time: "Temps",
@@ -136,6 +258,63 @@ const T = {
     reportBadge: "informe técnico",
     reportTitle:
       "un informe técnico: publicado, pero aún no revisado de forma independiente. Sus afirmaciones se hacen de buena fe y todavía pueden revisarse.",
+    tier: {
+      1: "Destacado",
+      2: "Resultado",
+      3: "Complemento",
+    } as Record<number, string>,
+    tierTitle: "relevancia editorial dentro de esta sección",
+    contribution: {
+      solver: "solucionador",
+      analysis: "análisis",
+      reconstruction: "reconstrucción",
+      theory: "teoría",
+      method: "método",
+      measurement: "medición",
+      negative: "callejón sin salida",
+      tool: "herramienta",
+      exposition: "explicación",
+    } satisfies Record<ContributionKind, string>,
+    contributionTitle: {
+      solver: "produce un tablero competitivo mediante búsqueda (una puntuación de búsqueda real)",
+      analysis: "demuestra o calcula una propiedad de un tablero existente o de la instancia",
+      reconstruction: "decodifica o reconstruye trabajo de la comunidad para extraer una idea",
+      theory: "una propiedad matemática, una ley o una prueba de imposibilidad",
+      method: "una técnica descrita para reutilizarse, no un run puntuado",
+      measurement: "un banco de pruebas o una observación empírica sobre solucionadores o instancias",
+      negative: "un callejón sin salida estudiado con rigor, expuesto de pleno derecho y no como nota al pie",
+      tool: "un artefacto de software",
+      exposition: "una explicación para un público",
+    } satisfies Record<ContributionKind, string>,
+    outcome: {
+      plateaued: "estancado",
+      refuted: "refutado",
+      parked: "aparcado",
+      "new-basin": "nueva cuenca",
+      superseded: "superado",
+    } satisfies Record<OutcomeKind, string>,
+    outcomeTitle: {
+      plateaued: "alcanzó un techo medido",
+      refuted: "un callejón sin salida estudiado con rigor",
+      parked: "apartado, no agotado",
+      "new-basin": "abrió una nueva familia o región",
+      superseded: "batido por un resultado posterior",
+    } satisfies Record<OutcomeKind, string>,
+    scoring: {
+      "matched-edges": "aristas emparejadas",
+      "strict-5-clue": "estricto 5 pistas",
+    } satisfies Record<ScoringConvention, string>,
+    scoringTitle: {
+      "matched-edges": "cuenta cada arista interna emparejada",
+      "strict-5-clue": "la pista de cinco pistas fijadas",
+    } satisfies Record<ScoringConvention, string>,
+    reproStrip: "Reproducir",
+    reproVerify: "Verificar el tablero guardado",
+    reproVerifyCaveat: "Esto verifica el tablero, no la búsqueda que lo produjo.",
+    reproSearchLabel: "relanza la búsqueda",
+    reproArtifactLabel: "revalida un tablero guardado",
+    reproSee: "Ver más abajo",
+    budget: "Presupuesto",
     flagship: "resultado destacado",
     complexity: "Complejidad",
     time: "Tiempo",
@@ -176,6 +355,82 @@ function ReportBadge() {
     >
       <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
       {t.reportBadge}
+    </span>
+  );
+}
+
+/** Contribution chip: what kind of research result the page is (the axis the
+ *  score chart reads for membership). A neutral outline for every value; the
+ *  dead-end value (`negative`) gets a distinct dashed border so a refuted
+ *  result reads as a first-class outcome rather than a missing badge. */
+export function ContributionBadge({ contribution }: { contribution: ContributionKind }) {
+  const t = useT(T);
+  const negative = contribution === "negative";
+  return (
+    <span
+      className={cn(
+        "rounded-full border px-2 py-0.5 font-medium",
+        negative
+          ? "border-dashed border-rose-500/50 text-rose-600 dark:text-rose-400"
+          : "text-muted-foreground",
+      )}
+      title={t.contributionTitle[contribution]}
+    >
+      {t.contribution[contribution]}
+    </span>
+  );
+}
+
+const OUTCOME_STYLE: Record<OutcomeKind, string> = {
+  plateaued: "border-slate-500/40 bg-slate-500/10 text-slate-700 dark:text-slate-300",
+  refuted: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  parked: "border-stone-500/40 bg-stone-500/10 text-stone-700 dark:text-stone-300",
+  "new-basin": "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  superseded: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+};
+
+/** Research-status chip: how an experiment or finding ended (plateaued,
+ *  refuted, parked, new basin, superseded). Distinct from rigor and from the
+ *  publish tier. */
+function OutcomeBadge({ outcome }: { outcome: OutcomeKind }) {
+  const t = useT(T);
+  return (
+    <span
+      className={cn("rounded-full border px-2 py-0.5 font-medium", OUTCOME_STYLE[outcome])}
+      title={t.outcomeTitle[outcome]}
+    >
+      {t.outcome[outcome]}
+    </span>
+  );
+}
+
+/** Editorial-prominence chip: a labeled Flagship / Finding / Supporting chip
+ *  (replaces the old unlabeled star count, whose 1=flagship→3-star mapping read
+ *  inverted). */
+function TierChip({ tier }: { tier: number }) {
+  const t = useT(T);
+  const label = t.tier[tier];
+  if (!label) return null;
+  return (
+    <span
+      className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-400"
+      title={t.tierTitle}
+    >
+      {label}
+    </span>
+  );
+}
+
+/** Which scoring convention the score pill is under, rendered as a small pill
+ *  right after the score so a NNN/480 number is never ambiguous. */
+function ScoringPill({ convention }: { convention: ScoringConvention }) {
+  const t = useT(T);
+  return (
+    <span
+      className="rounded-full border px-2 py-0.5 font-medium text-muted-foreground"
+      title={t.scoringTitle[convention]}
+    >
+      {t.scoring[convention]}
     </span>
   );
 }
@@ -277,20 +532,16 @@ function Badges({ doc }: { doc: ResearchDoc }) {
         {kindLabel(doc.kind, lang)}
       </span>
       {doc.status === "report" && <ReportBadge />}
-      {doc.tier !== undefined && (
-        <span
-          className="rounded-full border px-2 py-0.5 font-medium text-amber-600 dark:text-amber-400"
-          title={t.flagship}
-        >
-          {"★".repeat(4 - doc.tier)}
-        </span>
-      )}
+      {doc.tier !== undefined && <TierChip tier={doc.tier} />}
+      {doc.contribution && <ContributionBadge contribution={doc.contribution} />}
       {doc.rigor && <RigorBadge rigor={doc.rigor} />}
+      {doc.outcome && <OutcomeBadge outcome={doc.outcome} />}
       {doc.score !== undefined && (
         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
           {doc.score}/480
         </span>
       )}
+      {doc.scoringConvention && <ScoringPill convention={doc.scoringConvention} />}
       {doc.topics.map((slug) => {
         const topic = researchTopic(lang, slug);
         if (!topic) return null;
@@ -313,27 +564,83 @@ function Badges({ doc }: { doc: ResearchDoc }) {
   );
 }
 
+/** Does a repro command rerun the SEARCH, or only re-verify a stored ARTIFACT
+ *  (a committed board)? The author can pin it via repro.produces; absent, the
+ *  default is `artifact` when the result was computed from the record-boards
+ *  topic (there the command re-scores a stored board) and `search` otherwise.
+ *  This keeps heavy-but-runnable pages (e.g. the jit-backtracker) as `search`. */
+function reproProduces(doc: ResearchDoc): "search" | "artifact" {
+  const r = doc.repro;
+  if (!r) return "search";
+  if (r.produces) return r.produces;
+  return r.topic === "record-boards" ? "artifact" : "search";
+}
+
+/** Compact one-line repro summary in the header: the repro-kind label, whether
+ *  the command reruns the search or verifies a board (or a pointer to the block
+ *  below when there is no inline command), and the wall-clock budget if the page
+ *  records one. Rendered only when there is a repro block or a score to explain.
+ *  The full ReproBlock still sits at the bottom of the page. */
+function ReproStrip({ doc }: { doc: ResearchDoc }) {
+  const t = useT(T);
+  if (!doc.repro && doc.score === undefined) return null;
+  const produces = doc.repro ? reproProduces(doc) : undefined;
+  const actionLabel =
+    produces === "artifact" ? t.reproArtifactLabel : produces === "search" ? t.reproSearchLabel : undefined;
+  const hasInline = Boolean(doc.repro?.cmd || doc.repro?.topic);
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+      <span className="font-medium text-foreground">{t.reproStrip}</span>
+      {doc.repro && <span>{t.reproKind[doc.repro.kind]}</span>}
+      {actionLabel && (
+        <>
+          <span aria-hidden>·</span>
+          <span>{hasInline ? actionLabel : `${actionLabel} (${t.reproSee})`}</span>
+        </>
+      )}
+      {doc.hardware?.wallClock && (
+        <>
+          <span aria-hidden>·</span>
+          <span>
+            {t.budget}: {doc.hardware.wallClock}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function ReproBlock({ doc }: { doc: ResearchDoc }) {
   const t = useT(T);
   if (!doc.repro) return null;
-  // Nothing actionable (no command, no code link): a compact honesty note
-  // instead of a near-empty box.
+  const isArtifact = reproProduces(doc) === "artifact";
+  // Nothing actionable (no command, no code link): a compact note instead of a
+  // near-empty box.
   if (!doc.repro.cmd && !doc.repro.topic) {
     return (
       <p className="mt-10 border-t pt-4 text-xs text-muted-foreground">
-        {t.reproduce} — {t.reproKind[doc.repro.kind]}
+        {t.reproduce}: {t.reproKind[doc.repro.kind]}
       </p>
     );
   }
+  // An artifact page re-scores a stored board; it does NOT rerun the search.
+  // Amber warn language + a plain caveat keep that boundary explicit.
+  const boxClass = isArtifact
+    ? "mt-10 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4 text-sm"
+    : "mt-10 rounded-lg border bg-muted/30 p-4 text-sm";
   return (
-    <div className="mt-10 rounded-lg border bg-muted/30 p-4 text-sm">
-      <div className="font-semibold">{t.reproduce}</div>
+    <div className={boxClass}>
+      <div className="font-semibold">{isArtifact ? t.reproVerify : t.reproduce}</div>
       <p className="mt-1 text-muted-foreground">{t.reproKind[doc.repro.kind]}</p>
+      {isArtifact && (
+        <p className="mt-1 text-amber-700 dark:text-amber-300">{t.reproVerifyCaveat}</p>
+      )}
       {doc.repro.cmd && (
         <pre className="mt-2 overflow-x-auto rounded-md border bg-background p-2.5 text-xs">
           <code>{doc.repro.cmd}</code>
         </pre>
       )}
+      {doc.repro.scope && <p className="mt-2 text-muted-foreground">{doc.repro.scope}</p>}
       {doc.repro.topic && (
         <a
           href={`${REPO_URL}/tree/main/research/topics/${doc.repro.topic}`}
@@ -362,6 +669,7 @@ function HubCard({ item }: { item: NavItem }) {
         <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
           {kindLabel(item.kind, lang)}
         </span>
+        <NegativeChip item={item} />
       </div>
       <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
         {item.title}
@@ -370,6 +678,22 @@ function HubCard({ item }: { item: NavItem }) {
         {item.description}
       </p>
     </LocalizedLink>
+  );
+}
+
+/** A compact dead-end chip for hub/listing cards: shown only when the item's
+ *  contribution is `negative`, so a refuted result is visible in listings
+ *  rather than invisible for lacking a positive badge. */
+function NegativeChip({ item }: { item: NavItem }) {
+  const t = useT(T);
+  if (item.contribution !== "negative") return null;
+  return (
+    <span
+      className="rounded-full border border-dashed border-rose-500/50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600 dark:text-rose-400"
+      title={t.contributionTitle.negative}
+    >
+      {t.contribution.negative}
+    </span>
   );
 }
 
@@ -385,6 +709,7 @@ function AuthorHubCard({ item }: { item: NavItem }) {
       <div className="flex items-center gap-2 text-sm font-semibold tracking-tight group-hover:underline">
         <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[item.kind])} aria-hidden />
         {item.title}
+        <NegativeChip item={item} />
       </div>
       <p className="mt-1 pl-4 text-xs leading-relaxed text-muted-foreground">
         {item.description}
@@ -522,7 +847,9 @@ export function DocsShell({
           <p className="text-lg text-muted-foreground">{doc.description}</p>
           <Byline doc={doc} />
           <Badges doc={doc} />
+          <ReproStrip doc={doc} />
         </header>
+        <PipelineStages doc={doc} />
         <div
           className={cn(
             "prose prose-neutral dark:prose-invert mt-8 max-w-none",
