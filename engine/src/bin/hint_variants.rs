@@ -68,7 +68,7 @@ fn faithful_colors(n: usize) -> (u8, u8) {
     // Border ~ mult 12 (cap 5); interior ~ mult 24, floor 2 so small boards keep a
     // real palette. Then enforce interior >= ~3x border (E2's 17:5 ratio) so the
     // interior always dominates.
-    let bc = ((frame / 12.0).round() as usize).max(1).min(5);
+    let bc = ((frame / 12.0).round() as usize).clamp(1, 5);
     let mut ic = ((interior / 24.0).round() as usize).max(2);
     if ic < bc * 3 {
         ic = (bc * 3).min((interior / 4.0).floor() as usize).max(ic);
@@ -300,32 +300,6 @@ fn clustered_blocks(g: Grid, k: usize) -> Vec<usize> {
         }
     }
     set.into_iter().collect()
-}
-
-/// A genuinely spread interior lattice whose count is *close* to `target`. We
-/// pick the stride whose FULL offset-1 lattice count is nearest to the target and
-/// return that lattice unmodified — never a within-lattice downsample, which was
-/// found to collapse low counts into near-linear rows (a geometry change
-/// masquerading as a count change). The trade-off is that the achievable counts
-/// are the lattice counts (⌈(n-1)/stride⌉², e.g. 9, 16, 25 on a 16-grid), so the
-/// "count sweep" is a sweep over those; the caller labels each variant by its
-/// ACTUAL count. Every returned set has the same uniform-grid character, so a
-/// difference across the sweep is a difference in count, not in shape.
-fn spread_count(g: Grid, target: usize) -> Vec<usize> {
-    let mut best: Vec<usize> = lattice(g, 2, 1);
-    let mut best_gap = (best.len() as i64 - target as i64).abs();
-    for stride in 2..=g.n {
-        let cells = lattice(g, stride, 1);
-        if cells.is_empty() {
-            continue;
-        }
-        let gap = (cells.len() as i64 - target as i64).abs();
-        if gap < best_gap {
-            best = cells;
-            best_gap = gap;
-        }
-    }
-    best
 }
 
 /// The official Eternity II 5-clue SHAPE, generalized to an n×n board: one

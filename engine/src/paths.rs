@@ -246,7 +246,7 @@ pub fn build_path_with_hints(
     }
     while let Some(cell) = queue.pop_front() {
         let (cx, cy) = (cell as usize % w, cell as usize / w);
-        let mut push = |x: usize, y: usize, out: &mut Vec<u16>, q: &mut std::collections::VecDeque<u16>, seen: &mut [bool]| {
+        let push = |x: usize, y: usize, out: &mut Vec<u16>, q: &mut std::collections::VecDeque<u16>, seen: &mut [bool]| {
             let i = idx(x, y);
             if !seen[i as usize] {
                 seen[i as usize] = true;
@@ -307,13 +307,13 @@ fn trace_hints_seq(w: usize, h: usize, hints: &[u16]) -> Vec<u16> {
 
     let mut order: Vec<u16> = Vec::with_capacity(n);
     let mut seen = vec![false; n];
-    let mut push = |cell: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
+    let push = |cell: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
         if !seen[cell as usize] {
             seen[cell as usize] = true;
             order.push(cell);
         }
     };
-    let mut line = |a: u16, b: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
+    let line = |a: u16, b: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
         let (mut x0, mut y0) = (rc(a).0 as isize, rc(a).1 as isize);
         let (x1, y1) = (rc(b).0 as isize, rc(b).1 as isize);
         let (dx, dy) = ((x1 - x0).abs(), (y1 - y0).abs());
