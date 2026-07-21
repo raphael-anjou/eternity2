@@ -26,17 +26,52 @@ pub use board::Board;
 pub use generator::{generate, generate_framed, generate_solved, generate_solved_framed,
     max_colors, GeneratedPuzzle};
 pub use piece::{Piece, Pieces, EMPTY};
-pub use score::{score_board, score_cells, MAX_SCORE_16};
+pub use score::{score_board, score_cells, MAX_SCORE, MAX_SCORE_16};
 pub use stats::SearchStats;
 
 /// The border color. A border-facing edge carries color 0 and never scores.
 pub const BORDER: u8 = 0;
 
-/// Board width/height for the official puzzle. The study is 16x16 throughout;
-/// keeping this a constant lets the hot loop use fixed-size arrays.
+/// Board width/height. Kept a compile-time constant so the hot loop uses
+/// fixed-size arrays (`[T; N]`) and elided bounds checks — a runtime size
+/// parameter would cost 10–30% on this backtracker. Multi-size support (for the
+/// Hint Study's scaling axis) is therefore a **compile-time feature**: exactly
+/// one of the `size-N` features selects the const values below, and a
+/// size-specialised binary is built per size. The default (no feature, or
+/// `size-16`) is the official 16×16 board, so every existing consumer
+/// (dfs-study, repair-study) compiles unchanged with zero runtime cost.
+///
+/// The size features are mutually exclusive. Enabling more than one — INCLUDING
+/// `size-16` (which otherwise selects nothing, since 16 is the fallback) — is a
+/// hard compile error, so a defensive `--features size-16` unified with another
+/// crate's `size-8` across the workspace cannot silently flip the board size.
+#[cfg(any(
+    all(feature = "size-8", feature = "size-10"),
+    all(feature = "size-8", feature = "size-12"),
+    all(feature = "size-8", feature = "size-14"),
+    all(feature = "size-8", feature = "size-16"),
+    all(feature = "size-10", feature = "size-12"),
+    all(feature = "size-10", feature = "size-14"),
+    all(feature = "size-10", feature = "size-16"),
+    all(feature = "size-12", feature = "size-14"),
+    all(feature = "size-12", feature = "size-16"),
+    all(feature = "size-14", feature = "size-16"),
+))]
+compile_error!("at most one e2-core `size-N` feature may be enabled at a time");
+
+#[cfg(feature = "size-8")]
+pub const W: usize = 8;
+#[cfg(feature = "size-10")]
+pub const W: usize = 10;
+#[cfg(feature = "size-12")]
+pub const W: usize = 12;
+#[cfg(feature = "size-14")]
+pub const W: usize = 14;
+#[cfg(not(any(feature = "size-8", feature = "size-10", feature = "size-12", feature = "size-14")))]
 pub const W: usize = 16;
-/// Board height (see [`W`]).
-pub const H: usize = 16;
+
+/// Board height. The study's boards are square, so `H == W` at every size.
+pub const H: usize = W;
 /// Cell count, `W * H`.
 pub const N: usize = W * H;
 

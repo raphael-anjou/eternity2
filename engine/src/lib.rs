@@ -26,7 +26,7 @@ pub mod types;
 pub use break_solver::BreakSolver;
 pub use generator::{generate, generate_framed, generate_solved_framed};
 pub use official::official_puzzle;
-pub use paths::{build_path, PATH_KINDS};
+pub use paths::{build_path, build_path_with_hints, PATH_KINDS};
 pub use solver::{score_board, Solver, Status};
 pub use types::{canonical, rotated, Color, Hint, Puzzle, BORDER};
 

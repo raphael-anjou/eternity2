@@ -88,6 +88,22 @@ fn main() -> ExitCode {
         }
     };
 
+    // Guard against a board/engine size mismatch. This engine is compiled for a
+    // fixed board size (`e2_core::W`, selected by the `size-N` feature). A board
+    // of any other size would index out of the fixed-size arrays and panic deep
+    // in the search; refuse it here with a clear message instead. This is the
+    // footgun of compile-time sizing — two differently-sized binaries look
+    // identical on disk — made loud rather than silent.
+    if inst.width as usize != e2_core::W {
+        eprintln!(
+            "error: board is {0}x{0} but this run_dfs was built for {1}x{1}. \
+             Rebuild without a size feature for 16x16, or with --features size-{0} \
+             for this board.",
+            inst.width, e2_core::W,
+        );
+        return ExitCode::FAILURE;
+    }
+
     match spec.kind {
         SpecKind::Engine => {}
         SpecKind::Codegen => {

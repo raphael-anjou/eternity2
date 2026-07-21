@@ -141,6 +141,131 @@ pub fn build_path(kind: &str, width: u8, height: u8, seed: u32) -> Option<Vec<u1
     Some(out)
 }
 
+/// Hint-aware path builder. Adds orders that need the pinned cell positions on
+/// top of the hint-blind [`build_path`] set. Used by the hint study's scaling
+/// axis, which runs the (runtime-sized) solver across board sizes.
+///
+/// - `connect-hints-first`: multi-source BFS outward from every hint at once —
+///   the study's "reach the clues and connect them" negative control. It opens a
+///   frontier around each hint and never keeps a single compact one.
+///
+/// Any `kind` that is not hint-aware falls through to [`build_path`], so this is
+/// a superset. Returns a permutation of `0..w*h` (pinned cells included; the
+/// solver skips already-placed cells itself).
+pub fn build_path_with_hints(
+    kind: &str,
+    width: u8,
+    height: u8,
+    seed: u32,
+    hints: &[u16],
+) -> Option<Vec<u16>> {
+    let (w, h) = (width as usize, height as usize);
+    let idx0 = |x: usize, y: usize| (y * w + x) as u16;
+
+    // Accept the hint study's canonical path names (as used by run_dfs and the
+    // grid) so the scaling axis can drive this solver with the SAME path set the
+    // 16×16 study uses — not just the site engine's `build_path` vocabulary.
+    match kind {
+        // Aliases onto build_path's names.
+        "rowmajor" => return build_path("row-major", width, height, seed),
+        "spiral-in" | "spiral-out" | "border-first" => {
+            return build_path(kind, width, height, seed)
+        }
+        // Orders the site engine's build_path does not have; built here.
+        "rowmajor-bottomup" => {
+            let mut out = Vec::with_capacity(w * h);
+            for y in (0..h).rev() {
+                for x in 0..w {
+                    out.push(idx0(x, y));
+                }
+            }
+            return Some(out);
+        }
+        "verhaard-comb" => {
+            let horiz = 10.min(h);
+            let mut out = Vec::with_capacity(w * h);
+            for y in 0..horiz {
+                for x in 0..w {
+                    out.push(idx0(x, y));
+                }
+            }
+            for x in 0..w {
+                for y in horiz..h {
+                    out.push(idx0(x, y));
+                }
+            }
+            return Some(out);
+        }
+        "clue-rows-first" => {
+            // The official-E2 clue rows swept first (only meaningful at 16×16;
+            // for other sizes we scale the fractions), then the rest top-down.
+            let clue_rows: Vec<usize> = if h == 16 {
+                vec![2, 8, 13]
+            } else {
+                vec![h / 8, h / 2, (13 * h) / 16]
+            };
+            let mut out = Vec::with_capacity(w * h);
+            for &r in &clue_rows {
+                for x in 0..w {
+                    out.push(idx0(x, r));
+                }
+            }
+            for y in 0..h {
+                if clue_rows.contains(&y) {
+                    continue;
+                }
+                for x in 0..w {
+                    out.push(idx0(x, y));
+                }
+            }
+            return Some(out);
+        }
+        _ => {}
+    }
+
+    if kind != "connect-hints-first" {
+        return build_path(kind, width, height, seed);
+    }
+    let n = w * h;
+    let idx = |x: usize, y: usize| (y * w + x) as u16;
+    let mut seen = vec![false; n];
+    let mut out: Vec<u16> = Vec::with_capacity(n);
+    let mut queue: std::collections::VecDeque<u16> = std::collections::VecDeque::new();
+    // Seed from the hints (in the interior, but any cell works). If there are no
+    // hints this degenerates to row-major from cell 0.
+    let anchors: Vec<u16> = if hints.is_empty() { vec![0] } else { hints.to_vec() };
+    for &a in &anchors {
+        if (a as usize) < n && !seen[a as usize] {
+            seen[a as usize] = true;
+            out.push(a);
+            queue.push_back(a);
+        }
+    }
+    while let Some(cell) = queue.pop_front() {
+        let (cx, cy) = (cell as usize % w, cell as usize / w);
+        let mut push = |x: usize, y: usize, out: &mut Vec<u16>, q: &mut std::collections::VecDeque<u16>, seen: &mut [bool]| {
+            let i = idx(x, y);
+            if !seen[i as usize] {
+                seen[i as usize] = true;
+                out.push(i);
+                q.push_back(i);
+            }
+        };
+        if cy > 0 { push(cx, cy - 1, &mut out, &mut queue, &mut seen); }
+        if cx > 0 { push(cx - 1, cy, &mut out, &mut queue, &mut seen); }
+        if cx + 1 < w { push(cx + 1, cy, &mut out, &mut queue, &mut seen); }
+        if cy + 1 < h { push(cx, cy + 1, &mut out, &mut queue, &mut seen); }
+    }
+    // Any unreached cell (cannot happen on a connected grid) appended for safety.
+    for i in 0..n as u16 {
+        if !seen[i as usize] {
+            out.push(i);
+        }
+    }
+    debug_assert_eq!(out.len(), n);
+    Some(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

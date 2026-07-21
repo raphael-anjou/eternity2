@@ -1,32 +1,102 @@
-//! Generate hint-geometry variants for the "where you place the hints beats how
-//! many" experiment (eternity2.dev/research/why/hint-geometry).
+//! Generate hint-geometry variants for the **Hint Study** lab section
+//! (eternity2.dev/research/lab/experiments/raphael-anjou/hint-study).
 //!
-//! One solved 16x16 board is generated to Eternity II's colour recipe (5 border
-//! colours + 17 interior). Because `generate_solved_framed` lays piece `i` at
-//! cell `i` at rotation 0, the identity placement IS the solution, so a hint for
-//! any cell `pos` is just `{pos, piece: pos, rot: 0}`. We emit several hint sets
-//! that differ only in geometry / count, all pinning true-solution pieces, as
-//! site-schema JSON that the dfs-study `run_dfs` binary consumes unchanged.
+//! One solved N×N board is generated to Eternity II's colour recipe (border
+//! colours confined to the frame band + interior colours). Because
+//! `generate_solved_framed` lays piece `i` at cell `i` at rotation 0, the
+//! identity placement IS the solution, so a hint for any cell `pos` is just
+//! `{pos, piece: pos, rot: 0}`. We relabel piece IDs by a seeded permutation so
+//! a naive solver cannot walk the identity, then emit several hint sets that
+//! differ only in geometry / count, as site-schema JSON (consumed by the
+//! dfs-study `run_dfs`) and producer CSV (consumed by `producer_trie`).
 //!
-//! Usage: eternity2-engine-hint-variants <out_dir> [board_seed]
+//! Parametric in board size and colour count so the study can measure the
+//! placement effect as a function of N (the scaling axis). The colour recipe
+//! defaults follow the density-preserving rule derived in the study method:
+//! border colours target multiplicity ~12, interior ~24, matching E2 exactly at
+//! N=16 (5 border + ~17 interior) while holding constraint density fixed across
+//! sizes so the size trend is not confounded by density.
+//!
+//! Usage:
+//!   hint_variants --out <dir> [--size N] [--colors C] [--seed S]
+//!   (legacy positional form `hint_variants <out_dir> [seed]` still works, N=16)
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use eternity2_engine::generator::{frame_color_count, interior_edge_count};
 use eternity2_engine::{generate_solved_framed, Puzzle, BORDER};
 
-const SIZE: usize = 16;
-const COLORS: u8 = 22; // 5 border + 17 interior, the official E2 recipe
+/// The board size for a run, threaded through the layout helpers (which used to
+/// close over a `SIZE` const). Kept in one struct so every geometry function is
+/// explicit about the grid it addresses.
+#[derive(Clone, Copy)]
+struct Grid {
+    n: usize,
+}
+
+impl Grid {
+    fn cell(&self, x: usize, y: usize) -> usize {
+        y * self.n + x
+    }
+    fn xy(&self, cell: usize) -> (usize, usize) {
+        (cell % self.n, cell / self.n)
+    }
+    fn is_border(&self, cell: usize) -> bool {
+        let (x, y) = self.xy(cell);
+        x == 0 || y == 0 || x == self.n - 1 || y == self.n - 1
+    }
+    fn ncells(&self) -> usize {
+        self.n * self.n
+    }
+}
+
+/// Density-preserving colour recipe for size `n`: returns `colors` (total) such
+/// that `frame_color_count(colors)` border colours each land near multiplicity
+/// 12 and the interior colours near multiplicity 24 — matching E2's structure at
+/// n=16 while holding constraint density constant across sizes. See the study
+/// method page for the derivation. The engine clamps `colors` to
+/// `max_colors(n)`, and `frame_color_count` caps border colours at 5.
+fn faithful_colors(n: usize) -> u8 {
+    let n_u8 = n as u8;
+    let frame = frame_band_slot_count(n) as f64;
+    let interior = (interior_edge_count(n_u8) as usize - frame_band_slot_count(n)) as f64;
+    // Target multiplicities from E2 (frame 60/5=12, interior 420/17≈24.7).
+    let bc = ((frame / 12.0).round() as usize).max(1).min(5);
+    let ic = ((interior / 24.0).round() as usize).max(1);
+    (bc + ic).min(22) as u8
+}
+
+/// Count of along-frame seams (border band) on an n×n board — mirrors the
+/// engine's `slot_is_frame_band` partition, recomputed here so the study's
+/// recipe derivation is self-contained.
+fn frame_band_slot_count(n: usize) -> usize {
+    let s = n;
+    let n_vert = s * (s - 1);
+    let mut frame = 0;
+    for i in 0..n_vert {
+        let y = i / (s - 1);
+        if y == 0 || y == s - 1 {
+            frame += 1;
+        }
+    }
+    for j in 0..(s * (s - 1)) {
+        let x = j % s;
+        if x == 0 || x == s - 1 {
+            frame += 1;
+        }
+    }
+    frame
+}
 
 /// A solved board with piece IDs relabelled by a random permutation. The board
 /// (the physical tiling and its edges) is unchanged; only the integer names of
 /// the pieces move, so cell `pos` is now solved by piece `sol[pos]` at rot 0
 /// instead of trivially by piece `pos`. Without this the naive row-major solver
-/// walks the identity solution in ~240 nodes and the hints do nothing.
+/// walks the identity solution in ~N² nodes and the hints do nothing.
 struct Scrambled {
-    /// `pieces[id]` = edges (URDL, rot 0) of the piece now labelled `id`.
     pieces: Vec<[u8; 4]>,
-    /// `sol[pos]` = the piece id that solves cell `pos` at rot 0.
     sol: Vec<u16>,
 }
 
@@ -42,18 +112,14 @@ impl SplitMix {
     }
 }
 
-/// Relabel the solved board's piece IDs by a seeded permutation.
 fn scramble_ids(base: &Puzzle, seed: u64) -> Scrambled {
     let n = base.pieces.len();
-    // new_id[old_index] = the id the piece originally at index `old_index` takes.
     let mut new_id: Vec<usize> = (0..n).collect();
     let mut rng = SplitMix(seed);
     for i in (1..n).rev() {
         let j = (rng.next() % (i as u64 + 1)) as usize;
         new_id.swap(i, j);
     }
-    // pieces[new_id[old]] = base.pieces[old]; sol[cell] = new_id[cell] (cell was
-    // solved by original piece `cell` at rot 0 on the identity board).
     let mut pieces = vec![[0u8; 4]; n];
     for old in 0..n {
         let e = base.pieces[old];
@@ -64,8 +130,6 @@ fn scramble_ids(base: &Puzzle, seed: u64) -> Scrambled {
 }
 
 /// Encode one edge colour as producer's 16-bit zero-padded binary word.
-/// The engine's `BORDER` (0) maps to producer's grey border `1111111111111111`
-/// (65535); every interior colour id is written as its 16-bit binary.
 fn color_word(c: u8) -> String {
     if c == BORDER {
         "1".repeat(16)
@@ -74,22 +138,15 @@ fn color_word(c: u8) -> String {
     }
 }
 
-/// Emit the same variant as producer's legacy CSV. Layout: line 1 = board size;
-/// then one line per piece id (line `id+2`) `top,right,bottom,left,x,y,rot`.
-/// A hint pins cell `pos` to piece `sol[pos]`, so it is written on THAT piece's
-/// row as `x=pos%16, y=pos/16, rot`. This is the identical hint path every
-/// benchmark solver reads (`load_puzzle_with_hints`), so producer honours the
-/// pins for the whole beam search.
-fn write_variant_csv(dir: &Path, name: &str, s: &Scrambled, hint_cells: &[usize]) {
-    // piece id -> (x, y, rot) if pinned. URDL edges: producer wants top,right,
-    // bottom,left, which is exactly our [U,R,D,L] order.
-    let mut pin: std::collections::HashMap<u16, (usize, usize, u8)> = std::collections::HashMap::new();
+fn write_variant_csv(dir: &Path, name: &str, g: Grid, s: &Scrambled, hint_cells: &[usize]) {
+    let mut pin: HashMap<u16, (usize, usize, u8)> = HashMap::new();
     for &pos in hint_cells {
         let piece = s.sol[pos];
-        pin.insert(piece, (pos % SIZE, pos / SIZE, 0));
+        let (x, y) = g.xy(pos);
+        pin.insert(piece, (x, y, 0));
     }
     let mut out = String::new();
-    out.push_str(&format!("{SIZE}\n"));
+    out.push_str(&format!("{}\n", g.n));
     for (id, e) in s.pieces.iter().enumerate() {
         let (x, y, rot) = pin.get(&(id as u16)).copied().unwrap_or((0, 0, 0));
         out.push_str(&format!(
@@ -103,20 +160,16 @@ fn write_variant_csv(dir: &Path, name: &str, s: &Scrambled, hint_cells: &[usize]
             rot
         ));
     }
-    let path = dir.join(format!("{name}.csv"));
-    fs::write(&path, out).expect("write csv variant");
+    fs::write(dir.join(format!("{name}.csv")), out).expect("write csv variant");
 }
 
-/// Site-schema JSON is byte-compatible with the engine `Puzzle` serde derive,
-/// so we build a `Puzzle` clone carrying only the chosen hints and serialise it.
-/// Also emits the producer-format CSV of the same variant.
-fn write_variant(dir: &Path, name: &str, base: &Puzzle, s: &Scrambled, hint_cells: &[usize]) {
+fn write_variant(dir: &Path, name: &str, g: Grid, base: &Puzzle, s: &Scrambled, hint_cells: &[usize]) {
     use eternity2_engine::Hint;
     let hints = hint_cells
         .iter()
         .map(|&pos| Hint {
             pos: pos as u16,
-            piece: s.sol[pos], // scrambled solution: cell pos is solved by sol[pos]
+            piece: s.sol[pos],
             rot: 0,
         })
         .collect::<Vec<_>>();
@@ -129,26 +182,24 @@ fn write_variant(dir: &Path, name: &str, base: &Puzzle, s: &Scrambled, hint_cell
         hints,
     };
     let json = serde_json::to_string_pretty(&variant).expect("serialise variant");
-    let path = dir.join(format!("{name}.json"));
-    fs::write(&path, json).expect("write variant");
-    write_variant_csv(dir, name, s, hint_cells);
-    println!("wrote {} ({} hints, +csv)", path.display(), hint_cells.len());
+    fs::write(dir.join(format!("{name}.json")), json).expect("write variant");
+    write_variant_csv(dir, name, g, s, hint_cells);
+    println!("  wrote {name:28} ({:>3} hints)", hint_cells.len());
 }
 
-fn is_border(cell: usize) -> bool {
-    let (x, y) = (cell % SIZE, cell / SIZE);
-    x == 0 || y == 0 || x == SIZE - 1 || y == SIZE - 1
-}
+// ---------------------------------------------------------------------------
+// Geometry helpers — all parametric in the grid.
+// ---------------------------------------------------------------------------
 
-/// Scattered lattice: every `stride`-th cell in both axes, offset by 1 so we do
-/// not sit exactly on the rim. Returns cells in row-major order.
-fn lattice(stride: usize, offset: usize) -> Vec<usize> {
+/// Scattered lattice: every `stride`-th cell in both axes, offset so we do not
+/// sit exactly on the rim. Row-major order.
+fn lattice(g: Grid, stride: usize, offset: usize) -> Vec<usize> {
     let mut cells = Vec::new();
     let mut y = offset;
-    while y < SIZE {
+    while y < g.n {
         let mut x = offset;
-        while x < SIZE {
-            cells.push(y * SIZE + x);
+        while x < g.n {
+            cells.push(g.cell(x, y));
             x += stride;
         }
         y += stride;
@@ -161,132 +212,215 @@ fn contiguous(n: usize) -> Vec<usize> {
     (0..n).collect()
 }
 
-/// Interior cells only, sampled on a lattice, taking the first `n`.
-fn interior_lattice(stride: usize, n: usize) -> Vec<usize> {
-    lattice(stride, 1)
+fn interior_lattice(g: Grid, stride: usize, n: usize) -> Vec<usize> {
+    lattice(g, stride, 1)
         .into_iter()
-        .filter(|&c| !is_border(c))
+        .filter(|&c| !g.is_border(c))
         .take(n)
         .collect()
 }
 
-/// Border cells only (the rim ring), taking the first `n` in row-major order.
-fn border_cells(n: usize) -> Vec<usize> {
-    (0..SIZE * SIZE).filter(|&c| is_border(c)).take(n).collect()
+fn border_cells(g: Grid, n: usize) -> Vec<usize> {
+    (0..g.ncells()).filter(|&c| g.is_border(c)).take(n).collect()
 }
 
-/// McGavin's ACTUAL 18-hint board, decoded from his posted bucas URL (groups.io
-/// msg 11746): rows {1,3,5} x columns {0,3,6,9,12,15}. This is the real "18
-/// scattered hints" that solved Joe's puzzle in <15 min. Note it sits entirely
-/// in the top third -- it is spread horizontally, NOT reaching the deep endgame
-/// (which is worth noting against the page's "reach the endgame" wording).
-fn mcgavin_real_18() -> Vec<usize> {
-    let cols = [0usize, 3, 6, 9, 12, 15]; // every third column
-    let rows = [1usize, 3, 5]; // the real rows from Peter's board
+/// A `k×k` solid block of cells with its top-left corner at (x0, y0).
+fn block(g: Grid, x0: usize, y0: usize, k: usize) -> Vec<usize> {
     let mut cells = Vec::new();
-    for &y in &rows {
-        for &x in &cols {
-            cells.push(y * SIZE + x);
+    for dy in 0..k {
+        for dx in 0..k {
+            let (x, y) = (x0 + dx, y0 + dy);
+            if x < g.n && y < g.n {
+                cells.push(g.cell(x, y));
+            }
         }
     }
     cells
 }
 
-/// A genuinely DEEP 18-hint set: same every-third-column lattice, but on rows
-/// {1,7,13} that span top-to-bottom -- what the page's PROSE describes ("dotted
-/// down into the region the search reaches last"). McGavin's real board does not
-/// do this; this variant tests whether the page's stated causal mechanism
-/// (reach the endgame) would actually help MORE than his shallow board did.
-fn deep_18() -> Vec<usize> {
-    let cols = [0usize, 3, 6, 9, 12, 15];
-    let rows = [1usize, 7, 13];
-    let mut cells = Vec::new();
-    for &y in &rows {
-        for &x in &cols {
-            cells.push(y * SIZE + x);
+/// The E2 clue geometry, generalized: 4 near-corner anchors + `n_center` central
+/// anchors, each surrounded by a `k×k` clustered block. This is the "clustered"
+/// end of the ladder — the geometry of the official puzzle's own gift.
+fn clustered_at_clues(g: Grid, k: usize) -> Vec<usize> {
+    let m = g.n;
+    // Anchor cells: 4 offset from corners + 1 centre (E2's 5-clue shape).
+    let off = 1;
+    let anchors = [
+        (off, off),
+        (m - off - k, off),
+        (off, m - off - k),
+        (m - off - k, m - off - k),
+        (m / 2 - k / 2, m / 2 - k / 2),
+    ];
+    let mut set = std::collections::BTreeSet::new();
+    for &(x0, y0) in &anchors {
+        for c in block(g, x0, y0, k) {
+            set.insert(c);
         }
     }
-    cells
+    set.into_iter().collect()
+}
+
+/// A genuinely spread interior lattice whose count is *close* to `target`. We
+/// pick the stride whose FULL offset-1 lattice count is nearest to the target and
+/// return that lattice unmodified — never a within-lattice downsample, which was
+/// found to collapse low counts into near-linear rows (a geometry change
+/// masquerading as a count change). The trade-off is that the achievable counts
+/// are the lattice counts (⌈(n-1)/stride⌉², e.g. 9, 16, 25 on a 16-grid), so the
+/// "count sweep" is a sweep over those; the caller labels each variant by its
+/// ACTUAL count. Every returned set has the same uniform-grid character, so a
+/// difference across the sweep is a difference in count, not in shape.
+fn spread_count(g: Grid, target: usize) -> Vec<usize> {
+    let mut best: Vec<usize> = lattice(g, 2, 1);
+    let mut best_gap = (best.len() as i64 - target as i64).abs();
+    for stride in 2..=g.n {
+        let cells = lattice(g, stride, 1);
+        if cells.is_empty() {
+            continue;
+        }
+        let gap = (cells.len() as i64 - target as i64).abs();
+        if gap < best_gap {
+            best = cells;
+            best_gap = gap;
+        }
+    }
+    best
+}
+
+/// The official Eternity II 5-clue SHAPE, generalized to an n×n board: one
+/// central anchor plus four anchors set in from the corners, in the same
+/// arrangement as E2's five pre-placed clues (a centre clue and four spread
+/// toward the quadrants). Only the geometric SHAPE is borrowed from the puzzle;
+/// the pieces and board are our own generated instance. Returns 5 single cells.
+fn e2_clue_shape(g: Grid) -> Vec<usize> {
+    let m = g.n;
+    // E2's clues sit near (but not on) the quadrant centres, plus the middle.
+    let q = m / 4;
+    vec![
+        g.cell(m / 2, m / 2), // centre
+        g.cell(q, q),         // upper-left quadrant
+        g.cell(m - 1 - q, q), // upper-right
+        g.cell(q, m - 1 - q), // lower-left
+        g.cell(m - 1 - q, m - 1 - q), // lower-right
+    ]
 }
 
 fn main() {
-    let mut args = std::env::args().skip(1);
-    let out_dir = PathBuf::from(args.next().unwrap_or_else(|| {
-        eprintln!("usage: hint-variants <out_dir> [board_seed]");
-        std::process::exit(2);
-    }));
-    let board_seed: u32 = args.next().map(|s| s.parse().unwrap()).unwrap_or(1);
+    // Parse both the new flag form and the legacy positional form.
+    let argv: Vec<String> = std::env::args().skip(1).collect();
+    let flag = |name: &str| -> Option<String> {
+        argv.iter().position(|a| a == name).and_then(|i| argv.get(i + 1)).cloned()
+    };
+
+    let out_dir = flag("--out")
+        .or_else(|| argv.iter().find(|a| !a.starts_with("--")).cloned())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            eprintln!("usage: hint_variants --out <dir> [--size N] [--colors C] [--seed S]");
+            std::process::exit(2);
+        });
+
+    let size: usize = flag("--size").and_then(|s| s.parse().ok()).unwrap_or(16);
+    let seed: u32 = flag("--seed")
+        .and_then(|s| s.parse().ok())
+        .or_else(|| {
+            // legacy positional seed
+            argv.iter().filter(|a| !a.starts_with("--")).nth(1).and_then(|s| s.parse().ok())
+        })
+        .unwrap_or(1);
+    let colors: u8 = flag("--colors")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or_else(|| faithful_colors(size));
+
+    let g = Grid { n: size };
     fs::create_dir_all(&out_dir).expect("mkdir out_dir");
 
-    // One solved board, held fixed across every variant.
-    let board = generate_solved_framed(SIZE as u8, COLORS, board_seed, true);
-    let border_colors = board
+    let board = generate_solved_framed(size as u8, colors, seed, true);
+    let border_edges = board
         .pieces
         .iter()
         .flat_map(|p| p.iter())
         .filter(|&&c| c == BORDER)
         .count();
-    // Relabel piece IDs so the naive row-major solver can't walk the identity
-    // solution for free. The tiling is unchanged; hints pin the true (relabelled)
-    // pieces. Derived from board_seed so the whole instance is reproducible.
-    let scr = scramble_ids(&board, (board_seed as u64).wrapping_mul(0x1000_0001) ^ 0xE2);
+    let scr = scramble_ids(&board, (seed as u64).wrapping_mul(0x1000_0001) ^ 0xE2);
+
     println!(
-        "solved board seed={board_seed}: {} pieces, {} border-edge slots, ids scrambled",
+        "board N={size} colors={colors} (frame={} interior={}) seed={seed}: {} pieces, {} border-edge slots",
+        frame_color_count(colors),
+        colors - frame_color_count(colors),
         board.pieces.len(),
-        border_colors
+        border_edges,
     );
 
-    // --- Geometry contrast at (roughly) matched count -----------------------
-    // Scattered lattice stride 4, offset 1 -> a 4x4 grid = 16 hints reaching
-    // deep into the board (the page's "winner").
-    let scattered = lattice(4, 1);
-    write_variant(&out_dir, "scattered_lattice_16", &board, &scr, &scattered);
+    // --- Axis 1: geometry at matched count -----------------------------------
+    // Scattered lattice reaching deep into the board vs. the same count piled
+    // contiguously, plus interior-only and border-only at that count.
+    let scattered = lattice(g, 4, 1);
+    let matched = scattered.len();
+    write_variant(&out_dir, "geom_scattered", g, &board, &scr, &scattered);
+    write_variant(&out_dir, "geom_contiguous", g, &board, &scr, &contiguous(matched));
+    write_variant(&out_dir, "geom_interior", g, &board, &scr, &interior_lattice(g, 3, matched));
+    write_variant(&out_dir, "geom_border", g, &board, &scr, &border_cells(g, matched));
 
-    // Contiguous block of the same count, piled into the top rows (the "loser").
-    write_variant(&out_dir, "contiguous_16", &board, &scr, &contiguous(scattered.len()));
-
-    // Interior-only vs border-only at the same count.
-    write_variant(
-        &out_dir,
-        "interior_only_16",
-        &board,
-        &scr,
-        &interior_lattice(3, scattered.len()),
-    );
-    write_variant(
-        &out_dir,
-        "border_only_16",
-        &board,
-        &scr,
-        &border_cells(scattered.len()),
-    );
-
-    // --- Count sweep at fixed geometry (the commenter's 18 -> 15 -> ...) -----
-    // Scattered geometry, decreasing count, so we isolate count from placement.
-    for n in [24usize, 21, 18, 15, 12, 9, 6, 3] {
-        // Take the first `n` lattice cells over a denser stride-3 grid so the
-        // counts are reachable while staying scattered.
-        let cells: Vec<usize> = lattice(3, 1).into_iter().take(n).collect();
-        write_variant(&out_dir, &format!("sweep_scattered_{n:02}"), &board, &scr, &cells);
+    // --- Axis 2: the clustering ladder ---------------------------------------
+    // Spread vs clustered at increasing counts. The clustered end uses E2's own
+    // clue geometry (blocks at 4 corners + centre); the spread end is a lattice.
+    // Reports whether MORE clustered hints can lose to FEWER spread hints.
+    // Targets chosen so the nearest lattice counts are DISTINCT clean grids.
+    // De-duplicate by the actual count so we emit one variant per grid.
+    let mut seen_spread = std::collections::BTreeSet::new();
+    for &target in &[4usize, 9, 16, 25, 36] {
+        let cells = spread_count(g, target);
+        if seen_spread.insert(cells.len()) {
+            write_variant(&out_dir, &format!("ladder_spread_{:02}", cells.len()), g, &board, &scr, &cells);
+        }
+    }
+    for k in 2..=4 {
+        let cells = clustered_at_clues(g, k);
+        write_variant(&out_dir, &format!("ladder_clustered_k{k}_{:02}", cells.len()), g, &board, &scr, &cells);
     }
 
-    // --- McGavin's REAL 18-hint board vs. contiguous, and vs. a deep variant --
-    // The actual scattered board Peter solved (rows 1/3/5, decoded from msg 11746).
-    write_variant(&out_dir, "mcgavin_real_18", &board, &scr, &mcgavin_real_18());
-    // A genuinely deep 18 (rows 1/7/13): what the page's PROSE describes, to test
-    // whether "reaching the endgame" helps more than Peter's shallow real board.
-    write_variant(&out_dir, "deep_18", &board, &scr, &deep_18());
-    // The article's actual contrast: 18 piled into contiguous top rows.
-    write_variant(&out_dir, "contiguous_18", &board, &scr, &contiguous(18));
+    // --- Axis 3 support: count sweep at fixed (spread) geometry ---------------
+    let dense = lattice(g, 3, 1);
+    for n in [24usize, 21, 18, 15, 12, 9, 6, 3] {
+        if n <= dense.len() {
+            let cells: Vec<usize> = dense.iter().copied().take(n).collect();
+            write_variant(&out_dir, &format!("sweep_{n:02}"), g, &board, &scr, &cells);
+        }
+    }
 
-    // Zero-hint baseline (unpinned): how the solver fares with no help at all.
-    write_variant(&out_dir, "sweep_scattered_00", &board, &scr, &[]);
+    // --- Axis 3 support: same count (18), shallow vs deep vertical spread -----
+    // Two 18-hint scattered lattices of the SHAPE discussed on the eternity2 list
+    // (every-third-column on three rows): one confined to the top third (shallow),
+    // one spanning top-to-bottom (deep). Tests whether reaching the endgame — the
+    // stated causal mechanism — actually helps a backtracker more than a beam.
+    // These are our own generated boards and layouts; only the lattice SHAPE is
+    // borrowed from the list discussion, not any board, puzzle, or engine.
+    if g.n >= 12 {
+        let cols: Vec<usize> = (0..g.n).step_by(3).collect();
+        let mk = |rows: &[usize]| -> Vec<usize> {
+            let mut c = Vec::new();
+            for &y in rows {
+                for &x in &cols {
+                    c.push(g.cell(x, y));
+                }
+            }
+            c
+        };
+        let top = g.n / 8;
+        write_variant(&out_dir, "shallow_18", g, &board, &scr, &mk(&[top, top + 2, top + 4]));
+        write_variant(&out_dir, "deep_18", g, &board, &scr, &mk(&[top, g.n / 2, g.n - 3]));
+    }
 
-    // Full solution: every cell pinned. Emitting the whole board as hints gives
-    // any downstream tool the complete piece+rotation-per-cell solution (used to
-    // convert to other solvers' formats).
-    let all_cells: Vec<usize> = (0..SIZE * SIZE).collect();
-    write_variant(&out_dir, "full_solution", &board, &scr, &all_cells);
+    // --- Axis: the E2 5-clue SHAPE (sparse anchors) on our board --------------
+    // The official puzzle's own gift: 5 anchors in the E2 arrangement. The path
+    // articles measure how different fill orders exploit — or waste — exactly this
+    // geometry. Shape borrowed from the puzzle; board and pieces are ours.
+    write_variant(&out_dir, "clue_shape_5", g, &board, &scr, &e2_clue_shape(g));
+
+    // Zero-hint baseline + full solution reference.
+    write_variant(&out_dir, "baseline_00", g, &board, &scr, &[]);
+    write_variant(&out_dir, "full_solution", g, &board, &scr, &(0..g.ncells()).collect::<Vec<_>>());
 
     println!("done -> {}", out_dir.display());
 }

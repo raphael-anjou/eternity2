@@ -39,6 +39,17 @@ pub enum PathOrder {
     /// reaching the hints early cannot beat a single compact sweep: frontier
     /// compactness dominates hint-proximity.
     ClueRowsFirst,
+    /// **Hint-seeking / "connect the hints first"** — a deliberately hint-centric
+    /// order for the Hint Study. Multi-source BFS outward from every pinned cell
+    /// simultaneously, so the fill grows blobs around each hint and tries to
+    /// *connect* them before completing the board. The intuition ("get to the
+    /// clues, link them up") is seductive and WRONG: seeding from k scattered
+    /// anchors opens k separate frontiers at once, and a backtracker's branching
+    /// is exponential in the open frontier, so this fragments far worse than a
+    /// single compact sweep. Kept as the study's headline negative control. Falls
+    /// back to row-major when there are no hints. Hint-aware: needs the pin
+    /// positions, so it is filled via `sequence_with_hints`.
+    ConnectHintsFirst,
     /// Dynamic minimum-remaining-values: at each step, fill the empty cell with
     /// the fewest candidates given its placed neighbours. Border-first is used
     /// to break ties toward the frame. Chosen at search time, so this variant
@@ -66,10 +77,59 @@ impl PathOrder {
             PathOrder::BorderFirst => border_first(),
             PathOrder::VerhaardComb { horiz_rows } => verhaard_comb(horiz_rows),
             PathOrder::ClueRowsFirst => clue_rows_first(),
+            // Hint-aware: BFS outward from the pinned cells. Derives the anchor
+            // positions from `pinned` itself, so no extra argument is needed.
+            PathOrder::ConnectHintsFirst => connect_hints_first(pinned),
             PathOrder::Mrv => panic!("MRV has no precomputed sequence"),
         };
         raw.into_iter().filter(|&pos| !pinned[pos]).collect()
     }
+}
+
+/// Multi-source BFS outward from every pinned cell at once: the fill grows a
+/// blob around each hint and links them up, instead of sweeping the board in one
+/// pass. With no hints this is just row-major. The returned order is a full
+/// permutation of all cells (pinned cells are filtered out by the caller). This
+/// is the study's headline *negative* control — see the `ConnectHintsFirst`
+/// doc-comment for why it fragments the frontier.
+fn connect_hints_first(pinned: &[bool]) -> Vec<usize> {
+    let anchors: Vec<usize> = (0..N).filter(|&p| pinned[p]).collect();
+    if anchors.is_empty() {
+        return row_major();
+    }
+    let mut order = Vec::with_capacity(N);
+    let mut seen = vec![false; N];
+    // Seed the BFS queue with all anchors (they are emitted then filtered out by
+    // the caller, but seed the frontier so their neighbours come next).
+    let mut frontier: std::collections::VecDeque<usize> = std::collections::VecDeque::new();
+    for &a in &anchors {
+        seen[a] = true;
+        order.push(a);
+        frontier.push_back(a);
+    }
+    while let Some(cell) = frontier.pop_front() {
+        let (r, c) = (cell / W, cell % W);
+        // 4-neighbourhood, deterministic order (up, left, right, down).
+        let mut nbrs: Vec<usize> = Vec::with_capacity(4);
+        if r > 0 { nbrs.push(pos(r - 1, c)); }
+        if c > 0 { nbrs.push(pos(r, c - 1)); }
+        if c + 1 < W { nbrs.push(pos(r, c + 1)); }
+        if r + 1 < H { nbrs.push(pos(r + 1, c)); }
+        for nb in nbrs {
+            if !seen[nb] {
+                seen[nb] = true;
+                order.push(nb);
+                frontier.push_back(nb);
+            }
+        }
+    }
+    // Any cell not reached (disconnected — cannot happen on a grid, but be safe).
+    for p in 0..N {
+        if !seen[p] {
+            order.push(p);
+        }
+    }
+    order
 }
 
 #[inline]
