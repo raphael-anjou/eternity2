@@ -9,8 +9,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useT } from "@/i18n";
+import { useLang, useT, type Lang } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
+import { FamilyLegend, type FamilyMap } from "@/components/research/FamilyLegend";
 
 // A single glance at the whole gallery: every experiment's best score on one
 // axis, the 470 community ceiling and the 480 target marked. Bars are coloured
@@ -34,19 +35,23 @@ export type ScoreDatum = {
 };
 
 const CEILING = 470;
+const STRICT_CEILING = 464; // the strict five-clue community record
 const DOMAIN_LO = 420;
 const DOMAIN_HI = 480;
 
-// One hue per family, matching the family groupings on the Hub.
-const FAMILY_FILL: Record<string, string> = {
-  scratch: "#38bdf8", // sky
-  corpus: "#a78bfa", // violet
-  concentrate: "#fbbf24", // amber
-  anchor: "#34d399", // emerald
-  exact: "#fb7185", // rose
-  decode: "#60a5fa", // blue
-  bench: "#94a3b8", // slate — the single-core baseline family
+// One hue per family, matching the family groupings on the Hub, each with a
+// translated name so the same map drives both the bar fills and the legend.
+const FAMILY: FamilyMap = {
+  scratch: { fill: "#38bdf8", en: "from scratch", fr: "à partir de zéro", es: "desde cero" },
+  corpus: { fill: "#a78bfa", en: "corpus-guided", fr: "guidé par le corpus", es: "guiado por el corpus" },
+  concentrate: { fill: "#fbbf24", en: "concentrate effort", fr: "concentrer l'effort", es: "concentrar el esfuerzo" },
+  anchor: { fill: "#34d399", en: "border-anchored", fr: "ancré au bord", es: "anclado al borde" },
+  exact: { fill: "#fb7185", en: "exact", fr: "exact", es: "exacto" },
+  decode: { fill: "#60a5fa", en: "witness replay", fr: "rejeu de témoins", es: "reejecución de testigos" },
+  bench: { fill: "#94a3b8", en: "single-core bench", fr: "banc mono-cœur", es: "banco de un núcleo" },
 };
+
+const familyFill = (f: string): string => FAMILY[f]?.fill ?? "#94a3b8";
 
 const T = {
   en: {
@@ -60,6 +65,7 @@ const T = {
     benchNote:
       "The standardized single-core bench: the DFS and repair studies and the reimplemented engines, every run pinned to one core for sixty seconds. Lower, and directly comparable.",
     ceiling: "community ceiling 470",
+    strictCeiling: "strict 5-clue record 464",
     busy: "Drawing…",
     tip: "/ 480",
   },
@@ -74,6 +80,7 @@ const T = {
     benchNote:
       "Le banc standardisé mono-cœur : les études DFS et réparation et les moteurs réimplémentés, chaque exécution limitée à un cœur pendant soixante secondes. Plus bas, et directement comparable.",
     ceiling: "plafond communautaire 470",
+    strictCeiling: "record strict 5 indices 464",
     busy: "Tracé…",
     tip: "/ 480",
   },
@@ -88,6 +95,7 @@ const T = {
     benchNote:
       "El banco estandarizado de un solo núcleo: los estudios DFS y de reparación y los motores reimplementados, cada ejecución fijada a un núcleo durante sesenta segundos. Más bajo, y directamente comparable.",
     ceiling: "techo de la comunidad 470",
+    strictCeiling: "récord estricto 5 pistas 464",
     busy: "Dibujando…",
     tip: "/ 480",
   },
@@ -99,20 +107,30 @@ function ScorePanel({
   rows,
   tip,
   ceiling,
+  strictCeiling,
   busy,
   isClient,
+  lang,
 }: {
   title: string;
   note: string;
   rows: ScoreDatum[];
   tip: string;
   ceiling: string;
+  strictCeiling: string;
   busy: string;
   isClient: boolean;
+  lang: Lang;
 }) {
   // Tallest score first reads as a ladder down from the ceiling.
   const sorted = [...rows].sort((a, b) => b.score - a.score);
   const height = Math.max(180, sorted.length * 34 + 40);
+  // Only the families this panel actually plots earn a legend chip, in the
+  // stable order of the shared family map.
+  const present = new Set(sorted.map((d) => d.family));
+  const legendFamilies: FamilyMap = Object.fromEntries(
+    Object.entries(FAMILY).filter(([key]) => present.has(key)),
+  );
   return (
     <div className="space-y-2">
       <div className="mx-auto max-w-3xl">
@@ -154,6 +172,20 @@ function ScorePanel({
                 formatter={(v) => [`${String(v)} ${tip}`, ""]}
               />
               <ReferenceLine
+                x={STRICT_CEILING}
+                stroke="#a78bfa"
+                strokeDasharray="4 3"
+                label={{
+                  value: strictCeiling,
+                  position: "top",
+                  fontSize: 10,
+                  fill: "#a78bfa",
+                  textAnchor: "end",
+                  dx: -2,
+                  dy: 12,
+                }}
+              />
+              <ReferenceLine
                 x={CEILING}
                 stroke="#f59e0b"
                 strokeDasharray="4 3"
@@ -169,7 +201,7 @@ function ScorePanel({
               <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                 <LabelList dataKey="score" position="right" fontSize={11} className="fill-foreground" />
                 {sorted.map((d) => (
-                  <Cell key={d.key} fill={FAMILY_FILL[d.family] ?? "#94a3b8"} />
+                  <Cell key={d.key} fill={familyFill(d.family)} />
                 ))}
               </Bar>
             </BarChart>
@@ -180,12 +212,16 @@ function ScorePanel({
           </div>
         )}
       </div>
+      <div className="mx-auto max-w-3xl">
+        <FamilyLegend families={legendFamilies} lang={lang} />
+      </div>
     </div>
   );
 }
 
 export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
   const t = useT(T);
+  const { lang } = useLang();
   const isClient = useIsClient();
 
   const explore = data.filter((d) => (d.group ?? "explore") === "explore");
@@ -203,8 +239,10 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
         rows={explore}
         tip={t.tip}
         ceiling={t.ceiling}
+        strictCeiling={t.strictCeiling}
         busy={t.busy}
         isClient={isClient}
+        lang={lang}
       />
       {bench.length > 0 && (
         <ScorePanel
@@ -213,8 +251,10 @@ export function ExperimentScoreChart({ data }: { data: ScoreDatum[] }) {
           rows={bench}
           tip={t.tip}
           ceiling={t.ceiling}
+          strictCeiling={t.strictCeiling}
           busy={t.busy}
           isClient={isClient}
+          lang={lang}
         />
       )}
     </section>

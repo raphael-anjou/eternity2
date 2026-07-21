@@ -13,12 +13,14 @@ hardware:
   gpus: 0
   accelerator: none
   machine: "MacBook (Apple M1, 8 cores)"
-  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  wallClock: "~30 min × 6 seeds (exploratory run, not the standardized single-core bench)"
   seedPolicy: "stochastic; see the run's repro command"
   measured: false
 contribution: solver
 author: raphael-anjou
 score: 463
+outcome: plateaued
+scoringConvention: matched-edges
 rigor: measured
 complexity:
   time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
@@ -30,6 +32,8 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+  scope: >-
+    The command re-scores the committed 463 board from its raw Bucas edges; it re-verifies the stored artifact, not the stochastic ALNS search that found it.
 stages:
   - engine: corpus-mining
     does: "Basin-separated frequencies split shared structure from the shared trap, building a trap map"
@@ -38,7 +42,7 @@ stages:
     does: "From a 461 board, deliberately break the trap cells and let destroy-and-repair rebuild them, reaching 463"
     published: false
 order: 40
-updated: 2026-07-10
+updated: 2026-07-21
 date: 2026-07
 topics: [local-search, learning]
 related:

@@ -33,6 +33,13 @@ import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
 import { PersonHub } from "@/components/docs/PeoplePages";
 import { GlossaryPage } from "@/components/docs/GlossaryPage";
+import { ReproduceIndexPage } from "@/components/docs/ReproduceIndexPage";
+import {
+  ContributionIndex,
+  ContributionHub,
+  contributionRouteFor,
+  contributionMeta,
+} from "@/components/docs/ContributionPages";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
 
@@ -88,6 +95,28 @@ const GLOSSARY_DESC = {
   es: "Cada término de Eternity II que emplea el wiki, definido una sola vez: la jerga de la comunidad, los términos precisos de informática y la notación de los tableros, cada uno enlazando con la página que profundiza.",
 } as const;
 
+const REPRODUCE_TITLE = {
+  en: "Reproduce index",
+  fr: "Index de reproduction",
+  es: "Índice de reproducción",
+} as const;
+const REPRODUCE_DESC = {
+  en: "Every Eternity II research result that ships a reproduce command, in one sortable table: the command, whether it re-runs the search or only re-verifies a stored board, and the expected wall-clock and core-hours cost.",
+  fr: "Chaque résultat de recherche Eternity II livré avec une commande de reproduction, en un tableau triable : la commande, si elle relance la recherche ou revérifie seulement un plateau enregistré, et le coût attendu en temps réel et cœur-heures.",
+  es: "Cada resultado de investigación de Eternity II que incluye un comando de reproducción, en una tabla ordenable: el comando, si vuelve a ejecutar la búsqueda o solo reverifica un tablero guardado, y el coste esperado en tiempo real y horas-núcleo.",
+} as const;
+
+const BY_CONTRIB_TITLE = {
+  en: "By contribution",
+  fr: "Par contribution",
+  es: "Por contribución",
+} as const;
+const BY_CONTRIB_DESC = {
+  en: "The Eternity II research wiki sliced by what kind of result each page is: the solvers that score, the analyses and theory, the measurements and tools, and the dead ends kept as first-class negatives.",
+  fr: "Le wiki de recherche Eternity II découpé selon le type de résultat de chaque page : les solveurs qui scorent, les analyses et la théorie, les mesures et les outils, et les impasses gardées comme résultats négatifs à part entière.",
+  es: "El wiki de investigación de Eternity II organizado según qué tipo de resultado es cada página: los solucionadores que puntúan, los análisis y la teoría, las mediciones y las herramientas, y los callejones sin salida guardados como resultados negativos de pleno derecho.",
+} as const;
+
 export function meta({ location }: { location: { pathname: string } }) {
   const lang = langFromPath(location.pathname);
   const path = neutralPath(location.pathname);
@@ -135,6 +164,17 @@ export function meta({ location }: { location: { pathname: string } }) {
 
   if (path === "/research/glossary")
     return pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, trimmed(pick(GLOSSARY_DESC, lang)));
+
+  if (path === "/research/build/reproduce")
+    return pack(pick(REPRODUCE_TITLE, lang) + SUFFIX, trimmed(pick(REPRODUCE_DESC, lang)));
+
+  const contribRoute = contributionRouteFor(path);
+  if (contribRoute === "")
+    return pack(pick(BY_CONTRIB_TITLE, lang) + SUFFIX, trimmed(pick(BY_CONTRIB_DESC, lang)));
+  if (contribRoute !== null) {
+    const m = contributionMeta(contribRoute, lang);
+    return pack(m.title + SUFFIX, trimmed(m.description));
+  }
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "")
@@ -298,6 +338,12 @@ export default function ResearchDocPage() {
   }
 
   if (path === "/research/glossary") return <GlossaryPage />;
+
+  if (path === "/research/build/reproduce") return <ReproduceIndexPage />;
+
+  const contribRoute = contributionRouteFor(path);
+  if (contribRoute === "") return <ContributionIndex />;
+  if (contribRoute !== null) return <ContributionHub kind={contribRoute} />;
 
   const doc = researchDoc(lang, path);
   const Content = doc ? pages.get(`/content/research/${doc.file}`) : undefined;
