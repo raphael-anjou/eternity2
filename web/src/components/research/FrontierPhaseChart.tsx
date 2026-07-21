@@ -7,7 +7,7 @@ import data from "@/data/hint-study.json";
 // The study's flagship chart: the frontier LAW made visible. The x-axis is the
 // peak open frontier of each fill order — computed from geometry alone, no solver
 // — and the y-axis is the measured median score. The two are almost perfectly
-// anti-correlated (mean frontier vs median score, r ≈ −0.97): score collapses as
+// anti-correlated (mean frontier vs median score, r ≈ −0.86): score collapses as
 // the frontier grows. Putting the
 // computed CAUSE against the measured EFFECT turns "row-major wins" into a visible
 // mechanism. Bubble area encodes the instance-to-instance spread, so the chart is
@@ -20,11 +20,11 @@ const KIND: Record<string, "compact" | "fragment" | "seeking"> = {
   rowmajor: "compact",
   "rowmajor-bottomup": "compact",
   "verhaard-comb": "compact",
-  "border-first": "fragment",
   "spiral-in": "fragment",
   "spiral-out": "fragment",
   "clue-rows-first": "fragment",
   "connect-hints-first": "seeking",
+  "trace-hints": "seeking",
 };
 
 const COLOR = {
@@ -37,11 +37,11 @@ const LABEL: Record<string, string> = {
   rowmajor: "Row-major",
   "rowmajor-bottomup": "Row-major ↑",
   "verhaard-comb": "Verhaard comb",
-  "border-first": "Border first",
   "spiral-in": "Spiral in",
   "spiral-out": "Spiral out",
   "clue-rows-first": "Clue rows first",
   "connect-hints-first": "Connect hints first",
+  "trace-hints": "Trace hints",
 };
 
 const T = {
@@ -52,8 +52,8 @@ const T = {
     fragment: "fragmenting order",
     seeking: "hint-seeking",
     caption:
-      "One dot per fill order — eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. The two track each other closely (r ≈ −0.97 across these eight orders), which is what we should expect if branching cost is what a fill order really controls — though with only eight points this is a strong descriptive relationship, not a fitted law, and among the fragmenting orders on the right the frontier no longer settles the ranking. Bubble size is the spread across seeds.",
-    r: "r ≈ −0.97",
+      "One dot per fill order — eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. Across these eight orders the two are strongly anti-correlated (r ≈ −0.86): the bigger an order lets its frontier grow, the less its identical hints are worth, which is what branching cost predicts. It is a trend, not a law — the trace-hints order, far right, holds the largest frontier of all yet does not score the lowest, because its skeleton at least connects real constraints. The frontier decides which side of the divide an order lands on; it does not settle the ranking among the worst. Bubble size is the spread across seeds.",
+    r: "r ≈ −0.86",
     lowRegime: "compact sweep",
     highRegime: "fragmented fill",
     busy: "Drawing…",
@@ -129,7 +129,7 @@ export function FrontierPhaseChart() {
   const W = 640;
   const H = 380;
   const M = { l: 56, r: 24, t: 20, b: 44 };
-  const xMax = 50;
+  const xMax = 65;
   const xSplit = 27; // mean-frontier boundary between compact and fragmented fills
   const yMax = 480;
   const px = (x: number) => M.l + (x / xMax) * (W - M.l - M.r);
@@ -174,7 +174,7 @@ export function FrontierPhaseChart() {
             <text x={M.l - 6} y={py(y) + 3} textAnchor="end" className="fill-muted-foreground text-[10px]">{y}</text>
           </g>
         ))}
-        {[0, 10, 20, 30, 40, 50].map((x) => (
+        {[0, 15, 30, 45, 60].map((x) => (
           <g key={x}>
             <line x1={px(x)} y1={H - M.b} x2={px(x)} y2={H - M.b + 3} className="stroke-border" />
             <text x={px(x)} y={H - M.b + 15} textAnchor="middle" className="fill-muted-foreground text-[10px]">{x}</text>
@@ -184,12 +184,12 @@ export function FrontierPhaseChart() {
         {/* trend line */}
         <line
           x1={px(14)} y1={py(m * 14 + b)}
-          x2={px(45)} y2={py(m * 45 + b)}
+          x2={px(60)} y2={py(m * 60 + b)}
           className="stroke-muted-foreground"
           strokeDasharray="4 4"
           strokeWidth={1.5}
         />
-        <text x={px(44)} y={py(m * 44 + b) - 8} textAnchor="end" className="fill-muted-foreground text-[11px] font-semibold">
+        <text x={px(59)} y={py(m * 59 + b) - 8} textAnchor="end" className="fill-muted-foreground text-[11px] font-semibold">
           {t.r}
         </text>
 

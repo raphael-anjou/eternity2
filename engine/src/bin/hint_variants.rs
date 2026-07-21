@@ -207,6 +207,34 @@ fn lattice(g: Grid, stride: usize, offset: usize) -> Vec<usize> {
     cells
 }
 
+/// A lattice with exactly `k` evenly-spaced points per row and per column (so
+/// `k×k` cells total), centred on the interior with a small inset off the rim.
+/// This gives clean "k per line" spread layouts (k=3 → 9, k=6 → 36) that the
+/// stride-based `lattice` cannot hit exactly.
+fn lattice_per_line(g: Grid, k: usize) -> Vec<usize> {
+    if k == 0 {
+        return Vec::new();
+    }
+    // Positions: inset 1 from each rim, k points spread across the usable span.
+    let lo = 1usize;
+    let hi = g.n - 2; // last usable interior-ish index
+    let span = hi.saturating_sub(lo);
+    let coord = |i: usize| -> usize {
+        if k == 1 {
+            g.n / 2
+        } else {
+            lo + (span * i) / (k - 1)
+        }
+    };
+    let mut cells = std::collections::BTreeSet::new();
+    for iy in 0..k {
+        for ix in 0..k {
+            cells.insert(g.cell(coord(ix), coord(iy)));
+        }
+    }
+    cells.into_iter().collect()
+}
+
 /// Contiguous block: the first `n` cells in row-major order (fills top rows).
 fn contiguous(n: usize) -> Vec<usize> {
     (0..n).collect()
@@ -386,15 +414,14 @@ fn main() {
     write_variant(&out_dir, "geom_border", g, &board, &scr, &border_cells(g, matched));
 
     // --- Axis 2: the clustering ladder ---------------------------------------
-    // Spread vs clustered at increasing counts. The clustered end uses E2's own
-    // clue geometry (blocks at 4 corners + centre); the spread end is a lattice.
-    // Reports whether MORE clustered hints can lose to FEWER spread hints.
-    // Targets chosen so the nearest lattice counts are DISTINCT clean grids.
-    // De-duplicate by the actual count so we emit one variant per grid.
+    // Spread vs clustered at increasing counts. The clustered end is five k×k
+    // blocks (corners + centre); the spread end is a clean k-per-line lattice.
+    // Reports whether MORE clustered hints can lose to FEWER spread hints, and how
+    // score moves as spread density rises (k per line = 2..6 → 4,9,16,25,36).
     let mut seen_spread = std::collections::BTreeSet::new();
-    for &target in &[4usize, 9, 16, 25, 36] {
-        let cells = spread_count(g, target);
-        if seen_spread.insert(cells.len()) {
+    for k in 2..=6 {
+        let cells = lattice_per_line(g, k);
+        if cells.len() >= 4 && seen_spread.insert(cells.len()) {
             write_variant(&out_dir, &format!("ladder_spread_{:02}", cells.len()), g, &board, &scr, &cells);
         }
     }
@@ -440,6 +467,26 @@ fn main() {
     // articles measure how different fill orders exploit — or waste — exactly this
     // geometry. Shape borrowed from the puzzle; board and pieces are ours.
     write_variant(&out_dir, "clue_shape_5", g, &board, &scr, &e2_clue_shape(g));
+
+    // --- The hint-geometry-page layouts, on OUR boards ------------------------
+    // The /research/why/hint-geometry page contrasts an 18-hint SCATTERED lattice
+    // (the shape Peter McGavin used: rows {1,3,5} × cols {0,3,6,9,12,15}, "every
+    // third column on a few odd rows") against 18 CONTIGUOUS hints piled in the
+    // top rows, and claims scattered-18 solves easily while contiguous needs 80+.
+    // We test the SAME SHAPES on OUR generated boards + solvers to confirm or
+    // qualify that claim fairly (his was on Joe's puzzle with his engine). 16×16.
+    if g.n == 16 {
+        let cols = [0usize, 3, 6, 9, 12, 15];
+        let rows = [1usize, 3, 5];
+        let mut scattered18 = Vec::new();
+        for &y in &rows {
+            for &x in &cols {
+                scattered18.push(g.cell(x, y));
+            }
+        }
+        write_variant(&out_dir, "hintgeo_scattered_18", g, &board, &scr, &scattered18);
+        write_variant(&out_dir, "hintgeo_contiguous_18", g, &board, &scr, &contiguous(18));
+    }
 
     // Zero-hint baseline + full solution reference.
     write_variant(&out_dir, "baseline_00", g, &board, &scr, &[]);

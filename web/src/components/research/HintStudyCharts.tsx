@@ -23,10 +23,10 @@ const PATH_LABEL: Record<string, string> = {
   "rowmajor-bottomup": "Row-major ↑",
   "spiral-in": "Spiral in",
   "spiral-out": "Spiral out",
-  "border-first": "Border first",
   "verhaard-comb": "Verhaard comb",
   "clue-rows-first": "Clue rows first",
   "connect-hints-first": "Connect hints first",
+  "trace-hints": "Trace the hints",
 };
 
 // Colour by how the fill order keeps its frontier — identity, not rank.
@@ -36,9 +36,9 @@ const KIND: Record<string, "compact" | "fragment" | "seeking"> = {
   "verhaard-comb": "compact",
   "spiral-in": "fragment",
   "spiral-out": "fragment",
-  "border-first": "fragment",
   "clue-rows-first": "fragment",
   "connect-hints-first": "seeking",
+  "trace-hints": "seeking",
 };
 const COLOR = { compact: "#3b82f6", fragment: "#f59e0b", seeking: "#ef4444" } as const;
 

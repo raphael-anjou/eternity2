@@ -50,6 +50,18 @@ pub enum PathOrder {
     /// back to row-major when there are no hints. Hint-aware: needs the pin
     /// positions, so it is filled via `sequence_with_hints`.
     ConnectHintsFirst,
+    /// **Trace the hints** — a shorter, more deliberate hint-seeking order for the
+    /// Hint Study. Rather than flooding outward from every hint at once
+    /// ([`ConnectHintsFirst`]), it first draws a thin *skeleton* between the pins:
+    /// straight lines joining the four outer hints into a square, then diagonals
+    /// from the square's corners in to the central hint. Only then does it fill the
+    /// rest, growing outward from that skeleton so each new cell abuts an
+    /// already-placed one (constraint-greedy). The idea is that a sparse connecting
+    /// skeleton "locks in" the hint relationships early; the study measures whether
+    /// that helps a backtracker (it does not — the skeleton is a scattered set of
+    /// commitments with no way to check consistency until much later). Falls back to
+    /// row-major with no hints. Hint-aware: derives the pins from `pinned`.
+    TraceHints,
     /// Dynamic minimum-remaining-values: at each step, fill the empty cell with
     /// the fewest candidates given its placed neighbours. Border-first is used
     /// to break ties toward the frame. Chosen at search time, so this variant
@@ -80,6 +92,7 @@ impl PathOrder {
             // Hint-aware: BFS outward from the pinned cells. Derives the anchor
             // positions from `pinned` itself, so no extra argument is needed.
             PathOrder::ConnectHintsFirst => connect_hints_first(pinned),
+            PathOrder::TraceHints => trace_hints(pinned),
             PathOrder::Mrv => panic!("MRV has no precomputed sequence"),
         };
         raw.into_iter().filter(|&pos| !pinned[pos]).collect()
@@ -124,6 +137,120 @@ fn connect_hints_first(pinned: &[bool]) -> Vec<usize> {
         }
     }
     // Any cell not reached (disconnected — cannot happen on a grid, but be safe).
+    for p in 0..N {
+        if !seen[p] {
+            order.push(p);
+        }
+    }
+    order
+}
+
+/// "Trace the hints": draw a thin skeleton joining the pins (square between the
+/// four outer hints, then diagonals in to the centre hint), then fill the rest by
+/// growing outward from that skeleton so each new cell abuts a placed one. With
+/// fewer than 5 hints, or none, falls back to `connect_hints_first` /
+/// `row_major`. See the `TraceHints` doc-comment.
+fn trace_hints(pinned: &[bool]) -> Vec<usize> {
+    let anchors: Vec<usize> = (0..N).filter(|&p| pinned[p]).collect();
+    if anchors.is_empty() {
+        return row_major();
+    }
+    if anchors.len() < 5 {
+        return connect_hints_first(pinned);
+    }
+
+    // Identify the four outer hints (corners of the bounding box) and the centre
+    // hint (closest to the board centre). The clue shape is 4 near-corner + 1
+    // central, so this recovers them robustly.
+    let rc = |cell: usize| (cell / W, cell % W);
+    let centre_cell = *anchors
+        .iter()
+        .min_by_key(|&&cell| {
+            let (r, c) = rc(cell);
+            let dr = r as isize - (H as isize) / 2;
+            let dc = c as isize - (W as isize) / 2;
+            dr * dr + dc * dc
+        })
+        .unwrap();
+    let mut outer: Vec<usize> = anchors.iter().copied().filter(|&c| c != centre_cell).collect();
+    // Order the outer hints clockwise (TL, TR, BR, BL) so the square edges connect
+    // adjacent corners.
+    outer.sort_by_key(|&cell| {
+        let (r, c) = rc(cell);
+        // angle bucket around the centre: TL, TR, BR, BL
+        let top = r < H / 2;
+        let left = c < W / 2;
+        match (top, left) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, false) => 2,
+            (false, true) => 3,
+        }
+    });
+
+    let mut order = Vec::with_capacity(N);
+    let mut seen = vec![false; N];
+    let mut push = |cell: usize, order: &mut Vec<usize>, seen: &mut [bool]| {
+        if !seen[cell] {
+            seen[cell] = true;
+            order.push(cell);
+        }
+    };
+
+    // Straight line between two cells (Bresenham on the grid), pushed in order.
+    let line = |a: usize, b: usize, order: &mut Vec<usize>, seen: &mut [bool]| {
+        let (mut r0, mut c0) = (rc(a).0 as isize, rc(a).1 as isize);
+        let (r1, c1) = (rc(b).0 as isize, rc(b).1 as isize);
+        let dr = (r1 - r0).abs();
+        let dc = (c1 - c0).abs();
+        let sr = if r0 < r1 { 1 } else { -1 };
+        let sc = if c0 < c1 { 1 } else { -1 };
+        let mut err = dc - dr;
+        loop {
+            push((r0 as usize) * W + c0 as usize, order, seen);
+            if r0 == r1 && c0 == c1 {
+                break;
+            }
+            let e2 = 2 * err;
+            if e2 > -dr {
+                err -= dr;
+                c0 += sc;
+            }
+            if e2 < dc {
+                err += dc;
+                r0 += sr;
+            }
+        }
+    };
+
+    // 1) The square: connect consecutive outer hints (and close the loop).
+    for i in 0..outer.len() {
+        line(outer[i], outer[(i + 1) % outer.len()], &mut order, &mut seen);
+    }
+    // 2) Diagonals: each outer corner in to the centre hint.
+    for &o in &outer {
+        line(o, centre_cell, &mut order, &mut seen);
+    }
+
+    // 3) Constraint-greedy fill: BFS outward from the skeleton, so every newly
+    // filled cell touches an already-placed one.
+    let mut frontier: std::collections::VecDeque<usize> =
+        order.iter().copied().collect();
+    while let Some(cell) = frontier.pop_front() {
+        let (r, c) = rc(cell);
+        let mut nbrs: Vec<usize> = Vec::with_capacity(4);
+        if r > 0 { nbrs.push(pos(r - 1, c)); }
+        if c > 0 { nbrs.push(pos(r, c - 1)); }
+        if c + 1 < W { nbrs.push(pos(r, c + 1)); }
+        if r + 1 < H { nbrs.push(pos(r + 1, c)); }
+        for nb in nbrs {
+            if !seen[nb] {
+                seen[nb] = true;
+                order.push(nb);
+                frontier.push_back(nb);
+            }
+        }
+    }
     for p in 0..N {
         if !seen[p] {
             order.push(p);

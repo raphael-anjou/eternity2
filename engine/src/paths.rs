@@ -220,6 +220,9 @@ pub fn build_path_with_hints(
             }
             return Some(out);
         }
+        "trace-hints" => {
+            return Some(trace_hints_seq(w, h, hints));
+        }
         _ => {}
     }
 
@@ -264,6 +267,141 @@ pub fn build_path_with_hints(
     }
     debug_assert_eq!(out.len(), n);
     Some(out)
+}
+
+/// "Trace the hints" order (see the dfs-engine `TraceHints` doc): a skeleton
+/// joining the pins (square between the four outer hints + diagonals to the
+/// centre), then a constraint-greedy BFS fill outward from it. Mirrors the
+/// dfs-engine implementation so `hint_scale` (scaling axis) matches the measured
+/// 16×16 study. Falls back to a hint-BFS / row-major with fewer than 5 hints.
+fn trace_hints_seq(w: usize, h: usize, hints: &[u16]) -> Vec<u16> {
+    let n = w * h;
+    let idx = |x: usize, y: usize| (y * w + x) as u16;
+    let rc = |cell: u16| ((cell as usize) % w, (cell as usize) / w); // (x, y)
+    if hints.len() < 5 {
+        // BFS from whatever hints exist (or cell 0), like connect-hints-first.
+        let anchors: Vec<u16> = if hints.is_empty() { vec![0] } else { hints.to_vec() };
+        return bfs_fill(w, h, &anchors);
+    }
+    // Centre hint = nearest to board centre; the rest are the four outer corners.
+    let centre = *hints
+        .iter()
+        .min_by_key(|&&cell| {
+            let (x, y) = rc(cell);
+            let dx = x as isize - w as isize / 2;
+            let dy = y as isize - h as isize / 2;
+            dx * dx + dy * dy
+        })
+        .unwrap();
+    let mut outer: Vec<u16> = hints.iter().copied().filter(|&c| c != centre).collect();
+    outer.sort_by_key(|&cell| {
+        let (x, y) = rc(cell);
+        let (top, left) = (y < h / 2, x < w / 2);
+        match (top, left) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, false) => 2,
+            (false, true) => 3,
+        }
+    });
+
+    let mut order: Vec<u16> = Vec::with_capacity(n);
+    let mut seen = vec![false; n];
+    let mut push = |cell: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
+        if !seen[cell as usize] {
+            seen[cell as usize] = true;
+            order.push(cell);
+        }
+    };
+    let mut line = |a: u16, b: u16, order: &mut Vec<u16>, seen: &mut [bool]| {
+        let (mut x0, mut y0) = (rc(a).0 as isize, rc(a).1 as isize);
+        let (x1, y1) = (rc(b).0 as isize, rc(b).1 as isize);
+        let (dx, dy) = ((x1 - x0).abs(), (y1 - y0).abs());
+        let (sx, sy) = (if x0 < x1 { 1 } else { -1 }, if y0 < y1 { 1 } else { -1 });
+        let mut err = dx - dy;
+        loop {
+            push(idx(x0 as usize, y0 as usize), order, seen);
+            if x0 == x1 && y0 == y1 {
+                break;
+            }
+            let e2 = 2 * err;
+            if e2 > -dy {
+                err -= dy;
+                x0 += sx;
+            }
+            if e2 < dx {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    };
+    for i in 0..outer.len() {
+        line(outer[i], outer[(i + 1) % outer.len()], &mut order, &mut seen);
+    }
+    for &o in &outer {
+        line(o, centre, &mut order, &mut seen);
+    }
+    // Constraint-greedy fill outward from the skeleton.
+    let mut q: std::collections::VecDeque<u16> = order.iter().copied().collect();
+    while let Some(cell) = q.pop_front() {
+        let (x, y) = rc(cell);
+        let mut nbrs: Vec<u16> = Vec::with_capacity(4);
+        if y > 0 { nbrs.push(idx(x, y - 1)); }
+        if x > 0 { nbrs.push(idx(x - 1, y)); }
+        if x + 1 < w { nbrs.push(idx(x + 1, y)); }
+        if y + 1 < h { nbrs.push(idx(x, y + 1)); }
+        for nb in nbrs {
+            if !seen[nb as usize] {
+                seen[nb as usize] = true;
+                order.push(nb);
+                q.push_back(nb);
+            }
+        }
+    }
+    for p in 0..n as u16 {
+        if !seen[p as usize] {
+            order.push(p);
+        }
+    }
+    order
+}
+
+/// Multi-source BFS from `anchors` over the grid (shared by connect-hints and the
+/// small-hint fallback of trace-hints). Deterministic up-left-right-down order.
+fn bfs_fill(w: usize, h: usize, anchors: &[u16]) -> Vec<u16> {
+    let n = w * h;
+    let idx = |x: usize, y: usize| (y * w + x) as u16;
+    let mut seen = vec![false; n];
+    let mut order: Vec<u16> = Vec::with_capacity(n);
+    let mut q: std::collections::VecDeque<u16> = std::collections::VecDeque::new();
+    for &a in anchors {
+        if (a as usize) < n && !seen[a as usize] {
+            seen[a as usize] = true;
+            order.push(a);
+            q.push_back(a);
+        }
+    }
+    while let Some(cell) = q.pop_front() {
+        let (x, y) = ((cell as usize) % w, (cell as usize) / w);
+        let mut nbrs: Vec<u16> = Vec::with_capacity(4);
+        if y > 0 { nbrs.push(idx(x, y - 1)); }
+        if x > 0 { nbrs.push(idx(x - 1, y)); }
+        if x + 1 < w { nbrs.push(idx(x + 1, y)); }
+        if y + 1 < h { nbrs.push(idx(x, y + 1)); }
+        for nb in nbrs {
+            if !seen[nb as usize] {
+                seen[nb as usize] = true;
+                order.push(nb);
+                q.push_back(nb);
+            }
+        }
+    }
+    for p in 0..n as u16 {
+        if !seen[p as usize] {
+            order.push(p);
+        }
+    }
+    order
 }
 
 #[cfg(test)]
