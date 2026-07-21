@@ -186,6 +186,14 @@ pub fn all_specs() -> Vec<Spec> {
             Family::Path,
             PathOrder::ConnectHintsFirst,
         ),
+        strict_engine(
+            "trace-hints",
+            "TRACE-HINTS",
+            Some("rowmajor"),
+            "draw a skeleton between the hints (square + diagonals to centre), then fill outward",
+            Family::Path,
+            PathOrder::TraceHints,
+        ),
         // ---- Heuristic family: fix the path, add one propagator/order ----
         // The chain starts from border-first (the frame is where the rare
         // colours live) and adds, in order: dynamic MRV cell selection, then a

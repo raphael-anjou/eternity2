@@ -36,9 +36,30 @@ export function lattice(n: number, stride: number, offset = 1): number[] {
   return cells;
 }
 
+/** `k` evenly-spaced points per line (k×k cells), inset off the rim. Matches the
+ * Rust generator's `lattice_per_line` — the clean "k per line" spread layouts. */
+export function latticePerLine(n: number, k: number): number[] {
+  if (k === 0) return [];
+  const lo = 1;
+  const hi = n - 2;
+  const span = hi - lo;
+  const coord = (i: number) => (k === 1 ? Math.floor(n / 2) : lo + Math.floor((span * i) / (k - 1)));
+  const set = new Set<number>();
+  for (let iy = 0; iy < k; iy++) for (let ix = 0; ix < k; ix++) set.add(idx(n, coord(iy), coord(ix)));
+  return [...set].sort((a, b) => a - b);
+}
+
 /** the first `k` cells in row-major order (fills top rows). */
 export function contiguous(n: number, k: number): number[] {
   return Array.from({ length: Math.min(k, n * n) }, (_, i) => i);
+}
+
+/** The hint-geometry page's 18 scattered hints: rows {1,3,5} × cols {0,3,6,9,12,15}
+ * ("every third column on a few odd rows"), the shape Peter McGavin used. */
+export function hintgeoScattered18(n: number): number[] {
+  const cells: number[] = [];
+  for (const r of [1, 3, 5]) for (const c of [0, 3, 6, 9, 12, 15]) if (r < n && c < n) cells.push(idx(n, r, c));
+  return cells;
 }
 
 /** a solid s×s block with top-left corner at (x0,y0). */
@@ -249,6 +270,67 @@ export function connectHintsSeq(n: number, hints: number[]): number[] {
     for (const nb of nbrs4(n, cell))
       if (!seen[nb]) { seen[nb] = true; order.push(nb); queue.push(nb); }
   }
+  return order;
+}
+
+/** "Trace the hints": skeleton (square between the four outer hints + diagonals
+ * to the centre hint), then a constraint-greedy BFS fill outward. Mirrors the
+ * Rust `trace_hints`. Falls back to a hint-BFS with fewer than 5 hints. */
+export function traceHintsSeq(n: number, hints: number[]): number[] {
+  if (hints.length < 5) return connectHintsSeq(n, hints);
+  const xy = (cell: number): [number, number] => [cell % n, Math.floor(cell / n)];
+  const first = hints[0];
+  if (first === undefined) return [];
+  const centre = hints.reduce((best, cell) => {
+    const [x, y] = xy(cell);
+    const d = (x - n / 2) ** 2 + (y - n / 2) ** 2;
+    const [bx, by] = xy(best);
+    const bd = (bx - n / 2) ** 2 + (by - n / 2) ** 2;
+    return d < bd ? cell : best;
+  }, first);
+  const cornerKey = (cell: number) => {
+    const [x, y] = xy(cell);
+    const top = y < n / 2;
+    const left = x < n / 2;
+    return top && left ? 0 : top && !left ? 1 : !top && !left ? 2 : 3;
+  };
+  const outer = hints.filter((c) => c !== centre).sort((a, b) => cornerKey(a) - cornerKey(b));
+
+  const seen = new Array<boolean>(n * n).fill(false);
+  const order: number[] = [];
+  const push = (cell: number) => { if (!seen[cell]) { seen[cell] = true; order.push(cell); } };
+  const line = (a: number, b: number) => {
+    let [x0, y0] = xy(a);
+    const [x1, y1] = xy(b);
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    for (;;) {
+      push(idx(n, y0, x0));
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dy) { err -= dy; x0 += sx; }
+      if (e2 < dx) { err += dx; y0 += sy; }
+    }
+  };
+  for (let i = 0; i < outer.length; i++) {
+    const a = outer[i];
+    const b = outer[(i + 1) % outer.length];
+    if (a !== undefined && b !== undefined) line(a, b);
+  }
+  for (const o of outer) line(o, centre);
+  // constraint-greedy fill outward from the skeleton
+  let head = 0;
+  const queue = [...order];
+  while (head < queue.length) {
+    const cell = queue[head++];
+    if (cell === undefined) break;
+    for (const nb of nbrs4(n, cell))
+      if (!seen[nb]) { seen[nb] = true; order.push(nb); queue.push(nb); }
+  }
+  for (let p = 0; p < n * n; p++) if (!seen[p]) order.push(p);
   return order;
 }
 

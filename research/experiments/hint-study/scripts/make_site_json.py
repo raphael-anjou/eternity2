@@ -88,13 +88,14 @@ def clue_rows_first():
     return v
 
 
-def connect_hints():
+def _bfs_from(anchors):
     seen = [False] * (N * N)
     order, q = [], deque()
-    for h in HINTS:
-        seen[h] = True
-        order.append(h)
-        q.append(h)
+    for h in anchors:
+        if not seen[h]:
+            seen[h] = True
+            order.append(h)
+            q.append(h)
     while q:
         cell = q.popleft()
         r, c = cell // N, cell % N
@@ -104,14 +105,78 @@ def connect_hints():
                 seen[nb] = True
                 order.append(nb)
                 q.append(nb)
+    for p in range(N * N):
+        if not seen[p]:
+            order.append(p)
+    return order
+
+
+def connect_hints():
+    return _bfs_from(HINTS)
+
+
+def trace_hints():
+    # Skeleton (square between the 4 outer hints + diagonals to centre), then BFS
+    # fill outward. Mirrors the Rust `trace_hints` / `trace_hints_seq`.
+    if len(HINTS) < 5:
+        return _bfs_from(HINTS)
+    def xy(cell):
+        return cell % N, cell // N
+    centre = min(HINTS, key=lambda cell: (xy(cell)[0] - N // 2) ** 2 + (xy(cell)[1] - N // 2) ** 2)
+    outer = [c for c in HINTS if c != centre]
+    def corner_key(cell):
+        x, y = xy(cell)
+        top, left = y < N // 2, x < N // 2
+        return {(True, True): 0, (True, False): 1, (False, False): 2, (False, True): 3}[(top, left)]
+    outer.sort(key=corner_key)
+    seen = [False] * (N * N)
+    order = []
+    def push(cell):
+        if not seen[cell]:
+            seen[cell] = True
+            order.append(cell)
+    def line(a, b):
+        x0, y0 = xy(a)
+        x1, y1 = xy(b)
+        dx, dy = abs(x1 - x0), abs(y1 - y0)
+        sx, sy = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+        err = dx - dy
+        while True:
+            push(idx(y0, x0))
+            if x0 == x1 and y0 == y1:
+                break
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x0 += sx
+            if e2 < dx:
+                err += dx
+                y0 += sy
+    for i in range(len(outer)):
+        line(outer[i], outer[(i + 1) % len(outer)])
+    for o in outer:
+        line(o, centre)
+    q = deque(order)
+    while q:
+        cell = q.popleft()
+        r, c = cell // N, cell % N
+        for nb in (idx(r - 1, c) if r > 0 else -1, idx(r, c - 1) if c > 0 else -1,
+                   idx(r, c + 1) if c < N - 1 else -1, idx(r + 1, c) if r < N - 1 else -1):
+            if nb >= 0 and not seen[nb]:
+                seen[nb] = True
+                order.append(nb)
+                q.append(nb)
+    for p in range(N * N):
+        if not seen[p]:
+            order.append(p)
     return order
 
 
 SEQ = {
     "rowmajor": row_major(), "rowmajor-bottomup": row_major_bottomup(),
-    "spiral-in": spiral_in(), "spiral-out": spiral_out(), "border-first": border_first(),
+    "spiral-in": spiral_in(), "spiral-out": spiral_out(),
     "verhaard-comb": verhaard_comb(), "clue-rows-first": clue_rows_first(),
-    "connect-hints-first": connect_hints(),
+    "connect-hints-first": connect_hints(), "trace-hints": trace_hints(),
 }
 
 
@@ -159,20 +224,27 @@ def cells_for(layout):
                         s.add(idx(y, x))
         return sorted(s)
 
-    def spread_nearest(target):
-        best, gap = lattice(2), abs(len(lattice(2)) - target)
-        for stride in range(2, N + 1):
-            c = lattice(stride)
-            if c and abs(len(c) - target) < gap:
-                best, gap = c, abs(len(c) - target)
-        return best
+    def lattice_per_line(k):
+        # k evenly-spaced points per line (k×k), matching the Rust generator.
+        if k == 0:
+            return []
+        lo, hi = 1, N - 2
+        span = hi - lo
+        def coord(i):
+            return N // 2 if k == 1 else lo + (span * i) // (k - 1)
+        s = set()
+        for iy in range(k):
+            for ix in range(k):
+                s.add(idx(coord(iy), coord(ix)))
+        return sorted(s)
 
     table = {
         "clue_shape_5": HINTS,
         "ladder_clustered_k2_20": clustered(2), "ladder_clustered_k3_45": clustered(3),
         "ladder_clustered_k4_80": clustered(4),
-        "ladder_spread_04": spread_nearest(4), "ladder_spread_09": spread_nearest(9),
-        "ladder_spread_16": spread_nearest(16), "ladder_spread_25": spread_nearest(25),
+        "ladder_spread_04": lattice_per_line(2), "ladder_spread_09": lattice_per_line(3),
+        "ladder_spread_16": lattice_per_line(4), "ladder_spread_25": lattice_per_line(5),
+        "ladder_spread_36": lattice_per_line(6),
         "geom_scattered": lattice(4),
     }
     return table.get(layout)
@@ -201,7 +273,7 @@ def agg(vals):
 
 
 PATHS_ORDER = ["rowmajor", "rowmajor-bottomup", "spiral-in", "spiral-out",
-               "border-first", "verhaard-comb", "clue-rows-first", "connect-hints-first"]
+               "verhaard-comb", "clue-rows-first", "connect-hints-first", "trace-hints"]
 
 
 def main():
@@ -215,16 +287,15 @@ def main():
     rows = [json.loads(l) for l in open(rp) if l.strip()]
 
     # Use only the COMMON COMPLETE seed set, so every layout/path is compared over
-    # the SAME instances (a paired design). A "complete" seed has all 17 layouts ×
-    # 9 solvers = 153 rows. This removes the partial-fleet artifact where different
-    # rows were medianed over different seed subsets.
+    # the SAME instances (a paired design). A "complete" seed has the full row count
+    # (layouts × solvers); we take it as the max observed per-seed count so the
+    # threshold tracks the grid size automatically. This removes the partial-fleet
+    # artifact where different rows were medianed over different seed subsets.
     per_seed = defaultdict(int)
     for r in rows:
         per_seed[r["seed"]] += 1
-    complete = sorted(s for s, c in per_seed.items() if c >= 153)
-    if not complete:  # fall back to whatever the fullest seeds are (dev preview)
-        mx = max(per_seed.values(), default=0)
-        complete = sorted(s for s, c in per_seed.items() if c >= max(1, int(mx * 0.9)))
+    full = max(per_seed.values(), default=0)
+    complete = sorted(s for s, c in per_seed.items() if c >= full)
     seedset = set(complete)
     rows = [r for r in rows if r["seed"] in seedset]
 
@@ -271,7 +342,8 @@ def main():
 
     # COUNT axis (rowmajor) — floor-corrected + solved-rate. Common seed set.
     count_axis = []
-    for layout in ["ladder_spread_04", "ladder_spread_09", "ladder_spread_16", "ladder_spread_25",
+    for layout in ["ladder_spread_04", "ladder_spread_09", "ladder_spread_16",
+                   "ladder_spread_25", "ladder_spread_36",
                    "ladder_clustered_k2_20", "ladder_clustered_k3_45", "ladder_clustered_k4_80"]:
         rs = by.get((layout, "dfs-rowmajor"))
         if not rs:
@@ -283,6 +355,22 @@ def main():
         count_axis.append({"layout": layout, "floor": fl, "score": a,
                            "earned": a["median"] - fl, "solved": solved, "of": len(scores)})
 
+    # HINT-GEOMETRY comparison: the /research/why/hint-geometry page's 18-scattered
+    # vs 18-contiguous layouts, on OUR boards. Reported per path so we can say
+    # whether scattered beats contiguous here as that page claims. Uses row-major
+    # (the compact sweep) as the headline plus the full per-path spread.
+    hintgeo = {}
+    for layout in ["hintgeo_scattered_18", "hintgeo_contiguous_18"]:
+        per_path = []
+        for path in PATHS_ORDER:
+            rs = by.get((layout, f"dfs-{path}"))
+            if not rs:
+                continue
+            sc = [r["score"] for r in rs]
+            per_path.append({"path": path, "score": agg(sc),
+                             "solved": sum(1 for v in sc if v >= MAXSCORE), "of": len(sc)})
+        hintgeo[layout] = per_path
+
     # BEAM contrast on the clue shape (the non-backtracker solver, reported not hidden).
     beam = scores_by_seed("clue_shape_5", "beam-20k")
     beam_block = None
@@ -293,7 +381,8 @@ def main():
 
     out = {"meta": {"seeds": complete, "n_seeds": len(complete), "n_rows": len(rows),
                     "max_score": MAXSCORE, "budget_s": rows[0]["budget"] if rows else None},
-           "path_axis": path_axis, "count_axis": count_axis, "beam": beam_block}
+           "path_axis": path_axis, "count_axis": count_axis, "beam": beam_block,
+           "hintgeo": hintgeo}
     json.dump(out, open(args.out, "w"), indent=2)
     print(f"wrote {args.out}  ({len(complete)} complete seeds, {len(rows)} rows)")
 

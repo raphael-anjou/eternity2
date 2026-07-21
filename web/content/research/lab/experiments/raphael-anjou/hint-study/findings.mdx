@@ -25,6 +25,7 @@ sources:
 ---
 
 import { FrontierPhaseChart } from "@/components/research/FrontierPhaseChart";
+import { HintGeoComparison } from "@/components/research/HintGeoComparison";
 import { HintStudyCharts } from "@/components/research/HintStudyCharts";
 
 The study fixes five hints in the shape of Eternity II's own five clues, runs eight
@@ -57,10 +58,13 @@ board minus its score on the *same board with no hints*.
 
 Every bar is at or below zero. The five clue-shaped hints do not help a single fill
 order. On the compact sweeps they cost only ten to twenty points. On spiral-out they
-cost about ninety. And on the hint-seeking `connect-hints-first` order they cost
-roughly **three hundred and forty-five**, the same order scores among the *best* of
-all eight with no hints and by far the *worst* with them. Handing the solver five
-correct pieces, in the puzzle's own clue geometry, made every version of it worse.
+cost about ninety. And on the two hint-seeking orders they are ruinous: the
+`trace-hints` order, which draws a skeleton between the clues before filling, loses
+about three hundred and twenty-five, and the `connect-hints-first` flood loses
+roughly **three hundred and forty-five**, taking an order that scores among the
+*best* of all eight with no hints to the *worst* with them. The more deliberately an
+order chases the hints, the more they cost it. Handing the solver five correct
+pieces, in the puzzle's own clue geometry, made every version of it worse.
 
 ## Why a correct hint hurts
 
@@ -104,41 +108,74 @@ hinted boards. The hints and boards are nowhere near unsolvable. It is specifica
 the *chronological, fixed-order* backtracker that cannot turn five correct pieces
 into progress.
 
-## Count: adding hints doesn't help either, and the raw number hides it
+## Count: a threshold, not a gradient, and a floor that hides it
 
-The same question one level out: does adding *more* hints help? With clustered
-hints the raw score rises, and it is tempting to stop there. But most of that rise
-is bookkeeping, not progress.
+The same question one level out: does adding *more* hints help? The answer is not a
+smooth "more is better", and the raw number hides which part is real.
 
 The lower chart above splits each layout's score into two parts. The **floor** is
-the seams the pins complete for free, because both their endpoints are pinned to
-the true solution; the **earned** part is what the search actually found. A solid
+the seams the pins complete for free, because both their endpoints are pinned to the
+true solution; the **earned** part is what the search actually found. A solid
 clustered block banks a tall floor (five 4×4 blocks pin a quarter of the whole
 board's seams before the search takes a single step), while a spread lattice, whose
 hints never touch, banks nothing. So a raw-score comparison hands clustered layouts
 a hundred-point head start that says nothing about whether the search made headway.
 
-Now read the earned column across the spread lattices, whose floor is zero so
-earned *is* the score. It **falls** as the hint count rises: four spread hints earn
-about 340, twenty-five earn under 200. Adding correct spread hints makes the
-row-major backtracker *worse*: the same effect the path axis found, now on the
-count axis. This is not a paradox once you have the mechanism: every extra correct
-pin is one more hard constraint the fixed sweep must satisfy on arrival, one more
-place it can hit a wall. More free information, more ways to trip.
+Read the earned column across the spread lattices, whose floor is zero so earned
+*is* the score, and a threshold appears. A sparse spread, four to sixteen hints,
+earns almost nothing (in the twenties): the pins are just scattered constraints the
+sweep keeps tripping over, exactly the five-clue effect. But keep adding them and
+the picture flips. Twenty-five spread hints earn 127, and thirty-six, a six-per-line
+lattice, **solve the board outright on most instances**. Below the threshold the
+spread hints only get in the way; above it there are finally enough of them to
+carve the board into pieces small enough for the sweep to finish. It is not a
+gradient of help, but a wall the count has to clear.
 
-The one layout whose raw score climbs with count is the clustered block, and its
-climb is almost entirely floor. Five 4×4 blocks (eighty hints, a quarter of the
-board) do eventually **solve every instance**, but that is the lesson's price, not a
-counter-example: you can brute the board into submission by clustering, but only by
-pinning so much of it that you have half-solved it by hand first. Short of that
-regime, the clustered blocks' earned score sits in the double digits above their
-floor, the search is coasting on the free seams, not making headway.
+The clustered blocks show the mirror image. Their raw score is mostly *floor*: five
+4×4 blocks (eighty hints, a quarter of the board) do solve every instance, but they
+have pinned so much of the board that they have half-solved it by hand. Strip the
+floor away and the clustered layouts short of that extreme earn only double digits,
+coasting on the free seams. So the real count story is not "more hints help" or
+"more hints hurt", but: it takes a *lot* of correct hints, spread or clustered, to
+move a chronological backtracker at all, and until you reach that amount the extra
+pins are as likely to trip the search as to speed it.
 
 The [method page](/research/lab/experiments/raphael-anjou/hint-study/method) works
-the floor arithmetic through in full. The short version: strip away the free floor
-and adding hints does not help a chronological backtracker on either axis, spread
-or clustered, five or twenty-five. The only thing that reliably rises with more
-clustered hints is the bookkeeping.
+the floor arithmetic through in full.
+
+## Scattered versus contiguous: we get the opposite
+
+The community's
+[hint-geometry write-up](/research/why/hint-geometry) makes a sharper version of the
+placement claim: eighteen hints *scattered* on a lattice solve a 16×16 E2-like
+puzzle in minutes, while eighteen piled into *contiguous* top rows barely help, and
+you need eighty or more contiguous hints to match the scattered eighteen. That
+result was measured on one specific puzzle with one specific engine. We put its two
+exact layouts, the scattered rows-{1,3,5} lattice and the eighteen-cell top block,
+on our own generated boards and solvers to see whether the direction holds.
+
+<HintGeoComparison />
+
+It does not. On our boards the **contiguous** eighteen score *higher* than the
+scattered eighteen for seven of the eight fill orders, and by a wide margin: a
+row-major sweep reaches a median of 377 with the contiguous block and only 138 with
+the scattered lattice. This looks like a flat contradiction, and it is worth being
+precise about why it is not quite one.
+
+The two studies measure different things. The community result is about *time to a
+full solution*: scattered hints reach into the deep endgame where a backtracker
+spends almost all of its time, so they prune the expensive part, while a contiguous
+top block prunes only the cheap opening. Our number is *matched-edge score at a
+short budget*, and at eight seconds none of these strict backtrackers reaches the
+endgame at all. What a top-anchored contiguous block does buy, immediately, is a
+large correct region for the row-major sweep to build against, so the score climbs
+fast even though the hard part of the board is untouched. Scattered hints, by
+contrast, fragment the early fill exactly the way the five-clue shape did. So the
+two results are consistent once you separate "solves the whole board eventually"
+from "scores well in the first eight seconds": scattered placement helps the former
+and hurts the latter. It is one more instance of the study's throughline, that a
+hint's value is set by the search that reads it and the budget it runs under, not
+by the hint.
 
 ## What it does and does not say
 

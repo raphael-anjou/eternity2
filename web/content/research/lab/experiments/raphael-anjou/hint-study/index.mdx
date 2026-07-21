@@ -58,19 +58,21 @@ sometimes it cannot.
 
 ## See it: five hints, four orders
 
-The animation drops the pieces in one at a time. Nothing is being *solved* here;
-this is only the order the search would visit cells, made visible. Watch the
-**open frontier** counter, the count of filled cells still touching an empty one.
-That number is what a backtracker pays for, since its branching grows with the
-frontier, and it is also what gives the search room to route around a hostile pin.
+Each board below fills along a different order, on a loop. Nothing is being *solved*;
+this is only the order the search would visit cells, made visible. The bright cell is
+the one just placed, and the trail behind it is the recent **wavefront**, so you can
+see how much boundary each order keeps open as it runs. That open boundary, the
+frontier, is what a backtracker pays for: its branching grows with the frontier, and
+a small frontier is also what leaves the search room to route around a hostile pin.
 
 <HintPathFill />
 
 A row-major sweep keeps one thin frontier and rolls it down the board, so when it
 meets a pinned piece it can adjust the single row it is building. The hint-seeking
-order does the opposite: it opens a separate frontier around every hint at once and
-never closes them, committing everywhere before it knows whether the commitments are
-consistent. The first order survives the five hints; the second is undone by them.
+orders do the opposite. Spiralling in or out drags a whole ring as its frontier, and
+tracing the hints scatters its wavefront across the board from the very first move,
+committing everywhere before it can know whether the commitments are consistent. The
+compact sweep survives the five hints; the hint-seeking orders are undone by them.
 
 ## What the study measures
 

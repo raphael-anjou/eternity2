@@ -5,10 +5,8 @@ import {
   clueShape,
   clusteredClues,
   contiguous,
-  cross,
-  lattice,
-  row,
-  spreadCount,
+  hintgeoScattered18,
+  latticePerLine,
 } from "@/lib/hint-layouts";
 
 import { HintBoardTile } from "./HintBoard";
@@ -24,14 +22,14 @@ const N = 16;
 type Item = { key: string; title: Record<"en" | "fr" | "es", string>; cells: number[] };
 
 const ITEMS: Item[] = [
-  { key: "spread", title: { en: "Spread lattice", fr: "Réseau dispersé", es: "Retícula dispersa" }, cells: spreadCount(N, 16) },
   { key: "clue", title: { en: "The five-clue shape", fr: "La forme à cinq indices", es: "La forma de cinco pistas" }, cells: clueShape(N) },
-  { key: "rows", title: { en: "Odd rows", fr: "Rangées impaires", es: "Filas impares" }, cells: [1, 3, 5].flatMap((r) => row(N, r)) },
-  { key: "cross", title: { en: "Central cross", fr: "Croix centrale", es: "Cruz central" }, cells: cross(N, N / 2, N / 2) },
-  { key: "contig", title: { en: "Contiguous block", fr: "Bloc contigu", es: "Bloque contiguo" }, cells: contiguous(N, 16) },
+  { key: "spread9", title: { en: "Spread lattice (3/line)", fr: "Réseau dispersé (3/ligne)", es: "Retícula dispersa (3/línea)" }, cells: latticePerLine(N, 3) },
+  { key: "spread16", title: { en: "Spread lattice (4/line)", fr: "Réseau dispersé (4/ligne)", es: "Retícula dispersa (4/línea)" }, cells: latticePerLine(N, 4) },
+  { key: "spread36", title: { en: "Spread lattice (6/line)", fr: "Réseau dispersé (6/ligne)", es: "Retícula dispersa (6/línea)" }, cells: latticePerLine(N, 6) },
+  { key: "scattered18", title: { en: "Scattered 18 (list shape)", fr: "18 dispersés (forme de la liste)", es: "18 dispersas (forma de la lista)" }, cells: hintgeoScattered18(N) },
+  { key: "contig18", title: { en: "Contiguous 18", fr: "18 contigus", es: "18 contiguas" }, cells: contiguous(N, 18) },
   { key: "blocks3", title: { en: "Clustered 3×3 blocks", fr: "Blocs 3×3 groupés", es: "Bloques 3×3 agrupados" }, cells: clusteredClues(N, 3) },
   { key: "blocks4", title: { en: "Clustered 4×4 blocks", fr: "Blocs 4×4 groupés", es: "Bloques 4×4 agrupados" }, cells: clusteredClues(N, 4) },
-  { key: "dense", title: { en: "Dense lattice", fr: "Réseau dense", es: "Retícula densa" }, cells: lattice(N, 3, 1) },
 ];
 
 const T = {

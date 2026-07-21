@@ -28,16 +28,17 @@ GEN = REPO / "engine/target/release/hint_variants"
 DFS = EXP / "dfs-study/engine/target/release/run_dfs"
 PROD = EXP / "single-core-benchmark/engine/target/release/producer_trie"
 
-# The study's axes.
+# The study's axes. (border-first dropped per review; trace-hints added.)
 PATHS = [
     "rowmajor", "rowmajor-bottomup", "spiral-in", "spiral-out",
-    "border-first", "verhaard-comb", "clue-rows-first", "connect-hints-first",
+    "verhaard-comb", "clue-rows-first", "connect-hints-first", "trace-hints",
 ]
 LAYOUTS = [
     "geom_scattered", "geom_contiguous", "geom_interior", "geom_border",
-    "ladder_spread_04", "ladder_spread_09", "ladder_spread_16", "ladder_spread_25",
+    "ladder_spread_04", "ladder_spread_09", "ladder_spread_16", "ladder_spread_25", "ladder_spread_36",
     "ladder_clustered_k2_20", "ladder_clustered_k3_45", "ladder_clustered_k4_80",
     "clue_shape_5", "shallow_18", "deep_18", "sweep_18", "sweep_09", "baseline_00",
+    "hintgeo_scattered_18", "hintgeo_contiguous_18",
 ]
 
 
