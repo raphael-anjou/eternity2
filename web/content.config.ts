@@ -17,6 +17,7 @@ import matter from "gray-matter";
 import GithubSlugger from "github-slugger";
 import { z } from "zod";
 import type { HardwareInfo, ResearchDoc, SearchEntry, TocItem } from "./src/lib/research/types";
+import { RECORD_BOARDS } from "./src/data/record-boards";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CONTENT_DIR = path.join(HERE, "content", "research");
@@ -264,6 +265,12 @@ const frontmatterSchema = z.object({
   // ambiguous: matched-edges (every internal edge match counts) vs strict-5-clue
   // (the five-clue-fixed track). Rendered as a small pill beside the score.
   scoringConvention: z.enum(["matched-edges", "strict-5-clue"]).optional(),
+  // Id of a bundled record board (an entry in src/data/record-boards.ts). When a
+  // page carries one, the topic and researcher hubs render a lazy in-viewer
+  // thumbnail of that board. Validated against RECORD_BOARDS in
+  // scanResearchContent (below), so a typo fails the build rather than rendering
+  // a "board not found" card.
+  board: z.string().optional(),
   // YAML parses a bare 2026-07-01 as a Date; accept both, normalize to string.
   updated: z
     .union([
@@ -429,6 +436,17 @@ export function scanResearchContent(fresh = false): RawEntry[] {
       seen.add(c.slug);
     }
   }
+  // A page's `board` must reference a bundled record board (catches typos; a bad
+  // id would otherwise render a "board not found" card on the hubs).
+  const knownBoards = new Set(RECORD_BOARDS.map((b) => b.id));
+  for (const e of entries) {
+    if (e.fm.board !== undefined && !knownBoards.has(e.fm.board)) {
+      throw new Error(
+        `research content: ${e.file} references unknown board "${e.fm.board}" ` +
+          `(registry: src/data/record-boards.ts)`,
+      );
+    }
+  }
   // Frontmatter topics must exist in the registry (catches typos).
   const known = new Set(researchTopics(fresh).map((t) => t.slug));
   for (const e of entries) {
@@ -482,6 +500,7 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(e.fm.scoringConvention !== undefined
         ? { scoringConvention: e.fm.scoringConvention }
         : {}),
+      ...(e.fm.board !== undefined ? { board: e.fm.board } : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),

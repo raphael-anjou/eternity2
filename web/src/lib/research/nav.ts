@@ -5,6 +5,7 @@
 import { pick, type Dict, type Lang } from "@/i18n";
 import { researchDocs } from "./manifest";
 import type { ContributionKind, ResearchKind } from "./types";
+import { backlinks as backlinksMap } from "virtual:research-backlinks";
 
 export interface NavItem {
   url: string;
@@ -20,6 +21,12 @@ export interface NavItem {
   topics: string[];
   /** Named sub-section within its sidebar section (the approaches-map spine). */
   group?: string;
+  /** Board score, carried so a listing can badge it without re-reading the
+   *  manifest. */
+  score?: number;
+  /** Id of a bundled record board (src/data/record-boards.ts), when the page has
+   *  one — lets a hub card render a lazy in-viewer thumbnail. */
+  board?: string;
   /** Registry slug of the page's author (a per-author hub carries one and its
    *  children are that author's experiments — the sidebar renders it as a
    *  first-class heading rather than a plain row). */
@@ -143,6 +150,8 @@ export function researchNav(lang: Lang): NavSection[] {
       translated: d.translated,
       topics: d.topics,
       ...(d.group !== undefined ? { group: d.group } : {}),
+      ...(d.score !== undefined ? { score: d.score } : {}),
+      ...(d.board !== undefined ? { board: d.board } : {}),
       ...(d.author !== undefined ? { author: d.author } : {}),
       children: [],
       order: d.order ?? 1e9,
@@ -242,6 +251,24 @@ export function findSection(lang: Lang, url: string): NavSection | undefined {
 /** Pages tagged with a topic, in global reading order. */
 export function topicMembers(lang: Lang, slug: string): NavItem[] {
   return allNavItems(lang).filter((i) => i.topics.includes(slug));
+}
+
+/** Pages whose body links to `url` in prose ("Referenced by"), as NavItems so a
+ *  listing can reuse the same title/kind display metadata as the related rail.
+ *  The reverse map is built at compile time from every page's inbound prose links
+ *  (plugins/research-content.ts), keyed by language-neutral URL; display strings
+ *  resolve per language here. Sources already come in manifest reading order;
+ *  `cap` trims an over-long list (the shell caps at ~8). A missing or empty map
+ *  (e.g. a stale HMR payload) yields [] rather than throwing. */
+export function backlinkItems(lang: Lang, url: string, cap?: number): NavItem[] {
+  const sources = (backlinksMap as Record<string, string[] | undefined>)[url] ?? [];
+  if (sources.length === 0) return [];
+  const byUrl = new Map(allNavItems(lang).map((i) => [i.url, i]));
+  const items = sources.flatMap((u) => {
+    const item = byUrl.get(u);
+    return item ? [item] : [];
+  });
+  return cap !== undefined ? items.slice(0, cap) : items;
 }
 
 /** Localized labels for page kinds (badges, related rail). */
