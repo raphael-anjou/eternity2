@@ -248,6 +248,10 @@ export interface ResearchDoc {
   score?: number;
   /** Which convention `score` is under, rendered as a pill beside the score. */
   scoringConvention?: ScoringConvention;
+  /** Id of a bundled record board (an entry in src/data/record-boards.ts). When
+   *  set, the hub cards can render a lazy in-viewer thumbnail of that board.
+   *  Validated against RECORD_BOARDS at scan time. */
+  board?: string;
   /** ISO date of last substantive update. */
   updated?: string;
   /** Month an experiment was run / first written (YYYY-MM), for the gallery. */
