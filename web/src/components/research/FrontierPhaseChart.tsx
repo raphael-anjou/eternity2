@@ -75,22 +75,24 @@ function labelLayout(
   const used = new Array(scr.length).fill(false);
   const out: Array<{ p: Pt; lx: number; ly: number; leader: boolean }> = [];
   for (let i = 0; i < scr.length; i++) {
-    if (used[i]) continue;
+    const a = scr[i];
+    if (used[i] || !a) continue;
     // group everything within 40px of point i
     const group = [i];
     used[i] = true;
     for (let j = i + 1; j < scr.length; j++) {
-      if (used[j]) continue;
-      const a = scr[i]!;
-      const b = scr[j]!;
+      const b = scr[j];
+      if (used[j] || !b) continue;
       if (Math.hypot(a.sx - b.sx, a.sy - b.sy) < 42) { group.push(j); used[j] = true; }
     }
     if (group.length === 1) {
-      const a = scr[i]!;
       out.push({ p: a.p, lx: a.sx, ly: a.sy - a.r - 5, leader: false });
     } else {
       // stack labels above the topmost point of the cluster
-      const members = group.map((k) => scr[k]!).sort((u, v) => u.sy - v.sy);
+      const members = group
+        .map((k) => scr[k])
+        .filter((m): m is (typeof scr)[number] => m !== undefined)
+        .sort((u, v) => u.sy - v.sy);
       const topY = Math.min(...members.map((m) => m.sy - m.r)) - 8;
       const cx = members.reduce((s, m) => s + m.sx, 0) / members.length;
       members.forEach((m, k) => {
