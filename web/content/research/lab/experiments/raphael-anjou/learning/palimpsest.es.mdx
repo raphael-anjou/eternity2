@@ -13,12 +13,14 @@ hardware:
   gpus: 0
   accelerator: none
   machine: "MacBook (Apple M1, 8 cores)"
-  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  wallClock: "~30 min × 6 seeds (exploratory run, not the standardized single-core bench)"
   seedPolicy: "stochastic; see the run's repro command"
   measured: false
 contribution: solver
 author: raphael-anjou
 score: 463
+outcome: plateaued
+scoringConvention: matched-edges
 rigor: measured
 complexity:
   time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
@@ -30,6 +32,8 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+  scope: >-
+    El comando vuelve a puntuar el tablero de 463 versionado a partir de sus aristas Bucas en bruto ; revalida el artefacto almacenado, no la búsqueda ALNS estocástica que lo encontró.
 stages:
   - engine: corpus-mining
     does: "Frecuencias separadas por cuenca distinguen la estructura compartida de la trampa compartida, construyendo un mapa de trampas"
@@ -38,7 +42,7 @@ stages:
     does: "Partiendo de un tablero de 461, romper deliberadamente las celdas trampa y dejar que destrucción-reparación las reconstruya, alcanzando 463"
     published: false
 order: 40
-updated: 2026-07-10
+updated: 2026-07-21
 date: 2026-07
 topics: [local-search, learning]
 related:

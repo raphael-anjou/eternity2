@@ -5,15 +5,25 @@ import { researchDocs, researchAuthors } from "@/lib/research/manifest";
 import { cn } from "@/lib/utils";
 import { coreHours, formatCoreHours } from "@/lib/research/hardware-cost";
 import type { ScoreDatum } from "./ExperimentScoreChart";
-import type { RigorKind, ReproKind } from "@/lib/research/types";
+import type { RigorKind, ReproKind, OutcomeKind, ScoringConvention } from "@/lib/research/types";
 
-// The whole experiment gallery as one sortable results table — the scannable
-// companion to the score chart. Score and method family come from the page's
-// own `scores` list (which the chart also uses); author, month, rigor,
-// reproducibility and the link are pulled from each experiment's frontmatter via
-// the manifest, so the table never drifts from the pages it summarizes. When
-// more than one researcher has experiments, the table splits into a section per
-// author (ownership at a glance); with a single author it is one flat table.
+// The experiment gallery as one sortable results table, in two modes:
+//
+//  - PROPS mode (the per-author hub): the caller passes the page's own `scores`
+//    list. Score and method family come from that list; author, month, rigor,
+//    reproducibility and the link are pulled from each experiment's frontmatter
+//    via the manifest, so the table never drifts from the pages it summarizes.
+//  - MANIFEST mode (the cross-researcher hub, `manifest` prop): rows are
+//    discovered from the manifest itself — every `kind: experiment` page that
+//    carries a `score`, grouped by author. There is no per-page family in
+//    frontmatter, so this mode shows the research outcome instead of a method
+//    family, and a scoring-convention pill beside each score.
+//
+// When more than one researcher has experiments, the table splits into a
+// section per author (ownership at a glance); with a single author it is one
+// flat table.
+
+const EXPERIMENTS_PREFIX = "/research/lab/experiments/";
 
 /** "2026-07" → "Jul 2026". Returns "" for missing/malformed. */
 function monthYear(d: string | undefined): string {
@@ -40,6 +50,19 @@ const RIGOR_STYLE: Record<RigorKind, string> = {
   conjectured: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
 };
 
+const OUTCOME_STYLE: Record<OutcomeKind, string> = {
+  plateaued: "bg-slate-500/15 text-slate-700 dark:text-slate-300",
+  refuted: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+  parked: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  "new-basin": "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  superseded: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+};
+
+const CONVENTION_LABEL: Record<ScoringConvention, string> = {
+  "matched-edges": "matched edges",
+  "strict-5-clue": "strict 5-clue",
+};
+
 const REPRO_LABEL: Record<ReproKind, string> = {
   exact: "exact",
   seeded: "seeded",
@@ -48,23 +71,38 @@ const REPRO_LABEL: Record<ReproKind, string> = {
   prose: "—",
 };
 
-interface Row extends ScoreDatum {
+interface Row {
+  key: string;
+  label: string;
+  score: number;
+  /** Method family (PROPS mode only). */
+  family?: string;
   url: string;
   rigor?: RigorKind;
   repro?: ReproKind;
+  outcome?: OutcomeKind;
+  scoringConvention?: ScoringConvention;
   authorSlug?: string;
   authorName: string;
   date?: string;
   /** Compute cost of the run (cores × wall-clock hours), when hardware is
-   *  declared and its budget parses; the honest cross-run comparison. */
+   *  declared and its budget parses; the cross-run comparison. */
   coreHours?: number;
   /** Whether the run is the standardized single-core bench (vs a native run). */
   measured?: boolean;
 }
 
-type SortKey = "score" | "label" | "family" | "date" | "cost";
+type SortKey = "score" | "label" | "family" | "date" | "cost" | "outcome";
 
-export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
+export function ExperimentResultsTable({
+  data,
+  manifest = false,
+}: {
+  /** PROPS mode: the page's own score list. Ignored when `manifest` is set. */
+  data?: ScoreDatum[];
+  /** MANIFEST mode: discover every scored experiment from the manifest. */
+  manifest?: boolean;
+}) {
   const { lang } = useLang();
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [asc, setAsc] = useState(false);
@@ -74,22 +112,52 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
     const authors = researchAuthors(lang);
     const nameOf = (slug?: string) =>
       (slug && authors.find((a) => a.slug === slug)?.name) || "Unattributed";
+
+    if (manifest) {
+      // Every named experiment page that carries a score, grouped by author.
+      // The score chart stays solver-only; this table is the fuller ledger of
+      // "what board did this run reach", so it lists every scored experiment.
+      return docs
+        .filter((d) => d.kind === "experiment" && typeof d.score === "number" && d.url.startsWith(EXPERIMENTS_PREFIX))
+        .map((d) => {
+          const ch = d.hardware ? coreHours(d.hardware) : null;
+          return {
+            key: d.url,
+            label: d.title,
+            score: d.score as number,
+            url: d.url,
+            ...(d.rigor ? { rigor: d.rigor } : {}),
+            ...(d.repro ? { repro: d.repro.kind } : {}),
+            ...(d.outcome ? { outcome: d.outcome } : {}),
+            ...(d.scoringConvention ? { scoringConvention: d.scoringConvention } : {}),
+            ...(d.author ? { authorSlug: d.author } : {}),
+            authorName: nameOf(d.author),
+            ...(d.date ? { date: d.date } : {}),
+            ...(ch != null ? { coreHours: ch } : {}),
+            ...(d.hardware?.measured !== undefined ? { measured: d.hardware.measured } : {}),
+          };
+        });
+    }
+
+    // PROPS mode: the page's own scores list, enriched from the manifest.
     // Experiment pages live under a per-author folder
-    // (…/experiments/<author-slug>/<key>), so match by URL segment rather than
-    // a fixed path: the last segment is the key, and the page sits somewhere
-    // under …/experiments/. Falls back to the bare path if no page is found.
-    const isExperiment = (u: string) => u.startsWith("/research/lab/experiments/");
-    return data.map((d) => {
-      const doc = docs.find(
-        (x) => isExperiment(x.url) && x.url.split("/").pop() === d.key,
-      );
-      const url = doc?.url ?? `/research/lab/experiments/${d.key}`;
+    // (…/experiments/<author-slug>/<key>), so match by URL segment: the last
+    // segment is the key. Falls back to the bare path if no page is found.
+    const isExperiment = (u: string) => u.startsWith(EXPERIMENTS_PREFIX);
+    return (data ?? []).map((d) => {
+      const doc = docs.find((x) => isExperiment(x.url) && x.url.split("/").pop() === d.key);
+      const url = doc?.url ?? `${EXPERIMENTS_PREFIX}${d.key}`;
       const ch = doc?.hardware ? coreHours(doc.hardware) : null;
       return {
-        ...d,
+        key: d.key,
+        label: d.label,
+        score: d.score,
+        family: d.family,
         url,
         ...(doc?.rigor ? { rigor: doc.rigor } : {}),
         ...(doc?.repro ? { repro: doc.repro.kind } : {}),
+        ...(doc?.outcome ? { outcome: doc.outcome } : {}),
+        ...(doc?.scoringConvention ? { scoringConvention: doc.scoringConvention } : {}),
         ...(doc?.author ? { authorSlug: doc.author } : {}),
         authorName: nameOf(doc?.author),
         ...(doc?.date ? { date: doc.date } : {}),
@@ -97,16 +165,19 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
         ...(doc?.hardware?.measured !== undefined ? { measured: doc.hardware.measured } : {}),
       };
     });
-  }, [data, lang]);
+  }, [data, lang, manifest]);
 
   const sortRows = (list: Row[]) => {
     const s = [...list].sort((a, b) => {
       if (sortKey === "score") return b.score - a.score;
       if (sortKey === "label") return a.label.localeCompare(b.label);
       if (sortKey === "date") return (b.date ?? "").localeCompare(a.date ?? "");
+      if (sortKey === "outcome") return (a.outcome ?? "").localeCompare(b.outcome ?? "");
       // Cost: cheapest first ascending; rows without a cost sink to the bottom.
       if (sortKey === "cost") return (a.coreHours ?? Infinity) - (b.coreHours ?? Infinity);
-      return (FAMILY_LABEL[a.family] ?? a.family).localeCompare(FAMILY_LABEL[b.family] ?? b.family);
+      return (FAMILY_LABEL[a.family ?? ""] ?? a.family ?? "").localeCompare(
+        FAMILY_LABEL[b.family ?? ""] ?? b.family ?? "",
+      );
     });
     return asc ? s.reverse() : s;
   };
@@ -163,11 +234,31 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
             {r.label}
           </LocalizedLink>
         </td>
-        <td className="px-3 py-2 text-right tabular-nums font-semibold">
+        <td className="px-3 py-2 text-right tabular-nums font-semibold whitespace-nowrap">
           {r.score}
           <span className="text-xs font-normal text-muted-foreground">/480</span>
+          {manifest && r.scoringConvention && (
+            <span
+              className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 align-middle text-[10px] font-normal text-muted-foreground"
+              title={r.scoringConvention}
+            >
+              {CONVENTION_LABEL[r.scoringConvention]}
+            </span>
+          )}
         </td>
-        <td className="px-3 py-2 text-muted-foreground">{FAMILY_LABEL[r.family] ?? r.family}</td>
+        {manifest ? (
+          <td className="px-3 py-2">
+            {r.outcome && (
+              <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", OUTCOME_STYLE[r.outcome])}>
+                {r.outcome}
+              </span>
+            )}
+          </td>
+        ) : (
+          <td className="px-3 py-2 text-muted-foreground">
+            {FAMILY_LABEL[r.family ?? ""] ?? r.family ?? "—"}
+          </td>
+        )}
         <td className="px-3 py-2 whitespace-nowrap text-muted-foreground tabular-nums">
           {monthYear(r.date) || "—"}
         </td>
@@ -203,7 +294,7 @@ export function ExperimentResultsTable({ data }: { data: ScoreDatum[] }) {
           <tr>
             {sortableHeader("label", "Experiment")}
             {sortableHeader("score", "Score", "text-right")}
-            {sortableHeader("family", "Method")}
+            {manifest ? sortableHeader("outcome", "Outcome") : sortableHeader("family", "Method")}
             {sortableHeader("date", "When")}
             {sortableHeader("cost", "Core-h", "text-right")}
             <th className="px-3 py-2 text-left font-semibold">Rigor</th>

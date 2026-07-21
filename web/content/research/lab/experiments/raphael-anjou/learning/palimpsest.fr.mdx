@@ -13,12 +13,14 @@ hardware:
   gpus: 0
   accelerator: none
   machine: "MacBook (Apple M1, 8 cores)"
-  wallClock: "not logged (exploratory run, not the standardized single-core bench)"
+  wallClock: "~30 min × 6 seeds (exploratory run, not the standardized single-core bench)"
   seedPolicy: "stochastic; see the run's repro command"
   measured: false
 contribution: solver
 author: raphael-anjou
 score: 463
+outcome: plateaued
+scoringConvention: matched-edges
 rigor: measured
 complexity:
   time: "corpus mining O(B·P) for B boards × P interior pairs (P = 480); ALNS attack 30 min × 6 seeds"
@@ -30,6 +32,8 @@ repro:
   kind: stochastic
   cmd: just research-record-boards
   topic: record-boards
+  scope: >-
+    La commande recalcule le score du plateau à 463 versionné à partir de ses arêtes Bucas brutes ; elle revérifie l'artefact stocké, non la recherche ALNS stochastique qui l'a trouvé.
 stages:
   - engine: corpus-mining
     does: "Des fréquences séparées par bassin distinguent la structure partagée du piège partagé, construisant une carte des pièges"
@@ -38,7 +42,7 @@ stages:
     does: "À partir d'un plateau à 461, casser délibérément les cellules-pièges et laisser destruction-réparation les reconstruire, atteignant 463"
     published: false
 order: 40
-updated: 2026-07-10
+updated: 2026-07-21
 date: 2026-07
 topics: [local-search, learning]
 related:
