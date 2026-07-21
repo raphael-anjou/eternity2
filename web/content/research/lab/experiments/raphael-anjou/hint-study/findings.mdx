@@ -5,7 +5,7 @@ description: >-
   help a backtracker, they range from a mild cost to a catastrophe, and the fill
   order decides how much damage they do; the scores are bimodal, not a smooth
   gradient; and the hint-count question is confounded by a free pinned-seam floor.
-metaDescription: "The hint study's findings: on generated Eternity II boards, five clue-shaped hints never help a chronological backtracker, they cost a compact sweep ~30 points and cripple a hint-seeking order by ~330, because a pinned piece is a hard constraint a fixed fill order must satisfy on arrival."
+metaDescription: "The hint study's findings: on generated Eternity II boards, the five official clue hints never help a chronological backtracker, costing a compact sweep ~10 to 20 points and crippling a hint-seeking order by ~345, because a pinned piece is a hard constraint a fixed fill order must satisfy."
 kind: page
 contribution: measurement
 author: raphael-anjou
@@ -42,7 +42,8 @@ Start with the distribution. Each dot is one board; the tick is the median.
 <HintStudyCharts />
 
 Two things are visible at once. First, the scores are **bimodal**: on most orders a
-board either climbs into the 330s or stalls near 100, with little in between. A
+board either climbs into the 360s or stalls in the double digits, with little in
+between. A
 median drawn through that is a summary of a gap, not a centre, which is exactly why
 the dots are shown. Second, the orders split hard: the three compact sweeps
 (row-major, its bottom-up mirror, Verhaard's comb) sit high on most boards; the
@@ -55,11 +56,11 @@ It shows the **paired change** from adding the five hints: each order's score on
 board minus its score on the *same board with no hints*.
 
 Every bar is at or below zero. The five clue-shaped hints do not help a single fill
-order. On the compact sweeps they cost around thirty points. On spiral-out they cost
-over two hundred. And on the hint-seeking `connect-hints-first` order they cost
-roughly **three hundred and thirty**, the same order scores among the *best* of all
-eight with no hints and by far the *worst* with them. Handing the solver five correct
-pieces, in the puzzle's own clue geometry, made every version of it worse.
+order. On the compact sweeps they cost only ten to twenty points. On spiral-out they
+cost about ninety. And on the hint-seeking `connect-hints-first` order they cost
+roughly **three hundred and forty-five**, the same order scores among the *best* of
+all eight with no hints and by far the *worst* with them. Handing the solver five
+correct pieces, in the puzzle's own clue geometry, made every version of it worse.
 
 ## Why a correct hint hurts
 
@@ -71,12 +72,14 @@ sweep steers around the constraint and loses a few tens of points. But on some b
 the pinned piece contradicts what the frontier has committed to, and there is no
 local repair: the search hits a wall it cannot pass and thrashes below it. That is
 the stalled mode, and it is the hints that create it. On row-major, the boards that
-collapse to ~100 are precisely the ones where a clue-shape pin lands where the sweep
-cannot honour it; the same board with no pins climbs into the high 300s.
+collapse into the double digits are precisely the ones where a clue-shape pin lands
+where the sweep cannot honour it; the same board with no pins climbs into the 360s
+and 370s.
 
 This reframes the fill-order result. The order still matters (a compact sweep
-survives the hint constraints with a ~30-point scar while `connect-hints-first` is
-destroyed by them), but what the order is buying is not "using the hints well." It
+survives the hint constraints with a scar of ten to twenty points while
+`connect-hints-first` is destroyed by them), but what the order is buying is not
+"using the hints well." It
 is **surviving them**. The frontier is why: an order that keeps a single tight
 frontier has room to route around a bad pin; an order that has already fragmented
 into five open blobs has committed everywhere at once and cannot.

@@ -82,19 +82,38 @@ export function borderRing(n: number, k: number): number[] {
   return cells;
 }
 
-/** the E2 five-clue SHAPE: centre + four inset from the corners. */
+/** The E2 five-clue SHAPE. At 16×16 these are the EXACT official clue cells
+ * (idx is row-major, `idx(n, row, col)`): the mandatory centre clue at I8 =
+ * (row 8, col 7), and four clue-puzzle placements inset three from each corner at
+ * C3 (2,2), C14 (2,13), N3 (13,2), N14 (13,13). Mirrors the Rust generator's
+ * `e2_clue_shape`; for other sizes the same inset-three / off-centre pattern is
+ * scaled. Keep identical to the Rust so the diagram matches the measured board. */
 export function clueShape(n: number): number[] {
-  const q = Math.floor(n / 4);
+  if (n === 16) {
+    return [
+      idx(n, 8, 7), // I8, mandatory centre
+      idx(n, 2, 2), // C3
+      idx(n, 2, 13), // C14
+      idx(n, 13, 2), // N3
+      idx(n, 13, 13), // N14
+    ];
+  }
+  const inset = Math.min(3, Math.floor((n - 1) / 2));
+  const mid = Math.floor(n / 2);
+  const centre = Math.max(0, mid - 1);
   return [
-    idx(n, Math.floor(n / 2), Math.floor(n / 2)),
-    idx(n, q, q),
-    idx(n, q, n - 1 - q),
-    idx(n, n - 1 - q, q),
-    idx(n, n - 1 - q, n - 1 - q),
+    idx(n, mid, centre),
+    idx(n, inset, inset),
+    idx(n, inset, n - 1 - inset),
+    idx(n, n - 1 - inset, inset),
+    idx(n, n - 1 - inset, n - 1 - inset),
   ];
 }
 
-/** E2's clue geometry, clustered: a k×k block at each of the five clue anchors. */
+/** The clustered end of the count ladder: five k×k solid blocks, one near each
+ * corner and one at the centre. A clustered geometry for the clustered-vs-spread
+ * comparison, NOT the real five official clue cells (those are single cells; see
+ * `clueShape`). Mirrors the Rust generator's `clustered_blocks`. */
 export function clusteredClues(n: number, k: number): number[] {
   const off = 1;
   const anchors: Array<[number, number]> = [
