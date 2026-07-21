@@ -67,7 +67,8 @@ user-facing tour and
 
 - **The research section is an MDX wiki.** Content lives in
   `web/content/research/**` — one `.mdx` file per page (`page.mdx` = EN,
-  `page.fr.mdx` = FR; `index.mdx` = a directory's hub). **Adding an MDX file IS
+  `page.fr.mdx` = FR, `page.es.mdx` = ES; `index.mdx` = a directory's hub; the
+  parity check gates that sidecars mirror the EN frontmatter). **Adding an MDX file IS
   the registration**: the scanner (`web/content.config.ts`) feeds the prerender
   list + sitemap, the Vite plugin (`web/plugins/research-content.ts`) builds
   per-language manifests, and the catch-all `research/*` routes render pages in
@@ -77,7 +78,14 @@ user-facing tour and
   tool | reference | concept | basin | paper | page), order, updated, topics
   (validated against `content/research/topics.json`), sources[] (every claim
   links its evidence), related[] (site paths), repro {kind, cmd, topic}, and
-  score for experiments. Interactive components are imported directly inside
+  score for experiments. Optional but render-bearing (2026-07-21): `outcome`
+  (plateaued|refuted|parked|new-basin|superseded), `scoringConvention`
+  (matched-edges|strict-5-clue — set it whenever `score` is set),
+  `repro.produces` (search|artifact: artifact = the command only re-verifies a
+  stored board; defaults to artifact when `repro.topic` is `record-boards`),
+  `repro.scope` (one line: what the command does and does not reproduce), and
+  `stages[]` (rendered as the pipeline strip; `published: false` marks engines
+  without their own write-up). Interactive components are imported directly inside
   MDX (`@/components/...`) — per-page code splitting is preserved, and prerender
   waits for them (full prose ends up in the static HTML). Do NOT add research
   pages to `routes.ts`/`seo.ts` — those are only for non-research pages now.
@@ -99,8 +107,29 @@ user-facing tour and
   period, semicolon, colon, or parentheses instead of an em dash; verbatim
   archive quotes are exempt. `check:research` also validates that every
   groups.io `message/N` citation exists in the local archive
-  (`../../v2/community-exports/messages.jsonl`), so never invent a `msg_num` —
+  (`../../research/community-exports/messages.jsonl`), so never invent a `msg_num` —
   grep the archive for the number before citing it.
+
+- **`/research/records` is the canonical SOTA page.** The headline numbers
+  (community 470 open / 464 strict, the project's own 463/460s) live there in
+  the "where this project stands" table. New or edited pages LINK to
+  `/research/records` (and `/research/open-problems` for the frontier) instead
+  of hand-restating the numbers — the pre-rework site had them independently
+  restated in ~9 files, which is exactly the drift this rule prevents.
+
+- **Some research routes are generated, not MDX.** `/research/glossary`,
+  `/research/build/reproduce`, and `/research/lab/experiments/by-contribution/*`
+  are components registered in `content.config.ts` (`researchPagePaths()` /
+  `researchPagePathsFor()`) plus the switch in `web/src/pages/research/doc.tsx`.
+  Follow that pattern for new computed surfaces; a new MDX page costs ×3
+  languages, a generated route costs one trilingual string table.
+
+- **Parallel agents in this repo: partition by file, build once.** Concurrent
+  full `pnpm build` runs collide on the output dir; agents should verify with
+  `pnpm typecheck` + `pnpm check:research:ci` only, and the orchestrating
+  session runs the single full build at the end. Give each agent an explicit
+  disjoint file-ownership list (shared files like `content.config.ts`,
+  `types.ts`, `DocsShell.tsx` go to one sequential agent first).
 
 - **Keep the research ledger.** `research/LEDGER.md` is an append-only,
   oldest-first record of every research-section step: findings, pages,
@@ -128,7 +157,7 @@ user-facing tour and
   papers.mdx` and `records.mdx` wrap `web/src/components/research/views/
   {Papers,Records}View.tsx` (data-heavy TSX stays TSX; the MDX wrapper carries
   the metadata). Both are sourced from the research vault at
-  `../../v2/vault/reference/` (`academic-references.md`,
+  `../../research/vault/reference/` (`academic-references.md`,
   `community-e2-history.md`). When adding a paper, verify the URL resolves
   (prefer institutional-repository / HAL / DIAL / arXiv links).
 
