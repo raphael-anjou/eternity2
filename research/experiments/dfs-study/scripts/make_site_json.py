@@ -34,6 +34,10 @@ def agg(rows):
         "mean": round(statistics.mean(scores), 1) if scores else None,
         "best": max(scores) if scores else None,
         "worst": min(scores) if scores else None,
+        # Every instance's raw score, in run order, so the site can draw the
+        # per-variant spread (each instance a dot) beneath the mean bar. The mean
+        # above is exactly the mean of this list, so the two never disagree.
+        "scores": scores,
         "median_nps": median([r.get("nps") for r in rows]),
         "nps_unit": rows[0].get("nps_unit", "search-nodes/s") if rows else "search-nodes/s",
         "max_depth": max(depths) if depths else None,

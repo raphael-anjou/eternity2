@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
+import { VariantScoreSpread, ViewToggle } from "@/components/research/VariantScoreSpread";
 import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
 import { formatKM } from "@/lib/format";
 import { useT, useLang, pick, type Dict } from "@/i18n";
@@ -44,6 +45,8 @@ type Variant = {
   mean?: number | null;
   best?: number | null;
   worst?: number | null;
+  // Every instance's raw final score, in run order, for the per-variant spread.
+  scores?: number[] | null;
   mean_lift?: number | null;
   start_score?: number | null;
   mean_last_best_iter?: number | null;
@@ -93,6 +96,14 @@ const T = {
     boardTitle: "The leaderboard — mean final score by variant",
     boardIntro:
       "Mean matched-edge score of the board each variant finished with, over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal.",
+    viewBars: "mean",
+    viewSpread: "spread",
+    spreadIntro:
+      "The same runs, but every instance's final score shown as a tick, with the mean marked. The mean bar hides how much each variant swings from instance to instance; this shows it. Where two variants sit close on the mean, the spread is the fair reading of whether they truly differ.",
+    spreadAxis: "final score per instance (matched edges, out of 480)",
+    spreadMean: "mean",
+    spreadRange: "range",
+    spreadInstances: "instances",
     of: "/ 480",
     liftTitle: "What the loop added over its starting board",
     liftIntro:
@@ -121,6 +132,14 @@ const T = {
     boardTitle: "Le classement — score final moyen par variante",
     boardIntro:
       "Score moyen (arêtes appariées) du plateau final de chaque variante, sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal.",
+    viewBars: "moyenne",
+    viewSpread: "dispersion",
+    spreadIntro:
+      "Les mêmes runs, mais le score final de chaque instance apparaît sous forme de repère, la moyenne étant marquée. La barre de moyenne masque l'ampleur des écarts d'une instance à l'autre ; ceci la montre. Là où deux variantes se tiennent de près en moyenne, la dispersion dit s'il y a vraiment une différence.",
+    spreadAxis: "score final par instance (arêtes appariées, sur 480)",
+    spreadMean: "moyenne",
+    spreadRange: "plage",
+    spreadInstances: "instances",
     of: "/ 480",
     liftTitle: "Ce que la boucle a ajouté à son plateau de départ",
     liftIntro:
@@ -149,6 +168,14 @@ const T = {
     boardTitle: "La clasificación — puntuación final media por variante",
     boardIntro:
       "Puntuación media (aristas coincidentes) del tablero con el que terminó cada variante, sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal.",
+    viewBars: "media",
+    viewSpread: "dispersión",
+    spreadIntro:
+      "Las mismas ejecuciones, pero la puntuación final de cada instancia se muestra como una marca, con la media señalada. La barra de media oculta cuánto oscila cada variante de una instancia a otra; esto lo muestra. Donde dos variantes quedan cerca en la media, la dispersión es la lectura justa de si de verdad difieren.",
+    spreadAxis: "puntuación final por instancia (aristas coincidentes, sobre 480)",
+    spreadMean: "media",
+    spreadRange: "rango",
+    spreadInstances: "instancias",
     of: "/ 480",
     liftTitle: "Lo que el bucle añadió sobre su tablero de partida",
     liftIntro:
@@ -179,6 +206,7 @@ export function RepairStudyLeaderboard() {
   const t = useT(T);
   const { lang } = useLang();
   const isClient = useIsClient();
+  const [view, setView] = useState<"bars" | "spread">("bars");
   const familyLabel = (f: string) => (FAMILY[f] ? pick(FAMILY[f], lang) : f);
 
   const scored = useMemo(
@@ -229,30 +257,53 @@ export function RepairStudyLeaderboard() {
 
   return (
     <div className="not-prose space-y-10">
-      {/* 1. Leaderboard: final score */}
+      {/* 1. Leaderboard: aggregate mean bars, or the per-instance spread. */}
       <section>
-        <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.boardIntro}</p>
-        <div className="mt-4">
-          <HorizontalScoreChart
-            rows={scored}
-            valueKey="mean"
-            domainMax={480}
-            colorOf={(v) => familyFill(v.family)}
-            busyLabel={t.busy}
-            tooltip={(v) => (
-              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                <div className="font-semibold">{v.display}</div>
-                <div className="mt-1 text-muted-foreground">{familyLabel(v.family)}</div>
-                <div className="mt-1">
-                  mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
-                </div>
-                <div className="text-muted-foreground">
-                  lift +{v.mean_lift} · {formatKM(v.mean_iterations, 1000)} iters
-                </div>
-              </div>
-            )}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
+          <ViewToggle
+            value={view}
+            onChange={setView}
+            barsLabel={t.viewBars}
+            spreadLabel={t.viewSpread}
           />
+        </div>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+          {view === "bars" ? t.boardIntro : t.spreadIntro}
+        </p>
+        <div className="mt-4">
+          {view === "bars" ? (
+            <HorizontalScoreChart
+              rows={scored}
+              valueKey="mean"
+              domainMax={480}
+              colorOf={(v) => familyFill(v.family)}
+              busyLabel={t.busy}
+              tooltip={(v) => (
+                <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                  <div className="font-semibold">{v.display}</div>
+                  <div className="mt-1 text-muted-foreground">{familyLabel(v.family)}</div>
+                  <div className="mt-1">
+                    mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
+                  </div>
+                  <div className="text-muted-foreground">
+                    lift +{v.mean_lift} · {formatKM(v.mean_iterations, 1000)} iters
+                  </div>
+                </div>
+              )}
+            />
+          ) : (
+            <VariantScoreSpread
+              rows={scored}
+              familyFill={familyFill}
+              labels={{
+                axis: t.spreadAxis,
+                mean: t.spreadMean,
+                range: t.spreadRange,
+                instances: t.spreadInstances,
+              }}
+            />
+          )}
         </div>
         <FamilyLegend families={FAMILY} lang={lang} />
       </section>

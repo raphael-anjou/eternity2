@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import { useEngine } from "@/engine/useEngine";
-import { createSolver, getGeneratedPuzzle, getPath } from "@/engine";
+import { createSolver, getGeneratedPuzzle, getPath, getPathKinds } from "@/engine";
 import type { SolverHandle } from "@/engine";
 import type { Puzzle, SolverReport } from "@/lib/types";
 import { BoardSvg } from "@/components/board/BoardSvg";
@@ -9,25 +9,39 @@ import { boardFromEngine } from "@/lib/bucas";
 import { Button } from "@/components/ui/button";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 
-// GAUNTLET, for real and slowed down. This runs the *actual* Rust/WASM solver —
-// not a schematic — four times over on the same small generated puzzle, each
-// lane using a different fill direction (the "path"). They are stepped together,
-// slowly, so you can watch the four searches diverge: the same pieces, the same
-// rules, four different orders of attack, landing on four different boards. That
-// divergence is exactly GAUNTLET's mechanism — instead of one fill order always
-// drifting to the same region, several orders cover different regions per run.
+// GAUNTLET, for real and slowed down. This runs the *actual* Rust/WASM solver
+// (not a schematic) once per chosen scan order on the same small generated
+// puzzle, each lane using a different fill direction (the "path"). They are
+// stepped together, slowly, so you can watch the searches diverge: the same
+// pieces, the same rules, different orders of attack, landing on different
+// boards. That divergence is exactly GAUNTLET's mechanism; instead of one fill
+// order always drifting to the same region, several orders cover different
+// regions per run. The reader picks which of the engine's nine real scan orders
+// race (the default four are pre-selected).
 //
 // The puzzle is small (default 6×6) so each lane finishes in seconds at a
 // human-watchable speed; "New puzzle" reseeds, "Race" / "Pause" / "Reset" drive
-// all four lanes in lockstep.
+// every lane in lockstep.
 
-// Four fill directions with distinct, watchable behaviour.
-const LANES = [
-  { kind: "row-major", color: "#a78bfa" },
-  { kind: "snake", color: "#34d399" },
-  { kind: "spiral-in", color: "#fbbf24" },
-  { kind: "diagonal", color: "#38bdf8" },
-] as const;
+// The default four fill directions with distinct, watchable behaviour. The reader
+// can swap any of the engine's nine real scan orders in or out (see the picker
+// below); this is only the initial selection.
+const DEFAULT_KINDS = ["row-major", "snake", "spiral-in", "diagonal"] as const;
+
+// A stable colour per scan order, so a lane keeps its colour as the reader adds
+// or removes orders. Any order the picker offers has an entry here.
+const LANE_COLORS: Record<string, string> = {
+  "row-major": "#a78bfa",
+  snake: "#34d399",
+  "column-major": "#f472b6",
+  "spiral-in": "#fbbf24",
+  "spiral-out": "#f97316",
+  diagonal: "#38bdf8",
+  "border-first": "#c084fc",
+  "double-snake": "#2dd4bf",
+  random: "#94a3b8",
+};
+const FALLBACK_COLOR = "#94a3b8";
 
 const SIZE = 6;
 const COLORS = 5;
@@ -43,52 +57,55 @@ interface Lane {
 
 const T = {
   en: {
-    title: "Watch it for real: four scan orders racing",
+    title: "Watch it for real: scan orders racing",
     intro:
-      "The same small puzzle, solved four times at once by the real engine — each lane attacks the cells in a different scan order (four of GAUNTLET's nine). Watch them diverge. That divergence is the whole point: one order keeps landing in one region; several orders cover several.",
+      "The same small puzzle, solved at once by the real engine; each lane attacks the cells in a different scan order. Four of GAUNTLET's nine orders are picked to start (change them below). Watch them diverge. That divergence is the whole point: one order keeps landing in one region; several orders cover several.",
     race: "Race",
     pause: "Pause",
     reset: "Reset",
     newPuzzle: "New puzzle",
+    pick: "Scan orders in the race",
     loading: "Loading the engine…",
     best: "best",
     placed: "placed",
     solved: "solved",
     stuck: "exhausted",
     running: "searching",
-    note: "A real depth-first search, stepped slowly in your browser — the scan order is the only difference between the four lanes (same pieces, same rules). The production GAUNTLET runs a prior-guided beam search rather than this plain DFS, but the lever is the same one shown here: change the scan order, change the region you reach. Bigger puzzles diverge far more violently; this one is kept to 6×6 so every placement is watchable.",
+    note: "A real depth-first search, stepped slowly in your browser; the scan order is the only difference between the lanes (same pieces, same rules). The production GAUNTLET runs a prior-guided beam search rather than this plain DFS, but the lever is the same one shown here: change the scan order, change the region you reach. Bigger puzzles diverge far more violently; this one is kept to 6×6 so every placement is watchable.",
   },
   fr: {
-    title: "En vrai : quatre ordres de parcours qui s'affrontent",
+    title: "En vrai : des ordres de parcours qui s'affrontent",
     intro:
-      "Le même petit puzzle, résolu quatre fois à la fois par le vrai moteur — chaque couloir attaque les cases dans un ordre de parcours différent (quatre des neuf de GAUNTLET). Regardez-les diverger. Cette divergence est tout l'intérêt : un ordre retombe toujours dans une région ; plusieurs ordres en couvrent plusieurs.",
+      "Le même petit puzzle, résolu à la fois par le vrai moteur ; chaque couloir attaque les cases dans un ordre de parcours différent. Quatre des neuf ordres de GAUNTLET sont choisis au départ (modifiez-les ci-dessous). Regardez-les diverger. Cette divergence est tout l'intérêt : un ordre retombe toujours dans une région ; plusieurs ordres en couvrent plusieurs.",
     race: "Lancer",
     pause: "Pause",
     reset: "Réinitialiser",
     newPuzzle: "Nouveau tirage",
+    pick: "Ordres de parcours dans la course",
     loading: "Chargement du moteur…",
     best: "meilleur",
     placed: "posées",
     solved: "résolu",
     stuck: "épuisé",
     running: "recherche",
-    note: "Une vraie recherche en profondeur, pas à pas dans votre navigateur — l'ordre de parcours est la seule différence entre les quatre couloirs (mêmes pièces, mêmes règles). Le GAUNTLET de production utilise une recherche en faisceau guidée par un prior plutôt que ce DFS simple, mais le levier est le même qu'ici : changez l'ordre de parcours, changez la région atteinte. Les grands puzzles divergent bien plus violemment ; celui-ci reste en 6×6 pour que chaque pose soit suivable.",
+    note: "Une vraie recherche en profondeur, pas à pas dans votre navigateur ; l'ordre de parcours est la seule différence entre les couloirs (mêmes pièces, mêmes règles). Le GAUNTLET de production utilise une recherche en faisceau guidée par un prior plutôt que ce DFS simple, mais le levier est le même qu'ici : changez l'ordre de parcours, changez la région atteinte. Les grands puzzles divergent bien plus violemment ; celui-ci reste en 6×6 pour que chaque pose soit suivable.",
   },
   es: {
-    title: "Míralo de verdad: cuatro órdenes de recorrido compitiendo",
+    title: "Míralo de verdad: órdenes de recorrido compitiendo",
     intro:
-      "El mismo puzzle pequeño, resuelto cuatro veces a la vez por el motor real: cada carril ataca las celdas en un orden de recorrido distinto (cuatro de los nueve de GAUNTLET). Míralos divergir. Esa divergencia es justo la clave: un orden aterriza siempre en la misma región; varios órdenes cubren varias.",
+      "El mismo puzzle pequeño, resuelto a la vez por el motor real: cada carril ataca las celdas en un orden de recorrido distinto. Cuatro de los nueve órdenes de GAUNTLET se eligen al empezar (cámbialos abajo). Míralos divergir. Esa divergencia es justo la clave: un orden aterriza siempre en la misma región; varios órdenes cubren varias.",
     race: "Iniciar",
     pause: "Pausar",
     reset: "Reiniciar",
     newPuzzle: "Nuevo sorteo",
+    pick: "Órdenes de recorrido en la carrera",
     loading: "Cargando el motor…",
     best: "mejor",
     placed: "colocadas",
     solved: "resuelto",
     stuck: "agotado",
     running: "buscando",
-    note: "Una búsqueda en profundidad real, paso a paso en tu navegador: el orden de recorrido es la única diferencia entre los cuatro carriles (mismas piezas, mismas reglas). El GAUNTLET de producción usa una búsqueda en haz guiada por un prior en lugar de este DFS simple, pero la palanca es la misma que se muestra aquí: cambia el orden de recorrido, cambia la región a la que llegas. Los puzzles más grandes divergen mucho más violentamente; este se mantiene en 6×6 para que cada colocación sea observable.",
+    note: "Una búsqueda en profundidad real, paso a paso en tu navegador: el orden de recorrido es la única diferencia entre los carriles (mismas piezas, mismas reglas). El GAUNTLET de producción usa una búsqueda en haz guiada por un prior en lugar de este DFS simple, pero la palanca es la misma que se muestra aquí: cambia el orden de recorrido, cambia la región a la que llegas. Los puzzles más grandes divergen mucho más violentamente; este se mantiene en 6×6 para que cada colocación sea observable.",
   },
 };
 
@@ -100,6 +117,12 @@ export function GauntletLiveRace() {
   const [running, setRunning] = useState(false);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [lanes, setLanes] = useState<Lane[]>([]);
+  // The scan orders currently racing; the reader adds or removes any of the
+  // engine's nine real orders. Starts as the default four.
+  const [selected, setSelected] = useState<string[]>([...DEFAULT_KINDS]);
+
+  // The nine real scan orders the engine exposes, in engine order.
+  const kinds = useMemo(() => (engineReady ? getPathKinds() : []), [engineReady]);
 
   const lanesRef = useRef<Lane[]>([]);
   const rafRef = useRef(0);
@@ -111,12 +134,12 @@ export function GauntletLiveRace() {
     if (!engineReady) return;
     lanesRef.current.forEach((l) => l.solver.free());
     const pz = getGeneratedPuzzle(SIZE, COLORS, seed);
-    const next: Lane[] = LANES.map((lane) => {
-      const path = getPath(lane.kind, pz.width, pz.height, seed);
+    const next: Lane[] = selected.map((kind) => {
+      const path = getPath(kind, pz.width, pz.height, seed);
       const solver = createSolver(pz, path, { useHints: false });
       return {
-        kind: lane.kind,
-        color: lane.color,
+        kind,
+        color: LANE_COLORS[kind] ?? FALLBACK_COLOR,
         solver,
         report: solver.report(),
         cells: solver.board(),
@@ -127,7 +150,7 @@ export function GauntletLiveRace() {
     setLanes(next);
     setRunning(false);
     debtRef.current = 0;
-  }, [engineReady, seed]);
+  }, [engineReady, seed, selected]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -213,7 +236,49 @@ export function GauntletLiveRace() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <fieldset className="space-y-1.5">
+        <legend className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          {t.pick}
+        </legend>
+        <div className="flex flex-wrap gap-1.5">
+          {kinds.map((k) => {
+            const on = selected.includes(k);
+            // Keep at least one lane in the race: the last active order cannot
+            // be turned off.
+            const last = on && selected.length === 1;
+            const color = LANE_COLORS[k] ?? FALLBACK_COLOR;
+            return (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={on}
+                disabled={last}
+                onClick={() =>
+                  setSelected((prev) =>
+                    prev.includes(k)
+                      ? prev.filter((x) => x !== k)
+                      : // re-add in the engine's canonical order for a stable layout
+                        kinds.filter((x) => prev.includes(x) || x === k),
+                  )
+                }
+                className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                  on
+                    ? "border-transparent bg-primary/10 font-medium text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: on ? color : "transparent", outline: `1px solid ${color}` }}
+                />
+                {k}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {lanes.map((l, i) => {
           const best = l.report.bestPlaced;
           const lc = laneCells[i];

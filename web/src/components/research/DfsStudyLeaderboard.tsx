@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useT, useLang, pick, type Dict } from "@/i18n";
 import { HorizontalScoreChart } from "@/components/research/HorizontalScoreChart";
 import { FamilyLegend, FamilyTag } from "@/components/research/FamilyLegend";
+import { VariantScoreSpread, ViewToggle } from "@/components/research/VariantScoreSpread";
 import { formatKM } from "@/lib/format";
 import data from "@/data/dfs-study.json";
 
@@ -41,6 +42,10 @@ type Variant = {
   mean?: number | null;
   best?: number | null;
   worst?: number | null;
+  // Every instance's raw score, in run order, for the per-variant spread view.
+  // Present on the ten-instance measured variants; absent on the collapsed
+  // community rows, whose single pin-collapse value is not a distribution.
+  scores?: number[] | null;
   median_nps?: number | null;
   nps_unit?: string;
   max_depth?: number | null;
@@ -128,6 +133,14 @@ const T = {
     boardTitle: "The leaderboard — mean score by variant",
     boardIntro:
       "Mean matched-edge score over ten corner-pinned variants of the official puzzle, single core, 60 s per run. Colour marks the family; the family is named on every bar, so colour is never the only signal. McGavin's C and Blackwood's C# appear here too, at the score their fixed scan path reaches before a corner pin dead-ends it, badged where they stall; the two-grid section below shows them running properly once the pins are gone.",
+    viewBars: "mean",
+    viewSpread: "spread",
+    spreadIntro:
+      "The same runs, but every instance's own score shown as a tick, with the mean marked. The mean bar hides how much a variant swings run to run; this shows it. The propagator variants (forward-checking, arc-consistency, per-colour supply) overlap so heavily they are statistically indistinguishable, a spread of about eleven points swamping their one-point gaps in mean. And the two break variants tell apart on consistency, not average: one-break stays tightly clustered while two-break ranges far lower.",
+    spreadAxis: "score per instance (matched edges, out of 480)",
+    spreadMean: "mean",
+    spreadRange: "range",
+    spreadInstances: "instances",
     ceiling: "5-clue record 464",
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
@@ -175,6 +188,14 @@ const T = {
     boardTitle: "Le classement — score moyen par variante",
     boardIntro:
       "Score moyen (arêtes appariées) sur dix variantes à coins fixés du puzzle officiel, un cœur, 60 s par run. La couleur marque la famille, nommée sur chaque barre : la couleur n'est jamais le seul signal. Le C de McGavin et le C# de Blackwood y figurent aussi, au score que leur parcours figé atteint avant qu'un coin fixé ne le bloque, étiquetés là où ils calent ; la section à deux grilles plus bas les montre tourner correctement une fois les coins ôtés.",
+    viewBars: "moyenne",
+    viewSpread: "dispersion",
+    spreadIntro:
+      "Les mêmes runs, mais le score propre de chaque instance apparaît sous forme de repère, la moyenne étant marquée. La barre de moyenne masque l'ampleur des écarts d'un run à l'autre ; ceci la montre. Les variantes à propagation (forward-checking, arc-cohérence, réserve par couleur) se recouvrent au point d'être statistiquement indiscernables : une dispersion d'environ onze points noie leurs écarts de moyenne d'un point. Et les deux variantes à cassures se distinguent par la régularité, non par la moyenne : la variante à une cassure reste bien groupée tandis que celle à deux cassures descend bien plus bas.",
+    spreadAxis: "score par instance (arêtes appariées, sur 480)",
+    spreadMean: "moyenne",
+    spreadRange: "plage",
+    spreadInstances: "instances",
     ceiling: "record 5 indices 464",
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
@@ -222,6 +243,14 @@ const T = {
     boardTitle: "El ranking — puntuación media por variante",
     boardIntro:
       "Puntuación media (aristas coincidentes) sobre diez variantes con esquinas fijadas del puzzle oficial, un solo núcleo, 60 s por ejecución. El color marca la familia, nombrada en cada barra: el color nunca es la única señal. El C de McGavin y el C# de Blackwood también figuran aquí, en la puntuación que su orden de recorrido fijo alcanza antes de que una esquina fijada lo bloquee, etiquetados donde se atascan; la sección de dos rejillas más abajo los muestra funcionando correctamente una vez retiradas las esquinas.",
+    viewBars: "media",
+    viewSpread: "dispersión",
+    spreadIntro:
+      "Las mismas ejecuciones, pero la puntuación propia de cada instancia se muestra como una marca, con la media señalada. La barra de media oculta cuánto oscila una variante de una ejecución a otra; esto lo muestra. Las variantes con propagación (forward-checking, arco-consistencia, reserva por color) se solapan tanto que son estadísticamente indistinguibles: una dispersión de unos once puntos anega sus diferencias de un punto en la media. Y las dos variantes con rupturas se distinguen por la regularidad, no por el promedio: la de una ruptura permanece muy agrupada mientras que la de dos rupturas baja mucho más.",
+    spreadAxis: "puntuación por instancia (aristas coincidentes, sobre 480)",
+    spreadMean: "media",
+    spreadRange: "rango",
+    spreadInstances: "instancias",
     ceiling: "récord de 5 pistas 464",
     of: "/ 480",
     depthTitle: "Hasta dónde llegó cada búsqueda, y a qué velocidad",
@@ -270,6 +299,7 @@ const T = {
 export function DfsStudyLeaderboard() {
   const t = useT(T);
   const { lang } = useLang();
+  const [view, setView] = useState<"bars" | "spread">("bars");
 
   // Scored variants, best-first, for the leaderboard and stat panels.
   const scored = useMemo(
@@ -306,42 +336,65 @@ export function DfsStudyLeaderboard() {
 
   return (
     <div className="not-prose space-y-10">
-      {/* 1. Leaderboard */}
+      {/* 1. Leaderboard: aggregate mean bars, or the per-instance spread. */}
       <section>
-        <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.boardIntro}</p>
-        <div className="mt-4">
-          <HorizontalScoreChart
-            rows={scored}
-            valueKey="mean"
-            domainMax={480}
-            colorOf={(v) => familyFill(v.family)}
-            barLabel={(v) => (v.collapsed ? `${v.mean} · ${t.stallsOnPins}` : `${v.mean}`)}
-            referenceLines={[{ x: D.community_5clue_record, label: t.ceiling }]}
-            busyLabel={t.busy}
-            tooltip={(v) => (
-              <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
-                <div className="font-semibold">{v.display}</div>
-                <div className="mt-1 text-muted-foreground">
-                  {familyLabel(v.family)} · {v.breaks}
-                </div>
-                <div className="mt-1">
-                  {v.collapsed ? (
-                    <>
-                      {v.mean} {t.of} · {t.stallsOnPins}
-                    </>
-                  ) : (
-                    <>
-                      mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
-                    </>
-                  )}
-                </div>
-                <div className="text-muted-foreground">
-                  depth {v.max_depth} · {formatKM(v.median_nps)} {v.nps_unit}
-                </div>
-              </div>
-            )}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h3 className="text-base font-semibold tracking-tight">{t.boardTitle}</h3>
+          <ViewToggle
+            value={view}
+            onChange={setView}
+            barsLabel={t.viewBars}
+            spreadLabel={t.viewSpread}
           />
+        </div>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+          {view === "bars" ? t.boardIntro : t.spreadIntro}
+        </p>
+        <div className="mt-4">
+          {view === "bars" ? (
+            <HorizontalScoreChart
+              rows={scored}
+              valueKey="mean"
+              domainMax={480}
+              colorOf={(v) => familyFill(v.family)}
+              barLabel={(v) => (v.collapsed ? `${v.mean} · ${t.stallsOnPins}` : `${v.mean}`)}
+              referenceLines={[{ x: D.community_5clue_record, label: t.ceiling }]}
+              busyLabel={t.busy}
+              tooltip={(v) => (
+                <div className="rounded-md border bg-popover px-3 py-2 text-xs shadow-md">
+                  <div className="font-semibold">{v.display}</div>
+                  <div className="mt-1 text-muted-foreground">
+                    {familyLabel(v.family)} · {v.breaks}
+                  </div>
+                  <div className="mt-1">
+                    {v.collapsed ? (
+                      <>
+                        {v.mean} {t.of} · {t.stallsOnPins}
+                      </>
+                    ) : (
+                      <>
+                        mean {v.mean} · best {v.best} · worst {v.worst} {t.of}
+                      </>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground">
+                    depth {v.max_depth} · {formatKM(v.median_nps)} {v.nps_unit}
+                  </div>
+                </div>
+              )}
+            />
+          ) : (
+            <VariantScoreSpread
+              rows={scored}
+              familyFill={familyFill}
+              labels={{
+                axis: t.spreadAxis,
+                mean: t.spreadMean,
+                range: t.spreadRange,
+                instances: t.spreadInstances,
+              }}
+            />
+          )}
         </div>
         <FamilyLegend families={FAMILY} lang={lang} />
       </section>

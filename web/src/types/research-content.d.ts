@@ -57,3 +57,11 @@ declare module "virtual:research-translated-es" {
   // Language-neutral URLs ("/research/…") that have a genuine Spanish rendering.
   export const translated: string[];
 }
+
+// The reverse-backlink map ("Referenced by"), built at compile time from every
+// page's inbound prose links. Language-neutral: keys and values are neutral
+// "/research/…" URLs (targetUrl → sourceUrl[]); the docs shell resolves each
+// source's title/kind from the per-language nav.
+declare module "virtual:research-backlinks" {
+  export const backlinks: Record<string, string[]>;
+}
