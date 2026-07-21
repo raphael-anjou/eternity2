@@ -122,6 +122,14 @@ const reproSchema = z.object({
   kind: z.enum(["exact", "seeded", "stochastic", "heavy", "prose"]),
   cmd: z.string().optional(),
   topic: z.string().optional(),
+  // Whether the command reproduces the SEARCH that produced the result, or only
+  // re-verifies a stored ARTIFACT (a committed board). Defaults are derived in
+  // the renderer (artifact when topic === "record-boards", search otherwise);
+  // set this to override that default on a page that does not fit the rule.
+  produces: z.enum(["search", "artifact"]).optional(),
+  // One line: what the command does and does not reproduce (a re-score of a
+  // stored board vs the search behind it). Reader-facing prose; translated.
+  scope: z.string().optional(),
 });
 
 const complexitySchema = z.object({
@@ -241,8 +249,21 @@ const frontmatterSchema = z.object({
     .optional(),
   tier: z.number().int().min(1).max(3).optional(),
   rigor: z.enum(["proven", "measured", "conjectured"]).optional(),
+  // The *research-status* axis: how an experiment or finding ended, distinct
+  // from `status` (the publish pipeline) and `rigor` (how firmly a claim is
+  // established). plateaued — hit a measured ceiling; refuted — a rigorously-run
+  // dead end; parked — set aside, not exhausted; new-basin — opened a new
+  // family/region; superseded — beaten by a later result. Optional; threaded
+  // through the manifest like `rigor`.
+  outcome: z
+    .enum(["plateaued", "refuted", "parked", "new-basin", "superseded"])
+    .optional(),
   complexity: complexitySchema.optional(),
   score: z.number().int().optional(),
+  // Which scoring convention `score` is under, so a NNN/480 number is never
+  // ambiguous: matched-edges (every internal edge match counts) vs strict-5-clue
+  // (the five-clue-fixed track). Rendered as a small pill beside the score.
+  scoringConvention: z.enum(["matched-edges", "strict-5-clue"]).optional(),
   // YAML parses a bare 2026-07-01 as a Date; accept both, normalize to string.
   updated: z
     .union([
@@ -455,8 +476,12 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(e.fm.contributors !== undefined ? { contributors: e.fm.contributors } : {}),
       ...(e.fm.tier !== undefined ? { tier: e.fm.tier } : {}),
       ...(e.fm.rigor !== undefined ? { rigor: e.fm.rigor } : {}),
+      ...(e.fm.outcome !== undefined ? { outcome: e.fm.outcome } : {}),
       ...(e.fm.complexity !== undefined ? { complexity: e.fm.complexity } : {}),
       ...(e.fm.score !== undefined ? { score: e.fm.score } : {}),
+      ...(e.fm.scoringConvention !== undefined
+        ? { scoringConvention: e.fm.scoringConvention }
+        : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
       ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
@@ -522,6 +547,33 @@ export function searchEntries(lang: Lang): SearchEntry[] {
   });
 }
 
+/** The contribution axis, prefix-free, mirroring ContributionKind /
+ *  CONTRIBUTION_ORDER on the client (kept in sync by hand; this Node-side config
+ *  cannot import the client tree). Each hub is route-generated (no MDX), so it
+ *  must be listed here to be prerendered + reach the sitemap. */
+const CONTRIBUTION_KINDS = [
+  "solver",
+  "analysis",
+  "reconstruction",
+  "theory",
+  "method",
+  "measurement",
+  "tool",
+  "exposition",
+  "negative",
+] as const;
+
+/** Prefix-free paths of the route-generated pages this wave adds: the reproduce
+ *  index, the by-contribution index, and one hub per contribution kind. Listed
+ *  in both the EN and the per-language prerender lists (their content comes from
+ *  the localized manifest, which falls back to English per field), like the
+ *  topic/person hubs and the glossary. */
+const GENERATED_ROUTE_PATHS: readonly string[] = [
+  "research/build/reproduce",
+  "research/lab/experiments/by-contribution",
+  ...CONTRIBUTION_KINDS.map((k) => `research/lab/experiments/by-contribution/${k}`),
+];
+
 /** Site paths (EN, prefix-free) of all publishable MDX pages plus the
  *  auto-generated topic hub pages — feeds the prerender list and sitemap.
  *  Drafts are excluded (they would 404 in prod). */
@@ -540,7 +592,13 @@ export function researchPagePaths(): string[] {
   // toolmakers on the Who's-who gallery) still ship a real, crawlable page.
   const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
   // The glossary is a route-generated page (like the hubs), not MDX content.
-  return [...pages, ...topicPaths, ...peoplePaths, "research/glossary"];
+  return [
+    ...pages,
+    ...topicPaths,
+    ...peoplePaths,
+    "research/glossary",
+    ...GENERATED_ROUTE_PATHS,
+  ];
 }
 
 /** Research paths that have a genuine rendering in the given (non-English)
@@ -560,7 +618,13 @@ export function researchPagePathsFor(lang: Lang): string[] {
     .map((d) => d.url.slice(1));
   const topicPaths = researchTopics().map((t) => `research/topics/${t.slug}`);
   const peoplePaths = researchAuthors().map((a) => `research/people/${a.slug}`);
-  return [...translatedDocs, ...topicPaths, ...peoplePaths, "research/glossary"];
+  return [
+    ...translatedDocs,
+    ...topicPaths,
+    ...peoplePaths,
+    "research/glossary",
+    ...GENERATED_ROUTE_PATHS,
+  ];
 }
 
 /** Basename-relative path → last-modified date (YYYY-MM-DD) for research MDX

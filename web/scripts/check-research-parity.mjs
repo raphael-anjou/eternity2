@@ -45,10 +45,12 @@ const TRANSLATABLE_KEYS = new Set([
 
 // `stages[]` MIXES identifiers (engine, published — must match) with reader-facing
 // prose (does, learns — translated), so it is compared entry-by-entry with the
-// prose sub-fields blanked out. (Other object-valued keys are pure machine data
-// and compared whole.)
+// prose sub-fields blanked out. `repro` likewise mixes machine data (kind, cmd,
+// topic, produces — must match) with a translated `scope` line. (Other
+// object-valued keys are pure machine data and compared whole.)
 const PROSE_SUBFIELDS = {
   stages: ["does", "learns"],
+  repro: ["scope"],
 };
 
 /** Return a copy of a frontmatter value with its known prose sub-fields removed,

@@ -66,13 +66,15 @@ export function H4(props: ComponentPropsWithoutRef<"h4">) {
   return <Heading as="h4" {...props} />;
 }
 
-/** Callout box: <Callout kind="note">…</Callout> (kinds: note, warn, insight). */
+/** Callout box: <Callout kind="note">…</Callout> (kinds: note, warn, insight,
+ *  open). `open` is the open-question variant: an amber dashed outline, so a
+ *  still-unresolved question reads as deliberately open rather than a warning. */
 export function Callout({
   kind = "note",
   title,
   children,
 }: {
-  kind?: "note" | "warn" | "insight";
+  kind?: "note" | "warn" | "insight" | "open";
   title?: string;
   children: ReactNode;
 }) {
@@ -80,6 +82,7 @@ export function Callout({
     note: "border-sky-500/30 bg-sky-500/5",
     warn: "border-amber-500/40 bg-amber-500/5",
     insight: "border-violet-500/30 bg-violet-500/5",
+    open: "border-dashed border-amber-500/50 bg-transparent",
   };
   return (
     <div className={cn("my-6 rounded-lg border p-4 text-sm leading-relaxed", styles[kind])}>

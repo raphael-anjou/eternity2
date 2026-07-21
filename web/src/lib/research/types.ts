@@ -48,6 +48,18 @@ export type StatusTier = "draft" | "report" | "live";
  *  "conjectured" = a hypothesis or literature reading not yet established here. */
 export type RigorKind = "proven" | "measured" | "conjectured";
 
+/** The *research-status* axis: how an experiment or finding ended, distinct from
+ *  StatusTier (the publish pipeline) and RigorKind (how firm the claim is).
+ *  plateaued — hit a measured ceiling; refuted — a rigorously-run dead end;
+ *  parked — set aside, not exhausted; new-basin — opened a new family/region;
+ *  superseded — beaten by a later result. */
+export type OutcomeKind = "plateaued" | "refuted" | "parked" | "new-basin" | "superseded";
+
+/** Which convention a board score is measured under, so a NNN/480 number is
+ *  never ambiguous. "matched-edges" counts every matching internal edge;
+ *  "strict-5-clue" is the five-clue-fixed track. */
+export type ScoringConvention = "matched-edges" | "strict-5-clue";
+
 /** Algorithmic cost of the method a page describes, for the researcher who
  *  wants the complexity at a glance. Strings are KaTeX-free plain text
  *  (e.g. "O(e·d²) time, O(e·d) space"); `note` adds the one-line caveat. */
@@ -72,6 +84,12 @@ export interface ReproInfo {
   cmd?: string | undefined;
   /** research/topics/<id> this result was computed from. */
   topic?: string | undefined;
+  /** Whether the command reproduces the SEARCH that produced the result, or only
+   *  re-verifies a stored ARTIFACT (a committed board). Undefined → derived in
+   *  the renderer (artifact when topic === "record-boards", search otherwise). */
+  produces?: "search" | "artifact" | undefined;
+  /** One line: what the command does and does not reproduce (reader-facing). */
+  scope?: string | undefined;
 }
 
 /** The engine/method a pipeline stage runs on. A closed vocabulary so the runs
@@ -222,10 +240,14 @@ export interface ResearchDoc {
   tier?: number;
   /** How firmly the central claim is established (badge). */
   rigor?: RigorKind;
+  /** How the experiment or finding ended (research-status badge). */
+  outcome?: OutcomeKind;
   /** Algorithmic cost of the method (badge / small block). */
   complexity?: ComplexityInfo;
-  /** Matched-edges score, for inventions/basins. */
+  /** Board score (see scoringConvention for which convention it is under). */
   score?: number;
+  /** Which convention `score` is under, rendered as a pill beside the score. */
+  scoringConvention?: ScoringConvention;
   /** ISO date of last substantive update. */
   updated?: string;
   /** Month an experiment was run / first written (YYYY-MM), for the gallery. */

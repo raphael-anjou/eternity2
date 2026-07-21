@@ -2,7 +2,7 @@
 // Data-quality auditor for the research wiki's citations.
 //
 //  1. Every groups.io message link is validated against the LOCAL archive
-//     (v2/community-exports/messages.jsonl): does the msg_num exist? The
+//     (research/community-exports/messages.jsonl): does the msg_num exist? The
 //     report prints author/date/subject so a reviewer can judge whether the
 //     cited message plausibly supports the claim.
 //  2. Every other external URL is probed (HEAD, then GET on 405) with a
@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.join(HERE, "..");
 const CONTENT = path.join(WEB, "content", "research");
-const ARCHIVE = path.resolve(WEB, "../../v2/community-exports/messages.jsonl");
+const ARCHIVE = path.resolve(WEB, "../../research/community-exports/messages.jsonl");
 const NO_FETCH = process.argv.includes("--no-fetch");
 
 function walk(dir) {
@@ -106,7 +106,7 @@ const POST_EXPORT_OK = new Set([
   11879, // sylvogel's published subgrid-count reference table (the source of published-reference.json), "I built a website that serves as a starter kit...", 2026 — verified firsthand via the groups.io API
 ]);
 console.log(`== groups.io citations: ${msgCites.size} distinct messages cited`);
-// The archive lives outside the repo (../../v2/community-exports), so a clean
+// The archive lives outside the repo (../../research/community-exports), so a clean
 // CI checkout won't have it. Only validate msg_num existence when it is present;
 // otherwise skip that one check (style, links, external URLs, and no-source
 // still run and still gate). Without this guard, a missing archive would flag
