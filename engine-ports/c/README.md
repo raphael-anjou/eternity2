@@ -3,11 +3,11 @@
 A from-scratch **C** re-implementation of the Eternity II engine, compiled to
 **WebAssembly with plain `clang` (no emscripten)** as a freestanding `wasm32`
 module. It is a byte-for-byte twin of the Rust engine in `engine/src/` and a
-drop-in, build-time-switchable backend for the community website (it exposes the
+faithful reimplementation of the canonical engine (it exposes the
 exact surface of `web/src/engine/index.ts`).
 
 The algorithm itself is documented once, language-agnostically, in
-[`engine-side-quests/ALGORITHM.md`](../../../engine-side-quests/ALGORITHM.md).
+[`engine-ports/ALGORITHM.md`](../../../engine-ports/ALGORITHM.md).
 `engine.c` is a literal translation of it and cross-references each section in
 comments. Read the ALGORITHM doc first; this README only covers the C/WASM
 specifics.
@@ -26,7 +26,7 @@ specifics.
 ## Rebuilding
 
 ```sh
-cd web/src/engine-c
+cd engine-ports/c
 ./build.sh            # -> engine.wasm
 ./build.sh --native   # also -> engine_native (for golden diffing)
 ```
@@ -43,7 +43,7 @@ node parity.mjs       # checks engine.wasm against golden.txt; exits non-zero on
 
 # ABI-independent second check:
 ./build.sh --native
-./engine_native | diff - ../../../engine-side-quests/engine-lua/golden.txt
+./engine_native | diff - ../../../engine-ports/lua/golden.txt
 ```
 
 ## Freestanding wasm design

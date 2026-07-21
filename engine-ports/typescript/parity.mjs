@@ -1,6 +1,6 @@
 // Golden parity harness for the pure-TypeScript engine port (ALGORITHM.md §10).
 //
-// Reads engine-side-quests/engine-lua/golden.txt (the reference outputs captured
+// Reads ../lua/golden.txt (the reference outputs captured
 // from the Rust engine) and asserts every GEN / OFF / OFFHINT / PATH / SOLVE /
 // OFFICIALRUN record against this TS port — field for field, count for count.
 // Matching the node/attempt/backtrack counts proves we walk the identical
@@ -8,7 +8,7 @@
 //
 // HOW TO RUN (Node 22, ESM, zero new deps):
 //
-//   node web/src/engine-ts/parity.mjs
+//   node engine-ports/typescript/parity.mjs
 //
 // Node 22.0 lacks `--experimental-strip-types`, so this harness transpiles the
 // .ts engine modules to a temp dir using the `typescript` already in the
@@ -22,12 +22,19 @@ import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import ts from "typescript";
+import { createRequire } from "node:module";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(__dirname, "..", "..", ".."); // repo root: eternity2/eternity2/
-const goldenPath = join(repoRoot, "engine-side-quests", "engine-lua", "golden.txt");
-const libTypesPath = join(__dirname, "..", "lib", "types.ts");
+// `typescript` lives in the web workspace's node_modules (this port has no deps
+// of its own), so resolve it from there regardless of the current directory.
+const require = createRequire(join(__dirname, "..", "..", "web", "package.json"));
+const ts = require("typescript");
+const repoRoot = join(__dirname, "..", ".."); // repo root: engine-ports/typescript -> up 2
+// The lua port carries the fullest golden capture (GEN/OFF/PATH/SOLVE); the TS
+// port validates against it, as it did before the ports were gathered here.
+const goldenPath = join(__dirname, "..", "lua", "golden.txt");
+// The shared domain types live in the web app; the port reuses them.
+const libTypesPath = join(repoRoot, "web", "src", "lib", "types.ts");
 
 // --- Transpile the TS port to a temp dir ------------------------------------
 // We compile: src/lib/types.ts, plus all engine-ts/*.ts. The `@/lib/types`

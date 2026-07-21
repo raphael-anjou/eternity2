@@ -1,5 +1,5 @@
-import { getGeneratedPuzzleFramed, createSolver, getPath } from "./src/engine-ts/index.ts";
-import { scoreBoard } from "./src/engine-ts/solver.ts";
+import { getGeneratedPuzzleFramed, createSolver, getPath } from "../engine-ports/typescript/index.ts";
+import { scoreBoard } from "../engine-ports/typescript/solver.ts";
 console.log("start");
 const p=getGeneratedPuzzleFramed(8,6,1,true);
 console.log("generated, colors=", p.numColors, "pieces=", p.pieces.length);

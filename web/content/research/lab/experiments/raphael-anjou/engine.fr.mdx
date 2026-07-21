@@ -61,22 +61,24 @@ les pas. C'est ce qui permet à une page web d'animer une vraie recherche plutô
 qu'un enregistrement figé : [la page d'observation](/playground/watch) fait
 avancer précisément ce moteur, et non une vidéo de celui-ci.
 
-## Quatre portages, une seule sortie
+## Un moteur, de nombreux portages
 
-Le site peut être construit sur quatre backends interchangeables : le crate
-Rust/WASM (le défaut et la référence canonique), un portage TypeScript pur, un
-portage C et un portage C++. Les quatre exposent la même surface, à l'identique,
-et chacun est validé octet par octet contre les données de référence que le crate
-Rust produit : puzzles générés jusqu'à la sortie du RNG, les neuf chemins de
-remplissage à plusieurs tailles, et des exécutions complètes du solveur avec les
-comptes exacts de nœuds, de tentatives et de retours arrière.
+Le site fait tourner un seul moteur : le crate Rust/WASM, la référence canonique.
+Mais le dépôt conserve toute une collection de réimplémentations fidèles de ce
+moteur dans d'autres langages : un portage TypeScript pur (zéro WASM), un portage
+C, un portage C++, et des études plus modestes en Python, Lua, COBOL, et même
+Brainfuck. Chacun est validé octet par octet contre les données de référence que
+le crate Rust produit : puzzles générés jusqu'à la sortie du RNG, les neuf chemins
+de remplissage à plusieurs tailles, et des exécutions complètes du solveur avec
+les comptes exacts de nœuds, de tentatives et de retours arrière.
 
 Cette discipline existe pour une seule raison : une démo interactive que vous ne
 pouvez pas recouper n'est qu'une animation. Deux implémentations indépendantes
 qui s'accordent jusqu'au dernier retour arrière sont bien plus difficiles à faire
-échouer de la même manière deux fois, et quatre le sont plus encore. (Le dépôt
-porte aussi des traductions littérales en Python, Lua, COBOL et Brainfuck, tenues
-aux mêmes données de référence. Celles-là sont pour le plaisir.)
+échouer de la même manière deux fois, et huit le sont plus encore. Les portages
+sont une pièce d'exposition, pas des options de build (le site fait toujours
+tourner Rust), et ils vivent ensemble dans la collection `engine-ports/` du dépôt.
+Certains (le backtracker en Brainfuck surtout) sont là pour le plaisir.
 
 ## Ce qu'il ne prétend pas être
 

@@ -4,10 +4,10 @@
 // This is a literal, line-for-line translation of the Rust engine
 // (engine/src/{types,generator,paths,solver,official}.rs) following the
 // authoritative language-agnostic description in
-//   engine-side-quests/ALGORITHM.md
+//   engine-ports/ALGORITHM.md
 // Read that document alongside this file; the names, steps and order here
 // mirror it exactly so the two engines agree byte-for-byte (verified against
-// engine-side-quests/engine-lua/golden.txt by web/src/engine-cpp/parity.mjs).
+// engine-ports/lua/golden.txt by engine-ports/cpp/parity.mjs).
 //
 // Build target: `clang++ --target=wasm32 -nostdlib -fno-exceptions -fno-rtti`.
 // There is no libc and no STL heap. Everything lives in fixed-size static

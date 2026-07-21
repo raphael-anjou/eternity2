@@ -88,7 +88,7 @@ Rust crate:
 
 ```sh
 cd ../../engine
-cargo run --quiet --bin golden > ../engine-side-quests/engine-lua/golden.txt
+cargo run --quiet --bin golden > ../engine-ports/lua/golden.txt
 ```
 
 (The `golden` binary lives in `../../engine/src/bin/golden.rs`.)

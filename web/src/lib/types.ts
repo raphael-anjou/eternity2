@@ -30,9 +30,8 @@ export interface SolverReport {
   bestPlaced: number;
 }
 
-/** The step-able solver surface every engine backend implements.
- * The Rust/WASM, TypeScript, C/WASM and C++/WASM backends are interchangeable
- * (selected at build time by VITE_ENGINE); they all return one of these. */
+/** The step-able solver surface the engine exposes. The Rust/WASM engine
+ * returns one of these; the reimplementations in `engine-ports/` match it. */
 export interface SolverHandle {
   /** Run up to `budget` placements/backtracks, then report. */
   step(budget: number): SolverReport;

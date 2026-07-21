@@ -2,7 +2,7 @@
 
 This is one of several from-scratch re-implementations of the website's engine.
 It is a *literal* translation of the algorithm described, once and for all, in
-``engine-side-quests/ALGORITHM.md`` — read that document first; every function
+``engine-ports/ALGORITHM.md`` — read that document first; every function
 here points back to a section of it. The canonical source it mirrors is the Rust
 crate in ``engine/src/``.
 

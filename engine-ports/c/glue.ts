@@ -1,7 +1,7 @@
 // TypeScript loader + ABI wrapper for the freestanding-wasm C engine
 // (engine.c, built by build.sh). It exposes the SAME surface as
 // web/src/engine/index.ts — the 8 module functions plus createSolver →
-// SolverHandle — so the website can swap engines at build time.
+// SolverHandle — matches the canonical Rust engine.
 //
 // The C side cannot pass structs or strings across the WASM boundary, so all
 // data crosses as primitives plus pointers into the module's linear memory;

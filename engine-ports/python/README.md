@@ -1,4 +1,4 @@
-# engine-python
+# python
 
 A **pure-Python** ISO re-implementation of the Eternity II engine — the same
 algorithm as the website's Rust/WASM engine, in standard-library Python with no

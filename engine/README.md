@@ -10,7 +10,7 @@ each is validated byte-for-byte against the reference outputs this crate emits.
 ## Where to start (maintainers)
 
 The algorithm is documented once, language-agnostically, in
-**[`../engine-side-quests/ALGORITHM.md`](../engine-side-quests/ALGORITHM.md)**.
+**[`../engine-ports/ALGORITHM.md`](../engine-ports/ALGORITHM.md)**.
 Read that, then read the source alongside it — each module's top comment points
 back to the relevant section:
 

@@ -57,20 +57,22 @@ web page animate a real search instead of a canned recording:
 [the watch page](/playground/watch) is stepping this exact engine, not a video of
 it.
 
-## Four ports, one output
+## One engine, many ports
 
-The site can be built against four interchangeable backends: the Rust/WASM crate
-(the default and the canonical reference), a pure TypeScript port, a C port, and a
-C++ port. All four expose the identical surface, and each is validated
-byte-for-byte against golden data the Rust crate emits: generated puzzles down to
-the RNG output, all nine fill paths at several sizes, and full solver runs with
-exact node, attempt, and backtrack counts.
+The site runs one engine: the Rust/WASM crate, the canonical reference. But the
+repository keeps a whole collection of faithful reimplementations of it in other
+languages: a pure TypeScript port (zero WASM), a C port, a C++ port, and smaller
+studies in Python, Lua, COBOL, even Brainfuck. Each is validated byte-for-byte
+against golden data the Rust crate emits: generated puzzles down to the RNG
+output, all nine fill paths at several sizes, and full solver runs with exact
+node, attempt, and backtrack counts.
 
 That discipline exists for one reason: an interactive demo you cannot cross-check
 is just an animation. Two independent implementations that agree to the last
-backtrack are much harder to get wrong the same way twice, and four are harder
-still. (The repository also carries literal translations in Python, Lua, COBOL,
-and Brainfuck, held to the same golden data. Those are for joy.)
+backtrack are much harder to get wrong the same way twice, and eight are harder
+still. The ports are a study exhibit, not build options (the site always runs
+Rust), and they live together in the repo's `engine-ports/` collection. Some of
+them (the Brainfuck backtracker especially) are there for joy.
 
 ## What it does not claim
 

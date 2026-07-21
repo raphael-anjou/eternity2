@@ -1,6 +1,6 @@
 // Parity check: drives engine.wasm under Node (Node 22 has built-in
 // WebAssembly) through the C ABI and checks every line of the Rust-produced
-// golden.txt (engine-side-quests/engine-lua/golden.txt). Mirrors the Lua
+// golden.txt (engine-ports/lua/golden.txt). Mirrors the Lua
 // spec.lua assertions: GEN / OFF / OFFHINT / PATH / SOLVE / OFFICIALRUN, down
 // to the exact node / attempt / backtrack counts.
 //
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const goldenPath = join(here, "..", "..", "..", "engine-side-quests", "engine-lua", "golden.txt");
+const goldenPath = join(here, "..", "lua", "golden.txt");
 const wasmPath = join(here, "engine.wasm");
 
 // --- Instantiate the wasm module. ------------------------------------------

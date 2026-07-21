@@ -3,7 +3,7 @@
  * =============================================
  *
  * This is a faithful, literal port of the Rust engine in engine/src (*.rs),
- * following engine-side-quests/ALGORITHM.md section by section. Names, steps
+ * following engine-ports/ALGORITHM.md section by section. Names, steps
  * and ordering mirror the Rust source so the two agree byte-for-byte. The
  * parity suite (parity.mjs) checks every line of the Rust-produced
  * engine-lua/golden.txt against this engine's output.

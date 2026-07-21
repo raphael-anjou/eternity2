@@ -380,11 +380,11 @@ operations:
 | `scoreBoard(puzzle, board)` | matched interior edges |
 | a **Solver** object | `new(puzzle, path, useHints, shufflePieces, seed)`, then `step(budget)`, `report()`, `board()`, `bestBoard()`, `score()`, `bestScore()`, `reset()` |
 
-The browser-facing ports (Rust/WASM, TypeScript, C/WASM, C++/WASM) implement
-*all* of these so the website can swap engines at build time (see
-`web/README.md`, the `VITE_ENGINE` switch). The CLI-only ports (Python, Lua,
-COBOL, Brainfuck) implement as much as makes sense for a command-line demo, and
-each is validated against the same Rust **golden data**.
+The full ports (TypeScript, C/WASM, C++/WASM) implement *all* of these — the
+complete surface of the canonical Rust engine. The smaller studies (Python, Lua,
+COBOL, Brainfuck) implement as much as makes sense for a command-line demo. Each
+is validated against the same Rust **golden data**. None are build-selectable:
+the website always runs the Rust/WASM engine in `../engine`.
 
 ---
 
