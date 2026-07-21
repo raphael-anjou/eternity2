@@ -69,7 +69,7 @@ fn main() {
     let start = Instant::now();
     let budget = std::time::Duration::from_secs_f64(budget_s);
     let mut best_score = score_board(&puzzle, solver.best_board());
-    let mut last = Status::Running;
+    let mut last: Status;
     loop {
         let r = solver.step(2_000_000);
         let s = score_board(&puzzle, solver.best_board());
