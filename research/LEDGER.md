@@ -1295,3 +1295,20 @@ rerun for per-instance scores), in-house ladder progress chart, dfs-study
 live path-order widget, hub board thumbnails, repro-presence CI for concept
 pages. The "one overloaded kind field" finding returned a corrupt verifier
 verdict and needs re-judging before any action.
+
+### 2026-07-21 — UX backlog: in-context definitions, backlinks, thumbnails, spread plots, live lab (multi-agent)
+
+The verified-but-deferred UX backlog from the morning's structural pass,
+shipped by a 5-agent workflow with disjoint file ownership (commits 798dcdd,
+fe9c6f0, and the studies commit following). Glossary localized to EN/FR/ES
+and surfaced in-context via a build-time first-mention auto-linker with
+tooltip popups; prose-link backlinks rendered as "Referenced by"; optional
+board frontmatter puts best boards on person/topic hubs; dfs+repair studies
+emit per-instance scores and render spread strip plots (the "~11-point
+spread" prose claim now has its chart); dfs-study gains a live scan-order
+lab on the real WASM engine and the Gauntlet race lanes become free-choice.
+Palimpsest deliberately got no widget (corpus-level claim; a control would
+be decorative). Verified: typecheck, full build, all research gates, i18n
+100%, 43/43 tests. Remaining backlog: in-house ladder chart, repro-presence
+CI for concepts, the kind-field re-judge; next planned track is publishing
+the vault's 461 strict record + recent negative results.
