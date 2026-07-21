@@ -10,17 +10,17 @@ import { RECORD_BOARDS } from "@/data/record-boards";
 const T = {
   en: {
     cta: "Open in the viewer",
-    note: "Score recomputed from the board itself. Open it to check every edge.",
+    note: "Score recomputed from the board's own edges; it matches the claim. Open it to check every edge.",
     missing: "board not found:",
   },
   fr: {
     cta: "Ouvrir dans le visualiseur",
-    note: "Score recalculé depuis le plateau lui-même. Ouvrez-le pour vérifier chaque arête.",
+    note: "Score recalculé à partir des arêtes du plateau lui-même ; il correspond à la valeur annoncée. Ouvrez-le pour vérifier chaque arête.",
     missing: "plateau introuvable :",
   },
   es: {
     cta: "Abrir en el visor",
-    note: "Puntuación recalculada a partir del propio tablero. Ábrelo para verificar cada arista.",
+    note: "Puntuación recalculada a partir de las propias aristas del tablero; coincide con la anunciada. Ábrelo para verificar cada arista.",
     missing: "tablero no encontrado:",
   },
 };

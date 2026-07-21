@@ -78,6 +78,8 @@ const T = {
       </>
     ),
     ctaRecords: "See the full record timeline",
+    ctaOpenProblems: "The open problems that remain",
+    ctaApproaches: "The map of every known approach",
     ctaPuzzle: "What is Eternity II?",
     ctaAlgorithms: "How solvers attack it",
   },
@@ -146,6 +148,8 @@ const T = {
       </>
     ),
     ctaRecords: "Voir la chronologie complète des records",
+    ctaOpenProblems: "Les problèmes ouverts qui restent",
+    ctaApproaches: "La carte de toutes les approches connues",
     ctaPuzzle: "C'est quoi, Eternity II ?",
     ctaAlgorithms: "Comment les solveurs s'y attaquent",
   },
@@ -213,6 +217,8 @@ const T = {
       </>
     ),
     ctaRecords: "Ver la cronología completa de los récords",
+    ctaOpenProblems: "Los problemas abiertos que quedan",
+    ctaApproaches: "El mapa de todos los enfoques conocidos",
     ctaPuzzle: "¿Qué es Eternity II?",
     ctaAlgorithms: "Cómo lo atacan los solucionadores",
   },
@@ -283,6 +289,12 @@ export default function StatusPage() {
 
       <section className="flex flex-wrap gap-3">
         <Button render={<Link to="/research/records" />}>{t.ctaRecords}</Button>
+        <Button variant="outline" render={<Link to="/research/open-problems" />}>
+          {t.ctaOpenProblems}
+        </Button>
+        <Button variant="outline" render={<Link to="/research/build/approaches-map" />}>
+          {t.ctaApproaches}
+        </Button>
         <Button variant="outline" render={<Link to="/puzzle" />}>
           {t.ctaPuzzle}
         </Button>

@@ -47,9 +47,27 @@ export interface LinearPartial {
   params: string;
 }
 
+// The author's own census of distinct five-clue boards by score, near the top
+// of the strict ladder. Shared here as the single source for both the gallery
+// (BoardsFoundGallery) and the records page (RecordsView), so one edit updates
+// both. Many boards at the lower scores are close variants within one basin, so
+// the raw totals overstate the number of structurally independent solutions.
+export interface FiveClueCensusRow {
+  score: number;
+  broken: number;
+  found: number;
+}
+
+export const FIVE_CLUE_CENSUS_2026: FiveClueCensusRow[] = [
+  { score: 464, broken: 16, found: 10 },
+  { score: 463, broken: 17, found: 290 },
+  { score: 462, broken: 18, found: 2213 },
+  { score: 461, broken: 19, found: 38 },
+];
+
 // 27 distinct boards, sorted 464 -> 460. The census the author reported is far
-// larger (10x 464, 290x 463, 2213x 462, 38x 461); these are the boards for
-// which a verification link was actually shared.
+// larger (see FIVE_CLUE_CENSUS_2026 above); these are the boards for which a
+// verification link was actually shared.
 export const FIVE_CLUE_RECORDS_2026: FiveClueRecord[] = [
   { id: "r5c-464-riotte-1", score: 464, author: "Benjamin Riotte", note: "", params: "puzzle=Eternity2&board_w=16&board_h=16&board_edges=acdaafhcaelfacqeadpcaepdadteacidadgcadgdabmdaeibaboeacsbaencaabedsdahvjslrwvqpqrpskppgmstmrgiwpmgiiwgqiimokqnjroovmjsjwglijjbabgdidajnviwlmnqiklkkgimttkrkgtpllkomnljvomklqjrqwlmulwwswujprsbaepdweavvlwmtrvksntgvgsrnkvgwqnrglonkpgolnkgigtwilillkiwvwlrtkveaetesealgosrjkgnnvjgrinkmnrqgqmwvjgpnsvnpgngtnpllogktnlwvwtkvwveabveqbaooiqkvkovijvisoinnnsqgtnjiggstjigiwtnqwiosnqnplstwhpwvgwbacvbjbaijpjkqtjjskqoqwsntmqtlqtgvvljqovwoiqwmsoniomlprihiqpgpnicaepbpcapjppttpjkkntwhqkmorhqtjovvitoknvigmksqugoqnqrtrqqvgtntqveabtcocappropvwpntovqqwtrluqjmllijjmnmpjmiomujsinthjrgrtgkogqhmkbachcrbarmorwksmounkwovuuisolirijuripmmuonpmspwnhkrprwpkollwmtplcadtbjfaosujskssnhskvrkhsmtrrmhmrwmmmqhwphjqwkuhrvmkpsuvlrlspnqrdaenfvcausuvsphsstopkuvttmsuhgimmtlghjltjrijujtrminjuksilwokquiweaeucrfausgrhwusokuwvulksrtuiqorlhuqlghhisjgthusnlvhsnhlouqniowueafofqfagmpqujvmuhsjlsuhtgwsolugulplhwqljhhwunhhvhunhruhqvprwkrvfackfubaplouvmqlsommurhowhtrukjhprhkqunrhmwuhjumuoujuvgophtvrphhcacpbdaaofadqeafmfaehbaftfabjbafhcabnfacwdafufadufafgfaftdafhdadcaad" },
   { id: "r5c-464-riotte-2", score: 464, author: "Benjamin Riotte", note: "", params: "puzzle=Eternity2&board_w=16&board_h=16&board_edges=acdaafhcaelfacqeadpcaepdadteacidadgcadgdabmdaeibaboeacsbaencaabedsdahvjslrwvqpqrpskppgmstmrgiwpmgiiwgtgimokqnjroovmjsjwglijjbabgdidajnviwlmnqiklkkgimttkrkgtpllkomnljvomklqjiwilmulwwswujprsbaepdweavvlwmtrvksntgvgsrnkvgwqnlrqwnkpgolnklogliigqllkiwvwlrtkveaetesealgosrjkgnnvjgrinkmnrqgqmwvjgpnsvnpgngtnpglorktnlwvwtkvwveabveqbaooiqkvkovijvisoinnnsqgtnjiggstjigiwtnqwiosnqnplstwhpwvgwbacvbjbaijpjkqtjjskqoqwsntmqtlqtgvvljqovwoiqwmsoniomlprihiqpgpnicaepbpcapjppttpjkkntwhqkmorhqtjovvitoknvigmksqugoqnqrtrqqvgtntqveabtcocappropvwpntovqqwtrluqjmllijjmnmpjmiomujsinthjrgrtgkogqhmkbachcrbarmorwksmounkwovuuisolirijuripmmuonpmspwnhkrprwpkollwmtplcadtbjfaosujskssnhskvrkhsmtrrmhmrwmmmqhwphjqwkuhrvmkpsuvlrlspnqrdaenfvcausuvsphsstopkuvttmsuhgimmtlghjltjrijujtrminjuksilwokquiweaeucrfausgrhwusokuwvulksrtuiqorlhuqlghhisjgthusnlvhsnhlouqniowueafofqfagmpqujvmuhsjlsuhtgwsolugulplhwqljhhwunhhvhunhruhqvprwkrvfackfubaplouvmqlsommurhowhtrukjhprhkqunrhmwuhjumuoujuvgophtvrphhcacpbdaaofadqeafmfaehbaftfabjbafhcabnfacwdafufadufafgfaftdafhdadcaad" },

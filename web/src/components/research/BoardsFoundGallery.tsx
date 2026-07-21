@@ -11,6 +11,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
 import {
   FIVE_CLUE_RECORDS_2026,
+  FIVE_CLUE_CENSUS_2026,
   PARTIALS_WITH_HINTS_2026,
   PARTIALS_OTHER_2026,
   type LinearPartial,
@@ -91,13 +92,6 @@ const T = {
   },
 };
 
-const CENSUS: { score: number; broken: number; found: number }[] = [
-  { score: 464, broken: 16, found: 10 },
-  { score: 463, broken: 17, found: 290 },
-  { score: 462, broken: 18, found: 2213 },
-  { score: 461, broken: 19, found: 38 },
-];
-
 function Thumb({
   params,
   href,
@@ -151,7 +145,7 @@ export function BoardsFoundGallery() {
               </tr>
             </thead>
             <tbody>
-              {CENSUS.map((c) => (
+              {FIVE_CLUE_CENSUS_2026.map((c) => (
                 <tr key={c.score} className="border-b last:border-0">
                   <td className="py-1 pr-4 font-semibold tabular-nums">{c.score} / 480</td>
                   <td className="py-1 pr-4 tabular-nums text-muted-foreground">{c.broken}</td>
