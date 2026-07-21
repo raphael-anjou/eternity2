@@ -163,6 +163,72 @@ function relatedDocs(doc: ResearchDoc, all: ResearchDoc[]): ResearchDoc[] {
     .filter((d): d is ResearchDoc => d !== undefined);
 }
 
+// ---- Auto-backlinks ("Referenced by") ------------------------------------
+//
+// A per-page reverse map of INBOUND prose links: for each research page, which
+// other research pages link to it in their body. This is the reverse of the
+// links check-research-links.mjs validates; the extraction below reuses that
+// script's link-shapes (markdown links + href/to attributes) so the two stay in
+// step, but deliberately DROP the frontmatter `- /research/...` list shape
+// (those are the curated `related[]` entries the related rail already renders).
+// The map keys and values are language-neutral site URLs ("/research/…"); the
+// docs shell resolves each source URL's title/kind from the per-language nav, so
+// one map serves all three languages.
+
+/** Language-neutral URL of a raw entry's page ("/research/<slug>", or
+ *  "/research" for the root hub). Mirrors buildManifest's url derivation so a
+ *  source page maps to the same URL the manifest exposes. */
+function entryUrl(slug: string): string {
+  return slug === "" ? "/research" : `/research/${slug}`;
+}
+
+/** Inline prose links to internal /research pages found in an MDX body: the two
+ *  authored shapes (markdown `[text](/research/…)` and JSX `href=/`to=` on a
+ *  ProseLink or other island). Anchors/query strings are stripped and the path
+ *  is de-trailing-slashed so it matches a manifest URL. Frontmatter `related`
+ *  list items are NOT here (they are matched by their own `- /research/…` line
+ *  shape in the links check and belong to the related rail, not backlinks). */
+function proseLinkTargets(body: string): string[] {
+  const raw = [
+    ...[...body.matchAll(/\]\((\/research\/[^)\s#?]*)[^)]*\)/g)].map((m) => m[1]),
+    ...[...body.matchAll(/(?:href|to)=["'{]+(\/research\/[^"'}\s#?]*)/g)].map((m) => m[1]),
+  ];
+  return raw.map((l) => (l ?? "").replace(/\/$/, "")).filter((l) => l.length > 0);
+}
+
+/** Build the reverse backlink map from every scanned entry (any language body),
+ *  keyed by the target's language-neutral URL, value = the source page URLs that
+ *  link to it, deduped and in manifest reading order. A page never lists itself.
+ *  Only links that resolve to a real, non-draft page are kept (the same known-URL
+ *  set the docs shell can render), so a typo'd or removed target contributes
+ *  nothing rather than a dead "Referenced by" row. */
+function buildBacklinks(): Record<string, string[]> {
+  const docs = buildManifest("en");
+  const known = new Set(docs.map((d) => d.url));
+  // Source ordering: index sources by their position in the manifest so the
+  // rendered list is stable (manifest reading order), not filesystem order.
+  const orderOf = new Map(docs.map((d, i) => [d.url, i]));
+  // target URL → set of source URLs.
+  const rev = new Map<string, Set<string>>();
+  for (const entry of scanResearchContent()) {
+    const sourceUrl = entryUrl(entry.slug);
+    if (!known.has(sourceUrl)) continue; // draft/unknown source page
+    for (const target of proseLinkTargets(entry.body)) {
+      if (!known.has(target) || target === sourceUrl) continue;
+      const set = rev.get(target) ?? new Set<string>();
+      set.add(sourceUrl);
+      rev.set(target, set);
+    }
+  }
+  const out: Record<string, string[]> = {};
+  for (const [target, sources] of rev) {
+    out[target] = [...sources].sort(
+      (a, b) => (orderOf.get(a) ?? 1e9) - (orderOf.get(b) ?? 1e9),
+    );
+  }
+  return out;
+}
+
 // The curated top of llms.txt: the framing and the top-level (non-research)
 // pages, hand-written because those TSX pages carry no frontmatter description.
 // The complete research map is generated below it, so this header stays short
@@ -267,9 +333,17 @@ const SEARCH_ID = (lang: Lang) => `virtual:research-search-${lang}`;
 // into every page's chunk. Non-research pages always have a /<lang> twin, so they
 // are not listed here — the root shell only consults this for /research paths.
 const TRANSLATED_ID = (lang: Lang) => `virtual:research-translated-${lang}`;
+// The reverse-backlink map ("Referenced by"). Language-neutral (keys + values
+// are neutral /research URLs; the shell resolves display metadata per language),
+// so a single id, not one per language.
+const BACKLINKS_ID = "virtual:research-backlinks";
 
-// Reverse lookup: bare virtual id → { kind, lang }, or null if not ours.
-function parseId(bare: string): { kind: "manifest" | "search" | "translated"; lang: Lang } | null {
+// Reverse lookup: bare virtual id → parsed descriptor, or null if not ours. The
+// backlinks map has no language (kind "backlinks", lang omitted).
+function parseId(
+  bare: string,
+): { kind: "manifest" | "search" | "translated"; lang: Lang } | { kind: "backlinks" } | null {
+  if (bare === BACKLINKS_ID) return { kind: "backlinks" };
   for (const lang of LANG_CODES) {
     if (bare === MANIFEST_ID(lang)) return { kind: "manifest", lang };
     if (bare === SEARCH_ID(lang)) return { kind: "search", lang };
@@ -300,6 +374,13 @@ export function researchContent(): Plugin {
       if (!id.startsWith("\0")) return null;
       const parsed = parseId(id.slice(1));
       if (!parsed) return null;
+      if (parsed.kind === "backlinks") {
+        // Reverse map of inbound prose links: targetUrl → sourceUrl[]. Regenerated
+        // on every load, so a dev content edit reflects immediately (the module is
+        // invalidated in configureServer). Never absent while the plugin is
+        // installed; the client still guards against an empty payload.
+        return `export const backlinks = ${JSON.stringify(buildBacklinks())};`;
+      }
       const { kind, lang } = parsed;
       if (kind === "translated") {
         // Language-neutral URLs ("/research/…") that have a real <lang>
@@ -413,6 +494,7 @@ export function researchContent(): Plugin {
           ...LANG_CODES.map(MANIFEST_ID),
           ...LANG_CODES.map(SEARCH_ID),
           ...TRANSLATION_LANGS.map(TRANSLATED_ID),
+          BACKLINKS_ID,
         ];
         for (const bare of bareIds) {
           const mod = devServer?.moduleGraph.getModuleById("\0" + bare);

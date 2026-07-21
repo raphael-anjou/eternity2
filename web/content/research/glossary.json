@@ -1,388 +1,900 @@
 {
-  "$comment": "The research wiki glossary: community + domain terms a newcomer meets on the wiki, each with a short definition and a `see` link to the page that goes deep. Rendered at /research/glossary. Sorted alphabetically at render time. tier: 1 = E2/community jargon, 2 = loaded CS/CSP term, 3 = notation/measurement. Extend freely; keep definitions to one or two sentences.",
+  "$comment": "The research wiki glossary: community + domain terms a newcomer meets on the wiki, each with a short definition and a `see` link to the page that goes deep. Rendered at /research/glossary; the build-time auto-linker (plugins/research-glossary-autolink.ts) wraps the first prose mention of each term per article in a <Term> popup. Sorted alphabetically at render time. `term` and `def` are localized {en, fr, es}; `tier`: 1 = E2/community jargon, 2 = loaded CS/CSP term, 3 = notation/measurement. `matchOff` (optional, per-language keys or `all`) opts a term out of auto-linking where its word is too generic to match safely in prose. Extend freely; keep definitions to one or two sentences, no em dashes.",
   "terms": [
     {
-      "term": "all-different (Régin's filter)",
+      "term": {
+        "en": "all-different (Régin's filter)",
+        "fr": "tous différents (filtre de Régin)",
+        "es": "todos distintos (filtro de Régin)"
+      },
       "tier": 2,
-      "def": "The global constraint that each of the 256 pieces is used exactly once, filtered completely in polynomial time by a bipartite-matching check that deletes any piece no longer placeable.",
+      "def": {
+        "en": "The global constraint that each of the 256 pieces is used exactly once, filtered completely in polynomial time by a bipartite-matching check that deletes any piece no longer placeable.",
+        "fr": "La contrainte globale qui impose que chacune des 256 pièces serve exactement une fois, filtrée entièrement en temps polynomial par un test de couplage biparti qui écarte toute pièce devenue improuvable.",
+        "es": "La restricción global que exige que cada una de las 256 piezas se use exactamente una vez, filtrada por completo en tiempo polinómico mediante un emparejamiento bipartito que descarta cualquier pieza que ya no pueda colocarse."
+      },
       "see": "/research/build/reduce/alldiff-regin"
     },
     {
-      "term": "ALNS",
+      "term": {
+        "en": "ALNS",
+        "fr": "ALNS",
+        "es": "ALNS"
+      },
       "tier": 1,
-      "def": "Adaptive Large Neighbourhood Search: destroy part of a board, rebuild it better, and learn which demolitions pay. The most reliable board polisher measured here.",
+      "def": {
+        "en": "Adaptive Large Neighbourhood Search: destroy part of a board, rebuild it better, and learn which demolitions pay. The most reliable board polisher measured here.",
+        "fr": "Recherche adaptative à grand voisinage : on détruit une partie du plateau, on la reconstruit en mieux, et on apprend quelles démolitions rapportent. Le polisseur de plateau le plus fiable mesuré ici.",
+        "es": "Búsqueda adaptativa de gran vecindario: se destruye parte de un tablero, se reconstruye mejor y se aprende qué demoliciones rinden. El pulidor de tableros más fiable medido aquí."
+      },
       "see": "/research/build/local-search/local-search-alns"
     },
     {
-      "term": "annealing (simulated annealing)",
+      "term": {
+        "en": "annealing (simulated annealing)",
+        "fr": "recuit (recuit simulé)",
+        "es": "recocido (recocido simulado)"
+      },
       "tier": 2,
-      "def": "Local search that treats mismatches as energy and temperature as tolerance for getting worse, cooling slowly toward a good board. Holds the longest-standing record in its family.",
+      "def": {
+        "en": "Local search that treats mismatches as energy and temperature as tolerance for getting worse, cooling slowly toward a good board. Holds the longest-standing record in its family.",
+        "fr": "Recherche locale qui traite les défauts comme de l'énergie et la température comme une tolérance à l'aggravation, refroidissant lentement vers un bon plateau. Détient le plus ancien record de sa famille.",
+        "es": "Búsqueda local que trata los desajustes como energía y la temperatura como tolerancia a empeorar, enfriándose despacio hacia un buen tablero. Ostenta el récord más antiguo de su familia."
+      },
       "see": "/research/build/local-search/parallel-tempering"
     },
     {
-      "term": "arc consistency (AC-3)",
+      "term": {
+        "en": "arc consistency (AC-3)",
+        "fr": "cohérence d'arc (AC-3)",
+        "es": "consistencia de arco (AC-3)"
+      },
       "tier": 2,
-      "def": "Propagation that makes every cell's candidate list defend itself against its neighbours to a fixed point, going beyond one-move-ahead forward checking. Prunes hard on small boards, fades about two cells out on the full one.",
+      "def": {
+        "en": "Propagation that makes every cell's candidate list defend itself against its neighbours to a fixed point, going beyond one-move-ahead forward checking. Prunes hard on small boards, fades about two cells out on the full one.",
+        "fr": "Propagation qui force la liste de candidats de chaque case à tenir face à ses voisines jusqu'à un point fixe, allant plus loin que le forward checking à un coup d'avance. Élague fort sur les petits plateaux, s'estompe à deux cases environ sur le plateau complet.",
+        "es": "Propagación que obliga a la lista de candidatos de cada casilla a resistir frente a sus vecinas hasta un punto fijo, yendo más allá del forward checking de un movimiento. Poda con fuerza en tableros pequeños y se apaga a unas dos casillas en el tablero completo."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "backtracking",
+      "term": {
+        "en": "backtracking",
+        "fr": "retour arrière (backtracking)",
+        "es": "backtracking (retroceso)"
+      },
       "tier": 2,
-      "def": "Depth-first search that places pieces one at a time in a fixed or computed order, undoing a placement when it leads to a dead end. Every record engine lives in this family.",
+      "def": {
+        "en": "Depth-first search that places pieces one at a time in a fixed or computed order, undoing a placement when it leads to a dead end. Every record engine lives in this family.",
+        "fr": "Recherche en profondeur qui pose les pièces une à une dans un ordre fixe ou calculé, défaisant un placement dès qu'il mène à une impasse. Tout moteur record appartient à cette famille.",
+        "es": "Búsqueda en profundidad que coloca las piezas una a una en un orden fijo o calculado y deshace una colocación en cuanto lleva a un callejón sin salida. Todo motor récord pertenece a esta familia."
+      },
       "see": "/research/build/backtracking"
     },
     {
-      "term": "beam search",
+      "term": {
+        "en": "beam search",
+        "fr": "recherche en faisceau (beam search)",
+        "es": "búsqueda en haz (beam search)"
+      },
       "tier": 1,
-      "def": "Keep the K most promising partial boards alive and grow each by one cell, then truncate back to K. The workhorse behind this project's from-scratch builders; breadth alone stalls in the deep interior.",
+      "def": {
+        "en": "Keep the K most promising partial boards alive and grow each by one cell, then truncate back to K. The workhorse behind this project's from-scratch builders; breadth alone stalls in the deep interior.",
+        "fr": "On garde en vie les K plateaux partiels les plus prometteurs, on étend chacun d'une case, puis on retronque à K. Le cheval de trait des constructeurs à partir de zéro du projet ; la largeur seule cale dans l'intérieur profond.",
+        "es": "Se mantienen vivos los K tableros parciales más prometedores, se extiende cada uno una casilla y se recorta de nuevo a K. El caballo de batalla de los constructores desde cero del proyecto; la amplitud por sí sola se atasca en el interior profundo."
+      },
       "see": "/research/build/construct/beam-search"
     },
     {
-      "term": "border (frame)",
+      "term": {
+        "en": "border (frame)",
+        "fr": "bordure (cadre)",
+        "es": "borde (marco)"
+      },
       "tier": 3,
-      "def": "The outer ring of the board: the four corner and 56 edge pieces, which show a grey (unscored) edge outward. The rest are interior pieces.",
+      "def": {
+        "en": "The outer ring of the board: the four corner and 56 edge pieces, which show a grey (unscored) edge outward. The rest are interior pieces.",
+        "fr": "L'anneau extérieur du plateau : les quatre coins et les 56 pièces de bord, qui présentent un bord gris (non compté) vers l'extérieur. Le reste sont des pièces intérieures.",
+        "es": "El anillo exterior del tablero: las cuatro esquinas y las 56 piezas de borde, que muestran un lado gris (no puntuado) hacia afuera. El resto son piezas interiores."
+      },
       "see": "/research/why/phase-transition"
     },
     {
-      "term": "branching factor",
+      "term": {
+        "en": "branching factor",
+        "fr": "facteur de branchement",
+        "es": "factor de ramificación"
+      },
       "tier": 2,
-      "def": "How many candidate placements a cell offers on average during search. On Eternity II it stays high deep into the board, which is why the search tree never collapses.",
+      "def": {
+        "en": "How many candidate placements a cell offers on average during search. On Eternity II it stays high deep into the board, which is why the search tree never collapses.",
+        "fr": "Le nombre moyen de placements candidats qu'offre une case pendant la recherche. Sur Eternity II il reste élevé jusqu'au fond du plateau, et c'est pourquoi l'arbre de recherche ne s'effondre jamais.",
+        "es": "Cuántas colocaciones candidatas ofrece en promedio una casilla durante la búsqueda. En Eternity II se mantiene alto hasta el fondo del tablero, y por eso el árbol de búsqueda nunca colapsa."
+      },
       "see": "/research/build/backtracking/fill-order"
     },
     {
-      "term": "break index",
+      "term": {
+        "en": "break index",
+        "fr": "indice de rupture",
+        "es": "índice de rotura"
+      },
       "tier": 3,
-      "def": "The number of mismatched (broken) edges on a board. A full solution has zero; the community record leaves ten. The cheap score every solver optimises, and a poor guide to how close a board really is.",
+      "def": {
+        "en": "The number of mismatched (broken) edges on a board. A full solution has zero; the community record leaves ten. The cheap score every solver optimises, and a poor guide to how close a board really is.",
+        "fr": "Le nombre de bords en défaut (rompus) sur un plateau. Une solution complète en a zéro ; le record de la communauté en laisse dix. Le score bon marché que tout solveur optimise, et un mauvais guide de la distance réelle à la solution.",
+        "es": "El número de lados desajustados (rotos) en un tablero. Una solución completa tiene cero; el récord de la comunidad deja diez. El puntaje barato que todo solucionador optimiza, y una mala guía de cuán cerca está de verdad un tablero."
+      },
       "see": "/research/why/mismatch-geometry"
     },
     {
-      "term": "Bucas notation",
+      "term": {
+        "en": "Bucas notation",
+        "fr": "notation Bucas",
+        "es": "notación Bucas"
+      },
       "tier": 3,
-      "def": "The community's shared text format for a board, from Jef Bucas's viewer: rows A–P, columns 1–16, each cell a piece id and rotation. The lingua franca every solver reads and writes.",
+      "def": {
+        "en": "The community's shared text format for a board, from Jef Bucas's viewer: rows A to P, columns 1 to 16, each cell a piece id and rotation. The lingua franca every solver reads and writes.",
+        "fr": "Le format texte partagé par la communauté pour un plateau, issu du visualiseur de Jef Bucas : lignes A à P, colonnes 1 à 16, chaque case étant un identifiant de pièce et une rotation. La langue commune que tout solveur lit et écrit.",
+        "es": "El formato de texto compartido por la comunidad para un tablero, del visor de Jef Bucas: filas A a P, columnas 1 a 16, cada casilla con un id de pieza y una rotación. La lengua franca que todo solucionador lee y escribe."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "candidate list",
+      "term": {
+        "en": "candidate list",
+        "fr": "liste de candidats",
+        "es": "lista de candidatos"
+      },
       "tier": 2,
-      "def": "The set of piece-and-rotation options still legal for a cell after propagation. Shrinking it is the whole point of constraint propagation.",
+      "def": {
+        "en": "The set of piece-and-rotation options still legal for a cell after propagation. Shrinking it is the whole point of constraint propagation.",
+        "fr": "L'ensemble des options pièce-et-rotation encore légales pour une case après propagation. La réduire est tout l'objet de la propagation de contraintes.",
+        "es": "El conjunto de opciones de pieza y rotación aún legales para una casilla tras la propagación. Reducirlo es todo el sentido de la propagación de restricciones."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "cell",
+      "term": {
+        "en": "cell",
+        "fr": "case",
+        "es": "casilla"
+      },
       "tier": 3,
-      "def": "One of the 256 squares of the 16×16 board.",
+      "def": {
+        "en": "One of the 256 squares of the 16×16 board.",
+        "fr": "L'une des 256 cases du plateau 16×16.",
+        "es": "Uno de los 256 cuadros del tablero de 16×16."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "clue puzzle",
+      "term": {
+        "en": "clue puzzle",
+        "fr": "puzzle indice",
+        "es": "puzle pista"
+      },
       "tier": 1,
-      "def": "One of four optional companion puzzles (two 6×6 and two 12×6) that each revealed one piece placement on the main board when solved.",
+      "def": {
+        "en": "One of four optional companion puzzles (two 6×6 and two 12×6) that each revealed one piece placement on the main board when solved.",
+        "fr": "L'un des quatre puzzles compagnons optionnels (deux 6×6 et deux 12×6) qui, une fois résolus, révélaient chacun un placement de pièce sur le plateau principal.",
+        "es": "Uno de los cuatro puzles complementarios opcionales (dos de 6×6 y dos de 12×6) que, al resolverse, revelaba cada uno una colocación de pieza en el tablero principal."
+      },
       "see": "/research/build/clue-puzzles"
     },
     {
-      "term": "comb search",
+      "term": {
+        "en": "comb search",
+        "fr": "recherche en peigne",
+        "es": "búsqueda en peine"
+      },
       "tier": 1,
-      "def": "A fill order that scans most rows horizontally, then sweeps the remaining rows vertically, with the tooth length tuned to a target score. Verhaard's ordering.",
+      "def": {
+        "en": "A fill order that scans most rows horizontally, then sweeps the remaining rows vertically, with the tooth length tuned to a target score. Verhaard's ordering.",
+        "fr": "Un ordre de remplissage qui balaie la plupart des lignes horizontalement, puis parcourt les lignes restantes verticalement, la longueur de la dent étant réglée sur un score cible. L'ordre de Verhaard.",
+        "es": "Un orden de llenado que recorre la mayoría de las filas en horizontal y luego barre las filas restantes en vertical, con la longitud del diente ajustada a un puntaje objetivo. El orden de Verhaard."
+      },
       "see": "/research/build/backtracking/fill-order"
     },
     {
-      "term": "constraint propagation",
+      "term": {
+        "en": "constraint propagation",
+        "fr": "propagation de contraintes",
+        "es": "propagación de restricciones"
+      },
       "tier": 2,
-      "def": "Automatically deleting candidates that can no longer lead to a legal board, cascading the effect until nothing more can be removed (a fixed point).",
+      "def": {
+        "en": "Automatically deleting candidates that can no longer lead to a legal board, cascading the effect until nothing more can be removed (a fixed point).",
+        "fr": "Suppression automatique des candidats qui ne peuvent plus mener à un plateau légal, l'effet se propageant jusqu'à ce que plus rien ne puisse être retiré (un point fixe).",
+        "es": "Eliminación automática de los candidatos que ya no pueden llevar a un tablero legal, con el efecto encadenándose hasta que no queda nada más que quitar (un punto fijo)."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "dancing links (DLX)",
+      "term": {
+        "en": "dancing links (DLX)",
+        "fr": "liens dansants (DLX)",
+        "es": "enlaces danzantes (DLX)"
+      },
       "tier": 2,
-      "def": "Knuth's data structure for exact cover: doubly linked lists that cover and uncover a column in O(1) by pointer surgery, so backtracking is cheap.",
+      "def": {
+        "en": "Knuth's data structure for exact cover: doubly linked lists that cover and uncover a column in O(1) by pointer surgery, so backtracking is cheap.",
+        "fr": "La structure de données de Knuth pour la couverture exacte : des listes doublement chaînées qui couvrent et découvrent une colonne en O(1) par chirurgie de pointeurs, rendant le retour arrière peu coûteux.",
+        "es": "La estructura de datos de Knuth para la cobertura exacta: listas doblemente enlazadas que cubren y descubren una columna en O(1) mediante cirugía de punteros, de modo que el retroceso sale barato."
+      },
       "see": "/research/build/exact/exact-cover-dlx"
     },
     {
-      "term": "dead end",
+      "term": {
+        "en": "dead end",
+        "fr": "impasse",
+        "es": "callejón sin salida"
+      },
       "tier": 1,
-      "def": "A partial board that provably cannot extend to any complete board. Recognising them early is what pruning is for.",
+      "def": {
+        "en": "A partial board that provably cannot extend to any complete board. Recognising them early is what pruning is for.",
+        "fr": "Un plateau partiel dont on peut prouver qu'il ne s'étend à aucun plateau complet. Les reconnaître tôt, c'est tout l'objet de l'élagage.",
+        "es": "Un tablero parcial del que se puede probar que no se extiende a ningún tablero completo. Reconocerlos pronto es para lo que sirve la poda."
+      },
       "see": "/research/build/dead-ends"
     },
     {
-      "term": "deficit (border balance)",
+      "term": {
+        "en": "deficit (border balance)",
+        "fr": "déficit (équilibre de bordure)",
+        "es": "déficit (equilibrio de borde)"
+      },
       "tier": 1,
-      "def": "An imbalance on the seam between the border ring and the interior. A completable board needs it to be zero, giving a cheap necessary condition.",
+      "def": {
+        "en": "An imbalance on the seam between the border ring and the interior. A completable board needs it to be zero, giving a cheap necessary condition.",
+        "fr": "Un déséquilibre sur la couture entre l'anneau de bordure et l'intérieur. Un plateau complétable exige qu'il soit nul, ce qui donne une condition nécessaire bon marché.",
+        "es": "Un desequilibrio en la costura entre el anillo de borde y el interior. Un tablero completable exige que sea cero, lo que da una condición necesaria barata."
+      },
       "see": "/research/why/border-balance"
     },
     {
-      "term": "domain (of a variable)",
+      "term": {
+        "en": "domain (of a variable)",
+        "fr": "domaine (d'une variable)",
+        "es": "dominio (de una variable)"
+      },
       "tier": 2,
-      "def": "The set of values a variable may still take. Here, the piece-and-rotation options left for a cell.",
+      "def": {
+        "en": "The set of values a variable may still take. Here, the piece-and-rotation options left for a cell.",
+        "fr": "L'ensemble des valeurs qu'une variable peut encore prendre. Ici, les options pièce-et-rotation restantes pour une case.",
+        "es": "El conjunto de valores que una variable aún puede tomar. Aquí, las opciones de pieza y rotación que le quedan a una casilla."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "edge (seam)",
+      "term": {
+        "en": "edge (seam)",
+        "fr": "bord (couture)",
+        "es": "lado (costura)"
+      },
       "tier": 3,
-      "def": "A shared boundary between two adjacent cells. The 16×16 board has 480 interior edges, all of which must match in a full solution.",
+      "def": {
+        "en": "A shared boundary between two adjacent cells. The 16×16 board has 480 interior edges, all of which must match in a full solution.",
+        "fr": "Une frontière partagée entre deux cases adjacentes. Le plateau 16×16 compte 480 bords intérieurs, qui doivent tous correspondre dans une solution complète.",
+        "es": "Una frontera compartida entre dos casillas adyacentes. El tablero de 16×16 tiene 480 lados interiores, que deben coincidir todos en una solución completa."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "edge slipping",
+      "term": {
+        "en": "edge slipping",
+        "fr": "glissement de bord",
+        "es": "deslizamiento de lado"
+      },
       "tier": 1,
-      "def": "Deliberately placing a mismatched piece on a depth-gated schedule so the search can pass a barrier it otherwise stalls at. The lever behind Verhaard's 467.",
+      "def": {
+        "en": "Deliberately placing a mismatched piece on a depth-gated schedule so the search can pass a barrier it otherwise stalls at. The lever behind Verhaard's 467.",
+        "fr": "Placer délibérément une pièce en défaut selon un calendrier dépendant de la profondeur, afin que la recherche franchisse une barrière où elle calerait sinon. Le levier derrière le 467 de Verhaard.",
+        "es": "Colocar a propósito una pieza desajustada según un calendario que depende de la profundidad, para que la búsqueda supere una barrera donde de otro modo se atascaría. La palanca tras el 467 de Verhaard."
+      },
       "see": "/research/build/reduce/edge-slipping"
     },
     {
-      "term": "encoding",
+      "term": {
+        "en": "encoding",
+        "fr": "encodage",
+        "es": "codificación"
+      },
       "tier": 2,
-      "def": "Rewriting the puzzle in another solver's input language, e.g. as SAT clauses or CSP constraints, to borrow a decade of that solver's engineering.",
+      "def": {
+        "en": "Rewriting the puzzle in another solver's input language, e.g. as SAT clauses or CSP constraints, to borrow a decade of that solver's engineering.",
+        "fr": "Réécrire le puzzle dans le langage d'entrée d'un autre solveur, par exemple en clauses SAT ou en contraintes CSP, pour emprunter une décennie d'ingénierie de ce solveur.",
+        "es": "Reescribir el puzle en el lenguaje de entrada de otro solucionador, por ejemplo como cláusulas SAT o restricciones CSP, para tomar prestada una década de ingeniería de ese solucionador."
+      },
       "see": "/research/build/exact/sat-csp-encodings"
     },
     {
-      "term": "entropy (area law)",
+      "term": {
+        "en": "entropy (area law)",
+        "fr": "entropie (loi d'aire)",
+        "es": "entropía (ley de área)"
+      },
       "tier": 1,
-      "def": "How rich the matching grammar is per cell. The raw 2D entropy is modest, and the all-distinct rule collapses it exponentially, which is why near-solutions are so scarce.",
+      "def": {
+        "en": "How rich the matching grammar is per cell. The raw 2D entropy is modest, and the all-distinct rule collapses it exponentially, which is why near-solutions are so scarce.",
+        "fr": "La richesse de la grammaire d'appariement par case. L'entropie 2D brute est modeste, et la règle tous-distincts l'effondre exponentiellement, ce qui rend les quasi-solutions si rares.",
+        "es": "Cuán rica es la gramática de emparejamiento por casilla. La entropía 2D bruta es modesta, y la regla de todos distintos la colapsa exponencialmente, lo que hace tan escasas las cuasisoluciones."
+      },
       "see": "/research/why/entropy-area-law"
     },
     {
-      "term": "exact cover",
+      "term": {
+        "en": "exact cover",
+        "fr": "couverture exacte",
+        "es": "cobertura exacta"
+      },
       "tier": 2,
-      "def": "The problem of choosing options so every item is covered exactly once. Eternity II states cleanly as exact cover with colours (XCC), Knuth's Algorithm X being the classic machine for it.",
+      "def": {
+        "en": "The problem of choosing options so every item is covered exactly once. Eternity II states cleanly as exact cover with colours (XCC), Knuth's Algorithm X being the classic machine for it.",
+        "fr": "Le problème de choisir des options pour que chaque élément soit couvert exactement une fois. Eternity II s'énonce proprement comme couverture exacte avec couleurs (XCC), l'algorithme X de Knuth en étant la machine classique.",
+        "es": "El problema de elegir opciones para que cada elemento quede cubierto exactamente una vez. Eternity II se enuncia con limpieza como cobertura exacta con colores (XCC), siendo el algoritmo X de Knuth su máquina clásica."
+      },
       "see": "/research/build/exact/exact-cover-dlx"
     },
     {
-      "term": "fill order",
+      "term": {
+        "en": "fill order",
+        "fr": "ordre de remplissage",
+        "es": "orden de llenado"
+      },
       "tier": 1,
-      "def": "The sequence in which a backtracker visits the 256 cells. Its one free choice, and it moves the search-tree size by orders of magnitude at no runtime cost.",
+      "def": {
+        "en": "The sequence in which a backtracker visits the 256 cells. Its one free choice, and it moves the search-tree size by orders of magnitude at no runtime cost.",
+        "fr": "La séquence dans laquelle un backtracker visite les 256 cases. Son seul choix libre, et il déplace la taille de l'arbre de recherche de plusieurs ordres de grandeur sans coût d'exécution.",
+        "es": "La secuencia en que un backtracker visita las 256 casillas. Su única elección libre, y mueve el tamaño del árbol de búsqueda en órdenes de magnitud sin coste de ejecución."
+      },
       "see": "/research/build/backtracking/fill-order"
     },
     {
-      "term": "forbidden pattern",
+      "term": {
+        "en": "forbidden pattern",
+        "fr": "motif interdit",
+        "es": "patrón prohibido"
+      },
       "tier": 1,
-      "def": "A small local configuration that can never match, so no solution contains it. On Eternity II almost every 2×2 arrangement of pieces is forbidden.",
+      "def": {
+        "en": "A small local configuration that can never match, so no solution contains it. On Eternity II almost every 2×2 arrangement of pieces is forbidden.",
+        "fr": "Une petite configuration locale qui ne peut jamais correspondre, donc qu'aucune solution ne contient. Sur Eternity II, presque tout agencement 2×2 de pièces est interdit.",
+        "es": "Una pequeña configuración local que nunca puede casar, de modo que ninguna solución la contiene. En Eternity II casi toda disposición 2×2 de piezas está prohibida."
+      },
       "see": "/research/why/forbidden-patterns"
     },
     {
-      "term": "forward checking",
+      "term": {
+        "en": "forward checking",
+        "fr": "vérification anticipée (forward checking)",
+        "es": "comprobación anticipada (forward checking)"
+      },
       "tier": 2,
-      "def": "The lightest propagation: when a piece is placed, remove it and any now-incompatible pieces from neighbouring cells' candidate lists.",
+      "def": {
+        "en": "The lightest propagation: when a piece is placed, remove it and any now-incompatible pieces from neighbouring cells' candidate lists.",
+        "fr": "La propagation la plus légère : quand une pièce est posée, on la retire, ainsi que toute pièce devenue incompatible, des listes de candidats des cases voisines.",
+        "es": "La propagación más ligera: al colocar una pieza, se la quita, junto con cualquier pieza ahora incompatible, de las listas de candidatos de las casillas vecinas."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "grey edge",
+      "term": {
+        "en": "grey edge",
+        "fr": "bord gris",
+        "es": "lado gris"
+      },
       "tier": 3,
-      "def": "A border-facing edge, coloured grey and never scored. Interior pieces have none; border and corner pieces show one or two.",
+      "def": {
+        "en": "A border-facing edge, coloured grey and never scored. Interior pieces have none; border and corner pieces show one or two.",
+        "fr": "Un bord tourné vers l'extérieur, coloré en gris et jamais compté. Les pièces intérieures n'en ont aucun ; les pièces de bord et de coin en montrent un ou deux.",
+        "es": "Un lado orientado hacia el borde, coloreado de gris y nunca puntuado. Las piezas interiores no tienen ninguno; las de borde y esquina muestran uno o dos."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "heavy tail",
+      "term": {
+        "en": "heavy tail",
+        "fr": "queue lourde",
+        "es": "cola pesada"
+      },
       "tier": 2,
-      "def": "A runtime distribution where a few unlucky runs take orders of magnitude longer than the median. It is what makes restarts pay.",
+      "def": {
+        "en": "A runtime distribution where a few unlucky runs take orders of magnitude longer than the median. It is what makes restarts pay.",
+        "fr": "Une distribution de temps d'exécution où quelques exécutions malchanceuses durent plusieurs ordres de grandeur de plus que la médiane. C'est ce qui rend les redémarrages rentables.",
+        "es": "Una distribución de tiempos de ejecución donde unas pocas corridas con mala suerte tardan órdenes de magnitud más que la mediana. Es lo que hace rentables los reinicios."
+      },
       "see": "/research/build/backtracking/restarts"
     },
     {
-      "term": "heuristic",
+      "term": {
+        "en": "heuristic",
+        "fr": "heuristique",
+        "es": "heurística"
+      },
       "tier": 2,
-      "def": "A rule that guides search without any correctness guarantee, e.g. visit the most-constrained cell first, or break ties by piece rarity.",
+      "def": {
+        "en": "A rule that guides search without any correctness guarantee, e.g. visit the most-constrained cell first, or break ties by piece rarity.",
+        "fr": "Une règle qui guide la recherche sans aucune garantie de justesse, par exemple visiter d'abord la case la plus contrainte, ou départager par la rareté des pièces.",
+        "es": "Una regla que guía la búsqueda sin garantía de corrección, por ejemplo visitar primero la casilla más restringida, o desempatar por la rareza de las piezas."
+      },
       "see": "/research/build/backtracking/fill-order"
     },
     {
-      "term": "hint",
+      "term": {
+        "en": "hint",
+        "fr": "indice",
+        "es": "pista"
+      },
       "tier": 1,
-      "def": "A cell whose piece and rotation are given in advance, whether the mandatory centre clue or one revealed by a clue puzzle. Where the hints sit matters more than how many there are.",
+      "def": {
+        "en": "A cell whose piece and rotation are given in advance, whether the mandatory centre clue or one revealed by a clue puzzle. Where the hints sit matters more than how many there are.",
+        "fr": "Une case dont la pièce et la rotation sont données d'avance, qu'il s'agisse de l'indice central obligatoire ou d'un indice révélé par un puzzle indice. L'emplacement des indices compte plus que leur nombre.",
+        "es": "Una casilla cuya pieza y rotación se dan de antemano, ya sea la pista central obligatoria o una revelada por un puzle pista. Dónde se sitúan las pistas importa más que cuántas son."
+      },
       "see": "/research/why/hint-geometry"
     },
     {
-      "term": "interior piece",
+      "term": {
+        "en": "interior piece",
+        "fr": "pièce intérieure",
+        "es": "pieza interior"
+      },
       "tier": 3,
-      "def": "One of the 196 pieces with no grey edge, which may sit only away from the border.",
+      "def": {
+        "en": "One of the 196 pieces with no grey edge, which may sit only away from the border.",
+        "fr": "L'une des 196 pièces sans bord gris, qui ne peut se placer qu'à l'écart de la bordure.",
+        "es": "Una de las 196 piezas sin lado gris, que solo puede situarse lejos del borde."
+      },
       "see": "/research/why/phase-transition"
     },
     {
-      "term": "invariant",
+      "term": {
+        "en": "invariant",
+        "fr": "invariant",
+        "es": "invariante"
+      },
       "tier": 2,
-      "def": "A property true of every complete solution (parity, border balance, colour counts). Break one and you have a quick impossibility proof.",
+      "def": {
+        "en": "A property true of every complete solution (parity, border balance, colour counts). Break one and you have a quick impossibility proof.",
+        "fr": "Une propriété vraie de toute solution complète (parité, équilibre de bordure, comptes de couleurs). En briser une, et l'on tient une preuve d'impossibilité rapide.",
+        "es": "Una propiedad cierta en toda solución completa (paridad, equilibrio de borde, conteos de colores). Rompe una y tienes una prueba de imposibilidad rápida."
+      },
       "see": "/research/build/analysis/parity-arguments"
     },
     {
-      "term": "local optimum",
+      "term": {
+        "en": "local optimum",
+        "fr": "optimum local",
+        "es": "óptimo local"
+      },
       "tier": 2,
-      "def": "A board with no single improving move. Record boards are frozen in one: the step to a perfect board is not a local improvement.",
+      "def": {
+        "en": "A board with no single improving move. Record boards are frozen in one: the step to a perfect board is not a local improvement.",
+        "fr": "Un plateau sans aucun coup améliorant. Les plateaux record y sont figés : le pas vers un plateau parfait n'est pas une amélioration locale.",
+        "es": "Un tablero sin ningún movimiento de mejora. Los tableros récord están congelados en uno: el paso hacia un tablero perfecto no es una mejora local."
+      },
       "see": "/research/why/rigidity-wall"
     },
     {
-      "term": "local search",
+      "term": {
+        "en": "local search",
+        "fr": "recherche locale",
+        "es": "búsqueda local"
+      },
       "tier": 1,
-      "def": "Start from a full, imperfect board and improve it by moves (swaps, relocations, destroy-and-repair) guided by the mismatch count.",
+      "def": {
+        "en": "Start from a full, imperfect board and improve it by moves (swaps, relocations, destroy-and-repair) guided by the mismatch count.",
+        "fr": "Partir d'un plateau complet mais imparfait et l'améliorer par des coups (échanges, relocalisations, détruire-et-réparer) guidés par le nombre de défauts.",
+        "es": "Partir de un tablero completo pero imperfecto y mejorarlo mediante movimientos (intercambios, reubicaciones, destruir y reparar) guiados por el número de desajustes."
+      },
       "see": "/research/build/local-search"
     },
     {
-      "term": "matched edge",
+      "term": {
+        "en": "matched edge",
+        "fr": "bord apparié",
+        "es": "lado emparejado"
+      },
       "tier": 3,
-      "def": "An edge showing the same colour on both sides. The score is the count of matched edges, out of 480; a mismatch is the opposite.",
+      "def": {
+        "en": "An edge showing the same colour on both sides. The score is the count of matched edges, out of 480; a mismatch is the opposite.",
+        "fr": "Un bord montrant la même couleur des deux côtés. Le score est le nombre de bords appariés, sur 480 ; un défaut en est l'opposé.",
+        "es": "Un lado que muestra el mismo color en ambos costados. El puntaje es el conteo de lados emparejados, sobre 480; un desajuste es lo contrario."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "meet in the middle",
+      "term": {
+        "en": "meet in the middle",
+        "fr": "rencontre au milieu",
+        "es": "encuentro en el medio"
+      },
       "tier": 2,
-      "def": "Enumerate two halves of the board and join them on a shared interface, trading memory for half the exponent. Real on bands, measured to stop paying at full size.",
+      "def": {
+        "en": "Enumerate two halves of the board and join them on a shared interface, trading memory for half the exponent. Real on bands, measured to stop paying at full size.",
+        "fr": "Énumérer deux moitiés du plateau et les joindre sur une interface commune, échangeant de la mémoire contre la moitié de l'exposant. Réel sur des bandes, mesuré comme cessant de payer à taille pleine.",
+        "es": "Enumerar dos mitades del tablero y unirlas por una interfaz común, cambiando memoria por la mitad del exponente. Real en bandas, medido como dejar de rendir a tamaño completo."
+      },
       "see": "/research/build/exact/meet-in-the-middle"
     },
     {
-      "term": "mismatch-tolerant search",
+      "term": {
+        "en": "mismatch-tolerant search",
+        "fr": "recherche tolérante aux défauts",
+        "es": "búsqueda tolerante a desajustes"
+      },
       "tier": 1,
-      "def": "A backtracker that permits a budget of deliberate mismatches, aiming for a high partial score (467, 469, 470) rather than a perfect 480.",
+      "def": {
+        "en": "A backtracker that permits a budget of deliberate mismatches, aiming for a high partial score (467, 469, 470) rather than a perfect 480.",
+        "fr": "Un backtracker qui autorise un budget de défauts délibérés, visant un score partiel élevé (467, 469, 470) plutôt qu'un 480 parfait.",
+        "es": "Un backtracker que permite un presupuesto de desajustes deliberados, buscando un puntaje parcial alto (467, 469, 470) en lugar de un 480 perfecto."
+      },
       "see": "/research/lab/experiments/joshua-blackwood/solver"
     },
     {
-      "term": "motif",
+      "term": {
+        "en": "motif",
+        "fr": "motif",
+        "es": "motivo"
+      },
       "tier": 3,
-      "def": "The printed glyph standing for each edge colour on the physical tiles. This site can render boards in the real motifs.",
+      "def": {
+        "en": "The printed glyph standing for each edge colour on the physical tiles. This site can render boards in the real motifs.",
+        "fr": "Le glyphe imprimé qui représente chaque couleur de bord sur les tuiles physiques. Ce site sait afficher les plateaux avec les vrais motifs.",
+        "es": "El glifo impreso que representa cada color de lado en las fichas físicas. Este sitio sabe dibujar los tableros con los motivos reales."
+      },
       "see": "/research/reference"
     },
     {
-      "term": "no-good learning",
+      "term": {
+        "en": "no-good learning",
+        "fr": "apprentissage de no-goods",
+        "es": "aprendizaje de no-goods"
+      },
       "tier": 2,
-      "def": "Recording that a particular partial state cannot extend, so the search never re-enters it. Pays on small boards; the number of distinct no-goods outruns memory at 16×16.",
+      "def": {
+        "en": "Recording that a particular partial state cannot extend, so the search never re-enters it. Pays on small boards; the number of distinct no-goods outruns memory at 16×16.",
+        "fr": "Enregistrer qu'un état partiel donné ne s'étend pas, pour que la recherche n'y revienne jamais. Rentable sur les petits plateaux ; le nombre de no-goods distincts dépasse la mémoire en 16×16.",
+        "es": "Registrar que un estado parcial dado no se extiende, para que la búsqueda nunca vuelva a él. Rinde en tableros pequeños; el número de no-goods distintos supera la memoria en 16×16."
+      },
       "see": "/research/build/reduce/nogood-learning"
     },
     {
-      "term": "node",
+      "term": {
+        "en": "node",
+        "fr": "nœud",
+        "es": "nodo"
+      },
       "tier": 2,
-      "def": "One state in the search tree. Node cost, the time to evaluate one, is what solver engineering drives down.",
+      "def": {
+        "en": "One state in the search tree. Node cost, the time to evaluate one, is what solver engineering drives down.",
+        "fr": "Un état de l'arbre de recherche. Le coût par nœud, le temps d'en évaluer un, est ce que l'ingénierie de solveur cherche à réduire.",
+        "es": "Un estado del árbol de búsqueda. El coste por nodo, el tiempo de evaluar uno, es lo que la ingeniería de solucionadores baja."
+      },
       "see": "/research/build/dead-ends"
     },
     {
-      "term": "parity argument",
+      "term": {
+        "en": "parity argument",
+        "fr": "argument de parité",
+        "es": "argumento de paridad"
+      },
       "tier": 2,
-      "def": "Counting something on the board twice, once from each side; the totals must agree, which yields one-pass impossibility proofs.",
+      "def": {
+        "en": "Counting something on the board twice, once from each side; the totals must agree, which yields one-pass impossibility proofs.",
+        "fr": "Compter quelque chose sur le plateau deux fois, une fois de chaque côté ; les totaux doivent concorder, ce qui donne des preuves d'impossibilité en une passe.",
+        "es": "Contar algo del tablero dos veces, una por cada lado; los totales deben coincidir, lo que da pruebas de imposibilidad en una sola pasada."
+      },
       "see": "/research/build/analysis/parity-arguments"
     },
     {
-      "term": "phase transition",
+      "term": {
+        "en": "phase transition",
+        "fr": "transition de phase",
+        "es": "transición de fase"
+      },
       "tier": 1,
-      "def": "The difficulty peak where solutions are scarce but do exist. Eternity II's 22 colours place it right at that peak by design.",
+      "def": {
+        "en": "The difficulty peak where solutions are scarce but do exist. Eternity II's 22 colours place it right at that peak by design.",
+        "fr": "Le pic de difficulté où les solutions sont rares mais existent bel et bien. Les 22 couleurs d'Eternity II le placent pile sur ce pic, par conception.",
+        "es": "El pico de dificultad donde las soluciones son escasas pero existen. Los 22 colores de Eternity II lo sitúan justo en ese pico, por diseño."
+      },
       "see": "/research/why/phase-transition"
     },
     {
-      "term": "piece",
+      "term": {
+        "en": "piece",
+        "fr": "pièce",
+        "es": "pieza"
+      },
       "tier": 3,
-      "def": "One of the 256 square tiles, each with four coloured edges. Also called a tile.",
+      "def": {
+        "en": "One of the 256 square tiles, each with four coloured edges. Also called a tile.",
+        "fr": "L'une des 256 tuiles carrées, chacune à quatre bords colorés. Aussi appelée tuile.",
+        "es": "Una de las 256 fichas cuadradas, cada una con cuatro lados de color. También llamada ficha."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "piece theft",
+      "term": {
+        "en": "piece theft",
+        "fr": "vol de pièce",
+        "es": "robo de pieza"
+      },
       "tier": 1,
-      "def": "Spending a scarce piece in the wrong place early, so a later cell that needed it has nothing to fill it. Where many searches quietly die.",
+      "def": {
+        "en": "Spending a scarce piece in the wrong place early, so a later cell that needed it has nothing to fill it. Where many searches quietly die.",
+        "fr": "Dépenser tôt une pièce rare au mauvais endroit, si bien qu'une case ultérieure qui en avait besoin n'a plus rien pour la remplir. Là où bien des recherches meurent en silence.",
+        "es": "Gastar pronto una pieza escasa en el lugar equivocado, de modo que una casilla posterior que la necesitaba se queda sin nada con que llenarla. Donde muchas búsquedas mueren en silencio."
+      },
       "see": "/research/why/piece-theft"
     },
     {
-      "term": "placement",
+      "term": {
+        "en": "placement",
+        "fr": "placement",
+        "es": "colocación"
+      },
       "tier": 3,
-      "def": "An assignment of a particular piece at a particular rotation to a particular cell.",
+      "def": {
+        "en": "An assignment of a particular piece at a particular rotation to a particular cell.",
+        "fr": "L'affectation d'une pièce donnée, à une rotation donnée, à une case donnée.",
+        "es": "La asignación de una pieza dada, en una rotación dada, a una casilla dada."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "propagation",
+      "term": {
+        "en": "propagation",
+        "fr": "propagation",
+        "es": "propagación"
+      },
       "tier": 2,
-      "def": "See constraint propagation: removing candidates forced dead by a placement, cascading to a fixed point.",
+      "def": {
+        "en": "See constraint propagation: removing candidates forced dead by a placement, cascading to a fixed point.",
+        "fr": "Voir propagation de contraintes : retirer les candidats rendus morts par un placement, en cascade jusqu'à un point fixe.",
+        "es": "Véase propagación de restricciones: quitar los candidatos que una colocación deja muertos, en cascada hasta un punto fijo."
+      },
       "see": "/research/build/reduce/arc-consistency"
     },
     {
-      "term": "pruning",
+      "term": {
+        "en": "pruning",
+        "fr": "élagage",
+        "es": "poda"
+      },
       "tier": 2,
-      "def": "Discarding a whole branch of the search without exploring it, using a constraint, a bound, or an impossibility proof.",
+      "def": {
+        "en": "Discarding a whole branch of the search without exploring it, using a constraint, a bound, or an impossibility proof.",
+        "fr": "Écarter toute une branche de la recherche sans l'explorer, au moyen d'une contrainte, d'une borne ou d'une preuve d'impossibilité.",
+        "es": "Descartar toda una rama de la búsqueda sin explorarla, mediante una restricción, una cota o una prueba de imposibilidad."
+      },
       "see": "/research/why/prune-vs-speed"
     },
     {
-      "term": "relaxation (LP/ILP)",
+      "term": {
+        "en": "relaxation (LP/ILP)",
+        "fr": "relaxation (LP/ILP)",
+        "es": "relajación (LP/ILP)"
+      },
       "tier": 2,
-      "def": "Dropping the whole-piece requirement so a linear solver can place fractions of pieces and reach zero error, then paying for it when integrality is restored.",
+      "def": {
+        "en": "Dropping the whole-piece requirement so a linear solver can place fractions of pieces and reach zero error, then paying for it when integrality is restored.",
+        "fr": "Abandonner l'exigence de pièces entières pour qu'un solveur linéaire puisse placer des fractions de pièces et atteindre une erreur nulle, puis le payer lorsqu'on rétablit l'intégralité.",
+        "es": "Renunciar al requisito de piezas enteras para que un solucionador lineal pueda colocar fracciones de piezas y llegar a error cero, y pagarlo luego al restablecer la integralidad."
+      },
       "see": "/research/build/exact/lp-relaxations"
     },
     {
-      "term": "restart portfolio",
+      "term": {
+        "en": "restart portfolio",
+        "fr": "portefeuille de redémarrages",
+        "es": "cartera de reinicios"
+      },
       "tier": 2,
-      "def": "Running the same solver many times with different random seeds, cutting each off early. Every record solver since 2007 is one.",
+      "def": {
+        "en": "Running the same solver many times with different random seeds, cutting each off early. Every record solver since 2007 is one.",
+        "fr": "Lancer le même solveur de nombreuses fois avec des graines aléatoires différentes, en coupant chaque exécution tôt. Tout solveur record depuis 2007 en est un.",
+        "es": "Ejecutar el mismo solucionador muchas veces con semillas aleatorias distintas, cortando cada corrida pronto. Todo solucionador récord desde 2007 es uno."
+      },
       "see": "/research/build/backtracking/restarts"
     },
     {
-      "term": "rigidity wall",
+      "term": {
+        "en": "rigidity wall",
+        "fr": "mur de rigidité",
+        "es": "muro de rigidez"
+      },
       "tier": 1,
-      "def": "The proven fact that record boards are locally frozen: freeing and re-optimising the halo around the mismatches finds no improvement. The central barrier of the puzzle.",
+      "def": {
+        "en": "The proven fact that record boards are locally frozen: freeing and re-optimising the halo around the mismatches finds no improvement. The central barrier of the puzzle.",
+        "fr": "Le fait prouvé que les plateaux record sont localement figés : libérer et réoptimiser le halo autour des défauts ne trouve aucune amélioration. La barrière centrale du puzzle.",
+        "es": "El hecho probado de que los tableros récord están congelados localmente: liberar y reoptimizar el halo en torno a los desajustes no encuentra mejora. La barrera central del puzle."
+      },
       "see": "/research/why/rigidity-wall"
     },
     {
-      "term": "SAT",
+      "term": {
+        "en": "SAT",
+        "fr": "SAT",
+        "es": "SAT"
+      },
       "tier": 2,
-      "def": "Boolean satisfiability: is there an assignment satisfying every clause? Complete SAT solvers stall on the full board but still prove sub-boards impossible.",
+      "def": {
+        "en": "Boolean satisfiability: is there an assignment satisfying every clause? Complete SAT solvers stall on the full board but still prove sub-boards impossible.",
+        "fr": "Satisfiabilité booléenne : existe-t-il une affectation satisfaisant chaque clause ? Les solveurs SAT complets calent sur le plateau entier mais prouvent tout de même l'impossibilité de sous-plateaux.",
+        "es": "Satisfacibilidad booleana: ¿existe una asignación que satisfaga cada cláusula? Los solucionadores SAT completos se atascan en el tablero entero, pero aun así prueban imposibles los subtableros."
+      },
       "see": "/research/build/exact/sat-csp-encodings"
     },
     {
-      "term": "score",
+      "term": {
+        "en": "score",
+        "fr": "score",
+        "es": "puntaje"
+      },
       "tier": 3,
-      "def": "The number of matched edges on a board, out of 480. A perfect solution scores 480; the community record scores 470.",
+      "def": {
+        "en": "The number of matched edges on a board, out of 480. A perfect solution scores 480; the community record scores 470.",
+        "fr": "Le nombre de bords appariés sur un plateau, sur 480. Une solution parfaite fait 480 ; le record de la communauté fait 470.",
+        "es": "El número de lados emparejados en un tablero, sobre 480. Una solución perfecta puntúa 480; el récord de la comunidad puntúa 470."
+      },
       "see": "/research/build/known-facts"
     },
     {
-      "term": "search tree",
+      "term": {
+        "en": "search tree",
+        "fr": "arbre de recherche",
+        "es": "árbol de búsqueda"
+      },
       "tier": 2,
-      "def": "The exponential tree of all placement sequences a backtracker could explore. On Eternity II it is astronomically large and barely shrinkable.",
+      "def": {
+        "en": "The exponential tree of all placement sequences a backtracker could explore. On Eternity II it is astronomically large and barely shrinkable.",
+        "fr": "L'arbre exponentiel de toutes les séquences de placement qu'un backtracker pourrait explorer. Sur Eternity II il est astronomiquement grand et à peine réductible.",
+        "es": "El árbol exponencial de todas las secuencias de colocación que un backtracker podría explorar. En Eternity II es astronómicamente grande y apenas reducible."
+      },
       "see": "/research/build/dead-ends"
     },
     {
-      "term": "σ-cycle (sigma cycle)",
+      "term": {
+        "en": "σ-cycle (sigma cycle)",
+        "fr": "σ-cycle (cycle sigma)",
+        "es": "σ-ciclo (ciclo sigma)"
+      },
       "tier": 1,
-      "def": "An interlocking loop of piece moves connecting two board configurations. Because every partial application scores worse, you cannot walk between basins gradually.",
+      "def": {
+        "en": "An interlocking loop of piece moves connecting two board configurations. Because every partial application scores worse, you cannot walk between basins gradually.",
+        "fr": "Une boucle imbriquée de mouvements de pièces reliant deux configurations de plateau. Comme toute application partielle score moins bien, on ne peut passer d'un bassin à l'autre progressivement.",
+        "es": "Un bucle entrelazado de movimientos de piezas que conecta dos configuraciones de tablero. Como toda aplicación parcial puntúa peor, no se puede pasar de una cuenca a otra de forma gradual."
+      },
       "see": "/research/why/sigma-cycles"
     },
     {
-      "term": "solver engineering",
+      "term": {
+        "en": "solver engineering",
+        "fr": "ingénierie de solveur",
+        "es": "ingeniería de solucionadores"
+      },
       "tier": 1,
-      "def": "The craft below the algorithm: lookup tables, cache-sized structs, generated code. It decides whether a node costs 26 cycles or 2,600, and it is why the record engines run at all.",
+      "def": {
+        "en": "The craft below the algorithm: lookup tables, cache-sized structs, generated code. It decides whether a node costs 26 cycles or 2,600, and it is why the record engines run at all.",
+        "fr": "L'artisanat sous l'algorithme : tables de correspondance, structures taillées pour le cache, code généré. Il décide si un nœud coûte 26 cycles ou 2 600, et c'est pourquoi les moteurs record tournent tout court.",
+        "es": "El oficio bajo el algoritmo: tablas de consulta, estructuras del tamaño de la caché, código generado. Decide si un nodo cuesta 26 ciclos o 2 600, y es la razón de que los motores récord funcionen siquiera."
+      },
       "see": "/research/build/faster/solver-engineering"
     },
     {
-      "term": "solver speed (nodes per second)",
+      "term": {
+        "en": "solver speed (nodes per second)",
+        "fr": "vitesse de solveur (nœuds par seconde)",
+        "es": "velocidad del solucionador (nodos por segundo)"
+      },
       "tier": 3,
-      "def": "Throughput: how many placements a solver evaluates per second. It changes which boards you reach, not the ceiling you hit.",
+      "def": {
+        "en": "Throughput: how many placements a solver evaluates per second. It changes which boards you reach, not the ceiling you hit.",
+        "fr": "Le débit : combien de placements un solveur évalue par seconde. Il change les plateaux que l'on atteint, pas le plafond auquel on se heurte.",
+        "es": "El rendimiento: cuántas colocaciones evalúa un solucionador por segundo. Cambia los tableros a los que llegas, no el techo con el que chocas."
+      },
       "see": "/research/build/faster/solver-engineering"
     },
     {
-      "term": "strict-5 (strict-canonical)",
+      "term": {
+        "en": "strict-5 (strict-canonical)",
+        "fr": "strict-5 (strict-canonique)",
+        "es": "estricto-5 (estricto-canónico)"
+      },
       "tier": 1,
-      "def": "A board that honours all five official clues: the mandatory centre piece plus the four placements the clue puzzles reveal. Most records honour only the centre.",
+      "def": {
+        "en": "A board that honours all five official clues: the mandatory centre piece plus the four placements the clue puzzles reveal. Most records honour only the centre.",
+        "fr": "Un plateau qui respecte les cinq indices officiels : la pièce centrale obligatoire plus les quatre placements révélés par les puzzles indices. La plupart des records ne respectent que le centre.",
+        "es": "Un tablero que respeta las cinco pistas oficiales: la pieza central obligatoria más las cuatro colocaciones que revelan los puzles pista. La mayoría de los récords respeta solo el centro."
+      },
       "see": "/research/build/clue-puzzles"
     },
     {
-      "term": "tempering (parallel tempering)",
+      "term": {
+        "en": "tempering (parallel tempering)",
+        "fr": "trempe (trempe parallèle)",
+        "es": "templado (templado paralelo)"
+      },
       "tier": 2,
-      "def": "Run several annealing chains at different temperatures and periodically swap their states, so the search crosses barriers a single chain cannot.",
+      "def": {
+        "en": "Run several annealing chains at different temperatures and periodically swap their states, so the search crosses barriers a single chain cannot.",
+        "fr": "Faire tourner plusieurs chaînes de recuit à des températures différentes et échanger périodiquement leurs états, pour que la recherche franchisse des barrières qu'une seule chaîne ne peut passer.",
+        "es": "Ejecutar varias cadenas de recocido a distintas temperaturas e intercambiar periódicamente sus estados, para que la búsqueda cruce barreras que una sola cadena no puede."
+      },
       "see": "/research/build/local-search/parallel-tempering"
     },
     {
-      "term": "transposition table",
+      "term": {
+        "en": "transposition table",
+        "fr": "table de transposition",
+        "es": "tabla de transposición"
+      },
       "tier": 2,
-      "def": "A hash table of already-evaluated states, so identical subtrees are not re-explored. Its hit rate is low on Eternity II.",
+      "def": {
+        "en": "A hash table of already-evaluated states, so identical subtrees are not re-explored. Its hit rate is low on Eternity II.",
+        "fr": "Une table de hachage des états déjà évalués, pour ne pas réexplorer des sous-arbres identiques. Son taux de succès est faible sur Eternity II.",
+        "es": "Una tabla hash de estados ya evaluados, para no reexplorar subárboles idénticos. Su tasa de aciertos es baja en Eternity II."
+      },
       "see": "/research/build/reduce/nogood-learning"
     },
     {
-      "term": "URDL",
+      "term": {
+        "en": "URDL",
+        "fr": "URDL",
+        "es": "URDL"
+      },
       "tier": 3,
-      "def": "Up–right–down–left: the order in which a piece's four edge colours are written, and the sense of a clockwise rotation.",
+      "def": {
+        "en": "Up, right, down, left: the order in which a piece's four edge colours are written, and the sense of a clockwise rotation.",
+        "fr": "Haut, droite, bas, gauche : l'ordre dans lequel s'écrivent les quatre couleurs de bord d'une pièce, et le sens d'une rotation horaire.",
+        "es": "Arriba, derecha, abajo, izquierda: el orden en que se escriben los cuatro colores de lado de una pieza, y el sentido de una rotación horaria."
+      },
       "see": "/research/reference"
     },
     {
-      "term": "void",
+      "term": {
+        "en": "void",
+        "fr": "vide (void)",
+        "es": "vacío (void)"
+      },
       "tier": 1,
-      "def": "A corner colour-pair that no interior piece can present, so a cell demanding it is a dead end before any piece is placed.",
+      "def": {
+        "en": "A corner colour-pair that no interior piece can present, so a cell demanding it is a dead end before any piece is placed.",
+        "fr": "Une paire de couleurs d'angle qu'aucune pièce intérieure ne peut présenter, si bien qu'une case qui l'exige est une impasse avant même qu'aucune pièce ne soit posée.",
+        "es": "Un par de colores de esquina que ninguna pieza interior puede presentar, de modo que una casilla que lo exige es un callejón sin salida antes de colocar pieza alguna."
+      },
       "see": "/research/why/forbidden-patterns"
     },
     {
-      "term": "wall",
+      "term": {
+        "en": "wall",
+        "fr": "mur",
+        "es": "muro"
+      },
       "tier": 1,
-      "def": "A barrier that stops a solver at a score: the rigidity wall (no local improvement), the σ-cycle wall (no basin hop), the depth wall (breadth search stalls). Different methods die on different walls.",
+      "def": {
+        "en": "A barrier that stops a solver at a score: the rigidity wall (no local improvement), the σ-cycle wall (no basin hop), the depth wall (breadth search stalls). Different methods die on different walls.",
+        "fr": "Une barrière qui arrête un solveur à un score : le mur de rigidité (aucune amélioration locale), le mur des σ-cycles (aucun saut de bassin), le mur de profondeur (la recherche en largeur cale). Chaque méthode meurt sur un mur différent.",
+        "es": "Una barrera que detiene a un solucionador en un puntaje: el muro de rigidez (sin mejora local), el muro de los σ-ciclos (sin salto de cuenca), el muro de profundidad (la búsqueda en amplitud se atasca). Cada método muere en un muro distinto."
+      },
       "see": "/research/why/rigidity-wall"
     },
     {
-      "term": "XCC (exact cover with colours)",
+      "term": {
+        "en": "XCC (exact cover with colours)",
+        "fr": "XCC (couverture exacte avec couleurs)",
+        "es": "XCC (cobertura exacta con colores)"
+      },
       "tier": 2,
-      "def": "Knuth's extension of exact cover with coloured secondary items, which models edge matching faithfully. The clean statement of Eternity II as exact cover.",
+      "def": {
+        "en": "Knuth's extension of exact cover with coloured secondary items, which models edge matching faithfully. The clean statement of Eternity II as exact cover.",
+        "fr": "L'extension par Knuth de la couverture exacte avec des éléments secondaires colorés, qui modélise fidèlement l'appariement des bords. L'énoncé propre d'Eternity II comme couverture exacte.",
+        "es": "La extensión de Knuth de la cobertura exacta con elementos secundarios coloreados, que modela con fidelidad el emparejamiento de lados. El enunciado limpio de Eternity II como cobertura exacta."
+      },
       "see": "/research/build/exact/exact-cover-dlx"
     }
   ]

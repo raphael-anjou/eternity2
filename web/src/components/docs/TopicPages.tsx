@@ -6,6 +6,8 @@
 import { useLang, useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
+import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
+import { RECORD_BOARDS } from "@/data/record-boards";
 import {
   findSection,
   kindLabel,
@@ -80,19 +82,41 @@ function Crumbs({ current }: { current: string }) {
 
 function PageCard({ item }: { item: NavItem }) {
   const { lang } = useLang();
+  // Small board thumbnail only when the page carries a valid board id; without
+  // one the card keeps its exact prior layout (text-only).
+  const board = item.board ? RECORD_BOARDS.find((b) => b.id === item.board) : undefined;
   return (
     <LocalizedLink
       to={item.url}
       className="group block rounded-lg border p-4 transition-shadow hover:shadow-md"
     >
-      <div className="flex items-center gap-2">
-        <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[item.kind])} aria-hidden />
-        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-          {kindLabel(item.kind, lang)}
-        </span>
-      </div>
-      <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
-        {item.title}
+      <div className={cn(board && "flex items-start gap-3")}>
+        {board && (
+          <LazyBoardPreview
+            params={board.viewerParams}
+            showConflicts={false}
+            className="w-16 shrink-0 sm:w-20"
+          />
+        )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn("h-2 w-2 shrink-0 rounded-full", KIND_DOT[item.kind])}
+              aria-hidden
+            />
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {kindLabel(item.kind, lang)}
+            </span>
+            {board && item.score !== undefined && (
+              <span className="ml-auto rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                {item.score}/480
+              </span>
+            )}
+          </div>
+          <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
+            {item.title}
+          </div>
+        </div>
       </div>
     </LocalizedLink>
   );

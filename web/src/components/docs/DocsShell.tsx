@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { REPO_URL } from "@/site";
 import {
   allNavItems,
+  backlinkItems,
   findSection,
   sectionReadingOrder,
   kindLabel,
@@ -49,6 +50,7 @@ const T = {
     previous: "Previous",
     next: "Next",
     keepExploring: "Keep exploring",
+    referencedBy: "Referenced by",
     editOnGitHub: "Page source",
     viewMarkdown: "View as Markdown",
     updated: "Updated",
@@ -145,6 +147,7 @@ const T = {
     previous: "Précédent",
     next: "Suivant",
     keepExploring: "Continuer l'exploration",
+    referencedBy: "Cité par",
     editOnGitHub: "Source de la page",
     viewMarkdown: "Version Markdown",
     updated: "Mis à jour",
@@ -241,6 +244,7 @@ const T = {
     previous: "Anterior",
     next: "Siguiente",
     keepExploring: "Seguir explorando",
+    referencedBy: "Citado por",
     editOnGitHub: "Fuente de la página",
     viewMarkdown: "Ver como Markdown",
     updated: "Actualizado",
@@ -821,6 +825,41 @@ function Related({ doc }: { doc: ResearchDoc }) {
   );
 }
 
+/** "Referenced by": the other research pages that link to this one in prose,
+ *  the reverse of the related rail. A discoverability aid, not curated content,
+ *  so it renders compact (a wrapped list of small links, not the card grid) and
+ *  only when there is at least one inbound prose link. Capped at 8; sources
+ *  arrive in section reading order from the compile-time backlink map. */
+function ReferencedBy({ doc }: { doc: ResearchDoc }) {
+  const t = useT(T);
+  const { lang } = useLang();
+  const items = backlinkItems(lang, doc.url, 8);
+  if (items.length === 0) return null;
+  return (
+    <section className="mt-10 border-t pt-6">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {t.referencedBy}
+      </h2>
+      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        {items.map((n) => (
+          <li key={n.url} className="flex items-center gap-1.5">
+            <span
+              className={cn("h-1.5 w-1.5 shrink-0 rounded-full", KIND_DOT[n.kind])}
+              aria-hidden
+            />
+            <LocalizedLink
+              to={n.url}
+              className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              {n.title}
+            </LocalizedLink>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function DocsShell({
   doc,
   children,
@@ -885,6 +924,7 @@ export function DocsShell({
         <ReproBlock doc={doc} />
         <PrevNext doc={doc} />
         <Related doc={doc} />
+        <ReferencedBy doc={doc} />
         <p className="mt-8 flex gap-4 text-xs text-muted-foreground">
           <a
             href={`${REPO_URL}/blob/main/web/content/research/${doc.file}`}
