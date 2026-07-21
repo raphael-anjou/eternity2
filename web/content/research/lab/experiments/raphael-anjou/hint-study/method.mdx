@@ -1,0 +1,203 @@
+---
+title: How the study is built
+description: >-
+  The apparatus behind the hint study: a parametric board generator faithful to
+  Eternity II's colour recipe at every size, the family of fill-path backtrackers,
+  the one canonical scorer, and the piece of arithmetic that keeps the count axis
+  honest — the pinned-seam floor.
+metaDescription: "The apparatus behind the hint study: a size-parametric Eternity II board generator, a family of fill-path backtrackers, one canonical scorer, and the pinned-seam floor that keeps a hint-count comparison honest. With the census-balance and frontier-branching arithmetic in full."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/lab/experiments/raphael-anjou/hint-study/findings
+  - /research/why/hint-geometry
+sources:
+  - label: "The parametric generator and the fill-path engine (this study's backing directory)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { HintLayoutGallery } from "@/components/research/HintLayoutGallery";
+
+This page is the apparatus behind the [hint study](/research/lab/experiments/raphael-anjou/hint-study):
+how the boards are generated, why they stay faithful to Eternity II across sizes,
+the family of fill paths, and — the piece that matters most for reading the
+results honestly — the arithmetic of the *pinned-seam floor*, which is what
+separates a real effect from a measurement artifact on the count axis.
+
+## The boards: a faithful, size-parametric generator
+
+Every instance is generated from scratch, seeded, and deterministic: the same
+`(size, colours, seed)` produces the same board on any machine. A generated board
+is a *solved* board — piece $i$ sits at cell $i$ at rotation zero — whose piece
+IDs are then relabelled by a seeded permutation, so a hint for cell `pos` pins the
+(relabelled) true piece, and a solver cannot simply walk the identity placement.
+
+The colour recipe mirrors the official puzzle's structure exactly. On an $n\times n$
+board there are
+
+$$
+E(n) \;=\; 2\,n\,(n-1)
+$$
+
+interior seams (the matched edges; $E(16) = 480$). These split into a **frame band**
+— the seams joining two border pieces along the rim — and the deep interior. The
+five *border colours* are confined to the frame band and never appear in the
+interior; the *interior colours* appear both in the deep interior and on the
+inward-facing edge of border pieces. This is the defining structural fact of a real
+Eternity II board, and the generator reproduces it and is tested against it.
+
+### Why the census is automatically balanced (a claim to state carefully)
+
+It is tempting — and the earlier write-ups did this — to present Eternity II's
+*even* colour census as a specially tuned gift: every colour appears an even number
+of times, so a perfect solution's $\sum_c N_c / 2$ matches land with zero slack.
+The even parity is real, but it is **not** a tuning achievement. It is forced.
+
+A colour painted on $k$ interior seams appears on exactly $2k$ piece-edges, one on
+each side of every seam. So for every colour $c$,
+
+$$
+N_c \;=\; 2\,k_c \quad\text{is even, for any seam colouring whatsoever.}
+$$
+
+Zero-slack parity is therefore automatic for *any* board built by colouring seams —
+it says nothing special about Eternity II. The properties that are genuinely
+load-bearing, and that the generator must get right, are three: border colours
+confined to the frame band, the per-colour counts kept **balanced** (so no colour is
+rare enough to over-constrain), and every piece **distinct up to rotation** (so a
+pinned hint names a unique piece). The study's write-up is precise about this where
+the earlier framing was not.
+
+### Scaling the recipe without changing the difficulty
+
+The generator and the solver are both size-parametric — the board can be $8\times8$
+or $12\times12$ as readily as $16\times16$ — which opens a natural follow-up: does the
+placement effect *strengthen* as the board grows? Answering that cleanly needs a
+colour recipe that does not change the puzzle's *difficulty* as the size changes.
+Simply keeping the colour *counts* fixed while growing $n$ would make the puzzle
+structurally *easier* at large $n$: with more seams and the same palette, each colour
+repeats more often, so the average cell accepts more neighbours and the constraint
+loosens. That would confound size with difficulty.
+
+Instead the recipe holds the **per-colour multiplicity** roughly constant. Writing
+$F(n)$ for the frame-band seam count and $E(n) - F(n)$ for the interior, the number
+of border and interior colours is chosen as
+
+$$
+b(n) \;=\; \operatorname{round}\!\Big(\tfrac{F(n)}{12}\Big), \qquad
+i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
+$$
+
+targeting the multiplicities Eternity II itself uses at $n=16$ (border $\approx 12$,
+interior $\approx 24$). At $n=16$ this returns exactly the official recipe — five
+border colours and seventeen interior. One honest caveat keeps the scaling trend a
+*future* result rather than a reported one: at the smallest sizes the frame's cap of
+five border colours leaves too few interior colours for the recipe to stay faithful
+(at $8\times8$ only one), so a clean, unconfounded size sweep needs the recipe
+refined at the low end first. The size-parametric machinery is in place and
+validated; the trend itself is deferred rather than reported half-confounded. The
+results on this page are all at $16\times16$.
+
+## The hint geometries
+
+Each layout is a pure function of the board size, so the same geometry can be drawn,
+measured, and scaled consistently. The gallery below renders them all from the one
+shared board primitive.
+
+<HintLayoutGallery />
+
+## The pinned-seam floor: keeping the count axis honest
+
+Here is the subtlety that reshaped the study. Ask "do more hints help?" and the
+obvious move is to compare final scores at different hint counts. But a hint does two
+different things at once, and score conflates them:
+
+1. it **removes a piece** from the search (the useful part — it prunes the tree);
+2. it **may complete a seam for free**, if a neighbouring cell is also pinned.
+
+The second effect is a pure bookkeeping gift. Define the **pinned-seam floor** of a
+layout as the number of interior seams with *both* endpoints pinned:
+
+$$
+\text{floor} \;=\; \#\{\, \text{interior seams } (u,v) : u \text{ and } v \text{ both hinted} \,\}.
+$$
+
+Because the pins are true-solution pieces, every such seam is guaranteed correct
+before the solver runs. A solid $k\times k$ clustered block contributes $2k(k-1)$ of
+them; five $k{=}4$ blocks bank $5 \cdot 24 = 120$ correct seams — a **quarter of the
+whole 480** — for free. A spread lattice, whose hints never touch, has a floor of
+**zero**.
+
+So a raw-score comparison systematically **flatters clustered layouts**: they start
+a hundred-plus points ahead on bookkeeping alone, regardless of whether the board
+became any easier to *finish*. This is the same family of error as counting rim
+seams in a partial board — a floor that inflates the number without reflecting
+progress. The toggle in the gallery above draws these banked seams so the free score
+is visible.
+
+The study therefore does not rank layouts by raw score on the count axis. It uses two
+floor-immune metrics:
+
+- **solved-rate** — the fraction of instances a path actually completes to 480;
+- **reached depth** — how far past the pinned cells the search got, out of 256.
+
+Both measure whether the search made *progress the pins did not hand it*. On the
+path axis, where every compared layout shares the *same* hints and hence the same
+floor, raw score is directly comparable and is used.
+
+## Measuring against no hints, paired per instance
+
+The question "what are the hints worth?" only has an answer relative to *not* having
+them. So the path axis is run twice on every board: once with the five clue-shape
+hints, once with none (`baseline_00`), and the reported effect is the **paired
+difference** — the hinted score minus the no-hint score on the *same* generated
+board. Pairing per instance removes the board-to-board difficulty variance, which
+on these bimodal boards is large enough to swamp the effect if the two conditions
+were compared across different seeds. A negative paired difference means the hints
+made that fill order worse than it was with a blank interior — which is what the
+findings report. All comparisons use the common set of seeds that ran to completion,
+so every path and layout is aggregated over the identical instances.
+
+## The fill paths, and why the frontier is the lever
+
+The engine is the study's sibling [DFS backtracker](/research/lab/experiments/raphael-anjou/dfs-study),
+run strict (no breaks, no propagation) so that the **fill order is the only thing
+changing**. The orders tested are row-major, its bottom-up mirror, spiral-in,
+spiral-out, border-first, Verhaard's comb, a clue-rows-first control, and the
+study's own hint-seeking order, `connect-hints-first`.
+
+Why does the order matter so much? A backtracker's cost is governed by the **open
+frontier**: the set of already-filled cells still adjacent to an empty one. When the
+next cell is placed against a frontier of size $f$, the number of partial boards the
+search may have to consider grows multiplicatively in $f$ — branching is exponential
+in the frontier, not in the board. A single compact sweep keeps $f$ to about one row
+($\approx n$); an order that opens blobs around $k$ scattered hints runs $k$ frontiers
+at once, and
+
+$$
+\text{work} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
+$$
+
+so fragmenting the fill into disconnected regions multiplies, not adds, the cost.
+This is exactly why `connect-hints-first` — the order that *seeks* the hints — is the
+worst performer: reaching the hints early is worth far less than keeping the frontier
+small, and connecting scattered anchors does the opposite of keeping it small.
+
+## How to read the numbers
+
+Every board is re-scored by one canonical matched-edge scorer that never counts a
+border-facing (grey) seam. The maximum is $E(n)$ ($480$ at $16\times16$). Each of the
+fifteen seeds is a distinct generated instance, so across-seed spread is genuine
+instance variance. Throughput, where reported, is search-nodes per second and is
+never compared across different path orders, since a node under one order is not the
+same unit of work as under another. The whole apparatus — generator, layouts,
+per-run results, and the grid script — lives in the study's
+[backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study),
+and `just experiments hint-study` reruns it.

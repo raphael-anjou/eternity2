@@ -54,6 +54,26 @@ repair-study budget_s="60" parallel="6":
     python3 repair-study/scripts/make_site_json.py \
         --run repair-study/results/rerun
 
+# Hint study: build the parametric board generator and the DFS fill-path family,
+# then run every fill path on every hint geometry across many seeded instances
+# (single core per run, `--parallel`-wide), and regenerate the site JSON the
+# study pages read. The generator lives in the site engine; the solvers are the
+# DFS study's backtracker and the benchmark's beam, so a hinted board is scored
+# by the same canonical scorer as every other study.
+hint-study budget_s="8" parallel="6" seeds="15":
+    # hint_variants = parametric board+hint generator; hint_scale = the runtime-
+    # sized solver (one binary, any board size) for the scaling axis; run_dfs = the
+    # compile-time 16×16 backtracker (fast) that backs the core study; producer_trie
+    # = the beam contrast. run_dfs is built WITHOUT a size feature (=16×16).
+    cargo build --release --manifest-path ../../engine/Cargo.toml --bin hint_variants --bin hint_scale
+    cargo build --release --manifest-path dfs-study/engine/Cargo.toml --bin run_dfs
+    cargo build --release --manifest-path single-core-benchmark/engine/Cargo.toml --bin producer_trie
+    python3 hint-study/scripts/run_grid.py \
+        --out hint-study/results/rerun \
+        --budget-s {{budget_s}} --seeds {{seeds}} --parallel {{parallel}}
+    python3 hint-study/scripts/make_site_json.py \
+        --run hint-study/results/rerun
+
 # BANDSAW (analysis tool, not a solver): prove the optimal completion of a
 # board's endgame band by meet-in-the-middle. Runs the committed worked example.
 bandsaw rung_ms="15000" label_ms="1500":

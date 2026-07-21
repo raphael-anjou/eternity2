@@ -5,8 +5,14 @@
 
 use crate::{Board, Pieces, BORDER, H, W};
 
-/// The maximum matched-edge score for the 16x16 board: `2*W*H - W - H = 480`.
-pub const MAX_SCORE_16: u32 = (2 * W * H - W - H) as u32;
+/// The maximum matched-edge score for the current board size:
+/// `2*W*H - W - H` (= 480 at 16×16). Computed from the compile-time W/H, so it
+/// is correct at every size the `size-N` features select.
+pub const MAX_SCORE: u32 = (2 * W * H - W - H) as u32;
+
+/// Deprecated name kept so the existing (16×16) consumers compile unchanged.
+/// Prefer [`MAX_SCORE`]; this is the same value.
+pub const MAX_SCORE_16: u32 = MAX_SCORE;
 
 /// Score a grid of per-cell URDL edge colors. A right or down adjacency scores
 /// 1 iff the two facing edges are equal AND non-border. This is the single

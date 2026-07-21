@@ -178,6 +178,14 @@ pub fn all_specs() -> Vec<Spec> {
             Family::Path,
             PathOrder::ClueRowsFirst,
         ),
+        strict_engine(
+            "connect-hints-first",
+            "CONNECT-HINTS-FIRST",
+            Some("rowmajor"),
+            "BFS outward from every hint, connecting them first (the hint-seeking negative control)",
+            Family::Path,
+            PathOrder::ConnectHintsFirst,
+        ),
         // ---- Heuristic family: fix the path, add one propagator/order ----
         // The chain starts from border-first (the frame is where the rare
         // colours live) and adds, in order: dynamic MRV cell selection, then a

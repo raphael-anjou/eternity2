@@ -20,5 +20,17 @@ e2-io.workspace = true
 dfs-engine.workspace = true
 serde_json.workspace = true
 
+# Board-size selection for the hint study's scaling axis. Forwarding features to
+# e2-core; Cargo unifies the activated size across the whole build, so e2-io and
+# dfs-engine pick it up too. Default (no feature) is 16×16, so existing builds are
+# unchanged. Build e.g. `cargo build --release --features size-8 --bin run_dfs`.
+[features]
+default = []
+size-8 = ["e2-core/size-8"]
+size-10 = ["e2-core/size-10"]
+size-12 = ["e2-core/size-12"]
+size-14 = ["e2-core/size-14"]
+size-16 = ["e2-core/size-16"]
+
 [lints]
 workspace = true
