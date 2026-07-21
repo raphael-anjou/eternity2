@@ -438,11 +438,18 @@ fn main() {
     // Reports whether MORE clustered hints can lose to FEWER spread hints, and how
     // score moves as spread density rises (k per line = 2..6 → 4,9,16,25,36).
     let mut seen_spread = std::collections::BTreeSet::new();
+    let mut spread_counts = Vec::new();
     for k in 2..=6 {
         let cells = lattice_per_line(g, k);
         if cells.len() >= 4 && seen_spread.insert(cells.len()) {
+            spread_counts.push(cells.len());
             write_variant(&out_dir, &format!("ladder_spread_{:02}", cells.len()), g, &board, &scr, &cells);
         }
+    }
+    // Matched CONTIGUOUS blocks at the same counts, so spread-vs-contiguous is a
+    // clean per-count comparison (used by the solve-speed experiment).
+    for &cnt in &spread_counts {
+        write_variant(&out_dir, &format!("ladder_contig_{cnt:02}"), g, &board, &scr, &contiguous(cnt));
     }
     for k in 2..=4 {
         let cells = clustered_blocks(g, k);
