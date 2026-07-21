@@ -6,10 +6,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useT } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { KNOWN_BOARDS } from "@/data/known-boards";
 import { RECORDS, type RecordRow } from "@/data/records-timeline";
+import { RECORD_BOARDS } from "@/data/record-boards";
+import { FIVE_CLUE_CENSUS_2026 } from "@/data/community-boards-2026";
 import { RecordTimeline } from "@/components/research/RecordTimeline";
 
 // Records we have a real, bundled board for (e2.bucas.name viewer data) get a
@@ -17,6 +25,28 @@ import { RecordTimeline } from "@/components/research/RecordTimeline";
 const BOARD_PARAMS: Record<string, string> = Object.fromEntries(
   KNOWN_BOARDS.map((b) => [b.id, b.params]),
 );
+
+// Every board id that a headline record row already points at. The sibling
+// table below shows the KNOWN_BOARDS that are NOT one of these: independent
+// ties and near-misses (extra 469s, the second 470, the partial run) that carry
+// a real, re-scorable board but never earned their own row in the timeline.
+const RECORD_BOARD_IDS = new Set(RECORDS.map((r) => r.board).filter(Boolean));
+const SIBLING_BOARDS = KNOWN_BOARDS.filter(
+  (b) => b.score !== null && !RECORD_BOARD_IDS.has(b.id),
+).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+// The project's own bundled boards, tagged with their scoring convention. Every
+// one is scored by matched edges out of 480 with only the mandatory starter
+// clue placed (the open regime), recomputed from the board's own edges by the
+// record-boards pipeline. The experiment page each was produced on. Ordered by
+// score so the best (PALIMPSEST, 463) leads.
+const PROJECT_EXPERIMENT_PATH: Record<string, string> = {
+  "palimpsest-463": "/research/lab/experiments/raphael-anjou/learning/palimpsest",
+  "keyring-460": "/research/lab/experiments/raphael-anjou/learning/keyring",
+  "prior-460": "/research/lab/experiments/raphael-anjou/learning/prior",
+  "gauntlet-458": "/research/lab/experiments/raphael-anjou/pipelines/gauntlet",
+};
+const PROJECT_BEST = [...RECORD_BOARDS].sort((a, b) => b.score - a.score);
 
 // Distilled from our research vault's community history note, which is itself
 // distilled from ~11,500 groups.io messages (2007–2026) + the Discord archive
@@ -33,18 +63,46 @@ const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the official puzzle is 470 of 480 matched edges — Joshua Blackwood, 2021, tied once since (Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime — including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 464 (Benjamin Riotte, July 2026), which finally beat Bruno Gauthier's 460 after more than three years. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges (Joshua Blackwood, 2021, tied once since by Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime, including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 464 (Benjamin Riotte, July 2026), which finally beat Bruno Gauthier's 460 after more than three years. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
+    bestProject:
+      "This project's own boards reach 460 to 463 of 480 on the same puzzle: a few edges short of the community ceiling, in the same starter-only regime, and every one recomputed from its own edges and openable in the viewer.",
+    bestProjectLink: "See the project's boards plotted against the community ceiling",
+    openProblemsLink: "What still stands between 470 and 480: the open problems",
+    standsTitle: "Where this project stands",
+    standsIntro:
+      "The best board on record, the best strict five-clue board, and this project's own boards, side by side. Every score is matched edges out of 480; the regime tag says which clues were pinned, since a starter-only score and a five-clue score are not the same target.",
+    standsCols: { who: "Board", score: "Score", regime: "Regime", link: "Open" },
+    regimeOpen: "starter-only",
+    regimeStrict: "five clues",
+    standsCommunityOpen: "Community best (open)",
+    standsCommunityStrict: "Community best (five-clue)",
+    standsProjectBest: "This project's best",
+    standsProjectOther: "This project",
+    standsViewCommunity: "Community boards",
+    standsViewExperiment: "Experiment",
     timelineTitle: "Record timeline",
-    cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Preview" },
+    cols: { date: "Date", score: "Score", author: "Author", puzzle: "Puzzle", method: "Method", source: "Source", preview: "Re-score" },
     canonical: "official pieces",
     variant: "other set",
     view: "View board",
+    verifyNote:
+      "“View board” opens the board in the viewer, which recomputes the matched-edge score from the board's own edges. The number is not taken on trust: every listed score can be checked edge by edge.",
+    siblingTitle: "Sibling boards",
+    siblingIntro:
+      "Independent ties and near-misses that carry a real, re-scorable board but never took a timeline row of their own: the extra 469s from the Blackwood-solver runs, the second 470, and a deep partial. Each opens in the viewer.",
+    siblingCols: { board: "Board", score: "Score", open: "Open" },
+    censusStripTitle: "Distinct five-clue boards near the top",
+    censusStripNote:
+      "The author's own count of distinct boards at each score. Many at the lower scores are close variants within one basin, so the totals overstate the number of structurally independent solutions.",
+    censusStripBoards: "boards",
     timelineNote:
       "Mailing-list sources link the exact announcement message in the eternity2 groups.io archive; reading them requires a free groups.io account. Entries without a link were only reported in places with no public archive (e.g. Discord).",
     falsePositiveTitle: "Why some “480” boards don't count",
     falsePositive:
       "The real puzzle is the board TOMY sold: 256 specific pieces, a 16×16 frame, 22 colors, the starter piece pinned at I8 (the four other clues were optional aids under the contest rules). Several boards posted as 480/480 use different piece sets — Brendan Owen's smaller Clue-1 / Clue-2 designs, the unframed TopCoder variant, or boards mixing pieces from multiple expansion sets. They have solutions; those solutions do not transfer to the official puzzle. The official 480 remains unfound.",
     methodsTitle: "The key algorithms",
+    methodsDeadEnds: "The approaches Blackwood and others reported did not help (SAT solvers, GPUs, pre-solved caches) are catalogued in full on the",
+    methodsDeadEndsLink: "dead ends page",
     methods: [
       [
         "Selby–Riordan generator (2007)",
@@ -90,18 +148,46 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 — Joshua Blackwood, 2021, égalé une fois depuis (Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule » — y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 464 (Benjamin Riotte, juillet 2026), qui a enfin battu le 460 de Bruno Gauthier après plus de trois ans. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 (Joshua Blackwood, 2021, égalé une fois depuis par Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule », y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 464 (Benjamin Riotte, juillet 2026), qui a enfin battu le 460 de Bruno Gauthier après plus de trois ans. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
+    bestProject:
+      "Les plateaux propres à ce projet atteignent 460 à 463 sur 480 sur le même puzzle : à quelques arêtes du plafond communautaire, dans le même régime « pièce de départ seule », et chacun recalculé depuis ses propres arêtes et ouvrable dans le visualiseur.",
+    bestProjectLink: "Voir les plateaux du projet tracés face au plafond communautaire",
+    openProblemsLink: "Ce qui sépare encore 470 de 480 : les problèmes ouverts",
+    standsTitle: "Où en est ce projet",
+    standsIntro:
+      "Le meilleur plateau connu, le meilleur plateau strict à cinq indices, et les plateaux propres à ce projet, côte à côte. Chaque score est en arêtes appariées sur 480 ; l'étiquette de régime indique quels indices étaient épinglés, car un score « pièce de départ seule » et un score à cinq indices ne visent pas la même cible.",
+    standsCols: { who: "Plateau", score: "Score", regime: "Régime", link: "Ouvrir" },
+    regimeOpen: "pièce de départ",
+    regimeStrict: "cinq indices",
+    standsCommunityOpen: "Meilleur communautaire (ouvert)",
+    standsCommunityStrict: "Meilleur communautaire (cinq indices)",
+    standsProjectBest: "Meilleur du projet",
+    standsProjectOther: "Ce projet",
+    standsViewCommunity: "Plateaux communautaires",
+    standsViewExperiment: "Expérience",
     timelineTitle: "Chronologie des records",
-    cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Aperçu" },
+    cols: { date: "Date", score: "Score", author: "Auteur", puzzle: "Puzzle", method: "Méthode", source: "Source", preview: "Re-noter" },
     canonical: "pièces officielles",
     variant: "autre jeu",
     view: "Voir le plateau",
+    verifyNote:
+      "« Voir le plateau » ouvre le plateau dans le visualiseur, qui recalcule le score d'arêtes appariées depuis les arêtes du plateau lui-même. Le nombre n'est pas pris sur parole : chaque score listé se vérifie arête par arête.",
+    siblingTitle: "Plateaux frères",
+    siblingIntro:
+      "Des égalités indépendantes et des quasi-records qui portent un vrai plateau re-notable mais n'ont jamais pris de ligne propre dans la chronologie : les 469 supplémentaires issus des runs du solveur de Blackwood, le second 470, et un partiel profond. Chacun s'ouvre dans le visualiseur.",
+    siblingCols: { board: "Plateau", score: "Score", open: "Ouvrir" },
+    censusStripTitle: "Plateaux distincts à cinq indices, en haut de l'échelle",
+    censusStripNote:
+      "Le décompte de l'auteur des plateaux distincts à chaque score. Beaucoup, aux scores plus bas, sont des variantes proches d'un même bassin ; les totaux surestiment donc le nombre de solutions structurellement indépendantes.",
+    censusStripBoards: "plateaux",
     timelineNote:
       "Les sources « groups.io » pointent vers le message d'annonce exact dans les archives de la liste eternity2 ; leur lecture demande un compte groups.io gratuit. Les entrées sans lien n'ont été rapportées que dans des espaces sans archive publique (Discord, par exemple).",
     falsePositiveTitle: "Pourquoi certains plateaux « 480 » ne comptent pas",
     falsePositive:
       "Le vrai puzzle est le plateau vendu par TOMY : 256 pièces précises, un cadre 16×16, 22 couleurs, la pièce de départ épinglée en I8 (les quatre autres indices n'étaient que des aides facultatives selon le règlement). Plusieurs plateaux publiés en 480/480 utilisent d'autres jeux de pièces — les designs Clue-1 / Clue-2 plus petits de Brendan Owen, la variante non encadrée de TopCoder, ou des plateaux mélangeant des pièces de plusieurs jeux d'extension. Ils ont des solutions ; celles-ci ne se transposent pas au puzzle officiel. Le 480 officiel reste introuvé.",
     methodsTitle: "Les algorithmes clés",
+    methodsDeadEnds: "Les approches que Blackwood et d'autres ont signalées comme sans effet (solveurs SAT, GPU, caches pré-résolus) sont recensées en détail sur la",
+    methodsDeadEndsLink: "page des impasses",
     methods: [
       [
         "Générateur Selby–Riordan (2007)",
@@ -147,18 +233,46 @@ const T = {
   es: {
     bestTitle: "El estado del arte",
     best:
-      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 — Joshua Blackwood, 2021, igualado una sola vez desde entonces (Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida» —incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 464 (Benjamin Riotte, julio de 2026), que por fin batió el 460 de Bruno Gauthier tras más de tres años. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
+      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021, igualado una sola vez desde entonces por Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida», incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 464 (Benjamin Riotte, julio de 2026), que por fin batió el 460 de Bruno Gauthier tras más de tres años. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
+    bestProject:
+      "Los tableros propios de este proyecto alcanzan de 460 a 463 de 480 en el mismo puzzle: a pocas aristas del techo de la comunidad, en el mismo régimen de «solo pieza de partida», y cada uno recalculado a partir de sus propias aristas y abrible en el visor.",
+    bestProjectLink: "Ver los tableros del proyecto trazados frente al techo de la comunidad",
+    openProblemsLink: "Lo que aún separa 470 de 480: los problemas abiertos",
+    standsTitle: "Dónde se sitúa este proyecto",
+    standsIntro:
+      "El mejor tablero conocido, el mejor tablero estricto de cinco pistas y los tableros propios de este proyecto, uno al lado del otro. Cada puntuación es en aristas coincidentes sobre 480; la etiqueta de régimen indica qué pistas se fijaron, porque una puntuación de «solo pieza de partida» y una de cinco pistas no apuntan al mismo objetivo.",
+    standsCols: { who: "Tablero", score: "Puntuación", regime: "Régimen", link: "Abrir" },
+    regimeOpen: "pieza de partida",
+    regimeStrict: "cinco pistas",
+    standsCommunityOpen: "Mejor de la comunidad (abierto)",
+    standsCommunityStrict: "Mejor de la comunidad (cinco pistas)",
+    standsProjectBest: "Lo mejor del proyecto",
+    standsProjectOther: "Este proyecto",
+    standsViewCommunity: "Tableros de la comunidad",
+    standsViewExperiment: "Experimento",
     timelineTitle: "Cronología de récords",
-    cols: { date: "Fecha", score: "Puntuación", author: "Autor", puzzle: "Puzzle", method: "Método", source: "Fuente", preview: "Vista previa" },
+    cols: { date: "Fecha", score: "Puntuación", author: "Autor", puzzle: "Puzzle", method: "Método", source: "Fuente", preview: "Recalcular" },
     canonical: "piezas oficiales",
     variant: "otro conjunto",
     view: "Ver tablero",
+    verifyNote:
+      "«Ver tablero» abre el tablero en el visor, que recalcula la puntuación de aristas coincidentes a partir de las propias aristas del tablero. El número no se toma por fe: cada puntuación listada se puede comprobar arista por arista.",
+    siblingTitle: "Tableros hermanos",
+    siblingIntro:
+      "Empates independientes y casi-récords que llevan un tablero real y recalculable pero que nunca ocuparon una fila propia en la cronología: los 469 adicionales de las ejecuciones del solucionador de Blackwood, el segundo 470 y un parcial profundo. Cada uno se abre en el visor.",
+    siblingCols: { board: "Tablero", score: "Puntuación", open: "Abrir" },
+    censusStripTitle: "Tableros distintos de cinco pistas en la cima",
+    censusStripNote:
+      "El recuento del propio autor de tableros distintos en cada puntuación. Muchos, en las puntuaciones más bajas, son variantes cercanas dentro de una misma cuenca, de modo que los totales sobrestiman el número de soluciones estructuralmente independientes.",
+    censusStripBoards: "tableros",
     timelineNote:
       "Las fuentes de la lista de correo enlazan al mensaje exacto de anuncio en el archivo de eternity2 en groups.io; leerlas requiere una cuenta gratuita de groups.io. Las entradas sin enlace solo se comunicaron en espacios sin archivo público (por ejemplo, Discord).",
     falsePositiveTitle: "Por qué algunos tableros «480» no cuentan",
     falsePositive:
       "El puzzle real es el tablero que vendió TOMY: 256 piezas concretas, un marco de 16×16, 22 colores, la pieza de partida fijada en I8 (las otras cuatro pistas eran ayudas opcionales según el reglamento). Varios tableros publicados como 480/480 usan otros conjuntos de piezas —los diseños Clue-1 / Clue-2 más pequeños de Brendan Owen, la variante sin marco de TopCoder, o tableros que mezclan piezas de varios conjuntos de expansión—. Tienen solución, pero esa solución no se traslada al puzzle oficial. El 480 oficial sigue sin encontrarse.",
     methodsTitle: "Los algoritmos clave",
+    methodsDeadEnds: "Los enfoques que Blackwood y otros reportaron como inútiles (solucionadores SAT, GPU, cachés preresueltas) están catalogados en detalle en la",
+    methodsDeadEndsLink: "página de callejones sin salida",
     methods: [
       [
         "Generador de Selby–Riordan (2007)",
@@ -268,6 +382,12 @@ function Cite({ n }: { n: number }) {
   );
 }
 
+// The community anchor rows for the "where this project stands" table, pulled
+// from the timeline so they never drift from it: the standing open record (470)
+// and the standing strict five-clue record (464).
+const COMMUNITY_OPEN = RECORDS.find((r) => r.board === "Joshua_Blackwood_470");
+const COMMUNITY_STRICT = RECORDS.find((r) => r.board === "Benjamin_Riotte_464");
+
 export function RecordsView() {
   const t = useT(T);
   return (
@@ -279,6 +399,107 @@ export function RecordsView() {
           <Cite n={2} />
           <Cite n={6} />
         </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t.bestProject}</p>
+        <div className="flex flex-col gap-1.5 text-sm">
+          <LocalizedLink
+            to="/research/lab/experiments/raphael-anjou"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            {t.bestProjectLink}
+          </LocalizedLink>
+          <LocalizedLink
+            to="/research/open-problems"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            {t.openProblemsLink}
+          </LocalizedLink>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-2xl font-semibold tracking-tight">{t.standsTitle}</h2>
+        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{t.standsIntro}</p>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t.standsCols.who}</TableHead>
+              <TableHead className="text-right">{t.standsCols.score}</TableHead>
+              <TableHead>{t.standsCols.regime}</TableHead>
+              <TableHead>{t.standsCols.link}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {COMMUNITY_OPEN && (
+              <TableRow>
+                <TableCell>
+                  <span className="font-medium">{t.standsCommunityOpen}</span>{" "}
+                  <span className="text-muted-foreground">{COMMUNITY_OPEN.author}</span>
+                </TableCell>
+                <TableCell className="text-right font-semibold tabular-nums">{COMMUNITY_OPEN.score}</TableCell>
+                <TableCell>
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${BADGE.canonical}`}>
+                    {t.regimeOpen}
+                  </span>
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <LocalizedLink to="/research/community/boards" className="text-sm underline underline-offset-2 hover:text-foreground">
+                    {t.standsViewCommunity}
+                  </LocalizedLink>
+                </TableCell>
+              </TableRow>
+            )}
+            {COMMUNITY_STRICT && (
+              <TableRow>
+                <TableCell>
+                  <span className="font-medium">{t.standsCommunityStrict}</span>{" "}
+                  <span className="text-muted-foreground">{COMMUNITY_STRICT.author}</span>
+                </TableCell>
+                <TableCell className="text-right font-semibold tabular-nums">{COMMUNITY_STRICT.score}</TableCell>
+                <TableCell>
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${BADGE.canonical}`}>
+                    {t.regimeStrict}
+                  </span>
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <LocalizedLink to="/research/community/boards" className="text-sm underline underline-offset-2 hover:text-foreground">
+                    {t.standsViewCommunity}
+                  </LocalizedLink>
+                </TableCell>
+              </TableRow>
+            )}
+            {PROJECT_BEST.map((b, i) => {
+              const experimentPath = PROJECT_EXPERIMENT_PATH[b.id];
+              return (
+                <TableRow key={b.id}>
+                  <TableCell>
+                    <span className="font-medium">
+                      {i === 0 ? t.standsProjectBest : t.standsProjectOther}
+                    </span>{" "}
+                    <span className="text-muted-foreground">{b.invention}</span>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold tabular-nums">{b.score}</TableCell>
+                  <TableCell>
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${BADGE.canonical}`}>
+                      {t.regimeOpen}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {experimentPath ? (
+                      <LocalizedLink
+                        to={experimentPath}
+                        className="text-sm underline underline-offset-2 hover:text-foreground"
+                      >
+                        {t.standsViewExperiment}
+                      </LocalizedLink>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">{b.invention}</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </section>
 
       <section className="space-y-3">
@@ -340,7 +561,58 @@ export function RecordsView() {
             ))}
           </TableBody>
         </Table>
+        <p className="max-w-3xl text-xs text-muted-foreground">{t.verifyNote}</p>
         <p className="max-w-3xl text-xs text-muted-foreground">{t.timelineNote}</p>
+
+        <div className="max-w-2xl space-y-2 pt-2">
+          <p className="text-sm font-medium">{t.censusStripTitle}</p>
+          <div className="flex flex-wrap gap-2">
+            {FIVE_CLUE_CENSUS_2026.map((c) => (
+              <span
+                key={c.score}
+                className="rounded-md border bg-muted/30 px-2.5 py-1 text-xs tabular-nums"
+              >
+                <span className="font-semibold text-foreground">{c.found.toLocaleString()}</span>{" "}
+                {t.censusStripBoards} @ {c.score}
+              </span>
+            ))}
+          </div>
+          <p className="max-w-xl text-xs text-muted-foreground">{t.censusStripNote}</p>
+        </div>
+
+        <Accordion className="max-w-3xl pt-2">
+          <AccordionItem value="siblings">
+            <AccordionTrigger>{t.siblingTitle}</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-3 max-w-2xl text-sm text-muted-foreground">{t.siblingIntro}</p>
+              <table className="w-full max-w-xl text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs text-muted-foreground">
+                    <th className="py-1 pr-4 font-medium">{t.siblingCols.board}</th>
+                    <th className="py-1 pr-4 text-right font-medium">{t.siblingCols.score}</th>
+                    <th className="py-1 font-medium">{t.siblingCols.open}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SIBLING_BOARDS.map((b) => (
+                    <tr key={b.id} className="border-b last:border-0">
+                      <td className="py-1 pr-4">{b.label}</td>
+                      <td className="py-1 pr-4 text-right font-semibold tabular-nums">{b.score}</td>
+                      <td className="py-1 whitespace-nowrap">
+                        <LocalizedLink
+                          to={`/viewer?${b.params}`}
+                          className="underline underline-offset-2 hover:text-foreground"
+                        >
+                          {t.view}
+                        </LocalizedLink>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </section>
 
       <section className="max-w-3xl space-y-3">
@@ -361,6 +633,13 @@ export function RecordsView() {
             </div>
           ))}
         </dl>
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          {t.methodsDeadEnds}{" "}
+          <LocalizedLink to="/research/build/dead-ends" className="underline underline-offset-2 hover:text-foreground">
+            {t.methodsDeadEndsLink}
+          </LocalizedLink>
+          .
+        </p>
       </section>
 
       <section className="space-y-4">
