@@ -79,6 +79,10 @@ def agg(run_dir, rows):
         "mean": mean1(scores),
         "best": max(scores) if scores else None,
         "worst": min(scores) if scores else None,
+        # Every instance's raw final score, in run order, so the site can draw
+        # the per-variant spread (each instance a dot) beneath the mean bar. The
+        # mean above is exactly the mean of this list, so the two never disagree.
+        "scores": scores,
         "mean_lift": mean1([r.get("lift") for r in rows]),
         "start_score": median([r.get("start_score") for r in rows]),
         "mean_last_best_iter": median([r.get("last_best_iter") for r in rows]),
