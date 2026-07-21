@@ -8,7 +8,7 @@ metaDescription: "Des approches sur Eternity II séduisantes mais qui ne bougent
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-02
+updated: 2026-07-21
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Fermeture d'eternity2.net : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io message 3511)"
@@ -21,6 +21,8 @@ sources:
     url: https://groups.io/g/eternity2/message/6060
 related:
   - /research/build/run-it-yourself
+  - /research/records
+  - /research/open-problems
 ---
 
 Des approches que nous avons essayées, séduisantes en apparence, mais qui ne
@@ -64,7 +66,10 @@ sans solution
 ([msg 3511](https://groups.io/g/eternity2/message/3511)). Et l'espoir quantique
 est régulièrement remis à flot, de
 [2007](https://groups.io/g/eternity2/message/1446) à
-[2024](https://groups.io/g/eternity2/message/11407).
+[2024](https://groups.io/g/eternity2/message/11407). Le plafond auquel cela se
+mesure est le record en vigueur de 470/480 ; Blackwood, qui l'a établi, a
+rapporté que les solveurs SAT, les GPU et les caches de 2×2 pré-résolus ne
+l'ont pas aidé à le dépasser ([Records et solveurs](/research/records)).
 [Pourquoi c'est un mur →](/research/why/prune-vs-speed)
 
 ## La propagation par sondage (survey propagation)
@@ -81,7 +86,10 @@ communauté a remarqué cet aplatissement très tôt : en 2008, des expériences
 propagation de probabilités de pièces ont constaté que l'influence des
 contraintes issues des indices et des coins semble « s'estomper » à environ deux
 cases de distance
-([msg 6208](https://groups.io/g/eternity2/message/6208)).
+([msg 6208](https://groups.io/g/eternity2/message/6208)). À la place :
+l'élagage qui paie sur cette grille est exact, non probabiliste ; la
+[cohérence d'arc](/research/build/reduce/arc-consistency) et le
+[filtre de couplage tous-différents](/research/build/reduce/alldiff-regin).
 
 ## Ordonner les coups par propagation de croyances
 
@@ -142,7 +150,10 @@ ce soit. La contrainte agissante est l'unicité globale des pièces, que la
 relaxation jette. Les formulations en PL étaient à l'ordre du jour de la
 communauté dès le premier été, et déjà là un 4×4 mettait plus d'une heure à se
 résoudre
-([msg 1678](https://groups.io/g/eternity2/message/1678)).
+([msg 1678](https://groups.io/g/eternity2/message/1678)). À la place : la page
+[relaxations PL et PLNE](/research/build/exact/lp-relaxations) montre ce que ces
+encodages peuvent encore rapporter (preuves d'impossibilité et remplissages
+quasi optimaux sur des sous-plateaux), là où réside réellement leur valeur.
 
 ## Apprendre une heuristique sur de petits plateaux
 
@@ -186,7 +197,10 @@ solveur à anticipation sur chaque cube) était elle-même plus lente que de lan
 kissat directement. Le résultat, net, était une frontière ferme : la méthode
 fonctionne jusqu'à environ 8×8 et s'arrête là. Elle rejoint la longue lignée des
 méthodes exactes qui butent sur le même mur que la programmation en nombres
-entiers et la décision SAT, sans prise pour le franchir.
+entiers et la décision SAT, sans prise pour le franchir. À la place :
+[quel mur arrête quelle méthode](/research/why/walls-and-methods) confronte
+chaque attaque exacte à la barrière sur laquelle elle meurt, pour comprendre
+pourquoi celle-ci allait toujours s'arrêter là.
 
 ## Générer des plateaux avec un transformeur
 
@@ -261,7 +275,9 @@ durs à faire concorder ; un faux plateau à pièces répétées les fait toutes
 concorder sans peine. L'obstacle est la contrainte globale que chacune des 256
 pièces soit utilisée exactement une fois, et c'est précisément ce que la
 construction du faux 480 jette. Le mur est informationnel, non affaire de
-réparation locale de bords.
+réparation locale de bords. À la place : le
+[mur de rigidité](/research/why/rigidity-wall) explique pourquoi la réparation
+locale ne peut franchir ce dernier écart, quel que soit le plateau de départ.
 
 ## Précalculer des macro-tuiles 2×2 (ou plus grandes)
 
@@ -278,7 +294,11 @@ accélération de 10× ou 100× sur un arbre hors d'atteinte reste hors d'attein
 un gain réel à facteur constant pour un solveur rapide, ce pourquoi le
 [bac à sable de l'ordre des blocs](/playground/paths) les prend en charge ;
 elles ne sont simplement pas une réduction de domaine, et seule une réduction de
-domaine ferait bouger les lignes.
+domaine ferait bouger les lignes. Le plafond auquel cela se mesure est le record
+en vigueur de 470/480 : Blackwood a rapporté que les caches de 2×2 pré-résolus
+ne l'ont pas aidé à le dépasser ([Records et solveurs](/research/records)). À la
+place : l'unique levier gratuit qui réduit vraiment l'arbre est
+l'[ordre de remplissage](/research/build/backtracking/fill-order).
 
 ## L'élagage par offre de bordure (le test « lollypop »)
 
@@ -295,6 +315,9 @@ de bordure aurait échoué, la propagation de contraintes ordinaire a *déjà*
 pour une coupe que le solveur était sur le point de faire gratuitement
 ([msg 6060](https://groups.io/g/eternity2/message/6060)). Une règle d'élagage
 n'aide que si elle se déclenche avant les vérifications déjà en place, pas après.
+À la place : l'idée offre-contre-demande paie lorsqu'elle est fondue dans la
+propagation qui se déclenche en premier, le
+[filtre de couplage tous-différents](/research/build/reduce/alldiff-regin).
 
 ## Ce que toute impasse a en commun
 

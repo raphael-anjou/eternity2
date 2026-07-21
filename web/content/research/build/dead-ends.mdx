@@ -8,7 +8,7 @@ metaDescription: "Eternity II approaches that look promising but don't move the 
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-02
+updated: 2026-07-21
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "eternity2.net shuts down: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
@@ -21,6 +21,8 @@ sources:
     url: https://groups.io/g/eternity2/message/6060
 related:
   - /research/build/run-it-yourself
+  - /research/records
+  - /research/open-problems
 ---
 
 Approaches we tried that look promising and don't move the needle on
@@ -61,7 +63,10 @@ without a solution
 ([msg 3511](https://groups.io/g/eternity2/message/3511)). And the quantum
 hope has been re-floated regularly, from
 [2007](https://groups.io/g/eternity2/message/1446) to
-[2024](https://groups.io/g/eternity2/message/11407).
+[2024](https://groups.io/g/eternity2/message/11407). The ceiling this is tested
+against is the standing 470/480 record; Blackwood, who set it, reported that
+SAT solvers, GPUs and pre-solved 2×2 caches did not help him past it
+([Records & solvers](/research/records)).
 [Why this is a wall →](/research/why/prune-vs-speed)
 
 ## Survey propagation
@@ -76,7 +81,10 @@ makes it work on random SAT. There are no published successes for it on grid
 puzzles. The community noticed the flattening early: in 2008, experiments with
 propagating piece probabilities found that constraint influence from the clues
 and corners seems to “fade out” about two cells away
-([msg 6208](https://groups.io/g/eternity2/message/6208)).
+([msg 6208](https://groups.io/g/eternity2/message/6208)). Instead: the pruning
+that does pay on this grid is exact, not probabilistic;
+[arc consistency](/research/build/reduce/arc-consistency) and the
+[all-different matching filter](/research/build/reduce/alldiff-regin).
 
 ## Belief-propagation move ordering
 
@@ -132,7 +140,10 @@ ceiling around 478 while the best real boards sit near 458, a gap too large to
 certify anything. The binding constraint is global piece-uniqueness, which the
 relaxation throws away. LP formulations were on the community's table in the
 first summer, and already there a 4×4 took over an hour to solve
-([msg 1678](https://groups.io/g/eternity2/message/1678)).
+([msg 1678](https://groups.io/g/eternity2/message/1678)). Instead: the
+[LP and ILP relaxations](/research/build/exact/lp-relaxations) page shows what
+these encodings can still earn (impossibility proofs and near-optimal fills on
+sub-boards), which is where their value actually is.
 
 ## Learn a heuristic on small boards
 
@@ -173,7 +184,10 @@ into anything tractable without heavy preprocessing, and the conquer step (a
 lookahead solver on each cube) was itself slower than running kissat straight.
 The clean result was a firm boundary: the method works up to about 8×8 and
 stops there. It joins the long line of exact methods that meet the same wall as
-integer programming and SAT decision, without a foothold past it.
+integer programming and SAT decision, without a foothold past it. Instead:
+[which wall stops which method](/research/why/walls-and-methods) lines up every
+exact attack against the barrier it dies on, so you can see why this one was
+always going to stop there.
 
 ## Generate boards with a transformer
 
@@ -241,7 +255,9 @@ The barrier to 480 is not that the edges are hard to match; a fake board with
 repeated pieces matches all of them easily. The barrier is the global
 constraint that each of the 256 pieces is used exactly once, and that is exactly
 what the fake-480 construction throws away. The wall is informational, not a
-matter of local edge repair.
+matter of local edge repair. Instead: the
+[rigidity wall](/research/why/rigidity-wall) is why local repair cannot cross
+this last gap, whatever board you start it from.
 
 ## Precompute 2×2 (or bigger) macro-tiles
 
@@ -256,7 +272,11 @@ where it needs to be $10^{4}$. A 10× or 100× speedup on an out-of-reach tree i
 still out of reach ([msg 5883](https://groups.io/g/eternity2/message/5883)).
 Macro-tiles are a real constant-factor win for a fast solver, which is why the
 [block-order playground](/playground/paths) supports them, they are just not a
-domain reduction, and only a domain reduction would move the needle.
+domain reduction, and only a domain reduction would move the needle. The
+ceiling this is measured against is the standing 470/480 record: Blackwood
+reported pre-solved 2×2 caches did not help him past it
+([Records & solvers](/research/records)). Instead: the one free lever that does
+shrink the tree is the [fill order](/research/build/backtracking/fill-order).
 
 ## Border-supply pruning (the "lollypop" check)
 
@@ -271,6 +291,9 @@ failed, the ordinary constraint propagation has *already* failed a step or two
 earlier, so the extra bookkeeping pays for a cut the solver was about to make
 for free ([msg 6060](https://groups.io/g/eternity2/message/6060)). A pruning
 rule only helps if it fires before the checks you already run, not after.
+Instead: the supply-versus-demand idea pays when it is folded into the
+propagation that fires first, the
+[all-different matching filter](/research/build/reduce/alldiff-regin).
 
 ## What every dead end has in common
 

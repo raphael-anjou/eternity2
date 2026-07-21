@@ -1,0 +1,180 @@
+---
+title: Open problems
+description: >-
+  The open frontier of Eternity II in one place: every angle still worth a run,
+  the wall it attacks, what has been tried and where it stopped, and whether it
+  is a newcomer-tractable target or a hard, well-mapped one.
+metaDescription: "The open frontier of Eternity II on one board: the 470-to-480 gap, the strict five-clue 464 target, Owen's unsolved hint-free 10x10 set_2, crossing a rigidity basin, the meet-in-the-middle memory wall, and a diversity axis beyond parallel tempering. Each angle paired with its wall."
+kind: reference
+order: 35
+updated: 2026-07-21
+topics: []
+sources:
+  - label: "eternity2 mailing-list archive (groups.io): where the open targets are announced and discussed"
+    url: https://groups.io/g/eternity2
+related:
+  - /research/records
+  - /research/why/walls-and-methods
+  - /research/why/rigidity-wall
+  - /research/build/dead-ends
+  - /research/build/benchmarks
+  - /research/build/exact/meet-in-the-middle
+  - /research/contribute
+---
+
+This is the board of open angles: one row per direction still worth a run.
+Each entry states the question in a line, names the wall it attacks (from
+[why it's hard](/research/why)), points to what has already been tried and
+where it stopped (in the [wall-and-method map](/research/why/walls-and-methods)
+and the [dead ends](/research/build/dead-ends)), and tags how approachable it
+is. The tags mean what they say: **newcomer-friendly** is a target you can pick
+up without a decade of context; **hard, well-mapped** is a target that many
+strong attempts have charted and none has crossed; **unattended** is an angle
+nobody is actively working, distinct from one that has been attacked and held.
+
+For the state of the art the score lives on the [records](/research/records)
+page; this page is only the part that is still open.
+
+## The 470-to-480 gap
+
+<Callout kind="open" title="Can any method cross from the 470 ceiling to a full 480?">
+  The canonical track. The best board respecting only the mandatory starter
+  clue has stood at 470/480 since the community reached it, and a designed 480
+  is a given: the publisher built the puzzle from one solution, so a perfect
+  board exists and only its location is open.
+</Callout>
+
+**Wall.** [Rigidity](/research/why/rigidity-wall): the record boards are
+locally frozen islands, and the ten missing edges are on the far side of every
+[structural wall at once](/research/why/walls-and-methods).
+
+**Tried, and where it stopped.** Every method in the
+[wall-and-method map](/research/why/walls-and-methods) ends against rigidity;
+the from-scratch and corpus builds top out at 458 to 463, and none crosses to
+the ceiling. Raw compute alone does not close it either, which is recorded
+under [just throw more compute at it](/research/build/dead-ends).
+
+**Entry tag.** Hard, well-mapped. This is the summit of the whole puzzle: a
+great deal is known about why it resists, which is exactly why a fresh crossing
+would be a headline.
+
+## The strict five-clue 464-to-465 target
+
+<Callout kind="open" title="Can a board that honours all five official clues beat 464?">
+  The strict five-clue line is tracked separately from the open 470 line,
+  because [most progress on the open record was made without the clues](/research/build/clue-puzzles).
+  The best board respecting all five placements is 464.
+</Callout>
+
+**Wall.** [Rigidity](/research/why/rigidity-wall) again, plus the clue
+placements narrow the reachable region: fewer boards satisfy all five, so the
+haystack is smaller but so is the needle count.
+
+**Tried, and where it stopped.** The 464 is the standing strict-line mark on
+the [clue puzzles](/research/build/clue-puzzles) page; the project's own strict
+builds and re-squeezes reach the 460 class but not past it, as charted in the
+[wall-and-method map](/research/why/walls-and-methods).
+
+**Entry tag.** Hard, well-mapped, but a smaller step than the 470-to-480 gap:
+464 to 465 is a single edge, on a line where the reachable region is tighter
+and therefore easier to reason about than the open record.
+
+## Brendan Owen's hint-free 10x10 set_2
+
+<Callout kind="open" title="Solve set_2, the hint-free 10x10 that has never been solved.">
+  Brendan Owen published a pair of generated hint-free 10x10 puzzles with their
+  statistics. One (set_1) fell; the other (set_2) has never been solved and
+  remains the community's agreed next rung below the full 16x16.
+</Callout>
+
+**Wall.** The same edge-matching hardness as the full puzzle, at a size a
+single machine can actually finish. Set_1 took a large but bounded search, so
+set_2 is a search-engineering target, not a structural one.
+
+**Tried, and where it stopped.** The full story is on the
+[benchmarks](/research/build/benchmarks#brendans-1010s-one-fell-one-is-still-standing)
+page: set_1 was solved, set_2's statistics are known, and it is
+[still standing](/research/build/benchmarks#brendans-1010s-one-fell-one-is-still-standing).
+
+**Entry tag.** Newcomer-friendly. This is the one open target sized for a
+personal machine and a well-tuned backtracker rather than a compute cluster, so
+it is the recommended first real attempt.
+
+## Crossing a rigidity basin
+
+<Callout kind="open" title="Is there any local path from one record basin to another?">
+  Every record board sits in a basin that MIP proofs show is locally optimal
+  out to a multi-cell halo. The open question is whether any sequence of small,
+  legal moves reaches a different basin at all.
+</Callout>
+
+**Wall.** [Rigidity](/research/why/rigidity-wall), stated in its sharpest form,
+and [why basin-hopping looks impossible](/research/why/sigma-cycles): the step
+from one great board to a better one is one giant, indivisible swap with no
+gradient to follow.
+
+**Tried, and where it stopped.** The rigidity theorem records MIP proofs of
+halo-optimality across several basins, and the search for a short escape chain
+between basins failed for a structural reason set out on
+[why basin-hopping looks impossible](/research/why/sigma-cycles). The
+[recombine two good boards](/research/build/dead-ends) entry is the same wall
+from the crossover side.
+
+**Entry tag.** Hard, well-mapped. A single crossing move, or a proof that none
+exists, would reshape how every local-search method is judged.
+
+## The meet-in-the-middle memory wall
+
+<Callout kind="open" title="Can the two halves of a meet-in-the-middle search be made to meet at full size?">
+  Meeting two partial searches in the middle is complete in principle, but the
+  number of partial boards to store grows about twentyfold per extra allowed
+  mismatch, so the halves stop meeting well before the full 16x16.
+</Callout>
+
+**Wall.** The exactness cost measured directly: the
+[meet-in-the-middle](/research/build/exact/meet-in-the-middle) approach is
+exact but its memory grows past what any machine holds.
+
+**Tried, and where it stopped.** BANDSAW solved an endgame band to proven
+optimality and in doing so measured the roughly twentyfold-per-mismatch growth
+on both sides, so meeting in the middle stops paying at full size; that result
+is the [BANDSAW row](/research/why/walls-and-methods) of the map. A better
+representation, or a lossy meeting that stays sound, is the open lever.
+
+**Entry tag.** Hard, well-mapped. The wall here is quantified, so progress is
+measurable: any encoding that lowers the per-mismatch growth factor is a real
+gain even short of a full solve.
+
+## A diversity axis beyond parallel tempering
+
+<Callout kind="open" title="Is there a search mechanism that reliably finds new basins, beyond parallel tempering?">
+  Almost every method keeps rediscovering the same handful of basins. In a full
+  method sweep, only parallel tempering reliably produced genuinely new ones,
+  and even it plateaus quickly.
+</Callout>
+
+**Wall.** [Rigidity](/research/why/rigidity-wall) seen as a diversity
+bottleneck: the constraint is not the score a method reaches but the number of
+distinct basins it can find, and the standard arsenal finds too few.
+
+**Tried, and where it stopped.** The diversity survey is written up on the
+[wall-and-method map](/research/why/walls-and-methods): adaptive local search,
+snake placement, and the top of a trained generator's distribution all keep
+landing in the known basins, and only parallel tempering reliably escapes.
+[Generate boards with a transformer](/research/build/dead-ends) is one of the
+diversity attempts that did not hold.
+
+**Entry tag.** Unattended, and open-ended. Unlike the mapped targets above,
+this one has no charted attempt list waiting to be beaten: a genuinely new
+diversity mechanism is an idea nobody has planted yet, which makes it the most
+speculative entry here and the one least constrained by prior work.
+
+## Where these came from, and where to write one up
+
+Every claim above is grounded in a page already on this wiki: the walls in
+[why it's hard](/research/why), the stopped attempts in the
+[wall-and-method map](/research/why/walls-and-methods) and the
+[dead ends](/research/build/dead-ends), the benchmark targets on the
+[benchmarks](/research/build/benchmarks) page. If you take one of these on and
+it moves, [the notebook is open](/research/contribute) and there is a place for
+the write-up.

@@ -8,7 +8,7 @@ metaDescription: "Cómo buscan de verdad los solucionadores récord de Eternity 
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-17
+updated: 2026-07-21
 topics: [backtracking, speed]
 ---
 
@@ -24,6 +24,23 @@ neutral por esas decisiones. La historia completa y de primera mano de cada moto
 (descifrada a partir del código fuente y la literatura, y luego reconstruida y
 medida) vive en su propia página de laboratorio, enlazada desde cada sección más
 abajo.
+
+## Los motores de un vistazo
+
+Antes del recorrido, el catálogo: una fila por motor, y las cuatro decisiones que
+lo distinguen. Cada alcance se mide en un solo núcleo, en una misma máquina, de
+modo que los números se comparan igual con igual en vez de entre clústeres; cada
+fila enlaza su informe completo.
+
+| Motor | Orden de relleno | Poda | Régimen de hardware | Alcance medido |
+| --- | --- | --- | --- | --- |
+| [Backtracker de Blackwood](/research/lab/experiments/joshua-blackwood/solver) | barrido por fila desde abajo-izquierda, piezas de borde al final | cuota de color por profundidad más un presupuesto de índice de ruptura según la profundidad | un solo núcleo; el 470 salió de muchos núcleos en paralelo | 248/256 piezas sin restricción; se estanca cerca de 45 al fijar las cinco pistas |
+| [eii de Verhaard](/research/lab/experiments/louis-verhaard/eii) | órdenes de búsqueda en peine | poda anticipada frente a umbrales de puntuación ajustados; un calendario de deslizamiento ajustado por Markov | binario Win32 en un núcleo; sin fuente para recompilar | 467/480, el único premio que pagó el concurso |
+| [Backtracker C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) | según el puzle: barrido por fila, espiral, o borde primero | código generado más tablas de consulta y trucos de contador para el rendimiento bruto | un solo núcleo, ~109M colocaciones/s en el puzle real | más allá de 200/256 piezas; hecho para la velocidad, no para un score récord |
+| [Reimplementación de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | recocido por intercambio de composición de conjuntos bajo la métrica 2×2 | aceptación por recocido, constantes recuperadas al bit desde el binario | un solo núcleo; ejecución versionada y reejecutable | 438/480 en el puzle real de cinco pistas |
+| [Preajustes CSP, medidos](/research/lab/experiments/single-core-benchmark/csp-presets) | una docena de preajustes de orden, borde primero el mejor | propagación por consistencia de arco | un solo núcleo, diez variantes ancladas por esquina | cerca de 183 en las variantes ancladas; por debajo de la mitad del score de un contendiente |
+
+El recorrido de abajo repasa las tres decisiones que comparten esas filas.
 
 ## Backtracking elemental
 

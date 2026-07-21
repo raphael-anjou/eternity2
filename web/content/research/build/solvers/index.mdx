@@ -8,7 +8,7 @@ metaDescription: "How the record Eternity II solvers actually search: all are de
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-17
+updated: 2026-07-21
 topics: [backtracking, speed]
 ---
 
@@ -23,6 +23,23 @@ match runs out. This page is the neutral tour of those choices. The full,
 first-party engine story for each solver (decoded from the source and the
 literature, then built and measured) lives on its own lab page, linked from each
 section below.
+
+## The engines at a glance
+
+Before the tour, the catalogue: one row per engine, and the four choices that
+set it apart. Every reach is measured single core on one machine, so the numbers
+compare like for like rather than across clusters; each row links its full
+write-up.
+
+| Engine | Fill order | Pruning | Hardware regime | Measured reach |
+| --- | --- | --- | --- | --- |
+| [Blackwood's backtracker](/research/lab/experiments/joshua-blackwood/solver) | bottom-left row scan, border pieces late | per-depth colour quota plus a depth-gated break-index budget | single core; the 470 came from many cores in parallel | 248/256 pieces unconstrained; stalls near 45 once the five clues are pinned |
+| [Verhaard's eii](/research/lab/experiments/louis-verhaard/eii) | comb-search orders | forward pruning against tuned score thresholds; a Markov-tuned slip schedule | single-core Win32 binary; no source to rebuild | 467/480, the only prize the contest paid |
+| [McGavin's C backtracker](/research/lab/experiments/peter-mcgavin/backtracker) | per-puzzle scan-row, spiral-in, or border-first | generated code plus lookup tables and counter tricks for raw throughput | single core, ~109M placements/s on the real puzzle | past 200/256 pieces; built for speed, not a record score |
+| [Verhaard reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | set-composition swap-annealing under the 2×2 metric | annealing acceptance, constants recovered byte-exact from the binary | single core; run committed and rerunnable | 438/480 on the real five-clue puzzle |
+| [CSP presets, measured](/research/lab/experiments/single-core-benchmark/csp-presets) | a dozen ordering presets, border-first the best | arc-consistency propagation | single core, ten corner-pinned variants | near 183 on the corner-pinned variants; below half a contender's score |
+
+The tour below walks the three choices those rows share.
 
 ## Plain backtracking
 

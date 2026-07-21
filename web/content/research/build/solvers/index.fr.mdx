@@ -9,7 +9,7 @@ metaDescription: "Comment cherchent vraiment les solveurs record d'Eternity II :
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-17
+updated: 2026-07-21
 topics: [backtracking, speed]
 ---
 
@@ -26,6 +26,23 @@ neutre de ces choix. L'histoire complète et de première main de chaque moteur
 (décodée à partir du code source et de la littérature, puis reconstruite et
 mesurée) vit sur sa propre page de laboratoire, reliée depuis chaque section
 ci-dessous.
+
+## Les moteurs en un coup d'œil
+
+Avant la visite, le catalogue : une ligne par moteur, et les quatre choix qui le
+distinguent. Chaque portée est mesurée sur un seul cœur, sur une même machine, si
+bien que les chiffres se comparent à l'identique plutôt que d'un cluster à
+l'autre ; chaque ligne renvoie à son compte rendu complet.
+
+| Moteur | Ordre de remplissage | Élagage | Régime matériel | Portée mesurée |
+| --- | --- | --- | --- | --- |
+| [Backtracker de Blackwood](/research/lab/experiments/joshua-blackwood/solver) | balayage par rangée depuis le bas-gauche, pièces de bord tard | quota de couleur par profondeur plus un budget d'indice de rupture selon la profondeur | un seul cœur ; le 470 est venu de nombreux cœurs en parallèle | 248/256 pièces sans contrainte ; s'arrête vers 45 une fois les cinq indices fixés |
+| [eii de Verhaard](/research/lab/experiments/louis-verhaard/eii) | ordres de recherche en peigne | élagage anticipé face à des seuils de score réglés ; un calendrier de glissement réglé par Markov | binaire Win32 sur un cœur ; pas de source à recompiler | 467/480, le seul prix que le concours a payé |
+| [Backtracker C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) | selon le puzzle : balayage par rangée, spirale, ou bord d'abord | code généré plus tables de correspondance et astuces de compteur pour le débit brut | un seul cœur, ~109M placements/s sur le vrai puzzle | au-delà de 200/256 pièces ; conçu pour la vitesse, pas pour un score record |
+| [Réimplémentation de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | recuit par échange de composition d'ensembles sous la métrique 2×2 | acceptation par recuit, constantes récupérées au bit près depuis le binaire | un seul cœur ; exécution versionnée et réexécutable | 438/480 sur le vrai puzzle à cinq indices |
+| [Préréglages CSP, mesurés](/research/lab/experiments/single-core-benchmark/csp-presets) | une douzaine de préréglages d'ordre, bord d'abord le meilleur | propagation par cohérence d'arc | un seul cœur, dix variantes ancrées par coin | près de 183 sur les variantes ancrées ; sous la moitié du score d'un prétendant |
+
+La visite ci-dessous parcourt les trois choix que ces lignes partagent.
 
 ## Le backtracking élémentaire
 
