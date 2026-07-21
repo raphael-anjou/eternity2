@@ -97,13 +97,21 @@ $$
 
 targeting the multiplicities Eternity II itself uses at $n=16$ (border $\approx 12$,
 interior $\approx 24$). At $n=16$ this returns exactly the official recipe, five
-border colours and seventeen interior. One caveat keeps the scaling trend a
-*future* result rather than a reported one: at the smallest sizes the frame's cap of
-five border colours leaves too few interior colours for the recipe to stay faithful
-(at $8\times8$ only one), so a clean, unconfounded size sweep needs the recipe
-refined at the low end first. The size-parametric machinery is in place and
-validated; the trend itself is deferred rather than reported half-confounded. The
-results on this page are all at $16\times16$.
+border colours and seventeen interior.
+
+Getting this right on small boards took one fix to the generator. Eternity II's
+palette is *interior-dominant*, five border colours to seventeen interior, but the
+default generator caps the border count at five and takes everything else as
+interior, which on a small board inverts the ratio: at $8\times8$ the recipe wants
+eight colours, and the cap would split them five border to one interior, a
+near-uniform interior sea that behaves nothing like E2. The generator now accepts an
+explicit border-colour count, and the recipe holds the interior at roughly three
+times the border at every size ($8\times8 \to$ two border, six interior;
+$16\times16 \to$ five, seventeen, unchanged). With that, small boards are faithful
+*and* fully solvable, which is what the solve-speed comparison on the
+[findings page](/research/lab/experiments/raphael-anjou/hint-study/findings) relies
+on. The main path and count results on this page are all at $16\times16$; the
+$8\times8$ board is used only where a full solve is needed.
 
 ## The hint geometries
 

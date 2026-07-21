@@ -27,6 +27,7 @@ sources:
 import { FrontierPhaseChart } from "@/components/research/FrontierPhaseChart";
 import { HintGeoComparison } from "@/components/research/HintGeoComparison";
 import { HintStudyCharts } from "@/components/research/HintStudyCharts";
+import { SolveSpeedChart } from "@/components/research/SolveSpeedChart";
 
 The study fixes five hints in the shape of Eternity II's own five clues, runs eight
 fill orders on the identical boards, and asks a simple question: what are those five
@@ -173,9 +174,36 @@ fast even though the hard part of the board is untouched. Scattered hints, by
 contrast, fragment the early fill exactly the way the five-clue shape did. So the
 two results are consistent once you separate "solves the whole board eventually"
 from "scores well in the first eight seconds": scattered placement helps the former
-and hurts the latter. It is one more instance of the study's throughline, that a
-hint's value is set by the search that reads it and the budget it runs under, not
-by the hint.
+and hurts the latter. The next section makes that split visible.
+
+## Solving it: where scattered finally wins
+
+At 16×16 nothing solves in eight seconds, so the score is always a snapshot of a
+search still in its opening. To see the *endgame* effect the community reported, we
+need a board that fully solves. An 8×8 built to the same colour recipe does, in well
+under a second, so on it we can measure the quantity that actually matters: the
+number of search nodes a row-major backtracker needs to reach a complete solution. Fewer nodes means
+the hints did real pruning work. Below, a spread lattice and a matched contiguous
+block, at rising hint counts.
+
+<SolveSpeedChart />
+
+This is the whole story in one chart, and it finally lines up with the community
+claim. At four hints the scattered lattice is *worse* than useless, solving only two
+of thirty boards, the same sparse-hints-trip-the-search effect from every other
+axis, while the matched contiguous block solves almost all of them. But cross a
+threshold around sixteen hints and the lines swap hard: a sixteen-hint scattered
+lattice solves in about four thousand nodes, while the matched contiguous block
+still grinds through nearly two million, a five-hundred-fold difference at the same
+hint count. Push further and both layouts become easy (by thirty-six hints a quarter
+of the board is pinned and either one solves in a few hundred nodes), so the
+scattered advantage is a window, widest where the count is enough to reach the deep
+search but not so large that the board is half-solved by hand. In that window,
+spread hints reach into the part of the search a backtracker actually struggles with
+and cut it off, exactly as Joe and Peter McGavin described; a contiguous block only
+ever prunes the easy opening. The 16×16 score comparison looked like it contradicted
+them only because at a short budget the search never lives long enough to reach the
+region where scattered placement pays off.
 
 ## What it does and does not say
 

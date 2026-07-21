@@ -27,10 +27,19 @@ REPO = EXP.parent.parent
 GEN = REPO / "engine/target/release/hint_variants"
 SCALE = REPO / "engine/target/release/hint_scale"
 
-# Matched-count scattered vs contiguous (both 16 hints on an 8×8 by default). Paths
-# are the site-engine names hint_scale accepts.
-LAYOUTS = ["geom_scattered", "geom_contiguous", "baseline_00"]
-PATHS = ["row-major", "spiral-in", "trace-hints", "connect-hints-first"]
+# Scattered lattice vs matched contiguous block, at increasing matched counts, plus
+# the no-hint baseline. This traces the solve-speed THRESHOLD (few hints hurt, many
+# help) and the scattered-vs-contiguous question at each count. The paths are the
+# site-engine names hint_scale accepts; row-major is the headline (compact) solver.
+LAYOUTS = [
+    "baseline_00",
+    "ladder_spread_04", "ladder_contig_04",
+    "ladder_spread_09", "ladder_contig_09",
+    "ladder_spread_16", "ladder_contig_16",
+    "ladder_spread_25", "ladder_contig_25",
+    "ladder_spread_36", "ladder_contig_36",
+]
+PATHS = ["row-major"]
 
 
 def field(line, key):

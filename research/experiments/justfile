@@ -74,6 +74,18 @@ hint-study budget_s="8" parallel="6" seeds="15":
     python3 hint-study/scripts/make_site_json.py \
         --run hint-study/results/rerun
 
+# Hint study, solve-speed axis: on a fully-solvable small board (8×8, with the
+# E2-faithful colour ratio), measure nodes-to-solution for a spread lattice vs a
+# matched contiguous block across increasing hint counts. This is the metric the
+# 16×16-at-a-budget score cannot see (nothing solves at 16×16 in seconds).
+hint-study-solve size="8" parallel="6" seeds="30" budget_s="30":
+    cargo build --release --manifest-path ../../engine/Cargo.toml --bin hint_variants --bin hint_scale
+    python3 hint-study/scripts/run_solve_speed.py \
+        --out hint-study/results/solve{{size}} \
+        --size {{size}} --seeds {{seeds}} --budget-s {{budget_s}} --parallel {{parallel}}
+    python3 hint-study/scripts/make_solve_json.py \
+        --run hint-study/results/solve{{size}}
+
 # BANDSAW (analysis tool, not a solver): prove the optimal completion of a
 # board's endgame band by meet-in-the-middle. Runs the committed worked example.
 bandsaw rung_ms="15000" label_ms="1500":
