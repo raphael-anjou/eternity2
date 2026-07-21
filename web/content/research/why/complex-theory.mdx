@@ -26,10 +26,13 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/NxM_actual_theory.pdf
   - label: 'Brendan Owen''s heuristic-vs-node-count study, "Heuristics: 20×2 rectangle" (groups.io Files, Brendan folder)'
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
+  - label: "Joe's backtracker depth-time measurement, 1B-iteration sample (groups.io msg 11725, 2026)"
+    url: https://groups.io/g/eternity2/message/11725
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
   - /research/why/entropy-area-law
+  - /research/why/how-hard-is-this-instance
 repro:
   kind: exact
   topic: complex-theory
@@ -103,7 +106,7 @@ board's structure before you place a piece.
 
 Plot the expected width at each depth and three regimes appear. Their shape is
 what the community calls the E2 funnel. Play the sweep below and watch the
-counter: it climbs into the billions, then barely moves for a hundred cells
+counter: it climbs astronomically, then barely moves for a hundred cells
 across the plateau, that flat crawl through an astronomically wide band is the
 wall, before the last sixty pieces funnel it back down.
 
@@ -128,8 +131,10 @@ single node is placed.
   yet.
 - **Plateau (depth 50–200).** The tree is at its widest, about $10^{45}$
   ways to extend, while the solution count barely moves. This is where
-  backtrackers spend roughly 99% of their time, matching Joe's empirical
-  finding that most time is spent below depth 150.
+  backtrackers spend the bulk of their time: one empirical sample
+  ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725), a
+  1B-iteration run) found 99% of backtracker time at depth $>132$ and 70% at
+  depth $>150$, i.e. deep in the tree rather than early.
 - **Collapse (depth 200–256).** The width falls from $10^{45}$ back to about
   $10^{4}$. The last ~60 pieces are tightly constrained: each one placed
   eliminates orders of magnitude of branches. The endgame is locally easy;

@@ -4,7 +4,7 @@ description: >-
   A solved board hides a simple bookkeeping law: every colour the border hands
   to the interior, the interior hands straight back. Break it and you know
   instantly the board is wrong; obeying it, though, guarantees nothing.
-metaDescription: "Eternity II's border balance: every colour the border shows the interior, the interior shows back — an exact multiset equality. A deficit Δ>0 proves a board can never be completed; Δ=0 proves nothing, as swaps and interior errors slip past. A cheap late-search pruner cutting 10–28% of dead-ends."
+metaDescription: "Eternity II's border balance: every colour the border shows the interior, the interior shows back, an exact multiset equality. A deficit Δ>0 proves a board can never be completed; Δ=0 proves nothing, as swaps and interior errors slip past. It also works as a cheap late-search pruner."
 kind: finding
 contribution: theory
 rigor: measured
@@ -70,8 +70,10 @@ button, and watch the catch.
 Swapping two border pieces leaves $\Delta$ at 0. The swap moves colours around
 the seam without changing either tally, so the invariant is blind to it.
 Worse, on a near-solution most of the remaining errors aren't on the border
-seam at all. They sit interior-to-interior, where NS-1 never looks: on
-469-class boards over 85% of the unmatched edges are invisible to it.
+seam at all. They sit interior-to-interior, where NS-1 never looks: across the
+469-class boards we have looked at, the large majority of the unmatched edges
+are invisible to it (an exact recount across the record set is queued as an
+experiment, not yet a committed benchmark).
 
 That is the whole texture of Eternity II in miniature. A check this clean
 still only ever says "definitely broken", never "definitely fine". The puzzle
@@ -80,6 +82,8 @@ resists every cheap certificate of progress.
 ## Is it useful, then?
 
 Yes, as a late-search pruner. Once a solver has closed the border ring,
-enforcing $\Delta = 0$ rejects 10–28% of deep dead-ends for the price of one
-pass over the 56 seam edges. It is necessary-but-loose: it throws away bad
-states cheaply and leaves the hard part, the interior, untouched.
+enforcing $\Delta = 0$ rejects a useful slice of deep dead-ends for the price
+of one pass over the 56 seam edges (how large a slice is queued for exact
+measurement, not yet a committed benchmark). It is necessary-but-loose: it
+throws away bad states cheaply and leaves the hard part, the interior,
+untouched.

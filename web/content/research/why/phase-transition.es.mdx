@@ -2,9 +2,10 @@
 title: Calibrado en el pico de dificultad
 description: >-
   Eternity II utiliza 22 colores, repartidos entre 17 colores interiores y
-  5 reservados al marco, y ese número de 17 coincide exactamente con el punto
-  donde este tipo de puzzle es más difícil de resolver.
-metaDescription: "Los 22 colores de Eternity II se reparten en 17 interiores y 5 de marco, y ese 17 cae justo en la transición de fase donde estos puzzles son más difíciles. Brendan Owen derivó el diseño 17+5 para una dureza máxima; trabajos posteriores sobre dureza SAT/CSP confirmaron el pico."
+  5 reservados al marco, y ese número de alrededor de 17 se sitúa cerca del
+  punto donde este tipo de puzzle es más difícil de resolver (la transición es
+  una banda, no un entero único).
+metaDescription: "Los 22 colores de Eternity II se reparten en 17 interiores y 5 de marco, y ese número de alrededor de 17 cae cerca de la transición de fase donde estos puzzles son más difíciles (una banda, no un entero único). Brendan Owen derivó el diseño 17+5; trabajos SAT/CSP sitúan el pico cerca."
 kind: finding
 contribution: measurement
 rigor: measured
@@ -28,6 +29,7 @@ repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
+  scope: "Solo reproduce el reparto de colores 17/5 interior/marco. La localización del pico de dificultad y la afirmación de «una sola solución esperada» descansan en las fuentes externas citadas (Owen msg 1947, Ansótegui/Mateu), no en este comando."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -64,11 +66,11 @@ académicos
   <PhaseTransitionLab />
 </Figure>
 
-## O mídalo usted mismo
+## O mídelo tú mismo
 
 El gráfico anterior está precalculado. Este no lo está: el motor resuelve en
 vivo puzzles inéditos, uno por cada número de colores, y traza el pico a partir
-de ejecuciones reales en su navegador.
+de ejecuciones reales en tu navegador.
 
 <Figure collapsible title="Interactivo: resolver en vivo a lo largo del pico de dificultad">
   <PhaseTransitionLiveLab />
@@ -161,12 +163,12 @@ El análisis publicado lo
 [deriva](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content):
 para los puzzles de emparejamiento de aristas con marco, el número de colores
 con el que se esperaría aproximadamente una solución cae cerca de 17, y ese es
-el ajuste más difícil de explorar. Y usted mismo puede observar una parte de
-ello en la demostración anterior: construya puzzles reales, cuente el trabajo, y
-véalo explotar cuando los colores escasean. El impacto es concreto. Significa
+el ajuste más difícil de explorar. Y tú mismo puedes observar una parte de
+ello en la demostración anterior: construye puzzles reales, cuenta el trabajo, y
+velo explotar cuando los colores escasean. El impacto es concreto. Significa
 que la distancia hasta una solución no es un problema de ajuste que se pueda
 limar con una máquina más rápida; el puzzle se colocó donde la búsqueda es peor
 a propósito, de modo que vencerlo exige una idea genuinamente mejor, no
 simplemente más esfuerzo.
 
-Vea la dificultad medida en vivo en la [página de Algoritmos](/algorithms).
+Ve la dificultad medida en vivo en la [página de Algoritmos](/algorithms).

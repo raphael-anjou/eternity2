@@ -27,10 +27,13 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/NxM_actual_theory.pdf
   - label: 'L''étude heuristique-contre-nombre-de-nœuds de Brendan Owen, « Heuristics: 20×2 rectangle » (groups.io Files, dossier Brendan)'
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
+  - label: "La mesure profondeur-contre-temps du backtracker par Joe, échantillon de 1 milliard d'itérations (groups.io msg 11725, 2026)"
+    url: https://groups.io/g/eternity2/message/11725
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
   - /research/why/entropy-area-law
+  - /research/why/how-hard-is-this-instance
 repro:
   kind: exact
   topic: complex-theory
@@ -112,9 +115,9 @@ une pièce.
 
 Tracez la largeur attendue à chaque profondeur et trois régimes apparaissent.
 Leur forme est ce que la communauté appelle l'entonnoir d'E2. Lancez le
-balayage ci-dessous et observez le compteur : il grimpe jusqu'aux milliards,
-puis bouge à peine pendant une centaine de cases à travers le plateau - cette
-reptation plate au sein d'une bande astronomiquement large, c'est le mur -avant que les soixante dernières pièces ne le fassent redescendre en entonnoir.
+balayage ci-dessous et observez le compteur : il grimpe astronomiquement,
+puis bouge à peine pendant une centaine de cases à travers le plateau, cette
+reptation plate au sein d'une bande astronomiquement large, c'est le mur, avant que les soixante dernières pièces ne le fassent redescendre en entonnoir.
 
 <Figure caption="Une tête de recherche balayant la profondeur 1 → 256 le long de la courbe des branches attendues. Le nombre au-dessus du plateau indique combien il existe de façons légales d'étendre un plateau partiel à cet endroit, et combien chaque placement élague peu.">
   <ComplexFunnelAnimated />
@@ -137,9 +140,11 @@ décidé par le seul ordre, avant qu'un seul nœud ne soit posé.
   dire gratuit ; rien ne vous contraint encore.
 - **Plateau (profondeur 50–200).** L'arbre est à sa largeur maximale, environ
   $10^{45}$ façons d'étendre, tandis que le nombre de solutions ne bouge
-  presque pas. C'est là que les backtrackers passent environ 99 % de leur
-  temps, ce qui rejoint le constat empirique de Joe selon lequel l'essentiel du
-  temps se passe sous la profondeur 150.
+  presque pas. C'est là que les backtrackers passent l'essentiel de leur temps :
+  un échantillon empirique ([groups.io msg 11725](https://groups.io/g/eternity2/message/11725),
+  un calcul de 1 milliard d'itérations) a mesuré 99 % du temps du backtracker à
+  une profondeur $>132$ et 70 % à une profondeur $>150$, c'est-à-dire au fond de
+  l'arbre plutôt qu'au début.
 - **Effondrement (profondeur 200–256).** La largeur retombe de $10^{45}$ à
   environ $10^{4}$. Les ~60 dernières pièces sont fortement contraintes :
   chacune posée élimine des ordres de grandeur de branches. La fin de partie

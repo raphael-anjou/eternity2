@@ -21,6 +21,15 @@ repro:
   kind: exact
   cmd: just research-entropy-area-law
   topic: entropy-area-law
+  scope: >-
+    El comando reproduce exactamente la mitad de la entropía de la gramática:
+    la cota horizontal lambdaH y las densidades de entropía h(1), h(2) para los
+    anchos 1 y 2, a partir de los valores propios de la matriz de
+    transferencia. Los puntos de mayor ancho h(3), h(4), el límite h_infinity
+    en torno a 0,67, el exponente de ley de área alpha en torno a 0,085, el
+    umbral de las ~80 celdas y el recuento de bloques n=3 del laboratorio
+    interactivo provienen de un estudio fuera de línea y no los regenera este
+    comando.
 sources:
   - label: "El lema de subaditividad de Fekete, el teorema que garantiza la existencia misma del límite de entropía h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -166,11 +175,16 @@ $$
 \rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
 $$
 
+El exponente $\alpha \approx 0.085$ y el umbral de las ochenta celdas de más
+abajo proceden de un ajuste sobre una sola instancia obtenido de un estudio
+fuera de línea; el comando de reproducción de esta página no los recalcula
+(cubre la mitad exacta, la de los valores propios).
+
 Un decaimiento por ley de área es brutal porque el área crece de forma
 cuadrática. La fracción de bloques realizables cae por debajo de uno entre
 mil en torno a las ochenta celdas.
 
-<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas.">
+<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas. El alpha y el umbral de las ochenta celdas se miden fuera del sitio, no los recalcula aquí el comando de reproducción.">
   <RhoChart />
 </Figure>
 
@@ -225,3 +239,9 @@ con $\lambda_H = 46.18$ el radio espectral de la matriz de compatibilidad de
 colores en horizontal. La positividad se cumple porque la gramática admite
 exponencialmente muchas cadenas, de modo que la densidad está estrictamente
 comprendida entre cero y 1,6645, medida en torno a 0,67.
+
+Lo que el teorema demuestra es que existe un límite positivo y que está acotado
+superiormente por $\log_{10}(46.18) = 1.6645$. Su valor concreto en torno a
+0,67, y el exponente de ley de área $\alpha \approx 0.085$, son ajustes sobre
+una sola instancia propios de este proyecto, extrapolados más allá de los
+anchos contados exactamente; el teorema no fija esos valores.
