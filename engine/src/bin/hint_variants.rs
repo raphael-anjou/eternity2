@@ -238,12 +238,15 @@ fn block(g: Grid, x0: usize, y0: usize, k: usize) -> Vec<usize> {
     cells
 }
 
-/// The E2 clue geometry, generalized: 4 near-corner anchors + `n_center` central
-/// anchors, each surrounded by a `k×k` clustered block. This is the "clustered"
-/// end of the ladder — the geometry of the official puzzle's own gift.
-fn clustered_at_clues(g: Grid, k: usize) -> Vec<usize> {
+/// The "clustered" end of the count ladder: five `k×k` solid blocks, one near
+/// each corner and one at the centre. This is a *clustered geometry* for the
+/// clustered-vs-spread comparison; it is deliberately five compact blocks, not
+/// the real five official clue cells (those are single cells, tested on the path
+/// axis via `e2_clue_shape`). The five-block layout is what banks a large
+/// pinned-seam floor.
+fn clustered_blocks(g: Grid, k: usize) -> Vec<usize> {
     let m = g.n;
-    // Anchor cells: 4 offset from corners + 1 centre (E2's 5-clue shape).
+    // Anchor cells: 4 offset from corners + 1 centre.
     let off = 1;
     let anchors = [
         (off, off),
@@ -292,16 +295,36 @@ fn spread_count(g: Grid, target: usize) -> Vec<usize> {
 /// arrangement as E2's five pre-placed clues (a centre clue and four spread
 /// toward the quadrants). Only the geometric SHAPE is borrowed from the puzzle;
 /// the pieces and board are our own generated instance. Returns 5 single cells.
+///
+/// At 16×16 these are the EXACT official Eternity II clue cells, in `(col,row)`
+/// 0-indexed form: the mandatory centre clue at I8 = (7,8), and four clue-puzzle
+/// placements inset three from each corner at C3 (2,2), C14 (13,2), N3 (2,13),
+/// N14 (13,13). For other board sizes the same pattern is scaled: the four
+/// corner clues sit `inset` cells in from each corner, and the centre clue sits
+/// one short of the middle (mirroring I8's offset from the true centre H8/(8,8)).
 fn e2_clue_shape(g: Grid) -> Vec<usize> {
     let m = g.n;
-    // E2's clues sit near (but not on) the quadrant centres, plus the middle.
-    let q = m / 4;
+    if m == 16 {
+        // The real official cells, exactly.
+        return vec![
+            g.cell(7, 8),   // I8, mandatory centre
+            g.cell(2, 2),   // C3
+            g.cell(13, 2),  // C14
+            g.cell(2, 13),  // N3
+            g.cell(13, 13), // N14
+        ];
+    }
+    // Faithful generalization for the scaling axis: inset three from the corners
+    // (clamped for small boards), centre one short of the middle.
+    let inset = 3.min((m.saturating_sub(1)) / 2);
+    let mid = m / 2;
+    let centre = mid.saturating_sub(1);
     vec![
-        g.cell(m / 2, m / 2), // centre
-        g.cell(q, q),         // upper-left quadrant
-        g.cell(m - 1 - q, q), // upper-right
-        g.cell(q, m - 1 - q), // lower-left
-        g.cell(m - 1 - q, m - 1 - q), // lower-right
+        g.cell(centre, mid),
+        g.cell(inset, inset),
+        g.cell(m - 1 - inset, inset),
+        g.cell(inset, m - 1 - inset),
+        g.cell(m - 1 - inset, m - 1 - inset),
     ]
 }
 
@@ -376,7 +399,7 @@ fn main() {
         }
     }
     for k in 2..=4 {
-        let cells = clustered_at_clues(g, k);
+        let cells = clustered_blocks(g, k);
         write_variant(&out_dir, &format!("ladder_clustered_k{k}_{:02}", cells.len()), g, &board, &scr, &cells);
     }
 

@@ -7,7 +7,7 @@ import data from "@/data/hint-study.json";
 // The study's flagship chart: the frontier LAW made visible. The x-axis is the
 // peak open frontier of each fill order — computed from geometry alone, no solver
 // — and the y-axis is the measured median score. The two are almost perfectly
-// anti-correlated (mean frontier vs median score, r ≈ −0.96): score collapses as
+// anti-correlated (mean frontier vs median score, r ≈ −0.97): score collapses as
 // the frontier grows. Putting the
 // computed CAUSE against the measured EFFECT turns "row-major wins" into a visible
 // mechanism. Bubble area encodes the instance-to-instance spread, so the chart is
@@ -52,8 +52,8 @@ const T = {
     fragment: "fragmenting order",
     seeking: "hint-seeking",
     caption:
-      "One dot per fill order — eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. The two track each other closely (r ≈ −0.96 across these eight orders), which is what we should expect if branching cost is what a fill order really controls — though with only eight points this is a strong descriptive relationship, not a fitted law, and among the fragmenting orders on the right the frontier no longer settles the ranking. Bubble size is the spread across seeds.",
-    r: "r ≈ −0.96",
+      "One dot per fill order — eight in all. The horizontal axis is pure geometry: the average open frontier that order holds across the whole fill, computed with no solver involved. The vertical axis is the measured median score. The two track each other closely (r ≈ −0.97 across these eight orders), which is what we should expect if branching cost is what a fill order really controls — though with only eight points this is a strong descriptive relationship, not a fitted law, and among the fragmenting orders on the right the frontier no longer settles the ranking. Bubble size is the spread across seeds.",
+    r: "r ≈ −0.97",
     lowRegime: "compact sweep",
     highRegime: "fragmented fill",
     busy: "Drawing…",

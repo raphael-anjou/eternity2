@@ -31,8 +31,10 @@ def idx(r, c):
 
 
 def clue_shape():
-    q = N // 4
-    return [idx(N // 2, N // 2), idx(q, q), idx(q, N - 1 - q), idx(N - 1 - q, q), idx(N - 1 - q, N - 1 - q)]
+    # The EXACT official Eternity II clue cells (idx is row-major, idx(row, col)):
+    # I8 (row 8, col 7) centre, C3 (2,2), C14 (2,13), N3 (13,2), N14 (13,13).
+    # Must match the Rust generator's e2_clue_shape at 16x16.
+    return [idx(8, 7), idx(2, 2), idx(2, 13), idx(13, 2), idx(13, 13)]
 
 
 HINTS = clue_shape()

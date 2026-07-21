@@ -29,8 +29,8 @@ const ITEMS: Item[] = [
   { key: "rows", title: { en: "Odd rows", fr: "Rangées impaires", es: "Filas impares" }, cells: [1, 3, 5].flatMap((r) => row(N, r)) },
   { key: "cross", title: { en: "Central cross", fr: "Croix centrale", es: "Cruz central" }, cells: cross(N, N / 2, N / 2) },
   { key: "contig", title: { en: "Contiguous block", fr: "Bloc contigu", es: "Bloque contiguo" }, cells: contiguous(N, 16) },
-  { key: "blocks3", title: { en: "3×3 blocks at the clues", fr: "Blocs 3×3 aux indices", es: "Bloques 3×3 en las pistas" }, cells: clusteredClues(N, 3) },
-  { key: "blocks4", title: { en: "4×4 blocks at the clues", fr: "Blocs 4×4 aux indices", es: "Bloques 4×4 en las pistas" }, cells: clusteredClues(N, 4) },
+  { key: "blocks3", title: { en: "Clustered 3×3 blocks", fr: "Blocs 3×3 groupés", es: "Bloques 3×3 agrupados" }, cells: clusteredClues(N, 3) },
+  { key: "blocks4", title: { en: "Clustered 4×4 blocks", fr: "Blocs 4×4 groupés", es: "Bloques 4×4 agrupados" }, cells: clusteredClues(N, 4) },
   { key: "dense", title: { en: "Dense lattice", fr: "Réseau dense", es: "Retícula densa" }, cells: lattice(N, 3, 1) },
 ];
 

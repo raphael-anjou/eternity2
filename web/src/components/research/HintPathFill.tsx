@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useT } from "@/i18n";
+import { clueShape } from "@/lib/hint-layouts";
 import { useIsClient } from "@/lib/utils";
 
 // Live fill animation for the Hint Study. A board is seeded with a handful of
@@ -16,15 +17,9 @@ const CELL = 20;
 
 type Path = "rowmajor" | "spiral-in" | "border-first" | "connect-hints-first";
 
-// The E2 five-clue SHAPE on our board: centre + four inset from the corners.
-const Q = Math.floor(N / 4);
-const HINTS: number[] = [
-  (N / 2) * N + N / 2,
-  Q * N + Q,
-  Q * N + (N - 1 - Q),
-  (N - 1 - Q) * N + Q,
-  (N - 1 - Q) * N + (N - 1 - Q),
-];
+// The real E2 five-clue shape (official cells at 16×16), from the shared lib so
+// the animation, the diagrams, and the measured board all use the same geometry.
+const HINTS: number[] = clueShape(N);
 
 const rc = (cell: number): [number, number] => [Math.floor(cell / N), cell % N];
 const idx = (r: number, c: number) => r * N + c;
