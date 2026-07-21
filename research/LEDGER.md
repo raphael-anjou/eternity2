@@ -1329,3 +1329,29 @@ version needs the strict ladder published through the pipeline first.
 Backlog from the 2026-07-21 gap analysis is now closed; the open next
 track (on hold, needs vault publication) is the 461 strict record + recent
 negative results.
+
+### 2026-07-21 — /research/why deep review: corrections shipped, proposal + experiment slate pending
+
+49-agent review of the why section (claim inventories on a five-tier
+evidence scale, confidence map, wall-interdependence analysis, adversarial
+complexity read, structure/consolidation judgment, first FR/ES native
+audit; every major finding adversarially verified: 22 survived, 2 refuted).
+Verdict: no rebuild (no page clears the fold bar; walls-and-methods IS the
+synthesis); the real debt is five headline claims not backed by their own
+repro commands (entropy alpha/80-cell offline-carried; sigma-cycle numbers
+page-only; rigidity MIP table uncommitted; phase-transition repro covers
+only the color split; prune-vs-speed results do not regenerate).
+Corrections committed (db105ad): inverted complex-theory depth claim fixed
+against msg 11725; design-recipe record sentence + retracted aabb (msg
+8034); hint-geometry 88+ and border-balance 85% softened pending
+measurement; phase-transition title hedged to the band; entropy/sigma/
+rigidity presentation recalibrated to committed evidence (values kept);
+index walls heading fixed; how-hard de-orphaned; tiers completed; FR
+plateau unification; ES tu harmonization + separators. Notably refuted by
+verification: 2 findings (benj39100 framing, Zamofing attribution), so
+they were NOT "fixed". Pending user approval (audits/why-review-2026-07-21/
+PROPOSAL.md): confidence-map rendering, connective-tissue prose + 3
+open-problems questions, order alignment, and the 8-experiment slate
+(E1 sigma-cycles all-pairs, E2 SAT halo extension, E3 in-repo area law,
+E4 hardness-peak sweep, E5 prune-vs-speed repro fix, E6 contiguous-hint
+measurement, E7 border recount, E8 archive refresh).
