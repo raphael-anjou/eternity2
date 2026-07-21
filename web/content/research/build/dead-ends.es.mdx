@@ -8,7 +8,7 @@ metaDescription: "Enfoques sobre Eternity II atractivos pero que no mueven la pu
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-02
+updated: 2026-07-21
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Cierre de eternity2.net: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io message 3511)"
@@ -21,6 +21,8 @@ sources:
     url: https://groups.io/g/eternity2/message/6060
 related:
   - /research/build/run-it-yourself
+  - /research/records
+  - /research/open-problems
 ---
 
 Enfoques que probamos que parecen prometedores y no mueven la aguja en
@@ -64,7 +66,10 @@ puzzle, y luego cerró sin una solución
 ([msg 3511](https://groups.io/g/eternity2/message/3511)). Y la esperanza
 cuántica se ha vuelto a plantear con regularidad, de
 [2007](https://groups.io/g/eternity2/message/1446) a
-[2024](https://groups.io/g/eternity2/message/11407).
+[2024](https://groups.io/g/eternity2/message/11407). El techo contra el que esto
+se mide es el récord vigente de 470/480; Blackwood, que lo estableció, informó de
+que los solucionadores SAT, las GPU y las cachés de 2×2 preresueltas no lo
+ayudaron a superarlo ([Récords y solucionadores](/research/records)).
 [Por qué esto es un muro →](/research/why/prune-vs-speed)
 
 ## Propagación por sondeo (survey propagation)
@@ -80,7 +85,10 @@ para ella en puzzles en grilla. La comunidad notó el aplanamiento pronto: en
 2008, experimentos de propagación de probabilidades de piezas encontraron que la
 influencia de las restricciones desde las pistas y las esquinas parece
 «desvanecerse» a unas dos celdas de distancia
-([msg 6208](https://groups.io/g/eternity2/message/6208)).
+([msg 6208](https://groups.io/g/eternity2/message/6208)). En su lugar: la poda
+que sí rinde en esta grilla es exacta, no probabilística; la
+[consistencia de arco](/research/build/reduce/arc-consistency) y el
+[filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
 
 ## Ordenar los movimientos por propagación de creencias
 
@@ -138,7 +146,10 @@ reales rondan 458, una brecha demasiado grande para certificar nada. La
 restricción vinculante es la unicidad global de las piezas, que la relajación
 descarta. Las formulaciones de PL estaban sobre la mesa de la comunidad ya el
 primer verano, y ya entonces un 4×4 tardaba más de una hora en resolverse
-([msg 1678](https://groups.io/g/eternity2/message/1678)).
+([msg 1678](https://groups.io/g/eternity2/message/1678)). En su lugar: la página
+[relajaciones LP e ILP](/research/build/exact/lp-relaxations) muestra lo que
+estas codificaciones aún pueden aportar (pruebas de imposibilidad y rellenos
+casi óptimos en subtableros), que es donde reside de verdad su valor.
 
 ## Aprender una heurística en tableros pequeños
 
@@ -181,7 +192,10 @@ solucionador con anticipación sobre cada cubo) era en sí mismo más lento que
 ejecutar kissat directamente. El resultado limpio fue una frontera firme: el
 método funciona hasta alrededor de 8×8 y se detiene ahí. Se une a la larga
 estirpe de métodos exactos que chocan contra el mismo muro que la programación
-entera y la decisión SAT, sin un asidero para superarlo.
+entera y la decisión SAT, sin un asidero para superarlo. En su lugar:
+[qué muro detiene a qué método](/research/why/walls-and-methods) confronta cada
+ataque exacto con la barrera en la que muere, para ver por qué este siempre iba
+a detenerse ahí.
 
 ## Generar tableros con un transformer
 
@@ -255,7 +269,9 @@ sean difíciles de hacer concordar; un tablero falso con piezas repetidas las
 hace concordar todas con facilidad. La barrera es la restricción global de que
 cada una de las 256 piezas se use exactamente una vez, y eso es justamente lo que
 la construcción del 480 falso descarta. El muro es informacional, no una cuestión
-de reparación local de aristas.
+de reparación local de aristas. En su lugar: el
+[muro de rigidez](/research/why/rigidity-wall) explica por qué la reparación
+local no puede cruzar esta última brecha, partas del tablero que partas.
 
 ## Precalcular macropiezas 2×2 (o mayores)
 
@@ -272,7 +288,11 @@ en un árbol fuera de alcance sigue estando fuera de alcance
 ganancia real de factor constante para un solucionador rápido, y por eso el
 [terreno de juego del orden de bloques](/playground/paths) las admite, solo que
 no son una reducción de dominio, y únicamente una reducción de dominio movería la
-aguja.
+aguja. El techo contra el que esto se mide es el récord vigente de 470/480:
+Blackwood informó de que las cachés de 2×2 preresueltas no lo ayudaron a
+superarlo ([Récords y solucionadores](/research/records)). En su lugar: la única
+palanca gratuita que sí encoge el árbol es el
+[orden de relleno](/research/build/backtracking/fill-order).
 
 ## Poda por oferta de borde (la prueba «lollypop»)
 
@@ -289,7 +309,9 @@ restricciones ordinaria *ya* ha fracasado un paso o dos antes, así que la
 contabilidad extra paga por un corte que el solucionador estaba a punto de hacer
 gratis ([msg 6060](https://groups.io/g/eternity2/message/6060)). Una regla de
 poda solo ayuda si se dispara antes de las comprobaciones que ya ejecutas, no
-después.
+después. En su lugar: la idea de oferta-frente-a-demanda rinde cuando se funde en
+la propagación que se dispara primero, el
+[filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
 
 ## Qué tienen en común todos los callejones sin salida
 
