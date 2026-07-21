@@ -1312,3 +1312,20 @@ be decorative). Verified: typecheck, full build, all research gates, i18n
 100%, 43/43 tests. Remaining backlog: in-house ladder chart, repro-presence
 CI for concepts, the kind-field re-judge; next planned track is publishing
 the vault's 461 strict record + recent negative results.
+
+### 2026-07-21 — Backlog close-out: repro gate, kind vocabulary, ladder chart declined
+
+Final backlog items (3-agent workflow). New repro-presence CI gate
+(check-research-repro.mjs, 62 claim pages audited green) + repro: prose
+backfill on 32 expository pages + the status-tier sentence in contribute.
+The crashed-verifier "overloaded kind" finding was re-judged: WEAKENED;
+kind drives no layout (the shell is deliberately uniform) and the defect
+was vocabulary, so hunt/hunt-part-2/history moved reference -> page; no
+per-kind layout branch. The in-house ladder chart was implemented and then
+DISCARDED before commit (user call, confirmed by analysis): the published
+scores are parallel named experiments, not a dated progression; charting
+them as a ladder would assert an ordering no page claims, and the honest
+version needs the strict ladder published through the pipeline first.
+Backlog from the 2026-07-21 gap analysis is now closed; the open next
+track (on hold, needs vault publication) is the 461 strict record + recent
+negative results.
