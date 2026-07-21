@@ -24,7 +24,7 @@ mod stats;
 
 pub use board::Board;
 pub use generator::{generate, generate_framed, generate_solved, generate_solved_framed,
-    max_colors, GeneratedPuzzle};
+    generate_solved_framed_bc, max_colors, GeneratedPuzzle};
 pub use piece::{Piece, Pieces, EMPTY};
 pub use score::{score_board, score_cells, MAX_SCORE, MAX_SCORE_16};
 pub use stats::SearchStats;

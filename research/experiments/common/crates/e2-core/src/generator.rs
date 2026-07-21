@@ -202,8 +202,7 @@ fn slot_is_frame_band(i: usize, s: usize) -> bool {
 ///
 /// The only RNG primitive is `shuffle` — no `below` draws inside a band — so the
 /// output is a pure function of the two shuffles and every port matches.
-fn paint_framed(rng: &mut XorShift, n_edges: usize, s: usize, colors: u8) -> Vec<u8> {
-    let frame_count = frame_color_count(colors); // >= 1 here (colors >= 2)
+fn paint_framed(rng: &mut XorShift, n_edges: usize, s: usize, colors: u8, frame_count: u8) -> Vec<u8> {
     let interior_count = colors - frame_count; // >= 1 here (size >= 4)
 
     // Partition slot indices, ascending, into the two bands.
@@ -388,15 +387,33 @@ fn make_pieces_rotation_unique(vert: &mut [u8], horiz: &mut [u8], s: usize, rng:
 /// original unrestricted painter.
 #[must_use]
 pub fn generate_solved_framed(size: u8, colors: u8, seed: u32, framed: bool) -> GeneratedPuzzle {
+    // Default border-colour count: min(5, colors-1), Eternity II's convention.
+    generate_solved_framed_bc(size, colors, seed, framed, frame_color_count(colors))
+}
+
+/// Like [`generate_solved_framed`], but with an EXPLICIT border-colour count
+/// instead of the default `min(5, colors-1)`, so a caller can keep Eternity II's
+/// interior-dominant colour ratio on small boards. Byte-matched with the site
+/// engine's `generate_solved_framed_bc`. `border_colors` is clamped to
+/// `[1, colors-1]`; passing `frame_color_count(colors)` reproduces
+/// `generate_solved_framed`.
+pub fn generate_solved_framed_bc(
+    size: u8,
+    colors: u8,
+    seed: u32,
+    framed: bool,
+    border_colors: u8,
+) -> GeneratedPuzzle {
     assert!(size >= 2, "size must be >= 2");
     let colors = colors.clamp(1, max_colors(size));
+    let frame_count = border_colors.clamp(1, colors.saturating_sub(1).max(1));
     let s = size as usize;
     let n_edges = interior_edge_count(size) as usize;
     let mut rng = XorShift::new(seed);
 
     // The painted color of each palette slot in default flat order.
     let palette: Vec<u8> = if framed && framed_is_meaningful(size, colors) {
-        paint_framed(&mut rng, n_edges, s, colors)
+        paint_framed(&mut rng, n_edges, s, colors, frame_count)
     } else {
         // One color per interior adjacency, every color present at least once.
         let mut p: Vec<u8> = (0..n_edges)
