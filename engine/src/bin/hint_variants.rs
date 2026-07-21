@@ -26,7 +26,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use eternity2_engine::generator::{frame_color_count, interior_edge_count};
-use eternity2_engine::{generate_solved_framed, Puzzle, BORDER};
+use eternity2_engine::{generate_solved_framed_bc, Puzzle, BORDER};
 
 /// The board size for a run, threaded through the layout helpers (which used to
 /// close over a `SIZE` const). Kept in one struct so every geometry function is
@@ -52,20 +52,30 @@ impl Grid {
     }
 }
 
-/// Density-preserving colour recipe for size `n`: returns `colors` (total) such
-/// that `frame_color_count(colors)` border colours each land near multiplicity
-/// 12 and the interior colours near multiplicity 24 — matching E2's structure at
-/// n=16 while holding constraint density constant across sizes. See the study
-/// method page for the derivation. The engine clamps `colors` to
-/// `max_colors(n)`, and `frame_color_count` caps border colours at 5.
-fn faithful_colors(n: usize) -> u8 {
+/// Density-preserving colour recipe for size `n`: returns `(total_colours,
+/// border_colours)`. Border colours target multiplicity ~12 (capped at E2's 5),
+/// interior colours target ~24, and CRUCIALLY the interior-dominant ratio is
+/// preserved even on small boards by choosing the border count explicitly rather
+/// than accepting the engine's default `min(5, colours-1)` cap. At n=16 this is
+/// exactly E2 (5 border, 17 interior); at n=8 it is 2 border + 7 interior (ratio
+/// ~3.5, matching E2's 5:17) instead of the degenerate 5 border + 1 interior the
+/// default cap would give. The board is generated with
+/// [`generate_solved_framed_bc`] passing this border count.
+fn faithful_colors(n: usize) -> (u8, u8) {
     let n_u8 = n as u8;
     let frame = frame_band_slot_count(n) as f64;
     let interior = (interior_edge_count(n_u8) as usize - frame_band_slot_count(n)) as f64;
-    // Target multiplicities from E2 (frame 60/5=12, interior 420/17≈24.7).
+    // Border ~ mult 12 (cap 5); interior ~ mult 24, floor 2 so small boards keep a
+    // real palette. Then enforce interior >= ~3x border (E2's 17:5 ratio) so the
+    // interior always dominates.
     let bc = ((frame / 12.0).round() as usize).max(1).min(5);
-    let ic = ((interior / 24.0).round() as usize).max(1);
-    (bc + ic).min(22) as u8
+    let mut ic = ((interior / 24.0).round() as usize).max(2);
+    if ic < bc * 3 {
+        ic = (bc * 3).min((interior / 4.0).floor() as usize).max(ic);
+    }
+    let total = (bc + ic).min(22);
+    let border = bc.min(total.saturating_sub(1).max(1));
+    (total as u8, border as u8)
 }
 
 /// Count of along-frame seams (border band) on an n×n board — mirrors the
@@ -379,14 +389,24 @@ fn main() {
             argv.iter().filter(|a| !a.starts_with("--")).nth(1).and_then(|s| s.parse().ok())
         })
         .unwrap_or(1);
-    let colors: u8 = flag("--colors")
+    // Colours: default to the E2-faithful recipe (total + explicit border count so
+    // the interior-dominant ratio holds on small boards). A `--colors` override
+    // sets the total and falls back to the engine's default border split, and an
+    // optional `--border` override sets the border count directly.
+    let (default_total, default_border) = faithful_colors(size);
+    let colors: u8 = flag("--colors").and_then(|s| s.parse().ok()).unwrap_or(default_total);
+    let border_colors: u8 = flag("--border")
         .and_then(|s| s.parse().ok())
-        .unwrap_or_else(|| faithful_colors(size));
+        .unwrap_or(if flag("--colors").is_some() {
+            frame_color_count(colors)
+        } else {
+            default_border
+        });
 
     let g = Grid { n: size };
     fs::create_dir_all(&out_dir).expect("mkdir out_dir");
 
-    let board = generate_solved_framed(size as u8, colors, seed, true);
+    let board = generate_solved_framed_bc(size as u8, colors, seed, true, border_colors);
     let border_edges = board
         .pieces
         .iter()
@@ -396,9 +416,8 @@ fn main() {
     let scr = scramble_ids(&board, (seed as u64).wrapping_mul(0x1000_0001) ^ 0xE2);
 
     println!(
-        "board N={size} colors={colors} (frame={} interior={}) seed={seed}: {} pieces, {} border-edge slots",
-        frame_color_count(colors),
-        colors - frame_color_count(colors),
+        "board N={size} colors={colors} (border={border_colors} interior={}) seed={seed}: {} pieces, {} border-edge slots",
+        colors - border_colors,
         board.pieces.len(),
         border_edges,
     );
