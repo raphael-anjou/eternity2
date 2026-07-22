@@ -9,8 +9,8 @@ contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
-order: 50
-updated: 2026-07-10
+order: 45
+updated: 2026-07-22
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "one MIP solve per region; ~70 s (48 cells) to ~1800 s (59-cell joint halo-1) on CBC"
@@ -34,7 +34,7 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100: GPU annealing on the strict-5-clue board hits the same frozen core; best score grows with distance from the incumbent (groups.io msg 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "William Millilaw's independent halo SAT-residual and replica freeze tests, reproduced here on the public record boards (all UNSAT out to a two-cell halo)"
+  - label: "William Millilaw's independent halo SAT-residual and replica freeze tests, reproduced here on five public boards (every finished solve UNSAT, out to a four-cell halo)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
 ---
 
@@ -151,12 +151,17 @@ that every freed edge match, and ask whether any arrangement of those pieces
 satisfies it. His solver answered UNSAT.
 
 We [reproduced that SAT test](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
-on the public record boards, with our own encoder and a positive control to make
-sure a matched region comes back satisfiable. Every record board we tried, from
-Verhaard's 467 up to Blackwood's 470, is UNSAT out to a two-cell halo: no local
-rearrangement of a record board's own pieces closes a single mismatch. Integer
-programming optimizes and bounds; annealing runs into the wall by hand; SAT
-decides and returns a refutation. Three methods, one answer.
+on five public boards, with our own encoder and a positive control to make sure a
+matched region comes back satisfiable. Across the four community record boards,
+from Verhaard's 467 up to Blackwood's 470, and Riotte's 464 (the strict
+five-clue record), every solve that finished is UNSAT out to a four-cell halo: no
+local rearrangement of a record board's own pieces closes a single mismatch, even
+when the freed region grows to well over a hundred cells. The radius-4 instances
+are large enough that a few did not finish inside the solver's time cap; those
+are recorded as timeouts and left open, not counted as proven, so the committed
+table states exactly what was decided. Integer programming optimizes and bounds;
+annealing runs into the wall by hand; SAT decides and returns a refutation. Three
+methods, one answer.
 
 His earlier snake-and-local-search work put a number on why. The largest patch
 any of his repair operators could rewrite in one move was about 48 cells, while

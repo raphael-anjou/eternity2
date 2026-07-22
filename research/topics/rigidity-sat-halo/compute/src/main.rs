@@ -18,6 +18,7 @@
 //! `--selftest` it instead runs encoder sanity checks and prints PASS/FAIL.
 
 use eternity2_engine::types::{rotated, Color, BORDER};
+use std::io::Write as _;
 
 const BOARDS_JSON: &str = include_str!("../boards.json");
 const W: usize = 16;
@@ -29,6 +30,25 @@ const URDL_UP: usize = 0;
 const URDL_RIGHT: usize = 1;
 const URDL_DOWN: usize = 2;
 const URDL_LEFT: usize = 3;
+
+/// Append the decimal ASCII of `n` (with sign) to `buf`. Avoids per-literal
+/// `write!` formatting, which dominated CNF emission for the large radii.
+fn write_int(buf: &mut Vec<u8>, n: i64) {
+    if n < 0 {
+        buf.push(b'-');
+    }
+    let mut m = n.unsigned_abs();
+    if m == 0 {
+        buf.push(b'0');
+        return;
+    }
+    let start = buf.len();
+    while m > 0 {
+        buf.push(b'0' + (m % 10) as u8);
+        m /= 10;
+    }
+    buf[start..].reverse();
+}
 
 /// Decode a bucas `board_edges` letter string into 256 URDL edge arrays.
 /// 'a' = 0 (border), 'b' = 1, ... Each cell is 4 consecutive letters.
@@ -161,15 +181,76 @@ impl Cnf {
     fn add(&mut self, lits: Vec<i32>) {
         self.clauses.push(lits);
     }
-    fn write(&self, out: &mut impl std::io::Write) -> std::io::Result<()> {
-        writeln!(out, "p cnf {} {}", self.nvars, self.clauses.len())?;
-        for cl in &self.clauses {
-            for l in cl {
-                write!(out, "{l} ")?;
-            }
-            writeln!(out, "0")?;
+    /// Exactly-one over `vars`: at-least-one plus a *compact* at-most-one.
+    /// For <= 5 literals we keep the pairwise form (fewer total clauses, no aux
+    /// vars); above that we switch to Sinz's sequential (ladder) encoding, which
+    /// is linear in clauses and aux variables instead of quadratic. This is what
+    /// keeps radius-3 and radius-4 halos, where candidate lists get long, from
+    /// exploding into tens of millions of at-most-one clauses.
+    fn exactly_one(&mut self, vars: &[i32]) {
+        if vars.is_empty() {
+            self.add(vec![]); // empty clause = UNSAT (a group that must pick one but can't)
+            return;
         }
-        Ok(())
+        self.add(vars.to_vec()); // at-least-one
+        self.at_most_one(vars);
+    }
+    /// At-most-one, pairwise for tiny groups, sequential (Sinz 2005) otherwise.
+    fn at_most_one(&mut self, vars: &[i32]) {
+        let n = vars.len();
+        if n <= 5 {
+            for a in 0..n {
+                for b in (a + 1)..n {
+                    self.add(vec![-vars[a], -vars[b]]);
+                }
+            }
+            return;
+        }
+        // Sinz sequential: aux s_1..s_{n-1}, "at least one of v_1..v_i is true".
+        let mut s = Vec::with_capacity(n - 1);
+        for _ in 0..(n - 1) {
+            s.push(self.new_var());
+        }
+        // v_1 -> s_1
+        self.add(vec![-vars[0], s[0]]);
+        // s_{n-1} -> !v_n
+        self.add(vec![-s[n - 2], -vars[n - 1]]);
+        for i in 1..(n - 1) {
+            // v_{i+1} -> s_{i+1}
+            self.add(vec![-vars[i], s[i]]);
+            // s_i -> s_{i+1}
+            self.add(vec![-s[i - 1], s[i]]);
+            // v_{i+1} & s_i -> false   (i.e. !v_{i+1} | !s_i)
+            self.add(vec![-vars[i], -s[i - 1]]);
+        }
+    }
+    fn write(&self, out: &mut impl std::io::Write) -> std::io::Result<()> {
+        // Wrap in a large buffer and hand-format integers into a reusable byte
+        // buffer. The per-literal `write!` macro was the bottleneck for the
+        // radius-3/4 CNFs (hundreds of megabytes); buffered byte output makes
+        // emitting them I/O-bound on the pipe instead of formatter-bound.
+        let mut out = std::io::BufWriter::with_capacity(1 << 20, out);
+        let mut line: Vec<u8> = Vec::with_capacity(64);
+        line.clear();
+        write_int(&mut line, self.nvars as i64);
+        // header
+        out.write_all(b"p cnf ")?;
+        out.write_all(&line)?;
+        line.clear();
+        out.write_all(b" ")?;
+        write_int(&mut line, self.clauses.len() as i64);
+        out.write_all(&line)?;
+        out.write_all(b"\n")?;
+        for cl in &self.clauses {
+            line.clear();
+            for &l in cl {
+                write_int(&mut line, l as i64);
+                line.push(b' ');
+            }
+            line.extend_from_slice(b"0\n");
+            out.write_all(&line)?;
+        }
+        out.flush()
     }
 }
 
@@ -236,31 +317,15 @@ fn build_cnf(cells: &[Edges], freed: &[usize]) -> Cnf {
     // (1) Each freed cell holds exactly one candidate.
     for ci in 0..ncell {
         let vars: Vec<i32> = cell_cands[ci].iter().map(|(_, v)| *v).collect();
-        // at-least-one
-        cnf.add(vars.clone());
-        // at-most-one (pairwise; halos are small)
-        for a in 0..vars.len() {
-            for b in (a + 1)..vars.len() {
-                cnf.add(vec![-vars[a], -vars[b]]);
-            }
-        }
+        cnf.exactly_one(&vars);
     }
 
     // (2) Each freed piece is used exactly once (permutation).
+    // An empty candidate list means a piece has no legal slot => UNSAT, which
+    // exactly_one encodes as an empty clause.
     for p in 0..ncell {
-        let vars = &piece_slots[p];
-        // at-least-one: the piece must go somewhere. If empty, instance is
-        // trivially UNSAT (a piece with no legal slot) — encode as empty clause.
-        if vars.is_empty() {
-            cnf.add(vec![]); // empty clause = UNSAT
-        } else {
-            cnf.add(vars.clone());
-            for a in 0..vars.len() {
-                for b in (a + 1)..vars.len() {
-                    cnf.add(vec![-vars[a], -vars[b]]);
-                }
-            }
-        }
+        let vars = piece_slots[p].clone();
+        cnf.exactly_one(&vars);
     }
 
     // (3) Freed–freed internal edges must match: forbid incompatible pairs.
@@ -346,27 +411,78 @@ fn verify_identity(cells: &[Edges], freed: &[usize]) {
         );
         return;
     }
-    // Build the full CNF (same order) and test the identity assignment.
+    // Build the full CNF (same order) and test the identity assignment. The
+    // candidate (primary) variables are fixed by identity: each cell's identity
+    // candidate is true, every other candidate is false. The at-most-one
+    // encoding may introduce auxiliary ladder variables, which the identity
+    // assignment leaves free; we complete them by unit propagation and report a
+    // conflict only if the fixed candidate literals already make some clause
+    // unsatisfiable. This keeps the control rigorous under the compact encoding.
     let cnf = build_cnf(cells, freed);
-    let true_set: std::collections::HashSet<i32> =
+    // Collect the set of primary (candidate) variables so we can fix them; any
+    // var id beyond the last candidate is auxiliary and left for propagation.
+    let identity_true: std::collections::HashSet<i32> =
         identity_var.iter().map(|v| v.unwrap()).collect();
-    let sat_lit = |l: i32| -> bool {
-        if l > 0 {
-            true_set.contains(&l)
-        } else {
-            !true_set.contains(&(-l))
-        }
-    };
-    for (idx, cl) in cnf.clauses.iter().enumerate() {
-        if !cl.iter().any(|&l| sat_lit(l)) {
-            eprintln!(
-                "[verify] identity assignment VIOLATES clause #{idx}: {:?} (len {})",
-                cl,
-                cl.len()
-            );
-            return;
+    let mut all_cand_vars: std::collections::HashSet<i32> = std::collections::HashSet::new();
+    for slots in &cell_cands {
+        for (_, v) in slots {
+            all_cand_vars.insert(*v);
         }
     }
+    // assign[var] in {None, Some(true), Some(false)}; var ids are 1-based.
+    let mut assign: Vec<Option<bool>> = vec![None; (cnf.nvars as usize) + 1];
+    for &v in &all_cand_vars {
+        assign[v as usize] = Some(identity_true.contains(&v));
+    }
+    // Unit propagation to completion (or conflict).
+    let lit_val = |assign: &[Option<bool>], l: i32| -> Option<bool> {
+        let v = l.unsigned_abs() as usize;
+        assign[v].map(|b| if l > 0 { b } else { !b })
+    };
+    loop {
+        let mut changed = false;
+        for (idx, cl) in cnf.clauses.iter().enumerate() {
+            let mut unassigned: Option<i32> = None;
+            let mut n_unassigned = 0;
+            let mut satisfied = false;
+            for &l in cl {
+                match lit_val(&assign, l) {
+                    Some(true) => {
+                        satisfied = true;
+                        break;
+                    }
+                    Some(false) => {}
+                    None => {
+                        n_unassigned += 1;
+                        unassigned = Some(l);
+                    }
+                }
+            }
+            if satisfied {
+                continue;
+            }
+            if n_unassigned == 0 {
+                eprintln!(
+                    "[verify] identity assignment VIOLATES clause #{idx}: {:?} (len {})",
+                    cl,
+                    cl.len()
+                );
+                return;
+            }
+            if n_unassigned == 1 {
+                let l = unassigned.unwrap();
+                let v = l.unsigned_abs() as usize;
+                assign[v] = Some(l > 0);
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    // No conflict surfaced by full unit propagation of the fixed identity
+    // candidates: the identity assignment extends to a model, so the encoder
+    // admits the known solution.
     eprintln!("[verify] identity assignment satisfies ALL {} clauses (encoder admits the known solution)", cnf.clauses.len());
 }
 
@@ -444,7 +560,7 @@ fn selftest() {
     //    solvable). We test the real machinery on the record boards instead:
     //    decode + score must equal the published score.
     let mut all_ok = true;
-    for id in ["Joshua_Blackwood_470", "JBlackwood+PMcGavin_469"] {
+    for id in ["Joshua_Blackwood_470", "JBlackwood+PMcGavin_469", "Benjamin_Riotte_464"] {
         let (cells, score) = load_board(id);
         let m = matched_edges(&cells);
         let ok = m as i64 == score;

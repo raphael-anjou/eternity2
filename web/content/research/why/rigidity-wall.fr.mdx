@@ -10,8 +10,8 @@ contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
-order: 50
-updated: 2026-07-10
+order: 45
+updated: 2026-07-22
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "une résolution PLNE par région ; de ~70 s (48 cellules) à ~1800 s (halo-1 conjoint de 59 cellules) sur CBC"
@@ -36,7 +36,7 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100 : le recuit sur GPU appliqué au plateau strict à 5 indices bute sur le même cœur figé ; le meilleur score croît avec la distance au sortant (message groups.io 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "Tests indépendants de résidu SAT sur halo et de gel des répliques de William Millilaw, reproduits ici sur les plateaux records publics (tous UNSAT jusqu'à un halo de deux cellules)"
+  - label: "Tests indépendants de résidu SAT sur halo et de gel des répliques de William Millilaw, reproduits ici sur cinq plateaux publics (chaque résolution terminée UNSAT, jusqu'à un halo de quatre cellules)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
 ---
 
@@ -167,14 +167,19 @@ exiger que chaque arête libérée concorde, et demander si un quelconque agence
 de ces pièces la satisfait. Son solveur a répondu UNSAT.
 
 Nous avons [reproduit ce test SAT](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
-sur les plateaux records publics, avec notre propre encodeur et un témoin
-positif pour nous assurer qu'une région concordante revient satisfiable. Chaque
-plateau record que nous avons essayé, du 467 de Verhaard au 470 de Blackwood,
-est UNSAT jusqu'à un halo de deux cellules : aucun réagencement local des
-propres pièces d'un plateau record ne referme un seul désaccord. La
-programmation en nombres entiers optimise et borne ; le recuit se cogne au mur à
-la main ; SAT décide et renvoie une réfutation. Trois méthodes, une seule
-réponse.
+sur cinq plateaux publics, avec notre propre encodeur et un témoin positif pour
+nous assurer qu'une région concordante revient satisfiable. Sur les quatre
+plateaux records de la communauté, du 467 de Verhaard au 470 de Blackwood, et le
+464 de Riotte (le record strict à cinq indices), chaque résolution qui aboutit
+est UNSAT jusqu'à un halo de quatre cellules : aucun réagencement local des
+propres pièces d'un plateau record ne referme un seul désaccord, même lorsque la
+région libérée dépasse la centaine de cellules. Les instances de rayon 4 sont
+assez grandes pour que quelques-unes n'aboutissent pas dans le temps imparti au
+solveur ; celles-ci sont enregistrées comme dépassements de délai et laissées
+ouvertes, non comptées comme prouvées, de sorte que le tableau validé énonce
+exactement ce qui a été décidé. La programmation en nombres entiers optimise et
+borne ; le recuit se cogne au mur à la main ; SAT décide et renvoie une
+réfutation. Trois méthodes, une seule réponse.
 
 Ses travaux antérieurs sur le serpent et la recherche locale ont chiffré le
 pourquoi. Le plus grand pavé qu'un quelconque de ses opérateurs de réparation
