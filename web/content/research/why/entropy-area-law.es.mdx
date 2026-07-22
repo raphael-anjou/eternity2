@@ -9,27 +9,30 @@ kind: finding
 contribution: theory
 rigor: measured
 tier: 2
-order: 130
-updated: 2026-07-01
+order: 50
+updated: 2026-07-22
 topics: [structure]
 related:
   - /research/why/phase-transition
   - /research/why/prune-vs-speed
   - /research/why/forbidden-patterns
+  - /research/why/piece-theft
   - /research/build/analysis/solution-counting
 repro:
   kind: exact
   cmd: just research-entropy-area-law
   topic: entropy-area-law
   scope: >-
-    El comando reproduce exactamente la mitad de la entropía de la gramática:
-    la cota horizontal lambdaH y las densidades de entropía h(1), h(2) para los
-    anchos 1 y 2, a partir de los valores propios de la matriz de
-    transferencia. Los puntos de mayor ancho h(3), h(4), el límite h_infinity
-    en torno a 0,67, el exponente de ley de área alpha en torno a 0,085, el
-    umbral de las ~80 celdas y el recuento de bloques n=3 del laboratorio
-    interactivo provienen de un estudio fuera de línea y no los regenera este
-    comando.
+    El comando reproduce exactamente, en el repositorio: la cota horizontal
+    lambdaH y las densidades de entropía h(1), h(2) para los anchos 1 y 2, a
+    partir de los valores propios de la matriz de transferencia; los recuentos
+    de bloques interiores A(n) hasta n=4 y los recuentos con piezas distintas
+    B(n) hasta n=3 (B(2)=4059952 coincide con la tabla subgrid-placement-counts);
+    y el exponente de ley de área alpha cercano a 0,044 ajustado sobre ese rango.
+    Los puntos de mayor ancho h(3), h(4) y el límite h_infinity en torno a 0,67
+    siguen provenientes de un barrido fuera de línea, y la curva rho(n) y el
+    umbral de las ~155 celdas más allá de n=3 son extrapolaciones del ajuste del
+    repositorio, no recuentos exactos.
 sources:
   - label: "El lema de subaditividad de Fekete, el teorema que garantiza la existencia misma del límite de entropía h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -167,24 +170,35 @@ ensancha.
 ## Luego golpea la ley de área
 
 Ahora restablezcamos la regla de usar cada pieza una sola vez y preguntémonos
-con qué frecuencia un bloque $n \times n$ compatible en colores, tomado al
-azar, emplea realmente piezas distintas. Llamémoslo $\rho(n)$. Se derrumba, y
+con qué frecuencia un bloque $n \times n$ compatible en colores emplea
+realmente piezas distintas. Llamémoslo $\rho(n)$. Lo contamos de forma exacta,
+en el repositorio: para cada tamaño de bloque interior contamos $A(n)$, los
+rellenos compatibles en colores cuando las piezas pueden repetirse, y $B(n)$,
+los que usan piezas distintas, y tomamos $\rho(n) = B(n)/A(n)$. Se derrumba, y
 se derrumba según el área, no según el perímetro:
 
 $$
-\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
+\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.044.
 $$
 
-El exponente $\alpha \approx 0.085$ y el umbral de las ochenta celdas de más
-abajo proceden de un ajuste sobre una sola instancia obtenido de un estudio
-fuera de línea; el comando de reproducción de esta página no los recalcula
-(cubre la mitad exacta, la de los valores propios).
+El exponente se ajusta por mínimos cuadrados sobre el rango contado con
+exactitud: $A$ y $B$ se calculan aquí para $n$ hasta $3$ (y $A$ hasta $4$), con
+$B(2) = 4\,059\,952$ coincidiendo con la tabla de referencia de sub-bloques del
+repositorio. El exponente por bloque aún crece en ese pequeño rango (0,029 en
+$n=2$, 0,048 en $n=3$), así que 0,044 es una estimación baja del valor para
+bloques grandes. En $n=4$ el recuento reutilizable $A(4)$ ya alcanza
+$6{,}3\times10^{16}$, más allá de la enumeración distinta exacta en un tiempo
+razonable; por eso la curva más allá de $n=3$ es una extrapolación del ajuste.
 
 Un decaimiento por ley de área es brutal porque el área crece de forma
-cuadrática. La fracción de bloques realizables cae por debajo de uno entre
-mil en torno a las ochenta celdas.
+cuadrática. Por extrapolación, la fracción de bloques realizables cae por
+debajo de uno entre mil hacia las 155 celdas. (Un estudio fuera del sitio
+anterior reportaba un $\alpha \approx 0.085$ más pronunciado y un umbral hacia
+las 80 celdas; los recuentos exactos del repositorio sobre $n \le 3$ dan las
+cifras más suaves de aquí, y el exponente por bloque creciente es compatible con
+que el valor fuera del sitio se alcance en bloques mayores.)
 
-<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas. El alpha y el umbral de las ochenta celdas se miden fuera del sitio, no los recalcula aquí el comando de reproducción.">
+<Figure caption="Fracción de bloques compatibles en colores realizables con piezas distintas. El exponente es el ajuste por mínimos cuadrados del repositorio sobre los bloques contados con exactitud (n hasta 3); la curva más allá es una extrapolación.">
   <RhoChart />
 </Figure>
 
@@ -200,13 +214,13 @@ a la regla de usar cada pieza una sola vez.
 
 ## Por qué importa
 
-Ochenta celdas no es un número arbitrario. Es el tamaño de los movimientos
-más pequeños que separan los mejores tableros conocidos. La gramática de
-coincidencia se mantiene rica hasta más o menos esa escala, y luego la regla
-de distinción la colapsa. Así que el muro no está en la parte que parece
-difícil, la coincidencia de colores; está en la regla silenciosa de que cada
-pieza se usa una sola vez, cuyo coste crece con el área, sobre un tablero
-apenas lo bastante grande como para que muerda.
+Un colapso del orden de la centena de celdas está a la escala de los
+movimientos más pequeños que separan los mejores tableros conocidos. La
+gramática de coincidencia se mantiene rica, y luego la regla de distinción la
+colapsa sobre el área. Así que el muro no está en la parte que parece difícil,
+la coincidencia de colores; está en la regla silenciosa de que cada pieza se
+usa una sola vez, cuyo coste crece con el área, sobre un tablero apenas lo
+bastante grande como para que muerda.
 
 Ver [por qué el basin-hopping es imposible](/research/why/sigma-cycles).
 
@@ -242,6 +256,8 @@ comprendida entre cero y 1,6645, medida en torno a 0,67.
 
 Lo que el teorema demuestra es que existe un límite positivo y que está acotado
 superiormente por $\log_{10}(46.18) = 1.6645$. Su valor concreto en torno a
-0,67, y el exponente de ley de área $\alpha \approx 0.085$, son ajustes sobre
-una sola instancia propios de este proyecto, extrapolados más allá de los
-anchos contados exactamente; el teorema no fija esos valores.
+0,67 proviene de un barrido fuera de línea. El exponente de ley de área
+$\alpha \approx 0.044$ se ajusta aquí a partir de los recuentos de bloques
+exactos del repositorio sobre $n \le 3$; su extrapolación a bloques mayores (y
+el umbral de las ~155 celdas) va más allá del rango contado con exactitud. El
+teorema no fija esos valores.

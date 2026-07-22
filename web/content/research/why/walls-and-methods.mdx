@@ -42,6 +42,69 @@ four walls themselves are corroborated by the published literature; the
 experiment results are this project's own work, each written up on its own page; they
 are not claimed to be externally verified.
 
+## What each wall rests on
+
+Not every wall is the same kind of evidence. Some are exact, deterministic
+computations committed to this repository; one is externally replicated by
+several independent methods; several are real measurements taken on the one
+Eternity II board and its record set. That is a legitimate base, but a reader
+deserves to know which is which before leaning on any single line. The table
+below reads every structural claim in this section down to the strongest form
+its evidence actually supports, the tier of that evidence, whether any outside
+party has reproduced it, and the one caveat to carry.
+
+<Callout kind="note" title="The four tiers">
+  - **Proven, external.** A theorem or an exact computation an outside party has
+    stated or replicated, and the page cites that party.
+  - **Proven, internal.** An exact, deterministic computation done here, with the
+    code and result committed under `research/topics/` and reproducible from the
+    page's own command.
+  - **Measured, single instance.** A real measurement, taken on the one Eternity
+    II board (or one E2-like board), with no replication. True, and not a defect
+    on its own, but it is one data point.
+  - **Conjecture.** The page itself frames the claim as unproven in general.
+
+  A wall is not marked down for being measured on a single instance. It is
+  marked down only where a lower tier is dressed as a higher one, and none here
+  is.
+</Callout>
+
+| Wall / claim | Strongest supported form | Tier | Outside replication | The one caveat |
+| --- | --- | --- | --- | --- |
+| [Hardness peak](/research/why/phase-transition) | 17.14 interior colours follow from the one-expected-solution criterion; 17 sits near the search-hardness peak for framed edge matching | Proven, external | Yes: Owen's 1947 derivation; Ansótegui, Béjar, Fernández & Mateu confirm the peak | "One expected solution" is a first-moment average assuming independent edge colours; it locates the peak, it does not count solutions |
+| [Complex theory / the funnel](/research/why/complex-theory) | A calibrated first-moment estimator of tree width and solution count, right to within about a factor of two everywhere it could be checked | Conjecture (page badge), on external replication | Yes: Owen's model; McGavin's C port and 10×10 solve, inside prediction | It is an average, blind to whether counted partials are genuinely distinct; a tool for ranking scan orders, never a true count or a bound |
+| [No forced moves](/research/why/no-forced-moves) | An exact exhaustive count over the official interior set: no interior piece is ever forced to a single right-hand partner (73–137 partners each) | Proven, internal | No external replication; the count is this project's own, committed and reproducible | It counts pairwise compatibility on the full piece set, not candidate counts inside a live partial board; a property of the pieces, not a proof search never narrows |
+| [Forbidden patterns](/research/why/forbidden-patterns) | Exact exhaustive counts: 38.96% of pairs, 83.26% of L-trominoes, 99.72% of 2×2 squares are infeasible over distinct interior pieces | Proven, internal | The 2×2 counts are this project's committed exact result; the 20 void corner-pairs are a cited 2008 community observation | The "forbidden-patch count tracks distance to a solution" reading is a heuristic signal, not a proven monotone distance |
+| [Entropy area law](/research/why/entropy-area-law) | The block counts A(n)/B(n) are now exact in-repo through n=3 (B(2)=4,059,952 cross-checks the sub-grid table), giving an in-repo exponent α≈0.044; the entropy limit near 0.67 and the collapse point are extrapolations | Proven, internal (the block counts) + measured (the fit) | Partial: Fekete's lemma and Shannon entropy are the external theorems that make the limit well-defined; the α fit and collapse scale are this project's own | The theorem guarantees a positive limit exists; it does not fix its value. The exponent is fit over n≤3 and its per-block value is still rising, so the large-patch collapse point is an extrapolation past the counted widths |
+| [Rigidity](/research/why/rigidity-wall) | On the public record boards, no rearrangement of a board's own pieces inside a halo out to four cells closes any mismatch (SAT: UNSAT), now committed | Proven, internal for the SAT halo; the deeper MIP table is proven for the regions closed but carried from an off-site paper | Yes, the best-replicated wall: Millilaw's freeze and SAT-residual tests reproduced here with a positive control; benj39100's GPU-annealing hard core reaches it from a third method | The committed site evidence is the SAT halo to radius 4 on five boards (a few radius-4 instances time out, recorded open). The MIP proof table and the board-wide ≤476 bound are sourced to the off-site paper, and the all-boards statement is a conjecture |
+| [Sigma-cycles](/research/why/sigma-cycles) | Over **every** ordered same-piece-set pair of the bundled boards (246 pairs, 1,154 large loops), **every** proper prefix of every large loop scores strictly worse than its start, across all 54,238 partial applications | Proven, internal (a population statement over the bundled set) | No external replication; computed here against McGavin's 469 and the bundled record and project boards | The count is exact over the boards shipped; the "every sub-cycle is worse" property is still not proven to hold for every board that could exist. A strong population observation, not a general theorem |
+| [Mismatch geometry](/research/why/mismatch-geometry) | On the record and project boards, residual mismatches cluster in one row-band that flips with build direction; a hole-count objective lands leftovers in the same band | Measured, single instance | Partial: the scan-direction flip is this project's reading; Verhaard's seven-hole board and Zamofing's top-band residual are cited same-direction observations, now verifiable in the extended archive | A pattern across a handful of boards with a mechanistic story, not a proof |
+| [Piece theft](/research/why/piece-theft) | An exact count of (north, west) demands over the interior set: most have one to three suppliers, and a specific number have exactly one | Proven, internal (the counts); measured (the "where solvers die" mechanism) | No external replication; Régin 1994 is cited as the all-different theory that names the mechanism | The scarce-supplier counts are exact; "this is where real solvers die" is a mechanism illustrated on the instance, not a measured failure rate across solvers |
+| [Hint geometry](/research/why/hint-geometry) | On one 16×16 E2-like puzzle, scattered hints solve it in minutes where piled contiguous rows do not, because the work lives in the back half of the fill | Measured, single instance (an E2-like board, not the official puzzle) | Yes, cleanly attributed: McGavin's 18-hint solve and 41-billion-node tree; Joe's depth statistics | Not the official puzzle, whose five fixed clues differ. The depth figures are one backtracker's sample |
+| [Border balance / NS-1](/research/why/border-balance) | An exact necessary condition; the four known full solutions satisfy it; a positive deficit certifies infeasibility. The interior-to-interior share of remaining errors is now exact: **86.9%** across the nine bundled 469-class boards, none border-to-border | Proven, external (the condition), proven, internal (the error split) | Yes for the condition, cited to 2007–2022 community statements; the error split is this project's committed recount | The condition is necessary, never sufficient: deficit zero proves nothing, and the invariant is blind to the interior-to-interior majority of remaining errors. The prune yield is a single-instance measurement, not yet a committed benchmark |
+| [Rare-colour geography](/research/why/rare-color-geography) | An exact count over the official set: the five border colours never appear on an interior edge | Proven, internal | No external replication of the count; the 17+5 design intent is cited to Owen | Correctly framed as structural (grey rim, separate colour pools), not a scarcity trick; the "rare" label is an artefact of fewer border edges |
+| [Design recipe](/research/why/design-recipe) | The community reconstructed a coherent hardest-puzzle recipe, ingredient by ingredient, each sourced to a launch-year post | Conjecture (page badge), each ingredient externally sourced | Yes, densely: Owen's derivations and measurements, the design-space census, the provenance chain to Selby and Riordan | A reconstruction of design intent, not a statement the designers published; the page badges it conjectured |
+| [Complexity framing](/research/why/how-hard-is-this-instance) | Edge matching is NP-complete as a family; a single fixed board is a constant, not a problem; E2's difficulty is empirical over a ~10^557 space | Proven, external | Yes: Demaine & Demaine 2007 for NP-completeness; Ansótegui et al. for the empirical case | The category distinction is load-bearing: NP-completeness caps what general solvers can promise, it says nothing about this board |
+| [Prune versus speed](/research/why/prune-vs-speed) | The compounding argument is exact arithmetic; on E2, legal pruning often costs more than the subtree it removes | Proven (the arithmetic), measured (the "pruning does not pay" verdict) | Partial: the principle is self-contained; the community verdict is cited to McGavin and 95A31, now verifiable in the extended archive | The demo tree numbers are illustrative, not a measurement of any real solver, and the page says so |
+
+Three shifts since this map was first drawn are worth calling out, because they
+move claims up a tier. Sigma-cycles was a three-pair observation; it is now an
+exact statement over every same-piece-set pair of the bundled boards, 54,238
+partial applications with zero exceptions. The border error split is now an
+exact recount (86.9% interior-to-interior) rather than an off-site figure. The
+entropy area law's block counts are now computed in-repo and reproduce from the
+page's own command, with the exponent fit over the exactly-counted range. And
+the four community citations that once sat past the archive snapshot now
+validate against the extended export, so the rigidity, mismatch-geometry, and
+prune-versus-speed corroboration passages rest on sources a reader can check.
+
+The reading across the table: only rigidity carries three independent methods
+(SAT, MIP, annealing) reaching one verdict. The remaining walls are exact
+single-project computations or single-instance measurements on the one board
+that matters. Read "corroborated by the literature" as meaning the phase
+transition and the missing gradient have been reproduced elsewhere, not every
+wall.
+
 ## The four walls, in one line each
 
 Every one of them is a version of the same statement: there is nothing local
@@ -53,7 +116,7 @@ to prune on.
   colours the puzzle sits at the phase transition: about one expected solution,
   the worst place to search.
 - **[The area law](/research/why/entropy-area-law)**. Genuinely-distinct
-  partial boards collapse past ~80 cells, but no local score can see that
+  partial boards collapse as the filled area grows, but no local score can see that
   global fact.
 - **[Rigidity](/research/why/rigidity-wall)**. Records are locally frozen;
   the step to a better board is one giant, indivisible swap with no gradient
