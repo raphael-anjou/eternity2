@@ -7,20 +7,27 @@ description: >-
 metaDescription: "If polishing a great Eternity II board can't improve it, maybe you can jump to a different great board — but on every record pair tested, you can't. The sigma-cycle structure between strong boards shows why basin-hopping looks impossible, computed against McGavin's 469 record."
 kind: finding
 contribution: theory
-rigor: conjectured
+rigor: measured
 tier: 1
-order: 60
-updated: 2026-07-02
+order: 70
+updated: 2026-07-22
 topics: [structure, local-search]
 sources:
-  - label: "Peter McGavin's 469-record announcement: the board the cycles are computed against (groups.io msg 10045, September 2020)"
+  - label: "Peter McGavin's 469-record announcement: one of the boards the cycles are computed against (groups.io msg 10045, September 2020)"
     url: https://groups.io/g/eternity2/message/10045
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
-  kind: heavy
+  kind: exact
+  cmd: just research-sigma-cycles
+  topic: sigma-cycles
+  produces: artifact
+  scope: >-
+    Every ordered pair of same-piece-set bundled boards: the position
+    permutation, its cycle decomposition, and the matched-edge score of every
+    proper prefix of every large cycle, computed from the committed board data.
 ---
 
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
@@ -31,10 +38,9 @@ into the other by picking up a set of pieces and shifting each one into the
 spot the next was using, all the way around a loop. Mathematicians call that
 loop a cycle. Do the whole loop and you arrive at the other board.
 
-Here's the catch. Between the best boards, that loop is enormous and there's
-only one of it. Going from a 459 board to McGavin's 469 means one
-single interlocking cycle of 154 cells, spanning the entire interior of the
-board.
+Here's the catch. Between the best boards that loop is enormous. Going from a
+Riotte 464 board to McGavin's 469 means one interlocking cycle of up to 189
+cells alongside a few shorter ones, moving nearly every piece on the board.
 
 ## One loop, all or nothing
 
@@ -51,40 +57,47 @@ cycles between them, and scores every step you take.
 
 ## How we know
 
-We computed the exact cycles between three different record boards and then
-tried every partial move: apply just some of the loop and see what the score
-does. The result is blunt. Every partial application makes the score worse,
-with drops ranging from a few points to over a hundred. There is no subset of
-the loop that helps, not one.
+We ran it over every board we ship. For each ordered pair of boards that share
+a piece set we compute the exact cycles, then try every partial move: apply just
+a prefix of a loop and rescore. That is **246 pairs**, **1,154 large loops**, and
+**54,238 partial applications** in all. Not one of them scored as high as the
+board it started from. Every partial move lost ground; the closest any prefix
+ever came was a single point below its start, and the deepest fell 224 points.
 
 That's what makes it a wall. To move from one good board toward a better one
-you'd have to commit to shifting up to 154 cells at once, with no improving
-step along the way to guide you there. Every search that works in steps is
-blind to a move like that.
+you'd have to commit to shifting a whole loop at once, up to 195 cells, with no
+improving step along the way to guide you there. Every search that works in
+steps is blind to a move like that.
 
 ## The cycles, measured
 
-- 459 to 458: 14 cycles, largest 85 cells.
-- 458 to McGavin 469: one giant cycle of 80 cells, spanning rows 1 to 14.
-- 459 to McGavin 469: one giant cycle of 154 cells.
-- **In every case, every smaller piece of the cycle scores worse: the
-  property held in all three basin pairs tested, though three pairs is a
-  small sample and it is not proven to hold in general.**
+The boards fall into two families that use the same pieces (the viewer stores
+them under two colour alphabets), and we test every pair inside each:
+
+- The record boards to McGavin's 469 resolve into one giant loop of up to 189
+  cells alongside a few shorter ones, shifting roughly 250 of the 256 cells.
+- The largest loop in a pair runs from 6 to 195 cells, median 119; two pairs
+  reduce to a single loop, all-or-nothing.
+- **Every proper prefix of every large loop scored strictly worse than its
+  start board, across all 54,238 of them, with zero exceptions.** Three
+  hand-picked pairs suggested this; the full population confirms it on the
+  boards we ship, though it is still not proven to hold for every board that
+  could exist.
 
 ## Why it matters
 
 Together with [the rigidity wall](/research/why/rigidity-wall), this closes
 off the two obvious escape routes at once. You can't climb out of a good
-board locally, and (on the three record pairs measured here) you can't hop to a
-neighbour either, because the nearest better board is one indivisible move of
-80 to 154 cells away. These cycles are measured to McGavin's 469; reading the
-same wall up to the standing 470 extrapolates one edge further. This is a
+board locally, and you can't hop to a neighbour either, because the nearest
+better board is one indivisible move of many cells away, with no improving step
+to lead you into it. These cycles reach McGavin's 469 and Blackwood's 470;
+reading the same wall across both alphabets tells one story. This is a
 plausible part of why the 470 record has stood since 2021: the moves that would
 beat it appear too large for any step-by-step search to find.
 
-*Cycles are computed exactly from pairs of record boards by composing their
-piece permutations; the subset tests enumerate sub-cycles and rescore. The
-specific record-board cycle counts on this page are not yet shipped as a
-committed, re-runnable artifact here; the interactive Lab above computes the
-same mechanism live on freshly generated small puzzles instead. The animation
-above is a schematic of the mechanism, not the 154-cell cycle itself.*
+*The result is computed exactly by `just research-sigma-cycles` and committed to
+the [sigma-cycles topic](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
+which reads the bundled boards, groups them by shared piece set, and scores every
+proper prefix of every large cycle in every ordered pair. The interactive Lab
+above runs the same mechanism live on freshly generated small puzzles; the
+animation is a schematic of the mechanism, not any one cycle.*

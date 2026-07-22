@@ -7,20 +7,28 @@ description: >-
 metaDescription: "Si pulir un gran tablero de Eternity II no lo mejora, quizá puedas saltar a otro gran tablero — pero en cada par de récords probado, no puedes. La estructura de ciclos sigma entre tableros fuertes muestra por qué el salto de cuenca parece imposible, calculada sobre el récord 469 de McGavin."
 kind: finding
 contribution: theory
-rigor: conjectured
+rigor: measured
 tier: 1
-order: 60
-updated: 2026-07-02
+order: 70
+updated: 2026-07-22
 topics: [structure, local-search]
 sources:
-  - label: "Anuncio del récord 469 de Peter McGavin: el tablero contra el que se calculan los ciclos (groups.io msg 10045, septiembre de 2020)"
+  - label: "Anuncio del récord 469 de Peter McGavin: uno de los tableros contra los que se calculan los ciclos (groups.io msg 10045, septiembre de 2020)"
     url: https://groups.io/g/eternity2/message/10045
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
-  kind: heavy
+  kind: exact
+  cmd: just research-sigma-cycles
+  topic: sigma-cycles
+  produces: artifact
+  scope: >-
+    Cada par ordenado de tableros versionados que comparten un mismo juego de
+    piezas: la permutación de posiciones, su descomposición en ciclos y la
+    puntuación de aristas emparejadas de cada prefijo propio de cada ciclo
+    grande, calculado a partir de los datos de tableros versionados.
 ---
 
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
@@ -32,9 +40,10 @@ desplazando cada una al lugar que ocupaba la siguiente, a lo largo de todo un
 bucle. Los matemáticos llaman a ese bucle un ciclo. Recorre el bucle entero y
 llegas al otro tablero.
 
-Aquí está el truco. Entre los mejores tableros, ese bucle es enorme y solo
-existe uno. Pasar de un tablero de 459 al de 469 de McGavin es un único ciclo
-entrelazado de 154 celdas, que abarca todo el interior del tablero.
+Aquí está el truco. Entre los mejores tableros, ese bucle es enorme. Pasar de un
+tablero de 464 de Riotte al de 469 de McGavin es un bucle entrelazado de hasta
+189 celdas, junto con unas pocas más cortas, que desplaza casi todas las piezas
+del tablero.
 
 ## Un solo bucle, todo o nada
 
@@ -51,45 +60,52 @@ calcula los ciclos efectivos entre ellas y puntúa cada paso que das.
 
 ## Cómo lo sabemos
 
-Calculamos los ciclos exactos entre tres tableros-récord distintos y luego
-probamos cada movimiento parcial: aplicar solo una porción del bucle y observar
-qué le pasa a la puntuación. El resultado es rotundo. Toda aplicación parcial
-empeora la puntuación, con caídas que van desde unos pocos puntos hasta más de
-un centenar. No existe ningún subconjunto del bucle que ayude, ni uno solo.
+Lo ejecutamos sobre cada tablero que publicamos. Para cada par ordenado de
+tableros que comparten un juego de piezas calculamos los ciclos exactos y luego
+probamos cada movimiento parcial: aplicar solo un prefijo de un bucle y volver a
+puntuar. Son **246 pares**, **1 154 bucles grandes** y **54 238 aplicaciones
+parciales** en total. Ninguna alcanzó la puntuación del tablero del que partía.
+Cada movimiento parcial perdió terreno; lo más cerca que llegó un prefijo fue un
+solo punto por debajo de su partida, y el peor cayó 224 puntos.
 
 Eso es lo que lo convierte en un muro. Para pasar de un buen tablero a uno
-mejor tendrías que comprometerte a desplazar hasta 154 celdas de golpe, sin
-ningún paso de mejora en el camino que te guíe hasta allí. Toda búsqueda que
-avanza por pasos es ciega ante un movimiento así.
+mejor tendrías que comprometerte a desplazar un bucle entero de golpe, hasta 195
+celdas, sin ningún paso de mejora en el camino que te guíe hasta allí. Toda
+búsqueda que avanza por pasos es ciega ante un movimiento así.
 
 ## Los ciclos, medidos
 
-- De 459 a 458: 14 ciclos, el mayor de 85 celdas.
-- De 458 al 469 de McGavin: un ciclo gigante de 80 celdas, que abarca las
-  filas 1 a 14.
-- De 459 al 469 de McGavin: un ciclo gigante de 154 celdas.
-- **En todos los casos, cada fragmento más pequeño del ciclo da una puntuación
-  peor: la propiedad se cumplió en los tres pares de cuencas probados, aunque
-  tres pares son una muestra pequeña y no está demostrado que valga en
-  general.**
+Los tableros se reparten en dos familias que usan las mismas piezas (el
+visualizador las guarda bajo dos alfabetos de colores), y probamos cada par
+dentro de cada una:
+
+- Los tableros-récord hacia el 469 de McGavin se resuelven en un bucle gigante
+  de hasta 189 celdas junto con unas pocas más cortas, desplazando alrededor de
+  250 de las 256 celdas.
+- El bucle mayor de un par va de 6 a 195 celdas, mediana 119; dos pares se
+  reducen a un único bucle, todo o nada.
+- **Cada prefijo propio de cada bucle grande dio una puntuación estrictamente
+  peor que su tablero de partida, en los 54 238 probados, sin una sola
+  excepción.** Tres pares elegidos a mano lo sugerían; la población completa lo
+  confirma sobre los tableros que publicamos, aunque sigue sin estar demostrado
+  que valga para todo tablero concebible.
 
 ## Por qué importa
 
 Junto con [el muro de rigidez](/research/why/rigidity-wall), esto cierra de un
 golpe las dos vías de escape evidentes. No puedes salir localmente de un buen
-tablero y (en los tres pares de récords medidos aquí) tampoco puedes saltar a
-uno vecino, porque el mejor tablero más cercano está a un único movimiento
-indivisible de 80 a 154 celdas. Estos ciclos se miden respecto al 469 de
-McGavin; leer el mismo muro hasta el récord de 470 vigente extrapola un peldaño
-más. Esta es una explicación plausible de por qué el récord de 470 se mantiene
-desde 2021: los movimientos que lo superarían parecen demasiado grandes para que
-cualquier búsqueda paso a paso pueda encontrarlos.
+tablero y tampoco puedes saltar a uno vecino, porque el mejor tablero más
+cercano está a un único movimiento indivisible de muchas celdas, sin ningún paso
+de mejora que te conduzca hasta él. Estos ciclos alcanzan el 469 de McGavin y el
+470 de Blackwood; leer el mismo muro a través de ambos alfabetos cuenta una sola
+historia. Esta es una explicación plausible de por qué el récord de 470 se
+mantiene desde 2021: los movimientos que lo superarían parecen demasiado grandes
+para que cualquier búsqueda paso a paso pueda encontrarlos.
 
-*Los ciclos se calculan de forma exacta a partir de pares de tableros-récord
-componiendo sus permutaciones de piezas; los tests de subconjuntos enumeran los
-subciclos y los vuelven a puntuar. Los recuentos de ciclos sobre tableros-récord
-concretos que se dan aquí aún no se publican como un artefacto validado y
-reejecutable en esta página; el laboratorio interactivo de arriba calcula en su
-lugar el mismo mecanismo en vivo sobre puzzles pequeños recién generados. La
-animación de arriba es un esquema del mecanismo, no el ciclo de 154 celdas en
-sí.*
+*El resultado se calcula de forma exacta con `just research-sigma-cycles` y se
+versiona en el [tema sigma-cycles](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
+que lee los tableros publicados, los agrupa por juego de piezas compartido y
+puntúa cada prefijo propio de cada ciclo grande en cada par ordenado. El
+laboratorio interactivo de arriba ejecuta el mismo mecanismo en vivo sobre
+puzzles pequeños recién generados; la animación es un esquema del mecanismo, no
+un ciclo en particular.*

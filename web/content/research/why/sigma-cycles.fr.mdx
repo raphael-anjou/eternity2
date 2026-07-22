@@ -7,20 +7,28 @@ description: >-
 metaDescription: "Si polir un excellent plateau d'Eternity II ne l'améliore pas, peut-être peut-on sauter vers un autre — mais sur chaque paire de records testée, c'est impossible. La structure en cycles sigma entre plateaux forts montre pourquoi le saut de bassin paraît impossible, d'après le record 469 de McGavin."
 kind: finding
 contribution: theory
-rigor: conjectured
+rigor: measured
 tier: 1
-order: 60
-updated: 2026-07-02
+order: 70
+updated: 2026-07-22
 topics: [structure, local-search]
 sources:
-  - label: "Annonce du record 469 de Peter McGavin : le plateau contre lequel les cycles sont calculés (groups.io msg 10045, septembre 2020)"
+  - label: "Annonce du record 469 de Peter McGavin : l'un des plateaux contre lesquels les cycles sont calculés (groups.io msg 10045, septembre 2020)"
     url: https://groups.io/g/eternity2/message/10045
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
-  kind: heavy
+  kind: exact
+  cmd: just research-sigma-cycles
+  topic: sigma-cycles
+  produces: artifact
+  scope: >-
+    Chaque paire ordonnée de plateaux versionnés partageant un même jeu de
+    pièces : la permutation de positions, sa décomposition en cycles, et le
+    score d'arêtes appariées de chaque préfixe propre de chaque grand cycle,
+    calculé à partir des données de plateaux versionnées.
 ---
 
 import { SigmaCycleDiagram } from "@/components/research/SigmaCycleDiagram";
@@ -32,10 +40,10 @@ pièces et en déplaçant chacune vers l'emplacement qu'occupait la suivante, to
 le long d'une boucle. Les mathématiciens appellent cette boucle un cycle.
 Parcourez la boucle entière et vous arrivez à l'autre plateau.
 
-Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme et il n'en
-existe qu'une seule. Passer d'un plateau à 459 à celui à 469 de McGavin, c'est
-un unique cycle imbriqué de 154 cellules, couvrant l'intégralité de l'intérieur
-du plateau.
+Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme. Passer d'un
+plateau à 464 de Riotte à celui à 469 de McGavin, c'est une boucle imbriquée
+allant jusqu'à 189 cellules, accompagnée de quelques plus courtes, déplaçant
+presque toutes les pièces du plateau.
 
 ## Une seule boucle, tout ou rien
 
@@ -53,47 +61,54 @@ franchissez.
 
 ## Comment nous le savons
 
-Nous avons calculé les cycles exacts entre trois plateaux-records différents,
-puis essayé chaque mouvement partiel : n'appliquer qu'une portion de la boucle et
-observer ce que devient le score. Le résultat est sans appel. Toute application
-partielle dégrade le score, avec des chutes allant de quelques points à plus
-d'une centaine. Il n'existe aucun sous-ensemble de la boucle qui aide, pas un
-seul.
+Nous l'avons fait tourner sur chaque plateau que nous fournissons. Pour chaque
+paire ordonnée de plateaux partageant un même jeu de pièces, nous calculons les
+cycles exacts, puis essayons chaque mouvement partiel : n'appliquer qu'un préfixe
+de boucle et re-noter. Cela fait **246 paires**, **1 154 grandes boucles** et
+**54 238 applications partielles** au total. Aucune n'a atteint le score du
+plateau dont elle partait. Chaque mouvement partiel a perdu du terrain ; au mieux
+un préfixe s'est arrêté à un seul point sous son départ, et le pire a chuté de
+224 points.
 
 C'est ce qui en fait un mur. Pour passer d'un bon plateau vers un meilleur,
-il faudrait s'engager à déplacer jusqu'à 154 cellules d'un coup, sans aucune
-étape améliorante en chemin pour vous y guider. Toute recherche qui procède par
-étapes est aveugle à un mouvement de ce genre.
+il faudrait s'engager à déplacer une boucle entière d'un coup, jusqu'à 195
+cellules, sans aucune étape améliorante en chemin pour vous y guider. Toute
+recherche qui procède par étapes est aveugle à un mouvement de ce genre.
 
 ## Les cycles, mesurés
 
-- 459 vers 458 : 14 cycles, le plus grand de 85 cellules.
-- 458 vers le 469 de McGavin : un cycle géant de 80 cellules, couvrant les
-  lignes 1 à 14.
-- 459 vers le 469 de McGavin : un cycle géant de 154 cellules.
-- **Dans tous les cas, chaque fragment plus petit du cycle donne un score
-  moins bon : la propriété s'est vérifiée sur les trois paires de bassins
-  testées, même si trois paires forment un faible échantillon et qu'il n'est
-  pas prouvé qu'elle vaille en général.**
+Les plateaux se répartissent en deux familles qui utilisent les mêmes pièces (le
+visualiseur les stocke sous deux alphabets de couleurs), et nous testons chaque
+paire à l'intérieur de chacune :
+
+- Les plateaux-records vers le 469 de McGavin se résolvent en une boucle géante
+  allant jusqu'à 189 cellules, accompagnée de quelques plus courtes, déplaçant
+  environ 250 des 256 cellules.
+- La plus grande boucle d'une paire va de 6 à 195 cellules, médiane 119 ; deux
+  paires se réduisent à une boucle unique, tout ou rien.
+- **Chaque préfixe propre de chaque grande boucle donne un score strictement
+  moins bon que son plateau de départ, sur les 54 238 testés, sans une seule
+  exception.** Trois paires choisies à la main le suggéraient ; la population
+  complète le confirme sur les plateaux que nous fournissons, même s'il n'est
+  toujours pas prouvé que cela vaille pour tout plateau concevable.
 
 ## Pourquoi c'est important
 
 Conjuguée avec [le mur de rigidité](/research/why/rigidity-wall), cette
 observation ferme d'un coup les deux voies de sortie évidentes. On ne peut pas
-s'extraire localement d'un bon plateau, et (sur les trois paires de records
-mesurées ici) on ne peut pas non plus sauter vers un voisin, car le meilleur
-plateau le plus proche se trouve à un unique mouvement indivisible de 80 à 154
-cellules. Ces cycles sont mesurés par rapport au 469 de McGavin ; lire le même
-mur jusqu'au record de 470 en vigueur revient à extrapoler d'un cran. C'est une
+s'extraire localement d'un bon plateau, et on ne peut pas non plus sauter vers un
+voisin, car le meilleur plateau le plus proche se trouve à un unique mouvement
+indivisible de nombreuses cellules, sans étape améliorante pour vous y conduire.
+Ces cycles atteignent le 469 de McGavin et le 470 de Blackwood ; lire le même
+mur à travers les deux alphabets raconte une seule histoire. C'est une
 explication plausible de la raison pour laquelle le record de 470 tient depuis
 2021 : les mouvements qui le battraient semblent trop vastes pour qu'une
 recherche pas à pas puisse les trouver.
 
-*Les cycles sont calculés exactement à partir de paires de plateaux-records en
-composant leurs permutations de pièces ; les tests de sous-ensembles énumèrent
-les sous-cycles et les re-notent. Les comptages de cycles sur des plateaux-records
-donnés ici ne sont pas encore fournis sous forme d'artefact validé et rejouable
-sur cette page ; le laboratoire interactif ci-dessus calcule plutôt le même
-mécanisme en direct sur de petits puzzles fraîchement générés. L'animation
-ci-dessus est une schématisation du mécanisme, non le cycle de 154 cellules
-lui-même.*
+*Le résultat est calculé exactement par `just research-sigma-cycles` et versionné
+dans le [sujet sigma-cycles](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
+qui lit les plateaux fournis, les regroupe par jeu de pièces partagé, et note
+chaque préfixe propre de chaque grand cycle dans chaque paire ordonnée. Le
+laboratoire interactif ci-dessus exécute le même mécanisme en direct sur de
+petits puzzles fraîchement générés ; l'animation est une schématisation du
+mécanisme, non un cycle en particulier.*
