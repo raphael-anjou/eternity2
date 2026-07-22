@@ -1,0 +1,195 @@
+---
+title: The piece set is extreme on every measured axis
+description: >-
+  Measure the official 256 pieces with no solver in sight and every structural
+  door is shut: no rotation-symmetric piece, 5 twin pairs in 32,640 pairings,
+  a 307-of-480 matching cap if nothing rotates, colour budgets that pair to
+  exactly 480 with zero slack, and a 17+5 palette sitting at the
+  one-expected-solution point.
+metaDescription: "The Eternity II piece set sits at the adversarial extreme on every measured structural axis: zero rotation-symmetric pieces among 256, five twin pairs in 32,640 pairings, a fixed-orientation matching cap of 307 of 480, even colour budgets pairing to exactly 480, and a split 17+5 palette."
+kind: finding
+contribution: measurement
+rigor: proven
+tier: 1
+order: 15
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Adversarial piece set: article, source and results (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/adversarial-piece-set
+  - label: "Brendan Owen, Design the hardest puzzle: the recipe and the 17.14 derivation (msg 1947, August 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "The piece design-space census: symmetric forms exist in the design space and the real set avoids them (msg 8025, September 2010)"
+    url: https://groups.io/g/eternity2/message/8025
+  - label: "Selby and Riordan's Eternity pages, the designers' own site"
+    url: https://www.archduke.org/eternity/
+related:
+  - /research/why/design-recipe
+  - /research/why/theorem-sweep
+  - /research/why/walls-and-methods
+  - /research/why/phase-transition
+  - /research/why/rare-color-geography
+  - /research/why/no-forced-moves
+  - /research/why/sigma-cycles
+repro:
+  kind: exact
+  cmd: cd research/topics/adversarial-piece-set/compute && cargo run --release > ../results/invariants.json
+  topic: adversarial-piece-set
+  scope: >-
+    All five committed axes (rotation orbits, the twin and near-twin census,
+    the fixed-orientation matching cap, the colour-budget parity and pairing
+    capacity) recompute from the bundled official instance; the binary asserts
+    every expected value, runs deterministically in under a second, and the
+    committed JSON is byte-stable across runs.
+---
+
+Put the solvers aside and measure the object itself. The official set is 256
+square pieces, four coloured edges each. Had those pieces been drawn casually,
+some structural slack would survive somewhere: a repeated piece, a symmetric
+piece, a colour in oversupply, an orientation bias that costs nothing, a
+clique of pieces that prefer each other. Slack of that kind is what solvers
+eat. This page checks each of those doors directly against the piece set
+alone, and every one of them is shut, exactly, not approximately.
+
+Five of the six measurements below are committed as one reproducible topic.
+Each recomputes from the published instance in under a second, and the binary
+asserts its own expected values, so reproducing the numbers is the same act as
+checking them.
+
+## The four committed measurements
+
+| Axis | Measurement | The extreme it sits at |
+| --- | --- | --- |
+| Rotation symmetry | 256 of 256 pieces have all four rotations distinct | 1,024 piece-rotations, nothing to quotient |
+| Twins | 251 distinct edge-colour multisets; 5 twin pairs and 114 near-twin pairs in 32,640 pairings | no duplicates, coincidence at the 0.4% level |
+| Fixed-orientation cap | at most 307 of 480 joins can match if no piece rotates | rotation is structurally necessary |
+| Colour budget | all 22 colours have even side counts; pairing capacity sums to 480 | exactly sufficient, zero slack |
+| Palette split | 17 interior colours, 5 border-join colours | 17 is the one-expected-solution setting |
+
+### No rotation symmetry anywhere
+
+A piece that looked the same after a quarter or half turn would collapse
+orientations and shrink the decision space, and the standard reduction,
+searching one canonical form per orbit, would collect the discount. Measured:
+every one of the 256 pieces has a full rotation orbit of size 4, so the puzzle
+genuinely has 1,024 distinct piece-rotations and orbit-canonical search gains
+nothing at all. The community's census of the design space shows this is a
+choice, not an accident: with this palette the space of possible piece designs
+includes rotation-repeating forms, and the real set avoids every one of them
+([msg 8025](https://groups.io/g/eternity2/message/8025)). The
+[design recipe](/research/why/design-recipe) carries the intent side of that
+story, including Brendan Owen's measurement that symmetric pieces tile
+unevenly enough to hand back exactly the difficulty-ordering signal the
+designers were removing.
+
+### Five twins in 32,640 pairings
+
+Ignore edge order and ask which pieces carry the same four-colour budget. The
+256 pieces produce 251 distinct multisets: exactly 5 pairs coincide, pieces
+(2,3), (5,14), (7,51), (109,110) and (171,181) in the research numbering, and
+in each pair the shared colours sit in a different cyclic order, so no piece
+repeats, even up to rotation. Loosening the question to near-twins, pairs
+sharing 3 of their 4 same-position edges in the stored orientation, adds 114
+pairs in 79 groups. Against the 32,640 unordered pairs the set offers, even
+that loose form of coincidence occurs at a fraction of a percent. The door
+this shuts is the free doubling: a genuine duplicate pair would let every
+solution be rewritten by swapping the two pieces, and there is none.
+
+### Rotation is structurally necessary
+
+Freeze every piece in its published orientation and ask how many of the 480
+joins could possibly match. Colour by colour, horizontal joins can use at most
+the smaller of the east-facing and west-facing supplies, and vertical joins
+the smaller of the north-facing and south-facing supplies. The sum caps at
+**307 of 480**. That is a counting bound, not a search result: no arrangement
+of unrotated pieces, anywhere on the board, can beat it. A pipeline that fixes
+orientations early therefore concedes at least 173 joins before search
+begins, and 307 sits far below every high board on the
+[records page](/research/records). Both numbers here count matched edges
+between adjacent pieces with the outer rim excluded, the convention used
+across this site.
+
+### A colour budget with zero slack
+
+Count piece sides per colour. Every one of the 22 non-grey colours has an even
+total, and the pairing capacities, half the side count per colour, sum to
+exactly 480, the geometric number of joins on the board. The supply is exactly
+sufficient for a perfect board: no colour runs short, which would certify the
+designed solution impossible, and no colour runs over, which would leave slack
+for partial boards to spend. Zero slack also means zero leverage. No counting
+argument on colour supply alone can prune anything, so the hardness lives
+entirely in which pieces carry which colours, not in how much of each colour
+exists. The sharpest thing supply reasoning does yield is the
+[border balance](/research/why/border-balance) invariant, and that condition
+is necessary, never sufficient.
+
+### The palette split, and what was tuned
+
+The 22 colours divide into 17 interior colours and 5 that appear only on the
+joins between border pieces. The separation itself is automatic: with a solid
+grey rim, a border piece's coloured edges only ever meet other border edges or
+the interior, so the two pools never mix, as the
+[rare-colour geography](/research/why/rare-color-geography) page explains.
+What was chosen is the counts. Owen's launch-year derivation recovers 17.14
+interior colours from the requirement of about one expected solution
+([msg 1947](https://groups.io/g/eternity2/message/1947)), the scarcest a
+solution can be while still existing, and the
+[hardness peak](/research/why/phase-transition) page measures that this is the
+worst possible place for search. The full reconstructed recipe, ingredient by
+ingredient, is on the [design recipe](/research/why/design-recipe) page.
+
+## The sixth axis, stated without its numbers
+
+One more measurement belongs to the thesis but is not yet part of the
+committed topic. Build the graph whose nodes are the 256 pieces, weighted by
+how many rotation-adjacencies each pair supports, and read its spectrum. The
+graph splits cleanly into exactly two blocks, the 60 frame pieces and the 196
+interior pieces, and beyond that split it shows no community structure at any
+scale: no cliques of mutually compatible pieces, no cheap sub-puzzle to carve
+out and solve first. The clustering is single-scale, and the one visible
+cluster boundary is the frame-versus-interior line every solver already knows
+about. The spectral numbers behind this description are deferred until their
+computation is committed alongside the other five, so read this axis as a
+description for now, and the five above as exact.
+
+## What the extremes rule out
+
+Each axis closes a standard door.
+
+- **Symmetry reduction.** Nothing to quotient: all 1,024 piece-rotations are
+  distinct.
+- **Duplicate tricks.** No free doubling of solutions: 5 near-misses in
+  32,640 pairings, none of them a true duplicate.
+- **Orientation shortcuts.** Fixing rotations early concedes 173 of 480 joins
+  by a counting argument, before any search runs.
+- **Supply arguments.** Budgets are even and exactly sufficient, so counting
+  colours prunes nothing.
+- **Cheap sub-communities.** Nothing softer than the frame-versus-interior
+  split exists to start from.
+
+This page is the measurement companion to two neighbours. The
+[design recipe](/research/why/design-recipe) reconstructs, from the
+launch-year record, why the set was built this way; the
+[theorem sweep](/research/why/theorem-sweep) collects the laws proved about
+the same object. And the extremes here are the ground floor of the section's
+walls: [no forced moves](/research/why/no-forced-moves) is the same flatness
+felt cell by cell during a build, and
+[sigma-cycles](/research/why/sigma-cycles) is what the absence of small
+exchanges looks like between finished high boards. For which method dies on
+which wall, the [walls-and-methods map](/research/why/walls-and-methods) is
+the index.
+
+## Reproduction and conventions
+
+The topic directory holds a self-contained Rust binary that loads the bundled
+official instance (256 pieces, no hints) and recomputes every number above:
+the rotation-orbit census, the twin and near-twin counts, the
+fixed-orientation matching cap, and the per-colour parity and pairing
+capacity. The run is deterministic, completes in well under a second, prints
+one JSON document, and exits non-zero if any expected value fails; the
+committed results file is byte-stable across runs. Piece ids in the twin list
+follow the research numbering of the set. The two score-like numbers on this
+page, 307 and 480, count matched edges between adjacent pieces with the outer
+rim excluded, the same convention as the [records](/research/records) page;
+nothing here scores a candidate board, and nothing on this page is a record
+claim.

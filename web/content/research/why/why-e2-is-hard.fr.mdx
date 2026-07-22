@@ -1,0 +1,209 @@
+---
+title: Un jeu de pièces extrême sur chaque axe mesuré
+description: >-
+  Mesurez les 256 pièces officielles sans aucun solveur en vue et chaque porte
+  structurelle est fermée : aucune pièce symétrique par rotation, 5 paires
+  jumelles sur 32 640 appariements, un plafond de 307 sur 480 si rien ne
+  tourne, des budgets de couleurs qui s'apparient à exactement 480 sans aucun
+  jeu, et une palette 17+5 posée au point d'une-solution-attendue.
+metaDescription: "Le jeu de pièces d'Eternity II est à l'extrême adverse sur chaque axe mesuré : zéro pièce symétrique par rotation sur 256, cinq paires jumelles sur 32 640 appariements, un plafond de 307 sur 480 à orientation fixe, des budgets de couleurs pairs sommant à exactement 480, et une palette scindée 17+5."
+kind: finding
+contribution: measurement
+rigor: proven
+tier: 1
+order: 15
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Le jeu de pièces adverse : article, code source et résultats (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/adversarial-piece-set
+  - label: "Brendan Owen, Design the hardest puzzle : la recette et la dérivation du 17,14 (msg 1947, août 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "Le recensement de l'espace des pièces possibles : les formes symétriques existent dans cet espace et le jeu réel les évite toutes (msg 8025, septembre 2010)"
+    url: https://groups.io/g/eternity2/message/8025
+  - label: "Les pages Eternity de Selby et Riordan, le site des concepteurs eux-mêmes"
+    url: https://www.archduke.org/eternity/
+related:
+  - /research/why/design-recipe
+  - /research/why/theorem-sweep
+  - /research/why/walls-and-methods
+  - /research/why/phase-transition
+  - /research/why/rare-color-geography
+  - /research/why/no-forced-moves
+  - /research/why/sigma-cycles
+repro:
+  kind: exact
+  cmd: cd research/topics/adversarial-piece-set/compute && cargo run --release > ../results/invariants.json
+  topic: adversarial-piece-set
+  scope: >-
+    Les cinq axes versionnés (orbites de rotation, recensement des jumelles et
+    quasi-jumelles, plafond d'appariement à orientation fixe, parité et
+    capacité d'appariement des budgets de couleurs) se recalculent depuis
+    l'instance officielle embarquée ; le binaire vérifie chaque valeur
+    attendue, tourne de façon déterministe en moins d'une seconde, et le JSON
+    versionné est identique octet pour octet d'une exécution à l'autre.
+---
+
+Posez les solveurs et mesurez l'objet lui-même. Le jeu officiel compte 256
+pièces carrées, quatre bords colorés chacune. Si ces pièces avaient été tirées
+sans soin, un peu de mou structurel survivrait quelque part : une pièce
+répétée, une pièce symétrique, une couleur en surplus, un biais d'orientation
+qui ne coûte rien, une clique de pièces qui se préfèrent entre elles. C'est de
+ce mou-là que les solveurs se nourrissent. Cette page vérifie chacune de ces
+portes directement sur le jeu de pièces seul, et chacune est fermée,
+exactement, pas approximativement.
+
+Cinq des six mesures ci-dessous sont versionnées comme un seul sujet
+reproductible. Chacune se recalcule depuis l'instance publiée en moins d'une
+seconde, et le binaire vérifie lui-même ses valeurs attendues : reproduire les
+nombres et les contrôler sont un seul et même geste.
+
+## Les cinq mesures versionnées
+
+| Axe | Mesure | L'extrême où il se trouve |
+| --- | --- | --- |
+| Symétrie de rotation | 256 pièces sur 256 ont leurs quatre rotations distinctes | 1 024 pièces-rotations, rien à quotienter |
+| Jumelles | 251 multiensembles de couleurs distincts ; 5 paires jumelles et 114 quasi-jumelles sur 32 640 appariements | aucun doublon, coïncidence au niveau de 0,4 % |
+| Plafond à orientation fixe | au plus 307 joints sur 480 peuvent s'apparier si aucune pièce ne tourne | la rotation est structurellement nécessaire |
+| Budget de couleurs | les 22 couleurs ont toutes un nombre pair de côtés ; la capacité d'appariement somme à 480 | exactement suffisant, aucun jeu |
+| Palette scindée | 17 couleurs intérieures, 5 couleurs de joints de bordure | 17 est le réglage d'une-solution-attendue |
+
+### Aucune symétrie de rotation nulle part
+
+Une pièce identique à elle-même après un quart ou un demi-tour réduirait les
+orientations et rétrécirait l'espace de décision, et la réduction standard,
+chercher une forme canonique par orbite, empocherait la remise. Mesuré :
+chacune des 256 pièces a une orbite de rotation complète de taille 4, le
+puzzle possède donc réellement 1 024 pièces-rotations distinctes et la
+recherche par formes canoniques ne gagne strictement rien. Le recensement
+communautaire de l'espace de conception montre que c'est un choix, pas un
+accident : avec cette palette, l'espace des pièces possibles contient des
+formes qui se répètent sous rotation, et le jeu réel les évite toutes
+([msg 8025](https://groups.io/g/eternity2/message/8025)). La
+[recette de conception](/research/why/design-recipe) porte le versant
+intentionnel de cette histoire, y compris la mesure de Brendan Owen montrant
+que des pièces symétriques se placeraient assez inégalement pour rendre au
+solveur le signal d'ordonnancement par difficulté que les concepteurs
+retiraient.
+
+### Cinq jumelles sur 32 640 appariements
+
+Oubliez l'ordre des bords et demandez quelles pièces portent le même budget de
+quatre couleurs. Les 256 pièces produisent 251 multiensembles distincts :
+exactement 5 paires coïncident, les pièces (2,3), (5,14), (7,51), (109,110) et
+(171,181) dans la numérotation de recherche, et dans chaque paire les couleurs
+partagées occupent un ordre cyclique différent, si bien qu'aucune pièce ne se
+répète, même à rotation près. En relâchant la question vers les
+quasi-jumelles, les paires partageant 3 de leurs 4 bords à même position dans
+l'orientation stockée, on ajoute 114 paires en 79 groupes. Rapportée aux
+32 640 paires non ordonnées que le jeu offre, même cette coïncidence relâchée
+reste une fraction de pour cent. La porte ainsi fermée est le doublement
+gratuit : une vraie paire de doublons permettrait de réécrire toute solution
+en échangeant les deux pièces, et il n'y en a aucune.
+
+### La rotation est structurellement nécessaire
+
+Figez chaque pièce dans son orientation publiée et demandez combien des 480
+joints pourraient s'apparier. Couleur par couleur, les joints horizontaux
+utilisent au plus la plus petite des offres tournées vers l'est et vers
+l'ouest, et les joints verticaux la plus petite des offres nord et sud. La
+somme plafonne à **307 sur 480**. C'est une borne de comptage, pas un résultat
+de recherche : aucun arrangement de pièces non tournées, où que ce soit sur le
+plateau, ne peut la dépasser. Un pipeline qui fixe les orientations tôt
+concède donc au moins 173 joints avant même de chercher, et 307 se situe très
+en dessous de tous les hauts plateaux de la
+[page des records](/research/records). Les deux nombres comptent ici les bords
+appariés entre pièces adjacentes, pourtour extérieur exclu, la convention en
+usage sur tout ce site.
+
+### Un budget de couleurs sans aucun jeu
+
+Comptez les côtés de pièces par couleur. Chacune des 22 couleurs non grises a
+un total pair, et les capacités d'appariement, la moitié du nombre de côtés
+par couleur, somment à exactement 480, le nombre géométrique de joints du
+plateau. L'offre est exactement suffisante pour un plateau parfait : aucune
+couleur ne manque, ce qui certifierait l'impossibilité de la solution
+construite, et aucune couleur n'est en excès, ce qui laisserait du jeu à
+dépenser aux plateaux partiels. Aucun jeu signifie aussi aucun levier. Aucun
+argument de comptage sur la seule offre de couleurs ne peut élaguer quoi que
+ce soit, la difficulté loge donc entièrement dans quelles pièces portent
+quelles couleurs, pas dans la quantité de chaque couleur. Ce que le
+raisonnement d'offre produit de plus aiguisé est l'invariant
+d'[équilibre de bordure](/research/why/border-balance), et cette condition est
+nécessaire, jamais suffisante.
+
+### La palette scindée, et ce qui a été réglé
+
+Les 22 couleurs se divisent en 17 couleurs intérieures et 5 qui n'apparaissent
+que sur les joints entre pièces de bordure. La séparation elle-même est
+automatique : avec un pourtour gris massif, les bords colorés d'une pièce de
+bordure ne rencontrent jamais que d'autres bords de bordure ou l'intérieur,
+les deux réservoirs ne se mélangent donc jamais, comme l'explique la page de
+[géographie des couleurs rares](/research/why/rare-color-geography). Ce qui a
+été choisi, ce sont les comptes. La dérivation d'Owen l'année du lancement
+retrouve 17,14 couleurs intérieures à partir de l'exigence d'environ une
+solution attendue ([msg 1947](https://groups.io/g/eternity2/message/1947)), le
+plus rare qu'une solution puisse être tout en existant encore, et la page du
+[pic de difficulté](/research/why/phase-transition) mesure que c'est le pire
+endroit possible pour une recherche. La recette reconstruite complète,
+ingrédient par ingrédient, se trouve sur la page de la
+[recette de conception](/research/why/design-recipe).
+
+## Le sixième axe, décrit sans ses chiffres
+
+Une mesure de plus appartient à la thèse mais ne fait pas encore partie du
+sujet versionné. Construisez le graphe dont les nœuds sont les 256 pièces,
+pondéré par le nombre d'adjacences par rotation que chaque paire supporte, et
+lisez son spectre. Le graphe se sépare proprement en exactement deux blocs,
+les 60 pièces de cadre et les 196 pièces intérieures, et au-delà de cette
+coupure il ne montre aucune structure de communauté à aucune échelle : pas de
+cliques de pièces mutuellement compatibles, pas de sous-puzzle bon marché à
+découper et résoudre d'abord. Le regroupement est à échelle unique, et la
+seule frontière de grappe visible est la ligne cadre-intérieur que tout
+solveur connaît déjà. Les chiffres spectraux derrière cette description sont
+différés jusqu'à ce que leur calcul soit versionné aux côtés des cinq autres ;
+lisez donc cet axe comme une description pour l'instant, et les cinq
+précédents comme exacts.
+
+## Ce que ces extrêmes interdisent
+
+Chaque axe ferme une porte standard.
+
+- **Réduction par symétrie.** Rien à quotienter : les 1 024 pièces-rotations
+  sont toutes distinctes.
+- **Astuces de doublons.** Aucun doublement gratuit des solutions : 5
+  quasi-coïncidences sur 32 640 appariements, aucune n'étant un vrai doublon.
+- **Raccourcis d'orientation.** Fixer les rotations tôt concède 173 joints sur
+  480 par un argument de comptage, avant toute recherche.
+- **Arguments d'offre.** Des budgets pairs et exactement suffisants : compter
+  les couleurs n'élague rien.
+- **Sous-communautés bon marché.** Rien de plus tendre que la coupure
+  cadre-intérieur pour commencer.
+
+Cette page est le pendant métrologique de deux voisines. La
+[recette de conception](/research/why/design-recipe) reconstruit, depuis les
+archives de l'année du lancement, pourquoi le jeu a été bâti ainsi ; le
+[balayage de théorèmes](/research/why/theorem-sweep) rassemble les lois
+prouvées sur le même objet. Et les extrêmes d'ici sont le rez-de-chaussée des
+murs de la section : [aucun coup forcé](/research/why/no-forced-moves) est la
+même platitude ressentie cellule par cellule pendant une construction, et les
+[cycles sigma](/research/why/sigma-cycles) sont ce que l'absence de petits
+échanges devient entre hauts plateaux finis. Pour savoir quelle méthode meurt
+contre quel mur, la [carte murs et méthodes](/research/why/walls-and-methods)
+sert d'index.
+
+## Reproduction et conventions
+
+Le répertoire du sujet contient un binaire Rust autonome qui charge l'instance
+officielle embarquée (256 pièces, sans indices) et recalcule chaque nombre
+ci-dessus : le recensement des orbites de rotation, les comptes de jumelles et
+quasi-jumelles, le plafond d'appariement à orientation fixe, et la parité et
+capacité d'appariement par couleur. L'exécution est déterministe, s'achève en
+bien moins d'une seconde, imprime un unique document JSON, et sort avec un
+code non nul si une valeur attendue échoue ; le fichier de résultats versionné
+est identique octet pour octet d'une exécution à l'autre. Les identifiants de
+pièces de la liste des jumelles suivent la numérotation de recherche du jeu.
+Les deux nombres de type score de cette page, 307 et 480, comptent les bords
+appariés entre pièces adjacentes pourtour extérieur exclu, la même convention
+que la page des [records](/research/records) ; rien ici ne note un plateau
+candidat, et rien sur cette page n'est une revendication de record.

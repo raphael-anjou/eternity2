@@ -1,0 +1,162 @@
+---
+title: Enlazar las pistas pronto no ayuda, perjudica
+description: >-
+  Unir pares de pistas con pasillos de piezas tendidos pronto parece añadir
+  restricciones. El recuento dice lo contrario: un pasillo de ancho 1 entre
+  las dos pistas más cercanas admite unos dos mil billones de rellenos
+  distintos, así que no excluye casi nada mientras gasta piezas que la fase
+  final va a necesitar. En un A/B controlado, cada brazo con pasillos perdió
+  frente a su propio control en todos los tamaños de tablero.
+metaDescription: "Un pasillo de ancho 1 entre las dos pistas más cercanas de Eternity II admite unos 2,05e15 rellenos distintos (recuento exacto por matriz de transferencia): apenas poda nada y gasta piezas escasas. En un A/B controlado, cada brazo con pasillos perdió frente a su control en todos los tamaños."
+kind: finding
+contribution: negative
+rigor: measured
+outcome: refuted
+tier: 2
+order: 105
+updated: 2026-07-22
+topics: [structure, search-space]
+sources:
+  - label: "Colocaciones oficiales de las pistas (celdas 34, 45, 135, 210, 221; datos de la instancia en e2.bucas.name)"
+    url: https://e2.bucas.name/
+related:
+  - /research/why/hint-geometry
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/why/theorem-sweep
+repro:
+  kind: exact
+  cmd: cd research/topics/clue-corridors/compute && cargo run --release --bin corridors > ../results/corridor_counts.json
+  topic: clue-corridors
+  scope: >-
+    Recalcula exactamente cada afirmación de recuento desde el juego de piezas
+    oficial: la geometría de las pistas, la tabla de ramificación, la oferta
+    de colores por lado y los recuentos de pasillos por matriz de
+    transferencia detrás de la cifra 2,05e15 (archivado en
+    results/corridor_counts.json). Los números de la escalera A/B son las
+    mediciones originales del estudio; la repetición empaquetada de los tres
+    brazos está especificada en el PLAN del tema y sus tablas aún no están
+    archivadas.
+---
+
+Las cinco pistas son las únicas celdas del puzzle oficial cuyo contenido se
+conoce con certeza. Mire el tablero un minuto y una idea se presenta sola:
+conectarlas. Tender una cadena corta de piezas de pista a pista, convertir
+cada cadena en una espina fija, y esperar que esas espinas restrinjan todo lo
+que viene después. La idea me gustó lo bastante como para medirla, y la
+medición es un negativo limpio por partida doble. Un recuento exacto muestra
+que un pasillo de pista a pista admite unos dos mil billones de rellenos
+distintos, así que comprometerse con uno no restringe casi nada; y en un A/B
+controlado, cada brazo que tendía sus pasillos pronto terminó peor que el
+mismo solucionador sin ellos, en todos los tamaños de tablero probados.
+
+## Cinco islas, y los puentes entre ellas
+
+Las pistas ocupan las celdas 34, 45, 135, 210 y 221, es decir
+(x, y) = (2, 2), (13, 2), (7, 8), (2, 13) y (13, 13): cuatro a dos celdas de
+las esquinas, una justo a la izquierda del centro. Sus distancias de
+Manhattan por pares van de 10 a 22. Ningún par de pistas está cerca de ser
+adyacente: el puente más corto entre dos de ellas es una cadena de diez
+colocaciones.
+
+Lo que vale una colocación de cadena depende de cuántos lados tenga que
+casar. Con $n = 196$ piezas interiores y $C = 22$ colores interiores
+declarados, una celda que debe casar con $k$ vecinos ya colocados tiene en
+esperanza $b_k = 4n / C^k$ candidatos legales: $b_1 \approx 35{,}6$,
+$b_2 \approx 1{,}62$, $b_3 \approx 0{,}074$. Una colocación solo poda, en
+esperanza, cuando $b_k$ cae por debajo de 1, lo que exige $k \ge 3$ lados
+casados. Un pasillo de ancho 1 se construye por entero con colocaciones a
+$k = 1$: cada pieza nueva solo toca a la anterior y hereda unos 36 candidatos
+legales en cada paso.
+
+## Lo que vale un pasillo: dos mil billones de rellenos
+
+La tabla de ramificación es un modelo uniforme, así que el verificador
+también cuenta de forma exacta sobre el juego de piezas real. El juego real
+es, si acaso, más permisivo: el número de pares (pieza, rotación) que
+presentan un color interior dado en un lado dado promedia 46,1 (de 43 a 49),
+frente al 35,6 del modelo. Construya la matriz de transferencia $T[a][b]$ que
+cuenta las piezas interiores que muestran el color $a$ en un lado y el color
+$b$ en el lado opuesto, elévela a la longitud del pasillo, y sus potencias
+dan recuentos exactos de caminos. Para el pasillo de longitud 10 entre el par
+de pistas más cercano, con los dos colores de los extremos fijados por las
+pistas, ese recuento es $2{,}59\times10^{15}$ caminos (la media sobre pares
+de colores). Un camino puede reutilizar una pieza; aplicar la corrección de
+distinción de campo medio $\prod_{j=0}^{9}(1 - j/196) = 0{,}792$ deja
+$2{,}05\times10^{15}$ rellenos con piezas todas distintas. Mi primera pasada
+por este recuento, con un modelo de piezas algo más estricto, daba
+$1{,}9\times10^{15}$; el verificador archivado se asienta en
+$2{,}05\times10^{15}$, y la conclusión no se mueve entre ambos.
+
+Un compromiso satisfacible de dos mil billones de maneras no es una
+restricción en ningún sentido útil. Tenderlo excluye una fracción ínfima del
+espacio de búsqueda, mientras retira diez piezas del fondo común a $k = 1$,
+justo donde la aritmética dice que la búsqueda no recupera nada. Conecte dos
+o tres pares de pistas y la factura sube a entre 10 y 20 piezas gastadas
+antes de que se haya rellenado una sola celda realmente restringida.
+
+## El A/B: todos los brazos con pasillo perdieron
+
+El recuento dice que el pasillo no aporta nada; hace falta un experimento
+para mostrar que cuesta. La tanda original del estudio comparó tres brazos
+que no difieren más que en la fase de pasillos: un control (pistas fijadas, y
+después un relleno voraz de contacto máximo con reinicios), un brazo de
+pasillo de ancho 1, y un brazo de cinta de ancho 2, cada uno tendiendo sus
+rutas de pista a pista antes del relleno idéntico. Corrió sobre instancias
+escaladas con geometría de pistas fiel, en tamaños N = 8 a 16, con 12
+semillas emparejadas por celda y 20 segundos por ejecución en un solo núcleo.
+
+| Tablero | Media del control | Pasillo ancho 1 | Cinta ancho 2 |
+|---:|---:|---:|---:|
+| 8×8 | 92,50 | -4,67 | -3,00 |
+| 10×10 | 144,17 | -9,58 | -5,50 |
+| 12×12 | 209,83 | -13,58 | -6,75 |
+| 14×14 | 285,67 | -12,00 | -7,83 |
+| 16×16 | 377,17 | -17,67 | -8,08 |
+
+Las puntuaciones son aristas casadas, y cada delta enfrenta un brazo a su
+propio control sobre semillas emparejadas. Cada brazo con pasillo perdió
+frente a su control en todos los tamaños, con Wilcoxon emparejado
+$|z| \ge 2{,}80$. El daño crece con los tableros, y con ellos los pasillos:
+una pérdida media de 4,7 aristas en N = 8 se convierte en 17,7 en N = 16,
+donde las dos distribuciones de puntuación se separan del todo (la peor
+semilla del control marcó 373; la mejor del brazo de pasillo, 365). Y
+ensanchar el pasillo a una cinta de 2 celdas, lo que permite que su segunda
+fila llegue con 2 contactos en vez de 1, reduce el daño aproximadamente a la
+mitad en todos los tamaños. Esa es exactamente la dependencia del ancho que
+el recuento predice, y es lo que ata el mecanismo a la medición.
+
+## Qué descarta, y qué deja abierto
+
+El negativo es preciso: tender pronto pasillos de pista a pista de ancho 1
+(o 2) perjudica, y más pasillo perjudica más. La misma aritmética que los
+condena señala también dónde la restricción es real: las celdas colocadas
+con 2 o más contactos, ya que solo $k \ge 3$ poda de verdad y $k = 2$ se
+acerca. Hacer crecer regiones compactas ancladas en las pistas, donde la
+mayoría de las celdas llegan con varios contactos, es un movimiento distinto
+que este experimento no toca.
+
+El resultado encaja además con lo que los estudios de pistas encuentran una
+y otra vez. En un puzzle 16×16 emparentado,
+[la posición de las pistas importa más que su número](/research/why/hint-geometry)
+porque el valor de una pista está en alcanzar la parte del tablero donde la
+búsqueda sufre; y en
+[el estudio de pistas del laboratorio](/research/lab/experiments/raphael-anjou/hint-study),
+las cinco pistas oficiales por sí solas nunca ayudaron a un backtracker
+cronológico en los tableros probados. Un pasillo es la manera extrema de
+malgastar ese regalo: cobra las cinco celdas fijas de inmediato, en la región
+más barata de la búsqueda, y lo paga con el fondo de piezas. Como los
+negativos del [barrido de teoremas](/research/why/theorem-sweep), este viene
+con su precio: para que enlazar las pistas compense, sus celdas tendrían que
+llegar con tres contactos, y un camino de ancho 1 no lo logra nunca.
+
+<Callout kind="note">
+  El lado del recuento se reproduce de forma exacta: el verificador del
+  directorio del tema recalcula la geometría de las pistas, la tabla de
+  ramificación, la oferta de colores y los recuentos de pasillos por matriz
+  de transferencia desde el juego de piezas oficial en alrededor de un
+  segundo, y su salida está archivada en results/corridor_counts.json. La
+  tabla A/B es la medición original del estudio: la repetición empaquetada de
+  los tres brazos está especificada en el plan de reproducción del tema y sus
+  tablas aún no están archivadas, así que lea esos deltas como el registro de
+  una tanda, con la confirmación de una tanda fresca todavía pendiente.
+</Callout>

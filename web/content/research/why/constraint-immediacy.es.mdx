@@ -1,0 +1,189 @@
+---
+title: "La inmediatez de las restricciones: todo orden de llenado paga los mismos 480"
+description: >-
+  Sume, para cualquier orden de visita del tablero 16x16, el número de vecinos
+  ya colocados que cada celda enfrenta en el instante en que se rellena: el
+  total es exactamente 480, sea cual sea el orden. Un orden de llenado no puede
+  añadir restricción; solo elige cuándo se aplica cada una. Lo que separa a los
+  órdenes es la inmediatez, la distancia entre una decisión y su refutación, y
+  solo los extremos de esa clasificación pertenecen al puzzle y no al motor.
+metaDescription: "Sume los vecinos ya colocados de cada celda sobre cualquier orden de visita del tablero 16x16: el total es exactamente 480. Un orden no añade restricción, solo programa cuándo se aplica. Enlazar las pistas pronto es el peor caso; la clasificación fina depende del motor."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 85
+updated: 2026-07-22
+topics: [backtracking, search-space]
+sources:
+  - label: "El kit de reproducción tras esta página: verificador de conteos de restricciones, solver sencillo de dos brazos, resultados archivados (research/topics/constraint-immediacy)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+related:
+  - /research/why/piece-theft
+  - /research/why/theorem-sweep
+  - /research/build/backtracking/fill-order
+  - /research/lab/experiments/raphael-anjou/dfs-study
+repro:
+  kind: exact
+  cmd: cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-korder ../results
+  topic: constraint-immediacy
+  scope: >-
+    Recalcula los conteos de restricciones por celda para los cinco órdenes de
+    visita sobre el tablero oficial y verifica que cada uno suma exactamente
+    480 (estable byte a byte entre ejecuciones). Los dos brazos de
+    comportamiento se relanzan por separado con repro-official y repro-gen
+    (60 s por orden y por brazo, con semillas); su clasificación fina depende
+    del motor, por la propia conclusión de esta página.
+---
+
+Hay una intuición recurrente sobre los backtrackers de Eternity II: si la
+búsqueda visitara primero las cinco celdas con pista, siguiendo un camino
+que las enlace pronto, las pistas "restringirían el puzzle antes" y el árbol
+de búsqueda se encogería. La intuición suena bien y la contabilidad dice lo
+contrario. Ningún orden de llenado restringe el puzzle más que otro. Lo que
+un orden controla de verdad es *cuándo* se aplica cada restricción, y esa
+pregunta de calendario tiene una respuesta nítida: las restricciones que se
+pagan tarde son las caras.
+
+## Una suma que ningún orden puede cambiar
+
+Fije un orden de visita completo de las 256 celdas. Cuando se rellena la
+celda $i$, llame $k_i$ al número de sus vecinas ya colocadas: el número de
+restricciones de arista que la pieza nueva debe satisfacer en ese instante.
+Cada junta interior del tablero se comprueba exactamente una vez, por el
+extremo que se coloca en segundo lugar. La suma de los $k_i$ es por tanto el
+número de juntas interiores, que en el tablero 16x16 vale
+$2 \times 16 \times 15 = 480$, las mismas 480 juntas que cuenta el
+[suelo de paridad](/research/why/parity-defect-floor). El total es
+invariante respecto del camino:
+
+$$\sum_i k_i = 480 \quad \text{para todo orden de visita.}$$
+
+El kit de reproducción lo comprueba de forma exacta para cinco órdenes de
+visita sobre el tablero oficial. Los cinco suman 480; lo único que cambia es
+cómo se reparte el total:
+
+| orden | k=0 | k=1 | k=2 | k=3 | k=4 | suma |
+|---|---|---|---|---|---|---|
+| hint-link | 1 | 75 | 137 | 41 | 2 | 480 |
+| outer-spiral | 1 | 58 | 170 | 26 | 1 | 480 |
+| row-major | 1 | 30 | 225 | 0 | 0 | 480 |
+| bustrófedon | 1 | 30 | 225 | 0 | 0 | 480 |
+| border-first | 1 | 58 | 170 | 26 | 1 | 480 |
+
+
+Estas cinco cifras son las mediciones originales del motor del estudio fuente; la reproducción empaquetada cubre el invariante y los dos solucionadores simples de abajo, no esta tabla.
+
+El orden fila a fila (row-major) es casi uniforme: pasadas la primera fila y
+la primera columna, cada celda enfrenta exactamente dos restricciones. El
+orden hint-link (un camino que encadena pronto las cinco celdas con pista
+mediante corredores de enlace) paga sus 41 celdas a tres restricciones y sus
+2 celdas a cuatro colocando antes 75 celdas comprobadas contra una sola
+vecina. La ley de conservación lo convierte en un trueque, nunca en una
+ganancia: una celda solo puede enfrentar tres o cuatro vecinas colocadas
+porque otras celdas se colocaron casi sin comprobación antes que ella.
+
+## La inmediatez: cuándo llega la factura
+
+Si el volumen total de restricciones está fijado, ¿qué distingue a los
+órdenes en la práctica? El coste de una colocación errónea es el tamaño del
+subárbol que la búsqueda explora antes de que aflore la refutación. Un orden
+con largos tramos sub-restringidos (series de celdas comprobadas contra una
+sola vecina, con decenas de candidatas cada una) seguidos de cierres
+sobre-restringidos (celdas comprobadas contra tres o cuatro) falla *al
+final*: los errores cometidos a bajo precio en el corredor solo se detectan
+en el cierre, un subárbol entero después. Un orden que mantiene cerca de
+cero la distancia entre una decisión y su refutación falla *de inmediato*, y
+ahí vive todo el beneficio.
+
+Ese es el principio de inmediatez de las restricciones: restringir pronto es
+lo correcto exactamente cuando la restricción pone a prueba cada decisión en
+el acto. El orden borde-primero (border-first) compromete primero el
+subconjunto más restringido (las 60 piezas de borde, que en el perímetro
+solo admiten una orientación), de modo que sus restricciones se aplican en
+el momento en que nacen. El camino hint-link es el caso opuesto, precocidad
+geométrica sin inmediatez: las pistas se alcanzan pronto, pero a lo largo de
+corredores cuyas colocaciones quedan casi sin probar hasta que el tablero se
+cierra a su alrededor.
+
+## Lo que midió el motor
+
+El principio se extrajo de ejecuciones a orden fijo del motor de búsqueda
+del proyecto, la misma familia que examina el
+[estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study). Aquí y más
+abajo, las puntuaciones son aristas interiores emparejadas sobre 480 según
+el puntuador canónico que excluye el perímetro; ninguno de estos números es
+una reclamación de récord, y las tablas de récords viven en
+[/research/records](/research/records).
+
+| orden | aristas emparejadas (motor) |
+|---|---|
+| hint-link | 51 |
+| outer-spiral | 204 |
+| costura de dos frentes | 3 a 5 por debajo de row-major |
+| row-major | 433 |
+| border-first | 445 |
+
+Un solo principio cubre toda la tabla: hint-link y la espiral fallan al
+final y se hunden; row-major es uniforme y sólido; border-first añade una
+prueba inmediata sobre las piezas más restringidas y acaba en cabeza.
+
+## La contraprueba con un solver sencillo
+
+Una clasificación medida en un solo motor puede ser una propiedad de ese
+motor. Para separar ambas cosas, la reproducción relanzó los cinco órdenes
+sobre un solver deliberadamente sencillo, dos brazos a 60 s por orden y por
+brazo sobre el tablero oficial, un solo núcleo en Apple Silicon: una pasada
+voraz de mejor ajuste que rellena todo el tablero tolerando fallos, y una
+búsqueda en profundidad de ajuste perfecto con vuelta atrás cronológica,
+puntuada sobre su prefijo consistente más profundo (16 a 47 mil millones de
+nodos por orden, así que el presupuesto se gastó de verdad). El fichero de
+resultados guarda un enlace al visor para cada tablero final.
+
+| orden | voraz | puntuación DFS | profundidad DFS |
+|---|---|---|---|
+| hint-link | 316 | 44 | 60/256 |
+| outer-spiral | 366 | 28 | 35/256 |
+| row-major | 343 | 344 | 194/256 |
+| bustrófedon | 359 | 342 | 193/256 |
+| border-first | 358 | 28 | 35/256 |
+
+Lo que sobrevive al cambio de motor son los extremos. Hint-link es con
+diferencia el peor orden de ajuste perfecto, y su puntuación DFS de 44 cae
+cerca del 51 del motor. Row-major y el bustrófedon son el medio de tabla
+sólido en ambos brazos. Y sobre el tablero oficial el brazo voraz mantiene a
+border-first por delante de row-major, 358 contra 343, la misma dirección
+que el 445 contra 433 del motor.
+
+Lo que no sobrevive es todo lo demás. Bajo el DFS sencillo la espiral ya no
+se hunde en una clase propia (empata con border-first, coherente con que los
+dos órdenes comparten aquí un perfil de restricciones idéntico y las mismas
+60 primeras celdas), y el propio border-first choca con un muro de cierre
+del perímetro a profundidad 35 de 256 en lugar de liderar. Sobre cuatro
+tableros 16x16 generados con marco, la ventaja voraz se invierte sin más:
+row-major gana el brazo voraz en 4 de 4 semillas y el brazo en profundidad
+en 4 de 4, con la puntuación DFS de border-first oscilando entre 28 y 366
+según la semilla. El enunciado riguroso de esta página tiene por tanto dos
+caras: el invariante y los extremos pertenecen al puzzle; el medio fino de
+cualquier clasificación de órdenes de llenado pertenece al motor que la
+produjo.
+
+## Dónde queda la palanca
+
+La ley de conservación acota lo que la geometría puede hacer por sí sola. Un
+perfil uniforme de dos restricciones es el mejor calendario que un orden de
+visita puede alcanzar, porque las celdas que enfrentan tres o cuatro vecinas
+colocadas solo existen aguas abajo de celdas colocadas casi sin
+comprobación. Row-major ya alcanza ese perfil, y los veinte años de
+ingeniería comunitaria de órdenes de llenado repasados en la
+[página de órdenes de llenado](/research/build/backtracking/fill-order) son
+refinamientos dentro de ese marco. Cualquier vinculación temprana adicional
+tiene que ser informacional en vez de geométrica: propagar lo que la reserva
+de piezas restante aún puede servir (el modo de fallo que hace visible el
+[robo de piezas](/research/why/piece-theft)), a prioris de colocación,
+reservas de candidatas restringidas, puertas de poda calculadas. La propia
+invariancia es un pequeño enunciado exacto en el espíritu del
+[barrido de teoremas](/research/why/theorem-sweep): no es profundo, pero
+cierra una puerta con limpieza. Nadie encogerá esta búsqueda desviando el
+camino por el tablero; las 480 comprobaciones se deben íntegras, en todo
+camino, y solo su calendario queda en manos de quien busca.

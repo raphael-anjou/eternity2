@@ -1,0 +1,209 @@
+---
+title: Un conjunto de piezas extremo en cada eje medido
+description: >-
+  Mida las 256 piezas oficiales sin ningún solucionador a la vista y cada
+  puerta estructural está cerrada: ninguna pieza simétrica por rotación, 5
+  parejas gemelas entre 32 640 emparejamientos, un tope de 307 sobre 480 si
+  nada gira, presupuestos de color que se emparejan a exactamente 480 sin
+  holgura, y una paleta 17+5 situada en el punto de una-solución-esperada.
+metaDescription: "El conjunto de piezas de Eternity II está en el extremo adverso de cada eje medido: cero piezas simétricas por rotación entre 256, cinco parejas gemelas en 32 640 emparejamientos, un tope de 307 sobre 480 con orientación fija, presupuestos de color pares que suman 480 y una paleta dividida 17+5."
+kind: finding
+contribution: measurement
+rigor: proven
+tier: 1
+order: 15
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "El conjunto de piezas adverso: artículo, código fuente y resultados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/adversarial-piece-set
+  - label: "Brendan Owen, Design the hardest puzzle: la receta y la derivación del 17,14 (msg 1947, agosto de 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+  - label: "El censo del espacio de diseño de piezas: las formas simétricas existen en ese espacio y el conjunto real las evita todas (msg 8025, septiembre de 2010)"
+    url: https://groups.io/g/eternity2/message/8025
+  - label: "Las páginas Eternity de Selby y Riordan, el sitio de los propios diseñadores"
+    url: https://www.archduke.org/eternity/
+related:
+  - /research/why/design-recipe
+  - /research/why/theorem-sweep
+  - /research/why/walls-and-methods
+  - /research/why/phase-transition
+  - /research/why/rare-color-geography
+  - /research/why/no-forced-moves
+  - /research/why/sigma-cycles
+repro:
+  kind: exact
+  cmd: cd research/topics/adversarial-piece-set/compute && cargo run --release > ../results/invariants.json
+  topic: adversarial-piece-set
+  scope: >-
+    Los cinco ejes versionados en el repositorio (órbitas de rotación, censo de
+    gemelas y casi gemelas, tope de emparejamiento con orientación fija,
+    paridad y capacidad de emparejamiento de los presupuestos de color) se
+    recalculan desde la instancia oficial incluida; el binario comprueba cada
+    valor esperado, corre de forma determinista en menos de un segundo, y el
+    JSON versionado es idéntico byte a byte entre ejecuciones.
+---
+
+Deje a un lado los solucionadores y mida el objeto en sí. El conjunto oficial
+son 256 piezas cuadradas, con cuatro bordes de color cada una. Si esas piezas
+se hubieran sorteado sin cuidado, algo de holgura estructural sobreviviría en
+alguna parte: una pieza repetida, una pieza simétrica, un color en exceso, un
+sesgo de orientación que no cuesta nada, una camarilla de piezas que se
+prefieren entre sí. De esa holgura es de lo que se alimentan los
+solucionadores. Esta página comprueba cada una de esas puertas directamente
+sobre el conjunto de piezas solo, y todas están cerradas, con exactitud, no de
+forma aproximada.
+
+Cinco de las seis mediciones de abajo están versionadas como un único tema
+reproducible. Cada una se recalcula desde la instancia publicada en menos de
+un segundo, y el binario comprueba por sí mismo sus valores esperados:
+reproducir los números y verificarlos son el mismo gesto.
+
+## Las cinco mediciones versionadas
+
+| Eje | Medición | El extremo en el que se sitúa |
+| --- | --- | --- |
+| Simetría de rotación | 256 de 256 piezas tienen sus cuatro rotaciones distintas | 1 024 piezas-rotación, nada que cocientar |
+| Gemelas | 251 multiconjuntos de colores distintos; 5 parejas gemelas y 114 casi gemelas entre 32 640 emparejamientos | ningún duplicado, coincidencia al nivel del 0,4 % |
+| Tope con orientación fija | como mucho 307 de 480 uniones pueden casar si ninguna pieza gira | la rotación es estructuralmente necesaria |
+| Presupuesto de color | los 22 colores tienen un número par de lados; la capacidad de emparejamiento suma 480 | exactamente suficiente, holgura cero |
+| Paleta dividida | 17 colores interiores, 5 colores de uniones del borde | 17 es el ajuste de una-solución-esperada |
+
+### Ninguna simetría de rotación en ninguna parte
+
+Una pieza que se viera igual tras un cuarto o medio giro colapsaría
+orientaciones y encogería el espacio de decisión, y la reducción estándar,
+buscar una forma canónica por órbita, cobraría el descuento. Medido: cada una
+de las 256 piezas tiene una órbita de rotación completa de tamaño 4, así que
+el puzle tiene de verdad 1 024 piezas-rotación distintas y la búsqueda por
+formas canónicas no gana absolutamente nada. El censo comunitario del espacio
+de diseño muestra que esto es una elección, no un accidente: con esta paleta,
+el espacio de piezas posibles contiene formas que se repiten bajo rotación, y
+el conjunto real las evita todas
+([msg 8025](https://groups.io/g/eternity2/message/8025)). La
+[receta de diseño](/research/why/design-recipe) lleva el lado intencional de
+esa historia, incluida la medición de Brendan Owen de que las piezas
+simétricas se colocarían de forma tan desigual que devolverían al solucionador
+justo la señal de ordenación por dificultad que los diseñadores estaban
+eliminando.
+
+### Cinco gemelas entre 32 640 emparejamientos
+
+Olvide el orden de los bordes y pregunte qué piezas llevan el mismo
+presupuesto de cuatro colores. Las 256 piezas producen 251 multiconjuntos
+distintos: exactamente 5 parejas coinciden, las piezas (2,3), (5,14), (7,51),
+(109,110) y (171,181) en la numeración de investigación, y en cada pareja los
+colores compartidos ocupan un orden cíclico diferente, de modo que ninguna
+pieza se repite, ni siquiera salvo rotación. Al relajar la pregunta hacia las
+casi gemelas, parejas que comparten 3 de sus 4 bordes en la misma posición en
+la orientación almacenada, se añaden 114 parejas en 79 grupos. Frente a los
+32 640 pares no ordenados que ofrece el conjunto, incluso esa coincidencia
+relajada queda en una fracción de un uno por ciento. La puerta que esto cierra
+es la duplicación gratuita: una pareja de duplicados de verdad permitiría
+reescribir cualquier solución intercambiando las dos piezas, y no hay ninguna.
+
+### La rotación es estructuralmente necesaria
+
+Congele cada pieza en su orientación publicada y pregunte cuántas de las 480
+uniones podrían casar. Color por color, las uniones horizontales usan como
+mucho la menor de las ofertas orientadas al este y al oeste, y las verticales
+la menor de las ofertas norte y sur. La suma tiene un tope de **307 sobre
+480**. Es una cota de conteo, no un resultado de búsqueda: ninguna disposición
+de piezas sin girar, en ningún lugar del tablero, puede superarla. Una cadena
+que fija las orientaciones pronto concede por tanto al menos 173 uniones antes
+de empezar a buscar, y 307 queda muy por debajo de todos los tableros altos de
+la [página de récords](/research/records). Los dos números cuentan aquí bordes
+casados entre piezas adyacentes, excluido el perímetro exterior, la convención
+usada en todo este sitio.
+
+### Un presupuesto de color con holgura cero
+
+Cuente los lados de pieza por color. Cada uno de los 22 colores no grises
+tiene un total par, y las capacidades de emparejamiento, la mitad del número
+de lados por color, suman exactamente 480, el número geométrico de uniones del
+tablero. La oferta es exactamente suficiente para un tablero perfecto: ningún
+color falta, lo que certificaría imposible la solución construida, y ningún
+color sobra, lo que dejaría holgura que los tableros parciales pudieran
+gastar. Holgura cero significa también palanca cero. Ningún argumento de
+conteo sobre la sola oferta de colores puede podar nada, así que la dificultad
+vive por entero en qué piezas llevan qué colores, no en cuánto hay de cada
+color. Lo más afilado que produce el razonamiento de oferta es el invariante
+de [equilibrio del borde](/research/why/border-balance), y esa condición es
+necesaria, nunca suficiente.
+
+### La paleta dividida, y qué se ajustó
+
+Los 22 colores se dividen en 17 colores interiores y 5 que solo aparecen en
+las uniones entre piezas del borde. La separación en sí es automática: con un
+perímetro gris macizo, los bordes de color de una pieza del borde solo se
+encuentran con otros bordes del borde o con el interior, así que los dos
+depósitos nunca se mezclan, como explica la página de
+[geografía de los colores raros](/research/why/rare-color-geography). Lo que
+se eligió son los recuentos. La derivación de Owen del año del lanzamiento
+recupera 17,14 colores interiores a partir de la exigencia de aproximadamente
+una solución esperada
+([msg 1947](https://groups.io/g/eternity2/message/1947)), lo más escasa que
+puede ser una solución sin dejar de existir, y la página del
+[pico de dificultad](/research/why/phase-transition) mide que ese es el peor
+lugar posible para una búsqueda. La receta reconstruida completa, ingrediente
+a ingrediente, está en la página de la
+[receta de diseño](/research/why/design-recipe).
+
+## El sexto eje, descrito sin sus números
+
+Una medición más pertenece a la tesis pero aún no forma parte del tema
+versionado. Construya el grafo cuyos nodos son las 256 piezas, ponderado por
+cuántas adyacencias por rotación admite cada pareja, y lea su espectro. El
+grafo se separa limpiamente en exactamente dos bloques, las 60 piezas del
+marco y las 196 interiores, y más allá de ese corte no muestra estructura de
+comunidad a ninguna escala: ni camarillas de piezas mutuamente compatibles, ni
+un subpuzle barato que recortar y resolver primero. El agrupamiento es de
+escala única, y la única frontera de grupo visible es la línea
+marco-interior que cualquier solucionador ya conoce. Los números espectrales
+tras esta descripción quedan aplazados hasta que su cálculo se versione junto
+a los otros cinco; lea por ahora este eje como una descripción, y los cinco
+anteriores como exactos.
+
+## Lo que estos extremos descartan
+
+Cada eje cierra una puerta estándar.
+
+- **Reducción por simetría.** Nada que cocientar: las 1 024 piezas-rotación
+  son todas distintas.
+- **Trucos de duplicados.** Ninguna duplicación gratuita de soluciones: 5
+  casi coincidencias entre 32 640 emparejamientos, ninguna un duplicado real.
+- **Atajos de orientación.** Fijar las rotaciones pronto concede 173 de 480
+  uniones por un argumento de conteo, antes de cualquier búsqueda.
+- **Argumentos de oferta.** Presupuestos pares y exactamente suficientes:
+  contar colores no poda nada.
+- **Subcomunidades baratas.** No existe nada más blando que el corte
+  marco-interior desde el que empezar.
+
+Esta página es la compañera de medición de dos vecinas. La
+[receta de diseño](/research/why/design-recipe) reconstruye, desde el archivo
+del año del lanzamiento, por qué el conjunto se construyó así; el
+[barrido de teoremas](/research/why/theorem-sweep) reúne las leyes demostradas
+sobre el mismo objeto. Y los extremos de aquí son la planta baja de los muros
+de la sección: [sin movimientos forzados](/research/why/no-forced-moves) es la
+misma llanura sentida celda a celda durante una construcción, y los
+[ciclos sigma](/research/why/sigma-cycles) son en lo que se convierte la
+ausencia de intercambios pequeños entre tableros altos terminados. Para saber
+qué método muere contra qué muro, el
+[mapa de muros y métodos](/research/why/walls-and-methods) hace de índice.
+
+## Reproducción y convenciones
+
+El directorio del tema contiene un binario de Rust autónomo que carga la
+instancia oficial incluida (256 piezas, sin pistas) y recalcula cada número de
+arriba: el censo de órbitas de rotación, los recuentos de gemelas y casi
+gemelas, el tope de emparejamiento con orientación fija, y la paridad y
+capacidad de emparejamiento por color. La ejecución es determinista, termina
+en mucho menos de un segundo, imprime un único documento JSON y sale con
+código distinto de cero si falla algún valor esperado; el archivo de
+resultados versionado es idéntico byte a byte entre ejecuciones. Los
+identificadores de pieza de la lista de gemelas siguen la numeración de
+investigación del conjunto. Los dos números de tipo puntuación de esta página,
+307 y 480, cuentan bordes casados entre piezas adyacentes con el perímetro
+exterior excluido, la misma convención que la página de
+[récords](/research/records); nada aquí puntúa un tablero candidato, y nada en
+esta página es una reclamación de récord.
