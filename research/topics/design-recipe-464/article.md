@@ -67,10 +67,38 @@ restarts.
 ## Reproduction
 
 The claim is checkable from the boards alone. The five boards (three 464s, two
-public 460 postings) are bundled as viewer URLs in `compute/boards.txt`. The
-`compute/` crate decodes each URL's edge grid, rescores it with the site's one
-canonical scorer, verifies the five official clues, and computes the break
-geometry: per cell break counts (attributing each mismatched interior adjacency
-to the row major later cell), per row totals, cells with two breaks, and the
-pairwise tile Hamming distances that establish the basin map. The expected
-output is stated numerically in `compute/PLAN.md`; the run takes seconds.
+public 460 postings) are bundled as viewer URLs in `compute/boards.txt` and
+repeated per board inside the results file. The `compute/` crate decodes each
+URL's edge grid, rescores it with the site's one canonical scorer, verifies the
+five official clues, and computes the break geometry: per cell break counts
+(attributing each mismatched interior adjacency to the row major later cell),
+per row totals, cells with two breaks, and the pairwise tile Hamming distances
+that establish the basin map. The run takes under a second; the output is
+byte stable across reruns (exact tier).
+
+Measured against the expected numbers of `compute/PLAN.md`:
+
+| Board | Score (exp / got) | Breaks (exp / got) | Break rows (exp / got) | Double breaks (exp / got) | Clues |
+|---|---|---|---|---|---|
+| 464 basin C (b0) | 464 / 464 | 16 / 16 | r0..r5 / r0..r5 | 1 / 1 | 5/5 |
+| 464 basin B (b1) | 464 / 464 | 16 / 16 | r1..r5 / r1..r5 | 2 / 2 | 5/5 |
+| 464 basin B (b2) | 464 / 464 | 16 / 16 | r1..r5 / r1..r5 | 0 / 0 | 5/5 |
+| 460 public (a) | 460 / 460 | 20 / 20 | r12..r15 / r12..r15 | 3 / 3 | 5/5 |
+| 460 public (b) | 460 / 460 | 20 / 20 | r12..r15 / r13..r15 | 3 / 3 | 5/5 |
+
+Every board is complete (256 placed) and the break identity breaks = 480 minus
+score holds on all five. The basin C break cell list came out exactly as
+expected: [12, 27, 31, 38, 40, 44, 46, 53, 58, 62, 63, 71, 73, 77, 93], with
+the single double break at cell 77. The tile Hamming basin map also matched:
+b0 vs b1 = 250, b0 vs b2 = 250, b1 vs b2 = 6, and every 464 sits 243 to 247
+tiles away from the public 460s (the two 460 postings differ from each other by
+only 9 tiles, one basin). The one sub row note: 460 posting (b) happens to have
+its row 12 clean, so its break band is r13..r15, still inside the expected
+r12..r15 bottom band.
+
+Verdict: reproduced. All numeric claims in the plan came out exactly, and the
+mirror image geometry (464 breaks confined to the top band, 460 breaks to the
+bottom band, clean everywhere else) is visible directly in the `break_grid`
+field of the results file. Representative board, the basin C 464, first URL in
+`compute/boards.txt` labelled `464-basinC-b0` and echoed in
+`results/break-geometry.json`.

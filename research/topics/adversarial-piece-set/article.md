@@ -69,6 +69,32 @@ census, the multiset-twin pairs, the near-twin census (pairs sharing 3 of 4
 same-position edges in the stored orientation), the fixed-orientation matching
 cap, and the per-colour side counts with their parity and pairing-capacity
 sum. Expected values are asserted in the binary, so a run is also a check.
+The orbit census and the per-colour half-edge census come from the kit's
+`analysis` module; the positional measurements (near-twins and the
+fixed-orientation cap) are computed locally because they depend on each
+piece's stored orientation, which the kit's rotation-invariant helpers
+deliberately abstract away.
+
+Measured on the bundled official instance (256 pieces, no hints); the run is
+deterministic, completes in well under a second, and the committed
+`results/invariants.json` is byte-stable across runs.
+
+| Claim | Expected | Measured | Match |
+|---|---|---|---|
+| A1 pieces with full rotation orbit | 256 of 256 | 256 of 256 (0 half, 0 fixed) | yes |
+| A1 distinct piece-rotations | 1024 | 1024 | yes |
+| A1b distinct edge-colour multisets | 251 | 251 | yes |
+| A1b twin pairs | 5 | 5: (2,3), (5,14), (7,51), (109,110), (171,181) | yes |
+| A1c near-twin pairs / groups | 114 / 79 | 114 / 79 | yes |
+| A2 fixed-orientation matching cap | 307 of 480 | 307 of 480 | yes |
+| A3 colours with odd side count | 0 | 0 (22 interior colours) | yes |
+| A3 pairing-capacity sum | 480 | 480 | yes |
+
+The five twin pairs match the vault's research-numbering list exactly, so the
+bundled instance stores the same canonical rotations and id order as the
+research CSV; the orientation and numbering caveats in `compute/PLAN.md` do
+not bite here. The axis-4 spectral measurements (algebraic connectivity,
+spectral gap) remain deferred as planned and are not claimed by this topic.
 
 See `compute/PLAN.md` for the exact claim being tested, the scoring-convention
 mapping, and the known orientation and numbering caveats.

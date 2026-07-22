@@ -24,6 +24,7 @@ const BORDER: u8 = 0;
 #[derive(serde::Serialize)]
 struct BoardReport {
     label: String,
+    url: String,
     score: u32,
     max_score: u32,
     breaks: u32,
@@ -116,6 +117,7 @@ fn report(instance: &Instance, label: &str, url: &str) -> (BoardReport, Vec<i32>
 
     let r = BoardReport {
         label: label.to_string(),
+        url: url.to_string(),
         score,
         max_score: MAX_SCORE_16,
         breaks,

@@ -21,7 +21,7 @@
 
 use e2_kit::{
     generator, instance_from_generated, pin_solution_hints, Board, Budget, Instance, SolveOutcome,
-    Solver,
+    Solver, XorShift,
 };
 
 const HINTS: u32 = 5;
@@ -47,7 +47,7 @@ impl Rule {
 struct LayerBeam {
     width: usize,
     rule: Rule,
-    seed: u64,
+    seed: u32,
 }
 
 /// A frontier node: a partial board (filled in row-major order up to the
@@ -76,7 +76,7 @@ impl Solver for LayerBeam {
         let w = usize::from(instance.width);
         let n = w * usize::from(instance.height);
         let pieces = &instance.pieces;
-        let mut rng = XorShift64::new(self.seed ^ 0x51CE_5EED);
+        let mut rng = XorShift::new(self.seed ^ 0x51CE_5EED);
 
         let mut used0 = vec![false; pieces.len()];
         for pos in 0..n {
@@ -160,7 +160,7 @@ impl Solver for LayerBeam {
 
 impl LayerBeam {
     /// Apply the survivor rule: keep at most `self.width` candidates.
-    fn truncate(&self, cands: &mut Vec<Cand>, rng: &mut XorShift64) -> Vec<Cand> {
+    fn truncate(&self, cands: &mut Vec<Cand>, rng: &mut XorShift) -> Vec<Cand> {
         let width = self.width;
         if cands.len() <= width {
             return std::mem::take(cands);
@@ -173,7 +173,7 @@ impl LayerBeam {
             // Randomise ONLY among exactly tied scores (never widen the score
             // window; vol-246: tol-widening is catastrophic, tie-shuffling is
             // free and positive).
-            Rule::StochTie => (0..cands.len()).map(|i| (rng.next(), i)).collect(),
+            Rule::StochTie => (0..cands.len()).map(|i| (u64::from(rng.next_u32()), i)).collect(),
             Rule::Smc { .. } => Vec::new(),
         };
         match self.rule {
@@ -198,7 +198,7 @@ impl LayerBeam {
                     .enumerate()
                     .map(|(i, c)| {
                         let wgt = ((f64::from(c.score) - f64::from(max)) / temp).exp();
-                        let u = rng.uniform01().max(f64::MIN_POSITIVE);
+                        let u = uniform01(rng).max(f64::MIN_POSITIVE);
                         (u.ln() / wgt, i)
                     })
                     .collect();
@@ -254,24 +254,10 @@ fn rim_ok(e: &[u8; 4], pos: usize, w: usize, n: usize) -> bool {
     rim.iter().zip(e.iter()).all(|(&is_rim, &c)| (c == 0) == is_rim)
 }
 
-struct XorShift64(u64);
-
-impl XorShift64 {
-    fn new(seed: u64) -> Self {
-        Self(seed.max(1))
-    }
-    fn next(&mut self) -> u64 {
-        let mut x = self.0;
-        x ^= x << 13;
-        x ^= x >> 7;
-        x ^= x << 17;
-        self.0 = x;
-        x
-    }
-    #[allow(clippy::cast_precision_loss)]
-    fn uniform01(&mut self) -> f64 {
-        (self.next() >> 11) as f64 / (1u64 << 53) as f64
-    }
+/// A uniform draw in (0, 1) from the kit's seeded [`XorShift`].
+#[allow(clippy::cast_precision_loss)]
+fn uniform01(rng: &mut XorShift) -> f64 {
+    (f64::from(rng.next_u32()) + 0.5) / (1u64 << 32) as f64
 }
 
 // ---------------------------------------------------------------------------
@@ -334,8 +320,7 @@ fn build_rung(size: u8, colors: u8, seed: u32) -> (Instance, u32) {
     let instance = instance_from_generated(&name, &puzzle);
     let instance = pin_solution_hints(instance, size, colors, seed, true, HINTS);
 
-    let n = u32::from(size);
-    let ceiling = 2 * n * (n - 1);
+    let ceiling = generator::interior_edge_count(size);
     let solved = generator::generate_solved_framed(size, colors, seed, true);
     let solved_instance = instance_from_generated(&name, &solved);
     let mut solved_board = Board::new();
@@ -352,7 +337,11 @@ fn build_rung(size: u8, colors: u8, seed: u32) -> (Instance, u32) {
 
 fn main() {
     let args = parse_args();
-    let size = u8::try_from(e2_core::W).expect("board size fits u8");
+    // The compile-time board size, recovered from the fixed-size Board (the
+    // kit forwards e2-core's size-N features; no direct e2-core dep needed).
+    let n_cells = Board::new().to_cell_codes().len();
+    let size = u8::try_from((1..=16).find(|s| s * s == n_cells).expect("square board"))
+        .expect("board size fits u8");
 
     for &width in &args.widths {
         for rule_name in &args.rules {
@@ -367,13 +356,14 @@ fn main() {
             };
             for &seed in &args.seeds {
                 let (instance, ceiling) = build_rung(size, args.colors, seed);
-                let mut solver = LayerBeam { width, rule, seed: u64::from(seed) };
+                let mut solver = LayerBeam { width, rule, seed };
                 let start = instance.seed_board();
                 let outcome = solver.solve(&instance, &start, Budget::seconds(args.budget_s));
                 let out = instance.finish(&outcome.board);
                 let row = serde_json::json!({
                     "solver": solver.name(),
                     "rule": rule.name(),
+                    "temp": match rule { Rule::Smc { temp } => Some(temp), _ => None },
                     "width": width,
                     "n": size,
                     "seed": seed,

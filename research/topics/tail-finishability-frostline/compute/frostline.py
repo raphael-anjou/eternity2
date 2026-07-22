@@ -102,6 +102,16 @@ def greedy_board(pieces, seed: int) -> list[tuple[int, int]] | None:
     return [(pid, r) for pid, r, _rc, _dc in board]
 
 
+def viewer_url(name: str, board, pieces) -> str:
+    """The board's eternity2.dev viewer URL, byte-identical to the starter
+    kit's `e2_kit::viewer_url` (native params: puzzle_size + board_edges,
+    'a' + colour per URDL edge, row-major)."""
+    blob = "".join(
+        chr(ord("a") + c) for pid, r in board for c in rot(pieces[pid], r)
+    )
+    return f"https://eternity2.dev/viewer?puzzle={name}&puzzle_size={N}&board_edges={blob}"
+
+
 # ------------------------------------------------------------ exact label --
 
 
@@ -351,7 +361,7 @@ def main() -> None:
         seen_pools.add(pool_key)
         opt, seam, pool = tail_label(pieces, board)
         tops.append({"seed": seed, "raw": raw, "tail_opt": opt,
-                     "seam": seam, "pool": pool})
+                     "seam": seam, "pool": pool, "board": board})
     if len(tops) < 8:
         raise SystemExit(f"only {len(tops)} distinct tops; increase --seeds")
 
@@ -365,9 +375,20 @@ def main() -> None:
 
     label = [t["tail_opt"] for t in tops]
     raw = [t["raw"] for t in tops]
+    # representative boards (worst / median / best tail_opt), kit-format URLs
+    order = sorted(range(len(tops)), key=lambda i: (label[i], tops[i]["seed"]))
+    reps = {"worst_tail": order[0], "median_tail": order[len(order) // 2],
+            "best_tail": order[-1]}
+    boards = {
+        k: {"seed": tops[i]["seed"], "raw": tops[i]["raw"],
+            "tail_opt": tops[i]["tail_opt"],
+            "url": viewer_url(f"frostline-{k}", tops[i]["board"], pieces)}
+        for k, i in reps.items()
+    }
     results = {"n": len(tops), "raw_summary": [min(raw), float(np.median(raw)), max(raw)],
                "label_summary": [min(label), float(np.median(label)), max(label)],
                "baseline_rho_raw_vs_tail": spearman(raw, label),
+               "representative_boards": boards,
                "betas": {}}
     print(f"baseline rho(raw_score, tail_opt) = {results['baseline_rho_raw_vs_tail']:+.3f}")
     hdr = f"{'beta':>5} {'param':<18} {'rho':>7} {'AUC':>6}"
@@ -408,7 +429,16 @@ def main() -> None:
         results["betas"][str(beta)] = row
 
     if args.out:
-        Path(args.out).write_text(json.dumps(results, indent=2))
+        def denan(x):
+            if isinstance(x, dict):
+                return {k: denan(v) for k, v in x.items()}
+            if isinstance(x, list):
+                return [denan(v) for v in x]
+            if isinstance(x, float):
+                return round(x, 6) if math.isfinite(x) else None
+            return x
+
+        Path(args.out).write_text(json.dumps(denan(results), indent=2) + "\n")
         print(f"wrote {args.out}")
 
 

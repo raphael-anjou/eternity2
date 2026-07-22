@@ -16,9 +16,16 @@ tags:
   - theory
 sources: []
 reproduce:
-  - cd research/topics/constraint-immediacy/compute && cargo run --release -- korder
-  - cd research/topics/constraint-immediacy/compute && cargo run --release -- solve 5
-results: []
+  - cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-korder ../results
+  - cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-official 60 ../results
+  - cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-gen 60 1,2,3,4 ../results
+results:
+  - label: k-order invariance (exact)
+    path: results/korder-invariance.json
+  - label: solver ranking, official board
+    path: results/solver-ranking-official.json
+  - label: solver ranking, generated-board variance
+    path: results/solver-ranking-generated.json
 site:
   render: false
   dataFile: null
@@ -60,20 +67,58 @@ gates.
 
 ## Reproduction
 
-Two parts, both in `compute/`.
+Two parts, both in `compute/`. Runs were made on Apple Silicon, single core.
+Scores are matched interior edges out of 480 under the canonical rim-excluding
+scorer.
 
-First, the invariance itself is checked exactly: for each of five visit orders
-(row-major, boustrophedon, outer spiral, border-first, hint-link) the program
-computes the per-cell constraint counts $k_i$, prints their histogram, and
-verifies that $\sum_i k_i = 480$ on the official 16x16 instance. This part is
-deterministic and runs in milliseconds.
+**Part 1, the invariance (exact tier): reproduced.** For each of five visit
+orders the program computes the per-cell constraint counts $k_i$ and verifies
+$\sum_i k_i = 480$ on the official 16x16 instance. All five orders sum to
+exactly 480 with the predicted histogram shapes
+(`results/korder-invariance.json`, byte-stable on rerun):
 
-Second, the behavioural ranking is re-measured with one fixed-order solver run
-under each visit order at an equal per-order time budget: a greedy best-fit
-pass (full board, breaks allowed, matched edges scored by the canonical
-rim-excluding scorer) and a perfect-fit depth-first search with chronological
-backtracking (deepest consistent prefix). The claim under test is the ordering
-border-first > row-major > spiral > hint-link, not the exact historical
-numbers, which came from a differently configured engine. See
-`compute/PLAN.md` for the design, the scoring-convention mapping, and the
+| order | k=0 | k=1 | k=2 | k=3 | k=4 | sum |
+|---|---|---|---|---|---|---|
+| hint-link | 1 | 75 | 137 | 41 | 2 | 480 |
+| outer-spiral | 1 | 58 | 170 | 26 | 1 | 480 |
+| row-major | 1 | 30 | 225 | 0 | 0 | 480 |
+| boustrophedon | 1 | 30 | 225 | 0 | 0 | 480 |
+| border-first | 1 | 58 | 170 | 26 | 1 | 480 |
+
+**Part 2, the behavioural ranking (seeded-statistical tier): only partially
+reproduced.** Each visit order ran two fixed-order arms at 60 s per order per
+arm on the official instance: a greedy best-fit pass (full board, breaks
+allowed) and a perfect-fit depth-first search with chronological backtracking
+(deepest consistent prefix; 16 to 47 billion nodes per order, so the budget was
+genuinely spent). Historical numbers came from the research engine with its own
+candidate ordering and restart policy; this kit solver is deliberately plain.
+
+| order | historical (engine) | greedy here | DFS score here | DFS depth |
+|---|---|---|---|---|
+| hint-link | 51 | 316 | 44 | 60/256 |
+| outer-spiral | 204 | 366 | 28 | 35/256 |
+| row-major | 433 | 343 | 344 | 194/256 |
+| boustrophedon | about row-major | 359 | 342 | 193/256 |
+| border-first | 445 | 358 | 28 | 35/256 |
+
+What reproduces: hint-link is by far the worst perfect-fit order, and its DFS
+score of 44 lands close to the historical 51; row-major and boustrophedon are
+the solid mid-field in both arms; and on the official board the greedy arm
+keeps border-first ahead of row-major (358 vs 343), matching the direction of
+the historical 445 vs 433.
+
+What does not reproduce: the full ordering. Under this solver the outer spiral
+does not collapse to the 204 class (it ties border-first, consistent with the
+fact that the two orders share an identical k-profile and an identical first 60
+cells here), and under perfect-fit DFS border-first hits a rim-closure depth
+wall at 35 of 256 instead of leading. A generated-board supplement (4 framed
+16x16, 22-colour seeds, top-2 orders, same budgets) reverses the greedy
+border-first advantage: row-major wins the greedy arm on 4 of 4 seeds and the
+DFS arm on 3 of 4, with border-first DFS varying wildly across seeds (28 to
+366). The immediacy extremes are robust; the fine-grained middle of the
+historical table is a property of that engine's search policy, not of the
+visit orders alone. Files: `results/solver-ranking-official.json` (includes
+board URLs), `results/solver-ranking-generated.json`.
+
+See `compute/PLAN.md` for the design, the scoring-convention mapping, and the
 scale-faithfulness argument.

@@ -16,8 +16,21 @@ sources: []
 reproduce:
   - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- sweep --ns 10,11,12,13,14 --gen-seeds 1,2,3,4,5 --budget-secs 20 > ../results/heuristic.jsonl
   - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- export --ns 10,11,12,13,14,15,16 --gen-seeds 1,2,3,4,5 --out instances
-  - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/*.json --time-limit 300 --workers 8 > ../results/cpsat.jsonl
-results: []
+  - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- sweep --ns 14,12 --gen-seeds 1 --budget-secs 45 > ../results/budget45.jsonl
+  - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- sweep --ns 14,12 --gen-seeds 1 --budget-secs 120 > ../results/budget120.jsonl
+  - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/inst_n1[0-3]*.json --time-limit 300 --workers 8 > ../results/cpsat.jsonl
+  - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/inst_n14_c22_s1.json instances/inst_n16_c22_s1.json --time-limit 120 --workers 8 >> ../results/cpsat.jsonl
+results:
+  - label: Heuristic arm, per-seed runs (JSONL)
+    path: results/heuristic.jsonl
+  - label: CP-SAT arm, per-instance runs (JSONL)
+    path: results/cpsat.jsonl
+  - label: Budget-insensitivity check, 45 s (JSONL)
+    path: results/budget45.jsonl
+  - label: Budget-insensitivity check, 120 s (JSONL)
+    path: results/budget120.jsonl
+  - label: Aggregated summary (JSON)
+    path: results/summary.json
 site:
   render: false
   dataFile: null
@@ -84,3 +97,67 @@ smooth time curve through the size at which every heuristic in the first arm
 has collapsed. See `compute/PLAN.md` for the full design, the expected
 numbers, and the fidelity caveats (colour count and generator differences
 against the original measurement).
+
+### Measured results
+
+Run on Apple Silicon; the DFS is single-core, CP-SAT uses 8 workers. The
+kit's generator caps interior colours at 22, so the original C=26 setting
+could not be generated; everything below is at C=22, and the source numbers
+in the table are the C=26 originals, shown for shape, not for digit-level
+comparison.
+
+Heuristic arm (restarting exact-match DFS, 5 pinned clues, 20 s per
+instance, 5 generator seeds per size):
+
+| N | target | full solves | scores (seeds 1..5) | solve times |
+|---|--------|-------------|---------------------|-------------|
+| 10 | 180 | 4/5 | 180, 180, 180, 180, 52 | 0.004 to 9.4 s |
+| 11 | 220 | 2/5 | 220, 80, 91, 93, 220 | 0.11 s, 3.7 s |
+| 12 | 264 | 0/5 | 127, 140, 123, 144, 98 | timeout |
+| 13 | 312 | 0/5 | 179, 166, 141, 160, 189 | timeout |
+| 14 | 364 | 0/5 | 236, 174, 233, 223, 227 | timeout |
+
+The collapse size at C=22 is N\*=12: no seed full-solves 12x12 or anything
+above it, and the failure is budget-insensitive, exactly as in the source.
+The N=12 seed-1 instance scores 127 at 20 s, 127 at 45 s, and 127 at 120 s
+while the node count grows from 22 M to 132 M; N=14 seed 1 moves only 236
+to 240 across a sixfold budget increase. Below the cliff the boundary is a
+seed lottery at C=22 (the source's C=26 rungs solved uniformly at N=12),
+which the plan's smoke run had already flagged.
+
+CP-SAT arm (same instances, decision form, independent verification):
+
+| N | source (C=26) median | measured (C=22) | verified full solves |
+|---|----------------------|-----------------|----------------------|
+| 10 | 0.10 s | 0.29 s median | 5/5 |
+| 11 | 0.19 s | 2.27 s median | 5/5 |
+| 12 | 0.42 s | 31.7 to 88.1 s, one timeout at 300 s | 4/5 |
+| 13 | 0.50 s | 74.2 s (seed 1), timeout (seed 2) | 1/2 run |
+| 14 | 0.84 s | timeout at 120 s (seed 1) | 0/1 run |
+| 16 | 15.27 s | timeout at 120 s (seed 1) | 0/1 run |
+
+The direction of the finding reproduces at the cliff edge: CP-SAT
+full-solves, with independent verification, four of the five 12x12
+instances and the first 13x13 instance that no DFS seed touches. But the
+smooth-seconds curve does not reproduce at C=22. The exact arm slows by two
+orders of magnitude between N=11 and N=12 and starts timing out itself from
+N=12 up (one of five at N=12, then more above). The remaining N=13 seeds
+and the N=14 to N=16 rungs were cut to single-seed probes to stay inside
+the compute budget, so the table above is the largest honest subset, not a
+full 35-instance sweep. The optional HiGHS MIP arm was not run.
+
+Two readings follow. First, the paradigm claim survives where it was
+tested: the chronological heuristic dies at a sharp, budget-insensitive
+boundary inside the 10..16 band, and the structured encoding crosses that
+exact boundary on most instances. Second, the C=26 versus C=22 fidelity
+gap, declared up front in the plan, turns out to be load-bearing: at 22
+colours the planted family is harder for both paradigms, and CP-SAT's own
+wall moves down to roughly the same sizes. The vault's open question,
+whether the cliff moves with the colour count, gets its first data point:
+it does, for both arms at once. The CP-SAT times at N=12 and N=13 also
+carry some inflation from a concurrently running DFS arm on the same
+machine, which cannot account for the gap to the sub-second source times.
+
+A planted 16x16 board from the same generator family (seed 1, the instance
+the CP-SAT probe timed out on, shown as its planted solution):
+[gen_16x16_c22_s1 solution, 480/480](https://eternity2.dev/viewer?puzzle=gen_16x16_c22_s1&puzzle_size=16&board_edges=aebaabgeabvbacvbadvcacrdadlcadodadidaeqdafneadgfacwdafscachfaabcbjcagmujvhpmvuohvtpurnttlrsnouvriphuqowpnluogqllwpqqsvgphkgvbackcgdauwsgpluwoqmlpjoqtikjsnnivvvnhmrvwhpmuuuhlutuqqkugguqgnhgcabndgdassrguihsmqkiokhqkjnknokjvkrormikpptmuroptrirkomruumohjsubaejdlearsulhqmskvpqhqkvnwpqknuwrlqnikrltjlkosnjiglsmoogmnjoslqneaclerdauhjrmiihpklikwlkprmwunprqnwnrgnnlgjgnvmglknvowskjkowqwpkcafwdjfajjgjiqqjlptqlnipmslnpowswjjonoljjttomsrtnwtssrowosmrpmisfafmfhdagvkhqjsvtinjitsilwntwjrwjvrjlkovtsvkrhqstquhojhqmkqjitrkfaftdufakstusuisnmvuslsmnrmlrsvrrhnsoomhvtloqvntutvvhkltqukkrmtufaemfhfatwhhirhwvtrrsjptmtujvtgtnvstmohvliionwhivqqwlomqkgpotljgeaflfqeahgqqhmngrprmpqhpuugqgiquslqihqrliimqhkjiqwwkmspwpqisjkjqfaekembaqipmnioirkwihvkkgntvqhhnqnshrwgnmvlwjgwvwqkgpwmqiliwjulleadububapssuohjswmuhkowmtnpohrtnspgrgnrplnvnwgpnkvvgmhlvihwhlnshdadnbkeasgtkjjigumvjwwwmpjgwtpojgujprvtuvruvptorvmmtlsomwigssopidafoegcatppgiltpvpwlwohpgiuoolhijroltigrujgiotljmkjtorkkgiirppmifabpcbaapeabtbaewcabhcacueacheaeocaegfacgcaflbacjfabkbafieabmdaebaad)

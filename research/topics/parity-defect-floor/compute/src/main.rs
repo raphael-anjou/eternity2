@@ -80,15 +80,10 @@ fn main() {
     let mut checks = Vec::new();
 
     // --- Half-edge statistics (premise of Theorem 1 / 1a) ---
-    let mut h = [0u32; 23];
-    for e in &pieces {
-        for &c in e {
-            h[c as usize] += 1;
-        }
-    }
-    let h_vec: Vec<u32> = h.to_vec();
+    let h = e2_kit::analysis::color_half_edge_census(&instance.pieces);
+    assert_eq!(h.len(), 23, "official instance colors are 0..=22");
     let expected_h_vec: Vec<u32> = EXPECTED_H.iter().map(|&(_, v)| v).collect();
-    checks.push(check("half_edge_counts_h0_to_h22", h_vec, expected_h_vec));
+    checks.push(check("half_edge_counts_h0_to_h22", h.clone(), expected_h_vec));
 
     let colored_total: u32 = h[1..].iter().sum();
     checks.push(check("exact_fit_identity_colored_total", colored_total, 2 * JOINTS));
@@ -97,20 +92,17 @@ fn main() {
     checks.push(check("all_colored_h_even_forces_479_gap", all_even, true));
 
     // --- No self-symmetric tile (premise of Theorem 2, floor = 2) ---
-    let self_symmetric = pieces
-        .iter()
-        .filter(|&&e| (1..4).any(|r| e2_kit::Piece::new(e).rotated(r) == e))
-        .count();
-    checks.push(check("rotationally_self_symmetric_tiles", self_symmetric, 0));
+    let (_, half_orbit, fixed_orbit) = e2_kit::analysis::orbit_census(&instance.pieces);
+    checks.push(check("rotationally_self_symmetric_tiles", half_orbit + fixed_orbit, 0));
 
     // --- Class split 4 / 56 / 196 ---
     let gray = |e: &[u8; 4]| e.iter().filter(|&&c| c == 0).count();
-    let corners = pieces.iter().filter(|e| gray(e) == 2).count();
-    let edge_tiles = pieces.iter().filter(|e| gray(e) == 1).count();
+    let classes = e2_kit::analysis::piece_classes(&instance.pieces);
     let interior: Vec<[u8; 4]> = pieces.iter().copied().filter(|e| gray(e) == 0).collect();
-    checks.push(check("corner_tiles", corners, 4));
-    checks.push(check("edge_tiles", edge_tiles, 56));
-    checks.push(check("interior_tiles", interior.len(), 196));
+    checks.push(check("corner_tiles", classes.corners.len(), 4));
+    checks.push(check("edge_tiles", classes.edges.len(), 56));
+    checks.push(check("interior_tiles", classes.interior.len(), 196));
+    assert_eq!(interior.len(), classes.interior.len());
 
     // --- Theorem 3 census: defect-2 generators ---
     // Near-twin pairs: interior tiles that in some orientations agree on

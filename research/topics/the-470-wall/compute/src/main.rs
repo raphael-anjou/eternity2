@@ -14,7 +14,12 @@
 //!   60 Bernoulli(p_f) + 420 Bernoulli(p_i), by log-space convolution, and
 //!   the corresponding log10 count of uncorrelated configurations;
 //! * the rotation-duplicate count of the real bag (expected: exactly 0).
+//!
+//! The piece-set censuses (classes, per-color half-edges, rotation orbits)
+//! come from `e2_kit::analysis`; only the frame/interior split and the
+//! probability arithmetic are topic-specific.
 
+use e2_kit::analysis::{canonical_key, color_half_edge_census, piece_classes};
 use e2_kit::official_instance;
 
 /// ln(n!) by direct summation (n <= 256 here, exactness over speed).
@@ -51,71 +56,40 @@ fn convolve_bernoulli(ln_pmf: &mut Vec<f64>, n: usize, p: f64) {
     }
 }
 
-/// URDL edge quad after `r` clockwise quarter turns: (N,E,S,W) -> (W,N,E,S).
-fn rotated(e: [u8; 4], r: u8) -> [u8; 4] {
-    let mut out = e;
-    for _ in 0..r {
-        out = [out[3], out[0], out[1], out[2]];
-    }
-    out
-}
-
-/// Lexicographically minimal rotation of a URDL edge quad.
-fn canonical(e: [u8; 4]) -> [u8; 4] {
-    let mut best = e;
-    for r in 1..4 {
-        let c = rotated(e, r);
-        if c < best {
-            best = c;
-        }
-    }
-    best
-}
-
 fn main() {
     let instance = official_instance(false);
     let ln10 = std::f64::consts::LN_10;
 
-    // ---- Piece classes and per-color half-edge census -------------------
-    let mut corners = 0u32;
-    let mut edge_pieces = 0u32;
-    let mut interior_pieces = 0u32;
-    let mut half_edges = [0u64; 32]; // h(c) over the whole bag
-    let mut interior_tile_half_edges = [0u64; 32]; // half-edges on interior tiles only
-    let mut color_on_interior_tile = [false; 32];
+    // ---- Piece classes and per-color half-edge census (kit censuses) ----
+    let classes = piece_classes(&instance.pieces);
+    let (corners, edge_pieces, interior_pieces) =
+        (classes.corners.len(), classes.edges.len(), classes.interior.len());
+    assert_eq!((corners, edge_pieces, interior_pieces), (4, 56, 196));
 
-    for (_, piece) in instance.pieces.iter() {
-        let gray = piece.edges.iter().filter(|&&c| c == 0).count();
-        match gray {
-            2 => corners += 1,
-            1 => edge_pieces += 1,
-            0 => interior_pieces += 1,
-            _ => unreachable!("official set has no piece with {gray} gray edges"),
-        }
+    // Whole-bag census: index 0 is the gray rim supply, 1.. the real colors.
+    let census = color_half_edge_census(&instance.pieces);
+    let half_edges: Vec<u64> = census.iter().map(|&n| u64::from(n)).collect();
+    let total_half_edges: u64 = half_edges.iter().skip(1).sum();
+    assert_eq!(total_half_edges, 960, "non-gray half-edges must be 960");
+
+    // Interior-tile-only census, and which colors ever appear on an interior
+    // tile (those colors form the interior subsystem; the rest are the frame
+    // ring, colors 1..=5 in the official numbering).
+    let mut interior_tile_half_edges = vec![0u64; half_edges.len()];
+    for &pid in &classes.interior {
+        let piece = instance.pieces.get(pid).expect("interior piece id");
         for &c in &piece.edges {
-            if c == 0 {
-                continue;
-            }
-            half_edges[c as usize] += 1;
-            if gray == 0 {
+            if c != 0 {
                 interior_tile_half_edges[c as usize] += 1;
-                color_on_interior_tile[c as usize] = true;
             }
         }
     }
 
-    let total_half_edges: u64 = half_edges.iter().sum();
-    assert_eq!(total_half_edges, 960, "non-gray half-edges must be 960");
-    assert_eq!((corners, edge_pieces, interior_pieces), (4, 56, 196));
-
-    // Frame-ring colors: never appear on an interior tile. The interior
-    // subsystem is everything else (interior-interior and border-facing
-    // joints, colors 6..=22 in the official numbering).
-    let frame_colors: Vec<usize> = (1..32)
-        .filter(|&c| half_edges[c] > 0 && !color_on_interior_tile[c])
+    let frame_colors: Vec<usize> = (1..half_edges.len())
+        .filter(|&c| half_edges[c] > 0 && interior_tile_half_edges[c] == 0)
         .collect();
-    let interior_colors: Vec<usize> = (1..32)
-        .filter(|&c| half_edges[c] > 0 && color_on_interior_tile[c])
+    let interior_colors: Vec<usize> = (1..half_edges.len())
+        .filter(|&c| half_edges[c] > 0 && interior_tile_half_edges[c] > 0)
         .collect();
     let frame_half_edges: u64 = frame_colors.iter().map(|&c| half_edges[c]).sum();
     let interior_half_edges: u64 = interior_colors.iter().map(|&c| half_edges[c]).sum();
@@ -172,10 +146,11 @@ fn main() {
         .collect();
 
     // ---- C8 (real-set side): rotation-duplicate count -------------------
+    // Kit canonical key: two pieces collide iff one is a rotation of the other.
     let mut seen = std::collections::HashSet::new();
     let mut rotation_duplicates = 0u32;
     for (_, piece) in instance.pieces.iter() {
-        if !seen.insert(canonical(piece.edges)) {
+        if !seen.insert(canonical_key(piece.edges)) {
             rotation_duplicates += 1;
         }
     }

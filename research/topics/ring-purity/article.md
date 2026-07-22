@@ -20,7 +20,7 @@ sources:
 reproduce:
   - cd research/topics/ring-purity/compute && cargo run --release > ../results/ring_purity.json
 results:
-  - label: Results JSON
+  - label: Results JSON (seed 1, deterministic clauses + SIS)
     path: results/ring_purity.json
 site:
   render: false
@@ -45,6 +45,26 @@ A direct consequence: a valid border-ring arrangement is exactly an Eulerian cir
 All claims split into two groups. The structural facts (frame-color identification, per-piece slot structure, the 120 = 120 saturation count, multigraph degrees, connectivity, Eulerian existence, and the exact first-step branching counts) are deterministic properties of the official 256-piece list and are recomputed by exhaustive enumeration in a single pass, no sampling and no solver involved. The two strength measures are Monte Carlo: the branching factor is an exact count, and the greedy-completion statistics use seeded sequential importance sampling with 1000 trials, reporting completion rate and mean log10 path probability with its spread.
 
 The checker in `compute/` loads the official instance through the starter kit's `official_instance`, derives the frame-color set from the data rather than assuming color labels, verifies every clause of the theorem, builds the ring multigraph, and emits one JSON object with every measured number. See `compute/PLAN.md` for the claim-by-claim mapping, the scoring-convention note, and why this topic must be checked on the canonical 16x16 instance rather than a generated small board.
+
+Measured results (committed as `results/ring_purity.json`, byte-stable on rerun; Apple Silicon, single core, runtime under one second):
+
+| Quantity | Expected | Measured |
+|---|---|---|
+| Piece-type histogram | 196 / 56 / 4 | 196 / 56 / 4 |
+| Frame colors | 5 | 5 (colors 1..5) |
+| Half-edges per frame color | 24 each, supply 120 | 24 each, supply 120 |
+| Non-frame color multiplicities | 5 at 48, 12 at 50 | verified (hard check passed) |
+| Edge-piece slot structure | 2 frame ring slots, non-frame opposite gray | 56/56 |
+| Corner-piece slot structure | both slots frame, gray slots adjacent | 4/4 |
+| Ring demand vs supply | 120 = 120, zero slack | 120 = 120 |
+| Ring multigraph | 60 edges, all degrees 24, connected, Eulerian | 60 edges, degrees all 24, connected, Eulerian |
+| Self-loops / distinct color-pairs | 14 / 15 | 14 / 15 |
+| First-step branching multiset | {20, 21, 21, 22, 22}, mean 21.2, 2.78x | {20, 21, 21, 22, 22}, mean 21.2, 2.783x |
+| SIS completion rate (1000 trials) | about 9.4% | 8.7% (seed 1); 9.3% (seed 2) |
+| Mean log10 path probability | -27.3, sd about 0.8 | -27.30, sd 0.64 (seed 1); -27.39, sd 0.62 (seed 2) |
+| Uniform baseline | log10(1/59!) = -80.1 | -80.14 |
+
+Every deterministic clause matches exactly. The two Monte Carlo measures land inside sampling error of the source values across two independent seeds, and every one of the 87 completed seed-1 builds closed into a circuit (open ends matching), consistent with the Eulerian structure. One incidental observation beyond the plan: the seed-1 sample standard deviation (0.64) is a little tighter than the source's reported 0.8, which is within what 87-versus-94 sample fluctuations allow.
 
 ## Notes / caveats
 

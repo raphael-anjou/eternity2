@@ -19,8 +19,9 @@ sources:
     url: https://e2.bucas.name/
 reproduce:
   - cd research/topics/clue-corridors/compute && cargo run --release --bin corridors > ../results/corridor_counts.json
+  - cd research/topics/clue-corridors/compute && for s in 8 10 12 14 16; do cargo run --release --bin ladder --features "size-$s" -- "$s" 12 20 8 > "/tmp/ladder_$s.json"; done && python3 stats.py /tmp/ladder_*.json > ../results/ladder_ab.json
 results:
-  - label: Corridor counting results (pending)
+  - label: Corridor counting (exact transfer-matrix checker)
     path: results/corridor_counts.json
 site:
   render: false
@@ -83,9 +84,11 @@ faithfulness discussion.
 
 ## Notes / caveats
 
-This is a draft skeleton. Results files are not committed yet; stage 1 output
-and the stage 2 tables will land in `results/` with the exact commands in the
-frontmatter. The claim is a negative about laying 1-wide (and 2-wide)
+Stage 1 output is committed in `results/corridor_counts.json`; the measured
+transfer-matrix figures are 2.05e15 distinct-piece corridor fillings
+(2.59e15 raw walks) for the length-10 corridor, the same order as the
+1.9e15 cited by the source study (which used a slightly tighter piece
+model). The stage 2 A/B tables will land in `results/` when that arm runs. The claim is a negative about laying 1-wide (and 2-wide)
 clue-to-clue corridors as an early commitment; it says nothing against growing
 clue-anchored regions where cells are placed with 2 or more contacts, which the
 same arithmetic identifies as the regime where constraint actually bites.

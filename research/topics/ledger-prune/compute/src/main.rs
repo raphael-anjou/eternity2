@@ -54,6 +54,8 @@ struct Search<'a> {
     ledger_on: bool,
     nodes: u64,
     fires: u64,
+    fires_deficit: u64,
+    fires_parity: u64,
     completions: u64,
     first_completion: Option<Board>,
     deadline: Instant,
@@ -98,6 +100,8 @@ impl<'a> Search<'a> {
                 ledger_on: false,
                 nodes: 0,
                 fires: 0,
+                fires_deficit: 0,
+                fires_parity: 0,
                 completions: 0,
                 first_completion: None,
                 deadline: Instant::now() + Duration::from_secs(3600),
@@ -112,6 +116,14 @@ impl<'a> Search<'a> {
     /// and fire-identical to an incremental ledger, just slower per node.
     /// Hint-free reproduction, so the free-junction term u is 0.
     fn ledger_ok(&self, pos: usize, r: u32) -> bool {
+        let (deficit, odd) = self.ledger_eval(pos);
+        deficit <= i64::from(r) && odd <= 2 * r
+    }
+
+    /// The raw ledger quantities at the node about to expand `pos`: the total
+    /// colour deficit sum_c max(0, D(c) - S(c)) and the count of colours with
+    /// odd S(c) - D(c).
+    fn ledger_eval(&self, pos: usize) -> (i64, u32) {
         let (w, h) = (self.ctx.w, self.ctx.h);
         let mut demand = [0i64; MAXC];
         for e in pos..self.ctx.n {
@@ -148,7 +160,7 @@ impl<'a> Search<'a> {
                 odd += 1;
             }
         }
-        deficit <= i64::from(r) && odd <= 2 * r
+        (deficit, odd)
     }
 
     /// Exhaustive break-budget DFS from `pos`: counts every completion using at
@@ -177,9 +189,20 @@ impl<'a> Search<'a> {
         if self.timed_out {
             return;
         }
-        if self.ledger_on && !self.ledger_ok(pos, r) {
-            self.fires += 1;
-            return;
+        if self.ledger_on {
+            let (deficit, odd) = self.ledger_eval(pos);
+            let deficit_fail = deficit > i64::from(r);
+            let parity_fail = odd > 2 * r;
+            if deficit_fail || parity_fail {
+                self.fires += 1;
+                if deficit_fail {
+                    self.fires_deficit += 1;
+                }
+                if parity_fail {
+                    self.fires_parity += 1;
+                }
+                return;
+            }
         }
         let (w, h) = (self.ctx.w, self.ctx.h);
         let (x, y) = (pos % w, pos / w);
@@ -264,7 +287,7 @@ impl Solver for LedgerBreakDfs {
         let (mut s, first_empty) = Search::from_prefix(&ctx, instance, start);
         s.ledger_on = self.ledger_on;
         // Respect the kit budget: poll via a deadline derived from it.
-        s.deadline = Instant::now() + Duration::from_secs_f64(remaining_secs(&budget));
+        s.deadline = Instant::now() + Duration::from_secs_f64(budget.remaining_secs());
         s.dfs(first_empty, self.breaks);
         let board = s.first_completion.clone().unwrap_or_else(|| start.clone());
         let out = if s.timed_out {
@@ -276,22 +299,9 @@ impl Solver for LedgerBreakDfs {
     }
 }
 
-/// Seconds left on a kit [`Budget`]. The kit exposes `expired`/`fraction` but
-/// not the raw limit, so this reconstructs a conservative remainder.
-/// (kit gap: a `Budget::remaining()` accessor would remove this dance.)
-fn remaining_secs(budget: &Budget) -> f64 {
-    if budget.expired() {
-        return 0.0;
-    }
-    let frac = budget.fraction();
-    if frac <= f64::EPSILON {
-        return 3600.0;
-    }
-    (budget.elapsed_secs() / frac - budget.elapsed_secs()).clamp(0.0, 3600.0)
-}
-
-/// A generated official-shaped instance plus its known solution as cell codes.
-fn generated_with_solution(seed: u32) -> (Instance, Vec<i32>) {
+/// A generated official-shaped instance plus its known solution as cell codes
+/// and the solution's eternity2.dev URL.
+fn generated_with_solution(seed: u32) -> (Instance, Vec<i32>, String) {
     let puzzle = generator::generate_framed(16, 22, seed, true);
     let instance = instance_from_generated(&format!("gen-16x16-c22-s{seed}"), &puzzle);
     let solved = generator::generate_solved_framed(16, 22, seed, true);
@@ -299,7 +309,7 @@ fn generated_with_solution(seed: u32) -> (Instance, Vec<i32>) {
     assert_eq!(out.breaks, 0, "recovered solution must be perfect");
     println!("instance gen-16x16-c22-s{seed}  solution: {}/480", out.score);
     println!("solution board: {}", out.url);
-    (instance, out.board)
+    (instance, out.board, out.url)
 }
 
 fn prefix_board(codes: &[i32], keep: usize) -> Board {
@@ -314,8 +324,8 @@ fn prefix_board(codes: &[i32], keep: usize) -> Board {
 
 /// Gate: replay the perfect tail at zero slack. At every prefix depth the
 /// remaining budget along the real line is 0, so any ledger fire is unsound.
-fn run_soundness(seed: u32) {
-    let (instance, codes) = generated_with_solution(seed);
+fn run_soundness(seed: u32) -> (usize, u32, String) {
+    let (instance, codes, url) = generated_with_solution(seed);
     let ctx = Ctx::new(&instance);
     let mut fires = 0u32;
     for depth in 0..=ctx.n {
@@ -332,12 +342,13 @@ fn run_soundness(seed: u32) {
         ctx.n + 1,
         if fires == 0 { "PASS" } else { "FAIL" }
     );
+    (ctx.n + 1, fires, url)
 }
 
 /// The A/B race: exhaust the suffix twice, prune off and on. Completions must
 /// match exactly; the node ratio is the reproduced quantity.
 fn run_ab(seed: u32, suffix: usize, breaks: u32, cap_secs: f64) {
-    let (instance, codes) = generated_with_solution(seed);
+    let (instance, codes, _url) = generated_with_solution(seed);
     let ctx = Ctx::new(&instance);
     let keep = ctx.n - suffix;
     let start = prefix_board(&codes, keep);
@@ -378,7 +389,7 @@ fn run_ab(seed: u32, suffix: usize, breaks: u32, cap_secs: f64) {
 /// trait, continuing from a prefix board and finishing through the canonical
 /// scorer, the way a sweep or a record re-measurement would consume it.
 fn run_solver_demo(seed: u32, suffix: usize, breaks: u32, cap_secs: f64) {
-    let (instance, codes) = generated_with_solution(seed);
+    let (instance, codes, _url) = generated_with_solution(seed);
     let n = usize::from(instance.width) * usize::from(instance.height);
     let start = prefix_board(&codes, n - suffix);
     let mut solver = LedgerBreakDfs { breaks, ledger_on: true };
@@ -388,6 +399,224 @@ fn run_solver_demo(seed: u32, suffix: usize, breaks: u32, cap_secs: f64) {
     println!("score:   {} / {}  breaks {}", out.score, out.max_score, out.breaks);
     println!("outcome: {:?}  nodes {}", outcome.kind, outcome.nodes);
     println!("board:   {}", out.url);
+}
+
+/// One arm of an A/B cell. Node counts are only recorded when the arm ran to
+/// exhaustion; a time-capped arm is censored (its partial count is
+/// hardware-dependent and must not enter the exact-tier record).
+struct Arm {
+    nodes: u64,
+    completions: u64,
+    fires: u64,
+    fires_deficit: u64,
+    fires_parity: u64,
+    censored: bool,
+}
+
+fn run_arm(
+    ctx: &Ctx,
+    instance: &Instance,
+    start: &Board,
+    ledger_on: bool,
+    breaks: u32,
+    cap_secs: f64,
+) -> Arm {
+    let (mut s, pos) = Search::from_prefix(ctx, instance, start);
+    s.ledger_on = ledger_on;
+    s.deadline = Instant::now() + Duration::from_secs_f64(cap_secs);
+    s.dfs(pos, breaks);
+    Arm {
+        nodes: s.nodes,
+        completions: s.completions,
+        fires: s.fires,
+        fires_deficit: s.fires_deficit,
+        fires_parity: s.fires_parity,
+        censored: s.timed_out,
+    }
+}
+
+fn arm_json(a: &Arm, ledger_on: bool) -> String {
+    if a.censored {
+        // No numbers for a censored arm: the cut point is wall-clock-dependent.
+        "{\"censored\":true}".to_string()
+    } else if ledger_on {
+        format!(
+            "{{\"censored\":false,\"nodes\":{},\"completions\":{},\"fires\":{},\"fires_deficit\":{},\"fires_parity\":{}}}",
+            a.nodes, a.completions, a.fires, a.fires_deficit, a.fires_parity
+        )
+    } else {
+        format!(
+            "{{\"censored\":false,\"nodes\":{},\"completions\":{}}}",
+            a.nodes, a.completions
+        )
+    }
+}
+
+fn median(sorted: &[f64]) -> f64 {
+    let n = sorted.len();
+    if n % 2 == 1 { sorted[n / 2] } else { (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0 }
+}
+
+/// The PLAN's phase-1 grid: suffix {20,24,28,32} x budget {1,2,3} x seeds
+/// 1..=`seeds`, 25 s per-arm cap by default. Writes two deterministic JSON
+/// files (no timestamps, no wall-times): the soundness gate and the A/B sweep
+/// with per-(K,R) ratio summaries over uncensored pairs.
+fn run_sweep(seeds: u32, cap_secs: f64, out_dir: &str) {
+    let suffixes = [20usize, 24, 28, 32];
+    let budgets = [1u32, 2, 3];
+
+    // Soundness gate over every seed first (cheap, and a hard precondition).
+    let mut sound_rows = Vec::new();
+    for seed in 1..=seeds {
+        let (depths, fires, url) = run_soundness(seed);
+        assert_eq!(fires, 0, "soundness gate failed on seed {seed}");
+        sound_rows.push(format!(
+            "    {{\"seed\":{seed},\"instance\":\"gen-16x16-c22-s{seed}\",\"depths_judged\":{depths},\"fires\":{fires},\"budget_r\":0,\"solution_url\":\"{url}\"}}"
+        ));
+    }
+    let soundness_json = format!
+        ("{{\n  \"gate\":\"replay each generated board's known perfect tail at zero slack; any ledger fire is unsound\",\n  \"result\":\"PASS\",\n  \"boards\":[\n{}\n  ]\n}}\n",
+        sound_rows.join(",\n"));
+    std::fs::write(format!("{out_dir}/soundness.json"), soundness_json).expect("write soundness");
+
+    // The PLAN grid: full cross of suffixes x budgets. Cells run in a fixed
+    // order (seed, then grid order) so the record is byte-stable.
+    let plan_grid: Vec<(usize, u32)> = suffixes
+        .iter()
+        .flat_map(|&k| budgets.iter().map(move |&r| (k, r)))
+        .collect();
+    let (cells, summary) = run_grid(seeds, &plan_grid, cap_secs);
+    write_ab_json(
+        &format!("{out_dir}/ab-sweep.json"),
+        "the PLAN phase-1 grid: suffix {20,24,28,32} x budget {1,2,3}",
+        cap_secs,
+        &summary,
+        &cells,
+    );
+
+    // The vault-shaped diagonal: suffix and budget grow together, mirroring
+    // the cited certificate rows (24/2, 32/5, 40/6, 48/8). This is where the
+    // compounding claim lives; deep NoPrune arms may censor on the cap.
+    let diag_grid: Vec<(usize, u32)> = vec![(24, 2), (32, 5), (40, 6), (48, 8)];
+    let (cells, summary) = run_grid(seeds, &diag_grid, cap_secs);
+    write_ab_json(
+        &format!("{out_dir}/ab-diagonal.json"),
+        "the vault-row-shaped diagonal: (suffix, budget) in {(24,2),(32,5),(40,6),(48,8)}, suffix and budget growing together as in the cited certificate rows",
+        cap_secs,
+        &summary,
+        &cells,
+    );
+
+    // Wrong-regime null: LEDGER arm alone with a generous budget on a short
+    // suffix; the reproduced quantity is the fire fraction (expected tiny).
+    let mut null_rows = Vec::new();
+    for seed in 1..=seeds {
+        let (instance, codes, _url) = generated_with_solution(seed);
+        let ctx = Ctx::new(&instance);
+        let (k, r) = (20usize, 6u32);
+        let start = prefix_board(&codes, ctx.n - k);
+        let lg = run_arm(&ctx, &instance, &start, true, r, cap_secs);
+        println!(
+            "null seed {seed} K={k} R={r}: {}",
+            if lg.censored { "censored".into() } else { format!("nodes {} fires {}", lg.nodes, lg.fires) }
+        );
+        let detail = if lg.censored {
+            "\"censored\":true".to_string()
+        } else {
+            format!(
+                "\"censored\":false,\"nodes\":{},\"fires\":{},\"fire_fraction\":{:.5}",
+                lg.nodes,
+                lg.fires,
+                lg.fires as f64 / lg.nodes.max(1) as f64
+            )
+        };
+        null_rows.push(format!(
+            "    {{\"seed\":{seed},\"suffix_cells\":{k},\"budget_breaks\":{r},{detail}}}"
+        ));
+    }
+    let null_json = format!(
+        "{{\n  \"design\":\"wrong-regime null: LEDGER arm alone with a generous break budget (R=6 slack on a 20-cell perfect tail); the prune should almost never fire and its bookkeeping is a pure loss\",\n  \"per_arm_cap_secs\":{cap_secs},\n  \"cells\":[\n{}\n  ]\n}}\n",
+        null_rows.join(",\n")
+    );
+    std::fs::write(format!("{out_dir}/wrong-regime-null.json"), null_json).expect("write null");
+    println!("wrote {out_dir}/{{soundness,ab-sweep,ab-diagonal,wrong-regime-null}}.json");
+}
+
+/// Run an A/B grid over seeds 1..=`seeds`; returns (cell rows, summary rows)
+/// as JSON fragments. Ratios and fire-type tallies aggregate uncensored pairs
+/// only.
+fn run_grid(seeds: u32, grid: &[(usize, u32)], cap_secs: f64) -> (Vec<String>, Vec<String>) {
+    let mut cell_rows = Vec::new();
+    let mut ratios: std::collections::BTreeMap<(usize, u32), Vec<f64>> = Default::default();
+    let mut censored: std::collections::BTreeMap<(usize, u32), u32> = Default::default();
+    let mut fire_split: std::collections::BTreeMap<(usize, u32), (u64, u64)> = Default::default();
+    for seed in 1..=seeds {
+        let (instance, codes, _url) = generated_with_solution(seed);
+        let ctx = Ctx::new(&instance);
+        for &(k, r) in grid {
+            let keep = ctx.n - k;
+            let start = prefix_board(&codes, keep);
+            let np = run_arm(&ctx, &instance, &start, false, r, cap_secs);
+            let lg = run_arm(&ctx, &instance, &start, true, r, cap_secs);
+            if !np.censored && !lg.censored {
+                assert_eq!(
+                    np.completions, lg.completions,
+                    "arms disagree at seed {seed} K={k} R={r}: unsound"
+                );
+                ratios
+                    .entry((k, r))
+                    .or_default()
+                    .push(np.nodes as f64 / lg.nodes.max(1) as f64);
+                let e = fire_split.entry((k, r)).or_default();
+                e.0 += lg.fires_deficit;
+                e.1 += lg.fires_parity;
+            } else {
+                *censored.entry((k, r)).or_default() += 1;
+            }
+            println!(
+                "seed {seed} K={k} R={r}: NoPrune {} LEDGER {} {}",
+                if np.censored { "censored".into() } else { np.nodes.to_string() },
+                if lg.censored { "censored".into() } else { lg.nodes.to_string() },
+                if np.censored || lg.censored { "(excluded)" } else { "" }
+            );
+            cell_rows.push(format!(
+                "    {{\"seed\":{seed},\"suffix_cells\":{k},\"prefix_cells\":{keep},\"budget_breaks\":{r},\"noprune\":{},\"ledger\":{}}}",
+                arm_json(&np, false),
+                arm_json(&lg, true)
+            ));
+        }
+    }
+    let mut summary_rows = Vec::new();
+    for &(k, r) in grid {
+        let mut rs = ratios.get(&(k, r)).cloned().unwrap_or_default();
+        rs.sort_by(|a, b| a.partial_cmp(b).expect("finite"));
+        let cens = censored.get(&(k, r)).copied().unwrap_or(0);
+        let row = if rs.is_empty() {
+            format!(
+                "    {{\"suffix_cells\":{k},\"budget_breaks\":{r},\"pairs\":0,\"censored_pairs\":{cens}}}"
+            )
+        } else {
+            let (fd, fp) = fire_split.get(&(k, r)).copied().unwrap_or((0, 0));
+            format!(
+                "    {{\"suffix_cells\":{k},\"budget_breaks\":{r},\"pairs\":{},\"censored_pairs\":{cens},\"ratio_min\":{:.2},\"ratio_median\":{:.2},\"ratio_max\":{:.2},\"fires_deficit\":{fd},\"fires_parity\":{fp}}}",
+                rs.len(),
+                rs[0],
+                median(&rs),
+                rs[rs.len() - 1]
+            )
+        };
+        summary_rows.push(row);
+    }
+    (cell_rows, summary_rows)
+}
+
+fn write_ab_json(path: &str, grid_desc: &str, cap_secs: f64, summary: &[String], cells: &[String]) {
+    let ab_json = format!(
+        "{{\n  \"design\":\"fixed solution prefix, exhaust the suffix twice (prune off / prune on) under a charged-break budget; completions must agree; node ratio NoPrune/LEDGER is the reproduced quantity\",\n  \"grid\":\"{grid_desc}\",\n  \"convention\":\"per-edge charged breaks, no per-cell cap, proper frame, hint-free (u=0); breaks = 480 - matched_edges_score on a full board\",\n  \"per_arm_cap_secs\":{cap_secs},\n  \"censoring\":\"an arm that hit the cap is censored: its node count is hardware-dependent and the pair is excluded from ratios\",\n  \"summary\":[\n{}\n  ],\n  \"cells\":[\n{}\n  ]\n}}\n",
+        summary.join(",\n"),
+        cells.join(",\n")
+    );
+    std::fs::write(path, ab_json).expect("write ab json");
 }
 
 fn arg<T: std::str::FromStr>(name: &str, default: T) -> T {
@@ -406,9 +635,32 @@ fn main() {
     let breaks: u32 = arg("--budget", 1);
     let cap_secs: f64 = arg("--cap-secs", 25.0);
     match mode.as_str() {
-        "soundness" => run_soundness(seed),
+        "soundness" => {
+            run_soundness(seed);
+        }
         "ab" => run_ab(seed, suffix, breaks, cap_secs),
         "solver" => run_solver_demo(seed, suffix, breaks, cap_secs),
+        "sweep" => {
+            let seeds: u32 = arg("--seeds", 8);
+            let out: String = arg("--out", "../results".to_string());
+            run_sweep(seeds, cap_secs, &out);
+        }
+        // The zero-slack diagonal: on a perfect generated tail the analogue of
+        // the vault's "budget = the real tail's break count" is R = 0. This is
+        // the regime where the vault's compounding lives.
+        "zerodiag" => {
+            let seeds: u32 = arg("--seeds", 8);
+            let out: String = arg("--out", "../results".to_string());
+            let grid: Vec<(usize, u32)> = vec![(24, 0), (32, 0), (40, 0), (48, 0)];
+            let (cells, summary) = run_grid(seeds, &grid, cap_secs);
+            write_ab_json(
+                &format!("{out}/ab-zeroslack.json"),
+                "the zero-slack diagonal: suffix {24,32,40,48} at budget 0, the perfect-tail analogue of the vault's zero-slack certificate rows",
+                cap_secs,
+                &summary,
+                &cells,
+            );
+        }
         _ => {
             run_soundness(seed);
             run_ab(seed, suffix, breaks, cap_secs);
