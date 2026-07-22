@@ -9,27 +9,30 @@ kind: finding
 contribution: theory
 rigor: measured
 tier: 2
-order: 130
-updated: 2026-07-01
+order: 50
+updated: 2026-07-22
 topics: [structure]
 related:
   - /research/why/phase-transition
   - /research/why/prune-vs-speed
   - /research/why/forbidden-patterns
+  - /research/why/piece-theft
   - /research/build/analysis/solution-counting
 repro:
   kind: exact
   cmd: just research-entropy-area-law
   topic: entropy-area-law
   scope: >-
-    La commande reproduit exactement la moitié « entropie de la grammaire » :
-    la borne horizontale lambdaH et les densités d'entropie h(1), h(2) pour les
-    largeurs 1 et 2, à partir des valeurs propres de la matrice de transfert.
-    Les points de largeur supérieure h(3), h(4), la limite h_infinity aux
-    environs de 0,67, l'exposant de loi d'aire alpha aux environs de 0,085, le
-    seuil des ~80 cellules et le comptage de blocs n=3 du laboratoire
-    interactif proviennent d'une étude hors ligne et ne sont pas régénérés par
-    cette commande.
+    La commande reproduit exactement, dans le dépôt : la borne horizontale
+    lambdaH et les densités d'entropie h(1), h(2) pour les largeurs 1 et 2, à
+    partir des valeurs propres de la matrice de transfert ; les comptages de
+    blocs intérieurs A(n) jusqu'à n=4 et les comptages à pièces distinctes B(n)
+    jusqu'à n=3 (B(2)=4059952 recoupe la table subgrid-placement-counts) ; et
+    l'exposant de loi d'aire alpha proche de 0,044 ajusté sur cette plage. Les
+    points de largeur supérieure h(3), h(4) et la limite h_infinity aux environs
+    de 0,67 proviennent encore d'un balayage hors ligne, et la courbe rho(n)
+    ainsi que le seuil des ~155 cellules au-delà de n=3 sont des extrapolations
+    de l'ajustement du dépôt, non des comptages exacts.
 sources:
   - label: "Le lemme de sous-additivité de Fekete, le théorème qui garantit l'existence même de la limite d'entropie h∞"
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
@@ -169,24 +172,35 @@ s'élargit.
 
 Rétablissons maintenant la règle qui impose d'utiliser chaque pièce une
 seule fois, et demandons-nous à quelle fréquence un bloc $n \times n$
-compatible en couleurs, tiré au hasard, emploie effectivement des pièces
-distinctes. Notons cette proportion $\rho(n)$. Elle s'effondre, et elle
-s'effondre selon l'aire, non selon le périmètre :
+compatible en couleurs emploie effectivement des pièces distinctes. Nous le
+comptons exactement, dans le dépôt : pour chaque taille de bloc intérieur nous
+comptons $A(n)$, les remplissages compatibles en couleurs quand les pièces
+peuvent se répéter, et $B(n)$, ceux qui emploient des pièces distinctes, puis
+prenons $\rho(n) = B(n)/A(n)$. Elle s'effondre, et elle s'effondre selon
+l'aire, non selon le périmètre :
 
 $$
-\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.085.
+\rho(n) \;\approx\; \exp(-\alpha\, n^2), \qquad \alpha \approx 0.044.
 $$
 
-L'exposant $\alpha \approx 0.085$ et le seuil des quatre-vingts cellules
-ci-dessous proviennent d'un ajustement sur une seule instance issu d'une étude
-hors ligne ; ils ne sont pas recalculés par la commande de reproduction de
-cette page (qui couvre la moitié exacte, celle des valeurs propres).
+L'exposant est ajusté par moindres carrés sur la plage comptée exactement :
+$A$ et $B$ sont calculés ici pour $n$ jusqu'à $3$ (et $A$ jusqu'à $4$), avec
+$B(2) = 4\,059\,952$ concordant avec la table de référence sub-grille du dépôt.
+L'exposant par bloc croît encore sur cette petite plage (0,029 à $n=2$, 0,048 à
+$n=3$), si bien que 0,044 est une estimation basse de la valeur pour les grands
+blocs. À $n=4$, le comptage réutilisable $A(4)$ atteint déjà $6{,}3\times10^{16}$,
+au-delà de l'énumération distincte exacte en temps raisonnable ; la courbe
+au-delà de $n=3$ est donc une extrapolation de l'ajustement.
 
 Une décroissance en loi d'aire est brutale, car l'aire croît de façon
-quadratique. La proportion de blocs réalisables passe sous le seuil du
-millième aux alentours de quatre-vingts cellules.
+quadratique. Par extrapolation, la proportion de blocs réalisables passe sous le
+seuil du millième aux alentours de 155 cellules. (Une étude hors site antérieure
+rapportait un $\alpha \approx 0.085$ plus raide et un seuil vers 80 cellules ;
+les comptages exacts du dépôt sur $n \le 3$ donnent les valeurs plus douces
+présentées ici, l'exposant par bloc croissant restant compatible avec la valeur
+hors site atteinte pour de plus grands blocs.)
 
-<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes. L'alpha et le seuil des quatre-vingts cellules sont mesurés hors site, non recalculés ici par la commande de reproduction.">
+<Figure caption="Proportion de blocs compatibles en couleurs réalisables avec des pièces distinctes. L'exposant est l'ajustement par moindres carrés du dépôt sur les blocs comptés exactement (n jusqu'à 3) ; la courbe au-delà est une extrapolation.">
   <RhoChart />
 </Figure>
 
@@ -202,14 +216,13 @@ couleurs survivent à la règle d'usage unique des pièces.
 
 ## Pourquoi c'est important
 
-Quatre-vingts cellules, ce n'est pas un chiffre arbitraire. C'est la taille
-des plus petits mouvements qui séparent les meilleurs blocs connus. La
-grammaire d'appariement reste riche jusqu'à cette échelle environ, puis la
-règle de distinction l'effondre. Le mur ne se dresse donc pas là où le
-problème paraît difficile, dans l'appariement des couleurs ; il se dresse
-dans la règle discrète selon laquelle chaque pièce ne sert qu'une fois, dont
-le coût croît avec l'aire, sur un plateau juste assez grand pour qu'elle
-morde.
+Un effondrement de l'ordre de la centaine de cellules est à l'échelle des plus
+petits mouvements qui séparent les meilleurs blocs connus. La grammaire
+d'appariement reste riche, puis la règle de distinction l'effondre sur l'aire.
+Le mur ne se dresse donc pas là où le problème paraît difficile, dans
+l'appariement des couleurs ; il se dresse dans la règle discrète selon laquelle
+chaque pièce ne sert qu'une fois, dont le coût croît avec l'aire, sur un plateau
+juste assez grand pour qu'elle morde.
 
 Voir [pourquoi le basin-hopping est impossible](/research/why/sigma-cycles).
 
@@ -224,7 +237,7 @@ $$
 $$
 
 En passant au logarithme, $\log \lambda_n$ devient sous-additif, et le lemme
-de Fekete donne la limite comme un infimum - ce qui explique précisément
+de Fekete donne la limite comme un infimum, ce qui explique précisément
 pourquoi la courbe ci-dessus décroît :
 
 $$
@@ -245,6 +258,8 @@ strictement comprise entre zéro et 1,6645, mesurée aux environs de 0,67.
 
 Ce que le théorème démontre, c'est qu'une limite positive existe et qu'elle
 est majorée par $\log_{10}(46.18) = 1.6645$. Sa valeur précise aux environs de
-0,67, ainsi que l'exposant de loi d'aire $\alpha \approx 0.085$, sont des
-ajustements sur une seule instance propres à ce projet, extrapolés au-delà des
-largeurs comptées exactement ; le théorème ne fixe pas ces valeurs.
+0,67 provient d'un balayage hors ligne. L'exposant de loi d'aire
+$\alpha \approx 0.044$ est ajusté ici à partir des comptages de blocs exacts du
+dépôt sur $n \le 3$ ; son extrapolation aux plus grands blocs (et le seuil des
+~155 cellules) dépasse la plage comptée exactement. Le théorème ne fixe pas ces
+valeurs.

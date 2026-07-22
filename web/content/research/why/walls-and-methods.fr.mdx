@@ -43,6 +43,74 @@ Les quatre murs eux-mêmes sont corroborés par la littérature publiée ; les
 résultats d'expériences sont le travail propre de ce projet, chacun documenté sur
 sa propre page ; ils ne sont pas présentés comme vérifiés de l'extérieur.
 
+## Sur quoi repose chaque mur
+
+Tous les murs ne sont pas de même nature de preuve. Certains sont des calculs
+exacts et déterministes versés dans ce dépôt ; l'un est répliqué de l'extérieur
+par plusieurs méthodes indépendantes ; plusieurs sont des mesures réelles prises
+sur l'unique planche Eternity II et son jeu de records. C'est une base légitime,
+mais le lecteur mérite de savoir laquelle est laquelle avant de s'appuyer sur une
+ligne. Le tableau ci-dessous ramène chaque affirmation structurelle de cette
+section à la forme la plus forte que ses preuves soutiennent réellement, au
+niveau de cette preuve, à la présence d'une réplication externe, et à la seule
+réserve à garder en tête.
+
+<Callout kind="note" title="Les quatre niveaux">
+  - **Prouvé, externe.** Un théorème ou un calcul exact qu'un tiers a énoncé ou
+    répliqué, et la page cite ce tiers.
+  - **Prouvé, interne.** Un calcul exact et déterministe réalisé ici, code et
+    résultat versés sous `research/topics/` et reproductibles depuis la commande
+    de la page.
+  - **Mesuré, instance unique.** Une mesure réelle, prise sur l'unique planche
+    Eternity II (ou une planche de type E2), sans réplication. Vraie, et non un
+    défaut en soi, mais c'est un seul point de donnée.
+  - **Conjecture.** La page elle-même présente l'affirmation comme non prouvée en
+    général.
+
+  Un mur n'est pas déclassé pour avoir été mesuré sur une instance unique. Il
+  ne l'est que là où un niveau inférieur est présenté comme supérieur, et aucun
+  ici ne l'est.
+</Callout>
+
+| Mur / affirmation | Forme la plus forte soutenue | Niveau | Réplication externe | La seule réserve |
+| --- | --- | --- | --- | --- |
+| [Pic de difficulté](/research/why/phase-transition) | 17,14 couleurs intérieures découlent du critère d'une solution attendue ; 17 est proche du pic de difficulté de recherche pour l'assemblage de bords encadré | Prouvé, externe | Oui : la dérivation de Owen en 1947 ; Ansótegui, Béjar, Fernández & Mateu confirment le pic | « Une solution attendue » est une moyenne au premier moment supposant des couleurs de bord indépendantes ; elle situe le pic, elle ne compte pas les solutions |
+| [Théorie complexe / l'entonnoir](/research/why/complex-theory) | Un estimateur au premier moment de la largeur d'arbre et du nombre de solutions, juste à un facteur deux près partout où on a pu le vérifier | Conjecture (badge de la page), sur réplication externe | Oui : le modèle de Owen ; le portage C de McGavin et sa résolution 10×10, dans la prédiction | C'est une moyenne, aveugle au caractère réellement distinct des partiels comptés ; un outil pour classer les ordres de balayage, jamais un compte exact ni une borne |
+| [Aucun coup forcé](/research/why/no-forced-moves) | Un décompte exhaustif exact sur le jeu intérieur officiel : aucune pièce intérieure n'est jamais forcée à un seul partenaire droit (73 à 137 partenaires chacune) | Prouvé, interne | Aucune réplication externe ; le décompte est propre au projet, versé et reproductible | Il compte la compatibilité par paires sur le jeu complet, pas les candidats dans une planche partielle vivante ; une propriété des pièces, pas une preuve que la recherche ne se resserre jamais |
+| [Motifs interdits](/research/why/forbidden-patterns) | Décomptes exhaustifs exacts : 38,96 % des paires, 83,26 % des L-triominos, 99,72 % des carrés 2×2 sont infaisables sur des pièces intérieures distinctes | Prouvé, interne | Les décomptes 2×2 sont le résultat exact versé du projet ; les 20 paires-coins vides sont une observation communautaire citée de 2008 | La lecture « le décompte de patchs interdits suit la distance à une solution » est un signal heuristique, pas une distance monotone prouvée |
+| [Loi d'aire de l'entropie](/research/why/entropy-area-law) | Les décomptes de blocs A(n)/B(n) sont désormais exacts en dépôt jusqu'à n=3 (B(2)=4 059 952 recoupe la table de sous-grilles), donnant un exposant en dépôt α≈0,044 ; la limite d'entropie près de 0,67 et le point d'effondrement sont des extrapolations | Prouvé, interne (les décomptes de blocs) + mesuré (l'ajustement) | Partiel : le lemme de Fekete et l'entropie de Shannon sont les théorèmes externes qui rendent la limite bien définie ; l'ajustement de α et l'échelle d'effondrement sont propres au projet | Le théorème garantit qu'une limite positive existe ; il n'en fixe pas la valeur. L'exposant est ajusté sur n≤3 et sa valeur par bloc croît encore, donc le point d'effondrement des grands patchs est une extrapolation au-delà des largeurs comptées |
+| [Rigidité](/research/why/rigidity-wall) | Sur les planches records publiques, aucun réarrangement des pièces propres d'une planche dans un halo jusqu'à quatre cases ne clôt un décalage (SAT : UNSAT), désormais versé | Prouvé, interne pour le halo SAT ; la table MIP plus profonde est prouvée pour les régions closes mais portée depuis un article hors site | Oui, le mur le mieux répliqué : les tests de gel et de résidu SAT de Millilaw reproduits ici avec un contrôle positif ; le noyau gelé du recuit GPU de benj39100 l'atteint par une troisième méthode | La preuve versée du site est le halo SAT au rayon 4 sur cinq planches (quelques instances au rayon 4 dépassent le temps, notées ouvertes). La table MIP et la borne planche entière ≤476 proviennent de l'article hors site, et l'énoncé « toutes planches » est une conjecture |
+| [Sigma-cycles](/research/why/sigma-cycles) | Sur **chaque** paire ordonnée de même jeu de pièces des planches embarquées (246 paires, 1 154 grandes boucles), **chaque** préfixe propre de chaque grande boucle score strictement moins que son départ, sur les 54 238 applications partielles | Prouvé, interne (un énoncé de population sur le jeu embarqué) | Aucune réplication externe ; calculé ici contre le 469 de McGavin et les planches records et de projet embarquées | Le décompte est exact sur les planches livrées ; la propriété « tout sous-cycle est pire » n'est toujours pas prouvée pour toute planche possible. Une forte observation de population, pas un théorème général |
+| [Géométrie des décalages](/research/why/mismatch-geometry) | Sur les planches records et de projet, les décalages résiduels se groupent dans une bande de rangées qui bascule avec le sens de construction ; un objectif de comptage de trous y dépose les restes | Mesuré, instance unique | Partiel : le basculement selon le sens est la lecture du projet ; la planche à sept trous de Verhaard et le résidu en bande haute de Zamofing sont cités comme observations de même sens, désormais vérifiables dans l'archive étendue | Un motif sur une poignée de planches avec une histoire mécaniste, pas une preuve |
+| [Vol de pièce](/research/why/piece-theft) | Un décompte exact des demandes (nord, ouest) sur le jeu intérieur : la plupart ont un à trois fournisseurs, et un nombre précis en a exactement un | Prouvé, interne (les décomptes) ; mesuré (le mécanisme « où meurent les solveurs ») | Aucune réplication externe ; Régin 1994 est cité comme la théorie all-different qui nomme le mécanisme | Les décomptes de fournisseurs rares sont exacts ; « c'est là que meurent les vrais solveurs » est un mécanisme illustré sur l'instance, pas un taux d'échec mesuré sur les solveurs |
+| [Géométrie des indices](/research/why/hint-geometry) | Sur un puzzle 16×16 de type E2, des indices dispersés le résolvent en minutes là où des rangées contiguës empilées échouent, car le travail vit dans la seconde moitié du remplissage | Mesuré, instance unique (une planche de type E2, pas le puzzle officiel) | Oui, proprement attribué : la résolution à 18 indices de McGavin et son arbre de 41 milliards de nœuds ; les statistiques de profondeur de Joe | Pas le puzzle officiel, dont les cinq indices fixes diffèrent. Les chiffres de profondeur sont l'échantillon d'un seul backtracker |
+| [Équilibre du bord / NS-1](/research/why/border-balance) | Une condition nécessaire exacte ; les quatre solutions complètes connues la vérifient ; un déficit positif certifie l'infaisabilité. La part intérieur-intérieur des erreurs restantes est désormais exacte : **86,9 %** sur les neuf planches embarquées de classe 469, aucune bord-bord | Prouvé, externe (la condition), prouvé, interne (la répartition des erreurs) | Oui pour la condition, citée aux énoncés communautaires 2007–2022 ; la répartition des erreurs est le recompte versé du projet | La condition est nécessaire, jamais suffisante : un déficit nul ne prouve rien, et l'invariant est aveugle à la majorité intérieur-intérieur des erreurs restantes. Le rendement d'élagage est une mesure sur instance unique, pas encore un banc versé |
+| [Géographie des couleurs rares](/research/why/rare-color-geography) | Un décompte exact sur le jeu officiel : les cinq couleurs de bord n'apparaissent jamais sur un bord intérieur | Prouvé, interne | Aucune réplication externe du décompte ; l'intention de conception 17+5 est citée à Owen | Correctement présenté comme structurel (bordure grise, pools de couleurs séparés), pas une ruse de rareté ; l'étiquette « rare » est un artefact du moindre nombre de bords de bordure |
+| [Recette de conception](/research/why/design-recipe) | La communauté a reconstruit une recette cohérente de puzzle le plus dur, ingrédient par ingrédient, chacun sourcé à un message de l'année de lancement | Conjecture (badge de la page), chaque ingrédient sourcé de l'extérieur | Oui, densément : les dérivations et mesures de Owen, le recensement de l'espace de conception, la chaîne de provenance jusqu'à Selby et Riordan | Une reconstruction de l'intention de conception, pas un énoncé que les concepteurs ont publié ; la page la badge conjecturée |
+| [Cadre de complexité](/research/why/how-hard-is-this-instance) | L'assemblage de bords est NP-complet comme famille ; une planche fixe unique est une constante, pas un problème ; la difficulté d'E2 est empirique sur un espace ~10^557 | Prouvé, externe | Oui : Demaine & Demaine 2007 pour la NP-complétude ; Ansótegui et al. pour le cas empirique | La distinction de catégorie porte le raisonnement : la NP-complétude plafonne ce que les solveurs généraux peuvent promettre, elle ne dit rien de cette planche |
+| [Élagage contre vitesse](/research/why/prune-vs-speed) | L'argument de composition est de l'arithmétique exacte ; sur E2, un élagage légal coûte souvent plus que le sous-arbre qu'il retire | Prouvé (l'arithmétique), mesuré (le verdict « l'élagage ne paie pas ») | Partiel : le principe est autonome ; le verdict communautaire est cité à McGavin et 95A31, désormais vérifiables dans l'archive étendue | Les chiffres de l'arbre de démonstration sont illustratifs, pas une mesure d'un vrai solveur, et la page le dit |
+
+Trois évolutions depuis le premier tracé de cette carte méritent d'être
+soulignées, car elles font monter des affirmations d'un niveau. Les sigma-cycles
+étaient une observation sur trois paires ; c'est désormais un énoncé exact sur
+chaque paire de même jeu de pièces des planches embarquées, 54 238 applications
+partielles sans une exception. La répartition des erreurs de bord est désormais
+un recompte exact (86,9 % intérieur-intérieur) plutôt qu'un chiffre hors site.
+Et les décomptes de blocs de la loi d'aire sont désormais calculés en dépôt et
+se reproduisent depuis la commande de la page, l'exposant étant ajusté sur la
+plage comptée exactement. Enfin, les quatre citations communautaires qui se
+situaient au-delà de l'instantané d'archive valident désormais l'export
+étendu, si bien que les passages de corroboration de la rigidité, de la
+géométrie des décalages et de l'élagage contre vitesse reposent sur des sources
+qu'un lecteur peut vérifier.
+
+La lecture d'ensemble : seule la rigidité porte trois méthodes indépendantes
+(SAT, MIP, recuit) aboutissant à un même verdict. Les autres murs sont des
+calculs exacts propres au projet ou des mesures sur instance unique, sur
+l'unique planche qui compte. Lisez « corroboré par la littérature » comme
+signifiant que la transition de phase et le gradient manquant ont été
+reproduits ailleurs, pas chaque mur.
+
 ## Les quatre murs, en une ligne chacun
 
 Chacun d'eux est une version d'un même énoncé : il n'y a rien de local à élaguer.
@@ -54,7 +122,7 @@ Chacun d'eux est une version d'un même énoncé : il n'y a rien de local à él
   intérieures, le puzzle se situe à la transition de phase : environ une solution
   attendue, le pire endroit où chercher.
 - **[La loi d'aire](/research/why/entropy-area-law)**. Les plateaux partiels
-  réellement distincts s'effondrent au-delà de ~80 cases, mais aucun score local
+  réellement distincts s'effondrent à mesure que l'aire remplie grandit, mais aucun score local
   ne peut percevoir ce fait global.
 - **[La rigidité](/research/why/rigidity-wall)**. Les records sont localement
   figés ; le pas vers un meilleur plateau est un unique échange géant et

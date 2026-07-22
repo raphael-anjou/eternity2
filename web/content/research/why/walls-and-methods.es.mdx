@@ -42,6 +42,72 @@ Los cuatro muros en sí están corroborados por la literatura publicada; los
 resultados de los experimentos son trabajo propio de este proyecto, cada uno
 documentado en su propia página; no se presentan como verificados externamente.
 
+## En qué se apoya cada muro
+
+No todos los muros son la misma clase de evidencia. Algunos son cálculos exactos
+y deterministas depositados en este repositorio; uno está replicado externamente
+por varios métodos independientes; varios son mediciones reales tomadas sobre el
+único tablero Eternity II y su conjunto de récords. Es una base legítima, pero el
+lector merece saber cuál es cuál antes de apoyarse en cualquier línea. La tabla
+siguiente lee cada afirmación estructural de esta sección hasta la forma más
+fuerte que su evidencia realmente sostiene, el nivel de esa evidencia, si alguna
+parte externa la ha reproducido, y la única salvedad a tener presente.
+
+<Callout kind="note" title="Los cuatro niveles">
+  - **Probado, externo.** Un teorema o un cálculo exacto que una parte externa ha
+    enunciado o replicado, y la página cita a esa parte.
+  - **Probado, interno.** Un cálculo exacto y determinista hecho aquí, con el
+    código y el resultado depositados en `research/topics/` y reproducibles desde
+    el comando de la propia página.
+  - **Medido, instancia única.** Una medición real, tomada sobre el único tablero
+    Eternity II (o un tablero de tipo E2), sin replicación. Cierta, y no un
+    defecto en sí, pero es un solo dato.
+  - **Conjetura.** La propia página presenta la afirmación como no probada en
+    general.
+
+  Un muro no se rebaja por haberse medido sobre una instancia única. Solo se
+  rebaja allí donde un nivel inferior se presenta como superior, y ninguno aquí
+  lo hace.
+</Callout>
+
+| Muro / afirmación | Forma más fuerte sostenida | Nivel | Replicación externa | La única salvedad |
+| --- | --- | --- | --- | --- |
+| [Pico de dificultad](/research/why/phase-transition) | 17,14 colores interiores se derivan del criterio de una solución esperada; 17 queda cerca del pico de dificultad de búsqueda para el emparejamiento de bordes enmarcado | Probado, externo | Sí: la derivación de Owen de 1947; Ansótegui, Béjar, Fernández & Mateu confirman el pico | «Una solución esperada» es un promedio de primer momento que supone colores de borde independientes; localiza el pico, no cuenta las soluciones |
+| [Teoría compleja / el embudo](/research/why/complex-theory) | Un estimador de primer momento del ancho de árbol y del número de soluciones, correcto dentro de un factor de dos dondequiera que pudo comprobarse | Conjetura (distintivo de la página), sobre replicación externa | Sí: el modelo de Owen; el porte a C de McGavin y su resolución 10×10, dentro de la predicción | Es un promedio, ciego a si los parciales contados son realmente distintos; una herramienta para ordenar barridos, nunca un conteo exacto ni una cota |
+| [Sin movimientos forzados](/research/why/no-forced-moves) | Un conteo exhaustivo exacto sobre el conjunto interior oficial: ninguna pieza interior queda nunca forzada a un único compañero derecho (73 a 137 compañeros cada una) | Probado, interno | Sin replicación externa; el conteo es propio del proyecto, depositado y reproducible | Cuenta compatibilidad por pares sobre el conjunto completo, no candidatos dentro de un tablero parcial vivo; una propiedad de las piezas, no una prueba de que la búsqueda nunca se estrecha |
+| [Patrones prohibidos](/research/why/forbidden-patterns) | Conteos exhaustivos exactos: el 38,96 % de los pares, el 83,26 % de los L-triominós, el 99,72 % de los cuadrados 2×2 son inviables sobre piezas interiores distintas | Probado, interno | Los conteos 2×2 son el resultado exacto depositado del proyecto; los 20 pares-esquina vacíos son una observación comunitaria citada de 2008 | La lectura «el conteo de parches prohibidos sigue la distancia a una solución» es una señal heurística, no una distancia monótona probada |
+| [Ley de área de la entropía](/research/why/entropy-area-law) | Los conteos de bloques A(n)/B(n) son ahora exactos en el repositorio hasta n=3 (B(2)=4 059 952 cruza con la tabla de subrejillas), dando un exponente en repositorio α≈0,044; el límite de entropía cerca de 0,67 y el punto de colapso son extrapolaciones | Probado, interno (los conteos de bloques) + medido (el ajuste) | Parcial: el lema de Fekete y la entropía de Shannon son los teoremas externos que hacen bien definido el límite; el ajuste de α y la escala de colapso son propios del proyecto | El teorema garantiza que existe un límite positivo; no fija su valor. El exponente se ajusta sobre n≤3 y su valor por bloque aún crece, así que el punto de colapso de parches grandes es una extrapolación más allá de los anchos contados |
+| [Rigidez](/research/why/rigidity-wall) | En los tableros récord públicos, ningún reordenamiento de las piezas propias de un tablero dentro de un halo de hasta cuatro celdas cierra un desajuste (SAT: UNSAT), ahora depositado | Probado, interno para el halo SAT; la tabla MIP más profunda está probada para las regiones cerradas pero portada desde un artículo externo al sitio | Sí, el muro mejor replicado: las pruebas de congelación y residuo SAT de Millilaw reproducidas aquí con un control positivo; el núcleo congelado del recocido GPU de benj39100 lo alcanza por un tercer método | La evidencia depositada del sitio es el halo SAT hasta radio 4 en cinco tableros (unas pocas instancias de radio 4 exceden el tiempo, anotadas abiertas). La tabla MIP y la cota tablero completo ≤476 provienen del artículo externo, y el enunciado «todos los tableros» es una conjetura |
+| [Sigma-ciclos](/research/why/sigma-cycles) | Sobre **cada** par ordenado del mismo conjunto de piezas de los tableros incluidos (246 pares, 1154 lazos grandes), **cada** prefijo propio de cada lazo grande puntúa estrictamente menos que su punto de partida, en las 54 238 aplicaciones parciales | Probado, interno (un enunciado de población sobre el conjunto incluido) | Sin replicación externa; calculado aquí contra el 469 de McGavin y los tableros récord y de proyecto incluidos | El conteo es exacto sobre los tableros entregados; la propiedad «todo subciclo es peor» aún no está probada para todo tablero posible. Una fuerte observación de población, no un teorema general |
+| [Geometría de los desajustes](/research/why/mismatch-geometry) | En los tableros récord y de proyecto, los desajustes residuales se agrupan en una banda de filas que se invierte con el sentido de construcción; un objetivo de conteo de huecos deposita los restos ahí | Medido, instancia única | Parcial: la inversión según el sentido es la lectura del proyecto; el tablero de siete huecos de Verhaard y el residuo en banda alta de Zamofing se citan como observaciones del mismo sentido, ahora verificables en el archivo extendido | Un patrón sobre un puñado de tableros con una historia mecanicista, no una prueba |
+| [Robo de pieza](/research/why/piece-theft) | Un conteo exacto de las demandas (norte, oeste) sobre el conjunto interior: la mayoría tiene de uno a tres proveedores, y un número preciso tiene exactamente uno | Probado, interno (los conteos); medido (el mecanismo «dónde mueren los solvers») | Sin replicación externa; Régin 1994 se cita como la teoría all-different que nombra el mecanismo | Los conteos de proveedores escasos son exactos; «aquí es donde mueren los solvers reales» es un mecanismo ilustrado sobre la instancia, no una tasa de fallo medida entre solvers |
+| [Geometría de las pistas](/research/why/hint-geometry) | En un puzzle 16×16 de tipo E2, pistas dispersas lo resuelven en minutos donde filas contiguas apiladas no, porque el trabajo vive en la segunda mitad del llenado | Medido, instancia única (un tablero de tipo E2, no el puzzle oficial) | Sí, atribuido con claridad: la resolución a 18 pistas de McGavin y su árbol de 41 mil millones de nodos; las estadísticas de profundidad de Joe | No es el puzzle oficial, cuyas cinco pistas fijas difieren. Las cifras de profundidad son la muestra de un solo backtracker |
+| [Equilibrio del borde / NS-1](/research/why/border-balance) | Una condición necesaria exacta; las cuatro soluciones completas conocidas la cumplen; un déficit positivo certifica la inviabilidad. La proporción interior-interior de los errores restantes es ahora exacta: **86,9 %** en los nueve tableros incluidos de clase 469, ninguno borde-borde | Probado, externo (la condición), probado, interno (el reparto de errores) | Sí para la condición, citada a enunciados comunitarios de 2007–2022; el reparto de errores es el reconteo depositado del proyecto | La condición es necesaria, nunca suficiente: un déficit nulo no prueba nada, y el invariante es ciego a la mayoría interior-interior de los errores restantes. El rendimiento de poda es una medición sobre instancia única, aún no un banco depositado |
+| [Geografía de los colores raros](/research/why/rare-color-geography) | Un conteo exacto sobre el conjunto oficial: los cinco colores de borde nunca aparecen en un borde interior | Probado, interno | Sin replicación externa del conteo; la intención de diseño 17+5 se cita a Owen | Presentado con acierto como estructural (borde gris, pools de color separados), no una treta de escasez; la etiqueta «raro» es un artefacto del menor número de bordes de marco |
+| [Receta de diseño](/research/why/design-recipe) | La comunidad reconstruyó una receta coherente del puzzle más difícil, ingrediente por ingrediente, cada uno con fuente en un mensaje del año de lanzamiento | Conjetura (distintivo de la página), cada ingrediente con fuente externa | Sí, densamente: las derivaciones y mediciones de Owen, el censo del espacio de diseño, la cadena de procedencia hasta Selby y Riordan | Una reconstrucción de la intención de diseño, no un enunciado que los diseñadores publicaran; la página lo marca como conjeturado |
+| [Marco de complejidad](/research/why/how-hard-is-this-instance) | El emparejamiento de bordes es NP-completo como familia; un tablero fijo único es una constante, no un problema; la dificultad de E2 es empírica sobre un espacio ~10^557 | Probado, externo | Sí: Demaine & Demaine 2007 para la NP-completitud; Ansótegui et al. para el caso empírico | La distinción de categoría sostiene el razonamiento: la NP-completitud limita lo que los solvers generales pueden prometer, no dice nada de este tablero |
+| [Poda contra velocidad](/research/why/prune-vs-speed) | El argumento de composición es aritmética exacta; en E2, una poda legal cuesta a menudo más que el subárbol que elimina | Probado (la aritmética), medido (el veredicto «la poda no compensa») | Parcial: el principio es autónomo; el veredicto comunitario se cita a McGavin y 95A31, ahora verificables en el archivo extendido | Las cifras del árbol de demostración son ilustrativas, no una medición de un solver real, y la página lo dice |
+
+Tres cambios desde que se trazó este mapa por primera vez merecen destacarse,
+porque suben afirmaciones de nivel. Los sigma-ciclos eran una observación sobre
+tres pares; ahora son un enunciado exacto sobre cada par del mismo conjunto de
+piezas de los tableros incluidos, 54 238 aplicaciones parciales sin una sola
+excepción. El reparto de errores de borde es ahora un reconteo exacto (86,9 %
+interior-interior) en lugar de una cifra externa al sitio. Y los conteos de
+bloques de la ley de área se calculan ahora en el repositorio y se reproducen
+desde el comando de la propia página, con el exponente ajustado sobre el rango
+contado exactamente. Además, las cuatro citas comunitarias que antes quedaban
+más allá de la instantánea del archivo validan ahora contra el export extendido,
+de modo que los pasajes de corroboración de la rigidez, la geometría de los
+desajustes y la poda contra velocidad se apoyan en fuentes que un lector puede
+comprobar.
+
+La lectura de conjunto: solo la rigidez lleva tres métodos independientes (SAT,
+MIP, recocido) que llegan a un mismo veredicto. Los demás muros son cálculos
+exactos propios del proyecto o mediciones sobre instancia única, sobre el único
+tablero que importa. Lee «corroborado por la literatura» como que la transición
+de fase y el gradiente ausente se han reproducido en otra parte, no cada muro.
+
 ## Los cuatro muros, en una línea cada uno
 
 Cada uno de ellos es una versión del mismo enunciado: no hay nada local que podar.
@@ -53,7 +119,7 @@ Cada uno de ellos es una versión del mismo enunciado: no hay nada local que pod
   interiores el puzzle se sitúa en la transición de fase: alrededor de una
   solución esperada, el peor lugar donde buscar.
 - **[La ley de área](/research/why/entropy-area-law)**. Los tableros parciales
-  genuinamente distintos se colapsan más allá de ~80 celdas, pero ninguna
+  genuinamente distintos se colapsan a medida que crece el área rellenada, pero ninguna
   puntuación local puede percibir ese hecho global.
 - **[La rigidez](/research/why/rigidity-wall)**. Los récords están localmente
   congelados; el paso hacia un tablero mejor es un único intercambio gigante e

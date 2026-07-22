@@ -11,6 +11,25 @@
     { "width": 4, "h": 0.7425, "exact": false }
   ],
   "hInfinity": 0.67,
-  "areaLawExponent": 0.085,
-  "distinctnessCollapseCells": 80
+  "blockCountsNote": "A(n) = colour-valid n×n interior fillings with pieces reusable (the matching grammar); B(n) = those that use distinct pieces (true E2); rho = B/A. Computed exactly in-repo here: A(n) by a dense broken-profile transfer DP, B(n) by a parallel distinct-counting DFS bounded by A(n). B is exact through n=3; n=4 is over the DFS budget (A(4) still computed). Cross-checked at n=2 against research/topics/subgrid-placement-counts (B(2)=4059952).",
+  "blockCounts": [
+    { "n": 1, "cells": 1, "reusable": 784, "distinct": 784, "ratio": 1.000000, "wallSeconds": 0.00 },
+    { "n": 2, "cells": 4, "reusable": 4550669, "distinct": 4059952, "ratio": 0.892166, "wallSeconds": 0.22 },
+    { "n": 3, "cells": 9, "reusable": 195941569440, "distinct": 126907480216, "ratio": 0.647680, "wallSeconds": 420.49 },
+    { "n": 4, "cells": 16, "reusable": 62607390876341976, "distinct": null, "ratio": null, "wallSeconds": 12.42 }
+  ],
+  "entropyDensityByN": [
+    { "n": 1, "sOverN2": 2.894 },
+    { "n": 2, "sOverN2": 1.665 },
+    { "n": 3, "sOverN2": 1.255 },
+    { "n": 4, "sOverN2": 1.050 }
+  ],
+  "areaLawExponent": 0.0445,
+  "areaLawExponentNote": "alpha fitted by least squares through the origin (ln rho = -alpha n^2) over the exact in-repo B(n)/A(n) for n=1..3. The per-n alpha(n) = -ln(rho(n))/n^2 rises with n over this small exact range (see alphaByN), so this fit is a conservative estimate of the large-patch exponent; the rho(n) curve beyond n=3 is an extrapolation of the fit.",
+  "alphaByN": [
+    { "n": 2, "alphaN": 0.0285 },
+    { "n": 3, "alphaN": 0.0483 }
+  ],
+  "distinctnessCollapseCells": 155,
+  "distinctnessCollapseNote": "Extrapolated cell count where rho drops below 1e-3, from n* = sqrt(ln(1000)/alpha); beyond the exactly-computed range."
 }
