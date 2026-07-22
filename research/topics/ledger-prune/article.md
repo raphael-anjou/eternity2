@@ -19,6 +19,7 @@ sources:
 reproduce:
   - cd research/topics/ledger-prune/compute && cargo run --release -- --mode sweep --seeds 8 --cap-secs 25 --out ../results
   - cd research/topics/ledger-prune/compute && cargo run --release -- --mode zerodiag --seeds 8 --cap-secs 25 --out ../results
+  - cd research/topics/ledger-prune/compute && cargo run --release -- --mode cert --cap-secs 300 > ../results/cert_phase2.json
 results:
   - label: Soundness gate (8 boards, zero-slack replay, 0 fires)
     path: results/soundness.json
@@ -30,6 +31,8 @@ results:
     path: results/ab-zeroslack.json
   - label: Wrong-regime probe (generous budget, fire fraction)
     path: results/wrong-regime-null.json
+  - label: Phase 2 certificate rows on the community 464 boards (180-flipped)
+    path: results/cert_phase2.json
 site:
   render: false
   dataFile: null
@@ -134,3 +137,34 @@ suffix cannot be configured into that regime with an exhaustible budget.
 See `compute/PLAN.md` for the exact claim, the scoring-convention mapping,
 the scale-faithfulness argument, and the gap between this reproduction and
 the original certificate runs on community record boards.
+
+## Phase 2: the community 464 boards
+
+The three community 464 boards (recovered from the design-recipe-464 topic's
+committed URLs) were flipped 180 degrees and their tails exhausted at the
+per-depth zero-slack budgets, per the source study's design. The boards
+self-identify by suffix-break fingerprint: basinC's board reads (2, 5, 6, 7)
+at depths (232, 224, 216, 208) against the source's (2, 5, 6, 8), three
+depths exact and one off by a single charged break from the declared
+per-edge versus capped-per-cell charging difference. That board is the
+source study's board 1.
+
+On it, at budgets identical to the source (r = 5 and r = 6), the exhaustion
+found exactly one completion at every uncensored depth, the certificate
+shape the source reports, and the node ratio compounds with depth:
+
+| depth | budget | NoPrune nodes | LEDGER nodes | ratio | source ratio |
+|---|---|---|---|---|---|
+| 232 | 2 | 542 | 316 | 1.7 | 1.5 |
+| 224 | 5 | 3,784,655 | 194,827 | 19.4 | 140 |
+| 216 | 6 | 182,403,237 | 4,029,724 | 45.3 | 995 |
+| 208 | 7 | censored | censored | n/a | 4,330 |
+
+The compounding law reproduces; the absolute multipliers are smaller because
+this engine judges the prune once per node on a from-scratch ledger while
+the source engine judged per candidate on an incremental ledger inside a
+bucketed one-mismatch-per-cell search, which prunes its NoPrune arm
+differently. The 300-second-per-arm cap censors depth 208 here (and the
+deeper rows of the other two boards); on time-capped arms node counts are
+not comparable and no ratio is reported. An incremental-ledger port is the
+remaining step to test the source's 4,330 directly.
