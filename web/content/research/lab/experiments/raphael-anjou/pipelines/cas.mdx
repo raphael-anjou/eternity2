@@ -1,0 +1,156 @@
+---
+title: CAS
+description: >-
+  Place a perfect border ring first, then solve the board inward, shell by
+  shell, each ring as one assignment over the pieces that remain.
+metaDescription: "CAS solves Eternity II from the outside in: a perfect 60-piece border ring, then each inner shell as one assignment over the remaining pieces. From 20 perfect frames it plateaus at 429 to 437 of 480, yet beats a destroy-and-repair continuation from the same frames every time."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "baseline arm 45 s × 8 frames; CAS arm deterministic per-shell beam over 20 frames (the source's per-shell MIP took 25 to 45 s per frame)"
+  seedPolicy: "seeded frame DFS; the shell beam is deterministic given a frame"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 437
+outcome: plateaued
+scoringConvention: matched-edges
+rigor: measured
+complexity:
+  time: "seconds to find each 60/60 frame; the source per-shell MIP took 25 to 45 s per frame, the baseline arm 45 s per frame"
+  space: "one ring solved at a time; outer rings are frozen once placed"
+  note: >-
+    Freezing each ring is what makes the shells cheap to solve, and also what
+    starves the inner ones.
+repro:
+  kind: seeded
+  cmd: just research-cas-annular
+  topic: cas-annular
+  scope: "Re-runs everything from scratch: frame enumeration, the 20-frame CAS arm and the 8-frame baseline arm, regenerating the committed results file (per-frame scores, deltas and board URLs)."
+stages:
+  - engine: frame-input
+    does: "A seeded border DFS enumerates distinct perfect 60/60 frames of the official puzzle"
+  - engine: beam-producer
+    does: "Rings are solved outside-in, each as one assignment over the remaining pieces (width-1024 per-shell beam; the source runs used a per-shell MIP)"
+    published: false
+order: 70
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/build/dead-ends
+sources:
+  - label: "Reproduction topic (this project): committed plan, compute crate and per-frame results behind every number on this page"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/cas-annular/article.md
+---
+
+CAS (concentric annular solving) builds the board the way an onion grows:
+lay a perfect border ring, then solve inward, shell by shell, until the four
+centre cells close the board. I asked whether that outside-in schedule could
+be a record path. It came back with a clean no and a useful yes: from any
+perfect frame the pipeline plateaus in a narrow 429 to 437 band, and from
+that exact starting state it beats a destroy-and-repair continuation on
+every single frame.
+
+## How it works
+
+The 16×16 board is 8 concentric rings of 60, 52, 44, 36, 28, 20, 12 and 4
+cells. CAS fixes the outermost ring first as a perfect 60/60 frame: all 60
+border cells filled with border pieces, every rim edge grey, all 60
+adjacencies inside the ring matched. It then solves each inner ring in turn
+as one assignment problem over the pieces still unused, maximising matched
+edges against the ring outside it plus the matches inside the ring itself.
+Once a ring is placed it is frozen; the search never revisits it.
+
+The original runs solved each shell with a MIP,
+25 to 45 seconds per frame. The committed reproduction swaps that for a
+deterministic width-1024 per-shell beam, which lands in the same band, and
+adds a comparison arm: pin the same frame, leave the interior empty, and
+hand that state to a
+[destroy-and-repair local search](/research/build/local-search/local-search-alns)
+instead.
+
+## The result
+
+Twenty enumerated perfect frames, twenty scores between 429 and 437 matched
+edges out of 480 (mean 432.8). The source audit, on its own 20 frames, sat
+at 430 to 436 with mean 432.4. The band and the mean reproduce to within one
+point on each edge, and the frame does not matter: every 60/60 frame lands
+on the same plateau. The best reproduction board scores 437; it is checkable
+[edge by edge in the viewer](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaabjbaeqbadteaftdafgfacrfabpcafubabjfafhbafqfadofadhdaendaabedgdajiggqphitwhptgiwgkogrphkpjppumhjjvomhnlvqgtnouvghmwuniombafjdpcagnnpwlmnhuqlisouoqwshwmqppvwhjqpoqtjlvmqtkuvvulkwswuommsfaemcpcansvpiujsqrluonjrkpgnmonpvmjoqgqmtrkgmhmrunhhlktnwhqkmorheabocnfavhunjlthljmlhukjgsquntksjkqtqmokkigmmhgihruhtrgrqpqrrhkpbachfoeaurhotusrgolukuwopmmukrvmqrtropprgmspgsjwuvusgtqvqvntkokvcacoeteahustsgrulorgwuiogvvlvitvtvphpsuvskpphvrkuwovqlhwnkolkgikcadgencaspwnrilpriliiklqvwvkuiwqooiqijjrprsjrmorinjmhsknoiisiwgidafwcqeawinqliwillkilwolvwlwwmulijjmqwlrtqqwosnqjtrukmttiommgllofaelepbanqrpwoiqklwooupllsnhuhwklsuhhwusqngwnnsnrqunttlqmrgtlslreaesbgbaringigqiwwvgpmiwnnvjvijnuksivrtknkvrssskujoslijjgpnilulpeaeubteanpgtqgmpvgsgisjgvntorkmnsmwktrsmvmtrtplmoslgjuhsnkoulqjkeafqeibagtgimsutsphsjnmptmqnmrwmwpkrstoptpjtlsnptgwshhlgouqnjuoufafubmdagmtlujvmqovjmnloqoqnwmsokqhmoriqjkgrntkkwvwtlrwvqvproknvfackdsdatjisvvijvlwvlkplqjskshvjhrphijurgwvjkrvwwhtrwjhhpjijnthjcadtdcaaidacidadweadpcaesbacveabpdaeufadvcafvbactfabhcafrbachcabdaac&hints=135.0-210.1-34.1-221.2-45.1).
+
+<Figure collapsible title="Expected vs measured (20 CAS frames, 8 baseline frames)">
+
+| quantity | original runs | this reproduction |
+| --- | --- | --- |
+| CAS band over perfect frames | 430 to 436 | 429 to 437 (n = 20) |
+| CAS mean | 432.4 | 432.8 |
+| baseline from the same frame | 385 to 398 (full ALNS, 60 s/frame) | 411 to 419 (light proxy, 45 s/frame) |
+| CAS vs baseline | wins every overlapping frame, +34 to +49 | wins every frame, +13 to +23 |
+
+</Figure>
+
+The second half is the head-to-head. Started from the same pinned frame with
+an empty interior, the local-search continuation loses every single time. In
+the source measurement (full alns_only, 60 seconds per frame) it reached 385
+to 398 and lost all 8 overlapping comparisons by 34 to 49 points. The
+reproduction's lighter proxy baseline does better in absolute terms (411 to
+419) and still loses every frame, by 13 to 23 points. The gap's magnitude is
+not comparable across the two setups; its direction and its every-frame
+consistency are.
+
+## Why it stops
+
+The plateau is not a tuning problem, and it is not an objective gap either:
+all 480 edges are in the CAS objective. The mechanism is piece starvation.
+Greedy outer shells lock in pieces by how well they fit outward, and by
+rings 5 to 7 the remaining pool simply no longer contains pieces whose
+colour profiles fit the inward-facing constraints. It is the ring-scale
+version of [piece theft](/research/why/piece-theft): a scarce piece spent
+early, rings before the cell that needed it.
+
+The source volumes tried the obvious rescues, and both confirm the
+diagnosis. A CAS-ALNS hybrid scored 418, worse than CAS alone; an ALNS
+refine pass on top of a finished CAS board reached 437 to 439, a lift of a
+few points that stays far below what other pipelines in this notebook reach
+from scratch on the same hardware. For where the community bar sits, see the
+[records page](/research/records).
+
+## What does and does not follow
+
+CAS is two things at once, and both halves are the finding. As a record path
+it is refuted as a greedy schedule: the outside-in order starves its own
+endgame, from any frame. As a sub-problem tool it is the strongest option I
+have measured for one specific state, a perfect frame plus an empty
+interior. Destroy-and-repair operators expect a full board to mutate; handed
+an empty interior they must first build one, badly, while CAS is exactly the
+constructive tool for that state. Which algorithm is right depends on the
+state you start it from; composition matters as much as the components.
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) is
+the sibling experiment that keeps the pinned frame but drops the
+ring-by-ring schedule.
+
+Three caveats bound the claim. The reproduction pins the five official clue
+pieces; the source pages do not record whether the original runs did. All
+five clues sit in the interior, so the frame arm is unaffected, and pinning
+can only make the reproduction slightly conservative, the safe direction for
+a plateau claim. The baseline arm is a light proxy, so only the direction
+and the every-frame consistency of the gap carry over, not its size. And the
+numbers are properties of the official 16×16 piece set: the mechanism lives
+in rings 5 to 7, which an 8×8 board (4 rings) never reaches, so small-board
+tests can neither confirm nor refute the claim.
+
+## Reproduce
+
+`just research-cas-annular` re-runs the whole thing from scratch: it
+enumerates the frames by seeded border DFS, runs the 20-frame CAS arm and
+the 8-frame baseline arm, and regenerates the committed results file with
+per-frame scores, deltas and a viewer URL for every board.

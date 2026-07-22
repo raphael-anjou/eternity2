@@ -1,0 +1,148 @@
+---
+title: La escalera de tamaños
+description: >-
+  Un banco que ejecuta cualquier solucionador, sin cambios, sobre tableros
+  plantados totalmente resolubles con N = 8, 10, 12, 14, cada uno con un techo
+  probado de 2N(N-1): el tamaño de colapso de un método se mide antes de
+  gastar semanas en el 16×16 real.
+metaDescription: "La escalera de tamaños ejecuta cualquier solucionador de Eternity II sobre tableros plantados totalmente resolubles con N = 8, 10, 12, 14 y un techo probado de 2N(N-1): mide dónde colapsa un método antes de apuntarlo al 16×16 real."
+kind: tool
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores, 16 GB)"
+  wallClock: "12 s single-core budget per (solver, instance, seed) run; 4 rungs × 8 seeds × 2 solvers = 64 runs"
+  seedPolicy: "seeded; seeds 1 to 8 per rung, generator deterministic in (N, seed)"
+  measured: true
+contribution: tool
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-scaling-ladder
+  topic: scaling-ladder
+  produces: search
+  scope: "Reconstruye los cuatro peldaños desde el generador con semillas y vuelve a ejecutar los dos solucionadores de referencia incluidos; reproduce la mecánica del banco y la forma de las curvas, no la malla original de trece métodos, que exige el conjunto de instancias archivado."
+order: 85
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, backtracking]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/phase-transition
+  - /research/why/how-hard-is-this-instance
+  - /research/build/benchmarks
+sources:
+  - label: "Ansótegui et al., la transición de fase en los puzles de emparejamiento de bordes (contexto del umbral de dificultad)"
+    url: https://doi.org/10.1007/978-3-540-85958-1_42
+---
+
+El 16×16 real es un lugar caro para descubrir que un método no escala. La
+escalera de tamaños plantea antes una pregunta más barata: ejecuta cualquier
+solucionador, sin modificarlo, sobre tableros plantados totalmente
+resolubles con N = 8, 10, 12 y 14, cada uno con un techo probado, y lee el
+tamaño en el que el método colapsa. Los dos solucionadores de referencia
+incluidos se separan con nitidez y se degradan de forma monótona al subir la
+escalera: exactamente la lectura que el banco existe para producir.
+
+## Cómo funciona
+
+Cada peldaño se construye hacia atrás desde una solución plantada, así que
+es resoluble por construcción, y su objetivo de resolución completa sale
+gratis: una malla N×N tiene exactamente 2N(N-1) adyacencias internas, el
+tablero plantado las empareja todas y ningún tablero puede emparejar más.
+Los cuatro peldaños llevan techos de 112, 180, 264 y 364. No hace falta
+ningún solucionador externo para certificar nada; antes de cada
+solucionador, el banco vuelve a puntuar el tablero plantado con el mismo
+puntuador (borde excluido) que los solucionadores afrontarán y comprueba que
+alcanza el techo exactamente. Esa comprobación está viva: un primer borrador
+colocó un tablero pequeño en una malla de ancho 16, puntuó 28/60 y fue
+atrapado por ella.
+
+Cinco celdas de la solución se fijan como pistas al estilo del puzle
+oficial, cada solucionador recibe un presupuesto fijo de 12 segundos de
+reloj en un solo núcleo, y cada tablero devuelto se vuelve a puntuar de
+forma independiente desde sus bordes; el auto-informe del solucionador no se
+usa nunca. Una fila JSON por (solucionador, N, semilla) registra la
+puntuación verificada, el techo, su cociente, si la resolución fue completa,
+el número de nodos y un enlace al tablero. Cada tablero se abre en el
+[visualizador](/viewer): aquí hay un
+[peldaño plantado N=8](/viewer?puzzle=ladder_n8_c22_s1&puzzle_size=8&board_edges=adcaabtdacrbafkcabofabmbaflbaadfcnfatrunrsgrkwisohuwmgvhlqjgdadqfmcaupimgnupikonujvkvrnjjoordadocheaikrhujikokujvvlknqpvopsqdaepehbarglhinwgulsnltnlpkmtspskeaepbidaljqiwvojstivnwhtmjpwstljeaetdhbaqmvhoqwmimrqhqgmpsuqlgtseadgbeaavbaewfabrfafgcafucactcacdaac)
+y el [mejor parcial N=14](/viewer?puzzle=ladder_n14_c22_s5&puzzle_size=14&board_edges=abdaaclbafncadkfabqdafibacufadhcafkdadhfacqdaewcacueaadcducalijunowikwsoqjkwihpjuvjhhnnvkqonhihqqqqiwmsqunumdaenctbajrptwrlrsisrkroipwtrjpjwnlopouvlhvnuqrtvsjgruttjeaftbpbapmnplkwmsiskothitsltjlosovvlvgpvnqhgtosqgkootrgkfaerbwbanslwwnkssghnhiggljmiotjjvmttpmgmhwgmsrvwokhrgpukeafpbiealpuikvwphluvgrslmurrjskutmgsgknmghlkvijhhgiiuhhgfabhescauupswvjuukjvsjikrrwjkokrglqonmollwlmjoiwinwohqjnbaeqcidapgvijirgjsuiisnswlnskhmlqlthottlloptiswownusjhrneaehdgfavtwgrjhtuuwjnkmunqnkmirqtmtitglmpqggwpoqaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaocaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&hints=56.2-186.0-114.3-53.2-37.0)
+producido por esta ejecución.
+
+Los dos solucionadores incluidos cubren las dos familias que el estudio
+original separa: una vuelta atrás en profundidad que solo coloca piezas que
+encajan por completo (el miembro más simple de la familia propagativa) y un
+rellenador voraz fila a fila, sin ninguna vuelta atrás.
+
+## El resultado
+
+En la ejecución original de trece métodos (13 métodos × 11 instancias × 3
+semillas = 429 trabajos), la escalera separó las familias de solucionadores
+por un peldaño entero: la familia propagativa, guiada por restricciones,
+mantuvo un cociente perfecto de 1.000 hasta N=12 incluido (264 aristas de
+264), los órdenes de «borde primero» ya habían colapsado hacia 0.15 a 0.22 a
+ese tamaño, y en N=14 todos los métodos cayeron entre 0.055 y 0.157. La
+reproducción archivada vuelve a ejecutar el banco de punta a punta con los
+dos solucionadores de referencia:
+
+<Figure collapsible title="Esperado vs medido (4 peldaños × 8 semillas × 2 solucionadores, presupuesto mononúcleo de 12 s)">
+
+| Cantidad | Esperado (estudio original) | Medido (esta ejecución) |
+| --- | --- | --- |
+| Techos N=8/10/12/14 | 112 / 180 / 264 / 364 | 112 / 180 / 264 / 364; tablero plantado certificado 32/32 |
+| Re-puntuación independiente | 429/429 verificados | 64/64 verificados, 0 discrepancias |
+| DFS en N=8 | resolución completa muy por debajo de 1 s | resolución completa 8/8 semillas (7 k a 8.7 M nodos) |
+| DFS en N=10 | (ausente de la malla original) | resolución completa 7/8 semillas; la octava se atasca en 0.283 |
+| DFS en N=12 | 0.489 en una prueba de 5 s | mediana 0.512, una resolución completa, mín 0.216 |
+| DFS en N=14 | 0.217 en una prueba de 5 s; colapso de la malla original 0.055 a 0.157 | mediana 0.477, mejor 0.613, dos semillas atascadas en 0.047 a 0.049 |
+| Voraz en N=8 | 0.313 | mediana 0.321 (0.295 a 0.366) |
+| Piezas duplicadas | 0 en N=8, hasta 4 en N=12, 10 a 11 en N=14 | 0 en todos los peldaños (generador del kit) |
+
+</Figure>
+
+Toda la mecánica se reproduce: el techo probado gratuito, la certificación
+de cada tablero plantado con el mismo puntuador que afrontan los
+solucionadores, la re-puntuación independiente de cada tablero devuelto y la
+degradación monótona del DFS, perfecto en N=8 y sin ninguna resolución
+completa en N=14, mientras el voraz no resuelve por completo en ningún
+sitio. La dispersión entre semillas es amplia en los peldaños altos (0.216 a
+1.0 en N=12, 0.047 a 0.613 en N=14 para el DFS); por eso cada peldaño
+conserva 8 semillas.
+
+## Lo que no se sigue
+
+- **El éxito con N pequeño no predice nada sobre el 16×16.** Los métodos
+  perfectos en N=12 valen casi nada un peldaño más arriba; el entregable es
+  la curva de degradación, nunca una clasificación a un solo tamaño. Para el
+  estado de la instancia real, véase
+  [la página de récords](/research/records).
+- **Escaleras de generadores distintos no son intercambiables.** La
+  profundidad del colapso depende del perfil de la instancia. Los peldaños
+  originales seguían el perfil de colores del puzle real (22 colores
+  interiores, 5 colores raros confinados al anillo adyacente al marco) y
+  llevaban hasta 10 u 11 piezas duplicadas en N=14; el generador del kit no
+  produce ningún duplicado ni anillo de colores raros, y el colapso en N=14
+  es visiblemente menos profundo en sus peldaños (parciales cerca de 0.6
+  frente a un suelo de 0.157 en la malla original). Las formas de las curvas
+  se transfieren; los puntos de ruptura exactos, no.
+- **Que un solucionador de referencia débil falle un peldaño no refuta
+  nada.** Las filas perfectas hasta N=12 pertenecen a solucionadores
+  propagativos concretos aún no portados al kit; un solucionador
+  infradimensionado solo puede quedarse por debajo.
+
+## Reproducir
+
+`just research-scaling-ladder` reconstruye los cuatro peldaños desde el
+generador con semillas (un binario por peldaño, porque el motor compartido
+fija el tamaño del tablero en tiempo de compilación) y vuelve a ejecutar los
+dos solucionadores con el presupuesto de 12 segundos, escribiendo una fila
+JSONL por ejecución más un censo de peldaños con el enlace al visualizador
+de cada tablero plantado. Reproduce la mecánica del banco y la forma de las
+curvas; una igualdad celda a celda con la tabla original de trece métodos
+exige el conjunto de instancias original archivado y el registro de
+solucionadores portado, como detalla el plan de reproducción.

@@ -2,7 +2,7 @@
 id: cas-annular
 title: Concentric annular solving plateaus at 430-436 and beats ALNS from a perfect frame
 summary: Greedy-annular solving from perfect 60/60 frames plateaus at 429 to 437 (mean 432.8 over 20 frames, matching the source's 430 to 436 mean 432.4) and beats an ALNS-lite continuation from the same frames on every frame (mean +18.3; the source measured +34 to +49 against a full ALNS).
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:
@@ -80,3 +80,7 @@ magnitude is smaller here because the baseline is a light proxy rather than
 the original alns_only winning5 configuration, and the shell solver is a
 beam rather than the original per-shell MIP. Frame boards are linked in the results file, which is the binary's own
 output (per-frame rows for both arms plus summary blocks).
+
+## Source-context figures
+
+Figures quoted from the source study and not measured in this reproduction: the CAS+ALNS hybrid scored 418 (worse than CAS alone), an ALNS refine pass on top of CAS reached 437 to 439, and the original per-shell MIP solves took 25 to 45 seconds per frame.

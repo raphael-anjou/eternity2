@@ -1,0 +1,157 @@
+---
+title: LEDGER
+description: >-
+  Suivre, couleur par couleur, l'offre de demi-arêtes face à la demande du
+  front dans un DFS à budget de ruptures, et élaguer dès que le déficit ou sa
+  parité dépasse les ruptures restantes. Correct par construction ; le gain se
+  compose avec la profondeur.
+metaDescription: "LEDGER est un élagage global correct pour le DFS Eternity II tolérant aux ruptures : offre contre demande par couleur face au budget restant. Zéro déclenchement erroné sur tous les rejeux ; sur les queues des tableaux 464, le ratio de nœuds se compose de 1,7x à 45,3x non censuré."
+kind: experiment
+contribution: method
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run here is single-threaded"
+  wallClock: "25 s cap per A/B arm on the phase 1 grid, 300 s per arm on the certificate rows"
+  seedPolicy: "node counts are seed-deterministic (seeds 1-8); a re-run reproduces the committed JSON byte-for-byte"
+  measured: false
+repro:
+  kind: seeded
+  cmd: "just research-ledger-prune"
+  scope: "relance la porte de correction, la grille A/B sur tableaux générés et les lignes de certificat sur les queues des 464 ; les comptes de nœuds sont déterministes par graine, mais les bras censurés aux plafonds de temps dépendent de la machine"
+order: 40
+updated: 2026-07-22
+date: 2026-07
+topics: [backtracking, search-space, structure]
+related:
+  - /research/why/prune-vs-speed
+  - /research/build/analysis/parity-arguments
+  - /research/why/design-recipe
+  - /research/lab/experiments/joshua-blackwood/solver
+sources:
+  - label: "Le topic de reproduction ledger-prune : code, plan et résultats committés"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+---
+
+La recherche de hauts scores sur Eternity II tourne avec une tolérance aux
+ruptures : le DFS peut poser une pièce discordante tant que le nombre total de
+ruptures facturées reste dans un budget. Dans ce cadre, presque aucun élagage
+classique n'est correct, car le budget est une ressource globale ; une branche
+qui semble localement morte peut être sauvée en dépensant une rupture tout à
+fait ailleurs. Je me suis demandé si un test de comptage purement global
+pouvait élaguer malgré tout, sans jamais couper une complétion qui tient dans
+le budget. C'est possible : zéro déclenchement erroné sur tous les rejeux, et
+des réductions de nœuds qui se composent avec la profondeur, même si leur
+ampleur dépend du moteur.
+
+## Fonctionnement
+
+À chaque nœud, la recherche tient un registre, couleur par couleur : l'offre de
+demi-arêtes que proposent encore les pièces inutilisées (les quatre côtés de
+chacune), et la demande du front (côtés exposés des cases posées face aux cases
+vides, plus le bord gris que le cadre doit encore). Deux conditions nécessaires
+en découlent pour toute complétion qui respecte le budget de ruptures restant
+r :
+
+- **Déficit.** Le manque total, sommé sur les couleurs comme max(0, demande
+  moins offre), ne peut jamais dépasser r. C'est la forme consciente du budget
+  de l'échec « plus de couleur c » qu'un DFS nu ne découvre que case par case.
+- **Parité.** Le nombre de couleurs dont l'écart offre moins demande est impair
+  ne peut jamais dépasser 2r, plus une place par jonction d'indice non
+  facturée. Un placement parfaitement apparié déplace chaque balance de couleur
+  d'une quantité paire ; la parité ne bouge donc qu'à une rupture facturée (qui
+  bascule exactement deux couleurs) ou à une jonction d'indice non facturée (au
+  plus une).
+
+Si l'une des deux conditions échoue, aucune complétion dans le budget n'existe
+sous le nœud et tout le sous-arbre est sauté. Les deux se prouvent par le même
+argument d'invariance, ce qui rend l'élagage correct et non heuristique : il
+n'a jamais besoin de deviner où les ruptures seront dépensées.
+
+## Ce qui a été mesuré
+
+Trois sondes, toutes committées dans le topic de reproduction.
+
+**La porte de correction.** Rejouer la queue parfaite connue d'un tableau à
+marge nulle ; la vraie queue n'ayant besoin d'aucune rupture, tout
+déclenchement est un bug. Huit tableaux générés, 257 profondeurs chacun : zéro
+déclenchement. La version d'origine de cette étude, dans mon moteur de chasse
+aux records, a passé la même porte sur quatre tableaux à haut score (251 cases
+jugées chacun), zéro déclenchement aussi.
+
+**La grille A/B.** Épuiser deux fois un suffixe fixé d'un tableau généré
+résolu, élagage coupé puis actif, en comptant toutes les complétions dans le
+budget. Les deux bras doivent trouver les mêmes complétions ; ce fut le cas
+dans les 144 paires non censurées. Les 96 cellules de la grille (suffixes de 20
+à 32 cases, budgets 1 à 3, 8 graines) montrent un ratio de nœuds au-dessus
+de 1 : minimum 1,48x, médianes de 1,8x à 4,1x. La parité est partout le
+déclencheur dominant.
+
+**Les lignes de certificat.** Les trois tableaux 464 communautaires (retrouvés
+via les URL committées de [l'étude design-recipe](/research/why/design-recipe) ;
+le palmarès communautaire vit sur la [page des records](/research/records)) ont
+été retournés de 180 degrés et leurs queues épuisées à budgets sans marge, le
+protocole de l'étude d'origine. Les tableaux s'identifient par leur empreinte
+de ruptures de suffixe ; l'un lit (2, 5, 6, 7) contre le (2, 5, 6, 8)
+d'origine, trois profondeurs exactes et une décalée d'une seule rupture par
+différence de convention de facturation. Ce tableau est le tableau 1 de l'étude
+d'origine.
+
+## Le résultat
+
+| Affirmation (mesure d'origine) | Mesuré ici | Statut |
+|---|---|---|
+| Zéro déclenchement erroné en rejouant les vraies queues à marge nulle | 0 déclenchement sur 8 tableaux x 257 profondeurs | reproduit |
+| L'élagage ne change jamais la réponse | complétions identiques dans les 144 paires A/B non censurées | reproduit |
+| Ratio de nœuds au-dessus de 1 à petits budgets | les 96 paires de la grille au-dessus de 1 (min 1,48x) | reproduit |
+| Le ratio se compose avec la profondeur (1,5x, 140x, 995x, 4 330x) | 1,7x, 19,4x, 45,3x ; ligne la plus profonde censurée | forme reproduite, ampleur liée au moteur |
+| Nul à grand budget (~0,1 pour cent de déclenchements) | la sonde est restée dans le régime actif (76 à 82 pour cent) | non testé ici |
+
+Sur le tableau 464 identifié, à budgets identiques à l'origine (r = 5 et r = 6
+sur les lignes profondes), l'épuisement a trouvé exactement une complétion à
+chaque profondeur non censurée, la forme de certificat que l'origine rapporte,
+et le ratio se compose :
+
+<Figure collapsible title="Lignes de certificat sur le tableau 464 (retourné 180°, budgets sans marge)">
+
+| profondeur | budget | nœuds sans élagage | nœuds LEDGER | ratio | ratio d'origine |
+|---|---|---|---|---|---|
+| 232 | 2 | 542 | 316 | 1,7x | 1,5x |
+| 224 | 5 | 3 784 655 | 194 827 | 19,4x | 140x |
+| 216 | 6 | 182 403 237 | 4 029 724 | 45,3x | 995x |
+| 208 | 7 | censuré à 300 s | censuré à 300 s | n/a | 4 330x |
+
+</Figure>
+
+Un multiplicateur qui grandit avec la profondeur est la signature d'une
+réduction du facteur de branchement, la seule espèce d'accélération qui survit
+au passage à l'échelle (l'argument est déroulé dans
+[l'élagage bat la vitesse](/research/why/prune-vs-speed)).
+
+## Portée et limites
+
+La correction est le titre, et elle est indépendante du moteur ; les ampleurs
+ne le sont pas. Le moteur d'origine jugeait le registre par candidat, sur une
+mise à jour incrémentale, dans une recherche à godets limitée à une discordance
+par case, et mesurait 140x à 4 330x sur les mêmes lignes. Ce portage juge une
+fois par nœud sur un registre recalculé de zéro, facture les ruptures par arête
+sans plafond par case, et atteint 45,3x avant que le plafond de 300 secondes ne
+censure la ligne la plus profonde. Porter le registre incrémental par candidat
+est l'étape suivante nommée ; d'ici là, le chiffre de 4 330x est attribué au
+moteur d'origine, pas confirmé par celui-ci.
+
+Deux choses de plus ne suivent pas. Ce n'est pas une revendication de score :
+LEDGER élague un DFS à budget de ruptures existant (la famille de moteurs
+derrière des recherches comme
+[celle de Joshua Blackwood](/research/lab/experiments/joshua-blackwood/solver)) ;
+il ne trouve rien tout seul. Et il ne paie que dans le régime petit budget et
+suffixe profond : l'origine mesurait environ 0,1 pour cent de déclenchements
+sous un budget généreux à l'échelle du tableau, où la tenue du registre est une
+perte sèche. Ma sonde hors régime n'a même pas pu atteindre ce régime
+silencieux sur un suffixe court (un budget épuisable s'assèche près des
+feuilles, là où vivent la plupart des nœuds) ; ce nul reste donc non testé ici.

@@ -1,0 +1,139 @@
+---
+title: "Making a beam producer 10x better: the answer is width"
+description: >-
+  A verified survey plus paired measurement: no per-node cleverness beats raw
+  beam width at equal wall-clock. The two additives that survive are
+  randomising exactly-tied truncation keys (free) and SMC-style resampling of
+  survivors (small but significant).
+metaDescription: "Paired measurements on planted Eternity II style ladders show raw beam width dominates every smart per-node signal at equal wall-clock; randomised tie-breaks are a free win and SMC resampling of survivors adds one to six percent depending on bed hardness."
+kind: finding
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run in this study is single-threaded"
+  wallClock: "12 s saturated width-law passes; 3 s per A/B arm (192 arms in the powered SMC comparison)"
+  seedPolicy: "seeded; paired seeds share the identical instance in both arms"
+  measured: true
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-beam-width-smc
+  topic: beam-width-smc
+  scope: >-
+    The command reproduces the three positive sub-claims (width ordering,
+    tie-break win, SMC win) as signs and orderings over paired seeds on
+    kit-generated ladder instances. Exact digits are bed-bound; the source
+    study's harder bed gives the same signs at larger magnitudes. The two
+    negative controls (completability oracle, dominance merge) are cited from
+    the source study and are not rebuilt by the command.
+order: 80
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, speed, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/how-hard-is-this-instance
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+sources:
+  - label: "Zhang, Complete Anytime Beam Search (AAAI-98)"
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-060.pdf
+  - label: "Particle-filter inference scaling (2025)"
+    url: https://arxiv.org/html/2502.01618v3
+  - label: "Sequential Monte Carlo steering"
+    url: https://arxiv.org/pdf/2306.03081
+---
+
+I went looking for the lever that would make a wide-beam constructor ten times
+better per unit of compute: a smarter per-node score, a completability oracle,
+a dominance rule, anything. After a literature survey and a round of paired
+A/B measurements, the answer is deflating and useful: the lever is raw beam
+width. Everything clever loses to simply running wider at the same wall-clock,
+with exactly two cheap exceptions, both changes to *which* survivors are kept
+rather than to how nodes are scored.
+
+## What was measured
+
+The test bed is a ladder of planted, solvable N×N instances built with the
+project's kit generator: framed boards with the real colour balance, a known
+optimum of 2N(N−1) matched interior edges, and 5 solution cells pinned as
+hints, mirroring the official clue setup. A parametric layer beam fills the
+board in row-major order, and three survivor rules compete at fixed width and
+fixed wall-clock: deterministic top-k truncation (plain), top-k with
+randomised tie-breaking among exactly tied keys, and SMC resampling, where
+survivors are drawn in proportion to a softmax of their score, particle-filter
+style. Every finished board is re-scored through the canonical rim-excluding
+scorer; no solver self-report is trusted.
+
+Two disciplines matter here. First, all A/B comparisons are paired: both arms
+see the identical instance and seed, and the statistics are paired t and
+Wilcoxon over the per-seed deltas. Second, the rung size is capped at N=12,
+because at N=14 the score distribution is strongly bimodal and seed variance
+dwarfs mechanism variance; a few-seed comparison at that size is noise. How
+much instance hardness moves measured scores is a theme of its own; see
+[how hard is this instance](/research/why/how-hard-is-this-instance).
+
+## The result
+
+Width is the dominant lever, and it is not close. On the original study's
+harder bed the mean score over optimum climbs monotonically from 0.210 at
+width 32 to 0.346 (width 128), 0.527 (width 512), and 0.743 (width 2048) at a
+fixed 3-second budget. The expensive alternatives lose at equal wall-clock in
+that same study: a Hall-matching completability oracle scores 0.441 at width
+64 where a plain beam given the same 10 seconds reaches 0.815 at width 8192,
+and a decision-diagram style dominance merge drops the score from 0.679 to
+0.657. Their per-node cost grows with board size exactly where depth is
+scarcest, so the wall-clock they burn buys less than the width it could have
+bought.
+
+The committed reproduction confirms every sign on the kit bed:
+
+<Figure collapsible title="Expected (source bed) vs measured (kit bed)">
+
+| Sub-claim | Expected (source bed) | Measured (kit bed) |
+| --- | --- | --- |
+| Width law, plain beam, mean score/opt at w32/128/512/2048 | 0.210 / 0.346 / 0.527 / 0.743, monotone | 0.836 / 0.854 / 0.866 / 0.878 at N=12, 12 paired seeds, monotone at every step |
+| Tie-break randomisation at w128 | 0.346 to 0.376, helps every N | 0.853 to 0.861 at N=12; +2.06 edges, paired t = 3.47, Wilcoxon z = 2.69, win/tie/loss 10/4/2 over 16 pairs |
+| SMC resampling at w1024, 96 paired seeds, N in {10, 12} | +8.6 mean edges (about +6%), t = 2.08, win/tie/loss 48/14/34 | +1.83 mean edges (about +1.0%), t = 5.78, Wilcoxon z = 5.45, win/tie/loss 65/14/17, at T = 0.15 |
+| SMC node counts vs plain | comparable (86k vs 93k) | identical by construction at fixed width (20,013,677 in both arms at N=12) |
+
+</Figure>
+
+The two survivor-rule additives are individually significant. Randomising
+among exactly tied truncation keys costs nothing and gains +2.06 edges at
+width 128. SMC resampling gains +1.75 edges at N=10 (t = 3.30) and +1.92 at
+N=12 (t = 5.41), with identical node counts in both arms: the gain is not
+extra compute but which partials survive. A resampled frontier stays diverse
+and lives deeper before dying, where a deterministic top-k frontier can choke
+early on near-duplicate survivors. The temperature had to be swept: T = 1.0 is
+catastrophic (17 to 29 edges lost, every seed loses), and the gain lives on a
+plateau around T in [0.1, 0.2]. The best board from the powered run, an SMC
+board at N=12 scoring
+[237 of 264](https://eternity2.dev/viewer?puzzle=smc_n12_c22_s34&puzzle_size=12&board_edges=adcaacpdafjcacofafqcadmfaeldabmeaetbacpeabmcaadbcmeaplimjunloswuquismgtulmngmmmmtqhmpwwqmjrwdabjejbaipwjnqopwjsqiiojtskinqusmsoqhmgswukmrtuubadtblbawkolomjksplmolipknulunwnoopngrgokhvrughhdaegbpdaorlpjtwrltntisutukjswstkpvisgltvvtklhwsteafwdlbaltqlwvjhnivouspijumstrnuiwigtwvikkwwsjvkfaejbsbaqjgsjrqjvltrpgqlmmignthmitvtvpntwrhqvkhreabkbgcagpogqhpptvshqwjviwvwhuiovgrunnnghhjnhrohbafrcheajrqhpqkrshiqupnhvkopirhkrklrnutijoouovrofaevekcaqvnkkniviggnnuopqjuuhgqjvlggtsrloqhsrvpmeafvcmfanujqklquglkloitlgvkinsnvgqjsrlpkhomsprqofabrfeaakdaewdadifadgdafweadscaehcacpfacmdafrcadbaac&hints=67.0-62.1-7.2-19.0-112.0),
+is checkable edge by edge in the viewer.
+
+## What does not follow
+
+This is a claim about ladder instances, not about the canonical 16×16 puzzle.
+Whether the SMC gain transfers to a real 16×16 producer, and to the quality of
+the pool it feeds downstream, is explicitly open; none of these numbers is a
+record claim of any kind (the state of the board scores that matter lives on
+the [records page](/research/records)).
+
+Three measured caveats bound the claim further. The kit instances are markedly
+easier than the source bed (score ratios 0.82 to 0.88 versus 0.21 to 0.74),
+which compresses the headroom above the plain beam: the SMC gain lands at
+about +1% relative here versus +6% there, same sign, stronger significance.
+This port's per-node cost is higher than the source engine's, so the width law
+is reported at saturation (12-second cap, every pass completes) rather than in
+the source's equal-wall-clock framing; the survivor-rule A/Bs are unaffected,
+since both arms expand identical node counts at fixed width by construction.
+And the tie-break result licenses one thing only: randomising among *exactly*
+tied keys. Widening the score-tolerance window is a different move and a
+disastrous one on the real 16×16 producer in the source study (450 down to 290
+at tolerance 2). Randomise ties; never widen the window.

@@ -2,7 +2,7 @@
 id: scaling-ladder
 title: The scaling ladder
 summary: A ladder of planted, solvable N by N instances with a known full-solve target of 2N(N-1) separates solver families by the largest N they still fully solve; propagating CSP-style methods hold a perfect score through N=12, border-first orderings break one rung earlier, and every method collapses at N=14.
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:
@@ -52,7 +52,7 @@ colour profile (22 interior colours, 5 rare colours confined to the
 frame-adjacent ring), the ladder cleanly separates two families. The
 propagating, constraint-driven family holds a perfect 1.000 ratio all the way
 through N=12 (264 of 264 matched edges). The border-first ordering family
-breaks a full rung earlier, collapsing to roughly 0.18 to 0.22 at N=12. At
+breaks a full rung earlier, collapsing to roughly 0.15 to 0.22 at N=12. At
 N=14 every method drops to a ratio of 0.05 to 0.16, independently reproducing
 a hardness threshold at N=14 that had been documented before on entirely
 different instances.

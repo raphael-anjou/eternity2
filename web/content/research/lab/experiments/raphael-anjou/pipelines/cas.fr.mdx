@@ -1,0 +1,167 @@
+---
+title: CAS
+description: >-
+  Poser d'abord une bordure parfaite, puis résoudre le plateau vers
+  l'intérieur, anneau par anneau, chaque anneau comme un problème
+  d'affectation sur les pièces restantes.
+metaDescription: "CAS résout Eternity II de l'extérieur vers l'intérieur : une bordure parfaite de 60 pièces, puis chaque anneau interne résolu sur les pièces restantes. Depuis 20 cadres parfaits, il plafonne à 429-437 sur 480, et bat à chaque fois une poursuite destruction-réparation partie des mêmes cadres."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "baseline arm 45 s × 8 frames; CAS arm deterministic per-shell beam over 20 frames (the source's per-shell MIP took 25 to 45 s per frame)"
+  seedPolicy: "seeded frame DFS; the shell beam is deterministic given a frame"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 437
+outcome: plateaued
+scoringConvention: matched-edges
+rigor: measured
+complexity:
+  time: "quelques secondes pour trouver chaque cadre 60/60 ; le MIP par anneau de la source prenait 25 à 45 s par cadre, le bras de référence 45 s par cadre"
+  space: "un seul anneau résolu à la fois ; les anneaux externes sont gelés une fois posés"
+  note: >-
+    Geler chaque anneau est ce qui rend les couches bon marché à résoudre, et
+    aussi ce qui affame les couches internes.
+repro:
+  kind: seeded
+  cmd: just research-cas-annular
+  topic: cas-annular
+  scope: "Relance tout depuis zéro : l'énumération des cadres, le bras CAS à 20 cadres et le bras de référence à 8 cadres, en régénérant le fichier de résultats archivé (scores par cadre, écarts et URL de plateau)."
+stages:
+  - engine: frame-input
+    does: "Un DFS de bordure avec graine énumère des cadres parfaits 60/60 distincts du puzzle officiel"
+  - engine: beam-producer
+    does: "Les anneaux sont résolus de l'extérieur vers l'intérieur, chacun comme une affectation sur les pièces restantes (beam par anneau de largeur 1024 ; les runs sources utilisaient un MIP par anneau)"
+    published: false
+order: 70
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/build/dead-ends
+sources:
+  - label: "Sujet de reproduction (ce projet) : plan archivé, crate de calcul et résultats par cadre derrière chaque nombre de cette page"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/cas-annular/article.md
+---
+
+CAS (concentric annular solving, résolution annulaire concentrique)
+construit le plateau comme pousse un oignon : on pose une bordure parfaite,
+puis on résout vers l'intérieur, anneau par anneau, jusqu'à ce que les
+quatre cases centrales ferment le plateau. La question posée : cet ordre de
+l'extérieur vers l'intérieur peut-il être un chemin vers les records ? La
+réponse est un non net doublé d'un oui utile : depuis n'importe quel cadre
+parfait, le pipeline plafonne dans une bande étroite de 429 à 437, et depuis
+ce même état de départ il bat une poursuite par destruction-réparation sur
+chacun des cadres, sans exception.
+
+## Fonctionnement
+
+Le plateau 16×16 se décompose en 8 anneaux concentriques de 60, 52, 44, 36,
+28, 20, 12 et 4 cases. CAS fixe d'abord l'anneau le plus externe comme cadre
+parfait 60/60 : les 60 cases de bordure remplies avec des pièces de bordure,
+chaque arête du pourtour grise, et les 60 adjacences internes à l'anneau
+appariées. Il résout ensuite chaque anneau interne à son tour comme un
+problème d'affectation sur les pièces encore libres, en maximisant les
+arêtes appariées contre l'anneau qui l'entoure plus celles internes à
+l'anneau lui-même. Une fois posé, un anneau est gelé ; la recherche n'y
+revient jamais.
+
+Les runs d'origine (volumes de recherche 74 à 79) résolvaient chaque anneau
+par MIP, 25 à 45 secondes par cadre. La reproduction archivée le remplace
+par un beam déterministe de largeur 1024 par anneau, qui retombe dans la
+même bande, et ajoute un bras de comparaison : épingler le même cadre,
+laisser l'intérieur vide, et confier cet état à une
+[recherche locale par destruction-réparation](/research/build/local-search/local-search-alns).
+
+## Le résultat
+
+Vingt cadres parfaits énumérés, vingt scores entre 429 et 437 arêtes
+appariées sur 480 (moyenne 432,8). L'audit source, sur ses propres 20
+cadres, se tenait entre 430 et 436 avec une moyenne de 432,4. La bande et la
+moyenne se reproduisent à un point près de chaque côté, et le cadre ne
+compte pas : chaque cadre 60/60 mène au même plateau. Le meilleur plateau de
+la reproduction score 437 ; il est vérifiable
+[arête par arête dans la visionneuse](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaabjbaeqbadteaftdafgfacrfabpcafubabjfafhbafqfadofadhdaendaabedgdajiggqphitwhptgiwgkogrphkpjppumhjjvomhnlvqgtnouvghmwuniombafjdpcagnnpwlmnhuqlisouoqwshwmqppvwhjqpoqtjlvmqtkuvvulkwswuommsfaemcpcansvpiujsqrluonjrkpgnmonpvmjoqgqmtrkgmhmrunhhlktnwhqkmorheabocnfavhunjlthljmlhukjgsquntksjkqtqmokkigmmhgihruhtrgrqpqrrhkpbachfoeaurhotusrgolukuwopmmukrvmqrtropprgmspgsjwuvusgtqvqvntkokvcacoeteahustsgrulorgwuiogvvlvitvtvphpsuvskpphvrkuwovqlhwnkolkgikcadgencaspwnrilpriliiklqvwvkuiwqooiqijjrprsjrmorinjmhsknoiisiwgidafwcqeawinqliwillkilwolvwlwwmulijjmqwlrtqqwosnqjtrukmttiommgllofaelepbanqrpwoiqklwooupllsnhuhwklsuhhwusqngwnnsnrqunttlqmrgtlslreaesbgbaringigqiwwvgpmiwnnvjvijnuksivrtknkvrssskujoslijjgpnilulpeaeubteanpgtqgmpvgsgisjgvntorkmnsmwktrsmvmtrtplmoslgjuhsnkoulqjkeafqeibagtgimsutsphsjnmptmqnmrwmwpkrstoptpjtlsnptgwshhlgouqnjuoufafubmdagmtlujvmqovjmnloqoqnwmsokqhmoriqjkgrntkkwvwtlrwvqvproknvfackdsdatjisvvijvlwvlkplqjskshvjhrphijurgwvjkrvwwhtrwjhhpjijnthjcadtdcaaidacidadweadpcaesbacveabpdaeufadvcafvbactfabhcafrbachcabdaac&hints=135.0-210.1-34.1-221.2-45.1).
+
+<Figure collapsible title="Attendu vs mesuré (20 cadres CAS, 8 cadres de référence)">
+
+| grandeur | mesures d'origine | cette reproduction |
+| --- | --- | --- |
+| bande CAS sur les cadres parfaits | 430 à 436 | 429 à 437 (n = 20) |
+| moyenne CAS | 432,4 | 432,8 |
+| référence depuis le même cadre | 385 à 398 (ALNS complet, 60 s/cadre) | 411 à 419 (proxy léger, 45 s/cadre) |
+| CAS contre la référence | gagne chaque cadre comparé, +34 à +49 | gagne chaque cadre, +13 à +23 |
+
+</Figure>
+
+La seconde moitié est le duel. Partie du même cadre épinglé avec un
+intérieur vide, la poursuite par recherche locale perd à chaque fois. Dans
+la mesure source (alns_only complet, 60 secondes par cadre), elle atteignait
+385 à 398 et perdait les 8 comparaisons disponibles par 34 à 49 points. Le
+proxy plus léger de la reproduction fait mieux en absolu (411 à 419) et perd
+quand même chaque cadre, par 13 à 23 points. L'ampleur de l'écart n'est pas
+comparable entre les deux montages ; sa direction et sa constance sur chaque
+cadre le sont.
+
+## Pourquoi ça s'arrête
+
+Le plateau n'est pas un problème de réglage, ni un trou dans l'objectif :
+les 480 arêtes sont toutes dans l'objectif de CAS. Le mécanisme est une
+pénurie de pièces. Les anneaux externes, résolus gloutonnement, verrouillent
+les pièces selon leur qualité vers l'extérieur, et aux anneaux 5 à 7 le pool
+restant ne contient tout simplement plus de pièces dont les profils de
+couleurs conviennent aux contraintes tournées vers l'intérieur. C'est la
+version à l'échelle des anneaux du
+[vol de pièces](/research/why/piece-theft) : une pièce rare dépensée tôt,
+des anneaux avant la case qui en avait besoin.
+
+Les volumes sources ont tenté les sauvetages évidents, et les deux
+confirment le diagnostic. Un hybride CAS-ALNS score 418, pire que CAS seul ;
+une passe de raffinement ALNS sur un plateau CAS terminé atteint 437 à 439,
+un gain de quelques points qui reste loin de ce que d'autres pipelines de ce
+carnet atteignent depuis zéro sur le même matériel. Pour situer la barre de
+la communauté, voir la [page des records](/research/records).
+
+## Ce qui suit, et ce qui ne suit pas
+
+CAS est deux choses à la fois, et les deux moitiés font le résultat. Comme
+chemin vers les records, il est réfuté en tant qu'ordre glouton : l'ordre de
+l'extérieur vers l'intérieur affame sa propre fin de partie, depuis
+n'importe quel cadre. Comme outil de sous-problème, c'est la meilleure
+option que j'aie mesurée pour un état précis, un cadre parfait plus un
+intérieur vide. Les opérateurs de destruction-réparation attendent un
+plateau complet à muter ; face à un intérieur vide, ils doivent d'abord en
+construire un, mal, tandis que CAS est exactement l'outil constructif de cet
+état. Le bon algorithme dépend de l'état de départ ; la composition du
+pipeline compte autant que ses composants.
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) est
+l'expérience sœur qui garde le cadre épinglé mais abandonne l'ordre anneau
+par anneau.
+
+Trois réserves bornent la conclusion. La reproduction épingle les cinq
+pièces indices officielles ; les pages sources ne disent pas si les runs
+d'origine le faisaient. Les cinq indices sont tous à l'intérieur, le bras
+cadre n'est donc pas affecté, et l'épinglage ne peut que rendre la
+reproduction légèrement conservatrice, la direction sûre pour une
+affirmation de plateau. Le bras de référence est un proxy léger : seules la
+direction de l'écart et sa constance sur chaque cadre se transposent, pas sa
+taille. Et les nombres sont des propriétés du jeu de pièces officiel 16×16 :
+le mécanisme vit dans les anneaux 5 à 7, qu'un plateau 8×8 (4 anneaux)
+n'atteint jamais, si bien qu'un test sur petit plateau ne peut ni confirmer
+ni réfuter la conclusion.
+
+## Reproduire
+
+`just research-cas-annular` relance l'ensemble depuis zéro : énumération des
+cadres par DFS de bordure avec graine, bras CAS à 20 cadres, bras de
+référence à 8 cadres, et régénération du fichier de résultats archivé avec
+scores par cadre, écarts et une URL de visionneuse pour chaque plateau.

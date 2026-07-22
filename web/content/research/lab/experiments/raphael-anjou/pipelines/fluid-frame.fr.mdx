@@ -1,0 +1,157 @@
+---
+title: Le cadre fluide
+description: >-
+  Une bordure parfaite de 60 pièces n'est pas un objet rigide. Chaque cadre
+  entièrement apparié admet exactement 45 échanges libres à coût de bordure
+  nul ; un tiers des cadres parfaits ne peuvent même pas démarrer l'intérieur,
+  et un seul échange libre ranime chacun d'eux.
+metaDescription: "Une bordure parfaite d'Eternity II n'est pas un objet rigide : chaque cadre de 60 pièces entièrement apparié admet exactement 45 échanges libres à coût de bordure nul. 36 % des cadres parfaits ne peuvent pas démarrer l'intérieur, et un seul échange libre ranime chaque cadre mort échantillonné."
+kind: finding
+contribution: analysis
+rigor: measured
+author: raphael-anjou
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "well under a minute for the 500-frame main run on one core (; a preflight at the default scale completed in about 7 s)"
+  seedPolicy: "deterministic: seed0 1 for the main run, seed0 7001 for the robustness pass"
+  measured: false
+repro:
+  kind: exact
+  cmd: "just research-frame-manifold"
+  scope: "Régénère la passe principale de 500 cadres et la passe de robustesse de 100 cadres et reproduit results/manifold.json octet par octet ; seule la mécanique est re-mesurée, aucun plateau complet n'est produit"
+order: 75
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, local-search]
+sources:
+  - label: "Sujet de reproduction (ce projet) : plan, code de calcul et résultats derrière chaque nombre de cette page"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/frame-manifold/article.md
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+---
+
+Les pipelines « bordure d'abord » comme
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister)
+construisent une bordure de 60 pièces entièrement appariée, la gèlent, puis
+imposent ses 56 couleurs tournées vers l'intérieur comme contraintes dures à
+la recherche intérieure. Je voulais savoir si cet objet gelé est vraiment un
+seul objet, en partant d'un réflexe simple : quand l'intérieur cale contre le
+rebord, pourquoi revenir en arrière sur la bordure alors qu'on pourrait
+échanger une seule pièce du rebord ? Mesurée sur 500 cadres parfaits frais,
+la réponse est plus nette que la question. Une bordure parfaite est une
+variété connexe avec exactement 45 sorties libres ; un tiers des bordures
+parfaites ne peuvent même pas démarrer l'intérieur ; et un échange libre
+répare chaque cadre mort échantillonné, à coût de bordure nul.
+
+## Ce qui a été mesuré
+
+D'abord les définitions. Un cadre place les 4 coins et les 56 pièces de bord
+sur les 60 cases de bordure du plateau officiel 16×16, le gris exactement
+vers l'extérieur. BB compte les adjacences bord-à-bord appariées le long de
+l'anneau, maximum 60 ; BB = 60 est un cadre parfait. Un échange légal permute
+deux pièces posées de la même classe (coin avec coin, pièce de bord avec
+pièce de bord) ; les rotations étant forcées par la règle du gris vers
+l'extérieur, un échange est déterminé par la paire de cases. Un échange est
+libre quand il laisse BB à 60.
+
+Le crate de calcul génère ses propres cadres BB = 60 du jeu officiel de 256
+pièces (un placement en profondeur d'abord randomisé sur les 60 cases de
+bordure), puis mesure chaque affirmation directement :
+
+1. chaque échange légal de même classe et son coût en BB, cumulé sur tous
+   les cadres ;
+2. des chaînes d'échanges libres, l'ensemble libre étant recalculé sur
+   l'anneau courant à chaque pas, en suivant BB, le nombre de coups libres,
+   et la dérive de l'anneau et du vecteur de couleurs intérieures ;
+3. la remplissabilité de chaque case intérieure touchant le cadre : un cadre
+   est mort quand une telle case ne peut être remplie par aucune des 196
+   pièces intérieures ;
+4. une réparation gloutonne de chaque cadre mort par échanges libres
+   uniquement.
+
+Passe principale : 500 cadres générés indépendamment, marche de longueur
+100, réanimation tentée sur les 60 premiers cadres morts. La passe est
+déterministe ; relancer la commande archivée reproduit le fichier de
+résultats octet par octet. Le premier cadre généré se regarde dans la
+[visionneuse](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaaepbacqeadpcabmdacrbacpcafvcafufabtfachbabhcacsbaepcadteaacddtcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaencnfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabofhcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaababgcidaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafhdofaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafaelfoeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaeseqbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabvbpcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafuckfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafadufqfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadadgfjbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaepbjfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaetftdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeadwdhdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaendcaaocacrfacgfafqeafmfaewdafsdadidadgcadvbacjbabteabueaeibaeeaab).
+
+## Le résultat
+
+**Exactement 45 coups libres, sur chaque cadre.** Les 500 cadres parfaits
+admettent exactement 45 échanges libres, jamais 44, jamais 46. Aucun échange
+n'augmente jamais BB (60 est le maximum), et les coups libres se composent :
+après 100 échanges libres enchaînés, BB vaut toujours 60 et 45 coups libres
+restent disponibles. Le compte ne s'épuise jamais.
+
+**Aucun n'est cosmétique.** Zéro des 45 échanges libres ne préserve la
+couleur intérieure des pièces touchées : chaque coup libre change le vecteur
+de contraintes que la bordure présente à l'intérieur. Une marche libre de
+100 pas a visité 99 vecteurs de cibles de rebord distincts sur 101 possibles
+sans jamais quitter BB = 60.
+
+**Parfait n'est pas utilisable.** 180 des 500 cadres parfaits (36 pour cent)
+avaient au moins une case intérieure qu'aucune des 196 pièces intérieures ne
+pouvait remplir, et 46 (9,2 pour cent) étaient morts dès la toute première
+case qu'un solveur en ordre de balayage visite : la recherche intérieure
+meurt à la profondeur 0 malgré un score de bordure parfait. La réparation
+gloutonne par échanges libres seuls a ranimé 60 cadres morts sur 60, BB ne
+quittant jamais 60. Dans l'exemple travaillé de l'étude source, un seul
+échange libre a fait passer un DFS cadré de la profondeur 0 à la profondeur
+153 sur 196.
+
+<Figure collapsible title="Attendu contre mesuré (passe principale, 500 cadres)">
+
+| Quantité | Attendu (source) | Mesuré |
+| --- | --- | --- |
+| Échanges libres par cadre parfait | 45, chaque cadre | 45 sur les 500 cadres |
+| Échanges qui augmentent BB | 0 | 0 sur 773 000 paires cumulées |
+| Parts de coût BB (-4 / -3 / -2 / 0) | 63,9 / 1,2 / 31,8 / 3,1 % | 63,8 / 1,4 / 31,9 / 2,9 % |
+| BB le long d'une marche libre de 100 échanges | 60 à chaque jalon | 60 à chaque jalon |
+| Coups libres disponibles le long de la marche | 45 à chaque jalon | 45 à chaque jalon |
+| Cases de l'anneau changées après 100 échanges libres | 36 sur 60 | 33 sur 60 |
+| Échanges libres préservant la couleur intérieure | 0 sur 45 | 0 sur 45 |
+| Vecteurs de cibles de rebord distincts visités | 292 (marche source plus longue) | 99 sur 101 possibles |
+| Cadres morts (une case non remplissable) | 180/500 (36,0 %) | 180/500 (36,0 %) |
+| Morts dès la case de départ du balayage | 55/500 (11,0 %) | 46/500 (9,2 %) |
+| Histogramme des cases mortes (1 / 2 / 3) | 155 / 24 / 1 | 154 / 25 / 1 |
+| Cadres morts ranimés par échanges libres seuls | 100 % | 60/60, BB toujours à 60 |
+
+</Figure>
+
+Une passe de robustesse à graine indépendante (100 cadres frais, base de
+graine 7001) concorde : 45 échanges libres sur chaque cadre, aucun gain, 45
+cadres morts sur 100 (histogramme 38 / 7), les 45 tous ranimés, et la marche
+tient de nouveau BB = 60 avec 45 coups libres du début à la fin. La chute
+tient donc à travers générateurs et graines : une bordure parfaite et une
+bordure utilisable sont deux propriétés différentes, et le cadre peut rester
+mobile pendant la recherche au lieu d'être défait par retour arrière.
+
+## Ce qui n'en découle pas
+
+- Aucune affirmation n'est faite que marcher sur la variété ou ranimer des
+  cadres morts améliore les scores de plateaux complets. L'A/B de l'étude
+  source n'a produit aucun plateau cadré complet ; tout effet sur le score
+  reste une question ouverte, et un producteur qui garde le cadre fluide
+  pendant la recherche intérieure est un travail futur. Cette page publie la
+  mécanique seule.
+- Le 45 est revendiqué comme une propriété du jeu de pièces officiel et
+  répliqué ici sur des cadres issus d'un autre générateur. Le taux de cadres
+  morts est une propriété de l'échantillonnage du générateur : 36,0 pour
+  cent sur la passe principale, 45 pour cent sur la passe à graine
+  indépendante ; l'énoncé défendable est un taux entre le milieu des 30 et
+  le milieu des 40 pour cent, pas un 36 universel.
+- Le compte brut de paires de même classe est de 1546 par cadre ici contre
+  environ 1458 dans la source, qui excluait de toute évidence une classe de
+  paires sans effet. Les parts et les deux lignes porteuses (45 libres, 0
+  gain) concordent quoi qu'il en soit.
+- Les cadres sont ici sans indices, comme dans la mesure source ; la
+  compatibilité des cadres avec les indices est un sujet distinct et ne fait
+  pas partie de cette affirmation.

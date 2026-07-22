@@ -1383,3 +1383,25 @@ re-export with a bounded draw, paired t and Wilcoxon statistics in
 non-Rust consumers, board-size feature passthrough, and a documented
 piece-for-piece guarantee that `data/official.json` matches the community
 CSV (verified 256/256, same order, same sides).
+
+## 2026-07-22 — Six lab articles: Raphaël's explorations, reproduction-backed
+
+Six write-ups landed in the lab section, each in native EN/FR/ES and each
+backed by a published reproduction topic with committed results and a
+`just research-<topic>` recipe: CAS (concentric annular solving; the 430-437
+plateau from any perfect frame and the every-frame win over a
+destroy-and-repair continuation), the fluid frame (perfect borders form a
+connected manifold; 45 free exchanges, dead frames revive through one free
+swap; mechanism only, the producer is future work), LEDGER (the sound
+supply/demand prune; zero unsound fires, certificate rows on the community
+464 boards with the compounding node-ratio law), beam width (width dominates
+every per-node improvement; tie-break randomisation and SMC resampling are
+the two real additives), FROSTLINE (a belief-propagation residual predicts
+one-row tail finishability across producer regimes), and the scaling ladder
+(planted fully-solvable rungs with proven ceilings; collapse size measured
+before real-board compute is spent). Six backing topics flipped from draft
+to published in the registry. Review pass before landing: internal volume
+numbering scrubbed from public text, a wrong remembered DOI caught and
+corrected against the actual CP 2008 chapter, source-study figures
+attributed and given article-level traces, wall-clock strings aligned with
+the hardware block's measured flag.

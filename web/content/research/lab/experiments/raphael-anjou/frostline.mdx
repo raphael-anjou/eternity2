@@ -1,0 +1,140 @@
+---
+title: FROSTLINE
+description: >-
+  A belief-propagation free energy computed over a board's last-row leftover
+  pieces rank-predicts how well that row can still finish. The signal is not a
+  raw-score proxy, survives a change of producer, and dies past one row.
+metaDescription: "FROSTLINE reads the Bethe free energy of a belief-propagation model over an Eternity II board's last-row leftover pieces and rank-predicts the exact achievable tail score (Spearman rho about -0.75, cross-validated). The signal is not a raw-score proxy and dies beyond one row of 16 cells."
+kind: finding
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "about 2 minutes for the full 120-seed run, single core"
+  seedPolicy: "fully seeded; re-running the command regenerates the committed JSON byte for byte"
+  measured: false
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: "just research-frostline"
+  scope: "Regenerates the 120 greedy tops, the exact last-row labels, and the full correlation table (qualitative tier: the source study's beam-top ensemble is not regenerated)"
+order: 45
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, structure, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/why/entropy-area-law
+  - /research/why/phase-transition
+sources:
+  - label: "Yedidia, Freeman, Weiss: Understanding Belief Propagation and its Generalizations (MERL TR2001-22)"
+    url: https://www.merl.com/publications/docs/TR2001-22.pdf
+  - label: "Committed reproduction: plan, script, and results (this project)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/tail-finishability-frostline
+---
+
+A constructive builder ranks its partial boards by matched edges so far. That
+number says nothing about whether the leftover pieces can still finish the
+remaining cells well. FROSTLINE asks whether a cheap physics-style quantity,
+the Bethe free energy of a belief-propagation model over the last row's
+leftover pieces, predicts the exact best score that row can still reach. At
+one row it does: Spearman rho about -0.75, cross-validated, and the signal
+survives a change of producer.
+
+## How it works
+
+Freeze a full board's first fifteen rows and take the sixteen pieces the board
+itself placed in row 15 as the leftover pool, which guarantees the last row
+can be filled at all. Two numbers are then computed per board:
+
+- **The label.** An exact solver (a bitmask dynamic program over piece subsets
+  and seam colours, exact in milliseconds at 16 cells) finds the best
+  achievable tail score: the 15 edges inside the last row plus the 16 seam
+  edges against row 14, out of 31.
+- **The predictor.** A factor graph over the sixteen empty cells, with cell
+  states drawn from the leftover pool and pairwise factors that reward colour
+  agreement at inverse temperature beta. Sum-product belief propagation runs
+  on it and the Bethe free energy is read off. Lower free energy should mean a
+  more finishable tail.
+
+Two modelling choices matter. The tail is a max-matching problem, not a hard
+constraint problem: a colour mismatch costs one point instead of being
+forbidden, so the graph is a finite-beta soft model rather than a
+satisfiability instance. And the seam against the frozen rows must be a soft
+factor; the source study measured that a hard seam filter contradicts itself
+on 5 of 16 cells of real near-optimal tops. At one row the residual graph is a
+chain, so belief propagation is exact there and the free energy is the true
+log partition function.
+
+## The result
+
+The source study found the effect on 103 distinct tops from a
+width-2048 beam producer, raw scores 446 to 452. The committed reproduction
+regenerates everything in a different regime: 120 seeded greedy tops, raw
+scores 361 to 396, best-tail labels 16 to 22. The expected column below cites
+the source study; the measured column is this run.
+
+<Figure collapsible title="Expected vs measured, last row (16 cells)">
+
+| quantity | source study (beam tops, n = 103) | this run (greedy tops, n = 120) |
+| --- | --- | --- |
+| Spearman rho(free energy, tail optimum), beta 4 | -0.776 (SD 0.040) | -0.743 (bootstrap SD 0.049) |
+| top-vs-bottom tercile AUC | 0.013 (clean, inverted) | 0.108 (clean, inverted) |
+| partial rho, controlling for raw score | -0.697 | -0.742 |
+| baseline rho(raw score, tail optimum) | +0.605 | +0.081 |
+| disjoint seed-half cross-validation | -0.795 / -0.754 | -0.840 / -0.627 |
+| mean-domain null control | flat | flat |
+
+</Figure>
+
+The pre-registered gate (|rho| at least 0.4, or AUC above 0.75 or below 0.25)
+is cleared at every beta tried, with the source's sign. Two readings of the
+table:
+
+- **Not a raw-score proxy.** Controlling for the board's own matched-edge
+  count, the partial correlation stays at -0.74. In the greedy regime the raw
+  score is nearly uninformative about the tail (+0.08 against the source's
+  +0.605), which makes this control stricter here, not weaker.
+- **It measures the board, not the producer.** The signal was found on beam
+  tops and reproduces on greedy tops, a different producer with a lower and
+  wider quality distribution. A statistic that survives that swap is reading
+  the leftover pieces, not an artifact of how the board was built.
+
+Single boards make the point concrete: the reproduction's
+[worst-tail top](/viewer?puzzle_size=16&board_edges=abeaachbadpcadidaftdabjfaeibaeteafoeaemfaeueabveacsbadtcadhdaacdencahhunptwhhjnttrujjkgrillkthjlourhmhjuuqlhvntqspwnpskphvjscafvcidaujsiwgsjnnpgujuogisjliwijurirsmtjprsllkptjoqwwvgksmwjuhsfadudweasoqwsujopmmuulwmslrlwvwlrnkvmpjnrilpkkgiokvkvulkmhgihrphdabmepcaqgmpjiggmrwmwvlrrtkvwvwtkvwvjgwvlorggllovmqllljmghhlpnqrbacrcocamjvogtgiwushlplukrwpwhtrwkuhwhqkruhhlgvvqmqgjovmpproqrqpcabhckfasiukgqiivprqlmtpwuhmtmsuujvmqovjhmkqvwppquiwvgourtrgqvgtbacvfjbaunrqigpnringtvvihnlvsvpnvlwvhwqlkrvwphkriqphoqnqrtrqgwstdafwbtearkgtpgnkntovvphtlsnppgmswqngqwtqjhhwkprhppjpnvokrkhvsntkfacnendarkmnnhskomnihmrmnwlmmsownhlsttkmhustsrtujminorrmhmortlgmcafhdofamnlosnnnnvjnriliwtgiopstloupklwosuhltnpgiiwgrluqqttlgkogfacrfubalrqwnpmojijpjjmiqphjsuvpkjhuttpjjistqwoiwolluisogmkiokqmcacpbtfaqikljvvijklquwokpmiwrgtmhsspqugssgruoslgkqjsssskkrvmqhwmcadgfufakounvuwolijjowuiinqwtkknsoiigtnqrvmtusuvgvgshunvvtkuwuwsdadsfgfauqnontmqjkqtugolqooiriqoommisommlnkojronijjrnvijktnlqosneabobdaagdadteadqbaegbabjbabqeacseaepbaepcablfaeqfafqeafpdaehbafcaad) scores 375 raw with a best achievable tail of
+16, while its [best-tail top](/viewer?puzzle_size=16&board_edges=adcaadhdadsdadidacidabhcacsbadpcadgdaendabveabgbabjbacvbadtcaacdcqeahwmqsoqwiqwoiklqhvrkmqlvphjqgimhngrivvlggsgvjprsvwpptwvwcafvepdammupqgqmwwvglwvwtqqwlhuqjlthmnwlrqunlhwqgwqnrjkgpppjvulkfafudofauploqgmpvomjvuwoqnoukolnttkmwhptunvhsnnnqoqnkuwojvmulwvvfacrfhcalghhmkigmnrknpgnoqtjjklqkgikpnigvoknnjroqovjwmsomsomvpnscaepchbahruhijurrijjgqiittlqlgmtiiwgisoikqjsrtrqvvitssphouisnhhueafqbjfaumhjulwmjmllinjmlktnrwpkwgsjouvgjtrurgrtisjgpgmsigtghmkqfaemfqfahnlvhsknlgosjigguksipgnksqugvgtqrusgrhoujnthmpjnpskpkssseaesfgfallogkillommiiwpmstgwnqgtuiwqliwistjiopsttnpgjnnvkvrnswuweadwfjbaovmjlrwvmorrpprogwvjksmwutmsrsmtjuhssthuplmtrqwlrqpqooiqdafwboeamniopmonrgtmolugsnhltkknqtjkmqnthmrmhiqpmorhwuiooujuinqwfacneqbailprorgltkvruvtkmkrvuhwkjnvilomnriqolirirqvpvntqjmijqkwhcacobpcajttpgiwtvwvkollwrlslwoklvntomokqqrlukgtrgkogtvphijvvjlijcadgcrbatusrhmwuvwkrlsuhuvuskokvtrwhpnqrplsnulpllkplprhkvmtrmrwmdaftbmdasiujjpjikrphunkoushwhvjswjhhhukjsntkpwnspsuvnqosujoshhrpfadubdaaueaencaepcackfachbaftfabubafteabteaelfaeoeafibaeteadpbaeeaab) scores 372 raw with a tail of 22.
+The lower-raw board has the better ending.
+
+## What does not follow
+
+- **The signal dies past one row.** Holding the same label and cutting the
+  board higher, the source's correlation degrades from -0.74 at 16 residual
+  cells to -0.19 at 32 and -0.12 at 48, as the mean per-cell domain grows from
+  12.5 to 32.6 to 72.2. FROSTLINE is a last-row finishability oracle, not a
+  mid-construction steering signal.
+- **It does not (yet) buy better boards.** In the source study, using it to
+  select which partials get exact-solve compute does not beat selecting by raw
+  score: the realized full score is dominated by the raw-score spread, while
+  the free energy predicts only a small tail delta. The discriminator is real;
+  the selection value, in this form, is not.
+- **Secondary quantities are regime-dependent.** The Bethe entropy correlation
+  flips sign between regimes, and two quantities that were null on beam tops
+  carry weak signal on greedy tops. None of this touches the free-energy
+  headline, but all of it is recorded as caveats in the committed plan.
+- Nothing here moves a full-board score; for where the frontier actually
+  stands, see the [records page](/research/records).
+
+## Reproduce
+
+The run is seeded and deterministic: `just research-frostline` regenerates the
+120 tops, the exact labels, and the full correlation table in about two
+minutes on one core, reproducing the committed `frostline_r15.json`. This is a
+qualitative-tier reproduction: the effect's sign and strength band are
+regenerated; the source study's beam-top ensemble is not. The full
+expected-number list and the scale-faithfulness argument live in the committed
+plan linked above.

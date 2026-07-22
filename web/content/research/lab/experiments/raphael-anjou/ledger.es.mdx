@@ -1,0 +1,157 @@
+---
+title: LEDGER
+description: >-
+  Llevar, color a color, la oferta de semiaristas frente a la demanda del
+  frente en un DFS con presupuesto de rupturas, y podar en cuanto el déficit o
+  su paridad superan las rupturas restantes. Correcto por construcción; la
+  ganancia se compone con la profundidad.
+metaDescription: "LEDGER es una poda global correcta para el DFS de Eternity II tolerante a rupturas: oferta contra demanda por color frente al presupuesto restante. Cero disparos erróneos en todas las repeticiones; en las colas de los tableros 464 la razón de nodos se compone de 1,7x a 45,3x sin censura."
+kind: experiment
+contribution: method
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run here is single-threaded"
+  wallClock: "25 s cap per A/B arm on the phase 1 grid, 300 s per arm on the certificate rows"
+  seedPolicy: "node counts are seed-deterministic (seeds 1-8); a re-run reproduces the committed JSON byte-for-byte"
+  measured: false
+repro:
+  kind: seeded
+  cmd: "just research-ledger-prune"
+  scope: "reejecuta la puerta de corrección, la malla A/B sobre tableros generados y las filas de certificado en las colas de los 464; los conteos de nodos son deterministas por semilla, pero qué brazos se censuran en los topes de tiempo depende de la máquina"
+order: 40
+updated: 2026-07-22
+date: 2026-07
+topics: [backtracking, search-space, structure]
+related:
+  - /research/why/prune-vs-speed
+  - /research/build/analysis/parity-arguments
+  - /research/why/design-recipe
+  - /research/lab/experiments/joshua-blackwood/solver
+sources:
+  - label: "El topic de reproducción ledger-prune: código, plan y resultados en el repositorio"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+---
+
+La búsqueda de puntuaciones altas en Eternity II corre con una tolerancia a
+rupturas: el DFS puede colocar una pieza discordante mientras el total de
+rupturas cobradas quepa en un presupuesto. En ese marco casi ninguna poda
+clásica es correcta, porque el presupuesto es un recurso global; una rama que
+parece localmente muerta puede salvarse gastando una ruptura en un lugar
+completamente distinto. Me pregunté si una prueba de conteo puramente global
+podía podar de todos modos, sin cortar jamás una compleción que quepa en el
+presupuesto. Se puede: cero disparos erróneos en todas las repeticiones, y
+reducciones de nodos que se componen con la profundidad, aunque su magnitud
+depende del motor.
+
+## Cómo funciona
+
+En cada nodo la búsqueda lleva un libro de cuentas, color a color: la oferta de
+semiaristas que aún ofrecen las piezas sin usar (los cuatro lados de cada una)
+y la demanda del frente (lados expuestos de las celdas colocadas que miran a
+celdas vacías, más el borde gris que el marco todavía debe). De ahí salen dos
+condiciones necesarias para toda compleción que respete el presupuesto de
+rupturas restante r:
+
+- **Déficit.** La carencia total, sumada sobre los colores como max(0, demanda
+  menos oferta), nunca puede superar r. Es la forma consciente del presupuesto
+  del fallo "se acabó el color c" que un DFS desnudo solo descubre celda a
+  celda.
+- **Paridad.** El número de colores cuya diferencia oferta menos demanda es
+  impar nunca puede superar 2r, más un hueco por cada unión de pista no
+  cobrada. Una colocación perfectamente apareada mueve cada balance de color en
+  una cantidad par; la paridad solo cambia en una ruptura cobrada (que voltea
+  exactamente dos colores) o en una unión de pista no cobrada (a lo sumo uno).
+
+Si cualquiera de las dos falla, no existe compleción dentro del presupuesto
+bajo ese nodo y el subárbol entero se salta. Ambas se demuestran con el mismo
+argumento de invariancia, que es lo que hace la poda correcta y no heurística:
+nunca necesita adivinar dónde se gastarán las rupturas.
+
+## Qué se midió
+
+Tres sondas, todas confirmadas en el topic de reproducción.
+
+**La puerta de corrección.** Repetir la cola perfecta conocida de un tablero
+con holgura cero; como la cola verdadera no necesita rupturas, cualquier
+disparo es un bug. Ocho tableros generados, 257 profundidades cada uno: cero
+disparos. La versión original de este estudio, dentro de mi motor de caza de
+récords, pasó la misma puerta sobre cuatro tableros de alta puntuación (251
+celdas juzgadas cada uno), también con cero disparos.
+
+**La malla A/B.** Agotar dos veces un sufijo fijado de un tablero generado
+resuelto, poda apagada y poda encendida, contando todas las compleciones dentro
+del presupuesto. Los dos brazos deben hallar las mismas compleciones; así fue
+en los 144 pares sin censura. Las 96 celdas de la malla (sufijos de 20 a 32
+celdas, presupuestos 1 a 3, 8 semillas) muestran una razón de nodos por encima
+de 1: mínimo 1,48x, medianas de 1,8x a 4,1x. La paridad es el disparador
+dominante en todas partes.
+
+**Las filas de certificado.** Los tres tableros 464 comunitarios (recuperados
+de las URL del [estudio design-recipe](/research/why/design-recipe); el cuadro
+comunitario vive en la [página de récords](/research/records)) se giraron 180
+grados y sus colas se agotaron con presupuestos sin holgura, el protocolo del
+estudio original. Los tableros se identifican por su huella de rupturas de
+sufijo; uno lee (2, 5, 6, 7) frente al (2, 5, 6, 8) original, tres
+profundidades exactas y una desplazada en una sola ruptura por una diferencia
+de convención de cobro. Ese tablero es el tablero 1 del estudio original.
+
+## El resultado
+
+| Afirmación (medida original) | Medido aquí | Estado |
+|---|---|---|
+| Cero disparos erróneos repitiendo colas reales con holgura cero | 0 disparos en 8 tableros x 257 profundidades | reproducido |
+| La poda nunca cambia la respuesta | compleciones idénticas en los 144 pares A/B sin censura | reproducido |
+| Razón de nodos por encima de 1 con presupuestos pequeños | los 96 pares de la malla por encima de 1 (mín 1,48x) | reproducido |
+| La razón se compone con la profundidad (1,5x, 140x, 995x, 4.330x) | 1,7x, 19,4x, 45,3x; la fila más profunda censurada | forma reproducida, magnitud ligada al motor |
+| Nulo con presupuesto grande (~0,1 por ciento de disparos) | la sonda quedó en el régimen activo (76 a 82 por ciento) | no probado aquí |
+
+En el tablero 464 identificado, con presupuestos idénticos a los originales
+(r = 5 y r = 6 en las filas profundas), el agotamiento halló exactamente una
+compleción en cada profundidad sin censura, la forma de certificado que el
+original reporta, y la razón se compone:
+
+<Figure collapsible title="Filas de certificado en el tablero 464 (girado 180°, presupuestos sin holgura)">
+
+| profundidad | presupuesto | nodos sin poda | nodos LEDGER | razón | razón original |
+|---|---|---|---|---|---|
+| 232 | 2 | 542 | 316 | 1,7x | 1,5x |
+| 224 | 5 | 3.784.655 | 194.827 | 19,4x | 140x |
+| 216 | 6 | 182.403.237 | 4.029.724 | 45,3x | 995x |
+| 208 | 7 | censurado a 300 s | censurado a 300 s | n/a | 4.330x |
+
+</Figure>
+
+Un multiplicador que crece con la profundidad es la firma de una reducción del
+factor de ramificación, la única clase de aceleración que sobrevive al cambio
+de escala (el argumento está desarrollado en
+[la poda vence a la velocidad](/research/why/prune-vs-speed)).
+
+## Alcance y límites
+
+La corrección es el titular, y es independiente del motor; las magnitudes no lo
+son. El motor original juzgaba el libro de cuentas por candidato, sobre una
+actualización incremental, dentro de una búsqueda por cubetas limitada a una
+discordancia por celda, y midió de 140x a 4.330x en las mismas filas. Este
+porte juzga una vez por nodo sobre un libro recalculado desde cero, cobra las
+rupturas por arista sin tope por celda, y alcanza 45,3x antes de que el tope de
+300 segundos censure la fila más profunda. Portar el libro incremental por
+candidato es el siguiente paso declarado; hasta entonces, la cifra de 4.330x se
+atribuye al motor original, no la confirma este.
+
+Dos cosas más no se siguen. Esto no es una afirmación de puntuación: LEDGER
+poda un DFS con presupuesto de rupturas ya existente (la familia de motores
+detrás de búsquedas como
+[la de Joshua Blackwood](/research/lab/experiments/joshua-blackwood/solver));
+por sí solo no encuentra nada. Y solo compensa en el régimen de presupuesto
+pequeño y sufijo profundo: el original midió alrededor de 0,1 por ciento de
+disparos bajo un presupuesto generoso a escala del tablero, donde la
+contabilidad es pérdida pura. Mi sonda fuera de régimen ni siquiera pudo
+alcanzar ese régimen silencioso sobre un sufijo corto (un presupuesto agotable
+se seca cerca de las hojas, donde vive la mayoría de los nodos); ese nulo queda
+por tanto sin probar aquí.

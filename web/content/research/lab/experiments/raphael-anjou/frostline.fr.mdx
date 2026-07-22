@@ -1,0 +1,148 @@
+---
+title: FROSTLINE
+description: >-
+  Une énergie libre issue de la propagation de croyances, calculée sur les
+  pièces restantes de la dernière rangée, prédit le rang de la meilleure fin
+  possible. Le signal n'est pas un proxy du score brut, survit à un changement
+  de producteur et meurt au-delà d'une rangée.
+metaDescription: "FROSTLINE lit l'énergie libre de Bethe d'un modèle de croyances sur les pièces restantes de la dernière rangée d'Eternity II et prédit le rang du meilleur score de fin exact (rho de Spearman proche de -0,75, validation croisée). Pas un proxy du score brut; le signal meurt au-delà d'une rangée."
+kind: finding
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "about 2 minutes for the full 120-seed run, single core"
+  seedPolicy: "fully seeded; re-running the command regenerates the committed JSON byte for byte"
+  measured: false
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: "just research-frostline"
+  scope: "Régénère les 120 sommets gloutons, les étiquettes exactes de dernière rangée et la table de corrélations complète (palier qualitatif : l'ensemble de sommets de faisceau de l'étude source n'est pas régénéré)"
+order: 45
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, structure, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/why/entropy-area-law
+  - /research/why/phase-transition
+sources:
+  - label: "Yedidia, Freeman, Weiss : Understanding Belief Propagation and its Generalizations (MERL TR2001-22)"
+    url: https://www.merl.com/publications/docs/TR2001-22.pdf
+  - label: "Reproduction versionnée : plan, script et résultats (ce projet)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/tail-finishability-frostline
+---
+
+Un constructeur classe ses plateaux partiels par arêtes appariées. Ce nombre
+ne dit rien de la capacité des pièces restantes à bien finir les cases qui
+restent. FROSTLINE pose la question : une quantité bon marché venue de la
+physique statistique, l'énergie libre de Bethe d'un modèle de propagation de
+croyances sur les pièces restantes de la dernière rangée, prédit-elle le
+meilleur score que cette rangée peut encore atteindre ? Sur une rangée, oui :
+rho de Spearman proche de -0,75, en validation croisée, et le signal survit à
+un changement de producteur.
+
+## Comment ça marche
+
+On gèle les quinze premières rangées d'un plateau complet et on prend comme
+réserve les seize pièces que le plateau lui-même avait placées en rangée 15,
+ce qui garantit que la dernière rangée reste remplissable. Deux nombres sont
+alors calculés par plateau :
+
+- **L'étiquette.** Un solveur exact (une programmation dynamique par masques
+  de bits sur les sous-ensembles de pièces et les couleurs de jointure, exacte
+  en quelques millisecondes à 16 cases) donne le meilleur score de fin
+  atteignable : les 15 arêtes internes de la dernière rangée plus les 16
+  arêtes de jointure contre la rangée 14, sur 31.
+- **Le prédicteur.** Un graphe de facteurs sur les seize cases vides, avec des
+  états tirés de la réserve et des facteurs de paire qui récompensent l'accord
+  de couleur à température inverse beta. La propagation de croyances
+  somme-produit tourne dessus et on lit l'énergie libre de Bethe. Une énergie
+  plus basse devrait signifier une fin plus atteignable.
+
+Deux choix de modélisation comptent. La fin de plateau est un problème de
+couplage maximal, pas de contraintes dures : un désaccord de couleur coûte un
+point au lieu d'être interdit, le graphe est donc un modèle souple à beta fini
+et non une instance de satisfiabilité. Et la jointure contre les rangées
+gelées doit être un facteur souple ; l'étude source a mesuré qu'un filtre de
+jointure dur se contredit sur 5 cases sur 16 des vrais sommets quasi optimaux.
+Sur une rangée, le graphe résiduel est une chaîne : la propagation de
+croyances y est exacte et l'énergie libre est le vrai logarithme de la
+fonction de partition.
+
+## Le résultat
+
+L'étude source a trouvé l'effet sur 103 sommets distincts issus
+d'un faisceau de largeur 2048, scores bruts 446 à 452. La reproduction
+versionnée régénère tout dans un autre régime : 120 sommets gloutons
+ensemencés, scores bruts 361 à 396, étiquettes de fin 16 à 22. La colonne
+attendue cite l'étude source ; la colonne mesurée est cette exécution.
+
+<Figure collapsible title="Attendu vs mesuré, dernière rangée (16 cases)">
+
+| quantité | étude source (faisceau, n = 103) | cette exécution (glouton, n = 120) |
+| --- | --- | --- |
+| rho de Spearman (énergie libre, optimum de fin), beta 4 | -0.776 (SD 0.040) | -0.743 (SD bootstrap 0.049) |
+| AUC tercile haut contre bas | 0.013 (net, axe inversé) | 0.108 (net, axe inversé) |
+| rho partiel, à score brut contrôlé | -0.697 | -0.742 |
+| rho de base (score brut, optimum de fin) | +0.605 | +0.081 |
+| validation croisée par moitiés de graines | -0.795 / -0.754 | -0.840 / -0.627 |
+| contrôle nul (taille moyenne de domaine) | plat | plat |
+
+</Figure>
+
+Le seuil pré-enregistré (|rho| d'au moins 0,4, ou AUC au-dessus de 0,75 ou en
+dessous de 0,25) est franchi à chaque beta essayé, avec le signe de la source.
+Deux lectures de la table :
+
+- **Pas un proxy du score brut.** À score du plateau contrôlé, la corrélation
+  partielle reste à -0,74. Dans le régime glouton, le score brut est presque
+  muet sur la fin (+0,08 contre +0,605 chez la source), ce qui rend ce
+  contrôle plus strict ici, pas plus faible.
+- **On mesure le plateau, pas le producteur.** Le signal a été trouvé sur des
+  sommets de faisceau et se reproduit sur des sommets gloutons, un producteur
+  différent à distribution de qualité plus basse et plus large. Une
+  statistique qui survit à cet échange lit les pièces restantes, pas un
+  artefact de la façon dont le plateau a été construit.
+
+Des plateaux isolés rendent le point concret : le
+[pire sommet de fin](/viewer?puzzle_size=16&board_edges=abeaachbadpcadidaftdabjfaeibaeteafoeaemfaeueabveacsbadtcadhdaacdencahhunptwhhjnttrujjkgrillkthjlourhmhjuuqlhvntqspwnpskphvjscafvcidaujsiwgsjnnpgujuogisjliwijurirsmtjprsllkptjoqwwvgksmwjuhsfadudweasoqwsujopmmuulwmslrlwvwlrnkvmpjnrilpkkgiokvkvulkmhgihrphdabmepcaqgmpjiggmrwmwvlrrtkvwvwtkvwvjgwvlorggllovmqllljmghhlpnqrbacrcocamjvogtgiwushlplukrwpwhtrwkuhwhqkruhhlgvvqmqgjovmpproqrqpcabhckfasiukgqiivprqlmtpwuhmtmsuujvmqovjhmkqvwppquiwvgourtrgqvgtbacvfjbaunrqigpnringtvvihnlvsvpnvlwvhwqlkrvwphkriqphoqnqrtrqgwstdafwbtearkgtpgnkntovvphtlsnppgmswqngqwtqjhhwkprhppjpnvokrkhvsntkfacnendarkmnnhskomnihmrmnwlmmsownhlsttkmhustsrtujminorrmhmortlgmcafhdofamnlosnnnnvjnriliwtgiopstloupklwosuhltnpgiiwgrluqqttlgkogfacrfubalrqwnpmojijpjjmiqphjsuvpkjhuttpjjistqwoiwolluisogmkiokqmcacpbtfaqikljvvijklquwokpmiwrgtmhsspqugssgruoslgkqjsssskkrvmqhwmcadgfufakounvuwolijjowuiinqwtkknsoiigtnqrvmtusuvgvgshunvvtkuwuwsdadsfgfauqnontmqjkqtugolqooiriqoommisommlnkojronijjrnvijktnlqosneabobdaagdadteadqbaegbabjbabqeacseaepbaepcablfaeqfafqeafpdaehbafcaad) de la reproduction fait 375 en brut avec
+une meilleure fin de 16, tandis que le [meilleur](/viewer?puzzle_size=16&board_edges=adcaadhdadsdadidacidabhcacsbadpcadgdaendabveabgbabjbacvbadtcaacdcqeahwmqsoqwiqwoiklqhvrkmqlvphjqgimhngrivvlggsgvjprsvwpptwvwcafvepdammupqgqmwwvglwvwtqqwlhuqjlthmnwlrqunlhwqgwqnrjkgpppjvulkfafudofauploqgmpvomjvuwoqnoukolnttkmwhptunvhsnnnqoqnkuwojvmulwvvfacrfhcalghhmkigmnrknpgnoqtjjklqkgikpnigvoknnjroqovjwmsomsomvpnscaepchbahruhijurrijjgqiittlqlgmtiiwgisoikqjsrtrqvvitssphouisnhhueafqbjfaumhjulwmjmllinjmlktnrwpkwgsjouvgjtrurgrtisjgpgmsigtghmkqfaemfqfahnlvhsknlgosjigguksipgnksqugvgtqrusgrhoujnthmpjnpskpkssseaesfgfallogkillommiiwpmstgwnqgtuiwqliwistjiopsttnpgjnnvkvrnswuweadwfjbaovmjlrwvmorrpprogwvjksmwutmsrsmtjuhssthuplmtrqwlrqpqooiqdafwboeamniopmonrgtmolugsnhltkknqtjkmqnthmrmhiqpmorhwuiooujuinqwfacneqbailprorgltkvruvtkmkrvuhwkjnvilomnriqolirirqvpvntqjmijqkwhcacobpcajttpgiwtvwvkollwrlslwoklvntomokqqrlukgtrgkogtvphijvvjlijcadgcrbatusrhmwuvwkrlsuhuvuskokvtrwhpnqrplsnulpllkplprhkvmtrmrwmdaftbmdasiujjpjikrphunkoushwhvjswjhhhukjsntkpwnspsuvnqosujoshhrpfadubdaaueaencaepcackfachbaftfabubafteabteaelfaeoeafibaeteadpbaeeaab) fait 372 en
+brut avec une fin de 22. Le plateau au score brut plus bas a la meilleure fin.
+
+## Ce qui ne suit pas
+
+- **Le signal meurt au-delà d'une rangée.** À étiquette constante et coupe
+  plus haute, la corrélation de la source se dégrade de -0,74 à 16 cases
+  résiduelles à -0,19 à 32 et -0,12 à 48, pendant que le domaine moyen par
+  case passe de 12,5 à 32,6 puis 72,2. FROSTLINE est un oracle de fin de
+  dernière rangée, pas un signal de pilotage en cours de construction.
+- **Il n'achète pas (encore) de meilleurs plateaux.** Dans l'étude source,
+  s'en servir pour choisir quels partiels reçoivent du calcul exact ne bat pas
+  le choix par score brut : le score final réalisé est dominé par l'étalement
+  du score brut, quand l'énergie libre ne prédit qu'un petit delta de fin. Le
+  discriminateur est réel ; la valeur de sélection, sous cette forme, non.
+- **Les quantités secondaires dépendent du régime.** La corrélation de
+  l'entropie de Bethe change de signe entre régimes, et deux quantités nulles
+  sur les sommets de faisceau portent un signal faible sur les sommets
+  gloutons. Rien de tout cela ne touche le résultat principal, mais tout est
+  consigné en réserve dans le plan versionné.
+- Rien ici ne déplace un score de plateau complet ; pour l'état réel du
+  front, voir la [page des records](/research/records).
+
+## Reproduire
+
+L'exécution est ensemencée et déterministe : `just research-frostline`
+régénère les 120 sommets, les étiquettes exactes et la table de corrélations
+complète en deux minutes environ sur un cœur, et reproduit le
+`frostline_r15.json` versionné. C'est une reproduction de palier qualitatif :
+le signe et la bande de force de l'effet sont régénérés ; l'ensemble de
+sommets de faisceau de l'étude source ne l'est pas. La liste complète des
+nombres attendus et l'argument de fidélité d'échelle vivent dans le plan lié
+ci-dessus.
