@@ -1,0 +1,150 @@
+---
+title: "Hacer un productor beam 10x mejor: la respuesta es la anchura"
+description: >-
+  Un repaso verificado más mediciones apareadas: ninguna astucia por nodo
+  supera la anchura bruta del haz a igual tiempo de reloj. Los dos únicos
+  aditivos que sobreviven son aleatorizar las claves de truncado empatadas
+  exactamente (gratis) y el remuestreo SMC de los supervivientes (pequeño pero
+  significativo).
+metaDescription: "Mediciones apareadas sobre escaleras de instancias plantadas tipo Eternity II muestran que la anchura bruta del haz domina toda señal por nodo a igual tiempo; los desempates aleatorizados son una ganancia gratis y el remuestreo SMC añade entre uno y seis por ciento según la dureza del banco."
+kind: finding
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run in this study is single-threaded"
+  wallClock: "12 s saturated width-law passes; 3 s per A/B arm (192 arms in the powered SMC comparison)"
+  seedPolicy: "seeded; paired seeds share the identical instance in both arms"
+  measured: true
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-beam-width-smc
+  topic: beam-width-smc
+  scope: >-
+    El comando reproduce los tres subresultados positivos (ley de anchura,
+    ganancia del desempate aleatorio, ganancia SMC) como signos y órdenes sobre
+    semillas apareadas, en instancias de escalera generadas por el kit. Las
+    cifras exactas dependen del banco; el banco más duro del estudio fuente da
+    los mismos signos con magnitudes mayores. Los dos controles negativos
+    (oráculo de completabilidad, fusión por dominancia) se citan del estudio
+    fuente y el comando no los reconstruye.
+order: 80
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, speed, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/how-hard-is-this-instance
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+sources:
+  - label: "Zhang, Complete Anytime Beam Search (AAAI-98)"
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-060.pdf
+  - label: "Escalado de inferencia con filtros de partículas (2025)"
+    url: https://arxiv.org/html/2502.01618v3
+  - label: "Dirección por Monte Carlo secuencial"
+    url: https://arxiv.org/pdf/2306.03081
+---
+
+Buscaba la palanca que hiciera a un constructor de haz ancho diez veces mejor
+por unidad de cómputo: una puntuación por nodo más lista, un oráculo de
+completabilidad, una regla de dominancia, lo que fuera. Tras un repaso de la
+literatura y una campaña de mediciones A/B apareadas, la respuesta es
+decepcionante y útil a la vez: la palanca es la anchura bruta. Todo lo
+ingenioso pierde frente a un haz simplemente más ancho a igual tiempo de
+reloj, con exactamente dos excepciones baratas, ambas cambios en la regla de
+supervivencia, no en cómo se puntúan los nodos.
+
+## Qué se midió
+
+El banco de pruebas es una escalera de instancias N×N plantadas y resolubles,
+construidas con el generador del kit del proyecto: tableros con marco, el
+balance de colores real, un óptimo conocido de 2N(N−1) aristas interiores
+casadas y 5 celdas de la solución fijadas como pistas, a imagen de las pistas
+oficiales. Un beam por capas rellena el tablero en orden de filas, y tres
+reglas de supervivencia compiten a anchura y tiempo fijos: truncado top-k
+determinista (plain), top-k con desempate aleatorio entre claves empatadas
+exactamente, y remuestreo SMC, donde los supervivientes se sortean en
+proporción a un softmax de su puntuación, al estilo de un filtro de
+partículas. Cada tablero terminado se vuelve a puntuar con el marcador
+canónico que excluye el borde; no se cree ningún autoinforme del solver.
+
+Aquí importan dos disciplinas. Primero, todas las comparaciones son
+apareadas: ambos brazos ven la misma instancia y la misma semilla, y las
+estadísticas son una t apareada y un Wilcoxon sobre los deltas por semilla.
+Segundo, el tamaño de peldaño se limita a N=12, porque en N=14 la
+distribución de puntuaciones es fuertemente bimodal y la varianza de semilla
+aplasta la varianza de mecanismo; una comparación con pocas semillas ahí es
+ruido. Cuánto mueve la dureza de la instancia a las puntuaciones medidas es un
+tema propio; véase
+[cómo de difícil es esta instancia](/research/why/how-hard-is-this-instance).
+
+## El resultado
+
+La anchura es la palanca dominante, y no por poco. En el banco más duro del
+estudio original, la puntuación media sobre el óptimo sube de forma monótona
+de 0,210 a anchura 32 hasta 0,346 (anchura 128), 0,527 (anchura 512) y 0,743
+(anchura 2048) con un presupuesto fijo de 3 segundos. Las alternativas caras
+pierden a igual tiempo en ese mismo estudio: un oráculo de completabilidad por
+emparejamiento de Hall llega a 0,441 con anchura 64 donde un haz plain, con
+los mismos 10 segundos, alcanza 0,815 con anchura 8192, y una fusión por
+dominancia al estilo de diagramas de decisión baja la puntuación de 0,679 a
+0,657. Su coste por nodo crece con el tamaño del tablero justo donde la
+profundidad más escasea: el tiempo que queman compra menos que la anchura que
+podría haber pagado.
+
+La reproducción versionada confirma cada signo en el banco del kit:
+
+<Figure collapsible title="Esperado (banco fuente) vs medido (banco del kit)">
+
+| Subresultado | Esperado (banco fuente) | Medido (banco del kit) |
+| --- | --- | --- |
+| Ley de anchura, beam plain, media de score/opt a w32/128/512/2048 | 0,210 / 0,346 / 0,527 / 0,743, monótona | 0,836 / 0,854 / 0,866 / 0,878 a N=12, 12 semillas apareadas, monótona en cada paso |
+| Desempate aleatorio a w128 | 0,346 a 0,376, ayuda en cada N | 0,853 a 0,861 a N=12; +2,06 aristas, t apareada = 3,47, z de Wilcoxon = 2,69, victorias/empates/derrotas 10/4/2 sobre 16 pares |
+| Remuestreo SMC a w1024, 96 pares, N en {10, 12} | +8,6 aristas de media (cerca de +6 %), t = 2,08, victorias/empates/derrotas 48/14/34 | +1,83 aristas de media (cerca de +1,0 %), t = 5,78, z de Wilcoxon = 5,45, victorias/empates/derrotas 65/14/17, a T = 0,15 |
+| Nodos SMC vs plain | comparables (86k vs 93k) | idénticos por construcción a anchura fija (20 013 677 en ambos brazos a N=12) |
+
+</Figure>
+
+Los dos aditivos de la regla de supervivencia son significativos por
+separado. Aleatorizar las claves de truncado empatadas exactamente no cuesta
+nada y gana +2,06 aristas a anchura 128. El remuestreo SMC gana +1,75 aristas
+en N=10 (t = 3,30) y +1,92 en N=12 (t = 5,41), con recuentos de nodos
+idénticos en ambos brazos: la ganancia no es más cómputo, sino otra elección
+de parciales supervivientes. Un frente remuestreado se mantiene diverso y vive
+más profundo antes de morir, donde un frente top-k determinista puede
+ahogarse pronto con supervivientes casi duplicados. La temperatura hubo que
+barrerla: T = 1,0 es catastrófica (de 17 a 29 aristas perdidas, pierde cada
+semilla), y la ganancia vive en una meseta en torno a T en [0,1, 0,2]. El
+mejor tablero de la campaña, un tablero SMC a N=12 que puntúa
+[237 de 264](https://eternity2.dev/viewer?puzzle=smc_n12_c22_s34&puzzle_size=12&board_edges=adcaacpdafjcacofafqcadmfaeldabmeaetbacpeabmcaadbcmeaplimjunloswuquismgtulmngmmmmtqhmpwwqmjrwdabjejbaipwjnqopwjsqiiojtskinqusmsoqhmgswukmrtuubadtblbawkolomjksplmolipknulunwnoopngrgokhvrughhdaegbpdaorlpjtwrltntisutukjswstkpvisgltvvtklhwsteafwdlbaltqlwvjhnivouspijumstrnuiwigtwvikkwwsjvkfaejbsbaqjgsjrqjvltrpgqlmmignthmitvtvpntwrhqvkhreabkbgcagpogqhpptvshqwjviwvwhuiovgrunnnghhjnhrohbafrcheajrqhpqkrshiqupnhvkopirhkrklrnutijoouovrofaevekcaqvnkkniviggnnuopqjuuhgqjvlggtsrloqhsrvpmeafvcmfanujqklquglkloitlgvkinsnvgqjsrlpkhomsprqofabrfeaakdaewdadifadgdafweadscaehcacpfacmdafrcadbaac&hints=67.0-62.1-7.2-19.0-112.0),
+se puede comprobar arista a arista en el visor.
+
+## Qué no se sigue de esto
+
+Este es un resultado sobre instancias de escalera, no sobre el 16×16
+canónico. Que la ganancia SMC se transfiera a un productor 16×16 real, y a la
+calidad del vivero que alimenta aguas abajo, sigue explícitamente abierto;
+ninguna de estas cifras es una reivindicación de récord de ningún tipo (el
+estado de los tableros que cuentan vive en la
+[página de récords](/research/records)).
+
+Tres salvedades medidas acotan aún más el resultado. Las instancias del kit
+son bastante más fáciles que el banco fuente (ratios de 0,82 a 0,88 frente a
+0,21 a 0,74), lo que comprime el margen por encima del beam plain: la ganancia
+SMC aterriza aquí en torno a +1 % relativo frente a +6 % allí, mismo signo,
+significación más fuerte. El coste por nodo de este porte es mayor que el del
+motor fuente, así que la ley de anchura se reporta a saturación (tope de 12
+segundos, cada pasada termina) en lugar del marco a igual tiempo de la fuente;
+los A/B de la regla de supervivencia no se ven afectados, porque ambos brazos
+expanden por construcción los mismos nodos a anchura fija. Y el resultado de
+los desempates autoriza una sola cosa: aleatorizar las claves empatadas
+*exactamente*. Ensanchar la ventana de tolerancia de la puntuación es otro
+movimiento, y desastroso sobre el productor 16×16 real en el estudio fuente
+(450 cae a 290 con tolerancia 2). Aleatoriza los empates; nunca ensanches la
+ventana.

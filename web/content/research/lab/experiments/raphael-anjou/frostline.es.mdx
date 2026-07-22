@@ -1,0 +1,148 @@
+---
+title: FROSTLINE
+description: >-
+  Una energía libre de propagación de creencias, calculada sobre las piezas
+  sobrantes de la última fila, predice el rango del mejor final posible. La
+  señal no es un proxy del puntaje bruto, sobrevive a un cambio de productor y
+  muere más allá de una fila.
+metaDescription: "FROSTLINE lee la energía libre de Bethe de un modelo de creencias sobre las piezas sobrantes de la última fila de Eternity II y predice el rango del mejor final exacto (rho de Spearman cerca de -0,75, validación cruzada). No es un proxy del puntaje bruto; la señal muere más allá de una fila."
+kind: finding
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "about 2 minutes for the full 120-seed run, single core"
+  seedPolicy: "fully seeded; re-running the command regenerates the committed JSON byte for byte"
+  measured: false
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: "just research-frostline"
+  scope: "Regenera las 120 cimas voraces, las etiquetas exactas de la última fila y la tabla completa de correlaciones (nivel cualitativo: el conjunto de cimas de haz del estudio fuente no se regenera)"
+order: 45
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, structure, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/why/entropy-area-law
+  - /research/why/phase-transition
+sources:
+  - label: "Yedidia, Freeman, Weiss: Understanding Belief Propagation and its Generalizations (MERL TR2001-22)"
+    url: https://www.merl.com/publications/docs/TR2001-22.pdf
+  - label: "Reproducción versionada: plan, script y resultados (este proyecto)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/tail-finishability-frostline
+---
+
+Un constructor ordena sus tableros parciales por aristas emparejadas. Ese
+número no dice nada sobre si las piezas sobrantes todavía pueden terminar bien
+las celdas restantes. FROSTLINE pregunta si una cantidad barata tomada de la
+física estadística, la energía libre de Bethe de un modelo de propagación de
+creencias sobre las piezas sobrantes de la última fila, predice el mejor
+puntaje que esa fila aún puede alcanzar. En una fila, sí: rho de Spearman
+cerca de -0,75, con validación cruzada, y la señal sobrevive a un cambio de
+productor.
+
+## Cómo funciona
+
+Se congelan las primeras quince filas de un tablero completo y se toma como
+reserva las dieciséis piezas que el propio tablero había colocado en la fila
+15, lo que garantiza que la última fila sigue siendo completable. Después se
+calculan dos números por tablero:
+
+- **La etiqueta.** Un solver exacto (una programación dinámica con máscaras de
+  bits sobre subconjuntos de piezas y colores de costura, exacta en
+  milisegundos con 16 celdas) da el mejor puntaje de cola alcanzable: las 15
+  aristas internas de la última fila más las 16 aristas de costura contra la
+  fila 14, sobre 31.
+- **El predictor.** Un grafo de factores sobre las dieciséis celdas vacías,
+  con estados tomados de la reserva y factores de pareja que premian el
+  acuerdo de color a temperatura inversa beta. Sobre él corre propagación de
+  creencias suma-producto y se lee la energía libre de Bethe. Menor energía
+  libre debería significar una cola más terminable.
+
+Dos decisiones de modelado importan. La cola es un problema de emparejamiento
+máximo, no de restricciones duras: un desacuerdo de color cuesta un punto en
+vez de estar prohibido, así que el grafo es un modelo blando a beta finito y
+no una instancia de satisfacibilidad. Y la costura contra las filas congeladas
+debe ser un factor blando; el estudio fuente midió que un filtro de costura
+duro se contradice en 5 de 16 celdas de cimas reales casi óptimas. En una
+fila, el grafo residual es una cadena: allí la propagación de creencias es
+exacta y la energía libre es el verdadero logaritmo de la función de
+partición.
+
+## El resultado
+
+El estudio fuente encontró el efecto en 103 cimas distintas de un
+haz de anchura 2048, puntajes brutos de 446 a 452. La reproducción versionada
+lo regenera todo en otro régimen: 120 cimas voraces con semilla, puntajes
+brutos de 361 a 396, etiquetas de cola de 16 a 22. La columna esperada cita el
+estudio fuente; la columna medida es esta ejecución.
+
+<Figure collapsible title="Esperado vs medido, última fila (16 celdas)">
+
+| cantidad | estudio fuente (haz, n = 103) | esta ejecución (voraz, n = 120) |
+| --- | --- | --- |
+| rho de Spearman (energía libre, óptimo de cola), beta 4 | -0.776 (SD 0.040) | -0.743 (SD bootstrap 0.049) |
+| AUC tercil alto contra bajo | 0.013 (limpio, eje invertido) | 0.108 (limpio, eje invertido) |
+| rho parcial, controlando el puntaje bruto | -0.697 | -0.742 |
+| rho base (puntaje bruto, óptimo de cola) | +0.605 | +0.081 |
+| validación cruzada por mitades de semillas | -0.795 / -0.754 | -0.840 / -0.627 |
+| control nulo (tamaño medio de dominio) | plano | plano |
+
+</Figure>
+
+El umbral prerregistrado (|rho| de al menos 0,4, o AUC por encima de 0,75 o
+por debajo de 0,25) se supera con cada beta probado, con el signo de la
+fuente. Dos lecturas de la tabla:
+
+- **No es un proxy del puntaje bruto.** Controlando el conteo de aristas del
+  propio tablero, la correlación parcial se queda en -0,74. En el régimen
+  voraz el puntaje bruto casi no informa sobre la cola (+0,08 frente al +0,605
+  de la fuente), lo que hace este control más estricto aquí, no más débil.
+- **Mide el tablero, no el productor.** La señal se encontró en cimas de haz y
+  se reproduce en cimas voraces, un productor distinto con una distribución de
+  calidad más baja y más ancha. Una estadística que sobrevive a ese intercambio
+  está leyendo las piezas sobrantes, no un artefacto de cómo se construyó el
+  tablero.
+
+Tableros sueltos hacen concreto el punto: la
+[peor cima de cola](/viewer?puzzle_size=16&board_edges=abeaachbadpcadidaftdabjfaeibaeteafoeaemfaeueabveacsbadtcadhdaacdencahhunptwhhjnttrujjkgrillkthjlourhmhjuuqlhvntqspwnpskphvjscafvcidaujsiwgsjnnpgujuogisjliwijurirsmtjprsllkptjoqwwvgksmwjuhsfadudweasoqwsujopmmuulwmslrlwvwlrnkvmpjnrilpkkgiokvkvulkmhgihrphdabmepcaqgmpjiggmrwmwvlrrtkvwvwtkvwvjgwvlorggllovmqllljmghhlpnqrbacrcocamjvogtgiwushlplukrwpwhtrwkuhwhqkruhhlgvvqmqgjovmpproqrqpcabhckfasiukgqiivprqlmtpwuhmtmsuujvmqovjhmkqvwppquiwvgourtrgqvgtbacvfjbaunrqigpnringtvvihnlvsvpnvlwvhwqlkrvwphkriqphoqnqrtrqgwstdafwbtearkgtpgnkntovvphtlsnppgmswqngqwtqjhhwkprhppjpnvokrkhvsntkfacnendarkmnnhskomnihmrmnwlmmsownhlsttkmhustsrtujminorrmhmortlgmcafhdofamnlosnnnnvjnriliwtgiopstloupklwosuhltnpgiiwgrluqqttlgkogfacrfubalrqwnpmojijpjjmiqphjsuvpkjhuttpjjistqwoiwolluisogmkiokqmcacpbtfaqikljvvijklquwokpmiwrgtmhsspqugssgruoslgkqjsssskkrvmqhwmcadgfufakounvuwolijjowuiinqwtkknsoiigtnqrvmtusuvgvgshunvvtkuwuwsdadsfgfauqnontmqjkqtugolqooiriqoommisommlnkojronijjrnvijktnlqosneabobdaagdadteadqbaegbabjbabqeacseaepbaepcablfaeqfafqeafpdaehbafcaad) de la reproducción puntúa 375 en bruto con
+un mejor final de 16, mientras que la [mejor](/viewer?puzzle_size=16&board_edges=adcaadhdadsdadidacidabhcacsbadpcadgdaendabveabgbabjbacvbadtcaacdcqeahwmqsoqwiqwoiklqhvrkmqlvphjqgimhngrivvlggsgvjprsvwpptwvwcafvepdammupqgqmwwvglwvwtqqwlhuqjlthmnwlrqunlhwqgwqnrjkgpppjvulkfafudofauploqgmpvomjvuwoqnoukolnttkmwhptunvhsnnnqoqnkuwojvmulwvvfacrfhcalghhmkigmnrknpgnoqtjjklqkgikpnigvoknnjroqovjwmsomsomvpnscaepchbahruhijurrijjgqiittlqlgmtiiwgisoikqjsrtrqvvitssphouisnhhueafqbjfaumhjulwmjmllinjmlktnrwpkwgsjouvgjtrurgrtisjgpgmsigtghmkqfaemfqfahnlvhsknlgosjigguksipgnksqugvgtqrusgrhoujnthmpjnpskpkssseaesfgfallogkillommiiwpmstgwnqgtuiwqliwistjiopsttnpgjnnvkvrnswuweadwfjbaovmjlrwvmorrpprogwvjksmwutmsrsmtjuhssthuplmtrqwlrqpqooiqdafwboeamniopmonrgtmolugsnhltkknqtjkmqnthmrmhiqpmorhwuiooujuinqwfacneqbailprorgltkvruvtkmkrvuhwkjnvilomnriqolirirqvpvntqjmijqkwhcacobpcajttpgiwtvwvkollwrlslwoklvntomokqqrlukgtrgkogtvphijvvjlijcadgcrbatusrhmwuvwkrlsuhuvuskokvtrwhpnqrplsnulpllkplprhkvmtrmrwmdaftbmdasiujjpjikrphunkoushwhvjswjhhhukjsntkpwnspsuvnqosujoshhrpfadubdaaueaencaepcackfachbaftfabubafteabteaelfaeoeafibaeteadpbaeeaab) puntúa 372 en
+bruto con un final de 22. El tablero con menos puntaje bruto tiene el mejor
+final.
+
+## Lo que no se sigue
+
+- **La señal muere más allá de una fila.** Con la misma etiqueta y el corte
+  más arriba, la correlación de la fuente se degrada de -0,74 con 16 celdas
+  residuales a -0,19 con 32 y -0,12 con 48, mientras el dominio medio por
+  celda crece de 12,5 a 32,6 y 72,2. FROSTLINE es un oráculo de final de
+  última fila, no una señal de dirección a mitad de construcción.
+- **No compra (todavía) mejores tableros.** En el estudio fuente, usarlo para
+  elegir qué parciales reciben cómputo exacto no supera la elección por
+  puntaje bruto: el puntaje final realizado lo domina la dispersión del
+  puntaje bruto, mientras la energía libre solo predice un pequeño delta de
+  cola. El discriminador es real; el valor de selección, en esta forma, no.
+- **Las cantidades secundarias dependen del régimen.** La correlación de la
+  entropía de Bethe cambia de signo entre regímenes, y dos cantidades nulas en
+  cimas de haz llevan señal débil en cimas voraces. Nada de esto toca el
+  resultado principal, pero todo queda anotado como salvedad en el plan
+  versionado.
+- Nada de esto mueve un puntaje de tablero completo; para el estado real de la
+  frontera, ver la [página de récords](/research/records).
+
+## Reproducir
+
+La ejecución lleva semilla y es determinista: `just research-frostline`
+regenera las 120 cimas, las etiquetas exactas y la tabla completa de
+correlaciones en unos dos minutos con un núcleo, y reproduce el
+`frostline_r15.json` versionado. Es una reproducción de nivel cualitativo: se
+regeneran el signo y la banda de fuerza del efecto; el conjunto de cimas de
+haz del estudio fuente, no. La lista completa de números esperados y el
+argumento de fidelidad de escala viven en el plan enlazado arriba.

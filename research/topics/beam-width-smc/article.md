@@ -2,7 +2,7 @@
 id: beam-width-smc
 title: Beam width dominates smart signals; SMC resampling is the one survivor rule that helps
 summary: Beam width dominates every per-node improvement (measured monotone 0.836 to 0.878 score-over-optimum across widths 32 to 2048 on this bed; the harder source bed spanned 0.21 to 0.74), tie-break randomisation is a free win (+2.06 edges, paired t 3.47), and SMC resampling gives a small real gain (+1.83 edges, about +1 percent, paired t 5.78 over 96 pairs here; +6 percent on the source bed).
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:
@@ -128,3 +128,7 @@ cap, every pass completes) with node counts as the compute axis, which tests
 the width ordering rather than the source's equal-wall-clock framing. The
 survivor-rule A/Bs are unaffected: both arms expand identical node counts at
 fixed width by construction.
+
+## Source-context figures
+
+Negative-control figures quoted from the source study: the Hall-deficit completability oracle scored 0.441 at its best integration point, and the powered SMC comparison on the source bed was +8.6 edges (paired t 2.08) over 96 paired seeds. Per-arm compute here is 3 s over 192 arms in the powered SMC comparison.

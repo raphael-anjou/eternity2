@@ -1,0 +1,136 @@
+---
+title: The scaling ladder
+description: >-
+  A harness that runs any solver unchanged on planted, fully solvable boards at
+  N = 8, 10, 12, 14, each with a proven ceiling of 2N(N-1), so a method's
+  collapse size is measured before weeks are spent on the real 16×16.
+metaDescription: "The scaling ladder runs any Eternity II solver on planted, fully solvable boards at N = 8, 10, 12, 14 with a proven ceiling of 2N(N-1), measuring where a method collapses before it is pointed at the real 16×16."
+kind: tool
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores, 16 GB)"
+  wallClock: "12 s single-core budget per (solver, instance, seed) run; 4 rungs × 8 seeds × 2 solvers = 64 runs"
+  seedPolicy: "seeded; seeds 1 to 8 per rung, generator deterministic in (N, seed)"
+  measured: true
+contribution: tool
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-scaling-ladder
+  topic: scaling-ladder
+  produces: search
+  scope: "Rebuilds the four rungs from the seeded generator and re-runs the two shipped baselines; it reproduces the harness mechanics and the curve shapes, not the original thirteen-method grid, which needs the committed instance set."
+order: 85
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, backtracking]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/phase-transition
+  - /research/why/how-hard-is-this-instance
+  - /research/build/benchmarks
+sources:
+  - label: "Ansótegui et al., the phase transition in edge-matching puzzles (background for the hardness threshold)"
+    url: https://doi.org/10.1007/978-3-540-85958-1_42
+---
+
+The real 16×16 is an expensive place to discover that a method does not
+scale. The scaling ladder asks a cheaper question first: it runs any solver,
+unchanged, on fully solvable planted boards at N = 8, 10, 12 and 14, each
+with a proven ceiling, and reads off the size at which the method collapses.
+The two shipped baselines separate cleanly and degrade monotonically up the
+ladder, which is exactly the readout the harness exists to produce.
+
+## How it works
+
+Every rung is built backwards from a planted solution, so it is solvable by
+design, and its full-solve target comes free: an N×N grid has exactly
+2N(N-1) internal adjacencies, the planted board matches all of them, and no
+board can match more. The four rungs carry ceilings of 112, 180, 264 and
+364\. No external solver is needed to certify any of this; before a solver
+runs, the harness re-scores the planted board through the same rim-excluding
+scorer every solver will face and asserts it reaches the ceiling exactly.
+That assert is live: an early draft placed a small board into a 16-wide grid,
+scored 28/60, and was caught by it.
+
+Five solution cells are pinned as clues in the manner of the official puzzle,
+each solver gets a fixed 12-second single-core wall budget, and every
+returned board is independently re-scored from its edges; the solver's
+self-report is never used. One JSON row per (solver, N, seed) records the
+verified score, the ceiling, their ratio, whether the solve was full, the
+node count and a board link. Every board opens in the [viewer](/viewer): here
+is a [planted N=8 rung](/viewer?puzzle=ladder_n8_c22_s1&puzzle_size=8&board_edges=adcaabtdacrbafkcabofabmbaflbaadfcnfatrunrsgrkwisohuwmgvhlqjgdadqfmcaupimgnupikonujvkvrnjjoordadocheaikrhujikokujvvlknqpvopsqdaepehbarglhinwgulsnltnlpkmtspskeaepbidaljqiwvojstivnwhtmjpwstljeaetdhbaqmvhoqwmimrqhqgmpsuqlgtseadgbeaavbaewfabrfafgcafucactcacdaac)
+and the [best N=14 partial](/viewer?puzzle=ladder_n14_c22_s5&puzzle_size=14&board_edges=abdaaclbafncadkfabqdafibacufadhcafkdadhfacqdaewcacueaadcducalijunowikwsoqjkwihpjuvjhhnnvkqonhihqqqqiwmsqunumdaenctbajrptwrlrsisrkroipwtrjpjwnlopouvlhvnuqrtvsjgruttjeaftbpbapmnplkwmsiskothitsltjlosovvlvgpvnqhgtosqgkootrgkfaerbwbanslwwnkssghnhiggljmiotjjvmttpmgmhwgmsrvwokhrgpukeafpbiealpuikvwphluvgrslmurrjskutmgsgknmghlkvijhhgiiuhhgfabhescauupswvjuukjvsjikrrwjkokrglqonmollwlmjoiwinwohqjnbaeqcidapgvijirgjsuiisnswlnskhmlqlthottlloptiswownusjhrneaehdgfavtwgrjhtuuwjnkmunqnkmirqtmtitglmpqggwpoqaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaocaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&hints=56.2-186.0-114.3-53.2-37.0)
+this run produced.
+
+The two shipped baselines span the two families the original study
+separates: a depth-first backtracker that only places fully matching pieces
+(the propagating family's simplest member) and a greedy row-major filler
+with no backtracking at all.
+
+## The result
+
+In the original thirteen-method run (13 methods × 11 instances × 3 seeds =
+429 jobs), the ladder split solver families a full rung apart: the
+propagating, constraint-driven family held a perfect 1.000 ratio through
+N=12 (264 of 264 edges), border-first orderings had already collapsed to
+roughly 0.15 to 0.22 there, and at N=14 every method fell to between 0.055
+and 0.157. The committed reproduction re-runs the harness end to end with
+the two baselines:
+
+<Figure collapsible title="Expected vs measured (4 rungs × 8 seeds × 2 solvers, 12 s single-core budget)">
+
+| Quantity | Expected (original study) | Measured (this run) |
+| --- | --- | --- |
+| Ceilings N=8/10/12/14 | 112 / 180 / 264 / 364 | 112 / 180 / 264 / 364; planted board certified 32/32 |
+| Independent re-score | 429/429 verified | 64/64 verified, 0 mismatches |
+| DFS at N=8 | full solve well under 1 s | full solve 8/8 seeds (7 k to 8.7 M nodes) |
+| DFS at N=10 | (not in the original grid) | full solve 7/8 seeds; the eighth stalls at 0.283 |
+| DFS at N=12 | 0.489 in a 5 s smoke run | median 0.512, one full solve, min 0.216 |
+| DFS at N=14 | 0.217 in a 5 s smoke run; original grid collapse 0.055 to 0.157 | median 0.477, best 0.613, two seeds stuck at 0.047 to 0.049 |
+| Greedy at N=8 | 0.313 | median 0.321 (0.295 to 0.366) |
+| Duplicate pieces | 0 at N=8, up to 4 at N=12, 10 to 11 at N=14 | 0 on every rung (kit generator) |
+
+</Figure>
+
+The mechanics all reproduce: the free proven ceiling, the certification of
+every planted board through the same scorer the solvers face, the
+independent re-score of every returned board, and the monotone degradation
+of the DFS from perfect at N=8 to no full solve at N=14 while the greedy
+filler never full-solves anywhere. Seed-to-seed spread is wide on the top
+rungs (0.216 to 1.0 at N=12, 0.047 to 0.613 at N=14 for the DFS); that
+spread is why each rung keeps 8 seeds.
+
+## What does not follow
+
+- **Small-N success predicts nothing about the 16×16.** The methods that are
+  perfect at N=12 are near worthless one rung later, so the deliverable is
+  the degradation curve, never a ranking at any single size. For where the
+  real instance stands, see [the records page](/research/records).
+- **Ladders built by different generators are not interchangeable.** Collapse
+  depth is instance-profile-sensitive. The original rungs matched the real
+  puzzle's colour profile (22 interior colours, 5 rare colours confined to
+  the frame-adjacent ring) and carried up to 10 to 11 duplicate pieces at
+  N=14; the kit generator produces zero duplicates and no rare-colour ring,
+  and the N=14 collapse is visibly shallower on its rungs (partials near 0.6
+  against a 0.157 floor in the original grid). Curve shapes transfer; exact
+  breakpoints do not.
+- **A weak baseline failing a rung refutes nothing.** The
+  perfect-through-N=12 rows belong to specific propagating solvers not yet
+  ported to the kit; an under-powered baseline can only under-shoot them.
+
+## Reproduce
+
+`just research-scaling-ladder` rebuilds the four rungs from the seeded
+generator (one binary per rung, since the shared engine fixes the board size
+at compile time) and re-runs both baselines at the 12-second budget, writing
+one JSONL row per run plus a rung census with each planted board's viewer
+link. It reproduces the harness mechanics and the curve shapes; a per-cell
+match with the original thirteen-method table needs the committed original
+instance set and the ported solver registry, as the reproduction plan spells
+out.

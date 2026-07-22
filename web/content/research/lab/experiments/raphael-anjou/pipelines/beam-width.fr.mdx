@@ -1,0 +1,148 @@
+---
+title: "Rendre un producteur beam 10x meilleur : la réponse est la largeur"
+description: >-
+  Une revue vérifiée plus des mesures appariées : aucune astuce par nœud ne bat
+  la largeur brute du faisceau à temps de calcul égal. Les deux seuls additifs
+  qui survivent sont la randomisation des clés de troncature exactement à
+  égalité (gratuite) et le rééchantillonnage SMC des survivants (petit mais
+  significatif).
+metaDescription: "Des mesures appariées sur des échelles d'instances plantées de type Eternity II montrent que la largeur brute du faisceau domine tout signal par nœud à temps égal ; les égalités randomisées sont un gain gratuit et le rééchantillonnage SMC ajoute un à six pour cent selon la dureté du banc."
+kind: finding
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run in this study is single-threaded"
+  wallClock: "12 s saturated width-law passes; 3 s per A/B arm (192 arms in the powered SMC comparison)"
+  seedPolicy: "seeded; paired seeds share the identical instance in both arms"
+  measured: true
+contribution: analysis
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-beam-width-smc
+  topic: beam-width-smc
+  scope: >-
+    La commande reproduit les trois sous-résultats positifs (loi de largeur,
+    gain des égalités randomisées, gain SMC) en signes et en ordres sur graines
+    appariées, sur des instances d'échelle générées par le kit. Les chiffres
+    exacts dépendent du banc ; le banc plus dur de l'étude source donne les
+    mêmes signes avec des amplitudes plus grandes. Les deux contrôles négatifs
+    (oracle de complétabilité, fusion par dominance) sont cités de l'étude
+    source et ne sont pas reconstruits par la commande.
+order: 80
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, speed, search-space]
+related:
+  - /research/build/construct/beam-search
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/how-hard-is-this-instance
+  - /research/lab/experiments/raphael-anjou/pipelines/ladder
+sources:
+  - label: "Zhang, Complete Anytime Beam Search (AAAI-98)"
+    url: https://cdn.aaai.org/AAAI/1998/AAAI98-060.pdf
+  - label: "Passage à l'échelle de l'inférence par filtre particulaire (2025)"
+    url: https://arxiv.org/html/2502.01618v3
+  - label: "Pilotage par Monte-Carlo séquentiel"
+    url: https://arxiv.org/pdf/2306.03081
+---
+
+Je cherchais le levier qui rendrait un constructeur à large faisceau dix fois
+meilleur par unité de calcul : un score par nœud plus malin, un oracle de
+complétabilité, une règle de dominance, n'importe quoi. Après une revue de la
+littérature et une campagne de mesures A/B appariées, la réponse est
+décevante et utile à la fois : le levier, c'est la largeur brute. Tout ce qui
+est astucieux perd face à un faisceau simplement plus large à temps égal, avec
+exactement deux exceptions bon marché, toutes deux des changements de la règle
+de survie, pas du score des nœuds.
+
+## Ce qui a été mesuré
+
+Le banc d'essai est une échelle d'instances N×N plantées et résolubles,
+construites avec le générateur du kit du projet : plateaux cadrés avec
+l'équilibre de couleurs réel, un optimum connu de 2N(N−1) arêtes intérieures
+appariées, et 5 cases de la solution épinglées comme indices, à l'image des
+indices officiels. Un beam par couches remplit le plateau en ordre
+ligne par ligne, et trois règles de survie s'affrontent à largeur et temps
+fixés : troncature top-k déterministe (plain), top-k avec départage aléatoire
+des clés exactement à égalité, et rééchantillonnage SMC, où les survivants
+sont tirés proportionnellement à un softmax de leur score, façon filtre
+particulaire. Chaque plateau fini est re-noté par le scoreur canonique qui
+exclut le pourtour ; aucun auto-rapport du solveur n'est cru sur parole.
+
+Deux disciplines comptent ici. D'abord, toutes les comparaisons sont
+appariées : les deux bras voient la même instance et la même graine, et les
+statistiques sont un t apparié et un Wilcoxon sur les deltas par graine.
+Ensuite, la taille des barreaux est plafonnée à N=12, car à N=14 la
+distribution des scores est fortement bimodale et la variance de graine écrase
+la variance de mécanisme ; une comparaison à quelques graines y est du bruit.
+L'effet de la dureté des instances sur les scores mesurés est un sujet en soi ;
+voir [la dureté d'une instance](/research/why/how-hard-is-this-instance).
+
+## Le résultat
+
+La largeur est le levier dominant, et de loin. Sur le banc plus dur de l'étude
+d'origine, le score moyen sur l'optimum monte de façon monotone de 0,210 à la
+largeur 32 jusqu'à 0,346 (largeur 128), 0,527 (largeur 512) et 0,743 (largeur
+2048) à budget fixe de 3 secondes. Les alternatives coûteuses perdent à temps
+égal dans cette même étude : un oracle de complétabilité par couplage de Hall
+atteint 0,441 à largeur 64 là où un faisceau plain, avec les mêmes 10
+secondes, atteint 0,815 à largeur 8192, et une fusion par dominance de type
+diagramme de décision fait chuter le score de 0,679 à 0,657. Leur coût par
+nœud croît avec la taille du plateau exactement là où la profondeur est la
+plus rare : le temps qu'ils brûlent achète moins que la largeur qu'il aurait
+pu payer.
+
+La reproduction versionnée confirme chaque signe sur le banc du kit :
+
+<Figure collapsible title="Attendu (banc source) vs mesuré (banc du kit)">
+
+| Sous-résultat | Attendu (banc source) | Mesuré (banc du kit) |
+| --- | --- | --- |
+| Loi de largeur, beam plain, score/opt moyen à w32/128/512/2048 | 0,210 / 0,346 / 0,527 / 0,743, monotone | 0,836 / 0,854 / 0,866 / 0,878 à N=12, 12 graines appariées, monotone à chaque pas |
+| Départage aléatoire des égalités à w128 | 0,346 vers 0,376, aide à chaque N | 0,853 vers 0,861 à N=12 ; +2,06 arêtes, t apparié = 3,47, z de Wilcoxon = 2,69, gains/nuls/pertes 10/4/2 sur 16 paires |
+| Rééchantillonnage SMC à w1024, 96 paires, N dans {10, 12} | +8,6 arêtes en moyenne (environ +6 %), t = 2,08, gains/nuls/pertes 48/14/34 | +1,83 arête en moyenne (environ +1,0 %), t = 5,78, z de Wilcoxon = 5,45, gains/nuls/pertes 65/14/17, à T = 0,15 |
+| Nœuds SMC vs plain | comparables (86k vs 93k) | identiques par construction à largeur fixée (20 013 677 dans les deux bras à N=12) |
+
+</Figure>
+
+Les deux additifs de la règle de survie sont significatifs chacun de leur
+côté. Randomiser les clés de troncature exactement à égalité ne coûte rien et
+gagne +2,06 arêtes à largeur 128. Le rééchantillonnage SMC gagne +1,75 arête à
+N=10 (t = 3,30) et +1,92 à N=12 (t = 5,41), avec des comptes de nœuds
+identiques dans les deux bras : le gain n'est pas du calcul en plus, mais un
+autre choix de partiels survivants. Un front rééchantillonné reste divers et
+vit plus profond avant de mourir, là où un front top-k déterministe peut
+s'étouffer tôt sur des survivants quasi identiques. La température a dû être
+balayée : T = 1,0 est catastrophique (17 à 29 arêtes perdues, chaque graine
+perd), et le gain vit sur un plateau autour de T dans [0,1, 0,2]. Le meilleur
+plateau de la campagne, un plateau SMC à N=12 qui marque
+[237 sur 264](https://eternity2.dev/viewer?puzzle=smc_n12_c22_s34&puzzle_size=12&board_edges=adcaacpdafjcacofafqcadmfaeldabmeaetbacpeabmcaadbcmeaplimjunloswuquismgtulmngmmmmtqhmpwwqmjrwdabjejbaipwjnqopwjsqiiojtskinqusmsoqhmgswukmrtuubadtblbawkolomjksplmolipknulunwnoopngrgokhvrughhdaegbpdaorlpjtwrltntisutukjswstkpvisgltvvtklhwsteafwdlbaltqlwvjhnivouspijumstrnuiwigtwvikkwwsjvkfaejbsbaqjgsjrqjvltrpgqlmmignthmitvtvpntwrhqvkhreabkbgcagpogqhpptvshqwjviwvwhuiovgrunnnghhjnhrohbafrcheajrqhpqkrshiqupnhvkopirhkrklrnutijoouovrofaevekcaqvnkkniviggnnuopqjuuhgqjvlggtsrloqhsrvpmeafvcmfanujqklquglkloitlgvkinsnvgqjsrlpkhomsprqofabrfeaakdaewdadifadgdafweadscaehcacpfacmdafrcadbaac&hints=67.0-62.1-7.2-19.0-112.0),
+se vérifie arête par arête dans le viewer.
+
+## Ce qui ne suit pas
+
+C'est un résultat sur des instances d'échelle, pas sur le 16×16 canonique.
+Que le gain SMC se transfère à un vrai producteur 16×16, et à la qualité du
+vivier qu'il alimente en aval, reste explicitement ouvert ; aucun de ces
+chiffres n'est une revendication de record, d'aucune sorte (l'état des scores
+qui comptent vit sur la [page des records](/research/records)).
+
+Trois réserves mesurées bornent encore le résultat. Les instances du kit sont
+nettement plus faciles que le banc source (ratios de score de 0,82 à 0,88
+contre 0,21 à 0,74), ce qui comprime la marge au-dessus du beam plain : le
+gain SMC atterrit ici vers +1 % relatif contre +6 % là-bas, même signe,
+significativité plus forte. Le coût par nœud de ce portage est plus élevé que
+celui du moteur source, donc la loi de largeur est rapportée à saturation
+(plafond de 12 secondes, chaque passe se termine) plutôt que dans le cadre à
+temps égal de la source ; les A/B de règle de survie n'en souffrent pas,
+puisque les deux bras développent par construction les mêmes nœuds à largeur
+fixée. Et le résultat sur les égalités n'autorise qu'une chose : randomiser
+les clés *exactement* à égalité. Élargir la fenêtre de tolérance du score est
+un autre geste, désastreux sur le vrai producteur 16×16 dans l'étude source
+(450 tombe à 290 à tolérance 2). Randomisez les égalités ; n'élargissez jamais
+la fenêtre.

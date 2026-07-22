@@ -1,0 +1,147 @@
+---
+title: LEDGER
+description: >-
+  Track per-colour half-edge supply against frontier demand inside a
+  break-budget DFS, and prune whenever the colour deficit or its parity exceeds
+  the breaks that remain. Sound by construction; the savings compound with
+  depth.
+metaDescription: "LEDGER is a sound global prune for break-tolerant Eternity II DFS: per-colour supply versus demand, tested against the remaining break budget. Zero unsound fires across every replay; on the community 464 boards' tails the node ratio compounds from 1.7x to 45.3x uncensored."
+kind: experiment
+contribution: method
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores); every run here is single-threaded"
+  wallClock: "25 s cap per A/B arm on the phase 1 grid, 300 s per arm on the certificate rows"
+  seedPolicy: "node counts are seed-deterministic (seeds 1-8); a re-run reproduces the committed JSON byte-for-byte"
+  measured: false
+repro:
+  kind: seeded
+  cmd: "just research-ledger-prune"
+  scope: "re-runs the soundness gate, the A/B grid on generated boards and the 464-tail certificate rows; node counts are seed-deterministic, but which arms censor at the time caps depends on the machine"
+order: 40
+updated: 2026-07-22
+date: 2026-07
+topics: [backtracking, search-space, structure]
+related:
+  - /research/why/prune-vs-speed
+  - /research/build/analysis/parity-arguments
+  - /research/why/design-recipe
+  - /research/lab/experiments/joshua-blackwood/solver
+sources:
+  - label: "The ledger-prune reproduction topic: code, plan and committed results"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+---
+
+High-score search on Eternity II runs with a break allowance: the DFS may place
+a mismatching piece as long as the total number of charged breaks stays within
+a budget. In that setting almost no classic pruning is sound, because the
+budget is a global resource; a branch that looks locally dead can be rescued by
+spending a break somewhere else entirely. I asked whether a purely global
+counting test could prune anyway, without ever cutting a completion that fits
+the budget. It can: zero unsound fires across every replay, and node reductions
+that compound with depth, though how large they get depends on the engine.
+
+## How it works
+
+At every node the search keeps a ledger, per colour: the supply of half-edges
+that the unused pieces still offer (all four sides of each), and the demand
+from the frontier (exposed sides of placed cells facing empty cells, plus the
+grey rim the border still owes). Two necessary conditions follow for any
+completion that stays within the remaining break budget r:
+
+- **Deficit.** The total shortfall, summed over colours as max(0, demand minus
+  supply), can never exceed r. This is the budget-aware form of the "ran out of
+  colour c" failure that plain DFS only discovers cell by cell.
+- **Parity.** The number of colours whose supply minus demand is odd can never
+  exceed 2r, plus one slot per uncharged hint junction. A fully matched
+  placement moves every per-colour balance by an even amount, so parity can
+  only move at a charged break (which flips exactly two colours) or at an
+  uncharged hint junction (at most one).
+
+If either condition fails, no completion within budget exists below the node
+and the whole subtree is skipped. Both are proved by the same invariance
+argument, which is what makes the prune sound rather than heuristic: it never
+needs to guess where the breaks will be spent.
+
+## What was measured
+
+Three probes, all committed in the reproduction topic.
+
+**The soundness gate.** Replay a board's known perfect tail at zero slack;
+since the true tail needs no breaks, any fire is a bug. Eight generated boards,
+257 depths each: zero fires. The original run of this study inside my
+record-search engine ran the same gate on four high-score boards (251 judged
+cells each), also with zero fires.
+
+**The A/B grid.** Exhaust a fixed suffix of a solved generated board twice,
+prune off and prune on, counting all completions within budget. The two arms
+must find the same completions; they did, in all 144 uncensored pairs. All 96
+grid cells (suffix 20 to 32 cells, budgets 1 to 3, 8 seeds) show a node ratio
+above 1: minimum 1.48x, medians 1.8x to 4.1x. Parity is the dominant trigger
+everywhere.
+
+**The certificate rows.** The three community 464 boards (recovered from the
+committed URLs of the [design-recipe study](/research/why/design-recipe); the
+community chart itself lives on the [records page](/research/records)) were
+flipped 180 degrees and their tails exhausted at zero-slack budgets, the
+design of the original study. The boards self-identify by suffix-break
+fingerprint; one reads (2, 5, 6, 7) against the original's (2, 5, 6, 8), three
+depths exact and one off by a single break from a charging-convention
+difference. That board is the original study's board 1.
+
+## The result
+
+| Claim (original run) | Measured here | Status |
+|---|---|---|
+| Zero unsound fires replaying real tails at zero slack | 0 fires over 8 boards x 257 depths | reproduced |
+| The prune never changes the answer | completions identical in all 144 uncensored A/B pairs | reproduced |
+| Node ratio above 1 at small budgets | all 96 grid pairs above 1 (min 1.48x) | reproduced |
+| Ratio compounds with suffix depth (1.5x, 140x, 995x, 4,330x) | 1.7x, 19.4x, 45.3x; deepest row censored | shape reproduced, magnitude engine-bound |
+| Large-budget null (~0.1 percent fires) | probe stayed in the active regime (76 to 82 percent) | untested here |
+
+On the identified 464 board, at budgets identical to the original (r = 5 and
+r = 6 on the deep rows), the exhaustion found exactly one completion at every
+uncensored depth, the certificate shape the original reports, and the ratio
+compounds:
+
+<Figure collapsible title="Certificate rows on the 464 board (180-flipped, zero-slack budgets)">
+
+| depth | budget | no-prune nodes | LEDGER nodes | ratio | original ratio |
+|---|---|---|---|---|---|
+| 232 | 2 | 542 | 316 | 1.7x | 1.5x |
+| 224 | 5 | 3,784,655 | 194,827 | 19.4x | 140x |
+| 216 | 6 | 182,403,237 | 4,029,724 | 45.3x | 995x |
+| 208 | 7 | censored at 300 s | censored at 300 s | n/a | 4,330x |
+
+</Figure>
+
+A multiplier that grows with depth is the signature of a branching-factor
+reduction, the only kind of speedup that survives scaling (the argument is laid
+out in [prune beats speed](/research/why/prune-vs-speed)).
+
+## Scope and limits
+
+Soundness is the headline and it is engine-independent; the magnitudes are not.
+The original engine judged the ledger per candidate on an incremental update
+inside a bucketed one-mismatch-per-cell search, and measured 140x to 4,330x on
+the same rows. This port judges once per node on a ledger recomputed from
+scratch, charges breaks per edge with no per-cell cap, and reaches 45.3x before
+the 300-second cap censors the deepest row. Porting the incremental
+per-candidate ledger is the named next step; until then the 4,330x figure is
+attributed to the original engine, not confirmed by this one.
+
+Two more things do not follow. This is not a score claim: LEDGER prunes an
+existing break-budget DFS (the engine family behind searches like
+[Joshua Blackwood's](/research/lab/experiments/joshua-blackwood/solver)); it
+finds nothing on its own. And it only pays in the small-budget deep-suffix
+regime: the original measured roughly 0.1 percent fires under a generous
+full-board budget, where the bookkeeping is a pure loss. My wrong-regime probe
+could not even reach that quiet regime on a short suffix (an exhaustible budget
+depletes near the leaves, where most nodes live), so that null stays untested
+here.

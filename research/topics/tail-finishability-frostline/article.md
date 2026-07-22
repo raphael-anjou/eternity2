@@ -2,7 +2,7 @@
 id: tail-finishability-frostline
 title: "FROSTLINE: a Bethe free energy finishability oracle for the last rows"
 summary: The Bethe free energy of the leftover-piece residual factor graph rank-predicts the exact achievable tail score of a near-final partial board (Spearman rho -0.78, AUC 0.99 at a 16-cell residual), carries signal beyond the raw edge count, and dies once the residual exceeds about 32 cells.
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:
@@ -144,3 +144,7 @@ its own spread. The R=14 and R=13 degradation points and the selection-value
 negative are described in the plan but not yet scripted; a beam-quality
 producer would be needed to test whether the Bethe-entropy sign flip and the
 min-sum residual signal are regime artifacts, as argued above.
+
+## Source-context figures
+
+Figures quoted from the source study's degradation analysis: the hard-seam variant self-contradicts on 5 of 16 cells, and the mean per-cell BP domain grows 12.5 / 32.6 / 72.2 as the cut moves from row 15 to 13.

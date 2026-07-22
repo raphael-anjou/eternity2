@@ -1,0 +1,145 @@
+---
+title: The fluid frame
+description: >-
+  A perfect 60-piece border is not one rigid object. Every fully matched frame
+  admits exactly 45 free rim exchanges at zero border cost; a third of perfect
+  frames cannot even start the interior, and a single free exchange revives
+  every one of them.
+metaDescription: "A perfect Eternity II border is not one rigid object: every fully matched 60-piece frame admits exactly 45 free rim exchanges at zero border cost. 36% of perfect frames cannot start the interior, yet one free swap revives every sampled one. A perfect border and a usable border differ."
+kind: finding
+contribution: analysis
+rigor: measured
+author: raphael-anjou
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "well under a minute for the 500-frame main run on one core (; a preflight at the default scale completed in about 7 s)"
+  seedPolicy: "deterministic: seed0 1 for the main run, seed0 7001 for the robustness pass"
+  measured: false
+repro:
+  kind: exact
+  cmd: "just research-frame-manifold"
+  scope: "Regenerates the 500-frame main run and the 100-frame robustness pass and reproduces results/manifold.json byte for byte; it re-measures the mechanism only, no completed boards are produced"
+order: 75
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, local-search]
+sources:
+  - label: "Reproduction topic (this project): committed plan, compute crate and results behind every number on this page"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/frame-manifold/article.md
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+---
+
+Border-first pipelines such as
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) build a
+fully matched 60-piece border, freeze it, and hand its 56 inward-facing
+colours to the interior search as hard constraints. I wanted to know whether
+that frozen object is really one object, starting from a simple reflex: when
+the interior stalls against the rim, why backtrack the border when you could
+exchange one rim piece? Measured on 500 fresh perfect frames, the answer is
+sharper than the question. A perfect border is a connected manifold with
+exactly 45 free exits; a third of perfect borders cannot even start the
+interior; and one free exchange fixes every sampled dead one at zero border
+cost.
+
+## What was measured
+
+Definitions first. A frame places the 4 corner pieces and 56 edge pieces on
+the 60 border cells of the official 16×16 board, grey exactly outward. BB
+counts the matched border-to-border adjacencies along the ring, maximum 60;
+BB = 60 is a perfect frame. A legal exchange swaps two placed pieces of the
+same class (corner with corner, edge piece with edge piece); rotations are
+forced by the grey-outward rule, so an exchange is determined by the slot
+pair. An exchange is free when it leaves BB at 60.
+
+The compute crate generates its own BB = 60 frames of the official 256-piece
+set (a randomised depth-first placement over the 60 border cells), then
+measures each claim directly:
+
+1. every legal same-class exchange and its BB cost, pooled over all frames;
+2. chained free exchanges, with the free set recomputed on the current ring
+   at every step, tracking BB, the free-move count, and how much of the ring
+   and of the inward colour vector has drifted;
+3. fillability of every interior cell touching the frame: a frame is dead
+   when some such cell can be filled by zero of the 196 interior pieces;
+4. greedy repair of each dead frame using free exchanges only.
+
+Main run: 500 independently generated frames, walk length 100, revival
+attempted on the first 60 dead frames. The run is deterministic; re-running
+the committed command reproduces the result file byte for byte. The first
+generated frame is viewable in the
+[viewer](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaaepbacqeadpcabmdacrbacpcafvcafufabtfachbabhcacsbaepcadteaacddtcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaencnfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabofhcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaababgcidaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafhdofaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafaelfoeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaeseqbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabvbpcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafuckfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafadufqfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadadgfjbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaepbjfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaetftdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeadwdhdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaendcaaocacrfacgfafqeafmfaewdafsdadidadgcadvbacjbabteabueaeibaeeaab).
+
+## The result
+
+**Exactly 45 free moves, on every frame.** All 500 perfect frames admit
+exactly 45 free exchanges, never 44, never 46. No exchange ever raises BB
+(60 is the maximum), and the free moves compose: after 100 chained free swaps
+BB is still 60 and 45 free moves are still available. The count never
+depletes.
+
+**None of them is cosmetic.** Zero of the 45 free swaps preserve the inward
+colour of the pieces they touch, so every free move changes the constraint
+vector the border presents to the interior. A 100-step free walk visited 99
+distinct rim-target vectors out of a possible 101 without ever leaving
+BB = 60.
+
+**Perfect is not usable.** 180 of 500 perfect frames (36 percent) had at
+least one interior cell that zero of the 196 interior pieces could fill, and
+46 (9.2 percent) were dead at the very first cell a scan-order solver visits:
+the interior search dies at depth 0 despite a perfect border score. Greedy
+repair by free exchanges alone revived 60 of 60 sampled dead frames to zero
+dead cells, with BB never leaving 60. In the source study's worked example,
+one free swap took a framed DFS from depth 0 to depth 153 of 196.
+
+<Figure collapsible title="Expected vs measured (main run, 500 frames)">
+
+| Quantity | Expected (source) | Measured |
+| --- | --- | --- |
+| Free exchanges per perfect frame | 45, every frame | 45 on all 500 frames |
+| Exchanges that raise BB | 0 | 0 over 773,000 pooled pairs |
+| BB-cost shares (-4 / -3 / -2 / 0) | 63.9 / 1.2 / 31.8 / 3.1 % | 63.8 / 1.4 / 31.9 / 2.9 % |
+| BB along a 100-swap free walk | 60 at every checkpoint | 60 at every checkpoint |
+| Free moves available along the walk | 45 at every checkpoint | 45 at every checkpoint |
+| Ring slots changed after 100 free swaps | 36 of 60 | 33 of 60 |
+| Free swaps preserving inward colour | 0 of 45 | 0 of 45 |
+| Distinct rim-target vectors visited | 292 (longer source walk) | 99 of a possible 101 |
+| Dead frames (any unfillable cell) | 180/500 (36.0%) | 180/500 (36.0%) |
+| Dead at the interior scan-start cell | 55/500 (11.0%) | 46/500 (9.2%) |
+| Dead-cell histogram (1 / 2 / 3 cells) | 155 / 24 / 1 | 154 / 25 / 1 |
+| Dead frames revived by free swaps only | 100% | 60/60, BB still 60 on every one |
+
+</Figure>
+
+An independent-seed robustness pass (100 fresh frames, seed base 7001)
+agrees: 45 free exchanges on every frame, no gains, 45 of 100 frames dead
+(histogram 38 / 7), all 45 revived, and the walk again holds BB = 60 with 45
+free moves throughout. So the punchline holds across generators and seeds: a
+perfect border and a usable border are different properties, and the frame
+can stay mutable during the search instead of being backtracked.
+
+## What does not follow
+
+- No claim is made that walking the manifold or reviving dead frames raises
+  completed-board scores. The source study's own A/B produced no completed
+  framed boards, so any score effect is an open question; a producer that
+  keeps the frame fluid during the interior search is future work. This page
+  publishes the mechanism only.
+- The 45 is claimed as a property of the official piece set and replicated
+  here on frames from a different generator. The dead-frame rate is a
+  property of the generator's sampling: 36.0 percent on the main run, 45
+  percent on the independent-seed pass, so the defensible statement is a rate
+  in the mid-30s to mid-40s percent range, not a universal 36.
+- The raw same-class pair count is 1546 per frame here against roughly 1458
+  in the source, which evidently excluded some no-op pair class. The shares
+  and the two load-bearing rows (45 free, 0 gains) match regardless.
+- Frames here are unhinted, as in the source measurement; hint compatibility
+  of frames is a separate concern and no part of this claim.

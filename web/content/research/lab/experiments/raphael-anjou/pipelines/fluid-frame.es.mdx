@@ -1,0 +1,157 @@
+---
+title: El marco fluido
+description: >-
+  Un borde perfecto de 60 piezas no es un objeto rígido. Cada marco
+  completamente apareado admite exactamente 45 intercambios libres a coste de
+  borde cero; un tercio de los marcos perfectos ni siquiera pueden arrancar el
+  interior, y un solo intercambio libre revive cada uno de ellos.
+metaDescription: "Un borde perfecto de Eternity II no es un objeto rígido: cada marco de 60 piezas completamente apareado admite exactamente 45 intercambios libres a coste de borde cero. El 36% de los marcos perfectos no pueden arrancar el interior, y un solo intercambio libre revive cada marco muerto muestreado."
+kind: finding
+contribution: analysis
+rigor: measured
+author: raphael-anjou
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "well under a minute for the 500-frame main run on one core (; a preflight at the default scale completed in about 7 s)"
+  seedPolicy: "deterministic: seed0 1 for the main run, seed0 7001 for the robustness pass"
+  measured: false
+repro:
+  kind: exact
+  cmd: "just research-frame-manifold"
+  scope: "Regenera la pasada principal de 500 marcos y la pasada de robustez de 100 marcos y reproduce results/manifold.json byte a byte; solo se vuelve a medir el mecanismo, no se produce ningún tablero completo"
+order: 75
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, local-search]
+sources:
+  - label: "Tema de reproducción (este proyecto): plan, código de cómputo y resultados detrás de cada número de esta página"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/frame-manifold/article.md
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/lab/experiments/raphael-anjou/pipelines/staged
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+---
+
+Los pipelines de «borde primero» como
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister)
+construyen un borde de 60 piezas completamente apareado, lo congelan y
+entregan sus 56 colores orientados hacia dentro como restricciones duras a la
+búsqueda interior. Quería saber si ese objeto congelado es de verdad un solo
+objeto, partiendo de un reflejo simple: cuando el interior se atasca contra
+el borde, ¿por qué retroceder sobre el borde pudiendo intercambiar una sola
+pieza del reborde? Medida sobre 500 marcos perfectos frescos, la respuesta es
+más nítida que la pregunta. Un borde perfecto es una variedad conexa con
+exactamente 45 salidas libres; un tercio de los bordes perfectos ni siquiera
+pueden arrancar el interior; y un intercambio libre repara cada marco muerto
+muestreado, a coste de borde cero.
+
+## Qué se midió
+
+Primero las definiciones. Un marco coloca las 4 esquinas y las 56 piezas de
+borde en las 60 celdas del borde del tablero oficial 16×16, con el gris
+exactamente hacia fuera. BB cuenta las adyacencias borde-con-borde apareadas
+a lo largo del anillo, máximo 60; BB = 60 es un marco perfecto. Un
+intercambio legal permuta dos piezas colocadas de la misma clase (esquina con
+esquina, pieza de borde con pieza de borde); las rotaciones vienen forzadas
+por la regla del gris hacia fuera, así que un intercambio queda determinado
+por el par de celdas. Un intercambio es libre cuando deja BB en 60.
+
+El crate de cómputo genera sus propios marcos BB = 60 del juego oficial de
+256 piezas (una colocación en profundidad aleatorizada sobre las 60 celdas
+del borde) y luego mide cada afirmación directamente:
+
+1. cada intercambio legal de la misma clase y su coste en BB, agregado sobre
+   todos los marcos;
+2. cadenas de intercambios libres, recalculando el conjunto libre sobre el
+   anillo actual en cada paso, siguiendo BB, el número de movimientos libres
+   y cuánto han derivado el anillo y el vector de colores interiores;
+3. la rellenabilidad de cada celda interior que toca el marco: un marco está
+   muerto cuando alguna de esas celdas no puede rellenarse con ninguna de
+   las 196 piezas interiores;
+4. una reparación voraz de cada marco muerto usando solo intercambios
+   libres.
+
+Pasada principal: 500 marcos generados de forma independiente, paseo de
+longitud 100, reanimación intentada sobre los primeros 60 marcos muertos. La
+pasada es determinista; relanzar el comando archivado reproduce el fichero de
+resultados byte a byte. El primer marco generado puede verse en el
+[visor](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaaepbacqeadpcabmdacrbacpcafvcafufabtfachbabhcacsbaepcadteaacddtcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaencnfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabofhcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaababgcidaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafhdofaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafaelfoeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaeseqbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeabvbpcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabafuckfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafadufqfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadadgfjbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaepbjfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeaetftdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeadwdhdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaendcaaocacrfacgfafqeafmfaewdafsdadidadgcadvbacjbabteabueaeibaeeaab).
+
+## El resultado
+
+**Exactamente 45 movimientos libres, en cada marco.** Los 500 marcos
+perfectos admiten exactamente 45 intercambios libres, nunca 44, nunca 46.
+Ningún intercambio sube BB jamás (60 es el máximo), y los movimientos libres
+componen: tras 100 intercambios libres encadenados, BB sigue en 60 y siguen
+disponibles 45 movimientos libres. El recuento nunca se agota.
+
+**Ninguno es cosmético.** Cero de los 45 intercambios libres preserva el
+color interior de las piezas que toca: cada movimiento libre cambia el vector
+de restricciones que el borde presenta al interior. Un paseo libre de 100
+pasos visitó 99 vectores de objetivos de reborde distintos de 101 posibles
+sin salir nunca de BB = 60.
+
+**Perfecto no es utilizable.** 180 de los 500 marcos perfectos (36 por
+ciento) tenían al menos una celda interior que ninguna de las 196 piezas
+interiores podía rellenar, y 46 (9,2 por ciento) estaban muertos en la
+primera celda que visita un solucionador en orden de barrido: la búsqueda
+interior muere a profundidad 0 pese a un borde con puntuación perfecta. La
+reparación voraz solo con intercambios libres revivió 60 de 60 marcos
+muertos muestreados hasta cero celdas muertas, sin que BB saliera nunca de
+60. En el ejemplo trabajado del estudio fuente, un solo intercambio libre
+llevó un DFS con marco de la profundidad 0 a la profundidad 153 de 196.
+
+<Figure collapsible title="Esperado frente a medido (pasada principal, 500 marcos)">
+
+| Cantidad | Esperado (fuente) | Medido |
+| --- | --- | --- |
+| Intercambios libres por marco perfecto | 45, en cada marco | 45 en los 500 marcos |
+| Intercambios que suben BB | 0 | 0 sobre 773 000 pares agregados |
+| Cuotas de coste BB (-4 / -3 / -2 / 0) | 63,9 / 1,2 / 31,8 / 3,1 % | 63,8 / 1,4 / 31,9 / 2,9 % |
+| BB a lo largo de un paseo libre de 100 pasos | 60 en cada punto de control | 60 en cada punto de control |
+| Movimientos libres disponibles en el paseo | 45 en cada punto de control | 45 en cada punto de control |
+| Celdas del anillo cambiadas tras 100 intercambios | 36 de 60 | 33 de 60 |
+| Intercambios libres que preservan el color interior | 0 de 45 | 0 de 45 |
+| Vectores de objetivos de reborde distintos visitados | 292 (paseo fuente más largo) | 99 de 101 posibles |
+| Marcos muertos (alguna celda irrellenable) | 180/500 (36,0 %) | 180/500 (36,0 %) |
+| Muertos en la celda inicial del barrido | 55/500 (11,0 %) | 46/500 (9,2 %) |
+| Histograma de celdas muertas (1 / 2 / 3) | 155 / 24 / 1 | 154 / 25 / 1 |
+| Marcos muertos revividos solo con intercambios libres | 100 % | 60/60, BB siempre en 60 |
+
+</Figure>
+
+Una pasada de robustez con semilla independiente (100 marcos frescos, base de
+semilla 7001) concuerda: 45 intercambios libres en cada marco, ningún
+aumento, 45 marcos muertos de 100 (histograma 38 / 7), los 45 revividos, y el
+paseo vuelve a mantener BB = 60 con 45 movimientos libres de principio a fin.
+La conclusión se sostiene, pues, a través de generadores y semillas: un borde
+perfecto y un borde utilizable son propiedades distintas, y el marco puede
+permanecer móvil durante la búsqueda en lugar de deshacerse por retroceso.
+
+## Qué no se sigue de esto
+
+- No se afirma que caminar por la variedad o revivir marcos muertos mejore
+  las puntuaciones de tableros completos. El propio A/B del estudio fuente
+  no produjo ningún tablero completo con marco; cualquier efecto sobre la
+  puntuación es una cuestión abierta, y un productor que mantenga el marco
+  fluido durante la búsqueda interior es trabajo futuro. Esta página publica
+  solo el mecanismo.
+- El 45 se reivindica como propiedad del juego de piezas oficial y se
+  replica aquí sobre marcos de un generador distinto. La tasa de marcos
+  muertos es una propiedad del muestreo del generador: 36,0 por ciento en la
+  pasada principal, 45 por ciento en la de semilla independiente; el
+  enunciado defendible es una tasa entre mediados de los 30 y mediados de
+  los 40 por ciento, no un 36 universal.
+- El recuento bruto de pares de la misma clase es de 1546 por marco aquí
+  frente a unos 1458 en la fuente, que evidentemente excluía alguna clase de
+  pares sin efecto. Las cuotas y las dos filas que soportan la carga (45
+  libres, 0 ganancias) concuerdan de todos modos.
+- Los marcos van aquí sin pistas, como en la medición fuente; la
+  compatibilidad de los marcos con las pistas es un asunto aparte y no forma
+  parte de esta afirmación.

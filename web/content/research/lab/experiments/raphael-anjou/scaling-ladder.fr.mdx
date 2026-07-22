@@ -1,0 +1,150 @@
+---
+title: L'échelle de tailles
+description: >-
+  Un banc qui fait tourner n'importe quel solveur, tel quel, sur des plateaux
+  plantés entièrement résolubles à N = 8, 10, 12, 14, chacun avec un plafond
+  prouvé de 2N(N-1) : la taille d'effondrement d'une méthode se mesure avant
+  de passer des semaines sur le vrai 16×16.
+metaDescription: "L'échelle de tailles fait tourner n'importe quel solveur d'Eternity II sur des plateaux plantés entièrement résolubles à N = 8, 10, 12, 14, avec un plafond prouvé de 2N(N-1) : on mesure où une méthode s'effondre avant de l'engager sur le vrai 16×16."
+kind: tool
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores, 16 GB)"
+  wallClock: "12 s single-core budget per (solver, instance, seed) run; 4 rungs × 8 seeds × 2 solvers = 64 runs"
+  seedPolicy: "seeded; seeds 1 to 8 per rung, generator deterministic in (N, seed)"
+  measured: true
+contribution: tool
+author: raphael-anjou
+rigor: measured
+repro:
+  kind: seeded
+  cmd: just research-scaling-ladder
+  topic: scaling-ladder
+  produces: search
+  scope: "Reconstruit les quatre barreaux depuis le générateur à graines et relance les deux solveurs de référence livrés ; cela reproduit la mécanique du banc et la forme des courbes, pas la grille originale à treize méthodes, qui exige le jeu d'instances archivé."
+order: 85
+updated: 2026-07-22
+date: 2026-07
+topics: [structure, backtracking]
+related:
+  - /research/lab/experiments/single-core-benchmark
+  - /research/why/phase-transition
+  - /research/why/how-hard-is-this-instance
+  - /research/build/benchmarks
+sources:
+  - label: "Ansótegui et al., la transition de phase des puzzles d'appariement d'arêtes (contexte du seuil de difficulté)"
+    url: https://doi.org/10.1007/978-3-540-85958-1_42
+---
+
+Le vrai 16×16 est un endroit coûteux pour découvrir qu'une méthode ne passe
+pas à l'échelle. L'échelle de tailles pose d'abord une question moins chère :
+elle fait tourner n'importe quel solveur, sans le modifier, sur des plateaux
+plantés entièrement résolubles à N = 8, 10, 12 et 14, chacun avec un plafond
+prouvé, et lit la taille à laquelle la méthode s'effondre. Les deux solveurs
+de référence livrés se séparent nettement et se dégradent de façon monotone
+en montant l'échelle : c'est précisément la lecture que le banc existe pour
+produire.
+
+## Fonctionnement
+
+Chaque barreau est construit à rebours depuis une solution plantée, donc il
+est résoluble par construction, et sa cible de résolution complète vient
+gratuitement : une grille N×N compte exactement 2N(N-1) adjacences internes,
+le plateau planté les apparie toutes, et aucun plateau ne peut faire mieux.
+Les quatre barreaux portent des plafonds de 112, 180, 264 et 364. Aucun
+solveur externe n'est requis pour certifier quoi que ce soit ; avant tout
+solveur, le banc re-score le plateau planté à travers le même scoreur
+(bordure exclue) que les solveurs affronteront et vérifie qu'il atteint
+exactement le plafond. Cette assertion est active : un premier brouillon
+avait placé un petit plateau dans une grille de largeur 16, obtenu 28/60, et
+s'est fait prendre par elle.
+
+Cinq cases de la solution sont épinglées comme indices à la manière du puzzle
+officiel, chaque solveur reçoit un budget mural fixe de 12 secondes sur un
+seul cœur, et chaque plateau rendu est re-scoré indépendamment depuis ses
+arêtes ; l'auto-déclaration du solveur n'est jamais utilisée. Une ligne JSON
+par (solveur, N, graine) enregistre le score vérifié, le plafond, leur
+rapport, si la résolution est complète, le nombre de nœuds et un lien vers le
+plateau. Chaque plateau s'ouvre dans le [visualiseur](/viewer) : voici un
+[barreau planté N=8](/viewer?puzzle=ladder_n8_c22_s1&puzzle_size=8&board_edges=adcaabtdacrbafkcabofabmbaflbaadfcnfatrunrsgrkwisohuwmgvhlqjgdadqfmcaupimgnupikonujvkvrnjjoordadocheaikrhujikokujvvlknqpvopsqdaepehbarglhinwgulsnltnlpkmtspskeaepbidaljqiwvojstivnwhtmjpwstljeaetdhbaqmvhoqwmimrqhqgmpsuqlgtseadgbeaavbaewfabrfafgcafucactcacdaac)
+et le [meilleur partiel N=14](/viewer?puzzle=ladder_n14_c22_s5&puzzle_size=14&board_edges=abdaaclbafncadkfabqdafibacufadhcafkdadhfacqdaewcacueaadcducalijunowikwsoqjkwihpjuvjhhnnvkqonhihqqqqiwmsqunumdaenctbajrptwrlrsisrkroipwtrjpjwnlopouvlhvnuqrtvsjgruttjeaftbpbapmnplkwmsiskothitsltjlosovvlvgpvnqhgtosqgkootrgkfaerbwbanslwwnkssghnhiggljmiotjjvmttpmgmhwgmsrvwokhrgpukeafpbiealpuikvwphluvgrslmurrjskutmgsgknmghlkvijhhgiiuhhgfabhescauupswvjuukjvsjikrrwjkokrglqonmollwlmjoiwinwohqjnbaeqcidapgvijirgjsuiisnswlnskhmlqlthottlloptiswownusjhrneaehdgfavtwgrjhtuuwjnkmunqnkmirqtmtitglmpqggwpoqaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaocaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&hints=56.2-186.0-114.3-53.2-37.0)
+produit par cette exécution.
+
+Les deux solveurs livrés couvrent les deux familles que l'étude originale
+sépare : un retour arrière en profondeur d'abord qui ne place que des pièces
+parfaitement concordantes (le membre le plus simple de la famille
+propagative) et un remplisseur glouton ligne par ligne, sans aucun retour
+arrière.
+
+## Le résultat
+
+Dans l'exécution originale à treize méthodes (13 méthodes × 11 instances ×
+3 graines = 429 tâches), l'échelle a séparé les familles de solveurs d'un
+barreau entier : la famille propagative, pilotée par les contraintes, a tenu
+un rapport parfait de 1.000 jusqu'à N=12 inclus (264 arêtes sur 264), les
+ordres « bordure d'abord » s'étaient déjà effondrés vers 0.15 à 0.22 à cette
+taille, et à N=14 toutes les méthodes sont tombées entre 0.055 et 0.157. La
+reproduction archivée rejoue le banc de bout en bout avec les deux solveurs
+de référence :
+
+<Figure collapsible title="Attendu vs mesuré (4 barreaux × 8 graines × 2 solveurs, budget mono-cœur de 12 s)">
+
+| Quantité | Attendu (étude originale) | Mesuré (cette exécution) |
+| --- | --- | --- |
+| Plafonds N=8/10/12/14 | 112 / 180 / 264 / 364 | 112 / 180 / 264 / 364 ; plateau planté certifié 32/32 |
+| Re-score indépendant | 429/429 vérifiés | 64/64 vérifiés, 0 écart |
+| DFS à N=8 | résolution complète bien sous 1 s | résolution complète 8/8 graines (7 k à 8.7 M nœuds) |
+| DFS à N=10 | (absent de la grille originale) | résolution complète 7/8 graines ; la huitième cale à 0.283 |
+| DFS à N=12 | 0.489 lors d'un essai à 5 s | médiane 0.512, une résolution complète, min 0.216 |
+| DFS à N=14 | 0.217 lors d'un essai à 5 s ; effondrement de la grille originale 0.055 à 0.157 | médiane 0.477, meilleur 0.613, deux graines bloquées à 0.047 à 0.049 |
+| Glouton à N=8 | 0.313 | médiane 0.321 (0.295 à 0.366) |
+| Pièces dupliquées | 0 à N=8, jusqu'à 4 à N=12, 10 à 11 à N=14 | 0 sur chaque barreau (générateur du kit) |
+
+</Figure>
+
+Toute la mécanique se reproduit : le plafond prouvé gratuit, la certification
+de chaque plateau planté à travers le scoreur même que les solveurs
+affrontent, le re-score indépendant de chaque plateau rendu, et la
+dégradation monotone du DFS, parfait à N=8 puis sans aucune résolution
+complète à N=14, tandis que le glouton ne résout jamais complètement nulle
+part. La dispersion entre graines est large sur les barreaux hauts (0.216 à
+1.0 à N=12, 0.047 à 0.613 à N=14 pour le DFS) ; c'est pour cela que chaque
+barreau garde 8 graines.
+
+## Ce qui n'en découle pas
+
+- **Réussir aux petits N ne prédit rien sur le 16×16.** Les méthodes
+  parfaites à N=12 sont presque sans valeur un barreau plus haut ; le
+  livrable est la courbe de dégradation, jamais un classement à une taille
+  donnée. Pour l'état de l'instance réelle, voir
+  [la page des records](/research/records).
+- **Des échelles issues de générateurs différents ne sont pas
+  interchangeables.** La profondeur de l'effondrement dépend du profil
+  d'instance. Les barreaux originaux reprenaient le profil de couleurs du
+  vrai puzzle (22 couleurs intérieures, 5 couleurs rares confinées à
+  l'anneau adjacent au cadre) et comptaient jusqu'à 10 à 11 pièces
+  dupliquées à N=14 ; le générateur du kit ne produit aucun doublon et pas
+  d'anneau de couleurs rares, et l'effondrement à N=14 y est visiblement
+  moins profond (des partiels vers 0.6 contre un plancher de 0.157 dans la
+  grille originale). Les formes de courbes se transfèrent ; les points de
+  rupture exacts, non.
+- **Qu'un solveur de référence faible échoue sur un barreau ne réfute
+  rien.** Les lignes parfaites jusqu'à N=12 appartiennent à des solveurs
+  propagatifs précis pas encore portés dans le kit ; un solveur
+  sous-dimensionné ne peut que rester en dessous.
+
+## Reproduire
+
+`just research-scaling-ladder` reconstruit les quatre barreaux depuis le
+générateur à graines (un binaire par barreau, le moteur partagé fixant la
+taille du plateau à la compilation) et relance les deux solveurs au budget de
+12 secondes, en écrivant une ligne JSONL par exécution plus un recensement
+des barreaux avec le lien visualiseur de chaque plateau planté. Cela
+reproduit la mécanique du banc et la forme des courbes ; une égalité case
+par case avec la table originale à treize méthodes exige le jeu d'instances
+original archivé et le portage du registre de solveurs, comme le précise le
+plan de reproduction.

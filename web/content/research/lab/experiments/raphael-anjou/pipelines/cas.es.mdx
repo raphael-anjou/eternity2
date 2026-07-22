@@ -1,0 +1,166 @@
+---
+title: CAS
+description: >-
+  Colocar primero un borde perfecto y resolver el tablero hacia adentro,
+  anillo por anillo, cada anillo como un problema de asignación sobre las
+  piezas restantes.
+metaDescription: "CAS resuelve Eternity II de fuera hacia dentro: un borde perfecto de 60 piezas y luego cada anillo interior resuelto sobre las piezas restantes. Desde 20 marcos perfectos se estanca en 429-437 de 480, y vence siempre a una continuación de destrucción y reparación desde los mismos marcos."
+kind: experiment
+hardware:
+  cores: 8
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores)"
+  wallClock: "baseline arm 45 s × 8 frames; CAS arm deterministic per-shell beam over 20 frames (the source's per-shell MIP took 25 to 45 s per frame)"
+  seedPolicy: "seeded frame DFS; the shell beam is deterministic given a frame"
+  measured: false
+contribution: solver
+author: raphael-anjou
+score: 437
+outcome: plateaued
+scoringConvention: matched-edges
+rigor: measured
+complexity:
+  time: "segundos para encontrar cada marco 60/60; el MIP por anillo de la fuente tardaba de 25 a 45 s por marco, el brazo de referencia 45 s por marco"
+  space: "un solo anillo resuelto a la vez; los anillos exteriores quedan congelados una vez colocados"
+  note: >-
+    Congelar cada anillo es lo que hace baratas las capas, y también lo que
+    deja sin piezas a las capas interiores.
+repro:
+  kind: seeded
+  cmd: just research-cas-annular
+  topic: cas-annular
+  scope: "Vuelve a ejecutar todo desde cero: la enumeración de marcos, el brazo CAS de 20 marcos y el brazo de referencia de 8 marcos, regenerando el archivo de resultados publicado (puntuaciones por marco, diferencias y URL de tablero)."
+stages:
+  - engine: frame-input
+    does: "Un DFS de borde con semilla enumera marcos perfectos 60/60 distintos del puzle oficial"
+  - engine: beam-producer
+    does: "Los anillos se resuelven de fuera hacia dentro, cada uno como una asignación sobre las piezas restantes (beam por anillo de anchura 1024; las ejecuciones fuente usaban un MIP por anillo)"
+    published: false
+order: 70
+updated: 2026-07-22
+date: 2026-07
+topics: [construction, local-search]
+related:
+  - /research/lab/experiments/raphael-anjou/pipelines/cloister
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/build/dead-ends
+sources:
+  - label: "Tema de reproducción (este proyecto): plan publicado, crate de cómputo y resultados por marco detrás de cada número de esta página"
+    url: https://github.com/raphael-anjou/eternity2/blob/main/research/topics/cas-annular/article.md
+---
+
+CAS (concentric annular solving, resolución anular concéntrica) construye el
+tablero como crece una cebolla: se coloca un borde perfecto y se resuelve
+hacia adentro, anillo por anillo, hasta que las cuatro casillas centrales
+cierran el tablero. La pregunta era si ese orden de fuera hacia dentro podía
+ser un camino hacia los récords. La respuesta fue un no rotundo junto a un
+sí útil: desde cualquier marco perfecto el pipeline se estanca en una banda
+estrecha de 429 a 437, y desde ese mismo estado inicial vence a una
+continuación de destrucción y reparación en todos y cada uno de los marcos.
+
+## Cómo funciona
+
+El tablero 16×16 son 8 anillos concéntricos de 60, 52, 44, 36, 28, 20, 12 y
+4 casillas. CAS fija primero el anillo más externo como marco perfecto
+60/60: las 60 casillas de borde llenas con piezas de borde, cada arista del
+perímetro gris, y las 60 adyacencias internas del anillo emparejadas.
+Después resuelve cada anillo interior por turno como un problema de
+asignación sobre las piezas aún libres, maximizando las aristas emparejadas
+contra el anillo que lo rodea más las internas del propio anillo. Una vez
+colocado, un anillo queda congelado; la búsqueda nunca vuelve a él.
+
+Las ejecuciones originales (volúmenes de investigación 74 a 79) resolvían
+cada anillo con un MIP, de 25 a 45 segundos por marco. La reproducción
+publicada lo sustituye por un beam determinista de anchura 1024 por anillo,
+que cae en la misma banda, y añade un brazo de comparación: fijar el mismo
+marco, dejar el interior vacío y entregar ese estado a una
+[búsqueda local de destrucción y reparación](/research/build/local-search/local-search-alns).
+
+## El resultado
+
+Veinte marcos perfectos enumerados, veinte puntuaciones entre 429 y 437
+aristas emparejadas de 480 (media 432,8). La auditoría fuente, sobre sus
+propios 20 marcos, quedó entre 430 y 436 con media 432,4. La banda y la
+media se reproducen con un punto de margen en cada extremo, y el marco no
+importa: todo marco 60/60 lleva a la misma meseta. El mejor tablero de la
+reproducción puntúa 437; puede comprobarse
+[arista por arista en el visor](/viewer?puzzle=official_eternity2&puzzle_size=16&board_edges=abdaabjbaeqbadteaftdafgfacrfabpcafubabjfafhbafqfadofadhdaendaabedgdajiggqphitwhptgiwgkogrphkpjppumhjjvomhnlvqgtnouvghmwuniombafjdpcagnnpwlmnhuqlisouoqwshwmqppvwhjqpoqtjlvmqtkuvvulkwswuommsfaemcpcansvpiujsqrluonjrkpgnmonpvmjoqgqmtrkgmhmrunhhlktnwhqkmorheabocnfavhunjlthljmlhukjgsquntksjkqtqmokkigmmhgihruhtrgrqpqrrhkpbachfoeaurhotusrgolukuwopmmukrvmqrtropprgmspgsjwuvusgtqvqvntkokvcacoeteahustsgrulorgwuiogvvlvitvtvphpsuvskpphvrkuwovqlhwnkolkgikcadgencaspwnrilpriliiklqvwvkuiwqooiqijjrprsjrmorinjmhsknoiisiwgidafwcqeawinqliwillkilwolvwlwwmulijjmqwlrtqqwosnqjtrukmttiommgllofaelepbanqrpwoiqklwooupllsnhuhwklsuhhwusqngwnnsnrqunttlqmrgtlslreaesbgbaringigqiwwvgpmiwnnvjvijnuksivrtknkvrssskujoslijjgpnilulpeaeubteanpgtqgmpvgsgisjgvntorkmnsmwktrsmvmtrtplmoslgjuhsnkoulqjkeafqeibagtgimsutsphsjnmptmqnmrwmwpkrstoptpjtlsnptgwshhlgouqnjuoufafubmdagmtlujvmqovjmnloqoqnwmsokqhmoriqjkgrntkkwvwtlrwvqvproknvfackdsdatjisvvijvlwvlkplqjskshvjhrphijurgwvjkrvwwhtrwjhhpjijnthjcadtdcaaidacidadweadpcaesbacveabpdaeufadvcafvbactfabhcafrbachcabdaac&hints=135.0-210.1-34.1-221.2-45.1).
+
+<Figure collapsible title="Esperado frente a medido (20 marcos CAS, 8 marcos de referencia)">
+
+| magnitud | mediciones originales | esta reproducción |
+| --- | --- | --- |
+| banda CAS sobre marcos perfectos | 430 a 436 | 429 a 437 (n = 20) |
+| media CAS | 432,4 | 432,8 |
+| referencia desde el mismo marco | 385 a 398 (ALNS completo, 60 s/marco) | 411 a 419 (proxy ligero, 45 s/marco) |
+| CAS frente a la referencia | gana cada marco comparado, +34 a +49 | gana cada marco, +13 a +23 |
+
+</Figure>
+
+La segunda mitad es el duelo directo. Partiendo del mismo marco fijado con
+el interior vacío, la continuación por búsqueda local pierde todas las
+veces. En la medición fuente (alns_only completo, 60 segundos por marco)
+alcanzó de 385 a 398 y perdió las 8 comparaciones disponibles por 34 a 49
+puntos. El proxy más ligero de la reproducción lo hace mejor en términos
+absolutos (411 a 419) y aun así pierde cada marco, por 13 a 23 puntos. La
+magnitud de la diferencia no es comparable entre los dos montajes; su
+dirección y su consistencia en cada marco sí lo son.
+
+## Por qué se detiene
+
+La meseta no es un problema de ajuste, ni un hueco en el objetivo: las 480
+aristas están todas en el objetivo de CAS. El mecanismo es escasez de
+piezas. Los anillos exteriores, resueltos con avidez, fijan las piezas según
+lo bien que encajan hacia fuera, y en los anillos 5 a 7 el conjunto restante
+sencillamente ya no contiene piezas cuyos perfiles de color encajen con las
+restricciones orientadas hacia dentro. Es la versión a escala de anillos del
+[robo de piezas](/research/why/piece-theft): una pieza escasa gastada
+pronto, anillos antes de la casilla que la necesitaba.
+
+Los volúmenes fuente probaron los rescates obvios, y ambos confirman el
+diagnóstico. Un híbrido CAS-ALNS puntuó 418, peor que CAS solo; una pasada
+de refinamiento ALNS sobre un tablero CAS terminado llegó a 437-439, una
+mejora de unos pocos puntos que queda muy por debajo de lo que otros
+pipelines de este cuaderno alcanzan desde cero en el mismo hardware. Para
+situar el listón de la comunidad, véase la
+[página de récords](/research/records).
+
+## Qué se sigue de esto, y qué no
+
+CAS es dos cosas a la vez, y ambas mitades son el hallazgo. Como camino
+hacia los récords queda refutado en cuanto orden voraz: el orden de fuera
+hacia dentro deja sin piezas a su propio final de partida, desde cualquier
+marco. Como herramienta de subproblema es la mejor opción que he medido para
+un estado concreto, un marco perfecto más un interior vacío. Los operadores
+de destrucción y reparación esperan un tablero completo que mutar; ante un
+interior vacío primero tienen que construir uno, y lo hacen mal, mientras
+que CAS es exactamente la herramienta constructiva de ese estado. Qué
+algoritmo conviene depende del estado de partida; la composición del
+pipeline importa tanto como sus componentes.
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) es el
+experimento hermano que conserva el marco fijado pero abandona el orden
+anillo por anillo.
+
+Tres salvedades acotan la conclusión. La reproducción fija las cinco piezas
+pista oficiales; las páginas fuente no registran si las ejecuciones
+originales lo hacían. Las cinco pistas están en el interior, así que el
+brazo del marco no se ve afectado, y fijarlas solo puede hacer la
+reproducción ligeramente conservadora, la dirección segura para una
+afirmación de meseta. El brazo de referencia es un proxy ligero: solo la
+dirección de la diferencia y su consistencia en cada marco se trasladan, no
+su tamaño. Y los números son propiedades del juego de piezas oficial 16×16:
+el mecanismo vive en los anillos 5 a 7, que un tablero 8×8 (4 anillos) nunca
+alcanza, de modo que una prueba en tablero pequeño no puede confirmar ni
+refutar la conclusión.
+
+## Reproducir
+
+`just research-cas-annular` vuelve a ejecutarlo todo desde cero: enumera los
+marcos con un DFS de borde con semilla, corre el brazo CAS de 20 marcos y el
+brazo de referencia de 8 marcos, y regenera el archivo de resultados
+publicado con puntuaciones por marco, diferencias y una URL del visor para
+cada tablero.

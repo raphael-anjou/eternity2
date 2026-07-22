@@ -3,7 +3,7 @@
 id: ledger-prune
 title: "LEDGER: a sound global colour-ledger prune for break-budget search"
 summary: A sound per-colour supply/demand ledger prunes a break-budget DFS with zero unsound fires (replayed at zero slack over 8 boards x 257 depths); on generated boards this phase measures node ratios of 1.5x to 5x that grow with the budget, bounding from below the 140x to 4330x the source measured on a community 464 board's break-carrying tail (phase 2).
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:

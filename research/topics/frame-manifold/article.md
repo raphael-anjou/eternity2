@@ -2,7 +2,7 @@
 id: frame-manifold
 title: The perfect border is a manifold, not a point
 summary: On the official piece set, every fully matched 60-piece border admits exactly 45 zero-cost piece exchanges that compose indefinitely and change what the rim offers the interior; about a third of "perfect" borders leave an interior cell unfillable, and a single free exchange repairs them.
-status: draft
+status: published
 created: 2026-07-22
 updated: 2026-07-22
 contributors:
@@ -134,3 +134,7 @@ generates its own frames, which doubles as the robustness check the original
 finding called for: the free-move count of 45 is claimed as a property of the
 piece set and should replicate, while the 36 percent dead-frame rate is a
 property of the generator's sampling and may shift.
+
+## Source-context figures
+
+Worked example quoted from the source study: a single free rim swap took a framed DFS from depth 0 to depth 153 of 196 on one dead frame.

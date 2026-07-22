@@ -134,3 +134,28 @@ research-citations-check:
 # Audit research prose style: em dashes and recurring LLM tics (quotes exempt).
 research-style-check:
     node web/scripts/check-research-style.mjs
+
+# Reproduce the cas-annular topic's results (20 CAS frames + 8 baseline frames).
+research-cas-annular:
+    cd research/topics/cas-annular/compute && cargo run --release -- 20 8 1024 45 > ../results/cas_plateau.json
+
+# Reproduce the frame-manifold topic's results (500 frames + the seed-7001 robustness pass).
+research-frame-manifold:
+    cd research/topics/frame-manifold/compute && cargo run --release > ../results/manifold.json
+    cd research/topics/frame-manifold/compute && cargo run --release -- --frames 100 --walk 100 --seed0 7001 > ../results/manifold_seed7001.json
+
+# Reproduce the ledger-prune topic's results (soundness gate + A/B sweep + the 464 certificate rows).
+research-ledger-prune:
+    cd research/topics/ledger-prune/compute && cargo run --release -- --mode cert --cap-secs 300 > ../results/cert_phase2.json
+
+# Reproduce the beam-width-smc topic's results (width law + tie-break + SMC paired arms).
+research-beam-width-smc:
+    cd research/topics/beam-width-smc/compute && cargo run --release > ../results/beam-width-smc.json
+
+# Reproduce the tail-finishability-frostline topic's results (120 tops, exact tail labels, BP factors).
+research-frostline:
+    cd research/topics/tail-finishability-frostline/compute && uv run frostline.py --seeds 120 --betas 1,2,3,4,5,6 --out ../results/frostline_r15.json
+
+# Reproduce the scaling-ladder topic's results (4 rungs x 8 seeds x 2 baseline solvers).
+research-scaling-ladder:
+    cd research/topics/scaling-ladder/compute && cargo run --release > ../results/summary.json
