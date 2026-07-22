@@ -65,8 +65,9 @@ impl XorShift {
         Self(z ^ (z >> 31) | 1)
     }
 
-    /// A uniform draw in `0..n` (Lemire-reduction of the next 32-bit draw;
-    /// `n = 0` returns 0). Additive helper for seeded solvers.
+    /// A draw in `0..n` via the multiply-shift reduction of the next 32-bit
+    /// draw (no rejection step: bias is at most n/2^32, negligible for the
+    /// small n a solver shuffles with; `n = 0` returns 0).
     #[must_use]
     pub fn next_below(&mut self, n: u32) -> u32 {
         if n == 0 { return 0; }

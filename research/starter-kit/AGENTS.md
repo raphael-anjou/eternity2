@@ -15,12 +15,24 @@ exists and is tested.
 
 ```bash
 cargo build --release
-cargo test --release        # 4 correctness tests must pass
+cargo test --release        # 13 correctness tests must pass (9 integration + 4 unit)
 ```
 
 Requires Rust stable 1.85+. No other toolchain. The kit depends on
 `../experiments/common/crates/{e2-core,e2-io}` by path, so it must stay a sibling
 of `experiments/` inside the repo.
+
+## The library surface (2026-07 additions)
+
+`e2_kit::analysis` holds piece-set census helpers (orbit census, colour
+half-edge census, piece classes, canonical key), tested against the official
+set's structure. `e2_kit::fit` holds the per-cell edge-constraint and
+candidate-fitting arithmetic (hard `fit_score`, soft `fit_counts`) that
+`examples/my_solver.rs` uses. `examples/backtracking.rs` is a second worked
+solver (perfect-fit DFS, visit order row/border/spiral, seeded restarts).
+`XorShift` is re-exported with a bounded `next_below` draw, and
+`scripts/compare.py` reports paired t and Wilcoxon signed-rank alongside the
+mean-delta verdict.
 
 ## Where the user's idea goes
 
