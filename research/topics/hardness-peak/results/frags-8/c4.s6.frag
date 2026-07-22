@@ -1,0 +1,1 @@
+{"size": 8, "interiorColors": 4, "borderColors": 5, "totalColors": 9, "seed": 6, "nodeBudget": 30000000, "solved": true, "exhausted": false, "nodes": 46324, "placements": 46324, "backtracks": 46260, "bestPlaced": 64, "seconds": 0.096}

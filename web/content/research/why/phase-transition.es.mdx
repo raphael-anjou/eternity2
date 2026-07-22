@@ -29,7 +29,7 @@ repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Solo reproduce el reparto de colores 17/5 interior/marco. La localización del pico de dificultad y la afirmación de «una sola solución esperada» descansan en las fuentes externas citadas (Owen msg 1947, Ansótegui/Mateu), no en este comando."
+  scope: "Reproduce el reparto de colores 17/5 interior/marco. La localización del pico de dificultad se mide por separado en el repositorio mediante el experimento hardness-peak (un barrido de esfuerzo del solucionador en 8x8, más el criterio de Owen recalculado a 17,14 a tamaño 16); la afirmación de «una sola solución esperada» para el tablero 16x16 completo descansa aún en las fuentes externas citadas (Owen msg 1947, Ansótegui/Mateu)."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -59,6 +59,23 @@ colores interiores a partir del criterio de «aproximadamente una solución
 esperada», exactamente los parámetros publicados, años antes de los análisis
 académicos
 ([Diseñar el puzzle más difícil, msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+Lo medimos aquí. El criterio de Owen solo se enunció para el tablero completo,
+así que lo llevamos a un segundo tamaño para ver si se sostiene. La misma fórmula
+predice $(36! \cdot 4^{36})^{1/72} \approx 7.56$ colores interiores para un
+tablero 8x8, y un 8x8 es lo bastante pequeño como para que un backtracker común
+resuelva de verdad instancias aleatorias: su curva de dificultad se puede barrer
+directamente. Al medir el esfuerzo del solucionador frente al número de colores
+interiores sobre tableros 8x8 generados (el generador y el DFS del sitio), la
+banda dura, donde la búsqueda deja de encontrar solución dentro del presupuesto,
+cae justo donde lo predice el criterio a tamaño 8. El barrido 16x16 completo es
+la otra mitad del cuadro: un backtracker común no lo termina con ningún número de
+colores, y la profundidad que alcanza decrece de forma sostenida al aumentar los
+colores, de modo que el tablero real queda más allá del punto donde la curva ya
+se ha vuelto vertical. El
+[experimento hardness-peak](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
+contiene el código, ambos barridos y el criterio recalculado en el repositorio
+(reproduce el 17,14 de Owen a tamaño 16).
 
 ## El muro de la dificultad
 

@@ -29,7 +29,7 @@ repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Ne reproduit que la répartition des couleurs 17/5 intérieur/cadre. La localisation du pic de difficulté et l'affirmation « une seule solution attendue » reposent sur les sources externes citées (Owen msg 1947, Ansótegui/Mateu), non sur cette commande."
+  scope: "Reproduit la répartition des couleurs 17/5 intérieur/cadre. La localisation du pic de difficulté est mesurée séparément dans le dépôt par l'expérience hardness-peak (un balayage d'effort du solveur en 8x8, plus le critère d'Owen recalculé à 17,14 à la taille 16) ; l'affirmation « une seule solution attendue » pour le plateau 16x16 complet repose encore sur les sources externes citées (Owen msg 1947, Ansótegui/Mateu)."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -59,6 +59,23 @@ en août 2007, Brendan Owen a dérivé $I = (196! \cdot 4^{196})^{1/392} \approx
 couleurs intérieures à partir du critère « environ une solution attendue »,
 exactement les paramètres publiés, des années avant les analyses académiques
 ([Concevoir le casse-tête le plus difficile, msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+Nous l'avons mesuré ici. Le critère d'Owen n'a jamais été énoncé que pour le
+plateau complet ; nous l'avons donc passé à une seconde taille pour voir s'il
+tient. La même formule prédit $(36! \cdot 4^{36})^{1/72} \approx 7.56$ couleurs
+intérieures pour un plateau 8x8, et un 8x8 est assez petit pour qu'un
+backtracker ordinaire résolve réellement des instances aléatoires : sa courbe de
+difficulté se balaie directement. En mesurant l'effort du solveur en fonction du
+nombre de couleurs intérieures sur des plateaux 8x8 générés (le générateur et le
+DFS du site), la bande dure, là où la recherche cesse de trouver une solution
+dans le budget imparti, tombe exactement où le critère à la taille 8 le prédit.
+Le balayage 16x16 complet forme l'autre moitié du tableau : un backtracker
+ordinaire ne le termine à aucun nombre de couleurs, et la profondeur qu'il
+atteint décroît régulièrement à mesure que les couleurs augmentent, si bien que
+le vrai plateau se situe au-delà du point où la courbe est déjà devenue
+verticale. L'[expérience hardness-peak](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
+contient le code, les deux balayages et le critère recalculé dans le dépôt (il
+reproduit le 17,14 d'Owen à la taille 16).
 
 ## Le mur de la difficulté
 
