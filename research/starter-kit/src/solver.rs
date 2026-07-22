@@ -51,6 +51,13 @@ impl Budget {
         self.start.elapsed().as_secs_f64()
     }
 
+    /// Seconds left before the budget expires (0 once spent). Handy for
+    /// deriving an internal deadline in a recursive search.
+    #[must_use]
+    pub fn remaining_secs(&self) -> f64 {
+        (self.limit.as_secs_f64() - self.start.elapsed().as_secs_f64()).max(0.0)
+    }
+
     /// Fraction of the budget consumed, clamped to `[0, 1]`.
     #[must_use]
     pub fn fraction(&self) -> f64 {

@@ -19,14 +19,18 @@
 
 #![forbid(unsafe_code)]
 
+pub mod analysis;
+pub mod fit;
 pub mod run;
 pub mod runner;
 pub mod solver;
 
 // Re-export the shared substrate so kit users depend only on `e2_kit`.
 pub use e2_core::{
-    generator, score_board, score_cells, Board, GeneratedPuzzle, Piece, Pieces, MAX_SCORE_16,
+    generator, rotated, score_board, score_cells, Board, GeneratedPuzzle, Piece, Pieces, Rot,
+    BORDER, MAX_SCORE_16,
 };
+pub use e2_core::generator::XorShift;
 pub use e2_io::{
     board_to_bucas_url, bucas_url, hints_to_param, parse_board_edges, parse_hints, viewer_url,
     BoardDoc, Hint, Instance, SiteInstance, SolveOutput,

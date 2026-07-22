@@ -167,6 +167,30 @@ cargo run --release --example bench
 #   ~3.1M scorings/s           (canonical scorer on a full board)
 ```
 
+## Measure the piece set, fit candidates, roll seeds
+
+Three small modules cover the arithmetic every solver and every measurement
+kept re-deriving:
+
+- **`e2_kit::analysis`** — piece-set census: `orbit_census` (rotation
+  symmetry), `canonical_key`, `color_half_edge_census` (grey = 64, interior =
+  960 on the official set), `piece_classes` (4/56/196), `clue_cells`.
+- **`e2_kit::fit`** — per-cell `edge_constraints` (URDL, `Some(color)` where
+  the rim or a placed neighbour constrains a side), `fit_score` (hard,
+  `None` on conflict) and `fit_counts` (soft, for break-tolerant search).
+- **`XorShift`** (re-exported) with `next_below(n)` — the seeded RNG the
+  generator uses, for solvers that shuffle reproducibly.
+
+Two worked examples now bracket the difficulty range: `my_solver.rs` (greedy,
+no backtracking) and `backtracking.rs` (perfect-fit chronological DFS with a
+configurable visit order — `row`, `border`, `spiral` — and seeded restarts).
+Visit order matters far more than it looks; sweep it.
+
+`Instance::to_site_json` round-trips an instance back to the site schema, so
+Python / OR-tools / notebook consumers can read exactly what the Rust side
+solves. `scripts/compare.py` reports paired t and Wilcoxon signed-rank
+statistics alongside the mean-delta verdict.
+
 ---
 
 # The iteration loop

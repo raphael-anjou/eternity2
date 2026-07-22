@@ -49,6 +49,56 @@ def sd(xs):
     return math.sqrt(sum((x - m) ** 2 for x in xs) / len(xs))
 
 
+def paired_t(deltas):
+    """Paired t statistic (sample sd, n-1). None when undefined (n<2 or sd=0)."""
+    n = len(deltas)
+    if n < 2:
+        return None
+    m = mean(deltas)
+    s2 = sum((d - m) ** 2 for d in deltas) / (n - 1)
+    if s2 == 0:
+        return None
+    return m / math.sqrt(s2 / n)
+
+
+def wilcoxon_z(deltas):
+    """Wilcoxon signed-rank z (normal approximation, tie-corrected ranks,
+    zero deltas dropped). None when every delta is zero or n_nonzero < 2.
+    |z| >= 1.96 is the usual 5% two-sided line; the approximation is loose
+    below ~10 non-zero pairs."""
+    nz = [d for d in deltas if d != 0]
+    n = len(nz)
+    if n < 2:
+        return None
+    ranked = sorted((abs(d), i) for i, d in enumerate(nz))
+    ranks = [0.0] * n
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and ranked[j + 1][0] == ranked[i][0]:
+            j += 1
+        avg = (i + j) / 2 + 1  # tie-averaged rank (1-based)
+        for k in range(i, j + 1):
+            ranks[ranked[k][1]] = avg
+        i = j + 1
+    t_plus = sum(r for r, d in zip(ranks, nz) if d > 0)
+    mu = n * (n + 1) / 4
+    # tie correction on the variance
+    tie_term = 0.0
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and ranked[j + 1][0] == ranked[i][0]:
+            j += 1
+        t = j - i + 1
+        tie_term += t ** 3 - t
+        i = j + 1
+    var = n * (n + 1) * (2 * n + 1) / 24 - tie_term / 48
+    if var <= 0:
+        return None
+    return (t_plus - mu) / math.sqrt(var)
+
+
 def main():
     if len(sys.argv) != 3:
         print("usage: compare.py <runA> <runB>", file=sys.stderr)
@@ -87,6 +137,15 @@ def main():
     print(f"  mean B      {mean_b:.2f}   (achieved cells only)")
     print(f"  mean Δ(B−A) {md:+.2f}   sd {sdd:.2f}")
     print(f"  B wins {wins}   losses {losses}   ties {ties}")
+    t_stat = paired_t(deltas)
+    w_z = wilcoxon_z(deltas)
+    if t_stat is not None or w_z is not None:
+        print("\n  paired statistics (two-sided; |stat| ≥ 1.96 ≈ the 5% line):")
+        if t_stat is not None:
+            print(f"    paired t            {t_stat:+.2f}")
+        if w_z is not None:
+            print(f"    Wilcoxon signed z   {w_z:+.2f}   (normal approx., loose below ~10 non-zero pairs)")
+
     print(f"\n  standard error of the mean Δ: {stderr:.2f}")
     if md == 0:
         print("  → identical scores (mean Δ = 0). The two runs match.")
