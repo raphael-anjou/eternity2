@@ -1355,3 +1355,31 @@ open-problems questions, order alignment, and the 8-experiment slate
 (E1 sigma-cycles all-pairs, E2 SAT halo extension, E3 in-repo area law,
 E4 hardness-peak sweep, E5 prune-vs-speed repro fix, E6 contiguous-hint
 measurement, E7 border recount, E8 archive refresh).
+
+## 2026-07-22 — Fourteen reproduction drafts run through the starter kit + kit additions
+
+Fourteen findings from the private research program landed as draft topics
+(`research/topics/<id>/`, status draft, not yet surfaced), each a
+self-contained reproduction package: the claim with its expected numbers, a
+declared reproducibility tier (exact / seeded-statistical / qualitative), a
+compute crate on the starter-kit substrate, and committed results. All
+fourteen were executed; none failed. Six reproduced fully
+(adversarial-piece-set, ring-purity, parity-defect-floor, design-recipe-464,
+frame-manifold, cas-annular), two reproduced with a stated caveat
+(beam-width-smc, tail-finishability-frostline), six are partial with the
+reproduced half committed and the blocker named in the article. Reproduction
+caught three source errors or over-claims that the articles now record:
+a rounding artifact in the 470-wall first-moment count, an engine-bound
+middle in the constraint-immediacy order ranking, and a colour-count
+dependence of the N=13 solvability cliff. Exact-tier results were re-verified
+byte-identical in four independent audits.
+
+The starter kit gained the shared plumbing those topics kept re-deriving:
+`e2_kit::analysis` (piece-set census, tested against the official set's
+structure), `e2_kit::fit` (the example's placement arithmetic, promoted),
+a worked backtracking example with configurable visit order, a seeded-RNG
+re-export with a bounded draw, paired t and Wilcoxon statistics in
+`scripts/compare.py`, a lossless `Instance::to_site_json` export for
+non-Rust consumers, board-size feature passthrough, and a documented
+piece-for-piece guarantee that `data/official.json` matches the community
+CSV (verified 256/256, same order, same sides).
