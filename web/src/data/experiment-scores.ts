@@ -7,6 +7,11 @@ import type { ScoreDatum } from "@/components/research/ExperimentScoreChart";
 // families. Author, month, rigor and reproducibility are read from each page's
 // frontmatter via the manifest, so only the score, label and family live here.
 //
+// Completeness contract: any new experiment page that ships a `score` in its
+// frontmatter gets its row here in the same commit. Check with
+//   grep -rln "^score:" content/research/lab/experiments/raphael-anjou
+// (EN files only) against the explore keys below; the two lists must match.
+//
 // Two provenance groups that must never be conflated:
 //   explore — the best board a method reached in exploratory runs on 8 cores,
 //             wall-clock not logged; the headline numbers the write-ups quote.
@@ -23,6 +28,7 @@ export const RAPHAEL_ANJOU_SCORES: ScoreDatum[] = [
   { key: "ladder", label: "LADDER", score: 451, family: "concentrate", group: "explore" },
   { key: "cloister", label: "CLOISTER", score: 453, family: "anchor", group: "explore" },
   { key: "midden", label: "MIDDEN", score: 452, family: "anchor", group: "explore" },
+  { key: "cas", label: "CAS", score: 437, family: "anchor", group: "explore" },
   { key: "bandsaw", label: "BANDSAW", score: 437, family: "exact", group: "explore" },
   { key: "mosaic", label: "MOSAIC", score: 448, family: "exact", group: "explore" },
   { key: "replay", label: "REPLAY", score: 460, family: "decode", group: "explore" },

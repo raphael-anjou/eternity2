@@ -3,20 +3,21 @@ title: "Les expériences de Raphaël Anjou"
 description: >-
   Un carnet d'expériences de recherche sur Eternity II, organisé autour des
   moteurs partagés qui les font tourner, des pipelines de combinaison qui
-  courent après le score, de trois études qui décortiquent un paradigme de
+  courent après le score, de quatre études qui décortiquent un paradigme de
   recherche une décision à la fois, et de résolutions exactes de fin de partie.
   Chacune expose son idée, son meilleur plateau et les questions qu'elle laisse
   ouvertes. La meilleure atteint 463 sur 480.
-metaDescription: "Le carnet de recherche Eternity II de Raphaël Anjou : moteurs partagés, pipelines de combinaison qui courent après le score, trois études mono-paradigme (DFS, réparation, apprentissage) et résolutions exactes de fin de partie. Méthodes et plateaux ouverts ; le meilleur atteint 463 sur 480 arêtes."
+metaDescription: "Le carnet de recherche Eternity II de Raphaël Anjou : moteurs partagés, pipelines qui courent après le score, quatre études mono-paradigme (DFS, réparation, apprentissage, indices) et résolutions exactes de fin de partie. Méthodes et plateaux ouverts ; le meilleur atteint 463 sur 480 arêtes."
 kind: page
 order: 20
 author: raphael-anjou
-updated: 2026-07-21
+updated: 2026-07-22
 ---
 
 import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
 import { ProseLink } from "@/components/docs/mdx-components";
+import { RecentlyAdded } from "@/components/research/RecentlyAdded";
 import { RAPHAEL_ANJOU_SCORES as scores } from "@/data/experiment-scores";
 
 export function Door({ to, title, kicker, children }) {
@@ -46,6 +47,8 @@ silence.
 
 C'est un carnet, non un résultat unique : mieux vaut donc en connaître
 l'agencement avant de s'y plonger.
+
+<RecentlyAdded author="raphael-anjou" />
 
 ## Ce que contient cette section
 
@@ -105,10 +108,23 @@ se trouve la question qui vous tient à cœur.
     kicker="Décortiquer un paradigme"
     title="Apprendre des plateaux forts"
   >
-    La troisième étude, tournée vers l'intérieur : plutôt que de faire varier la
+    Une étude tournée vers l'intérieur : plutôt que de faire varier la
     recherche, on fait varier ce qu'elle a le droit de *savoir*. Cinq expériences
     fouillent le corpus des plateaux forts pour en extraire de la structure et la
     réinjectent, et toutes cinq se heurtent au même mur.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/hint-study"
+    kicker="Décortiquer un paradigme"
+    title="L'étude des indices"
+  >
+    Donner gratuitement à un backtracker cinq pièces correctes, dans la
+    géométrie d'indices du puzzle lui-même. Mesurées contre l'absence totale
+    d'indices, elles n'aident jamais un backtracker chronologique sur ces
+    plateaux ; elles peuvent coûter 10 à 20 points à un balayage compact et
+    faire chuter d'environ 345 points un ordre qui court vers les indices, car
+    une pièce épinglée est une contrainte dure qu'un ordre de remplissage fixe
+    doit satisfaire à son arrivée.
   </Door>
   <Door
     to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
@@ -138,7 +154,70 @@ Les deux moteurs constructifs, le producteur par faisceau et l'étape de
 polissage ALNS, n'ont pas encore leur propre exposé ; là où un pipeline en
 pilote un, la page de ce pipeline indique ce que fait ce moteur au niveau dont
 l'étude a besoin. Les préréglages CSP sont le seul moteur documenté et mesuré en
-intégralité.
+intégralité. À côté de cet appareillage, le petit [moteur de
+référence](/research/lab/experiments/raphael-anjou/engine) qui anime les
+démonstrations en direct du site et revérifie chaque chiffre a sa propre page.
+
+## Constats et instruments
+
+Tout n'est pas ici pipeline ou étude. Trois pages se tiennent seules, une ligne
+chacune :
+
+- [FROSTLINE](/research/lab/experiments/raphael-anjou/frostline) : une énergie
+  libre de propagation de croyances sur les pièces restantes de la dernière
+  rangée, qui prédit par rang à quel point la rangée peut encore s'achever, et
+  dont le signal meurt au-delà d'une rangée.
+- [LEDGER](/research/lab/experiments/raphael-anjou/ledger) : un élagage sain,
+  couleur par couleur, de l'offre contre la demande pour un DFS à budget de
+  ruptures, dont les économies se composent avec la profondeur.
+- [L'échelle de tailles](/research/lab/experiments/raphael-anjou/scaling-ladder) :
+  un banc qui fait tourner un solveur tel quel sur des plateaux plantés,
+  entièrement résolubles, de N = 8 à 14, pour trouver où la méthode s'effondre
+  avant d'engager des semaines sur le vrai 16x16.
+
+Deux autres constats vivent sur l'étagère des pipelines :
+[rendre un producteur beam 10x meilleur](/research/lab/experiments/raphael-anjou/pipelines/beam-width),
+où la largeur elle-même s'est révélée la réponse à budget égal, et
+[le cadre fluide](/research/lab/experiments/raphael-anjou/pipelines/fluid-frame),
+où un bord parfait s'est révélé être non pas un arrangement unique mais une
+variété connexe d'échanges gratuits.
+
+## Où en est le carnet
+
+Lu comme une seule enquête, le carnet suit trois lignes. Les constructeurs
+partant de zéro et les pipelines de combinaison plafonnent dans une bande de 436
+à 460 arêtes appariées : la construction seule cale, et ce que les pipelines ont
+gagné vient de la répartition du travail entre construction, réparation et fin
+de partie exacte, non d'un moteur en particulier. La [ligne d'apprentissage sur
+corpus](/research/lab/experiments/raphael-anjou/learning) atteint 460 à 463, et
+ses cinq expériences s'arrêtent toutes au même [mur de
+rigidité](/research/why/rigidity-wall). Les résolutions exactes par [rencontre
+au milieu](/research/lab/experiments/raphael-anjou/meet-in-the-middle) sont un
+résultat d'une autre nature : leurs plateaux à 437-448 s'accompagnent d'une
+preuve sur une petite région, non d'une course au score du plateau entier. La
+question ouverte du carnet est ce qu'une prochaine expérience devrait changer
+pour dépasser 463 ; varier la recherche et varier ce qu'elle sait ont tous deux
+buté sur des murs, le levier n'est donc probablement ni l'un ni l'autre seul.
+L'écart qui demeure est celui au 470 de la communauté, sur la [page des
+records](/research/records).
+
+Le carnet compte ses scores selon deux conventions, qui ne désignent pas le
+même sommet. En arêtes appariées, le meilleur est 463
+([PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)).
+Sous la convention stricte des cinq indices, où les cinq indices officiels
+doivent occuper leurs cases, le meilleur est 461 : un producteur à ordre en
+peigne atteint 457, puis un polissage destruction-réparation le hisse par 459
+et 460. Ces deux nombres restent sous les meilleures marques communautaires ;
+la [page des records](/research/records) tient les conventions et le
+classement à jour.
+
+## Prochaines rédactions
+
+Des résultats existent au labo sans avoir encore leur page, dans l'ordre
+probable d'arrivée : la lignée stricte 461 ci-dessus, le finisseur exact qui
+scelle les dernières lignes d'un plateau produit, le faisceau à double
+rupture, et le producteur de bassins par nouveauté. Chacun arrivera avec sa
+reproduction exécutable, comme les pages ci-dessus.
 
 ## Comment lire les scores
 
@@ -154,12 +233,14 @@ jamais confondre : c'est pourquoi ils sont représentés en deux groupes distinc
   et *directement comparable* d'une méthode à l'autre, ce que ne permettent pas
   les chiffres d'exploration.
 
-Toutes les expériences ne méritent pas une ligne. Les trois études font varier un
+Toutes les expériences ne méritent pas une ligne. Les études font varier un
 curseur sur une grille de valeurs plutôt que de produire un seul plateau : les
 études [DFS](/research/lab/experiments/raphael-anjou/dfs-study) et
 [réparation](/research/lab/experiments/raphael-anjou/repair-study) portent donc
 leur propre classement au lieu d'une ligne sur le graphique ; seul leur meilleur
-résultat de banc figure ici. Les cinq expériences
+résultat de banc figure ici. [L'étude des
+indices](/research/lab/experiments/raphael-anjou/hint-study) porte de même ses
+propres tableaux sur ses pages et n'a pas de ligne sur le graphique. Les cinq expériences
 [d'apprentissage](/research/lab/experiments/raphael-anjou/learning) atteignent
 chacune un plateau scoré : elles gardent donc leur ligne en plus de leur foyer
 d'étude. Les lignes de banc ci-dessus sont des résultats d'étude, non des pages

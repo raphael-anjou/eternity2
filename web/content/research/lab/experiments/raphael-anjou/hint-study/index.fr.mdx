@@ -1,0 +1,125 @@
+---
+title: L'étude sur les indices
+description: >-
+  Donner à un backtracker cinq pièces correctes gratuitement, dans la géométrie
+  même des indices du puzzle. Il s'avère que cela n'aide pas, et selon l'ordre de
+  remplissage cela peut nuire gravement, car une pièce épinglée est une contrainte
+  dure qu'un ordre de remplissage fixe doit satisfaire à son arrivée. Une famille
+  d'ordres de remplissage, exécutée sur les mêmes plateaux indicés, un seul cœur,
+  mesurée contre l'absence totale d'indices.
+metaDescription: "Étude contrôlée du placement d'indices pour Eternity II : les cinq indices officiels n'aident jamais un backtracker chronologique. Ils coûtent ~10 à 20 points à un balayage compact et ~345 à un ordre qui cherche les indices, car une pièce épinglée est une contrainte que l'ordre fixe doit satisfaire."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned per run"
+  wallClock: "8 s per run"
+  seedPolicy: "15 board seeds; each seed is a distinct generated instance"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments hint-study
+order: 26
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, search-space, structure]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/why/hint-geometry
+sources:
+  - label: "Générateur exécutable + résultats versionnés + scripts (le répertoire d'appui de cette étude)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { HintPathFill } from "@/components/research/HintPathFill";
+
+Il existe une réponse folklorique à la question de savoir comment rendre Eternity II
+plus facile : donner au solveur quelques pièces correctes. La question naturelle qui
+suit est *combien*, et la
+[discussion communautaire sur la géométrie des indices](/research/why/hint-geometry)
+l'a déjà affinée en *où*. Cette étude pose une question plus élémentaire, que ces
+deux-là enjambent : sur nos propres plateaux générés, les indices aident-ils *tout
+court* ?
+
+Pour un backtracker chronologique, la réponse est **non**. Amorcez-le avec les cinq
+pièces officielles des indices, à leurs positions réelles sur le plateau, puis
+mesurez-le contre le même plateau exactement sans aucun indice : il fait moins bien
+sur chaque ordre de remplissage testé, sans exception. Sur un balayage compact ligne
+par ligne, les cinq pièces correctes ne coûtent que dix à vingt arêtes appariées ;
+sur l'ordre qu'un débutant choisirait en premier, « rejoindre les indices et les
+relier entre eux », elles en coûtent environ trois cent quarante-cinq, transformant
+l'un des meilleurs ordres sans indices en le pire de tous. La raison est simple une
+fois qu'on la voit : pour un solveur qui remplit les cases dans un ordre fixe, une
+pièce épinglée n'est pas une information gratuite mais une **contrainte dure qu'il
+doit satisfaire à l'instant où il l'atteint**, et parfois il ne le peut pas.
+
+## Le voir : cinq indices, quatre ordres
+
+Chaque plateau ci-dessous se remplit selon un ordre différent, en boucle. Rien n'est
+en train d'être *résolu* ; c'est seulement l'ordre dans lequel la recherche
+visiterait les cases, rendu visible. La case lumineuse est celle qui vient d'être
+placée, et la traînée derrière elle est le **front d'onde** récent, de sorte qu'on
+voit combien de bord ouvert chaque ordre garde en avançant. Ce bord ouvert, la
+frontière, est ce qu'un backtracker paie : son branchement croît avec la frontière,
+et une petite frontière est aussi ce qui laisse à la recherche la marge de contourner
+un épinglage hostile.
+
+<HintPathFill />
+
+Un balayage ligne par ligne garde une seule frontière mince et la fait rouler le long
+du plateau, si bien qu'en rencontrant une pièce épinglée il peut ajuster l'unique
+ligne qu'il est en train de construire. Les ordres qui cherchent les indices font
+l'inverse. Spiraler vers l'intérieur ou l'extérieur traîne un anneau entier comme
+frontière, et tracer les indices éparpille son front d'onde à travers le plateau dès
+le tout premier coup, s'engageant partout avant de pouvoir savoir si les engagements
+sont cohérents. Le balayage compact survit aux cinq indices ; les ordres qui les
+cherchent en sont défaits.
+
+## Ce que l'étude mesure
+
+Deux comparaisons appariées, exécutées sur les mêmes plateaux générés :
+
+- **Les indices aident-ils, et quel ordre leur survit ?** Fixer les indices (cinq,
+  dans la forme des cinq indices d'Eternity II lui-même) et ne faire varier que
+  l'ordre de remplissage, mesuré contre le plateau identique sans indices. C'est la
+  colonne vertébrale de l'étude : elle montre que les indices n'aident jamais, et
+  que l'ampleur du dommage est fixée par l'ordre de remplissage et sa frontière
+  ouverte.
+- **Le nombre.** Ajouter *plus* d'indices aide-t-il ? Un peu, mais la façon naïve de
+  le mesurer est *confondue*. Un bloc d'indices groupés engrange gratuitement un tas
+  d'arêtes correctes du seul fait d'être épinglé ; ce « plancher » gratuit flatte
+  les dispositions groupées au score brut sans rien dire de la question de savoir si
+  le plateau est devenu plus facile à *terminer*. La
+  [page de méthode](/research/lab/experiments/raphael-anjou/hint-study/method)
+  définit le plancher et les métriques qui y sont immunisées (taux de résolution et
+  score gagné) qui voient au travers.
+
+Tout ici est construit et mesuré de zéro : notre propre générateur paramétrique de
+plateaux, notre propre famille de backtrackers, notre propre scoreur canonique, et
+un solveur à faisceau comme contraste non backtracker. Aucun plateau, puzzle ou
+moteur communautaire n'est utilisé ; seule la *forme* de l'arrangement à cinq
+indices est empruntée à la discussion de la liste, comme géométrie à tester.
+
+## Comment lire les chiffres
+
+Chaque plateau est re-scoré par un unique scoreur canonique d'arêtes appariées qui
+ne compte jamais une couture face au bord (grise), la même convention que le
+[benchmark](/research/lab/experiments/single-core-benchmark) et
+[l'étude DFS](/research/lab/experiments/raphael-anjou/dfs-study). Le maximum est
+480. Chacune des quinze graines est une instance générée véritablement distincte,
+et non simplement une graine de solveur différente, de sorte que la dispersion entre
+graines est une vraie variance d'instance à instance et est rapportée comme telle.
+Aucun score auto-déclaré n'est pris pour argent comptant.
+
+Les comparaisons sont développées sur la
+[page des résultats](/research/lab/experiments/raphael-anjou/hint-study/findings) ;
+comment les plateaux sont générés, pourquoi la recette de couleurs reste fidèle à
+toutes les tailles, et ce que signifie chaque métrique figurent sur la
+[page de méthode](/research/lab/experiments/raphael-anjou/hint-study/method).

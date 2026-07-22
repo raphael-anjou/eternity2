@@ -2,20 +2,21 @@
 title: "Raphaël Anjou's experiments"
 description: >-
   A notebook of Eternity II search experiments, organised into the shared
-  engines they run on, the combination pipelines that chase the score, three
+  engines they run on, the combination pipelines that chase the score, four
   studies that take one search paradigm apart a decision at a time, and exact
   endgame solves. Each has its idea, its best board, and the questions it left
   open. The best reaches 463 of 480.
-metaDescription: "Raphael Anjou's Eternity II research notebook: shared engines, score-chasing combination pipelines, three single-paradigm studies (DFS, repair, learning), and exact meet-in-the-middle endgame solves. Every method and board is open and checkable; the best reaches 463 of 480 matched edges."
+metaDescription: "Raphael Anjou's Eternity II research notebook: shared engines, score-chasing combination pipelines, four single-paradigm studies (DFS, repair, learning, hints), and exact meet-in-the-middle endgame solves. Every method and board is open and checkable; the best reaches 463 of 480 matched edges."
 kind: page
 order: 20
 author: raphael-anjou
-updated: 2026-07-21
+updated: 2026-07-22
 ---
 
 import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
 import { ProseLink } from "@/components/docs/mdx-components";
+import { RecentlyAdded } from "@/components/research/RecentlyAdded";
 import { RAPHAEL_ANJOU_SCORES as scores } from "@/data/experiment-scores";
 
 export function Door({ to, title, kicker, children }) {
@@ -43,6 +44,8 @@ full, nothing withheld.
 
 It is a notebook, not a single result, so it is worth knowing how it is laid out
 before diving in.
+
+<RecentlyAdded author="raphael-anjou" />
 
 ## What's in this section
 
@@ -97,9 +100,20 @@ the question you care about lives.
     kicker="Take one paradigm apart"
     title="Learning from strong boards"
   >
-    The third study, turned inward: instead of varying the search, vary what it is
+    A study turned inward: instead of varying the search, vary what it is
     allowed to *know*. Five experiments mine the corpus of strong boards for
     structure and feed it back in, and all five hit the same wall.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/hint-study"
+    kicker="Take one paradigm apart"
+    title="The hint study"
+  >
+    Give a backtracker five correct pieces for free, in the puzzle's own clue
+    geometry. Measured against no hints at all, they never help a chronological
+    backtracker on these boards; they can cost a compact sweep 10 to 20 points
+    and cripple a hint-seeking fill order by about 345, because a pinned piece
+    is a hard constraint a fixed fill order must satisfy on arrival.
   </Door>
   <Door
     to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
@@ -126,7 +140,67 @@ to McGavin-class throughput - a tie with the community's fastest hand-tuned C
 The two constructive engines, the beam producer and the ALNS polish stage, do not
 yet have their own write-ups; where a pipeline steers one, its own page says what
 that engine does at the level the study needs. The CSP presets are the one engine
-documented and measured in full.
+documented and measured in full. Separate from this apparatus, the small
+[reference engine](/research/lab/experiments/raphael-anjou/engine) that powers
+this site's live demos and re-checks every number has its own page.
+
+## Findings and instruments
+
+Not everything in the notebook is a pipeline or a study. Three pages stand on
+their own, one line each:
+
+- [FROSTLINE](/research/lab/experiments/raphael-anjou/frostline): a
+  belief-propagation free energy over last-row leftovers that rank-predicts how
+  well the row can still finish, and the signal dies past one row.
+- [LEDGER](/research/lab/experiments/raphael-anjou/ledger): a sound per-colour
+  supply-versus-demand prune for break-budget DFS, whose savings compound with
+  depth.
+- [The scaling ladder](/research/lab/experiments/raphael-anjou/scaling-ladder):
+  a harness that runs a solver unchanged on planted, fully solvable boards from
+  N = 8 to 14, to find where the method collapses before weeks go to the real
+  16x16.
+
+Two more findings live on the pipelines shelf:
+[making a beam producer 10x better](/research/lab/experiments/raphael-anjou/pipelines/beam-width),
+where width itself turned out to be the answer at equal budget, and
+[the fluid frame](/research/lab/experiments/raphael-anjou/pipelines/fluid-frame),
+where a perfect border turned out to be not one arrangement but a connected
+manifold of free swaps.
+
+## Where the notebook stands
+
+Read as one investigation, the notebook has three lines. The from-scratch
+builders and the combination pipelines plateau in a 436 to 460 band of matched
+edges: construction alone stalls, and what the pipelines bought came from the
+division of labour between build, repair and an exact endgame, not from any
+single engine. The [corpus-learning line](/research/lab/experiments/raphael-anjou/learning)
+reaches 460 to 463, and all five of its experiments stop at the same
+[rigidity wall](/research/why/rigidity-wall). The exact
+[meet-in-the-middle](/research/lab/experiments/raphael-anjou/meet-in-the-middle)
+solves are a different kind of result: their 437 to 448 boards come with a
+proof about a small region, not a chase after the whole-board score. The open
+question in the notebook is what a next experiment would have to change to move
+past 463; varying the search and varying what it knows have both hit walls, so
+the lever is probably neither alone. The standing gap is to the community's
+470, on the [records page](/research/records).
+
+The notebook counts its scores in two conventions, and they name different
+experiments as its best. By plain matched edges the top is 463
+([PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)).
+Under the stricter five-clue convention, where all five official clues must sit
+in their pinned cells, the top is 461, reached by a comb-order producer whose
+457 board a destroy-and-repair polish lifted through 459 and 460. Both numbers
+sit below the community's best marks; the
+[records page](/research/records) keeps the conventions and the standings
+straight.
+
+## Being written up next
+
+Results that exist in the lab but do not have their pages yet, in likely order
+of arrival: the strict five-clue 461 lineage above, the exact-tail finisher
+that seals the last rows of a produced board, the doublebreak-seeking beam,
+and the novelty-driven basin producer. Each will arrive with its runnable
+reproduction, like the pages above.
 
 ## How to read the scores
 
@@ -140,11 +214,13 @@ so they are drawn as separate groups.
   every board re-scored by the same canonical scorer. Lower, and *directly
   comparable* across methods in a way the explore numbers are not.
 
-Not every experiment earns a row. The three studies vary a knob across a grid
+Not every experiment earns a row. The studies vary a knob across a grid
 rather than producing one board, so the [DFS](/research/lab/experiments/raphael-anjou/dfs-study)
 and [repair](/research/lab/experiments/raphael-anjou/repair-study) studies carry
 their own leaderboards instead of a chart row; only their single best bench result
-appears here. The five [learning](/research/lab/experiments/raphael-anjou/learning)
+appears here. The [hint study](/research/lab/experiments/raphael-anjou/hint-study)
+likewise carries its own tables on its own pages and has no chart row. The five
+[learning](/research/lab/experiments/raphael-anjou/learning)
 experiments each reach one scored board, so they keep their rows as well as their
 study home. The bench rows above are study results, not standalone pages, so they
 appear only on the chart.

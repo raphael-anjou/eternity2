@@ -210,10 +210,10 @@ const frontmatterSchema = z.object({
     .enum(["finding", "experiment", "tool", "reference", "concept", "basin", "paper", "page"])
     .default("page"),
   // The *contribution* axis: what kind of research result this is, independent
-  // of `kind` (which drives layout). Only `solver` results earn a row on the
-  // score chart / leaderboard; everything else is a property, a decode, a
-  // technique, a measurement, a dead end, or an explainer. See
-  // lab/experiments/methodology.
+  // of `kind` (which drives layout). Contribution is a classification axis
+  // only: an experiment page earns a leaderboard row by carrying a `score`,
+  // whatever its contribution (a reconstruction or an analysis with a scored
+  // board is listed just like a solver run). See lab/experiments/methodology.
   contribution: z
     .enum([
       "solver",
@@ -509,7 +509,12 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       // exactOptionalPropertyTypes against HardwareInfo's `nodes?: number` etc.
       // The schema mirrors HardwareInfo exactly (and has just validated the
       // value), so assert it at this boundary rather than widen the consumer type.
-      ...(e.fm.hardware !== undefined ? { hardware: e.fm.hardware as HardwareInfo } : {}),
+      // Prefer the translation's hardware block (its free-text wallClock /
+      // seedPolicy values are written in the page's language) and fall back to
+      // the EN entry, so a twin without a hardware block still shows the card.
+      ...((use.fm.hardware ?? e.fm.hardware) !== undefined
+        ? { hardware: (use.fm.hardware ?? e.fm.hardware) as HardwareInfo }
+        : {}),
       sources: use.fm.sources,
       topics: e.fm.topics,
       related: e.fm.related,

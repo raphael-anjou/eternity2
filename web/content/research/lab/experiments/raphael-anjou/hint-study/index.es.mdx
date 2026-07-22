@@ -1,0 +1,123 @@
+---
+title: El estudio de las pistas
+description: >-
+  Darle a un backtracker cinco piezas correctas gratis, en la geometría misma de
+  las pistas del puzzle. Resulta que no ayuda, y según el orden de relleno puede
+  dañar gravemente, porque una pieza fijada es una restricción dura que un orden
+  de relleno fijo debe satisfacer al llegar. Una familia de órdenes de relleno,
+  ejecutada sobre los mismos tableros con pistas, un solo núcleo, medida contra
+  la ausencia total de pistas.
+metaDescription: "Estudio controlado de la colocación de pistas para Eternity II: las cinco pistas oficiales nunca ayudan a un backtracker cronológico. Cuestan ~10 a 20 puntos a un barrido compacto y ~345 a un orden que busca las pistas, porque una pieza fijada es una restricción que el orden fijo debe satisfacer."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+hardware:
+  cores: 1
+  cpu: "Apple M1"
+  ramGb: 16
+  gpus: 0
+  accelerator: none
+  machine: "MacBook (Apple M1, 8 cores), one core pinned per run"
+  wallClock: "8 s per run"
+  seedPolicy: "15 board seeds; each seed is a distinct generated instance"
+  measured: true
+repro:
+  kind: seeded
+  cmd: just experiments hint-study
+order: 26
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, search-space, structure]
+related:
+  - /research/lab/experiments/raphael-anjou
+  - /research/lab/experiments/raphael-anjou/dfs-study
+  - /research/why/hint-geometry
+sources:
+  - label: "Generador ejecutable + resultados versionados + scripts (el directorio de respaldo de este estudio)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { HintPathFill } from "@/components/research/HintPathFill";
+
+Hay una respuesta popular a cómo hacer Eternity II más fácil: darle al solucionador
+algunas piezas correctas. La siguiente pregunta natural es *cuántas*, y la propia
+[discusión comunitaria sobre la geometría de las pistas](/research/why/hint-geometry)
+ya la afinó en *dónde*. Este estudio plantea algo más básico, que ambas preguntas
+pasan por alto: en nuestros propios tableros generados, ¿ayudan las pistas *en
+absoluto*?
+
+Para un backtracker cronológico, la respuesta es **no**. Sémbrelo con las cinco
+piezas de las pistas oficiales en sus posiciones reales del tablero, mídalo luego
+contra exactamente el mismo tablero sin pistas, y rinde peor en cada orden de
+relleno probado, sin excepción. En un barrido compacto fila por fila, las cinco
+piezas correctas cuestan solo de diez a veinte aristas casadas; en el orden que un
+recién llegado escogería primero, "llegar a las pistas y conectarlas entre sí",
+cuestan alrededor de trescientos cuarenta y cinco, convirtiendo uno de los mejores
+órdenes sin pistas en el peor. La razón es simple una vez vista: para un
+solucionador que rellena las celdas en un orden fijo, una pieza fijada no es
+información gratuita sino una **restricción dura que debe satisfacer en el momento
+en que llega a ella**, y a veces no puede.
+
+## Verlo: cinco pistas, cuatro órdenes
+
+Cada tablero de abajo se rellena siguiendo un orden distinto, en bucle. Nada se
+está *resolviendo*; esto es solo el orden en que la búsqueda visitaría las celdas,
+hecho visible. La celda brillante es la recién colocada, y la estela tras ella es
+el **frente de onda** reciente, de modo que puede verse cuánto borde abierto
+mantiene cada orden mientras avanza. Ese borde abierto, la frontera, es lo que un
+backtracker paga: su ramificación crece con la frontera, y una frontera pequeña es
+también lo que deja a la búsqueda margen para rodear un fijado hostil.
+
+<HintPathFill />
+
+Un barrido fila por fila mantiene una sola frontera delgada y la hace rodar por el
+tablero, de modo que cuando encuentra una pieza fijada puede ajustar la única fila
+que está construyendo. Los órdenes que buscan las pistas hacen lo contrario.
+Espiralar hacia dentro o hacia fuera arrastra un anillo entero como frontera, y
+trazar las pistas dispersa su frente de onda por el tablero desde el primer
+movimiento, comprometiéndose en todas partes antes de poder saber si los
+compromisos son consistentes. El barrido compacto sobrevive a las cinco pistas;
+los órdenes que las buscan quedan deshechos por ellas.
+
+## Qué mide el estudio
+
+Dos comparaciones emparejadas, ejecutadas sobre los mismos tableros generados:
+
+- **¿Ayudan las pistas, y qué orden les sobrevive?** Fijar las pistas (cinco, en la
+  forma de las cinco pistas del propio Eternity II) y variar solo el orden de
+  relleno, medido contra el tablero idéntico sin pistas. Esta es la columna
+  vertebral del estudio: muestra que las pistas nunca ayudan, y que cuánto dañan lo
+  determina el orden de relleno y su frontera abierta.
+- **El número.** ¿Ayuda añadir *más* pistas? Algo, pero la forma ingenua de medirlo
+  está *confundida*. Un bloque de pistas agrupadas acumula gratis un montón de
+  aristas correctas por el mero hecho de estar fijado; ese "suelo" gratuito halaga
+  a las disposiciones agrupadas en puntuación bruta sin decir nada sobre si el
+  tablero se volvió más fácil de *terminar*. La
+  [página de método](/research/lab/experiments/raphael-anjou/hint-study/method)
+  define el suelo y las métricas inmunes a él (tasa de resolución y puntuación
+  ganada) que ven a través de él.
+
+Todo aquí está construido y medido desde cero: nuestro propio generador
+paramétrico de tableros, nuestra propia familia de backtrackers, nuestro propio
+puntuador canónico, y un solucionador de haz como contraste no backtracker. No se
+usa ningún tablero, puzzle ni motor comunitario; solo la *forma* de la disposición
+de cinco pistas se toma prestada de la discusión de la lista, como geometría a
+probar.
+
+## Cómo leer las cifras
+
+Cada tablero se vuelve a puntuar con un único puntuador canónico de aristas
+casadas que nunca cuenta una costura orientada al borde (gris), la misma
+convención que el [benchmark](/research/lab/experiments/single-core-benchmark) y el
+[estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study). El máximo es 480.
+Cada una de las quince semillas es una instancia generada genuinamente distinta,
+no meramente una semilla de solucionador diferente, de modo que la dispersión entre
+semillas es varianza real de instancia a instancia y se reporta como tal. No se da
+por buena ninguna puntuación autodeclarada.
+
+Las comparaciones se desarrollan en la
+[página de resultados](/research/lab/experiments/raphael-anjou/hint-study/findings);
+cómo se generan los tableros, por qué la receta de colores se mantiene fiel a
+todos los tamaños, y qué significa cada métrica están en la
+[página de método](/research/lab/experiments/raphael-anjou/hint-study/method).

@@ -1,0 +1,255 @@
+---
+title: Ce que l'étude sur les indices a montré
+description: >-
+  Les résultats, développés : sur ces plateaux les cinq indices en forme d'indices
+  officiels n'aident jamais un backtracker, ils vont d'un coût modéré à une
+  catastrophe, et l'ordre de remplissage décide de l'ampleur des dégâts ; les
+  scores sont bimodaux, pas un gradient lisse ; et la question du nombre d'indices
+  est confondue par un plancher gratuit de coutures épinglées.
+metaDescription: "Les résultats de l'étude sur les indices : sur des plateaux Eternity II générés, les cinq indices officiels n'aident jamais un backtracker chronologique, coûtant ~10 à 20 points à un balayage compact et ~345 à un ordre qui cherche les indices, une pièce épinglée étant une contrainte à satisfaire."
+kind: page
+contribution: measurement
+author: raphael-anjou
+rigor: measured
+order: 20
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/lab/experiments/raphael-anjou/hint-study/method
+  - /research/why/hint-geometry
+  - /research/lab/experiments/raphael-anjou/dfs-study
+sources:
+  - label: "Résultats par exécution versionnés (results.jsonl) et le script d'analyse"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { FrontierPhaseChart } from "@/components/research/FrontierPhaseChart";
+import { HintGeoComparison } from "@/components/research/HintGeoComparison";
+import { HintStudyCharts } from "@/components/research/HintStudyCharts";
+import { SolveSpeedChart } from "@/components/research/SolveSpeedChart";
+
+L'étude fixe cinq indices dans la forme des cinq indices d'Eternity II lui-même,
+exécute huit ordres de remplissage sur les plateaux identiques, et pose une
+question simple : que valent ces cinq indices ? Chaque nombre ci-dessous porte sur
+quinze instances générées distinctes, un seul cœur, huit secondes par exécution,
+re-scoré sur 480 par un unique scoreur canonique. La comparaison est appariée,
+chaque ordre de remplissage voit les mêmes plateaux, et la dispersion par instance
+est montrée plutôt que moyennée, car il s'avère qu'elle compte plus que n'importe
+quelle médiane.
+
+## Les indices n'aident pas, et l'ordre de remplissage décide de combien ils nuisent
+
+Commençons par la distribution. Chaque point est un plateau ; le trait est la
+médiane.
+
+<HintStudyCharts />
+
+Deux choses sont visibles d'un coup. D'abord, les scores sont **bimodaux** : sur la
+plupart des ordres, un plateau soit grimpe dans les 360, soit cale à deux chiffres,
+avec peu d'entre-deux. Une médiane tracée à travers cela résume un fossé, pas un
+centre, et c'est exactement pourquoi les points sont montrés. Ensuite, les ordres
+se séparent nettement : les trois balayages compacts (ligne par ligne, son miroir
+de bas en haut, le peigne de Verhaard) se tiennent haut sur la plupart des
+plateaux ; les ordres fragmentants restent bas de bout en bout.
+
+Mais la séparation compact-contre-fragmentant n'est pas le vrai résultat, car elle
+invite la mauvaise question, « quel ordre *utilise* le mieux les indices ? ». La
+question qui compte est de savoir si les indices aident *tout court*. Le deuxième
+graphique y répond, et la réponse est non. Il montre le **changement apparié**
+qu'apporte l'ajout des cinq indices : le score de chaque ordre sur un plateau moins
+son score sur le *même plateau sans indices*.
+
+Chaque barre est à zéro ou en dessous. Les cinq indices en forme d'indices
+officiels n'aident pas un seul ordre de remplissage. Sur les balayages compacts ils
+ne coûtent que dix à vingt points. Sur la spirale sortante ils en coûtent environ
+quatre-vingt-dix. Et sur les deux ordres qui cherchent les indices ils sont
+ruineux : l'ordre `trace-hints`, qui dessine un squelette entre les indices avant
+de remplir, perd environ trois cent vingt-cinq, et le flot `connect-hints-first`
+perd à peu près **trois cent quarante-cinq**, faisant passer un ordre qui score
+parmi les *meilleurs* des huit sans indices au *pire* avec eux. Plus un ordre
+poursuit délibérément les indices, plus ils lui coûtent. Donner au solveur cinq
+pièces correctes, dans la géométrie même des indices du puzzle, a rendu chacune de
+ses versions pire.
+
+## Pourquoi un indice correct fait mal
+
+Une pièce épinglée n'est pas une information gratuite pour un backtracker
+chronologique ; c'est une **contrainte dure que l'ordre de remplissage fixe doit
+satisfaire à son arrivée**. Quand un balayage compact descend jusqu'à une case
+intérieure épinglée, la pièce est déjà là, et la ligne qu'il vient de construire
+doit s'apparier aux faces de cette pièce. La plupart du temps il le peut, à petit
+prix : le balayage contourne la contrainte et perd quelques dizaines de points.
+Mais sur certains plateaux la pièce épinglée contredit ce à quoi la frontière s'est
+engagée, et il n'y a pas de réparation locale : la recherche heurte un mur qu'elle
+ne peut franchir et s'agite en dessous. C'est le mode calé, et ce sont les indices
+qui le créent. Sur l'ordre ligne par ligne, les plateaux qui s'effondrent à deux
+chiffres sont précisément ceux où un épinglage en forme d'indice tombe là où le
+balayage ne peut pas l'honorer ; le même plateau sans épinglages grimpe dans les
+360 et 370.
+
+Cela recadre le résultat sur l'ordre de remplissage. L'ordre compte toujours (un
+balayage compact survit aux contraintes des indices avec une cicatrice de dix à
+vingt points tandis que `connect-hints-first` en est détruit), mais ce que l'ordre
+achète n'est pas « bien utiliser les indices ». C'est **leur survivre**. La
+frontière en est la raison : un ordre qui garde une unique frontière serrée a la
+marge de contourner un épinglage défavorable ; un ordre qui s'est déjà fragmenté en
+cinq taches ouvertes s'est engagé partout à la fois et ne le peut pas.
+
+Cette relation à la frontière, à travers les huit ordres, est d'une netteté
+frappante, et elle vaut d'être montrée précisément parce que la frontière peut se
+calculer depuis la géométrie d'un ordre sans aucun solveur, puis se confronter aux
+scores mesurés :
+
+<FrontierPhaseChart />
+
+La frontière ouverte moyenne qu'un ordre maintient prédit de près son score médian
+à travers ces huit ordres. C'est une relation descriptive forte, pas une loi
+prouvée sur huit points, et elle cesse de trancher le classement parmi les ordres
+fragmentants à droite (la spirale entrante maintient une frontière plus grande que
+la sortante et score pourtant plus haut). Mais la direction est exactement ce que
+le mécanisme prédit : le coût de branchement est multiplicatif en la frontière, un
+ordre qui garde la frontière petite garde donc la marge d'absorber un épinglage
+hostile.
+
+Pour le contraste, le solveur à faisceau, qui n'est pas un backtracker
+chronologique et ne paie pas le coût de frontière de la même façon, atteint une
+médiane dans les 450 sur ces mêmes plateaux indicés. Les indices et les plateaux
+sont loin d'être insolubles. C'est spécifiquement le backtracker *chronologique à
+ordre fixe* qui ne parvient pas à transformer cinq pièces correctes en progrès.
+
+## Le nombre : un seuil, pas un gradient, et un plancher qui le cache
+
+La même question un cran plus loin : ajouter *plus* d'indices aide-t-il ? La
+réponse n'est pas un « plus, c'est mieux » lisse, et le nombre brut cache quelle
+part est réelle.
+
+Le graphique du bas ci-dessus scinde le score de chaque disposition en deux parts.
+Le **plancher** est l'ensemble des coutures que les épinglages complètent
+gratuitement, parce que leurs deux extrémités sont épinglées à la vraie solution ;
+la part **gagnée** est ce que la recherche a réellement trouvé. Un bloc groupé
+plein engrange un plancher élevé (cinq blocs 4×4 épinglent un quart des coutures du
+plateau avant que la recherche ne fasse un seul pas), tandis qu'un treillis épars,
+dont les indices ne se touchent jamais, n'engrange rien. Une comparaison au score
+brut offre donc aux dispositions groupées cent points d'avance qui ne disent rien
+de la progression de la recherche.
+
+Lisez la colonne « gagnée » à travers les treillis épars, dont le plancher est nul
+si bien que la part gagnée *est* le score, et un seuil apparaît. Un épars clairsemé,
+quatre à seize indices, ne gagne presque rien (dans les vingt) : les épinglages ne
+sont que des contraintes éparpillées sur lesquelles le balayage ne cesse de
+trébucher, exactement l'effet des cinq indices. Mais continuez d'en ajouter et le
+tableau bascule. Vingt-cinq indices épars gagnent 127, et trente-six, un treillis
+de six par ligne, **résolvent le plateau entièrement sur la plupart des
+instances**. Sous le seuil, les indices épars ne font que gêner ; au-dessus, il y
+en a enfin assez pour découper le plateau en morceaux suffisamment petits pour que
+le balayage les termine. Ce n'est pas un gradient d'aide, mais un mur que le nombre
+doit franchir.
+
+Les blocs groupés montrent l'image en miroir. Leur score brut est surtout du
+*plancher* : cinq blocs 4×4 (quatre-vingts indices, un quart du plateau) résolvent
+bien chaque instance, mais ils ont épinglé tant de plateau qu'ils l'ont à moitié
+résolu à la main. Retirez le plancher et les dispositions groupées en deçà de cet
+extrême ne gagnent que deux chiffres, portées par les coutures gratuites. La vraie
+histoire du nombre n'est donc ni « plus d'indices aident » ni « plus d'indices
+nuisent », mais : il faut *beaucoup* d'indices corrects, épars ou groupés, pour
+faire bouger un backtracker chronologique, et tant que ce niveau n'est pas atteint,
+les épinglages supplémentaires ont autant de chances de faire trébucher la
+recherche que de l'accélérer.
+
+La [page de méthode](/research/lab/experiments/raphael-anjou/hint-study/method)
+développe l'arithmétique du plancher en entier.
+
+## Épars contre contigu : nous obtenons l'inverse
+
+La [rédaction communautaire sur la géométrie des indices](/research/why/hint-geometry)
+formule une version plus tranchante de l'affirmation sur le placement : dix-huit
+indices *épars* sur un treillis résolvent en minutes un puzzle 16×16 de type E2,
+tandis que dix-huit empilés en lignes du haut *contiguës* n'aident guère, et qu'il
+faut quatre-vingts indices contigus ou plus pour égaler les dix-huit épars. Ce
+résultat a été mesuré sur un puzzle précis avec un moteur précis. Nous avons posé
+ses deux dispositions exactes, le treillis épars des lignes {1,3,5} et le bloc de
+dix-huit cases en haut, sur nos propres plateaux générés et nos propres solveurs
+pour voir si la direction tient.
+
+<HintGeoComparison />
+
+Elle ne tient pas. Sur nos plateaux, les dix-huit **contigus** scorent *plus haut*
+que les dix-huit épars pour sept des huit ordres de remplissage, et de loin : un
+balayage ligne par ligne atteint une médiane de 377 avec le bloc contigu et
+seulement 138 avec le treillis épars. Cela ressemble à une contradiction frontale,
+et il vaut la peine d'être précis sur pourquoi ce n'en est pas tout à fait une.
+
+Les deux études mesurent des choses différentes. Le résultat communautaire porte
+sur le *temps jusqu'à une solution complète* : les indices épars atteignent la fin
+de partie profonde où un backtracker passe presque tout son temps, ils élaguent
+donc la partie coûteuse, tandis qu'un bloc contigu en haut n'élague que l'ouverture
+bon marché. Notre nombre est un *score d'arêtes appariées à budget court*, et à
+huit secondes aucun de ces backtrackers stricts n'atteint la fin de partie. Ce
+qu'un bloc contigu ancré en haut achète, immédiatement, c'est une grande région
+correcte contre laquelle le balayage ligne par ligne peut construire, le score
+grimpe donc vite même si la partie dure du plateau reste intacte. Les indices
+épars, au contraire, fragmentent le remplissage précoce exactement comme le
+faisait la forme à cinq indices. Les deux résultats sont donc cohérents dès qu'on
+sépare « résout tout le plateau à terme » de « score bien dans les huit premières
+secondes » : le placement épars aide le premier et nuit au second. La section
+suivante rend cette séparation visible.
+
+## Le résoudre : là où l'épars finit par gagner
+
+À 16×16 rien ne se résout en huit secondes, le score est donc toujours un
+instantané d'une recherche encore dans son ouverture. Pour voir l'effet de *fin de
+partie* rapporté par la communauté, il faut un plateau qui se résout entièrement.
+Un 8×8 construit selon la même recette de couleurs le fait, en bien moins d'une
+seconde, et sur lui nous pouvons mesurer la quantité qui compte réellement : le
+nombre de nœuds de recherche qu'un backtracker ligne par ligne demande pour
+atteindre une solution complète. Moins de nœuds signifie que les indices ont fait
+un vrai travail d'élagage. Ci-dessous, un treillis épars et un bloc contigu
+apparié, à nombres d'indices croissants.
+
+<SolveSpeedChart />
+
+C'est toute l'histoire en un graphique, et elle s'aligne enfin avec l'affirmation
+communautaire. À quatre indices, le treillis épars est *pire* qu'inutile, ne
+résolvant que deux plateaux sur trente, le même effet des indices clairsemés qui
+font trébucher la recherche que sur chaque autre axe, tandis que le bloc contigu
+apparié les résout presque tous. Mais franchissez un seuil vers seize indices et
+les lignes s'échangent brutalement : un treillis épars de seize indices se résout
+en environ quatre mille nœuds, tandis que le bloc contigu apparié broie encore
+près de deux millions, un rapport de cinq cents à nombre d'indices égal. Poussez
+plus loin et les deux dispositions deviennent faciles (à trente-six indices un
+quart du plateau est épinglé et l'une comme l'autre se résout en quelques
+centaines de nœuds), l'avantage de l'épars est donc une fenêtre, la plus large là
+où le nombre suffit à atteindre la recherche profonde sans que le plateau soit à
+moitié résolu à la main. Dans cette fenêtre, les indices épars atteignent la part
+de la recherche avec laquelle un backtracker se débat réellement et la
+court-circuitent, exactement comme Joe et Peter McGavin l'ont décrit ; un bloc
+contigu n'élague jamais que l'ouverture facile. La comparaison de scores à 16×16
+n'a semblé les contredire que parce qu'à budget court la recherche ne vit jamais
+assez longtemps pour atteindre la région où le placement épars paie.
+
+## Ce que cela dit et ne dit pas
+
+C'est un résultat sur les **backtrackers stricts, chronologiques, en profondeur
+d'abord**, sur des plateaux 16×16 générés selon la recette de couleurs d'Eternity
+II, à budget court (huit secondes). Chacun de ces mots de cadrage mérite sa place.
+*Chronologique* : le résultat porte spécifiquement sur les solveurs qui remplissent
+les cases dans un ordre fixe et doivent satisfaire une pièce épinglée en
+l'atteignant, un solveur à faisceau, qui ne le fait pas, atteint les 450 sur les
+mêmes plateaux. *Généré* : les plateaux partagent la recette de couleurs d'E2 et la
+*forme* de ses cinq indices, mais ils ne sont pas le puzzle officiel, et l'étude
+n'y transfère aucun nombre. *Budget court* : aucun de ces backtrackers stricts ne
+résout en huit secondes, ceci mesure donc jusqu'où chacun parvient, pas une course
+vers 480 ; la survie de l'effet « les indices nuisent » à des budgets bien plus
+longs n'est pas testée ici.
+
+Dans ce cadre, la leçon est solide et, pensons-nous, contre-intuitive : pour un
+backtracker chronologique, cinq pièces correctes placées dans la géométrie même
+des indices du puzzle ne sont pas un cadeau mais une contrainte, et peuvent coûter
+bien plus qu'elles ne donnent. Ce qui décide des dégâts, ce ne sont pas les
+indices mais l'ordre de remplissage qui doit vivre avec eux, et l'ordre paie un
+indice comme il paie tout le reste, dans la taille de la frontière qu'il garde
+ouverte. C'est une lecture de plus de
+[pourquoi le puzzle résiste](/research/why/hint-geometry) : même une information
+correcte n'aide qu'un solveur construit pour la recevoir.

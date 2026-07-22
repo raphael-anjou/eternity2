@@ -1,15 +1,17 @@
 ---
-title: Les moteurs
+title: Les moteurs partagés
 description: >-
   Les moteurs partagés qui sous-tendent les expériences de Raphaël Anjou. Les
   expériences nommées sont des études qui s'appuient dessus ; voici l'appareillage
   qu'elles ont en commun. Les préréglages CSP et la réimplémentation de Verhaard
-  sont documentés ici ; les moteurs constructifs ne sont pas encore publiés.
-metaDescription: "Les moteurs partagés des expériences Eternity II de Raphael Anjou : moteur à préréglages CSP (cohérence d'arc, graphe de couleurs, ordres de remplissage) et réimplémentation intégrale de Verhaard atteignant 438 sur 480 en monocœur. Le faisceau et l'ALNS restent non publiés."
+  sont documentés intégralement, aux côtés du moteur de référence, du
+  backtracker JIT, d'un guide de la vitesse et du harnais de l'échelle de
+  tailles ; les moteurs constructifs ne sont pas encore publiés.
+metaDescription: "L'appareillage des expériences Eternity II de Raphael Anjou : moteur à préréglages CSP, réimplémentation intégrale de Verhaard atteignant 438 sur 480 en monocœur, moteur de référence du site, backtracker JIT, guide de la vitesse et échelle de tailles. Le faisceau et l'ALNS restent non publiés."
 kind: page
 order: 5
 author: raphael-anjou
-updated: 2026-07-15
+updated: 2026-07-22
 ---
 
 import { ProseLink } from "@/components/docs/mdx-components";
@@ -31,7 +33,11 @@ chacune pose une question et rend compte du plateau qu'elle a atteint. Mais la
 plupart ne partent pas de rien. Elles s'appuient sur un petit ensemble de
 moteurs partagés, et le même moteur réapparaît d'une expérience à l'autre.
 Cette page documente cet appareillage une fois pour toutes, afin que les études
-puissent pointer ici plutôt que de réexpliquer la machine à chaque fois.
+puissent pointer ici plutôt que de réexpliquer la machine à chaque fois. Le
+moteur de référence qui anime les démonstrations en direct du site est une
+machine différente et a
+[sa propre page](/research/lab/experiments/raphael-anjou/engine) ; il apparaît
+ci-dessous dans son rôle d'appareillage.
 
 <div className="not-prose grid gap-4 md:grid-cols-2">
   <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="Les préréglages CSP, mesurés">
@@ -48,6 +54,30 @@ puissent pointer ici plutôt que de réexpliquer la machine à chaque fois.
     pas ici. Recuit par échange sur composition d'ensembles sous la métrique de
     pavage 2×2 ; sur le véritable puzzle à cinq indices, elle atteint 438 sur
     480, en monocœur.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/engine" title="Le moteur de référence qui fait tourner ce site">
+    La machine de vérification et de démonstration du wiki, distincte des
+    moteurs de recherche partagés : le backtracker Rust-vers-WebAssembly qui
+    fait tourner chaque démonstration en direct et vérifie chaque nombre cité
+    sur ces pages, porté quatre fois et testé octet par octet.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/jit-backtracker" title="Le backtracker JIT">
+    Un backtracker Rust en profondeur d'abord, sûr et portable, spécialisé à
+    l'exécution en émettant et compilant du Rust propre à chaque puzzle, porté
+    de 43 à 123 millions de nœuds de recherche par seconde sur un cœur et
+    mesuré face au C optimisé à la main de Peter McGavin sur la même machine.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/going-fast" title="Aller vite">
+    Un guide de terrain des solveurs axés vitesse : ce qu'achète le débit brut,
+    les trois choses différentes que les gens entendent par « rapide », et
+    pourquoi le moteur le plus rapide jamais construit ne peut toujours pas
+    résoudre le puzzle.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/scaling-ladder" title="L'échelle de tailles">
+    Le harnais qui fait tourner n'importe quel solveur, inchangé, sur des
+    plateaux plantés entièrement résolubles à N = 8, 10, 12, 14, de sorte que
+    la taille d'effondrement d'une méthode soit mesurée avant de passer des
+    semaines sur le vrai 16×16.
   </Door>
 </div>
 

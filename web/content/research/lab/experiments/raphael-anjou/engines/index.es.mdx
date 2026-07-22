@@ -1,15 +1,17 @@
 ---
-title: Los motores
+title: Los motores compartidos
 description: >-
   Los motores compartidos que sustentan los experimentos de Raphaël Anjou. Los
   experimentos con nombre son estudios que se ejecutan sobre ellos; este es el
   aparato que comparten. Los preajustes CSP y la reimplementación de Verhaard
-  están documentados aquí; los motores constructivos aún no están publicados.
-metaDescription: "Los motores compartidos de los experimentos Eternity II de Raphael Anjou: motor de preajustes CSP (consistencia de arco, grafo de colores, órdenes de relleno) y reimplementación completa de Verhaard que alcanza 438 de 480 en un núcleo. El haz y el ALNS siguen sin publicar."
+  están documentados por completo, junto al motor de referencia, el backtracker
+  JIT, una guía de la velocidad y el arnés de la escalera de tamaños; los
+  motores constructivos aún no están publicados.
+metaDescription: "El aparato de los experimentos Eternity II de Raphael Anjou: motor de preajustes CSP, reimplementación de Verhaard que alcanza 438 de 480 en un núcleo, el motor de referencia del sitio, el backtracker JIT, una guía de la velocidad y la escalera de tamaños. El haz y el ALNS siguen sin publicar."
 kind: page
 order: 5
 author: raphael-anjou
-updated: 2026-07-15
+updated: 2026-07-22
 ---
 
 import { ProseLink } from "@/components/docs/mdx-components";
@@ -31,7 +33,10 @@ uno plantea una pregunta y da cuenta del tablero que alcanzó. Pero la mayoría 
 se construyen desde cero. Se ejecutan sobre un pequeño conjunto de motores
 compartidos, y el mismo motor reaparece experimento tras experimento. Esta
 página documenta ese aparato una sola vez, para que los estudios puedan apuntar
-aquí en lugar de reexplicar la máquina cada vez.
+aquí en lugar de reexplicar la máquina cada vez. El motor de referencia que
+impulsa las demostraciones en vivo del sitio es una máquina distinta y tiene
+[su propia página](/research/lab/experiments/raphael-anjou/engine); aparece
+abajo en su papel de aparato.
 
 <div className="not-prose grid gap-4 md:grid-cols-2">
   <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="Los preajustes CSP, medidos">
@@ -48,6 +53,30 @@ aquí en lugar de reexplicar la máquina cada vez.
     intercambio sobre composición de conjuntos bajo la métrica de teselado 2×2;
     sobre el verdadero puzzle de cinco pistas alcanza 438 de 480, en un solo
     núcleo.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/engine" title="El motor de referencia que impulsa este sitio">
+    La máquina de verificación y demostración del wiki, distinta de los motores
+    de búsqueda compartidos: el backtracker de Rust a WebAssembly que ejecuta
+    cada demostración en vivo y comprueba cada número citado en estas páginas,
+    portado cuatro veces y contrastado byte a byte.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/jit-backtracker" title="El backtracker JIT">
+    Un backtracker Rust en profundidad, seguro y portable, especializado en
+    tiempo de ejecución emitiendo y compilando Rust propio de cada puzzle,
+    llevado de 43 a 123 millones de nodos de búsqueda por segundo en un núcleo
+    y medido frente al C afinado a mano de Peter McGavin en la misma máquina.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/going-fast" title="Ir rápido">
+    Una guía de campo de los solucionadores centrados en velocidad: qué compra
+    el rendimiento bruto, las tres cosas distintas que la gente entiende por
+    "rápido", y por qué el motor más rápido jamás construido sigue sin poder
+    resolver el puzzle.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/scaling-ladder" title="La escalera de tamaños">
+    El arnés que ejecuta cualquier solucionador, sin cambios, sobre tableros
+    plantados totalmente resolubles con N = 8, 10, 12, 14, de modo que el
+    tamaño de colapso de un método se mida antes de gastar semanas en el 16×16
+    real.
   </Door>
 </div>
 
