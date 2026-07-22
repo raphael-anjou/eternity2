@@ -68,7 +68,39 @@ impl From<SiteInstance> for Instance {
     }
 }
 
+impl From<&Instance> for SiteInstance {
+    /// The reverse of `SiteInstance -> Instance`: lossless, so an instance can
+    /// be exported for non-Rust consumers (Python, OR-tools, notebooks) in the
+    /// same site schema every other tool reads.
+    fn from(i: &Instance) -> Self {
+        SiteInstance {
+            name: i.name.clone(),
+            width: i.width,
+            height: i.height,
+            num_colors: i.num_colors,
+            pieces: i.pieces.iter().map(|(_, p)| p.rotated(0)).collect(),
+            hints: i
+                .hints
+                .iter()
+                .map(|h| SiteHint {
+                    pos: h.pos,
+                    piece: h.piece,
+                    rot: h.rot,
+                })
+                .collect(),
+        }
+    }
+}
+
 impl Instance {
+    /// Serialize this instance to the site-schema JSON (the format
+    /// [`Instance::from_site_json`] reads back). Round-trips losslessly.
+    #[must_use]
+    pub fn to_site_json(&self) -> String {
+        let site = SiteInstance::from(self);
+        serde_json::to_string_pretty(&site).expect("SiteInstance serializes")
+    }
+
     /// Read a site-schema variant JSON straight into an [`Instance`].
     pub fn from_site_json<P: AsRef<std::path::Path>>(path: P) -> Result<Self, IoError> {
         let text = std::fs::read_to_string(path.as_ref())?;

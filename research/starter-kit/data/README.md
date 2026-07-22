@@ -33,3 +33,12 @@ since eroded — filled-in piece files have been on public GitHub for years, and
 open libraries (jwortmann's Eternity2Puzzles.jl, Dobrogost's eii-puzzles) ship
 the set outright. We ship it here for the same reason: reproducibility without a
 manual transcription step.
+
+## Guarantee: `official.json` matches the community CSV
+
+The bundled `official.json` piece order and rotation-0 edges are identical to
+the community's canonical `size_16_official_eternity.csv` encoding (16-bit
+binary words, `1111111111111111` = grey rim): piece id `i` here is row `i`
+there, edges URDL. Verified empirically piece-by-piece (256/256 ids, all four
+sides) during the 2026-07 reproduction audit, so results computed from either
+source are directly comparable with no id remapping.
