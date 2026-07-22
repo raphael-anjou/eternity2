@@ -67,7 +67,7 @@ descendre, remonter à la première impasse. La
 [page de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) raconte
 l'histoire du débit du moteur C qui détient depuis des années la couronne de vitesse
 mono-cœur de la communauté. Cette page en est l'autre versant : jusqu'où du *Rust
-portable* peut s'en approcher, et où tombe la ligne honnête.
+portable* peut s'en approcher, et où tombe la ligne rigoureuse.
 
 Le résultat dépend du plateau, et c'est là qu'est l'intérêt. Mesuré sur mon Apple M1,
 sur un cœur, les deux moteurs compilés sans affichage avec génération de code native
@@ -337,7 +337,7 @@ constantes de laboratoire.
 
 | Échelon | Moteur | Changement | statut |
 | --- | --- | --- | --- |
-| **naive-clean** | récursif | DFS Rust portable simple, la référence honnête | **~44 M, vérifié** |
+| **naive-clean** | récursif | DFS Rust portable simple, la référence rigoureuse | **~44 M, vérifié** |
 | **JIT piloté par tables** | codegen | programme généré, boucle interne par tables | **~61 M, vérifié** |
 | cases plateau en u32 | codegen | un chargement + décalage par voisin | +~65 % (journal) |
 | chaîne de fonctions | codegen | une fonction par case | +~55 % (journal) ★ |
@@ -347,7 +347,7 @@ constantes de laboratoire.
 
 Deux moteurs partagent ce tableau : `naive-clean` est un backtracker récursif à part
 (lançable avec `run_dfs --algo naive-clean`), et tout depuis « JIT piloté par tables »
-est le chemin codegen dont parle cette page (`run_dfs_codegen_jit`). Le résumé honnête
+est le chemin codegen dont parle cette page (`run_dfs_codegen_jit`). Le résumé rigoureuse
 est un **gain de ~2,5× de la référence naive-clean au champion fusionné sur le plateau
 difficile** (~44 M → ~110 M) et **~2,8× sur le facile** (~44 M → ~122 M) - atterrissant,
 sur le difficile, à niveau avec le C sans affichage de McGavin. Trois méta-leçons en
@@ -373,7 +373,7 @@ champion fusionné - sont chacun lançables directement, pour que quiconque puis
 rejouer sur sa propre machine, dos à dos. Depuis `research/experiments/dfs-study/engine` :
 
 ```bash
-# naive-clean : la référence honnête (backtracker récursif simple à part) ~44 M
+# naive-clean : la référence rigoureuse (backtracker récursif simple à part) ~44 M
 cargo run --release -p dfs-run --bin run_dfs -- \
   --puzzle crates/dfs-codegen/bench/bench-hard.json --algo naive-clean --seed 1 --budget-s 10
 
@@ -437,7 +437,7 @@ placements d'indices forcés et nous les extrayons - ≤18 sur un compte de mill
   [ce qu'est un « nœud »](/research/build/faster/solver-engineering).
 </Callout>
 
-<Callout kind="note" title="Mesurer honnêtement, ou ne pas mesurer">
+<Callout kind="note" title="Mesurer rigoureusement, ou ne pas mesurer">
 Le débit absolu en nœuds/s dérive avec la charge et la température de la machine et - 
 comme le montre la correction plus haut - avec la façon dont le moteur *de référence*
   est construit. **Seuls les ratios pris dans le même état, dos à dos, sans affichage,

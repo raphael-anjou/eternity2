@@ -1,0 +1,202 @@
+---
+title: "Por qué 479 es imposible"
+description: >-
+  Un argumento de conteo sobre el juego de piezas oficial prohíbe una
+  puntuación de exactamente 479/480: las semiaristas de cada color vienen en
+  cantidades pares, y una sola unión rota dejaría dos cuentas impares. El
+  suelo bajo lo perfecto es 478, y a lo sumo 76 cuasi-soluciones a un
+  movimiento pueden rodear una solución.
+metaDescription: "Un teorema de paridad sobre el juego de piezas oficial de Eternity II: las semiaristas de cada color vienen en cantidades pares, así que un tablero con una sola unión rota no puede existir. 479/480 es imposible, el suelo bajo lo perfecto es 478, y a lo sumo 76 cuasi-soluciones rodean una solución."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 1
+order: 35
+updated: 2026-07-22
+topics: [structure, search-space]
+sources:
+  - label: "David Eddy abre el hilo Parity: el número de aristas de cada tipo es par, y la consecuencia sobre la última pieza (msg 332, junio de 2007)"
+    url: https://groups.io/g/eternity2/message/332
+  - label: "El ejemplo detallado de Christophe Weibel de una última pieza que no encaja en su hueco (msg 335)"
+    url: https://groups.io/g/eternity2/message/335
+  - label: "El veredicto de Brendan Owen sobre la paridad en E2: correcta por construcción, útil solo cerca del final de una búsqueda (msg 346)"
+    url: https://groups.io/g/eternity2/message/346
+  - label: "Suelo de defecto por paridad: artículo, código del verificador y resultados del censo (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor
+related:
+  - /research/why/theorem-sweep
+  - /research/why/forbidden-patterns
+  - /research/why/design-recipe
+  - /research/why/mismatch-geometry
+repro:
+  kind: exact
+  topic: parity-defect-floor
+---
+
+Ordene los tableros completos por puntuación, contando las uniones internas
+emparejadas sobre 480 (la convención de aristas emparejadas usada en todo
+este wiki), y la escalera parece continua: peldaño tras peldaño, cada uno
+ocupado por algún tablero que alguien ha construido. Tiene exactamente un
+hueco. Ninguna colocación completa legal de las 256 piezas puntúa 479. Es un
+teorema sobre el juego de piezas publicado, demostrable solo con contar, y
+esta página recorre el argumento entero: la paridad que lo fuerza, el suelo
+de defecto de 2 que se sigue, y el censo que acota cuántas cuasi-soluciones
+a un movimiento pueden rodear una solución. Es también una entrada de
+[el barrido de teoremas](/research/why/theorem-sweep), el repaso de lo que
+puede demostrarse a partir de la bolsa antes de lanzar búsqueda alguna.
+
+## Contar las semiaristas
+
+256 fichas con cuatro bordes cada una llevan 1024 semiaristas. El gris del
+marco ocupa 64, exactamente el número de posiciones orientadas hacia fuera
+en el borde (16 por lado). Las 960 restantes llevan los 22 colores, y el
+censo es llamativamente par:
+
+| Grupo de colores                          | Semiaristas |
+| ----------------------------------------- | ----------: |
+| Borde gris del marco                      |          64 |
+| Cinco colores de unión del marco (1 a 5)  |  24 cada uno |
+| Cinco colores interiores (6 a 10)         |  48 cada uno |
+| Doce colores interiores (11 a 22)         |  50 cada uno |
+
+Cada cuenta de color es par. El total coloreado, 960, es exactamente el
+doble del número de uniones internas ($2 \times 16 \times 15 = 480$): en una
+colocación completa con marco legal, donde las 64 semiaristas grises miran
+hacia fuera, las semiaristas coloreadas llenan exactamente las 960 plazas de
+las uniones internas, sin sobrar nada. Nada de esto depende de dónde vayan
+las piezas. Son propiedades de la bolsa.
+
+Aquí se esconde un atajo agradable: la paridad podía predecirse sin examinar
+una sola pieza. Los diseñadores garantizan que existe una solución, y un
+tablero resuelto empareja cada semiarista coloreada con una compañera del
+mismo color, así que la cuenta de cada color es el doble de su número de
+uniones, par por definición. El censo solo confirma sobre el juego real lo
+que la resolubilidad ya prometía.
+
+## El argumento, en cuatro líneas
+
+Fije cualquier colocación completa con marco legal (todo borde orientado
+hacia fuera es gris) y fije un color $c$. Cada una de las 480 uniones
+internas muestra dos semiaristas. Algunas uniones muestran $c$ por ambos
+lados, otras por uno solo. Contando las semiaristas de $c$:
+
+$$h(c) = 2 \cdot \#\{\text{uniones que muestran } c \text{ dos veces}\} + \#\{\text{uniones que muestran } c \text{ una vez}\}.$$
+
+Como $h(c)$ es par, el número de uniones que muestran $c$ exactamente una
+vez también es par. Esto vale para todos los colores a la vez, en toda
+colocación completa, resuelta o rota.
+
+Suponga ahora una colocación con 479. Tiene exactamente una unión rota, y
+una unión rota muestra dos colores distintos, digamos $a$ y $b$ (si ambos
+lados coincidieran sería un emparejamiento; el gris queda excluido, pues sus
+64 semiaristas miran hacia fuera). Toda otra unión está emparejada y muestra
+su color dos veces. Así que exactamente una unión muestra $a$ exactamente
+una vez. Uno es impar. Eso contradice la paridad de $h(a)$, y la colocación
+no puede existir.
+
+## El suelo bajo lo perfecto es 478
+
+Escriba el defecto de un tablero como $480$ menos su puntuación. La paridad
+prohíbe el defecto 1 y no prohíbe nada más: en el defecto 2 las cuentas
+impares pueden absorberse por parejas, y el argumento calla. Toda colocación
+completa legal es, por tanto, o una solución o falla al menos dos uniones.
+Un último hecho censado cierra la escapatoria restante: ninguna ficha de
+Eternity II queda fija bajo rotación alguna (0 de 256), así que un tablero
+no puede puntuar 480 difiriendo de una solución solo por una ficha girada en
+su sitio. Puntuación 480 significa solución. Cualquier otra cosa significa
+478 o menos.
+
+Para los marcadores de hoy el peldaño ausente es académico: los mejores
+tableros completos de la comunidad están en 470 bajo la convención de solo
+la pista central y en 464 con las cinco pistas colocadas
+([la página de récords](/research/records) mantiene la escalera completa).
+Pero cambia lo que «casi resuelto» puede llegar a significar. No hay un
+479 por el que pasar de camino a 480. El último paso de la subida va de 478
+a 480, dos uniones a la vez, y todo método que mejore tableros una unión
+cada vez es estructuralmente incapaz de darlo.
+
+## La cáscara de los 478 es dispersa
+
+Una solución existe; el rompecabezas se construyó a partir de una. ¿Qué hay
+justo al lado, en 478? Un tablero a un movimiento de una solución debe venir
+de un movimiento que rompa exactamente dos uniones, y solo dos clases de
+movimiento único pueden hacerlo. Ambas se cuentan en la bolsa:
+
+- **Intercambios de gemelas.** Dos fichas interiores que coinciden, en
+  ciertas orientaciones, en tres de sus cuatro bordes. Colocadas de modo que
+  los bordes coincidentes queden alineados, intercambiarlas perturba un
+  borde de cada una: dos uniones. El juego contiene exactamente **50** de
+  estas parejas cuasi-gemelas.
+- **Giros en el sitio.** Una ficha cuyos colores repetidos permiten que un
+  medio giro o un cuarto de giro conserve dos de sus cuatro colores de borde
+  en posición, de modo que girarla donde está rompe exactamente las otras
+  dos uniones. El juego contiene **23** fichas de medio giro y **3** fichas
+  de cuarto de giro de este tipo.
+
+Sumándolos, cualquier solución tiene a lo sumo $50 + 23 + 3 = 76$ vecinos de
+defecto 2 alcanzables con un solo intercambio o giro. Es una cota superior
+salida de la bolsa: que una pareja de gemelas dada quede realmente alineada
+dentro de una solución concreta depende de esa solución, así que la cuenta
+realizada para la solución de los diseñadores sigue abierta. El techo se
+mantiene de todos modos. Alrededor de la cima de la escalera, las
+cuasi-soluciones son dispersas, unas pocas decenas de tableros a lo sumo,
+mientras que los peldaños más abajo están poblados astronómicamente. Es la
+misma escasez que
+[los patrones prohibidos](/research/why/forbidden-patterns) muestran a
+escala 2×2, leída en la cumbre.
+
+## El marco paga su factura por adelantado
+
+El censo tiene una segunda historia que contar. Los colores 1 a 5 no
+aparecen en ninguna ficha interior; sus $5 \times 24 = 120$ semiaristas
+viven por completo en los bordes laterales de las 60 fichas del contorno. El
+anillo del contorno tiene exactamente 60 uniones, así que en toda solución
+los cinco colores de unión del marco las saturan exactamente, 12 uniones por
+color, sin holgura alguna. Y como la orientación de una ficha del contorno
+está forzada (gris hacia fuera), cada una de las 56 fichas de borde muestra
+un color fijo hacia el interior caiga donde caiga. Sumado sobre la bolsa, el
+interior recibe un vector de demanda fijo sobre los colores 6 a 22, a saber
+(4, 5, 3, 3, 1, 1, 2, 3, 4, 6, 4, 2, 3, 6, 4, 3, 2), 56 bordes orientados
+hacia dentro en total. Sea cual sea el marco que se construya, la factura de
+frontera del interior son esos mismos 17 números, conocidos antes de empezar
+búsqueda alguna.
+
+## Lo que la comunidad vio en junio de 2007
+
+La paridad se detectó antes incluso de que el rompecabezas saliera a la
+venta. En junio de 2007, David Eddy abre un hilo de la lista de correo
+titulado Parity con la observación de que «el número de aristas de cada
+tipo es par», y extrae la consecuencia sobre la última pieza: si la pieza
+final tiene cuatro bordes distintos, el hueco final debe mostrar los mismos
+cuatro colores en algún orden, lo que él estima en una probabilidad de 1
+entre 6 de encajar
+([msg 332](https://groups.io/g/eternity2/message/332)). Christophe Weibel
+aporta el ejemplo detallado de que la última pieza realmente puede no
+encajar en su hueco
+([msg 335](https://groups.io/g/eternity2/message/335)), y Brendan Owen, que
+había estudiado el diseño, cierra el hilo con el veredicto práctico: la
+paridad es correcta para E2 por construcción, y en una búsqueda solo ayuda
+muy cerca del final
+([msg 346](https://groups.io/g/eternity2/message/346)).
+
+Todo eso es cierto, y el hilo se detuvo ahí. Empujada un paso más allá, la
+misma observación contiene el teorema de arriba: la paridad hace más que
+volver azarosa la última pieza, borra el peldaño 479 de raíz, fija el suelo
+de defecto en 2, y limita a 76 la cáscara a un movimiento alrededor de cada
+solución.
+
+## Compruébelo usted mismo
+
+Cada número de esta página se reduce a un censo en una pasada del juego
+oficial: las cuentas de semiaristas y su paridad, la identidad de ajuste
+exacto 960, el cero fichas simétricas por rotación, la partición 4/56/196 en
+esquinas/bordes/interior, los generadores de defecto 2 en 50/23/3, la
+saturación del marco y el vector de demanda hacia el interior. El
+verificador recalcula cada valor junto a su valor esperado y emite una
+bandera de éxito por afirmación; las 16 comprobaciones pasan y la salida es
+idéntica byte a byte entre ejecuciones.
+[El artículo, el código del verificador y los resultados están en GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
+y el bloque de reproducción de esta página apunta al mismo tema. Una
+salvedad de alcance: el argumento de paridad cubre colocaciones completas de
+las 256 piezas con un marco gris legal. Los tableros parciales, y los que
+rompen la regla del marco, quedan fuera de él.

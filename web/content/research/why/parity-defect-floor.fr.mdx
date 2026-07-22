@@ -1,0 +1,201 @@
+---
+title: "Pourquoi 479 est impossible"
+description: >-
+  Un argument de comptage sur le jeu de pièces officiel interdit un score
+  d'exactement 479/480 : les demi-arêtes de chaque couleur viennent en nombre
+  pair, et un unique raccord cassé laisserait deux comptes impairs. Le
+  plancher sous le parfait est 478, et au plus 76 quasi-solutions à un coup
+  peuvent entourer une solution.
+metaDescription: "Un théorème de parité sur le jeu de pièces officiel d'Eternity II : les demi-arêtes de chaque couleur sont en nombre pair, donc un plateau avec un seul raccord cassé ne peut pas exister. 479/480 est impossible, le plancher sous le parfait est 478, au plus 76 quasi-solutions entourent une solution."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 1
+order: 35
+updated: 2026-07-22
+topics: [structure, search-space]
+sources:
+  - label: "David Eddy ouvre le fil Parity : le nombre d'arêtes de chaque type est pair, et la conséquence sur la dernière pièce (msg 332, juin 2007)"
+    url: https://groups.io/g/eternity2/message/332
+  - label: "L'exemple détaillé de Christophe Weibel d'une dernière pièce qui ne correspond pas à son trou (msg 335)"
+    url: https://groups.io/g/eternity2/message/335
+  - label: "Le verdict de Brendan Owen sur la parité dans E2 : correcte par construction, utile seulement vers la fin d'une recherche (msg 346)"
+    url: https://groups.io/g/eternity2/message/346
+  - label: "Plancher de défaut par parité : article, source du vérificateur et résultats du recensement (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor
+related:
+  - /research/why/theorem-sweep
+  - /research/why/forbidden-patterns
+  - /research/why/design-recipe
+  - /research/why/mismatch-geometry
+repro:
+  kind: exact
+  topic: parity-defect-floor
+---
+
+Classez les plateaux complets par score, en comptant les raccords internes
+appariés sur 480 (la convention arêtes-appariées utilisée partout dans ce
+wiki), et l'échelle semble continue : barreau après barreau, chacun occupé
+par un plateau que quelqu'un a construit. Elle a exactement un trou. Aucun
+placement complet légal des 256 pièces ne marque 479. C'est un théorème sur
+le jeu de pièces publié, démontrable par simple comptage, et cette page
+déroule l'argument entier : la parité qui l'impose, le plancher de défaut de
+2 qui en découle, et le recensement qui borne le nombre de quasi-solutions à
+un coup autour de toute solution. C'est aussi une entrée de
+[la moisson de théorèmes](/research/why/theorem-sweep), le tour d'horizon de
+ce qui se démontre à partir du sac avant toute recherche.
+
+## Compter les demi-arêtes
+
+256 tuiles à quatre bords portent 1024 demi-arêtes. Le gris du cadre en
+occupe 64, exactement le nombre d'emplacements tournés vers l'extérieur sur
+le pourtour (16 par côté). Les 960 restantes portent les 22 couleurs, et le
+recensement est remarquablement pair :
+
+| Groupe de couleurs                      | Demi-arêtes |
+| --------------------------------------- | ----------: |
+| Bord gris du cadre                      |          64 |
+| Cinq couleurs de jonction du cadre (1 à 5) | 24 chacune |
+| Cinq couleurs intérieures (6 à 10)      |  48 chacune |
+| Douze couleurs intérieures (11 à 22)    |  50 chacune |
+
+Chaque compte coloré est pair. Le total coloré, 960, vaut exactement deux
+fois le nombre de raccords internes ($2 \times 16 \times 15 = 480$) : dans
+un placement complet à cadre légal, où les 64 demi-arêtes grises regardent
+vers l'extérieur, les demi-arêtes colorées remplissent exactement les 960
+places des raccords internes, sans reste. Rien de tout cela ne dépend de la
+position des pièces. Ce sont des propriétés du sac.
+
+Un raccourci plaisant se cache ici : la parité aurait pu être prédite sans
+examiner une seule pièce. Les concepteurs garantissent qu'une solution
+existe, et un plateau résolu apparie chaque demi-arête colorée avec une
+partenaire de même couleur, donc le compte de chaque couleur vaut deux fois
+son nombre de raccords, pair par définition. Le recensement ne fait que
+confirmer sur le jeu réel ce que la solvabilité promettait déjà.
+
+## L'argument, en quatre lignes
+
+Fixez un placement complet à cadre légal (chaque bord tourné vers
+l'extérieur est gris) et fixez une couleur $c$. Chacun des 480 raccords
+internes montre deux demi-arêtes. Certains raccords montrent $c$ des deux
+côtés, d'autres d'un seul. En comptant les demi-arêtes de $c$ :
+
+$$h(c) = 2 \cdot \#\{\text{raccords montrant } c \text{ deux fois}\} + \#\{\text{raccords montrant } c \text{ une fois}\}.$$
+
+Puisque $h(c)$ est pair, le nombre de raccords montrant $c$ exactement une
+fois est pair aussi. Cela vaut pour toutes les couleurs à la fois, dans tout
+placement complet, résolu ou cassé.
+
+Supposons maintenant un placement à 479. Il a exactement un raccord cassé,
+et un raccord cassé montre deux couleurs différentes, disons $a$ et $b$ (si
+les deux côtés s'accordaient, ce serait un appariement ; le gris est exclu,
+puisque ses 64 demi-arêtes regardent vers l'extérieur). Tout autre raccord
+est apparié et montre sa couleur deux fois. Donc exactement un raccord
+montre $a$ exactement une fois. Un est impair. Cela contredit la parité de
+$h(a)$, et le placement ne peut pas exister.
+
+## Le plancher sous le parfait est 478
+
+Notons le défaut d'un plateau comme $480$ moins son score. La parité
+interdit le défaut 1 et n'interdit rien d'autre : au défaut 2, les comptes
+impairs peuvent s'absorber par paires, et l'argument se tait. Tout placement
+complet légal est donc soit une solution, soit rate au moins deux raccords.
+Un dernier fait recensé ferme l'échappatoire restante : aucune tuile
+d'Eternity II n'est fixée par une rotation (0 sur 256), donc un plateau ne
+peut pas marquer 480 en différant d'une solution seulement par une tuile
+tournée sur place. Score 480 veut dire solution. Tout le reste veut dire 478
+ou moins.
+
+Pour les classements d'aujourd'hui, le barreau manquant est académique : les
+meilleurs plateaux complets de la communauté sont à 470 sous la convention
+indice-central-seul et à 464 avec les cinq indices posés
+([la page des records](/research/records) tient l'échelle complète). Mais il
+change ce que « presque résolu » peut jamais vouloir dire. Il n'y a pas de
+479 par où passer en route vers 480. Le dernier pas de l'ascension va de 478
+à 480, deux raccords d'un coup, et toute méthode qui améliore les plateaux
+un raccord à la fois est structurellement incapable de le franchir.
+
+## La coquille des 478 est clairsemée
+
+Une solution existe ; le casse-tête a été construit à partir d'elle.
+Qu'est-ce qui se trouve juste à côté, à 478 ? Un plateau à un coup d'une
+solution doit venir d'un coup qui casse exactement deux raccords, et seules
+deux sortes de coups uniques peuvent le faire. Les deux se comptent dans le
+sac :
+
+- **Échanges de jumelles.** Deux tuiles intérieures qui s'accordent, dans
+  certaines orientations, sur trois de leurs quatre bords. Placées de sorte
+  que les bords communs s'alignent, les échanger ne dérange qu'un bord de
+  chacune : deux raccords. Le jeu contient exactement **50** telles paires
+  quasi-jumelles.
+- **Rotations sur place.** Une tuile dont les couleurs répétées permettent à
+  un demi-tour ou à un quart de tour de garder deux de ses quatre couleurs
+  de bord en position, si bien que la tourner là où elle est casse
+  exactement les deux autres raccords. Le jeu contient **23** tuiles à
+  demi-tour et **3** tuiles à quart de tour de ce type.
+
+En les additionnant, toute solution a au plus $50 + 23 + 3 = 76$ voisins de
+défaut 2 atteignables par un seul échange ou une seule rotation. C'est une
+borne supérieure tirée du sac : qu'une paire de jumelles donnée s'aligne
+vraiment dans une solution précise dépend de cette solution, si bien que le
+compte réalisé pour la solution des concepteurs reste ouvert. Le plafond
+tient malgré tout. Autour du sommet de l'échelle, les quasi-solutions sont
+clairsemées, quelques dizaines de plateaux au plus, alors que les barreaux
+plus bas sont peuplés astronomiquement. C'est la même rareté que
+[les motifs interdits](/research/why/forbidden-patterns) montrent à
+l'échelle 2×2, lue au sommet.
+
+## Le cadre paie sa facture d'avance
+
+Le recensement a une seconde histoire à raconter. Les couleurs 1 à 5
+n'apparaissent sur aucune tuile intérieure ; leurs $5 \times 24 = 120$
+demi-arêtes vivent entièrement sur les bords latéraux des 60 tuiles du
+pourtour. L'anneau du pourtour a exactement 60 raccords, donc dans toute
+solution les cinq couleurs de jonction du cadre les saturent exactement, 12
+raccords par couleur, sans aucun jeu. Et comme l'orientation d'une tuile du
+pourtour est forcée (gris vers l'extérieur), chacune des 56 tuiles de bord
+montre une couleur fixe vers l'intérieur où qu'elle atterrisse. Sommé sur le
+sac, l'intérieur reçoit un vecteur de demande fixe sur les couleurs 6 à 22,
+à savoir (4, 5, 3, 3, 1, 1, 2, 3, 4, 6, 4, 2, 3, 6, 4, 3, 2), 56 bords
+tournés vers l'intérieur en tout. Quel que soit le cadre construit, la
+facture de frontière de l'intérieur reste ces mêmes 17 nombres, connus avant
+toute recherche.
+
+## Ce que la communauté a vu en juin 2007
+
+La parité a été repérée avant même la sortie du casse-tête. En juin 2007,
+David Eddy ouvre un fil de la liste de diffusion intitulé Parity avec
+l'observation que « le nombre d'arêtes de chaque type est pair », et en tire
+la conséquence sur la dernière pièce : si la pièce finale a quatre bords
+différents, le trou final doit montrer les mêmes quatre couleurs dans un
+certain ordre, ce qu'il évalue à une chance sur 6 de correspondre
+([msg 332](https://groups.io/g/eternity2/message/332)). Christophe Weibel
+fournit l'exemple détaillé montrant que la dernière pièce peut réellement ne
+pas correspondre à son trou
+([msg 335](https://groups.io/g/eternity2/message/335)), et Brendan Owen, qui
+avait étudié la conception, clôt le fil avec le verdict pratique : la parité
+est correcte pour E2 par construction, et dans une recherche elle n'aide
+jamais que tout près de la fin
+([msg 346](https://groups.io/g/eternity2/message/346)).
+
+Tout cela est vrai, et le fil s'est arrêté là. Poussée un pas plus loin, la
+même observation contient le théorème ci-dessus : la parité fait plus que
+rendre la dernière pièce aléatoire, elle supprime le barreau 479 purement et
+simplement, fixe le plancher de défaut à 2, et plafonne à 76 la coquille à
+un coup autour de chaque solution.
+
+## Vérifiez-le vous-même
+
+Chaque nombre de cette page se réduit à un recensement en une passe du jeu
+officiel : les comptes de demi-arêtes et leur parité, l'identité
+d'ajustement exact 960, le zéro tuile symétrique par rotation, la partition
+4/56/196 en coins/bords/intérieur, les générateurs de défaut 2 en 50/23/3,
+la saturation du cadre et le vecteur de demande vers l'intérieur. Le
+vérificateur recalcule chaque valeur à côté de sa valeur attendue et émet un
+drapeau de réussite par affirmation ; les 16 vérifications passent et la
+sortie est identique à l'octet près d'une exécution à l'autre.
+[L'article, la source du vérificateur et les résultats sont sur GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
+et le bloc de reproduction de cette page pointe vers le même sujet. Une
+réserve de périmètre : l'argument de parité couvre les placements complets
+des 256 pièces avec un cadre gris légal. Les plateaux partiels, et ceux qui
+violent la règle du cadre, sont hors de sa portée.

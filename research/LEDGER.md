@@ -1482,3 +1482,25 @@ being ignored by the manifest build (English fallback preserved). Verified
 findings that were refuted or deferred are recorded in the analysis run;
 the one deferred item is a uniform reproduction-status sentence on the
 older command-less experiment pages.
+
+## 2026-07-22 — Records lineage, the theorem-sweep cluster, and a hygiene sweep
+
+The records page gained a clearly separated notebook-lineage section: the
+strict five-clue line (comb-order producer 457 raw, destroy-and-repair lift
+through 459 and 460 to 461) and the best matched-edges board (463,
+PALIMPSEST), every row convention-tagged, with an explicit statement that
+nothing in the section is a community record. Four new theory pages landed
+in why/: the theorem-sweep synthesis (a map of thirteen proved structural
+families), ring purity (the zero-slack Eulerian border), the parity defect
+floor (why 479 is impossible), and the 470 wall (the plateau as an entropic
+phase boundary, exact layer separated from labeled conjecture). Each is
+backed by its published reproduction topic. The piece-side-matching
+480-tight negative was distilled into the LP-relaxations page, and the six
+command-less lab pages now state their reproduction status uniformly.
+Review catches fixed before landing: a wrong final character in the
+Conway-Lagarias DOI, a 17-versus-16 check-count mismatch against the
+committed census, an unscoped LP-ceiling comparison, and a seed-2 figure
+quoted beyond what the committed JSON records. The review also surfaced
+older debt invisible to the body-only style gate: em dashes in
+metaDescription frontmatter and French/Spanish equivalents of banned words
+across seven pre-existing pages, all cleaned.

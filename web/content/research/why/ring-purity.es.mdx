@@ -1,0 +1,186 @@
+---
+title: "Pureza del anillo: el borde es un subpuzle cerrado, sin holgura"
+description: >-
+  Cinco de los 22 colores nunca tocan las 196 piezas interiores. La lista de
+  piezas obliga a toda solución válida a gastar las 120 semiaristas de marco en
+  el anillo del borde: un subpuzle autónomo con holgura exactamente nula
+  (120 = 120), un circuito euleriano sobre cinco vértices, acoplado al interior
+  solo por 56 aristas orientadas hacia dentro.
+metaDescription: "Pureza del anillo en Eternity II: los cinco colores de marco son exclusivos del borde, y toda solución válida gasta las 120 semiaristas de marco en el anillo de las 60 piezas de borde, sin holgura. El anillo es un circuito euleriano sobre 5 vértices, acoplado al interior por solo 56 aristas."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 65
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Pureza del anillo: el tema de reproducción con el artículo, el verificador versionado y el JSON de resultados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ring-purity
+  - label: "Brendan Owen digitaliza el juego de piezas: 24 semiaristas de cada uno de los 5 colores de unión del borde, 48 o 50 de cada color interior (groups.io msg 1054, julio de 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle: la separación deliberada de la paleta en 17+5 (groups.io msg 1947, agosto de 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+  - /research/why/design-recipe
+repro:
+  kind: exact
+  topic: ring-purity
+  scope: >-
+    Cada cláusula determinista (identificación de los colores de marco,
+    estructura de las ranuras pieza a pieza, el recuento de saturación
+    120 = 120, los grados del multigrafo, su conexidad, la ramificación exacta
+    del primer paso) se recalcula exhaustivamente con el verificador Rust
+    versionado en el directorio compute/ del tema, estable byte a byte entre
+    ejecuciones; las dos medidas de fuerza de Monte Carlo llevan semilla y
+    concuerdan, dentro del error de muestreo, entre semillas independientes.
+---
+
+Cinco de los 22 colores de arista no aparecen en ninguna de las 196 piezas
+interiores. En la numeración estándar son los colores 1 a 5: los colores de
+marco. Cada uno ocupa exactamente 24 semiaristas, todas en las 60 piezas de
+borde, con una reserva total de 120. La pureza del anillo es el siguiente
+enunciado: los datos de las piezas no dejan a esa reserva ninguna elección.
+Toda solución válida gasta las 120 semiaristas completas en las 120 ranuras
+del anillo del borde orientadas hacia el propio anillo, sin holgura alguna.
+El borde es un subpuzle autónomo, y su único contacto con el interior pasa
+por 56 aristas orientadas hacia dentro.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">120 = 120</div>
+    <div className="mt-1 text-xs text-muted-foreground">demanda del anillo frente a reserva de marco, holgura nula</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">5 × 24</div>
+    <div className="mt-1 text-xs text-muted-foreground">colores de marco × semiaristas cada uno</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">56</div>
+    <div className="mt-1 text-xs text-muted-foreground">aristas que acoplan el anillo al interior</div>
+  </div>
+</div>
+
+## Tres hechos sobre la lista de piezas
+
+La prueba descansa en tres propiedades que se comprueban recorriendo una sola
+vez las 256 piezas. Sin búsqueda, sin muestreo.
+
+Primero, los colores de marco solo aparecen en piezas de borde. El
+verificador no se fía de las etiquetas: deriva el conjunto de colores de
+marco de los datos, como los colores con cero apariciones en piezas
+interiores, y encuentra exactamente cinco.
+
+Segundo, cada una de las 56 piezas de arista lleva exactamente dos ranuras de
+color de marco y una ranura fuera de marco entre sus tres ranuras no nulas, y
+la ranura fuera de marco queda opuesta a la ranura gris. Se cumple 56 de 56
+veces.
+
+Tercero, las dos ranuras no nulas de cada pieza de esquina son de color de
+marco, y las dos ranuras grises son adyacentes. Se cumple 4 de 4 veces.
+
+Para que conste, el resto de la paleta es tan plano como la parte del marco:
+de los 17 colores interiores, 5 aparecen 48 veces y 12 aparecen 50 veces.
+Brendan Owen midió exactamente esos recuentos la semana en que digitalizó su
+juego ([msg 1054](https://groups.io/g/eternity2/message/1054)), y la
+separación estricta de las dos paletas fue una decisión de diseño
+([msg 1947](https://groups.io/g/eternity2/message/1947)); la
+[página de la receta de diseño](/research/why/design-recipe) cuenta esa
+historia.
+
+## El argumento de forzado
+
+Una pieza de arista se asienta en el contorno con su ranura gris hacia fuera,
+de modo que la ranura opuesta a la gris mira al interior. Su vecina por ese
+lado es una pieza interior que, por el primer hecho, no tiene ningún color de
+marco que ofrecer. La ranura orientada hacia dentro no puede, por tanto,
+llevar un color de marco. Por el segundo hecho, la pieza de arista posee
+exactamente una ranura fuera de marco, y está justo opuesta a la gris, es
+decir, en la posición interior. Las dos ranuras de marco quedan así forzadas
+a las dos posiciones orientadas al anillo, a lo largo del contorno. Las
+esquinas, por el tercer hecho, aportan sus dos ranuras no nulas al anillo.
+
+Contemos. Demanda: $56 \times 2 + 4 \times 2 = 120$ ranuras orientadas al
+anillo. Reserva: $5 \times 24 = 120$ semiaristas de marco. Los dos números
+coinciden exactamente. Cada semiarista de marco se consume en el anillo,
+ninguna sobra, y ningún color fuera de marco aparece jamás en una junta del
+anillo. Ese es el sentido de la holgura nula: el presupuesto de colores de
+marco se gasta hasta la última semiarista.
+
+## El anillo es un circuito euleriano
+
+La saturación admite una lectura limpia en teoría de grafos. Tómese un
+multigrafo de 5 vértices, uno por color de marco, con una arista por pieza de
+borde, uniendo sus dos colores orientados al anillo. Una disposición válida
+del anillo del borde es exactamente un circuito euleriano de ese multigrafo:
+recorrer el anillo es leer un circuito cerrado que usa cada arista-pieza una
+vez, y a la inversa.
+
+En la instancia real el multigrafo tiene 60 aristas, todos sus grados valen
+24 y es conexo, así que existe un circuito euleriano, como debe ser, puesto
+que existe una solución completa. De las 60 aristas, 14 son lazos (piezas que
+muestran el mismo color de marco en sus dos ranuras de anillo), y las aristas
+cubren los 15 pares de colores posibles, los 10 pares no ordenados más los 5
+lazos.
+
+## Cuánto vale la ley
+
+El teorema viene con dos medidas de fuerza, una exacta y una muestreada.
+
+La exacta es la ramificación del primer paso. Fíjese una pieza de borde
+colocada; la siguiente pieza a lo largo del anillo debe casar con el color de
+marco expuesto. De las piezas de borde, solo valen las incidentes a ese
+color: según el color, 20, 21, 21, 22 o 22 de ellas, con media 21,2, frente a
+59 candidatas en un orden sin restricción. El casado de colores, por sí solo,
+divide el primer factor de ramificación por 2,78.
+
+La muestreada es una estimación por muestreo secuencial por importancia sobre
+1000 construcciones voraces del anillo con semilla. El log10 medio de la
+probabilidad de un camino completado es -27,30 (desviación 0,64) con la
+semilla 1 y -27,39 (desviación 0,62) con la semilla 2, frente a una
+referencia uniforme de $\log_{10}(1/59!) = -80,14$. Léase así: la ley de
+casado de colores concentra la masa de probabilidad en unos 53 órdenes de
+magnitud respecto a un orden uniforme de las piezas de borde, y aun así deja
+una rareza residual cercana a $10^{-27}$. Una marcha voraz guiada solo por
+los colores casi nunca termina un anillo: 8,7 % de finalizaciones con la
+semilla 1, 9,3 % (graine 2, exécutée pour vérifier la cohérence ; le JSON archivé couvre la graine 1) con la semilla 2, con la medición original en 9,4 %. Las 87
+construcciones completadas de la semilla 1 se cerraron todas en circuito, con
+los extremos casando, que es la estructura euleriana asomando en la muestra.
+
+## Lo que sigue abierto
+
+El recuento exacto de circuitos eulerianos no orientados del multigrafo real
+del anillo está abierto. Durante la investigación original se intentó un
+atajo de orientación única vía el teorema BEST, se detectó como infrarrecuento
+con una comprobación de control sobre K5 y se retiró; no se reivindica ningún
+recuento de circuitos en ninguna parte. La medida de finalización voraz
+ignora además la alternancia geométrica esquinas/aristas del anillo físico:
+mide la ley de casado de colores aislada, no la restricción completa del
+anillo.
+
+## Dónde encaja, y cómo comprobarlo
+
+El teorema corta el puzle a lo largo del contorno. Hacia dentro, las 56
+piezas de arista muestran cada una un color de la paleta interior de 17
+colores, y esas 56 aristas son toda la interfaz del borde con las 196 piezas
+interiores; la contabilidad a través de esa costura es el asunto de la
+[página del equilibrio del borde](/research/why/border-balance). La cara
+visible de la misma separación, los cinco colores raros confinados en el
+contorno, está en la
+[página de la geografía de los colores raros](/research/why/rare-color-geography).
+Y esta página es el relato detallado de una de las leyes del
+[barrido de teoremas](/research/why/theorem-sweep), junto al resto de la
+estructura exacta de la instancia.
+
+Cada número de arriba se recalcula con el verificador versionado del tema de
+reproducción enlazado en las fuentes: un único programa Rust que carga la
+instancia oficial, deriva los colores de marco de los datos, verifica
+exhaustivamente cada cláusula del teorema, construye el multigrafo del
+anillo, ejecuta las dos medidas de Monte Carlo con semilla y emite un archivo
+JSON (versionado como `results/ring_purity.json`) con todas las cifras aquí
+citadas. Las cláusulas deterministas se reproducen byte a byte; las medidas
+muestreadas concuerdan, dentro del error de muestreo, entre semillas
+independientes.

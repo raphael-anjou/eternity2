@@ -12,7 +12,7 @@ metaDescription: "Eternity II en programme entier : relâchez l’intégralité 
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: "La formulation en clique maximum : 262 144 sommets de placement, trouver une clique de 256 (groups.io message 627, 2007)"
@@ -228,6 +228,44 @@ Le versant « borne » de l'histoire a la même forme et vit sur le
 projet se situe autour de 478 alors que les meilleurs plateaux réels avoisinent
 458, un écart bien trop large pour certifier quoi que ce soit, pour exactement
 la raison de couverture fractionnaire évoquée plus haut.
+
+## Reformuler le puzzle sur les côtés de pièces
+
+Nous avons essayé une relaxation de notre cru, construite par l'autre bout du
+modèle. Au lieu de demander quelle pièce occupe quelle case, on liste les
+1 024 côtés de pièces (256 pièces, 4 côtés chacune) et on demande quels côtés
+s'apparient : deux côtés ne peuvent se rencontrer que si leurs couleurs
+coïncident, et un plateau achevé est un appariement des 960 côtés non-bordure
+en les 480 joints intérieurs. Ce compte est exact par construction : les
+4 pièces de coin apportent 2 côtés non-bordure chacune, les 56 pièces de bord
+en apportent 3, les 196 pièces intérieures en apportent 4, et
+$8 + 168 + 784 = 960 = 480 \times 2$. L'instance n'a aucun mou ; chaque côté
+non-bordure doit trouver un partenaire.
+
+Le LP sur ce graphe d'appariement raconte son histoire en trois temps. Figez
+chaque pièce dans une orientation fixe et la borne vaut 307.00, entière et
+égale à un décompte en forme close, mais non valide pour le vrai puzzle
+puisque les rotations sont interdites. Laissez les côtés s'apparier librement
+à travers les rotations (21 636 variables d'appariement, une contrainte de
+degré par côté) et le LP atteint exactement 480.00, avec 132 appariements
+fractionnaires ; ajouter des budgets d'appariement par pièce ne change rien.
+Ajoutez la cohérence de rotation, une variable de rotation relâchée par pièce
+couplée aux appariements pour que les côtés appariés d'une pièce s'accordent
+sur une seule orientation (262 900 variables, environ 503 000 contraintes,
+quelques minutes de solveur) : toujours 480.00, désormais avec tous les
+appariements fractionnaires et pas une seule pièce à rotation entière. Le LP
+garde 480 faisable en plaçant chaque pièce partiellement dans ses quatre
+rotations à la fois, le jumeau côté-de-pièce du coin à « 30 % pièce 1 » vu
+plus haut.
+
+Le registre des couleurs s'équilibre donc parfaitement à chaque niveau de la
+relaxation que nous pouvions nous offrir, et une borne qui se cale au maximum
+est un résultat négatif d'un genre précis et utile : il localise la
+difficulté. Rien dans « quels côtés peuvent s'apparier avec quels autres »
+n'obstrue un 480. L'obstruction vit entièrement dans ce que ces relaxations
+ne voient pas, à savoir que chaque pièce occupe une case entière et que
+l'appariement doit se poser à plat en grille 16×16. Même verdict que le
+modèle case-pièce, atteint par la direction opposée.
 
 ## Ce que ça coûte
 

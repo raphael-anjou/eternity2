@@ -67,7 +67,7 @@ primer callejón sin salida. La
 [página de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) cuenta la
 historia del rendimiento del motor C que lleva años ostentando la corona de velocidad
 mononúcleo de la comunidad. Esta página es la otra cara: cuánto puede acercarse el
-*Rust portable*, y dónde cae la línea honesta.
+*Rust portable*, y dónde cae la línea rigurosa.
 
 El resultado depende del tablero, y ahí está lo interesante. Medido en mi Apple M1, en
 un núcleo, ambos motores compilados sin pantalla con generación de código nativa y
@@ -330,7 +330,7 @@ las filas del medio como la *forma* de la subida, no como constantes de laborato
 
 | Peldaño | Motor | Cambio | estado |
 | --- | --- | --- | --- |
-| **naive-clean** | recursivo | DFS Rust portable simple, la referencia honesta | **~44 M, verificado** |
+| **naive-clean** | recursivo | DFS Rust portable simple, la referencia rigurosa | **~44 M, verificado** |
 | **JIT guiado por tablas** | codegen | programa generado, bucle interno por tablas | **~61 M, verificado** |
 | celdas del tablero en u32 | codegen | una carga + desplazamiento por vecino | +~65 % (diario) |
 | cadena de funciones | codegen | una función por celda | +~55 % (diario) ★ |
@@ -366,7 +366,7 @@ fusionado - son ejecutables directamente, para que cualquiera pueda rejugarlos e
 propia máquina, uno tras otro. Desde `research/experiments/dfs-study/engine`:
 
 ```bash
-# naive-clean: la referencia honesta (backtracker recursivo simple aparte) ~44 M
+# naive-clean: la referencia rigurosa (backtracker recursivo simple aparte) ~44 M
 cargo run --release -p dfs-run --bin run_dfs -- \
   --puzzle crates/dfs-codegen/bench/bench-hard.json --algo naive-clean --seed 1 --budget-s 10
 

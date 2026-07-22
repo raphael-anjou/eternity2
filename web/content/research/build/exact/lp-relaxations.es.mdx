@@ -12,7 +12,7 @@ metaDescription: "Eternity II como programa entero: relaja la integralidad y el 
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: "La formulación de clique máximo: 262 144 vértices de colocación, encontrar un clique de 256 (groups.io message 627, 2007)"
@@ -221,6 +221,43 @@ El lado de la cota de la historia tiene la misma forma y vive en el
 medido de este proyecto se sitúa en torno a 478 mientras que los mejores
 tableros reales rondan 458, una brecha demasiado ancha para certificar nada,
 por exactamente la razón de cobertura fraccionaria de arriba.
+
+## Replantear el puzzle sobre los lados de las piezas
+
+Probamos una relajación propia, construida desde el otro extremo del modelo.
+En lugar de preguntar qué pieza ocupa qué celda, se listan los 1 024 lados de
+pieza (256 piezas, 4 lados cada una) y se pregunta qué lados se emparejan:
+dos lados solo pueden encontrarse si sus colores coinciden, y un tablero
+terminado es un emparejamiento de los 960 lados no-borde en las 480 costuras
+interiores. Ese recuento es exacto por construcción: las 4 piezas de esquina
+aportan 2 lados no-borde cada una, las 56 piezas de borde aportan 3, las 196
+interiores aportan 4, y $8 + 168 + 784 = 960 = 480 \times 2$. La instancia no
+tiene holgura alguna; cada lado no-borde debe encontrar pareja.
+
+El LP sobre este grafo de emparejamiento cuenta su historia en tres pasos.
+Congela cada pieza en una orientación fija y la cota vale 307.00, entera e
+igual a un recuento en forma cerrada, pero inválida para el puzzle real
+porque prohíbe las rotaciones. Deja que los lados se emparejen libremente a
+través de las rotaciones (21 636 variables de emparejamiento, una restricción
+de grado por lado) y el LP alcanza exactamente 480.00, con 132
+emparejamientos fraccionarios; añadir presupuestos de emparejamiento por
+pieza no cambia nada. Añade la coherencia de rotación, una variable de
+rotación relajada por pieza acoplada a los emparejamientos para que los lados
+emparejados de una pieza acuerden una sola orientación (262 900 variables,
+unas 503 000 restricciones, minutos de solucionador): sigue en 480.00, ahora
+con todos los emparejamientos fraccionarios y ni una sola pieza con rotación
+entera. El LP mantiene 480 factible poniendo cada pieza parcialmente en sus
+cuatro rotaciones a la vez, el gemelo a nivel de lados de la esquina con
+«30 % pieza 1» de arriba.
+
+Así que el libro de cuentas de los colores cuadra perfectamente en cada nivel
+de la relajación que pudimos permitirnos, y una cota que se clava en el
+máximo es un resultado negativo de un tipo concreto y útil: localiza la
+dureza. Nada en «qué lados pueden emparejarse con cuáles» obstruye un 480. La
+obstrucción vive por entero en lo que estas relajaciones no ven, que cada
+pieza ocupa una celda entera y que el emparejamiento debe tenderse plano como
+una malla 16×16. El mismo veredicto que el modelo celda-pieza, alcanzado
+desde la dirección opuesta.
 
 ## Lo que cuesta
 

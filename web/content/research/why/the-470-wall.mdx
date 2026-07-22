@@ -1,0 +1,186 @@
+---
+title: "The 470 wall: a phase boundary, not an engineering limit"
+description: >-
+  The community plateau in the high 460s reads as an entropic phase boundary
+  of the instance, not a limit of solver engineering: exact computation on the
+  official set gives a constraint density near 0.0094, an annealed landscape
+  that collapses above 470 and crosses 1 only at 480, and an expected 10 to 20
+  mutually near-orthogonal perfect solutions. The instance-side numbers are
+  exact; the 16x16 overlap-gap picture is a stated conjecture.
+metaDescription: "The Eternity II plateau at 467 to 470 reads as an entropic phase boundary, not an engineering limit: constraint density 0.0094 on the official set, uncorrelated boards collapse above 470 and cross 1 only at 480, with an expected 10 to 20 near-orthogonal perfect solutions."
+kind: finding
+contribution: analysis
+rigor: conjectured
+tier: 2
+order: 46
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Achlioptas & Coja-Oghlan, Algorithmic barriers from phase transitions (FOCS 2008): solution clustering and where local algorithms stall in random CSPs"
+    url: https://arxiv.org/abs/0803.2122
+  - label: "Gamarnik, The overlap gap property: a topological barrier to optimizing over random structures (PNAS 2021)"
+    url: https://www.pnas.org/doi/10.1073/pnas.2108492118
+related:
+  - /research/why/theorem-sweep
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+  - /research/why/design-recipe
+repro:
+  kind: exact
+  cmd: cd research/topics/the-470-wall/compute && cargo run --release --bin the_470_wall > ../results/landscape.json
+  topic: the-470-wall
+  scope: >-
+    Recomputes every instance-side number from the official piece set in under
+    a second: the color economy, the two collision probabilities, the
+    constraint density, and the full annealed score landscape. The small-board
+    overlap enumeration behind the conjecture is planned separately and is not
+    part of this command.
+---
+
+The best public boards have clustered in the high 460s for years, and the
+ceiling stands at 470 of 480 (the record history lives on the
+[records page](/research/records)). The question this page asks is whether
+those last ten points are an engineering problem, something a better
+backtracker or a sharper heuristic will eventually claw back, or a property
+of the instance itself. Treating the official piece set as one member of a
+planted random ensemble gives a quantitative answer, and the answer points at
+the instance: the supply of boards a search can actually reach collapses
+right where the community stopped.
+
+The argument has two layers with very different standing, and I keep them
+separate throughout. The numbers computed on the real piece set are exact,
+and the compute step behind this page reproduces them bit for bit. The
+structural picture that interprets those numbers at 16×16 is a conjecture,
+supported by exhaustive enumeration of small instances tuned to the same
+parameter, and it is labeled as such below.
+
+## The bag, measured exactly
+
+The 256 pieces split into 4 corners, 56 edge pieces, and 196 interior pieces.
+Setting aside the 64 gray rim half-edges leaves 960 colored half-edges, which
+pair into the 480 internal adjacencies of a filled board. The accounting is
+tight: $960 = 2 \times 480$, with no slack anywhere. Scores on this page
+count matched internal adjacencies out of 480, the same matched-edges
+convention as the community ceiling; nothing here is a claim about the strict
+five-clue track.
+
+The color economy then splits into two subsystems that never talk to each
+other. The frame ring, the cycle of 60 joints between border pieces, uses
+only colors 1 to 5, each appearing on exactly 24 half-edges; the probability
+that two uniformly drawn frame half-edges agree is
+$p_f = 5 \cdot (24/120)^2 = 0.200$. The interior subsystem covers the other
+420 joints on colors 6 to 22 (five colors at 48 half-edges, twelve at 50),
+giving $p_i \approx 0.0588$, almost exactly $1/17$. These two probabilities
+carry the whole analysis.
+
+One more exact check is worth recording: the real bag contains zero tiles
+that repeat under rotation. Against a matched random null this appears to be
+the one statistically significant fingerprint of the design pass; the
+null side of that comparison still needs its own generator, so only the
+real-set side (exactly zero) is verified here.
+
+## One number places the regime
+
+The parameter that positions Eternity II inside its ensemble is the
+constraint density: the expected number of tiles that fit a fully constrained
+interior cell, one whose four neighbours are already placed. With 196
+interior tiles, 4 rotations each, and a per-edge collision probability of
+0.0589 for a random interior tile edge,
+
+$$\mu = 196 \cdot 4 \cdot 0.0589^4 \approx 0.0094.$$
+
+A fully surrounded hole admits about one candidate in a hundred. That is far
+below one, which places the instance deep in the rigid regime of planted
+constraint-satisfaction ensembles: the regime where theory says the solution
+set shrinks to isolated, well-separated points, and where local algorithms
+provably stall short of them
+([Achlioptas & Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122),
+[Gamarnik 2021](https://www.pnas.org/doi/10.1073/pnas.2108492118)). The
+number itself is an exact function of the real color counts; what the regime
+implies at this size is the conjectural layer, taken up below.
+
+## The annealed score landscape
+
+The instance-side centerpiece is a first-moment count: how many board
+configurations that are *uncorrelated* with the planted solution reach a
+given score? The base count of class-respecting placements (corners in
+corners, edges on the rim, interiors inside, free rotations for interior
+tiles) is $W_{\text{geom}} = 4! \cdot 56! \cdot 196! \cdot 4^{196} \approx
+10^{559.9}$. The score of a random such configuration is the sum of 60
+Bernoulli($0.200$) frame indicators and 420 Bernoulli($0.0588$) interior
+indicators, and an exact log-space convolution of those 480 variables gives
+the full landscape. A uniformly random configuration scores $36.7 \pm 5.7$.
+
+| score | uncorrelated configurations at this score (log10) |
+| ----: | ------------------------------------------------: |
+|    37 |                                              558.8 |
+|   200 |                                              462.8 |
+|   400 |                                              186.6 |
+|   460 |                                               59.6 |
+|   470 |                                               33.1 |
+|   480 |                                               +1.28 |
+
+Two things stand out. First, the supply of high-scoring uncorrelated boards
+stays astronomical remarkably far up: about $10^{60}$ configurations at
+score 460 and still about $10^{33}$ at 470. Second, the count crosses 1
+essentially at 480 itself: the expected number of perfect placements
+uncorrelated with the planted board is $10^{1.28} \approx 19$. The working
+model this prices out is a solution set of order 10 to 20 perfect boards,
+mutually near-orthogonal and orthogonal to the planted one, at the top of an
+entropy curve that only just clears zero.
+
+## Exact below, conjecture above
+
+Everything above this line is an exact computation on the official set: the
+class counts, the 960-half-edge economy, both collision probabilities, $\mu$,
+$W_{\text{geom}}$, and every row of the landscape table. The repro command on
+this page regenerates all of it from the shared engine in under a second,
+into `results/landscape.json` in the topic folder.
+
+What the landscape does not tell you is how those rare high scorers are
+*arranged*: whether the entropic mass connects to the perfect boards or
+whether an empty gap separates them. That question I can only answer exactly
+on small instances. In the source arc, exhaustively enumerating planted $n \times n$ boards for
+$n$ up to 7, with the color count tuned so the constraint density matches,
+shows a clean trend: at loose $\mu$ the overlap-with-planted histogram of the
+solution set is continuous, and as $\mu$ drops toward E2's 0.009 it turns
+bimodal and then collapses. At the matched point ($n = 5$, 11 colors,
+$\mu = 0.009$) the enumeration finds the planted solution, a cluster right
+next to it, a large family at overlap zero, and an entirely empty band in
+between.
+
+<Callout kind="warn" title="Where the conjecture starts">
+  The 16×16 statements (a solution set of 10 to 20 near-orthogonal perfect
+  boards, an empty overlap gap below them, and the 470 wall as the visible
+  edge of that gap) are extrapolations of the small-instance trend along the
+  constraint-density parameter. They are conjecture, not measurement: no
+  feasible computation checks them directly at full size. The landscape table
+  and every instance-side number on this page are exact; the gap structure at
+  16×16 is the part you should hold as a working model.
+</Callout>
+
+## Reading the wall
+
+Put the exact layer and the conjectured layer together and the community
+plateau stops looking like a tooling deficit. A heuristic that climbs the
+score landscape is drawing from the entropic band, and the band is deep: with
+$10^{33}$ uncorrelated configurations still available at 470, reaching the
+high 460s is cheap in a precise sense, and solver engineering has been
+harvesting that band for years. Past it, the supply thins by thirty-odd
+orders of magnitude over ten points of score, and if the overlap-gap
+extrapolation holds there is nothing in between to climb through: the missing
+ten points are the width of an empty region separating the last entropic
+boards from a handful of isolated perfect ones. That is the overlap gap
+property in its textbook role, a topological barrier that stable, local
+search cannot cross regardless of implementation quality.
+
+This reading agrees with what we measure elsewhere on the wiki: the
+[rigidity wall](/research/why/rigidity-wall) finds record boards frozen into
+isolated local optima with no gradient outward, which is exactly how the
+bottom edge of a gap should feel from below. It also sharpens what "progress"
+would have to mean. More speed and better ordering buy entropic points, and
+those run out around 470 by the table above; anything that crosses the gap
+has to inject correlation with an actual perfect solution rather than climb
+the score function. The statements about the instance that hold at proof
+grade, as opposed to the working model on this page, are collected in the
+[theorem sweep](/research/why/theorem-sweep).
