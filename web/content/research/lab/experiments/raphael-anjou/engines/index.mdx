@@ -1,15 +1,16 @@
 ---
-title: The engines
+title: The shared engines
 description: >-
   The shared engines under Raphaël Anjou's experiments. The named experiments
   are studies that run on these; this is the apparatus they share. The CSP
-  presets and the Verhaard reimplementation are documented here; the
-  constructive engines are not yet published.
-metaDescription: "The shared engines behind Raphael Anjou's Eternity II experiments: a CSP preset engine (arc-consistency, colour-graph matching, fill orders) and a from-scratch Verhaard reimplementation reaching 438 of 480 single core. The apparatus the studies run on; the beam and ALNS engines stay unpublished."
+  presets and the Verhaard reimplementation are documented in full, alongside
+  the reference engine, the JIT backtracker, a field guide to speed, and the
+  scaling-ladder harness; the constructive engines are not yet published.
+metaDescription: "The apparatus behind Raphael Anjou's Eternity II experiments: a CSP preset engine, a Verhaard reimplementation reaching 438 of 480 single core, the site's reference engine, the JIT backtracker, a field guide to speed, and the scaling-ladder harness. The beam and ALNS engines stay unpublished."
 kind: page
 order: 5
 author: raphael-anjou
-updated: 2026-07-15
+updated: 2026-07-22
 ---
 
 import { ProseLink } from "@/components/docs/mdx-components";
@@ -31,7 +32,10 @@ one asks a question and reports the board it reached. But most of them are not
 built from nothing. They run on a small set of shared engines, and the same
 engine turns up under experiment after experiment. This page documents that
 apparatus once, so the studies can point here instead of re-explaining the
-machine each time.
+machine each time. The reference engine that powers this site's live demos is a
+different machine and has
+[its own page](/research/lab/experiments/raphael-anjou/engine); it appears
+below in its apparatus role.
 
 <div className="not-prose grid gap-4 md:grid-cols-2">
   <Door to="/research/lab/experiments/single-core-benchmark/csp-presets" title="The CSP presets, measured">
@@ -46,6 +50,28 @@ machine each time.
     own binary ships no source and will not run here. Set-composition
     swap-annealing under the 2×2-tiling metric; on the real five-clue puzzle it
     reaches 438 of 480, single core.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/engine" title="The reference engine behind this site">
+    The wiki's verification and demo machine, distinct from the shared search
+    engines: the Rust-to-WebAssembly backtracker that runs every live demo and
+    checks every number quoted on these pages, ported four times and
+    parity-tested byte-for-byte.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/jit-backtracker" title="The JIT backtracker">
+    A safe, portable Rust depth-first backtracker specialised at runtime by
+    emitting and compiling per-puzzle Rust, taken from 43 to 123 million
+    search-nodes per second on one core and measured against Peter McGavin's
+    hand-tuned C on the same machine.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/going-fast" title="Going fast">
+    A field guide to speed-first solvers: what raw throughput buys, the three
+    different things people mean by "fast", and why the fastest engine ever
+    built still cannot solve the puzzle.
+  </Door>
+  <Door to="/research/lab/experiments/raphael-anjou/scaling-ladder" title="The scaling ladder">
+    The harness that runs any solver unchanged on planted, fully solvable
+    boards at N = 8, 10, 12, 14, so a method's collapse size is measured before
+    weeks are spent on the real 16×16.
   </Door>
 </div>
 

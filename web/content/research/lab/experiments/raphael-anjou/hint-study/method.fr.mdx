@@ -1,0 +1,238 @@
+---
+title: Comment l'étude sur les indices est construite
+description: >-
+  L'appareillage derrière l'étude sur les indices : un générateur paramétrique de
+  plateaux fidèle à la recette de couleurs d'Eternity II à toutes les tailles, la
+  famille de backtrackers à ordre de remplissage, l'unique scoreur canonique, et le
+  morceau d'arithmétique qui garde l'axe du nombre significatif, le plancher des
+  coutures épinglées.
+metaDescription: "L'appareillage de l'étude sur les indices : un générateur de plateaux Eternity II paramétrique en taille, une famille de backtrackers à ordre de remplissage, un scoreur canonique, et le plancher des coutures épinglées qui garde significative une comparaison en nombre d'indices."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/lab/experiments/raphael-anjou/hint-study/findings
+  - /research/why/hint-geometry
+sources:
+  - label: "Le générateur paramétrique et le moteur à ordres de remplissage (le répertoire d'appui de cette étude)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { HintLayoutGallery } from "@/components/research/HintLayoutGallery";
+
+Cette page est l'appareillage derrière
+[l'étude sur les indices](/research/lab/experiments/raphael-anjou/hint-study) :
+comment les plateaux sont générés, pourquoi ils restent fidèles à Eternity II à
+toutes les tailles, la famille d'ordres de remplissage, et la pièce qui compte le
+plus pour lire correctement les résultats, l'arithmétique du *plancher des coutures
+épinglées*, qui est ce qui sépare un effet réel d'un artefact de mesure sur l'axe
+du nombre.
+
+## Les plateaux : un générateur fidèle, paramétrique en taille
+
+Chaque instance est générée de zéro, ensemencée et déterministe : le même triplet
+`(size, colours, seed)` produit le même plateau sur n'importe quelle machine. Un
+plateau généré est un plateau *résolu*, la pièce $i$ occupe la case $i$ à la
+rotation zéro, dont les identifiants de pièces sont ensuite réétiquetés par une
+permutation ensemencée, de sorte qu'un indice pour la case `pos` épingle la vraie
+pièce (réétiquetée), et qu'un solveur ne peut pas simplement parcourir le placement
+identité.
+
+La recette de couleurs reflète exactement la structure du puzzle officiel. Sur un
+plateau $n\times n$ il y a
+
+$$
+E(n) \;=\; 2\,n\,(n-1)
+$$
+
+coutures intérieures (les arêtes appariées ; $E(16) = 480$). Elles se répartissent
+en une **bande de cadre**, les coutures joignant deux pièces de bord le long du
+pourtour, et l'intérieur profond. Les cinq *couleurs de bord* sont confinées à la
+bande de cadre et n'apparaissent jamais à l'intérieur ; les *couleurs intérieures*
+apparaissent à la fois dans l'intérieur profond et sur la face tournée vers
+l'intérieur des pièces de bord. C'est le fait structurel définissant un vrai
+plateau Eternity II, et le générateur le reproduit et est testé contre lui.
+
+### Pourquoi le recensement est automatiquement équilibré (une affirmation à énoncer avec soin)
+
+Il est tentant, et les premières rédactions l'ont fait, de présenter le recensement
+de couleurs *pair* d'Eternity II comme un cadeau spécialement réglé : chaque couleur
+apparaît un nombre pair de fois, si bien que les appariements $\sum_c N_c / 2$ d'une
+solution parfaite tombent avec un jeu nul. La parité paire est réelle, mais elle
+n'est **pas** un exploit de réglage. Elle est forcée.
+
+Une couleur peinte sur $k$ coutures intérieures apparaît sur exactement $2k$ faces
+de pièces, une de chaque côté de chaque couture. Donc pour toute couleur $c$,
+
+$$
+N_c \;=\; 2\,k_c \quad\text{est pair, pour n'importe quel coloriage de coutures.}
+$$
+
+La parité à jeu nul est donc automatique pour *tout* plateau construit en coloriant
+des coutures ; elle ne dit rien de spécial sur Eternity II. Les propriétés qui
+portent véritablement la charge, et que le générateur doit réussir, sont au nombre
+de trois : les couleurs de bord confinées à la bande de cadre, les effectifs par
+couleur maintenus **équilibrés** (afin qu'aucune couleur ne soit assez rare pour
+sur-contraindre), et chaque pièce **distincte à rotation près** (afin qu'un indice
+épinglé nomme une pièce unique). La rédaction de l'étude est précise sur ce point
+là où le cadrage antérieur ne l'était pas.
+
+### Mettre la recette à l'échelle sans changer la difficulté
+
+Le générateur et le solveur sont tous deux paramétriques en taille, le plateau peut
+être $8\times8$ ou $12\times12$ aussi aisément que $16\times16$, ce qui ouvre une
+suite naturelle : l'effet du placement se *renforce*-t-il quand le plateau grandit ?
+Répondre proprement exige une recette de couleurs qui ne change pas la *difficulté*
+du puzzle quand la taille change. Garder simplement les *effectifs* de couleurs
+fixes en faisant croître $n$ rendrait le puzzle structurellement *plus facile* aux
+grands $n$ : avec plus de coutures et la même palette, chaque couleur se répète plus
+souvent, la case moyenne accepte donc plus de voisins et la contrainte se relâche.
+Cela confondrait taille et difficulté.
+
+La recette maintient au contraire la **multiplicité par couleur** à peu près
+constante. En écrivant $F(n)$ pour le nombre de coutures de la bande de cadre et
+$E(n) - F(n)$ pour l'intérieur, le nombre de couleurs de bord et intérieures est
+choisi comme
+
+$$
+b(n) \;=\; \operatorname{round}\!\Big(\tfrac{F(n)}{12}\Big), \qquad
+i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
+$$
+
+en visant les multiplicités qu'Eternity II utilise lui-même à $n=16$ (bord
+$\approx 12$, intérieur $\approx 24$). À $n=16$ cela restitue exactement la recette
+officielle, cinq couleurs de bord et dix-sept intérieures.
+
+Réussir cela sur les petits plateaux a demandé une correction du générateur. La
+palette d'Eternity II est *à dominante intérieure*, cinq couleurs de bord contre
+dix-sept intérieures, mais le générateur par défaut plafonne le nombre de couleurs
+de bord à cinq et prend tout le reste comme intérieur, ce qui sur un petit plateau
+inverse le rapport : à $8\times8$ la recette veut huit couleurs, et le plafond les
+répartirait en cinq de bord pour une intérieure, une mer intérieure quasi uniforme
+qui ne se comporte en rien comme E2. Le générateur accepte désormais un nombre
+explicite de couleurs de bord, et la recette maintient l'intérieur à environ trois
+fois le bord à chaque taille ($8\times8 \to$ deux de bord, six intérieures ;
+$16\times16 \to$ cinq et dix-sept, inchangé). Avec cela, les petits plateaux sont
+fidèles *et* pleinement solubles, ce sur quoi repose la comparaison de vitesse de
+résolution de la
+[page des résultats](/research/lab/experiments/raphael-anjou/hint-study/findings).
+Les résultats principaux sur les ordres et le nombre sont tous à $16\times16$ ; le
+plateau $8\times8$ n'est utilisé que là où une résolution complète est nécessaire.
+
+## Les géométries d'indices
+
+Chaque disposition est une fonction pure de la taille du plateau, si bien que la
+même géométrie peut être dessinée, mesurée et mise à l'échelle de façon cohérente.
+La galerie ci-dessous les rend toutes à partir de l'unique primitive de plateau
+partagée.
+
+<HintLayoutGallery />
+
+## Le plancher des coutures épinglées : garder l'axe du nombre significatif
+
+Voici la subtilité qui a remodelé l'étude. Demandez « plus d'indices aident-ils ? »
+et le geste évident est de comparer les scores finaux à différents nombres
+d'indices. Mais un indice fait deux choses différentes à la fois, et le score les
+confond :
+
+1. il **retire une pièce** de la recherche (la partie utile, il élague l'arbre) ;
+2. il **peut compléter une couture gratuitement**, si une case voisine est aussi
+   épinglée.
+
+Le second effet est un pur cadeau comptable. Définissons le **plancher des coutures
+épinglées** d'une disposition comme le nombre de coutures intérieures dont les
+*deux* extrémités sont épinglées :
+
+$$
+\text{plancher} \;=\; \#\{\, \text{coutures intérieures } (u,v) : u \text{ et } v \text{ toutes deux indicées} \,\}.
+$$
+
+Parce que les épinglages sont des pièces de la vraie solution, chacune de ces
+coutures est garantie correcte avant même que le solveur ne tourne. Un bloc groupé
+plein $k\times k$ en apporte $2k(k-1)$ ; cinq blocs $k{=}4$ engrangent
+$5 \cdot 24 = 120$ coutures correctes, un **quart des 480**, gratuitement. Un
+treillis épars, dont les indices ne se touchent jamais, a un plancher de **zéro**.
+
+Une comparaison au score brut **flatte** donc systématiquement les dispositions
+groupées : elles partent avec plus de cent points d'avance de pure comptabilité,
+indépendamment de la question de savoir si le plateau est devenu plus facile à
+*terminer*. C'est la même famille d'erreur que compter les coutures du pourtour
+dans un plateau partiel, un plancher qui gonfle le nombre sans refléter de progrès.
+Le commutateur de la galerie ci-dessus dessine ces coutures engrangées pour rendre
+le score gratuit visible.
+
+L'étude ne classe donc pas les dispositions au score brut sur l'axe du nombre. Elle
+utilise deux métriques immunisées contre le plancher :
+
+- le **taux de résolution**, la fraction des instances qu'un ordre complète
+  réellement jusqu'à 480 ;
+- la **profondeur atteinte**, jusqu'où la recherche est allée au-delà des cases
+  épinglées, sur 256.
+
+Toutes deux mesurent si la recherche a fait *un progrès que les épinglages ne lui
+ont pas offert*. Sur l'axe des ordres, où chaque disposition comparée partage les
+*mêmes* indices et donc le même plancher, le score brut est directement comparable
+et est utilisé.
+
+## Mesurer contre l'absence d'indices, apparié par instance
+
+La question « que valent les indices ? » n'a de réponse que relativement au fait de
+*ne pas* les avoir. L'axe des ordres est donc exécuté deux fois sur chaque plateau :
+une fois avec les cinq indices en forme d'indices officiels, une fois sans aucun
+(`baseline_00`), et l'effet rapporté est la **différence appariée**, le score avec
+indices moins le score sans indices sur le *même* plateau généré. Apparier par
+instance retire la variance de difficulté d'un plateau à l'autre, qui sur ces
+plateaux bimodaux est assez grande pour noyer l'effet si les deux conditions
+étaient comparées sur des graines différentes. Une différence appariée négative
+signifie que les indices ont rendu cet ordre de remplissage pire qu'il ne l'était
+avec un intérieur vierge, ce que rapportent les résultats. Toutes les comparaisons
+utilisent l'ensemble commun de graines menées à terme, de sorte que chaque ordre et
+chaque disposition sont agrégés sur les instances identiques.
+
+## Les ordres de remplissage, et pourquoi la frontière est le levier
+
+Le moteur est le [backtracker DFS](/research/lab/experiments/raphael-anjou/dfs-study)
+frère de cette étude, exécuté en strict (pas de ruptures, pas de propagation) afin
+que **l'ordre de remplissage soit la seule chose qui change**. Les ordres testés
+sont ligne par ligne, son miroir de bas en haut, la spirale entrante, la spirale
+sortante, bord d'abord, le peigne de Verhaard, un contrôle lignes-des-indices
+d'abord, et l'ordre propre à l'étude qui cherche les indices,
+`connect-hints-first`.
+
+Pourquoi l'ordre compte-t-il autant ? Le coût d'un backtracker est gouverné par la
+**frontière ouverte** : l'ensemble des cases déjà remplies encore adjacentes à une
+case vide. Quand la case suivante est placée contre une frontière de taille $f$, le
+nombre de plateaux partiels que la recherche peut avoir à considérer croît
+multiplicativement en $f$, le branchement est exponentiel en la frontière, pas en le
+plateau. Un unique balayage compact maintient $f$ à environ une ligne
+($\approx n$) ; un ordre qui ouvre des taches autour de $k$ indices éparpillés mène
+$k$ frontières de front, et
+
+$$
+\text{travail} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
+$$
+
+de sorte que fragmenter le remplissage en régions déconnectées multiplie le coût,
+il ne l'additionne pas. C'est exactement pourquoi `connect-hints-first`, l'ordre
+qui *cherche* les indices, est le pire performeur : atteindre les indices tôt vaut
+bien moins que garder la frontière petite, et relier des ancres éparpillées fait
+l'exact contraire de la garder petite.
+
+## Comment lire les chiffres
+
+Chaque plateau est re-scoré par un unique scoreur canonique d'arêtes appariées qui
+ne compte jamais une couture face au bord (grise). Le maximum est $E(n)$ ($480$ à
+$16\times16$). Chacune des quinze graines est une instance générée distincte, la
+dispersion entre graines est donc une véritable variance d'instance. Le débit, là
+où il est rapporté, est en nœuds de recherche par seconde et n'est jamais comparé
+entre ordres différents, car un nœud sous un ordre n'est pas la même unité de
+travail que sous un autre. Tout l'appareillage, générateur, dispositions, résultats
+par exécution et script de grille, réside dans le
+[répertoire d'appui](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study)
+de l'étude, et `just experiments hint-study` relance le tout.

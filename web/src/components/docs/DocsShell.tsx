@@ -19,6 +19,7 @@ import {
   type NavItem,
 } from "@/lib/research/nav";
 import { researchTopic, topicUrl, researchAuthor, authorUrl } from "@/lib/research/manifest";
+import { OUTCOME_LABELS, OUTCOME_TITLES } from "@/lib/research/outcome-labels";
 import type {
   ResearchDoc,
   ReproKind,
@@ -96,20 +97,10 @@ const T = {
       tool: "a software artifact",
       exposition: "an explainer for an audience",
     } satisfies Record<ContributionKind, string>,
-    outcome: {
-      plateaued: "plateaued",
-      refuted: "refuted",
-      parked: "parked",
-      "new-basin": "new basin",
-      superseded: "superseded",
-    } satisfies Record<OutcomeKind, string>,
-    outcomeTitle: {
-      plateaued: "reached a measured ceiling",
-      refuted: "a rigorously-run dead end",
-      parked: "set aside, not exhausted",
-      "new-basin": "opened a new family or region",
-      superseded: "beaten by a later result",
-    } satisfies Record<OutcomeKind, string>,
+    // Shared with the experiment results table via outcome-labels.ts, so the
+    // badge wording never drifts between the page header and the hub tables.
+    outcome: OUTCOME_LABELS.en,
+    outcomeTitle: OUTCOME_TITLES.en,
     scoring: {
       "matched-edges": "matched edges",
       "strict-5-clue": "strict 5-clue",
@@ -193,20 +184,8 @@ const T = {
       tool: "un artefact logiciel",
       exposition: "une explication pour un public",
     } satisfies Record<ContributionKind, string>,
-    outcome: {
-      plateaued: "plafonné",
-      refuted: "réfuté",
-      parked: "mis de côté",
-      "new-basin": "nouveau bassin",
-      superseded: "dépassé",
-    } satisfies Record<OutcomeKind, string>,
-    outcomeTitle: {
-      plateaued: "a atteint un plafond mesuré",
-      refuted: "une impasse étudiée avec rigueur",
-      parked: "mis de côté, pas épuisé",
-      "new-basin": "a ouvert une nouvelle famille ou région",
-      superseded: "battu par un résultat ultérieur",
-    } satisfies Record<OutcomeKind, string>,
+    outcome: OUTCOME_LABELS.fr,
+    outcomeTitle: OUTCOME_TITLES.fr,
     scoring: {
       "matched-edges": "arêtes appariées",
       "strict-5-clue": "strict 5 indices",
@@ -290,20 +269,8 @@ const T = {
       tool: "un artefacto de software",
       exposition: "una explicación para un público",
     } satisfies Record<ContributionKind, string>,
-    outcome: {
-      plateaued: "estancado",
-      refuted: "refutado",
-      parked: "aparcado",
-      "new-basin": "nueva cuenca",
-      superseded: "superado",
-    } satisfies Record<OutcomeKind, string>,
-    outcomeTitle: {
-      plateaued: "alcanzó un techo medido",
-      refuted: "un callejón sin salida estudiado con rigor",
-      parked: "apartado, no agotado",
-      "new-basin": "abrió una nueva familia o región",
-      superseded: "batido por un resultado posterior",
-    } satisfies Record<OutcomeKind, string>,
+    outcome: OUTCOME_LABELS.es,
+    outcomeTitle: OUTCOME_TITLES.es,
     scoring: {
       "matched-edges": "aristas emparejadas",
       "strict-5-clue": "estricto 5 pistas",

@@ -4,6 +4,7 @@ import { useLang } from "@/i18n";
 import { researchDocs, researchAuthors } from "@/lib/research/manifest";
 import { cn } from "@/lib/utils";
 import { coreHours, formatCoreHours } from "@/lib/research/hardware-cost";
+import { OUTCOME_LABELS, OUTCOME_TITLES } from "@/lib/research/outcome-labels";
 import type { ScoreDatum } from "./ExperimentScoreChart";
 import type { RigorKind, ReproKind, OutcomeKind, ScoringConvention } from "@/lib/research/types";
 
@@ -11,13 +12,17 @@ import type { RigorKind, ReproKind, OutcomeKind, ScoringConvention } from "@/lib
 //
 //  - PROPS mode (the per-author hub): the caller passes the page's own `scores`
 //    list. Score and method family come from that list; author, month, rigor,
-//    reproducibility and the link are pulled from each experiment's frontmatter
-//    via the manifest, so the table never drifts from the pages it summarizes.
+//    reproducibility, outcome and the link are pulled from each experiment's
+//    frontmatter via the manifest, so the table never drifts from the pages it
+//    summarizes.
 //  - MANIFEST mode (the cross-researcher hub, `manifest` prop): rows are
 //    discovered from the manifest itself — every `kind: experiment` page that
 //    carries a `score`, grouped by author. There is no per-page family in
-//    frontmatter, so this mode shows the research outcome instead of a method
-//    family, and a scoring-convention pill beside each score.
+//    frontmatter, so this mode drops the method column and adds a
+//    scoring-convention pill beside each score.
+//
+// Both modes render the `outcome` frontmatter as a translated status badge
+// (labels shared with the docs shell via outcome-labels.ts).
 //
 // When more than one researcher has experiments, the table splits into a
 // section per author (ownership at a glance); with a single author it is one
@@ -246,19 +251,21 @@ export function ExperimentResultsTable({
             </span>
           )}
         </td>
-        {manifest ? (
-          <td className="px-3 py-2">
-            {r.outcome && (
-              <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", OUTCOME_STYLE[r.outcome])}>
-                {r.outcome}
-              </span>
-            )}
-          </td>
-        ) : (
+        {!manifest && (
           <td className="px-3 py-2 text-muted-foreground">
             {FAMILY_LABEL[r.family ?? ""] ?? r.family ?? "—"}
           </td>
         )}
+        <td className="px-3 py-2">
+          {r.outcome && (
+            <span
+              className={cn("rounded-full px-2 py-0.5 text-xs font-medium", OUTCOME_STYLE[r.outcome])}
+              title={OUTCOME_TITLES[lang][r.outcome]}
+            >
+              {OUTCOME_LABELS[lang][r.outcome]}
+            </span>
+          )}
+        </td>
         <td className="px-3 py-2 whitespace-nowrap text-muted-foreground tabular-nums">
           {monthYear(r.date) || "—"}
         </td>
@@ -285,16 +292,19 @@ export function ExperimentResultsTable({
       </tr>
     ));
 
-  const colCount = 7;
+  // PROPS mode shows Method and Outcome side by side; MANIFEST mode has no
+  // per-page family, so it carries one column less.
+  const colCount = manifest ? 7 : 8;
 
   return (
     <div className="my-6 overflow-x-auto rounded-lg border">
-      <table className="w-full min-w-[46rem] text-sm">
+      <table className="w-full min-w-[50rem] text-sm">
         <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             {sortableHeader("label", "Experiment")}
             {sortableHeader("score", "Score", "text-right")}
-            {manifest ? sortableHeader("outcome", "Outcome") : sortableHeader("family", "Method")}
+            {!manifest && sortableHeader("family", "Method")}
+            {sortableHeader("outcome", "Outcome")}
             {sortableHeader("date", "When")}
             {sortableHeader("cost", "Core-h", "text-right")}
             <th className="px-3 py-2 text-left font-semibold">Rigor</th>

@@ -1456,3 +1456,29 @@ phase-transition.mdx measured-here paragraph + repro scope (EN/FR/ES).
 Ops note: one sweep was killed by editing run.sh while it executed
 (orchestrator error, sequencing); rerun clean on the refactored resumable
 runner. All gates green; full build; 30 topics.
+
+## 2026-07-22 — Lab section reorganization: routing fixed, nothing moved
+
+A structure review of the Raphael Anjou lab section (exemplar study against
+Complexity Zoo, gwern.net, Diataxis, TASVideos and Chess Programming Wiki
+hub patterns, then an adversarial verification pass over every proposed
+change) concluded that no page needed deleting or moving: the content was
+sound and the routing was broken. Applied: the section homepage now surfaces
+the whole corpus (a hint-study door and the four-studies count corrected in
+all three languages, a Findings-and-instruments strip for frostline, ledger
+and scaling-ladder, a Where-the-notebook-stands narrative with both scoring
+conventions stated side by side and the community standings linked, a
+Being-written-up-next slot naming queued work, and a manifest-driven
+Recently-added strip that keeps future publications from starting
+orphaned). The pipelines, engines and meet-in-the-middle hubs were rewritten
+to describe their children truthfully; the engines hub became the apparatus
+hub its door promises. The hint study gained native French and Spanish
+versions of all three pages and meet-in-the-middle its missing French index.
+One frontmatter pass unified sidebar, door and prev/next order (four order
+ties broken), retitled the colliding study sub-pages, and added reciprocal
+related links so no page is an island. Two code fixes: the CAS row was
+missing from the shared score table, and translated hardware blocks were
+being ignored by the manifest build (English fallback preserved). Verified
+findings that were refuted or deferred are recorded in the analysis run;
+the one deferred item is a uniform reproduction-status sentence on the
+older command-less experiment pages.

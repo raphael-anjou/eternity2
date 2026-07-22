@@ -3,20 +3,21 @@ title: "Los experimentos de Raphaël Anjou"
 description: >-
   Un cuaderno de experimentos de búsqueda sobre Eternity II, organizado en torno
   a los motores compartidos sobre los que se ejecutan, las pipelines de
-  combinación que persiguen la puntuación, tres estudios que desmontan un
+  combinación que persiguen la puntuación, cuatro estudios que desmontan un
   paradigma de búsqueda una decisión a la vez, y resoluciones exactas de final de
   partida. Cada uno expone su idea, su mejor tablero y las preguntas que deja
   abiertas. El mejor alcanza 463 de 480.
-metaDescription: "El cuaderno de investigación sobre Eternity II de Raphaël Anjou: motores compartidos, pipelines que persiguen la puntuación, tres estudios monoparadigma (DFS, reparación, aprendizaje) y resoluciones exactas de final de partida. Métodos y tableros abiertos; el mejor alcanza 463 de 480 aristas."
+metaDescription: "El cuaderno de investigación de Eternity II de Raphaël Anjou: motores compartidos, pipelines que persiguen la puntuación, cuatro estudios monoparadigma (DFS, reparación, aprendizaje, pistas) y resoluciones exactas de final de partida. Métodos y tableros abiertos; el mejor alcanza 463 de 480 aristas."
 kind: page
 order: 20
 author: raphael-anjou
-updated: 2026-07-21
+updated: 2026-07-22
 ---
 
 import { ExperimentScoreChart } from "@/components/research/ExperimentScoreChart";
 import { ExperimentResultsTable } from "@/components/research/ExperimentResultsTable";
 import { ProseLink } from "@/components/docs/mdx-components";
+import { RecentlyAdded } from "@/components/research/RecentlyAdded";
 import { RAPHAEL_ANJOU_SCORES as scores } from "@/data/experiment-scores";
 
 export function Door({ to, title, kicker, children }) {
@@ -45,6 +46,8 @@ completo, sin ocultar nada.
 
 Es un cuaderno, no un resultado único, así que conviene conocer cómo está
 organizado antes de adentrarse en él.
+
+<RecentlyAdded author="raphael-anjou" />
 
 ## Qué contiene esta sección
 
@@ -104,10 +107,22 @@ pregunta que te importa.
     kicker="Desmontar un paradigma"
     title="Aprender de los tableros fuertes"
   >
-    El tercer estudio, vuelto hacia adentro: en lugar de variar la búsqueda,
+    Un estudio vuelto hacia adentro: en lugar de variar la búsqueda,
     variar lo que se le permite *saber*. Cinco experimentos minan el corpus de
     tableros fuertes en busca de estructura y la reinyectan, y los cinco chocan
     contra el mismo muro.
+  </Door>
+  <Door
+    to="/research/lab/experiments/raphael-anjou/hint-study"
+    kicker="Desmontar un paradigma"
+    title="El estudio de las pistas"
+  >
+    Dar gratis a un backtracker cinco piezas correctas, en la geometría de
+    pistas del propio puzzle. Medidas contra la ausencia total de pistas, nunca
+    ayudan a un backtracker cronológico en estos tableros; pueden costar de 10 a
+    20 puntos a un barrido compacto y hundir en unos 345 puntos un orden que
+    corre hacia las pistas, porque una pieza fijada es una restricción dura que
+    un orden de relleno fijo debe satisfacer al llegar.
   </Door>
   <Door
     to="/research/lab/experiments/raphael-anjou/meet-in-the-middle"
@@ -135,7 +150,71 @@ peldaño hasta un rendimiento de la clase de McGavin - a la par del C más afina
 Los dos motores constructivos, el productor por haz y la etapa de pulido ALNS,
 todavía no tienen su propio exposé; allí donde una pipeline dirige uno, su
 propia página indica qué hace ese motor al nivel que el estudio necesita. Los
-preajustes CSP son el único motor documentado y medido por completo.
+preajustes CSP son el único motor documentado y medido por completo. Aparte de
+este aparato, el pequeño [motor de
+referencia](/research/lab/experiments/raphael-anjou/engine) que impulsa las
+demos en vivo del sitio y recomprueba cada cifra tiene su propia página.
+
+## Hallazgos e instrumentos
+
+No todo aquí es una pipeline o un estudio. Tres páginas se sostienen solas, una
+línea cada una:
+
+- [FROSTLINE](/research/lab/experiments/raphael-anjou/frostline): una energía
+  libre de propagación de creencias sobre las piezas sobrantes de la última
+  fila, que predice por rango hasta qué punto la fila puede aún terminarse, y
+  cuya señal muere más allá de una fila.
+- [LEDGER](/research/lab/experiments/raphael-anjou/ledger): una poda correcta,
+  color a color, de la oferta frente a la demanda para un DFS con presupuesto
+  de rupturas, cuyos ahorros se componen con la profundidad.
+- [La escalera de tamaños](/research/lab/experiments/raphael-anjou/scaling-ladder):
+  un banco que ejecuta un solver sin cambios sobre tableros plantados,
+  totalmente resolubles, de N = 8 a 14, para hallar dónde se derrumba el método
+  antes de dedicar semanas al 16x16 real.
+
+Otros dos hallazgos viven en el estante de las pipelines:
+[hacer un productor beam 10x mejor](/research/lab/experiments/raphael-anjou/pipelines/beam-width),
+donde la anchura misma resultó ser la respuesta a presupuesto igual, y
+[el marco fluido](/research/lab/experiments/raphael-anjou/pipelines/fluid-frame),
+donde un borde perfecto resultó no ser un arreglo único sino una variedad
+conexa de intercambios gratuitos.
+
+## Dónde está el cuaderno
+
+Leído como una sola investigación, el cuaderno sigue tres líneas. Los
+constructores desde cero y las pipelines de combinación se estancan en una
+banda de 436 a 460 aristas casadas: la construcción sola se atasca, y lo que
+las pipelines ganaron vino del reparto del trabajo entre construcción,
+reparación y un final de partida exacto, no de ningún motor en particular. La
+[línea de aprendizaje sobre corpus](/research/lab/experiments/raphael-anjou/learning)
+alcanza 460 a 463, y sus cinco experimentos se detienen en el mismo [muro de
+rigidez](/research/why/rigidity-wall). Las resoluciones exactas de [encuentro
+en el medio](/research/lab/experiments/raphael-anjou/meet-in-the-middle) son un
+resultado de otra naturaleza: sus tableros de 437 a 448 llegan con una prueba
+sobre una región pequeña, no con una persecución de la puntuación del tablero
+completo. La pregunta abierta del cuaderno es qué tendría que cambiar un
+próximo experimento para pasar de 463; variar la búsqueda y variar lo que sabe
+han chocado ambas con muros, así que la palanca probablemente no sea ninguna de
+las dos por separado. La brecha que queda es con el 470 de la comunidad, en la
+[página de récords](/research/records).
+
+El cuaderno cuenta sus puntuaciones en dos convenciones, que no señalan el
+mismo máximo. En aristas emparejadas, el mejor es 463
+([PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest)).
+Bajo la convención estricta de las cinco pistas, donde las cinco pistas
+oficiales deben ocupar sus casillas, el mejor es 461: un productor de orden en
+peine alcanza 457 y un pulido de destrucción y reparación lo eleva por 459 y
+460. Ambos números quedan por debajo de las mejores marcas de la comunidad; la
+[página de récords](/research/records) mantiene al día las convenciones y la
+clasificación.
+
+## Próximas redacciones
+
+Hay resultados en el laboratorio que aún no tienen su página, en el orden
+probable de llegada: el linaje estricto 461 de arriba, el finalizador exacto
+que sella las últimas filas de un tablero producido, el haz de doble ruptura
+y el productor de cuencas por novedad. Cada uno llegará con su reproducción
+ejecutable, como las páginas de arriba.
 
 ## Cómo leer las puntuaciones
 
@@ -150,12 +229,14 @@ confundirse, por lo que se dibujan como grupos separados.
   bajo, y *directamente comparable* entre métodos de una forma que los números
   de exploración no permiten.
 
-No todos los experimentos merecen una fila. Los tres estudios varían una
+No todos los experimentos merecen una fila. Los estudios varían una
 perilla a lo largo de una rejilla en lugar de producir un solo tablero, de modo
 que los estudios [DFS](/research/lab/experiments/raphael-anjou/dfs-study) y de
 [reparación](/research/lab/experiments/raphael-anjou/repair-study) llevan sus
 propias clasificaciones en vez de una fila en el gráfico; aquí solo aparece su
-mejor resultado de banco. Los cinco experimentos de
+mejor resultado de banco. [El estudio de las
+pistas](/research/lab/experiments/raphael-anjou/hint-study) lleva igualmente
+sus propias tablas en sus páginas y no tiene fila en el gráfico. Los cinco experimentos de
 [aprendizaje](/research/lab/experiments/raphael-anjou/learning) alcanzan cada uno
 un tablero puntuado, así que conservan sus filas además de su hogar de estudio.
 Las filas de banco de arriba son resultados de estudio, no páginas autónomas, de

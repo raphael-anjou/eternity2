@@ -1,0 +1,238 @@
+---
+title: Cómo se construye el estudio de las pistas
+description: >-
+  El aparato detrás del estudio de las pistas: un generador paramétrico de
+  tableros fiel a la receta de colores de Eternity II en todos los tamaños, la
+  familia de backtrackers por orden de relleno, el único puntuador canónico, y la
+  pieza de aritmética que mantiene significativo el eje del número, el suelo de
+  costuras fijadas.
+metaDescription: "El aparato del estudio de las pistas: un generador de tableros Eternity II paramétrico en tamaño, una familia de backtrackers por orden de relleno, un puntuador canónico, y el suelo de costuras fijadas que mantiene significativa una comparación por número de pistas. Con la aritmética al completo."
+kind: page
+contribution: method
+author: raphael-anjou
+rigor: measured
+order: 10
+updated: 2026-07-21
+date: 2026-07
+topics: [backtracking, structure, search-space]
+related:
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/lab/experiments/raphael-anjou/hint-study/findings
+  - /research/why/hint-geometry
+sources:
+  - label: "El generador paramétrico y el motor de órdenes de relleno (el directorio de respaldo de este estudio)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study
+---
+
+import { HintLayoutGallery } from "@/components/research/HintLayoutGallery";
+
+Esta página es el aparato detrás del
+[estudio de las pistas](/research/lab/experiments/raphael-anjou/hint-study):
+cómo se generan los tableros, por qué se mantienen fieles a Eternity II en todos
+los tamaños, la familia de órdenes de relleno, y la pieza que más importa para
+leer correctamente los resultados, la aritmética del *suelo de costuras fijadas*,
+que es lo que separa un efecto real de un artefacto de medición en el eje del
+número.
+
+## Los tableros: un generador fiel, paramétrico en tamaño
+
+Cada instancia se genera desde cero, con semilla y determinista: el mismo triplete
+`(size, colours, seed)` produce el mismo tablero en cualquier máquina. Un tablero
+generado es un tablero *resuelto*, la pieza $i$ ocupa la celda $i$ con rotación
+cero, cuyos identificadores de pieza se reetiquetan después mediante una
+permutación con semilla, de modo que una pista para la celda `pos` fija la pieza
+verdadera (reetiquetada), y un solucionador no puede simplemente recorrer la
+colocación identidad.
+
+La receta de colores refleja exactamente la estructura del puzzle oficial. En un
+tablero $n\times n$ hay
+
+$$
+E(n) \;=\; 2\,n\,(n-1)
+$$
+
+costuras interiores (las aristas casadas; $E(16) = 480$). Estas se dividen en una
+**banda de marco**, las costuras que unen dos piezas de borde a lo largo del
+perímetro, y el interior profundo. Los cinco *colores de borde* están confinados a
+la banda de marco y nunca aparecen en el interior; los *colores interiores*
+aparecen tanto en el interior profundo como en la cara orientada hacia dentro de
+las piezas de borde. Este es el hecho estructural definitorio de un tablero
+Eternity II real, y el generador lo reproduce y se testea contra él.
+
+### Por qué el censo está automáticamente equilibrado (una afirmación que conviene enunciar con cuidado)
+
+Es tentador, y las primeras redacciones lo hicieron, presentar el censo de colores
+*par* de Eternity II como un regalo especialmente afinado: cada color aparece un
+número par de veces, de modo que los emparejamientos $\sum_c N_c / 2$ de una
+solución perfecta encajan con holgura cero. La paridad par es real, pero **no** es
+un logro de afinado. Está forzada.
+
+Un color pintado sobre $k$ costuras interiores aparece en exactamente $2k$ caras
+de pieza, una a cada lado de cada costura. Así que para todo color $c$,
+
+$$
+N_c \;=\; 2\,k_c \quad\text{es par, para cualquier coloreado de costuras.}
+$$
+
+La paridad de holgura cero es por tanto automática para *cualquier* tablero
+construido coloreando costuras; no dice nada especial sobre Eternity II. Las
+propiedades que de verdad soportan carga, y que el generador debe conseguir, son
+tres: los colores de borde confinados a la banda de marco, los recuentos por color
+mantenidos **equilibrados** (para que ningún color sea tan escaso que
+sobre-restrinja), y cada pieza **distinta salvo rotación** (para que una pista
+fijada nombre una pieza única). La redacción del estudio es precisa en esto donde
+el encuadre anterior no lo era.
+
+### Escalar la receta sin cambiar la dificultad
+
+El generador y el solucionador son ambos paramétricos en tamaño, el tablero puede
+ser $8\times8$ o $12\times12$ con la misma facilidad que $16\times16$, lo que abre
+una continuación natural: ¿se *refuerza* el efecto de la colocación conforme el
+tablero crece? Responder eso limpiamente necesita una receta de colores que no
+cambie la *dificultad* del puzzle cuando cambia el tamaño. Mantener simplemente
+fijos los *recuentos* de colores mientras crece $n$ haría el puzzle
+estructuralmente *más fácil* a $n$ grande: con más costuras y la misma paleta,
+cada color se repite más a menudo, la celda media acepta más vecinos y la
+restricción se afloja. Eso confundiría tamaño con dificultad.
+
+En su lugar, la receta mantiene la **multiplicidad por color** aproximadamente
+constante. Escribiendo $F(n)$ para el número de costuras de la banda de marco y
+$E(n) - F(n)$ para el interior, el número de colores de borde e interiores se
+elige como
+
+$$
+b(n) \;=\; \operatorname{round}\!\Big(\tfrac{F(n)}{12}\Big), \qquad
+i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
+$$
+
+apuntando a las multiplicidades que el propio Eternity II usa en $n=16$ (borde
+$\approx 12$, interior $\approx 24$). En $n=16$ esto devuelve exactamente la
+receta oficial, cinco colores de borde y diecisiete interiores.
+
+Conseguir esto en tableros pequeños exigió una corrección del generador. La paleta
+de Eternity II es *de dominante interior*, cinco colores de borde frente a
+diecisiete interiores, pero el generador por defecto limita el número de colores
+de borde a cinco y toma todo lo demás como interior, lo que en un tablero pequeño
+invierte la proporción: en $8\times8$ la receta quiere ocho colores, y el tope los
+repartiría en cinco de borde y uno interior, un mar interior casi uniforme que no
+se comporta en nada como E2. El generador acepta ahora un número explícito de
+colores de borde, y la receta mantiene el interior en aproximadamente el triple
+del borde en cada tamaño ($8\times8 \to$ dos de borde, seis interiores;
+$16\times16 \to$ cinco y diecisiete, sin cambio). Con eso, los tableros pequeños
+son fieles *y* plenamente resolubles, que es de lo que depende la comparación de
+velocidad de resolución de la
+[página de resultados](/research/lab/experiments/raphael-anjou/hint-study/findings).
+Los resultados principales de órdenes y número están todos a $16\times16$; el
+tablero $8\times8$ se usa solo donde hace falta una resolución completa.
+
+## Las geometrías de pistas
+
+Cada disposición es una función pura del tamaño del tablero, de modo que la misma
+geometría puede dibujarse, medirse y escalarse de forma consistente. La galería de
+abajo las renderiza todas desde la única primitiva de tablero compartida.
+
+<HintLayoutGallery />
+
+## El suelo de costuras fijadas: mantener significativo el eje del número
+
+Aquí está la sutileza que remodeló el estudio. Pregunte "¿ayudan más pistas?" y el
+movimiento obvio es comparar puntuaciones finales con distintos números de pistas.
+Pero una pista hace dos cosas distintas a la vez, y la puntuación las confunde:
+
+1. **retira una pieza** de la búsqueda (la parte útil, poda el árbol);
+2. **puede completar una costura gratis**, si una celda vecina también está
+   fijada.
+
+El segundo efecto es un puro regalo contable. Definamos el **suelo de costuras
+fijadas** de una disposición como el número de costuras interiores con *ambos*
+extremos fijados:
+
+$$
+\text{suelo} \;=\; \#\{\, \text{costuras interiores } (u,v) : u \text{ y } v \text{ ambas con pista} \,\}.
+$$
+
+Como los fijados son piezas de la solución verdadera, cada una de esas costuras
+está garantizada correcta antes de que el solucionador arranque. Un bloque
+agrupado macizo de $k\times k$ aporta $2k(k-1)$ de ellas; cinco bloques de $k{=}4$
+acumulan $5 \cdot 24 = 120$ costuras correctas, un **cuarto de las 480 totales**,
+gratis. Una retícula dispersa, cuyas pistas nunca se tocan, tiene un suelo de
+**cero**.
+
+Así que una comparación de puntuación bruta **halaga** sistemáticamente a las
+disposiciones agrupadas: parten con más de cien puntos de ventaja por pura
+contabilidad, con independencia de si el tablero se volvió más fácil de
+*terminar*. Es la misma familia de error que contar las costuras del perímetro en
+un tablero parcial, un suelo que infla el número sin reflejar progreso. El
+conmutador de la galería de arriba dibuja esas costuras acumuladas para que la
+puntuación gratuita sea visible.
+
+El estudio, por tanto, no clasifica las disposiciones por puntuación bruta en el
+eje del número. Usa dos métricas inmunes al suelo:
+
+- la **tasa de resolución**, la fracción de instancias que un orden completa de
+  verdad hasta 480;
+- la **profundidad alcanzada**, cuánto avanzó la búsqueda más allá de las celdas
+  fijadas, sobre 256.
+
+Ambas miden si la búsqueda hizo *un progreso que los fijados no le regalaron*. En
+el eje de los órdenes, donde cada disposición comparada comparte las *mismas*
+pistas y por tanto el mismo suelo, la puntuación bruta es directamente comparable
+y se usa.
+
+## Medir contra la ausencia de pistas, emparejado por instancia
+
+La pregunta "¿qué valen las pistas?" solo tiene respuesta relativa a *no*
+tenerlas. Así que el eje de los órdenes se ejecuta dos veces en cada tablero: una
+con las cinco pistas en forma de pistas oficiales, otra sin ninguna
+(`baseline_00`), y el efecto reportado es la **diferencia emparejada**, la
+puntuación con pistas menos la puntuación sin pistas sobre el *mismo* tablero
+generado. Emparejar por instancia elimina la varianza de dificultad de tablero a
+tablero, que en estos tableros bimodales es lo bastante grande como para ahogar el
+efecto si las dos condiciones se compararan sobre semillas distintas. Una
+diferencia emparejada negativa significa que las pistas hicieron ese orden de
+relleno peor de lo que era con un interior en blanco, que es lo que reportan los
+resultados. Todas las comparaciones usan el conjunto común de semillas que
+llegaron a término, de modo que cada orden y cada disposición se agregan sobre
+las instancias idénticas.
+
+## Los órdenes de relleno, y por qué la frontera es la palanca
+
+El motor es el [backtracker DFS](/research/lab/experiments/raphael-anjou/dfs-study)
+hermano de este estudio, ejecutado en estricto (sin rupturas, sin propagación) de
+modo que **el orden de relleno sea lo único que cambia**. Los órdenes probados son
+fila por fila, su espejo de abajo arriba, la espiral hacia dentro, la espiral
+hacia fuera, borde primero, el peine de Verhaard, un control de
+filas-de-pistas-primero, y el orden propio del estudio que busca las pistas,
+`connect-hints-first`.
+
+¿Por qué importa tanto el orden? El coste de un backtracker lo gobierna la
+**frontera abierta**: el conjunto de celdas ya rellenas todavía adyacentes a una
+vacía. Cuando la siguiente celda se coloca contra una frontera de tamaño $f$, el
+número de tableros parciales que la búsqueda puede tener que considerar crece
+multiplicativamente en $f$, la ramificación es exponencial en la frontera, no en
+el tablero. Un único barrido compacto mantiene $f$ en torno a una fila
+($\approx n$); un orden que abre manchas alrededor de $k$ pistas dispersas lleva
+$k$ fronteras a la vez, y
+
+$$
+\text{trabajo} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
+$$
+
+de modo que fragmentar el relleno en regiones desconectadas multiplica el coste,
+no lo suma. Esto es exactamente por lo que `connect-hints-first`, el orden que
+*busca* las pistas, es el peor: alcanzar las pistas pronto vale mucho menos que
+mantener la frontera pequeña, y conectar anclas dispersas hace justo lo contrario
+de mantenerla pequeña.
+
+## Cómo leer las cifras
+
+Cada tablero se vuelve a puntuar con un único puntuador canónico de aristas
+casadas que nunca cuenta una costura orientada al borde (gris). El máximo es
+$E(n)$ ($480$ en $16\times16$). Cada una de las quince semillas es una instancia
+generada distinta, así que la dispersión entre semillas es varianza genuina de
+instancia. El rendimiento, donde se reporta, es en nodos de búsqueda por segundo y
+nunca se compara entre órdenes distintos, porque un nodo bajo un orden no es la
+misma unidad de trabajo que bajo otro. Todo el aparato, generador, disposiciones,
+resultados por ejecución y el script de rejilla, vive en el
+[directorio de respaldo](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/hint-study)
+del estudio, y `just experiments hint-study` lo relanza todo.
