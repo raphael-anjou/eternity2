@@ -92,6 +92,14 @@ research-subgrid:
 research-phase-transition:
     cd research/topics/phase-transition/compute && cargo run --release > ../results/color-split.json
 
+# Reproduce the hardness-peak sweep (solver effort vs interior-color count).
+# Runs BOTH regimes in order: the 8x8 traversable-peak sweep, then the 16x16
+# real-board sweep, producing results/hardness-peak-8x8.json and
+# results/hardness-peak-16x16.json. ~45 min on 8 cores; resumable (reruns skip
+# completed (c, seed) cells). For a single regime, call run.sh with E2_SIZE set.
+research-hardness-peak:
+    cd research/topics/hardness-peak && ./run-both.sh
+
 # Reproduce the no-forced-moves topic's results.
 research-no-forced-moves:
     cd research/topics/no-forced-moves/compute && cargo run --release > ../results/partner-counts.json

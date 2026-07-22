@@ -28,7 +28,7 @@ repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Reproduces the 17/5 interior/frame color split only. The hardness-peak location and 'one expected solution' claim rest on the cited external sources (Owen msg 1947, Ansótegui/Mateu), not on this command."
+  scope: "Reproduces the 17/5 interior/frame color split. The hardness-peak location is separately measured in-repo by the hardness-peak experiment (an 8x8 solver-effort sweep plus Owen's criterion recomputed to 17.14 at size 16); the 'one expected solution' claim for the full 16x16 board still rests on the cited external sources (Owen msg 1947, Ansótegui/Mateu)."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -55,6 +55,21 @@ Brendan Owen derived $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
 interior colours from the "about one expected solution" criterion, exactly
 the published parameters, years before the academic analyses
 ([Design the hardest puzzle, msg 1947](https://groups.io/g/eternity2/message/1947)).
+
+We measured this here. Owen's criterion was only ever stated for the full board,
+so we ran it through a second size to see whether it holds. The same formula
+predicts $(36! \cdot 4^{36})^{1/72} \approx 7.56$ interior colours for an 8x8, and
+an 8x8 is small enough that a plain backtracker actually solves random instances,
+so its difficulty curve can be swept directly. Sweeping solver effort against
+interior-colour count on generated 8x8 boards (the site's own generator and DFS)
+puts the hard band, where the search stops finding a solution within budget, right
+where the size-8 criterion predicts. The full 16x16 sweep is the other half of the
+picture: a plain backtracker never completes it at any colour count, and the depth
+it reaches falls steadily as colours rise, so the real board sits past the point
+where the curve has already gone vertical. The
+[hardness-peak experiment](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
+holds the code, both sweeps, and the criterion recomputed in-repo (it reproduces
+Owen's 17.14 at size 16).
 
 ## The difficulty wall
 
