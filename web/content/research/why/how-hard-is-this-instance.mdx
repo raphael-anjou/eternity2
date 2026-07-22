@@ -5,12 +5,14 @@ description: >-
   fixed 16×16 board: a single instance is a constant, not a problem. What is
   true is the family's worst-case hardness and this instance's empirical
   hardness, and how to write the puzzle for a SAT, exact-cover, or ILP solver
-  with small worked sketches.
-metaDescription: "Edge matching is NP-complete as a family, but one fixed 16×16 board is a constant, not a problem, so complexity theory says nothing about it directly. Real hardness is the family worst case plus E2 empirical difficulty over a ~10^557 space, with SAT, exact-cover DLX, and ILP encodings."
+  with small worked sketches. A measurement on planted boards puts a number on
+  the choice of formulation: a solvability cliff one search paradigm hits and
+  another crosses, and that moves with the colour count.
+metaDescription: "Edge matching is NP-complete as a family, but one fixed 16x16 board is a constant, not a problem. Alongside SAT, exact-cover DLX, and ILP encodings, a planted-board measurement shows a solvability cliff that DFS hits and CP-SAT crosses, and that moves with the colour count for both paradigms."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-07-08
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): edge matching is NP-complete'
@@ -27,14 +29,18 @@ related:
   - /research/build/exact/exact-cover-dlx
   - /research/build/reduce/arc-consistency
 repro:
-  kind: prose
+  kind: seeded
+  topic: n13-encoding-cliff
+  produces: search
+  scope: "Reruns both arms of the planted-board cliff measurement (the restarting DFS sweep and the CP-SAT decision solves with independent board verification); per-seed scores and solve counts reproduce, wall-clock times vary with hardware."
 ---
 
 This page answers a question that keeps surfacing on Math and CS Stack
 Exchange and tops the dispute list on Wikipedia's Talk page for the puzzle:
 edge matching is NP-complete in general, so does that tell us anything about
 *this* fixed 16×16 board, and concretely, how would you hand Eternity II to a
-solver? The short answers are: no, not directly, and here are three encodings.
+solver? The short answers are: no, not directly, here are three encodings, and
+a measurement at the end shows how much the choice among them can matter.
 
 ## First, the category error
 
@@ -206,6 +212,79 @@ Two more framings, useful mainly as pointers:
   size 256. This is elegant on paper but the graph is huge and clique solvers
   fare no better; it is worth knowing as a reduction, not as a practical attack.
 
+## How much does the formulation matter? A measured cliff
+
+The sections above end on a deflating note: the encoding is clean, the
+instance is the wall. That claim deserves a number, and putting one on it
+sharpened it in an unexpected direction. The bench is a family of *planted*
+boards: framed, colour-balanced instances built from a known solution, five
+solution cells pinned as clues, scored with the rim-excluding matched-edges
+convention (a full solve at size $N$ is exactly $2N(N-1)$ matched edges: 264
+at 12×12, 480 at 16×16). Planted boards are not canonical Eternity II; they
+plausibly admit very many solutions where the real puzzle is designed for
+essentially one. What they offer is a ladder of guaranteed-solvable instances
+that two different search paradigms can attack side by side.
+
+On this bench, at 22 colours, a restarting depth-first search that places
+only exact matches full-solves four of five 10×10 seeds (the fastest in
+4 ms) and two of five 11×11 seeds, then zero of five at 12×12 and zero at
+every size above. The failure is not a budget problem. The 12×12 seed-1
+instance scores 127 of 264 after 20 seconds, after 45 seconds, and after
+120 seconds, while the visited node count grows from 22 million to 132
+million; a 14×14 instance creeps from 236 to 240 of 364 across the same
+sixfold budget stretch. The search is not slowly converging; it is pinned.
+
+Hand the identical instances to CP-SAT with a structured model (one integer
+variable per cell ranging over piece ids under an AllDifferent constraint,
+piece-and-rotation indices channelled through Element tables into per-side
+colour variables, posed as a decision question) and the wall moves. Four of
+the five 12×12 instances fall in 31.7 to 88.1 seconds (the fifth times out
+at 300 seconds), and one of the two 13×13 instances tried falls in 74
+seconds, with every returned board re-verified independently: piece
+distinctness, clue conformance, recomputed edge count. Those are verified
+full solves of boards that no DFS seed touches at any budget. The cliff
+belongs to the search paradigm, not to the boards.
+
+The original round of this measurement ran on a generator that allowed 26
+interior colours, a setting the packaged bench cannot produce (its generator
+caps interior colours at 22, the real puzzle's count). At 26 colours the
+contrast was starker still: CP-SAT full-solved 25 of 25 instances at sizes
+10 through 14 with median times from 0.10 to 0.84 seconds, half a second at
+13×13, and finished a planted 16×16 in about 15 seconds, while the DFS
+cliff sat one rung higher, at 13×13. That round also measured the
+formulation gap in isolation: on one 12×12 instance, a generic MIP over
+placement binaries with sum-to-one rows, run through HiGHS branch and
+bound, returned 11 of 264 matched edges after 300 seconds; CP-SAT returned
+the full 264 on the same instance in 0.42 seconds. Same problem, same
+machine, roughly three orders of magnitude, and the entire difference is
+how the constraints were written down.
+
+Putting the two settings side by side surfaces a second finding: the cliff
+moves with the colour count, for both paradigms at once. At 26 colours, DFS
+dies at 13×13 and CP-SAT cruises through a planted 16×16 in seconds. At 22
+colours, DFS dies one rung earlier at 12×12, and CP-SAT itself slows by
+roughly two orders of magnitude between 11×11 and 12×12 and starts timing
+out from 12×12 up: the 14×14 and 16×16 probes both hit a 120-second cap.
+(The larger rungs were single-seed probes, and the 22-colour CP-SAT times
+carry some inflation from a DFS arm sharing the machine, which does not
+come close to explaining the gap to the sub-second 26-colour medians.) More
+colours means a more constrained board and an easier search for everyone;
+fewer colours drags both paradigms down together, so measurements taken at
+26 colours flatter every solver in the race. The planted 16×16 the probe
+timed out on is worth seeing, shown here as its constructed solution:
+[planted 16×16, 480/480](https://eternity2.dev/viewer?puzzle=gen_16x16_c22_s1&puzzle_size=16&board_edges=aebaabgeabvbacvbadvcacrdadlcadodadidaeqdafneadgfacwdafscachfaabcbjcagmujvhpmvuohvtpurnttlrsnouvriphuqowpnluogqllwpqqsvgphkgvbackcgdauwsgpluwoqmlpjoqtikjsnnivvvnhmrvwhpmuuuhlutuqqkugguqgnhgcabndgdassrguihsmqkiokhqkjnknokjvkrormikpptmuroptrirkomruumohjsubaejdlearsulhqmskvpqhqkvnwpqknuwrlqnikrltjlkosnjiglsmoogmnjoslqneaclerdauhjrmiihpklikwlkprmwunprqnwnrgnnlgjgnvmglknvowskjkowqwpkcafwdjfajjgjiqqjlptqlnipmslnpowswjjonoljjttomsrtnwtssrowosmrpmisfafmfhdagvkhqjsvtinjitsilwntwjrwjvrjlkovtsvkrhqstquhojhqmkqjitrkfaftdufakstusuisnmvuslsmnrmlrsvrrhnsoomhvtloqvntutvvhkltqukkrmtufaemfhfatwhhirhwvtrrsjptmtujvtgtnvstmohvliionwhivqqwlomqkgpotljgeaflfqeahgqqhmngrprmpqhpuugqgiquslqihqrliimqhkjiqwwkmspwpqisjkjqfaekembaqipmnioirkwihvkkgntvqhhnqnshrwgnmvlwjgwvwqkgpwmqiliwjulleadububapssuohjswmuhkowmtnpohrtnspgrgnrplnvnwgpnkvvgmhlvihwhlnshdadnbkeasgtkjjigumvjwwwmpjgwtpojgujprvtuvruvptorvmmtlsomwigssopidafoegcatppgiltpvpwlwohpgiuoolhijroltigrujgiotljmkjtorkkgiirppmifabpcbaapeabtbaewcabhcacueacheaeocaegfacgcaflbacjfabkbafieabmdaebaad).
+
+<Callout kind="note" title="One witness, counted ten times">
+  The 26-colour round also tried ten heuristic families on the cliff, from a
+  naive row-major filler to AC-3 propagation and Hall-deficit pruning: six
+  full-solved 12×12 and none solved 13×13. Ten solvers agreeing looked like
+  ten pieces of evidence that the instances were the wall. It was one. All
+  ten commit chronologically and greedily on local information, so they fail
+  together for the shared reason, and the first solver from a genuinely
+  different paradigm overturned the conclusion in half a second. Agreement
+  across N solvers of the same family is one witness with N voices.
+</Callout>
+
 ## Where this leaves you
 
 If you came asking whether the theory of NP-completeness makes this instance
@@ -214,8 +293,10 @@ describe families, and this board is a fixed input with a fixed answer.
 The general edge-matching problem is NP-complete, which caps what any solver can
 promise as $n$ grows, but the difficulty you actually feel is empirical, a
 $10^{557}$-wide space over a nearly empty solution set. Every encoding above
-faithfully captures the puzzle; none of them makes it easy, because the hardness
-lives in the instance, not in the choice of formalism. Once the board is
+faithfully captures the puzzle, and at the full 16×16 none of them makes it
+easy; but the planted-board cliff shows the choice of formalism is anything but
+neutral below that scale, where the same board can be untouchable for one
+paradigm and a one-minute solve for another. Once the board is
 encoded, the leverage that remains is
 [arc consistency](/research/build/reduce/arc-consistency) and smart search
 order, which is where the rest of this section picks up.

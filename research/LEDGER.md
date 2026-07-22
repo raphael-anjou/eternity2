@@ -1504,3 +1504,21 @@ quoted beyond what the committed JSON records. The review also surfaced
 older debt invisible to the body-only style gate: em dashes in
 metaDescription frontmatter and French/Spanish equivalents of banned words
 across seven pre-existing pages, all cleaned.
+
+## 2026-07-22 — First wave complete: the last four theory pages
+
+The publish program's first wave closed with four pages in why/:
+why-e2-is-hard (the flagship piece-set thesis: four committed measurements
+from the adversarial-piece-set reproduction plus the palette split sourced
+to the community record, twin pairs listed by id), constraint-immediacy
+(the 480 path-invariance theorem with the engine-bound-middle caveat as a
+first-class part of the claim), an enrichment of how-hard-is-this-instance
+(the DFS collapse at twelve on 22-colour boards, the encoding gap, the
+colour-count dependence of the cliff, and the correlated-agreement trap),
+and clue-corridors (the 2-quadrillion corridor count reproduced exactly;
+the ladder A/B attributed to the source study pending its rerun). Review
+catches fixed before landing: a 3-of-4 that the committed JSON says is
+4-of-4, a five-that-was-four measurement count, a corridor length
+convention made explicit on page and checker alike, a Spanish
+mistranslation of checked-in as confirmed, and scoped wording on the
+CP-SAT slowdown and DFS sizes.

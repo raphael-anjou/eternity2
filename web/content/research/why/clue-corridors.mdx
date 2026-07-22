@@ -1,0 +1,148 @@
+---
+title: Linking the clues early does not help, it hurts
+description: >-
+  Joining clue pairs with early piece corridors feels like adding constraints.
+  Counting says otherwise: a 1-wide corridor between even the two closest
+  clues admits about two quadrillion distinct fillings, so it excludes almost
+  nothing while spending pieces the endgame will need. In a controlled A/B,
+  every corridor arm lost to its own control at every board size.
+metaDescription: "A 1-wide piece corridor between Eternity II's two closest clues admits about two quadrillion distinct fillings (exact transfer-matrix count 2.05e15), so laying it early prunes almost nothing while spending scarce pieces. In a controlled A/B every corridor arm lost to its control at every board size."
+kind: finding
+contribution: negative
+rigor: measured
+outcome: refuted
+tier: 2
+order: 105
+updated: 2026-07-22
+topics: [structure, search-space]
+sources:
+  - label: "Official clue placements (cells 34, 45, 135, 210, 221; instance data at e2.bucas.name)"
+    url: https://e2.bucas.name/
+related:
+  - /research/why/hint-geometry
+  - /research/lab/experiments/raphael-anjou/hint-study
+  - /research/why/theorem-sweep
+repro:
+  kind: exact
+  cmd: cd research/topics/clue-corridors/compute && cargo run --release --bin corridors > ../results/corridor_counts.json
+  topic: clue-corridors
+  scope: >-
+    Recomputes every counting claim exactly from the official piece set: the
+    clue geometry, the branching table, the per-side colour supply and the
+    transfer-matrix corridor counts behind the 2.05e15 figure (committed as
+    results/corridor_counts.json). The A/B ladder numbers are the study's
+    original measurements; the packaged rerun of the three arms is specified
+    in the topic's PLAN and its tables are not yet committed.
+---
+
+The five clues are the only cells of the official puzzle whose contents you
+know for certain. Stare at the board for a minute and an idea offers itself:
+connect them. Lay a short chain of pieces from clue to clue, let each chain
+become a fixed spine, and hope the spines constrain everything that comes
+after. I liked the idea enough to measure it, and the measurement is a clean
+negative twice over. An exact count shows that a clue-to-clue corridor admits
+about two quadrillion distinct fillings, so committing to one constrains
+almost nothing; and in a controlled A/B, every arm that laid corridors early
+finished worse than the same solver without them, at every board size tested.
+
+## Five islands, and the bridges between them
+
+The clues sit at cells 34, 45, 135, 210 and 221, that is (x, y) = (2, 2),
+(13, 2), (7, 8), (2, 13) and (13, 13): four inset two cells from the corners,
+one just left of centre. Their pairwise Manhattan distances run from 10 to
+22. No two clues are close to adjacent, so the shortest possible bridge
+between any pair is a chain of ten placements.
+
+What a chain placement is worth depends on how many sides it has to match.
+With $n = 196$ interior pieces and $C = 22$ declared interior colours, a cell
+matching $k$ already-placed neighbours has an expected
+$b_k = 4n / C^k$ legal candidates: $b_1 \approx 35.6$, $b_2 \approx 1.62$,
+$b_3 \approx 0.074$. A placement only prunes, in expectation, once $b_k$
+drops below 1, which requires $k \ge 3$ matched sides. A 1-wide corridor is
+built entirely from $k = 1$ placements: each new piece touches only its
+predecessor, and inherits about 36 legal candidates at every step.
+
+## What one corridor is worth: two quadrillion fillings
+
+The branching table is a uniform model, so the checker also counts exactly on
+the real piece set. If anything the real set is looser: the number of
+(piece, rotation) pairs presenting a given interior colour on a given side
+averages 46.1 (range 43 to 49), against the model's 35.6. Build the transfer
+matrix $T[a][b]$ counting inner pieces that show colour $a$ on one side and
+colour $b$ on the opposite side, raise it to the corridor length, and the
+matrix powers give exact walk counts. For the length-10 corridor between the
+closest clue pair, with both endpoint colours fixed by the clues, that count
+is $2.59\times10^{15}$ walks (the mean over colour pairs). Walks may reuse a
+piece; applying the mean-field distinctness correction
+$\prod_{j=0}^{9}(1 - j/196) = 0.792$ leaves $2.05\times10^{15}$ fillings
+using distinct pieces. My first pass at this count, with a slightly tighter
+piece model, gave $1.9\times10^{15}$; the committed checker settles on
+$2.05\times10^{15}$, and the conclusion does not move between the two.
+
+A commitment that can be satisfied two quadrillion ways is not a constraint
+in any useful sense. Laying it excludes a vanishing fraction of the search
+space, while it withdraws ten pieces from the pool at $k = 1$, exactly where
+the arithmetic says the search gets nothing back. Route two or three clue
+pairs and the bill is 10 to 20 pieces spent before a single genuinely
+constrained cell has been filled.
+
+## The A/B: every corridor arm lost
+
+Counting says the corridor buys nothing; it takes an experiment to show that
+it costs. The study's original run compared three arms that differ in nothing
+but the corridor phase: a control (clues pinned, then a max-contact greedy
+fill with restarts), a 1-wide corridor arm, and a 2-wide ribbon arm, each
+laying its clue-to-clue routes before the identical fill. It ran on scaled
+instances with faithful clue geometry, at board sizes N = 8 to 16, with 12
+paired seeds per cell and 20 seconds per single-core run.
+
+| Board | Control mean | 1-wide corridor | 2-wide ribbon |
+|---:|---:|---:|---:|
+| 8×8 | 92.50 | -4.67 | -3.00 |
+| 10×10 | 144.17 | -9.58 | -5.50 |
+| 12×12 | 209.83 | -13.58 | -6.75 |
+| 14×14 | 285.67 | -12.00 | -7.83 |
+| 16×16 | 377.17 | -17.67 | -8.08 |
+
+Scores are matched edges, and each delta is an arm against its own control on
+paired seeds. Every corridor arm lost to its control at every size, with
+paired Wilcoxon $|z| \ge 2.80$. The harm grows as the boards, and with them
+the corridors, get longer: a mean loss of 4.7 edges at N = 8 becomes 17.7 at
+N = 16, where the two score distributions separate outright (the control's
+worst seed scored 373; the corridor arm's best managed 365). And widening
+the corridor to a 2-cell ribbon, which lets its second rank land at 2
+contacts instead of 1, roughly halves the damage at every size. That is
+exactly the width dependence the counting predicts, which is what ties the
+mechanism to the measurement.
+
+## What this rules out, and what it leaves open
+
+The negative is precise: laying 1-wide (or 2-wide) clue-to-clue corridors as
+an early commitment hurts, and more corridor hurts more. The same arithmetic
+that kills them also points at where constraint is real: cells placed with 2
+or more contacts, since only $k \ge 3$ prunes outright and $k = 2$ comes
+close. Growing compact clue-anchored regions, where most cells arrive with
+several contacts, is a different move and is untouched by this experiment.
+
+The result also fits what the hint studies keep finding. On a related
+16×16 puzzle, [hint position beats hint count](/research/why/hint-geometry)
+because a hint's value lies in reaching the part of the board the search
+struggles with; and in [the lab hint study](/research/lab/experiments/raphael-anjou/hint-study),
+the five official clues alone never helped a chronological backtracker on the
+boards tested. A corridor is the extreme way to misspend that gift: it cashes
+the five fixed cells immediately, in the cheapest region of the search, and
+pays for it with the piece pool. Like the negatives in
+[the theorem sweep](/research/why/theorem-sweep), this one comes priced: for
+clue linking to pay, its cells would have to arrive with three contacts, and
+a 1-wide path never does.
+
+<Callout kind="note">
+  The counting side reproduces exactly: the checker in the topic directory
+  recomputes the clue geometry, the branching table, the colour supply and
+  the transfer-matrix corridor counts from the official piece set in about a
+  second, and its output is committed as results/corridor_counts.json. The
+  A/B table is the study's original measurement: the packaged rerun of the
+  three arms is specified in the topic's reproduction plan and its tables
+  are not yet committed, so read those deltas as the record of one run,
+  with the fresh-run confirmation still pending.
+</Callout>

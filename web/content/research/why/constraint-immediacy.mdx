@@ -1,0 +1,179 @@
+---
+title: "Constraint immediacy: every fill order pays the same 480"
+description: >-
+  Sum, over any visit order of the 16x16 board, the number of already-placed
+  neighbours each cell faces at the moment it is filled: the total is exactly
+  480, for every order. A fill order cannot add restriction; it only chooses
+  when each restriction binds. What separates orders is immediacy, the
+  distance between a decision and its refutation, and only the extremes of
+  that ranking are properties of the puzzle rather than of the engine.
+metaDescription: "Sum each cell's already-placed neighbours over any visit order of the 16x16 board and the total is exactly 480: a fill order adds no restriction, it only schedules when restrictions bind. Clue-linking orders are the engine-independent worst; the finer ranking belongs to the engine."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 85
+updated: 2026-07-22
+topics: [backtracking, search-space]
+sources:
+  - label: "The reproduction kit behind this page: constraint-count checker, plain two-arm solver, committed results (research/topics/constraint-immediacy)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+related:
+  - /research/why/piece-theft
+  - /research/why/theorem-sweep
+  - /research/build/backtracking/fill-order
+  - /research/lab/experiments/raphael-anjou/dfs-study
+repro:
+  kind: exact
+  cmd: cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-korder ../results
+  topic: constraint-immediacy
+  scope: >-
+    Recomputes the per-cell constraint counts for the five visit orders on the
+    official board and verifies that each sums to exactly 480 (byte-stable on
+    rerun). The two behavioural arms rerun separately with repro-official and
+    repro-gen (60 s per order per arm, seeded); their fine-grained ranking is
+    engine-dependent by this page's own conclusion.
+---
+
+A recurring intuition about Eternity II backtrackers goes like this: if the
+search visited the five clue cells first, walking a path that links them
+early, the clues would "restrict the puzzle sooner" and the search tree
+would shrink. The intuition sounds right and the bookkeeping says otherwise.
+No fill order restricts the puzzle more than any other. What an order
+actually controls is *when* each restriction binds, and that scheduling
+question has a sharp answer: restrictions you pay late are the expensive
+ones.
+
+## A sum no order can change
+
+Fix any complete visit order of the 256 cells. When cell $i$ is filled, let
+$k_i$ be the number of its neighbours that are already placed: the number of
+edge constraints the new piece must satisfy at that moment. Every interior
+joint of the board is checked exactly once, by whichever of its two
+endpoints is placed second. So the sum of the $k_i$ equals the number of
+interior joints, which on the 16x16 board is $2 \times 16 \times 15 = 480$,
+the same 480 joints the [parity floor](/research/why/parity-defect-floor)
+counts. The total is path-invariant:
+
+$$\sum_i k_i = 480 \quad \text{for every visit order.}$$
+
+The reproduction kit checks this exactly for five visit orders on the
+official board. All five sum to 480; what changes is only how the total is
+distributed:
+
+| order | k=0 | k=1 | k=2 | k=3 | k=4 | sum |
+|---|---|---|---|---|---|---|
+| hint-link | 1 | 75 | 137 | 41 | 2 | 480 |
+| outer-spiral | 1 | 58 | 170 | 26 | 1 | 480 |
+| row-major | 1 | 30 | 225 | 0 | 0 | 480 |
+| boustrophedon | 1 | 30 | 225 | 0 | 0 | 480 |
+| border-first | 1 | 58 | 170 | 26 | 1 | 480 |
+
+
+These five figures are the source study's original engine measurements; the packaged reproduction covers the invariant and the plain-solver arms below, not this table.
+
+Row-major is nearly uniform: after the first row and column, every cell
+faces exactly two constraints. The hint-link order (a path that strings the
+five clue cells together early through connecting corridors) buys its 41
+cells at three constraints and 2 cells at four by first laying 75 cells that
+are checked against only one neighbour. The conservation law makes this a
+trade, never a gain: a cell can only face three or four placed neighbours
+because other cells were placed nearly unchecked before it.
+
+## Immediacy: when the bill comes due
+
+If total constraint volume is fixed, what distinguishes orders in practice?
+The cost of a wrong placement is the size of the subtree the search explores
+before the refutation surfaces. An order with long under-constrained
+stretches (runs of cells checked against a single neighbour, dozens of
+candidates each) followed by over-constrained closures (cells checked
+against three or four) is *fail-last*: errors made cheaply in the corridor
+are only detected at the closure, an entire subtree later. An order that
+keeps the distance between a decision and its refutation near zero is
+*fail-fast*, and fail-fast is where the whole benefit lives.
+
+This is the constraint-immediacy principle: restricting early is right
+exactly when the restriction tests each decision at once. Border-first
+commits the most constrained sub-pool first (the 60 border pieces, which on
+the rim admit a single orientation), so its restrictions bind the moment
+they are created. The hint-link path is the opposite case, geometric
+earliness without immediacy: the clues are reached early, but along
+corridors whose placements go almost untested until the board closes around
+them.
+
+## What the engine measured
+
+The principle was extracted from fixed-order runs of this project's own
+search engine, the same family examined in the
+[DFS study](/research/lab/experiments/raphael-anjou/dfs-study). Scores here
+and below are matched interior edges out of 480 under the canonical
+rim-excluding scorer; none of these numbers is a record claim, and the
+record tables live at [/research/records](/research/records).
+
+| order | matched edges (engine) |
+|---|---|
+| hint-link | 51 |
+| outer-spiral | 204 |
+| seam two-front | 3 to 5 below row-major |
+| row-major | 433 |
+| border-first | 445 |
+
+One principle covers the whole table: hint-link and the spiral are
+fail-last and collapse; row-major is uniform and solid; border-first adds
+immediate binding on the most constrained pieces and finishes on top.
+
+## The plain-solver check
+
+A ranking measured on one engine can be a property of that engine. To
+separate the two, the reproduction reran the five orders on a deliberately
+plain solver, two arms at 60 s per order per arm on the official board,
+single core on Apple Silicon: a greedy best-fit pass that fills the whole
+board allowing mismatches, and a perfect-fit depth-first search with
+chronological backtracking, scored on its deepest consistent prefix (16 to
+47 billion nodes per order, so the budget was genuinely spent). The results
+file stores a viewer link for every finishing board.
+
+| order | greedy | DFS score | DFS depth |
+|---|---|---|---|
+| hint-link | 316 | 44 | 60/256 |
+| outer-spiral | 366 | 28 | 35/256 |
+| row-major | 343 | 344 | 194/256 |
+| boustrophedon | 359 | 342 | 193/256 |
+| border-first | 358 | 28 | 35/256 |
+
+What survives the change of engine is the extremes. Hint-link is by far the
+worst perfect-fit order, and its DFS score of 44 lands close to the
+engine's 51. Row-major and boustrophedon are the solid mid-field in both
+arms. And on the official board the greedy arm keeps border-first ahead of
+row-major, 358 against 343, the same direction as the engine's 445 against
+433.
+
+What does not survive is everything finer. Under the plain DFS the outer
+spiral no longer collapses to a class of its own (it ties border-first,
+consistent with the two orders sharing an identical constraint profile and
+an identical first 60 cells here), and border-first itself hits a
+rim-closure depth wall at 35 of 256 instead of leading. On four generated
+framed 16x16 boards the greedy advantage reverses outright: row-major wins
+the greedy arm on 4 of 4 seeds and the depth-first arm on 4 of 4, with
+border-first's DFS score swinging from 28 to 366 across seeds. The fair
+statement of this page's claim is therefore two-sided: the invariant and
+the extremes belong to the puzzle; the fine-grained middle of any
+fill-order ranking belongs to the engine that produced it.
+
+## Where that leaves the leverage
+
+The conservation law bounds what geometry alone can do. A uniform
+two-constraint profile is the best schedule a visit order can reach, since
+cells facing three or four placed neighbours exist only downstream of cells
+placed nearly unchecked. Row-major already achieves that profile, and the
+twenty years of community fill-order engineering surveyed on the
+[fill-orders page](/research/build/backtracking/fill-order) are refinements
+within it. Any further early binding has to be informational rather than
+geometric: propagating what the remaining piece pool can still serve (the
+failure mode [piece theft](/research/why/piece-theft) makes visible),
+placement priors, restricted candidate pools, computed pruning gates. The
+invariance itself is a small exact statement in the spirit of the
+[theorem sweep](/research/why/theorem-sweep): not deep, but it closes a
+door cleanly. Nobody will shrink this search by rerouting the path through
+the board; the 480 checks are owed in full, on every path, and only their
+timing is yours to choose.

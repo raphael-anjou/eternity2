@@ -1,0 +1,191 @@
+---
+title: "L'immédiateté des contraintes : chaque ordre de remplissage paie les mêmes 480"
+description: >-
+  Sommez, pour n'importe quel ordre de visite du plateau 16x16, le nombre de
+  voisins déjà posés que chaque case affronte à l'instant où elle est remplie :
+  le total vaut exactement 480, quel que soit l'ordre. Un ordre de remplissage
+  ne peut pas ajouter de restriction ; il choisit seulement quand chaque
+  restriction s'applique. Ce qui sépare les ordres, c'est l'immédiateté, la
+  distance entre une décision et sa réfutation, et seuls les extrêmes de ce
+  classement appartiennent au puzzle plutôt qu'au moteur.
+metaDescription: "Sommez les voisins déjà posés de chaque case sur n'importe quel ordre de visite du plateau 16x16 : le total vaut exactement 480. Un ordre n'ajoute aucune restriction, il planifie seulement quand elles s'appliquent. Relier les indices tôt est le pire cas ; le classement fin dépend du moteur."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 85
+updated: 2026-07-22
+topics: [backtracking, search-space]
+sources:
+  - label: "Le kit de reproduction derrière cette page : vérificateur des comptes de contraintes, solveur simple à deux bras, résultats archivés (research/topics/constraint-immediacy)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+related:
+  - /research/why/piece-theft
+  - /research/why/theorem-sweep
+  - /research/build/backtracking/fill-order
+  - /research/lab/experiments/raphael-anjou/dfs-study
+repro:
+  kind: exact
+  cmd: cd research/topics/constraint-immediacy/compute && cargo run --release -- repro-korder ../results
+  topic: constraint-immediacy
+  scope: >-
+    Recalcule les comptes de contraintes par case pour les cinq ordres de
+    visite sur le plateau officiel et vérifie que chacun somme exactement à 480
+    (stable à l'octet près d'une exécution à l'autre). Les deux bras
+    comportementaux se relancent séparément avec repro-official et repro-gen
+    (60 s par ordre et par bras, avec graines) ; leur classement fin dépend du
+    moteur, par la conclusion même de cette page.
+---
+
+Une intuition récurrente au sujet des backtrackers d'Eternity II tient en
+une phrase : si la recherche visitait d'abord les cinq cases indices, en
+suivant un chemin qui les relie tôt, les indices « restreindraient le puzzle
+plus vite » et l'arbre de recherche rétrécirait. L'intuition sonne juste, et
+la comptabilité dit le contraire. Aucun ordre de remplissage ne restreint le
+puzzle plus qu'un autre. Ce qu'un ordre contrôle réellement, c'est *quand*
+chaque restriction s'applique, et cette question de calendrier a une réponse
+nette : les restrictions payées tard sont les plus chères.
+
+## Une somme qu'aucun ordre ne peut changer
+
+Fixez un ordre de visite complet des 256 cases. Quand la case $i$ est
+remplie, notez $k_i$ le nombre de ses voisines déjà posées : le nombre de
+contraintes d'arête que la nouvelle pièce doit satisfaire à cet instant.
+Chaque jointure intérieure du plateau est vérifiée exactement une fois, par
+celle de ses deux extrémités posée en second. La somme des $k_i$ vaut donc
+le nombre de jointures intérieures, soit sur le plateau 16x16
+$2 \times 16 \times 15 = 480$, les mêmes 480 jointures que compte le
+[plancher de parité](/research/why/parity-defect-floor). Le total est
+invariant par chemin :
+
+$$\sum_i k_i = 480 \quad \text{pour tout ordre de visite.}$$
+
+Le kit de reproduction vérifie cela exactement pour cinq ordres de visite
+sur le plateau officiel. Les cinq somment à 480 ; seule change la façon dont
+le total se distribue :
+
+| ordre | k=0 | k=1 | k=2 | k=3 | k=4 | somme |
+|---|---|---|---|---|---|---|
+| hint-link | 1 | 75 | 137 | 41 | 2 | 480 |
+| outer-spiral | 1 | 58 | 170 | 26 | 1 | 480 |
+| row-major | 1 | 30 | 225 | 0 | 0 | 480 |
+| boustrophédon | 1 | 30 | 225 | 0 | 0 | 480 |
+| border-first | 1 | 58 | 170 | 26 | 1 | 480 |
+
+
+Ces cinq valeurs sont les mesures d'origine du moteur de l'étude source ; la reproduction empaquetée couvre l'invariant et les deux solveurs simples ci-dessous, pas ce tableau.
+
+L'ordre ligne par ligne (row-major) est presque uniforme : passées la
+première ligne et la première colonne, chaque case affronte exactement deux
+contraintes. L'ordre hint-link (un chemin qui enchaîne tôt les cinq cases
+indices par des corridors de liaison) paie ses 41 cases à trois contraintes
+et ses 2 cases à quatre en posant d'abord 75 cases vérifiées contre une
+seule voisine. La loi de conservation en fait un échange, jamais un gain :
+une case ne peut affronter trois ou quatre voisines posées que parce que
+d'autres cases ont été posées presque sans vérification avant elle.
+
+## L'immédiateté : le moment où la facture tombe
+
+Si le volume total de contraintes est fixé, qu'est-ce qui distingue les
+ordres en pratique ? Le coût d'un placement erroné est la taille du
+sous-arbre que la recherche explore avant que la réfutation n'apparaisse. Un
+ordre fait de longues portions sous-contraintes (des suites de cases
+vérifiées contre une seule voisine, avec des dizaines de candidats chacune)
+suivies de fermetures sur-contraintes (des cases vérifiées contre trois ou
+quatre) échoue *en dernier* : les erreurs commises à bas prix dans le
+corridor ne sont détectées qu'à la fermeture, un sous-arbre entier plus
+tard. Un ordre qui maintient la distance entre une décision et sa réfutation
+près de zéro échoue *tout de suite*, et tout le bénéfice est là.
+
+C'est le principe d'immédiateté des contraintes : restreindre tôt est le bon
+choix exactement quand la restriction teste chaque décision sur-le-champ.
+L'ordre bord-d'abord (border-first) engage en premier le sous-ensemble le
+plus contraint (les 60 pièces de bord, qui n'admettent qu'une seule
+orientation sur le pourtour), si bien que ses restrictions s'appliquent à
+l'instant où elles naissent. Le chemin hint-link est le cas opposé, une
+précocité géométrique sans immédiateté : les indices sont atteints tôt, mais
+le long de corridors dont les placements restent presque sans test jusqu'à
+ce que le plateau se referme autour d'eux.
+
+## Ce que le moteur a mesuré
+
+Le principe a été extrait de runs à ordre fixe du moteur de recherche du
+projet, la même famille qu'examine
+[l'étude DFS](/research/lab/experiments/raphael-anjou/dfs-study). Ici et
+plus bas, les scores sont des arêtes intérieures appariées sur 480 selon le
+scoreur canonique qui exclut le pourtour ; aucun de ces nombres n'est une
+revendication de record, et les tables de records vivent sur
+[/research/records](/research/records).
+
+| ordre | arêtes appariées (moteur) |
+|---|---|
+| hint-link | 51 |
+| outer-spiral | 204 |
+| couture à deux fronts | 3 à 5 sous row-major |
+| row-major | 433 |
+| border-first | 445 |
+
+Un seul principe couvre toute la table : hint-link et la spirale échouent en
+dernier et s'effondrent ; row-major est uniforme et solide ; border-first
+ajoute un test immédiat sur les pièces les plus contraintes et finit en
+tête.
+
+## La contre-épreuve au solveur simple
+
+Un classement mesuré sur un seul moteur peut être une propriété de ce
+moteur. Pour séparer les deux, la reproduction a relancé les cinq ordres sur
+un solveur volontairement simple, deux bras à 60 s par ordre et par bras sur
+le plateau officiel, un seul cœur sur Apple Silicon : une passe gloutonne au
+meilleur ajustement qui remplit tout le plateau en tolérant les défauts, et
+une recherche en profondeur à ajustement parfait avec retour arrière
+chronologique, notée sur son plus profond préfixe cohérent (16 à 47
+milliards de nœuds par ordre, le budget a donc été réellement dépensé). Le
+fichier de résultats archive un lien visionneuse pour chaque plateau final.
+
+| ordre | glouton | score DFS | profondeur DFS |
+|---|---|---|---|
+| hint-link | 316 | 44 | 60/256 |
+| outer-spiral | 366 | 28 | 35/256 |
+| row-major | 343 | 344 | 194/256 |
+| boustrophédon | 359 | 342 | 193/256 |
+| border-first | 358 | 28 | 35/256 |
+
+Ce qui survit au changement de moteur, ce sont les extrêmes. Hint-link est
+de loin le pire ordre à ajustement parfait, et son score DFS de 44 atterrit
+près du 51 du moteur. Row-major et le boustrophédon forment le milieu de
+tableau solide dans les deux bras. Et sur le plateau officiel, le bras
+glouton garde border-first devant row-major, 358 contre 343, la même
+direction que le 445 contre 433 du moteur.
+
+Ce qui ne survit pas, c'est tout le reste. Sous le DFS simple, la spirale ne
+s'effondre plus dans une classe à part (elle fait jeu égal avec
+border-first, ce qui est cohérent avec le fait que les deux ordres partagent
+ici un profil de contraintes identique et les 60 mêmes premières cases), et
+border-first lui-même bute sur un mur de fermeture du pourtour à la
+profondeur 35 sur 256 au lieu de mener. Sur quatre plateaux 16x16 générés
+avec cadre, l'avantage glouton s'inverse purement et simplement : row-major
+gagne le bras glouton sur 4 graines sur 4 et le bras en profondeur sur 3 sur
+4, le score DFS de border-first oscillant de 28 à 366 selon la graine.
+L'énoncé rigoureux de cette page est donc à deux faces : l'invariant et les
+extrêmes appartiennent au puzzle ; le milieu fin de tout classement d'ordres
+de remplissage appartient au moteur qui l'a produit.
+
+## Où reste le levier
+
+La loi de conservation borne ce que la géométrie seule peut faire. Un profil
+uniforme à deux contraintes est le meilleur calendrier qu'un ordre de visite
+puisse atteindre, puisque les cases affrontant trois ou quatre voisines
+posées n'existent qu'en aval de cases posées presque sans vérification.
+Row-major atteint déjà ce profil, et les vingt ans d'ingénierie
+communautaire des ordres de remplissage recensés sur la
+[page des ordres de remplissage](/research/build/backtracking/fill-order)
+sont des raffinements à l'intérieur de ce cadre. Toute liaison précoce
+supplémentaire doit être informationnelle plutôt que géométrique : propager
+ce que la réserve de pièces restante peut encore servir (le mode d'échec que
+rend visible le [vol de pièce](/research/why/piece-theft)), des a priori de
+placement, des réserves de candidats restreintes, des portes d'élagage
+calculées. L'invariance elle-même est un petit énoncé exact dans l'esprit du
+[balayage de théorèmes](/research/why/theorem-sweep) : peu profond, mais il
+ferme une porte proprement. Personne ne rétrécira cette recherche en
+déroutant le chemin à travers le plateau ; les 480 vérifications sont dues
+en totalité, sur tout chemin, et seul leur calendrier vous appartient.
