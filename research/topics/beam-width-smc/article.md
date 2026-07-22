@@ -1,7 +1,7 @@
 ---
 id: beam-width-smc
 title: Beam width dominates smart signals; SMC resampling is the one survivor rule that helps
-summary: On planted N x N ladder instances, raw beam width is the dominant quality lever (mean score over optimum 0.21 to 0.74 across widths 32 to 2048), per-node oracles lose at equal wall clock, and SMC particle-filter resampling of survivors is the one measured improvement (+6% mean over top-k at width 1024, 96 paired seeds).
+summary: Beam width dominates every per-node improvement (measured monotone 0.836 to 0.878 score-over-optimum across widths 32 to 2048 on this bed; the harder source bed spanned 0.21 to 0.74), tie-break randomisation is a free win (+2.06 edges, paired t 3.47), and SMC resampling gives a small real gain (+1.83 edges, about +1 percent, paired t 5.78 over 96 pairs here; +6 percent on the source bed).
 status: draft
 created: 2026-07-22
 updated: 2026-07-22

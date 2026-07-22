@@ -83,30 +83,30 @@ mod tests {
     use crate::official_instance;
 
     #[test]
-    fn official_solution_cells_fit_their_constraints() {
-        // On the official instance, every pinned clue placed on an otherwise
-        // empty board must satisfy its rim/neighbour constraints.
-        let inst = official_instance(true);
-        let board = inst.seed_board();
+    fn constraints_read_rim_and_placed_neighbours() {
+        // Corner cell (0,0) of an empty board: up and left are rim (grey),
+        // right and down unconstrained.
+        let inst = official_instance(false);
         let w = usize::from(inst.width);
         let h = usize::from(inst.height);
-        for hint in &inst.hints {
-            let pos = usize::from(hint.pos);
-            let (x, y) = (pos % w, pos / w);
-            let want = edge_constraints(&board, &inst.pieces, x, y, w, h);
-            let e = inst.pieces.get(hint.piece).expect("hint piece").rotated(hint.rot);
-            // The clue is already ON the seed board; its own cell reads as
-            // occupied, so check the *edges agree with the rim* at least.
-            for (side, req) in want.iter().enumerate() {
-                if let Some(c) = req {
-                    // A constraint present at a clue cell can only be the rim
-                    // (clues are interior on the official board => no rim
-                    // constraint) or a neighbouring clue; either way the
-                    // placed solution edge must match it.
-                    assert_eq!(e[side], *c, "clue at {} side {}", hint.pos, side);
-                }
-            }
-        }
+        let empty = Board::new();
+        let want = edge_constraints(&empty, &inst.pieces, 0, 0, w, h);
+        assert_eq!(want, [Some(crate::BORDER), None, None, Some(crate::BORDER)]);
+
+        // Place a piece at (1, 1); the cell to its right at (2, 1) must now be
+        // constrained on its LEFT side by that piece's RIGHT edge, and the cell
+        // below at (1, 2) on its UP side by the piece's DOWN edge.
+        let mut b = Board::new();
+        b.place(w + 1, 7, 1);
+        let e = inst.pieces.get(7).expect("piece 7").rotated(1);
+        let right_cell = edge_constraints(&b, &inst.pieces, 2, 1, w, h);
+        assert_eq!(right_cell[3], Some(e[1]), "left side constrained by neighbour's right edge");
+        let below_cell = edge_constraints(&b, &inst.pieces, 1, 2, w, h);
+        assert_eq!(below_cell[0], Some(e[2]), "up side constrained by neighbour's down edge");
+        // And the placed piece itself matches what fit_counts says about a
+        // perfect re-placement next to it.
+        let (ok, bad) = fit_counts(&e, &edge_constraints(&empty, &inst.pieces, 1, 1, w, h));
+        assert_eq!((ok, bad), (0, 0), "interior cell of an empty board has no constraints");
     }
 
     #[test]

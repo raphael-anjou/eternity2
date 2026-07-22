@@ -20,7 +20,7 @@ whenever a choice is theirs to make**.
 
 ```bash
 cargo build --release
-cargo test --release      # 4 tests must pass
+cargo test --release      # 13 tests must pass (9 integration + 4 unit)
 ```
 
 Rust stable 1.85+ is the only prerequisite. If the build fails, the most likely

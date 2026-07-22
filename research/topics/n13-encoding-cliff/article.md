@@ -1,7 +1,7 @@
 ---
 id: n13-encoding-cliff
 title: The N=13 cliff is in the search, not the instances
-summary: Every chronological heuristic tested dies between 12x12 and 13x13 on planted boards, yet a CP-SAT encoding with AllDifferent and Element channelling solves the same instances in half a second. The encoding is the algorithm.
+summary: A restarting exact-match DFS collapses at N=12 on 22-colour boards while CP-SAT verifiably full-solves instances no DFS seed touches; the source's half-second N=13 solves and 15-second planted 16x16 were measured at 26 colours, a setting this bed cannot generate, and at 22 colours CP-SAT itself slows and times out from N=12.
 status: draft
 created: 2026-07-22
 updated: 2026-07-22
@@ -18,7 +18,7 @@ reproduce:
   - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- export --ns 10,11,12,13,14,15,16 --gen-seeds 1,2,3,4,5 --out instances
   - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- sweep --ns 14,12 --gen-seeds 1 --budget-secs 45 > ../results/budget45.jsonl
   - cd research/topics/n13-encoding-cliff/compute && cargo run --release -- sweep --ns 14,12 --gen-seeds 1 --budget-secs 120 > ../results/budget120.jsonl
-  - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/inst_n1[0-3]*.json --time-limit 300 --workers 8 > ../results/cpsat.jsonl
+  - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/inst_n10_s*.json instances/inst_n11_s*.json instances/inst_n12_s*.json instances/inst_n13_s1.json instances/inst_n13_s2.json --time-limit 300 --workers 8 > ../results/cpsat.jsonl
   - cd research/topics/n13-encoding-cliff/compute && uv run cpsat_cliff.py instances/inst_n14_c22_s1.json instances/inst_n16_c22_s1.json --time-limit 120 --workers 8 >> ../results/cpsat.jsonl
 results:
   - label: Heuristic arm, per-seed runs (JSONL)
@@ -55,8 +55,8 @@ effect.
 That looked like a property of the instances. It is not. A CP-SAT model of
 the same instances, built from an AllDifferent constraint over cell-to-piece
 assignment plus Element channelling of edge colours, posed as a decision
-question, solves 25 of 25 instances across sizes 10 through 14 with a smooth
-time curve: the 13x13 boards that no heuristic touches fall in 0.50 seconds
+question, solved 25 of 25 instances across sizes 10 through 14 on the original 26-colour bed with a smooth
+time curve: where the 13x13 boards that no heuristic touches fall in 0.50 seconds
 median, and planted 16x16 boards fall in about 15 seconds. The cliff belongs
 to the search paradigm, not to the boards. All ten heuristic families share
 one bias, chronological greedy commitment with only local information, so
@@ -161,3 +161,6 @@ machine, which cannot account for the gap to the sub-second source times.
 A planted 16x16 board from the same generator family (seed 1, the instance
 the CP-SAT probe timed out on, shown as its planted solution):
 [gen_16x16_c22_s1 solution, 480/480](https://eternity2.dev/viewer?puzzle=gen_16x16_c22_s1&puzzle_size=16&board_edges=aebaabgeabvbacvbadvcacrdadlcadodadidaeqdafneadgfacwdafscachfaabcbjcagmujvhpmvuohvtpurnttlrsnouvriphuqowpnluogqllwpqqsvgphkgvbackcgdauwsgpluwoqmlpjoqtikjsnnivvvnhmrvwhpmuuuhlutuqqkugguqgnhgcabndgdassrguihsmqkiokhqkjnknokjvkrormikpptmuroptrirkomruumohjsubaejdlearsulhqmskvpqhqkvnwpqknuwrlqnikrltjlkosnjiglsmoogmnjoslqneaclerdauhjrmiihpklikwlkprmwunprqnwnrgnnlgjgnvmglknvowskjkowqwpkcafwdjfajjgjiqqjlptqlnipmslnpowswjjonoljjttomsrtnwtssrowosmrpmisfafmfhdagvkhqjsvtinjitsilwntwjrwjvrjlkovtsvkrhqstquhojhqmkqjitrkfaftdufakstusuisnmvuslsmnrmlrsvrrhnsoomhvtloqvntutvvhkltqukkrmtufaemfhfatwhhirhwvtrrsjptmtujvtgtnvstmohvliionwhivqqwlomqkgpotljgeaflfqeahgqqhmngrprmpqhpuugqgiquslqihqrliimqhkjiqwwkmspwpqisjkjqfaekembaqipmnioirkwihvkkgntvqhhnqnshrwgnmvlwjgwvwqkgpwmqiliwjulleadububapssuohjswmuhkowmtnpohrtnspgrgnrplnvnwgpnkvvgmhlvihwhlnshdadnbkeasgtkjjigumvjwwwmpjgwtpojgujprvtuvruvptorvmmtlsomwigssopidafoegcatppgiltpvpwlwohpgiuoolhijroltigrujgiotljmkjtorkkgiirppmifabpcbaapeabtbaewcabhcacueacheaeocaegfacgcaflbacjfabkbafieabmdaebaad)
+
+
+results/summary.json is hand-aggregated from the per-arm JSONL files; the JSONLs are the primary record.

@@ -15,7 +15,7 @@
 
 use std::time::{Duration, Instant};
 
-use e2_kit::{generator, instance_from_generated, Board, Budget, Instance, SolveOutcome, Solver};
+use e2_kit::{generator, instance_from_generated, official_instance, output_from_url, Board, Budget, Instance, SolveOutcome, Solver};
 
 /// Colour ids fit comfortably below 32 on the official shape (22 interior + 5
 /// frame colours + grey 0).
@@ -628,6 +628,101 @@ fn arg<T: std::str::FromStr>(name: &str, default: T) -> T {
         .unwrap_or(default)
 }
 
+
+/// Phase 2: the vault's certificate rows on the community 464 boards.
+///
+/// Boards come from `data/community_464s.json` (recovered from the
+/// design-recipe-464 topic's committed results; community-posted bucas URLs).
+/// Each board is flipped 180 degrees (pos -> n-1-pos, rot -> rot+2), its
+/// row-major up/left charged-break count over the suffix cells gives the
+/// zero-slack budget for that depth, and both arms exhaust the suffix. The
+/// vault's board 1 self-identifies by its suffix-break fingerprint
+/// (2, 5, 6, 8) at depths (232, 224, 216, 208).
+fn charged_suffix_breaks(ctx: &Ctx, codes: &[i32], d: usize) -> u32 {
+    let cells: Vec<[u8; 4]> = codes
+        .iter()
+        .map(|&c| ctx.rots[(c / 4) as usize][(c % 4) as usize])
+        .collect();
+    let w = ctx.w;
+    let mut r = 0u32;
+    for pos in d..ctx.n {
+        let (x, y) = (pos % w, pos / w);
+        let e = cells[pos];
+        if y > 0 && cells[pos - w][2] != e[0] {
+            r += 1;
+        }
+        if x > 0 && cells[pos - 1][1] != e[3] {
+            r += 1;
+        }
+    }
+    r
+}
+
+fn run_cert(cap_secs: f64) {
+    let instance = official_instance(false);
+    let ctx = Ctx::new(&instance);
+    let data: serde_json::Value = serde_json::from_str(include_str!("../data/community_464s.json"))
+        .expect("data/community_464s.json parses");
+    println!("{{");
+    println!("  \"mode\": \"cert (phase 2: community 464s, 180-flipped, zero-slack rows)\",");
+    println!("  \"boards\": [");
+    let boards = data["boards"].as_array().expect("boards array");
+    for (bi, b) in boards.iter().enumerate() {
+        let label = b["label"].as_str().unwrap();
+        let url = b["url"].as_str().unwrap();
+        let out = output_from_url(&instance, url).expect("board parses against the official set");
+        assert_eq!(out.score, 464, "{label} must score 464");
+        let flipped: Vec<i32> = (0..ctx.n)
+            .map(|p| {
+                let c = out.board[ctx.n - 1 - p];
+                if c < 0 { -1 } else { (c / 4) * 4 + ((c % 4 + 2) % 4) }
+            })
+            .collect();
+        // sanity: the flip preserves the score
+        let total = charged_suffix_breaks(&ctx, &flipped, 0);
+        assert_eq!(total, 480 - out.score, "flip must preserve total breaks");
+        print!("    {{ \"label\": \"{label}\", \"fingerprint\": [");
+        let depths = [232usize, 224, 216, 208];
+        for (i, &d) in depths.iter().enumerate() {
+            print!("{}{}", if i > 0 { ", " } else { "" }, charged_suffix_breaks(&ctx, &flipped, d));
+        }
+        println!("], \"rows\": [");
+        for (di, &d) in depths.iter().enumerate() {
+            let r = charged_suffix_breaks(&ctx, &flipped, d);
+            let mut arms = Vec::new();
+            for ledger_on in [false, true] {
+                let start = prefix_board(&flipped, d);
+                let (mut s, pos) = Search::from_prefix(&ctx, &instance, &start);
+                s.ledger_on = ledger_on;
+                s.deadline = Instant::now() + Duration::from_secs_f64(cap_secs);
+                s.dfs(pos, r);
+                arms.push((s.nodes, s.completions, s.fires, s.timed_out));
+            }
+            let (n0, c0, _, t0) = arms[0];
+            let (n1, c1, f1, t1) = arms[1];
+            let ratio_ok = !t0 && !t1;
+            if ratio_ok {
+                assert_eq!(c0, c1, "{label} D={d}: arms disagree on completions");
+            }
+            println!(
+                "      {{ \"depth\": {d}, \"suffix_cells\": {}, \"budget_breaks\": {r}, \"noprune_nodes\": {n0}, \"ledger_nodes\": {n1}, \"ledger_fires\": {f1}, \"completions\": {c0}, \"censored\": {}, \"ratio\": {} }}{}",
+                ctx.n - d,
+                !ratio_ok,
+                if ratio_ok {
+                    format!("{:.1}", n0 as f64 / n1.max(1) as f64)
+                } else {
+                    "null".to_string()
+                },
+                if di + 1 < depths.len() { "," } else { "" }
+            );
+        }
+        println!("    ] }}{}", if bi + 1 < boards.len() { "," } else { "" });
+    }
+    println!("  ],");
+    println!("  \"vault_expected\": {{ \"board1_fingerprint\": [2, 5, 6, 8], \"ratios\": {{ \"232\": 1.5, \"224\": 140.0, \"216\": 995.0, \"208\": 4330.0 }}, \"note\": \"vault engine charged <=1 break per cell against (top,left) buckets; this engine charges per edge, so node counts are expected close, not identical\" }}");
+    println!("}}");
+}
+
 fn main() {
     let mode: String = arg("--mode", "all".to_string());
     let seed: u32 = arg("--seed", 1);
@@ -639,6 +734,7 @@ fn main() {
             run_soundness(seed);
         }
         "ab" => run_ab(seed, suffix, breaks, cap_secs),
+        "cert" => run_cert(cap_secs),
         "solver" => run_solver_demo(seed, suffix, breaks, cap_secs),
         "sweep" => {
             let seeds: u32 = arg("--seeds", 8);

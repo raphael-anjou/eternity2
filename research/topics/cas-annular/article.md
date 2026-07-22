@@ -1,7 +1,7 @@
 ---
 id: cas-annular
 title: Concentric annular solving plateaus at 430-436 and beats ALNS from a perfect frame
-summary: Greedy shell-by-shell solving of the official 16x16 puzzle from a perfect 60/60 frame plateaus at 430-436 matched edges regardless of frame choice, yet beats a 60-second ALNS continuation from the same frames by 34 to 49 points.
+summary: Greedy-annular solving from perfect 60/60 frames plateaus at 429 to 437 (mean 432.8 over 20 frames, matching the source's 430 to 436 mean 432.4) and beats an ALNS-lite continuation from the same frames on every frame (mean +18.3; the source measured +34 to +49 against a full ALNS).
 status: draft
 created: 2026-07-22
 updated: 2026-07-22
@@ -22,7 +22,7 @@ sources:
   - label: Vault concept, CAS beats ALNS when starting from a perfect frame (vol-77)
     url: null
 reproduce:
-  - cd research/topics/cas-annular/compute && cargo run --release
+  - cd research/topics/cas-annular/compute && cargo run --release -- 20 8 1024 45 > ../results/cas_plateau.json
 results:
   - label: CAS plateau + baseline comparison (20 frames / 8 frames)
     path: results/cas_plateau.json
@@ -78,5 +78,5 @@ The plateau band and its mean reproduce to within one point on each edge.
 The baseline gap keeps its direction and its every-frame consistency; its
 magnitude is smaller here because the baseline is a light proxy rather than
 the original alns_only winning5 configuration, and the shell solver is a
-beam rather than the original per-shell MIP. Frame boards are linked in the
-results file.
+beam rather than the original per-shell MIP. Frame boards are linked in the results file, which is the binary's own
+output (per-frame rows for both arms plus summary blocks).

@@ -7,9 +7,10 @@
 //! Orders: `row` (row-major), `border` (rim first, then row-major interior),
 //! `spiral` (outside-in). The solver is a chronological perfect-fit DFS: place
 //! only candidates that violate no constraint ([`fit::fit_score`]), backtrack
-//! when a cell has none, restart with a reshuffled candidate order when the
-//! budget's fraction says a restart is affordable. It keeps the best partial
-//! board seen. Path order changes results dramatically on this puzzle — that
+//! when a cell has none, and restart with a reshuffled candidate order when
+//! the whole subtree under the first cell is exhausted (or run until the
+//! budget expires, whichever comes first). It keeps the best partial board
+//! seen. Path order changes results dramatically on this puzzle — that
 //! observation is itself a published finding; measure it with `sweep`.
 
 use e2_kit::{
@@ -184,7 +185,11 @@ fn main() {
     let order = match args.next().as_deref() {
         Some("border") => Order::Border,
         Some("spiral") => Order::Spiral,
-        _ => Order::Row,
+        Some("row") | None => Order::Row,
+        Some(other) => {
+            eprintln!("unknown order '{other}' (expected row | border | spiral)");
+            std::process::exit(2);
+        }
     };
     let secs: f64 = args.next().and_then(|s| s.parse().ok()).unwrap_or(10.0);
 

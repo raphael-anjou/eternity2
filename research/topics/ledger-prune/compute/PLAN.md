@@ -1,6 +1,6 @@
 # Reproduction plan: ledger-prune
 
-> **Repro tier: exact (exhaustion node counts are seed-deterministic; time-capped arms report censored and are excluded).**
+> **Repro tier: exact, conditional: exhaustion node counts are seed-deterministic and the committed files carry no wall-clock values, but WHICH arms are censored at the 25 s cap is hardware-dependent; byte-for-byte reproduction holds on hardware no slower than the recording machine (Apple Silicon, single core), otherwise more arms censor.**
 > exact = re-run reproduces committed results byte-for-byte. seeded-statistical =
 > committed results are the record of our run (hardware noted in the article);
 > reproduction = fresh run agreeing within the stated tolerance. qualitative =
