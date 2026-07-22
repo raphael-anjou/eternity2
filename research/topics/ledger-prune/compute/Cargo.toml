@@ -1,0 +1,19 @@
+# Self-contained compute crate for the ledger-prune topic. Path-depends on the
+# starter kit for the canonical instance, generator, scorer and URL IO.
+[package]
+name = "ledger-prune"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "ledger_prune"
+path = "src/main.rs"
+
+[dependencies]
+e2-kit = { path = "../../../starter-kit" }
+
+[profile.release]
+opt-level = 3
+lto = true

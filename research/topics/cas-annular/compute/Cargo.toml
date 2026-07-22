@@ -1,0 +1,24 @@
+# cas-annular reproduction — CAS (Concentric Annular Solving) as a kit Solver.
+# Depends on the starter kit by path; copy the kit's crates alongside if vendored.
+
+[package]
+name = "cas-annular"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+publish = false
+
+[[bin]]
+name = "cas-annular"
+path = "src/main.rs"
+
+[dependencies]
+e2-kit = { path = "../../../starter-kit" }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
