@@ -38,6 +38,12 @@ LAYOUTS = [
     "ladder_spread_16", "ladder_contig_16",
     "ladder_spread_25", "ladder_contig_25",
     "ladder_spread_36", "ladder_contig_36",
+    # Contiguous-ROW family: R full rows pinned from the top (R·N hints). This is
+    # the crossover axis — how many contiguous rows match the solve-rate/nodes of
+    # the scattered lattice. Emitted for R = 1..N-1 by the generator; at N=8 that
+    # is 8, 16, 24, 32, 40, 48, 56 hints.
+    "row_block_01", "row_block_02", "row_block_03",
+    "row_block_04", "row_block_05", "row_block_06", "row_block_07",
 ]
 PATHS = ["row-major"]
 

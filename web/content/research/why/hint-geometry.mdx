@@ -9,7 +9,7 @@ metaDescription: "On a 16×16 puzzle built to Eternity II's exact colour recipe,
 kind: finding
 contribution: measurement
 rigor: measured
-order: 95
+order: 100
 updated: 2026-07-10
 topics: [structure, search-space, backtracking]
 sources:
@@ -24,7 +24,15 @@ related:
   - /research/why/no-forced-moves
   - /research/why/prune-vs-speed
 repro:
-  kind: prose
+  kind: seeded
+  cmd: just experiments hint-study-solve
+  scope: >-
+    Reproduces the contiguous-row crossover only: on a from-scratch 8×8 board
+    built to E2's colour recipe, the fewest contiguous rows whose solve-rate and
+    median nodes-to-solution match a scattered sixteen-hint lattice, over thirty
+    seeded instances per layout (research/experiments/hint-study). The 16×16
+    counts, the 41-billion-node tree and the depth statistics are the cited
+    community measurements, not re-derived here.
 ---
 
 import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
@@ -35,9 +43,10 @@ obvious question is how many you need. The better question, it turns out, is
 recipe, eighteen hints placed in the right spots solve it in minutes; piling
 them into contiguous rows instead, one measured run needed a hundred (sixty
 border plus forty inner) just to bring the search down to tens of billions of
-placements. Roughly a fivefold difference in count, decided by geometry; the
-exact count at which contiguous hints match eighteen scattered ones was never
-pinned down.
+placements. To pin the crossover down ourselves, we ran the same contest on a
+board small enough to solve to completion: matching a scattered sixteen-hint
+lattice took **five contiguous rows, forty hints**, about two and a half times
+the count, decided by geometry alone.
 
 ## Two ways to spend the same eighteen hints
 
@@ -58,14 +67,26 @@ manageable size: a hundred hints (sixty border plus forty inner rows) still
 left a tree of roughly 47 billion placements
 ([msg 11725](https://groups.io/g/eternity2/message/11725)).
 
+Neither figure pins the crossover exactly, because a 16×16 board never finishes
+in seconds and the raw count is muddied by the free matches a solid block hands
+you. So we shrank the puzzle to a size that does finish, an 8×8 built to the
+same colour recipe, and measured the real quantity: nodes to a full solve, over
+thirty seeded instances per layout. There a scattered lattice of sixteen hints
+solves every instance in a few thousand search nodes. Contiguous rows have to
+climb to five full rows, forty hints, before they solve every instance in the
+same node budget. At the *same* count, sixteen scattered hints beat sixteen
+piled into two rows by more than two orders of magnitude in search nodes, and
+the block fails to solve six of the thirty at all. The lattice reaches the
+endgame; the block never does until it nearly buries it.
+
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">18</div>
     <div className="mt-1 text-xs text-muted-foreground">scattered hints, solved in minutes</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">100</div>
-    <div className="mt-1 text-xs text-muted-foreground">contiguous-row hints to reach tens of billions of placements</div>
+    <div className="text-3xl font-bold tabular-nums">2.5×</div>
+    <div className="mt-1 text-xs text-muted-foreground">more hints, as contiguous rows, to match a scattered lattice (measured to completion)</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">99%</div>
@@ -117,5 +138,9 @@ aimed at that endgame is worth a great many aimed anywhere else.
   January 2026; the scattered layout shown is decoded from Peter's posted board
   (msg 11746). The optimised backtracker Peter used traces back to Mike's 2007
   post (msg 3098). These are community results on a specific E2-like puzzle,
-  recorded here with attribution rather than re-derived.
+  recorded here with attribution rather than re-derived. The five-row crossover
+  is our own measurement, on our own generated 8×8 boards and backtracker: the
+  fewest contiguous rows whose solve-rate and median nodes-to-solution both
+  reach a scattered sixteen-hint lattice, over thirty seeded instances per
+  layout. Reproduce it with `just experiments hint-study-solve`.
 </Callout>
