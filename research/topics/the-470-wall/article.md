@@ -18,7 +18,7 @@ sources:
   - label: "Gamarnik. The overlap gap property: a topological barrier to optimizing over random structures. PNAS 2021."
     url: https://www.pnas.org/doi/10.1073/pnas.2108492118
 reproduce:
-  - cd research/topics/the-470-wall/compute && cargo run --release > ../results/landscape.json
+  - cd research/topics/the-470-wall/compute && cargo run --release --bin the_470_wall > ../results/landscape.json
 results:
   - label: Exact instance statistics and the annealed score landscape (JSON, computed here)
     path: results/landscape.json

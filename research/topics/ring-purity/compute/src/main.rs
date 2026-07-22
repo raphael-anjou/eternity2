@@ -6,7 +6,7 @@
 //! the sequential-importance-sampling measure is reported for comparison
 //! within sampling error. Emits one JSON object on stdout.
 
-use e2_kit::{generator::XorShift, official_instance};
+use e2_kit::{official_instance, XorShift};
 use serde_json::json;
 use std::process::ExitCode;
 
@@ -200,10 +200,10 @@ fn main() -> ExitCode {
     for _ in 0..trials {
         let mut remaining: Vec<RingEdge> = ring_edges.clone();
         // First piece uniform; orientation uniform.
-        let i = (rng.next_u32() as usize) % remaining.len();
+        let i = rng.next_below(remaining.len() as u32) as usize;
         let first = remaining.swap_remove(i);
         let (start, mut open) =
-            if rng.next_u32() % 2 == 0 { (first.a, first.b) } else { (first.b, first.a) };
+            if rng.next_below(2) == 0 { (first.a, first.b) } else { (first.b, first.a) };
         let mut logp = 0.0f64;
         let mut dead = false;
         for _ in 0..59 {
@@ -215,7 +215,7 @@ fn main() -> ExitCode {
                 break;
             }
             logp += (legal.len() as f64 / remaining.len() as f64).log10();
-            let pick = legal[(rng.next_u32() as usize) % legal.len()];
+            let pick = legal[rng.next_below(legal.len() as u32) as usize];
             let e = remaining.swap_remove(pick);
             open = if e.a == open { e.b } else { e.a };
         }

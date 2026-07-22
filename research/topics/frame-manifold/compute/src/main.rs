@@ -22,7 +22,11 @@
 
 use std::collections::HashSet;
 
-use e2_kit::{generator::XorShift, official_instance, score_board, Board, Pieces};
+use e2_kit::{
+    analysis::{piece_classes, PieceClasses},
+    fit::{edge_constraints, fit_score},
+    official_instance, score_board, Board, Pieces, XorShift,
+};
 
 const S: usize = 16;
 const N_RING: usize = 60;
@@ -35,7 +39,10 @@ fn main() {
     let instance = official_instance(false);
     let pieces = &instance.pieces;
     let ring = ring_cells();
-    let classes = PieceClasses::of(pieces);
+    let classes = piece_classes(pieces);
+    assert_eq!(classes.corners.len(), 4, "official set has 4 corner pieces");
+    assert_eq!(classes.edges.len(), 56, "official set has 56 edge pieces");
+    assert_eq!(classes.interior.len(), 196, "official set has 196 interior pieces");
 
     // ---- generate frames -------------------------------------------------
     let mut frames: Vec<Board> = Vec::new();
@@ -194,29 +201,6 @@ fn forced_rot(piece: &e2_kit::Piece, pos: usize) -> Option<u8> {
 fn edges_at(board: &Board, pieces: &Pieces, pos: usize) -> [u8; 4] {
     let (pid, rot) = board.piece_at(pos).expect("cell must be placed");
     pieces.get(pid).expect("valid piece id").rotated(rot)
-}
-
-struct PieceClasses {
-    corners: Vec<u16>,
-    edges: Vec<u16>,
-    interior: Vec<u16>,
-}
-
-impl PieceClasses {
-    fn of(pieces: &Pieces) -> Self {
-        let (mut corners, mut edges, mut interior) = (Vec::new(), Vec::new(), Vec::new());
-        for (pid, p) in pieces.iter() {
-            match p.border_edge_count() {
-                2 => corners.push(pid),
-                1 => edges.push(pid),
-                _ => interior.push(pid),
-            }
-        }
-        assert_eq!(corners.len(), 4, "official set has 4 corner pieces");
-        assert_eq!(edges.len(), 56, "official set has 56 edge pieces");
-        assert_eq!(interior.len(), 196, "official set has 196 interior pieces");
-        Self { corners, edges, interior }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -401,7 +385,7 @@ fn walk_report(
             rows.push(serde_json::json!({ "step": step, "error": "free set empty" }));
             break;
         }
-        let &(a, b, _) = &free[rng.below(free.len() as u32) as usize];
+        let &(a, b, _) = &free[rng.next_below(free.len() as u32) as usize];
         apply_exchange(&mut f, pieces, a, b);
         visited.insert(rim_targets(&f, pieces, ring));
 
@@ -441,7 +425,9 @@ fn walk_report(
 // claims 4+5: dead cells and revival
 
 /// Frame-adjacent interior cells that no interior piece can fill given the
-/// rim-imposed colours (other neighbours empty, so only rim constraints bind).
+/// rim-imposed colours. With only the frame placed, the kit's
+/// `edge_constraints` yields `Some(colour)` exactly on the sides facing a
+/// placed border cell and `None` elsewhere, so only rim constraints bind.
 fn dead_cells(board: &Board, pieces: &Pieces, interior_ids: &[u16]) -> Vec<usize> {
     let mut dead = Vec::new();
     for y in 1..S - 1 {
@@ -449,41 +435,17 @@ fn dead_cells(board: &Board, pieces: &Pieces, interior_ids: &[u16]) -> Vec<usize
             if y != 1 && y != S - 2 && x != 1 && x != S - 2 {
                 continue; // not frame-adjacent
             }
-            let pos = y * S + x;
-            let want = rim_constraints(board, pieces, pos);
+            let want = edge_constraints(board, pieces, x, y, S, S);
             let fillable = interior_ids.iter().any(|&pid| {
                 let p = pieces.get(pid).unwrap();
-                (0..4u8).any(|r| {
-                    let e = p.rotated(r);
-                    want.iter().all(|&(side, c)| e[side] == c)
-                })
+                (0..4u8).any(|r| fit_score(&p.rotated(r), &want).is_some())
             });
             if !fillable {
-                dead.push(pos);
+                dead.push(y * S + x);
             }
         }
     }
     dead
-}
-
-/// The colours the frame imposes on interior cell `pos`: for each side whose
-/// neighbour is a placed border cell, the neighbour's facing edge colour.
-fn rim_constraints(board: &Board, pieces: &Pieces, pos: usize) -> Vec<(usize, u8)> {
-    let (y, x) = (pos / S, pos % S);
-    let mut want = Vec::new();
-    let sides: [(bool, usize, i64, usize); 4] = [
-        (y == 1, 0, -(S as i64), 2),
-        (x == S - 2, 1, 1, 3),
-        (y == S - 2, 2, S as i64, 0),
-        (x == 1, 3, -1, 1),
-    ];
-    for (is_rim_neighbour, my_side, delta, their_side) in sides {
-        if is_rim_neighbour {
-            let npos = (pos as i64 + delta) as usize;
-            want.push((my_side, edges_at(board, pieces, npos)[their_side]));
-        }
-    }
-    want
 }
 
 /// Greedy revival: repeatedly apply the free swap that most reduces the

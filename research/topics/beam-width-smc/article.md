@@ -22,10 +22,12 @@ sources:
   - label: SMC steering
     url: https://arxiv.org/pdf/2306.03081
 reproduce:
-  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-10 -- --seeds 1..48 --budget-s 3 --width 1024
-  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-12 -- --seeds 1..48 --budget-s 3 --width 1024
+  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-12 -- --widths 32,128,512,2048 --rules plain --seeds 1..12 --budget-s 12
+  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-12 -- --widths 128 --rules plain,stoch --seeds 1..16 --budget-s 3
+  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-10 -- --widths 1024 --rules plain,smc --temp 0.15 --seeds 1..48 --budget-s 3
+  - cd research/topics/beam-width-smc/compute && cargo run --release --features size-12 -- --widths 1024 --rules plain,smc --temp 0.15 --seeds 1..48 --budget-s 3
 results:
-  - label: Results JSON (not yet generated)
+  - label: Per-seed scores, paired stats, and temperature sweep (JSON)
     path: results/beam-width-smc.json
 site:
   render: false
@@ -79,6 +81,32 @@ trusted. Scores are reported as matched interior edges over the planted optimum
 2N(N-1), which is exactly the kit's scoring convention. See `compute/PLAN.md`
 for the full design, the expected numbers, and the scale-faithfulness argument.
 
+Hardware: Apple Silicon, single core. Instances are kit-generated framed
+boards (one instance per seed, 22 interior colours capped at the size's
+maximum, 5 pinned solution cells), so absolute score levels are not comparable
+to the source bed; ordering and paired-delta signs are what the tier tests.
+
+Measured against expected:
+
+| Sub-claim | Expected (vol-246 bed) | Measured (kit bed) |
+| --- | --- | --- |
+| Width law, plain beam, mean score/opt at w32/128/512/2048 | 0.210 / 0.346 / 0.527 / 0.743, monotone | 0.836 / 0.854 / 0.866 / 0.878 at N=12, 12 paired seeds, monotone in width |
+| Tie-break randomisation at w128 | 0.346 to 0.376, helps every N | 0.853 to 0.861 at N=12; paired delta +2.06 edges, t = 3.47, Wilcoxon z = 2.69, win/tie/loss 10/4/2 over 16 pairs |
+| SMC resampling at w1024, 96 paired seeds, N in {10, 12} | +8.6 mean edges (about +6%), t = 2.08, win/tie/loss 48/14/34 | +1.83 mean edges (about +1.0%), t = 5.78, Wilcoxon z = 5.45, win/tie/loss 65/14/17, at T = 0.15 |
+| SMC node counts vs plain | comparable (86k vs 93k) | identical by construction at fixed width (for example 20,013,677 both arms at N=12) |
+
+All three signs reproduce. The width ordering is clean at every width step;
+the tie-break win and the SMC win are both individually significant (the SMC
+effect at each rung separately: +1.75 edges, t = 3.30 at N=10; +1.92 edges,
+t = 5.41 at N=12). The SMC temperature had to be swept, as the plan
+anticipated: T = 1.0 is catastrophic (-17 to -29 edges, every seed loses),
+the gain lives on a plateau T in [0.1, 0.2], and T = 0.15 was used for the
+powered run. The per-seed scores, the full sweep, and paired statistics are in
+`results/beam-width-smc.json`, with representative boards, for example the
+best SMC board at N=12
+([237/264](https://eternity2.dev/viewer?puzzle=smc_n12_c22_s34&puzzle_size=12&board_edges=adcaacpdafjcacofafqcadmfaeldabmeaetbacpeabmcaadbcmeaplimjunloswuquismgtulmngmmmmtqhmpwwqmjrwdabjejbaipwjnqopwjsqiiojtskinqusmsoqhmgswukmrtuubadtblbawkolomjksplmolipknulunwnoopngrgokhvrughhdaegbpdaorlpjtwrltntisutukjswstkpvisgltvvtklhwsteafwdlbaltqlwvjhnivouspijumstrnuiwigtwvikkwwsjvkfaejbsbaqjgsjrqjvltrpgqlmmignthmitvtvpntwrhqvkhreabkbgcagpogqhpptvshqwjviwvwhuiovgrunnnghhjnhrohbafrcheajrqhpqkrshiqupnhvkopirhkrklrnutijoouovrofaevekcaqvnkkniviggnnuopqjuuhgqjvlggtsrloqhsrvpmeafvcmfanujqklquglkloitlgvkinsnvgqjsrlpkhomsprqofabrfeaakdaewdadifadgdafweadscaehcacpfacmdafrcadbaac&hints=67.0-62.1-7.2-19.0-112.0))
+scored through the canonical scorer.
+
 ## Notes / caveats
 
 This reproduces the survivor-rule claim on ladder instances, not on the
@@ -88,3 +116,15 @@ across a paired-seed distribution, not digit for digit. Whether the +6% SMC
 gain transfers to the real 16x16 pipeline (and to the quality of the pool it
 feeds downstream refinement) is explicitly open in the source study and is not
 claimed here.
+
+Two measured caveats. First, the kit instances are markedly easier than the
+source bed (score ratios 0.82 to 0.88 versus 0.21 to 0.74), which compresses
+the headroom above the plain beam; the SMC gain lands at about +1% relative
+here versus +6% in the source, with the same sign and stronger statistical
+significance. Second, this port's per-node cost is higher than the source
+engine's, so the w2048 pass does not finish inside 3 seconds of wall clock on
+this hardware; the width law is therefore reported at saturation (12 second
+cap, every pass completes) with node counts as the compute axis, which tests
+the width ordering rather than the source's equal-wall-clock framing. The
+survivor-rule A/Bs are unaffected: both arms expand identical node counts at
+fixed width by construction.

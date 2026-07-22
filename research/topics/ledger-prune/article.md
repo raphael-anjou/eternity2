@@ -17,9 +17,19 @@ sources:
   - label: "Prune beats speed (this site): why branching-factor cuts dominate raw speed"
     url: /research/prune-vs-speed
 reproduce:
-  - cd research/topics/ledger-prune/compute && cargo run --release -- --mode soundness
-  - cd research/topics/ledger-prune/compute && cargo run --release -- --mode ab
-results: []
+  - cd research/topics/ledger-prune/compute && cargo run --release -- --mode sweep --seeds 8 --cap-secs 25 --out ../results
+  - cd research/topics/ledger-prune/compute && cargo run --release -- --mode zerodiag --seeds 8 --cap-secs 25 --out ../results
+results:
+  - label: Soundness gate (8 boards, zero-slack replay, 0 fires)
+    path: results/soundness.json
+  - label: A/B node-count grid, suffix {20,24,28,32} x budget {1,2,3} x 8 seeds
+    path: results/ab-sweep.json
+  - label: Vault-row-shaped diagonal (24,2) (32,5) (40,6) (48,8)
+    path: results/ab-diagonal.json
+  - label: Zero-slack diagonal, budget 0 at suffix {24,32,40,48}
+    path: results/ab-zeroslack.json
+  - label: Wrong-regime probe (generous budget, fire fraction)
+    path: results/wrong-regime-null.json
 site:
   render: false
   dataFile: null
@@ -69,14 +79,57 @@ where record searches spend their time.
 
 The `compute/` crate contains a self-contained break-budget DFS with the
 LEDGER conditions implemented from the definitions above, on top of the
-starter kit's canonical instance, scorer and generator. Two modes:
+starter kit's canonical instance, scorer and generator (per-edge charged
+breaks, no per-cell cap, proper frame, hint-free so u = 0). Phase 1 ran on
+generated official-shaped 16x16/22 instances with known solutions, seeds 1
+through 8, 25 s per-arm cap; hardware Apple Silicon, single core. Node counts
+are seed-deterministic; a full re-run reproduces the committed JSON
+byte-for-byte (checked), and any arm that hits the cap is recorded as
+censored and excluded from ratios. Every instance's solution board ships as
+an eternity2.dev URL in `results/soundness.json`.
 
-- `--mode soundness` replays a generated board's known perfect tail under a
-  zero-slack budget at every prefix depth and asserts the ledger never fires
-  along the real line (any fire would be unsound).
-- `--mode ab` runs the same suffix exhaustion twice, prune off and prune on,
-  over a fixed solution prefix of a generated 16x16 instance, and reports the
-  node counts and their ratio at increasing suffix depths.
+**Verdict: partial.** The soundness core reproduces exactly; the headline
+magnitudes (140x to 4330x) are tied to a community record board this phase
+cannot access, and the generated-board proxies bound them from below without
+reaching them.
+
+| Claim (expected, vault) | Measured here | Status |
+|---|---|---|
+| Soundness gate: 0 fires replaying real tails at zero slack (4 boards, 251 cells each) | 0 fires on 8 boards x 257 depths | reproduced |
+| Prune never changes the answer | completions identical in all 144 uncensored A/B pairs | reproduced |
+| Node ratio > 1 under small budgets | all 96 grid pairs > 1 (min 1.48x, medians 1.8x to 4.1x) | reproduced |
+| Ratio compounds with suffix depth (1.5x, 140x, 995x, 4330x at 24/32/40/48 cells) | diagonal medians 1.9x at (24,2), 5.0x at (32,5); (40,6) and (48,8) censored at 25 s | untested at magnitude, see below |
+| Parity fires dominate deficit fires (5-10:1 small-r) | parity is the dominant trigger everywhere (non-exclusive tallies 1.1-2.5:1, e.g. 98,213 vs 48,363 at K=32 R=3) | direction reproduced, accounting convention differs |
+| Wrong-regime null: ~0.1 percent fires with a big budget | probe (6 spare breaks on a 20-cell tail) still fires on 76-82 percent of nodes | untested, proxy stayed in the active regime |
+
+Grid medians of the node ratio NoPrune/LEDGER (8 seeds each, no censoring):
+
+| suffix \ budget | R=1 | R=2 | R=3 |
+|---|---|---|---|
+| K=20 | 2.01x | 2.06x | 4.07x |
+| K=24 | 1.97x | 1.91x | 3.81x |
+| K=28 | 1.90x | 1.77x | 3.28x |
+| K=32 | 2.13x | 1.82x | 3.21x |
+
+The reduction grows with the budget, not with the suffix depth at fixed small
+budget: more slack means deeper subtrees for the global counting argument to
+amputate. The vault's compounding rows grew suffix and budget together on a
+real record board, and phase 1 cannot enter that regime from either side. On
+a perfect generated tail the zero-slack analogue (budget 0) is degenerate:
+the tail is nearly forced (24 to 102 nodes for 24 to 48 cells), both arms
+coincide and the ratio is exactly 1.0. With the vault's own (suffix, budget)
+pairs the slack is real and the ratio reaches only 5.0x median at (32,5)
+before both arms blow past the 25 s cap. The 140x to 4330x certificates live
+on the 464 board's break-carrying tail, where zero slack still leaves an
+enormous space; reproducing them needs that board (phase 2 in
+`compute/PLAN.md`, blocked on community board data in the kit).
+
+The wrong-regime probe fell on the instructive side of the null: 6 spare
+breaks on a 20-cell perfect tail sounds generous but depletes near the
+leaves, where most nodes live, so the ledger stayed active (and useful)
+instead of going quiet. The vault's 0.1 percent figure describes a full-board
+search whose budget is large relative to every remaining tail; a 20-cell
+suffix cannot be configured into that regime with an exhaustible budget.
 
 See `compute/PLAN.md` for the exact claim, the scoring-convention mapping,
 the scale-faithfulness argument, and the gap between this reproduction and

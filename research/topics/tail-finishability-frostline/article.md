@@ -21,7 +21,7 @@ sources:
 reproduce:
   - cd research/topics/tail-finishability-frostline/compute && python3 frostline.py --seeds 120 --betas 1,2,3,4,6 --bootstrap 200 --out ../results/frostline_r15.json
 results:
-  - label: Correlation table (order parameter vs exact tail optimum)
+  - label: Correlation table at R=15 (order parameters vs exact tail optimum, n=120 tops, betas 1-6, bootstrap SDs, partials, seed-half CV, representative board URLs)
     path: results/frostline_r15.json
 site:
   render: false
@@ -85,7 +85,54 @@ the board's own raw score.
 
 See `compute/PLAN.md` for the exact claim numbers cited from the source study,
 the scoring-convention mapping, the scale-faithfulness argument, and the exact
-commands. `compute/frostline.py` implements the full pipeline.
+commands. `compute/frostline.py` implements the full pipeline. The run is fully
+seeded and deterministic; re-running the command reproduces
+`results/frostline_r15.json` byte for byte. Hardware: Apple Silicon, single
+core, about two minutes for the full 120-seed run.
+
+### Measured (n = 120 distinct greedy tops, raw scores 361-396, tail_opt 16-22)
+
+The source regime used width-2048 beam tops (raw 446-452, n = 103); this
+reproduction regenerates the ensemble with the seeded greedy producer, so the
+top-quality distribution is lower and wider. Expected numbers are the source's;
+measured numbers are this run's.
+
+| quantity | expected (beam tops) | measured (greedy tops) | verdict |
+|---|---|---|---|
+| Spearman rho(Bethe FE, tail_opt), beta 4 | -0.776 (SD 0.040) | **-0.743** (boot SD 0.049) | reproduced |
+| AUC top-vs-bottom tercile, FE beta 4 | 0.013 | 0.108 | reproduced (clean, inverted) |
+| partial rho(FE, tail_opt given raw score) | -0.697 | **-0.742** | reproduced |
+| reverse partial rho(raw, tail_opt given FE) | +0.426 | +0.061 | regime-dependent |
+| baseline rho(raw score, tail_opt) | +0.605 | +0.081 | regime-dependent |
+| seed-half CV rho(FE) | -0.795 / -0.754 | -0.840 / -0.627 | reproduced (sign and class) |
+| rho(Bethe entropy, tail_opt), beta 3 | +0.703, AUC 0.953 | -0.399, AUC 0.287 | sign flipped in this regime |
+| rho(mean_maxprob), beta 1 | +0.680 | +0.503 | same sign, weaker |
+| rho(frozen_frac), beta 6 | +0.430 | +0.226 | same sign, weaker |
+| rho(min-sum frozen) null control | ~0.09, flat | +0.311 | weak signal, not null here |
+| rho(mean_domain) null control | flat / nan | flat / nan | reproduced null |
+
+The pre-registered GO gate (|rho| >= 0.4, or AUC > 0.75 or < 0.25) is cleared
+by the Bethe free energy at every beta tried (1, 2, 3, 4, 6; rho between -0.72
+and -0.75, AUC 0.11 to 0.13), with the source's sign. The headline
+discriminator claim reproduces: the free energy rank-predicts the exact tail
+optimum, and the partial correlation controlling for the board's own raw score
+stays past the gate at -0.74, so the signal is not a raw-score proxy. In this
+greedy regime the raw score itself is nearly uninformative about the tail
+(+0.08 vs the source's +0.605), which makes the partial-correlation test
+stricter here, not weaker.
+
+Three secondary quantities do not transfer to the greedy regime and are
+recorded as caveats: the Bethe entropy correlation flips sign (-0.40 vs the
+source's +0.70), the min-sum frozen-cell census shows a weak signal (+0.31)
+where the source found none, and expected-matches carries signal here (rho
+about +0.70) as already seen in the plan's smoke run. All three are consistent
+with the wider finishability spread of lower-quality tops; none touches the
+headline free-energy claim.
+
+Representative boards (worst / median / best tail_opt, eternity2.dev viewer
+URLs) are embedded in `results/frostline_r15.json` under
+`representative_boards`; the worst-tail board's URL was round-tripped through
+the kit's canonical scorer and its raw score (375) matches.
 
 ## Notes / caveats
 
@@ -94,4 +141,6 @@ than the original wide-beam producer, so the top-quality distribution differs
 (greedy tops score lower than beam tops). The claim is about rank correlation
 on a spread of tops, not about absolute scores, and the reproduction reports
 its own spread. The R=14 and R=13 degradation points and the selection-value
-negative are described in the plan but not yet scripted.
+negative are described in the plan but not yet scripted; a beam-quality
+producer would be needed to test whether the Bethe-entropy sign flip and the
+min-sum residual signal are regime artifacts, as argued above.

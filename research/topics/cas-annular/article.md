@@ -23,7 +23,9 @@ sources:
     url: null
 reproduce:
   - cd research/topics/cas-annular/compute && cargo run --release
-results: []
+results:
+  - label: CAS plateau + baseline comparison (20 frames / 8 frames)
+    path: results/cas_plateau.json
 site:
   render: false
   dataFile: null
@@ -59,17 +61,22 @@ matters as much as the components.
 
 ## Reproduction
 
-The reproduction runs CAS on the official instance through the starter kit. The
-solver builds a perfect 60/60 frame by depth-first search over the 60 border
-pieces (every rim edge grey, every within-ring adjacency matched), then fills
-rings 1 to 7 shell by shell. The kit re-scores the final board through the
-canonical rim-excluding scorer, which is the same matched-edges convention the
-vault numbers use, so the claim's numbers are directly comparable.
+The compute crate enumerates distinct perfect 60/60 frames of the official
+puzzle by seeded border DFS, then runs the greedy-annular schedule (shells
+solved inward with a width-1024 per-shell beam) from each frame, and an
+ALNS-lite baseline (random destroy of 6 to 12 cells plus greedy
+first-improvement repair, 45 s) from the same pinned frames.
 
-Two parts of the original method still need porting for a faithful measurement:
-the per-shell exact assignment (the vault solved each shell as a MIP; the
-skeleton uses greedy best-fit per cell, which is expected to land below the
-430-436 band) and frame enumeration (the vault measured a distribution across 20
-distinct frames; the skeleton takes the first frame its search finds). The ALNS
-comparison arm additionally requires an ALNS implementation, which the kit does
-not provide. See `compute/PLAN.md` for the full design and the expected numbers.
+| quantity | source (vols 74-79) | measured |
+|---|---|---|
+| CAS score band over frames | 430 to 436 | 429 to 437 (n = 20) |
+| CAS mean | 432.4 | 432.8 |
+| baseline from the same frame | 385 to 398 (full ALNS) | 411 to 419 (ALNS-lite proxy) |
+| CAS beats the baseline | every overlapping frame, +34 to +49 | every frame, mean gap +18.3 |
+
+The plateau band and its mean reproduce to within one point on each edge.
+The baseline gap keeps its direction and its every-frame consistency; its
+magnitude is smaller here because the baseline is a light proxy rather than
+the original alns_only winning5 configuration, and the shell solver is a
+beam rather than the original per-shell MIP. Frame boards are linked in the
+results file.

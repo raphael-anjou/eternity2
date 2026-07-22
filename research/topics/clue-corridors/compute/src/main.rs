@@ -16,7 +16,8 @@
 //! 0.792, corrected corridor count ~2e15 (source cites ~1.9e15 for the
 //! specific clue colour pair).
 
-use e2_kit::official_instance;
+use e2_kit::analysis::{clue_cells, piece_classes};
+use e2_kit::{official_instance, rotated};
 use serde_json::json;
 
 /// Colour ids are u8; the official set uses 0 (border) plus interior colours.
@@ -52,11 +53,10 @@ fn main() {
     let inst = official_instance(true);
     let w = usize::from(inst.width);
 
-    // 1. Clue geometry from the bundled hints.
-    let clues: Vec<(u16, usize, usize)> = inst
-        .hints
-        .iter()
-        .map(|h| (h.pos, usize::from(h.pos) % w, usize::from(h.pos) / w))
+    // 1. Clue geometry from the bundled hints (kit census helper).
+    let clues: Vec<(usize, usize, usize)> = clue_cells(&inst)
+        .into_iter()
+        .map(|pos| (pos, pos % w, pos / w))
         .collect();
     let mut dists = Vec::new();
     for i in 0..clues.len() {
@@ -76,12 +76,11 @@ fn main() {
         .min()
         .unwrap();
 
-    // 2. Inner pieces and the colours actually present on them.
-    let inner: Vec<[u8; 4]> = inst
-        .pieces
+    // 2. Inner pieces (kit piece-class partition) and the colours on them.
+    let inner: Vec<[u8; 4]> = piece_classes(&inst.pieces)
+        .interior
         .iter()
-        .filter(|(_, p)| p.border_edge_count() == 0)
-        .map(|(_, p)| p.edges)
+        .map(|&pid| inst.pieces.edges(pid))
         .collect();
     let n_inner = inner.len();
     let mut on_inner = [false; NC];
@@ -101,7 +100,7 @@ fn main() {
     let mut t: Mat = vec![vec![0u128; NC]; NC];
     for e in &inner {
         for r in 0..4 {
-            let re = e2_kit::Piece::new(*e).rotated(r);
+            let re = rotated(*e, r);
             t[usize::from(re[3])][usize::from(re[1])] += 1;
         }
     }

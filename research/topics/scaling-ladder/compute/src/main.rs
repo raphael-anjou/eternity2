@@ -27,7 +27,7 @@
 //! ../PLAN.md for what these two baselines can and cannot reproduce.
 
 use e2_kit::{
-    generator, instance_from_generated, pin_solution_hints, Board, Budget, Instance, Pieces,
+    analysis, fit, generator, instance_from_generated, pin_solution_hints, Board, Budget, Instance,
     SolveOutcome, Solver,
 };
 
@@ -80,8 +80,20 @@ fn build_rung(n: u8, colors: u8, seed: u32) -> (Instance, u32) {
         "planted board must score the 2N(N-1) internal-edge bound (rung n={n} seed={seed})"
     );
 
+    // Faithfulness census (vol-240 sect A.4 reports duplicate pieces per rung):
+    // pieces sharing a canonical rotation key are duplicates up to rotation.
+    let mut keys: Vec<[u8; 4]> = instance
+        .pieces
+        .iter()
+        .map(|(_, p)| analysis::canonical_key(p.edges))
+        .collect();
+    keys.sort_unstable();
+    let total = keys.len();
+    keys.dedup();
+    let dup_pieces = total - keys.len();
+
     eprintln!(
-        "# rung n={n} colors={colors} seed={seed} ceiling={ceiling} planted_url={}",
+        "# rung n={n} colors={colors} seed={seed} ceiling={ceiling} dup_pieces={dup_pieces} planted_url={}",
         planted.url
     );
     (instance, ceiling)
@@ -99,7 +111,6 @@ fn run_cell(
     let start = instance.seed_board();
     let budget = Budget::seconds(budget_s);
     let outcome = solver.solve(instance, &start, budget);
-    let wall_s = budget.elapsed_secs();
 
     // The canonical re-score: the row's `score` comes from `finish`, never
     // from anything the solver claimed.
@@ -119,7 +130,6 @@ fn run_cell(
         "full_solve": full && out.score == ceiling,
         "outcome": format!("{:?}", outcome.kind),
         "nodes": outcome.nodes,
-        "wall_s": (wall_s * 100.0).round() / 100.0,
         "url": out.url,
     });
     println!("{row}");
@@ -199,14 +209,8 @@ impl DfsState<'_> {
         }
         let pos = self.open[depth];
         let w = usize::from(self.instance.width);
-        let want = edge_constraints(
-            board,
-            &self.instance.pieces,
-            pos % w,
-            pos / w,
-            self.instance.width,
-            self.instance.height,
-        );
+        let h = usize::from(self.instance.height);
+        let want = fit::edge_constraints(board, &self.instance.pieces, pos % w, pos / w, w, h);
 
         let piece_ids: Vec<u16> = self.instance.pieces.iter().map(|(pid, _)| pid).collect();
         for pid in piece_ids {
@@ -216,12 +220,12 @@ impl DfsState<'_> {
             let base = self.instance.pieces.get(pid).unwrap().edges;
             for r in 0..4 {
                 self.nodes += 1;
-                if self.nodes % 4096 == 0 && self.budget.expired() {
+                if self.nodes.is_multiple_of(4096) && self.budget.expired() {
                     self.out_of_time = true;
                     return false;
                 }
                 let e = e2_core::rotated(base, r);
-                if !satisfies(&e, &want) {
+                if fit::fit_score(&e, &want).is_none() {
                     continue;
                 }
                 board.place(pos, pid, r);
@@ -278,7 +282,7 @@ impl Solver for GreedyRowMajor {
             if !board.is_empty_at(pos) {
                 continue;
             }
-            let want = edge_constraints(&board, pieces, pos % w, pos / w, instance.width, instance.height);
+            let want = fit::edge_constraints(&board, pieces, pos % w, pos / w, w, h);
             let mut best: Option<(u16, u8, u32)> = None;
             for (pid, piece) in pieces.iter() {
                 if used[pid as usize] {
@@ -287,8 +291,7 @@ impl Solver for GreedyRowMajor {
                 for r in 0..4 {
                     nodes += 1;
                     let e = piece.rotated(r);
-                    if satisfies(&e, &want) {
-                        let matched = want.iter().filter(|c| c.is_some()).count() as u32;
+                    if let Some(matched) = fit::fit_score(&e, &want) {
                         if best.is_none_or(|(_, _, b)| matched > b) {
                             best = Some((pid, r, matched));
                         }
@@ -302,42 +305,6 @@ impl Solver for GreedyRowMajor {
         }
         SolveOutcome::improved(board).with_nodes(nodes)
     }
-}
-
-// ---------------------------------------------------------------------------
-// Shared constraint helpers (URDL, rim colour 0, placed neighbours are hard).
-// ---------------------------------------------------------------------------
-
-/// Per-side requirements for the piece at `(x, y)`, URDL. `Some(c)` means the
-/// edge must be colour `c` (rim edges must be 0, placed neighbours must be
-/// matched); `None` means free.
-fn edge_constraints(
-    board: &Board,
-    pieces: &Pieces,
-    x: usize,
-    y: usize,
-    width: u8,
-    height: u8,
-) -> [Option<u8>; 4] {
-    let w = usize::from(width);
-    let h = usize::from(height);
-    let at = |cx: usize, cy: usize| -> Option<[u8; 4]> {
-        board
-            .piece_at(cy * w + cx)
-            .map(|(pid, r)| pieces.get(pid).unwrap().rotated(r))
-    };
-    let up = if y == 0 { Some(0) } else { at(x, y - 1).map(|e| e[2]) };
-    let right = if x == w - 1 { Some(0) } else { at(x + 1, y).map(|e| e[3]) };
-    let down = if y == h - 1 { Some(0) } else { at(x, y + 1).map(|e| e[0]) };
-    let left = if x == 0 { Some(0) } else { at(x - 1, y).map(|e| e[1]) };
-    [up, right, down, left]
-}
-
-/// True when edges `e` satisfy every hard constraint in `want`.
-fn satisfies(e: &[u8; 4], want: &[Option<u8>; 4]) -> bool {
-    want.iter()
-        .enumerate()
-        .all(|(side, req)| req.is_none_or(|c| e[side] == c))
 }
 
 // ---------------------------------------------------------------------------

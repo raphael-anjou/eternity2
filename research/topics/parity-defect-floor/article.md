@@ -82,7 +82,37 @@ its expected value and an overall pass flag.
 The parity theorem and the defect floor are proofs from these censused
 properties, not searches, so the reproduction is exact and runs in well under
 a second. See `compute/PLAN.md` for the claim-by-claim mapping, the scoring
-convention, and the exact steps.
+convention, and the exact steps. The checker uses the starter kit's census
+helpers (`e2_kit::analysis::color_half_edge_census`, `orbit_census`,
+`piece_classes`) for the shared measurements and computes the defect-2 and
+frame censuses directly.
+
+Measured on the official instance (all 17 checks pass, `all_ok: true`, and
+the JSON output is byte-stable across runs):
+
+| Quantity | Expected | Measured |
+|---|---|---|
+| h(0) gray half-edges | 64 | 64 |
+| h(1..5) | 24 each | 24 each |
+| h(6..10) | 48 each | 48 each |
+| h(11..22) | 50 each | 50 each |
+| Colored total (exact-fit identity) | 960 | 960 |
+| All colored h(c) even (479 gap premise) | true | true |
+| Rotationally self-symmetric tiles | 0 | 0 |
+| Corner / edge / interior split | 4 / 56 / 196 | 4 / 56 / 196 |
+| Interior near-twin pairs | 50 | 50 |
+| Interior half-turn defect-2 tiles | 23 | 23 |
+| Interior quarter-turn defect-2 tiles | 3 | 3 |
+| Defect-2 generator bound | 76 | 76 |
+| Interior tiles carrying colors 1-5 | 0 | 0 |
+| Frame-color half-edges | 120 | 120 |
+| Ring joints per frame color | 12 x 5 | 12 x 5 |
+| Inward demand vector (colors 6-22) | 4,5,3,3,1,1,2,3,4,6,4,2,3,6,4,3,2 | identical |
+| Inward demand total | 56 | 56 |
+
+The optional small-N score-spectrum probe mentioned in the plan is not part
+of the claim and was not run; the exact-tier census above covers every cited
+number.
 
 ## Notes / caveats
 

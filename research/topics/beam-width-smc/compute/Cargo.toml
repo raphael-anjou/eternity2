@@ -1,11 +1,10 @@
 # Self-contained compute crate for the beam-width-smc topic. Path-depends on
-# the starter kit for the generator, the canonical scorer, and the Solver
-# trait.
+# the starter kit for the generator, the canonical scorer, the Solver trait,
+# and the seeded RNG.
 #
-# Board size is a COMPILE-TIME feature of e2-core (fixed-size hot-loop arrays),
-# so one binary is built per ladder rung. The kit does not forward the size
-# features, so this crate depends on e2-core directly and forwards them itself
-# (same pattern as the scaling-ladder topic):
+# Board size is a COMPILE-TIME feature (fixed-size hot-loop arrays), so one
+# binary is built per ladder rung. The kit forwards e2-core's size features,
+# so this crate depends on e2-kit alone:
 #
 #   cargo run --release --features size-10 -- --widths 1024 --rules plain,smc --seeds 1..48 --budget-s 3
 #   cargo run --release --features size-12 -- --widths 1024 --rules plain,smc --seeds 1..48 --budget-s 3
@@ -24,14 +23,13 @@ name = "beam-smc"
 path = "src/main.rs"
 
 [features]
-size-8 = ["e2-core/size-8"]
-size-10 = ["e2-core/size-10"]
-size-12 = ["e2-core/size-12"]
-size-14 = ["e2-core/size-14"]
+size-8 = ["e2-kit/size-8"]
+size-10 = ["e2-kit/size-10"]
+size-12 = ["e2-kit/size-12"]
+size-14 = ["e2-kit/size-14"]
 
 [dependencies]
 e2-kit = { path = "../../../starter-kit" }
-e2-core = { path = "../../../experiments/common/crates/e2-core" }
 serde_json = "1"
 
 [profile.release]

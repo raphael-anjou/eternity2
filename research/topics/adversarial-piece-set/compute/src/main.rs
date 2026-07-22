@@ -16,38 +16,16 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
+use e2_kit::analysis::{color_half_edge_census, orbit_census};
 use e2_kit::official_instance;
-
-/// Cyclic shift of an edge quad. The orbit of a piece under rotation is the
-/// set of its four cyclic shifts; orbit size and canonical (minimal) form do
-/// not depend on the shift direction, so this local helper is sufficient.
-fn rot(e: [u8; 4], r: usize) -> [u8; 4] {
-    [e[r % 4], e[(r + 1) % 4], e[(r + 2) % 4], e[(r + 3) % 4]]
-}
-
-fn orbit_size(e: [u8; 4]) -> usize {
-    let mut seen = BTreeSet::new();
-    for r in 0..4 {
-        seen.insert(rot(e, r));
-    }
-    seen.len()
-}
 
 fn main() {
     let instance = official_instance(false);
     let n = instance.pieces.len();
 
-    // A1: rotation orbits.
-    let mut full_orbit = 0usize;
-    let mut orbit_hist: BTreeMap<usize, usize> = BTreeMap::new();
-    for (_, p) in instance.pieces.iter() {
-        let s = orbit_size(p.edges);
-        *orbit_hist.entry(s).or_insert(0) += 1;
-        if s == 4 {
-            full_orbit += 1;
-        }
-    }
-    let distinct_piece_rotations: usize = orbit_hist.iter().map(|(s, c)| s * c).sum();
+    // A1: rotation orbits (kit census: full 4-orbit / 2-orbit / fixed).
+    let (full_orbit, half_orbit, fixed_orbit) = orbit_census(&instance.pieces);
+    let distinct_piece_rotations = 4 * full_orbit + 2 * half_orbit + fixed_orbit;
 
     // A1b: unordered edge-colour multisets.
     let mut by_multiset: HashMap<[u8; 4], Vec<u16>> = HashMap::new();
@@ -100,8 +78,9 @@ fn main() {
         }
     }
 
-    // A2 + A3: per-colour side counts in the stored orientation. Edge order is
-    // URDL, i.e. N, E, S, W. Border colour 0 is excluded throughout.
+    // A2: per-colour side counts in the stored orientation. Edge order is
+    // URDL, i.e. N, E, S, W. Border colour 0 is excluded throughout. The kit
+    // has no per-side census, so this stays local.
     let mut per_side: HashMap<u8, [u32; 4]> = HashMap::new();
     for (_, p) in instance.pieces.iter() {
         for side in 0..4 {
@@ -115,12 +94,17 @@ fn main() {
     colors.sort_unstable();
 
     let mut matching_cap = 0u32; // A2
-    let mut pairing_capacity = 0u32; // A3
-    let mut odd_colors: Vec<u8> = Vec::new();
     for &c in &colors {
         let [north, east, south, west] = per_side[&c];
         matching_cap += east.min(west) + north.min(south);
-        let total = north + east + south + west;
+    }
+
+    // A3: colour budget from the kit's half-edge census (index 0 = rim grey,
+    // excluded; the census is rotation-invariant so orientation is moot here).
+    let census = color_half_edge_census(&instance.pieces);
+    let mut pairing_capacity = 0u32;
+    let mut odd_colors: Vec<usize> = Vec::new();
+    for (c, &total) in census.iter().enumerate().skip(1) {
         pairing_capacity += total / 2;
         if total % 2 != 0 {
             odd_colors.push(c);
@@ -147,7 +131,8 @@ fn main() {
         "instance": { "name": instance.name, "pieces": n },
         "a1_rotation_orbits": {
             "full_orbit_pieces": full_orbit,
-            "orbit_size_histogram": orbit_hist,
+            "half_orbit_pieces": half_orbit,
+            "fixed_pieces": fixed_orbit,
             "distinct_piece_rotations": distinct_piece_rotations,
         },
         "a1b_edge_multisets": {

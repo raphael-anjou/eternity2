@@ -17,8 +17,8 @@
 //! pinning, the scorer, the viewer URL. Nothing here re-implements scoring.
 
 use e2_kit::{
-    generator, instance_from_generated, pin_solution_hints, Board, Budget, Instance, Pieces,
-    SolveOutcome, Solver,
+    fit, generator, instance_from_generated, pin_solution_hints, Board, Budget, Instance, Pieces,
+    SolveOutcome, Solver, XorShift, BORDER,
 };
 
 const HINTS: u32 = 5;
@@ -69,7 +69,7 @@ struct Search<'a> {
     slots: &'a [usize],
     board: Board,
     used: Vec<bool>,
-    rng: generator::XorShift,
+    rng: XorShift,
     nodes: u64,
     restart_start: u64,
     restart_cap: u64,
@@ -79,22 +79,24 @@ struct Search<'a> {
 }
 
 impl Search<'_> {
-    /// Required colour per URDL side of `pos`: `Some(0)` on a rim side,
-    /// `Some(c)` against a placed neighbour, `None` when unconstrained.
+    /// Required colour per URDL side of `pos`: `Some(BORDER)` on a sub-board
+    /// rim side, `Some(c)` against a placed neighbour, `None` when
+    /// unconstrained. The kit's [`fit::edge_constraints`] does the neighbour
+    /// arithmetic on the 16-stride board; only the sub-board's right and
+    /// bottom rims differ from the 16x16 rims (the embedding is top-left, so
+    /// top and left coincide, and the cells past the sub-board edge are
+    /// always empty), so those two sides are overridden to the rim colour.
     fn wants(&self, pos: usize) -> [Option<u8>; 4] {
         let n = self.n;
         let (x, y) = (pos % STRIDE, pos / STRIDE);
-        let edge = |p: usize, side: usize| {
-            self.board
-                .piece_at(p)
-                .map(|(pid, r)| self.pieces.get(pid).unwrap().rotated(r)[side])
-        };
-        [
-            if y == 0 { Some(0) } else { edge(pos - STRIDE, 2) },
-            if x == n - 1 { Some(0) } else { edge(pos + 1, 3) },
-            if y == n - 1 { Some(0) } else { edge(pos + STRIDE, 0) },
-            if x == 0 { Some(0) } else { edge(pos - 1, 1) },
-        ]
+        let mut want = fit::edge_constraints(&self.board, self.pieces, x, y, STRIDE, STRIDE);
+        if x == n - 1 {
+            want[1] = Some(BORDER);
+        }
+        if y == n - 1 {
+            want[2] = Some(BORDER);
+        }
+        want
     }
 
     /// True when the search must unwind (budget gone or restart cap reached).
@@ -123,9 +125,7 @@ impl Search<'_> {
                 continue;
             }
             for r in 0..4 {
-                let e = piece.rotated(r);
-                let ok = (0..4).all(|s| want[s].is_none_or(|c| e[s] == c));
-                if ok {
+                if fit::fit_score(&piece.rotated(r), &want).is_some() {
                     cands.push((pid, r));
                 }
             }
@@ -174,7 +174,7 @@ impl Solver for RestartingDfs {
             slots: &slots,
             board: start.clone(),
             used,
-            rng: generator::XorShift::new(self.solver_seed),
+            rng: XorShift::new(self.solver_seed),
             nodes: 0,
             restart_start: 0,
             restart_cap: self.restart_nodes,
