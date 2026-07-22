@@ -91,16 +91,14 @@ for (const f of files) {
 
 // ---- 1. archive validation -------------------------------------------------
 let missing = 0;
-// Messages newer than the archive export (ends msg 11823, 2026-03-31), verified
-// firsthand via the groups.io API rather than the bulk export.
+// Messages newer than the archive export (extended to msg 11931, 2026-07 via the
+// groups.io API), verified firsthand via the API rather than the bulk export.
 const POST_EXPORT_OK = new Set([
   11890, // Laurent Zamofing: max-conflict-free-placement objective, 248/256 via recombining 467 boards, 2026-06
-  11901, // Laurent Zamofing: Verhaard's 249 is a proven local dead-end; residual holes always in the top band, 2026-06
   11826, // Adam Miles: state-of-the-art throughput (~50M/core CPU, >10B/s GPU), "What are the performances of state-of-the-art solvers?", 2026-06
   11835, // David Barr: 23M/s CPU, 2.4B/s GPU on his own solvers, same thread, 2026-06
-  11848, // Peter McGavin: early doom-detection pruning generally too expensive to be worthwhile, 2026-06
-  11856, // @95A31: a full battery of feasibility checks turned out useless on an 8x8 search, 2026-06
-  11902, // benj39100: GPU annealing hits the same frozen core; best score grows with distance, 2026-06
+  // 11848, 11856, 11901, 11902 removed 2026-07-22: archive extended to msg 11931 via
+  // the groups.io API, so these four now validate from the bulk export directly.
   11905, // Jef Bucas wrapper_blackwood permission (from the user's inbox)
   11919, // Benjamin Riotte's 464 announcement, "Record of Eternity2 with 5 hints ?", 2026-07-06
   11879, // sylvogel's published subgrid-count reference table (the source of published-reference.json), "I built a website that serves as a starter kit...", 2026 — verified firsthand via the groups.io API
