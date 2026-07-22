@@ -10,8 +10,8 @@ contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
-order: 50
-updated: 2026-07-10
+order: 45
+updated: 2026-07-22
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "una resolución MIP por región; de ~70 s (48 celdas) a ~1800 s (halo-1 conjunto de 59 celdas) en CBC"
@@ -36,7 +36,7 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100: el recocido en GPU aplicado al tablero estricto de 5 pistas topa con el mismo núcleo congelado; la mejor puntuación crece con la distancia al titular (mensaje groups.io 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "Pruebas independientes de residuo SAT sobre halo y de congelación de réplicas de William Millilaw, reproducidas aquí sobre los tableros récord públicos (todas UNSAT hasta un halo de dos celdas)"
+  - label: "Pruebas independientes de residuo SAT sobre halo y de congelación de réplicas de William Millilaw, reproducidas aquí sobre cinco tableros públicos (cada resolución terminada UNSAT, hasta un halo de cuatro celdas)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
 ---
 
@@ -164,12 +164,18 @@ discordancias, exigir que cada arista liberada concuerde y preguntar si alguna
 disposición de esas piezas la satisface. Su solucionador respondió UNSAT.
 
 Nosotros [reprodujimos esa prueba SAT](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo)
-sobre los tableros récord públicos, con nuestro propio codificador y un control
-positivo para asegurarnos de que una región concordante vuelve satisfacible. Cada
-tablero récord que probamos, desde el 467 de Verhaard hasta el 470 de Blackwood,
-es UNSAT hasta un halo de dos celdas: ningún reordenamiento local de las propias
-piezas de un tablero récord cierra una sola discordancia. La programación entera
-optimiza y acota; el recocido choca con el muro a mano; SAT decide y devuelve una
+sobre cinco tableros públicos, con nuestro propio codificador y un control
+positivo para asegurarnos de que una región concordante vuelve satisfacible. En
+los cuatro tableros récord de la comunidad, desde el 467 de Verhaard hasta el 470
+de Blackwood, y el 464 de Riotte (el récord estricto de cinco pistas), cada
+resolución que termina es UNSAT hasta un halo de cuatro celdas: ningún
+reordenamiento local de las propias piezas de un tablero récord cierra una sola
+discordancia, incluso cuando la región liberada supera el centenar de celdas. Las
+instancias de radio 4 son lo bastante grandes como para que algunas no terminen
+dentro del límite de tiempo del solucionador; esas se registran como tiempos
+agotados y se dejan abiertas, no se cuentan como probadas, de modo que la tabla
+validada enuncia exactamente lo que se decidió. La programación entera optimiza y
+acota; el recocido choca con el muro a mano; SAT decide y devuelve una
 refutación. Tres métodos, una sola respuesta.
 
 Sus trabajos anteriores sobre la serpiente y la búsqueda local pusieron un número
