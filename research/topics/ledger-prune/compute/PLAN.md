@@ -116,7 +116,7 @@ Phase 1 (this crate, runnable now, generated instances):
    K, completions identical in both arms.
 3. The board every run touches is emitted as an eternity2.dev URL.
 
-Phase 2 (needs the gap items below): repeat the vault's exact certificate
+Phase 2 (RUN 2026-07-22 via --mode cert; boards recovered from the design-recipe-464 topic's committed URLs; see results/cert_phase2.json — board identified by fingerprint, certificate shape + compounding reproduced to 45.3x uncensored, depth-208 censored pending an incremental-ledger engine). Original design: repeat the vault's exact certificate
 rows on 464 board 1 flipped 180 degrees at D in {232, 224, 216, 208} with the
 real tail's break counts, single thread, and compare against the cited table.
 
