@@ -1,0 +1,191 @@
+---
+title: "Pureté de l'anneau : le bord est un sous-puzzle clos, sans aucun jeu"
+description: >-
+  Cinq des 22 couleurs ne touchent jamais les 196 pièces intérieures. La liste
+  des pièces force toute solution valide à dépenser les 120 demi-arêtes de
+  cadre sur l'anneau du bord : un sous-puzzle autonome à jeu exactement nul
+  (120 = 120), un circuit eulérien sur cinq sommets, relié à l'intérieur par
+  seulement 56 arêtes tournées vers le centre.
+metaDescription: "Pureté de l'anneau dans Eternity II : les cinq couleurs de cadre sont exclusives au bord, et toute solution valide dépense les 120 demi-arêtes de cadre sur l'anneau des 60 pièces de bord, sans aucun jeu. L'anneau est un circuit eulérien sur 5 sommets, relié à l'intérieur par 56 arêtes."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 65
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Pureté de l'anneau : le sujet de reproduction avec l'article, le vérificateur versionné et le JSON de résultats (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ring-purity
+  - label: "Brendan Owen numérise le jeu de pièces : 24 demi-arêtes pour chacune des 5 couleurs de jonction du bord, 48 ou 50 pour chaque couleur intérieure (groups.io msg 1054, juillet 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle : la séparation délibérée de la palette en 17+5 (groups.io msg 1947, août 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+  - /research/why/design-recipe
+repro:
+  kind: exact
+  topic: ring-purity
+  scope: >-
+    Chaque clause déterministe (identification des couleurs de cadre, structure
+    des emplacements pièce par pièce, le décompte de saturation 120 = 120, les
+    degrés du multigraphe, sa connexité, le branchement exact du premier pas)
+    est recalculée exhaustivement par le vérificateur Rust versionné dans le
+    répertoire compute/ du sujet, stable à l'octet près d'une exécution à
+    l'autre ; les deux mesures de force Monte-Carlo sont ensemencées et
+    concordent, à l'erreur d'échantillonnage près, sur des graines
+    indépendantes.
+---
+
+Cinq des 22 couleurs d'arêtes n'apparaissent sur aucune des 196 pièces
+intérieures. Dans la numérotation standard, ce sont les couleurs 1 à 5 : les
+couleurs de cadre. Chacune occupe exactement 24 demi-arêtes, toutes portées
+par les 60 pièces de bord, soit une réserve totale de 120. La pureté de
+l'anneau, c'est l'énoncé suivant : les données des pièces ne laissent aucun
+choix à cette réserve. Toute solution valide dépense l'intégralité des 120
+demi-arêtes sur les 120 emplacements de l'anneau du bord tournés vers
+l'anneau lui-même, sans aucun jeu. Le bord est un sous-puzzle autonome, et
+son seul contact avec l'intérieur passe par 56 arêtes tournées vers le
+centre.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">120 = 120</div>
+    <div className="mt-1 text-xs text-muted-foreground">demande de l'anneau contre réserve de cadre, jeu nul</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">5 × 24</div>
+    <div className="mt-1 text-xs text-muted-foreground">couleurs de cadre × demi-arêtes chacune</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">56</div>
+    <div className="mt-1 text-xs text-muted-foreground">arêtes reliant l'anneau à l'intérieur</div>
+  </div>
+</div>
+
+## Trois faits sur la liste des pièces
+
+La preuve repose sur trois propriétés vérifiables en parcourant une seule
+fois les 256 pièces. Aucune recherche, aucun échantillonnage.
+
+Premièrement, les couleurs de cadre n'apparaissent que sur les pièces de
+bord. Le vérificateur ne fait pas confiance aux étiquettes : il dérive
+l'ensemble des couleurs de cadre depuis les données, comme les couleurs à
+zéro occurrence sur les pièces intérieures, et en trouve exactement cinq.
+
+Deuxièmement, chacune des 56 pièces d'arête porte exactement deux
+emplacements de couleur de cadre et un emplacement hors cadre parmi ses trois
+emplacements non nuls, et l'emplacement hors cadre se trouve à l'opposé de
+l'emplacement gris. C'est le cas 56 fois sur 56.
+
+Troisièmement, les deux emplacements non nuls de chaque pièce de coin sont de
+couleur de cadre, et les deux emplacements gris sont adjacents. C'est le cas
+4 fois sur 4.
+
+Pour mémoire, le reste de la palette est aussi plat que la partie cadre :
+parmi les 17 couleurs intérieures, 5 apparaissent 48 fois et 12 apparaissent
+50 fois. Brendan Owen a mesuré exactement ces effectifs la semaine où il a
+numérisé son jeu ([msg 1054](https://groups.io/g/eternity2/message/1054)), et
+la séparation stricte des deux palettes était une décision de conception
+([msg 1947](https://groups.io/g/eternity2/message/1947)) ; la
+[page sur la recette de conception](/research/why/design-recipe) raconte
+cette histoire.
+
+## L'argument de forçage
+
+Une pièce d'arête se pose sur le pourtour avec son emplacement gris tourné
+vers l'extérieur ; l'emplacement opposé au gris regarde donc l'intérieur. Son
+voisin de ce côté est une pièce intérieure, qui, par le premier fait, n'a
+aucune couleur de cadre à offrir. L'emplacement tourné vers l'intérieur ne
+peut donc pas porter une couleur de cadre. Par le deuxième fait, la pièce
+d'arête possède exactement un emplacement hors cadre, et il se trouve
+précisément à l'opposé du gris, c'est-à-dire à la position intérieure. Les
+deux emplacements de cadre sont donc forcés sur les deux positions tournées
+vers l'anneau, le long du pourtour. Les coins, par le troisième fait,
+apportent leurs deux emplacements non nuls à l'anneau.
+
+Comptons. Demande : $56 \times 2 + 4 \times 2 = 120$ emplacements tournés
+vers l'anneau. Réserve : $5 \times 24 = 120$ demi-arêtes de cadre. Les deux
+nombres coïncident exactement. Chaque demi-arête de cadre est consommée sur
+l'anneau, aucune ne reste, et aucune couleur hors cadre n'apparaît jamais sur
+une jonction de l'anneau. C'est le sens de « sans aucun jeu » : le budget des
+couleurs de cadre est dépensé jusqu'à la dernière demi-arête.
+
+## L'anneau est un circuit eulérien
+
+Cette saturation admet une lecture nette en théorie des graphes. Prenez un
+multigraphe à 5 sommets, un par couleur de cadre, avec une arête par pièce de
+bord, joignant ses deux couleurs tournées vers l'anneau. Un arrangement
+valide de l'anneau du bord est exactement un circuit eulérien de ce
+multigraphe : parcourir l'anneau, c'est lire un circuit fermé qui utilise
+chaque arête-pièce une fois, et réciproquement.
+
+Sur l'instance réelle, le multigraphe compte 60 arêtes, tous ses degrés
+valent 24, et il est connexe : un circuit eulérien existe donc, comme il le
+doit, puisqu'une solution complète existe. Parmi les 60 arêtes, 14 sont des
+boucles (des pièces montrant la même couleur de cadre sur leurs deux
+emplacements d'anneau), et les arêtes couvrent les 15 paires de couleurs
+possibles, les 10 paires non ordonnées plus les 5 boucles.
+
+## Ce que vaut la loi
+
+Deux mesures de force accompagnent le théorème, une exacte et une
+échantillonnée.
+
+L'exacte est le branchement du premier pas. Fixez une pièce de bord posée ;
+la pièce suivante le long de l'anneau doit s'accorder à la couleur de cadre
+exposée. Parmi les pièces de bord, seules celles incidentes à cette couleur
+conviennent : selon la couleur, 20, 21, 21, 22 ou 22 d'entre elles, moyenne
+21,2, contre 59 candidates pour un ordre sans contrainte. L'accord de couleur
+divise à lui seul le premier facteur de branchement par 2,78.
+
+L'échantillonnée est une estimation par échantillonnage préférentiel
+séquentiel sur 1000 constructions gloutonnes ensemencées de l'anneau. Le
+log10 moyen de la probabilité d'un chemin achevé vaut -27,30 (écart-type
+0,64) pour la graine 1 et -27,39 (écart-type 0,62) pour la graine 2, contre
+une référence uniforme de $\log_{10}(1/59!) = -80,14$. Autrement dit : la loi
+d'accord des couleurs concentre la masse de probabilité d'environ 53 ordres
+de grandeur par rapport à un ordre uniforme des pièces de bord, tout en
+laissant une rareté résiduelle proche de $10^{-27}$. Une marche gloutonne
+purement guidée par les couleurs n'achève donc presque jamais un anneau :
+8,7 % de complétions pour la graine 1, 9,3 % (graine 2, exécutée pour vérifier la cohérence ; le JSON archivé couvre la graine 1) pour la graine 2, la mesure
+d'origine donnant 9,4 %. Les 87 constructions achevées de la graine 1 se sont
+toutes refermées en circuit, extrémités concordantes, ce qui est la structure
+eulérienne visible dans l'échantillon.
+
+## Ce qui reste ouvert
+
+Le décompte exact des circuits eulériens non orientés du multigraphe réel de
+l'anneau est ouvert. Un raccourci à orientation unique via le théorème BEST a
+été tenté pendant l'étude d'origine, démasqué comme sous-décompte par un test
+de contrôle sur K5, puis retiré ; aucun décompte de circuits n'est revendiqué
+nulle part. La mesure de complétion gloutonne ignore par ailleurs
+l'alternance géométrique coins/arêtes de l'anneau physique : elle mesure la
+loi d'accord des couleurs isolément, pas la contrainte complète de l'anneau.
+
+## Où cela se place, et comment le vérifier
+
+Le théorème découpe le puzzle le long du pourtour. Côté intérieur, les 56
+pièces d'arête montrent chacune une couleur de la palette intérieure à 17
+couleurs, et ces 56 arêtes constituent toute l'interface du bord avec les 196
+pièces intérieures ; la comptabilité à travers cette couture est le sujet de
+la [page sur l'équilibre du bord](/research/why/border-balance). Le visage
+visible de la même séparation, les cinq couleurs rares cantonnées au
+pourtour, se trouve sur la
+[page de géographie des couleurs rares](/research/why/rare-color-geography).
+Et cette page est le récit détaillé d'une des lois du
+[balayage des théorèmes](/research/why/theorem-sweep), aux côtés du reste de
+la structure exacte de l'instance.
+
+Chaque nombre ci-dessus est recalculé par le vérificateur versionné du sujet
+de reproduction indiqué dans les sources : un programme Rust unique qui
+charge l'instance officielle, dérive les couleurs de cadre depuis les
+données, vérifie exhaustivement chaque clause du théorème, construit le
+multigraphe de l'anneau, exécute les deux mesures Monte-Carlo ensemencées et
+produit un fichier JSON (versionné sous `results/ring_purity.json`) contenant
+tous les chiffres cités ici. Les clauses déterministes se reproduisent à
+l'octet près ; les mesures échantillonnées concordent, à l'erreur
+d'échantillonnage près, sur des graines indépendantes.

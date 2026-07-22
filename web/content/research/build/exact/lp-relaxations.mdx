@@ -12,7 +12,7 @@ metaDescription: "Eternity II as an integer program: relax the integrality and L
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: "The max-clique framing: 262,144 placement vertices, find a clique of 256 (groups.io message 627, 2007)"
@@ -213,6 +213,40 @@ The bound side of the story has the same shape and lives on the
 ceiling sits around 478 while the best real boards sit near 458, a gap far
 too wide to certify anything, for exactly the fractional-hedging reason
 above.
+
+## Recasting the puzzle over piece sides
+
+We tried one relaxation of our own, built from the other end of the model.
+Instead of asking which piece sits in which cell, list the 1,024 piece sides
+(256 pieces, 4 sides each) and ask which sides pair up: two sides may meet
+only if their colours match, and a finished board is a pairing of the 960
+non-border sides into the 480 interior seams. That count is exact by
+construction: 4 corner pieces contribute 2 non-border sides each, 56 edge
+pieces contribute 3, 196 interior pieces contribute 4, and
+$8 + 168 + 784 = 960 = 480 \times 2$. The instance has zero slack; every
+non-border side must find a partner.
+
+The LP over this pairing graph tells its story in three steps. Freeze every
+piece in one fixed orientation and the bound is 307.00, integral and matching
+a closed-form count, but unsound for the real puzzle because rotations are
+disallowed. Let sides pair freely across rotations (21,636 pairing variables,
+one degree constraint per side) and the LP reaches 480.00 exactly, with 132
+fractional pairings; adding per-piece pairing budgets changes nothing. Add
+rotation consistency, one relaxed rotation variable per piece coupled to the
+pairings so a piece's matched sides must agree on a single orientation
+(262,900 variables, about 503,000 constraints, minutes of solver time): still
+480.00, now with every pairing fractional and not one piece holding an
+integer rotation. The LP keeps 480 feasible by placing each piece partly in
+all four rotations at once, the side-level twin of the 30%-piece-1 corner
+above.
+
+So the colour ledger balances perfectly at every level of the relaxation we
+could afford to solve, and a bound that pins at the maximum is a negative
+result of a specific, useful kind: it localises the hardness. Nothing in
+which sides can pair with which obstructs a 480. The obstruction lives
+entirely in what these relaxations cannot see, that each piece occupies one
+whole cell and that the pairing must lie flat as a 16×16 grid. Same verdict
+as the cell-side model, reached from the opposite direction.
 
 ## What it costs
 

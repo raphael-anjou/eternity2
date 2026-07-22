@@ -1,0 +1,199 @@
+---
+title: "El muro de 470: una frontera de fase, no un límite de ingeniería"
+description: >-
+  La meseta comunitaria en los 460 altos se lee como una frontera de fase
+  entrópica de la instancia, no como un límite de la ingeniería de solvers: el
+  cálculo exacto sobre el juego oficial da una densidad de restricciones
+  cercana a 0,0094, un paisaje recocido que se derrumba por encima de 470 y
+  solo cruza 1 en 480, y un número esperado de 10 a 20 soluciones perfectas
+  casi ortogonales entre sí. Los números del lado de la instancia son exactos;
+  el cuadro de la brecha de solapamiento en 16x16 es una conjetura declarada.
+metaDescription: "La meseta de Eternity II entre 467 y 470 se lee como una frontera de fase entrópica, no un límite de ingeniería: densidad de restricciones 0,0094, los tableros no correlacionados se derrumban por encima de 470 y solo cruzan 1 en 480, con 10 a 20 soluciones perfectas casi ortogonales esperadas."
+kind: finding
+contribution: analysis
+rigor: conjectured
+tier: 2
+order: 46
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Achlioptas & Coja-Oghlan, Algorithmic barriers from phase transitions (FOCS 2008): el agrupamiento de soluciones y dónde se atascan los algoritmos locales en los CSP aleatorios"
+    url: https://arxiv.org/abs/0803.2122
+  - label: "Gamarnik, The overlap gap property: a topological barrier to optimizing over random structures (PNAS 2021)"
+    url: https://www.pnas.org/doi/10.1073/pnas.2108492118
+related:
+  - /research/why/theorem-sweep
+  - /research/why/phase-transition
+  - /research/why/rigidity-wall
+  - /research/why/design-recipe
+repro:
+  kind: exact
+  cmd: cd research/topics/the-470-wall/compute && cargo run --release --bin the_470_wall > ../results/landscape.json
+  topic: the-470-wall
+  scope: >-
+    Recalcula en menos de un segundo todos los números del lado de la
+    instancia a partir del juego de piezas oficial: la economía de colores,
+    las dos probabilidades de colisión, la densidad de restricciones y el
+    paisaje de puntuación recocido completo. La enumeración de tableros
+    pequeños detrás de la conjetura está planificada aparte y no forma parte
+    de este comando.
+---
+
+Los mejores tableros públicos llevan años agrupándose en los 460 altos, y el
+techo se mantiene en 470 de 480 (el historial de récords vive en la
+[página de récords](/research/records)). La pregunta de esta página es si
+esos diez últimos puntos son un problema de ingeniería, algo que un
+backtracker mejor o una heurística más fina acabará arañando, o una propiedad
+de la propia instancia. Tratar el juego de piezas oficial como un miembro de
+un ensamble aleatorio con solución plantada da una respuesta cuantitativa, y
+la respuesta señala a la instancia: la reserva de tableros que una búsqueda
+puede alcanzar de verdad se derrumba justo donde la comunidad se detuvo.
+
+El argumento tiene dos capas con un estatus muy distinto, y las mantengo
+separadas de principio a fin. Los números calculados sobre el juego de piezas
+real son exactos, y el paso de cómputo detrás de esta página los reproduce
+bit a bit. El cuadro estructural que los interpreta en 16×16 es una
+conjetura, apoyada en la enumeración exhaustiva de instancias pequeñas
+ajustadas al mismo parámetro, y queda etiquetada como tal más abajo.
+
+## La bolsa, medida exactamente
+
+Las 256 piezas se reparten en 4 esquinas, 56 piezas de borde y 196 piezas
+interiores. Apartando las 64 semiaristas grises del contorno quedan 960
+semiaristas de color, que se emparejan en las 480 adyacencias internas de un
+tablero lleno. La contabilidad es estricta: $960 = 2 \times 480$, sin holgura
+en ninguna parte. Las puntuaciones de esta página cuentan adyacencias
+internas emparejadas sobre 480, la misma convención de aristas emparejadas
+que el techo comunitario; nada aquí es una afirmación sobre la pista estricta
+de cinco pistas fijas.
+
+La economía de colores se divide después en dos subsistemas que nunca se
+hablan. El anillo del marco, el ciclo de 60 juntas entre piezas de borde,
+usa solo los colores 1 a 5, cada uno presente en exactamente 24 semiaristas;
+la probabilidad de que dos semiaristas de marco extraídas uniformemente
+coincidan es $p_f = 5 \cdot (24/120)^2 = 0{,}200$. El subsistema interior
+cubre las otras 420 juntas con los colores 6 a 22 (cinco colores con 48
+semiaristas, doce con 50), lo que da $p_i \approx 0{,}0588$, casi exactamente
+$1/17$. Estas dos probabilidades sostienen todo el análisis.
+
+Merece registrarse una comprobación exacta más: la bolsa real contiene cero
+piezas que se repitan bajo rotación. Frente a un nulo aleatorio emparejado,
+esto parece ser la única huella estadísticamente significativa de la pasada
+de diseño; el lado nulo de esa comparación aún necesita su propio generador,
+así que aquí solo se verifica el lado del juego real (exactamente cero).
+
+## Un solo número sitúa el régimen
+
+El parámetro que posiciona a Eternity II dentro de su ensamble es la densidad
+de restricciones: el número esperado de piezas que encajan en una celda
+interior totalmente restringida, con sus cuatro vecinas ya colocadas. Con 196
+piezas interiores, 4 rotaciones cada una y una probabilidad de colisión por
+arista de 0,0589 para una arista de pieza interior aleatoria,
+
+$$\mu = 196 \cdot 4 \cdot 0{,}0589^4 \approx 0{,}0094.$$
+
+Un hueco completamente rodeado admite alrededor de un candidato entre cien.
+Eso está muy por debajo de uno, lo que sitúa la instancia en pleno régimen
+rígido de los ensambles de satisfacción de restricciones con solución
+plantada: el régimen donde la teoría dice que el conjunto de soluciones se
+reduce a puntos aislados y bien separados, y donde los algoritmos locales se
+atascan de forma demostrable antes de alcanzarlos
+([Achlioptas & Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122),
+[Gamarnik 2021](https://www.pnas.org/doi/10.1073/pnas.2108492118)). El número
+en sí es una función exacta de los recuentos reales de colores; lo que el
+régimen implica a este tamaño pertenece a la capa conjetural, retomada más
+abajo.
+
+## El paisaje de puntuación recocido
+
+La pieza central del lado de la instancia es un recuento de primer momento:
+¿cuántas configuraciones de tablero *no correlacionadas* con la solución
+plantada alcanzan una puntuación dada? El recuento base de colocaciones que
+respetan las clases (esquinas en las esquinas, bordes en el contorno,
+interiores dentro, rotaciones libres para las piezas interiores) es
+$W_{\text{geom}} = 4! \cdot 56! \cdot 196! \cdot 4^{196} \approx 10^{559{,}9}$.
+La puntuación de una configuración aleatoria de ese tipo es la suma de 60
+indicadoras de Bernoulli($0{,}200$) del marco y 420 indicadoras de
+Bernoulli($0{,}0588$) del interior, y una convolución exacta en espacio
+logarítmico de esas 480 variables da el paisaje completo. Una configuración
+uniformemente aleatoria puntúa $36{,}7 \pm 5{,}7$.
+
+| puntuación | configuraciones no correlacionadas a esa puntuación (log10) |
+| ---------: | ----------------------------------------------------------: |
+|         37 |                                                        558,8 |
+|        200 |                                                        462,8 |
+|        400 |                                                        186,6 |
+|        460 |                                                         59,6 |
+|        470 |                                                         33,1 |
+|        480 |                                                        +1,28 |
+
+Destacan dos cosas. Primero, la reserva de tableros no correlacionados de
+alta puntuación sigue siendo astronómica hasta sorprendentemente arriba:
+unas $10^{60}$ configuraciones en la puntuación 460 y todavía unas $10^{33}$
+en 470. Segundo, el recuento cruza 1 prácticamente en el propio 480: el
+número esperado de colocaciones perfectas no correlacionadas con el tablero
+plantado es $10^{1{,}28} \approx 19$. El modelo de trabajo que esto tasa es
+un conjunto de soluciones del orden de 10 a 20 tableros perfectos, casi
+ortogonales entre sí y ortogonales al plantado, en la cima de una curva de
+entropía que apenas supera el cero.
+
+## Exacto por debajo, conjetura por encima
+
+Todo lo anterior a esta línea es un cálculo exacto sobre el juego oficial:
+los recuentos de clases, la economía de las 960 semiaristas, las dos
+probabilidades de colisión, $\mu$, $W_{\text{geom}}$ y cada fila de la tabla
+del paisaje. El comando de reproducción de esta página lo regenera todo desde
+el motor compartido en menos de un segundo, en `results/landscape.json`
+dentro de la carpeta del tema.
+
+Lo que el paisaje no dice es cómo están *dispuestos* esos raros tableros de
+alta puntuación: si la masa entrópica conecta con los tableros perfectos o si
+una brecha vacía los separa. A esa pregunta solo puedo responder con
+exactitud en instancias pequeñas. La enumeración exhaustiva de tableros
+plantados $n \times n$ con $n$ hasta 7, con el número de colores ajustado
+para igualar la densidad de restricciones, muestra una tendencia limpia: con
+$\mu$ holgado, el histograma de solapamiento con el plantado del conjunto de
+soluciones es continuo, y cuando $\mu$ baja hacia el 0,009 de E2 se vuelve
+bimodal y luego se derrumba. En el punto igualado ($n = 5$, 11 colores,
+$\mu = 0{,}009$), la enumeración encuentra la solución plantada, un cúmulo
+justo a su lado, una gran familia con solapamiento cero, y una banda
+totalmente vacía en medio.
+
+<Callout kind="warn" title="Dónde empieza la conjetura">
+  Los enunciados en 16×16 (un conjunto de 10 a 20 tableros perfectos casi
+  ortogonales, una brecha de solapamiento vacía por debajo, y el muro de 470
+  como borde visible de esa brecha) son extrapolaciones de la tendencia de
+  las instancias pequeñas a lo largo del parámetro de densidad de
+  restricciones. Son conjetura, no medición: ningún cálculo factible los
+  comprueba directamente a tamaño real. La tabla del paisaje y cada número
+  del lado de la instancia de esta página son exactos; la estructura de la
+  brecha en 16×16 es la parte que conviene sostener como modelo de trabajo.
+</Callout>
+
+## Leer el muro
+
+Junte la capa exacta y la capa conjetural, y la meseta comunitaria deja de
+parecer un déficit de herramientas. Una heurística que escala el paisaje de
+puntuación está extrayendo de la banda entrópica, y la banda es profunda: con
+$10^{33}$ configuraciones no correlacionadas aún disponibles en 470, llegar a
+los 460 altos es barato en un sentido preciso, y la ingeniería de solvers
+lleva años cosechando esa banda. Más allá, la reserva se adelgaza unos
+treinta órdenes de magnitud en diez puntos de puntuación, y si la
+extrapolación de la brecha de solapamiento se sostiene, no hay nada en medio
+por donde trepar: los diez puntos que faltan son la anchura de una región
+vacía que separa los últimos tableros entrópicos de un puñado de tableros
+perfectos aislados. Es la propiedad de la brecha de solapamiento en su papel
+de manual, una barrera topológica que una búsqueda local y estable no puede
+cruzar, sea cual sea la calidad de la implementación.
+
+Esta lectura concuerda con lo que medimos en otras partes de la wiki: el
+[muro de rigidez](/research/why/rigidity-wall) encuentra los tableros récord
+congelados en óptimos locales aislados sin gradiente hacia fuera, exactamente
+la sensación que debería dar el borde inferior de una brecha visto desde
+abajo. También afina lo que "progresar" tendría que significar. Más velocidad
+y mejor orden compran puntos entrópicos, y esos se agotan hacia 470 según la
+tabla de arriba; lo que cruce la brecha tendrá que inyectar correlación con
+una solución perfecta real en lugar de escalar la función de puntuación. Los
+enunciados sobre la instancia que se sostienen a nivel de demostración, por
+oposición al modelo de trabajo de esta página, se recogen en el
+[barrido de teoremas](/research/why/theorem-sweep).

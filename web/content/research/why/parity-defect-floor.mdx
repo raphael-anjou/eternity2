@@ -1,0 +1,185 @@
+---
+title: "Why 479 is impossible"
+description: >-
+  A counting argument on the official piece set forbids a score of exactly
+  479/480: every color's half-edges come in even numbers, and a single broken
+  joint would leave two odd counts. The floor below perfect is 478, and at
+  most 76 one-move near misses can surround any solution.
+metaDescription: "A parity theorem on the official Eternity II piece set: every color's half-edges come in even numbers, so a full board with exactly one broken joint cannot exist. A score of 479/480 is impossible, the floor below perfect is 478, and at most 76 one-move near misses can surround any solution."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 1
+order: 35
+updated: 2026-07-22
+topics: [structure, search-space]
+sources:
+  - label: "David Eddy opens the Parity thread: the number of edges of each type is even, and the last-piece consequence (msg 332, June 2007)"
+    url: https://groups.io/g/eternity2/message/332
+  - label: "Christophe Weibel's worked example of a final piece that fails to match its hole (msg 335)"
+    url: https://groups.io/g/eternity2/message/335
+  - label: "Brendan Owen's verdict on parity in E2: correct by construction, useful only near the end of a search (msg 346)"
+    url: https://groups.io/g/eternity2/message/346
+  - label: "Parity defect floor: article, checker source and census results (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor
+related:
+  - /research/why/theorem-sweep
+  - /research/why/forbidden-patterns
+  - /research/why/design-recipe
+  - /research/why/mismatch-geometry
+repro:
+  kind: exact
+  topic: parity-defect-floor
+---
+
+Line up full boards by score, counting matched internal joints out of 480
+(the matched-edges convention used throughout this wiki), and the ladder
+looks continuous: rung after rung, each occupied by some board somebody has
+built. It has exactly one hole. No legal full placement of the 256 pieces
+scores 479. That is a theorem about the published piece set, provable by
+counting alone, and this page walks the whole argument: the evenness that
+forces it, the defect floor of 2 that follows, and the census that bounds
+how many one-move near misses can surround any solution. It is also one
+entry in [the theorem sweep](/research/why/theorem-sweep), the survey of
+what can be proven from the bag before any search runs.
+
+## Count the half-edges
+
+256 tiles with four edges each carry 1024 half-edges. The gray frame color
+accounts for 64 of them, exactly the number of outward-facing slots on the
+rim (16 per side). The remaining 960 carry the 22 colors, and the census is
+strikingly even:
+
+| Color group                        | Half-edges |
+| ---------------------------------- | ---------: |
+| Gray frame edge                    |         64 |
+| Five frame-join colors (1 to 5)    |    24 each |
+| Five interior colors (6 to 10)     |    48 each |
+| Twelve interior colors (11 to 22)  |    50 each |
+
+Every colored count is even. The colored total, 960, is exactly twice the
+number of internal joints ($2 \times 16 \times 15 = 480$): in a frame-legal
+full placement, where all 64 gray half-edges face outward, the colored
+half-edges exactly fill the 960 internal joint slots with nothing left over.
+None of this depends on where the pieces go. These are properties of the bag.
+
+There is a pleasing shortcut hiding here: the evenness could have been
+predicted without examining a single piece. The designers guarantee a
+solution exists, and a solved board pairs every colored half-edge with a
+same-colored partner, so each color's count is twice its joint count, which
+is even by definition. The census merely confirms on the real set what
+solvability already promised.
+
+## The argument, in four lines
+
+Fix any full placement with a legal frame (every rim-facing edge gray) and
+fix a color $c$. Each of the 480 internal joints shows two half-edges. Some
+joints show $c$ on both sides, some on exactly one. Counting $c$'s
+half-edges:
+
+$$h(c) = 2 \cdot \#\{\text{joints showing } c \text{ twice}\} + \#\{\text{joints showing } c \text{ once}\}.$$
+
+Since $h(c)$ is even, the number of joints showing $c$ exactly once is even
+too. This holds for every color simultaneously, in every full placement,
+solved or broken.
+
+Now suppose a placement scores 479. It has exactly one broken joint, and a
+broken joint shows two different colors, say $a$ and $b$ (if both sides
+agreed it would be a match; gray cannot appear, since all 64 gray half-edges
+face outward). Every other joint is matched, showing its color twice. So
+exactly one joint shows $a$ exactly once. One is odd. That contradicts the
+evenness of $h(a)$, and the placement cannot exist.
+
+## The floor below perfect is 478
+
+Write the defect of a board as $480$ minus its score. Parity forbids defect
+1 and forbids nothing else: at defect 2 the odd counts can absorb each other
+in pairs, so the argument goes silent. Every legal full placement is
+therefore either a solution or misses at least two joints. One more censused
+fact closes the remaining loophole: no Eternity II tile is fixed by any
+rotation (0 of 256), so a board cannot score 480 while differing from a
+solution only by a tile spun in place. Score 480 means solution. Anything
+else means 478 or below.
+
+For today's leaderboards the missing rung is academic: the community's best
+full boards stand at 470 under the center-clue-only convention and 464 with
+all five clues placed ([the records page](/research/records) keeps the full
+ladder). But it changes what "almost solved" can ever mean. There is no 479
+to pass through on the way to 480. The last step of the climb is 478 to
+480, two joints at once, and any method that improves boards one joint at a
+time is structurally unable to take it.
+
+## The 478 shell is sparse
+
+A solution exists; the puzzle was constructed from one. What sits right next
+to it at 478? A board one move away from a solution must come from a move
+that breaks exactly two joints, and only two kinds of single move can do
+that. Both are countable in the bag:
+
+- **Twin swaps.** Two interior tiles that agree, in some orientations, on
+  three of their four edges. Placed so the agreeing edges line up, exchanging
+  them disturbs one edge of each: two joints. The set contains exactly
+  **50** such near-twin pairs.
+- **In-place turns.** A tile whose repeated colors let a half-turn or a
+  quarter-turn keep two of its four edge colors in position, so turning it
+  where it stands breaks exactly the other two joints. The set contains
+  **23** half-turn tiles and **3** quarter-turn tiles of this kind.
+
+Adding them up, any solution has at most $50 + 23 + 3 = 76$ defect-2
+neighbours reachable by a single swap or rotation. This is an upper bound
+from the bag: whether a given twin pair actually lines up inside a specific
+solution depends on that solution, so the realized count for the designed
+solution is open. The ceiling stands regardless. Around the very top of the
+ladder, near misses are sparse, a few dozen boards at most, while rungs
+further down are populated astronomically. It is the same scarcity that
+[forbidden patterns](/research/why/forbidden-patterns) show at the 2×2
+scale, read at the summit instead.
+
+## The frame pays its bill in advance
+
+The census has a second story to tell. Colors 1 to 5 appear on zero interior
+tiles; their $5 \times 24 = 120$ half-edges live entirely on the side edges
+of the 60 rim tiles. The rim ring has exactly 60 joints, so in any solution
+the five frame-join colors saturate them exactly, 12 joints per color, with
+no slack at all. And because a rim tile's orientation is forced (gray
+outward), each of the 56 edge tiles shows one fixed color to the interior
+wherever it lands. Summed over the bag, the interior receives a fixed demand
+vector over colors 6 to 22, namely (4, 5, 3, 3, 1, 1, 2, 3, 4, 6, 4, 2, 3,
+6, 4, 3, 2), 56 inward edges in all. Whatever frame you build, the
+interior's boundary bill is the same 17 numbers, known before any search
+starts.
+
+## What the community saw in June 2007
+
+The evenness was spotted before the puzzle even shipped. In June 2007 David
+Eddy opened a mailing-list thread titled Parity with the observation that
+"the number of edges of each type is even", and drew the last-piece
+consequence: if the final piece has four different edges, the final hole
+must show the same four colors in some order, which he put at a 1 in 6
+chance of matching ([msg 332](https://groups.io/g/eternity2/message/332)).
+Christophe Weibel supplied the worked example showing the last piece
+genuinely can fail to match its hole
+([msg 335](https://groups.io/g/eternity2/message/335)), and Brendan Owen,
+who had studied the design, closed the thread with the practical verdict:
+parity is correct for E2 by construction, and in a search it only ever helps
+near the very end ([msg 346](https://groups.io/g/eternity2/message/346)).
+
+All of that is true, and the thread stopped there. Pushed one step further,
+the same observation contains the theorem above: the evenness does more than
+make the last piece chancy, it deletes the 479 rung outright, sets the
+defect floor at 2, and caps the one-move shell around every solution at 76.
+
+## Check it yourself
+
+Every number on this page reduces to a one-pass census of the official set:
+the half-edge counts and their evenness, the 960 exact-fit identity, the
+zero rotationally symmetric tiles, the 4/56/196 corner/edge/interior split,
+the 50/23/3 defect-2 generators, the frame saturation, and the inward demand
+vector. The checker recomputes each value beside its expected one and emits
+a pass flag per claim; all 16 checks pass and the output is byte-stable
+across runs. The
+[article, checker source and results are on GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/parity-defect-floor),
+and the reproduction block on this page points at the same topic. One
+caveat on scope: the parity argument covers full 256-piece placements with a
+legal gray frame. Partial boards, and boards that break the frame rule, are
+outside it.

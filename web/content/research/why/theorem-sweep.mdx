@@ -1,0 +1,188 @@
+---
+title: "The theorem sweep: thirteen structural laws"
+description: >-
+  One research arc, thirteen families of structural theorems: ring purity,
+  the 479 parity floor, the 470 wall as a phase boundary, flux invariants,
+  the entropy area law, and the impossibility results that price every
+  standard shortcut. This page is the map.
+metaDescription: "Thirteen families of structural theorems proved about Eternity II in one arc: ring purity, the 479 parity floor, the 470 wall as a phase boundary, flux invariants, PLS-completeness of local search, the proof complexity of exhaustion, the entropy area law. A map linking the full write-ups."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 135
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Conway and Lagarias, Tiling with polyominoes and combinatorial group theory: the ancestor of boundary-invariant arguments for tiling problems (JCTA 1990)"
+    url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "The BEST theorem, counting Eulerian circuits of a directed graph: the correct tool (and a documented trap) for counting border arrangements"
+    url: https://en.wikipedia.org/wiki/BEST_theorem
+  - label: "Eulerian paths and circuits: the classical theory the border ring reduces to"
+    url: https://en.wikipedia.org/wiki/Eulerian_path
+  - label: "Johnson, Papadimitriou and Yannakakis, How easy is local search?: the PLS framework behind the local-search completeness result (JCSS 1988)"
+    url: https://doi.org/10.1016/0022-0000(88)90046-3
+  - label: "Ben-Sasson and Wigderson, Short Proofs Are Narrow: the resolution-width machinery behind the exhaustion lower bound (JACM 2001)"
+    url: https://doi.org/10.1145/375827.375835
+  - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian and Zdeborova, Gibbs states and the set of solutions of random CSPs: the condensed-phase picture the score-landscape analysis builds on (PNAS 2007)"
+    url: https://doi.org/10.1073/pnas.0703685104
+  - label: "Gamarnik, The overlap gap property: the barrier concept matching the measured empty overlap band (PNAS 2021)"
+    url: https://doi.org/10.1073/pnas.2108492118
+related:
+  - /research/why/ring-purity
+  - /research/why/parity-defect-floor
+  - /research/why/the-470-wall
+  - /research/why/entropy-area-law
+  - /research/why/rigidity-wall
+  - /research/why/how-hard-is-this-instance
+  - /research/records
+repro:
+  kind: prose
+---
+
+For one stretch of this project I put the solvers down and asked a different
+question: not "what score can I reach" but "what can I prove". The plan was a
+sweep. Take the puzzle into every branch of mathematics that plausibly has
+something to say about it (flows and cuts, extremal combinatorics, statistical
+physics, algebra, CSP theory, automata, proof complexity, the complexity of
+local search) and push each branch until it either yields a theorem or explains
+exactly why it cannot. The sweep produced thirteen families of results. This
+page is the map: a few sentences per family, with links to the full write-ups
+where they exist. Four families have dedicated pages today; the others will
+get theirs as their reproductions land in the repository.
+
+One note on flavor before the list. Some of these results are laws the piece
+set obeys, some are impossibility theorems about the score ladder, and some are
+clean negatives: proofs that a standard tool from another field, applied
+correctly, certifies nothing here. The negatives are stated with the same care
+as the positives. Knowing that a door is locked, and why, is how you stop
+paying rent on it.
+
+## Laws the piece set obeys
+
+**Ring purity.** The five colors that appear only on border pieces are scarcer
+than they look: their $5\times24=120$ half-edges exactly saturate the 120
+ring-facing slots of the 60-piece border, with zero slack. In every solution
+each edge piece is forced to point its single non-frame color inward, and the
+whole border problem collapses to finding an Eulerian circuit in a 5-vertex,
+60-edge multigraph. Full write-up:
+[ring purity](/research/why/ring-purity).
+
+**Frame-ring counting.** This family prices what the ring law buys. Color
+matching alone cuts the first border placement from 59 candidates to about 21,
+and a legally built random ring still sits near $10^{-27}$ on the probability
+scale: 53 orders of magnitude better than a uniform ordering ($10^{-80}$), and
+still astronomically short of certainty. The frame also hands the interior a
+fixed bill: each frame color closes exactly 12 ring joints, and the 56
+inward-facing edges carry a color demand, determined by the piece set alone,
+that every solution must reproduce. A dedicated write-up will follow.
+
+**Flux invariants.** Give every color a numeric weight and every piece the
+vector of its east-west and south-north weight differences; summed over any
+region, this telescopes to a boundary flux, and a quarter turn acts on the
+vector as multiplication by $i$. Decomposing along the four characters of the
+rotation group yields the complete lattice of linear piece-intrinsic
+invariants: a color census, a Gaussian-integer flux law of full rank 22 on the
+real piece set, and a checkerboard parity coupling rotation to cell color. The
+flux law doubles as a sound incremental certificate that catches endgame
+placement errors. Write-up to follow.
+
+**A quasi-random piece set.** Every second-order statistic audited (color-pair
+frequencies, adjacency matrices, the spectrum of the induced transition graph)
+is indistinguishable from a random control with the same color counts; the one
+deliberate signal is the known absence of rotation-duplicate pieces. On the
+generation side the evidence supports exactly enforced color counts over an
+otherwise uniform matching-consistent coloring, and a theorem closes the loop:
+reconstructing the hidden layout from the bag of pieces is exactly as hard as
+solving the puzzle. Write-up to follow.
+
+## Where the score ladder closes
+
+**The parity floor: 479 is impossible.** In any legal placement, each color's
+one-sided appearances come in pairs. A single mismatch would leave two colors
+odd, so no board scores 479: the ladder jumps from 478 to 480. The minimum
+nonzero defect is 2, realized by swapping near-twin pieces, and around any
+solution there are at most 76 one-move boards at that defect, so near-misses
+are provably sparse rather than abundant. Full write-up:
+[the parity defect floor](/research/why/parity-defect-floor).
+
+**The annealed landscape and the 470 wall.** Treat boards uncorrelated with
+the built-in solution as a random ensemble and count them by score: the count
+is astronomical up to roughly 465 to 470 and collapses beyond. The community's
+twenty-year plateau then reads as a phase boundary, not an engineering
+failure. The same analysis prices the instance at about 10 to 20 mutually
+near-orthogonal perfect boards, isolated needles with an empty overlap band
+around them; this is exact on small planted instances and a stated conjecture
+at full size. The community's best board stands at 470 on the open track and
+464 on the strict five-clue track; the conventions and the full table live on
+[the records page](/research/records). Full write-up:
+[the 470 wall](/research/why/the-470-wall).
+
+**The entropy area law.** The puzzle has two rules: edges must match, and each
+piece is used once. The measured entropy budget shows the first rule is
+generous and the second carries essentially all the hardness, with piece
+distinctness collapsing the count of legal blocks at a measurable scale. This
+family already has its page:
+[entropy and the area law](/research/why/entropy-area-law).
+
+## Machinery that provably cannot compress it
+
+**CSP width.** The plain 16 by 16 grid has treewidth exactly 16, which sounds
+exploitable until the global all-different constraint over all 256 cells enters
+and makes every width-based tractability argument vacuous. The propagation
+picture matches: plain arc consistency reduces 48 of 196 interior domains,
+while matching-based global consistency reduces 191. The constraint that hurts
+is the one no decomposition can cut. Write-up to follow.
+
+**Convex relaxations.** The standard SDP lift and a correctly derived LP
+relaxation, constructed exactly on small planted sub-instances with known
+optima, certify only the trivial ceiling and miss obstructions that elementary
+counting resolves immediately. At this instance's scale, convexity buys
+nothing. Write-up to follow.
+
+**Algebraic certificates.** In the bounded-degree Nullstellensatz over GF(2),
+everything a good solver's counting propagation already does has a degree-2
+certificate, and nothing else is cheap: refuting a piece-reuse defect in a
+$K\times K$ window needs degree growing with the area, so no global algebraic
+certificate exists at board scale. The tensor-network alternative dies by a
+rank computation: the per-cell tensor has effective bond dimension near 289
+with no spectral gap to truncate against. Write-up to follow.
+
+**No lossless compression of the frontier.** An exact dynamic program over
+scan frontiers compresses only if two distinct used-piece sets can safely
+merge, and a Myhill-Nerode argument shows they never can, under any scan
+order; measured on the real instance, the exact top-row frontier multiplies by
+about 8.9 per column. Meet-in-the-middle splits fail for a complementary
+reason: both halves draw from the same finite piece pool, so the two-way
+optimum is degenerate and no sound interface signature exists short of literal
+equality. Write-up to follow.
+
+## The complexity floor
+
+**Local search is PLS-complete.** For the natural family of edge-matching
+instances containing this puzzle, the improvement landscape is PLS-complete
+(proved for a generalized palette, with the bounded-palette refinement stated
+as a conjecture), and deciding whether a specific better board is reachable by
+improving moves alone is PSPACE-complete. A years-long plateau is the expected
+behavior of such a landscape, not the signature of a badly tuned solver.
+Write-up to follow.
+
+**The proof complexity of exhaustion.** Every "no completion exists here"
+subtree a backtracker closes is a treelike resolution refutation, and its cost
+is bounded below by resolution width, governed by the cut around the open
+region. The piece-uniqueness constraint contributes no pigeonhole hardness for
+extended resolution to attack, because edge matching sparsifies the
+piece-to-cell compatibility graph to near-permutation. The consequence is
+sharp: clause learning and better encodings buy polynomial factors, and no
+resolution-family method exhausts super-polynomially faster than what we
+already run. Write-up to follow.
+
+## What the sweep changes
+
+The point was never to lower expectations. A perfect board exists by
+construction, and nothing in these thirteen families touches that fact. What
+the sweep does is replace folklore with priced statements: the wall has a
+mechanism, the plateau has a complexity class, and each missing shortcut has an
+impossibility proof instead of a vague reputation. Every route that remains
+open now comes with the bill it must pay, and that is a far better starting
+point for the next attempt than a blank map.

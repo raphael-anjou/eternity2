@@ -1,0 +1,172 @@
+---
+title: "Ring purity: the border is a closed sub-puzzle with zero slack"
+description: >-
+  Five of the 22 colors never touch the 196 interior pieces. The piece list
+  forces every valid solution to spend all 120 frame half-edges on the border
+  ring: a self-contained sub-puzzle at exactly zero slack (120 = 120), an
+  Eulerian circuit on five vertices, coupled to the interior through just 56
+  inward edges.
+metaDescription: "Ring purity in Eternity II: the five frame colors are border-exclusive, and every valid solution spends all 120 frame half-edges on the 60-piece border ring with zero slack. The ring is an Eulerian circuit on a 5-vertex multigraph, all degrees 24, coupled to the interior by 56 inward edges."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 65
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Ring purity: reproduction topic with the article, the committed checker and the results JSON (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ring-purity
+  - label: "Brendan Owen digitises the piece set: 24 half-edges of each of the 5 border-join colours, 48 or 50 of each interior colour (groups.io msg 1054, July 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle: the deliberate 17+5 palette split (groups.io msg 1947, August 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/border-balance
+  - /research/why/rare-color-geography
+  - /research/why/design-recipe
+repro:
+  kind: exact
+  topic: ring-purity
+  scope: >-
+    Every deterministic clause (frame-color identification, per-piece slot
+    structure, the 120 = 120 saturation count, multigraph degrees, connectivity,
+    exact first-step branching) is recomputed exhaustively by the committed Rust
+    checker in the topic's compute/ directory, byte-stable on rerun; the two
+    Monte Carlo strength measures are seeded and agree within sampling error
+    across independent seeds.
+---
+
+Five of the 22 edge colors never appear on any of the 196 interior pieces. In
+the standard numbering they are colors 1 to 5: the frame colors. Each occurs
+on exactly 24 half-edges, all of them on the 60 border pieces, for a total
+supply of 120. Ring purity is the statement that the piece data leaves this
+supply no choice at all: every valid solution spends the entire 120 on the
+120 ring-facing edge slots of the border ring, with zero slack. The border is
+a self-contained sub-puzzle, and its only contact with the interior runs
+through 56 inward-facing edges.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">120 = 120</div>
+    <div className="mt-1 text-xs text-muted-foreground">ring demand vs frame supply, zero slack</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">5 × 24</div>
+    <div className="mt-1 text-xs text-muted-foreground">frame colors × half-edges each</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">56</div>
+    <div className="mt-1 text-xs text-muted-foreground">inward edges coupling ring to interior</div>
+  </div>
+</div>
+
+## Three facts about the piece list
+
+The proof rests on three properties you can verify by scanning the 256 pieces
+once. No search, no sampling.
+
+First, frame colors occur only on border pieces. The checker does not trust
+the labels: it derives the frame set from the data, as the colors with zero
+occurrences on interior pieces, and finds exactly five.
+
+Second, every one of the 56 edge pieces carries exactly two frame-colored
+slots and one non-frame slot among its three non-zero slots, and the
+non-frame slot sits opposite the gray slot. This holds 56 out of 56 times.
+
+Third, both non-zero slots of every corner piece are frame-colored, and the
+two gray slots are adjacent. This holds 4 out of 4 times.
+
+For the record, the rest of the palette is as flat as the frame part: of the
+17 interior colors, 5 occur 48 times and 12 occur 50 times. Brendan Owen
+measured exactly these counts the week he digitised his set
+([msg 1054](https://groups.io/g/eternity2/message/1054)), and the strict
+separation of the two palettes was a design decision
+([msg 1947](https://groups.io/g/eternity2/message/1947)); the
+[design-recipe page](/research/why/design-recipe) tells that story.
+
+## The forcing argument
+
+An edge piece sits on the rim with its gray slot facing outward, so the slot
+opposite the gray one faces the interior. Its inward neighbour is an interior
+piece, which by the first fact has no frame color to offer. The inward slot
+therefore cannot be frame-colored. By the second fact the edge piece owns
+exactly one non-frame slot, and it sits exactly opposite the gray slot, which
+is the inward position. So the two frame slots are forced onto the two
+ring-facing positions, along the rim. Corners contribute both their non-zero
+slots to the ring by the third fact.
+
+Now count. Demand: $56 \times 2 + 4 \times 2 = 120$ ring-facing slots.
+Supply: $5 \times 24 = 120$ frame half-edges. The two numbers match exactly.
+Every frame half-edge is consumed on the ring, none is left over, and no
+non-frame color ever appears on a ring joint. That is the zero-slack part:
+the frame-color budget is spent to the last half-edge.
+
+## The ring is an Eulerian circuit
+
+The saturation has a clean graph-theoretic reading. Take a multigraph on 5
+vertices, one per frame color, and one edge per border piece, joining its two
+ring-facing colors. A valid arrangement of the border ring is exactly an
+Eulerian circuit of this multigraph: walking the ring reads off a closed
+trail that uses every piece-edge once, and conversely.
+
+On the real instance the multigraph has 60 edges, every degree equal to 24,
+and it is connected, so an Eulerian circuit exists, as it must, since a full
+solution exists. Of the 60 edges, 14 are self-loops (pieces showing the same
+frame color on both ring slots), and the edges span all 15 possible color
+pairs, the 10 unordered pairs plus the 5 loops.
+
+## What the law is worth
+
+Two strength measures come with the theorem, one exact and one sampled.
+
+The exact one is first-step branching. Fix any placed border piece; the next
+piece along the ring must match the exposed frame color. Of the border
+pieces, only those incident to that color qualify: depending on the color,
+20, 21, 21, 22 or 22 of them, mean 21.2, against 59 candidates for an
+unconstrained ordering. Color matching alone cuts the first branching factor
+by 2.78x.
+
+The sampled one is a sequential importance sampling estimate over 1000 seeded
+greedy ring builds. The mean log10 path probability of a completed build is
+-27.30 (sd 0.64) on seed 1 and -27.39 (sd 0.62) on seed 2, against a uniform
+baseline of $\log_{10}(1/59!) = -80.14$. Read that as: the color-matching law
+concentrates probability mass by roughly 53 orders of magnitude relative to a
+uniform ordering of the border pieces, and still leaves a residual rarity
+near $10^{-27}$. A purely greedy color-matching walk accordingly almost never
+finishes a ring: 8.7% completion on seed 1, 9.3% (seed 2, run for batch consistency; the committed JSON records seed 1) on seed 2, with the source
+run at 9.4%. All 87 completed seed-1 builds closed into circuits, open ends
+matching, which is the Eulerian structure showing up in the sample.
+
+## What stays open
+
+The exact count of undirected Eulerian circuits of the real ring multigraph
+is open. A single-orientation shortcut through the BEST theorem was attempted
+during the original investigation, caught as an undercount by a K5 sanity
+check, and withdrawn; no circuit count is claimed anywhere. The greedy
+completion measure also ignores the geometric corner/edge alternation of the
+physical ring: it measures the color-matching law in isolation, not the full
+ring constraint.
+
+## Where it sits, and how to check it
+
+The theorem splits the puzzle along the rim. Inside the ring, the 56 edge
+pieces each show one color from the 17-color interior palette, and those 56
+inward edges are the border's entire interface with the 196-piece interior;
+the bookkeeping across that seam is the subject of the
+[border-balance page](/research/why/border-balance). The visible face of the
+same split, the five rare colors quarantined at the rim, is on the
+[rare-color-geography page](/research/why/rare-color-geography). And this
+page is the detailed account of one law in the
+[theorem sweep](/research/why/theorem-sweep), alongside the instance's other
+exact structure.
+
+Every number above is recomputed by the committed checker in the
+reproduction topic linked under sources: a single Rust program that loads the
+official instance, derives the frame colors from the data, verifies each
+clause of the theorem exhaustively, builds the ring multigraph, runs the two
+seeded Monte Carlo measures, and emits one JSON file (committed as
+`results/ring_purity.json`) holding every figure quoted here. The
+deterministic clauses reproduce byte for byte; the sampled ones agree within
+sampling error across independent seeds.

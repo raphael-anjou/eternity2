@@ -1,0 +1,206 @@
+---
+title: "La moisson de théorèmes : treize lois de structure"
+description: >-
+  Un seul arc de recherche, treize familles de théorèmes structurels : pureté
+  de l'anneau, le plancher de parité à 479, le mur des 470 comme frontière de
+  phase, les invariants de flux, la loi d'aire entropique, et les résultats
+  d'impossibilité qui chiffrent chaque raccourci classique. Cette page est la
+  carte.
+metaDescription: "Treize familles de théorèmes structurels sur Eternity II : pureté de l'anneau, plancher de parité à 479, mur des 470 comme frontière de phase, invariants de flux, PLS-complétude de la recherche locale, complexité des preuves d'épuisement, loi d'aire entropique. Une carte vers les articles complets."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 135
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Conway et Lagarias, Tiling with polyominoes and combinatorial group theory : l'ancêtre des arguments par invariants de bord pour les problèmes de pavage (JCTA 1990)"
+    url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Le théorème BEST, qui compte les circuits eulériens d'un graphe orienté : le bon outil (et un piège documenté) pour compter les arrangements de bordure"
+    url: https://en.wikipedia.org/wiki/BEST_theorem
+  - label: "Chemins et circuits eulériens : la théorie classique à laquelle l'anneau de bordure se réduit"
+    url: https://en.wikipedia.org/wiki/Eulerian_path
+  - label: "Johnson, Papadimitriou et Yannakakis, How easy is local search? : le cadre PLS derrière le résultat de complétude de la recherche locale (JCSS 1988)"
+    url: https://doi.org/10.1016/0022-0000(88)90046-3
+  - label: "Ben-Sasson et Wigderson, Short Proofs Are Narrow : la machinerie de largeur de résolution derrière la borne inférieure d'épuisement (JACM 2001)"
+    url: https://doi.org/10.1145/375827.375835
+  - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian et Zdeborova, Gibbs states and the set of solutions of random CSPs : le tableau de la phase condensée sur lequel s'appuie l'analyse du paysage des scores (PNAS 2007)"
+    url: https://doi.org/10.1073/pnas.0703685104
+  - label: "Gamarnik, The overlap gap property : le concept de barrière qui correspond à la bande de recouvrement vide mesurée (PNAS 2021)"
+    url: https://doi.org/10.1073/pnas.2108492118
+related:
+  - /research/why/ring-purity
+  - /research/why/parity-defect-floor
+  - /research/why/the-470-wall
+  - /research/why/entropy-area-law
+  - /research/why/rigidity-wall
+  - /research/why/how-hard-is-this-instance
+  - /research/records
+repro:
+  kind: prose
+---
+
+Pendant un moment de ce projet, j'ai posé les solveurs pour poser une autre
+question : non pas « quel score puis-je atteindre » mais « que puis-je
+démontrer ». Le plan était une moisson. Emmener le casse-tête dans chaque
+branche des mathématiques qui a plausiblement quelque chose à en dire (flots et
+coupes, combinatoire extrémale, physique statistique, algèbre, théorie des CSP,
+automates, complexité des preuves, complexité de la recherche locale) et
+pousser chaque branche jusqu'à ce qu'elle livre un théorème ou explique
+précisément pourquoi elle ne le peut pas. La moisson a produit treize familles
+de résultats. Cette page est la carte : quelques phrases par famille, avec des
+liens vers les articles complets quand ils existent. Trois familles ont
+aujourd'hui leur page dédiée ; les autres recevront la leur au fur et à mesure
+que leurs reproductions arrivent dans le dépôt.
+
+Une remarque de saveur avant la liste. Certains de ces résultats sont des lois
+que le jeu de pièces respecte, d'autres des théorèmes d'impossibilité sur
+l'échelle des scores, d'autres encore des négatifs propres : la preuve qu'un
+outil standard d'un autre domaine, correctement appliqué, ne certifie rien ici.
+Les négatifs sont énoncés avec le même soin que les positifs. Savoir qu'une
+porte est verrouillée, et pourquoi, c'est ce qui permet d'arrêter d'en payer le
+loyer.
+
+## Les lois que le jeu de pièces respecte
+
+**La pureté de l'anneau.** Les cinq couleurs qui n'apparaissent que sur les
+pièces de bordure sont plus rares qu'il n'y paraît : leurs $5\times24=120$
+demi-arêtes saturent exactement les 120 emplacements tournés vers l'anneau des
+60 pièces de bordure, sans aucun jeu. Dans toute solution, chaque pièce de bord
+est forcée de pointer son unique couleur non-cadre vers l'intérieur, et tout le
+problème de la bordure se réduit à trouver un circuit eulérien dans un
+multigraphe à 5 sommets et 60 arêtes. Article complet :
+[la pureté de l'anneau](/research/why/ring-purity).
+
+**Le comptage de l'anneau du cadre.** Cette famille chiffre ce que la loi de
+l'anneau rapporte. Le raccord des couleurs à lui seul ramène le premier
+placement de bordure de 59 candidats à environ 21, et un anneau construit
+légalement au hasard reste vers $10^{-27}$ sur l'échelle des probabilités : 53
+ordres de grandeur mieux qu'un ordre uniforme ($10^{-80}$), et toujours
+astronomiquement loin de la certitude. Le cadre présente aussi une facture fixe
+à l'intérieur : chaque couleur de cadre ferme exactement 12 joints de l'anneau,
+et les 56 arêtes tournées vers l'intérieur portent une demande de couleurs,
+déterminée par le seul jeu de pièces, que toute solution doit reproduire. Un
+article dédié suivra.
+
+**Les invariants de flux.** Donnez à chaque couleur un poids numérique et à
+chaque pièce le vecteur de ses différences de poids est-ouest et sud-nord ;
+sommé sur n'importe quelle région, cela se télescope en un flux de bord, et un
+quart de tour agit sur le vecteur comme la multiplication par $i$. La
+décomposition selon les quatre caractères du groupe des rotations donne le
+treillis complet des invariants linéaires intrinsèques aux pièces : un
+recensement des couleurs, une loi de flux à valeurs dans les entiers de Gauss,
+de rang plein 22 sur le vrai jeu de pièces, et une parité en damier qui couple
+la rotation d'une pièce à sa case. La loi de flux sert aussi de certificat
+incrémental valide qui attrape les erreurs de placement en fin de partie. Un
+article suivra.
+
+**Un jeu de pièces quasi aléatoire.** Chaque statistique d'ordre deux auditée
+(fréquences des paires de couleurs, matrices d'adjacence, spectre du graphe de
+transition induit) est indiscernable d'un témoin aléatoire aux mêmes comptes de
+couleurs ; le seul signal délibéré est l'absence connue de pièces dupliquées
+par rotation. Côté génération, les preuves soutiennent des comptes de couleurs
+imposés exactement sur un coloriage par ailleurs uniforme et cohérent avec le
+raccord, et un théorème boucle la boucle : reconstruire la disposition cachée à
+partir du sac de pièces est exactement aussi dur que résoudre le casse-tête. Un
+article suivra.
+
+## Là où l'échelle des scores se ferme
+
+**Le plancher de parité : 479 est impossible.** Dans tout placement légal, les
+apparitions d'une couleur d'un seul côté d'un joint vont par paires. Un unique
+raccord manqué laisserait deux couleurs impaires, donc aucun plateau ne marque
+479 : l'échelle saute de 478 à 480. Le défaut minimal non nul est 2, réalisé en
+échangeant des pièces quasi jumelles, et autour de toute solution il existe au
+plus 76 plateaux à un coup de ce défaut : les presque-réussites sont
+prouvablement rares, et non abondantes. Article complet :
+[le plancher de parité des défauts](/research/why/parity-defect-floor).
+
+**Le paysage recuit et le mur des 470.** Traitez les plateaux non corrélés à la
+solution d'origine comme un ensemble aléatoire et comptez-les par score : le
+compte est astronomique jusqu'à environ 465 à 470 puis s'effondre au-delà. Le
+plateau communautaire vieux de vingt ans se lit alors comme une frontière de
+phase, pas comme un échec d'ingénierie. La même analyse évalue l'instance à
+environ 10 à 20 plateaux parfaits mutuellement quasi orthogonaux, des aiguilles
+isolées entourées d'une bande de recouvrement vide ; c'est exact sur les
+petites instances plantées et une conjecture énoncée telle quelle à pleine
+taille. Le meilleur plateau communautaire est à 470 sur la piste ouverte et 464
+sur la piste stricte à cinq indices ; les conventions et le tableau complet
+vivent sur [la page des records](/research/records). Article complet :
+[le mur des 470](/research/why/the-470-wall).
+
+**La loi d'aire entropique.** Le casse-tête a deux règles : les bords doivent
+se raccorder, et chaque pièce ne sert qu'une fois. Le budget entropique mesuré
+montre que la première règle est généreuse et que la seconde porte pour
+l'essentiel toute la difficulté, l'unicité des pièces effondrant le compte des
+blocs légaux à une échelle mesurable. Cette famille a déjà sa page :
+[l'entropie et la loi d'aire](/research/why/entropy-area-law).
+
+## Les machineries qui ne peuvent prouvablement pas le comprimer
+
+**La largeur du CSP.** La grille nue de 16 par 16 a une largeur arborescente
+d'exactement 16, ce qui semble exploitable jusqu'à ce que la contrainte globale
+de différence sur les 256 cases entre en scène et rende vide tout argument de
+tractabilité par la largeur. Le tableau de la propagation concorde : la
+cohérence d'arc ordinaire réduit 48 des 196 domaines intérieurs, la cohérence
+globale par couplage en réduit 191. La contrainte qui fait mal est celle
+qu'aucune décomposition ne peut couper. Un article suivra.
+
+**Les relaxations convexes.** Le lift SDP standard et une relaxation LP
+correctement dérivée, construits exactement sur de petites sous-instances
+plantées aux optima connus, ne certifient que le plafond trivial et manquent
+des obstructions qu'un comptage élémentaire résout immédiatement. À l'échelle
+de cette instance, la convexité ne rapporte rien. Un article suivra.
+
+**Les certificats algébriques.** Dans le Nullstellensatz à degré borné sur
+GF(2), tout ce que la propagation par comptage d'un bon solveur fait déjà
+possède un certificat de degré 2, et rien d'autre n'est bon marché : réfuter un
+défaut de réutilisation de pièce dans une fenêtre $K\times K$ exige un degré
+qui croît avec l'aire, donc aucun certificat algébrique global n'existe à
+l'échelle du plateau. L'alternative par réseaux de tenseurs meurt d'un calcul
+de rang : le tenseur par case a une dimension de lien effective proche de 289,
+sans trou spectral contre lequel tronquer. Un article suivra.
+
+**Aucune compression sans perte du front.** Un programme dynamique exact sur
+les fronts de balayage ne comprime que si deux ensembles distincts de pièces
+utilisées peuvent fusionner sans risque, et un argument à la Myhill-Nerode
+montre qu'ils ne le peuvent jamais, quel que soit l'ordre de balayage ; mesuré
+sur la vraie instance, le front exact de la première rangée est multiplié par
+environ 8,9 à chaque colonne. Les découpes en meet-in-the-middle échouent pour
+une raison complémentaire : les deux moitiés puisent dans le même stock fini de
+pièces, donc l'optimum à deux voies est dégénéré et aucune signature
+d'interface valide n'existe en deçà de l'égalité littérale. Un article suivra.
+
+## Le plancher de complexité
+
+**La recherche locale est PLS-complète.** Pour la famille naturelle d'instances
+de raccord de bords qui contient ce casse-tête, le paysage d'amélioration est
+PLS-complet (démontré pour une palette généralisée, le raffinement à palette
+bornée étant énoncé comme conjecture), et décider si un plateau meilleur donné
+est atteignable par les seuls coups améliorants est PSPACE-complet. Un plateau
+de plusieurs années est le comportement attendu d'un tel paysage, pas la
+signature d'un solveur mal réglé. Un article suivra.
+
+**La complexité des preuves d'épuisement.** Chaque sous-arbre « aucune
+complétion n'existe ici » qu'un backtracker referme est une réfutation par
+résolution arborescente, et son coût est borné inférieurement par la largeur de
+résolution, gouvernée par la coupe autour de la région ouverte. La contrainte
+d'unicité des pièces n'apporte aucune difficulté de type pigeonnier que la
+résolution étendue pourrait attaquer, car le raccord des bords raréfie le
+graphe de compatibilité pièces-cases jusqu'à une quasi-permutation. La
+conséquence est nette : l'apprentissage de clauses et de meilleurs encodages
+rapportent des facteurs polynomiaux, et aucune méthode de la famille résolution
+n'épuise super-polynomialement plus vite que ce que nous faisons déjà tourner.
+Un article suivra.
+
+## Ce que la moisson change
+
+Le but n'a jamais été de baisser les attentes. Un plateau parfait existe par
+construction, et rien dans ces treize familles ne touche à ce fait. Ce que la
+moisson fait, c'est remplacer le folklore par des énoncés chiffrés : le mur a
+un mécanisme, le plateau de scores a une classe de complexité, et chaque
+raccourci manquant a une preuve d'impossibilité au lieu d'une vague réputation.
+Chaque route encore ouverte vient désormais avec la facture qu'elle devra
+payer, et c'est un bien meilleur point de départ pour la prochaine tentative
+qu'une carte vierge.
