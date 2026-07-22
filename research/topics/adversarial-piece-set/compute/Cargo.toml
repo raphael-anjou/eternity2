@@ -1,0 +1,24 @@
+# Self-contained compute crate for the adversarial-piece-set topic.
+# Path-depends on the research starter kit for the official instance; every
+# invariant is recomputed here from the raw piece set.
+[package]
+name = "adversarial-piece-set"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[[bin]]
+name = "adversarial_piece_set"
+path = "src/main.rs"
+
+[dependencies]
+e2-kit = { path = "../../../starter-kit" }
+serde_json = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[profile.release]
+opt-level = 3
+lto = "thin"

@@ -1,0 +1,39 @@
+# Self-contained compute crate for the scaling-ladder topic. Path-depends on the
+# starter kit for the generator, the canonical scorer, and the Solver trait.
+#
+# Board size is a COMPILE-TIME feature of e2-core (fixed-size hot-loop arrays),
+# so one binary is built per ladder rung. The kit does not forward the size
+# features, so this crate depends on e2-core directly and forwards them itself:
+#
+#   cargo run --release --features size-8  -- --seeds 1,2,3 --budget-s 12
+#   cargo run --release --features size-10 -- --seeds 1,2,3 --budget-s 12
+#   cargo run --release --features size-12 -- --seeds 1,2,3 --budget-s 12
+#   cargo run --release --features size-14 -- --seeds 1,2,3 --budget-s 12
+#
+# No feature = the official 16x16 shape (not a ladder rung; useful as a sanity
+# extreme). The rungs {8,10,12,14} are exactly the vol-240 ladder.
+[package]
+name = "scaling-ladder"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "ladder"
+path = "src/main.rs"
+
+[features]
+size-8 = ["e2-core/size-8"]
+size-10 = ["e2-core/size-10"]
+size-12 = ["e2-core/size-12"]
+size-14 = ["e2-core/size-14"]
+
+[dependencies]
+e2-kit = { path = "../../../starter-kit" }
+e2-core = { path = "../../../experiments/common/crates/e2-core" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
