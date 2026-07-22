@@ -10,7 +10,7 @@ metaDescription: "En un puzzle de 16×16 tipo Eternity II, dónde colocas las pi
 kind: finding
 contribution: measurement
 rigor: measured
-order: 95
+order: 100
 updated: 2026-07-10
 topics: [structure, search-space, backtracking]
 sources:
@@ -25,7 +25,16 @@ related:
   - /research/why/no-forced-moves
   - /research/why/prune-vs-speed
 repro:
-  kind: prose
+  kind: seeded
+  cmd: just experiments hint-study-solve
+  scope: >-
+    Reproduce solo el umbral de cruce de las filas contiguas: en un tablero 8×8
+    construido desde cero con la receta de colores de E2, el menor número de
+    filas contiguas cuya tasa de resolución y mediana de nodos hasta la solución
+    igualan un retículo repartido de dieciséis pistas, sobre treinta instancias
+    semilla por disposición (research/experiments/hint-study). Los recuentos de
+    16×16, el árbol de 41 mil millones de nodos y las estadísticas de profundidad
+    son las mediciones comunitarias citadas, no rederivadas aquí.
 ---
 
 import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
@@ -36,9 +45,11 @@ fácil. La pregunta obvia es cuántas necesitas. La mejor pregunta, resulta, es
 de Eternity II, dieciocho pistas colocadas en los sitios adecuados lo resuelven
 en minutos; amontonarlas en cambio en filas contiguas, una medición necesitó un
 centenar (sesenta de borde más cuarenta interiores) solo para bajar la búsqueda
-a decenas de miles de millones de colocaciones. Una diferencia de unas cinco
-veces en la cantidad, decidida por la geometría; la cantidad exacta de pistas
-contiguas que igualaría a dieciocho repartidas nunca se determinó.
+a decenas de miles de millones de colocaciones. Para fijar nosotros mismos el
+punto de cruce, repetimos el mismo enfrentamiento en un tablero lo bastante
+pequeño para resolverse por completo: igualar un retículo repartido de dieciséis
+pistas exigió **cinco filas contiguas, cuarenta pistas**, unas dos veces y media
+la cantidad, decidida por la sola geometría.
 
 ## Dos maneras de gastar las mismas dieciocho pistas
 
@@ -60,14 +71,28 @@ a un tamaño manejable: un centenar de pistas (sesenta de borde más cuarenta
 filas interiores) todavía dejaba un árbol de unos 47 mil millones de colocaciones
 ([msg 11725](https://groups.io/g/eternity2/message/11725)).
 
+Ninguna de las dos cifras fija el cruce con exactitud, porque un tablero 16×16
+nunca termina en segundos y el recuento en bruto queda enturbiado por las
+coincidencias gratuitas que un bloque macizo te regala. Así que encogimos el
+puzzle a un tamaño que sí termina, un 8×8 construido con la misma receta de
+colores, y medimos la magnitud real: los nodos hasta una resolución completa,
+sobre treinta instancias semilla por disposición. Allí, un retículo repartido de
+dieciséis pistas resuelve cada instancia en unos pocos miles de nodos de
+búsqueda. Las filas contiguas tienen que subir a cinco filas completas, cuarenta
+pistas, antes de resolver cada instancia dentro del mismo presupuesto de nodos.
+A *igual* cantidad, dieciséis pistas repartidas superan a dieciséis amontonadas
+en dos filas por más de dos órdenes de magnitud en nodos de búsqueda, y el
+bloque no logra resolver seis de las treinta. El retículo alcanza el final de la
+partida; el bloque no lo alcanza hasta casi sepultarlo.
+
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">18</div>
     <div className="mt-1 text-xs text-muted-foreground">pistas repartidas, resuelto en minutos</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">100</div>
-    <div className="mt-1 text-xs text-muted-foreground">pistas en filas contiguas para bajar la búsqueda a decenas de miles de millones de colocaciones</div>
+    <div className="text-3xl font-bold tabular-nums">2,5×</div>
+    <div className="mt-1 text-xs text-muted-foreground">más pistas, en filas contiguas, para igualar un retículo repartido (medido hasta la resolución)</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">99%</div>
@@ -124,5 +149,10 @@ vale muchísimo más que otras tantas dirigidas a cualquier otro sitio.
   muestra está decodificada del tablero publicado por Peter (msg 11746). El
   backtracker optimizado que usó Peter se remonta al mensaje de Mike de 2007
   (msg 3098). Estos son resultados de la comunidad sobre un puzzle tipo E2
-  concreto, registrados aquí con atribución en lugar de re-derivados.
+  concreto, registrados aquí con atribución en lugar de re-derivados. El umbral
+  de cinco filas es nuestra propia medición, sobre nuestros propios tableros 8×8
+  generados y nuestro backtracker: el menor número de filas contiguas cuya tasa
+  de resolución y mediana de nodos hasta la solución igualan ambas un retículo
+  repartido de dieciséis pistas, sobre treinta instancias semilla por
+  disposición. Reprodúcelo con `just experiments hint-study-solve`.
 </Callout>

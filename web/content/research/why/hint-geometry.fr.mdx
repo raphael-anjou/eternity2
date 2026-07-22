@@ -10,7 +10,7 @@ metaDescription: "Sur un casse-tête 16×16 façon Eternity II, la position des 
 kind: finding
 contribution: measurement
 rigor: measured
-order: 95
+order: 100
 updated: 2026-07-10
 topics: [structure, search-space, backtracking]
 sources:
@@ -25,7 +25,16 @@ related:
   - /research/why/no-forced-moves
   - /research/why/prune-vs-speed
 repro:
-  kind: prose
+  kind: seeded
+  cmd: just experiments hint-study-solve
+  scope: >-
+    Reproduit uniquement le seuil de bascule des rangées contiguës : sur un
+    plateau 8×8 conçu de zéro selon la recette de couleurs d'E2, le plus petit
+    nombre de rangées contiguës dont le taux de résolution et le nombre médian de
+    nœuds jusqu'à la solution égalent un réseau dispersé de seize indices, sur
+    trente instances graines par disposition (research/experiments/hint-study).
+    Les décomptes 16×16, l'arbre de 41 milliards de nœuds et les statistiques de
+    profondeur sont les mesures communautaires citées, non redérivées ici.
 ---
 
 import { HintGeometryDiagram } from "@/components/research/HintGeometryDiagram";
@@ -37,9 +46,11 @@ meilleure question, il s'avère, est de savoir *où* les placer. Sur un casse-t�
 indices posés aux bons endroits le résolvent en quelques minutes ; les entasser
 au contraire dans des rangées contiguës, une mesure en a réclamé une centaine
 (soixante de bordure plus quarante intérieurs) rien que pour ramener la
-recherche à des dizaines de milliards de placements. Un facteur cinq environ sur
-le nombre, tranché par la géométrie ; le nombre exact d'indices contigus qui
-égalerait dix-huit indices dispersés n'a jamais été établi.
+recherche à des dizaines de milliards de placements. Pour établir nous-mêmes le
+seuil de bascule, nous avons rejoué le même affrontement sur un plateau assez
+petit pour être résolu jusqu'au bout : égaler un réseau dispersé de seize
+indices a demandé **cinq rangées contiguës, quarante indices**, environ deux
+fois et demie le nombre, tranché par la seule géométrie.
 
 ## Deux façons de dépenser les mêmes dix-huit indices
 
@@ -63,14 +74,28 @@ plus quarante rangées intérieures) laissait encore un arbre d'environ 47
 milliards de placements
 ([msg 11725](https://groups.io/g/eternity2/message/11725)).
 
+Ni l'un ni l'autre de ces chiffres n'établit le seuil avec précision, car un
+plateau 16×16 ne se termine jamais en quelques secondes et le décompte brut est
+brouillé par les correspondances gratuites qu'un bloc plein vous offre. Nous
+avons donc réduit le casse-tête à une taille qui, elle, se termine, un 8×8
+construit selon la même recette de couleurs, et mesuré la vraie grandeur : le
+nombre de nœuds jusqu'à une résolution complète, sur trente instances graines
+par disposition. Là, un réseau dispersé de seize indices résout chaque instance
+en quelques milliers de nœuds de recherche. Les rangées contiguës doivent grimper
+à cinq rangées pleines, quarante indices, avant de résoudre chaque instance dans
+le même budget de nœuds. À nombre *égal*, seize indices dispersés l'emportent
+sur seize entassés en deux rangées de plus de deux ordres de grandeur en nœuds de
+recherche, et le bloc échoue à en résoudre six sur trente. Le réseau atteint la
+fin de partie ; le bloc ne l'atteint jamais avant de presque l'ensevelir.
+
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">18</div>
     <div className="mt-1 text-xs text-muted-foreground">indices dispersés, résolu en minutes</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">100</div>
-    <div className="mt-1 text-xs text-muted-foreground">indices en rangées contiguës pour ramener la recherche à des dizaines de milliards de placements</div>
+    <div className="text-3xl font-bold tabular-nums">2,5×</div>
+    <div className="mt-1 text-xs text-muted-foreground">d'indices en plus, en rangées contiguës, pour égaler un réseau dispersé (mesuré jusqu'à la résolution)</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">99%</div>
@@ -128,5 +153,10 @@ ailleurs.
   est décodée du plateau publié par Peter (msg 11746). Le backtracker optimisé
   qu'a employé Peter remonte au message de Mike de 2007 (msg 3098). Ce sont des
   résultats communautaires sur un casse-tête façon E2 particulier, consignés ici
-  avec attribution plutôt que redérivés.
+  avec attribution plutôt que redérivés. Le seuil des cinq rangées est notre
+  propre mesure, sur nos propres plateaux 8×8 générés et notre backtracker : le
+  plus petit nombre de rangées contiguës dont le taux de résolution et le nombre
+  médian de nœuds jusqu'à la solution égalent tous deux un réseau dispersé de
+  seize indices, sur trente instances graines par disposition. Reproduisez-le
+  avec `just experiments hint-study-solve`.
 </Callout>

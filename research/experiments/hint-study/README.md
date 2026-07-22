@@ -40,6 +40,13 @@ scripts/
   run_grid.py           generate variants x run every (path, layout, seed) ->
                         results/rerun/results.jsonl  (parallel, 1 thread per run)
   make_site_json.py     results.jsonl -> web/src/data/hint-study.json
+  run_solve_speed.py    on a fully-solvable board (8x8), nodes-to-solution per
+                        layout -> results/solve8/results.jsonl. Includes the
+                        contiguous-ROW family (row_block_R = R full rows) used
+                        for the crossover.
+  make_solve_json.py    results/solve8 -> web/src/data/hint-study-solve.json,
+                        including the row_crossover block (fewest contiguous rows
+                        matching a scattered lattice's solve-rate + median nodes).
 results/                committed run outputs
 ```
 
