@@ -1405,3 +1405,37 @@ numbering scrubbed from public text, a wrong remembered DOI caught and
 corrected against the actual CP 2008 chapter, source-study figures
 attributed and given article-level traces, wall-clock strings aligned with
 the hardware block's measured flag.
+
+### 2026-07-22 — Why-section upgrade: seven experiments close the reproducibility debt + confidence map
+
+The approved why-review follow-through (7 experiment agents + 1 structure
+agent, then orchestrator verification). Every previously-unbacked headline
+now has a committed artifact or an honest label:
+- sigma-cycles: NEW topic; 246 ordered pairs / 1,154 large loops / 54,238
+  partial applications, zero >= start. Three-pair conjecture -> exact
+  population result (page + Lab updated).
+- border-mismatch-share: NEW topic; 86.9% interior-interior, 0 border-border
+  over 99 mismatches on the nine 469-class boards.
+- rigidity-sat-halo: radii 1-4 on five boards (incl. Riotte 464); 18/20
+  UNSAT, two radius-4 TIMEOUTs committed open. NOTE: the implementing agent
+  had edited the page before its sweep finished (its session was captured
+  mid-wait); the orchestrator caught the unbacked-claim window, reran the
+  sweep to completion, and reconciled page vs artifact before commit.
+- entropy-area-law: in-repo A(n)/B(n) exact through n=3 (B(2) cross-checks
+  subgrid table); fitted alpha 0.044 supersedes off-site 0.085 ON THE PAGE
+  with the change stated; five satellite pages de-numbered to links
+  (the volatile number lives on one page; everyone else links).
+- prune-vs-speed: stale results regenerated (engine generator had been
+  rewritten twice since commit); qualitative claims unchanged.
+- hint-study: contiguous-row family added; crossover = 5 rows/40 hints vs
+  the 16-hint scattered lattice (medians 107 vs 3,913 nodes).
+- archive: extended to msg 11931; citations 11848/11856/11901/11902
+  de-allowlisted, now validating from the export.
+- Structure: "What each wall rests on" confidence map on walls-and-methods
+  (written against the post-experiment tree), connective tissue on the
+  index (two supportable relationships stated; three causal questions
+  routed to open-problems as entries), order aligned to the argument.
+All gates green (0 em dashes, citations 0 missing, anchors, hardware,
+repro, parity, i18n, 43/43 tests, full build). One expected transient:
+the new topic's GitHub tree URL 404s until push. E4 (hardness-peak sweep)
+remains queued as the last experiment.
