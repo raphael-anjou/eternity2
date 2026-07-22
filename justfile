@@ -74,6 +74,12 @@ mod experiments 'research/experiments/justfile'
 research-index:
     node research/build-index.mjs
 
+# Top up the local groups.io archive to the current tail via the REST API.
+# Idempotent; needs GROUPS_IO_SCRAPING_KEY from the parent .env. The archive
+# itself lives outside the repo and is never committed (see GROUPSIO_API.md).
+archive-refresh:
+    set -a; . ../.env; set +a; python3 research/community/refresh_archive.py
+
 # Reproduce the forbidden-patterns topic's results.
 research-forbidden-patterns:
     cd research/topics/forbidden-patterns/compute && cargo run --release > ../results/feasibility.json
@@ -110,6 +116,11 @@ research-entropy-area-law:
 research-record-boards:
     cd research/topics/record-boards/compute && cargo run --release > ../results/verified-scores.json
 
+# Reproduce the border-mismatch-share topic's results (split each high board's
+# unmatched edges into interior-interior / interior-border / border-border).
+research-border-mismatch-share:
+    cd research/topics/border-mismatch-share/compute && cargo run --release > ../results/mismatch-split.json
+
 # Reproduce the clue-puzzle-pieces topic's results (SAT-solve + verify the four
 # recovered clue puzzles). Requires kissat and python3; see the topic's run.sh.
 research-clue-puzzle-pieces:
@@ -117,6 +128,7 @@ research-clue-puzzle-pieces:
 
 # Reproduce the rigidity-sat-halo topic's results (self-test + SAT halo search).
 research-rigidity-sat-halo:
+    cd research/topics/rigidity-sat-halo/compute && cargo run --release -- --selftest
     cd research/topics/rigidity-sat-halo && ./run.sh
 
 # Regenerate the experiments-log data from the research vault concepts.
@@ -159,3 +171,8 @@ research-frostline:
 # Reproduce the scaling-ladder topic's results (4 rungs x 8 seeds x 2 baseline solvers).
 research-scaling-ladder:
     cd research/topics/scaling-ladder/compute && cargo run --release > ../results/summary.json
+
+# Reproduce the sigma-cycles topic's results (all ordered same-piece-set board
+# pairs: cycle structure + every-proper-prefix partial-application score curves).
+research-sigma-cycles:
+    cd research/topics/sigma-cycles/compute && cargo run --release > ../results/sigma-cycles.json

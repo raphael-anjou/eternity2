@@ -1,0 +1,24 @@
+# Self-contained compute crate for the sigma-cycles topic. It reads the bundled
+# boards (extracted from web/src/data into ../boards.json), groups them by shared
+# piece set, and for every ordered same-set pair computes the position
+# permutation, its disjoint cycle decomposition, and the matched-edge score of
+# every proper prefix of each large cycle. Path-depends on the shared engine only
+# for the board size / edge conventions used elsewhere in the repo; the cycle math
+# is exact and deterministic, so results reproduce byte-for-byte.
+[package]
+name = "sigma-cycles"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "sigma_cycles"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+
+[profile.release]
+opt-level = 3
+lto = true

@@ -10,7 +10,7 @@ contribution: theory
 rigor: measured
 tier: 3
 order: 120
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [search-space, structure]
 sources:
   - label: Border edge-type balance observed in the launch summer (angwin_uk, August 2007)
@@ -28,7 +28,13 @@ related:
   - /research/why/forbidden-patterns
   - /research/why/no-forced-moves
 repro:
-  kind: prose
+  kind: exact
+  cmd: just research-border-mismatch-share
+  topic: border-mismatch-share
+  scope: >-
+    The interior-interior / interior-border / border-border split of every
+    bundled high board's unmatched edges, recounted from the committed board
+    data.
 ---
 
 import { Ns1Lab } from "@/components/research/Ns1Lab";
@@ -70,10 +76,11 @@ button, and watch the catch.
 Swapping two border pieces leaves $\Delta$ at 0. The swap moves colours around
 the seam without changing either tally, so the invariant is blind to it.
 Worse, on a near-solution most of the remaining errors aren't on the border
-seam at all. They sit interior-to-interior, where NS-1 never looks: across the
-469-class boards we have looked at, the large majority of the unmatched edges
-are invisible to it (an exact recount across the record set is queued as an
-experiment, not yet a committed benchmark).
+seam at all. They sit interior-to-interior, where NS-1 never looks. Across the
+nine bundled 469-class boards, of the 99 unmatched edges that remain, 86.9% sit
+interior-to-interior and not one is border-to-border; only the other 13.1% land
+on the seam NS-1 inspects. The invariant is blind to the large majority of what
+is still wrong.
 
 That is the whole texture of Eternity II in miniature. A check this clean
 still only ever says "definitely broken", never "definitely fine". The puzzle

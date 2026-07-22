@@ -1,0 +1,19 @@
+# Self-contained compute crate for the border-mismatch-share topic. Path-depends
+# on the shared engine only for the official board size / max score constants.
+[package]
+name = "border-mismatch-share"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "border_mismatch_share"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+
+[profile.release]
+opt-level = 3
+lto = true
