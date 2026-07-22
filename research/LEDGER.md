@@ -1439,3 +1439,20 @@ All gates green (0 em dashes, citations 0 missing, anchors, hardware,
 repro, parity, i18n, 43/43 tests, full build). One expected transient:
 the new topic's GitHub tree URL 404s until push. E4 (hardness-peak sweep)
 remains queued as the last experiment.
+
+### 2026-07-22 — E4 hardness-peak: Owen's criterion passes a scale-transfer test
+
+The slate's last experiment. Calibration overturned the proposal's design:
+a plain DFS never solves a full 16x16 under any feasible budget, and the
+format's 22-motif alphabet caps a framed 16x16 at exactly 17 interior
+colors, so the peak is only traversable on a smaller board. Dual-regime
+result: (8x8) solve-rate collapses to 0/90 at exactly c=6-8 under a 30M
+budget; the criterion's size-8 prediction 7.5579 (same formula that gives
+Owen's 17.1377 at size 16, computed by the crate's --criterion mode) lands
+inside the band. (16x16) 0/570 solved, median depth declines 238->199.5
+to the ceiling; c=18..26 clamp bit-identical to 17. The full board sits at
+the predicted peak and the format cannot express its far side.
+phase-transition.mdx measured-here paragraph + repro scope (EN/FR/ES).
+Ops note: one sweep was killed by editing run.sh while it executed
+(orchestrator error, sequencing); rerun clean on the refactored resumable
+runner. All gates green; full build; 30 topics.
