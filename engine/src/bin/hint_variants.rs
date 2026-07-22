@@ -250,6 +250,15 @@ fn contiguous(n: usize) -> Vec<usize> {
     (0..n).collect()
 }
 
+/// Contiguous ROWS: the first `rows` complete rows from the top, i.e. a solid
+/// `rows × n` band of pinned cells. This is Joe's "seed whole rows from a known
+/// solution" geometry — the contiguous-row family whose crossover against a
+/// scattered lattice the hint-geometry study measures. `rows` full rows pin
+/// `rows·n` cells.
+fn row_block(g: Grid, rows: usize) -> Vec<usize> {
+    (0..rows.min(g.n) * g.n).collect()
+}
+
 fn interior_lattice(g: Grid, stride: usize, n: usize) -> Vec<usize> {
     lattice(g, stride, 1)
         .into_iter()
@@ -428,6 +437,19 @@ fn main() {
     for k in 2..=4 {
         let cells = clustered_blocks(g, k);
         write_variant(&out_dir, &format!("ladder_clustered_k{k}_{:02}", cells.len()), g, &board, &scr, &cells);
+    }
+
+    // --- Contiguous-ROW family (the crossover axis) --------------------------
+    // Joe's "seed whole contiguous rows from a known solution" geometry: a solid
+    // R×N band pinned from the top, for R = 1 .. N-1 rows. Named by the row count
+    // so the study can ask directly how many CONTIGUOUS ROWS it takes to match a
+    // SCATTERED lattice's solve-rate / nodes-to-solution. On the fully-solvable
+    // 8×8 board this is the crossover experiment; every row family is emitted at
+    // every size so the layout set is size-uniform. (`row_block_01` = one row =
+    // N hints; the top `contiguous(N)` block, but named by rows for the axis.)
+    for rows in 1..g.n {
+        let cells = row_block(g, rows);
+        write_variant(&out_dir, &format!("row_block_{rows:02}"), g, &board, &scr, &cells);
     }
 
     // --- Axis 3 support: count sweep at fixed (spread) geometry ---------------
