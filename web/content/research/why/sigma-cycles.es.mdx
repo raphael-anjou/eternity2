@@ -4,7 +4,7 @@ description: >-
   Si no puedes mejorar un tablero excelente puliéndolo, quizá puedas saltar a
   otro tablero excelente. En cada par de récords probado, no puedes, y vale la
   pena ver la razón estructural que lo explica.
-metaDescription: "Si pulir un gran tablero de Eternity II no lo mejora, quizá puedas saltar a otro gran tablero — pero en cada par de récords probado, no puedes. La estructura de ciclos sigma entre tableros fuertes muestra por qué el salto de cuenca parece imposible, calculada sobre el récord 469 de McGavin."
+metaDescription: "Si pulir un gran tablero de Eternity II no lo mejora, quizá puedas saltar a otro; en cada par probado no puedes. La estructura de ciclos entre tableros fuertes, la ley de frontera que grava todo movimiento parcial y las evasiones fallidas, calculadas contra el récord 469 de McGavin."
 kind: finding
 contribution: theory
 rigor: measured
@@ -15,9 +15,14 @@ topics: [structure, local-search]
 sources:
   - label: "Anuncio del récord 469 de Peter McGavin: uno de los tableros contra los que se calculan los ciclos (groups.io msg 10045, septiembre de 2020)"
     url: https://groups.io/g/eternity2/message/10045
+  - label: "J. Houdayer, A cluster Monte Carlo algorithm for 2-dimensional spin glasses (arXiv): el original, en física, del movimiento de trasplante de bucles enteros"
+    url: https://arxiv.org/abs/cond-mat/0101116
+  - label: "Teorema de Jordan para el grupo simétrico: la herramienta de teoría de grupos detrás del cálculo de ausencia de estructura oculta"
+    url: https://en.wikipedia.org/wiki/Jordan%27s_theorem_(symmetric_group)
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
+  - /research/records
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
   kind: exact
@@ -44,6 +49,18 @@ Aquí está el truco. Entre los mejores tableros, ese bucle es enorme. Pasar de 
 tablero de 464 de Riotte al de 469 de McGavin es un bucle entrelazado de hasta
 189 celdas, junto con unas pocas más cortas, que desplaza casi todas las piezas
 del tablero.
+
+Una costumbre de este paisaje merece un nombre antes de los diagramas: la
+distancia en puntuación no dice nada de la distancia en configuración. En un par
+medido, dos tableros separados por dos puntos de puntuación discrepaban en el
+88 % de sus posiciones; en otro, dos tableros separados por un punto diferían en
+72 celdas. (Dos pares, ejemplos ilustrativos y no estadísticas de población; la
+evidencia a escala de población es el barrido de abajo.) «Caminar de un 456 a un
+457 cercano» no es un plan con sentido cuando el tablero «cercano» puede estar a
+casi un tablero entero de distancia. Salvo indicación contraria, cada puntuación
+de esta página cuenta aristas emparejadas sobre 480 del puzzle canónico; cuando
+aparece uno de nuestros propios tableros, decimos si sus cinco piezas-pista
+están colocadas.
 
 ## Un solo bucle, todo o nada
 
@@ -73,6 +90,64 @@ mejor tendrías que comprometerte a desplazar un bucle entero de golpe, hasta 19
 celdas, sin ningún paso de mejora en el camino que te guíe hasta allí. Toda
 búsqueda que avanza por pasos es ciega ante un movimiento así.
 
+Los prefijos solo cierran la mitad de la puerta; los bucles completos cierran la
+otra mitad. Uno de nuestros tableros de 458, descompuesto contra el 469 de
+McGavin, da 11 bucles (tamaños 80, 42, 42, 40, 25, 10, 4, 4, 3, 2, 2). Aplicar
+un bucle solo hace caer la puntuación de 5 a 170 puntos; incluso los bucles de 2
+celdas pierden de 6 a 7 aristas cada uno. Solo la permutación completa, todos los
+bucles juntos, alcanza 469. Un segundo par cuenta la misma historia con más
+detalle: entre uno de nuestros tableros de 460 y el 469, la permutación se
+divide en 15 ciclos (longitudes hasta 52), cualquier ciclo aislado cuesta de 4 a
+143 aristas emparejadas, cada combinación probada de los ciclos pequeños termina
+de 10 a 29 aristas por debajo, y solo el movimiento completo de las 253 piezas
+recupera la ganancia de 9 puntos. La proximidad en puntuación no lo suaviza:
+contra tableros a uno, dos y tres puntos por encima de ese 460, el mejor
+movimiento de un solo ciclo genuinamente no trivial todavía cuesta 4 aristas.
+Son cálculos exactos y deterministas, pero sobre un puñado de pares de nuestra
+propia colección; léelos como «en cada par que probamos», no como un teorema.
+
+La versión más afilada: incluso cuando conocemos un tablero mejor a un bucle de
+distancia, los pasos no pueden cubrir esa distancia. Uno de nuestros tableros de
+459 difiere de un 460 que encontramos una vez en solo 39 celdas, repartidas en
+tres bucles de 21, 14 y 4 celdas. Cada bucle aplicado solo hace caer la
+puntuación de 9 a 11 puntos, el bucle de 4 celdas incluido; los pares de bucles
+aterrizan entre 442 y 454; solo los tres juntos dan el 460. La búsqueda por
+destrucción y reparación lanzada desde el mejor parcial de dos bucles (un 451)
+remontó como mucho a 459, nunca al 460 pese a conocerlo, en 15 configuraciones
+(5 semillas, 3 juegos de operadores, 30 segundos cada una). Un solo par
+origen-destino, y ese 460 fue un hallazgo único; pero la indivisibilidad muerde
+en 4 celdas exactamente igual que muerde en 154.
+
+## Fabricar nuestros propios bucles
+
+Todo lo anterior compara pares de tableros conocidos. También atacamos por el
+otro lado: construir los bucles nosotros mismos. Toma un tablero fuerte, elige
+un anillo de celdas, gira cada pieza un paso a lo largo del anillo como un único
+movimiento indivisible, y luego dale al tablero la reparación local más fuerte
+que pudimos construir (volver a girar cada pieza tocada, luego volver a permutar
+exhaustivamente el peor grupo roto, de hasta 6 celdas). Ejecutamos alrededor de
+4 000 bucles construidos de este tipo sobre dos tableros: nuestro mejor tablero
+construido desde cero, a 461 aristas emparejadas con las cinco piezas-pista
+colocadas, y un 456 salido del mismo proceso. Esos son nuestros propios mejores,
+bastante por debajo de los de la comunidad; consulta [la página de
+récords](/research/records) para situarlos. Sobre 8 semillas y más y tres
+familias de construcción de bucles, el número de movimientos que alcanzaron un
+tablero *distinto* a la puntuación de partida o mejor fue exactamente cero. Cada
+vez que la reparación remontaba a la puntuación de partida, había deshecho en
+silencio el bucle y reconstruido el tablero de entrada pieza por pieza.
+
+El mecanismo es la misma aritmética de frontera que recorre toda esta página: un
+bucle construido presenta colores nuevos a lo largo de todo su borde, la pérdida
+antes de reparar vale aproximadamente el tamaño del borde, y una reparación
+local solo puede recuperar esas aristas invirtiendo el bucle. Escapar exigiría
+piezas que fluyan desde todo el tablero, que es precisamente el movimiento de
+todo o nada que exige el análisis de ciclos. El movimiento no local más barato
+que encontramos cuesta exactamente una arista: intercambia dos piezas lejanas de
+colores de arista casi idénticos y obtienes un tablero genuinamente distinto a
+460, a dos celdas del 461. La afirmación de «cero evasiones» está acotada a este
+operador y a esta fuerza de reparación (ventanas locales de hasta 6 celdas), no
+a toda reparación concebible.
+
 ## Los ciclos, medidos
 
 Los tableros se reparten en dos familias que usan las mismas piezas (el
@@ -90,6 +165,235 @@ dentro de cada una:
   confirma sobre los tableros que publicamos, aunque sigue sin estar demostrado
   que valga para todo tablero concebible.
 
+Una propiedad medida más importa a quien diseña operadores: los bucles grandes
+están dispersos, no son regionales. Al descomponer uno de nuestros tableros de
+458 contra el 469, cada bucle de 25 celdas o más abarca las filas 1 a 14 y las
+columnas 1 a 14, es decir, todo el interior, y un pulcro bucle de 4 celdas es
+exactamente las cuatro esquinas. (Un solo par de tableros, pero concuerda con el
+mecanismo de las esquinas más abajo.) Así que un operador regional (destruir una
+ventana, reparar una ventana) nunca puede contener un bucle; peor aún, cada celda
+de un bucle necesita una *pieza distinta*, no un reordenamiento de las piezas ya
+presentes en la región.
+
+## Por qué todo movimiento parcial debe perder: la ley de la frontera
+
+El censo dice que los movimientos parciales siempre pierden; aquí está la razón
+geométrica, y es cuantitativa. Como las celdas de un bucle están rociadas por
+todo el tablero, cualquier subconjunto parcial de él tiene una frontera larga
+contra las celdas intactas. Cada arista de frontera empareja una pieza
+desplazada con un vecino contra el que nunca estuvo emparejada en ninguno de los
+dos tableros extremos, y casi todas esas aristas se rompen. La pérdida de
+puntuación de un movimiento parcial vale, con buena aproximación, el tamaño de su
+frontera.
+
+Medido sobre el bucle de 154 celdas entre uno de nuestros tableros de 459 y el
+469, la frontera mínima sobre todas las aplicaciones parciales contiguas es de
+unas 190 aristas de rejilla, alcanzada cerca de la mitad del recorrido
+(alrededor de 113 celdas aplicadas); el cociente frontera-por-celda va de 1,07 a
+4,0 según el tamaño del subconjunto. Esas cifras de bucle gigante vienen de este
+único ciclo; bucles más pequeños a igual puntuación, medidos sobre dos pares de
+tableros independientes, dan de 2,0 a 3,5 aristas de frontera por celda. La
+reparación local tras un movimiento parcial suele recuperar del orden de 30 a 50
+aristas. Una capacidad de reparación de 30 a 50 frente a un agujero de unas 190
+aristas: esa desigualdad es el muro.
+
+La ley también es ajustada, en todas partes donde miramos. Sobre más de 200
+aplicaciones parciales que abarcan 5 bucles, la pérdida realizada se ciñe a la
+frontera con un margen de 2 aristas para subconjuntos de hasta 50 celdas; entre
+el 92 % y el 100 % de las aristas de frontera se rompen de verdad. El mejor
+resultado jamás observado perdió 3 aristas, en un movimiento de una sola celda
+con frontera 4. El subconjunto más delgado de todo el corpus (cociente
+frontera-tamaño 0,67, un subconjunto de 45 celdas de un bucle de 190 celdas
+entre dos tableros a igual puntuación) pierde exactamente su frontera: menos 30
+predicho, menos 30 medido. No existe ningún subconjunto con ganancia positiva en
+el corpus. Este es un solo corpus interno de 7 tableros, así que la formulación
+correcta es «en cada par que medimos», no «demostrado para todo tablero».
+
+Ser astuto con el subconjunto tampoco escapa de la ley. En lugar de bloques
+contiguos, hicimos crecer con avidez el subconjunto que minimiza la frontera, y
+luego dejamos que la búsqueda por destrucción y reparación limpiara detrás. Los
+subconjuntos ávidos de frontera mínima del bucle de 154 celdas sí alcanzan de un
+35 a un 45 % menos de frontera que los contiguos; en los tamaños de subconjunto
+10, 20 y 40 las fronteras son 24, 38 y 64 aristas y las pérdidas realizadas 22,
+38 y 63, esencialmente el 100 % de la frontera. La reparación desde esos tableros
+dañados se estanca en 448, 441 y 430 respectivamente, todos bien por debajo de la
+partida de 459, en 12 combinaciones de semilla y operador a 30 segundos cada una;
+una ejecución de 5 minutos sobre el mejor caso todavía se atasca en 446 a 448.
+(Un bucle, un método ávido de construcción del subconjunto.) La parte
+instructiva: un movimiento parcial no dejó el tablero a medio camino entre dos
+buenos; lo dejó caer en un tercer valle, más bajo, cuyo propio techo se sitúa por
+debajo del punto de partida. La meseta la determinaba el valle, no el
+presupuesto.
+
+## El paisaje que conectan los bucles
+
+Entonces, ¿qué conectan los bucles? Medido sobre nuestras propias colecciones de
+tableros, el paisaje a igual puntuación es binario: casi gemelos o casi
+extraños, nada intermedio. Entre siete de nuestros tableros que puntúan todos
+459, seis forman una sola familia, difiriendo entre sí en solo 34 a 44 de 256
+celdas con bucles de 9 a 25 celdas; el séptimo es una isla, difiriendo de la
+familia en 251 a 253 celdas con bucles de hasta 190 celdas. Ningún par se sitúa a
+distancia intermedia, y hay una razón algebraica para esperar exactamente esa
+forma: los bucles se componen conservando las piezas, así que añadir un bucle
+pequeño a un bucle gigante da otro bucle gigante; nada interpola entre un par
+cercano y un par lejano. (Un corpus de 7 tableros producidos por nuestro propio
+proceso, sesgado hacia la familia que nuestra búsqueda encuentra; el recuento de
+la familia es una cota inferior y el número de islas es desconocido.)
+
+A escala de población, la imagen de la isla se sostiene. Al agrupar los 135
+tableros únicos a 455 o mejor que nuestra búsqueda haya producido alguna vez,
+enlazando cualesquiera dos que difieran en menos de 100 celdas, se obtienen 47
+componentes: 18 singletons, una familia mayor de 22 miembros (una familia de
+458), y el 469 de McGavin como componente cuyo vecino más cercano en el corpus se
+sitúa a 247 celdas. Eso es aproximadamente diez veces el mayor operador de
+destrucción que usa nuestra búsqueda de reparación (64 celdas). (Una instantánea
+de un corpus sesgado por la búsqueda.)
+
+También hay un candidato estructural para explicar por qué los tableros de la
+cima difieren casi en todas partes: se comprometen con arreglos distintos de las
+cuatro piezas de esquina. Los tres tableros de la cima que examinamos (el 469, un
+459 y un 458) usan tres permutaciones distintas de las cuatro esquinas; el 469 y
+el 459 comparten exactamente una posición de pieza sobre 256, la pista central
+obligatoria, mientras que el 459 y el 458 comparten 29. Mover una pieza de
+esquina a otra esquina fuerza el reemparejamiento de todo el anillo de borde de
+60 celdas, que a su vez condiciona el interior: un movimiento a escala de tablero
+por construcción. Con 4! = 24 arreglos de esquina posibles, el paisaje podría
+partirse en hasta 24 clases incompatibles por el borde; ese último paso es una
+conjetura a partir de tres tableros, no una medida. Junto con [el muro de
+rigidez](/research/why/rigidity-wall), la indivisibilidad de los bucles y su
+dispersión, esta es una cuarta línea independiente que apunta a una sola
+conclusión: solo los movimientos a escala de tablero conectan los tableros de
+clase récord.
+
+## ¿Hay estructura oculta en los bucles?
+
+Una continuación natural: ¿obedecen las permutaciones entre tableros de la cima
+alguna álgebra, una ley de grupo que podrías explotar para predecir o construir
+nuevos tableros de la cima? Calculamos la respuesta de forma exacta, y es no. Toma
+las permutaciones que relacionan seis tableros de la cima (tres de 458, uno de 459,
+uno de 460 y el 469) y mira el grupo que generan dentro del grupo simétrico sobre
+256 piezas. La única estructura presente es forzada y sin interés: las piezas de
+esquina van a esquinas, las de borde a bordes, el interior al interior. Eso es un
+teorema para todo tablero legal, ya que una pieza con k lados grises solo puede
+ocupar una celda con k caras hacia el exterior. Dentro de esas tres clases (196
+interiores, 56 de borde, 4 de esquina), el grupo generado es el grupo simétrico
+completo salvo una única relación de paridad (la paridad interior iguala a la
+paridad de las esquinas; la paridad de los bordes es libre), un objeto de orden
+aproximadamente 4,3 × 10<sup>441</sup>. Dos pares de tableros ya generan todo
+ello, que es exactamente cómo se comportan las permutaciones *aleatorias*. Y el
+grupo no tiene relación con la puntuación: aplica uno de estos reetiquetados a
+cualquier tablero distinto de su único objetivo previsto y la puntuación se
+desploma (el 469 cae a 119, un 458 a 44, un 459 a 50). (Cálculo exacto con
+pruebas vía el teorema de Jordan, sobre los seis tableros analizados; la
+restricción de tipo de pieza por sí sola vale para todos los tableros; el
+resultado no depende de la elección de base y no cambia al excluir el tablero
+comunitario.)
+
+Tres consecuencias merecen ponerse por escrito. Las estadísticas de longitud de
+ciclo de arriba no son más que la estructura de ciclos genérica de un enorme
+grupo simétrico. Los argumentos de conteo por simetría no pueden predecir cuántos
+tableros de la cima existen. Y no hay atajo algebraico para recombinar buenos
+tableros: la escasez de tableros de la cima es un fenómeno de puntuación y
+geometría, no de simetría.
+
+El experimento de recombinación directa está de acuerdo. Cruzamos tableros: 56
+híbridos de filas entrelazadas a partir de 18 padres que puntúan 458 o mejor,
+cada uno con una ejecución de reparación de 5 minutos. Los únicos híbridos que
+puntuaron bien (cuatro de ellos, a 461) eran una ilusión: sus familias padres
+compartían tantas colocaciones que el entrelazado reproducía un tablero ya
+presente en nuestra colección; esos padres ya estaban relacionados por
+exactamente los bucles pequeños que describe esta página, y la reparación no
+aportó nada (cero conflictos antes de la primera iteración). Cada híbrido de
+padres genuinamente no emparentados quedó entre 371 y 436, y la reparación no
+pudo recuperarlos. Con este esquema de cruce y este corto presupuesto de
+reparación, el cruce o rebaraja tableros relacionados por bucles o los hace
+añicos.
+
+## El único movimiento libre pequeño: los intercambios de gemelas
+
+Sí existe una familia de pequeños movimientos que preservan la puntuación, y
+confirma la regla en lugar de romperla. Dos piezas casi gemelas, idénticas en
+tres de sus cuatro colores de arista, pueden intercambiar sus lugares; el
+intercambio cambia *qué* aristas no encajan, no necesariamente cuántas. Aplicar
+uno de esos intercambios al 469 de McGavin (las piezas con tuplas de colores
+13-16-14-16 y 13-16-14-18, que difieren en una sola arista, situadas en dos
+posiciones de la misma fila) produce un tablero genuinamente distinto que también
+puntúa 469; los dos tableros difieren en exactamente 2 celdas. Ese es
+determinista y verificado sobre ambos tableros. El juego de piezas canónico
+contiene 5 pares gemelos y 114 pares casi gemelos, así que tales movimientos
+existen en cantidad, pero son trueques, no ganancias: en nuestros propios
+tableros, intercambiar dos piezas cuyos cuatro colores coinciden como
+multiconjunto pero no en orden cíclico cuesta siempre 4 aristas (ninguna rotación
+las realinea), y el mejor intercambio casi gemelo que encontramos cuesta 1. Un
+conjunto de nivel de puntuación es cerrado bajo intercambios de gemelas, lo que
+lo vuelve grueso en esta única dirección trivial; todo movimiento pequeño no
+trivial pierde. Que algún intercambio de gemelas en alguna parte gane un punto
+sigue abierto; ninguno de los que probamos lo hizo.
+
+## Lo que lanzamos contra el muro
+
+Los resultados de arriba sugieren contramovimientos evidentes, y los probamos.
+Cada entrada de abajo es una configuración que falla, acotada como tal; ninguna
+es una refutación universal.
+
+**Calor.** Una cadena de Metropolis lo bastante caliente para aceptar casi todo
+movimiento no escala el muro; se cae de la montaña. Cadenas de intercambios de
+pares aleatorios partidas de uno de nuestros tableros de 459, 100 000 iteraciones
+en cada una de seis temperaturas (T de 2 a 50), se desploman a puntuaciones de 20
+a 25 en unos pocos miles de pasos y nunca vuelven a visitar 450 o mejor (la única
+visita a esa altura es el estado de partida), pese a tasas de aceptación del 85 al
+99 %. Una cadena cuyos movimientos son bucles enteros lo hace mejor en un sentido
+estrecho: navega indefinidamente entre tableros a igual puntuación, planeando en
+459 y visitando allí varios tableros distintos, pero el máximo que llega a ver es
+459 (ejecuciones cortas: 500 iteraciones, 2 configuraciones). Un solo tablero de
+partida, y solo la familia de cadenas calentadas simples; variantes más
+sofisticadas como el temple paralelo con movimientos de bucle no se prueban aquí,
+no se refutan. El mecanismo: los tableros de la cima son una aguja de medida cero en
+el espacio de configuraciones, y un caminante aleatorio pierde la aguja al
+instante; los movimientos de bucle preservan la puntuación por entero y la
+pierden en parte, así que la cadena puede vagar por un conjunto de nivel para
+siempre sin construir un ascenso.
+
+**Trasplantes de bucles enteros.** Trasplantar el juego completo de bucles de un
+tablero «oráculo» mejor es un operador de verdad; es la versión puzzle del
+movimiento de cluster de la física de los vidrios de espín (el Monte Carlo de
+clusters de Houdayer, en las fuentes). Incluso funcionó una vez, a menor altitud:
+aplicar el juego completo de bucles de un oráculo de 456 sobre un tablero de 447,
+seguido de una fase de reinicio a alta temperatura, saltó de 447 a 457 por encima
+de una única barrera de 76 celdas, de una vez. Desde un tablero de la cima nunca ha
+producido una ganancia: partiendo de un 457 contra dos oráculos de 456 distintos,
+cada uno de los 4 a 6 bucles por par tiene un delta estrictamente negativo, y la
+aplicación completa hace caer el tablero a 453 a 456. Una instancia de éxito y dos
+pares de oráculos fallidos, así que el alcance es «en los pares probados»;
+notablemente, el operador nunca se ha probado con un oráculo *mejor* que el
+tablero de partida, porque nunca tuvimos uno. El mecanismo: un trasplante solo
+ayuda cuando la buena región del oráculo se superpone a la zona de desajuste del
+tablero actual; entre valles distintos de la cima las buenas regiones no se
+alinean, así que cada bucle importa más errores de los que arregla.
+
+**Decirle a la reparación dónde está el bucle.** Le dimos a la búsqueda por
+destrucción y reparación las celdas exactas que ocupa un bucle: destruir
+precisamente esas, dejar que la reparación las rellene. Ningún efecto. Sobre un
+tablero parcialmente construido (puntuación 442, bucle mayor de 71 celdas contra
+una referencia de 459), el operador de destrucción que apunta al bucle se dispara
+de 9 a 13 veces por ejecución y siempre se acepta, y aun así las puntuaciones
+finales son 448 con o sin él (ejecuciones de 120 segundos; un tablero, una
+semilla, un presupuesto). La parte instructiva: la restricción no vive en las
+celdas del bucle sino en el anillo de aristas intactas que las rodea, que fuerza a
+la reparación a recolocar las mismas piezas que acaba de retirar. Necesitarías las
+*piezas* del otro tablero, no solo su conjunto de celdas.
+
+**Adopción forzada.** Por último intentamos teletransportar: fijar 61 celdas de un
+tablero de la cima a los pares de piezas característicos del valle del récord (se
+concentran en las filas de abajo, donde ese tablero es más rígido), y luego dejar
+que la reparación reconstruya todo lo demás. La fijación arruina el tablero, hasta
+254 de 480, y media hora de reparación por intento remonta como mucho a 374 en 6
+semillas (mejores por semilla de 363 a 374): ni de lejos la partida de 461, y
+menos aún el récord. Un solo tablero de partida, un solo tamaño de conjunto de
+fijaciones, ningún barrido del número de fijaciones. Que es, una vez más, la ley
+de la frontera: forzar un subconjunto de la estructura del destino sin el bucle
+entero es un movimiento parcial de bucle bajo otro nombre.
+
 ## Por qué importa
 
 Junto con [el muro de rigidez](/research/why/rigidity-wall), esto cierra de un
@@ -102,10 +406,25 @@ historia. Esta es una explicación plausible de por qué el récord de 470 se
 mantiene desde 2021: los movimientos que lo superarían parecen demasiado grandes
 para que cualquier búsqueda paso a paso pueda encontrarlos.
 
+Los añadidos de arriba afinan ese cuadro sin cambiarlo. El muro no oculta una
+simetría explotable: los bucles son mezclas genéricas, con prueba a la vista. La
+proximidad en puntuación no lo suaviza: incluso a un punto de distancia, el mejor
+movimiento de un solo ciclo no trivial pierde. Las distancias están fuera de
+escala para nuestras herramientas: el tablero más cercano al 469 que hayamos
+producido jamás se sitúa a 247 celdas, unas diez veces el mayor operador de
+destrucción que maneja nuestra búsqueda de reparación. Y el único movimiento
+libre, el intercambio de gemelas, cambia qué aristas se rompen pero nunca se ha
+visto que cambie para mejor cuántas.
+
 *El resultado se calcula de forma exacta con `just research-sigma-cycles` y se
 versiona en el [tema sigma-cycles](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
 que lee los tableros publicados, los agrupa por juego de piezas compartido y
 puntúa cada prefijo propio de cada ciclo grande en cada par ordenado. El
 laboratorio interactivo de arriba ejecuta el mismo mecanismo en vivo sobre
 puzzles pequeños recién generados; la animación es un esquema del mecanismo, no
-un ciclo en particular.*
+un ciclo en particular. El barrido de prefijos sobre toda la población es la
+parte cubierta por ese proceso reproducible; las mediciones de la ley de la
+frontera, el agrupamiento del paisaje, el cálculo de grupo, los bucles
+construidos y los experimentos negativos de arriba son experimentos de cuaderno
+distintos sobre nuestras colecciones internas de tableros, cada uno reportado con
+su propio alcance en el texto y todavía no conectado al proceso automatizado.*

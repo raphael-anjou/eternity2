@@ -10,7 +10,7 @@ metaDescription: "Rendez-vous au milieu sur Eternity II : l'astuce de Horowitz-S
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, « Computing Partitions with Applications to the Knapsack Problem » (JACM), l''origine classique'
@@ -19,11 +19,16 @@ sources:
     url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
   - label: Recherche bidirectionnelle (Wikipédia)
     url: https://en.wikipedia.org/wiki/Bidirectional_search
+  - label: 'Ngo, Porat, Ré & Rudra, « Worst-case Optimal Join Algorithms » (JACM 2018), pourquoi les jointures par paires perdent sur les requêtes cycliques'
+    url: https://doi.org/10.1145/3180143
+  - label: Algorithme de jointure optimal au pire cas (Wikipédia, en anglais)
+    url: https://en.wikipedia.org/wiki/Worst-case_optimal_join_algorithm
 related:
   - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
   - /research/lab/experiments/raphael-anjou/pipelines/cloister
   - /research/build/exact/exact-cover-dlx
   - /research/build/dead-ends
+  - /research/records
 repro:
   kind: prose
 ---
@@ -78,6 +83,21 @@ mur. Le recollement lui-même est bon marché (du hachage) ; tout tient au nombr
 d'entrées que chaque côté doit stocker et à la fréquence à laquelle les
 signatures de couture coïncident réellement.
 
+L'objection évidente est « il suffit de hacher plus finement » : réduire la clé
+en fusionnant les couleurs qui se comportent pareil. Une vérification de
+carnet tranche par la négative. Fusionner deux couleurs n'est licite que si
+elles sont interchangeables face à chaque couleur opposée, ce qui revient à
+une symétrie globale de réétiquetage des couleurs sur l'ensemble du jeu de
+pièces ; la vérification directe contre le fichier des pièces montre qu'aucun
+automorphisme de ce genre n'existe. Les 22 couleurs se répartissent en classes
+de fréquences inégales (5 couleurs à 24 demi-arêtes, 5 à 48, 12 à 50), et
+aucune paire de couleurs ne partage à la fois l'offre et la structure
+d'incidence. La seule relaxation licite consiste à projeter la signature de
+couture sur son *multiensemble* de couleurs et à s'en servir comme
+pré-filtre, ce qui réduit les seaux d'environ un facteur $k!$ pour une
+couture de longueur $k$ : un soulagement polynomial, jamais exponentiel. Les
+grosses clés restent grosses.
+
 ## Sentir la racine carrée
 
 Les chiffres fixent le compromis d'une manière que la prose ne peut pas. Le
@@ -100,7 +120,7 @@ voir d'où vient la vitesse et où passe la mémoire.
    barres MITM. Cette différence d'un facteur deux dans le taux de croissance
    est toute l'astuce : l'exposant est divisé par deux, donc sur une échelle
    logarithmique les barres MITM montent à la moitié de la pente.
-2. **Regardez la barre de mémoire arriver.** Vers $n \approx 56$, la table (à
+2. **Regardez la barre de mémoire arriver.** Vers $n \approx 60$, la table (à
    16 octets par entrée, dans une hypothèse optimiste) dépasse une machine de
    16 Gio, alors que la barre de *temps* MITM reste confortable. La mémoire
    frappe le mur en premier : c'est le même ordre d'événements que BANDSAW a
@@ -153,9 +173,101 @@ si bien que le recollement n'est pas un simple accès de hachage gratuit mais un
 accès de hachage *filtré par pools complémentaires*. BANDSAW en a mesuré la
 conséquence : à l'intérieur de petits budgets de discordance, les deux côtés
 restent énumérables et la méthode est exacte, mais chaque unité de budget
-supplémentaire gonfle les deux arbres d'environ un facteur vingt par côté, et
+supplémentaire gonfle les deux arbres d'environ un facteur vingt, et
 près de l'horizon, le projet a payé pour des millions de moitiés hautes
 stockées dont aucune moitié basse n'a jamais sondé le seau avec succès.
+
+## Une formule de coût pour les moitiés
+
+Le couplage peut être chiffré, pas seulement évoqué. Un calcul de carnet
+donne le nombre attendu de remplissages valides d'une région d'aire $a$ et
+d'interface de longueur $k$ (pour des régions ne touchant aucun bord du
+plateau) :
+
+$$
+T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+$$
+
+où $p = 0{,}048177$ est la probabilité que deux demi-arêtes tirées au hasard
+partagent une couleur sous la distribution réelle des fréquences de
+couleurs : environ 6 % au-dessus du naïf $1/22 \approx 0{,}0455$, une
+inflation que les fréquences inégales imposent par Cauchy–Schwarz. La
+factorielle décroissante compte les choix ordonnés de pièces, $4^a$ les
+rotations, et l'exposant $2a - k/2$ est exact : une identité de double
+comptage donne à toute région sans bord d'aire $a$ et de périmètre $k$
+exactement $2a - k/2$ arêtes intérieures, chacune facturée comme une
+concordance indépendante.
+
+La formule a été validée contre des comptages exhaustifs sur des instances
+plantées de 10×10 à 12×12 : exacte (ratio 1,000) quand la région n'a aucune
+arête intérieure, à 3 à 20 % près pour une ou deux arêtes intérieures, et
+l'erreur diminue quand le nombre de couleurs augmente (ratio 0,806 à 6
+couleurs, remontant à 1,010 à 22), la direction que prédit l'épuisement d'un
+pool fini. Les régions à quatre arêtes intérieures ou plus dépassent déjà la
+vérification par force brute même sur un jouet 12×12 ; le compte prédit pour
+une région de 9 cellules est d'environ $6 \times 10^{11}$. La validation à
+petite échelle est donc une mesure, tandis que l'extrapolation de la formule
+aux grandes régions relève d'un modèle, et tout ce qui suit doit se lire
+avec cette étiquette.
+
+## Pourquoi aucune taille de découpe ne gagne
+
+Donnons à la formule l'optimisation complète : choisir l'aire de région $a$,
+lui accorder le périmètre minimal atteignable (une borne classique sur les
+polyominos, due à Harary et Harborth en 1976, donne
+$k_{\min} = 2\lceil 2\sqrt{a}\rceil$), et minimiser la facture totale de la
+taille de table plus la sortie du recollement. Le balayage ne trouve aucun
+point d'équilibre intérieur : le coût croît de façon monotone avec l'aire de
+la région, le coût en $\log_{10}$ passant de 3,0 à $a=1$ à 16,4 à $a=16$,
+48,7 à $a=64$, 61,5 à $a=128$. L'optimum est la « région » dégénérée d'une
+seule cellule, c'est-à-dire la propagation de contraintes ordinaire, cellule
+par cellule.
+
+Le mécanisme mérite d'être énoncé sans détour. Le rendez-vous au milieu
+classique gagne parce que les deux moitiés énumèrent des univers
+*indépendants* dont le produit reconstitue l'espace complet au coût de la
+racine carrée de chaque côté. Ici, les deux moitiés puisent dans un unique
+pool partagé de 256 pièces sous une contrainte globale de disjonction : la
+base combinatoire est une factorielle décroissante dont le coût marginal par
+cellule *augmente* avec l'aire, les deux côtés paient la facture
+super-linéaire simultanément, et l'économie en racine carrée ne se
+matérialise jamais. C'est ce que dit le calcul, validé sur de petits
+plateaux plantés ; c'est un verdict calculé sur un modèle, non une mesure à
+la taille du plateau complet.
+
+Une esquive tentante échoue elle aussi. Ancrer la région dans un coin, pour
+que deux de ses côtés soient du bord libre du plateau, ressemble à du
+périmètre gratuit ; c'est l'inverse. Une cellule qui touche le bord est une
+contrainte dure supplémentaire, pas un cadeau : seules les pièces portant
+physiquement la couleur du bord y sont éligibles, un pool restreint d'au
+plus 60 des 256 pièces (4 pièces de coin plus 56 pièces de bord). Le
+recomptage avec les classes restreintes, vérifié par comptage direct contre
+le fichier des pièces, facture les régions ancrées dans un coin strictement
+plus cher que ne le suggère le modèle naïf. Le bord rétrécit le pool
+éligible plus vite qu'il ne supprime de contraintes de concordance.
+
+## Et quatre quadrants ?
+
+Si deux moitiés échouent, le réflexe suivant est quatre quadrants 8×8. C'est
+pire encore, et la raison rejoint un joli coin de la théorie des bases de
+données. Quatre quadrants forment une jointure en 4-cycle : chacun partage
+une interface de 8 arêtes avec deux voisins, le cadre de manuel où la
+théorie des jointures optimales au pire cas montre que tout plan qui
+matérialise d'abord une jointure par paires est dominé. Le même calcul de
+carnet facture un plan à quadrants matérialisés à environ $10^{80}$ lignes
+intermédiaires contre environ $10^{62}$ pour la simple découpe en deux sur
+la même aire, parce que le produit par paires enfle avant que les
+contraintes croisées des deux autres quadrants ne puissent l'élaguer, et
+aucun ordre de jointure ne peut le sauver (là encore, un chiffre de modèle à
+ces échelles).
+
+La seule façon d'atteindre la taille de sortie théoriquement optimale est un
+algorithme de jointure optimal au pire cas, qui intersecte simultanément
+toutes les contraintes portant sur chaque variable. Sur une grille
+bidimensionnelle, c'est exactement ce que fait déjà le retour sur trace
+ordinaire avec propagation de contraintes, cellule par cellule. Le
+rendez-vous au milieu à plusieurs voies retombe dans la recherche
+unilatérale qu'il était censé battre.
 
 ## Ce que BANDSAW a mesuré
 
@@ -170,7 +282,7 @@ indépendante :
 - **Ça marche, mais à la quasi-perfection seulement.** À l'intérieur de petits
   budgets de discordance, la méthode est exacte et abordable. Mais chaque unité
   de budget de discordance gonfle les arbres d'énumération d'environ un facteur
-  vingt *par côté*, si bien que le régime où l'exactitude reste payable se
+  vingt, si bien que le régime où l'exactitude reste payable se
   dissout au bout d'une poignée de défauts autorisés.
 - **Une méthode unilatérale l'a battue.** Armé des mêmes tables de bornes
   inférieures exactes (bornes de suffixe min-plus calculées colonne par
@@ -187,6 +299,47 @@ indépendante :
   désormais utilisés ailleurs. La conclusion consignée était sans détour :
   aucun déploiement du rendez-vous au milieu à la taille du plateau complet.
 
+## Les coutures apparaissent même dans les constructions unilatérales
+
+Une mesure de carnet plus tardive offre à l'histoire de la couture une coda
+inattendue : l'interface porte la difficulté même quand personne ne recolle
+rien. Sur des plateaux solides construits en deux phases (les rangées du
+haut remplies de gauche à droite, puis les rangées restantes remplies en
+colonnes verticales), les discordances se concentrent presque entièrement
+sur la couture horizontale où les deux régimes de remplissage se
+rencontrent. Sur le meilleur de ces plateaux, en comptant les arêtes
+concordantes sur 480 avec les cinq pièces indices officielles en place, 13
+des 23 ruptures totales se trouvaient dans la seule première rangée de la
+région remplie en colonnes ; deux plateaux frères à 456 sur 480 (24 ruptures
+chacun) montraient la même concentration en bande. C'est une observation sur
+un seul pipeline, trois plateaux d'une même famille de producteurs, mais le
+mécanisme se lit clairement : chaque phase optimise localement son propre
+front et repousse la dette vers l'interface entre les deux, le phénomène
+même que cette page décrit pour les recollements bilatéraux, resurgissant à
+l'intérieur d'un constructeur unilatéral.
+
+La même étude a livré un diagnostic bon marché pour savoir où les méthodes
+exactes paient. Résoudre exactement une région gelée de 32 cellules du
+plateau à 457 arêtes (le reste du plateau épinglé, les pièces indices
+épinglées) a *prouvé* la région déjà optimale en 21 secondes, et un balayage
+de re-résolution sur 9 graines a rendu des résultats identiques avec une
+variance nulle : zéro marge, rien à gagner. Libérer à la place une bande de
+48 cellules qui enjambe la couture est revenu faisable mais non prouvé
+optimal, et re-résoudre avec des graines différentes échantillonnait des
+incumbents différents ; sur un balayage de 40 graines, un tirage a amélioré
+le plateau de 2 arêtes concordantes, à 459 sur 480 sous la même convention,
+vérifié indépendamment de trois façons, en environ 200 secondes. Élargir la
+bande libérée à 64 cellules dépassait la cible : dans le même budget, le
+meilleur incumbent du solveur atterrissait sous le score de départ, à 455.
+(Ce 459 égalait le meilleur score du carnet avec ce pipeline à l'époque ;
+pour situer de tels scores face aux résultats communautaires obtenus avec
+des budgets de calcul bien plus grands, voir la
+[page des records](/research/records).) Le levier caché là-dedans : quand le
+solveur exact ferme l'écart d'optimalité, la région est serrée et aucune
+méthode n'aidera ; quand il n'y parvient pas, son incumbent est en pratique
+un tirage de loterie et re-tirer est le coup à jouer. « Le solveur a-t-il
+prouvé l'optimalité ? » est une carte gratuite des marges restantes.
+
 ## Limites, et ce qui reste ouvert
 
 La leçon générale rejoint la littérature classique : le rendez-vous au milieu
@@ -194,10 +347,31 @@ l'emporte quand l'interface est étroite, quand les moitiés sont véritablement
 indépendantes, et quand une réponse résolu/non résolu suffit. Eternity II met
 ces trois conditions à rude épreuve : la couture porte un large vecteur de
 couleurs, le pool de pièces partagé couple les moitiés, et la partie record se
-joue au crédit partiel, ce qui regonfle les deux arbres. Ce qui reste
-authentiquement inexploré ici, c'est le cousin *heuristique* : deux faisceaux
-croissant depuis les bords opposés du plateau, filtrés en croix par des hachages
-de leurs couleurs de couture, se rencontrant sur une rangée médiane. Ce design a
-été couché sur le papier dans ce projet mais jamais exécuté ; savoir si
-l'élagage bidirectionnel aide un faisceau autant qu'il fait échouer un
-recollement exact reste une question ouverte, non un verdict.
+joue au crédit partiel, ce qui regonfle les deux arbres.
+
+Le cousin *heuristique* a lui aussi été essayé désormais, et le recollement
+ne s'est jamais déclenché. Le design du carnet (un faisceau de plateaux
+partiels croissant vers le bas depuis les rangées du haut, un second
+faisceau croissant vers le haut depuis les rangées du bas, les paires
+recollées sur une rangée médiane) a été exécuté en deux variantes. Avec des
+faisceaux indépendants à la largeur 32, 0 des 1 024 paires candidates
+étaient valides : les deux faisceaux gravitent vers les mêmes pièces
+prometteuses, si bien que l'exigence de disjonction des pièces échoue
+presque toujours. Avec des faisceaux dépendants (pour chaque état du haut,
+relancer le faisceau du bas restreint aux pièces inutilisées, à environ 8
+fois le calcul), la disjonction est garantie par construction, et pourtant
+zéro plateau complet n'est apparu : l'interface de 16 couleurs à la rangée
+de rencontre ne concorde pratiquement jamais exactement. Elle se comporte
+comme une contrainte de couplage biparti complet à la rangée de rencontre,
+le même mur qui arrête la recherche unilatérale rangée par rangée,
+simplement déplacé sur la couture.
+
+La portée de ce négatif compte. Il couvre une seule famille de
+configurations : deux variantes, un seul design de rangée de rencontre, des
+largeurs de faisceau jusqu'à environ 300, et une interface exacte (les 16
+arêtes doivent toutes concorder). Une interface *souple*, qui tolère
+quelques discordances sur la couture et les répare ensuite, a été conçue
+mais jamais exécutée, et une couture verticale (en colonne) n'a jamais été
+essayée. L'état mesuré est donc celui-ci : le faisceau bidirectionnel à
+interface exacte échoue aux largeurs praticables, et le cousin à interface
+souple est la partie encore ouverte.

@@ -12,7 +12,7 @@ metaDescription: "El orden en que un backtracking visita las 256 celdas de Etern
 kind: concept
 order: 110
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [backtracking, search-space]
 sources:
   - label: El «mejor orden de búsqueda» de Owen, el barrido casi óptimo y el argumento por conteo de formas (septiembre de 2007)
@@ -37,12 +37,27 @@ sources:
     url: https://groups.io/g/eternity2/message/6423
   - label: "El duelo 8×8 de Markus Zajc, el valor restante mínimo bate al barrido que bate a la reducción máxima (septiembre de 2008)"
     url: https://groups.io/g/eternity2/message/5918
+  - label: "Ansotegui, Bejar, Fernandez y Mateu, la línea de benchmarks SAT/CSP cuyos órdenes estáticos de damero y espiral reproducen las mediciones de cuaderno de esta página (CP 2008; versión extendida en revista, Constraints 2013)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "El estudio hiperheurístico de Wauters, Vancroonenburg y Vanden Berghe, cuya base de backtracking hace competir el barrido por filas contra espiral, espiral inversa y órdenes en espejo (2012)"
+    url: https://link.springer.com/article/10.1007/s10852-012-9178-4
 related:
   - /research/why/complex-theory
+  - /research/why/mismatch-geometry
   - /research/lab/experiments/louis-verhaard/eii
   - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/reduce/edge-slipping
+  - /research/build/backtracking/restarts
+  - /research/records
 repro:
   kind: prose
+  scope: >-
+    Las cifras comunitarias de esta página se reproducen desde los mensajes
+    citados. Las mediciones de cuaderno (la ley de regímenes k, los órdenes
+    fallidos, el barrido del peine y el nulo del orden de candidatos) están
+    registradas en el cuaderno de laboratorio del proyecto y aún no están
+    empaquetadas como reproducciones de un solo comando; cada una se reporta
+    por tanto con su diseño de barrido y sus conteos de semillas en el texto.
 ---
 
 import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
@@ -98,6 +113,40 @@ por líneas» ([msg 2714](https://groups.io/g/eternity2/message/2714)). Toda la
 maquinaria, probabilidades de unión incluidas, se convirtió en la
 [teoría compleja](/research/why/complex-theory); esta página muestra a qué se
 parecen sus respuestas en la práctica.
+
+El cuaderno de laboratorio del proyecto pone números a la dieta misma.
+Llamemos $k$ al número de lados vecinos ya colocados que una celda presenta
+cuando la búsqueda la alcanza. Una ley de campo medio dice que la celda
+debería admitir unas $4Rp^k$ colocaciones candidatas, donde $R$ es el
+número de piezas aún en mano y $p \approx 0{,}048$ es la probabilidad media,
+en E2, de que un lado empareje con un color. Al comienzo del relleno
+interior eso predice unos 38 candidatos para una celda $k=1$, 1,8 para
+$k=2$, 0,09 para $k=3$ y 0,004 para $k=4$. Una enumeración exacta contra el
+juego real de 256 piezas (40 ensayos sembrados por configuración) cae
+dentro del 20 a 40% de esas predicciones y confirma los tres regímenes que
+dibujan: las celdas $k=1$ son en esencia siempre rellenables; las celdas
+$k=2$ cruzan el 50% de celdas muertas en algún punto entre el 50 y el 62%
+de relleno del tablero; y las celdas con tres o más vecinos colocados están
+muertas en el 87 a 100% de los ensayos a cualquier nivel de relleno,
+incluida la primera colocación interior. (La ley es una idealización de
+campo medio validada para las estadísticas de color de Eternity II, una
+sola instancia; no es una afirmación sobre el emparejamiento de aristas en
+general.)
+
+Leída como regla de diseño: un buen orden es aquel cuya frontera presenta a
+cada celda nueva exactamente dos vecinos colocados, suficientes para podar,
+pocos para sobrevivir. El barrido por filas lo hace por construcción, un
+$k=2$ constante tras la primera fila; cualquier orden cuya frontera
+desarrolle bolsas cóncavas de tres lados paga celdas casi seguramente
+muertas, esté como esté de lleno el tablero. Los mismos regímenes miden
+también lo que compra el propio backtracking. Sin backtracking alguno, un
+relleno voraz aleatorio se atasca dentro del primer 5 a 12% del tablero use
+el recorrido que use: sobre 8 semillas por orden, el atasco mediano llegó
+en el paso 15 para fila-mayor, 13 para un recorrido diagonal y 15 para una
+espiral (el recorrido diagonal osciló entre 4 y 32), y ninguna de las 24 ejecuciones llegó más lejos.
+Cualquier recorrido fabrica una esquina cóncava fatal en un puñado de
+colocaciones; ese número ilustra la geometría, no es un banco de pruebas de
+solucionadores.
 
 El laboratorio de abajo hace visible la planificación. Anima la secuencia de
 visita de cuatro órdenes predefinidos sobre una cuadrícula 16×16 y traza, en
@@ -224,10 +273,72 @@ confirmó ~10% del espacio de búsqueda eliminado a un coste casi nulo
 [5983](https://groups.io/g/eternity2/message/5983),
 [6062](https://groups.io/g/eternity2/message/6062)).
 
+### Desviaciones que no pagaron (mediciones del cuaderno)
+
+La comunidad publicó sobre todo las desviaciones que tenían argumentos a
+favor. El cuaderno de laboratorio del proyecto guarda la otra especie,
+órdenes atractivos que perdieron, y los regímenes $k$ de arriba saben
+nombrar el mecanismo de cada uno.
+
+**Las espirales pagan un impuesto de cierre.** En un banco de pruebas de
+interior 14×14 con borde (8 semillas por brazo), una espiral de fuera hacia
+dentro se atascó en la profundidad 26 en las 8 semillas, en la esquina de
+cierre de su primer anillo. Una espiral de borde libre se estancó en
+profundidades 133 a 141 con 0 completados, frente a 344 a 347 de un barrido
+por filas; con todas las asistencias del motor activadas aún chocaba en 131
+a 140 con 0 completados en 300 s, frente a 446 a 448 del barrido. La ley en
+$k$ dice por qué: todo el primer anillo de una espiral de borde libre corre
+con un vecino colocado o menos por celda, una ramificación casi imposible
+de podar, mientras que una espiral con borde paga un *impuesto de cierre*:
+cada anillo carga 4 o 5 celdas con tres vecinos colocados en sus esquinas y
+en su empalme, y las celdas de tres lados son casi irrellenables. El
+barrido por filas es el orden de Ricitos de Oro, dos vecinos constantes y
+una sola zona de daños activa.
+
+**Partir de las pistas pierde.** «Empieza donde está la información» suena
+bien y apunta al revés. En un duelo de 60 s sobre el puzzle real (una
+configuración, una ejecución, así que léase como nuestra prueba y no como
+una refutación), un orden centrado en las pistas, extendiéndose desde las
+cinco celdas de pista, alcanzó la profundidad 42 (62 aristas emparejadas)
+mientras que un orden dinámico por celda más restringida, que en la
+práctica devora primero el borde pero sigue libre de abandonarlo (a
+diferencia del marco comprometido de la trampa de arriba), alcanzaba la
+profundidad 164 (282 aristas emparejadas). Las celdas alrededor de las
+pistas centrales llevan los dominios de piezas más *anchos* del tablero;
+el orden centrado en las pistas prioriza exactamente las celdas menos
+restringidas.
+
+**Una X a través de las pistas también pierde.** Precomprometer dos
+diagonales de 3 celdas de ancho pasando por las cinco pistas, y luego
+rellenar hacia fuera, terminó 51 aristas emparejadas por debajo de su
+referencia (396 contra 447 con presupuestos idénticos, una sola semilla).
+
+Tres experimentos, un patrón, enunciado como patrón y no como teorema: todo
+orden estático que probamos que pasa temprano por celdas interiores de
+dominio ancho perdió. Un orden estático no esquiva la región difícil; elige
+qué región se convierte en la región difícil. También elige dónde aterrizan
+los fallos: [dónde se amontonan los desajustes](/research/why/mismatch-geometry)
+en un tablero casi perfecto sigue al orden de barrido, centro-abajo para
+los barridos de arriba abajo, arriba para los de abajo arriba (visible en
+los propios tableros de clase 469 de la comunidad), esquinas para las
+espirales desde el centro. Un orden de relleno no solo decide cuánto
+fallas, sino dónde.
+
+La literatura académica aterriza en el mismo sitio. Ansotegui, Bejar,
+Fernandez y Mateu, que convirtieron los puzzles de emparejamiento de
+aristas en benchmarks SAT/CSP, trabajaban con órdenes estáticos de la
+familia damero-más-espiral-central; reproducido en nuestro motor sin el
+filtrado all-different completo que sus modelos suponen, ese orden hizo
+explotar los conteos de nodos en unas 600×. Y la base de backtracking del
+estudio hiperheurístico de 2012 de Wauters, Vancroonenburg y Vanden Berghe
+hizo competir el barrido por filas contra espiral, espiral inversa y
+órdenes en espejo, y encontró el barrido significativamente mejor: un
+redescubrimiento independiente de la tesis de la lista de correo.
+
 ### La búsqueda en peine: la geometría de las puntuaciones altas
 
 Todo lo anterior optimiza una búsqueda *completa*, cuyo conteo de nodos culmina
-cerca de la profundidad 161. En octubre de 2008, mientras guardaba en privado
+cerca de la profundidad 160. En octubre de 2008, mientras guardaba en privado
 los tableros que ganarían el premio de escrutinio de 10.000 dólares, Verhaard
 respondió a una pregunta distinta de Owen: ¿cuál es el mejor orden cuando
 persigues una *puntuación* parcial y por tanto vives mucho más profundo en el
@@ -257,6 +368,92 @@ usados), construida a partir de probabilidades de ajuste por profundidad medidas
 ([msg 6423](https://groups.io/g/eternity2/message/6423)). Diseño de orden por
 cálculo, no por folclore. El motor completo está en
 [la página eii de Verhaard](/research/lab/experiments/louis-verhaard/eii).
+
+### El peine, reproducido
+
+El peine durmió dieciocho años en la historia de los récords antes de que
+lo probáramos en casa; fue releer los mensajes de arriba lo que sacó a la
+luz la palanca. Injertar la geometría del peine en un productor de búsqueda
+en haz escrito desde cero (filas superiores en fila-mayor, filas inferiores
+rellenadas como dientes verticales cortos) elevó su mejor parcial bruto de
+455 a 457 aristas emparejadas de 480, en tableros con las cinco pistas
+estrictas, solo por el orden de visita; nada más cambió. Detrás de esa
+frase hay un barrido, no una carrera afortunada: cinco órdenes (fila-mayor
+más cortes de peine tras las filas 8, 10, 12 y 14) cruzados con tres
+anchuras de haz (2048, 8192 y 16384), 24 semillas cada uno a cómputo
+igualado, en 8 núcleos. El techo nuevo solo aparece en el haz más ancho,
+donde el corte 14 alcanzó 457 en una semilla y el corte 12 alcanzó 456 en
+dos, cada tablero comprobado de tres maneras independientes (un
+repuntuador independiente, un verificador externo y el conteo propio del
+productor; colocación estricta de las cinco pistas, las 256 piezas todas
+distintas). En anchuras menores el peine empata el máximo del fila-mayor.
+
+Lo que el peine mueve con fiabilidad es el suelo y el centro de la
+distribución. En haz 2048, los cortes 10 y 12 suben el mínimo de 24
+semillas de 446 a 449 y la mediana de 449 a 451; en el haz más ancho, la
+mediana del corte 12 gana una arista. El corte 12 también alcanza 455, el
+antiguo techo del fila-mayor, con la mitad de la anchura de haz, y en haz
+8192 un barrido de 24 semillas rinde 15 tableros de 453 o mejor contra 9
+del fila-mayor: +67% de buenos tableros de partida por unidad de cómputo.
+La regla de Verhaard sobre la longitud de los dientes se sostiene también
+desde arriba. Los dientes largos (corte 8, dientes de 8 celdas) retroceden
+por debajo del fila-mayor en todas las anchuras; los dientes cortos ganan.
+El corte 12, el exacto «doce filas, luego columnas» de Max, es el mejor
+para toda la distribución, mientras que el corte 14, con sus dientes de 2
+celdas, encuentra el mejor tablero aislado sobre una mediana más baja: una
+geometría de remate más fina y de mayor varianza. El mecanismo es la
+intuición enunciada arriba, ahora medida: cada diente corto es una columna
+casi independiente cuyos fallos quedan confinados, de modo que las
+fronteras profundas de puntuación alta se alcanzan una y otra vez.
+
+El orden también decide dónde acaba la holgura recuperable. Una
+re-resolución exacta de las tres últimas filas sube un tablero fila-mayor
+de 455 a 457 y no hace nada por un tablero peine de 457: la región rellenada
+al final y menos restringida del peine son sus dientes verticales, no sus
+filas inferiores, así que una reparación por banda de filas apunta al lugar
+equivocado. Una re-resolución exacta alineada con los dientes, por banda de
+columnas, lleva los tableros peine a 459 y no más allá, porque los dientes
+salen del haz ya exactamente óptimos (un solucionador exacto probó óptima
+una región de dientes de 32 celdas en unos 21 s); el peine gasta durante la
+construcción la holgura que la reparación habría recuperado. Las dos rutas
+convergen en 459: el peine adelanta la puntuación, el fila-mayor la deja en
+una cola recuperable, y orden más reparación de final de partida cosechan
+la misma holgura. Para la escala, 455, 457 y 459 son conteos de aristas
+emparejadas en tableros con las cinco pistas estrictas, de un productor de
+cuaderno en 8 núcleos; los tableros comunitarios están más arriba, y
+[la página de récords](/research/records) lleva la clasificación.
+
+## El otro orden: qué pieza probar primero
+
+Todo lo anterior ordena *celdas*. La perilla gemela es el orden de las
+*piezas* probadas dentro de una celda: el duelo de Zajc iba de qué celda
+abrir a continuación, este va de qué candidato entra primero. La respuesta
+del cuaderno es un nulo limpio. Dentro de un relleno fila-mayor fijo,
+reordenar la lista de candidatos de cada celda por escasez global de color
+(colores más raros primero) no cambió nada medible sobre 8 semillas por
+brazo: a 60 s de reloj iguales, la mediana fue de 389 aristas emparejadas
+(pistas fijadas, puzle de cinco pistas) en *cada* brazo, orden de
+referencia, escasez-primero, y un contraorden deliberado (colores más
+abundantes primero) diseñado para perder. El control no perdió; su mejor
+ejecución (419) batió a la mejor de la referencia (415). El caudal de nodos
+fue plano entre brazos, 8,2 a 9,6 millones de nodos por segundo: el
+reordenamiento es gratis, y sin valor, en ambos sentidos. (Antes de
+comparar, el brazo de referencia se verificó idéntico nodo a nodo al motor
+sin modificar.)
+
+El mecanismo es una señal hambrienta. Cuando un barrido fila-mayor alcanza
+una celda, la lista de candidatos ya está filtrada al puñado de piezas que
+emparejan con dos colores fijados, y una poda global de factibilidad
+oferta-demanda ya explota la escasez de color sobre todo el resto del
+inventario; el orden por escasez re-deriva, más toscamente, información que
+la búsqueda ya usa, y cuál de tres piezas legales entra primero importa
+poco cuando el cubo se agotará de todos modos. Acotémoslo como se midió: el
+orden de candidatos fue inerte en nuestro motor en un punto de operación
+(una pila de podas, un presupuesto de 60 s, solo señales globales de
+escasez), no «el orden de valores nunca importa en ningún sitio». Rima
+además con la única victoria intra-barrido de arriba: el ~10% de Max vino
+de *eliminar* candidatos de borde, no de reordenarlos. Las ganancias viven
+en la poda y en el orden de las celdas.
 
 ## Paso a paso
 

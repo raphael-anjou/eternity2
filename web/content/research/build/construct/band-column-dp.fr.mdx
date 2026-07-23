@@ -1,0 +1,266 @@
+---
+title: DP par colonnes en bandes
+description: >-
+  Découper le plateau en bandes de deux rangées, résoudre chaque bande à la
+  perfection par une DP colonne par colonne sous faisceau, puis enchaîner les
+  bandes de haut en bas. Un plateau complet à 444 bords appariés sur 480 en
+  35 secondes; toute la perte se loge dans les coutures verticales tardives.
+metaDescription: "DP par colonnes en bandes pour Eternity II : découper le plateau en bandes de deux rangées, résoudre chacune parfaitement par DP sous faisceau, puis les enchaîner. Un plateau complet à 444 bords appariés sur 480 (indices non imposés) en 35 s; les 36 bords perdus logent dans les coutures verticales."
+kind: concept
+order: 55
+group: Build boards up
+updated: 2026-07-22
+topics: [construction]
+sources:
+  - label: "Zhou & Hansen, Beam-Stack Search : Integrating Backtracking with Beam Search (ICAPS 2005)"
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/build/construct/beam-search
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/records
+repro:
+  kind: prose
+---
+
+Le [faisceau au niveau des cases](/research/build/construct/beam-search) fait
+croître un plateau case par case. La DP par colonnes en bandes change le grain
+du mouvement : on découpe le plateau 16×16 en bandes de deux rangées, on
+résout chaque bande à la perfection par une programmation dynamique colonne
+par colonne sous élagage en faisceau, puis on enchaîne les bandes de haut en
+bas, chaque bande nouvelle héritant de la rangée du bas de la précédente. Une
+bande isolée se résout toujours parfaitement. La chaîne complète un plateau
+entier à 444 bords appariés sur 480 en 35 secondes, et la totalité des 36
+bords manquants se localise, par un calcul exact, dans les coutures
+verticales de la moitié basse : un échec d'horizon glouton, pas un accident
+d'inventaire de pièces.
+
+Une réserve gouverne tout ce qui suit. Chaque nombre de cette page provient
+d'une seule exécution déterministe par configuration, tirée du carnet :
+un ordre de construction fixe, aucun balayage de graines.
+« Échoue » signifie toujours « a échoué sous le faisceau et le budget
+indiqués », jamais « impossible ».
+
+## Comment elle se déroule sur un plateau
+
+Traitons une bande de deux rangées comme une suite de colonnes lue de gauche
+à droite. Un état de la DP à la colonne $j$ est (pièce du haut et rotation,
+pièce du bas et rotation, ensemble des pièces déjà utilisées, score
+accumulé). Une transition vers la colonne $j+1$ pose une nouvelle paire
+haut/bas et peut gagner au plus 3 bords : deux appariements horizontaux
+contre la colonne précédente et un appariement vertical à l'intérieur de la
+nouvelle colonne. La DP exacte est exponentielle en l'ensemble des pièces
+utilisées; la liste d'états est donc élaguée aux $K$ meilleurs par colonne,
+le même élagage que le faisceau au niveau des cases, appliqué à un pas plus
+grossier : une colonne entière de bande par étape, deux pièces à la fois, ce
+qui exploite directement la structure 2D. Les cases du bord (qui exigent la
+couleur grise) réduisent fortement les candidats sur le pourtour.
+
+Le travail par bande est en $O(n \cdot K \cdot |P|^2)$; pour $n = 16$,
+$K = 10^4$, $|P| = 256$, cela fait de l'ordre de $10^{10}$ transitions
+candidates par bande : des minutes dans un moteur compilé, des heures en
+Python. C'est de l'arithmétique de conception, pas une mesure; c'est elle qui
+a motivé l'écriture du solveur en Rust.
+
+## L'arithmétique des bandes
+
+Un plateau $n \times n$ compte $E = 2n(n-1)$ bords internes : 480 pour
+$n = 16$. Une bande de deux rangées contient au plus $3n - 2$ bords appariés
+(46 pour $n = 16$). En enchaînant des bandes qui partagent une rangée, chaque
+bande après la première apporte $2n - 1$ bords nouveaux (31), et la somme
+télescope exactement :
+
+$$
+(3n - 2) + (n - 2)(2n - 1) = 2n(n - 1) = E.
+$$
+
+Si chaque bande enchaînée était parfaite, la chaîne produirait donc un 480
+complet. La décomposition ne perd rien en principe; l'identité comptable est
+élémentaire et indépendante de toute exécution.
+
+Le hic, et la tension centrale de cette page : une bande résolue à la
+perfection fige sa rangée du bas, et ce choix précis peut rendre la bande
+suivante infaisable ou sous-optimale. Des bandes parfaites isolément ne se
+composent pas en une chaîne parfaite.
+
+## Une bande, c'est facile
+
+Mesuré, une exécution par configuration : la DP par colonnes a résolu la
+première bande à son maximum théorique sur toutes les tailles essayées, du
+4×4 jusqu'au vrai 16×16 (46 sur 46 en 68 s à faisceau 5 000; les tailles plus
+petites ont pris de 0,1 à 12 s).
+
+Un constat contre-intuitif mérite son encadré : davantage de couleurs de
+bords rend la bande *plus rapide*, pas plus lente. Sur des instances 8×8,
+5 couleurs ont pris 6,5 s et 8 couleurs 1,6 s. Plus de couleurs, c'est des
+contraintes plus serrées, donc moins de transitions faisables, et le faisceau
+se contracte. C'est l'inverse de ce que vivent les méthodes par hachage et
+échantillonnage.
+
+## Enchaîner les bandes : un plateau complet en 35 secondes
+
+L'enchaînement de 15 bandes de haut en bas à faisceau 100 000 a complété un
+plateau entier de 256 pièces à **444 bords appariés sur 480 en 35 s**.
+Convention de score : ce plateau ignore les cinq pièces indices officielles
+(0 sur 5 en place); le 444 est donc un décompte de bords appariés sur un
+plateau non contraint, incomparable aux records qui respectent les indices.
+La variante respectueuse des indices, plus bas, atteint un partiel de 240
+cases à 414 sur 480 avec les cinq indices. Pour les conventions et les
+chiffres en vigueur, côté communauté comme côté carnet, voir la
+[page des records](/research/records).
+
+Les scores par bande racontent l'histoire en une ligne : les bandes 0 à 7
+sont toutes parfaites, puis une décrue monotone.
+
+| Bande (de haut en bas) | 0 à 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Score (sur 46) | 46 chacune | 45 | 45 | 43 | 42 | 40 | 36 | 35 |
+
+La largeur a ici une zone utile étroite, qui prolonge l'histoire des coûts de
+la [page recherche en faisceau](/research/build/construct/beam-search) : le
+faisceau 50 000 meurt à la dernière bande sans aucun état faisable (240 cases
+posées sur 256); le faisceau 100 000 termine; le faisceau 500 000 est
+contre-productif, le seul tri par colonne épuisant le budget (interruption en
+pleine première bande à 138 s). La zone utile se situe vers $10^5$. Une
+exécution par largeur; la frontière « 50 000 échoue, 100 000 termine » n'a
+pas été répliquée sur d'autres ordres ni d'autres départages.
+
+## La perte loge dans les coutures verticales
+
+Relier les scores de bandes au score du plateau donne une identité exacte :
+les bords appariés du plateau égalent la somme des scores de bandes moins les
+bords horizontaux des rangées partagées, que la chaîne compte deux fois. Sur
+le plateau à 444, les scores de bandes somment à 654, et
+$654 - 444 = 210 = 14 \times 15$ : la somme horizontale des rangées partagées
+est à son maximum, autrement dit **chaque bord horizontal de chaque rangée
+partagée est apparié**. La totalité des 36 bords manquants se loge dans les
+coutures verticales entre les rangées 8 à 15, plus la rangée du bas :
+
+| Couture (en descendant) | 8/9 | 9/10 | 10/11 | 11/12 | 12/13 | 13/14 | bande finale |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Bords perdus | 1 | 1 | 3 | 4 | 6 | 10 | 11 |
+
+(Le dernier chiffre se partage entre la dernière couture verticale et la
+rangée du bas.) C'est de l'arithmétique exacte sur un plateau mesuré; la
+structure qu'elle révèle (horizontales gratuites, verticales coûteuses) est
+le mécanisme général. La chaîne obtient gratuitement les bords horizontaux de
+chaque bande, puisqu'ils vivent à l'intérieur de la bande en cours
+d'optimisation, mais paie les bords verticaux avec des couleurs figées une
+bande plus tôt; à mesure que l'inventaire de pièces s'épuise, les couleurs de
+bas de bande figées cessent de correspondre à ce que les pièces restantes
+peuvent fournir.
+
+L'exécution respectueuse des indices rend la fin de partie dénombrable.
+Comparer le multi-ensemble de couleurs dont la dernière rangée a *besoin* sur
+ses bords supérieurs (dicté par les bas figés de la rangée précédente) à ce
+que les 16 pièces restantes peuvent fournir a montré 4 couleurs demandées
+mais absentes et 5 fournies mais inutiles : 5 cases de la dernière rangée
+avec littéralement zéro candidat faisable. Aucune recherche sur la dernière
+rangée n'y peut rien. La chaîne a besoin d'une contrainte tournée vers
+l'arrière (le multi-ensemble des couleurs de bas figées de chaque rangée doit
+rester couvert par les pièces restantes) que la construction purement
+descendante ne voit jamais.
+
+## Un horizon glouton, pas un bas de plateau difficile
+
+Le bas du plateau est-il intrinsèquement plus dur ? Non : lancée de haut en
+bas, la chaîne produit 7 bandes parfaites depuis le bord supérieur, décroît,
+et échoue en *bas*; lancée de bas en haut, elle produit 7 bandes parfaites
+depuis le bord inférieur, décroît, et échoue en *haut*. Les deux directions
+s'arrêtent à 16 cases d'un plateau complet (240 posées sur 256), une
+exécution par direction. L'échec atterrit toujours au bord le plus éloigné de
+l'ancrage : chaque bord impose son propre jeu de contraintes, une chaîne
+ancrée satisfait le bord proche et dérive librement vis-à-vis du bord
+lointain, et la dérive se cumule. La décrue est une propriété de l'engagement
+glouton unidirectionnel, pas des rangées du bas.
+
+Pourquoi ne pas lancer les deux directions et recoller ? Apparier naïvement
+une moitié haute et une moitié basse indépendantes à la couture médiane exige
+l'accord de 16 couleurs; sous un modèle de couleurs aléatoires, la
+probabilité vaut environ $(1/23)^{16} \approx 10^{-22}$. Un rendez-vous exige
+une construction conjointe, pas deux exécutions indépendantes.
+
+S'ancrer au milieu est pire, dans la seule configuration essayée : partir
+d'une bande centrale (aucun bord sur les deux rangées) n'a pas réussi à
+compléter ne serait-ce qu'une bande à faisceau 5 000 en 120 s; des faisceaux
+plus larges n'ont pas été essayés. Un comptage grossier dit pourquoi : la
+contrainte de bord réduit les candidats d'environ 12 fois (environ 45 000
+placements de paires faisables par état au bord contre environ 490 000 à
+l'intérieur). Les bords sont de la contrainte gratuite; l'intérieur n'offre
+au faisceau aucune prise.
+
+## Leviers : regard en avant et reconstruction de la moitié basse
+
+**Regarder une bande en avant.** Reclasser les états du faisceau selon
+$\alpha \cdot (\text{score courant}) + \beta \cdot (\text{compatibilité
+avant})$, où la compatibilité avant compte, pour chaque couleur de bas figée
+$c$, combien de pièces restantes peuvent encore y répondre par leur bord
+supérieur, sous la forme log-somme $\sum_c \log(1 + \nu_c)$; $\alpha = 1$ et
+$\beta$ dans $[0{,}01;\ 0{,}1]$ gardent le score dominant. Cela vise
+exactement la perte des coutures verticales ci-dessus : cesser d'optimiser
+seulement la bande en cours, protéger les couleurs dont la bande suivante
+aura besoin. Effet mesuré, exécution unique : +3 bords sur la chaîne
+complète, de 444 à 447 (bords appariés, indices non imposés), pour un coût
+négligeable (environ 0,5 s par bande à faisceau $10^5$).
+
+**Reconstruire la moitié basse.** Sur le plateau à 444, les 8 rangées du haut
+plus leur couture d'interface portent 248 bords parfaitement appariés. Les
+geler et ne reconstruire que les 8 rangées du bas (un ensemble fixe de 128
+pièces restantes contre une interface fixe de 16 couleurs) préserve ces 248
+automatiquement, et la moitié reconstruite est majorée par 232 bords
+internes : une reconstruction parfaite serait littéralement un 480, et même
+une reconstruction parfaite sur les seules verticales dépasserait 460. La
+reconstruction est le problème que le solveur de bandes résout déjà (une
+chaîne partie d'un vecteur de couleurs de haut fixé); l'opérateur coûte donc
+1 à 2 minutes. C'est une borne sur l'opérateur, pas une affirmation
+d'atteignabilité.
+
+Mesurée, la reconstruction gloutonne est un résultat nul : reconstruire la
+moitié basse avec la même DP gloutonne retombe exactement sur 444 où que la
+ligne de gel soit tracée (gel jusqu'à la rangée 7 : 444; jusqu'à la rangée
+11 : 444; seule la reconstruction triviale de la dernière rangée conserve
+l'entrée à 447). La perte des bandes tardives est un artefact d'horizon
+glouton, pas un accident réparable du choix des pièces restantes : relancer
+le même glouton sur le reliquat depuis n'importe quelle rangée de départ
+aboutit au même endroit. Le +3 du regard en avant est le seul gain
+algorithmique trouvé dans cette famille. Portée : seule la reconstruction
+gloutonne sous faisceau a été testée; une résolution exacte de la moitié
+basse à 128 pièces (un problème d'appariement contraint) a été proposée et
+jamais lancée, si bien que la borne ci-dessus n'est pas entamée par ce
+négatif.
+
+## Jouer avec les indices officiels
+
+Imposer les cinq pièces indices officielles exige de réserver chaque pièce
+indice dès le début de la construction. La version naïve a laissé une bande
+précoce dépenser gloutonnement une pièce dont une case indice avait besoin
+10 rangées plus bas, et y est morte (208 cases sur 256, 3 indices sur 5) :
+une instance nette et concrète du
+[vol de pièces](/research/why/piece-theft), où un placement localement
+optimal dépense une pièce qu'une contrainte lointaine réclame. Avec les
+pièces indices en aval réservées d'emblée, la chaîne atteint **240 cases sur
+256, les 5 indices respectés, 414 bords appariés sur 480** (dénominateur du
+plateau complet, 16 cases laissées vides) à faisceau 100 000. Exécution
+unique.
+
+Les pièces de coin ajoutent une contrainte à longue portée du même genre :
+les 2 pièces de coin (sur 4) que la rangée du haut dépense déterminent les
+couleurs de coin que la rangée du bas devra produire 14 rangées plus loin.
+Réserver ou pré-engager les quatre coins est la direction de correction
+naturelle; elle n'a pas été lancée dans ces mesures.
+
+## Où elle s'arrête
+
+La DP par colonnes en bandes est une route rapide vers un bon plateau : 444
+bords appariés en 35 secondes, avec chaque bord horizontal de rangée partagée
+apparié, là où le faisceau au niveau des cases atteint le milieu des 450
+(bords appariés) en quelques minutes. Le plafond est l'engagement
+unidirectionnel lui-même : chaque bande paie ses coutures verticales avec des
+couleurs choisies une bande plus tôt et aucune recherche locale en bas ne
+peut les rembourser; c'est pourquoi les gains au-delà de ce palier sont venus
+du [polissage par destruction-réparation](/research/build/local-search/local-search-alns)
+plutôt que d'un surcroît de largeur. Les portes ouvertes que laisse cette
+famille sont concrètes : une résolution exacte de la moitié basse sous haut
+gelé, le score de regard en avant appliqué à chaque bande plutôt qu'après
+coup, et une construction bidirectionnelle conjointe qui se rejoint au milieu
+par conception plutôt que par chance.

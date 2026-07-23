@@ -4,11 +4,11 @@ description: >-
   Des approches que nous avons essayées, séduisantes en apparence, mais qui ne
   font pas bouger les lignes sur Eternity II, consignées avec nos constats pour
   que vous investissiez votre temps ailleurs.
-metaDescription: "Des approches sur Eternity II séduisantes mais qui ne bougent pas le score, documentées pour vous éviter de les refaire : la propagation de probabilités qui s'éteint à deux cases, les macro-tuiles qui accélèrent sans réduire le domaine, l'élagage par offre de bord plus lent que le gain."
+metaDescription: "Des approches sur Eternity II séduisantes mais qui ne bougent pas le score : bases de motifs sans information, réduction de réseaux qui résout la moitié facile, colonies de fourmis qui apprennent du bruit, et deux douzaines d'autres, chacune avec son mécanisme d'échec."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-21
+updated: 2026-07-22
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Fermeture d'eternity2.net : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io message 3511)"
@@ -19,6 +19,10 @@ sources:
     url: https://groups.io/g/eternity2/message/5883
   - label: "Markus Zajc évalue l'élagage par offre de bordure : 0,0014 % de tests en moins, 8 % plus lent (groups.io message 6060)"
     url: https://groups.io/g/eternity2/message/6060
+  - label: "Fu, Qiu, Zha : Generalize a Small Pre-trained Model to Arbitrarily Large TSP Instances (AAAI-21)"
+    url: https://arxiv.org/abs/2012.10658
+  - label: "Rethinking Heatmap and MCTS for TSP (2024)"
+    url: https://arxiv.org/abs/2411.09238
 related:
   - /research/build/run-it-yourself
   - /research/records
@@ -49,6 +53,40 @@ fixer certaines pièces pour réduire la recherche.*
 sans doublon, et l'unique indice central fixe l'orientation. Il n'y a aucune
 symétrie globale à briser : fixer des coins ne fait donc qu'un choix
 arbitraire, non un choix gratuit. [Pourquoi c'est un mur →](/research/why/rare-color-geography)
+
+L'absence va plus loin que les rotations et les doublons. Nous avons aussi
+cherché une symétrie par réétiquetage des couleurs : une énumération exhaustive
+de toutes les permutations de couleurs susceptibles d'envoyer le jeu de pièces
+sur lui-même (à rotation près) ne trouve que l'identité, parce que chacune des
+22 couleurs intérieures possède un profil d'adjacence unique à travers les
+pièces. Le groupe de symétrie est de taille un ; le générateur a aussi brisé
+tous les échanges de couleurs. (Les couleurs intérieures portent tout de même
+une structure utile à connaître : elles tombent dans exactement trois classes
+de fréquence, 5 couleurs présentes 24 fois chacune, 5 présentes 48 fois et 12
+présentes 50 fois, soit 960 demi-bords, deux fois les 480 bords.)
+
+## Vérifier des invariants sur les cases déjà posées
+
+*Décomposer le jeu de pièces selon sa structure de réétiquetage des couleurs et
+élaguer la recherche avec des invariants calculés sur la partie du plateau déjà
+posée.*
+
+**Mesuré**, avec un mécanisme proche d'une preuve. Dans un backtracker qui ne
+pose jamais que des pièces concordantes, la région posée satisfait toujours
+toute contrainte qui ne mentionne que des cases posées : la recherche impose
+ces invariants par construction, si bien qu'un élagueur qui inspecte ce qui est
+déjà sur le plateau ne se déclenche jamais. Nous avons essayé trois variantes
+de l'idée et aucune n'a élagué une seule branche ; il n'y a ni accélération ni
+score à rapporter parce que les élagueurs ne se sont littéralement jamais
+déclenchés. Une variante à parcours en spirale était en outre pire, non
+meilleure, car elle perdait le bon ordonnancement de la région de départ. La
+portée à retenir : ceci réfute les invariants statiques sur la région posée
+sous une recherche strictement concordante, pas tout usage imaginable de la
+structure de couleurs du jeu de pièces. Un élagage utile doit regarder ce qui
+peut encore venir, des vérifications en avant sur les candidats des cases non
+posées, ou vivre dans une recherche qui tolère des discordances. À comparer au
+test d'offre de bordure plus bas : celui-là se déclenche trop tard ; ceux-ci ne
+se déclenchent jamais.
 
 ## Il suffit d'y jeter plus de puissance de calcul
 
@@ -91,6 +129,21 @@ l'élagage qui paie sur cette grille est exact, non probabiliste ; la
 [cohérence d'arc](/research/build/reduce/arc-consistency) et le
 [filtre de couplage tous-différents](/research/build/reduce/alldiff-regin).
 
+Nous avons plus tard tenté nous-mêmes le sauvetage évident : passage de
+messages plus une pénalité lagrangienne par pièce censée restaurer la
+contrainte d'usage unique, sur un 4×4 généré. Mesuré, et cela ne converge pas.
+La marginale d'au moins une pièce s'effondre à exactement zéro partout, et une
+fois une marginale à zéro aucun multiplicateur ne peut la ranimer : l'écart de
+dualité ne se ferme jamais, le résidu restant autour de 1,2 à 1,7 sur plus de
+50 itérations externes dans les trois réglages d'amortissement et de pas que
+nous avons essayés (marginale de pièce minimale 0,00 dans chaque
+configuration ; maximale 2,2 à 2,3 là où elle devrait valoir 1). C'est une
+seule instance jouet et trois réglages, un échec déjà au stade du 4×4. Le
+contraste avec la note sur les réseaux de tenseurs plus bas est la partie
+instructive : la même astuce lagrangienne fonctionne quand l'étape interne est
+une contraction exacte coûteuse et échoue quand c'est un passage de messages
+bon marché. La précision des marginales internes est tout l'enjeu.
+
 ## Ordonner les coups par propagation de croyances
 
 *Faire tourner une propagation de croyances sur les couleurs et utiliser ses
@@ -100,6 +153,30 @@ indications par case pour décider quelle pièce essayer en premier.*
 départagent donc guère les candidats. Lors d'une confrontation directe, choisir
 le coup suivant au hasard s'en tirait aussi bien, voire mieux, parce qu'un ordre
 informé fixe tend à répéter les mêmes erreurs. [Pourquoi c'est un mur →](/research/why/no-forced-moves)
+
+## Trier les candidats par flexibilité future
+
+*Pré-trier chaque liste de candidats pour essayer d'abord les pièces dont les
+bords bas et droit ouvrent le plus d'options en aval : une heuristique d'ordre
+des coups qui ne coûte rien au moment de résoudre.*
+
+**Mesuré.** Sur le casse-tête officiel, un seul fil d'exécution, 10 secondes ×
+3 essais contre une base réglée : même profondeur maximale (192), même
+meilleur score (344 bords concordants), même schéma de visite des nœuds, et le
+débit est tombé de 84 ou 85 millions à 80 millions de nœuds par seconde,
+environ 5 %. Un sondage multi-fils de 30 secondes a marqué 429 contre 444 pour
+la base, mais c'est une graine unique : cela montre que l'ordre peut perturber
+le résultat, pas qu'il nuit de façon fiable. Le mécanisme : le point le plus
+profond atteignable était fixé par le calendrier de discordances du solveur,
+non par l'ordre des coups, et les pièces « flexibles pour la suite » sont
+corrélées aux pièces populaires que l'ordre existant essaie déjà tôt ; le tri
+n'apporte donc aucune information, il ne fait que remanier la disposition
+mémoire et le paie en localité de cache. Portée : c'est le verdict pour un
+chemin de calendrier réglé sur le casse-tête officiel ; le tableau pourrait
+différer sur des calendriers sans mur de profondeur ou sur des casse-tête
+générés aux distributions de couleurs uniformes. Même leçon que l'entrée sur
+la propagation de croyances ci-dessus, sous un angle moins cher : les ordres
+statiques informés ne battent pas les défauts ici.
 
 ## Le comptage par réseaux de tenseurs
 
@@ -112,6 +189,20 @@ il dénombre de l'ordre de $10^{90}$ coloriages cohérents aux frontières contr
 l'unique solution réelle, ou presque, du casse-tête. Le passage de messages
 local est tout simplement incapable de voir la règle globale d'une pièce par
 case. [Pourquoi c'est un mur →](/research/why/entropy-area-law)
+
+Un amendement issu de travaux de carnet ultérieurs : l'angle mort peut être
+rapiécé, à petite échelle. Ajouter une pénalité lagrangienne par pièce
+par-dessus la contraction restaure assez l'unicité pour résoudre entièrement
+des casse-tête générés 4×4 (une seconde) et 6×6 (cinq minutes), vérifiés à
+pièces uniques et entièrement concordants. Le mur de coût arrive bien avant le
+16×16 : la première tentative à pleine échelle a épuisé la mémoire vers 3 Go
+et est morte, et la troncature nécessaire pour tenir risque de jeter trop pour
+que le correctif garde un sens. C'est une tentative unique : la variante
+rapiécée est donc non validée à pleine échelle plutôt que prouvée impossible ;
+le verdict Prouvé ci-dessus porte sur la contraction pure. Imposer l'unicité
+par multiplicateurs exige des marginales internes précises, et la précision au
+nombre de couleurs du 16×16 réclame une dimension de lien dont la mémoire et
+le calcul explosent.
 
 ## Résoudre les couleurs d'abord, placer les pièces ensuite
 
@@ -155,6 +246,83 @@ résoudre
 encodages peuvent encore rapporter (preuves d'impossibilité et remplissages
 quasi optimaux sur des sous-plateaux), là où réside réellement leur valeur.
 
+La version entière n'est pas un sauvetage à pleine échelle non plus. Les 60
+cases de bordure fixées, nous avons demandé à un solveur MIP libre (HiGHS, 4
+fils, limite de 30 minutes) un intérieur optimal en entiers : environ 154 000
+variables binaires de placement et 13 000 lignes de contraintes. Il est revenu
+sans trouver le moindre placement entier faisable, et a même étiqueté à tort
+l'affectation vide « optimale » à l'objectif 0, un rappel qu'il faut contrôler
+les statuts des solveurs. Portée à tenir serrée : un solveur, réglages par
+défaut, un budget. Cela ne réfute pas la programmation en nombres entiers ;
+nous avons depuis vu le choix d'encodage et de solveur tout changer sur des
+instances plus petites (un solveur de la classe CP-SAT résout entièrement, en
+moins d'une seconde, des instances où la même pile PL/MIP échoue). Une
+formulation générique à pleine échelle dépasse simplement ce qu'un solveur
+grand public peut même trouver faisable en une demi-heure ; les modèles
+entiers à région restreinte et à corpus restreint fonctionnent, eux, et c'est
+là que ces solveurs gagnent leur pain.
+
+## Les bases de données de motifs (l'heuristique du Rubik's Cube)
+
+*Précalculer, pour chaque petite pièce de territoire, le nombre minimal de
+corrections de bords qu'exige toute complétion, et sommer ces coûts par zone en
+une heuristique admissible : la technique qui a percé le Rubik's Cube et le
+taquin à 15.*
+
+**Prouvé.** Sur Eternity II l'heuristique ne porte exactement aucune
+information, par calcul direct et non par échantillonnage. Le jeu officiel
+compte 22 couleurs intérieures distinctes et, sur les 256 pièces avec
+rotation, chacune des 22 est disponible sur chaque côté : tout bord intérieur
+potentiel est donc individuellement concordable. La borne supérieure par bord
+ressort à 480, le maximum, et la borne par zone 2×2 (225 zones × 4 bords
+internes, corrigée du double comptage) vaut aussi exactement 480. Les deux
+s'effondrent sur l'énoncé trivial que les 480 bords pourraient tous concorder.
+Les bases de motifs gagnent leur pain quand l'objectif est non additif, quand
+le coût joint d'une zone dépasse la somme de ses parties, comme les comptes de
+mouvements du Rubik. Le compte de bords concordants de ce casse-tête est
+exactement additif par bord, et la seule structure jointe, chaque pièce
+utilisée une fois, couple les cases globalement, ce qu'aucune zone locale ne
+peut voir. À la place : les
+[relaxations PL et PLNE](/research/build/exact/lp-relaxations), qui encodent,
+elles, la contrainte globale d'unicité, dominent strictement toute table de
+zones.
+
+## La réduction de réseaux (LLL) sur les équations de placement
+
+*Encoder le placement en équations entières 0/1, prendre le réseau noyau, le
+réduire (LLL ou BKZ) et chercher la solution comme un problème de vecteur le
+plus proche : la machinerie derrière les célèbres attaques de sacs à dos et de
+programmes entiers.*
+
+**Prouvé** (les arguments centraux sont structurels ; la sonde d'échelle est
+mesurée). Trois portes se ferment tour à tour. D'abord, la partie qu'une
+attaque par réseau traite proprement, chaque case reçoit une pièce et chaque
+pièce une case, est un système d'affectation totalement unimodulaire, soluble
+en temps polynomial par l'algorithme hongrois ; nos expériences de
+récupération (10 instances plantées sur 10 en 2×2 et 3×3 retrouvées
+exactement, suivant la reformulation en réseau noyau d'Aardal, Hurkens et
+Lenstra) montrent la méthode résolvant un problème qui n'a jamais été dur.
+Ensuite, la partie qui est dure, les couleurs en vis-à-vis doivent concorder,
+est une contrainte conditionnelle (« bilinéaire ») sans plongement fidèle en
+égalités linéaires hors une explosion combinatoire de variables auxiliaires,
+qui efface l'avantage du réseau. Enfin, le système d'offre de couleurs n'est
+pas un sac à dos : chaque coefficient vaut exactement 1, les attaques
+classiques de somme de sous-ensembles à basse densité (Lagarias et Odlyzko
+1985 ; Coster et collègues 1992) ne s'appliquent donc même pas, et une attaque
+LLL sur le plongement à poids unitaires dégénère en énumération pure. La sonde
+d'échelle est du même avis : le LLL exact en entiers sur le seul noyau
+d'affectation facile a pris 0,35 s en 2×2 et 42,6 s en 3×3, et a été tué
+au-delà de 175 s en 4×4 (dimension du noyau 993) ; l'ossature complète du
+16×16 ferait environ 262 000 variables. (Ces temps viennent d'une
+implémentation exacte en pur Python, un énoncé pratique plutôt
+qu'asymptotique ; ce sont les arguments structurels qui portent le verdict.)
+Les sous-réseaux par couleur se réduisent à bas coût, moins d'une demi-seconde,
+mais 12 des 60 vecteurs les plus courts examinés en 3×3 exigent déjà qu'une
+pièce occupe deux cases : ils omettent exactement les contraintes qui
+comptent. La dureté du casse-tête loge dans une forme de problème, couplage
+bilinéaire plus distinction globale, dont les outils de réduction de réseaux
+ne sont pas natifs ; le sous-problème dont ils sont natifs est déjà polynomial.
+
 ## Apprendre une heuristique sur de petits plateaux
 
 *Entraîner un réseau de neurones sur de petits casse-tête, puis le transférer
@@ -166,6 +334,33 @@ filtrés d'une façon, puis on l'interroge sur des coups filtrés très
 différemment, et les couleurs du casse-tête complet n'apparaissent jamais à
 l'entraînement. Le savoir-faire ne franchit pas l'écart de taille et de
 couleurs. [Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## La descente de gradient sur un plateau adouci
+
+*Rendre le plateau différentiable : une matrice pièces-vers-cases doublement
+stochastique par normalisation de Sinkhorn plus des softmax de rotation par
+case, maximiser l'espérance de bords concordants par descente de gradient avec
+recuit de température, puis arrondir vers un plateau réel.*
+
+**Mesuré.** L'écart de relaxation est intrinsèque. Le score adouci grimpe à
+367/480, mais le meilleur plateau arrondi marque 336 bords concordants (autres
+graines 324 et 325, meilleur de 4), et l'arrondi empire à mesure que la
+température s'affûte ; une variante à passage avant dur est pire encore, à
+280. Le test le plus fort était aussi le plus petit : restreint aux deux ou
+trois dernières rangées d'un plateau à nous à 459 sur 480 (score strict, les
+cinq indices posés), le reste gelé, exactement là où la re-résolution exacte
+gagne fiablement un à trois bords, l'optimiseur n'a même pas pu reproduire la
+propre queue du plateau (41 contre 49 concordances de région pour le tenant,
+sur 8 redémarrages à deux rangées ; 63 contre 76 à trois rangées). Une seule
+campagne, mais l'écart sur la région la plus facile est de 15 à 20 % sous le
+tenant, très au-delà du bruit. Le mécanisme fait écho aux entrées faux-480 et
+réseaux de tenseurs de cette page : l'optimum continu est une superposition de
+nombreux plateaux mutuellement incompatibles, et la contrainte que la
+relaxation adoucit, chaque pièce utilisée exactement une fois, est précisément
+celle qui porte la dureté ; l'adoucir fabrique des concordances qu'aucune
+permutation réelle ne peut honorer. C'est un troisième mode d'échec dans la
+famille apprentissage ; voir
+[quand l'apprentissage s'effondre](/research/build/learning/when-learning-collapses).
 
 ## Énumérer d'abord les grappes locales
 
@@ -183,6 +378,56 @@ blocs avant même que la disjonction des pièces n'entre en jeu
 renvoyé aux années de travaux 2×2 antérieurs présents dans l'archive
 ([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Pourquoi c'est un mur →](/research/why/rigidity-wall)
+
+## Construire le plateau une rangée parfaite à la fois
+
+*Construire rangée par rangée, en utilisant un couplage biparti exact pour
+choisir la meilleure rangée possible étant donné les couleurs de bords que la
+rangée précédente expose.*
+
+**Mesuré.** Chaque rangée est localement optimale ; le plateau meurt quand
+même. Dans notre essai, la construction a heurté un mur vers la rangée 10 sur
+16, à 294/480 bords concordants, les rangées 11 et suivantes infaisables tout
+court : les premières rangées localement optimales consomment exactement les
+pièces dont les couleurs de bords sont requises plus bas, et à la rangée 10 le
+stock restant ne peut plus fournir les couleurs demandées du tout. Garder en
+parallèle les 32 meilleures suites de rangées n'aide pas ; tous les candidats
+de tête puisent dans les mêmes pièces rares et s'affament ensemble à la même
+rangée. (Preuve de concept en un seul essai ; le programme dynamique glouton
+est essentiellement déterministe. Des faisceaux bien plus larges, 256 ou
+1 024, n'ont pas été essayés, même si l'argument du stock partagé prédit le
+même mur.) Le mécanisme en une ligne : l'optimalité locale ne se compose pas,
+parce que la ressource contraignante est le stock de pièces partagé et qu'un
+engagement rangée par rangée le dépense invisiblement. Ce qui marche à la
+place, c'est la prévoyance jointe entre rangées : la
+[recherche en faisceau](/research/build/construct/beam-search) plein plateau
+que nos constructeurs utilisent réellement.
+
+## Construire par les deux bouts et se rejoindre au milieu
+
+*Faire croître le plateau du haut vers le bas et du bas vers le haut en même
+temps et joindre les moitiés à une rangée médiane : chaque moitié reçoit la
+part la plus facile, ancrée à la bordure.*
+
+**Mesuré.** La jonction le tue. Avec des faisceaux haut et bas indépendants de
+largeur 32, la seule disjonction des pièces a échoué sur plus de 99,9 % des
+appariements : 0 paire valide sur 1 024. Une seconde variante garantissait la
+disjonction en relançant un faisceau montant dédié par état du haut, environ 8
+fois le calcul, et n'a toujours produit aucune fusion, parce que la rangée de
+rencontre exige une concordance exacte d'une séquence de couleurs à 16
+positions sur un alphabet d'environ 22 couleurs, et qu'avec les pièces
+restantes contraintes l'ensemble concordant est effectivement vide. Deux
+obstructions s'empilent : des recherches indépendantes puisent dans le même
+stock de pièces prometteuses, et même des moitiés disjointes doivent s'accorder
+sur une rangée entière de couleurs d'interface qu'aucun côté n'a optimisée.
+Construire par les deux bouts ne supprime pas la difficulté d'interface ; il
+déplace le mur du milieu de plateau vers la rangée de rencontre. Portée : deux
+variantes à une seule largeur de faisceau ; les jonctions adoucies (tolérer
+quelques discordances d'interface puis réparer, ou se rejoindre en diagonale)
+n'ont jamais été lancées, le verdict couvre donc les versions à jonction
+exacte, pas la construction bidirectionnelle en général. Le cousin en méthodes
+exactes de cette idée a sa propre page :
+[meet in the middle](/research/build/exact/meet-in-the-middle).
 
 ## Découper et conquérir (cube and conquer)
 
@@ -226,6 +471,68 @@ un gradient stable. La leçon rejoint le résultat du
 page : l'imitation apprend la distribution qu'on lui montre et ne peut inventer
 la structure rare qu'exige un record.
 
+## La construction par colonie de fourmis (pistes de phéromones)
+
+*Une colonie d'agents construit chacun un plateau complet de façon
+gloutonne-aléatoire ; un champ de phéromones sur les décisions (case, pièce,
+rotation) est renforcé le long des chemins des meilleurs finisseurs (système de
+fourmis max-min standard : évaporation, dépôts d'élite, écrêtage), pour que les
+constructions futures se concentrent sur des régions globalement cohérentes.*
+
+**Mesuré**, trois échecs en profondeur. Le plafond autonome était de 296/480
+bords concordants, le meilleur sur les configurations balayées (meilleure
+configuration à une graine, échelle de preuve de concept), sous même une base
+simple de recherche large. Allumer l'apprentissage par phéromones a dégradé la
+colonie : la moyenne de population est tombée d'environ 265 à environ 252 en
+40 itérations tandis qu'un témoin à redémarrages aléatoires sans phéromones
+tenait environ 265 et atteignait 289 ; ce témoin était une confrontation
+directe. Et le champ appris ne porte aucune information sur ce que font
+réellement les bons plateaux : confronté à un plateau à nous à 455 (bords
+concordants, les cinq indices posés), le champ classait le choix du bon
+plateau en premier dans 1,2 % des cases contre un taux de hasard de 0,9 %,
+avec un percentile moyen de 0,502, statistiquement indiscernable d'un tirage à
+pile ou face ; il ne peut donc même pas servir de guide à une meilleure
+recherche. Le mécanisme est l'attribution du mérite : avec environ 600
+candidats légaux par case et de bons scores finaux issus de vastes ensembles
+interchangeables de choix précoces, « cette décision était sur un bon chemin »
+est du bruit. La phéromone amplifie un gagnant de loterie précoce arbitraire
+et la colonie converge prématurément vers un bassin médiocre.
+
+## La recherche arborescente Monte-Carlo à prior bon marché (la greffe TSP)
+
+*Un résultat de 2024 a montré que pour le voyageur de commerce, un MCTS fort à
+prior sans paramètre égale les cartes de chaleur neuronales apprises
+([arXiv:2411.09238](https://arxiv.org/abs/2411.09238)). Porter fidèlement le
+moteur sous-jacent ([Fu, Qiu et Zha, AAAI-21](https://arxiv.org/abs/2012.10658)),
+en transposant son mouvement de tournée k-opt vers l'analogue exact en
+affectation, une relocalisation cyclique de k pièces toujours faisable.*
+
+**Mesuré**, deux négatifs nets. Comme raffineur : la phase d'échanges par
+paires est un moteur de réparation sain (des plateaux abîmés de 452 bords
+concordants jusqu'à 295 remontent exactement à 452) mais ne dépasse jamais son
+point de départ, et le mouvement vedette façon k-opt est complètement inerte ;
+sur chaque essai et toute la grille d'hyperparamètres (poids de mélange,
+longueur de cycle, simulations par coup), environ 2 500 à 3 150 cycles de
+relocalisation échantillonnés par essai ont produit zéro amélioration. Comme
+producteur à partir de rien : une variante constructive à bandits par case,
+après une optimisation du chemin chaud de 2,5 à 3,3× pour rendre la
+comparaison équitable, se comporte comme un faisceau de largeur 512 à 1 024,
+mesurablement sous un faisceau de largeur 2048 à temps mural égal (fraction de
+résolution moyenne 0,596 contre 0,743 sur notre échelle de casse-tête
+générés ; 0,644 contre 0,721 sur les barreaux durs, 24 essais), et l'écart ne
+se referme pas avec le budget. Le résultat zéro-cycle-améliorant est
+structurel et non un échec de réglage, même si seul le portage fidèle a été
+testé. Le mécanisme : le k-opt du TSP fonctionne parce que la chaîne de
+mouvements suit des arêtes de tournée existantes et reconnecte donc par
+construction une structure largement compatible ; un problème de placement par
+concordance de bords n'a pas de tournée à suivre, et déplacer une tuile
+entière perturbe les concordances des quatre côtés à la fois. La moitié
+transférable de l'article, qu'une recherche plus un prior bon marché peut
+remplacer un modèle appris, a tenu ; la recherche elle-même a la forme du TSP.
+Sur ce casse-tête, la
+[largeur de faisceau](/research/build/construct/beam-search) brute reste le
+meilleur usage du même temps mural.
+
 ## Recombiner deux bons plateaux
 
 *Prendre deux plateaux à haut score, garder les cases où ils s'accordent, et
@@ -244,6 +551,120 @@ vue du côté de la recombinaison : les bons plateaux logent tous dans un unique
 bassin étroit, si bien que les mélanger produit davantage du même plutôt que du
 neuf.
 
+La version greffe échoue de la même façon, par l'autre bout. Nous avons pris
+un partiel à nous à 442 bords concordants et un plateau fini à 459 (score
+strict, les cinq indices posés) et greffé les placements du donneur sur la
+plus grande région de désaccord, 71 cases : le score est tombé de 442 à 271.
+Greffer cumulativement les six plus grandes régions n'est jamais remonté
+au-dessus de 271 (241 à 271 sur les six variantes). La réparation locale sur
+ce casse-tête récupère typiquement cinq à dix bords ; la greffe creuse un trou
+d'environ 170. Un partiel et un donneur, un exemple travaillé décisif plutôt
+qu'une constante universelle, mais le mécanisme est générique : une région
+greffée gagne les concordances internes de son donneur et casse des bords tout
+le long de sa frontière avec les cases intactes, et la frontière d'une région
+est grande relativement à son intérieur, si bien que les dégâts de frontière
+dominent. Les réparer signifie rechoisir aussi les cases juste au-delà de la
+couture, et itérer cette exigence s'étend jusqu'à ce que « greffer une
+région » soit devenu « reconstruire la moitié du plateau ». Les bons plateaux
+ne se décomposent pas en parties échangeables.
+
+## Élargir le vocabulaire des discordances
+
+*Tout solveur de la famille de backtrackers détentrice des records ne peut
+laisser qu'un bord discordant au plus par case ; par construction son index ne
+peut même pas représenter une case qui casse deux fois. Or les meilleurs
+plateaux communautaires issus de recherche locale contiennent bien quatre ou
+cinq de ces cases à double casse. Construire donc la même recherche sur
+l'espace élargi où une case peut porter deux casses, et chasser là où personne
+d'autre ne le peut.*
+
+**Mesuré.** À temps mural égal, le vocabulaire élargi ne rapporte rien. Un A/B
+apparié de 54 manches, 27 paires à graines appariées sur trois formes de
+calendrier et deux directions de balayage à 600 secondes × 4 fils par manche,
+a donné 20 égalités, 4 victoires pour le moteur élargi et 3 pour le classique,
+chaque différence dans ±3 bords concordants, avec des distributions
+min/médiane/max par forme identiques (415/420/425 dans les deux bras pour une
+forme). Le moteur élargi a visité 0,87 à 0,94 fois les nœuds pour les mêmes
+résultats. Un recensement exhaustif séparé derrière un préfixe de 208 cases
+d'un plateau communautaire à 464 (score à cinq indices ; contexte sur la
+[page des records](/research/records)) a trouvé exactement quatre complétions
+à sept discordances totales ou moins : le 464 lui-même et trois variantes à
+une case à 462 et 463, et aucune n'utilisait de case à double casse. Le
+mécanisme : l'espace élargi est explorable mais jamais forcé. Le budget de
+discordances étalé sur tout le plateau, la recherche n'a presque jamais deux
+unités de marge restantes sur une même case : elle dépense donc son budget
+comme le moteur classique ; et dans la région de fin de partie quasi parfaite,
+la strate à double casse est vide tout court. Les cases à double casse
+connues des plateaux communautaires siègent en milieu de plateau et furent
+créées par des mouvements de réparation en recherche locale, non par un
+parcours en profondeur. Portée : une égalité à temps mural égal pour une
+famille de moteurs sur le casse-tête officiel, pas une preuve que la strate
+élargie est vide partout ; l'hypothèse de départ, que le plateau communautaire
+plafonne sur un mur de représentabilité, est rétrogradée en conjecture non
+étayée, non réfutée.
+
+## Décoder les discordances comme un mot de code corrompu
+
+*Voir un plateau parfait comme un mot de code, chaque bord interne un contrôle
+de parité, et un plateau à haut score comme ce mot de code plus un petit
+syndrome d'erreur ; si le motif d'erreur a une structure, un décodage par
+syndrome ou une propagation de croyances devrait le localiser et le nettoyer à
+bas coût.*
+
+**Mesuré**, sur un plateau à nous à 459 sur 480 (score strict, les cinq
+indices posés) ; cette entrée et la suivante sont deux lentilles qui traitent
+le motif des discordances comme un signal structuré, et toutes deux n'en ont
+trouvé aucun. Le syndrome est aussi peu structuré que possible : les 21
+discordances impliquent environ 21 paires de couleurs distinctes (deux paires
+seulement se répètent), éclatées en 13 fragments déconnectés, et le compte
+total de demi-bords de chaque couleur est pair, le plancher de parité sur les
+discordances vaut donc zéro ; rien d'algébrique n'interdit un plateau parfait
+ni ne force ces erreurs. Décoder n'achète en conséquence rien. Re-résoudre
+exactement les cases du support d'erreur (34 cases éparpillées, démarrage à
+chaud) tient à 459 sur 8 graines et une résolution de 200 secondes, pas mieux
+que la re-résolution en bande rectangulaire simple contre laquelle elle
+courait ; élargir la région d'un pas la rend trop grande pour bien se
+re-résoudre (433) ; et sans démarrage à chaud la région éparpillée régresse à
+448. Un seul plateau étudié, même si le mécanisme suggère un tableau
+générique : les raccourcis de décodage exigent une erreur structurée
+(collisions répétées, coset de basse dimension, une grappe réparable), et un
+syndrome maximalement étalé dont les fragments ne se couplent que par
+l'inventaire des pièces est exactement le régime où le décodage dégénère en la
+même recherche exhaustive de queue que nous menons déjà. Les discordances sont
+un budget alloué globalement, pas une erreur locale à inverser.
+
+## Traiter les discordances comme des défauts physiques
+
+*Modéliser chaque discordance comme un défaut topologique chargé dans le champ
+de couleurs : les défauts devraient siéger aux sites forcés par conservation, à
+interaction minimale, et les charges opposées devraient s'annihiler.*
+
+**Mesuré**, même plateau que l'entrée précédente, et chaque prémisse échoue.
+La position prédit extrêmement bien l'emplacement des discordances : l'indice
+de rangée seul sépare bords cassés et intacts avec une AUC de 0,895, et les 21
+discordances siègent toutes dans les dernières rangées remplies. Tout signal
+de couleur est du bruit : AUC de rareté de couleur de 0,46 à 0,50, et les
+discordances portent des couleurs communes, non rares. Le plancher de
+conservation des couleurs sur la queue est proche de zéro ; le haut gelé ne
+pousse vers le bas aucune demande de couleur que les pièces restantes ne
+puissent servir, et même la borne de couplage la plus fine, consciente des
+orientations, ne force que 0 à 2 discordances là où il en existe 10 à 19. Le
+spectre de charges n'a essentiellement aucune paire de signes opposés : il n'y
+a rien à annihiler. Un objectif de répulsion de défauts ajouté à la
+re-résolution exacte de la queue change quelle solution départagée sort, mais
+pas le plafond ; la dernière rangée est prouvablement optimale étant données
+les rangées au-dessus. (Un balayage de résolution de région à froid a été
+arrêté après une seule graine, à 441, une fois le verdict clair ; tenez ce
+nombre pour une illustration à graine unique.) Le constat à garder : les
+discordances ne sont pas du tout des défauts dans un champ de couleurs. Ce
+sont de pures frustrations d'orientation combinatoires, issues de
+l'épuisement des pièces dans la région remplie en dernier ; la comptabilité
+des couleurs s'équilibre, et ce qui casse est la contrainte jointe à quatre
+côtés sur toutes les pièces restantes à la fois. Aucune réduction par coupe
+unique, par couleur ou par énergie de paires ne la capture. La géométrie des
+casses a sa propre page :
+[géométrie des discordances](/research/why/mismatch-geometry).
+
 ## Forcer une bordure diversifiée, puis remplir
 
 *La bordure est un sous-casse-tête plus petit. Résoudre d'abord pour de
@@ -260,6 +681,37 @@ le cadre vaut étonnamment peu
 ([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mesure au juste combien peu), et
 les dégâts de fin de partie tombent dans les coins intérieurs
 ([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+Nous avons mesuré la prémisse nous-mêmes, par deux directions. D'abord, le
+catalogue de bordures : une recherche bornée en temps (120 secondes,
+explicitement non exhaustive ; le vrai compte est inconnu) a produit 75 173
+anneaux de bordure complets et intérieurement valides. En donnant au solveur
+un échantillon de 500 cadres épinglés, 47 % ont épuisé la recherche en moins
+de 200 millisecondes sous propagation de base, et pratiquement tous furent
+rejetés d'emblée dès que la propagation complète a couru contre les pièces
+indices officielles. Un anneau qui se referme sur lui-même ne satisfait que la
+concordance par paires autour du pourtour ; la faisabilité jointe avec les
+indices et la contrainte intérieure d'utiliser chaque pièce une fois est une
+condition bien plus forte, et pratiquement aucun des anneaux catalogués ne la
+remplit.
+
+Ensuite, les bordures parfaites comme graines. Nous avons généré 5 000
+bordures parfaites distinctes à pièces uniques par programmation dynamique
+(les 60 cases de bordure posées, chaque bord de bordure concordant),
+échantillonné 100 uniformément, et donné à chacune le même pipeline : un
+remplissage intérieur de 60 secondes par propagation de contraintes, puis un
+polissage de 60 secondes par recherche locale. Meilleur score de tout le lot :
+436/480 bords concordants ; environ la moitié des départs entre 420 et 427, un
+quart entre 380 et 419, et aucun au-dessus de 437. Les plateaux de la classe
+455 à 460 de la même époque (score strict, les cinq indices posés) venaient
+tous d'un producteur en profondeur d'abord qui ne fixe pas la bordure en
+premier. Le polissage utilisait une seule graine et 60 secondes par départ :
+c'est donc un filtre bon marché, pas une réfutation exhaustive ; sous un
+polissage court à budget égal, aucun des 100 départs bordure-d'abord n'est
+arrivé à moins de 20 bords de ce que la recherche directe atteint. Une bordure
+parfaite sur-engage l'intérieur ; le remplissage optimise ensuite dans le
+profil de couleurs intérieur que la bordure autorise, et cette famille
+plafonne loin sous les meilleurs bassins.
 
 ## Construire un faux 480, puis le réparer
 
@@ -278,6 +730,86 @@ construction du faux 480 jette. Le mur est informationnel, non affaire de
 réparation locale de bords. À la place : le
 [mur de rigidité](/research/why/rigidity-wall) explique pourquoi la réparation
 locale ne peut franchir ce dernier écart, quel que soit le plateau de départ.
+
+## Amorcer la réparation avec le préfixe profond d'un solveur exact
+
+*Utiliser un backtracker exact à propagation de contraintes pour bâtir un
+préfixe cohérent très profond, l'épingler, et le donner à la recherche de
+réparation locale comme longueur d'avance.*
+
+**Mesuré**, une seule configuration ; à cadrer en conséquence. L'astuce
+d'épinglage approfondit réellement la recherche exacte elle-même ; entre les
+manches elle a porté le solveur de la profondeur 27 à la profondeur 152, du
+score 23 à 297 bords concordants, un vrai amplificateur de profondeur, et
+cette moitié positive reste utile quand on chasse des solutions exactes plutôt
+que des hauts scores (voir les
+[pages sur le backtracking](/research/build/backtracking)). Mais comme
+chercheur de score, cela se retourne : la réparation depuis le partiel épinglé
+à 297/480 (184 cases fixées) a fini à 424/480 bords concordants, contre une
+médiane de 430 à 450 (meilleur 451) pour la réparation à froid simple dans le
+lot de comparaison à 16 graines de la même époque. Ce bras amorcé était une
+seule graine, un calendrier et un préréglage de réparation : lisez-le comme
+« cette configuration a sous-performé chaque départ à froid du lot de
+comparaison », non comme une réfutation de tout amorçage par préfixe exact. Le
+mécanisme est la même leçon partir-du-mauvais-objet que l'entrée faux-480
+ci-dessus : un solveur exact en mode première-solution optimise la cohérence,
+pas le score. Il renvoie le premier préfixe profond faisable qu'il trouve, pas
+un bon ; « profond et cohérent » n'est pas « proche du bon », et l'épinglage
+rend l'erreur permanente, puisque la recherche de réparation ne peut défaire
+les cases héritées et n'aurait jamais bâti ce squelette elle-même.
+
+## Partir du centre et croître vers l'extérieur
+
+*Le centre a le plus de liberté de rotation : partir de là et laisser les
+contraintes s'accumuler en croissant vers la bordure.*
+
+**Mesuré**, et l'intuition est à l'envers. En confrontation directe sur des
+casse-tête générés de 5×5 à 8×8 contre les ordres rangée-par-rangée et
+bordure-d'abord, le centre-vers-l'extérieur a perdu chacune des six
+configurations : typiquement 10 à 100 fois plus lent, il a échoué tout court
+sur quatre des six dans des budgets où bordure-d'abord finissait (un 5×5
+bloqué à la profondeur 22 sur 25 après 2 millions de nœuds sur un casse-tête
+que bordure-d'abord résolvait en 2 000 nœuds), et il était environ 60 fois
+plus lent sur l'un de ceux qu'il a résolus ; le cas 8×8 était le pire des
+trois ordres testés. Mesuré sur de petits casse-tête générés avec les ordres
+de balayage d'un seul solveur, mais la direction et l'ampleur furent uniformes
+sur les six cas. Le mécanisme : la liberté est l'ennemie de la propagation. La
+bordure fournit des contraintes dures et immédiates (les bords gris) ; le
+centre n'en fournit aucune, si bien qu'une recherche centre-vers-l'extérieur
+s'engage sur des couleurs arbitraires sans moyen de détecter tôt
+l'infaisabilité. Plus de liberté signifie moins d'élagage, pas une recherche
+plus rapide. À la place : la page
+[ordre de remplissage](/research/build/backtracking/fill-order) couvre les
+ordres qui aident vraiment.
+
+## Encoder les stratégies humaines
+
+*Cadre d'abord, croissance de région compacte autour des indices, case la plus
+contrainte en premier, backtracking discipliné, et pilotage délibéré « dépense
+tes discordances avec sagesse » : coder la façon dont pensent les meilleurs
+solveurs humains.*
+
+**Mesuré**, et rien n'y survit. Un cadre parfait se trouve en quelques
+millisecondes et n'achète aucune traction (aucun des cinq indices ne touche la
+bordure). Le vrai tueur est l'épuisement des pièces, et il est invariant à
+l'ordre : le long d'une construction, le nombre moyen de pièces inutilisées
+qui conviennent parfaitement à une case s'effondre de 3,5 dans les premières
+rangées à 2,6, 2,0, 1,6 et 1,4 puis 0,4 à la rangée finale ; une discordance
+est donc presque toujours forcée à la fin, où que soit la fin. Trois ordres de
+remplissage humains ont couru à 6 graines chacun (bords concordants) :
+rangée-par-rangée 392, spirale depuis le centre 382, croissance ancrée aux
+indices 359. Chaque ordre déverse ses discordances sur ce qu'il remplit en
+dernier (la spirale sur l'anneau extérieur ; l'ancrage aux indices les étale
+partout, et marque le pire), et un départage « préserver les couleurs communes
+pour plus tard » a dégradé chaque ordre. Une trajectoire guidée unique
+plafonne vers 392, environ 67 bords sous ce qu'un faisceau large atteint sur
+le même matériel. Le mécanisme : le déficit qui produit les discordances est
+un fait d'inventaire global et conservé ; l'ordre choisit quelles cases en
+héritent, jamais s'il existe. Et la seule faculté humaine qui aiderait
+vraiment, suivre des milliers d'hypothèses en parallèle avec une anticipation
+globale, est exactement ce qu'est déjà la
+[recherche en faisceau](/research/build/construct/beam-search). Voir aussi
+[pourquoi il n'y a pas de coups forcés](/research/why/no-forced-moves).
 
 ## Précalculer des macro-tuiles 2×2 (ou plus grandes)
 
@@ -300,6 +832,56 @@ ne l'ont pas aidé à le dépasser ([Records et solveurs](/research/records)). �
 place : l'unique levier gratuit qui réduit vraiment l'arbre est
 l'[ordre de remplissage](/research/build/backtracking/fill-order).
 
+## Piloter le backtracker en anneaux concentriques
+
+*Piloter le backtracker à calendrier de la famille détentrice des records vers
+l'intérieur en anneaux concentriques, sur la théorie qu'une géométrie en
+couches épouse là où les casses veulent se loger.*
+
+**Mesuré.** Il heurte un mur de profondeur structurel que plus de temps ne
+déplace pas. Un essai d'une heure sur le casse-tête officiel a visité 3,4
+milliards de nœuds avec le placement le plus profond coincé sur un mur à la
+profondeur 80 : le mur était à 80 après cinq minutes et a gagné une case sur
+le reste de l'heure. Un essai de deux heures a fini au même 382/480 bords
+concordants que l'essai de cinq minutes. Un calendrier apparié à un ordre, un
+essai par budget : le verdict est que cet appariement échoue, non que les
+ordres en couches soient réfutés en général. Le mécanisme : le plan de
+relâchement du solveur à calendrier, là où il a le droit de dépenser ses
+discordances, est réglé pour un balayage rangée par rangée ; une géométrie en
+anneaux imposée de l'extérieur combat le calendrier au lieu de l'aider, et la
+recherche se coince à une profondeur fixe quel que soit le budget.
+L'[ordre de remplissage](/research/build/backtracking/fill-order) compte, mais
+il doit être co-conçu avec le calendrier de discordances, pas boulonné dessus.
+
+## Partager une table de transposition entre travailleurs parallèles
+
+*Les moteurs d'échecs partagent une table de transposition entre fils ; faire
+pareil ici, en hachant chaque frontière explorée pour qu'aucun travailleur ne
+ré-explore un sous-arbre qu'un autre a déjà épuisé.*
+
+**Mesuré**, et la construction fut annulée sur la foi de la mesure, la façon
+bon marché de tuer une idée. Huit travailleurs ont couru 15 secondes chacun
+sur le casse-tête officiel avec un solveur identique, seul l'ordre des
+candidats étant mélangé par travailleur : chaque travailleur posait environ
+214 cases sur son plateau le plus profond (profondeurs maximales de 192 à 235
+sur les huit), mais l'accord par paires entre les plateaux les plus profonds
+de deux travailleurs quelconques était en moyenne de 1,8 case (maximum 5), une
+fraction d'accord de 0,8 %. Une seule mesure à huit travailleurs, mais face
+aux 50 % et plus qu'une table partagée exigerait pour payer, la taille d'effet
+ne laisse aucune ambiguïté. Le mécanisme : la recherche est extrêmement
+dépendante du chemin ; la première pièce essayée à la profondeur k remodèle ce
+qui est disponible à la profondeur k+1, en se composant tout le long de la
+trajectoire, si bien que des travailleurs ordonnés différemment ne reconvergent
+jamais vers le même plateau partiel. Une table de déduplication ne paie que si
+les chemins reconvergent comme les ouvertures d'échecs s'entonnent vers des
+milieux de partie partagés, et cette recherche n'a pas d'entonnoir pareil. Le
+revers est une bonne nouvelle : les travailleurs parallèles couvrent
+réellement des territoires différents, ce pourquoi le parallélisme simple non
+coordonné passe à l'échelle (huit fils ont atteint la profondeur 235 et 427
+bords concordants en 30 secondes là où un fil atteignait 192 et 344) ; la
+[résolution distribuée](/research/build/faster/distributed-solving) bâtit
+exactement là-dessus.
+
 ## L'élagage par offre de bordure (le test « lollypop »)
 
 *Avant de récurser, compter la demande restante en couleurs de bordure contre
@@ -319,6 +901,81 @@ n'aide que si elle se déclenche avant les vérifications déjà en place, pas a
 propagation qui se déclenche en premier, le
 [filtre de couplage tous-différents](/research/build/reduce/alldiff-regin).
 
+Dix-sept ans plus tard, nous avons rejoué la même idée dans notre propre
+moteur, sur toutes les couleurs au lieu de la seule bordure : suivre combien
+de bords de pièces de chaque couleur restent non posés, et couper la branche
+quand une case de la frontière demande une couleur dont l'offre est épuisée.
+Casse-tête officiel, un seul fil, un essai de 10 secondes : la base a visité
+630 millions de nœuds à 63 millions de nœuds par seconde ; avec le test, 388
+millions à 39 millions, environ 40 % de débit en moins pour la même profondeur
+maximale (192) et le même meilleur score (344 bords concordants). Zéro élagage
+supplémentaire, et la raison est désormais précise : un index de candidats
+indexé par (couleur du haut, couleur de gauche) *est* déjà ce propagateur. Si
+poser une pièce épuisait une couleur qu'une case à venir demande, le panier de
+candidats de cette case est simplement vide un pas plus tard et la recherche
+rebrousse de toute façon ; le test explicite paie à chaque nœud pour une coupe
+que l'index fait gratuitement.
+
+Une variante dynamique à budgets par couleur ne fait pas mieux sur un
+backtracker strict : pour chaque couleur, suivre combien de ses demi-bords
+sont déjà définitivement discordants, et élaguer tout plateau partiel qui ne
+peut plus atteindre le score cible pour cette couleur. Sur 15 instantanés
+profonds d'états de recherche réels (profondeurs 195 à 212 sur 256 cases),
+elle s'est déclenchée zéro fois : un solveur qui ne pose jamais de pièce
+discordante ne crée que des partiels qui ne peuvent pas encore violer le
+budget, et au moment où le budget mordrait, la propagation ordinaire a déjà
+coupé la branche. (Sur une recherche tolérante aux discordances, le test reste
+non testé ici.) Une non-leçon voisine : trier tous les candidats globalement
+par un poids de rareté de couleur, le même ordre à chaque case, n'est pas une
+heuristique informée du tout ; c'est l'équivalent d'un réétiquetage fixe des
+pièces et cela n'ajoute aucune information.
+
+## Le test de fermeture eulérienne de la bordure
+
+*Un anneau de bordure valide doit tracer un cycle eulérien dans le graphe dont
+les sommets sont les couleurs de bord de bordure et les arêtes les pièces de
+bordure : une condition nécessaire propre, proposée sur la liste de diffusion
+dès 2007. La vérifier pendant la recherche et élaguer les bordures qui ne
+peuvent plus se refermer.*
+
+**Mesuré**, zéro pouvoir d'élagage sur le casse-tête officiel. Testée à cinq
+profondeurs de recherche avec 200 000 tirages chacune, un million de bordures
+partielles en tout : la condition eulérienne ne s'est jamais déclenchée sur
+une configuration que la propagation ordinaire n'avait pas déjà tuée. La
+condition est nécessaire mais vide sur le jeu de pièces réel, et la raison est
+un fait de conception : le jeu officiel fut généré avec ses couleurs rares
+placées uniquement sur l'anneau de bordure, deux par pièce de bordure, et
+cette structure rend la fermeture eulérienne automatique pour toute bordure
+partielle qui s'approche un tant soit peu d'un anneau complet. Les
+configurations que le test rejetterait meurent bien plus tôt sous une
+propagation standard de type cohérence d'arc. Même leçon de famille que le
+test lollypop ci-dessus : un élagage n'aide que s'il se déclenche avant les
+vérifications déjà en place.
+
+## L'élagage par motifs interdits pendant la recherche
+
+*Nous avons prouvé qu'un ensemble de combinaisons de pièces 2×2 ne peut
+apparaître dans aucun plateau entièrement concordant. L'étape suivante
+évidente : vérifier chaque zone 2×2 complétée pendant la recherche en
+profondeur et élaguer quand elle est interdite.*
+
+**Prouvé** vide par construction, puis vérifié empiriquement : sur 24 plateaux
+et 225 zones chacun, 5 400 zones complétées, zéro était interdite, exactement
+comme l'argument le prédit. Le test des motifs interdits demande si quatre
+pièces peuvent concorder intérieurement sous une rotation quelconque ; or une
+recherche strictement concordante ne complète jamais un 2×2 qu'après avoir
+déjà fait concorder ses quatre bords internes, si bien que chaque zone qu'elle
+complète est faisable par construction et que le test ne peut jamais se
+déclencher. Le pouvoir discriminant du théorème porte sur des sous-ensembles
+de pièces, ce qui exigerait une intégration en vérification avant, testant les
+zones avant que leurs cases soient remplies, et dans un balayage rangée par
+rangée la version bon marché de cette vérification est déjà faite
+implicitement par l'index de candidats. Le théorème lui-même reste vrai et
+utile ailleurs : voir les
+[motifs interdits](/research/why/forbidden-patterns). Même morale finale que
+l'entrée lollypop : un élagage qui se déclenche après vos vérifications
+existantes vaut exactement zéro.
+
 ## Ce que toute impasse a en commun
 
 L'écart entre le meilleur plateau connu et une solution complète ne ressemble
@@ -326,5 +983,13 @@ pas à une optimisation manquante. Les bons plateaux sont localement figés et
 globalement contraints de façons que les correctifs locaux, un matériel plus
 rapide et les relaxations standard n'atteignent pas. Atteindre la fin semble
 exiger une idée d'une autre nature, non davantage de la même.
+
+Une convergence tardive mérite d'être consignée. Quatre lentilles essayées
+indépendamment la même saison, le décodage de mot de code, la physique des
+défauts, la descente de gradient sur plateau adouci et la stratégie humaine
+encodée, ont chacune redécouvert le même fait par une direction différente :
+l'obstacle est la distinction globale des pièces et l'épuisement de
+l'inventaire, non la concordance locale des bords. Quand quatre formalismes
+sans lien heurtent le même mur, c'est probablement le mur qu'il faut étudier.
 
 Voir [pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed).

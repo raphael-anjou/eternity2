@@ -9,7 +9,7 @@ metaDescription: "Meet-in-the-middle on Eternity II: the Horowitz-Sahni trick tr
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), the classic origin'
@@ -18,11 +18,16 @@ sources:
     url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
   - label: Bidirectional search (Wikipedia)
     url: https://en.wikipedia.org/wiki/Bidirectional_search
+  - label: 'Ngo, Porat, Ré & Rudra, "Worst-case Optimal Join Algorithms" (JACM 2018), why pairwise joins lose on cyclic queries'
+    url: https://doi.org/10.1145/3180143
+  - label: Worst-case optimal join algorithm (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Worst-case_optimal_join_algorithm
 related:
   - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
   - /research/lab/experiments/raphael-anjou/pipelines/cloister
   - /research/build/exact/exact-cover-dlx
   - /research/build/dead-ends
+  - /research/records
 repro:
   kind: prose
 ---
@@ -69,6 +74,18 @@ not time, is usually the first wall. The join itself is cheap (hashing);
 everything hinges on how many entries each side must store and on how often
 seam signatures actually coincide.
 
+The obvious objection is "just hash smarter": shrink the key by merging
+colours that behave alike. A notebook check settles it in the negative.
+Merging two colours is only sound if they are interchangeable against every
+opposing colour, which amounts to a global colour-relabelling symmetry of the
+whole piece set; direct verification against the piece file shows no such
+automorphism exists. The 22 colours fall into unequal frequency classes (5
+colours at 24 half-edges, 5 at 48, 12 at 50), and no two colours share both
+supply and incidence structure. The one sound relaxation is projecting the
+seam signature down to its colour *multiset* and using that as a pre-filter,
+which shrinks buckets by roughly a factor $k!$ for a seam of length $k$:
+polynomial relief, never exponential. The fat keys stay fat.
+
 ## Feel the square root
 
 Numbers pin down the trade in a way prose cannot. The lab below has two
@@ -89,7 +106,7 @@ the memory goes.
    red one-sided bar but only *doubles* the two MITM bars. That factor-of-two
    difference in growth rate is the entire trick: the exponent is halved, so
    on a log scale the MITM bars climb at half the slope.
-2. **Watch the memory bar arrive.** Around $n \approx 56$ the table (at an
+2. **Watch the memory bar arrive.** Around $n \approx 60$ the table (at an
    optimistic 16 bytes per entry) outgrows a 16 GiB machine, while the
    MITM *time* bar is still comfortable. Memory hits the wall first: the
    same order of events BANDSAW recorded, where real entries carry a pool
@@ -134,9 +151,89 @@ textbook crossover. Second, the halves are coupled through the shared piece
 pool, so the join is not a free hash hit but a hash hit *filtered by
 complementary pools*. BANDSAW measured the consequence: within small
 mismatch budgets both sides stay enumerable and the method is exact, but
-each extra budget unit inflates both trees roughly twenty-fold per side,
+each extra budget unit inflates both trees roughly twenty-fold,
 and near the horizon the project paid for millions of stored tops whose
 buckets no bottom ever probed successfully.
+
+## A cost formula for the halves
+
+The coupling can be priced, not just gestured at. A notebook calculus prices
+the expected number of valid fillings of a region of area $a$ with interface
+length $k$ (for regions that touch no board border) as
+
+$$
+T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+$$
+
+where $p = 0.048177$ is the probability that two random half-edges share a
+colour under the real colour-frequency distribution: about 6% above the
+naive $1/22 \approx 0.0455$, an inflation the uneven frequencies force by
+Cauchy–Schwarz. The falling factorial counts ordered piece choices, $4^a$
+the rotations, and the exponent $2a - k/2$ is exact: a double-counting
+identity gives a border-free region of area $a$ and perimeter $k$ exactly
+$2a - k/2$ interior edges, each priced as an independent match.
+
+The formula was validated against exhaustive counts on planted 10×10 to
+12×12 instances: exact (ratio 1.000) when the region has no interior edges,
+within 3 to 20% for one or two interior edges, and the error shrinks as the
+colour count grows (ratio 0.806 at 6 colours rising to 1.010 at 22), the
+direction finite-pool depletion predicts. Regions with four or more interior
+edges are already past brute-force verification even on a 12×12 toy; the
+predicted count for one 9-cell region is about $6 \times 10^{11}$. So the
+small-scale validation is a measurement, while extrapolating the formula to
+large regions is model-based, and everything below should be read with that
+label attached.
+
+## Why no split size wins
+
+Feed the formula the full optimization: choose the region area $a$, give it
+the minimum achievable perimeter (a classical polyomino bound, from Harary
+and Harborth 1976, gives $k_{\min} = 2\lceil 2\sqrt{a}\rceil$), and minimize
+the total bill of table size plus join output. The sweep finds no interior
+sweet spot at all: cost climbs monotonically in region area, with
+$\log_{10}$-cost rising 3.0 at $a=1$, 16.4 at $a=16$, 48.7 at $a=64$, 61.5
+at $a=128$. The optimum is the degenerate one-cell "region", which is just
+ordinary cell-at-a-time constraint propagation.
+
+The mechanism is worth stating plainly. Classical meet in the middle wins
+because the two halves enumerate *independent* universes whose product
+recovers the full space at square-root cost per side. Here both halves draw
+from one shared pool of 256 pieces under a global disjointness constraint,
+so the combinatorial base is a falling factorial whose per-cell marginal
+cost rises with area: both sides pay the super-linear bill simultaneously,
+and the square-root saving never materializes. This is what the calculus,
+validated on small planted boards, says; it is a computed verdict on a
+model, not a measurement at full board size.
+
+One tempting dodge also fails. Anchoring the region in a corner, so two of
+its sides are free board border, sounds like getting perimeter for free; it
+is backwards. A border-touching cell is an extra hard constraint, not a
+freebie: only pieces physically carrying the border colour are eligible
+there, a restricted pool of at most 60 of the 256 pieces (4 corner pieces
+plus 56 edge pieces). Recounting with the restricted classes, verified by
+direct count against the piece file, prices corner-anchored regions strictly
+worse than the naive model suggests. The border shrinks the eligible pool
+faster than it removes matching constraints.
+
+## What about four quadrants?
+
+If two halves fail, the next reflex is four 8×8 quadrants. That makes things
+worse, and the reason connects to a lovely corner of database theory. Four
+quadrants form a 4-cycle join: each shares an 8-edge interface with two
+neighbours, the textbook setting where worst-case-optimal-join theory shows
+any plan that materializes a pairwise join first is dominated. The same
+notebook calculus prices a materialized quadrant plan at about $10^{80}$
+intermediate rows against about $10^{62}$ for the plain two-way split over
+the same area, because the pairwise product balloons before the
+cross-constraints from the other two quadrants can prune it, and no join
+order can save it (again a model-level number at these scales).
+
+The only way to reach the theoretically optimal output size is a
+worst-case-optimal join algorithm, one that intersects all constraints on
+each variable simultaneously. On a two-dimensional grid, that is exactly
+what ordinary constraint-propagating backtracking already does, one cell at
+a time. Multi-way meet in the middle collapses back into the single-sided
+search it was meant to beat.
 
 ## What BANDSAW measured
 
@@ -149,7 +246,7 @@ not independently replicated:
 
 - **It works, near perfection only.** Within small mismatch budgets the
   method is exact and affordable. But each unit of mismatch budget inflates
-  the enumeration trees roughly twenty-fold *per side*, so the regime where
+  the enumeration trees roughly twenty-fold, so the regime where
   exactness is payable dissolves within a handful of allowed defects.
 - **A one-sided method beat it.** Armed with the same exact lower-bound
   tables (min-plus suffix bounds computed column by column), a plain
@@ -165,15 +262,67 @@ not independently replicated:
   registered conclusion was blunt: no meet-in-the-middle deployment at
   full board size.
 
+## Seams show up even in one-sided builds
+
+A later notebook measurement gives the seam story an unexpected coda: the
+interface carries the difficulty even when nobody is joining anything. On
+strong boards built in two phases (top rows filled left to right, then the
+remaining rows filled as vertical columns), the mismatches concentrate
+almost entirely at the horizontal seam where the two fill regimes meet. On
+the best such board, scoring matched edges out of 480 with all five official
+clue pieces in place, 13 of the 23 total breaks sat in the single first row
+of the column-filled region; two sibling boards at 456 of 480 (24 breaks
+each) showed the same band concentration. This is a single-pipeline
+observation, three boards from one producer family, but the mechanism reads
+cleanly: each phase locally optimizes its own frontier and pushes the debt
+to the interface between them, the same phenomenon this page describes for
+two-sided joins, surfacing inside a one-sided builder.
+
+The same study found a cheap diagnostic for where exact methods pay.
+Exactly re-solving a frozen 32-cell region of the 457-edge board (rest of
+the board pinned, clue pieces pinned) *proved* the region already optimal in
+21 seconds, and a 9-seed re-solve sweep returned identical results with zero
+variance: zero headroom, nothing to gain. Freeing a 48-cell band that spans
+the seam instead came back feasible but not proven optimal, and re-solving
+with different seeds sampled different incumbents; across a sweep of 40
+seeds, one draw improved the board by 2 matched edges, to 459 of 480 under
+the same convention, verified independently three ways, in about 200
+seconds. Enlarging the freed band to 64 cells overshot: within the same
+budget the solver's best incumbent landed below the starting score, at 455.
+(That 459 matched the notebook's then-best score with this pipeline; for how
+such scores sit against community results obtained with far larger compute
+budgets, see the [records page](/research/records).) The lever hiding in
+this: when the exact solver closes the optimality gap, the region is tight
+and no method will help; when it cannot, its incumbent is effectively a
+lottery draw and re-drawing is the play. "Did the solver prove it optimal?"
+is a free map of where headroom lives.
+
 ## Limits, and what is still open
 
 The general lesson matches the classic literature: meet in the middle wins
 when the interface is narrow, the halves are truly independent, and a
 solved/unsolved answer suffices. Eternity II strains all three: the seam
 carries a wide colour vector, the shared piece pool couples the halves, and
-the record game runs on partial credit, which re-inflates both trees. What
-remains genuinely untested here is the *heuristic* cousin: two beams growing
-from opposite edges of the board, cross-filtered by hashes of their seam
-colours, meeting at a middle row. That design was written down in this
-project but never run; whether bidirectional pruning helps a beam the way it
-fails an exact join is an open question, not a verdict.
+the record game runs on partial credit, which re-inflates both trees.
+
+The *heuristic* cousin has now been tried too, and the join never fired.
+The notebook design (a beam of partial boards growing down from the top
+rows, a second beam growing up from the bottom rows, pairs joined at a
+middle row) was run in two variants. With independent beams at width 32, 0
+of the 1,024 candidate pairs were valid: both beams gravitate to the same
+promising pieces, so the piece-disjointness requirement almost always
+fails. With dependent beams (for each top state, re-run the bottom beam
+restricted to the unused pieces, at roughly 8 times the compute),
+disjointness is guaranteed by construction, and still zero full boards
+emerged: the 16-edge colour interface at the meeting row essentially never
+matches exactly. It behaves like a full bipartite matching constraint at
+the meeting row, the same wall that stops one-sided row-by-row search,
+merely relocated to the seam.
+
+The scope of that negative matters. It covers one configuration family: two
+variants, one meeting-row design, beam widths up to about 300, and an exact
+interface (all 16 edges must match). A *soft* interface, tolerating a few
+mismatches at the seam and repairing them afterwards, was designed but never
+run, and a vertical (column) seam was never tried. So the measured status
+is: the exact-interface bidirectional beam fails at practical widths, and
+the soft-interface cousin is the part still open.

@@ -9,12 +9,17 @@ metaDescription: "La recherche en faisceau maintient en vie les K meilleures pla
 kind: concept
 order: 50
 group: Build boards up
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search : Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+  - label: "Harvey & Ginsberg, Limited Discrepancy Search (IJCAI 1995)"
+    url: https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf
+  - label: "Kool, van Hoof & Welling, Stochastic Beams and Where to Find Them (ICML 2019)"
+    url: https://arxiv.org/abs/1903.06059
 related:
+  - /research/records
   - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
   - /research/lab/experiments/raphael-anjou/learning/keyring
   - /research/lab/experiments/raphael-anjou/learning/prior
@@ -132,27 +137,138 @@ l'arbre, et aucun score connu ne prédit quels préfixes de profondeur 100 se
 complètent encore bien. La largeur s'achète en monnaie linéaire ; la
 clairvoyance n'est pas à vendre.
 
+L'affirmation « des minutes sur un ordinateur portable » repose sur une
+courbe de coût mesurée. Sur un seul cœur du moteur de ce projet (balayage
+ligne par ligne, égalités tranchées par une loterie ensemencée entre scores
+exactement égaux ; tous les scores ici sont des bords appariés sur 480) :
+
+| Largeur $K$ | Temps par plaquette complète | Score brut |
+| --- | --- | --- |
+| 2048 | environ 1,8 s | autour de 449 |
+| 4096 | environ 2,3 s | 450 à 453 |
+| 8192 | environ 4,8 s | 452 à 453 |
+| 16384 | environ 10,4 s | 452 à 455 |
+
+Dix secondes par plaquette à $K = 16384$, c'est ce qui transforme un
+faisceau de constructeur en usine à plaquettes ; la section sur la
+diversité y revient plus bas.
+
 ## La largeur rapporte moins qu'on ne l'espère
 
 À $K = 1$ le faisceau est une construction gloutonne pure, et le glouton à
 redémarrages aléatoires a une queue de distribution brutalement lourde : sur
 le moteur de ce projet, des dizaines de milliers d'essais gloutons aléatoires
 ont plafonné autour de 408 sur 480, et l'extrapolation de la queue plaçait un
-440 à des milliards de redémarrages. Élargir le faisceau vaut bien mieux, mais
-les rendements sont à peu près logarithmiques. Un faisceau de quelques
-centaines d'états construit des plaquettes autour de 450 ; pousser $K$ au-delà
-de dix mille a atteint le milieu des 450 puis a plafonné. (Mesuré sur le
-moteur de ce projet ; non reproduit de façon indépendante.)
+440 à des milliards de redémarrages. Élargir le faisceau vaut bien mieux, et
+le carnet dispose désormais de la distribution plutôt que de la tendance.
+Avec le départage transformé en loterie explicitement ensemencée (balayage
+ligne par ligne, égalités tranchées uniquement entre scores exactement
+égaux, bords appariés sur 480 partout), 32 graines par largeur donnent
+min / médiane / max de 361 / 373 / 389 à $K = 1$, 436 / 442 / 446 à
+$K = 64$, 444 / 447 / 451 à $K = 512$ et 446 / 450 / 452 à $K = 2048$
+(23 graines dans ce dernier cas). Pousser la largeur à l'extrême ne déplace
+le sommet que d'un peu : 451 / 453 / 455 sur 32 graines à $K = 16384$,
+pareil à 32768, et 454 / 454,5 / 455 à $K = 131072$ (4 essais seulement,
+petit échantillon). Rien dans toute cette grille n'a dépassé 455 : sur ce
+producteur, la largeur seule n'a jamais franchi 455 bords appariés. (Mesuré
+sur le moteur de ce projet, non reproduit de façon indépendante ; pour
+situer ces chiffres ex nihilo face aux résultats communautaires, voir la
+page des [records](/research/records).)
+
+Les rendements sont à peu près logarithmiques en moyenne, et même pas
+garantis monotones. Sur un banc d'essai antérieur (les cinq pièces indices
+épinglées, un budget global de non-appariements, ordre de départage
+balayé), $K = 512$ a donné 415, $K = 2048$ a donné 450 avec une plaquette
+complète, et $K = 4096$ est retombé à 432 : trop étroit élague le futur
+vainqueur, trop large inonde le front de quasi-doublons partageant les
+mêmes engagements précoces condamnés. Une seule configuration sur un seul
+banc, mais la même courbe en U a resurgi indépendamment dans l'étude de
+déduplication plus bas ; ce qui compte comme doublon importe autant que la
+largeur.
+
+Une tentative de remède au problème de clairvoyance mérite d'être avouée :
+classer chaque candidat d'après un unique déroulé glouton s'est révélé trop
+bruité pour aider. À $K = 64$, cela a donné 426 là où le faisceau nu
+donnait 446, pour environ 170 fois le coût (une seule configuration, non
+balayée).
+
+Le sommet plat de ces distributions est structurel, pas un tirage chanceux
+retrouvé. Trois graines indépendantes de la même configuration $K = 2048$
+ont atteint exactement 452 bords appariés avec les cinq pièces indices en
+place, et les trois plaquettes ne s'accordent deux à deux que sur environ
+6 à 10 placements de pièces sur 256 : le niveau d'accord d'arrangements
+aléatoires sans lien partageant les indices. Treize pour cent des graines
+atteignent exactement 452 et à peu près la moitié tombent à deux points
+près. Des plaquettes sans lien qui convergent vers un même nombre, cela dit
+que le plafond appartient à la classe du producteur, pas à une famille de
+plaquettes en particulier ; et les essais plus larges ci-dessus montrent
+que le plafond de cette classe est en réalité 455, l'accumulation à 452
+étant elle-même un artefact de largeur.
 
 Il y a une raison structurelle pour laquelle un faisceau pur ne peut guère
 être plus que « glouton, en plus large ». Un état de faisceau à la profondeur
 $d$ fait face exactement aux mêmes contraintes d'appariement de bords et
 d'inventaire qu'un nœud de DFS à la profondeur $d$ ; maintenir de nombreux
-états en vie ne relâche rien. Sans une fonction d'évaluation qui prédise de
-façon fiable quels préfixes de profondeur 100 se complètent encore bien (et
-aucune heuristique de ce genre n'est connue pour Eternity II), la largeur
-supplémentaire du faisceau ne fait pour l'essentiel que reproduire ce que les
-redémarrages aléatoires d'un retour arrière fournissent déjà.
+états en vie ne relâche rien, et aucune fonction d'évaluation connue pour
+Eternity II ne prédit de façon fiable quels préfixes de profondeur 100 se
+complètent encore bien. Cette page concluait autrefois de cet argument que
+la largeur supplémentaire du faisceau ne faisait pour l'essentiel que
+reproduire ce que les redémarrages aléatoires d'un retour arrière
+fournissent déjà. Une mesure en tête-à-tête, ci-dessous, a montré que cette
+conclusion était fausse : la largeur paie exactement quand l'échec se noue
+bien au-dessus de la profondeur où il affleure.
+
+## Le faisceau face à la profondeur d'abord, à coût égal
+
+La comparaison la plus propre du carnet oppose trois formes de recherche
+sur un même générateur de candidats et un même évaluateur, à budget de
+nœuds égal, si bien que la seule variable est ce que chaque recherche fait
+des mêmes coups. Le score est en bords appariés, avec une tolérance globale
+fixe de non-appariements. À environ 20 à 25 millions de nœuds chacune, la
+recherche en profondeur d'abord s'est enlisée à la profondeur 213 sur 256
+cases avec 368 bords appariés ; la recherche à divergences limitées s'est
+enlisée à la profondeur 203 avec 349 ; le faisceau à $K = 2048$ a atteint
+la profondeur 256, une plaquette complète à 455 bords appariés. Avec les
+cinq pièces indices épinglées et 20 millions de nœuds, la profondeur
+d'abord s'est enlisée à la profondeur 190 (322 bords appariés, en ne
+tenant que trois indices sur cinq), tandis que le faisceau a complété la
+plaquette à 450 sur 480 avec les cinq indices en place, en environ huit
+secondes sur un seul fil d'exécution. Et ce n'est pas une loterie de
+graines : huit permutations de l'ordre de départage ont rendu une sortie
+identique à l'octet près.
+
+Le mécanisme est la correction promise plus haut. Une recherche en
+profondeur d'abord qui s'est trompée quarante cases au-dessus de l'endroit
+où elle échoue doit défaire chaque niveau intermédiaire avant de pouvoir
+toucher à l'erreur précoce, et les nœuds de cet intervalle sont
+exponentiellement nombreux. Les $K$ survivants du faisceau encodent déjà
+des choix superficiels différents, conservés côte à côte, si bien qu'une
+correction peu profonde est disponible à coût linéaire par niveau. La
+largeur ne relâche aucune contrainte ; ce qu'elle achète, c'est un
+substitut au retour arrière profond qu'une recherche en profondeur d'abord
+ne peut pas se payer. Sur ce puzzle, les engagements fatals se prennent
+bien au-dessus de la profondeur où ils affleurent, et c'est exactement le
+régime où ce substitut rapporte.
+
+La recherche à divergences limitées mérite son propre résultat négatif. La
+[LDS de Harvey et Ginsberg](https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf)
+revisite le chemin glouton à quelques déviations à la fois, et gagne quand
+une bonne solution ne diffère du glouton qu'en quelques endroits précoces.
+Ici, elle n'a jamais égalé la profondeur d'abord pure à aucun budget testé
+(profondeur 196 contre 204 à un demi-million de nœuds, 203 contre 213 à
+20 millions) et s'est montrée 10 à 30 fois plus lente par unité de progrès.
+Cela a tenu dans toutes les configurations essayées (divergence maximale de
+5 à 20, deux budgets de non-appariements, avec et sans les indices),
+quoique toujours sur ce seul banc et ce seul évaluateur. La lecture :
+l'échec de budget de pièces est diffus, beaucoup de cases précoces
+éparpillées doivent toutes être tombées juste, si bien que toutes les
+coquilles à faible divergence autour du chemin glouton sont condamnées
+ensemble.
+
+Une note de portée. Les scores absolus de cette comparaison viennent d'un
+banc volontairement simple ; les producteurs ailleurs sur cette page les
+dépassent. La revendication est l'ordre relatif à coût de nœuds égal
+(faisceau devant profondeur d'abord devant LDS), pas les nombres.
 
 ## La diversité est le vrai bouton
 
@@ -168,16 +284,86 @@ différents ([GAUNTLET](/research/lab/experiments/raphael-anjou/pipelines/gauntl
 a produit dix-huit familles de plaquettes distinctes là où seize graines d'un
 seul ordre en avaient produit une.
 
+L'ordre de balayage coupe pourtant dans les deux sens. Pour un évaluateur
+qui compte les appariements contre les voisins déjà posés, un ordre domine
+tout simplement en score brut : ligne par ligne a battu la spirale et le
+bord-d'abord d'un écart stable de 4 à 6 bords appariés à chaque largeur de
+$K = 2048$ à $K = 131072$ (médianes montant de 453 à 454,5 pour ligne par
+ligne, contre 448 à 450,5 pour la spirale et 448 à 450 pour le
+bord-d'abord). Le mécanisme est la visibilité. Passées la première ligne et
+la première colonne, l'ordre ligne par ligne engage chaque case contre deux
+voisins déjà posés ; la spirale et le bord-d'abord traversent de longues
+plages où une case n'est évaluée que contre zéro ou un voisin, leurs paris
+précoces sont donc moins informés, et aucune largeur ne répare entièrement
+un pari précoce moins informé. Les ordres perdants gagnent quand même leur
+place : ils déplacent la fin de partie difficile vers d'autres régions de
+la plaquette (on y revient dans la section sur le mur), ce qui en fait une
+source de population même à score brut plus bas.
+
 L'autre bouton fécond est le départage.
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) tranche les
 égalités de score en faveur des pièces fréquentes à cette position dans un
 corpus de plaquettes fortes, relevant le plafond ex nihilo de quelques bords
-et atteignant 460 après raffinement.
+et atteignant 460 après raffinement (un chiffre de carnet ex nihilo,
+convention des bords appariés sur 480 ; voir la page des
+[records](/research/records) pour situer ce nombre face aux résultats
+communautaires).
 [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) tranche
 les égalités en faveur des pièces qui servent des demandes rares, gagnant une
 petite amélioration médiane et une bien meilleure régularité, puis s'effondrant
 gravement dès que la loi a priori passe du rôle de départage à celui
 d'objectif.
+
+La loterie de départage a ses propres arêtes vives. Tirer au hasard
+*lequel* des candidats exactement à égalité survit, c'est de la diversité
+presque gratuite ; élargir ce qui compte comme égalité ne l'est pas.
+Traiter comme à égalité les candidats à un bord apparié du meilleur a coûté
+environ 50 à 60 points à chaque largeur testée, et à deux bords, 150 à 160
+(mesuré jusqu'à $K = 2048$ ; largeurs supérieures non essayées). Le signal
+glouton se dilue plus vite que la largeur ne le récupère.
+
+Et la loterie se tarit. Au-delà de quelques centaines de survivants, les
+égalités exactes de score disparaissent pour l'essentiel, si bien qu'un
+faisceau à départage aléatoire devient déterministe en pratique, la même
+plaquette à chaque graine (la comparaison à coût égal plus haut a vu la
+même chose sous la forme d'une sortie identique à l'octet près quel que
+soit l'ordre de départage). Restaurer la diversité à grande largeur, c'est
+perturber les scores eux-mêmes. Ajouter un bruit de Gumbel au score de
+chaque candidat, l'astuce standard pour échantillonner des séquences sans
+remise ([Kool, van Hoof et Welling](https://arxiv.org/abs/1903.06059)),
+achète la diversité sur un tarif explicite : à température 0 le faisceau
+est déterministe et a atteint 460 bords appariés après raffinement, la
+même plaquette à chaque graine ; à 0,1 il a construit entre 446 et 453
+avec une structure de coins réellement différente par graine ; à 0,5, 438
+à 441 ; à 2,0 il s'est effondré vers 240 à 252 environ. Trois graines par
+température : fiez-vous à la forme du compromis plutôt qu'aux chiffres
+exacts.
+
+La déduplication, l'autre correctif classique, cache un piège qui
+interagit avec la largeur. Avec une clé grossière (survivants dédupliqués
+par l'ensemble des pièces utilisées), la courbe de largeur est ressortie
+en U dans un balayage à un essai par point : 446 à $K = 64$, 453 à
+$K = 1024$, puis retombée à 449 à $K = 4096$, parce qu'à grande largeur
+des quasi-doublons ne différant que par leur histoire récente évincent des
+préfixes réellement distincts. Une clé sensible au chemin a rétabli des
+gains monotones et atteint 455 bords appariés à $K = 16384$ (environ 21
+minutes sur un seul fil dans cette implémentation précoce, autour de 10 Mo
+de mémoire). Un essai par point : une pathologie observée, pas une loi ;
+mais avec le point d'équilibre non monotone plus haut, cela fait deux
+observations du même mode de défaillance. Ce qui compte comme doublon est
+un choix de conception à part entière.
+
+Réunissez la loterie ensemencée et la table de coûts, et le faisceau cesse
+d'être un constructeur de plaquette unique : c'est une usine à plaquettes
+fortes sans lien entre elles. 160 graines à $K = 16384$ ont donné 19
+plaquettes à 455 bords appariés, 27 à 454, 48 à 453, 46 à 452, 19 à 451 et
+une à 450 ; les 94 plaquettes à 453 ou mieux avaient toutes leurs treize
+premières lignes deux à deux distinctes, des familles de plaquettes
+distinctes plutôt que des variations d'une seule. Cela fait environ 1160
+plaquettes par heure sur une modeste exécution parallèle à quatre voies,
+avec à peu près une graine sur huit atteignant le plafond de 455 et aucune
+n'atteignant 456. La diversité produite en masse est exactement l'entrée
+que réclame le polissage en aval.
 
 ## Le mur de profondeur
 
@@ -192,3 +378,33 @@ plafonnent au milieu des 450 ; la distance restante s'achète par le
 [polissage par destruction-réparation](/research/build/local-search/local-search-alns),
 et non par plus de largeur. Sur ce puzzle, la recherche en faisceau est un bon
 moyen d'atteindre vite le plateau, et aucunement un moyen de le quitter.
+
+La carte des non-appariements se mesure, et elle bouge avec l'ordre de
+balayage. Sur les plaquettes ligne par ligne, les dernières rangées portent
+l'essentiel des dégâts : sur une plaquette complète à 450 sur 480 avec les
+cinq indices en place, les rangées 13 à 15 concentraient 21 des 30
+non-appariements. Un ordre en spirale étale au contraire ses
+non-appariements sur les rangées du milieu, parce que ses dernières cases
+sont le centre de la plaquette ; le bord-d'abord les concentre sur
+l'anneau le plus intérieur. L'emplacement du mur est une propriété de
+l'ordre de visite, pas du puzzle. Choisir l'ordre peut même relever le
+plafond d'un bord : un ordre de balayage en peigne, dont les
+non-appariements tombent en bandes verticales plutôt qu'en bas de
+plaquette, a produit six plaquettes brutes à 456 bords appariés sur 120
+graines et à peu près le double du taux habituel de 455, là où ligne par
+ligne n'a produit aucun 456 en 160 graines. (Scores bruts de constructeur,
+convention des bords appariés ; la page des [records](/research/records)
+les met en contexte.)
+
+Deux observations du carnet précisent de quoi le mur est fait. D'abord, le
+faisceau atteint des complétions qu'un retour arrière n'autorisant qu'un
+non-appariement par case ne peut structurellement pas construire : la
+plaquette à 450 ci-dessus porte une case à deux bords non appariés, et un
+enfant à double non-appariement peut survivre dans le top $K$ alors
+qu'aucun chemin en profondeur d'abord à un seul non-appariement par case
+n'y mène. Ensuite, sur le propre préfixe de 240 cases du faisceau, un
+finisseur exact par séparation et évaluation a fait pire (433 ou 420 bords
+appariés, selon la part du préfixe épinglée) que la complétion du faisceau
+lui-même à 450 : la largeur avait déjà mieux exploré la queue qu'une
+recherche exacte limitée en profondeur ne le peut, complétions à double
+non-appariement comprises.

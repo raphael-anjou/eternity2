@@ -10,7 +10,7 @@ metaDescription: "Encuentro en el medio en Eternity II: el truco de Horowitz-Sah
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), el origen clásico'
@@ -19,11 +19,16 @@ sources:
     url: https://en.wikipedia.org/wiki/Meet-in-the-middle_attack
   - label: Búsqueda bidireccional (Wikipedia)
     url: https://en.wikipedia.org/wiki/Bidirectional_search
+  - label: 'Ngo, Porat, Ré & Rudra, "Worst-case Optimal Join Algorithms" (JACM 2018), por qué las uniones por pares pierden en consultas cíclicas'
+    url: https://doi.org/10.1145/3180143
+  - label: Algoritmo de unión óptima en el peor caso (Wikipedia, en inglés)
+    url: https://en.wikipedia.org/wiki/Worst-case_optimal_join_algorithm
 related:
   - /research/lab/experiments/raphael-anjou/meet-in-the-middle/bandsaw
   - /research/lab/experiments/raphael-anjou/pipelines/cloister
   - /research/build/exact/exact-cover-dlx
   - /research/build/dead-ends
+  - /research/records
 repro:
   kind: prose
 ---
@@ -75,6 +80,20 @@ memoria, no el tiempo, la que suele constituir el primer muro. La unión en sí 
 barata (hashing); todo depende de cuántas entradas debe almacenar cada lado y de
 con qué frecuencia coinciden realmente las firmas de costura.
 
+La objeción obvia es "basta con hashear con más astucia": encoger la clave
+fusionando colores que se comportan igual. Una comprobación de cuaderno la
+zanja en negativo. Fusionar dos colores solo es lícito si son
+intercambiables frente a cada color opuesto, lo que equivale a una simetría
+global de reetiquetado de colores sobre todo el juego de piezas; la
+verificación directa contra el fichero de piezas muestra que no existe
+ningún automorfismo semejante. Los 22 colores caen en clases de frecuencia
+desiguales (5 colores con 24 semiaristas, 5 con 48, 12 con 50), y ningún par
+de colores comparte a la vez oferta y estructura de incidencia. La única
+relajación lícita es proyectar la firma de costura sobre su *multiconjunto*
+de colores y usarlo como prefiltro, lo que encoge los cubos en torno a un
+factor $k!$ para una costura de longitud $k$: un alivio polinómico, nunca
+exponencial. Las claves gordas siguen gordas.
+
 ## Sentir la raíz cuadrada
 
 Los números fijan el compromiso de una manera que la prosa no puede. El
@@ -97,7 +116,7 @@ velocidad y a dónde se va la memoria.
    MITM. Esa diferencia de un factor dos en la tasa de crecimiento es todo el
    truco: el exponente se reduce a la mitad, así que en escala logarítmica las
    barras MITM suben con la mitad de la pendiente.
-2. **Observa cómo llega la barra de memoria.** Hacia $n \approx 56$ la tabla (a
+2. **Observa cómo llega la barra de memoria.** Hacia $n \approx 60$ la tabla (a
    unos optimistas 16 bytes por entrada) supera a una máquina de 16 GiB,
    mientras que la barra de *tiempo* MITM sigue holgada. La memoria golpea el
    muro primero: el mismo orden de sucesos que registró BANDSAW, donde las
@@ -149,9 +168,98 @@ es un acceso hash gratuito sino un acceso hash *filtrado por pools
 complementarios*. BANDSAW midió la consecuencia: dentro de presupuestos
 pequeños de discordancia ambos lados siguen siendo enumerables y el método es
 exacto, pero cada unidad extra de presupuesto infla ambos árboles en torno a un
-factor veinte por lado, y cerca del horizonte el proyecto pagó por millones de
+factor veinte, y cerca del horizonte el proyecto pagó por millones de
 mitades superiores almacenadas cuyos cubos ninguna mitad inferior sondeó jamás
 con éxito.
+
+## Una fórmula de coste para las mitades
+
+El acoplamiento puede ponerse en cifras, no solo insinuarse. Un cálculo de
+cuaderno da el número esperado de rellenos válidos de una región de área $a$
+con interfaz de longitud $k$ (para regiones que no tocan ningún borde del
+tablero):
+
+$$
+T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+$$
+
+donde $p = 0{,}048177$ es la probabilidad de que dos semiaristas tomadas al
+azar compartan color bajo la distribución real de frecuencias de colores:
+alrededor de un 6 % por encima del ingenuo $1/22 \approx 0{,}0455$, una
+inflación que las frecuencias desiguales imponen por Cauchy–Schwarz. El
+factorial descendente cuenta las elecciones ordenadas de piezas, $4^a$ las
+rotaciones, y el exponente $2a - k/2$ es exacto: una identidad de doble
+conteo da a toda región sin borde de área $a$ y perímetro $k$ exactamente
+$2a - k/2$ aristas interiores, cada una facturada como una coincidencia
+independiente.
+
+La fórmula se validó contra conteos exhaustivos en instancias plantadas de
+10×10 a 12×12: exacta (razón 1,000) cuando la región no tiene aristas
+interiores, con un error del 3 al 20 % para una o dos aristas interiores, y
+el error se encoge al crecer el número de colores (razón 0,806 con 6
+colores, subiendo a 1,010 con 22), la dirección que predice el agotamiento
+de un pool finito. Las regiones con cuatro o más aristas interiores ya
+quedan fuera de la verificación por fuerza bruta incluso en un juguete
+12×12; el conteo predicho para una región de 9 celdas ronda
+$6 \times 10^{11}$. Así que la validación a pequeña escala es una medición,
+mientras que extrapolar la fórmula a regiones grandes es cosa de modelo, y
+todo lo que sigue debe leerse con esa etiqueta puesta.
+
+## Por qué ningún tamaño de corte gana
+
+Démosle a la fórmula la optimización completa: elegir el área de región $a$,
+concederle el perímetro mínimo alcanzable (una cota clásica sobre
+poliominós, de Harary y Harborth en 1976, da
+$k_{\min} = 2\lceil 2\sqrt{a}\rceil$), y minimizar la factura total de
+tamaño de tabla más salida de la unión. El barrido no encuentra ningún punto
+dulce interior: el coste sube de forma monótona con el área de la región,
+con el coste en $\log_{10}$ pasando de 3,0 en $a=1$ a 16,4 en $a=16$, 48,7
+en $a=64$, 61,5 en $a=128$. El óptimo es la "región" degenerada de una sola
+celda, es decir, la propagación de restricciones ordinaria, celda a celda.
+
+El mecanismo merece enunciarse sin rodeos. El encuentro en el medio clásico
+gana porque las dos mitades enumeran universos *independientes* cuyo
+producto reconstruye el espacio completo a coste de raíz cuadrada por lado.
+Aquí ambas mitades extraen de un único pool compartido de 256 piezas bajo
+una restricción global de disjunción: la base combinatoria es un factorial
+descendente cuyo coste marginal por celda *sube* con el área, ambos lados
+pagan la factura superlineal a la vez, y el ahorro de raíz cuadrada nunca se
+materializa. Esto es lo que dice el cálculo, validado en tableros plantados
+pequeños; es un veredicto computado sobre un modelo, no una medición al
+tamaño del tablero completo.
+
+También fracasa un atajo tentador. Anclar la región en una esquina, para que
+dos de sus lados sean borde libre del tablero, suena a perímetro gratis; es
+al revés. Una celda que toca el borde es una restricción dura adicional, no
+un regalo: solo las piezas que llevan físicamente el color del borde son
+elegibles ahí, un pool restringido de a lo sumo 60 de las 256 piezas (4
+piezas de esquina más 56 piezas de borde). El reconteo con las clases
+restringidas, verificado por conteo directo contra el fichero de piezas,
+factura las regiones ancladas en esquina estrictamente peor de lo que
+sugiere el modelo ingenuo. El borde encoge el pool elegible más deprisa de
+lo que elimina restricciones de coincidencia.
+
+## ¿Y cuatro cuadrantes?
+
+Si dos mitades fracasan, el siguiente reflejo son cuatro cuadrantes 8×8. Eso
+empeora las cosas, y la razón conecta con un rincón precioso de la teoría de
+bases de datos. Cuatro cuadrantes forman una unión en 4-ciclo: cada uno
+comparte una interfaz de 8 aristas con dos vecinos, el escenario de manual
+donde la teoría de uniones óptimas en el peor caso muestra que cualquier
+plan que materialice primero una unión por pares queda dominado. El mismo
+cálculo de cuaderno factura un plan de cuadrantes materializados en torno a
+$10^{80}$ filas intermedias frente a unas $10^{62}$ del corte simple en dos
+sobre la misma área, porque el producto por pares se hincha antes de que las
+restricciones cruzadas de los otros dos cuadrantes puedan podarlo, y ningún
+orden de unión puede salvarlo (de nuevo, una cifra de modelo a estas
+escalas).
+
+La única manera de alcanzar el tamaño de salida teóricamente óptimo es un
+algoritmo de unión óptima en el peor caso, uno que interseca simultáneamente
+todas las restricciones sobre cada variable. En una malla bidimensional, eso
+es exactamente lo que ya hace el backtracking ordinario con propagación de
+restricciones, celda a celda. El encuentro en el medio a varias vías se
+desploma de vuelta en la búsqueda unilateral que pretendía batir.
 
 ## Qué midió BANDSAW
 
@@ -166,7 +274,7 @@ independiente:
 - **Funciona, pero solo cerca de la perfección.** Dentro de presupuestos
   pequeños de discordancia el método es exacto y asequible. Pero cada unidad de
   presupuesto de discordancia infla los árboles de enumeración en torno a un
-  factor veinte *por lado*, de modo que el régimen donde la exactitud sigue
+  factor veinte, de modo que el régimen donde la exactitud sigue
   siendo pagable se disuelve al cabo de un puñado de defectos permitidos.
 - **Un método unilateral lo superó.** Armado con las mismas tablas de cotas
   inferiores exactas (cotas de sufijo min-plus calculadas columna por columna),
@@ -183,6 +291,47 @@ independiente:
   usados en otros lugares. La conclusión registrada fue tajante: ningún
   despliegue del encuentro en el medio al tamaño del tablero completo.
 
+## Las costuras aparecen incluso en construcciones unilaterales
+
+Una medición de cuaderno posterior le da a la historia de la costura una
+coda inesperada: la interfaz carga con la dificultad incluso cuando nadie
+une nada. En tableros fuertes construidos en dos fases (las filas
+superiores rellenadas de izquierda a derecha, luego las filas restantes
+rellenadas como columnas verticales), las discordancias se concentran casi
+por completo en la costura horizontal donde se encuentran los dos regímenes
+de relleno. En el mejor de esos tableros, contando aristas coincidentes
+sobre 480 con las cinco piezas pista oficiales colocadas, 13 de las 23
+roturas totales estaban en la única primera fila de la región rellenada por
+columnas; dos tableros hermanos con 456 sobre 480 (24 roturas cada uno)
+mostraban la misma concentración en banda. Es una observación de un solo
+pipeline, tres tableros de una misma familia de productores, pero el
+mecanismo se lee con claridad: cada fase optimiza localmente su propio
+frente y empuja la deuda hacia la interfaz entre ambas, el mismo fenómeno
+que esta página describe para las uniones bilaterales, asomando dentro de un
+constructor unilateral.
+
+El mismo estudio dejó un diagnóstico barato de dónde pagan los métodos
+exactos. Re-resolver exactamente una región congelada de 32 celdas del
+tablero de 457 aristas (el resto del tablero fijado, las piezas pista
+fijadas) *demostró* la región ya óptima en 21 segundos, y un barrido de
+re-resolución con 9 semillas devolvió resultados idénticos con varianza
+cero: cero margen, nada que ganar. Liberar en cambio una banda de 48 celdas
+que cruza la costura volvió factible pero no demostrada óptima, y
+re-resolver con semillas distintas muestreaba incumbentes distintos; en un
+barrido de 40 semillas, un sorteo mejoró el tablero en 2 aristas
+coincidentes, hasta 459 sobre 480 bajo la misma convención, verificado de
+forma independiente por tres vías, en unos 200 segundos. Ampliar la banda
+liberada a 64 celdas se pasó de largo: dentro del mismo presupuesto, el
+mejor incumbente del solver aterrizó por debajo de la puntuación de
+partida, en 455. (Ese 459 igualó la mejor puntuación del cuaderno con este
+pipeline en aquel momento; para situar tales puntuaciones frente a los
+resultados comunitarios logrados con presupuestos de cómputo mucho mayores,
+véase la [página de récords](/research/records).) La palanca escondida ahí:
+cuando el solver exacto cierra la brecha de optimalidad, la región está
+apretada y ningún método ayudará; cuando no puede, su incumbente es en la
+práctica un boleto de lotería y volver a sortear es la jugada. "¿Demostró el
+solver la optimalidad?" es un mapa gratuito de dónde vive el margen.
+
 ## Límites, y qué queda abierto
 
 La lección general coincide con la literatura clásica: el encuentro en el medio
@@ -190,9 +339,29 @@ gana cuando la interfaz es estrecha, las mitades son verdaderamente
 independientes, y basta una respuesta de resuelto/no resuelto. Eternity II pone
 a prueba las tres condiciones: la costura porta un vector de colores ancho, el
 pool de piezas compartido acopla las mitades, y la partida por el récord se
-juega a crédito parcial, lo que vuelve a inflar ambos árboles. Lo que queda
-genuinamente sin probar aquí es el primo *heurístico*: dos haces creciendo desde
-los bordes opuestos del tablero, filtrados en cruz por hashes de sus colores de
-costura, encontrándose en una fila central. Ese diseño quedó escrito en este
-proyecto pero nunca se ejecutó; si la poda bidireccional ayuda a un haz tanto
-como hace fracasar una unión exacta es una pregunta abierta, no un veredicto.
+juega a crédito parcial, lo que vuelve a inflar ambos árboles.
+
+El primo *heurístico* también se ha probado ya, y la unión nunca se disparó.
+El diseño del cuaderno (un haz de tableros parciales creciendo hacia abajo
+desde las filas superiores, un segundo haz creciendo hacia arriba desde las
+filas inferiores, los pares unidos en una fila central) se ejecutó en dos
+variantes. Con haces independientes a anchura 32, 0 de los 1 024 pares
+candidatos eran válidos: ambos haces gravitan hacia las mismas piezas
+prometedoras, así que el requisito de disjunción de piezas fracasa casi
+siempre. Con haces dependientes (para cada estado superior, relanzar el haz
+inferior restringido a las piezas no usadas, a unas 8 veces el cómputo), la
+disjunción queda garantizada por construcción, y aun así no emergió ningún
+tablero completo: la interfaz de 16 colores en la fila de encuentro casi
+nunca coincide exactamente. Se comporta como una restricción de
+emparejamiento bipartito completo en la fila de encuentro, el mismo muro
+que detiene la búsqueda unilateral fila a fila, solo que trasladado a la
+costura.
+
+El alcance de ese negativo importa. Cubre una sola familia de
+configuraciones: dos variantes, un único diseño de fila de encuentro,
+anchuras de haz hasta unas 300, y una interfaz exacta (las 16 aristas deben
+coincidir todas). Una interfaz *blanda*, que tolere unas pocas discordancias
+en la costura y las repare después, se diseñó pero nunca se ejecutó, y una
+costura vertical (por columnas) nunca se probó. El estado medido es, pues,
+este: el haz bidireccional de interfaz exacta fracasa a anchuras
+practicables, y el primo de interfaz blanda es la parte que sigue abierta.

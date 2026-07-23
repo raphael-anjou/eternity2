@@ -4,11 +4,11 @@ description: >-
   Enfoques que probamos que parecen prometedores y no mueven la aguja en
   Eternity II, documentados con lo que encontramos para que inviertas tu tiempo
   en otra parte.
-metaDescription: "Enfoques sobre Eternity II atractivos pero que no mueven la puntuación, documentados para no repetirlos: la propagación de probabilidades que se apaga a dos celdas, los macroazulejos que aceleran sin reducir el dominio, la poda por oferta de borde más lenta que su propia ganancia."
+metaDescription: "Enfoques sobre Eternity II atractivos pero que no mueven la puntuación: bases de datos de patrones sin información, reducción de retículos que resuelve la mitad fácil, colonias de hormigas que aprenden ruido, y dos docenas más, cada uno con su mecanismo de fracaso."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-21
+updated: 2026-07-22
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Cierre de eternity2.net: 1,6 TFlops, 10^19 operaciones de CPU, ninguna solución (groups.io message 3511)"
@@ -19,6 +19,10 @@ sources:
     url: https://groups.io/g/eternity2/message/5883
   - label: "Markus Zajc evalúa la poda por oferta de borde: 0,0014 % menos pruebas, 8 % más lento (groups.io message 6060)"
     url: https://groups.io/g/eternity2/message/6060
+  - label: "Fu, Qiu, Zha: Generalize a Small Pre-trained Model to Arbitrarily Large TSP Instances (AAAI-21)"
+    url: https://arxiv.org/abs/2012.10658
+  - label: "Rethinking Heatmap and MCTS for TSP (2024)"
+    url: https://arxiv.org/abs/2411.09238
 related:
   - /research/build/run-it-yourself
   - /research/records
@@ -49,6 +53,40 @@ piezas para reducir la búsqueda.*
 rotación y sin duplicados, y la única pista central fija la orientación. No hay
 ninguna simetría global que romper, así que fijar esquinas solo hace una
 elección arbitraria, no una elección gratuita. [Por qué esto es un muro →](/research/why/rare-color-geography)
+
+La ausencia va más allá de las rotaciones y los duplicados. También buscamos
+simetría por reetiquetado de colores: una enumeración exhaustiva de todas las
+permutaciones de colores que podrían enviar el juego de piezas sobre sí mismo
+(salvo rotación) encuentra solo la identidad, porque cada uno de los 22
+colores interiores tiene un perfil de adyacencia único a través de las piezas.
+El grupo de simetría tiene tamaño uno; el generador rompió también todos los
+intercambios de colores. (Los colores interiores sí llevan una estructura que
+vale la pena conocer: caen en exactamente tres clases de frecuencia, 5 colores
+que aparecen 24 veces cada uno, 5 que aparecen 48 y 12 que aparecen 50, en
+total 960 semiaristas, dos veces las 480 aristas.)
+
+## Comprobar invariantes sobre las celdas ya colocadas
+
+*Descomponer el juego de piezas según su estructura de reetiquetado de colores
+y podar la búsqueda con invariantes calculados sobre la parte del tablero ya
+colocada.*
+
+**Medido**, con un mecanismo cercano a una demostración. En un backtracker que
+solo coloca piezas concordantes, la región colocada satisface siempre
+cualquier restricción que mencione únicamente celdas colocadas: la búsqueda
+impone esos invariantes por construcción, de modo que un podador que inspecciona
+lo que ya está sobre el tablero nunca se dispara. Probamos tres variantes de
+la idea y ninguna podó una sola rama; no hay aceleraciones ni puntuaciones que
+reportar porque los podadores literalmente nunca se dispararon. Una variante
+con recorrido en espiral fue además peor, no mejor, porque perdía el buen
+ordenamiento de la región inicial. El alcance que conviene retener: esto
+refuta los invariantes estáticos sobre la región colocada bajo una búsqueda
+estrictamente concordante, no todo uso imaginable de la estructura de colores
+del juego de piezas. Una poda útil tiene que mirar lo que todavía puede venir,
+comprobaciones hacia adelante sobre los candidatos de las celdas sin colocar,
+o vivir dentro de una búsqueda que tolere discordancias. Compárese con la
+comprobación de oferta de borde más abajo: aquella se dispara demasiado tarde;
+estas no se disparan nunca.
 
 ## Basta con lanzarle más cómputo
 
@@ -90,6 +128,21 @@ que sí rinde en esta grilla es exacta, no probabilística; la
 [consistencia de arco](/research/build/reduce/arc-consistency) y el
 [filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
 
+Más tarde intentamos nosotros mismos el rescate obvio: paso de mensajes más
+una penalización lagrangiana por pieza destinada a restaurar la restricción de
+uso único, sobre un 4×4 generado. Medido, y no converge. La marginal de al
+menos una pieza colapsa a exactamente cero en todas partes, y una vez que una
+marginal llega a cero ningún multiplicador puede revivirla: la brecha de
+dualidad nunca se cierra, con el residuo estancado en torno a 1,2 a 1,7 a lo
+largo de más de 50 iteraciones externas en las tres configuraciones de
+amortiguación y paso que probamos (marginal mínima de pieza 0,00 en todas las
+configuraciones; máxima 2,2 a 2,3 donde debería valer 1). Es una sola
+instancia de juguete y tres configuraciones, un fracaso ya en el 4×4. El
+contraste con la nota sobre redes de tensores más abajo es la parte
+instructiva: el mismo truco lagrangiano funciona cuando el paso interno es una
+contracción exacta costosa y fracasa cuando es un paso de mensajes barato. La
+precisión de las marginales internas es todo el juego.
+
 ## Ordenar los movimientos por propagación de creencias
 
 *Ejecutar propagación de creencias sobre los colores y usar sus indicaciones por
@@ -99,6 +152,30 @@ celda para decidir qué pieza probar primero.*
 los candidatos. Cuando la enfrentamos cara a cara, elegir el siguiente
 movimiento al azar rendía igual o mejor, porque un orden informado fijo tiende a
 repetir los mismos errores. [Por qué esto es un muro →](/research/why/no-forced-moves)
+
+## Ordenar los candidatos por flexibilidad futura
+
+*Preordenar cada lista de candidatos para probar primero las piezas cuyas
+aristas inferior y derecha abren más opciones aguas abajo: una heurística de
+orden de movimientos que no cuesta nada al resolver.*
+
+**Medido.** Sobre el puzzle oficial, un solo hilo, 10 segundos × 3 ejecuciones
+contra una base afinada: misma profundidad máxima (192), misma mejor
+puntuación (344 aristas concordantes), mismo patrón de visita de nodos, y el
+rendimiento cayó de 84 u 85 millones a 80 millones de nodos por segundo, en
+torno al 5 %. Un sondeo multihilo de 30 segundos puntuó 429 contra 444 de la
+base, pero es una sola semilla: muestra que el orden puede perturbar el
+resultado, no que perjudique de forma fiable. El mecanismo: el punto más
+profundo alcanzable lo fijaba el calendario de discordancias del solucionador,
+no el orden de movimientos, y las piezas «flexibles hacia el futuro» se
+correlacionan con las piezas populares que el orden existente ya prueba
+temprano, así que la ordenación no añade información; solo reorganiza la
+disposición en memoria y lo paga en localidad de caché. Alcance: es el
+veredicto para una ruta de calendario afinada sobre el puzzle oficial; el
+panorama podría diferir en calendarios sin muro de profundidad o en puzzles
+generados con distribuciones de colores uniformes. La misma lección que la
+entrada de propagación de creencias de arriba, desde un ángulo más barato: los
+órdenes estáticos informados no baten a los valores por defecto aquí.
 
 ## Conteo por redes de tensores
 
@@ -110,6 +187,20 @@ que cada pieza se use exactamente una vez. Ese punto ciego es enorme: cuenta del
 orden de $10^{90}$ coloreados consistentes en las fronteras frente a la
 aproximadamente única solución real del puzzle. El paso de mensajes local
 sencillamente no puede ver la regla global de una pieza por celda. [Por qué esto es un muro →](/research/why/entropy-area-law)
+
+Una enmienda de trabajo de cuaderno posterior: el punto ciego puede
+remendarse, a pequeña escala. Añadir una penalización lagrangiana por pieza
+sobre la contracción recupera la unicidad lo bastante bien como para resolver
+por completo puzzles generados de 4×4 (un segundo) y 6×6 (cinco minutos),
+verificados con piezas únicas y totalmente concordantes. El muro de coste
+llega mucho antes del 16×16: el primer intento a escala completa agotó la
+memoria en torno a 3 GB y murió, y el truncamiento necesario para caber puede
+descartar demasiado como para que el remiendo conserve sentido. Es un intento
+único, así que la variante remendada queda sin validar a escala completa, no
+demostrada imposible; el veredicto Demostrado de arriba se refiere a la
+contracción simple. Imponer la unicidad mediante multiplicadores necesita
+marginales internas precisas, y la precisión al número de colores del 16×16
+exige una dimensión de enlace cuya memoria y cómputo se disparan.
 
 ## Resolver primero los colores, colocar las piezas después
 
@@ -151,6 +242,83 @@ primer verano, y ya entonces un 4×4 tardaba más de una hora en resolverse
 estas codificaciones aún pueden aportar (pruebas de imposibilidad y rellenos
 casi óptimos en subtableros), que es donde reside de verdad su valor.
 
+La versión entera tampoco es un rescate a escala completa. Con las 60 celdas
+del borde fijadas, pedimos a un solucionador MIP de código abierto (HiGHS, 4
+hilos, límite de 30 minutos) un interior óptimo en enteros: unas 154 000
+variables binarias de colocación y 13 000 filas de restricciones. Regresó sin
+encontrar ninguna colocación entera factible en absoluto, e incluso etiquetó
+erróneamente la asignación vacía como «óptima» con objetivo 0, un recordatorio
+de que hay que verificar los estados de los solucionadores. Acota ese
+resultado con firmeza: un solucionador, configuración por defecto, un
+presupuesto. No refuta la programación entera; desde entonces hemos visto que
+la elección de codificación y de solucionador lo cambia todo en instancias más
+pequeñas (un solucionador de la clase CP-SAT resuelve por completo, en menos
+de un segundo, instancias donde la misma pila LP/MIP fracasa). Una formulación
+genérica a escala completa simplemente excede lo que un solucionador
+convencional puede siquiera encontrar factible en media hora; los modelos
+enteros de región restringida y de corpus restringido sí funcionan, y ahí es
+donde estos solucionadores se ganan el pan.
+
+## Bases de datos de patrones (la heurística del cubo de Rubik)
+
+*Precalcular, para cada pequeño parche de celdas, el número mínimo de
+correcciones de aristas que exige cualquier completación, y sumar esos costes
+por parche en una heurística admisible: la técnica que descifró el cubo de
+Rubik y el juego del 15.*
+
+**Demostrado.** En Eternity II la heurística lleva exactamente cero
+información, por cálculo directo y no por muestreo. El juego oficial tiene 22
+colores interiores distintos y, a través de las 256 piezas con rotación, cada
+uno de los 22 está disponible en cada lado, así que cada arista interior
+potencial es individualmente concordable. La cota superior por arista sale por
+tanto en 480, el máximo, y la cota por parche 2×2 (225 parches × 4 aristas
+internas, corregida por sobreconteo) también vale exactamente 480. Ambas
+colapsan en el enunciado trivial de que las 480 aristas podrían concordar
+todas. Las bases de datos de patrones se ganan el pan cuando el objetivo es no
+aditivo, cuando el coste conjunto de un parche excede la suma de sus partes,
+como los conteos de movimientos del Rubik. El conteo de aristas concordantes
+de este puzzle es exactamente aditivo por arista, y la única estructura
+conjunta, cada pieza usada una vez, acopla las celdas globalmente, algo que
+ningún parche local puede ver. En su lugar: las
+[relajaciones LP e ILP](/research/build/exact/lp-relaxations), que sí
+codifican la restricción global de unicidad, dominan estrictamente cualquier
+tabla de parches.
+
+## Reducción de retículos (LLL) sobre las ecuaciones de colocación
+
+*Codificar la colocación como ecuaciones enteras 0/1, tomar el retículo
+núcleo, reducirlo (LLL o BKZ) y buscar la solución como un problema del vector
+más cercano: la maquinaria detrás de los célebres ataques a mochilas y
+programas enteros.*
+
+**Demostrado** (los argumentos centrales son estructurales; la sonda de escala
+es medida). Tres puertas se cierran por turno. Primero, la parte que un ataque
+de retículo maneja limpiamente, cada celda recibe una pieza y cada pieza una
+celda, es un sistema de asignación totalmente unimodular, resoluble en tiempo
+polinómico por el algoritmo húngaro; nuestros experimentos de recuperación (10
+de 10 instancias plantadas de 2×2 y 3×3 recuperadas exactamente, siguiendo la
+reformulación de retículo núcleo de Aardal, Hurkens y Lenstra) muestran al
+método resolviendo un problema que nunca fue difícil. Segundo, la parte que sí
+es difícil, los colores enfrentados deben concordar, es una restricción
+condicional («bilineal») sin una inmersión fiel en igualdades lineales que no
+pase por una explosión combinatoria de variables auxiliares, lo que borra la
+ventaja del retículo. Tercero, el sistema de oferta de colores no es una
+mochila: cada coeficiente vale exactamente 1, así que los ataques clásicos de
+suma de subconjuntos de baja densidad (Lagarias y Odlyzko 1985; Coster y
+colegas 1992) ni siquiera aplican, y un ataque LLL sobre la inmersión de pesos
+unitarios degenera en enumeración pura. La sonda de escala coincide: el LLL
+exacto en enteros sobre solo el núcleo de asignación fácil tardó 0,35 s en 2×2
+y 42,6 s en 3×3, y fue detenido pasados 175 s en 4×4 (dimensión del núcleo
+993); el esqueleto completo del 16×16 rondaría las 262 000 variables. (Esos
+tiempos son de una implementación exacta en Python puro, un enunciado práctico
+más que asintótico; los argumentos estructurales cargan con el veredicto.) Los
+subretículos por color se reducen barato, menos de medio segundo, pero 12 de
+los 60 vectores más cortos examinados en 3×3 ya exigen que una pieza ocupe dos
+celdas: omiten exactamente las restricciones que importan. La dureza del
+puzzle vive en una forma de problema, emparejamiento bilineal más distinción
+global, de la que las herramientas de reducción de retículos no son nativas;
+el subproblema del que son nativas ya es polinómico.
+
 ## Aprender una heurística en tableros pequeños
 
 *Entrenar una red neuronal en puzzles pequeños y luego transferirla al 16×16
@@ -161,6 +329,33 @@ derrumbarse en el real. Aprende de movimientos candidatos filtrados de una
 forma, y luego se le pregunta sobre movimientos filtrados de forma muy distinta,
 y los colores del puzzle completo nunca aparecieron en el entrenamiento. La
 destreza no cruza la brecha de tamaño y color. [Por qué esto es un muro →](/research/why/rigidity-wall)
+
+## Descenso de gradiente sobre un tablero blando
+
+*Hacer el tablero diferenciable: una matriz piezas-a-celdas doblemente
+estocástica por normalización de Sinkhorn más softmax de rotación por celda,
+maximizar la esperanza de aristas concordantes por descenso de gradiente con
+recocido de temperatura, y luego redondear a un tablero real.*
+
+**Medido.** La brecha de relajación es intrínseca. La puntuación blanda sube a
+367/480, pero el mejor tablero redondeado marca 336 aristas concordantes
+(otras semillas 324 y 325, mejor de 4), y el redondeo empeora a medida que la
+temperatura se afila; una variante de paso hacia adelante duro es aún peor,
+280. La prueba más fuerte fue también la más pequeña: restringido a las
+últimas dos o tres filas de un tablero nuestro de 459 sobre 480 (puntuación
+estricta, las cinco pistas colocadas), con el resto congelado, exactamente
+donde la re-resolución exacta gana con fiabilidad de una a tres aristas, el
+optimizador ni siquiera pudo reproducir la propia cola del tablero (41 contra
+las 49 concordancias de región del titular, sobre 8 reinicios en dos filas; 63
+contra 76 en tres filas). Una sola campaña, pero la brecha en la región más
+fácil está un 15 a 20 % por debajo del titular, muy fuera del ruido. El
+mecanismo hace eco de las entradas del 480 falso y de las redes de tensores de
+esta página: el óptimo continuo es una superposición de muchos tableros
+mutuamente incompatibles, y la restricción que la relajación ablanda, cada
+pieza usada exactamente una vez, es precisamente la que carga la dureza;
+ablandarla finge concordancias que ninguna permutación real puede honrar. Es
+un tercer modo de fracaso en la familia del aprendizaje; véase
+[cuándo colapsa el aprendizaje](/research/build/learning/when-learning-collapses).
 
 ## Enumerar primero los clústeres locales
 
@@ -178,6 +373,54 @@ incluso de que entre la disjunción de piezas
 remitieron a años de trabajo 2×2 anterior presente en el archivo
 ([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Por qué esto es un muro →](/research/why/rigidity-wall)
+
+## Construir el tablero una fila perfecta a la vez
+
+*Construir fila a fila, usando emparejamiento bipartito exacto para elegir la
+mejor fila posible dadas las aristas de color que expone la fila anterior.*
+
+**Medido.** Cada fila es localmente óptima; el tablero muere igual. En nuestra
+prueba la construcción chocó contra un muro hacia la fila 10 de 16, con
+294/480 aristas concordantes, y las filas 11 en adelante infactibles sin más:
+las primeras filas localmente óptimas consumen exactamente las piezas cuyos
+colores de arista necesitan las filas posteriores, y para la fila 10 la
+reserva restante ya no puede suministrar los colores requeridos en absoluto.
+Mantener en paralelo las 32 mejores secuencias de filas no ayuda; todos los
+candidatos punteros beben de las mismas piezas escasas y se agotan juntos en
+la misma fila. (Prueba de concepto de una sola ejecución; el programa dinámico
+codicioso es esencialmente determinista. Haces mucho mayores, 256 o 1 024, no
+se probaron, aunque el argumento de la reserva compartida predice el mismo
+muro.) El mecanismo en una línea: la optimalidad local no se compone, porque
+el recurso vinculante es la reserva compartida de piezas y un compromiso fila
+a fila la gasta de forma invisible. Lo que funciona en su lugar es la
+previsión conjunta entre filas: la
+[búsqueda en haz](/research/build/construct/beam-search) de tablero completo
+que nuestros constructores usan de verdad.
+
+## Construir desde ambos extremos y encontrarse en el medio
+
+*Hacer crecer el tablero de arriba hacia abajo y de abajo hacia arriba a la
+vez y unir las mitades en una fila central: cada mitad recibe la parte más
+fácil, anclada al borde.*
+
+**Medido.** La unión lo mata. Con haces superior e inferior independientes de
+anchura 32, la sola disjunción de piezas fracasó en más del 99,9 % de los
+emparejamientos: 0 pares válidos de 1 024. Una segunda variante garantizaba la
+disjunción relanzando un haz ascendente dedicado por cada estado superior,
+unas 8 veces el cómputo, y aun así produjo cero fusiones, porque la fila de
+encuentro exige una concordancia exacta de una secuencia de colores de 16
+posiciones sobre un alfabeto de unos 22 colores, y con las piezas restantes
+restringidas el conjunto concordante es efectivamente vacío. Dos obstrucciones
+se apilan: las búsquedas independientes beben de la misma reserva de piezas
+prometedoras, e incluso mitades disjuntas deben acordar una fila entera de
+colores de interfaz que ningún lado optimizó. Construir desde ambos extremos
+no elimina la dificultad de la interfaz; reubica el muro de mitad de tablero
+en la fila de encuentro. Alcance: dos variantes con una sola anchura de haz;
+las uniones ablandadas (tolerar unas pocas discordancias de interfaz y luego
+reparar, o encontrarse en diagonal) nunca se ejecutaron, así que el veredicto
+cubre las versiones de unión exacta, no la construcción bidireccional en
+general. El primo en métodos exactos de esta idea tiene su propia página:
+[meet in the middle](/research/build/exact/meet-in-the-middle).
 
 ## Cube and conquer
 
@@ -221,6 +464,70 @@ con el resultado de la
 página: la imitación aprende la distribución que se le muestra y no puede
 inventar la estructura rara que un récord necesita.
 
+## Construcción por colonia de hormigas (rastros de feromonas)
+
+*Una colonia de agentes construye cada uno un tablero completo de forma
+codiciosa-aleatoria; un campo de feromonas sobre las decisiones (celda, pieza,
+rotación) se refuerza a lo largo de los caminos de los mejores finalistas
+(sistema de hormigas max-min estándar: evaporación, depósitos de élite,
+recorte), con la esperanza de que los rastros concentren las construcciones
+futuras en regiones globalmente consistentes.*
+
+**Medido**, tres fracasos de profundidad. El techo autónomo fue de 296/480
+aristas concordantes, el mejor sobre las configuraciones barridas (mejor
+configuración con una semilla, escala de prueba de concepto), por debajo
+incluso de una base simple de búsqueda ancha. Encender el aprendizaje por
+feromonas empeoró la colonia: la media de la población cayó de unos 265 a unos
+252 en 40 iteraciones mientras un control de reinicios aleatorios sin
+feromonas se mantenía en torno a 265 y alcanzaba 289; ese control fue un cara
+a cara directo. Y el campo aprendido no lleva ninguna información sobre lo que
+hacen de verdad los buenos tableros: cotejado contra un tablero nuestro de 455
+(aristas concordantes, las cinco pistas colocadas), el campo clasificó la
+elección del buen tablero en primer lugar en el 1,2 % de las celdas frente a
+una tasa de azar del 0,9 %, con un percentil medio de 0,502, estadísticamente
+indistinguible de una moneda al aire, así que ni siquiera puede servir de guía
+para una búsqueda mejor. El mecanismo es la atribución de mérito: con unos 600
+candidatos legales por celda y buenas puntuaciones finales que surgen de
+vastos conjuntos intercambiables de elecciones tempranas, «esta decisión
+estaba en un buen camino» es ruido. La feromona amplifica a un ganador de
+lotería temprano arbitrario y la colonia converge prematuramente en una cuenca
+mediocre.
+
+## Búsqueda de árbol Monte Carlo con un prior barato (el trasplante del TSP)
+
+*Un resultado de 2024 mostró que, para el problema del viajante, un MCTS
+fuerte con un prior sin parámetros iguala a los mapas de calor neuronales
+aprendidos ([arXiv:2411.09238](https://arxiv.org/abs/2411.09238)). Portar
+fielmente el motor subyacente
+([Fu, Qiu y Zha, AAAI-21](https://arxiv.org/abs/2012.10658)), trasladando su
+movimiento de gira k-opt al análogo exacto en asignación, una reubicación
+cíclica de k piezas siempre factible.*
+
+**Medido**, dos negativos limpios. Como refinador: la fase de intercambios por
+pares es un motor de reparación sólido (tableros dañados de 452 aristas
+concordantes hasta 295 recuperan exactamente 452) pero nunca supera su punto
+de partida, y el movimiento estrella estilo k-opt es completamente inerte; a
+través de cada ejecución y de toda la rejilla de hiperparámetros (pesos de
+mezcla, longitud de ciclo, simulaciones por movimiento), unos 2 500 a 3 150
+ciclos de reubicación muestreados por ejecución produjeron cero mejoras. Como
+productor desde cero: una variante constructiva de bandidos por celda, tras
+una optimización de la ruta caliente de 2,5 a 3,3× para hacer justa la
+comparación, rinde como un haz de anchura 512 a 1 024, mediblemente por debajo
+de un haz de anchura 2048 a igual tiempo de reloj (fracción media de
+resolución 0,596 contra 0,743 en nuestra escalera de puzzles generados; 0,644
+contra 0,721 en los peldaños difíciles, 24 ejecuciones), y la brecha no se
+cierra con presupuesto. El resultado de cero ciclos mejorantes es estructural
+y no un fallo de ajuste, aunque solo se probó el porte fiel. El mecanismo: el
+k-opt del TSP funciona porque la cadena de movimientos sigue aristas de gira
+existentes, así que reconecta por construcción estructura mayormente
+compatible; un problema de colocación por concordancia de aristas no tiene
+gira que seguir, y reubicar una loseta entera perturba las concordancias de
+los cuatro lados a la vez. La mitad transferible del artículo, que búsqueda
+más prior barato puede sustituir a un modelo aprendido, se sostuvo; la
+búsqueda en sí tiene forma de TSP. En este puzzle, la
+[anchura de haz](/research/build/construct/beam-search) bruta sigue siendo el
+mejor uso del mismo tiempo de reloj.
+
 ## Recombinar dos buenos tableros
 
 *Tomar dos tableros de alta puntuación, conservar las celdas en las que
@@ -239,6 +546,121 @@ puntuación de los padres, nunca por encima. Es la misma lección que el
 recombinación: los buenos tableros se alojan todos en una única cuenca estrecha,
 así que mezclarlos produce más de lo mismo en lugar de algo nuevo.
 
+La versión de trasplante fracasa de la misma manera, desde el otro extremo.
+Tomamos un parcial nuestro de 442 aristas concordantes y un tablero terminado
+de 459 (puntuación estricta, las cinco pistas colocadas) e injertamos las
+colocaciones del donante sobre la mayor región de desacuerdo, 71 celdas: la
+puntuación cayó de 442 a 271. Injertar acumulativamente a través de las seis
+regiones mayores nunca volvió a subir de 271 (241 a 271 en las seis
+variantes). La reparación local en este puzzle recupera típicamente de cinco a
+diez aristas; el injerto cava un hoyo de unas 170. Un parcial y un donante, un
+ejemplo trabajado decisivo más que una constante universal, pero el mecanismo
+es genérico: una región injertada gana las concordancias internas de su
+donante y rompe aristas a todo lo largo de su frontera con las celdas
+intactas, y la frontera de una región es grande en relación con su interior,
+así que el daño de frontera domina. Repararlo significa reelegir también las
+celdas justo fuera de la costura, e iterar esa exigencia se expande hasta que
+«trasplantar una región» se ha convertido en «reconstruir medio tablero». Los
+buenos tableros no se descomponen en partes intercambiables.
+
+## Ampliar el vocabulario de las discordancias
+
+*Todo solucionador de la familia de backtrackers poseedora de récords puede
+dejar a lo sumo una arista discordante por celda; por construcción su índice ni
+siquiera puede representar una celda que rompe dos veces. Sin embargo, los
+mejores tableros comunitarios producidos por búsqueda local sí contienen
+cuatro o cinco de esas celdas de doble rotura. Construir entonces la misma
+búsqueda sobre el espacio más ancho donde una celda puede cargar dos roturas,
+y cazar donde nadie más puede.*
+
+**Medido.** A igual tiempo de reloj, el vocabulario más ancho no gana nada. Un
+A/B emparejado de 54 rondas, 27 pares con semillas emparejadas a través de
+tres formas de calendario y dos direcciones de barrido a 600 segundos × 4
+hilos por ronda, dio 20 empates, 4 victorias para el motor ancho y 3 para el
+clásico, cada diferencia dentro de ±3 aristas concordantes, con distribuciones
+mín/mediana/máx por forma idénticas (415/420/425 en ambos brazos para una
+forma). El motor ancho visitó de 0,87 a 0,94 veces los nodos para los mismos
+resultados. Un censo exhaustivo aparte, detrás de un prefijo de 208 celdas de
+un tablero comunitario de 464 (puntuación a cinco pistas; contexto en la
+[página de récords](/research/records)), encontró exactamente cuatro
+completaciones con siete o menos discordancias totales: el propio 464 y tres
+variantes de una celda a 462 y 463, y ninguna usaba una celda de doble rotura.
+El mecanismo: el espacio ancho es explorable pero nunca forzado. Con el
+presupuesto de discordancias repartido por todo el tablero, la búsqueda casi
+nunca tiene dos unidades de margen restantes en una misma celda, así que gasta
+su presupuesto igual que el motor clásico; y en la región casi perfecta del
+final de partida, el estrato de doble rotura está vacío sin más. Las celdas de
+doble rotura conocidas de los tableros comunitarios están en mitad del tablero
+y las crearon movimientos de reparación de búsqueda local, no ningún recorrido
+en profundidad. Alcance: un empate a igual tiempo de reloj para una familia de
+motores sobre el puzzle oficial, no una prueba de que el estrato ancho esté
+vacío en todas partes; la hipótesis de partida, que la meseta comunitaria es
+un muro de representabilidad, queda degradada a conjetura sin sustento, no
+refutada.
+
+## Decodificar las discordancias como una palabra de código corrupta
+
+*Ver un tablero perfecto como una palabra de código, cada arista interna un
+control de paridad, y un tablero de alta puntuación como esa palabra más un
+pequeño síndrome de error; si el patrón de error tiene estructura, la
+decodificación por síndrome o la propagación de creencias deberían localizarlo
+y limpiarlo barato.*
+
+**Medido**, sobre un tablero nuestro de 459 sobre 480 (puntuación estricta,
+las cinco pistas colocadas); esta entrada y la siguiente son dos lentes que
+tratan el patrón de discordancias como señal estructurada, y ninguna encontró
+señal alguna. El síndrome es tan poco estructurado como podría ser: las 21
+discordancias involucran unas 21 parejas de colores distintas (solo dos
+parejas se repiten), repartidas en 13 fragmentos desconectados, y el conteo
+total de semiaristas de cada color es par, así que el suelo de paridad sobre
+las discordancias es cero; nada algebraico prohíbe un tablero perfecto ni
+fuerza estos errores. Decodificar, en consecuencia, no compra nada.
+Re-resolver exactamente las celdas del soporte de error (34 celdas dispersas,
+con arranque en caliente) se mantiene en 459 a través de 8 semillas y una
+resolución de 200 segundos, no mejor que la re-resolución de banda rectangular
+simple contra la que corría; crecer la región un salto la vuelve demasiado
+grande para re-resolverse bien (433); y sin arranque en caliente la región
+dispersa retrocede a 448. Un solo tablero estudiado, aunque el mecanismo
+sugiere que el cuadro es genérico: los atajos de decodificación exigen un
+error estructurado (colisiones repetidas, un coset de baja dimensión, un
+clúster reparable), y un síndrome máximamente disperso cuyos fragmentos solo
+se acoplan a través del inventario de piezas es exactamente el régimen donde
+la decodificación degenera en la misma búsqueda exhaustiva de cola que ya
+ejecutamos. Las discordancias son un presupuesto asignado globalmente, no un
+error local que invertir.
+
+## Tratar las discordancias como defectos físicos
+
+*Modelar cada discordancia como un defecto topológico cargado en el campo de
+colores: los defectos deberían asentarse en sitios forzados por conservación,
+de interacción mínima, y las cargas opuestas deberían aniquilarse.*
+
+**Medido**, mismo tablero que la entrada anterior, y cada premisa falla. La
+posición predice la ubicación de las discordancias extremadamente bien: el
+índice de fila por sí solo separa aristas rotas de intactas con un AUC de
+0,895, y las 21 discordancias están todas en las últimas filas rellenadas.
+Toda señal de color es ruido: AUC de rareza de color de 0,46 a 0,50, y las
+discordancias llevan colores comunes, no raros. El suelo de conservación de
+colores sobre la cola es aproximadamente cero; la parte superior congelada no
+empuja hacia abajo ninguna demanda de color que las piezas restantes no puedan
+suministrar, e incluso la cota de emparejamiento más afilada, consciente de
+las orientaciones, solo fuerza de 0 a 2 discordancias donde existen de 10 a
+19. El espectro de cargas no tiene esencialmente ningún par de signos
+opuestos, así que no hay nada que aniquilar. Un objetivo de repulsión de
+defectos añadido a la re-resolución exacta de la cola cambia qué solución
+desempatada sale, pero no el techo; la última fila es demostrablemente óptima
+dadas las filas de arriba. (Un barrido de resolución de región en frío se
+detuvo tras una sola semilla, en 441, una vez claro el veredicto; toma ese
+número como una ilustración de semilla única.) El hallazgo que vale la pena
+conservar: las discordancias no son en absoluto defectos en un campo de
+colores. Son pura frustración de orientación combinatoria, producto del
+agotamiento de piezas en la región que se rellena al final; la contabilidad de
+colores cuadra, y lo que se rompe es la restricción conjunta de cuatro lados
+sobre todas las piezas restantes a la vez. Ninguna reducción de corte único,
+por color o de energía por pares la captura. La geometría de dónde caen las
+roturas tiene su propia página:
+[geometría de las discordancias](/research/why/mismatch-geometry).
+
 ## Forzar un borde diverso y luego rellenar
 
 *El borde es un subpuzzle más pequeño. Resolver primero muchos marcos válidos
@@ -254,6 +676,37 @@ los propios experimentos de este proyecto: el marco vale sorprendentemente poco
 ([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) mide exactamente cuán poco), y
 el daño de la fase final cae en las esquinas interiores
 ([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+Medimos la premisa nosotros mismos, desde dos direcciones. Primero, el
+catálogo de bordes: una búsqueda acotada en tiempo (120 segundos,
+explícitamente no exhaustiva; el conteo verdadero se desconoce) produjo 75 173
+anillos de borde completos e internamente válidos. Al dar al solucionador una
+muestra de 500 marcos fijados, el 47 % agotó la búsqueda en menos de 200
+milisegundos bajo propagación básica, y prácticamente todos fueron rechazados
+de plano en cuanto la propagación completa corrió contra las piezas pista
+oficiales. Un anillo que se cierra sobre sí mismo solo satisface la
+concordancia por pares alrededor del contorno; la factibilidad conjunta con
+las pistas y la restricción interior de usar cada pieza una vez es una
+condición mucho más fuerte, y prácticamente ninguno de los anillos catalogados
+la cumple.
+
+Segundo, bordes perfectos como semillas. Generamos 5 000 bordes perfectos
+distintos con piezas únicas por programación dinámica (las 60 celdas del borde
+colocadas, cada arista del borde concordante), muestreamos 100 de forma
+uniforme, y dimos a cada uno el mismo pipeline: un relleno interior de 60
+segundos por propagación de restricciones, y luego un pulido de 60 segundos
+por búsqueda local. Mejor puntuación de todo el lote: 436/480 aristas
+concordantes; cerca de la mitad de los arranques quedó entre 420 y 427, un
+cuarto entre 380 y 419, y ninguno por encima de 437. Los tableros de la clase
+455 a 460 de la misma época (puntuación estricta, las cinco pistas colocadas)
+salieron todos de un productor en profundidad que no fija el borde primero. El
+pulido usó una sola semilla y 60 segundos por arranque, así que esto es un
+filtro barato, no una refutación exhaustiva: bajo un pulido corto a igual
+presupuesto, ninguno de los 100 arranques borde-primero quedó a menos de 20
+aristas de lo que alcanza la búsqueda directa. Un borde perfecto
+sobrecompromete el interior; el relleno optimiza después dentro del perfil de
+colores interior que el borde permite, y esa familia toca techo muy por debajo
+de las mejores cuencas.
 
 ## Construir un 480 falso y repararlo
 
@@ -272,6 +725,84 @@ la construcción del 480 falso descarta. El muro es informacional, no una cuesti
 de reparación local de aristas. En su lugar: el
 [muro de rigidez](/research/why/rigidity-wall) explica por qué la reparación
 local no puede cruzar esta última brecha, partas del tablero que partas.
+
+## Sembrar la reparación con el prefijo profundo de un solucionador exacto
+
+*Usar un backtracker exacto de propagación de restricciones para construir un
+prefijo consistente muy profundo, fijarlo, y entregarlo a la búsqueda de
+reparación local como ventaja inicial.*
+
+**Medido**, una sola configuración; acótalo en consecuencia. El truco de
+fijado sí profundiza la búsqueda exacta en sí; entre rondas llevó al
+solucionador de la profundidad 27 a la 152, de la puntuación 23 a 297 aristas
+concordantes, un amplificador de profundidad real, y esa mitad positiva sigue
+siendo útil cuando se cazan soluciones exactas en lugar de puntuaciones altas
+(véanse las [páginas de backtracking](/research/build/backtracking)). Pero
+como buscador de puntuación se vuelve en contra: la reparación desde el
+parcial fijado de 297/480 (184 celdas fijas) terminó en 424/480 aristas
+concordantes, frente a una mediana de 430 a 450 (mejor 451) de la reparación
+en frío simple en el lote de comparación de 16 semillas de la misma época. Ese
+brazo sembrado fue una sola semilla, un calendario y un preajuste de
+reparación, así que léelo como «esta configuración rindió por debajo de todos
+los arranques en frío del lote de comparación», no como una refutación de toda
+siembra por prefijo exacto. El mecanismo es la misma lección de partir del
+objeto equivocado que la entrada del 480 falso de arriba: un solucionador
+exacto en modo primera-solución optimiza consistencia, no puntuación. Devuelve
+el primer prefijo profundo factible que encuentra, no uno bueno; «profundo y
+consistente» no es «cerca de bueno», y el fijado hace el error permanente,
+porque la búsqueda de reparación no puede deshacer las celdas heredadas y
+nunca habría construido ese esqueleto por sí misma.
+
+## Empezar por el centro y crecer hacia afuera
+
+*El centro tiene la mayor libertad de rotación: empezar ahí y dejar que las
+restricciones se acumulen mientras creces hacia el borde.*
+
+**Medido**, y la intuición está al revés. Cara a cara sobre puzzles generados
+de 5×5 a 8×8 contra los órdenes fila-a-fila y borde-primero, el
+centro-hacia-afuera perdió cada una de las seis configuraciones: típicamente
+de 10 a 100 veces más lento, fracasó de plano en cuatro de las seis dentro de
+presupuestos donde borde-primero terminaba (un 5×5 atascado en la profundidad
+22 de 25 tras 2 millones de nodos en un puzzle que borde-primero resolvía en
+2 000 nodos), y fue unas 60 veces más lento en uno que sí resolvió; el caso
+8×8 fue el peor de los tres órdenes probados. Medido sobre puzzles generados
+pequeños con los órdenes de barrido de un solo solucionador, pero la dirección
+y la magnitud fueron uniformes en los seis casos. El mecanismo: la libertad es
+la enemiga de la propagación. El borde suministra restricciones duras e
+inmediatas (las aristas grises); el centro no suministra ninguna, así que una
+búsqueda centro-hacia-afuera se compromete con colores arbitrarios sin manera
+de detectar pronto la infactibilidad. Más libertad significa menos poda, no
+una búsqueda más rápida. En su lugar: la página del
+[orden de relleno](/research/build/backtracking/fill-order) cubre los órdenes
+que sí ayudan.
+
+## Codificar las estrategias humanas
+
+*Marco primero, crecimiento compacto de regiones alrededor de las pistas,
+celda más restringida primero, backtracking disciplinado, y un pilotaje
+deliberado de «gasta tus discordancias con sabiduría»: programar cómo piensan
+los mejores solucionadores humanos.*
+
+**Medido**, y nada de eso sobrevive. Un marco perfecto se encuentra en
+milisegundos y no compra tracción alguna (ninguna de las cinco pistas toca el
+borde). El verdadero asesino es el agotamiento de piezas, y es invariante al
+orden: a lo largo de una construcción, el número medio de piezas sin usar que
+encajan perfectamente en una celda colapsa de 3,5 en las primeras filas a 2,6,
+2,0, 1,6 y 1,4 hasta 0,4 en la fila final, así que una discordancia queda casi
+siempre forzada al final, esté donde esté el final. Tres órdenes de relleno
+humanos corrieron con 6 semillas cada uno (aristas concordantes): fila a fila
+392, espiral desde el centro 382, crecimiento anclado a las pistas 359. Cada
+orden descarga sus discordancias sobre lo que rellena al final (la espiral
+sobre el anillo exterior; el anclado a las pistas las unta por todas partes, y
+puntúa peor), y un desempate de «preservar los colores comunes para después»
+empeoró todos los órdenes. Una sola trayectoria guiada toca techo hacia 392,
+unas 67 aristas por debajo de lo que un haz ancho alcanza en el mismo
+hardware. El mecanismo: el déficit que produce las discordancias es un hecho
+de inventario global y conservado; el orden elige qué celdas lo heredan, nunca
+si existe. Y la única facultad humana que ayudaría de verdad, seguir miles de
+hipótesis en paralelo con anticipación global, es exactamente lo que ya es la
+[búsqueda en haz](/research/build/construct/beam-search). Véase también
+[por qué no hay movimientos forzados](/research/why/no-forced-moves).
 
 ## Precalcular macropiezas 2×2 (o mayores)
 
@@ -294,6 +825,56 @@ superarlo ([Récords y solucionadores](/research/records)). En su lugar: la úni
 palanca gratuita que sí encoge el árbol es el
 [orden de relleno](/research/build/backtracking/fill-order).
 
+## Conducir el backtracker en anillos concéntricos
+
+*Conducir el backtracker con calendario de la familia poseedora de récords
+hacia adentro en anillos concéntricos, bajo la teoría de que una geometría en
+capas casa con donde las roturas quieren asentarse.*
+
+**Medido.** Choca contra un muro de profundidad estructural que más tiempo no
+mueve. Una ejecución de una hora sobre el puzzle oficial visitó 3,4 miles de
+millones de nodos con la colocación más profunda atascada en un muro a
+profundidad 80: el muro estaba en 80 a los cinco minutos y ganó una celda en
+el resto de la hora. Una ejecución de dos horas terminó en el mismo 382/480 de
+aristas concordantes que la de cinco minutos. Un calendario emparejado con un
+orden, una ejecución por presupuesto: el veredicto es que este emparejamiento
+fracasa, no que los órdenes en capas estén refutados en general. El mecanismo:
+el plan de relajación del solucionador con calendario, dónde tiene permitido
+gastar sus discordancias, está afinado para un barrido fila a fila; una
+geometría de anillos impuesta desde fuera combate al calendario en lugar de
+ayudarlo, y la búsqueda se atasca a una profundidad fija sea cual sea el
+presupuesto. El [orden de relleno](/research/build/backtracking/fill-order)
+importa, pero tiene que co-diseñarse con el calendario de discordancias, no
+atornillarse encima.
+
+## Compartir una tabla de transposición entre trabajadores paralelos
+
+*Los motores de ajedrez comparten una tabla de transposición entre hilos;
+hacer lo mismo aquí, hasheando cada frontera explorada para que ningún
+trabajador re-explore un subárbol que otro ya agotó.*
+
+**Medido**, y la construcción se canceló sobre la base de la medición, que es
+la manera barata de matar una idea. Ocho trabajadores corrieron 15 segundos
+cada uno sobre el puzzle oficial con un solucionador idéntico, con solo el
+orden de candidatos barajado por trabajador: cada trabajador colocó unas 214
+celdas en su tablero más profundo (profundidades máximas de 192 a 235 entre
+los ocho), pero el acuerdo por pares entre los tableros más profundos de dos
+trabajadores cualesquiera promedió 1,8 celdas (máximo 5), una fracción de
+acuerdo del 0,8 %. Una sola medición de ocho trabajadores, pero frente al 50 %
+o más que una tabla compartida necesitaría para rentar, el tamaño del efecto
+no deja ambigüedad. El mecanismo: la búsqueda es extremadamente dependiente
+del camino; la primera pieza probada a profundidad k remodela lo disponible a
+profundidad k+1, componiéndose a lo largo de toda la trayectoria, así que
+trabajadores con órdenes distintos nunca reconvergen en el mismo tablero
+parcial. Una tabla de deduplicación solo renta si los caminos reconvergen como
+las aperturas de ajedrez se embudan hacia medios juegos compartidos, y esta
+búsqueda no tiene tal embudo. El reverso es buena noticia: los trabajadores
+paralelos cubren de verdad territorios distintos, y por eso el paralelismo
+simple sin coordinación escala (ocho hilos alcanzaron profundidad 235 y 427
+aristas concordantes en 30 segundos donde un hilo alcanzaba 192 y 344); la
+[resolución distribuida](/research/build/faster/distributed-solving) se apoya
+exactamente en eso.
+
 ## Poda por oferta de borde (la prueba «lollypop»)
 
 *Antes de recursar, contar la demanda restante de colores de borde frente a las
@@ -313,6 +894,81 @@ después. En su lugar: la idea de oferta-frente-a-demanda rinde cuando se funde 
 la propagación que se dispara primero, el
 [filtro de emparejamiento all-different](/research/build/reduce/alldiff-regin).
 
+Diecisiete años después reejecutamos la misma idea en nuestro propio motor,
+sobre todos los colores en lugar de solo el borde: llevar la cuenta de cuántas
+aristas de pieza de cada color quedan sin colocar, y cortar la rama cuando una
+celda de la frontera demanda un color cuya oferta está agotada. Puzzle
+oficial, un solo hilo, una ejecución de 10 segundos: la base visitó 630
+millones de nodos a 63 millones de nodos por segundo; con la comprobación, 388
+millones a 39 millones, en torno a un 40 % menos de rendimiento para la misma
+profundidad máxima (192) y la misma mejor puntuación (344 aristas
+concordantes). Cero poda adicional, y la razón es ahora precisa: un índice de
+candidatos indexado por (color superior, color izquierdo) ya *es* este
+propagador. Si colocar una pieza agotara un color que una celda próxima
+demanda, la cubeta de candidatos de esa celda queda simplemente vacía un paso
+después y la búsqueda retrocede de todos modos; la comprobación explícita paga
+en cada nodo por un corte que el índice hace gratis.
+
+Una variante dinámica de presupuestos por color no rinde mejor sobre un
+backtracker estricto: para cada color, llevar la cuenta de cuántas de sus
+semiaristas están ya permanentemente discordantes, y podar todo tablero
+parcial que ya no pueda alcanzar la puntuación objetivo para ese color. A
+través de 15 instantáneas profundas de estados de búsqueda reales
+(profundidades 195 a 212 de 256 celdas) se disparó cero veces: un solucionador
+que nunca coloca una pieza discordante solo crea parciales que todavía no
+pueden violar el presupuesto, y para cuando el presupuesto mordería, la
+propagación ordinaria ya cortó la rama. (Sobre una búsqueda tolerante a
+discordancias la comprobación queda aquí sin probar.) Una no-lección vecina:
+ordenar todos los candidatos globalmente por un peso de rareza de color, el
+mismo orden en cada celda, no es una heurística informada en absoluto; equivale
+a un reetiquetado fijo de las piezas y no añade información.
+
+## La prueba de cierre euleriano del borde
+
+*Un anillo de borde válido debe trazar un ciclo euleriano en el grafo cuyos
+vértices son los colores de arista del borde y cuyas aristas son las piezas
+del borde: una condición necesaria limpia, propuesta en la lista de correo ya
+en 2007. Comprobarla durante la búsqueda y podar los bordes que ya no pueden
+cerrarse.*
+
+**Medido**, cero poder de poda sobre el puzzle oficial. Probada a cinco
+profundidades de búsqueda con 200 000 ensayos cada una, un millón de bordes
+parciales en total: la condición euleriana nunca se disparó sobre una
+configuración que la propagación ordinaria no hubiera matado ya. La condición
+es necesaria pero vacua sobre el juego de piezas real, y la razón es un hecho
+de diseño: el juego oficial se generó con sus colores raros colocados
+únicamente en el anillo del borde, dos por pieza de borde, y esa estructura
+hace el cierre euleriano automático para cualquier borde parcial que se
+acerque siquiera a un anillo completo. Las configuraciones que la prueba
+rechazaría mueren mucho antes bajo una propagación estándar de tipo
+consistencia de arco. La misma lección de familia que la prueba lollypop de
+arriba: una poda solo ayuda si se dispara antes de las comprobaciones que ya
+ejecutas.
+
+## Poda por patrones prohibidos durante la búsqueda
+
+*Demostramos que un conjunto de combinaciones de piezas 2×2 no puede aparecer
+en ningún tablero totalmente concordante. El siguiente paso obvio: comprobar
+cada parche 2×2 completado durante la búsqueda en profundidad y podar cuando
+esté prohibido.*
+
+**Demostrado** vacuo por construcción, y luego verificado empíricamente: a
+través de 24 tableros y 225 parches cada uno, 5 400 parches completados, cero
+estaban prohibidos, exactamente como predice el argumento. La prueba de
+patrones prohibidos pregunta si cuatro piezas pueden concordar internamente
+bajo alguna rotación; pero una búsqueda estrictamente concordante solo
+completa un 2×2 después de haber hecho concordar ya sus cuatro aristas
+internas, así que cada parche que completa es factible por construcción y la
+comprobación no puede dispararse nunca. El poder discriminante del teorema es
+sobre subconjuntos de piezas, lo que exigiría una integración de comprobación
+hacia adelante que pruebe los parches antes de que sus celdas se rellenen, y
+en un barrido fila a fila la versión barata de esa comprobación ya la hace
+implícitamente el índice de candidatos. El teorema en sí sigue siendo cierto y
+útil en otros lugares: véanse los
+[patrones prohibidos](/research/why/forbidden-patterns). La misma moraleja
+final que la entrada lollypop: una poda que se dispara después de tus
+comprobaciones existentes vale exactamente nada.
+
 ## Qué tienen en común todos los callejones sin salida
 
 La brecha entre el mejor tablero conocido y una solución completa no parece una
@@ -320,5 +976,14 @@ optimización que falta. Los buenos tableros están localmente congelados y
 globalmente restringidos de maneras que los arreglos locales, el hardware más
 rápido y las relajaciones estándar no tocan. Llegar al final parece necesitar
 una idea de otra índole, no más de lo mismo.
+
+Una convergencia tardía merece quedar registrada. Cuatro lentes probadas de
+forma independiente en la misma temporada, la decodificación de palabras de
+código, la física de defectos, el descenso de gradiente sobre un tablero
+blando y la estrategia humana codificada, redescubrieron cada una el mismo
+hecho desde una dirección distinta: el obstáculo es la distinción global de
+las piezas y el agotamiento del inventario, no la concordancia local de
+aristas. Cuando cuatro formalismos sin relación chocan contra el mismo muro,
+el muro es probablemente lo que hay que estudiar.
 
 Ver [por qué una computadora más rápida no ayuda](/research/why/prune-vs-speed).

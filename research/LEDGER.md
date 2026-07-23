@@ -1522,3 +1522,38 @@ catches fixed before landing: a 3-of-4 that the committed JSON says is
 convention made explicit on page and checker alike, a Spanish
 mistranslation of checked-in as confirmed, and scoped wording on the
 CP-SAT slowdown and DFS sizes.
+
+## 2026-07-23 — Merge wave: ten existing pages absorb their vault batches
+
+The second publishing arc's first pass enriched ten already-live pages with
+the vault material routed to them, rather than adding new pages. New sections
+and entries landed on build/dead-ends (pattern databases, shared transposition
+tables, Eulerian border-closure, forbidden-pattern pruning, and more failed
+approaches with their mechanisms), why/rigidity-wall (worked MIP and SAT-halo
+rigidity proofs, the donor-cell window trades scoped to the two larger windows,
+the halo metric labeled Chebyshev vs Manhattan), why/sigma-cycles (level-set
+clusters, twin swaps, the boundary-growth law), why/mismatch-geometry (skeleton
+variability, the universal heatmap, the interior edge-gap), build/construct/
+beam-search (width as the real dial, the Gumbel-temperature collapse, diversity),
+build/backtracking/fill-order (scan order, prefix determinism, the depth-160
+node-count peak), build/exact/lp-relaxations (the LP-integer gap anatomy, the
+480-tight side-pairing negative), build/exact/meet-in-the-middle (the memory
+crossover at n around 60, the band-split enumeration cost), and
+build/faster/solver-engineering (candidate lookup tables, minimal perfect
+hashing, bit-packing, the measured node-cost anatomy). One page created new:
+build/construct/band-column-dp (the two-row band dynamic-programming family:
+one band is always perfectly solvable, chaining reaches 444 of 480 in 35 s
+with the entire shortfall provably in the vertical seams, the direction-
+symmetric greedy-horizon failure), registered in the construct hub.
+
+Reproduction gate held: every added number was verified against its vault
+source in an adversarial review pass. Twenty-one findings were confirmed and
+fixed before landing: a minimal-perfect-hash pointer re-credited to the
+community member who actually shared it, the meet-in-the-middle memory
+crossover corrected from n around 56 to n around 60 (checked against the
+interactive cost component), two throughput figures flagged as being on
+different puzzle sizes, a Spanish mistranslation of top boards, a depth-161
+that should read 160, decimal-comma typography in French and Spanish LP tables,
+and a from-scratch 460 given its records-page context so it is not read as an
+overall record. Style and translation-parity gates green across 402 files;
+full build clean.

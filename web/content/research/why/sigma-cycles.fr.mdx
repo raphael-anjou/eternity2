@@ -4,7 +4,7 @@ description: >-
   Si l'on ne peut pas améliorer un excellent plateau en le peaufinant, peut-être
   peut-on sauter vers un autre excellent plateau. Sur chaque paire de records
   testée, c'est impossible, et la raison structurelle mérite qu'on la voie.
-metaDescription: "Si polir un excellent plateau d'Eternity II ne l'améliore pas, peut-être peut-on sauter vers un autre: mais sur chaque paire de records testée, c'est impossible. La structure en cycles sigma entre plateaux forts montre pourquoi le saut de bassin paraît impossible, d'après le record 469 de McGavin."
+metaDescription: "Polir un excellent plateau d'Eternity II ne l'améliore pas, et sauter vers un autre est impossible sur chaque paire testée. La structure en cycles entre plateaux forts, la loi de frontière qui taxe tout mouvement partiel, et les évasions ratées face au record 469 de McGavin."
 kind: finding
 contribution: theory
 rigor: measured
@@ -15,9 +15,14 @@ topics: [structure, local-search]
 sources:
   - label: "Annonce du record 469 de Peter McGavin : l'un des plateaux contre lesquels les cycles sont calculés (groups.io msg 10045, septembre 2020)"
     url: https://groups.io/g/eternity2/message/10045
+  - label: "J. Houdayer, A cluster Monte Carlo algorithm for 2-dimensional spin glasses (arXiv) : l'original, en physique, du mouvement de transplantation de boucles entières"
+    url: https://arxiv.org/abs/cond-mat/0101116
+  - label: "Théorème de Jordan pour le groupe symétrique : l'outil de théorie des groupes derrière le calcul d'absence de structure cachée"
+    url: https://en.wikipedia.org/wiki/Jordan%27s_theorem_(symmetric_group)
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
+  - /research/records
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
   kind: exact
@@ -44,6 +49,18 @@ Voici le hic. Entre les meilleurs plateaux, cette boucle est énorme. Passer d'u
 plateau à 464 de Riotte à celui à 469 de McGavin, c'est une boucle imbriquée
 allant jusqu'à 189 cellules, accompagnée de quelques plus courtes, déplaçant
 presque toutes les pièces du plateau.
+
+Une habitude de ce paysage mérite d'être nommée avant les schémas : la distance
+en score ne dit rien de la distance en configuration. Dans une paire mesurée,
+deux plateaux séparés de deux points de score différaient sur 88 % de leurs
+positions ; dans une autre, deux plateaux séparés d'un point différaient sur 72
+cellules. (Deux paires, des exemples illustratifs et non des statistiques de
+population ; la preuve à l'échelle de la population, c'est le balayage
+ci-dessous.) « Marcher d'un 456 vers un 457 voisin » n'est pas un plan sensé
+quand le plateau « voisin » peut se trouver à presque tout un plateau de
+distance. Sauf mention contraire, chaque score de cette page compte les arêtes
+appariées sur 480 du puzzle canonique ; quand l'un de nos propres plateaux
+apparaît, nous précisons si ses cinq pièces-indices sont en place.
 
 ## Une seule boucle, tout ou rien
 
@@ -75,6 +92,67 @@ il faudrait s'engager à déplacer une boucle entière d'un coup, jusqu'à 195
 cellules, sans aucune étape améliorante en chemin pour vous y guider. Toute
 recherche qui procède par étapes est aveugle à un mouvement de ce genre.
 
+Les préfixes ne ferment que la moitié de la porte ; les boucles complètes
+ferment l'autre. L'un de nos plateaux à 458, décomposé contre le 469 de
+McGavin, donne 11 boucles (tailles 80, 42, 42, 40, 25, 10, 4, 4, 3, 2, 2).
+Appliquer une boucle seule fait chuter le score de 5 à 170 points ; même les
+boucles de 2 cellules perdent 6 à 7 arêtes chacune. Seule la permutation
+complète, toutes boucles ensemble, atteint 469. Une seconde paire raconte la
+même histoire avec plus de détail : entre l'un de nos plateaux à 460 et le 469,
+la permutation se scinde en 15 cycles (longueurs jusqu'à 52), tout cycle isolé
+coûte 4 à 143 arêtes appariées, chaque combinaison testée des petits cycles
+finit 10 à 29 arêtes plus bas, et seul le mouvement complet des 253 pièces
+récupère le gain de 9 points. La proximité en score n'adoucit rien : contre des
+plateaux à un, deux et trois points au-dessus de ce 460, le meilleur mouvement
+à un seul cycle véritablement non trivial coûte encore 4 arêtes. Ce sont des
+calculs exacts et déterministes, mais sur une poignée de paires de notre propre
+collection ; lisez-les comme « sur chaque paire testée », pas comme un
+théorème.
+
+La version la plus tranchante : même quand nous connaissons un meilleur plateau
+à une boucle de distance, les étapes ne peuvent pas couvrir cette distance.
+L'un de nos plateaux à 459 diffère d'un 460 trouvé un jour de seulement 39
+cellules, réparties en trois boucles de 21, 14 et 4 cellules. Chaque boucle
+appliquée seule fait chuter le score de 9 à 11 points, la boucle de 4 cellules
+comprise ; les paires de boucles atterrissent entre 442 et 454 ; seules les
+trois ensemble donnent le 460. La recherche par destruction-réparation lancée
+depuis le meilleur partiel à deux boucles (un 451) est remontée au mieux à 459,
+jamais au 460 pourtant connu, sur 15 configurations (5 graines, 3 jeux
+d'opérateurs, 30 secondes chacune). Une seule paire source-cible, et ce 460
+était une trouvaille unique ; mais l'indivisibilité mord à 4 cellules
+exactement comme elle mord à 154.
+
+## Fabriquer nos propres boucles
+
+Tout ce qui précède compare des paires de plateaux connues. Nous avons aussi
+attaqué par l'autre côté : construire les boucles nous-mêmes. Prenez un plateau
+fort, choisissez un anneau de cellules, faites tourner chaque pièce d'un cran
+le long de l'anneau comme un seul mouvement indivisible, puis donnez au plateau
+la réparation locale la plus forte que nous ayons pu bâtir (re-tourner chaque
+pièce touchée, puis re-permuter exhaustivement le pire amas cassé, jusqu'à 6
+cellules). Nous avons lancé environ 4 000 boucles construites de ce genre sur
+deux plateaux : notre meilleur plateau bâti de zéro, à 461 arêtes appariées
+avec les cinq pièces-indices en place, et un 456 issu du même pipeline. Ce sont
+nos propres meilleurs, bien en dessous de ceux de la communauté ; voyez [la
+page des records](/research/records) pour les situer. Sur 8 graines et plus et
+trois familles de construction de boucles, le nombre de mouvements ayant
+atteint un plateau *différent* au score de départ ou mieux : exactement zéro.
+Chaque fois que la réparation remontait au score de départ, elle avait
+silencieusement défait la boucle et reconstruit le plateau d'entrée à
+l'identique.
+
+Le mécanisme est la même arithmétique de frontière qui traverse toute cette
+page : une boucle construite présente de nouvelles couleurs le long de tout son
+pourtour, la perte avant réparation vaut à peu près la taille du pourtour, et
+une réparation locale ne peut regagner ces arêtes qu'en inversant la boucle.
+S'échapper exigerait des pièces affluant de tout le plateau, précisément le
+mouvement tout-ou-rien que l'analyse des cycles réclame. Le mouvement non local
+le moins cher trouvé coûte exactement une arête : échangez deux pièces
+éloignées aux couleurs quasi identiques et vous obtenez un plateau
+véritablement différent à 460, à deux cellules du 461. L'affirmation « zéro
+évasion » vaut pour cet opérateur et cette force de réparation (fenêtres
+locales jusqu'à 6 cellules), pas pour toute réparation concevable.
+
 ## Les cycles, mesurés
 
 Les plateaux se répartissent en deux familles qui utilisent les mêmes pièces (le
@@ -92,6 +170,240 @@ paire à l'intérieur de chacune :
   complète le confirme sur les plateaux que nous fournissons, même s'il n'est
   toujours pas prouvé que cela vaille pour tout plateau concevable.
 
+Une propriété mesurée de plus compte pour qui conçoit des opérateurs : les
+grandes boucles sont éparpillées, pas régionales. En décomposant l'un de nos
+plateaux à 458 contre le 469, chaque boucle de 25 cellules ou plus couvre les
+lignes 1 à 14 et les colonnes 1 à 14, autrement dit tout l'intérieur, et une
+petite boucle de 4 cellules est exactement les quatre coins. (Une seule paire
+de plateaux, mais cela concorde avec le mécanisme des coins plus bas.) Un
+opérateur régional (détruire une fenêtre, réparer une fenêtre) ne peut donc
+jamais contenir une boucle ; pire, chaque cellule d'une boucle a besoin d'une
+*pièce différente*, pas d'un réarrangement des pièces déjà dans la région.
+
+## Pourquoi tout mouvement partiel doit perdre : la loi de la frontière
+
+Le recensement dit que les mouvements partiels perdent toujours ; voici la
+raison géométrique, et elle est quantitative. Les cellules d'une boucle étant
+éparpillées sur le plateau, tout sous-ensemble partiel possède une longue
+frontière face aux cellules intactes. Chaque arête de frontière appose une
+pièce déplacée contre un voisin auquel elle n'a jamais été appariée dans aucun
+des deux plateaux d'arrivée, et presque chacune de ces arêtes casse. La perte
+de score d'un mouvement partiel vaut, à bonne approximation, la taille de sa
+frontière.
+
+Mesuré sur la boucle de 154 cellules entre l'un de nos plateaux à 459 et le
+469 : la frontière minimale sur toutes les applications partielles contiguës
+est d'environ 190 arêtes de grille, atteinte vers la mi-parcours (autour de 113
+cellules appliquées) ; le ratio frontière-par-cellule va de 1,07 à 4,0 selon la
+taille du sous-ensemble. Ces chiffres de boucle géante viennent de ce seul
+cycle ; des boucles plus petites à score égal, mesurées sur deux paires de
+plateaux indépendantes, donnent 2,0 à 3,5 arêtes de frontière par cellule. La
+réparation locale après un mouvement partiel regagne typiquement de l'ordre de
+30 à 50 arêtes. Une capacité de réparation de 30 à 50 face à un trou d'environ
+190 arêtes : cette inégalité, c'est le mur.
+
+La loi est aussi serrée, partout où nous avons regardé. Sur plus de 200
+applications partielles couvrant 5 boucles, la perte réalisée colle à la
+frontière à 2 arêtes près pour les sous-ensembles jusqu'à 50 cellules ; entre
+92 % et 100 % des arêtes de frontière cassent réellement. Le meilleur résultat
+jamais observé perd 3 arêtes, sur un mouvement d'une seule cellule à frontière
+4. Le sous-ensemble le plus mince de tout le corpus (ratio frontière-taille
+0,67, un sous-ensemble de 45 cellules d'une boucle de 190 cellules entre deux
+plateaux au même score) perd exactement sa frontière : moins 30 prédit, moins
+30 mesuré. Aucun sous-ensemble à gain positif n'existe dans le corpus. C'est un
+seul corpus interne de 7 plateaux ; la bonne formulation est « sur chaque paire
+mesurée », pas « prouvé pour tout plateau ».
+
+Ruser sur le sous-ensemble n'échappe pas non plus à la loi. Au lieu de blocs
+contigus, nous avons fait croître gloutonnement le sous-ensemble qui minimise
+la frontière, puis laissé la recherche par destruction-réparation nettoyer
+derrière. Les sous-ensembles gloutons à frontière minimale de la boucle de 154
+cellules atteignent bien 35 à 45 % de frontière en moins que les contigus ; aux
+tailles 10, 20 et 40, les frontières font 24, 38 et 64 arêtes et les pertes
+réalisées 22, 38 et 63, soit pour l'essentiel 100 % de la frontière. La
+réparation depuis ces plateaux abîmés plafonne à 448, 441 et 430
+respectivement, tous bien sous le départ à 459, sur 12 combinaisons de graines
+et d'opérateurs à 30 secondes chacune ; une exécution de 5 minutes sur le
+meilleur cas stagne encore à 446-448. (Une boucle, une méthode gloutonne de
+construction du sous-ensemble.) La partie instructive : un mouvement partiel
+n'a pas laissé le plateau à mi-chemin entre deux bons plateaux ; il l'a fait
+tomber dans une troisième vallée, plus basse, dont le propre plafond se trouve
+sous le point de départ. Le plateau de score était déterminé par la vallée, pas
+par le budget.
+
+## Le paysage que relient les boucles
+
+Que relient donc les boucles ? Mesuré sur nos propres collections de plateaux,
+le paysage à score égal est binaire : quasi-jumeaux ou quasi-étrangers, rien
+entre les deux. Parmi sept de nos plateaux qui font tous 459, six forment une
+seule famille, différant deux à deux de seulement 34 à 44 cellules sur 256 avec
+des boucles de 9 à 25 cellules ; le septième est une île, différant de la
+famille de 251 à 253 cellules avec des boucles jusqu'à 190 cellules. Aucune
+paire ne se trouve à distance intermédiaire, et une raison algébrique fait
+attendre exactement cette forme : les boucles se composent en conservant les
+pièces, donc ajouter une petite boucle à une boucle géante donne une autre
+boucle géante ; rien n'interpole entre une paire proche et une paire lointaine.
+(Un corpus de 7 plateaux produits par notre propre pipeline, biaisé vers la
+famille que notre recherche trouve ; le compte de la famille est une borne
+inférieure et le nombre d'îles inconnu.)
+
+À l'échelle de la population, l'image de l'île tient. En groupant les 135
+plateaux uniques à 455 ou mieux que notre recherche ait jamais produits, en
+reliant deux plateaux qui diffèrent de moins de 100 cellules, on obtient 47
+composantes : 18 singletons, une plus grande famille de 22 membres (une famille
+à 458), et le 469 de McGavin comme composante dont le plus proche voisin du
+corpus se trouve à 247 cellules. C'est environ dix fois le plus grand opérateur
+de destruction que notre recherche de réparation utilise (64 cellules). (Un
+instantané d'un corpus biaisé par la recherche.)
+
+Il existe aussi un candidat structurel au fait que les plateaux du sommet
+diffèrent presque partout : ils s'engagent sur des arrangements différents des
+quatre pièces de coin. Les trois plateaux du sommet examinés (le 469, un 459 et
+un 458) utilisent trois permutations différentes des quatre coins ; le 469 et
+le 459 partagent exactement une position de pièce sur 256, l'indice central
+obligatoire, tandis que le 459 et le 458 en partagent 29. Déplacer une pièce de
+coin vers un autre coin force le ré-appariement de tout l'anneau de bord de 60
+cellules, qui conditionne à son tour l'intérieur : un mouvement à l'échelle du
+plateau par construction. Avec 4! = 24 arrangements de coins possibles, le
+paysage pourrait se scinder en jusqu'à 24 classes incompatibles par le bord ;
+ce dernier pas est une conjecture tirée de trois plateaux, pas une mesure. Avec
+[le mur de rigidité](/research/why/rigidity-wall), l'indivisibilité des boucles
+et leur éparpillement, cela fait une quatrième ligne indépendante pointant vers
+une même conclusion : seuls des mouvements à l'échelle du plateau relient les
+plateaux de classe record.
+
+## Y a-t-il une structure cachée dans les boucles ?
+
+Question de suite naturelle : les permutations entre plateaux du sommet
+obéissent-elles à une algèbre, une loi de groupe exploitable pour prédire ou
+construire de nouveaux plateaux du sommet ? Nous avons calculé la réponse
+exactement, et c'est non. Prenez les permutations reliant six plateaux du
+sommet (trois 458, un 459, un 460 et le 469) et regardez le groupe qu'elles
+engendrent dans le groupe symétrique sur 256 pièces. La seule structure
+présente est forcée et sans intérêt : les pièces de coin vont sur des coins,
+les pièces de bord sur des bords, l'intérieur sur l'intérieur. Cela est un
+théorème pour tout plateau légal, puisqu'une pièce à k côtés gris ne peut
+occuper qu'une cellule à k faces tournées vers l'extérieur. À l'intérieur de
+ces trois classes (196 intérieures, 56 de bord, 4 de coin), le groupe engendré
+est le groupe symétrique complet à une seule relation de parité près (la parité
+intérieure égale la parité des coins ; la parité des bords est libre), un objet
+d'ordre environ 4,3 × 10<sup>441</sup>. Deux paires de plateaux engendrent déjà
+tout cela, exactement comme se comportent des permutations *aléatoires*. Et le
+groupe n'a aucun rapport avec le score : appliquez l'un de ces ré-étiquetages à
+tout plateau autre que sa cible unique et le score s'effondre (le 469 tombe à
+119, un 458 à 44, un 459 à 50). (Calcul exact avec preuves via le théorème de
+Jordan, sur les six plateaux analysés ; la contrainte de type de pièce seule
+vaut pour tous les plateaux ; le résultat ne dépend pas du choix de base et ne
+change pas si l'on exclut le plateau communautaire.)
+
+Trois conséquences méritent d'être écrites noir sur blanc. Les statistiques de
+longueur de cycle ci-dessus ne sont que la structure de cycle générique d'un
+immense groupe symétrique. Les arguments de comptage par symétrie ne peuvent
+pas prédire combien de plateaux du sommet existent. Et il n'y a aucun raccourci
+algébrique pour recombiner de bons plateaux : la rareté des plateaux du sommet
+est un phénomène de score et de géométrie, pas de symétrie.
+
+L'expérience de recombinaison directe est d'accord. Nous avons croisé des
+plateaux : 56 hybrides à lignes entrelacées issus de 18 parents à 458 ou mieux,
+chacun avec 5 minutes de réparation. Les seuls hybrides à bien scorer (quatre,
+à 461) étaient une illusion : leurs familles parentes partageaient tant de
+placements que l'entrelacement reproduisait un plateau déjà dans notre
+collection ; ces parents étaient déjà reliés par exactement les petites boucles
+que décrit cette page, et la réparation n'a rien apporté (zéro conflit avant la
+première itération). Chaque hybride issu de parents véritablement étrangers a
+fini entre 371 et 436, et la réparation n'a pas pu les récupérer. Avec ce
+schéma de croisement et ce court budget de réparation, le croisement soit
+rebrasse des plateaux reliés par boucles, soit vole en éclats.
+
+## Le seul petit mouvement gratuit : l'échange de jumelles
+
+Une famille de petits mouvements préservant le score existe bel et bien, et
+elle confirme la règle au lieu de la casser. Deux pièces quasi jumelles,
+identiques sur trois de leurs quatre couleurs d'arête, peuvent échanger leurs
+places ; l'échange change *quelles* arêtes cassent, pas nécessairement
+combien. Appliqué au 469 de McGavin (les pièces de tuples de couleurs
+13-16-14-16 et 13-16-14-18, qui diffèrent d'une seule arête, posées à deux
+positions de la même ligne), un tel échange produit un plateau véritablement
+différent qui score aussi 469 ; les deux plateaux diffèrent d'exactement 2
+cellules. Celui-là est déterministe et vérifié sur les deux plateaux. Le jeu de
+pièces canonique contient 5 paires jumelles et 114 paires quasi jumelles, donc
+ces mouvements existent en quantité, mais ce sont des trocs, pas des gains :
+sur nos propres plateaux, échanger deux pièces dont les quatre couleurs
+coïncident comme multiensemble mais pas en ordre cyclique coûte toujours 4
+arêtes (aucune rotation ne les réaligne), et le meilleur échange quasi jumeau
+trouvé coûte 1. Un ensemble de niveau de score est clos par échanges de
+jumelles, ce qui le rend épais dans cette seule direction triviale ; tout petit
+mouvement non trivial perd. Qu'un échange de jumelles quelque part gagne un
+point reste ouvert ; aucun de ceux que nous avons essayés ne l'a fait.
+
+## Tout ce que nous avons lancé contre le mur
+
+Les résultats ci-dessus suggèrent des contre-attaques évidentes, et nous les
+avons essayées. Chaque entrée ci-dessous est l'échec d'une configuration,
+cadré comme tel ; aucune n'est une réfutation universelle.
+
+**La chaleur.** Une chaîne de Metropolis assez chaude pour accepter presque
+tout mouvement n'escalade pas le mur ; elle tombe de la montagne. Des chaînes à
+échanges de paires aléatoires parties de l'un de nos plateaux à 459, 100 000
+itérations à chacune de six températures (T de 2 à 50), s'effondrent à des
+scores de 20 à 25 en quelques milliers de pas et ne revisitent jamais 450 ou
+mieux (la seule visite à cette hauteur est l'état de départ), malgré des taux
+d'acceptation de 85 à 99 %. Une chaîne dont les mouvements sont des boucles
+entières fait mieux en un sens étroit : elle navigue indéfiniment entre
+plateaux au même score, planant à 459 et y visitant plusieurs plateaux
+distincts, mais le maximum jamais vu est 459 (exécutions courtes : 500
+itérations, 2 configurations). Un seul plateau de départ, et la seule famille
+des chaînes chauffées simples ; des variantes plus fines comme le tempering
+parallèle à mouvements de boucles ne sont pas testées ici, donc pas réfutées.
+Le mécanisme : les plateaux du sommet sont une aiguille de mesure nulle dans
+l'espace des configurations, et un marcheur aléatoire perd l'aiguille
+instantanément ; les mouvements de boucle préservent le score en entier et le
+perdent en partie, donc la chaîne peut errer sur un ensemble de niveau sans
+jamais construire une ascension.
+
+**Les transplantations de boucles entières.** Transplanter le jeu complet de
+boucles d'un meilleur plateau « oracle » est un vrai opérateur ; c'est la
+version puzzle du mouvement de cluster de la physique des verres de spin (le
+Monte Carlo à clusters de Houdayer, en sources). Il a même marché une fois, à
+plus basse altitude : appliquer le jeu complet de boucles d'un oracle à 456 sur
+un plateau à 447, suivi d'une phase de redémarrage à haute température, a sauté
+de 447 à 457 par-dessus une unique barrière de 76 cellules, d'un coup. Depuis
+un plateau du sommet, jamais aucun gain : depuis un 457 contre deux oracles à
+456 distincts, chacune des 4 à 6 boucles par paire a un delta strictement
+négatif, et l'application complète fait tomber le plateau à 453-456. Une seule
+instance de succès et deux paires d'oracles en échec, donc le cadre est « sur
+les paires essayées » ; notablement, l'opérateur n'a jamais été testé avec un
+oracle *meilleur* que le plateau de départ, faute d'en avoir eu un. Le
+mécanisme : une transplantation n'aide que si la bonne région de l'oracle
+recouvre la zone de désaccord du plateau courant ; entre vallées distinctes du
+sommet, les bonnes régions ne s'alignent pas, et chaque boucle importe plus
+d'erreurs qu'elle n'en corrige.
+
+**Dire à la réparation où est la boucle.** Nous avons donné à la recherche par
+destruction-réparation les cellules exactes qu'occupe une boucle : détruire
+précisément celles-là, laisser la réparation les remplir. Aucun effet. Sur un
+plateau partiellement construit (score 442, plus grande boucle de 71 cellules
+contre une référence à 459), l'opérateur de destruction ciblant la boucle se
+déclenche 9 à 13 fois par exécution et est toujours accepté, et pourtant les
+scores finaux font 448 avec ou sans lui (exécutions de 120 secondes ; un
+plateau, une graine, un budget). La partie instructive : la contrainte ne vit
+pas dans les cellules de la boucle mais dans l'anneau d'arêtes intactes qui les
+entoure, qui force la réparation à réinstaller les pièces mêmes qu'elle vient
+de retirer. Il faudrait les *pièces* de l'autre plateau, pas seulement son
+ensemble de cellules.
+
+**L'adoption forcée.** Enfin nous avons tenté la téléportation : épingler 61
+cellules d'un plateau du sommet aux paires de pièces caractéristiques de la
+vallée du record (elles se concentrent dans les lignes du bas, là où ce plateau
+est le plus rigide), puis laisser la réparation reconstruire tout le reste.
+L'épinglage ravage le plateau, jusqu'à 254 sur 480, et une demi-heure de
+réparation par tentative remonte au mieux à 374 sur 6 graines (meilleurs par
+graine de 363 à 374) : très loin du départ à 461, sans parler du record. Un
+plateau de départ, une taille d'ensemble d'épingles, aucun balayage du nombre
+d'épingles. C'est encore la loi de la frontière : forcer un sous-ensemble de la
+structure de destination sans la boucle entière est un mouvement partiel de
+boucle sous un autre nom.
+
 ## Pourquoi c'est important
 
 Conjuguée avec [le mur de rigidité](/research/why/rigidity-wall), cette
@@ -105,10 +417,26 @@ explication plausible de la raison pour laquelle le record de 470 tient depuis
 2021 : les mouvements qui le battraient semblent trop vastes pour qu'une
 recherche pas à pas puisse les trouver.
 
+Les ajouts ci-dessus affinent ce tableau sans le changer. Le mur ne cache pas
+de symétrie exploitable : les boucles sont des mélanges génériques, preuve à
+l'appui. La proximité en score ne l'adoucit pas : même à un point de distance,
+le meilleur mouvement à un seul cycle non trivial perd. Les distances sont hors
+d'échelle pour nos outils : le plateau le plus proche du 469 que nous ayons
+jamais produit se trouve à 247 cellules, environ dix fois le plus grand
+opérateur de destruction que manie notre recherche de réparation. Et le seul
+mouvement gratuit, l'échange de jumelles, change quelles arêtes cassent mais
+n'a jamais été vu en changer le nombre dans le bon sens.
+
 *Le résultat est calculé exactement par `just research-sigma-cycles` et versionné
 dans le [sujet sigma-cycles](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
 qui lit les plateaux fournis, les regroupe par jeu de pièces partagé, et note
 chaque préfixe propre de chaque grand cycle dans chaque paire ordonnée. Le
 laboratoire interactif ci-dessus exécute le même mécanisme en direct sur de
 petits puzzles fraîchement générés ; l'animation est une schématisation du
-mécanisme, non un cycle en particulier.*
+mécanisme, non un cycle en particulier. Le balayage des préfixes sur toute la
+population est la partie couverte par ce pipeline reproductible ; les mesures
+de la loi de la frontière, le groupement du paysage, le calcul de groupe, les
+boucles construites et les expériences négatives ci-dessus sont des expériences
+de carnet distinctes sur nos collections internes de plateaux, chacune
+rapportée avec son propre cadre dans le texte et pas encore branchée au
+pipeline automatisé.*

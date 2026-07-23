@@ -3,7 +3,7 @@ title: The rigidity wall
 description: >-
   Every record board we have is frozen in place. You cannot nudge your way
   from a great board to a perfect one, and we can prove it.
-metaDescription: "Every Eternity II record board is frozen in place: you cannot nudge your way from a great board to a perfect one. MIP proofs of halo-optimality across several record basins, out to a multi-cell halo, show the core is locally rigid — which is why polishing a strong board never lifts its score."
+metaDescription: "Every Eternity II record board is frozen in place: you cannot nudge your way from a great board to a perfect one. MIP proofs of halo-optimality across several record basins, out to a multi-cell halo, show the core is locally rigid, which is why polishing a strong board never lifts its score."
 kind: finding
 contribution: theory
 tier: 1
@@ -19,6 +19,7 @@ complexity:
     Exponential in the worst case (integer programming is NP-hard), but each
     region is small enough to close to optimality or a tight gap in minutes.
 related:
+  - /research/records
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -34,8 +35,18 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100: GPU annealing on the strict-5-clue board hits the same frozen core; best score grows with distance from the incumbent (groups.io msg 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "William Millilaw's independent halo SAT-residual and replica freeze tests, reproduced here on five public boards (every finished solve UNSAT, out to a four-cell halo)"
+  - label: "William Millilaw's independent halo SAT-residual and replica freeze tests, reproduced here on five public boards (every finished solve UNSAT, out to a Chebyshev radius-4 halo)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
+  - label: "kissat, the SAT solver behind the border-ring and full-interior UNSAT proofs"
+    url: https://github.com/arminbiere/kissat
+  - label: "Google OR-Tools CP-SAT, the certifying solver behind the cluster-move and window re-solves"
+    url: https://developers.google.com/optimization
+  - label: "Diaconis & Sturmfels 1998, Markov bases: the move-algebra frame behind the connectivity-radius theory"
+    url: https://doi.org/10.1214/aos/1030563990
+  - label: "Graver 1975, connectivity of bounded fibers: the same circle of ideas"
+    url: https://doi.org/10.1007/BF01584976
+  - label: "Wolff 1989, the correlated cluster-move class from statistical physics that inspired the permutation census"
+    url: https://doi.org/10.1103/PhysRevLett.62.361
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -63,6 +74,66 @@ swap. Nothing beats it; that's rigidity, live.
   <RigidityLab />
 </Figure>
 
+## Start with the smallest moves
+
+Before any solver gets involved, the cheapest checks can be done by brute
+force: try every small move there is, and count.
+
+Here is a pocket-sized version you can hold in your head. The community 469
+board and a known 466 board differ in exactly four cells: the same four
+pieces, cycled one position along a bottom-row strip. Enumerate all 6,144
+arrangements of those four pieces in those four cells (24 permutations times
+256 rotation combinations) and the maximum is 469, achieved uniquely by the
+incumbent's own arrangement. The 466 board is one of the 6,143 worse ones.
+Two good boards can sit four cells apart with no path between them, or above
+them, through those cells.
+
+Scale it up. On one of our 459 boards (strict five-clue scoring; our numbers
+sit below the community bests, see [the records page](/research/records) for
+context), every non-identity rotation of every piece was tested: 768 of them,
+zero improvements; every real rotation strictly hurts. All 32,640 pairwise
+piece swaps: zero improvements. Swap-plus-rotation combinations: 47,164 of
+them, drawn from a 5,000-pair sample of the 522,240 possible, zero again;
+that one is a large sample, not a full enumeration. There is also an
+analytical reason rotations can never even be neutral: a 180-degree rotation
+leaves the local match count unchanged in every possible neighborhood only if
+the piece's top and bottom colors match and its left and right colors match,
+and zero of the 256 pieces have that symmetry (none is fully
+rotation-symmetric either). No rotation is ever free. The same cheap probe
+run across eleven of our high boards, scores 454 to 459, gives 8,448
+single-rotation tests and not one improvement.
+
+On a 457-scoring board of ours (matched-edges convention), the enumeration
+was pushed to every move touching up to five pieces: 1,024 single rotation
+flips, 6,720 adjacent-pair rotations, 20,240 non-adjacent transpositions,
+32,796 3-cycles on the 38 mismatch-adjacent cells, 982,200 4-cycles, and
+28,480,440 5-cycles. Roughly 29.5 million moves, zero improvements, plus two
+branch-and-bound sweeps (a 38-cell permutation search and an 82-cell
+radius-1 halo) that also found nothing. That same 457 board was reached 11
+independent times by a hot-restart search, byte-identical every time: the
+search does not orbit near a good board, it collapses onto one exact point
+and stays there.
+
+Even the moves engineered to look free fail. Some piece pairs share three of
+their four edge colors, so swapping them looks almost neutral. On the
+community 469, all 114 such single swaps were tried: exactly one keeps the
+score at 469 (producing the only known sibling board), 2 give 468, and 111
+give 467. All 6,441 double swaps: none reaches 470, the best gives 468.
+Across 6,555 perturbations built specifically to be nearly score-neutral, the
+469-score level set contains exactly two boards.
+
+The numbers explain themselves. At score 459 a cell contributes about 3.6
+matched edges on average, while a random piece dropped into a fixed
+neighborhood expects only about 0.18 (roughly four edges times one chance in
+22 colors), so a random swap expects to lose about 6.8 edges. A loose
+probabilistic bound caps the chance of an improving swap at about 5 percent;
+the measured frequency is below $3\times10^{-5}$. Each placement in a top
+board is co-adapted to its neighbors far beyond what chance alone would
+predict. One scope note: each census here is exhaustive within its move
+class but runs on a single board (the rotation and swap censuses on one 459,
+the five-piece enumeration on one 457, the near-twin census on the 469); the
+exact proofs below are what generalize them.
+
 ## How this is known
 
 The result does not rest on trying a lot of swaps and giving up. It comes from
@@ -71,9 +142,19 @@ board, free every piece inside it, and find the single best way to fill it back
 in. The solver searches that whole local space exactly, not by sampling.
 
 The answer keeps coming back the same: the best arrangement is the one
-already there. We proved it for region after region, across three different
-record boards, and out to a radius of four cells, which is a block of dozens
-of cells at once. Every time, no improvement exists.
+already there. We proved it for region after region, on board after board,
+and out to a radius of four cells; the largest single region closed to a
+certificate is 79 cells, nearly a third of the board. Every time, no
+improvement exists.
+
+One caution learned along the way: a cold exact re-solve of a large region
+can silently under-perform. Asked to rebuild the last three rows of a strong
+board from scratch (48 cells), the solver could not even rediscover the
+board's own tail in the time given, reaching 68 matched edges against the
+incumbent's 72 after 201 s (a single run). At larger windows, "found nothing
+better" can be plain solver difficulty rather than proof. A rigid verdict is
+only trusted here when the solver starts from the incumbent, so anything
+better is strictly easier to find, and it still certifies a zero gap.
 
 ## Method: the MIP proof
 
@@ -85,31 +166,258 @@ piece $p$ at rotation $\theta$ in cell $c$; one-piece-per-cell and
 one-cell-per-piece constraints make it an assignment problem; the objective
 maximizes matched edges, counting the fixed boundary. A 64-cell region is about
 18,700 binary variables. Branch and bound then either finds a strictly better
-refill or proves, with a dual bound, that none exists.
+refill or proves, with a dual bound, that none exists. The definition worth
+keeping: a board is *locally rigid at radius $r$* if, for every connected
+component of its mismatch-adjacent cells, freeing all cells within distance
+$r$ of it and solving exactly yields no improvement.
 
 It never finds one. The proofs, region by region. These MIP runs come from the
 project's research notebook (the 2026-05-16 paper linked in the sources); the
 table below is not yet re-run under this site's committed-results pipeline, so
 its solver times and dual bounds are not independently checkable from this repo
-the way the SAT-halo result further down is:
+the way the SAT-halo result further down is. The same provenance note covers
+every census, enumeration and SAT escalation added to this page; the radius-4
+SAT reproduction is the one result committed in this repo:
 
 | Region | Board | Cells | Solver time | Result |
 |---|---|---:|---:|---|
-| halo-2, per-component (×8) | 3 basins (469, 459, 458) | 2–32 | seconds each | all Δ = +0, **proven** |
+| halo-2, per-component (×8) | 3 basins (469, 459, 458) | 2–34 | seconds each | all Δ = +0, **proven** |
 | halo-1 joint | McGavin 469 | 37 | 895 s | Δ = +0, **proven** |
 | halo-1 joint | Local 459 | 59 | 1800 s | Δ = +0, **proven** |
+| halo-1 joint | three separate 458s | 57, 62, 64 | 180 s each | Δ = +0, **proven** |
+| halo-1 per-component | a second, disjoint 459 | 52 + 4 | ~60 s | Δ = +0, **proven** |
+| top-3 rows (a band, not a halo) | McGavin 469 | 48 | 70 s | Δ = +0, **proven** |
 | halo-3, per-component | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **proven** |
+| halo-3, densest cluster | a 458 | 79 + 19 | 1200 s + 0.2 s | Δ = +0, **proven** |
 | halo-4, component 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **proven** |
 
-Across four basins and ≥13 regions the answer is invariant: the incumbent
-board is locally MIP-optimal, out to halo-4 for McGavin's 469. The one region
-left with a gap, the top-four rows, 64 cells, still gives a *sound* result:
-a dual bound of 123 against the incumbent's 116, so even the unclosed case
-cannot exceed the wall by much (it implies a board-wide bound of ≤ 476).
+Across at least six distinct boards and more than twenty regions the answer
+is invariant: the incumbent board is locally MIP-optimal, out to halo-4 for
+McGavin's 469. Two of the rows deserve a word. The top-3-rows row is a full
+geometric band, not a halo: it frees clean cells alongside broken ones, so it
+additionally rules out moves that trade pieces between broken and clean cells
+inside the band. And the 79-cell region, the largest ever closed here, sits
+on a 458 rather than the 469 because solvability tracked *defect density*,
+not raw region size: dense-defect regions close while larger sparse ones time
+out.
+
+The one region left with a gap, the top-four rows, 64 cells, still gives a
+*sound* result: a dual bound of 123 against the incumbent's 116, so even the
+unclosed case cannot exceed the wall by much (it implies a board-wide bound
+of ≤ 476).
+
+Not every solve finished, and the ledger keeps those too. The 54-cell halo-2
+joint solve on the 469 sat at its root relaxation for 55 minutes and was
+killed; the top-5-rows band (80 cells) timed out; on the three 458s the two
+big halo-2 components hit a 120 s limit reporting +0 *without* a certificate,
+which counts as "no improvement found", not as proven. One more unfinished
+row widens the evidence to a different scoring convention: a 460 board played
+*without* the clue constraint was given a halo-1 joint solve (42 free cells,
+full piece freedom) and a 900-second run found no improvement but left a 9.5
+percent dual gap open, so that row too is "nothing found within budget", not
+"proven optimal". Single board, single run.
+
+Nor is this one unlucky board. A second 459-scoring board, found by a
+completely different construction path, agrees with the first on only 3 of
+256 cells, essentially just the clue cells; the two boards are structurally
+disjoint, and the second is *also* proven rigid at halo-1 (two components, 52
+and 4 cells, +0 proven in about a minute). At halo-2 its small component (7
+cells) proved +0 in 18 s; its large component (67 cells) was inconclusive
+after about 13 minutes and stays open. The conjecture this supports, stated
+as a conjecture: the 459 level set is a disjoint union of many rigid points,
+and climbing past it needs a board-spanning rearrangement or a different
+start, never a local fix.
 
 The badge says *proven* rather than *conjectured* for the regions actually
 closed; the general statement over *all* boards remains a conjecture, supported
 by every region tested to date.
+
+## No clever swap exists either
+
+The MIP frees a region and refills it from the whole piece set. There is a
+complementary move class it does not cover: pick $k$ cells and try every way
+to permute and re-rotate the pieces *already sitting on them*, with the rest
+of the board frozen. A different move algebra, and it gives the same answer.
+
+On a 452 board of ours (strict five-clue scoring, 2026-07): $k=1$,
+exhaustive over all 251 free cells, zero improving moves. $k=2$, exhaustive
+over all 31,375 non-clue pairs, zero. $k=3$ to $6$, about 29,000 sampled
+clusters (near-defect, whole-board, connected and disconnected), zero; that
+tier is a large sample, not an enumeration. For $k=7$ and $8$ the sampling
+was upgraded to a genuine enumeration: every connected 7- and 8-cell subset
+of the defect-touching cells on two independent boards, 849 subsets in all
+(231 on the 452, 618 on a structurally unrelated 451 that differs from it at
+249 of 256 cells), all solved to completion, zero improving, zero timeouts;
+plus all 7,845 connected 7-cell subsets within one step of a defect edge,
+zero again. Roughly 60,000 evaluated cluster moves, and the best delta found
+anywhere is exactly zero.
+
+The zero is not a broken detector. As a positive control, a deliberate
+two-piece sabotage (452 down to 447) was repaired by the same machinery in a
+single 4-cell move, straight back to 452. And greedy local search over this
+move class, started from three independently sourced boards (the 452, a
+same-score twin differing at exactly 2 cells, and the unrelated 451), hit an
+immediate fixed point in all 20 seeded runs: minimum, median and maximum
+identical, zero escapes.
+
+The detail that makes it sting: the 452 itself was *born* from exactly this
+move class. A two-piece co-rotation lifted a 451 that was rigid under every
+single-piece move. One genuine two-body correlated move existed; after taking
+it, no correlated move of size up to 8 remains anywhere near the defects. The
+rigidity radius grows as the board improves.
+
+Changing the geometry of the freed set does not help either. Free contiguous
+row strips instead of blobs: 54 of 54 single-row strips through the two
+boards' defect bands (widths 8 to 14, up to 15 cells freed) certify at
+exactly the board's own score in under a second each, and 18 of 18 two-row
+strips outside the worst band certify rigid up to 26 cells. In each board's
+densest defect band the wider strips (16 to 26 cells) get hard to *certify*:
+after escalating to 300 s and 3 seeds, 6 of 10 remain open with solver-bound
+gaps of 2 to 6 edges. But across all 30 escalation runs the solver never
+found any arrangement better than the board's own. That is a certification
+gap, not evidence of an improvement, and the open strips are recorded as
+open, not proven.
+
+Rectangular windows tell the same story. On the 452, whose 28 broken edges
+split into 22 concentrated in the bottom band and 6 scattered, every window
+of up to 18 cells around every defect cluster (four windows, 9 to 18 cells)
+re-solves to a certified optimum at exactly the board's own value. Each
+defect is forced by pieces committed *elsewhere*; no window that merely
+contains the defect can fix it.
+
+Even letting pieces trade across the good/bad boundary moves nothing. On a
+459 board of ours (strict five-clue), the bottom two rows (32 cells) certify
+optimal in 49 s. A 46-cell window, and 52- and 72-cell windows that
+additionally free 6 to 10 donor cells *inside the perfect region*, so pieces
+can be exchanged between the clean and broken parts, all return the identical
+board: zero
+cells moved, not even a lateral equal-score shuffle (150 to 180 s each,
+single seed, so these larger windows count as "no improvement and no movement
+found", not as certificates). The same operator applied to a weaker 455 board
+lifts it by 2 to 457, so it demonstrably improves boards not yet at their
+fixed point; the 459 already is one. Inside every window the linear
+relaxation believes about 17 more matches are available; the
+each-piece-used-once constraint forbids them all. The binding constraint is
+which pieces the rest of the board leaves over, never window size. The
+hardness is global distinctness, not local matching.
+
+## Rigid a whole row at a time
+
+Halos and windows are blobs. Try a board-spanning geometry instead: free an
+entire 16-cell row, restrict it to pieces not used elsewhere on the board,
+and enumerate alternative fills by dynamic programming. On a 460-scoring
+board (mismatches all in rows 11 to 14) and on the community 469 (mismatches
+in rows 0 to 4), every row's current fill is the best available, and several
+rows admit *no legal alternative at all*: the placed chain is the unique way
+to thread that row through the rest of the board.
+
+The numbers. On the 460: rows 1 to 10 are perfect and admit exactly one
+chain each, the placed one; rows 12 and 14 have zero alternative chains; row
+13 has 176 alternatives, all worse, the best of them 10 edges down. On the
+469: row 3 has zero alternatives; rows 2 and 4 have best alternatives 20
+edges down; rows 5 to 14 are perfect, with the original among up to about
+17,857 legal chains and none better. Jointly freeing two rows (32 cells,
+internal seam unconstrained): the pairs (11,12), (12,13) and (13,14) on the
+460 yield 0 to 4 alternative chains in total, all worse (12 to 16 edges
+down) or infeasible. Three rows jointly (48 cells): rows (11,12,13) and
+(12,13,14) yield zero alternative chains. These rows are not just optimal;
+they are often *forced*. Uniqueness, not merely optimality. Scope: the
+enumeration is beam dynamic programming (beam width 100,000 for one row,
+5,000 to 50,000 for two and three rows), exhaustive in practice but not
+certified the way the MIP rows are; call it beam-exhaustive. Two boards.
+
+An exact companion on bands: strip the bottom 2 rows (32 cells) of a
+460-scoring board entirely and let an exact constraint search enumerate every
+legal refill from the freed pieces. Exactly 32 alternative fills exist, all
+scoring at or below 460. Strip the bottom 4 rows (64 cells): the only
+completion the exact search reaches is the original board itself. One board,
+these two band sizes only; but on every band that could be closed exactly,
+the current score is the true ceiling.
+
+## Where the last mismatches live, and why they're stuck
+
+On a 458 board of ours, the anatomy of failure is remarkably concentrated.
+The border ring is perfect (60 of 60), the top nine interior rows are
+perfect, and all 22 mismatches (4 border-interior, 18 interior-interior)
+live in the bottom five rows, grouped into 10 tiny disjoint clusters
+averaging 2.8 cells, the largest just 5. Each cluster looks trivially
+fixable. Exact solves say otherwise: per-cluster refills, delta zero; halo-1
+and halo-2 enlargements up to 16 cells, delta zero; and the union of all 28
+defect-touching cells, solved jointly to proven optimality in 1.74 s, delta
+zero.
+
+This is the mechanism behind the whole wall in miniature: the defect region
+is at its exact optimum *given the pieces it was left with*. The perfect top
+of the board has consumed a specific piece set, and that commitment is what
+caps the bottom. Fixing the last mismatches would require un-committing
+pieces from the already perfect region, a large cross-region move, not a
+local repair. (A linear relaxation reads a ceiling of 478 for this border;
+that is a relaxation ceiling for this particular border, not a claim about
+the true optimum.) One board, but the pattern, defects packed into a few
+tiny clusters that exact refills cannot fix, is exactly what the halo table
+above keeps finding on the other basins.
+
+## Why nobody can certify the wall from above
+
+Two facts coexist on the 452 board (strict five-clue), and the tension
+between them is the current state of the art. Fact A: no local move of any
+tested kind beats it, and four independent framings agree (cluster moves,
+window re-solves, an exact zero-gap certificate that the pool of pieces on
+its defect-touching cells is placed optimally, and a thermodynamic probe that
+either freezes at the incumbent or melts to random, with no gentle escape in
+between). Fact B: every attempt to bound a *large* region from above fails;
+the bounds are loose and do not converge. On the board's three-row tail, 8
+seeds at 20 minutes each all returned exactly the incumbent, no seed ever
+found anything better, while the solver's upper bound *rose* from 79 (at
+300 s) to 89 (at 1200 s), moving away from the incumbent's 72, not toward
+it. An interior linear-programming bound reads 478.5 out of 480: vacuous.
+
+There is a cautionary tale inside that. An early reading of the 300 s run
+was "a gap of 7, headroom to a higher score". The 8-seed chase showed the
+gap was an artifact of a non-converging relaxation, not evidence of a
+reachable better board. The reason the bounds stay loose: the scarcity that
+makes this puzzle hard is second-order, a matter of which *pairs* of colors
+are jointly scarce, and first-order matching relaxations, which is what LP
+and propagation bounds are built on, cannot see it, no matter how long they
+run.
+
+So local rigidity (proven) and the open global gap are not in tension. The
+incumbent is a deep local optimum, *and* a disconnected better arrangement
+may exist that no local move reaches; today no bound rules it out and no
+search finds it. Closing either direction of one large-region gap would be a
+first: a better filling would be a new best board, and a bound driven down to
+the incumbent would be the first proven local score ceiling. The
+top-four-rows dual bound above (123 against 116) is the closest thing to
+progress from above, and it is still 7 edges loose. Scope: Fact A is proven
+on one board through multiple lenses; Fact B carries an 8-seed spread on its
+decisive run.
+
+## You can't even recombine the good boards
+
+Rigidity survives even when the move set is "borrow from every good board we
+have ever found". Build an optimization in which each cell may take the piece
+and rotation that *any* of 25 to 30 distinct high-scoring boards places
+there, with each-piece-used-once enforced, and free the entire board, all
+256 cells. The optimum is exactly the best board already in the corpus,
+never a blend that beats it: 457 with all five clues pinned (strict
+convention; 25-board corpus, solved in 24 s), and 459 without clue
+enforcement (matched-edges convention). Region versions at growing radii, 77,
+127, 191 and 252 free cells, are all delta zero in seconds to about 30 s.
+These optima are certificates, per corpus; the corpus is from 2026-05, when
+our bests were 457 strict and 459 matched-edges, both below the community
+figures then and now ([records page](/research/records)).
+
+The corpus is not choice-starved. Every one of the 256 cells has at least 2
+distinct options across the boards, and a typical piece appears at 6 to 19
+different positions across the corpus. The diversity is rich;
+piece-uniqueness fragments it. Boards from different corner-arrangement
+families cannot be mixed at all, and adding the community 469 board to the
+corpus makes the optimizer simply pick that board wholesale, at 469, rather
+than blend it with anything.
+
+The reading: the gap above the best known boards is a *discovery* gap, not a
+recombination gap. The improvement is not hiding in any combination of what
+is already known; it requires boards outside the entire known corpus.
 
 ## Why it matters
 
@@ -122,7 +430,56 @@ are exact, not approximate.
 It also tells you what won't work. Polishing, hill-climbing, and most
 local-repair heuristics are trying to walk uphill from a frozen point. There
 is no uphill. Reaching a solution needs a move that rearranges a large region
-all at once, or a different starting point entirely, not a better polish.
+all at once, or a different starting point entirely, not a better polish. The
+halo-1 joint proofs make that quantitative: any destroy-and-repair operator
+whose reach is at most the halo, window sizes up to about 30 cells around the
+defects, is mathematically exhausted on these boards. The freeze is not "our
+heuristic is weak"; that entire operator class is finished.
+
+Even the largest single move we know how to make does not escape. On our 461
+board (strict five-clue; for how that number sits against the community
+records, see [the records page](/research/records)), the indecomposable
+whole-cycle piece moves described on the
+[sigma-cycles page](/research/why/sigma-cycles) were applied *atomically*,
+each followed by a local window re-solve to repair the disturbed cells.
+Roughly 4,000 such moves: zero escapes, and the cheapest non-local exit still
+loses at least a point (best result 460, two cells different). This rules out
+only the local-cleanup variant; a globally compensating re-solve was not
+tested. But a large move is not enough if its cleanup is local.
+
+One more thing rigidity does *not* mean: hard to rebuild. Pin the first
+fourteen rows of the community 469 and let a repair search rebuild the rest:
+3 of 4 seeds get back to 469 (the fourth sticks at 454). Do the same with
+our own record boards' prefixes: no seed ever exceeds 460. A small probe (4
+seeds, 30-second repairs per board), but the shape is clear. The wall is not
+about how hard a board is to reconstruct; it is about *which valley the
+board's skeleton belongs to*. A prefix either admits a great completion or
+it does not, and no amount of seed luck changes which.
+
+### The endgame is decided early
+
+Pin the top $N$ rows of the community 469 board and let local search
+complete the rest. The completion score is not gradual in $N$; it is a cliff
+with decoys: $N=1$ gives 400, $N=2$ gives 382, $N=4$ gives 401, $N=8$ gives
+418, $N=12$ gives 450, $N=13$ gives 455, and $N=14$ gives 469, an *exact*
+reconstruction, zero cells different, with $N=15$ the same. At 13 pinned
+rows there exists an alternative completion of the last three rows, using
+the same pieces differently, that scores only 455 and is itself a trap:
+local color matching admits multiple completions and the search cannot tell
+which one extends. Getting 87 percent of a record right is not "almost
+there". These are single completion runs per point, on minutes-scale
+budgets, with no seed spread; read the threshold, not the individual scores.
+
+Two side notes complete the picture. The sweep proves the completion
+machinery is capable of *reaching* 469; the wall is in finding the first
+roughly 224 pieces of the structure, not in any weakness of the polish step.
+And influence does not flow the other way: a top row alone, one of at least
+$5\times10^{8}$ legal top rows, determines almost nothing. Four operator
+presets of our local-search family, grown from a pinned top row, all stall
+between 378 and 400; other search families are untested, so that negative is
+scoped to our searcher. Meanwhile 363 of our own 455-plus boards used only
+47 distinct top rows: the good boards cluster at the top long before the
+bottom is decided.
 
 ## Someone hit the same wall from the annealing side
 
@@ -154,7 +511,10 @@ We [reproduced that SAT test](https://github.com/raphael-anjou/eternity2/tree/ma
 on five public boards, with our own encoder and a positive control to make sure a
 matched region comes back satisfiable. Across the four community record boards,
 from Verhaard's 467 up to Blackwood's 470, and Riotte's 464 (the strict
-five-clue record), every solve that finished is UNSAT out to a four-cell halo: no
+five-clue record), every solve that finished is UNSAT out to a Chebyshev
+radius-4 halo (this reproduction measures the free region by Chebyshev radius,
+whereas the notebook SAT ladders further down count Manhattan steps, so the two
+halo scales are not the same metric): no
 local rearrangement of a record board's own pieces closes a single mismatch, even
 when the freed region grows to well over a hundred cells. The radius-4 instances
 are large enough that a few did not finish inside the solver's time cap; those
@@ -162,6 +522,34 @@ are recorded as timeouts and left open, not counted as proven, so the committed
 table states exactly what was decided. Integer programming optimizes and bounds;
 annealing runs into the wall by hand; SAT decides and returns a refutation. Three
 methods, one answer.
+
+A fourth tool agrees. A MaxSAT optimizer, a SAT variant that returns both the
+best refill and a proof of its optimality, was pointed at sub-regions of an
+earlier 454 board of ours: pin everything outside a region, free the region,
+ask for the provably best refill. Every $k\times k$ window up to 5×5 was
+proven optimal within its 60 s budget (the 6×6 windows exceeded the budget
+and are recorded as not closed, not as proven), and the board's entire
+45-cell defect zone, the region containing all 26 of its interior
+mismatches, was proven optimal in 83 s: those 26 mismatches are the best
+that region can do given the rest of the board. That 454 was itself reached
+byte-identically from 4 different random seeds, the same
+collapse-onto-a-single-point behavior as the 457 in the census above:
+independent runs do not just reach the same score, they reach the exact same
+board.
+
+Push the SAT question further and the answer gets more dramatic. Take one of
+our 459 boards (five clues enforced), free every cell within distance 10 of
+its mismatches, 218 of the 256 cells free and only 38 pinned, and ask
+whether *any* completion reaches a full 480. UNSAT, in 0.31 s. The ladder on
+the way there: halos 0 through 5 all UNSAT in under 2 s each; halo 7, 173
+free and 83 pinned, UNSAT in 0.17 s. The 38 cells still pinned at halo 10
+are essentially the top two rows plus 3 of the 5 clues. So the top two rows
+of this board are, by themselves, provably incompatible with any perfect
+solution: any 480 must differ from this board somewhere inside those 38
+cells. The rigidity is carried by a thin top-of-board skeleton, not by the
+defect neighborhoods. At radius 15, only 4 cells pinned, the solver timed
+out at 600 s; that case is open. One specific board; whether other
+459-scoring boards share the same pinned-top rigidity is not known.
 
 His earlier snake-and-local-search work put a number on why. The largest patch
 any of his repair operators could rewrite in one move was about 48 cells, while
@@ -173,6 +561,82 @@ twenty-eight million four- and five-move combinations at the plateau. That is
 the same wall stated as a budget. Local repair rewrites too little at once to
 leave the valley, which is why escaping needs a move that rearranges a large
 region all at once, exactly as the proof section above concludes.
+
+## The wall goes all the way to 480
+
+Everything above asks whether a local rearrangement can close a mismatch.
+There is a much bigger question: keeping only a board's border ring, does
+*any* arrangement of the 196 remaining pieces reach a perfect 480? On our
+459 board (matched-edges convention, canonical clues) the answer is a proof
+of no, at every scale. Free the 32 mismatch cells: UNSAT in 0.09 s (14k
+variables, 81k clauses). Free everything within 5 steps of a mismatch, 140
+cells, more than half the board: UNSAT in 1.56 s. Free the *entire
+interior*, all 191 non-clue interior cells, keeping only the 60-piece border
+ring: UNSAT in 1.37 s (160k variables, 5.4 million clauses). The
+intermediate rungs, halo-1 at 70 cells (0.33 s), halo-2 at 93 cells
+(0.89 s), halo-3 at 109 cells (0.80 s), are all UNSAT too. The solver is
+kissat, linked in the sources.
+
+And it is not one board's bad luck. Nine distinct border-ring configurations
+were tested, spanning four different corner arrangements: the community
+469's border, our 459 and 458 record borders, a 435 board derived from
+belief propagation, and five systematically enumerated border partials.
+Every single one is UNSAT for 480, each in under 2 seconds. Most notably,
+the community 469's border, 11 mismatches from perfection, provably cannot
+host any 480 interior: UNSAT in under 0.01 s. The encoder was round-trip
+validated on small solvable puzzles, where fresh solves decode to verified
+perfect boards and pinning a correct border returns SAT, the same
+positive-control discipline as the reproduction above; the UNSAT verdicts
+are real, not artifacts.
+
+The open edge of this result is its best summary. Only nine border
+configurations exist in our corpus, and a 480-compatible border certainly
+exists: the puzzle was constructed from a solution. It just is not any
+border that any record-class search has ever produced. Polishing near a
+record is not merely slow; under that record's own border, reaching 480 is
+provably impossible. A solution requires a different border.
+
+## Why the wall exists
+
+The page so far proves the wall; here is the closest thing we have to a
+reason. Model the set of boards at a fixed score as a graph whose edges are
+moves touching at most $k$ cells, and ask for the smallest $k$ that connects
+it: the connectivity radius. On small edge-matching instances where every
+board can be enumerated exactly, two laws emerge. First, the radius is small
+across the bulk of the score spectrum and jumps to the whole board exactly
+at the top score: on a 6-cell instance, $k$ is 2 to 4 cells at interior
+scores and 6, the entire board, at the maximum; on a 9-cell instance the
+ratio $k/N$ sits around 0.22 to 0.44 in the interior and 0.78 at the top.
+Second, rigidity switches on with color richness: sweeping the palette on
+9-cell instances, the mean minimal move support rises from 1.4 to 7.6 cells
+as the colors go from 2 to 8, and the fraction of instances whose perfect
+solutions need a full-board move to interconnect rises from 0 to 70 percent.
+
+At toy scale there is a theorem, proved by a forcing argument and verified
+by exhaustive enumeration: if the color design is rich enough that each
+exposed edge color admits at most one legal tile during a fill, then two
+distinct perfect solutions share *no cell at all*, so any move between them
+must touch every cell. At color richness comparable to the real puzzle's,
+every tested instance was rigid in exactly this sense: zero shared cells
+across every pair of perfect solutions.
+
+For Eternity II itself this is a conjecture, and we label it as one. With 22
+interior colors, each reused roughly 24 to 50 times across 480 interior
+adjacencies, the real puzzle sits deep in the rigid regime, so distinct
+near-perfect boards should be near-orthogonal (which matches the observed
+225-cell difference between good boards above), and no bounded-size move
+should connect distinct optima. The "at most one tile" condition is not
+strictly true on E2, so the supported claim is "a large fraction of the
+board", not "provably all 256 cells".
+
+The corollary is the satisfying part: local search freezes *precisely at
+high scores* because that is where the move graph disconnects. The interior
+of the score range is easy to walk, which is why reaching the 450s and 460s
+is routine; the top is a set of isolated points, which is why polishing dies
+there. One theory, both halves of this page's story. (The mathematics is the
+Markov-basis and Graver-basis circle of ideas from algebraic statistics; see
+the sources. The only cheap top-level moves the theory would allow are
+global symmetries, and this piece set has essentially none.)
 
 <Callout kind="insight" title="The next piece of the picture">
   If you can't improve a board locally, maybe you can hop from one good board

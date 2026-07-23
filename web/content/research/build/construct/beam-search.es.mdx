@@ -9,12 +9,17 @@ metaDescription: "La búsqueda en haz mantiene vivos los K mejores tableros parc
 kind: concept
 order: 50
 group: Build boards up
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [construction]
 sources:
   - label: "Zhou y Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+  - label: "Harvey y Ginsberg, Limited Discrepancy Search (IJCAI 1995)"
+    url: https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf
+  - label: "Kool, van Hoof y Welling, Stochastic Beams and Where to Find Them (ICML 2019)"
+    url: https://arxiv.org/abs/1903.06059
 related:
+  - /research/records
   - /research/lab/experiments/raphael-anjou/pipelines/gauntlet
   - /research/lab/experiments/raphael-anjou/learning/keyring
   - /research/lab/experiments/raphael-anjou/learning/prior
@@ -51,7 +56,7 @@ entonces un tablero completo.
 
 Es el inventario lo que distingue este caso de la búsqueda en haz sobre un
 problema de restricciones genérico: cada pieza existe exactamente una vez, de
-modo que una colocación no es un simple elección local, sino una retirada de un
+modo que una colocación no es una simple elección local, sino una retirada de un
 presupuesto global. Ese detalle decide todo lo que sigue.
 
 ## Ver descender un haz
@@ -130,26 +135,137 @@ su función de puntuación»: el haz evalúa una fracción ínfima del árbol, y
 score conocido predice qué prefijos de profundidad 100 aún se completan bien. La
 anchura se compra en moneda lineal; la clarividencia no está en venta.
 
+La frase «minutos en un portátil» tiene detrás una curva de coste medida.
+En un solo núcleo del motor de este proyecto (recorrido fila a fila,
+empates resueltos por una lotería sembrada entre puntuaciones exactamente
+iguales; todas las puntuaciones de aquí son aristas apareadas sobre 480):
+
+| Anchura $K$ | Tiempo por tablero completo | Puntuación bruta |
+| --- | --- | --- |
+| 2048 | unos 1,8 s | en torno a 449 |
+| 4096 | unos 2,3 s | 450 a 453 |
+| 8192 | unos 4,8 s | 452 a 453 |
+| 16384 | unos 10,4 s | 452 a 455 |
+
+Diez segundos por tablero a $K = 16384$ es lo que convierte un haz de
+constructor en fábrica de tableros; la sección sobre la diversidad vuelve
+a ello más abajo.
+
 ## La anchura rinde menos de lo que uno esperaría
 
 En $K = 1$ el haz es una construcción golosa pura, y el goloso con reinicios
 aleatorios tiene una cola de distribución brutalmente pesada: en el motor de
 este proyecto, decenas de miles de ejecuciones golosas aleatorias toparon en
 torno a 408 de 480, y la extrapolación de la cola situaba un 440 en miles de
-millones de reinicios. Ensanchar el haz es mucho mejor, pero los rendimientos
-son aproximadamente logarítmicos. Un haz de unos pocos cientos de estados
-construye tableros en torno a 450; empujar $K$ más allá de diez mil alcanzó la
-zona media de los 450 y luego se aplanó. (Medido en el motor de este proyecto;
-no reproducido de forma independiente.)
+millones de reinicios. Ensanchar el haz es mucho mejor, y el cuaderno tiene
+ya la distribución en lugar de la tendencia. Con el desempate convertido en
+una lotería sembrada de forma explícita (recorrido fila a fila, empates
+resueltos solo entre puntuaciones exactamente iguales, aristas apareadas
+sobre 480 en todo momento), 32 semillas por anchura dieron mín / mediana /
+máx de 361 / 373 / 389 a $K = 1$, 436 / 442 / 446 a $K = 64$,
+444 / 447 / 451 a $K = 512$ y 446 / 450 / 452 a $K = 2048$ (23 semillas en
+este último caso). Llevar la anchura al extremo mueve el techo solo un
+poco: 451 / 453 / 455 sobre 32 semillas a $K = 16384$, lo mismo a 32768, y
+454 / 454,5 / 455 a $K = 131072$ (solo 4 corridas, muestra pequeña). Nada
+en toda esa malla superó 455: en este productor, la anchura por sí sola
+nunca cruzó las 455 aristas apareadas. (Medido en el motor de este
+proyecto, no reproducido de forma independiente; para situar estas cifras
+desde cero frente a los resultados de la comunidad, véase la página de
+[récords](/research/records).)
+
+Los rendimientos son aproximadamente logarítmicos en promedio, y ni
+siquiera están garantizados como monótonos. En un banco de pruebas
+anterior (las cinco piezas pista fijadas, un presupuesto global de
+desapareamientos, orden de desempate barrido), $K = 512$ dio 415,
+$K = 2048$ dio 450 con un tablero completo, y $K = 4096$ recayó a 432:
+demasiado estrecho poda al futuro ganador, demasiado ancho inunda el
+frente de casi duplicados que comparten los mismos compromisos tempranos
+condenados. Una sola configuración en un solo banco, pero la misma curva
+en U reapareció de forma independiente en el estudio de deduplicación de
+más abajo; qué cuenta como duplicado importa tanto como la anchura.
+
+Un intento de cura para el problema de la falta de clarividencia merece
+admitirse: clasificar cada candidato mediante un único despliegue goloso
+resultó demasiado ruidoso para ayudar. A $K = 64$ puntuó 426 donde el haz
+desnudo puntuaba 446, a unas 170 veces el coste (una sola configuración,
+sin barrer).
+
+El techo plano de estas distribuciones es estructural, no un billete de
+lotería reencontrado. Tres semillas independientes de la misma
+configuración $K = 2048$ alcanzaron exactamente 452 aristas apareadas con
+las cinco piezas pista en su sitio, y los tres tableros solo coinciden dos
+a dos en unas 6 a 10 colocaciones de piezas de 256: el nivel de acuerdo de
+arreglos aleatorios sin relación que comparten las pistas. El trece por
+ciento de las semillas dio exactamente 452 y cerca de la mitad cae a dos
+puntos de distancia. Tableros sin relación convergiendo en un mismo número
+dice que el techo pertenece a la clase del productor, no a una familia de
+tableros concreta; y las corridas más anchas de arriba muestran que el
+techo de esta clase es en realidad 455, siendo la acumulación en 452 un
+artefacto de anchura.
 
 Hay una razón estructural por la que un haz puro no puede ser mucho más que
 «goloso, más ancho». Un estado de haz a la profundidad $d$ afronta exactamente
 las mismas restricciones de apareamiento de aristas y de inventario que un nodo
-de DFS a la profundidad $d$; mantener muchos estados con vida no relaja nada.
-Sin una función de puntuación que prediga de forma fiable qué prefijos de
-profundidad 100 aún se completan bien (y no se conoce ninguna heurística de ese
-tipo para Eternity II), la anchura adicional del haz en lo esencial no hace más
-que duplicar lo que los reinicios aleatorios de un backtracker ya proporcionan.
+de DFS a la profundidad $d$; mantener muchos estados con vida no relaja nada,
+y no se conoce para Eternity II ninguna función de puntuación que prediga de
+forma fiable qué prefijos de profundidad 100 aún se completan bien. Esta
+página concluía antes, a partir de ese argumento, que la anchura adicional
+del haz en lo esencial no hacía más que duplicar lo que los reinicios
+aleatorios de un backtracker ya proporcionan. Una medición cara a cara, a
+continuación, mostró que esa conclusión era errónea: la anchura paga
+exactamente cuando el fallo se siembra muy por encima de la profundidad
+donde aflora.
+
+## El haz frente a la profundidad, a coste igual
+
+La comparación más limpia del cuaderno enfrenta tres formas de búsqueda
+sobre un mismo generador de candidatos y un mismo evaluador, con
+presupuesto de nodos igual, de modo que la única variable es qué hace cada
+búsqueda con los mismos movimientos. La puntuación es en aristas apareadas,
+con una tolerancia global fija de desapareamientos. Con unos 20 a 25
+millones de nodos cada una, la búsqueda en profundidad se estancó a la
+profundidad 213 de 256 celdas con 368 aristas apareadas; la búsqueda de
+discrepancia limitada se estancó a la profundidad 203 con 349; el haz a
+$K = 2048$ alcanzó la profundidad 256, un tablero completo con 455 aristas
+apareadas. Con las cinco piezas pista fijadas y 20 millones de nodos, la
+profundidad se estancó a la profundidad 190 (322 aristas apareadas,
+sosteniendo solo tres de las cinco pistas), mientras que el haz completó
+el tablero con 450 de 480 y las cinco pistas en su sitio, en unos ocho
+segundos en un solo hilo. Y no es una lotería de semillas: ocho
+permutaciones del orden de desempate devolvieron una salida idéntica byte
+a byte.
+
+El mecanismo es la corrección prometida arriba. Una búsqueda en
+profundidad que se equivocó cuarenta celdas por encima de donde falla debe
+deshacer cada nivel intermedio antes de poder tocar el error temprano, y
+los nodos de ese hueco son exponencialmente numerosos. Los $K$
+supervivientes del haz ya codifican elecciones superficiales distintas,
+conservadas lado a lado, de modo que una corrección superficial está
+disponible a coste lineal por nivel. La anchura no relaja ninguna
+restricción; lo que compra es un sustituto del retroceso profundo que una
+búsqueda en profundidad no puede permitirse. En este puzzle los
+compromisos fatales se toman muy por encima de la profundidad donde
+afloran, que es exactamente el régimen donde ese sustituto rinde.
+
+La búsqueda de discrepancia limitada se gana su propio resultado negativo.
+La [LDS de Harvey y Ginsberg](https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf)
+revisita el camino goloso unas pocas desviaciones a la vez, y gana cuando
+una buena solución difiere del goloso en unos pocos lugares tempranos.
+Aquí nunca igualó a la profundidad pura en ningún presupuesto probado
+(profundidad 196 frente a 204 con medio millón de nodos, 203 frente a 213
+con 20 millones) y fue de 10 a 30 veces más lenta por unidad de progreso.
+Eso se mantuvo en todas las configuraciones probadas (discrepancia máxima
+de 5 a 20, dos presupuestos de desapareamientos, con y sin las pistas),
+aunque siempre en este único banco y evaluador. La lectura: el fallo del
+presupuesto de piezas es difuso, muchas celdas tempranas dispersas deben
+haber salido todas bien, así que todas las capas de baja discrepancia en
+torno al camino goloso están condenadas juntas.
+
+Una nota de alcance. Las puntuaciones absolutas de esta comparación vienen
+de un banco deliberadamente simple; los productores de otras partes de
+esta página las superan. La afirmación es el orden relativo a coste de
+nodos igual (haz por delante de profundidad por delante de LDS), no los
+números.
 
 ## La diversidad es el verdadero mando
 
@@ -164,15 +280,85 @@ bajo nueve órdenes de visita distintos ([GAUNTLET](/research/lab/experiments/ra
 familias de tableros distintas allí donde dieciséis semillas de un solo orden
 habían producido una.
 
+El orden de recorrido corta, sin embargo, en los dos sentidos. Para un
+evaluador que cuenta apareamientos contra vecinos ya colocados, un orden
+simplemente domina en puntuación bruta: fila a fila batió a la espiral y
+al borde-primero por un margen estable de 4 a 6 aristas apareadas en cada
+anchura de $K = 2048$ a $K = 131072$ (medianas subiendo de 453 a 454,5
+para fila a fila, frente a 448 a 450,5 para la espiral y 448 a 450 para el
+borde-primero). El mecanismo es la visibilidad. Pasadas la primera fila y
+la primera columna, el orden fila a fila compromete cada celda contra dos
+vecinos ya colocados; la espiral y el borde-primero atraviesan largos
+tramos donde una celda se puntúa contra cero o un vecino, así que sus
+apuestas tempranas están menos informadas, y ninguna anchura repara del
+todo una apuesta temprana menos informada. Los órdenes perdedores siguen
+ganándose su sitio: reubican el final difícil en otras regiones del
+tablero (se vuelve a ello en la sección del muro), lo que los convierte en
+fuente de población incluso con puntuación bruta más baja.
+
 El otro mando fecundo es el desempate.
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) rompe los empates
 de puntuación a favor de las piezas que son frecuentes en esa posición dentro de
 un corpus de tableros fuertes, elevando el techo desde cero en unas pocas aristas
-y alcanzando 460 tras el refinamiento.
+y alcanzando 460 tras el refinamiento (una cifra de cuaderno desde cero,
+convención de aristas apareadas sobre 480; véase la página de
+[récords](/research/records) para situar ese número frente a los resultados
+de la comunidad).
 [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) rompe los
 empates a favor de las piezas que sirven demandas escasas, ganando una pequeña
 mejora en la mediana y una regularidad mucho mayor, para luego colapsar
 gravemente en cuanto la ley a priori pasa de desempate a objetivo.
+
+La lotería de desempate tiene sus propias aristas cortantes. Sortear
+*cuál* de los candidatos exactamente empatados sobrevive es diversidad
+casi gratis; ampliar qué cuenta como empate no lo es. Tratar como
+empatados a los candidatos a una arista apareada del mejor costó
+aproximadamente de 50 a 60 puntos en cada anchura probada, y a dos
+aristas, de 150 a 160 (medido hasta $K = 2048$; anchuras mayores sin
+probar). La señal golosa se diluye más deprisa de lo que la anchura la
+recupera.
+
+Y la lotería se agota. Por encima de unos pocos cientos de supervivientes,
+los empates exactos de puntuación prácticamente desaparecen, de modo que
+un haz con desempate aleatorio se vuelve determinista en la práctica, el
+mismo tablero con cada semilla (la comparación a coste igual de arriba vio
+lo mismo como salida idéntica byte a byte entre órdenes de desempate).
+Restaurar la diversidad a gran anchura significa perturbar las propias
+puntuaciones. Añadir ruido de Gumbel a la puntuación de cada candidato, el
+truco estándar para muestrear secuencias sin reemplazo
+([Kool, van Hoof y Welling](https://arxiv.org/abs/1903.06059)), compra
+diversidad con una lista de precios explícita: a temperatura 0 el haz es
+determinista y alcanzó 460 aristas apareadas tras el refinamiento, el
+mismo tablero con cada semilla; a 0,1 construyó entre 446 y 453 con una
+estructura de esquinas genuinamente distinta por semilla; a 0,5, de 438 a
+441; a 2,0 colapsó hacia 240 a 252 aproximadamente. Tres semillas por
+temperatura: fíese de la forma del compromiso antes que de las cifras
+exactas.
+
+La deduplicación, el otro remedio habitual, esconde una trampa que
+interactúa con la anchura. Con una clave gruesa (supervivientes
+deduplicados por el conjunto de piezas usadas), la curva de anchura salió
+en U en un barrido de una corrida por punto: 446 a $K = 64$, 453 a
+$K = 1024$, y luego caída a 449 a $K = 4096$, porque a gran anchura los
+casi duplicados que solo difieren en su historia reciente desplazan a
+prefijos genuinamente distintos. Una clave sensible al camino restauró
+ganancias monótonas y alcanzó 455 aristas apareadas a $K = 16384$ (unos 21
+minutos en un solo hilo en aquella implementación temprana, alrededor de
+10 MB de memoria). Una corrida por punto: una patología observada, no una
+ley; pero junto al punto dulce no monótono de arriba suman dos
+avistamientos del mismo modo de fallo. Qué cuenta como duplicado es una
+decisión de diseño de primer orden.
+
+Junte la lotería sembrada con la tabla de costes y el haz deja de ser un
+constructor de un solo tablero: es una fábrica de tableros fuertes sin
+relación entre sí. 160 semillas a $K = 16384$ dieron 19 tableros con 455
+aristas apareadas, 27 con 454, 48 con 453, 46 con 452, 19 con 451 y uno
+con 450; los 94 tableros con 453 o más tenían las trece primeras filas
+distintas dos a dos, familias de tableros distintas y no variaciones de
+una sola. Eso son unos 1160 tableros por hora en una modesta ejecución
+paralela de cuatro vías, con aproximadamente una semilla de cada ocho
+alcanzando el techo de 455 y ninguna llegando a 456. La diversidad
+producida en masa es exactamente la entrada que pide el pulido posterior.
 
 ## El muro de profundidad
 
@@ -187,3 +373,33 @@ la distancia restante se compra con
 [pulido por destrucción y reparación](/research/build/local-search/local-search-alns),
 no con más anchura. En este puzzle, la búsqueda en haz es una buena manera de
 alcanzar rápido la meseta, y de ninguna manera una forma de abandonarla.
+
+El mapa de dónde caen los desapareamientos es medible, y se mueve con el
+orden de recorrido. En los tableros fila a fila, las últimas filas cargan
+con el grueso del daño: en un tablero completo con 450 de 480 y las cinco
+pistas en su sitio, las filas 13 a 15 concentraban 21 de los 30
+desapareamientos. Un orden en espiral reparte en cambio sus
+desapareamientos por las filas centrales, porque sus últimas celdas son el
+centro del tablero; el borde-primero los concentra en el anillo más
+interior. La ubicación del muro es una propiedad del orden de visita, no
+del puzzle. Elegir el orden puede incluso subir el techo una arista: un
+orden de recorrido en forma de peine, cuyos desapareamientos caen en
+franjas verticales en lugar de en las filas de abajo, produjo seis
+tableros brutos con 456 aristas apareadas en 120 semillas y
+aproximadamente el doble de la tasa habitual de 455, donde fila a fila no
+produjo ningún 456 en 160 semillas. (Puntuaciones brutas de constructor,
+convención de aristas apareadas; la página de [récords](/research/records)
+las pone en contexto.)
+
+Dos observaciones del cuaderno afinan de qué está hecho el muro. Primera:
+el haz alcanza compleciones que un backtracker que permite a lo sumo un
+desapareamiento por celda no puede construir estructuralmente; el tablero
+de 450 de arriba lleva una celda con dos aristas desapareadas, y un hijo
+con doble desapareamiento puede sobrevivir en el top $K$ aunque ningún
+camino en profundidad con un solo desapareamiento por celda conduzca
+hasta ahí. Segunda: sobre el propio prefijo de 240 celdas del haz, un
+finalizador exacto por ramificación y acotación hizo peor (433 o 420
+aristas apareadas, según cuánto prefijo se fijara) que la propia
+compleción del haz con 450; la anchura ya había explorado la cola mejor
+de lo que puede una búsqueda exacta limitada en profundidad, compleciones
+con doble desapareamiento incluidas.

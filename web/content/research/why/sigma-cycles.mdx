@@ -4,7 +4,7 @@ description: >-
   If you can't improve a great board by polishing it, maybe you can jump to a
   different great board. On every record pair tested, you can't, and the
   structural reason why is worth seeing.
-metaDescription: "If polishing a great Eternity II board can't improve it, maybe you can jump to a different great board — but on every record pair tested, you can't. The sigma-cycle structure between strong boards shows why basin-hopping looks impossible, computed against McGavin's 469 record."
+metaDescription: "If polishing a great Eternity II board can't improve it, maybe you can jump to another great one; on every pair tested you can't. The cycle structure between strong boards, the boundary law taxing every partial move, and the failed escape attempts, computed against McGavin's 469 record."
 kind: finding
 contribution: theory
 rigor: measured
@@ -15,9 +15,14 @@ topics: [structure, local-search]
 sources:
   - label: "Peter McGavin's 469-record announcement: one of the boards the cycles are computed against (groups.io msg 10045, September 2020)"
     url: https://groups.io/g/eternity2/message/10045
+  - label: "J. Houdayer, A cluster Monte Carlo algorithm for 2-dimensional spin glasses (arXiv): the physics original of the whole-loop transplant move"
+    url: https://arxiv.org/abs/cond-mat/0101116
+  - label: "Jordan's theorem for the symmetric group: the group-theory tool behind the no-hidden-structure computation"
+    url: https://en.wikipedia.org/wiki/Jordan%27s_theorem_(symmetric_group)
 related:
   - /research/why/rigidity-wall
   - /research/why/mismatch-geometry
+  - /research/records
   - /research/lab/experiments/raphael-anjou/learning/keyring
 repro:
   kind: exact
@@ -41,6 +46,16 @@ loop a cycle. Do the whole loop and you arrive at the other board.
 Here's the catch. Between the best boards that loop is enormous. Going from a
 Riotte 464 board to McGavin's 469 means one interlocking cycle of up to 189
 cells alongside a few shorter ones, moving nearly every piece on the board.
+
+One habit of this landscape is worth naming before the diagrams: score distance
+says nothing about configuration distance. In one measured pair, boards two
+points apart in score disagreed on 88% of their positions; in another, boards
+one point apart differed on 72 cells. (Two pairs, illustrative examples rather
+than population statistics; the population-grade evidence is the sweep below.)
+"Walk from a 456 to a nearby 457" is not a meaningful plan when the nearby
+board can be most of a board away. Unless flagged otherwise, every score on
+this page counts matched edges out of 480 on the canonical puzzle; where one of
+our own boards appears, we say whether its five clue pieces are in place.
 
 ## One loop, all or nothing
 
@@ -69,6 +84,59 @@ you'd have to commit to shifting a whole loop at once, up to 195 cells, with no
 improving step along the way to guide you there. Every search that works in
 steps is blind to a move like that.
 
+Prefixes are only half the door; complete loops close the other half. One of
+our 458 boards against McGavin's 469 decomposes into 11 loops (sizes 80, 42,
+42, 40, 25, 10, 4, 4, 3, 2, 2). Applying any loop alone drops the score by 5 to
+170 points; even the 2-cell loops lose 6 to 7 edges each. Only the full
+permutation, all loops together, reaches 469. A second pair tells the same
+story in more detail: between one of our 460 boards and the 469, the
+permutation splits into 15 cycles (lengths up to 52), any single cycle alone
+costs 4 to 143 matched edges, every tested combination of the small cycles
+lands 10 to 29 edges down, and only the full 253-piece move recovers the
+9-point gain. Score proximity does not soften this: against boards one, two and
+three points above that 460, the best genuinely non-trivial single-cycle move
+still costs 4 edges. These are exact, deterministic computations, but on a
+handful of pairs from our own collection; read them as "on every pair we
+tested", not as a theorem.
+
+The sharpest version: even when we know a better board one loop away, steps
+cannot cover the distance. One of our 459 boards differs from a 460 we once
+found in just 39 cells, split into three loops of 21, 14 and 4 cells. Each loop
+applied alone drops the score by 9 to 11 points, the 4-cell loop included;
+pairs of loops land between 442 and 454; only all three together give the 460.
+Destroy-and-repair search launched from the best two-loop partial (a 451)
+recovered to 459 at most, never the known 460, across 15 configurations (5
+seeds, 3 operator sets, 30 seconds each). One source-target pair, and that 460
+was a one-off find; but the indivisibility binds at 4 cells exactly the way it
+binds at 154.
+
+## Making our own loops
+
+Everything above diffs known board pairs. We also attacked from the other side:
+construct the loops ourselves. Take a strong board, pick a ring of cells,
+rotate every piece one step around the ring as a single indivisible move, then
+hand the board the strongest local repair we could build (re-rotate every
+touched piece, then exhaustively re-permute the worst broken cluster of up to 6
+cells). We ran roughly 4,000 such constructed loops on two boards: our best
+from-scratch board, at 461 matched edges with all five clue pieces in place,
+and a 456 from the same pipeline. Those are our own bests, well below the
+community's; see [the records page](/research/records) for where they sit.
+Over 8-plus seeds and three loop-construction families, the number of moves
+that reached a *different* board at the starting score or better was exactly
+zero. Every time the repair climbed back to the starting score, it had silently
+undone the loop and rebuilt the input board bit for bit.
+
+The mechanism is the same boundary arithmetic that runs through this whole
+page: a constructed loop presents new colours along its entire rim, the
+pre-repair loss is roughly the rim size, and a local repair can only win those
+edges back by reversing the loop. Escaping would take pieces flowing in from
+across the board, which is exactly the all-or-nothing move the cycle analysis
+demands. The cheapest non-local move we found costs exactly one edge: swap two
+distant pieces with near-identical edge colours and you get a genuinely
+different board at 460, two cells away from the 461. The zero-escapes claim is
+scoped to this operator and this repair strength (local windows up to 6 cells),
+not to every conceivable repair.
+
 ## The cycles, measured
 
 The boards fall into two families that use the same pieces (the viewer stores
@@ -84,6 +152,209 @@ them under two colour alphabets), and we test every pair inside each:
   boards we ship, though it is still not proven to hold for every board that
   could exist.
 
+One more measured property matters to anyone designing operators: the big loops
+are scattered, not regional. Decomposing one of our 458 boards against the 469,
+every loop of 25 or more cells spans rows 1 through 14 and columns 1 through
+14, in other words the whole interior, and one tidy 4-cell loop is exactly the
+four corners. (One board pair, but it agrees with the corner mechanism further
+down.) So a regional operator (destroy a window, repair a window) can never
+contain a loop; worse, each loop cell needs a *different piece*, not a
+rearrangement of the pieces already inside the region.
+
+## Why every partial move must lose: the boundary law
+
+The census says partial moves always lose; here is the geometric reason, and it
+is quantitative. Because a loop's cells are sprayed across the board, any
+partial subset of it has a long frontier against the untouched cells. Each
+frontier edge pairs a moved piece with a neighbour it was never matched against
+in either endpoint board, and almost every such edge breaks. The score loss of
+a partial move is, to a good approximation, the size of its boundary.
+
+Measured on the 154-cell loop between one of our 459 boards and the 469, the
+minimum boundary over all contiguous partial applications is about 190 grid
+edges, attained near the halfway point (around 113 cells applied); the
+boundary-per-cell ratio runs from 1.07 to 4.0 depending on subset size. Those
+giant-loop figures come from this single cycle; smaller same-score loops
+measured on two independent board pairs run 2.0 to 3.5 boundary edges per cell.
+Local repair after a partial move typically claws back on the order of 30 to 50
+edges. Repair capacity of 30 to 50 against a hole of roughly 190 edges: that
+inequality is the wall.
+
+The law is also tight, everywhere we looked. Across more than 200 partial
+applications spanning 5 loops, the realized loss matches the boundary to
+within 2 edges for subsets up to 50 cells; between 92% and 100% of boundary
+edges really break. The best outcome ever observed was losing 3 edges, on a
+single-cell move with a boundary of 4. The thinnest subset in the whole corpus
+(boundary-to-size ratio 0.67, a 45-cell subset of a 190-cell loop between two
+same-score boards) loses exactly its boundary: predicted minus 30, measured
+minus 30. No subset with positive gain exists in the corpus. This is one
+internal corpus of 7 boards, so the right phrasing is "on every pair we
+measured", not "provably for all boards".
+
+Being clever about the subset does not escape the law either. Instead of
+contiguous chunks, we greedily grew the subset that minimizes the frontier,
+then let destroy-and-repair search clean up afterwards. Greedy min-boundary
+subsets of the 154-cell loop do reach 35 to 45% lower boundary than contiguous
+ones; at subset sizes 10, 20 and 40 the boundaries are 24, 38 and 64 edges and
+the realized losses 22, 38 and 63, essentially 100% of boundary. Repair from
+those damaged boards plateaus at 448, 441 and 430 respectively, all well below
+the 459 start, across 12 seed and operator combinations at 30 seconds each; a
+5-minute run on the best case still stalls at 446 to 448. (One loop, one greedy
+subset-construction method.) The instructive part: a partial move did not leave
+the board part-way between two good ones; it dropped it into a third, lower
+valley whose own ceiling sits below the starting point. The plateau was
+valley-determined, not budget-determined.
+
+## The landscape the loops connect
+
+So what do the loops connect? Measured on our own board collections, the
+same-score landscape is binary: near-twins or near-strangers, nothing in
+between. Among seven of our boards that all score 459, six form one family,
+differing pairwise in only 34 to 44 of 256 cells with loops of 9 to 25 cells;
+the seventh is an island, differing from the family in 251 to 253 cells with
+loops up to 190 cells. No pair sits at intermediate distance, and there is an
+algebraic reason to expect exactly that shape: loops compose
+piece-conservatively, so adding a small loop to a giant loop yields another
+giant loop; nothing interpolates between a close pair and a distant pair. (A
+corpus of 7 boards produced by our own pipeline, biased toward the family our
+search finds; the family count is a lower bound and the island count unknown.)
+
+At population scale the island picture holds up. Clustering the 135 unique
+boards at 455 or better that our search ever produced, linking any two that
+differ in fewer than 100 cells, gives 47 components: 18 singletons, a largest
+family of 22 members (a 458 family), and McGavin's 469 as a component whose
+nearest neighbour in the corpus sits 247 cells away. That is roughly ten times
+the largest destroy operator our repair search uses (64 cells). (One snapshot
+of a search-biased corpus.)
+
+There is also a structural candidate for why top boards differ nearly
+everywhere: they commit to different arrangements of the four corner pieces.
+The three top boards we examined (the 469, a 459 and a 458) use three
+different permutations of the four corners; the 469 and the 459 share exactly
+one piece-position out of 256, the mandatory centre clue, while the 459 and
+the 458 share 29. Moving a corner piece to another corner forces a re-matching
+of the whole 60-cell border ring, which in turn conditions the interior: a
+board-spanning move by construction. With 4! = 24 possible corner arrangements
+the landscape may split into as many as 24 border-incompatible classes; that
+last step is a conjecture from three boards, not a measurement. Together with
+[the rigidity wall](/research/why/rigidity-wall), loop indivisibility and loop
+dispersion, this is a fourth independent line pointing at one conclusion: only
+whole-board moves connect record-class boards.
+
+## Is there hidden structure in the loops?
+
+A natural follow-up: do the permutations between top boards obey some algebra,
+a group law you could exploit to predict or construct new top boards? We
+computed the answer exactly, and it is no. Take the permutations relating six
+top boards (three 458s, a 459, a 460 and the 469) and look at the group they
+generate inside the symmetric group on 256 pieces. The only structure present
+is forced and unexciting: corner pieces map to corner pieces, edge pieces to
+edge pieces, interior to interior. That much is a theorem for any legal board,
+since a piece with k grey sides can only sit at a cell with k outward faces.
+Within those three classes (196 interior, 56 edge, 4 corner) the generated
+group is the full symmetric group up to a single parity relation (interior
+parity equals corner parity; edge parity is free), an object of order about
+4.3 × 10<sup>441</sup>. Two board pairs already generate all of it, which is
+exactly how *random* permutations behave. And the group has no relationship to
+score: apply one of these relabelings to any board other than its one intended
+target and the score collapses (the 469 drops to 119, a 458 to 44, a 459 to
+50). (Exact computation with proofs via Jordan's theorem, on the six boards
+analysed; the piece-type constraint alone holds for all boards; the result is
+base-choice-independent and unchanged when the community board is excluded.)
+
+Three consequences are worth spelling out. The cycle-length statistics above
+are simply the generic cycle structure of a huge symmetric group.
+Symmetry-counting arguments cannot predict how many top boards exist. And
+there is no algebraic shortcut for recombining good boards: the scarcity of
+top boards is a score-and-geometry phenomenon, not a symmetry phenomenon.
+
+The direct recombination experiment agrees. We bred boards: 56 row-interleaved
+hybrids from 18 parents scoring 458 or better, each given a 5-minute repair
+run. The only hybrids that scored well (four of them, at 461) were an
+illusion: their parent families shared so many placements that the interleave
+reproduced a board already in our collection; those parents were already
+related by exactly the small loops this page describes, and the repair
+contributed nothing (zero conflicts before the first iteration). Every hybrid
+from genuinely unrelated parents landed between 371 and 436, and repair could
+not recover them. With this crossover scheme and this short repair budget,
+crossover either reshuffles loop-related boards or shatters.
+
+## The only small free move: twin swaps
+
+One family of small score-preserving moves does exist, and it proves the rule
+rather than breaking it. Two pieces that are near-twins, identical on three of
+their four edge colours, can trade places; the swap changes *which* edges
+mismatch, not necessarily how many. Applying one such swap to McGavin's 469
+(the pieces with colour tuples 13-16-14-16 and 13-16-14-18, which differ in a
+single edge, seated at two same-row positions) produces a genuinely different
+board that also scores 469; the two boards differ in exactly 2 cells. That one
+is deterministic and verified on both boards. The canonical piece set contains
+5 twin pairs and 114 near-twin pairs, so such moves exist in quantity, but
+they are trades, not gains: on our own boards, swapping two pieces whose four
+colours agree as an unordered set but not in cyclic order always costs 4 edges
+(no rotation realigns them), and the best near-twin swap we found costs 1. A
+score level set is closed under twin swaps, which makes it thick in this one
+trivial direction; every non-trivial small move loses. Whether some twin swap
+somewhere gains a point remains open; none we tried did.
+
+## What we threw at the wall
+
+The results above suggest obvious counter-moves, and we tried them. Each entry
+below is one configuration failing, scoped as such; none is a universal
+refutation.
+
+**Heat.** A Metropolis chain hot enough to accept nearly every move does not
+climb over the wall; it falls off the mountain. Random pair-swap chains started
+from one of our 459 boards, 100,000 iterations at each of six temperatures (T
+from 2 to 50), collapse to scores of 20 to 25 within a few thousand steps and
+never revisit 450 or better (the sole visit at that height is the start
+state), despite acceptance rates of 85 to 99%. A chain whose moves are whole
+loops does better in one narrow sense: it navigates between same-score boards
+indefinitely, hovering at 459 and visiting several distinct boards there, but
+the maximum it ever sees is 459 (short runs: 500 iterations, 2
+configurations). One starting board, and the plain heated-chain family only;
+fancier variants such as parallel tempering with loop moves are untested here,
+not refuted. The mechanism: top boards are a measure-zero needle in
+configuration space, and a randomized walker loses the needle instantly; loop
+moves preserve score in full and lose it in part, so the chain can wander a
+level set forever without constructing an ascent.
+
+**Whole-loop transplants.** Transplanting the complete loop set from a better
+"oracle" board is a real operator; it is the puzzle version of the cluster
+move from spin-glass physics (Houdayer's cluster Monte Carlo, linked in the
+sources). It even worked once, at lower altitude: applying the full loop set
+from a 456 oracle onto a 447 board, followed by a high-temperature restart
+phase, jumped 447 to 457 across a single 76-cell barrier in one shot. From a
+top board it has never produced a gain: starting from a 457 against two
+distinct 456 oracles, every one of the 4 to 6 loops per pair has a strictly
+negative delta, and full application drops the board to 453 to 456. One
+success instance and two failing oracle pairs, so the scope is "on the pairs
+tried"; notably, the operator has never been tested with an oracle *better*
+than the start board, because we never had one. The mechanism: a transplant
+helps only when the oracle's good region overlays the current board's mismatch
+zone; between distinct top valleys the good regions do not align, so every
+loop imports more errors than it fixes.
+
+**Telling the repair where the loop is.** We handed destroy-and-repair search
+the exact cells a loop occupies: destroy precisely those, let repair refill
+them. No effect. On a partially built board (score 442, largest loop 71 cells
+against a 459 reference), the loop-targeting destroy operator fires 9 to 13
+times per run and is always accepted, yet final scores are 448 with or without
+it (120-second runs; one board, one seed, one budget). The teachable part: the
+constraint does not live in the loop's cells but in the ring of untouched
+edges around them, which forces the repair to re-seat the very pieces it just
+removed. You would need the other board's *pieces*, not just its cell-set.
+
+**Forced adoption.** Finally we tried to teleport: pin 61 cells of a top board
+to the piece-pairs characteristic of the record's valley (they concentrate in
+the bottom rows, where that board is most rigid), then let repair rebuild
+everything else. The pinning wrecks the board, down to 254 of 480, and half an
+hour of repair per attempt claws back to 374 at best across 6 seeds (per-seed
+bests 363 to 374): nowhere near the 461 start, let alone the record. One
+starting board, one pin-set size, no sweep over the pin count. Which is the
+boundary law yet again: forcing a subset of the destination's structure
+without the whole loop is a partial-loop move under another name.
+
 ## Why it matters
 
 Together with [the rigidity wall](/research/why/rigidity-wall), this closes
@@ -95,9 +366,23 @@ reading the same wall across both alphabets tells one story. This is a
 plausible part of why the 470 record has stood since 2021: the moves that would
 beat it appear too large for any step-by-step search to find.
 
+The additions above sharpen that picture without changing it. The wall is not
+hiding an exploitable symmetry: the loops are provably generic shuffles.
+Nearness in score does not soften it: even one point away, the best
+non-trivial single-cycle move loses. The distances are out of scale with our
+tools: the nearest board we ever produced to the 469 sits 247 cells away,
+roughly ten times the largest destroy operator our repair search wields. And
+the one free move, the twin swap, changes which edges break but has never been
+seen to change how many for the better.
+
 *The result is computed exactly by `just research-sigma-cycles` and committed to
 the [sigma-cycles topic](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/sigma-cycles),
 which reads the bundled boards, groups them by shared piece set, and scores every
 proper prefix of every large cycle in every ordered pair. The interactive Lab
 above runs the same mechanism live on freshly generated small puzzles; the
-animation is a schematic of the mechanism, not any one cycle.*
+animation is a schematic of the mechanism, not any one cycle. The population
+prefix sweep is the part covered by that reproducible pipeline; the boundary-law
+measurements, the landscape clustering, the group computation, the constructed
+loops and the negative experiments above are separate notebook experiments on
+our internal board collections, each reported with its own scope in the text
+and not yet wired into the automated pipeline.*

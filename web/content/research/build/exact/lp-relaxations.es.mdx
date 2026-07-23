@@ -52,6 +52,7 @@ related:
   - /research/build/dead-ends
   - /research/build/exact/sat-csp-encodings
   - /research/build/reduce/alldiff-regin
+  - /research/records
 repro:
   kind: prose
 ---
@@ -175,6 +176,28 @@ garantía. Eternity II es un problema de asignación fácil soldado a un
 acoplamiento difícil, y la relajación optimiza discretamente solo la mitad
 fácil.
 
+### La versión de dos piezas
+
+Toda la brecha cabe en dos celdas. Toma dos celdas adyacentes y dos piezas,
+una entera de color 1, otra entera de color 2. Cualquier disposición con
+piezas enteras puntúa 0: la costura siempre ve el color 1 contra el
+color 2. El LP puntúa exactamente 1,0: pon media pieza de cada una en cada
+celda, y las variables de coincidencia linealizadas de la costura recogen
+0,5 de crédito por el color 1 más 0,5 por el color 2, con el óptimo
+fraccionario posado precisamente en el punto 50/50. Lo verificamos a mano
+y con un solucionador LP (el programa entero devuelve 0, la relajación
+devuelve 1,0). Es la esquina de «30 % pieza 1» de Benjamin reducida a su
+álgebra mínima, y aísla el mecanismo: las variables de costura *premian*
+activamente las asignaciones fraccionarias por celda, así que el LP
+prefiere las superposiciones.
+
+El ejemplo también afila la historia de Birkhoff–von Neumann. En ese
+óptimo fraccionario las restricciones de asignación se satisfacen
+exactamente; nada del politopo de asignación se fuerza. Es solo el
+objetivo de costura en mínimo-de-sumas lo que arrastra el óptimo fuera de
+los vértices enteros. La mitad de asignación del modelo nunca fue el
+problema.
+
 ## La meseta medida
 
 Cada pocos años alguien nuevo recorría el camino, con mejores solucionadores y
@@ -217,10 +240,22 @@ concede la intratabilidad en su resumen y pivota hacia usar las formulaciones
 de desvío.
 
 El lado de la cota de la historia tiene la misma forma y vive en el
-[registro de callejones sin salida](/research/build/dead-ends): el techo LP
-medido de este proyecto se sitúa en torno a 478 mientras que los mejores
-tableros reales rondan 458, una brecha demasiado ancha para certificar nada,
-por exactamente la razón de cobertura fraccionaria de arriba.
+[registro de callejones sin salida](/research/build/dead-ends): los techos LP
+medidos de este proyecto se sitúan entre 477 y 479 mientras que los tableros
+que los sostienen rondan 458, una brecha demasiado ancha para certificar nada,
+por exactamente la razón de cobertura fraccionaria de arriba. La anatomía de
+esas cotas tiene su propia sección más abajo.
+
+Un hecho de la literatura merece un sitio junto a la tabla. El tratamiento
+académico más sólido, el artículo MILP + Max-Clique de 2017, solo resuelve
+instancias enteras hasta aproximadamente 7×7 u 8×8 y nunca reporta una cota de
+relajación LP para la instancia 16×16
+([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). Hasta donde llega el
+registro público, nadie ha publicado una cota LP o MILP válida por debajo de
+480 para el Eternity II completo. Los valores de 477 a 479 medidos más abajo
+son *condicionales* (asumen un borde fijado), así que la pregunta
+incondicional sigue abierta: probar cualquier cota válida por debajo de 480
+mediante relajación convexa sería algo nuevo.
 
 ## Replantear el puzzle sobre los lados de las piezas
 
@@ -235,16 +270,16 @@ interiores aportan 4, y $8 + 168 + 784 = 960 = 480 \times 2$. La instancia no
 tiene holgura alguna; cada lado no-borde debe encontrar pareja.
 
 El LP sobre este grafo de emparejamiento cuenta su historia en tres pasos.
-Congela cada pieza en una orientación fija y la cota vale 307.00, entera e
+Congela cada pieza en una orientación fija y la cota vale 307,00, entera e
 igual a un recuento en forma cerrada, pero inválida para el puzzle real
 porque prohíbe las rotaciones. Deja que los lados se emparejen libremente a
 través de las rotaciones (21 636 variables de emparejamiento, una restricción
-de grado por lado) y el LP alcanza exactamente 480.00, con 132
+de grado por lado) y el LP alcanza exactamente 480,00, con 132
 emparejamientos fraccionarios; añadir presupuestos de emparejamiento por
 pieza no cambia nada. Añade la coherencia de rotación, una variable de
 rotación relajada por pieza acoplada a los emparejamientos para que los lados
 emparejados de una pieza acuerden una sola orientación (262 900 variables,
-unas 503 000 restricciones, minutos de solucionador): sigue en 480.00, ahora
+unas 503 000 restricciones, minutos de solucionador): sigue en 480,00, ahora
 con todos los emparejamientos fraccionarios y ni una sola pieza con rotación
 entera. El LP mantiene 480 factible poniendo cada pieza parcialmente en sus
 cuatro rotaciones a la vez, el gemelo a nivel de lados de la esquina con
@@ -258,6 +293,215 @@ obstrucción vive por entero en lo que estas relajaciones no ven, que cada
 pieza ocupa una celda entera y que el emparejamiento debe tenderse plano como
 una malla 16×16. El mismo veredicto que el modelo celda-pieza, alcanzado
 desde la dirección opuesta.
+
+Tres mediciones posteriores cierran del todo la cuestión del suministro.
+Primero, la cota de conteo más simple de todas, cada color $c$ con $m_c$
+medias aristas permite como mucho $\lfloor m_c/2 \rfloor$ costuras
+emparejadas, se evalúa sobre el juego de piezas real en
+$5 \cdot 12 + 5 \cdot 24 + 12 \cdot 25 = 480$ exactamente, porque cada uno
+de los 22 recuentos de color es par. El presupuesto global de colores es
+vacuo *por construcción del puzzle*; cualquier argumento de escasez tiene
+que ser local o condicional. Segundo, las rotaciones enteras no restauran
+la obstrucción. Dale a cada pieza una única variable entera de rotación y
+pregunta al modelo de suministro por color si los compromisos de rotación
+bastan por sí solos para bloquear el 480: no bastan. El óptimo LP es 480,0
+y, esta vez resuelto también a optimalidad entera, el óptimo entero es
+igualmente 480,0: para cada color existe una asignación de rotaciones
+enteras que pone sus aristas en los lados correctos para gastar todo el
+presupuesto $\lfloor N_k/2 \rfloor$. Eso añade un cuarto peldaño a la
+escalera de arriba (rotaciones fijas 307, emparejamiento libre 480,00
+fraccionario, coherencia de rotación 480,00 fraccionario, y ahora incluso
+las rotaciones enteras dejan el 480 factible a nivel de suministro). La
+flexibilidad de rotación nunca es la restricción activa; la obstrucción es
+posicional, qué celda, junto a qué celda. Tercero, la vista de suministro
+ni siquiera sabe ordenar tableros parciales. Un LP de costuras acotado por
+el suministro por color (0,1 segundos por borde) devuelve 480 para los
+seis bordes que le dimos, tanto el borde que sostiene el tablero
+comunitario de 469 aristas (aristas coincidentes, puntuado fuera de la
+convención estricta de cinco pistas; las convenciones están en
+[la página de récords](/research/records)) como cinco bordes recién
+generados. Como discriminador de calidad de borde, el LP a nivel de
+suministro es inútil; el LP posicional, por celda, de la sección siguiente
+los separa de forma demostrada.
+
+## Condicionar la cota a un borde
+
+La cota incondicional se clava en el techo, así que la condicionamos. Fija
+un borde completo (las 60 piezas del perímetro) y resuelve la relajación
+LP sobre las 196 celdas interiores: el óptimo es una cota superior válida
+*para ese borde*. Una nota de convención antes de los números: cada
+puntuación de esta sección son aristas coincidentes sobre 480 en el 16×16
+canónico con las cinco pistas oficiales fijadas, y los tableros medidos
+son los mejores de este proyecto en el momento de la medición, no récords;
+los mejores comunitarios están más arriba, con todo el contexto en
+[la página de récords](/research/records).
+
+La primera sorpresa es cuántos bordes distintos comparten un mismo techo.
+Cuatro tableros de nuestro archivo, con cuatro bordes distintos, que
+puntúan 458, 457, 455 y 454 aristas coincidentes, devuelven todos
+exactamente la misma cota LP condicional: **478**. Y dos de esos bordes no
+guardan relación estructural con los demás: un tablero de 457 comparte con
+el de 458 las cuatro filas superiores completas (56 piezas), pero los
+tableros de 454 y 455 solo comparten con él 8 o 9 colocaciones de 256,
+alrededor del 3 %. La cota es, pues, un invariante grueso que tableros
+genuinamente distintos tienen en común, no la huella de una familia de
+soluciones. La búsqueda local confirma que los propios tableros están
+atascados: empujones sobre los tres tableros no-458 (8, 4 y 4 semillas a
+diez minutos cada una) los subieron +0, +0 y +1; cada cuenca yace en su
+propio óptimo local muy por debajo del techo compartido de 478.
+
+Dos mediciones menores esbozan el paisaje alrededor de ese techo. El borde
+del tablero de 458 se comporta como un máximo local de la propia cota: las
+13 perturbaciones aleatorias de borde que probamos (5 intercambios simples
+y 8 permutaciones de tres piezas, una sola semilla RNG) bajaron todas la
+cota condicional, entre 2 y 5,5 puntos. Trece ensayos de una sola semilla
+son un boceto, no un teorema. Y proyectar el borde del tablero comunitario
+de 469 aristas a la convención de cinco pistas (superponer las cinco
+pistas, recolocar las piezas desplazadas) *baja* su techo condicional a
+477, un punto por debajo del borde de nuestro tablero de 458: un indicio
+estructural, no una prueba, de que el techo con cinco pistas podría estar
+por debajo del techo sin pistas.
+
+### Dónde vive la brecha
+
+Con un borde fijado, la cota se descompone sobre los tres tipos de
+costura: 60 costuras del anillo del borde (totalmente determinadas por el
+borde), 56 costuras borde-interior y 364 costuras interior-interior, con
+un máximo combinatorio de $60 + 56 + 364 = 480$. Muchos bordes distintos
+presentan el mismo multiconjunto de demandas de color hacia el interior,
+y por eso tantos comparten un mismo valor LP. En el borde del tablero de
+458, la descomposición se lee $478 = 60 + 54{,}02 + 363{,}98$. Léela
+despacio: la parte interior-interior es esencialmente *ajustada*, el LP
+concede solo 0,02 de las 364 costuras interiores; toda la pérdida contra
+el máximo se asienta en la costura borde-interior. El veredicto del LP
+sobre este borde: 2 de sus 56 costuras hacia el interior son
+estructuralmente inemparejables por cualquier completado interior. El
+propio tablero deja 4 sin emparejar, así que como mucho 2 son
+teóricamente reparables, una subida máxima dentro del borde de +2, hasta
+460. Probamos ese margen una vez: una re-resolución entera exacta
+liberando 84 celdas (el perímetro inferior más las cinco filas interiores
+inferiores; 30 minutos, un solucionador, una ejecución) devolvió delta 0.
+O el +2 no es factible en enteros, o necesita una ventana mayor.
+
+Un segundo borde intercambia en sentido contrario: su descomposición es
+$477 = 60 + 54{,}17 + 362{,}83$, algo más de margen borde-interior pero
+alrededor de 1,15 costuras interiores menos. Ningún color domina por sí
+solo ninguna de las dos brechas; el acoplamiento es difuso. Llegar a 480
+exige las dos partes al máximo a la vez, y ningún borde medido tiene
+ambas. De las mismas tablas cae un microhecho del diseño de colores del
+puzzle: los cinco colores raros (24 medias aristas cada uno) aportan
+exactamente 0 a la parte interior-interior, porque solo aparecen en los
+lados interiores de las piezas de borde; un emparejamiento
+interior-interior de color raro es imposible por taxonomía de piezas.
+
+### Una firma, no un predictor
+
+El techo condicional más alto de nuestro archivo es **479**, a uno de la
+perfección, y descansa sobre un tablero que solo puntúa 457. Su borde
+salió de apenas un minuto de búsqueda local, frente a horas detrás de los
+bordes de 478. Y sin embargo ocho semillas independientes de búsqueda
+local a una hora cada una se estancan todas en 457, y una re-resolución
+entera exacta de la unión de todos sus grupos de fallos (28 celdas
+liberadas) prueba que no existe mejora local: delta 0 en 0,46 segundos.
+Las tres descomposiciones se alinean como
+$478 = 60 + 54{,}02 + 363{,}98$, $477 = 60 + 54{,}17 + 362{,}83$ y
+$479 = 60 + 55{,}48 + 363{,}52$, y la brecha LP-entero por tablero se lee
+20, 20 y 22: casi constante en todos los bordes probados (479 es también
+el techo más alto visto en 18 LP condicionales sobre bordes diversos). La
+cota condicional *ordena* los bordes por estructura, pero no predice qué
+borde da el mejor tablero de piezas enteras; el borde con techo 479 está
+bloqueado en enteros más abajo que el de techo 478. El mecanismo es el de
+la página: el margen extra es holgura de cobertura fraccionaria, y un
+techo más alto solo significa que el libro de cuentas de colores está
+*más cerca* de cuadrar, no que algún tablero entero lo realice. Una
+conjetura merece escribirse como conjetura: el borde de un tablero
+perfecto debe tener cota condicional exactamente 480, ambas partes al
+máximo a la vez, y el borde de 479 muestra que el LP se queda a uno de esa
+condición necesaria.
+
+Una última cautela al leer estas descomposiciones: las asignaciones LP por
+color **no** son cotas por color. En el tablero de 458, el recuento entero
+real de un color (21) supera el suelo de su asignación LP (20,89, que
+redondea hacia abajo a 20). El óptimo LP es una asignación conjunta entre
+colores; leer sus filas por color como techos individuales es un error de
+categoría. La anatomía completa en ese tablero: el total LP de costuras
+interiores es 363,96 frente a 346 costuras realmente emparejadas, una
+brecha interior de 17,96, de la cual 5,96 es holgura fraccionaria y 12 es
+el LP asignando colores de una manera que ningún tablero de piezas
+enteras puede.
+
+## Comprar la brecha: tres intentos medidos
+
+La respuesta de manual a un LP flojo es apretarlo: elevar los términos
+bilineales, añadir planos de corte, subir por la jerarquía de
+relajaciones. Probamos uno de cada y medimos. Ninguno cerró la brecha, y
+dos de los fracasos son lo bastante instructivos como para ser la
+lección.
+
+**La elevación de McCormick: válida en teoría, inabordable a tamaño
+real.** El remedio estándar para productos de variables es una variable
+auxiliar por costura y por par de colocaciones compatibles, emparedada por
+$z \le x_1$, $z \le x_2$ y $z \ge x_1 + x_2 - 1$. En instancias pequeñas
+nuestra implementación reproduce la cota estándar: un 6×6 necesita 22 000
+variables de par y 2,5 segundos, un 8×8 de 4 colores 300 000 y 60
+segundos. El escalado se detiene justo después: un 8×8 de 6 colores y un
+10×10 de 6 colores (1,25 millones de variables de par) agotaron ambos los
+60 segundos en nuestro solucionador LP, y el puzzle completo necesitaría
+del orden de 5 a 20 millones de variables de par con unas tres
+restricciones cada una, más allá de lo que ese solucionador maneja. Los
+dos atajos obvios produjeron cotas *inválidas*, en direcciones opuestas, y
+cada uno se refuta con aritmética pura. Restringir las variables de par a
+colocaciones con masa LP superior a 0,05 infracuenta y devuelve 402, por
+debajo de un tablero factible conocido de 458; una cota superior por
+debajo de un punto factible es una prueba de invalidez. Mantener a la vez
+las variables de par y las variables de costura originales cuenta doble y
+devuelve 479,58, *por encima* del 478 sin elevar; añadir restricciones
+solo puede bajar un óptimo LP, así que ese también se refuta solo. El
+patrón correcto, generar como planos de corte las desigualdades de
+McCormick violadas con costes reducidos exactos, exige un acceso al
+solucionador de más bajo nivel que el que construimos: no probado, no
+imposible.
+
+**Planos de corte sobre la escasez de color: válidos o vacuos, nunca
+ambos.** Implementamos branch-and-cut con una sola familia de cortes,
+cortes de clique de suministro sobre el grafo de conflicto de colores
+(«si un conjunto de costuras está forzado al color $k$, como mucho
+$\lfloor \text{suministro}_k/2 \rfloor$ de ellas pueden coincidir»), en un
+solo hilo y una sola configuración; el veredicto de abajo es sobre esta
+familia de cortes, no sobre todos los cortes. Los LP de cola sin cortes,
+sobre uno de nuestros tableros de 459 aristas (aristas coincidentes,
+convención de cinco pistas), son válidos pero flojos en un 4 a 22 %:
+liberar las últimas 1, 2, 3 y 4 filas da cotas LP de 27, 58, 90 y 124
+frente a 26, 49, 74 y 104 conseguidos, sin certificar nunca nada. El
+corte tal cual está enunciado es peor que flojo, es inválido: en la cola
+de una fila empuja el LP a 20, *por debajo* del 26 factible, así que la
+desigualdad cortó el óptimo verdadero (las medias aristas del color $k$
+también se consumen fuera del conjunto forzado, y por los otros tres
+lados de cada pieza). Toda contabilidad lo bastante floja para ser válida
+volvió a caer en la cota vacua sin cortes. El hilo conductor encaja con el
+resto de la página: la dureza del puzzle es la distinción global, cada
+pieza usada exactamente una vez, no la escasez local de color, y los
+cliques del grafo de conflicto de colores son minúsculos y poco
+informativos.
+
+**Un nivel más arriba en la jerarquía: el SDP está igual de ciego.** El
+peldaño por encima del LP es la elevación semidefinida de nivel 1 (Shor)
+de la formulación cuadrática, válida por construcción: toda solución
+verdadera sigue siendo factible con el mismo valor objetivo. La
+construimos exactamente sobre instancias 3×3 plantadas con óptimos
+certificados de 12, 11 y 11 sobre 12. En las dos instancias no triviales
+el SDP certifica 12,000: no ve una obstrucción de tamaño unidad que un
+conteo elemental (5 medias aristas de un color permiten como mucho 2
+coincidencias) resuelve al instante. Un control LP McCormick válido
+devuelve el mismo 12,000, así que la ceguera ya está presente en el nivel
+lineal; la restricción semidefinida positiva no añade nada aquí. Y el
+coste explota de inmediato: la elevación completa consciente de las
+rotaciones con solo 9 celdas (324 variables, un bloque semidefinido de
+325×325) falló en tres intentos independientes bajo un presupuesto
+mononúcleo de 280 segundos. Si la elevación conjunta con las rotaciones
+recuperaría el ajuste es una pregunta abierta, no refutada. Son hallazgos
+computacionales sobre instancias diminutas con un solo solucionador SDP,
+no teoremas.
 
 ## Lo que cuesta
 
@@ -277,9 +521,9 @@ desde la dirección opuesta.
   distancia es de aproximadamente 478 frente a 458-y-estancándose: la relajación
   gasta su presupuesto polinómico respondiendo a una pregunta sobre un puzzle
   distinto, fraccionario. Los planos de corte existen para reducir la brecha;
-  nadie ha reportado cortes que le cierren ni una muesca en el E2, y la
-  estructura por costura que finge coincidencias regenera la holgura en todas
-  partes.
+  nadie ha reportado cortes que le cierren ni una muesca en el E2, incluidos
+  nuestros tres intentos medidos de arriba, y la estructura por costura que
+  finge coincidencias regenera la holgura en todas partes.
 - **La ramificación y acotación poda con la cota que tiene.** Un nodo se corta
   solo cuando su cota LP cae por debajo del incumbente. Con la cota flotando
   ~20 aristas por encima de cualquier cosa real, casi nada se poda: el análogo
@@ -295,6 +539,21 @@ la [página SAT](/research/build/exact/sat-csp-encodings) para el CDCL.
   válido, calculado en tiempo polinómico; solo que aquí es flojo. La
   [entrada de callejones sin salida](/research/build/dead-ends) registra el
   veredicto para que nadie lo vuelva a deducir esperando un certificado.
+- **Una cautela: no toda relajación es una cota.** Una «relajación» barata
+  y tentadora, rellenar el tablero celda a celda con la pieza localmente
+  mejor *permitiendo reutilizar piezas*, no es un techo válido de ninguna
+  clase: es una heurística voraz cuyo punto fijo depende del tablero de
+  partida. Desde uno de nuestros tableros de 457 aristas (aristas
+  coincidentes, convención de cinco pistas) converge a 461; desde uno de
+  456, a 461; desde uno de 440, hasta 469. El uso válido es como
+  *indicador de margen*: cuando la puntuación voraz relajada iguala la del
+  propio tablero, el tablero queda probado como máximo local estricto
+  incluso con la unicidad de piezas relajada, un certificado de callejón
+  sin salida más fuerte que las pruebas por operadores. En ese tablero de
+  457, la brecha de +4 quedó probada incerrable por cualquier cadena de
+  permutaciones hasta longitud 11 (40 millones de permutaciones, cero
+  mejoras). La regla: solo los valores derivados de LP o MIP son techos;
+  las puntuaciones voraces relajadas son diagnósticos.
 - **Subproblemas de asignación, donde la integralidad es gratis.** Dentro de los
   bucles de reparación, rellenar $k$ agujeros no adyacentes dos a dos es un puro
   problema de asignación $k \times k$: politopo de Birkhoff, vértices enteros,
@@ -323,6 +582,26 @@ la [página SAT](/research/build/exact/sat-csp-encodings) para el CDCL.
   ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). La formulación
   sobrevive como una *pieza*, dentro de una heurística que se apropia del
   problema de integralidad en lugar de relajarlo.
+- **La formulación es el algoritmo.** Medimos dos codificaciones MIP de la
+  misma tarea, recombinar un pequeño corpus de buenos tableros en uno
+  mejor, y se comportan como la noche y el día (un solo solucionador, CBC,
+  ejecuciones únicas). La codificación A, «cada celda elige un tablero
+  fuente», arrastra variables de costura cuadráticas en el tamaño del
+  corpus: va bien con 4 o 5 tableros (óptimo entero encontrado en 17 a 86
+  segundos), pero con 9 tableros (unas 50 000 variables de costura y
+  100 000 restricciones) el solucionador no encontró ninguna solución
+  entera factible en 30 minutos, y su cota LP de 1 094, más del doble del
+  techo de 480, no significaba nada. La codificación B, «libera una
+  región, una variable por celda-pieza-rotación, fija el resto», es de 10
+  a 50 veces más pequeña (unas 800 variables), se resuelve en menos de un
+  minuto, y su LP queda ajustado contra el óptimo entero: *prueba* la
+  optimalidad local en lugar de adivinarla. El mecanismo: las variables de
+  la codificación A no llevan ningún significado geométrico que el LP
+  pueda explotar, las mezclas fraccionarias de tableros cobran un crédito
+  que ningún redondeo conserva, mientras que las variables de la
+  codificación B son colocaciones, así que su politopo se queda cerca de
+  la envolvente entera. El artículo de 2017 reciclando sus formulaciones
+  dentro de heurísticas es la misma lección vista desde el otro lado.
 
 El camino del optimizador, recorrido hasta el final, enseña un hecho limpio
 sobre Eternity II: el puzzle es exactamente la restricción de integralidad. Todo

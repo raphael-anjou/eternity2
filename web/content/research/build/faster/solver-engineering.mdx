@@ -6,11 +6,11 @@ description: >-
   structs, generated code, compiler archaeology. That craft decides
   whether a node costs 26 cycles or 2,600. The community's twenty-year
   engineering ledger, technique by technique, and what it all bought.
-metaDescription: "Eternity II solver engineering, technique by technique: candidate lookup tables, minimal perfect hashing, cache-sized structs, code generation and compiler tricks that decide whether a placement node costs 26 cycles or 2,600. Twenty years of the community's engineering ledger."
+metaDescription: "Eternity II solver engineering, technique by technique: candidate lookup tables, minimal perfect hashing, cache-sized structs, code generation and compiler tricks that decide whether a placement node costs 26 cycles or far more. Twenty years of the community's engineering ledger."
 kind: concept
 order: 120
 group: Go faster
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [speed]
 sources:
   - label: "The Lebel thread dissected: the era's reference C++ solver taken apart (groups.io message 1704, 2007)"
@@ -33,10 +33,19 @@ sources:
     url: https://groups.io/g/eternity2/message/11633
   - label: "McGavin's compiler playbook: clang versions, native flags, PGO (groups.io message 11751, 2026)"
     url: https://groups.io/g/eternity2/message/11751
+  - label: "The Rust Performance Book: build configuration (LTO, codegen units, PGO)"
+    url: https://nnethercote.github.io/perf-book/build-configuration.html
+  - label: "Profile-guided optimization in rustc (official documentation)"
+    url: https://doc.rust-lang.org/beta/rustc/profile-guided-optimization.html
+  - label: "Optimizing Rust programs with PGO and BOLT using cargo-pgo (Beranek, 2023)"
+    url: https://kobzol.github.io/rust/cargo/2023/07/28/rust-cargo-pgo.html
+  - label: "Apple M1 microarchitecture data: 128-byte cache lines, 128 KB L1d (7-cpu.com)"
+    url: https://www.7-cpu.com/cpu/Apple_M1.html
 related:
   - /research/lab/experiments/peter-mcgavin/backtracker
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/why/prune-vs-speed
+  - /research/lab/experiments/raphael-anjou/jit-backtracker
 repro:
   kind: prose
 ---
@@ -76,6 +85,17 @@ solver, the era's reference fast backtracker, in the thread that doubles
 as the community's first engineering seminar
 ([message 1704](https://groups.io/g/eternity2/message/1704)).
 
+The 2007 recipe holds a third table shape that is easy to miss: for the cell
+directly above or beside a *mandatory hint piece*, key the lookup on three
+edges (north, south, west), so candidates are pre-filtered against the
+hint's fixed colour, at zero completeness loss
+([message 3098](https://groups.io/g/eternity2/message/3098)). I rediscovered
+why that variant matters two decades later, in my own notebook: on a hinted
+board, the cells surrounding one hint turned out to be a throughput sinkhole,
+with threads churning ~85M placements per second against the hint wall for
+twenty minutes; the fix was exactly Field's three-edge table. The archive
+already contained the answer.
+
 Everything else on this page is a refinement of that table: making it
 smaller, making its entries denser, or unrolling the code around it.
 
@@ -84,9 +104,9 @@ smaller, making its entries denser, or unrolling the code around it.
 The lookup table has a size problem when you key on more than two edges. In
 the Lebel thread, Nathan described the brute-force version: a 4-D array
 indexed by all four edge colours, `combo4[32][32][32][32]`. A million
-entries, mostly zeros, guaranteed cache misses. His fix built on Bob
-Jenkins's minimal-perfect-hash generator, a pointer he had shared with the
-list himself. Since the
+entries, mostly zeros, guaranteed cache misses. His fix adopted the
+minimal-perfect-hash generator (Bob Jenkins's) that another member had
+pointed the list to. Since the
 256 pieces in 4 rotations produce only 1,024 distinct edge-quadruples, a
 minimal perfect hash maps the packed 32-bit key to a 1,024-entry table with
 no collisions: "small enough to fit in cache most of the time", with
@@ -114,6 +134,28 @@ the design of Blackwood's six-byte `RotatedPiece` struct, already told on
 [the Blackwood page](/research/lab/experiments/joshua-blackwood/solver): piece number,
 rotation, the two exposed sides, a break count and a heuristic count, and
 nothing else.
+
+These tricks still compound in 2026. On an otherwise identical plain
+depth-first engine in my notebook, three micro-changes of exactly this family
+added up to **+27%** (92–93M vs 72–73M placements per second, stable across
+3, 5, 10 and 15 second budgets; one engine, one puzzle, one machine, so read
+it as a shape rather than a universal constant). One:
+**sentinel-terminated candidate lists**, ending each candidate bucket with an
+impossible value so the scan needs one load and one compare instead of a
+bounds counter, freeing a register. Two: the used-piece set as **u64 bitset
+words** instead of a byte per piece; same byte count, but the test is a
+single AND and the whole set sits in one or two cache lines. Three: a
+**single resume cursor** per depth instead of a start/end pair, halving
+backtrack bookkeeping. And the craft is not backtracker-specific: in a
+constraint-propagating solver that keeps full per-cell candidate domains,
+switching those domains to u64 bitset words turned arc-consistency revision
+into a handful of word operations and bought +48 to +101% depending on the
+propagator mix, with follow-on layout work (a precomputed rotation table,
+O(1) piece lookup, arena-based undo) compounding to ~4.6× on the lightest
+profile. Single-seed throughput readings, and a propagating solver does far
+more work per node than the fast walkers on this page, so carry the ratios,
+not the absolute numbers. The lesson carries whole: the domain
+representation *is* the engine.
 
 ## Bipieces and metatiles: precompose, and pay in memory
 
@@ -161,6 +203,22 @@ made Blackwood's C# algorithm roughly twice as fast on the same machine
 ([message 10065](https://groups.io/g/eternity2/message/10065),
 [message 10078](https://groups.io/g/eternity2/message/10078)).
 
+The recipe also reproduces in a modern, mostly-safe language. In my
+notebook, a Rust procedural macro expands the search loop into 256
+per-cell specialised arms, with row, column and border facts becoming
+compile-time constants: measured **+21%** alone, **+25%** combined with
+profile-guided optimisation, and **+30 to 35%** once per-schedule constant
+tables are folded in (spread ±1% across 4 runs; correctness gated on
+identical maximum depth and score). The analytical estimate beforehand was
++5 to 10%; the surplus came from per-arm branch-prediction specialisation
+and code layout, not from the constant folding itself. The bill: compile
+time went from 5 seconds to 41. Field's recipe already flagged the cost
+side in 2007: monolithic generated code loses about a third of its edge on
+large working sets because the instruction cache overflows
+([message 3098](https://groups.io/g/eternity2/message/3098)), which matches
+that measured experience; part of what codegen buys is layout, and layout
+is exactly what an overflowing I-cache takes back.
+
 ## Compiler realities: the last 20%, not the missing 10²⁰
 
 Below the source code, there is still throughput to harvest, in
@@ -179,6 +237,22 @@ counter is fed by a 16-bit register that rolls over, adding `0x10000` at a
 time, because he timed both ways years ago on 32-bit hardware and the trick
 won.
 
+The playbook's PGO line can be given numbers. Measured on three Rust engines
+in my notebook, on the same workload and machine, profile-guided
+optimisation gained **+14%, +12% and +4%** (one workload per binary, so
+these are single-workload figures), and the size of the gain tracked how
+many unpredictable branches each inner loop had left for the compiler to
+lay out; the standard references are the
+[Rust performance book](https://nnethercote.github.io/perf-book/build-configuration.html)
+and the [rustc PGO documentation](https://doc.rust-lang.org/beta/rustc/profile-guided-optimization.html).
+Two practical notes travel with those numbers. The training run must be
+representative: a PGO build trained on one branch pattern can come out
+*slower* than the baseline out of distribution. And the post-link
+optimisers the playbook points at next
+([BOLT, via cargo-pgo](https://kobzol.github.io/rust/cargo/2023/07/28/rust-cargo-pgo.html))
+handle ELF binaries only, so they are Linux-only in practice; anyone
+following the community playbook on a Mac stops at PGO.
+
 The same realism applies to hardware. Multithreading scales the obvious
 way: multi-core solvers broke 100M placements/s in 2008
 ([message 5804](https://groups.io/g/eternity2/message/5804)), and a single
@@ -189,6 +263,94 @@ CPU/compiler combinations (38–84M placements/s), McGavin noted that speeds
 on the latest CPUs "are only a little faster" than on his 2010 Phenom II
 ([message 11643](https://groups.io/g/eternity2/message/11643)). The engines
 hit Field's memory wall fifteen years ago and have been leaning on it since.
+
+## What a node costs in 2026: the anatomy, measured
+
+Field's cycle budget opened this page from 2007. Here is the remake from my
+own notebook, on an Apple M1 performance core
+(128-byte cache lines, 128 KB of L1 data cache;
+[the M1's latency tables](https://www.7-cpu.com/cpu/Apple_M1.html) are the
+modern version of the numbers Field was fighting). One node of my unpruned
+Rust backtracker costs **about 90 to 145 cycles**: clean, uncontended
+readings, quoted as a range because a loaded machine pushed the same binary
+well above it. The surprise is where the cycles go. The edge-checking
+arithmetic is effectively free. The node is dominated by **walking
+already-used pieces off the candidate list**: about 6.7 candidate reads per
+node, of which about 5.9 (88%) are rejected solely because the piece is
+already on the board. Each rejection is one L1 load plus a data-dependent
+branch; the whole reject loop is ten instructions and a single load.
+
+Three cross-checked instruments put the retired-instruction floor at about
+75 to 90 instructions per node, which at the core's peak issue rate would
+be roughly 12 to 15 cycles. The measured 90 to 145 sits 7 to 10× above
+that floor, and the gap has one name: **branch misprediction** on the
+used-piece test, whose outcome depends on which pieces the search has
+placed and therefore cannot be predicted. In 2007 the wall was memory;
+Field measured half his cycles stalled on loads
+([message 9003](https://groups.io/g/eternity2/message/9003)). On the
+2020s' wide out-of-order cores with generous L1 caches, the wall has moved
+to branch entropy.
+
+One more measurement completes the anatomy. Turning on a sound feasibility
+prune of the kind record engines run multiplies the node cost roughly
+13–24×, to **about 2,180 cycles per node**: the prune's test is invoked
+about 8 times per node and, by rejecting candidates, forces the scan
+roughly 10× deeper into the list (candidate reads jump from 6.7 to 67.6
+per node). It is still overwhelmingly worth it, because the prune buys
+orders of magnitude fewer nodes to the same depth. That is
+[the prune-versus-speed argument](/research/why/prune-vs-speed) caught in
+a single cost table: the engine deliberately runs ~15× slower per node
+because nodes × cost-per-node is the product that matters. (Methodology:
+node counts are bit-identical run to run, the checksum discipline described
+below; throughput figures are medians over 7 repeats; one machine, one
+board regime, so scope every number accordingly.)
+
+### How much a rewrite can buy: an equivalence-gated answer
+
+With the anatomy in hand, the next question is what a rewrite recovers. I
+rebuilt the hot placement kernel six ways in an isolated lab: packed
+candidate entries, software prefetch, strict/relaxed loop splitting,
+software pipelining, compacted side tables, and combinations, under one
+hard rule: a variant's timing only counts if it reproduces the production
+engine's **exact node count, maximum depth, and a rolling trajectory hash**
+folded over every (depth, piece, rotation) commit. That gate is the
+stronger sibling of the community's node-count checksum (it is also how the
+[portable-Rust experiment](/research/lab/experiments/raphael-anjou/jit-backtracker)
+below verifies its rungs); no speedup from quietly changed semantics can
+slip through it. Every number here passed. The total for a semantics-exact
+scalar rewrite: **1.2 to 1.4× robust, about 1.8× peak** in the most
+favourable region. Not 10×.
+
+The load-bearing result is a negative. The two "obvious" cache
+optimisations were near-null: packing colours into the candidate entry, to
+kill two table gathers, gained 1.0 to 1.2× and sometimes regressed;
+shrinking the 64 KB side tables to a 1 KB L1-resident form gained at most
+1.26×. That is proof by null that the loads were already cache-served. The
+residual cost is the mispredicting used-piece branch, and every variant
+that preserves the search's exact trajectory must keep that branch. The
+only variants that helped restructured control flow *around* it (loop
+splitting, software pipelining), which is why they cap at 1.2 to 1.4× and
+do not stack: they attack the same residual. A first attempt at a
+bitset-based candidate stream on this design measured 16 to 25% *slower*,
+same scoping.
+
+The batching escape hatch got its trial too: fusing two horizontally
+adjacent cells into one "domino" step, verified to produce identical
+completion sets, exhaustively, up to 3,171-way branching. It bought 1.05
+to 1.13× in a regime where 74% of cells could fuse, and was net neutral
+(0.96 to 1.03×) in the regime the record-style search actually runs, where
+only 27% fuse. The mechanism explains the ceiling: batching amortises the
+per-cell loop shell, about 7% of a node, but the dominant used-piece scan
+is per-cell-irreducible; the second cell still walks its own bucket
+against the live used set, which no static pair table can encode. Sketched
+arithmetic says larger blocks hit the same wall, though that extrapolation
+is untested beyond pairs.
+
+All of this is one engine design, one instruction set, one puzzle regime;
+the fair phrasing is that **for this design on this hardware, the scalar
+ceiling is about 1.5 to 2×**, and the wall has a name. Whether a
+mispredict-free SIMD candidate stream can go further is an open direction,
+not a result.
 
 ## Measurement discipline: what is a "node", anyway?
 
@@ -239,6 +401,35 @@ placements/s on one core unless it says otherwise; where the *trade-off* between
 spending a solver's budget on speed versus on judgement is the point, that argument
 lives on [going fast](/research/lab/experiments/raphael-anjou/going-fast).
 
+### Profile, then optimise: predictions lose to flamegraphs
+
+The discipline extends below the benchmark, into the optimisation loop
+itself. A profiling pass over my propagation-heavy solver (a sampling
+profiler with inline-frame resolution) shipped seven flamegraph-directed
+fixes worth **+22 to 27%** overall, each measured on its own: fusing an
+emptiness check into the bitset loop was +27.5% on the lightest profile,
+replacing a materialised work list with a stack bitmap walk +7%, a
+popcount-based counter rebuild +4.3%. Meanwhile **five statically
+predicted optimisations were refuted by the same profile**: each a
+textbook 1 to 5% win on paper (inline hints, snapshot reuse, dispatch
+lifting, struct reordering, a manual unroll), each either absent from the
+top 200 samples or measured neutral, because the compiler was already
+doing them. One fix was pure measurement hygiene: the timing call itself
+was **12.4%** of runtime at a 1-in-64 deadline-check rate, and throttling
+the check to 1 in 4096 recovered it, the masked-deadline-check pattern in
+its purest form.
+
+Cache arithmetic without a profile misleads the same way, in both
+directions. Replacing a 1 MB flat lookup table with a 16 KB L1-resident
+compact one, predicted to be worth ~20% from latency arithmetic, measured
+**0%** with a slight regression (three 10 second runs): the keys actually
+touched clustered and were already cache-hot. `panic = "abort"` likewise
+measured null once the hot loop had no panic edges left. These are
+single-seed, single-machine, engine-specific percentages; the durable
+pattern is that roughly half of the expert static predictions were wrong,
+in each direction, and the flamegraph arbitrated every dispute. Measure,
+don't model.
+
 ## The shelf at a glance
 
 | Technique | What it costs | What it bought | Source |
@@ -257,16 +448,36 @@ lives on [going fast](/research/lab/experiments/raphael-anjou/going-fast).
 Now zoom out. Field's 2007 recipe already did 60–80 million placements per
 second per core ([message 3098](https://groups.io/g/eternity2/message/3098)).
 Twenty years of craft since have widened that range rather than uniformly
-multiplied it. On comparable portable code the gain is modest: 72.7M/s from a
-tuned C++ solver and 68.4M/s from a Rust descendant of Blackwood's in 2025
+multiplied it. On portable code the gain is modest, though the two 2025
+figures are not on the same puzzle: 72.7M/s from a tuned C++ solver on an 8×8
+board and 68.4M/s from a Rust descendant of Blackwood's on 16×16
 ([message 11633](https://groups.io/g/eternity2/message/11633),
 [message 11634](https://groups.io/g/eternity2/message/11634)), barely above the
 2007 baseline. The ~4× only appears with per-cell generated C on the newest
-hardware: around 225–295M/s for McGavin's
-([message 11751](https://groups.io/g/eternity2/message/11751),
+hardware: around 225–295M/s for McGavin's on small puzzles
+([message 11751](https://groups.io/g/eternity2/message/11751) notes the rate
+roughly halves on 16×16, the size E2 actually is;
 [message 11750](https://groups.io/g/eternity2/message/11750)), so it mixes a
 codegen gain with a hardware gain, not craft alone. Over the same twenty years,
 the record moved three edges: 467 to 470.
+
+My own notebook replayed that twenty-year ledger in one afternoon. This
+site's first solver was propagation-heavy and walked about 370k placements
+per second; the community's generated-C record engine does about 295M on
+comparable hardware, an 800× gap. Porting the C engine's *shape* into
+safe-leaning Rust (border-aware flat candidate tables, a four-word
+used-piece bitset, sentinel-terminated candidate lists, per-depth
+precomputed flags) closed about 180× of it in a day: 65 to 68M placements
+per second single-thread, median 67M over 4 seeds with about 5% spread, on
+one machine, landing at ~22% of the C engine before any per-cell
+specialisation. At that stage the port had not been verified to walk the
+identical tree, so read it as a throughput-shape result rather than a
+verified port; the verified comparison is the experiment below. But the
+lesson already stands: every technique in that port is one on this page's
+shelf, the shelf applied together *is* the hundred-fold, and the gap was
+architecture, not language. (Those 65 to 68M are this notebook's engine;
+the community's 68.4M Rust figure above is a different program, a
+coincidence of ranges.)
 
 A [2026 experiment on this site](/research/lab/experiments/raphael-anjou/jit-backtracker)
 separates those two gains directly. It takes a *portable, safe Rust* backtracker
@@ -274,12 +485,27 @@ and applies the same craft - per-cell generated code, packed cells, a byte-array
 used-set, cell fusion - then measures it against McGavin's C on one machine, same
 board, both built headless, back to back. Holding the hardware fixed, the portable
 engine **ties the C on hard, deep boards** (≈105–110M search-nodes/s each) while the
-C stays ~2.3× faster on easy low-branching ones (≈287M vs ≈125M) - every rung verified
+C stays ~2.3× faster on easy low-branching ones (≈287M vs ≈122M) - every rung verified
 to walk the identical tree. The lesson cuts both ways: the codegen craft is real and
 reproducible in a modern language - enough to match hand-tuned C where the search is
 hard - *and* it is still only the constant factor this page keeps describing. The same
 engine, pointed at the real puzzle, plateaus in the high-300s of 480, exactly where
 speed alone always leaves you.
+
+Two more notebook measurements close the accounting. First, the constant
+factor caught in the act: a +25% single-thread throughput gain from
+per-depth generated code **did not change the board quality reached** at a
+fixed 5 minute multi-thread budget. Identical partials at 444 of 480
+matched edges, and the same 450 to 451 matched edges after a repair pass,
+stable across 3 seeds with about 0.5% spread (one machine, one budget
+point; matched-edges scoring, and see [the records page](/research/records)
+for how any such number sits against the community's). The search converges
+on the same trajectory; faster walking only reaches it sooner. Second, the
+multithreading caveat 2008 never had to face: on an 8-core part with a
+shared memory system, 4 threads ran at 52M placements per second each
+while 8 threads dropped to 22M each, a near-flat aggregate, and both
+reached the same score at the same budget. Multithreading scales the
+obvious way until the memory system saturates.
 
 The practitioners said it themselves. Joshua Blackwood, cataloguing his dead
 ends after the 469 ([SAT solvers](/research/build/exact/sat-csp-encodings),

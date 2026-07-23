@@ -21,6 +21,7 @@ complexity:
     NP-difficile), mais chaque région est assez petite pour être fermée à
     l'optimalité ou à un écart serré en quelques minutes.
 related:
+  - /research/records
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -36,8 +37,18 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100 : le recuit sur GPU appliqué au plateau strict à 5 indices bute sur le même cœur figé ; le meilleur score croît avec la distance au sortant (message groups.io 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "Tests indépendants de résidu SAT sur halo et de gel des répliques de William Millilaw, reproduits ici sur cinq plateaux publics (chaque résolution terminée UNSAT, jusqu'à un halo de quatre cellules)"
+  - label: "Tests indépendants de résidu SAT sur halo et de gel des répliques de William Millilaw, reproduits ici sur cinq plateaux publics (chaque résolution terminée UNSAT, jusqu'à un halo de rayon 4 au sens de Chebyshev)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
+  - label: "kissat, le solveur SAT derrière les preuves UNSAT sur anneaux de bordure et intérieur complet"
+    url: https://github.com/arminbiere/kissat
+  - label: "Google OR-Tools CP-SAT, le solveur certifiant derrière les mouvements de grappe et les re-résolutions de fenêtres"
+    url: https://developers.google.com/optimization
+  - label: "Diaconis & Sturmfels 1998, bases de Markov : le cadre d'algèbre des mouvements derrière la théorie du rayon de connectivité"
+    url: https://doi.org/10.1214/aos/1030563990
+  - label: "Graver 1975, connectivité des fibres bornées : le même cercle d'idées"
+    url: https://doi.org/10.1007/BF01584976
+  - label: "Wolff 1989, la classe de mouvements de grappe corrélés issue de la physique statistique qui a inspiré le recensement des permutations"
+    url: https://doi.org/10.1103/PhysRevLett.62.361
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -67,6 +78,75 @@ rigidité, en direct.
   <RigidityLab />
 </Figure>
 
+## Commencer par les plus petits mouvements
+
+Avant même de convoquer un solveur, les vérifications les moins chères se
+font par force brute : essayer chaque petit mouvement existant, et compter.
+
+Voici une version de poche, qui tient dans la tête. Le plateau 469 de la
+communauté et un plateau 466 connu ne diffèrent que sur exactement quatre
+cellules : les quatre mêmes pièces, décalées d'une position le long d'une
+bande de la rangée du bas. Énumérez les 6 144 agencements de ces quatre pièces
+dans ces quatre cellules (24 permutations fois 256 combinaisons de rotations) :
+le maximum est 469, atteint uniquement par l'agencement du sortant lui-même.
+Le plateau 466 est l'un des 6 143 agencements moins bons. Deux bons plateaux
+peuvent n'être qu'à quatre cellules l'un de l'autre sans aucun chemin entre
+eux, ni au-dessus d'eux, à travers ces cellules.
+
+Passez à l'échelle. Sur l'un de nos plateaux à 459 (convention stricte à cinq
+indices ; nos chiffres restent en dessous des meilleurs de la communauté, voir
+[la page des records](/research/records) pour le contexte), chaque rotation
+non triviale de chaque pièce a été testée : 768 rotations, zéro amélioration ;
+chaque vraie rotation fait strictement baisser le score. Les 32 640 échanges
+de paires de pièces : zéro amélioration. Les combinaisons échange-plus-rotation :
+47 164 d'entre elles, tirées d'un échantillon de 5 000 paires sur les 522 240
+possibles, zéro encore ; celle-ci est un large échantillon, pas une
+énumération complète. Il existe aussi une raison analytique pour laquelle une
+rotation ne peut même jamais être neutre : une rotation de 180 degrés laisse
+le compte local de concordances inchangé dans tous les voisinages possibles
+seulement si les couleurs haut et bas de la pièce coïncident, ainsi que ses
+couleurs gauche et droite, et zéro des 256 pièces possède cette symétrie
+(aucune n'est non plus totalement symétrique par rotation). Aucune rotation
+n'est jamais gratuite. La même sonde bon marché, passée sur onze de nos hauts
+plateaux, scores 454 à 459, donne 8 448 tests de rotation simple et pas une
+seule amélioration.
+
+Sur un plateau à 457 (convention des arêtes concordantes), l'énumération a
+été poussée à tout mouvement touchant jusqu'à cinq pièces : 1 024
+basculements de rotation simple, 6 720 rotations de paires adjacentes,
+20 240 transpositions non adjacentes, 32 796 3-cycles sur les 38 cellules
+adjacentes aux désaccords, 982 200 4-cycles et 28 480 440 5-cycles. Environ
+29,5 millions de mouvements, zéro amélioration, plus deux balayages par
+séparation et évaluation (une recherche de permutation sur 38 cellules et un
+halo de rayon 1 sur 82 cellules) qui n'ont rien trouvé non plus. Ce même
+plateau à 457 a été atteint 11 fois de manière indépendante par une recherche
+à redémarrages chauds, identique à l'octet près à chaque fois : la recherche
+n'orbite pas autour d'un bon plateau, elle s'effondre sur un point exact et y
+reste.
+
+Même les mouvements conçus pour paraître gratuits échouent. Certaines paires
+de pièces partagent trois de leurs quatre couleurs d'arêtes ; les échanger
+semble presque neutre. Sur le 469 de la communauté, les 114 échanges simples
+de ce type ont tous été essayés : exactement un conserve le score de 469 (et
+produit le seul plateau jumeau connu), 2 donnent 468 et 111 donnent 467. Les
+6 441 doubles échanges : aucun n'atteint 470, le meilleur donne 468. Sur
+6 555 perturbations construites précisément pour être presque neutres en
+score, l'ensemble de niveau 469 contient exactement deux plateaux.
+
+Les chiffres s'expliquent d'eux-mêmes. À un score de 459, une cellule
+contribue en moyenne environ 3,6 arêtes concordantes, alors qu'une pièce
+aléatoire déposée dans un voisinage fixé n'en espère qu'environ 0,18 (à peu
+près quatre arêtes fois une chance sur 22 couleurs) ; un échange aléatoire
+s'attend donc à perdre environ 6,8 arêtes. Une borne probabiliste grossière
+plafonne la probabilité d'un échange améliorant vers 5 pour cent ; la
+fréquence mesurée est inférieure à $3\times10^{-5}$. Chaque placement d'un
+plateau de tête est co-adapté à ses voisins bien au-delà de ce que le hasard
+seul prédirait. Une note de portée : chaque recensement ici est exhaustif
+dans sa classe de mouvements mais porte sur un seul plateau (les recensements
+de rotations et d'échanges sur un 459, l'énumération à cinq pièces sur un
+457, le recensement des quasi-jumelles sur le 469) ; ce sont les preuves
+exactes ci-dessous qui les généralisent.
+
 ## Comment le sait-on
 
 Le résultat ne repose pas sur le fait d'essayer un grand nombre d'échanges puis
@@ -77,9 +157,21 @@ nouveau. Le solveur explore tout cet espace local de manière exacte, non par
 échantillonnage.
 
 La réponse revient toujours la même : le meilleur agencement est celui qui est
-déjà là. Nous l'avons démontré région après région, sur trois plateaux records
-différents, et jusqu'à un rayon de quatre cellules, soit un bloc de dizaines de
-cellules d'un coup. À chaque fois, aucune amélioration n'existe.
+déjà là. Nous l'avons démontré région après région, plateau après plateau, et
+jusqu'à un rayon de quatre cellules ; la plus grande région fermée par un
+certificat compte 79 cellules, près d'un tiers du plateau. À chaque fois,
+aucune amélioration n'existe.
+
+Une prudence apprise en chemin : une re-résolution exacte à froid d'une
+grande région peut sous-performer en silence. Sommé de reconstruire de zéro
+les trois dernières rangées d'un plateau solide (48 cellules), le solveur n'a
+même pas retrouvé la propre queue du plateau dans le temps imparti,
+atteignant 68 arêtes concordantes contre les 72 du sortant après 201 s (une
+seule exécution). Sur les grandes fenêtres, « rien trouvé de mieux » peut
+n'être qu'une difficulté du solveur, pas une preuve. Un verdict de rigidité
+n'est retenu ici que lorsque le solveur part du sortant, de sorte que tout
+mieux est strictement plus facile à trouver, et qu'il certifie malgré tout un
+écart nul.
 
 ## Méthode : la preuve PLNE
 
@@ -94,33 +186,290 @@ d'affectation ; l'objectif maximise les arêtes concordantes, en comptant la
 frontière fixée. Une région de 64 cellules représente environ 18 700 variables
 binaires. La séparation et évaluation trouve alors soit un remplissage
 strictement meilleur, soit prouve, à l'aide d'une borne duale, qu'il n'en
-existe aucun.
+existe aucun. La définition qui vaut d'être retenue : un plateau est
+*localement rigide au rayon $r$* si, pour chaque composante connexe de ses
+cellules adjacentes aux désaccords, libérer toutes les cellules à distance au
+plus $r$ de celle-ci et résoudre exactement n'apporte aucune amélioration.
 
 Elle n'en trouve jamais. Les preuves, région par région. Ces exécutions PLNE
 proviennent du carnet de recherche du projet (l'article du 2026-05-16 cité dans
 les sources) ; le tableau ci-dessous n'est pas encore rejoué par la chaîne de
 résultats validés de ce site, de sorte que ses temps de solveur et ses bornes
 duales ne sont pas vérifiables de façon indépendante depuis ce dépôt, à la
-différence du résultat SAT sur halo plus bas :
+différence du résultat SAT sur halo plus bas. La même note de provenance
+couvre chaque recensement, énumération et escalade SAT ajoutés à cette page ;
+la reproduction SAT au rayon 4 est le seul résultat committé dans ce dépôt :
 
 | Région | Plateau | Cellules | Temps solveur | Résultat |
 |---|---|---:|---:|---|
-| halo-2, par composante (×8) | 3 bassins (469, 459, 458) | 2–32 | quelques secondes chacune | tous Δ = +0, **prouvé** |
+| halo-2, par composante (×8) | 3 bassins (469, 459, 458) | 2–34 | quelques secondes chacune | tous Δ = +0, **prouvé** |
 | halo-1 conjoint | McGavin 469 | 37 | 895 s | Δ = +0, **prouvé** |
 | halo-1 conjoint | Local 459 | 59 | 1800 s | Δ = +0, **prouvé** |
+| halo-1 conjoint | trois 458 distincts | 57, 62, 64 | 180 s chacun | Δ = +0, **prouvé** |
+| halo-1 par composante | un second 459, disjoint | 52 + 4 | ~60 s | Δ = +0, **prouvé** |
+| 3 rangées du haut (une bande, pas un halo) | McGavin 469 | 48 | 70 s | Δ = +0, **prouvé** |
 | halo-3, par composante | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **prouvé** |
+| halo-3, grappe la plus dense | un 458 | 79 + 19 | 1200 s + 0,2 s | Δ = +0, **prouvé** |
 | halo-4, composante 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **prouvé** |
 
-Sur quatre bassins et ≥13 régions, la réponse est invariante : le plateau
-sortant est localement PLNE-optimal, jusqu'au halo-4 pour le 469 de McGavin.
+Sur au moins six plateaux distincts et plus de vingt régions, la réponse est
+invariante : le plateau sortant est localement PLNE-optimal, jusqu'au halo-4
+pour le 469 de McGavin. Deux lignes méritent un mot. La ligne des trois
+rangées du haut est une bande géométrique complète, pas un halo : elle libère
+des cellules propres à côté des cellules brisées, et exclut donc en plus les
+mouvements qui échangeraient des pièces entre cellules brisées et propres à
+l'intérieur de la bande. Et la région de 79 cellules, la plus grande jamais
+fermée ici, se trouve sur un 458 plutôt que sur le 469 parce que la
+résolubilité suivait la *densité de défauts*, pas la taille brute de la
+région : les régions denses en défauts se ferment, les plus grandes mais
+clairsemées expirent.
+
 L'unique région laissée avec un écart, les quatre rangées supérieures, 64
 cellules, donne encore un résultat *rigoureux* : une borne duale de 123 contre
 les 116 du sortant, de sorte que même le cas non fermé ne peut dépasser le mur
 que de peu (cela implique une borne de ≤ 476 à l'échelle du plateau).
 
+Toutes les résolutions n'ont pas abouti, et le registre garde aussi
+celles-là. La résolution conjointe halo-2 de 54 cellules sur le 469 est
+restée bloquée sur sa relaxation racine pendant 55 minutes avant d'être
+arrêtée ; la bande des 5 rangées du haut (80 cellules) a expiré ; sur les
+trois 458, les deux grandes composantes halo-2 ont atteint une limite de
+120 s en rapportant +0 *sans* certificat, ce qui compte comme « aucune
+amélioration trouvée », pas comme prouvé. Une ligne inachevée de plus élargit
+le constat à une autre convention de score : un plateau à 460 joué *sans* la
+contrainte des indices a reçu une résolution conjointe halo-1 (42 cellules
+libres, liberté totale des pièces) et une exécution de 900 secondes n'a rien
+trouvé de mieux tout en laissant un écart dual de 9,5 pour cent ouvert ;
+cette ligne aussi est « rien trouvé dans le budget », pas « prouvé optimal ».
+Un seul plateau, une seule exécution.
+
+Ce n'est pas non plus un plateau malchanceux isolé. Un second plateau à 459,
+trouvé par un chemin de construction complètement différent, ne coïncide avec
+le premier que sur 3 des 256 cellules, essentiellement les cellules des
+indices ; les deux plateaux sont structurellement disjoints, et le second est
+*lui aussi* prouvé rigide au halo-1 (deux composantes, 52 et 4 cellules, +0
+prouvé en une minute environ). Au halo-2, sa petite composante (7 cellules) a
+été prouvée +0 en 18 s ; sa grande composante (67 cellules) est restée
+indécise après environ 13 minutes et demeure ouverte. La conjecture que cela
+soutient, énoncée comme telle : l'ensemble de niveau 459 est une union
+disjointe de nombreux points rigides, et le dépasser exige un réagencement à
+l'échelle du plateau ou un autre départ, jamais une retouche locale.
+
 Le badge indique *prouvé* plutôt que *conjecturé* pour les régions
 effectivement fermées ; l'énoncé général sur *tous* les plateaux reste une
 conjecture, étayée par chaque région testée à ce jour.
+
+## Aucun échange astucieux n'existe non plus
+
+La PLNE libère une région et la remplit depuis l'ensemble complet des pièces.
+Il existe une classe de mouvements complémentaire qu'elle ne couvre pas :
+choisir $k$ cellules et essayer toutes les façons de permuter et re-pivoter
+les pièces *qui s'y trouvent déjà*, le reste du plateau gelé. Une algèbre de
+mouvements différente, et la même réponse.
+
+Sur un de nos plateaux à 452 (convention stricte à cinq indices, 2026-07) :
+$k=1$, exhaustif sur les 251 cellules libres, zéro mouvement améliorant.
+$k=2$, exhaustif sur les 31 375 paires hors indices, zéro. $k=3$ à $6$,
+environ 29 000 grappes échantillonnées (près des défauts, sur tout le
+plateau, connexes et non connexes), zéro ; ce palier est un large
+échantillon, pas une énumération. Pour $k=7$ et $8$, l'échantillonnage a été
+promu en véritable énumération : chaque sous-ensemble connexe de 7 et 8
+cellules parmi les cellules touchant un défaut, sur deux plateaux
+indépendants, 849 sous-ensembles en tout (231 sur le 452, 618 sur un 451
+structurellement étranger qui en diffère sur 249 des 256 cellules), tous
+résolus jusqu'au bout, zéro améliorant, zéro dépassement de délai ; plus les
+7 845 sous-ensembles connexes de 7 cellules à un pas d'une arête en défaut,
+zéro encore. Environ 60 000 mouvements de grappe évalués, et le meilleur
+delta trouvé où que ce soit est exactement zéro.
+
+Ce zéro n'est pas un détecteur cassé. En témoin positif, un sabotage
+délibéré de deux pièces (452 ramené à 447) a été réparé par la même machinerie
+en un seul mouvement de 4 cellules, retour direct à 452. Et la recherche
+locale gloutonne sur cette classe de mouvements, lancée depuis trois plateaux
+d'origines indépendantes (le 452, un jumeau de même score n'en différant que
+sur 2 cellules, et le 451 étranger), a touché un point fixe immédiat dans les
+20 exécutions ensemencées : minimum, médiane et maximum identiques, zéro
+évasion.
+
+Le détail qui pique : le 452 lui-même est *né* de cette classe de mouvements.
+Une co-rotation de deux pièces a soulevé un 451 rigide sous tout mouvement de
+pièce unique. Un authentique mouvement corrélé à deux corps a existé ; une
+fois pris, plus aucun mouvement corrélé de taille jusqu'à 8 ne subsiste près
+des défauts. Le rayon de rigidité grandit à mesure que le plateau s'améliore.
+
+Changer la géométrie de l'ensemble libéré n'aide pas davantage. Libérez des
+bandes de rangées contiguës plutôt que des taches : 54 bandes d'une rangée
+sur 54, à travers les bandes de défauts des deux plateaux (largeurs 8 à 14,
+jusqu'à 15 cellules libérées), certifient exactement le score du plateau en
+moins d'une seconde chacune, et 18 bandes de deux rangées sur 18, hors de la
+pire bande, certifient la rigidité jusqu'à 26 cellules. Dans la bande de
+défauts la plus dense de chaque plateau, les bandes plus larges (16 à 26
+cellules) deviennent difficiles à *certifier* : après escalade à 300 s et 3
+graines, 6 sur 10 restent ouvertes avec des écarts de borne de 2 à 6 arêtes.
+Mais sur les 30 exécutions d'escalade, le solveur n'a jamais trouvé le
+moindre agencement meilleur que celui du plateau. C'est un écart de
+certification, pas l'indice d'une amélioration, et les bandes ouvertes sont
+consignées comme ouvertes, pas comme prouvées.
+
+Les fenêtres rectangulaires racontent la même histoire. Sur le 452, dont les
+28 arêtes brisées se répartissent en 22 concentrées dans la bande du bas et 6
+éparses, chaque fenêtre de jusqu'à 18 cellules autour de chaque grappe de
+défauts (quatre fenêtres, 9 à 18 cellules) se re-résout à un optimum certifié
+exactement à la valeur du plateau. Chaque défaut est forcé par des pièces
+engagées *ailleurs* ; aucune fenêtre qui se contente de contenir le défaut ne
+peut le réparer.
+
+Même laisser les pièces s'échanger à travers la frontière bon/mauvais ne
+bouge rien. Sur un de nos plateaux à 459 (strict à cinq indices), les deux
+rangées du bas (32 cellules) certifient l'optimalité en 49 s. Une fenêtre de
+46 cellules, et des fenêtres de 52 et 72 cellules qui libèrent en plus 6 à 10
+cellules donneuses *dans la région parfaite*, pour que des pièces puissent
+circuler entre parties propres et brisées, renvoient toutes le plateau
+identique : zéro cellule déplacée,
+pas même un remaniement latéral à score égal (150 à 180 s chacune, graine
+unique, si bien que ces fenêtres plus grandes comptent comme « aucune
+amélioration et aucun mouvement trouvés », pas comme des certificats). Le
+même opérateur appliqué à un plateau plus faible à 455 le soulève de 2
+jusqu'à 457 : il améliore donc bel et bien les plateaux qui ne sont pas
+encore à leur point fixe ; le 459, lui, y est déjà. Dans chaque fenêtre, la
+relaxation linéaire croit qu'environ 17 concordances de plus sont
+disponibles ; la contrainte chaque-pièce-une-seule-fois les interdit toutes.
+La contrainte qui mord, c'est quelles pièces le reste du plateau laisse en
+réserve, jamais la taille de la fenêtre. La difficulté est la distinction
+globale, pas la concordance locale.
+
+## Rigide une rangée entière à la fois
+
+Halos et fenêtres sont des taches. Essayez une géométrie qui traverse le
+plateau : libérez une rangée entière de 16 cellules, restreignez-la aux
+pièces non utilisées ailleurs sur le plateau, et énumérez les remplissages
+alternatifs par programmation dynamique. Sur un plateau à 460 (désaccords
+tous dans les rangées 11 à 14) et sur le 469 de la communauté (désaccords
+dans les rangées 0 à 4), le remplissage actuel de chaque rangée est le
+meilleur disponible, et plusieurs rangées n'admettent *aucune alternative
+légale* : la chaîne posée est l'unique façon de faire passer cette rangée à
+travers le reste du plateau.
+
+Les chiffres. Sur le 460 : les rangées 1 à 10 sont parfaites et n'admettent
+qu'une seule chaîne chacune, celle qui est posée ; les rangées 12 et 14 ont
+zéro chaîne alternative ; la rangée 13 a 176 alternatives, toutes moins
+bonnes, la meilleure perdant 10 arêtes. Sur le 469 : la rangée 3 a zéro
+alternative ; les rangées 2 et 4 ont leurs meilleures alternatives à 20
+arêtes de moins ; les rangées 5 à 14 sont parfaites, l'originale figurant
+parmi jusqu'à environ 17 857 chaînes légales sans qu'aucune fasse mieux. En
+libérant deux rangées conjointement (32 cellules, jointure interne libre) :
+les paires (11,12), (12,13) et (13,14) sur le 460 donnent 0 à 4 chaînes
+alternatives au total, toutes moins bonnes (12 à 16 arêtes de moins) ou
+infaisables. Trois rangées conjointement (48 cellules) : les rangées
+(11,12,13) et (12,13,14) donnent zéro chaîne alternative. Ces rangées ne sont
+pas seulement optimales ; elles sont souvent *forcées*. Unicité, pas
+simplement optimalité. Portée : l'énumération est une programmation dynamique
+à faisceau (largeur 100 000 pour une rangée, 5 000 à 50 000 pour deux et
+trois rangées), exhaustive en pratique mais non certifiée comme le sont les
+lignes PLNE ; disons faisceau-exhaustive. Deux plateaux.
+
+Un pendant exact sur des bandes : videz entièrement les 2 rangées du bas (32
+cellules) d'un plateau à 460 et laissez une recherche exacte par contraintes
+énumérer chaque remplissage légal à partir des pièces libérées. Il existe
+exactement 32 remplissages alternatifs, tous à 460 ou moins. Videz les 4
+rangées du bas (64 cellules) : la seule complétion que la recherche exacte
+atteint est le plateau original lui-même. Un seul plateau, ces deux tailles
+de bandes seulement ; mais sur chaque bande qu'on a pu fermer exactement, le
+score actuel est le vrai plafond.
+
+## Où vivent les derniers désaccords, et pourquoi ils sont coincés
+
+Sur un de nos plateaux à 458, l'anatomie de l'échec est remarquablement
+concentrée. L'anneau de bordure est parfait (60 sur 60), les neuf rangées
+intérieures du haut sont parfaites, et les 22 désaccords (4
+bordure-intérieur, 18 intérieur-intérieur) vivent tous dans les cinq rangées
+du bas, regroupés en 10 minuscules grappes disjointes de 2,8 cellules en
+moyenne, la plus grande n'en comptant que 5. Chaque grappe semble réparable
+trivialement. Les résolutions exactes disent le contraire : re-remplissages
+par grappe, delta zéro ; élargissements halo-1 et halo-2 jusqu'à 16 cellules,
+delta zéro ; et l'union des 28 cellules touchant un défaut, résolue
+conjointement à l'optimalité prouvée en 1,74 s, delta zéro.
+
+C'est le mécanisme de tout le mur en miniature : la région des défauts est à
+son optimum exact *étant donné les pièces qu'on lui a laissées*. Le haut
+parfait du plateau a consommé un ensemble de pièces précis, et c'est cet
+engagement qui plafonne le bas. Réparer les derniers désaccords exigerait de
+désengager des pièces de la région déjà parfaite, un grand mouvement
+inter-régions, pas une réparation locale. (Une relaxation linéaire lit un
+plafond de 478 pour cette bordure ; c'est un plafond de relaxation pour cette
+bordure particulière, pas une affirmation sur le véritable optimum.) Un seul
+plateau, mais le motif, des défauts tassés en quelques minuscules grappes que
+les re-remplissages exacts ne peuvent réparer, est exactement ce que le
+tableau des halos ci-dessus retrouve sur les autres bassins.
+
+## Pourquoi personne ne peut certifier le mur par le haut
+
+Deux faits coexistent sur le plateau à 452 (strict à cinq indices), et leur
+tension est l'état de l'art actuel. Fait A : aucun mouvement local d'aucune
+sorte testée ne le bat, et quatre cadres indépendants concordent (mouvements
+de grappe, re-résolutions de fenêtres, un certificat exact à écart nul
+attestant que le lot de pièces posé sur ses cellules touchant un défaut est
+placé optimalement, et une sonde thermodynamique qui, ou bien gèle sur le
+sortant, ou bien fond vers l'aléatoire, sans échappée douce entre les deux).
+Fait B : toute tentative de borner une *grande* région par le haut échoue ;
+les bornes sont lâches et ne convergent pas. Sur la queue de trois rangées du
+plateau, 8 graines à 20 minutes chacune ont toutes rendu exactement le
+sortant, aucune n'a jamais rien trouvé de mieux, tandis que la borne
+supérieure du solveur *montait* de 79 (à 300 s) à 89 (à 1200 s), s'éloignant
+des 72 du sortant au lieu de s'en approcher. Une borne de programmation
+linéaire sur l'intérieur lit 478,5 sur 480 : vide de sens.
+
+Il y a un récit d'avertissement là-dedans. Une première lecture de
+l'exécution à 300 s donnait « un écart de 7, de la marge vers un score plus
+haut ». La chasse à 8 graines a montré que l'écart était l'artefact d'une
+relaxation non convergente, pas l'indice d'un meilleur plateau atteignable.
+La raison pour laquelle les bornes restent lâches : la rareté qui rend ce
+puzzle difficile est du second ordre, une affaire de *paires* de couleurs
+conjointement rares, et les relaxations de concordance du premier ordre, sur
+lesquelles sont bâties les bornes LP et de propagation, ne peuvent pas la
+voir, quel que soit leur temps de calcul.
+
+Ainsi la rigidité locale (prouvée) et l'écart global ouvert ne se
+contredisent pas. Le sortant est un optimum local profond, *et* un meilleur
+agencement déconnecté peut exister qu'aucun mouvement local n'atteint ;
+aujourd'hui aucune borne ne l'exclut et aucune recherche ne le trouve. Fermer
+l'une ou l'autre direction d'un seul écart de grande région serait une
+première : un meilleur remplissage serait un nouveau meilleur plateau, et une
+borne ramenée jusqu'au sortant serait le premier plafond de score local
+prouvé. La borne duale des quatre rangées du haut (123 contre 116) est ce qui
+ressemble le plus à un progrès par le haut, et elle reste lâche de 7 arêtes.
+Portée : le fait A est prouvé sur un plateau à travers plusieurs lentilles ;
+le fait B porte une dispersion à 8 graines sur son exécution décisive.
+
+## Impossible même de recombiner les bons plateaux
+
+La rigidité survit même quand l'ensemble des mouvements est « emprunter à
+chaque bon plateau jamais trouvé ». Construisez une optimisation où chaque
+cellule peut prendre la pièce et la rotation que *n'importe lequel* de 25 à
+30 plateaux distincts à haut score y place, avec chaque-pièce-une-seule-fois
+imposé, et libérez le plateau entier, les 256 cellules. L'optimum est
+exactement le meilleur plateau déjà présent dans le corpus, jamais un mélange
+qui le batte : 457 avec les cinq indices épinglés (convention stricte ;
+corpus de 25 plateaux, résolu en 24 s), et 459 sans imposer les indices
+(convention des arêtes concordantes). Les versions par région à rayons
+croissants, 77, 127, 191 et 252 cellules libres, sont toutes à delta zéro en
+quelques secondes à environ 30 s. Ces optima sont des certificats, par
+corpus ; le corpus date de 2026-05, quand nos meilleurs étaient 457 strict et
+459 en arêtes concordantes, tous deux sous les chiffres de la communauté hier
+comme aujourd'hui ([page des records](/research/records)).
+
+Le corpus n'est pas à court de choix. Chacune des 256 cellules a au moins 2
+options distinctes à travers les plateaux, et une pièce typique apparaît à 6
+à 19 positions différentes dans le corpus. La diversité est riche ; l'unicité
+des pièces la fragmente. Les plateaux issus de familles d'agencements de
+coins différentes ne peuvent pas du tout se mélanger, et ajouter le 469 de la
+communauté au corpus fait que l'optimiseur choisit simplement ce plateau en
+bloc, à 469, plutôt que de le mélanger à quoi que ce soit.
+
+La lecture : l'écart au-dessus des meilleurs plateaux connus est un écart de
+*découverte*, pas de recombinaison. L'amélioration ne se cache dans aucune
+combinaison de ce qui est déjà connu ; elle exige des plateaux hors du corpus
+connu tout entier.
 
 ## Pourquoi c'est important
 
@@ -134,7 +483,65 @@ Cela dit aussi ce qui ne marchera pas. Le polissage, l'ascension de colline et
 la plupart des heuristiques de réparation locale tentent de remonter la pente
 depuis un point figé. Il n'y a pas de pente à remonter. Atteindre une solution
 exige un mouvement qui réagence une grande région d'un seul coup, ou un point de
-départ entièrement différent, non un meilleur polissage.
+départ entièrement différent, non un meilleur polissage. Les preuves
+conjointes au halo-1 rendent cela quantitatif : tout opérateur de
+destruction-réparation dont la portée est au plus le halo, des fenêtres
+jusqu'à environ 30 cellules autour des défauts, est mathématiquement épuisé
+sur ces plateaux. Le gel n'est pas « notre heuristique est faible » ; cette
+classe d'opérateurs entière est terminée.
+
+Même le plus grand mouvement unique que nous sachions faire ne s'échappe
+pas. Sur notre plateau à 461 (strict à cinq indices ; pour situer ce chiffre
+face aux records de la communauté, voir [la page des
+records](/research/records)), les mouvements de cycles entiers
+indécomposables décrits sur la [page des
+sigma-cycles](/research/why/sigma-cycles) ont été appliqués *atomiquement*,
+chacun suivi d'une re-résolution de fenêtre locale pour réparer les cellules
+dérangées. Environ 4 000 mouvements de ce type : zéro évasion, et la sortie
+non locale la moins chère perd encore au moins un point (meilleur résultat
+460, deux cellules de différence). Cela n'exclut que la variante à nettoyage
+local ; une re-résolution compensatrice globale n'a pas été testée. Mais un
+grand mouvement ne suffit pas si son nettoyage est local.
+
+Une chose de plus que la rigidité ne signifie *pas* : difficile à
+reconstruire. Épinglez les quatorze premières rangées du 469 de la communauté
+et laissez une recherche de réparation reconstruire le reste : 3 graines sur
+4 reviennent à 469 (la quatrième reste coincée à 454). Faites de même avec
+les préfixes de nos propres plateaux records : aucune graine ne dépasse
+jamais 460. Une petite sonde (4 graines, réparations de 30 secondes par
+plateau), mais la forme est nette. Le mur ne mesure pas la difficulté de
+reconstruire un plateau ; il dit *à quelle vallée appartient le squelette du
+plateau*. Un préfixe admet une excellente complétion ou n'en admet pas, et
+aucune chance de graine ne change laquelle.
+
+### La fin de partie se décide tôt
+
+Épinglez les $N$ rangées supérieures du 469 de la communauté et laissez la
+recherche locale compléter le reste. Le score de complétion n'est pas graduel
+en $N$ ; c'est une falaise avec des leurres : $N=1$ donne 400, $N=2$ donne
+382, $N=4$ donne 401, $N=8$ donne 418, $N=12$ donne 450, $N=13$ donne 455,
+et $N=14$ donne 469, une reconstruction *exacte*, zéro cellule de
+différence, $N=15$ pareil. À 13 rangées épinglées, il existe une complétion
+alternative des trois dernières rangées, avec les mêmes pièces autrement, qui
+ne marque que 455 et constitue elle-même un piège : la concordance locale des
+couleurs admet plusieurs complétions et la recherche ne sait pas laquelle se
+prolonge. Réussir 87 pour cent d'un record n'est pas « presque y être ». Ce
+sont des exécutions de complétion uniques par point, sur des budgets de
+l'ordre de la minute, sans dispersion de graines ; lisez le seuil, pas les
+scores individuels.
+
+Deux notes complètent le tableau. Le balayage prouve que la machinerie de
+complétion est capable *d'atteindre* 469 ; le mur consiste à trouver les
+quelque 224 premières pièces de la structure, pas dans une faiblesse de
+l'étape de polissage. Et l'influence ne circule pas dans l'autre sens : une
+rangée du haut seule, une parmi au moins $5\times10^{8}$ rangées du haut
+légales, ne détermine presque rien. Quatre préréglages d'opérateurs de notre
+famille de recherche locale, poussés depuis une rangée du haut épinglée,
+calent tous entre 378 et 400 ; les autres familles de recherche ne sont pas
+testées, ce négatif est donc circonscrit à notre chercheur. Pendant ce temps,
+363 de nos plateaux à 455 et plus n'ont utilisé que 47 rangées du haut
+distinctes : les bons plateaux se regroupent en haut bien avant que le bas ne
+soit décidé.
 
 ## Quelqu'un a heurté le même mur du côté du recuit
 
@@ -171,7 +578,10 @@ sur cinq plateaux publics, avec notre propre encodeur et un témoin positif pour
 nous assurer qu'une région concordante revient satisfiable. Sur les quatre
 plateaux records de la communauté, du 467 de Verhaard au 470 de Blackwood, et le
 464 de Riotte (le record strict à cinq indices), chaque résolution qui aboutit
-est UNSAT jusqu'à un halo de quatre cellules : aucun réagencement local des
+est UNSAT jusqu'à un halo de rayon 4 au sens de Chebyshev (cette reproduction
+mesure la région libérée par rayon de Chebyshev, alors que les échelles SAT du
+carnet plus bas comptent des pas de Manhattan ; les deux échelles de halo ne
+sont donc pas la même métrique) : aucun réagencement local des
 propres pièces d'un plateau record ne referme un seul désaccord, même lorsque la
 région libérée dépasse la centaine de cellules. Les instances de rayon 4 sont
 assez grandes pour que quelques-unes n'aboutissent pas dans le temps imparti au
@@ -180,6 +590,37 @@ ouvertes, non comptées comme prouvées, de sorte que le tableau validé énonce
 exactement ce qui a été décidé. La programmation en nombres entiers optimise et
 borne ; le recuit se cogne au mur à la main ; SAT décide et renvoie une
 réfutation. Trois méthodes, une seule réponse.
+
+Un quatrième outil est d'accord. Un optimiseur MaxSAT, une variante de SAT
+qui renvoie à la fois le meilleur remplissage et une preuve de son
+optimalité, a été pointé sur des sous-régions d'un de nos plateaux à 454 plus
+ancien : épingler tout ce qui est hors d'une région, libérer la région,
+demander le meilleur remplissage prouvable. Chaque fenêtre $k\times k$
+jusqu'à 5×5 a été prouvée optimale dans son budget de 60 s (les fenêtres 6×6
+ont dépassé le budget et sont consignées comme non fermées, pas comme
+prouvées), et la zone de défauts entière du plateau, 45 cellules contenant
+ses 26 désaccords intérieurs, a été prouvée optimale en 83 s : ces 26
+désaccords sont le mieux que cette région puisse faire étant donné le reste
+du plateau. Ce 454 avait lui-même été atteint à l'octet près depuis 4 graines
+aléatoires différentes, le même effondrement sur un point unique que le 457
+du recensement plus haut : les exécutions indépendantes n'atteignent pas
+seulement le même score, elles atteignent exactement le même plateau.
+
+Poussez la question SAT plus loin et la réponse devient plus spectaculaire.
+Prenez un de nos plateaux à 459 (cinq indices imposés), libérez chaque
+cellule à distance au plus 10 de ses désaccords, 218 des 256 cellules libres
+et seulement 38 épinglées, et demandez si *une quelconque* complétion atteint
+un 480 complet. UNSAT, en 0,31 s. L'échelle en chemin : les halos 0 à 5 tous
+UNSAT en moins de 2 s chacun ; le halo 7, 173 libres et 83 épinglées, UNSAT
+en 0,17 s. Les 38 cellules encore épinglées au halo 10 sont essentiellement
+les deux rangées du haut plus 3 des 5 indices. Les deux rangées supérieures
+de ce plateau sont donc, à elles seules, prouvées incompatibles avec toute
+solution parfaite : tout 480 doit différer de ce plateau quelque part dans
+ces 38 cellules. La rigidité est portée par un mince squelette en haut du
+plateau, pas par les voisinages des défauts. Au rayon 15, seulement 4
+cellules épinglées, le solveur a expiré à 600 s ; ce cas est ouvert. Un
+plateau précis ; on ignore si d'autres plateaux à 459 partagent la même
+rigidité du haut épinglé.
 
 Ses travaux antérieurs sur le serpent et la recherche locale ont chiffré le
 pourquoi. Le plus grand pavé qu'un quelconque de ses opérateurs de réparation
@@ -194,6 +635,94 @@ mouvements au plateau. C'est le même mur, énoncé comme un budget. La réparat
 locale réécrit trop peu à la fois pour quitter la vallée, ce qui explique
 pourquoi s'en échapper exige un mouvement qui réagence une grande région d'un
 seul coup, exactement comme le conclut la section de preuve ci-dessus.
+
+## Le mur va jusqu'à 480
+
+Tout ce qui précède demande si un réagencement local peut refermer un
+désaccord. Il y a une question bien plus grande : en ne gardant que l'anneau
+de bordure d'un plateau, *un quelconque* agencement des 196 pièces restantes
+atteint-il un 480 parfait ? Sur notre plateau à 459 (convention des arêtes
+concordantes, indices canoniques), la réponse est une preuve de non, à toutes
+les échelles. Libérer les 32 cellules en désaccord : UNSAT en 0,09 s (14 000
+variables, 81 000 clauses). Libérer tout ce qui est à 5 pas d'un désaccord,
+140 cellules, plus de la moitié du plateau : UNSAT en 1,56 s. Libérer
+*l'intérieur entier*, les 191 cellules intérieures hors indices, en ne
+gardant que l'anneau de bordure de 60 pièces : UNSAT en 1,37 s (160 000
+variables, 5,4 millions de clauses). Les barreaux intermédiaires, halo-1 à 70
+cellules (0,33 s), halo-2 à 93 cellules (0,89 s), halo-3 à 109 cellules
+(0,80 s), sont tous UNSAT aussi. Le solveur est kissat, cité dans les
+sources.
+
+Et ce n'est pas la malchance d'un seul plateau. Neuf configurations
+d'anneaux de bordure distinctes ont été testées, couvrant quatre agencements
+de coins différents : la bordure du 469 de la communauté, nos bordures
+records 459 et 458, un plateau à 435 issu de la propagation de croyances, et
+cinq bordures partielles énumérées systématiquement. Chacune, sans exception,
+est UNSAT pour 480, en moins de 2 secondes à chaque fois. Fait le plus
+notable, la bordure du 469 de la communauté, à 11 désaccords de la
+perfection, ne peut prouvablement héberger aucun intérieur à 480 : UNSAT en
+moins de 0,01 s. L'encodeur a été validé aller-retour sur de petits puzzles
+solubles, où des résolutions fraîches se décodent en plateaux parfaits
+vérifiés et où épingler une bordure correcte rend SAT, la même discipline de
+témoin positif que la reproduction plus haut ; les verdicts UNSAT sont
+réels, pas des artefacts.
+
+Le bord ouvert de ce résultat en est le meilleur résumé. Seules neuf
+configurations de bordure existent dans notre corpus, et une bordure
+compatible avec un 480 existe à coup sûr : le puzzle a été construit à partir
+d'une solution. Elle n'est simplement aucune des bordures qu'une recherche de
+classe record ait jamais produites. Polir près d'un record n'est pas
+seulement lent ; sous la propre bordure de ce record, atteindre 480 est
+prouvé impossible. Une solution exige une autre bordure.
+
+## Pourquoi le mur existe
+
+La page jusqu'ici prouve le mur ; voici ce qui se rapproche le plus d'une
+raison. Modélisez l'ensemble des plateaux à score fixé comme un graphe dont
+les arêtes sont des mouvements touchant au plus $k$ cellules, et demandez le
+plus petit $k$ qui le connecte : le rayon de connectivité. Sur de petites
+instances d'appariement d'arêtes où chaque plateau peut être énuméré
+exactement, deux lois émergent. Premièrement, le rayon est petit sur
+l'essentiel du spectre des scores et saute au plateau entier exactement au
+score maximal : sur une instance à 6 cellules, $k$ vaut 2 à 4 cellules aux
+scores intérieurs et 6, le plateau entier, au maximum ; sur une instance à 9
+cellules, le rapport $k/N$ se situe autour de 0,22 à 0,44 à l'intérieur et
+0,78 au sommet. Deuxièmement, la rigidité s'allume avec la richesse des
+couleurs : en balayant la palette sur les instances à 9 cellules, le support
+moyen du mouvement minimal monte de 1,4 à 7,6 cellules quand les couleurs
+passent de 2 à 8, et la fraction d'instances dont les solutions parfaites
+exigent un mouvement plein-plateau pour s'interconnecter monte de 0 à 70
+pour cent.
+
+À l'échelle jouet, il y a un théorème, prouvé par un argument de forçage et
+vérifié par énumération exhaustive : si le jeu de couleurs est assez riche
+pour que chaque couleur d'arête exposée n'admette au plus qu'une tuile légale
+pendant un remplissage, alors deux solutions parfaites distinctes ne
+partagent *aucune cellule*, si bien que tout mouvement entre elles doit
+toucher chaque cellule. À une richesse de couleurs comparable à celle du
+vrai puzzle, chaque instance testée était rigide exactement en ce sens : zéro
+cellule partagée entre toute paire de solutions parfaites.
+
+Pour Eternity II lui-même, c'est une conjecture, et nous l'étiquetons comme
+telle. Avec 22 couleurs intérieures, chacune réutilisée environ 24 à 50 fois
+sur 480 adjacences intérieures, le vrai puzzle siège profondément dans le
+régime rigide, si bien que des plateaux quasi parfaits distincts devraient
+être quasi orthogonaux (ce qui correspond à la différence de 225 cellules
+observée plus haut entre bons plateaux) et qu'aucun mouvement de taille
+bornée ne devrait relier des optima distincts. La condition « au plus une
+tuile » n'est pas strictement vraie sur E2, donc l'affirmation défendable est
+« une grande fraction du plateau », pas « prouvablement les 256 cellules ».
+
+Le corollaire est la partie satisfaisante : la recherche locale gèle
+*précisément aux hauts scores* parce que c'est là que le graphe des
+mouvements se déconnecte. L'intérieur de la gamme des scores se parcourt
+facilement, d'où le fait qu'atteindre les 450 et 460 soit routinier ; le
+sommet est un ensemble de points isolés, d'où le fait que le polissage y
+meure. Une théorie, les deux moitiés de l'histoire de cette page. (Les
+mathématiques sont le cercle d'idées des bases de Markov et de Graver en
+statistique algébrique ; voir les sources. Les seuls mouvements de sommet bon
+marché que la théorie autoriserait sont des symétries globales, et ce jeu de
+pièces n'en a essentiellement aucune.)
 
 <Callout kind="insight" title="La pièce suivante du tableau">
   Si vous ne pouvez pas améliorer un plateau localement, peut-être pouvez-vous

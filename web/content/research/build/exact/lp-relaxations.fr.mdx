@@ -52,6 +52,7 @@ related:
   - /research/build/dead-ends
   - /research/build/exact/sat-csp-encodings
   - /research/build/reduce/alldiff-regin
+  - /research/records
 repro:
   kind: prose
 ---
@@ -181,6 +182,28 @@ latérales (les arêtes, le puzzle véritable) sont exactement ce qui brise la
 garantie. Eternity II est un problème d'affectation facile soudé à un couplage
 difficile, et la relaxation optimise discrètement la seule moitié facile.
 
+### La version à deux pièces
+
+Tout l'écart tient dans deux cases. Prenez deux cases adjacentes et deux
+pièces, l'une entièrement couleur 1, l'autre entièrement couleur 2. Tout
+arrangement en pièces entières marque 0 : le joint voit toujours la
+couleur 1 contre la couleur 2. Le LP marque exactement 1,0 : placez la
+moitié de chaque pièce dans chaque case, et les variables de
+correspondance linéarisées du joint collectent 0,5 de crédit pour la
+couleur 1 plus 0,5 pour la couleur 2, l'optimum fractionnaire se posant
+précisément au point 50/50. Nous l'avons vérifié à la main et avec un
+solveur LP (le programme entier renvoie 0, la relaxation renvoie 1,0).
+C'est le coin à « 30 % pièce 1 » de Benjamin réduit à son algèbre
+minimale, et cela isole le mécanisme : les variables de joint
+*récompensent* activement les affectations fractionnaires par case, donc
+le LP préfère les superpositions.
+
+L'exemple affûte aussi l'histoire Birkhoff–von Neumann. À cet optimum
+fractionnaire, les contraintes d'affectation sont satisfaites exactement ;
+rien dans le polytope d'affectation n'est forcé. C'est le seul objectif de
+joint en min-de-sommes qui tire l'optimum hors des sommets entiers. La
+moitié affectation du modèle n'a jamais été le problème.
+
 ## Le plateau mesuré
 
 Tous les quelques années, un nouveau venu empruntait la route, avec de
@@ -224,10 +247,22 @@ formulations *à l'intérieur* d'heuristiques. Les bâtisseurs de la route
 eux-mêmes ont posé le panneau de déviation.
 
 Le versant « borne » de l'histoire a la même forme et vit sur le
-[registre des impasses](/research/build/dead-ends) : le plafond LP mesuré de ce
-projet se situe autour de 478 alors que les meilleurs plateaux réels avoisinent
-458, un écart bien trop large pour certifier quoi que ce soit, pour exactement
-la raison de couverture fractionnaire évoquée plus haut.
+[registre des impasses](/research/build/dead-ends) : les plafonds LP mesurés de
+ce projet se situent entre 477 et 479 alors que les plateaux qui les portent
+avoisinent 458, un écart bien trop large pour certifier quoi que ce soit, pour
+exactement la raison de couverture fractionnaire évoquée plus haut. L'anatomie
+de ces bornes a sa propre section plus bas.
+
+Un fait de littérature mérite sa place à côté du tableau. Le traitement
+académique le plus solide, l'article MILP + clique maximum de 2017, ne résout
+des instances entières que jusqu'à environ 7×7 ou 8×8 et ne rapporte jamais de
+borne de relaxation LP pour l'instance 16×16
+([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). Pour autant que le
+registre public en témoigne, personne n'a publié de borne LP ou MILP valide
+sous 480 pour l'Eternity II complet. Les valeurs 477 à 479 mesurées plus bas
+sont *conditionnelles* (elles supposent une bordure fixée) ; la question
+inconditionnelle reste donc ouverte : prouver une borne valide quelconque sous
+480 par relaxation convexe serait du neuf.
 
 ## Reformuler le puzzle sur les côtés de pièces
 
@@ -243,16 +278,16 @@ $8 + 168 + 784 = 960 = 480 \times 2$. L'instance n'a aucun mou ; chaque côté
 non-bordure doit trouver un partenaire.
 
 Le LP sur ce graphe d'appariement raconte son histoire en trois temps. Figez
-chaque pièce dans une orientation fixe et la borne vaut 307.00, entière et
+chaque pièce dans une orientation fixe et la borne vaut 307,00, entière et
 égale à un décompte en forme close, mais non valide pour le vrai puzzle
 puisque les rotations sont interdites. Laissez les côtés s'apparier librement
 à travers les rotations (21 636 variables d'appariement, une contrainte de
-degré par côté) et le LP atteint exactement 480.00, avec 132 appariements
+degré par côté) et le LP atteint exactement 480,00, avec 132 appariements
 fractionnaires ; ajouter des budgets d'appariement par pièce ne change rien.
 Ajoutez la cohérence de rotation, une variable de rotation relâchée par pièce
 couplée aux appariements pour que les côtés appariés d'une pièce s'accordent
 sur une seule orientation (262 900 variables, environ 503 000 contraintes,
-quelques minutes de solveur) : toujours 480.00, désormais avec tous les
+quelques minutes de solveur) : toujours 480,00, désormais avec tous les
 appariements fractionnaires et pas une seule pièce à rotation entière. Le LP
 garde 480 faisable en plaçant chaque pièce partiellement dans ses quatre
 rotations à la fois, le jumeau côté-de-pièce du coin à « 30 % pièce 1 » vu
@@ -266,6 +301,220 @@ n'obstrue un 480. L'obstruction vit entièrement dans ce que ces relaxations
 ne voient pas, à savoir que chaque pièce occupe une case entière et que
 l'appariement doit se poser à plat en grille 16×16. Même verdict que le
 modèle case-pièce, atteint par la direction opposée.
+
+Trois mesures ultérieures ferment complètement la question de l'offre.
+D'abord, la borne de comptage la plus simple qui soit, chaque couleur $c$ à
+$m_c$ demi-arêtes autorise au plus $\lfloor m_c/2 \rfloor$ joints
+appariés, s'évalue sur le vrai jeu de pièces à
+$5 \cdot 12 + 5 \cdot 24 + 12 \cdot 25 = 480$ exactement, parce que chacun
+des 22 comptes de couleur est pair. Le budget global de couleurs est vide
+de sens *par construction du puzzle* ; tout argument de rareté doit être
+local ou conditionnel. Ensuite, les rotations entières ne restaurent pas
+l'obstruction. Donnez à chaque pièce une unique variable de rotation
+entière et demandez au modèle d'offre par couleur si les engagements de
+rotation suffisent à bloquer 480 : non. L'optimum LP vaut 480,0 et, cette
+fois résolu aussi à l'optimalité entière, l'optimum entier vaut également
+480,0 : pour chaque couleur il existe une affectation de rotations
+entières qui place ses arêtes sur les bons côtés pour dépenser tout le
+budget $\lfloor N_k/2 \rfloor$. Cela ajoute un quatrième barreau à
+l'échelle ci-dessus (rotations figées 307, appariement libre 480,00
+fractionnaire, cohérence de rotation 480,00 fractionnaire, et désormais
+même les rotations entières laissent 480 faisable au niveau de l'offre).
+La flexibilité de rotation n'est jamais la contrainte active ;
+l'obstruction est positionnelle, quelle case, à côté de quelle case.
+Enfin, la vue « offre » ne sait même pas classer des plateaux partiels. Un
+LP de joints plafonné par l'offre par couleur (0,1 seconde par bordure)
+renvoie 480 pour les six bordures que nous lui avons soumises, la bordure
+qui porte le plateau communautaire à 469 arêtes (arêtes correspondantes,
+hors convention stricte à cinq indices ; les conventions sont sur
+[la page des records](/research/records)) comme cinq bordures fraîchement
+générées. Comme discriminateur de qualité de bordure, le LP au niveau de
+l'offre est inutile ; le LP positionnel, par case, de la section suivante
+les sépare de façon démontrée.
+
+## Conditionner la borne sur une bordure
+
+La borne inconditionnelle se cale au plafond, alors nous l'avons
+conditionnée. Fixez une bordure complète (les 60 pièces du périmètre) et
+résolvez la relaxation LP sur les 196 cases intérieures : l'optimum est
+une borne supérieure valide *pour cette bordure*. Une note de convention
+avant les chiffres : chaque score de cette section compte les arêtes
+correspondantes sur 480 sur le 16×16 canonique avec les cinq indices
+officiels épinglés, et les plateaux mesurés sont les meilleurs de ce
+projet au moment de la mesure, pas des records ; les meilleurs
+communautaires sont plus hauts, tout le contexte est sur
+[la page des records](/research/records).
+
+La première surprise est le nombre de bordures différentes qui partagent
+un même plafond. Quatre plateaux de nos archives, aux quatre bordures
+distinctes, marquant 458, 457, 455 et 454 arêtes correspondantes,
+renvoient tous exactement la même borne LP conditionnelle : **478**. Et
+deux de ces bordures n'ont structurellement rien à voir avec les autres :
+un plateau à 457 partage l'intégralité des quatre rangées hautes (56
+pièces) avec le plateau à 458, mais les plateaux à 454 et 455 ne partagent
+avec lui que 8 ou 9 placements sur 256, environ 3 %. La borne est donc un
+invariant grossier que des plateaux authentiquement différents ont en
+commun, pas l'empreinte d'une famille de solutions. La recherche locale
+confirme que les plateaux eux-mêmes sont coincés : des poussées sur les
+trois plateaux non-458 (8, 4 et 4 graines à dix minutes chacune) les ont
+soulevés de +0, +0 et +1 ; chaque bassin gît à son propre optimum local
+bien sous le plafond partagé de 478.
+
+Deux mesures plus modestes esquissent le paysage autour de ce plafond. La
+bordure du plateau à 458 se comporte comme un maximum local de la borne
+elle-même : les 13 perturbations aléatoires de bordure que nous avons
+essayées (5 échanges simples et 8 permutations à trois pièces, une seule
+graine RNG) ont toutes abaissé la borne conditionnelle, de 2 à 5,5
+points. Treize essais d'une seule graine font une esquisse, pas un
+théorème. Et projeter la bordure du plateau communautaire à 469 arêtes
+dans la convention à cinq indices (superposer les cinq indices, recaser
+les pièces délogées) *abaisse* son plafond conditionnel à 477, un point
+sous la bordure de notre plateau à 458 : un indice structurel, pas une
+preuve, que le plafond à cinq indices pourrait se situer sous le plafond
+sans indices.
+
+### Où vit l'écart
+
+Bordure fixée, la borne se décompose sur les trois types de joints : 60
+joints de l'anneau de bordure (entièrement déterminés par la bordure), 56
+joints bordure-intérieur et 364 joints intérieur-intérieur, pour un
+maximum combinatoire de $60 + 56 + 364 = 480$. Beaucoup de bordures
+différentes présentent le même multi-ensemble de demandes de couleurs
+tournées vers l'intérieur, d'où tant de valeurs LP partagées. Sur la
+bordure du plateau à 458, la décomposition se lit
+$478 = 60 + 54{,}02 + 363{,}98$. Lisez-la lentement : la part
+intérieur-intérieur est essentiellement *serrée*, le LP ne concède que
+0,02 des 364 joints intérieurs ; toute la perte contre le maximum siège au
+joint bordure-intérieur. Le verdict du LP sur cette bordure : 2 de ses 56
+joints tournés vers l'intérieur sont structurellement inappariables par
+toute complétion intérieure. Le plateau lui-même en laisse 4 non appariés,
+donc au plus 2 sont théoriquement réparables, un gain maximal
+intra-bordure de +2, vers 460. Nous avons testé cette marge une fois : une
+re-résolution entière exacte libérant 84 cases (le périmètre bas plus les
+cinq rangées intérieures basses ; 30 minutes, un solveur, une exécution) a
+renvoyé un delta de 0. Soit le +2 n'est pas faisable en entiers, soit il
+demande une fenêtre plus large.
+
+Une deuxième bordure échange dans l'autre sens : sa décomposition est
+$477 = 60 + 54{,}17 + 362{,}83$, un peu plus de marge bordure-intérieur
+mais environ 1,15 joint intérieur de moins. Aucune couleur seule ne domine
+l'un ou l'autre écart ; le couplage est diffus. Atteindre 480 exige les
+deux parts au maximum en même temps, et aucune bordure mesurée n'a les
+deux. Un micro-fait du design des couleurs du puzzle tombe des mêmes
+tables : les cinq couleurs rares (24 demi-arêtes chacune) contribuent
+exactement 0 à la part intérieur-intérieur, parce qu'elles n'apparaissent
+que sur les côtés intérieurs des pièces de bordure ; un appariement
+intérieur-intérieur de couleur rare est impossible par taxonomie des
+pièces.
+
+### Une signature, pas un prédicteur
+
+Le plus haut plafond conditionnel de nos archives est **479**, à un de la
+perfection, et il repose sur un plateau qui ne marque que 457. Sa bordure
+est sortie d'à peine une minute de recherche locale, contre des heures
+derrière les bordures à 478. Pourtant huit graines de recherche locale
+indépendantes à une heure chacune plafonnent toutes à 457, et une
+re-résolution entière exacte de l'union de tous ses amas de défauts (28
+cases libérées) prouve qu'aucune amélioration locale n'existe : delta 0 en
+0,46 seconde. Les trois décompositions s'alignent en
+$478 = 60 + 54{,}02 + 363{,}98$, $477 = 60 + 54{,}17 + 362{,}83$ et
+$479 = 60 + 55{,}48 + 363{,}52$, et l'écart LP-entier par plateau se lit
+20, 20 et 22 : quasi constant sur toutes les bordures testées (479 est
+aussi le plus haut plafond vu sur 18 LP conditionnels de bordures
+variées). La borne conditionnelle *classe* donc les bordures par
+structure, mais elle ne prédit pas quelle bordure donne le meilleur
+plateau en pièces entières ; la bordure au plafond 479 est verrouillée en
+entiers plus bas que celle au plafond 478. Le mécanisme est celui de la
+page : la marge supplémentaire est du mou de couverture fractionnaire, et
+un plafond plus haut signifie seulement que le registre des couleurs est
+*plus proche* de l'équilibrable, pas qu'un plateau entier le réalise. Une
+conjecture mérite d'être écrite comme telle : la bordure d'un plateau
+parfait doit avoir une borne conditionnelle d'exactement 480, les deux
+parts au maximum à la fois, et la bordure à 479 montre que le LP approche
+cette condition nécessaire à un près.
+
+Une dernière mise en garde sur la lecture de ces décompositions : les
+allocations LP par couleur ne sont **pas** des bornes par couleur. Sur le
+plateau à 458, le compte entier réel d'une couleur (21) dépasse le
+plancher de son allocation LP (20,89, qui s'arrondit à 20 par en bas).
+L'optimum LP est une allocation jointe entre couleurs ; lire ses lignes
+par couleur comme des plafonds individuels est une erreur de catégorie.
+L'anatomie complète sur ce plateau : total LP des joints intérieurs de
+363,96 contre 346 joints réellement appariés, un écart intérieur de
+17,96, dont 5,96 de mou fractionnaire et 12 dus au LP qui alloue les
+couleurs autrement qu'aucun plateau en pièces entières ne le peut.
+
+## Racheter l'écart : trois tentatives mesurées
+
+La réponse des manuels à un LP lâche est de le resserrer : lever les
+termes bilinéaires, ajouter des plans coupants, grimper la hiérarchie des
+relaxations. Nous avons essayé une fois chacun et mesuré. Aucune tentative
+n'a fermé l'écart, et deux des échecs sont assez instructifs pour être la
+leçon.
+
+**Le levage de McCormick : valide en théorie, ingérable à taille
+réelle.** Le remède standard aux produits de variables est une variable
+auxiliaire par joint et par paire de placements compatibles, prise en
+sandwich par $z \le x_1$, $z \le x_2$ et $z \ge x_1 + x_2 - 1$. Sur de
+petites instances, notre implémentation reproduit la borne standard : un
+6×6 demande 22 000 variables de paires et 2,5 secondes, un 8×8 à 4
+couleurs 300 000 et 60 secondes. La montée en taille s'arrête aussitôt
+après : un 8×8 à 6 couleurs et un 10×10 à 6 couleurs (1,25 million de
+variables de paires) dépassent tous deux les 60 secondes sur notre solveur
+LP, et le puzzle complet demanderait de l'ordre de 5 à 20 millions de
+variables de paires à environ trois contraintes chacune, au-delà de ce que
+ce solveur encaisse. Les deux raccourcis évidents ont produit des bornes
+*invalides*, en sens opposés, et chacun se réfute par la seule
+arithmétique. Restreindre les variables de paires aux placements de masse
+LP supérieure à 0,05 sous-compte et renvoie 402, sous un plateau faisable
+connu à 458 ; une borne supérieure sous un point faisable est une preuve
+d'invalidité. Garder à la fois les variables de paires et les variables de
+joints d'origine double-compte et renvoie 479,58, *au-dessus* du 478 non
+levé ; ajouter des contraintes ne peut qu'abaisser un optimum LP, donc
+celui-là aussi se réfute tout seul. Le motif correct, la génération en
+plans coupants des inégalités de McCormick violées avec des coûts réduits
+exacts, exige un accès au solveur plus bas niveau que ce que nous avons
+construit : non essayé, pas impossible.
+
+**Des plans coupants sur la rareté des couleurs : valides ou vides,
+jamais les deux.** Nous avons implémenté un branch-and-cut avec une seule
+famille de coupes, des coupes de cliques d'offre sur le graphe de conflit
+des couleurs (« si un ensemble de joints est forcé à la couleur $k$, au
+plus $\lfloor \text{offre}_k/2 \rfloor$ d'entre eux peuvent
+s'apparier »), mono-thread, une seule configuration ; le verdict
+ci-dessous porte sur cette famille de coupes, pas sur toutes les coupes.
+Les LP de queue sans coupe, sur l'un de nos plateaux à 459 arêtes (arêtes
+correspondantes, convention à cinq indices), sont valides mais lâches de 4
+à 22 % : libérer les 1, 2, 3 et 4 dernières rangées donne des bornes LP de
+27, 58, 90 et 124 contre 26, 49, 74 et 104 atteints, sans jamais rien
+certifier. La coupe telle qu'énoncée est pire que lâche, elle est invalide
+: sur la queue à une rangée, elle pousse le LP à 20, *sous* le 26
+faisable, donc l'inégalité a tranché l'optimum vrai (les demi-arêtes de
+couleur $k$ se consomment aussi hors de l'ensemble forcé, et par les trois
+autres côtés de chaque pièce). Toute comptabilité assez lâche pour être
+valide est retombée sur la borne sans coupe, vide. Le fil conducteur
+rejoint le reste de la page : la difficulté du puzzle est la distinction
+globale, chaque pièce utilisée exactement une fois, pas la rareté locale
+des couleurs, et les cliques du graphe de conflit des couleurs sont
+minuscules et peu informatives.
+
+**Un étage plus haut dans la hiérarchie : le SDP est tout aussi
+aveugle.** Le barreau au-dessus du LP est le levage semi-défini de
+niveau 1 (Shor) de la formulation quadratique, valide par construction :
+toute vraie solution reste faisable à la même valeur d'objectif. Nous
+l'avons construit exactement sur des instances 3×3 plantées aux optima
+certifiés de 12, 11 et 11 sur 12. Sur les deux instances non triviales, le
+SDP certifie 12,000 : il ne voit pas une obstruction de taille unité
+qu'un comptage élémentaire (5 demi-arêtes d'une couleur autorisent au
+plus 2 appariements) règle instantanément. Un contrôle LP McCormick
+valide renvoie le même 12,000, donc l'aveuglement est déjà présent au
+niveau linéaire ; la contrainte semi-définie positive n'ajoute rien ici.
+Et le coût explose immédiatement : le levage complet conscient des
+rotations à seulement 9 cases (324 variables, un bloc semi-défini de
+325×325) a échoué trois tentatives indépendantes sous un budget mono-cœur
+de 280 secondes. Savoir si le levage joint aux rotations retrouverait la
+justesse est ouvert, pas réfuté. Ce sont des constats de calcul sur des
+instances minuscules avec un seul solveur SDP, pas des théorèmes.
 
 ## Ce que ça coûte
 
@@ -288,8 +537,8 @@ modèle case-pièce, atteint par la direction opposée.
   relaxation dépense son budget polynomial à répondre à une question sur un
   puzzle différent, fractionnaire. Les plans coupants existent pour réduire cet
   écart ; personne n'a rapporté de coupes qui en ferment ne serait-ce qu'une
-  entaille sur l'E2, et la structure par joint qui simule les correspondances
-  régénère le mou partout.
+  entaille sur l'E2, nos trois tentatives mesurées ci-dessus comprises, et la
+  structure par joint qui simule les correspondances régénère le mou partout.
 - **Le séparation-évaluation élague avec la borne qu'il a.** Un nœud n'est
   coupé que lorsque sa borne LP tombe sous l'incumbent. Avec la borne qui
   flotte à ~20 arêtes au-dessus de tout ce qui est réel, presque rien n'est
@@ -305,6 +554,22 @@ la [page SAT](/research/build/exact/sat-csp-encodings) atteint pour le CDCL.
   plafond valide, calculé en temps polynomial ; elle est simplement lâche ici.
   L'[entrée des impasses](/research/build/dead-ends) consigne le verdict pour
   que personne ne le redémontre en espérant un certificat.
+- **Une mise en garde : toute relaxation n'est pas une borne.** Une
+  « relaxation » bon marché et tentante, recombler le plateau case par case
+  avec la pièce localement la meilleure en *autorisant la réutilisation des
+  pièces*, n'est un plafond valide d'aucune sorte : c'est une heuristique
+  gloutonne dont le point fixe dépend du plateau de départ. Depuis l'un de
+  nos plateaux à 457 arêtes (arêtes correspondantes, convention à cinq
+  indices), elle converge vers 461 ; depuis un plateau à 456, vers 461 ;
+  depuis un plateau à 440, jusqu'à 469. L'usage valide est celui
+  d'*indicateur de marge* : quand le score glouton relâché égale le score du
+  plateau, le plateau est prouvé maximum local strict même avec l'unicité
+  des pièces relâchée, un certificat d'impasse plus fort que les tests par
+  opérateurs. Sur ce plateau à 457, l'écart de +4 a été prouvé infermable
+  par toute chaîne de permutations jusqu'à la longueur 11 (40 millions de
+  permutations, zéro amélioration). La règle : seules les valeurs issues du
+  LP ou du MIP sont des plafonds ; les scores gloutons relâchés sont des
+  diagnostics.
 - **Des sous-problèmes d'affectation, où l'intégralité est gratuite.** Au sein
   des boucles de réparation, recombler $k$ trous deux à deux non adjacents est
   un pur problème d'affectation $k \times k$ : polytope de Birkhoff, sommets
@@ -334,6 +599,26 @@ la [page SAT](/research/build/exact/sat-csp-encodings) atteint pour le CDCL.
   ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). La formulation
   survit comme une *pièce*, à l'intérieur d'une heuristique qui s'approprie le
   problème d'intégralité au lieu de le relâcher.
+- **La formulation est l'algorithme.** Nous avons mesuré deux encodages MIP
+  de la même tâche, recombiner un petit corpus de bons plateaux en un
+  meilleur, et ils se comportent comme le jour et la nuit (un seul solveur,
+  CBC, exécutions uniques). L'encodage A, « chaque case choisit un plateau
+  source », porte des variables de joints quadratiques en la taille du
+  corpus : correct à 4 ou 5 plateaux (optimum entier trouvé en 17 à 86
+  secondes), mais à 9 plateaux (environ 50 000 variables de joints et
+  100 000 contraintes) le solveur n'a trouvé aucune solution entière
+  faisable en 30 minutes, et sa borne LP de 1 094, plus du double du
+  plafond de 480, ne signifiait rien. L'encodage B, « libérer une région,
+  une variable par case-pièce-rotation, épingler le reste », est 10 à 50
+  fois plus petit (environ 800 variables), se résout en moins d'une minute,
+  et son LP est serré contre l'optimum entier : il *prouve* l'optimalité
+  locale au lieu de deviner. Le mécanisme : les variables de l'encodage A
+  ne portent aucun sens géométrique que le LP puisse exploiter, des
+  mélanges fractionnaires de plateaux gagnent un crédit qu'aucun arrondi ne
+  préserve, tandis que les variables de l'encodage B sont des placements,
+  donc son polytope reste proche de l'enveloppe entière. L'article de 2017
+  qui recycle ses formulations dans des heuristiques est la même leçon vue
+  de l'autre côté.
 
 La route de l'optimiseur, parcourue jusqu'au bout, enseigne un fait limpide sur
 Eternity II : le puzzle est exactement la contrainte d'intégralité. Tout ce

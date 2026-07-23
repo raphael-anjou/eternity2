@@ -4,7 +4,7 @@ description: >-
   Cada tablero récord que tenemos está congelado en su sitio. No se puede
   progresar a base de pequeños retoques desde un tablero excelente hacia uno
   perfecto, y podemos demostrarlo.
-metaDescription: "Cada tablero récord de Eternity II está congelado: no puedes pasar con pequeños retoques de un gran tablero a uno perfecto. Pruebas MIP de optimalidad de halo en varias cuencas récord muestran que el núcleo es localmente rígido — por eso pulir un tablero fuerte nunca eleva su puntuación."
+metaDescription: "Cada tablero récord de Eternity II está congelado: no puedes pasar con pequeños retoques de un gran tablero a uno perfecto. Pruebas MIP de optimalidad de halo en varias cuencas récord muestran que el núcleo es localmente rígido; por eso pulir un tablero fuerte nunca eleva su puntuación."
 kind: finding
 contribution: theory
 tier: 1
@@ -21,6 +21,7 @@ complexity:
     pero cada región es lo bastante pequeña como para cerrarse a la optimalidad
     o a una brecha ajustada en cuestión de minutos.
 related:
+  - /research/records
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -36,8 +37,18 @@ sources:
     url: https://doi.org/10.2307/1910129
   - label: "benj39100: el recocido en GPU aplicado al tablero estricto de 5 pistas topa con el mismo núcleo congelado; la mejor puntuación crece con la distancia al titular (mensaje groups.io 11902)"
     url: https://groups.io/g/eternity2/message/11902
-  - label: "Pruebas independientes de residuo SAT sobre halo y de congelación de réplicas de William Millilaw, reproducidas aquí sobre cinco tableros públicos (cada resolución terminada UNSAT, hasta un halo de cuatro celdas)"
+  - label: "Pruebas independientes de residuo SAT sobre halo y de congelación de réplicas de William Millilaw, reproducidas aquí sobre cinco tableros públicos (cada resolución terminada UNSAT, hasta un halo de radio 4 en el sentido de Chebyshev)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/rigidity-sat-halo
+  - label: "kissat, el solucionador SAT detrás de las pruebas UNSAT de anillos de borde e interior completo"
+    url: https://github.com/arminbiere/kissat
+  - label: "Google OR-Tools CP-SAT, el solucionador certificador detrás de los movimientos de racimo y las re-resoluciones de ventanas"
+    url: https://developers.google.com/optimization
+  - label: "Diaconis & Sturmfels 1998, bases de Markov: el marco de álgebra de movimientos detrás de la teoría del radio de conectividad"
+    url: https://doi.org/10.1214/aos/1030563990
+  - label: "Graver 1975, conectividad de fibras acotadas: el mismo círculo de ideas"
+    url: https://doi.org/10.1007/BF01584976
+  - label: "Wolff 1989, la clase de movimientos de racimo correlacionados de la física estadística que inspiró el censo de permutaciones"
+    url: https://doi.org/10.1103/PhysRevLett.62.361
 ---
 
 import { RigidityHalo } from "@/components/research/RigidityHalo";
@@ -66,6 +77,74 @@ rigidez, en directo.
   <RigidityLab />
 </Figure>
 
+## Empieza por los movimientos más pequeños
+
+Antes de convocar a ningún solucionador, las comprobaciones más baratas se
+hacen por fuerza bruta: probar cada pequeño movimiento que existe, y contar.
+
+Aquí va una versión de bolsillo que cabe en la cabeza. El tablero 469 de la
+comunidad y un tablero 466 conocido difieren en exactamente cuatro celdas:
+las mismas cuatro piezas, cicladas una posición a lo largo de una franja de
+la fila inferior. Enumera las 6.144 disposiciones de esas cuatro piezas en
+esas cuatro celdas (24 permutaciones por 256 combinaciones de rotaciones): el
+máximo es 469, alcanzado únicamente por la disposición del propio titular. El
+tablero 466 es una de las 6.143 disposiciones peores. Dos buenos tableros
+pueden estar a cuatro celdas de distancia sin ningún camino entre ellos, ni
+por encima de ellos, a través de esas celdas.
+
+Sube la escala. En uno de nuestros tableros de 459 (convención estricta de
+cinco pistas; nuestras cifras quedan por debajo de las mejores de la
+comunidad, mira [la página de récords](/research/records) para el contexto),
+se probó cada rotación no trivial de cada pieza: 768 rotaciones, cero
+mejoras; cada rotación real baja estrictamente la puntuación. Los 32.640
+intercambios de pares de piezas: cero mejoras. Las combinaciones de
+intercambio más rotación: 47.164 de ellas, extraídas de una muestra de 5.000
+pares sobre los 522.240 posibles, cero de nuevo; esa es una muestra grande,
+no una enumeración completa. Hay además una razón analítica por la que una
+rotación no puede ni siquiera ser neutra: una rotación de 180 grados deja el
+recuento local de coincidencias sin cambios en todos los vecindarios posibles
+solo si los colores superior e inferior de la pieza coinciden, y también sus
+colores izquierdo y derecho, y cero de las 256 piezas tienen esa simetría
+(ninguna es tampoco totalmente simétrica por rotación). Ninguna rotación sale
+gratis jamás. La misma sonda barata, pasada por once de nuestros tableros
+altos, puntuaciones de 454 a 459, da 8.448 pruebas de rotación simple y ni
+una sola mejora.
+
+En un tablero de 457 (convención de aristas concordantes), la enumeración se
+llevó a todo movimiento que toque hasta cinco piezas: 1.024 giros de rotación
+simple, 6.720 rotaciones de pares adyacentes, 20.240 transposiciones no
+adyacentes, 32.796 3-ciclos sobre las 38 celdas adyacentes a discordancias,
+982.200 4-ciclos y 28.480.440 5-ciclos. Unos 29,5 millones de movimientos,
+cero mejoras, más dos barridos de ramificación y acotación (una búsqueda de
+permutaciones sobre 38 celdas y un halo de radio 1 sobre 82 celdas) que
+tampoco encontraron nada. Ese mismo tablero de 457 fue alcanzado 11 veces de
+forma independiente por una búsqueda de reinicios calientes, idéntico byte a
+byte cada vez: la búsqueda no orbita cerca de un buen tablero, colapsa sobre
+un punto exacto y se queda ahí.
+
+Hasta los movimientos diseñados para parecer gratis fracasan. Algunos pares
+de piezas comparten tres de sus cuatro colores de arista, así que
+intercambiarlas parece casi neutro. En el 469 de la comunidad se probaron los
+114 intercambios simples de ese tipo: exactamente uno mantiene la puntuación
+en 469 (y produce el único tablero gemelo conocido), 2 dan 468 y 111 dan
+467. Los 6.441 intercambios dobles: ninguno alcanza 470, el mejor da 468. En
+6.555 perturbaciones construidas precisamente para ser casi neutras en
+puntuación, el conjunto de nivel 469 contiene exactamente dos tableros.
+
+Los números se explican solos. A una puntuación de 459, una celda aporta de
+media unas 3,6 aristas concordantes, mientras que una pieza aleatoria soltada
+en un vecindario fijo espera solo unas 0,18 (aproximadamente cuatro aristas
+por una probabilidad de uno entre 22 colores); un intercambio aleatorio
+espera por tanto perder unas 6,8 aristas. Una cota probabilística holgada
+limita la probabilidad de un intercambio de mejora a alrededor del 5 por
+ciento; la frecuencia medida está por debajo de $3\times10^{-5}$. Cada
+colocación de un tablero de cabeza está coadaptada a sus vecinas mucho más
+allá de lo que el azar por sí solo predeciría. Una nota de alcance: cada
+censo aquí es exhaustivo dentro de su clase de movimientos pero corre sobre
+un solo tablero (los censos de rotaciones e intercambios sobre un 459, la
+enumeración de cinco piezas sobre un 457, el censo de casi gemelas sobre el
+469); son las pruebas exactas de abajo las que los generalizan.
+
 ## Cómo se sabe esto
 
 El resultado no se apoya en probar muchos intercambios y darse por vencido.
@@ -75,9 +154,20 @@ encontrar la única mejor manera de rellenarla de nuevo. El solucionador explora
 todo ese espacio local de forma exacta, no por muestreo.
 
 La respuesta vuelve siempre igual: la mejor disposición es la que ya está ahí.
-Lo demostramos región tras región, a lo largo de tres tableros récord distintos,
-y hasta un radio de cuatro celdas, que es un bloque de decenas de celdas a la
-vez. Cada vez, no existe mejora alguna.
+Lo demostramos región tras región, tablero tras tablero, y hasta un radio de
+cuatro celdas; la región más grande cerrada con certificado tiene 79 celdas,
+casi un tercio del tablero. Cada vez, no existe mejora alguna.
+
+Una cautela aprendida por el camino: una re-resolución exacta en frío de una
+región grande puede rendir de menos sin avisar. Al pedirle reconstruir desde
+cero las tres últimas filas de un tablero fuerte (48 celdas), el solucionador
+ni siquiera redescubrió la propia cola del tablero en el tiempo dado,
+llegando a 68 aristas concordantes frente a las 72 del titular tras 201 s
+(una sola ejecución). En ventanas grandes, "no se encontró nada mejor" puede
+ser mera dificultad del solucionador, no una prueba. Un veredicto de rigidez
+solo se acepta aquí cuando el solucionador parte del titular, de modo que
+cualquier cosa mejor es estrictamente más fácil de encontrar, y aun así
+certifica una brecha cero.
 
 ## Método: la prueba MIP
 
@@ -91,33 +181,285 @@ convierten en un problema de asignación; el objetivo maximiza las aristas
 concordantes, contando la frontera fija. Una región de 64 celdas representa unas
 18.700 variables binarias. La ramificación y acotación encuentra entonces o bien
 un relleno estrictamente mejor, o bien prueba, con una cota dual, que no existe
-ninguno.
+ninguno. La definición que conviene retener: un tablero es *localmente rígido
+en radio $r$* si, para cada componente conexa de sus celdas adyacentes a
+discordancias, liberar todas las celdas a distancia como mucho $r$ de ella y
+resolver de forma exacta no aporta mejora alguna.
 
 Nunca encuentra ninguno. Las pruebas, región por región. Estas ejecuciones MIP
 provienen del cuaderno de investigación del proyecto (el artículo del 2026-05-16
 citado en las fuentes); la tabla de abajo aún no se reejecuta bajo la cadena de
 resultados validados de este sitio, de modo que sus tiempos de solucionador y sus
 cotas duales no son verificables de forma independiente desde este repositorio,
-a diferencia del resultado SAT sobre halo más abajo:
+a diferencia del resultado SAT sobre halo más abajo. La misma nota de
+procedencia cubre cada censo, enumeración y escalada SAT añadidos a esta
+página; la reproducción SAT de radio 4 es el único resultado consignado en
+este repositorio:
 
 | Región | Tablero | Celdas | Tiempo del solucionador | Resultado |
 |---|---|---:|---:|---|
-| halo-2, por componente (×8) | 3 cuencas (469, 459, 458) | 2–32 | segundos cada una | todos Δ = +0, **probado** |
+| halo-2, por componente (×8) | 3 cuencas (469, 459, 458) | 2–34 | segundos cada una | todos Δ = +0, **probado** |
 | halo-1 conjunto | McGavin 469 | 37 | 895 s | Δ = +0, **probado** |
 | halo-1 conjunto | Local 459 | 59 | 1800 s | Δ = +0, **probado** |
+| halo-1 conjunto | tres 458 distintos | 57, 62, 64 | 180 s cada uno | Δ = +0, **probado** |
+| halo-1 por componente | un segundo 459, disjunto | 52 + 4 | ~60 s | Δ = +0, **probado** |
+| 3 filas superiores (una banda, no un halo) | McGavin 469 | 48 | 70 s | Δ = +0, **probado** |
 | halo-3, por componente | McGavin 469 | 42 + 47 | 929 s | Δ = +0, **probado** |
+| halo-3, racimo más denso | un 458 | 79 + 19 | 1200 s + 0,2 s | Δ = +0, **probado** |
 | halo-4, componente 0 | McGavin 469 | 57 | 1200 s | Δ = +0, **probado** |
 
-A lo largo de cuatro cuencas y ≥13 regiones la respuesta es invariante: el
-tablero titular es localmente MIP-óptimo, hasta el halo-4 para el 469 de
-McGavin. La única región que queda con una brecha, las cuatro filas superiores,
-64 celdas, sigue dando un resultado *sólido*: una cota dual de 123 frente a los
+En al menos seis tableros distintos y más de veinte regiones la respuesta es
+invariante: el tablero titular es localmente MIP-óptimo, hasta el halo-4 para
+el 469 de McGavin. Dos filas merecen comentario. La fila de las tres filas
+superiores es una banda geométrica completa, no un halo: libera celdas
+limpias junto a las rotas, así que descarta además los movimientos que
+intercambiarían piezas entre celdas rotas y limpias dentro de la banda. Y la
+región de 79 celdas, la más grande jamás cerrada aquí, está en un 458 y no en
+el 469 porque la resolubilidad seguía la *densidad de defectos*, no el tamaño
+bruto de la región: las regiones densas en defectos se cierran, las mayores
+pero dispersas agotan el tiempo.
+
+La única región que queda con una brecha, las cuatro filas superiores, 64
+celdas, sigue dando un resultado *sólido*: una cota dual de 123 frente a los
 116 del titular, de modo que ni siquiera el caso no cerrado puede superar el muro
 por mucho (implica una cota a escala de tablero de ≤ 476).
+
+No todas las resoluciones terminaron, y el registro conserva también esas. La
+resolución conjunta halo-2 de 54 celdas sobre el 469 se quedó atascada en su
+relajación raíz durante 55 minutos y fue detenida; la banda de las 5 filas
+superiores (80 celdas) agotó el tiempo; en los tres 458, las dos componentes
+grandes de halo-2 toparon con un límite de 120 s reportando +0 *sin*
+certificado, lo que cuenta como "no se encontró mejora", no como probado. Una
+fila inacabada más amplía la evidencia a otra convención de puntuación: a un
+tablero de 460 jugado *sin* la restricción de pistas se le dio una resolución
+conjunta halo-1 (42 celdas libres, libertad total de piezas) y una ejecución
+de 900 segundos no encontró mejora pero dejó abierta una brecha dual del 9,5
+por ciento; esa fila también es "nada encontrado dentro del presupuesto", no
+"probado óptimo". Un solo tablero, una sola ejecución.
+
+Tampoco es un tablero desafortunado aislado. Un segundo tablero de 459,
+hallado por un camino de construcción completamente distinto, coincide con el
+primero en solo 3 de 256 celdas, esencialmente las celdas de las pistas; los
+dos tableros son estructuralmente disjuntos, y el segundo está *también*
+probado rígido en halo-1 (dos componentes, 52 y 4 celdas, +0 probado en
+alrededor de un minuto). En halo-2 su componente pequeña (7 celdas) se probó
++0 en 18 s; su componente grande (67 celdas) quedó sin decidir tras unos 13
+minutos y sigue abierta. La conjetura que esto respalda, enunciada como tal:
+el conjunto de nivel 459 es una unión disjunta de muchos puntos rígidos, y
+superarlo exige una reorganización a escala de tablero o un punto de partida
+distinto, nunca un arreglo local.
 
 La insignia dice *probado* en lugar de *conjeturado* para las regiones
 efectivamente cerradas; el enunciado general sobre *todos* los tableros sigue
 siendo una conjetura, respaldada por cada región probada hasta la fecha.
+
+## Tampoco existe ningún intercambio ingenioso
+
+El MIP libera una región y la rellena desde el conjunto completo de piezas.
+Hay una clase de movimientos complementaria que no cubre: elegir $k$ celdas y
+probar todas las formas de permutar y re-rotar las piezas *que ya están
+ahí*, con el resto del tablero congelado. Un álgebra de movimientos
+distinta, y la misma respuesta.
+
+En un tablero nuestro de 452 (convención estricta de cinco pistas, 2026-07):
+$k=1$, exhaustivo sobre las 251 celdas libres, cero movimientos de mejora.
+$k=2$, exhaustivo sobre los 31.375 pares fuera de pistas, cero. $k=3$ a $6$,
+unos 29.000 racimos muestreados (junto a defectos, por todo el tablero,
+conexos y no conexos), cero; ese nivel es una muestra grande, no una
+enumeración. Para $k=7$ y $8$ el muestreo se ascendió a enumeración
+verdadera: cada subconjunto conexo de 7 y 8 celdas de las celdas que tocan un
+defecto, en dos tableros independientes, 849 subconjuntos en total (231 en el
+452, 618 en un 451 estructuralmente ajeno que difiere de él en 249 de las 256
+celdas), todos resueltos hasta el final, cero de mejora, cero tiempos
+agotados; más los 7.845 subconjuntos conexos de 7 celdas a un paso de una
+arista defectuosa, cero otra vez. Unos 60.000 movimientos de racimo
+evaluados, y el mejor delta encontrado en cualquier parte es exactamente
+cero.
+
+Ese cero no es un detector roto. Como control positivo, un sabotaje
+deliberado de dos piezas (452 rebajado a 447) fue reparado por la misma
+maquinaria en un solo movimiento de 4 celdas, directo de vuelta a 452. Y la
+búsqueda local voraz sobre esta clase de movimientos, lanzada desde tres
+tableros de orígenes independientes (el 452, un gemelo de igual puntuación
+que difiere en exactamente 2 celdas, y el 451 ajeno), tocó un punto fijo
+inmediato en las 20 ejecuciones sembradas: mínimo, mediana y máximo
+idénticos, cero escapes.
+
+El detalle que escuece: el propio 452 *nació* de esta clase de movimientos.
+Una co-rotación de dos piezas elevó un 451 que era rígido bajo todo
+movimiento de pieza única. Existió un genuino movimiento correlacionado de
+dos cuerpos; una vez tomado, no queda ningún movimiento correlacionado de
+tamaño hasta 8 cerca de los defectos. El radio de rigidez crece a medida que
+el tablero mejora.
+
+Cambiar la geometría del conjunto liberado tampoco ayuda. Libera franjas de
+filas contiguas en vez de manchas: 54 de 54 franjas de una fila a través de
+las bandas de defectos de los dos tableros (anchos de 8 a 14, hasta 15 celdas
+liberadas) certifican exactamente la puntuación del propio tablero en menos
+de un segundo cada una, y 18 de 18 franjas de dos filas fuera de la peor
+banda certifican la rigidez hasta 26 celdas. En la banda de defectos más
+densa de cada tablero, las franjas más anchas (16 a 26 celdas) se vuelven
+difíciles de *certificar*: tras escalar a 300 s y 3 semillas, 6 de 10 siguen
+abiertas con brechas de cota de 2 a 6 aristas. Pero en las 30 ejecuciones de
+escalada el solucionador nunca encontró disposición alguna mejor que la del
+propio tablero. Eso es una brecha de certificación, no evidencia de una
+mejora, y las franjas abiertas se registran como abiertas, no como probadas.
+
+Las ventanas rectangulares cuentan la misma historia. En el 452, cuyas 28
+aristas rotas se reparten en 22 concentradas en la banda inferior y 6
+dispersas, cada ventana de hasta 18 celdas alrededor de cada racimo de
+defectos (cuatro ventanas, de 9 a 18 celdas) se re-resuelve a un óptimo
+certificado exactamente en el valor del propio tablero. Cada defecto está
+forzado por piezas comprometidas *en otra parte*; ninguna ventana que
+simplemente contenga el defecto puede arreglarlo.
+
+Ni siquiera dejar que las piezas comercien a través de la frontera
+bueno/malo mueve nada. En un tablero nuestro de 459 (estricto de cinco
+pistas), las dos filas inferiores (32 celdas) certifican la optimalidad en
+49 s. Una ventana de 46 celdas, y ventanas de 52 y 72 celdas que además
+liberan de 6 a 10 celdas donantes *dentro de la región perfecta*, para que las
+piezas puedan intercambiarse entre las partes limpias y las rotas, devuelven
+todas el tablero idéntico: cero celdas movidas, ni siquiera un reacomodo lateral de
+igual puntuación (150 a 180 s cada una, semilla única, así que estas ventanas
+mayores cuentan como "ninguna mejora y ningún movimiento encontrados", no
+como certificados). El mismo operador aplicado a un tablero más débil de 455
+lo eleva en 2 hasta 457: demostrablemente mejora tableros que aún no están en
+su punto fijo; el 459 ya lo está. Dentro de cada ventana, la relajación
+lineal cree que hay unas 17 coincidencias más disponibles; la restricción de
+cada-pieza-una-sola-vez las prohíbe todas. La restricción que muerde es qué
+piezas deja libres el resto del tablero, nunca el tamaño de la ventana. La
+dificultad es la distinción global, no la concordancia local.
+
+## Rígido fila entera a fila entera
+
+Halos y ventanas son manchas. Prueba una geometría que cruce el tablero:
+libera una fila entera de 16 celdas, restríngela a piezas no usadas en otra
+parte del tablero y enumera los rellenos alternativos por programación
+dinámica. En un tablero de 460 (discordancias todas en las filas 11 a 14) y
+en el 469 de la comunidad (discordancias en las filas 0 a 4), el relleno
+actual de cada fila es el mejor disponible, y varias filas no admiten
+*ninguna alternativa legal en absoluto*: la cadena colocada es la única
+manera de enhebrar esa fila a través del resto del tablero.
+
+Los números. En el 460: las filas 1 a 10 son perfectas y admiten exactamente
+una cadena cada una, la colocada; las filas 12 y 14 tienen cero cadenas
+alternativas; la fila 13 tiene 176 alternativas, todas peores, la mejor de
+ellas 10 aristas por debajo. En el 469: la fila 3 tiene cero alternativas;
+las filas 2 y 4 tienen sus mejores alternativas 20 aristas por debajo; las
+filas 5 a 14 son perfectas, con la original entre hasta unas 17.857 cadenas
+legales y ninguna mejor. Liberando dos filas conjuntamente (32 celdas,
+costura interna sin restricción): los pares (11,12), (12,13) y (13,14) del
+460 dan de 0 a 4 cadenas alternativas en total, todas peores (12 a 16
+aristas por debajo) o infactibles. Tres filas conjuntas (48 celdas): las
+filas (11,12,13) y (12,13,14) dan cero cadenas alternativas. Estas filas no
+son solo óptimas; a menudo están *forzadas*. Unicidad, no mera optimalidad.
+Alcance: la enumeración es programación dinámica de haz (ancho de haz de
+100.000 para una fila, de 5.000 a 50.000 para dos y tres filas), exhaustiva
+en la práctica pero no certificada como las filas MIP; llamémosla
+haz-exhaustiva. Dos tableros.
+
+Un acompañante exacto sobre bandas: vacía por completo las 2 filas
+inferiores (32 celdas) de un tablero de 460 y deja que una búsqueda exacta
+por restricciones enumere cada relleno legal con las piezas liberadas.
+Existen exactamente 32 rellenos alternativos, todos con 460 o menos. Vacía
+las 4 filas inferiores (64 celdas): la única compleción que la búsqueda
+exacta alcanza es el propio tablero original. Un solo tablero, solo estos dos
+tamaños de banda; pero en cada banda que pudo cerrarse de forma exacta, la
+puntuación actual es el techo verdadero.
+
+## Dónde viven las últimas discordancias, y por qué están atascadas
+
+En un tablero nuestro de 458, la anatomía del fallo está notablemente
+concentrada. El anillo del borde es perfecto (60 de 60), las nueve filas
+interiores superiores son perfectas, y las 22 discordancias (4
+borde-interior, 18 interior-interior) viven todas en las cinco filas
+inferiores, agrupadas en 10 minúsculos racimos disjuntos de 2,8 celdas de
+media, el mayor de solo 5. Cada racimo parece trivialmente arreglable. Las
+resoluciones exactas dicen lo contrario: rellenos por racimo, delta cero;
+ampliaciones halo-1 y halo-2 hasta 16 celdas, delta cero; y la unión de las
+28 celdas que tocan un defecto, resuelta conjuntamente a optimalidad probada
+en 1,74 s, delta cero.
+
+Este es el mecanismo de todo el muro en miniatura: la región de defectos
+está en su óptimo exacto *dadas las piezas que le dejaron*. La parte superior
+perfecta del tablero ha consumido un conjunto de piezas concreto, y ese
+compromiso es lo que limita la parte inferior. Arreglar las últimas
+discordancias exigiría descomprometer piezas de la región ya perfecta, un
+gran movimiento entre regiones, no una reparación local. (Una relajación
+lineal lee un techo de 478 para este borde; es un techo de relajación para
+este borde en particular, no una afirmación sobre el óptimo verdadero.) Un
+solo tablero, pero el patrón, defectos apretados en unos pocos racimos
+minúsculos que los rellenos exactos no pueden arreglar, es exactamente lo que
+la tabla de halos de arriba sigue encontrando en las demás cuencas.
+
+## Por qué nadie puede certificar el muro desde arriba
+
+Dos hechos coexisten en el tablero de 452 (estricto de cinco pistas), y su
+tensión es el estado del arte actual. Hecho A: ningún movimiento local de
+ningún tipo probado lo supera, y cuatro marcos independientes concuerdan
+(movimientos de racimo, re-resoluciones de ventanas, un certificado exacto de
+brecha cero de que el lote de piezas sobre sus celdas que tocan defectos está
+colocado de forma óptima, y una sonda termodinámica que o bien se congela en
+el titular o bien se funde hacia lo aleatorio, sin escape suave entre
+medias). Hecho B: todo intento de acotar una región *grande* desde arriba
+fracasa; las cotas son holgadas y no convergen. En la cola de tres filas del
+tablero, 8 semillas de 20 minutos cada una devolvieron todas exactamente el
+titular, ninguna encontró nunca nada mejor, mientras la cota superior del
+solucionador *subía* de 79 (a 300 s) a 89 (a 1200 s), alejándose de los 72
+del titular en vez de acercarse. Una cota de programación lineal sobre el
+interior lee 478,5 de 480: vacía.
+
+Dentro hay un cuento con moraleja. Una primera lectura de la ejecución de
+300 s fue "una brecha de 7, margen hacia una puntuación mayor". La cacería de
+8 semillas mostró que la brecha era un artefacto de una relajación no
+convergente, no evidencia de un tablero mejor alcanzable. La razón por la que
+las cotas siguen holgadas: la escasez que hace difícil este puzle es de
+segundo orden, cuestión de qué *pares* de colores son conjuntamente escasos,
+y las relajaciones de concordancia de primer orden, sobre las que se
+construyen las cotas LP y de propagación, no pueden verla, por mucho tiempo
+que corran.
+
+Así que la rigidez local (probada) y la brecha global abierta no están en
+tensión. El titular es un óptimo local profundo, *y* puede existir una
+disposición mejor desconectada que ningún movimiento local alcanza; hoy
+ninguna cota la descarta y ninguna búsqueda la encuentra. Cerrar cualquiera
+de las dos direcciones de una sola brecha de región grande sería una
+primicia: un relleno mejor sería un nuevo mejor tablero, y una cota empujada
+hasta el titular sería el primer techo de puntuación local probado. La cota
+dual de las cuatro filas superiores de arriba (123 frente a 116) es lo más
+parecido a un progreso desde arriba, y sigue holgada por 7 aristas. Alcance:
+el hecho A está probado en un tablero mediante varias lentes; el hecho B
+lleva una dispersión de 8 semillas en su ejecución decisiva.
+
+## Ni siquiera se pueden recombinar los buenos tableros
+
+La rigidez sobrevive incluso cuando el conjunto de movimientos es "tomar
+prestado de cada buen tablero jamás encontrado". Construye una optimización
+en la que cada celda pueda tomar la pieza y rotación que *cualquiera* de 25 a
+30 tableros distintos de alta puntuación coloca ahí, con
+cada-pieza-una-sola-vez impuesto, y libera el tablero entero, las 256
+celdas. El óptimo es exactamente el mejor tablero ya presente en el corpus,
+nunca una mezcla que lo supere: 457 con las cinco pistas fijadas (convención
+estricta; corpus de 25 tableros, resuelto en 24 s), y 459 sin imponer las
+pistas (convención de aristas concordantes). Las versiones por región con
+radios crecientes, 77, 127, 191 y 252 celdas libres, dan todas delta cero en
+segundos hasta unos 30 s. Estos óptimos son certificados, por corpus; el
+corpus es de 2026-05, cuando nuestros mejores eran 457 estricto y 459 en
+aristas concordantes, ambos por debajo de las cifras de la comunidad entonces
+y ahora ([página de récords](/research/records)).
+
+El corpus no anda escaso de opciones. Cada una de las 256 celdas tiene al
+menos 2 opciones distintas entre los tableros, y una pieza típica aparece en
+de 6 a 19 posiciones distintas por el corpus. La diversidad es rica; la
+unicidad de las piezas la fragmenta. Los tableros de familias de esquinas
+distintas no pueden mezclarse en absoluto, y añadir el 469 de la comunidad al
+corpus hace que el optimizador simplemente elija ese tablero en bloque, a
+469, en vez de mezclarlo con nada.
+
+La lectura: la brecha por encima de los mejores tableros conocidos es una
+brecha de *descubrimiento*, no de recombinación. La mejora no se esconde en
+ninguna combinación de lo ya conocido; exige tableros fuera de todo el corpus
+conocido.
 
 ## Por qué importa
 
@@ -131,7 +473,62 @@ También indica lo que no va a funcionar. El pulido, la ascensión de colina y l
 mayoría de las heurísticas de reparación local intentan subir la pendiente desde
 un punto congelado. No hay pendiente que subir. Alcanzar una solución exige un
 movimiento que reorganice una región grande de una sola vez, o un punto de
-partida enteramente distinto, no un mejor pulido.
+partida enteramente distinto, no un mejor pulido. Las pruebas conjuntas de
+halo-1 lo hacen cuantitativo: cualquier operador de destrucción y reparación
+cuyo alcance sea como mucho el halo, ventanas de hasta unas 30 celdas
+alrededor de los defectos, está matemáticamente agotado en estos tableros. La
+congelación no es "nuestra heurística es débil"; esa clase entera de
+operadores está terminada.
+
+Ni siquiera el mayor movimiento único que sabemos hacer escapa. En nuestro
+tablero de 461 (estricto de cinco pistas; para situar esa cifra frente a los
+récords de la comunidad, mira [la página de récords](/research/records)), los
+movimientos de ciclos enteros indescomponibles descritos en la [página de los
+sigma-ciclos](/research/why/sigma-cycles) se aplicaron *atómicamente*, cada
+uno seguido de una re-resolución de ventana local para reparar las celdas
+alteradas. Unos 4.000 movimientos de ese tipo: cero escapes, y la salida no
+local más barata sigue perdiendo al menos un punto (mejor resultado 460, dos
+celdas de diferencia). Esto solo descarta la variante de limpieza local; una
+re-resolución compensatoria global no se probó. Pero un movimiento grande no
+basta si su limpieza es local.
+
+Una cosa más que la rigidez *no* significa: difícil de reconstruir. Fija las
+primeras catorce filas del 469 de la comunidad y deja que una búsqueda de
+reparación reconstruya el resto: 3 de 4 semillas vuelven a 469 (la cuarta se
+queda en 454). Haz lo mismo con los prefijos de nuestros propios tableros
+récord: ninguna semilla supera jamás 460. Una sonda pequeña (4 semillas,
+reparaciones de 30 segundos por tablero), pero la forma es clara. El muro no
+mide lo difícil que es reconstruir un tablero; dice *a qué valle pertenece el
+esqueleto del tablero*. Un prefijo o admite una gran compleción o no la
+admite, y ninguna suerte de semillas cambia cuál.
+
+### El final de la partida se decide pronto
+
+Fija las $N$ filas superiores del tablero 469 de la comunidad y deja que la
+búsqueda local complete el resto. La puntuación de compleción no es gradual
+en $N$; es un acantilado con señuelos: $N=1$ da 400, $N=2$ da 382, $N=4$ da
+401, $N=8$ da 418, $N=12$ da 450, $N=13$ da 455, y $N=14$ da 469, una
+reconstrucción *exacta*, cero celdas de diferencia, con $N=15$ igual. Con 13
+filas fijadas existe una compleción alternativa de las tres últimas filas,
+con las mismas piezas de otra manera, que puntúa solo 455 y es en sí misma
+una trampa: la concordancia local de colores admite varias compleciones y la
+búsqueda no puede saber cuál se extiende. Acertar el 87 por ciento de un
+récord no es "estar casi ahí". Son ejecuciones de compleción únicas por
+punto, con presupuestos del orden de minutos, sin dispersión de semillas; lee
+el umbral, no las puntuaciones individuales.
+
+Dos notas completan el cuadro. El barrido prueba que la maquinaria de
+compleción es capaz de *alcanzar* 469; el muro está en encontrar las
+primeras aproximadamente 224 piezas de la estructura, no en debilidad alguna
+del paso de pulido. Y la influencia no fluye en sentido contrario: una fila
+superior sola, una entre al menos $5\times10^{8}$ filas superiores legales,
+no determina casi nada. Cuatro preajustes de operadores de nuestra familia de
+búsqueda local, crecidos desde una fila superior fijada, se atascan todos
+entre 378 y 400; otras familias de búsqueda quedan sin probar, así que ese
+negativo está acotado a nuestro buscador. Entretanto, 363 de nuestros
+tableros de 455 o más usaron solo 47 filas superiores distintas: los buenos
+tableros se agrupan por arriba mucho antes de que la parte de abajo quede
+decidida.
 
 ## Alguien topó con el mismo muro desde el lado del recocido
 
@@ -168,7 +565,10 @@ sobre cinco tableros públicos, con nuestro propio codificador y un control
 positivo para asegurarnos de que una región concordante vuelve satisfacible. En
 los cuatro tableros récord de la comunidad, desde el 467 de Verhaard hasta el 470
 de Blackwood, y el 464 de Riotte (el récord estricto de cinco pistas), cada
-resolución que termina es UNSAT hasta un halo de cuatro celdas: ningún
+resolución que termina es UNSAT hasta un halo de radio 4 en el sentido de
+Chebyshev (esta reproducción mide la región liberada por radio de Chebyshev,
+mientras que las escaleras SAT del cuaderno más abajo cuentan pasos de
+Manhattan, así que las dos escalas de halo no son la misma métrica): ningún
 reordenamiento local de las propias piezas de un tablero récord cierra una sola
 discordancia, incluso cuando la región liberada supera el centenar de celdas. Las
 instancias de radio 4 son lo bastante grandes como para que algunas no terminen
@@ -177,6 +577,36 @@ agotados y se dejan abiertas, no se cuentan como probadas, de modo que la tabla
 validada enuncia exactamente lo que se decidió. La programación entera optimiza y
 acota; el recocido choca con el muro a mano; SAT decide y devuelve una
 refutación. Tres métodos, una sola respuesta.
+
+Una cuarta herramienta está de acuerdo. Un optimizador MaxSAT, una variante
+de SAT que devuelve a la vez el mejor relleno y una prueba de su optimalidad,
+se apuntó a subregiones de un tablero nuestro anterior de 454: fijar todo lo
+que queda fuera de una región, liberar la región, pedir el mejor relleno
+demostrable. Cada ventana $k\times k$ hasta 5×5 se probó óptima dentro de su
+presupuesto de 60 s (las ventanas de 6×6 excedieron el presupuesto y quedan
+registradas como no cerradas, no como probadas), y la zona de defectos entera
+del tablero, 45 celdas que contienen sus 26 discordancias interiores, se
+probó óptima en 83 s: esas 26 discordancias son lo mejor que esa región puede
+hacer dado el resto del tablero. Ese 454 fue a su vez alcanzado byte a byte
+desde 4 semillas aleatorias distintas, el mismo colapso sobre un único punto
+que el 457 del censo de arriba: las ejecuciones independientes no solo llegan
+a la misma puntuación, llegan exactamente al mismo tablero.
+
+Empuja la pregunta SAT más lejos y la respuesta se vuelve más dramática.
+Toma uno de nuestros tableros de 459 (cinco pistas impuestas), libera cada
+celda a distancia como mucho 10 de sus discordancias, 218 de las 256 celdas
+libres y solo 38 fijadas, y pregunta si *alguna* compleción alcanza un 480
+completo. UNSAT, en 0,31 s. La escalera por el camino: los halos 0 a 5 todos
+UNSAT en menos de 2 s cada uno; el halo 7, 173 libres y 83 fijadas, UNSAT en
+0,17 s. Las 38 celdas aún fijadas en el halo 10 son esencialmente las dos
+filas superiores más 3 de las 5 pistas. Así que las dos filas superiores de
+este tablero son, por sí solas, demostrablemente incompatibles con cualquier
+solución perfecta: todo 480 debe diferir de este tablero en algún punto de
+esas 38 celdas. La rigidez la porta un fino esqueleto de la parte alta del
+tablero, no los vecindarios de los defectos. En radio 15, con solo 4 celdas
+fijadas, el solucionador agotó los 600 s; ese caso queda abierto. Un tablero
+concreto; no se sabe si otros tableros de 459 comparten la misma rigidez de
+la parte alta fijada.
 
 Sus trabajos anteriores sobre la serpiente y la búsqueda local pusieron un número
 al porqué. El mayor parche que cualquiera de sus operadores de reparación podía
@@ -191,6 +621,93 @@ presupuesto. La reparación local reescribe demasiado poco a la vez para
 abandonar el valle, y por eso escapar exige un movimiento que reorganice una
 región grande de una sola vez, exactamente como concluye la sección de prueba de
 arriba.
+
+## El muro llega hasta el mismísimo 480
+
+Todo lo anterior pregunta si un reordenamiento local puede cerrar una
+discordancia. Hay una pregunta mucho mayor: conservando solo el anillo del
+borde de un tablero, ¿alcanza *alguna* disposición de las 196 piezas
+restantes un 480 perfecto? En nuestro tablero de 459 (convención de aristas
+concordantes, pistas canónicas) la respuesta es una prueba de que no, a
+todas las escalas. Liberar las 32 celdas en discordancia: UNSAT en 0,09 s
+(14.000 variables, 81.000 cláusulas). Liberar todo lo que está a 5 pasos de
+una discordancia, 140 celdas, más de la mitad del tablero: UNSAT en 1,56 s.
+Liberar el *interior entero*, las 191 celdas interiores fuera de pistas,
+conservando solo el anillo del borde de 60 piezas: UNSAT en 1,37 s (160.000
+variables, 5,4 millones de cláusulas). Los peldaños intermedios, halo-1 con
+70 celdas (0,33 s), halo-2 con 93 celdas (0,89 s), halo-3 con 109 celdas
+(0,80 s), son todos UNSAT también. El solucionador es kissat, citado en las
+fuentes.
+
+Y no es la mala suerte de un solo tablero. Se probaron nueve configuraciones
+distintas de anillo de borde, abarcando cuatro disposiciones de esquinas
+diferentes: el borde del 469 de la comunidad, nuestros bordes récord de 459 y
+458, un tablero de 435 derivado de propagación de creencias, y cinco bordes
+parciales enumerados sistemáticamente. Cada una, sin excepción, es UNSAT para
+480, en menos de 2 segundos cada vez. Lo más notable: el borde del 469 de la
+comunidad, a 11 discordancias de la perfección, demostrablemente no puede
+alojar ningún interior de 480: UNSAT en menos de 0,01 s. El codificador se
+validó de ida y vuelta sobre pequeños puzles resolubles, donde resoluciones
+frescas se decodifican en tableros perfectos verificados y fijar un borde
+correcto devuelve SAT, la misma disciplina de control positivo que la
+reproducción de arriba; los veredictos UNSAT son reales, no artefactos.
+
+El borde abierto de este resultado es su mejor resumen. Solo existen nueve
+configuraciones de borde en nuestro corpus, y un borde compatible con 480
+existe con certeza: el puzle se construyó a partir de una solución.
+Simplemente no es ninguno de los bordes que una búsqueda de clase récord haya
+producido jamás. Pulir cerca de un récord no es solo lento; bajo el propio
+borde de ese récord, llegar a 480 es demostrablemente imposible. Una solución
+exige un borde distinto.
+
+## Por qué existe el muro
+
+La página hasta aquí prueba el muro; esto es lo más parecido que tenemos a
+una razón. Modela el conjunto de tableros con puntuación fija como un grafo
+cuyas aristas son movimientos que tocan como mucho $k$ celdas, y pregunta por
+el menor $k$ que lo conecta: el radio de conectividad. En instancias pequeñas
+de emparejamiento de aristas donde cada tablero puede enumerarse de forma
+exacta, emergen dos leyes. Primera, el radio es pequeño en el grueso del
+espectro de puntuaciones y salta al tablero entero exactamente en la
+puntuación máxima: en una instancia de 6 celdas, $k$ vale de 2 a 4 celdas en
+las puntuaciones interiores y 6, el tablero entero, en el máximo; en una
+instancia de 9 celdas la razón $k/N$ ronda de 0,22 a 0,44 en el interior y
+0,78 en la cima. Segunda, la rigidez se enciende con la riqueza de colores:
+barriendo la paleta en las instancias de 9 celdas, el soporte medio del
+movimiento mínimo sube de 1,4 a 7,6 celdas cuando los colores pasan de 2 a
+8, y la fracción de instancias cuyas soluciones perfectas necesitan un
+movimiento de tablero completo para interconectarse sube de 0 al 70 por
+ciento.
+
+A escala de juguete hay un teorema, probado con un argumento de forzado y
+verificado por enumeración exhaustiva: si el diseño de colores es lo bastante
+rico como para que cada color de arista expuesto admita como mucho una ficha
+legal durante un relleno, entonces dos soluciones perfectas distintas no
+comparten *ninguna celda*, así que cualquier movimiento entre ellas debe
+tocar cada celda. A una riqueza de colores comparable a la del puzle real,
+cada instancia probada resultó rígida exactamente en ese sentido: cero celdas
+compartidas entre cada par de soluciones perfectas.
+
+Para el propio Eternity II esto es una conjetura, y la etiquetamos como tal.
+Con 22 colores interiores, cada uno reutilizado entre unas 24 y 50 veces a
+lo largo de 480 adyacencias interiores, el puzle real se asienta bien adentro
+del régimen rígido, de modo que tableros casi perfectos distintos deberían
+ser casi ortogonales (lo que encaja con la diferencia de 225 celdas
+observada arriba entre buenos tableros) y ningún movimiento de tamaño
+acotado debería conectar óptimos distintos. La condición de "como mucho una
+ficha" no es estrictamente cierta en E2, así que la afirmación defendible es
+"una gran fracción del tablero", no "demostrablemente las 256 celdas".
+
+El corolario es la parte satisfactoria: la búsqueda local se congela
+*precisamente en las puntuaciones altas* porque ahí es donde el grafo de
+movimientos se desconecta. El interior del rango de puntuaciones se recorre
+con facilidad, por eso llegar a los 450 y 460 es rutina; la cima es un
+conjunto de puntos aislados, por eso el pulido muere ahí. Una teoría, las
+dos mitades de la historia de esta página. (Las matemáticas son el círculo
+de ideas de las bases de Markov y de Graver de la estadística algebraica;
+mira las fuentes. Los únicos movimientos de cima baratos que la teoría
+permitiría son simetrías globales, y este juego de piezas no tiene
+esencialmente ninguna.)
 
 <Callout kind="insight" title="La siguiente pieza del cuadro">
   Si no puedes mejorar un tablero localmente, quizá puedas saltar de un buen
