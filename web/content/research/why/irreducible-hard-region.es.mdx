@@ -1,0 +1,195 @@
+---
+title: La región difícil que no se puede diseñar de otro modo
+description: >-
+  Rellena un tablero en cualquier orden fijo y los tres cuartos de arriba entran
+  con soltura, mientras la dificultad se amontona en la banda que terminas al
+  final. En cuarenta tableros generados, todo lo que sobra cae en la mitad
+  inferior cada vez; baraja el orden de relleno y se dispersa, así que la región
+  difícil la fabrica el barrido, no está escondida en el tablero.
+metaDescription: "En tableros Eternity II resolubles, una búsqueda row-major rellena los tres cuartos de arriba y luego se atasca; en cuarenta tableros 16x16, todo lo que sobra cae en la mitad inferior cada vez. Baraja el orden y se dispersa (0,503): la región difícil pertenece a la descomposición, no al tablero."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 3
+order: 82
+updated: 2026-07-22
+topics: [structure, search-space]
+sources: []
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+  - /research/records
+repro:
+  kind: seeded
+  cmd: just research-irreducible-hard-region
+  topic: irreducible-hard-region
+  produces: search
+  scope: >-
+    Reproduce solo la localización: en cuarenta tableros 16x16 generados,
+    enmarcados y con solución plantada (22 colores, sin pistas), una búsqueda en
+    profundidad con emparejamiento exacto y reinicios se ejecuta en row-major y de
+    nuevo en un orden de celdas aleatorio con semilla, y la fila de frontera y la
+    fracción de sobrante en la mitad inferior se leen del parcial más profundo de
+    cada rama. El generador y la baraja llevan semilla, así que reejecutar con los
+    mismos parámetros es estable al bit. No reproduce las mitades de «ventana
+    exacta» ni de «acoplamiento global» de la conjetura, enunciadas aquí como
+    conjetura.
+---
+
+Dos cosas son ciertas en casi todo intento de resolver Eternity II partiendo el
+tablero en piezas que se rellenan por turno. La primera pieza que rellenas entra
+con facilidad. La última, no. Ya sean las piezas filas, bandas, franjas, bloques
+o anillos concéntricos, la dificultad no se reparte entre ellas; se junta en la
+región que la búsqueda alcanza en último lugar, y ahí se planta como un muro.
+
+Esta página pone a prueba la versión más nítida de esa afirmación y la encuentra
+verificada con claridad, con un matiz que la medición deja a la vista: la región
+difícil no es un parche fijo del tablero esperando a que lo encuentren. La
+fabrica el orden en que rellenas, y aterriza donde ese orden termina.
+
+## La afirmación, y sus tres partes
+
+La conjetura completa, en el cuaderno del proyecto, tiene tres partes. Primero,
+**la dificultad se localiza**: rellena de forma secuencial y el sobrante, las
+celdas que la búsqueda no logra colocar, se concentra en la última región.
+Segundo, **esa región es demasiado grande para resolverse de forma exacta**:
+supera la ventana de unas 112 celdas donde una completación exacta todavía vuelve
+en un tiempo razonable. Tercero, **está demasiado acoplada globalmente para
+terminarla con una heurística**: como cada pieza se usa una sola vez, gastar una
+pieza escasa pronto en la parte fácil mata de hambre a la parte difícil después,
+de modo que ninguna reparación local alcanza un tablero alto nuevo.
+
+Solo la primera parte es un hecho nítido que se lee directamente en un tablero.
+Las otras dos son techos ligados a un solucionador exacto concreto y a la escasez
+propia del conjunto oficial de 22 colores, y el propio cuaderno las califica de
+empíricas más que de demostradas. Por eso esta página reproduce la primera parte,
+la localización, y lleva las otras dos como conjetura. La única lectura que añade
+al cuaderno es que la localización se entiende mejor como una propiedad del orden
+de barrido que del tablero, algo que el control de abajo vuelve inevitable.
+
+## El instrumento, y por qué es leal
+
+La medición parte de cero sobre tableros enmarcados, equilibrados en color y
+**con solución plantada**, construidos por el generador con semilla del kit
+inicial: una solución perfecta existe con seguridad, así que cualquier atasco
+pertenece a la búsqueda y no a una instancia irresoluble. Para cada semilla del
+generador, el verificador construye un tablero 16x16 sin pistas fijadas, y luego
+ejecuta sobre él dos veces la misma búsqueda en profundidad con emparejamiento
+exacto y reinicios, una vez en orden de celdas row-major y otra en un orden de
+celdas aleatorio con semilla, y lee dos números del parcial más profundo que
+alcanza cada rama:
+
+- la **fracción de frontera**, la fila llena más profunda dividida por el lado del
+  tablero, que dice hasta dónde llegó la parte fácil; y
+- la **fracción de sobrante en la mitad inferior**, entre las celdas aún vacías,
+  la porción que cae en las filas 8 a 15, que dice dónde aterrizó la dificultad.
+
+Ambos números están definidos para cualquier orden de relleno, que es justo lo
+que permite que la rama aleatoria sea un control justo frente a la rama
+row-major. Los scores se dan aquí bajo la convención de aristas emparejadas (solo
+junturas interiores; una solución 16x16 completa vale 480), aunque esta página no
+reclama récord alguno; las estadísticas de frontera y sobrante son geometría de
+celdas, no score de aristas. Para situar los tableros del proyecto frente a los
+mejores de la comunidad, véase la [página de récords](/research/records).
+
+## Lo que hace el barrido
+
+Ejecutado en Apple Silicon, un solo núcleo, cuarenta tableros por dos ramas en
+unos tres minutos con el presupuesto por defecto de 1,5 millones de nodos. La
+fuente del cuaderno es una síntesis de muchos experimentos de descomposición más
+que una sola medición, así que no compromete ninguna tabla de cifras por semilla
+para un tablero del kit; los números de abajo son la forma que predice la
+conjetura, y el acuerdo es sobre esa forma y su signo.
+
+Barrido de localización, cuarenta tableros 16x16 generados y enmarcados, 22
+colores, desde cero:
+
+| Cantidad | Forma que predice la conjetura | Medido, row-major | Medido, control aleatorio |
+| --- | --- | ---: | ---: |
+| Tableros resueltos por completo | ninguno esperado (esto no es un solucionador) | 0 / 40 | 0 / 40 |
+| Fracción de frontera mediana en tableros atascados | las diez filas y más de arriba se rellenan con soltura (por encima de 0,6) | 0,75 (12 de 16 filas) | 0,0 (ninguna fila se rellena por completo) |
+| Rango de la fracción de frontera | alto | 0,6875 a 0,75 | no aplica |
+| Fracción de sobrante media en la mitad inferior | cerca de 1,0 (la región difícil es la última banda) | 1,000 | 0,503 |
+| Tableros con todo el sobrante en la mitad inferior | todos | 40 / 40 | 0 / 40 |
+
+La búsqueda row-major alcanza una frontera mediana de tres cuartos del tablero,
+doce filas completas de dieciséis, antes de no poder colocar ya un emparejamiento
+perfecto. Eso coincide con la imagen del cuaderno donde las diez filas y más de
+arriba se rellenan casi con soltura. Y en cada uno de los cuarenta tableros, todo
+el sobrante cae en la mitad inferior: la fracción de sobrante media en la mitad
+inferior vale exactamente 1,000.
+
+## El control es todo el asunto
+
+Toma los mismos cuarenta tableros y rellena cada uno en un orden de celdas
+uniformemente aleatorio en lugar de row-major. Ahora no hay última región, y el
+sobrante se dispersa. La fracción de sobrante media en la mitad inferior vale
+0,503, indistinguible de un reparto igual, y ninguno de los cuarenta tableros
+concentra su sobrante abajo.
+
+Así que la región difícil no está en algún sitio del tablero esperando a que la
+encuentren. El mismo tablero tiene toda su dificultad abajo bajo un barrido
+row-major y no la concentra en ningún sitio bajo un orden aleatorio. La dificultad
+es real, pero la coloca la descomposición. Es la imagen especular de lo que
+muestran directamente los tableros récord: sus
+[pocos desajustes se amontonan en una banda](/research/why/mismatch-geometry)
+cuya posición fija la dirección en que la búsqueda rellenó el tablero. Aquí se
+puede ver esa banda crearse y desplazarse sin cambiar nada más que el orden de
+relleno.
+
+## El atasco es un muro, no un arranque lento
+
+Una última comprobación separa un muro de una búsqueda que sencillamente se quedó
+sin nodos. Reejecuta ocho de los tableros a cuatro millones de nodos, unas 2,7
+veces el presupuesto del barrido, y compara la frontera con las mismas semillas de
+la serie principal.
+
+| Cantidad | Barrido a 1,5 millones de nodos | Reejecución a 4 millones de nodos |
+| --- | ---: | ---: |
+| Fracción de frontera, semillas 1 a 8 | 0,6875 a 0,75 | 0,6875 a 0,75 |
+| Fracción de sobrante media en la mitad inferior | 1,000 | 1,000 |
+
+La frontera no sube con el presupuesto. Cuatro de los ocho tableros suben una
+fila, uno baja una fila, y tres no se mueven en absoluto, todo dentro de una sola
+fila de temblor, y el sobrante permanece por completo en la banda inferior. La
+búsqueda no es lenta; está detenida, y está detenida en la última región que
+intenta rellenar. Ese es el fallo insensible al presupuesto que predice la
+conjetura, reproducido directamente.
+
+## Qué zanja esto y qué no
+
+Esto reproduce solo la mitad de localización de la conjetura. Las dos mitades
+restantes se enuncian como conjetura y no se miden aquí, deliberadamente.
+
+La mitad **demasiado grande para resolverse de forma exacta** es propia de la
+máquina y del solucionador: la ventana exacta de unas 112 celdas es una propiedad
+de una búsqueda de aristas estrictas concreta, y un solucionador exacto más
+potente la desplazaría. Nuestra región difícil son las cuatro o cinco filas de
+abajo, unas 64 a 80 celdas, que en realidad quedan por debajo de la ventana de
+unas 112 celdas; es más pequeña que las cerca de 96 a 128 celdas que describe la
+conjetura, porque estos tableros generados se rellenan más profundo que las
+descomposiciones del conjunto oficial que el cuaderno sintetizó. Si una región
+difícil llega alguna vez a superar la ventana en el conjunto oficial es la
+afirmación aparte, no medida.
+
+La mitad **demasiado acoplada globalmente** es un techo empírico ligado a la
+escasez del conjunto oficial, el acoplamiento que permite que una pieza escasa
+gastada arriba [mate de hambre a una celda muy abajo](/research/why/piece-theft).
+Nuestros tableros vienen del generador enmarcado del kit, con solución plantada y
+que plausiblemente admite muchas soluciones, donde se cree que el puzzle real
+admite esencialmente una. La localización vale para cualquier tablero resoluble
+bajo un relleno secuencial, porque el sobrante tiene que vivir en algún sitio y un
+barrido row-major lo pone abajo, de modo que la familia generada es una prueba
+adecuada de la localización; no es una prueba de la afirmación de acoplamiento,
+que exigiría el conjunto oficial. Esa brecha de familia de instancias explica por
+qué esta reproducción es cualitativa y no exacta: no hay una tabla fuente que
+reproducir al bit, solo un signo y una banda, y ambos se reproducen.
+
+La lección más amplia aterriza donde aterrizan los demás muros estructurales. Una
+descomposición no elimina la dificultad; la reubica. Es la misma forma que el
+[muro de rigidez](/research/why/rigidity-wall), donde un récord es una isla
+localmente congelada, y por eso el [mapa de métodos](/research/why/walls-and-methods)
+muestra cada familia de descomposición deteniéndose contra un muro en un lugar
+distinto del tablero en vez de escapar de uno.

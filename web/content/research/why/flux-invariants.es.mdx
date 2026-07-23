@@ -1,0 +1,233 @@
+---
+title: "Invariantes de flujo: una ley de rotación que el conjunto oficial cumple exactamente"
+description: >-
+  Pondere cada color de arista y lea cada pieza como un vector con signo, este
+  menos oeste en un eje, sur menos norte en el otro. Sumado sobre cualquier
+  región, las costuras interiores se cancelan y solo sobrevive el borde, de modo
+  que el tablero totaliza cero. Un cuarto de vuelta gira el vector un ángulo
+  recto, lo que vuelve la ley álgebra en los enteros de Gauss.
+metaDescription: "Invariantes de flujo para Eternity II: pondere cada color de arista, lea cada pieza como un vector con signo, y las costuras interiores se cancelan, y el tablero suma cero. Un cuarto de vuelta multiplica el vector por i, dando a la ley rango complejo pleno 22, invisible al conteo de colores."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 70
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Invariantes de flujo: topic de reproducción con el artículo, el verificador versionado y el JSON de resultados (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
+  - label: "Conway y Lagarias, Tiling with polyominoes and combinatorial group theory: los invariantes de palabra de borde que esta ley adapta al emparejamiento de aristas (JCTA 1990)"
+    url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Brendan Owen digitaliza el conjunto de piezas: el histograma de colores que esta ley confronta (groups.io msg 1054, julio de 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle: la separación deliberada de las paletas de borde e interior (groups.io msg 1947, agosto de 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/ring-purity
+  - /research/why/permutation-code-wall
+  - /research/why/complex-theory
+repro:
+  kind: exact
+  topic: flux-invariants
+  scope: >-
+    The instance facts (piece histogram, color multiplicities, clue positions)
+    and the three flux-law ranks are recomputed exactly on the official
+    256-piece set by the committed checker, byte-stable on rerun. The endgame
+    certificate runs on a pool of framed solved 8x8 boards with planted
+    rotations and reproduces the source's mechanism, its soundness (never
+    rejecting a valid partial), and its monotone catch curve toward full fill,
+    not the source's exact 13/50/100 percentages.
+---
+
+Los scores de esta página siguen la convención de emparejamiento de aristas: el
+score de un tablero es el número, de las 480 junturas interiores, cuyas dos
+medias aristas muestran el mismo color. Una solución completa vale 480. Los
+invariantes de abajo no tratan del score de un tablero; tratan de las rotaciones
+de piezas que un tablero-480 válido tiene derecho a emplear, y se cumplen para
+toda solución válida, sea cual sea su score.
+
+## La idea en una línea
+
+Dé a cada uno de los 22 colores de arista un peso numérico, con el color de borde
+gris pesando cero. Lea una pieza colocada como un vector de dos dimensiones: su
+peso este menos su peso oeste en el eje horizontal, su peso sur menos su peso
+norte en el eje vertical. Ahora sume ese vector sobre un bloque de piezas
+colocadas. Cada costura interior del bloque es compartida por dos piezas, y entra
+en la suma una vez con signo más desde una pieza y una vez con signo menos desde
+su vecina, el mismo color en ambas caras, de modo que las dos se cancelan. Nada
+sobrevive a la suma salvo el borde exterior del bloque.
+
+Sobre el tablero entero ese borde exterior es el reborde gris, de peso cero, así
+que el total es exactamente el vector nulo. Es una ley de conservación, la prima
+discreta de un teorema de la divergencia: el flujo que sale de toda región iguala
+al flujo que cruza su frontera, y para el tablero entero la frontera no lleva
+flujo alguno.
+
+## Por qué un cuarto de vuelta trae los números complejos
+
+El vector no es ciego a la rotación. Gire una pieza noventa grados en sentido
+horario y su color norte pasa al este, el este al sur, el sur al oeste, el oeste
+al norte. Siga lo que eso le hace al vector y los ejes horizontal y vertical se
+intercambian con un signo: el nuevo vector es el viejo girado un ángulo recto. En
+el plano, un giro de ángulo recto es una multiplicación por la unidad imaginaria.
+Así que si escribe el vector como un número complejo, un cuarto de vuelta de la
+pieza lo multiplica por $i$, y las cuatro rotaciones que una pieza cuadrada puede
+tomar corresponden a las cuatro potencias $1, i, -1, -i$.
+
+Ese solo hecho es lo que eleva una identidad de contabilidad a álgebra. La ley de
+conservación, escrita color por color, dice que cierta suma de enteros de Gauss,
+un término por pieza, cada uno multiplicado por una potencia de $i$ fijada por la
+rotación elegida de esa pieza, debe dar cero. Es una restricción no sobre dónde
+van las piezas sino sobre qué rotaciones puede adoptar el conjunto entero.
+
+## La familia completa, y qué es nuevo
+
+El grupo de rotación de un cuadrado tiene cuatro caracteres, y la ley de flujo es
+solo uno de ellos. Descomponer la pieza según los cuatro da el retículo completo
+de los invariantes lineales, intrínsecos a la pieza, del emparejamiento de
+aristas: nada lineal se le escapa. Los cuatro miembros son un simple censo de
+colores (ciego a la rotación, el recuento total de cada color en la pieza), la ley
+de flujo gaussiana que se acaba de describir, su conjugado complejo (la misma
+información), y un cuarto miembro, de valores enteros, que acopla la elección de
+cada pieza sobre qué par de aristas opuestas queda horizontal al color de tablero
+de ajedrez de su celda. Este último es el eco, del lado del emparejamiento de
+aristas, de la obstrucción de bicoloración que Conway y Lagarias usaron para el
+teselado con poliominós, el método de palabra de borde del que toda esta familia
+está adaptada.
+
+El censo no es novedad: es solo conteo de colores. El valor de la ley de flujo es
+que ella sí lo es. En el conjunto oficial su sombra ciega a la rotación, la
+versión que se obtiene al olvidar la $i$ y fusionar más y menos, es idénticamente
+nula para los 22 colores, porque todo recuento de color en el tablero es par.
+Dicho de otro modo, el conteo de colores ya sabe todo lo que la sombra podría
+decirle, y no sabe nada más. Cada restricción que la ley de flujo impone más allá
+de esa sombra es información realmente nueva que un censo no puede ver.
+
+## El álgebra lineal en la instancia real
+
+Alinee los 22 colores como filas y las 256 piezas como columnas, y los
+coeficientes de flujo por pieza forman una matriz. Su rango mide cuánto restringe
+realmente la ley al puzzle. Recalculados sobre el conjunto oficial de 256 piezas,
+los números salen así.
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">22</div>
+    <div className="mt-1 text-xs text-muted-foreground">rango complejo, pleno (22 de 22 colores)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">40</div>
+    <div className="mt-1 text-xs text-muted-foreground">restricciones reales independientes</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">21</div>
+    <div className="mt-1 text-xs text-muted-foreground">restricciones de paridad independientes (mod 2)</div>
+  </div>
+</div>
+
+Un rango complejo pleno de 22 significa que la ley liga los 22 colores a la vez,
+sin que ningún color quede fuera como variable libre. Dividir las ecuaciones
+complejas en sus partes real e imaginaria da 40 restricciones reales
+independientes sobre la asignación de rotaciones. Y reducir todo el sistema módulo
+2, donde la rotación de una pieza colapsa a un único bit de paridad (un cuarto de
+vuelta y un tres cuartos de vuelta se vuelven iguales módulo 2), deja 21
+restricciones de paridad independientes, con el sistema aumentado quedando también
+de rango 21, así que es consistente y no contradictorio. Ese sistema módulo 2 por
+sí solo retira un factor de unos dos millones del espacio de paridades de
+rotación.
+
+Los hechos de instancia que la ley confronta se reproducen también exactamente,
+dígito por dígito frente al conjunto de piezas digitalizado por Brendan Owen: 196
+piezas interiores, 56 piezas de borde, 4 esquinas; el color de borde gris en 64
+medias aristas; cinco colores de marco que solo tocan piezas de borde, 24 medias
+aristas cada uno; los colores interiores restantes repartiéndose en cinco a 48 y
+doce a 50; y todo recuento de color par, que es exactamente lo que exige un
+emparejamiento de aristas perfecto. Las cinco pistas oficiales son todas piezas
+interiores. Nada de esto depende de confiar en una numeración de colores: el
+verificador deriva el conjunto de colores de marco de los datos (los colores que
+nunca aparecen en una pieza interior), de modo que una renumeración entre el kit
+inicial y la lista fuente no puede engañarlo.
+
+## De una ley a una comprobación de final
+
+Una ley de conservación que debe cumplirse para el tablero entero restringe
+también a cualquier tablero parcial, porque las piezas aún por colocar deben
+llevar exactamente el flujo que a las piezas colocadas les falta. Durante una
+búsqueda que llena la rejilla pieza a pieza, el flujo que deben las piezas
+restantes queda fijado en el instante en que el conjunto colocado queda fijado. Si
+ninguna asignación de rotaciones a las piezas restantes puede suministrar ese
+flujo debido, el tablero parcial está muerto, y se puede parar sin buscar su
+subárbol.
+
+Reducido módulo 2 esto se vuelve un pequeño sistema lineal sobre las paridades de
+rotación de las piezas restantes, decidido por eliminación de Gauss, y es un
+certificado de final fiable. Fiable quiere decir que nunca rechaza un tablero que
+sea de verdad completable: la ley es una condición necesaria, así que un parcial
+real siempre pasa. Lo que sí puede hacer es atrapar un error. Probado sobre un
+depósito de tableros 8 por 8 resueltos y enmarcados, con rotaciones implantadas,
+inyectando una única rotación ilegal en el prefijo colocado, la comprobación no
+rechazó ni una sola vez un parcial válido en 3 600 ensayos, y su probabilidad de
+atrapar el error inyectado crecía con la fracción de llenado.
+
+| Fracción de llenado | Parciales válidos rechazados | Error de rotación único atrapado |
+|---|---|---|
+| 0,50 | 0 de 900 | 0,6 % |
+| 0,75 | 0 de 900 | 14,1 % |
+| 0,90 | 0 de 900 | 88,3 % |
+| 0,95 | 0 de 900 | 94,6 % |
+
+El contenido reproducido aquí es el mecanismo y la forma de esa curva, no los
+porcentajes exactos. La fuente reporta una curva más pronunciada (13 %, 50 %,
+100 % en los llenados 0,50, 0,75, 0,90) sobre una familia implantada distinta; el
+run de arriba usa un tablero 8 por 8 a 13 colores con una pieza inyectada elegida
+uniformemente y un depósito de 30 tableros, 30 órdenes cada uno (900 por llenado), de
+modo que las tasas de detección absolutas quedan más bajas. Lo que se cumple
+exactamente, y ese es el punto, es que el certificado es fiable y que su
+probabilidad de detección sube de forma monótona hacia el pleno a medida que el
+tablero se llena. Ese es precisamente el comportamiento útil para una búsqueda: la
+comprobación se afila justo donde la cola de ramificación del árbol es más costosa,
+hacia el final, y cada captura es ortogonal al podado por color y por recuento, así
+que se suma por encima en vez de duplicarlos.
+
+## Qué es y qué no es
+
+La ley de flujo es una obstrucción. Puede certificar un tablero parcial como
+muerto; nunca puede certificar uno como completable. Ese es el papel correcto y
+buscado para un invariante dentro de una búsqueda por ramificación y podado, y lo
+comparten todos los resultados de esta familia. Dos advertencias más, dichas con
+claridad. La ley restringe las rotaciones que el conjunto de piezas puede emplear,
+no la celda donde cada pieza se coloca; solo el miembro de tablero de ajedrez se
+acopla a la posición, y solo por la paridad de la celda, de modo que ningún
+miembro fija una pieza a un lugar. Y la extensión no lineal natural, un producto
+de palabra de borde no abeliano al estilo de la construcción original de Conway y
+Lagarias, no sobrevive en dos dimensiones: una celda interior tiene cuatro aristas
+compartidas pero solo dos vecinas adyacentes a ella en cualquier orden de lectura
+lineal, de modo que al menos dos de sus aristas nunca podrán cancelarse, y la
+construcción recae en la ley de flujo lineal. Todo invariante estrictamente más
+fuerte que estos ha de ser no lineal y queda fuera de la familia de los grupos de
+teselado.
+
+## Dónde se ubica
+
+Este es el recuento detallado de una ley de la
+[revisión de teoremas](/research/why/theorem-sweep), el arco que preguntó qué se
+podía probar sobre la instancia en vez de qué score se podía alcanzar. Se ubica
+junto a la [pureza del anillo](/research/why/ring-purity), la otra ley exacta que
+el borde cumple, y es el complemento algebraico de la
+[lente del código de permutación](/research/why/permutation-code-wall), que lee el
+tablero entero como una palabra de código: la ley de flujo es un conjunto de
+comprobaciones de paridad que las rotaciones deben satisfacer, la misma moneda en
+la que esa lente está escrita. La
+[página de teoría compleja](/research/why/complex-theory) cuenta cuán ancha es la
+búsqueda; esta página añade una manera barata y fiable de podar su final.
+
+Cada número de arriba es recalculado por el verificador versionado en el topic de
+reproducción enlazado bajo las fuentes: un único programa Rust determinista que
+carga la instancia oficial, deriva los colores de marco de los datos, calcula los
+tres rangos, verifica la sombra de ortogonalidad al censo y ejecuta el barrido de
+final semilla a semilla, emitiendo un único archivo JSON (versionado como
+`results/flux_invariants.json`) que contiene cada cifra citada aquí. Los hechos de
+instancia y los rangos se reproducen byte por byte; el certificado reporta su
+propia curva de capturas, fiable en cada llenado.

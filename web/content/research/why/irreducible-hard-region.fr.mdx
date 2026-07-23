@@ -1,0 +1,201 @@
+---
+title: La région difficile qu'on ne peut pas concevoir autrement
+description: >-
+  Remplissez un plateau dans un ordre fixe et les trois quarts du haut se posent
+  librement, tandis que la difficulté s'entasse dans la bande que vous terminez
+  en dernier. Sur quarante plateaux générés, tout le reste tombe dans la moitié
+  basse à chaque fois ; mélangez l'ordre de remplissage et il se disperse, donc
+  la région difficile est fabriquée par le balayage, pas cachée dans le plateau.
+metaDescription: "Sur des plateaux Eternity II solubles, une recherche row-major remplit les trois quarts du haut puis cale ; sur quarante plateaux 16x16, tout le reste tombe dans la moitié basse à chaque fois. Mélangez l'ordre et il se disperse (0,503) : la région difficile tient à la décomposition, pas au plateau."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 3
+order: 82
+updated: 2026-07-22
+topics: [structure, search-space]
+sources: []
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+  - /research/records
+repro:
+  kind: seeded
+  cmd: just research-irreducible-hard-region
+  topic: irreducible-hard-region
+  produces: search
+  scope: >-
+    Reproduit uniquement la localisation : sur quarante plateaux 16x16 générés,
+    encadrés et à solution plantée (22 couleurs, sans indices), une recherche en
+    profondeur à appariement exact avec redémarrages est lancée en row-major puis
+    dans un ordre de cases aléatoire ensemencé, et la ligne de front et la
+    fraction de reste dans la moitié basse sont lues sur le partiel le plus
+    profond de chaque bras. Le générateur et le mélange sont ensemencés, donc une
+    réexécution aux mêmes drapeaux est stable au bit près. Elle ne reproduit pas
+    les volets « fenêtre exacte » et « couplage global » de la conjecture, énoncés
+    ici comme conjecture.
+---
+
+Deux choses sont vraies de presque toute tentative de casser Eternity II en
+découpant le plateau en morceaux remplis tour à tour. Le premier morceau rempli
+se pose facilement. Le dernier, non. Que les morceaux soient des lignes, des
+bandes, des bandeaux, des blocs ou des anneaux concentriques, la difficulté ne
+s'étale pas sur eux ; elle se rassemble dans la région que la recherche atteint
+en dernier, et s'y dresse comme un mur.
+
+Cette page teste la version la plus nette de cette affirmation et la trouve
+vérifiée nettement, avec une nuance que la mesure rend évidente : la région
+difficile n'est pas un patch fixe du plateau attendant qu'on le trouve. Elle est
+fabriquée par l'ordre dans lequel vous remplissez, et elle atterrit là où cet
+ordre se termine.
+
+## L'affirmation, et ses trois volets
+
+La conjecture complète, dans le carnet du projet, comporte trois volets.
+D'abord, **la difficulté se localise** : remplissez de façon séquentielle et le
+reste, les cases que la recherche ne parvient pas à poser, se concentre dans la
+dernière région. Ensuite, **cette région est trop grande pour être résolue
+exactement** : elle dépasse la fenêtre d'environ 112 cases où une complétion
+exacte revient encore en un temps raisonnable. Enfin, **elle est trop
+globalement couplée pour être achevée par une heuristique** : comme chaque pièce
+sert une seule fois, dépenser une pièce rare tôt dans la partie facile affame la
+partie difficile plus tard, si bien qu'aucune réparation locale n'atteint un
+nouveau plateau élevé.
+
+Seul le premier volet est un fait net qu'on lit directement sur un plateau. Les
+deux autres sont des plafonds liés à un solveur exact particulier et à la rareté
+propre à l'ensemble officiel de 22 couleurs, et le carnet lui-même les qualifie
+d'empiriques plutôt que de démontrés. Cette page reproduit donc le premier volet,
+la localisation, et porte les deux autres comme conjecture. La seule lecture
+qu'elle ajoute au carnet est que la localisation se comprend mieux comme une
+propriété de l'ordre de balayage que du plateau, ce que le contrôle ci-dessous
+rend inévitable.
+
+## L'instrument, et pourquoi il est loyal
+
+La mesure part de zéro sur des plateaux encadrés, équilibrés en couleur et **à
+solution plantée**, construits par le générateur ensemencé du kit de départ : une
+solution parfaite existe forcément, donc tout blocage revient à la recherche et
+non à une instance insoluble. Pour chaque graine du générateur, le vérificateur
+construit un plateau 16x16 sans indices épinglés, puis lance sur lui deux fois la
+même recherche en profondeur à appariement exact avec redémarrages, une fois en
+ordre de cases row-major et une fois dans un ordre de cases aléatoire ensemencé,
+et lit deux nombres sur le partiel le plus profond que chaque bras atteint :
+
+- la **fraction de front**, la ligne remplie la plus profonde divisée par le côté
+  du plateau, qui dit jusqu'où la partie facile est allée ; et
+- la **fraction de reste dans la moitié basse**, parmi les cases encore vides, la
+  part qui se situe dans les lignes 8 à 15, qui dit où la difficulté a atterri.
+
+Les deux nombres sont définis pour n'importe quel ordre de remplissage, ce qui
+est précisément ce qui permet au bras aléatoire d'être un contrôle équitable face
+au bras row-major. Les scores sont ici donnés selon la convention des arêtes
+appariées (jointures intérieures seulement ; une solution 16x16 complète vaut
+480), même si cette page ne revendique aucun record ; les statistiques de front
+et de reste relèvent de la géométrie des cases, pas du score d'arêtes. Pour
+situer les plateaux du projet face aux meilleurs de la communauté, voir la
+[page des records](/research/records).
+
+## Ce que fait le balayage
+
+Exécuté sur Apple Silicon, un seul cœur, quarante plateaux fois deux bras en
+environ trois minutes au budget par défaut de 1,5 million de nœuds. La source du
+carnet est une synthèse de nombreuses expériences de décomposition plutôt qu'une
+seule mesure, si bien qu'elle n'engage aucun tableau de chiffres par graine pour
+un plateau du kit ; les nombres ci-dessous sont la forme que la conjecture
+prédit, et l'accord porte sur cette forme et son signe.
+
+Balayage de localisation, quarante plateaux 16x16 générés et encadrés, 22
+couleurs, partis de zéro :
+
+| Quantité | Forme prédite par la conjecture | Mesuré, row-major | Mesuré, contrôle aléatoire |
+| --- | --- | ---: | ---: |
+| Plateaux entièrement résolus | aucun attendu (ce n'est pas un solveur) | 0 / 40 | 0 / 40 |
+| Fraction de front médiane sur les plateaux calés | les dix lignes et plus du haut se remplissent librement (au-dessus de 0,6) | 0,75 (12 lignes sur 16) | 0,0 (aucune ligne ne se remplit entièrement) |
+| Plage de la fraction de front | élevée | 0,6875 à 0,75 | sans objet |
+| Fraction de reste moyenne dans la moitié basse | proche de 1,0 (la région difficile est la dernière bande) | 1,000 | 0,503 |
+| Plateaux dont tout le reste est dans la moitié basse | tous | 40 / 40 | 0 / 40 |
+
+La recherche row-major atteint un front médian des trois quarts du plateau,
+douze lignes complètes sur seize, avant de ne plus pouvoir poser un appariement
+parfait. Cela correspond à l'image du carnet où les dix lignes et plus du haut se
+remplissent quasi librement. Et sur chacun des quarante plateaux, tout le reste
+se situe dans la moitié basse : la fraction de reste moyenne dans la moitié basse
+vaut exactement 1,000.
+
+## Le contrôle, c'est tout l'enjeu
+
+Prenez les mêmes quarante plateaux et remplissez chacun dans un ordre de cases
+uniformément aléatoire au lieu de row-major. Il n'y a plus de dernière région, et
+le reste se disperse. La fraction de reste moyenne dans la moitié basse vaut
+0,503, indiscernable d'un partage égal, et pas un seul des quarante plateaux ne
+concentre son reste en bas.
+
+La région difficile n'est donc pas quelque part sur le plateau à découvrir. Le
+même plateau a toute sa difficulté en bas sous un balayage row-major et n'en
+concentre nulle part sous un ordre aléatoire. La difficulté est réelle, mais elle
+est placée par la décomposition. C'est l'image en miroir de ce que montrent
+directement les plateaux records : leurs
+[quelques défauts s'entassent dans une bande](/research/why/mismatch-geometry)
+dont la position est fixée par la direction dans laquelle la recherche a rempli
+le plateau. Ici, on peut voir cette bande se créer et se déplacer en ne changeant
+rien d'autre que l'ordre de remplissage.
+
+## Le blocage est un mur, pas un démarrage lent
+
+Une dernière vérification sépare un mur d'une recherche qui a simplement manqué
+de nœuds. Réexécutez huit des plateaux à quatre millions de nœuds, soit environ
+2,7 fois le budget du balayage, et comparez le front aux mêmes graines de la
+série principale.
+
+| Quantité | Balayage à 1,5 million de nœuds | Réexécution à 4 millions de nœuds |
+| --- | ---: | ---: |
+| Fraction de front, graines 1 à 8 | 0,6875 à 0,75 | 0,6875 à 0,75 |
+| Fraction de reste moyenne dans la moitié basse | 1,000 | 1,000 |
+
+Le front ne monte pas avec le budget. Quatre des huit plateaux montent d'une
+ligne, un descend d'une ligne, et trois ne bougent pas du tout, le tout dans une
+seule ligne de gigue, et le reste demeure entièrement dans la bande basse. La
+recherche n'est pas lente ; elle est arrêtée, et elle est arrêtée à la dernière
+région qu'elle tente de remplir. C'est l'échec insensible au budget que la
+conjecture prédit, reproduit directement.
+
+## Ce que cela règle et ne règle pas
+
+Cela reproduit uniquement le volet localisation de la conjecture. Les deux volets
+restants sont énoncés comme conjecture et ne sont pas mesurés ici, délibérément.
+
+Le volet **trop grande pour être résolue exactement** est propre à la machine et
+au solveur : la fenêtre exacte d'environ 112 cases est une propriété d'une
+recherche à arêtes strictes particulière, et un solveur exact plus puissant la
+déplacerait. Notre région difficile est constituée des quatre à cinq lignes du
+bas, environ 64 à 80 cases, ce qui se situe en réalité en dessous de la fenêtre
+d'environ 112 cases ; c'est plus petit que les environ 96 à 128 cases que décrit
+la conjecture, parce que ces plateaux générés se remplissent plus profondément
+que les décompositions de l'ensemble officiel que le carnet a synthétisées.
+Savoir si une région difficile dépasse un jour la fenêtre sur l'ensemble officiel
+est l'affirmation distincte et non mesurée.
+
+Le volet **trop globalement couplée** est un plafond empirique lié à la rareté de
+l'ensemble officiel, le couplage qui permet à une pièce rare dépensée en haut d'
+[affamer une case bien plus bas](/research/why/piece-theft). Nos plateaux
+proviennent du générateur encadré du kit, à solution plantée et admettant
+plausiblement de nombreuses solutions, là où le vrai casse-tête est réputé n'en
+admettre essentiellement qu'une. La localisation vaut pour tout plateau soluble
+sous un remplissage séquentiel, car le reste doit bien vivre quelque part et un
+balayage row-major le met en bas, si bien que la famille générée est un test
+adéquat de la localisation ; ce n'est pas un test de l'affirmation de couplage,
+qui exigerait l'ensemble officiel. Cet écart de famille d'instances explique
+pourquoi cette reproduction est qualitative plutôt qu'exacte : il n'y a pas de
+tableau source à reproduire au bit près, seulement un signe et une bande, et les
+deux se reproduisent.
+
+La leçon plus large tombe là où tombent les autres murs structurels. Une
+décomposition ne supprime pas la difficulté ; elle la déplace. C'est la même
+forme que le [mur de rigidité](/research/why/rigidity-wall), où un record est une
+île localement figée, et c'est pourquoi la
+[carte des méthodes](/research/why/walls-and-methods) montre chaque famille de
+décomposition s'arrêtant contre un mur à un endroit différent du plateau plutôt
+que d'en échapper à un.

@@ -1,0 +1,175 @@
+---
+title: The board as a codeword
+description: >-
+  Read a full board as a codeword whose 480 internal joints are parity-like
+  checks, and the matched-edge score becomes 480 minus the number of failed
+  checks. It is a clean lens with one load-bearing identity underneath it, and
+  it is worth being exact about what the coding view buys and what it only
+  renames.
+metaDescription: "Model an Eternity II solution as an error-correcting codeword: its 480 internal joints are parity-like checks and the score is 480 minus the syndrome weight. The counting underneath (480 checks, a 256-piece permutation code, five frame colors) reproduces exactly; the vocabulary renames the score."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 90
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Eternity II piece set and interactive board viewer (bucas.name)"
+    url: https://e2.bucas.name/
+  - label: "The board-as-codeword lens: article, checker source and results JSON (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/permutation-code-wall
+related:
+  - /research/why/parity-defect-floor
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/entropy-area-law
+  - /research/why/piece-theft
+  - /research/records
+repro:
+  kind: exact
+  topic: permutation-code-wall
+  cmd: cd research/topics/permutation-code-wall/compute && cargo run --release > ../results/permutation_code_wall.json
+  scope: >-
+    Reproduces the three counted structural facts on the official 16x16
+    instance (480 checks three independent ways, 256 pieces distinct up to
+    rotation as a permutation code, five frame colors with gray as a pure rim
+    marker) and the score = 480 minus breaks identity on genuine 480 codewords
+    with exactly-known injected break counts (k in {0,1,2,5,10,29,60,120}
+    across five seeds, forty rows, all hold; k=29 lands on 451). The paper's
+    board-specific numbers require a private champion board and are not
+    reproduced; the coding vocabulary itself is a reframing, flagged as such.
+---
+
+There is a way of looking at a completed board that borrows its whole
+vocabulary from error-correcting codes, and it is genuinely illuminating once
+you know exactly what it is claiming. Lay the 16 by 16 grid out, treat each
+tile as a symbol, and treat every place two neighbouring tiles meet as a
+*check* that either passes (the two facing edges are the same colour) or fails.
+There are 480 such internal joints. The list of which checks fail is a
+*syndrome*, and a full solution is the one board whose syndrome is empty. Score
+a board on the [matched-edges convention](/research/records) used throughout
+this wiki (count the internal joints that match, out of 480), and the arithmetic
+falls out on its own: the score is 480 minus the number of failed checks.
+
+That single line, score equals 480 minus the syndrome weight, is the whole
+engine of the coding lens. Everything else it says about the puzzle (minimum
+distance, decoders, stopping sets) is built on it. So it is worth pinning down
+what that identity actually is, and separating the part of this picture that is
+a real, countable fact about the official set from the part that is a change of
+clothes.
+
+## What the lens renames, and what it measures
+
+The plain split, stated directly because it is the point.
+
+The identity itself renames rather than reveals. "Syndrome weight" is the count
+of unmatched interior edges; the scorer already calls that count *breaks* and
+already defines it as the top score minus the achieved score. So "score equals
+480 minus the syndrome weight" is not a discovery about Eternity II. It is the
+definition of the score written in coding language. That is not a criticism: a
+good renaming can make a structure legible. It just means the identity buys you
+a viewpoint, not a number.
+
+Underneath the vocabulary, though, sit three facts that are real properties of
+the published 256-piece design, each exactly countable, each checkable against
+the official instance:
+
+- **480 checks.** A 16 by 16 grid has exactly 480 internal joints. This is
+  $2WH - W - H$ with $W = H = 16$, it is the length of the scorer's own
+  adjacency list, and it is the kit's maximum possible score. Three independent
+  routes to the same 480.
+- **A permutation code.** The 256 tiles are all distinct up to rotation, so a
+  legal board uses each of the 256 pieces exactly once. In coding terms the
+  codeword is not a free string of symbols; it is a permutation, and that
+  constraint is far stronger than the joint checks alone.
+- **A border code.** Exactly five colours (labelled 1 through 5) appear only on
+  the frame, never on an interior tile, and the grey frame colour sits on zero
+  interior half-edges. The rim is a separate little code stacked on the joints.
+
+These are what give the lens something concrete to stand on. The
+[parity theorem](/research/why/parity-defect-floor), read in this language, is a
+statement that this code has no weight-one syndrome: you cannot fail exactly one
+check on a legal full board, so 479 is an empty rung and the defect floor is 2.
+The [area law](/research/why/entropy-area-law) and
+[piece theft](/research/why/piece-theft) are, in this language, statements about
+the permutation code: it is the use-each-piece-once rule, not the colour
+matching, that carries the difficulty.
+
+## The identity, checked bit for bit
+
+Because the identity is load-bearing, the reproduction confirms it directly
+through the kit's canonical scorer, the same rim-excluding scorer the site and
+every engine use, so a failed check here means the same thing a break means
+everywhere else on this wiki.
+
+The check starts from a genuine solution: a solved, generated 16 by 16 board
+that scores 480 out of 480 with an empty syndrome. It then injects an
+exactly-known number of broken checks by corrupting one facing half-edge at a
+time to a colour no piece carries, accepting a corruption only when it drops the
+score by exactly one. That per-step guard is what makes the injected count a
+known quantity rather than an inferred one: $k$ breaks means exactly $k$ failed
+checks, each verified on its own. Then it reads back the score, the break count,
+and an independent recount of the syndrome, and confirms all three agree.
+
+Run across five solved boards and eight break counts (forty rows in all, on the
+matched-edges convention, out of 480), every row obeys the identity:
+
+| Injected breaks $k$ | Score | Breaks | Independent syndrome recount | 480 minus $k$ |
+| ------------------: | ----: | -----: | ---------------------------: | ------------: |
+| 0                   | 480   | 0      | 0                            | 480           |
+| 1                   | 479   | 1      | 1                            | 479           |
+| 2                   | 478   | 2      | 2                            | 478           |
+| 5                   | 475   | 5      | 5                            | 475           |
+| 10                  | 470   | 10     | 10                           | 470           |
+| 29                  | 451   | 29     | 29                           | 451           |
+| 60                  | 420   | 60     | 60                           | 420           |
+| 120                 | 360   | 120    | 120                          | 360           |
+
+Every row satisfies score equals 480 minus $k$, breaks equals $k$, and the
+independent syndrome recount equals $k$, on all five seeds. The run is
+deterministic and finishes in under a second on Apple Silicon; the committed
+results JSON is byte-stable on rerun. The row at $k$ equals 29 is there on
+purpose: it reads score 451, which is exactly the score-and-break pairing the
+paper's from-scratch champion bottom-band board carries (29 breaks, 451
+matched edges). The identity 480 minus 29 equals 451 holds against the
+score-and-break pairing the paper reports for that champion board. (That 451 is
+a from-scratch notebook figure, well below the
+community's best full boards of 470 and 464 on the [records page](/research/records);
+the point here is only that the coding arithmetic lands on it.)
+
+## The structural facts, on the official instance
+
+| Fact | Expected | Measured |
+| --- | --- | --- |
+| Check count | 480 | 480 three ways: formula $2WH - W - H$, enumerated adjacency list, kit maximum score |
+| Permutation code | 256 tiles, each used once | 256 pieces, all distinct up to rotation |
+| Border code, frame colours | five, confined to the rim | 5 frame colours (1 through 5), 17 interior colours |
+| Border code, grey | outward rim only | 0 grey half-edges on any interior piece |
+
+All four are recomputed from the instance data rather than assumed, and all four
+match.
+
+## What the error-correction view does and does not buy
+
+What it buys is a clean mental model and a place to put the two hard
+constraints. The joint checks are a weak code on their own: locally, a
+near-perfect board has plenty of low-mismatch colour patterns nearby, which is
+why the [mismatches cluster](/research/why/mismatch-geometry) into a single band
+rather than spreading. The strength lives in the permutation code layered on
+top, the requirement that the symbols be a genuine rearrangement of all 256
+pieces. Naming that layer, and separating it from the colour checks, is a
+useful way to say where the difficulty sits: not in matching colours, but in
+matching them while every piece is spent exactly once.
+
+What it does not buy is a new number. The central identity is the score's own
+definition in a different alphabet, and the vocabulary of decoders and minimum
+distance describes the same landscape the [rigidity](/research/why/rigidity-wall)
+and [area-law](/research/why/entropy-area-law) pages measure directly, without
+adding a measurement of its own. The stronger claim a coding reading wants to
+make, that the permutation code's minimum distance is what pins a specific
+record board in place, is a board-specific measurement that lives on one
+private champion board the public kit does not ship, so it is neither confirmed
+nor denied here. What reproduces exactly is the scaffold: 480 checks, a
+256-piece permutation code, a five-colour border code, and the one identity that
+holds the whole picture up.

@@ -1557,3 +1557,32 @@ that should read 160, decimal-comma typography in French and Spanish LP tables,
 and a from-scratch 460 given its records-page context so it is not read as an
 overall record. Style and translation-parity gates green across 402 files;
 full build clean.
+
+## 2026-07-23 — Second wave: six new reproduction-backed pages
+
+Six standalone pages shipped, each gated on a kit reproduction topic that was
+built and run (four REPRODUCED, two WITH-CAVEAT, zero FAILED):
+why/flux-invariants (the complete lattice of linear tile invariants: a color
+census, a Gaussian-integer flux law, a checkerboard parity law; instance facts
+and rank 22 reproduced exact, digit-for-digit), why/permutation-code-wall (the
+codeword/syndrome lens; the score = 480 minus breaks identity reproduced
+exactly, the reframing labeled as a reframing), why/no-height-function (the
+defects reformulation and its three-part negative law, qualitative tier: the
+law reappears on our own boards while the paper's board-specific counts do
+not, and are labeled as not-reproduced), why/frame-is-not-the-basin (the
+frame is not the basin selector, extending the frame-manifold reproduction,
+seeded-statistical), build/exact/exact-tail-endgame (the bottom-band endgame
+as its own exact problem; mechanism and delta shape reproduced, absolute
+digits scoped), and why/irreducible-hard-region (the localization half of a
+three-part conjecture reproduced, the rest labeled conjecture).
+
+Adversarial review returned 18 findings, all verified and fixed before
+landing. The load-bearing ones enforced the records-framing rule: a 463
+matched-edges basin-attack board and a 451 board had been mislabeled as
+best from-scratch and were corrected (the from-scratch ceiling is 460, the
+notebook record 461, and the community marks 464/470 are higher). Also fixed:
+a rigidity link that pointed at the mismatch page instead of the rigidity
+wall, two medians miscomputed against the committed run logs (12.5 not 14,
+4.5 not 5), a repro-tier field added to match the topic, and several French
+mistranslations and metaDescription parity gaps. Full build, style, i18n,
+parity, and 43 tests all green.

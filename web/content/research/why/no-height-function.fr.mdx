@@ -1,0 +1,189 @@
+---
+title: "Le casse-tête n'a pas de fonction de hauteur"
+description: >-
+  Empruntez l'astuce du physicien qui rend les défauts cristallins solubles et
+  tentez de transformer un joint dépareillé en dislocation dotée d'une charge
+  conservée. Cela échoue de trois façons : une hauteur scalaire est aveugle aux
+  ruptures, l'ensemble des ruptures forme des chaînes ouvertes et non des
+  boucles fermées, et le courant orienté par couleur n'est pas conservé. Seul un
+  bit de parité non signé survit.
+metaDescription: "Une reformulation d'Eternity II en dislocations tente de donner à chaque défaut une charge conservée qu'un mouvement de ver annihilerait par paires. Elle échoue de trois façons ; le seul invariant survivant est un bit de parité non signé par couleur, mesuré sur les plateaux de ce projet."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 75
+updated: 2026-07-23
+topics: [structure, search-space]
+sources:
+  - label: "Vérificateur sans fonction de hauteur : article, code source Rust et tableau de résultats par plateau (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/sigma-cycles
+  - /research/why/parity-defect-floor
+  - /research/why/rigidity-wall
+  - /research/records
+repro:
+  kind: exact
+  tier: qualitative
+  topic: no-height-function
+---
+
+Il existe une idée empruntée qui, si elle tenait, changerait la façon d'attaquer
+ce casse-tête. Dans la physique statistique des cristaux, un pavage porte une
+**fonction de hauteur** : un nombre vivant sur les faces et qui monte ou descend
+d'une quantité fixe à travers chaque arête. Quand le pavage est parfait, la
+hauteur est univaluée. Un défaut est un point où parcourir une petite boucle en
+additionnant les pas ne vous ramène pas au point de départ ; le reste est une
+charge conservée (les physiciens l'appellent un **vecteur de Burgers**), et les
+défauts ne peuvent être créés ou détruits que par paires qui s'annulent. C'est ce
+dernier fait qui est le trésor. C'est lui qui autorise le **mouvement de ver** :
+une réécriture étalée sur le réseau mais simple dans l'espace des hauteurs, qui
+fait glisser deux défauts l'un vers l'autre jusqu'à ce qu'ils s'annulent.
+
+Notez un plateau complet d'Eternity II en comptant ses joints internes appariés
+sur 480 (la convention des arêtes appariées utilisée dans tout ce wiki ; la
+[page des records](/research/records) replace dans son contexte les nombres qui
+suivent). Un joint dépareillé est une **rupture**. Si les ruptures étaient des
+dislocations dotées d'une charge orientée conservée, il existerait un mouvement
+non local et fondé qui abaisse le nombre de ruptures en faisant marcher une paire
+d'entre elles l'une vers l'autre pour les annihiler, exactement le genre de
+mouvement que la recherche par simple échange ne peut voir. Cette page consigne
+pourquoi cet espoir ne survit pas au contact d'un vrai plateau. L'échec n'est pas
+affaire de goût. Ce sont deux faits concrets mesurables sur n'importe quel
+plateau, plus un troisième qui n'a besoin d'aucun plateau, et le vérificateur du
+sujet de reproduction mesure les deux premiers sur les plateaux records
+consignés de ce projet.
+
+## La hauteur scalaire est aveugle dès le départ
+
+Prenons d'abord la version la plus naïve : placez un seul nombre sur chaque case
+et lisez le « pas » à travers un joint comme la différence des deux nombres de
+cases. Parcourez les quatre cases autour d'un coin intérieur de la grille et
+additionnez les quatre pas. Le nombre de chaque case entre dans la boucle une
+fois avec un plus et une fois avec un moins, donc la somme est **zéro**,
+toujours, pour toute affectation de nombres et quelles que soient les ruptures.
+Une rupture vit sur un joint ; elle ne change jamais la somme de boucle d'aucun
+coin. Une hauteur scalaire par case ne peut donc pas détecter une rupture du
+tout. Ce n'est pas qu'elle les détecte mal ; elle y est structurellement sourde.
+Cette partie est une identité en une ligne, elle est donc énoncée ici plutôt que
+mesurée.
+
+## L'ensemble des ruptures est fait de chaînes ouvertes, pas de boucles fermées
+
+La correction du physicien consiste à cesser d'utiliser les valeurs des cases et
+à placer plutôt le pas sur un joint **exactement quand ce joint est rompu**.
+Alors la somme de boucle autour d'un coin de la grille compte les joints rompus
+touchant ce coin, pris modulo deux. La hauteur n'est univaluée que si chaque coin
+touche un nombre pair de ruptures, c'est-à-dire seulement si les ruptures forment
+des boucles fermées sur la grille des coins.
+
+Ce n'est pas le cas. Sur chaque plateau mesuré, des dizaines de coins touchent un
+nombre **impair** de ruptures. Dans l'image cristalline, ces coins impairs sont
+des **cœurs** de dislocation, les bouts libres de chaînes de ruptures ouvertes.
+Une hauteur ne peut pas se refermer autour d'un bout libre, elle ne peut donc pas
+exister globalement. Le décompte de ces cœurs est le premier nombre rapporté par
+le vérificateur, et il reste grand même sur les meilleurs plateaux :
+
+| Plateau (ce projet) | Arêtes appariées | Ruptures | Cœurs de degré impair | Couleurs à courant déséquilibré |
+| --- | ---: | ---: | ---: | ---: |
+| meilleur en arêtes appariées, 463 | 463 | 17 | 22 | 10 |
+| un plateau 460 | 460 | 20 | 22 | 9 |
+| un plateau 458 | 458 | 22 | 34 | 15 |
+| un plateau 460 antérieur | 460 | 20 | 26 | 12 |
+
+Les quatre sont des scores en arêtes appariées, revérifiés par le vérificateur
+avant que la topologie ne soit mesurée ; un plateau dont la valeur revérifiée
+diverge de celle consignée est refusé d'emblée, de sorte que les nombres
+ci-dessus décrivent toujours un plateau de qualité connue et vérifiée. Le
+meilleur d'entre eux ne se tient qu'à 17 ruptures d'une hypothétique solution et
+porte encore 22 cœurs à chaînes ouvertes. L'obstruction ne s'adoucit pas à mesure
+qu'un plateau approche d'une solution, et c'est là tout le propos : il n'existe
+aucun plateau près du sommet où les boucles se referment tranquillement.
+
+## Le courant orienté n'est pas conservé
+
+Une dernière échappatoire mérite d'être écartée. Peut-être que résoudre les
+ruptures couleur par couleur sauve une charge conservée. Pour une seule couleur,
+orientez chaque joint à demi rompu (un joint dont exactement un côté montre cette
+couleur, ce qui est nécessairement une rupture) comme une flèche pointant de la
+case porteuse de la couleur vers sa voisine non appariée, et additionnez les
+flèches en un vecteur par couleur sur tout le plateau. Un courant réellement
+conservé sommerait à **zéro**. Ce n'est pas le cas. Sur chaque plateau, plusieurs
+couleurs ont un total non nul, listé dans la dernière colonne ci-dessus : entre 9
+et 15 des 22 couleurs portent un courant déséquilibré, selon le plateau.
+
+La raison est structurelle, et elle explique pourquoi aucune ingéniosité n'y
+remédie. Sur une solution réelle, chaque arête colorée est appariée à une arête
+de la même couleur, il n'y a donc pas de joint à demi rompu et le courant de
+chaque couleur est trivialement nul. Un joint à demi rompu est précisément une
+demi-arête **non appariée**, une demi-arête dont le partenaire manque, de sorte
+que sa flèche n'a rien contre quoi s'annuler. La somme déséquilibrée n'est pas
+une erreur de comptabilité ; c'est la signature du partenaire manquant.
+
+À titre d'orientation seulement, une exécution antérieure et indépendante du
+carnet a mesuré les mêmes décomptes de cœurs sur trois plateaux différents (un
+plateau 451, un 463 et un 458) et a obtenu **28, 22 et 32** cœurs impairs ; les
+quatre plateaux présentés ici se situent à **22, 22, 34 et 26**, exactement dans
+le même régime, le plateau 463 correspondant à 22 des deux côtés. Les couleurs et
+signes précis qui ressortent déséquilibrés sont des étiquettes liées à la façon
+dont un plateau particulier a été numéroté et n'ont aucun sens propre ; seul le
+décompte des couleurs déséquilibrées, et le fait qu'il ne soit jamais nul, est le
+contenu reproduit. Ce sont les propres plateaux de ce projet, bien en dessous des
+meilleurs de la communauté, 470 sous la convention de l'indice central et 464
+avec les cinq indices posés (là encore, la [page des records](/research/records)
+conserve ce contexte) ; ils sont utilisés ici parce que l'obstruction doit être
+vérifiée sur un vrai plateau à haut score de l'instance officielle, non sur un
+petit plateau généré où elle serait soit vide soit hors instance.
+
+## Ce qui survit est un unique bit
+
+Réunissez les trois échecs. Une hauteur scalaire est sourde aux ruptures ;
+l'ensemble des ruptures est fait de chaînes ouvertes aux dizaines de bouts libres
+; le courant orienté par couleur ne s'équilibre pas. Toute route vers une hauteur
+à vecteur de Burgers est fermée. Ce qui reste est bien plus faible qu'une hauteur
+: le seul invariant conservé de l'ensemble des ruptures est une **parité par
+couleur non signée**, un bit par couleur (un élément d'un espace de dimension 22
+sur le corps à deux éléments). Un bit enregistre si le décompte de joints à demi
+rompus d'une couleur est pair ou impair ; il n'a ni direction ni magnitude. Un
+bit n'est la holonomie d'aucune fonction de hauteur, et aucun mouvement de ver ne
+peut se construire dessus.
+
+Voilà le résultat négatif, et il vaut la peine d'être énoncé clairement car
+l'idée qu'il tue est réellement séduisante : l'image des dimères et défauts est
+fermée du côté des ruptures, et avec elle le rêve d'un mouvement non local net
+qui fait marcher les défauts jusqu'à l'annihilation. L'intuition physique qu'il
+laisse debout est plus prometteuse et vit ailleurs : la bonne sortie d'un plateau
+localement figé (voir le [mur de rigidité](/research/why/rigidity-wall)) est un
+**mouvement d'amas corrélé**, plusieurs tuiles tournées ensemble, plutôt qu'une
+édition d'un seul site. Ce récit compagnon est un résultat distinct et n'est pas
+mesuré ici.
+
+Cela épouse aussi la forme du casse-tête telle qu'on la voit sur les plateaux
+eux-mêmes. Les ruptures ne se dispersent pas ; elles
+[s'entassent dans une seule bande](/research/why/mismatch-geometry) et le graphe
+des arêtes dépareillées est toujours une forêt, ne fermant jamais de boucle, ce
+qui est le même fait de chaîne ouverte que cette page démontre impossible à
+refermer. Le bit de parité survivant est un cousin de la loi de comptage derrière
+[pourquoi 479 est impossible](/research/why/parity-defect-floor) : les deux sont
+ce que l'on obtient quand un invariant orienté s'effondre en un invariant non
+signé sur le corps à deux éléments. La direction est exactement ce que cette
+instance refuse de vous donner.
+
+## Vérifiez par vous-même
+
+Le vérificateur charge chaque plateau consigné via l'analyseur de plateau du kit
+de démarrage, le renote avec la règle canonique (et refuse tout plateau dont la
+valeur renotée diverge de son score consigné), puis fait une passe linéaire pour
+compter les cœurs de degré impair et les courants par couleur déséquilibrés. Il
+est déterministe, n'utilise aucun aléa, s'exécute en bien moins d'une seconde sur
+un seul cœur, et sa sortie est stable au bit près d'une exécution à l'autre.
+L'[article, le code source Rust et le tableau de résultats sont sur GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function),
+et le bloc de reproduction de cette page pointe vers le même sujet. Deux réserves
+de portée, que la trouvaille énonce clairement à son propre sujet : ceci est une
+reproduction **qualitative**. Les décomptes exacts de cœurs et les sommes de
+courant sont des fonctions du plateau précis, ils se lisent donc comme « dans le
+même régime que », jamais comme une correspondance au bit près avec un tableau
+antérieur ; et l'obstruction de la hauteur scalaire de la première section est
+une identité démontrée, affirmée plutôt que recalculée.

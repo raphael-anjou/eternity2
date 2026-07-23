@@ -1,0 +1,172 @@
+---
+title: "The puzzle has no height function"
+description: >-
+  Borrow the physicist's trick that makes crystal defects solvable and try to
+  turn a mismatched joint into a dislocation with a conserved charge. It fails
+  three ways: a scalar height is blind to breaks, the break set is open strings
+  rather than closed loops, and the oriented per-color current is not conserved.
+  Only an unsigned parity bit survives.
+metaDescription: "A dislocations reformulation of Eternity II tries to give every mismatch a conserved charge a worm move could annihilate in pairs. It fails three ways; the only surviving invariant is a single unsigned parity bit per color, measured on this project's record boards."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 75
+updated: 2026-07-23
+topics: [structure, search-space]
+sources:
+  - label: "No-height-function checker: article, Rust source and the per-board results table (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/sigma-cycles
+  - /research/why/parity-defect-floor
+  - /research/why/rigidity-wall
+  - /research/records
+repro:
+  kind: exact
+  tier: qualitative
+  topic: no-height-function
+---
+
+There is a borrowed idea that, if it held, would change how you attack this
+puzzle. In the statistical physics of crystals a tiling carries a **height
+function**: a number living on the faces that steps up or down by a fixed
+amount across every edge. When the tiling is flawless the height is
+single-valued. A defect is a point where walking a small loop and adding up the
+steps does not return you to where you started; the leftover is a conserved
+charge (physicists call it a **Burgers vector**), and defects can only ever be
+created or destroyed in charge-cancelling pairs. That last fact is the prize. It
+is what lets physicists use a **worm move**: a rewrite that is spread out across
+the lattice but simple in height space, sliding two defects together until they
+cancel.
+
+Score a full Eternity II board by counting its matched internal joints out of
+480 (the matched-edges convention used throughout this wiki; the
+[records page](/research/records) puts the numbers below in context). A
+mismatched joint is a **break**. If breaks were dislocations with a conserved
+oriented charge, there would be a principled non-local move that lowers the
+break count by walking a pair of them together and annihilating them, exactly
+the kind of move that ordinary single-swap search cannot see. This page records
+why that hope does not survive contact with a real board. The failure is not a
+matter of taste. It is two concrete facts you can measure on any board, plus one
+that needs no board at all, and the checker in the reproduction topic measures
+the first two on this project's committed record boards.
+
+## The scalar height is blind before you start
+
+Take the most naive version first: put a single number on each cell and read the
+"step" across a joint as the difference of the two cells' numbers. Walk the four
+cells around any interior grid corner and add up the four steps. Each cell's
+number enters the loop once with a plus and once with a minus, so the sum is
+**zero**, always, for every assignment of numbers and no matter which joints are
+broken. A break lives on one joint; it never changes any corner's loop sum. So a
+per-cell scalar height cannot detect a break at all. It is not that it detects
+them badly; it is structurally deaf to them. This one is a one-line identity, so
+it is stated here rather than measured.
+
+## The break set is open strings, not closed loops
+
+The physicist's fix is to stop using cell values and instead put the step on a
+joint **exactly when that joint is broken**. Now the loop sum around a grid
+corner counts the broken joints touching that corner, taken modulo two. The
+height is single-valued only if every corner touches an even number of breaks,
+which is to say only if the breaks form closed loops on the grid of corners.
+
+They do not. On every board measured, dozens of corners touch an **odd** number
+of breaks. In the crystal picture those odd corners are dislocation **cores**,
+the loose ends of open break-strings. A height cannot close around a loose end,
+so it cannot exist globally. The count of these cores is the first number the
+checker reports, and it stays large even on the best boards:
+
+| Board (this project) | Matched edges | Breaks | Odd-degree cores | Colors with unbalanced current |
+| --- | ---: | ---: | ---: | ---: |
+| best matched-edges, 463 | 463 | 17 | 22 | 10 |
+| a 460 board | 460 | 20 | 22 | 9 |
+| a 458 board | 458 | 22 | 34 | 15 |
+| an earlier 460 board | 460 | 20 | 26 | 12 |
+
+All four are matched-edges scores, re-verified by the checker before the
+topology is measured; a board whose re-scored value disagreed with its recorded
+one is refused outright, so the numbers above always describe a board of known,
+verified quality. The best of them sits only 17 breaks away from a hypothetical
+solution and still carries 22 open-string cores. The obstruction does not soften
+as a board approaches a solution, which is the whole point: there is no board
+near the top where the loops quietly close.
+
+## The oriented charge is not conserved
+
+One more escape is worth ruling out. Maybe resolving breaks color by color
+rescues a conserved charge. For a single color, orient each half-broken joint
+(one where exactly one side shows that color, which is necessarily a break) as
+an arrow pointing from the color-carrying cell toward its non-matching
+neighbor, and add up the arrows into one vector per color over the whole board.
+A genuine conserved current would sum to **zero**. It does not. On every board,
+several colors have a nonzero total, listed in the last column above: between 9
+and 15 of the 22 colors carry an unbalanced current, depending on the board.
+
+The reason is structural, and it explains why no amount of cleverness fixes it.
+On an actual solution every colored edge is matched to an edge of the same
+color, so there are no half-broken joints and every color's current is trivially
+zero. A half-broken joint is precisely an **unpaired** half-edge, one whose
+partner is missing, so its arrow has nothing to cancel against. The unbalanced
+sum is not a bookkeeping slip; it is the signature of the missing partner.
+
+For orientation only, an earlier standalone notebook run measured the same core
+counts on three different boards (a 451, a 463 and a 458 board) and got **28, 22
+and 32** odd cores; the four boards here land at **22, 22, 34 and 26**, squarely
+in the same regime, with the 463 board matching at 22 on both. The specific
+colors and signs that come out unbalanced are labels tied to how one particular
+board was numbered and carry no meaning of their own; only the count of
+unbalanced colors, and the fact that it is never zero, is the reproduced
+content. These are this project's own boards, well below the community bests of
+470 under the center-clue convention and 464 with all five clues placed (again,
+the [records page](/research/records) keeps that context); they are used here
+because the obstruction has to be checked on a real, high-scoring board of the
+official instance, not on a small generated one where it would be either vacuous
+or off-instance.
+
+## What survives is a single bit
+
+Put the three failures together. A scalar height is deaf to breaks; the break
+set is open strings with dozens of loose ends; the oriented per-color current
+does not balance. Every route to a Burgers-vector height is closed. What is left
+is far weaker than a height: the only conserved invariant of the break set is an
+**unsigned per-color parity**, one bit per color (an element of a 22-dimensional
+space over the two-element field). A bit records whether a color's count of
+half-broken joints is even or odd; it has no direction and no magnitude. A bit
+is not the holonomy of any height function, and no worm move can be built on it.
+
+That is the negative result, and it is worth stating plainly because the idea it
+kills is genuinely attractive: the dimer-and-defect picture is closed from the
+break side, and with it the dream of a clean non-local move that walks defects
+to annihilation. The physical intuition it leaves standing is more hopeful and
+lives elsewhere: the right way out of a locally frozen board (see the
+[rigidity wall](/research/why/rigidity-wall)) is a **correlated cluster move**,
+several tiles turned together, rather than any single-site edit. That companion
+story is a separate result and is not measured here.
+
+It also fits the shape of the puzzle you can see on the boards themselves. The
+breaks do not scatter; they [pile into one band](/research/why/mismatch-geometry)
+and the graph of mismatched edges is always a forest, never closing a loop,
+which is the same open-string fact this page proves cannot be closed. The
+surviving parity bit is a cousin of the counting law behind
+[why 479 is impossible](/research/why/parity-defect-floor): both are what you get
+when an oriented invariant collapses to an unsigned one over the two-element
+field. Direction is exactly the thing this instance refuses to give you.
+
+## Check it yourself
+
+The checker loads each committed board through the starter kit's board parser,
+re-scores it with the canonical rule (and refuses any board whose re-scored
+value disagrees with its recorded score), then makes one linear pass to count
+odd-degree cores and unbalanced per-color currents. It is deterministic, uses no
+randomness, runs in well under a second on a single core, and its output is
+byte-stable across runs. The
+[article, Rust source and results table are on GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function),
+and the reproduction block on this page points at the same topic. Two caveats on
+scope, which the finding states plainly about itself: this is a **qualitative**
+reproduction. The exact core counts and current sums are functions of the
+specific board, so they are read as "in the same regime as", never as a
+bit-for-bit match to any earlier table; and the scalar-height obstruction of the
+first section is a proved identity, asserted rather than recomputed.

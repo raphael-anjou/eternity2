@@ -1,0 +1,190 @@
+---
+title: Le plateau comme mot de code
+description: >-
+  Lisez un plateau complet comme un mot de code dont les 480 jointures
+  intérieures sont des contrôles de type parité, et le score d'arêtes appariées
+  devient 480 moins le nombre de contrôles en échec. C'est une lentille nette
+  reposant sur une seule identité porteuse, et il vaut la peine d'être précis
+  sur ce que la vue par codes correcteurs apporte et sur ce qu'elle ne fait que
+  renommer.
+metaDescription: "Modéliser une solution d'Eternity II comme un mot de code correcteur : ses 480 jointures sont des contrôles de type parité et le score vaut 480 moins le poids du syndrome. Le dénombrement en dessous (480 contrôles, code de permutation à 256 pièces, cinq couleurs de bordure) se reproduit exactement."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 90
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Le jeu de pièces d'Eternity II et le visualiseur interactif de plateau (bucas.name)"
+    url: https://e2.bucas.name/
+  - label: "La lentille plateau-comme-mot-de-code : article, code du vérificateur et résultats JSON (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/permutation-code-wall
+related:
+  - /research/why/parity-defect-floor
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/entropy-area-law
+  - /research/why/piece-theft
+  - /research/records
+repro:
+  kind: exact
+  topic: permutation-code-wall
+  cmd: cd research/topics/permutation-code-wall/compute && cargo run --release > ../results/permutation_code_wall.json
+  scope: >-
+    Reproduit les trois faits structurels comptés sur l'instance officielle
+    16x16 (480 contrôles de trois façons indépendantes, 256 pièces distinctes à
+    rotation près formant un code de permutation, cinq couleurs de cadre avec le
+    gris comme pur marqueur de rebord) et l'identité score = 480 moins ruptures
+    sur de vrais mots de code 480 avec un nombre de ruptures injecté et
+    exactement connu (k dans {0,1,2,5,10,29,60,120} sur cinq graines, quarante
+    lignes, toutes tiennent ; k=29 tombe sur 451). Les nombres propres à un
+    plateau que donne le papier exigent un plateau champion privé et ne sont pas
+    reproduits ; le vocabulaire de codes est lui-même un recadrage, signalé
+    comme tel.
+---
+
+Il existe une manière de regarder un plateau achevé qui emprunte tout son
+vocabulaire aux codes correcteurs d'erreurs, et elle est réellement éclairante
+dès qu'on sait exactement ce qu'elle affirme. Étalez la grille 16 sur 16,
+traitez chaque tuile comme un symbole, et traitez chaque endroit où deux tuiles
+voisines se rencontrent comme un *contrôle* qui réussit (les deux arêtes en
+regard sont de la même couleur) ou échoue. Il y a 480 de ces jointures
+intérieures. La liste des contrôles qui échouent est un *syndrome*, et une
+solution complète est le seul plateau dont le syndrome est vide. Notez un
+plateau selon la [convention d'arêtes appariées](/research/records) employée
+partout dans ce wiki (comptez les jointures intérieures qui s'apparient, sur
+480), et l'arithmétique vient d'elle-même : le score vaut 480 moins le nombre de
+contrôles en échec.
+
+Cette seule ligne, score égale 480 moins le poids du syndrome, est tout le
+moteur de la lentille par codes. Tout le reste de ce qu'elle dit du casse-tête
+(distance minimale, décodeurs, ensembles bloquants) est bâti dessus. Il vaut
+donc la peine de bien cerner ce qu'est réellement cette identité, et de séparer
+la part de ce tableau qui est un fait réel et dénombrable sur le jeu officiel de
+la part qui n'est qu'un changement d'habit.
+
+## Ce que la lentille renomme, et ce qu'elle mesure
+
+Le partage franc, énoncé clairement parce que c'est là tout l'enjeu.
+
+L'identité elle-même renomme plutôt qu'elle ne révèle. Le « poids du syndrome »
+est le décompte des arêtes intérieures non appariées ; le scoreur appelle déjà
+ce décompte *ruptures* et le définit déjà comme le score maximal moins le score
+atteint. Donc « score égale 480 moins le poids du syndrome » n'est pas une
+découverte sur Eternity II. C'est la définition du score écrite en langage de
+codes. Ce n'est pas un reproche : un bon renommage peut rendre une structure
+lisible. Cela signifie simplement que l'identité vous offre un point de vue, pas
+un nombre.
+
+Sous le vocabulaire, en revanche, se trouvent trois faits qui sont de vraies
+propriétés du design publié à 256 pièces, chacun exactement dénombrable, chacun
+vérifiable face à l'instance officielle :
+
+- **480 contrôles.** Une grille 16 sur 16 possède exactement 480 jointures
+  intérieures. C'est $2WH - W - H$ avec $W = H = 16$, c'est la longueur de la
+  liste d'adjacences du scoreur lui-même, et c'est le score maximal du kit.
+  Trois chemins indépendants vers le même 480.
+- **Un code de permutation.** Les 256 tuiles sont toutes distinctes à rotation
+  près, si bien qu'un plateau légal emploie chacune des 256 pièces exactement
+  une fois. En langage de codes, le mot de code n'est pas une chaîne libre de
+  symboles ; c'est une permutation, et cette contrainte est bien plus forte que
+  les seuls contrôles de jointure.
+- **Un code de bordure.** Exactement cinq couleurs (étiquetées 1 à 5)
+  n'apparaissent que sur le cadre, jamais sur une tuile intérieure, et la
+  couleur de cadre grise repose sur zéro demi-arête intérieure. Le rebord est un
+  petit code séparé empilé sur les jointures.
+
+Voilà ce qui donne à la lentille quelque chose de concret sur quoi s'appuyer. Le
+[théorème de parité](/research/why/parity-defect-floor), lu dans ce langage, est
+un énoncé selon lequel ce code n'a pas de syndrome de poids un : on ne peut pas
+faire échouer exactement un contrôle sur un plateau complet légal, si bien que
+479 est un barreau vide et que le plancher de défaut est 2. La
+[loi d'aire](/research/why/entropy-area-law) et le
+[vol de pièce](/research/why/piece-theft) sont, dans ce langage, des énoncés sur
+le code de permutation : c'est la règle « chaque pièce une seule fois », et non
+l'appariement des couleurs, qui porte la difficulté.
+
+## L'identité, vérifiée bit à bit
+
+Comme l'identité est porteuse, la reproduction la confirme directement au
+travers du scoreur canonique du kit, le même scoreur excluant le rebord que le
+site et chaque moteur utilisent, si bien qu'un contrôle en échec ici signifie la
+même chose qu'une rupture partout ailleurs sur ce wiki.
+
+Le contrôle part d'une vraie solution : un plateau 16 sur 16 généré et résolu
+qui marque 480 sur 480 avec un syndrome vide. Il injecte ensuite un nombre
+exactement connu de contrôles rompus en corrompant une demi-arête en regard à la
+fois vers une couleur qu'aucune pièce ne porte, n'acceptant une corruption que
+lorsqu'elle fait baisser le score d'exactement un. Ce garde-fou pas à pas est ce
+qui fait du compte injecté une quantité connue plutôt qu'inférée : $k$ ruptures
+signifie exactement $k$ contrôles en échec, chacun vérifié à part. Il relit
+ensuite le score, le nombre de ruptures et un recomptage indépendant du
+syndrome, et confirme que les trois concordent.
+
+Exécuté sur cinq plateaux résolus et huit nombres de ruptures (quarante lignes
+en tout, sur la convention d'arêtes appariées, sur 480), chaque ligne obéit à
+l'identité :
+
+| Ruptures injectées $k$ | Score | Ruptures | Recomptage indépendant du syndrome | 480 moins $k$ |
+| ---------------------: | ----: | -------: | ---------------------------------: | ------------: |
+| 0                      | 480   | 0        | 0                                  | 480           |
+| 1                      | 479   | 1        | 1                                  | 479           |
+| 2                      | 478   | 2        | 2                                  | 478           |
+| 5                      | 475   | 5        | 5                                  | 475           |
+| 10                     | 470   | 10       | 10                                 | 470           |
+| 29                     | 451   | 29       | 29                                 | 451           |
+| 60                     | 420   | 60       | 60                                 | 420           |
+| 120                    | 360   | 120      | 120                                | 360           |
+
+Chaque ligne satisfait score égale 480 moins $k$, ruptures égale $k$, et le
+recomptage indépendant du syndrome égale $k$, sur les cinq graines. L'exécution
+est déterministe et se termine en moins d'une seconde sur puce Apple Silicon ; le
+JSON de résultats archivé est stable octet pour octet à la réexécution. La ligne
+à $k$ égale 29 est là exprès : elle affiche le score 451, qui est exactement le
+couple score-et-ruptures que porte le plateau champion à bande inférieure conçu
+de zéro par le papier (29 ruptures, 451 arêtes appariées). L'identité 480 moins
+29 égale 451 tient face au couple score-et-ruptures que le papier rapporte pour
+ce plateau champion. (Ce 451 est un chiffre
+de carnet obtenu de zéro, bien en dessous des meilleurs plateaux complets de la
+communauté, à 470 et 464, sur la [page des records](/research/records) ; l'enjeu
+ici est seulement que l'arithmétique de codes tombe dessus.)
+
+## Les faits structurels, sur l'instance officielle
+
+| Fait | Attendu | Mesuré |
+| --- | --- | --- |
+| Nombre de contrôles | 480 | 480 de trois façons : formule $2WH - W - H$, liste d'adjacences énumérée, score maximal du kit |
+| Code de permutation | 256 tuiles, chacune une fois | 256 pièces, toutes distinctes à rotation près |
+| Code de bordure, couleurs de cadre | cinq, confinées au rebord | 5 couleurs de cadre (1 à 5), 17 couleurs intérieures |
+| Code de bordure, gris | rebord extérieur seul | 0 demi-arête grise sur une pièce intérieure quelconque |
+
+Les quatre sont recalculés à partir des données de l'instance plutôt que
+supposés, et les quatre concordent.
+
+## Ce que la vue par codes correcteurs apporte et n'apporte pas
+
+Ce qu'elle apporte, c'est un modèle mental net et un endroit où loger les deux
+contraintes dures. Les contrôles de jointure forment à eux seuls un code faible :
+localement, un plateau presque parfait a quantité de motifs de couleurs à faible
+désaccord à proximité, d'où le fait que les
+[désaccords se regroupent](/research/why/mismatch-geometry) en une seule bande
+plutôt qu'ils ne s'étalent. La force réside dans le code de permutation superposé
+par-dessus, l'exigence que les symboles soient un vrai réarrangement de la
+totalité des 256 pièces. Nommer cette couche, et la séparer des contrôles de
+couleur, est une manière utile de dire où se situe la difficulté : non pas dans
+l'appariement des couleurs, mais dans leur appariement alors que chaque pièce est
+dépensée exactement une fois.
+
+Ce qu'elle n'apporte pas, c'est un nombre nouveau. L'identité centrale est la
+propre définition du score dans un autre alphabet, et le vocabulaire des
+décodeurs et de la distance minimale décrit le même paysage que les pages
+[rigidité](/research/why/rigidity-wall) et
+[loi d'aire](/research/why/entropy-area-law) mesurent directement, sans ajouter
+de mesure à elle. L'affirmation plus forte qu'une lecture par codes voudrait
+faire, à savoir que la distance minimale du code de permutation est ce qui fixe
+en place un plateau record précis, est une mesure propre à un plateau qui vit sur
+un unique plateau champion privé que le kit public ne fournit pas, si bien
+qu'elle n'est ici ni confirmée ni infirmée. Ce qui se reproduit exactement, c'est
+l'échafaudage : 480 contrôles, un code de permutation à 256 pièces, un code de
+bordure à cinq couleurs, et l'unique identité qui soutient tout le tableau.

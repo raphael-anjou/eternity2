@@ -1,0 +1,179 @@
+---
+title: The hard region you cannot design away
+description: >-
+  Fill a board in any fixed order and the top three quarters go in freely while
+  the difficulty piles into whichever band you finish last. Across forty
+  generated boards the entire leftover sits in the bottom half every single
+  time; shuffle the fill order and it scatters, so the hard region is made by
+  the sweep, not hidden in the board.
+metaDescription: "On solvable Eternity II boards a row-major search fills the top three quarters then stalls; across forty 16x16 boards the whole leftover sits in the bottom half every time. Shuffle the fill order and it scatters (0.503), so the hard region belongs to the decomposition, not the board."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 3
+order: 82
+updated: 2026-07-22
+topics: [structure, search-space]
+sources: []
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/piece-theft
+  - /research/why/walls-and-methods
+  - /research/records
+repro:
+  kind: seeded
+  cmd: just research-irreducible-hard-region
+  topic: irreducible-hard-region
+  produces: search
+  scope: >-
+    Reproduces the localization claim only: on forty generated framed
+    planted-solvable 16x16 boards (22 colours, no hints), a restarting
+    exact-match depth-first search is run row-major and again in a seeded random
+    slot order, and the frontier row and bottom-half leftover fraction are read
+    from the deepest partial of each arm. The generator and the shuffle are
+    seeded, so a rerun at the same flags is byte-stable. It does not reproduce
+    the exact-window or the global-coupling halves of the conjecture, which are
+    stated here as conjecture.
+---
+
+Two things are true of almost every attempt to crack Eternity II by splitting
+the board into pieces and filling them in turn. The first part you fill goes in
+easily. The last part does not. Whether the pieces are rows, bands, strips,
+blocks, or concentric rings, the difficulty does not spread out across them; it
+collects into whichever region the search reaches last, and sits there as a wall.
+
+This page tests the cleanest version of that claim, and finds it holds sharply,
+with one twist the measurement makes plain: the hard region is not a fixed patch
+of the board waiting to be found. It is manufactured by the order you fill in,
+and it lands wherever that order finishes.
+
+## The claim, and the three parts of it
+
+The full conjecture in the project notebook has three parts. First, **the
+difficulty localizes**: fill sequentially and the leftover, the cells the search
+cannot place, concentrates in the last region. Second, **that region is too big
+to solve exactly**: it runs past the roughly 112-cell window where an exact
+completion still returns in reasonable time. Third, **it is too globally coupled
+to finish with a heuristic**: because every piece is used once, spending a scarce
+piece early in the easy part starves the hard part later, so no local repair
+reaches a new high board.
+
+Only the first part is a clean fact you can read off a board. The other two are
+ceilings tied to a particular exact solver and to the official 22-colour piece
+set's specific scarcity, and the notebook itself labels them empirical rather
+than proved. So this page reproduces the first part, localization, and carries
+the other two as conjecture. The one reading it adds beyond the notebook is that
+localization is better understood as a property of the sweep order than of the
+board, which the control below makes unavoidable.
+
+## The instrument, and why it is fair
+
+The measurement runs from scratch on framed, colour-balanced,
+**planted-solvable** boards built by the starter kit's seeded generator: a
+perfect solution is guaranteed to exist, so any stall belongs to the search and
+not to an unsolvable instance. For each generator seed the checker builds one
+16x16 board with no pinned hints, then runs the same restarting exact-match
+depth-first search on it twice, once in row-major slot order and once in a seeded
+random slot order, and reads two numbers off the deepest partial each arm reaches:
+
+- the **frontier fraction**, the deepest fully-filled row divided by the board
+  side, which says how far the easy part got; and
+- the **bottom-half leftover fraction**, of the cells still empty, the share that
+  lie in rows 8 through 15, which says where the difficulty landed.
+
+Both numbers are defined for any fill order, which is exactly what lets the random
+arm be a fair control against the row-major arm. Scores here are quoted under the
+matched-edges convention (interior joints only; a full 16x16 solve scores 480),
+though this page makes no record claim; the frontier and leftover statistics are
+cell geometry, not edge score. For where the project's own boards sit against the
+community bests, see the [records page](/research/records).
+
+## What the sweep does
+
+Run on Apple Silicon, single core, forty boards times two arms in about three
+minutes at the default 1.5-million-node budget. The notebook source is a
+synthesis of many decomposition experiments rather than one measured run, so it
+commits no per-seed digit table for a kit board; the numbers below are the shape
+the conjecture predicts, and the agreement is on that shape and its sign.
+
+Localization sweep, forty generated framed 16x16 boards, 22 colours, from scratch:
+
+| Quantity | The conjecture's shape | Measured, row-major | Measured, random control |
+| --- | --- | ---: | ---: |
+| Boards fully solved | none expected (this is not a solver) | 0 / 40 | 0 / 40 |
+| Median frontier fraction on stalled boards | top ten-plus rows fill freely (above 0.6) | 0.75 (12 of 16 rows) | 0.0 (no row ever fully fills) |
+| Frontier fraction range | high | 0.6875 to 0.75 | not applicable |
+| Mean bottom-half leftover fraction | near 1.0 (hard region is the last band) | 1.000 | 0.503 |
+| Boards with all leftover in the bottom half | all | 40 / 40 | 0 / 40 |
+
+The row-major search reaches a median frontier of three quarters of the board,
+twelve complete rows out of sixteen, before it can no longer place a perfect
+match. That matches the notebook's picture of the top ten-plus rows filling
+near-freely. And on every one of the forty boards, the entire leftover sits in
+the bottom half: the mean bottom-half leftover fraction is exactly 1.000.
+
+## The control is the whole point
+
+Take the same forty boards and fill each one in a uniformly random cell order
+instead of row-major. Now there is no last region, and the leftover scatters. The
+mean bottom-half leftover fraction is 0.503, indistinguishable from an even split,
+and not one of the forty boards concentrates its leftover in the bottom.
+
+So the hard region is not somewhere on the board waiting to be found. The same
+board has all of its difficulty in the bottom under a row-major sweep and none of
+it concentrated anywhere under a random order. The difficulty is real, but it is
+placed by the decomposition. This is the mirror image of what the record boards
+show directly: their [few mismatches pile into one band](/research/why/mismatch-geometry)
+whose position is set by the direction the search filled the board. Here you can
+watch that band being created and moved by changing nothing but the fill order.
+
+## The stall is a wall, not a slow start
+
+One more check separates a wall from a search that simply ran short of nodes.
+Rerun eight of the boards at four million nodes, roughly 2.7 times the sweep
+budget, and compare the frontier against the same seeds in the main run.
+
+| Quantity | 1.5-million-node sweep | 4-million-node rerun |
+| --- | ---: | ---: |
+| Frontier fraction, seeds 1 to 8 | 0.6875 to 0.75 | 0.6875 to 0.75 |
+| Mean bottom-half leftover fraction | 1.000 | 1.000 |
+
+The frontier does not climb with the budget. Four of the eight boards move up one
+row, one moves down one row, and three do not move at all, all inside a single row
+of jitter, and the leftover stays entirely in the bottom band. The search is not
+slow; it is stopped, and it is stopped at the last region it tries to fill. That
+is the budget-insensitive failure the conjecture predicts, reproduced directly.
+
+## What this does and does not settle
+
+This reproduces the localization half of the conjecture only. The two remaining
+halves are stated as conjecture and are not measured here, deliberately.
+
+The **too big to solve exactly** half is machine- and solver-specific: the roughly
+112-cell exact window is a property of one particular edge-strict search, and a
+stronger exact solver would move it. Our hard region is the bottom four to five
+rows, about 64 to 80 cells, which is actually below the roughly 112-cell window;
+it is smaller than the roughly 96 to 128 cells the conjecture describes, because
+these generated boards fill deeper than the official-set decompositions the
+notebook synthesized. Whether a hard region ever exceeds the window on the
+official set is the separate, unmeasured claim.
+
+The **too globally coupled** half is an empirical ceiling tied to the official
+piece set's scarcity, the coupling that lets a scarce piece spent up top
+[starve a cell far below](/research/why/piece-theft). Our boards come from the
+kit's framed generator, which is planted-solvable and plausibly admits many
+solutions, where the real puzzle is believed to admit essentially one.
+Localization holds for any solvable board under a sequential fill, because the
+leftover has to live somewhere and a row-major sweep puts it at the bottom, so the
+generated family is an adequate test of localization; it is not a test of the
+coupling claim, which would need the official set. That instance-family gap is why
+this reproduction is qualitative rather than exact: there is no bit-for-bit source
+table to match, only a sign and a band, and both reproduce.
+
+The larger lesson lands where the other structural walls do. A decomposition does
+not remove the difficulty; it relocates it. That is the same shape as the
+[rigidity wall](/research/why/rigidity-wall), where a record is a locally frozen
+island, and it is why the [method map](/research/why/walls-and-methods) shows
+every decomposition family stopping against a wall in a different place on the
+board rather than escaping one.

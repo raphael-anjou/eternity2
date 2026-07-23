@@ -112,6 +112,13 @@ research-piece-theft:
 research-prune-vs-speed:
     cd research/topics/prune-vs-speed/compute && cargo run --release > ../results/prune-vs-speed.json
 
+# Reproduce the irreducible-hard-region localization topic. Runs the 40-board
+# row-major vs random-order sweep, then the 8-board budget-insensitivity check.
+# ~4 min single core.
+research-irreducible-hard-region:
+    cd research/topics/irreducible-hard-region/compute && cargo run --release -- --n 16 --seed-lo 1 --seed-hi 40 --node-cap 1500000 --restart-cap 150000 > ../results/hard_region.json
+    cd research/topics/irreducible-hard-region/compute && cargo run --release -- --n 16 --seed-lo 1 --seed-hi 8 --node-cap 4000000 --restart-cap 400000 > ../results/hard_region_budget4m.json
+
 # Reproduce the rare-color-geography topic's results.
 research-rare-color-geography:
     cd research/topics/rare-color-geography/compute && cargo run --release > ../results/color-geography.json
@@ -164,6 +171,12 @@ research-frame-manifold:
     cd research/topics/frame-manifold/compute && cargo run --release > ../results/manifold.json
     cd research/topics/frame-manifold/compute && cargo run --release -- --frames 100 --walk 100 --seed0 7001 > ../results/manifold_seed7001.json
 
+# Reproduce the frame-is-not-the-basin topic's results (16 distinct strong frames
+# each completed by one fixed interior producer + the seed-7001 robustness pass).
+research-frame-is-not-the-basin:
+    cd research/topics/frame-is-not-the-basin/compute && cargo run --release -- --frames 16 --beam 128 --seeds 3 --seed0 1 > ../results/frame_first.json
+    cd research/topics/frame-is-not-the-basin/compute && cargo run --release -- --frames 12 --beam 128 --seeds 2 --seed0 7001 > ../results/frame_first_seed7001.json
+
 # Reproduce the ledger-prune topic's results (soundness gate + A/B sweep + the 464 certificate rows).
 research-ledger-prune:
     cd research/topics/ledger-prune/compute && cargo run --release -- --mode cert --cap-secs 300 > ../results/cert_phase2.json
@@ -184,3 +197,26 @@ research-scaling-ladder:
 # pairs: cycle structure + every-proper-prefix partial-application score curves).
 research-sigma-cycles:
     cd research/topics/sigma-cycles/compute && cargo run --release > ../results/sigma-cycles.json
+
+# Reproduce the no-height-function topic's results (odd dual cores + non-conserved
+# per-color currents on committed high-scoring boards; qualitative obstruction).
+research-no-height-function:
+    cd research/topics/no-height-function/compute && cargo run --release > ../results/no_height_function.json
+
+# Reproduce the permutation-code-wall topic's results (WEFT coding-theory lens:
+# 480 checks + permutation code + border code structural facts, and the
+# score = 480 - breaks syndrome identity on codewords with known break counts).
+research-permutation-code-wall:
+    cd research/topics/permutation-code-wall/compute && cargo run --release > ../results/permutation_code_wall.json
+
+# Reproduce the exact-tail-endgame topic's results (frozen top, CP-SAT exact
+# optimisation of the bottom band vs the producer's own tail; delta distribution
+# across producer seeds, incoming-break cap 1 vs 2).
+research-exact-tail-endgame:
+    cd research/topics/exact-tail-endgame/compute && uv run tailforge.py --seeds 24 --rows 1,2 --caps 1,2 --band-seeds 1:24,2:4 --time-limit 45 --workers 8 --out ../results/tailforge.json
+
+# Reproduce the flux-invariants topic's results (official-instance facts, the
+# flux-law complex/real/F2 ranks + census orthogonality, and the mod-2 endgame
+# certificate catch curve on planted 8x8 boards).
+research-flux-invariants:
+    cd research/topics/flux-invariants/compute && cargo run --release > ../results/flux_invariants.json

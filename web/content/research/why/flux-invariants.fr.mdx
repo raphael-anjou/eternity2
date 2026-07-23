@@ -1,0 +1,235 @@
+---
+title: "Invariants de flux : une loi de rotation que l'ensemble officiel respecte exactement"
+description: >-
+  Pondérez chaque couleur d'arête et lisez chaque pièce comme un vecteur signé,
+  est moins ouest sur un axe, sud moins nord sur l'autre. Sommé sur une région
+  quelconque, les coutures intérieures s'annulent et seule la bordure survit, si
+  bien que le plateau totalise zéro. Un quart de tour pivote le vecteur d'un
+  angle droit, ce qui fait de la loi une algèbre dans les entiers de Gauss.
+metaDescription: "Invariants de flux pour Eternity II : pondérez chaque couleur d'arête, lisez chaque pièce comme un vecteur signé, les coutures intérieures s'annulent, le plateau somme à zéro. Un quart de tour multiplie le vecteur par i, donnant à la loi le rang complexe plein 22, invisible au comptage de couleurs."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 70
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Invariants de flux : topic de reproduction avec l'article, le vérificateur versionné et le JSON de résultats (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
+  - label: "Conway et Lagarias, Tiling with polyominoes and combinatorial group theory : les invariants de mot de bord que cette loi adapte à l'appariement d'arêtes (JCTA 1990)"
+    url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Brendan Owen numérise l'ensemble de pièces : l'histogramme de couleurs que cette loi confronte (groups.io msg 1054, juillet 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle : la séparation délibérée des palettes bordure et intérieur (groups.io msg 1947, août 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/ring-purity
+  - /research/why/permutation-code-wall
+  - /research/why/complex-theory
+repro:
+  kind: exact
+  topic: flux-invariants
+  scope: >-
+    The instance facts (piece histogram, color multiplicities, clue positions)
+    and the three flux-law ranks are recomputed exactly on the official
+    256-piece set by the committed checker, byte-stable on rerun. The endgame
+    certificate runs on a pool of framed solved 8x8 boards with planted
+    rotations and reproduces the source's mechanism, its soundness (never
+    rejecting a valid partial), and its monotone catch curve toward full fill,
+    not the source's exact 13/50/100 percentages.
+---
+
+Les scores de cette page suivent la convention d'appariement d'arêtes : le score
+d'un plateau est le nombre, sur les 480 jointures intérieures, dont les deux
+demi-arêtes montrent la même couleur. Une solution complète vaut 480. Les
+invariants ci-dessous ne concernent pas le score d'un plateau ; ils concernent
+les rotations de pièces qu'un plateau-480 valide a le droit d'employer, et ils
+tiennent pour toute solution valide, quel que soit son score.
+
+## L'idée en une ligne
+
+Donnez à chacune des 22 couleurs d'arête un poids numérique, la couleur de
+bordure grise recevant le poids zéro. Lisez une pièce posée comme un vecteur à
+deux dimensions : son poids côté est moins son poids côté ouest sur l'axe
+horizontal, son poids sud moins son poids nord sur l'axe vertical. Sommez maintenant ce vecteur
+sur un bloc de pièces posées. Chaque couture intérieure du bloc est partagée par
+deux pièces, et elle entre dans la somme une fois avec un signe plus depuis une
+pièce et une fois avec un signe moins depuis sa voisine, la même couleur sur les
+deux faces, si bien que les deux s'annulent. Rien ne survit à la somme, sauf la
+bordure extérieure du bloc.
+
+Sur le plateau entier cette bordure extérieure est le rebord gris, de poids zéro,
+donc le total est exactement le vecteur nul. C'est une loi de conservation, la
+cousine discrète d'un théorème de la divergence : le flux sortant de toute région
+égale le flux traversant sa frontière, et pour le plateau entier la frontière ne
+porte aucun flux.
+
+## Pourquoi un quart de tour fait entrer les nombres complexes
+
+Le vecteur n'est pas insensible à la rotation. Tournez une pièce de quatre-vingt-dix
+degrés dans le sens horaire et sa couleur nord passe à l'est, l'est au sud, le sud
+à l'ouest, l'ouest au nord. Suivez ce que cela fait au vecteur et les axes
+horizontal et vertical s'échangent avec un signe : le nouveau vecteur est l'ancien
+tourné d'un angle droit. Dans le plan, un quart de tour est une multiplication par
+l'unité imaginaire. Donc si vous écrivez le vecteur comme un nombre complexe, un
+quart de tour de la pièce le multiplie par $i$, et les quatre rotations qu'une
+pièce carrée peut prendre correspondent aux quatre puissances $1, i, -1, -i$.
+
+Ce seul fait est ce qui élève une identité de comptabilité en algèbre. La loi de
+conservation, écrite couleur par couleur, dit qu'une certaine somme d'entiers de
+Gauss, un terme par pièce, chacun multiplié par une puissance de $i$ fixée par la
+rotation choisie de cette pièce, doit valoir zéro. C'est une contrainte non pas
+sur l'emplacement des pièces mais sur les rotations que l'ensemble entier peut
+adopter.
+
+## La famille complète, et ce qui est nouveau
+
+Le groupe de rotation d'un carré a quatre caractères, et la loi de flux n'en est
+qu'un. Décomposer la pièce selon les quatre donne le treillis complet des
+invariants linéaires, intrinsèques à la pièce, de l'appariement d'arêtes : rien de
+linéaire ne lui échappe. Les quatre membres sont un simple recensement de couleurs
+(insensible à la rotation, le décompte total de chaque couleur sur la pièce), la
+loi de flux gaussienne que l'on vient de décrire, son conjugué complexe (la même
+information), et un quatrième membre, à valeurs entières, qui couple le choix par
+chaque pièce de la paire d'arêtes opposées qui se retrouve horizontale à la couleur
+d'échiquier de sa case. Ce dernier est l'écho, côté appariement d'arêtes, de
+l'obstruction de bicoloration que Conway et Lagarias ont utilisée pour le pavage
+par polyominos, la méthode du mot de bord dont toute cette famille est adaptée.
+
+Le recensement n'a rien de neuf : ce n'est que du comptage de couleurs. La valeur
+de la loi de flux, c'est qu'elle, elle en apporte. Sur l'ensemble officiel son
+ombre insensible à la rotation, la version obtenue en oubliant le $i$ et en
+fusionnant plus et moins, est identiquement nulle pour les 22 couleurs, parce que
+tout décompte de couleur sur le plateau est pair. Autrement dit, le comptage de
+couleurs sait déjà tout ce que l'ombre pourrait lui dire, et il n'en sait rien de
+plus. Chaque contrainte que la loi de flux impose au-delà de cette ombre est une
+information réellement nouvelle qu'un recensement ne peut pas voir.
+
+## L'algèbre linéaire sur l'instance réelle
+
+Alignez les 22 couleurs en lignes et les 256 pièces en colonnes, et les
+coefficients de flux par pièce forment une matrice. Son rang mesure à quel point
+la loi contraint réellement le casse-tête. Recalculés sur l'ensemble officiel de
+256 pièces, les nombres sortent ainsi.
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">22</div>
+    <div className="mt-1 text-xs text-muted-foreground">rang complexe, plein (22 sur 22 couleurs)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">40</div>
+    <div className="mt-1 text-xs text-muted-foreground">contraintes réelles indépendantes</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">21</div>
+    <div className="mt-1 text-xs text-muted-foreground">contraintes de parité indépendantes (mod 2)</div>
+  </div>
+</div>
+
+Un rang complexe plein de 22 signifie que la loi lie les 22 couleurs à la fois,
+sans qu'aucune couleur ne s'échappe comme variable libre. Scinder les équations
+complexes en leurs parties réelle et imaginaire donne 40 contraintes réelles
+indépendantes sur l'assignation des rotations. Et réduire tout le système modulo
+2, où la rotation d'une pièce se ramène à un unique bit de parité (un quart de
+tour et un trois-quarts de tour deviennent identiques modulo 2), laisse 21
+contraintes de parité indépendantes, le système augmenté restant lui aussi de rang
+21, donc cohérent plutôt que contradictoire. Ce système mod 2 à lui seul retire un
+facteur d'environ deux millions de l'espace des parités de rotation.
+
+Les faits d'instance que la loi confronte se reproduisent eux aussi exactement,
+chiffre pour chiffre face à l'ensemble de pièces numérisé par Brendan Owen : 196
+pièces intérieures, 56 pièces de bord, 4 coins ; la couleur de bordure grise sur
+64 demi-arêtes ; cinq couleurs de cadre qui ne touchent que des pièces de bord, 24
+demi-arêtes chacune ; les couleurs intérieures restantes se répartissant en cinq à
+48 et douze à 50 ; et tout décompte de couleur pair, ce qui est exactement ce
+qu'exige un appariement d'arêtes parfait. Les cinq indices officiels sont toutes
+des pièces intérieures. Rien de tout cela ne dépend d'une confiance dans une
+numérotation de couleurs : le vérificateur dérive l'ensemble des couleurs de cadre
+des données (les couleurs qui n'apparaissent jamais sur une pièce intérieure), si
+bien qu'un renumérotage entre le kit de départ et la liste source ne peut pas le
+tromper.
+
+## D'une loi à une vérification de fin de partie
+
+Une loi de conservation qui doit tenir pour le plateau entier contraint aussi tout
+plateau partiel, parce que les pièces encore à poser doivent porter exactement le
+flux qui manque aux pièces posées. Au cours d'une recherche qui remplit la grille
+pièce par pièce, le flux dû par les pièces restantes est fixé dès l'instant où
+l'ensemble posé est fixé. Si aucune assignation de rotations aux pièces restantes
+ne peut fournir ce flux dû, le plateau partiel est mort, et l'on peut s'arrêter
+sans explorer son sous-arbre.
+
+Réduit modulo 2 cela devient un petit système linéaire sur les parités de rotation
+des pièces restantes, décidé par élimination de Gauss, et c'est un certificat de
+fin de partie fiable. Fiable veut dire qu'il ne rejette jamais un plateau
+réellement complétable : la loi est une condition nécessaire, donc un partiel réel
+passe toujours. Ce qu'il peut faire, c'est attraper une erreur. Testé sur un
+réservoir de plateaux 8 sur 8 résolus et encadrés, avec des rotations implantées,
+en injectant une unique rotation illégale dans le préfixe posé, le contrôle n'a pas
+rejeté une seule fois un partiel valide sur 3 600 essais, et sa probabilité
+d'attraper l'erreur injectée croissait avec la fraction de remplissage.
+
+| Fraction de remplissage | Partiels valides rejetés | Erreur de rotation unique attrapée |
+|---|---|---|
+| 0,50 | 0 sur 900 | 0,6 % |
+| 0,75 | 0 sur 900 | 14,1 % |
+| 0,90 | 0 sur 900 | 88,3 % |
+| 0,95 | 0 sur 900 | 94,6 % |
+
+Le contenu reproduit ici est le mécanisme et la forme de cette courbe, pas les
+pourcentages exacts. La source rapporte une courbe plus raide (13 %, 50 %, 100 %
+aux remplissages 0,50, 0,75, 0,90) sur une famille implantée différente ; le run
+ci-dessus utilise un plateau 8 sur 8 à 13 couleurs avec une pièce injectée choisie
+uniformément et un réservoir de 30 plateaux, 30 ordres chacun (900 par remplissage), si bien
+que les taux de détection absolus se situent plus bas. Ce qui tient exactement, et
+c'est là le point, c'est que le certificat est fiable et que sa probabilité de
+détection grimpe de façon monotone vers le plein à mesure que le plateau se
+remplit. C'est précisément le comportement utile pour une recherche : le contrôle
+s'affûte exactement là où la queue de branchement de l'arbre est la plus coûteuse,
+vers la fin, et chaque prise est orthogonale à l'élagage par couleur et par
+décompte, donc elle s'ajoute par-dessus au lieu de les dupliquer.
+
+## Ce que c'est et ce que ce n'est pas
+
+La loi de flux est une obstruction. Elle peut certifier un plateau partiel mort ;
+elle ne peut jamais en certifier un complétable. C'est le rôle correct et voulu
+pour un invariant à l'intérieur d'une recherche par séparation et élagage, et il
+est partagé par tous les résultats de cette famille. Deux réserves de plus, dites
+franchement. La loi contraint les rotations que l'ensemble de pièces peut employer,
+pas la case où chaque pièce se pose ; seul le membre d'échiquier se couple à la
+position, et seulement par la parité de la case, si bien qu'aucun membre n'épingle
+une pièce à un emplacement. Et l'extension non linéaire naturelle, un produit de
+mot de bord non abélien à la manière de la construction originale de Conway et
+Lagarias, ne survit pas en deux dimensions : une case intérieure a quatre arêtes
+partagées mais seulement deux voisines adjacentes à elle dans tout ordre de lecture
+linéaire, si bien qu'au moins deux de ses arêtes ne pourront jamais s'annuler, et
+la construction retombe sur la loi de flux linéaire. Tout invariant strictement
+plus fort que ceux-ci doit être non linéaire et se situe hors de la famille des
+groupes de pavage.
+
+## Où cela se place
+
+Voici le compte-rendu détaillé d'une loi de la
+[revue des théorèmes](/research/why/theorem-sweep), l'arc qui a demandé ce qui
+pouvait être prouvé sur l'instance plutôt que quel score pouvait être atteint. Elle
+se place à côté de la [pureté de l'anneau](/research/why/ring-purity), l'autre loi
+exacte que la bordure respecte, et elle est le complément algébrique de la
+[lentille du code de permutation](/research/why/permutation-code-wall), qui lit le
+plateau entier comme un mot de code : la loi de flux est un ensemble de contrôles
+de parité que les rotations doivent satisfaire, la même monnaie que celle dans
+laquelle cette lentille est écrite. La
+[page de théorie complexe](/research/why/complex-theory) compte la largeur de la
+recherche ; cette page y ajoute une façon peu coûteuse et fiable d'élaguer sa fin
+de partie.
+
+Chaque nombre ci-dessus est recalculé par le vérificateur versionné dans le topic
+de reproduction lié sous les sources : un unique programme Rust déterministe qui
+charge l'instance officielle, dérive les couleurs de cadre des données, calcule les
+trois rangs, vérifie l'ombre d'orthogonalité au recensement et exécute le balayage
+de fin de partie graine par graine, en émettant un unique fichier JSON (versionné
+sous `results/flux_invariants.json`) qui contient chaque chiffre cité ici. Les
+faits d'instance et les rangs se reproduisent octet pour octet ; le certificat
+rapporte sa propre courbe de prises, fiable à chaque remplissage.

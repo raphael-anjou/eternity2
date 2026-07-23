@@ -1,0 +1,239 @@
+---
+title: The tail as its own exact problem
+description: >-
+  A strong partial board is an upper region the producer worked on plus a
+  bottom band of unfinished rows. Freeze the top, hand the tail to an exact
+  constraint solver, and read off which half sets the ceiling: the producer's
+  structure or the last-rows endgame the producer finished cheaply.
+metaDescription: "An Eternity II board's last rows as an exact CP-SAT optimization decoupled from the producer. The per-cell incoming-break budget, what exact tail solving buys over a greedy finisher (tail-limited vs tail-tight vs a load-bearing double break), and why it reproduces the mechanism, not a record."
+kind: concept
+order: 50
+group: Exact methods
+updated: 2026-07-23
+topics: [exact-methods, construction]
+contribution: method
+rigor: measured
+outcome: plateaued
+sources:
+  - label: 'Google OR-Tools CP-SAT solver (the exact engine used for the tail model)'
+    url: https://developers.google.com/optimization/cp/cp_solver
+  - label: 'Assignment problem (Wikipedia), the linear relaxation the tail is not'
+    url: https://en.wikipedia.org/wiki/Assignment_problem
+related:
+  - /research/lab/experiments/raphael-anjou/frostline
+  - /research/build/exact/meet-in-the-middle
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/construct/beam-search
+  - /research/records
+repro:
+  kind: seeded
+  topic: exact-tail-endgame
+  cmd: just research-exact-tail-endgame
+  scope: >-
+    Regenerates the full sweep (24 producer seeds at a one-row tail, four at a
+    two-row tail, incoming-break cap 1 and 2), each cell one CP-SAT solve, with
+    every board independently re-scored from its viewer blob. Seeded-statistical
+    tier: the one-row solves reproduce their proven optima on rerun; the two-row
+    feasible deltas reproduce in sign and shape, not digit for digit, and the
+    plain greedy producer is far weaker than the record-track producers of the
+    source study, so no community record is moved here.
+---
+
+A strong partial board is two things glued together: an upper region the
+producer worked hard on, and a bottom band of a few unfinished rows. When such
+a board falls short of a target score, the natural question is which half is to
+blame. Is the ceiling set by the producer's upper structure, or by the last-rows
+endgame the producer finished off cheaply? This page treats that endgame as its
+own exact optimization, decoupled from the producer, and uses the answer as an
+instrument: freeze the top, solve the tail to (or toward) optimality, and read
+off whether exact solving buys anything the producer left on the table.
+
+Every score below is under the same convention: rim-excluding interior matched
+edges, so a full 16×16 board tops out at 480, and the five official clue pieces
+are pinned in place and never moved. That last clause keeps the comparison fair,
+so it is built into the model rather than checked afterward.
+
+## The tail as a small exact problem
+
+Fix a full board produced by a seeded greedy row-major filler (the same producer
+family as the [finishability study](/research/lab/experiments/raphael-anjou/frostline),
+made to honor the five clues so every board it emits is clue-valid by
+construction). Freeze rows $0$ through $15-R$; the bottom $R$ rows are the tail
+band, minus any cell holding a clue, which stays frozen. The tail's own pieces,
+the ones the producer happened to place there, are the pool to permute.
+
+The tail is then handed to a CP-SAT model:
+
+- one border-legal (piece, rotation) per free cell, drawn from the tail's own
+  pool, with an AllDifferent so no piece is used twice;
+- per-side colour variables channelled from the (piece, rotation) choice by
+  Element side tables;
+- hard constraints for the rim (grey exactly on board-facing edges) and for
+  every adjacency the tail touches;
+- a match Boolean on each tail-touching edge, and the objective maximizes their
+  sum.
+
+This is not a linear assignment. A cell's cost splits into edges facing the
+frozen top (which depend only on that cell's choice) and edges facing another
+free cell (a product of two decisions). The free-free terms are genuinely
+bilinear, so a Hungarian-style bipartite matching cannot represent the tail
+exactly; it prices only the frozen boundary. What makes the tail tractable
+anyway is size, not linearity: at one or two rows the constraint solver closes
+it directly, where a naive matching would be blind to half the objective. The
+same modelling appears in the project's [SAT and CSP encodings](/research/build/exact/sat-csp-encodings)
+notes; here it is aimed at a sub-board rather than the whole puzzle.
+
+## The incoming-break budget
+
+The producer fills row by row and charges each cell a budget on its *incoming*
+edges only: in row-major order a cell's incoming edges are its top and its left.
+Writing $\mathrm{conf}(c)$ for the number of those two that mismatch, the
+producer works in the $\mathrm{conf}(c)\le 1$ regime: at most one incoming break
+per cell. The exact model mirrors this exactly with a per-cell cap, and sweeping
+the cap is the experiment's second axis:
+
+- **cap $=1$** reproduces the producer's own $\le 1$-break-per-cell world. Every
+  cell the exact model fills is a cell the producer could, in principle, have
+  built.
+- **cap $=2$** admits a single *double* incoming-break at a cell: two mismatches
+  arriving at once. This is a placement the $\le 1$-break producer can never
+  make, so any point it buys is a point structurally out of the producer's
+  reach.
+
+The gap between the two caps is the price, in matched edges, of the one move the
+producer cannot play.
+
+## What the exact tail buys
+
+For each producer seed the model is run at one row (a 16-cell tail) and two rows
+(a 32-cell tail), at both caps. The headline quantity is the delta,
+$\text{exact score} - \text{producer score}$, on the identical frozen top. By
+construction the exact solve dominates the greedy tail, so the delta is never
+negative; its interest is whether it is *strictly positive* (the producer left
+points in the tail) or *zero* (the producer was already tail-optimal), and how
+that answer varies across seeds.
+
+At one row the model reaches a proven optimum every time it is feasible, in a few
+hundredths of a second. Every emitted board is re-scored independently of the
+solver, and the check runs end to end: the board's viewer-URL edge blob is
+decoded back into a grid of colours and its interior matches recounted from
+scratch, and that recount agrees with the solver's reported score (for the first
+seed's one-row board, $385$ decodes back to $385$). The piece set is also
+re-checked distinct and the five clues re-checked in place. A few seeds show the
+whole story in miniature:
+
+<Figure title="One-row tail (16 cells), proven optimal, four producer seeds">
+
+| producer seed | producer score /480 | cap $=1$ delta | cap $=2$ delta | reading |
+| --- | --- | --- | --- | --- |
+| seed 1 | 379 | $+6$ | $+6$ | tail-limited |
+| seed 2 | 376 | $0$ | $+1$ | tail-tight; the extra point needs a double break |
+| seed 3 | 365 | infeasible | $+6$ | no $\le 1$-break completion exists at all |
+| seed 4 | 369 | $+2$ | $+2$ | tail-limited, double break not needed |
+
+Scores are rim-excluding interior matched edges out of 480, five clues pinned.
+Every row proven optimal in about $0.03$ to $0.11$ s.
+
+</Figure>
+
+Three regimes coexist on one testbed, and they are exactly the regimes the
+source notebook described separately:
+
+- **Tail-limited** (seed 1). The greedy tail leaves $6$ matched edges on the
+  table that exact solving recovers, with no need for a double break. Here the
+  binding constraint really is the endgame, and the producer under-solved it.
+- **Tail-tight** (seed 2, cap $=1$). Exact solving ties the producer: delta $0$.
+  The producer's own tail was already optimal under its $\le 1$-break rule, so
+  there is nothing to recover, and the ceiling lives in the upper structure, not
+  the tail. Raising the cap to $2$ then finds exactly one extra point, and it is
+  precisely a double incoming-break, the one lever the producer cannot pull.
+- **Load-bearing double break** (seed 3, cap $=1$). Strongest of all: the
+  $\le 1$-break producer cannot complete this tail *at any score*, so cap $=1$ is
+  infeasible. Only a double incoming-break admits a filling at all, and cap $=2$
+  then reaches a proven optimum. The double break is not a bonus here; it is the
+  difference between a completion and none.
+
+Across the full 24-seed sweep at one row, the split is the finding: at cap $=1$,
+$18$ seeds are tail-limited (a strictly positive delta), $1$ is tail-tight (delta
+zero), and $5$ are outright infeasible (no $\le 1$-break completion of the tail
+exists). The recovered points run from $0$ to $8$ matched edges, median $4$, mean
+about $3.9$. Raising the cap to $2$ makes all $24$ seeds feasible and every one of
+them tail-limited, with deltas from $1$ to $9$, median $4.5$, mean about $4.8$: the
+double-break move both unlocks the five stuck seeds and adds a point or two
+almost everywhere else. Whether the tail is the binding constraint is a property
+of the individual board, not a universal.
+
+At two rows the tail grows to 32 cells and the model no longer proves optimality
+inside the time budget: it returns feasible incumbents at about $45$ s each. The
+deltas there are larger but they are *lower bounds*, since a better completion
+may exist that the solver did not certify.
+
+<Figure title="Two-row tail (32 cells), feasible not proven optimal, four seeds">
+
+| producer seed | cap $=1$ delta | cap $=2$ delta |
+| --- | --- | --- |
+| seed 1 | $+14$ | $+10$ |
+| seed 2 | $+6$ | $+7$ |
+| seed 3 | $+17$ | $+15$ |
+| seed 4 | $+11$ | $+10$ |
+
+Deltas are lower bounds: each solve returned a feasible incumbent, not a proof,
+in about $45$ s on eight cores. Across these four seeds the cap $=1$ deltas run
+$6$ to $17$ (median $12.5$) and cap $=2$ runs $7$ to $15$ (median $10$). That
+cap $=2$ can read *below* cap $=1$ on the same seed (seeds 1, 3, 4) is a symptom
+of the missing optimality proof, not a real regression: the larger feasible
+region simply left the solver at a different unproven incumbent within the
+budget.
+
+</Figure>
+
+## What it settles, and what it does not
+
+Read as an instrument, the exact tail answers the "which half?" question cleanly
+on this testbed: sometimes the tail (a strictly positive delta, the endgame was
+under-solved), sometimes the top (delta zero, the tail was already tight). The
+answer is producer-dependent, which is itself the point. The same board score
+can hide either regime, and the cheap diagnostic for telling them apart is
+whether the exact solver closes the optimality gap. When it does and the delta is
+zero, the tail is tight and no finisher will help; when the delta is positive, the
+producer's heuristic finisher left matched edges unclaimed. The double-break cap
+sharpens this: at least one seed here has *no* producer-buildable completion of
+its tail at all, so the exact solver's ability to place a double incoming-break
+is load-bearing rather than cosmetic.
+
+What this small-scale run does not settle is the record. The producer here is a
+plain greedy filler whose boards sit in the mid-360s to high-370s, far below the
+record-track producers the source finding used, so exact-tailing here cannot
+*move a record*: the notebook's record-level headline, an exact tail beating a
+heuristic finisher by one matched edge on a much stronger board, is bound to that
+stronger producer and is not reproduced here. What is reproduced is the mechanism
+and the shape of the effect: the bottom band is a genuine small exact problem,
+exact solving never loses to the producer's own tail and often beats it, the
+double-break cap buys real and sometimes load-bearing points, and whether the
+tail is the binding constraint depends on the board. The two-row numbers are
+lower bounds, not proven optima, and should be read as such.
+
+For how any of these matched-edge scores sit against the community's best results,
+which were obtained with far larger compute budgets, see the
+[records page](/research/records). The pairing this page points at, a strong
+producer finished by an *exact* last-rows solver rather than a heuristic one, is
+also the natural next step for the project's [beam producers](/research/build/construct/beam-search):
+the finisher, not the producer, is where the exact method earns its keep.
+
+## Reproduce
+
+The plan, the CP-SAT script, and the committed results table live with the
+[reproduction topic](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/exact-tail-endgame).
+One command regenerates the full sweep:
+
+```sh
+just research-exact-tail-endgame
+```
+
+It produces `results/tailforge.json`: one record per (seed, rows, cap) with the
+producer score, the exact score, the delta, the CP-SAT status, and an
+independent re-verification flag, plus a per-configuration summary of the delta
+distribution across seeds. The one-row solves are exact and reproduce their
+proven optima on rerun; the two-row solves are seeded feasible incumbents whose
+exact deltas are lineage-bound, so they reproduce in sign and shape rather than
+digit for digit.
