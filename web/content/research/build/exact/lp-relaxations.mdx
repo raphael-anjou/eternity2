@@ -52,6 +52,7 @@ related:
   - /research/build/dead-ends
   - /research/build/exact/sat-csp-encodings
   - /research/build/reduce/alldiff-regin
+  - /research/records
 repro:
   kind: prose
 ---
@@ -170,6 +171,26 @@ constraints (the edges, the actual puzzle) are precisely what breaks the
 guarantee. Eternity II is an easy assignment problem welded to a hard
 coupling, and the relaxation quietly optimizes only the easy half.
 
+### The two-piece version
+
+The whole gap fits in two cells. Take two adjacent cells and two pieces,
+one showing colour 1 on every side, one showing colour 2. Any whole-piece
+arrangement scores 0: the seam always sees colour 1 against colour 2. The
+LP scores exactly 1.0: put half of each piece in each cell, and the seam's
+linearized match variables collect 0.5 of credit for colour 1 plus 0.5 for
+colour 2, with the fractional optimum sitting precisely at the 50/50
+point. We verified it both by hand and with an LP solver (the integer
+program returns 0, the relaxation returns 1.0). It is Benjamin's
+30%-piece-1 corner reduced to its minimal algebra, and it isolates the
+mechanism: the seam variables actively *reward* cell-fractional
+assignments, so the LP prefers superpositions.
+
+The example also sharpens the Birkhoff–von Neumann story. At that
+fractional optimum the assignment constraints are satisfied exactly;
+nothing about the assignment polytope is strained. It is the min-of-sums
+seam objective alone that pulls the optimum off the integral vertices. The
+assignment half of the model was never the problem.
+
 ## The measured plateau
 
 Every few years someone new drove the road, with better solvers and more
@@ -210,9 +231,19 @@ road's own builders posted the detour sign.
 
 The bound side of the story has the same shape and lives on the
 [dead-ends ledger](/research/build/dead-ends): this project's measured LP
-ceiling sits around 478 while the best real boards sit near 458, a gap far
-too wide to certify anything, for exactly the fractional-hedging reason
-above.
+ceilings sit at 477 to 479 while the boards behind them sit near 458, a
+gap far too wide to certify anything, for exactly the fractional-hedging
+reason above. The anatomy of those bounds gets its own section below.
+
+One literature fact belongs next to the table. The strongest academic
+treatment, the 2017 MILP and Max-Clique paper, solves integer instances
+only up to roughly 7×7 or 8×8 and never reports an LP-relaxation bound for
+the 16×16 instance ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)).
+As far as the public record goes, nobody has published a sound LP or MILP
+bound below 480 for full Eternity II. The 477 to 479 numbers measured
+below are *conditional* (they assume a fixed border), so the unconditional
+question stands open: proving any sound bound below 480 by convex
+relaxation would be new.
 
 ## Recasting the puzzle over piece sides
 
@@ -248,6 +279,193 @@ entirely in what these relaxations cannot see, that each piece occupies one
 whole cell and that the pairing must lie flat as a 16×16 grid. Same verdict
 as the cell-side model, reached from the opposite direction.
 
+Three later measurements close the supply question completely. First, the
+simplest counting bound of all, each colour $c$ with $m_c$ half-edges
+allows at most $\lfloor m_c/2 \rfloor$ matched seams, evaluates on the
+real piece set to $5 \cdot 12 + 5 \cdot 24 + 12 \cdot 25 = 480$ exactly,
+because every one of the 22 colour counts is even. The global colour
+budget is vacuous *by construction of the puzzle*; any scarcity argument
+has to be local or conditional. Second, whole rotations do not restore the
+obstruction. Give each piece a single integer rotation variable and ask
+the per-colour supply model whether rotation commitments alone block 480:
+they do not. The LP optimum is 480.0 and, this time solved to integer
+optimality as well, the integer optimum is also 480.0: for every colour
+there is a whole-rotation assignment putting its edges on the right sides
+to spend the full $\lfloor N_k/2 \rfloor$ budget. That adds a fourth rung
+to the ladder above (fixed rotations 307, free pairing 480.00 fractional,
+rotation-consistent 480.00 fractional, and now even integral rotations
+480 at the supply level). Rotation flexibility is never the binding
+constraint; the obstruction is positional, which cell, next to which
+cell. Third, the supply view cannot even rank partial boards. A
+per-colour supply-capped seam LP (0.1 seconds per border) returns 480 for
+all six borders we fed it, the border hosting the community 469-edge
+board (matched edges, scored outside the strict five-hint convention;
+conventions on [the records page](/research/records)) and five freshly
+generated borders alike. As a discriminator of border quality the
+supply-level LP is useless; the positional, per-cell LP of the next
+section demonstrably separates them.
+
+## Conditioning the bound on a border
+
+The unconditional bound pins at the ceiling, so we conditioned it. Fix a
+complete border (all 60 perimeter pieces) and solve the LP relaxation over
+the 196 interior cells: the optimum is a valid upper bound *for that
+border*. One convention note before the numbers: every score in this
+section is matched edges out of 480 on the canonical 16×16 puzzle with the
+five official hint pieces pinned, and the boards measured are this
+project's best boards at the time of measurement, not records; community
+bests sit higher, with the full context on
+[the records page](/research/records).
+
+The first surprise is how many different borders share one ceiling. Four
+boards from our archive with four distinct borders, scoring 458, 457, 455
+and 454 matched edges, all return exactly the same conditional LP bound:
+**478**. Two of those borders are structurally unrelated to the others:
+one 457 board shares the entire 56-piece top four rows with the 458 board,
+but the 454 and 455 boards share only 8 or 9 of 256 placements with it,
+about 3%. So the bound is a coarse invariant that genuinely different
+boards have in common, not a fingerprint of one solution family. Local
+search agrees the boards themselves are stuck: pushes on the three
+non-458 boards (8, 4 and 4 seeds at ten minutes each) lifted them by +0,
++0 and +1; each basin sits at its own local optimum well below the shared
+478 ceiling.
+
+Two smaller measurements sketch the landscape around that ceiling. The 458
+board's border behaves like a local maximum of the bound itself: all 13
+random border perturbations we tried (5 single swaps and 8 three-piece
+permutations, one RNG seed) lowered the conditional bound, by 2 to 5.5
+points. Thirteen trials from one seed is a sketch, not a theorem. And
+projecting the border of the community 469-edge board into the five-hint
+convention (overlay the five hints, refill the displaced pieces) *drops*
+its conditional ceiling to 477, one point below our 458 board's border: a
+structural hint, not a proof, that the five-hint ceiling may sit below the
+hint-free one.
+
+### Where the gap lives
+
+With a border fixed, the bound decomposes over the three seam types: 60
+border-ring seams (fully determined by the border), 56 border-to-interior
+seams, and 364 interior-interior seams, for a combinatorial maximum of
+$60 + 56 + 364 = 480$. Many different borders present the same multiset of
+inward-facing colour demands, which is why so many share one LP value. On
+the 458 board's border the split reads $478 = 60 + 54.02 + 363.98$. Read
+it slowly: the interior-interior part is essentially *tight*, the LP
+conceding only 0.02 of 364 interior seams; the entire loss against the
+maximum sits at the border-to-interior seam. The LP's verdict on this
+border is that 2 of its 56 inward-facing seams are structurally
+unmatchable by any interior completion. The board itself leaves 4 of them
+unmatched, so at most 2 are theoretically repairable, a maximum in-border
+lift of +2 to 460. We tested that headroom once: an exact integer re-solve
+freeing 84 cells (the bottom perimeter plus the bottom five interior
+rows; 30 minutes, one solver, one run) returned delta 0. Either the +2 is
+not integer-feasible or it needs a larger window.
+
+A second border trades the other way: its decomposition is
+$477 = 60 + 54.17 + 362.83$, slightly more border-interior headroom but
+about 1.15 fewer interior seams. No single colour dominates either gap;
+the coupling is diffuse. Reaching 480 needs both parts maxed at once, and
+no border we measured has both. One micro-fact of the puzzle's colour
+design falls out of the same tables: the five rare colours (24 half-edges
+each) contribute exactly 0 to the interior-interior part, because they
+appear only on the inward-facing sides of border pieces; a rare-colour
+interior-interior match is impossible by piece taxonomy.
+
+### A signature, not a predictor
+
+The highest conditional ceiling in our archive is **479**, one short of
+perfect, and it sits on a board scoring only 457. Its border came out of
+barely a minute of local search, versus hours behind the 478 borders. Yet
+eight independent local-search seeds at one hour each all plateau at 457,
+and an exact integer re-solve of the union of all its mismatch clusters
+(28 cells freed) proves no local improvement exists: delta 0 in 0.46
+seconds. The three decompositions line up as $478 = 60 + 54.02 + 363.98$,
+$477 = 60 + 54.17 + 362.83$ and $479 = 60 + 55.48 + 363.52$, and the
+LP-to-integer gap per board reads 20, 20 and 22: near-constant across
+every border we tested (479 is also the highest ceiling seen across 18
+conditional-LP runs on diverse borders). So the conditional bound *ranks*
+borders by structure, but it does not predict which border yields the best
+whole-piece board; the 479-ceiling border is integer-locked lower than
+the 478-ceiling one. The mechanism is the page's own: the extra headroom
+is fractional-hedging slack, and a higher ceiling only means the colour
+ledger is *closer* to balanceable, not that any integral board realizes
+it. One conjecture is worth writing down as a conjecture: a perfect
+board's border must have conditional bound exactly 480, both parts maxed
+at once, and the 479 border shows the LP gets within one of that
+necessary condition.
+
+A last caution about reading these decompositions: per-colour LP
+allocations are **not** per-colour bounds. On the 458 board, one colour's
+actual integer match count (21) exceeds the floor of its LP allocation
+(20.89, which floors to 20). The LP optimum is a joint allocation across
+colours; reading its per-colour rows as individual ceilings is a category
+error. The full anatomy on that board: the interior-seam LP total is
+363.96 against 346 seams actually matched, an interior gap of 17.96, of
+which 5.96 is fractional slack and 12 is the LP allocating colours
+differently than any whole-piece board can.
+
+## Buying the gap down: three measured attempts
+
+The textbook answer to a loose LP is to tighten it: lift the bilinear
+terms, add cutting planes, climb the relaxation hierarchy. We tried one of
+each and measured what happened. None closed the gap, and two of the
+failures are instructive enough to be the point.
+
+**McCormick lifting: valid in theory, intractable at full size.** The
+standard cure for products of variables is one auxiliary variable per seam
+per matching placement pair, sandwiched by $z \le x_1$, $z \le x_2$ and
+$z \ge x_1 + x_2 - 1$. On small instances our implementation reproduces
+the standard bound: a 6×6 needs 22,000 pair variables and 2.5 seconds, an
+8×8 with 4 colours 300,000 and 60 seconds. It stops scaling immediately
+after: an 8×8 with 6 colours and a 10×10 with 6 colours (1.25 million pair
+variables) both timed out at 60 seconds on our LP solver, and the full
+puzzle needs an estimated 5 to 20 million pair variables with about three
+constraints each, beyond what that solver handles. The two obvious
+shortcuts both produced *invalid* bounds, in opposite directions, and each
+refutes itself on arithmetic alone. Restricting pair variables to
+placements with LP mass above 0.05 under-counts and returns 402, below a
+known feasible 458 board; an upper bound below a feasible point is a proof
+of unsoundness. Keeping both the pair variables and the original seam
+variables double-counts and returns 479.58, *above* the un-lifted 478;
+adding constraints can only lower an LP optimum, so that one is
+self-refuting too. The correct pattern, cutting-plane generation of
+violated McCormick inequalities with exact reduced costs, needs
+lower-level solver access than we built: untried, not impossible.
+
+**Cutting planes on colour scarcity: valid or vacuous, never both.** We
+implemented branch-and-cut with one cut family, supply-clique cuts on the
+colour-conflict graph ("if a set of seams is forced to colour $k$, at most
+$\lfloor \text{supply}_k/2 \rfloor$ of them can match"), single-threaded,
+one configuration; the verdict below is about this cut family, not about
+all cuts. The plain, cut-free tail LPs on one of our 459-edge boards
+(matched edges, five-hint convention) are sound but 4 to 22% loose:
+freeing the last 1, 2, 3 and 4 rows gives LP bounds of 27, 58, 90 and 124
+against achieved 26, 49, 74 and 104, never certifying anything. The cut
+as stated is worse than loose, it is invalid: on the one-row tail it
+drives the LP to 20, *below* the feasible 26, so the inequality cut off
+the true optimum (colour-$k$ half-edges are also consumed outside the
+forced set, and by the other three sides of each piece). Every accounting
+loose enough to be valid collapsed back to the vacuous no-cut bound. The
+through-line matches the rest of the page: the puzzle's hardness is
+global distinctness, each piece used exactly once, not local colour
+scarcity, and the colour-conflict graph's cliques are tiny and
+uninformative.
+
+**One level up the hierarchy: the SDP is just as blind.** The next rung
+above LP is the level-1 semidefinite (Shor) lift of the quadratic
+formulation, provably sound: any true solution stays feasible at the same
+objective value. We built it exactly on 3×3 planted instances with
+certified optima of 12, 11 and 11 out of 12. On both non-trivial
+instances the SDP certifies 12.000: it cannot see a unit-size obstruction
+that elementary counting (5 half-edges of a colour allow at most 2
+matches) resolves instantly. A sound McCormick LP control returns the
+same 12.000, so the blindness is already present at the linear level; the
+positive-semidefinite constraint adds nothing here. And the cost explodes
+immediately: the full rotation-aware lift at just 9 cells (324 variables,
+a 325×325 semidefinite block) failed three independent attempts under a
+280-second single-core budget. Whether the rotation-joint lift would
+recover tightness is open, not refuted. These are computational findings
+on tiny instances with one SDP solver, not theorems.
+
 ## What it costs
 
 - **The LP: polynomial, genuinely fast.** Interior-point methods solve
@@ -266,8 +484,9 @@ as the cell-side model, reached from the opposite direction.
   that distance is roughly 478 versus 458-and-stalling: the relaxation
   spends its polynomial budget answering a question about a different,
   fractional puzzle. Cutting planes exist to buy the gap down; nobody has
-  reported cuts that close a dent of it on E2, and the per-seam structure
-  that fakes matches regenerates the slack everywhere.
+  reported cuts that close a dent of it on E2, our own three measured
+  attempts above included, and the per-seam structure that fakes matches
+  regenerates the slack everywhere.
 - **Branch-and-bound prunes with the bound it has.** A node is cut only
   when its LP bound falls below the incumbent. With the bound floating ~20
   edges above anything real, almost nothing prunes: the exact analogue of
@@ -283,6 +502,20 @@ The fair conclusion is relocation, not dismissal, the same one the
   ceiling, computed in polynomial time; it is just a loose one here. The
   [dead-ends entry](/research/build/dead-ends) records the verdict so
   nobody re-derives it expecting a certificate.
+- **A caution: not every relaxation is a bound.** One tempting cheap
+  "relaxation", refilling the board cell by cell with the locally best
+  piece while *allowing piece reuse*, is not a valid ceiling of any kind:
+  it is a greedy heuristic whose fixed point depends on the starting
+  board. From one of our 457-edge boards (matched edges, five-hint
+  convention) it converges to 461; from a 456-edge board to 461; from a
+  440-edge board all the way to 469. The sound use is as a *room
+  indicator*: when the greedy relaxed score equals the board's own score,
+  the board is provably a strict local maximum even with piece-uniqueness
+  relaxed, a stronger dead-end certificate than operator-based tests. On
+  that 457 board the +4 gap was proven unclosable by any permutation
+  chain up to length 11 (40 million permutations, zero improvers). The
+  rule: only LP or MIP-derived values are ceilings; greedy relaxed scores
+  are diagnostics.
 - **Assignment subproblems, where integrality is free.** Inside repair
   loops, refilling $k$ pairwise non-adjacent holes is a pure $k \times k$
   assignment problem: Birkhoff's polytope, integral vertices, Hungarian
@@ -309,6 +542,23 @@ The fair conclusion is relocation, not dismissal, the same one the
   the community ([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)).
   The formulation survives as a *part*, inside a heuristic that owns the
   integrality problem instead of relaxing it away.
+- **The formulation is the algorithm.** We measured two MIP encodings of
+  the same task, recombining a small corpus of good boards into a better
+  one, and they behave night and day apart (one solver, CBC, single
+  runs). Encoding A, "each cell picks a source board", carries seam
+  variables quadratic in corpus size: fine at 4 or 5 boards (integer
+  optimum found in 17 to 86 seconds), but at 9 boards (about 50,000 seam
+  variables and 100,000 constraints) the solver found no feasible integer
+  solution in 30 minutes, and its LP bound of 1,094, over double the 480
+  ceiling, meant nothing. Encoding B, "free a region, one variable per
+  cell-piece-rotation, pin the rest", is 10 to 50 times smaller (about
+  800 variables), solves in under a minute, and its LP is tight against
+  the integer optimum: it *proves* local optimality instead of guessing.
+  The mechanism: encoding A's variables carry no geometric meaning the LP
+  can exploit, so fractional board-mixes earn credit no rounding
+  preserves, while encoding B's variables are placements, so its polytope
+  stays close to the integer hull. The 2017 paper recycling its
+  formulations inside heuristics is the same lesson from the other side.
 
 The optimizer's road, walked to its end, teaches one clean fact about
 Eternity II: the puzzle is exactly the integrality constraint. Everything

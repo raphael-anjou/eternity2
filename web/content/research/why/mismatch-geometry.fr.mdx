@@ -11,7 +11,7 @@ kind: finding
 contribution: measurement
 rigor: measured
 order: 80
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [structure]
 sources:
   - label: "Annonce du record 469 de Peter McGavin : le plateau dont cette page analyse les onze arêtes non appariées (groups.io msg 10045, septembre 2020)"
@@ -21,6 +21,7 @@ related:
   - /research/lab/experiments/raphael-anjou/pipelines/staged
   - /research/why/walls-and-methods
   - /research/why/sigma-cycles
+  - /research/records
 repro:
   kind: exact
 ---
@@ -50,6 +51,32 @@ plateaux de la communauté en haut, ceux de ce projet en bas.
   <MismatchGeometryLab />
 </Figure>
 
+## Prendre du recul : la bande est une loi du corpus
+
+Deux plateaux pourraient n'être qu'une anecdote. Agrégeons donc. Prenez tous
+les plateaux à haut score que ce projet a jamais archivés, soit 1 964
+plateaux à 455 arêtes appariées ou mieux (convention des arêtes appariées ;
+la [page des records](/research/records) replace ces chiffres internes dans
+leur contexte), et marquez chaque jointure selon sa fréquence d'échec. La
+même image réapparaît sous forme de loi de fréquence. Les jointures qui
+relient les rangées 11 à 14 à leurs voisines cassent dans environ 38 à
+49 % de tous les plateaux. La jointure la plus fragile de tout le plateau se
+trouve en rangée 12, colonne 2, brisée dans 49,4 % des cas ; les quatre
+suivantes (47,5 %, 47,3 %, 46,3 %, 46,0 %) appartiennent elles aussi à la
+rangée 12, et les vingt jointures les plus souvent brisées se situent toutes
+dans les rangées 11 à 13. Ce sont des décomptes exacts sur le corpus
+archivé, pas des échantillons.
+
+Une mise en garde, qui est en réalité le constat lui-même : chacun de ces
+1 964 plateaux est sorti du pipeline propre à ce projet, qui remplit de haut
+en bas. La carte de chaleur n'est pas une propriété du puzzle ; c'est la
+signature du pipeline, écrite 1 964 fois. Un remplissage descendant dépense
+son budget de conflits en chemin, l'ensemble de contraintes devient trop
+tendu autour de la rangée 12, et cette couture craque dans la moitié des
+exécutions. Un solveur avec un autre ordre de remplissage déplacerait la
+couture, ce que montrent précisément les plateaux de la communauté dans la
+figure ci-dessus.
+
 ## Pourquoi cela bascule : l'ordre de balayage
 
 Le basculement n'est pas une coïncidence ; c'est l'empreinte de la manière dont
@@ -60,6 +87,26 @@ atteint : le haut. Une recherche qui remplit du haut vers le bas fait
 exactement l'inverse et entasse les dégâts en bas. Les désaccords finissent
 toujours agglutinés contre l'arête sur laquelle le solveur a terminé. Même
 puzzle, même type de plateau, ordre de construction opposé.
+
+Une nuance que le récit à deux solveurs dissimule : la bascule se joue par
+exécution, pas par outil. Au sein même de la production de ce projet
+coexistent deux familles de plateaux quasi record à géométrie inversée. Dans
+l'une (meilleur plateau à 458 arêtes appariées, un ancien meilleur score
+interne ; voir la [page des records](/research/records) pour le contexte),
+tous les désaccords intérieurs occupent les cinq dernières rangées de
+l'intérieur et les neuf premières rangées intérieures sont parfaites. Dans
+l'autre (meilleur à 457), les vingt désaccords intérieurs occupent tous les
+rangées 1 à 4, les rangées 5 à 14 restant parfaites. Les meilleurs plateaux
+des deux familles ne partagent que 7 placements sur 256 (2,7 %) : ce sont
+des plateaux presque disjoints, pas deux arrangements d'un même cadre. Et
+les deux sont localement figés ; la programmation en nombres entiers exacte,
+appliquée à chaque amas de dégâts jusqu'à une trentaine de cellules,
+n'améliore ni l'un ni l'autre d'une seule arête. Ce sont des familles que
+nous avons échantillonnées, quelques plateaux chacune : la partition
+elle-même est une observation, pas un recensement. Mais elle adoucit le
+récit : l'ordre de balayage est la force dominante, et pourtant ce qui fixe
+réellement la bande, c'est la trajectoire de l'exécution individuelle, le
+bassin dans lequel elle est tombée. Même pipeline, bandes opposées.
 
 ## La même bande, sous un objectif différent
 
@@ -79,6 +126,94 @@ contre la même arête. C'est l'ordre de construction, et non la règle de
 notation, qui décide où se loge la difficulté. (Davantage sur cette variante sur
 la [page des variantes](/research/build/variants).)
 
+## La forme des dégâts
+
+Les dégâts ont une forme constante, pas seulement un lieu constant. Sur
+chaque plateau quasi record que nous avons profilé, le graphe des arêtes en
+désaccord est une forêt : il ne referme jamais de boucle. Et à mesure que
+les plateaux s'améliorent, les dégâts se fragmentent. Les plateaux
+intermédiaires, entre 444 et 447 (arêtes appariées), portent 24 à 26
+désaccords répartis en cinq à dix amas, le plus grand couvrant 13 à 15
+cellules. Trois plateaux à 458, trouvés indépendamment, partagent une
+empreinte identique : 17 désaccords en deux amas seulement, le plus grand de
+25 cellules ; très probablement un même bassin trouvé trois fois. Un plateau
+à 459 se scinde en quatre petits amas, le plus grand de 10 cellules à peine.
+Les meilleurs plateaux portent un résidu plus petit et plus dispersé. Cela
+suggère une conjecture, et rien de plus : l'amélioration procéderait en
+fragmentant les dégâts jusqu'à ce que chaque fragment soit assez petit pour
+être réparé localement.
+
+La concentration elle-même se mesure. Comprimez la densité de désaccords par
+cellule avec une transformée de Fourier bidimensionnelle en ne gardant que
+1 % des coefficients : des dégâts bien concentrés se reconstruisent avec une
+faible erreur, des dégâts dispersés non. Sur cette échelle, un plateau à 457
+en particulier est plus concentré (erreur de reconstruction 0,145) que les
+trois plateaux à 458 (0,236 chacun, identiques : le même bassin, encore) et
+fait quasiment jeu égal avec le 459 (0,148), tandis que les plateaux
+intermédiaires se situent entre 0,32 et 0,34. Le corpus est petit (une
+dizaine de plateaux), mais deux mesures structurelles indépendantes
+confirment le classement, et cela suggère une hypothèse à garder en tête :
+la qualité structurelle serait un axe en partie orthogonal au score brut. Un
+457 peut être plus proche de la forme d'un record qu'un 458.
+
+## Rien ne tombe sur la bordure
+
+Répartissez les 480 jointures d'un plateau en trois classes : 60 jointures
+bordure-bordure le long de l'anneau, 56 jointures où l'anneau rencontre
+l'intérieur, et 364 jointures intérieur-intérieur. Comparez le 469 de
+McGavin avec un plateau de ce projet monté à 444 arêtes appariées sur une
+bordure équivalente : la décomposition raconte deux fois la même histoire.
+Tous deux réalisent un 60 sur 60 parfait sur l'anneau et 55 sur 56 sur la
+couture. La totalité de l'écart de 25 arêtes est intérieur-intérieur, 354
+sur 364 contre 329 sur 364. (Deux plateaux seulement : lisez ceci comme une
+illustration de la décomposition, pas comme une loi du corpus.) Les cinq
+couleurs réservées au cadre forment un cycle autonome que toute recherche
+compétente sature ; les dix-sept couleurs intérieures sont là où mord la
+rareté.
+
+Une sonde plus tranchante suggère que la bordure ne porte même pas
+l'information. Gelez uniquement la bordure du meilleur plateau de ce projet
+et laissez un remplissage glouton compléter l'intérieur : il n'atteint que
+204 à 209 arêtes appariées, la même plage qu'une bordure valide aléatoire
+(202 à 214). Gelez plutôt les rangées du haut et le remplissage grimpe
+régulièrement : 209 sans rien geler, 258 avec quatre rangées, 334 avec huit,
+364 avec dix, 406 avec douze, 424 avec treize, et le score complet avec les
+seize. Une seule politique de complétion gloutonne a été utilisée ; traitez
+donc cela comme une sonde, pas comme une loi. Mais sous ce remplissage,
+l'identité d'un grand plateau vit dans le squelette intérieur de sa douzaine
+de premières rangées, pas dans son cadre.
+
+## La bande des dégâts est la bande de la liberté
+
+La bande du bas n'est pas seulement là où les plateaux de ce projet cassent ;
+c'est là où ils divergent entre eux. Sur 421 plateaux complets à 455 arêtes
+appariées ou mieux (tous issus, là encore, d'une même famille de pipeline),
+comptez combien d'arrangements distincts chaque rangée présente à travers le
+corpus. Les rangées 0 à 11 affichent chacune 39 à 63 arrangements distincts,
+soit environ 9 à 15 % de plateaux uniques dans cette rangée. Les rangées 12
+à 15 bondissent à 131 ou 132 chacune, environ 31 % : trois fois plus de
+diversité. Les rangées où vivent les désaccords sont aussi celles où les
+plateaux quasi record diffèrent le plus les uns des autres.
+
+Zoomez sur quatre plateaux distincts atteignant tous 459 arêtes appariées et
+la même partition apparaît cellule par cellule. Seules 3 des 256 cellules
+sont identiques sur les quatre (les deux coins supérieurs plus une cellule
+de l'anneau de bordure) ; 212 cellules basculent entre exactement deux
+placements ; et les 24 cellules qui diffèrent sur les quatre plateaux se
+logent entièrement dans les rangées 13 à 15 (neuf, dix et cinq cellules ;
+aucune dans les rangées 0 à 12). Dans les quatre plateaux de score égal que
+nous avons comparés, toute la variation véritable vit dans la bande des
+dégâts. Un contraste mérite une phrase : le réarrangement qui sépare l'un de
+ces plateaux du 469 de McGavin s'étend sur tout l'intérieur de façon à peu
+près uniforme, quatre à neuf cellules dans chaque rangée de 1 à 14. Passer
+d'un plateau à un autre de même score est un remaniement de la bande du
+bas ; passer à un plateau réellement meilleur exige de reconstruire partout
+(la [page des cycles sigma](/research/why/sigma-cycles) rend cela précis).
+Le mécanisme derrière la diversité est le même que derrière les dégâts : les
+dernières rangées remplies absorbent à la fois les conflits accumulés et la
+liberté accumulée. Tout ce qui est en amont est squelette ; la bande du bas
+est là où les complétions distinctes à haut score bifurquent.
+
 ## Ce que cela nous apprend
 
 C'est la forme visible de deux faits plus profonds. D'abord, les grands plateaux
@@ -90,6 +225,39 @@ vous remplissez en dernier sont celles où le puzzle vous fait payer, si bien qu
 l'ordre dans lequel vous cherchez décide où atterrit la difficulté. C'est la
 même leçon que la course de chemins de l'espace de jeu vous fait ressentir, ici
 inscrite dans la structure de chaque plateau record.
+
+Deux sondes rendent ces deux faits concrets. La première : un ancien
+meilleur plateau de ce projet à 459 arêtes appariées montre le motif sous sa
+forme la plus pure. Ses 21 désaccords siègent tous dans les rangées 12 à 15,
+les 192 cellules des rangées 0 à 11 sont parfaites, et les défauts forment
+une unique région connexe sur les quatre dernières rangées. Le remède
+évident consiste à épingler les douze rangées parfaites et à ne rechercher
+que le bas. Cette recherche meurt en quelques millisecondes, vers la
+profondeur 211 : étant donné ces engagements du haut, 459 est l'optimum. (Un
+seul plateau, une seule configuration de recherche ; l'épuisement, lui, est
+exact.) La région parfaite n'est pas une réserve en attente. Elle est
+dépensée : chaque degré de liberté en amont a été consommé pour la rendre
+parfaite, ce qui explique pourquoi la bande résiduelle ne peut pas être
+réparée sur place, et pourquoi améliorer ce plateau a fini par exiger des
+mouvements de destruction-réparation traversant tout le plateau.
+
+La seconde sonde est le test miroir sur le 469 de McGavin, dont les dégâts
+se cachent en haut. Épinglez ses 14 rangées du haut et laissez une recherche
+de destruction-réparation recompléter le bas : elle reconstruit le 469
+entier. Épinglez ses 14 rangées du bas et recomplétez le haut : elle
+n'atteint que 462, sans seuil net en chemin (443, 453, 454, 462 à mesure que
+le bloc épinglé passe de onze à quatorze rangées). Et épingler quinze
+rangées du bas fait pire (460) que quatorze, car geler davantage le plateau
+supprime le jeu dont la recherche avait besoin pour absorber le haut
+difficile. C'était une sonde rapide à configuration unique (une graine,
+soixante secondes de réparation par point) : tenez les chiffres exacts avec
+prudence ; la direction de l'asymétrie, elle, avait été prédite avant
+l'exécution et confirmée par elle. La lecture : la bande où vivent les
+désaccords est exactement la partie du plateau qui le définit, et le reste
+s'en déduit. Pour cette famille de plateaux, l'écart au-dessus de 469 se lit
+comme un problème des cinq rangées du haut (une interprétation, pas un
+théorème). La bande que votre recherche garde pour la fin n'est pas
+seulement là où vous payez ; c'est là que se fait le travail irremplaçable.
 
 <Callout kind="note">
   Les décomptes par rangée et la bande surlignée sont calculés dans votre

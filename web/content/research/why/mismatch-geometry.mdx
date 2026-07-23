@@ -10,7 +10,7 @@ kind: finding
 contribution: measurement
 rigor: measured
 order: 80
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [structure]
 sources:
   - label: "Peter McGavin's 469-record announcement: the board whose eleven unmatched edges this page analyses (groups.io msg 10045, September 2020)"
@@ -20,6 +20,7 @@ related:
   - /research/lab/experiments/raphael-anjou/pipelines/staged
   - /research/why/walls-and-methods
   - /research/why/sigma-cycles
+  - /research/records
 repro:
   kind: exact
 ---
@@ -48,6 +49,29 @@ project's at the bottom.
   <MismatchGeometryLab />
 </Figure>
 
+## Zoom out: the band is a law of the corpus
+
+Two boards could be an anecdote. So aggregate. Take every high-scoring board
+this project has ever stored, 1,964 boards at 455 matched edges or better
+(matched-edges scoring; the [records page](/research/records) puts these
+internal numbers in context), and mark every joint by how often it fails.
+The same picture reappears as a frequency law. The joints connecting rows 11
+through 14 to their neighbours break in roughly 38 to 49% of all boards. The
+single most fragile joint on the whole board sits at row 12, column 2,
+broken in 49.4% of them; the next four most fragile (47.5%, 47.3%, 46.3%,
+46.0%) are all row-12 joints as well, and every one of the twenty
+most-broken joints lies in rows 11 to 13. These are exact counts over the
+stored corpus, not samples from it.
+
+One caution, which is really the finding itself: every one of those 1,964
+boards came out of this project's own pipeline, which fills top-down. The
+heatmap is not a property of the puzzle; it is the pipeline's signature
+written 1,964 times over. A top-down fill spends its conflict budget on the
+way down, the constraint set first becomes over-tight around row 12, and
+that seam snaps in half the runs. A solver with a different fill order would
+move the seam, which is exactly what the community boards in the figure
+above show.
+
 ## Why it flips: scan order
 
 The flip is not a coincidence; it is the fingerprint of how each board was
@@ -57,6 +81,23 @@ conflict in the last rows it reaches: the top. A search that fills top-down
 does the exact opposite and piles the damage at the bottom. The mismatches
 always end up crammed against the edge the solver finished at. Same puzzle,
 same kind of board, opposite construction order.
+
+There is a nuance the two-solver story hides: the split is per-run, not
+per-tool. Within this project's own output there are two families of
+near-record boards with inverted geometry. In one family (best board at 458
+matched edges, an earlier internal best; see the
+[records page](/research/records) for context) every interior mismatch sits
+in the bottom five interior rows and the top nine interior rows are perfect.
+In the other (best 457), all twenty interior mismatches sit in rows 1 to 4
+and rows 5 through 14 are perfect. The two families' best boards share only
+7 of 256 placements (2.7%): they are nearly disjoint boards, not two
+arrangements of one frame. And both are locally frozen; exact integer
+programming over every damage cluster up to about thirty cells improves
+neither by a single edge. These are families we have sampled, a handful of
+boards each, so the split itself is an observation rather than a census. But
+it softens the story: scan order is the dominant force, yet what actually
+fixes the band is the trajectory of the individual run, the basin it fell
+into. Same pipeline, opposite bands.
 
 ## The same band, under a different objective
 
@@ -74,6 +115,85 @@ edge. It is the construction order, not the scoring rule, that decides where the
 difficulty ends up. (More on this variant on the
 [variants page](/research/build/variants).)
 
+## The shape of the damage
+
+The damage has a consistent shape, not just a consistent place. On every
+near-record board we have profiled, the graph of mismatched edges is a
+forest: it never closes a loop. And as boards improve, the damage fragments.
+Mid-tier boards in the 444 to 447 range (matched edges) carry 24 to 26
+mismatches in five to ten clusters, the largest spanning 13 to 15 cells.
+Three independently found boards at 458 share one identical footprint, 17
+mismatches in just two clusters with the largest at 25 cells; most likely
+one basin found three times. A 459 board splits into four small clusters,
+the largest only 10 cells. Better boards carry smaller, more scattered
+residue. That suggests a conjecture, and it is only that: improvement may
+work by fragmenting the damage until each fragment is small enough to repair
+locally.
+
+Concentration itself can be put on a scale. Compress the per-cell mismatch
+density with a two-dimensional Fourier transform keeping 1% of the
+coefficients: tightly concentrated damage reconstructs with low error,
+scattered damage does not. On this measure, one particular 457 board is more
+concentrated (reconstruction error 0.145) than the three 458 boards (0.236
+each, identical: the same basin again) and essentially ties the 459 (0.148),
+while the mid-tier boards sit at 0.32 to 0.34. The corpus behind this is
+small (about ten boards), but two independent structural measures agree with
+the ranking, and it hints at something worth holding onto as a hypothesis:
+structural quality may be an axis partly orthogonal to raw score. A 457 can
+be closer to record-shaped than a 458.
+
+## None of it lands on the border
+
+Split a board's 480 joints into three classes: 60 border-border joints
+around the ring, 56 joints where the border ring meets the interior, and 364
+interior-interior joints. Compare McGavin's 469 with a board of this project
+that reached 444 matched edges on an equivalent border and the decomposition
+tells the same story twice: both score a perfect 60 of 60 on the ring and 55
+of 56 on the seam. The entire 25-edge gap between them is interior-interior,
+354 of 364 against 329 of 364. (Two boards, so read this as an illustration
+of the decomposition, not a corpus law.) The five frame-only colors form a
+self-contained cycle that any competent search saturates; the seventeen
+interior colors are where the scarcity bites.
+
+A sharper probe suggests the border does not even carry the information.
+Freeze only the border of this project's best board and greedily refill the
+interior: the refill reaches just 204 to 209 matched edges, the same range a
+random valid border gives (202 to 214). Freeze the top rows instead and the
+refill climbs steadily: 209 with nothing pinned, 258 with four rows pinned,
+334 with eight, 364 with ten, 406 with twelve, 424 with thirteen, and the
+full score with all sixteen. This used a single greedy completion policy, so
+treat it as a probe rather than a law; but under that refill, the identity
+of a great board lives in the interior skeleton of its first dozen rows, not
+in its frame.
+
+## The band of damage is the band of freedom
+
+The bottom band is not only where this project's boards break; it is where
+they disagree with each other. Across 421 complete boards at 455 matched
+edges or better (again all from one pipeline family), count how many
+distinct arrangements each row exhibits across the corpus. Rows 0 through 11
+show 39 to 63 distinct row arrangements each, roughly 9 to 15% of the
+boards unique in that row. Rows 12 through 15 jump to 131 or 132 each, about
+31%: three times more diverse. The rows where the mismatches live are also
+the rows where near-record boards differ from each other most.
+
+Zoom in on four distinct boards that all reach 459 matched edges and the
+same split shows up cell by cell. Only 3 of the 256 cells are identical
+across all four (the two top corners plus one cell of the border ring); 212
+cells toggle between exactly two placements; and the 24 cells that differ in
+all four boards sit entirely in rows 13 to 15 (nine, ten and five cells;
+none in rows 0 to 12). In the four equal-score boards we compared, all the
+genuine variation lives in the damage band. One contrast deserves a
+sentence: the rearrangement separating one of those boards from McGavin's
+469 spans the whole interior roughly uniformly, four to nine cells in every
+row from 1 to 14. Moving between same-score boards is a bottom-band shuffle;
+moving to a genuinely better board means rebuilding everywhere (the
+[sigma-cycles page](/research/why/sigma-cycles) makes that precise). The
+mechanism behind the diversity is the same one behind the damage: the
+last-filled rows absorb both the accumulated conflicts and the accumulated
+freedom. Everything upstream is skeleton; the bottom band is where distinct
+high-score completions branch.
+
 ## What it tells us
 
 This is the visible form of two deeper facts. First, the great boards really
@@ -84,6 +204,35 @@ whichever rows you fill last are where the puzzle makes you pay, so the order
 you search in decides where the difficulty lands. That is the same lesson the
 playground's path-racing makes you feel, here written into the structure of
 every record board.
+
+Two probes make both facts concrete. The first: an earlier best board of
+this project at 459 matched edges shows the pattern at its cleanest. All 21
+of its mismatches sit in rows 12 to 15, the 192 cells of rows 0 through 11
+are perfect, and the defects form one connected region across the bottom
+four rows. The obvious fix is to pin the twelve perfect rows and re-search
+only the bottom. That search dies within milliseconds, at depth around 211:
+given those top-row commitments, 459 is the optimum. (One board, one
+re-search configuration; the exhaustion itself is exact.) The perfect region
+is not slack waiting to be used. It is spent: every degree of freedom
+upstream was consumed to make it perfect, which is why the residual band
+cannot be fixed in place, and why improving that board eventually required
+destroy-and-repair moves reaching across the whole board.
+
+The second probe is the mirror test on McGavin's 469, whose damage hides up
+top. Pin his top 14 rows and let a destroy-and-repair search refill the
+bottom: it reconstructs the full 469. Pin his bottom 14 rows and refill the
+top instead: it reaches only 462, with no sharp threshold on the way (443,
+453, 454, 462 as the pinned block grows from eleven to fourteen rows). And
+pinning fifteen bottom rows actually does worse (460) than fourteen, because
+freezing more of the board removes the slack the search needed to absorb the
+hard top. This was a quick single-configuration probe (one seed, sixty
+seconds of repair per point), so hold the exact numbers loosely; the
+direction of the asymmetry, though, was predicted before the run and
+confirmed by it. The reading: the band the mismatches live in is exactly the
+part of the board that defines it, and the rest is derivable from it. For
+that family of boards, the gap above 469 reads as a top-five-rows problem
+(an interpretation, not a theorem). Whichever band your search leaves for
+last is not just where you pay; it is where the irreplaceable work happens.
 
 <Callout kind="note">
   The per-row counts and the highlighted band are computed in your browser

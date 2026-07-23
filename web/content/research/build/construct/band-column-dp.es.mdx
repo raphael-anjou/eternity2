@@ -1,0 +1,264 @@
+---
+title: DP por columnas en bandas
+description: >-
+  Cortar el tablero en bandas de dos filas, resolver cada banda a la
+  perfección con una DP columna a columna bajo poda en haz, y encadenar las
+  bandas de arriba abajo. Un tablero completo con 444 aristas apareadas de 480
+  en 35 segundos; toda la pérdida vive en las costuras verticales tardías.
+metaDescription: "DP por columnas en bandas para Eternity II: cortar el tablero en bandas de dos filas, resolver cada una perfectamente con DP bajo haz y encadenarlas. Un tablero completo con 444 aristas apareadas de 480 (pistas no impuestas) en 35 s; las 36 aristas perdidas viven en las costuras verticales."
+kind: concept
+order: 55
+group: Build boards up
+updated: 2026-07-22
+topics: [construction]
+sources:
+  - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/build/construct/beam-search
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/records
+repro:
+  kind: prose
+---
+
+La [búsqueda en haz a nivel de celda](/research/build/construct/beam-search)
+hace crecer un tablero celda a celda. La DP por columnas en bandas cambia el
+grano del movimiento: se corta el tablero de 16×16 en bandas de dos filas, se
+resuelve cada banda a la perfección con una programación dinámica columna a
+columna bajo poda en haz, y se encadenan las bandas de arriba abajo, con cada
+banda nueva heredando la fila inferior de la anterior. Una banda aislada
+siempre se resuelve perfectamente. La cadena completa un tablero entero con
+444 aristas apareadas de 480 en 35 segundos, y la totalidad de las 36 aristas
+que faltan se localiza, por un cálculo exacto, en las costuras verticales de
+la mitad baja: un fallo de horizonte voraz, no un accidente de inventario de
+piezas.
+
+Una salvedad gobierna todo lo que sigue. Cada número de esta página proviene
+de una sola ejecución determinista por configuración, sacada del cuaderno:
+un orden de construcción fijo, sin barridos de semillas. "Falla"
+significa siempre "falló bajo el haz y el presupuesto indicados", nunca
+"imposible".
+
+## Cómo se desarrolla sobre un tablero
+
+Tratemos una banda de dos filas como una secuencia de columnas leída de
+izquierda a derecha. Un estado de la DP en la columna $j$ es (pieza superior
+y rotación, pieza inferior y rotación, conjunto de piezas ya usadas,
+puntuación acumulada). Una transición a la columna $j+1$ coloca un par
+superior/inferior nuevo y puede ganar como máximo 3 aristas: dos
+apareamientos horizontales contra la columna anterior y un apareamiento
+vertical dentro de la columna nueva. La DP exacta es exponencial en el
+conjunto de piezas usadas; la lista de estados se poda, pues, a los $K$
+mejores por columna, la misma poda que usa el haz a nivel de celda, aplicada
+a un paso más grueso: una columna entera de banda por paso, dos piezas a la
+vez, lo que explota directamente la estructura 2D. Las celdas del borde (que
+exigen el color gris) recortan con fuerza los candidatos en el perímetro.
+
+El trabajo por banda es $O(n \cdot K \cdot |P|^2)$; para $n = 16$,
+$K = 10^4$, $|P| = 256$ eso da del orden de $10^{10}$ transiciones candidatas
+por banda: minutos en un motor compilado, horas en Python. Es aritmética de
+diseño, no una medición; fue lo que motivó escribir el solucionador en Rust.
+
+## La aritmética de las bandas
+
+Un tablero $n \times n$ tiene $E = 2n(n-1)$ aristas internas: 480 para
+$n = 16$. Una banda de dos filas contiene como máximo $3n - 2$ aristas
+apareadas (46 para $n = 16$). Encadenando bandas que comparten una fila, cada
+banda después de la primera aporta $2n - 1$ aristas nuevas (31), y la suma
+telescopa exactamente:
+
+$$
+(3n - 2) + (n - 2)(2n - 1) = 2n(n - 1) = E.
+$$
+
+Así que si cada banda encadenada fuera perfecta, la cadena produciría un 480
+completo. La descomposición no pierde nada en principio; la identidad
+contable es elemental e independiente de cualquier ejecución.
+
+La pega, y la tensión central de esta página: una banda resuelta a la
+perfección compromete su fila inferior, y esa elección concreta puede volver
+la banda siguiente infactible o subóptima. Bandas perfectas por separado no
+se componen en una cadena perfecta.
+
+## Una banda es fácil
+
+Medido, una ejecución por configuración: la DP por columnas resolvió la
+primera banda hasta su máximo teórico en todos los tamaños probados, del 4×4
+hasta el 16×16 real (46 de 46 en 68 s con haz 5 000; los tamaños menores
+tardaron de 0,1 a 12 s).
+
+Un hallazgo contraintuitivo merece su recuadro: más colores de arista hace la
+banda *más rápida*, no más lenta. En instancias de 8×8, 5 colores tardaron
+6,5 s y 8 colores 1,6 s. Más colores significa restricciones más apretadas,
+por tanto menos transiciones factibles, y el haz se contrae. Es lo contrario
+de lo que experimentan los métodos de hash y muestreo.
+
+## Encadenar las bandas: un tablero completo en 35 segundos
+
+Encadenar 15 bandas de arriba abajo con haz 100 000 completó un tablero
+entero de 256 piezas con **444 aristas apareadas de 480 en 35 s**. Convención
+de puntuación: este tablero ignora las cinco piezas pista oficiales (0 de 5
+en su sitio); el 444 es, pues, un recuento de aristas apareadas sobre un
+tablero sin restricciones, incomparable con los récords que respetan las
+pistas. La variante que respeta las pistas, más abajo, alcanza un parcial de
+240 celdas con 414 de 480 y las cinco pistas. Para las convenciones y las
+cifras vigentes, tanto de la comunidad como del cuaderno, véase la
+[página de récords](/research/records).
+
+Las puntuaciones por banda cuentan la historia en una línea: las bandas 0 a 7
+son todas perfectas, y luego un declive monótono.
+
+| Banda (de arriba abajo) | 0 a 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Puntuación (de 46) | 46 cada una | 45 | 45 | 43 | 42 | 40 | 36 | 35 |
+
+La anchura tiene aquí una zona útil estrecha, que extiende la historia de
+costes de la
+[página de búsqueda en haz](/research/build/construct/beam-search): el haz
+50 000 muere en la banda final sin ningún estado factible (240 celdas
+colocadas de 256); el haz 100 000 termina; el haz 500 000 es
+contraproducente, porque solo la ordenación por columna agota el presupuesto
+(interrumpido a mitad de la primera banda a los 138 s). La zona útil está
+cerca de $10^5$. Una ejecución por anchura; la frontera "50 000 falla,
+100 000 termina" no se replicó con otros órdenes ni otros desempates.
+
+## La pérdida vive en las costuras verticales
+
+Relacionar las puntuaciones de banda con la del tablero da una identidad
+exacta: las aristas apareadas del tablero igualan la suma de las puntuaciones
+de banda menos las aristas horizontales de las filas compartidas, que la
+cadena cuenta dos veces. En el tablero de 444, las puntuaciones de banda
+suman 654, y $654 - 444 = 210 = 14 \times 15$: la suma horizontal de las
+filas compartidas está en su máximo, es decir, **cada arista horizontal de
+cada fila compartida está apareada**. La totalidad de las 36 aristas que
+faltan se aloja en las costuras verticales entre las filas 8 a 15, más la
+fila inferior:
+
+| Costura (bajando) | 8/9 | 9/10 | 10/11 | 11/12 | 12/13 | 13/14 | banda final |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Aristas perdidas | 1 | 1 | 3 | 4 | 6 | 10 | 11 |
+
+(La última cifra se reparte entre la última costura vertical y la fila
+inferior.) Es aritmética exacta sobre un tablero medido; la estructura que
+revela (horizontales gratis, verticales caras) es el mecanismo general. La
+cadena obtiene gratis las aristas horizontales de cada banda, porque viven
+dentro de la banda que se está optimizando, pero paga las aristas verticales
+con colores comprometidos una banda antes; a medida que el inventario de
+piezas se agota, los colores inferiores comprometidos dejan de casar con lo
+que las piezas restantes pueden suministrar.
+
+La ejecución que respeta las pistas vuelve contable el final de la partida.
+Comparar el multiconjunto de colores que la última fila *necesita* en sus
+aristas superiores (dictado por los fondos comprometidos de la fila anterior)
+con lo que las 16 piezas restantes pueden suministrar mostró 4 colores
+demandados pero ausentes y 5 suministrados pero inútiles: 5 celdas de la
+última fila con literalmente cero candidatos factibles. Ninguna búsqueda
+sobre la última fila arregla eso. La cadena necesita una restricción hacia
+atrás (el multiconjunto de colores inferiores comprometidos de cada fila debe
+seguir siendo respondible por las piezas restantes) que la construcción
+puramente descendente nunca ve.
+
+## Un horizonte voraz, no un fondo difícil
+
+¿Es el fondo del tablero intrínsecamente más duro? No: lanzada de arriba
+abajo, la cadena produce 7 bandas perfectas desde el borde superior, decae y
+falla *abajo*; lanzada de abajo arriba, produce 7 bandas perfectas desde el
+borde inferior, decae y falla *arriba*. Ambas direcciones se detienen a 16
+celdas de un tablero completo (240 colocadas de 256), una ejecución por
+dirección. El fallo aterriza siempre en el borde más alejado del anclaje:
+cada borde impone su propio juego de restricciones, una cadena anclada
+satisface el borde cercano y deriva libremente respecto al lejano, y la
+deriva se acumula. El declive es una propiedad del compromiso voraz
+unidireccional, no de las filas del fondo.
+
+¿Por qué no lanzar las dos direcciones y pegar? Casar ingenuamente una mitad
+superior y una mitad inferior independientes en la costura central exige que
+16 colores coincidan; bajo un modelo de colores aleatorios eso tiene una
+probabilidad de alrededor de $(1/23)^{16} \approx 10^{-22}$. Un encuentro
+exige construcción conjunta, no dos ejecuciones independientes.
+
+Anclarse en el medio es peor, en la única configuración probada: partir de
+una banda central (sin borde en ninguna de las dos filas) no logró completar
+ni una sola banda con haz 5 000 en 120 s; no se probaron haces más anchos. Un
+recuento grueso dice por qué: la restricción de borde recorta los candidatos
+unas 12 veces (alrededor de 45 000 colocaciones de pares factibles por estado
+en el borde frente a alrededor de 490 000 en el interior). Los bordes son
+restricción gratis; el interior no ofrece al haz ningún agarre.
+
+## Palancas: mirada hacia delante y reconstrucción de la mitad baja
+
+**Mirar una banda hacia delante.** Reordenar los estados del haz según
+$\alpha \cdot (\text{puntuación actual}) + \beta \cdot (\text{compatibilidad
+hacia delante})$, donde la compatibilidad hacia delante cuenta, para cada
+color inferior comprometido $c$, cuántas piezas restantes pueden aún
+responderle con su arista superior, en la forma log-suma
+$\sum_c \log(1 + \nu_c)$; $\alpha = 1$ y $\beta$ en $[0{,}01;\ 0{,}1]$
+mantienen la puntuación dominante. Esto apunta exactamente a la pérdida de
+las costuras verticales de arriba: dejar de optimizar solo la banda en curso,
+proteger los colores que la banda siguiente necesitará. Efecto medido,
+ejecución única: +3 aristas en la cadena completa, de 444 a 447 (aristas
+apareadas, pistas no impuestas), con un coste despreciable (alrededor de
+0,5 s por banda con haz $10^5$).
+
+**Reconstruir la mitad baja.** En el tablero de 444, las 8 filas superiores
+más su costura de interfaz sostienen 248 aristas perfectamente apareadas.
+Congelarlas y reconstruir solo las 8 filas inferiores (un conjunto fijo de
+128 piezas sobrantes contra una interfaz fija de 16 colores) preserva esas
+248 automáticamente, y la mitad reconstruida está acotada por arriba por 232
+aristas internas: una reconstrucción perfecta sería literalmente un 480, e
+incluso una reconstrucción perfecta solo en las verticales superaría 460. La
+reconstrucción es el mismo problema que el solucionador de bandas ya resuelve
+(una cadena arrancada desde un vector fijo de colores superiores); el
+operador cuesta, pues, de 1 a 2 minutos. Es una cota sobre el operador, no
+una afirmación de alcanzabilidad.
+
+Medida, la reconstrucción voraz es un resultado nulo: reconstruir la mitad
+baja con la misma DP voraz cae de nuevo exactamente en 444 se trace donde se
+trace la línea de congelación (congelar hasta la fila 7: 444; hasta la fila
+11: 444; solo la reconstrucción trivial de la última fila conserva la entrada
+de 447). La pérdida de las bandas tardías es un artefacto de horizonte voraz,
+no un accidente reparable de qué piezas quedaron: relanzar el mismo voraz
+sobre el sobrante desde cualquier fila de partida acaba en el mismo sitio. El
++3 de la mirada hacia delante es la única ganancia algorítmica encontrada en
+esta familia. Alcance: solo se probó la reconstrucción voraz bajo haz; una
+resolución exacta de la mitad baja de 128 piezas (un problema de
+emparejamiento restringido) se propuso y nunca se lanzó, así que la cota de
+arriba queda intacta tras este negativo.
+
+## Jugar con las pistas oficiales
+
+Imponer las cinco piezas pista oficiales exige reservar cada pieza pista
+desde el momento en que arranca la construcción. La versión ingenua dejó que
+una banda temprana gastara vorazmente una pieza que una celda pista
+necesitaba 10 filas más abajo, y murió allí (208 celdas de 256, 3 pistas de
+5): una instancia limpia y concreta del
+[robo de piezas](/research/why/piece-theft), donde una colocación localmente
+óptima gasta una pieza que una restricción lejana reclama. Con las piezas
+pista de aguas abajo reservadas desde el principio, la cadena alcanza **240
+celdas de 256, las 5 pistas respetadas, 414 aristas apareadas de 480**
+(denominador del tablero completo, 16 celdas vacías) con haz 100 000.
+Ejecución única.
+
+Las piezas de esquina añaden una restricción de largo alcance del mismo tipo:
+cuáles 2 de las 4 piezas de esquina gasta la fila superior determina qué
+colores de esquina deberá producir la fila inferior 14 filas más tarde.
+Reservar o precomprometer las cuatro esquinas es la dirección natural de
+arreglo; no se lanzó en estas mediciones.
+
+## Dónde se detiene
+
+La DP por columnas en bandas es una ruta rápida hacia un buen tablero: 444
+aristas apareadas en 35 segundos, con cada arista horizontal de fila
+compartida apareada, allí donde el haz a nivel de celda alcanza la mitad de
+los 450 (aristas apareadas) en minutos. El techo es el propio compromiso
+unidireccional: cada banda paga sus costuras verticales con colores elegidos
+una banda antes y ninguna búsqueda local abajo puede reembolsarlos; por eso
+las ganancias más allá de esta meseta vinieron del
+[pulido por destrucción y reparación](/research/build/local-search/local-search-alns)
+y no de más anchura. Las puertas abiertas que deja esta familia son
+concretas: una resolución exacta de la mitad baja con la parte superior
+congelada, la puntuación de mirada hacia delante aplicada en cada banda y no
+como remiendo, y una construcción bidireccional conjunta que se encuentre en
+el medio por diseño y no por suerte.

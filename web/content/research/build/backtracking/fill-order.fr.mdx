@@ -12,7 +12,7 @@ metaDescription: "L'ordre de visite des 256 cases d'Eternity II fait varier la t
 kind: concept
 order: 110
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [backtracking, search-space]
 sources:
   - label: Le « meilleur ordre de recherche » d'Owen, le balayage quasi optimal et l'argument par comptage de formes (septembre 2007)
@@ -37,12 +37,27 @@ sources:
     url: https://groups.io/g/eternity2/message/6423
   - label: "Le duel 8×8 de Markus Zajc, la valeur restante minimale bat le balayage qui bat la réduction maximale (septembre 2008)"
     url: https://groups.io/g/eternity2/message/5918
+  - label: "Ansotegui, Bejar, Fernandez et Mateu, la lignée de benchmarks SAT/CSP dont les ordres statiques en damier et spirale sont rejoués par les mesures de carnet de cette page (CP 2008 ; version étendue en revue, Constraints 2013)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "L'étude hyper-heuristique de Wauters, Vancroonenburg et Vanden Berghe, dont la base de retour arrière fait courir le balayage par lignes contre spirale, spirale inverse et ordres en miroir (2012)"
+    url: https://link.springer.com/article/10.1007/s10852-012-9178-4
 related:
   - /research/why/complex-theory
+  - /research/why/mismatch-geometry
   - /research/lab/experiments/louis-verhaard/eii
   - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/reduce/edge-slipping
+  - /research/build/backtracking/restarts
+  - /research/records
 repro:
   kind: prose
+  scope: >-
+    Les chiffres communautaires de cette page se reproduisent depuis les
+    messages cités. Les mesures de carnet (la loi des régimes k, les ordres
+    ratés, le balayage du peigne et le nul de l'ordre des candidats) sont
+    consignées dans le carnet de laboratoire du projet et ne sont pas encore
+    empaquetées en reproductions à une commande ; chacune est donc rapportée
+    avec son plan d'expérience et ses nombres de graines en clair.
 ---
 
 import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
@@ -101,6 +116,40 @@ lignes » ([msg 2714](https://groups.io/g/eternity2/message/2714)). Toute la
 machinerie, probabilités de jonction comprises, est devenue la
 [théorie complexe](/research/why/complex-theory) ; cette page montre à quoi
 ressemblent ses réponses en pratique.
+
+Le carnet de laboratoire du projet met des chiffres sur le régime lui-même.
+Notons $k$ le nombre de côtés voisins déjà posés qu'une case présente au
+moment où la recherche l'atteint. Une loi de champ moyen dit que la case
+devrait admettre environ $4Rp^k$ placements candidats, où $R$ est le nombre
+de pièces encore en main et $p \approx 0{,}048$ la probabilité moyenne,
+pour E2, qu'un côté s'apparie à une couleur. Au début du remplissage
+intérieur, cela prédit environ 38 candidats pour une case $k=1$, 1,8 pour
+$k=2$, 0,09 pour $k=3$ et 0,004 pour $k=4$. Une énumération exacte contre
+le vrai jeu de 256 pièces (40 essais ensemencés par configuration) tombe à
+20 à 40 % de ces prédictions et confirme les trois régimes qu'elles
+dessinent : les cases $k=1$ sont pour l'essentiel toujours remplissables ;
+les cases $k=2$ franchissent les 50 % de cases mortes quelque part entre 50
+et 62 % de remplissage du plateau ; et les cases à trois voisins posés ou
+plus sont mortes dans 87 à 100 % des essais à tout niveau de remplissage, y
+compris au tout premier placement intérieur. (La loi est une idéalisation
+de champ moyen validée pour les statistiques de couleurs d'Eternity II, une
+seule instance ; ce n'est pas une affirmation sur l'appariement d'arêtes en
+général.)
+
+Lue comme règle de conception : un bon ordre est celui dont la frontière
+présente à chaque nouvelle case exactement deux voisins posés, assez pour
+élaguer, assez peu pour survivre. Le balayage par lignes le fait par
+construction, un $k=2$ constant après la première rangée ; tout ordre dont
+la frontière développe des poches concaves à trois côtés paie des cases
+quasi certainement mortes, quel que soit le taux de remplissage du plateau.
+Les mêmes régimes mesurent aussi ce que le retour arrière achète. Sans
+aucun retour arrière, un remplissage glouton aléatoire cale dans les 5 à
+12 % premiers du plateau quel que soit le parcours : sur 8 graines par
+ordre, le calage médian est survenu au pas 15 pour le rang-majeur, 13 pour
+un parcours diagonal et 15 pour une spirale (le parcours diagonal s'étendait
+de 4 à 32), et aucune des 24 exécutions n'est allée plus loin. Tout parcours fabrique un coin
+concave fatal en une poignée de placements ; ce chiffre illustre la
+géométrie, ce n'est pas un banc d'essai de solveur.
 
 Le laboratoire ci-dessous rend l'ordonnancement visible. Il anime la séquence de
 visite de quatre ordres prédéfinis sur une grille 16×16 et trace, en direct, le
@@ -230,10 +279,73 @@ nul ([msg 5980](https://groups.io/g/eternity2/message/5980),
 [5983](https://groups.io/g/eternity2/message/5983),
 [6062](https://groups.io/g/eternity2/message/6062)).
 
+### Des écarts qui n'ont pas payé (mesures du carnet)
+
+La communauté a surtout publié les écarts qui avaient un argument pour eux.
+Le carnet de laboratoire du projet garde l'autre espèce, des ordres
+séduisants qui ont perdu, et les régimes $k$ ci-dessus savent nommer le
+mécanisme de chacun.
+
+**Les spirales paient une taxe de fermeture.** Sur un banc d'essai
+d'intérieur 14×14 bordé (8 graines par bras), une spirale de l'extérieur
+vers l'intérieur s'est coincée à la profondeur 26 sur les 8 graines, au
+coin de fermeture de son premier anneau. Une spirale à pourtour libre a
+calé aux profondeurs 133 à 141 avec 0 complétion, contre 344 à 347 pour un
+balayage par lignes ; avec toutes les assistances du moteur activées, elle
+butait encore à 131 à 140 avec 0 complétion en 300 s, contre 446 à 448 pour
+le balayage. La loi en $k$ dit pourquoi : tout le premier anneau d'une
+spirale à pourtour libre tourne à un voisin posé ou moins par case, une
+ramification presque impossible à élaguer, tandis qu'une spirale bordée
+paie une *taxe de fermeture* : chaque anneau porte 4 ou 5 cases à trois
+voisins posés à ses coins et à son raccord, et les cases à trois côtés sont
+presque irremplissables. Le balayage par lignes est l'ordre de Boucle d'or,
+deux voisins constants et une seule zone de dégâts active.
+
+**Partir des indices perd.** « Commencer là où est l'information » sonne
+juste et pointe à l'envers. Dans un duel de 60 s sur le vrai puzzle (une
+configuration, une exécution, à lire donc comme notre test et non comme une
+réfutation), un ordre centré sur les indices, s'étalant depuis les cinq
+cases d'indice, a atteint la profondeur 42 (62 arêtes appariées) tandis
+qu'un ordre dynamique par case la plus contrainte, qui en pratique dévore
+d'abord la bordure tout en restant libre de l'abandonner (au contraire du
+cadre engagé du piège plus haut), atteignait la profondeur 164 (282 arêtes
+appariées). Les cases autour des indices centraux portent les domaines de
+pièces les plus *larges* du plateau ; l'ordre centré sur les indices donne
+la priorité exactement aux cases les moins contraintes.
+
+**Un X à travers les indices perd aussi.** Pré-engager deux diagonales
+larges de 3 cases passant par les cinq indices, puis remplir vers
+l'extérieur, a fini 51 arêtes appariées sous sa référence (396 contre 447 à
+budgets identiques, une seule graine).
+
+Trois expériences, un motif, énoncé comme un motif et non comme un
+théorème : chaque ordre statique que nous avons essayé qui passe tôt par
+des cases intérieures à large domaine a perdu. Un ordre statique n'esquive
+pas la région difficile ; il choisit quelle région devient la région
+difficile. Il choisit aussi où atterrissent les échecs :
+[là où s'entassent les mésappariements](/research/why/mismatch-geometry)
+sur un plateau presque parfait suit l'ordre de parcours, centre-bas pour
+les balayages de haut en bas, haut pour ceux de bas en haut (visible sur
+les plateaux de classe 469 de la communauté elle-même), coins pour les
+spirales partant du centre. Un ordre de remplissage ne décide pas seulement
+combien vous échouez, mais où.
+
+La littérature académique aboutit au même endroit. Ansotegui, Bejar,
+Fernandez et Mateu, qui ont fait des puzzles d'appariement d'arêtes des
+benchmarks SAT/CSP, travaillaient avec des ordres statiques de la famille
+damier-plus-spirale-centrale ; rejoué dans notre moteur sans le filtrage
+all-different complet que leurs modèles supposent, cet ordre a fait
+exploser les comptages de nœuds d'environ 600×. Et la base de retour
+arrière de l'étude hyper-heuristique de 2012 de Wauters, Vancroonenburg et
+Vanden Berghe a fait courir le balayage par lignes contre spirale, spirale
+inverse et ordres en miroir, et a trouvé le balayage significativement
+meilleur : une redécouverte indépendante de la thèse de la liste de
+diffusion.
+
 ### La recherche en peigne : la géométrie des scores élevés
 
 Tout ce qui précède optimise une recherche *complète*, dont le comptage de
-nœuds culmine près de la profondeur 161. En octobre 2008, alors qu'il gardait
+nœuds culmine près de la profondeur 160. En octobre 2008, alors qu'il gardait
 en privé les plateaux qui allaient remporter le prix d'examen de 10 000 dollars,
 Verhaard a répondu à une autre question d'Owen : quel est le meilleur ordre
 lorsqu'on poursuit un *score* partiel, et qu'on vit donc bien plus profond dans
@@ -265,6 +377,96 @@ profondeur mesurées
 ([msg 6423](https://groups.io/g/eternity2/message/6423)). Conception d'ordre par
 le calcul, non par le folklore. Le moteur complet est sur
 [la page eii de Verhaard](/research/lab/experiments/louis-verhaard/eii).
+
+### Le peigne, reproduit
+
+Le peigne a dormi dix-huit ans dans l'histoire des records avant que nous
+ne l'essayions chez nous ; c'est la relecture des messages ci-dessus qui a
+fait remonter le levier. Greffer la géométrie du peigne sur un producteur à
+recherche en faisceau écrit de zéro (rangées hautes en rang-majeur, rangées
+basses remplies en courtes dents verticales) a fait passer son meilleur
+partiel brut de 455 à 457 arêtes appariées sur 480, sur des plateaux aux
+cinq indices stricts, par le seul ordre de visite ; rien d'autre n'a
+changé. Derrière cette phrase il y a un balayage, pas un coup de chance :
+cinq ordres (rang-majeur plus des coupes de peigne après les rangées 8, 10,
+12 et 14) croisés avec trois largeurs de faisceau (2048, 8192 et 16384),
+24 graines chacun à calcul égal, sur 8 cœurs. Le nouveau plafond
+n'apparaît qu'au faisceau le plus large, où la coupe 14 a atteint 457 sur
+une graine et la coupe 12 456 sur deux, chaque plateau vérifié de trois
+façons indépendantes (un re-scoreur indépendant, un vérificateur externe et
+le compte propre du producteur ; placement strict des cinq indices, 256
+pièces toutes distinctes). Aux largeurs plus petites, le peigne égale le
+meilleur du rang-majeur.
+
+Ce que le peigne déplace de façon fiable, c'est le plancher et le milieu de
+la distribution. À faisceau 2048, les coupes 10 et 12 relèvent le minimum
+sur 24 graines de 446 à 449 et la médiane de 449 à 451 ; au faisceau le
+plus large, la médiane de la coupe 12 gagne une arête. La coupe 12 atteint
+aussi 455, l'ancien plafond du rang-majeur, à la moitié de la largeur de
+faisceau, et à faisceau 8192 un balayage de 24 graines produit 15 plateaux
+à 453 ou mieux contre 9 pour le rang-majeur : +67 % de bons plateaux de
+départ par unité de calcul. La règle de Verhaard sur la longueur des dents
+tient aussi par le haut. Les dents longues (coupe 8, dents de 8 cases)
+régressent sous le rang-majeur à toutes les largeurs ; les dents courtes
+gagnent. La coupe 12, l'exact « douze rangées, puis colonnes » de Max, est
+la meilleure pour toute la distribution, tandis que la coupe 14 et ses
+dents de 2 cases trouve le meilleur plateau isolé sur une médiane plus
+basse : une géométrie de finition plus fine, à plus forte variance. Le
+mécanisme est l'intuition énoncée plus haut, désormais mesurée : chaque
+dent courte est une colonne presque indépendante dont les échecs restent
+confinés, si bien que des frontières profondes à score élevé sont
+atteintes encore et encore.
+
+L'ordre décide aussi où finit le mou récupérable. Une re-résolution exacte
+des trois dernières rangées hisse un plateau rang-majeur de 455 à 457 et ne
+fait rien pour un plateau peigne à 457 : la région remplie en dernier et la
+moins contrainte du peigne, ce sont ses dents verticales, pas ses rangées
+basses, donc une réparation par bande de rangées vise le mauvais endroit.
+Une re-résolution exacte alignée sur les dents, par bande de colonnes,
+amène les plateaux peigne à 459 et pas plus loin, parce que les dents
+sortent du faisceau déjà exactement optimales (un solveur exact a prouvé
+optimale une région de dents de 32 cases en 21 s environ) ; le peigne
+dépense pendant la construction le mou que la réparation aurait récupéré.
+Les deux routes convergent à 459 : le peigne encaisse le score en avance,
+le rang-majeur le laisse dans une queue récupérable, et ordre plus
+réparation de fin de partie moissonnent le même mou. Pour l'échelle, 455,
+457 et 459 sont des comptes d'arêtes appariées sur plateaux aux cinq
+indices stricts, issus d'un producteur de carnet sur 8 cœurs ; les
+plateaux communautaires sont plus haut, et
+[la page des records](/research/records) tient le classement.
+
+## L'autre ordre : quelle pièce essayer en premier
+
+Tout ce qui précède ordonne des *cases*. Le bouton jumeau est l'ordre des
+*pièces* essayées dans une case : le duel de Zajc portait sur la prochaine
+case à ouvrir, celui-ci porte sur le candidat à y glisser en premier. La
+réponse du carnet est un nul propre. Au sein d'un remplissage rang-majeur
+fixe, réordonner la liste de candidats de chaque case par rareté globale
+des couleurs (couleurs les plus rares d'abord) n'a rien changé de mesurable
+sur 8 graines par bras : à 60 s d'horloge égales, la médiane était de 389
+arêtes appariées (indices épinglés, puzzle à cinq indices) dans *chaque*
+bras, ordre de référence, rareté d'abord, et un contre-ordre délibéré
+(couleurs les plus abondantes d'abord) conçu pour perdre. Le contrôle n'a
+pas perdu ; sa meilleure exécution (419) a battu la meilleure de la
+référence (415). Le débit de nœuds était plat d'un bras à l'autre, 8,2 à
+9,6 millions de nœuds par seconde : le réordonnancement est gratuit, et
+sans valeur, dans les deux sens. (Avant la comparaison, le bras de
+référence a été vérifié identique nœud à nœud au moteur non modifié.)
+
+Le mécanisme est un signal affamé. Quand un balayage rang-majeur atteint
+une case, la liste de candidats est déjà filtrée à la poignée de pièces
+s'appariant à deux couleurs fixées, et un élagage global de faisabilité
+offre-demande exploite déjà la rareté des couleurs sur tout le stock
+restant ; l'ordre par rareté re-dérive, plus grossièrement, une information
+que la recherche utilise déjà, et savoir laquelle de trois pièces légales
+passe en premier compte peu quand le seau sera de toute façon épuisé.
+Cadrons-le comme mesuré : l'ordre des candidats a été inerte dans notre
+moteur à un point de fonctionnement (une pile d'élagages, un budget de
+60 s, des signaux de rareté globaux seulement), et non « l'ordre des
+valeurs ne compte jamais nulle part ». Cela rime avec la seule victoire
+intra-balayage plus haut : les ~10 % de Max venaient de la *suppression* de
+candidats de bordure, pas de leur réordonnancement. Les gains vivent dans
+l'élagage et dans l'ordre des cases.
 
 ## Étape par étape
 

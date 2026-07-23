@@ -6,11 +6,11 @@ description: >-
   structs a medida del caché, código generado, arqueología del compilador. Ese
   oficio decide si un nodo cuesta 26 ciclos o 2.600. Veinte años del registro de
   ingeniería de la comunidad, técnica por técnica, y lo que todo ello rindió.
-metaDescription: "La ingeniería de solucionadores de Eternity II, técnica por técnica: tablas de consulta, hash perfecto mínimo, structs a medida del caché, generación de código y trucos de compilador que deciden si un nodo cuesta 26 ciclos o 2.600. Veinte años de registro de ingeniería."
+metaDescription: "La ingeniería de solucionadores de Eternity II, técnica por técnica: tablas de consulta, hash perfecto mínimo, structs a medida del caché, generación de código y trucos de compilador que deciden si un nodo cuesta 26 ciclos o mucho más. Veinte años de registro de ingeniería."
 kind: concept
 order: 120
 group: Go faster
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [speed]
 sources:
   - label: "El hilo de Lebel diseccionado: el solucionador C++ de referencia de la época puesto al descubierto (groups.io message 1704, 2007)"
@@ -33,10 +33,19 @@ sources:
     url: https://groups.io/g/eternity2/message/11633
   - label: "El manual de compilación de McGavin: versiones de clang, flags nativos, PGO (groups.io message 11751, 2026)"
     url: https://groups.io/g/eternity2/message/11751
+  - label: "The Rust Performance Book: configuración de build (LTO, codegen units, PGO)"
+    url: https://nnethercote.github.io/perf-book/build-configuration.html
+  - label: "Optimización guiada por perfiles en rustc (documentación oficial)"
+    url: https://doc.rust-lang.org/beta/rustc/profile-guided-optimization.html
+  - label: "Optimizar programas Rust con PGO y BOLT mediante cargo-pgo (Beranek, 2023)"
+    url: https://kobzol.github.io/rust/cargo/2023/07/28/rust-cargo-pgo.html
+  - label: "Microarquitectura del Apple M1: líneas de caché de 128 bytes, 128 KB de L1d (7-cpu.com)"
+    url: https://www.7-cpu.com/cpu/Apple_M1.html
 related:
   - /research/lab/experiments/peter-mcgavin/backtracker
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/why/prune-vs-speed
+  - /research/lab/experiments/raphael-anjou/jit-backtracker
 repro:
   kind: prose
 ---
@@ -78,6 +87,18 @@ backtracker rápido de referencia de la época, en el hilo que hace también las
 veces del primer seminario de ingeniería de la comunidad
 ([message 1704](https://groups.io/g/eternity2/message/1704)).
 
+La receta de 2007 esconde una tercera forma de tabla fácil de pasar por
+alto: para la celda justo encima o al lado de una *pieza pista
+obligatoria*, se indexa la consulta por tres aristas (norte, sur, oeste),
+de modo que los candidatos quedan pre-filtrados contra el color fijo de la
+pista, sin pérdida alguna de completitud
+([message 3098](https://groups.io/g/eternity2/message/3098)). Redescubrí
+por qué importa dos décadas después, en mi propio cuaderno: en un tablero
+con pistas, las celdas alrededor de una pista resultaron ser un sumidero
+de rendimiento, con hilos batiendo ~85 M colocaciones por segundo contra
+el muro de la pista durante veinte minutos; el remedio era exactamente la
+tabla de tres aristas de Field. El archivo ya contenía la respuesta.
+
 Todo lo demás en esta página es un refinamiento de esa tabla: hacerla más
 pequeña, densificar sus entradas o desenrollar el código a su alrededor.
 
@@ -87,9 +108,9 @@ La tabla de consulta tiene un problema de tamaño en cuanto la indexas por más 
 dos aristas. En el hilo de Lebel, Nathan describió la versión de fuerza bruta: un
 arreglo de 4 dimensiones indexado por los cuatro colores de arista,
 `combo4[32][32][32][32]`. Un millón de entradas, en su mayoría ceros, fallos de
-caché garantizados. Su solución se apoyaba en el generador de hash perfecto
-mínimo de Bob Jenkins, un enlace que él mismo había compartido con la lista. Dado
-que las 256 piezas en 4 rotaciones producen solo 1024 cuádruples de aristas
+caché garantizados. Su solución adoptó el generador de hash perfecto
+mínimo (el de Bob Jenkins) hacia el que otro miembro había orientado a la lista.
+Dado que las 256 piezas en 4 rotaciones producen solo 1024 cuádruples de aristas
 distintos, un hash perfecto mínimo hace corresponder la clave empaquetada de 32
 bits a una tabla de 1024 entradas sin colisiones: «lo bastante pequeña para caber
 en el caché la mayor parte del tiempo», con un sobrecoste de hash casi nulo, y
@@ -119,6 +140,31 @@ exactamente el diseño de la struct `RotatedPiece` de seis bytes de Blackwood, y
 contada en [la página de Blackwood](/research/lab/experiments/joshua-blackwood/solver): número
 de pieza, rotación, los dos lados expuestos, un conteo de rupturas y un conteo
 heurístico, y nada más.
+
+Estos trucos siguen componiéndose en 2026. En un motor en profundidad por
+lo demás idéntico, en mi cuaderno, tres microcambios exactamente de esta
+familia sumaron **+27 %** (92 a 93 M frente a 72 a 73 M colocaciones por
+segundo, estable en presupuestos de 3, 5, 10 y 15 segundos; un motor, un
+puzzle, una máquina, así que léase como una forma, no como una constante
+universal). Uno: **listas de candidatos terminadas en centinela**,
+rematando cada cubo con un valor imposible para que el recorrido cueste
+una carga y una comparación en vez de un contador de límites, liberando un
+registro. Dos: el conjunto de piezas usadas como **palabras de bitset
+u64** en lugar de un byte por pieza; mismos bytes, pero la comprobación es
+un único AND y todo el conjunto cabe en una o dos líneas de caché. Tres:
+un **único cursor de reanudación** por profundidad en lugar de un par
+inicio/fin, que reduce a la mitad la contabilidad del retroceso. Y el
+oficio no es exclusivo de los backtrackers: en un solucionador de
+propagación de restricciones que mantiene dominios de candidatos completos
+por celda, pasar esos dominios a palabras de bitset u64 convirtió la
+revisión de arco-consistencia en un puñado de operaciones sobre palabras y
+rindió +48 a +101 % según la mezcla de propagadores, con trabajo posterior
+de disposición (una tabla de rotaciones precalculada, consulta de pieza en
+O(1), deshacer basado en arena) que compuso hasta ~4,6× en el perfil más
+ligero. Lecturas de rendimiento con semilla única, y un solucionador de
+propagación hace mucho más trabajo por nodo que los caminantes rápidos de
+esta página: llévese los cocientes, no los números absolutos. La lección
+viaja entera: la representación del dominio *es* el motor.
 
 ## Bipiezas y metateselas: precomponer, y pagar en memoria
 
@@ -198,6 +244,96 @@ Phenom II de 2010
 chocaron contra el muro de memoria de Field hace quince años y desde entonces se
 apoyan en él.
 
+## Lo que cuesta un nodo en 2026: la anatomía, medida
+
+El presupuesto de ciclos de Field abría esta página desde 2007. Aquí está la
+versión rehecha desde mi propio cuaderno, sobre un núcleo de rendimiento de un
+Apple M1 (líneas de caché de 128 bytes, 128 KB de caché de datos L1;
+[las tablas de latencia del M1](https://www.7-cpu.com/cpu/Apple_M1.html) son la
+versión moderna de las cifras contra las que peleaba Field). Un nodo de mi
+backtracker Rust sin poda cuesta **unos 90 a 145 ciclos**: lecturas limpias, sin
+contención, dadas como un rango porque una máquina cargada empujaba el mismo
+binario muy por encima. La sorpresa es adónde se van los ciclos. La aritmética de
+comprobación de aristas es prácticamente gratis. El nodo lo domina **el barrido de
+las piezas ya usadas fuera de la lista de candidatos**: unas 6,7 lecturas de
+candidatos por nodo, de las cuales unas 5,9 (88 %) se rechazan únicamente porque la
+pieza ya está en el tablero. Cada rechazo es una carga L1 más una ramificación
+dependiente de los datos; todo el bucle de rechazo cabe en diez instrucciones y una
+única carga.
+
+Tres instrumentos contrastados sitúan el piso de instrucciones retiradas en unas 75
+a 90 instrucciones por nodo, lo que, a la tasa de emisión pico del núcleo, serían
+más o menos 12 a 15 ciclos. Los 90 a 145 medidos se sitúan 7 a 10× por encima de
+ese piso, y la brecha tiene un solo nombre: **la mala predicción de ramificación**
+en la comprobación de pieza usada, cuyo resultado depende de qué piezas ha colocado
+la búsqueda y por tanto no puede predecirse. En 2007 el muro era la memoria; Field
+midió la mitad de sus ciclos detenidos en cargas
+([message 9003](https://groups.io/g/eternity2/message/9003)). En los amplios núcleos
+de ejecución fuera de orden de los años 2020, con cachés L1 generosos, el muro se ha
+desplazado hacia la entropía de ramificación.
+
+Una medición más completa la anatomía. Activar una poda de factibilidad correcta,
+del tipo que ejecutan los motores de récord, multiplica el coste del nodo por unos
+13 a 24×, hasta **unos 2.180 ciclos por nodo**: la prueba de la poda se invoca unas
+8 veces por nodo y, al rechazar candidatos, fuerza el recorrido unas 10× más adentro
+en la lista (las lecturas de candidatos saltan de 6,7 a 67,6 por nodo). Y sigue
+siendo abrumadoramente rentable, porque la poda compra órdenes de magnitud menos
+nodos hasta la misma profundidad. Ese es
+[el argumento poda contra velocidad](/research/why/prune-vs-speed) capturado en una
+sola tabla de costes: el motor corre deliberadamente ~15× más lento por nodo porque
+nodos × coste-por-nodo es el producto que importa. (Metodología: los conteos de
+nodos son idénticos al bit de una ejecución a otra, la disciplina de suma de
+verificación descrita más abajo; las cifras de rendimiento son medianas sobre 7
+repeticiones; una máquina, un régimen de tablero, así que acótese cada número en
+consecuencia.)
+
+### Cuánto puede comprar una reescritura: una respuesta verificada por equivalencia
+
+Con la anatomía en mano, la pregunta siguiente es qué recupera una reescritura.
+Reconstruí el núcleo caliente de colocación de seis maneras en un laboratorio
+aislado: entradas de candidatos empaquetadas, precarga por software, división de
+bucle estricto/relajado, encauzamiento por software, tablas auxiliares compactadas,
+y combinaciones, bajo una regla dura: el cronometraje de una variante solo cuenta si
+reproduce **el conteo de nodos exacto, la profundidad máxima y un hash de trayectoria
+rodante** del motor de producción, plegado sobre cada confirmación (profundidad,
+pieza, rotación). Ese candado es el hermano mayor de la suma de verificación por
+conteo de nodos de la comunidad (es también como
+[el experimento en Rust portable](/research/lab/experiments/raphael-anjou/jit-backtracker)
+de más abajo verifica sus peldaños); ninguna aceleración nacida de una semántica
+alterada en silencio puede colarse por él. Cada número de aquí lo pasó. El total de
+una reescritura escalar de semántica exacta: **1,2 a 1,4× robusto, unos 1,8× en
+pico** en la región más favorable. No 10×.
+
+El resultado portante es un negativo. Las dos optimizaciones de caché «obvias»
+resultaron casi nulas: empaquetar los colores en la entrada de candidato, para matar
+dos recolecciones de tabla, rindió 1,0 a 1,2× y a veces regresó; encoger las tablas
+auxiliares de 64 KB a una forma de 1 KB residente en L1 rindió a lo sumo 1,26×. Eso
+es prueba por lo nulo de que las cargas ya se servían desde caché. El coste residual
+es la ramificación de pieza usada que se predice mal, y toda variante que preserve la
+trayectoria exacta de la búsqueda debe mantener esa ramificación. Las únicas
+variantes que ayudaron reestructuraron el flujo de control *alrededor* de ella
+(división de bucle, encauzamiento por software), razón por la que topan en 1,2 a 1,4×
+y no se acumulan: atacan el mismo residuo. Un primer intento de flujo de candidatos
+basado en bitset sobre este diseño midió 16 a 25 % *más lento*, con el mismo alcance.
+
+La escapatoria del procesamiento por lotes también tuvo su juicio: fusionar dos
+celdas horizontalmente adyacentes en un paso «dominó», verificado como productor de
+conjuntos de compleciones idénticos, exhaustivamente, hasta una ramificación de 3.171
+vías. Rindió 1,05 a 1,13× en un régimen donde el 74 % de las celdas podían fusionar,
+y fue neto neutro (0,96 a 1,03×) en el régimen en que corre realmente la búsqueda de
+tipo récord, donde solo el 27 % fusiona. El mecanismo explica el techo: el lote
+amortiza la cáscara del bucle por celda, cerca del 7 % de un nodo, pero el recorrido
+dominante filtrado por piezas usadas es irreducible por celda; la segunda celda
+recorre igualmente su propio cubo contra el conjunto usado vivo, algo que ninguna
+tabla de pares estática puede codificar. La aritmética esbozada dice que bloques más
+grandes chocan contra el mismo muro, aunque esa extrapolación queda sin probar más
+allá de los pares.
+
+Todo esto vale para un diseño de motor, un juego de instrucciones, un régimen de
+puzzle; la formulación justa es que **para este diseño en este hardware, el techo
+escalar ronda 1,5 a 2×**, y el muro tiene nombre. Si un flujo de candidatos SIMD sin
+mala predicción puede ir más lejos es una dirección abierta, no un resultado.
+
 ## Disciplina de medición: ¿qué es un «nodo», exactamente?
 
 Una cultura de ingeniería vale tanto como sus bancos de prueba, y el archivo tuvo
@@ -249,6 +385,35 @@ en un núcleo salvo que se diga otra cosa; donde el *compromiso* entre gastar el
 presupuesto de un solucionador en velocidad o en criterio es el tema, ese argumento vive
 en [ir rápido](/research/lab/experiments/raphael-anjou/going-fast).
 
+### Perfilar, luego optimizar: las predicciones pierden contra los flamegraphs
+
+La disciplina se prolonga por debajo del banco de prueba, hasta el propio bucle de
+optimización. Una pasada de perfilado sobre mi solucionador de fuerte propagación (un
+perfilador por muestreo con resolución de tramas en línea) entregó siete correcciones
+dirigidas por flamegraph que valieron **+22 a 27 %** en total, cada una medida por su
+cuenta: fusionar una comprobación de vacuidad en el bucle de bitset dio +27,5 % en el
+perfil más ligero, reemplazar una lista de trabajo materializada por un recorrido de
+bitmap sobre pila +7 %, una reconstrucción de contador por popcount +4,3 %. Mientras
+tanto, **cinco optimizaciones predichas estáticamente quedaron refutadas por el mismo
+perfil**: cada una una ganancia de manual de 1 a 5 % sobre el papel (indicaciones de
+inline, reutilización de instantánea, elevación de dispatch, reordenamiento de struct,
+un desenrollado manual), cada una o bien ausente de las 200 primeras muestras o bien
+medida como neutra, porque el compilador ya las hacía. Una corrección era pura higiene
+de medición: la propia llamada de cronometraje pesaba **12,4 %** del tiempo de
+ejecución a una tasa de comprobación de plazo de 1 de cada 64, y bajarla a 1 de cada
+4096 lo recuperó todo, el patrón de la comprobación de plazo enmascarada en su forma
+más pura.
+
+La aritmética de caché sin perfil engaña de la misma manera, en ambos sentidos.
+Reemplazar una tabla de consulta plana de 1 MB por una compacta de 16 KB residente en
+L1, acreditada con ~20 % por la aritmética de latencias, midió **0 %** con una ligera
+regresión (tres ejecuciones de 10 segundos): las claves realmente tocadas se agrupaban
+y ya estaban calientes en caché. `panic = "abort"` midió igualmente nulo una vez que el
+bucle caliente se quedó sin aristas de pánico. Estos son porcentajes de semilla única,
+máquina única, propios de un motor; el patrón duradero es que cerca de la mitad de las
+predicciones estáticas de experto estaban equivocadas, en cada sentido, y que el
+flamegraph arbitró cada disputa. Medir, no modelar.
+
 ## El estante de un vistazo
 
 | Técnica | Lo que cuesta | Lo que rindió | Fuente |
@@ -268,17 +433,36 @@ Ahora tomemos distancia. La receta de Field de 2007 ya hacía 60–80 millones d
 colocaciones por segundo por núcleo
 ([message 3098](https://groups.io/g/eternity2/message/3098)). Veinte años de
 oficio desde entonces han ensanchado ese rango en lugar de multiplicarlo de manera
-uniforme. Sobre código portable comparable la ganancia es modesta: 72,7 M/s de un
-solucionador C++ afinado y 68,4 M/s de un descendiente en Rust del de Blackwood en
+uniforme. Sobre código portable la ganancia es modesta, aunque las dos cifras de
+2025 no son del mismo puzzle: 72,7 M/s de un solucionador C++ afinado en un tablero
+8×8 y 68,4 M/s de un descendiente en Rust del de Blackwood en 16×16 en
 2025 ([message 11633](https://groups.io/g/eternity2/message/11633),
 [message 11634](https://groups.io/g/eternity2/message/11634)), apenas por encima de
 la base de 2007. El ~4× solo aparece con C generado por celda en el hardware más
-reciente: alrededor de 225–295 M/s para el de McGavin
-([message 11751](https://groups.io/g/eternity2/message/11751),
+reciente: alrededor de 225–295 M/s para el de McGavin en puzzles pequeños
+([message 11751](https://groups.io/g/eternity2/message/11751) señala que el ritmo se
+reduce a la mitad aproximadamente en 16×16, el tamaño que E2 realmente tiene;
 [message 11750](https://groups.io/g/eternity2/message/11750)), así que mezcla una
 ganancia de generación de código con una ganancia de hardware, no oficio a secas.
 A lo largo de esos mismos veinte años, el récord se movió tres aristas: de 467 a
 470.
+
+Mi propio cuaderno reprodujo ese registro de veinte años en una tarde. El primer
+solucionador de este sitio era de fuerte propagación y caminaba unas 370 k
+colocaciones por segundo; el motor de récord en C generado de la comunidad hace unos
+295 M sobre hardware comparable, una brecha de 800×. Portar la *forma* del motor C a
+un Rust inclinado a lo seguro (tablas de candidatos planas sensibles al borde, un
+bitset de piezas usadas de cuatro palabras, listas de candidatos terminadas en
+centinela, banderas precalculadas por profundidad) cerró unos 180× de ella en un día:
+65 a 68 M colocaciones por segundo en un solo hilo, mediana 67 M sobre 4 semillas con
+cerca de 5 % de dispersión, en una máquina, aterrizando en ~22 % del motor C antes de
+cualquier especialización por celda. En esa etapa el porte no se había verificado como
+recorriendo el árbol idéntico, así que léase como un resultado de forma de rendimiento
+y no como un porte verificado; la comparación verificada es el experimento de más
+abajo. Pero la lección ya se sostiene: cada técnica de ese porte figura en el estante
+de esta página, el estante aplicado en conjunto *es* el factor cien, y la brecha era de
+arquitectura, no de lenguaje. (Esos 65 a 68 M son el motor de este cuaderno; los 68,4 M
+en Rust de la comunidad citados arriba son otro programa, una coincidencia de rangos.)
 
 Un [experimento de 2026 en este sitio](/research/lab/experiments/raphael-anjou/jit-backtracker)
 separa esas dos ganancias directamente. Toma un backtracker en *Rust portable y seguro*
@@ -287,12 +471,27 @@ usado en arreglo de bytes, fusión de celdas - y luego lo mide frente al C de Mc
 una máquina, mismo tablero, ambos sin pantalla, uno tras otro. Manteniendo el hardware
 fijo, el motor portable **iguala al C en tableros difíciles y profundos** (≈105 a 110 M
 nodos de búsqueda/s cada uno) mientras que el C sigue siendo ~2,3× más rápido en los
-fáciles y poco ramificados (≈287 M frente a ≈125 M) - cada peldaño verificado como
+fáciles y poco ramificados (≈287 M frente a ≈122 M) - cada peldaño verificado como
 recorriendo el árbol idéntico. La lección corta por ambos lados: el oficio de generación
 de código es real y reproducible en un lenguaje moderno - bastante para igualar al C
 afinado a mano donde la búsqueda es difícil - *y* sigue siendo solo el factor constante
 que esta página describe. El mismo motor, apuntado al rompecabezas real, se estanca en
 los 300 altos sobre 480, justo donde la velocidad sola te deja.
+
+Dos mediciones de cuaderno más cierran la contabilidad. Primera, el factor constante
+pillado en el acto: una ganancia de +25 % de rendimiento en un solo hilo procedente de
+código generado por profundidad **no cambió la calidad de tablero alcanzada** con un
+presupuesto multihilo fijo de 5 minutos. Parciales idénticos en 444 aristas casadas
+sobre 480, y las mismas 450 a 451 aristas casadas tras una pasada de reparación,
+estables sobre 3 semillas con cerca de 0,5 % de dispersión (una máquina, un punto de
+presupuesto; convención de aristas casadas, y véase [la página de récords](/research/records)
+para situar cualquier cifra de ese tipo frente a las de la comunidad). La búsqueda
+converge en la misma trayectoria; caminar más rápido solo la alcanza antes. Segunda, la
+advertencia multihilo que 2008 nunca tuvo que afrontar: en un chip de 8 núcleos con un
+sistema de memoria compartido, 4 hilos corrían a 52 M colocaciones por segundo cada uno
+mientras que 8 hilos caían a 22 M cada uno, un agregado casi plano, y ambos alcanzaban
+la misma puntuación con el mismo presupuesto. El multithreading escala de la manera
+obvia hasta que el sistema de memoria se satura.
 
 Los practicantes lo dijeron ellos mismos. Joshua Blackwood, catalogando sus
 callejones sin salida tras el 469 ([solucionadores SAT](/research/build/exact/sat-csp-encodings),

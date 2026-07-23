@@ -1,0 +1,239 @@
+---
+title: Band column-DP
+description: >-
+  Slice the board into overlapping two-row bands, solve each band to
+  perfection with a column-by-column dynamic program under beam pruning, and
+  chain the bands top to bottom. A full board at 444 of 480 matched edges in
+  35 seconds, with the whole loss provably parked in the late vertical seams.
+metaDescription: "Band column-DP for Eternity II: cut the board into two-row bands, solve each perfectly with a column-by-column DP under beam pruning, chain them top to bottom. A full board at 444 of 480 matched edges (clues not enforced) in 35 s; the entire 36-edge loss sits in the late vertical seams."
+kind: concept
+order: 55
+group: Build boards up
+updated: 2026-07-22
+topics: [construction]
+sources:
+  - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
+    url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
+related:
+  - /research/build/construct/beam-search
+  - /research/why/piece-theft
+  - /research/build/local-search/local-search-alns
+  - /research/records
+repro:
+  kind: prose
+---
+
+The [cell-level beam](/research/build/construct/beam-search) grows a board one
+cell at a time. The band column-DP changes the granularity: slice the 16×16
+board into two-row bands, solve each band to perfection with a
+column-by-column dynamic program under beam pruning, and chain the bands top
+to bottom, each new band inheriting the previous band's bottom row. A single
+band is always solvable perfectly. The chain completes a full board at 444 of
+480 matched edges in 35 seconds, and the entire 36-edge shortfall can be
+pinned, by exact accounting, to the vertical seams of the lower half: a
+greedy-horizon failure, not a piece-supply accident.
+
+One caveat governs everything below. Every number on this page is a single
+deterministic run per configuration, from the notebook: a fixed
+construction order, no seed sweeps. "Fails" always means "failed under the
+stated beam and budget", never "impossible".
+
+## How it runs on a board
+
+Treat a two-row band as a left-to-right sequence of columns. A DP state at
+column $j$ is (top piece and rotation, bottom piece and rotation, the set of
+pieces already used, the accumulated score). A transition to column $j+1$
+places a fresh top/bottom pair and can earn at most 3 edges: two horizontal
+matches against the previous column and one vertical match inside the new
+column. The exact DP is exponential in the used-piece set, so the state list
+is beam-pruned to the top $K$ per column, the same pruning the cell-level
+beam uses, applied to a coarser move: a whole column of a band per step, two
+pieces at a time, which exploits the 2D structure directly. Border cells
+(which require the grey edge color) sharply cut the candidate sets at the
+rim.
+
+The work per band is $O(n \cdot K \cdot |P|^2)$; for $n = 16$,
+$K = 10^4$, $|P| = 256$ that is on the order of $10^{10}$ candidate
+transitions per band: minutes in a compiled engine, hours in Python. That is
+design arithmetic, not a measurement; it is what motivated writing the solver
+in Rust.
+
+## The band arithmetic
+
+An $n \times n$ board has $E = 2n(n-1)$ internal edges: 480 for $n = 16$. A
+two-row band contains at most $3n - 2$ matched edges (46 for $n = 16$).
+Chaining bands that share one row, each band after the first contributes
+$2n - 1$ new edges (31), and the sum telescopes exactly:
+
+$$
+(3n - 2) + (n - 2)(2n - 1) = 2n(n - 1) = E.
+$$
+
+So if every chained band were perfect, the chain would produce a complete
+480. The decomposition loses nothing in principle; the accounting identity is
+elementary and independent of any run.
+
+The catch, and the central tension of this page: a band solved to perfection
+commits its bottom row, and that specific choice can make the next band
+infeasible or sub-optimal. Perfect standalone bands do not compose into a
+perfect chain.
+
+## One band is easy
+
+Measured, one run per configuration: the column-DP solved the first band to
+its theoretical maximum on every puzzle size tested, from 4×4 through the
+real 16×16 (46 of 46 in 68 s at beam 5,000; the smaller sizes took 0.1 to
+12 s).
+
+One counterintuitive finding is worth a callout: more edge colors makes the
+band *faster*, not slower. On 8×8 instances, 5 colors took 6.5 s and 8 colors
+took 1.6 s. More colors means tighter constraints, hence fewer feasible
+transitions, and the beam contracts. This is the opposite of what
+hash-and-sample methods experience.
+
+## Chaining the bands: a full board in 35 seconds
+
+Chaining 15 bands top-down at beam 100,000 completed a full 256-piece board
+at **444 of 480 matched edges in 35 s**. Scoring convention: this board
+ignores the five official clue pieces (0 of 5 in place), so the 444 is a
+matched-edges count on an unconstrained board; it is not comparable to
+clue-respecting records. The clue-respecting variant further down reaches a
+240-cell partial at 414 of 480 with all five clues. For the conventions and
+the standing community and notebook numbers, see the
+[records page](/research/records).
+
+The per-band scores tell the story in one row: bands 0 through 7 are all
+perfect, then a monotone decay.
+
+| Band (top to bottom) | 0 to 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Score (of 46) | 46 each | 45 | 45 | 43 | 42 | 40 | 36 | 35 |
+
+Width has a narrow sweet spot here, and it extends the cost story on the
+[beam-search page](/research/build/construct/beam-search): beam 50,000 dies
+at the final band with no feasible states (240 of 256 cells placed); beam
+100,000 completes; beam 500,000 is counterproductive, because the per-column
+sort alone blows the budget (timed out mid-first-band at 138 s). The sweet
+spot sits near $10^5$. One run per width; the 50,000-fails, 100,000-completes
+boundary was not replicated across orders or tie-breaks.
+
+## The loss lives in the vertical seams
+
+Relating band scores to the board score gives an exact identity: the board's
+matched edges equal the sum of band scores minus the horizontal edges of the
+shared rows, which the chain counts twice. On the 444 board the band scores
+sum to 654, and $654 - 444 = 210 = 14 \times 15$: the shared-row horizontal
+sum is at its maximum, meaning **every horizontal edge along every shared row
+is matched**. The entire 36-edge shortfall sits in the vertical seams between
+rows 8 and 15 plus the bottom row:
+
+| Seam (going down) | 8/9 | 9/10 | 10/11 | 11/12 | 12/13 | 13/14 | final band |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Edges lost | 1 | 1 | 3 | 4 | 6 | 10 | 11 |
+
+(The final figure is shared between the last vertical seam and the bottom
+row.) This is exact arithmetic on one measured board; the structure it
+reveals (horizontals free, verticals costly) is the general mechanism. The
+chain buys each band's horizontal edges for free, since they sit inside the
+band being optimized, but pays for vertical edges with colors committed one
+band earlier; as the piece inventory drains, the committed bottom-edge colors
+stop matching what the remaining pieces can supply.
+
+The clue-respecting run makes the endgame failure countable. Comparing the
+color multiset the last row *needs* on its top edges (dictated by the
+previous row's committed bottoms) against what the 16 remaining pieces can
+supply showed 4 colors demanded but absent and 5 supplied but useless: 5
+bottom-row cells with literally zero feasible candidates. No amount of
+last-row search fixes that. The chain needs a backward constraint (the
+committed bottom-edge multiset of each row must stay answerable by the
+remaining pieces) that pure top-down construction never sees.
+
+## A greedy horizon, not a hard bottom
+
+Is the bottom of the board intrinsically harder? No: run top-down, the chain
+produces 7 perfect bands from the top border, decays, and fails at the
+*bottom*; run bottom-up, it produces 7 perfect bands from the bottom border,
+decays, and fails at the *top*. Both directions stop 16 cells short of a full
+board (240 of 256 placed), one run per direction. The failure always lands at
+the border farthest from the anchor: both borders impose their own constraint
+sets, an anchored chain satisfies the near one and drifts freely with respect
+to the far one, and the drift compounds. The decay is a property of
+one-directional greedy commitment, not of the bottom rows.
+
+Why not run both directions and glue? Naively matching an independent
+top-half and bottom-half at the middle seam requires 16 colors to agree;
+under a random-color model that has probability about $(1/23)^{16} \approx
+10^{-22}$. A rendezvous needs joint construction, not two independent runs.
+
+Anchoring in the middle is worse, in the one configuration tried: starting
+from a center band (no border on either row) failed to complete even one band
+at beam 5,000 within 120 s; wider beams were not tried. Rough counting says
+why: the border constraint cuts the candidate sets about 12-fold (roughly
+45,000 feasible pair-placements per state at the border versus roughly
+490,000 in the interior). Borders are free constraint; the interior offers
+the beam nothing to grip.
+
+## Levers: forward look and lower-half rebuild
+
+**Looking one band ahead.** Re-rank beam states by $\alpha \cdot
+(\text{current score}) + \beta \cdot (\text{forward compatibility})$, where
+forward compatibility counts, for each committed bottom-edge color $c$, how
+many remaining pieces can still answer it on their top edge, in the log-sum
+form $\sum_c \log(1 + \nu_c)$; $\alpha = 1$ and $\beta$ in $[0.01, 0.1]$
+keeps the score dominant. This targets exactly the vertical-seam loss above:
+stop optimizing only the band you are in, start protecting the colors the
+next band will need. Measured effect, single run: +3 edges on the full chain,
+444 to 447 (matched edges, clues not enforced), at negligible cost (about
+0.5 s per band at beam $10^5$).
+
+**Rebuilding the lower half.** On the 444 board the top 8 rows plus their
+interface seam hold 248 perfectly matched edges. Freezing them and rebuilding
+only the bottom 8 rows (a fixed set of 128 leftover pieces against a fixed
+16-color interface) preserves those 248 automatically, and the rebuilt half
+is bounded above by 232 internal edges: a perfect rebuild would literally be
+a 480, and even a verticals-only-perfect rebuild would clear 460. The rebuild
+is the same problem the band solver already solves (a chain started from a
+fixed top-color vector), so the operator costs 1 to 2 minutes. That is a
+bound on the operator, not a reachability claim.
+
+Measured, the greedy rebuild is a null result: rebuilding the lower half with
+the same greedy column-DP lands back on exactly 444 regardless of where the
+freeze line is drawn (freeze through row 7: 444; through row 11: 444; only
+the trivial last-row rebuild keeps the 447 input). The late-band loss is a
+greedy-horizon artifact, not a fixable accident of which pieces were left
+over: re-running the same greedy on the leftover set from any starting row
+lands in the same place. The forward-look +3 is the only algorithmic gain
+found in this family. Scope: only greedy-beam reconstruction was tested; an
+exact solve of the 128-piece bottom half (a constrained matching problem) was
+proposed and never run, so the bound above is untouched by this negative.
+
+## Playing with the official clues
+
+Enforcing the five official clue pieces requires reserving each clue piece
+from the moment construction starts. The naive version let an early band
+greedily spend a piece that a clue cell 10 rows down needed, and died there
+(208 of 256 cells, 3 of 5 clues): a clean, concrete instance of
+[piece theft](/research/why/piece-theft), where a locally optimal placement
+spends a piece a distant constraint needs. With downstream clue pieces
+reserved up front, the chain reaches **240 of 256 cells, all 5 clues
+respected, 414 of 480 matched edges** (full-board denominator, 16 cells left
+empty) at beam 100,000. Single run.
+
+Corner pieces add a hidden long-range constraint of the same kind: which 2 of
+the 4 corner pieces the top row spends determines which corner colors the
+bottom row must produce 14 rows later. Reserving or pre-committing all four
+corners is the natural fix direction; it was not run in these measurements.
+
+## Where it stops
+
+The band column-DP is a fast route to a good board: 444 matched edges in
+35 seconds, with every shared-row horizontal edge matched, where the
+cell-level beam reaches the mid-450s (matched edges) in minutes. The ceiling
+is the one-directional commitment itself: each band pays its vertical seams
+with colors chosen one band earlier and no local search at the bottom can
+refund them, which is why the gains beyond this plateau came from
+[destroy-and-repair polish](/research/build/local-search/local-search-alns)
+rather than from more width. The open doors this family leaves are concrete:
+an exact solve of the frozen-top bottom half, the forward-look score applied
+at every band rather than as an afterthought, and a joint bidirectional
+construction that meets in the middle by design rather than by luck.

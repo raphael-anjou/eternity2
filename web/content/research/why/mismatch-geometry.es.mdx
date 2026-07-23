@@ -10,7 +10,7 @@ kind: finding
 contribution: measurement
 rigor: measured
 order: 80
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [structure]
 sources:
   - label: "Anuncio del récord 469 de Peter McGavin: el tablero cuyas once aristas no apareadas analiza esta página (groups.io msg 10045, septiembre de 2020)"
@@ -20,6 +20,7 @@ related:
   - /research/lab/experiments/raphael-anjou/pipelines/staged
   - /research/why/walls-and-methods
   - /research/why/sigma-cycles
+  - /research/records
 repro:
   kind: exact
 ---
@@ -49,6 +50,31 @@ la comunidad arriba, los de este proyecto abajo.
   <MismatchGeometryLab />
 </Figure>
 
+## Alejar la vista: la banda es una ley del corpus
+
+Dos tableros podrían ser una anécdota. Agreguemos entonces. Toma todos los
+tableros de alta puntuación que este proyecto ha guardado, 1 964 tableros con
+455 aristas apareadas o más (convención de aristas apareadas; la
+[página de récords](/research/records) sitúa estas cifras internas en su
+contexto), y marca cada junta según la frecuencia con la que falla. La misma
+imagen reaparece como ley de frecuencias. Las juntas que conectan las filas
+11 a 14 con sus vecinas se rompen en aproximadamente el 38 a 49 % de todos
+los tableros. La junta más frágil de todo el tablero está en la fila 12,
+columna 2, rota en el 49,4 % de los casos; las cuatro siguientes (47,5 %,
+47,3 %, 46,3 %, 46,0 %) también pertenecen a la fila 12, y las veinte juntas
+más rotas se sitúan todas en las filas 11 a 13. Son recuentos exactos sobre
+el corpus guardado, no muestras.
+
+Una advertencia, que en realidad es el hallazgo mismo: cada uno de esos
+1 964 tableros salió del propio pipeline de este proyecto, que rellena de
+arriba hacia abajo. El mapa de calor no es una propiedad del puzzle; es la
+firma del pipeline, escrita 1 964 veces. Un relleno descendente gasta su
+presupuesto de conflictos por el camino, el conjunto de restricciones se
+tensa primero en torno a la fila 12, y esa costura se parte en la mitad de
+las ejecuciones. Un solucionador con otro orden de relleno movería la
+costura, que es exactamente lo que muestran los tableros de la comunidad en
+la figura de arriba.
+
 ## Por qué se voltea: el orden de recorrido
 
 El vuelco no es una coincidencia; es la huella de cómo se construyó cada
@@ -58,6 +84,25 @@ acumulado en las últimas filas que alcanza: arriba. Una búsqueda que rellena d
 arriba hacia abajo hace exactamente lo contrario y amontona los daños abajo. Los
 desajustes siempre acaban apiñados contra la arista donde el solucionador
 terminó. Mismo puzzle, mismo tipo de tablero, orden de construcción opuesto.
+
+Hay un matiz que la historia de los dos solucionadores esconde: el vuelco es
+por ejecución, no por herramienta. Dentro de la propia producción de este
+proyecto conviven dos familias de tableros casi récord con geometría
+invertida. En una (mejor tablero con 458 aristas apareadas, una antigua
+mejor marca interna; véase la [página de récords](/research/records) para el
+contexto), todos los desajustes interiores ocupan las cinco últimas filas
+del interior y las nueve primeras filas interiores son perfectas. En la otra
+(mejor con 457), los veinte desajustes interiores están todos en las filas 1
+a 4, con las filas 5 a 14 perfectas. Los mejores tableros de ambas familias
+solo comparten 7 de 256 colocaciones (2,7 %): son tableros casi disjuntos,
+no dos arreglos de un mismo marco. Y ambos están localmente congelados; la
+programación entera exacta, aplicada a cada racimo de daños de hasta unas
+treinta celdas, no mejora ninguno de los dos en una sola arista. Son
+familias que hemos muestreado, un puñado de tableros cada una: la partición
+es una observación, no un censo. Pero matiza la historia: el orden de
+recorrido es la fuerza dominante, y sin embargo lo que fija de verdad la
+banda es la trayectoria de la ejecución individual, la cuenca en la que
+cayó. Mismo pipeline, bandas opuestas.
 
 ## La misma banda, bajo un objetivo distinto
 
@@ -76,6 +121,91 @@ arista. Es el orden de construcción, no la regla de puntuación, lo que decide
 dónde termina alojándose la dificultad. (Más sobre esta variante en la
 [página de variantes](/research/build/variants).)
 
+## La forma del daño
+
+El daño tiene una forma constante, no solo un lugar constante. En todos los
+tableros casi récord que hemos perfilado, el grafo de las aristas en
+desajuste es un bosque: nunca cierra un bucle. Y a medida que los tableros
+mejoran, el daño se fragmenta. Los tableros intermedios, entre 444 y 447
+(aristas apareadas), llevan 24 a 26 desajustes repartidos en cinco a diez
+racimos, el mayor de 13 a 15 celdas. Tres tableros con 458, hallados de
+forma independiente, comparten una huella idéntica: 17 desajustes en solo
+dos racimos, el mayor de 25 celdas; muy probablemente una misma cuenca
+encontrada tres veces. Un tablero con 459 se divide en cuatro racimos
+pequeños, el mayor de apenas 10 celdas. Los mejores tableros llevan un
+residuo más pequeño y más disperso. Eso sugiere una conjetura, y nada más
+que eso: la mejora podría funcionar fragmentando el daño hasta que cada
+fragmento sea lo bastante pequeño para repararse localmente.
+
+La concentración misma puede medirse. Comprime la densidad de desajustes por
+celda con una transformada de Fourier bidimensional conservando el 1 % de
+los coeficientes: un daño bien concentrado se reconstruye con poco error, un
+daño disperso no. En esta escala, un tablero con 457 en particular está más
+concentrado (error de reconstrucción 0,145) que los tres tableros con 458
+(0,236 cada uno, idénticos: la misma cuenca otra vez) y prácticamente empata
+con el 459 (0,148), mientras que los tableros intermedios se sitúan entre
+0,32 y 0,34. El corpus es pequeño (una decena de tableros), pero dos medidas
+estructurales independientes confirman el orden, y apunta a una hipótesis
+que vale la pena retener: la calidad estructural podría ser un eje en parte
+ortogonal a la puntuación bruta. Un 457 puede estar más cerca de la forma de
+un récord que un 458.
+
+## Nada cae en el borde
+
+Reparte las 480 juntas de un tablero en tres clases: 60 juntas borde-borde a
+lo largo del anillo, 56 juntas donde el anillo toca el interior, y 364
+juntas interior-interior. Compara el 469 de McGavin con un tablero de este
+proyecto que alcanzó 444 aristas apareadas sobre un borde equivalente: la
+descomposición cuenta dos veces la misma historia. Ambos logran un 60 de 60
+perfecto en el anillo y 55 de 56 en la costura. Toda la brecha de 25 aristas
+es interior-interior, 354 de 364 frente a 329 de 364. (Solo dos tableros:
+léelo como una ilustración de la descomposición, no como una ley del
+corpus.) Los cinco colores exclusivos del marco forman un ciclo autónomo que
+cualquier búsqueda competente satura; los diecisiete colores interiores son
+donde muerde la escasez.
+
+Una sonda más afilada sugiere que el borde ni siquiera lleva la información.
+Congela solo el borde del mejor tablero de este proyecto y deja que un
+relleno voraz complete el interior: alcanza apenas 204 a 209 aristas
+apareadas, el mismo rango que da un borde válido aleatorio (202 a 214).
+Congela en cambio las filas de arriba y el relleno sube de forma sostenida:
+209 sin fijar nada, 258 con cuatro filas, 334 con ocho, 364 con diez, 406
+con doce, 424 con trece, y la puntuación completa con las dieciséis. Se usó
+una única política de compleción voraz; trátalo como una sonda, no como una
+ley. Pero bajo ese relleno, la identidad de un gran tablero vive en el
+esqueleto interior de su primera docena de filas, no en su marco.
+
+## La banda del daño es la banda de la libertad
+
+La banda de abajo no es solo donde se rompen los tableros de este proyecto;
+es donde discrepan entre sí. Sobre 421 tableros completos con 455 aristas
+apareadas o más (todos, de nuevo, de una misma familia de pipeline), cuenta
+cuántos arreglos distintos exhibe cada fila a lo largo del corpus. Las filas
+0 a 11 muestran 39 a 63 arreglos distintos cada una, aproximadamente el 9 a
+15 % de los tableros únicos en esa fila. Las filas 12 a 15 saltan a 131 o
+132 cada una, en torno al 31 %: el triple de diversidad. Las filas donde
+viven los desajustes son también aquellas donde los tableros casi récord más
+difieren unos de otros.
+
+Acércate a cuatro tableros distintos que alcanzan todos 459 aristas
+apareadas y la misma partición aparece celda a celda. Solo 3 de las 256
+celdas son idénticas en los cuatro (las dos esquinas superiores más una
+celda del anillo del borde); 212 celdas alternan entre exactamente dos
+colocaciones; y las 24 celdas que difieren en los cuatro tableros se alojan
+por completo en las filas 13 a 15 (nueve, diez y cinco celdas; ninguna en
+las filas 0 a 12). En los cuatro tableros de igual puntuación que
+comparamos, toda la variación genuina vive en la banda del daño. Un
+contraste merece una frase: el reordenamiento que separa uno de esos
+tableros del 469 de McGavin abarca todo el interior de forma más o menos
+uniforme, cuatro a nueve celdas en cada fila de la 1 a la 14. Moverse entre
+tableros de igual puntuación es un barajado de la banda de abajo; moverse a
+un tablero realmente mejor exige reconstruir por todas partes (la
+[página de los ciclos sigma](/research/why/sigma-cycles) lo hace preciso).
+El mecanismo detrás de la diversidad es el mismo que detrás del daño: las
+últimas filas rellenadas absorben a la vez el conflicto acumulado y la
+libertad acumulada. Todo lo anterior es esqueleto; la banda de abajo es
+donde se ramifican las compleciones distintas de alta puntuación.
+
 ## Lo que nos dice
 
 Esta es la forma visible de dos hechos más profundos. Primero, los grandes
@@ -87,6 +217,38 @@ son donde el puzzle te hace pagar, de modo que el orden en el que buscas decide
 dónde aterriza la dificultad. Es la misma lección que la carrera de caminos del
 espacio de juego te hace sentir, aquí inscrita en la estructura de cada tablero
 récord.
+
+Dos sondas hacen concretos ambos hechos. La primera: una antigua mejor marca
+de este proyecto, un tablero con 459 aristas apareadas, muestra el patrón en
+su forma más limpia. Sus 21 desajustes están todos en las filas 12 a 15, las
+192 celdas de las filas 0 a 11 son perfectas, y los defectos forman una
+única región conexa a lo largo de las cuatro filas de abajo. El arreglo
+obvio es fijar las doce filas perfectas y volver a buscar solo la parte de
+abajo. Esa búsqueda muere en milisegundos, hacia la profundidad 211: dados
+esos compromisos de arriba, 459 es el óptimo. (Un solo tablero, una sola
+configuración de búsqueda; el agotamiento, eso sí, es exacto.) La región
+perfecta no es holgura en espera. Está gastada: cada grado de libertad aguas
+arriba se consumió para hacerla perfecta, y por eso la banda residual no
+puede repararse en el sitio, y por eso mejorar ese tablero acabó exigiendo
+movimientos de destrucción y reparación que cruzan todo el tablero.
+
+La segunda sonda es la prueba espejo sobre el 469 de McGavin, cuyo daño se
+esconde arriba. Fija sus 14 filas superiores y deja que una búsqueda de
+destrucción y reparación rellene la parte de abajo: reconstruye el 469
+completo. Fija sus 14 filas inferiores y rellena la parte de arriba: solo
+llega a 462, sin umbral nítido por el camino (443, 453, 454, 462 a medida
+que el bloque fijado crece de once a catorce filas). Y fijar quince filas de
+abajo lo hace peor (460) que fijar catorce, porque congelar más tablero
+elimina la holgura que la búsqueda necesitaba para absorber la parte de
+arriba, la difícil. Fue una sonda rápida de configuración única (una
+semilla, sesenta segundos de reparación por punto): toma los números exactos
+con cautela; la dirección de la asimetría, en cambio, se predijo antes de la
+ejecución y quedó confirmada por ella. La lectura: la banda donde viven los
+desajustes es exactamente la parte del tablero que lo define, y el resto se
+deriva de ella. Para esa familia de tableros, la brecha por encima de 469 se
+lee como un problema de las cinco filas de arriba (una interpretación, no un
+teorema). La banda que tu búsqueda deja para el final no es solo donde
+pagas; es donde ocurre el trabajo insustituible.
 
 <Callout kind="note">
   Los recuentos por fila y la banda resaltada se calculan en tu navegador a

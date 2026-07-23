@@ -4,11 +4,11 @@ description: >-
   Approaches we tried that look promising and don't move the needle on
   Eternity II, written down with what we found so you can spend your time
   elsewhere.
-metaDescription: "Eternity II approaches that look promising but don't move the score, documented so you don't repeat them: probability propagation that fades two cells out, macro-tiles that speed search without shrinking the domain, border-supply pruning that ran 8% slower for a 0.0014% gain."
+metaDescription: "Eternity II approaches that look promising but don't move the score, documented so you don't repeat them: pattern databases with zero information, lattice reduction that solves the easy half, ant colonies that learn noise, and two dozen more, each with its mechanism of failure."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-21
+updated: 2026-07-22
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "eternity2.net shuts down: 1.6 TFlops, 10^19 CPU operations, no solution (groups.io message 3511)"
@@ -19,6 +19,10 @@ sources:
     url: https://groups.io/g/eternity2/message/5883
   - label: "Markus Zajc benchmarks border-supply pruning: 0.0014% fewer tests, 8% slower (groups.io message 6060)"
     url: https://groups.io/g/eternity2/message/6060
+  - label: "Fu, Qiu, Zha: Generalize a Small Pre-trained Model to Arbitrarily Large TSP Instances (AAAI-21)"
+    url: https://arxiv.org/abs/2012.10658
+  - label: "Rethinking Heatmap and MCTS for TSP (2024)"
+    url: https://arxiv.org/abs/2411.09238
 related:
   - /research/build/run-it-yourself
   - /research/records
@@ -47,6 +51,36 @@ shrink the search.*
 and no duplicates, and the single center clue pins orientation. There's no
 global symmetry to break, so fixing corners just makes an arbitrary, not a
 free, choice. [Why this is a wall →](/research/why/rare-color-geography)
+
+The absence runs deeper than rotations and duplicates. We also checked for
+color-relabeling symmetry: an exhaustive enumeration of every color permutation
+that could map the piece set to itself (up to rotation) finds only the
+identity, because each of the 22 interior colors has a unique adjacency
+profile across the pieces. The symmetry group has size one; the generator broke
+every color swap too. (The interior colors do carry one piece of structure
+worth knowing: they fall into exactly three frequency classes, 5 colors
+appearing 24 times each, 5 appearing 48, and 12 appearing 50, totalling 960
+half-edges, twice the 480 edges.)
+
+## Check invariants on the cells you already placed
+
+*Split the piece set by its color-relabeling structure and prune the search
+with invariants computed over the part of the board already placed.*
+
+**Measured**, with a mechanism close to a proof. In a backtracker that only
+ever places matching pieces, the placed region always satisfies any constraint
+that mentions placed cells alone: the search enforces those invariants by
+construction, so a pruner that inspects what is already on the board never
+fires. We tried three variants of the idea and none of them pruned a single
+branch; there are no speedup or score numbers to report because the pruners
+literally never fired. A spiral scan-order variant was additionally worse, not
+better, since it lost the good early-region ordering. The scope worth keeping:
+this refutes static invariants on the placed region under a matching-only
+search, not every conceivable use of the piece set's color structure. Useful
+pruning has to look at what could still go, forward checks over the candidates
+for unplaced cells, or live inside a search that permits mismatches. Compare
+the border-supply check further down: that one fires too late; these never
+fire at all.
 
 ## Just throw more compute at it
 
@@ -86,6 +120,20 @@ that does pay on this grid is exact, not probabilistic;
 [arc consistency](/research/build/reduce/arc-consistency) and the
 [all-different matching filter](/research/build/reduce/alldiff-regin).
 
+We later ran the obvious rescue ourselves: message passing plus a per-piece
+Lagrangian penalty meant to restore the use-once constraint, on a generated
+4×4. Measured, and it does not converge. At least one piece's marginal
+collapses to exactly zero everywhere, and once a marginal hits zero no
+multiplier can revive it, so the duality gap never closes: the residual stayed
+around 1.2 to 1.7 across more than 50 outer iterations in all three damping
+and step-size settings we tried (minimum piece marginal 0.00 in every
+configuration; maximum 2.2 to 2.3 where it should be 1). That is one toy
+instance and three settings, already failing at 4×4. The contrast with the
+tensor-network note below is the informative part: the identical Lagrangian
+trick works when the inner step is an expensive exact contraction and fails
+when it is cheap message passing. The accuracy of the inner marginals is the
+whole game.
+
 ## Belief-propagation move ordering
 
 *Run belief propagation over the colors and use its per-cell hints to decide
@@ -95,6 +143,28 @@ which piece to try first.*
 candidates. When we raced it head-to-head, picking the next move at random did
 as well or better, because a fixed informed order tends to repeat the same
 mistakes. [Why this is a wall →](/research/why/no-forced-moves)
+
+## Sort candidates by future flexibility
+
+*Pre-sort each candidate list so pieces whose bottom and right edges open the
+most options downstream get tried first: a move-ordering heuristic that costs
+nothing at solve time.*
+
+**Measured.** On the official puzzle, single thread, 10 seconds × 3 runs
+against a tuned baseline: same maximum depth (192), same best score (344
+matched edges), same node-visit pattern, and throughput dropped from 84 or 85
+million to 80 million nodes per second, about 5%. A multi-thread 30-second
+spot check scored 429 against a 444 baseline, but that is a single seed: it
+shows the ordering can perturb outcomes, not that it reliably hurts. The
+mechanism: the deepest reachable point was set by the solver's mismatch
+schedule, not by move order, and "future-flexible" pieces correlate with
+popular pieces the existing ordering already tries early, so the sort adds no
+information; it only reshuffles memory layout and pays for it in cache
+locality. Scope: this is the verdict for one tuned schedule path on the
+official puzzle; the picture could differ on schedules without a depth wall or
+on generated puzzles with uniform color distributions. Same lesson as the
+belief-propagation entry above, from a cheaper angle: informed static
+orderings do not beat the defaults here.
 
 ## Tensor-network counting
 
@@ -106,6 +176,18 @@ piece is used exactly once. That blind spot is enormous: it counts on the
 order of $10^{90}$ boundary-consistent colorings against the puzzle's roughly
 one real solution. Local message passing simply can't see the global
 one-piece-per-cell rule. [Why this is a wall →](/research/why/entropy-area-law)
+
+One amendment from later notebook work: the blind spot can be patched, at
+small scale. Adding a Lagrangian penalty per piece on top of the contraction
+recovers uniqueness well enough to fully solve generated 4×4 (one second) and
+6×6 (five minutes) puzzles, verified piece-unique and fully matched. The cost
+wall arrives long before 16×16: the first full-scale attempt ran out of memory
+around 3 GB and died, and the truncation needed to fit may discard too much
+for the fix to keep meaning. That is a single attempt, so the patched variant
+is unvalidated at full scale rather than proven impossible; the Proven verdict
+above is about plain contraction. Enforcing uniqueness through multipliers
+needs accurate inner marginals, and accuracy at 16×16's color count demands a
+bond dimension whose memory and compute blow up.
 
 ## Solve the colors first, place pieces later
 
@@ -145,6 +227,74 @@ first summer, and already there a 4×4 took over an hour to solve
 these encodings can still earn (impossibility proofs and near-optimal fills on
 sub-boards), which is where their value actually is.
 
+The integer version is no rescue at full scale either. With the 60 border
+cells fixed, we asked an open-source MIP solver (HiGHS, 4 threads, a 30-minute
+limit) for an integer-optimal interior: roughly 154,000 binary placement
+variables and 13,000 constraint rows. It returned without finding any feasible
+integer placement at all, and even mislabeled the empty assignment "optimal"
+at objective 0, a reminder to sanity-check solver statuses. Scope that result
+tightly: one solver, default settings, one budget. It does not refute integer
+programming; we have since watched the encoding and solver choice change
+everything on smaller instances (a CP-SAT-class solver full-solves instances
+the same LP/MIP stack fails on, in under a second). A generic formulation at
+full scale simply exceeds what one mainstream solver could even find feasible
+in half an hour; restricted-region and restricted-corpus integer models do
+work, and that is where these solvers earn their keep.
+
+## Pattern databases (the Rubik's Cube heuristic)
+
+*Precompute, for every small patch of cells, the minimum number of edge
+corrections any completion needs, and sum those per-patch costs into an
+admissible heuristic: the technique that cracked Rubik's Cube and the
+15-puzzle.*
+
+**Proven.** On Eternity II the heuristic carries exactly zero information, by
+direct computation rather than sampling. The official set has 22 distinct
+interior colors and, across the 256 pieces with rotation, every one of the 22
+is available on every side, so every potential interior edge is individually
+matchable. The per-edge upper bound therefore comes out at 480, the maximum,
+and the per-2×2-patch bound (225 patches × 4 internal edges, corrected for
+overcounting) is also exactly 480. Both collapse to the trivial statement that
+all 480 edges could match. Pattern databases earn their keep when the
+objective is non-additive, when a patch's joint cost exceeds the sum of its
+parts, as Rubik's move counts do. This puzzle's matched-edge count is exactly
+additive per edge, and the only joint structure, each piece used once, couples
+cells globally, which no local patch can see. Instead:
+[LP and ILP relaxations](/research/build/exact/lp-relaxations), which do
+encode the global piece-once constraint, strictly dominate any patch table.
+
+## Lattice reduction on the placement equations
+
+*Encode placement as 0/1 integer equations, take the kernel lattice, reduce it
+(LLL or BKZ), and search for the solution as a closest-vector problem: the
+machinery behind the famous knapsack and integer-programming attacks.*
+
+**Proven** (the core arguments are structural; the scaling probe is measured).
+Three doors close in turn. First, the part a lattice attack handles cleanly,
+each cell gets one piece and each piece one cell, is a totally unimodular
+assignment system, solvable in polynomial time by the Hungarian algorithm; our
+recovery experiments (10 of 10 planted 2×2 and 3×3 instances recovered
+exactly, following the Aardal, Hurkens and Lenstra kernel-lattice
+reformulation) demonstrate the method solving a problem that was never hard.
+Second, the part that is hard, facing colors must agree, is a conditional
+("bilinear") constraint with no faithful linear-equality embedding short of a
+combinatorial blowup of auxiliary variables, which erases the lattice
+advantage. Third, the color-supply system is not a knapsack: every coefficient
+is exactly 1, so the classical low-density subset-sum attacks (Lagarias and
+Odlyzko 1985; Coster and colleagues 1992) do not even apply, and an LLL attack
+on the unit-weight embedding degenerates to plain enumeration. The scaling
+probe agrees: exact-integer LLL on just the easy assignment kernel took 0.35 s
+at 2×2 and 42.6 s at 3×3, and was killed past 175 s at 4×4 (kernel dimension
+993); the full 16×16 backbone would be around 262,000 variables. (Those
+timings are one pure-Python exact implementation, a practical statement rather
+than an asymptotic one; the structural arguments carry the verdict.) Per-color
+sublattices are cheap to reduce, under half a second, but 12 of the 60
+shortest vectors examined at 3×3 already require one piece to sit in two
+cells: they omit exactly the constraints that matter. The puzzle's hardness
+lives in a problem shape, bilinear matching plus global distinctness, that
+lattice-reduction tools are not native to; the sub-problem they are native to
+is already polynomial.
+
 ## Learn a heuristic on small boards
 
 *Train a neural network on small puzzles, then transfer it to the full 16×16
@@ -155,6 +305,31 @@ collapse on the real one. It learns from candidate moves filtered one way and
 is then asked about moves filtered very differently, and the full puzzle's
 colors never appeared in training. The skill doesn't carry across the size and
 color gap. [Why this is a wall →](/research/why/rigidity-wall)
+
+## Gradient descent on a soft board
+
+*Make the board differentiable: a doubly stochastic piece-to-cell matrix by
+Sinkhorn normalization plus per-cell rotation softmaxes, maximize expected
+matched edges by gradient descent with temperature annealing, then round to a
+real board.*
+
+**Measured.** The relaxation gap is intrinsic. The soft score climbs to
+367/480, but the best rounded board scores 336 matched edges (other seeds 324
+and 325, best of 4), and rounding gets worse as the temperature sharpens; a
+straight-through hard-forward variant is worse still at 280. The strongest
+test was also the smallest: restricted to the last two or three rows of a
+459-out-of-480 board of ours (strict scoring, all five clues placed) with the
+rest frozen, exactly where exact re-solving reliably earns one to three edges,
+the optimizer could not even reproduce the board's own tail (41 versus the
+incumbent's 49 region matches over 8 restarts on two rows; 63 versus 76 on
+three rows). One campaign, but the gap on the easiest region is 15 to 20
+percent below the incumbent, far outside noise. The mechanism echoes the
+fake-480 and tensor-network entries on this page: the continuous optimum is a
+superposition of many mutually incompatible boards, and the constraint the
+relaxation softens, every piece used exactly once, is precisely the one that
+carries the hardness, so softening it fakes matches no real permutation can
+honor. It is a third failure mode in the learning family; see
+[when learning collapses](/research/build/learning/when-learning-collapses).
 
 ## Enumerate local clusters first
 
@@ -171,6 +346,49 @@ again, at around 4 million blocks before piece-disjointness even enters
 pointed back at years of earlier 2×2 work in the archive
 ([msg 11429](https://groups.io/g/eternity2/message/11429)).
 [Why this is a wall →](/research/why/rigidity-wall)
+
+## Build the board one perfect row at a time
+
+*Build row by row, using exact bipartite matching to pick the best possible
+row given the edge colors the previous row exposes.*
+
+**Measured.** Each row is locally optimal; the board still dies. In our test
+the build hit a wall around row 10 of 16, at 294/480 matched edges, with rows
+11 and beyond infeasible outright: the locally best early rows consume exactly
+the pieces whose edge colors the later rows need, and by row 10 the remaining
+pool can no longer supply the required colors at all. Keeping the 32 best
+row-sequences in parallel does not help; all the leading candidates draw on
+the same scarce pieces and starve together at the same row. (Single-run proof
+of concept; the greedy dynamic program is essentially deterministic. Much
+larger beams, 256 or 1,024, were not tried, though the shared-pool argument
+predicts the same wall.) The one-line mechanism: local optimality does not
+compose, because the binding resource is the shared piece pool and a
+row-at-a-time commit spends it invisibly. What works instead is joint
+foresight across rows: the full-board
+[beam search](/research/build/construct/beam-search) our builders actually
+use.
+
+## Build from both ends and meet in the middle
+
+*Grow the board top-down and bottom-up at the same time and join the halves at
+a middle row: each half gets the easier, border-anchored part of the work.*
+
+**Measured.** The join kills it. With independent top and bottom beams at
+width 32, piece-disjointness alone failed on more than 99.9 percent of
+pairings: 0 valid pairs out of 1,024. A second variant guaranteed disjointness
+by re-running a dedicated bottom-up beam per top state, about 8 times the
+compute, and still produced zero merges, because the meeting row demands an
+exact 16-position color-sequence match on an alphabet of about 22 colors, and
+with the remaining pieces constrained the matching set is effectively empty.
+Two obstructions stack: independent searches pull from the same pool of
+promising pieces, and even disjoint halves must agree on a full row of
+interface colors that neither side optimized for. Building from both ends does
+not remove the interface difficulty; it relocates the mid-board wall to the
+meeting row. Scope: two variants at one beam width; softened joins (allow a
+few interface mismatches then repair, or meet on a diagonal) were never run,
+so the verdict covers the exact-join versions, not bidirectional construction
+in general. The exact-methods cousin of this idea has its own page:
+[meet in the middle](/research/build/exact/meet-in-the-middle).
 
 ## Cube and conquer
 
@@ -209,6 +427,62 @@ sampled far too rarely to give a stable gradient. The lesson matches the
 imitation learns the distribution it is shown and cannot invent the rare
 structure that a record needs.
 
+## Ant-colony construction (pheromone trails)
+
+*A colony of agents each builds a full board greedily at random; a pheromone
+field over (cell, piece, rotation) decisions is reinforced along the paths of
+the best finishers (a standard max-min ant system: evaporation, elite
+deposits, clipping), so future builds concentrate on globally consistent
+regions.*
+
+**Measured**, three failures deep. The standalone ceiling was 296/480 matched
+edges, the best over the swept configurations (best configuration at one seed,
+proof-of-concept scale), below even a plain wide-search baseline. Turning the
+pheromone learning on made the colony worse: the population mean dropped from
+about 265 to about 252 over 40 iterations while a no-pheromone random-restart
+control held about 265 and reached 289; that control was a direct
+head-to-head. And the learned field carries no information about what good
+boards actually do: checked against a 455-scoring board of ours (matched
+edges, all five clues placed), the field ranked the good board's choice first
+in 1.2 percent of cells against a chance rate of 0.9 percent, with a mean
+percentile of 0.502, statistically indistinguishable from a coin flip, so it
+cannot even serve as guidance for a better search. The mechanism is credit
+assignment: with about 600 legal candidates per cell and good final scores
+arising from vast, interchangeable sets of early choices, "this decision was
+on a good path" is noise. The pheromone amplifies an arbitrary early lottery
+winner and the colony converges prematurely on a mediocre basin.
+
+## Monte-Carlo tree search with a cheap prior (the TSP transplant)
+
+*A 2024 result showed that for the travelling-salesman problem, a strong MCTS
+with a parameter-free prior matches learned neural heatmaps
+([arXiv:2411.09238](https://arxiv.org/abs/2411.09238)). Port the underlying
+engine ([Fu, Qiu and Zha, AAAI-21](https://arxiv.org/abs/2012.10658))
+faithfully, mapping its k-opt tour move to the exact assignment analogue, a
+cyclic relocation of k pieces that is always feasible.*
+
+**Measured**, two clean negatives. As a refiner: the pairwise-swap phase is a
+sound repair engine (boards damaged from 452 matched edges down to 295 recover
+to exactly 452) but never exceeds its starting score, and the headline
+k-opt-style move is completely inert; across every run and the whole
+hyperparameter grid (mixing weights, cycle length, simulations per move),
+roughly 2,500 to 3,150 sampled relocation cycles per run produced zero
+improvements. As a from-scratch producer: a constructive per-cell bandit
+variant, after a 2.5 to 3.3× hot-path optimization to make the comparison
+fair, performs like a beam of width 512 to 1,024, measurably below a
+width-2048 beam at equal wall-clock (mean solve fraction 0.596 versus 0.743 on
+our scaling ladder of generated puzzles; 0.644 versus 0.721 on the hard rungs,
+24 runs), and the gap does not close with budget. The zero-improving-cycles
+result is structural rather than a tuning failure, though only the faithful
+port was tested. The mechanism: TSP k-opt works because the move chain follows
+existing tour edges, so it reconnects mostly compatible structure by
+construction; an edge-matching placement problem has no tour for the chain to
+follow, and relocating a whole tile disturbs matches on all four sides at
+once. The paper's transferable half, that search plus a cheap prior can
+replace a learned model, held up; the search itself is TSP-shaped. On this
+puzzle, raw [beam width](/research/build/construct/beam-search) remains the
+better use of the same wall-clock.
+
 ## Recombine two good boards
 
 *Take two high-scoring boards, keep the cells where they agree, and use
@@ -226,6 +500,107 @@ It is the same lesson as the [rigidity wall](/research/why/rigidity-wall) from
 the recombination side: the good boards all sit in one narrow basin, so mixing
 them produces more of the same rather than something new.
 
+The transplant version fails the same way, from the other direction. We took a
+442-matched-edges partial of ours and a finished 459 board (strict scoring,
+all five clues placed) and grafted the donor's placements over the largest
+region where the two disagreed, 71 cells: the score fell from 442 to 271.
+Grafting cumulatively through the six largest regions never climbed back above
+271 (241 to 271 across the six variants). Local repair on this puzzle
+typically recovers five to ten edges; the graft digs a hole of about 170. One
+partial and one donor, a decisive worked example rather than a universal
+constant, but the mechanism is generic: a grafted region gains its donor's
+internal matches and breaks edges all along its boundary with the untouched
+cells, and a region's boundary is large relative to its interior, so boundary
+damage dominates. Repairing it means re-choosing the cells just outside the
+seam too, and iterating that requirement expands until transplanting a region
+has become rebuilding half the board. Good boards do not decompose into
+exchangeable parts.
+
+## Widen the mismatch vocabulary
+
+*Every solver in the record-holding backtracker family can leave at most one
+mismatched edge per cell; by construction its index cannot even represent a
+cell that breaks twice. Yet top community boards produced by local search do
+contain four or five such double-break cells. So build the same search over
+the wider space where a cell may charge two breaks, and hunt where no one else
+can.*
+
+**Measured.** At equal wall-clock the wider vocabulary earns nothing. A paired
+A/B of 54 rounds, 27 seed-matched pairs across three schedule shapes and two
+scan directions at 600 seconds × 4 threads per round, gave 20 ties, 4 wins for
+the wider engine and 3 for the classic, every difference within ±3 matched
+edges, with identical per-shape min/median/max distributions (415/420/425 in
+both arms for one shape). The wider engine visited 0.87 to 0.94 times the
+nodes for the same outcomes. A separate exhaustive census behind a 208-cell
+prefix of a 464-scoring community board (five-clue scoring; context on the
+[records page](/research/records)) found exactly four completions at seven or
+fewer total mismatches: the 464 itself and three one-cell variants at 462 and
+463, and zero of them used a double-break cell. The mechanism: the wider space
+is explorable but never forced. With the mismatch budget spread over the whole
+board the search almost never has two units of headroom left at one cell, so
+it spends its budget the way the classic engine does; and in the near-perfect
+endgame region the double-break stratum is empty outright. The known
+double-break cells in community boards sit mid-board and were made by
+local-search repair moves, not by any depth-first pass. Scope: an
+equal-wall-clock tie for one engine family on the official puzzle, not a proof
+that the wider stratum is empty everywhere; the starting hypothesis, that the
+community plateau is a representability wall, is downgraded to an unsupported
+conjecture, not refuted.
+
+## Decode the mismatches like a corrupted codeword
+
+*View a perfect board as a codeword, every internal edge a parity check, and a
+high-scoring board as that codeword plus a small error syndrome; if the error
+pattern has structure, syndrome decoding or belief propagation should localize
+and clear it cheaply.*
+
+**Measured**, on one 459-out-of-480 board of ours (strict scoring, all five
+clues placed); this entry and the next are two lenses that treat the mismatch
+pattern as structured signal, and both found none. The syndrome is as
+unstructured as it could be: the 21 mismatches involve about 21 distinct color
+pairs (only two pairs repeat), split into 13 disconnected fragments, and every
+color's total half-edge count is even, so the parity floor on mismatches is
+zero; nothing algebraic forbids a perfect board or forces these errors.
+Decoding accordingly buys nothing. Exactly re-solving the error-support cells
+(34 scattered cells, warm-started) holds at 459 across 8 seeds and a
+200-second solve, no better than the plain rectangular-band re-solve it was
+raced against; growing the region one hop makes it too big to re-solve well
+(433); and without a warm start the scattered region regresses to 448. One
+board studied, though the mechanism suggests the picture is generic: decoding
+shortcuts require a structured error (repeated collisions, a low-dimensional
+coset, one repairable cluster), and a maximally spread syndrome whose
+fragments couple only through the piece inventory is exactly the regime where
+decoding degenerates into the same exhaustive tail search we already run. The
+mismatches are a budget allocated globally, not a local error to invert.
+
+## Treat the mismatches as physical defects
+
+*Model each mismatch as a charged topological defect in the color field:
+defects should sit at conservation-forced, minimum-interaction sites, and
+opposite charges should annihilate.*
+
+**Measured**, same board as the previous entry, and every premise fails.
+Position predicts mismatch location extremely well: the row index alone
+separates broken from unbroken edges with an AUC of 0.895, and all 21
+mismatches sit in the last-filled rows. Every color signal is noise:
+color-rarity AUCs of 0.46 to 0.50, and the mismatches carry common colors, not
+rare ones. The color-conservation floor on the tail is about zero; the frozen
+top pushes down no color demand the remaining pieces cannot supply, and even
+the sharpest orientation-aware matching bound forces only 0 to 2 mismatches
+where 10 to 19 exist. The charge spectrum has essentially no opposite-sign
+pairs, so there is nothing to annihilate. A defect-repulsion objective added
+to the exact tail re-solve changes which tie-broken solution comes out but not
+the ceiling; the last row is provably optimal given the rows above it. (A
+cold-start region-solve sweep was stopped after a single seed, at 441, once
+the verdict was clear; treat that number as a single-seed illustration.) The
+finding worth keeping: the mismatches are not defects in a color field at all.
+They are pure combinatorial orientation-frustration from piece exhaustion in
+whatever region is filled last; the color bookkeeping balances, and what
+breaks is the joint four-sided constraint over all remaining pieces at once.
+No single-cut, per-color, or pairwise-energy reduction captures it. The
+geometry of where breaks land has its own page:
+[mismatch geometry](/research/why/mismatch-geometry).
+
 ## Force a diverse border, then fill
 
 *The border is a smaller sub-puzzle. Solve for many different valid frames
@@ -241,6 +616,32 @@ project's own experiments too: the frame is worth surprisingly little
 ([STAGED](/research/lab/experiments/raphael-anjou/pipelines/staged) measures exactly how little), and
 the endgame damage lands in the interior corners
 ([MOSAIC](/research/lab/experiments/raphael-anjou/pipelines/mosaic)).
+
+We measured the premise ourselves, from two directions. First, cataloguing
+borders: a time-bounded search (120 seconds, explicitly not exhaustive; the
+true count is unknown) produced 75,173 complete, internally valid border
+rings. Feeding a 500-frame sample to the solver as pinned frames, 47 percent
+exhausted the search in under 200 milliseconds under baseline propagation, and
+essentially all were rejected outright once full propagation ran against the
+official clue pieces. A ring that closes on itself satisfies only pairwise
+edge-matching around the rim; joint feasibility with the clues and the
+interior's use-each-piece-once constraint is a far stronger condition, and
+essentially none of the catalogued rings meet it.
+
+Second, perfect borders as seeds. We generated 5,000 distinct piece-unique
+perfect borders by dynamic programming (all 60 border cells placed, every
+border edge matched), sampled 100 evenly, and gave each the same pipeline: a
+60-second constraint-propagation interior fill, then a 60-second local-search
+polish. Top score of the whole batch: 436/480 matched edges; about half the
+starts landed between 420 and 427, a quarter between 380 and 419, and none
+above 437. The 455-to-460-class boards of the same era (strict scoring, all
+five clues placed) all came from a depth-first producer that does not fix the
+border first. The polish used a single seed and 60 seconds per start, so this
+is a cheap-filter screen, not an exhaustive refutation: under a short
+equal-budget polish, none of 100 border-first starts came within 20 edges of
+what the direct search reaches. A perfect border over-commits the interior;
+the fill then optimizes within whatever interior color profile the border
+allows, and that family plateaus far below the best basins.
 
 ## Build a fake 480 and repair it
 
@@ -258,6 +659,77 @@ what the fake-480 construction throws away. The wall is informational, not a
 matter of local edge repair. Instead: the
 [rigidity wall](/research/why/rigidity-wall) is why local repair cannot cross
 this last gap, whatever board you start it from.
+
+## Seed the repair search with an exact solver's deep prefix
+
+*Use an exact constraint-propagation backtracker to build a very deep
+consistent prefix, pin it, and hand it to the local-repair search as a head
+start.*
+
+**Measured**, one configuration; scope it accordingly. The pinning trick
+genuinely deepens the exact search itself; between rounds it took the solver
+from depth 27 to depth 152, score 23 to 297 matched edges, a real depth
+amplifier, and that positive half remains useful when hunting exact solutions
+rather than high scores (see the
+[backtracking pages](/research/build/backtracking)). But as a score-seeker it
+backfires: repair from the pinned 297/480 partial (184 cells fixed) finished
+at 424/480 matched edges, versus a 430-to-450 median (best 451) for plain
+cold-start repair in the same-era 16-seed comparison batch. That seeded arm
+was a single seed, one schedule and one repair preset, so read it as "this
+configuration underperformed every plain cold start in the comparison batch",
+not as a refutation of all exact-prefix seeding. The mechanism is the same
+start-from-the-wrong-object lesson as the fake-480 entry above: an exact
+solver in first-solution mode optimizes consistency, not score. It returns the
+first feasible deep prefix it finds, not a good one; "deep and consistent" is
+not "close to good", and pinning makes the mistake permanent, since the repair
+search cannot undo cells it inherited and would never have built that skeleton
+itself.
+
+## Start from the center and grow outward
+
+*The center has the most rotational freedom, so start there and let the
+constraints accumulate as you grow toward the border.*
+
+**Measured**, and the intuition is backwards. Head-to-head on generated
+puzzles from 5×5 through 8×8 against row-major and border-first orders,
+center-out lost every one of the six configurations: typically 10 to 100 times
+slower, it failed outright on four of the six within budgets where
+border-first finished (one 5×5 stuck at depth 22 of 25 after 2 million nodes
+on a puzzle border-first solved in 2,000 nodes), and it was about 60 times
+slower on one it did solve; the 8×8 case was the worst of the three orders
+tested. Measured on generated small puzzles with one solver's scan orders, but
+the direction and magnitude were uniform across all six cases. The mechanism:
+freedom is the enemy of propagation. The border supplies hard, immediate
+constraints (the gray edges); the center supplies none, so a center-out search
+commits to arbitrary colors with no way to detect infeasibility early. More
+freedom means less pruning, not faster search. Instead: the
+[fill order](/research/build/backtracking/fill-order) page covers orders that
+do help.
+
+## Encode the human strategies
+
+*Frame first, compact region growth around the clues, most-constrained-cell
+first, disciplined backtracking, and deliberate "spend your mismatches wisely"
+steering: code up how the best human solvers think.*
+
+**Measured**, and none of it survives. A perfect frame is found in
+milliseconds and buys no traction (none of the five clues touch the border).
+The real killer is piece exhaustion, and it is order-invariant: along a build,
+the mean number of unused pieces that fit a cell perfectly collapses from 3.5
+in the early rows through 2.6, 2.0, 1.6 and 1.4 to 0.4 by the final row, so a
+mismatch is nearly always forced at the end, wherever the end is. Three human
+fill orders were raced at 6 seeds each (matched edges): row-major 392,
+center-out spiral 382, clue-anchored growth 359. Every order dumps its
+mismatches on whatever it fills last (the spiral on the outer ring;
+clue-anchored smeared everywhere, and scored worst), and a "preserve common
+colors for later" tie-break made every order worse. A single guided trajectory
+tops out around 392, roughly 67 edges below what a wide beam reaches on the
+same hardware. The mechanism: the deficit that produces mismatches is a
+conserved, global inventory fact; ordering chooses which cells inherit it,
+never whether it exists. And the one human faculty that would actually help,
+tracking thousands of hypotheses in parallel with global lookahead, is exactly
+what [beam search](/research/build/construct/beam-search) already is. See also
+[why there are no forced moves](/research/why/no-forced-moves).
 
 ## Precompute 2×2 (or bigger) macro-tiles
 
@@ -278,6 +750,51 @@ reported pre-solved 2×2 caches did not help him past it
 ([Records & solvers](/research/records)). Instead: the one free lever that does
 shrink the tree is the [fill order](/research/build/backtracking/fill-order).
 
+## Drive the backtracker in concentric rings
+
+*Drive the scheduled backtracker of the record-holding family inward in
+concentric rings, on the theory that a layered geometry matches where the
+breaks want to be.*
+
+**Measured.** It hits a structural depth wall that more time does not move. A
+one-hour run on the official puzzle visited 3.4 billion nodes with the deepest
+placement stuck at a wall of depth 80: the wall was at 80 after five minutes
+and gained one cell over the rest of the hour. A two-hour run finished at the
+same 382/480 matched edges as the five-minute run. One schedule paired with
+one ordering, one run per budget, so the verdict is that this pairing fails,
+not that layered orders are refuted in general. The mechanism: the scheduled
+solver's relaxation plan, where it is allowed to spend its mismatches, is
+tuned for a row-by-row scan; an externally imposed ring geometry fights the
+schedule instead of helping it, so the search jams at a fixed depth regardless
+of budget. [Fill order](/research/build/backtracking/fill-order) matters, but
+it has to be co-designed with the mismatch schedule, not bolted on.
+
+## Share a transposition table across parallel workers
+
+*Chess engines share a transposition table between threads; do the same here,
+hashing each explored frontier so no worker re-explores a subtree another
+worker already exhausted.*
+
+**Measured**, and the build was cancelled on the strength of the measurement,
+which is the cheap way to kill an idea. Eight workers ran 15 seconds each on
+the official puzzle with an identical solver, only the candidate order
+shuffled per worker: each worker placed about 214 cells at its deepest board
+(maximum depths 192 to 235 across the eight), but the pairwise agreement
+between any two workers' deepest boards averaged 1.8 cells (maximum 5), an
+agreement fraction of 0.8 percent. One measurement run of eight workers, but
+against the 50-plus percent a shared table would need to pay, the effect size
+leaves no ambiguity. The mechanism: the search is extremely path-dependent;
+the first piece tried at depth k reshapes what is available at depth k+1,
+compounding down the whole trajectory, so differently ordered workers never
+reconverge on the same partial board. A dedupe table only pays if paths
+reconverge the way chess openings funnel into shared middlegames, and this
+search has no such funnel. The flip side is good news: parallel workers
+genuinely cover different territory, which is why simple uncoordinated
+parallelism scales (eight threads reached depth 235 and 427 matched edges in
+30 seconds where one thread reached 192 and 344);
+[distributed solving](/research/build/faster/distributed-solving) builds on
+exactly that.
+
 ## Border-supply pruning (the "lollypop" check)
 
 *Before recursing, count the remaining border-colour demand against the pieces
@@ -295,6 +812,71 @@ Instead: the supply-versus-demand idea pays when it is folded into the
 propagation that fires first, the
 [all-different matching filter](/research/build/reduce/alldiff-regin).
 
+Seventeen years later we re-ran the same idea in our own engine, across all
+colors instead of just the border: track how many piece edges of each color
+remain unplaced, and cut the branch when a frontier cell demands a color whose
+supply is exhausted. Official puzzle, single thread, one 10-second run: the
+baseline visited 630 million nodes at 63 million nodes per second; with the
+check, 388 million at 39 million, roughly a 40 percent throughput loss for the
+same maximum depth (192) and the same best score (344 matched edges). Zero
+additional pruning, and the reason is now precise: a candidate index keyed by
+(top color, left color) already *is* this propagator. If placing a piece would
+exhaust a color some upcoming cell demands, that cell's candidate bucket is
+simply empty one step later and the search backtracks anyway; the explicit
+check pays per node for a cut the index makes for free.
+
+A dynamic per-color budget variant fares no better on a strict backtracker:
+for each color, track how many of its half-edges are already permanently
+mismatched, and prune any partial board that can no longer reach the target
+score for that color. Across 15 deep snapshots of real search states (depths
+195 to 212 of 256 cells) it fired zero times: a solver that never places a
+mismatching piece only ever creates partials that cannot yet violate the
+budget, and by the time the budget would bite, ordinary propagation has
+already cut the branch. (On a mismatch-tolerant search the check is untested
+here.) A related non-lesson: sorting all candidates globally by a color-rarity
+weight, the same order at every cell, is not an informed heuristic at all; it
+is equivalent to a fixed relabeling of the pieces and adds no information.
+
+## Eulerian border-closure check
+
+*A valid border ring must trace an Eulerian cycle in the graph whose vertices
+are border-edge colors and whose edges are border pieces: a clean necessary
+condition proposed on the mailing list back in 2007. Check it during search
+and prune borders that can no longer close.*
+
+**Measured**, zero pruning power on the official puzzle. Tested at five search
+depths with 200,000 trials each, a million partial borders in all: the
+Eulerian condition never fired on any configuration that ordinary propagation
+had not already killed. The condition is necessary but vacuous on the actual
+piece set, and the reason is a design fact: the official set was generated
+with its rare colors placed only on the border ring, two per border piece, and
+that structure makes Eulerian closure automatic for any border partial that
+gets anywhere near a full ring. The configurations the check would reject die
+much earlier under standard arc-consistency-style propagation. Same family
+lesson as the lollypop check above: a prune only helps if it fires before the
+checks you already run.
+
+## Forbidden-pattern pruning during search
+
+*We proved that a set of 2×2 piece combinations can never appear in any fully
+matched board. The obvious next step: check every completed 2×2 patch during
+the depth-first search and prune when it is forbidden.*
+
+**Proven** vacuous by construction, then verified empirically: across 24
+boards and 225 patches each, 5,400 completed patches, zero were forbidden,
+exactly as the argument predicts. The forbidden-pattern test asks whether four
+pieces can match internally under any rotations; but an edge-strict search
+only ever completes a 2×2 after already matching all four internal edges, so
+every patch it completes is feasible by construction and the check can never
+fire. The theorem's discriminatory power is over piece subsets, which would
+need a forward-checking integration that tests patches before their cells are
+filled, and in a row-major scan the cheap version of that forward check is
+already performed implicitly by the candidate index. The theorem itself is
+still true and useful elsewhere: see
+[forbidden patterns](/research/why/forbidden-patterns). Same closing moral as
+the lollypop entry: a prune that fires after your existing checks is worth
+exactly nothing.
+
 ## What every dead end has in common
 
 The gap from the best known board to a full solution doesn't look like a
@@ -302,5 +884,12 @@ missing optimization. The good boards are locally frozen and globally
 constrained in ways that local fixes, faster hardware, and standard
 relaxations don't touch. Reaching the end seems to need an idea of a different
 kind, not more of the same.
+
+One late convergence is worth recording. Four lenses tried independently in
+the same season, codeword decoding, defect physics, gradient descent on a soft
+board, and encoded human strategy, each rediscovered the same fact from a
+different direction: the obstacle is global piece distinctness and inventory
+exhaustion, not local edge matching. When four unrelated formalisms all hit
+the same wall, the wall is probably the thing to study.
 
 See [why a faster computer doesn't help](/research/why/prune-vs-speed).

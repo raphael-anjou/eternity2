@@ -7,11 +7,11 @@ description: >-
   fixed-vs-dynamic wars and the strategy races to the magic 10×16 square
   and Verhaard's comb search, all answer the same question: which path
   through the board is cheapest?
-metaDescription: "How the order a backtracker visits Eternity II's 256 cells moves search-tree size by orders of magnitude — the highest-leverage free choice in the solver. Fixed vs dynamic, why scanline wins on the balanced 5/17 design, the magic 10×16 square, border-first as a trap, and Verhaard's comb search."
+metaDescription: "How the order a backtracker visits Eternity II's 256 cells moves search-tree size by orders of magnitude: the highest-leverage free choice in the solver. Fixed vs dynamic, why scanline wins on the balanced 5/17 design, the magic 10×16 square, border-first as a trap, and Verhaard's comb search."
 kind: concept
 order: 110
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-07-22
 topics: [backtracking, search-space]
 sources:
   - label: Owen's "Best Search Order", scanline near-optimal, and the shape-counting argument (September 2007)
@@ -36,12 +36,26 @@ sources:
     url: https://groups.io/g/eternity2/message/6423
   - label: "Markus Zajc's 8×8 head-to-head, minimum-remaining-value beats scanline beats max-reduction (September 2008)"
     url: https://groups.io/g/eternity2/message/5918
+  - label: "Ansotegui, Bejar, Fernandez and Mateu, the SAT/CSP benchmark line whose static checkerboard-and-spiral orders this page's notebook measurements replay (CP 2008; extended journal version, Constraints 2013)"
+    url: https://link.springer.com/article/10.1007/s10601-012-9128-9
+  - label: "Wauters, Vancroonenburg and Vanden Berghe's hyper-heuristic study, whose backtracking baseline races scan-row against spiral, inverse-spiral and mirrored orders (2012)"
+    url: https://link.springer.com/article/10.1007/s10852-012-9178-4
 related:
   - /research/why/complex-theory
+  - /research/why/mismatch-geometry
   - /research/lab/experiments/louis-verhaard/eii
   - /research/lab/experiments/joshua-blackwood/solver
+  - /research/build/reduce/edge-slipping
+  - /research/build/backtracking/restarts
+  - /research/records
 repro:
   kind: prose
+  scope: >-
+    The community numbers on this page reproduce from the cited mailing-list
+    messages. The notebook measurements (the k-regime law, the failed orders,
+    the comb sweep and the candidate-order null) are recorded in the project
+    lab notebook and are not yet packaged as one-command reproductions; each
+    is therefore reported with its full sweep design and seed counts inline.
 ---
 
 import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
@@ -96,6 +110,35 @@ that critical window "form a simple row scan order"
 machinery, join probabilities and all, became
 [complex theory](/research/why/complex-theory); this page is what its
 answers look like in practice.
+
+The project lab notebook puts numbers on the diet itself. Write $k$ for the
+number of already-placed neighbour sides a cell has when the search reaches
+it. A mean-field law says the cell should admit about $4Rp^k$ candidate
+placements, where $R$ is the count of pieces still in hand and
+$p \approx 0.048$ is E2's average probability that one side matches one
+colour. At the start of interior fill that predicts roughly 38 candidates
+for a $k=1$ cell, 1.8 for $k=2$, 0.09 for $k=3$ and 0.004 for $k=4$. Exact
+enumeration against the real 256-piece set (40 seeded trials per
+configuration) lands within 20 to 40% of those predictions and confirms the
+three regimes behind them: $k=1$ cells are essentially always fillable;
+$k=2$ cells cross 50% dead somewhere around 50 to 62% board fill; and cells
+with three or more placed neighbours are dead in 87 to 100% of trials at
+every fill level, including the very first interior placement. (The law is
+a mean-field idealization validated for Eternity II's colour statistics,
+one instance; it is not a claim about edge matching in general.)
+
+Read as a design rule: a good order is one whose frontier presents every
+new cell with exactly two placed neighbours, enough to prune, few enough to
+survive. Row scan does that by construction, a constant $k=2$ after the
+first row; any order whose frontier develops concave, three-sided pockets
+pays near-certain dead cells no matter how full the board is. The same
+regimes also measure what backtracking itself buys. With no backtracking at
+all, a greedy random fill stalls within the first 5 to 12% of the board
+whichever sweep it uses: over 8 seeds per order, the median stall came at
+step 15 for row-major, 13 for a diagonal sweep and 15 for a spiral (the
+diagonal ranged from 4 to 32), and none of the 24 runs got further. Every sweep manufactures a
+fatal concave corner within a handful of placements; that number is an
+illustration of the geometry, not a solver benchmark.
 
 The lab below makes the schedule visible. It animates the visit sequence of
 four preset orders over a 16×16 grid and plots, live, the constraint count
@@ -211,10 +254,64 @@ search space gone at near-zero cost
 [5983](https://groups.io/g/eternity2/message/5983),
 [6062](https://groups.io/g/eternity2/message/6062)).
 
+### Deviations that didn't (notebook measurements)
+
+The community mostly published the deviations that had a case. The project
+lab notebook holds the other kind, attractive orders that lost, and the
+$k$-regimes above can name the mechanism for each.
+
+**Spirals pay a closure tax.** On a bordered 14×14 interior testbed
+(8 seeds per arm), an outside-in spiral jammed at depth 26 on all 8 seeds,
+at the closing corner of its first ring. A free-rim spiral stalled at
+depths 133 to 141 with 0 completions, against 344 to 347 for a row scan;
+with every assistance in the engine switched on it still walled at 131 to
+140 with 0 completions in 300 s, against 446 to 448 for the row scan. The
+$k$-law says why: a free-rim spiral's whole first ring runs at one placed
+neighbour or fewer per cell, nearly unprunable branching, while a bordered
+spiral pays a *closure tax*: every ring carries 4 or 5 cells with three
+placed neighbours at its corners and loop-back, and three-sided cells are
+close to unfillable. Row scan is the Goldilocks order, a constant two
+neighbours and a single active damage zone.
+
+**Starting from the clues loses.** "Begin where the information is" sounds
+right and points backwards. In a 60 s head-to-head on the real puzzle (one
+configuration, one run, so read it as our test rather than a refutation), a
+clue-centric order spreading outward from the five clue cells reached depth
+42 (62 matched edges) while a dynamic most-constrained-cell order, which in
+practice eats the border first yet stays free to abandon it (unlike the
+committed frame of the trap above), reached depth 164 (282 matched edges).
+The cells around the centre clues carry the *widest* piece domains on the
+board, so clue-centric prioritizes exactly the least-constrained cells.
+
+**An X through the clues loses too.** Pre-committing two 3-cell-wide
+diagonals through the five clues, then filling outward from them, finished
+51 matched edges below its baseline (396 against 447 after identical
+budgets, single seed).
+
+Three experiments, one pattern, stated as a pattern and not a theorem:
+every static order we tried that routes early through wide-domain interior
+cells lost. A static order does not dodge the hard region; it chooses which
+region becomes the hard region. It also chooses where the failures land:
+[where the mismatches pile up](/research/why/mismatch-geometry) on a
+near-perfect board tracks the scan order, bottom-centre for top-down scans,
+top for bottom-up ones (visible on the community's own 469-class boards),
+corners for centre-out spirals. A fill order decides not only how much you
+fail but where.
+
+The academic literature lands in the same place. Ansotegui, Bejar,
+Fernandez and Mateu, who turned edge-matching puzzles into SAT/CSP
+benchmarks, worked with static orders of the checkerboard-plus-centre-spiral
+family; replayed in our engine without the full all-different filtering
+their models assume, that order exploded node counts by roughly 600×. And
+the backtracking baseline of Wauters, Vancroonenburg and Vanden Berghe's
+2012 hyper-heuristic study raced scan-row against spiral, inverse-spiral
+and mirrored orders and found scan-row significantly best: an independent
+rediscovery of the mailing list's thesis.
+
 ### Comb search: the high-score geometry
 
 All of the above optimizes a *full* search, whose node count peaks near
-depth 161. In October 2008, while privately sitting on the boards that
+depth 160. In October 2008, while privately sitting on the boards that
 would win the $10,000 scrutiny prize, Verhaard answered a different
 question from Owen: what is the best order when you are chasing a partial
 *score*, and therefore living much deeper in the board
@@ -241,6 +338,84 @@ chain over (depth, slips used), built from measured per-depth fit
 probabilities ([msg 6423](https://groups.io/g/eternity2/message/6423)).
 Order design by calculation, not folklore. The full engine is on
 [the Verhaard eii page](/research/lab/experiments/louis-verhaard/eii).
+
+### The comb, reproduced
+
+The comb sat in the record history for eighteen years before we tried it at
+home; rereading the messages above is what surfaced it. Grafting the comb
+geometry onto a from-scratch beam-search producer (top rows row-major,
+bottom rows filled as short vertical teeth) raised its best raw partial
+from 455 to 457 matched edges of 480 on strict five-clue boards, from the
+visit order alone; nothing else changed. Behind that sentence sits a sweep,
+not a lucky run: five orders (row-major plus comb splits after rows 8, 10,
+12 and 14) crossed with three beam widths (2048, 8192 and 16384), 24 seeds
+each at matched compute, on 8 cores. The new ceiling only appears at the
+widest beam, where split 14 reached 457 on one seed and split 12 reached
+456 on two, each board checked three independent ways (an independent
+re-scorer, an external verifier and the producer's own count; strict
+five-clue placement, all 256 pieces distinct). At smaller widths the comb
+ties row-major's best.
+
+What the comb moves reliably is the floor and the middle of the
+distribution. At beam 2048, splits 10 and 12 lift the 24-seed minimum from
+446 to 449 and the median from 449 to 451; at the widest beam, split 12's
+median is one edge up. Split 12 also reaches 455, row-major's former
+ceiling, at half the beam width, and at beam 8192 a 24-seed sweep yields 15
+boards at 453 or better against row-major's 9: +67% high-quality starting
+boards per unit of compute. Verhaard's teeth-length rule holds from the
+high side too. Long teeth (split 8, 8-cell teeth) regress below row-major
+at every beam width; short teeth win. Split 12, Max's exact "twelve rows,
+then columns", is best for the whole distribution, while split 14 with its
+2-cell teeth finds the single best board on a lower median: a thinner,
+higher-variance finish geometry. The mechanism is the intuition stated
+above, now measured: each short tooth is a nearly independent column whose
+failures stay confined, so deep high-scoring frontiers are reached again
+and again.
+
+The order also decides where the recoverable slack ends up. An exact
+re-solve of the last three rows lifts a row-major 455 board to 457 and does
+nothing for a comb 457 board: the comb's last-filled, least-constrained
+region is its vertical teeth, not its bottom rows, so a row-band repair
+aims at the wrong place. A teeth-aligned, column-band exact re-solve takes
+comb boards to 459 and no further, because the teeth leave the beam already
+exactly optimal (an exact solver proved a 32-cell teeth region optimal in
+about 21 s); the comb spends during construction the slack the repair would
+otherwise recover. Both routes converge at 459: the comb front-loads the
+score, row-major leaves it in a recoverable tail, and order plus endgame
+repair harvest the same slack. For scale, 455, 457 and 459 are matched-edge
+counts on strict five-clue boards from one notebook producer on 8 cores;
+community boards sit higher, and [the records page](/research/records) has
+the standings.
+
+## The other order: which piece to try first
+
+Everything above orders *cells*. The sibling knob is the order of the
+*pieces* tried within a cell: Zajc's head-to-head was about which cell to
+open next, this one is about which candidate goes into it first. The
+notebook answer is a clean null. Inside a fixed row-major fill, reordering
+every cell's candidate list by global colour scarcity (rarest colours
+first) changed nothing measurable over 8 seeds per arm: at equal 60 s
+wall-clock the median was 389 matched edges (hint-pinned, five-clue puzzle) in
+every arm, baseline order, scarcity-first, and a deliberate anti-order
+control (most-abundant colours first) that was designed to lose. The
+control did not lose; its best run (419) beat the baseline's best (415).
+Node throughput was flat across arms, 8.2 to 9.6 million nodes per second,
+so the reordering is free, and worthless, in both directions. (Before
+comparing, the baseline arm was verified node-for-node identical to the
+unmodified engine.)
+
+The mechanism is a starved signal. By the time a row-major scan reaches a
+cell, the candidate list is already filtered down to the handful of pieces
+matching two fixed colours, and a global supply-and-demand feasibility
+prune already exploits colour scarcity across the whole remaining pool; the
+scarcity ordering re-derives, more coarsely, information the search already
+uses, and which of three legal pieces goes first barely matters when the
+bucket will be exhausted anyway. Scope it as measured: candidate order was
+inert in our engine at one operating point (one prune stack, one 60 s
+budget, global scarcity signals only), not "value ordering never matters
+anywhere". It also rhymes with the one within-scanline win above: Max's
+~10% came from *removing* border candidates, not reordering them. The wins
+live in pruning and in cell order.
 
 ## Step by step
 
