@@ -1,0 +1,218 @@
+---
+title: "Flux invariants: a rotation law the official set obeys exactly"
+description: >-
+  Weight every edge color and read each piece as a signed vector, east minus
+  west on one axis, south minus north on the other. Summed over any region the
+  interior seams cancel and only the boundary survives, so the whole board
+  totals zero. A quarter turn rotates the vector by a right angle, making the law
+  algebra in the Gaussian integers.
+metaDescription: "Flux invariants for Eternity II: weight each edge color, read each piece as a signed vector, and every interior seam cancels so the whole board sums to zero. A quarter turn multiplies the vector by i, making the law full complex rank 22, invisible to color counting."
+kind: finding
+contribution: theory
+rigor: proven
+tier: 2
+order: 70
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "Flux invariants: reproduction topic with the article, the committed checker and the results JSON (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
+  - label: "Conway and Lagarias, Tiling with polyominoes and combinatorial group theory: the boundary-word invariants this law adapts to edge matching (JCTA 1990)"
+    url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Brendan Owen digitises the piece set: the color histogram this law counts against (groups.io msg 1054, July 2007)"
+    url: https://groups.io/g/eternity2/message/1054
+  - label: "Brendan Owen, Design the hardest puzzle: the deliberate frame/interior palette split (groups.io msg 1947, August 2007)"
+    url: https://groups.io/g/eternity2/message/1947
+related:
+  - /research/why/theorem-sweep
+  - /research/why/ring-purity
+  - /research/why/permutation-code-wall
+  - /research/why/complex-theory
+repro:
+  kind: exact
+  topic: flux-invariants
+  scope: >-
+    The instance facts (piece histogram, color multiplicities, clue positions)
+    and the three flux-law ranks are recomputed exactly on the official
+    256-piece set by the committed checker, byte-stable on rerun. The endgame
+    certificate runs on a pool of framed solved 8x8 boards with planted
+    rotations and reproduces the source's mechanism, its soundness (never
+    rejecting a valid partial), and its monotone catch curve toward full fill,
+    not the source's exact 13/50/100 percentages.
+---
+
+Scores on this page use the edge-matching convention: a board's score is the
+number of the 480 internal joints whose two half-edges show the same color. A
+full solution is 480. The invariants below are not about scoring a board; they
+are about which piece rotations a valid 480-board is allowed to use, and they
+hold for every valid solution regardless of score.
+
+## The one-line idea
+
+Give each of the 22 edge colors a numeric weight, with the gray border color
+weighted zero. Read a placed piece as a two-dimensional vector: its east weight
+minus its west weight on the horizontal axis, its south weight minus its north
+weight on the vertical axis. Now sum that vector over any block of placed pieces.
+Every internal seam of the block is shared by two pieces, and it enters the sum
+once with a plus sign from one piece and once with a minus sign from its
+neighbour, the same color on both faces, so the two cancel. Nothing survives the
+sum except the block's outer boundary.
+
+Over the whole board that outer boundary is the grey rim, weighted zero, so the
+total is exactly the zero vector. That is a conservation law, the discrete cousin
+of a divergence theorem: the flux out of every region equals the flux across its
+boundary, and for the whole board the boundary carries no flux at all.
+
+## Why a quarter turn brings in the complex numbers
+
+The vector is not rotation-blind. Turn a piece ninety degrees clockwise and its
+north color moves to east, east to south, south to west, west to north. Work
+through what that does to the vector and the horizontal and vertical axes swap
+with a sign: the new vector is the old one turned by a right angle. In the plane,
+a right-angle turn is multiplication by the imaginary unit. So if you write the
+vector as a complex number, one quarter turn of the piece multiplies it by $i$,
+and the four rotations a square piece can take correspond to the four powers
+$1, i, -1, -i$.
+
+That single fact is what lifts a bookkeeping identity into algebra. The
+conservation law, written per color, says that a certain sum of Gaussian
+integers, one term per piece, each multiplied by a power of $i$ set by that
+piece's chosen rotation, must come out to zero. It is a constraint not on where
+pieces go but on which rotations the whole set may adopt.
+
+## The complete family, and what is new
+
+The rotation group of a square has four characters, and the flux law is only one
+of them. Decomposing the piece along all four gives the complete lattice of
+linear, piece-intrinsic edge-matching invariants: nothing linear escapes it. The
+four members are a plain color census (rotation-blind, the piece's total count of
+each color), the Gaussian flux law just described, its complex conjugate (the
+same information), and a fourth, integer-valued member that couples each piece's
+choice of which opposite-edge pair lies horizontal to the checkerboard color of
+its cell. This last one is the edge-matching echo of the two-coloring obstruction
+that Conway and Lagarias used for polyomino tiling, the boundary-word method this
+whole family is adapted from.
+
+The census is old news: it is just color counting. The value of the flux law is
+that it is not. On the official set its rotation-blind shadow, the version you get
+by forgetting the $i$ and merging plus and minus, is identically zero for all 22
+colors, because every color count on the board is even. In other words, color
+counting already knows everything the shadow could tell it, and it knows nothing
+more. Every constraint the flux law imposes beyond that shadow is genuinely new
+information a census cannot see.
+
+## The linear algebra on the real instance
+
+Line the 22 colors up as rows and the 256 pieces as columns, and the per-piece
+flux coefficients form a matrix. Its rank measures how much the law actually
+constrains the puzzle. Recomputed on the official 256-piece set, the numbers come
+out as follows.
+
+<div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">22</div>
+    <div className="mt-1 text-xs text-muted-foreground">complex rank, full (22 of 22 colors)</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">40</div>
+    <div className="mt-1 text-xs text-muted-foreground">independent real constraints</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">21</div>
+    <div className="mt-1 text-xs text-muted-foreground">independent parity constraints (mod 2)</div>
+  </div>
+</div>
+
+Full complex rank 22 means the law binds all 22 colors at once, with no color
+falling out as a free variable. Splitting the complex equations into their real
+and imaginary parts gives 40 independent real constraints on the rotation
+assignment. And reducing the whole system modulo 2, where a piece's rotation
+collapses to a single parity bit (a quarter turn and a three-quarter turn become
+the same mod 2), leaves 21 independent parity constraints, the augmented system
+staying rank 21 as well, so it is consistent rather than contradictory. That mod-2
+system alone removes a factor of about two million from the space of rotation
+parities.
+
+The instance facts the law counts against reproduce exactly too, digit for digit
+against Brendan Owen's digitised piece set: 196 interior pieces, 56 edge pieces,
+4 corners; the grey border color on 64 half-edges; five frame colors that touch
+only border pieces, 24 half-edges each; the remaining interior colors splitting
+five at 48 and twelve at 50; and every color count even, which is exactly what a
+perfect edge matching requires. The five official clues are all interior pieces.
+None of this depends on trusting a color numbering: the checker derives the frame
+set from the data (the colors that never appear on an interior piece) so a
+renumbering between the starter kit and the source list cannot fool it.
+
+## From a law to an endgame check
+
+A conservation law that must hold for the whole board also constrains any partial
+board, because the pieces still to be placed must carry exactly the flux the
+placed pieces are missing. During a search that fills the grid piece by piece,
+the flux the remaining pieces owe is fixed the moment the placed set is fixed. If
+no assignment of rotations to the remaining pieces can supply that owed flux, the
+partial board is dead, and you can stop without searching its subtree.
+
+Reduced mod 2 this becomes a small linear system over the remaining pieces'
+rotation parities, decided by Gaussian elimination, and it is a sound endgame
+certificate. Sound means it never rejects a board that is actually completable:
+the law is a necessary condition, so a real partial always passes. What it can do
+is catch a mistake. Tested on a pool of framed solved 8-by-8 boards with planted
+rotations, injecting a single illegal rotation into the placed prefix, the check
+never once rejected a valid partial across 3600 trials, and its probability of
+catching the injected error rose with the fill fraction.
+
+| Fill fraction | Valid partials rejected | Single-rotation error caught |
+|---|---|---|
+| 0.50 | 0 of 900 | 0.6% |
+| 0.75 | 0 of 900 | 14.1% |
+| 0.90 | 0 of 900 | 88.3% |
+| 0.95 | 0 of 900 | 94.6% |
+
+The reproduced content here is the mechanism and the shape of that curve, not the
+exact percentages. The source reports a steeper curve (13%, 50%, 100% at fills
+0.50, 0.75, 0.90) on a different planted family; the run above uses an 8-by-8
+board at 13 colors with a uniformly chosen injected piece and a pool of 30 boards,
+30 orderings each (900 per fill), so the absolute detection rates sit lower. What
+holds exactly, and is the point, is that the certificate is sound and that its
+detection probability climbs monotonically toward full as the board fills. That
+is precisely the useful behavior for a search: the check sharpens exactly where
+the tree's branching tail is most expensive, near the end, and every catch is
+orthogonal to color and count pruning, so it adds on top of them rather than
+duplicating them.
+
+## What it is and is not
+
+The flux law is an obstruction. It can certify a partial board dead; it can never
+certify one completable. That is the correct and intended role for an invariant
+inside a branch-and-prune search, and it is shared by every result in this
+family. Two more honesty flags. The law constrains which rotations the piece set
+may use, not which cell each piece sits in; only the checkerboard member couples
+to position, and only through the parity of the cell, so neither member pins a
+piece to a place. And the natural nonlinear extension, a nonabelian boundary-word
+product in the style of the original Conway and Lagarias construction, does not
+survive in two dimensions: an interior cell has four shared edges but only two
+neighbours adjacent to it in any linear reading order, so at least two of its
+edges can never be made to cancel, and the construction collapses back to the
+linear flux law. Any invariant strictly stronger than these must be nonlinear and
+lies outside the tiling-group family.
+
+## Where it sits
+
+This is the detailed account of one law in the
+[theorem sweep](/research/why/theorem-sweep), the arc that asked what could be
+proved about the instance rather than what score could be reached. It sits next
+to [ring purity](/research/why/ring-purity), the other exact law the border
+obeys, and it is the algebraic complement to the
+[permutation-code lens](/research/why/permutation-code-wall), which reads the
+whole board as a codeword: the flux law is a set of parity checks the rotations
+must satisfy, the same currency that lens is written in. The
+[complex theory page](/research/why/complex-theory) counts how wide the search
+is; this page adds a cheap, sound way to prune its endgame.
+
+Every number above is recomputed by the committed checker in the reproduction
+topic linked under sources: a single deterministic Rust program that loads the
+official instance, derives the frame colors from the data, computes the three
+ranks, verifies the census-orthogonality shadow, and runs the seeded endgame
+sweep, emitting one JSON file (committed as `results/flux_invariants.json`) that
+holds every figure quoted here. The instance facts and the ranks reproduce byte
+for byte; the certificate reports its own catch curve, sound at every fill.

@@ -1,0 +1,259 @@
+---
+title: La traîne comme problème exact à part entière
+description: >-
+  Un plateau partiel solide, c'est une région haute que le producteur a
+  travaillée plus une bande basse de rangées inachevées. On gèle le haut, on
+  confie la traîne à un solveur de contraintes exact, et on lit quelle moitié
+  fixe le plafond : la structure du producteur ou la fin de partie bâclée.
+metaDescription: "Les dernières rangées d'un plateau Eternity II comme optimisation CP-SAT exacte découplée du producteur. Le budget de ruptures entrantes par case, ce que le solveur exact gagne sur un finisseur glouton (traîne limitante, serrée ou rupture porteuse), et pourquoi il reproduit le mécanisme."
+kind: concept
+order: 50
+group: Exact methods
+updated: 2026-07-23
+topics: [exact-methods, construction]
+contribution: method
+rigor: measured
+outcome: plateaued
+sources:
+  - label: 'Solveur CP-SAT de Google OR-Tools (le moteur exact utilisé pour le modèle de traîne)'
+    url: https://developers.google.com/optimization/cp/cp_solver
+  - label: "Problème d'affectation (Wikipédia), la relaxation linéaire que la traîne n'est pas"
+    url: https://en.wikipedia.org/wiki/Assignment_problem
+related:
+  - /research/lab/experiments/raphael-anjou/frostline
+  - /research/build/exact/meet-in-the-middle
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/construct/beam-search
+  - /research/records
+repro:
+  kind: seeded
+  topic: exact-tail-endgame
+  cmd: just research-exact-tail-endgame
+  scope: >-
+    Régénère le balayage complet (24 graines de producteur sur une traîne d'une
+    rangée, quatre sur une traîne de deux rangées, plafond de ruptures entrantes
+    1 et 2), chaque cellule étant une résolution CP-SAT, chaque plateau étant
+    rescoré indépendamment depuis son blob de visualiseur. Palier statistique à
+    graines : les résolutions à une rangée reproduisent leurs optima prouvés à
+    la réexécution ; les deltas faisables à deux rangées reproduisent le signe
+    et la forme, pas le chiffre exact, et le producteur glouton simple est bien
+    plus faible que les producteurs de piste-record de l'étude source, donc
+    aucun record communautaire n'est déplacé ici.
+---
+
+Un plateau partiel solide, c'est deux choses collées ensemble : une région haute
+que le producteur a longuement travaillée, et une bande basse de quelques rangées
+inachevées. Quand un tel plateau reste sous un score visé, la question naturelle
+est : quelle moitié est en cause ? Le plafond est-il fixé par la structure haute
+du producteur, ou par la fin de partie des dernières rangées que le producteur a
+expédiée à bon marché ? Cette page traite cette fin de partie comme sa propre
+optimisation exacte, découplée du producteur, et se sert de la réponse comme
+d'un instrument : geler le haut, résoudre la traîne jusqu'à (ou vers) l'optimum,
+et lire si la résolution exacte rapporte quoi que ce soit que le producteur a
+laissé sur la table.
+
+Chaque score ci-dessous suit la même convention : arêtes intérieures appariées
+hors bordure, de sorte qu'un plateau 16×16 complet plafonne à 480, et les cinq
+pièces indices officielles sont fixées à leur place et jamais déplacées. Cette
+dernière clause garde la comparaison équitable, elle est donc intégrée au modèle
+plutôt que vérifiée après coup.
+
+## La traîne comme petit problème exact
+
+Fixons un plateau complet produit par un remplisseur glouton en ordre ligne par
+ligne à graine (la même famille de producteurs que l'[étude de finissabilité](/research/lab/experiments/raphael-anjou/frostline),
+adaptée pour honorer les cinq indices afin que chaque plateau émis soit valide
+sur les indices par construction). On gèle les rangées $0$ à $15-R$ ; les $R$
+rangées du bas forment la bande de traîne, moins toute case portant un indice,
+qui reste gelée. Les pièces propres de la traîne, celles que le producteur y a
+placées, forment le vivier à permuter.
+
+La traîne est alors confiée à un modèle CP-SAT :
+
+- une (pièce, rotation) légale au bord par case libre, tirée du vivier propre de
+  la traîne, avec un AllDifferent pour qu'aucune pièce ne serve deux fois ;
+- des variables de couleur par côté canalisées depuis le choix (pièce, rotation)
+  par des tables de côtés Element ;
+- des contraintes dures pour la bordure (gris exactement sur les arêtes face au
+  bord) et pour chaque adjacence que la traîne touche ;
+- un booléen d'appariement sur chaque arête touchée par la traîne, l'objectif
+  maximisant leur somme.
+
+Ce n'est pas une affectation linéaire. Le coût d'une case se scinde entre les
+arêtes faisant face au haut gelé (qui ne dépendent que du choix de cette case) et
+les arêtes faisant face à une autre case libre (un produit de deux décisions).
+Les termes libre-libre sont réellement bilinéaires, si bien qu'un appariement
+biparti à la Hongrois ne peut représenter la traîne exactement ; il ne tarife que
+la frontière gelée. Ce qui rend la traîne traitable malgré tout, c'est la taille,
+pas la linéarité : à une ou deux rangées le solveur de contraintes la boucle
+directement, là où un simple appariement serait aveugle à la moitié de
+l'objectif. Le même modelage apparaît dans les notes du projet sur les
+[encodages SAT et CSP](/research/build/exact/sat-csp-encodings) ; ici il vise un
+sous-plateau plutôt que le puzzle entier.
+
+## Le budget de ruptures entrantes
+
+Le producteur remplit rangée par rangée et impute à chaque case un budget sur ses
+seules arêtes *entrantes* : en ordre ligne par ligne, les arêtes entrantes d'une
+case sont son haut et sa gauche. En notant $\mathrm{conf}(c)$ le nombre de ces
+deux-là qui ne s'apparient pas, le producteur travaille dans le régime
+$\mathrm{conf}(c)\le 1$ : au plus une rupture entrante par case. Le modèle exact
+reflète cela exactement par un plafond par case, et balayer le plafond est le
+second axe de l'expérience :
+
+- **plafond $=1$** reproduit le monde propre du producteur, $\le 1$ rupture par
+  case. Toute case que le modèle exact remplit est une case que le producteur
+  aurait pu, en principe, bâtir.
+- **plafond $=2$** admet une *double* rupture entrante à une case : deux
+  désaccords arrivant d'un coup. C'est un placement que le producteur $\le 1$
+  rupture ne peut jamais faire, donc tout point qu'il rapporte est un point
+  structurellement hors de portée du producteur.
+
+L'écart entre les deux plafonds est le prix, en arêtes appariées, du seul coup que
+le producteur ne peut pas jouer.
+
+## Ce que la traîne exacte rapporte
+
+Pour chaque graine de producteur, le modèle est lancé à une rangée (traîne de 16
+cases) et deux rangées (traîne de 32 cases), aux deux plafonds. La quantité
+vedette est le delta, $\text{score exact} - \text{score producteur}$, sur le
+haut gelé identique. Par construction, la résolution exacte domine la traîne
+gloutonne, donc le delta n'est jamais négatif ; son intérêt est de savoir s'il
+est *strictement positif* (le producteur a laissé des points dans la traîne) ou
+*nul* (le producteur était déjà optimal sur la traîne), et comment cette réponse
+varie selon les graines.
+
+À une rangée, le modèle atteint un optimum prouvé chaque fois qu'il est faisable,
+en quelques centièmes de seconde. Chaque plateau émis est rescoré indépendamment
+du solveur, et la vérification va de bout en bout : le blob d'arêtes de l'URL de
+visualiseur est décodé en une grille de couleurs et ses appariements intérieurs
+recomptés à zéro, et ce recompte concorde avec le score annoncé par le solveur
+(pour le plateau à une rangée de la première graine, $385$ se redécode en $385$).
+Le jeu de pièces est aussi revérifié distinct et les cinq indices revérifiés en
+place. Quelques graines montrent toute l'histoire en miniature :
+
+<Figure title="Traîne d'une rangée (16 cases), optimum prouvé, quatre graines de producteur">
+
+| graine de producteur | score producteur /480 | delta plafond $=1$ | delta plafond $=2$ | lecture |
+| --- | --- | --- | --- | --- |
+| graine 1 | 379 | $+6$ | $+6$ | traîne limitante |
+| graine 2 | 376 | $0$ | $+1$ | traîne serrée ; le point de plus exige une rupture double |
+| graine 3 | 365 | infaisable | $+6$ | aucune complétion $\le 1$ rupture n'existe |
+| graine 4 | 369 | $+2$ | $+2$ | traîne limitante, rupture double inutile |
+
+Les scores sont des arêtes intérieures appariées hors bordure sur 480, cinq
+indices fixés. Chaque ligne prouvée optimale en environ $0{,}03$ à $0{,}11$ s.
+
+</Figure>
+
+Trois régimes coexistent sur un même banc d'essai, et ce sont exactement les
+régimes que le carnet source décrivait séparément :
+
+- **Traîne limitante** (graine 1). La traîne gloutonne laisse $6$ arêtes
+  appariées sur la table que la résolution exacte récupère, sans avoir besoin
+  d'une rupture double. Ici la contrainte limitante est bien la fin de partie, et
+  le producteur l'a sous-résolue.
+- **Traîne serrée** (graine 2, plafond $=1$). La résolution exacte égalise le
+  producteur : delta $0$. La traîne propre du producteur était déjà optimale sous
+  sa règle $\le 1$ rupture, il n'y a donc rien à récupérer, et le plafond réside
+  dans la structure haute, pas dans la traîne. Porter le plafond à $2$ trouve
+  alors exactement un point de plus, et c'est précisément une rupture double
+  entrante, le seul levier que le producteur ne peut pas actionner.
+- **Rupture double porteuse** (graine 3, plafond $=1$). Le plus fort de tous : le
+  producteur $\le 1$ rupture ne peut compléter cette traîne *à aucun score*,
+  donc plafond $=1$ est infaisable. Seule une rupture double entrante admet un
+  remplissage tout court, et plafond $=2$ atteint alors un optimum prouvé. La
+  rupture double n'est pas un bonus ici ; c'est la différence entre une
+  complétion et aucune.
+
+Sur tout le balayage à 24 graines à une rangée, la répartition est le résultat :
+au plafond $=1$, $18$ graines sont à traîne limitante (delta strictement
+positif), $1$ à traîne serrée (delta nul), et $5$ carrément infaisables (aucune
+complétion $\le 1$ rupture de la traîne n'existe). Les points récupérés vont de
+$0$ à $8$ arêtes appariées, médiane $4$, moyenne d'environ $3{,}9$. Porter le
+plafond à $2$ rend les $24$ graines faisables et toutes à traîne limitante, avec
+des deltas de $1$ à $9$, médiane $4{,}5$, moyenne d'environ $4{,}8$ : le coup de
+rupture double débloque à la fois les cinq graines coincées et ajoute un point ou
+deux presque partout ailleurs. Que la traîne soit la contrainte limitante est une
+propriété du plateau individuel, pas un absolu.
+
+À deux rangées la traîne passe à 32 cases et le modèle ne prouve plus l'optimalité
+dans le budget de temps : il rend des incumbents faisables à environ $45$ s
+chacun. Les deltas y sont plus grands mais ce sont des *bornes inférieures*,
+puisqu'une meilleure complétion peut exister que le solveur n'a pas certifiée.
+
+<Figure title="Traîne de deux rangées (32 cases), faisable non prouvée optimale, quatre graines">
+
+| graine de producteur | delta plafond $=1$ | delta plafond $=2$ |
+| --- | --- | --- |
+| graine 1 | $+14$ | $+10$ |
+| graine 2 | $+6$ | $+7$ |
+| graine 3 | $+17$ | $+15$ |
+| graine 4 | $+11$ | $+10$ |
+
+Les deltas sont des bornes inférieures : chaque résolution a rendu un incumbent
+faisable, pas une preuve, en environ $45$ s sur huit cœurs. Sur ces quatre
+graines, les deltas plafond $=1$ vont de $6$ à $17$ (médiane $12{,}5$) et plafond $=2$
+de $7$ à $15$ (médiane $10$). Que plafond $=2$ puisse afficher *en dessous* de
+plafond $=1$ sur la même graine (graines 1, 3, 4) est un symptôme de la preuve
+d'optimalité manquante, pas une vraie régression : la région faisable plus large
+a simplement laissé le solveur sur un incumbent non prouvé différent dans le
+budget.
+
+</Figure>
+
+## Ce que cela règle, et ce que cela ne règle pas
+
+Lue comme un instrument, la traîne exacte répond nettement à la question « quelle
+moitié ? » sur ce banc d'essai : parfois la traîne (delta strictement positif, la
+fin de partie était sous-résolue), parfois le haut (delta nul, la traîne était
+déjà serrée). La réponse dépend du producteur, ce qui est justement le fond de
+l'affaire. Un même score de plateau peut cacher l'un ou l'autre régime, et le
+diagnostic bon marché pour les distinguer est de savoir si le solveur exact ferme
+l'écart d'optimalité. Quand il le fait et que le delta est nul, la traîne est
+serrée et aucun finisseur n'aidera ; quand le delta est positif, le finisseur
+heuristique du producteur a laissé des arêtes appariées non réclamées. Le plafond
+de rupture double affine cela : au moins une graine ici n'a *aucune* complétion
+de sa traîne bâtissable par le producteur, donc la capacité du solveur exact à
+placer une rupture double entrante est porteuse plutôt que cosmétique.
+
+Ce que ce petit run ne règle pas, c'est le record. Le producteur ici est un
+remplisseur glouton simple dont les plateaux se situent entre le milieu des
+360 et la fin des 370, bien en dessous des producteurs de piste-record qu'utilisait
+le résultat source, donc traîner exactement ici ne peut *pas déplacer un record* :
+le titre au niveau record du carnet, une traîne exacte battant un finisseur
+heuristique d'une arête appariée sur un plateau bien plus fort, est lié à ce
+producteur plus fort et n'est pas reproduit ici. Ce qui est reproduit, c'est le
+mécanisme et la forme de l'effet : la bande basse est un véritable petit problème
+exact, la résolution exacte ne perd jamais contre la traîne propre du producteur
+et la bat souvent, le plafond de rupture double rapporte des points réels et
+parfois porteurs, et le fait que la traîne soit la contrainte limitante dépend du
+plateau. Les chiffres à deux rangées sont des bornes inférieures, pas des optima
+prouvés, et doivent se lire comme tels.
+
+Pour situer n'importe lequel de ces scores d'arêtes appariées face aux meilleurs
+résultats de la communauté, obtenus avec des budgets de calcul bien plus grands,
+voir la [page des records](/research/records). L'appariement que vise cette page,
+un producteur fort fini par un solveur des dernières rangées *exact* plutôt
+qu'heuristique, est aussi le pas suivant naturel pour les
+[producteurs par faisceau](/research/build/construct/beam-search) du projet : le
+finisseur, pas le producteur, est là où la méthode exacte gagne sa place.
+
+## Reproduire
+
+Le plan, le script CP-SAT et la table de résultats validée vivent avec le
+[sujet de reproduction](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/exact-tail-endgame).
+Une seule commande régénère tout le balayage :
+
+```sh
+just research-exact-tail-endgame
+```
+
+Elle produit `results/tailforge.json` : un enregistrement par (graine, rangées,
+plafond) avec le score producteur, le score exact, le delta, le statut CP-SAT et
+un drapeau de revérification indépendante, plus un résumé par configuration de la
+distribution des deltas selon les graines. Les résolutions à une rangée sont
+exactes et reproduisent leurs optima prouvés à la réexécution ; les résolutions à
+deux rangées sont des incumbents faisables à graines dont les deltas exacts sont
+liés à la lignée, elles reproduisent donc le signe et la forme plutôt que le
+chiffre exact.

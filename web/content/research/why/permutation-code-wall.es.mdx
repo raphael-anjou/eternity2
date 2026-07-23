@@ -1,0 +1,188 @@
+---
+title: El tablero como palabra de código
+description: >-
+  Lee un tablero completo como una palabra de código cuyas 480 junturas
+  interiores son comprobaciones de tipo paridad, y el score de aristas
+  emparejadas pasa a ser 480 menos el número de comprobaciones fallidas. Es una
+  lente limpia que descansa sobre una sola identidad portante, y conviene ser
+  preciso sobre lo que la vista de códigos correctores aporta y lo que solo
+  renombra.
+metaDescription: "Modelar una solución de Eternity II como una palabra de código corrector: sus 480 junturas son comprobaciones de tipo paridad y el score es 480 menos el peso del síndrome. El recuento debajo (480 comprobaciones, código de permutación de 256 piezas, cinco colores de borde) se reproduce exactamente."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 90
+updated: 2026-07-22
+topics: [structure]
+sources:
+  - label: "El juego de piezas de Eternity II y el visor interactivo de tablero (bucas.name)"
+    url: https://e2.bucas.name/
+  - label: "La lente tablero-como-palabra-de-código: artículo, código del verificador y resultados JSON (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/permutation-code-wall
+related:
+  - /research/why/parity-defect-floor
+  - /research/why/mismatch-geometry
+  - /research/why/rigidity-wall
+  - /research/why/entropy-area-law
+  - /research/why/piece-theft
+  - /research/records
+repro:
+  kind: exact
+  topic: permutation-code-wall
+  cmd: cd research/topics/permutation-code-wall/compute && cargo run --release > ../results/permutation_code_wall.json
+  scope: >-
+    Reproduce los tres hechos estructurales contados sobre la instancia oficial
+    16x16 (480 comprobaciones de tres formas independientes, 256 piezas
+    distintas salvo rotación que forman un código de permutación, cinco colores
+    de marco con el gris como puro marcador de reborde) y la identidad score =
+    480 menos roturas sobre palabras de código 480 genuinas con un número de
+    roturas inyectado y exactamente conocido (k en {0,1,2,5,10,29,60,120} sobre
+    cinco semillas, cuarenta filas, todas se cumplen; k=29 cae en 451). Los
+    números propios de un tablero que da el artículo requieren un tablero
+    campeón privado y no se reproducen; el vocabulario de códigos es él mismo un
+    reencuadre, señalado como tal.
+---
+
+Hay una manera de mirar un tablero terminado que toma todo su vocabulario de los
+códigos correctores de errores, y resulta realmente esclarecedora en cuanto uno
+sabe qué afirma exactamente. Extiende la rejilla de 16 por 16, trata cada ficha
+como un símbolo, y trata cada lugar donde dos fichas vecinas se encuentran como
+una *comprobación* que pasa (las dos aristas enfrentadas son del mismo color) o
+falla. Hay 480 de esas junturas interiores. La lista de comprobaciones que
+fallan es un *síndrome*, y una solución completa es el único tablero cuyo
+síndrome está vacío. Puntúa un tablero según la
+[convención de aristas emparejadas](/research/records) usada en toda esta wiki
+(cuenta las junturas interiores que emparejan, de 480), y la aritmética sale
+sola: el score es 480 menos el número de comprobaciones fallidas.
+
+Esa sola línea, score igual a 480 menos el peso del síndrome, es todo el motor
+de la lente de códigos. Todo lo demás que dice sobre el puzzle (distancia
+mínima, decodificadores, conjuntos de parada) se construye encima. Así que
+conviene fijar qué es realmente esa identidad, y separar la parte de este cuadro
+que es un hecho real y contable sobre el juego oficial de la parte que es solo
+un cambio de ropa.
+
+## Qué renombra la lente y qué mide
+
+El reparto claro, enunciado sin rodeos porque en eso está la cuestión.
+
+La identidad misma renombra en vez de revelar. El «peso del síndrome» es el
+recuento de aristas interiores no emparejadas; el puntuador ya llama a ese
+recuento *roturas* y ya lo define como el score máximo menos el score alcanzado.
+Así que «score igual a 480 menos el peso del síndrome» no es un descubrimiento
+sobre Eternity II. Es la definición del score escrita en lenguaje de códigos. No
+es una crítica: un buen renombre puede volver legible una estructura. Solo
+significa que la identidad te da un punto de vista, no un número.
+
+Bajo el vocabulario, en cambio, hay tres hechos que son propiedades reales del
+diseño publicado de 256 piezas, cada uno exactamente contable, cada uno
+comprobable frente a la instancia oficial:
+
+- **480 comprobaciones.** Una rejilla de 16 por 16 tiene exactamente 480
+  junturas interiores. Es $2WH - W - H$ con $W = H = 16$, es la longitud de la
+  propia lista de adyacencias del puntuador, y es el score máximo del kit. Tres
+  rutas independientes al mismo 480.
+- **Un código de permutación.** Las 256 fichas son todas distintas salvo
+  rotación, de modo que un tablero legal usa cada una de las 256 piezas
+  exactamente una vez. En términos de códigos, la palabra de código no es una
+  cadena libre de símbolos; es una permutación, y esa restricción es mucho más
+  fuerte que las comprobaciones de juntura por sí solas.
+- **Un código de borde.** Exactamente cinco colores (etiquetados del 1 al 5)
+  aparecen solo en el marco, nunca en una ficha interior, y el color de marco
+  gris se apoya en cero medias aristas interiores. El reborde es un pequeño
+  código aparte apilado sobre las junturas.
+
+Eso es lo que da a la lente algo concreto sobre lo que apoyarse. El
+[teorema de paridad](/research/why/parity-defect-floor), leído en este lenguaje,
+es un enunciado de que este código no tiene síndrome de peso uno: no se puede
+hacer fallar exactamente una comprobación en un tablero completo legal, de modo
+que 479 es un peldaño vacío y el suelo de defecto es 2. La
+[ley de área](/research/why/entropy-area-law) y el
+[robo de pieza](/research/why/piece-theft) son, en este lenguaje, enunciados
+sobre el código de permutación: es la regla «cada pieza una sola vez», y no el
+emparejamiento de colores, la que carga con la dificultad.
+
+## La identidad, comprobada bit a bit
+
+Como la identidad es portante, la reproducción la confirma directamente a través
+del puntuador canónico del kit, el mismo puntuador que excluye el reborde que el
+sitio y cada motor usan, de modo que una comprobación fallida aquí significa lo
+mismo que una rotura en cualquier otra parte de esta wiki.
+
+La comprobación parte de una solución verdadera: un tablero de 16 por 16 generado
+y resuelto que puntúa 480 sobre 480 con síndrome vacío. Luego inyecta un número
+exactamente conocido de comprobaciones rotas corrompiendo una media arista
+enfrentada por vez a un color que ninguna pieza lleva, aceptando una corrupción
+solo cuando baja el score en exactamente uno. Ese resguardo paso a paso es lo que
+hace que el recuento inyectado sea una cantidad conocida y no inferida: $k$
+roturas significa exactamente $k$ comprobaciones fallidas, cada una verificada
+por separado. Después vuelve a leer el score, el número de roturas y un recuento
+independiente del síndrome, y confirma que los tres coinciden.
+
+Ejecutado sobre cinco tableros resueltos y ocho números de roturas (cuarenta
+filas en total, sobre la convención de aristas emparejadas, de 480), cada fila
+obedece la identidad:
+
+| Roturas inyectadas $k$ | Score | Roturas | Recuento independiente del síndrome | 480 menos $k$ |
+| ---------------------: | ----: | ------: | ----------------------------------: | ------------: |
+| 0                      | 480   | 0       | 0                                   | 480           |
+| 1                      | 479   | 1       | 1                                   | 479           |
+| 2                      | 478   | 2       | 2                                   | 478           |
+| 5                      | 475   | 5       | 5                                   | 475           |
+| 10                     | 470   | 10      | 10                                  | 470           |
+| 29                     | 451   | 29      | 29                                  | 451           |
+| 60                     | 420   | 60      | 60                                  | 420           |
+| 120                    | 360   | 120     | 120                                 | 360           |
+
+Cada fila satisface score igual a 480 menos $k$, roturas igual a $k$, y el
+recuento independiente del síndrome igual a $k$, en las cinco semillas. La
+ejecución es determinista y termina en menos de un segundo sobre Apple Silicon;
+el JSON de resultados archivado es estable byte a byte al reejecutar. La fila en
+$k$ igual a 29 está ahí a propósito: muestra el score 451, que es exactamente el
+par score-y-roturas que lleva el tablero campeón de banda inferior construido desde
+cero del artículo (29 roturas, 451 aristas emparejadas). La identidad 480
+menos 29 igual a 451 se sostiene frente al par score-y-roturas que el artículo
+reporta para ese tablero campeón. (Ese
+451 es una cifra de cuaderno obtenida desde cero, muy por debajo de los mejores
+tableros completos de la comunidad, en 470 y 464, en la
+[página de récords](/research/records); aquí lo único que importa es que la
+aritmética de códigos cae sobre él.)
+
+## Los hechos estructurales, sobre la instancia oficial
+
+| Hecho | Esperado | Medido |
+| --- | --- | --- |
+| Número de comprobaciones | 480 | 480 de tres formas: fórmula $2WH - W - H$, lista de adyacencias enumerada, score máximo del kit |
+| Código de permutación | 256 fichas, cada una una vez | 256 piezas, todas distintas salvo rotación |
+| Código de borde, colores de marco | cinco, confinados al reborde | 5 colores de marco (del 1 al 5), 17 colores interiores |
+| Código de borde, gris | solo reborde exterior | 0 medias aristas grises en cualquier pieza interior |
+
+Los cuatro se recalculan a partir de los datos de la instancia en vez de
+suponerse, y los cuatro coinciden.
+
+## Qué aporta y qué no aporta la vista de códigos correctores
+
+Lo que aporta es un modelo mental limpio y un lugar donde alojar las dos
+restricciones duras. Las comprobaciones de juntura forman por sí solas un código
+débil: localmente, un tablero casi perfecto tiene abundantes patrones de color de
+bajo desacuerdo cerca, y por eso los
+[desacuerdos se agrupan](/research/why/mismatch-geometry) en una sola banda en
+lugar de esparcirse. La fuerza vive en el código de permutación superpuesto
+encima, la exigencia de que los símbolos sean un reordenamiento genuino de las
+256 piezas completas. Nombrar esa capa, y separarla de las comprobaciones de
+color, es una forma útil de decir dónde está la dificultad: no en emparejar
+colores, sino en emparejarlos mientras cada pieza se gasta exactamente una vez.
+
+Lo que no aporta es un número nuevo. La identidad central es la propia definición
+del score en otro alfabeto, y el vocabulario de decodificadores y distancia
+mínima describe el mismo paisaje que las páginas de
+[rigidez](/research/why/rigidity-wall) y
+[ley de área](/research/why/entropy-area-law) miden directamente, sin añadir una
+medida propia. La afirmación más fuerte que una lectura de códigos querría hacer,
+que la distancia mínima del código de permutación es lo que fija en su lugar un
+tablero récord concreto, es una medida propia de un tablero que vive sobre un
+único tablero campeón privado que el kit público no entrega, de modo que aquí no
+queda ni confirmada ni refutada. Lo que se reproduce exactamente es el andamiaje:
+480 comprobaciones, un código de permutación de 256 piezas, un código de borde de
+cinco colores, y la única identidad que sostiene todo el cuadro.

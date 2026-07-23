@@ -1,0 +1,195 @@
+---
+title: "Le cadre n'est pas le bassin : une bordure différente n'ouvre pas un plateau plus haut"
+description: >-
+  L'anneau de bordure est la partie la plus contrainte du casse-tête ; une
+  bordure forte différente devrait donc fixer un intérieur haut différent. Il
+  n'en est rien. De nombreuses bordures entièrement appariées et distinctes,
+  chacune complétée par un même producteur d'intérieur fixe, donnent des sommets
+  quasi maximalement différents les uns des autres mais uniformément bas, aucun
+  près de la zone record. La bordure diversifie le plateau sans en prédire le
+  plafond.
+metaDescription: "Une bordure forte différente d'Eternity II ouvre-t-elle un intérieur plus haut ? Non : 28 bordures appariées distinctes se complètent en bande mi-430 (meilleur 441, strict 5/5), intérieurs quasi maximalement distincts, aucun à moins de 14 du record 455. Le bassin est l'intérieur, pas le cadre."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 115
+updated: 2026-07-22
+topics: [structure, search-space]
+scoringConvention: strict-5-clue
+sources:
+  - label: "Le cadre n'est pas le bassin : topic de reproduction avec l'article, le producteur versionné et les deux fichiers JSON de résultats (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/frame-is-not-the-basin
+related:
+  - /research/why/ring-purity
+  - /research/why/border-balance
+  - /research/why/rigidity-wall
+  - /research/records
+repro:
+  kind: seeded
+  cmd: just research-frame-is-not-the-basin
+  topic: frame-is-not-the-basin
+  produces: search
+  scope: >-
+    Une exécution neuve génère ses propres bordures entièrement appariées et
+    complète chacune avec le producteur d'intérieur fixe ; les sommets exacts
+    varient donc avec la graine, mais elle reproduit les faits qualitatifs
+    (sommets quasi maximalement distincts, sommets bas, aucune bordure près de
+    la zone record 455) et retombe sur la bande de score à quelques points près
+    de l'exécution versionnée.
+---
+
+Il existe un raccourci tentant pour Eternity II. L'anneau de bordure est la
+partie la plus contrainte du plateau : soixante cases sur cinq couleurs
+d'anneau seulement, remplies par les quatre coins et les cinquante-six pièces de
+bord (la [page pureté de l'anneau](/research/why/ring-purity) montre pourquoi ces
+cinq couleurs ne quittent jamais le rebord). Si une bordure entièrement
+appariée fixe le sommet du plateau, alors une bordure *différente* devrait fixer
+un intérieur haut *différent*, et construire plusieurs bordures fortes distinctes
+ouvrirait plusieurs bassins hauts distincts. La diversification par la bordure
+serait un levier pour les scores.
+
+Cette page est la mesure qui referme cette porte. Générer de nombreuses bordures
+entièrement appariées et structurellement distinctes, puis compléter chacune
+avec le même producteur d'intérieur fixe, donne des sommets quasi maximalement
+différents les uns des autres et pourtant tous logés dans la même bande basse,
+loin de la zone record. La bordure est un fort *diversifiant* du plateau obtenu
+et un *sélecteur* de qualité inutile. L'identité du cadre ne prédit pas le
+plafond de l'intérieur.
+
+<div className="grid grid-cols-3 gap-3 text-center">
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">28</div>
+    <div className="mt-1 text-xs text-muted-foreground">bordures entièrement appariées distinctes, deux bases de graines</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">~190 / 196</div>
+    <div className="mt-1 text-xs text-muted-foreground">cases intérieures qui diffèrent entre deux sommets quelconques</div>
+  </div>
+  <div className="rounded-lg border p-4">
+    <div className="text-3xl font-bold tabular-nums">441</div>
+    <div className="mt-1 text-xs text-muted-foreground">meilleur plateau, strict 5/5, encore à 14 de 455</div>
+  </div>
+</div>
+
+Chaque score de cette page relève de la convention stricte à cinq indices (les
+cinq indices officiels respectés, adjacences non grises appariées sur 480) ; les
+cinq indices se trouvent sur des cases intérieures, aucun sur l'anneau, si bien
+que chaque complétion ici est un plateau strict 5/5 légal et que la bordure est
+libre de toute contrainte d'indice. Pour situer ces nombres par rapport aux
+records communautaires et de carnet, voir la [page des records](/research/records).
+
+## Le cadre est un objet lâche
+
+La raison de douter du raccourci est structurelle. L'anneau de bordure est un
+problème d'appariement de bords cyclique et autonome sur cinq couleurs à
+approvisionnement équilibré, si bien que les bordures entièrement appariées sont
+astronomiquement abondantes : le cadre seul admet, on le sait depuis longtemps,
+plus de $10^{15}$ arrangements. En produire des versions structurellement
+distinctes est trivial, et elles se couplent à l'intérieur par un unique canal à
+faible information : soixante couleurs tournées vers l'intérieur, un mot-frontière
+que l'intérieur doit satisfaire, sur un intérieur de 196 cases et 22 couleurs. Ce
+canal est bien trop mince pour déterminer l'intérieur. L'espoir qu'une bordure
+différente fixe un intérieur haut différent repose donc sur une information que
+le cadre ne porte pas.
+
+L'expérience transforme cet argument structurel en test direct.
+
+## Ce qui a été mesuré
+
+Sur l'ensemble officiel de 256 pièces, les cinq indices officiels épinglés :
+
+1. générer N bordures entièrement appariées structurellement distinctes à partir
+   de zéro (un placement en profondeur d'abord randomisé sur les soixante cases
+   de bordure, gris vers l'extérieur, chaque adjacence d'anneau appariée,
+   dédupliqué par égalité exacte de l'anneau) ;
+2. figer chaque bordure et remplir ses 196 cases intérieures avec **un** seul
+   producteur fixe à budget fixe : un faisceau tolérant aux ruptures qui remplit
+   l'intérieur ligne par ligne, notant chaque candidat par arêtes appariées moins
+   non appariées contre ses voisins déjà placés (bordure figée comprise) et
+   élaguant à une largeur fixe avec une départage graine ;
+3. rapporter la bande de score plateau complet, la distance de Hamming par tuiles
+   entre les meilleures complétions, et si une bordure atteint la zone record.
+
+Deux questions, et deux seulement : **les sommets sont-ils distincts ?** et
+**les sommets sont-ils hauts ?**
+
+### L'exécution principale
+
+Seize bordures entièrement appariées structurellement distinctes, faisceau
+d'intérieur de largeur 128, trois graines par bordure, meilleure conservée :
+
+| Grandeur | Résultat |
+| --- | --- |
+| Bordures entièrement appariées distinctes générées | 16 (sur 17 tentatives en profondeur d'abord) |
+| Bande de score des sommets (min / médiane / max) | 434 / 437 / 440 |
+| Une bordure atteint la zone record (>= 455) | non |
+| Écart du meilleur sommet par bordure à 455 | 15 |
+| Hamming par tuiles intérieures (sur 196 cases) | 188 à 191, moyenne 190,4 (120 paires) |
+| Meilleur plateau, strict 5/5, bordure toujours appariée | oui et oui (440, 40 ruptures) |
+
+Les deux lignes porteuses sont la troisième et l'avant-dernière. **Aucune
+bordure n'atteint la zone record** : la meilleure des seize marque 440, encore à
+15 de 455 et à une vingtaine du haut strict 5/5 du carnet. Et les complétions
+sont **quasi maximalement distinctes** : entre deux quelconques, 188 à 191 des
+196 cases intérieures diffèrent. Les bordures diversifient le plateau presque
+entièrement et n'en sélectionnent aucunement la qualité ; chacune des seize se
+loge dans une fenêtre de six points, 434 à 440. Le meilleur plateau de
+l'exécution, complétion strict 5/5 légale d'une bordure entièrement appariée, est
+visualisable depuis le fichier de résultats versionné du topic de reproduction.
+
+### La passe de robustesse
+
+Le point étant précisément que l'identité du cadre n'importe pas, le résultat
+doit montrer qu'il n'est pas un accident d'une seule base de graines. Une seconde
+passe indépendante (douze bordures, une base de graines différente) concorde :
+bande 434 à 441 (médiane 438), meilleur 441 encore à 14 de 455, Hamming par
+tuiles intérieures 187 à 191 (moyenne 190,3), et le meilleur plateau à nouveau
+une complétion strict 5/5 d'une bordure entièrement appariée. Deux bases de
+graines indépendantes, 28 bordures distinctes en tout, et aucune ne franchit
+445, encore moins la zone record.
+
+## Pourquoi un intérieur plus fort ne fait que l'affûter
+
+Une passe de carnet antérieure a mené ce même test avec un intérieur plus
+faible, à ajustement dur, qui calait dans les 250 et n'approchait jamais la zone
+record. Cette reproduction y substitue délibérément un producteur d'intérieur
+*plus fort*, le faisceau tolérant aux ruptures ci-dessus, qui remplit toujours
+les 196 cases. Sa bande absolue est donc plus haute, la mi-430 plutôt que les
+250. Cela n'adoucit pas le constat ; cela l'affûte. Même avec un solveur
+d'intérieur bien meilleur, aucune bordure distincte n'atteint la zone record, et
+les bordures restent quasi maximalement distinctes. Un intérieur plus fort ne
+peut rendre la bordure informative, car la bordure est une coque en aval, à
+faible entropie, suspendue à l'intérieur, et non la chose qui le fixe. La bande
+est une propriété du solveur d'intérieur ; le constat négatif est une propriété
+du couplage cadre-intérieur, et il est indépendant du producteur.
+
+## Ce que cela referme, et ce que cela ne referme pas
+
+Le résultat est un énoncé de rigidité sur la bordure. Il referme la
+diversification par la bordure comme voie vers de meilleurs scores : une bordure
+entièrement appariée différente donne un plateau différent, mais pas un plateau
+plus haut, si bien qu'il n'y a aucun gradient à gravir en parcourant l'espace des
+bordures. Là où vit réellement l'information des hauts scores, c'est l'intérieur
+des rangées du haut, et c'est exactement la région que le
+[mur de rigidité](/research/why/rigidity-wall) décrit comme une île figée. Le
+cadre ne fixe pas le sommet ; le sommet se fixe lui-même, et la bordure y est
+suspendue. La comptabilité de couture qui couple les deux, l'équilibre exact des
+couleurs à travers l'interface bordure-intérieur, fait l'objet de la
+[page équilibre de la bordure](/research/why/border-balance).
+
+C'est un constat négatif à configuration unique, borné franchement. Il est
+établi purement à partir de bordures générées de zéro et complétées par un seul
+producteur fixe, la forme de robustesse que l'étude d'origine réclamait. Il ne
+tente pas le contrôle plus difficile consistant à figer la bordure propre d'un
+plateau record et à la compléter, ce qui exigerait un plateau qui ne fait pas
+partie du kit de départ public ; le constat tient sans lui. Et la bande absolue
+est celle du solveur d'intérieur, non une affirmation sur un chiffre exact : ce
+qui porte, c'est l'écart à la zone record, et il se reproduit avec de la marge.
+
+Chaque nombre ci-dessus est recalculé par le producteur versionné du topic de
+reproduction lié dans les sources : un programme Rust qui charge l'instance
+officielle, génère ses propres bordures entièrement appariées, fige chacune et
+complète l'intérieur avec le seul faisceau fixe tolérant aux ruptures, et émet
+deux fichiers JSON (l'exécution principale et la passe à graine indépendante)
+contenant chaque chiffre cité ici.

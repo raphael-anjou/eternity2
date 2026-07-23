@@ -1,0 +1,184 @@
+---
+title: "El puzzle no tiene función de altura"
+description: >-
+  Toma el truco del físico que vuelve solubles los defectos cristalinos e intenta
+  convertir un empalme mal casado en una dislocación con una carga conservada.
+  Fracasa de tres maneras: una altura escalar es ciega a las roturas, el conjunto
+  de roturas forma cadenas abiertas y no bucles cerrados, y la corriente orientada
+  por color no se conserva. Solo sobrevive un bit de paridad sin signo.
+metaDescription: "Una reformulación de Eternity II en dislocaciones intenta dar a cada defecto una carga conservada que un movimiento de gusano aniquilaría por pares. Fracasa de tres maneras; el único invariante que sobrevive es un bit de paridad sin signo por color, medido en los tableros de este proyecto."
+kind: finding
+contribution: theory
+rigor: measured
+tier: 2
+order: 75
+updated: 2026-07-23
+topics: [structure, search-space]
+sources:
+  - label: "Verificador sin función de altura: artículo, código fuente Rust y tabla de resultados por tablero (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function
+related:
+  - /research/why/mismatch-geometry
+  - /research/why/sigma-cycles
+  - /research/why/parity-defect-floor
+  - /research/why/rigidity-wall
+  - /research/records
+repro:
+  kind: exact
+  tier: qualitative
+  topic: no-height-function
+---
+
+Hay una idea prestada que, si se sostuviera, cambiaría cómo se ataca este puzzle.
+En la física estadística de los cristales, un teselado lleva una **función de
+altura**: un número que vive en las caras y sube o baja una cantidad fija al
+cruzar cada arista. Cuando el teselado es perfecto, la altura es univaluada. Un
+defecto es un punto donde recorrer un pequeño bucle sumando los pasos no te
+devuelve al punto de partida; lo que sobra es una carga conservada (los físicos
+la llaman **vector de Burgers**), y los defectos solo pueden crearse o destruirse
+en pares que se cancelan. Ese último hecho es el premio. Es lo que permite el
+**movimiento de gusano**: una reescritura extendida por la red pero simple en el
+espacio de alturas, que desliza dos defectos uno hacia el otro hasta que se
+cancelan.
+
+Puntúa un tablero completo de Eternity II contando sus empalmes internos casados
+sobre 480 (la convención de aristas casadas usada en todo este wiki; la
+[página de récords](/research/records) sitúa en contexto los números que siguen).
+Un empalme mal casado es una **rotura**. Si las roturas fueran dislocaciones con
+una carga orientada conservada, existiría un movimiento no local y fundamentado
+que baja el número de roturas haciendo caminar un par de ellas una hacia la otra
+para aniquilarlas, justo el tipo de movimiento que la búsqueda por simple
+intercambio no puede ver. Esta página deja constancia de por qué esa esperanza no
+sobrevive al contacto con un tablero real. El fracaso no es cuestión de gusto. Son
+dos hechos concretos medibles en cualquier tablero, más un tercero que no
+necesita tablero alguno, y el verificador del tema de reproducción mide los dos
+primeros en los tableros récord registrados de este proyecto.
+
+## La altura escalar es ciega desde el principio
+
+Toma primero la versión más ingenua: coloca un solo número en cada celda y lee el
+«paso» a través de un empalme como la diferencia de los dos números de las
+celdas. Recorre las cuatro celdas alrededor de una esquina interior de la
+cuadrícula y suma los cuatro pasos. El número de cada celda entra en el bucle una
+vez con un más y una vez con un menos, así que la suma es **cero**, siempre, para
+cualquier asignación de números y sin importar qué empalmes estén rotos. Una
+rotura vive en un empalme; nunca cambia la suma de bucle de ninguna esquina. Por
+tanto, una altura escalar por celda no puede detectar una rotura en absoluto. No
+es que las detecte mal; es estructuralmente sorda a ellas. Esta parte es una
+identidad de una línea, por lo que se enuncia aquí en vez de medirse.
+
+## El conjunto de roturas son cadenas abiertas, no bucles cerrados
+
+El arreglo del físico consiste en dejar de usar los valores de las celdas y poner
+en cambio el paso en un empalme **exactamente cuando ese empalme está roto**.
+Entonces la suma de bucle alrededor de una esquina de la cuadrícula cuenta los
+empalmes rotos que tocan esa esquina, tomados módulo dos. La altura es univaluada
+solo si cada esquina toca un número par de roturas, es decir, solo si las roturas
+forman bucles cerrados sobre la cuadrícula de esquinas.
+
+No lo hacen. En cada tablero medido, decenas de esquinas tocan un número **impar**
+de roturas. En la imagen cristalina, esas esquinas impares son **núcleos** de
+dislocación, los cabos sueltos de cadenas de roturas abiertas. Una altura no puede
+cerrarse alrededor de un cabo suelto, así que no puede existir globalmente. El
+recuento de estos núcleos es el primer número que informa el verificador, y sigue
+siendo grande incluso en los mejores tableros:
+
+| Tablero (este proyecto) | Aristas casadas | Roturas | Núcleos de grado impar | Colores con corriente desequilibrada |
+| --- | ---: | ---: | ---: | ---: |
+| mejor en aristas casadas, 463 | 463 | 17 | 22 | 10 |
+| un tablero 460 | 460 | 20 | 22 | 9 |
+| un tablero 458 | 458 | 22 | 34 | 15 |
+| un tablero 460 anterior | 460 | 20 | 26 | 12 |
+
+Los cuatro son scores en aristas casadas, revalidados por el verificador antes de
+medir la topología; un tablero cuyo valor revalidado difiere del registrado se
+rechaza de plano, de modo que los números de arriba describen siempre un tablero
+de calidad conocida y verificada. El mejor de ellos queda a solo 17 roturas de una
+hipotética solución y todavía lleva 22 núcleos de cadena abierta. La obstrucción
+no se ablanda a medida que un tablero se acerca a una solución, y ese es todo el
+punto: no existe ningún tablero cerca de la cima donde los bucles se cierren en
+silencio.
+
+## La corriente orientada no se conserva
+
+Vale la pena descartar una última escapatoria. Quizá resolver las roturas color
+por color rescate una carga conservada. Para un solo color, orienta cada empalme
+medio roto (uno donde exactamente un lado muestra ese color, lo que es
+necesariamente una rotura) como una flecha que apunta desde la celda portadora del
+color hacia su vecina no casada, y suma las flechas en un vector por color sobre
+todo el tablero. Una corriente realmente conservada sumaría **cero**. No lo hace.
+En cada tablero, varios colores tienen un total distinto de cero, listado en la
+última columna de arriba: entre 9 y 15 de los 22 colores llevan una corriente
+desequilibrada, según el tablero.
+
+La razón es estructural, y explica por qué ningún ingenio lo remedia. En una
+solución real, cada arista de color está casada con una arista del mismo color,
+así que no hay empalmes medio rotos y la corriente de cada color es trivialmente
+cero. Un empalme medio roto es precisamente una media arista **no casada**, una
+cuyo compañero falta, de modo que su flecha no tiene contra qué cancelarse. La
+suma desequilibrada no es un desliz de contabilidad; es la firma del compañero que
+falta.
+
+Solo a modo de orientación, una ejecución anterior e independiente del cuaderno
+midió los mismos recuentos de núcleos en tres tableros distintos (un tablero 451,
+uno 463 y uno 458) y obtuvo **28, 22 y 32** núcleos impares; los cuatro tableros
+aquí presentados quedan en **22, 22, 34 y 26**, exactamente en el mismo régimen,
+coincidiendo el tablero 463 en 22 por ambos lados. Los colores y signos precisos
+que salen desequilibrados son etiquetas ligadas a cómo se numeró un tablero
+concreto y no tienen sentido propio; solo el recuento de colores desequilibrados,
+y el hecho de que nunca sea cero, es el contenido reproducido. Son los propios
+tableros de este proyecto, muy por debajo de los mejores de la comunidad, 470 bajo
+la convención de la pista central y 464 con las cinco pistas colocadas (de nuevo,
+la [página de récords](/research/records) conserva ese contexto); se usan aquí
+porque la obstrucción debe verificarse en un tablero real de alta puntuación de la
+instancia oficial, no en un tablero pequeño generado donde sería o bien vacía o
+bien fuera de instancia.
+
+## Lo que sobrevive es un único bit
+
+Reúne los tres fracasos. Una altura escalar es sorda a las roturas; el conjunto de
+roturas son cadenas abiertas con decenas de cabos sueltos; la corriente orientada
+por color no se equilibra. Toda ruta hacia una altura de vector de Burgers está
+cerrada. Lo que queda es mucho más débil que una altura: el único invariante
+conservado del conjunto de roturas es una **paridad por color sin signo**, un bit
+por color (un elemento de un espacio de dimensión 22 sobre el cuerpo de dos
+elementos). Un bit registra si el recuento de empalmes medio rotos de un color es
+par o impar; no tiene dirección ni magnitud. Un bit no es la holonomía de ninguna
+función de altura, y ningún movimiento de gusano puede construirse sobre él.
+
+Ese es el resultado negativo, y vale la pena enunciarlo con claridad porque la
+idea que mata es realmente atractiva: la imagen de dímeros y defectos queda
+cerrada por el lado de las roturas, y con ella el sueño de un movimiento no local
+limpio que camine los defectos hasta aniquilarlos. La intuición física que deja en
+pie es más esperanzadora y vive en otra parte: la salida correcta de un tablero
+localmente congelado (véase el [muro de rigidez](/research/why/rigidity-wall)) es
+un **movimiento de agrupamiento correlacionado**, varias fichas giradas juntas, en
+vez de cualquier edición de un solo sitio. Ese relato compañero es un resultado
+distinto y no se mide aquí.
+
+También encaja con la forma del puzzle tal como se ve en los tableros mismos. Las
+roturas no se dispersan; se [amontonan en una sola banda](/research/why/mismatch-geometry)
+y el grafo de las aristas mal casadas es siempre un bosque, sin cerrar nunca un
+bucle, que es el mismo hecho de cadena abierta que esta página demuestra imposible
+de cerrar. El bit de paridad superviviente es un primo de la ley de conteo detrás
+de [por qué 479 es imposible](/research/why/parity-defect-floor): ambos son lo que
+se obtiene cuando un invariante orientado colapsa en uno sin signo sobre el cuerpo
+de dos elementos. La dirección es exactamente lo que esta instancia se niega a
+darte.
+
+## Compruébalo tú mismo
+
+El verificador carga cada tablero registrado a través del analizador de tableros
+del kit de inicio, lo revalida con la regla canónica (y rechaza todo tablero cuyo
+valor revalidado difiera de su score registrado), y luego hace una pasada lineal
+para contar los núcleos de grado impar y las corrientes por color desequilibradas.
+Es determinista, no usa aleatoriedad, corre en bastante menos de un segundo en un
+solo núcleo, y su salida es estable al bit entre ejecuciones. El
+[artículo, el código fuente Rust y la tabla de resultados están en GitHub](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/no-height-function),
+y el bloque de reproducción de esta página apunta al mismo tema. Dos reservas de
+alcance, que el hallazgo enuncia con claridad sobre sí mismo: esta es una
+reproducción **cualitativa**. Los recuentos exactos de núcleos y las sumas de
+corriente son funciones del tablero concreto, así que se leen como «en el mismo
+régimen que», nunca como una coincidencia al bit con una tabla anterior; y la
+obstrucción de la altura escalar de la primera sección es una identidad demostrada,
+afirmada en vez de recalculada.

@@ -1,0 +1,256 @@
+---
+title: La cola como problema exacto en sí mismo
+description: >-
+  Un tablero parcial fuerte es una región superior que el productor trabajó
+  más una banda inferior de filas sin terminar. Se congela la parte alta, se
+  entrega la cola a un solucionador de restricciones exacto y se lee qué mitad
+  fija el techo: la estructura del productor o el final de partida abaratado.
+metaDescription: "Las últimas filas de un tablero Eternity II como optimización CP-SAT exacta desacoplada del productor. El presupuesto de rupturas entrantes por celda, qué gana el solucionador exacto sobre un finalizador voraz (cola limitante, ajustada o ruptura portante), y por qué reproduce el mecanismo."
+kind: concept
+order: 50
+group: Exact methods
+updated: 2026-07-23
+topics: [exact-methods, construction]
+contribution: method
+rigor: measured
+outcome: plateaued
+sources:
+  - label: 'Solucionador CP-SAT de Google OR-Tools (el motor exacto usado para el modelo de cola)'
+    url: https://developers.google.com/optimization/cp/cp_solver
+  - label: 'Problema de asignación (Wikipedia), la relajación lineal que la cola no es'
+    url: https://en.wikipedia.org/wiki/Assignment_problem
+related:
+  - /research/lab/experiments/raphael-anjou/frostline
+  - /research/build/exact/meet-in-the-middle
+  - /research/build/exact/sat-csp-encodings
+  - /research/build/construct/beam-search
+  - /research/records
+repro:
+  kind: seeded
+  topic: exact-tail-endgame
+  cmd: just research-exact-tail-endgame
+  scope: >-
+    Regenera el barrido completo (24 semillas de productor en una cola de una
+    fila, cuatro en una cola de dos filas, tope de rupturas entrantes 1 y 2),
+    cada celda una resolución CP-SAT, con cada tablero revaluado de forma
+    independiente desde su blob de visor. Nivel estadístico por semilla: las
+    resoluciones de una fila reproducen sus óptimos probados al reejecutar; los
+    deltas factibles de dos filas reproducen el signo y la forma, no la cifra
+    exacta, y el productor voraz simple es mucho más débil que los productores
+    de pista de récord del estudio fuente, así que aquí no se mueve ningún
+    récord comunitario.
+---
+
+Un tablero parcial fuerte son dos cosas pegadas: una región superior que el
+productor trabajó a fondo y una banda inferior de unas pocas filas sin terminar.
+Cuando un tablero así se queda por debajo de un puntaje objetivo, la pregunta
+natural es cuál mitad tiene la culpa. ¿El techo lo fija la estructura superior
+del productor o el final de partida de las últimas filas que el productor remató
+a bajo costo? Esta página trata ese final de partida como su propia optimización
+exacta, desacoplada del productor, y usa la respuesta como instrumento: congelar
+la parte alta, resolver la cola hasta (o hacia) el óptimo y leer si la resolución
+exacta compra algo que el productor dejó sobre la mesa.
+
+Cada puntaje de abajo sigue la misma convención: aristas interiores emparejadas
+excluyendo el borde, de modo que un tablero 16×16 completo llega como máximo a
+480, y las cinco piezas pista oficiales quedan fijadas en su lugar y nunca se
+mueven. Esa última cláusula mantiene justa la comparación, así que va incorporada
+al modelo en vez de comprobarse después.
+
+## La cola como pequeño problema exacto
+
+Fijemos un tablero completo producido por un rellenador voraz en orden fila por
+fila con semilla (la misma familia de productores que el
+[estudio de finalizabilidad](/research/lab/experiments/raphael-anjou/frostline),
+adaptado para respetar las cinco pistas de modo que cada tablero emitido sea
+válido en pistas por construcción). Se congelan las filas $0$ a $15-R$; las $R$
+filas de abajo forman la banda de cola, menos cualquier celda con una pista, que
+queda congelada. Las piezas propias de la cola, las que el productor colocó allí,
+son el fondo a permutar.
+
+La cola se entrega entonces a un modelo CP-SAT:
+
+- una (pieza, rotación) legal en el borde por celda libre, tomada del fondo
+  propio de la cola, con un AllDifferent para que ninguna pieza se use dos veces;
+- variables de color por lado canalizadas desde la elección (pieza, rotación)
+  mediante tablas de lados Element;
+- restricciones duras para el borde (gris exactamente en las aristas hacia el
+  borde) y para cada adyacencia que la cola toca;
+- un booleano de emparejamiento en cada arista tocada por la cola, con el
+  objetivo maximizando su suma.
+
+Esto no es una asignación lineal. El costo de una celda se divide entre las
+aristas que dan al techo congelado (que dependen solo de la elección de esa
+celda) y las aristas que dan a otra celda libre (un producto de dos decisiones).
+Los términos libre-libre son genuinamente bilineales, de modo que un
+emparejamiento bipartito al estilo húngaro no puede representar la cola con
+exactitud; solo tarifa la frontera congelada. Lo que hace tratable la cola de
+todos modos es el tamaño, no la linealidad: a una o dos filas el solucionador de
+restricciones la cierra directamente, donde un emparejamiento simple sería ciego
+a la mitad del objetivo. El mismo modelado aparece en las notas del proyecto
+sobre [codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings); aquí
+apunta a un subtablero en vez de al rompecabezas entero.
+
+## El presupuesto de rupturas entrantes
+
+El productor rellena fila por fila y carga a cada celda un presupuesto solo sobre
+sus aristas *entrantes*: en orden fila por fila, las aristas entrantes de una
+celda son su arriba y su izquierda. Escribiendo $\mathrm{conf}(c)$ para el número
+de esas dos que no emparejan, el productor trabaja en el régimen
+$\mathrm{conf}(c)\le 1$: a lo sumo una ruptura entrante por celda. El modelo
+exacto refleja esto con exactitud mediante un tope por celda, y barrer el tope es
+el segundo eje del experimento:
+
+- **tope $=1$** reproduce el propio mundo del productor, $\le 1$ ruptura por
+  celda. Toda celda que el modelo exacto rellena es una celda que el productor
+  podría, en principio, haber construido.
+- **tope $=2$** admite una *doble* ruptura entrante en una celda: dos desacuerdos
+  llegando a la vez. Es una colocación que el productor $\le 1$ ruptura nunca
+  puede hacer, así que cualquier punto que compre es un punto estructuralmente
+  fuera del alcance del productor.
+
+La brecha entre los dos topes es el precio, en aristas emparejadas, de la única
+jugada que el productor no puede hacer.
+
+## Qué compra la cola exacta
+
+Para cada semilla de productor el modelo se corre a una fila (cola de 16 celdas)
+y dos filas (cola de 32 celdas), a ambos topes. La cantidad estelar es el delta,
+$\text{puntaje exacto} - \text{puntaje productor}$, sobre el techo congelado
+idéntico. Por construcción la resolución exacta domina la cola voraz, así que el
+delta nunca es negativo; su interés está en si es *estrictamente positivo* (el
+productor dejó puntos en la cola) o *cero* (el productor ya era óptimo en la
+cola), y en cómo varía esa respuesta entre semillas.
+
+A una fila el modelo alcanza un óptimo probado cada vez que es factible, en unas
+pocas centésimas de segundo. Cada tablero emitido se revalúa con independencia
+del solucionador, y la comprobación va de punta a punta: el blob de aristas de la
+URL del visor se decodifica de vuelta a una cuadrícula de colores y sus
+emparejamientos interiores se recuentan desde cero, y ese recuento concuerda con
+el puntaje que reporta el solucionador (para el tablero de una fila de la primera
+semilla, $385$ se vuelve a decodificar como $385$). El juego de piezas también se
+revisa distinto y las cinco pistas se revisan en su lugar. Unas pocas semillas
+muestran toda la historia en miniatura:
+
+<Figure title="Cola de una fila (16 celdas), óptimo probado, cuatro semillas de productor">
+
+| semilla de productor | puntaje productor /480 | delta tope $=1$ | delta tope $=2$ | lectura |
+| --- | --- | --- | --- | --- |
+| semilla 1 | 379 | $+6$ | $+6$ | cola limitante |
+| semilla 2 | 376 | $0$ | $+1$ | cola ajustada; el punto extra exige una ruptura doble |
+| semilla 3 | 365 | infactible | $+6$ | no existe completado $\le 1$ ruptura |
+| semilla 4 | 369 | $+2$ | $+2$ | cola limitante, ruptura doble innecesaria |
+
+Los puntajes son aristas interiores emparejadas excluyendo el borde sobre 480,
+cinco pistas fijadas. Cada fila probada óptima en unos $0{,}03$ a $0{,}11$ s.
+
+</Figure>
+
+Tres regímenes coexisten en un mismo banco de pruebas, y son exactamente los
+regímenes que el cuaderno fuente describía por separado:
+
+- **Cola limitante** (semilla 1). La cola voraz deja $6$ aristas emparejadas
+  sobre la mesa que la resolución exacta recupera, sin necesidad de una ruptura
+  doble. Aquí la restricción limitante es de veras el final de partida, y el
+  productor lo resolvió por debajo.
+- **Cola ajustada** (semilla 2, tope $=1$). La resolución exacta iguala al
+  productor: delta $0$. La cola propia del productor ya era óptima bajo su regla
+  $\le 1$ ruptura, así que no hay nada que recuperar, y el techo vive en la
+  estructura superior, no en la cola. Subir el tope a $2$ halla entonces
+  exactamente un punto más, y es precisamente una ruptura doble entrante, la
+  única palanca que el productor no puede accionar.
+- **Ruptura doble portante** (semilla 3, tope $=1$). La más fuerte de todas: el
+  productor $\le 1$ ruptura no puede completar esta cola *a ningún puntaje*, así
+  que tope $=1$ es infactible. Solo una ruptura doble entrante admite un relleno
+  siquiera, y tope $=2$ alcanza entonces un óptimo probado. La ruptura doble no
+  es un extra aquí; es la diferencia entre un completado y ninguno.
+
+En todo el barrido de 24 semillas a una fila, el reparto es el resultado: a tope
+$=1$, $18$ semillas son de cola limitante (delta estrictamente positivo), $1$ de
+cola ajustada (delta cero) y $5$ derechamente infactibles (no existe completado
+$\le 1$ ruptura de la cola). Los puntos recuperados van de $0$ a $8$ aristas
+emparejadas, mediana $4$, media de unos $3{,}9$. Subir el tope a $2$ vuelve
+factibles las $24$ semillas y todas de cola limitante, con deltas de $1$ a $9$,
+mediana $4{,}5$, media de unos $4{,}8$: la jugada de ruptura doble desbloquea a la vez
+las cinco semillas atascadas y agrega un punto o dos casi en todas las demás. Que
+la cola sea la restricción limitante es una propiedad del tablero individual, no
+un absoluto.
+
+A dos filas la cola crece a 32 celdas y el modelo ya no prueba la optimalidad
+dentro del presupuesto de tiempo: devuelve incumbentes factibles a unos $45$ s
+cada uno. Los deltas ahí son mayores pero son *cotas inferiores*, ya que puede
+existir un completado mejor que el solucionador no certificó.
+
+<Figure title="Cola de dos filas (32 celdas), factible no probada óptima, cuatro semillas">
+
+| semilla de productor | delta tope $=1$ | delta tope $=2$ |
+| --- | --- | --- |
+| semilla 1 | $+14$ | $+10$ |
+| semilla 2 | $+6$ | $+7$ |
+| semilla 3 | $+17$ | $+15$ |
+| semilla 4 | $+11$ | $+10$ |
+
+Los deltas son cotas inferiores: cada resolución devolvió un incumbente factible,
+no una prueba, en unos $45$ s sobre ocho núcleos. En estas cuatro semillas los
+deltas a tope $=1$ van de $6$ a $17$ (mediana $12{,}5$) y a tope $=2$ de $7$ a $15$
+(mediana $10$). Que tope $=2$ pueda leer *por debajo* de tope $=1$ en la misma
+semilla (semillas 1, 3, 4) es un síntoma de la prueba de optimalidad ausente, no
+una regresión real: la región factible más amplia simplemente dejó al
+solucionador en un incumbente no probado distinto dentro del presupuesto.
+
+</Figure>
+
+## Qué zanja, y qué no
+
+Leída como instrumento, la cola exacta responde con nitidez a la pregunta «¿cuál
+mitad?» en este banco de pruebas: a veces la cola (delta estrictamente positivo,
+el final de partida estaba subresolto), a veces la parte alta (delta cero, la
+cola ya estaba ajustada). La respuesta depende del productor, que es justo la
+cuestión. Un mismo puntaje de tablero puede esconder uno u otro régimen, y el
+diagnóstico barato para distinguirlos es si el solucionador exacto cierra la
+brecha de optimalidad. Cuando lo hace y el delta es cero, la cola está ajustada y
+ningún finalizador ayudará; cuando el delta es positivo, el finalizador
+heurístico del productor dejó aristas emparejadas sin reclamar. El tope de
+ruptura doble afina esto: al menos una semilla aquí no tiene *ningún* completado
+de su cola construible por el productor, así que la capacidad del solucionador
+exacto de colocar una ruptura doble entrante es portante y no cosmética.
+
+Lo que esta corrida a pequeña escala no zanja es el récord. El productor aquí es
+un rellenador voraz simple cuyos tableros se sitúan entre mediados de los 360 y
+finales de los 370, muy por debajo de los productores de pista de récord que usó
+el resultado fuente, así que hacer cola exacta aquí no puede *mover un récord*: el
+titular a nivel de récord del cuaderno, una cola exacta venciendo a un finalizador
+heurístico por una arista emparejada en un tablero mucho más fuerte, está ligado a
+ese productor más fuerte y no se reproduce aquí. Lo que se reproduce es el
+mecanismo y la forma del efecto: la banda inferior es un genuino pequeño problema
+exacto, la resolución exacta nunca pierde contra la cola propia del productor y a
+menudo la vence, el tope de ruptura doble compra puntos reales y a veces
+portantes, y que la cola sea la restricción limitante depende del tablero. Los
+números de dos filas son cotas inferiores, no óptimos probados, y deben leerse
+así.
+
+Para situar cualquiera de estos puntajes de aristas emparejadas frente a los
+mejores resultados de la comunidad, obtenidos con presupuestos de cómputo mucho
+mayores, véase la [página de récords](/research/records). El emparejamiento al que
+apunta esta página, un productor fuerte rematado por un solucionador de últimas
+filas *exacto* en vez de heurístico, es también el siguiente paso natural para los
+[productores por haz](/research/build/construct/beam-search) del proyecto: el
+finalizador, no el productor, es donde el método exacto se gana su lugar.
+
+## Reproducir
+
+El plan, el script CP-SAT y la tabla de resultados registrada viven con el
+[tema de reproducción](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/exact-tail-endgame).
+Un solo comando regenera todo el barrido:
+
+```sh
+just research-exact-tail-endgame
+```
+
+Produce `results/tailforge.json`: un registro por (semilla, filas, tope) con el
+puntaje productor, el puntaje exacto, el delta, el estado CP-SAT y una bandera de
+reverificación independiente, más un resumen por configuración de la distribución
+de deltas entre semillas. Las resoluciones de una fila son exactas y reproducen
+sus óptimos probados al reejecutar; las resoluciones de dos filas son incumbentes
+factibles por semilla cuyos deltas exactos están ligados al linaje, así que
+reproducen el signo y la forma en vez de la cifra exacta.
