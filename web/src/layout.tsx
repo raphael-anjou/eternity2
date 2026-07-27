@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useLang, useT, pathForLang, preferredLang, langDef, LANGS } from "@/i18n";
+import { canonicalPath } from "@/site";
 import { cn } from "@/lib/utils";
 import { loadAnalyticsWhenIdle } from "@/lib/analytics";
 
@@ -174,8 +175,10 @@ export default function Layout() {
     }
   }, [pathname]);
 
-  // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle).
-  const link = (to: string) => pathForLang(to, lang);
+  // Localize a nav target to the active language (/puzzle ↔ /fr/puzzle) and
+  // canonicalize to the trailing-slash form the host serves at 200, so the
+  // sitewide nav never points a crawler at a redirect.
+  const link = (to: string) => canonicalPath(pathForLang(to, lang));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

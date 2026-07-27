@@ -14,6 +14,7 @@
 import { useMemo, type ReactNode } from "react";
 import GithubSlugger from "github-slugger";
 import { useLang, pathForLang, type Lang } from "@/i18n";
+import { canonicalPath } from "@/site";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import {
   Tooltip,
@@ -60,7 +61,7 @@ export function Term({ termId, children }: { termId: string; children: ReactNode
   // merges a ref onto the rendered element, which a plain function component
   // like LocalizedLink cannot receive; an <a> takes the ref cleanly and still
   // prerenders the term text into the static HTML.
-  const href = pathForLang(`/research/glossary#${termId}`, lang);
+  const href = canonicalPath(pathForLang(`/research/glossary#${termId}`, lang));
 
   // If the id does not resolve (a stale wrap after a term was renamed), fall
   // back to a plain link into the glossary so nothing breaks in prose. This
