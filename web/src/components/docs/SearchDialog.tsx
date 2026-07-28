@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import { Search } from "lucide-react";
 import type MiniSearch from "minisearch";
 import { useLang, useT, pathForLang } from "@/i18n";
+import { canonicalPath } from "@/site";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { allNavItems, kindLabel, KIND_DOT } from "@/lib/research/nav";
@@ -138,7 +139,7 @@ export function SearchDialog() {
     (url: string) => {
       setOpen(false);
       setQuery("");
-      void navigate(pathForLang(url, lang));
+      void navigate(canonicalPath(pathForLang(url, lang)));
     },
     [navigate, lang],
   );
