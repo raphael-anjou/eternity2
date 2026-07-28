@@ -656,6 +656,28 @@ pub(crate) struct SearchState<'a> {
  /// returns (LIFO discipline). Replaces ~42% of the earlier CPU
     /// spent in System::alloc/dealloc inside the `prune` closure.
     pub(crate) undo_words_arena: Vec<u64>,
+    /// Reusable `UndoEntry` vectors, recycled across placements. Every
+    /// `place_and_propagate_opts` used to allocate one (or two) fresh
+    /// `Vec<UndoEntry>` per node; instead we pop a cleared buffer here
+    /// and `restore()` pushes it back after the recurse child returns.
+    /// place/restore nest in LIFO order, so this free-list never grows
+    /// past the max search depth.
+    pub(crate) undo_free: Vec<Vec<UndoEntry>>,
+    /// Per-depth reusable candidate-row buffer. `recurse` used to
+    /// `collect()` a fresh `Vec<u32>` of the position's domain on every
+    /// node; instead it borrows `snapshot_pool[depth]`. Indexed by
+    /// search depth so a node's buffer survives while its children (at
+    /// deeper depths) use their own. Length = cell_count + 1.
+    pub(crate) snapshot_pool: Vec<Vec<u32>>,
+    /// Per-depth reusable break-candidate buffer, paired with
+    /// `snapshot_pool`. Holds `(row_id, mismatch_side)` for the node's
+    /// value-loop; must outlive child recursion, hence per-depth.
+    pub(crate) cand_pool: Vec<Vec<(u32, u8)>>,
+    /// Reusable placement-info snapshot for the Step-8 propagators. The
+    /// `PropagatorContext` needs a per-cell `Option<PlacementInfo>`
+    /// slice; we rebuild it in place here instead of allocating a fresh
+    /// `Vec` per node. Only touched when an extra propagator is enabled.
+    pub(crate) extra_prop_placed: Vec<Option<PlacementInfo>>,
  /// total internal grid edges = (w-1)*h + w*(h-1). Cached
     /// because the bound prune queries it on every node.
     pub(crate) total_internal_edges: u32,
@@ -1021,6 +1043,10 @@ impl<'a> SearchState<'a> {
             undo_words_arena: Vec::with_capacity(
                 (n_pos as usize) * (n_pos as usize + 4) * words_per_pos,
             ),
+            undo_free: Vec::new(),
+            snapshot_pool: (0..=n_pos).map(|_| Vec::new()).collect(),
+            cand_pool: (0..=n_pos).map(|_| Vec::new()).collect(),
+            extra_prop_placed: Vec::new(),
             total_internal_edges: (puzzle.width - 1) * puzzle.height
                 + puzzle.width * (puzzle.height - 1),
             decided_edges: 0,
@@ -1305,7 +1331,9 @@ impl<'a> SearchState<'a> {
         // per cell (piece-uniqueness over all unplaced positions) +
         // four neighbour prunes + ~few AC-3 cascades. Sized to
         // `n_pos + 8` to cover the common path without overshooting.
-        let mut undo: Vec<UndoEntry> = Vec::with_capacity(self.puzzle.cell_count() as usize + 8);
+        // Drawn from the `undo_free` list so we reuse the allocation
+        // across nodes instead of mallocing one per placement.
+        let mut undo: Vec<UndoEntry> = self.take_undo();
 
         let (x, y) = self.puzzle.xy(pos);
         let w = self.puzzle.width;
@@ -1407,9 +1435,10 @@ impl<'a> SearchState<'a> {
         // Piece-uniqueness propagation (the "column" of classic DLX).
         // Bitset form: for every unplaced cell p, AND off any row in
         // piece_mask[just_placed_piece]. Save the dropped bits as a
-        // bit-diff for the undo log — no per-row iteration.
- // Cat-4b: same capacity argument as `undo` above.
-        let mut other_undo: Vec<UndoEntry> = Vec::with_capacity(self.puzzle.cell_count() as usize);
+        // bit-diff for the undo log — no per-row iteration. Entries go
+        // straight into `undo` (restore ORs them back in any order, so
+        // the neighbour-prune and piece-uniqueness entries need not be
+        // kept in separate vectors).
         let words_per_pos = self.words_per_pos;
         let pm_base = piece_idx * words_per_pos;
  // stack scratch buffer for the per-cell drop bits, sized
@@ -1452,16 +1481,14 @@ impl<'a> SearchState<'a> {
  // domain[p] changed; ac3_count[p] is stale.
                 self.mark_ac3_dirty(p as usize);
                 if survived == 0 {
-                    other_undo.push(entry);
+                    undo.push(entry);
                     self.stats.domain_wipeouts += 1;
-                    undo.extend(other_undo);
                     self.emit(sink, depth, EventBody::DomainWipeout { position: p });
                     return PropagationOutcome::Wipeout { undo };
                 }
-                other_undo.push(entry);
+                undo.push(entry);
             }
         }
-        undo.extend(other_undo);
 
         // AC-3 cascading propagation. Re-checks arc-consistency from the
         // freshly-placed cell outward until fixpoint. Each row r at
@@ -1492,11 +1519,17 @@ impl<'a> SearchState<'a> {
         PropagationOutcome::Ok { undo }
     }
 
-    fn snapshot_placement_info(&self) -> Vec<Option<PlacementInfo>> {
-        self.placed.iter().map(|p| p.map(|row_id| {
-            let r = self.rows[row_id as usize];
-            PlacementInfo { edges_after_rotation: r.edges }
-        })).collect()
+    /// Rebuild the reusable placement-info snapshot in place. Disjoint
+    /// field borrows (`placed`/`rows` shared, `extra_prop_placed` mut)
+    /// let this reuse the buffer's allocation across nodes.
+    fn refresh_extra_prop_placed(&mut self) {
+        let placed = &self.placed;
+        let rows = &self.rows;
+        let out = &mut self.extra_prop_placed;
+        out.clear();
+        out.extend(placed.iter().map(|p| {
+            p.map(|row_id| PlacementInfo { edges_after_rotation: rows[row_id as usize].edges })
+        }));
     }
 
     /// AC-3 cascading propagation. Maintains arc-consistency across
@@ -1786,7 +1819,7 @@ impl<'a> SearchState<'a> {
         out
     }
 
-    fn run_extra_propagators(&self, depth: u32) -> PropagatorResult {
+    fn run_extra_propagators(&mut self, depth: u32) -> PropagatorResult {
         if !self.config.propagators.class_balance
             && !self.config.propagators.parity
             && !self.config.propagators.island
@@ -1803,10 +1836,10 @@ impl<'a> SearchState<'a> {
                 return PropagatorResult::Ok;
             }
         }
-        let placed_info = self.snapshot_placement_info();
+        self.refresh_extra_prop_placed();
         let ctx = PropagatorContext {
             puzzle: self.puzzle,
-            placed: &placed_info,
+            placed: &self.extra_prop_placed,
             used_pieces: &self.used,
             domain_bits: &self.domain_bits,
             words_per_pos: self.words_per_pos,
@@ -1848,7 +1881,17 @@ impl<'a> SearchState<'a> {
         PropagatorResult::Ok
     }
 
-    pub(crate) fn restore(&mut self, undo: Vec<UndoEntry>) {
+    /// Pop a cleared `UndoEntry` buffer from the free-list, or allocate
+    /// one sized for the worst-case per-placement undo log. Paired with
+    /// the recycle at the end of `restore`.
+    #[inline]
+    pub(crate) fn take_undo(&mut self) -> Vec<UndoEntry> {
+        self.undo_free.pop().unwrap_or_else(|| {
+            Vec::with_capacity(self.puzzle.cell_count() as usize + 8)
+        })
+    }
+
+    pub(crate) fn restore(&mut self, mut undo: Vec<UndoEntry>) {
         let words_per_pos = self.words_per_pos;
         // Track the lowest arena offset we need to keep — everything
         // above it was reserved by these entries and is safe to drop.
@@ -1885,10 +1928,14 @@ impl<'a> SearchState<'a> {
         for entry in &undo {
             self.mark_ac3_dirty(entry.pos as usize);
         }
-        drop(undo);
         if let Some(keep) = arena_keep {
             self.undo_words_arena.truncate(keep);
         }
+        // Recycle the buffer instead of dropping it — the next
+        // `take_undo` reuses this allocation (LIFO with the place/restore
+        // nesting keeps `undo_free` bounded by the search depth).
+        undo.clear();
+        self.undo_free.push(undo);
     }
 
     fn board_from_state(&self) -> Board {
@@ -2357,7 +2404,13 @@ impl<'a> SearchState<'a> {
             }
         };
 
-        let mut domain_snapshot: Vec<u32> = self.domain_iter(pos as usize).collect();
+        // Borrow this depth's reusable candidate buffer instead of
+        // allocating a fresh Vec per node. Recycled below once
+        // `break_candidates` has copied out what it needs.
+        let mut domain_snapshot: Vec<u32> =
+            std::mem::take(&mut self.snapshot_pool[depth as usize]);
+        domain_snapshot.clear();
+        domain_snapshot.extend(self.domain_iter(pos as usize));
         let reason = self.selection_reason();
         self.emit(sink, depth, EventBody::VariableSelected {
             position: pos,
@@ -2679,16 +2732,19 @@ impl<'a> SearchState<'a> {
         // exact match. Exact-match (mismatched-side = MAX) rows take
         // priority over relaxed ones; among relaxed, prefer rows that
         // satisfy more of the schedule.
-        let break_candidates: Vec<(u32, u8)> = if !self.is_break_index.is_empty()
-            && self.is_pos_break_index(pos)
-        {
+        // Borrow this depth's reusable candidate-pair buffer. It must
+        // outlive the value-loop below (which recurses into children), so
+        // it is pooled per depth rather than being a single scratch.
+        let mut break_candidates: Vec<(u32, u8)> =
+            std::mem::take(&mut self.cand_pool[depth as usize]);
+        break_candidates.clear();
+        if !self.is_break_index.is_empty() && self.is_pos_break_index(pos) {
             let n_rows = self.rows.len() as u32;
-            let mut admitted: Vec<(u32, u8)> = Vec::new();
             // First: include all currently-domained rows (exact match)
             // with side flag = MAX.
             let mut in_domain = std::collections::HashSet::new();
             for &r_id in &domain_snapshot {
-                admitted.push((r_id, u8::MAX));
+                break_candidates.push((r_id, u8::MAX));
                 in_domain.insert(r_id);
             }
             // Second: scan all rows for the relaxed-match candidates.
@@ -2715,17 +2771,21 @@ impl<'a> SearchState<'a> {
                         if let Some(nb_row_id) = self.placed[*nb as usize] {
                             let nb_edges = self.rows[nb_row_id as usize].edges;
                             if row.edges[*our_side] != nb_edges[*their_side] {
-                                admitted.push((r_id, *our_side as u8));
+                                break_candidates.push((r_id, *our_side as u8));
                                 break;
                             }
                         }
                     }
                 }
             }
-            admitted
         } else {
-            domain_snapshot.iter().map(|&r| (r, u8::MAX)).collect()
-        };
+            for &r in &domain_snapshot {
+                break_candidates.push((r, u8::MAX));
+            }
+        }
+        // `domain_snapshot` is no longer needed — recycle it to this
+        // depth's pool before the value-loop (and its child recursion).
+        self.snapshot_pool[depth as usize] = domain_snapshot;
 
         for &(row_id, mismatch_side) in &break_candidates {
             let row = self.rows[row_id as usize];
@@ -2791,6 +2851,10 @@ impl<'a> SearchState<'a> {
             self.undo_place(pos, row_id);
             self.restore_bits(pos as usize, &saved_bits);
         }
+        // Recycle the candidate buffer for this depth. (Early returns
+        // inside the loop above are rare terminal paths — solution found,
+        // timeout, cancel — so we don't bother recycling on those.)
+        self.cand_pool[depth as usize] = break_candidates;
         RecurseResult::Exhausted
     }
 
