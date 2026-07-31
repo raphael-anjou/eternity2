@@ -1586,3 +1586,57 @@ wall, two medians miscomputed against the committed run logs (12.5 not 14,
 4.5 not 5), a repro-tier field added to match the topic, and several French
 mistranslations and metaDescription parity gaps. Full build, style, i18n,
 parity, and 43 tests all green.
+
+## 2026-07-31 — Site quality audit: 179 findings and 14 programmes, backlogged
+
+A five-axis quality audit of the whole site (content, writing, animation,
+illustration, organization) ran as two adversarial workflows: 26 agents, six
+content readers over disjoint corpus slices and five craft slices over the
+rendered build, each paired with a verifier that reopened the cited files, plus
+four independent programme generators. The craft and IA passes drove a served
+production build with Playwright, including a figure census over all 184
+prerendered English pages. Output is a backlog, not a change:
+`research/audits/site-quality-backlog-2026-07-31.md` (179 findings, 133
+confirmed and 46 partial after verification, nothing refuted retained; 23
+proposed programmes merged to 14). No site content was edited.
+
+The three delivery failures the audit found, each with its measurement. First,
+the evidence is shipped folded shut: 73 of 140 English pages import no figure
+at all, and of the 76 `<Figure>` blocks that exist 55 are collapsible while
+`open` is used zero times, so a Playwright crawl finds `details[open]` = 0 on
+every page. Figure coverage is a time series, not a constant: the 1 July wave
+shipped a figure with every page, the 22 to 23 July waves shipped 69 to 100 per
+cent of pages without one, and 15 of the 29 why pages now carry no figure.
+Second, the corpus outgrew its own maps: walls-and-methods is stale by the
+twelve pages added after it, the door advertises three incompatible wall counts
+(three, four, thirteen), 18 pages have no inbound prose link including
+why-e2-is-hard, and nine build sub-hubs share a verbatim boilerplate paragraph.
+Third, the measurement layer stops one step short: the single-core benchmark
+committed 150 rows over 15 algorithms at one seed, one budget and a terminal
+score only, so nodes-to-plateau and time-to-score are not derivable at all.
+
+Findings verified by hand during synthesis, beyond the agents' own pass. The
+benchmark facility declares 17 solvers in `solvers.toml` and its README claims
+170 runs against 150 committed, with `producer` and `alns` never run, which is
+why the site data ships an empty `paradox` object. Only 11 distinct score
+vectors exist across the 15 algorithms: border_first_lcv equals
+rare_color_first, gacolor_ac3 equals gacolor_ac3_ns1 equals verhaard_preferred,
+and joe_depth150 equals joe_depth150_bp, bit-identical on all ten variants, so
+three ablation arms are either unwired or unreported nulls. The dark theme is
+compiled and unreachable: the custom variant and the full `.dark` palette are
+declared and 106 `dark:` utilities exist, and nothing in `src/` ever sets the
+class. The research manifest is 995 KB and is statically imported for all three
+languages by every wiki page, while the larger search indexes are correctly
+lazy. The subnav highlights Build a solver on the records and papers pages,
+which the section map assigns to History and community. The docs table of
+contents is built from MDX headings only, so the seven headings RecordsView
+renders never appear. And 243 first-person occurrences sit across 45 pages
+against the attribution-neutral rule the other 95 pages follow.
+
+Two agent claims were corrected rather than carried: the search index was
+reported as being on the critical path when `SearchDialog` imports it
+dynamically, and a rendered empty box was reported at 500 px when it is 816.
+Reproducibility kind: prose plus committed measurement scripts; every counted
+figure in the backlog is re-derivable from the working tree. The prior
+2026-07-17 content audit was treated as prior state and spot-checked, and its
+truncated-description cluster is confirmed fixed.
