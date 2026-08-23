@@ -143,6 +143,52 @@ export function meta({ location }: { location: { pathname: string } }) {
   // hub pages (their descriptions are long author bios / section blurbs).
   const trimmed = (description: string) => metaDescriptionFor({ description });
 
+  // BreadcrumbList structured data mirrors the visual trail (Research → section
+  // → page). Eligible for breadcrumb rich results and reinforces the site
+  // hierarchy to crawlers. `trail` is the ancestors BELOW /research (each a
+  // language-neutral site path plus its localized label); the Research root and
+  // the current page are added here so no caller can forget them.
+  //
+  // Every crumb URL is localized (pathForLang) and canonicalized: a /fr page
+  // must parent onto the /fr ancestors, not the English ones, or the breadcrumb
+  // contradicts the hreflang cluster and tells crawlers the translated trees
+  // hang off English. The leaf is the page's own canonical URL, so it always
+  // matches <link rel="canonical">.
+  // Label for an ancestor path, taken from the site's own data rather than a
+  // second hardcoded list: a real MDX page supplies its title, otherwise the
+  // nav section that owns the path does. Falls back to the last URL segment,
+  // which only happens if a hub loses its backing page.
+  const crumbLabel = (url: string): string =>
+    researchDoc(lang, url)?.title ??
+    findSection(lang, url)?.label ??
+    (url.split("/").pop() ?? url);
+
+  const breadcrumbLd = (
+    title: string,
+    trail: { name: string; url: string }[] = [],
+  ) => {
+    const crumbs = [
+      {
+        name: pick({ en: "Research", fr: "Recherche", es: "Investigación" }, lang),
+        url: canonicalUrl(pathForLang("/research", lang)),
+      },
+      ...trail.map((c) => ({ name: c.name, url: canonicalUrl(pathForLang(c.url, lang)) })),
+      { name: title, url: canonicalUrl(location.pathname) },
+    ];
+    return {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: crumbs.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: c.name,
+          item: c.url,
+        })),
+      },
+    };
+  };
+
   // A WebPage node carrying a route-generated hub's derived dateModified, so its
   // freshness signal matches the sitemap <lastmod>. Empty (no node) when the hub
   // aggregates no dated pages — a missing date beats a fabricated one.
@@ -162,27 +208,53 @@ export function meta({ location }: { location: { pathname: string } }) {
       : [];
 
   if (path === "/research/glossary")
-    return pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, trimmed(pick(GLOSSARY_DESC, lang)));
+    return [
+      ...pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, trimmed(pick(GLOSSARY_DESC, lang))),
+      breadcrumbLd(pick(GLOSSARY_TITLE, lang)),
+    ];
 
   if (path === "/research/build/reproduce")
-    return pack(pick(REPRODUCE_TITLE, lang) + SUFFIX, trimmed(pick(REPRODUCE_DESC, lang)));
+    return [
+      ...pack(pick(REPRODUCE_TITLE, lang) + SUFFIX, trimmed(pick(REPRODUCE_DESC, lang))),
+      // Lives under the "Build a solver" door, so it parents onto it.
+      breadcrumbLd(pick(REPRODUCE_TITLE, lang), [
+        { name: crumbLabel("/research/build"), url: "/research/build" },
+      ]),
+    ];
 
   const contribRoute = contributionRouteFor(path);
   if (contribRoute === "")
-    return pack(pick(BY_CONTRIB_TITLE, lang) + SUFFIX, trimmed(pick(BY_CONTRIB_DESC, lang)));
+    return [
+      ...pack(pick(BY_CONTRIB_TITLE, lang) + SUFFIX, trimmed(pick(BY_CONTRIB_DESC, lang))),
+      breadcrumbLd(pick(BY_CONTRIB_TITLE, lang), [
+        { name: crumbLabel("/research/lab"), url: "/research/lab" },
+      ]),
+    ];
   if (contribRoute !== null) {
     const m = contributionMeta(contribRoute, lang);
-    return pack(m.title + SUFFIX, trimmed(m.description));
+    return [
+      ...pack(m.title + SUFFIX, trimmed(m.description)),
+      breadcrumbLd(m.title, [
+        { name: crumbLabel("/research/lab"), url: "/research/lab" },
+        { name: pick(BY_CONTRIB_TITLE, lang), url: "/research/lab/experiments/by-contribution" },
+      ]),
+    ];
   }
 
   const topicSlug = topicSlugFor(path);
   if (topicSlug === "")
-    return pack(pick(TOPICS_TITLE, lang) + SUFFIX, trimmed(pick(TOPICS_DESC, lang)));
+    return [
+      ...pack(pick(TOPICS_TITLE, lang) + SUFFIX, trimmed(pick(TOPICS_DESC, lang))),
+      breadcrumbLd(pick(TOPICS_TITLE, lang)),
+    ];
   if (topicSlug !== null) {
     const topic = researchTopic(lang, topicSlug);
     if (topic)
       return [
         ...pack(topic.label + SUFFIX, trimmed(topic.description)),
+        breadcrumbLd(topic.label, [
+          { name: pick(TOPICS_TITLE, lang), url: "/research/topics" },
+        ]),
         ...webPageLd(topicUpdated(topicSlug)),
       ];
   }
@@ -202,7 +274,11 @@ export function meta({ location }: { location: { pathname: string } }) {
           },
           lang,
         );
-      return [...pack(author.name + SUFFIX, trimmed(desc)), ...webPageLd(authorUpdated(personSlug))];
+      return [
+        ...pack(author.name + SUFFIX, trimmed(desc)),
+        breadcrumbLd(author.name, [{ name: crumbLabel("/research/people"), url: "/research/people" }]),
+        ...webPageLd(authorUpdated(personSlug)),
+      ];
     }
   }
 
@@ -240,38 +316,17 @@ export function meta({ location }: { location: { pathname: string } }) {
       ? { author: { "@type": "Person", name: researchAuthor(lang, doc.author)?.name ?? doc.author } }
       : { author: { "@id": "https://eternity2.dev/#org" } }),
   };
-  // BreadcrumbList structured data mirrors the visual trail (Research →
-  // section → page). Eligible for breadcrumb rich results and reinforces the
-  // site hierarchy to crawlers. Built from the same findSection() chain the
-  // DocsShell breadcrumb renders, so the two never disagree. Every crumb URL is
-  // localized (pathForLang) and canonicalized: a /fr page must parent onto the
-  // /fr ancestors, not the English ones, or the breadcrumb contradicts the
-  // hreflang cluster and tells crawlers the translated trees hang off English.
+  // The section this page sits under ("Why it's hard", "Build a solver", …),
+  // from the same findSection() chain the DocsShell breadcrumb renders, so the
+  // structured data and the visible trail never disagree. A section hub is its
+  // own crumb leaf, so it contributes no ancestor.
   const section = findSection(lang, doc.url);
-  const crumbs: { name: string; url: string }[] = [
-    {
-      name: pick({ en: "Research", fr: "Recherche", es: "Investigación" }, lang),
-      url: canonicalUrl(pathForLang("/research", lang)),
-    },
-  ];
-  if (section && section.url !== doc.url) {
-    crumbs.push({ name: section.label, url: canonicalUrl(pathForLang(section.url, lang)) });
-  }
-  crumbs.push({ name: doc.title, url: pageUrl });
-  const ldBreadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: crumbs.map((c, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      name: c.name,
-      item: c.url,
-    })),
-  };
+  const trail =
+    section && section.url !== doc.url ? [{ name: section.label, url: section.url }] : [];
   return [
     ...pack(doc.title + SUFFIX, metaDesc),
     { tagName: "link", rel: "alternate", type: "text/markdown", href: absoluteUrl(mdRel) },
-    { "script:ld+json": ldBreadcrumb },
+    breadcrumbLd(doc.title, trail),
     { "script:ld+json": ldArticle },
   ];
 }
