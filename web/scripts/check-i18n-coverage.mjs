@@ -75,5 +75,57 @@ if (missing.length === 0) {
   }
   console.log(`\nThese render in English for ${LANG} readers until translated (fallback is intentional).`);
 }
-// Advisory only — never fail the build on partial translation.
+// ---------------------------------------------------------------------------
+// Content registries (JSON), checked EXACTLY rather than heuristically.
+//
+// The scan above only sees dictionaries written in src/*.tsx. The research
+// wiki also carries localized prose in JSON registries, and those feed page
+// titles, meta descriptions, H1s and the sidebar nav. A missing key there
+// falls back to English exactly as silently, but it is far more visible: it
+// puts English text on a translated PAGE, not just on one UI label.
+//
+// That is not hypothetical. topics.json and authors.json shipped with `en` and
+// `fr` only, which served English titles and bios on 20 Spanish pages and
+// leaked English topic labels into the sidebar of 23 more, unnoticed. These
+// files are small and fully parseable, so check every localized field for real.
+const REGISTRIES = [
+  { file: "content/research/topics.json", collection: "topics", fields: ["label", "description"] },
+  { file: "content/research/authors.json", collection: "authors", fields: ["tagline", "bio"] },
+  { file: "content/research/glossary.json", collection: "terms", fields: ["term", "definition"] },
+];
+
+console.log(`\n== content registry coverage for "${LANG}"\n`);
+const gaps = [];
+for (const reg of REGISTRIES) {
+  const abs = path.resolve(reg.file);
+  if (!fs.existsSync(abs)) continue;
+  const data = JSON.parse(fs.readFileSync(abs, "utf8"));
+  const items = Array.isArray(data) ? data : (data[reg.collection] ?? []);
+  let checked = 0;
+  let present = 0;
+  for (const item of items) {
+    for (const field of reg.fields) {
+      const val = item?.[field];
+      // Only fields that are actually localized objects (an `en` key) count:
+      // a plain string field is language-neutral by design.
+      if (!val || typeof val !== "object" || !("en" in val)) continue;
+      checked++;
+      if (LANG in val) present++;
+      else gaps.push(`${reg.file}: ${item.slug ?? item.term?.en ?? "?"} → ${field}`);
+    }
+  }
+  const pct = checked ? Math.round((present / checked) * 100) : 100;
+  const mark = present === checked ? "✓" : "⚠";
+  console.log(`  ${mark} ${reg.file}: ${present}/${checked} localized fields have "${LANG}" (${pct}%)`);
+}
+
+if (gaps.length > 0) {
+  console.log(`\n  ${gaps.length} registry field(s) missing "${LANG}", each of which renders ENGLISH on a translated page:`);
+  for (const g of gaps.slice(0, 40)) console.log(`    ⚠ ${g}`);
+  if (gaps.length > 40) console.log(`    … and ${gaps.length - 40} more`);
+}
+
+// Advisory only — never fail the build on partial translation. Adding a
+// language is deliberately incremental, and a hard gate would block the first
+// commit of every new language.
 process.exit(0);
