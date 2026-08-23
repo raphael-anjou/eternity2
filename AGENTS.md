@@ -17,6 +17,16 @@ user-facing tour and
   uses *unprefixed* paths (`allRoutePaths()`), while the sitemap applies
   `BASE_PATH` (`allRoutePaths(base)`) because it emits absolute URLs.
 
+- **Site-verification files must be committed to `public/`.** `BingSiteAuth.xml`
+  (Bing Webmaster Tools) and the IndexNow key `c7259bc712de2f2d86298cf28e768b82.txt`
+  prove domain ownership by being served from the site root. They live in
+  `web/public/` so the build copies them every deploy. A verification file
+  uploaded straight to the deployed branch instead is silently deleted by the
+  next deploy (the Pages artifact only contains what the build emits), which
+  unverifies the property without any warning. If you add a Google Search
+  Console HTML-file verification, commit it here too, or prefer the DNS TXT
+  method which no deploy can clobber.
+
 - **Crawler/SEO files live in two places.** `web/public/robots.txt` and
   `web/public/llms.txt` are static (copied verbatim to the build root).
   `sitemap.xml` is *generated* at build time — do not add a static one to
