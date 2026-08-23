@@ -8,6 +8,7 @@ import { pageMeta } from "@/seo";
 // dragged tray→board, board→board (swap), and board→tray (take back).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { PieceSvg } from "@/components/board/PieceSvg";
 import { Button } from "@/components/ui/button";
@@ -426,9 +427,13 @@ export default function Solve() {
   // causes (the effect would re-run, hit the guard, and fire its cleanup).
   useEffect(() => {
     if (!complete || finishedIn !== null || startedAt === null) return;
+    const seconds = (Date.now() - startedAt) / 1000;
+    // Fires exactly once per solve (guarded on finishedIn), so this is the
+    // clean "a human finished a puzzle" signal.
+    track("puzzle_solved", { size: puzzle?.width ?? 0, seconds: Math.round(seconds) });
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFinishedIn((Date.now() - startedAt) / 1000);
-  }, [complete, finishedIn, startedAt]);
+    setFinishedIn(seconds);
+  }, [complete, finishedIn, startedAt, puzzle]);
 
   // Once the human is done, race the machine. The solve is stepped across RAF
   // frames in small (~12ms) chunks rather than one synchronous burst: a hard

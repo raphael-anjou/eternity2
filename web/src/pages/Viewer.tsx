@@ -1,6 +1,7 @@
 import { pageMeta } from "@/seo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
+import { track } from "@/lib/analytics";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
@@ -320,6 +321,7 @@ export default function Viewer() {
 
   const copyUrl = (url: string) => {
     void navigator.clipboard.writeText(url);
+    track("board_shared", { format: url.includes("bucas") ? "bucas" : "canonical" });
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -327,6 +329,7 @@ export default function Viewer() {
   const saveImage = (kind: "svg" | "png") => {
     const svg = boardRef.current?.querySelector("svg");
     if (!svg) return;
+    track("board_exported", { format: kind });
     if (kind === "svg") downloadSvg(svg, boardName());
     else void downloadPng(svg, boardName());
   };
@@ -340,6 +343,7 @@ export default function Viewer() {
       // Auto-reveal the clue overlay when the loaded board carries hints, so a
       // pasted/shared hinted link shows its clues without a manual toggle.
       if ((decoded.hints?.length ?? 0) > 0) setShowHints(true);
+      track("board_imported", { size: `${decoded.width}x${decoded.height}` });
       setSearchParams(toOurParams(parseParams(params)), { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

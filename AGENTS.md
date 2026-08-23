@@ -27,17 +27,29 @@ user-facing tour and
   Console HTML-file verification, commit it here too, or prefer the DNS TXT
   method which no deploy can clobber.
 
-- **Crawler/SEO files live in two places.** `web/public/robots.txt` and
-  `web/public/llms.txt` are static (copied verbatim to the build root).
-  `sitemap.xml` is *generated* at build time — do not add a static one to
-  `public/`. The sitemap reads `VITE_SITE_ORIGIN`/`BASE_PATH`; `robots.txt`
-  hardcodes the `eternity2.dev` sitemap URL.
+- **Crawler/SEO files: static vs generated.** Only `web/public/robots.txt` is
+  static (copied verbatim to the build root), alongside the ownership-proof
+  files above. `sitemap.xml`, `llms.txt` and `llms-full.txt` are all *generated*
+  at build time — do not add static copies to `public/`. The sitemap reads
+  `VITE_SITE_ORIGIN`/`BASE_PATH`; `robots.txt` hardcodes the `eternity2.dev`
+  sitemap URL.
 
-- **`llms.txt` + research `.md` siblings.** `public/llms.txt` is the static
-  index. Research pages (authored in MDX) additionally get a raw-markdown
-  sibling emitted at build time by `plugins/research-content.ts` — same URL
-  with `.md` appended, EN + FR. Non-research pages remain TSX-only (no `.md`
-  stubs for them; prerendered HTML is clean enough).
+- **`llms.txt` + research `.md` siblings.** `plugins/research-content.ts` emits
+  all three machine-readable artifacts at build time: `llms.txt` (the curated
+  header — the `LLMS_HEADER` constant in that plugin, NOT a file in `public/` —
+  followed by a generated map of every research page), `llms-full.txt` (the whole
+  corpus in one file), and a raw-markdown sibling per research page at the same
+  URL with `.md` appended. The `.md` siblings are **English only**; the FR/ES
+  pages have no `.md` twin. Non-research pages remain TSX-only (no `.md` stubs
+  for them; prerendered HTML is clean enough).
+
+- **Every URL these emit must be canonical.** Internal links in `llms.txt`,
+  in `llms-full.txt` and in the `.md` siblings go through the plugin's
+  `canonical()` helper (trailing slash) so an agent following them never pays a
+  301. Same rule as the app's `canonicalPath` in `web/src/site.ts`. Known gap:
+  relative links written inside MDX prose (`](/research/x)`) are still emitted
+  verbatim into the `.md` exports and so still redirect; fixing that needs a
+  markdown-aware rewrite, not a regex over prose.
 
 - **`ssr: false` build runs twice.** Vite emits a client bundle and a temporary
   server bundle (removed afterward). Build plugins that write files must gate on

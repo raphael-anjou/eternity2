@@ -4,6 +4,7 @@ import { pageMeta } from "@/seo";
 // (placements + backtracks) run per second.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { useRunWhileVisible } from "@/lib/useRunWhileVisible";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
@@ -453,7 +454,13 @@ export default function Watch() {
               <div className="flex gap-2">
                 <Button
                   className="flex-1"
-                  onClick={() => setRunning((r) => !r)}
+                  onClick={() =>
+                    setRunning((r) => {
+                      // Only the start edge is a "run"; pausing is not.
+                      if (!r) track("solver_run", { size });
+                      return !r;
+                    })
+                  }
                   disabled={!engineReady || report?.status !== "running"}
                 >
                   {running ? t.pause : t.run}

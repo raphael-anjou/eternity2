@@ -5,7 +5,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { useLang, useT, pathForLang, preferredLang, langDef, LANGS } from "@/i18n";
 import { canonicalPath } from "@/site";
 import { cn } from "@/lib/utils";
-import { loadAnalyticsWhenIdle } from "@/lib/analytics";
+import { loadAnalyticsWhenIdle, trackPageView } from "@/lib/analytics";
 
 const T = {
   en: {
@@ -105,16 +105,37 @@ const T = {
   },
 };
 
+// Where FirstVisitRedirect would send this location, or null if it stays put.
+// Shared by the redirect itself and by PageTracking, so the two can never
+// disagree about whether a view is real or about to be redirected away.
+function redirectTarget(pathname: string, search: string): string | null {
+  // Only the exact bare root with no query is eligible; any other path already
+  // carries its own language/segments and is left untouched.
+  if (pathname !== "/" || search.length !== 0) return null;
+  const { prefix } = langDef(preferredLang());
+  return prefix ? `/${prefix}` : null;
+}
+
 // GA4 page views per route (the root.tsx config disables automatic ones).
 function PageTracking() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   useEffect(() => {
-    window.gtag?.("event", "page_view", {
-      page_path: pathname,
-      page_location: window.location.href,
-      page_title: document.title,
-    });
-  }, [pathname]);
+    // A location we are about to redirect away from is not a page view: without
+    // this, a French visitor landing on "/" would report a phantom 0-second view
+    // of "/" and steal the landing-page attribution from "/fr".
+    if (redirectTarget(pathname, search)) return;
+    // Canonical (trailing-slash) path so GA's page paths match the canonical
+    // URLs, the sitemap and Search Console instead of splitting each page into
+    // slashed and unslashed variants. `search` is included because a query is a
+    // genuinely different view here (/viewer?board=… is one specific shared
+    // board, and the URL printed on physical puzzle sheets). `hash` is NOT: it
+    // only scrolls within a page.
+    trackPageView(
+      canonicalPath(pathname) + search,
+      window.location.href,
+      document.title,
+    );
+  }, [pathname, search]);
   return null;
 }
 
@@ -128,15 +149,8 @@ function PageTracking() {
 // navigation away from "/" simply makes this component render null.
 function FirstVisitRedirect() {
   const { pathname, search } = useLocation();
-  // Only the exact bare root with no query is eligible; any other path already
-  // carries its own language/segments and is left untouched.
-  const eligible = pathname === "/" && search.length === 0;
-  if (eligible) {
-    const preferred = preferredLang();
-    const def = langDef(preferred);
-    if (def.prefix) return <Navigate to={`/${def.prefix}`} replace />;
-  }
-  return null;
+  const to = redirectTarget(pathname, search);
+  return to ? <Navigate to={to} replace /> : null;
 }
 
 // Routes that actually use the WebAssembly engine (piece matching / solving).
