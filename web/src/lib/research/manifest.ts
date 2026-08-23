@@ -110,3 +110,10 @@ export function topicUpdated(slug: string): string | undefined {
 export function authorUpdated(slug: string): string | undefined {
   return newestUpdated(authorDocs("en", slug));
 }
+
+/** Derived last-update date for a by-contribution hub: the newest `updated`
+ *  among the pages declaring that contribution kind. Same reasoning as
+ *  topicUpdated: the hub is route-generated, so it inherits its freshness. */
+export function contributionUpdated(kind: string): string | undefined {
+  return newestUpdated(researchDocs("en").filter((d) => d.contribution === kind));
+}

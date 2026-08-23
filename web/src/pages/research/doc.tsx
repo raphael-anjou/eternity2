@@ -25,9 +25,10 @@ import {
   researchAuthor,
   topicUpdated,
   authorUpdated,
+  contributionUpdated,
   metaDescriptionFor,
 } from "@/lib/research/manifest";
-import { findSection } from "@/lib/research/nav";
+import { findSection, topicMembers } from "@/lib/research/nav";
 import { RESEARCH_REDIRECTS } from "@/lib/research/redirects";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { TopicHub, TopicsIndex } from "@/components/docs/TopicPages";
@@ -38,6 +39,10 @@ import { ContributionIndex, ContributionHub } from "@/components/docs/Contributi
 import {
   contributionRouteFor,
   contributionMeta,
+  contributionMembers,
+  contributionLabel,
+  CONTRIBUTION_ORDER,
+  BY_CONTRIBUTION_BASE,
 } from "@/lib/research/contribution";
 import { mdxComponents } from "@/components/docs/mdx-map";
 import { LocalizedLink } from "@/components/LocalizedLink";
@@ -104,6 +109,12 @@ const REPRODUCE_DESC = {
   fr: "Chaque résultat de recherche Eternity II livré avec une commande de reproduction, en un tableau triable : la commande, si elle relance la recherche ou revérifie seulement un plateau enregistré, et le coût attendu en temps réel et cœur-heures.",
   es: "Cada resultado de investigación de Eternity II que incluye un comando de reproducción, en una tabla ordenable: el comando, si vuelve a ejecutar la búsqueda o solo reverifica un tablero guardado, y el coste esperado en tiempo real y horas-núcleo.",
 } as const;
+
+// The registry's "no institution" affiliation value, in the languages it is
+// actually written in (authors.json carries en + fr; es falls back to en).
+// These are not organizations, so they never become an affiliation node in the
+// Person structured data below.
+const INDEPENDENT = new Set(["Independent", "Indépendant"]);
 
 const BY_CONTRIB_TITLE = {
   en: "By contribution",
@@ -189,28 +200,63 @@ export function meta({ location }: { location: { pathname: string } }) {
     };
   };
 
-  // A WebPage node carrying a route-generated hub's derived dateModified, so its
-  // freshness signal matches the sitemap <lastmod>. Empty (no node) when the hub
-  // aggregates no dated pages — a missing date beats a fabricated one.
-  const webPageLd = (updated: string | undefined) =>
-    updated
-      ? [
-          {
-            "script:ld+json": {
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              url: canonicalUrl(location.pathname),
-              dateModified: updated,
-              inLanguage: lang,
-            },
-          },
-        ]
-      : [];
+  // The properties every route-generated hub's primary node shares: it is the
+  // page itself, in this language, hung off the same site graph the TechArticle
+  // branch below references. `updated` is the hub's derived freshness date
+  // (newest `updated` among the pages it aggregates) and is omitted rather than
+  // faked when the hub aggregates nothing dated.
+  const hubBase = (updated?: string) => ({
+    "@context": "https://schema.org",
+    url: canonicalUrl(location.pathname),
+    inLanguage: lang,
+    isPartOf: { "@id": "https://eternity2.dev/#website" },
+    publisher: { "@id": "https://eternity2.dev/#org" },
+    ...(updated ? { dateModified: updated } : {}),
+  });
+
+  // A hub that lists other pages is a CollectionPage, and the pages it lists are
+  // its mainEntity. The member URLs come from the same enumeration the component
+  // renders, so the structured data and the visible list can never disagree.
+  const collectionLd = (
+    name: string,
+    description: string,
+    members: readonly { url: string; title: string }[],
+    updated?: string,
+  ) => ({
+    "script:ld+json": {
+      ...hubBase(updated),
+      "@type": "CollectionPage",
+      name,
+      description,
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: members.length,
+        itemListElement: members.map((m, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: m.title,
+          url: canonicalUrl(pathForLang(m.url, lang)),
+        })),
+      },
+    },
+  });
 
   if (path === "/research/glossary")
     return [
       ...pack(pick(GLOSSARY_TITLE, lang) + SUFFIX, trimmed(pick(GLOSSARY_DESC, lang))),
       breadcrumbLd(pick(GLOSSARY_TITLE, lang)),
+      // DefinedTermSet is what this page actually is. The 64 DefinedTerm members
+      // are deliberately NOT inlined: they would restate every definition already
+      // in the HTML, tripling the page's structured data for a type Google renders
+      // no rich result for. The set node alone types the entity correctly.
+      {
+        "script:ld+json": {
+          ...hubBase(),
+          "@type": "DefinedTermSet",
+          name: pick(GLOSSARY_TITLE, lang),
+          description: trimmed(pick(GLOSSARY_DESC, lang)),
+        },
+      },
     ];
 
   if (path === "/research/build/reproduce")
@@ -220,6 +266,16 @@ export function meta({ location }: { location: { pathname: string } }) {
       breadcrumbLd(pick(REPRODUCE_TITLE, lang), [
         { name: crumbLabel("/research/build"), url: "/research/build" },
       ]),
+      // The members are rows in a reproduce-command table, not pages, so this is
+      // a plain WebPage rather than a CollectionPage over member URLs.
+      {
+        "script:ld+json": {
+          ...hubBase(),
+          "@type": "WebPage",
+          name: pick(REPRODUCE_TITLE, lang),
+          description: trimmed(pick(REPRODUCE_DESC, lang)),
+        },
+      },
     ];
 
   const contribRoute = contributionRouteFor(path);
@@ -229,6 +285,15 @@ export function meta({ location }: { location: { pathname: string } }) {
       breadcrumbLd(pick(BY_CONTRIB_TITLE, lang), [
         { name: crumbLabel("/research/lab"), url: "/research/lab" },
       ]),
+      // An index of indexes: its members are the nine per-kind hubs.
+      collectionLd(
+        pick(BY_CONTRIB_TITLE, lang),
+        trimmed(pick(BY_CONTRIB_DESC, lang)),
+        CONTRIBUTION_ORDER.map((k) => ({
+          url: `${BY_CONTRIBUTION_BASE}/${k}`,
+          title: contributionLabel(k, lang),
+        })),
+      ),
     ];
   if (contribRoute !== null) {
     const m = contributionMeta(contribRoute, lang);
@@ -238,6 +303,12 @@ export function meta({ location }: { location: { pathname: string } }) {
         { name: crumbLabel("/research/lab"), url: "/research/lab" },
         { name: pick(BY_CONTRIB_TITLE, lang), url: "/research/lab/experiments/by-contribution" },
       ]),
+      collectionLd(
+        m.title,
+        trimmed(m.description),
+        contributionMembers(lang, contribRoute),
+        contributionUpdated(contribRoute),
+      ),
     ];
   }
 
@@ -255,7 +326,12 @@ export function meta({ location }: { location: { pathname: string } }) {
         breadcrumbLd(topic.label, [
           { name: pick(TOPICS_TITLE, lang), url: "/research/topics" },
         ]),
-        ...webPageLd(topicUpdated(topicSlug)),
+        collectionLd(
+          topic.label,
+          trimmed(topic.description),
+          topicMembers(lang, topicSlug),
+          topicUpdated(topicSlug),
+        ),
       ];
   }
 
@@ -274,10 +350,42 @@ export function meta({ location }: { location: { pathname: string } }) {
           },
           lang,
         );
+      // A researcher hub IS a profile, so ProfilePage with the Person as its
+      // mainEntity is the accurate typing (and the shape Google documents).
+      // Every Person property below is read from the registry: an absent bio,
+      // affiliation or link set simply omits its property rather than inventing
+      // one. `links` are outbound identities (GitHub, ORCID, groups.io), which
+      // is exactly what sameAs means.
+      const person: Record<string, unknown> = {
+        "@type": "Person",
+        name: author.name,
+        url: canonicalUrl(location.pathname),
+        ...(author.bio ? { description: author.bio } : {}),
+        // `tagline` is deliberately not mapped to jobTitle: the registry's
+        // taglines name what the person contributed ("The 470 record;
+        // open-source solver"), not a role, so jobTitle would misstate them.
+        ...(author.tagline ? { disambiguatingDescription: author.tagline } : {}),
+        // Only a real institution becomes an affiliation node. The registry
+        // writes "Independent" (localized) for everyone with no institution,
+        // and emitting that as an Organization would assert a body that does
+        // not exist, so it is dropped rather than translated into a fiction.
+        ...(author.affiliation && !INDEPENDENT.has(author.affiliation)
+          ? { affiliation: { "@type": "Organization", name: author.affiliation } }
+          : {}),
+        ...(author.links.length > 0 ? { sameAs: author.links.map((l) => l.url) } : {}),
+      };
       return [
         ...pack(author.name + SUFFIX, trimmed(desc)),
         breadcrumbLd(author.name, [{ name: crumbLabel("/research/people"), url: "/research/people" }]),
-        ...webPageLd(authorUpdated(personSlug)),
+        {
+          "script:ld+json": {
+            ...hubBase(authorUpdated(personSlug)),
+            "@type": "ProfilePage",
+            name: author.name,
+            description: trimmed(desc),
+            mainEntity: person,
+          },
+        },
       ];
     }
   }
@@ -403,8 +511,9 @@ export default function ResearchDocPage() {
   if (contribRoute !== null) return <ContributionHub kind={contribRoute} />;
 
   const doc = researchDoc(lang, path);
-  const Content = doc ? pages.get(`/content/research/${doc.file}`) : undefined;
-  if (!doc || !Content) return <NotFound />;
+  const key = doc ? `/content/research/${doc.file}` : undefined;
+  const Content = key ? pages.get(key) : undefined;
+  if (!doc || !key || !Content) return <NotFound />;
   // The people gallery is a real content page, but it heads the People tab and
   // its person hubs, so it shows the alphabetical contributor rail (not the
   // section rail) to match them.
