@@ -243,16 +243,19 @@ export function meta({ location }: { location: { pathname: string } }) {
   // BreadcrumbList structured data mirrors the visual trail (Research →
   // section → page). Eligible for breadcrumb rich results and reinforces the
   // site hierarchy to crawlers. Built from the same findSection() chain the
-  // DocsShell breadcrumb renders, so the two never disagree.
+  // DocsShell breadcrumb renders, so the two never disagree. Every crumb URL is
+  // localized (pathForLang) and canonicalized: a /fr page must parent onto the
+  // /fr ancestors, not the English ones, or the breadcrumb contradicts the
+  // hreflang cluster and tells crawlers the translated trees hang off English.
   const section = findSection(lang, doc.url);
   const crumbs: { name: string; url: string }[] = [
     {
       name: pick({ en: "Research", fr: "Recherche", es: "Investigación" }, lang),
-      url: absoluteUrl("/research"),
+      url: canonicalUrl(pathForLang("/research", lang)),
     },
   ];
   if (section && section.url !== doc.url) {
-    crumbs.push({ name: section.label, url: absoluteUrl(section.url) });
+    crumbs.push({ name: section.label, url: canonicalUrl(pathForLang(section.url, lang)) });
   }
   crumbs.push({ name: doc.title, url: pageUrl });
   const ldBreadcrumb = {

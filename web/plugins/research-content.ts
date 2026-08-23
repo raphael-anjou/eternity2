@@ -128,16 +128,18 @@ function stripJsxIslands(md: string): string {
  *  heading, or "" if there are none. Used to fold the two big blocks the docs
  *  shell renders around the MDX body — the hub's child pages and the related
  *  rail — into the raw-markdown export, which otherwise only carries the intro
- *  prose. Links are absolute site paths so the .md stays navigable on its own. */
+ *  prose. Links are absolute site paths in the canonical trailing-slash form the
+ *  host serves at 200, so an agent following them never pays a redirect hop. */
 function mdLinkList(
   heading: string,
   items: ResearchDoc[],
   origin: string,
   base: string,
+  canonical: (p: string) => string,
 ): string {
   if (items.length === 0) return "";
   const lines = items.map((d) => {
-    const url = `${origin}${base}${d.url}`;
+    const url = `${origin}${base}${canonical(d.url)}`;
     const blurb = d.description ? ` — ${d.description.trim().replace(/\s+/g, " ")}` : "";
     return `- [${d.title}](${url})${blurb}`;
   });
@@ -248,12 +250,12 @@ Key facts an assistant should know when answering about this site:
 ## Top-level pages
 
 - [Home]({ORIGIN}/): overview of the puzzle and the site's sections.
-- [The Puzzle]({ORIGIN}/puzzle): history, piece-set anatomy, all 256 pieces, the 22 motifs and their rarity, the 5 official clues, the record table, and complexity numbers.
-- [Algorithms]({ORIGIN}/algorithms): DFS and backtracking from scratch, with a scrubbable slow-motion demo, the exponential wall, live binary demos, and difficulty charts measured by the engine.
-- [Board Viewer]({ORIGIN}/viewer): import/export of e2.bucas.name URLs, live scoring, conflict marks, a verification card, famous boards, and a solvable-board generator.
-- [Converter]({ORIGIN}/convert): paste any board format (URL, board_edges, params) and read back every other format with a live preview and score.
-- [Playground]({ORIGIN}/playground): interactive in-browser solver demos ([solve]({ORIGIN}/playground/solve), [watch]({ORIGIN}/playground/watch), [paths]({ORIGIN}/playground/paths)).
-- [Status]({ORIGIN}/status) and [Is it a scam?]({ORIGIN}/is-it-a-scam): the plain answers to "is it solved" and "is the prize real".
+- [The Puzzle]({ORIGIN}/puzzle/): history, piece-set anatomy, all 256 pieces, the 22 motifs and their rarity, the 5 official clues, the record table, and complexity numbers.
+- [Algorithms]({ORIGIN}/algorithms/): DFS and backtracking from scratch, with a scrubbable slow-motion demo, the exponential wall, live binary demos, and difficulty charts measured by the engine.
+- [Board Viewer]({ORIGIN}/viewer/): import/export of e2.bucas.name URLs, live scoring, conflict marks, a verification card, famous boards, and a solvable-board generator.
+- [Converter]({ORIGIN}/convert/): paste any board format (URL, board_edges, params) and read back every other format with a live preview and score.
+- [Playground]({ORIGIN}/playground/): interactive in-browser solver demos ([solve]({ORIGIN}/playground/solve/), [watch]({ORIGIN}/playground/watch/), [paths]({ORIGIN}/playground/paths/)).
+- [Status]({ORIGIN}/status/) and [Is it a scam?]({ORIGIN}/is-it-a-scam/): the plain answers to "is it solved" and "is the prize real".
 - [Repository]({{REPO}}): the Rust to WASM engine, the static site, the contribution guide.
 `;
 
@@ -291,8 +293,8 @@ function buildLlmsTxt(
   }
   parts.push(
     `\n## Optional\n`,
-    `- [French home](${origin}${base}/fr): the whole site mirrored under /fr; skip unless answering in French.`,
-    `- [Spanish home](${origin}${base}/es): the whole site mirrored under /es; skip unless answering in Spanish.`,
+    `- [French home](${origin}${base}/fr/): the whole site mirrored under /fr; skip unless answering in French.`,
+    `- [Spanish home](${origin}${base}/es/): the whole site mirrored under /es; skip unless answering in Spanish.`,
     `- [Sitemap](${origin}${base}/sitemap.xml): machine-readable list of every page.`,
     "",
   );
@@ -310,7 +312,7 @@ function buildLlmsFull(
   const head = [
     `# Eternity II research corpus (eternity2.dev) — full text`,
     "",
-    `> Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${origin}${base}/research. The map with links is at ${origin}${base}/llms.txt.`,
+    `> Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${origin}${base}/research/. The map with links is at ${origin}${base}/llms.txt.`,
     "",
     "---",
     "",
@@ -460,8 +462,8 @@ export function researchContent(): Plugin {
           // source prose never contains: a hub's child pages (as cards) and the
           // related rail. Fold both into the export so the .md carries the same
           // navigation an agent sees on the page, not just the intro prose.
-          const children = mdLinkList("Pages in this section", hubChildren(doc, allDocs), origin, base);
-          const related = mdLinkList("Related", relatedDocs(doc, allDocs), origin, base);
+          const children = mdLinkList("Pages in this section", hubChildren(doc, allDocs), origin, base, canonical);
+          const related = mdLinkList("Related", relatedDocs(doc, allDocs), origin, base, canonical);
           const body = header + stripMdxEsm(raw.body) + children + related + "\n";
           const target = path.join(outDir, relFile);
           mkdirSync(path.dirname(target), { recursive: true });
