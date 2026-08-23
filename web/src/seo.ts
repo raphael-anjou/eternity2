@@ -269,10 +269,14 @@ const PAGES: Record<string, Dict<Entry>> = {
   },
 };
 
-// FAQ structured data for the two question-titled pages. Both answer a real
-// query people type ("has Eternity II been solved?", "is it a scam?"), so a
-// FAQPage node makes them eligible for FAQ rich results and gives AI answers a
-// clean, sourced Q&A to lift. Answers mirror the sourced facts on the pages
+// FAQ structured data for the question-titled pages. Both answer a real query
+// people type ("has Eternity II been solved?", "is it a scam?").
+//
+// Google DEPRECATED FAQ rich results in May 2026, so this no longer earns a
+// SERP treatment there and never will again. It stays because it is still read
+// by Bing and by AI answer engines, which get a clean, sourced Q&A to lift
+// rather than having to parse it out of the prose. Do not invest further in it
+// expecting a Google rich result. Answers mirror the sourced facts on the pages
 // themselves; keep them in sync when a record changes.
 type QA = { q: string; a: string };
 const PAGE_FAQ: Partial<Record<keyof typeof PAGES, Dict<QA[]>>> = {
@@ -416,6 +420,10 @@ function faqLd(pageKey: keyof typeof PAGES, lang: Lang) {
     "script:ld+json": {
       "@context": "https://schema.org",
       "@type": "FAQPage",
+      // Every other page-level node carries the page language; without it here
+      // a consumer reading the FAQ alone cannot tell which of the three
+      // language variants it belongs to.
+      inLanguage: lang,
       mainEntity: qa.map((item) => ({
         "@type": "Question",
         name: item.q,
