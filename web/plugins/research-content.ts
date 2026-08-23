@@ -26,6 +26,7 @@ import {
   type Lang,
 } from "../content.config";
 import type { ResearchDoc } from "../src/lib/research/types";
+import { canonicalizeExportLinks } from "../src/lib/research/export-links";
 
 /** Strip ESM import lines and export blocks (multi-line, brace/bracket
  *  balanced) from an MDX body, then reduce the remaining JSX component islands
@@ -591,6 +592,17 @@ export function researchContent(): Plugin {
         const langDir = prefix;
         const localize = (p: string) => `${langUrl}${p}`;
 
+        // Which language-neutral paths genuinely render in this language, so a
+        // prose link is prefixed only when the twin exists (otherwise it keeps
+        // the English URL, which is a real page rather than a translated 404).
+        // Same predicate the sitemap and hreflang use.
+        const translatedPaths =
+          lang === "en" ? new Set<string>() : new Set(researchPagePathsFor(lang).map((p) => `/${p}`));
+        const linkOpts = {
+          langPrefix: prefix,
+          hasTranslation: (p: string) => translatedPaths.has(p),
+        };
+
         const allDocs = buildManifest(lang).filter((d) => lang === "en" || d.translated);
         const entries = scanResearchContent();
         // Collected as we write each .md, then folded into llms-full.txt so the
@@ -632,7 +644,13 @@ export function researchContent(): Plugin {
           const related = mdLinkList(
             LABELS[lang].related, relatedDocs(doc, allDocs), origin, base, canonical, localize,
           );
-          const body = header + stripMdxEsm(raw.body) + children + related + "\n";
+          // The prose links the MDX author wrote are emitted verbatim, so they
+          // are the one part of the export the header/rail canonicalization
+          // above does not reach: slashless (one 301 hop per link) and, in a
+          // translated export, still pointing into the English tree. Fix both
+          // here, skipping every code region so authored literals survive.
+          const prose = canonicalizeExportLinks(stripMdxEsm(raw.body), linkOpts);
+          const body = header + prose + children + related + "\n";
           const target = path.join(outDir, relFile);
           mkdirSync(path.dirname(target), { recursive: true });
           writeFileSync(target, body);
