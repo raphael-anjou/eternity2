@@ -12,19 +12,26 @@ type Entry = { title: string; description: string };
 const SUFFIX = " · Eternity II";
 
 // Default page metadata, used as the fallback for any unknown page key.
+// The homepage is what ranks for every head term ("eternity 2 puzzle",
+// "eternity ii puzzle", and their Spanish twins), so its title carries the
+// whole query's intent. Search Console shows that intent is fused: people
+// asking "what is it" and "has it been solved" land on the SAME queries, and
+// the pages outranking us say the answer in the title ("Still Unsolved!!").
+// So the title states the answer (unsolved) and the hook ($2M) rather than
+// implying them, while staying under ~60 chars so it is not truncated.
 const HOME_PAGE: Dict<Entry> = {
   en: {
-    title: "Eternity II: the puzzle that beat everyone",
+    title: "Eternity II: the $2,000,000 puzzle nobody has solved",
     description:
       "Play the Eternity II puzzle online, free and in your browser: solve it by hand, watch real solvers run, learn the algorithms, explore the research. The $2,000,000 puzzle nobody ever solved.",
   },
   fr: {
-    title: "Eternity II : le puzzle que personne n'a battu",
+    title: "Eternity II : le puzzle à 2 000 000 $ jamais résolu",
     description:
       "Jouez au puzzle Eternity II en ligne, gratuitement dans votre navigateur : résolvez-le à la main, regardez de vrais solveurs, découvrez les algorithmes et la recherche. Le casse-tête à 2 000 000 $ resté invaincu.",
   },
   es: {
-    title: "Eternity II: el puzzle que venció a todos",
+    title: "Eternity II: el puzzle de 2 000 000 $ sin resolver",
     description:
       "Juega al puzzle Eternity II en línea, gratis y en tu navegador: resuélvelo a mano, mira correr solucionadores reales, aprende los algoritmos y explora la investigación. El puzzle de 2 000 000 $ que nadie llegó a resolver.",
   },

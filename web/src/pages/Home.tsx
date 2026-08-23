@@ -24,8 +24,15 @@ const T = {
     heroLede: (
       <>
         Eternity II looks like a children's jigsaw: 256 square pieces, match the colors. Launched
-        in 2007 with a <strong>$2 million</strong> prize, it has never been solved: not by people,
-        not by supercomputers. This site lets you <em>feel</em> why, right in your browser.
+        in 2007 with a <strong>$2 million</strong> prize, it has{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/status">
+          never been solved
+        </Link>
+        : not by people, not by supercomputers, and{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/is-it-a-scam">
+          it is not a scam
+        </Link>
+        . This site lets you <em>feel</em> why, right in your browser.
       </>
     ),
     ctaStart: "Start here",
@@ -79,9 +86,15 @@ const T = {
       <>
         Eternity II a tout d'un puzzle pour enfants : 256 pièces carrées, et des couleurs à faire
         coïncider. Lancé en 2007, doté d'un prix de{" "}
-        <strong>2 millions de dollars</strong>, il n'a pourtant jamais été résolu : ni par l'homme,
-        ni par les superordinateurs. Ce site vous fait <em>toucher du doigt</em> pourquoi, sans rien
-        installer.
+        <strong>2 millions de dollars</strong>, il n'a pourtant{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/status">
+          jamais été résolu
+        </Link>{" "}
+        : ni par l'homme, ni par les superordinateurs, et{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/is-it-a-scam">
+          ce n'est pas une arnaque
+        </Link>
+        . Ce site vous fait <em>toucher du doigt</em> pourquoi, sans rien installer.
       </>
     ),
     ctaStart: "Par où commencer",
@@ -135,9 +148,15 @@ const T = {
     heroLede: (
       <>
         Eternity II parece un rompecabezas infantil: 256 piezas cuadradas y colores que hay que
-        hacer coincidir. Lanzado en 2007 con un premio de <strong>2 millones de dólares</strong>,
-        nunca se ha resuelto: ni por personas, ni por superordenadores. Este sitio te permite{" "}
-        <em>sentir</em> por qué, directamente en tu navegador.
+        hacer coincidir. Lanzado en 2007 con un premio de <strong>2 millones de dólares</strong>,{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/status">
+          nunca se ha resuelto
+        </Link>
+        : ni por personas, ni por superordenadores, y{" "}
+        <Link className="underline underline-offset-4 hover:text-foreground" to="/is-it-a-scam">
+          no es una estafa
+        </Link>
+        . Este sitio te permite <em>sentir</em> por qué, directamente en tu navegador.
       </>
     ),
     ctaStart: "Empieza aquí",
