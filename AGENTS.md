@@ -34,14 +34,24 @@ user-facing tour and
   `VITE_SITE_ORIGIN`/`BASE_PATH`; `robots.txt` hardcodes the `eternity2.dev`
   sitemap URL.
 
-- **`llms.txt` + research `.md` siblings.** `plugins/research-content.ts` emits
-  all three machine-readable artifacts at build time: `llms.txt` (the curated
-  header — the `LLMS_HEADER` constant in that plugin, NOT a file in `public/` —
-  followed by a generated map of every research page), `llms-full.txt` (the whole
-  corpus in one file), and a raw-markdown sibling per research page at the same
-  URL with `.md` appended. The `.md` siblings are **English only**; the FR/ES
-  pages have no `.md` twin. Non-research pages remain TSX-only (no `.md` stubs
-  for them; prerendered HTML is clean enough).
+- **`llms.txt` + research `.md` siblings, one set PER LANGUAGE.**
+  `plugins/research-content.ts` emits, for every registry language, three
+  machine-readable artifacts at build time: `llms.txt` (the curated header — the
+  `LLMS_HEADER` record in that plugin, NOT a file in `public/` — followed by a
+  generated map of that language's research pages), `llms-full.txt` (that
+  language's whole corpus in one file), and a raw-markdown sibling per research
+  page at the same URL with `.md` appended. English sits at the root
+  (`/llms.txt`, `/research/x.md`), every other language under its prefix
+  (`/fr/llms.txt`, `/fr/research/x.md`). A page is exported in language L only
+  when `doc.translated` says it genuinely renders in L, the same predicate
+  `researchPagePathsFor` uses for the sitemap and hreflang, so a `.md` never
+  publishes English prose under a translated URL. The body always comes from that
+  language's own source file (`doc.file` points at the `<slug>.<lang>.mdx`
+  sidecar), so the export carries the written translation. Prose strings around
+  the body (the header field names, the two folded-in link headings, the section
+  titles) come from `LABELS` / `SECTION_LABELS` in the same plugin — add a
+  language there when you add one to the registry. Non-research pages remain
+  TSX-only (no `.md` stubs for them; prerendered HTML is clean enough).
 
 - **Every URL these emit must be canonical.** Internal links in `llms.txt`,
   in `llms-full.txt` and in the `.md` siblings go through the plugin's

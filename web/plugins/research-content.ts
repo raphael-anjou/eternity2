@@ -20,6 +20,7 @@ import {
   searchEntries,
   pickLang,
   LANG_CODES,
+  LANG_PREFIXES,
   TRANSLATION_LANGS,
   CONTENT_DIR,
   type Lang,
@@ -136,10 +137,11 @@ function mdLinkList(
   origin: string,
   base: string,
   canonical: (p: string) => string,
+  localize: (p: string) => string,
 ): string {
   if (items.length === 0) return "";
   const lines = items.map((d) => {
-    const url = `${origin}${base}${canonical(d.url)}`;
+    const url = `${origin}${base}${canonical(localize(d.url))}`;
     const blurb = d.description ? ` — ${d.description.trim().replace(/\s+/g, " ")}` : "";
     return `- [${d.title}](${url})${blurb}`;
   });
@@ -231,11 +233,88 @@ function buildBacklinks(): Record<string, string[]> {
   return out;
 }
 
+// The handful of strings the machine-readable exports emit around the prose.
+// These are the .md header field names and the two folded-in link-block
+// headings. Kept here rather than in the app's i18n registry because this code
+// runs in the Node build, not the browser bundle.
+const LABELS: Record<Lang, {
+  canonical: string; updated: string; topics: string; reproduce: string; source: string;
+  inSection: string; related: string;
+}> = {
+  en: {
+    canonical: "Canonical page (with interactive figures/demos)",
+    updated: "Updated", topics: "Topics", reproduce: "Reproduce", source: "Source",
+    inSection: "Pages in this section", related: "Related",
+  },
+  fr: {
+    canonical: "Page canonique (avec figures et démos interactives)",
+    updated: "Mise à jour", topics: "Sujets", reproduce: "Reproduire", source: "Source",
+    inSection: "Pages de cette section", related: "À lire aussi",
+  },
+  es: {
+    canonical: "Página canónica (con figuras y demos interactivas)",
+    updated: "Actualizado", topics: "Temas", reproduce: "Reproducir", source: "Fuente",
+    inSection: "Páginas de esta sección", related: "Relacionado",
+  },
+};
+
+// Section headings for the generated research map, per language.
+const SECTION_LABELS: Record<Lang, { key: string; label: string }[]> = {
+  en: [
+    { key: "why", label: "Research: why the puzzle is hard" },
+    { key: "build", label: "Research: how to build a solver" },
+    { key: "lab", label: "Research: the lab notebook (findings & experiments)" },
+    { key: "community", label: "Research: history & community" },
+  ],
+  fr: [
+    { key: "why", label: "Recherche : pourquoi le puzzle est difficile" },
+    { key: "build", label: "Recherche : comment construire un solveur" },
+    { key: "lab", label: "Recherche : le carnet de laboratoire (résultats et expériences)" },
+    { key: "community", label: "Recherche : histoire et communauté" },
+  ],
+  es: [
+    { key: "why", label: "Investigación: por qué el puzzle es difícil" },
+    { key: "build", label: "Investigación: cómo construir un solucionador" },
+    { key: "lab", label: "Investigación: el cuaderno de laboratorio (hallazgos y experimentos)" },
+    { key: "community", label: "Investigación: historia y comunidad" },
+  ],
+};
+
+const OPTIONAL_LABEL: Record<Lang, string> = {
+  en: "Optional", fr: "Optionnel", es: "Opcional",
+};
+
+// How each language names the others, for the cross-language tail of llms.txt.
+const OTHER_LANG_LABEL: Record<Lang, Record<Lang, string>> = {
+  en: { en: "English map", fr: "French map (site mirrored under /fr)", es: "Spanish map (site mirrored under /es)" },
+  fr: { en: "Carte en anglais (site sous /)", fr: "Carte en français", es: "Carte en espagnol (site sous /es)" },
+  es: { en: "Mapa en inglés (sitio bajo /)", fr: "Mapa en francés (sitio bajo /fr)", es: "Mapa en español" },
+};
+
+const FULL_HEAD: Record<Lang, { title: string; blurb: (wiki: string, map: string) => string }> = {
+  en: {
+    title: "# Eternity II research corpus (eternity2.dev) — full text",
+    blurb: (wiki, map) =>
+      `Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${wiki}. The map with links is at ${map}.`,
+  },
+  fr: {
+    title: "# Corpus de recherche Eternity II (eternity2.dev) — texte intégral",
+    blurb: (wiki, map) =>
+      `Toutes les pages de recherche traduites en français, mises bout à bout. Miroir lisible par machine du wiki à ${wiki}. La carte avec les liens se trouve à ${map}.`,
+  },
+  es: {
+    title: "# Corpus de investigación Eternity II (eternity2.dev) — texto completo",
+    blurb: (wiki, map) =>
+      `Todas las páginas de investigación traducidas al español, concatenadas. Espejo legible por máquina del wiki en ${wiki}. El mapa con los enlaces está en ${map}.`,
+  },
+};
+
 // The curated top of llms.txt: the framing and the top-level (non-research)
 // pages, hand-written because those TSX pages carry no frontmatter description.
 // The complete research map is generated below it, so this header stays short
 // and the page list never goes stale. `{ORIGIN}` is substituted at build time.
-const LLMS_HEADER = `# Eternity II community site (eternity2.dev)
+const LLMS_HEADER: Record<Lang, string> = {
+  en: `# Eternity II community site (eternity2.dev)
 
 > An open-source, static, multilingual (English / French / Spanish) educational hub for the Eternity II edge-matching puzzle. You can play it, watch real solvers run in your browser, learn the backtracking algorithms behind it, import/export/score community boards, and read the research. The solver is a Rust engine compiled to WebAssembly, so there is no server and no user data.
 
@@ -245,7 +324,7 @@ Key facts an assistant should know when answering about this site:
 - **What's verifiable here.** Every claim on the site (record boards, piece set, clues, scores) is checked by the same Rust/WASM engine the playground runs, and cross-validated against real e2.bucas.name boards.
 - **License / reuse.** Open source. Content is meant to be indexed, learned from, and cited freely. When citing, link to the relevant page.
 - **No server.** Pages are pre-rendered to static HTML, so every URL is directly fetchable. The French tree mirrors the English tree under /fr, the Spanish tree under /es.
-- **Markdown for machines.** Every research page has a raw-markdown sibling at the same URL with \`.md\` appended (e.g. {ORIGIN}/research/build/known-facts.md); prefer those when quoting or ingesting. The whole research corpus in one file is at {ORIGIN}/llms-full.txt.
+- **Markdown for machines.** Every research page has a raw-markdown sibling at the same URL with \`.md\` appended (e.g. {LANG_ORIGIN}/research/build/known-facts.md); prefer those when quoting or ingesting. The whole research corpus in one file is at {LANG_ORIGIN}/llms-full.txt.
 
 ## Top-level pages
 
@@ -257,7 +336,58 @@ Key facts an assistant should know when answering about this site:
 - [Playground]({ORIGIN}/playground/): interactive in-browser solver demos ([solve]({ORIGIN}/playground/solve/), [watch]({ORIGIN}/playground/watch/), [paths]({ORIGIN}/playground/paths/)).
 - [Status]({ORIGIN}/status/) and [Is it a scam?]({ORIGIN}/is-it-a-scam/): the plain answers to "is it solved" and "is the prize real".
 - [Repository]({{REPO}}): the Rust to WASM engine, the static site, the contribution guide.
-`;
+`,
+  fr: `# Site communautaire Eternity II (eternity2.dev)
+
+> Un pôle éducatif open source, statique et multilingue (anglais / français / espagnol) consacré au puzzle d'appariement de bords Eternity II. Vous pouvez y jouer, regarder de vrais solveurs tourner dans votre navigateur, comprendre les algorithmes de backtracking, importer/exporter/noter des plateaux de la communauté et lire la recherche. Le solveur est un moteur Rust compilé en WebAssembly : aucun serveur, aucune donnée utilisateur.
+
+Ceci est la version française de la carte. La version anglaise, plus complète (toutes les pages de recherche y figurent, y compris celles qui ne sont pas traduites), se trouve à {ORIGIN}/llms.txt.
+
+Ce qu'un assistant doit savoir avant de répondre à propos de ce site :
+
+- **Le puzzle.** Eternity II est un puzzle d'appariement de bords 16x16 : 256 tuiles carrées, chaque bord portant l'un de 22 motifs/couleurs, doivent paver un plateau de sorte que tous les bords partagés correspondent et que la bordure soit grise. Il était doté d'un prix de 2 000 000 $ US (jamais réclamé ; expiré en 2010). Le meilleur plateau public atteint 470 bords sur 480 ; aucune solution parfaite (480) n'a jamais été trouvée. L'espace de recherche compte environ 1,115 x 10^557 arrangements bruts.
+- **Ce qui est vérifiable ici.** Chaque affirmation du site (plateaux records, jeu de pièces, indices, scores) est vérifiée par le moteur Rust/WASM qui fait tourner l'aire de jeu, et recoupée avec de vrais plateaux e2.bucas.name.
+- **Licence / réutilisation.** Open source. Le contenu est fait pour être indexé, appris et cité librement. Lors d'une citation, indiquez le lien vers la page concernée.
+- **Aucun serveur.** Les pages sont pré-rendues en HTML statique : chaque URL est directement récupérable. L'arbre français est sous /fr, l'arbre espagnol sous /es.
+- **Markdown pour les machines.** Chaque page de recherche traduite possède un jumeau en markdown brut à la même URL suivie de \`.md\` (par exemple {LANG_ORIGIN}/research/build/known-facts.md) ; préférez-les pour citer ou ingérer. Tout le corpus français en un seul fichier : {LANG_ORIGIN}/llms-full.txt.
+
+## Pages principales
+
+- [Accueil]({LANG_ORIGIN}/) : vue d'ensemble du puzzle et des sections du site.
+- [Le puzzle]({LANG_ORIGIN}/puzzle/) : histoire, anatomie du jeu de pièces, les 256 pièces, les 22 motifs et leur rareté, les 5 indices officiels, le tableau des records et les chiffres de complexité.
+- [Algorithmes]({LANG_ORIGIN}/algorithms/) : le DFS et le backtracking depuis zéro, avec une démo au ralenti, le mur exponentiel, des démos binaires interactives et des courbes de difficulté mesurées par le moteur.
+- [Visualiseur]({LANG_ORIGIN}/viewer/) : import/export d'URL e2.bucas.name, notation en direct, marques de conflit, carte de vérification, plateaux célèbres et générateur de plateaux résolubles.
+- [Convertisseur]({LANG_ORIGIN}/convert/) : collez n'importe quel format de plateau et relisez-le dans tous les autres, avec aperçu et score en direct.
+- [Aire de jeu]({LANG_ORIGIN}/playground/) : démos interactives de solveurs ([résoudre]({LANG_ORIGIN}/playground/solve/), [regarder]({LANG_ORIGIN}/playground/watch/), [chemins]({LANG_ORIGIN}/playground/paths/)).
+- [Statut]({LANG_ORIGIN}/status/) et [Une arnaque ?]({LANG_ORIGIN}/is-it-a-scam/) : les réponses directes à « est-il résolu ? » et « le prix est-il réel ? ».
+- [Dépôt]({{REPO}}) : le moteur Rust vers WASM, le site statique, le guide de contribution.
+`,
+  es: `# Sitio comunitario de Eternity II (eternity2.dev)
+
+> Un centro educativo de código abierto, estático y multilingüe (inglés / francés / español) dedicado al puzzle de encaje de bordes Eternity II. Puedes jugarlo, ver solucionadores reales ejecutándose en tu navegador, aprender los algoritmos de backtracking, importar/exportar/puntuar tableros de la comunidad y leer la investigación. El solucionador es un motor Rust compilado a WebAssembly: no hay servidor ni datos de usuario.
+
+Esta es la versión española del mapa. La versión inglesa, más completa (incluye todas las páginas de investigación, también las no traducidas), está en {ORIGIN}/llms.txt.
+
+Lo que un asistente debe saber antes de responder sobre este sitio:
+
+- **El puzzle.** Eternity II es un puzzle de encaje de bordes de 16x16: 256 piezas cuadradas, cada borde con uno de 22 motivos/colores, deben cubrir un tablero de modo que todos los bordes compartidos coincidan y el borde exterior sea gris. Tenía un premio de 2 000 000 $ EE. UU. (nunca reclamado; expiró en 2010). El mejor tablero público alcanza 470 bordes de 480; nunca se ha encontrado una solución perfecta (480). El espacio de búsqueda ronda los 1,115 x 10^557 arreglos brutos.
+- **Qué es verificable aquí.** Cada afirmación del sitio (tableros récord, conjunto de piezas, pistas, puntuaciones) la comprueba el mismo motor Rust/WASM que ejecuta la zona de pruebas, contrastada con tableros reales de e2.bucas.name.
+- **Licencia / reutilización.** Código abierto. El contenido está pensado para ser indexado, aprendido y citado libremente. Al citar, enlaza la página correspondiente.
+- **Sin servidor.** Las páginas se prerrenderizan a HTML estático, así que cada URL es directamente recuperable. El árbol francés está bajo /fr y el español bajo /es.
+- **Markdown para máquinas.** Cada página de investigación traducida tiene un gemelo en markdown puro en la misma URL con \`.md\` añadido (por ejemplo {LANG_ORIGIN}/research/build/known-facts.md); prefiérelos para citar o ingerir. Todo el corpus español en un solo archivo: {LANG_ORIGIN}/llms-full.txt.
+
+## Páginas principales
+
+- [Inicio]({LANG_ORIGIN}/): visión general del puzzle y de las secciones del sitio.
+- [El puzzle]({LANG_ORIGIN}/puzzle/): historia, anatomía del conjunto de piezas, las 256 piezas, los 22 motivos y su rareza, las 5 pistas oficiales, la tabla de récords y las cifras de complejidad.
+- [Algoritmos]({LANG_ORIGIN}/algorithms/): DFS y backtracking desde cero, con una demo a cámara lenta, el muro exponencial, demos binarias interactivas y gráficas de dificultad medidas por el motor.
+- [Visor de tableros]({LANG_ORIGIN}/viewer/): importación/exportación de URL de e2.bucas.name, puntuación en vivo, marcas de conflicto, tarjeta de verificación, tableros famosos y un generador de tableros resolubles.
+- [Conversor]({LANG_ORIGIN}/convert/): pega cualquier formato de tablero y léelo en todos los demás, con vista previa y puntuación en vivo.
+- [Zona de pruebas]({LANG_ORIGIN}/playground/): demos interactivas de solucionadores ([resolver]({LANG_ORIGIN}/playground/solve/), [ver]({LANG_ORIGIN}/playground/watch/), [rutas]({LANG_ORIGIN}/playground/paths/)).
+- [Estado]({LANG_ORIGIN}/status/) y [¿Es una estafa?]({LANG_ORIGIN}/is-it-a-scam/): las respuestas directas a «¿está resuelto?» y «¿el premio es real?».
+- [Repositorio]({{REPO}}): el motor de Rust a WASM, el sitio estático y la guía de contribución.
+`,
+};
 
 const REPO_URL = "https://github.com/raphael-anjou/eternity2";
 
@@ -269,16 +399,16 @@ function buildLlmsTxt(
   origin: string,
   base: string,
   canonical: (p: string) => string,
+  lang: Lang,
+  localize: (p: string) => string,
 ): string {
-  const SECTIONS: { key: string; label: string }[] = [
-    { key: "why", label: "Research: why the puzzle is hard" },
-    { key: "build", label: "Research: how to build a solver" },
-    { key: "lab", label: "Research: the lab notebook (findings & experiments)" },
-    { key: "community", label: "Research: history & community" },
-  ];
-  const md = (url: string) => `${origin}${base}${canonical(url).replace(/\/$/, "")}.md`;
+  const SECTIONS = SECTION_LABELS[lang];
+  const md = (url: string) => `${origin}${base}${canonical(localize(url)).replace(/\/$/, "")}.md`;
   const parts: string[] = [
-    LLMS_HEADER.replace(/\{ORIGIN\}/g, `${origin}${base}`).replace("{{REPO}}", REPO_URL),
+    LLMS_HEADER[lang]
+      .replace(/\{ORIGIN\}/g, `${origin}${base}`)
+      .replace(/\{LANG_ORIGIN\}/g, `${origin}${base}${localize("")}`)
+      .replace("{{REPO}}", REPO_URL),
   ];
   for (const { key, label } of SECTIONS) {
     const inSection = docs
@@ -288,14 +418,22 @@ function buildLlmsTxt(
     parts.push(`\n## ${label}\n`);
     for (const d of inSection) {
       const desc = (d.metaDescription ?? d.description).replace(/\s+/g, " ").trim();
-      parts.push(`- [${d.title}](${origin}${base}${canonical(d.url)}) (md: ${md(d.url)}): ${desc}`);
+      parts.push(
+        `- [${d.title}](${origin}${base}${canonical(localize(d.url))}) (md: ${md(d.url)}): ${desc}`,
+      );
     }
   }
+  // The "Optional" tail points at the OTHER languages' maps, so an agent that
+  // landed on one language can find the others without guessing at URLs.
+  parts.push(`\n## ${OPTIONAL_LABEL[lang]}\n`);
+  for (const other of LANG_CODES.filter((l) => l !== lang)) {
+    const p = LANG_PREFIXES.find((l) => l.code === other)?.prefix ?? "";
+    parts.push(
+      `- [${OTHER_LANG_LABEL[lang][other]}](${origin}${base}${p ? `/${p}` : ""}/llms.txt)`,
+    );
+  }
   parts.push(
-    `\n## Optional\n`,
-    `- [French home](${origin}${base}/fr/): the whole site mirrored under /fr; skip unless answering in French.`,
-    `- [Spanish home](${origin}${base}/es/): the whole site mirrored under /es; skip unless answering in Spanish.`,
-    `- [Sitemap](${origin}${base}/sitemap.xml): machine-readable list of every page.`,
+    `- [Sitemap](${origin}${base}/sitemap.xml)`,
     "",
   );
   return parts.join("\n");
@@ -308,11 +446,14 @@ function buildLlmsFull(
   bodies: { doc: ResearchDoc; markdown: string }[],
   origin: string,
   base: string,
+  lang: Lang,
+  localize: (p: string) => string,
 ): string {
+  const langOrigin = `${origin}${base}${localize("")}`;
   const head = [
-    `# Eternity II research corpus (eternity2.dev) — full text`,
+    FULL_HEAD[lang].title,
     "",
-    `> Every research page on eternity2.dev, concatenated. This is the machine-ingestible mirror of the wiki at ${origin}${base}/research/. The map with links is at ${origin}${base}/llms.txt.`,
+    `> ${FULL_HEAD[lang].blurb(`${langOrigin}/research/`, `${langOrigin}/llms.txt`)}`,
     "",
     "---",
     "",
@@ -432,28 +573,51 @@ export function researchContent(): Plugin {
       // Trailing-slash form the host serves at 200 (see the sitemap plugin).
       const canonical = (p: string) =>
         p === "/" || /\.[a-z0-9]+$/i.test(p) || p.endsWith("/") ? p : p + "/";
-      {
-        const allDocs = buildManifest("en");
+      // One set of machine-readable artifacts per language: the .md siblings, the
+      // llms.txt map and the llms-full.txt corpus. English lives at the root,
+      // every other language under its prefix (/fr/llms.txt, /fr/research/x.md),
+      // mirroring exactly how the HTML pages are laid out.
+      //
+      // A page is exported in language L only when it genuinely renders in L
+      // (doc.translated, the same predicate researchPagePathsFor uses for the
+      // sitemap and hreflang). An untranslated page has no /<lang> URL, so
+      // emitting a /<lang>/....md for it would publish English prose under a
+      // translated URL and advertise a page that does not exist.
+      for (const lang of LANG_CODES) {
+        const prefix = LANG_PREFIXES.find((l) => l.code === lang)?.prefix ?? "";
+        // URL path and on-disk path for this language: "" for English, "/fr" and
+        // "fr" for French, etc.
+        const langUrl = prefix ? `/${prefix}` : "";
+        const langDir = prefix;
+        const localize = (p: string) => `${langUrl}${p}`;
+
+        const allDocs = buildManifest(lang).filter((d) => lang === "en" || d.translated);
+        const entries = scanResearchContent();
         // Collected as we write each .md, then folded into llms-full.txt so the
         // "everything in one fetch" file uses the exact same clean-markdown
         // rendering as the per-page siblings.
         const fullBodies: { doc: ResearchDoc; markdown: string }[] = [];
         for (const doc of allDocs) {
-          const raw = scanResearchContent().find((e) => e.file === doc.file);
+          // The body must come from THIS language's source file: doc.file points
+          // at the sidecar ("<slug>.fr.mdx") when the page is translated, so the
+          // export carries the written translation, never the English prose.
+          const raw = entries.find((e) => e.file === doc.file);
           if (!raw) continue;
-          const urlPath = canonical(doc.url);
+          const urlPath = canonical(localize(doc.url));
           const relFile =
-            (doc.slug === "" ? "research/index" : `research/${doc.slug}`) + ".md";
+            [langDir, (doc.slug === "" ? "research/index" : `research/${doc.slug}`) + ".md"]
+              .filter(Boolean)
+              .join("/");
           const header = [
             `# ${doc.title}`,
             "",
             `> ${doc.description}`,
             "",
-            `- Canonical page (with interactive figures/demos): ${origin}${base}${urlPath}`,
-            ...(doc.updated ? [`- Updated: ${doc.updated}`] : []),
-            ...(doc.topics.length ? [`- Topics: ${doc.topics.join(", ")}`] : []),
-            ...(doc.repro?.cmd ? [`- Reproduce: \`${doc.repro.cmd}\``] : []),
-            ...doc.sources.map((s) => `- Source: ${s.label} — ${s.url}`),
+            `- ${LABELS[lang].canonical}: ${origin}${base}${urlPath}`,
+            ...(doc.updated ? [`- ${LABELS[lang].updated}: ${doc.updated}`] : []),
+            ...(doc.topics.length ? [`- ${LABELS[lang].topics}: ${doc.topics.join(", ")}`] : []),
+            ...(doc.repro?.cmd ? [`- ${LABELS[lang].reproduce}: \`${doc.repro.cmd}\``] : []),
+            ...doc.sources.map((s) => `- ${LABELS[lang].source}: ${s.label} — ${s.url}`),
             "",
             "---",
             "",
@@ -462,8 +626,12 @@ export function researchContent(): Plugin {
           // source prose never contains: a hub's child pages (as cards) and the
           // related rail. Fold both into the export so the .md carries the same
           // navigation an agent sees on the page, not just the intro prose.
-          const children = mdLinkList("Pages in this section", hubChildren(doc, allDocs), origin, base, canonical);
-          const related = mdLinkList("Related", relatedDocs(doc, allDocs), origin, base, canonical);
+          const children = mdLinkList(
+            LABELS[lang].inSection, hubChildren(doc, allDocs), origin, base, canonical, localize,
+          );
+          const related = mdLinkList(
+            LABELS[lang].related, relatedDocs(doc, allDocs), origin, base, canonical, localize,
+          );
           const body = header + stripMdxEsm(raw.body) + children + related + "\n";
           const target = path.join(outDir, relFile);
           mkdirSync(path.dirname(target), { recursive: true });
@@ -473,12 +641,20 @@ export function researchContent(): Plugin {
 
         // llms.txt (the map) and llms-full.txt (the whole corpus in one file),
         // generated from the same manifest so they never drift from the pages.
-        // The curated header (the top-level pages + framing) is hand-written; the
-        // complete research map below it is generated, every page with its
-        // description and its .md sibling, so an agent sees ALL 100+ pages, not a
-        // curated 10. See public/llms.txt for the header source.
-        writeFileSync(path.join(outDir, "llms.txt"), buildLlmsTxt(allDocs, origin, base, canonical));
-        writeFileSync(path.join(outDir, "llms-full.txt"), buildLlmsFull(fullBodies, origin, base));
+        // The curated header (the top-level pages + framing) is the LLMS_HEADER
+        // constant above; the complete research map below it is generated, every
+        // page with its description and its .md sibling, so an agent sees ALL
+        // 100+ pages, not a curated 10.
+        const llmsDir = path.join(outDir, langDir);
+        mkdirSync(llmsDir, { recursive: true });
+        writeFileSync(
+          path.join(llmsDir, "llms.txt"),
+          buildLlmsTxt(allDocs, origin, base, canonical, lang, localize),
+        );
+        writeFileSync(
+          path.join(llmsDir, "llms-full.txt"),
+          buildLlmsFull(fullBodies, origin, base, lang, localize),
+        );
       }
     },
 

@@ -338,14 +338,17 @@ export default function Layout() {
         </p>
         {/* A visible, machine-followable pointer to the site's agent-readable
             index. These are static build-emitted files, not React routes, so
-            they use plain anchors. */}
+            they use plain anchors. One set per language (English at the root,
+            the others under their prefix), so a French reader is pointed at the
+            French map rather than the English one. The sitemap is single and
+            covers every language, so it stays unprefixed. */}
         <p className="text-xs">
           {t.forAgents}{" "}
-          <a className="underline hover:text-foreground" href="/llms.txt">
+          <a className="underline hover:text-foreground" href={pathForLang("/llms.txt", lang)}>
             {t.llmsLabel}
           </a>
           {" · "}
-          <a className="underline hover:text-foreground" href="/llms-full.txt">
+          <a className="underline hover:text-foreground" href={pathForLang("/llms-full.txt", lang)}>
             {t.llmsFullLabel}
           </a>
           {" · "}
