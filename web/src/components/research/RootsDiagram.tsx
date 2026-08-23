@@ -6,7 +6,7 @@
 // diagram is a live index, not a static picture. SVG on desktop; the same nodes
 // reflow to a plain responsive grid on small screens (and are the a11y content).
 
-import { useLang } from "@/i18n";
+import { useLang, pick } from "@/i18n";
 import { useIsClient } from "@/lib/utils";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { researchTopics, topicUrl } from "@/lib/research/manifest";
@@ -27,7 +27,15 @@ function useRoots(): Root[] {
   for (const t of researchTopics(lang)) {
     const def = THEME_ROOTS[t.slug];
     if (NON_PATH_THEMES.has(t.slug) || !def) continue;
-    out.push({ slug: t.slug, label: t.label, ...def, count: topicMembers(lang, t.slug).length });
+    // Resolve the localized hook here, so everything below this hook (the SVG
+    // <title> tooltip and the list fallback) keeps taking a plain string.
+    out.push({
+      slug: t.slug,
+      label: t.label,
+      ...def,
+      hook: pick(def.hook, lang),
+      count: topicMembers(lang, t.slug).length,
+    });
   }
   return out;
 }

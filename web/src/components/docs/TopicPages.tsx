@@ -3,7 +3,7 @@
 // with it, grouped by section). No content file exists for these — they are
 // entirely derived from the registry + manifests.
 
-import { useLang, useT } from "@/i18n";
+import { useLang, useT, pick } from "@/i18n";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { cn } from "@/lib/utils";
 import { LazyBoardPreview } from "@/components/research/LazyBoardPreview";
@@ -187,7 +187,7 @@ function RoadCard({ slug, lang, dir }: { slug: string; lang: Lang; dir: "prev" |
       <div className="mt-1.5 text-sm font-semibold tracking-tight group-hover:underline">
         {topic.label}
       </div>
-      <p className="mt-1 text-xs leading-snug text-muted-foreground">{style.hook}</p>
+      <p className="mt-1 text-xs leading-snug text-muted-foreground">{pick(style.hook, lang)}</p>
     </LocalizedLink>
   );
 }
