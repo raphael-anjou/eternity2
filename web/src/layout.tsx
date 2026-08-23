@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router";
 import { MotifDefs } from "@/components/board/MotifDefs";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { useLang, useT, pathForLang, preferredLang, langDef, LANGS } from "@/i18n";
+import { useLang, useT, pathForLang, preferredLang, langDef, rememberLang, LANGS } from "@/i18n";
 import { canonicalPath } from "@/site";
 import { cn } from "@/lib/utils";
 import { loadAnalyticsWhenIdle, trackPageView } from "@/lib/analytics";
@@ -170,7 +170,7 @@ const ENGINE_ROUTES = new RegExp(
 
 export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const t = useT(T);
   const { pathname } = useLocation();
 
@@ -243,19 +243,26 @@ export default function Layout() {
           </nav>
           <div className="flex-1 md:hidden" />
           {/* Language picker: a segmented control, one segment per registry
-              language, the active one highlighted. Switching navigates to the
-              same page under the chosen language's URL (pathForLang). */}
-          <div
+              language, the active one highlighted. Each segment is a real <a>
+              pointing at this page's URL in that language, NOT a button: a
+              button is invisible to crawlers (they cannot follow onClick), and
+              it breaks middle-click, open-in-new-tab and "copy link". The click
+              handler is still there, but only to persist the choice for the
+              first-visit redirect — navigation itself is the href's job, so it
+              works with JS disabled too. hrefLang tells a crawler what it will
+              find at the other end. */}
+          <nav
             className="flex shrink-0 overflow-hidden rounded-md border text-xs font-semibold"
-            role="group"
             aria-label={t.langPicker}
           >
             {LANGS.map((l) => {
               const active = l.code === lang;
               return (
-                <button
+                <a
                   key={l.code}
-                  onClick={() => setLang(l.code)}
+                  href={canonicalPath(pathForLang(pathname, l.code))}
+                  hrefLang={l.code}
+                  onClick={() => rememberLang(lang, l.code)}
                   aria-current={active ? "true" : undefined}
                   title={l.native}
                   className={cn(
@@ -266,10 +273,10 @@ export default function Layout() {
                   )}
                 >
                   {l.label}
-                </button>
+                </a>
               );
             })}
-          </div>
+          </nav>
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="shrink-0 rounded-md border px-2.5 py-1 text-base leading-none md:hidden"

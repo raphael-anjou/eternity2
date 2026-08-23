@@ -63,6 +63,11 @@ const SITE_JSONLD = {
   ],
 };
 
+// Open Graph wants a full locale ("fr_FR"), not the bare language code the URL
+// and <html lang> use. Only the languages this site actually serves are listed;
+// keep in sync with LANG_PREFIXES in content.config.ts.
+const OG_LOCALE: Record<string, string> = { en: "en_US", fr: "fr_FR", es: "es_ES" };
+
 export function links() {
   return [
     { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -136,6 +141,15 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta property="og:image" content="https://eternity2.dev/og.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://eternity2.dev/og.png" />
+        {/* og:locale tells social and AI consumers which language THIS URL is,
+            and og:locale:alternate advertises the twins — the Open Graph
+            counterpart to the hreflang block above. Without it a scraper seeing
+            /fr/ and /es/ has only the prose to go on. Emitted for every page,
+            including the ones whose only alternates are themselves. */}
+        <meta property="og:locale" content={OG_LOCALE[lang] ?? "en_US"} />
+        {LANG_CODES.filter((l) => l !== lang).map((l) => (
+          <meta key={l} property="og:locale:alternate" content={OG_LOCALE[l] ?? "en_US"} />
+        ))}
         {/* Opt in to the largest preview Google will show. The DEFAULT for
             max-image-preview is "standard" (a small thumbnail), and max-snippet
             defaults to a short text snippet — so leaving this out silently caps

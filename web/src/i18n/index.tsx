@@ -12,7 +12,7 @@
 
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import { track } from "@/lib/analytics";
 
 // ---- Language registry ---------------------------------------------------
@@ -103,22 +103,29 @@ export function LangProvider({ children }: { children: ReactNode }) {
   return <LangContext.Provider value={{ lang }}>{children}</LangContext.Provider>;
 }
 
-/**
- * Active language plus a setter that navigates to the localized URL (the URL
- * is the source of truth) and remembers the choice for the next first visit.
- */
-export function useLang(): { lang: Lang; setLang: (l: Lang) => void } {
-  const { lang } = useContext(LangContext);
-  const { pathname, search } = useLocation();
-  const navigate = useNavigate();
-  const setLang = (l: Lang) => {
-    if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, l);
-    // Three languages are maintained by hand; this is the only signal for
-    // whether the translated trees are actually used.
-    track("language_switch", { from: lang, to: l });
-    void navigate(pathForLang(pathname, l) + search);
-  };
-  return { lang, setLang };
+/** Persist a language choice (for the next first visit) and record the switch,
+ *  WITHOUT navigating. The language picker is a set of real links, so the href
+ *  performs the navigation; this only captures the side effects. Safe to call
+ *  from a link's onClick: it does nothing that could race the navigation. */
+export function rememberLang(from: Lang, to: Lang): void {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY, to);
+    } catch {
+      // Private mode / blocked storage: the choice just is not remembered.
+    }
+  }
+  // Three languages are maintained by hand; this is the only signal for
+  // whether the translated trees are actually used.
+  track("language_switch", { from, to });
+}
+
+/** The active language, derived from the URL (the URL is the source of truth).
+ *  There is no setter: switching language is a navigation, and the language
+ *  picker does it with real links (href + rememberLang) so crawlers can follow
+ *  it and middle-click works. */
+export function useLang(): { lang: Lang } {
+  return { lang: useContext(LangContext).lang };
 }
 
 // A dictionary supplies English (required) and any subset of the other
