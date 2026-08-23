@@ -136,6 +136,18 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta property="og:image" content="https://eternity2.dev/og.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://eternity2.dev/og.png" />
+        {/* Opt in to the largest preview Google will show. The DEFAULT for
+            max-image-preview is "standard" (a small thumbnail), and max-snippet
+            defaults to a short text snippet — so leaving this out silently caps
+            how this site can appear in image-rich surfaces (Discover, rich
+            results, AI Overviews' visual cards). "index, follow" is already the
+            default and is stated only to make the whole directive explicit;
+            /404.html and the SPA fallback carry their own noindex, which wins.
+            The 404 page is static HTML and never renders this shell. */}
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSONLD) }}

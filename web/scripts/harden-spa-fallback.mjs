@@ -26,12 +26,18 @@ if (!existsSync(file)) {
 }
 
 let html = readFileSync(file, "utf8");
-if (html.includes('name="robots"')) {
-  console.log("harden-spa-fallback: robots meta already present — no change");
-  process.exit(0);
-}
-
 const tag = '<meta name="robots" content="noindex"/>';
+
+// The app shell inherits the site-wide indexing directive from root.tsx
+// ("index, follow, max-image-preview:large, …"). That is right for real pages
+// and WRONG here, so REPLACE it rather than skipping: an "already present"
+// early-return would leave the shell advertising itself as indexable, which is
+// exactly the soft-404 this script exists to prevent.
+const existing = /<meta\s+name="robots"[^>]*>/gi;
+if (existing.test(html)) {
+  html = html.replace(existing, "");
+  console.log("harden-spa-fallback: replaced the inherited robots meta with noindex");
+}
 // Insert right after <head…> so it lands within the first bytes, before the
 // title/meta React Router wrote. Fall back to prepending if <head> is absent.
 if (/<head[^>]*>/i.test(html)) {
@@ -40,4 +46,4 @@ if (/<head[^>]*>/i.test(html)) {
   html = tag + html;
 }
 writeFileSync(file, html);
-console.log("harden-spa-fallback: injected noindex into __spa-fallback.html");
+console.log("harden-spa-fallback: __spa-fallback.html is noindex");
