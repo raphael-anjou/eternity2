@@ -91,7 +91,7 @@ export function HorizontalScoreChart<Row extends ScoreChartRow>({
             layout="vertical"
             data={rows}
             // Top margin is generous on purpose: a reference line with a `top`
-            // label (e.g. "record 464") draws its text above the plot, and a
+            // label (e.g. "record 465") draws its text above the plot, and a
             // tight top margin clips it. This was the bug that motivated the
             // shared component.
             margin={{ top: 28, right: 64, bottom: 8, left: 8 }}

@@ -143,7 +143,7 @@ user-facing tour and
   grep the archive for the number before citing it.
 
 - **`/research/records` is the canonical SOTA page.** The headline numbers
-  (community 470 open / 464 strict, the project's own 463/460s) live there in
+  (community 470 open / 465 strict, the project's own 463/460s) live there in
   the "where this project stands" table. New or edited pages LINK to
   `/research/records` (and `/research/open-problems` for the frontier) instead
   of hand-restating the numbers — the pre-rework site had them independently

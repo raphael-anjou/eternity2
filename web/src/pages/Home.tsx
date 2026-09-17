@@ -53,7 +53,7 @@ const T = {
     ctaBadge: "Live right now",
     ctaTitle: "Lend a few CPU threads to the search",
     ctaText:
-      "A community fleet is attacking the strict five-clue board right now, and it is short of machines. It has already pushed the five-clue line past 464, the best score this wiki has on record, and its dashboard shows what the fleet is doing this minute. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
+      "A community fleet is attacking the strict five-clue board right now, and it is short of machines. It has already carried the strict five-clue record from 460 to 465, and its dashboard shows what the fleet is doing this minute. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
     ctaJoin: "Join the search",
     ctaDownload: "Download the worker",
     ctaFine: (
@@ -135,7 +135,7 @@ const T = {
     ctaBadge: "En cours, maintenant",
     ctaTitle: "Prêtez quelques fils d'exécution à la recherche",
     ctaText:
-      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle a déjà poussé la ligne des cinq indices au-delà de 464, le meilleur score enregistré sur ce wiki, et son tableau de bord montre ce que fait la flotte à la minute près. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
+      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle a déjà porté le record strict à cinq indices de 460 à 465, et son tableau de bord montre ce que fait la flotte à la minute près. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
     ctaJoin: "Rejoindre la recherche",
     ctaDownload: "Télécharger le client",
     ctaFine: (
@@ -217,7 +217,7 @@ const T = {
     ctaBadge: "En marcha ahora",
     ctaTitle: "Presta unos hilos de CPU a la búsqueda",
     ctaText:
-      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Ya ha llevado la línea de cinco pistas más allá de 464, la mejor puntuación registrada en este wiki, y su panel muestra lo que hace la flota al minuto. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
+      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Ya ha llevado el récord estricto de cinco pistas de 460 a 465, y su panel muestra lo que hace la flota al minuto. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
     ctaJoin: "Unirse a la búsqueda",
     ctaDownload: "Descargar el cliente",
     ctaFine: (

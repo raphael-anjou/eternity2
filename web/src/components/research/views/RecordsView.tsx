@@ -56,14 +56,15 @@ const PROJECT_BEST = [...RECORD_BOARDS].sort((a, b) => b.score - a.score);
 // #11046) from boards on different or mixed piece sets. Several headline
 // "480" boards are NOT the official puzzle. Note: none of the record boards
 // from 468 up respect the four optional clue placements; boards that do are
-// tracked as "strict 5-clue" in the method text (best known: 464, Benjamin
-// Riotte 2026, beating Gauthier's 460 of 2023). Verified at board level
-// against the archive (digest 0014) and the groups.io thread (topic 120056886).
+// tracked as "strict 5-clue" in the method text (best known: 465, Benjamin
+// Riotte's community fleet 2026, beating his own 464 and Gauthier's 460 of
+// 2023). Verified at board level against the archive (digest 0014) and the
+// groups.io thread (topic 120056886).
 const T = {
   en: {
     bestTitle: "The state of the art",
     best:
-      "The community ceiling on the official puzzle is 470 of 480 matched edges (Joshua Blackwood, 2021, tied once since by Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime, including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 464 (Benjamin Riotte, July 2026), which finally beat Bruno Gauthier's 460 after more than three years. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
+      "The community ceiling on the official puzzle is 470 of 480 matched edges (Joshua Blackwood, 2021, tied once since by Jef Bucas, December 2024). The contest's own rules pinned only the starter piece (the entry form listed piece numbers, not rotations), and every record board from 468 up is in that starter-only regime, including the 469s long quoted as the ceiling; the 470s are the same puzzle, not an easier variant. Boards that also respect the four optional clue placements are tracked separately: the best known is 465 (Benjamin Riotte's community fleet, August 2026), reached in two steps that ended more than three years of Bruno Gauthier's 460, first Riotte's own 464 in July and then the 465 line, of which the shared fleet has since produced many distinct boards. The full solution (480) has never been found; the 10-edge gap on the open record has stood since 2021.",
     bestProject:
       "This project's own boards reach 460 to 463 of 480 on the same puzzle: a few edges short of the community ceiling, in the same starter-only regime, and every one recomputed from its own edges and openable in the viewer.",
     bestProjectLink: "See the project's boards plotted against the community ceiling",
@@ -148,7 +149,7 @@ const T = {
   fr: {
     bestTitle: "L'état de l'art",
     best:
-      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 (Joshua Blackwood, 2021, égalé une fois depuis par Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule », y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 464 (Benjamin Riotte, juillet 2026), qui a enfin battu le 460 de Bruno Gauthier après plus de trois ans. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
+      "Le plafond communautaire sur le puzzle officiel est de 470 bords appariés sur 480 (Joshua Blackwood, 2021, égalé une fois depuis par Jef Bucas, décembre 2024). Le règlement du concours n'épinglait que la pièce de départ (le formulaire ne listait que des numéros de pièces, pas des rotations), et tous les plateaux records à partir de 468 relèvent de ce régime « pièce de départ seule », y compris les 469 longtemps cités comme plafond ; les 470 sont le même puzzle, pas une variante plus facile. Les plateaux qui respectent aussi les quatre indices facultatifs sont suivis à part : le meilleur connu est 465 (la flotte communautaire de Benjamin Riotte, août 2026), atteint en deux temps qui ont mis fin à plus de trois ans de règne du 460 de Bruno Gauthier, d'abord le 464 de Riotte en juillet, puis la ligne des 465, dont la flotte partagée a depuis sorti de nombreux plateaux distincts. La solution complète (480) reste introuvée ; l'écart de 10 arêtes sur le record ouvert tient depuis 2021.",
     bestProject:
       "Les plateaux propres à ce projet atteignent 460 à 463 sur 480 sur le même puzzle : à quelques arêtes du plafond communautaire, dans le même régime « pièce de départ seule », et chacun recalculé depuis ses propres arêtes et ouvrable dans le visualiseur.",
     bestProjectLink: "Voir les plateaux du projet tracés face au plafond communautaire",
@@ -233,7 +234,7 @@ const T = {
   es: {
     bestTitle: "El estado del arte",
     best:
-      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021, igualado una sola vez desde entonces por Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida», incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 464 (Benjamin Riotte, julio de 2026), que por fin batió el 460 de Bruno Gauthier tras más de tres años. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
+      "El techo de la comunidad sobre el puzzle oficial es de 470 aristas coincidentes de 480 (Joshua Blackwood, 2021, igualado una sola vez desde entonces por Jef Bucas, diciembre de 2024). El reglamento del concurso solo fijaba la pieza de partida (el formulario listaba números de pieza, no rotaciones), y todos los tableros récord a partir de 468 pertenecen a ese régimen de «solo pieza de partida», incluidos los 469 citados durante mucho tiempo como techo; los 470 son el mismo puzzle, no una variante más fácil. Los tableros que además respetan las cuatro pistas opcionales se registran aparte: el mejor conocido es 465 (la flota comunitaria de Benjamin Riotte, agosto de 2026), alcanzado en dos pasos que pusieron fin a más de tres años del 460 de Bruno Gauthier: primero el 464 de Riotte en julio y luego la línea de los 465, de la que la flota compartida ha sacado ya muchos tableros distintos. La solución completa (480) nunca se ha encontrado; la diferencia de 10 aristas en el récord abierto se mantiene desde 2021.",
     bestProject:
       "Los tableros propios de este proyecto alcanzan de 460 a 463 de 480 en el mismo puzzle: a pocas aristas del techo de la comunidad, en el mismo régimen de «solo pieza de partida», y cada uno recalculado a partir de sus propias aristas y abrible en el visor.",
     bestProjectLink: "Ver los tableros del proyecto trazados frente al techo de la comunidad",
@@ -326,7 +327,7 @@ const BADGE: Record<RecordRow["canonical"], string> = {
 // (468/469/470) are not in any peer-reviewed or encyclopedic source — they live
 // in the mailing list and on the board viewer — so we point at the primary
 // community sources directly and flag what mainstream sources do and don't say.
-// Exact community sources. The 468/469/470/460/464 boards are not in any
+// Exact community sources. The 468/469/470/460/464/465 boards are not in any
 // peer-reviewed or encyclopedic source — they were announced on the mailing
 // list — so we link the specific groups.io messages, using the archive's
 // sequential message numbers (msg_num; author, date and subject all verified
@@ -357,7 +358,12 @@ const REFS: { href: string; label: string }[] = [
   {
     href: `${GROUPS_IO}/message/11919`,
     label:
-      "464 — Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the new strict-five-clue record (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
+      "464 — Benjamin Riotte, “Record of Eternity2 with 5 hints ?” thread, eternity2@groups.io, 2026-07-06: the strict-five-clue record from July to August 2026 (16 broken edges), all five clues at their official cells, found with his own modified-Blackwood solver; Igor Pejic reached the same 463–464 range independently in the thread.",
+  },
+  {
+    href: `${GROUPS_IO}/topic/120997660`,
+    label:
+      "465 — Benjamin Riotte, “Join the five-clue Eternity II effort” topic, eternity2@groups.io, 2026-08-30: the standing strict-five-clue record (15 broken edges), found by the community's distributed fleet; 11 distinct 465 boards at the announcement and many more since, credited across several contributors' machines.",
   },
   {
     href: "https://e2.bucas.name",
@@ -384,9 +390,10 @@ function Cite({ n }: { n: number }) {
 
 // The community anchor rows for the "where this project stands" table, pulled
 // from the timeline so they never drift from it: the standing open record (470)
-// and the standing strict five-clue record (464).
+// and the standing strict five-clue record (465, flagged on the row itself
+// because that line has many boards rather than one bundled artifact).
 const COMMUNITY_OPEN = RECORDS.find((r) => r.board === "Joshua_Blackwood_470");
-const COMMUNITY_STRICT = RECORDS.find((r) => r.board === "Benjamin_Riotte_464");
+const COMMUNITY_STRICT = RECORDS.find((r) => r.strictRecord);
 
 export function RecordsView() {
   const t = useT(T);

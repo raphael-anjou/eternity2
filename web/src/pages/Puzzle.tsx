@@ -172,7 +172,7 @@ const T = {
         four smaller "clue puzzles" (two in 2007, two in 2008) that each revealed
         another placement. A board that respects all five is called <strong>strict-canonical</strong>; most
         record boards only respect the mandatory center clue, which is why the best board with all
-        five clues (464, Benjamin Riotte, 2026) trails the open canonical record (470).
+        five clues (465, Benjamin Riotte's community fleet, 2026) trails the open canonical record (470).
       </>
     ),
     cluesText2: (
@@ -219,7 +219,7 @@ const T = {
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-            best <em>strict-canonical</em> board (all 5 clues respected) — beat Gauthier's 460 of 2023
+the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line has since moved to 465
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,
@@ -389,7 +389,7 @@ const T = {
         deux en 2008), qui dévoilaient chacun un placement supplémentaire. Un plateau qui
         respecte les cinq est dit <strong>strict-canonique</strong>. Comme la plupart des plateaux
         records se contentent du seul indice central obligatoire, le meilleur plateau respectant
-        les cinq indices (464, Benjamin Riotte, 2026) reste en deçà du record canonique libre (470).
+        les cinq indices (465, la flotte communautaire de Benjamin Riotte, 2026) reste en deçà du record canonique libre (470).
       </>
     ),
     cluesText2: (
@@ -436,7 +436,7 @@ const T = {
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-            meilleur plateau <em>strict-canonique</em> (les 5 indices respectés) — a battu le 460 de Gauthier (2023)
+record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la ligne est depuis passée à 465
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,
@@ -604,8 +604,8 @@ const T = {
         vendió cuatro pequeños «puzzles pista» (dos en 2007, dos en 2008), cada uno de los cuales
         revelaba otra colocación. Un tablero que respeta las cinco se denomina{" "}
         <strong>estricto-canónico</strong>; la mayoría de los tableros récord solo respetan la pista
-        central obligatoria, por lo que el mejor tablero con las cinco pistas (464, Benjamin Riotte,
-        2026) queda por debajo del récord canónico libre (470).
+        central obligatoria, por lo que el mejor tablero con las cinco pistas (465, la flota comunitaria
+        de Benjamin Riotte, 2026) queda por debajo del récord canónico libre (470).
       </>
     ),
     cluesText2: (
@@ -652,7 +652,7 @@ const T = {
         who: "Benjamin Riotte, 2026",
         notes: (
           <>
-            mejor tablero <em>estricto-canónico</em> (las 5 pistas respetadas) — superó el 460 de Gauthier de 2023
+récord <em>estricto-canónico</em> de julio de 2026 (las 5 pistas respetadas); la línea ha pasado desde entonces a 465
           </>
         ) as ReactNode,
         viewId: "Benjamin_Riotte_464" as string | null,

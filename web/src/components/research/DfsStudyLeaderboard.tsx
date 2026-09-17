@@ -141,7 +141,7 @@ const T = {
     spreadMean: "mean",
     spreadRange: "range",
     spreadInstances: "instances",
-    ceiling: "5-clue record 464",
+    ceiling: "5-clue record 465",
     of: "/ 480",
     depthTitle: "How far each search reached, and how fast",
     depthIntro:
@@ -196,7 +196,7 @@ const T = {
     spreadMean: "moyenne",
     spreadRange: "plage",
     spreadInstances: "instances",
-    ceiling: "record 5 indices 464",
+    ceiling: "record 5 indices 465",
     of: "/ 480",
     depthTitle: "Jusqu'où chaque recherche est allée, et à quelle vitesse",
     depthIntro:
@@ -251,7 +251,7 @@ const T = {
     spreadMean: "media",
     spreadRange: "rango",
     spreadInstances: "instancias",
-    ceiling: "récord de 5 pistas 464",
+    ceiling: "récord de 5 pistas 465",
     of: "/ 480",
     depthTitle: "Hasta dónde llegó cada búsqueda, y a qué velocidad",
     depthIntro:

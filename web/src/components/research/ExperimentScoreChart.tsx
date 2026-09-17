@@ -35,7 +35,7 @@ export type ScoreDatum = {
 };
 
 const CEILING = 470;
-const STRICT_CEILING = 464; // the strict five-clue community record
+const STRICT_CEILING = 465; // the strict five-clue community record
 const DOMAIN_LO = 420;
 const DOMAIN_HI = 480;
 
@@ -65,7 +65,7 @@ const T = {
     benchNote:
       "The standardized single-core bench: the DFS and repair studies and the reimplemented engines, every run pinned to one core for sixty seconds. Lower, and directly comparable.",
     ceiling: "community ceiling 470",
-    strictCeiling: "strict 5-clue record 464",
+    strictCeiling: "strict 5-clue record 465",
     busy: "Drawing…",
     tip: "/ 480",
   },
@@ -80,7 +80,7 @@ const T = {
     benchNote:
       "Le banc standardisé mono-cœur : les études DFS et réparation et les moteurs réimplémentés, chaque exécution limitée à un cœur pendant soixante secondes. Plus bas, et directement comparable.",
     ceiling: "plafond communautaire 470",
-    strictCeiling: "record strict 5 indices 464",
+    strictCeiling: "record strict 5 indices 465",
     busy: "Tracé…",
     tip: "/ 480",
   },
@@ -95,7 +95,7 @@ const T = {
     benchNote:
       "El banco estandarizado de un solo núcleo: los estudios DFS y de reparación y los motores reimplementados, cada ejecución fijada a un núcleo durante sesenta segundos. Más bajo, y directamente comparable.",
     ceiling: "techo de la comunidad 470",
-    strictCeiling: "récord estricto 5 pistas 464",
+    strictCeiling: "récord estricto 5 pistas 465",
     busy: "Dibujando…",
     tip: "/ 480",
   },

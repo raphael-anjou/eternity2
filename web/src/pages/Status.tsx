@@ -55,7 +55,7 @@ const T = {
       },
       {
         term: "Boards using the five optional clues are tracked apart.",
-        desc: "Tomy sold four clue puzzles that each fixed one more piece. The best board respecting all five clue placements is 464 (Benjamin Riotte, July 2026), which beat Bruno Gauthier's 460.",
+        desc: "Tomy sold four clue puzzles that each fixed one more piece. The best board respecting all five clue placements is 465 (Benjamin Riotte's distributed fleet, August 2026), which took the line past his own 464 and Bruno Gauthier's 460.",
       },
     ],
     notCountTitle: "About those “480 solved” boards online",
@@ -123,7 +123,7 @@ const T = {
       },
       {
         term: "Les plateaux qui respectent les cinq indices sont suivis à part.",
-        desc: "Tomy a vendu quatre puzzles indices, fixant chacun une pièce de plus. Le meilleur plateau respectant les cinq indices est 464 (Benjamin Riotte, juillet 2026), qui a battu le 460 de Bruno Gauthier.",
+        desc: "Tomy a vendu quatre puzzles indices, fixant chacun une pièce de plus. Le meilleur plateau respectant les cinq indices est 465 (la flotte distribuée de Benjamin Riotte, août 2026), qui a porté la ligne au-delà de son propre 464 et du 460 de Bruno Gauthier.",
       },
     ],
     notCountTitle: "À propos de ces plateaux « 480 résolus » que l'on trouve en ligne",
@@ -193,7 +193,7 @@ const T = {
       },
       {
         term: "Los tableros que usan las cinco pistas opcionales se contabilizan aparte.",
-        desc: "Tomy vendió cuatro puzzles de pista que fijaban cada uno una pieza más. El mejor tablero que respeta las cinco colocaciones de pista es 464 (Benjamin Riotte, julio de 2026), que superó el 460 de Bruno Gauthier.",
+        desc: "Tomy vendió cuatro puzzles de pista que fijaban cada uno una pieza más. El mejor tablero que respeta las cinco colocaciones de pista es 465 (la flota distribuida de Benjamin Riotte, agosto de 2026), que llevó la línea más allá de su propio 464 y del 460 de Bruno Gauthier.",
       },
     ],
     notCountTitle: "Sobre esos tableros «480 resueltos» que circulan por internet",

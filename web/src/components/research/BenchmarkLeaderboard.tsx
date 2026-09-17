@@ -85,7 +85,7 @@ const T = {
     presetsTitle: "CSP presets, one engine, many knobs",
     presetsIntro:
       "Mean score over ten corner-pinned variants, single core, 60 s each. These are not separate solvers: they are one CSP engine (arc-consistency + a variable/value ordering) run under different presets. The best reaches ~183, less than half a contender's score, so none earns a leaderboard row.",
-    ceiling: "5-clue record 464",
+    ceiling: "5-clue record 465",
     npsUnit: "median throughput (native unit, never cross-compared)",
     heatTitle: "Every algorithm across all ten corner variants",
     heatIntro:
@@ -111,7 +111,7 @@ const T = {
     presetsTitle: "Préréglages CSP : un moteur, plusieurs réglages",
     presetsIntro:
       "Score moyen sur dix variantes à coins fixés, un cœur, 60 s chacune. Ce ne sont pas des solveurs distincts : c'est un seul moteur CSP (consistance d'arc + un ordre variable/valeur) lancé sous différents préréglages. Le meilleur atteint ~183, moins de la moitié du score d'un prétendant ; aucun n'obtient donc de ligne au classement.",
-    ceiling: "record 5 indices 464",
+    ceiling: "record 5 indices 465",
     npsUnit: "débit médian (unité native, jamais comparée entre familles)",
     heatTitle: "Chaque algorithme sur les dix variantes de coins",
     heatIntro:
@@ -137,7 +137,7 @@ const T = {
     presetsTitle: "Preajustes CSP: un motor, muchos ajustes",
     presetsIntro:
       "Puntuación media sobre diez variantes con esquinas fijadas, un solo núcleo, 60 s cada una. No son solucionadores distintos: son un único motor CSP (consistencia de arco + un orden de variable/valor) ejecutado con distintos preajustes. El mejor alcanza ~183, menos de la mitad de la puntuación de un contendiente, así que ninguno obtiene una fila en la clasificación.",
-    ceiling: "récord 5 pistas 464",
+    ceiling: "récord 5 pistas 465",
     npsUnit: "rendimiento mediano (unidad nativa, nunca comparada entre familias)",
     heatTitle: "Cada algoritmo sobre las diez variantes de esquinas",
     heatIntro:
@@ -288,7 +288,7 @@ export function BenchmarkLeaderboard({
               </div>
             )}
             // These variants pin all 5 clues, so the meaningful ceiling is the
-            // 5-clue community record (464), not the all-hints 470. Anchor the
+            // 5-clue community record (465), not the all-hints 470. Anchor the
             // label to the END so it grows leftward and never clips.
             referenceLines={[
               {

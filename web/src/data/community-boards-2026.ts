@@ -6,7 +6,10 @@
 // each respecting all five official clue placements (starter #139 + hints
 // #208/#255/#181/#249). Source: "Record of Eternity2 with 5 hints ?" thread,
 // eternity2@groups.io, June-July 2026 (topic 120056886). Benjamin Riotte's
-// 464 broke Bruno Gauthier's 460, which had stood since 2023.
+// 464 broke Bruno Gauthier's 460, which had stood since 2023; the line has
+// since moved to 465 (the distributed fleet, August 2026, topic 120997660),
+// whose boards are not bundled here — they live in the project's own board
+// library. This file remains the decoded July census.
 //
 // LinearPartial: partial boards (not full solutions) built as linear runs or
 // spiral-in constructions; the number is the placed-piece / continuous-run

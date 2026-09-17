@@ -1640,3 +1640,39 @@ It closes on Carlos Fernandez's exchange analysis of the first two 465s, which
 generates 32 boards at 465 from them by border-piece exchanges and rotations:
 32 boards, not 32 discoveries, and the rigidity picture from the other side.
 All gates green; build, typecheck, lint and 90 tests clean.
+
+## 2026-09-17 — The strict five-clue record moves to 465
+
+The record ledger was updated across the site: the standing strict-five-clue
+mark is now **465/480** (15 broken edges), found by the community's distributed
+fleet in August 2026 and credited across several contributors' machines rather
+than to one person. It supersedes Benjamin Riotte's own 464 of July 2026, which
+held two months, which in turn ended Bruno Gauthier's 460 of 2023.
+
+One board is not one discovery on this line, and the pages say so. The fleet
+reported eleven distinct 465 boards at its announcement and many more since, but
+Carlos Fernandez's exchange analysis turns the first two into 32 boards at the
+same score by border-piece exchanges and rotations. The count of boards runs
+well ahead of the count of independent ways to reach 465, and the records,
+boards and fleet pages all carry that caveat.
+
+No 465 board is bundled here. The boards live in the fleet's own public library
+and this project has not decoded them, so `known-boards.ts` and
+`community-boards-2026.ts` still carry the July 464 census, relabelled as such,
+and the record row in `records-timeline.ts` is the first with no `board`.
+
+Touched, in all three languages: the records view and its reference list, the
+record and history timelines, boards, people, known-facts, open-problems
+(retitled "the strict five-clue 465-to-466 target"), clue-puzzles, variants,
+hunt-part-2, theorem-sweep, no-height-function, parity-defect-floor,
+permutation-code-wall, rigidity-wall, the single-core benchmark, the DFS study
+and REPLAY, plus the Status, Puzzle and Home pages and the AGENTS.md SOTA note.
+The benchmark reference constants (`single-core-benchmark.json`,
+`dfs-study.json`) moved to 465 as well; the measured scores are untouched.
+
+One latent bug found on the way: `RecordTimeline` decided a row's track by
+matching its author string against a hardcoded set, so the new record, whose
+author reads "Benjamin Riotte & the five-clue fleet", plotted on the open track
+and dragged the 470 line down to 465. The track is now declared on the data row
+(`regime: "strict"`) and the author heuristic is gone. All gates green; build,
+typecheck, lint and 90 tests clean.

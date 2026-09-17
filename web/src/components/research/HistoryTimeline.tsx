@@ -161,6 +161,18 @@ const MILESTONES: Milestone[] = [
     to: "/research/records",
     src: "https://groups.io/g/eternity2/message/11919",
   },
+  {
+    year: "2026",
+    kind: "record",
+    head: { en: "A distributed fleet takes the five-clue line to 465", fr: "Une flotte distribuée porte la ligne à cinq indices à 465", es: "Una flota distribuida lleva la línea de cinco pistas a 465" },
+    note: {
+      en: "Riotte opens his solver as a community fleet anyone can join. It reports eleven distinct 465 boards at launch and many more since, credited across contributors' machines.",
+      fr: "Riotte ouvre son solveur sous forme de flotte communautaire que chacun peut rejoindre. Elle annonce onze plateaux distincts à 465 au lancement, et beaucoup d'autres depuis, crédités aux machines de plusieurs contributeurs.",
+      es: "Riotte abre su solucionador como una flota comunitaria a la que cualquiera puede unirse. Anuncia once tableros distintos con 465 al lanzarse, y muchos más desde entonces, acreditados a máquinas de varios contribuidores.",
+    },
+    to: "/research/community/five-clue-fleet",
+    src: "https://groups.io/g/eternity2/topic/120997660",
+  },
 ];
 
 const DOT: Record<Kind, string> = {
