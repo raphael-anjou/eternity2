@@ -6,7 +6,7 @@ description: >-
   machines des volontaires cherchent, et chaque plateau remonté est vérifié. Ce
   qu'elle fait tourner, ce qu'elle a trouvé, et comment lui prêter quelques
   fils d'exécution.
-metaDescription: "Une recherche Eternity II bien vivante, ouverte à tous : la flotte partagée de Benjamin Riotte attaque le plateau strict à cinq indices, avec un orchestrateur qui distribue le travail, déduplique et vérifie chaque plateau. 11 plateaux à 465/480, un pic de 28 machines et 12 milliards de nœuds/s."
+metaDescription: "Une recherche Eternity II bien vivante, ouverte à tous : la flotte partagée de Benjamin Riotte attaque le plateau strict à cinq indices, avec un orchestrateur qui distribue des tickets bornés, ne refait jamais le travail terminé et signe chaque plateau remonté. Comment lui prêter quelques fils."
 kind: page
 order: 65
 updated: 2026-09-17
@@ -46,7 +46,10 @@ trouvera 466, ou ira bien plus loin ».
   Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
   choisissez le nombre de fils d'exécution que vous voulez donner, et
   laissez-le tourner. Il se met à jour tout seul, et vous l'arrêtez quand vous
-  voulez. Le
+  voulez. Windows reçoit une application de bureau, non signée, qui déclenche
+  donc un avertissement au lancement ; Linux tient en une commande et demande
+  Python 3, avec un solveur précompilé sur x86-64 et une compilation depuis les
+  sources sur ARM. Un Raspberry Pi 5 suffit pour contribuer. Le
   [tableau de bord](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
   montre la flotte, les découvertes et votre propre contribution, en direct.
 </Callout>
@@ -56,18 +59,27 @@ trouvera 466, ou ira bien plus loin ».
 Le plus intéressant n'est pas le client, mais l'orchestrateur derrière lui. Une
 recherche en profondeur d'abord sur le plateau à cinq indices forme un arbre
 gigantesque, et une foule n'aide que si cet arbre est découpé en morceaux que
-personne ne parcourt deux fois. C'est le travail du plan de contrôle et, selon
-la description du projet lui-même, il fait quatre choses :
+personne ne parcourt deux fois. C'est le travail du plan de contrôle et, dans
+le fil qui a donné cette page, le projet décrit chacun de ses rouages :
 
-- **Allocation distribuée des racines.** L'orchestrateur central distribue les
-  sous-arbres : chaque machine reçoit son propre travail au lieu de courir sur
-  la même branche que les autres.
-- **Comptabilité du travail accompli.** Chaque unité de travail terminée est
-  enregistrée, et le travail terminé n'est pas redistribué. Une recherche qui
-  dure des mois n'a de sens que si elle ne refait jamais ce qu'elle a déjà
-  fait.
-- **Déduplication automatique.** Les racines symétriques ou répétées sont
-  fusionnées au lieu d'être explorées une fois par contributeur.
+- **Allocation distribuée des racines.** L'orchestrateur distribue des racines,
+  en général un motif 3x3 fixé : chaque machine démarre à un endroit qui lui
+  est propre au lieu de courir sur la même branche que les autres.
+- **Tickets bornés.** Une racine seule est bien trop grossière pour être
+  distribuée : l'unité de travail est donc un ticket, soit une racine, un
+  décalage déterministe dans le flux de recherche de cette racine, et un
+  budget, aujourd'hui plafonné à deux milliards de nœuds. Le plafond est
+  voulu. Sans lui, une machine peut rester des mois sur une branche qui ne
+  rend rien, le pire scénario pour une flotte de volontaires.
+- **Comptabilité des tickets terminés.** Les identifiants des tickets terminés
+  entrent dans un registre que chaque client télécharge avant de démarrer, et
+  un ticket terminé n'est pas redistribué. Un audit de 3 458 636 tickets
+  terminés a trouvé 3 458 636 identifiants distincts : aucune unité de travail
+  n'avait été calculée deux fois.
+- **Déduplication canonique des plateaux.** Un plateau terminé reçoit une
+  empreinte SHA-256 canonique, comparée à la base centrale. Un plateau inédit
+  est enregistré et crédité ; un plateau déjà présent est noté comme
+  redécouverte, et le crédit public reste au premier découvreur.
 - **Validation indépendante.** Chaque plateau soumis est recalculé à
   l'arrivée : un score annoncé est un score vérifié, pas un score cru sur
   parole.
@@ -78,32 +90,73 @@ ressource rare n'a jamais été la puissance de calcul, mais la comptabilité.
 
 ## Ce qu'elle a trouvé
 
-Les décomptes ci-dessous sont les totaux vérifiés publiés par le projet dans
-son annonce d'août 2026, sur le plateau strict à cinq indices (les cinq pièces
-indices officielles à leurs cases officielles) :
+Cette page n'est pas un compteur en direct. Le
+[tableau de bord](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+et la [bibliothèque de plateaux](https://eternity-board-library.pages.dev/)
+portent les chiffres du moment ; ce qui suit est un instantané daté, les totaux
+que le projet a publiés en ouvrant l'effort le 30 août 2026, sur le plateau
+strict à cinq indices (les cinq pièces indices officielles à leurs cases
+officielles) :
 
-| Score | Plateaux trouvés |
+| Score | Plateaux trouvés au 30 août 2026 |
 | --- | --- |
 | 463/480 | 7 645 |
 | 464/480 | 327 |
 | **465/480** | **11 plateaux distincts** |
 
+À cette date, la flotte avait traité plus de 8,1 billiards de nœuds de
+recherche, tournait autour de 5 à 6 milliards de nœuds par seconde, et avait
+culminé à 28 machines simultanées au-delà de 12 milliards. Tous ces chiffres
+ont bougé depuis, et le compte des 465 a bougé en quelques jours : d'autres
+465 ont été crédités aux machines d'autres contributeurs dans la première
+semaine de septembre, après un changement du jeu de graines. Ce tableau est la
+ligne de départ de l'effort public, pas son score.
+
 La ligne des 465 est la raison d'être de la flotte. La
 [page des records](/research/records) de ce wiki porte le tableau canonique des
 records, et sa [page des plateaux](/research/community/boards) enregistre la
 ligne stricte à cinq indices telle qu'elle était en juillet 2026, quand Riotte
-l'a fait passer du 460 de Bruno Gauthier, longtemps indétrôné, à 464. Les 465 sont
-sortis de la flotte partagée par la suite, et ont été annoncés sur le Discord
-en septembre 2026. Ils sont comptés ici tels que le projet les rapporte : les
-plateaux eux-mêmes sont dans la
-[bibliothèque publique du projet](https://eternity-board-library.pages.dev/), et
-aucun recomptage n'a été effectué pour cette page.
+l'a fait passer du 460 de Bruno Gauthier, longtemps indétrôné, à 464. Les 465
+sont sortis de la flotte partagée par la suite. Ils sont rapportés ici tels que
+le projet les rapporte : les plateaux eux-mêmes sont dans la
+[bibliothèque publique](https://eternity-board-library.pages.dev/), et aucun
+recomptage n'a été effectué pour cette page.
 
-Le débit, pour l'ordre de grandeur : l'annonce fait état d'un pic de **28
-machines simultanées, à plus de 12 milliards de nœuds par seconde**. À titre de
-comparaison, eternity2.net tout entier, le projet BOINC de 2007, a dépensé un
-peu plus de 10¹⁹ opérations en cinq mois pour s'arrêter au milieu des 460, et
-cela sous la convention à un seul indice, bien plus permissive.
+Pour l'ordre de grandeur, comparez avec eternity2.net tout entier, le projet
+BOINC de 2007 : un peu plus de 10¹⁹ opérations en cinq mois, pour s'arrêter au
+milieu des 460, et cela sous la convention à un seul indice, bien plus
+permissive.
+
+## Redécouvrir n'est pas gaspiller
+
+La première chose que remarque un nouveau contributeur, c'est que son propre
+compteur et le tableau de bord ne disent pas la même chose. Le client affiche
+chaque plateau à haut score qu'il rencontre ; le site ne crédite que les
+plateaux inédits, et seulement à qui est arrivé le premier. Un contributeur
+équipé d'une station Ryzen et d'un Raspberry Pi 5 a rapporté 128 trouvailles
+locales pour 40 crédits en une journée, et en a logiquement conclu que les deux
+tiers du temps machine étaient partis en fumée.
+
+Ce n'était pas le cas. Les tickets derrière ces plateaux étaient tous
+distincts : deux recherches différentes, parties de racines et de décalages
+différents, avaient convergé vers le même plateau final, ce que la flotte ne
+peut constater qu'une fois le plateau construit. L'empêcher en amont
+supposerait d'échanger et de comparer entre machines un nombre colossal
+d'états de recherche intermédiaires, pour un coût bien supérieur au calcul
+ainsi économisé. Sur la fenêtre mesurée, les redécouvertes représentaient
+environ 0,15 % des tickets terminés. Le plateau est un effet de bord ; le
+travail, c'est le ticket.
+
+Il y a une raison structurelle à tout cela. Le solveur est orienté vers les
+régions fertiles plutôt que de tirer des plateaux au hasard, et les bons
+plateaux se regroupent en familles. [Carlos Fernandez](/research/people), le
+chirurgien des plateaux de la communauté, a pris les deux premiers 465 et
+montré qu'ils appartiennent à une même famille : en échangeant deux groupes de
+pièces de bord, en faisant pivoter un troisième groupe et en permutant une
+paire, on en tire 32 plateaux à 465. Cela fait 32 plateaux, pas 32
+découvertes, et c'est le
+[mur de rigidité](/research/why/rigidity-wall) vu de l'autre côté : les pièces
+peuvent bouger sans qu'un seul défaut se referme.
 
 ## Ce qu'est le solveur
 

@@ -53,7 +53,7 @@ const T = {
     ctaBadge: "Live right now",
     ctaTitle: "Lend a few CPU threads to the search",
     ctaText:
-      "A community fleet is attacking the strict five-clue board today, and it is short of machines. It has already turned up eleven distinct boards at 465/480, at a peak of 28 machines running over 12 billion nodes per second. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
+      "A community fleet is attacking the strict five-clue board right now, and it is short of machines. It has already pushed the five-clue line past 464, the best score this wiki has on record, and its dashboard shows what the fleet is doing this minute. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
     ctaJoin: "Join the search",
     ctaDownload: "Download the worker",
     ctaFine: (
@@ -135,7 +135,7 @@ const T = {
     ctaBadge: "En cours, maintenant",
     ctaTitle: "Prêtez quelques fils d'exécution à la recherche",
     ctaText:
-      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle a déjà sorti onze plateaux distincts à 465/480, avec un pic de 28 machines à plus de 12 milliards de nœuds par seconde. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
+      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle a déjà poussé la ligne des cinq indices au-delà de 464, le meilleur score enregistré sur ce wiki, et son tableau de bord montre ce que fait la flotte à la minute près. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
     ctaJoin: "Rejoindre la recherche",
     ctaDownload: "Télécharger le client",
     ctaFine: (
@@ -217,7 +217,7 @@ const T = {
     ctaBadge: "En marcha ahora",
     ctaTitle: "Presta unos hilos de CPU a la búsqueda",
     ctaText:
-      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Ya ha sacado once tableros distintos con 465/480, con un pico de 28 máquinas a más de 12 000 millones de nodos por segundo. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
+      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Ya ha llevado la línea de cinco pistas más allá de 464, la mejor puntuación registrada en este wiki, y su panel muestra lo que hace la flota al minuto. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
     ctaJoin: "Unirse a la búsqueda",
     ctaDownload: "Descargar el cliente",
     ctaFine: (

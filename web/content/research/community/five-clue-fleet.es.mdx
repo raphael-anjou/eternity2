@@ -5,7 +5,7 @@ description: >-
   cinco pistas con una flota compartida: un orquestador reparte el trabajo, las
   máquinas de los voluntarios buscan, y cada tablero que llega se valida. Qué
   ejecuta, qué ha encontrado y cómo prestarle unos cuantos hilos.
-metaDescription: "Una búsqueda de Eternity II viva y abierta a cualquiera: la flota compartida de Benjamin Riotte ataca el tablero estricto de cinco pistas, con un orquestador que reparte el trabajo, lo deduplica y valida cada tablero. 11 tableros con 465/480 y un pico de 28 máquinas a 12 000 millones de nodos/s."
+metaDescription: "Una búsqueda de Eternity II viva y abierta a cualquiera: la flota compartida de Benjamin Riotte ataca el tablero estricto de cinco pistas, con un orquestador que reparte tiques acotados, nunca repite trabajo terminado y firma cada tablero que llega. Cómo cederle unos hilos de CPU."
 kind: page
 order: 65
 updated: 2026-09-17
@@ -44,7 +44,11 @@ llegue mucho más lejos».
   Descarga el cliente para [Windows o
   Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
   elige cuántos hilos de CPU quieres ceder y déjalo en marcha. Se actualiza
-  solo, y puedes pararlo cuando quieras. El
+  solo, y puedes pararlo cuando quieras. Windows recibe una aplicación de
+  escritorio, sin firmar, así que avisa antes de ejecutarse; Linux es un solo
+  comando y necesita Python 3, con solucionador precompilado en x86-64 y
+  compilación desde fuentes en ARM. Una Raspberry Pi 5 basta para contribuir.
+  El
   [panel](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
   muestra la flota, los hallazgos y tu propia contribución, en vivo.
 </Callout>
@@ -54,17 +58,27 @@ llegue mucho más lejos».
 Lo interesante no es el cliente, sino el orquestador que hay detrás. Una
 búsqueda en profundidad sobre el tablero de cinco pistas es un árbol enorme, y
 una multitud solo ayuda si ese árbol se corta en piezas que nadie recorre dos
-veces. Ese es el trabajo del plano de control y, según la descripción del
-propio proyecto, hace cuatro cosas:
+veces. Ese es el trabajo del plano de control y, en el hilo del que sale esta
+página, el proyecto describe cada una de sus piezas:
 
-- **Reparto distribuido de raíces.** El orquestador central reparte los
-  subárboles: cada máquina recibe trabajo propio en lugar de competir con las
-  demás por la misma rama.
-- **Contabilidad del trabajo terminado.** Cada unidad de trabajo completada
-  queda registrada, y el trabajo terminado no se vuelve a repartir. Una
-  búsqueda que dura meses solo tiene sentido si nunca rehace lo que ya hizo.
-- **Deduplicación automática.** Las raíces simétricas o repetidas se fusionan
-  en lugar de explorarse una vez por contribuidor.
+- **Reparto distribuido de raíces.** El orquestador reparte raíces, por lo
+  general un patrón 3x3 fijo: cada máquina arranca en un sitio propio en lugar
+  de competir con las demás por la misma rama.
+- **Tiques acotados.** Una raíz sola es demasiado gruesa para repartirla, así
+  que la unidad de trabajo es un tique: una raíz, un desplazamiento
+  determinista dentro del flujo de búsqueda de esa raíz, y un presupuesto, hoy
+  limitado a dos mil millones de nodos. El tope es deliberado. Sin él, una
+  máquina puede pasarse meses en una rama que no devuelve nada, lo peor que le
+  puede pasar a una flota de voluntarios.
+- **Contabilidad de tiques terminados.** Los identificadores de los tiques
+  terminados entran en un registro que cada cliente descarga antes de empezar,
+  y un tique terminado no se vuelve a repartir. Una auditoría de 3 458 636
+  tiques completados encontró 3 458 636 identificadores distintos: ninguna
+  unidad de trabajo se había calculado dos veces.
+- **Deduplicación canónica de tableros.** Un tablero terminado recibe una
+  huella SHA-256 canónica que se compara con la base central. Un tablero nuevo
+  se registra y se acredita; uno que ya estaba se anota como redescubrimiento,
+  y el crédito público se queda con quien lo encontró primero.
 - **Validación independiente.** Cada tablero enviado se vuelve a puntuar al
   llegar: una puntuación anunciada es una puntuación comprobada, no una
   puntuación creída.
@@ -75,32 +89,70 @@ escaso nunca fue el cálculo, sino la contabilidad.
 
 ## Qué ha encontrado
 
-Los recuentos siguientes son los totales verificados que el proyecto publicó en
-su anuncio de agosto de 2026, sobre el tablero estricto de cinco pistas (las
-cinco piezas pista oficiales en sus casillas oficiales):
+Esta página no es un contador en vivo. El
+[panel](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+y la [biblioteca de tableros](https://eternity-board-library.pages.dev/) llevan
+las cifras del momento; lo que sigue es una instantánea fechada, los totales
+que el proyecto publicó al abrir el esfuerzo el 30 de agosto de 2026, sobre el
+tablero estricto de cinco pistas (las cinco piezas pista oficiales en sus
+casillas oficiales):
 
-| Puntuación | Tableros encontrados |
+| Puntuación | Tableros encontrados a 30 de agosto de 2026 |
 | --- | --- |
 | 463/480 | 7645 |
 | 464/480 | 327 |
 | **465/480** | **11 tableros distintos** |
+
+Para esa fecha la flota había procesado más de 8,1 billardos de nodos de
+búsqueda, iba a unos 5 o 6 mil millones de nodos por segundo, y había llegado a
+un pico de 28 máquinas a la vez por encima de 12 mil millones. Todas esas
+cifras se han movido desde entonces, y la de los 465 se movió en días: se
+acreditaron más 465 a máquinas de otros contribuidores en la primera semana de
+septiembre, tras un cambio en el juego de semillas. La tabla es la línea de
+salida del esfuerzo público, no su marcador.
 
 La línea de los 465 es la razón de ser de la flota. La
 [página de récords](/research/records) de este wiki lleva la tabla canónica de
 récords, y su [página de tableros](/research/community/boards) recoge la línea
 estricta de cinco pistas tal como estaba en julio de 2026, cuando Riotte la
 llevó del 460 de Bruno Gauthier, intacto durante años, hasta 464. Los 465
-salieron después de la flota compartida, y se anunciaron en el Discord en
-septiembre de 2026. Aquí se cuentan tal como los reporta el proyecto: los
-tableros están en la
-[biblioteca pública del proyecto](https://eternity-board-library.pages.dev/), y
-para esta página no se ha hecho ningún recuento propio.
+salieron después de la flota compartida. Aquí se recogen tal como los reporta
+el proyecto: los tableros están en la
+[biblioteca pública](https://eternity-board-library.pages.dev/), y para esta
+página no se ha hecho ningún recuento propio.
 
-El rendimiento, para hacerse una idea: el anuncio informa de un pico de **28
-máquinas a la vez, a más de 12 000 millones de nodos por segundo**. Como
-comparación, eternity2.net entero, el proyecto BOINC de 2007, gastó algo más de
-10¹⁹ operaciones en cinco meses y se detuvo a mitad de los 460, y eso bajo la
-convención de una sola pista, mucho más laxa.
+Para hacerse una idea de la escala, compárese con eternity2.net entero, el
+proyecto BOINC de 2007: algo más de 10¹⁹ operaciones en cinco meses, y se
+detuvo a mitad de los 460, y eso bajo la convención de una sola pista, mucho
+más laxa.
+
+## Reencontrar no es malgastar
+
+Lo primero que nota quien acaba de llegar es que su propio contador y el panel
+no dicen lo mismo. El cliente imprime cada tablero de puntuación alta que
+observa; la web solo acredita los tableros nuevos, y solo a quien llegó
+primero. Un contribuidor con una estación Ryzen y una Raspberry Pi 5 reportó
+128 hallazgos locales frente a 40 créditos en un día, y concluyó, con toda
+lógica, que dos tercios del tiempo de máquina se habían tirado.
+
+No era así. Los tiques detrás de esos tableros eran todos distintos: dos
+búsquedas diferentes, desde raíces y desplazamientos diferentes, habían
+convergido en el mismo tablero final, algo que la flota solo puede detectar una
+vez construido el tablero. Evitarlo por adelantado exigiría enviar y comparar
+entre máquinas una cantidad enorme de estados de búsqueda intermedios, a un
+coste muy superior al cálculo que ahorraría. En la ventana medida, los
+reencuentros fueron en torno al 0,15 % de los tiques completados. El tablero es
+un efecto secundario; el trabajo es el tique.
+
+Hay además una razón estructural. El solucionador se dirige hacia regiones
+fértiles en lugar de muestrear tableros al azar, y los tableros buenos se
+agrupan en familias. [Carlos Fernandez](/research/people), el cirujano de
+tableros de la comunidad, tomó los dos primeros 465 y mostró que pertenecen a
+una misma familia: intercambiando dos grupos de piezas de borde, rotando un
+tercer grupo y permutando un par se sacan de ellos 32 tableros con 465. Son 32
+tableros, no 32 descubrimientos, y es el
+[muro de rigidez](/research/why/rigidity-wall) visto desde el otro lado: las
+piezas pueden moverse sin que se cierre ni un solo fallo.
 
 ## Qué es el solucionador
 

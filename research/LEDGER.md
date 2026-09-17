@@ -1614,3 +1614,29 @@ community hub, and a closing pointer from
 scarce resource was never compute, it was the bookkeeping) this effort is now
 testing live. Style, links, anchors, citations, hardware, repro and parity gates
 green across 423 files; build, typecheck, lint and 90 unit tests clean.
+
+## 2026-09-17 — Five-clue fleet page corrected against the full thread
+
+The announcement thread was read in full and the page was corrected on two
+counts. First, a factual error: the mechanism described as "automatic
+deduplication of symmetric roots" is not what the system does. Work tickets are
+deduplicated through a completed-ticket ledger every worker downloads before
+starting (an audit of 3,458,636 completed tickets found 3,458,636 distinct ids,
+so no unit of work was computed twice), while boards are deduplicated after the
+fact by canonical SHA-256, with the first discoverer keeping public credit. The
+page now describes both, plus the ticket shape (root, deterministic offset,
+budget capped at two billion DFS nodes) that the thread spells out.
+
+Second, staleness: the announcement's counts are a snapshot from 30 August, and
+the 465 count moved within a week. The numbers are now presented as a dated
+snapshot with the dashboard and board library named as the live source, and the
+homepage call to action carries no figure that can go stale (it says the
+five-clue line is past the 464 this wiki records, and points at the dashboard).
+
+Added a section on why a contributor's local counter outruns their public
+credits: re-found boards are convergence of distinct tickets, detectable only
+once the board exists, about 0.15% of completed tickets in the measured window.
+It closes on Carlos Fernandez's exchange analysis of the first two 465s, which
+generates 32 boards at 465 from them by border-piece exchanges and rotations:
+32 boards, not 32 discoveries, and the rigidity picture from the other side.
+All gates green; build, typecheck, lint and 90 tests clean.

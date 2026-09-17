@@ -5,7 +5,7 @@ description: >-
   shared fleet: one orchestrator hands out the work, volunteer machines search,
   and every board that comes back is validated. What it runs, what it has
   found, and how to lend it a few threads.
-metaDescription: "A live Eternity II search anyone can join: Benjamin Riotte's shared fleet attacks the strict five-clue board, with an orchestrator that hands out work units, deduplicates them and validates every board found. 11 distinct boards at 465/480, a peak of 28 machines at over 12 billion nodes per second."
+metaDescription: "A live Eternity II search anyone can join: Benjamin Riotte's shared fleet attacks the strict five-clue board, with an orchestrator that hands out bounded tickets, never repeats completed work and fingerprints every board that comes back. How the credit works, and how to lend it a few CPU threads."
 kind: page
 order: 65
 updated: 2026-09-17
@@ -43,7 +43,10 @@ goes much further."
   Download the worker for [Windows or
   Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
   choose how many CPU threads you want to give, and leave it running. It
-  updates itself, and you can stop it whenever you want. The
+  updates itself, and you can stop it whenever you want. Windows gets a desktop
+  app, unsigned, so it warns you before it runs; Linux is one command and needs
+  Python 3, with a prebuilt solver on x86-64 and a source build on ARM. A
+  Raspberry Pi 5 is enough to contribute. The
   [dashboard](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
   shows the fleet, the discoveries and your own contribution, live.
 </Callout>
@@ -53,17 +56,25 @@ goes much further."
 The interesting part is not the client, it is the orchestrator behind it. A
 depth-first search over the five-clue board is one enormous tree, and the only
 way a crowd helps is if the tree is cut into pieces that nobody searches twice.
-That is the job the control plane does, and by the project's own description it
-does four things:
+That is the job the control plane does, and the thread behind this page has
+the project describing each piece of it:
 
-- **Distributed root allocation.** The central orchestrator hands out the
-  subtrees, so each machine gets work of its own instead of racing the others
-  down the same branch.
-- **Completed-work accounting.** Every finished work unit is recorded, and
-  finished work is not handed out again. A search that runs for months only
-  makes sense if it never redoes what it has already done.
-- **Automatic deduplication.** Symmetric and repeated roots collapse instead of
-  being searched once per contributor.
+- **Distributed root allocation.** The orchestrator hands out roots, typically
+  a fixed 3x3 pattern, so each machine starts somewhere of its own instead of
+  racing the others down the same branch.
+- **Bounded tickets.** A root alone is far too coarse to distribute, so the
+  unit of work is a ticket: a root, a deterministic offset into that root's
+  search stream, and a budget, currently capped at two billion DFS nodes. The
+  cap is deliberate. Without it a machine can sit for months on a branch that
+  returns nothing, which is the worst outcome for a volunteer fleet.
+- **Completed-ticket accounting.** Finished ticket ids go into a ledger that
+  every worker downloads before it starts, and a completed ticket is not handed
+  out again. An audit of 3,458,636 completed tickets found 3,458,636 distinct
+  ids: no unit of work had been computed twice.
+- **Canonical board deduplication.** A finished board is fingerprinted with a
+  canonical SHA-256 and checked against the central database. A new board is
+  registered and credited; a board already in there is recorded as a re-find,
+  and the first discoverer keeps the public credit.
 - **Independent validation.** Every submitted board is re-scored on arrival, so
   a claimed score is a checked score, not a trusted one.
 
@@ -73,31 +84,66 @@ compute was never the scarce resource, the bookkeeping was.
 
 ## What it has found
 
-The counts below are the project's verified totals as published in the August
-2026 announcement, on the strict five-clue board (all five official clue pieces
-at their official cells):
+This page is not a live tracker. The
+[dashboard](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+and the [board library](https://eternity-board-library.pages.dev/) carry the
+current figures; what follows is a dated snapshot, the totals the project
+published when it opened the effort on 30 August 2026, on the strict five-clue
+board (all five official clue pieces at their official cells):
 
-| Score | Boards found |
+| Score | Boards found, as of 30 August 2026 |
 | --- | --- |
 | 463/480 | 7,645 |
 | 464/480 | 327 |
 | **465/480** | **11 distinct boards** |
 
+By that date the fleet had processed more than 8.1 quadrillion search nodes,
+was running at roughly 5 to 6 billion nodes per second, and had peaked at 28
+machines at once above 12 billion. Every one of those numbers has moved since,
+and the 465 count moved within days: more 465s were credited to other
+contributors' machines in the first week of September, after a change to the
+seed set. Read the table as the starting line of the public effort, not as its
+score.
+
 The 465 line is the reason the fleet exists. This wiki's own
 [records page](/research/records) carries the canonical record table, and its
 [boards page](/research/community/boards) records the strict five-clue line as
 it stood in July 2026, when Riotte took it from Bruno Gauthier's long-standing
-460 to 464. The 465s came out of the shared fleet afterwards, and were
-announced to the Discord in September 2026. They are counted here as the
-project reports them: the boards themselves are in the project's
+460 to 464. The 465s came out of the shared fleet afterwards. They are reported
+here as the project reports them: the boards themselves are in the
 [public board library](https://eternity-board-library.pages.dev/), and no
 recount was performed for this page.
 
-Throughput, for a sense of scale: the announcement reports a peak of **28
-machines running at once, at more than 12 billion nodes per second**. For
-comparison, the whole of eternity2.net, the BOINC project that ran in 2007,
-spent something over 10¹⁹ operations in five months and stopped in
+For a sense of scale, compare the whole of eternity2.net, the BOINC project
+that ran in 2007: something over 10¹⁹ operations in five months, stopping in
 the mid-460s under the far looser one-clue convention.
+
+## Re-found is not wasted
+
+The first thing a new contributor notices is that their own counter and the
+dashboard disagree. The worker prints every high-scoring board it observes;
+the site credits only boards that are new, and only to whoever got there
+first. One contributor running a Ryzen workstation and a Raspberry Pi 5
+reported 128 local finds against 40 credits in a day, and reasonably concluded
+that two thirds of the machine's time had been thrown away.
+
+It had not. The tickets behind those boards were all distinct: two different
+searches, from different roots and different offsets, had converged on the same
+finished board, which the fleet can only detect once the board exists.
+Preventing that in advance would mean shipping and comparing an enormous number
+of intermediate search states between machines, which costs far more than the
+compute it saves. Over the measured window, re-finds were about 0.15% of
+completed tickets. The board is a side effect; the ticket is the work.
+
+There is a structural reason it happens at all. The solver is steered toward
+fertile regions rather than sampling finished boards uniformly, and strong
+boards cluster into families. [Carlos Fernandez](/research/people), the
+community's board surgeon, took the first two 465s and showed they belong to
+one such family: exchanging two groups of border pieces, rotating a third
+group and swapping a pair generates 32 boards at 465 out of them. That is 32
+boards, not 32 discoveries, and it is the
+[rigidity wall](/research/why/rigidity-wall) seen from the other side: pieces
+can move without a single mismatch closing.
 
 ## What the solver is
 
