@@ -1,0 +1,123 @@
+---
+title: "Join the five-clue fleet"
+description: >-
+  A live community effort is attacking the strict five-clue Eternity II with a
+  shared fleet: one orchestrator hands out the work, volunteer machines search,
+  and every board that comes back is validated. What it runs, what it has
+  found, and how to lend it a few threads.
+metaDescription: "A live Eternity II search anyone can join: Benjamin Riotte's shared fleet attacks the strict five-clue board, with an orchestrator that hands out work units, deduplicates them and validates every board found. 11 distinct boards at 465/480, a peak of 28 machines at over 12 billion nodes per second."
+kind: page
+order: 65
+updated: 2026-09-17
+topics: [speed, backtracking]
+sources:
+  - label: "Benjamin Riotte's call for contributors, with the fleet's verified counts and throughput (groups.io, August 2026)"
+    url: https://groups.io/g/eternity2/topic/120997660
+  - label: "Live dashboard: the fleet, its discoveries, and each contributor's own total"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard
+  - label: "Worker download, Windows and Linux"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/download
+  - label: "The project's public board library"
+    url: https://eternity-board-library.pages.dev/
+  - label: "The project's write-up of its solver techniques and experiments"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/solver-research
+related:
+  - /research/build/faster/distributed-solving
+  - /research/community/boards
+  - /research/contribute
+---
+
+Most of this wiki is history: searches that ran, walls that held, records set
+years ago. This page is not. There is a community search running right now on
+the strict [five-clue](/research/build/clue-puzzles) board, it is short of
+machines, and joining it takes about two minutes.
+
+It is run by **Benjamin Riotte**, who holds the
+[strict five-clue record](/research/community/boards#the-strict-five-clue-line-from-gauthiers-460-to-riottes-464)
+and who opened the effort to everyone in August 2026
+([the announcement thread](https://groups.io/g/eternity2/topic/120997660)).
+The invitation is plain: "the next machine could be the one that finds 466, or
+goes much further."
+
+<Callout kind="note" title="Join in two minutes">
+  Download the worker for [Windows or
+  Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
+  choose how many CPU threads you want to give, and leave it running. It
+  updates itself, and you can stop it whenever you want. The
+  [dashboard](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+  shows the fleet, the discoveries and your own contribution, live.
+</Callout>
+
+## What is actually shared
+
+The interesting part is not the client, it is the orchestrator behind it. A
+depth-first search over the five-clue board is one enormous tree, and the only
+way a crowd helps is if the tree is cut into pieces that nobody searches twice.
+That is the job the control plane does, and by the project's own description it
+does four things:
+
+- **Distributed root allocation.** The central orchestrator hands out the
+  subtrees, so each machine gets work of its own instead of racing the others
+  down the same branch.
+- **Completed-work accounting.** Every finished work unit is recorded, and
+  finished work is not handed out again. A search that runs for months only
+  makes sense if it never redoes what it has already done.
+- **Automatic deduplication.** Symmetric and repeated roots collapse instead of
+  being searched once per contributor.
+- **Independent validation.** Every submitted board is re-scored on arrival, so
+  a claimed score is a checked score, not a trusted one.
+
+That is the same lesson the community learned the hard way across fifteen years
+of [distributed attempts](/research/build/faster/distributed-solving): the
+compute was never the scarce resource, the bookkeeping was.
+
+## What it has found
+
+The counts below are the project's verified totals as published in the August
+2026 announcement, on the strict five-clue board (all five official clue pieces
+at their official cells):
+
+| Score | Boards found |
+| --- | --- |
+| 463/480 | 7,645 |
+| 464/480 | 327 |
+| **465/480** | **11 distinct boards** |
+
+The 465 line is the reason the fleet exists. This wiki's own
+[records page](/research/records) carries the canonical record table, and its
+[boards page](/research/community/boards) records the strict five-clue line as
+it stood in July 2026, when Riotte took it from Bruno Gauthier's long-standing
+460 to 464. The 465s came out of the shared fleet afterwards, and were
+announced to the Discord in September 2026. They are counted here as the
+project reports them: the boards themselves are in the project's
+[public board library](https://eternity-board-library.pages.dev/), and no
+recount was performed for this page.
+
+Throughput, for a sense of scale: the announcement reports a peak of **28
+machines running at once, at more than 12 billion nodes per second**. For
+comparison, the whole of eternity2.net, the BOINC project that ran in 2007,
+spent something over 10¹⁹ operations in five months and stopped in
+the mid-460s under the far looser one-clue convention.
+
+## What the solver is
+
+Not a brute-force screensaver. The project describes a native search engine
+combining backtracking DFS with exact pruning, tuned
+[heuristics](/research/build/backtracking/fill-order), an optimized endgame
+stage, and the distributed root allocation above. It is still changing as new
+search ideas are tested. The project publishes its own write-up of the
+techniques and experiments it runs, which is worth reading next to
+[this wiki's algorithm pages](/research/build/techniques): two independent
+accounts of the same problem, from people who have each spent a long time on
+it.
+
+## What you get out of it
+
+Nothing, which is the point. There is no prize left to win: the $2 million
+expired in 2010, and this is the five-clue board, not a Tomy submission. What
+you get is a share in a search that has resisted everyone since 2007, a line on
+a dashboard, and the chance that a board found on your machine is the one that
+moves the record.
+
+If you would rather contribute a finding than a few threads, the wiki takes
+those too: see [contribute your research](/research/contribute).

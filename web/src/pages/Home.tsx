@@ -2,9 +2,19 @@ import { pageMeta } from "@/seo";
 import { LocalizedLink as Link } from "@/components/LocalizedLink";
 import { BoardSvg } from "@/components/board/BoardSvg";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { HERO_BOARD_CELLS } from "@/data/hero-board";
+
+// The community fleet the CTA below points at: a live distributed search on the
+// strict five-clue board, run by Benjamin Riotte (holder of the five-clue
+// record). The site itself hosts nothing of it — these are the project's own
+// endpoints — so they live here as plain constants, next to the internal page
+// that documents the effort (/research/community/five-clue-fleet).
+const FLEET_PAGE = "/research/community/five-clue-fleet";
+const FLEET_DOWNLOAD = "https://eternity-control-plane-prod.eternity-cp.workers.dev/download";
+const FLEET_DASHBOARD = "https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard";
 
 // The hero shows a full, solved-looking 16×16 board. It used to be a live
 // 8×8 solver looping forever, but that ran a requestAnimationFrame + engine
@@ -40,6 +50,26 @@ const T = {
     ctaPuzzle: "What is Eternity II?",
     heroCaption:
       "A full 16×16 board, every edge matched and the border grey — this is what a solved Eternity II looks like. (It's a randomly generated board, not the official puzzle.)",
+    ctaBadge: "Live right now",
+    ctaTitle: "Lend a few CPU threads to the search",
+    ctaText:
+      "A community fleet is attacking the strict five-clue board today, and it is short of machines. It has already turned up eleven distinct boards at 465/480, at a peak of 28 machines running over 12 billion nodes per second. The worker runs on Windows and Linux, uses only the threads you give it, and stops whenever you want.",
+    ctaJoin: "Join the search",
+    ctaDownload: "Download the worker",
+    ctaFine: (
+      <>
+        Run by Benjamin Riotte, who holds the five-clue record. Follow the fleet on the{" "}
+        <a
+          className="underline underline-offset-4 hover:text-foreground"
+          href={FLEET_DASHBOARD}
+          target="_blank"
+          rel="noreferrer"
+        >
+          live dashboard
+        </a>
+        . No account, no reward: just the puzzle.
+      </>
+    ),
     cards: [
       {
         to: "/puzzle",
@@ -102,6 +132,26 @@ const T = {
     ctaPuzzle: "C'est quoi, Eternity II ?",
     heroCaption:
       "Un plateau 16×16 complet, tous les côtés appariés et le bord gris : voilà à quoi ressemble un Eternity II résolu. (C'est un plateau généré au hasard, pas le puzzle officiel.)",
+    ctaBadge: "En cours, maintenant",
+    ctaTitle: "Prêtez quelques fils d'exécution à la recherche",
+    ctaText:
+      "Une flotte communautaire attaque en ce moment le plateau strict à cinq indices, et elle manque de machines. Elle a déjà sorti onze plateaux distincts à 465/480, avec un pic de 28 machines à plus de 12 milliards de nœuds par seconde. Le client tourne sous Windows et Linux, n'utilise que les fils que vous lui donnez, et s'arrête quand vous voulez.",
+    ctaJoin: "Rejoindre la recherche",
+    ctaDownload: "Télécharger le client",
+    ctaFine: (
+      <>
+        Menée par Benjamin Riotte, détenteur du record à cinq indices. Suivez la flotte sur le{" "}
+        <a
+          className="underline underline-offset-4 hover:text-foreground"
+          href={FLEET_DASHBOARD}
+          target="_blank"
+          rel="noreferrer"
+        >
+          tableau de bord
+        </a>
+        . Sans compte ni récompense : juste le puzzle.
+      </>
+    ),
     cards: [
       {
         to: "/puzzle",
@@ -164,6 +214,26 @@ const T = {
     ctaPuzzle: "¿Qué es Eternity II?",
     heroCaption:
       "Un tablero 16×16 completo, con todas las aristas coincidentes y el borde gris: así se ve un Eternity II resuelto. (Es un tablero generado al azar, no el puzzle oficial.)",
+    ctaBadge: "En marcha ahora",
+    ctaTitle: "Presta unos hilos de CPU a la búsqueda",
+    ctaText:
+      "Una flota comunitaria está atacando ahora mismo el tablero estricto de cinco pistas, y le faltan máquinas. Ya ha sacado once tableros distintos con 465/480, con un pico de 28 máquinas a más de 12 000 millones de nodos por segundo. El cliente funciona en Windows y Linux, usa solo los hilos que le cedas y se para cuando quieras.",
+    ctaJoin: "Unirse a la búsqueda",
+    ctaDownload: "Descargar el cliente",
+    ctaFine: (
+      <>
+        Dirigida por Benjamin Riotte, que tiene el récord de cinco pistas. Sigue la flota en el{" "}
+        <a
+          className="underline underline-offset-4 hover:text-foreground"
+          href={FLEET_DASHBOARD}
+          target="_blank"
+          rel="noreferrer"
+        >
+          panel en vivo
+        </a>
+        . Sin cuenta ni recompensa: solo el puzzle.
+      </>
+    ),
     cards: [
       {
         to: "/puzzle",
@@ -233,6 +303,31 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">{t.heroCaption}</p>
         </div>
         <HeroBoard />
+      </section>
+
+      <section className="rounded-2xl border border-amber-500/40 bg-amber-500/5 p-6 md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <Badge variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400">
+              {t.ctaBadge}
+            </Badge>
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">{t.ctaTitle}</h2>
+            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{t.ctaText}</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <Button size="lg" render={<Link to={FLEET_PAGE} />}>
+              {t.ctaJoin}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              render={<a href={FLEET_DOWNLOAD} target="_blank" rel="noreferrer" />}
+            >
+              {t.ctaDownload}
+            </Button>
+          </div>
+        </div>
+        <p className="mt-5 text-xs text-muted-foreground">{t.ctaFine}</p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

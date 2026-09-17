@@ -1,0 +1,127 @@
+---
+title: "Únete a la flota de cinco pistas"
+description: >-
+  Un esfuerzo comunitario está atacando ahora mismo el Eternity II estricto de
+  cinco pistas con una flota compartida: un orquestador reparte el trabajo, las
+  máquinas de los voluntarios buscan, y cada tablero que llega se valida. Qué
+  ejecuta, qué ha encontrado y cómo prestarle unos cuantos hilos.
+metaDescription: "Una búsqueda de Eternity II viva y abierta a cualquiera: la flota compartida de Benjamin Riotte ataca el tablero estricto de cinco pistas, con un orquestador que reparte el trabajo, lo deduplica y valida cada tablero. 11 tableros con 465/480 y un pico de 28 máquinas a 12 000 millones de nodos/s."
+kind: page
+order: 65
+updated: 2026-09-17
+topics: [speed, backtracking]
+sources:
+  - label: "La llamada a contribuidores de Benjamin Riotte, con los recuentos verificados y el rendimiento de la flota (groups.io, agosto de 2026)"
+    url: https://groups.io/g/eternity2/topic/120997660
+  - label: "El panel en vivo: la flota, sus hallazgos y la contribución de cada uno"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard
+  - label: "Descarga del cliente, Windows y Linux"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/download
+  - label: "La biblioteca pública de tableros del proyecto"
+    url: https://eternity-board-library.pages.dev/
+  - label: "Las técnicas y experimentos del solucionador, publicados por el proyecto"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/solver-research
+related:
+  - /research/build/faster/distributed-solving
+  - /research/community/boards
+  - /research/contribute
+---
+
+Casi todo este wiki es historia: búsquedas que se ejecutaron, muros que
+aguantaron, récords establecidos hace años. Esta página no. Hay una búsqueda
+comunitaria en marcha ahora mismo sobre el tablero estricto de
+[cinco pistas](/research/build/clue-puzzles), le faltan máquinas, y unirse
+lleva unos dos minutos.
+
+La dirige **Benjamin Riotte**, que tiene el
+[récord estricto de cinco pistas](/research/community/boards#la-línea-estricta-de-cinco-pistas-del-460-de-gauthier-al-464-de-riotte)
+y que la abrió a todo el mundo en agosto de 2026
+([el hilo del anuncio](https://groups.io/g/eternity2/topic/120997660)). La
+invitación es directa: «la próxima máquina podría ser la que encuentre 466, o
+llegue mucho más lejos».
+
+<Callout kind="note" title="Únete en dos minutos">
+  Descarga el cliente para [Windows o
+  Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
+  elige cuántos hilos de CPU quieres ceder y déjalo en marcha. Se actualiza
+  solo, y puedes pararlo cuando quieras. El
+  [panel](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+  muestra la flota, los hallazgos y tu propia contribución, en vivo.
+</Callout>
+
+## Qué se comparte realmente
+
+Lo interesante no es el cliente, sino el orquestador que hay detrás. Una
+búsqueda en profundidad sobre el tablero de cinco pistas es un árbol enorme, y
+una multitud solo ayuda si ese árbol se corta en piezas que nadie recorre dos
+veces. Ese es el trabajo del plano de control y, según la descripción del
+propio proyecto, hace cuatro cosas:
+
+- **Reparto distribuido de raíces.** El orquestador central reparte los
+  subárboles: cada máquina recibe trabajo propio en lugar de competir con las
+  demás por la misma rama.
+- **Contabilidad del trabajo terminado.** Cada unidad de trabajo completada
+  queda registrada, y el trabajo terminado no se vuelve a repartir. Una
+  búsqueda que dura meses solo tiene sentido si nunca rehace lo que ya hizo.
+- **Deduplicación automática.** Las raíces simétricas o repetidas se fusionan
+  en lugar de explorarse una vez por contribuidor.
+- **Validación independiente.** Cada tablero enviado se vuelve a puntuar al
+  llegar: una puntuación anunciada es una puntuación comprobada, no una
+  puntuación creída.
+
+Es la misma lección que la comunidad aprendió a golpes en quince años de
+[intentos distribuidos](/research/build/faster/distributed-solving): el recurso
+escaso nunca fue el cálculo, sino la contabilidad.
+
+## Qué ha encontrado
+
+Los recuentos siguientes son los totales verificados que el proyecto publicó en
+su anuncio de agosto de 2026, sobre el tablero estricto de cinco pistas (las
+cinco piezas pista oficiales en sus casillas oficiales):
+
+| Puntuación | Tableros encontrados |
+| --- | --- |
+| 463/480 | 7645 |
+| 464/480 | 327 |
+| **465/480** | **11 tableros distintos** |
+
+La línea de los 465 es la razón de ser de la flota. La
+[página de récords](/research/records) de este wiki lleva la tabla canónica de
+récords, y su [página de tableros](/research/community/boards) recoge la línea
+estricta de cinco pistas tal como estaba en julio de 2026, cuando Riotte la
+llevó del 460 de Bruno Gauthier, intacto durante años, hasta 464. Los 465
+salieron después de la flota compartida, y se anunciaron en el Discord en
+septiembre de 2026. Aquí se cuentan tal como los reporta el proyecto: los
+tableros están en la
+[biblioteca pública del proyecto](https://eternity-board-library.pages.dev/), y
+para esta página no se ha hecho ningún recuento propio.
+
+El rendimiento, para hacerse una idea: el anuncio informa de un pico de **28
+máquinas a la vez, a más de 12 000 millones de nodos por segundo**. Como
+comparación, eternity2.net entero, el proyecto BOINC de 2007, gastó algo más de
+10¹⁹ operaciones en cinco meses y se detuvo a mitad de los 460, y eso bajo la
+convención de una sola pista, mucho más laxa.
+
+## Qué es el solucionador
+
+No es un salvapantallas de fuerza bruta. El proyecto describe un motor de
+búsqueda nativo que combina búsqueda en profundidad con poda exacta,
+[heurísticas](/research/build/backtracking/fill-order) afinadas, una fase final
+optimizada y el reparto distribuido de raíces de más arriba. Sigue cambiando a
+medida que se prueban nuevas ideas de búsqueda. El proyecto publica su propia
+exposición de las técnicas y los experimentos que ejecuta, que conviene leer
+junto a las
+[páginas de algoritmos de este wiki](/research/build/techniques): dos relatos
+independientes del mismo problema, escritos por gente que le ha dedicado mucho
+tiempo.
+
+## Qué ganas tú
+
+Nada, y ahí está la gracia. No queda premio que ganar: los 2 millones de
+dólares caducaron en 2010, y esto es el tablero de cinco pistas, no una entrega
+a Tomy. Lo que ganas es una parte en una búsqueda que se resiste a todo el
+mundo desde 2007, una línea en un panel, y la posibilidad de que un tablero
+encontrado en tu máquina sea el que mueva el récord.
+
+Si prefieres aportar un hallazgo antes que unos cuantos hilos, el wiki también
+los acoge: mira [contribuye tu investigación](/research/contribute).

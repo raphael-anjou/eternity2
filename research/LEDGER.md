@@ -1586,3 +1586,31 @@ wall, two medians miscomputed against the committed run logs (12.5 not 14,
 4.5 not 5), a repro-tier field added to match the topic, and several French
 mistranslations and metaDescription parity gaps. Full build, style, i18n,
 parity, and 43 tests all green.
+
+## 2026-09-17 — A call to action: the five-clue fleet
+
+The site gained its first page about something still running, plus a homepage
+call to action pointing at it. Benjamin Riotte, who took the strict five-clue
+record from 460 to 464 in July 2026, opened a shared runner infrastructure to
+the community in August 2026: a control plane that allocates search roots,
+records completed work units, deduplicates them and re-scores every submitted
+board, with a Windows/Linux worker anyone can run on the threads they choose.
+The announcement reports 7,645 boards at 463, 327 at 464 and 11 distinct boards
+at 465 on the strict five-clue board, at a peak of 28 machines and over
+12 billion nodes per second.
+
+New page `/research/community/five-clue-fleet` (EN/FR/ES) documents it: what
+the orchestrator actually shares, what the fleet has found, what the solver is,
+and how to join. The counts are attributed to the project's own announcement
+and explicitly not recounted here, and the page links `/research/records` as
+the canonical record table rather than restating it. The strict-record pages
+still carry 464 as the wiki's verified line: the 465s are the project's report,
+not a wiki verification, and updating the record ledger is a separate step.
+
+Also: a highlighted CTA section on the homepage (trilingual, links the new page
+and the worker download, with the dashboard in the fine print), a door on the
+community hub, and a closing pointer from
+`/research/build/faster/distributed-solving`, whose fifteen-year verdict (the
+scarce resource was never compute, it was the bookkeeping) this effort is now
+testing live. Style, links, anchors, citations, hardware, repro and parity gates
+green across 423 files; build, typecheck, lint and 90 unit tests clean.

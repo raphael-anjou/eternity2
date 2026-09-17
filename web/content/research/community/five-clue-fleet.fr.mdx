@@ -1,0 +1,132 @@
+---
+title: "Rejoindre la flotte cinq indices"
+description: >-
+  Un effort communautaire attaque en ce moment l'Eternity II strict à cinq
+  indices avec une flotte partagée : un orchestrateur distribue le travail, les
+  machines des volontaires cherchent, et chaque plateau remonté est vérifié. Ce
+  qu'elle fait tourner, ce qu'elle a trouvé, et comment lui prêter quelques
+  fils d'exécution.
+metaDescription: "Une recherche Eternity II bien vivante, ouverte à tous : la flotte partagée de Benjamin Riotte attaque le plateau strict à cinq indices, avec un orchestrateur qui distribue le travail, déduplique et vérifie chaque plateau. 11 plateaux à 465/480, un pic de 28 machines et 12 milliards de nœuds/s."
+kind: page
+order: 65
+updated: 2026-09-17
+topics: [speed, backtracking]
+sources:
+  - label: "L'appel à contributeurs de Benjamin Riotte, avec les décomptes vérifiés et le débit de la flotte (groups.io, août 2026)"
+    url: https://groups.io/g/eternity2/topic/120997660
+  - label: "Le tableau de bord : la flotte, ses découvertes et la contribution de chacun"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard
+  - label: "Téléchargement du client, Windows et Linux"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/download
+  - label: "La bibliothèque publique de plateaux du projet"
+    url: https://eternity-board-library.pages.dev/
+  - label: "Les techniques et expériences du solveur, publiées par le projet"
+    url: https://eternity-control-plane-prod.eternity-cp.workers.dev/solver-research
+related:
+  - /research/build/faster/distributed-solving
+  - /research/community/boards
+  - /research/contribute
+---
+
+L'essentiel de ce wiki relève de l'histoire : des recherches passées, des murs
+qui ont tenu, des records établis il y a des années. Pas cette page. Une
+recherche communautaire tourne en ce moment même sur le plateau strict à
+[cinq indices](/research/build/clue-puzzles), elle manque de machines, et la
+rejoindre prend environ deux minutes.
+
+Elle est menée par **Benjamin Riotte**, détenteur du
+[record strict à cinq indices](/research/community/boards#la-lignée-stricte-à-cinq-indices--du-460-de-gauthier-au-464-de-riotte),
+qui l'a ouverte à tous en août 2026
+([le fil d'annonce](https://groups.io/g/eternity2/topic/120997660)).
+L'invitation est directe : « la prochaine machine pourrait être celle qui
+trouvera 466, ou ira bien plus loin ».
+
+<Callout kind="note" title="Rejoindre en deux minutes">
+  Téléchargez le client pour [Windows ou
+  Linux](https://eternity-control-plane-prod.eternity-cp.workers.dev/download),
+  choisissez le nombre de fils d'exécution que vous voulez donner, et
+  laissez-le tourner. Il se met à jour tout seul, et vous l'arrêtez quand vous
+  voulez. Le
+  [tableau de bord](https://eternity-control-plane-prod.eternity-cp.workers.dev/dashboard)
+  montre la flotte, les découvertes et votre propre contribution, en direct.
+</Callout>
+
+## Ce qui est réellement partagé
+
+Le plus intéressant n'est pas le client, mais l'orchestrateur derrière lui. Une
+recherche en profondeur d'abord sur le plateau à cinq indices forme un arbre
+gigantesque, et une foule n'aide que si cet arbre est découpé en morceaux que
+personne ne parcourt deux fois. C'est le travail du plan de contrôle et, selon
+la description du projet lui-même, il fait quatre choses :
+
+- **Allocation distribuée des racines.** L'orchestrateur central distribue les
+  sous-arbres : chaque machine reçoit son propre travail au lieu de courir sur
+  la même branche que les autres.
+- **Comptabilité du travail accompli.** Chaque unité de travail terminée est
+  enregistrée, et le travail terminé n'est pas redistribué. Une recherche qui
+  dure des mois n'a de sens que si elle ne refait jamais ce qu'elle a déjà
+  fait.
+- **Déduplication automatique.** Les racines symétriques ou répétées sont
+  fusionnées au lieu d'être explorées une fois par contributeur.
+- **Validation indépendante.** Chaque plateau soumis est recalculé à
+  l'arrivée : un score annoncé est un score vérifié, pas un score cru sur
+  parole.
+
+C'est la leçon que la communauté a apprise à la dure en quinze ans de
+[tentatives distribuées](/research/build/faster/distributed-solving) : la
+ressource rare n'a jamais été la puissance de calcul, mais la comptabilité.
+
+## Ce qu'elle a trouvé
+
+Les décomptes ci-dessous sont les totaux vérifiés publiés par le projet dans
+son annonce d'août 2026, sur le plateau strict à cinq indices (les cinq pièces
+indices officielles à leurs cases officielles) :
+
+| Score | Plateaux trouvés |
+| --- | --- |
+| 463/480 | 7 645 |
+| 464/480 | 327 |
+| **465/480** | **11 plateaux distincts** |
+
+La ligne des 465 est la raison d'être de la flotte. La
+[page des records](/research/records) de ce wiki porte le tableau canonique des
+records, et sa [page des plateaux](/research/community/boards) enregistre la
+ligne stricte à cinq indices telle qu'elle était en juillet 2026, quand Riotte
+l'a fait passer du 460 de Bruno Gauthier, longtemps indétrôné, à 464. Les 465 sont
+sortis de la flotte partagée par la suite, et ont été annoncés sur le Discord
+en septembre 2026. Ils sont comptés ici tels que le projet les rapporte : les
+plateaux eux-mêmes sont dans la
+[bibliothèque publique du projet](https://eternity-board-library.pages.dev/), et
+aucun recomptage n'a été effectué pour cette page.
+
+Le débit, pour l'ordre de grandeur : l'annonce fait état d'un pic de **28
+machines simultanées, à plus de 12 milliards de nœuds par seconde**. À titre de
+comparaison, eternity2.net tout entier, le projet BOINC de 2007, a dépensé un
+peu plus de 10¹⁹ opérations en cinq mois pour s'arrêter au milieu des 460, et
+cela sous la convention à un seul indice, bien plus permissive.
+
+## Ce qu'est le solveur
+
+Pas un économiseur d'écran en force brute. Le projet décrit un moteur de
+recherche natif qui combine une recherche en profondeur d'abord avec élagage
+exact, des [heuristiques](/research/build/backtracking/fill-order) affinées,
+une phase de fin de partie optimisée, et l'allocation distribuée des racines
+décrite plus haut. Il continue d'évoluer à mesure que de nouvelles idées de
+recherche sont testées. Le projet publie son propre exposé des techniques et
+des expériences qu'il mène, à lire en regard des
+[pages d'algorithmes de ce wiki](/research/build/techniques) : deux récits
+indépendants du même problème, par des gens qui y ont chacun passé beaucoup de
+temps.
+
+## Ce que vous y gagnez
+
+Rien, et c'est tout l'intérêt. Il n'y a plus de prix à remporter : les 2
+millions de dollars ont expiré en 2010, et il s'agit ici du plateau à cinq
+indices, pas d'une soumission à Tomy. Ce que vous y gagnez, c'est une part dans
+une recherche qui résiste à tout le monde depuis 2007, une ligne sur un tableau
+de bord, et la chance qu'un plateau trouvé sur votre machine soit celui qui
+fait bouger le record.
+
+Si vous préférez apporter un résultat plutôt que quelques fils d'exécution, le
+wiki les accueille aussi : voir
+[contribuer vos recherches](/research/contribute).
