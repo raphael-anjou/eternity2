@@ -9,7 +9,7 @@ metaDescription: "Les chiffres d'Eternity II que les chercheurs redémontrent sa
 kind: reference
 order: 15
 group: Check your code
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: Wikipedia, « Eternity II puzzle » (le prix, la date limite, le 467 de Verhaard et l'estimation 10^557)
@@ -64,10 +64,15 @@ primaires de la liste de diffusion ; les faits encyclopédiques de Wikipedia.
 | Prix | 2 000 000 $, non réclamé ; date limite midi, 31 déc. 2010 | Wikipedia |
 
 La couleur de la bordure extérieure grise ne fait pas partie des 22 : elle
-n'apparaît jamais sur une arête interne. La répartition 5 + 17 des couleurs
-n'est pas fortuite : 17 couleurs intérieures, c'est
-[exactement le pic de difficulté](/research/why/phase-transition) pour un
-puzzle de cette taille.
+n'apparaît jamais sur une arête interne. Les 17 couleurs intérieures
+correspondent à l'heuristique de Brendan Owen qui vise environ une solution
+attendue pour un intérieur 14×14 aléatoire,
+$(196! \cdot 4^{196})^{1/392} \approx 17{,}14$
+([msg 1947](https://groups.io/g/eternity2/message/1947)), ce qui situe le puzzle
+[près de la zone de difficulté maximale](/research/why/phase-transition) des
+ensembles aléatoires de puzzles à bords appariés. L'heuristique ignore le cadre
+et la solution plantée, et Eternity II n'est qu'une instance : il faut lire
+« près de la zone », pas « exactement au pic ».
 
 ## Les cinq indices
 
@@ -99,8 +104,13 @@ en deux ; voir plus bas.
 
 Les indices tranchent aussi une question de dénombrement : avec seulement la
 pièce obligatoire placée, la [théorie complexe](/research/why/complex-theory)
-prévoit ≈ 14 702 solutions complètes ; avec les cinq, ≈ 1. Le puzzle à
-5 indices possède, par conception, une unique solution attendue.
+prévoit ≈ 14 702 solutions complètes ; avec les cinq, l'estimation tombe à
+environ 4×10⁻⁸ ([msg 11193](https://groups.io/g/eternity2/message/11193)). En dehors de la solution
+plantée par le concepteur, on n'en attend pratiquement aucune autre : le
+puzzle à cinq indices est presque sûrement unique. Ces deux chiffres sont des
+moyennes sur des puzzles aléatoires aux mêmes statistiques de pièces, pas des
+décomptes des solutions de ce puzzle-ci ; voir
+[le dénombrement des solutions](/research/build/analysis/solution-counting).
 
 ## Conventions de score
 
@@ -150,7 +160,7 @@ eux-mêmes :
 | 467 | Équipe de Louis Verhaard | Sept. 2008 | canonique ; a remporté le prix partiel de 10 000 $ |
 | 468 | Joshua Blackwood | Août 2020 | canonique |
 | 469 | Peter McGavin (solveur de Blackwood) | Sept. 2020 | canonique |
-| 469 | divers (~7 plateaux, trouvailles indépendantes plus un simple échange à partir de celui de McGavin) | Nov. 2020 | canonique |
+| 469 | Jef Bucas (sept plateaux, 469a–g) et Carlos Fernandez (une variante à une pièce près de celui de McGavin) | Oct.–nov. 2020 | canonique |
 | **470** | **Joshua Blackwood** | **Mars 2021** | **canonique, le plafond depuis lors** |
 | 470 | Jef Bucas | Déc. 2024 | canonique (égalisation du 470) |
 | 460 | Bruno Gauthier | Mars 2023 | strictement canonique ; meilleur plateau respectant les quatre indices optionnels, de 2023 jusqu'à être battu en juil. 2026 |
@@ -182,7 +192,7 @@ reste de la frontière vivante.
 | Tous les placements, sans contrainte : 256! · 4²⁵⁶ | ≈ 1,15 × 10⁶⁶¹ | calculé |
 | Coins dans les coins, bords sur la bordure (orientation forcée), indice fixé : 4! · 56! · 195! · 4¹⁹⁵ | ≈ 1,115 × 10⁵⁵⁷ | calculé ; correspond au chiffre largement cité de Wikipedia |
 | Point le plus large de l'arbre de recherche (estimation par théorie complexe, balayage par ligne) | ≈ 10⁴⁵ façons d'étendre, autour de la profondeur 50–200 | Owen / McGavin, voir [théorie complexe](/research/why/complex-theory) |
-| Solutions complètes attendues, 1 indice / 5 indices | ≈ 14 702 / ≈ 1 | idem |
+| Solutions complètes attendues (moyenne sur l'ensemble aléatoire), 1 indice / 5 indices | ≈ 14 702 / ≈ 4×10⁻⁸ (plus la solution plantée) | idem ; voir [le dénombrement des solutions](/research/build/analysis/solution-counting) |
 
 Le chiffre 10⁵⁵⁷ mérite qu'on sache le redémontrer plutôt que de le citer :
 les 4 pièces coin vont aux 4 coins (orientation forcée par les deux côtés
@@ -203,11 +213,14 @@ Tous calculés à partir du jeu de pièces officiel :
   pièce** : les pièces 3 & 4, 6 & 15, 8 & 52, 110 & 111, 172 & 182 (numérotation
   officielle à partir de 1) portent les mêmes quatre couleurs dans un ordre
   cyclique différent.
-- **Les indices brisent toutes les symétries du plateau.** Un plateau 16×16
-  n'a pas de case centrale, donc toute rotation ou réflexion déplace la case
-  I8 de l'indice obligatoire : aucune symétrie non triviale n'envoie le puzzle
-  indicé sur lui-même, et la rupture de symétrie n'offre aucune réduction
-  supplémentaire de l'espace de recherche.
+- **Les indices brisent toutes les symétries du plateau.** Aucune rotation du
+  plateau 16×16 ne fixe de case (il n'y a pas de case centrale) : l'indice
+  fixé en I8 casse donc les trois rotations non triviales. Les réflexions, elles,
+  ne sont pas des symétries du puzzle au départ : refléter un plateau reflète
+  chaque pièce, et 213 des 256 pièces reflétées ne figurent pas dans le jeu
+  officiel. Aucune symétrie non triviale n'envoie le puzzle indicé sur
+  lui-même, et la rupture de symétrie n'offre aucune réduction supplémentaire
+  de l'espace de recherche.
 
 ## Les couleurs, arête par arête
 
@@ -230,7 +243,9 @@ Deux conséquences que les chercheurs redécouvrent sans cesse :
   donc une solution parfaite requiert $\sum_c N_c / 2 = 480$ appariements, ce
   qui est exactement le nombre d'arêtes internes. Il n'y a **aucune marge** :
   dans une solution complète, chaque instance d'arête de chaque couleur trouve
-  son partenaire.
+  son partenaire. Ces deux propriétés valent automatiquement pour tout puzzle
+  découpé dans un plateau résolu peint : c'est de la comptabilité, pas un choix
+  de conception.
 - **Les cinq couleurs rares ne vivent que sur le cadre** (24 instances
   chacune), ce qui fait de l'anneau du cadre un sous-puzzle quasi autonome ;
   la géométrie est détaillée dans

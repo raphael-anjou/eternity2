@@ -10,7 +10,7 @@ metaDescription: "A ready-to-use Eternity II starter kit: a Rust workspace with 
 kind: tool
 order: 2
 group: Start here
-updated: 2026-07-20
+updated: 2026-11-11
 sources:
   - label: "The starter kit (this repo): the Rust workspace, examples, and agent setup files"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
@@ -19,6 +19,8 @@ related:
   - /research/build/dataset
   - /research/build/approaches-map
   - /research/build/formats
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
+  - /research/lab/experiments/raphael-anjou/pipelines/cas
 ---
 
 import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
@@ -56,18 +58,24 @@ and iterate.
 - **Benchmark** the plumbing single-core, so you know your solver's overhead
   budget.
 - **The iteration loop:** a stable `Solver` trait, a sweep runner that writes
-  reproducible run directories, and a `compare` tool that diffs two runs, with
-  the variance discipline this puzzle demands baked in.
+  reproducible run directories, and a `compare` tool that diffs two runs
+  seed by seed, with paired statistics baked in.
 
 ## The one rule the kit enforces for you
 
-On Eternity II the score swings a lot from seed to seed: the standard deviation
-across seeds is roughly 12 to 20 points for a whole-board solver. So a one- or
-two-point difference in mean between two solver versions is almost always noise.
-The kit's `compare` tool refuses to call a sub-noise difference a win, tells you
-to sweep at least 40 seeds, and always reports the spread. Keep everything
-single-core, as the site's [benchmarks](/research/build/benchmarks) do, and your
-numbers stay comparable to everyone else's.
+How much the score moves from seed to seed depends on the solver. The kit's
+greedy baseline, swept over 40 generated 16×16 boards (the default sweep below,
+seeds 1 to 40, deterministic), scores 292.7 on average with a standard
+deviation of 14.8 points. Stronger searches are far tighter: committed beam
+runs spread by 2 to 3 points, both on generated 12×12 boards
+([beam width](/research/lab/experiments/raphael-anjou/pipelines/beam-width)) and on the official board across frames
+([CAS](/research/lab/experiments/raphael-anjou/pipelines/cas)). So never judge a change by a fixed point gap. The kit's
+`compare` tool pairs the two runs seed by seed, prints the standard error of
+the mean difference, refuses to call anything under two standard errors a win,
+and flags runs with fewer than 40 paired seeds. Keep everything single-core, as
+the site's [benchmarks](/research/build/benchmarks) do, and your numbers stay
+comparable across runs of this kit; community record runs are long multi-core
+searches, a different regime.
 
 ## Write your first solver
 
@@ -96,6 +104,11 @@ body of `solve`, then sweep it:
 cargo run --release --example sweep -- --n 40 --budget 3
 cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
 ```
+
+A short-budget mean is a proxy, not the target. A record is the best board
+from very long runs, so also look at a sweep's best and upper quantiles, and at
+the time it takes to reach a target score, and re-check any winner at a budget
+10 to 100 times longer before trusting it.
 
 Full recipes (scoring, generation, batch, convert, benchmark) are in the kit's
 [README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme).
