@@ -13,7 +13,7 @@ metaDescription: "Résolution sur FPGA pour Eternity II : le design 2014 de Mich
 kind: concept
 order: 145
 group: GPU & hardware
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, hardware]
 sources:
   - label: "La première proposition FPGA : la couverture exacte en matériel (groups.io message 2623, 2007)"
@@ -48,13 +48,14 @@ repro:
   kind: prose
 ---
 
-La [page GPU](/research/build/hardware/gpu-solving) se termine sur un mur : un
-backtracker d'Eternity II n'est pas limité par le calcul, c'est une chaîne de
-petites lectures mémoire dépendantes, et l'analyse de Mike Field en 2011
-montrait que les deux branches GPU (coopérer ou travailler seul) butent toutes
-deux sur le bus mémoire externe
-([message 9003](https://groups.io/g/eternity2/message/9003)). Un FPGA est la
-seule pièce de silicium qui semble répondre précisément à cette objection. Il
+Un backtracker d'Eternity II n'est pas limité par le calcul : c'est une
+chaîne de petites lectures mémoire dépendantes. En 2011, Mike Field en
+concluait que les deux architectures GPU (coopérer ou travailler seul)
+finissaient sur le bus mémoire externe
+([message 9003](https://groups.io/g/eternity2/message/9003)) ; la
+[page GPU](/research/build/hardware/gpu-solving) explique pourquoi cet
+argument a vite vieilli. Le FPGA semblait alors être la pièce de silicium qui
+répondait directement à l'objection. Il
 n'y a pas de hiérarchie de cache à manquer : les tables de correspondance
 vivent dans la block RAM embarquée, à un cycle d'horloge, réparties en des
 dizaines de petites mémoires indépendantes que l'on peut toutes lire *dans le
@@ -72,22 +73,24 @@ II complet n'a jamais été rapportée, en dix-neuf ans d'archives. Ce qui est
 intéressant, c'est que les raisons figurent elles aussi au dossier, dans les
 propres mots du concepteur.
 
-## Pourquoi les FPGA répondent au mur exact que rencontrent les GPU
+## Pourquoi les FPGA semblaient la réponse
 
 Rappelons la bifurcation issue de l'analyse de Field (racontée en entier sur la
 [page GPU](/research/build/hardware/gpu-solving)) : les chercheurs parallèles
 soit partagent de l'information, ce qui exige une bande passante de
 synchronisation dont le tissu logique ne dispose pas, soit travaillent
-indépendamment, ce qui exige un état par ouvrier dépassant les ~8 Ko de mémoire
-rapide alloués à une voie GPU, déversant tout sur un unique bus externe
-partagé. Son message de 2011 appliquait le même argument aux FPGA dans la
+indépendamment, ce qui exige un état par ouvrier dépassant (selon son
+estimation de 2011) les ~8 Ko de mémoire rapide dont disposait alors un
+processeur de flux GPU, déversant tout sur un unique bus externe partagé. La
+page GPU explique pourquoi cette estimation ne décrit plus les GPU actuels. Son message de 2011 appliquait le même argument aux FPGA dans la
 foulée : « either need to store too much information, pass too much information
 around or it choke[s] on memory bandwidth »
 ([message 9003](https://groups.io/g/eternity2/message/9003)).
 
-Mais la version FPGA de l'argument comporte une échappatoire que la version GPU
-n'a pas. Sur un GPU, le budget de mémoire rapide par ouvrier est fixé par le
-constructeur. Sur un FPGA, c'est *vous* qui dessinez la carte mémoire : si vous
+La version FPGA de l'argument comporte une échappatoire qui semblait manquer
+aux GPU de 2011. Sur un GPU, le budget de mémoire rapide par multiprocesseur
+est fixé par le constructeur (et il a été multiplié par des ordres de grandeur
+depuis). Sur un FPGA, c'est *vous* qui dessinez la carte mémoire : si vous
 parvenez à réduire tout l'univers d'un backtracker (tables de candidats, état
 du plateau, ensemble des pièces utilisées) assez petit, vous pouvez l'instancier
 entièrement en block RAM, le répliquer cinquante fois, et aucun ouvrier ne
@@ -194,9 +197,12 @@ notait-il, les décalages et les masques sont du câblage gratuit, les deux tabl
 résident dans des BRAM différentes, donc les deux recherches se font en
 parallèle, et la lecture-écriture au même cycle de la block RAM offre un
 test-and-set atomique sur le bit de pièce utilisée : tout le trafic mémoire de
-la boucle interne, à un cycle de distance. Comparez ces 4 Ko au « >8 Ko par
-thread » fatal de la [page GPU](/research/build/hardware/gpu-solving) : voilà à
-quoi ressemble la suppression du mur de bande passante.
+la boucle interne, à un cycle de distance. Ces 4 Ko de tables en lecture
+seule et ce ~1 Ko d'état par solveur sont aussi le budget qui rend caduc
+l'argument GPU de 2011, comme l'explique la
+[page GPU](/research/build/hardware/gpu-solving) : des tables partagées et un
+kilo-octet par recherche tiennent largement dans la mémoire interne d'un GPU
+moderne.
 
 La projection : environ **50 instances de solveur sur un Zynq 7020 à ~200 MHz**,
 chaque placement/déplacement coûtant en moyenne ~2 cycles, « up to 5 billion
@@ -282,24 +288,26 @@ crunching 15 Mn/s on an FPGA platform. Perf/W maybe unbeatable »,
 coût : le travail sur FPGA est « soooo slow to compile... code... debug... You
 need to be an expert or have plenty of spare time and motivation. I've tried
 once, that was my hardest programming experience »
-([message 9590](https://groups.io/g/eternity2/message/9590)). Des mois de mise en
-route HDL achetèrent ce que le
-[registre de l'ingénierie des solveurs](/research/build/faster/solver-engineering)
-obtient d'un simple drapeau de compilation. Cette asymétrie, et non un quelconque
-mur technique isolé, explique pourquoi chaque fil FPGA des archives se termine
+([message 9590](https://groups.io/g/eternity2/message/9590)). D'après les propres
+chiffres de Field, le prototype mesuré valait environ trois à quatre cœurs i7
+(24 threads à 1/8 ou 1/6 de cœur chacun) sur une carte à moins de 100 $
+alimentée en USB : un vrai gain par dollar et par watt, sur un problème 15×15
+assoupli, payé par des mois de mise en route HDL dont un moteur logiciel n'a
+pas besoin. Ce coût, et non un quelconque mur technique isolé, explique pourquoi chaque fil FPGA des archives se termine
 dans le silence : le « FPGA custom engine in 2022 » promis par un membre en 2021
 ([message 10581](https://groups.io/g/eternity2/message/10581)) est le dernier de
 la lignée, et lui non plus n'a jamais refait surface.
 
-**L'unique tentative menée à terme fut académique, et elle fit moins bien que le
-logiciel.** L'article demandé par Bucas, « Exploitation of Parallel Search Space
+**L'unique tentative menée à terme que mentionnent les archives fut
+académique.** L'article demandé par Bucas, « Exploitation of Parallel Search Space
 Evaluation with FPGAs in Combinatorial Problems: The Eternity II Case »
 (ReConFig 2011, [ieeexplore 6044826](https://ieeexplore.ieee.org/document/6044826)),
-est le seul système FPGA Eternity II achevé et publié de tout le dossier. Son
-bilan, tel que la liste le lut : « After three months, the best available
+est le seul système FPGA Eternity II achevé dont parlent les archives. Son
+bilan, tel que résumé sur la liste : « After three months, the best available
 solution contained 187/196 center pieces »
-([message 10651](https://groups.io/g/eternity2/message/10651)), bien en deçà de
-ce que produisaient les heuristiques logicielles de l'époque. Le verdict de Bucas
+([message 10651](https://groups.io/g/eternity2/message/10651)). Cette mesure ne
+se transpose pas sur l'échelle des 480 arêtes, et cette page ne l'a pas
+comparée aux résultats logiciels dans les termes de l'article. Le verdict de Bucas
 fut celui de la communauté : « a bit disappointed by the results in term of
 speed... I would expect more from a 'dedicated' HW »
 ([message 10655](https://groups.io/g/eternity2/message/10655)).
@@ -332,12 +340,15 @@ aligné. Une année vaut ~3×10⁷ secondes, donc le rack parcourt ~3×10²⁰ n
 an. L'arbre de recherche du puzzle complet est, à son plateau, large de l'ordre
 de **10⁴⁵ plateaux partiels**
 ([la théorie de la complexité](/research/why/complex-theory) fait cette mesure
-correctement). La division : environ **10²⁴ rack-années**. Chaque ordre de
-grandeur que le matériel gagne déplace cet exposant d'une unité, et il en manque
-vingt-quatre.
+correctement), si bien qu'un parcours exhaustif visite au moins autant de
+nœuds : environ **10²⁴ rack-années**. Trouver une première solution demande
+moins qu'un parcours complet, mais les estimations du site pour ce travail
+atteignent encore 10⁴⁰ nœuds ou plus
+([page quantique](/research/build/hardware/quantum)), soit environ 10¹⁹
+rack-années. Chaque ordre de grandeur que le matériel gagne déplace cet
+exposant d'une unité.
 
-C'est la même phrase sur laquelle se termine la page GPU, car c'est la même
-mathématique : le matériel est un diviseur constant, et le mur d'E2 est
+La page GPU arrive à la même conclusion, car c'est la même mathématique : le matériel est un diviseur constant, et le mur d'E2 est
 exponentiel.
 [Pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)
 mène l'argument général ; le chapitre FPGA n'en est que l'étude de cas la plus
