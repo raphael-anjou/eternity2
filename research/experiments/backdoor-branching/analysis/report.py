@@ -18,6 +18,9 @@ def ci(c):
 
 
 for rung, R in s["rungs"].items():
+    if R.get("incomplete"):
+        print(f"\n### {rung}: incomplete, missing {R['missing_solvers']}")
+        continue
     print(f"\n### {rung} ({R['n']}x{R['n']}, ladder {R['ladder']}, seeds {R['seeds'][0]}..{R['seeds'][-1]})\n")
     print("| solver | solved | Wilson 95% | KM q1 | KM median | KM q3 | median wall ms | total wall s | propagations | time-censored |")
     print("|---|---|---|---|---|---|---|---|---|---|")

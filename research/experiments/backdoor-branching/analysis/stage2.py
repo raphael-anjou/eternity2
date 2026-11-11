@@ -36,6 +36,8 @@ def rows(solver, ladder, n):
     p = ROOT / "results" / "test" / ladder / f"{solver}.jsonl"
     if not p.exists():
         p = LADDER / "results" / "test" / ladder / f"{solver}.jsonl"
+    if not p.exists():
+        return None
     return {r["instance"]: r for r in load(p) if r["n"] == n}
 
 
@@ -91,6 +93,11 @@ def main():
     pair_rows = []
     for rung, (ladder, n) in RUNGS.items():
         data = {s: rows(s, ladder, n) for s in VARIANTS + BASELINES}
+        absent = [s for s, d in data.items() if d is None]
+        if absent:
+            out["rungs"][rung] = {"ladder": ladder, "n": n, "incomplete": True, "missing_solvers": absent}
+            print(f"== {rung} INCOMPLETE, missing {absent}")
+            continue
         ids = sorted(data["bb-learned"], key=lambda i: data["bb-learned"][i]["seed"])
         for s, d in data.items():
             missing = [i for i in ids if i not in d]
@@ -120,9 +127,11 @@ def main():
         out["rungs"][rung] = R
     s1 = json.loads((ROOT / "results" / "stage1" / "summary.json").read_text())
     k1 = s1["K1_fires"]
-    k2 = not any(out["rungs"]["R8"]["label_vs_strongest"][v] == "PASS" for v in VARIANTS)
-    k3 = all(out["rungs"][r]["label_vs_strongest"][v] == "NO-GAIN" for r in RUNGS for v in VARIANTS)
-    out["kill"] = {"K1": k1, "K2": k2, "K3": k3, "killed": k1 or k2 or k3,
+    done = [r for r in RUNGS if not out["rungs"][r].get("incomplete")]
+    k2 = None if "R8" not in done else not any(
+        out["rungs"]["R8"]["label_vs_strongest"][v] == "PASS" for v in VARIANTS)
+    k3 = all(out["rungs"][r]["label_vs_strongest"][v] == "NO-GAIN" for r in done for v in VARIANTS)
+    out["kill"] = {"K1": k1, "K2": k2, "K3": k3, "killed": bool(k1 or k2 or k3), "rungs_complete": done,
                    "stage1_delta": s1["delta"], "stage1_delta_ci": s1["delta_ci"]}
     (ROOT / "results" / "summary.json").write_text(json.dumps(out, indent=1) + "\n")
     with open(ROOT / "results" / "pairs.csv", "w", newline="") as f:
@@ -130,6 +139,8 @@ def main():
         w.writerow(["rung", "variant", "baseline", "instance", "cand_status", "cand_nodes", "base_status", "base_nodes", "log_ratio"])
         w.writerows(pair_rows)
     for rung, R in out["rungs"].items():
+        if R.get("incomplete"):
+            continue
         print(f"== {rung} seeds {R['seeds'][0]}..{R['seeds'][-1]} ({len(R['seeds'])})")
         for s, st in R["solvers"].items():
             print(f"  {s:24s} solved {st['solved']:2d}/{st['runs']}  KM med {st['km_median']}  "
