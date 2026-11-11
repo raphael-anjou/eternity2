@@ -1,8 +1,7 @@
 ---
 id: exact-tail-endgame
 title: The bottom-band endgame as its own exact problem
-summary: >-
-  Exact CP-SAT re-solve of the last one or two rows of a greedy-produced, clue-valid 16x16 board, with the top frozen and the tail's own pieces as the pool, under three incoming-break regimes (cap 1 per cell, at most one double-break cell, uncapped). At one row the uncapped exact tail beats the producer on 24/24 seeds by 1 to 9 matched edges (median 4.5); allowing a single double break gives the same optimum on all 24 seeds, while cap 1 is infeasible on 5.
+summary: Exact CP-SAT re-solve of the last one or two rows of a greedy-produced, clue-valid 16x16 board, with the top frozen and the tail's own pieces as the pool, under three incoming-break regimes (cap 1 per cell, at most one double-break cell, uncapped). At one row the uncapped exact tail beats the producer on 24/24 seeds by 1 to 9 matched edges (median 4.5); allowing a single double break gives the same optimum on all 24 seeds, while cap 1 is infeasible on 5.
 status: draft
 created: 2026-07-23
 updated: 2026-11-11
