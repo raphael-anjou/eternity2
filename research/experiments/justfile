@@ -122,6 +122,40 @@ frame-count-corners cap="2e10" threads="8":
     done
     python3 frame-count-corners/scripts/summarize.py
 
+# SAT backdoors (agenda A3): on generated planted 6x6..10x10 boards, find the
+# smallest set of planted placements after which arc consistency + piece
+# all-different completes the board (exact where the node cap allows, else a
+# greedy/local-search upper bound), plus the random-subset baseline; then fit
+# the growth curve and apply the pre-registered kill rule (see PREREG.md).
+# Deterministic given the seeds; the thread count does not change the output.
+# The last two lines check the rerun against the committed results.
+sat-backdoors threads="8":
+    cargo build --release --manifest-path sat-backdoors/Cargo.toml
+    sat-backdoors/target/release/sat_backdoors --threads {{threads}} \
+        --out sat-backdoors/results/rerun/results.jsonl \
+        --timing sat-backdoors/results/rerun/timing.jsonl
+    python3 sat-backdoors/analyze.py sat-backdoors/results/rerun/results.jsonl \
+        sat-backdoors/results/rerun/summary.json
+    cmp sat-backdoors/results/results.jsonl sat-backdoors/results/rerun/results.jsonl
+    cmp sat-backdoors/results/summary.json sat-backdoors/results/rerun/summary.json
+
+# A4 quality-diversity vs parallel tempering: MAP-Elites (96-cell descriptor
+# archive) and PT on the same SA move kernel, 30 generated puzzles x 2 seeds per
+# size (8x8, 10x10) at the budgets and colour counts in the committed
+# results/calibration.json; counts distinct near-best basins and runs the
+# pre-registered paired test. About 40 min on 8 cores. Writes results/rerun/.
+quality-diversity-basins parallel="7":
+    cargo build --release --manifest-path quality-diversity-basins/engine/Cargo.toml
+    python3 quality-diversity-basins/scripts/run_grid.py main \
+        --calibration quality-diversity-basins/results/calibration.json \
+        --runs quality-diversity-basins/results/rerun/runs --parallel {{parallel}}
+    quality-diversity-basins/engine/target/release/qd_basins basins \
+        --runs quality-diversity-basins/results/rerun/runs \
+        --out quality-diversity-basins/results/rerun/basins.jsonl
+    python3 quality-diversity-basins/scripts/analyse.py \
+        --basins quality-diversity-basins/results/rerun/basins.jsonl \
+        --out quality-diversity-basins/results/rerun/summary.json
+
 # Spectral planted recovery (agenda A1): on 200 generated framed puzzles per
 # configuration (8x8 and 10x10, two colour counts each), rank every half-edge's
 # colour-compatible candidates by the rarity-weighted compatibility matrix and
