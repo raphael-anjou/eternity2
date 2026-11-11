@@ -114,8 +114,8 @@ test, scheduled at larger scale), `published`.
 - **Nearest cell.** Local search / ALNS, sigma cycles. Check
   `why/sigma-cycles` first: if its relabelings already cover these chains,
   close this entry as a variant.
-- **Cheap test.** On committed record boards and 10x10 generated boards,
-  solve each chain neighbourhood exactly with the existing MaxSAT stage and
+- **Cheap test.** On 10x10 generated boards first (committed record boards
+  only after promotion), solve each chain neighbourhood exactly with the existing MaxSAT stage and
   count improving or score-preserving moves to a new basin.
 - **Baseline.** Spatial windows with the same number of pieces.
 - **Kill.** No more improving or basin-changing moves than spatial windows.
