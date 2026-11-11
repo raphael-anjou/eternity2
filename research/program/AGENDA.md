@@ -42,12 +42,15 @@ test, scheduled at larger scale), `published`.
 - **Borrowed from.** Extreme-value theory, reliability engineering.
 - **Nearest cell.** Restarts and heavy tails (runtime distributions to a
   solution). This models the distribution of the best score, not runtime.
-- **Cheap test.** 10,000 one-minute runs of the Verhaard-style engine on
-  corner-pinned variants; fit GEV / Gumbel on block maxima, predict the best of
-  100,000 runs, then check against held-out runs.
+- **Cheap test.** Stage 1 on generated 10x10 puzzles: 10,000 short
+  break-tolerant runs; fit GEV / Gumbel on block maxima from the first 2,000,
+  predict the best of the remaining 8,000, and check against them. Stage 2,
+  only if stage 1 holds: the same split with one-minute runs of the
+  Verhaard-style engine on 16x16 corner-pinned variants.
 - **Baseline.** Naive extrapolation of the best-so-far curve.
 - **Kill.** Prediction misses the held-out maximum by more than one edge.
-- **Budget.** About 170 core-hours; split across sessions.
+- **Budget.** Stage 1 a few core-hours. Stage 2 about 170 core-hours
+  (10,000 one-minute runs, holdout included).
 
 ## A3. SAT backdoors on solvable small boards · proposed
 
