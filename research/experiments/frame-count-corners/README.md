@@ -66,6 +66,11 @@ Devin VM, 8 vCPU Intel Xeon, 31 GiB RAM, no swap, no GPU. 2026-11-11.
 
 Total about 36 minutes.
 
+Clean-checkout check: a fresh clone of this branch at commit e9fa190 ran
+`just experiments frame-count-corners` end to end (exit 0, about 40 minutes
+including the build). All result files matched the committed ones on every
+field except timings and RSS (official peak RSS 17.49 GiB again).
+
 ## Results
 
 ### Reduced rings (validation)
