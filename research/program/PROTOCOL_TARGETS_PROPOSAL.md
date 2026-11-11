@@ -21,7 +21,9 @@ recorded amendment before the first night that uses it.
 1. **Gate.** Every claimed solve verified by the harness; for exact methods,
    no seed where the planted solution's branch is cut. Fails: invalid.
 2. **Main target: solves within a fixed work budget at critical colours.**
-   Rungs R6 (6x6 c=5), R7 (7x7 c=6) and 8x8 c=9. Work = nodes plus counted
+   Rungs R6 (6x6 c=5) and R7 (7x7 c=6). At 8x8 the critical rung (c=8)
+   is unsolved by every current solver, so 8x8 c=10 (amendment A3) is used
+   and reported as above-critical. Work = nodes plus counted
    propagation operations (issue #22), or instructions retired on one pinned
    core where `perf` is available. Report both forms when possible.
 3. **Effect size.** G1 on work instead of nodes, paired against the
