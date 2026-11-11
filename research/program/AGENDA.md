@@ -168,7 +168,10 @@ test, scheduled at larger scale), `published`.
   against an independent counter first. The benchmark engines are 16x16 only.
   Stage 2 on AWS, after repeating that check on the GPU: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
   placements per second and time to first solution on 10x10 generated
-  puzzles against the CPU solver on the same instance. Only if the 10x10
+  puzzles against the CPU engine run in the same search mode on the same
+  instance: the kernel's strict mode against `Solver`, its break-tolerant
+  mode against `BreakSolver` (`engine/src/break_solver.rs`) with the same
+  break schedule. Only if the 10x10
   ratio clears the kill threshold: best score at a fixed wall-clock budget on
   the 16x16 against the single-core benchmark engine on the same instance's
   CPU.
