@@ -155,6 +155,13 @@ user-facing tour and
   five (first-moment ensemble estimate; canonical page
   `/research/build/analysis/solution-counting`); never write "one solution".
 
+- **New research directions go through the research program.**
+  `research/program/EXPLORED.md` maps what has been searched heavily;
+  `research/program/AGENDA.md` holds open hypotheses with a baseline and kill
+  criterion each; `.claude/commands/research-lead.md` is the round procedure
+  (generate outside the explored map, test on small boards, separate judges,
+  record kills in the ledger).
+
 - **`/research/records` is the canonical SOTA page.** The headline numbers
   (community 470 open / 465 strict, the project's own 463/460s) live there in
   the "where this project stands" table. New or edited pages LINK to
