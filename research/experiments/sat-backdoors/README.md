@@ -85,6 +85,7 @@ checks passed (results.jsonl and summary.json byte-identical).
 - `src/main.rs`: runner and colour schedule.
 - `analyze.py`: summary, fits, bootstrap, verdict (standard library only).
 - `results/results.jsonl`: one row per instance (300).
+  `backdoor_cells` is the greedy upper-bound witness (its length is `upper_bound`), and `completed_valid` / `completed_is_planted` check that witness. When `k_source` is `exact` and `k < upper_bound` (47 rows), the exact search certifies that a k-cell backdoor exists but does not store it.
 - `results/summary.json`: per-size table, fits, verdict, post hoc sensitivity.
 - `results/timing.jsonl`: per-instance wall time.
 

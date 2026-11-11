@@ -106,6 +106,40 @@ bandsaw rung_ms="15000" label_ms="1500":
 hard-ladder stage="all":
     hard-ladder/run.sh {{stage}}
 
+# CUT-MULTISET-PRUNING: Hall matching of frontier cells against unused pieces
+# on top of the hard-ladder best baseline, rungs 6x6 c=5, 7x7 c=6, 8x8 c=10.
+# stage: all (about 15 min on 8 vCPU) | check | calibrate | test | analyze.
+cut-multiset-pruning stage="all":
+    cut-multiset-pruning/run.sh {{stage}}
+
+# PROBCUT: calibrated statistical cutoffs (ProbCut) on the hard ladder.
+# Stage 1 on calibration seeds, then all solvers on R6 (6x6 c=5), R7 (7x7 c=6),
+# R8 (8x8 c=10) test seeds. About 5 min on 8 vCPU. See probcut/README.md.
+probcut:
+    probcut/run.sh
+
+# A5: exact count of official frame placements with the corner constraint.
+# M1 = transfer matrix over edge-type multisets (Rust), validated on 45
+# generated reduced rings against M3 = brute force (Rust, node-capped) and
+# M2 = BEST per side + convolution (Python stdlib); then M1 on the official
+# ring, once per CRT prime under /usr/bin/time -v (about 9 min each, peak
+# RSS in the GiB range). Total about 40 minutes on 8 cores.
+frame-count-corners cap="2e10" threads="8":
+    cargo build --release --manifest-path frame-count-corners/Cargo.toml
+    frame-count-corners/target/release/frame_count reduced \
+        --cells 5x3,5x4,6x3,6x4,6x6,7x4,7x6,8x5,8x6 --seeds 1,2,3,4,5 \
+        --cap {{cap}} --threads {{threads}} \
+        --out frame-count-corners/results/reduced_m1_m3.jsonl
+    python3 frame-count-corners/scripts/m2_best.py \
+        frame-count-corners/results/reduced_m1_m3.jsonl \
+        frame-count-corners/results/reduced_m2.jsonl {{threads}}
+    for i in 0 1 2; do \
+        /usr/bin/time -v frame-count-corners/target/release/frame_count official --prime-index $i \
+            > frame-count-corners/results/official_p$i.json \
+            2> frame-count-corners/results/official_p$i.time; \
+    done
+    python3 frame-count-corners/scripts/summarize.py
+
 # SAT backdoors (agenda A3): on generated planted 6x6..10x10 boards, find the
 # smallest set of planted placements after which arc consistency + piece
 # all-different completes the board (exact where the node cap allows, else a
@@ -122,6 +156,43 @@ sat-backdoors threads="8":
         sat-backdoors/results/rerun/summary.json
     cmp sat-backdoors/results/results.jsonl sat-backdoors/results/rerun/results.jsonl
     cmp sat-backdoors/results/summary.json sat-backdoors/results/rerun/summary.json
+
+# A4 quality-diversity vs parallel tempering: MAP-Elites (96-cell descriptor
+# archive) and PT on the same SA move kernel, 30 generated puzzles x 2 seeds per
+# size (8x8, 10x10) at the budgets and colour counts in the committed
+# results/calibration.json; counts distinct near-best basins and runs the
+# pre-registered paired test. About 40 min on 8 cores. Writes results/rerun/.
+quality-diversity-basins parallel="7":
+    cargo build --release --manifest-path quality-diversity-basins/engine/Cargo.toml
+    python3 quality-diversity-basins/scripts/run_grid.py main \
+        --calibration quality-diversity-basins/results/calibration.json \
+        --runs quality-diversity-basins/results/rerun/runs --parallel {{parallel}}
+    quality-diversity-basins/engine/target/release/qd_basins basins \
+        --runs quality-diversity-basins/results/rerun/runs \
+        --out quality-diversity-basins/results/rerun/basins.jsonl
+    python3 quality-diversity-basins/scripts/analyse.py \
+        --basins quality-diversity-basins/results/rerun/basins.jsonl \
+        --out quality-diversity-basins/results/rerun/summary.json
+
+# Spectral planted recovery (agenda A1): on 200 generated framed puzzles per
+# configuration (8x8 and 10x10, two colour counts each), rank every half-edge's
+# colour-compatible candidates by the rarity-weighted compatibility matrix and
+# by its leading eigenvectors, and score the rank of the planted neighbour.
+# Deterministic given the seeds; single core, a few minutes. See PREREG.md.
+# Only the preregistered 200-seed run writes the committed results/; any other
+# seed count writes to spectral-planted-recovery/rerun-<seeds>/ unless out= is given.
+spectral-planted-recovery seeds="200" out="":
+    cargo test --release --manifest-path spectral-planted-recovery/Cargo.toml
+    cargo run --release --manifest-path spectral-planted-recovery/Cargo.toml -- \
+        --out {{ if out != "" { out } else if seeds == "200" { "spectral-planted-recovery/results" } else { "spectral-planted-recovery/rerun-" + seeds } }} --seeds {{seeds}}
+
+# A15 non-chronological, bond-weighted unassignment (kTAM detachment, IMS
+# eviction) against the hard ladder's DFS baselines and a random-eviction arm,
+# at 1e6 events per instance on 6x6 c=5 and 7x7 c=6 (8x8 c=9 only if
+# triggered). Deterministic given the seeds; a few minutes on 8 cores.
+# See ktam-unassignment/PREREG.md. stage = all | check | calibrate | test | analyze.
+ktam-unassignment stage="all":
+    ktam-unassignment/run.sh {{stage}}
 
 # BACKDOOR-BRANCHING (round 2): can A3's backdoor cells be predicted at the
 # root without the solution (Stage 1, AUC vs fail-first), and does branching
