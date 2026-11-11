@@ -1,27 +1,27 @@
 ---
-title: "Le mur des 470 : une frontière de phase, pas une limite d'ingénierie"
+title: "Le plateau des 470 : un paysage recuit et une conjecture de fossé de recouvrement"
 description: >-
-  Le plateau communautaire dans les hauts 460 se lit comme une frontière de
-  phase entropique de l'instance, pas comme une limite du génie logiciel : le
-  calcul exact sur le jeu officiel donne une densité de contraintes proche de
-  0,0094, un paysage recuit qui s'effondre au-delà de 470 et ne franchit 1
-  qu'à 480, et un nombre attendu de 10 à 20 solutions parfaites quasi
-  orthogonales entre elles. Les nombres côté instance sont exacts ; le tableau
-  du fossé de recouvrement en 16x16 est une conjecture assumée.
-metaDescription: "Le plateau d'Eternity II entre 467 et 470 se lit comme une frontière de phase entropique, pas une limite d'ingénierie : densité de contraintes 0,0094, les plateaux non corrélés s'effondrent au-delà de 470 et ne franchissent 1 qu'à 480, avec 10 à 20 solutions parfaites quasi orthogonales attendues."
+  Le plateau communautaire dans les hauts 460 est-il une propriété de
+  l'instance ? Le calcul exact sur le jeu officiel donne une densité de
+  contraintes proche de 0,0094 et un paysage de score recuit qui décroît
+  régulièrement et ne franchit 1 qu'à 480 ; la courbe ne distingue pas 470.
+  L'existence d'un fossé de recouvrement entre les plateaux atteignables et
+  les plateaux parfaits est une conjecture assumée.
+metaDescription: "Un paysage recuit au premier moment pour le jeu d'Eternity II : densité de contraintes 0,0094, un compte de plateaux non corrélés qui décroît régulièrement et franchit 1 à 480, sans rien de particulier à 470. Le fossé de recouvrement derrière le plateau est une conjecture."
 kind: finding
 contribution: analysis
 rigor: conjectured
 tier: 2
 order: 46
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
-  - label: "Achlioptas & Coja-Oghlan, Algorithmic barriers from phase transitions (FOCS 2008) : le regroupement des solutions et là où les algorithmes locaux calent dans les CSP aléatoires"
+  - label: "Achlioptas & Coja-Oghlan, Algorithmic barriers from phase transitions (FOCS 2008) : la fragmentation de l'espace des solutions dans les CSP aléatoires comme k-SAT et la coloration"
     url: https://arxiv.org/abs/0803.2122
   - label: "Gamarnik, The overlap gap property: a topological barrier to optimizing over random structures (PNAS 2021)"
     url: https://www.pnas.org/doi/10.1073/pnas.2108492118
 related:
+  - /research/build/analysis/solution-counting
   - /research/why/theorem-sweep
   - /research/why/phase-transition
   - /research/why/rigidity-wall
@@ -34,8 +34,8 @@ repro:
     Recalcule en moins d'une seconde tous les nombres côté instance à partir du
     jeu de pièces officiel : l'économie des couleurs, les deux probabilités de
     collision, la densité de contraintes et le paysage de score recuit complet.
-    L'énumération des petits plateaux derrière la conjecture est planifiée à
-    part et ne fait pas partie de cette commande.
+    L'énumération exploratoire des petits plateaux évoquée plus bas n'est pas
+    publiée et ne fait pas partie de cette commande.
 ---
 
 Les meilleurs plateaux publics se regroupent depuis des années dans les hauts
@@ -43,29 +43,33 @@ Les meilleurs plateaux publics se regroupent depuis des années dans les hauts
 la [page des records](/research/records)). La question posée ici est de
 savoir si ces dix derniers points sont un problème d'ingénierie, quelque
 chose qu'un meilleur backtracker ou une heuristique plus fine finira par
-arracher, ou une propriété de l'instance elle-même. Traiter le jeu de pièces
-officiel comme un membre d'un ensemble aléatoire à solution plantée donne une
-réponse quantitative, et cette réponse désigne l'instance : la réserve de
-plateaux qu'une recherche peut effectivement atteindre s'effondre exactement
-là où la communauté s'est arrêtée.
+arracher, ou une propriété de l'instance elle-même. L'historique penche pour
+l'ingénierie : chaque point gagné depuis 2008 est venu du génie des solveurs
+et de la puissance de calcul (un backtracker rapide réglé à nouveau et des
+semaines de processeur multicœur pour 468 à 470, une recherche modifiée et
+une flotte distribuée pour les gains de la piste stricte). Cette page
+conjecture, sans preuve, que cette source de progrès approche de
+l'épuisement, et expose ce que le jeu de pièces peut en dire et ce qu'il ne
+peut pas en dire.
 
 L'argument comporte deux couches au statut très différent, et je les garde
 séparées d'un bout à l'autre. Les nombres calculés sur le vrai jeu de pièces
 sont exacts, et l'étape de calcul derrière cette page les reproduit bit à
 bit. Le tableau structurel qui les interprète en 16×16 est une conjecture,
-appuyée par l'énumération exhaustive de petites instances réglées sur le même
-paramètre, et elle est étiquetée comme telle plus bas.
+inspirée par une analogie avec les problèmes de satisfaction de contraintes
+aléatoires et par une énumération exploratoire non publiée de petites
+instances, et elle est étiquetée comme telle plus bas.
 
 ## Le sac, mesuré exactement
 
 Les 256 pièces se répartissent en 4 coins, 56 pièces de bord et 196 pièces
 intérieures. En écartant les 64 demi-arêtes grises du pourtour, il reste 960
 demi-arêtes colorées, qui s'apparient en les 480 adjacences internes d'un
-plateau rempli. La comptabilité est serrée : $960 = 2 \times 480$, sans
-aucun jeu nulle part. Les scores de cette page comptent les adjacences
-internes appariées sur 480, la même convention d'arêtes appariées que le
-plafond communautaire ; rien ici ne porte sur la piste stricte à cinq
-indices.
+plateau rempli. La comptabilité est serrée, $960 = 2 \times 480$, comme pour
+tout puzzle découpé dans un plateau résolu peint. Les scores de cette page
+comptent les adjacences internes appariées sur 480, la même convention
+d'arêtes appariées que le plafond communautaire ; rien ici ne porte sur la
+piste stricte à cinq indices.
 
 L'économie des couleurs se scinde ensuite en deux sous-systèmes qui ne se
 parlent jamais. L'anneau du cadre, le cycle des 60 joints entre pièces de
@@ -78,10 +82,12 @@ $p_i \approx 0{,}0588$, presque exactement $1/17$. Ces deux probabilités
 portent toute l'analyse.
 
 Une vérification exacte de plus mérite d'être notée : le vrai sac ne contient
-aucune pièce qui se répète par rotation. Face à un nul aléatoire apparié,
-cela semble être la seule empreinte statistiquement significative de la passe
-de conception ; le côté nul de cette comparaison demande encore son propre
-générateur, seul le côté jeu réel (exactement zéro) est vérifié ici.
+aucune pièce qui se répète par rotation. Face à des plateaux résolus
+aléatoires peints avec les mêmes comptes de couleurs, c'est inhabituel (environ
+4 paires de ce type en moyenne, et aucune dans seulement 1,4 % des jeux
+peints environ) : c'est la trace la plus probable d'une passe de conception
+délibérée. La comparaison se trouve sur la
+[page du jeu de pièces](/research/why/why-e2-is-hard).
 
 ## Un seul nombre situe le régime
 
@@ -93,16 +99,20 @@ collision par arête de 0,0589 pour une arête de pièce intérieure aléatoire,
 
 $$\mu = 196 \cdot 4 \cdot 0{,}0589^4 \approx 0{,}0094.$$
 
-Un trou entièrement entouré admet environ un candidat sur cent. C'est très
-en dessous de un, ce qui place l'instance en plein régime rigide des
-ensembles de satisfaction de contraintes à solution plantée : le régime où la
-théorie dit que l'ensemble des solutions se réduit à des points isolés et
-bien séparés, et où les algorithmes locaux calent prouvablement avant de les
-atteindre ([Achlioptas & Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122),
-[Gamarnik 2021](https://www.pnas.org/doi/10.1073/pnas.2108492118)). Le nombre
-lui-même est une fonction exacte des vrais comptes de couleurs ; ce que le
-régime implique à cette taille relève de la couche conjecturale, reprise plus
-bas.
+Un trou entièrement entouré admet, en plus de la pièce que la solution
+plantée y met, environ un candidat supplémentaire sur cent. Que $\mu$ soit
+très inférieur à 1 n'a rien de propre à ce puzzle : c'est vrai pour toute
+palette de ce type au-delà d'environ 5,3 couleurs intérieures équiprobables
+($784\,p^4 < 1$ dès que $p < 0{,}189$). Par analogie avec les CSP aléatoires,
+où la fragmentation de l'espace des solutions et les barrières de fossé de
+recouvrement sont démontrées pour des modèles comme k-SAT aléatoire ou la
+coloration de graphes
+([Achlioptas & Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122),
+[Gamarnik 2021](https://www.pnas.org/doi/10.1073/pnas.2108492118)), on peut
+conjecturer un espace de solutions fragmenté ici aussi. Aucun théorème ne
+couvre l'appariement d'arêtes planté avec contrainte de pièces toutes
+distinctes ; le nombre est exact, le régime qu'il suggère relève de la
+couche conjecturale.
 
 ## Le paysage de score recuit
 
@@ -112,11 +122,12 @@ un score donné ? Le compte de base des placements respectant les classes
 (coins aux coins, bords sur le pourtour, intérieures à l'intérieur, rotations
 libres pour les pièces intérieures) vaut
 $W_{\text{geom}} = 4! \cdot 56! \cdot 196! \cdot 4^{196} \approx 10^{559{,}9}$.
-Le score d'une telle configuration aléatoire est la somme de 60 indicatrices
-de Bernoulli($0{,}200$) pour le cadre et de 420 indicatrices de
-Bernoulli($0{,}0588$) pour l'intérieur, et une convolution exacte en espace
-logarithmique de ces 480 variables donne le paysage complet. Une
-configuration uniformément aléatoire marque $36{,}7 \pm 5{,}7$.
+Le score d'une telle configuration aléatoire est modélisé comme la somme de
+60 indicatrices de Bernoulli($0{,}200$) indépendantes pour le cadre et de 420
+indicatrices de Bernoulli($0{,}0588$) indépendantes pour l'intérieur, et une
+convolution exacte en espace logarithmique de ces 480 variables donne le
+paysage complet. Une configuration uniformément aléatoire marque
+$36{,}7 \pm 5{,}7$.
 
 | score | configurations non corrélées à ce score (log10) |
 | ----: | ----------------------------------------------: |
@@ -124,17 +135,33 @@ configuration uniformément aléatoire marque $36{,}7 \pm 5{,}7$.
 |   200 |                                           462,8 |
 |   400 |                                           186,6 |
 |   460 |                                            59,6 |
+|   465 |                                            46,7 |
 |   470 |                                            33,1 |
+|   475 |                                            18,4 |
+|   478 |                                             8,7 |
 |   480 |                                           +1,28 |
 
-Deux choses ressortent. D'abord, la réserve de plateaux non corrélés à haut
-score reste astronomique remarquablement haut : environ $10^{60}$
-configurations au score 460 et encore environ $10^{33}$ à 470. Ensuite, le
-compte franchit 1 pratiquement à 480 même : le nombre attendu de placements
-parfaits non corrélés au plateau planté vaut $10^{1{,}28} \approx 19$. Le
-modèle de travail que cela chiffre est un ensemble de solutions de l'ordre de
-10 à 20 plateaux parfaits, quasi orthogonaux entre eux et orthogonaux au
-planté, au sommet d'une courbe d'entropie qui dépasse tout juste zéro.
+La courbe décroît régulièrement : environ 2,5 décades par point vers 460,
+environ 3 vers 475, sans rupture, coude ni trou nulle part dans les 460 ou
+les 470. Elle ne distingue pas 470. Prise au pied de la lettre, elle prédit
+environ $10^{18}$ configurations non corrélées à 475 et environ $10^{9}$ à
+478 : à elle seule, elle prédit des plateaux au-dessus du record, pas un mur
+à sa hauteur. L'entropie n'est pas non plus l'accessibilité : $10^{33}$
+plateaux à 470 sur $10^{560}$, c'est une fraction proche de $10^{-527}$, et
+un comptage ne dit rien de la capacité d'une recherche à les atteindre.
+
+La dernière ligne demande une mise en garde plus forte. Le compte franchit 1
+pratiquement à 480 même, $10^{1{,}28} \approx 19$, mais c'est le premier
+moment naïf à arêtes indépendantes. Il inclut les trois rotations globales
+du plateau planté (de recouvrement nul avec lui, donc « non corrélées » dans
+ce modèle), et il ignore les corrections de parité et d'épuisement dont la
+[page sur le comptage des solutions](/research/build/analysis/solution-counting)
+montre qu'elles valent près de six ordres de grandeur : le même produit naïf
+avec la pièce de départ fixée donne 0,02 là où l'estimation corrigée donne
+environ 14 702, et l'estimation corrigée sans la pièce de départ vaut
+environ $1{,}15 \times 10^{7}$. Le 19 sert ici uniquement pour la forme de la
+courbe, jamais comme comptage de solutions, et un premier moment ne borne de
+toute façon pas le nombre réel de solutions de ce puzzle précis.
 
 ## Exact en dessous, conjecture au-dessus
 
@@ -143,56 +170,53 @@ comptes de classes, l'économie des 960 demi-arêtes, les deux probabilités de
 collision, $\mu$, $W_{\text{geom}}$ et chaque ligne du tableau du paysage. La
 commande de reproduction de cette page régénère tout cela depuis le moteur
 partagé en moins d'une seconde, dans `results/landscape.json` du dossier du
-sujet.
+sujet. Ce qui est exact, c'est l'arithmétique ; le modèle à arêtes
+indépendantes qu'elle évalue est une approximation, chiffrée au paragraphe
+précédent.
 
 Ce que le paysage ne dit pas, c'est comment ces rares hauts scores sont
 *disposés* : la masse entropique se connecte-t-elle aux plateaux parfaits, ou
-un fossé vide les sépare-t-il ? À cette question je ne peux répondre
-exactement que sur de petites instances. L'énumération exhaustive de plateaux
-plantés $n \times n$ pour $n$ jusqu'à 7, avec le nombre de couleurs réglé
-pour apparier la densité de contraintes, montre une tendance nette : à $\mu$
-lâche, l'histogramme de recouvrement avec le planté de l'ensemble des
-solutions est continu, et quand $\mu$ descend vers le 0,009 d'E2 il devient
-bimodal puis s'effondre. Au point apparié ($n = 5$, 11 couleurs,
-$\mu = 0{,}009$), l'énumération trouve la solution plantée, un amas juste à
-côté d'elle, une grande famille à recouvrement zéro, et une bande totalement
-vide entre les deux.
+un fossé vide les sépare-t-il ? Une énumération exploratoire non publiée de
+petits plateaux plantés, avec le nombre de couleurs réglé pour apparier la
+densité de contraintes, a suggéré que l'histogramme de recouvrement avec le
+planté de l'ensemble des solutions passe de continu à bimodal quand $\mu$
+descend vers le 0,009 d'E2, avec une bande vide entre l'amas planté et une
+famille à recouvrement zéro. Son code et ses histogrammes par instance ne
+sont pas versés au dépôt : c'est une piste pour la suite, pas une preuve sur
+laquelle cette page s'appuie.
 
 <Callout kind="warn" title="Là où commence la conjecture">
-  Les énoncés en 16×16 (un ensemble de 10 à 20 plateaux parfaits quasi
-  orthogonaux, un fossé de recouvrement vide en dessous, et le mur des 470
-  comme bord visible de ce fossé) sont des extrapolations de la tendance des
-  petites instances le long du paramètre de densité de contraintes. C'est une
-  conjecture, pas une mesure : aucun calcul faisable ne les vérifie
-  directement à taille réelle. Le tableau du paysage et chaque nombre côté
-  instance de cette page sont exacts ; la structure du fossé en 16×16 est la
-  partie à tenir pour un modèle de travail.
+  Les énoncés en 16×16 (un fossé de recouvrement vide sous les plateaux
+  parfaits, et le plateau des 470 comme bord visible de ce fossé) sont une
+  conjecture, pas une mesure : le tableau du paysage ne situe aucun fossé, et
+  aucun calcul faisable n'en vérifie un directement à taille réelle. Le
+  tableau et chaque nombre côté instance de cette page sont exacts ; la
+  structure du fossé en 16×16 est la partie à tenir pour une hypothèse
+  ouverte.
 </Callout>
 
-## Lire le mur
+## Lire le plateau
 
-Rapprochez la couche exacte et la couche conjecturale, et le plateau
-communautaire cesse de ressembler à un déficit d'outillage. Une heuristique
-qui grimpe le paysage de score puise dans la bande entropique, et cette bande
-est profonde : avec $10^{33}$ configurations non corrélées encore disponibles
-à 470, atteindre les hauts 460 est bon marché en un sens précis, et le génie
-des solveurs moissonne cette bande depuis des années. Au-delà, la réserve
-s'amincit d'une trentaine d'ordres de grandeur sur dix points de score, et si
-l'extrapolation du fossé de recouvrement tient, il n'y a rien entre les deux
-pour grimper : les dix points manquants sont la largeur d'une région vide qui
-sépare les derniers plateaux entropiques d'une poignée de plateaux parfaits
-isolés. C'est la propriété du fossé de recouvrement dans son rôle de manuel,
-une barrière topologique qu'une recherche locale et stable ne peut pas
-franchir, quelle que soit la qualité de l'implémentation.
+Mises côte à côte, les deux couches forment une hypothèse, pas un verdict.
+Une heuristique qui grimpe le paysage de score puise dans la bande
+entropique, que le tableau dit encore profonde à 470. La conjecture est
+qu'au-delà d'un score situé dans les hauts 470, les plateaux qu'une recherche
+locale et stable peut atteindre cessent de se relier aux plateaux parfaits :
+les points manquants seraient alors la largeur d'une région de recouvrement
+vide, la propriété du fossé de recouvrement dans son rôle de manuel. Qu'un
+tel fossé existe ici, et où, c'est précisément ce qui reste ouvert.
+L'historique mesuré va dans l'autre sens : les derniers points de record sont
+venus de plus de débit et d'une meilleure ingénierie de recherche, si bien
+qu'il n'est pas encore établi que le plateau soit une propriété de
+l'instance plutôt que des méthodes essayées.
 
-Cette lecture s'accorde avec ce que nous mesurons ailleurs sur le wiki : le
-[mur de rigidité](/research/why/rigidity-wall) trouve les plateaux records
-figés en optima locaux isolés sans gradient vers l'extérieur, exactement la
-sensation que devrait donner le bord inférieur d'un fossé vu d'en bas. Elle
-précise aussi ce que « progresser » devrait vouloir dire. Plus de vitesse et
-un meilleur ordre achètent des points entropiques, et ceux-ci s'épuisent vers
-470 d'après le tableau ci-dessus ; ce qui franchira le fossé devra injecter
-de la corrélation avec une vraie solution parfaite plutôt que grimper la
-fonction de score. Les énoncés sur l'instance qui tiennent au niveau de la
-preuve, par opposition au modèle de travail de cette page, sont rassemblés
-dans le [balayage des théorèmes](/research/why/theorem-sweep).
+Le [mur de rigidité](/research/why/rigidity-wall) est compatible avec la
+conjecture sans la prouver : les plateaux records sont des optima locaux
+stricts pour chaque reremplissage de rayon borné testé, ce qui est la
+sensation qu'aurait le bord inférieur d'un fossé vu d'en bas, mais aussi
+celle de n'importe quel optimum local profond. Si le fossé existe, le
+franchir demanderait une corrélation avec une vraie solution parfaite plutôt
+que davantage d'escalade de la fonction de score. Les énoncés sur l'instance
+qui tiennent au niveau de la preuve, par opposition au modèle de travail de
+cette page, sont rassemblés dans le
+[balayage des théorèmes](/research/why/theorem-sweep).

@@ -11,12 +11,13 @@ contribution: exposition
 rigor: conjectured
 tier: 1
 order: 20
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
     url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
 related:
+  - /research/build/analysis/solution-counting
   - /research/why/prune-vs-speed
   - /research/why/rigidity-wall
   - /research/lab/experiments
@@ -71,7 +72,7 @@ party has reproduced it, and the one caveat to carry.
 
 | Wall / claim | Strongest supported form | Tier | Outside replication | The one caveat |
 | --- | --- | --- | --- | --- |
-| [Hardness peak](/research/why/phase-transition) | 17.14 interior colours follow from the one-expected-solution criterion; 17 sits near the search-hardness peak for framed edge matching | Proven, external | Yes: Owen's 1947 derivation; Ansótegui, Béjar, Fernández & Mateu confirm the peak | "One expected solution" is a first-moment average assuming independent edge colours; it locates the peak, it does not count solutions |
+| [Hardness peak](/research/why/phase-transition) | Owen's simplified first-moment heuristic places ≈17 interior colours near its one-solution point; 17 sits near the search-hardness peak for framed edge matching | Measured (small instances) + heuristic | Yes: Owen's derivation (msg 1947); Ansótegui, Béjar, Fernández & Mateu measure the peak on generated instances | The corrected estimate is about 14,702 expected solutions with the starter, an ensemble average (see [solution counting](/research/build/analysis/solution-counting)); the peak's location depends on size and solver (the committed 6×6 curve peaks at 5 colours) |
 | [Complex theory / the funnel](/research/why/complex-theory) | A calibrated first-moment estimator of tree width and solution count, right to within about a factor of two everywhere it could be checked | Conjecture (page badge), on external replication | Yes: Owen's model; McGavin's C port and 10×10 solve, inside prediction | It is an average, blind to whether counted partials are genuinely distinct; a tool for ranking scan orders, never a true count or a bound |
 | [No forced moves](/research/why/no-forced-moves) | An exact exhaustive count over the official interior set: no interior piece is ever forced to a single right-hand partner (73–137 partners each) | Proven, internal | No external replication; the count is this project's own, committed and reproducible | It counts pairwise compatibility on the full piece set, not candidate counts inside a live partial board; a property of the pieces, not a proof search never narrows |
 | [Forbidden patterns](/research/why/forbidden-patterns) | Exact exhaustive counts: 38.96% of pairs, 83.26% of L-trominoes, 99.72% of 2×2 squares are infeasible over distinct interior pieces | Proven, internal | The 2×2 counts are this project's committed exact result; the 20 void corner-pairs are a cited 2008 community observation | The "forbidden-patch count tracks distance to a solution" reading is a heuristic signal, not a proven monotone distance |
@@ -85,7 +86,7 @@ party has reproduced it, and the one caveat to carry.
 | [Rare-colour geography](/research/why/rare-color-geography) | An exact count over the official set: the five border colours never appear on an interior edge | Proven, internal | No external replication of the count; the 17+5 design intent is cited to Owen | Correctly framed as structural (grey rim, separate colour pools), not a scarcity trick; the "rare" label is an artefact of fewer border edges |
 | [Design recipe](/research/why/design-recipe) | The community reconstructed a coherent hardest-puzzle recipe, ingredient by ingredient, each sourced to a launch-year post | Conjecture (page badge), each ingredient externally sourced | Yes, densely: Owen's derivations and measurements, the design-space census, the provenance chain to Selby and Riordan | A reconstruction of design intent, not a statement the designers published; the page badges it conjectured |
 | [Complexity framing](/research/why/how-hard-is-this-instance) | Edge matching is NP-complete as a family; a single fixed board is a constant, not a problem; E2's difficulty is empirical over a ~10^557 space | Proven, external | Yes: Demaine & Demaine 2007 for NP-completeness; Ansótegui et al. for the empirical case | The category distinction is load-bearing: NP-completeness caps what general solvers can promise, it says nothing about this board |
-| [Prune versus speed](/research/why/prune-vs-speed) | The compounding argument is exact arithmetic; on E2, legal pruning often costs more than the subtree it removes | Proven (the arithmetic), measured (the "pruning does not pay" verdict) | Partial: the principle is self-contained; the community verdict is cited to McGavin and 95A31, now verifiable in the extended archive | The demo tree numbers are illustrative, not a measurement of any real solver, and the page says so |
+| [Prune versus speed](/research/why/prune-vs-speed) | The compounding argument is exact arithmetic; on E2, legal pruning often costs more than the subtree it removes | Proven (the arithmetic), measured (the "pruning does not pay" verdict) | Partial: the principle is self-contained; the community verdict is cited to McGavin and 95A31, now verifiable in the extended archive | The demo tree numbers are illustrative; on the measured 6×6 trees a 1000× speedup beats a 5% uniform cut, as the page shows |
 
 Three shifts since this map was first drawn are worth calling out, because they
 move claims up a tier. Sigma-cycles was a three-pair observation; it is now an
@@ -112,9 +113,11 @@ to prune on.
 
 - **[No forced moves](/research/why/no-forced-moves)**. Every interior cell
   keeps 73–137 legal pieces, so the branching factor never collapses.
-- **[The hardness peak](/research/why/phase-transition)**. With ≈17 interior
-  colours the puzzle sits at the phase transition: about one expected solution,
-  the worst place to search.
+- **[The hardness peak](/research/why/phase-transition)**. Owen's
+  first-moment heuristic places ≈17 interior colours near the one-solution
+  point of a simplified model; the corrected estimate is about 14,702
+  solutions with the starter (see
+  [solution counting](/research/build/analysis/solution-counting)).
 - **[The area law](/research/why/entropy-area-law)**. Genuinely-distinct
   partial boards collapse as the filled area grows, but no local score can see that
   global fact.
@@ -153,8 +156,7 @@ do reach genuinely new families, but none crosses to the ceiling. The
 concentrate and exact methods (LADDER, BANDSAW) instead attack the search
 itself (the high branching factor and the unsearchable peak) and pay for it
 at the endgame. The anchor methods (CLOISTER, MIDDEN) localise the damage but
-hit the area-law wall in the interior. No single wall is the whole story, and
-no method gets through all four.
+hit the area-law wall in the interior. No single wall is the whole story. The ● marks record which wall each method's own write-up names as its obstacle; they are a reading, not a measured criterion.
 
 ## Where each one stopped, and why
 
@@ -213,12 +215,14 @@ exact reason the score stopped climbing, quoted here in one line.
 
 ## The shape of the gap
 
-Read down the table and the lesson of the whole project is visible at a
-glance: the methods that move the score change the shape of the search, whether
-a scan order, a learned prior, or a confined region, never its raw speed. And
-every one of them stops at a wall that is global, not local. The ten edges
-from 470 to 480 are not a polishing problem; they are on the far side of all
-four walls at once.
+The project's methods stall at 436 to 463, and this table records where each
+one stopped and the reason its write-up gives. It does not measure what stops
+the 470 boards, and no experiment here varies speed or compute at a fixed
+method. Within this project, the methods that moved the score changed the
+shape of the search (a scan order, a learned prior, a confined region). The
+community's 468 to 470 boards and the strict-track 465 came from fast
+depth-first search plus large compute (see [the records page](/research/records)),
+so raw throughput has moved the record too.
 
 A separate 2026 campaign by William Millilaw reached the same conclusion from
 the diversity side. Sweeping the full method list, he found that almost

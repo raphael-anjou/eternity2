@@ -1,16 +1,18 @@
 ---
-title: Por qué un ordenador más rápido no ayuda
+title: "Podar o acelerar: lo que compra cada palanca"
 description: >-
-  La idea más importante de la búsqueda combinatoria difícil: reducir el
-  espacio que se explora vence, por un margen exponencial, a explorarlo más
-  rápido. Eternity II está diseñado para que apenas puedas reducirlo.
-metaDescription: "Por qué un ordenador más rápido no ayuda en Eternity II: reducir el espacio de búsqueda vence a buscar más rápido por un margen exponencial, mientras que acelerar es solo un divisor constante. E2 está calibrado para que casi nada local se pueda podar, y ningún motor ha alcanzado 480."
+  Una aceleración divide el trabajo por una constante; una poda que reduce
+  el factor de ramificación efectivo se compone con la profundidad. Para la
+  búsqueda exhaustiva del tablero completo ningún factor constante basta,
+  mientras que para la caza de récords más rendimiento sigue comprando más
+  intentos. Eternity II deja poco que podar.
+metaDescription: "Podar o acelerar en Eternity II: acelerar es un divisor constante, recortar el factor de ramificación se compone con la profundidad. Nada hace factible el árbol exhaustivo, pero el rendimiento compra intentos; en árboles pequeños medidos, un recorte del 5 % vale unas 6x."
 kind: finding
 contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [speed, search-space, backtracking]
 sources:
   - label: Artículo, código y resultados en GitHub (research/topics/prune-vs-speed)
@@ -59,17 +61,36 @@ largo de 256 niveles, los ahorros se multiplican entre sí: reducir el factor de
 ramificación de $b$ a $b'$ divide el trabajo por $(b/b')^{256}$. Un recorte del
 5 %, aplicado hasta el fondo, vale $(1/0.95)^{256} \approx 5\times10^{5}$, el
 equivalente a una aceleración de quinientas mil veces, a partir de una sola idea
-estructural barata. Eso vence a casi cualquier aceleración que una máquina real
-pueda ofrecer.
+estructural barata. Ese caso idealizado vence a casi cualquier aceleración que
+una máquina real pueda ofrecer.
+
+La idealización importa, sin embargo. Un recorte uniforme vale
+$(1/(1-x))^{d}$ y solo depende de la profundidad $d$ que la búsqueda alcanza
+de verdad, y los árboles reales de búsqueda en profundidad son estrechos: en
+los puzzles pequeños medidos más abajo, el factor de ramificación efectivo
+ronda 1,4, no las decenas de candidatos legales por celda. Un recorte
+uniforme del 5 % en cada nivel no es una poda realista; las podas reales
+actúan de forma desigual, sobre todo cerca del fondo del árbol.
 
 ## Siente la diferencia
 
-Pon una aceleración bruta en la balanza frente a una pequeña poda por nivel y
-observa cómo la poda gana por varios órdenes de magnitud.
+Pon una aceleración bruta en la balanza frente a una poda por nivel en un
+árbol ilustrativo (factor de ramificación 5, profundidad 64), y compáralo
+luego con el caso medido de abajo.
 
 <Figure collapsible title="Interactivo: poder de la poda frente a velocidad bruta">
   <PruneVsSpeedLab />
 </Figure>
+
+En árboles reales la comparación puede invertirse. En las instancias 6×6
+del pico de dificultad incluidas en el repositorio (profundidad 36, factor de
+ramificación efectivo medido de 1,416, mediana de 273.029 nodos hasta la
+primera solución), una aceleración de 1000× deja el trabajo en el
+equivalente de 273 nodos, mientras que una poda uniforme del 5 % deja 43.078,
+lo que equivale a una aceleración de solo 6,3×. La poda gana cuando el
+recorte es grande o la profundidad efectiva es larga; unos pocos puntos
+porcentuales menos en un árbol estrecho y poco profundo valen menos que una
+máquina rápida.
 
 ## Por qué esto es exactamente la maldición de E2
 
@@ -81,10 +102,16 @@ sus muros dicen, en el fondo, lo mismo: no hay nada local que podar.
   aún tiene de 73 a 137 vecinos legales, así que la propagación casi nunca reduce
   una celda a una sola opción. El factor de ramificación se mantiene
   obstinadamente alto.
-- **[En el pico de dificultad](/research/why/phase-transition)**: los recuentos
-  de piezas y colores se sitúan donde se espera alrededor de una solución, sin
-  dejar ninguna región densa en soluciones a la que apuntar un atajo
-  estadístico, el truco que hizo caer Eternity I.
+- **[Cerca del pico de dificultad](/research/why/phase-transition)**: la
+  heurística simplificada de primer momento de Owen situaba unos 17 colores
+  interiores cerca de su punto de una solución; la estimación corregida es de
+  unas 14.702 soluciones esperadas con la pieza inicial (un promedio de
+  ensamble, ver
+  [el recuento de soluciones](/research/build/analysis/solution-counting)),
+  demasiado escasas para apuntarles un atajo estadístico, el truco que hizo
+  caer Eternity I. Dónde cae el pico depende del tamaño del tablero y del
+  solucionador: la curva 6×6 incluida con esta página alcanza su máximo en 5
+  colores.
 - **[La ley de área](/research/why/entropy-area-law)**: el recuento de tableros
   parciales genuinamente distintos se desploma a medida que crece el área rellenada, pero
   ninguna señal de puntuación local puede ver ese colapso global, así que no
@@ -95,14 +122,20 @@ sus muros dicen, en el fondo, lo mismo: no hay nada local que podar.
 
 ## Lo que significa para todo lo demás aquí
 
-Esta es la lente para toda la sección de investigación. Un motor mucho más
-rápido hace la misma búsqueda más barata, no más pequeña, y no mueve el récord.
-Cada experimento que sí movió la aguja cambió en su lugar la forma de la
-búsqueda: un orden de recorrido distinto, un a priori aprendido sobre dónde se
-sitúan las piezas, una región confinada para los desajustes. Y cada callejón sin
-salida es, en el fondo, una poda que la estructura global del puzzle se niega a
-honrar. La velocidad al principio da sensación de productividad; casi nunca es
-ahí donde se esconde la distancia hasta 480.
+Dos objetivos distintos piden dos lecturas distintas. Para la búsqueda exacta
+y exhaustiva del árbol 16×16 completo, ninguna aceleración de factor
+constante basta: el árbol es astronómicamente mayor de lo que cualquier
+máquina puede recorrer, y solo un cambio en su forma podría importar. La caza
+estocástica de récords es distinta: más rendimiento significa más reinicios
+y recorridos más profundos, y puede plausiblemente subir la mejor
+puntuación, con rendimientos decrecientes. Los tableros de 468 a 470 de la
+comunidad salieron de un backtracker rápido con semanas de cómputo en una
+máquina de muchos núcleos (ver [la página de récords](/research/records)).
+Dentro de este proyecto, los experimentos que movieron la puntuación
+cambiaron la forma de la búsqueda: un orden de recorrido distinto, un a
+priori aprendido sobre dónde se sitúan las piezas, una región confinada para
+los desajustes. Y muchos callejones sin salida son, en el fondo, una poda que
+la estructura global del puzzle se niega a honrar.
 
 ## La comunidad también llegó aquí, por las malas
 
@@ -123,10 +156,12 @@ solo compensa si es *más barata que la búsqueda que elimina*, y en este puzzle
 casi nada local supera ese listón.
 
 <Callout kind="note">
-  Los números del árbol en la demo son ilustrativos: un factor de ramificación y
-  una profundidad elegidos para ser parecidos a E2 y legibles, no la medición de
-  un solucionador concreto. La curva de dificultad y los recuentos de nodos, en
-  cambio, son mediciones reales de motor sobre puzzles pequeños, deterministas y
-  reproducibles con `just research-prune-vs-speed`. El principio en sí, divisor
-  constante frente a divisor exponencial, es exacto.
+  Los números del árbol en la demo son ilustrativos: un factor de
+  ramificación de 5 y una profundidad de 64, elegidos para ser legibles, no la
+  medición de un solucionador concreto. La curva de dificultad, los recuentos
+  de nodos y la comparación entre 1000× y 5 % de arriba son mediciones reales
+  de motor sobre puzzles pequeños, deterministas y reproducibles con
+  `just research-prune-vs-speed`. El principio en sí, divisor constante frente
+  a un divisor que se compone con la profundidad, es exacto; qué palanca gana
+  en un árbol concreto es una cuestión empírica.
 </Callout>

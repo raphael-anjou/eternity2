@@ -1,16 +1,17 @@
 ---
-title: Why a faster computer doesn't help
+title: "Pruning versus speed: what each lever buys"
 description: >-
-  The single most important idea in hard combinatorial search: shrinking the
-  space you search beats searching it faster, by an exponential margin.
-  Eternity II is engineered so you can barely shrink it at all.
-metaDescription: "Why a faster computer doesn't help on Eternity II: shrinking the search space beats searching faster by an exponential margin, while a speedup is just a constant divisor. E2 is tuned so almost nothing local can be pruned, which is why even legal pruning rarely pays and no engine has reached 480."
+  A speedup divides the work by a constant; a prune that lowers the
+  effective branching factor compounds with depth. For exhaustive search of
+  the full board no constant factor is enough, while for record hunting more
+  throughput still buys more attempts. Eternity II leaves little to prune.
+metaDescription: "Pruning versus raw speed on Eternity II: a speedup is a constant divisor, a cut to the branching factor compounds with depth. No constant factor makes full exhaustive search feasible, but throughput still buys attempts in record hunting; on small measured trees a 5% cut is worth about 6x."
 kind: finding
 contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [speed, search-space, backtracking]
 sources:
   - label: Article, source and results on GitHub (research/topics/prune-vs-speed)
@@ -56,17 +57,32 @@ save that fraction at every single level. Over 256 levels the savings multiply
 into each other: cutting the branching factor from $b$ to $b'$ divides the
 work by $(b/b')^{256}$. A 5% cut, applied all the way down, is worth
 $(1/0.95)^{256} \approx 5\times10^{5}$, a five-hundred-thousand-fold
-speedup's worth of work, from one cheap structural idea. That beats almost any
-speedup a real machine can offer.
+speedup's worth of work, from one cheap structural idea. That idealised case
+beats almost any speedup a real machine can offer.
+
+The idealisation matters, though. A uniform cut worth $(1/(1-x))^{d}$ depends
+only on the depth $d$ the search actually reaches, and real depth-first trees
+are narrow: on the measured small puzzles below, the effective branching
+factor is about 1.4, not the dozens of legal candidates per cell. A uniform
+5% cut at every level is not a realistic prune; real prunes act unevenly,
+mostly near the bottom of the tree.
 
 ## Feel the gap
 
-Trade a raw speedup against a small per-level prune and watch the prune win by
-orders of magnitude.
+Trade a raw speedup against a per-level prune on an illustrative tree
+(branching factor 5, depth 64), then compare with the measured case below.
 
 <Figure collapsible title="Interactive: pruning power vs raw speed">
   <PruneVsSpeedLab />
 </Figure>
+
+On real trees the comparison can go the other way. On the committed 6×6
+hardness-peak instances (depth 36, measured effective branching factor
+1.416, median 273,029 nodes to first solution), a 1000× speedup brings the
+work down to the equivalent of 273 nodes, while a 5% uniform prune leaves
+43,078, worth only a 6.3× speedup. Pruning wins when the cut is large or the
+effective depth is long; a few percent off a narrow, shallow tree is worth
+less than a fast machine.
 
 ## Why this is exactly E2's curse
 
@@ -77,10 +93,14 @@ underneath, all the same statement: there is nothing local to prune on.
 - **[No forced moves](/research/why/no-forced-moves)**: every interior cell
   still has 73 to 137 legal neighbours, so propagation almost never collapses
   a cell to one choice. The branching factor stays stubbornly high.
-- **[On the hardness peak](/research/why/phase-transition)**: the piece and
-  colour counts sit where there is about one expected solution, leaving no
-  solution-dense region to aim a statistical shortcut at, the trick that
-  cracked Eternity I.
+- **[Near the hardness peak](/research/why/phase-transition)**: Owen's
+  simplified first-moment heuristic put about 17 interior colours near its
+  one-solution point; the corrected estimate is about 14,702 expected
+  solutions with the starter (an ensemble average, see
+  [solution counting](/research/build/analysis/solution-counting)), still
+  far too sparse to aim a statistical shortcut at, the trick that cracked
+  Eternity I. Where the peak sits depends on board size and solver: the 6×6
+  curve committed with this page peaks at 5 colours.
 - **[The area law](/research/why/entropy-area-law)**: the count of
   genuinely-distinct partial boards collapses as the filled area grows, but no local
   scoring signal can see that global collapse, so you can't prune toward it
@@ -91,13 +111,18 @@ underneath, all the same statement: there is nothing local to prune on.
 
 ## What it means for everything else here
 
-This is the lens for the whole research section. A far faster engine makes
-the same search cheaper, not smaller, and does not move the record. Every
-experiment that did move the needle changed the shape of the search instead: a
-different scan order, a learned prior over where pieces sit, a confined region
-for the mismatches. And every dead end is, at heart, a prune that the puzzle's
-global structure refuses to honour. Speed first feels productive; it is almost
-never where the gap to 480 is hiding.
+Two different goals need two different readings. For exact exhaustive
+search of the full 16×16 tree, no constant-factor speedup is enough: the tree
+is astronomically larger than any machine can walk, and only a change in its
+shape could matter. Stochastic record hunting is different: more throughput
+means more restarts and deeper runs, and it can plausibly raise the best
+score, with diminishing returns. The community's 468 to 470 boards came from
+a fast backtracker given weeks of many-core time (see
+[the records page](/research/records)). Within this project, the experiments
+that moved the score changed the shape of the search: a different scan
+order, a learned prior over where pieces sit, a confined region for the
+mismatches. And many dead ends are, at heart, a prune that the puzzle's
+global structure refuses to honour.
 
 ## The community landed here too, the hard way
 
@@ -116,10 +141,11 @@ pays if it is *cheaper than the search it removes*, and on this puzzle almost
 nothing local clears that bar.
 
 <Callout kind="note">
-  The tree numbers in the demo are illustrative: a branching factor and depth
-  chosen to be E2-like and legible, not a measurement of a specific solver.
-  The hardness curve and node counts, however, are real engine measurements on
-  small puzzles, deterministic and reproducible with `just research-prune-vs-speed`.
-  The principle itself, constant divisor versus exponential divisor, is
-  exact.
+  The tree numbers in the demo are illustrative: a branching factor of 5 and
+  a depth of 64, chosen to be legible, not a measurement of a specific
+  solver. The hardness curve, the node counts and the 1000× versus 5%
+  comparison above are real engine measurements on small puzzles,
+  deterministic and reproducible with `just research-prune-vs-speed`. The
+  principle itself, constant divisor versus a divisor that compounds with
+  depth, is exact; which lever wins on a given tree is an empirical question.
 </Callout>

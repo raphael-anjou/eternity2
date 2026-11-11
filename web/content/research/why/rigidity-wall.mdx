@@ -1,16 +1,18 @@
 ---
 title: The rigidity wall
 description: >-
-  Every record board we have is frozen in place. You cannot nudge your way
-  from a great board to a perfect one, and we can prove it.
-metaDescription: "Every Eternity II record board is frozen in place: you cannot nudge your way from a great board to a perfect one. MIP proofs of halo-optimality across several record basins, out to a multi-cell halo, show the core is locally rigid, which is why polishing a strong board never lifts its score."
+  On the record boards tested, no refill of any region within radius 4 of
+  the defects strictly improves the score (MIP and SAT certificates; most MIP
+  runs are notebook results not yet committed). Polishing a great board does
+  not reach a perfect one.
+metaDescription: "On the Eternity II record boards tested, refilling any region within a bounded radius of the defects never strictly improves the score: MIP halo proofs out to halo-4 and a committed radius-4 SAT reproduction show strict local optimality. Equal-score twin swaps still exist."
 kind: finding
 contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "one MIP solve per region; ~70 s (48 cells) to ~1800 s (59-cell joint halo-1) on CBC"
@@ -20,6 +22,8 @@ complexity:
     region is small enough to close to optimality or a tight gap in minutes.
 related:
   - /research/records
+  - /research/build/analysis/solution-counting
+  - /research/why/ring-purity
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -58,8 +62,7 @@ the score creeps up to 480.
 
 It doesn't. On every top board we have tested, the last mismatches are
 locked. Move anything nearby and the score stays the same or drops. The good
-boards aren't almost-solutions waiting for a polish; they're isolated points
-with nowhere better to go next door.
+boards aren't almost-solutions waiting for a polish; they're strict local optima under every bounded move tested (equal-score twin swaps still exist).
 
 ## Watch the region grow
 
@@ -119,17 +122,13 @@ their four edge colors, so swapping them looks almost neutral. On the
 community 469, all 114 such single swaps were tried: exactly one keeps the
 score at 469 (producing the only known sibling board), 2 give 468, and 111
 give 467. All 6,441 double swaps: none reaches 470, the best gives 468.
-Across 6,555 perturbations built specifically to be nearly score-neutral, the
-469-score level set contains exactly two boards.
+Across 6,555 perturbations built specifically to be nearly score-neutral, these perturbations find exactly two boards in the 469-score level set.
 
 The numbers explain themselves. At score 459 a cell contributes about 3.6
 matched edges on average, while a random piece dropped into a fixed
-neighborhood expects only about 0.18 (roughly four edges times one chance in
-22 colors), so a random swap expects to lose about 6.8 edges. A loose
+neighborhood expects only about 0.24 (four edges times one chance in 17 interior colours), so a random swap expects to lose about 6.7 edges. A loose
 probabilistic bound caps the chance of an improving swap at about 5 percent;
-the measured frequency is below $3\times10^{-5}$. Each placement in a top
-board is co-adapted to its neighbors far beyond what chance alone would
-predict. One scope note: each census here is exhaustive within its move
+the measured frequency is below $3\times10^{-5}$. These boards are outputs of searches that already reject such moves, so zero improvements under them is expected by construction; the informative results are the larger-radius MIP and SAT certificates below. One scope note: each census here is exhaustive within its move
 class but runs on a single board (the rotation and swap censuses on one 459,
 the five-piece enumeration on one 457, the near-twin census on the 469); the
 exact proofs below are what generalize them.
@@ -320,8 +319,12 @@ edges down; rows 5 to 14 are perfect, with the original among up to about
 internal seam unconstrained): the pairs (11,12), (12,13) and (13,14) on the
 460 yield 0 to 4 alternative chains in total, all worse (12 to 16 edges
 down) or infeasible. Three rows jointly (48 cells): rows (11,12,13) and
-(12,13,14) yield zero alternative chains. These rows are not just optimal;
-they are often *forced*. Uniqueness, not merely optimality. Scope: the
+(12,13,14) yield zero alternative chains.  These rows are not just optimal;
+they are often *forced*. That uniqueness is close to what chance predicts: at
+about 0.0094 extra candidates per fully surrounded cell (see
+[the 470 plateau](/research/why/the-470-wall)), a row sandwiched between fixed
+rows is expected to admit no alternative fill at all, so the informative part
+is that no alternative is better, not that few exist. Scope: the
 enumeration is beam dynamic programming (beam width 100,000 for one row,
 5,000 to 50,000 for two and three rows), exhaustive in practice but not
 certified the way the MIP rows are; call it beam-exhaustive. Two boards.
@@ -548,8 +551,11 @@ free and 83 pinned, UNSAT in 0.17 s. The 38 cells still pinned at halo 10
 are essentially the top two rows plus 3 of the 5 clues. So the top two rows
 of this board are, by themselves, provably incompatible with any perfect
 solution: any 480 must differ from this board somewhere inside those 38
-cells. The rigidity is carried by a thin top-of-board skeleton, not by the
-defect neighborhoods. At radius 15, only 4 cells pinned, the solver timed
+cells. That is less special than it sounds: with at most about $10^7$ solutions
+(see [solution counting](/research/build/analysis/solution-counting)), almost
+any fixed 38-cell skeleton is incompatible with all of them, so this shows how
+little of a board must stay pinned to exclude 480, not a rigidity peculiar to
+this board. At radius 15, only 4 cells pinned, the solver timed
 out at 600 s; that case is open. One specific board; whether other
 459-scoring boards share the same pinned-top rigidity is not known.
 
@@ -598,6 +604,15 @@ border that any record-class search has ever produced. Polishing near a
 record is not merely slow; under that record's own border, reaching 480 is
 provably impossible. A solution requires a different border.
 
+The null expectation is the same verdict. There are about $10^{37.6}$ valid
+frame placements (see [ring purity](/research/why/ring-purity)) against at most
+about $1.15\times10^{7}$ solutions, each with one border, so a random legal
+border hosts a 480 with probability below about $10^{-30}$, and nine UNSAT
+borders out of nine is what any nine borders would give. No control on
+random or low-score borders was run. The result shows that polishing inside
+a fixed border cannot reach 480; it does not show that record borders are
+special.
+
 ## Why the wall exists
 
 The page so far proves the wall; here is the closest thing we have to a
@@ -622,9 +637,7 @@ must touch every cell. At color richness comparable to the real puzzle's,
 every tested instance was rigid in exactly this sense: zero shared cells
 across every pair of perfect solutions.
 
-For Eternity II itself this is a conjecture, and we label it as one. With 22
-interior colors, each reused roughly 24 to 50 times across 480 interior
-adjacencies, the real puzzle sits deep in the rigid regime, so distinct
+For Eternity II itself this is a conjecture, and we label it as one. With 17 interior colours (48 to 50 half-edges each) across 420 interior joints, plus 5 frame colours on the 60 ring joints, the real puzzle sits deep in the rigid regime, so distinct
 near-perfect boards should be near-orthogonal (which matches the observed
 225-cell difference between good boards above), and no bounded-size move
 should connect distinct optima. The "at most one tile" condition is not
@@ -634,7 +647,7 @@ board", not "provably all 256 cells".
 The corollary is the satisfying part: local search freezes *precisely at
 high scores* because that is where the move graph disconnects. The interior
 of the score range is easy to walk, which is why reaching the 450s and 460s
-is routine; the top is a set of isolated points, which is why polishing dies
+is routine; the top looks, in every test so far, like a set of isolated points, which is why polishing dies
 there. One theory, both halves of this page's story. (The mathematics is the
 Markov-basis and Graver-basis circle of ideas from algebraic statistics; see
 the sources. The only cheap top-level moves the theory would allow are

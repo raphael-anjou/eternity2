@@ -3,16 +3,17 @@ title: "Ring purity: the border is a closed sub-puzzle with zero slack"
 description: >-
   Five of the 22 colors never touch the 196 interior pieces. The piece list
   forces every valid solution to spend all 120 frame half-edges on the border
-  ring: a self-contained sub-puzzle at exactly zero slack (120 = 120), an
-  Eulerian circuit on five vertices, coupled to the interior through just 56
-  inward edges.
-metaDescription: "Ring purity in Eternity II: the five frame colors are border-exclusive, and every valid solution spends all 120 frame half-edges on the 60-piece border ring with zero slack. The ring is an Eulerian circuit on a 5-vertex multigraph, all degrees 24, coupled to the interior by 56 inward edges."
+  ring: a self-contained sub-puzzle at exactly zero slack (120 = 120), a
+  directed Eulerian circuit on five vertices, coupled to the interior through
+  just 56 inward edges. The zero slack is automatic for any puzzle painted
+  from a solved board with a separate border palette.
+metaDescription: "Ring purity in Eternity II: the five frame colours are border-exclusive, and every solution spends all 120 frame half-edges on the 60-piece ring, an automatic zero slack. The ring is a directed Eulerian circuit on 5 vertices, about 3.5x10^41 circuits by the BEST theorem."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 2
 order: 65
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Ring purity: reproduction topic with the article, the committed checker and the results JSON (GitHub)"
@@ -35,7 +36,9 @@ repro:
     exact first-step branching) is recomputed exhaustively by the committed Rust
     checker in the topic's compute/ directory, byte-stable on rerun; the two
     Monte Carlo strength measures are seeded and agree within sampling error
-    across independent seeds.
+    across independent seeds. The directed BEST count and the sampled corner
+    fraction come from compute/ring_count.py (stdlib Python, about 90 s on
+    8 cores).
 ---
 
 Five of the 22 edge colors never appear on any of the 196 interior pieces. In
@@ -45,7 +48,9 @@ supply of 120. Ring purity is the statement that the piece data leaves this
 supply no choice at all: every valid solution spends the entire 120 on the
 120 ring-facing edge slots of the border ring, with zero slack. The border is
 a self-contained sub-puzzle, and its only contact with the interior runs
-through 56 inward-facing edges.
+through 56 inward-facing edges. None of this is a design extreme: it holds
+for any edge-matching puzzle generated from a solved board with a separate
+border palette, as a structural consequence of construction.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -101,21 +106,30 @@ Now count. Demand: $56 \times 2 + 4 \times 2 = 120$ ring-facing slots.
 Supply: $5 \times 24 = 120$ frame half-edges. The two numbers match exactly.
 Every frame half-edge is consumed on the ring, none is left over, and no
 non-frame color ever appears on a ring joint. That is the zero-slack part:
-the frame-color budget is spent to the last half-edge.
+the frame-color budget is spent to the last half-edge. It is automatic: every
+ring joint of the solved board consumes exactly two frame half-edges, so
+supply equals demand by construction, on this puzzle and on any other cut
+the same way.
 
 ## The ring is an Eulerian circuit
 
-The saturation has a clean graph-theoretic reading. Take a multigraph on 5
-vertices, one per frame color, and one edge per border piece, joining its two
-ring-facing colors. A valid arrangement of the border ring is exactly an
-Eulerian circuit of this multigraph: walking the ring reads off a closed
-trail that uses every piece-edge once, and conversely.
+The saturation has a clean graph-theoretic reading. Border pieces cannot
+flip, and their gray side must face out, so walking the ring clockwise
+traverses each piece in one fixed direction: from the color on the slot
+before its gray side to the color on the slot after it. Take a directed
+multigraph on 5 vertices, one per frame color, with one arc per border piece
+in that direction. A valid arrangement of the border ring gives an Eulerian
+circuit of this multigraph: walking the ring reads off a closed trail that
+uses every piece once. The converse needs one more condition: an Euler
+circuit is a valid ring only if the four corner pieces land 15 positions
+apart.
 
-On the real instance the multigraph has 60 edges, every degree equal to 24,
-and it is connected, so an Eulerian circuit exists, as it must, since a full
-solution exists. Of the 60 edges, 14 are self-loops (pieces showing the same
-frame color on both ring slots), and the edges span all 15 possible color
-pairs, the 10 unordered pairs plus the 5 loops.
+On the real instance the multigraph has 60 arcs, every color has in-degree
+and out-degree 12 (degree 24 if direction is ignored), and it is connected,
+so an Eulerian circuit exists, as it must, since a full solution exists. Of
+the 60 arcs, 14 are self-loops (pieces showing the same frame color on both
+ring slots), and the arcs span all 15 possible color pairs, the 10 unordered
+pairs plus the 5 loops.
 
 ## What the law is worth
 
@@ -137,17 +151,27 @@ uniform ordering of the border pieces, and still leaves a residual rarity
 near $10^{-27}$. A purely greedy color-matching walk accordingly almost never
 finishes a ring: 8.7% completion on seed 1, 9.3% (seed 2, run for batch consistency; the committed JSON records seed 1) on seed 2, with the source
 run at 9.4%. All 87 completed seed-1 builds closed into circuits, open ends
-matching, which is the Eulerian structure showing up in the sample.
+matching, which is the Eulerian structure showing up in the sample. That walk
+lets a piece be traversed in either direction, so it measures the
+color-matching law on the undirected graph, a little looser than the real
+ring.
 
 ## What stays open
 
-The exact count of undirected Eulerian circuits of the real ring multigraph
-is open. A single-orientation shortcut through the BEST theorem was attempted
-during the original investigation, caught as an undercount by a K5 sanity
-check, and withdrawn; no circuit count is claimed anywhere. The greedy
-completion measure also ignores the geometric corner/edge alternation of the
-physical ring: it measures the color-matching law in isolation, not the full
-ring constraint.
+Because the ring is directed and balanced, the BEST theorem counts its
+Euler circuits exactly: the Laplacian cofactor gives 3,432 arborescences,
+so there are $3432 \times (11!)^5 \approx 3.5\times10^{41}$ circuits of the
+60 labelled pieces, counted up to rotation of the starting point. Valid
+rings are the subset with the corners 15 positions apart. Sampling 16
+million uniform Euler circuits (Wilson's algorithm plus the BEST bijection)
+puts that fraction at $2.78\times10^{-5}$ (standard error
+$0.13\times10^{-5}$), close to the $3.1\times10^{-5}$ that uniformly placed
+corners would give, so the board admits about $10^{37.6}$ valid frame
+placements, corners included. The naive independent-edge estimate,
+$4!\,56!\,(1/5)^{60} \approx 10^{34.3}$, is three orders of magnitude low
+for the same reason the naive solution count is: it ignores that the colour
+counts balance exactly. What stays open is an exact count with the corner
+constraint, which here is only sampled.
 
 ## Where it sits, and how to check it
 

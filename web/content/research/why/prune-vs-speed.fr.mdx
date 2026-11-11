@@ -1,17 +1,18 @@
 ---
-title: Pourquoi un ordinateur plus rapide ne change rien
+title: "Élaguer ou accélérer : ce que vaut chaque levier"
 description: >-
-  L'idée la plus importante de la recherche combinatoire difficile : réduire
-  l'espace que l'on explore l'emporte, d'une marge exponentielle, sur le fait
-  de l'explorer plus vite. Eternity II est conçu pour qu'on ne puisse presque
-  pas le réduire.
-metaDescription: "Pourquoi un ordinateur plus rapide ne change rien sur Eternity II : réduire l'espace de recherche l'emporte d'une marge exponentielle sur chercher plus vite, quand accélérer n'est qu'un diviseur constant. E2 est réglé pour qu'on n'élague presque rien localement, et aucun moteur n'atteint 480."
+  Une accélération divise le travail par une constante ; un élagage qui
+  abaisse le facteur de branchement effectif se compose avec la profondeur.
+  Pour une recherche exhaustive du plateau complet, aucun facteur constant ne
+  suffit, alors que pour la chasse au record plus de débit achète encore plus
+  de tentatives. Eternity II laisse peu de prise à l'élagage.
+metaDescription: "Élaguer ou accélérer sur Eternity II : l'accélération est un diviseur constant, la coupe du facteur de branchement se compose avec la profondeur. Rien ne rend l'arbre exhaustif faisable, mais le débit achète des tentatives ; sur de petits arbres mesurés, 5 % de coupe vaut environ 6x."
 kind: finding
 contribution: negative
 rigor: measured
 tier: 1
 order: 10
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [speed, search-space, backtracking]
 sources:
   - label: Article, source et résultats sur GitHub (research/topics/prune-vs-speed)
@@ -60,17 +61,36 @@ facteur de branchement et vous économisez cette fraction à chaque niveau. Sur
 de branchement de $b$ à $b'$ divise le travail par $(b/b')^{256}$. Une coupe de
 5 %, appliquée jusqu'au bout, vaut $(1/0.95)^{256} \approx 5\times10^{5}$, soit
 l'équivalent d'une accélération de cinq cent mille fois, à partir d'une seule
-idée structurelle peu coûteuse. Cela bat presque toute accélération qu'une
-machine réelle peut offrir.
+idée structurelle peu coûteuse. Ce cas idéalisé bat presque toute
+accélération qu'une machine réelle peut offrir.
+
+L'idéalisation compte pourtant. Une coupe uniforme vaut $(1/(1-x))^{d}$ et ne
+dépend que de la profondeur $d$ que la recherche atteint réellement, or les
+vrais arbres de recherche en profondeur sont étroits : sur les petits
+casse-têtes mesurés plus bas, le facteur de branchement effectif vaut
+environ 1,4, pas les dizaines de candidats légaux par case. Une coupe
+uniforme de 5 % à chaque niveau n'est pas un élagage réaliste ; les vrais
+élagages agissent de façon inégale, surtout vers le bas de l'arbre.
 
 ## Sentez l'écart
 
-Mettez une accélération brute en balance avec un petit élagage par niveau et
-regardez l'élagage l'emporter de plusieurs ordres de grandeur.
+Mettez une accélération brute en balance avec un élagage par niveau sur un
+arbre illustratif (facteur de branchement 5, profondeur 64), puis comparez
+avec le cas mesuré ci-dessous.
 
 <Figure collapsible title="Interactif : puissance de l'élagage contre vitesse brute">
   <PruneVsSpeedLab />
 </Figure>
+
+Sur de vrais arbres, la comparaison peut s'inverser. Sur les instances 6×6
+au sommet de difficulté versées au dépôt (profondeur 36, facteur de
+branchement effectif mesuré 1,416, médiane de 273 029 nœuds jusqu'à la
+première solution), une accélération de 1000× ramène le travail à
+l'équivalent de 273 nœuds, alors qu'un élagage uniforme de 5 % en laisse
+43 078, soit l'équivalent d'une accélération de 6,3× seulement. L'élagage
+gagne quand la coupe est forte ou que la profondeur effective est grande ;
+quelques pour cent retirés à un arbre étroit et peu profond valent moins
+qu'une machine rapide.
 
 ## En quoi c'est exactement la malédiction d'E2
 
@@ -83,10 +103,15 @@ Quatre de ses murs disent, au fond, la même chose : il n'y a rien de local à
   intérieure a encore 73 à 137 voisins légaux, si bien que la propagation ne
   réduit presque jamais une case à un seul choix. Le facteur de branchement
   reste obstinément élevé.
-- **[Au sommet de la difficulté](/research/why/phase-transition)** : les
-  décomptes de pièces et de couleurs se situent là où l'on attend environ une
-  solution, ne laissant aucune région dense en solutions vers laquelle diriger
-  un raccourci statistique, l'astuce qui a fait tomber Eternity I.
+- **[Près du sommet de difficulté](/research/why/phase-transition)** :
+  l'heuristique simplifiée au premier moment d'Owen plaçait environ 17
+  couleurs intérieures près de son point à une solution ; l'estimation
+  corrigée donne environ 14 702 solutions attendues avec la pièce de départ
+  (une moyenne d'ensemble, voir
+  [le comptage des solutions](/research/build/analysis/solution-counting)),
+  bien trop clairsemées pour y diriger un raccourci statistique, l'astuce qui
+  a fait tomber Eternity I. La position du pic dépend de la taille du plateau
+  et du solveur : la courbe 6×6 versée avec cette page culmine à 5 couleurs.
 - **[La loi d'aire](/research/why/entropy-area-law)** : le nombre de plateaux
   partiels véritablement distincts s'effondre à mesure que l'aire remplie grandit, mais aucun
   signal de score local ne peut voir cet effondrement global, si bien qu'on ne
@@ -97,15 +122,20 @@ Quatre de ses murs disent, au fond, la même chose : il n'y a rien de local à
 
 ## Ce que cela signifie pour tout le reste ici
 
-C'est la grille de lecture de toute la section recherche. Un moteur bien plus
-rapide rend la même recherche moins coûteuse, pas plus petite, et ne fait pas
-bouger le record. Chaque expérience qui a vraiment fait bouger les choses a
-plutôt changé la forme de la recherche : un ordre de parcours différent, un
-a priori appris sur l'emplacement des pièces, une région confinée pour les
-défauts d'appariement. Et chaque impasse est, au fond, un élagage que la
-structure globale du casse-tête refuse d'honorer. La vitesse donne d'abord un
-sentiment de productivité ; ce n'est presque jamais là que se cache l'écart
-avec 480.
+Deux objectifs différents appellent deux lectures différentes. Pour la
+recherche exacte et exhaustive de l'arbre 16×16 complet, aucune accélération
+d'un facteur constant ne suffit : l'arbre dépasse astronomiquement ce
+qu'une machine peut parcourir, et seul un changement de sa forme pourrait
+compter. La chasse stochastique au record est une autre affaire : plus de
+débit signifie plus de redémarrages et des parcours plus profonds, ce qui
+peut plausiblement relever le meilleur score, avec des rendements
+décroissants. Les plateaux à 468 et 470 de la communauté sont venus d'un
+backtracker rapide qui a tourné des semaines sur une machine multicœur (voir
+[la page des records](/research/records)). Dans ce projet, les expériences
+qui ont fait bouger le score ont changé la forme de la recherche : un ordre
+de parcours différent, un a priori appris sur l'emplacement des pièces, une
+région confinée pour les défauts d'appariement. Et beaucoup d'impasses sont,
+au fond, un élagage que la structure globale du casse-tête refuse d'honorer.
 
 ## La communauté a abouti là aussi, à la dure
 
@@ -127,10 +157,11 @@ casse-tête presque rien de local ne franchit ce seuil.
 
 <Callout kind="note">
   Les nombres de l'arbre dans la démo sont illustratifs : un facteur de
-  branchement et une profondeur choisis pour être proches d'E2 et lisibles, non
-  la mesure d'un solveur précis. La courbe de difficulté et les décomptes de
-  nœuds, en revanche, sont de vraies mesures de moteur sur de petits
-  casse-têtes, déterministes et reproductibles avec `just research-prune-vs-speed`.
-  Le principe lui-même, diviseur constant contre diviseur exponentiel, est
-  exact.
+  branchement de 5 et une profondeur de 64, choisis pour être lisibles, non la
+  mesure d'un solveur précis. La courbe de difficulté, les décomptes de nœuds
+  et la comparaison entre 1000× et 5 % ci-dessus sont de vraies mesures de
+  moteur sur de petits casse-têtes, déterministes et reproductibles avec
+  `just research-prune-vs-speed`. Le principe lui-même, diviseur constant
+  contre diviseur qui se compose avec la profondeur, est exact ; quel levier
+  l'emporte sur un arbre donné est une question empirique.
 </Callout>
