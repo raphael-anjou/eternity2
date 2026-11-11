@@ -1707,3 +1707,42 @@ build/hardware/fpga-solving{,.fr,.es}.mdx, the GPU bullet of
 build/approaches-map{,.fr,.es}.mdx; then the hardware hub description
 (build/hardware/index{,.fr,.es}.mdx) and the FPGA page's economics, ReConFig
 and rack-year paragraphs. Commits: cd55b20, 5748d05.
+
+## 2026-11-11 — Rigor pass: top-pages-and-tsx (external review follow-up)
+
+Rigor pass on the top-level research pages and site TSX (commit c1907b7,
+branch devin/1794390000-rigor-top-pages-and-tsx). All 17 audit findings were
+checked against the repo, all held, and all were fixed in EN, FR and ES. Every
+'about one / single solution' claim is reconciled with solution-counting.mdx:
+about 14,702 expected solutions with the centre clue and effectively one with
+all five, as an ensemble first-moment estimate. This covers Scam, Status,
+RecordsView, PapersView and open-problems. Owen's msg 1947 is now an estimate,
+not a proof of 'hardest possible'. Literature notes (Mateu 2012, Ansotegui
+2008, Bejar 2009) now describe ensemble phase transitions, and the claim that
+they explain E2's design is gone. Record lineage is credited to Verhaard's
+engine, Blackwood's scheduled backtracker and Riotte's DFS rather than CP plus
+VLNS or propagation and repair. McGavin's 295M/s figure is separated from his
+2020 469, which was found with Blackwood's solver on about 200 cores. Set_2 is
+now priced at the set_1 cost, about 2x10^17 nodes or 180 core-years. One solve
+is a geometric draw spanning about 1/20 to 3x the expected cost (5th to 95th
+percentile), and newcomers are sent to the 7x7-9x9 ladder. On Algorithms, the
+22-colour extrapolation was wrong: the arithmetic gave about 14, the 8x8 peak
+is censored, and the data came from the unframed painter. It is replaced by
+the measured peaks (4, 6 and 6 to 7) plus Owen's criterion, recomputed to 5.2,
+6.4, 7.6 and 17.14, and the committed 16x16 sweep is reported as having found
+no peak (0 solves for interior colours 8 to 17 at a 20M-node budget). Puzzle
+now contrasts the 10^560 teaching number with the about 10^45 pruned tree and
+frames NP-completeness as a property of the family. A null model shows E2's
+'no duplicates' is non-random (99.4% of random paintings have at least one
+duplicate) but 'no symmetric piece' is not (48% of random paintings have one).
+That Monte Carlo was done ad hoc and the script is not committed. Rigidity
+claims are limited to the 3-4 basins tested, and the score gap is no longer
+presented as distance to a solution. Learned: overclaims about design and the
+solution count recur on non-owned pages (why-e2-is-hard 'scarcest', known-
+facts 'single', phase-transition 'maximally hard'), and the Verhaard 467
+method is described inconsistently across pages. Files:
+web/content/research/{open-problems,contribute,people}{,.fr,.es}.mdx;
+web/src/pages/{Algorithms,Puzzle,Scam,Status,Home}.tsx;
+web/src/components/research/views/{PapersView,RecordsView}.tsx.
+
+Verified 18 audit findings and fixed them, rejected 0 as not holding, deferred 4 (new experiments or files outside the group). Source commit c1907b7 on devin/1794390000-rigor-top-pages-and-tsx, integrated via devin/1794392000-rigor-top.
