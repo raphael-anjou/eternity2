@@ -1,22 +1,25 @@
 ---
 title: Cómo buscan los solucionadores récord
 description: >-
-  Cómo buscan en realidad los solucionadores que ostentan los récords. Todos
-  son, en el fondo, backtrackers en profundidad; lo que los distingue es el orden
-  en que prueban las cosas y cómo doblan las reglas al acercarse al final.
-metaDescription: "Cómo buscan de verdad los solucionadores récord de Eternity II: todos son backtrackers en profundidad, distinguidos por tres decisiones: el orden de las celdas, las heurísticas que eligen la primera pieza y las discordancias tardías planificadas para doblar el final. Blackwood, Verhaard, McGavin."
+  Cómo buscan en realidad los solucionadores detrás de los tableros récord. Los
+  récords salieron de backtrackers en profundidad, a menudo seguidos de pasadas
+  de reparación; lo que los distingue es el orden en que prueban las cosas y cómo
+  doblan las reglas al acercarse al final. Los motores de tipo recocido también
+  figuran en el catálogo.
+metaDescription: "Cómo buscan los solucionadores récord de Eternity II: los tableros récord salieron de backtrackers en profundidad, distinguidos por tres decisiones: el orden de las celdas, la heurística de la primera pieza y las discordancias tardías planificadas. Blackwood, Verhaard, McGavin."
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [backtracking, speed]
 ---
 
 import { DfsDemo } from "@/components/learn/DfsDemo";
 import { BreakIndexLab } from "@/components/research/BreakIndexLab";
 
-Todo solucionador que ostenta un récord serio en Eternity II es, en el fondo, la
-misma máquina: un backtracker en profundidad. Lo que los distingue no es el bucle,
+Los tableros récord los produjeron backtrackers en profundidad, a menudo seguidos
+de pasadas de reparación; abajo también figuran motores de tipo recocido. Lo que
+distingue a los backtrackers no es el bucle,
 sino tres decisiones que se superponen a él: el orden en que visitan las celdas,
 las heurísticas que deciden qué pieza probar primero y cómo doblan el final de la
 partida cuando ya no queda una coincidencia perfecta. Esta página es el recorrido
@@ -28,17 +31,18 @@ abajo.
 ## Los motores de un vistazo
 
 Antes del recorrido, el catálogo: una fila por motor, y las cuatro decisiones que
-lo distinguen. Cada alcance se mide en un solo núcleo, en una misma máquina, de
-modo que los números se comparan igual con igual en vez de entre clústeres; cada
-fila enlaza su informe completo.
+lo distinguen. Lee las dos últimas columnas antes de comparar filas: los alcances
+no cuentan lo mismo (piezas colocadas sobre 256, aristas casadas sobre 480), con
+regímenes de pistas distintos, y una fila es un resultado de flota comunitaria que
+no puede reejecutarse aquí. Cada fila enlaza su informe completo.
 
-| Motor | Orden de relleno | Poda | Régimen de hardware | Alcance medido |
-| --- | --- | --- | --- | --- |
-| [Backtracker de Blackwood](/research/lab/experiments/joshua-blackwood/solver) | barrido por fila desde abajo-izquierda, piezas de borde al final | cuota de color por profundidad más un presupuesto de índice de ruptura según la profundidad | un solo núcleo; el 470 salió de muchos núcleos en paralelo | 248/256 piezas sin restricción; se estanca cerca de 45 al fijar las cinco pistas |
-| [eii de Verhaard](/research/lab/experiments/louis-verhaard/eii) | órdenes de búsqueda en peine | poda anticipada frente a umbrales de puntuación ajustados; un calendario de deslizamiento ajustado por Markov | binario Win32 en un núcleo; sin fuente para recompilar | 467/480, el único premio que pagó el concurso |
-| [Backtracker C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) | según el puzle: barrido por fila, espiral, o borde primero | código generado más tablas de consulta y trucos de contador para el rendimiento bruto | un solo núcleo, ~109M colocaciones/s en el puzle real | más allá de 200/256 piezas; hecho para la velocidad, no para un score récord |
-| [Reimplementación de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | recocido por intercambio de composición de conjuntos bajo la métrica 2×2 | aceptación por recocido, constantes recuperadas al bit desde el binario | un solo núcleo; ejecución versionada y reejecutable | 438/480 en el puzle real de cinco pistas |
-| [Preajustes CSP, medidos](/research/lab/experiments/single-core-benchmark/csp-presets) | una docena de preajustes de orden, borde primero el mejor | propagación por consistencia de arco | un solo núcleo, diez variantes ancladas por esquina | cerca de 183 en las variantes ancladas; por debajo de la mitad del score de un contendiente |
+| Motor | Orden de relleno | Poda | Régimen de hardware | Alcance (unidad, régimen de pistas) | Procedencia |
+| --- | --- | --- | --- | --- | --- |
+| [Backtracker de Blackwood](/research/lab/experiments/joshua-blackwood/solver) | barrido por fila desde abajo-izquierda, piezas de borde al final | cuota de color por profundidad más un presupuesto de índice de ruptura según la profundidad | un solo núcleo; el 470 salió de muchos núcleos en paralelo | 248/256 piezas colocadas sin pistas; colocación más profunda cerca de 45/256 al fijar las cinco pistas | medido aquí, un solo núcleo |
+| [eii de Verhaard](/research/lab/experiments/louis-verhaard/eii) | órdenes de búsqueda en peine | poda anticipada frente a umbrales de puntuación ajustados; un calendario de deslizamiento ajustado por Markov | binario Win32 en un núcleo; sin fuente para recompilar | 467/480 aristas casadas, el único premio que pagó el concurso | resultado comunitario en muchos PC voluntarios (2008), no reejecutado aquí |
+| [Backtracker C de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) | según el puzle: barrido por fila, espiral, o borde primero | código generado más tablas de consulta y trucos de contador para el rendimiento bruto | un solo núcleo, ~109M colocaciones/s en el puzle real | más allá de 200/256 piezas colocadas; hecho para la velocidad, no para un score récord | medido aquí, un solo núcleo |
+| [Reimplementación de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | recocido por intercambio de composición de conjuntos bajo la métrica 2×2 (no es un backtracker) | aceptación por recocido, constantes recuperadas al bit desde el binario | un solo núcleo; ejecución versionada y reejecutable | 438/480 aristas casadas, cinco pistas | medido aquí, un solo núcleo |
+| [Preajustes CSP, medidos](/research/lab/experiments/single-core-benchmark/csp-presets) | una docena de preajustes de orden, borde primero el mejor de ellos | propagación por consistencia de arco | un solo núcleo, diez variantes ancladas por esquina | cerca de 183/480 aristas casadas en las variantes ancladas; por debajo de la mitad del score de un contendiente | medido aquí, un solo núcleo |
 
 El recorrido de abajo repasa las tres decisiones que comparten esas filas.
 
@@ -60,8 +64,14 @@ aparece un callejón sin salida y la búsqueda retira la pieza y vuelve a intent
 El orden en que visitas las celdas cambia la dificultad en varios órdenes de
 magnitud, porque algunos órdenes fuerzan a que los conflictos afloren pronto
 (bueno) y otros los posponen hasta que se ha desperdiciado mucho trabajo (malo).
-Empezar por el borde supera con amplio margen a un recorrido fila por fila sobre
-el mismo puzzle. Es la única palanca que ajusta cada motor récord: los órdenes de
+Con el reparto real 5/17 de colores de Eternity II entre borde e interior, el
+barrido por filas es el mejor orden fijo conocido: en el experimento de diseño de
+Owen de 2008, empezar por el centro costaba unas 10¹⁰ veces más nodos que el
+barrido, y un orden de borde primero sube hasta un pico de unos 10⁵⁷ nodos frente
+a los ~10⁴³ del barrido por filas. El borde primero solo gana en diseños con ese
+equilibrio roto, como un reparto 14/15; la
+[página del orden de relleno](/research/build/backtracking/fill-order) da las
+cifras. El orden es la palanca que ajusta cada motor récord: los órdenes de
 búsqueda en peine de Verhaard, el barrido de Blackwood en filas desde la esquina
 inferior izquierda con las piezas de borde intercaladas tardíamente y la elección
 por McGavin, puzzle a puzzle, entre barrido en filas, espiral hacia el interior o

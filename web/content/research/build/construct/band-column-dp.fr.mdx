@@ -4,17 +4,19 @@ description: >-
   Découper le plateau en bandes de deux rangées, résoudre chaque bande à la
   perfection par une DP colonne par colonne sous faisceau, puis enchaîner les
   bandes de haut en bas. Un plateau complet à 444 bords appariés sur 480 en
-  35 secondes; toute la perte se loge dans les coutures verticales tardives.
+  35 secondes ; sur ce plateau, un calcul exact loge toute la perte dans les
+  coutures verticales tardives.
 metaDescription: "DP par colonnes en bandes pour Eternity II : découper le plateau en bandes de deux rangées, résoudre chacune parfaitement par DP sous faisceau, puis les enchaîner. Un plateau complet à 444 bords appariés sur 480 (indices non imposés) en 35 s; les 36 bords perdus logent dans les coutures verticales."
 kind: concept
 order: 55
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search : Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
 related:
+  - /research/build/exact/meet-in-the-middle
   - /research/build/construct/beam-search
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
@@ -29,11 +31,11 @@ du mouvement : on découpe le plateau 16×16 en bandes de deux rangées, on
 résout chaque bande à la perfection par une programmation dynamique colonne
 par colonne sous élagage en faisceau, puis on enchaîne les bandes de haut en
 bas, chaque bande nouvelle héritant de la rangée du bas de la précédente. Une
-bande isolée se résout toujours parfaitement. La chaîne complète un plateau
-entier à 444 bords appariés sur 480 en 35 secondes, et la totalité des 36
-bords manquants se localise, par un calcul exact, dans les coutures
-verticales de la moitié basse : un échec d'horizon glouton, pas un accident
-d'inventaire de pièces.
+bande isolée a été résolue parfaitement à chaque taille testée. La chaîne
+complète un plateau entier à 444 bords appariés sur 480 en 35 secondes, et
+la totalité des 36 bords manquants se localise, par un calcul exact, dans les
+coutures verticales de la moitié basse : ce qui s'accorde avec une pénurie
+de pièces créée par l'engagement glouton unidirectionnel.
 
 Une réserve gouverne tout ce qui suit. Chaque nombre de cette page provient
 d'une seule exécution déterministe par configuration, tirée du carnet :
@@ -56,11 +58,12 @@ grossier : une colonne entière de bande par étape, deux pièces à la fois, ce
 qui exploite directement la structure 2D. Les cases du bord (qui exigent la
 couleur grise) réduisent fortement les candidats sur le pourtour.
 
-Le travail par bande est en $O(n \cdot K \cdot |P|^2)$; pour $n = 16$,
-$K = 10^4$, $|P| = 256$, cela fait de l'ordre de $10^{10}$ transitions
-candidates par bande : des minutes dans un moteur compilé, des heures en
-Python. C'est de l'arithmétique de conception, pas une mesure; c'est elle qui
-a motivé l'écriture du solveur en Rust.
+Le travail par bande est en $O(n \cdot K \cdot c)$, où $c$ est le nombre de
+placements compatibles de paires de colonnes par état (environ 45 000 au bord
+et 490 000 à l'intérieur selon le décompte plus bas). Les temps cités sur
+cette page viennent d'exécutions de carnet distinctes dont la version du
+moteur n'a pas été notée : ils se comparent à l'intérieur d'une section, pas
+d'une section à l'autre.
 
 ## L'arithmétique des bandes
 
@@ -168,17 +171,21 @@ bas, la chaîne produit 7 bandes parfaites depuis le bord supérieur, décroît,
 et échoue en *bas*; lancée de bas en haut, elle produit 7 bandes parfaites
 depuis le bord inférieur, décroît, et échoue en *haut*. Les deux directions
 s'arrêtent à 16 cases d'un plateau complet (240 posées sur 256), une
-exécution par direction. L'échec atterrit toujours au bord le plus éloigné de
-l'ancrage : chaque bord impose son propre jeu de contraintes, une chaîne
+exécution par direction. Sur une exécution par direction, l'échec a atterri au bord le plus éloigné
+de l'ancrage : chaque bord impose son propre jeu de contraintes, une chaîne
 ancrée satisfait le bord proche et dérive librement vis-à-vis du bord
-lointain, et la dérive se cumule. La décrue est une propriété de l'engagement
-glouton unidirectionnel, pas des rangées du bas.
+lointain, et la dérive se cumule. Cela désigne l'engagement glouton
+unidirectionnel, pas les rangées du bas elles-mêmes.
 
 Pourquoi ne pas lancer les deux directions et recoller ? Apparier naïvement
 une moitié haute et une moitié basse indépendantes à la couture médiane exige
-l'accord de 16 couleurs; sous un modèle de couleurs aléatoires, la
-probabilité vaut environ $(1/23)^{16} \approx 10^{-22}$. Un rendez-vous exige
-une construction conjointe, pas deux exécutions indépendantes.
+l'accord de 14 couleurs intérieures et de 2 couleurs de bord ; sous un
+modèle de couleurs aléatoires (17 couleurs intérieures, 5 de bord), la
+probabilité vaut environ $(1/17)^{14}(1/5)^2 \approx 2 \times 10^{-19}$, avant
+même d'exiger que les deux moitiés utilisent des lots disjoints de 128
+pièces, l'obstacle le plus sérieux. Un rendez-vous exige une construction
+conjointe, comme dans la [rencontre au milieu](/research/build/exact/meet-in-the-middle), pas deux exécutions
+indépendantes.
 
 S'ancrer au milieu est pire, dans la seule configuration essayée : partir
 d'une bande centrale (aucun bord sur les deux rangées) n'a pas réussi à
@@ -219,10 +226,12 @@ Mesurée, la reconstruction gloutonne est un résultat nul : reconstruire la
 moitié basse avec la même DP gloutonne retombe exactement sur 444 où que la
 ligne de gel soit tracée (gel jusqu'à la rangée 7 : 444; jusqu'à la rangée
 11 : 444; seule la reconstruction triviale de la dernière rangée conserve
-l'entrée à 447). La perte des bandes tardives est un artefact d'horizon
-glouton, pas un accident réparable du choix des pièces restantes : relancer
-le même glouton sur le reliquat depuis n'importe quelle rangée de départ
-aboutit au même endroit. Le +3 du regard en avant est le seul gain
+l'entrée à 447). Relancer le même glouton sur le reliquat depuis n'importe quelle rangée de
+départ aboutit au même endroit. Cela s'accorde avec une pénurie de pièces
+créée par l'engagement glouton (le décompte de fin de partie plus haut), mais
+ne dit pas s'il existe une meilleure complétion de la moitié haute gelée :
+un glouton déterministe sur le même reliquat retrouverait 444 dans les deux
+cas. Le +3 du regard en avant est le seul gain
 algorithmique trouvé dans cette famille. Portée : seule la reconstruction
 gloutonne sous faisceau a été testée; une résolution exacte de la moitié
 basse à 128 pièces (un problème d'appariement contraint) a été proposée et
@@ -251,14 +260,18 @@ naturelle; elle n'a pas été lancée dans ces mesures.
 
 ## Où elle s'arrête
 
-La DP par colonnes en bandes est une route rapide vers un bon plateau : 444
-bords appariés en 35 secondes, avec chaque bord horizontal de rangée partagée
-apparié, là où le faisceau au niveau des cases atteint le milieu des 450
-(bords appariés) en quelques minutes. Le plafond est l'engagement
-unidirectionnel lui-même : chaque bande paie ses coutures verticales avec des
-couleurs choisies une bande plus tôt et aucune recherche locale en bas ne
-peut les rembourser; c'est pourquoi les gains au-delà de ce palier sont venus
-du [polissage par destruction-réparation](/research/build/local-search/local-search-alns)
+La DP par colonnes en bandes a atteint 444 bords appariés (indices ignorés)
+en 35 secondes, avec chaque bord horizontal de rangée partagée apparié, et
+414 sur un plateau partiel de 240 cases avec les cinq indices. Le
+[faisceau](/research/build/construct/beam-search) au niveau des cases est à la
+fois plus rapide et plus fort sur ce moteur (un 450 complet avec les cinq
+indices en environ 8 s sur un fil, et 450 à 455 à $K = 16384$) : la DP en
+bandes vaut pour sa comptabilité exacte des coutures, pas comme constructeur
+de production. Son palier est l'engagement unidirectionnel lui-même : chaque
+bande paie ses coutures verticales avec des couleurs choisies une bande plus
+tôt, les reconstructions gloutonnes du bas ne les ont pas remboursées, et les
+gains au-delà de ce palier sont venus du
+[polissage par destruction-réparation](/research/build/local-search/local-search-alns)
 plutôt que d'un surcroît de largeur. Les portes ouvertes que laisse cette
 famille sont concrètes : une résolution exacte de la moitié basse sous haut
 gelé, le score de regard en avant appliqué à chaque bande plutôt qu'après

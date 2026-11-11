@@ -10,7 +10,7 @@ metaDescription: "No-good learning on Eternity II: a failed subtree is a theorem
 kind: concept
 order: 190
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, exact-methods]
 sources:
   - label: "Max's frontier-index scheme: 16 unmatched edges plus a piece bitmap (groups.io message 6137, 2008)"
@@ -21,7 +21,7 @@ sources:
     url: https://groups.io/g/eternity2/message/6144
   - label: "The corrected key size: 76 bits of frontier state; hit rate 0.1% → 1% before memory ran out (groups.io message 6145)"
     url: https://groups.io/g/eternity2/message/6145
-  - label: "Max's count of distinct frontier signatures: 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
+  - label: "Max's upper bound on frontier colour signatures: 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
     url: https://groups.io/g/eternity2/message/6143
   - label: "The improved method: tiny memory, 75–80% of branches discarded (groups.io message 6218)"
     url: https://groups.io/g/eternity2/message/6218
@@ -53,6 +53,12 @@ sources:
     url: https://groups.io/g/eternity2/message/10289
   - label: "capiman's CNF pipeline: 130,180 variables, cryptominisat, partials and rings (groups.io message 11822, 2026)"
     url: https://groups.io/g/eternity2/message/11822
+  - label: Ginsberg 1993, Dynamic Backtracking (Journal of Artificial Intelligence Research 1)
+    url: https://doi.org/10.1613/jair.1
+  - label: Prosser 1993, Hybrid Algorithms for the Constraint Satisfaction Problem (Computational Intelligence 9), conflict-directed backjumping
+    url: https://doi.org/10.1111/j.1467-8640.1993.tb00310.x
+  - label: Ohrimenko, Stuckey & Codish 2009, Propagation via Lazy Clause Generation (Constraints 14)
+    url: https://doi.org/10.1007/s10601-008-9064-x
 related:
   - /research/lab/experiments/raphael-anjou/learning/replay
   - /research/build/exact/sat-csp-encodings
@@ -138,15 +144,17 @@ record solver; when he returned in 2010 it was to ask the group to spot the
 flaw in his dynamic-reduction scheme, and no substantive reply came
 ([message 7938](https://groups.io/g/eternity2/message/7938)).
 
-Note what made the key so big: E2's scan-line frontier is *wide*. A chess
-position fits in a few dozen bytes regardless of how deep the game is; an
-E2 frontier is sixteen open edges of seventeen interior colours **plus** a
-256-piece availability set, and the number of reachable signatures grows
-exponentially with the frontier's length. That is the same
-boundary-entropy quantity that governs the
-[entropy area law](/research/why/entropy-area-law): the frontier is where
-the puzzle's information lives, and a transposition key must carry all of
-it or be unsound.
+Note what made the key so big. A chess position fits in a few dozen bytes
+regardless of how deep the game is; an E2 state at the test line is sixteen
+open edges **plus** the set of pieces still in hand. The colour part alone
+has at most $25 \cdot 17^{14} \approx 4 \times 10^{18}$ values, an upper
+bound that ignores reachability. The piece set is the larger term: at depth
+128 there are $\binom{256}{128} \approx 6 \times 10^{75}$ possible subsets,
+and a sound key must carry it. The all-different constraint, more than the
+width of the frontier, is what kills the table. Drop it (unlimited copies of
+each tile, as in Wang tilings) and the frontier colours alone determine the
+subtree, which is exactly the setting where classic transfer-matrix dynamic
+programming over the frontier works.
 
 ## The correctness traps
 
@@ -186,6 +194,18 @@ with their full reason sets, checked SAT-style with watched literals; the
 mechanics are on the
 [SAT and CSP encodings page](/research/build/exact/sat-csp-encodings).
 
+These community schemes re-derive named techniques. Restore lists attached to
+the cell whose undoing revives a candidate are a form of eliminating
+explanations in [dynamic backtracking](https://doi.org/10.1613/jair.1)
+(Ginsberg 1993) and of
+[conflict-directed backjumping](https://doi.org/10.1111/j.1467-8640.1993.tb00310.x)
+(Prosser 1993), and DeVincentis's fix is the known requirement to keep each
+explanation's full set of reasons. Storing failed states is CSP no-good
+recording (Dechter 1990; Schiex & Verfaillie 1994), carried furthest by
+[lazy clause generation](https://doi.org/10.1007/s10601-008-9064-x)
+(Ohrimenko, Stuckey & Codish 2009). Reusing subtree results during exact
+counting is component caching in #SAT model counters (Sang et al. 2004).
+
 ## Flavour two: no-goods about the puzzle itself
 
 A transposition entry says "this state, in this search, is dead". A
@@ -222,8 +242,10 @@ still answered UNSAT
 ([message 10292](https://groups.io/g/eternity2/message/10292)), and returned
 a 28-piece core that is already unextendable
 ([message 10289](https://groups.io/g/eternity2/message/10289)). That is
-conflict-clause minimisation performed by hand, exactly what a CDCL solver
-does internally after every conflict.
+deletion-based minimisation of an unsatisfiable core (MUS extraction, as
+studied by Marques-Silva and others), run by hand around a SAT solver. It
+is not the resolution-based clause minimisation a CDCL solver performs
+after each conflict.
 
 The accounting, though, is sobering and capiman published it himself: by
 February 2023 the mine held ~68 million confirmed invalid pairs, against
@@ -264,10 +286,10 @@ the placement heuristics paid, worth about 2×
 reasons for rejecting a related per-thread cache design are pure memory
 arithmetic: reconstruction cost when the search recrosses the cache
 boundary, and the certainty that per-thread tables would no longer fit in
-L3. The fastest engines spend over half their cycles stalled on memory
-already (see [solver engineering](/research/build/faster/solver-engineering));
-a cache probe per node is a proposal to add a DRAM-latency roundtrip to a
-loop that lives or dies by L1.
+L3. A modern core spends its stalls mostly on branch misprediction (see
+[solver engineering](/research/build/faster/solver-engineering)), and its
+working set lives in L1; a table too large for L3 turns each probe into a
+DRAM-latency roundtrip.
 
 **The hit rates were measured, and they are thin.** In 2016, 21valy
 instrumented a 10×10 scan-line solver: exact duplicate states (same
@@ -276,25 +298,31 @@ through the board, prompting his "morality #1: do not care true duplicates". Rel
 keys (inner tiles only) show 30–40% repetition, but the theoretical gain
 tops out below 25% and his hash table "grows too rapidly … saturated in a
 few minutes" ([message 9618](https://groups.io/g/eternity2/message/9618)).
-One percent of hits, each saving a subtree, versus a probe on every node
-and a table whose working set exceeds RAM within minutes: that is the
-break-even problem in one measurement.
+Probed once per state at a test line, a hit skips the whole subtree below
+it, so the work saved is bounded by the duplicate rate at that line: about
+1% for exact duplicates, by both 21valy's and Lindström's measurements. That
+is a small positive gain at best, against a table whose working set
+exceeds RAM within minutes.
 
 The pattern across all three: nobody refuted the theorem. Failed subtrees
-*are* reusable. What failed is the exchange rate: at 16×16 the frontier
-key is too wide, the state space too large for any table to cover a useful
-fraction, and the probe cost lands on the exact resource (memory bandwidth)
-that fast backtrackers have already exhausted.
+*are* reusable. What failed is the exchange rate: at 16×16 the sound key
+(frontier plus piece set) is too large for any table to cover a useful
+fraction of the states, so exact hits stay near 1%, while the tables grow
+without bound and each probe pays memory latency.
 
 ## Where it genuinely pays
 
 Shrink the board or close the search, and the same idea changes sign.
 
-- **Small boards and rings.** Lindström's restore-list scheme cut the
-  6×6 border ring by 4.4×
-  ([message 8875](https://groups.io/g/eternity2/message/8875)). On a small
-  state space the table *can* cover a meaningful fraction of reachable
-  frontiers, so hit rates climb from per-mille to per-cent and beyond.
+- **Small boards and rings.** On a small state space a table *can* cover
+  a meaningful fraction of reachable frontiers, so hit rates climb from
+  per-mille to per-cent and beyond. The one community figure, Lindström's
+  4.4× cut on the 6×6 border ring
+  ([message 8875](https://groups.io/g/eternity2/message/8875)), predates
+  the per-edge fix in the same thread
+  ([message 8886](https://groups.io/g/eternity2/message/8886)), and the
+  archive does not say whether that run kept every solution; it may come
+  from the version later shown to lose them.
 - **Exhaustive enumeration and counting.** When the tree will be walked to
   the end, every duplicate subtree is a guaranteed revisit, not a
   probabilistic one: McGavin's twin top rows
@@ -315,39 +343,36 @@ Shrink the board or close the search, and the same idea changes sign.
 
 ## What it costs
 
-- **The key: frontier entropy, paid per entry.** A sound transposition key
-  is the open frontier plus the remaining-piece set. At a mid-board test
-  line that is $2 \cdot 3 + 14 \cdot 5 = 76$ bits of edge state
-  ([message 6145](https://groups.io/g/eternity2/message/6145)) plus a
+- **The key: frontier plus piece set, paid per entry.** A sound
+  transposition key is the open frontier plus the remaining-piece set. At a
+  mid-board test line that is $2 \cdot 3 + 14 \cdot 5 = 76$ bits of edge
+  state ([message 6145](https://groups.io/g/eternity2/message/6145)) plus a
   256-bit piece bitmap for the subset test
-  ([message 6137](https://groups.io/g/eternity2/message/6137)), and the
-  number of *reachable* keys at that one line is about
-  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$
-  ([message 6143](https://groups.io/g/eternity2/message/6143)). In general
-  the key population grows like $e^{h \cdot \ell}$ for a frontier of
-  length $\ell$: a perimeter law, the same boundary term as the
-  [area law's](/research/why/entropy-area-law), which is why small boards
-  are cheap and 16×16 is not.
+  ([message 6137](https://groups.io/g/eternity2/message/6137)), about 42
+  bytes per entry. The frontier colours alone take at most
+  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$ values
+  ([message 6143](https://groups.io/g/eternity2/message/6143)), an upper
+  bound, and the piece set multiplies the key space far beyond that. The
+  frontier term grows with the frontier's length, a boundary quantity, which
+  is why small boards are cheap and 16×16 is not; it is a different quantity
+  from the volume term that the
+  [entropy area law](/research/why/entropy-area-law) page fits.
 - **The table: coverage is memory over population.** A hash table of $M$
-  entries facing $K$ reachable keys covers $M/K$ of them; with
-  $K \approx 4 \times 10^{18}$, a 64 GiB table ($M \approx 2^{33}$ entries)
-  covers about $10^{-9}$ of the space. Hits then come only from short-term
-  locality, which is what Lindström observed: 0.1% climbing to 1% and
-  stalling at the memory wall
-  ([message 6145](https://groups.io/g/eternity2/message/6145)).
-- **The probe: a DRAM roundtrip per node.** A modern engine places
-  $\sim$70M pieces per second (about $14$ ns per node) while a random
-  table probe costs a $\sim$100 ns memory stall, i.e. $c \approx 7$ nodes
-  of search. The cache pays only if
-  $$
-  p_{\text{hit}} \cdot \bar{S} \;>\; c \;\approx\; 7 \text{ nodes},
-  $$
-  where $\bar{S}$ is the mean size of a skipped subtree. At the measured
-  $p_{\text{hit}} \approx 1\%$
-  ([message 9618](https://groups.io/g/eternity2/message/9618)) you need
-  $\bar{S} > 700$ nodes *and* a table that actually retains those entries,
-  the one 21valy watched saturate in minutes. At an effective
-  $p_{\text{hit}} \sim 10^{-9}$, no realistic $\bar{S}$ balances the books.
+  entries facing $K$ keys covers at most $M/K$ of them. At 42 bytes per
+  entry a 64 GiB table holds about $1.6 \times 10^9$ entries; against even
+  the frontier-only bound $K \approx 4 \times 10^{18}$ that is under
+  $10^{-9}$ of the space. Hits then come only from short-term locality,
+  which is what Lindström observed: 0.1% climbing to 1% and stalling at the
+  memory wall ([message 6145](https://groups.io/g/eternity2/message/6145)).
+- **The probe: once per state at the test line.** The schemes on this page
+  probe only when the search crosses the test line, not at every node, so
+  the probe's memory latency is amortised over the subtree below and is not
+  the binding cost. The binding limit is the hit rate: with exact
+  duplicates at about 1% of states at that line
+  ([message 9618](https://groups.io/g/eternity2/message/9618),
+  [message 6145](https://groups.io/g/eternity2/message/6145)), the work
+  saved is at most about 1% of the work below the line, while the table,
+  the one 21valy watched saturate in minutes, keeps growing.
 - **Correctness: the full reason set, or nothing.** Every hypothesis the
   failure proof used must be in the key: per-edge restore lists, used-piece
   lists, all of it
@@ -357,5 +382,7 @@ Shrink the board or close the search, and the same idea changes sign.
 
 That is the summary the archive earned over eighteen years: the theorem is
 free, the memory is not. A failed subtree really is a fact you own, but at
-full-board scale, storing facts costs more than rediscovering them, and the
-two solvers that set records both chose, after measuring, to forget.
+full-board scale the measured exact-duplicate rate caps the saving near 1%,
+and the table to collect it grows without bound. Blackwood measured 2×2
+caching and dropped it; Verhaard's engine simply has no memory of past
+positions.

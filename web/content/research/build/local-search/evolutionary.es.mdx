@@ -2,15 +2,15 @@
 title: Enfoques evolutivos y genéticos
 description: >-
   Criar una población de tableros, conservar los más aptos, recombinar a los
-  supervivientes. La metáfora más natural de la caja de herramientas, y el único
-  método cuyo operador central, el cruce, choca de frente con la estructura de
-  Eternity II. El registro completo de lo que la comunidad crió, midió y
-  abandonó.
-metaDescription: "Enfoques evolutivos y genéticos de Eternity II: por qué el cruce choca de frente con la estructura de permutación del puzzle, y por qué todos se estancan en los 400 bajos. El registro completo de lo que la comunidad crió, midió y abandonó, del GA de Chapple al híbrido 462/480 de antminder."
+  supervivientes. La metáfora más natural de la caja de herramientas, y un
+  método cuyo operador central, el cruce posición a posición, fracasa en
+  Eternity II porque los buenos tableros casi no comparten colocaciones. El
+  registro de lo que la comunidad crió, midió y abandonó.
+metaDescription: "Enfoques evolutivos de Eternity II: por qué el cruce posición a posición fracasa cuando los buenos tableros casi no comparten colocaciones. Los GA puros se estancaron hacia 400 a 410 de 480; el mejor híbrido, backtracker y reparación exacta, llegó a 462 a 463 en 2008."
 kind: concept
 order: 200
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search, learning]
 sources:
   - label: "El plan completo de GA de simon.chapple: genoma en espiral, genes restringidos por clase, fitness (groups.io message 302)"
@@ -45,8 +45,17 @@ sources:
     url: https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf
   - label: Wauters, Vancroonenburg & Vanden Berghe, A guide-and-observe hyper-heuristic approach to the Eternity II puzzle (JMMA 11, 2012)
     url: https://link.springer.com/article/10.1007/s10852-012-9178-4
+  - label: "Muñoz, Gutierrez & Sanchis, Evolutionary Genetic Algorithms in a Constraint Satisfaction Problem: Puzzle Eternity II (IWANN 2009)"
+    url: https://doi.org/10.1007/978-3-642-02478-8_90
+  - label: "Muñoz, Gutierrez & Sanchis, Evolutionary techniques in a constraint satisfaction problem: Puzzle Eternity II (IEEE CEC 2009)"
+    url: https://doi.org/10.1109/CEC.2009.4983319
+  - label: "Galinier & Hao, Hybrid Evolutionary Algorithms for Graph Coloring (J. Combinatorial Optimization, 1999)"
+    url: https://doi.org/10.1023/A:1009823419804
+  - label: "Benlic & Hao, Memetic search for the quadratic assignment problem (Expert Systems with Applications, 2015)"
+    url: https://doi.org/10.1016/j.eswa.2014.08.011
 related:
   - /research/build/local-search/local-search-alns
+  - /research/lab/experiments/raphael-anjou/repair-study
   - /research/build/dead-ends
   - /research/why/sigma-cycles
 repro:
@@ -63,11 +72,13 @@ conectividad, criar
 metáfora más natural de la caja de herramientas: una población de tableros, la
 supervivencia de los mejor emparejados, hijos que heredan buenos fragmentos de
 dos buenos padres. En los años siguientes la comunidad construyó estos
-solucionadores, los midió con cuidado, y vio cómo cada uno de ellos se estancaba
-en los 400 bajos mientras simples backtrackers los adelantaban sin esfuerzo.
-Esta página enseña la receta, y luego la razón de su fracaso. Esa razón merece
-entenderse bien, porque no es que «los GA sean débiles» sino un choque
-estructural preciso entre el cruce y los problemas de permutación. A partir de
+solucionadores y los midió con cuidado. Los GA puros que crían tableros se
+estancaron en torno a 400 a 410 de 480. El mejor híbrido, que envolvía en un
+GA un backtracker y una reparación exacta por asignación, llegó a 462 a 463
+en 2008 antes de que un backtracker lo superara. Esta página enseña la
+receta, y luego la razón de su fracaso. Esa razón merece entenderse bien,
+porque no es que «los GA sean débiles» sino un choque concreto entre el cruce
+posición a posición y unos tableros que casi no comparten colocaciones. A partir de
 ahí, la página sigue las ideas que sobrevivieron hasta las páginas donde viven
 hoy.
 
@@ -159,9 +170,19 @@ La versión más profunda de este argumento se midió en este sitio años más t
 dos tableros de alta puntuación están relacionados por grandes
 [σ-ciclos](/research/why/sigma-cycles) entrelazados, y toda aplicación *parcial*
 de un ciclo obtiene una puntuación peor que cualquiera de los dos extremos. El
-cruce es exactamente una aplicación parcial de la permutación que conecta a los
-padres. El valle entre dos buenos padres no es un accidente del operador: es la
-estructura del paisaje.
+cruce posición a posición es exactamente una aplicación parcial de la
+permutación que conecta a los padres, y una prueba directa coincide: de 56
+hijos entrelazados por filas, nacidos de tableros de 458 o más y reparados
+cinco minutos cada uno, los de padres no emparentados acabaron entre 371 y
+436, y los pocos que marcaron 461 solo reproducían un tablero ya conocido
+(véase [σ-ciclos](/research/why/sigma-cycles)). Eso refuta este cruce con este
+presupuesto de reparación. Una recombinación que tenga en cuenta el problema
+(heredar las regiones emparejadas que comparten dos padres, trazar caminos
+entre cuencas, o los híbridos meméticos que lideran la coloración de grafos
+([Galinier y Hao 1999](https://doi.org/10.1023/A:1009823419804)) y la
+asignación cuadrática
+([Benlic y Hao 2015](https://doi.org/10.1016/j.eswa.2014.08.011))) no ha sido
+probada en Eternity II por este proyecto.
 
 ## Lo que la comunidad midió
 
@@ -232,19 +253,22 @@ El registro, en orden cronológico, es notablemente coherente.
   contraste es la lección: la evolución maneja bien la relajación; simplemente
   resultó que la relajación no podaba nada.
 
-El registro académico concuerda con el de la lista. El único tratamiento de
-extensión de tesis dedicado a la computación evolutiva sobre Eternity II
+El registro académico es cercano al de la lista. Muñoz, Gutierrez y Sanchis
+publicaron dos estudios de GA sobre Eternity II en 2009
+([IWANN](https://doi.org/10.1007/978-3-642-02478-8_90);
+[IEEE CEC](https://doi.org/10.1109/CEC.2009.4983319)), y una tesis de máster
+dedicada a la computación evolutiva sobre el puzzle
 ([Niang 2011](https://spectrum.library.concordia.ca/id/eprint/7487/1/Niang_MASc_S2011.pdf))
 recorre el espacio de diseño de los GA sin destronar las metaheurísticas de la
-literatura de 2008–2012, y las heurísticas publicadas más fuertes de esa línea
+literatura de 2008 a 2012. Las heurísticas publicadas más fuertes de esa línea
 (búsqueda tabú, VLNS,
 [hiperheurísticas](https://link.springer.com/article/10.1007/s10852-012-9178-4))
 abandonaron todas la recombinación de tableros.
 
 ## Adónde fueron las ideas supervivientes
 
-Nada en este wiki está más muerto que la cría de tableros, pero tres ideas de la
-era de los GA sobrevivieron mudándose:
+Criar tableros con cruce posición a posición no dio resultado aquí, pero tres
+ideas de la era de los GA sobrevivieron mudándose:
 
 - **La población se convirtió en reinicios.** Una vez que el cruce no aporta
   nada, una población de tableros que mutan es exactamente una cartera de
@@ -254,11 +278,14 @@ era de los GA sobrevivieron mudándose:
   caso medido a favor de las carteras de reinicio está en la
   [página de reinicios](/research/build/backtracking/restarts).
 - **Mutación + selección + reparación inteligente se convirtió en ALNS.** El
-  operador de reparación de Munkres de antminder dentro de un bucle de
-  destrucción/reconstrucción *es* el rellenado basado en asignación de la
-  [búsqueda local y ALNS](/research/build/local-search/local-search-alns), donde
-  sigue siendo el pulidor más fiable que tiene este proyecto. La parte ganadora
-  del híbrido de 2008 nunca fue la genética; fue el vecindario.
+  reparación de Munkres de antminder es un vecindario exacto de
+  destrucción-reparación, pariente cercano de la
+  [búsqueda local y ALNS](/research/build/local-search/local-search-alns). El
+  ALNS de este proyecto rellena en cambio de forma voraz, y en su
+  [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study)
+  un rellenado exacto acotado no superó al voraz a igual tiempo. La parte
+  ganadora del híbrido de 2008 nunca fue la genética; fueron el backtracker y
+  el vecindario.
 - **La evolución subió un nivel.** La línea de las hiperheurísticas
   ([Wauters et al. 2012](https://link.springer.com/article/10.1007/s10852-012-9178-4))
   conserva la selección y la adaptación pero las aplica a los *operadores*, no a
@@ -287,8 +314,8 @@ era de los GA sobrevivieron mudándose:
   degradar el GA a una capa de gestión sobre un backtracker y una reparación
   exacta ([message 5589](https://groups.io/g/eternity2/message/5589)), y su
   autor lo archivó la semana en que apareció un solucionador de backtracking
-  puro ([message 5950](https://groups.io/g/eternity2/message/5950)). El cruce,
-  la única idea que aporta la evolución y que nada más en este catálogo posee,
-  es estructuralmente inadecuado para un puzzle cuyas buenas soluciones
-  [no comparten casi nada trasplantable](/research/why/sigma-cycles). Lo que
-  sobrevivió de la era de los GA es real, y nada de ello es genético.
+  puro ([message 5950](https://groups.io/g/eternity2/message/5950)). El cruce
+  posición a posición, la única idea que aporta la evolución y que nada más
+  en este catálogo posee, fracasa en un puzzle cuyas buenas soluciones
+  [no comparten casi nada trasplantable](/research/why/sigma-cycles). Si una
+  recombinación adaptada al problema podría hacerlo mejor sigue abierto.

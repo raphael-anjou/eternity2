@@ -1,22 +1,24 @@
 ---
 title: How the record solvers search
 description: >-
-  How the solvers that hold the records actually search. They are all, at heart,
-  depth-first backtrackers; what separates them is the order they try things and
-  how they bend the rules near the end.
-metaDescription: "How the record Eternity II solvers actually search: all are depth-first backtrackers at heart, set apart by three choices — the cell fill order, the heuristics picking which piece goes first, and how they schedule late edge mismatches to bend the endgame. Blackwood, Verhaard, McGavin decoded."
+  How the solvers behind the record boards actually search. The records came
+  from depth-first backtrackers, often followed by repair passes; what separates
+  them is the order they try things and how they bend the rules near the end.
+  Annealing-style engines are catalogued alongside.
+metaDescription: "How the record Eternity II solvers search: the record boards came from depth-first backtrackers, set apart by three choices: the cell fill order, the heuristics picking which piece goes first, and how they schedule late edge mismatches. Blackwood, Verhaard, McGavin decoded."
 kind: page
 order: 40
 group: The engines
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [backtracking, speed]
 ---
 
 import { DfsDemo } from "@/components/learn/DfsDemo";
 import { BreakIndexLab } from "@/components/research/BreakIndexLab";
 
-Every solver that holds a serious Eternity II record is, at heart, the same
-machine: a depth-first backtracker. What separates them is not the loop but three
+The record boards were produced by depth-first backtrackers, often followed by
+repair passes; annealing-style engines are also catalogued below. What separates
+the backtrackers is not the loop but three
 choices layered on top of it, the order they visit cells, the heuristics that
 decide which piece to try first, and how they bend the endgame when a perfect
 match runs out. This page is the neutral tour of those choices. The full,
@@ -27,17 +29,18 @@ section below.
 ## The engines at a glance
 
 Before the tour, the catalogue: one row per engine, and the four choices that
-set it apart. Every reach is measured single core on one machine, so the numbers
-compare like for like rather than across clusters; each row links its full
-write-up.
+set it apart. Read the last two columns before comparing rows: the reach
+figures count different things (pieces placed out of 256, matched edges out of
+480) under different clue regimes, and one row is a community fleet result that
+cannot be rerun here. Each row links its full write-up.
 
-| Engine | Fill order | Pruning | Hardware regime | Measured reach |
-| --- | --- | --- | --- | --- |
-| [Blackwood's backtracker](/research/lab/experiments/joshua-blackwood/solver) | bottom-left row scan, border pieces late | per-depth colour quota plus a depth-gated break-index budget | single core; the 470 came from many cores in parallel | 248/256 pieces unconstrained; stalls near 45 once the five clues are pinned |
-| [Verhaard's eii](/research/lab/experiments/louis-verhaard/eii) | comb-search orders | forward pruning against tuned score thresholds; a Markov-tuned slip schedule | single-core Win32 binary; no source to rebuild | 467/480, the only prize the contest paid |
-| [McGavin's C backtracker](/research/lab/experiments/peter-mcgavin/backtracker) | per-puzzle scan-row, spiral-in, or border-first | generated code plus lookup tables and counter tricks for raw throughput | single core, ~109M placements/s on the real puzzle | past 200/256 pieces; built for speed, not a record score |
-| [Verhaard reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | set-composition swap-annealing under the 2×2 metric | annealing acceptance, constants recovered byte-exact from the binary | single core; run committed and rerunnable | 438/480 on the real five-clue puzzle |
-| [CSP presets, measured](/research/lab/experiments/single-core-benchmark/csp-presets) | a dozen ordering presets, border-first the best | arc-consistency propagation | single core, ten corner-pinned variants | near 183 on the corner-pinned variants; below half a contender's score |
+| Engine | Fill order | Pruning | Hardware regime | Reach (unit, clue regime) | Provenance |
+| --- | --- | --- | --- | --- | --- |
+| [Blackwood's backtracker](/research/lab/experiments/joshua-blackwood/solver) | bottom-left row scan, border pieces late | per-depth colour quota plus a depth-gated break-index budget | single core; the 470 came from many cores in parallel | 248/256 pieces placed with no clues; deepest placement about 45/256 with the five clues pinned | measured here, single core |
+| [Verhaard's eii](/research/lab/experiments/louis-verhaard/eii) | comb-search orders | forward pruning against tuned score thresholds; a Markov-tuned slip schedule | single-core Win32 binary; no source to rebuild | 467/480 matched edges, the only prize the contest paid | community result on many volunteer PCs (2008), not rerun here |
+| [McGavin's C backtracker](/research/lab/experiments/peter-mcgavin/backtracker) | per-puzzle scan-row, spiral-in, or border-first | generated code plus lookup tables and counter tricks for raw throughput | single core, ~109M placements/s on the real puzzle | past 200/256 pieces placed; built for speed, not a record score | measured here, single core |
+| [Verhaard reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl) | set-composition swap-annealing under the 2×2 metric (not a backtracker) | annealing acceptance, constants recovered byte-exact from the binary | single core; run committed and rerunnable | 438/480 matched edges, five clues | measured here, single core |
+| [CSP presets, measured](/research/lab/experiments/single-core-benchmark/csp-presets) | a dozen ordering presets, border-first the best of them | arc-consistency propagation | single core, ten corner-pinned variants | near 183/480 matched edges on corner-pinned variants; below half a contender's score | measured here, single core |
 
 The tour below walks the three choices those rows share.
 
@@ -58,8 +61,13 @@ search un-place and try again.
 
 The order you visit cells changes the difficulty by orders of magnitude, because
 some orders force conflicts to surface early (good) and others defer them until a
-lot of work is wasted (bad). Border-first beats row-major by a wide margin on the
-same puzzle. It is the single lever every record engine tunes: Verhaard's
+lot of work is wasted (bad). On Eternity II's actual 5/17 border/interior colour
+split, a row scan is the best known fixed order: in Owen's 2008 design experiment
+middle-first cost about 10¹⁰ times more nodes than scanline, and a border-first
+order climbs to a peak near 10⁵⁷ nodes against scan-row's ~10⁴³. Border-first
+wins only on designs whose balance has been tipped, such as a 14/15 split; the
+[fill-order page](/research/build/backtracking/fill-order) has the numbers. The
+order is the lever every record engine tunes: Verhaard's
 comb-search orders, Blackwood's bottom-left row scan with border pieces
 interspersed late, and McGavin's per-puzzle choice of scan-row, spiral-in, or
 border-first are all answers to the same question.

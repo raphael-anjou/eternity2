@@ -10,7 +10,7 @@ metaDescription: "Un conjunto de datos público CC0 para Eternity II, en dos par
 kind: reference
 order: 55
 group: Check your code
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [structure, learning]
 related:
   - /research/build/known-facts
@@ -36,18 +36,24 @@ alojadas en el
 
 Catorce instancias sobre las que se ejecuta un solucionador, cada una en forma
 de un archivo JSON autónomo que contiene el conjunto de piezas, las pistas
-fijadas que hubiera y la puntuación máxima alcanzable.
+fijadas que hubiera y la cota superior de 480 para la puntuación.
 
-- **Diez instancias 16×16** (`e2-16x16-v00` … `v09`): el conjunto de piezas
-  oficial de Eternity II con tres esquinas fijadas, en diez disposiciones de
-  esquinas diferentes. Fijar las esquinas produce diez instancias distintas pero
-  de igual dificultad a partir de un solo conjunto de piezas, lo que permite a un
-  estudio comparar los motores sobre un eje de diversidad en lugar de sobre un
-  tablero único. Los tres estudios de motores de este proyecto (el
+- **Diez instancias 16×16** (`e2-16x16-v00` … `v09`): el puzzle oficial de cinco
+  pistas, cada variante fijando además tres esquinas en una disposición
+  distinta. Las variantes dan a los motores restricciones de partida diferentes
+  sobre un solo conjunto de piezas, lo que permite a un estudio comparar los
+  motores sobre un eje de diversidad en lugar de sobre un tablero único. No se ha
+  medido si son igual de difíciles. Con las cinco pistas, el número esperado de
+  soluciones es de alrededor de una
+  ([conteo de soluciones](/research/build/analysis/solution-counting)), así que
+  lo más probable es que como mucho una disposición de esquinas admita un
+  tablero perfecto, quizá ninguna. Los tres estudios de motores de este proyecto (el
   [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study), el
   [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study) y el
   [banco de pruebas mono-núcleo](/research/lab/experiments/single-core-benchmark)) resuelven
-  exactamente esas diez. Puntuación máxima: 480.
+  exactamente esas diez. `maxScore` vale 480, una cota superior (todas las
+  aristas casadas), no una puntuación que se sepa alcanzable en una variante
+  dada.
 - **Cuatro subpuzzles de pistas** (`e2-clue-clue1` … `clue4`): los tableros 6×6
   y 12×6 más pequeños, procedentes del conjunto de pistas oficial del puzzle.
   Se sabe que cada uno admite una solución completa, lo que los convierte en un
@@ -89,10 +95,19 @@ por filas, en el orden arriba-derecha-abajo-izquierda, `a` para el borde gris.
 Es exactamente la cadena que lee el visualizador
 [e2.bucas.name](https://e2.bucas.name), de modo que cualquier tablero se pega
 directamente en el visualizador. La `family` son las cuatro piezas de esquina
-del tablero, un indicador de en qué cuenca se sitúa; hay 28 familias distintas.
-La distribución de puntuaciones tiene un pico marcado en la franja baja de los
-450, donde se concentra una gran cosecha por haz mono-núcleo, y luego se afina en
-una larga cola, con 38 tableros en 460 o más y el mejor en 470.
+del tablero; hay 28 familias distintas. No se ha comprobado que una familia diga
+algo más profundo sobre un tablero. La distribución de puntuaciones tiene un pico
+marcado en la franja baja de los 450: domina una sola cosecha por haz
+mono-núcleo, y el 86 % del corpus puntúa entre 451 y 455. Luego se afina en una
+larga cola, con 38 tableros en 460 o más y el mejor en 470.
+
+La única columna `score` cuenta aristas casadas sin mirar las pistas, así que
+mezcla dos convenciones. El 90,6 % de los tableros coloca las cinco pistas
+oficiales y por tanto cuenta también con la convención estricta de cinco pistas,
+pero ninguno de los tableros entre 460 y 463 ni entre 466 y 470 lo hace; el mejor
+tablero de cinco pistas del corpus puntúa 464. Lee la parte alta del rango como
+puntuación abierta (la página de [récords](/research/records) explica ambas
+convenciones).
 
 <CorpusScoreDistribution />
 
@@ -106,26 +121,35 @@ cuando sus aristas valen en realidad 456, y el recálculo a partir de las arista
 lo corrige automáticamente. Vuelva a derivar usted mismo las puntuaciones a
 partir de las cadenas de aristas y obtendrá exactamente los números publicados.
 
-## El corpus es variado, no redundante
+## Cuánta diversidad hay en el corpus
 
 Un montón de varios miles de tableros solo merece publicarse si los tableros son
-realmente diferentes. Antes de difundir este comprobamos que no son simples
-perturbaciones de un mismo tablero, y no lo son:
+realmente diferentes. No son copias de un mismo tablero, pero la diversidad es
+más estrecha de lo que sugiere el simple recuento de colocaciones:
 
 - Solo 13 de los 7671 tableros de origen eran duplicados exactos; el resto son
   distintos, lo que deja 7658.
-- El tablero *mediano* difiere de su vecino más próximo en 235 de sus 256
-  colocaciones de piezas. Casi ningún tablero se sitúa a menos de 10
-  colocaciones de otro, y solo el 1 % a menos de 25. Aunque la mayoría de los
-  tableros comparten una banda de puntuaciones estrecha, son estructuralmente
-  casi por completo diferentes.
+- El tablero *mediano* difiere de su vecino más próximo en 236 de sus 256
+  colocaciones (pieza y rotación). Esa cifra necesita una referencia: dos
+  tableros aleatorios difieren en prácticamente las 256, y una copia desplazada
+  de un tablero parece casi del todo distinta con esta medida. Menos del 1 % de
+  los tableros está a menos de 10 colocaciones de otro, el 7,5 % a menos de 60 y
+  el 11,4 % a menos de 100.
+- Una medida insensible a desplazamientos y rotaciones dice más: el número de
+  pares de piezas adyacentes que comparten dos tableros, de 480. Dos tableros
+  aleatorios comparten unos 7. El tablero mediano comparte 41 con su vecino más
+  próximo, y el 12,6 % de los tableros tiene un vecino que comparte al menos 240,
+  la mitad de sus adyacencias.
 - Los tableros se reparten entre 28 familias de esquinas distintas en lugar de
   amontonarse en una sola.
 
-Así que el corpus es una muestra realmente variada del paisaje de los tableros
-fuertes. Eso importa para todo lo que lo explote: un prior aprendido a partir de
-miles de copias de un mismo tablero codificaría ese tablero, no la estructura de
-los buenos tableros en general.
+Así que el corpus reúne miles de tableros distintos, dominados por un método y una
+banda de puntuaciones, con una minoría de parientes cercanos. Eso importa para
+todo lo que lo explote: un prior aprendido de él codifica lo que encuentra la
+cosecha por haz, no necesariamente la estructura de los buenos tableros en
+general. Estas estadísticas se recalculan con
+[`corpus_diversity.py`](https://github.com/raphael-anjou/eternity2/blob/main/research/datasets/build/corpus_diversity.py)
+en `research/datasets/corpus/diversity.json`.
 
 ## Cómo regenerarlo
 

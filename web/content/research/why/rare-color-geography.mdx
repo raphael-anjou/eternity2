@@ -2,15 +2,15 @@
 title: The rare colors live on the frame
 description: >-
   Five of Eternity II's 22 colors appear only along the border ring, each on
-  exactly 24 edges, never once in the interior. A structural split that shapes
-  how every solver treats the frame.
-metaDescription: "Five of Eternity II's 22 colours appear only on the border ring, each on exactly 24 edges, never once in the interior. This structural split leaves the 14x14 interior to seventeen common colours with no rare, tightly-constraining signal, which is a big part of why interior search barely grips."
+  exactly 24 piece sides (12 ring joints), never once in the interior. A
+  structural split that shapes how every solver treats the frame.
+metaDescription: "Five of Eternity II's 22 colours appear only on the border ring, each on 24 piece sides (12 ring joints), never inside. The 5-colour frame matches at 1 in 5 per joint and is easy to complete; the 17 near-uniform interior colours match at about 1 in 17 and give search no handhold."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 110
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/design-recipe
@@ -71,7 +71,7 @@ export function FrameInteriorChart() {
               fontSize={11}
             />
             <YAxis
-              label={{ value: "edges", angle: -90, position: "insideLeft", fontSize: 12 }}
+              label={{ value: "half-edges", angle: -90, position: "insideLeft", fontSize: 12 }}
               width={40}
               fontSize={12}
             />
@@ -96,8 +96,8 @@ and seventeen common colors that do almost all their work inside the board.
 
 ## Where the rare colors are allowed
 
-Pick one of the five rare colors and watch the board: all 24 of its edges light
-up around the frame ring, and the 14×14 interior stays completely blank. Switch
+Pick one of the five rare colors and watch the board: all 24 of its half-edges (12
+joints) light up around the frame ring, and the 14×14 interior stays completely blank. Switch
 to a common color and the interior fills instead. That empty middle, for every
 rare color, is the whole finding.
 
@@ -112,15 +112,15 @@ rare color, is the whole finding.
 <div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.edgesPerRareColor}</div>
-    <div className="text-xs text-muted-foreground">edges each</div>
+    <div className="text-xs text-muted-foreground">half-edges each</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.rareEdgesTotal}</div>
-    <div className="text-xs text-muted-foreground">rare edges, all on the frame</div>
+    <div className="text-xs text-muted-foreground">rare half-edges, all on the frame</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums text-emerald-600">0</div>
-    <div className="text-xs text-muted-foreground">rare edges in the interior</div>
+    <div className="text-xs text-muted-foreground">rare half-edges in the interior</div>
   </div>
 </div>
 
@@ -146,12 +146,16 @@ ones) without changing the puzzle at all. (See the [design note on
 why](/research/why#engineered-to-resist-cleverness), with thanks to Vasily V.
 on the groups.io list for the correction.)
 
-What is real, and what matters for solving, is the consequence: the 14×14
-interior is left to seventeen common colours with no rare, highly-constraining
-signal anywhere in it, which is a large part of why interior search has so
-little to grip. The border, where the colour pool is small and matches are
-tight, is correspondingly the part every strong board gets essentially perfect.
-Eternity II's colour counts were balanced to remove the statistical handholds
-that sank Eternity I; this geography is where you feel the result.
+What is real, and what matters for solving, is the consequence. The border
+uses 5 colours, so two random frame half-edges match with probability 0.2 per
+joint: the frame is the comparatively loose subsystem, easy to complete
+(about $10^{37.6}$ valid frame placements, see
+[ring purity](/research/why/ring-purity)), which is why strong boards get it
+essentially perfect. The 14×14 interior uses 17 near-uniform colours, which
+match at about 1 in 17 per joint and give no colour more information than any
+other. That uniformity, not the absence of rare colours, is what leaves
+interior search without handholds. Eternity II's colour counts were balanced
+to remove the statistical handholds that sank Eternity I; this geography is
+where you feel the result.
 
 See [why the interior gives no forced moves](/research/why/no-forced-moves).

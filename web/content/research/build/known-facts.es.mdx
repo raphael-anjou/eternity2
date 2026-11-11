@@ -9,7 +9,7 @@ metaDescription: "Las cifras de Eternity II que los investigadores redemuestran 
 kind: reference
 order: 15
 group: Check your code
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: Wikipedia, «Eternity II puzzle» (el premio, la fecha límite, el 467 de Verhaard y la estimación de 10^557)
@@ -64,9 +64,14 @@ los hechos enciclopédicos, de Wikipedia.
 | Premio | 2.000.000 $, sin reclamar; fecha límite mediodía, 31 dic. 2010 | Wikipedia |
 
 El color gris del borde exterior no forma parte de los 22: nunca aparece en una
-arista interna. La división de colores 5 + 17 no es casual: 17 colores
-interiores es [exactamente el pico de dificultad](/research/why/phase-transition)
-para un puzzle de este tamaño.
+arista interna. Los 17 colores interiores coinciden con la heurística de
+Brendan Owen que apunta a una solución esperada para un interior 14×14
+aleatorio, $(196! \cdot 4^{196})^{1/392} \approx 17{,}14$
+([msg 1947](https://groups.io/g/eternity2/message/1947)), lo que sitúa el puzzle
+[cerca de la franja de máxima dificultad](/research/why/phase-transition) de
+los conjuntos aleatorios de puzzles de aristas. La heurística ignora el marco y
+la solución plantada, y Eternity II es una sola instancia: hay que leerlo como
+«cerca de la franja», no «exactamente en el pico».
 
 ## Las cinco pistas
 
@@ -97,8 +102,12 @@ la mayoría de los tableros récord solo respetan la pista central obligatoria
 
 Las pistas también zanjan una cuestión de recuento: con solo la pieza
 obligatoria colocada, la [teoría compleja](/research/why/complex-theory) prevé
-≈ 14.702 soluciones completas; con las cinco, ≈ 1. El puzzle de 5 pistas tiene,
-por diseño, una única solución esperada.
+≈ 14.702 soluciones completas; con las cinco, la estimación cae a unas 4×10⁻⁸
+([msg 11193](https://groups.io/g/eternity2/message/11193)). Aparte de la solución que plantó el
+diseñador, prácticamente no se espera ninguna otra, así que el puzzle de cinco
+pistas es casi con certeza único. Ambas cifras son promedios sobre puzzles
+aleatorios con las mismas estadísticas de piezas, no recuentos de las
+soluciones de este puzzle; ver [el recuento de soluciones](/research/build/analysis/solution-counting).
 
 ## Convenciones de puntuación
 
@@ -148,7 +157,7 @@ cifras en sí:
 | 467 | Equipo de Louis Verhaard | Sept. 2008 | canónico; ganó el premio parcial de 10.000 $ |
 | 468 | Joshua Blackwood | Ago. 2020 | canónico |
 | 469 | Peter McGavin (solucionador de Blackwood) | Sept. 2020 | canónico |
-| 469 | varios (~7 tableros, hallazgos independientes más un simple intercambio del de McGavin) | Nov. 2020 | canónico |
+| 469 | Jef Bucas (siete tableros, 469a–g) y Carlos Fernandez (una variante del de McGavin que difiere en una pieza) | Oct.–nov. 2020 | canónico |
 | **470** | **Joshua Blackwood** | **Mar. 2021** | **canónico, el techo desde entonces** |
 | 470 | Jef Bucas | Dic. 2024 | canónico (empate del 470) |
 | 460 | Bruno Gauthier | Mar. 2023 | estrictamente canónico; mejor tablero que respeta las cuatro pistas opcionales, de 2023 hasta ser batido en jul. 2026 |
@@ -180,7 +189,7 @@ resto de la frontera viva.
 | Todas las colocaciones, sin restricciones: 256! · 4²⁵⁶ | ≈ 1,15 × 10⁶⁶¹ | calculado |
 | Esquinas en esquinas, bordes en el borde (orientación forzada), pista fijada: 4! · 56! · 195! · 4¹⁹⁵ | ≈ 1,115 × 10⁵⁵⁷ | calculado; coincide con la cifra ampliamente citada de Wikipedia |
 | Punto más ancho del árbol de búsqueda (estimación por teoría compleja, recorrido por filas) | ≈ 10⁴⁵ maneras de extender, en torno a la profundidad 50–200 | Owen / McGavin, véase [teoría compleja](/research/why/complex-theory) |
-| Soluciones completas esperadas, 1 pista / 5 pistas | ≈ 14.702 / ≈ 1 | ídem |
+| Soluciones completas esperadas (promedio del conjunto aleatorio), 1 pista / 5 pistas | ≈ 14.702 / ≈ 4×10⁻⁸ (más la solución plantada) | ídem; ver [el recuento de soluciones](/research/build/analysis/solution-counting) |
 
 La cifra de 10⁵⁵⁷ merece que uno sepa redemostrarla en lugar de citarla: las 4
 piezas de esquina van a las 4 esquinas (orientación forzada por los dos lados
@@ -200,11 +209,13 @@ Todos calculados a partir del juego de piezas oficial:
 - **Cinco pares comparten un multiconjunto de colores sin ser la misma pieza**:
   las piezas 3 y 4, 6 y 15, 8 y 52, 110 y 111, 172 y 182 (numeración oficial
   desde 1) llevan los mismos cuatro colores en un orden cíclico diferente.
-- **Las pistas rompen todas las simetrías del tablero.** Un tablero 16×16 no
-  tiene celda central, así que toda rotación o reflexión desplaza la casilla I8
-  de la pista obligatoria: ninguna simetría no trivial aplica el puzzle con
-  pistas sobre sí mismo, y la ruptura de simetría no ofrece ninguna reducción
-  adicional del espacio de búsqueda.
+- **Las pistas rompen todas las simetrías del tablero.** Ninguna rotación del
+  tablero 16×16 deja fija una celda (no hay celda central), así que la pista
+  fijada en I8 rompe las tres rotaciones no triviales. Las reflexiones ni
+  siquiera son simetrías del puzzle: reflejar un tablero refleja cada pieza, y
+  213 de las 256 piezas reflejadas no están en el juego oficial. Ninguna
+  simetría no trivial aplica el puzzle con pistas sobre sí mismo, y la ruptura
+  de simetría no ofrece ninguna reducción adicional del espacio de búsqueda.
 
 ## Los colores, arista por arista
 
@@ -227,7 +238,9 @@ Dos consecuencias que los investigadores no dejan de redescubrir:
   solución perfecta necesita $\sum_c N_c / 2 = 480$ apareamientos, que es
   exactamente el número de aristas internas. No hay **ningún margen**: en una
   solución completa, cada instancia de arista de cada color encuentra a su
-  pareja.
+  pareja. Ambas propiedades se cumplen automáticamente en cualquier puzzle
+  recortado de un tablero resuelto y pintado: son contabilidad, no una decisión
+  de diseño.
 - **Los cinco colores raros solo viven en el marco** (24 instancias cada uno),
   lo que convierte el anillo del marco en un subpuzzle casi autónomo; la
   geometría se detalla en

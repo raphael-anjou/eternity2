@@ -5,19 +5,24 @@ description: >-
   ya colocados que cada celda enfrenta en el instante en que se rellena: el
   total es exactamente 480, sea cual sea el orden. Un orden de llenado no puede
   añadir restricción; solo elige cuándo se aplica cada una. Lo que separa a los
-  órdenes es la inmediatez, la distancia entre una decisión y su refutación, y
-  solo los extremos de esa clasificación pertenecen al puzzle y no al motor.
-metaDescription: "Sume los vecinos ya colocados de cada celda sobre cualquier orden de visita del tablero 16x16: el total es exactamente 480. Un orden no añade restricción, solo programa cuándo se aplica. Enlazar las pistas pronto es el peor caso; la clasificación fina depende del motor."
+  órdenes es cuándo llegan las comprobaciones. En el tablero oficial, el orden
+  que enlaza las pistas fue el peor con los dos motores probados; el resto de
+  la clasificación cambió con el motor.
+metaDescription: "En todo orden de visita del tablero 16x16, la suma de vecinos ya colocados vale exactamente 480: un orden solo programa las comprobaciones. En el tablero oficial, enlazar las pistas fue el peor orden con los dos motores probados; el resto depende del motor."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "El kit de reproducción tras esta página: verificador de conteos de restricciones, solver sencillo de dos brazos, resultados archivados (research/topics/constraint-immediacy)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+  - label: "Haralick y Elliott, Increasing tree search efficiency for constraint satisfaction problems: el principio de fallar primero (Artificial Intelligence 14, 1980)"
+    url: https://doi.org/10.1016/0004-3702(80)90051-X
+  - label: "Bollobás y Leader, Edge-isoperimetric inequalities in the grid: qué conjuntos de celdas de un tamaño dado tienen más aristas inducidas (Combinatorica 11, 1991)"
+    url: https://doi.org/10.1007/BF01275667
 related:
   - /research/why/piece-theft
   - /research/why/theorem-sweep
@@ -72,7 +77,7 @@ cómo se reparte el total:
 | border-first | 1 | 58 | 170 | 26 | 1 | 480 |
 
 
-Estas cinco cifras son las mediciones originales del motor del estudio fuente; la reproducción empaquetada cubre el invariante y los dos solucionadores simples de abajo, no esta tabla.
+Estos histogramas son geometría exacta, no mediciones de un motor: `repro-korder` los recalcula y los archiva en results/korder-invariance.json.
 
 El orden fila a fila (row-major) es casi uniforme: pasadas la primera fila y
 la primera columna, cada celda enfrenta exactamente dos restricciones. El
@@ -96,9 +101,10 @@ en el cierre, un subárbol entero después. Un orden que mantiene cerca de
 cero la distancia entre una decisión y su refutación falla *de inmediato*, y
 ahí vive todo el beneficio.
 
-Ese es el principio de inmediatez de las restricciones: restringir pronto es
-lo correcto exactamente cuando la restricción pone a prueba cada decisión en
-el acto. El orden borde-primero (border-first) compromete primero el
+Es el clásico principio de fallar primero de la búsqueda con restricciones
+([Haralick y Elliott, 1980](https://doi.org/10.1016/0004-3702(80)90051-X)),
+visto a través del orden de llenado: restringir pronto es lo correcto
+exactamente cuando la restricción pone a prueba cada decisión en el acto. El orden borde-primero (border-first) compromete primero el
 subconjunto más restringido (las 60 piezas de borde, que en el perímetro
 solo admiten una orientación), de modo que sus restricciones se aplican en
 el momento en que nacen. El camino hint-link es el caso opuesto, precocidad
@@ -124,9 +130,11 @@ una reclamación de récord, y las tablas de récords viven en
 | row-major | 433 |
 | border-first | 445 |
 
-Un solo principio cubre toda la tabla: hint-link y la espiral fallan al
-final y se hunden; row-major es uniforme y sólido; border-first añade una
-prueba inmediata sobre las piezas más restringidas y acaba en cabeza.
+En este motor la tabla se lee como un solo principio: hint-link y la espiral
+fallan al final y se hunden; row-major es uniforme y sólido; border-first
+añade una prueba inmediata sobre las piezas más restringidas y acaba en
+cabeza. La contraprueba de abajo muestra qué poco de esa lectura sobrevive a
+un cambio de motor.
 
 ## La contraprueba con un solver sencillo
 
@@ -148,42 +156,51 @@ resultados guarda un enlace al visor para cada tablero final.
 | bustrófedon | 359 | 342 | 193/256 |
 | border-first | 358 | 28 | 35/256 |
 
-Lo que sobrevive al cambio de motor son los extremos. Hint-link es con
+Lo que sobrevive al cambio de motor es un solo extremo. Hint-link es con
 diferencia el peor orden de ajuste perfecto, y su puntuación DFS de 44 cae
-cerca del 51 del motor. Row-major y el bustrófedon son el medio de tabla
-sólido en ambos brazos. Y sobre el tablero oficial el brazo voraz mantiene a
-border-first por delante de row-major, 358 contra 343, la misma dirección
-que el 445 contra 433 del motor.
+cerca del 51 del motor; también es último en el brazo voraz (316). Row-major y
+el bustrófedon son el medio de tabla sólido del brazo DFS.
 
-Lo que no sobrevive es todo lo demás. Bajo el DFS sencillo la espiral ya no
-se hunde en una clase propia (empata con border-first, coherente con que los
-dos órdenes comparten aquí un perfil de restricciones idéntico y las mismas
-60 primeras celdas), y el propio border-first choca con un muro de cierre
-del perímetro a profundidad 35 de 256 en lugar de liderar. Sobre cuatro
-tableros 16x16 generados con marco, la ventaja voraz se invierte sin más:
-row-major gana el brazo voraz en 4 de 4 semillas y el brazo en profundidad
-en 4 de 4, con la puntuación DFS de border-first oscilando entre 28 y 366
-según la semilla. El enunciado riguroso de esta página tiene por tanto dos
-caras: el invariante y los extremos pertenecen al puzzle; el medio fino de
-cualquier clasificación de órdenes de llenado pertenece al motor que la
-produjo.
+Casi todo lo demás cambia. En el brazo voraz, la espiral exterior, un orden
+que falla al final según la lectura de arriba, es el *mejor* orden (366, por
+delante de los 358 de border-first y los 343 de row-major). Bajo el DFS
+sencillo la espiral empata con border-first (los dos órdenes comparten aquí un
+histograma de restricciones idéntico y las mismas 60 primeras celdas), y el
+propio border-first choca con un muro de cierre del perímetro a profundidad 35
+de 256 en lugar de liderar. Sobre cuatro tableros 16x16 generados con marco,
+row-major supera a border-first en el brazo voraz en 4 de 4 semillas y en el
+brazo en profundidad en 4 de 4, con la puntuación DFS de border-first
+oscilando entre 28 y 366 según la semilla. El enunciado defendible es, por
+tanto, estrecho: el invariante es exacto; en el tablero oficial, hint-link fue
+el peor con los dos motores probados; el hundimiento de la espiral y la
+ventaja de border-first no sobrevivieron a un cambio de motor. Llamar incluso
+al resultado de hint-link una propiedad del puzzle exigiría más tableros y
+más motores.
 
 ## Dónde queda la palanca
 
-La ley de conservación acota lo que la geometría puede hacer por sí sola. Un
-perfil uniforme de dos restricciones es el mejor calendario que un orden de
-visita puede alcanzar, porque las celdas que enfrentan tres o cuatro vecinas
-colocadas solo existen aguas abajo de celdas colocadas casi sin
-comprobación. Row-major ya alcanza ese perfil, y los veinte años de
+La ley de conservación acota lo que la geometría puede hacer por sí sola.
+Todo orden paga las mismas 480 comprobaciones; lo que controla un calendario
+es lo pronto que llegan, es decir, el número de aristas inducidas entre las
+primeras $d$ celdas colocadas, para cada $d$. Ese perfil de prefijos, y no solo
+el histograma de los $k$, es del que depende la estimación de anchura de la
+[teoría de la complejidad](/research/why/complex-theory): la espiral exterior y
+border-first comparten histograma y aun así se comportaron distinto arriba.
+Maximizar el número de aristas inducidas de cada prefijo es el problema
+isoperimétrico de aristas en la rejilla
+([Bollobás y Leader, 1991](https://doi.org/10.1007/BF01275667)), cuyos
+conjuntos óptimos crecen como bloques casi cuadrados, no como filas. Row-major
+está cerca de ese óptimo pero no en él: 64 celdas colocadas como cuatro filas
+de 16 inducen 108 aristas, un bloque 8x8 induce 112. Los veinte años de
 ingeniería comunitaria de órdenes de llenado repasados en la
-[página de órdenes de llenado](/research/build/backtracking/fill-order) son
-refinamientos dentro de ese marco. Cualquier vinculación temprana adicional
+[página de órdenes de llenado](/research/build/backtracking/fill-order)
+trabajan dentro de ese margen estrecho. Cualquier vinculación temprana adicional
 tiene que ser informacional en vez de geométrica: propagar lo que la reserva
 de piezas restante aún puede servir (el modo de fallo que hace visible el
 [robo de piezas](/research/why/piece-theft)), a prioris de colocación,
 reservas de candidatas restringidas, puertas de poda calculadas. La propia
 invariancia es un pequeño enunciado exacto en el espíritu del
 [barrido de teoremas](/research/why/theorem-sweep): no es profundo, pero
-cierra una puerta con limpieza. Nadie encogerá esta búsqueda desviando el
-camino por el tablero; las 480 comprobaciones se deben íntegras, en todo
+cierra una puerta con limpieza. Desviar el camino por el tablero no elimina
+ni una comprobación; las 480 comprobaciones se deben íntegras, en todo
 camino, y solo su calendario queda en manos de quien busca.

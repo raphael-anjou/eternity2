@@ -5,11 +5,11 @@ description: >-
   crecer celda a celda. La búsqueda en haz es el motor de los constructores desde
   cero de este proyecto, y una ilustración nítida de por qué la anchura por sí sola
   se estanca en las profundidades del interior.
-metaDescription: "La búsqueda en haz mantiene vivos los K mejores tableros parciales de Eternity II y los hace crecer celda a celda: el constructor desde cero del proyecto. Lineal en K, alcanza la zona media de los 450 sobre 480 y topa con el muro del robo de piezas que solo la reparación supera."
+metaDescription: "Búsqueda en haz en Eternity II: mantiene vivos los K mejores tableros parciales y los hace crecer celda a celda. Lineal en K, sus mejores tableros brutos marcan por ahora de 455 a 457 sobre 480; luego topa con el muro del robo de piezas, que la reparación ha superado por unas pocas aristas."
 kind: concept
 order: 50
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou y Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
@@ -27,6 +27,7 @@ related:
   - /research/lab/experiments/raphael-anjou/learning/lodestone
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
 repro:
   kind: prose
 ---
@@ -198,9 +199,9 @@ a dos en unas 6 a 10 colocaciones de piezas de 256: el nivel de acuerdo de
 arreglos aleatorios sin relación que comparten las pistas. El trece por
 ciento de las semillas dio exactamente 452 y cerca de la mitad cae a dos
 puntos de distancia. Tableros sin relación convergiendo en un mismo número
-dice que el techo pertenece a la clase del productor, no a una familia de
-tableros concreta; y las corridas más anchas de arriba muestran que el
-techo de esta clase es en realidad 455, siendo la acumulación en 452 un
+dice que la meseta pertenece a la clase del productor, no a una familia de
+tableros concreta; y las corridas más anchas de arriba sitúan la mejor
+puntuación observada de esta clase en 455, siendo la acumulación en 452 un
 artefacto de anchura.
 
 Hay una razón estructural por la que un haz puro no puede ser mucho más que
@@ -212,9 +213,8 @@ forma fiable qué prefijos de profundidad 100 aún se completan bien. Esta
 página concluía antes, a partir de ese argumento, que la anchura adicional
 del haz en lo esencial no hacía más que duplicar lo que los reinicios
 aleatorios de un backtracker ya proporcionan. Una medición cara a cara, a
-continuación, mostró que esa conclusión era errónea: la anchura paga
-exactamente cuando el fallo se siembra muy por encima de la profundidad
-donde aflora.
+continuación, la contradice en un banco sencillo y con presupuestos de nodos
+pequeños, aunque no en el régimen donde se hacen los récords.
 
 ## El haz frente a la profundidad, a coste igual
 
@@ -235,17 +235,17 @@ segundos en un solo hilo. Y no es una lotería de semillas: ocho
 permutaciones del orden de desempate devolvieron una salida idéntica byte
 a byte.
 
-El mecanismo es la corrección prometida arriba. Una búsqueda en
-profundidad que se equivocó cuarenta celdas por encima de donde falla debe
-deshacer cada nivel intermedio antes de poder tocar el error temprano, y
-los nodos de ese hueco son exponencialmente numerosos. Los $K$
-supervivientes del haz ya codifican elecciones superficiales distintas,
-conservadas lado a lado, de modo que una corrección superficial está
-disponible a coste lineal por nivel. La anchura no relaja ninguna
-restricción; lo que compra es un sustituto del retroceso profundo que una
-búsqueda en profundidad no puede permitirse. En este puzzle los
-compromisos fatales se toman muy por encima de la profundidad donde
-afloran, que es exactamente el régimen donde ese sustituto rinde.
+Un mecanismo plausible, no medido aquí (nunca se localizó la profundidad del
+compromiso fatal): una búsqueda en profundidad que se equivocó cuarenta
+celdas por encima de donde falla debe deshacer cada nivel intermedio antes
+de poder tocar el error temprano, y los nodos de ese intervalo son
+exponencialmente numerosos. Los $K$ supervivientes del haz ya codifican
+decisiones superficiales distintas, conservadas lado a lado, de modo que una
+corrección poco profunda está disponible a coste lineal por nivel. La
+anchura no relaja ninguna restricción; lo que compra es un sustituto del
+backtracking profundo. Si los compromisos fatales de este puzzle se toman
+muy por encima de la profundidad donde afloran, ese es el régimen donde el
+sustituto paga.
 
 La búsqueda de discrepancia limitada se gana su propio resultado negativo.
 La [LDS de Harvey y Ginsberg](https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf)
@@ -261,11 +261,15 @@ presupuesto de piezas es difuso, muchas celdas tempranas dispersas deben
 haber salido todas bien, así que todas las capas de baja discrepancia en
 torno al camino goloso están condenadas juntas.
 
-Una nota de alcance. Las puntuaciones absolutas de esta comparación vienen
-de un banco deliberadamente simple; los productores de otras partes de
-esta página las superan. La afirmación es el orden relativo a coste de
-nodos igual (haz por delante de profundidad por delante de LDS), no los
-números.
+Una nota de alcance. Esta comparación corrió sobre un banco deliberadamente
+sencillo, con un presupuesto de unos $2 \times 10^7$ nodos, muy por debajo
+de un segundo para un backtracker afinado. Frente a una búsqueda en
+profundidad sin afinar y con una tolerancia fija de desapareamientos, el haz
+completaba tableros mientras la profundidad se estancaba hacia la
+profundidad 213. Los backtrackers que producen récords (calendarios de
+deslizamiento de aristas, órdenes de llenado afinados, $10^{12}$ nodos o más)
+no se compararon, así que esto no clasifica el haz frente a la búsqueda en
+profundidad en general.
 
 ## La diversidad es el verdadero mando
 
@@ -299,7 +303,7 @@ fuente de población incluso con puntuación bruta más baja.
 El otro mando fecundo es el desempate.
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) rompe los empates
 de puntuación a favor de las piezas que son frecuentes en esa posición dentro de
-un corpus de tableros fuertes, elevando el techo desde cero en unas pocas aristas
+un corpus de tableros fuertes, elevando la mejor puntuación desde cero en unas pocas aristas
 y alcanzando 460 tras el refinamiento (una cifra de cuaderno desde cero,
 convención de aristas apareadas sobre 480; véase la página de
 [récords](/research/records) para situar ese número frente a los resultados
@@ -357,8 +361,22 @@ con 450; los 94 tableros con 453 o más tenían las trece primeras filas
 distintas dos a dos, familias de tableros distintas y no variaciones de
 una sola. Eso son unos 1160 tableros por hora en una modesta ejecución
 paralela de cuatro vías, con aproximadamente una semilla de cada ocho
-alcanzando el techo de 455 y ninguna llegando a 456. La diversidad
-producida en masa es exactamente la entrada que pide el pulido posterior.
+alcanzando la mejor puntuación observada, 455, y ninguna llegando a 456. La
+diversidad producida en masa es exactamente la entrada que pide el pulido
+posterior. (Estas cifras en 16×16 son ejecuciones de cuaderno, no
+resultados versionados.)
+
+El único cambio de la regla de supervivencia con estadísticas pareadas
+versionadas es el remuestreo de Monte Carlo secuencial: en lugar de quedarse
+con los $K$ mejores, se sortean los supervivientes según un softmax de sus
+puntuaciones. En instancias plantadas de 10×10 y 12×12, el
+[estudio de anchura del haz](/research/lab/experiments/raphael-anjou/pipelines/beam-width)
+encuentra que la anchura es la palanca dominante a tiempo fijo, y que el
+remuestreo aporta una ganancia pequeña pero real sobre 96 semillas pareadas
+con anchura 1024: +1,83 aristas (alrededor del 1 %) en el banco versionado,
++8,6 aristas (alrededor del 6 %) en el banco de origen, más difícil, para el
+que se diseñó. Ninguna de las dos cifras se ha medido en el tablero 16×16
+real.
 
 ## El muro de profundidad
 
@@ -368,7 +386,8 @@ se concentran en las últimas filas, donde las piezas que una celda necesita
 fueron gastadas mucho antes al servicio de celdas más fáciles: el problema del
 [robo de piezas](/research/why/piece-theft). Un objetivo local goloso no puede
 ver ese presupuesto global, y duplicar $K$ solo retrasa el muro una o dos
-aristas. Los haces desde cero en este motor topan en la zona media de los 450;
+aristas. Los haces desde cero en este motor han llegado como máximo a 455 a 457
+brutos hasta ahora (véase [récords](/research/records));
 la distancia restante se compra con
 [pulido por destrucción y reparación](/research/build/local-search/local-search-alns),
 no con más anchura. En este puzzle, la búsqueda en haz es una buena manera de
@@ -382,14 +401,14 @@ desapareamientos. Un orden en espiral reparte en cambio sus
 desapareamientos por las filas centrales, porque sus últimas celdas son el
 centro del tablero; el borde-primero los concentra en el anillo más
 interior. La ubicación del muro es una propiedad del orden de visita, no
-del puzzle. Elegir el orden puede incluso subir el techo una arista: un
+del puzzle. Elegir el orden puede incluso subir la mejor puntuación observada: un
 orden de recorrido en forma de peine, cuyos desapareamientos caen en
-franjas verticales en lugar de en las filas de abajo, produjo seis
-tableros brutos con 456 aristas apareadas en 120 semillas y
-aproximadamente el doble de la tasa habitual de 455, donde fila a fila no
-produjo ningún 456 en 160 semillas. (Puntuaciones brutas de constructor,
-convención de aristas apareadas; la página de [récords](/research/records)
-las pone en contexto.)
+franjas verticales y no en las filas de abajo, dio seis tableros brutos con
+456 aristas apareadas en 120 semillas y alrededor del doble de la tasa
+habitual de 455, donde el orden por filas no produjo ningún 456 en 160
+semillas, y una ejecución posterior de un productor en peine llegó a 457
+bruto. (Puntuaciones brutas de constructor, convención de aristas apareadas;
+la página de [récords](/research/records) las pone en contexto.)
 
 Dos observaciones del cuaderno afinan de qué está hecho el muro. Primera:
 el haz alcanza compleciones que un backtracker que permite a lo sumo un
@@ -398,8 +417,9 @@ de 450 de arriba lleva una celda con dos aristas desapareadas, y un hijo
 con doble desapareamiento puede sobrevivir en el top $K$ aunque ningún
 camino en profundidad con un solo desapareamiento por celda conduzca
 hasta ahí. Segunda: sobre el propio prefijo de 240 celdas del haz, un
-finalizador exacto por ramificación y acotación hizo peor (433 o 420
-aristas apareadas, según cuánto prefijo se fijara) que la propia
-compleción del haz con 450; la anchura ya había explorado la cola mejor
-de lo que puede una búsqueda exacta limitada en profundidad, compleciones
-con doble desapareamiento incluidas.
+finalizador de cola restringido por ramificación y acotación (como mucho un
+desapareamiento por celda, profundidad limitada) obtuvo 433 o 420 aristas
+apareadas, según cuánto prefijo se fijara, por debajo de la propia
+compleción del haz con 450, porque la restricción excluía la compleción del
+haz con doble desapareamiento. Una resolución realmente exacta de la cola
+sobre el mismo prefijo obtendría al menos 450.

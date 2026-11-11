@@ -1,17 +1,17 @@
 ---
-title: L'équilibre du bord
+title: "L'équilibre du bord : une identité de couture que toute solution vérifie"
 description: >-
-  Un plateau résolu dissimule une loi comptable toute simple : chaque couleur
-  que le bord tend vers l'intérieur, l'intérieur la lui rend aussitôt. La
-  violer, c'est savoir sur-le-champ que le plateau est faux ; la respecter, en
-  revanche, ne garantit rien.
-metaDescription: "L'équilibre du bord d'Eternity II : chaque couleur que le bord montre à l'intérieur, l'intérieur la rend, égalité exacte de multiensembles. Un déficit Δ>0 prouve qu'un plateau ne sera jamais achevé ; Δ=0 ne prouve rien. Il sert aussi d'élagueur de fin de recherche."
+  Dans un plateau résolu, les couleurs que le bord montre à l'intérieur et
+  celles que l'intérieur lui renvoie forment le même multiensemble, parce que
+  chaque arête de couture appariée montre une seule couleur des deux côtés. Le
+  déséquilibre minore le nombre d'arêtes de couture rompues, rien de plus.
+metaDescription: "L'équilibre du bord d'Eternity II : sur un plateau résolu, les couleurs que le bord tourne vers l'intérieur et celles que l'intérieur renvoie forment le même multiensemble, conséquence directe des arêtes de couture appariées. Le déficit Δ minore les arêtes de couture rompues ; Δ = 0 ne prouve rien."
 kind: finding
 contribution: theory
-rigor: measured
+rigor: proven
 tier: 3
 order: 120
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [search-space, structure]
 sources:
   - label: Équilibre des types d'arêtes du bord observé lors de l'été de lancement (angwin_uk, août 2007)
@@ -40,61 +40,72 @@ repro:
 
 import { Ns1Lab } from "@/components/research/Ns1Lab";
 
-Ne considérez que la couture entre l'anneau extérieur de pièces de bord et le
-premier anneau de pièces intérieures. Chaque arête qui traverse cette couture
-présente une couleur, comptée une fois côté bord et une fois côté intérieur.
+Regardez seulement la couture entre l'anneau extérieur des pièces de bord et le
+premier anneau de pièces intérieures. Chaque arête de cette couture montre une
+couleur, comptée une fois du côté du bord et une fois du côté de l'intérieur.
 Dans toute solution complète, les deux décomptes sont identiques : le
-multiensemble des couleurs que le bord présente vers l'intérieur égale
-exactement le multiensemble que l'intérieur présente vers l'extérieur.
+multiensemble des couleurs que le bord tourne vers l'intérieur est exactement
+celui que l'intérieur tourne vers l'extérieur.
 
-Appelons **déficit** ce déséquilibre, $\Delta$ : la moitié du désaccord total
-entre les deux décomptes. Un plateau achevé et correct a $\Delta = 0$. Les
-quatre solutions complètes connues, sur quatre jeux de pièces différents, la
-satisfont toutes exactement. Ainsi $\Delta > 0$ est un certificat qu'un plateau
-ne pourra jamais être complété : une condition nécessaire, réelle et peu
-coûteuse.
+Ce n'est pas une loi cachée ; cela découle de la définition même d'un plateau
+résolu. Dans une solution, chaque arête de couture montre la même couleur des
+deux côtés, donc les deux décomptes coïncident terme à terme, et ce pour toute
+solution de n'importe quel casse-tête, les quatre solutions complètes connues
+comprises. Appelons le déséquilibre le **déficit**, $\Delta$ : la moitié de
+l'écart total entre les deux décomptes. Il minore le nombre d'arêtes de
+couture rompues, puisque chaque arête rompue déséquilibre au plus une unité de
+couleur de chaque côté.
 
-## La loi, en une ligne
+## L'identité, en une ligne
 
-À travers la couture bord↔intérieur, les couleurs que le bord montre vers
-l'intérieur et les couleurs que l'intérieur montre vers l'extérieur forment le
-même multiensemble. En notant $A[c]$ et $B[c]$ les deux décomptes par couleur :
+Le long de la couture bord↔intérieur, notons $A[c]$ et $B[c]$ les décomptes par
+couleur vus du bord et de l'intérieur. Sur tout plateau dont les 56 arêtes de
+couture sont appariées,
 
 $$
-\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
+\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0,
+\qquad\text{et en général}\qquad
+\Delta \;\le\; \#\{\text{arêtes de couture rompues}\}.
 $$
+
+Un fait de plus l'affaiblit encore. Chacune des 56 pièces de bord a exactement
+un côté tourné vers l'intérieur, quelle que soit sa position, et les coins n'en
+ont aucun ; sur un cadre complet, le décompte $A$ est donc fixé par le seul jeu
+de pièces. Seul $B$, les couleurs que le premier anneau intérieur tourne vers
+l'extérieur, peut varier.
 
 ## Le voir sur un vrai plateau
 
-Un plateau 8×8 résolu part à l'équilibre ($\Delta = 0$). Retirez une pièce de
-bord et observez quelles couleurs se déséquilibrent, et le déficit grimper.
-Essayez ensuite le bouton d'échange, et observez le piège.
+Un 8×8 résolu part à l'équilibre ($\Delta = 0$). Retirez une pièce de bord et
+regardez quelles couleurs se déséquilibrent, et le déficit grimper. Essayez
+ensuite le bouton d'échange, et voyez la faille.
 
 <Figure collapsible title="Interactif : le déficit d'équilibre du bord NS-1">
   <Ns1Lab />
 </Figure>
 
-## Le piège, et pourquoi il compte
+## La faille
 
-Échanger deux pièces de bord laisse $\Delta$ à 0. L'échange déplace des couleurs
-le long de la couture sans modifier l'un ou l'autre décompte ; l'invariant y est
-donc aveugle. Pire, sur une quasi-solution, la plupart des erreurs restantes ne
-se trouvent pas du tout sur la couture du bord. Elles siègent d'intérieur à
-intérieur, là où NS-1 ne regarde jamais. Sur les neuf plateaux de la classe 469
-du corpus, parmi les 99 arêtes non appariées qui subsistent, 86,9 % siègent
-d'intérieur à intérieur et pas une seule n'est de bord à bord ; seuls les 13,1 %
-restants tombent sur la couture qu'inspecte NS-1. L'invariant est aveugle à la
-grande majorité de ce qui reste faux.
-
-C'est là toute la texture d'Eternity II en miniature. Une vérification aussi
-propre soit-elle ne dit jamais que « assurément cassé », jamais « assurément
-correct ». Le puzzle résiste à tout certificat de progrès à bon marché.
+Échanger deux pièces de bord laisse $\Delta$ à 0. L'échange déplace des
+couleurs le long de la couture sans changer aucun des deux décomptes : le
+déficit n'y voit rien, alors que la couture peut désormais contenir des
+ruptures. Sur une quasi-solution, la plupart des erreurs restantes ne sont
+d'ailleurs pas sur la couture. Elles se trouvent entre deux pièces intérieures,
+là où le déficit ne regarde jamais. Sur les neuf plateaux de classe 469 du
+corpus, parmi les 99 arêtes non appariées qui subsistent, 86,9 % sont
+intérieur-intérieur et aucune n'est bord-bord ; seuls les 13,1 % restants
+tombent sur la couture. Compter directement ces ruptures de couture est à la
+fois moins coûteux et plus précis que calculer $\Delta$.
 
 ## Est-ce utile, alors ?
 
-Oui, comme élagueur de fin de recherche. Une fois que le solveur a refermé
-l'anneau de bord, imposer $\Delta = 0$ rejette une part utile des impasses
-profondes au prix d'un seul passage sur les 56 arêtes de la couture (l'ampleur
-exacte de cette part est mise en file pour mesure, pas encore un banc figé). C'est
-nécessaire-mais-lâche : cela écarte les mauvais états à peu de frais et laisse
-intacte la partie difficile, l'intérieur.
+Pas sous cette forme. Dans un backtracker qui ne pose que des pièces
+compatibles avec leurs voisines déjà posées, chaque arête de couture dont les
+deux côtés sont posés est déjà appariée ; $\Delta$ calculé sur les cases posées
+vaut donc toujours zéro et ne rejette rien. La version qui pourrait élaguer
+compare la demande de couture restante du bord à ce que les pièces intérieures
+inutilisées peuvent encore fournir, couleur par couleur. C'est une contrainte
+de dénombrement sur le stock restant, de la famille que la programmation par
+contraintes traite par des contraintes globales de cardinalité ; elle n'est ni
+définie ni mesurée sur ce site pour l'instant, et son pouvoir d'élagage sur
+Eternity II reste une question ouverte.

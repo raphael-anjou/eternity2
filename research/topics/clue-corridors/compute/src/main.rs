@@ -7,14 +7,15 @@
 //! 3. the real per-side colour supply of the inner (frame-free) piece set;
 //! 4. the exact transfer-matrix corridor counts: walks of length L between
 //!    interior colours, total and to one fixed target colour, plus the
-//!    mean-field distinct-piece correction for L = 10.
+//!    mean-field distinct-piece correction for the closest clue pair.
 //!
 //! Prints a single JSON object to stdout. Expected headline numbers (from the
 //! source study): 196 inner pieces, 17 inner colours, supply mean 46.1
-//! (min 43, max 49), minimum clue distance 10, L=10 fixed start-and-target
-//! walk count ~2.4e15 (within the reported min..max range), depletion factor
-//! 0.792, corrected corridor count ~2e15 (source cites ~1.9e15 for the
-//! specific clue colour pair).
+//! (min 43, max 49), minimum clue distance 10. Two clues at Manhattan distance
+//! 10 have 9 cells between them, so the closest-pair corridor is L = 9:
+//! fixed start-and-target walk count ~5.6e13, depletion factor 0.830,
+//! corrected corridor count ~4.7e13. The source study used L = 10 (2.05e15);
+//! that off-by-one is kept in `corridor_walks` for comparison only.
 
 use e2_kit::analysis::{clue_cells, piece_classes};
 use e2_kit::{official_instance, rotated};
@@ -91,10 +92,14 @@ fn main() {
     }
     let icols: Vec<usize> = (1..NC).filter(|&c| on_inner[c]).collect();
 
-    // 3. Uniform-model branching table, C = declared interior colour count.
+    // 3. Uniform-model branching table. C = colours that actually appear on
+    // inner pieces (17); the declared count (22) includes the 5 frame-only
+    // colours and is reported for comparison only.
+    let c_inner = icols.len() as f64;
     let c_declared = f64::from(inst.num_colors);
     let four_n = 4.0 * n_inner as f64;
-    let b_k: Vec<f64> = (1..=4).map(|k| four_n / c_declared.powi(k)).collect();
+    let b_k: Vec<f64> = (1..=4).map(|k| four_n / c_inner.powi(k)).collect();
+    let b_k_declared: Vec<f64> = (1..=4).map(|k| four_n / c_declared.powi(k)).collect();
 
     // 4. Transfer matrix over inner pieces: T[west][east], all four rotations.
     let mut t: Mat = vec![vec![0u128; NC]; NC];
@@ -112,15 +117,18 @@ fn main() {
     let supply_max = *row_sums.iter().max().unwrap();
     let supply_mean = row_sums.iter().sum::<u128>() as f64 / row_sums.len() as f64;
 
-    // Walk counts at the lengths the claim cites. Length L walks correspond to
-    // a corridor of L cells; the centre-to-SW clue gap of 10 gives L = 10.
+    // Walk counts. Length L walks correspond to a corridor of L cells; two
+    // clues at Manhattan gap g have g - 1 cells between them, so the
+    // centre-to-SW gap of 10 gives L = 9 (L = 10 is the source's off-by-one).
     //
     // Semantics match the source study: a corridor grows out of one clue, so
     // the START colour is fixed (the clue's facing colour). "from_fixed_start"
     // is the row sum of T^L (all endpoints); "fixed_start_and_target" is a
     // single entry of T^L (the far clue also fixes its facing colour).
     let mut walks = Vec::new();
-    let mut l10_entry_mean = 0.0;
+    let l_close = (min_gap as u32).saturating_sub(1);
+    let mut close_entry_mean = 0.0;
+    let mut close_row_mean = 0.0;
     for l in [5u32, 9, 10] {
         let p = mat_pow(&t, l);
         let row_totals: Vec<u128> = icols
@@ -134,8 +142,9 @@ fn main() {
             .iter()
             .flat_map(|&a| icols.iter().map(|&b| p[a][b]).collect::<Vec<_>>())
             .collect();
-        if l == 10 {
-            l10_entry_mean = entry_mean;
+        if l == l_close {
+            close_entry_mean = entry_mean;
+            close_row_mean = row_mean;
         }
         walks.push(json!({
             "length": l,
@@ -149,10 +158,15 @@ fn main() {
         }));
     }
 
-    // Mean-field distinct-piece correction for a 10-cell corridor:
-    // prod_{j=0..9} (1 - j/n_inner). Expected 0.792.
-    let depletion: f64 = (0..10).map(|j| 1.0 - j as f64 / n_inner as f64).product();
-    let corrected_l10 = l10_entry_mean * depletion;
+    // Mean-field distinct-piece correction for an L-cell corridor:
+    // prod_{j=0..L-1} (1 - j/n_inner). Expected 0.830 for L = 9.
+    let depletion: f64 = (0..l_close).map(|j| 1.0 - f64::from(j) / n_inner as f64).product();
+    let corrected_close = close_entry_mean * depletion;
+    // Baseline: unconstrained placements of L distinct pieces in 4 rotations,
+    // P(n, L) * 4^L, and the fraction of them the corridor keeps.
+    let unconstrained: f64 = (0..l_close)
+        .map(|j| (n_inner as f64 - f64::from(j)) * 4.0)
+        .product();
 
     let out = json!({
         "instance": inst.name,
@@ -169,9 +183,13 @@ fn main() {
             "frame_only_colors": usize::from(inst.num_colors) - icols.len(),
         },
         "branching_uniform_model": {
-            "formula": "b_k = 4n / C^k, n = inner pieces, C = declared interior colours",
+            "formula": "b_k = 4n / C^k, n = inner pieces, C = colours on inner pieces",
+            "c": c_inner,
             "b_1": b_k[0], "b_2": b_k[1], "b_3": b_k[2], "b_4": b_k[3],
-            "pruning_threshold_k": (four_n.ln() / c_declared.ln()).ceil(),
+            "pruning_threshold_k": (four_n.ln() / c_inner.ln()).ceil(),
+            "with_declared_c22_for_comparison": {
+                "b_1": b_k_declared[0], "b_2": b_k_declared[1], "b_3": b_k_declared[2], "b_4": b_k_declared[3],
+            },
         },
         "per_side_supply": {
             "mean": supply_mean,
@@ -179,11 +197,16 @@ fn main() {
             "max": supply_max.to_string(),
         },
         "corridor_walks": walks,
-        "length_10_corridor": {
-            "fixed_start_and_target_walks_mean": l10_entry_mean,
+        "closest_pair_corridor": {
+            "manhattan_gap": min_gap,
+            "length_cells": l_close,
+            "fixed_start_and_target_walks_mean": close_entry_mean,
+            "open_end_chain_walks_mean": close_row_mean,
             "depletion_factor": depletion,
-            "distinct_piece_estimate": corrected_l10,
-            "claim": "a 1-wide corridor between the closest clue pair (gap 10) admits ~1.9e15 fillings; the commitment is vacuous",
+            "distinct_piece_estimate": corrected_close,
+            "unconstrained_placements": unconstrained,
+            "fraction_kept": corrected_close / unconstrained,
+            "claim": "a 1-wide corridor between the closest clue pair (gap 10, 9 cells) admits ~4.7e13 distinct-piece fillings, a fraction ~5e-13 of the unconstrained placements: the same 1/17-per-check rate as any matched edge, so its count alone does not distinguish it from any other chain",
         },
     });
     println!("{}", serde_json::to_string_pretty(&out).unwrap());

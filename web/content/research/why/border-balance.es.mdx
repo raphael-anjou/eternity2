@@ -1,17 +1,17 @@
 ---
-title: El equilibrio del borde
+title: "El equilibrio del borde: una identidad de costura que toda solución cumple"
 description: >-
-  Un tablero resuelto esconde una sencilla ley contable: cada color que el borde
-  entrega al interior, el interior se lo devuelve al instante. Rómpela y sabrás
-  de inmediato que el tablero es incorrecto; respetarla, en cambio, no garantiza
-  nada.
-metaDescription: "El equilibrio del borde en Eternity II: cada color que el borde da al interior, el interior lo devuelve, el mismo multiconjunto. Un déficit Δ>0 prueba que un tablero nunca se completará; Δ=0 no prueba nada. También sirve de podador de fin de búsqueda."
+  En un tablero resuelto, los colores que el borde muestra al interior y los
+  que el interior le devuelve forman el mismo multiconjunto, porque cada arista
+  de costura emparejada muestra un solo color por ambos lados. El desequilibrio
+  es una cota inferior del número de aristas de costura rotas, nada más.
+metaDescription: "El equilibrio del borde en Eternity II: en un tablero resuelto, los colores que el borde muestra hacia dentro y los que el interior devuelve forman el mismo multiconjunto. El déficit Δ acota por debajo las aristas de costura rotas; Δ = 0 no prueba nada."
 kind: finding
 contribution: theory
-rigor: measured
+rigor: proven
 tier: 3
 order: 120
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [search-space, structure]
 sources:
   - label: Equilibrio de los tipos de arista del borde observado en el verano de lanzamiento (angwin_uk, agosto de 2007)
@@ -40,60 +40,70 @@ repro:
 
 import { Ns1Lab } from "@/components/research/Ns1Lab";
 
-Fíjate solo en la costura entre el anillo exterior de piezas de borde y el
-primer anillo de piezas interiores. Cada arista que cruza esa costura muestra un
-color, contado una vez desde el lado del borde y una vez desde el lado del
-interior. En cualquier solución completa los dos recuentos son idénticos: el
-multiconjunto de colores que el borde presenta hacia dentro iguala exactamente
-al multiconjunto que el interior presenta hacia fuera.
+Mira solo la costura entre el anillo exterior de piezas de borde y el primer
+anillo de piezas interiores. Cada arista de esa costura muestra un color,
+contado una vez desde el lado del borde y otra desde el lado del interior. En
+toda solución completa los dos recuentos son idénticos: el multiconjunto de
+colores que el borde muestra hacia dentro es exactamente el que el interior
+muestra hacia fuera.
 
-Llamemos **déficit** a ese desequilibrio, $\Delta$: la mitad del desajuste total
-entre los dos recuentos. Un tablero terminado y correcto tiene $\Delta = 0$. Las
-cuatro soluciones completas conocidas, sobre cuatro juegos de piezas distintos,
-la satisfacen todas exactamente. Así, $\Delta > 0$ es un certificado de que un
-tablero nunca podrá completarse: una condición necesaria, real y de bajo coste.
+No es una ley oculta; se sigue de la propia definición de tablero resuelto. En
+una solución cada arista de costura muestra el mismo color por ambos lados, así
+que los dos recuentos coinciden término a término, y eso vale para toda solución
+de cualquier rompecabezas, incluidas las cuatro soluciones completas conocidas.
+Llamemos al desequilibrio el **déficit**, $\Delta$: la mitad de la diferencia
+total entre los dos recuentos. Es una cota inferior del número de aristas de
+costura rotas, porque cada arista rota desequilibra como mucho una unidad de
+color en cada lado.
 
-## La ley, en una línea
+## La identidad, en una línea
 
-A través de la costura borde↔interior, los colores que el borde muestra hacia
-dentro y los colores que el interior muestra hacia fuera forman el mismo
-multiconjunto. Escribiendo $A[c]$ y $B[c]$ para los dos recuentos por color:
+A lo largo de la costura borde↔interior, sean $A[c]$ y $B[c]$ los recuentos por
+color vistos desde el borde y desde el interior. En todo tablero con las 56
+aristas de costura emparejadas,
 
 $$
-\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
+\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0,
+\qquad\text{y en general}\qquad
+\Delta \;\le\; \#\{\text{aristas de costura rotas}\}.
 $$
+
+Un hecho más la debilita todavía. Cada una de las 56 piezas de borde tiene
+exactamente un lado hacia dentro, sea cual sea su posición, y las esquinas no
+tienen ninguno; en un marco completo, el recuento $A$ queda fijado por el juego
+de piezas por sí solo. Solo $B$, los colores que el primer anillo interior
+muestra hacia fuera, puede variar.
 
 ## Verlo en un tablero real
 
-Un tablero 8×8 resuelto parte en equilibrio ($\Delta = 0$). Levanta una pieza de
-borde y observa qué colores se desequilibran, y cómo trepa el déficit. Prueba
-luego el botón de intercambio, y observa la trampa.
+Un 8×8 resuelto empieza en equilibrio ($\Delta = 0$). Levanta una pieza de borde
+y observa qué colores se desequilibran y cómo sube el déficit. Luego prueba el
+botón de intercambio y verás el fallo.
 
 <Figure collapsible title="Interactivo: el déficit de equilibrio del borde NS-1">
   <Ns1Lab />
 </Figure>
 
-## La trampa, y por qué importa
+## El fallo
 
 Intercambiar dos piezas de borde deja $\Delta$ en 0. El intercambio mueve
-colores a lo largo de la costura sin modificar ninguno de los dos recuentos, de
-modo que el invariante es ciego a ello. Peor aún, en una casi-solución la mayor
-parte de los errores restantes no están en la costura del borde en absoluto. Se
-asientan de interior a interior, allí donde NS-1 nunca mira. En los nueve
-tableros de la clase 469 del corpus, de las 99 aristas no emparejadas que
-quedan, el 86,9 % se asienta de interior a interior y ni una sola es de borde a
-borde; solo el 13,1 % restante cae en la costura que inspecciona NS-1. El
-invariante es ciego a la gran mayoría de lo que sigue mal.
+colores a lo largo de la costura sin cambiar ninguno de los dos recuentos, así
+que el déficit no lo ve, aunque la costura pueda tener ahora roturas. En una
+casi solución, además, la mayoría de los errores restantes no están en la
+costura. Están entre dos piezas interiores, donde el déficit nunca mira. En los
+nueve tableros de clase 469 del corpus, de las 99 aristas no emparejadas que
+quedan, el 86,9 % son interior-interior y ninguna es borde-borde; solo el 13,1 %
+restante cae en la costura. Contar directamente esas roturas de costura es más
+barato y más preciso que calcular $\Delta$.
 
-Ahí está toda la textura de Eternity II en miniatura. Una comprobación por
-limpia que sea nunca dice más que "definitivamente roto", jamás "definitivamente
-correcto". El puzzle resiste todo certificado barato de progreso.
+## ¿Sirve, entonces?
 
-## ¿Es útil, entonces?
-
-Sí, como podador de fin de búsqueda. Una vez que el solucionador ha cerrado el
-anillo de borde, imponer $\Delta = 0$ rechaza una porción útil de los
-callejones sin salida profundos al precio de una sola pasada sobre las 56
-aristas de la costura (cuán grande es esa porción está en cola para medición
-exacta, todavía no un banco fijado). Es necesario-pero-laxo: descarta los
-estados malos a bajo coste y deja intacta la parte difícil, el interior.
+Tal como está, no. En un backtracker que solo coloca piezas compatibles con sus
+vecinas ya colocadas, toda arista de costura con ambos lados colocados ya está
+emparejada; $\Delta$ calculado sobre las casillas colocadas vale siempre cero y
+no rechaza nada. La versión que sí podría podar compara la demanda de costura
+pendiente del borde con lo que las piezas interiores sin usar aún pueden
+aportar, color por color. Es una restricción de conteo sobre el stock restante,
+de la familia que la programación con restricciones trata con restricciones
+globales de cardinalidad; todavía no está definida ni medida en este sitio, así
+que su poder de poda en Eternity II es una cuestión abierta.

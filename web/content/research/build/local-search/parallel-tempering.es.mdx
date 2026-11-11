@@ -2,25 +2,36 @@
 title: Recocido simulado y tempering paralelo
 description: >-
   Tratar los desajustes como energía y la temperatura como tolerancia a empeorar
-  las cosas. El recocido ostenta el récord más longevo del puzzle; el tempering
-  paralelo cruza barreras que el recocido no puede. Ambos se detienen en el mismo
-  muro.
-metaDescription: "Recocido simulado y tempering paralelo en Eternity II: desajustes como energía, temperatura como tolerancia a empeorar. El recocido forjó el longevo récord 467/480 de Verhaard; la escalera de réplicas cruza barreras vetadas a una cadena fría, pero las mesetas iso-score topan con el mismo muro."
+  las cosas. El tempering paralelo cruza barreras de energía que una cadena fría
+  sola no puede; cerca de la cima de este puzzle, donde el obstáculo es
+  entrópico y no energético, no se ha visto a ninguno de los dos métodos salir
+  de la cuenca de la semilla.
+metaDescription: "Recocido simulado y tempering paralelo en Eternity II: desajustes como energía, temperatura como tolerancia. La escalera cruza barreras de energía vetadas a una cadena fría; cerca de la cima las salidas de meseta son raras y las escaleras conservan la puntuación de la semilla."
 kind: concept
 order: 70
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
   - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
     url: https://doi.org/10.1103/PhysRevLett.57.2607
   - label: "Earl & Deem, Tempering paralelo: teoría, aplicaciones y nuevas perspectivas (Phys. Chem. Chem. Phys., 2005)"
     url: https://arxiv.org/abs/physics/0508111
-  - label: La lista de correo de Eternity II, donde Verhaard describió su método de recocido de 2008 (groups.io)
-    url: https://groups.io/g/eternity2
+  - label: "Verhaard sobre el programa del 467: una búsqueda normal con deslizamiento de aristas permitido a profundidades elegidas (groups.io msg 7321)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "Los detalles del solver eii de Louis Verhaard, incluido el preprocesado por composición de conjunto"
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "Woodard, Schmidler & Huber, Conditions for rapid mixing of parallel and simulated tempering on multimodal distributions (Ann. Appl. Probab., 2009)"
+    url: https://doi.org/10.1214/08-AAP555
+  - label: "Woodard, Schmidler & Huber, Sufficient conditions for torpid mixing of parallel and simulated tempering (Electron. J. Probab., 2009)"
+    url: https://doi.org/10.1214/EJP.v14-638
+  - label: "benj39100: un recocido en GPU con 4096 réplicas sobre el tablero de cinco pistas choca con el mismo núcleo congelado (groups.io msg 11902)"
+    url: https://groups.io/g/eternity2/message/11902
 related:
   - /research/why/rigidity-wall
   - /research/why/sigma-cycles
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/louis-verhaard/verhaard-reimpl
   - /research/build/local-search/local-search-alns
 repro:
   kind: prose
@@ -114,24 +125,30 @@ Una ronda de tempering paralelo, tal como la ejecuta el laboratorio:
 - **Por fase de intercambio:** los $R{-}1$ pares adyacentes necesitan cada uno
   una exponencial de las energías en caché: $O(R)$ en total, un error de redondeo
   al lado de los barridos.
-- **La ganancia está en el tiempo de mezcla, no en el coste del paso.** Una
-  cadena fría aislada cruza una barrera de energía $\Delta E$ en aproximadamente
+- **La ganancia está en el tiempo de mezcla, cuando existe.** Una cadena fría
+  aislada cruza una barrera de energía $\Delta E$ en aproximadamente
   $e^{\Delta E / T_{\text{cold}}}$ intentos (la espera de Arrhenius; nuestro
-  cruce de 76 celdas medido se situaba en $e^{-21}$ por intento a $T = 1$). La
-  escalera reemplaza esa espera por difusión: una configuración camina
-  aleatoriamente a través de $R$ peldaños, y con un espaciado geométrico ajustado
-  para una aceptación por peldaño constante, un viaje de ida y vuelta cuesta del
-  orden de $R^2$ rondas de intercambio. Pagas un factor constante $R$ por barrido
-  para convertir una espera exponencial en una lanzadera polinómica. Esa
-  asimetría es todo el argumento del método.
+  cruce medido de 76 celdas estaba en $e^{-21}$ por intento a $T = 1$). Cuando
+  la barrera es energética y el peldaño más caliente mezcla rápido, la escalera
+  puede sustituir esa espera por una difusión entre peldaños cuyo coste crece
+  solo polinómicamente en $R$; se paga con un factor $R$ por barrido. No está
+  garantizado. El número de peldaños necesarios crece con el tamaño del
+  sistema, cada peldaño tiene que equilibrarse, y ante cuellos de botella
+  entrópicos o transiciones de tipo primer orden el tempering también mezcla en
+  tiempo exponencial
+  ([Woodard, Schmidler y Huber 2009](https://doi.org/10.1214/EJP.v14-638); las
+  condiciones de mezcla rápida correspondientes están en su
+  [artículo hermano](https://doi.org/10.1214/08-AAP555)). El peldaño caliente
+  todavía tiene que encontrar la salida.
 - **Sin garantías, igual que todos los muestreadores.** El tempering paralelo no
   es completo y no certifica nada; converge a la distribución correcta con el
-  tiempo, sin ninguna cota útil sobre ese «con el tiempo». Y allí donde el
-  paisaje ofrece empates en lugar de barreras, como en las mesetas de
-  iso-puntuación en lo alto de este puzzle, $\Delta E = 0$ hace que todos los
-  peldaños se comporten de forma idéntica, y la ventaja de la escalera se
-  desvanece por construcción, que es precisamente lo que informa el veredicto de
-  más abajo.
+  tiempo, sin ninguna cota útil sobre ese «con el tiempo». Cerca de la cima de
+  este puzzle el obstáculo es de tipo entrópico: los tableros mejores están
+  más allá de amplias mesetas neutras cuyas salidas son raras. Los movimientos
+  dentro de una meseta ($\Delta E = 0$) se aceptan en todos los peldaños, pero
+  las salidas cuesta arriba siguen dependiendo de $T$, así que los peldaños sí
+  difieren. Lo que la escalera no puede hacer es volver frecuente una salida
+  rara. El veredicto de más abajo es un caso de esa limitación.
 
 ## Por qué este puzzle necesita la escalera
 
@@ -157,27 +174,37 @@ genuinamente caliente, ajustado para que los intercambios sean frecuentes pero n
 gratuitos, es el consejo estándar de Earl y Deem, y coincidió con lo que
 observamos.
 
-## El récord comunitario que construyó el recocido
+## El recocido y el 467
 
-El recocido tiene una historia distinguida en este puzzle. El récord más longevo
-sobre el conjunto de piezas canónico (el 467 de 480 de Louis Verhaard en 2008,
-invicto hasta los backtrackers de la era Blackwood de 2020) provino de un método
-de recocido, y de uno inusual: como lo describió en la
-[lista de correo de la comunidad](https://groups.io/g/eternity2), recocía la
-*composición* de un subconjunto de piezas, intercambiando piezas dentro y fuera
-de un grupo candidato bajo una puntuación de teselabilidad, en lugar de recocer
-posiciones sobre el tablero. La lección se generaliza: en Eternity II, la
-elección de *qué recocer* importó más que el recocido en sí.
+El recocido sobre posiciones del tablero nunca ha tenido el récord de este
+puzzle. El 467 de 480 de Louis Verhaard (2008), invicto hasta los
+backtrackers de la era Blackwood de 2020, salió de un backtracker en
+profundidad con poda anticipada y deslizamiento de aristas permitido según la
+profundidad ([eii](/research/lab/experiments/louis-verhaard/eii);
+[mensaje 7321](https://groups.io/g/eternity2/message/7321)). El recocido solo
+aparece como una idea de preprocesado que se le atribuye
+([detalles de eii](https://www.shortestpath.se/eii/eii_details.html)): recocer
+la *composición* de un subconjunto de piezas interiores, intercambiando piezas
+bajo una puntuación de teselado 2×2, antes de empezar la búsqueda. La
+[reimplementación](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
+de ese método en este proyecto llega a 438, no a 467: la etapa de recocido por
+sí sola no explica el récord.
 
 ## El veredicto
 
 A partir de las mediciones de este proyecto, matizadas en consecuencia: el
-tempering paralelo cruza mejor las barreras que el recocido simple, y en el tramo
-intermedio de la subida esa diferencia es real y fiable. Cerca de la cima se
-disuelve. Las mesetas de allí arriba son de iso-puntuación: empates por todas
-partes, de modo que la aceptación ya no depende en absoluto de la temperatura, y
-subir el calor en lugar de escalar solo aleatoriza el tablero, que después nunca
-encuentra el camino de vuelta al territorio de los récords. Las réplicas lanzadas
-desde un tablero de cabeza se estancan en la puntuación de la semilla, en cada
-cadena, en cada escalera que probamos. El tempering te desplaza entre colinas; no
-deroga el [muro de rigidez](/research/why/rigidity-wall).
+tempering paralelo cruza mejor las barreras que el recocido simple, y en el
+tramo intermedio de la subida esa diferencia es real. Cerca de la cima no se
+ha observado. Las escaleras lanzadas desde un tablero de cabeza se quedaron en
+la puntuación de la semilla en todas las ejecuciones probadas; fueron
+ejecuciones de cuaderno, cuyo tamaño de escalera, rango de temperaturas y
+presupuesto no están en los resultados versionados, y el resultado negativo
+vale solo para ellas. El mecanismo es el entrópico descrito arriba: calentar lo
+suficiente para que las salidas de la meseta sean probables también
+aleatoriza el tablero, que no vuelve al territorio de los récords dentro del
+presupuesto. Una ejecución independiente de recocido en GPU con 4096 réplicas
+chocó con el mismo núcleo congelado de aristas rotas en el tablero de cinco
+pistas ([benj39100, mensaje 11902](https://groups.io/g/eternity2/message/11902);
+véase el [muro de rigidez](/research/why/rigidity-wall)). El tempering te
+desplaza entre colinas; aquí no se le ha visto cruzar de una cuenca de cabeza a
+otra.

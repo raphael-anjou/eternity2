@@ -4,17 +4,19 @@ description: >-
   Slice the board into overlapping two-row bands, solve each band to
   perfection with a column-by-column dynamic program under beam pruning, and
   chain the bands top to bottom. A full board at 444 of 480 matched edges in
-  35 seconds, with the whole loss provably parked in the late vertical seams.
+  35 seconds, with the whole loss on that board pinned, by exact accounting, to the late
+  vertical seams.
 metaDescription: "Band column-DP for Eternity II: cut the board into two-row bands, solve each perfectly with a column-by-column DP under beam pruning, chain them top to bottom. A full board at 444 of 480 matched edges (clues not enforced) in 35 s; the entire 36-edge loss sits in the late vertical seams."
 kind: concept
 order: 55
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
 related:
+  - /research/build/exact/meet-in-the-middle
   - /research/build/construct/beam-search
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
@@ -28,10 +30,11 @@ cell at a time. The band column-DP changes the granularity: slice the 16×16
 board into two-row bands, solve each band to perfection with a
 column-by-column dynamic program under beam pruning, and chain the bands top
 to bottom, each new band inheriting the previous band's bottom row. A single
-band is always solvable perfectly. The chain completes a full board at 444 of
-480 matched edges in 35 seconds, and the entire 36-edge shortfall can be
-pinned, by exact accounting, to the vertical seams of the lower half: a
-greedy-horizon failure, not a piece-supply accident.
+band was solved perfectly at every size tested. The chain completes a full
+board at 444 of 480 matched edges in 35 seconds, and the entire 36-edge
+shortfall can be pinned, by exact accounting, to the vertical seams of the
+lower half: consistent with a piece-supply failure created by one-directional
+greedy commitment.
 
 One caveat governs everything below. Every number on this page is a single
 deterministic run per configuration, from the notebook: a fixed
@@ -52,11 +55,11 @@ pieces at a time, which exploits the 2D structure directly. Border cells
 (which require the grey edge color) sharply cut the candidate sets at the
 rim.
 
-The work per band is $O(n \cdot K \cdot |P|^2)$; for $n = 16$,
-$K = 10^4$, $|P| = 256$ that is on the order of $10^{10}$ candidate
-transitions per band: minutes in a compiled engine, hours in Python. That is
-design arithmetic, not a measurement; it is what motivated writing the solver
-in Rust.
+The work per band is $O(n \cdot K \cdot c)$, where $c$ is the number of
+compatible column-pair placements per state (counted at roughly 45,000 at
+the border and 490,000 in the interior; see below). The timings on this page
+come from separate notebook runs whose engine builds were not recorded, so
+they compare within a section, not across sections.
 
 ## The band arithmetic
 
@@ -154,16 +157,20 @@ Is the bottom of the board intrinsically harder? No: run top-down, the chain
 produces 7 perfect bands from the top border, decays, and fails at the
 *bottom*; run bottom-up, it produces 7 perfect bands from the bottom border,
 decays, and fails at the *top*. Both directions stop 16 cells short of a full
-board (240 of 256 placed), one run per direction. The failure always lands at
-the border farthest from the anchor: both borders impose their own constraint
-sets, an anchored chain satisfies the near one and drifts freely with respect
-to the far one, and the drift compounds. The decay is a property of
-one-directional greedy commitment, not of the bottom rows.
+board (240 of 256 placed), one run per direction. In one run per direction, the failure landed at the border farthest from the
+anchor: both borders impose their own constraint sets, an anchored chain
+satisfies the near one and drifts freely with respect to the far one, and
+the drift compounds. That points to one-directional greedy commitment, not
+to the bottom rows themselves.
 
 Why not run both directions and glue? Naively matching an independent
-top-half and bottom-half at the middle seam requires 16 colors to agree;
-under a random-color model that has probability about $(1/23)^{16} \approx
-10^{-22}$. A rendezvous needs joint construction, not two independent runs.
+top half and bottom half at the middle seam requires 14 interior and 2
+border colours to agree; under a random-colour model (17 interior colours,
+5 border colours) that has probability about
+$(1/17)^{14}(1/5)^2 \approx 2 \times 10^{-19}$, before even requiring the two
+halves to use disjoint sets of 128 pieces, the larger obstruction. A
+rendezvous needs joint construction, as in
+[meet-in-the-middle](/research/build/exact/meet-in-the-middle), not two independent runs.
 
 Anchoring in the middle is worse, in the one configuration tried: starting
 from a center band (no border on either row) failed to complete even one band
@@ -199,10 +206,11 @@ bound on the operator, not a reachability claim.
 Measured, the greedy rebuild is a null result: rebuilding the lower half with
 the same greedy column-DP lands back on exactly 444 regardless of where the
 freeze line is drawn (freeze through row 7: 444; through row 11: 444; only
-the trivial last-row rebuild keeps the 447 input). The late-band loss is a
-greedy-horizon artifact, not a fixable accident of which pieces were left
-over: re-running the same greedy on the leftover set from any starting row
-lands in the same place. The forward-look +3 is the only algorithmic gain
+the trivial last-row rebuild keeps the 447 input). Re-running the same greedy on the leftover set from any starting row lands in
+the same place. That is consistent with a piece-supply failure created by
+greedy commitment (the endgame count above), but it cannot show whether a
+better completion of the frozen top half exists: a deterministic greedy on
+the same leftovers would reproduce 444 either way. The forward-look +3 is the only algorithmic gain
 found in this family. Scope: only greedy-beam reconstruction was tested; an
 exact solve of the 128-piece bottom half (a constrained matching problem) was
 proposed and never run, so the bound above is untouched by this negative.
@@ -226,12 +234,16 @@ corners is the natural fix direction; it was not run in these measurements.
 
 ## Where it stops
 
-The band column-DP is a fast route to a good board: 444 matched edges in
-35 seconds, with every shared-row horizontal edge matched, where the
-cell-level beam reaches the mid-450s (matched edges) in minutes. The ceiling
-is the one-directional commitment itself: each band pays its vertical seams
-with colors chosen one band earlier and no local search at the bottom can
-refund them, which is why the gains beyond this plateau came from
+The band column-DP reached 444 matched edges (clues ignored) in 35 seconds,
+with every shared-row horizontal edge matched, and 414 on a 240-cell partial
+with all five clues. The cell-level
+[beam](/research/build/construct/beam-search) is both faster and stronger on
+this engine (a complete 450 with all five clues in about 8 s on one thread,
+and 450 to 455 at $K = 16384$), so band DP is of interest for its exact seam
+accounting, not as a production builder. Its plateau is the one-directional
+commitment itself: each band pays its vertical seams with colours chosen one
+band earlier, greedy rebuilds of the bottom did not refund them, and the
+gains beyond this plateau came from
 [destroy-and-repair polish](/research/build/local-search/local-search-alns)
 rather than from more width. The open doors this family leaves are concrete:
 an exact solve of the frozen-top bottom half, the forward-look score applied

@@ -3,9 +3,9 @@ title: A map of every known approach
 description: >-
   The survey the community keeps asking for and never finds: every family of
   attack tried on Eternity II, what each one actually reached, where it walls
-  out, and a link to the deep page. One organising insight runs through all of
-  them.
-metaDescription: "A survey of every family of attack tried on Eternity II: systematic backtracking, SAT/CSP and ILP encodings, local search and ALNS, learning from strong boards, and hardware roads. What each reached on the 16×16 board, where it walls out, and the one insight running through them all."
+  out, and a link to the deep page, with one working hypothesis for why the
+  top plateau is so hard to pass.
+metaDescription: "A survey of every family of attack tried on Eternity II: systematic backtracking, SAT/CSP and ILP encodings, local search and ALNS, learning from strong boards, and hardware roads. What each reached on the 16×16 board, where it walls out, and the leading hypothesis for why the top plateau holds."
 kind: page
 order: 5
 group: Start here
@@ -41,32 +41,34 @@ each behaves when pointed at this particular puzzle, with the project's own
 measurements where they exist and a plain "unmeasured" where they do not. The
 [technique shelf](/research/build/techniques) is the index to those pages.
 
-## The one insight that organises the whole map
+## What the map shows across families
 
-Every family below stalls in the same place: the community ceiling of 470 out
-of 480 matched edges, with
-[this project's own experiments](/research/lab/experiments/raphael-anjou)
-clustered at [460–463](/research/records). They stall there for the same reason,
-and it is worth stating before
-the catalogue so the rest reads as variations on one theme.
+The families do not all stop at the same height. Only one lineage has reached
+467 to 470 out of 480 matched edges: depth-first backtracking with scheduled
+late mismatches (Verhaard's 467, then Blackwood's 470; see
+[records](/research/records)). The others plateau lower: integer programming at
+420–440, the academic hyper-heuristic at 461,
+[this project's own experiments](/research/lab/experiments/raphael-anjou) at
+[460–463](/research/records), and several constructions on the
+[dead ends](/research/build/dead-ends) page far below that.
 
-The reason is an evaluation problem. The only cheap signal any solver has is
-the number of matched edges, and that number does not tell you how close you
-are to a solution. A 470-edge board and a 460-edge board can be equally far
-from finishing, because the last ten edges are not a polishing job: they sit on
-the far side of a global wall that no local score can see. So the systematic
-searchers and the stochastic searchers, which look nothing alike, converge on
-the same height. This is the **[rigidity wall](/research/why/rigidity-wall)**:
-record boards are locally frozen, and the step from a great board to a perfect
-one is one indivisible swap with no gradient to follow. Its companion is
-**[why a faster computer doesn't help](/research/why/prune-vs-speed)**: when you
-cannot shrink the search, raw speed buys you almost nothing. The
-**[why it's hard](/research/why)** section proves both, and
+Why the top plateau is so sticky is open. One hypothesis frames most of the deep
+pages. The only cheap signal a solver has is the number of matched edges, and that
+number does not tell you how close you are to a solution: a 470-edge board and a
+460-edge board can be equally far from finishing. That is the
+**[rigidity wall](/research/why/rigidity-wall)**: on the record boards where it was
+measured, the board is locally frozen, and no small rearrangement raises the score.
+Its companion is
+**[why a faster computer doesn't help](/research/why/prune-vs-speed)**: no
+constant-factor speedup makes exhaustive search of the full board feasible, while
+for record hunting more speed buys more attempts, with diminishing returns. The
+**[why it's hard](/research/why)** section argues for both, and
 **[which wall stops which method](/research/why/walls-and-methods)** lines up
-each attack against the wall it dies on.
+each attack against the wall it is thought to stop at.
 
 Keep that in mind and the map below is easy to read: the families differ in
-*how* they climb, not in *how high*.
+*how* they climb and also in *how high* they have got, and the backtracking
+lineage is the one to beat.
 
 ## Systematic search
 
@@ -109,8 +111,9 @@ record lives here.
 - **[Solver engineering](/research/build/faster/solver-engineering)**. Not an
   algorithm but the craft below one: lookup tables, perfect hashes, cache-sized
   structs, generated code. It decides whether a node costs 26 cycles or 2,600,
-  and it is why the record engines run at all. It buys speed, and speed is the
-  thing that does not move the wall.
+  and it is why the record engines run at all. It buys speed: no speedup makes the
+  exhaustive 16×16 tree feasible, though for record hunting it buys more
+  attempts.
 
 The **[solver catalogue](/research/build/solvers)** shows how the record
 engines (Verhaard's 467, Blackwood's 470) assemble these parts.
@@ -127,23 +130,26 @@ of an industrial solver and let a decade of engineering do the search.
 - **[LP and ILP relaxations](/research/build/exact/lp-relaxations)**. Write
   it as an integer program and drop the integrality: a linear solver reaches
   zero error in seconds by placing fractions of pieces. The comfort ends the
-  moment pieces must be whole: a plateau at 420–440 edges, an ILP wall at 8×8,
-  and an academic best of 461 in an hour.
+  moment pieces must be whole: a plateau at 420–440 edges and an ILP wall at
+  8×8. No integer program has produced a competitive full board.
 
 ## Local and stochastic search
 
 Start with a full (imperfect) board and improve it by moves, guided by an
-objective. These methods look nothing like backtracking, and they stop at the
-same height.
+objective. These methods look nothing like backtracking, and on the official board
+they have so far stopped below the record backtrackers.
 
 - **[Local search and ALNS](/research/build/local-search/local-search-alns)**.
   Destroy part of a board, rebuild it better, and learn which demolitions pay.
   The most reliable polisher here, and the cleanest demonstration of where
-  polishing ends.
+  polishing ends. The academic best in this family is 461/480 in one hour
+  (Wauters, Vancroonenburg and Vanden Berghe, a hyper-heuristic).
 - **[Simulated annealing and parallel tempering](/research/build/local-search/parallel-tempering)**.
   Treat mismatches as energy and temperature as tolerance for getting worse.
-  Annealing holds the longest-standing record in this family; tempering crosses
-  barriers annealing cannot. Both stop at the same wall.
+  Annealing has not held a record on the official set: Verhaard's 467 came from
+  his backtracker, and his subset-composition annealing is a preparatory step
+  (reimplemented here, it reaches 438). Tempering crosses barriers annealing
+  cannot; neither has passed the backtrackers' plateau.
 - **[Beam search](/research/build/construct/beam-search)**. Keep the K most
   promising partial boards alive and grow them cell by cell. The workhorse
   behind this project's from-scratch builders, and a clean illustration of why
@@ -162,7 +168,7 @@ same height.
 Every method above reasons only from the puzzle's rules. This family reasons from
 the boards people have already found: mine the corpus of strong boards for
 structure and feed it back into a search as a bias. It reaches the top of a
-search's range fast and reliably, and it does not raise the ceiling.
+search's range fast and reliably, and so far it has not raised the ceiling.
 
 - **[Learn from strong boards](/research/build/learning)**. The hub for the
   family: position and scarce-demand [priors](/research/build/learning/corpus-priors),
@@ -173,8 +179,8 @@ search's range fast and reliably, and it does not raise the ceiling.
   an ordinary search was missing. The
   [collapse capstone](/research/build/learning/when-learning-collapses) is where the
   family stops: over-trust a learned signal and the search falls apart, and even
-  used perfectly none of these methods clears the rigidity wall, because the corpus
-  they learn from is made of boards stuck at that same wall.
+  used well none of these methods has yet passed the plateau, plausibly because the
+  corpus they learn from is made of boards stuck on it.
 
 ## Exotic and hardware roads
 
@@ -213,13 +219,15 @@ community knows where the walls are.
   giving impossibility proofs for one pass. The 479 story shows both the power
   and the trap.
 - **[Solution counting](/research/build/analysis/solution-counting)**. Nobody
-  has seen a full solution, yet the community knows to within a factor of two
-  how many exist: exact censuses on small boards and an expectation formula that
-  converged on about 14,702.
+  has seen a full solution. What exists is exact censuses on small boards and an
+  expected-count (first-moment) estimate of about 14,702 with the starter,
+  calibrated within about a factor of two on small boards where exhaustive
+  counts exist. It estimates the average over random puzzles with the same piece
+  statistics, not this instance's count.
 
 ## Dead ends
 
-Some ideas sound as good as any above and provably do not move the score. The
+Some ideas sound as good as any above and did not move the score when tried. The
 **[dead ends](/research/build/dead-ends)** page collects them with the reason
 each fails, so you can skip a month of work: symmetry breaking (there is no
 global symmetry to break), probability propagation that fades two cells out,
@@ -228,13 +236,14 @@ and others.
 ## What the map is telling you
 
 Read it top to bottom and the shape is clear. The systematic families own the
-records because they can prove things and prune hard on small boards, but they
-cannot shrink the full search enough to reach the end. The stochastic families
-polish beautifully and reach genuinely different boards, then stall at the same
-height. The hardware roads change the speed and never the ceiling. And the
-analysis pages explain why: the last ten edges are not a matter of effort or
-cleverness in any one family, but a global wall that every family meets from
-its own direction.
+records: only depth-first backtracking with scheduled late mismatches has reached
+467 to 470, and even it cannot shrink the full search enough to reach the end.
+The stochastic families polish well and reach genuinely different boards, but
+have plateaued lower so far. Faster hardware cannot make exhaustive search of the
+full board feasible; for record hunting it buys more attempts, and whether a long,
+well-tuned GPU campaign would move the ceiling has not been tested. The analysis
+pages offer one explanation for why the top plateau is sticky, the rigidity wall,
+which is measured on specific record boards rather than proven for every method.
 
 If you are choosing where to spend time, the useful question is not which
 family is best. It is which wall you think you can get past, because that is

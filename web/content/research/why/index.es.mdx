@@ -1,13 +1,13 @@
 ---
 title: Por qué es difícil
 description: >-
-  Eternity II no es difícil por accidente. Fue diseñado para resistir el
-  ingenio, y los muros estructurales medibles (rigidez, entropía, patrones
-  prohibidos) explican por qué ninguna búsqueda, por ingeniosa que sea, ha
-  llegado al final.
-metaDescription: "Por qué Eternity II es difícil por diseño: un puzzle ajustado para resistir el ingenio, con Selby y Riordan contratados para eliminar todo atajo estadístico. Sus muros estructurales (rigidez, entropía, patrones prohibidos) explican la brecha entre el mejor tablero (470/480) y la solución."
+  Eternity II está cerca del punto de una solución esperada para su tamaño, y
+  las páginas de abajo miden cómo fracasan en él solucionadores concretos;
+  varios de sus rasgos son comunes a cualquier puzzle 16x16 de emparejamiento
+  de aristas con 17 colores.
+metaDescription: "Por qué Eternity II es difícil: un puzzle ajustado cerca del punto de una solución esperada, validado por Selby y Riordan contra atajos estadísticos. Las páginas miden cómo fracasan en él solucionadores concretos y qué rasgos comparte con cualquier 16x16 de 17 colores."
 kind: page
-updated: 2026-07-21
+updated: 2026-11-11
 ---
 
 import { ScoringPrimer } from "@/components/research/ScoringPrimer";
@@ -26,11 +26,14 @@ muros estructurales que aparecen en cuanto empiezas a medir.
 - **[El muro de rigidez](/research/why/rigidity-wall)** es el muro contra el que
   termina casi todo método: los récords son islas localmente congeladas, sin
   gradiente hacia un tablero mejor.
-- **[El pico de dificultad](/research/why/phase-transition)** explica por qué los
-  recuentos de piezas y colores caen justo donde la búsqueda es peor.
-- **[Sin movimientos forzados](/research/why/no-forced-moves)** es el muro que se
-  siente primero: cada celda interior conserva decenas de piezas legales, así que
-  la búsqueda nunca se estrecha por sí sola.
+- **[El pico de dificultad](/research/why/phase-transition)** muestra los
+  recuentos de piezas y colores cerca del punto de una solución esperada, donde
+  tienden a agruparse las instancias duras.
+- **[Ninguna jugada forzada por un solo borde](/research/why/no-forced-moves)** es
+  el muro que se siente primero: con una sola vecina conocida, cada pieza
+  interior conserva entre 73 y 137 parejas compatibles. En cuanto se fijan las
+  vecinas norte y oeste de una celda, quedan unas tres candidatas y algunas
+  celdas quedan forzadas.
 
 Si llegaste preguntándote si el tablero es
 [NP-completo, y cómo codificarlo](/research/why/how-hard-is-this-instance),
@@ -46,11 +49,12 @@ editorial contrató a los ganadores: Selby y Riordan ayudaron a diseñar y somet
 a pruebas de resistencia el nuevo puzzle para que ningún atajo estadístico de ese
 tipo sobreviviera.
 
-Las huellas visibles de esa validación: una única solución diseñada e integrada
-en recuentos de colores equilibrados, ninguna pieza con simetría de rotación,
-ninguna pieza duplicada, y parámetros de número de piezas y número de colores
-situados en el pico empírico de dificultad (confirmado más tarde por Ansótegui et
-al.). El puzzle no es difícil por accidente. Fue ajustado para serlo.
+Las huellas visibles de esa validación: una solución conocida (diseñada), cuya
+unicidad no está demostrada, recuentos de colores equilibrados, ninguna pieza con
+simetría de rotación, ninguna pieza duplicada, y parámetros de número de piezas y
+número de colores cerca del punto de una solución esperada (coherentes con el
+pico de dificultad que Ansótegui et al. midieron después sobre puzzles
+generados). El puzzle no es difícil por accidente. Fue ajustado para serlo.
 
 Algo que parece una decisión de diseño pero no lo es: el borde utiliza su propio
 conjunto de cinco motivos, separado del interior. Esa separación es automática, no
@@ -67,8 +71,12 @@ la corrección.)
 ## Los muros estructurales
 
 Más allá del relato de diseño, el puzzle posee una estructura medible que explica
-la brecha entre el mejor tablero conocido (470/480) y una solución completa,
-publicada abajo con el cálculo exacto que sustenta cada muro.
+la brecha entre los mejores tableros conocidos (ver la
+[página de récords](/research/records)) y una solución completa, publicada abajo
+con el cálculo exacto que sustenta cada muro. La mayoría de estos muros se miden
+frente a solucionadores concretos, y varios, como el número de parejas o la
+escasez de demandas, son los de cualquier puzzle aleatorio del mismo tamaño y la
+misma paleta.
 
 Una forma útil de sostener todo esto junto es leer
 [un tablero completo como una palabra de código](/research/why/permutation-code-wall):
@@ -92,8 +100,8 @@ sola vez», la regla discreta que carga con la dificultad, una sentida como una
 sola celda muerta y otra medida como el colapso de los tableros realmente
 distintos más allá de un parche de unos cientos de celdas. A la escala de un
 relleno entero, el mismo acoplamiento produce
-[una región difícil que no se puede diseñar de otro modo](/research/why/irreducible-hard-region):
-rellena el tablero en cualquier orden fijo y la dificultad se junta en la banda
+[una región difícil que sigue el orden de relleno](/research/why/irreducible-hard-region):
+rellena el tablero en cualquier orden fijo y lo que sobra se junta en la banda
 que terminas al final, de modo que una descomposición reubica la dureza en vez de
 eliminarla. Los
 [patrones prohibidos](/research/why/forbidden-patterns) quedan al lado, en otro

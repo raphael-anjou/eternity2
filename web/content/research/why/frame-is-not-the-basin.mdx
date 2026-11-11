@@ -1,23 +1,22 @@
 ---
-title: "The frame is not the basin: a different border does not open a different high board"
+title: "The frame is not the basin: with one beam producer, the border choice did not move the score"
 description: >-
   The border ring is the most constrained part of the puzzle, so a different
-  strong border ought to pin a different high interior. It does not. Many
-  distinct fully-matched borders, each completed by one fixed interior producer,
-  give tops that are near-maximally different from each other yet uniformly low,
-  none near the record band. The border diversifies the board without predicting
-  its ceiling.
-metaDescription: "Does a different strong Eternity II border open a different high interior? No: 28 distinct fully-matched borders complete to a mid-430s band (best 441, strict 5/5), near-maximally distinct interiors, still 14 short of the 455 record. The frame is a loose object; the basin lives in the interior."
+  strong border might pin a different high interior. With one fixed beam
+  producer whose ceiling sits near 440, it did not: 28 random fully-matched
+  borders all completed into a 434 to 441 band, and the spread between borders
+  is no larger than the spread between seeds on a single border.
+metaDescription: "Does a different Eternity II border open a higher interior? With one width-128 beam, 28 random fully-matched borders completed to 434-441 (strict 5/5), and a same-border multi-seed control finds no border effect (F = 1.24, p = 0.25). A negative for this producer only."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 115
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 scoringConvention: strict-5-clue
 sources:
-  - label: "Frame is not the basin: reproduction topic with the article, the committed producer and the two results JSON files (GitHub)"
+  - label: "Frame is not the basin: reproduction topic with the article, the committed producer and the three results JSON files (GitHub)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/frame-is-not-the-basin
 related:
   - /research/why/ring-purity
@@ -31,10 +30,11 @@ repro:
   produces: search
   scope: >-
     A fresh run generates its own fully-matched borders and completes each with
-    the fixed interior producer, so the exact tops shift with the seed; it
-    reproduces the qualitative facts (tops near-maximally distinct, tops low,
-    no border near the 455 record band) and lands the score band within a few
-    points of the committed run.
+    the fixed interior beam, so the exact tops shift with the seed; it
+    reproduces the qualitative facts (tops distinct, band in the mid-430s, no
+    border reaching the 455 high-band threshold). The same-border multi-seed
+    control is a separate command in the topic article (--control, about one
+    minute on 8 cores).
 ---
 
 There is a tempting shortcut for Eternity II. The border ring is the most
@@ -46,13 +46,15 @@ then a *different* fully-matched border should pin a *different* high interior,
 and building several distinct strong borders would open several distinct high
 basins. Border-first diversification would be a lever for scores.
 
-This page is the measurement that closes that door. Generating many
+This page tests that shortcut with one fixed interior producer. Generating many
 structurally distinct fully-matched borders and completing each one with the
-same fixed interior producer gives tops that are near-maximally different from
-one another and yet all land in the same low band, nowhere near the record
-region. The border is a strong *diversifier* of the resulting board and a
-useless *selector* of its quality. Frame identity does not predict the interior
-ceiling.
+same break-tolerant beam gives tops that all land in the same mid-430s band. A
+control that completes each border several times with different seeds shows
+that the spread between borders is no larger than the spread between seeds on
+one border: with this producer, the border choice did not visibly change the
+score. That is a statement about this producer, whose ceiling sits near 440
+whatever border it gets; whether a near-record producer would see a border
+effect is not tested here.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -60,36 +62,35 @@ ceiling.
     <div className="mt-1 text-xs text-muted-foreground">distinct fully-matched borders, two seed bases</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">~190 / 196</div>
-    <div className="mt-1 text-xs text-muted-foreground">interior cells that differ between any two tops</div>
+    <div className="text-3xl font-bold tabular-nums">p = 0.25</div>
+    <div className="mt-1 text-xs text-muted-foreground">border effect on score, 16 borders × 8 seeds (one-way ANOVA)</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">441</div>
-    <div className="mt-1 text-xs text-muted-foreground">best board, strict 5/5, still 14 short of 455</div>
+    <div className="mt-1 text-xs text-muted-foreground">best board of the two main runs, strict 5/5</div>
   </div>
 </div>
 
 Every score on this page is under the strict five-clue convention (all five
 official clues obeyed, matched non-grey adjacencies out of 480); the five clues
 sit at interior cells, none on the ring, so every completion here is a legal
-strict-5/5 board and the border is hint-unconstrained. For where these numbers
-sit against the community and the notebook records, see the
-[records page](/research/records).
+strict-5/5 board and the border is hint-unconstrained. The value 455 used below
+is a fixed high-band threshold carried over from the source study, not the
+record: the current strict-five-clue record is well above it, and the numbers
+live on the [records page](/research/records).
 
-## The frame is a loose object
+## Why the frame might be a loose object
 
 The reason to doubt the shortcut is structural. The border ring is a
 self-contained cyclic edge-matching problem over five colours with balanced
-supply, so fully-matched borders are astronomically abundant: the frame alone is
-long known to admit more than $10^{15}$ arrangements. Structurally distinct ones
-are trivial to produce, and they couple to the interior through a single
-low-information channel: sixty inward-facing colours, a boundary word the
-interior has to meet, over a 196-cell, 22-colour interior. That channel is far
-too thin to determine the interior. So the hope that a different frame pins a
-different high interior rests on the frame carrying information it does not
-carry.
-
-The experiment turns that structural argument into a direct test.
+supply, and fully-matched borders are easy to generate: the randomised search
+below finds a new one on almost every attempt. They couple to the interior
+through 56 inward-facing colours (one per edge piece; the corners have none),
+a boundary word the interior has to meet, over a 196-cell interior painted
+with 17 colours. That channel is thin compared with the interior, which is a
+reason to expect the frame to carry little information about the interior's
+ceiling. It is an argument, not a measurement; the experiment below is the
+measurement.
 
 ## What was measured
 
@@ -105,10 +106,7 @@ On the official 256-piece set with the five official clues pinned:
    width with a seeded tie-break;
 3. report the resulting full-board score band, the pairwise interior tile-Hamming
    distance between the best completions, and whether any border reaches the
-   record band.
-
-Two questions, and only two: **are the tops distinct?** and **are the tops
-high?**
+   455 high-band threshold.
 
 ### The main run
 
@@ -119,69 +117,77 @@ three seeds per border, best kept:
 | --- | --- |
 | Distinct fully-matched borders generated | 16 (from 17 depth-first attempts) |
 | Top score band (min / median / max) | 434 / 437 / 440 |
-| Any border reaches the record band (>= 455) | no |
-| Gap from the best border-first top to 455 | 15 |
+| Any border reaches the 455 threshold | no |
+| Gap from the best top to 455 | 15 |
 | Pairwise interior tile-Hamming (of 196 cells) | 188 to 191, mean 190.4 (120 pairs) |
 | Best board, strict 5/5, border still fully matched | yes and yes (440, 40 breaks) |
 
-The two load-bearing rows are the third and the last-but-one. **No border
-reaches the record band**: the best of the sixteen scores 440, still 15 short of
-455 and about 20 short of the notebook's strict-5/5 high. And the completions
-are **near-maximally distinct**: between any two of them, 188 to 191 of the 196
-interior cells differ. The borders diversify the board almost completely and
-select its quality not at all; every one of the sixteen lands inside a six-point
-window, 434 to 440. The best board of the run, a legal strict-5/5 completion of
-a fully-matched border, is viewable from the committed results file in the
-reproduction topic.
+Every one of the sixteen borders lands inside a six-point window, 434 to 440,
+and the completions differ almost everywhere: between any two, 188 to 191 of
+the 196 interior cells hold a different piece (191 is the maximum possible,
+since the five clues sit on interior cells and always agree). The best board
+of the run, a legal strict-5/5 completion of a fully-matched border, is
+viewable from the committed results file in the reproduction topic.
 
-### The robustness pass
+### The second seed base
 
-Because the whole point is that frame identity does not matter, the run has to
-show its result is not an accident of one seed base. A second, independent pass
-(twelve borders, a different seed base) agrees: band 434 to 441 (median 438),
-best 441 still 14 short of 455, interior tile-Hamming 187 to 191 (mean 190,3),
-and the best board again a strict-5/5 completion of a fully-matched border. Two
-independent seed bases, 28 distinct borders in all, and not one of them crosses
-445, let alone the record band.
+A second, independent pass (twelve borders, a different seed base) agrees:
+band 434 to 441 (median 438), best 441, interior tile-Hamming 187 to 191 (mean
+190.3), and the best board again a strict-5/5 completion of a fully-matched
+border. Across 28 distinct borders, not one crosses 445.
 
-## Why a stronger interior only sharpens it
+### The control: one border, many seeds
 
-An earlier notebook pass ran this same test with a weaker, hard-fit interior
-that stalled in the 250s and never approached the record band. This
-reproduction deliberately swaps in a *stronger* interior producer, the
-break-tolerant beam above, which always fills all 196 cells. Its absolute band
-is therefore higher, the mid-430s rather than the 250s. That does not soften the
-finding; it sharpens it. Even with a much better interior solver, no distinct
-border reaches the record band, and the borders remain near-maximally distinct.
-A stronger interior cannot make the border informative, because the border is a
-downstream, low-entropy shell hanging off the interior, not the thing that pins
-it. The band is a property of the interior solver; the negative is a property of
-the frame-to-interior coupling, and it is producer-independent.
+A narrow band across borders only means something next to the spread for a
+single border. The control completes each of 16 borders with 8 different beam
+seeds and keeps every result (128 completions, no best-of):
 
-## What this closes, and what it does not
+| Quantity | Result |
+| --- | --- |
+| All 128 completions | 432 to 442 |
+| Per-border mean score | 434.5 to 437.4 (grand mean 436.0) |
+| Mean square between borders / within a border | 5.88 / 4.75 |
+| One-way ANOVA, border effect on score | F(15, 112) = 1.24, p = 0.25 |
+| Share of score variance carried by the border (ICC) | about 3% |
+| Interior Hamming, same border, different seed | mean 184.1 (min 166, 448 pairs) |
+| Interior Hamming, different borders | mean 190.4 (min 185, 7,680 pairs) |
 
-The result is a rigidity statement about the border. It closes border-first
-diversification as a route to higher scores: a different fully-matched border
-gives a different board, but not a higher one, so there is no gradient to climb
-by walking the space of borders. Where the high-scoring information actually
-lives is the interior of the top rows, and that is exactly the region the
-[rigidity wall](/research/why/rigidity-wall) describes as a frozen island. The
-frame does not pin the top; the top pins itself, and the border hangs off it.
-The seam bookkeeping that couples the two, the exact colour balance across the
-border-interior interface, is the subject of the
+Two readings follow. The border does not detectably predict the score: the
+spread between borders is the size the seed noise alone would produce. And the
+near-total difference between tops is mostly not the border's doing either:
+two seeds on the *same* border already disagree on about 184 of the 196
+interior cells, against about 190 for two different borders. Most of what
+looked like border-driven diversity is the producer's own seed sensitivity.
+
+## Why a stronger interior matters
+
+An earlier notebook pass ran this test with a weaker, hard-fit interior that
+stalled in the 250s. This reproduction swaps in the break-tolerant beam above,
+which always fills all 196 cells and lands in the mid-430s. The negative holds
+for both producers, but both end far below the record, and a producer whose
+ceiling is the same for every border cannot reveal a border effect that only
+shows up near the top. The result is therefore a property of these producers
+and this budget, not yet of the frame-to-interior coupling in general.
+
+## What this shows, and what it does not
+
+With these producers, a different fully-matched border gives a different
+board but not a measurably better one, so border-first diversification bought
+nothing here. Where the high-scoring information actually lives is plausibly
+the interior, the region the [rigidity wall](/research/why/rigidity-wall)
+describes as a frozen island, but this experiment does not prove that. The seam
+bookkeeping that couples the border to the interior is the subject of the
 [border-balance page](/research/why/border-balance).
 
-This is a single-configuration negative, scoped plainly. It is established
-purely from borders generated from scratch and completed by one fixed producer,
-which is the robustness form the original study asked for. It does not attempt
-the harder control of freezing a record board's own border and completing it,
-which needs a board that is not part of the public starter kit; the negative
-stands without it. And the absolute band is the interior solver's, not a claim
-about any exact digit: the claim that carries is the record-band gap, and that
-reproduces with room to spare.
+The open control is the informative one: freeze the border of a near-record
+board and complete it with a producer that can reach that band, then compare
+with random borders under the same producer. That needs a board outside the
+public starter kit and a much stronger interior producer, and it is not run
+here. Until it is, the negative is scoped to producers that top out near 440.
 
 Every number above is recomputed by the committed producer in the reproduction
 topic linked under sources: a Rust program that loads the official instance,
-generates its own fully-matched borders, freezes each and completes the interior
-with the one fixed break-tolerant beam, and emits two JSON files (the main run
-and the independent-seed pass) holding every figure quoted here.
+generates its own fully-matched borders, freezes each and completes the
+interior with the one fixed break-tolerant beam, and emits three JSON files
+(the main run, the independent-seed pass, and the same-border control) holding
+every figure quoted here.

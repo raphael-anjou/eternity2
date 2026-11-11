@@ -4,15 +4,17 @@ description: >-
   Cinco de los 22 colores nunca tocan las 196 piezas interiores. La lista de
   piezas obliga a toda solución válida a gastar las 120 semiaristas de marco en
   el anillo del borde: un subpuzle autónomo con holgura exactamente nula
-  (120 = 120), un circuito euleriano sobre cinco vértices, acoplado al interior
-  solo por 56 aristas orientadas hacia dentro.
-metaDescription: "Pureza del anillo en Eternity II: los cinco colores de marco son exclusivos del borde, y toda solución válida gasta las 120 semiaristas de marco en el anillo de las 60 piezas de borde, sin holgura. El anillo es un circuito euleriano sobre 5 vértices, acoplado al interior por solo 56 aristas."
+  (120 = 120), un circuito euleriano dirigido sobre cinco vértices, acoplado
+  al interior solo por 56 aristas orientadas hacia dentro. La holgura nula es
+  automática en cualquier puzzle pintado a partir de un tablero resuelto con
+  una paleta de borde separada.
+metaDescription: "Pureza del anillo en Eternity II: los cinco colores de marco son exclusivos del borde, y toda solución gasta las 120 semiaristas de marco en el anillo, una holgura nula automática. El anillo es un circuito euleriano dirigido de 5 vértices, unos 3,5x10^41 circuitos (teorema BEST)."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 2
 order: 65
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Pureza del anillo: el tema de reproducción con el artículo, el verificador versionado y el JSON de resultados (GitHub)"
@@ -37,6 +39,8 @@ repro:
     versionado en el directorio compute/ del tema, estable byte a byte entre
     ejecuciones; las dos medidas de fuerza de Monte Carlo llevan semilla y
     concuerdan, dentro del error de muestreo, entre semillas independientes.
+    El recuento BEST dirigido y la fracción de esquinas muestreada salen de
+    compute/ring_count.py (Python estándar, unos 90 s en 8 núcleos).
 ---
 
 Cinco de los 22 colores de arista no aparecen en ninguna de las 196 piezas
@@ -47,7 +51,10 @@ enunciado: los datos de las piezas no dejan a esa reserva ninguna elección.
 Toda solución válida gasta las 120 semiaristas completas en las 120 ranuras
 del anillo del borde orientadas hacia el propio anillo, sin holgura alguna.
 El borde es un subpuzle autónomo, y su único contacto con el interior pasa
-por 56 aristas orientadas hacia dentro.
+por 56 aristas orientadas hacia dentro. Nada de esto es un extremo de
+diseño: se cumple en cualquier puzzle de emparejamiento de aristas generado a
+partir de un tablero resuelto con una paleta de borde separada, como
+consecuencia estructural de su construcción.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -108,23 +115,30 @@ anillo. Reserva: $5 \times 24 = 120$ semiaristas de marco. Los dos números
 coinciden exactamente. Cada semiarista de marco se consume en el anillo,
 ninguna sobra, y ningún color fuera de marco aparece jamás en una junta del
 anillo. Ese es el sentido de la holgura nula: el presupuesto de colores de
-marco se gasta hasta la última semiarista.
+marco se gasta hasta la última semiarista. Es automático: cada junta del
+anillo del tablero resuelto consume exactamente dos semiaristas de marco, así
+que la reserva iguala la demanda por construcción, en este puzzle y en
+cualquier otro recortado del mismo modo.
 
 ## El anillo es un circuito euleriano
 
-La saturación admite una lectura limpia en teoría de grafos. Tómese un
-multigrafo de 5 vértices, uno por color de marco, con una arista por pieza de
-borde, uniendo sus dos colores orientados al anillo. Una disposición válida
-del anillo del borde es exactamente un circuito euleriano de ese multigrafo:
-recorrer el anillo es leer un circuito cerrado que usa cada arista-pieza una
-vez, y a la inversa.
+La saturación admite una lectura limpia en teoría de grafos. Las piezas de
+borde no se pueden voltear y su lado gris debe mirar hacia fuera, así que
+recorrer el anillo en sentido horario atraviesa cada pieza en un sentido
+fijo: del color de la ranura anterior a su lado gris al color de la ranura
+posterior. Tómese un multigrafo dirigido de 5 vértices, uno por color de
+marco, con un arco por pieza de borde en ese sentido. Una disposición válida
+del anillo del borde da un circuito euleriano de ese multigrafo: recorrer el
+anillo es leer un circuito cerrado que usa cada pieza una vez. La inversa
+necesita una condición más: un circuito euleriano solo es un anillo válido
+si las cuatro esquinas quedan a 15 posiciones unas de otras.
 
-En la instancia real el multigrafo tiene 60 aristas, todos sus grados valen
-24 y es conexo, así que existe un circuito euleriano, como debe ser, puesto
-que existe una solución completa. De las 60 aristas, 14 son lazos (piezas que
-muestran el mismo color de marco en sus dos ranuras de anillo), y las aristas
-cubren los 15 pares de colores posibles, los 10 pares no ordenados más los 5
-lazos.
+En la instancia real el multigrafo tiene 60 arcos, cada color tiene grado de
+entrada y de salida 12 (grado 24 si se ignora el sentido) y es conexo, así
+que existe un circuito euleriano, como debe ser, puesto que existe una
+solución completa. De los 60 arcos, 14 son lazos (piezas que muestran el
+mismo color de marco en sus dos ranuras de anillo), y los arcos cubren los 15
+pares de colores posibles, los 10 pares no ordenados más los 5 lazos.
 
 ## Cuánto vale la ley
 
@@ -146,20 +160,30 @@ casado de colores concentra la masa de probabilidad en unos 53 órdenes de
 magnitud respecto a un orden uniforme de las piezas de borde, y aun así deja
 una rareza residual cercana a $10^{-27}$. Una marcha voraz guiada solo por
 los colores casi nunca termina un anillo: 8,7 % de finalizaciones con la
-semilla 1, 9,3 % (graine 2, exécutée pour vérifier la cohérence ; le JSON archivé couvre la graine 1) con la semilla 2, con la medición original en 9,4 %. Las 87
+semilla 1, 9,3 % con la semilla 2 (ejecutada para comprobar la coherencia; el JSON archivado recoge la semilla 1), con la medición original en 9,4 %. Las 87
 construcciones completadas de la semilla 1 se cerraron todas en circuito, con
 los extremos casando, que es la estructura euleriana asomando en la muestra.
+Esa marcha permite recorrer una pieza en cualquiera de los dos sentidos, así
+que mide la ley de casado de colores sobre el grafo no dirigido, algo más
+holgado que el anillo real.
 
 ## Lo que sigue abierto
 
-El recuento exacto de circuitos eulerianos no orientados del multigrafo real
-del anillo está abierto. Durante la investigación original se intentó un
-atajo de orientación única vía el teorema BEST, se detectó como infrarrecuento
-con una comprobación de control sobre K5 y se retiró; no se reivindica ningún
-recuento de circuitos en ninguna parte. La medida de finalización voraz
-ignora además la alternancia geométrica esquinas/aristas del anillo físico:
-mide la ley de casado de colores aislada, no la restricción completa del
-anillo.
+Como el anillo es dirigido y equilibrado, el teorema BEST cuenta sus
+circuitos eulerianos de forma exacta: el cofactor del laplaciano da 3.432
+arborescencias, es decir, $3432 \times (11!)^5 \approx 3{,}5\times10^{41}$
+circuitos de las 60 piezas etiquetadas, contados salvo rotación del punto de
+partida. Los anillos válidos son el subconjunto con las esquinas a 15
+posiciones unas de otras. Muestrear 16 millones de circuitos eulerianos
+uniformes (algoritmo de Wilson más la biyección BEST) sitúa esa fracción en
+$2{,}78\times10^{-5}$ (error típico $0{,}13\times10^{-5}$), cerca del
+$3{,}1\times10^{-5}$ que darían esquinas colocadas de manera uniforme, así que
+el tablero admite unas $10^{37{,}6}$ colocaciones de marco válidas, esquinas
+incluidas. La estimación ingenua con aristas independientes,
+$4!\,56!\,(1/5)^{60} \approx 10^{34{,}3}$, se queda tres órdenes de magnitud
+corta por la misma razón que el recuento ingenuo de soluciones: ignora que
+los recuentos de colores cuadran exactamente. Lo que sigue abierto es un
+recuento exacto con la restricción de las esquinas, aquí solo muestreada.
 
 ## Dónde encaja, y cómo comprobarlo
 

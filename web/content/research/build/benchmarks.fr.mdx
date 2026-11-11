@@ -10,7 +10,7 @@ metaDescription: "Comment la communauté Eternity II s'est dotée d'une culture 
 kind: reference
 order: 17
 group: Check your code
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [backtracking, speed]
 sources:
   - label: "La proposition de recensement des coins 3×3 : « Suggestion for Benchmark/Test » (arthurhucksake), eternity2@groups.io, 2007-08"
@@ -142,8 +142,11 @@ oriente encore les nouveaux venus : 260 solutions avec rotations et une
 recherche par balayage de lignes complet d'exactement 69 284 103 nœuds pour le
 6×6 ([message 7771](https://groups.io/g/eternity2/message/7771),
 [7777](https://groups.io/g/eternity2/message/7777)). Si votre solveur obtient
-un comptage différent, votre solveur est faux ; c'est toute la proposition de
-valeur.
+un nombre de solutions différent, votre solveur est faux ; c'est toute la
+proposition de valeur. Le chiffre de nœuds est plus étroit : 69 284 103 ne vaut
+que pour un backtracker simple à balayage de lignes qui compte les placements
+valides engagés (la convention de Txibilis), et un solveur correct avec un autre
+ordre de remplissage ou une autre définition du nœud trouve un autre nombre.
 
 ## Le duel du 12×12 à 40 indices
 
@@ -205,8 +208,10 @@ indépendamment de Peter McGavin ont trouvé une *seconde* solution au set 1
 corrigés (**2 solutions pour le set 1, 3 pour le set 2**) ont été confirmés
 quand McGavin a trouvé les trois solutions du set 2
 ([message 8803](https://groups.io/g/eternity2/message/8803)). La théorie de la
-complexité avait prédit 3,2 solutions pour le set 1 : le bon ordre de grandeur
-sur la plus grande instance jamais explorée exhaustivement.
+complexité avait prédit 3,2 solutions pour le set 1. Deux observées contre 3,2
+attendues, c'est un seul tirage de Poisson (environ 38 % de chances d'en obtenir
+deux ou moins) : c'est cohérent avec la théorie sur la plus grande instance
+jamais explorée exhaustivement, sans la mettre sévèrement à l'épreuve.
 
 Sept ans plus tard, les nombres ont été re-vérifiés à partir de zéro par une
 implémentation complètement différente sur un matériel absurdement différent :
@@ -234,10 +239,15 @@ cœurs-années**), à la recherche de ligne ~92 907 sur une prévision d'une pou
 statistiques dans [9688](https://groups.io/g/eternity2/message/9688)). Martin a
 validé le plateau indépendamment
 ([message 9725](https://groups.io/g/eternity2/message/9725)), et le verdict de
-la communauté, « stupéfiant que ce soit réellement aussi difficile que prévu »
-([message 9693](https://groups.io/g/eternity2/message/9693)), a fait office de
-plus forte validation empirique que la
-[théorie de la complexité](/research/why/complex-theory) ait jamais reçue.
+la communauté a été « stupéfiant que ce soit réellement aussi difficile que prévu »
+([message 9693](https://groups.io/g/eternity2/message/9693)). Le résultat est
+cohérent avec la [théorie de la complexité](/research/why/complex-theory) : au
+taux prédit, un premier succès à la recherche de ligne 92 907 ou au-delà a une
+probabilité d'environ 0,27. Mais un succès unique ne borne le taux qu'à un
+facteur d'environ 150 près (intervalle à 95 % d'environ 1 sur 25 000 à 1 sur
+3,7 millions) : c'est un test de cohérence, pas une validation forte. Les
+comptages exhaustifs sur petits plateaux (6×6, 7×7, puzzles indices) calibrent
+bien mieux la théorie.
 Selon les propres mots de McGavin : aucune méthode nouvelle, juste de la
 persévérance systématique et la loi des grands nombres.
 
@@ -274,16 +284,23 @@ chiffre de *plateau facile* ; sur un plateau difficile, le même moteur tourne �
 l'égale. Deux mises en
 garde héritées de l'ancien débat nœud-contre-pas subsistent : un « placement
 valide » ne compte que les pièces qui passent la recherche d'accord de couleur,
-pas chaque pièce essayée, et la vitesse mono-cœur sur un 16×16 complet vaut
-typiquement environ la moitié du chiffre sur petit casse-tête, parce que la
+pas chaque pièce essayée, et la vitesse mono-cœur sur un 16×16 complet est
+typiquement bien inférieure au chiffre sur petit casse-tête (environ un tiers
+chez McGavin, 105 M contre 295 M), parce que la
 recherche passe son temps dans la forêt dense des contraintes proches du bord.
 (Ces chiffres de placements/s sont un axe de « rapide », sans rapport avec le score
 en arêtes appariées d'un plateau ; le
 [registre d'ingénierie des solveurs](/research/build/faster/solver-engineering) fixe
 les trois sens du mot.) Rien de tout cela ne change le verdict
-[élagage contre vitesse](/research/why/prune-vs-speed) : un bond de débit de
-400× depuis 2008 n'a pas fait bouger le record, parce qu'il rend l'arbre moins
-coûteux à parcourir, pas plus petit.
+[élagage contre vitesse](/research/why/prune-vs-speed) : le débit par cœur a été
+multiplié par environ 4 depuis 2008 (295 M contre 68 M sur plateaux faciles,
+environ 1,5× au chiffre de 105 M sur plateau difficile), et un GPU à 10 milliards
+par seconde vaut environ 150 cœurs de 2008. Aucun facteur de cet ordre ne rend
+faisable l'arbre exhaustif du 16×16, parce qu'il rend l'arbre moins coûteux à
+parcourir, pas plus petit. Pour la chasse au record, sur la même période, le
+record a gagné trois arêtes ([records](/research/records)) : cela cadre avec une
+vitesse accrue qui achète plus de tentatives et aide un peu, avec des rendements
+décroissants.
 
 ## Ce qu'il faut exécuter aujourd'hui
 

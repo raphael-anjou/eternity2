@@ -4,11 +4,11 @@ description: >-
   Des approches que nous avons essayées, séduisantes en apparence, mais qui ne
   font pas bouger les lignes sur Eternity II, consignées avec nos constats pour
   que vous investissiez votre temps ailleurs.
-metaDescription: "Des approches sur Eternity II séduisantes mais qui ne bougent pas le score : bases de motifs sans information, réduction de réseaux qui résout la moitié facile, colonies de fourmis qui apprennent du bruit, et deux douzaines d'autres, chacune avec son mécanisme d'échec."
+metaDescription: "Des approches sur Eternity II séduisantes mais qui ne bougent pas le score : bases de motifs triviales à la racine, réduction de réseaux qui résout la moitié facile, colonies de fourmis qui apprennent du bruit, et deux douzaines d'autres, chacune avec son mécanisme d'échec."
 kind: reference
 order: 50
 group: Skip these
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [search-space, learning, exact-methods]
 sources:
   - label: "Fermeture d'eternity2.net : 1,6 TFlops, 10^19 opérations CPU, aucune solution (groups.io message 3511)"
@@ -23,6 +23,8 @@ sources:
     url: https://arxiv.org/abs/2012.10658
   - label: "Rethinking Heatmap and MCTS for TSP (2024)"
     url: https://arxiv.org/abs/2411.09238
+  - label: "Mena, Belanger, Linderman, Snoek: Learning Latent Permutations with Gumbel-Sinkhorn Networks (ICLR 2018)"
+    url: https://arxiv.org/abs/1802.08665
 related:
   - /research/build/run-it-yourself
   - /research/records
@@ -58,12 +60,13 @@ L'absence va plus loin que les rotations et les doublons. Nous avons aussi
 cherché une symétrie par réétiquetage des couleurs : une énumération exhaustive
 de toutes les permutations de couleurs susceptibles d'envoyer le jeu de pièces
 sur lui-même (à rotation près) ne trouve que l'identité, parce que chacune des
-22 couleurs intérieures possède un profil d'adjacence unique à travers les
+22 couleurs non grises possède un profil d'adjacence unique à travers les
 pièces. Le groupe de symétrie est de taille un ; le générateur a aussi brisé
-tous les échanges de couleurs. (Les couleurs intérieures portent tout de même
-une structure utile à connaître : elles tombent dans exactement trois classes
-de fréquence, 5 couleurs présentes 24 fois chacune, 5 présentes 48 fois et 12
-présentes 50 fois, soit 960 demi-bords, deux fois les 480 bords.)
+tous les échanges de couleurs. (Les couleurs portent tout de même une structure
+utile à connaître : elles tombent dans exactement trois classes de fréquence.
+Les 5 couleurs de cadre, cantonnées à la bande de bordure, sont présentes 24
+fois chacune ; les 17 couleurs intérieures se répartissent en 5 présentes 48
+fois et 12 présentes 50 fois, soit 960 demi-bords, deux fois les 480 bords.)
 
 ## Vérifier des invariants sur les cases déjà posées
 
@@ -115,11 +118,15 @@ l'ont pas aidé à le dépasser ([Records et solveurs](/research/records)).
 *La méthode de passage de messages qui a résolu d'immenses instances SAT
 aléatoires en repérant les grappes de solutions.*
 
-**Prouvé.** Elle suppose que le problème ressemble localement à un arbre.
-Eternity II est une grille avec un court cycle dans chaque bloc 2×2, ce qui
-invalide cette hypothèse. En pratique, les messages s'aplatissent au lieu de
+**Mesuré** (une instance 4×4, trois réglages), plus un argument heuristique.
+Elle suppose que le problème ressemble localement à un arbre. Eternity II est
+une grille avec un court cycle dans chaque bloc 2×2, ce qui invalide cette
+hypothèse ; mais le passage de messages sur graphe à boucles fonctionne sur
+certains problèmes en grille (décodage LDPC, modèles de vision), si bien que
+les cycles, à eux seuls, ne prouvent rien. En pratique, les messages s'aplatissent au lieu de
 s'affiner, l'inverse exact de ce qui la fait fonctionner sur le SAT aléatoire.
-Aucun succès publié n'existe pour elle sur les casse-tête en grille. La
+Nous ne lui connaissons aucun succès publié sur les casse-tête d'appariement
+de bords en grille. La
 communauté a remarqué cet aplatissement très tôt : en 2008, des expériences de
 propagation de probabilités de pièces ont constaté que l'influence des
 contraintes issues des indices et des coins semble « s'estomper » à environ deux
@@ -185,8 +192,10 @@ ou évaluer les coloriages cohérents aux frontières.*
 
 **Prouvé.** Il ne peut imposer que la concordance des bords en contact, jamais
 que chaque pièce soit utilisée exactement une fois. Cet angle mort est énorme :
-il dénombre de l'ordre de $10^{90}$ coloriages cohérents aux frontières contre
-l'unique solution réelle, ou presque, du casse-tête. Le passage de messages
+les coloriages cohérents aux frontières qu'il dénombre dépassent de très loin
+les solutions réelles, dont l'estimation au premier moment attend environ
+14 702 avec l'indice de départ et environ une avec les cinq indices
+([comptage des solutions](/research/build/analysis/solution-counting)). Le passage de messages
 local est tout simplement incapable de voir la règle globale d'une pièce par
 case. [Pourquoi c'est un mur →](/research/why/entropy-area-law)
 
@@ -235,9 +244,11 @@ sur le nombre de bords qu'un plateau peut faire concorder.*
 
 **Mesuré.** La relaxation autorise des pièces fractionnaires réparties sur
 plusieurs cases, ce qui fabrique des concordances qu'aucun plateau réel ne peut
-avoir. Le résultat est un plafond autour de 478 alors que les meilleurs plateaux
-réels tournent autour de 458, un écart bien trop grand pour certifier quoi que
-ce soit. La contrainte agissante est l'unicité globale des pièces, que la
+avoir. Pour la PL en bords
+appariés avec la bordure d'un bon plateau fixée (formulation sur la
+[page PL](/research/build/exact/lp-relaxations)), le résultat est un plafond
+autour de 478, encore plusieurs arêtes au-dessus des meilleurs plateaux réels de
+la [page des records](/research/records) : un écart qui ne certifie rien. La contrainte agissante est l'unicité globale des pièces, que la
 relaxation jette. Les formulations en PL étaient à l'ordre du jour de la
 communauté dès le premier été, et déjà là un 4×4 mettait plus d'une heure à se
 résoudre
@@ -269,23 +280,26 @@ corrections de bords qu'exige toute complétion, et sommer ces coûts par zone e
 une heuristique admissible : la technique qui a percé le Rubik's Cube et le
 taquin à 15.*
 
-**Prouvé.** Sur Eternity II l'heuristique ne porte exactement aucune
-information, par calcul direct et non par échantillonnage. Le jeu officiel
-compte 22 couleurs intérieures distinctes et, sur les 256 pièces avec
-rotation, chacune des 22 est disponible sur chaque côté : tout bord intérieur
-potentiel est donc individuellement concordable. La borne supérieure par bord
-ressort à 480, le maximum, et la borne par zone 2×2 (225 zones × 4 bords
-internes, corrigée du double comptage) vaut aussi exactement 480. Les deux
-s'effondrent sur l'énoncé trivial que les 480 bords pourraient tous concorder.
-Les bases de motifs gagnent leur pain quand l'objectif est non additif, quand
-le coût joint d'une zone dépasse la somme de ses parties, comme les comptes de
-mouvements du Rubik. Le compte de bords concordants de ce casse-tête est
-exactement additif par bord, et la seule structure jointe, chaque pièce
-utilisée une fois, couple les cases globalement, ce qu'aucune zone locale ne
-peut voir. À la place : les
-[relaxations PL et PLNE](/research/build/exact/lp-relaxations), qui encodent,
-elles, la contrainte globale d'unicité, dominent strictement toute table de
-zones.
+**Mesuré (à la racine seulement).** Sur le plateau vide, par calcul direct, la
+borne ne porte aucune information. Chaque bord potentiel peut concorder à lui
+seul, si bien que la borne supérieure par bord ressort à 480, le maximum, et la
+borne par zone 2×2 (225 zones × 4 bords internes, corrigée du double comptage)
+vaut aussi exactement 480. C'est ce que toute borne admissible doit renvoyer sur
+un casse-tête qui a une solution par construction : le résultat à la racine est
+trivialement vrai et ne dit rien de la recherche. Les 22 couleurs non grises se
+partagent en 5 couleurs de cadre, cantonnées à la bande de bordure, et 17
+couleurs intérieures, de sorte que les 60 jonctions de bordure et les 420
+jonctions intérieures puisent dans des palettes distinctes ; la borne à la
+racine vaut 480 dans les deux cas. Les bases de motifs gagnent leur pain aux
+nœuds intérieurs de la recherche, une fois un front posé et le stock de pièces
+entamé : là, une borne de zone sur les pièces restantes peut descendre sous la
+borne triviale et capte de vraies interactions (chaque pièce une seule fois dans
+la zone, cohérence jointe des quatre bords). Des bases indexées par les couleurs
+du front et les pièces restantes n'ont pas été testées ici. À la place : les
+bornes qui élaguent déjà aux nœuds intérieurs, comme le
+[filtre de couplage tout-différent](/research/build/reduce/alldiff-regin) et
+les [relaxations PL et PLNE](/research/build/exact/lp-relaxations), qui
+encodent la contrainte globale d'unicité.
 
 ## La réduction de réseaux (LLL) sur les équations de placement
 
@@ -328,12 +342,13 @@ ne sont pas natifs ; le sous-problème dont ils sont natifs est déjà polynomia
 *Entraîner un réseau de neurones sur de petits casse-tête, puis le transférer
 au plateau complet 16×16 pour guider la recherche.*
 
-**Mesuré.** Nous avons entraîné un modèle qui excellait sur les petits plateaux
+**Mesuré**, une seule architecture de modèle. Nous avons entraîné un modèle qui excellait sur les petits plateaux
 et l'avons vu s'effondrer sur le vrai. Il apprend à partir de coups candidats
 filtrés d'une façon, puis on l'interroge sur des coups filtrés très
 différemment, et les couleurs du casse-tête complet n'apparaissent jamais à
-l'entraînement. Le savoir-faire ne franchit pas l'écart de taille et de
-couleurs. [Pourquoi c'est un mur →](/research/why/rigidity-wall)
+l'entraînement. Avec cette architecture, le savoir-faire n'a pas
+franchi l'écart de taille et de couleurs ; d'autres architectures restent à
+essayer. [Pourquoi c'est un mur →](/research/why/rigidity-wall)
 
 ## La descente de gradient sur un plateau adouci
 
@@ -342,11 +357,15 @@ stochastique par normalisation de Sinkhorn plus des softmax de rotation par
 case, maximiser l'espérance de bords concordants par descente de gradient avec
 recuit de température, puis arrondir vers un plateau réel.*
 
-**Mesuré.** L'écart de relaxation est intrinsèque. Le score adouci grimpe à
+**Mesuré**, quatre graines d'un seul programme de recuit Sinkhorn. L'écart de
+relaxation est resté large à chaque exécution. Le score adouci grimpe à
 367/480, mais le meilleur plateau arrondi marque 336 bords concordants (autres
 graines 324 et 325, meilleur de 4), et l'arrondi empire à mesure que la
 température s'affûte ; une variante à passage avant dur est pire encore, à
-280. Le test le plus fort était aussi le plus petit : restreint aux deux ou
+280. La relaxation est la construction Gumbel-Sinkhorn que
+[Mena et al. (2018)](https://arxiv.org/abs/1802.08665) ont appliquée aux puzzles
+et à l'apprentissage de permutations ; on n'en a testé qu'un programme, pas toute
+la famille. Le test le plus fort était aussi le plus petit : restreint aux deux ou
 trois dernières rangées d'un plateau à nous à 459 sur 480 (score strict, les
 cinq indices posés), le reste gelé, exactement là où la re-résolution exacte
 gagne fiablement un à trois bords, l'optimiseur n'a même pas pu reproduire la
@@ -439,13 +458,15 @@ cinq et le problème des triplets pythagoriciens.*
 vide pas le plateau. En 16×16, la phase de découpage ne partitionne l'instance
 en rien de traitable sans un lourd prétraitement, et l'étape de conquête (un
 solveur à anticipation sur chaque cube) était elle-même plus lente que de lancer
-kissat directement. Le résultat, net, était une frontière ferme : la méthode
-fonctionne jusqu'à environ 8×8 et s'arrête là. Elle rejoint la longue lignée des
+kissat directement. Dans ce montage (une
+implémentation, un découpeur à anticipation avec kissat, un encodage, un
+budget), la méthode a fonctionné jusqu'à environ 8×8 sans passer à l'échelle
+au-delà ; d'autres découpeurs, encodages et budgets restent à essayer. Elle rejoint la longue lignée des
 méthodes exactes qui butent sur le même mur que la programmation en nombres
 entiers et la décision SAT, sans prise pour le franchir. À la place :
 [quel mur arrête quelle méthode](/research/why/walls-and-methods) confronte
 chaque attaque exacte à la barrière sur laquelle elle meurt, pour comprendre
-pourquoi celle-ci allait toujours s'arrêter là.
+pourquoi celle-ci a de bonnes chances de s'arrêter là.
 
 ## Générer des plateaux avec un transformeur
 
@@ -489,10 +510,10 @@ tenait environ 265 et atteignait 289 ; ce témoin était une confrontation
 directe. Et le champ appris ne porte aucune information sur ce que font
 réellement les bons plateaux : confronté à un plateau à nous à 455 (bords
 concordants, les cinq indices posés), le champ classait le choix du bon
-plateau en premier dans 1,2 % des cases contre un taux de hasard de 0,9 %,
-avec un percentile moyen de 0,502, statistiquement indiscernable d'un tirage à
-pile ou face ; il ne peut donc même pas servir de guide à une meilleure
-recherche. Le mécanisme est l'attribution du mérite : avec environ 600
+plateau en premier dans 1,2 % des cases, et son percentile moyen pour ce choix
+était de 0,502 contre 0,5 pour un classement aléatoire, statistiquement
+indiscernable du hasard ; il ne peut donc même pas servir de guide à une meilleure
+recherche. Le mécanisme est l'attribution du mérite : avec de nombreux
 candidats légaux par case et de bons scores finaux issus de vastes ensembles
 interchangeables de choix précoces, « cette décision était sur un bon chemin »
 est du bruit. La phéromone amplifie un gagnant de loterie précoce arbitraire

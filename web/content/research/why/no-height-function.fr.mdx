@@ -1,19 +1,20 @@
 ---
-title: "Le casse-tête n'a pas de fonction de hauteur"
+title: "Trois constructions de hauteur échouent sur Eternity II"
 description: >-
   Empruntez l'astuce du physicien qui rend les défauts cristallins solubles et
   tentez de transformer un joint dépareillé en dislocation dotée d'une charge
   conservée. Cela échoue de trois façons : une hauteur scalaire est aveugle aux
   ruptures, l'ensemble des ruptures forme des chaînes ouvertes et non des
-  boucles fermées, et le courant orienté par couleur n'est pas conservé. Seul un
-  bit de parité non signé survit.
-metaDescription: "Une reformulation d'Eternity II en dislocations tente de donner à chaque défaut une charge conservée qu'un mouvement de ver annihilerait par paires. Elle échoue de trois façons ; le seul invariant survivant est un bit de parité non signé par couleur, mesuré sur les plateaux de ce projet."
+  boucles fermées, et le courant orienté par couleur n'est pas conservé. Il
+  reste une parité par couleur que tout plateau au cadre légal satisfait
+  automatiquement. D'autres invariants ne sont pas exclus.
+metaDescription: "Une reformulation d'Eternity II en dislocations cherche une charge conservée par défaut, annihilable par paires. Trois constructions naturelles échouent sur quatre plateaux ; la parité par couleur restante vaut automatiquement, et d'autres invariants ne sont pas exclus."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 75
-updated: 2026-07-23
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Vérificateur sans fonction de hauteur : article, code source Rust et tableau de résultats par plateau (GitHub)"
@@ -130,10 +131,9 @@ le même régime, le plateau 463 correspondant à 22 des deux côtés. Les coule
 signes précis qui ressortent déséquilibrés sont des étiquettes liées à la façon
 dont un plateau particulier a été numéroté et n'ont aucun sens propre ; seul le
 décompte des couleurs déséquilibrées, et le fait qu'il ne soit jamais nul, est le
-contenu reproduit. Ce sont les propres plateaux de ce projet, bien en dessous des
-meilleurs de la communauté, 470 sous la convention de l'indice central et 465
-avec les cinq indices posés (là encore, la [page des records](/research/records)
-conserve ce contexte) ; ils sont utilisés ici parce que l'obstruction doit être
+contenu reproduit. Ce sont les propres plateaux de ce projet, en dessous des
+meilleurs de la communauté (la [page des records](/research/records) conserve
+ce contexte) ; ils sont utilisés ici parce que l'obstruction doit être
 vérifiée sur un vrai plateau à haut score de l'instance officielle, non sur un
 petit plateau généré où elle serait soit vide soit hors instance.
 
@@ -141,19 +141,26 @@ petit plateau généré où elle serait soit vide soit hors instance.
 
 Réunissez les trois échecs. Une hauteur scalaire est sourde aux ruptures ;
 l'ensemble des ruptures est fait de chaînes ouvertes aux dizaines de bouts libres
-; le courant orienté par couleur ne s'équilibre pas. Toute route vers une hauteur
-à vecteur de Burgers est fermée. Ce qui reste est bien plus faible qu'une hauteur
-: le seul invariant conservé de l'ensemble des ruptures est une **parité par
-couleur non signée**, un bit par couleur (un élément d'un espace de dimension 22
-sur le corps à deux éléments). Un bit enregistre si le décompte de joints à demi
-rompus d'une couleur est pair ou impair ; il n'a ni direction ni magnitude. Un
-bit n'est la holonomie d'aucune fonction de hauteur, et aucun mouvement de ver ne
+; le courant orienté par couleur ne s'équilibre pas. Sur les quatre plateaux
+testés, aucune de ces trois constructions ne fournit de hauteur à vecteur de
+Burgers. Ce qui reste est bien plus faible qu'une hauteur : une **parité par
+couleur non signée**, qui dit si le décompte de joints à demi rompus d'une
+couleur est pair ou impair. Cette parité est automatique. Chaque couleur
+apparaît un nombre pair de fois parmi les demi-arêtes de tout casse-tête
+découpé dans un plateau résolu, si bien que sur tout plateau complet au cadre
+légal chaque couleur compte un nombre pair de joints à demi rompus (le même
+dénombrement que derrière [pourquoi 479 est impossible](/research/why/parity-defect-floor)).
+Ce bit est le même sur tous les plateaux, ne dit rien de propre à Eternity II,
+n'est la holonomie d'aucune fonction de hauteur, et aucun mouvement de ver ne
 peut se construire dessus.
 
-Voilà le résultat négatif, et il vaut la peine d'être énoncé clairement car
-l'idée qu'il tue est réellement séduisante : l'image des dimères et défauts est
-fermée du côté des ruptures, et avec elle le rêve d'un mouvement non local net
-qui fait marcher les défauts jusqu'à l'annihilation. L'intuition physique qu'il
+Voilà le résultat négatif, et sa portée compte. Il montre que trois
+constructions naturelles de hauteur échouent ; il ne montre pas qu'aucun autre
+invariant n'existe, ce qui exigerait une preuve sur tous les invariants
+candidats et non la vérification de trois d'entre eux. L'idée qu'il affaiblit
+est réellement séduisante : l'image des dimères et défauts, telle qu'elle est
+construite ici, ne fournit aucun mouvement non local net qui ferait marcher les
+défauts jusqu'à l'annihilation. L'intuition physique qu'il
 laisse debout est plus prometteuse et vit ailleurs : la bonne sortie d'un plateau
 localement figé (voir le [mur de rigidité](/research/why/rigidity-wall)) est un
 **mouvement d'amas corrélé**, plusieurs tuiles tournées ensemble, plutôt qu'une
@@ -162,14 +169,13 @@ mesuré ici.
 
 Cela épouse aussi la forme du casse-tête telle qu'on la voit sur les plateaux
 eux-mêmes. Les ruptures ne se dispersent pas ; elles
-[s'entassent dans une seule bande](/research/why/mismatch-geometry) et le graphe
-des arêtes dépareillées est toujours une forêt, ne fermant jamais de boucle, ce
-qui est le même fait de chaîne ouverte que cette page démontre impossible à
-refermer. Le bit de parité survivant est un cousin de la loi de comptage derrière
+[s'entassent dans une seule bande](/research/why/mismatch-geometry) et les
+graphes de désaccords profilés sont des forêts, ce que donnent de toute façon,
+par hasard, si peu de défauts sur une grille de 480 joints. Le bit de parité
+survivant est un cousin de la loi de comptage derrière
 [pourquoi 479 est impossible](/research/why/parity-defect-floor) : les deux sont
 ce que l'on obtient quand un invariant orienté s'effondre en un invariant non
-signé sur le corps à deux éléments. La direction est exactement ce que cette
-instance refuse de vous donner.
+signé sur le corps à deux éléments.
 
 ## Vérifiez par vous-même
 
