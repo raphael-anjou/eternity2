@@ -99,3 +99,13 @@ bandsaw rung_ms="15000" label_ms="1500":
     single-core-benchmark/engine/target/release/mini_e2 \
         --entry /tmp/bandsaw_entry.json --rung-ms {{rung_ms}} --label-ms {{label_ms}} \
         | tee bandsaw/results/bracket.json
+
+# Spectral planted recovery (agenda A1): on 200 generated framed puzzles per
+# configuration (8x8 and 10x10, two colour counts each), rank every half-edge's
+# colour-compatible candidates by the rarity-weighted compatibility matrix and
+# by its leading eigenvectors, and score the rank of the planted neighbour.
+# Deterministic given the seeds; single core, a few minutes. See PREREG.md.
+spectral-planted-recovery seeds="200":
+    cargo test --release --manifest-path spectral-planted-recovery/Cargo.toml
+    cargo run --release --manifest-path spectral-planted-recovery/Cargo.toml -- \
+        --out spectral-planted-recovery/results --seeds {{seeds}}
