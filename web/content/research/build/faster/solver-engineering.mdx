@@ -10,7 +10,7 @@ metaDescription: "Eternity II solver engineering, technique by technique: candid
 kind: concept
 order: 120
 group: Go faster
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [speed]
 sources:
   - label: "The Lebel thread dissected: the era's reference C++ solver taken apart (groups.io message 1704, 2007)"
@@ -261,8 +261,10 @@ Core i7 hit 558M/s that December
 progress, though, mostly stopped. Posting his 2025 table of nine
 CPU/compiler combinations (38–84M placements/s), McGavin noted that speeds
 on the latest CPUs "are only a little faster" than on his 2010 Phenom II
-([message 11643](https://groups.io/g/eternity2/message/11643)). The engines
-hit Field's memory wall fifteen years ago and have been leaning on it since.
+([message 11643](https://groups.io/g/eternity2/message/11643)). That
+plateau is often read as Field's memory wall. The anatomy below, measured on
+a 2020s core, does not support that reading: it finds the loads already
+cache-served and the residual cost in a data-dependent branch.
 
 ## What a node costs in 2026: the anatomy, measured
 
@@ -283,13 +285,15 @@ branch; the whole reject loop is ten instructions and a single load.
 Three cross-checked instruments put the retired-instruction floor at about
 75 to 90 instructions per node, which at the core's peak issue rate would
 be roughly 12 to 15 cycles. The measured 90 to 145 sits 7 to 10× above
-that floor, and the gap has one name: **branch misprediction** on the
+that floor. The most likely cause is **branch misprediction** on the
 used-piece test, whose outcome depends on which pieces the search has
-placed and therefore cannot be predicted. In 2007 the wall was memory;
+placed and therefore cannot be predicted. That attribution is an inference
+from the instruction-to-cycle gap and from the null cache results below; the
+core's branch-miss counters were not read. In 2007 the wall was memory:
 Field measured half his cycles stalled on loads
 ([message 9003](https://groups.io/g/eternity2/message/9003)). On the
-2020s' wide out-of-order cores with generous L1 caches, the wall has moved
-to branch entropy.
+2020s' wide out-of-order cores with generous L1 caches, the evidence here
+points to branch entropy instead.
 
 One more measurement completes the anatomy. Turning on a sound feasibility
 prune of the kind record engines run multiplies the node cost roughly
@@ -325,8 +329,9 @@ The load-bearing result is a negative. The two "obvious" cache
 optimisations were near-null: packing colours into the candidate entry, to
 kill two table gathers, gained 1.0 to 1.2× and sometimes regressed;
 shrinking the 64 KB side tables to a 1 KB L1-resident form gained at most
-1.26×. That is proof by null that the loads were already cache-served. The
-residual cost is the mispredicting used-piece branch, and every variant
+1.26×. Those nulls are strong evidence that the loads were already
+cache-served. The residual cost is, by the inference above, the
+mispredicting used-piece branch, and every variant
 that preserves the search's exact trajectory must keep that branch. The
 only variants that helped restructured control flow *around* it (loop
 splitting, software pipelining), which is why they cap at 1.2 to 1.4× and
@@ -436,7 +441,7 @@ don't model.
 | --- | --- | --- | --- |
 | Per-position candidate tables (two-edge key) | memory for tables; a fixed fill order | candidates in one memory access, the baseline every fast solver shares | [3098](https://groups.io/g/eternity2/message/3098) |
 | Minimal perfect hashing | offline hash construction | 1M-entry lookup → 1,024 entries, cache-resident | [1831](https://groups.io/g/eternity2/message/1831) |
-| Bit-packing, cache-sized structs | code contortions | fewer stalls where >50% of time is memory; 64-bit used-mask early-outs | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
+| Bit-packing, cache-sized structs | code contortions | fewer stalls where >50% of time was memory (2007 hardware); 64-bit used-mask early-outs | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
 | Bipieces (1×2 precomposition) | tables grow fast; no search-space reduction | +20–30% at 1×2; ~4.2× *slower* at 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
 | Code generation (per-cell straight-line code) | a build pipeline; regenerate per puzzle | ~33 instructions/cell (2007); ~2× from libblackwood's C (2020) | [3098](https://groups.io/g/eternity2/message/3098), [10065](https://groups.io/g/eternity2/message/10065) |
 | BMI/BMI2 bit-extract instructions | portability | 78 → 90M placements/s | [9796](https://groups.io/g/eternity2/message/9796) |
@@ -459,7 +464,8 @@ hardware: around 225–295M/s for McGavin's on small puzzles
 roughly halves on 16×16, the size E2 actually is;
 [message 11750](https://groups.io/g/eternity2/message/11750)), so it mixes a
 codegen gain with a hardware gain, not craft alone. Over the same twenty years,
-the record moved three edges: 467 to 470.
+the [record](/research/records) gained a few edges, and those gains came from
+heuristics and from more cores running them, not from per-core speed.
 
 My own notebook replayed that twenty-year ledger in one afternoon. This
 site's first solver was propagation-heavy and walked about 370k placements
@@ -489,23 +495,29 @@ C stays ~2.3× faster on easy low-branching ones (≈287M vs ≈122M) - every ru
 to walk the identical tree. The lesson cuts both ways: the codegen craft is real and
 reproducible in a modern language - enough to match hand-tuned C where the search is
 hard - *and* it is still only the constant factor this page keeps describing. The same
-engine, pointed at the real puzzle, plateaus in the high-300s of 480, exactly where
-speed alone always leaves you.
+engine, pointed at the real puzzle, plateaus in the high-300s of 480: a property of
+that strict backtracker's scoring regime, which its speed did not change.
 
-Two more notebook measurements close the accounting. First, the constant
-factor caught in the act: a +25% single-thread throughput gain from
-per-depth generated code **did not change the board quality reached** at a
-fixed 5 minute multi-thread budget. Identical partials at 444 of 480
+Two more notebook measurements close the accounting, both narrower than
+they first look. First, a +25% single-thread throughput gain from
+per-depth generated code **did not change the board quality reached** at
+one fixed 5 minute multi-thread budget: identical partials at 444 of 480
 matched edges, and the same 450 to 451 matched edges after a repair pass,
 stable across 3 seeds with about 0.5% spread (one machine, one budget
 point; matched-edges scoring, and see [the records page](/research/records)
-for how any such number sits against the community's). The search converges
-on the same trajectory; faster walking only reaches it sooner. Second, the
-multithreading caveat 2008 never had to face: on an 8-core part with a
-shared memory system, 4 threads ran at 52M placements per second each
-while 8 threads dropped to 22M each, a near-flat aggregate, and both
-reached the same score at the same budget. Multithreading scales the
-obvious way until the memory system saturates.
+for how any such number sits against the community's). At that budget the
+search had already plateaued, and a 1.25× speedup is too small to show an
+effect on a quantity that grows slowly with time. Whether speed changes
+quality needs a budget sweep (1×, 10×, 100×), which has not been run.
+Second, a multithreading caveat 2008 never had to face: on an 8-core
+part, 4 threads ran at 52M placements per second each (208M total) while
+8 threads averaged 22M each (176M total, about 15% lower), and both
+reached the same score at the same budget. The cause was not isolated. On
+a heterogeneous chip such as the M1 used elsewhere on this page, four of
+the eight cores are efficiency cores, which alone would pull the
+per-thread average down; and the anatomy above finds the working set
+cache-resident, so memory saturation is not the default explanation. A
+performance-core-only scaling run is the missing control.
 
 The practitioners said it themselves. Joshua Blackwood, cataloguing his dead
 ends after the 469 ([SAT solvers](/research/build/exact/sat-csp-encodings),
@@ -516,6 +528,10 @@ when the 2025 speed thread wound down, Razvan wrote its epitaph: regardless
 of how fast we can check, "we will not make a dent" in the E2 search space
 ([message 11657](https://groups.io/g/eternity2/message/11657)). The craft
 on this page is real, measurable and worth learning; it is why a hobbyist
-farm can walk 10¹⁷ nodes. But a constant factor is a constant factor.
+farm can walk 10¹⁷ nodes. But against the full tree a constant factor is
+a constant factor: no speedup brings an exhaustive search within reach. For
+record hunting the arithmetic is different, since more throughput buys more
+attempts for a good heuristic, which can raise the best score found, with
+diminishing returns.
 [Why shrinking the tree beats speeding up the walk](/research/why/prune-vs-speed)
 is the arithmetic of that sentence; this page is its engineering ledger.

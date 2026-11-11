@@ -11,7 +11,7 @@ metaDescription: "Quinze ans de résolution répartie d'Eternity II : essaims BO
 kind: concept
 order: 150
 group: Go faster
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "eternity2.net se lance sur BOINC, et les sceptiques répondent (groups.io message 756)"
@@ -158,10 +158,12 @@ record absolu sur le vrai casse-tête
 Le cloud a fait des apparitions éclair : Amazon EC2 a été suggéré dès 2010
 ([message 8106](https://groups.io/g/eternity2/message/8106)), et David Barr a
 essayé son programme de recherche sur AWS Lambda en 2016
-([message 9642](https://groups.io/g/eternity2/message/9642)). Mais les parcs
-loués n'ont jamais supplanté ceux détenus en propre ; pour un casse-tête sans
-échéance, l'économie favorise le matériel qu'on peut laisser tourner pendant
-des années.
+([message 9642](https://groups.io/g/eternity2/message/9642)). Jusqu'en 2020,
+les parcs loués n'ont jamais supplanté ceux détenus en propre ; pour un
+casse-tête sans échéance, l'économie favorisait le matériel qu'on pouvait
+laisser tourner pendant des années. En 2025, une RTX 4090 louée environ
+0,30 $ de l'heure était devenue le calcul mesuré le moins cher pour des
+balayages bornés ; voir [la résolution sur GPU](/research/build/hardware/gpu-solving).
 
 ## Le recensement
 
@@ -208,13 +210,19 @@ Gaillard a « réservé » les entrées 1000002–1000035 en postant sur la list
 par leur probabilité, au sens de la
 [théorie du complexe](/research/why/complex-theory), de solution par nœud
 d'arbre de recherche et a mis en ferme les meilleures rangées d'abord. La
-solution est arrivée au parcours de rangée ~92 907 contre une prédiction d'une
-pour ~70 000
-([message 9688](https://groups.io/g/eternity2/message/9688)). Le classement
-faisait la différence entre une loterie et un calendrier. Les tâches ont une
-valeur extrêmement inégale ; un bon modèle statique de savoir quelles tranches
-sont prometteuses vaut plus que n'importe quelle quantité de matériel
-supplémentaire.
+solution est arrivée au parcours de rangée ~92 907, ce qui concorde avec la
+prédiction du modèle d'une pour ~70 000
+([message 9688](https://groups.io/g/eternity2/message/9688)). Ce n'est qu'un
+tirage : pour une attente géométrique de moyenne 70 000, une attente au moins
+aussi longue a environ 27 % de chances, si bien que cette arrivée à elle seule
+ne départage pas le modèle d'une large gamme d'autres taux. La preuve la plus
+solide est ailleurs : les histogrammes de nœuds par profondeur publiés
+correspondaient au modèle. Dans la liste non classée de 2013, la solution
+connue se trouvait à la rangée 1 407 888 sur 4 318 956, mais cette liste ne
+compte pas les rangées comme les ~20 millions de permutations classées, et
+les deux positions ne se comparent pas directement. Les tâches n'ont pas
+toutes la même valeur, et un modèle statique des tranches prometteuses est
+une façon peu coûteuse de les ordonner.
 
 **Balayages de paramètres.** La variante moderne répartit des
 *configurations* au lieu de sous-arbres. Le
@@ -261,16 +269,18 @@ garder motivés, à l'intérieur de ce secret imposé. Quand le concours est mor
 le problème s'est évaporé : les efforts modernes publient tout, et la confiance
 repose sur la reproductibilité plutôt que sur des contrats.
 
-## Ce que 10^19 opérations ont acheté
+## Ce que 10^19 opérations ont acheté vers une solution complète
 
 Rien, et la communauté en connaissait la raison avant même de commencer. Les
 estimations d'arbre du groupe lui-même, convergeant à partir
 d'implémentations indépendantes en 2008, situaient la recherche complète à
-environ 2,2×10⁴³ nœuds par solution, de l'ordre de 10²⁷ cœurs-ans
+environ 2,2×10⁴³ nœuds par solution, soit environ 10²⁸ cœurs-ans à 10⁸ nœuds
+par seconde
 ([message 5193](https://groups.io/g/eternity2/message/5193),
 [message 5197](https://groups.io/g/eternity2/message/5197)). Face à cela, le
-total cumulé de 10¹⁹ opérations d'eternity2.net représente environ 10⁻²⁴ du
-travail d'une seule solution : multiplier votre parc par mille, ou par un
+total cumulé de 10¹⁹ opérations d'eternity2.net correspond à quelque
+10¹⁷–10¹⁸ nœuds, soit 10⁻²⁶ à 10⁻²⁵ du travail d'une seule solution :
+multiplier votre parc par mille, ou par un
 million, ne déplace en rien un nombre pareil. Owen l'avait dit deux mois avant
 la sortie du casse-tête
 ([message 226](https://groups.io/g/eternity2/message/226)) ; la lettre de
@@ -284,6 +294,15 @@ général, et [la théorie du complexe](/research/why/complex-theory) fournit
 l'arithmétique exacte de la raison pour laquelle l'arbre du casse-tête complet
 écrase tout parc concevable. Chaque effort réparti sur le casse-tête complet a
 confirmé l'argument de dénombrement ; aucun ne l'a entamé.
+
+La chasse aux records est une autre affaire. Un record est un événement rare
+d'une recherche stochastique : ses chances croissent avec le nombre de
+tentatives indépendantes. Le calcul bénévole a acheté le 463 d'eternity2.net,
+plafond public de la communauté pendant plus d'un an, et les dizaines de 467
+indépendants trouvés par la foule d'eii. Le multiplicateur agit sur les
+chances d'un partiel élevé, avec des rendements décroissants, jamais sur
+l'exposant de l'arbre complet ; les chiffres à jour sont sur la page des
+[records](/research/records).
 
 ## Ce à quoi la répartition sert réellement
 
@@ -304,17 +323,19 @@ et les mathématiques le disaient à l'avance.
   question est « laquelle de ces mille configurations cherche le plus
   profond ? », les tâches sont vérifiables, bornées et indépendantes, ce qui
   est exactement ce que la répartition recherche.
-- **Des records, mais seulement en aval d'un algorithme.** Le 469 est venu de
-  ~200 cœurs faisant tourner un solveur qui était déjà, à lui seul, de classe
-  record ([message 10045](https://groups.io/g/eternity2/message/10045)). Les
-  cœurs ont multiplié l'algorithme de Blackwood ; à aucun moment dans cette
-  archive ils ne s'y sont substitués.
+- **Des records, en appui d'un algorithme.** Le 469 est venu de ~200 cœurs
+  faisant tourner un solveur qui était déjà, à lui seul, de classe record
+  ([message 10045](https://groups.io/g/eternity2/message/10045)). Les cœurs
+  ont multiplié les tentatives de l'algorithme de Blackwood. Personne n'a
+  vérifié si un seul cœur aurait atteint 469 dans le même temps réel.
 
 <Callout kind="note" title="Le résumé en une ligne">
-  Quinze ans de calcul collectif, distillés : les foules sans algorithme n'ont
-  rien acheté ; les parcs pointés sur des cibles finies et bien modélisées ont
-  acheté exactement ce que le modèle promettait. Le multiplicateur est réel ;
-  il ne fait que multiplier ce que vous avez déjà.
+  Quinze ans de calcul collectif, distillés : aucun parc ne s'est approché
+  d'une solution exacte du casse-tête complet ; les parcs pointés sur des
+  cibles finies et bien modélisées ont acheté exactement ce que le modèle
+  promettait ; et ceux qui faisaient tourner une bonne heuristique ont acheté
+  davantage de tentatives de record, ce qui a produit plusieurs records. Le
+  multiplicateur est réel ; il multiplie ce que vous avez déjà.
 </Callout>
 
 Cette conclusion est mise à l'épreuve en ce moment même : une flotte partagée
