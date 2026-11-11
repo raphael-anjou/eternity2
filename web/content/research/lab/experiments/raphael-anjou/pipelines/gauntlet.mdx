@@ -3,8 +3,9 @@ title: GAUNTLET
 description: >-
   Run the same beam search across nine different scan orders, so it lands in
   different regions instead of always converging to the same one. The zigzag
-  order found a brand-new 458 board.
-metaDescription: "GAUNTLET runs one beam search across nine scan orders (row, zigzag, spiral, diagonal…) so it samples different regions instead of converging to one: the zigzag order, lifted with ALNS, reached a new 458 board in an unseen corner family — proof that scan order beats the random seed for diversity."
+  order found a new unhinted 458 board (matched edges, official clues not
+  placed).
+metaDescription: "GAUNTLET runs one beam search across nine scan orders (row, zigzag, spiral, diagonal…) so it samples different regions instead of converging to one: the zigzag order, lifted with ALNS, reached an unhinted 458 board in an unseen corner family, evidence that scan order is a stronger diversity axis than the random seed."
 kind: experiment
 hardware:
   cores: 8
@@ -44,7 +45,7 @@ stages:
   - engine: clustering
     does: "Group results by corner arrangement to flag genuinely new basins (not a solver stage)"
 order: 50
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction]
 related:
@@ -76,13 +77,16 @@ swap: row, row-reversed, column, column-reversed, zigzag, zigzag-reversed,
 spiral-in, spiral-out, and diagonal, nine in all. Because the order of cells
 changes which partial boards survive at each step, each order explores a
 different trajectory rather than crowding into one. A sweep of 9 scans × 4
-seeds produced **18 distinct corner-arrangement signatures**, against just
-one across sixteen seeds of the single-scan beam it grew from.
+seeds (36 runs) produced **18 distinct corner-arrangement signatures**, against
+just one across sixteen seeds (16 runs) of the single-scan beam it grew from.
+The run counts differ and no equal-count control (for example 36 seeds of one
+scan) was run, so this is evidence, not a measured effect size.
 
-Each full run produces a complete board; the strongest are then polished by a
-30-minute ALNS lift. The finding is sharp: *scan order is a stronger
-diversity axis than the random seed.* That is the lever, and it is what the
-later KEYRING and PRIOR build on.
+Each full run produces a complete board; the strongest are then polished by an
+ALNS lift (5 minutes per build in the sweep, longer for the finalists). The
+evidence points one way: *scan order looks like a stronger diversity axis than
+the random seed*, pending a comparison at equal run counts. That is the lever
+the later KEYRING and PRIOR build on.
 
 <Figure collapsible title="Interactive: the construction-order schedule">
   <GauntletDiagram />
@@ -109,11 +113,14 @@ board it found is fixed, bundled here, and checkable edge by edge.
 
 ## The result
 
-The zigzag order at seed 99, lifted, reached 458 of 480 in the corner
-arrangement cp=(3,0,1,2), the first board at or above 458 ever found in that
-arrangement in our database. It is at least 246 of 256 cells away from
-anything we had at that level: a genuinely new basin, not another route to a
-known one.
+The zigzag order at seed 99, lifted, reached 458 of 480 in matched edges
+without the official clues in place (the centre clue piece sits elsewhere on
+the board), in the corner arrangement cp=(3,0,1,2), the first board at or above
+458 in that arrangement in our database. It is at least 246 of 256 cells away
+from anything we had at that level: a new basin, not another route to a known
+one. The database mixes unhinted and clue-respecting boards, and a clue-free
+board has a different corner-arrangement space, so the comparison is only
+meaningful against other unhinted boards.
 
 So GAUNTLET's contribution is reach rather than a record: it opened a new
 region of strong boards. A second round (32 more lifts) topped out at 457
@@ -139,8 +146,8 @@ for the finalists.
 **Stage 3: cluster.** Group all outputs by corner-permutation and flag the
 signatures absent from the existing database. That is how the 9×4 sweep
 surfaced **18 distinct corner families** where sixteen seeds of a single scan
-had surfaced one, the measured claim that *scan order is a stronger diversity
-axis than the seed.*
+had surfaced one: evidence, at unequal run counts (36 against 16), that *scan
+order is a stronger diversity axis than the seed.*
 
 The winning board, zigzag, seed 99, lifted, sits at cp = (3, 0, 1, 2),
 Hamming distance ≥ 246/256 from anything previously at that level: a new basin

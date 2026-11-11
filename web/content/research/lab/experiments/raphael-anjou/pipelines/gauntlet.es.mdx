@@ -3,8 +3,9 @@ title: GAUNTLET
 description: >-
   Ejecutar la misma búsqueda en haz según nueve órdenes de recorrido distintos,
   para que aterrice en regiones diferentes en lugar de converger siempre a la
-  misma. El orden en zigzag encontró un tablero 458 inédito.
-metaDescription: "GAUNTLET ejecuta una sola búsqueda en haz sobre nueve órdenes de recorrido (fila, zigzag, espiral, diagonal…) para muestrear regiones distintas en vez de converger a una: el zigzag, realzado con ALNS, alcanzó un tablero 458 inédito en una familia de esquinas nueva — el orden supera a la semilla."
+  misma. El orden en zigzag encontró un tablero 458 inédito sin pistas
+  (aristas emparejadas, pistas oficiales sin colocar).
+metaDescription: "GAUNTLET ejecuta una sola búsqueda en haz sobre nueve órdenes de recorrido (fila, zigzag, espiral, diagonal…) para muestrear regiones distintas en vez de converger a una: el zigzag, realzado con ALNS, alcanzó un tablero 458 sin pistas en una familia de esquinas nueva, indicio de que el orden supera a la semilla para la diversidad."
 kind: experiment
 hardware:
   cores: 8
@@ -44,7 +45,7 @@ stages:
   - engine: clustering
     does: "Agrupar los resultados por disposición de las esquinas para señalar cuencas genuinamente nuevas (no es una etapa de solucionador)"
 order: 50
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction]
 related:
@@ -77,14 +78,19 @@ intercambiable: fila, fila invertida, columna, columna invertida, zigzag,
 zigzag invertido, espiral entrante, espiral saliente y diagonal, nueve en
 total. Como el orden de las celdas modifica qué tableros parciales sobreviven
 en cada paso, cada orden explora una trayectoria diferente en lugar de
-apiñarse en una sola. Un barrido de 9 recorridos × 4 semillas produjo **18
-firmas de disposición de esquinas distintas**, frente a una sola a lo largo de
-dieciséis semillas del haz de recorrido único del que surgió.
+apiñarse en una sola. Un barrido de 9 recorridos × 4 semillas (36 ejecuciones)
+produjo **18 firmas de disposición de esquinas distintas**, frente a una sola a
+lo largo de dieciséis semillas (16 ejecuciones) del haz de recorrido único del
+que surgió. Los tamaños de muestra difieren y no se lanzó ningún control con el
+mismo número de ejecuciones (por ejemplo 36 semillas de un solo recorrido): es
+un indicio, no un tamaño de efecto medido.
 
 Cada ejecución completa produce un tablero entero; los más sólidos se pulen
-luego con un realce ALNS de 30 minutos. La constatación es nítida: *el orden de
-recorrido es un eje de diversidad más potente que la semilla aleatoria.* Ese es
-el resorte, y es sobre él que se apoyan KEYRING y PRIOR más adelante.
+luego con un realce ALNS (5 minutos por construcción en el barrido, más para
+los finalistas). Los indicios apuntan en una dirección: *el orden de recorrido
+parece un eje de diversidad más potente que la semilla aleatoria*, a falta de
+una comparación con el mismo número de ejecuciones. Es la palanca sobre la que
+se apoyan KEYRING y PRIOR más adelante.
 
 <Figure collapsible title="Interactivo: el calendario del orden de construcción">
   <GauntletDiagram />
@@ -112,11 +118,15 @@ arista.
 
 ## El resultado
 
-El orden en zigzag con la semilla 99, realzado, alcanzó 458 de 480 en la
-disposición de esquinas cp=(3,0,1,2), el primer tablero igual o superior a 458
-jamás encontrado en esa disposición dentro de nuestra base de datos. Se sitúa a
-al menos 246 celdas de 256 de todo lo que teníamos a ese nivel: una cuenca
-genuinamente nueva, no otra ruta hacia una conocida.
+El orden en zigzag con la semilla 99, realzado, alcanzó 458 de 480 en aristas
+emparejadas sin las pistas oficiales en su sitio (la pieza de la pista central
+está en otra posición del tablero), en la disposición de esquinas cp=(3,0,1,2),
+el primer tablero igual o superior a 458 en esa disposición dentro de nuestra
+base de datos. Se sitúa a al menos 246 celdas de 256 de todo lo que teníamos a
+ese nivel: una cuenca nueva, no otra ruta hacia una conocida. La base mezcla
+tableros sin pistas y tableros que respetan las pistas, y un tablero sin pistas
+tiene otro espacio de disposiciones de esquinas, así que la comparación solo
+tiene sentido frente a otros tableros sin pistas.
 
 Así que la contribución de GAUNTLET es alcance más que un récord: abrió una
 nueva región de tableros sólidos. Una segunda ronda (32 realces más) topó en
@@ -143,9 +153,9 @@ construcción durante el barrido, más tiempo para los finalistas.
 **Etapa 3: agrupamiento.** Se agrupan todas las salidas por permutación de las
 esquinas y se señalan las firmas ausentes de la base de datos existente. Así es
 como el barrido 9×4 hizo emerger **18 familias de esquinas distintas** allí
-donde dieciséis semillas de un recorrido único habían hecho emerger una sola, la
-afirmación medida de que *el orden de recorrido es un eje de diversidad más
-potente que la semilla.*
+donde dieciséis semillas de un recorrido único habían hecho emerger una sola: un
+indicio, con muestras desiguales (36 frente a 16), de que *el orden de recorrido
+es un eje de diversidad más potente que la semilla.*
 
 El tablero ganador, zigzag, semilla 99, realzado, se sitúa en cp = (3, 0, 1, 2),
 a una distancia de Hamming ≥ 246/256 de todo lo que estaba previamente a ese
