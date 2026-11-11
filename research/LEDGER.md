@@ -1704,4 +1704,6 @@ Reproducibility: prose (literature and archive citations). Message numbers
 not re-checked against the local archive export (absent from the checkout).
 Files: build/hardware/gpu-solving{,.fr,.es}.mdx, the GPU paragraphs of
 build/hardware/fpga-solving{,.fr,.es}.mdx, the GPU bullet of
-build/approaches-map{,.fr,.es}.mdx.
+build/approaches-map{,.fr,.es}.mdx; then the hardware hub description
+(build/hardware/index{,.fr,.es}.mdx) and the FPGA page's economics, ReConFig
+and rack-year paragraphs. Commits: cd55b20, 5748d05.
