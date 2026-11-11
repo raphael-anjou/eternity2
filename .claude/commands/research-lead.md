@@ -43,8 +43,9 @@ the old ones. Read these first, every round:
    and combinatorics on words, physics of glasses, cryptanalysis, game-tree
    search, program synthesis, auction and matching theory.
 2. **Filter.** As lead, reject ideas that are variants without a reason, that
-   lack a falsifiable small-board test, or that need hardware the VM lacks
-   (park those under the hardware section). Keep about five.
+   lack a falsifiable small-board test, or that need hardware neither the VM
+   nor the AWS account provides (park those under the hardware section; GPU
+   ideas go through the AWS route in Compute). Keep about five.
 3. **Test.** One session per kept idea implements the cheap test in
    `research/experiments/<name>/` with seeds, a `just` recipe and committed
    results.
