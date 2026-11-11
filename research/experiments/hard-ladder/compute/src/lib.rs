@@ -18,7 +18,7 @@ pub use instance::{verify_board, Ladder, LadderInstance, Role};
 pub use runner::{run_all, run_one, RunRecord};
 pub use solver::{LadderSolver, Outcome, SolverEntry};
 
-/// Per-instance node cap for test runs (PREREG.md).
-pub const TEST_CAP: u64 = 10_000_000;
+/// Per-instance node cap for test runs (PREREG.md, amended by PREREG_AMENDMENTS.md A1).
+pub const TEST_CAP: u64 = 1_000_000;
 /// Per-instance node cap for calibration runs (PREREG.md).
 pub const CALIBRATION_CAP: u64 = 2_000_000;

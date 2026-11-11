@@ -127,3 +127,13 @@ fn plug_in_entry_runs_through_the_harness() {
     assert_eq!(r.status, "solved");
     assert!(r.nodes > 0);
 }
+
+/// hp-dfs reproduces research/topics/hardness-peak/results/hardness-peak-8x8.json
+/// (8x8, 5 frame colours, same generator and scramble): node = placement.
+#[test]
+fn hp_dfs_matches_committed_hardness_peak_rows() {
+    for (c, seed, placements) in [(10, 12, 146_785), (10, 16, 43_383), (10, 28, 58_119), (9, 16, 912_765)] {
+        let r = run_one(entry("hp-dfs"), &small(8, c, seed), 2_000_000);
+        assert_eq!((r.status.as_str(), r.nodes), ("solved", placements), "c={c} seed={seed}");
+    }
+}
