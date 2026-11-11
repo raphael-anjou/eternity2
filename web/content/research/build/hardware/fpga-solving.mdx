@@ -11,7 +11,7 @@ metaDescription: "FPGA solving for Eternity II: Michael Field's 2014 design put 
 kind: concept
 order: 145
 group: GPU & hardware
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, hardware]
 sources:
   - label: "The first FPGA proposal: exact cover in hardware (groups.io message 2623, 2007)"
@@ -46,12 +46,13 @@ repro:
   kind: prose
 ---
 
-The [GPU page](/research/build/hardware/gpu-solving) ends at a wall: an
-Eternity II backtracker is not compute-bound, it is a chain of tiny dependent
-memory lookups, and Mike Field's 2011 analysis showed both GPU branches
-(cooperate or work alone) ending at the external memory bus
-([message 9003](https://groups.io/g/eternity2/message/9003)). An FPGA is the
-one piece of silicon that seems to answer that exact complaint. There is no
+An Eternity II backtracker is not compute-bound: it is a chain of tiny
+dependent memory lookups. In 2011 Mike Field argued that this sent both GPU
+designs (cooperate or work alone) to the external memory bus
+([message 9003](https://groups.io/g/eternity2/message/9003)); the
+[GPU page](/research/build/hardware/gpu-solving) covers why that argument
+dated quickly. An FPGA was the piece of silicon that seemed to answer the
+complaint directly. There is no
 cache hierarchy to miss: the lookup tables live in on-chip block RAM, one
 clock cycle away, in dozens of independent little memories that can all be
 read *in the same cycle*. The bit-shifts and masks that cost instructions on
@@ -66,21 +67,24 @@ end. No full-Eternity-II FPGA run was ever reported, in nineteen years of
 archive. The interesting part is that the reasons are on the record too, in
 the designer's own words.
 
-## Why FPGAs answer the exact wall GPUs hit
+## Why FPGAs looked like the answer
 
 Recall the fork from Field's analysis (told in full on the
 [GPU page](/research/build/hardware/gpu-solving)): parallel searchers either
 share information, needing synchronization bandwidth the fabric doesn't have,
-or work independently, needing per-worker state that outgrows the ~8 KB of
-fast memory a GPU lane gets, spilling everything to one shared external bus.
+or work independently, needing per-worker state that (by his 2011 estimate)
+outgrew the ~8 KB of fast memory a GPU stream processor then had, spilling
+everything to one shared external bus. The GPU page explains why that
+estimate no longer describes current GPUs.
 His 2011 post applied the same argument to FPGAs in the same breath: "either
 need to store too much information, pass too much information around or it
 choke[s] on memory bandwidth"
 ([message 9003](https://groups.io/g/eternity2/message/9003)).
 
-But the FPGA version of the argument has an escape hatch the GPU version
-doesn't. On a GPU the fast-memory budget per worker is fixed by the vendor.
-On an FPGA *you* draw the memory map: if you can shrink one backtracker's
+The FPGA version of the argument has an escape hatch that 2011 GPUs seemed
+to lack. On a GPU the fast-memory budget per multiprocessor is fixed by the
+vendor (and has since grown by orders of magnitude). On an FPGA *you* draw
+the memory map: if you can shrink one backtracker's
 entire world (candidate tables, board state, used-piece set) small enough,
 you can instantiate it entirely in block RAM, replicate it fifty times, and
 no worker ever touches external memory at all. The bandwidth wall isn't
@@ -176,9 +180,11 @@ count ([message 9228](https://groups.io/g/eternity2/message/9228)). In
 hardware, he noted, the shifts and masks are free wiring, the two tables sit
 in different BRAMs so both lookups happen in parallel, and block RAM's
 same-cycle read-write gives an atomic test-and-set on the used-piece bit:
-the inner loop's entire memory traffic, one cycle away. Compare that 4 KB
-against the [GPU page's](/research/build/hardware/gpu-solving) fatal ">8 KB
-per thread": this is what deleting the bandwidth wall looks like.
+the inner loop's entire memory traffic, one cycle away. That 4 KB of
+read-only tables plus ~1 KB of state per solver is also the budget that makes
+the 2011 GPU argument obsolete, as the
+[GPU page](/research/build/hardware/gpu-solving) explains: shared tables and
+a kilobyte per search fit comfortably in a modern GPU's on-chip memory.
 
 The projection: about **50 solver instances on a Zynq 7020 at ~200 MHz**,
 each place/unplace averaging ~2 cycles, "up to 5 billion tile placements per

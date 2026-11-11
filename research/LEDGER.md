@@ -1676,3 +1676,32 @@ author reads "Benjamin Riotte & the five-clue fleet", plotted on the open track
 and dragged the 470 line down to 465. The track is now declared on the data row
 (`regime: "strict"`) and the author heuristic is gone. All gates green; build,
 typecheck, lint and 90 tests clean.
+
+## 2026-11-11 — GPU page rewritten after an external rigor review
+
+The GPU page argued that GPUs cannot help, resting on Mike Field's 2011
+memory-bandwidth argument (msg 9003). An external review found the thesis
+stale and contradicted by the site's own benchmarks page (2026 GPU solvers
+above 10 billion placements/s, msg 11826; Barr's port ~100x his CPU core,
+msg 11835) and by GPU annealing with 4096 replicas on the rigidity page
+(msg 11902). The rewrite separates the 2011 argument (read as history: it
+conflates dependent-load latency with bandwidth, ignores that read-only
+tables are shared, and uses 2011 on-chip memory figures), the measured
+results, a fair-comparison section (same puzzle, same counting convention,
+per socket rather than per core) and the open problems (a tuned full-board
+GPU backtracker with matched node counts; per-watt numbers; GPU population
+methods). Divergence and load imbalance are framed as solvable with standard
+techniques, cited to the GPU backtracking and branch-and-bound literature
+(Jenkins 2011, Gmys 2016, Carneiro Pessoa 2018, Cederman and Tsigas 2012,
+Weigel 2012). The "GPUs verify, they don't search" split is dropped: the 9x9
+re-verification is the same DFS on a smaller tree.
+
+Learning: an older page anchored on one historical argument drifted out of
+date while newer pages recorded the counter-evidence; nothing linked them.
+No first-party GPU measurement exists; the page says so.
+
+Reproducibility: prose (literature and archive citations). Message numbers
+not re-checked against the local archive export (absent from the checkout).
+Files: build/hardware/gpu-solving{,.fr,.es}.mdx, the GPU paragraphs of
+build/hardware/fpga-solving{,.fr,.es}.mdx, the GPU bullet of
+build/approaches-map{,.fr,.es}.mdx.

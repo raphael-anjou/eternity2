@@ -13,7 +13,7 @@ metaDescription: "Résolution sur FPGA pour Eternity II : le design 2014 de Mich
 kind: concept
 order: 145
 group: GPU & hardware
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, hardware]
 sources:
   - label: "La première proposition FPGA : la couverture exacte en matériel (groups.io message 2623, 2007)"
@@ -48,13 +48,14 @@ repro:
   kind: prose
 ---
 
-La [page GPU](/research/build/hardware/gpu-solving) se termine sur un mur : un
-backtracker d'Eternity II n'est pas limité par le calcul, c'est une chaîne de
-petites lectures mémoire dépendantes, et l'analyse de Mike Field en 2011
-montrait que les deux branches GPU (coopérer ou travailler seul) butent toutes
-deux sur le bus mémoire externe
-([message 9003](https://groups.io/g/eternity2/message/9003)). Un FPGA est la
-seule pièce de silicium qui semble répondre précisément à cette objection. Il
+Un backtracker d'Eternity II n'est pas limité par le calcul : c'est une
+chaîne de petites lectures mémoire dépendantes. En 2011, Mike Field en
+concluait que les deux architectures GPU (coopérer ou travailler seul)
+finissaient sur le bus mémoire externe
+([message 9003](https://groups.io/g/eternity2/message/9003)) ; la
+[page GPU](/research/build/hardware/gpu-solving) explique pourquoi cet
+argument a vite vieilli. Le FPGA semblait alors être la pièce de silicium qui
+répondait directement à l'objection. Il
 n'y a pas de hiérarchie de cache à manquer : les tables de correspondance
 vivent dans la block RAM embarquée, à un cycle d'horloge, réparties en des
 dizaines de petites mémoires indépendantes que l'on peut toutes lire *dans le
@@ -72,22 +73,24 @@ II complet n'a jamais été rapportée, en dix-neuf ans d'archives. Ce qui est
 intéressant, c'est que les raisons figurent elles aussi au dossier, dans les
 propres mots du concepteur.
 
-## Pourquoi les FPGA répondent au mur exact que rencontrent les GPU
+## Pourquoi les FPGA semblaient la réponse
 
 Rappelons la bifurcation issue de l'analyse de Field (racontée en entier sur la
 [page GPU](/research/build/hardware/gpu-solving)) : les chercheurs parallèles
 soit partagent de l'information, ce qui exige une bande passante de
 synchronisation dont le tissu logique ne dispose pas, soit travaillent
-indépendamment, ce qui exige un état par ouvrier dépassant les ~8 Ko de mémoire
-rapide alloués à une voie GPU, déversant tout sur un unique bus externe
-partagé. Son message de 2011 appliquait le même argument aux FPGA dans la
+indépendamment, ce qui exige un état par ouvrier dépassant (selon son
+estimation de 2011) les ~8 Ko de mémoire rapide dont disposait alors un
+processeur de flux GPU, déversant tout sur un unique bus externe partagé. La
+page GPU explique pourquoi cette estimation ne décrit plus les GPU actuels. Son message de 2011 appliquait le même argument aux FPGA dans la
 foulée : « either need to store too much information, pass too much information
 around or it choke[s] on memory bandwidth »
 ([message 9003](https://groups.io/g/eternity2/message/9003)).
 
-Mais la version FPGA de l'argument comporte une échappatoire que la version GPU
-n'a pas. Sur un GPU, le budget de mémoire rapide par ouvrier est fixé par le
-constructeur. Sur un FPGA, c'est *vous* qui dessinez la carte mémoire : si vous
+La version FPGA de l'argument comporte une échappatoire qui semblait manquer
+aux GPU de 2011. Sur un GPU, le budget de mémoire rapide par multiprocesseur
+est fixé par le constructeur (et il a été multiplié par des ordres de grandeur
+depuis). Sur un FPGA, c'est *vous* qui dessinez la carte mémoire : si vous
 parvenez à réduire tout l'univers d'un backtracker (tables de candidats, état
 du plateau, ensemble des pièces utilisées) assez petit, vous pouvez l'instancier
 entièrement en block RAM, le répliquer cinquante fois, et aucun ouvrier ne
@@ -194,9 +197,12 @@ notait-il, les décalages et les masques sont du câblage gratuit, les deux tabl
 résident dans des BRAM différentes, donc les deux recherches se font en
 parallèle, et la lecture-écriture au même cycle de la block RAM offre un
 test-and-set atomique sur le bit de pièce utilisée : tout le trafic mémoire de
-la boucle interne, à un cycle de distance. Comparez ces 4 Ko au « >8 Ko par
-thread » fatal de la [page GPU](/research/build/hardware/gpu-solving) : voilà à
-quoi ressemble la suppression du mur de bande passante.
+la boucle interne, à un cycle de distance. Ces 4 Ko de tables en lecture
+seule et ce ~1 Ko d'état par solveur sont aussi le budget qui rend caduc
+l'argument GPU de 2011, comme l'explique la
+[page GPU](/research/build/hardware/gpu-solving) : des tables partagées et un
+kilo-octet par recherche tiennent largement dans la mémoire interne d'un GPU
+moderne.
 
 La projection : environ **50 instances de solveur sur un Zynq 7020 à ~200 MHz**,
 chaque placement/déplacement coûtant en moyenne ~2 cycles, « up to 5 billion
