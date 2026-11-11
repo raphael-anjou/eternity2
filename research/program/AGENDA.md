@@ -165,9 +165,11 @@ test, scheduled at larger scale), `published`.
   size-generic CPU solver in `engine/src/solver.rs` (the benchmark engines
   are 16x16 only).
   Stage 2 on AWS, after repeating that check on the GPU: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
-  placements per second, time to first solution on 10x10 generated puzzles,
-  and best score at a fixed wall-clock budget on the 16x16, each against the
-  single-core benchmark engine on the same instance's CPU.
+  placements per second and time to first solution on 10x10 generated
+  puzzles against the CPU solver on the same instance. Only if the 10x10
+  ratio clears the kill threshold: best score at a fixed wall-clock budget on
+  the 16x16 against the single-core benchmark engine on the same instance's
+  CPU.
 - **Baseline.** `research/experiments/single-core-benchmark` engine, same
   puzzle, same counting convention, same wall clock.
 - **Kill.** Below 10x one core on throughput, or no gain in best score at
