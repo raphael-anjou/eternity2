@@ -9,6 +9,7 @@ results/pairs.csv. Standard library only.
 import csv
 import json
 import math
+import os
 import random
 import sys
 from pathlib import Path
@@ -22,6 +23,7 @@ B = 10_000
 BOOT_SEED = 20261111
 INF = math.inf
 RUNGS = {"R6": ("primary", 6), "R7": ("primary", 7), "R8": ("8-c10", 8)}
+SEEDS = int(os.environ.get("SEEDS", "20"))
 VARIANTS = ["bb-learned", "bb-single"]
 DYNAMIC = ["bb-mrv", "bb-impact", "scb-gacolor_ac3_random"]
 BASELINES = DYNAMIC + ["hp-dfs"]
@@ -99,12 +101,16 @@ def main():
             print(f"== {rung} INCOMPLETE, missing {absent}")
             continue
         ids = sorted(data["bb-learned"], key=lambda i: data["bb-learned"][i]["seed"])
+        if [data["bb-learned"][i]["seed"] for i in ids] != list(range(1, SEEDS + 1)):
+            sys.exit(f"{rung} bb-learned: seeds are not 1..{SEEDS}")
         for s, d in data.items():
             missing = [i for i in ids if i not in d]
             if missing:
                 sys.exit(f"{rung} {s}: missing {missing}")
             if any(d[i]["cap"] != 1_000_000 for i in ids):
                 sys.exit(f"{rung} {s}: cap mismatch")
+            if any(d[i]["status"] == "error" for i in ids):
+                sys.exit(f"{rung} {s}: error rows invalidate the comparison (PROTOCOL.md)")
         R = {"ladder": ladder, "n": n, "seeds": [data["bb-learned"][i]["seed"] for i in ids],
              "solvers": {s: stats([data[s][i] for i in ids]) for s in data}, "g1": {}}
         for b in BASELINES:
@@ -130,7 +136,8 @@ def main():
     done = [r for r in RUNGS if not out["rungs"][r].get("incomplete")]
     k2 = None if "R8" not in done else not any(
         out["rungs"]["R8"]["label_vs_strongest"][v] == "PASS" for v in VARIANTS)
-    k3 = all(out["rungs"][r]["label_vs_strongest"][v] == "NO-GAIN" for r in done for v in VARIANTS)
+    k3 = None if len(done) < len(RUNGS) else all(
+        out["rungs"][r]["label_vs_strongest"][v] == "NO-GAIN" for r in done for v in VARIANTS)
     out["kill"] = {"K1": k1, "K2": k2, "K3": k3, "killed": bool(k1 or k2 or k3), "rungs_complete": done,
                    "stage1_delta": s1["delta"], "stage1_delta_ci": s1["delta_ci"]}
     (ROOT / "results" / "summary.json").write_text(json.dumps(out, indent=1) + "\n")
