@@ -133,7 +133,7 @@ def main():
     trees = round(det([row[1:] for row in L[1:]]))
     log10_ec = math.log10(trees) + sum(math.lgamma(d) for d in outdeg) / math.log(10)
     workers = os.cpu_count() or 1
-    per = samples // workers
+    per = max(1, -(-samples // workers))
     with Pool(workers) as pool:
         hits = sum(pool.map(sample_batch, [(1000 + w, per) for w in range(workers)]))
     n = per * workers
