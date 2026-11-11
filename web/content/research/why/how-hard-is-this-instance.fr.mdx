@@ -6,14 +6,15 @@ description: >-
   problème. Ce qui est vrai, c'est la dureté au pire cas de la famille et la
   dureté empirique de cette instance, et comment écrire le puzzle pour un
   solveur SAT, de couverture exacte ou de PLNE, avec de petits croquis détaillés.
-  Une mesure sur plateaux plantés chiffre le choix de la formulation : une
-  falaise de résolubilité qu'un paradigme de recherche heurte et qu'un autre
-  franchit, et qui bouge avec le nombre de couleurs.
-metaDescription: "L’appariement de bords est NP-complet comme famille, mais un plateau 16x16 fixé est une constante, pas un problème. Aux encodages SAT, DLX et PLNE s’ajoute une mesure sur plateaux plantés : une falaise de résolubilité que la DFS heurte, que CP-SAT franchit, et qui bouge avec le nombre de couleurs."
+  Une mesure sur plateaux plantés chiffre le choix du solveur : une DFS à
+  redémarrages bute sur un mur environ une taille de plateau avant CP-SAT, et
+  les deux murs bougent avec le nombre de couleurs, près de la taille où les
+  plateaux franchissent le seuil d'une solution attendue.
+metaDescription: "L’appariement de bords est NP-complet comme famille, mais un plateau 16x16 fixé est une constante. Outre les encodages SAT, DLX et PLNE, une mesure sur plateaux plantés montre CP-SAT repoussant le mur d’environ une taille au-delà d’une DFS, les deux murs suivant le nombre de couleurs."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, « Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity » (Graphs and Combinatorics 23) : l''appariement de bords est NP-complet'
@@ -58,8 +59,9 @@ que tout problème de NP s'y réduit.
 
 Un plateau fixé unique n'est pas une famille. L'instance Eternity II a une
 réponse bien définie, « oui, elle est résoluble » (les concepteurs l'ont
-construite à partir d'une solution) ou, dans la forme de compétition à 5 indices,
-« oui, avec exactement cet agencement ». Cette réponse tient en un seul bit. Un
+construite à partir d'une solution), et la forme de compétition à 5 indices a,
+elle aussi, une solution connue, celle du prix, sans que son unicité soit
+démontrée. Chacune de ces réponses tient en un seul bit. Un
 seul bit est une constante, et « cette constante est-elle NP-complète ? » n'est
 pas une question bien formée : il existe un algorithme en temps constant qui
 affiche la réponse (`return true`), la réponse y est simplement inscrite en dur.
@@ -82,10 +84,13 @@ Deux énoncés distincts, tenus séparés :
   entrée *spécifique*.
 - **Dureté empirique de cette instance.** Une dureté que l'on peut mesurer. Le
   plateau 16×16 compte de l'ordre de $1{,}115\times10^{557}$ agencements distincts
-  de pièces et de rotations, et le puzzle semble n'admettre que très peu de
-  solutions (la forme à 5 indices est conçue pour n'en avoir essentiellement
-  qu'une ; voir la [théorie de la complexité](/research/why/complex-theory) pour
-  l'estimation du nombre attendu). Une recherche par retour sur trace faufile
+  de pièces et de rotations, et le nombre attendu de solutions est minuscule en
+  comparaison : les estimations du premier moment donnent environ 14 702
+  solutions avec la pièce centrale obligatoire et environ une avec les cinq
+  indices, deux moyennes sur des casse-tête aléatoires de mêmes statistiques de
+  pièces plutôt que des décomptes pour ce plateau (voir le
+  [dénombrement des solutions](/research/build/analysis/solution-counting) et
+  la [théorie de la complexité](/research/why/complex-theory)). Une recherche par retour sur trace faufile
   donc un espace astronomiquement vaste vers un ensemble de solutions quasi vide,
   et passe ainsi presque tout son temps à explorer des impasses. Voilà pourquoi
   le puzzle est dur *en pratique*, et c'est une affirmation sur ce plateau, non
@@ -162,8 +167,9 @@ contre des variables auxiliaires), et le résultat est une formule à des millio
 de clauses dont la structure ne donne presque rien à apprendre à la recherche
 guidée par les conflits. Cela a été tenté dès 2008 et les solveurs SAT complets
 s'enlisent sur le plateau complet ; Blackwood, parmi d'autres, a rapporté que SAT
-n'aidait pas. L'encodage est propre, le solveur n'est pas le goulot
-d'étranglement, c'est l'*instance* qui l'est. Voir
+n'aidait pas. À pleine taille, aucun solveur ni encodage essayé n'a abouti ;
+sur des plateaux générés plus petits, le choix du solveur déplace le mur d'une
+ou deux tailles (voir plus bas). Voir
 [Encodages SAT et CSP](/research/build/exact/sat-csp-encodings) pour l'historique
 des jeux de tests et les cas où les verdicts SAT gagnent encore leur place comme
 preuves d'impossibilité sur de petites régions.
@@ -248,12 +254,14 @@ solution épinglées comme indices, notées selon la convention des bords appari
 hors pourtour (une résolution complète à la taille $N$ vaut exactement
 $2N(N-1)$ bords appariés : 264 en 12×12, 480 en 16×16). Les plateaux plantés ne
 sont pas l'Eternity II canonique ; ils admettent vraisemblablement de très
-nombreuses solutions là où le vrai puzzle est conçu pour n'en avoir
-essentiellement qu'une. Ce qu'ils offrent, c'est une échelle d'instances
+nombreuses solutions, là où l'estimation du premier moment du vrai puzzle est
+d'environ 14 702 avec la pièce centrale et d'environ une avec les cinq
+indices. Ce qu'ils offrent, c'est une échelle d'instances
 résolubles par construction que deux paradigmes de recherche différents peuvent
 attaquer côte à côte.
 
-Sur ce banc, à 22 couleurs, une recherche en profondeur à redémarrages qui ne
+Sur ce banc, à 22 couleurs au total (17 intérieures et 5 de bordure, la
+répartition du vrai puzzle), une recherche en profondeur à redémarrages qui ne
 place que des correspondances exactes résout entièrement quatre graines 10×10
 sur cinq (la plus rapide en 4 ms) et deux graines 11×11 sur cinq, puis zéro sur
 cinq en 12×12 et zéro à toutes les tailles au-dessus. L'échec n'est pas une
@@ -273,25 +281,28 @@ deux instances 13×13 essayées tombe en 74 secondes, chaque plateau retourné
 étant revérifié indépendamment : distinction des pièces, conformité aux
 indices, décompte des bords recalculé. Ce sont des résolutions complètes
 vérifiées de plateaux qu'aucune graine de la DFS ne touche, quel que soit le
-budget. La falaise appartient au paradigme de recherche, pas aux plateaux.
+budget : sur ces plateaux, le mur de la DFS n'est donc pas une limite dure des
+instances.
 
 Le tour original de cette mesure tournait sur un générateur autorisant 26
-couleurs intérieures, un réglage que le banc empaqueté ne peut pas produire
-(son générateur plafonne les couleurs intérieures à 22, le compte du vrai
-puzzle). À 26 couleurs, le contraste était plus net encore : CP-SAT a résolu
+couleurs au total (21 intérieures), un réglage que le banc empaqueté ne peut
+pas produire (son générateur plafonne à 22 couleurs au total, 17 intérieures
+et 5 de bordure, la répartition du vrai puzzle). À 26 couleurs, le contraste était plus net encore : CP-SAT a résolu
 entièrement 25 instances sur 25 aux tailles 10 à 14 avec des temps médians de
 0,10 à 0,84 seconde, une demi-seconde en 13×13, et a terminé un 16×16 planté en
 15 secondes environ, pendant que la falaise de la DFS se tenait un barreau plus
 haut, en 13×13. Ce même tour a aussi mesuré l'écart de formulation en
 isolation : sur une instance 12×12, un MIP générique sur binaires de placement
 avec lignes de somme à un, passé par la séparation-évaluation de HiGHS, a rendu
-11 bords appariés sur 264 après 300 secondes ; CP-SAT a rendu les 264 sur la
-même instance en 0,42 seconde. Même problème, même machine, environ trois
-ordres de grandeur, et toute la différence tient à la façon d'écrire les
-contraintes.
+11 bords appariés sur 264 après 300 secondes ; CP-SAT avec le modèle à tables
+a rendu les 264 sur la même instance en 0,42 seconde. Même problème, même
+machine, environ trois ordres de grandeur. Cette comparaison unique change à
+la fois le modèle et le solveur (séparation-évaluation fondée sur la
+relaxation linéaire contre génération paresseuse de clauses sur plusieurs
+cœurs) : elle montre que le couple compte, pas lequel des deux.
 
-Mettre les deux réglages côte à côte fait apparaître un second résultat : la
-falaise bouge avec le nombre de couleurs, pour les deux paradigmes à la fois. À
+Mettre les deux réglages côte à côte montre le mur se déplacer avec le nombre
+de couleurs, pour les deux solveurs à la fois. À
 26 couleurs, la DFS meurt en 13×13 et CP-SAT traverse un 16×16 planté en
 quelques secondes. À 22 couleurs, la DFS meurt un barreau plus tôt, en 12×12,
 et CP-SAT lui-même ralentit d'environ vingt fois à la médiane entre 11×11 et
@@ -303,7 +314,22 @@ n'explique en rien l'écart avec les médianes sous la seconde à 26 couleurs.)
 Plus de couleurs, c'est un plateau plus contraint et une recherche plus facile
 pour tout le monde ; moins de couleurs tire les deux paradigmes vers le bas
 ensemble, si bien que des mesures prises à 26 couleurs avantagent tous les
-solveurs de la course. Le 16×16 planté sur lequel la sonde a échoué mérite
+solveurs de la course.
+
+La position des murs coïncide avec la taille à laquelle ces plateaux
+franchissent le seuil d'une solution attendue pour leur nombre de couleurs.
+Une estimation grossière du premier moment pour l'intérieur seul,
+$m! \cdot 4^m / c^{j}$ avec $m = (N-2)^2$ pièces, $j = 2(N-2)(N-3)$ joints
+internes et $c$ couleurs intérieures, franchit un entre N = 12 et N = 13 à 17
+couleurs intérieures ($10^{-3.3}$ à 12, $10^{3.1}$ à 13) et vers N = 16 à 21
+($10^{-6.2}$ à 15, $10^{2.4}$ à 16). À 17 couleurs intérieures, c'est
+précisément là que CP-SAT ralentit et commence à dépasser ses délais. Les deux
+solveurs butent près de ce franchissement, et CP-SAT repousse le mur d'une ou
+deux tailles par rapport à la DFS à redémarrages. Avec cinq graines par
+taille, une seule implémentation de DFS et des sondes à graine unique sur les
+grands barreaux, ces données ne permettent pas de dire quelle part de la
+falaise revient au paradigme de recherche et quelle part à la position de la
+famille de plateaux par rapport à la transition de phase. Le 16×16 planté sur lequel la sonde a échoué mérite
 d'être vu, montré ici comme sa solution construite :
 [16×16 planté, 480/480](https://eternity2.dev/viewer?puzzle=gen_16x16_c22_s1&puzzle_size=16&board_edges=aebaabgeabvbacvbadvcacrdadlcadodadidaeqdafneadgfacwdafscachfaabcbjcagmujvhpmvuohvtpurnttlrsnouvriphuqowpnluogqllwpqqsvgphkgvbackcgdauwsgpluwoqmlpjoqtikjsnnivvvnhmrvwhpmuuuhlutuqqkugguqgnhgcabndgdassrguihsmqkiokhqkjnknokjvkrormikpptmuroptrirkomruumohjsubaejdlearsulhqmskvpqhqkvnwpqknuwrlqnikrltjlkosnjiglsmoogmnjoslqneaclerdauhjrmiihpklikwlkprmwunprqnwnrgnnlgjgnvmglknvowskjkowqwpkcafwdjfajjgjiqqjlptqlnipmslnpowswjjonoljjttomsrtnwtssrowosmrpmisfafmfhdagvkhqjsvtinjitsilwntwjrwjvrjlkovtsvkrhqstquhojhqmkqjitrkfaftdufakstusuisnmvuslsmnrmlrsvrrhnsoomhvtloqvntutvvhkltqukkrmtufaemfhfatwhhirhwvtrrsjptmtujvtgtnvstmohvliionwhivqqwlomqkgpotljgeaflfqeahgqqhmngrprmpqhpuugqgiquslqihqrliimqhkjiqwwkmspwpqisjkjqfaekembaqipmnioirkwihvkkgntvqhhnqnshrwgnmvlwjgwvwqkgpwmqiliwjulleadububapssuohjswmuhkowmtnpohrtnspgrgnrplnvnwgpnkvvgmhlvihwhlnshdadnbkeasgtkjjigumvjwwwmpjgwtpojgujprvtuvruvptorvmmtlsomwigssopidafoegcatppgiltpvpwlwohpgiuoolhijroltigrujgiotljmkjtorkkgiirppmifabpcbaapeabtbaewcabhcacueacheaeocaegfacgcaflbacjfabkbafieabmdaebaad).
 
@@ -312,11 +338,11 @@ d'être vu, montré ici comme sa solution construite :
   falaise, d'un remplisseur naïf ligne par ligne à la propagation AC-3 et à
   l'élagage par déficit de Hall : six ont résolu entièrement le 12×12 et
   aucune n'a résolu le 13×13. Dix solveurs d'accord ressemblaient à dix
-  preuves que les instances étaient le mur. C'en était une seule. Les dix
-  s'engagent chronologiquement et gloutonnement sur une information locale,
-  donc ils échouent ensemble pour la raison partagée, et le premier solveur
-  d'un paradigme réellement différent a renversé la conclusion en une
-  demi-seconde. L'accord de N solveurs de la même famille est un témoin à N
+  preuves que les instances étaient le mur. C'en était plutôt une seule. Les
+  dix s'engagent chronologiquement et gloutonnement sur une information
+  locale, donc ils échouent ensemble pour la raison partagée, et le premier
+  solveur d'un paradigme réellement différent a résolu ces plateaux 13×13 en
+  une demi-seconde. L'accord de N solveurs de la même famille est un témoin à N
   voix.
 </Callout>
 

@@ -1,13 +1,13 @@
 ---
 title: Pourquoi c'est difficile
 description: >-
-  Eternity II n'est pas difficile par accident. Le casse-tête a été conçu pour
-  résister à l'ingéniosité, et les murs structurels mesurables (rigidité,
-  entropie, motifs interdits) expliquent pourquoi aucune recherche, si
-  ingénieuse soit-elle, n'a atteint la fin.
-metaDescription: "Pourquoi Eternity II est difficile par conception : un casse-tête réglé contre l'ingéniosité, Selby et Riordan recrutés pour éliminer tout raccourci statistique. Ses murs structurels (rigidité, entropie, motifs interdits) expliquent l'écart entre le meilleur plateau (470/480) et la solution."
+  Eternity II se situe près du point à une solution attendue pour sa taille, et
+  les pages ci-dessous mesurent comment des solveurs précis y échouent ;
+  plusieurs de ses traits sont communs à tout casse-tête 16x16 d'appariement
+  d'arêtes à 17 couleurs.
+metaDescription: "Pourquoi Eternity II est difficile : un casse-tête réglé près du point à une solution attendue, validé par Selby et Riordan contre les raccourcis statistiques. Les pages mesurent comment des solveurs précis y échouent, et quels traits sont communs à tout 16x16 à 17 couleurs."
 kind: page
-updated: 2026-07-21
+updated: 2026-11-11
 ---
 
 import { ScoringPrimer } from "@/components/research/ScoringPrimer";
@@ -27,12 +27,14 @@ met à mesurer.
 - **[Le mur de rigidité](/research/why/rigidity-wall)** est le mur contre lequel
   presque toute méthode finit : les records sont des îles localement figées,
   sans gradient vers un meilleur plateau.
-- **[Le pic de difficulté](/research/why/phase-transition)** explique pourquoi
-  les nombres de pièces et de couleurs se situent exactement là où la recherche
-  est au pire.
-- **[Aucun coup forcé](/research/why/no-forced-moves)** est le mur qu'on ressent
-  en premier : chaque case intérieure garde des dizaines de pièces légales, si
-  bien que la recherche ne se resserre jamais d'elle-même.
+- **[Le pic de difficulté](/research/why/phase-transition)** montre que les
+  nombres de pièces et de couleurs se situent près du point à une solution
+  attendue, là où les instances dures tendent à se regrouper.
+- **[Aucun coup forcé par une seule arête](/research/why/no-forced-moves)** est
+  le mur qu'on ressent en premier : avec une seule voisine connue, chaque pièce
+  intérieure garde 73 à 137 partenaires compatibles. Dès que les voisines nord
+  et ouest d'une case sont fixées, il ne reste qu'environ trois candidates, et
+  certaines cases sont forcées.
 
 Si vous êtes venu vous demander si le plateau est
 [NP-complet, et comment l'encoder](/research/why/how-hard-is-this-instance),
@@ -48,11 +50,12 @@ ne le croyait, et qu'ils ont dirigé leur recherche vers les régions les plus
 Selby et Riordan ont participé à la conception et aux tests de résistance du
 nouveau casse-tête afin qu'aucun raccourci statistique de ce genre ne subsiste.
 
-Les empreintes visibles de cette validation : une unique solution conçue
-intégrée à des décomptes de couleurs équilibrés, aucune pièce à symétrie de
-rotation, aucune pièce en double, et des paramètres de nombre de pièces et de
-nombre de couleurs situés au pic empirique de difficulté (confirmé plus tard
-par Ansótegui et al.). Le casse-tête n'est pas difficile par accident. Il a été
+Les empreintes visibles de cette validation : une solution connue (conçue),
+dont l'unicité n'est pas démontrée, des décomptes de couleurs équilibrés, aucune
+pièce à symétrie de rotation, aucune pièce en double, et des paramètres de
+nombre de pièces et de nombre de couleurs proches du point à une solution
+attendue (cohérents avec le pic de difficulté mesuré plus tard par Ansótegui et
+al. sur des casse-tête générés). Le casse-tête n'est pas difficile par accident. Il a été
 réglé pour l'être.
 
 Un détail qui ressemble à un choix de conception sans en être un : la bordure
@@ -71,8 +74,12 @@ Vasily V. sur la liste groups.io pour la correction.)
 ## Les murs structurels
 
 Au-delà du récit de conception, le casse-tête possède une structure mesurable
-qui explique l'écart entre le meilleur plateau connu (470/480) et une solution
-complète, publiée ci-dessous avec le calcul exact qui sous-tend chaque mur.
+qui éclaire l'écart entre les meilleurs plateaux connus (voir la
+[page des records](/research/records)) et une solution complète, publiée
+ci-dessous avec le calcul exact qui sous-tend chaque mur. La plupart de ces murs
+sont mesurés face à des solveurs précis, et plusieurs, comme le nombre de
+partenaires ou la rareté des demandes, sont ceux de n'importe quel casse-tête
+aléatoire de même taille et de même palette.
 
 Une manière utile de tenir tout cela ensemble consiste à lire
 [un plateau complet comme un mot de code](/research/why/permutation-code-wall) :
@@ -97,9 +104,9 @@ pièce une seule fois », la règle discrète qui porte la difficulté, l'une
 ressentie comme une seule case morte et l'autre mesurée comme l'effondrement des
 plateaux réellement distincts au-delà d'un patch de quelques centaines de cases.
 À l'échelle d'un remplissage entier, le même couplage produit
-[une région difficile qu'on ne peut pas concevoir autrement](/research/why/irreducible-hard-region) :
-remplissez le plateau dans n'importe quel ordre fixe et la difficulté se
-rassemble dans la bande que vous terminez en dernier, si bien qu'une
+[une région difficile qui suit l'ordre de remplissage](/research/why/irreducible-hard-region) :
+remplissez le plateau dans n'importe quel ordre fixe et le reste se rassemble
+dans la bande que vous terminez en dernier, si bien qu'une
 décomposition déplace la difficulté au lieu de la supprimer.
 Les [motifs interdits](/research/why/forbidden-patterns) se placent à côté, sur
 un autre axe : ils comptent exactement à quelle vitesse les petits patchs

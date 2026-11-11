@@ -20,3 +20,18 @@ cargo run --release > ../results/partner-counts.json
 
 Exact, exhaustive, deterministic; reproduces the committed
 `../results/partner-counts.json` byte-for-byte.
+
+## Null model
+
+`src/bin/null_model.rs` computes the same partner counts on 100 randomly painted
+16x16 boards with Eternity II's palette (the engine's
+`generate_framed(16, 22, seed, true)`: 5 frame colours, 17 interior colours),
+alongside the official set, so the official numbers can be compared with a
+random puzzle of the same size and palette:
+
+```sh
+cargo run --release --bin null_model > ../results/null-model.json
+```
+
+Deterministic for the seed range (1 to 100); reproduces the committed
+`../results/null-model.json` byte-for-byte.

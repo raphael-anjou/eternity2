@@ -1,20 +1,19 @@
 ---
 title: Why it's hard
 description: >-
-  Eternity II is not accidentally difficult. It was designed to resist
-  cleverness, and the measurable structural walls (rigidity, entropy,
-  forbidden patterns) explain why no search, however clever, has
-  reached the end.
-metaDescription: "Why Eternity II is hard by design: a puzzle tuned to resist cleverness, with Selby and Riordan hired to vet out statistical shortcuts. The measurable structural walls (rigidity, entropy, forbidden patterns) explain the gap between the best known 470/480 board and a full solution."
+  Eternity II sits near the expected-one-solution point for its size, and the
+  pages below measure how specific solvers fail on it; several of the features
+  are generic to any 16x16, 17-colour edge-matching puzzle.
+metaDescription: "Why Eternity II is hard: a puzzle tuned near the expected-one-solution point for its size, with Selby and Riordan hired to vet out statistical shortcuts. The pages below measure how specific solvers fail on it, and which features are generic to any 16x16, 17-colour edge-matching puzzle."
 kind: page
-updated: 2026-07-21
+updated: 2026-11-11
 ---
 
 import { ScoringPrimer } from "@/components/research/ScoringPrimer";
 
-Eternity II is not accidentally difficult. This is the science of why no
-search, however clever, has reached the end: the puzzle's design, and the
-structural walls that show up once you start measuring.
+Eternity II is not accidentally difficult. This section collects what is
+measured about why no search has reached the end so far: the puzzle's design,
+and the walls specific solvers hit once you start measuring.
 
 <ScoringPrimer />
 
@@ -26,11 +25,13 @@ structural walls that show up once you start measuring.
 - **[The rigidity wall](/research/why/rigidity-wall)** is the wall almost every
   method ends against: records are locally frozen islands with no gradient to a
   better board.
-- **[The hardness peak](/research/why/phase-transition)** explains why the piece
-  and colour counts sit exactly where search is worst.
-- **[No forced moves](/research/why/no-forced-moves)** is the wall you feel
-  first: every interior cell keeps dozens of legal pieces, so the search never
-  narrows on its own.
+- **[The hardness peak](/research/why/phase-transition)** shows the piece and
+  colour counts sitting near the expected-one-solution point, where hard
+  instances tend to cluster.
+- **[No forced moves from a single edge](/research/why/no-forced-moves)** is the
+  wall you feel first: with one neighbour known, every interior piece still has
+  73 to 137 compatible partners. Once a cell's north and west neighbours are
+  fixed, its candidates drop to about three, and some cells are forced.
 
 If you came here asking whether the board is
 [NP-complete, and how to encode it](/research/why/how-hard-is-this-instance),
@@ -45,11 +46,12 @@ search at the most "solution-dense" regions. For Eternity II, the publisher
 hired the winners: Selby and Riordan helped design and stress-test the new
 puzzle so that no such statistical shortcut survives.
 
-The visible fingerprints of that vetting: a single designed solution baked
-into balanced color counts, no rotationally-symmetric pieces, no duplicate
-pieces, and piece-count/color-count parameters sitting at the empirical
-hardness peak (later confirmed by Ansótegui et al.). The puzzle isn't
-accidentally hard. It was tuned to be.
+The visible fingerprints of that vetting: one known (designed) solution, its
+uniqueness unproven, balanced color counts, no rotationally-symmetric pieces, no
+duplicate pieces, and piece-count/color-count parameters near the
+expected-one-solution point (consistent with the generated-ensemble hardness
+peak later measured by Ansótegui et al.). The puzzle isn't accidentally hard.
+It was tuned to be.
 
 One thing that looks like a design choice but isn't: the border uses its own
 set of five motifs, separate from the interior's. That separation is automatic,
@@ -64,9 +66,12 @@ groups.io list for the correction.)
 
 ## The structural walls
 
-Beyond the design story, the puzzle has measurable structure that explains
-the gap between the best known board (470/480) and a full solution, published
-below with the exact computation behind each wall.
+Beyond the design story, the puzzle has measurable structure that bears on the
+gap between the best known boards (see the [records page](/research/records))
+and a full solution, published below with the exact computation behind each
+wall. Most of these walls are measured against specific solvers, and several,
+such as partner counts and demand scarcity, are what any random puzzle with
+the same size and palette shows.
 
 One useful way to hold all of this together is to read
 [a full board as a codeword](/research/why/permutation-code-wall): its 480
@@ -89,8 +94,8 @@ rule, the quiet second rule that carries the hardness, one felt as a single
 dead cell and one measured as the collapse of genuinely distinct boards past a
 patch of low hundreds of cells. Seen at the scale of a whole fill, the same
 coupling produces
-[a hard region you cannot design away](/research/why/irreducible-hard-region):
-fill the board in any fixed order and the difficulty collects in whichever band
+[a hard region that follows the fill order](/research/why/irreducible-hard-region):
+fill the board in any fixed order and the leftover collects in whichever band
 you finish last, so a decomposition relocates the hardness rather than removing
 it. [Forbidden patterns](/research/why/forbidden-patterns)
 sit alongside on a different axis: they are an exact count of how fast small

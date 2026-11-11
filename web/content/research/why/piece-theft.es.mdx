@@ -2,15 +2,16 @@
 title: El robo de piezas, donde mueren los solucionadores
 description: >-
   Un solucionador rellena unas pocas filas sin esfuerzo y luego choca contra un
-  muro en mitad del tablero. He aquí el mecanismo: una pieza escasa gastada en
-  el lugar equivocado, varias filas atrás.
-metaDescription: "Por qué los solucionadores de Eternity II rellenan unas filas y luego mueren en el centro: una pieza escasa, gastada mal, deja sin recursos a una celda posterior. El mecanismo es el robo de piezas, la clase de demanda escasa que el filtrado all-different al estilo de Régin está hecho para atrapar."
+  muro en mitad del tablero. Uno de los mecanismos: dos vecinas colocadas crean
+  una demanda (norte, oeste) cuya única pieza posible ya está usada. En
+  programación con restricciones, un dominio vaciado.
+metaDescription: "Por qué los solucionadores de Eternity II mueren en el centro: colocar las vecinas norte y oeste crea una demanda cuyo único proveedor ya está usado, un dominio vaciado. Unos 2,9 proveedores por demanda es lo normal con 17 colores; la comprobación hacia delante lo detecta."
 kind: finding
 contribution: analysis
 rigor: measured
 tier: 3
 order: 90
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 related:
   - /research/why/no-forced-moves
@@ -24,6 +25,8 @@ repro:
 sources:
   - label: "Régin 1994, «A Filtering Algorithm for Constraints of Difference in CSPs» (AAAI-94): el argumento all-different/conjunto de Hall que motiva el recuento de demandas escasas de esta página"
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
+  - label: "Robo de piezas: artículo, código, resultados y modelo nulo con puzzles aleatorios (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/piece-theft
 ---
 
 import {
@@ -87,9 +90,20 @@ escasas, con solo unas tres piezas posibles en promedio, y 47 de ellas tienen
 una sola.
 
 Así, un tablero que parece sano, con la mayoría de las piezas todavía en la
-caja, puede estar ya condenado. En algún punto más arriba del tablero, la única
-pieza que jamás podría satisfacer una celda futura se empleó en otra cosa.
-Cuando el solucionador alcanza por fin esa celda, no hay nada que colocar.
+caja, puede estar ya condenado. La única pieza capaz de satisfacer una demanda
+se usó en otro sitio, y en cuanto las vecinas norte y oeste de una celda crean
+esa demanda, la celda no tiene nada que recibir. En programación con
+restricciones es un dominio vaciado de lo más corriente: dadas sus vecinas
+colocadas, el dominio de la celda está vacío.
+
+La escasez es genérica, no una rareza de este puzzle. 196 piezas en cuatro
+rotaciones dan 784 colocaciones orientadas repartidas entre $17^2 = 289$ pares
+(norte, oeste) posibles, así que el simple recuento predice unas 2,7 piezas por
+par. En 100 tableros 16x16 pintados al azar con la misma paleta (5 colores de
+marco, 17 interiores, el generador con marco del motor) aparecen entre 261 y
+282 demandas, entre 38 y 63 con un único proveedor (mediana 51) y una media de
+2,77 a 3,00 proveedores. Los 269, 47 y 2,90 de Eternity II caen dentro de ese
+rango: un caso típico, no extremo.
 
 ## Cómo muere una celda
 
@@ -127,15 +141,23 @@ esa pieza y observa cómo la celda muere con la caja todavía llena.
 
 ## Por qué importa
 
-Un arreglo tentador es una comprobación global: ¿siguen las piezas restantes
-cubriendo las celdas restantes? No sirve de nada. A nivel global la oferta es
-suficiente; el fallo es una sola pieza escasa mal asignada, no una carencia.
-Por eso una anticipación global no ve nada anormal hasta el momento en que la
-celda resulta no tener proveedor, lo que explica por qué una comprobación global
-ingenua no lo detecta.
+Una simple comprobación de existencias (¿cubren aún las piezas restantes los
+recuentos de color restantes?) no lo ve. A nivel global la oferta basta; el
+fallo es una sola pieza escasa ya usada, no una carencia. Las herramientas
+clásicas sí lo detectan. La comprobación hacia delante descubre el dominio
+vaciado en cuanto se coloca la segunda vecina. El filtrado all-different al
+estilo de Régin, aplicado a las celdas abiertas ya parcialmente restringidas,
+puede detectar algunos casos antes, cuando dos celdas dependen ya del mismo
+último proveedor. El aprendizaje de nogoods puede recordar el conflicto para
+ramas posteriores. Lo que encarece el fallo es el momento: la demanda (norte,
+oeste) de una celda no existe hasta que se colocan sus dos vecinas, así que el
+callejón sin salida nace de las elecciones más recientes y a menudo se descubre
+solo un paso antes de golpear.
 
-Ponlo junto a la [ausencia de jugadas forzadas](/research/why/no-forced-moves) y
-la trampa queda completa. Cada pieza tiene decenas de lugares donde podría ir,
-de modo que al solucionador nunca se le indica dónde debe reservarse una pieza
-escasa, y sin embargo cada pieza escasa tiene exactamente una demanda para la
-que debe preservarse. Libertad para colocar, ninguna guía sobre qué guardar.
+Ponlo junto a la [ausencia de jugadas forzadas por un solo borde](/research/why/no-forced-moves)
+y el cuadro queda completo. Cada pieza encaja junto a decenas de otras, así que
+un borde aislado nunca le indica al solucionador dónde reservar una pieza
+escasa. Cada pieza interior puede satisfacer hasta cuatro demandas (una por
+rotación), y algunas no tienen otro proveedor, de modo que gastarla en una
+puede dejar sin recursos a otra. Libertad para colocar, poca guía sobre qué
+guardar.

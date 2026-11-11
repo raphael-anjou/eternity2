@@ -1,17 +1,19 @@
 ---
-title: Sin jugadas forzadas
+title: Ninguna jugada forzada por un solo borde
 description: >-
   La manera habitual de resolver un puzzle lógico es encontrar un lugar donde
-  solo encaja una pieza, colocarla y repetir. Aquí ese recurso no existe: cada
-  pieza interior tiene entre 73 y 137 vecinas posibles, y ninguna queda jamás
-  fijada a una sola opción.
-metaDescription: "En Eternity II no hay jugadas forzadas: cada una de sus 196 piezas interiores tiene de 73 a 137 vecinas posibles y nunca queda fijada a una sola opción, así que el recurso lógico habitual desaparece. Es el reverso de los patrones prohibidos: mucha libertad local y casi ninguna coherencia global."
+  solo encaja una pieza, colocarla y repetir. Con una sola vecina conocida, aquí
+  ese recurso falta: cada pieza interior tiene entre 73 y 137 parejas
+  compatibles a su derecha. Las jugadas forzadas solo aparecen al fijar dos
+  vecinas, y esa dispersión es la de cualquier puzzle aleatorio con la misma
+  paleta.
+metaDescription: "Con una sola vecina conocida, cada pieza interior de Eternity II tiene de 73 a 137 parejas a su derecha: un borde aislado no fuerza jugadas. Con norte y oeste fijados quedan unas tres candidatas y algunas celdas se fuerzan. El azar da la misma dispersión."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 60
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Sin jugadas forzadas: artículo, código y resultados (GitHub)"
@@ -78,13 +80,25 @@ export function PartnerHistogram() {
 Cada una de las 196 piezas interiores tiene entre 73 y 137 otras piezas que
 pueden situarse legalmente a su derecha (contando las parejas de la derecha,
 como hace el gráfico anterior). La pieza típica dispone de más de un centenar de
-opciones. Ni una sola pieza queda jamás fijada a una única elección.
+opciones. Con una sola vecina conocida, ninguna pieza queda reducida a una
+única elección, así que una restricción de un solo borde nunca fuerza una
+jugada.
 
-Este es el reverso de los patrones prohibidos. Allí, casi toda combinación de
-piezas es imposible. Cabría pensar que todas esas reglas acabarían acorralando a
-las piezas en su sitio. No lo hacen: las restricciones descartan combinaciones
-sin acorralar jamás a una pieza individual, de modo que un solucionador nunca
-recibe una jugada libre y forzada sobre la que construir.
+Esa afirmación se refiere a un borde cada vez. En una búsqueda real, una celda
+suele saber más: con el llenado habitual desde la esquina superior izquierda
+conoce su color norte y su color oeste. Entonces quedan unas tres piezas
+candidatas de media, y 47 de las 269 demandas (norte, oeste) posibles tienen un
+único proveedor (ver [el robo de piezas](/research/why/piece-theft)). Las
+jugadas forzadas existen; llegan tarde, cuando ya hay dos lados fijados, y no
+se encadenan a partir de un solo borde.
+
+Tampoco es una firma del diseño. El mismo recuento sobre 100 tableros 16x16
+pintados al azar con la misma paleta (5 colores de marco, 17 interiores, el
+generador con marco del motor) da una pieza mediana con entre 120 y 128 parejas
+(Eternity II: 125), un mínimo entre 36 y 79 (Eternity II: 73) y ninguna pieza
+forzada en ningún tablero. La cifra se deduce solo de las frecuencias de
+color: 17 colores mostrados en cuatro rotaciones dejan unas 120 parejas
+compatibles por pieza.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -111,7 +125,9 @@ cada una. La distribución entera se mantiene muy lejos de uno.
 ## Verlo en un puzzle real
 
 El motor rellena unas cuantas celdas; luego contamos, en vivo, cuántas piezas
-encajan legalmente en la siguiente. Casi nunca baja a uno.
+aún libres encajan en la siguiente, teniendo en cuenta todas las vecinas ya
+colocadas. Fíjate en cómo baja la cuenta cuando una celda tiene dos vecinas
+colocadas.
 
 <Figure collapsible title="Interactivo: número de candidatas, celda a celda">
   <ForcedMovesLab />
@@ -119,10 +135,14 @@ encajan legalmente en la siguiente. Casi nunca baja a uno.
 
 ## Por qué importa
 
-Coloca esto junto a los patrones prohibidos y aparece la verdadera forma de la
-dificultad. A escala local el puzzle parece holgado: cualquier pieza encaja al
-lado de muchas otras, así que no hay nada que propagar ni cadena de jugadas
-forzadas que aprovechar. A escala global casi toda combinación es ilegal. La
-dureza vive en esa brecha: mucha libertad local, casi ninguna coherencia global.
-Un solucionador tiene que encadenar una larga sucesión de elecciones de
-apariencia libre que solo resultan erróneas mucho más tarde.
+Coloca esto junto a los patrones prohibidos y aparece la forma de la
+dificultad. Par a par el puzzle parece holgado: cualquier pieza encaja al lado
+de muchas otras, así que propagar un solo borde apenas poda nada. A escala
+global casi toda combinación es ilegal. La poda real llega de las celdas con dos
+o más vecinas fijadas, y por eso la comprobación hacia delante y la
+[consistencia de arco](/research/build/reduce/arc-consistency) trabajan sobre
+los dominios condicionales y no sobre recuentos por pares. Aun así, un
+solucionador encadena una larga sucesión de elecciones de apariencia libre
+cuyas consecuencias solo se ven cuando las celdas siguientes se cierran a su
+alrededor. Nada de esto es propio de Eternity II: es el comportamiento genérico
+de un puzzle 16x16 de emparejamiento de bordes con tantos colores.

@@ -1,17 +1,19 @@
 ---
-title: Aucun coup forcé
+title: Aucun coup forcé par une seule arête
 description: >-
   La manière habituelle de résoudre un casse-tête logique consiste à repérer un
-  emplacement où une seule pièce convient, à la poser, puis à recommencer. Ce
-  levier n'existe pas ici : chaque pièce intérieure admet entre 73 et 137
-  voisines possibles, et aucune n'est jamais contrainte à une seule option.
-metaDescription: "Eternity II n'a aucun coup forcé : chacune de ses 196 pièces intérieures admet de 73 à 137 voisines possibles et n'est jamais contrainte à une seule, si bien que le levier logique habituel disparaît. C'est le revers des motifs interdits : beaucoup de liberté locale, presque aucune cohérence globale."
+  emplacement où une seule pièce convient, à la poser, puis à recommencer. Quand
+  on ne connaît qu'une voisine, ce levier manque ici : chaque pièce intérieure
+  admet entre 73 et 137 partenaires de droite. Les coups forcés n'apparaissent
+  qu'une fois deux voisines fixées, et cette dispersion est celle de n'importe
+  quel casse-tête aléatoire de même palette.
+metaDescription: "Avec une seule voisine connue, chaque pièce intérieure d'Eternity II a 73 à 137 partenaires de droite : une arête isolée ne force aucun coup. Nord et ouest fixés, il reste environ trois candidates et certaines cases sont forcées. Le hasard donne la même dispersion."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 60
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Aucun coup forcé : article, source et résultats (GitHub)"
@@ -78,15 +80,26 @@ export function PartnerHistogram() {
 Chacune des 196 pièces intérieures compte entre 73 et 137 autres pièces qui
 peuvent légitimement se placer à sa droite (en dénombrant les partenaires de
 droite, comme le fait le graphique ci-dessus). La pièce typique dispose de plus
-d'une centaine d'options. Pas une seule pièce n'est jamais contrainte à un
-unique choix.
+d'une centaine d'options. Quand une seule voisine est connue, aucune pièce
+n'est réduite à un unique choix : une contrainte d'arête isolée ne force donc
+jamais un coup.
 
-C'est le revers des motifs interdits. Là, presque toutes les combinaisons de
-pièces sont impossibles. On pourrait croire que toutes ces règles finiraient
-par acculer les pièces à une position unique. Il n'en est rien : les
-contraintes excluent des combinaisons sans jamais acculer une pièce
-individuelle, si bien qu'un solveur ne se voit jamais offrir de coup gratuit et
-forcé sur lequel bâtir.
+Ce constat ne porte que sur une arête à la fois. Dans une vraie recherche, une
+case en sait généralement davantage : avec le remplissage habituel depuis le
+coin supérieur gauche, elle connaît sa couleur nord et sa couleur ouest. Il ne
+reste alors qu'environ trois pièces candidates en moyenne, et 47 des 269
+demandes (nord, ouest) possibles n'ont qu'un seul fournisseur (voir
+[le vol de pièces](/research/why/piece-theft)). Les coups forcés existent
+bel et bien ; ils arrivent tard, une fois deux côtés fixés, et ne s'enchaînent
+pas à partir d'une seule arête.
+
+Cette dispersion n'a rien d'une signature de conception. Le même décompte sur
+100 plateaux 16x16 peints au hasard avec la même palette (5 couleurs de cadre,
+17 couleurs intérieures, le générateur encadré du moteur) donne une pièce
+médiane à 120 à 128 partenaires (Eternity II : 125), un minimum compris entre
+36 et 79 (Eternity II : 73), et aucune pièce forcée sur aucun plateau. Le
+chiffre découle des seules fréquences de couleurs : 17 couleurs montrées sous
+quatre rotations laissent environ 120 partenaires compatibles par pièce.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
@@ -113,8 +126,9 @@ chacune accepte. La distribution tout entière se tient bien loin de un.
 ## À l'œuvre sur un vrai casse-tête
 
 Le moteur remplit quelques cases ; puis on dénombre, en direct, combien de
-pièces conviennent légitimement à la suivante. Le compte ne tombe presque
-jamais à un.
+pièces encore libres conviennent à la suivante, compte tenu de toutes les
+voisines déjà posées. Observez le compte fondre dès qu'une case a deux voisines
+posées.
 
 <Figure collapsible title="Interactif : nombre de candidats, case après case">
   <ForcedMovesLab />
@@ -122,10 +136,16 @@ jamais à un.
 
 ## Pourquoi c'est important
 
-Placez ce constat aux côtés des motifs interdits et la véritable forme de la
-difficulté se dessine. Localement, le casse-tête paraît lâche : n'importe quelle
-pièce s'accommode d'une foule d'autres, si bien qu'il n'y a rien à propager ni
-aucune chaîne de coups forcés à exploiter. Globalement, presque toutes les
-combinaisons sont illégales. La dureté loge dans cet écart : beaucoup de liberté
-locale, presque aucune cohérence globale. Un solveur doit enchaîner une longue
-suite de choix d'apparence libre qui ne se révèlent erronés que bien plus tard.
+Placez ce constat aux côtés des motifs interdits et la forme de la difficulté
+se dessine. Paire par paire, le casse-tête paraît lâche : n'importe quelle
+pièce s'accommode d'une foule d'autres, si bien que propager une seule arête
+n'élague presque rien. Globalement, presque toutes les combinaisons sont
+illégales. L'élagage réel vient des cases dont deux voisines ou plus sont
+fixées ; c'est pourquoi la vérification en avant et la
+[cohérence d'arc](/research/build/reduce/arc-consistency) travaillent sur les
+domaines conditionnels, et non sur des décomptes par paires. Un solveur
+enchaîne malgré tout une longue suite de choix d'apparence libre dont les
+conséquences n'apparaissent que lorsque les cases suivantes se referment
+autour d'eux. Rien de tout cela n'est propre à Eternity II : c'est le
+comportement générique d'un casse-tête 16x16 d'appariement d'arêtes doté
+d'autant de couleurs.

@@ -2,15 +2,16 @@
 title: Piece theft, where solvers die
 description: >-
   A solver fills a few rows for free, then hits a wall in the middle of the
-  board. Here's the mechanism: a scarce piece spent in the wrong place, rows
-  ago.
-metaDescription: "Why Eternity II solvers fill a few rows for free, then die in the middle of the board: a scarce piece was spent in the wrong place rows earlier, starving a later cell. The mechanism is piece theft, the kind of scarce-demand pattern Régin-style all-different filtering is built to catch."
+  board. One mechanism behind it: two placed neighbours create a (north, west)
+  demand whose only possible piece is already used. In constraint-programming
+  terms, a domain wipe-out.
+metaDescription: "Why Eternity II solvers die mid-board: placing a cell's north and west neighbours creates a colour demand whose only server is already used, a domain wipe-out. About 2.9 servers per demand is typical of any 17-colour 16x16 puzzle; forward checking catches it."
 kind: finding
 contribution: analysis
 rigor: measured
 tier: 3
 order: 90
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 related:
   - /research/why/no-forced-moves
@@ -24,6 +25,8 @@ repro:
 sources:
   - label: "Régin 1994, “A Filtering Algorithm for Constraints of Difference in CSPs” (AAAI-94): the all-different/Hall-set argument this page's scarce-demand count motivates"
     url: https://cdn.aaai.org/AAAI/1994/AAAI94-055.pdf
+  - label: "Piece theft: article, source, results and the random-puzzle null model (GitHub)"
+    url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/piece-theft
 ---
 
 import {
@@ -86,9 +89,20 @@ pair. Those demands are scarce, with only about three possible pieces on
 average, and 47 of them have just one.
 
 So a board that looks healthy, most pieces still in the box, can already be
-doomed. Somewhere back up the board, the single piece that could ever serve
-an upcoming cell was used for something else. When the solver finally reaches
-that cell, there's nothing to place.
+doomed. The single piece that could serve a demand was used somewhere else,
+and the moment the north and west neighbours of a cell create that demand,
+the cell has nothing to place. In constraint-programming terms this is an
+ordinary domain wipe-out: the cell's domain, given its placed neighbours, is
+empty.
+
+The scarcity is generic, not a feature of this puzzle. 196 pieces in four
+rotations give 784 oriented placements spread over $17^2 = 289$ possible
+(north, west) pairs, so about 2.7 pieces per pair is what counting alone
+predicts. On 100 randomly painted 16x16 boards with the same palette (5 frame
+colours, 17 interior colours, the engine's framed generator), the occurring
+demands range from 261 to 282, single-server demands from 38 to 63 (median
+51), and the mean from 2.77 to 3.00 servers. Eternity II's 269, 47 and 2.90
+sit inside that range: typical, not extreme.
 
 ## How a cell dies
 
@@ -126,14 +140,21 @@ piece and watch the cell die with the box still full.
 
 ## Why it matters
 
-A tempting fix is a global check: do the remaining pieces still cover the
-remaining cells? It doesn't help. Globally the supply is fine; the failure is
-one scarce piece misallocated, not a shortage. So a global lookahead sees
-nothing wrong right up until the cell turns out to have no server, which is
-why a naive global check misses it.
+A simple supply check, do the remaining pieces still cover the remaining
+colour counts, does not catch this. Globally the supply is fine; the failure
+is one scarce piece already used, not a shortage. The standard tools do catch
+it. Forward checking detects the wipe-out the moment the second neighbour is
+placed. All-different filtering in the style of Régin, run over the
+partially constrained open cells, can detect some cases earlier, when two
+cells already depend on the same last server. Nogood learning can remember
+the conflict for later branches. What makes the failure costly is timing:
+a cell's (north, west) demand does not exist until both of its neighbours
+are placed, so the dead end is created by the most recent choices and is
+often discovered only one step before it bites.
 
-Set this beside [no forced moves](/research/why/no-forced-moves) and the trap
-is complete. Every piece has dozens of places it could go, so the solver is
-never told where a scarce piece must be saved, yet each scarce piece has
-exactly one demand it must be saved for. Freedom to place, no guidance on
-where to save.
+Set this beside [no forced moves from a single edge](/research/why/no-forced-moves)
+and the picture is complete. Each piece fits next to dozens of others, so a
+single edge gives the solver no hint of where a scarce piece should be saved.
+Each interior piece can serve up to four demands (one per rotation), and some
+of those demands have no other server, so spending the piece on one of them
+can starve another. Freedom to place, little guidance on what to save.

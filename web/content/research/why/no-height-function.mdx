@@ -1,18 +1,19 @@
 ---
-title: "The puzzle has no height function"
+title: "Three height constructions fail on Eternity II"
 description: >-
   Borrow the physicist's trick that makes crystal defects solvable and try to
   turn a mismatched joint into a dislocation with a conserved charge. It fails
   three ways: a scalar height is blind to breaks, the break set is open strings
   rather than closed loops, and the oriented per-color current is not conserved.
-  Only an unsigned parity bit survives.
-metaDescription: "A dislocations reformulation of Eternity II tries to give every mismatch a conserved charge a worm move could annihilate in pairs. It fails three ways; the only surviving invariant is a single unsigned parity bit per color, measured on this project's record boards."
+  What remains is a per-color parity that every frame-legal board satisfies
+  automatically. Other invariants are not ruled out.
+metaDescription: "A dislocations reformulation of Eternity II seeks a conserved charge per mismatch that a worm move could annihilate in pairs. Three natural constructions fail on four boards; the per-color parity that remains holds automatically, and other invariants are not ruled out."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 75
-updated: 2026-07-23
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "No-height-function checker: article, Rust source and the per-board results table (GitHub)"
@@ -119,9 +120,8 @@ in the same regime, with the 463 board matching at 22 on both. The specific
 colors and signs that come out unbalanced are labels tied to how one particular
 board was numbered and carry no meaning of their own; only the count of
 unbalanced colors, and the fact that it is never zero, is the reproduced
-content. These are this project's own boards, well below the community bests of
-470 under the center-clue convention and 465 with all five clues placed (again,
-the [records page](/research/records) keeps that context); they are used here
+content. These are this project's own boards, below the community bests (the
+[records page](/research/records) keeps that context); they are used here
 because the obstruction has to be checked on a real, high-scoring board of the
 official instance, not on a small generated one where it would be either vacuous
 or off-instance.
@@ -130,17 +130,21 @@ or off-instance.
 
 Put the three failures together. A scalar height is deaf to breaks; the break
 set is open strings with dozens of loose ends; the oriented per-color current
-does not balance. Every route to a Burgers-vector height is closed. What is left
-is far weaker than a height: the only conserved invariant of the break set is an
-**unsigned per-color parity**, one bit per color (an element of a 22-dimensional
-space over the two-element field). A bit records whether a color's count of
-half-broken joints is even or odd; it has no direction and no magnitude. A bit
-is not the holonomy of any height function, and no worm move can be built on it.
+does not balance. On the four boards tested, none of these three constructions
+yields a Burgers-vector height. What is left is far weaker than a height: an
+**unsigned per-color parity**, whether a color's count of half-broken joints is
+even or odd. That parity is automatic. Every color appears an even number of
+times among the half-edges of any puzzle cut from a solved board, so on every
+frame-legal full board each color has an even number of half-broken joints (the
+same counting behind [why 479 is impossible](/research/why/parity-defect-floor)).
+The bit is the same on every board, carries nothing specific to Eternity II, is
+not the holonomy of any height function, and no worm move can be built on it.
 
-That is the negative result, and it is worth stating plainly because the idea it
-kills is genuinely attractive: the dimer-and-defect picture is closed from the
-break side, and with it the dream of a clean non-local move that walks defects
-to annihilation. The physical intuition it leaves standing is more hopeful and
+That is the negative result, and its scope matters. It shows that three natural
+height constructions fail; it does not show that no other invariant exists,
+which would need a proof over all candidate invariants, not a check of three.
+The idea it weakens is genuinely attractive: the dimer-and-defect picture, as
+built here, gives no clean non-local move that walks defects to annihilation. The physical intuition it leaves standing is more hopeful and
 lives elsewhere: the right way out of a locally frozen board (see the
 [rigidity wall](/research/why/rigidity-wall)) is a **correlated cluster move**,
 several tiles turned together, rather than any single-site edit. That companion
@@ -148,12 +152,12 @@ story is a separate result and is not measured here.
 
 It also fits the shape of the puzzle you can see on the boards themselves. The
 breaks do not scatter; they [pile into one band](/research/why/mismatch-geometry)
-and the graph of mismatched edges is always a forest, never closing a loop,
-which is the same open-string fact this page proves cannot be closed. The
-surviving parity bit is a cousin of the counting law behind
+and the profiled mismatch graphs are forests, which is what so few defects on a
+480-joint grid give by chance anyway. The surviving parity bit is a cousin of
+the counting law behind
 [why 479 is impossible](/research/why/parity-defect-floor): both are what you get
 when an oriented invariant collapses to an unsigned one over the two-element
-field. Direction is exactly the thing this instance refuses to give you.
+field.
 
 ## Check it yourself
 
