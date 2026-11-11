@@ -9,7 +9,7 @@ description: >-
 metaDescription: "Une recherche Eternity II bien vivante, ouverte à tous : la flotte partagée de Benjamin Riotte attaque le plateau strict à cinq indices, avec un orchestrateur qui distribue des tickets bornés, ne refait jamais le travail terminé et signe chaque plateau remonté. Comment lui prêter quelques fils."
 kind: page
 order: 65
-updated: 2026-09-17
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "L'appel à contributeurs de Benjamin Riotte, avec les décomptes vérifiés et le débit de la flotte (groups.io, août 2026)"
@@ -74,8 +74,8 @@ le fil qui a donné cette page, le projet décrit chacun de ses rouages :
 - **Comptabilité des tickets terminés.** Les identifiants des tickets terminés
   entrent dans un registre que chaque client télécharge avant de démarrer, et
   un ticket terminé n'est pas redistribué. Un audit de 3 458 636 tickets
-  terminés a trouvé 3 458 636 identifiants distincts : aucune unité de travail
-  n'avait été calculée deux fois.
+  terminés a trouvé 3 458 636 identifiants distincts : aucun ticket n'avait été
+  distribué deux fois.
 - **Déduplication canonique des plateaux.** Un plateau terminé reçoit une
   empreinte SHA-256 canonique, comparée à la base centrale. Un plateau inédit
   est enregistré et crédité ; un plateau déjà présent est noté comme
@@ -86,7 +86,8 @@ le fil qui a donné cette page, le projet décrit chacun de ses rouages :
 
 C'est la leçon que la communauté a apprise à la dure en quinze ans de
 [tentatives distribuées](/research/build/faster/distributed-solving) : la
-ressource rare n'a jamais été la puissance de calcul, mais la comptabilité.
+puissance de calcul seule ne rend pas une flotte utile ; c'est la comptabilité qui
+décide quelle part en va à du travail neuf.
 
 ## Ce qu'elle a trouvé
 
@@ -136,13 +137,16 @@ plateaux inédits, et seulement à qui est arrivé le premier. Un contributeur
 locales pour 40 crédits en une journée, et en a logiquement conclu que les deux
 tiers du temps machine étaient partis en fumée.
 
-Ce n'était pas le cas. Les tickets derrière ces plateaux étaient tous
-distincts : deux recherches différentes, parties de racines et de décalages
-différents, avaient convergé vers le même plateau final, ce que la flotte ne
-peut constater qu'une fois le plateau construit. L'empêcher en amont
-supposerait d'échanger et de comparer entre machines un nombre colossal
-d'états de recherche intermédiaires, pour un coût bien supérieur au calcul
-ainsi économisé. Sur la fenêtre mesurée, les redécouvertes représentaient
+Pas tout à fait. Les tickets derrière ces plateaux étaient tous distincts,
+mais des tickets distincts ne font pas un travail disjoint. Dans une recherche à
+ordre fixe découpée en tranches disjointes, chaque plateau terminé se trouve à
+une seule feuille : deux tickets ne pourraient pas le produire tous les deux. Une
+redécouverte montre donc que les régions de recherche se chevauchent quelque
+part, sans doute via les étapes guidées ou de fin de partie, qui ne suivent pas
+un arbre fixe. Ce chevauchement est un effort dupliqué, mais il est accepté :
+l'empêcher en amont supposerait d'échanger et de comparer entre machines un
+nombre colossal d'états de recherche intermédiaires, pour un coût supérieur à ce
+qu'il économiserait. Sur la fenêtre mesurée, les redécouvertes représentaient
 environ 0,15 % des tickets terminés. Le plateau est un effet de bord ; le
 travail, c'est le ticket.
 

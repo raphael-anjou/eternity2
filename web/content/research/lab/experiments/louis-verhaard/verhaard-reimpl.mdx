@@ -1,18 +1,18 @@
 ---
 title: Verhaard reimplementation
 description: >-
-  A from-scratch reimplementation of Louis Verhaard's eii method, since his own
-  binary ships no source and will not run here. Set-composition swap-annealing
-  under the 2×2-tiling metric; on the real five-clue puzzle it reaches 438 of
-  480, single core.
-metaDescription: "A from-scratch reimplementation of Verhaard's eii method: set-composition swap-annealing under the 2×2-tiling metric, reaching 438/480 on the real five-clue puzzle, single core. Numeric constants recovered byte-exact from eii.exe; the run is committed and rerunnable, so 438 is checkable."
+  A from-scratch Rust reconstruction of Louis Verhaard's eii as a depth-first
+  backtracker: comb fill order, a depth-gated interior-edge slip schedule, and a
+  depth quota over 60 good groups recovered from eii.exe. On ten five-clue
+  benchmark variants it averages 440.8 of 480 in 60 s, one thread.
+metaDescription: "A from-scratch Rust reconstruction of Verhaard's eii: a DFS with comb fill order, depth-gated edge slipping and a piece quota over 60 good groups recovered from eii.exe. One thread, 60 s, on ten five-clue variants: mean 440.8/480, best 451, every board committed."
 kind: experiment
 contribution: reconstruction
 author: raphael-anjou
 contributors:
   - { slug: louis-verhaard, role: method }
 rigor: measured
-score: 438
+score: 451
 scoringConvention: strict-5-clue
 hardware:
   cores: 1
@@ -20,15 +20,15 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
-  wallClock: "120 s"
+  machine: "MacBook (Apple M1, 4P+4E cores), 6 single-thread runs at a time, core assignment not controlled"
+  wallClock: "60 s"
   seedPolicy: "fixed seed 1"
   measured: true
 repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 20
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, local-search]
 related:
@@ -51,50 +51,63 @@ sources:
   the section is Verhaard's because the idea is.
 </Callout>
 
-Verhaard's own eii is a source-less Windows binary that
-[will not run here](/research/lab/experiments/louis-verhaard/eii). The only way
-to run his approach is to rebuild it, and this is that rebuild: the same engine
-that appears as `verhaard` on the
+Verhaard's own eii is a source-less Windows binary, and it
+[has not been run here](/research/lab/experiments/louis-verhaard/eii). To put his
+approach on the benchmark it had to be rebuilt, and this is that rebuild: the
+same engine that appears as `verhaard` on the
 [grid](/research/lab/experiments/single-core-benchmark).
 
 ## What it reimplements
 
-Verhaard's documented method: **set-composition swap-annealing** under the
-2×2-tiling metric. Pick a roughly 180-piece interior subset, swap-anneal its
-composition until the number of achievable 2×2 sub-tilings is locally maximised,
-front-load the worst performers, then search the rest under that scaffold. The
-engine's numeric constants were recovered byte-exact from the strings inside
-`eii.exe`, because that binary is the only surviving record of them.
+A depth-first backtracker in the shape the
+[eii page](/research/lab/experiments/louis-verhaard/eii) describes:
+
+- **Comb fill order.** The border ring first (corners, then edges), then the
+  interior filled mostly in horizontal rows with the remaining rows vertical.
+- **Depth-gated edge slipping.** A schedule that allows a growing number of
+  cumulative interior-edge mismatches past depth 193 (up to 12 by depth 240);
+  border edges never slip.
+- **A depth quota over good groups.** At set depths the board must already hold
+  a minimum count of "good" pieces, drawn from one of 60 groups of 253 pieces
+  chosen at random per restart.
+- **A restart portfolio**, each restart with a shuffled opening and a node cap.
+
+The quota table and the 60 good groups are byte-exact from `eii.exe` (its
+`.rdata` and `.data` sections). The slip schedule, the single most important
+lever, is not stored as a table in the v1.0 binary; it is the tuned schedule
+from Verhaard's published posts. The
+[engine source](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark/engine/crates/bench-audit/src/bin)
+(`verhaard_faithful_v2.rs`) records which constant came from where.
 
 Calling this "running Verhaard" is a stretch worth naming: it is a reading of his
-method, not his code. That it is the only way to run his approach at all is part
-of the finding.
+method, not his code, and it has not been validated against his original's score
+distribution.
 
-## What it does on the real five-clue puzzle
+## What it does on the benchmark variants
 
-Single core, 120 seconds, all five official clues pinned:
+Ten variants of the official puzzle, each pinning all five official clues plus
+three corners; one thread, 60 seconds, fixed seed:
 
-- **438 / 480** matched edges, a **fully placed** board (256 of 256 pieces).
-- All five clues respected (a strict clue solution), 42 broken edges, at roughly
-  40 million nodes a second.
+- **Mean 440.8 / 480**, best **451** (variants 3 and 7), worst 437; every board
+  fully placed (256 of 256) with all five clues respected.
+- About **24 million** search-nodes a second.
 
-The run and its output board are committed in the engine's
+Every one of these boards is committed in the engine's
 [backing directory](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark),
-and `just experiments single-core-benchmark` reruns it, so the 438 is checkable
-rather than asserted. This is the five-clue instance, a harder puzzle than the
-corner-pinned variants the [leaderboard](/research/lab/experiments/single-core-benchmark)
-scores, where the same engine reaches a best of 451.
+and the grid reruns them. The variants are more constrained than the plain
+five-clue puzzle (they add three pinned corners), so this is not a score on an
+easier instance. Within the budget each run stops improving well before the 60
+seconds are up; that is a plateau under this budget and seed, not a proof of a
+local optimum. Against our Blackwood-style engine on the same variants the order
+is not separated at n = 10 (see the
+[grid](/research/lab/experiments/single-core-benchmark#reading-the-table)).
 
-It found 438 within about twelve seconds and then plateaued for the rest of the
-budget: a genuine local optimum for that seed and time. It is the only one of the
-three community reimplementations here that solves the real, five-clue puzzle well
-rather than an easier version of it, but the three are not measuring the same
-thing, so the comparison needs care.
-[Blackwood](/research/lab/experiments/joshua-blackwood/solver) is measured on the
-same footing, matched edges with the clues pinned, and stalls near 45.
-[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) is not: its figure
-is a placement *depth* (about 204 of 256 pieces reached), not a matched-edge score,
-so it cannot be read on the same axis as the 438 here, and the two numbers are not
-directly comparable. What the three share is only the verdict that the constrained
-puzzle is far harder than the unconstrained one; the numbers behind that verdict
-are on different scales.
+The three community engines studied in this section are not measured on the
+same axis, so the comparison needs care.
+[Blackwood's published program](/research/lab/experiments/joshua-blackwood/solver),
+with a crude five-clue pin bolted on, reached a placement *depth* of about 45,
+not a matched-edge score; our clue-aware Blackwood-style reimplementation
+averages 436.4 edges on these variants.
+[McGavin's](/research/lab/experiments/peter-mcgavin/backtracker) figure is
+also a placement depth (about 204 of 256 pieces reached). Neither depth can be
+read on the same scale as the matched-edge scores here.

@@ -5,7 +5,7 @@ description: >-
   presets, on the same ten corner-pinned variants as the leaderboard. A study of
   what each knob buys, kept off the headline board because the best preset reaches
   less than half a contender's score.
-metaDescription: "One arc-consistency CSP engine run under a dozen ordering and propagator presets on ten corner-pinned Eternity II variants: what each classic knob is worth in points, why border-first tops the sweep near 183, and why every preset stays below half a contender score."
+metaDescription: "One arc-consistency CSP engine under a dozen ordering and propagator presets on ten corner-pinned Eternity II variants: what each live knob is worth, which presets collapse to the same search, and why border-first MRV tops the sweep near 183, under half a contender score."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -16,7 +16,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none # none | gpu | quantum | fpga | tpu
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  machine: "MacBook (Apple M1, 4P+4E cores), 6 single-thread runs at a time, core assignment not controlled"
   wallClock: "60 s" # budget per run
   runs: 120 # 12 preset/variant algorithms × 10 corner variants
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 11
-updated: 2026-07-15
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space]
 related:
@@ -53,32 +53,47 @@ can be read off a number instead of argued about.
 ## What each knob buys
 
 The presets vary two things: the order the engine assigns cells, and how hard it
-propagates before committing. Holding the puzzle and the budget fixed, the score
-gap between two presets is the value of that one knob.
+propagates before committing. Where two presets differ in exactly one knob and
+that knob is live, the score gap reads as its value at this budget, on these ten
+instances, with one seed.
 
 - **Least-constraining-value ordering helps.** `anjou-gacolor_ac3_lcv` reaches a
-  mean of 114 against the plain `anjou-gacolor_ac3` at 76: choosing the value
-  that rules out the fewest neighbours is worth about 38 points here.
-- **Some knobs are inert at this depth.** Three presets (`anjou-gacolor_ac3`,
-  `anjou-gacolor_ac3_ns1`, `anjou-verhaard_preferred`) produced byte-identical
-  boards on this puzzle. NS-1 and preferred ordering add nothing at 60 seconds:
-  the engine never searches deep enough for them to bite.
-- **Border-first ordering is the strongest preset.** `anjou-border_first_lcv` and
-  `anjou-rare_color_first` top the sweep at about 183, by committing the
-  over-constrained frame before the free interior. It is still less than half a
-  contender's score.
+  mean of 114 against the plain `anjou-gacolor_ac3` at 76, and value order is
+  the only difference between them: choosing the value that rules out the fewest
+  neighbours is worth about 38 points here.
+- **Three groups of presets resolve to the same search.** `anjou-border_first_lcv`
+  and `anjou-rare_color_first`; `anjou-gacolor_ac3`, `anjou-gacolor_ac3_ns1` and
+  `anjou-verhaard_preferred`; `anjou-joe_depth150` and `anjou-joe_depth150_bp`:
+  each group emitted the same board on all ten variants
+  ([`contender_stats.py`](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark/scripts)
+  checks it). The engine code accounts for three of the four knobs: the
+  rare-colour cell order is still a placeholder that sorts cells exactly like
+  border-first MRV, and the preferred-piece and BP-marginal value orders only act
+  when the caller supplies a preferred-piece list or BP marginals, which the grid
+  does not. NS-1 multiset equality is wired in but did not change the search on
+  any of these runs. No value can be read off these knobs here: they were not
+  exercised, which is not the same as inert.
+- **Border-first MRV with light propagation is the strongest preset.** Despite
+  its name, `anjou-border_first_lcv` uses insertion value order, not LCV; it
+  averages about 183. Border-first alone does not explain that.
+  `anjou-border_first_full`, the same cell order plus parity and island
+  propagators, averages 124 at 11 thousand nodes per second instead of 279
+  thousand, and `anjou-border_first_random`, border-first with random tie-breaks
+  in place of MRV, averages 39. The MRV tie-break and the absence of costly
+  propagators carry the score. It is still less than half a contender's score.
 
 ## Why none of them competes
 
-Every preset is bimodal. On a friendly corner arrangement the arc-consistency
-search reaches 340 to 349; on a hostile one it collapses to about 55, pinned in a
-bad basin it cannot escape inside 60 seconds. The mean sits low because the bad
-corners drag it down, and no ordering knob fixes the basin problem. That is the
-real story of this family: propagation makes each node well-pruned but expensive,
-so the search is strong where the instance is forgiving and helpless where it is
-not. The constructive engines on the leaderboard never enter that trap, which is
-why a preset at 183 sits on a different page from the leaderboard's contenders,
-which top out at 451.
+The border-first and depth-150 presets are bimodal. `anjou-border_first_lcv`
+reaches 341 to 349 on four corner arrangements and collapses to 54 to 68 on
+five; `anjou-joe_depth150` sits at 243 to 249 on six and 53 to 55 on four. On
+the hostile arrangements the search stays in a bad region it cannot leave inside
+60 seconds, and the mean sits low because those variants drag it down. The
+`anjou-gacolor_ac3` family is not bimodal: it spreads from 56 to 160 with no
+clear second mode, slowed by full arc-consistency at every node. No ordering knob
+tested here fixes the collapse. The backtrackers on the leaderboard never drop
+below 431 on any variant, which is why a preset at 183 sits on a different page
+from the leaderboard's contenders, which top out at 451.
 
 ## The naive DFS is here too, for one reason
 

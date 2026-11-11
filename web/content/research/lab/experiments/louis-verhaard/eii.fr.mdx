@@ -5,16 +5,16 @@ description: >-
   reconstitué à partir des propres messages de Louis Verhaard sur la liste de
   diffusion : élagage prospectif, ordres de remplissage en peigne, décalage
   d'arête conditionné par la profondeur, calendrier de décalage réglé par chaîne
-  de Markov. Et pourquoi son propre binaire Win32, sans code source, ne peut être
-  ni compilé ni exécuté sur cette machine.
-metaDescription: "L'eii de Louis Verhaard : le backtracker en profondeur derrière le 467/480, l'unique prix d'Eternity II (10 000 dollars de finaliste). Reconstitué depuis ses messages : élagage prospectif, remplissage en peigne, décalage d'arête réglé par Markov, et pourquoi son binaire Win32 ne tourne pas ici."
+  de Markov. Et pourquoi son propre binaire Win32, sans code source, n'a pas été
+  exécuté ici.
+metaDescription: "L'eii de Louis Verhaard : le backtracker en profondeur derrière le 467/480, l'unique prix d'Eternity II (10 000 dollars de finaliste). Reconstitué depuis ses messages : élagage prospectif, remplissage en peigne, décalage d'arête réglé par Markov, et pourquoi son binaire Win32 n'a pas tourné ici."
 kind: page
 contribution: exposition
 author: louis-verhaard
 contributors:
   - { slug: raphael-anjou, role: write-up }
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, local-search, speed]
 related:
@@ -70,8 +70,9 @@ qualité rare : Verhaard a lui-même documenté les heuristiques et l'ordre de
 recherche, discuté la conception sur la liste de diffusion à la première personne,
 et livré un binaire public qu'un utilisateur indépendant a mené par banc d'essai
 jusqu'au score du prix. C'est cette absence de code source qui explique pourquoi,
-des trois moteurs communautaires étudiés dans ce laboratoire, le sien est celui qui
-ne peut pas être exécuté du tout ; la dernière section dit exactement pourquoi.
+des trois moteurs communautaires étudiés dans ce laboratoire, le sien est le seul
+dont le programme d'origine n'a pas été exécuté ici ; la dernière section dit
+pourquoi, et ce qu'il faudrait pour le faire.
 
 ## La trajectoire : bloqué au-delà de 463, alors autant le diffuser
 
@@ -287,20 +288,22 @@ dédoublonnés ([message 7451](https://groups.io/g/eternity2/message/7451)).
 Ce que « le code vit là » dissimule, c'est qu'aucun *code source* ne vit nulle part.
 Ce que Verhaard a livré, c'est `eii-1.0-win32.zip` : un `eii.exe` Windows, un lisez-
 moi, et quelques fichiers `.bat`. Il y a **zéro fichier source**, et c'est du Win32
-uniquement. Cela ne tourne pas sur Apple silicon, et il n'y a sur cette machine ni
-couche Windows ni couche d'émulation pour l'exécuter. Son artefact est, ici,
-inexécutable, et il n'y a rien de lui à récupérer et compiler. Les ordres de
-remplissage en peigne et le calendrier de décalage conditionné par la profondeur
-décrits plus haut sont devenus un canon communautaire précisément parce qu'ils ont
-été récupérés depuis ses messages et, quand ils étaient numériques, à l'octet près
-depuis les chaînes de caractères à l'intérieur d'`eii.exe`, puisque ce binaire est
-le seul enregistrement survivant de ces éléments.
+uniquement. Il ne tourne pas nativement sur Apple silicon, et il n'a pas été exécuté
+pour ce site. C'est une limite de la machine utilisée ici, pas du programme : un
+binaire console Win32 tourne sous Wine ou dans n'importe quelle machine virtuelle
+Windows/x86, et JSA a fait tourner ce binaire précis pendant 82 jours. Il n'y a rien
+de lui à récupérer et compiler. Les ordres de remplissage en peigne et le calendrier
+de décalage conditionné par la profondeur décrits plus haut sont devenus un canon
+communautaire parce qu'ils ont été récupérés depuis ses messages ; certaines tables
+numériques (le quota de pièces et ses bons groupes) ne survivent qu'à l'intérieur
+d'`eii.exe`, d'où elles ont été extraites à l'octet près.
 
-Ainsi, « faire tourner Verhaard » tout court signifie reconstruire sa méthode à
-partir de cette documentation. C'est ce que fait la
+Le moteur exécutable de ce site est donc une reconstruction de sa méthode à partir
+de cette documentation et de ces tables : la
 [réimplémentation de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl),
-et sur le vrai casse-tête à cinq indices elle atteint 438 sur 480, en monocœur. Ce
-moteur est classé dans la section de Raphaël, pas dans celle-ci, parce qu'il est une
-lecture de la méthode de Verhaard, non le code de Verhaard. Nommer cette distinction
-fait partie du constat : des trois moteurs communautaires étudiés ici, le sien est
-celui qui ne peut pas être exécuté du tout.
+qui atteint en moyenne 440,8 sur 480 sur dix variantes à cinq indices du banc, en
+un thread et 60 secondes. Ce moteur est classé ici, à côté de cette page, et signé
+Raphaël, parce qu'il est une lecture de la méthode de Verhaard réécrite dans le code
+de Raphaël. Il n'a pas été validé contre la distribution de scores de l'original.
+Lancer `eii.exe` sous Wine face à l'échelle de JSA à 43, 62 et 82 jours est la
+validation évidente.

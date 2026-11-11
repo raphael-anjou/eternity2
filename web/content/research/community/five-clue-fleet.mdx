@@ -8,7 +8,7 @@ description: >-
 metaDescription: "A live Eternity II search anyone can join: Benjamin Riotte's shared fleet attacks the strict five-clue board, with an orchestrator that hands out bounded tickets, never repeats completed work and fingerprints every board that comes back. How the credit works, and how to lend it a few CPU threads."
 kind: page
 order: 65
-updated: 2026-09-17
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "Benjamin Riotte's call for contributors, with the fleet's verified counts and throughput (groups.io, August 2026)"
@@ -70,7 +70,7 @@ the project describing each piece of it:
 - **Completed-ticket accounting.** Finished ticket ids go into a ledger that
   every worker downloads before it starts, and a completed ticket is not handed
   out again. An audit of 3,458,636 completed tickets found 3,458,636 distinct
-  ids: no unit of work had been computed twice.
+  ids: no ticket had been issued twice.
 - **Canonical board deduplication.** A finished board is fingerprinted with a
   canonical SHA-256 and checked against the central database. A new board is
   registered and credited; a board already in there is recorded as a re-find,
@@ -79,8 +79,9 @@ the project describing each piece of it:
   a claimed score is a checked score, not a trusted one.
 
 That is the same lesson the community learned the hard way across fifteen years
-of [distributed attempts](/research/build/faster/distributed-solving): the
-compute was never the scarce resource, the bookkeeping was.
+of [distributed attempts](/research/build/faster/distributed-solving): compute
+alone does not make a fleet useful; the bookkeeping decides how much of it is
+spent on new work.
 
 ## What it has found
 
@@ -125,13 +126,17 @@ first. One contributor running a Ryzen workstation and a Raspberry Pi 5
 reported 128 local finds against 40 credits in a day, and reasonably concluded
 that two thirds of the machine's time had been thrown away.
 
-It had not. The tickets behind those boards were all distinct: two different
-searches, from different roots and different offsets, had converged on the same
-finished board, which the fleet can only detect once the board exists.
-Preventing that in advance would mean shipping and comparing an enormous number
-of intermediate search states between machines, which costs far more than the
-compute it saves. Over the measured window, re-finds were about 0.15% of
-completed tickets. The board is a side effect; the ticket is the work.
+Not quite. The tickets behind those boards were all distinct, but distinct
+tickets are not the same as disjoint work. In a fixed-order search cut into
+disjoint slices, each finished board sits at exactly one leaf, so two tickets
+could not both produce it. A re-find therefore shows that the search regions
+overlap somewhere, probably through the steered or endgame stages, which do not
+follow one fixed tree. That overlap is duplicated effort, but it is accepted:
+preventing it in advance would mean shipping and comparing an enormous number of
+intermediate search states between machines, which would cost more than it
+saves. Over the measured window, re-finds were about 0.15% of completed tickets.
+The local counter's 128 finds against 40 credits overstates the loss, since most
+of a ticket's work never ends in a reported board.
 
 There is a structural reason it happens at all. The solver is steered toward
 fertile regions rather than sampling finished boards uniformly, and strong
