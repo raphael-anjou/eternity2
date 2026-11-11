@@ -1,18 +1,19 @@
 ---
-title: Un conjunto de piezas extremo en cada eje medido
+title: Lo que el juego de piezas restringe y lo que no
 description: >-
-  Mida las 256 piezas oficiales sin ningún solucionador a la vista y cada
-  puerta estructural está cerrada: ninguna pieza simétrica por rotación, 5
-  parejas gemelas entre 32 640 emparejamientos, un tope de 307 sobre 480 si
-  nada gira, presupuestos de color que se emparejan a exactamente 480 sin
-  holgura, y una paleta 17+5 situada en el punto de una-solución-esperada.
-metaDescription: "El conjunto de piezas de Eternity II está en el extremo adverso de cada eje medido: cero piezas simétricas por rotación entre 256, cinco parejas gemelas en 32 640 emparejamientos, un tope de 307 sobre 480 con orientación fija, presupuestos de color pares que suman 480 y una paleta dividida 17+5."
+  Mida las 256 piezas oficiales sin ningún solucionador a la vista y compare
+  cada propiedad con tableros resueltos pintados al azar con los mismos
+  recuentos de colores. Ninguna pieza simétrica y 5 parejas gemelas es lo
+  normal; ninguna pareja duplicada por rotación es raro (alrededor del 1,4 %
+  de los juegos pintados); el presupuesto de color sin holgura es automático;
+  un tope de 307 sobre 480 se cumple si nada gira.
+metaDescription: "El juego de piezas de Eternity II frente a juegos pintados al azar: ninguna pieza simétrica (la mitad de los pintados tampoco), 5 parejas gemelas (media 6,6), ninguna pareja duplicada por rotación (1,4 % de los pintados), un presupuesto sin holgura automático, un tope de 307 sobre 480."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 1
 order: 15
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "El conjunto de piezas adverso: artículo, código fuente y resultados (GitHub)"
@@ -24,6 +25,7 @@ sources:
   - label: "Las páginas Eternity de Selby y Riordan, el sitio de los propios diseñadores"
     url: https://www.archduke.org/eternity/
 related:
+  - /research/build/analysis/solution-counting
   - /research/why/design-recipe
   - /research/why/theorem-sweep
   - /research/why/walls-and-methods
@@ -41,7 +43,9 @@ repro:
     paridad y capacidad de emparejamiento de los presupuestos de color) se
     recalculan desde la instancia oficial incluida; el binario comprueba cada
     valor esperado, corre de forma determinista en menos de un segundo, y el
-    JSON versionado es idéntico byte a byte entre ejecuciones.
+    JSON versionado es idéntico byte a byte entre ejecuciones. La referencia
+    pintada al azar sale de compute/null_model.py (20.000 tableros con
+    semilla, alrededor de un minuto).
 ---
 
 Deje a un lado los solucionadores y mida el objeto en sí. El conjunto oficial
@@ -51,8 +55,9 @@ alguna parte: una pieza repetida, una pieza simétrica, un color en exceso, un
 sesgo de orientación que no cuesta nada, una camarilla de piezas que se
 prefieren entre sí. De esa holgura es de lo que se alimentan los
 solucionadores. Esta página comprueba cada una de esas puertas directamente
-sobre el conjunto de piezas solo, y todas están cerradas, con exactitud, no de
-forma aproximada.
+sobre el conjunto de piezas solo, y para cada una plantea la pregunta de un
+escéptico: ¿un juego recortado de un tablero resuelto pintado al azar, con los
+mismos recuentos de colores, se vería distinto?
 
 Cinco de las seis mediciones de abajo están versionadas como un único tema
 reproducible. Cada una se recalcula desde la instancia publicada en menos de
@@ -61,13 +66,13 @@ reproducir los números y verificarlos son el mismo gesto.
 
 ## Las cinco mediciones versionadas
 
-| Eje | Medición | El extremo en el que se sitúa |
+| Eje | Medición | Frente a juegos pintados al azar |
 | --- | --- | --- |
-| Simetría de rotación | 256 de 256 piezas tienen sus cuatro rotaciones distintas | 1 024 piezas-rotación, nada que cocientar |
-| Gemelas | 251 multiconjuntos de colores distintos; 5 parejas gemelas y 114 casi gemelas entre 32 640 emparejamientos | ningún duplicado, coincidencia al nivel del 0,4 % |
-| Tope con orientación fija | como mucho 307 de 480 uniones pueden casar si ninguna pieza gira | la rotación es estructuralmente necesaria |
-| Presupuesto de color | los 22 colores tienen un número par de lados; la capacidad de emparejamiento suma 480 | exactamente suficiente, holgura cero |
-| Paleta dividida | 17 colores interiores, 5 colores de uniones del borde | 17 es el ajuste de una-solución-esperada |
+| Simetría de rotación | 256 de 256 piezas tienen sus cuatro rotaciones distintas | normal: alrededor del 54 % de los juegos pintados tampoco tiene ninguna (media 0,63) |
+| Gemelas | 251 multiconjuntos de colores distintos; 5 parejas gemelas y 114 casi gemelas entre 32 640 emparejamientos; ninguna pareja igual salvo rotación | 5 gemelas es normal (media 6,6); ninguna pareja duplicada por rotación es raro (alrededor del 1,4 %, media 4,1) |
+| Tope con orientación fija | como mucho 307 de 480 uniones pueden casar si ninguna pieza gira | sin comparar; aquí la rotación es estructuralmente necesaria |
+| Presupuesto de color | los 22 colores tienen un número par de lados; la capacidad de emparejamiento suma 480 | automático en todo tablero pintado |
+| Paleta dividida | 17 colores interiores, 5 colores de uniones del borde | la separación es automática; los recuentos se eligieron |
 
 ### Ninguna simetría de rotación en ninguna parte
 
@@ -76,11 +81,17 @@ orientaciones y encogería el espacio de decisión, y la reducción estándar,
 buscar una forma canónica por órbita, cobraría el descuento. Medido: cada una
 de las 256 piezas tiene una órbita de rotación completa de tamaño 4, así que
 el puzle tiene de verdad 1 024 piezas-rotación distintas y la búsqueda por
-formas canónicas no gana absolutamente nada. El censo comunitario del espacio
-de diseño muestra que esto es una elección, no un accidente: con esta paleta,
-el espacio de piezas posibles contiene formas que se repiten bajo rotación, y
-el conjunto real las evita todas
-([msg 8025](https://groups.io/g/eternity2/message/8025)). La
+formas canónicas no gana absolutamente nada. Eso por sí solo no prueba un
+diseño deliberado. En tableros resueltos pintados al azar con los mismos
+recuentos de colores, alrededor del 54 % de los juegos tampoco tiene ninguna
+pieza simétrica (media 0,63): las piezas de borde y de esquina nunca pueden
+ser simétricas, y una pieza interior solo es simétrica por media vuelta si
+sus dos pares de lados opuestos coinciden, algo que un pintado aleatorio
+produce pocas veces. El censo comunitario del espacio de diseño muestra que
+existen formas simétricas
+([msg 8025](https://groups.io/g/eternity2/message/8025)); si el conjunto real
+las evita por elección no se puede leer en un recuento que el azar produce la
+mitad de las veces. La
 [receta de diseño](/research/why/design-recipe) lleva el lado intencional de
 esa historia, incluida la medición de Brendan Owen de que las piezas
 simétricas se colocarían de forma tan desigual que devolverían al solucionador
@@ -97,8 +108,12 @@ colores compartidos ocupan un orden cíclico diferente, de modo que ninguna
 pieza se repite, ni siquiera salvo rotación. Al relajar la pregunta hacia las
 casi gemelas, parejas que comparten 3 de sus 4 bordes en la misma posición en
 la orientación almacenada, se añaden 114 parejas en 79 grupos. Frente a los
-32 640 pares no ordenados que ofrece el conjunto, incluso esa coincidencia
-relajada queda en una fracción de un uno por ciento. La puerta que esto cierra
+Frente a la referencia pintada al azar, 5 parejas gemelas es lo normal: los
+juegos pintados tienen 6,6 de media, y un 35 % tiene 5 o menos. El número
+llamativo es el anterior: ninguna pareja de piezas que se repita salvo
+rotación, cuando los juegos pintados tienen 4,1 de media y solo alrededor del
+1,4 % no tiene ninguna. Es la huella más probable de una pasada de diseño
+deliberada. La puerta que esto cierra
 es la duplicación gratuita: una pareja de duplicados de verdad permitiría
 reescribir cualquier solución intercambiando las dos piezas, y no hay ninguna.
 
@@ -121,7 +136,9 @@ usada en todo este sitio.
 Cuente los lados de pieza por color. Cada uno de los 22 colores no grises
 tiene un total par, y las capacidades de emparejamiento, la mitad del número
 de lados por color, suman exactamente 480, el número geométrico de uniones del
-tablero. La oferta es exactamente suficiente para un tablero perfecto: ningún
+tablero. Es automático en cualquier puzzle recortado de un tablero resuelto
+pintado, porque cada unión consume dos lados de un mismo color, así que no
+dice nada del diseño. La oferta es exactamente suficiente para un tablero perfecto: ningún
 color falta, lo que certificaría imposible la solución construida, y ningún
 color sobra, lo que dejaría holgura que los tableros parciales pudieran
 gastar. Holgura cero significa también palanca cero. Ningún argumento de
@@ -140,12 +157,15 @@ encuentran con otros bordes del borde o con el interior, así que los dos
 depósitos nunca se mezclan, como explica la página de
 [geografía de los colores raros](/research/why/rare-color-geography). Lo que
 se eligió son los recuentos. La derivación de Owen del año del lanzamiento
-recupera 17,14 colores interiores a partir de la exigencia de aproximadamente
-una solución esperada
-([msg 1947](https://groups.io/g/eternity2/message/1947)), lo más escasa que
-puede ser una solución sin dejar de existir, y la página del
-[pico de dificultad](/research/why/phase-transition) mide que ese es el peor
-lugar posible para una búsqueda. La receta reconstruida completa, ingrediente
+recupera 17,14 colores interiores a partir de una heurística simplificada que
+apuntaba a aproximadamente una solución esperada
+([msg 1947](https://groups.io/g/eternity2/message/1947)). La estimación
+corregida de primer momento es de unas 14.702 soluciones esperadas con la
+pieza inicial obligatoria, un promedio sobre puzzles aleatorios con las
+mismas estadísticas de piezas y no un recuento para este; la página del
+[recuento de soluciones](/research/build/analysis/solution-counting) da las
+cifras, y la página del [pico de dificultad](/research/why/phase-transition)
+trata de dónde es más difícil la búsqueda. La receta reconstruida completa, ingrediente
 a ingrediente, está en la página de la
 [receta de diseño](/research/why/design-recipe).
 
@@ -164,7 +184,7 @@ tras esta descripción quedan aplazados hasta que su cálculo se versione junto
 a los otros cinco; lea por ahora este eje como una descripción, y los cinco
 anteriores como exactos.
 
-## Lo que estos extremos descartan
+## Lo que estas propiedades descartan
 
 Cada eje cierra una puerta estándar.
 
@@ -174,8 +194,8 @@ Cada eje cierra una puerta estándar.
   casi coincidencias entre 32 640 emparejamientos, ninguna un duplicado real.
 - **Atajos de orientación.** Fijar las rotaciones pronto concede 173 de 480
   uniones por un argumento de conteo, antes de cualquier búsqueda.
-- **Argumentos de oferta.** Presupuestos pares y exactamente suficientes:
-  contar colores no poda nada.
+- **Argumentos de oferta.** Presupuestos pares y exactamente suficientes, como
+  en todo tablero pintado: contar colores no poda nada.
 - **Subcomunidades baratas.** No existe nada más blando que el corte
   marco-interior desde el que empezar.
 
@@ -183,7 +203,7 @@ Esta página es la compañera de medición de dos vecinas. La
 [receta de diseño](/research/why/design-recipe) reconstruye, desde el archivo
 del año del lanzamiento, por qué el conjunto se construyó así; el
 [barrido de teoremas](/research/why/theorem-sweep) reúne las leyes demostradas
-sobre el mismo objeto. Y los extremos de aquí son la planta baja de los muros
+sobre el mismo objeto. Y estas propiedades son la planta baja de los muros
 de la sección: [sin movimientos forzados](/research/why/no-forced-moves) es la
 misma llanura sentida celda a celda durante una construcción, y los
 [ciclos sigma](/research/why/sigma-cycles) son en lo que se convierte la

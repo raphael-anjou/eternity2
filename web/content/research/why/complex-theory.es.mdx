@@ -10,7 +10,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure, backtracking]
 sources:
   - label: "La forma cerrada del pico de profundidad de Brendan Owen, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -29,6 +29,10 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
   - label: "La medición profundidad-frente-a-tiempo del backtracker de Joe, muestra de 1 mil millones de iteraciones (groups.io msg 11725, 2026)"
     url: https://groups.io/g/eternity2/message/11725
+  - label: "Williams y Hogg, Exploiting the deep structure of constraint problems: número esperado de soluciones parciales por profundidad (Artificial Intelligence 70, 1994)"
+    url: https://doi.org/10.1016/0004-3702(94)90104-X
+  - label: "Knuth, Estimating the efficiency of backtrack programs (Mathematics of Computation 29, 1975)"
+    url: https://doi.org/10.1090/S0025-5718-1975-0373371-6
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
@@ -74,13 +78,22 @@ para ver la forma.
 | Pistas colocadas                     | Soluciones esperadas |
 | ------------------------------------ | -------------------- |
 | Una pista (solo la pieza central)    | ≈ 14 702             |
-| Las cinco pistas oficiales           | ≈ 1                  |
+| Las cinco pistas oficiales           | la solución diseñada más ≈ 4×10⁻⁸ otras |
 
-Con solo la pieza central obligatoria, el puzzle tiene del orden de quince mil
-soluciones; añade las otras cuatro pistas y el número esperado cae a
-aproximadamente $4\times10^{-8}$: de forma abrumadora, exactamente una. Esta es
-la razón formal por la que el puzzle de 5 pistas tiene una única solución
-diseñada.
+Son promedios de conjunto: el número esperado de soluciones de un puzzle
+aleatorio con las mismas estadísticas de piezas, no un recuento de las
+soluciones de este puzzle. Con solo la pieza central obligatoria, la
+estimación es del orden de quince mil; cada una de las otras cuatro pistas la
+divide por unos $196 \times 4 = 784$, lo que deja unas $4\times10^{-8}$
+soluciones distintas de la diseñada ($14\,702 / 784^4 \approx 3{,}9\times10^{-8}$).
+La solución diseñada es, por tanto, muy probablemente la única con las cinco
+pistas, siempre que el modelo de primer momento valga para una instancia
+plantada. Es una inferencia heurística, no una prueba: las pistas se leyeron
+de la solución plantada, y los casi duplicados de una solución plantada
+(tableros que difieren de ella en unos pocos intercambios) están
+correlacionados con ella de un modo que el modelo de aristas independientes
+ignora. La [página de recuento de soluciones](/research/build/analysis/solution-counting)
+recoge las estimaciones completas.
 
 ## Las mismas cifras, contrastadas con la realidad
 
@@ -157,7 +170,7 @@ Es cruzar la meseta hasta la entrada del embudo (en torno a la profundidad 200),
 tras la cual la búsqueda se encadena de forma determinista. Y como la teoría
 compleja puntúa un orden de recorrido antes de ejecutarlo, se pueden comparar
 órdenes por la altura del pico de su meseta en lugar de por ensayo y error. Esa
-es la versión rigurosa de una regla que este sitio enuncia por todas partes: el
+es la versión cuantitativa de una regla que este sitio enuncia por todas partes: el
 orden de relleno es una elección de primer orden, y el recorrido de McGavin, de
 la esquina inferior izquierda y de izquierda a derecha, se eligió porque la
 teoría compleja decía que era bueno.
@@ -177,25 +190,42 @@ de que ejecutes un solo nodo.
 
 ## Lo que no puede ver
 
-La teoría compleja es una estimación de primer momento, así que es ciega a una
-cosa: si los numerosos tableros parciales contados son genuinamente distintos.
-Los [resultados de entropía y ley de área](/research/why/entropy-area-law)
-muestran que la distinción se colapsa a medida que crece el área rellenada, un efecto de
-segundo orden que el modelo de aristas independientes no puede captar. Así que
-usa la teoría compleja para elegir órdenes y leer la forma del árbol, nunca como
-un recuento exacto ni como una cota.
+La teoría compleja ya incluye la regla de uso único: el número de piezas sin
+usar en cada profundidad entra como factorial descendente,
+$P(n,k) = n!/(n-k)!$, exactamente como en el C de referencia de McGavin. Lo que
+ignora son las correlaciones. Trata los colores de arista como independientes,
+aunque los cuatro colores de una misma pieza no lo son; solo da la media, no
+la varianza (el segundo momento); y no sabe nada del agrupamiento de
+soluciones alrededor de una solución plantada. Estima, por tanto, un promedio
+de conjunto, no el recuento de esta instancia, y ambos pueden estar muy lejos.
+Úsala para elegir órdenes y leer la forma del árbol. Como enunciado sobre el
+conjunto, el primer momento sigue siendo una cota superior de la probabilidad
+de que un puzzle aleatorio tenga alguna solución (desigualdad de Markov); no es
+una cota para un puzzle concreto.
+
+El mismo objeto es clásico en la literatura de satisfacción de restricciones.
+Knuth estimaba el tamaño de los árboles de backtracking con sondeos aleatorios
+([1975](https://doi.org/10.1090/S0025-5718-1975-0373371-6)), y Williams y Hogg
+calcularon el número esperado de asignaciones parciales consistentes en cada
+profundidad, su pico en mitad del árbol y cuánto puede alejarse esa media de
+las instancias típicas ([1994](https://doi.org/10.1016/0004-3702(94)90104-X)).
+La teoría compleja es ese cálculo hecho para el emparejamiento de aristas y
+calibrado con las piezas de Eternity II.
 
 ## Procedencia y validación
 
 El rastro escrito de la teoría corre a través de la lista de correo. Brendan
 Owen publicó el modelo terminado en abril de 2008
 ([msg 5197](https://groups.io/g/eternity2/message/5197),
-[5209](https://groups.io/g/eternity2/message/5209)), y más tarde demostró una
-elegante forma cerrada: para un orden de recorrido, el pico del número de nodos
-se sitúa a la profundidad
+[5209](https://groups.io/g/eternity2/message/5209)), y más tarde obtuvo una
+elegante forma cerrada: si cada celda se coloca con dos contactos y el puzzle
+tiene exactamente una solución esperada, el pico del número de nodos se sitúa
+a la profundidad
 $256\,(1 - 1/e) \approx 161.8$
-([msg 8125](https://groups.io/g/eternity2/message/8125)); el embudo de arriba
-culmina ahí empíricamente. Peter McGavin compuso la teoría
+([msg 8125](https://groups.io/g/eternity2/message/8125)). Ambas hipótesis son
+aproximaciones para E2 (el modelo completo da unas 14 702 soluciones esperadas
+con la pista central), y el embudo de arriba culmina cerca de esa
+profundidad. Peter McGavin compuso la teoría
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), publicó la cifra de
 14 702 soluciones esperadas ya en 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), y en 2017 entregó su

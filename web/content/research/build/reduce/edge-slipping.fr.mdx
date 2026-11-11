@@ -3,15 +3,16 @@ title: Le glissement d'arête
 description: >-
   Le coup primé de Louis Verhaard : laisser le backtracker poser une pièce
   non concordante, mais seulement à des profondeurs choisies près du bas du
-  plateau. Chaque glissement autorisé coûte un point de score et multiplie de
-  façon astronomique le nombre de plateaux cibles. Voilà pourquoi son 467 a
-  été trouvé plus de cinquante fois, et l'ancêtre direct des ruptures de
-  Blackwood.
-metaDescription: "Le glissement d'arête de Louis Verhaard : laisser le backtracker poser des pièces non concordantes à des profondeurs choisies en fin de recherche, chaque glissement coûtant un point mais multipliant les plateaux cibles atteignables. Son 467 trouvé 50+ fois ; ce calendrier a mené Blackwood au 470."
+  plateau. Chaque glissement autorisé coûte un point de score et agrandit de
+  plusieurs ordres de grandeur la classe des plateaux cibles ; avec un
+  calendrier réglé par sa chaîne de Markov, son 467 a été trouvé plus de
+  cinquante fois. Les ruptures de Blackwood sont la même idée, redécouverte
+  indépendamment.
+metaDescription: "Le glissement d'arête de Verhaard : autoriser des pièces non concordantes à des profondeurs tardives choisies, chaque glissement coûtant un point mais agrandissant la classe cible. Son calendrier a trouvé 467 plus de 50 fois ; Blackwood redécouvre l'idée."
 kind: concept
 order: 100
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, local-search]
 sources:
   - label: Verhaard définit le glissement d'arête (janvier 2009)
@@ -30,10 +31,13 @@ sources:
     url: https://groups.io/g/eternity2/message/6687
   - label: La discipline « pas de ruptures adjacentes » de Blackwood (msg 10051)
     url: https://groups.io/g/eternity2/message/10051
+  - label: "Le plan de réglage de Blackwood pour passer de 469 à 470 : budget de ruptures ramené de onze à dix (msg 10076)"
+    url: https://groups.io/g/eternity2/message/10076
 related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/analysis/parity-arguments
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -174,12 +178,16 @@ de 467.
    plateaux à non-concordance unique passent par le bord extérieur non compté,
    la même fuite qui a produit
    [l'histoire du 479](/research/build/analysis/parity-arguments).
-4. **Arrêtez-vous à N = 10.** Score cible 470, le record actuel, et
-   exactement le budget de ruptures du
-   [solveur de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
-5. **Arrêtez-vous à N = 13.** Score cible 467, multiplicateur ≈ 6,9 × 10²⁷.
-   Voilà pourquoi le programme d'un seul amateur a trouvé le plateau primé plus
-   de cinquante fois.
+4. **Arrêtez-vous à N = 10.** Score cible 470, exactement le budget de
+   ruptures du
+   [solveur de Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+   (l'état des scores est sur la page des [records](/research/records)).
+5. **Arrêtez-vous à N = 13.** Score cible 467, multiplicateur ≈ 6,9 × 10²⁷
+   selon la formule de Max (l'estimation d'Owen est plus grande de sept ordres
+   de grandeur). Une classe cible de cette taille, jointe à un calendrier
+   réglé par la chaîne de Markov de Verhaard, est ce qui a permis au programme
+   d'un seul amateur de trouver le plateau primé plus de cinquante fois. Aucun
+   des deux facteurs n'a été mesuré isolément comme cause.
 6. **Basculez les barrières vers le début.** Même budget, même multiplicateur,
    mais le glissement le plus précoce se retrouve maintenant sous 215
    placements ultérieurs au lieu de 55, et le branchement supplémentaire
@@ -199,23 +207,33 @@ $$
 
 où $\binom{420}{N}$ choisit lesquelles des 420 jonctions intérieures se
 rompent, les puissances de deux rendent compte (grossièrement) des manières
-de réaliser chaque rupture, et $S(480)$ est le nombre de plateaux parfaits. En
-injectant l'estimation précoce de la théorie complexe $S(480) = 26{,}700$, il
-a obtenu environ $4{,}7 \times 10^9$ plateaux à 478, $2{,}9 \times 10^{30}$ à
-468 et $1{,}8 \times 10^{32}$ à 467, des nombres que ce projet a revérifiés à
-partir de la formule. Deux conséquences importent plus que les valeurs
-absolues, que Max lui-même a signalées comme simplifiées à l'excès :
+de réaliser chaque rupture, et $S(480)$ est le nombre attendu de plateaux
+parfaits. En injectant l'estimation précoce de la théorie complexe
+$S(480) = 26\,700$, il a obtenu environ $4{,}7 \times 10^9$ plateaux à 478,
+$2{,}9 \times 10^{30}$ à 468 et $1{,}8 \times 10^{32}$ à 467, des nombres que
+ce projet a revérifiés à partir de la formule. L'estimation actuelle au
+premier moment, avec la pièce de départ obligatoire, est d'environ 14 702
+([dénombrement des solutions](/research/build/analysis/solution-counting)),
+une moyenne sur un ensemble de casse-têtes et non un décompte pour cette
+instance ; avec elle, la formule donne des valeurs absolues environ deux fois
+plus petites ($1{,}0 \times 10^{32}$ à 467). Max lui-même jugeait la formule
+trop simplifiée, et elle ignore la contrainte de parité qui interdit une
+arête intérieure glissée isolée (étape 3 ci-dessus). Deux conséquences
+importent plus que les valeurs absolues :
 
 - **Le coût d'une arête concordante de plus.** Les rapports consécutifs se
   télescopent :
   $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
-  \approx 63$. Chaque arête que vous refusez de glisser réduit la classe cible
-  d'un facteur d'environ soixante, ce qui correspond, comme l'a noté Max, au
-  comportement observé du solveur de Verhaard
-  ([msg 6390](https://groups.io/g/eternity2/message/6390)), et est du même
+  \approx 63$. C'est un rapport de tailles de classes cibles, pas de
+  difficultés de recherche. Max y voyait un accord avec le solveur de Verhaard
+  ([msg 6390](https://groups.io/g/eternity2/message/6390)), et c'est du même
   ordre que la règle empirique d'Owen d'environ 100× par arête, publiée le
   lendemain sur le même fil
-  ([msg 6391](https://groups.io/g/eternity2/message/6391)).
+  ([msg 6391](https://groups.io/g/eternity2/message/6391)). La rareté observée
+  dans l'exécution du solveur public par JSA est plus faible : 17,7× de 463 à
+  464, 16,7× de 464 à 465 et 21,8× de 465 à 466, soit une vingtaine par arête.
+  Personne n'a mesuré comment la taille d'une classe cible se traduit en effort
+  pour l'atteindre.
 - **Le plafond.** La multiplication s'achète au prix du score : $N$
   glissements autorisés plafonnent le plateau à $480 - N$ pour toujours. Le
   glissement achète de l'atteignabilité, non de la qualité ; il convertit une
@@ -240,9 +258,14 @@ plateaux à 13 glissements à $2{,}05 \times 10^{35}$ fois le nombre de plateaux
 parfaits ([msg 6412](https://groups.io/g/eternity2/message/6412)), sept ordres
 de grandeur au-dessus du chiffre de Max, parce que la théorie compte aussi des
 quasi-plateaux qui ne sont des perturbations d'aucune solution, tandis que Max
-ne comptait que ceux dérivés d'un plateau parfait. Prenez l'un ou l'autre
-nombre : l'ensemble des cibles explose de façon combinatoire, tandis que le
-prix est linéaire en score.
+ne comptait que ceux dérivés d'un plateau parfait. Les deux estimations
+divergent d'environ $10^7$ : aucune n'est un décompte absolu fiable. Elles
+s'accordent sur la forme : l'ensemble des cibles croît de façon combinatoire,
+tandis que le prix est linéaire en score. Ce qui a rendu le 467 récurrent,
+c'est la probabilité que le calendrier conjoint (ordre de remplissage,
+tableau de glissements) atteigne la profondeur 256, ce qu'estimait la chaîne
+de Markov de Verhaard ; la taille de la classe cible n'en est qu'un
+ingrédient.
 
 ## Du glissement aux ruptures
 
@@ -259,9 +282,13 @@ non-concordances (« ruptures », dans son vocabulaire) interdites purement et
 simplement pour les 200 premiers placements, puis déverrouillées de façon
 cumulative, une à la fois, à des profondeurs choisies à la main, dix au total,
 pour un score cible de 470. Le concept, le conditionnement par profondeur et
-la concentration tardive du budget sont la conception de Verhaard de 2008,
-redérivée à force record ; c'est le réglage précis de ces profondeurs de
-déverrouillage qui a fait passer Blackwood de 469 à 470. Il a aussi ajouté une
+la concentration tardive du budget rejoignent la conception de Verhaard de
+2008 : la même idée, redécouverte indépendamment (rien n'indique que
+Blackwood ait lu le tableau de glissements de Verhaard). Le passage de 469 à
+470 tient à une coupe de budget, pas à un nouveau réglage des profondeurs :
+le code publié du 470 garde les points de déverrouillage de l'époque du 469
+et supprime la onzième rupture, de onze à dix
+([msg 10076](https://groups.io/g/eternity2/message/10076)). Il a aussi ajouté une
 discipline que la version de Verhaard n'avait pas : deux ruptures ne peuvent
 jamais se toucher, si bien que chaque non-concordance se tient isolée parmi
 des arêtes concordantes, ce qui explique pourquoi n'importe laquelle de ses
@@ -272,12 +299,13 @@ trous
 complète, avec ses calendriers de quotas et son étude de paramètres, est sur
 [la page Blackwood](/research/lab/experiments/joshua-blackwood/solver).
 
-L'arithmétique de la filiation mérite d'être dite à voix haute. Les treize
+L'arithmétique entre les deux mérite d'être dite à voix haute. Les treize
 glissements de Verhaard visaient 467 ; les dix de Blackwood visent 470. Selon
-le rapport de Max, chaque glissement retiré coûte un facteur d'environ
-soixante, si bien que ces trois arêtes représentent en gros un multiplicateur
-de difficulté de $2 \times 10^5$, payé par douze ans de matériel, une boucle
-interne plus rapide et une communauté faisant tourner le code en parallèle. La
+la formule de Max, la classe cible du 470 est environ $3 \times 10^5$ fois
+plus petite que celle du 467 ($2^3\binom{420}{13}/\binom{420}{10}$). De
+combien cela l'a rendue plus difficile à atteindre n'a jamais été mesuré ;
+elle a été trouvée après douze ans de matériel, une boucle interne plus
+rapide et une communauté faisant tourner le code en parallèle. La
 technique elle-même n'a pas changé. Sur un puzzle scoré par arêtes
 concordantes, le coup gagnant, deux fois et à treize ans d'écart, n'a pas été
 une meilleure recherche de plateaux parfaits. Ce fut une redéfinition

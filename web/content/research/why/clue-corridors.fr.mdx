@@ -1,21 +1,21 @@
 ---
-title: Relier les indices tôt n'aide pas, cela nuit
+title: "Poser d'abord des couloirs entre indices a pénalisé un remplisseur glouton"
 description: >-
   Relier les paires d'indices par des couloirs de pièces posés tôt donne
-  l'impression d'ajouter des contraintes. Le comptage dit le contraire : un
-  couloir de largeur 1 entre les deux indices les plus proches admet environ
-  deux millions de milliards de remplissages distincts, donc il n'exclut
-  presque rien tout en dépensant des pièces dont la fin de partie aura besoin.
-  Dans un A/B contrôlé, chaque bras couloir a perdu face à son propre témoin à
-  chaque taille de plateau.
-metaDescription: "Un couloir de largeur 1 entre les deux indices les plus proches d'Eternity II admet environ 2,05e15 remplissages distincts (comptage exact par matrice de transfert) : il n'élague presque rien et dépense des pièces rares. Dans un A/B contrôlé, chaque bras couloir perd face à son témoin."
+  l'impression d'ajouter des contraintes. Cela n'en ajoute aucune : tout ordre
+  de remplissage paie les mêmes vérifications d'arêtes, et un couloir ne fait
+  que repousser ses vérifications de fermeture tout en dépensant des pièces
+  avant qu'une case ait trois contacts. Dans un A/B avec un remplisseur glouton
+  à contact maximal (20 s par exécution, 12 graines, plateaux générés N = 8 à
+  16), chaque bras couloir a fini sous son témoin.
+metaDescription: "Un couloir de largeur 1 entre les deux indices les plus proches d'Eternity II garde environ 4,7e13 des 9,3e25 placements libres, comme toute chaîne ; son coût tient à l'échec tardif. Dans un A/B avec un glouton, chaque bras couloir finit sous son témoin."
 kind: finding
 contribution: negative
 rigor: measured
 outcome: refuted
 tier: 2
 order: 105
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Placements officiels des indices (cases 34, 45, 135, 210, 221 ; données d'instance sur e2.bucas.name)"
@@ -32,24 +32,22 @@ repro:
     Recalcule exactement chaque affirmation de comptage depuis le jeu de
     pièces officiel : la géométrie des indices, la table de branchement,
     l'offre de couleurs par côté et les comptages de couloirs par matrice de
-    transfert derrière le chiffre 2,05e15 (résultat archivé dans
+    transfert derrière le chiffre 4,7e13 (résultat archivé dans
     results/corridor_counts.json). Les chiffres de l'échelle A/B sont les
-    mesures d'origine de l'étude ; la re-exécution empaquetée des trois bras
-    est spécifiée dans le PLAN du sujet et ses tableaux ne sont pas encore
-    archivés.
+    mesures d'origine de l'étude, non archivées ; la re-exécution empaquetée
+    des trois bras est spécifiée dans le PLAN du sujet.
 ---
 
 Les cinq indices sont les seules cases du puzzle officiel dont le contenu est
 connu avec certitude. Regardez le plateau une minute et une idée s'impose
 d'elle-même : les relier. Poser une courte chaîne de pièces d'un indice à
 l'autre, faire de chaque chaîne une épine dorsale fixe, et espérer que ces
-épines contraignent tout ce qui suit. L'idée m'a plu au point de la mesurer,
-et la mesure est un négatif net, deux fois plutôt qu'une. Un comptage exact
-montre qu'un couloir d'indice à indice admet environ deux millions de
-milliards de remplissages distincts, donc s'y engager ne contraint presque
-rien ; et dans un A/B contrôlé, chaque bras qui posait ses couloirs tôt a
-fini derrière le même solveur sans couloirs, à chaque taille de plateau
-testée.
+épines contraignent tout ce qui suit. L'idée méritait d'être mesurée, et la
+mesure est négative. Le comptage montre qu'un couloir n'ajoute aucune
+contrainte qu'un autre ordre de remplissage ne paierait pas aussi ; il change
+seulement le moment où arrivent les vérifications de fermeture. Et dans un A/B
+contrôlé avec un remplisseur glouton, chaque bras qui posait ses couloirs tôt a
+fini sous le même remplisseur sans couloirs, à chaque taille de plateau testée.
 
 ## Cinq îlots, et les ponts entre eux
 
@@ -57,56 +55,68 @@ Les indices occupent les cases 34, 45, 135, 210 et 221, soit (x, y) = (2, 2),
 (13, 2), (7, 8), (2, 13) et (13, 13) : quatre en retrait de deux cases par
 rapport aux coins, un juste à gauche du centre. Leurs distances de Manhattan
 deux à deux vont de 10 à 22. Aucune paire d'indices n'est proche de
-l'adjacence : le pont le plus court entre deux d'entre eux est une chaîne de
-dix placements.
+l'adjacence : deux indices à distance 10 ont neuf cases entre eux, donc le pont
+le plus court est une chaîne de neuf placements.
 
 Ce que vaut un placement de chaîne dépend du nombre de côtés qu'il doit
-apparier. Avec $n = 196$ pièces intérieures et $C = 22$ couleurs intérieures
-déclarées, une case qui doit s'accorder avec $k$ voisins déjà posés a en
-espérance $b_k = 4n / C^k$ candidats légaux : $b_1 \approx 35{,}6$,
-$b_2 \approx 1{,}62$, $b_3 \approx 0{,}074$. Un placement n'élague, en
+apparier. Avec $n = 196$ pièces intérieures et $C = 17$ couleurs présentes sur
+ces pièces, une case qui doit s'accorder avec $k$ voisins déjà posés a en
+espérance $b_k = 4n / C^k$ candidats légaux : $b_1 \approx 46{,}1$,
+$b_2 \approx 2{,}71$, $b_3 \approx 0{,}16$. Un placement n'élague, en
 espérance, que lorsque $b_k$ passe sous 1, ce qui exige $k \ge 3$ côtés
-appariés. Un couloir de largeur 1 est bâti entièrement de placements à
-$k = 1$ : chaque nouvelle pièce ne touche que la précédente et hérite
-d'environ 36 candidats légaux à chaque pas.
+appariés. Un couloir de largeur 1 est bâti de placements à $k = 1$ : chaque
+nouvelle pièce ne touche que la précédente et hérite d'environ 46 candidats
+légaux à chaque pas, jusqu'à la dernière, qui doit aussi s'accorder avec
+l'indice d'arrivée.
 
-## Ce que vaut un couloir : deux millions de milliards de remplissages
+## Ce que vaut un couloir, face à une référence
 
 La table de branchement est un modèle uniforme, alors le vérificateur compte
-aussi exactement sur le vrai jeu de pièces. Le vrai jeu est plutôt plus
-permissif : le nombre de couples (pièce, rotation) présentant une couleur
-intérieure donnée sur un côté donné vaut en moyenne 46,1 (de 43 à 49), contre
-35,6 pour le modèle. Construisez la matrice de transfert $T[a][b]$ qui compte
-les pièces intérieures montrant la couleur $a$ d'un côté et la couleur $b$ du
-côté opposé, élevez-la à la longueur du couloir, et ses puissances donnent
-des comptages exacts de chemins. Pour le couloir de longueur 10 entre la
-paire d'indices la plus proche, les deux couleurs d'extrémité étant fixées
-par les indices, ce comptage vaut $2{,}59\times10^{15}$ chemins (moyenne sur
-les paires de couleurs). Un chemin peut réutiliser une pièce ; la correction
-de distinction en champ moyen $\prod_{j=0}^{9}(1 - j/196) = 0{,}792$ laisse
-$2{,}05\times10^{15}$ remplissages à pièces toutes distinctes. Mon premier
-passage sur ce comptage, avec un modèle de pièces un peu plus serré, donnait
-$1{,}9\times10^{15}$ ; le vérificateur archivé s'établit à
-$2{,}05\times10^{15}$, et la conclusion ne bouge pas entre les deux.
+aussi exactement sur le vrai jeu de pièces. L'offre réelle par côté concorde
+avec le modèle : le nombre de couples (pièce, rotation) présentant une couleur
+intérieure donnée sur un côté donné vaut en moyenne 46,1 (de 43 à 49).
+Construisez la matrice de transfert $T[a][b]$ qui compte les pièces intérieures
+montrant la couleur $a$ d'un côté et la couleur $b$ du côté opposé, élevez-la à
+la longueur du couloir, et ses puissances donnent des comptages exacts de
+chemins. Pour le couloir de neuf cases entre la paire d'indices la plus proche,
+les deux couleurs d'extrémité étant fixées par les indices, ce comptage vaut
+$5{,}6\times10^{13}$ chemins (moyenne sur les paires de couleurs). Un chemin
+peut réutiliser une pièce ; la correction de distinction en champ moyen
+$\prod_{j=0}^{8}(1 - j/196) = 0{,}830$ laisse environ $4{,}7\times10^{13}$
+remplissages à pièces toutes distinctes.
 
-Un engagement satisfiable de deux millions de milliards de façons n'est pas
-une contrainte au sens utile du terme. Le poser exclut une fraction
-infinitésimale de l'espace de recherche, tout en retirant dix pièces du pot à
-$k = 1$, précisément là où l'arithmétique dit que la recherche ne récupère
-rien. Reliez deux ou trois paires d'indices et la facture monte à 10 à 20
-pièces dépensées avant qu'une seule case réellement contrainte n'ait été
-remplie.
+Ce nombre paraît grand, mais il n'a de sens que face à une référence. Neuf
+pièces intérieures distinctes dans quatre rotations se posent de
+$P(196, 9)\cdot 4^9 \approx 9{,}3\times10^{25}$ façons ; le couloir n'en garde
+donc qu'une fraction d'environ $5\times10^{-13}$ : treize ordres de grandeur
+d'exclusion, exactement le $1/17$ par arête appariée que donne n'importe quelle
+autre vérification. Une chaîne de neuf cases posée avec un contact par case
+ailleurs, par exemple le début d'un balayage ligne par ligne, a un comptage
+comparable (environ $9{,}5\times10^{14}$ chemins si l'extrémité reste libre).
+Le comptage seul ne distingue donc pas un couloir d'une autre chaîne.
 
-## L'A/B : chaque bras couloir a perdu
+Ce qui le distingue, c'est l'ordonnancement. Comme le montre la
+[page sur l'immédiateté des contraintes](/research/why/constraint-immediacy),
+tout ordre de remplissage paie exactement les mêmes 480 vérifications d'arêtes.
+Les cases d'un couloir sont vérifiées chacune contre un seul voisin, comme
+n'importe quelle première rangée, mais ses vérifications de fermeture sont
+repoussées : les cases qui bordent le couloir arrivent plus tard avec trois ou
+quatre contacts, et une mauvaise pièce du couloir n'est réfutée qu'à ce moment
+(échec tardif). Ses pièces sont aussi prélevées dans le pot avant qu'existe la
+moindre case à $k \ge 3$. Reliez deux ou trois paires d'indices et 9 à 20
+pièces sont dépensées de cette façon.
 
-Le comptage dit que le couloir n'apporte rien ; il faut une expérience pour
-montrer qu'il coûte. La série d'origine de l'étude comparait trois bras qui
-ne diffèrent que par la phase couloir : un témoin (indices épinglés, puis un
-remplissage glouton à contact maximal avec redémarrages), un bras couloir de
-largeur 1, et un bras ruban de largeur 2, chacun posant ses routes d'indice à
-indice avant le même remplissage. Elle a tourné sur des instances à l'échelle
-avec une géométrie d'indices fidèle, aux tailles N = 8 à 16, avec 12 graines
-appariées par cellule et 20 secondes par exécution monocœur.
+## L'A/B : chaque bras couloir a fini plus bas
+
+Le comptage dit qu'un couloir n'apporte rien de plus qu'un autre ordre ; il
+faut une expérience pour montrer qu'il coûte. La série d'origine de l'étude
+comparait trois bras qui ne diffèrent que par la phase couloir : un témoin
+(indices épinglés, puis un remplissage glouton à contact maximal avec
+redémarrages), un bras couloir de largeur 1, et un bras ruban de largeur 2,
+chacun posant ses routes d'indice à indice avant le même remplissage. Elle a
+tourné sur des instances générées à l'échelle avec une géométrie d'indices
+fidèle, aux tailles N = 8 à 16, avec 12 graines appariées par cellule et 20
+secondes par exécution monocœur.
 
 | Plateau | Moyenne témoin | Couloir largeur 1 | Ruban largeur 2 |
 |---:|---:|---:|---:|
@@ -117,41 +127,37 @@ appariées par cellule et 20 secondes par exécution monocœur.
 | 16×16 | 377,17 | -17,67 | -8,08 |
 
 Les scores sont des arêtes appariées, et chaque delta oppose un bras à son
-propre témoin sur graines appariées. Chaque bras couloir a perdu face à son
+propre témoin sur graines appariées. Chaque bras couloir a fini sous son
 témoin à chaque taille, avec un Wilcoxon apparié $|z| \ge 2{,}80$. Le
 dommage croît avec les plateaux, et donc avec les couloirs : une perte
 moyenne de 4,7 arêtes à N = 8 devient 17,7 à N = 16, où les deux
 distributions de scores se séparent franchement (la pire graine du témoin a
-marqué 373 ; la meilleure du bras couloir, 365). Et élargir le couloir en
-ruban de 2 cases, ce qui permet à son second rang d'arriver à 2 contacts au
-lieu de 1, divise à peu près le dommage par deux à chaque taille. C'est
-exactement la dépendance en largeur que le comptage prédit, et c'est ce qui
-relie le mécanisme à la mesure.
+marqué 373 ; la meilleure du bras couloir, 365). Élargir le couloir en ruban
+de 2 cases, ce qui permet à son second rang d'arriver à 2 contacts au lieu de
+1, divise à peu près le dommage par deux à chaque taille, dans le sens que
+prédit l'argument d'ordonnancement.
 
-## Ce que cela ferme, et ce que cela laisse ouvert
+## Ce que cela écarte, et ce que cela laisse ouvert
 
-Le négatif est précis : poser tôt des couloirs d'indice à indice de largeur 1
-(ou 2) nuit, et plus de couloir nuit davantage. La même arithmétique qui les
-condamne désigne aussi l'endroit où la contrainte est réelle : les cases
-posées avec 2 contacts ou plus, puisque seul $k \ge 3$ élague franchement et
-que $k = 2$ s'en approche. Faire croître des régions compactes ancrées sur
-les indices, où la plupart des cases arrivent avec plusieurs contacts, est un
-geste différent, que cette expérience ne touche pas.
+Le négatif a une portée précise : pour ce producteur glouton, à ce budget, sur
+ces instances générées, poser tôt des couloirs d'indice à indice de largeur 1
+(ou 2) a coûté de 3 à 18 arêtes, et plus de couloir a coûté davantage. Il ne dit
+encore rien des backtrackers, des solveurs SAT ou CP, ni du plateau officiel.
+La même arithmétique désigne l'endroit où la contrainte est réelle : les cases
+posées avec 2 contacts ou plus, puisque seul $k \ge 3$ élague franchement.
+Faire croître des régions compactes ancrées sur les indices, où la plupart des
+cases arrivent avec plusieurs contacts, est un geste différent, que cette
+expérience ne touche pas.
 
 Le résultat rejoint aussi ce que les études d'indices trouvent avec
 constance. Sur un puzzle 16×16 apparenté,
-[la position des indices l'emporte sur leur nombre](/research/why/hint-geometry)
-parce que la valeur d'un indice tient à ce qu'il atteigne la partie du
-plateau où la recherche peine ; et dans
-[l'étude d'indices du labo](/research/lab/experiments/raphael-anjou/hint-study),
+[des indices dispersés battent des rangées pleines en haut du plateau](/research/why/hint-geometry) ;
+et dans [l'étude d'indices du labo](/research/lab/experiments/raphael-anjou/hint-study),
 les cinq indices officiels seuls n'ont jamais aidé un backtracker
-chronologique sur les plateaux testés. Un couloir est la façon extrême de mal
-dépenser ce cadeau : il encaisse les cinq cases fixes immédiatement, dans la
-région la moins chère de la recherche, et le paie sur le pot de pièces. Comme
-les négatifs du [balayage de théorèmes](/research/why/theorem-sweep),
-celui-ci vient avec son prix : pour que relier les indices paie, il faudrait
-que ses cases arrivent avec trois contacts, et un chemin de largeur 1 n'y
-parvient jamais.
+chronologique sur les plateaux testés. Comme les négatifs du
+[balayage de théorèmes](/research/why/theorem-sweep), celui-ci vient avec son
+prix : pour que relier les indices paie, il faudrait que ses cases arrivent
+avec trois contacts, et un chemin de largeur 1 n'y parvient jamais.
 
 <Callout kind="note">
   Le versant comptage se reproduit exactement : le vérificateur du répertoire
@@ -159,8 +165,7 @@ parvient jamais.
   l'offre de couleurs et les comptages de couloirs par matrice de transfert
   depuis le jeu de pièces officiel en une seconde environ, et sa sortie est
   archivée dans results/corridor_counts.json. Le tableau A/B est la mesure
-  d'origine de l'étude : la re-exécution empaquetée des trois bras est
-  spécifiée dans le plan de reproduction du sujet et ses tableaux ne sont pas
-  encore archivés ; lisez donc ces deltas comme le relevé d'une série, la
-  confirmation par une série fraîche restant à venir.
+  d'origine de l'étude et n'est pas archivé : la re-exécution empaquetée des
+  trois bras est spécifiée dans le plan de reproduction du sujet ; lisez donc
+  ces deltas comme le relevé d'une seule série en attendant.
 </Callout>

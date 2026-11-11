@@ -1,17 +1,19 @@
 ---
-title: Calibré sur le pic de difficulté
+title: Près du pic de difficulté
 description: >-
   Eternity II utilise 22 couleurs, réparties entre 17 couleurs intérieures et
-  5 réservées au cadre, et ce chiffre d'environ 17 se situe près du point où
-  ce type de casse-tête est le plus difficile à résoudre (la transition est une
-  bande, pas un entier unique).
-metaDescription: "Les 22 couleurs d'Eternity II se répartissent en 17 intérieures et 5 de cadre, et ce chiffre d'environ 17 tombe près de la transition de phase où ces puzzles sont les plus durs (une bande, pas un entier unique). Brendan Owen a dérivé le schéma 17+5 ; des travaux SAT/CSP situent le pic à proximité."
+  5 réservées au cadre, et 17 se situe près du nombre de couleurs pour lequel
+  un casse-tête aléatoire de cette taille compte en moyenne environ une
+  solution. Les instances dures se regroupent près de tels seuils : ce choix
+  est compatible avec un réglage délibéré, sans prouver un pire cas pour toute
+  recherche.
+metaDescription: "Les 22 couleurs d'Eternity II se répartissent en 17 intérieures et 5 de cadre. Le critère du premier moment d'Owen (2007) place le point à une solution attendue à 17,14, et les bancs SAT/CSP trouvent un pic tout proche : un réglage délibéré plausible, pas un pire cas prouvé."
 kind: finding
 contribution: measurement
 rigor: measured
 tier: 1
 order: 40
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Brendan Owen, Concevoir le casse-tête le plus difficile : la dérivation 17+5 (liste de diffusion eternity2, août 2007)"
@@ -20,16 +22,23 @@ sources:
     url: https://link.springer.com/article/10.1007/s10601-012-9128-9
   - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
     url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+  - label: "Mézard, Parisi & Zecchina, « Analytic and algorithmic solution of random satisfiability problems » (Science 297, 2002)"
+    url: https://doi.org/10.1126/science.1073287
+  - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian & Zdeborová, « Gibbs states and the set of solutions of random constraint satisfaction problems » (PNAS 104, 2007)"
+    url: https://doi.org/10.1073/pnas.0703685104
+  - label: "Achlioptas & Coja-Oghlan, « Algorithmic barriers from phase transitions » (FOCS 2008)"
+    url: https://arxiv.org/abs/0803.2122
 related:
   - /research/why/design-recipe
   - /research/why/prune-vs-speed
   - /research/why/entropy-area-law
   - /research/why/no-forced-moves
+  - /research/build/analysis/solution-counting
 repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Reproduit la répartition des couleurs 17/5 intérieur/cadre. La localisation du pic de difficulté est mesurée séparément dans le dépôt par l'expérience hardness-peak (un balayage d'effort du solveur en 8x8, plus le critère d'Owen recalculé à 17,14 à la taille 16) ; l'affirmation « une seule solution attendue » pour le plateau 16x16 complet repose encore sur les sources externes citées (Owen msg 1947, Ansótegui/Mateu)."
+  scope: "Reproduit la répartition des couleurs 17/5 intérieur/cadre. La localisation du pic de difficulté est mesurée séparément dans le dépôt par l'expérience hardness-peak (un balayage d'effort du solveur en 8x8, plus le critère d'Owen recalculé à 17,14 à la taille 16) ; les estimations du nombre attendu de solutions pour le plateau 16x16 complet reposent sur les sources externes citées (Owen msg 1947, Ansótegui/Mateu) et sur la page de dénombrement des solutions."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -48,17 +57,34 @@ On parle de transition de phase, comme l'eau qui gèle.
 
 Pour les casse-tête à appariement de bords, ce bouton est le nombre de
 couleurs. Trop peu et les pièces s'emboîtent d'innombrables façons ; trop et
-elles ne s'ajustent presque plus. L'
+elles ne s'ajustent presque plus. Pour un intérieur de 196 pièces, le nombre
+de couleurs auquel l'espérance du nombre de solutions d'un jeu de pièces
+aléatoire tombe à environ un est proche de 17. Pour les problèmes de
+contraintes aléatoires, les instances les plus dures pour les algorithmes
+connus se regroupent près de tels seuils, mais leur position exacte dépend de
+l'algorithme, et ce point du premier moment n'est qu'une estimation : il
+surestime le vrai seuil de satisfiabilité, et les transitions liées à la
+difficulté algorithmique (regroupement en amas, condensation, gel) se situent
+en dessous
+([Mézard, Parisi et Zecchina 2002](https://doi.org/10.1126/science.1073287) ;
+[Krzakala et al. 2007](https://doi.org/10.1073/pnas.0703685104) ;
+[Achlioptas et Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122)). L'
 [analyse publiée](https://link.springer.com/article/10.1007/s10601-012-9128-9)
-situe le pic autour de 17 couleurs intérieures, le réglage pour lequel un
-casse-tête de cette taille possède environ une seule solution. Eternity II en
-utilise 17.
+a mesuré un pic empirique, pour des solveurs SAT et CSP précis sur des
+casse-tête générés, près de ce réglage. Eternity II utilise 17 couleurs
+intérieures.
 
 La communauté disposait de ce chiffre quelques semaines après le lancement :
 en août 2007, Brendan Owen a dérivé $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
 couleurs intérieures à partir du critère « environ une solution attendue »,
 exactement les paramètres publiés, des années avant les analyses académiques
 ([Concevoir le casse-tête le plus difficile, msg 1947](https://groups.io/g/eternity2/message/1947)).
+C'est une heuristique simplifiée qui vise environ une solution. Les estimations
+affinées diffèrent : environ 14 702 solutions attendues avec la pièce centrale
+obligatoire, et environ une avec les cinq indices, deux moyennes sur des
+casse-tête aléatoires de mêmes statistiques de pièces, et non des décomptes des
+solutions de ce casse-tête (voir le
+[dénombrement des solutions](/research/build/analysis/solution-counting)).
 
 Nous l'avons mesuré ici. Le critère d'Owen n'a jamais été énoncé que pour le
 plateau complet ; nous l'avons donc passé à une seconde taille pour voir s'il
@@ -67,13 +93,17 @@ intérieures pour un plateau 8x8, et un 8x8 est assez petit pour qu'un
 backtracker ordinaire résolve réellement des instances aléatoires : sa courbe de
 difficulté se balaie directement. En mesurant l'effort du solveur en fonction du
 nombre de couleurs intérieures sur des plateaux 8x8 générés (le générateur et le
-DFS du site), la bande dure, là où la recherche cesse de trouver une solution
-dans le budget imparti, tombe exactement où le critère à la taille 8 le prédit.
-Le balayage 16x16 complet forme l'autre moitié du tableau : un backtracker
-ordinaire ne le termine à aucun nombre de couleurs, et la profondeur qu'il
-atteint décroît régulièrement à mesure que les couleurs augmentent, si bien que
-le vrai plateau se situe au-delà du point où la courbe est déjà devenue
-verticale. L'[expérience hardness-peak](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
+DFS du site, 30 graines par nombre de couleurs, un budget de 30 millions de
+nœuds), la recherche ne résout aucun plateau à 6, 7 ou 8 couleurs intérieures,
+tout près du critère de 7,56 à la taille 8. La courbe n'a pourtant rien d'un
+pic net : le même DFS échoue aussi sur plus de la moitié des plateaux de 1 à 3
+et à 5 couleurs (11 à 14 résolus sur 30), en résout 27 sur 30 à 4 et 23 sur 30
+à 9, puis tous à partir de 10 couleurs. Le balayage montre donc une bande dure
+proche de la prédiction, située à une ou deux couleurs près, plutôt qu'un pic
+franc. En 16x16, avec un budget de 20 millions de nœuds, le DFS ne résout rien
+de 8 à 17 couleurs : ce balayage ne peut pas localiser de pic, il montre
+seulement que la profondeur médiane atteinte recule de 238 à environ 200 cases
+sur 256 à mesure que les couleurs augmentent. L'[expérience hardness-peak](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
 contient le code, les deux balayages et le critère recalculé dans le dépôt (il
 reproduit le 17,14 d'Owen à la taille 16).
 
@@ -113,11 +143,15 @@ rectangle, quelle que soit la longueur : les solutions sont si rares qu'elles
 n'existent pratiquement pas. Et elles reviennent ensuite. À la longueur 16, un
 ensemble sur quatre cents fonctionne ; à 19, on atteint 8,5 % ; à 21, 57 % ; et
 à 22, près de neuf sur dix. La région où les solutions sont extrêmement rares
-sans être encore impossibles est précisément la bande difficile, et ici ce
-n'est ni un récit ni un modèle : c'est un décompte. C'est aussi pourquoi un
-intérieur large de 14 cases est si redoutable : il se situe dans la partie
-raide de cette montée, là où une solution existe mais où presque aucun
-arrangement aléatoire n'en est une.
+sans être encore impossibles est précisément la bande difficile, vue ici comme
+un décompte plutôt que comme un modèle. Ce que mesure ce décompte, c'est la
+satisfiabilité : la fréquence à laquelle un jeu aléatoire de 2L pièces peut
+paver une bande de 2 par L. Il suit de près l'estimation du premier moment :
+le nombre attendu de pavages, $(2L)! \cdot 4^{2L} / 17^{3L-2}$, franchit un
+entre L = 19 et L = 20, pour un point à 50 % observé vers L = 21. C'est un
+seuil de satisfiabilité, non une mesure de l'effort de recherche (aucun
+travail de solveur n'a été relevé), et la longueur d'une bande de deux rangées
+ne se transpose pas directement à l'intérieur de 14x14.
 
 ## La répartition, lue directement sur les pièces
 
@@ -169,25 +203,29 @@ révèle clairement l'intention de conception.
 
 ## Pourquoi c'est important
 
-C'est le signe le plus net qu'Eternity II a été rendu difficile
-délibérément. La taille du plateau, le nombre de pièces et la répartition des
-couleurs visent tous la même cible : un casse-tête à environ une seule
-solution, placé à l'endroit le plus défavorable qui soit pour n'importe quelle
-recherche. La difficulté a été choisie, comme un bon examen n'est ni trivial ni
-impossible.
+C'est le signe le plus net que les paramètres d'Eternity II ont été choisis
+en pensant à la difficulté. La taille du plateau, le nombre de pièces et la
+répartition des couleurs se situent près du point où un casse-tête aléatoire
+de cette taille compterait en moyenne environ une solution, là où se
+regroupent les instances dures pour les algorithmes connus. Cela s'accorde
+avec un réglage délibéré ; ce n'est pas la preuve que le casse-tête occupe le
+pire cas pour toute recherche, puisque la position des instances les plus
+dures dépend de l'algorithme.
 
 Comment savons-nous que ce pic est réel et non un simple récit ? Deux voies se
 rejoignent ici. L'analyse publiée le
 [dérive](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content) :
 pour les casse-tête à appariement de bords avec cadre, le nombre de couleurs
-pour lequel on attendrait environ une solution tombe près de 17, et c'est le
-réglage le plus difficile à explorer. Et vous pouvez en observer une part
-vous-même dans la démonstration ci-dessus : construisez de vrais casse-tête,
-comptez le travail effectué, et voyez-le exploser lorsque les couleurs se font
-rares. La conséquence est concrète. Elle signifie que l'écart jusqu'à une
-solution n'est pas un problème de réglage que l'on peut réduire à force d'une
-machine plus rapide ; le casse-tête a été placé là où la recherche est la pire,
-volontairement, de sorte que le vaincre exige une idée réellement meilleure, et
-non simplement plus d'efforts.
+pour lequel on attendrait environ une solution tombe près de 17, et leurs
+solveurs SAT et CSP ont trouvé leurs instances générées les plus dures tout
+près. Et vous pouvez en observer une part vous-même dans la démonstration
+ci-dessus : construisez de vrais casse-tête, comptez le travail effectué, et
+voyez-le varier avec le nombre de couleurs. La conséquence est concrète, à
+condition de distinguer deux cas. Pour une recherche exacte exhaustive, une
+accélération d'un facteur constant ne rend pas l'arbre 16x16 complet
+praticable. Pour la chasse stochastique aux records, plus de débit signifie
+plus de tentatives et peut plausiblement relever le meilleur score, avec des
+rendements décroissants. Une solution complète demandera très probablement
+une meilleure idée, pas seulement plus d'effort.
 
 Voyez la difficulté mesurée en direct sur la [page Algorithmes](/algorithms).

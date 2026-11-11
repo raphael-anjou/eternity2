@@ -1,18 +1,18 @@
 ---
-title: The hard region you cannot design away
+title: The hard region follows the fill order
 description: >-
-  Fill a board in any fixed order and the top three quarters go in freely while
-  the difficulty piles into whichever band you finish last. Across forty
-  generated boards the entire leftover sits in the bottom half every single
-  time; shuffle the fill order and it scatters, so the hard region is made by
-  the sweep, not hidden in the board.
-metaDescription: "On solvable Eternity II boards a row-major search fills the top three quarters then stalls; across forty 16x16 boards the whole leftover sits in the bottom half every time. Shuffle the fill order and it scatters (0.503), so the hard region belongs to the decomposition, not the board."
+  Fill a board in a fixed order and the top three quarters go in freely; the
+  leftover is, by construction, the end of the order. On forty generated
+  boards a row-major search stalls at a median of 12 of 16 rows and more
+  budget does not move it. Whether some cells are hard under every order is
+  not yet tested.
+metaDescription: "On forty solvable 16x16 boards a row-major exact-match search fills a median 12 of 16 rows, then stalls whatever the budget. The leftover sits at the end of the fill order by construction; whether any region is hard under every order has not been tested."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 sources: []
 related:
@@ -59,7 +59,10 @@ to finish with a heuristic**: because every piece is used once, spending a scarc
 piece early in the easy part starves the hard part later, so no local repair
 reaches a new high board.
 
-Only the first part is a clean fact you can read off a board. The other two are
+Only the first part can be read off a board, and most of it is true by
+construction: under a sequential fill, the deepest partial board is a prefix of
+the order, so its unfilled cells are the suffix. What can be measured is how
+far the prefix reaches and whether more budget moves it. The other two are
 ceilings tied to a particular exact solver and to the official 22-colour piece
 set's specific scarcity, and the notebook itself labels them empirical rather
 than proved. So this page reproduces the first part, localization, and carries
@@ -112,6 +115,10 @@ twelve complete rows out of sixteen, before it can no longer place a perfect
 match. That matches the notebook's picture of the top ten-plus rows filling
 near-freely. And on every one of the forty boards, the entire leftover sits in
 the bottom half: the mean bottom-half leftover fraction is exactly 1.000.
+That second number carries no information on its own: once the frontier is past
+row 8, the leftover of a row-major prefix is the bottom rows by definition. The
+informative row-major number is the depth reached, a median of 75% of the
+cells.
 
 ## The control is the whole point
 
@@ -127,6 +134,12 @@ placed by the decomposition. This is the mirror image of what the record boards
 show directly: their [few mismatches pile into one band](/research/why/mismatch-geometry)
 whose position is set by the direction the search filled the board. Here you can
 watch that band being created and moved by changing nothing but the fill order.
+
+The control does not reveal a hidden hard patch either: 0.503 is what a
+uniformly random order gives by construction. Testing whether some cells are
+intrinsically hard would take several unrelated orders (column-major, spiral,
+reversed, random) and a measure of how much the cells each one leaves unsolved
+overlap. That comparison has not been run yet.
 
 ## The stall is a wall, not a slow start
 
@@ -163,9 +176,10 @@ The **too globally coupled** half is an empirical ceiling tied to the official
 piece set's scarcity, the coupling that lets a scarce piece spent up top
 [starve a cell far below](/research/why/piece-theft). Our boards come from the
 kit's framed generator, which is planted-solvable and plausibly admits many
-solutions, where the real puzzle is believed to admit essentially one.
-Localization holds for any solvable board under a sequential fill, because the
-leftover has to live somewhere and a row-major sweep puts it at the bottom, so the
+solutions, where the real puzzle's first-moment estimate is about 14,702 with
+the centre clue (see [solution counting](/research/build/analysis/solution-counting)).
+Localization holds for any board under a sequential fill, because the leftover
+has to live somewhere and a row-major sweep puts it at the bottom, so the
 generated family is an adequate test of localization; it is not a test of the
 coupling claim, which would need the official set. That instance-family gap is why
 this reproduction is qualitative rather than exact: there is no bit-for-bit source

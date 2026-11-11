@@ -3,9 +3,9 @@ title: Une carte de toutes les approches connues
 description: >-
   La synthèse que la communauté réclame sans jamais la trouver : chaque famille
   d'attaque tentée sur Eternity II, ce que chacune a réellement atteint, où elle
-  bute, et un lien vers la page de fond. Une même idée directrice les traverse
-  toutes.
-metaDescription: "Un panorama de chaque famille d'attaque tentée sur Eternity II : retour arrière systématique, encodages SAT/CSP et PLNE, recherche locale et ALNS, apprentissage des plateaux forts, voies matérielles. Ce que chacune atteint sur le plateau 16×16, où elle bute, et l'idée qui les traverse toutes."
+  bute, et un lien vers la page de fond, avec une hypothèse de travail sur ce qui
+  rend le palier supérieur si difficile à franchir.
+metaDescription: "Un panorama de chaque famille d'attaque tentée sur Eternity II : retour arrière systématique, encodages SAT/CSP et PLNE, recherche locale et ALNS, apprentissage des plateaux forts, voies matérielles. Ce que chacune atteint sur le plateau 16×16, où elle bute et une hypothèse sur le palier supérieur."
 kind: page
 order: 5
 group: Start here
@@ -43,35 +43,36 @@ lorsqu'on la braque sur ce puzzle précis, avec les mesures propres au projet l�
 où elles existent et un simple « non mesuré » là où elles font défaut.
 L'[étagère des techniques](/research/build/techniques) est l'index de ces pages.
 
-## L'unique idée qui organise toute la carte
+## Ce que la carte montre d'une famille à l'autre
 
-Chacune des familles ci-dessous cale au même endroit : le plafond communautaire de
-470 arêtes accordées sur 480, avec
-[les propres expériences de ce projet](/research/lab/experiments/raphael-anjou)
-regroupées autour de [460–463](/research/records). Elles calent là pour la même
-raison, et il vaut la
-peine de l'énoncer avant le catalogue pour que le reste se lise comme autant de
-variations sur un même thème.
+Les familles ne calent pas toutes à la même hauteur. Une seule lignée a atteint
+467 à 470 arêtes accordées sur 480 : le retour arrière en profondeur avec des
+désaccords tardifs planifiés (le 467 de Verhaard, puis le 470 de Blackwood ; voir
+les [records](/research/records)). Les autres plafonnent plus bas : la
+programmation en nombres entiers vers 420–440, l'hyper-heuristique académique à
+461, [les propres expériences de ce projet](/research/lab/experiments/raphael-anjou)
+à [460–463](/research/records), et plusieurs constructions de la page
+[impasses](/research/build/dead-ends) bien en dessous.
 
-La raison tient à un problème d'évaluation. Le seul signal peu coûteux dont dispose
-un solveur est le nombre d'arêtes accordées, et ce nombre ne dit pas à quelle
-distance de la solution on se trouve. Un plateau à 470 arêtes et un plateau à 460
-peuvent être tout aussi loin de l'achèvement, car les dix dernières arêtes ne
-relèvent pas d'un travail de finition : elles siègent de l'autre côté d'un mur
-global qu'aucun score local ne perçoit. Ainsi les chercheurs systématiques et les
-chercheurs stochastiques, qui ne se ressemblent en rien, convergent vers la même
-hauteur. C'est le **[mur de rigidité](/research/why/rigidity-wall)** : les plateaux
-record sont localement figés, et le pas d'un excellent plateau à un plateau parfait
-est un unique échange indivisible, sans gradient à suivre. Son pendant est
+Pourquoi ce palier supérieur résiste autant reste une question ouverte. Une
+hypothèse structure la plupart des pages de fond. Le seul signal peu coûteux dont
+dispose un solveur est le nombre d'arêtes accordées, et ce nombre ne dit pas à
+quelle distance de la solution on se trouve : un plateau à 470 arêtes et un
+plateau à 460 peuvent être tout aussi loin de l'achèvement. C'est le
+**[mur de rigidité](/research/why/rigidity-wall)** : sur les plateaux record où
+on l'a mesuré, le plateau est localement figé, et aucun petit réarrangement ne
+fait monter le score. Son pendant est
 **[pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)** :
-lorsqu'on ne peut pas réduire la recherche, la vitesse brute n'achète presque rien.
-La section **[pourquoi c'est difficile](/research/why)** démontre les deux, et
+aucun gain d'un facteur constant ne rend faisable la recherche exhaustive du
+plateau complet, alors que pour la chasse au record, plus de vitesse achète plus
+de tentatives, avec des rendements décroissants. La section
+**[pourquoi c'est difficile](/research/why)** défend les deux, et
 **[quel mur arrête quelle méthode](/research/why/walls-and-methods)** confronte
-chaque attaque au mur sur lequel elle meurt.
+chaque attaque au mur sur lequel on pense qu'elle s'arrête.
 
 Gardez cela en tête et la carte ci-dessous se lit sans peine : les familles
-diffèrent par la *manière* dont elles grimpent, non par la *hauteur* qu'elles
-atteignent.
+diffèrent par la *manière* dont elles grimpent, mais aussi par la *hauteur*
+qu'elles ont atteinte, et c'est la lignée du retour arrière qu'il faut battre.
 
 ## Recherche systématique
 
@@ -119,8 +120,9 @@ détient un record vit ici.
   un algorithme mais l'artisanat qui le sous-tend : tables de correspondance,
   fonctions de hachage parfaites, structures dimensionnées au cache, code généré.
   Il décide si un nœud coûte 26 cycles ou 2 600, et c'est ce qui permet aux moteurs
-  record de tourner. Il achète de la vitesse, et la vitesse est précisément ce qui
-  ne déplace pas le mur.
+  record de tourner. Il achète de la vitesse : aucune accélération ne rend
+  faisable l'arbre exhaustif du 16×16, mais pour la chasse au record elle achète
+  davantage de tentatives.
 
 Le **[catalogue de solveurs](/research/build/solvers)** montre comment les moteurs
 record (le 467 de Verhaard, le 470 de Blackwood) assemblent ces pièces.
@@ -139,24 +141,30 @@ mener la recherche.
   un programme en nombres entiers et abandonner l'intégralité : un solveur linéaire
   atteint une erreur nulle en quelques secondes en plaçant des fractions de pièces.
   Le confort s'arrête à l'instant où les pièces doivent être entières : un plateau à
-  420–440 arêtes, un mur PLNE dès le 8×8, et un meilleur résultat académique de 461
-  en une heure.
+  420–440 arêtes et un mur PLNE dès le 8×8. Aucun programme en nombres entiers n'a
+  produit de plateau complet compétitif.
 
 ## Recherche locale et stochastique
 
 Partir d'un plateau complet (imparfait) et l'améliorer par des mouvements, guidé
-par un objectif. Ces méthodes ne ressemblent en rien au retour arrière, et elles
-s'arrêtent à la même hauteur.
+par un objectif. Ces méthodes ne ressemblent en rien au retour arrière, et sur le plateau
+officiel elles se sont jusqu'ici arrêtées sous les solveurs record à retour
+arrière.
 
 - **[Recherche locale et ALNS](/research/build/local-search/local-search-alns)**.
   Détruire une partie d'un plateau, la reconstruire en mieux, et apprendre quelles
   démolitions paient. Le polisseur le plus fiable ici, et la démonstration la plus
-  nette de là où le polissage s'achève.
+  nette de là où le polissage s'achève. Le meilleur résultat académique de cette
+  famille est 461/480 en une heure (Wauters, Vancroonenburg et Vanden Berghe, une
+  hyper-heuristique).
 - **[Recuit simulé et parallel tempering](/research/build/local-search/parallel-tempering)**.
   Traiter les désaccords comme une énergie et la température comme une tolérance à
-  l'aggravation. Le recuit détient le record le plus ancien de cette famille ; le
-  tempering franchit des barrières que le recuit ne peut franchir. Les deux
-  s'arrêtent au même mur.
+  l'aggravation. Le recuit n'a jamais détenu de record sur le jeu officiel : le 467
+  de Verhaard vient de son solveur à retour arrière, et son recuit sur la
+  composition d'un sous-ensemble de pièces n'est qu'une étape préparatoire
+  (réimplémenté ici, il atteint 438). Le tempering franchit des barrières que le
+  recuit ne peut franchir ; aucun des deux n'a dépassé le palier des solveurs à
+  retour arrière.
 - **[Recherche par faisceau](/research/build/construct/beam-search)**. Maintenir en
   vie les K plateaux partiels les plus prometteurs et les faire croître case par
   case. Le cheval de trait derrière les constructeurs partant de zéro de ce projet,
@@ -178,7 +186,7 @@ Chacune des méthodes ci-dessus ne raisonne qu'à partir des règles du puzzle. 
 famille raisonne à partir des plateaux déjà trouvés : exploiter le corpus des
 plateaux forts pour en extraire de la structure et la réinjecter dans une recherche
 comme un biais. Elle atteint vite et sûrement le sommet de la plage d'une recherche,
-et elle ne relève pas le plafond.
+et elle n'a pas, jusqu'ici, relevé le plafond.
 
 - **[Apprendre des plateaux forts](/research/build/learning)**. Le carrefour de la
   famille : [priors](/research/build/learning/corpus-priors) de position et de
@@ -189,9 +197,9 @@ et elle ne relève pas le plafond.
   coup qu'une recherche ordinaire manquait. La
   [synthèse de l'effondrement](/research/build/learning/when-learning-collapses) est
   l'endroit où la famille s'arrête : accordez trop de confiance à un signal appris et
-  la recherche se disloque, et même exploité parfaitement, aucune de ces méthodes ne
-  franchit le mur de rigidité, car le corpus dont elles apprennent est fait de
-  plateaux bloqués à ce même mur.
+  la recherche se disloque, et même bien exploitée, aucune de ces méthodes n'a encore
+  dépassé le palier, sans doute parce que le corpus dont elles apprennent est fait
+  de plateaux bloqués sur ce même palier.
 
 ## Voies exotiques et matérielles
 
@@ -231,14 +239,17 @@ que la communauté sait où sont les murs.
   coïncider, ce qui fournit des preuves d'impossibilité pour une passe. L'histoire du
   479 en montre à la fois la puissance et le piège.
 - **[Dénombrement des solutions](/research/build/analysis/solution-counting)**.
-  Personne n'a jamais vu de solution complète, et pourtant la communauté sait à un
-  facteur deux près combien il en existe : recensements exacts sur les petits
-  plateaux et une formule d'espérance qui a convergé vers environ 14 702.
+  Personne n'a jamais vu de solution complète. On dispose de recensements exacts
+  sur les petits plateaux et d'une estimation du nombre attendu (premier moment)
+  d'environ 14 702 avec la pièce de départ, calibrée à un facteur deux près sur
+  les petits plateaux où des comptages exhaustifs existent. Elle estime la moyenne
+  sur des puzzles aléatoires aux mêmes statistiques de pièces, pas le nombre de
+  solutions de ce puzzle-ci.
 
 ## Impasses
 
-Certaines idées sonnent aussi bien que n'importe laquelle ci-dessus et,
-démontrablement, ne déplacent pas le score. La page **[impasses](/research/build/dead-ends)**
+Certaines idées sonnent aussi bien que n'importe laquelle ci-dessus et n'ont pas
+fait bouger le score quand on les a essayées. La page **[impasses](/research/build/dead-ends)**
 les rassemble avec la raison de l'échec de chacune, pour vous épargner un mois de
 travail : brisure de symétrie (il n'y a pas de symétrie globale à briser),
 propagation de probabilités qui s'estompe à deux cases de distance, et d'autres.
@@ -246,14 +257,16 @@ propagation de probabilités qui s'estompe à deux cases de distance, et d'autre
 ## Ce que la carte vous dit
 
 Lisez-la de haut en bas et la forme est claire. Les familles systématiques
-détiennent les records parce qu'elles peuvent prouver des choses et élaguer
-fortement sur les petits plateaux, mais elles ne parviennent pas à réduire
-suffisamment la recherche complète pour atteindre la fin. Les familles stochastiques
-polissent magnifiquement et atteignent des plateaux réellement différents, puis
-calent à la même hauteur. Les voies matérielles changent la vitesse et jamais le
-plafond. Et les pages d'analyse expliquent pourquoi : les dix dernières arêtes ne
-sont pas affaire d'effort ou d'ingéniosité dans l'une ou l'autre famille, mais un
-mur global que chaque famille rencontre depuis sa propre direction.
+détiennent les records : seul le retour arrière en profondeur avec désaccords
+tardifs planifiés a atteint 467 à 470, et même lui ne réduit pas assez la
+recherche complète pour aller au bout. Les familles stochastiques polissent bien
+et atteignent des plateaux réellement différents, mais elles ont jusqu'ici calé
+plus bas. Un matériel plus rapide ne rend pas faisable la recherche exhaustive du
+plateau complet ; pour la chasse au record, il achète davantage de tentatives, et
+personne n'a encore vérifié si une longue campagne GPU bien réglée déplacerait le
+plafond. Les pages d'analyse proposent une explication de la résistance du palier
+supérieur, le mur de rigidité, mesuré sur des plateaux record précis et non
+démontré pour toute méthode.
 
 Si vous choisissez où investir votre temps, la question utile n'est pas quelle
 famille est la meilleure. C'est quel mur vous pensez pouvoir franchir, car c'est

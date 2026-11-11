@@ -2,15 +2,16 @@
 title: La entropía y la ley de área
 description: >-
   Eternity II tiene dos reglas: los bordes deben coincidir y cada pieza se
-  usa una sola vez. La primera es generosa. Toda la dificultad reside en la
-  segunda.
-metaDescription: "Eternity II tiene dos reglas — los bordes deben coincidir, cada pieza se usa una vez — y toda la dificultad está en la segunda. Una ley de área entrópica, vía la entropía de Shannon y el lema de Fekete, muestra que es la unicidad, no el emparejamiento de bordes, lo que endurece el puzzle."
+  usa una sola vez. Sin la segunda, los parches localmente válidos abundan;
+  con ella, la fracción de parches válidos que usan piezas distintas cae
+  deprisa con el área.
+metaDescription: "Eternity II tiene dos reglas: los bordes coinciden y cada pieza se usa una vez. Los recuentos de entropía muestran parches válidos abundantes con piezas reutilizables, y una fracción con piezas distintas que decae con el área. El emparejamiento solo sigue siendo NP-completo."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -38,6 +39,10 @@ sources:
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
   - label: "La entropía de Shannon de una fuente, las cantidades h(n) medidas aquí"
     url: https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+  - label: "Demaine y Demaine, Jigsaw puzzles, edge matching, and polyomino packing: connections and complexity (Graphs and Combinatorics 23, 2007)"
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "van Emde Boas, The convenience of tilings: el teselado acotado con piezas reutilizables es NP-completo (Complexity, Logic, and Recursion Theory, 1997)"
+    url: https://doi.org/10.1201/9780429187490-12
 ---
 
 import {
@@ -214,13 +219,18 @@ a la regla de usar cada pieza una sola vez.
 
 ## Por qué importa
 
-Un colapso del orden de la centena de celdas está a la escala de los
-movimientos más pequeños que separan los mejores tableros conocidos. La
-gramática de coincidencia se mantiene rica, y luego la regla de distinción la
-colapsa sobre el área. Así que el muro no está en la parte que parece difícil,
-la coincidencia de colores; está en la regla silenciosa de que cada pieza se
-usa una sola vez, cuyo coste crece con el área, sobre un tablero apenas lo
-bastante grande como para que muerda.
+La gramática de coincidencia se mantiene rica, y luego la regla de distinción
+retira una fracción de los parches válidos que crece con su área. Ese es el
+enunciado medido, y es más estrecho que «toda la dificultad está en la regla de
+uso único». Los recuentos son aquí de parches pequeños con borde libre. No
+muestran que el emparejamiento solo sea fácil para la tarea real, una región
+16×16 con un marco gris fijo y cierre global: el teselado acotado con piezas
+reutilizables y borde fijo ya es NP-completo
+([van Emde Boas, 1997](https://doi.org/10.1201/9780429187490-12)), como lo son
+los puzzles de emparejamiento de aristas en general
+([Demaine y Demaine, 2007](https://doi.org/10.1007/s00373-007-0713-4)). No se
+ha medido si la instancia 16×16 con piezas reutilizables y marco gris es fácil
+en la práctica.
 
 Ver [por qué el basin-hopping es imposible](/research/why/sigma-cycles).
 

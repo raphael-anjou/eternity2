@@ -10,7 +10,7 @@ metaDescription: "Encuentro en el medio en Eternity II: el truco de Horowitz-Sah
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), el origen clásico'
@@ -90,8 +90,10 @@ ningún automorfismo semejante. Los 22 colores caen en clases de frecuencia
 desiguales (5 colores con 24 semiaristas, 5 con 48, 12 con 50), y ningún par
 de colores comparte a la vez oferta y estructura de incidencia. La única
 relajación lícita es proyectar la firma de costura sobre su *multiconjunto*
-de colores y usarlo como prefiltro, lo que encoge los cubos en torno a un
-factor $k!$ para una costura de longitud $k$: un alivio polinómico, nunca
+de colores y usarlo como prefiltro, lo que encoge el espacio de claves en un
+factor $k!$ como mucho para una costura de longitud $k$ (menos si se repiten
+colores), a cambio de cubos más grandes cuyos candidatos piden una
+comprobación exacta en una segunda fase: un alivio polinómico, nunca
 exponencial. Las claves gordas siguen gordas.
 
 ## Sentir la raíz cuadrada
@@ -176,57 +178,74 @@ con éxito.
 
 El acoplamiento puede ponerse en cifras, no solo insinuarse. Un cálculo de
 cuaderno da el número esperado de rellenos válidos de una región de área $a$
-con interfaz de longitud $k$ (para regiones que no tocan ningún borde del
-tablero):
+con interfaz de longitud $k$:
 
 $$
-T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+T(a,k)\;=\;\frac{n!}{(n-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
 $$
 
-donde $p = 0{,}048177$ es la probabilidad de que dos semiaristas tomadas al
-azar compartan color bajo la distribución real de frecuencias de colores:
+donde $n$ es el número de piezas elegibles y $p$ la probabilidad de que dos
+semiaristas tomadas al azar compartan color. Sobre el juego completo,
+$n = 256$ y $p = 0{,}048177$ bajo la distribución real de frecuencias de los
+22 colores:
 alrededor de un 6 % por encima del ingenuo $1/22 \approx 0{,}0455$, una
 inflación que las frecuencias desiguales imponen por Cauchy–Schwarz. El
 factorial descendente cuenta las elecciones ordenadas de piezas, $4^a$ las
 rotaciones, y el exponente $2a - k/2$ es exacto: una identidad de doble
 conteo da a toda región sin borde de área $a$ y perímetro $k$ exactamente
 $2a - k/2$ aristas interiores, cada una facturada como una coincidencia
-independiente.
+independiente. Para una región que no toca ningún borde, los parámetros
+correctos son más estrechos: ahí solo caben las 196 piezas interiores, sus
+lados usan los 17 colores interiores, y $p \approx 0{,}0588$ (calculado sobre
+las 840 semiaristas que miran hacia dentro, incluidos los lados interiores de
+las piezas de borde). Los valores del juego completo son un promedio más
+tosco; las cifras que siguen los usan salvo que se diga otra cosa.
 
 La fórmula se validó contra conteos exhaustivos en instancias plantadas de
-10×10 a 12×12: exacta (razón 1,000) cuando la región no tiene aristas
-interiores, con un error del 3 al 20 % para una o dos aristas interiores, y
+10×10 a 12×12: con un error del 3 al 20 % para una o dos aristas interiores, y
 el error se encoge al crecer el número de colores (razón 0,806 con 6
 colores, subiendo a 1,010 con 22), la dirección que predice el agotamiento
 de un pool finito. Las regiones con cuatro o más aristas interiores ya
 quedan fuera de la verificación por fuerza bruta incluso en un juguete
 12×12; el conteo predicho para una región de 9 celdas ronda
 $6 \times 10^{11}$. Así que la validación a pequeña escala es una medición,
-mientras que extrapolar la fórmula a regiones grandes es cosa de modelo, y
-todo lo que sigue debe leerse con esa etiqueta puesta.
+mientras que extrapolar la fórmula a regiones grandes es cosa de modelo. Ni
+el cálculo ni los conteos de validación están aún publicados como tema de
+investigación del repositorio, así que cada cifra de esta sección y de las
+dos siguientes es una estimación de modelo no publicada.
 
-## Por qué ningún tamaño de corte gana
+## Lo que un corte ahorra de verdad
 
-Démosle a la fórmula la optimización completa: elegir el área de región $a$,
-concederle el perímetro mínimo alcanzable (una cota clásica sobre
+Comparemos los dos planes para el mismo objetivo. Una búsqueda unilateral
+que hace crecer una región celda a celda paga más o menos $\sum_d T(d)$
+sobre sus profundidades, una suma dominada por su nivel más ancho. Un plan
+bilateral paga dos medias tablas más la unión, unas $2\,T(a/2)$ más la
+unión. Démosle a cada área su perímetro mínimo (una cota clásica sobre
 poliominós, de Harary y Harborth en 1976, da
-$k_{\min} = 2\lceil 2\sqrt{a}\rceil$), y minimizar la factura total de
-tamaño de tabla más salida de la unión. El barrido no encuentra ningún punto
-dulce interior: el coste sube de forma monótona con el área de la región,
-con el coste en $\log_{10}$ pasando de 3,0 en $a=1$ a 16,4 en $a=16$, 48,7
-en $a=64$, 61,5 en $a=128$. El óptimo es la "región" degenerada de una sola
-celda, es decir, la propagación de restricciones ordinaria, celda a celda.
+$k_{\min} = 2\lceil 2\sqrt{a}\rceil$) con los parámetros del juego
+completo: $\log_{10} T$ vale 3,0 en $a=1$, 16,3 en $a=16$, 41,4 en $a=64$ y
+61,5 en $a=128$, sigue subiendo hasta unos 66 cerca de $a = 160$ y luego
+baja (64,5 en $a=192$). La tabla de medio tablero, unas $10^{61,5}$
+entradas, es menor que el nivel más ancho del árbol unilateral, unas
+$10^{66}$. En este modelo el corte ahorra unos cuatro órdenes de magnitud en
+el término dominante: un factor real pero de orden bajo, muy lejos de la raíz
+cuadrada de una factura de $10^{66}$, y $10^{61}$ entradas almacenadas
+siguen fuera de alcance. (Con los parámetros interiores, las regiones sin
+borde alcanzan su máximo más abajo y antes, cerca de $10^{60}$ hacia
+$a = 148$.)
 
 El mecanismo merece enunciarse sin rodeos. El encuentro en el medio clásico
-gana porque las dos mitades enumeran universos *independientes* cuyo
-producto reconstruye el espacio completo a coste de raíz cuadrada por lado.
-Aquí ambas mitades extraen de un único pool compartido de 256 piezas bajo
-una restricción global de disjunción: la base combinatoria es un factorial
-descendente cuyo coste marginal por celda *sube* con el área, ambos lados
-pagan la factura superlineal a la vez, y el ahorro de raíz cuadrada nunca se
-materializa. Esto es lo que dice el cálculo, validado en tableros plantados
-pequeños; es un veredicto computado sobre un modelo, no una medición al
-tamaño del tablero completo.
+gana porque los conteos parciales de un lado crecen como $2^d$ hasta las
+hojas: reducir la profundidad a la mitad toma una raíz cuadrada. Aquí los
+conteos de rellenos parciales forman una joroba: suben mientras las
+elecciones de piezas y rotaciones superan a la penalización por
+coincidencia, alcanzan su máximo a media profundidad y bajan cuando se
+agotan las piezas restantes. Las dos mitades de un corte quedan en la ladera
+ascendente de la misma joroba, así que el corte solo ahorra la distancia
+entre el punto medio y la cima. Y el trabajo de verdad está en la unión: dos
+medios tableros deben además usar juegos de piezas disjuntos, cosa que
+ninguna clave de costura garantiza. Es un veredicto computado sobre un
+modelo de conjunto, no una medición al tamaño del tablero completo.
 
 También fracasa un atajo tentador. Anclar la región en una esquina, para que
 dos de sus lados sean borde libre del tablero, suena a perímetro gratis; es
@@ -247,7 +266,7 @@ bases de datos. Cuatro cuadrantes forman una unión en 4-ciclo: cada uno
 comparte una interfaz de 8 aristas con dos vecinos, el escenario de manual
 donde la teoría de uniones óptimas en el peor caso muestra que cualquier
 plan que materialice primero una unión por pares queda dominado. El mismo
-cálculo de cuaderno factura un plan de cuadrantes materializados en torno a
+cálculo de cuaderno (no publicado, sin registro de su función de coste) factura un plan de cuadrantes materializados en torno a
 $10^{80}$ filas intermedias frente a unas $10^{62}$ del corte simple en dos
 sobre la misma área, porque el producto por pares se hincha antes de que las
 restricciones cruzadas de los otros dos cuadrantes puedan podarlo, y ningún
@@ -323,14 +342,16 @@ coincidentes, hasta 459 sobre 480 bajo la misma convención, verificado de
 forma independiente por tres vías, en unos 200 segundos. Ampliar la banda
 liberada a 64 celdas se pasó de largo: dentro del mismo presupuesto, el
 mejor incumbente del solver aterrizó por debajo de la puntuación de
-partida, en 455. (Ese 459 igualó la mejor puntuación del cuaderno con este
+partida, en 455, señal de que la resolución no partía del tablero existente:
+un solver al que se le da ese tablero como pista no puede devolver algo peor. (Ese 459 igualó la mejor puntuación del cuaderno con este
 pipeline en aquel momento; para situar tales puntuaciones frente a los
 resultados comunitarios logrados con presupuestos de cómputo mucho mayores,
 véase la [página de récords](/research/records).) La palanca escondida ahí:
-cuando el solver exacto cierra la brecha de optimalidad, la región está
-apretada y ningún método ayudará; cuando no puede, su incumbente es en la
-práctica un boleto de lotería y volver a sortear es la jugada. "¿Demostró el
-solver la optimalidad?" es un mapa gratuito de dónde vive el margen.
+cuando el solver exacto cierra la brecha de optimalidad, esa ventana queda
+demostrada óptima para esas piezas, aunque una ventana mayor o distinta aún
+pueda ayudar; cuando no puede, volver a resolver con otras semillas muestrea
+otros incumbentes, y aquí un sorteo de cada 40 mejoró el tablero. "¿Demostró
+el solver la optimalidad?" es un mapa barato de qué ventanas están agotadas.
 
 ## Límites, y qué queda abierto
 

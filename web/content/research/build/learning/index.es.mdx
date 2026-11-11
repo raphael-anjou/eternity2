@@ -11,7 +11,7 @@ metaDescription: "Aprender de tableros fuertes de Eternity II: en vez de partir 
 kind: page
 order: 44
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 related:
   - /research/build/approaches-map
   - /research/build/techniques
@@ -44,21 +44,35 @@ Una señal aprendida ayuda cuando captura estructura real y transferible: algo
 cierto de los buenos tableros que una búsqueda partiendo de cero tendría que
 redescubrir de otro modo por suerte. Dónde tiende a situarse cada pieza, qué
 piezas gustan de tocarse, qué demanda escasa una pieza rara es la única capaz de
-satisfacer. Cableada en una búsqueda como un sesgo leve, esa estructura lleva de
-forma fiable una construcción a lo más alto de su propio rango.
+satisfacer. Cableada en una búsqueda como un sesgo leve, esa estructura llevó las
+construcciones de este proyecto a lo más alto de su rango en las ejecuciones que
+se recogen aquí.
 
-El límite es lo que hace de esto investigación y no un saco de trucos. El corpus
-del que se aprenden estas señales es él mismo subperfecto: cada tablero que
-contiene está atascado en algún punto por debajo de 480. Así que una señal
-extraída del corpus codifica el *techo* de la comunidad tanto como su sabiduría, y
-una señal que se limita a recodificar la meseta en la que cada tablero fuerte ya
-está atrapado no eleva nada. Empuja un prior aprendido, bueno para desempatar,
-hasta el interior de la función objetivo y la búsqueda se derrumba, porque empieza
-a cambiar la arista que tiene delante por una corazonada estadística. El hilo
-conductor nítido de toda esta familia: aprender de los tableros fuertes te hace
-alcanzar la meseta rápido y de forma fiable, pero no te hace, por sí solo,
-superarlo. El techo es el [muro de rigidez](/research/why/rigidity-wall), y
-ninguna cantidad de minería del corpus lo mueve.
+Todos los resultados de esta sección proceden de ejecuciones exploratorias sobre
+un corpus privado: los tableros están publicados y son verificables, pero las
+búsquedas no pueden volver a ejecutarse aquí, cada una usó unas pocas semillas
+como mucho, y ninguna se comparó con una búsqueda de referencia a igual cómputo.
+
+El límite es lo que hace de esto investigación y no un saco de trucos. En las
+ejecuciones de este proyecto, las señales aprendidas del corpus llegaron a 460 a
+463 y ninguna superó la meseta del proyecto, que queda por debajo de tableros que
+la comunidad ya ha encontrado ([récords](/research/records)). Esa meseta es, por
+tanto, una propiedad de estos métodos y ejecuciones, no del puzzle. Llevar un
+prior de peso fijo del papel de desempate al interior del objetivo hizo colapsar
+una búsqueda en haz (LODESTONE); KEYRING mezcló sus señales en la puntuación y
+aun así llegó a 460, así que el peso adecuado es una cuestión de ajuste abierta,
+no una ley. Queda abierto si aprender de tableros fuertes puede llegar más lejos:
+ninguno de estos experimentos volvió a aprender de sus propios tableros
+mejorados, el esquema iterativo en el que se basan el método de entropía cruzada
+([Rubinstein 1999](https://doi.org/10.1023/A:1010091220143)) y los algoritmos de
+estimación de distribuciones. La literatura de metaheurísticas sobre aprender de
+soluciones de élite es la comparación natural: programación con memoria
+adaptativa ([Taillard et al. 2001](https://doi.org/10.1016/S0377-2217(00)00268-X)),
+path relinking sobre conjuntos de élite
+([Resende et al. 2010](https://doi.org/10.1007/978-1-4419-1665-5_4)) y búsqueda
+local guiada por el esqueleto
+([Zhang 2004](https://doi.org/10.1016/j.artint.2004.04.001)). Recoge tanto éxitos
+como el fallo por sobreexplotación con el que se topan estas páginas.
 
 ## Las técnicas
 
@@ -80,11 +94,10 @@ ninguna cantidad de minería del corpus lo mueve.
   alcanzó el mejor tablero de este proyecto.
 - **[Decodificación de récords](/research/build/learning/decoding-records)**
   reconstruye exactamente un tablero récord conocido, pieza por pieza, para
-  recuperar el ingrediente que le faltaba a una búsqueda ordinaria. La
-  reproducción como prueba. El experimento
+  recuperar la jugada que una búsqueda ordinaria no podía representar: una
+  prueba de representabilidad, no una búsqueda libre. El experimento
   [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay).
 - **[Cuando el aprendizaje se derrumba](/research/build/learning/when-learning-collapses)**
-  es la síntesis sobre el modo de fallo: exactamente cuándo una señal aprendida
-  deja de ayudar, por qué confiar en exceso en ella arruina la búsqueda, y por qué
-  ninguno de estos métodos eleva el techo. Fija el límite de toda la sección: las
-  señales aprendidas alcanzan la meseta más rápido, pero ninguna lo levanta.
+  es la síntesis sobre el modo de fallo: dónde dejó de ayudar una señal aprendida
+  en estas ejecuciones, cómo un peso excesivo arruinó una búsqueda, y por qué la
+  meseta que alcanzaron estos métodos no prueba que el puzzle tenga un techo ahí.

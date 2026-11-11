@@ -57,19 +57,23 @@ the same instances, built from an AllDifferent constraint over cell-to-piece
 assignment plus Element channelling of edge colours, posed as a decision
 question, solved 25 of 25 instances across sizes 10 through 14 on the original 26-colour bed with a smooth
 time curve: where the 13x13 boards that no heuristic touches fall in 0.50 seconds
-median, and planted 16x16 boards fall in about 15 seconds. The cliff belongs
-to the search paradigm, not to the boards. All ten heuristic families share
+median, and planted 16x16 boards fall in about 15 seconds. On those boards
+the DFS wall is therefore not a hard limit of the instances; how much of it
+belongs to the search paradigm and how much to where the board family sits
+relative to the expected-one-solution size is not separated by these data. All ten heuristic families share
 one bias, chronological greedy commitment with only local information, so
 their agreement was one witness reported ten times.
 
 The formulation gap alone is worth stating. A generic MIP over placement
 binaries with sum-to-one rows (HiGHS branch and bound) scores 11 of 264 on a
 12x12 instance in 300 seconds; CP-SAT on the same instance returns the full
-264 in 0.42 seconds. Three orders of magnitude, same problem, different
-encoding. Two cautions on scope: the planted boards are not canonical
+264 in 0.42 seconds. Three orders of magnitude on the same problem, but the
+comparison changes both the encoding and the solver, so it shows that the
+pairing matters, not which of the two does. Two cautions on scope: the planted boards are not canonical
 Eternity II (they plausibly admit very many solutions, where the real puzzle
-is believed to admit essentially one), and the original measurements used 26
-interior colours where the real puzzle has 22, which makes those boards more
+has a first-moment estimate of about 14,702 solutions with the centre clue),
+and the original measurements used 26 colours in total (21 interior) where the
+real puzzle has 22 (17 interior plus 5 border), which makes those boards more
 constrained and easier than the real thing.
 
 ## Reproduction
@@ -101,7 +105,8 @@ against the original measurement).
 ### Measured results
 
 Run on Apple Silicon; the DFS is single-core, CP-SAT uses 8 workers. The
-kit's generator caps interior colours at 22, so the original C=26 setting
+kit's generator caps the total colour count at 22 (17 interior plus 5
+border), so the original C=26 setting
 could not be generated; everything below is at C=22, and the source numbers
 in the table are the C=26 originals, shown for shape, not for digit-level
 comparison.

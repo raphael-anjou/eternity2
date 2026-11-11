@@ -2,15 +2,16 @@
 title: L'entropie et la loi d'aire
 description: >-
   Eternity II a deux règles : les bords doivent coïncider, et chaque pièce
-  ne sert qu'une fois. La première est généreuse. Toute la difficulté tient
-  dans la seconde.
-metaDescription: "Eternity II a deux règles — les bords doivent concorder, chaque pièce sert une fois — et toute la difficulté tient à la seconde. Une loi d'aire entropique, via l'entropie de Shannon et le lemme de Fekete, montre que c'est la contrainte d'unicité, non l'appariement des bords, qui rend le puzzle dur."
+  ne sert qu'une fois. Sans la seconde, les motifs localement valides
+  abondent ; avec elle, la part des motifs valides qui utilisent des pièces
+  distinctes chute vite avec l'aire.
+metaDescription: "Eternity II a deux règles : les bords concordent, chaque pièce sert une fois. Les comptes d'entropie montrent des motifs valides abondants à tuiles réutilisables, et une part à pièces distinctes qui décroît avec l'aire. L'appariement seul reste NP-complet."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -38,6 +39,10 @@ sources:
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
   - label: "L'entropie de Shannon d'une source, les quantités h(n) mesurées ici"
     url: https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+  - label: "Demaine et Demaine, Jigsaw puzzles, edge matching, and polyomino packing: connections and complexity (Graphs and Combinatorics 23, 2007)"
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "van Emde Boas, The convenience of tilings : le pavage borné à tuiles réutilisables est NP-complet (Complexity, Logic, and Recursion Theory, 1997)"
+    url: https://doi.org/10.1201/9780429187490-12
 ---
 
 import {
@@ -216,13 +221,18 @@ couleurs survivent à la règle d'usage unique des pièces.
 
 ## Pourquoi c'est important
 
-Un effondrement de l'ordre de la centaine de cellules est à l'échelle des plus
-petits mouvements qui séparent les meilleurs blocs connus. La grammaire
-d'appariement reste riche, puis la règle de distinction l'effondre sur l'aire.
-Le mur ne se dresse donc pas là où le problème paraît difficile, dans
-l'appariement des couleurs ; il se dresse dans la règle discrète selon laquelle
-chaque pièce ne sert qu'une fois, dont le coût croît avec l'aire, sur un plateau
-juste assez grand pour qu'elle morde.
+La grammaire d'appariement reste riche, puis la règle de distinction retire une
+part des motifs valides qui croît avec leur aire. C'est l'énoncé mesuré, et il
+est plus étroit que « toute la difficulté tient dans la règle d'usage unique ».
+Les comptes portent ici sur de petits motifs à bord libre. Ils ne montrent pas
+que l'appariement seul est facile pour la vraie tâche, une région 16×16 avec un
+cadre gris fixé et une fermeture globale : le pavage borné à tuiles
+réutilisables et à bord fixé est déjà NP-complet
+([van Emde Boas, 1997](https://doi.org/10.1201/9780429187490-12)), tout comme
+les casse-têtes d'appariement de bords en général
+([Demaine et Demaine, 2007](https://doi.org/10.1007/s00373-007-0713-4)). Que
+l'instance 16×16 à tuiles réutilisables avec cadre gris soit facile en pratique
+n'a pas été mesuré.
 
 Voir [pourquoi le basin-hopping est impossible](/research/why/sigma-cycles).
 

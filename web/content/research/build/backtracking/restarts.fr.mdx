@@ -1,16 +1,17 @@
 ---
 title: Redémarrages et lois à queue lourde
 description: >-
-  Lancez deux fois le même backtracker sur le même casse-tête et les temps
-  d'exécution diffèrent d'un facteur dix, cent, mille. La communauté l'a mesuré
-  en 2007 ; la littérature CSP l'avait déjà nommé. Le remède (couper, rebattre,
-  redémarrer) explique pourquoi chaque solveur record depuis est un portefeuille
-  de redémarrages.
-metaDescription: "Pourquoi les backtrackers d’Eternity II ont des temps d’exécution à queue lourde variant par puissances de dix, et pourquoi tout solveur record repose sur des portefeuilles de coupure et redémarrage. Mesuré par la communauté en 2007, nommé par Gomes, Selman et Kautz."
+  Sur 500 casse-têtes 7×7 aléatoires, un backtracker à coupure et redémarrage
+  perd environ la moitié des courses mais ne perd jamais gros ; la pire défaite
+  du backtracker simple dépasse 500 fois celle du redémarreur. Ce profil est
+  compatible avec les temps d'exécution à queue lourde décrits par la
+  littérature CSP ; personne n'a mesuré cette distribution sur le 16×16 complet.
+  Le moteur record de Blackwood est bâti comme un portefeuille de redémarrages.
+metaDescription: "Temps d’exécution à queue lourde et portefeuilles de coupure et redémarrage sur Eternity II : la course de 2007 sur 500 casse-têtes 7×7 aléatoires, la littérature de Gomes, Selman, Crato et Kautz, le planning universel de Luby et le moteur à 50 milliards de nœuds de Blackwood."
 kind: concept
 order: 130
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "L'expérience de Txibilis sur 500 casse-têtes : les redémarrages gagnent 52 % des courses, mais toute la queue (groups.io message 2822)"
@@ -25,11 +26,13 @@ sources:
     url: https://groups.io/g/eternity2/message/10066
   - label: La ferme de 20 PC redémarrés à la main de McGavin pour le recensement 9×9 (groups.io message 9342)
     url: https://groups.io/g/eternity2/message/9342
-  - label: "La résolution 10×10 de McGavin : 92 907 recherches de rangée redémarrées et la loi des grands nombres (groups.io message 9688)"
+  - label: "La résolution 10×10 de McGavin : 92 907 sous-arbres de première rangée classés et la loi des grands nombres (groups.io message 9688)"
     url: https://groups.io/g/eternity2/message/9688
   - label: Le fil sur l'hygiène du PRNG, période du générateur contre campagnes de redémarrages (groups.io message 6798)
     url: https://groups.io/g/eternity2/message/6798
-  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+  - label: Gomes, Selman & Crato, Heavy-Tailed Distributions in Combinatorial Search (CP-97)
+    url: https://doi.org/10.1007/BFb0017434
+  - label: Gomes, Selman, Crato & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
     url: https://doi.org/10.1023/A:1006314320276
   - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
     url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
@@ -40,6 +43,9 @@ related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/backtracking/fill-order
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/louis-verhaard/eii
 repro:
   kind: prose
 ---
@@ -48,8 +54,8 @@ import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
 
 Lancez le même backtracker sur deux casse-têtes tirés de la même distribution
 et les temps de résolution ne diffèrent pas de quelques pourcents ; ils
-diffèrent par puissances de dix. La communauté Eternity II l'a mesuré en
-octobre 2007. En réponse à l'affirmation d'antminder selon laquelle le
+peuvent différer par puissances de dix. La communauté Eternity II l'a constaté
+en octobre 2007. En réponse à l'affirmation d'antminder selon laquelle le
 « backtracking avec redémarrages multiples » battait le backtracking simple
 ([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
 un Txibilis sceptique a généré 500 casse-têtes 7×7 aléatoires et fait courir
@@ -63,19 +69,35 @@ dépassait la meilleure victoire du solveur simple
 ([message 2822](https://groups.io/g/eternity2/message/2822)). Une colonne du
 registre est bornée ; l'autre ne l'est pas.
 
-Cette asymétrie porte un nom dans la littérature : une **distribution des temps
-d'exécution à queue lourde**. Gomes, Selman et Kautz avaient décrit exactement
-ce phénomène dans la recherche SAT et CSP une décennie plus tôt
-([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), et l'avaient
-formalisé dans [leur article de 2000](https://doi.org/10.1023/A:1006314320276) :
-pour le backtracking sur des instances difficiles, la fonction de survie
-décroît comme une loi de puissance, $P(T > t) \approx C\,t^{-\alpha}$, et non
-comme une exponentielle. La décroissance est si lente que pour $\alpha \le 1$
-la *moyenne* du temps d'exécution est infinie. Chaque record d'Eternity II
-depuis, du [467 de Verhaard](/research/lab/experiments/louis-verhaard/eii) et
-du [10×10 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) à la
-[vague des 468–470](/research/lab/experiments/joshua-blackwood/solver), a été
-trouvé par un solveur bâti autour de ce fait.
+Le protocole mérite d'être lu de près. Chacun des 500 casse-têtes a reçu une
+exécution simple et une exécution à redémarrages : l'expérience mesure donc la
+variation *d'une instance à l'autre*, et montre que les redémarrages gagnent
+parfois avec des marges énormes. Elle ne mesure pas la dispersion d'une graine
+à l'autre pour un même solveur sur une même instance, et aucun exposant de
+queue n'a été ajusté.
+
+Ce profil est compatible avec ce que la littérature appelle une
+**distribution des temps d'exécution à queue lourde**. Gomes, Selman et Crato
+l'ont d'abord décrite pour le backtracking randomisé
+([CP-97](https://doi.org/10.1007/BFb0017434)) ; l'[article
+AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf) de Gomes, Selman et
+Kautz en a tiré la randomisation et les redémarrages ; et Gomes, Selman, Crato
+et Kautz en ont donné le traitement complet dans [leur article de revue de
+2000](https://doi.org/10.1023/A:1006314320276) : sur des exécutions randomisées
+répétées d'une même instance difficile, la fonction de survie décroît comme
+une loi de puissance, $P(T > t) \approx C\,t^{-\alpha}$, et non comme une
+exponentielle. La décroissance est si lente que pour $\alpha \le 1$ la
+*moyenne* du temps d'exécution est infinie. Personne n'a mesuré cette
+distribution sur le plateau complet 16×16 d'Eternity II.
+
+Sur ce point, les moteurs records diffèrent. [Le moteur 468–470 de
+Blackwood](/research/lab/experiments/joshua-blackwood/solver) est un
+portefeuille à coupure et rebattage. [La résolution 10×10 de
+McGavin](/research/lab/experiments/peter-mcgavin/backtracker) relève d'autre
+chose : une partition classée et exhaustive de l'arbre par première rangée,
+chaque sous-arbre étant parcouru jusqu'au bout. Aucune politique de
+redémarrage n'est documentée pour [eii de
+Verhaard](/research/lab/experiments/louis-verhaard/eii).
 
 ## Pourquoi les queues apparaissent
 
@@ -95,7 +117,7 @@ engagements précoces, hérités pour toujours.
 
 Le revers est une *gauche* également épaisse : certaines exécutions réussissent
 toutes leurs décisions précoces par chance et se terminent d'une rapidité
-absurde. Le point de Gomes, Selman et Kautz est que les deux queues procèdent
+absurde. Ce que soulignent Gomes et ses coauteurs, c'est que les deux queues procèdent
 du même mécanisme d'amplification de la variance, et que la bonne réponse n'est
 pas une meilleure exécution moyenne mais *plus de tirages de la distribution*.
 
@@ -113,11 +135,15 @@ faveur de la fidélité à une exécution qui peine.
 Le fil d'origine portait une réserve : Txibilis raisonnait que les
 redémarrages ne devraient payer que lorsque l'instance a *beaucoup* de
 solutions (autant de chances d'un préfixe chanceux) et moins sur un banc
-d'essai à solution unique. Pour Eternity II la distinction est sans objet, à
-l'avantage du chercheur : la [théorie complexe](/research/why/complex-theory)
-situe le casse-tête complet sans indice à environ $1{,}15 \times 10^7$
-solutions, dont chacune l'emporte, et la chasse aux scores partiels compte des
-cibles astronomiquement plus nombreuses encore.
+d'essai à solution unique. Pour Eternity II, l'estimation au premier moment
+de la [page sur le dénombrement des
+solutions](/research/build/analysis/solution-counting) donne environ 14 702
+solutions attendues avec la pièce de départ obligatoire (environ
+$1{,}15 \times 10^7$ si l'on abandonne cette contrainte). C'est une moyenne sur
+des casse-têtes aléatoires de mêmes statistiques de pièces, pas un décompte
+pour cette instance, mais elle laisse attendre de nombreuses cibles pour un
+préfixe chanceux, et la chasse aux scores partiels en compte
+astronomiquement plus.
 
 ## Le remède
 
@@ -156,20 +182,27 @@ aucun planning universel ne peut faire mieux en général.
   Blackwood a répondu : « Le nombre 50 G était arbitraire. J'ai essayé
   quelques grands nombres (au-delà de 1 G) et ça ne changeait pas grand-chose »
   ([message 10066](https://groups.io/g/eternity2/message/10066)). Cette
-  insensibilité est elle-même une signature de queue lourde : quand l'ennemi
-  est la queue, presque n'importe quelle coupure qui épargne le corps de la
-  distribution fonctionne.
-- **Les fermes de McGavin** sont la même politique à l'échelle humaine. Son
-  recensement des solutions 9×9 tournait sur « environ 20 PC » glanés pour
-  atteindre 60 cœurs, chacun exécutant un backtracker à balayage par rangées à
-  partir d'un tableau de pièces rebattu aléatoirement, et il « redémarrait
-  manuellement ceux qui semblaient bloqués »
-  ([message 9342](https://groups.io/g/eternity2/message/9342)). Sa résolution
-  en 2017 du 10×10 de Brendan Owen, le banc d'essai résolu le plus difficile de
-  la communauté, était un portefeuille de redémarrages par construction :
-  92 907 recherches indépendantes de première rangée, réparties sur plus de
-  400 cœurs, là où la théorie prédisait environ un succès pour 70 000. Son
-  propre résumé : « aucune méthode nouvelle, juste de la persévérance
+  absence d'effet n'établit pas une queue lourde. Un temps d'exécution sans
+  mémoire (exponentiel) donne le même coût attendu à toute coupure, et
+  paraîtrait donc tout aussi plat ; une queue en loi de puissance pure avec
+  $\alpha < 1$ rendrait au contraire sensible un changement de coupure d'un
+  facteur 50. Son moteur chasse d'ailleurs un score maximal et non une
+  solution : ce n'est pas le temps jusqu'à la solution que la coupure arbitre.
+- **La ferme 9×9 de McGavin** redémarrait à la main. Son recensement des
+  solutions tournait sur « environ 20 PC » glanés pour atteindre 60 cœurs,
+  chacun exécutant un backtracker à balayage par rangées à partir d'un tableau
+  de pièces rebattu aléatoirement, et il « redémarrait manuellement ceux qui
+  semblaient bloqués »
+  ([message 9342](https://groups.io/g/eternity2/message/9342)).
+- **La résolution 10×10 de McGavin n'est pas un portefeuille de
+  redémarrages.** Pour le 10×10 de Brendan Owen, le banc d'essai résolu le plus
+  difficile de la communauté, il a classé environ 20 millions de premières
+  rangées candidates selon le rendement attendu par la théorie complexe, puis
+  parcouru chaque sous-arbre exhaustivement, environ un jour-cœur chacun. La
+  solution est tombée au test de rangée 92 907, sur plus de 400 cœurs, là où
+  la théorie prédisait environ un succès pour 70 000. C'est une recherche
+  complète sur une partition statique classée, pas des coupures randomisées.
+  Son propre résumé : « aucune méthode nouvelle, juste de la persévérance
   systématique et la loi des grands nombres »
   ([message 9688](https://groups.io/g/eternity2/message/9688)).
 
@@ -196,10 +229,11 @@ corps, au prix de jamais mener à terme une exécution de marathon.
 ## Regardez la queue s'effondrer
 
 Le laboratoire ci-dessous tire 400 exécutions de solveur d'un mélange à queue
-lourde initialisé par graine, calibré pour correspondre à la mesure de 2007 :
-un corps d'exécutions chanceuses autour de quelques millions de nœuds, une
-queue qui s'étire cinq ordres de grandeur au-delà. Puis il vous confie la
-coupure.
+lourde initialisé par graine : un corps d'exécutions chanceuses autour de
+quelques millions de nœuds, une queue qui s'étire cinq ordres de grandeur
+au-delà, à une échelle inspirée des marges de 2007. C'est une distribution
+synthétique choisie pour montrer le mécanisme, pas une mesure des temps
+d'exécution d'Eternity II. Puis il vous confie la coupure.
 
 <Figure collapsible title="Interactif : temps d'exécution à queue lourde et redémarrages">
   <RestartTailLab />
@@ -228,8 +262,9 @@ coupure.
    épargner les exécutions chanceuses sur lesquelles elle mise.
 5. **Remarquez comme le point optimal est plat.** Entre « trop gourmand » et
    « trop patient » s'étend un plateau large de plusieurs ordres de grandeur où
-   le total attendu ne varie presque pas. Les 50 milliards « arbitraires » de
-   Blackwood, trouvés empiriquement, sont ce plateau qui s'exprime.
+   le total attendu ne varie presque pas. Ce plateau appartient à ce mélange
+   synthétique ; personne n'a mesuré si les temps d'exécution d'Eternity II en
+   ont un, ni où il se situerait.
 
 ## Ce que ça coûte
 
@@ -277,6 +312,7 @@ systématiquement tout l'arbre de recherche, si bien que j'ai pu manquer
 certaines solutions »
 ([message 9342](https://groups.io/g/eternity2/message/9342)). Pour prouver
 qu'une région est vide, les redémarrages sont le mauvais outil. Pour trouver
-une solution, ou un plateau record, dans un espace où votre temps d'exécution
-s'étend sur des puissances de dix, ils sont la seule politique sensée, et
-chaque moteur de la [chronologie des records](/research/records) les emploie.
+une solution, ou un plateau record, quand les temps d'exécution peuvent
+s'étendre sur des puissances de dix, ils sont une assurance bon marché, et le
+moteur derrière les [records](/research/records) actuels en score ouvert
+repose sur l'une d'elles.

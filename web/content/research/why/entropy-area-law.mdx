@@ -2,14 +2,15 @@
 title: Entropy and the area law
 description: >-
   Eternity II has two rules: edges must match, and each piece is used once.
-  The first is generous. All the hardness lives in the second.
-metaDescription: "Eternity II has two rules — edges must match, and each piece is used once — and all the difficulty lives in the second. An entropy area law, measured via Shannon entropy and Fekete's subadditivity lemma, shows the use-once constraint, not edge-matching, is what makes the puzzle hard."
+  Without the second, locally valid patches are abundant; with it, the
+  fraction of valid patches that use distinct pieces falls fast with area.
+metaDescription: "Eternity II has two rules: edges must match, and each piece is used once. Entropy counts show locally valid reusable-tile patches are abundant, while the fraction using distinct pieces decays with area. Edge matching alone is still NP-complete in general."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 50
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/phase-transition
@@ -36,6 +37,10 @@ sources:
     url: https://en.wikipedia.org/wiki/Subadditivity#Subadditive_sequences
   - label: "Shannon entropy of a source, the h(n) quantities measured here"
     url: https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+  - label: "Demaine and Demaine, Jigsaw puzzles, edge matching, and polyomino packing: connections and complexity (Graphs and Combinatorics 23, 2007)"
+    url: https://doi.org/10.1007/s00373-007-0713-4
+  - label: "van Emde Boas, The convenience of tilings: bounded tiling with reusable tiles is NP-complete (Complexity, Logic, and Recursion Theory, 1997)"
+    url: https://doi.org/10.1201/9780429187490-12
 ---
 
 import {
@@ -207,12 +212,18 @@ watch how many colour-valid blocks survive the use-each-piece-once rule.
 
 ## Why it matters
 
-A collapse in the low hundreds of cells is on the scale of the smallest moves
-that separate the best known boards. The matching grammar stays rich, then the
-distinctness rule collapses it over the area. So the wall isn't in the part
-that looks hard, matching colors; it's in the quiet rule that each piece is
-used once, whose cost grows with area, on a board just large enough for it to
-bite.
+The matching grammar stays rich, then the distinctness rule removes a fraction
+of the valid patches that grows with their area. That is the measured
+statement, and it is narrower than "all the hardness lives in the use-once
+rule". The counts here are for small patches with free boundaries. They do
+not show that edge matching alone is easy for the real task, a 16×16 region
+with a fixed grey frame and global closure: bounded tiling with reusable tiles
+and a fixed boundary is already NP-complete
+([van Emde Boas, 1997](https://doi.org/10.1201/9780429187490-12)), and so are
+edge-matching puzzles in general
+([Demaine and Demaine, 2007](https://doi.org/10.1007/s00373-007-0713-4)).
+Whether the reusable-tile 16×16 instance with a grey frame is easy in
+practice has not been measured.
 
 See [why basin-hopping is impossible](/research/why/sigma-cycles).
 

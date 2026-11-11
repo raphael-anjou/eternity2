@@ -9,7 +9,7 @@ metaDescription: "A public CC0 Eternity II dataset in two parts: 14 benchmark in
 kind: reference
 order: 55
 group: Check your code
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [structure, learning]
 related:
   - /research/build/known-facts
@@ -32,17 +32,21 @@ anything without attribution. It has two parts, and both live in the
 ## Part A: benchmark instances
 
 Fourteen instances a solver runs on, each a self-contained JSON file with the
-piece set, any pinned hints, and the maximum reachable score.
+piece set, any pinned hints, and the 480 score upper bound.
 
-- **Ten 16×16 instances** (`e2-16x16-v00` … `v09`): the official Eternity II
-  piece set with three corners pinned, in ten different corner arrangements.
-  Pinning the corners gives ten distinct but equally hard instances off one
-  piece set, which is what lets a study compare engines on a diversity axis
-  rather than a single board. All three of this project's engine studies (the
+- **Ten 16×16 instances** (`e2-16x16-v00` … `v09`): the official five-clue
+  puzzle, each additionally pinning three corners in a different arrangement.
+  The variants give engines different starting constraints off one piece set,
+  which is what lets a study compare engines on a diversity axis rather than a
+  single board. Whether they are equally hard has not been measured. With all
+  five clues the expected number of solutions is about one
+  ([solution counting](/research/build/analysis/solution-counting)), so most
+  likely at most one corner arrangement admits a perfect board, possibly none. All three of this project's engine studies (the
   [DFS study](/research/lab/experiments/raphael-anjou/dfs-study), the
   [repair study](/research/lab/experiments/raphael-anjou/repair-study), and the
   [single-core benchmark](/research/lab/experiments/single-core-benchmark)) solve
-  exactly these ten. Maximum score 480.
+  exactly these ten. `maxScore` is 480, an upper bound (every edge matched),
+  not a score known to be reachable on a given variant.
 - **Four clue sub-puzzles** (`e2-clue-clue1` … `clue4`): the smaller 6×6 and
   12×6 boards from the puzzle's official clue set. Each is known to have a full
   solution, which makes them a fast correctness fixture: a solver that cannot
@@ -78,11 +82,18 @@ e2b-00001,469,f008,adcaaendadwe…   (1024 lowercase letters)
 The `edges` field is the board itself: 256 cells times four sides, row-major, in
 up-right-down-left order, `a` for the grey rim. It is the same string the
 [e2.bucas.name](https://e2.bucas.name) viewer reads, so any board pastes straight
-into the viewer. The `family` is the board's four corner pieces, a proxy for
-which basin it sits in; there are 28 distinct families. The score distribution
-spikes sharply in the low-450s, where a large single-core beam harvest
-concentrates, then thins to a long tail, with 38 boards at 460 or above and the
-best at 470.
+into the viewer. The `family` is the board's four corner pieces; there are 28
+distinct families. Whether a family tracks anything deeper about a board has not
+been tested. The score distribution spikes sharply in the low-450s: one
+single-core beam harvest dominates, and 86% of the corpus scores 451 to 455. It
+then thins to a long tail, with 38 boards at 460 or above and the best at 470.
+
+The single `score` column counts matched edges whatever the clues do, so it
+mixes two conventions. 90.6% of the boards place all five official clues and so
+also count under the strict five-clue convention, but none of the boards at 460
+to 463 or 466 to 470 does; the best five-clue board in the corpus scores 464.
+Read the top of the range as open scoring ([records](/research/records) explains
+both conventions).
 
 <CorpusScoreDistribution />
 
@@ -95,25 +106,33 @@ is not a formality: in the source data one board carried a stale score, claiming
 automatically. Re-derive the scores yourself from the edge strings and you will
 get the published numbers exactly.
 
-## The corpus is diverse, not derivative
+## How diverse the corpus is
 
 A pile of several thousand boards is only worth publishing if the boards are
-actually different. Before releasing this one we checked that they are not just
-perturbations of a single board, and they are not:
+actually different. They are not copies of one board, but the diversity is
+narrower than raw placement counts suggest:
 
 - Only 13 of the 7,671 source boards were exact duplicates; the rest are
   distinct, leaving 7,658.
-- The *median* board differs from its closest sibling by 235 of its 256 piece
-  placements. Almost no board sits within 10 placements of another, and only 1%
-  within 25. Even though most boards share a narrow score band, they are
-  structurally almost entirely different.
+- The *median* board differs from its closest sibling in 236 of its 256
+  placements (piece and rotation). That needs a baseline: two random boards
+  differ in essentially all 256, and a shifted copy of a board looks almost
+  entirely different on this metric. Under 1% of boards sit within 10 placements
+  of another, 7.5% within 60 and 11.4% within 100.
+- A shift- and rotation-insensitive measure says more: the number of adjacent
+  piece pairs two boards share, out of 480. Two random boards share about 7. The
+  median board shares 41 with its closest sibling, and 12.6% of boards have a
+  sibling sharing at least 240, half their adjacencies.
 - The boards spread across 28 distinct corner families rather than piling into
   one.
 
-So the corpus is a genuinely varied sample of the strong-board landscape. That
-matters for anything that mines it: a learned prior built from thousands of
-copies of one board would encode that board, not the structure of good boards in
-general.
+So the corpus holds thousands of distinct boards, dominated by one method and
+one score band, with a minority of close relatives. That matters for anything
+that mines it: a prior learned from it encodes what the beam harvest finds, not
+necessarily the structure of good boards in general. These statistics are
+recomputed by
+[`corpus_diversity.py`](https://github.com/raphael-anjou/eternity2/blob/main/research/datasets/build/corpus_diversity.py)
+into `research/datasets/corpus/diversity.json`.
 
 ## Rebuilding it
 

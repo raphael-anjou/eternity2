@@ -1,18 +1,19 @@
 ---
-title: "La cosecha de teoremas: trece leyes estructurales"
+title: "La cosecha de teoremas: un mapa de resultados y enunciados"
 description: >-
-  Un solo arco de investigación, trece familias de teoremas estructurales:
-  pureza del anillo, el suelo de paridad en 479, el muro de 470 como frontera
-  de fase, los invariantes de flujo, la ley de área entrópica, y los
-  resultados de imposibilidad que ponen precio a cada atajo clásico. Esta
-  página es el mapa.
-metaDescription: "Trece familias de teoremas estructurales sobre Eternity II: pureza del anillo, suelo de paridad en 479, muro de 470 como frontera de fase, invariantes de flujo, PLS-completitud de la búsqueda local, complejidad del agotamiento y ley de área entrópica. Un mapa con los artículos completos."
+  Un solo arco de investigación, trece familias de resultados y enunciados
+  sobre el juego de piezas: leyes publicadas (pureza del anillo, suelo de
+  paridad en 479, invariantes de flujo), leyes medidas, la conjetura de la
+  meseta de 470, y enunciados de complejidad e imposibilidad cuyas
+  demostraciones aún no se han publicado. Esta página es el mapa, con cada
+  familia etiquetada según su estatus.
+metaDescription: "Un mapa de trece familias de resultados y enunciados sobre Eternity II, cada una etiquetada según su estatus: leyes publicadas (pureza del anillo, paridad en 479, flujo), ley de área medida, conjetura de la meseta de 470, enunciados de complejidad no publicados."
 kind: finding
 contribution: theory
-rigor: proven
+rigor: conjectured
 tier: 2
 order: 135
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Conway y Lagarias, Tiling with polyominoes and combinatorial group theory: el ancestro de los argumentos por invariantes de frontera para problemas de teselado (JCTA 1990)"
@@ -27,10 +28,15 @@ sources:
     url: https://doi.org/10.1145/375827.375835
   - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian y Zdeborova, Gibbs states and the set of solutions of random CSPs: el cuadro de la fase condensada en que se apoya el análisis del paisaje de puntuaciones (PNAS 2007)"
     url: https://doi.org/10.1073/pnas.0703685104
-  - label: "Gamarnik, The overlap gap property: el concepto de barrera que corresponde a la banda de solapamiento vacía medida (PNAS 2021)"
+  - label: "Gamarnik, The overlap gap property: el concepto de barrera detrás de la conjetura de la brecha de solapamiento (PNAS 2021)"
     url: https://doi.org/10.1073/pnas.2108492118
+  - label: "Ben-Sasson, Impagliazzo and Wigderson, Near optimal separation of tree-like and general resolution: la resolución general puede ser exponencialmente más corta que la arbórea (Combinatorica 2004)"
+    url: https://doi.org/10.1007/s00493-004-0036-5
+  - label: "Pipatsrisawat and Darwiche, On the power of clause-learning SAT solvers as resolution engines: CDCL con reinicios simula polinomialmente la resolución general (Artificial Intelligence 2011)"
+    url: https://doi.org/10.1016/j.artint.2010.10.002
 related:
   - /research/why/ring-purity
+  - /research/why/flux-invariants
   - /research/why/parity-defect-floor
   - /research/why/the-470-wall
   - /research/why/entropy-area-law
@@ -48,157 +54,174 @@ plausiblemente tenga algo que decir sobre él (flujos y cortes, combinatoria
 extremal, física estadística, álgebra, teoría de CSP, autómatas, complejidad de
 las pruebas, complejidad de la búsqueda local) y empujar cada rama hasta que
 entregue un teorema o explique con precisión por qué no puede. La cosecha
-produjo trece familias de resultados. Esta página es el mapa: unas pocas frases
-por familia, con enlaces a los artículos completos donde existen. Tres familias
-tienen hoy su página dedicada; las demás recibirán la suya a medida que sus
-reproducciones lleguen al repositorio.
+produjo trece familias de resultados y enunciados. Esta página es el mapa:
+unas pocas frases por familia, con enlaces a los artículos completos donde
+existen.
+
+Las familias no tienen todas el mismo estatus, y cada una lleva una etiqueta.
+**Publicado** significa una demostración o un cálculo exacto con código y
+resultados en el repositorio. **Medido** significa una medición real con un
+ajuste o una muestra declarados. **Conjeturado** significa que el propio
+artículo lo presenta como abierto. **Anunciado** significa un enunciado del
+cuaderno de investigación cuya demostración o código todavía no se ha
+publicado aquí; hay que leerlo como un anuncio, no como un resultado.
 
 Una nota de sabor antes de la lista. Algunos de estos resultados son leyes que
-el juego de piezas obedece, otros son teoremas de imposibilidad sobre la
-escalera de puntuaciones, y otros son negativos limpios: la prueba de que una
+el juego de piezas obedece, otros son enunciados de imposibilidad sobre la
+escalera de puntuaciones, y otros son negativos: argumentos de que una
 herramienta estándar de otro campo, aplicada correctamente, no certifica nada
-aquí. Los negativos se enuncian con el mismo cuidado que los positivos. Saber
-que una puerta está cerrada con llave, y por qué, es lo que permite dejar de
-pagarle alquiler.
+aquí. Saber que una puerta está cerrada con llave, y por qué, es lo que
+permite dejar de pagarle alquiler, siempre que se haya comprobado de verdad
+la cerradura.
 
 ## Las leyes que el juego de piezas obedece
 
-**La pureza del anillo.** Los cinco colores que solo aparecen en las piezas del
-borde son más escasos de lo que parecen: sus $5\times24=120$ semiaristas
-saturan exactamente los 120 huecos orientados al anillo de las 60 piezas del
-borde, sin holgura alguna. En toda solución, cada pieza de borde queda forzada
-a apuntar su único color no-marco hacia el interior, y todo el problema del
-borde colapsa en encontrar un circuito euleriano en un multigrafo de 5 vértices
-y 60 aristas. Artículo completo:
+**La pureza del anillo (publicado).** Los cinco colores que solo aparecen en
+las piezas del borde tienen $5\times24=120$ semiaristas, que llenan
+exactamente los 120 huecos orientados al anillo de las 60 piezas del borde.
+En toda solución, cada pieza de borde apunta su único color no-marco hacia el
+interior, y el problema del borde se convierte en un circuito euleriano en un
+multigrafo dirigido de 5 vértices y 60 aristas. La holgura nula es automática
+en cualquier puzzle recortado de un tablero resuelto pintado con una paleta
+de marco separada: es estructura, no un extremo de diseño. Artículo completo:
 [la pureza del anillo](/research/why/ring-purity).
 
-**El conteo del anillo del marco.** Esta familia pone precio a lo que la ley
-del anillo compra. Solo el emparejado de colores reduce la primera colocación
-del borde de 59 candidatos a unos 21, y un anillo construido legalmente al azar
-sigue rondando $10^{-27}$ en la escala de probabilidades: 53 órdenes de
-magnitud mejor que un orden uniforme ($10^{-80}$), y todavía astronómicamente
-lejos de la certeza. El marco además le pasa una factura fija al interior: cada
-color de marco cierra exactamente 12 juntas del anillo, y las 56 aristas
-orientadas hacia dentro llevan una demanda de colores, determinada solo por el
-juego de piezas, que toda solución debe reproducir. Seguirá un artículo
-dedicado.
+**El conteo del anillo del marco (publicado).** Esta familia pone precio a lo
+que la ley del anillo compra. Solo el emparejado de colores reduce la primera
+colocación del borde de 59 candidatos a unos 21, y una construcción voraz del
+anillo por emparejado de colores ronda $10^{-27}$ en la escala de
+probabilidades, 53 órdenes de magnitud por encima de un orden uniforme
+($10^{-80}$). El teorema BEST cuenta exactamente los circuitos eulerianos
+dirigidos del anillo (unos $3{,}5\times10^{41}$), y el muestreo sitúa el
+número de colocaciones de marco válidas, esquinas incluidas, en torno a
+$10^{37{,}6}$. Cada color de marco cierra exactamente 12 juntas del anillo, y
+las 56 aristas orientadas hacia dentro llevan una demanda de colores, fijada
+solo por el juego de piezas, que toda solución debe reproducir. Los números
+están en el tema de [la pureza del anillo](/research/why/ring-purity).
 
-**Los invariantes de flujo.** Dele a cada color un peso numérico y a cada pieza
-el vector de sus diferencias de peso este-oeste y sur-norte; sumado sobre
-cualquier región, esto se telescopa en un flujo de frontera, y un cuarto de
-vuelta actúa sobre el vector como la multiplicación por $i$. Descomponer según
-los cuatro caracteres del grupo de rotaciones da el retículo completo de
+**Los invariantes de flujo (publicado).** Dele a cada color un peso numérico y
+a cada pieza el vector de sus diferencias de peso este-oeste y sur-norte;
+sumado sobre cualquier región, esto se telescopa en un flujo de frontera, y un
+cuarto de vuelta actúa sobre el vector como la multiplicación por $i$.
+Descomponer según los cuatro caracteres del grupo de rotaciones da los
 invariantes lineales intrínsecos a las piezas: un censo de colores, una ley de
 flujo con valores en los enteros de Gauss, de rango pleno 22 sobre el juego de
 piezas real, y una paridad de tablero de ajedrez que acopla la rotación de una
-pieza con su celda. La ley de flujo sirve además como certificado incremental
-válido que atrapa errores de colocación en el final de partida. Seguirá un
-artículo.
+pieza con su celda. Artículo completo:
+[los invariantes de flujo](/research/why/flux-invariants).
 
-**Un juego de piezas cuasi aleatorio.** Cada estadística de segundo orden
-auditada (frecuencias de pares de colores, matrices de adyacencia, espectro del
-grafo de transición inducido) es indistinguible de un control aleatorio con los
-mismos conteos de colores; la única señal deliberada es la conocida ausencia de
-piezas duplicadas por rotación. Del lado de la generación, la evidencia
-respalda conteos de colores impuestos exactamente sobre un coloreado por lo
-demás uniforme y consistente con el emparejado, y un teorema cierra el
-círculo: reconstruir la disposición oculta a partir de la bolsa de piezas es
-exactamente tan difícil como resolver el rompecabezas. Seguirá un artículo.
+**Un juego de piezas cuasi aleatorio (en parte publicado).** Frente a
+tableros resueltos aleatorios pintados con los mismos recuentos de colores,
+el juego real no tiene ninguna pieza simétrica por rotación (como alrededor
+de la mitad de los juegos pintados) y tiene 5 parejas gemelas con el mismo
+multiconjunto (los juegos pintados promedian unas 6,6), pero ninguna pareja
+duplicada por rotación, algo que solo logra alrededor del 1,4 % de los juegos
+pintados; esa comparación está publicada con la
+[página del juego de piezas](/research/why/why-e2-is-hard). La auditoría más
+amplia de estadísticas de segundo orden (frecuencias de pares de colores,
+matrices de adyacencia, espectro del grafo de transición inducido) y un
+teorema de reconstrucción (recuperar la disposición oculta a partir de la
+bolsa es tan difícil como resolver el rompecabezas) están anunciados, todavía
+no publicados.
 
 ## Donde la escalera de puntuaciones se cierra
 
-**El suelo de paridad: 479 es imposible.** En cualquier colocación legal, las
-apariciones de un color en un solo lado de una junta van por pares. Un único
-desajuste dejaría dos colores impares, así que ningún tablero puntúa 479: la
-escalera salta de 478 a 480. El defecto mínimo no nulo es 2, realizado
-intercambiando piezas casi gemelas, y alrededor de cualquier solución hay a lo
-sumo 76 tableros a un movimiento con ese defecto: los casi aciertos son
-demostrablemente escasos, no abundantes. Artículo completo:
+**El suelo de paridad: 479 es imposible (publicado).** En cualquier colocación
+legal, las apariciones de un color en un solo lado de una junta van por pares.
+Un único desajuste dejaría dos colores impares, así que ningún tablero puntúa
+479: la escalera salta de 478 a 480. Esto vale para todo puzzle recortado de
+un tablero pintado. El defecto mínimo no nulo es 2, realizado intercambiando
+piezas casi gemelas, y alrededor de cualquier solución hay a lo sumo 76
+tableros a un movimiento con ese defecto. Artículo completo:
 [el suelo de paridad de defectos](/research/why/parity-defect-floor).
 
-**El paisaje recocido y el muro de 470.** Trate los tableros no correlacionados
-con la solución de fábrica como un conjunto aleatorio y cuéntelos por
-puntuación: el conteo es astronómico hasta aproximadamente 465 a 470 y se
-derrumba más allá. La meseta comunitaria de veinte años se lee entonces como
-una frontera de fase, no como un fracaso de ingeniería. El mismo análisis
-tasa la instancia en unos 10 a 20 tableros perfectos mutuamente casi
-ortogonales, agujas aisladas rodeadas de una banda de solapamiento vacía; esto
-es exacto en las instancias plantadas pequeñas y una conjetura enunciada como
-tal a tamaño completo. El mejor tablero comunitario está en 470 en la pista
-abierta y en 465 en la pista estricta de cinco pistas fijas; las convenciones y
-la tabla completa viven en [la página de récords](/research/records). Artículo
-completo: [el muro de 470](/research/why/the-470-wall).
+## Leyes medidas y conjeturas
 
-**La ley de área entrópica.** El rompecabezas tiene dos reglas: los bordes
-deben casar, y cada pieza se usa una sola vez. El presupuesto entrópico medido
-muestra que la primera regla es generosa y que la segunda carga con
-esencialmente toda la dificultad, con la unicidad de las piezas derrumbando el
-conteo de bloques legales a una escala medible. Esta familia ya tiene su
-página: [la entropía y la ley de área](/research/why/entropy-area-law).
+**El paisaje recocido y la meseta de 470 (conjeturado).** Trate los tableros
+no correlacionados con la solución de fábrica como un conjunto aleatorio y
+cuéntelos por puntuación con un primer momento ingenuo de aristas
+independientes: el conteo baja de forma suave, unas 3 décadas por punto cerca
+de la cima, y cruza 1 en 480. La curva no tiene nada especial en 470 y por sí
+sola predice unas $10^{18}$ configuraciones no correlacionadas en 475, así que
+no explica la meseta. La brecha de solapamiento que la explicaría es una
+conjetura declarada; la enumeración de instancias pequeñas que la inspiró no
+está en el repositorio. Los mejores tableros comunitarios y sus convenciones
+viven en [la página de récords](/research/records). Artículo completo:
+[la meseta de 470](/research/why/the-470-wall).
 
-## Las maquinarias que demostrablemente no pueden comprimirlo
+**La ley de área entrópica (medido).** El rompecabezas tiene dos reglas: los
+bordes deben casar, y cada pieza se usa una sola vez. El presupuesto
+entrópico medido muestra que la primera regla es generosa y que la segunda
+carga con la mayor parte de la dificultad, con la unicidad de las piezas
+derrumbando el conteo de bloques legales a una escala medible. El exponente
+es un ajuste sobre el pequeño rango contado exactamente. Artículo completo:
+[la entropía y la ley de área](/research/why/entropy-area-law).
 
-**La anchura del CSP.** La rejilla desnuda de 16 por 16 tiene anchura de árbol
-exactamente 16, lo que suena explotable hasta que entra la restricción global
-de diferencia sobre las 256 celdas y vacía todo argumento de tratabilidad por
-anchura. El cuadro de la propagación concuerda: la consistencia de arco simple
-reduce 48 de los 196 dominios interiores, la consistencia global por
-emparejamiento reduce 191. La restricción que duele es la que ninguna
-descomposición puede cortar. Seguirá un artículo.
+## Las maquinarias de las que se anuncia que no lo comprimen
 
-**Las relajaciones convexas.** El lift SDP estándar y una relajación LP
-correctamente derivada, construidos de forma exacta sobre pequeñas
-subinstancias plantadas con óptimos conocidos, solo certifican el techo trivial
-y pasan por alto obstrucciones que un conteo elemental resuelve de inmediato. A
-la escala de esta instancia, la convexidad no compra nada. Seguirá un artículo.
+**La anchura del CSP (anunciado).** La rejilla desnuda de 16 por 16 tiene
+anchura de árbol exactamente 16, lo que suena explotable hasta que entra la
+restricción global de diferencia sobre las 256 celdas y vacía todo argumento
+de tratabilidad por anchura. El cuadro de propagación que lo acompaña: la
+consistencia de arco simple reduce 48 de los 196 dominios interiores, la
+consistencia global por emparejamiento reduce 191. Artículo aún no publicado.
 
-**Los certificados algebraicos.** En el Nullstellensatz de grado acotado sobre
-GF(2), todo lo que ya hace la propagación por conteo de un buen solver tiene un
-certificado de grado 2, y nada más resulta barato: refutar un defecto de
-reutilización de pieza en una ventana $K\times K$ exige un grado que crece con
-el área, así que no existe certificado algebraico global a escala del tablero.
-La alternativa por redes de tensores muere por un cálculo de rango: el tensor
-por celda tiene una dimensión de enlace efectiva cercana a 289, sin brecha
-espectral contra la cual truncar. Seguirá un artículo.
+**Las relajaciones convexas (anunciado).** El lift SDP estándar y una
+relajación LP, construidos sobre pequeñas subinstancias plantadas con óptimos
+conocidos, solo certificarían el techo trivial y pasarían por alto
+obstrucciones que un conteo elemental resuelve. Artículo aún no publicado.
 
-**Ninguna compresión sin pérdida del frente.** Un programa dinámico exacto
-sobre los frentes de barrido solo comprime si dos conjuntos distintos de piezas
-usadas pueden fusionarse sin riesgo, y un argumento a la Myhill-Nerode muestra
-que nunca pueden, bajo ningún orden de barrido; medido en la instancia real, el
-frente exacto de la primera fila se multiplica por unos 8,9 en cada columna.
-Las particiones meet-in-the-middle fallan por una razón complementaria: las dos
-mitades beben del mismo depósito finito de piezas, así que el óptimo a dos vías
-es degenerado y no existe firma de interfaz válida por debajo de la igualdad
-literal. Seguirá un artículo.
+**Los certificados algebraicos (anunciado).** En el Nullstellensatz de grado
+acotado sobre GF(2), la propagación por conteo que ya hace un buen solver
+tendría certificados de grado 2, mientras que refutar un defecto de
+reutilización de pieza en una ventana $K\times K$ exigiría un grado que crece
+con el área. La alternativa por redes de tensores fallaría por el rango: el
+tensor por celda tendría una dimensión de enlace efectiva cercana a 289, sin
+brecha espectral contra la cual truncar. Artículo aún no publicado.
 
-## El suelo de complejidad
+**Ninguna compresión sin pérdida del frente (anunciado).** Un programa
+dinámico exacto sobre los frentes de barrido solo comprime si dos conjuntos
+distintos de piezas usadas pueden fusionarse sin riesgo, y un argumento a la
+Myhill-Nerode mostraría que nunca pueden, bajo ningún orden de barrido; en la
+instancia real, el frente exacto de la primera fila se multiplica por unos
+8,9 en cada columna. Las particiones meet-in-the-middle chocan con un
+problema complementario: las dos mitades beben del mismo depósito finito de
+piezas, y no se conoce ninguna firma de interfaz válida por debajo de la
+igualdad literal. Artículo aún no publicado.
 
-**La búsqueda local es PLS-completa.** Para la familia natural de instancias de
-emparejado de bordes que contiene este rompecabezas, el paisaje de mejora es
-PLS-completo (demostrado para una paleta generalizada, con el refinamiento de
-paleta acotada enunciado como conjetura), y decidir si un tablero mejor
-concreto es alcanzable solo con movimientos de mejora es PSPACE-completo. Una
-meseta de años es el comportamiento esperado de un paisaje así, no la firma de
-un solver mal ajustado. Seguirá un artículo.
+## Los enunciados de complejidad
 
-**La complejidad de las pruebas de agotamiento.** Cada subárbol de «aquí no
-existe compleción» que un backtracker cierra es una refutación por resolución
-arbórea, y su coste está acotado inferiormente por la anchura de resolución,
-gobernada por el corte alrededor de la región abierta. La restricción de
-unicidad de las piezas no aporta ninguna dureza de tipo palomar que la
-resolución extendida pueda atacar, porque el emparejado de bordes rarifica el
-grafo de compatibilidad piezas-celdas hasta una casi permutación. La
-consecuencia es nítida: el aprendizaje de cláusulas y los mejores encodings
-compran factores polinomiales, y ningún método de la familia de la resolución
-agota superpolinomialmente más rápido que lo que ya ejecutamos. Seguirá un
-artículo.
+**La búsqueda local (anunciado).** Para una paleta generalizada, encontrar un
+óptimo local del conjunto natural de movimientos sería PLS-completo en el peor
+caso, y decidir si un tablero mejor concreto es alcanzable solo con
+movimientos de mejora sería PSPACE-completo; la versión de paleta acotada es
+una conjetura, y las demostraciones no están publicadas. Esto trata del
+tiempo para llegar a algún óptimo local en una familia de instancias, no de
+la puntuación de los óptimos locales de esta instancia fija, así que por sí
+solo no explica la meseta de 470.
+
+**La complejidad de las pruebas de agotamiento (anunciado).** Los subárboles
+de «aquí no existe compleción» que cierra un backtracker cronológico son
+refutaciones por resolución arbórea. La resolución general, que los solvers
+con aprendizaje de cláusulas y reinicios simulan polinomialmente
+([Pipatsrisawat & Darwiche 2011](https://doi.org/10.1016/j.artint.2010.10.002)),
+puede ser exponencialmente más compacta que la arbórea en algunas familias de
+fórmulas
+([Ben-Sasson, Impagliazzo & Wigderson 2004](https://doi.org/10.1007/s00493-004-0036-5)),
+así que este argumento no descarta grandes ganancias del aprendizaje de
+cláusulas. Que las familias de tipo E2 tengan cotas inferiores de anchura de
+resolución, que acotarían también la resolución general, es un enunciado no
+publicado; para una instancia finita fija, los enunciados asintóticos no se
+aplican directamente.
 
 ## Lo que la cosecha cambia
 
 El objetivo nunca fue rebajar expectativas. Un tablero perfecto existe por
-construcción, y nada en estas trece familias toca ese hecho. Lo que la cosecha
-hace es sustituir el folclore por enunciados con precio: el muro tiene un
-mecanismo, la meseta tiene una clase de complejidad, y cada atajo ausente tiene
-una prueba de imposibilidad en lugar de una vaga reputación. Cada ruta que
-sigue abierta viene ahora con la factura que deberá pagar, y ese es un punto de
-partida mucho mejor para el próximo intento que un mapa en blanco.
+construcción, y nada en estas trece familias toca ese hecho. Lo que la
+cosecha hace es ordenar los enunciados según lo firme que es lo que se sabe
+de ellos: unas pocas leyes están publicadas y son verificables, algunas
+magnitudes están medidas, y varias de las barreras más citadas siguen siendo
+anuncios o conjeturas cuyas demostraciones deben publicarse antes de que
+puedan pesar. Cada ruta que sigue abierta viene con un enunciado más claro de
+lo que se sabe y lo que no, y ese es un punto de partida mejor para el
+próximo intento que un mapa en blanco.

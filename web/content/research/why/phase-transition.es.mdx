@@ -1,17 +1,19 @@
 ---
-title: Calibrado en el pico de dificultad
+title: Cerca del pico de dificultad
 description: >-
   Eternity II utiliza 22 colores, repartidos entre 17 colores interiores y
-  5 reservados al marco, y ese número de alrededor de 17 se sitúa cerca del
-  punto donde este tipo de puzzle es más difícil de resolver (la transición es
-  una banda, no un entero único).
-metaDescription: "Los 22 colores de Eternity II se reparten en 17 interiores y 5 de marco, y ese número de alrededor de 17 cae cerca de la transición de fase donde estos puzzles son más difíciles (una banda, no un entero único). Brendan Owen derivó el diseño 17+5; trabajos SAT/CSP sitúan el pico cerca."
+  5 reservados al marco, y 17 queda cerca del número de colores con el que un
+  puzzle aleatorio de este tamaño tiene, en promedio, una solución. Las
+  instancias duras se agrupan cerca de esos umbrales, así que la elección es
+  compatible con un ajuste deliberado, sin probar un peor caso para toda
+  búsqueda.
+metaDescription: "Los 22 colores de Eternity II se reparten en 17 interiores y 5 de marco. El criterio del primer momento de Owen (2007) sitúa el punto de una solución esperada en 17,14, y los bancos SAT/CSP hallan un pico cercano: un ajuste deliberado plausible, no un peor caso probado."
 kind: finding
 contribution: measurement
 rigor: measured
 tier: 1
 order: 40
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Brendan Owen, Diseñar el puzzle más difícil: la derivación 17+5 (lista de correo eternity2, agosto de 2007)"
@@ -20,16 +22,23 @@ sources:
     url: https://link.springer.com/article/10.1007/s10601-012-9128-9
   - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
     url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
+  - label: "Mézard, Parisi & Zecchina, «Analytic and algorithmic solution of random satisfiability problems» (Science 297, 2002)"
+    url: https://doi.org/10.1126/science.1073287
+  - label: "Krzakala, Montanari, Ricci-Tersenghi, Semerjian & Zdeborová, «Gibbs states and the set of solutions of random constraint satisfaction problems» (PNAS 104, 2007)"
+    url: https://doi.org/10.1073/pnas.0703685104
+  - label: "Achlioptas & Coja-Oghlan, «Algorithmic barriers from phase transitions» (FOCS 2008)"
+    url: https://arxiv.org/abs/0803.2122
 related:
   - /research/why/design-recipe
   - /research/why/prune-vs-speed
   - /research/why/entropy-area-law
   - /research/why/no-forced-moves
+  - /research/build/analysis/solution-counting
 repro:
   kind: exact
   cmd: just research-phase-transition
   topic: phase-transition
-  scope: "Reproduce el reparto de colores 17/5 interior/marco. La localización del pico de dificultad se mide por separado en el repositorio mediante el experimento hardness-peak (un barrido de esfuerzo del solucionador en 8x8, más el criterio de Owen recalculado a 17,14 a tamaño 16); la afirmación de «una sola solución esperada» para el tablero 16x16 completo descansa aún en las fuentes externas citadas (Owen msg 1947, Ansótegui/Mateu)."
+  scope: "Reproduce el reparto de colores 17/5 interior/marco. La localización del pico de dificultad se mide por separado en el repositorio mediante el experimento hardness-peak (un barrido de esfuerzo del solucionador en 8x8, más el criterio de Owen recalculado a 17,14 a tamaño 16); las estimaciones del número esperado de soluciones para el tablero 16x16 completo descansan en las fuentes externas citadas (Owen msg 1947, Ansótegui/Mateu) y en la página de recuento de soluciones."
 ---
 
 import { PhaseTransitionLab } from "@/components/research/PhaseTransitionLab";
@@ -48,10 +57,21 @@ como el agua al congelarse.
 
 En los puzzles de emparejamiento de aristas, esa perilla es el número de
 colores. Demasiado pocos y las piezas encajan de innumerables maneras;
-demasiados y apenas encajan. El
+demasiados y apenas encajan. Para un interior de 196 piezas, el número de
+colores con el que el número esperado de soluciones de un juego de piezas
+aleatorio cae a más o menos uno está cerca de 17. En los problemas de
+restricciones aleatorios, las instancias más duras para los algoritmos
+conocidos se agrupan cerca de esos umbrales, pero su posición exacta depende
+del algoritmo, y ese punto del primer momento es solo una estimación:
+sobrestima el verdadero umbral de satisfacibilidad, y las transiciones ligadas
+a la dificultad algorítmica (agrupamiento, condensación, congelación) quedan
+por debajo
+([Mézard, Parisi y Zecchina 2002](https://doi.org/10.1126/science.1073287);
+[Krzakala et al. 2007](https://doi.org/10.1073/pnas.0703685104);
+[Achlioptas y Coja-Oghlan 2008](https://arxiv.org/abs/0803.2122)). El
 [análisis publicado](https://link.springer.com/article/10.1007/s10601-012-9128-9)
-sitúa el pico en torno a 17 colores interiores, el ajuste con el que un puzzle
-de este tamaño tiene aproximadamente una única solución. Eternity II utiliza 17.
+midió un pico empírico, para solucionadores SAT y CSP concretos sobre puzzles
+generados, cerca de ese ajuste. Eternity II utiliza 17 colores interiores.
 
 La comunidad ya disponía de ese número pocas semanas después del lanzamiento:
 en agosto de 2007, Brendan Owen dedujo $I = (196! \cdot 4^{196})^{1/392} \approx 17.14$
@@ -59,6 +79,12 @@ colores interiores a partir del criterio de «aproximadamente una solución
 esperada», exactamente los parámetros publicados, años antes de los análisis
 académicos
 ([Diseñar el puzzle más difícil, msg 1947](https://groups.io/g/eternity2/message/1947)).
+Es una heurística simplificada que apunta a más o menos una solución. Las
+estimaciones refinadas son otras: unas 14 702 soluciones esperadas con la
+pieza central obligatoria y alrededor de una con las cinco pistas, ambas
+promedios sobre puzzles aleatorios con las mismas estadísticas de piezas, no
+recuentos de las soluciones de este puzzle (ver el
+[recuento de soluciones](/research/build/analysis/solution-counting)).
 
 Lo medimos aquí. El criterio de Owen solo se enunció para el tablero completo,
 así que lo llevamos a un segundo tamaño para ver si se sostiene. La misma fórmula
@@ -66,13 +92,18 @@ predice $(36! \cdot 4^{36})^{1/72} \approx 7.56$ colores interiores para un
 tablero 8x8, y un 8x8 es lo bastante pequeño como para que un backtracker común
 resuelva de verdad instancias aleatorias: su curva de dificultad se puede barrer
 directamente. Al medir el esfuerzo del solucionador frente al número de colores
-interiores sobre tableros 8x8 generados (el generador y el DFS del sitio), la
-banda dura, donde la búsqueda deja de encontrar solución dentro del presupuesto,
-cae justo donde lo predice el criterio a tamaño 8. El barrido 16x16 completo es
-la otra mitad del cuadro: un backtracker común no lo termina con ningún número de
-colores, y la profundidad que alcanza decrece de forma sostenida al aumentar los
-colores, de modo que el tablero real queda más allá del punto donde la curva ya
-se ha vuelto vertical. El
+interiores sobre tableros 8x8 generados (el generador y el DFS del sitio, 30
+semillas por número de colores, un presupuesto de 30 millones de nodos), la
+búsqueda no resuelve ningún tablero con 6, 7 u 8 colores interiores, muy cerca
+del criterio de 7,56 a tamaño 8. Pero la curva no es un pico limpio: el mismo
+DFS también falla en más de la mitad de los tableros con 1 a 3 y con 5 colores
+(entre 11 y 14 resueltos de 30), resuelve 27 de 30 con 4 y 23 de 30 con 9, y
+todos a partir de 10 colores. El barrido muestra, por tanto, una banda dura
+cerca de la predicción, localizada con un margen de uno o dos colores, más que
+un pico nítido. En 16x16, con un presupuesto de 20 millones de nodos, el DFS no
+resuelve nada entre 8 y 17 colores, así que este barrido no puede localizar un
+pico; solo muestra que la profundidad mediana alcanzada baja de 238 a unas 200
+celdas de 256 a medida que aumentan los colores. El
 [experimento hardness-peak](https://github.com/raphael-anjou/eternity2/tree/main/research/topics/hardness-peak)
 contiene el código, ambos barridos y el criterio recalculado en el repositorio
 (reproduce el 17,14 de Owen a tamaño 16).
@@ -113,10 +144,15 @@ rectángulo en ninguna longitud: las soluciones son tan escasas que
 prácticamente no existen. Y entonces reaparecen. En la longitud 16, un conjunto
 de cuatrocientos funciona; en 19 es el 8,5 %; en 21 es el 57 %; y en 22, casi
 nueve de cada diez. La región donde las soluciones son extremadamente raras
-pero aún no imposibles es precisamente la banda difícil, y aquí no es ni un
-relato ni un modelo: es un recuento. También es la razón por la que un interior
-de 14 celdas de ancho resulta tan implacable: se sitúa en la parte empinada de
-esa subida, donde una solución existe pero casi ningún arreglo aleatorio lo es.
+pero aún no imposibles es precisamente la banda difícil, vista aquí como un
+recuento y no como un modelo. Lo que mide ese recuento es la satisfacibilidad:
+con qué frecuencia un juego aleatorio de 2L piezas puede cubrir una tira de 2
+por L. Sigue de cerca la estimación del primer momento: el número esperado de
+recubrimientos, $(2L)! \cdot 4^{2L} / 17^{3L-2}$, cruza el uno entre L = 19 y
+L = 20, frente a un punto del 50 % observado hacia L = 21. Es un umbral de
+satisfacibilidad, no una medida del esfuerzo de búsqueda (no se registró
+trabajo de ningún solucionador), y la longitud de una tira de dos filas no se
+traslada directamente al interior de 14x14.
 
 ## La división, leída directamente en las piezas
 
@@ -168,24 +204,28 @@ la vista.
 
 ## Por qué importa
 
-Es la señal individual más clara de que Eternity II se hizo difícil a
-propósito. El tamaño del tablero, el número de piezas y la división de colores
-apuntan todos al mismo objetivo: un puzzle con aproximadamente una única
-solución, colocado en el peor lugar posible para que cualquier búsqueda la
-encuentre. La dificultad fue elegida, igual que un buen examen no es ni trivial
-ni imposible.
+Es la señal individual más clara de que los parámetros de Eternity II se
+eligieron pensando en la dificultad. El tamaño del tablero, el número de piezas
+y la división de colores quedan cerca del punto en que un puzzle aleatorio de
+este tamaño tendría, en promedio, una solución, que es donde suelen agruparse
+las instancias duras para los algoritmos conocidos. Eso es compatible con un
+ajuste deliberado; no prueba que el puzzle esté en el peor caso para toda
+búsqueda, porque la posición de las instancias más duras depende del
+algoritmo.
 
 ¿Cómo sabemos que el pico es real y no un mero relato? Aquí confluyen dos vías.
 El análisis publicado lo
 [deriva](https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content):
 para los puzzles de emparejamiento de aristas con marco, el número de colores
-con el que se esperaría aproximadamente una solución cae cerca de 17, y ese es
-el ajuste más difícil de explorar. Y tú mismo puedes observar una parte de
-ello en la demostración anterior: construye puzzles reales, cuenta el trabajo, y
-velo explotar cuando los colores escasean. El impacto es concreto. Significa
-que la distancia hasta una solución no es un problema de ajuste que se pueda
-limar con una máquina más rápida; el puzzle se colocó donde la búsqueda es peor
-a propósito, de modo que vencerlo exige una idea genuinamente mejor, no
-simplemente más esfuerzo.
+con el que se esperaría aproximadamente una solución cae cerca de 17, y sus
+solucionadores SAT y CSP encontraron sus instancias generadas más duras muy
+cerca. Y tú mismo puedes observar una parte de ello en la demostración
+anterior: construye puzzles reales, cuenta el trabajo y mira cómo cambia con el
+número de colores. El impacto es concreto, siempre que se separen dos casos.
+Para una búsqueda exacta exhaustiva, una aceleración por un factor constante no
+vuelve factible el árbol 16x16 completo. Para la caza estocástica de récords,
+más rendimiento significa más intentos y puede plausiblemente subir la mejor
+puntuación, con rendimientos decrecientes. Una solución completa probablemente
+exige una idea mejor, no solo más esfuerzo.
 
 Ve la dificultad medida en vivo en la [página de Algoritmos](/algorithms).

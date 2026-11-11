@@ -3,13 +3,14 @@ title: La traîne comme problème exact à part entière
 description: >-
   Un plateau partiel solide, c'est une région haute que le producteur a
   travaillée plus une bande basse de rangées inachevées. On gèle le haut, on
-  confie la traîne à un solveur de contraintes exact, et on lit quelle moitié
-  fixe le plafond : la structure du producteur ou la fin de partie bâclée.
-metaDescription: "Les dernières rangées d'un plateau Eternity II comme optimisation CP-SAT exacte découplée du producteur. Le budget de ruptures entrantes par case, ce que le solveur exact gagne sur un finisseur glouton (traîne limitante, serrée ou rupture porteuse), et pourquoi il reproduit le mécanisme."
+  confie la traîne à un solveur de contraintes exact, et on mesure ce que la
+  résolution exacte récupère sur la traîne d'un producteur glouton, sous trois
+  régimes de ruptures entrantes.
+metaDescription: "Les dernières rangées d'un plateau Eternity II comme optimisation CP-SAT exacte découplée du producteur : trois régimes de ruptures entrantes, ce que la traîne exacte récupère sur un finisseur glouton (1 à 9 arêtes sur les 24 graines à une rangée), et les témoins qui manquent encore."
 kind: concept
 order: 50
 group: Exact methods
-updated: 2026-07-23
+updated: 2026-11-11
 topics: [exact-methods, construction]
 contribution: method
 rigor: measured
@@ -31,8 +32,9 @@ repro:
   cmd: just research-exact-tail-endgame
   scope: >-
     Régénère le balayage complet (24 graines de producteur sur une traîne d'une
-    rangée, quatre sur une traîne de deux rangées, plafond de ruptures entrantes
-    1 et 2), chaque cellule étant une résolution CP-SAT, chaque plateau étant
+    rangée, quatre sur une traîne de deux rangées ; plafond 1, une rupture
+    double, sans plafond), chaque cellule étant une résolution CP-SAT amorcée
+    sur la traîne du producteur, chaque plateau étant
     rescoré indépendamment depuis son blob de visualiseur. Palier statistique à
     graines : les résolutions à une rangée reproduisent leurs optima prouvés à
     la réexécution ; les deltas faisables à deux rangées reproduisent le signe
@@ -91,37 +93,37 @@ l'objectif. Le même modelage apparaît dans les notes du projet sur les
 [encodages SAT et CSP](/research/build/exact/sat-csp-encodings) ; ici il vise un
 sous-plateau plutôt que le puzzle entier.
 
-## Le budget de ruptures entrantes
+## Trois régimes de ruptures
 
-Le producteur remplit rangée par rangée et impute à chaque case un budget sur ses
-seules arêtes *entrantes* : en ordre ligne par ligne, les arêtes entrantes d'une
-case sont son haut et sa gauche. En notant $\mathrm{conf}(c)$ le nombre de ces
-deux-là qui ne s'apparient pas, le producteur travaille dans le régime
-$\mathrm{conf}(c)\le 1$ : au plus une rupture entrante par case. Le modèle exact
-reflète cela exactement par un plafond par case, et balayer le plafond est le
-second axe de l'expérience :
+En ordre ligne par ligne, les arêtes *entrantes* d'une case sont son haut et
+sa gauche (seulement son haut en colonne 0). On note $\mathrm{conf}(c)$ le
+nombre de celles qui ne s'apparient pas. Le producteur ne plafonne pas
+$\mathrm{conf}(c)$ : à chaque case il prend la pièce qui apparie le plus
+d'arêtes entrantes et accepte une rupture double quand il ne reste rien de
+mieux. Chacune des 24 traînes du producteur à une rangée contient de telles
+cases, entre 1 et 6 sur 16. Le modèle exact tourne sous trois régimes sur la
+même traîne :
 
-- **plafond $=1$** reproduit le monde propre du producteur, $\le 1$ rupture par
-  case. Toute case que le modèle exact remplit est une case que le producteur
-  aurait pu, en principe, bâtir.
-- **plafond $=2$** admet une *double* rupture entrante à une case : deux
-  désaccords arrivant d'un coup. C'est un placement que le producteur $\le 1$
-  rupture ne peut jamais faire, donc tout point qu'il rapporte est un point
-  structurellement hors de portée du producteur.
+- **plafond $=1$** : au plus une rupture entrante par case. C'est *plus
+  strict* que le producteur, et cela peut exclure sa propre traîne.
+- **une rupture double** : au plus une case de toute la traîne peut subir une
+  rupture entrante double.
+- **sans plafond** : aucune règle de rupture. (Un plafond de $2$ par case
+  reviendrait au même, puisqu'une case n'a que deux arêtes entrantes.)
 
-L'écart entre les deux plafonds est le prix, en arêtes appariées, du seul coup que
-le producteur ne peut pas jouer.
+La traîne du producteur est fournie au solveur comme indice, et chaque fois
+qu'elle est admissible sous le régime (toujours sans plafond) l'objectif est
+borné par en dessous à sa valeur.
 
 ## Ce que la traîne exacte rapporte
 
-Pour chaque graine de producteur, le modèle est lancé à une rangée (traîne de 16
-cases) et deux rangées (traîne de 32 cases), aux deux plafonds. La quantité
-vedette est le delta, $\text{score exact} - \text{score producteur}$, sur le
-haut gelé identique. Par construction, la résolution exacte domine la traîne
-gloutonne, donc le delta n'est jamais négatif ; son intérêt est de savoir s'il
-est *strictement positif* (le producteur a laissé des points dans la traîne) ou
-*nul* (le producteur était déjà optimal sur la traîne), et comment cette réponse
-varie selon les graines.
+Pour chaque graine de producteur, le modèle est lancé à une rangée (traîne de
+16 cases) et à deux rangées (traîne de 32 cases), sous les trois régimes. La
+quantité vedette est le delta, $\text{score exact} - \text{score producteur}$,
+sur le haut gelé identique. Sans plafond, la traîne du producteur est un point
+faisable du modèle, donc le delta est positif ou nul par construction. Sous les
+deux régimes plafonnés, la traîne du producteur est en général exclue : un
+delta négatif est alors possible en principe ; aucun n'a été observé.
 
 À une rangée, le modèle atteint un optimum prouvé chaque fois qu'il est faisable,
 en quelques centièmes de seconde. Chaque plateau émis est rescoré indépendamment
@@ -130,114 +132,94 @@ visualiseur est décodé en une grille de couleurs et ses appariements intérieu
 recomptés à zéro, et ce recompte concorde avec le score annoncé par le solveur
 (pour le plateau à une rangée de la première graine, $385$ se redécode en $385$).
 Le jeu de pièces est aussi revérifié distinct et les cinq indices revérifiés en
-place. Quelques graines montrent toute l'histoire en miniature :
+place. Quatre graines :
 
 <Figure title="Traîne d'une rangée (16 cases), optimum prouvé, quatre graines de producteur">
 
-| graine de producteur | score producteur /480 | delta plafond $=1$ | delta plafond $=2$ | lecture |
-| --- | --- | --- | --- | --- |
-| graine 1 | 379 | $+6$ | $+6$ | traîne limitante |
-| graine 2 | 376 | $0$ | $+1$ | traîne serrée ; le point de plus exige une rupture double |
-| graine 3 | 365 | infaisable | $+6$ | aucune complétion $\le 1$ rupture n'existe |
-| graine 4 | 369 | $+2$ | $+2$ | traîne limitante, rupture double inutile |
+| graine de producteur | score producteur /480 | ruptures doubles dans la traîne du producteur | delta plafond $=1$ | une rupture double | sans plafond |
+| --- | --- | --- | --- | --- | --- |
+| graine 1 | 379 | 4 | $+6$ | $+6$ | $+6$ |
+| graine 2 | 376 | 2 | $0$ | $+1$ | $+1$ |
+| graine 3 | 365 | 6 | infaisable | $+6$ | $+6$ |
+| graine 4 | 369 | 3 | $+2$ | $+2$ | $+2$ |
 
 Les scores sont des arêtes intérieures appariées hors bordure sur 480, cinq
-indices fixés. Chaque ligne prouvée optimale en environ $0{,}03$ à $0{,}11$ s.
+indices fixés. Chaque ligne faisable prouvée optimale en moins de $0{,}1$ s.
 
 </Figure>
 
-Trois régimes coexistent sur un même banc d'essai, et ce sont exactement les
-régimes que le carnet source décrivait séparément :
+Sur tout le balayage à 24 graines à une rangée :
 
-- **Traîne limitante** (graine 1). La traîne gloutonne laisse $6$ arêtes
-  appariées sur la table que la résolution exacte récupère, sans avoir besoin
-  d'une rupture double. Ici la contrainte limitante est bien la fin de partie, et
-  le producteur l'a sous-résolue.
-- **Traîne serrée** (graine 2, plafond $=1$). La résolution exacte égalise le
-  producteur : delta $0$. La traîne propre du producteur était déjà optimale sous
-  sa règle $\le 1$ rupture, il n'y a donc rien à récupérer, et le plafond réside
-  dans la structure haute, pas dans la traîne. Porter le plafond à $2$ trouve
-  alors exactement un point de plus, et c'est précisément une rupture double
-  entrante, le seul levier que le producteur ne peut pas actionner.
-- **Rupture double porteuse** (graine 3, plafond $=1$). Le plus fort de tous : le
-  producteur $\le 1$ rupture ne peut compléter cette traîne *à aucun score*,
-  donc plafond $=1$ est infaisable. Seule une rupture double entrante admet un
-  remplissage tout court, et plafond $=2$ atteint alors un optimum prouvé. La
-  rupture double n'est pas un bonus ici ; c'est la différence entre une
-  complétion et aucune.
+- **Sans plafond**, la traîne exacte bat le producteur sur les 24 graines, de
+  $1$ à $9$ arêtes appariées (médiane $4{,}5$, moyenne $4{,}75$).
+- **Une rupture double** donne exactement l'optimum sans plafond sur les 24
+  graines. Les traînes du producteur portent chacune de 1 à 6 ruptures
+  doubles ; un réarrangement optimal des mêmes 16 pièces n'en demande jamais
+  plus d'une.
+- **Plafond $=1$** est infaisable sur 5 graines : leurs 16 pièces n'admettent
+  aucun arrangement sans rupture double. Sur les 19 autres, il récupère de $0$
+  à $8$ arêtes (médiane $4$, moyenne d'environ $3{,}9$). L'unique zéro est la
+  graine 2, qui gagne $+1$ dès qu'une rupture double est permise.
 
-Sur tout le balayage à 24 graines à une rangée, la répartition est le résultat :
-au plafond $=1$, $18$ graines sont à traîne limitante (delta strictement
-positif), $1$ à traîne serrée (delta nul), et $5$ carrément infaisables (aucune
-complétion $\le 1$ rupture de la traîne n'existe). Les points récupérés vont de
-$0$ à $8$ arêtes appariées, médiane $4$, moyenne d'environ $3{,}9$. Porter le
-plafond à $2$ rend les $24$ graines faisables et toutes à traîne limitante, avec
-des deltas de $1$ à $9$, médiane $4{,}5$, moyenne d'environ $4{,}8$ : le coup de
-rupture double débloque à la fois les cinq graines coincées et ajoute un point ou
-deux presque partout ailleurs. Que la traîne soit la contrainte limitante est une
-propriété du plateau individuel, pas un absolu.
-
-À deux rangées la traîne passe à 32 cases et le modèle ne prouve plus l'optimalité
-dans le budget de temps : il rend des incumbents faisables à environ $45$ s
-chacun. Les deltas y sont plus grands mais ce sont des *bornes inférieures*,
-puisqu'une meilleure complétion peut exister que le solveur n'a pas certifiée.
+À deux rangées la traîne passe à 32 cases et le modèle ne prouve plus
+l'optimalité dans le budget de temps : il rend des incumbents faisables à
+environ $45$ s chacun. Les deltas y sont plus grands mais ce sont des *bornes
+inférieures*, puisqu'une meilleure complétion peut exister que le solveur n'a
+pas certifiée.
 
 <Figure title="Traîne de deux rangées (32 cases), faisable non prouvée optimale, quatre graines">
 
-| graine de producteur | delta plafond $=1$ | delta plafond $=2$ |
-| --- | --- | --- |
-| graine 1 | $+14$ | $+10$ |
-| graine 2 | $+6$ | $+7$ |
-| graine 3 | $+17$ | $+15$ |
-| graine 4 | $+11$ | $+10$ |
+| graine de producteur | delta plafond $=1$ | une rupture double | sans plafond |
+| --- | --- | --- | --- |
+| graine 1 | $+14$ | $+13$ | $+13$ |
+| graine 2 | $+6$ | $+7$ | $+7$ |
+| graine 3 | $+17$ | $+17$ | $+16$ |
+| graine 4 | $+11$ | $+11$ | $+10$ |
 
 Les deltas sont des bornes inférieures : chaque résolution a rendu un incumbent
-faisable, pas une preuve, en environ $45$ s sur huit cœurs. Sur ces quatre
-graines, les deltas plafond $=1$ vont de $6$ à $17$ (médiane $12{,}5$) et plafond $=2$
-de $7$ à $15$ (médiane $10$). Que plafond $=2$ puisse afficher *en dessous* de
-plafond $=1$ sur la même graine (graines 1, 3, 4) est un symptôme de la preuve
-d'optimalité manquante, pas une vraie régression : la région faisable plus large
-a simplement laissé le solveur sur un incumbent non prouvé différent dans le
-budget.
+faisable, pas une preuve, en environ $45$ s sur huit cœurs. Les médianes sur les
+quatre graines valent $12{,}5$ (plafond $=1$), $12$ (une rupture double) et
+$11{,}5$ (sans plafond). Le modèle sans plafond contient les deux autres, son
+optimum est donc au moins aussi haut ; qu'il affiche une arête de moins sur les
+graines 1, 3 et 4 montre seulement que ces incumbents ne sont pas des optima.
 
 </Figure>
 
 ## Ce que cela règle, et ce que cela ne règle pas
 
-Lue comme un instrument, la traîne exacte répond nettement à la question « quelle
-moitié ? » sur ce banc d'essai : parfois la traîne (delta strictement positif, la
-fin de partie était sous-résolue), parfois le haut (delta nul, la traîne était
-déjà serrée). La réponse dépend du producteur, ce qui est justement le fond de
-l'affaire. Un même score de plateau peut cacher l'un ou l'autre régime, et le
-diagnostic bon marché pour les distinguer est de savoir si le solveur exact ferme
-l'écart d'optimalité. Quand il le fait et que le delta est nul, la traîne est
-serrée et aucun finisseur n'aidera ; quand le delta est positif, le finisseur
-heuristique du producteur a laissé des arêtes appariées non réclamées. Le plafond
-de rupture double affine cela : au moins une graine ici n'a *aucune* complétion
-de sa traîne bâtissable par le producteur, donc la capacité du solveur exact à
-placer une rupture double entrante est porteuse plutôt que cosmétique.
+Sur ce producteur, la mesure est nette : un remplisseur glouton simple laisse
+des arêtes appariées dans sa dernière rangée sur chaque graine testée, et une
+résolution exacte des mêmes 16 pièces sous le même haut gelé en récupère de $1$
+à $9$ en bien moins d'une seconde. Les deltas à deux rangées vont dans le même
+sens, comme bornes inférieures.
 
-Ce que ce petit run ne règle pas, c'est le record. Le producteur ici est un
-remplisseur glouton simple dont les plateaux se situent entre le milieu des
-360 et la fin des 370, bien en dessous des producteurs de piste-record qu'utilisait
-le résultat source, donc traîner exactement ici ne peut *pas déplacer un record* :
-le titre au niveau record du carnet, une traîne exacte battant un finisseur
-heuristique d'une arête appariée sur un plateau bien plus fort, est lié à ce
-producteur plus fort et n'est pas reproduit ici. Ce qui est reproduit, c'est le
-mécanisme et la forme de l'effet : la bande basse est un véritable petit problème
-exact, la résolution exacte ne perd jamais contre la traîne propre du producteur
-et la bat souvent, le plafond de rupture double rapporte des points réels et
-parfois porteurs, et le fait que la traîne soit la contrainte limitante dépend du
-plateau. Les chiffres à deux rangées sont des bornes inférieures, pas des optima
-prouvés, et doivent se lire comme tels.
+L'unique delta de $0$ (graine 2 sous plafond $=1$) montre seulement que cette
+traîne est optimale pour ce haut gelé, ce lot de pièces et cette règle de
+rupture. Il ne montre pas que la structure haute fixe le plafond. L'expérience
+n'échange jamais de pièces entre le haut et la traîne, ne libère jamais de
+fenêtre plus grande ou de forme différente, et n'a aucun témoin non exact :
+quelques secondes de recherche locale sur le même lot de 16 pièces pourraient
+récupérer une bonne part du même gain. Séparer « exact » de « n'importe quel
+finisseur non glouton », et « traîne serrée » de « le haut est la limite »,
+demande ces témoins ; ils n'ont pas été lancés. L'expérience ne teste pas non
+plus un producteur qui travaillerait vraiment sous plafond $=1$.
+
+Ce petit run ne teste pas non plus le régime des records. Le producteur ici est
+un remplisseur glouton simple dont les plateaux se situent entre le bas des
+360 et le bas des 380, bien en dessous des producteurs de piste-record
+qu'utilisait le résultat source, et le titre au niveau record du carnet (une
+traîne exacte battant un finisseur heuristique d'une arête appariée sur un
+plateau bien plus fort) est lié à ce producteur plus fort et n'est pas reproduit
+ici. Ce qui est reproduit, c'est le mécanisme : la bande basse est un véritable
+petit problème exact, résolu en centièmes de seconde à une rangée, et sur un
+producteur faible il paie à coup sûr.
 
 Pour situer n'importe lequel de ces scores d'arêtes appariées face aux meilleurs
 résultats de la communauté, obtenus avec des budgets de calcul bien plus grands,
-voir la [page des records](/research/records). L'appariement que vise cette page,
-un producteur fort fini par un solveur des dernières rangées *exact* plutôt
-qu'heuristique, est aussi le pas suivant naturel pour les
-[producteurs par faisceau](/research/build/construct/beam-search) du projet : le
-finisseur, pas le producteur, est là où la méthode exacte gagne sa place.
+voir la [page des records](/research/records). Un producteur fort fini par un
+solveur exact des dernières rangées, avec les témoins ci-dessus, est l'expérience
+suivante naturelle pour les
+[producteurs par faisceau](/research/build/construct/beam-search) du projet.
 
 ## Reproduire
 

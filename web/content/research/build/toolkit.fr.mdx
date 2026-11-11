@@ -11,7 +11,7 @@ metaDescription: "Un kit de démarrage Eternity II prêt à l'emploi : un espace
 kind: tool
 order: 2
 group: Start here
-updated: 2026-07-20
+updated: 2026-11-11
 sources:
   - label: "Le kit de démarrage (ce dépôt) : l'espace de travail Rust, les exemples et les fichiers de configuration pour agents"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
@@ -20,6 +20,8 @@ related:
   - /research/build/dataset
   - /research/build/approaches-map
   - /research/build/formats
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
+  - /research/lab/experiments/raphael-anjou/pipelines/cas
 ---
 
 import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
@@ -60,18 +62,24 @@ exclue. Copiez le dossier, glissez-y votre idée, et itérez.
   votre solveur.
 - **La boucle d'itération :** un trait `Solver` stable, un lanceur de balayage qui
   écrit des répertoires de run reproductibles, et un outil `compare` qui compare
-  deux runs, avec la discipline de variance qu'exige ce puzzle intégrée.
+  deux runs graine par graine, statistiques appariées comprises.
 
 ## La seule règle que le kit impose pour vous
 
-Sur Eternity II, le score varie beaucoup d'une graine à l'autre : l'écart-type
-entre graines est d'environ 12 à 20 points pour un solveur de plateau complet.
-Une différence d'un ou deux points de moyenne entre deux versions de solveur est
-donc presque toujours du bruit. L'outil `compare` du kit refuse de qualifier de
-gain une différence en dessous du bruit, vous dit de balayer au moins 40 graines,
-et rapporte toujours l'écart. Gardez tout en mono-cœur, comme le font les
-[benchmarks](/research/build/benchmarks) du site, et vos chiffres restent
-comparables à ceux de tous les autres.
+L'ampleur des variations d'une graine à l'autre dépend du solveur. La base
+gloutonne du kit, balayée sur 40 plateaux 16×16 générés (le balayage par
+défaut ci-dessous, graines 1 à 40, déterministe), obtient 292,7 en moyenne avec
+un écart-type de 14,8 points. Les recherches plus fortes sont bien plus
+resserrées : les runs en faisceau versés au dépôt varient de 2 à 3 points, sur
+des plateaux 12×12 générés ([largeur de faisceau](/research/lab/experiments/raphael-anjou/pipelines/beam-width)) comme sur le
+plateau officiel d'un cadre à l'autre ([CAS](/research/lab/experiments/raphael-anjou/pipelines/cas)). Ne jugez donc jamais un
+changement à un écart fixe en points. L'outil `compare` du kit apparie les
+deux runs graine par graine, affiche l'erreur type de la différence moyenne,
+refuse de qualifier de gain tout ce qui reste sous deux erreurs types, et
+signale les runs de moins de 40 graines appariées. Gardez tout en mono-cœur,
+comme le font les [benchmarks](/research/build/benchmarks) du site, et vos
+chiffres restent comparables d'un run du kit à l'autre ; les runs de record de
+la communauté sont de longues recherches multi-cœurs, un tout autre régime.
 
 ## Écrire votre premier solveur
 
@@ -100,6 +108,12 @@ remplacez le corps de `solve`, puis balayez-le :
 cargo run --release --example sweep -- --n 40 --budget 3
 cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
 ```
+
+Une moyenne à budget court est un indicateur, pas la cible. Un record est le
+meilleur plateau issu de runs très longs : regardez donc aussi le meilleur
+score et les quantiles hauts d'un balayage, ainsi que le temps nécessaire pour
+atteindre un score cible, et revérifiez tout gagnant avec un budget 10 à
+100 fois plus long avant de vous y fier.
 
 Les recettes complètes (scoring, génération, lot, conversion, benchmark) sont
 dans le [README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme)

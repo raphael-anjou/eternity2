@@ -9,7 +9,7 @@ metaDescription: "How the Eternity II community built a shared test culture desp
 kind: reference
 order: 17
 group: Check your code
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [backtracking, speed]
 sources:
   - label: "The 3×3 corner census proposal: 'Suggestion for Benchmark/Test' (arthurhucksake), eternity2@groups.io, 2007-08"
@@ -131,8 +131,11 @@ pointed to: 260 rotated solutions and a full row-scan search of exactly
 69,284,103 nodes for the 6×6
 ([message 7771](https://groups.io/g/eternity2/message/7771),
 [7777](https://groups.io/g/eternity2/message/7777)). If your solver gets a
-different count, your solver is wrong; that is the entire value
-proposition.
+different solution count, your solver is wrong; that is the entire value
+proposition. The node figure is narrower: 69,284,103 applies only to a plain
+row-scan backtracker counting committed valid placements (Txibilis's
+convention), and a correct solver with another fill order or node definition
+reports a different number.
 
 ## The 40-hint 12×12 shoot-out
 
@@ -189,8 +192,10 @@ solution each, Peter McGavin's independently shuffled backtrackers found a
 and the corrected tallies (**2 solutions for set 1, 3 for set 2**) were
 confirmed when McGavin found all three set-2 solutions
 ([message 8803](https://groups.io/g/eternity2/message/8803)). Complex theory
-had predicted 3.2 solutions for set 1: right order of magnitude on the
-largest instance ever fully searched.
+had predicted 3.2 solutions for set 1. Two observed against 3.2 expected is a
+single Poisson draw (about a 38% chance of two or fewer), so it is consistent
+with the theory on the largest instance ever fully searched, without testing it
+sharply.
 
 Seven years later the numbers were re-verified from scratch by a completely
 different implementation on absurdly different hardware: Adam Miles's
@@ -215,10 +220,14 @@ having covered under 0.5% of the whole tree
 statistics in [9688](https://groups.io/g/eternity2/message/9688)). Martin
 validated the board independently
 ([message 9725](https://groups.io/g/eternity2/message/9725)), and the
-community's verdict, "amazing that it is being truly just as hard as
-predicted" ([message 9693](https://groups.io/g/eternity2/message/9693)),
-doubled as the strongest empirical validation
-[complex theory](/research/why/complex-theory) has ever received. In
+community's verdict was "amazing that it is being truly just as hard as
+predicted" ([message 9693](https://groups.io/g/eternity2/message/9693)). The
+result is consistent with [complex theory](/research/why/complex-theory): a
+first success at or after row-search 92,907 has a probability of about 0.27 at
+the predicted rate. But a single success only bounds the rate to within a factor
+of about 150 (95% interval roughly 1 in 25,000 to 1 in 3.7 million), so it is a
+consistency check, not strong validation. The exhaustive small-board counts
+(6×6, 7×7, the clue puzzles) are the stronger calibration. In
 McGavin's own words: no new methods, just systematic persistence and the law
 of large numbers.
 
@@ -249,15 +258,21 @@ an *easy-board* figure; on a hard board the same engine runs ~105M, where a
 ties it. Two cautions
 carry over from the old node-vs-step debate: a "valid placement" counts only
 pieces that pass the colour-fit lookup, not every piece tried, and single-core
-speed on a full 16×16 is typically about half the small-puzzle figure, because
+speed on a full 16×16 is typically well below the small-puzzle figure (about
+a third in McGavin's case, 105M against 295M), because
 the search spends its time in the dense forest of near-border constraints. (These
 placements/s figures are one axis of "fast" and unrelated to a board's
 matched-edge score; the
 [solver-engineering ledger](/research/build/faster/solver-engineering) pins down
 all three senses of the word.) None
 of this changes the [prune-versus-speed](/research/why/prune-vs-speed) verdict:
-a 400× throughput jump since 2008 has not moved the record, because it makes the
-tree cheaper to walk, not smaller.
+per-core throughput has risen roughly 4× since 2008 (295M against 68M on easy
+boards, about 1.5× at the 105M hard-board figure), and a 10-billion-per-second
+GPU is about 150× a 2008 core. No such factor makes the exhaustive 16×16 tree
+feasible, because it makes the tree cheaper to walk, not smaller. For record
+hunting, over the same period the record moved by three edges
+([records](/research/records)), consistent with extra speed buying more
+attempts and helping a little, with diminishing returns.
 
 ## What to run today
 

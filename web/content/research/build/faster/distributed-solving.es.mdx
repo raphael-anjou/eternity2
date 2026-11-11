@@ -10,7 +10,7 @@ metaDescription: "Quince años de resolución distribuida de Eternity II: enjamb
 kind: concept
 order: 150
 group: Go faster
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "eternity2.net se lanza en BOINC, y los escépticos responden (groups.io message 756)"
@@ -154,9 +154,12 @@ absoluto en el puzzle real
 La nube hizo apariciones fugaces: Amazon EC2 se sugirió ya en 2010
 ([message 8106](https://groups.io/g/eternity2/message/8106)), y David Barr
 probó su programa de búsqueda en AWS Lambda en 2016
-([message 9642](https://groups.io/g/eternity2/message/9642)). Pero las flotas
-alquiladas nunca desplazaron a las propias; la economía de un puzzle sin plazo
-favorece el hardware que puedes dejar funcionando durante años.
+([message 9642](https://groups.io/g/eternity2/message/9642)). Hasta 2020, las
+flotas alquiladas nunca desplazaron a las propias; la economía de un puzzle sin
+plazo favorecía el hardware que se podía dejar funcionando durante años. En
+2025, una RTX 4090 alquilada a unos 0,30 $ la hora se había convertido en el
+cómputo medido más barato para barridos acotados; véase
+[la resolución en GPU](/research/build/hardware/gpu-solving).
 
 ## El censo
 
@@ -202,12 +205,18 @@ McGavin puntuó ~20 millones de permutaciones de primera fila según su
 probabilidad, en el sentido de la
 [teoría del complejo](/research/why/complex-theory), de solución por nodo del
 árbol de búsqueda y puso en la granja primero las mejores filas. La solución
-llegó en la búsqueda de fila ~92.907 frente a una predicción de una por cada
-~70.000
-([message 9688](https://groups.io/g/eternity2/message/9688)). La clasificación
-marcaba la diferencia entre una lotería y un calendario. Las tareas tienen un
-valor tremendamente desigual; un buen modelo estático de qué rebanadas son
-prometedoras vale más que cualquier cantidad de hardware adicional.
+llegó en la búsqueda de fila ~92.907, en línea con la predicción del modelo de
+una por cada ~70.000
+([message 9688](https://groups.io/g/eternity2/message/9688)). Es un único
+sorteo: con una espera geométrica de media 70.000, una espera al menos tan
+larga tiene cerca de un 27 % de probabilidad, así que esa llegada por sí sola
+no distingue el modelo de una amplia gama de otras tasas. La prueba más sólida
+es otra: los histogramas de nodos por profundidad publicados coincidían con el
+modelo. En la lista sin clasificar de 2013, la solución conocida estaba en la
+fila 1.407.888 de 4.318.956, pero esa lista no cuenta las filas igual que las
+~20 millones de permutaciones clasificadas, de modo que las dos posiciones no
+se comparan directamente. Las tareas no valen todas lo mismo, y un modelo
+estático de qué rebanadas son prometedoras es una forma barata de ordenarlas.
 
 **Barridos de parámetros.** La variante moderna distribuye *configuraciones* en
 lugar de subárboles. El
@@ -254,16 +263,17 @@ motivados, dentro de ese secreto forzoso. Cuando el concurso murió, el problema
 se evaporó: los esfuerzos modernos publican todo, y la confianza descansa en la
 reproducibilidad en lugar de en contratos.
 
-## Lo que compraron 10^19 operaciones
+## Lo que compraron 10^19 operaciones hacia una solución completa
 
 Nada, y la comunidad sabía por qué antes de empezar. Las propias estimaciones
 de árbol del grupo, convergiendo desde implementaciones independientes en 2008,
 situaban la búsqueda completa en aproximadamente 2,2×10⁴³ nodos por solución,
-del orden de 10²⁷ núcleos-año
+unos 10²⁸ núcleos-año a 10⁸ nodos por segundo
 ([message 5193](https://groups.io/g/eternity2/message/5193),
 [message 5197](https://groups.io/g/eternity2/message/5197)). Frente a eso, el
-total acumulado de 10¹⁹ operaciones de eternity2.net es alrededor de 10⁻²⁴ del
-trabajo de una sola solución: multiplicar tu flota por mil, o por un millón, no
+total acumulado de 10¹⁹ operaciones de eternity2.net equivale a unos
+10¹⁷–10¹⁸ nodos, entre 10⁻²⁶ y 10⁻²⁵ del trabajo de una sola solución:
+multiplicar tu flota por mil, o por un millón, no
 mueve un número así en absoluto. Owen lo dijo dos meses antes de que saliera el
 puzzle
 ([message 226](https://groups.io/g/eternity2/message/226)); la carta de cierre
@@ -277,6 +287,15 @@ general, y [la teoría del complejo](/research/why/complex-theory) aporta la
 aritmética exacta de por qué el árbol del puzzle completo empequeñece cualquier
 flota concebible. Todo esfuerzo distribuido sobre el puzzle completo confirmó
 el argumento de conteo; ninguno lo mermó.
+
+La caza de récords es otra cuestión. Un récord es un suceso raro de una
+búsqueda estocástica, así que sus probabilidades crecen con el número de
+intentos independientes. El cómputo voluntario compró el 463 de eternity2.net,
+techo público de la comunidad durante más de un año, y las decenas de 467
+independientes que encontró la multitud de eii. El multiplicador actúa sobre
+las probabilidades de un parcial alto, con rendimientos decrecientes, nunca
+sobre el exponente del árbol completo; las cifras actuales están en
+[récords](/research/records).
 
 ## Para qué sirve realmente la distribución
 
@@ -297,17 +316,19 @@ las matemáticas lo decían de antemano.
   la pregunta es "¿cuál de estas mil configuraciones busca más profundo?", las
   tareas son verificables, acotadas e independientes, que es exactamente lo que
   la distribución busca.
-- **Récords solo aguas abajo de un algoritmo.** El 469 vino de ~200 núcleos
+- **Récords, apoyados en un algoritmo.** El 469 vino de ~200 núcleos
   ejecutando un solucionador que ya era, por sí solo, de clase récord
   ([message 10045](https://groups.io/g/eternity2/message/10045)). Los núcleos
-  multiplicaron el algoritmo de Blackwood; en ningún momento de este archivo lo
-  sustituyeron.
+  multiplicaron los intentos del algoritmo de Blackwood. Nadie comprobó si un
+  solo núcleo habría llegado a 469 en el mismo tiempo real.
 
 <Callout kind="note" title="El resumen en una línea">
-  Quince años de cómputo colectivo, destilados: las multitudes sin un algoritmo
-  no compraron nada; las flotas apuntadas a objetivos finitos y bien modelados
-  compraron exactamente lo que el modelo prometía. El multiplicador es real;
-  solo multiplica lo que ya tienes.
+  Quince años de cómputo colectivo, destilados: ninguna flota se acercó a una
+  solución exacta del puzzle completo; las flotas apuntadas a objetivos finitos
+  y bien modelados compraron exactamente lo que el modelo prometía; y las que
+  ejecutaban una buena heurística compraron más intentos de récord, que es como
+  se encontraron varios récords. El multiplicador es real; multiplica lo que ya
+  tienes.
 </Callout>
 
 Esa conclusión se está poniendo a prueba mientras esto se escribe: una flota

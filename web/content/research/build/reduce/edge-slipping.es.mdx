@@ -3,15 +3,16 @@ title: El deslizamiento de arista
 description: >-
   La jugada premiada de Louis Verhaard: dejar que el backtracker coloque una
   pieza no concordante, pero solo a profundidades escogidas cerca del final del
-  tablero. Cada deslizamiento permitido cuesta un punto de puntuación y
-  multiplica de forma astronómica el número de tableros objetivo. Por eso su 467
-  se encontró más de cincuenta veces, y el ancestro directo de las rupturas de
-  Blackwood.
-metaDescription: "El deslizamiento de arista de Louis Verhaard: dejar que el backtracker coloque piezas no concordantes a profundidades escogidas al final de la búsqueda, cada desliz cuesta un punto pero multiplica los tableros objetivo. Su 467 se repitió 50+ veces; ese calendario llevó a Blackwood al 470."
+  tablero. Cada deslizamiento permitido cuesta un punto de puntuación y agranda
+  en varios órdenes de magnitud la clase de tableros objetivo; con un calendario
+  ajustado por su cadena de Markov, su 467 se encontró más de cincuenta veces.
+  Las rupturas de Blackwood son la misma idea, redescubierta de forma
+  independiente.
+metaDescription: "El deslizamiento de arista de Verhaard: permitir piezas no concordantes a profundidades tardías escogidas, cada desliz cuesta un punto pero agranda la clase objetivo. Su calendario halló el 467 más de 50 veces; Blackwood redescubre la idea."
 kind: concept
 order: 100
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, local-search]
 sources:
   - label: Verhaard define el deslizamiento de arista (enero de 2009)
@@ -30,10 +31,13 @@ sources:
     url: https://groups.io/g/eternity2/message/6687
   - label: La disciplina de «sin rupturas adyacentes» de Blackwood (msg 10051)
     url: https://groups.io/g/eternity2/message/10051
+  - label: "El plan de ajuste de Blackwood para pasar de 469 a 470: presupuesto de rupturas reducido de once a diez (msg 10076)"
+    url: https://groups.io/g/eternity2/message/10076
 related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/analysis/parity-arguments
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -165,12 +169,16 @@ objetivo de 467.
    de no concordancia única pasan por el borde exterior no contabilizado, la
    misma fuga que produjo
    [la historia del 479](/research/build/analysis/parity-arguments).
-4. **Detente en N = 10.** Puntuación objetivo 470, el récord actual, y
-   exactamente el presupuesto de rupturas del
-   [solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
-5. **Detente en N = 13.** Puntuación objetivo 467, multiplicador ≈ 6,9 × 10²⁷.
-   Por eso el programa de un solo aficionado encontró el tablero premiado más
-   de cincuenta veces.
+4. **Detente en N = 10.** Puntuación objetivo 470, exactamente el presupuesto
+   de rupturas del
+   [solucionador de Blackwood](/research/lab/experiments/joshua-blackwood/solver)
+   (el estado de las puntuaciones está en [récords](/research/records)).
+5. **Detente en N = 13.** Puntuación objetivo 467, multiplicador ≈ 6,9 × 10²⁷
+   según la fórmula de Max (la estimación de Owen es siete órdenes de magnitud
+   mayor). Una clase objetivo de ese tamaño, junto con un calendario ajustado
+   por la cadena de Markov de Verhaard, es lo que permitió al programa de un
+   solo aficionado encontrar el tablero premiado más de cincuenta veces.
+   Ninguno de los dos factores se midió por separado como causa.
 6. **Bascula las barreras hacia el principio.** Mismo presupuesto, mismo
    multiplicador, pero el deslizamiento más temprano queda ahora bajo 215
    colocaciones posteriores en lugar de 55, y la ramificación adicional aterriza
@@ -190,23 +198,33 @@ $$
 
 donde $\binom{420}{N}$ escoge cuáles de las 420 uniones interiores se rompen,
 las potencias de dos dan cuenta (a grandes rasgos) de las maneras de realizar
-cada ruptura, y $S(480)$ es el número de tableros perfectos. Introduciendo la
-estimación temprana de la teoría compleja $S(480) = 26{,}700$ obtuvo unos $4.7
-\times 10^9$ tableros a 478, $2.9 \times 10^{30}$ a 468 y $1.8 \times 10^{32}$
-a 467, números que este proyecto ha reverificado a partir de la fórmula. Dos
-consecuencias importan más que los valores absolutos, que el propio Max señaló
-como excesivamente simplificados:
+cada ruptura, y $S(480)$ es el número esperado de tableros perfectos.
+Introduciendo la estimación temprana de la teoría compleja $S(480) = 26{,}700$
+obtuvo unos $4.7 \times 10^9$ tableros a 478, $2.9 \times 10^{30}$ a 468 y
+$1.8 \times 10^{32}$ a 467, números que este proyecto ha reverificado a partir
+de la fórmula. La estimación actual de primer momento con la pieza inicial
+obligatoria ronda las 14 702
+([recuento de soluciones](/research/build/analysis/solution-counting)), un
+promedio sobre un conjunto de puzzles y no un recuento de esta instancia; con
+ella, la fórmula da valores absolutos de aproximadamente la mitad
+($1.0 \times 10^{32}$ a 467). El propio Max consideraba la fórmula demasiado
+simplificada, y además ignora la restricción de paridad que prohíbe una arista
+interior deslizada aislada (paso 3). Dos consecuencias importan más que los
+valores absolutos:
 
 - **El coste de una arista concordante más.** Los cocientes consecutivos se
   telescopan:
   $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
-  \approx 63$. Cada arista que te niegas a deslizar reduce la clase objetivo en
-  un factor de alrededor de sesenta, lo que coincide, como señaló Max, con el
-  comportamiento observado del solucionador de Verhaard
+  \approx 63$. Es un cociente de tamaños de clases objetivo, no de dificultad
+  de búsqueda. Max lo leyó como coherente con el solucionador de Verhaard
   ([msg 6390](https://groups.io/g/eternity2/message/6390)), y es del mismo orden
   que la regla empírica de Owen de ~100× por arista, publicada en el mismo hilo
   al día siguiente
-  ([msg 6391](https://groups.io/g/eternity2/message/6391)).
+  ([msg 6391](https://groups.io/g/eternity2/message/6391)). La rareza observada
+  en la ejecución del solucionador público por JSA es menor: 17.7× de 463 a
+  464, 16.7× de 464 a 465 y 21.8× de 465 a 466, unas veinte veces por arista.
+  Nadie ha medido cómo el tamaño de una clase objetivo se traduce en el
+  esfuerzo necesario para alcanzarla.
 - **El techo.** La multiplicación se compra al precio de la puntuación: $N$
   deslizamientos permitidos limitan el tablero a $480 - N$ para siempre. El
   deslizamiento compra alcanzabilidad, no calidad; convierte una búsqueda
@@ -230,9 +248,14 @@ tableros con 13 deslizamientos en $2.05 \times 10^{35}$ veces el número de
 tableros perfectos ([msg 6412](https://groups.io/g/eternity2/message/6412)),
 siete órdenes de magnitud por encima de la cifra de Max, porque la teoría
 también cuenta casi-tableros que no son perturbaciones de ninguna solución,
-mientras que Max solo contaba los derivados de un tablero perfecto. Toma
-cualquiera de los dos números: el conjunto de objetivos explota de forma
-combinatoria, mientras que el precio es lineal en puntuación.
+mientras que Max solo contaba los derivados de un tablero perfecto. Las dos
+estimaciones difieren en unos $10^7$, así que ninguna es un recuento absoluto
+fiable. Coinciden en la forma: el conjunto de objetivos crece de forma
+combinatoria, mientras que el precio es lineal en puntuación. Lo que hizo
+recurrente el 467 es la probabilidad de que el calendario conjunto (orden de
+llenado, arreglo de deslizamientos) llegue a la profundidad 256, que es lo que
+estimaba la cadena de Markov de Verhaard; el tamaño de la clase objetivo es
+solo un ingrediente.
 
 ## Del deslizamiento a las rupturas
 
@@ -249,9 +272,13 @@ concordancias («rupturas», en su vocabulario) prohibidas de plano durante las
 primeras 200 colocaciones, luego desbloqueadas de forma acumulativa, una a la
 vez, a profundidades escogidas a mano, diez en total, para una puntuación
 objetivo de 470. El concepto, el condicionamiento por profundidad y la
-concentración tardía del presupuesto son el diseño de Verhaard de 2008,
-rederivado a fuerza récord; el reajuste preciso de esas mismas profundidades de
-desbloqueo es lo que llevó a Blackwood de 469 a 470. Añadió además una
+concentración tardía del presupuesto coinciden con el diseño de Verhaard de
+2008: la misma idea, redescubierta de forma independiente (nada indica que
+Blackwood hubiera leído el arreglo de deslizamientos de Verhaard). El paso de
+469 a 470 fue un recorte de presupuesto, no un reajuste de profundidades: el
+código publicado del 470 conserva los puntos de desbloqueo de la época del 469
+y elimina la undécima ruptura, de once a diez
+([msg 10076](https://groups.io/g/eternity2/message/10076)). Añadió además una
 disciplina que la versión de Verhaard no tenía: dos rupturas no pueden nunca
 tocarse, de modo que cada no concordancia queda aislada entre aristas
 concordantes, y por eso cualquiera de sus ejecuciones que alcance 255
@@ -261,11 +288,11 @@ veces de un parcial limpio de 249 piezas con siete huecos
 completa, con sus calendarios de cupos y su estudio de parámetros, está en
 [la página de Blackwood](/research/lab/experiments/joshua-blackwood/solver).
 
-Vale la pena decir en voz alta la aritmética del linaje. Los trece
+Vale la pena decir en voz alta la aritmética entre ambos. Los trece
 deslizamientos de Verhaard apuntaban a 467; los diez de Blackwood apuntan a
-470. Según el cociente de Max, cada deslizamiento retirado cuesta un factor de
-alrededor de sesenta, de modo que esas tres aristas representan a grandes rasgos
-un multiplicador de dificultad de $2 \times 10^5$, pagado por doce años de
+470. Según la fórmula de Max, la clase objetivo del 470 es unas $3 \times 10^5$
+veces más pequeña que la del 467 ($2^3\binom{420}{13}/\binom{420}{10}$). Cuánto
+más difícil la hizo de alcanzar nunca se midió; se encontró tras doce años de
 hardware, un bucle interno más rápido y una comunidad ejecutando el código en
 paralelo. La técnica en sí no cambió. En un puzzle puntuado por aristas
 concordantes, la jugada ganadora, dos veces y con trece años de diferencia, no
