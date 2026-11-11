@@ -1,16 +1,17 @@
 ---
 title: "Solution counting: measuring what you cannot find"
 description: >-
-  Nobody has ever seen a full Eternity II solution, yet the community knows,
-  to within a factor of two, how many exist. This page is the story and the
-  craft of that number: exact censuses on small boards, the expectation
-  formula and its twenty-year convergence on 14,702, and the culled-search
-  estimates that were trusted only when four independent runs agreed.
-metaDescription: "How the Eternity II community learned to count solutions no one has ever found: exact censuses on small boards, a first-moment expectation formula converging on 14,702, and culled searches trusted only when four independent runs agreed. Design, difficulty and verification, from the 2007 list."
+  Nobody has ever seen a full Eternity II solution, but first-moment
+  (expected-value) models of puzzles built like it predict about 14,702 with
+  the starter. This page is the story and the craft of that estimate: exact
+  censuses on small boards, the expectation formula and the modelling choices
+  behind 14,702, and the culled-search estimates that repeated runs made
+  credible.
+metaDescription: "How the Eternity II community estimated solutions no one has found: exact censuses on small boards, a first-moment expectation of 14,702 for puzzles built like E2 (a model value, not a count of this instance), and culled searches checked by repeated runs."
 kind: concept
 order: 180
 group: Analysis
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Brendan Owen's launch-day estimate: 5,930 with the hint, ~4.65M without, reconciling the 'roughly 5 million' Monckton had given Dave Clark (msg 987, 2007-07)"
@@ -29,6 +30,14 @@ sources:
     url: https://groups.io/g/eternity2/message/8168
   - label: "Both 9×9 benchmarks exhausted: 2 and 3 solutions against a predicted 3.2 (msg 8793, 2011; corrections 8801–8803)"
     url: https://groups.io/g/eternity2/message/8793
+  - label: "Knuth 1975, estimating the size of a backtrack tree by random probing"
+    url: https://doi.org/10.2307/2005469
+  - label: "Purdom 1978, tree size by partial backtracking"
+    url: https://doi.org/10.1137/0207038
+  - label: "Chen 1992, heuristic sampling for tree-size prediction"
+    url: https://doi.org/10.1137/0221022
+  - label: "Krzakala & Zdeborová 2009, when planted and random ensembles agree (quiet planting)"
+    url: https://doi.org/10.1103/PhysRevLett.102.238701
 related:
   - /research/why/complex-theory
   - /research/build/benchmarks
@@ -37,23 +46,31 @@ repro:
   kind: prose
 ---
 
-Nobody has ever exhibited a full Eternity II solution. The community
-nevertheless agrees on how many exist, to within a claimed factor of two:
-about **14,702** with the mandatory starter piece, and about **4×10⁻⁸**,
-effectively exactly one, with all five clues placed
-([msg 11193](https://groups.io/g/eternity2/message/11193)). This page is
-about how a group of people learned to count something none of them could
-find, and why they bothered.
+Nobody has ever exhibited a full Eternity II solution. What the community has
+instead is an estimate: first-moment (expected-value) models of puzzles built
+like E2 predict about **14,702** solutions with the mandatory starter piece,
+and, with all five clues placed, about **4×10⁻⁸** solutions besides the one
+the designers planted
+([msg 11193](https://groups.io/g/eternity2/message/11193)). These are averages
+over random puzzles with E2's piece statistics, not a count of this instance.
+Their accuracy rests on calibration against a few small boards, and E2's
+construction from a planted solution biases its true count upward by an
+amount nobody has computed (both caveats are below). This page is about how a
+group of people learned to estimate something none of them could find, and
+why they bothered.
 
 The *why* is not curiosity. A puzzle with 14,702 solutions and a puzzle with
-1 are different beasts in every way that matters. **Design**: the puzzle's
-parameters were tuned so the expected count sits near one; the community
-reverse-engineered the designer's knob within weeks of the 2007 announcement,
-when Alan O'Donnell wrote the count as a function of the number of colours
-$B$ and found it crosses $1$ at $B \approx 14.67$
-([msg 94](https://groups.io/g/eternity2/message/94)); the real puzzle's
-[17 interior colours](/research/why/phase-transition) sit just past that
-knife edge. **Difficulty**: solution count divided into search-tree size
+1 are different beasts in every way that matters. **Design**: the number of colours is the designer's knob, and the community
+modelled it within weeks of the 2007 announcement, when Alan O'Donnell wrote
+the count as a function of the number of colours $B$ and, under simplified
+pre-launch assumptions, found it crosses $1$ near $B \approx 14.67$
+([msg 94](https://groups.io/g/eternity2/message/94)). Owen's later heuristic
+aimed at about one expected solution for the full board and gives about
+[17 interior colours](/research/why/phase-transition). With the real piece
+statistics, though, 17 interior colours give about $10^4$ expected solutions
+with the starter alone; the expectation falls to about one (the planted
+solution) only once all five clues are placed. Whether the designers targeted
+one solution for the five-clue puzzle is an inference, not documented. **Difficulty**: solution count divided into search-tree size
 (nodes per solution) is the real price of the hunt, and it behaves
 counter-intuitively: Peter McGavin computed that dropping the starter
 constraint multiplies the solutions by 784 while leaving nodes-per-solution
@@ -69,8 +86,8 @@ One more reason the count matters: the solutions are not variations on a
 theme. Brendan Owen and others stressed that distinct solutions are
 "generally a complete restructure of the entire puzzle", not local swaps of
 a few pieces ([msgs 7364/7365](https://groups.io/g/eternity2/message/7365)),
-so 14,702 is a count of genuinely different boards, scattered through the
-search space.
+so the solutions that 14,702 estimates would be genuinely different boards,
+scattered through the search space.
 
 ## Three ways to count
 
@@ -108,7 +125,14 @@ benchmark puzzles were exhausted, at about $1.9\times10^{14}$ and
 $1.45\times10^{14}$ nodes and three weeks each on a dual-core Opteron.
 They yielded **2** and **3** solutions;
 [complex theory](/research/why/complex-theory) had predicted 3.2 for the
-first ([msg 8793](https://groups.io/g/eternity2/message/8793)). Even the counting
+first ([msg 8793](https://groups.io/g/eternity2/message/8793)). That is
+consistent, but weak as calibration. The benchmarks were generated from a
+planted solution, so the fair comparison is one plus the expected number of
+other solutions, and counts this small cannot tell a factor-of-two model from
+a factor-of-five one: a Poisson count with mean 3.2 is 2 or less about 38% of
+the time. A board with a large exact count, such as Clue #3, would be the real
+test; a model prediction for Clue #3 has not been set against its exact count
+here. Even the counting
 had to be counted carefully: the first report claimed one solution each,
 and it took McGavin's independently shuffled backtrackers to surface the
 missing boards ([msgs 8801–8803](https://groups.io/g/eternity2/message/8801)).
@@ -168,11 +192,15 @@ its output.
 One caveat the community itself raised belongs here. E2 was *generated from
 a solution*, and picking a puzzle by picking a solution oversamples
 solution-rich piece sets, so the count conditioned on the generation
-process should run *higher* than the plain expectation, by an amount the
-thread tried and failed to pin down
-([msgs 6892/6894](https://groups.io/g/eternity2/message/6892)). Expectation
-formulas price a random puzzle with E2's statistics; E2 is not quite a
-random such puzzle.
+process should run *higher* than the plain expectation
+([msgs 6892/6894](https://groups.io/g/eternity2/message/6892)). The size of
+that bias is a standard quantity. If a planted puzzle is drawn with
+probability proportional to its number of solutions $Z$, its expected count
+is $\mathbb{E}[Z^2]/\mathbb{E}[Z]$, a second-moment calculation, and the
+quiet-planting literature studies exactly when planted and random ensembles
+agree ([Krzakala & Zdeborová 2009](https://doi.org/10.1103/PhysRevLett.102.238701)).
+Nobody has computed that second moment for E2. Expectation formulas price a
+random puzzle with E2's statistics; E2 is not quite a random such puzzle.
 
 ### Sampled and culled search: counting by surviving
 
@@ -185,11 +213,18 @@ depth. Each of the four independently estimated **≈ 4.05×10³⁷** border
 solutions ([msg 2696](https://groups.io/g/eternity2/message/2696), first
 posted at [msg 1225](https://groups.io/g/eternity2/message/1225)). The
 figure disagreed with eternity2.net's published estimate by thirteen orders
-of magnitude, and the replication is exactly why the community sided with
-Owen. A single culled run can be silently biased by anything; four
-independent runs agreeing is an error bar you can see. That habit
-(replication as error control, not authority) is the same one that later
-governed the corner censuses and the 9×9 recounts.
+of magnitude, and the community sided with Owen, reasonably, because his
+method was published and checkable. Four runs agreeing shows that the
+estimator's variance is small at this budget. It does not rule out a shared
+bias (a wrong scaling factor, a piece-set error, a correlated culling rule),
+which would reproduce identically in every run; only an independent method or
+author can catch that. The method belongs to the family of sampled tree-size
+estimators ([Knuth 1975](https://doi.org/10.2307/2005469);
+[Purdom 1978](https://doi.org/10.1137/0207038);
+[Chen 1992](https://doi.org/10.1137/0221022)), unbiased when weighted
+correctly but heavy-tailed, so a few agreeing runs can also understate the
+true spread. The habit of replication as error control, not authority, is the
+same one that later governed the corner censuses and the 9×9 recounts.
 
 ## Step by step: the expectation formula on a tiny board
 
@@ -233,22 +268,39 @@ $$
 $$
 
 There is no hiding the gap: **0.02 is not 14,702**. The naive product is
-nearly six orders of magnitude too small, and the community knew why from
-the start. Treating every edge as an independent $1/17$ coin flip prices
-the last piece like the first, when in reality the real piece set pairs up
-perfectly (every colour has an even count, with
-[zero slack](/research/build/known-facts)), so the match probabilities in
-the endgame are conditioned far above $1/17$ by everything already placed.
-Those parity and depletion corrections were flagged in the very message
-that posted the formula, and Eddy's $\sim 2^{16}$ even-count factor
-([msg 992](https://groups.io/g/eternity2/message/992)) is the largest of
-them. [Complex theory](/research/why/complex-theory) is precisely this
-calculation done properly, tracking the surviving piece and colour counts
-depth by depth instead of assuming a fixed probability, and *that* is the
-version that lands at 14,702 and matches exhaustive counts on small boards
-to within its claimed factor of two. The structure of the formula
-(arrangements × match probability) is right; where you take the probability
-from is the whole game.
+about $7\times10^{5}$ times too small (a factor of $2^{19.4}$), and the
+community knew why from the start. Treating every edge as an independent coin
+flip ignores that the real piece set pairs up perfectly: every colour appears
+an even number of times, which holds automatically for any set painted from a
+solved board ([known facts](/research/build/known-facts)). Conditioning on
+even counts alone multiplies the naive product by $2^{16}$ for the 17 interior
+colours (Eddy's factor, [msg 992](https://groups.io/g/eternity2/message/992))
+and by $2^{4}$ for the 5 frame colours, about $10^{6}$ in all, which gives
+about $2.2\times10^{4}$: already within a factor of 1.5 of 14,702.
+
+The canonical figure comes from a sharper ensemble. Keep the official piece
+set's exact colour counts (each frame colour sits on 24 half-edges, 12 facing
+each way round the ring; the 840 interior half-edges carry 48 or 50 of each
+interior colour) and ask for the probability that a uniformly random pairing
+of those half-edges matches everywhere:
+
+$$
+\mathbb{E}[S] \;=\; 4!\;56!\;195!\;4^{195}\;
+\frac{(12!)^{5}}{60!}\;
+\frac{\prod_{c=1}^{17}(n_c-1)!!}{839!!}
+\;\approx\; 14{,}702.3 ,
+$$
+
+with $n_c \in \{48, 50\}$ the interior counts. Evaluated on the official
+piece set, this reproduces the canonical 14,702. Equally natural choices land
+elsewhere: ignore the ring's 12/12 split and pair frame half-edges freely, and
+the same formula gives about 22.
+[Complex theory](/research/why/complex-theory) tracks the surviving piece and
+colour counts depth by depth and ends at the same full-board value. The
+structure of the formula (arrangements × match probability) is not in doubt;
+the probability depends on the ensemble, and a choice that moves the answer by
+orders of magnitude is a modelling decision. That is one more reason to read
+14,702 as an estimate, not a count.
 
 ## What it costs
 
@@ -268,16 +320,19 @@ before the puzzle shipped. But a first moment carries no information about
 *variance*: it tells you the average count over puzzles with E2's
 statistics, not whether the mass sits in typical instances or in rare
 solution-rich freaks, and not whether the partial boards being counted at
-each depth are genuinely distinct. The
-[entropy and area-law results](/research/why/entropy-area-law) show exactly
-where that blindness bites: as patches grow, distinctness collapses in a way
-no independence model can see. Use expectations to compare orders and set
+each depth are genuinely distinct. Distinctness is a good example of what
+such a model misses: as patches grow, the requirement that each piece be used
+once bites faster than area, as a simple birthday-paradox estimate already
+predicts (drawing $m$ of the 196 interior pieces with replacement gives
+all-distinct with probability about $e^{-m^2/392}$), and first-moment edge
+models that ignore distinctness cannot see it (the
+[entropy and area-law results](/research/why/entropy-area-law) measure it). Use expectations to compare orders and set
 expectations, never as bounds.
 
-**Sampling buys error bars only through repetition.** A culled search costs
-one node budget per run and gives an estimate of unknown bias; Owen paid
-four budgets for the border ring and bought the only kind of confidence
-this regime offers. The rule the community settled on is the one worth
-carrying out of this page: a sampled count you have seen once is an
-anecdote; the same count from independent runs, seeds, and authors is a
-measurement.
+**Sampling buys error bars through repetition, and bias control only
+through independence.** A culled search costs one node budget per run and
+gives an estimate of unknown bias; Owen paid four budgets for the border ring
+and bought a check on the noise. The rule worth carrying out of this page: a
+sampled count you have seen once is an anecdote; the same count from repeated
+runs bounds the noise; the same count from independent methods and authors is
+a measurement.

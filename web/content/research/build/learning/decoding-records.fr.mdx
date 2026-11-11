@@ -2,14 +2,15 @@
 title: Décoder les records
 description: >-
   La façon la plus littérale d'apprendre d'une grille forte : la reconstruire à
-  l'identique, pièce par pièce, jusqu'à ce que votre recherche sache la
-  reproduire. Ce que la reconstruction vous force à ajouter est l'ingrédient qui
-  manquait à votre recherche, et la reproduction en est la preuve.
-metaDescription: "Décoder les grilles record d'Eternity II : reconstruire un record connu, pièce par pièce, jusqu'à ce que la recherche le reproduise ; l'ingrédient requis révèle le manque. REPLAY l'a fait sur les strict-460, révélant un plafond d'une rupture par cellule ; le porter à deux hisse 457/458 à 460."
+  l'identique, pièce par pièce, avec une recherche guidée par la grille
+  elle-même. Ce que la reconstruction vous force à autoriser est un coup que
+  votre recherche ne pouvait pas représenter ; le rejeu est un test de
+  représentabilité, pas une recherche libre.
+metaDescription: "Décoder les grilles record d'Eternity II : reconstruire une grille connue par un rejeu guidé par le témoin, et lire ce que la recherche ne pouvait pas représenter. Les témoins strict-460 ont 4 ou 5 cellules à deux désaccords, hors d'une recherche à une rupture."
 kind: concept
 order: 53
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [backtracking, learning]
 sources:
   - label: "Grilles record de la communauté (chronologie des records de ce projet) : les témoins qu'un rejeu reconstruit"
@@ -33,11 +34,11 @@ elle apprend la chose la plus difficile à percevoir de loin : le coup unique
 qu'une recherche ordinaire ne peut pas jouer. La méthode est d'une littéralité
 brutale. Prenez une grille record connue, et tentez de faire reconstruire cette
 grille à votre propre recherche, à l'identique, pièce par pièce. Tout ce que vous
-devez ajouter à votre recherche avant qu'elle puisse emprunter ce chemin est
-précisément l'ingrédient qui lui manquait, et la reconstruction exacte prouve que
-cet ingrédient est réel.
+devez ajouter à votre recherche avant qu'elle puisse emprunter ce chemin est un
+coup qu'elle ne pouvait pas représenter, et la reconstruction exacte confirme que
+ce coup suffit à représenter le témoin.
 
-## La reproduction comme preuve
+## La reproduction comme test de représentabilité
 
 Le dispositif est une recherche en profondeur d'abord menée dans un mode
 délibérément contraint, visant une grille témoin précise plutôt que d'explorer
@@ -59,12 +60,14 @@ librement :
 C'est l'expérience [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay),
 et ce qu'elle a trouvé sur les grilles strict-460 de la communauté est un exemple
 net de la récompense. La recherche tolérante aux ruptures propre au projet avait
-saturé à 457 ou 458 quoi qu'il arrive, et la raison s'est révélée être une seule
-règle que personne n'avait remise en question : elle n'autorisait au plus qu'*une*
-arête en désaccord par cellule. Les grilles record contiennent chacune quatre ou
-cinq cellules qui paient *deux* désaccords d'un coup. Une recherche plafonnée à une
-rupture par cellule est littéralement incapable de représenter ces grilles ; elle
-était donc coupée des cibles mêmes qu'elle poursuivait.
+saturé à 457 ou 458 dans toutes les exécutions consignées, et une règle que
+personne n'avait remise en question s'est révélée exclure les cibles : elle
+n'autorisait au plus qu'*une* arête en désaccord par cellule. Les grilles record
+contiennent chacune quatre ou cinq cellules qui paient *deux* désaccords d'un
+coup. Une recherche plafonnée à une rupture par cellule ne peut pas représenter
+ces grilles ; elle était donc coupée des cibles mêmes qu'elle poursuivait. (Ce
+sont les grilles strict-460 de la communauté ; le record strict communautaire a
+depuis progressé, voir les [records](/research/records).)
 
 <Figure collapsible title="Interactif : les cellules à double rupture">
   <DoubleBreakDiagram />
@@ -76,9 +79,12 @@ rupture par cellule est littéralement incapable de représenter ces grilles ; e
 
 Portez le budget par cellule de un à deux, et les deux témoins strict-460 de la
 communauté se reconstruisent à l'identique, chaque pièce à sa place, le score se
-vérifiant arête après arête. La reconstruction *est* le résultat : un résultat de
-complétude de recherche déguisé en tentative de record. Le mur était dans
-l'ensemble des coups, pas dans le calcul.
+vérifiant arête après arête. Compter les cellules à deux désaccords dans chaque
+témoin montre déjà, sans aucune recherche, que le plafond d'une rupture les
+exclut ; le rejeu le confirme de manière constructive. C'est un test de
+représentabilité, pas une recherche libre : l'ordonnancement connaît la réponse.
+Qu'une recherche non guidée plafonnée à deux ruptures atteigne 460 n'a pas été
+rapporté.
 
 ## Ce que le décodage peut et ne peut pas acheter
 
@@ -86,9 +92,9 @@ Décoder un record est le diagnostic le plus tranchant de cette famille, car il
 transforme un soupçon vague (« il manque quelque chose à notre recherche ») en une
 affirmation précise et vérifiable (« elle ne peut pas payer deux ruptures sur une
 même cellule »). Il est aussi, dans le même souffle, le plus franc sur ses limites.
-Retrouver la double rupture hisse l'échelle stricte à 460, mais il ne dit pas, à
-lui seul, si deux ruptures par cellule ouvrent un chemin vers 461 et au-delà ou
-seulement vers les 460 connus. Le décodage vous dit l'ingrédient qu'un témoin a
+Retrouver la double rupture rend les témoins à 460 représentables, mais il ne dit
+pas, à lui seul, si une recherche libre à deux ruptures par cellule les atteint,
+encore moins 461 et au-delà. Le décodage vous dit l'ingrédient qu'un témoin a
 utilisé ; il ne garantit pas que cet ingrédient porte plus loin que le témoin
 lui-même. Cet écart, un coup appris qui atteint le plateau sans rien prouver
 au-delà, est le thème de la

@@ -3,13 +3,13 @@ title: Corpus priors
 description: >-
   The simplest way to learn from strong boards: count where each piece tends to
   sit, or how often it serves a scarce demand, and use that count as a gentle
-  tiebreak in construction. It has to stay a tiebreak; the moment it becomes part
-  of the objective it collapses the search.
-metaDescription: "Corpus priors for Eternity II: tally where pieces sit in strong boards, or how often a piece serves a scarce demand, then use that count as a tiny tiebreak in beam-search construction. PRIOR reaches 460 from an empty grid; raise the weight past a tiebreak and the score collapses."
+  tiebreak in construction. In this project's runs it worked as a tiebreak; at
+  large fixed weights it collapsed the search.
+metaDescription: "Corpus priors for Eternity II: tally where pieces sit in strong boards, or how often a piece serves a scarce demand, and use the count as a tiebreak in beam-search construction. PRIOR reaches 460 after refinement; in LODESTONE, large fixed weights collapsed the score."
 kind: concept
 order: 50
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [construction, learning]
 sources:
   - label: "Beam search (this project's concept page): the bounded-width construction a prior biases"
@@ -51,8 +51,8 @@ same number of edges, the prior tips the choice toward the piece that is more
 typical of strong boards in that spot. The matched-edge count still decides;
 the prior only speaks when the count is silent. This is the
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) experiment, which
-builds a competitive board from an empty grid with no board to anchor to, and
-reaches 460 that way.
+builds a competitive board from an empty grid with no board to anchor to: the
+mid-450s from the beam alone, and 460 after a short local-refinement tail.
 
 Three sharpenings of the same count are worth naming, because each trades signal
 strength against noise:
@@ -80,13 +80,14 @@ to commit rare pieces early, before they are stolen. This is the
 [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) experiment, and
 it connects to the puzzle's [rare-colour geography](/research/why/rare-color-geography).
 
-## Why it stays a tiebreak
+## Why it stayed a tiebreak
 
-The load-bearing detail, for both the positional and the scarce-demand prior, is
-that the multiple on the prior must be *tiny*. A prior is a pure tiebreaker: it
-decides between equally-matching moves and nothing more. Turn the weight up even
-slightly and the search starts trading a real matched edge against a statistical
-hunch, and the score collapses, LODESTONE falls from 451 to 422 to 380 as the
-weight climbs. That collapse is not an implementation bug; it is the shape of the
-whole family, and it has its own page:
+The load-bearing detail in these runs, for both the positional and the
+scarce-demand prior, was that the multiple on the prior stayed *small*. In
+LODESTONE, across five seeds, a tiny weight moved the median from 449 to 451
+(inside the base spread of 446 to 451), and higher fixed weights gave 422 and 380.
+That suggests the prior must stay small relative to matched edges in this beam,
+where a larger weight starts trading a real matched edge against a statistical
+hunch. Annealed or adaptive weights, and other priors, were not tested. Where
+these signals stopped helping has its own page:
 [when learning collapses](/research/build/learning/when-learning-collapses).
