@@ -126,9 +126,13 @@ test, scheduled at larger scale), `published`.
 - **Borrowed from.** Not new; this is pricing, the pre-requisite for any
   exact-search attempt.
 - **Nearest cell.** Benchmarks, open problems.
-- **Cheap test.** Estimate set_2's tree with Knuth's random-probe estimator
-  under the best fill order; report core-years with an uncertainty band.
-- **Baseline.** Set_1's measured cost.
+- **Cheap test.** Two numbers, kept apart. (1) Knuth's random-probe estimate
+  of set_2's full tree under the best fill order: the cost of an exhaustive
+  search, an upper bound. (2) The first-solution cost, from the distribution
+  of time to first solution under randomized restarts on generated 10x10
+  puzzles with set_2's colour profile, scaled by the engine's measured speed.
+  Report core-years with an uncertainty band for each.
+- **Baseline.** Set_1's measured first-hit cost, compared with (2) only.
 - **Kill.** Not applicable; the output is a number. Promote only if the price
   is within a rented-compute budget the user approves.
 - **Budget.** One session.
