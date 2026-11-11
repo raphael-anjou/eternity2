@@ -11,7 +11,7 @@ metaDescription: "L'ingénierie des solveurs Eternity II, technique par techniqu
 kind: concept
 order: 120
 group: Go faster
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [speed]
 sources:
   - label: "Le fil Lebel disséqué : le solveur C++ de référence de l'époque mis à nu (groups.io message 1704, 2007)"
@@ -280,8 +280,11 @@ mono-cœur, en revanche, se sont pour l'essentiel arrêtés. En publiant sa tabl
 2025 de neuf combinaisons CPU/compilateur (38 à 84 M placements/s), McGavin
 notait que les vitesses sur les CPU les plus récents « ne sont qu'un peu plus
 rapides » que sur son Phenom II de 2010
-([message 11643](https://groups.io/g/eternity2/message/11643)). Les moteurs ont
-heurté le mur mémoire de Field il y a quinze ans et s'y appuient depuis.
+([message 11643](https://groups.io/g/eternity2/message/11643)). On lit souvent
+ce plafond comme le mur mémoire de Field. L'anatomie qui suit, mesurée sur un
+cœur des années 2020, ne va pas dans ce sens : elle trouve des chargements déjà
+servis par le cache, et le coût résiduel dans un branchement qui dépend des
+données.
 
 ## Ce que coûte un nœud en 2026 : l'anatomie, mesurée
 
@@ -304,14 +307,16 @@ de rejet tient en dix instructions et un seul chargement.
 Trois instruments croisés placent le plancher d'instructions retirées à
 environ 75 à 90 instructions par nœud, soit, au débit d'émission de pointe
 du cœur, à peu près 12 à 15 cycles. Les 90 à 145 mesurés se situent 7 à
-10× au-dessus de ce plancher, et l'écart a un seul nom : **la
+10× au-dessus de ce plancher. Le suspect le plus probable est **la
 mauvaise prédiction de branchement** sur le test de pièce utilisée, dont
 l'issue dépend des pièces que la recherche a posées et ne peut donc pas
-être prédite. En 2007, le mur était la mémoire ; Field mesurait la moitié
-de ses cycles bloqués sur des chargements
+être prédite. C'est une déduction, tirée de l'écart entre instructions et
+cycles et des résultats nuls sur le cache plus bas ; les compteurs
+d'erreurs de prédiction du cœur n'ont pas été lus. En 2007, le mur était la
+mémoire : Field mesurait la moitié de ses cycles bloqués sur des chargements
 ([message 9003](https://groups.io/g/eternity2/message/9003)). Sur les
 larges cœurs à exécution dans le désordre des années 2020, aux caches L1
-généreux, le mur s'est déplacé vers l'entropie de branchement.
+généreux, les indices pointent plutôt vers l'entropie de branchement.
 
 Une mesure de plus complète l'anatomie. Activer un élagage de
 faisabilité correct, du genre que font tourner les moteurs de record,
@@ -352,9 +357,10 @@ Le résultat porteur est un négatif. Les deux optimisations de cache
 « évidentes » furent quasi nulles : compacter les couleurs dans l'entrée de
 candidat, pour supprimer deux collectes en table, a rapporté 1,0 à 1,2× et
 a parfois régressé ; réduire les tables annexes de 64 Ko à une forme de
-1 Ko résidente en L1 a rapporté au plus 1,26×. C'est une preuve par le nul
-que les chargements étaient déjà servis par le cache. Le coût résiduel est
-le branchement de pièce utilisée qui se prédit mal, et toute variante qui
+1 Ko résidente en L1 a rapporté au plus 1,26×. Ces résultats nuls
+indiquent fortement que les chargements étaient déjà servis par le cache.
+Le coût résiduel est, selon la déduction ci-dessus, le branchement de pièce
+utilisée qui se prédit mal, et toute variante qui
 préserve la trajectoire exacte de la recherche doit garder ce branchement.
 Les seules variantes utiles ont restructuré le flot de contrôle *autour*
 de lui (scission de boucle, pipelinage logiciel), raison pour laquelle
@@ -472,7 +478,7 @@ a arbitré chaque litige. Mesurer, pas modéliser.
 | --- | --- | --- | --- |
 | Tables de candidats par position (clé à deux arêtes) | mémoire pour les tables ; un ordre de remplissage fixe | les candidats en un seul accès mémoire, la base que partage tout solveur rapide | [3098](https://groups.io/g/eternity2/message/3098) |
 | Hachage parfait minimal | construction de hachage hors ligne | table d'un million d'entrées → 1024 entrées, résidente en cache | [1831](https://groups.io/g/eternity2/message/1831) |
-| Compactage de bits, structs taillées pour le cache | contorsions de code | moins de blocages là où >50 % du temps est mémoire ; court-circuits par masque de 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
+| Compactage de bits, structs taillées pour le cache | contorsions de code | moins de blocages là où >50 % du temps était mémoire (matériel de 2007) ; court-circuits par masque de 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
 | Bipièces (précomposition 1×2) | les tables grossissent vite ; pas de réduction de l'espace de recherche | +20 à 30 % en 1×2 ; ~4,2× *plus lent* en 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
 | Génération de code (code en ligne droite par case) | un pipeline de compilation ; régénérer par puzzle | ~33 instructions/case (2007) ; ~2× grâce au C de libblackwood (2020) | [3098](https://groups.io/g/eternity2/message/3098), [10065](https://groups.io/g/eternity2/message/10065) |
 | Instructions d'extraction de bits BMI/BMI2 | portabilité | 78 → 90 M placements/s | [9796](https://groups.io/g/eternity2/message/9796) |
@@ -496,7 +502,9 @@ petits puzzles ([message 11751](https://groups.io/g/eternity2/message/11751)
 note que le débit est à peu près divisé par deux sur du 16×16, la taille qu'E2
 a réellement ; [message 11750](https://groups.io/g/eternity2/message/11750)), il mêle donc un
 gain de génération de code à un gain matériel, pas de l'artisanat seul. Sur ces
-mêmes vingt ans, le record a bougé de trois arêtes : de 467 à 470.
+mêmes vingt ans, le [record](/research/records) a gagné quelques arêtes, grâce
+aux heuristiques et aux cœurs plus nombreux qui les faisaient tourner, pas à la
+vitesse par cœur.
 
 Mon propre carnet a rejoué ce registre de vingt ans en un après-midi. Le
 premier solveur de ce site, à forte propagation, marchait à environ 370 k
@@ -529,24 +537,32 @@ parcourant l'arbre identique. La leçon tranche dans les deux sens : l'art de la
 génération de code est réel et reproductible dans un langage moderne - assez pour égaler
 du C optimisé à la main là où la recherche est difficile - *et* il reste seulement le
 facteur constant que cette page décrit. Le même moteur, pointé sur le vrai puzzle,
-plafonne dans les hauts 300 sur 480, exactement là où la vitesse seule vous laisse.
+plafonne dans les hauts 300 sur 480 : une propriété du régime de score de ce
+backtracker strict, que sa vitesse n'a pas modifiée.
 
-Deux mesures de carnet de plus ferment la comptabilité. D'abord, le
-facteur constant pris sur le fait : un gain de +25 % de débit mono-thread
+Deux mesures de carnet de plus ferment la comptabilité, toutes deux plus
+étroites qu'il n'y paraît. D'abord, un gain de +25 % de débit mono-thread
 issu du code généré par profondeur **n'a pas changé la qualité de plateau
-atteinte** à budget multi-thread fixe de 5 minutes. Des partiels
+atteinte** à un budget multi-thread fixe de 5 minutes : des partiels
 identiques à 444 arêtes appariées sur 480, et les mêmes 450 à 451 arêtes
 appariées après une passe de réparation, stables sur 3 graines avec
 environ 0,5 % de dispersion (une machine, un point de budget ; convention
 des arêtes appariées, et voyez [la page des records](/research/records)
-pour situer tout chiffre de ce genre face à ceux de la communauté). La
-recherche converge vers la même trajectoire ; marcher plus vite ne fait
-que l'atteindre plus tôt. Ensuite, la mise en garde multithread que 2008
-n'a jamais eu à affronter : sur une puce à 8 cœurs au système mémoire
-partagé, 4 threads tournaient à 52 M placements par seconde chacun quand
-8 threads tombaient à 22 M chacun, un agrégat quasi plat, et les deux
-atteignaient le même score au même budget. Le multithread passe à
-l'échelle de la manière évidente jusqu'à saturation du système mémoire.
+pour situer tout chiffre de ce genre face à ceux de la communauté). À ce
+budget, la recherche avait déjà atteint son plateau, et un facteur 1,25 est
+trop faible pour se voir sur une grandeur qui croît lentement avec le temps.
+Savoir si la vitesse change la qualité demande un balayage de budgets (1×,
+10×, 100×), qui n'a pas été fait. Ensuite, une mise en garde multithread que
+2008 n'a jamais eu à affronter : sur une puce à 8 cœurs, 4 threads
+tournaient à 52 M placements par seconde chacun (208 M au total) quand
+8 threads tombaient à 22 M en moyenne (176 M au total, environ 15 % de
+moins), et les deux atteignaient le même score au même budget. La cause n'a
+pas été isolée. Sur une puce hétérogène comme le M1 utilisé ailleurs sur
+cette page, quatre des huit cœurs sont des cœurs d'efficacité, ce qui suffit
+à faire baisser la moyenne par thread ; et l'anatomie ci-dessus trouve un
+jeu de travail résident en cache, si bien que la saturation mémoire n'est
+pas l'explication par défaut. Il manque le témoin : une montée en charge sur
+les seuls cœurs performance.
 
 Les praticiens l'ont dit eux-mêmes. Joshua Blackwood, cataloguant ses impasses
 après le 469 ([solveurs SAT](/research/build/exact/sat-csp-encodings),
@@ -558,7 +574,11 @@ quelle que soit la vitesse à laquelle on peut vérifier, « nous n'y ferons pas
 moindre entaille » dans l'espace de recherche d'E2
 ([message 11657](https://groups.io/g/eternity2/message/11657)). L'artisanat de
 cette page est réel, mesurable et vaut la peine d'être appris ; c'est ce qui
-permet à une ferme d'amateurs de parcourir 10¹⁷ nœuds. Mais un facteur constant
-reste un facteur constant.
+permet à une ferme d'amateurs de parcourir 10¹⁷ nœuds. Mais face à l'arbre
+complet, un facteur constant reste un facteur constant : aucune accélération ne
+met une recherche exhaustive à portée. Pour la chasse aux records, le calcul
+diffère : plus de débit, c'est plus de tentatives pour une bonne heuristique, ce
+qui peut faire monter le meilleur score trouvé, avec des rendements
+décroissants.
 [Pourquoi rétrécir l'arbre bat accélérer la marche](/research/why/prune-vs-speed)
 est l'arithmétique de cette phrase ; cette page en est le registre d'ingénierie.

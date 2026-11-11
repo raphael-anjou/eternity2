@@ -10,7 +10,7 @@ metaDescription: "La ingeniería de solucionadores de Eternity II, técnica por 
 kind: concept
 order: 120
 group: Go faster
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [speed]
 sources:
   - label: "El hilo de Lebel diseccionado: el solucionador C++ de referencia de la época puesto al descubierto (groups.io message 1704, 2007)"
@@ -240,9 +240,11 @@ solo núcleo, en cambio, se detuvo en gran medida. Al publicar su tabla de 2025 
 nueve combinaciones CPU/compilador (38–84 M colocaciones/s), McGavin señaló que
 las velocidades en las CPU más recientes «son solo un poco más rápidas» que en su
 Phenom II de 2010
-([message 11643](https://groups.io/g/eternity2/message/11643)). Los motores
-chocaron contra el muro de memoria de Field hace quince años y desde entonces se
-apoyan en él.
+([message 11643](https://groups.io/g/eternity2/message/11643)). Esa meseta
+suele leerse como el muro de memoria de Field. La anatomía que sigue, medida en
+un núcleo de los años 2020, no respalda esa lectura: encuentra las cargas ya
+servidas desde caché y el coste residual en una ramificación que depende de los
+datos.
 
 ## Lo que cuesta un nodo en 2026: la anatomía, medida
 
@@ -264,13 +266,15 @@ dependiente de los datos; todo el bucle de rechazo cabe en diez instrucciones y 
 Tres instrumentos contrastados sitúan el piso de instrucciones retiradas en unas 75
 a 90 instrucciones por nodo, lo que, a la tasa de emisión pico del núcleo, serían
 más o menos 12 a 15 ciclos. Los 90 a 145 medidos se sitúan 7 a 10× por encima de
-ese piso, y la brecha tiene un solo nombre: **la mala predicción de ramificación**
+ese piso. La causa más probable es **la mala predicción de ramificación**
 en la comprobación de pieza usada, cuyo resultado depende de qué piezas ha colocado
-la búsqueda y por tanto no puede predecirse. En 2007 el muro era la memoria; Field
-midió la mitad de sus ciclos detenidos en cargas
+la búsqueda y por tanto no puede predecirse. Es una inferencia, sacada de la
+brecha entre instrucciones y ciclos y de los resultados nulos de caché que vienen
+después; no se leyeron los contadores de fallos de predicción del núcleo. En 2007
+el muro era la memoria: Field midió la mitad de sus ciclos detenidos en cargas
 ([message 9003](https://groups.io/g/eternity2/message/9003)). En los amplios núcleos
-de ejecución fuera de orden de los años 2020, con cachés L1 generosos, el muro se ha
-desplazado hacia la entropía de ramificación.
+de ejecución fuera de orden de los años 2020, con cachés L1 generosos, los indicios
+apuntan más bien a la entropía de ramificación.
 
 Una medición más completa la anatomía. Activar una poda de factibilidad correcta,
 del tipo que ejecutan los motores de récord, multiplica el coste del nodo por unos
@@ -307,9 +311,10 @@ pico** en la región más favorable. No 10×.
 El resultado portante es un negativo. Las dos optimizaciones de caché «obvias»
 resultaron casi nulas: empaquetar los colores en la entrada de candidato, para matar
 dos recolecciones de tabla, rindió 1,0 a 1,2× y a veces regresó; encoger las tablas
-auxiliares de 64 KB a una forma de 1 KB residente en L1 rindió a lo sumo 1,26×. Eso
-es prueba por lo nulo de que las cargas ya se servían desde caché. El coste residual
-es la ramificación de pieza usada que se predice mal, y toda variante que preserve la
+auxiliares de 64 KB a una forma de 1 KB residente en L1 rindió a lo sumo 1,26×. Esos
+nulos indican con fuerza que las cargas ya se servían desde caché. El coste residual
+es, según la inferencia anterior, la ramificación de pieza usada que se predice mal,
+y toda variante que preserve la
 trayectoria exacta de la búsqueda debe mantener esa ramificación. Las únicas
 variantes que ayudaron reestructuraron el flujo de control *alrededor* de ella
 (división de bucle, encauzamiento por software), razón por la que topan en 1,2 a 1,4×
@@ -420,7 +425,7 @@ flamegraph arbitró cada disputa. Medir, no modelar.
 | --- | --- | --- | --- |
 | Tablas de candidatos por posición (clave de dos aristas) | memoria para las tablas; un orden de relleno fijo | los candidatos en un solo acceso a memoria, la base que comparte todo solucionador rápido | [3098](https://groups.io/g/eternity2/message/3098) |
 | Hash perfecto mínimo | construcción de hash fuera de línea | tabla de un millón de entradas → 1024 entradas, residente en caché | [1831](https://groups.io/g/eternity2/message/1831) |
-| Empaquetado de bits, structs a medida del caché | contorsiones de código | menos detenciones donde >50 % del tiempo es memoria; cortocircuitos por máscara de 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
+| Empaquetado de bits, structs a medida del caché | contorsiones de código | menos detenciones donde >50 % del tiempo era memoria (hardware de 2007); cortocircuitos por máscara de 64 bits | [9003](https://groups.io/g/eternity2/message/9003), [9808](https://groups.io/g/eternity2/message/9808) |
 | Bipiezas (precomposición 1×2) | las tablas crecen rápido; sin reducción del espacio de búsqueda | +20–30 % en 1×2; ~4,2× *más lento* en 2×2 | [1734](https://groups.io/g/eternity2/message/1734), [5899](https://groups.io/g/eternity2/message/5899) |
 | Generación de código (código en línea recta por celda) | un pipeline de compilación; regenerar por puzzle | ~33 instrucciones/celda (2007); ~2× gracias al C de libblackwood (2020) | [3098](https://groups.io/g/eternity2/message/3098), [10065](https://groups.io/g/eternity2/message/10065) |
 | Instrucciones de extracción de bits BMI/BMI2 | portabilidad | 78 → 90 M colocaciones/s | [9796](https://groups.io/g/eternity2/message/9796) |
@@ -444,8 +449,9 @@ reciente: alrededor de 225–295 M/s para el de McGavin en puzzles pequeños
 reduce a la mitad aproximadamente en 16×16, el tamaño que E2 realmente tiene;
 [message 11750](https://groups.io/g/eternity2/message/11750)), así que mezcla una
 ganancia de generación de código con una ganancia de hardware, no oficio a secas.
-A lo largo de esos mismos veinte años, el récord se movió tres aristas: de 467 a
-470.
+A lo largo de esos mismos veinte años, el [récord](/research/records) ganó unas
+pocas aristas, gracias a las heurísticas y a más núcleos ejecutándolas, no a la
+velocidad por núcleo.
 
 Mi propio cuaderno reprodujo ese registro de veinte años en una tarde. El primer
 solucionador de este sitio era de fuerte propagación y caminaba unas 370 k
@@ -476,22 +482,29 @@ recorriendo el árbol idéntico. La lección corta por ambos lados: el oficio de
 de código es real y reproducible en un lenguaje moderno - bastante para igualar al C
 afinado a mano donde la búsqueda es difícil - *y* sigue siendo solo el factor constante
 que esta página describe. El mismo motor, apuntado al rompecabezas real, se estanca en
-los 300 altos sobre 480, justo donde la velocidad sola te deja.
+los 300 altos sobre 480: una propiedad del régimen de puntuación de ese
+backtracker estricto, que su velocidad no cambió.
 
-Dos mediciones de cuaderno más cierran la contabilidad. Primera, el factor constante
-pillado en el acto: una ganancia de +25 % de rendimiento en un solo hilo procedente de
-código generado por profundidad **no cambió la calidad de tablero alcanzada** con un
-presupuesto multihilo fijo de 5 minutos. Parciales idénticos en 444 aristas casadas
+Dos mediciones de cuaderno más cierran la contabilidad, ambas más estrechas de lo
+que parecen. Primera, una ganancia de +25 % de rendimiento en un solo hilo procedente
+de código generado por profundidad **no cambió la calidad de tablero alcanzada** con
+un único presupuesto multihilo fijo de 5 minutos: parciales idénticos en 444 aristas casadas
 sobre 480, y las mismas 450 a 451 aristas casadas tras una pasada de reparación,
 estables sobre 3 semillas con cerca de 0,5 % de dispersión (una máquina, un punto de
 presupuesto; convención de aristas casadas, y véase [la página de récords](/research/records)
-para situar cualquier cifra de ese tipo frente a las de la comunidad). La búsqueda
-converge en la misma trayectoria; caminar más rápido solo la alcanza antes. Segunda, la
-advertencia multihilo que 2008 nunca tuvo que afrontar: en un chip de 8 núcleos con un
-sistema de memoria compartido, 4 hilos corrían a 52 M colocaciones por segundo cada uno
-mientras que 8 hilos caían a 22 M cada uno, un agregado casi plano, y ambos alcanzaban
-la misma puntuación con el mismo presupuesto. El multithreading escala de la manera
-obvia hasta que el sistema de memoria se satura.
+para situar cualquier cifra de ese tipo frente a las de la comunidad). Con ese
+presupuesto la búsqueda ya se había estancado, y un factor 1,25 es demasiado pequeño
+para notarse en una magnitud que crece despacio con el tiempo. Saber si la velocidad
+cambia la calidad exige un barrido de presupuestos (1×, 10×, 100×), que no se ha
+hecho. Segunda, una advertencia multihilo que 2008 nunca tuvo que afrontar: en un chip
+de 8 núcleos, 4 hilos corrían a 52 M colocaciones por segundo cada uno (208 M en
+total) mientras que 8 hilos promediaban 22 M cada uno (176 M en total, un 15 % menos),
+y ambos alcanzaban la misma puntuación con el mismo presupuesto. La causa no se aisló.
+En un chip heterogéneo como el M1 usado en el resto de esta página, cuatro de los ocho
+núcleos son de eficiencia, lo que basta para bajar la media por hilo; y la anatomía de
+arriba encuentra el conjunto de trabajo residente en caché, así que la saturación de
+memoria no es la explicación por defecto. Falta el control: una prueba de escalado
+solo con núcleos de rendimiento.
 
 Los practicantes lo dijeron ellos mismos. Joshua Blackwood, catalogando sus
 callejones sin salida tras el 469 ([solucionadores SAT](/research/build/exact/sat-csp-encodings),
@@ -502,7 +515,10 @@ el hilo de velocidad de 2025 se apagó, Razvan escribió su epitafio: por rápid
 podamos comprobar, «no haremos ni una mella» en el espacio de búsqueda de E2
 ([message 11657](https://groups.io/g/eternity2/message/11657)). El oficio de esta
 página es real, medible y vale la pena aprenderlo; es lo que permite que una
-granja de aficionados recorra 10¹⁷ nodos. Pero un factor constante es un factor
-constante.
+granja de aficionados recorra 10¹⁷ nodos. Pero frente al árbol completo un factor
+constante es un factor constante: ninguna aceleración pone al alcance una búsqueda
+exhaustiva. Para la caza de récords la cuenta cambia: más rendimiento son más
+intentos para una buena heurística, lo que puede subir la mejor puntuación
+encontrada, con rendimientos decrecientes.
 [Por qué encoger el árbol le gana a acelerar el recorrido](/research/why/prune-vs-speed)
 es la aritmética de esa frase; esta página es su registro de ingeniería.
