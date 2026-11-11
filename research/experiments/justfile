@@ -185,3 +185,11 @@ spectral-planted-recovery seeds="200" out="":
     cargo test --release --manifest-path spectral-planted-recovery/Cargo.toml
     cargo run --release --manifest-path spectral-planted-recovery/Cargo.toml -- \
         --out {{ if out != "" { out } else if seeds == "200" { "spectral-planted-recovery/results" } else { "spectral-planted-recovery/rerun-" + seeds } }} --seeds {{seeds}}
+
+# A15 non-chronological, bond-weighted unassignment (kTAM detachment, IMS
+# eviction) against the hard ladder's DFS baselines and a random-eviction arm,
+# at 1e6 events per instance on 6x6 c=5 and 7x7 c=6 (8x8 c=9 only if
+# triggered). Deterministic given the seeds; a few minutes on 8 cores.
+# See ktam-unassignment/PREREG.md. stage = all | check | calibrate | test | analyze.
+ktam-unassignment stage="all":
+    ktam-unassignment/run.sh {{stage}}
