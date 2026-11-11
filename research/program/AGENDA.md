@@ -148,9 +148,30 @@ test, scheduled at larger scale), `published`.
   is within a rented-compute budget the user approves.
 - **Budget.** One session.
 
-## Ideas parked for hardware the VM does not have
+## A8. A measured GPU backtracker · proposed
 
-- A tuned full-board GPU backtracker (open on the GPU page).
-- An FPGA build of Field's design.
+- **Hypothesis.** The engine's break-tolerant DFS, ported to CUDA with one
+  independent subtree per thread (or per warp), shared read-only tables and
+  work stealing, runs at least 10x the placements per second of one CPU core
+  of the same generation on the same puzzle, under the same counting
+  convention.
+- **Borrowed from.** GPU backtracking and branch-and-bound literature cited on
+  the GPU page; not new as a method, but the project has no measurement.
+- **Nearest cell.** Hardware: GPU (open). This closes the page's open problem
+  with a first-party number instead of forum reports.
+- **Cheap test.** Stage 1 on the VM: write the kernel and check it against the
+  CPU engine on generated 8x8 and 10x10 puzzles (same solutions found, same
+  node counts at a fixed budget) with a CPU emulation or small-grid run.
+  Stage 2 on AWS: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
+  placements per second, time to first solution on 10x10 generated puzzles,
+  and best score at a fixed wall-clock budget on the 16x16, each against the
+  single-core benchmark engine on the same instance's CPU.
+- **Baseline.** `research/experiments/single-core-benchmark` engine, same
+  puzzle, same counting convention, same wall clock.
+- **Kill.** Below 10x one core on throughput, or no gain in best score at
+  equal wall clock (the GPU page then records the measured ratio).
+- **Budget.** Stage 2 under $15 of the AWS reserve.
 
-Both need the user's machine or rented compute.
+## Ideas parked for hardware not available
+
+- An FPGA build of Field's design (needs a board).
