@@ -3,16 +3,18 @@ title: Local search and ALNS
 description: >-
   Destroy part of a board, rebuild it better, and let the algorithm learn
   which demolitions pay. Adaptive large-neighborhood search is the most
-  reliable polisher this project has, and the cleanest demonstration of the
-  wall where polishing ends.
-metaDescription: "Adaptive large-neighborhood search (ALNS) on Eternity II: destroy part of a board, rebuild the hole smarter, and let the algorithm learn which demolitions pay. This project's most reliable polisher — it lifts beam builds to record-class boards — yet it hits a hard wall it can never cross."
+  reliable polisher this project has, and a clean demonstration of basin
+  trapping: it improves a board quickly, then stalls near where it started.
+metaDescription: "Adaptive large-neighborhood search (ALNS) on Eternity II: destroy part of a board, rebuild the hole smarter, and let the algorithm learn which demolitions pay. This project's most reliable polisher: it lifts beam builds to record-class boards, then stalls in the basin it was handed."
 kind: concept
 order: 60
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
-  - label: "Pierre Schaus's JFPC paper + the Hungarian-refill neighborhood, first detailed on the list (groups.io msg 5589, June 2008)"
+  - label: "Pierre Schaus explains the optimal-assignment (Hungarian refill) neighborhood on the list (groups.io msg 5601, 2008)"
+    url: https://groups.io/g/eternity2/message/5601
+  - label: "antminder uses that neighborhood as the repair step of his backtracker+GA hybrid (groups.io msg 5589, June 2008)"
     url: https://groups.io/g/eternity2/message/5589
   - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
     url: https://doi.org/10.1287/trsc.1050.0135
@@ -119,19 +121,29 @@ Three refinements worth knowing:
 - **Optimal refill is an assignment problem (sometimes).** When the freed
   cells are pairwise non-adjacent, each hole's cost depends only on its fixed
   neighbours, so the refill is exactly a $k \times k$ assignment problem:
-  the Hungarian algorithm solves it optimally in $O(k^3)$. That is Schaus's
-  Eternity II neighborhood. The moment two holes touch, their choices couple,
+  the Hungarian algorithm solves it optimally in $O(k^3)$. That is the
+  neighborhood of Schaus and Deville's
+  [JFPC 2008 paper](https://hdl.handle.net/2078.5/253676), which Schaus
+  explained on the list
+  ([message 5601](https://groups.io/g/eternity2/message/5601)) and antminder
+  used as the repair step of his 2008 hybrid
+  ([message 5589](https://groups.io/g/eternity2/message/5589)). This project's
+  loop above refills greedily instead. The moment two holes touch, their choices couple,
   and optimal repair becomes a small CP/exact search, worst-case exponential
   in $k$, which is why large destroys stop paying.
 - **Anytime, and nothing more.** ALNS improves a feasible answer and can be
   stopped whenever; the best board so far *is* the output. It carries no
   completeness or optimality guarantee: it can never certify that no better
-  board exists. On this puzzle that certificate has to come from elsewhere
-  (the SAT oracle behind the [rigidity wall](/research/why/rigidity-wall)).
+  board exists. Exact solvers can certify something narrower: on the boards
+  tested on the [rigidity wall](/research/why/rigidity-wall) page, MIP and SAT
+  proofs show that no improvement exists inside halos of radius 1 to 4
+  around the mismatches (radius 4 on one board). That is local optimality for one neighbourhood
+  family. No method currently certifies that a whole 16×16 board cannot be
+  beaten.
 - **At Eternity II scale the loop is cheap; the escape is not.** With
   $k = 20$–$80$ of 256 cells and a few hundred candidates per hole, an
-  iteration costs microseconds to milliseconds, and improvement curves
-  flatten within dozens of iterations. The binding cost is therefore not the
+  iteration costs microseconds to milliseconds, so a one-minute run executes
+  millions of iterations. The binding cost is therefore not the
   arithmetic but the probability that a $k$-cell neighbourhood contains the
   one interlocking [σ-cycle](/research/why/sigma-cycles) that leads upward,
   and that probability is what collapses near the top.
@@ -149,10 +161,18 @@ replicated:
 - **Curation beats coverage.** A curated set of five operators outperformed
   the full set of eleven; spreading the adaptive weights across too many
   operators dilutes the learning signal.
-- **Temperature is not the lever.** Across a tenfold range of acceptance
-  temperatures the end scores were identical, because near the top the
-  landscape is dominated by equal-score plateaus where essentially every
-  move is accepted at any temperature.
+- **Temperature did not move top-board scores in the range tried.** Polishing
+  near-record boards, end scores were identical across a tenfold range of
+  acceptance temperatures (a notebook run; the temperatures are not in the
+  committed results). That range is scoped, not general. On mediocre boards
+  the committed [repair study](/research/lab/experiments/raphael-anjou/repair-study)
+  finds annealing acceptance ahead of a strict hill-climb by about 16 points
+  (mean 377 against 361), and a ladder with a hot top rung crossed a 21-edge
+  barrier that a cold chain cannot
+  ([parallel tempering](/research/build/local-search/parallel-tempering)).
+  Near the top, equal-score moves are accepted at any temperature, but the
+  worsening moves that could leave a plateau still depend on $T$; the tested
+  temperatures were too low for those exits to matter.
 
 That destroy-and-repair suits this puzzle is an old observation: Schaus
 and Deville hybridized constraint programming with large-neighborhood search
@@ -173,16 +193,24 @@ reachable score, across a wide range of puzzle tightness, before saturating
 on the very hardest instances. (All of this is measured here, hedged
 accordingly.)
 
-Just as characteristic: the gains arrive early. Improvement curves flatten
-within the first few dozen iterations, and letting a run go ten times longer
-reproduces the same final score. When ALNS stops, it has stopped.
+Just as characteristic: the gains arrive early. In the committed
+[repair study](/research/lab/experiments/raphael-anjou/repair-study), one-minute
+runs execute 5 to 34 million iterations, and for most variants the global best
+last improves after a few thousand to a few hundred thousand of them; the
+remaining millions grind the same basin. (The exception is a geometry-blind
+random destroy on mediocre boards, which keeps improving late.) Those runs
+start from boards in the 350s to 440s, and budgets far beyond a minute were
+not tested, so the stall is measured at this budget, not proven final.
 
 ## The wall it hits
 
 Why it stops is the interesting part, and this site has two full pages on
-it. On every top board, the remaining mismatches are provably locked: freeing
-a generous neighbourhood around them and searching it exhaustively finds
-nothing better; that is the [rigidity wall](/research/why/rigidity-wall). And
+it. On every top board tested so far (a handful of basins), MIP and SAT
+proofs show that no improvement exists inside halos of radius 1 to 4 around
+the remaining mismatches (radius 4 on one board); some larger solves are
+unfinished. That is the
+[rigidity wall](/research/why/rigidity-wall): a local-optimality certificate
+for that neighbourhood, not a proof that no better board exists. And
 moving from one top board to a better one requires relocating a large set of
 pieces in one interlocking loop, where every partial application of the loop
 scores worse than doing nothing: the

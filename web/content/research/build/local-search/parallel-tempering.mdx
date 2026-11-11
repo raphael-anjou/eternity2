@@ -2,24 +2,35 @@
 title: Simulated annealing and parallel tempering
 description: >-
   Treat mismatches as energy and temperature as tolerance for making things
-  worse. Annealing holds the puzzle's longest-standing record; parallel
-  tempering crosses barriers annealing can't. Both stop at the same wall.
-metaDescription: "Simulated annealing and parallel tempering on Eternity II: mismatches as energy, temperature as tolerance for worse moves. Annealing built Verhaard's long-standing 467/480 record; the replica ladder crosses barriers a lone cold chain cannot, yet iso-score plateaus make both hit the same wall."
+  worse. Parallel tempering crosses energy barriers a lone cold chain can't;
+  near the top of this puzzle, where the obstacle is entropic rather than
+  energetic, neither method has been seen to leave the seed's basin.
+metaDescription: "Simulated annealing and parallel tempering on Eternity II: mismatches as energy, temperature as tolerance for worse moves. The ladder crosses energy barriers a cold chain cannot; near the top the exits are rare plateau escapes, and ladders from top boards kept the seed's score."
 kind: concept
 order: 70
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
   - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
     url: https://doi.org/10.1103/PhysRevLett.57.2607
   - label: "Earl & Deem, Parallel tempering: Theory, applications, and new perspectives (Phys. Chem. Chem. Phys., 2005)"
     url: https://arxiv.org/abs/physics/0508111
-  - label: The Eternity II mailing list, where Verhaard described his 2008 annealing method (groups.io)
-    url: https://groups.io/g/eternity2
+  - label: "Verhaard on the 467 program: a normal search with edge slipping allowed at chosen depths (groups.io msg 7321)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "Louis Verhaard's eii solver details, including the set-composition preprocessing"
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "Woodard, Schmidler & Huber, Conditions for rapid mixing of parallel and simulated tempering on multimodal distributions (Ann. Appl. Probab., 2009)"
+    url: https://doi.org/10.1214/08-AAP555
+  - label: "Woodard, Schmidler & Huber, Sufficient conditions for torpid mixing of parallel and simulated tempering (Electron. J. Probab., 2009)"
+    url: https://doi.org/10.1214/EJP.v14-638
+  - label: "benj39100: GPU annealing with 4096 replicas on the strict-5-clue board meets the same frozen core (groups.io msg 11902)"
+    url: https://groups.io/g/eternity2/message/11902
 related:
   - /research/why/rigidity-wall
   - /research/why/sigma-cycles
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/louis-verhaard/verhaard-reimpl
   - /research/build/local-search/local-search-alns
 repro:
   kind: prose
@@ -105,22 +116,28 @@ One round of parallel tempering, as the lab runs it:
   $O(R \cdot N)$: every replica is a full board.
 - **Per swap phase:** the $R{-}1$ adjacent pairs each need one exponential
   of cached energies: $O(R)$ total, a rounding error next to the sweeps.
-- **The win is mixing time, not step cost.** A lone cold chain crosses an
+- **The win is mixing time, when it exists.** A lone cold chain crosses an
   energy barrier $\Delta E$ in roughly $e^{\Delta E / T_{\text{cold}}}$
   attempts (the Arrhenius wait; our measured 76-cell crossing sat at
-  $e^{-21}$ per attempt at $T = 1$). The ladder replaces that wait with
-  diffusion: a configuration random-walks across $R$ rungs, and with
-  geometric spacing tuned for constant per-rung acceptance, a round trip
-  costs on the order of $R^2$ swap rounds. You pay a constant factor $R$
-  per sweep to turn an exponential wait into a polynomial shuttle. That
-  asymmetry is the entire argument for the method.
+  $e^{-21}$ per attempt at $T = 1$). When the barrier is energetic and the
+  hottest rung mixes quickly, the ladder can replace that wait with a
+  diffusion across rungs whose cost grows only polynomially in $R$; you pay
+  a factor $R$ per sweep for it. That is not guaranteed. The number of rungs
+  needed grows with system size, each rung must equilibrate, and for
+  entropic bottlenecks and first-order-like transitions tempering is known
+  to mix exponentially slowly too
+  ([Woodard, Schmidler and Huber 2009](https://doi.org/10.1214/EJP.v14-638);
+  the matching rapid-mixing conditions are in their
+  [companion paper](https://doi.org/10.1214/08-AAP555)). The hot rung still
+  has to find the exit.
 - **No guarantees, same as all samplers.** Parallel tempering is not
   complete and certifies nothing; it converges to the right distribution
-  eventually, with no useful bound on "eventually". And where the landscape
-  offers ties instead of barriers, as on the iso-score plateaus at the top
-  of this puzzle, $\Delta E = 0$ makes every rung behave identically, and the
-  ladder's advantage vanishes by construction, which is precisely what the
-  verdict below reports.
+  eventually, with no useful bound on "eventually". Near the top of this
+  puzzle the obstacle is of the entropic kind: improving boards sit beyond
+  wide neutral plateaus whose exits are rare. Moves along a plateau
+  ($\Delta E = 0$) are accepted at every rung, while the uphill exits still
+  depend on $T$, so the rungs do differ; what the ladder cannot do is make a
+  rare exit common. The verdict below is an instance of that limitation.
 
 ## Why this puzzle needs the ladder
 
@@ -142,26 +159,35 @@ landscape, and the ladder added nothing. Geometric spacing with a genuinely
 hot top rung, tuned so that swaps are frequent but not free, is the standard
 advice in Earl and Deem, and it matched what we observed.
 
-## The community record that annealing built
+## Annealing and the 467
 
-Annealing has a distinguished history on this puzzle. The longest-standing
-record on the canonical piece set (Louis Verhaard's 467 of 480 in 2008,
-unbeaten until the Blackwood-era backtrackers of 2020) came from an
-annealing method, and an unusual one: as he described it on the
-[community mailing list](https://groups.io/g/eternity2), he annealed the
-*composition* of a piece subset, swapping pieces in and out of a candidate
-group under a tilability score, rather than annealing positions on the
-board. The lesson generalizes: on Eternity II, the choice of *what to
-anneal* mattered more than the annealing itself.
+Annealing on board positions has never held the record on this puzzle.
+Louis Verhaard's 467 of 480 (2008), which stood until the Blackwood-era
+backtrackers of 2020, came from a depth-first backtracker with forward
+pruning and depth-gated edge slipping
+([eii](/research/lab/experiments/louis-verhaard/eii);
+[message 7321](https://groups.io/g/eternity2/message/7321)). Annealing enters
+only as a preprocessing idea attributed to him
+([eii details](https://www.shortestpath.se/eii/eii_details.html)): anneal the
+*composition* of an interior piece subset, swapping pieces in and out under a
+2×2-tiling score, before the search starts. This project's
+[reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
+of that method reaches 438, not 467, so the annealing stage alone does not
+account for the record.
 
 ## The verdict
 
 From this project's measurements, hedged accordingly: parallel tempering is
 a better barrier-crosser than plain annealing, and on the mid-range of the
-climb that difference is real and bankable. Near the top it dissolves. The
-plateaus up there are iso-score: ties everywhere, so acceptance no longer
-depends on temperature at all, and cranking the heat instead of climbing
-just randomizes the board, which then never finds its way back to record
-territory. Replicas launched from a top board plateau at the seed's score,
-every chain, every ladder we tried. Tempering moves you between hills; it
-does not repeal the [rigidity wall](/research/why/rigidity-wall).
+climb that difference is real. Near the top it was not seen. Ladders
+launched from a top board stayed at the seed's score in every run tried;
+these were notebook runs, and their ladder sizes, temperature ranges and
+budgets are not in the committed results, so the negative is scoped to
+them. The mechanism is the entropic one above: heating enough to make the
+plateau exits likely also randomizes the board, which then does not find its
+way back to record territory within the budget. An independent GPU
+annealing run with 4096 replicas met the same frozen core of broken edges on
+the strict five-clue board
+([benj39100, message 11902](https://groups.io/g/eternity2/message/11902);
+see the [rigidity wall](/research/why/rigidity-wall)). Tempering moves you
+between hills; it has not been shown to cross between top basins here.
