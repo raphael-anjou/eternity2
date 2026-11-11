@@ -3,9 +3,9 @@ title: A sound colour-counting prune for break-tolerant search
 description: >-
   Track per-colour half-edge supply against frontier demand inside a
   break-budget DFS, and prune whenever the colour deficit or its parity exceeds
-  the breaks that remain. Sound by construction; the savings compound with
-  depth.
-metaDescription: "LEDGER is a sound global prune for break-tolerant Eternity II DFS: per-colour supply versus demand, tested against the remaining break budget. Zero unsound fires across every replay; on the community 464 boards' tails the node ratio compounds from 1.7x to 45.3x uncensored."
+  the breaks that remain. Sound by construction, a counting bound of the
+  Max-CSP family; on the one uncensored board the savings rose on deeper rows.
+metaDescription: "LEDGER is a sound global prune for break-tolerant Eternity II DFS: per-colour supply versus demand, tested against the remaining break budget. Zero unsound fires across every replay; on the one 464 board whose tails stay uncensored, the node ratio rose from 1.7x to 45.3x as depth and budget grew together."
 kind: experiment
 contribution: method
 author: raphael-anjou
@@ -25,7 +25,7 @@ repro:
   cmd: "just research-ledger-prune"
   scope: "re-runs the soundness gate, the A/B grid on generated boards and the 464-tail certificate rows; node counts are seed-deterministic, but which arms censor at the time caps depends on the machine"
 order: 40
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, structure]
 related:
@@ -36,16 +36,26 @@ related:
 sources:
   - label: "The ledger-prune reproduction topic: code, plan and committed results"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+  - label: "Freuder & Wallace (1992), Partial constraint satisfaction, Artificial Intelligence 58: branch-and-bound with violation-count lower bounds"
+    url: https://doi.org/10.1016/0004-3702(92)90004-H
+  - label: "Larrosa & Schiex (2004), Solving weighted CSP by maintaining arc consistency, Artificial Intelligence 159: soft arc-consistency lower bounds"
+    url: https://doi.org/10.1016/j.artint.2004.05.004
 ---
 
 High-score search on Eternity II runs with a break allowance: the DFS may place
 a mismatching piece as long as the total number of charged breaks stays within
-a budget. In that setting almost no classic pruning is sound, because the
-budget is a global resource; a branch that looks locally dead can be rescued by
-spending a break somewhere else entirely. I asked whether a purely global
-counting test could prune anyway, without ever cutting a completion that fits
-the budget. It can: zero unsound fires across every replay, and node reductions
-that compound with depth, though how large they get depends on the engine.
+a budget. In that setting hard-constraint pruning does not apply as is: a branch
+that looks locally dead can be rescued by spending a break somewhere else. The
+search is a Max-CSP branch-and-bound, and sound bounds for it are standard:
+count the violations that cannot be avoided, as in partial forward checking and
+directed arc-inconsistency counts (Freuder & Wallace 1992) or soft arc
+consistency (Larrosa & Schiex 2004). LEDGER is a bound of that family, computed
+globally from per-colour counts rather than per cell. The question was whether
+it prunes without ever cutting a completion that fits the budget. It does: zero
+unsound fires across every replay, and node reductions that rose on deeper rows
+of the one fully uncensored board, though how large they get depends on the
+engine. It has not yet been compared with a simple per-cell inconsistency-count
+bound.
 
 ## How it works
 
@@ -102,13 +112,13 @@ difference. That board is the original study's board 1.
 | Zero unsound fires replaying real tails at zero slack | 0 fires over 8 boards x 257 depths | reproduced |
 | The prune never changes the answer | completions identical in all 144 uncensored A/B pairs | reproduced |
 | Node ratio above 1 at small budgets | all 96 grid pairs above 1 (min 1.48x) | reproduced |
-| Ratio compounds with suffix depth (1.5x, 140x, 995x, 4,330x) | 1.7x, 19.4x, 45.3x; deepest row censored | shape reproduced, magnitude engine-bound |
+| Ratio grows on deeper rows (1.5x, 140x, 995x, 4,330x) | 1.7x, 19.4x, 45.3x on one board; deepest row censored; other boards censored beyond 12.1x | direction seen on one board, magnitude engine-bound |
 | Large-budget null (~0.1 percent fires) | probe stayed in the active regime (76 to 82 percent) | untested here |
 
 On the identified 464 board, at budgets identical to the original (r = 5 and
 r = 6 on the deep rows), the exhaustion found exactly one completion at every
 uncensored depth, the certificate shape the original reports, and the ratio
-compounds:
+rose:
 
 <Figure collapsible title="Certificate rows on the 464 board (180-flipped, zero-slack budgets)">
 
@@ -121,9 +131,15 @@ compounds:
 
 </Figure>
 
-A multiplier that grows with depth is the signature of a branching-factor
-reduction, the only kind of speedup that survives scaling (the argument is laid
-out in [prune beats speed](/research/why/prune-vs-speed)).
+Depth and budget change together in these rows (r = 2, 5, 6), so the growth
+cannot be assigned to depth alone; separating them needs rows with the budget
+held fixed. The other two 464 boards add little: 464-basinB-b1 gave 2.0x at
+depth 232 and 12.1x at depth 224 (r = 6), with both arms censored deeper, and
+464-basinB-b2 gave 2.0x at depth 232 and was censored from depth 224 on. Three
+uncensored points on one board show the ratio rising, not a compounding law.
+Why a branching-factor reduction matters more than a constant-factor speedup
+for exhaustive search is argued in
+[prune beats speed](/research/why/prune-vs-speed).
 
 ## Scope and limits
 

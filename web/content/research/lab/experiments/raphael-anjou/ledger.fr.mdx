@@ -3,9 +3,10 @@ title: Un élagage correct par comptage des couleurs pour la recherche tolérant
 description: >-
   Suivre, couleur par couleur, l'offre de demi-arêtes face à la demande du
   front dans un DFS à budget de ruptures, et élaguer dès que le déficit ou sa
-  parité dépasse les ruptures restantes. Correct par construction ; le gain se
-  compose avec la profondeur.
-metaDescription: "LEDGER est un élagage global correct pour le DFS Eternity II tolérant aux ruptures : offre contre demande par couleur face au budget restant. Zéro déclenchement erroné sur tous les rejeux ; sur les queues des tableaux 464, le ratio de nœuds se compose de 1,7x à 45,3x non censuré."
+  parité dépasse les ruptures restantes. Correct par construction, une borne
+  de comptage de la famille Max-CSP ; sur le seul tableau non censuré, le gain
+  augmente sur les lignes profondes.
+metaDescription: "LEDGER est un élagage global correct pour le DFS Eternity II tolérant aux ruptures : offre contre demande par couleur face au budget restant. Zéro déclenchement erroné sur tous les rejeux ; sur le seul tableau 464 dont les queues restent non censurées, le ratio de nœuds passe de 1,7x à 45,3x quand profondeur et budget croissent ensemble."
 kind: experiment
 contribution: method
 author: raphael-anjou
@@ -25,7 +26,7 @@ repro:
   cmd: "just research-ledger-prune"
   scope: "relance la porte de correction, la grille A/B sur tableaux générés et les lignes de certificat sur les queues des 464 ; les comptes de nœuds sont déterministes par graine, mais les bras censurés aux plafonds de temps dépendent de la machine"
 order: 40
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, structure]
 related:
@@ -36,18 +37,29 @@ related:
 sources:
   - label: "Le topic de reproduction ledger-prune : code, plan et résultats committés"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+  - label: "Freuder & Wallace (1992), Partial constraint satisfaction, Artificial Intelligence 58: séparation et évaluation avec bornes par comptage de violations"
+    url: https://doi.org/10.1016/0004-3702(92)90004-H
+  - label: "Larrosa & Schiex (2004), Solving weighted CSP by maintaining arc consistency, Artificial Intelligence 159: bornes par cohérence d'arc souple"
+    url: https://doi.org/10.1016/j.artint.2004.05.004
 ---
 
 La recherche de hauts scores sur Eternity II tourne avec une tolérance aux
 ruptures : le DFS peut poser une pièce discordante tant que le nombre total de
-ruptures facturées reste dans un budget. Dans ce cadre, presque aucun élagage
-classique n'est correct, car le budget est une ressource globale ; une branche
-qui semble localement morte peut être sauvée en dépensant une rupture tout à
-fait ailleurs. Je me suis demandé si un test de comptage purement global
-pouvait élaguer malgré tout, sans jamais couper une complétion qui tient dans
-le budget. C'est possible : zéro déclenchement erroné sur tous les rejeux, et
-des réductions de nœuds qui se composent avec la profondeur, même si leur
-ampleur dépend du moteur.
+ruptures facturées reste dans un budget. Dans ce cadre, l'élagage par
+contraintes dures ne s'applique pas tel quel : une branche qui semble
+localement morte peut être sauvée en dépensant une rupture ailleurs. La
+recherche est une séparation et évaluation Max-CSP, et les bornes correctes
+pour ce cas sont classiques : compter les violations inévitables, comme le
+font le forward checking partiel et les comptes d'incohérence d'arc dirigés
+(Freuder et Wallace 1992) ou la cohérence d'arc souple (Larrosa et Schiex
+2004). LEDGER est une borne de cette famille, calculée globalement à partir
+de comptes par couleur plutôt que case par case. La question était de savoir
+s'il élague sans jamais couper une complétion qui tient dans le budget.
+C'est le cas : zéro déclenchement erroné sur tous les rejeux, et des
+réductions de nœuds qui augmentent sur les lignes profondes du seul tableau
+entièrement non censuré, même si leur ampleur dépend du moteur. Aucune
+comparaison n'a encore été faite avec une simple borne par comptage
+d'incohérences case par case.
 
 ## Fonctionnement
 
@@ -109,13 +121,13 @@ d'origine.
 | Zéro déclenchement erroné en rejouant les vraies queues à marge nulle | 0 déclenchement sur 8 tableaux x 257 profondeurs | reproduit |
 | L'élagage ne change jamais la réponse | complétions identiques dans les 144 paires A/B non censurées | reproduit |
 | Ratio de nœuds au-dessus de 1 à petits budgets | les 96 paires de la grille au-dessus de 1 (min 1,48x) | reproduit |
-| Le ratio se compose avec la profondeur (1,5x, 140x, 995x, 4 330x) | 1,7x, 19,4x, 45,3x ; ligne la plus profonde censurée | forme reproduite, ampleur liée au moteur |
+| Le ratio croît sur les lignes profondes (1,5x, 140x, 995x, 4 330x) | 1,7x, 19,4x, 45,3x sur un tableau ; ligne la plus profonde censurée ; autres tableaux censurés au-delà de 12,1x | sens observé sur un tableau, ampleur liée au moteur |
 | Nul à grand budget (~0,1 pour cent de déclenchements) | la sonde est restée dans le régime actif (76 à 82 pour cent) | non testé ici |
 
 Sur le tableau 464 identifié, à budgets identiques à l'origine (r = 5 et r = 6
 sur les lignes profondes), l'épuisement a trouvé exactement une complétion à
 chaque profondeur non censurée, la forme de certificat que l'origine rapporte,
-et le ratio se compose :
+et le ratio augmente :
 
 <Figure collapsible title="Lignes de certificat sur le tableau 464 (retourné 180°, budgets sans marge)">
 
@@ -128,10 +140,17 @@ et le ratio se compose :
 
 </Figure>
 
-Un multiplicateur qui grandit avec la profondeur est la signature d'une
-réduction du facteur de branchement, la seule espèce d'accélération qui survit
-au passage à l'échelle (l'argument est déroulé dans
-[l'élagage bat la vitesse](/research/why/prune-vs-speed)).
+Profondeur et budget varient ensemble sur ces lignes (r = 2, 5, 6) : la
+croissance ne peut donc pas être imputée à la seule profondeur, et les
+séparer demande des lignes à budget fixe. Les deux autres tableaux 464
+apportent peu : 464-basinB-b1 donne 2,0x à la profondeur 232 et 12,1x à la
+profondeur 224 (r = 6), les deux bras étant censurés plus bas, et
+464-basinB-b2 donne 2,0x à la profondeur 232 puis est censuré dès la
+profondeur 224. Trois points non censurés sur un tableau montrent un ratio
+qui monte, pas une loi de composition. Pourquoi une réduction du facteur de
+branchement compte davantage qu'une accélération à facteur constant pour la
+recherche exhaustive est expliqué dans
+[l'élagage bat la vitesse](/research/why/prune-vs-speed).
 
 ## Portée et limites
 
