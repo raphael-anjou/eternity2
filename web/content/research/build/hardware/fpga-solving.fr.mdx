@@ -288,24 +288,26 @@ crunching 15 Mn/s on an FPGA platform. Perf/W maybe unbeatable »,
 coût : le travail sur FPGA est « soooo slow to compile... code... debug... You
 need to be an expert or have plenty of spare time and motivation. I've tried
 once, that was my hardest programming experience »
-([message 9590](https://groups.io/g/eternity2/message/9590)). Des mois de mise en
-route HDL achetèrent ce que le
-[registre de l'ingénierie des solveurs](/research/build/faster/solver-engineering)
-obtient d'un simple drapeau de compilation. Cette asymétrie, et non un quelconque
-mur technique isolé, explique pourquoi chaque fil FPGA des archives se termine
+([message 9590](https://groups.io/g/eternity2/message/9590)). D'après les propres
+chiffres de Field, le prototype mesuré valait environ trois à quatre cœurs i7
+(24 threads à 1/8 ou 1/6 de cœur chacun) sur une carte à moins de 100 $
+alimentée en USB : un vrai gain par dollar et par watt, sur un problème 15×15
+assoupli, payé par des mois de mise en route HDL dont un moteur logiciel n'a
+pas besoin. Ce coût, et non un quelconque mur technique isolé, explique pourquoi chaque fil FPGA des archives se termine
 dans le silence : le « FPGA custom engine in 2022 » promis par un membre en 2021
 ([message 10581](https://groups.io/g/eternity2/message/10581)) est le dernier de
 la lignée, et lui non plus n'a jamais refait surface.
 
-**L'unique tentative menée à terme fut académique, et elle fit moins bien que le
-logiciel.** L'article demandé par Bucas, « Exploitation of Parallel Search Space
+**L'unique tentative menée à terme que mentionnent les archives fut
+académique.** L'article demandé par Bucas, « Exploitation of Parallel Search Space
 Evaluation with FPGAs in Combinatorial Problems: The Eternity II Case »
 (ReConFig 2011, [ieeexplore 6044826](https://ieeexplore.ieee.org/document/6044826)),
-est le seul système FPGA Eternity II achevé et publié de tout le dossier. Son
-bilan, tel que la liste le lut : « After three months, the best available
+est le seul système FPGA Eternity II achevé dont parlent les archives. Son
+bilan, tel que résumé sur la liste : « After three months, the best available
 solution contained 187/196 center pieces »
-([message 10651](https://groups.io/g/eternity2/message/10651)), bien en deçà de
-ce que produisaient les heuristiques logicielles de l'époque. Le verdict de Bucas
+([message 10651](https://groups.io/g/eternity2/message/10651)). Cette mesure ne
+se transpose pas sur l'échelle des 480 arêtes, et cette page ne l'a pas
+comparée aux résultats logiciels dans les termes de l'article. Le verdict de Bucas
 fut celui de la communauté : « a bit disappointed by the results in term of
 speed... I would expect more from a 'dedicated' HW »
 ([message 10655](https://groups.io/g/eternity2/message/10655)).
@@ -338,12 +340,15 @@ aligné. Une année vaut ~3×10⁷ secondes, donc le rack parcourt ~3×10²⁰ n
 an. L'arbre de recherche du puzzle complet est, à son plateau, large de l'ordre
 de **10⁴⁵ plateaux partiels**
 ([la théorie de la complexité](/research/why/complex-theory) fait cette mesure
-correctement). La division : environ **10²⁴ rack-années**. Chaque ordre de
-grandeur que le matériel gagne déplace cet exposant d'une unité, et il en manque
-vingt-quatre.
+correctement), si bien qu'un parcours exhaustif visite au moins autant de
+nœuds : environ **10²⁴ rack-années**. Trouver une première solution demande
+moins qu'un parcours complet, mais les estimations du site pour ce travail
+atteignent encore 10⁴⁰ nœuds ou plus
+([page quantique](/research/build/hardware/quantum)), soit environ 10¹⁹
+rack-années. Chaque ordre de grandeur que le matériel gagne déplace cet
+exposant d'une unité.
 
-C'est la même phrase sur laquelle se termine la page GPU, car c'est la même
-mathématique : le matériel est un diviseur constant, et le mur d'E2 est
+La page GPU arrive à la même conclusion, car c'est la même mathématique : le matériel est un diviseur constant, et le mur d'E2 est
 exponentiel.
 [Pourquoi un ordinateur plus rapide n'aide pas](/research/why/prune-vs-speed)
 mène l'argument général ; le chapitre FPGA n'en est que l'étude de cas la plus

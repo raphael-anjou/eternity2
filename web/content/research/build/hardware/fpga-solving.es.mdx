@@ -288,24 +288,27 @@ platform. Perf/W maybe unbeatable",
 describía el coste: el trabajo en FPGA es "soooo slow to compile... code... debug...
 You need to be an expert or have plenty of spare time and motivation. I've
 tried once, that was my hardest programming experience"
-([message 9590](https://groups.io/g/eternity2/message/9590)). Meses de puesta en
-marcha de HDL compraron lo que el
-[registro de ingeniería de solucionadores](/research/build/faster/solver-engineering)
-obtiene de un flag de compilador. Esa asimetría, no ningún muro técnico aislado,
+([message 9590](https://groups.io/g/eternity2/message/9590)). Según las propias
+cifras de Field, el prototipo medido equivalía a unos tres o cuatro núcleos
+i7 (24 hilos a 1/8 o 1/6 de núcleo cada uno) en una placa de menos de 100 $
+alimentada por USB: una ganancia real por dólar y por vatio, en un problema
+15×15 relajado, pagada con meses de puesta en marcha de HDL que un motor de
+software no necesita. Ese coste, no ningún muro técnico aislado,
 es por qué cada hilo FPGA del archivo termina en silencio: el "FPGA custom engine
 in 2022" prometido por un miembro en 2021
 ([message 10581](https://groups.io/g/eternity2/message/10581)) es el último de
 la estirpe, y él tampoco resurgió jamás.
 
-**El único intento llevado a término fue académico, y rindió menos que el
-software.** El artículo que pidió Bucas, "Exploitation of Parallel Search Space
+**El único intento llevado a término que menciona el archivo fue
+académico.** El artículo que pidió Bucas, "Exploitation of Parallel Search Space
 Evaluation with FPGAs in Combinatorial Problems: The Eternity II Case"
 (ReConFig 2011, [ieeexplore 6044826](https://ieeexplore.ieee.org/document/6044826)),
-es el único sistema FPGA de Eternity II terminado y publicado en todo el
-expediente. Su conclusión, tal como la leyó la lista: "After three months, the best
+es el único sistema FPGA de Eternity II terminado del que habla el archivo.
+Su conclusión, tal como se resumió en la lista: "After three months, the best
 available solution contained 187/196 center pieces"
-([message 10651](https://groups.io/g/eternity2/message/10651)), muy por debajo de
-lo que producían las heurísticas de software contemporáneas. El veredicto de Bucas
+([message 10651](https://groups.io/g/eternity2/message/10651)). Esa medida no
+se traslada a la escala de 480 aristas, y esta página no la ha comparado con
+resultados de software en los términos del artículo. El veredicto de Bucas
 fue el de la comunidad: "a bit disappointed by the results in term of speed... I
 would expect more from a 'dedicated' HW"
 ([message 10655](https://groups.io/g/eternity2/message/10655)).
@@ -337,11 +340,14 @@ la flota combinada de toda la comunidad haya alineado jamás. Un año son ~3×10
 segundos, así que el rack recorre ~3×10²⁰ nodos al año. El árbol de búsqueda del
 puzzle completo es, en su meseta, del orden de **10⁴⁵ tableros parciales de
 ancho** ([teoría de la complejidad](/research/why/complex-theory) hace esta
-medición como es debido). La división: unos **10²⁴ rack-años**. Cada orden de
-magnitud que gana el hardware desplaza ese exponente en uno, y faltan
-veinticuatro.
+medición como es debido), así que un recorrido exhaustivo visita al menos
+esos nodos: unos **10²⁴ rack-años**. Encontrar una primera solución exige
+menos que un recorrido completo, pero las estimaciones del sitio para ese
+trabajo siguen llegando a 10⁴⁰ nodos o más
+([página cuántica](/research/build/hardware/quantum)), unos 10¹⁹ rack-años.
+Cada orden de magnitud que gana el hardware desplaza ese exponente en uno.
 
-Es la misma frase con que termina la página GPU, porque es la misma matemática:
+La página GPU llega a la misma conclusión, porque es la misma matemática:
 el hardware es un divisor constante, y el muro de E2 es exponencial.
 [Por qué un ordenador más rápido no ayuda](/research/why/prune-vs-speed) hace el
 argumento general; el capítulo FPGA es simplemente su estudio de caso más
