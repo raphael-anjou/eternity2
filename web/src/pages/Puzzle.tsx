@@ -128,8 +128,9 @@ const T = {
       <>
         A full board has <strong>480 interior edges</strong> to match (2·16·16 − 16 − 16).
         "Score 467" means 467 of those 480 edges match. No two pieces of the set are identical,
-        and none is rotationally symmetric: the designers made sure every piece is genuinely
-        distinct.
+        which a randomly painted board of this size would almost never achieve: the designers
+        ruled duplicates out. None is rotationally symmetric either, but a random painting has no
+        symmetric piece about half the time, so that part says little about design.
       </>
     ),
     motifsTitle: "The 22 motifs (and one grey)",
@@ -247,9 +248,14 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
     universeText: (
       <>
         Give every atom in the observable universe (10<sup>80</sup>) a billion boards per second
-        since the Big Bang, and you cover about 10<sup>106</sup> boards. The gap isn't "needs a
-        bigger computer". It's a different kind of impossible: solvers must be <em>smart</em>,
-        not fast. See{" "}
+        since the Big Bang, and you cover about 10<sup>106</sup> boards. Real solvers never face
+        that number, though: pruning cuts the backtracking tree to about 10<sup>45</sup> nodes at
+        its widest (
+        <Link className="underline" to="/research/why/complex-theory">
+          complex theory
+        </Link>
+        ), still far beyond any computer. No constant-factor speedup makes an exhaustive search
+        feasible; that takes <em>smarter</em> search, not just faster hardware. See{" "}
         <Link className="underline" to="/algorithms">
           Algorithms
         </Link>
@@ -258,9 +264,10 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
     ),
     npComplete: (
       <>
-        Formally, edge-matching puzzles are <strong>NP-complete</strong> (Demaine & Demaine,
-        2007); they belong to the family of problems for which no efficient general algorithm is
-        known. Eternity II is widely considered one of the hardest instances ever put in a box.
+        Edge matching is <strong>NP-complete</strong> as a family (Demaine & Demaine, 2007),
+        which is why no fast general method is expected. That says nothing about one fixed board,
+        though: Eternity II's own difficulty is an empirical fact about this instance, measured by
+        two decades of searches that never finished it.
         The known clever methods that broke Eternity I were specifically engineered out: see{" "}
         <Link className="underline" to="/research">Research</Link>. Wondering whether it is even
         solvable, or a scam? See{" "}
@@ -340,9 +347,11 @@ the July 2026 <em>strict-canonical</em> record (all 5 clues respected); the line
       <>
         Un plateau complet, ce sont <strong>480 côtés intérieurs</strong> à faire
         coïncider (2·16·16 − 16 − 16). Un « score de 467 » veut donc dire que 467 de ces 480
-        côtés tombent juste. Détail crucial : dans tout le jeu, pas deux pièces ne sont
-        identiques, et aucune n'est symétrique par rotation. Les concepteurs ont tout fait pour
-        que chacune soit absolument unique.
+        côtés tombent juste. Dans tout le jeu, pas deux pièces ne sont identiques, ce
+        qu'un plateau peint au hasard n'obtiendrait presque jamais : les concepteurs ont écarté
+        les doublons. Aucune n'est non plus symétrique par rotation, mais une peinture aléatoire
+        n'en produit aucune une fois sur deux environ, si bien que ce point-là ne dit pas grand-chose
+        de la conception.
       </>
     ),
     motifsTitle: "Les 22 motifs (et un gris)",
@@ -465,9 +474,14 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
       <>
         Confiez à chacun des atomes de l'univers observable (10<sup>80</sup>) la tâche d'essayer
         un milliard de plateaux par seconde depuis le Big Bang : vous n'en explorerez qu'environ
-        10<sup>106</sup>. Le problème n'est donc pas qu'« il faudrait une plus grosse machine ».
-        On a affaire à un impossible d'un tout autre genre : pour avancer, un solveur doit être{" "}
-        <em>malin</em>, pas rapide. Voir{" "}
+        10<sup>106</sup>. Aucun solveur réel n'affronte ce nombre, cela dit : l'élagage
+        ramène l'arbre du retour sur trace à environ 10<sup>45</sup> nœuds à son plus large (
+        <Link className="underline" to="/research/why/complex-theory">
+          théorie complexe
+        </Link>
+        ), ce qui dépasse encore de loin tout ordinateur. Aucune accélération d'un facteur
+        constant ne rend une recherche exhaustive faisable : il y faut une recherche plus{" "}
+        <em>maline</em>, pas seulement du matériel plus rapide. Voir{" "}
         <Link className="underline" to="/algorithms">
           Algorithmes
         </Link>
@@ -476,10 +490,11 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
     ),
     npComplete: (
       <>
-        En termes mathématiques, les puzzles d'appariement de côtés sont{" "}
-        <strong>NP-complets</strong> (Demaine et Demaine, 2007) : ils font partie de ces problèmes
-        pour lesquels on ne connaît aucun algorithme général efficace. Beaucoup voient en Eternity
-        II l'une des instances les plus coriaces jamais glissées dans une boîte de jeu. Quant aux
+        En tant que famille, l'appariement de côtés est{" "}
+        <strong>NP-complet</strong> (Demaine et Demaine, 2007) : c'est pourquoi on n'attend
+        aucune méthode générale rapide. Cela ne dit rien d'un plateau fixé, en revanche : la
+        difficulté propre d'Eternity II est un constat empirique sur cette instance, mesuré par
+        deux décennies de recherches qui n'en sont jamais venues à bout. Quant aux
         astuces qui avaient eu raison d'Eternity I, ses concepteurs les ont méthodiquement
         désamorcées : voir <Link className="underline" to="/research">Recherche</Link>. Vous vous
         demandez s'il a seulement une solution, ou si c'est une arnaque ? Voir{" "}
@@ -559,8 +574,10 @@ record <em>strict-canonique</em> de juillet 2026 (les 5 indices respectés) ; la
       <>
         Un tablero completo tiene <strong>480 aristas interiores</strong> que hacer coincidir
         (2·16·16 − 16 − 16). «Puntuación 467» significa que 467 de esas 480 aristas coinciden.
-        En todo el juego no hay dos piezas idénticas, y ninguna es simétrica por rotación: los
-        diseñadores se aseguraron de que cada pieza fuera realmente única.
+        En todo el juego no hay dos piezas idénticas, algo que un tablero pintado al azar casi
+        nunca lograría: los diseñadores descartaron los duplicados. Tampoco hay ninguna simétrica
+        por rotación, pero una pintura aleatoria no produce ninguna aproximadamente la mitad de
+        las veces, así que eso dice poco del diseño.
       </>
     ),
     motifsTitle: "Los 22 motivos (y un gris)",
@@ -680,9 +697,15 @@ récord <em>estricto-canónico</em> de julio de 2026 (las 5 pistas respetadas); 
     universeText: (
       <>
         Dale a cada átomo del universo observable (10<sup>80</sup>) mil millones de tableros por
-        segundo desde el Big Bang, y cubrirás alrededor de 10<sup>106</sup> tableros. El problema no
-        es que «haga falta un ordenador más grande». Es un imposible de otra clase: los
-        solucionadores deben ser <em>listos</em>, no rápidos. Consulta{" "}
+        segundo desde el Big Bang, y cubrirás alrededor de 10<sup>106</sup> tableros. Aunque ningún
+        solucionador real se enfrenta a ese número: la poda reduce el árbol de backtracking a unos
+        10<sup>45</sup> nodos en su punto más ancho (
+        <Link className="underline" to="/research/why/complex-theory">
+          teoría compleja
+        </Link>
+        ), muy por encima aún de cualquier ordenador. Ninguna aceleración por un factor constante
+        vuelve factible una búsqueda exhaustiva: hace falta una búsqueda más <em>lista</em>, no
+        solo hardware más rápido. Consulta{" "}
         <Link className="underline" to="/algorithms">
           Algoritmos
         </Link>
@@ -691,10 +714,10 @@ récord <em>estricto-canónico</em> de julio de 2026 (las 5 pistas respetadas); 
     ),
     npComplete: (
       <>
-        Formalmente, los puzzles de encaje de bordes son <strong>NP-completos</strong> (Demaine y
-        Demaine, 2007); pertenecen a la familia de problemas para los que no se conoce ningún
-        algoritmo general eficiente. Eternity II está considerado una de las instancias más difíciles
-        jamás metidas en una caja. Los métodos ingeniosos conocidos que quebraron Eternity I fueron
+        Como familia, el encaje de bordes es <strong>NP-completo</strong> (Demaine y Demaine,
+        2007), y por eso no se espera ningún método general rápido. Eso no dice nada de un tablero
+        fijo, eso sí: la dificultad propia de Eternity II es un hecho empírico sobre esta
+        instancia, medido por dos décadas de búsquedas que nunca lo terminaron. Los métodos ingeniosos conocidos que quebraron Eternity I fueron
         desactivados a propósito: consulta{" "}
         <Link className="underline" to="/research">Investigación</Link>. ¿Te preguntas si siquiera
         tiene solución, o si es una estafa? Consulta{" "}

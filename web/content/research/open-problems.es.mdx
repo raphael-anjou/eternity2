@@ -8,7 +8,7 @@ description: >-
 metaDescription: "La frontera abierta de Eternity II en un tablero: la brecha de 470 a 480, la marca estricta de cinco pistas más allá de 465, el 10x10 sin pistas set_2 de Owen sin resolver, cruzar una cuenca de rigidez, el muro de memoria del meet-in-the-middle y un eje de diversidad tras el parallel tempering."
 kind: reference
 order: 35
-updated: 2026-07-21
+updated: 2026-11-11
 topics: []
 sources:
   - label: "Archivo de la lista de correo eternity2 (groups.io): donde se anuncian y discuten los objetivos abiertos"
@@ -95,24 +95,30 @@ detrás.
 </Callout>
 
 **Muro.** La misma dificultad de emparejar aristas que el puzle completo, a un
-tamaño que una sola máquina sí puede terminar. Set_1 exigió una búsqueda amplia
-pero acotada, así que set_2 es un objetivo de ingeniería de búsqueda, no uno
-estructural.
+tamaño en el que una búsqueda completa sí puede terminar. Set_1 cayó tras unos
+2×10¹⁷ nodos (unos 180 años-núcleo en 2017), y set_2 debería costar el mismo
+orden de magnitud: es un objetivo de ingeniería de búsqueda, no uno
+estructural. Cada resolución es un sorteo: con las estadísticas de set_1, la
+espera hasta la primera solución va de una vigésima parte a tres veces el coste
+esperado (del percentil 5 al 95).
 
 **Probado, y dónde se detuvo.** La historia completa está en la página de
 [benchmarks](/research/build/benchmarks#los-1010-de-brendan-uno-cayó-el-otro-sigue-en-pie):
 set_1 se resolvió, las estadísticas de set_2 se conocen, y
 [sigue en pie](/research/build/benchmarks#los-1010-de-brendan-uno-cayó-el-otro-sigue-en-pie).
 
-**Etiqueta.** Accesible para principiantes. Es el único objetivo abierto
-dimensionado para una máquina personal y un backtracker bien afinado en lugar de
-un clúster de cálculo, así que es el primer intento real recomendado.
+**Etiqueta.** Difícil, con el precio conocido. Su coste se calcula de antemano
+y corresponde a un largo cálculo distribuido o a un motor mucho más rápido, no a
+un fin de semana en un solo PC. Para un primer intento, sube antes la
+[escalera de benchmarks](/research/build/benchmarks#qué-ejecutar-hoy) del 7×7 al 9×9.
 
 ## Cruzar una cuenca de rigidez
 
 <Callout kind="open" title="¿Existe algún camino local de una cuenca record a otra?">
-  Cada tablero record vive en una cuenca que las pruebas MIP muestran localmente
-  óptima hasta un halo de varias celdas. La pregunta abierta es si alguna
+  Las cuencas record probadas hasta ahora (tres o cuatro, entre ellas un 469)
+  están demostradas localmente óptimas por MIP hasta un halo de varias celdas;
+  si todos los tableros record son igual de rígidos está sin comprobar. La
+  pregunta abierta es si alguna
   secuencia de pequeños movimientos legales alcanza otra cuenca en absoluto.
 </Callout>
 
@@ -211,9 +217,11 @@ cerrarla en cualquier sentido replantearía cómo se leen los dos muros.
 
 ## ¿Produce el pico de dificultad el perfil de ramificación de sin movimientos forzados?
 
-<Callout kind="open" title="¿El alto factor de ramificación viene impuesto por situarse en el pico de una solución?">
-  Cada celda interior conserva de 73 a 137 piezas legales, y el puzzle se sitúa
-  en la transición de fase de alrededor de una solución esperada. Ambos se
+<Callout kind="open" title="¿El alto factor de ramificación viene impuesto por situarse cerca del pico de dificultad?">
+  Cada celda interior conserva de 73 a 137 piezas legales, y el número de
+  colores interiores (17) se sitúa cerca de la franja de dificultad del
+  conjunto, donde la estimación de primer momento de Owen da alrededor de una
+  solución (el juego real de piezas tendría unas 14.702 con la pieza inicial). Ambos se
   agrupan como «nada local que podar», pero ninguna derivación ata el conteo de
   ramificación a situarse en unos 17 colores interiores.
 </Callout>
@@ -221,7 +229,8 @@ cerrarla en cualquier sentido replantearía cómo se leen los dos muros.
 **Muro.** [Sin movimientos forzados](/research/why/no-forced-moves) y
 [el pico de dificultad](/research/why/phase-transition). El conteo de
 ramificación es un conteo de candidatos por celda sobre el conjunto de piezas; el
-pico es un enunciado sobre el número de soluciones a 17 colores. Un puzzle podría
+pico es un enunciado sobre el número esperado de soluciones de puzzles aleatorios
+cerca de 17 colores. Un puzzle podría
 en principio tener uno sin el otro.
 
 **Probado, y dónde se detuvo.** [Poda contra velocidad](/research/why/prune-vs-speed)
