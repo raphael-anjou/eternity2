@@ -31,7 +31,10 @@
 //! statistical band.
 //!
 //! Usage:
-//!   cargo run --release -- [--frames N] [--beam B] [--seeds K] [--seed0 S]
+//!   cargo run --release -- [--frames N] [--beam B] [--seeds K] [--seed0 S] [--control]
+//!
+//! `--control` completes every frame with every seed (no best-of) and reports a
+//! one-way ANOVA of score on frame plus within- vs between-frame Hamming.
 //!
 //! Prints one JSON report to stdout. BB of a frame-only board equals the kit's
 //! canonical `score_board` of that board (empty interior cells score nothing),
@@ -96,6 +99,11 @@ fn main() {
         if attempts > args.frames as u64 * 1000 + 10_000 {
             break; // safety: never spin forever
         }
+    }
+
+    if args.control {
+        run_control(&frames, pieces, &classes.interior, &hints, &args, attempts);
+        return;
     }
 
     // ---- Phase 2: one fixed interior producer on every frame -------------
@@ -487,6 +495,127 @@ fn fill_interior(
 const FAN_OUT: usize = 8;
 
 // ---------------------------------------------------------------------------
+// same-border / multi-seed control
+
+fn interior_hamming(a: &Board, b: &Board) -> usize {
+    let mut d = 0;
+    for y in 1..S - 1 {
+        for x in 1..S - 1 {
+            let c = y * S + x;
+            if a.piece_at(c) != b.piece_at(c) {
+                d += 1;
+            }
+        }
+    }
+    d
+}
+
+/// Variance decomposition: every frame is completed with every seed (no
+/// best-of), so the spread of scores BETWEEN frames can be compared with the
+/// spread across seeds WITHIN one frame (one-way ANOVA), and the interior
+/// Hamming distance between two seeds on the SAME frame gives the baseline for
+/// the between-frame distance.
+fn run_control(
+    frames: &[Board],
+    pieces: &Pieces,
+    interior_ids: &[u16],
+    hints: &[(usize, u16, u8)],
+    args: &Args,
+    attempts: u64,
+) {
+    let f = frames.len();
+    let k = args.seeds;
+    let jobs: Vec<(usize, usize)> = (0..f).flat_map(|i| (0..k).map(move |j| (i, j))).collect();
+    let threads = std::thread::available_parallelism().map_or(1, |n| n.get());
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let out: std::sync::Mutex<Vec<Option<(u32, Board)>>> =
+        std::sync::Mutex::new(vec![None; jobs.len()]);
+    std::thread::scope(|sc| {
+        for _ in 0..threads {
+            sc.spawn(|| loop {
+                let n = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                if n >= jobs.len() {
+                    break;
+                }
+                let (i, j) = jobs[n];
+                let seed_j = args.seed0.wrapping_mul(2_654_435_761).wrapping_add(j as u32);
+                let r = fill_interior(&frames[i], pieces, interior_ids, hints, args.beam, seed_j);
+                out.lock().unwrap()[n] = Some(r);
+            });
+        }
+    });
+    let res: Vec<(u32, Board)> = out.into_inner().unwrap().into_iter().map(Option::unwrap).collect();
+    let at = |i: usize, j: usize| &res[i * k + j];
+
+    let all: Vec<f64> = res.iter().map(|r| f64::from(r.0)).collect();
+    let grand = all.iter().sum::<f64>() / all.len() as f64;
+    let means: Vec<f64> = (0..f)
+        .map(|i| (0..k).map(|j| f64::from(at(i, j).0)).sum::<f64>() / k as f64)
+        .collect();
+    let ss_between: f64 = means.iter().map(|m| k as f64 * (m - grand).powi(2)).sum();
+    let ss_within: f64 = (0..f)
+        .flat_map(|i| (0..k).map(move |j| (i, j)))
+        .map(|(i, j)| (f64::from(at(i, j).0) - means[i]).powi(2))
+        .sum();
+    let df_b = (f - 1) as f64;
+    let df_w = (f * (k - 1)) as f64;
+    let ms_b = ss_between / df_b;
+    let ms_w = ss_within / df_w;
+    let f_stat = ms_b / ms_w;
+    // Intraclass correlation ICC(1): share of score variance carried by the frame.
+    let icc = ((ms_b - ms_w) / (ms_b + (k as f64 - 1.0) * ms_w)).max(0.0);
+
+    let mut within = Vec::new();
+    let mut between = Vec::new();
+    for a in 0..res.len() {
+        for b in a + 1..res.len() {
+            let d = interior_hamming(&res[a].1, &res[b].1) as f64;
+            if a / k == b / k {
+                within.push(d);
+            } else {
+                between.push(d);
+            }
+        }
+    }
+    let stat = |v: &[f64]| {
+        serde_json::json!({
+            "pairs": v.len(),
+            "min": v.iter().cloned().fold(f64::INFINITY, f64::min),
+            "mean": v.iter().sum::<f64>() / v.len() as f64,
+            "max": v.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+        })
+    };
+    let scores: Vec<Vec<u32>> = (0..f).map(|i| (0..k).map(|j| at(i, j).0).collect()).collect();
+    let report = serde_json::json!({
+        "instance": "official 16x16, 5 interior clues pinned (strict-5/5 preserved; no clue on the ring)",
+        "producer": "frozen BB=60 frame + break-tolerant interior beam, row-major, matched-minus-mismatched tie-break",
+        "design": "every frame completed with every seed (no best-of); one-way ANOVA of score on frame, and interior Hamming within vs between frames",
+        "params": {
+            "frames_generated": f,
+            "frame_gen_attempts": attempts,
+            "interior_beam_width": args.beam,
+            "seeds_per_frame": k,
+            "seed0": args.seed0,
+        },
+        "scores_by_frame": scores,
+        "frame_means": means,
+        "grand_mean": grand,
+        "anova": {
+            "ss_between": ss_between, "df_between": df_b, "ms_between": ms_b,
+            "ss_within": ss_within, "df_within": df_w, "ms_within": ms_w,
+            "f_statistic": f_stat,
+            "icc1_frame_share_of_variance": icc,
+        },
+        "interior_hamming_over_196_cells": {
+            "note": "the 5 pinned clues sit on interior cells, so 191 is the maximum possible",
+            "same_frame_different_seed": stat(&within),
+            "different_frame": stat(&between),
+        },
+    });
+    println!("{}", serde_json::to_string_pretty(&report).unwrap());
+}
+
+// ---------------------------------------------------------------------------
 // args
 
 struct Args {
@@ -494,13 +623,18 @@ struct Args {
     beam: usize,
     seeds: usize,
     seed0: u32,
+    control: bool,
 }
 
 impl Args {
     fn parse() -> Self {
-        let mut a = Self { frames: 12, beam: 128, seeds: 2, seed0: 1 };
+        let mut a = Self { frames: 12, beam: 128, seeds: 2, seed0: 1, control: false };
         let mut it = std::env::args().skip(1);
         while let Some(flag) = it.next() {
+            if flag == "--control" {
+                a.control = true;
+                continue;
+            }
             let val = it.next();
             fn parse<T: std::str::FromStr>(v: &Option<String>) -> Option<T> {
                 v.as_deref().and_then(|s| s.parse().ok())

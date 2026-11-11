@@ -4,13 +4,13 @@ description: >-
   Presque tout petit assemblage de pièces que l'on pourrait construire est
   impossible. Pour un carré 2×2, 99,72 % des façons de placer quatre pièces ne
   pourront jamais s'accorder.
-metaDescription: "Presque chaque petit fragment de pièces d'Eternity II est impossible : pour un carré 2×2, 99,72 % des placements de quatre pièces ne peuvent jamais concorder. Cette densité prouvée de motifs interdits est ce qu'exploite l'arc-cohérence, et pourquoi les mouvements locaux mènent rarement quelque part."
+metaDescription: "Presque chaque petit fragment de pièces d'Eternity II est impossible : pour un carré 2×2, 99,72 % des placements ne concordent jamais, à peu près ce que donne tout jeu aléatoire à 17 couleurs (99,69 % au premier moment). L'arc-cohérence exploite cette densité."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 55
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Motifs interdits : article, code source et résultats (GitHub)"
@@ -77,21 +77,23 @@ $$
 \Pr[\text{one edge matches}] \;\approx\; \frac{1}{17} \;\approx\; 6\%.
 $$
 
-Un carré 2×2 comporte quatre arêtes internes à satisfaire simultanément. Les
-rotations offrent quatre chances à chaque pièce, mais les quatre arêtes sont
-couplées, si bien qu'une estimation d'indépendance faite au dos d'une enveloppe
-situe la probabilité que les quatre s'accordent à très grossièrement
+Un carré 2×2 comporte quatre arêtes internes à satisfaire simultanément, et
+chaque pièce peut prendre quatre rotations. En traitant les quatre arêtes comme
+indépendantes, le nombre attendu, parmi les $4^4$ choix de rotation, de ceux qui
+accordent les quatre arêtes vaut
 
 $$
-\Pr[\text{2}\times\text{2 feasible}] \;\sim\; 1 - \left(1 - \tfrac{1}{17}\right)^{\!c} \ \text{per rotation budget} \;\Rightarrow\; \lesssim 1\%,
+\mathbb{E}[\text{choix de rotation accordés}] \;\approx\; \frac{4^4}{17^4} \;\approx\; 0{,}31\%,
 $$
 
-ce qui est déjà en dessous de un pour cent. Le décompte exhaustif exact aboutit
-à 0,28 % de configurations réalisables, soit 99,72 % d'interdites
-$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. L'estimation est
-grossière parce que les arêtes ne sont pas indépendantes et les couleurs ne
-sont pas uniformes, mais elle donne le bon ordre de grandeur et montre pourquoi
-fermer un carré est bien plus difficile que placer une simple paire.
+une borne supérieure de la probabilité qu'une rotation convienne. Le décompte
+exhaustif exact aboutit à 0,28 % de configurations réalisables, soit 99,72 % d'interdites
+$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. L'estimation
+tombe juste parce que les couleurs sont presque uniformes, et c'est bien le
+point : n'importe quel jeu de pièces aléatoire à 17 couleurs donne à peu près la
+même densité, si bien que 99,72 % est une propriété du nombre de couleurs, pas
+un extrême propre à E2. Elle montre tout de même pourquoi fermer un carré est
+bien plus difficile que placer une simple paire.
 
 ## Les décomptes exacts
 
@@ -123,33 +125,35 @@ partiel qui force une cellule à répondre par l'une de ces 20 paires de coin es
 mort sur-le-champ, avant même qu'une seule pièce ne soit essayée, et un solveur
 rapide peut le rejeter par une simple consultation de table. C'est la même leçon
 que le décompte 2×2, poussée jusqu'à la plus petite unité qui puisse être
-impossible : les contraintes mordent si tôt que des catégories entières
-d'exigence locale n'ont tout bonnement aucune réponse légale.
+impossible. C'est aussi ce que prédit le hasard : les 196 pièces intérieures
+présentent 784 paires de coin, donc sous une peinture aléatoire chacune des 289
+paires ordonnées manque avec une probabilité d'environ $e^{-784/289}$, et le
+nombre attendu d'absences vaut $289\,e^{-784/289} pprox 19{,}2$, contre 20
+observées.
 
 ## Pourquoi c'est important
 
 Un plateau terminé et correct ne comporte aucun assemblage interdit : par
-définition, tout s'accorde. Compter les assemblages interdits d'un plateau
-indique donc à peu près à quelle distance il se trouve d'une véritable solution,
-même lorsque deux plateaux ont le même nombre d'arêtes accordées. Les plateaux
-faibles regorgent de carrés interdits ; les meilleurs plateaux jamais trouvés
-n'en gardent qu'une petite vingtaine.
+définition, tout s'accorde. Sur une quasi-solution, chaque fenêtre 2×2 interdite
+contient une arête rompue, et chaque rupture intérieure appartient à au plus
+deux fenêtres ; le décompte vaut donc à peu près le double du nombre de
+ruptures : les plateaux à 470, avec 10 ruptures, tournent autour de 18 fenêtres
+interdites. Les plateaux faibles regorgent de carrés interdits ; les meilleurs
+plateaux jamais trouvés n'en gardent qu'une petite vingtaine.
 
-Cela montre aussi, sous un autre angle, pourquoi le puzzle résiste aux
-corrections locales astucieuses. Quand 99,72 % des petits carrés sont
-impossibles, les pièces qui s'accordent réellement sont rares et spécifiques.
-Il n'y a presque aucune marge pour réagencer les choses sans casser quelque
-chose. Les bons agencements sont rares et rigides.
+La densité dit que la faisabilité locale est rare pour un assemblage pris au
+hasard. Elle ne rend pas pour autant les bons agencements rigides dans
+l'absolu : il existe 3 993 696 carrés 2×2 réalisables, et
+[les cases intérieures gardent des dizaines de candidates](/research/why/no-forced-moves).
 
 ## Un second axe de progression
 
-Compter les carrés interdits transforme l'idée en un signal exploitable.
-Prenez un vrai plateau record : le nombre de fenêtres 2×2 interdites décroît à
-mesure que le score d'arêtes accordées augmente. Deux plateaux au même score
-d'arêtes peuvent malgré tout différer ici : celui qui compte le moins de carrés
-interdits est structurellement plus proche d'une solution, et c'est pourquoi
-certains solveurs suivent le nombre d'assemblages interdits comme critère de
-départage.
+Compter les carrés interdits rend l'idée visible. Prenez un vrai plateau
+record : le nombre de fenêtres 2×2 interdites décroît à mesure que le score
+d'arêtes accordées augmente, parce qu'il dépend presque entièrement du score. À
+score égal, il mesure surtout le regroupement des ruptures (deux ruptures dans
+une même fenêtre ne comptent qu'une fois). Qu'un plateau avec moins de fenêtres
+interdites à score égal soit plus proche d'une solution n'a pas été mesuré.
 
 <Figure collapsible title="Interactif : comptez les placements réalisables face aux interdits">
   <ForbiddenCountLab />

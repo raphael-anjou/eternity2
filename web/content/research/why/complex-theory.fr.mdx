@@ -10,7 +10,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure, backtracking]
 sources:
   - label: "La forme close du pic de profondeur de Brendan Owen, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -29,6 +29,10 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
   - label: "La mesure profondeur-contre-temps du backtracker par Joe, échantillon de 1 milliard d'itérations (groups.io msg 11725, 2026)"
     url: https://groups.io/g/eternity2/message/11725
+  - label: "Williams et Hogg, Exploiting the deep structure of constraint problems : nombre attendu de solutions partielles par profondeur (Artificial Intelligence 70, 1994)"
+    url: https://doi.org/10.1016/0004-3702(94)90104-X
+  - label: "Knuth, Estimating the efficiency of backtrack programs (Mathematics of Computation 29, 1975)"
+    url: https://doi.org/10.1090/S0025-5718-1975-0373371-6
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
@@ -75,13 +79,22 @@ suffisant pour en discerner la forme.
 | Indices posés                        | Solutions attendues |
 | ------------------------------------ | ------------------- |
 | Un indice (la pièce centrale seule)  | ≈ 14 702            |
-| Les cinq indices officiels           | ≈ 1                 |
+| Les cinq indices officiels           | la solution conçue plus ≈ 4×10⁻⁸ autres |
 
-Avec la seule pièce centrale imposée, le puzzle compte de l'ordre de quinze
-mille solutions ; ajoutez les quatre autres indices et le nombre attendu chute
-à environ $4\times10^{-8}$ : de manière écrasante, exactement une. C'est la
-raison formelle pour laquelle le puzzle à 5 indices possède une unique solution
-conçue.
+Ce sont des moyennes d'ensemble : le nombre attendu de solutions d'un puzzle
+aléatoire aux mêmes statistiques de pièces, pas un décompte des solutions de
+ce puzzle-ci. Avec la seule pièce centrale imposée, l'estimation est de l'ordre
+de quinze mille ; chacun des quatre autres indices la divise par environ
+$196 \times 4 = 784$, ce qui laisse environ $4\times10^{-8}$ solutions autres
+que la solution conçue ($14\,702 / 784^4 \approx 3{,}9\times10^{-8}$). La
+solution conçue est donc très probablement la seule à respecter les cinq
+indices, à condition que le modèle au premier moment vaille pour une instance
+plantée. C'est une inférence heuristique, pas une preuve : les indices ont été
+lus sur la solution plantée, et les quasi-doublons d'une solution plantée
+(des plateaux qui en diffèrent par quelques échanges) lui sont corrélés d'une
+manière que le modèle à arêtes indépendantes ignore. La
+[page sur le comptage des solutions](/research/build/analysis/solution-counting)
+donne les estimations complètes.
 
 ## Les mêmes chiffres, confrontés à la réalité
 
@@ -157,7 +170,7 @@ vitesse brute. C'est de traverser le plateau jusqu'à l'entrée de l'entonnoir
 (vers la profondeur 200), après quoi la recherche s'enchaîne de manière
 déterministe. Et comme la théorie complexe note un ordre de balayage avant de
 l'exécuter, on peut comparer des ordres par la hauteur du pic de leur plateau
-plutôt que par tâtonnement. C'est la version rigoureuse d'une règle que ce site
+plutôt que par tâtonnement. C'est la version chiffrée d'une règle que ce site
 énonce partout : l'ordre de remplissage est un choix de premier plan, et le
 balayage de McGavin, du coin inférieur gauche et de gauche à droite, a été
 retenu parce que la théorie complexe le disait bon.
@@ -177,25 +190,44 @@ coût avant que vous n'exécutiez le moindre nœud.
 
 ## Ce qu'elle ne peut pas voir
 
-La théorie complexe est une estimation au premier moment ; elle est donc
-aveugle à une chose : la question de savoir si les nombreux plateaux partiels
-comptés sont réellement distincts. Les [résultats d'entropie et de loi d'aire](/research/why/entropy-area-law)
-montrent que la distinction s'effondre à mesure que l'aire remplie grandit, un effet du second
-ordre que le modèle à arêtes indépendantes ne peut capter. Servez-vous donc de
-la théorie complexe pour choisir des ordres et lire la forme de l'arbre, jamais
-comme un décompte exact ni comme une borne.
+La théorie complexe intègre déjà la règle d'usage unique : le nombre de
+pièces encore libres à chaque profondeur y entre sous forme de factorielle
+décroissante, $P(n,k) = n!/(n-k)!$, exactement comme dans le C de référence de
+McGavin. Ce qu'elle ignore, ce sont les corrélations. Elle traite les couleurs
+d'arête comme indépendantes, alors que les quatre couleurs d'une même pièce ne
+le sont pas ; elle ne donne que la moyenne, pas la variance (le second
+moment) ; et elle ne sait rien du regroupement des solutions autour d'une
+solution plantée. Elle estime donc une moyenne d'ensemble, pas le décompte de
+cette instance, et les deux peuvent être très éloignés. Servez-vous-en pour
+choisir des ordres et lire la forme de l'arbre. Comme énoncé sur l'ensemble, le
+premier moment reste une borne supérieure de la probabilité qu'un puzzle
+aléatoire ait au moins une solution (inégalité de Markov) ; ce n'est pas une
+borne pour un puzzle donné.
+
+Le même objet est classique dans la littérature sur la satisfaction de
+contraintes. Knuth estimait la taille des arbres de backtracking par sondages
+aléatoires ([1975](https://doi.org/10.1090/S0025-5718-1975-0373371-6)), et
+Williams et Hogg ont calculé le nombre attendu d'affectations partielles
+cohérentes à chaque profondeur, son pic au milieu de l'arbre, et l'écart
+possible entre cette moyenne et les instances typiques
+([1994](https://doi.org/10.1016/0004-3702(94)90104-X)). La théorie complexe est
+ce calcul mené pour l'appariement d'arêtes et calibré sur les pièces
+d'Eternity II.
 
 ## Provenance et validation
 
 La trace écrite de la théorie court à travers la liste de diffusion. Brendan
 Owen a publié le modèle achevé en avril 2008
 ([msg 5197](https://groups.io/g/eternity2/message/5197),
-[5209](https://groups.io/g/eternity2/message/5209)), et a plus tard démontré
-une élégante forme close : pour un ordre de balayage, le pic du nombre de nœuds
-se situe à la profondeur
+[5209](https://groups.io/g/eternity2/message/5209)), et a plus tard établi
+une élégante forme close : si chaque case est posée avec deux contacts et que
+le puzzle a exactement une solution attendue, le pic du nombre de nœuds se
+situe à la profondeur
 $256\,(1 - 1/e) \approx 161.8$
-([msg 8125](https://groups.io/g/eternity2/message/8125)) ; l'entonnoir
-ci-dessus y culmine empiriquement. Peter McGavin a mis la théorie en forme
+([msg 8125](https://groups.io/g/eternity2/message/8125)). Ces deux hypothèses
+sont des approximations pour E2 (le modèle complet donne environ 14 702
+solutions attendues avec l'indice central), et l'entonnoir ci-dessus culmine
+près de cette profondeur. Peter McGavin a mis la théorie en forme
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), a publié le chiffre
 de 14 702 solutions attendues dès 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), et a livré en 2017 sa

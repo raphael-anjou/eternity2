@@ -1,23 +1,23 @@
 ---
-title: "El marco no es la cuenca: un borde distinto no abre un tablero más alto"
+title: "El marco no es la cuenca: con un mismo productor en haz, la elección del borde no movió la puntuación"
 description: >-
   El anillo del borde es la parte más restringida del rompecabezas, así que un
-  borde fuerte distinto debería fijar un interior alto distinto. No lo hace.
-  Muchos bordes completamente emparejados y distintos, cada uno completado por
-  un mismo productor de interior fijo, dan cimas casi máximamente distintas
-  entre sí pero uniformemente bajas, ninguna cerca de la franja récord. El borde
-  diversifica el tablero sin predecir su techo.
-metaDescription: "¿Un borde fuerte distinto de Eternity II abre un interior más alto? No: 28 bordes emparejados distintos se completan en banda de mediados de 430 (mejor 441, estricto 5/5), interiores casi máximamente distintos, ninguno a menos de 14 del récord 455. El marco es laxo; la cuenca vive en el interior."
+  borde fuerte distinto podría fijar un interior alto distinto. Con un mismo
+  productor en haz cuyo techo ronda 440, no ocurre: 28 bordes aleatorios
+  completamente emparejados se completan todos en una banda de 434 a 441, y la
+  dispersión entre bordes no es mayor que la dispersión entre semillas sobre un
+  único borde.
+metaDescription: "¿Un borde distinto de Eternity II abre un interior más alto? Con un haz de anchura 128, 28 bordes emparejados dan 434 a 441 (estricto 5/5), y un control con el mismo borde no detecta efecto (F = 1,24, p = 0,25). Un negativo solo para este productor."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 115
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 scoringConvention: strict-5-clue
 sources:
-  - label: "El marco no es la cuenca: topic de reproducción con el artículo, el productor versionado y los dos archivos JSON de resultados (GitHub)"
+  - label: "El marco no es la cuenca: tema de reproducción con el artículo, el productor versionado y los tres archivos JSON de resultados (GitHub)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/frame-is-not-the-basin
 related:
   - /research/why/ring-purity
@@ -31,10 +31,11 @@ repro:
   produces: search
   scope: >-
     Una ejecución nueva genera sus propios bordes completamente emparejados y
-    completa cada uno con el productor de interior fijo; las cimas exactas varían
-    con la semilla, pero reproduce los hechos cualitativos (cimas casi máximamente
-    distintas, cimas bajas, ningún borde cerca de la franja récord 455) y cae en
-    la banda de puntuación a pocos puntos de la ejecución versionada.
+    completa cada uno con el haz de interior fijo, así que las cimas exactas
+    cambian con la semilla; reproduce los hechos cualitativos (cimas
+    distintas, banda a mediados de 430, ningún borde en el umbral de 455). El
+    control con el mismo borde y varias semillas es un comando aparte descrito
+    en el artículo del tema (--control, alrededor de un minuto en 8 núcleos).
 ---
 
 Hay un atajo tentador para Eternity II. El anillo del borde es la parte más
@@ -47,147 +48,155 @@ alto *distinto*, y construir varios bordes fuertes distintos abriría varias
 cuencas altas distintas. La diversificación por el borde sería una palanca para
 las puntuaciones.
 
-Esta página es la medición que cierra esa puerta. Generar muchos bordes
-completamente emparejados y estructuralmente distintos, y completar cada uno con
-el mismo productor de interior fijo, da cimas casi máximamente distintas entre sí
-y, sin embargo, todas alojadas en la misma banda baja, lejos de la franja récord.
-El borde es un fuerte *diversificador* del tablero resultante y un *selector* de
-calidad inútil. La identidad del marco no predice el techo del interior.
+Esta página pone a prueba ese atajo con un único productor de interior. Generar
+muchos bordes completamente emparejados y estructuralmente distintos, y completar
+cada uno con el mismo haz tolerante a roturas, da cimas que caen todas en la
+misma banda, a mediados de 430. Un control que completa cada borde varias veces
+con semillas distintas muestra que la dispersión entre bordes no es mayor que la
+dispersión entre semillas sobre un mismo borde: con este productor, la elección
+del borde no cambió la puntuación de forma visible. Es una afirmación sobre este
+productor, cuyo techo ronda 440 sea cual sea el borde; si un productor cercano
+al récord vería un efecto del borde no se ha probado aquí.
 
 <div className="grid grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">28</div>
-    <div className="mt-1 text-xs text-muted-foreground">bordes completamente emparejados distintos, dos bases de semillas</div>
+    <div className="mt-1 text-xs text-muted-foreground">bordes emparejados distintos, dos bases de semillas</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">~190 / 196</div>
-    <div className="mt-1 text-xs text-muted-foreground">casillas interiores que difieren entre dos cimas cualesquiera</div>
+    <div className="text-3xl font-bold tabular-nums">p = 0,25</div>
+    <div className="mt-1 text-xs text-muted-foreground">efecto del borde en la puntuación, 16 bordes × 8 semillas (ANOVA de un factor)</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">441</div>
-    <div className="mt-1 text-xs text-muted-foreground">mejor tablero, estricto 5/5, aún a 14 de 455</div>
+    <div className="mt-1 text-xs text-muted-foreground">mejor tablero de las dos ejecuciones principales, estricto 5/5</div>
   </div>
 </div>
 
-Toda puntuación de esta página está bajo la convención estricta de cinco pistas
-(las cinco pistas oficiales respetadas, adyacencias no grises emparejadas sobre
-480); las cinco pistas están en casillas interiores, ninguna en el anillo, así
-que cada completado aquí es un tablero estricto 5/5 legal y el borde queda libre
-de restricción de pista. Para situar estos números frente a los récords
-comunitarios y de cuaderno, véase la [página de récords](/research/records).
+Todas las puntuaciones de esta página siguen la convención estricta de cinco
+pistas (las cinco pistas oficiales respetadas, adyacencias no grises emparejadas
+sobre 480); las cinco pistas están en casillas interiores, ninguna en el anillo,
+así que cada compleción es un tablero estricto 5/5 legal y el borde no queda
+restringido por ninguna pista. El valor 455 que aparece abajo es un umbral fijo
+de «franja alta» heredado del estudio original, no el récord: el récord estricto
+de cinco pistas actual está bastante por encima, y las cifras están en la
+[página de récords](/research/records).
 
-## El marco es un objeto laxo
+## Por qué el marco podría ser un objeto laxo
 
 La razón para dudar del atajo es estructural. El anillo del borde es un problema
-de emparejamiento de aristas cíclico y autónomo sobre cinco colores con
-suministro equilibrado, así que los bordes completamente emparejados son
-astronómicamente abundantes: el marco por sí solo admite, como se sabe desde hace
-tiempo, más de $10^{15}$ disposiciones. Producir versiones estructuralmente
-distintas es trivial, y se acoplan al interior por un único canal de baja
-información: sesenta colores orientados hacia dentro, una palabra frontera que el
-interior debe satisfacer, sobre un interior de 196 casillas y 22 colores. Ese
-canal es demasiado delgado para determinar el interior. La esperanza de que un
-borde distinto fije un interior alto distinto descansa, pues, sobre una
-información que el marco no porta.
+de emparejamiento cíclico autónomo sobre cinco colores con oferta equilibrada, y
+los bordes completamente emparejados se generan con facilidad: la búsqueda
+aleatoria de abajo encuentra uno nuevo casi en cada intento. Se acoplan al
+interior a través de 56 colores orientados hacia dentro (uno por pieza de borde;
+las esquinas no tienen ninguno), una palabra de frontera que el interior debe
+cumplir, frente a un interior de 196 casillas pintado con 17 colores. Ese canal
+es estrecho comparado con el interior, lo que hace esperar que el marco diga
+poco sobre el techo del interior. Es un argumento, no una medición; la medición
+es el experimento que sigue.
 
-El experimento convierte ese argumento estructural en una prueba directa.
+## Qué se midió
 
-## Lo que se midió
-
-Sobre el conjunto oficial de 256 piezas, con las cinco pistas oficiales fijadas:
+Sobre el juego oficial de 256 piezas, con las cinco pistas oficiales fijadas:
 
 1. generar N bordes completamente emparejados y estructuralmente distintos desde
-   cero (una colocación en profundidad aleatorizada sobre las sesenta casillas de
-   borde, gris hacia fuera, cada adyacencia de anillo emparejada, deduplicado por
-   igualdad exacta del anillo);
-2. congelar cada borde y llenar sus 196 casillas interiores con **un** solo
-   productor fijo a presupuesto fijo: un haz tolerante a rupturas que llena el
-   interior fila por fila, puntuando cada candidato por aristas emparejadas menos
-   no emparejadas contra sus vecinos ya colocados (el borde congelado incluido) y
-   podando a un ancho fijo con un desempate por semilla;
-3. reportar la banda de puntuación del tablero completo, la distancia de Hamming
-   por losetas entre los mejores completados, y si algún borde alcanza la franja
-   récord.
-
-Dos preguntas, y solo dos: **¿son distintas las cimas?** y **¿son altas las
-cimas?**
+   cero (colocación aleatoria en profundidad sobre las sesenta casillas del
+   borde, gris hacia fuera, cada adyacencia del anillo emparejada, sin
+   duplicados por igualdad exacta del anillo);
+2. congelar cada borde y llenar sus 196 casillas interiores con **un solo**
+   productor fijo con presupuesto fijo: un haz tolerante a roturas que llena el
+   interior fila a fila, puntúa cada candidato por aristas emparejadas menos
+   aristas rotas frente a sus vecinas colocadas (incluido el borde congelado) y
+   poda a una anchura fija con desempate por semilla;
+3. registrar la banda de puntuación de los tableros completos, la distancia de
+   Hamming por piezas interiores entre las mejores compleciones, y si algún
+   borde alcanza el umbral de 455.
 
 ### La ejecución principal
 
-Dieciséis bordes completamente emparejados estructuralmente distintos, haz de
-interior de ancho 128, tres semillas por borde, se conserva la mejor:
+Dieciséis bordes completamente emparejados y estructuralmente distintos, haz de
+interior de anchura 128, tres semillas por borde, se conserva la mejor:
 
-| Cantidad | Resultado |
+| Magnitud | Resultado |
 | --- | --- |
 | Bordes completamente emparejados distintos generados | 16 (de 17 intentos en profundidad) |
 | Banda de puntuación de las cimas (mín / mediana / máx) | 434 / 437 / 440 |
-| Algún borde alcanza la franja récord (>= 455) | no |
-| Brecha de la mejor cima por borde a 455 | 15 |
-| Hamming por losetas interiores (sobre 196 casillas) | 188 a 191, media 190,4 (120 pares) |
-| Mejor tablero, estricto 5/5, borde aún emparejado | sí y sí (440, 40 rupturas) |
+| Algún borde alcanza el umbral de 455 | no |
+| Distancia de la mejor cima a 455 | 15 |
+| Hamming por piezas interiores (sobre 196 casillas) | 188 a 191, media 190,4 (120 pares) |
+| Mejor tablero, estricto 5/5, borde aún emparejado | sí y sí (440, 40 roturas) |
 
-Las dos filas portantes son la tercera y la penúltima. **Ningún borde alcanza la
-franja récord**: el mejor de los dieciséis marca 440, aún a 15 de 455 y a unos
-20 del máximo estricto 5/5 del cuaderno. Y los completados son **casi máximamente
-distintos**: entre dos cualesquiera, 188 a 191 de las 196 casillas interiores
-difieren. Los bordes diversifican el tablero casi por completo y no seleccionan
-en absoluto su calidad; cada uno de los dieciséis se aloja en una ventana de seis
-puntos, 434 a 440. El mejor tablero de la ejecución, un completado estricto 5/5
-legal de un borde completamente emparejado, se puede visualizar desde el archivo
-de resultados versionado del topic de reproducción.
+Los dieciséis bordes caen dentro de una ventana de seis puntos, de 434 a 440, y
+las compleciones difieren casi en todo: entre dos cualesquiera, 188 a 191 de las
+196 casillas interiores llevan una pieza distinta (191 es el máximo posible,
+porque las cinco pistas están en casillas interiores y siempre coinciden). El
+mejor tablero de la ejecución, una compleción estricta 5/5 legal de un borde
+completamente emparejado, se puede abrir desde el archivo de resultados
+versionado del tema de reproducción.
 
-### La pasada de robustez
+### La segunda base de semillas
 
-Como el objetivo es precisamente que la identidad del marco no importa, el
-resultado debe mostrar que no es un accidente de una sola base de semillas. Una
-segunda pasada independiente (doce bordes, una base de semillas distinta)
-concuerda: banda 434 a 441 (mediana 438), mejor 441 aún a 14 de 455, Hamming por
-losetas interiores 187 a 191 (media 190,3), y el mejor tablero de nuevo un
-completado estricto 5/5 de un borde completamente emparejado. Dos bases de
-semillas independientes, 28 bordes distintos en total, y ninguno cruza 445, y
-mucho menos la franja récord.
+Una segunda pasada independiente (doce bordes, otra base de semillas) coincide:
+banda de 434 a 441 (mediana 438), mejor 441, Hamming interior de 187 a 191
+(media 190,3), y el mejor tablero vuelve a ser una compleción estricta 5/5 de un
+borde completamente emparejado. Entre 28 bordes distintos, ninguno supera 445.
 
-## Por qué un interior más fuerte solo lo afila
+### El control: un borde, varias semillas
 
-Una pasada de cuaderno anterior realizó esta misma prueba con un interior más
-débil, de ajuste duro, que se estancaba en los 250 y nunca se acercaba a la
-franja récord. Esta reproducción sustituye deliberadamente por un productor de
-interior *más fuerte*, el haz tolerante a rupturas de arriba, que siempre llena
-las 196 casillas. Su banda absoluta es por tanto más alta, mediados de 430 en
-lugar de los 250. Eso no ablanda el hallazgo; lo afila. Incluso con un solucionador
-de interior mucho mejor, ningún borde distinto alcanza la franja récord, y los
-bordes siguen siendo casi máximamente distintos. Un interior más fuerte no puede
-hacer informativo al borde, porque el borde es una cáscara aguas abajo, de baja
-entropía, colgada del interior, y no lo que lo fija. La banda es una propiedad del
-solucionador de interior; el hallazgo negativo es una propiedad del acoplamiento
-marco-interior, y es independiente del productor.
+Una banda estrecha entre bordes solo significa algo al lado de la dispersión de
+un único borde. El control completa cada uno de 16 bordes con 8 semillas de haz
+distintas y conserva todos los resultados (128 compleciones, sin quedarse con la
+mejor):
 
-## Qué cierra y qué no cierra
+| Magnitud | Resultado |
+| --- | --- |
+| Las 128 compleciones | 432 a 442 |
+| Puntuación media por borde | 434,5 a 437,4 (media global 436,0) |
+| Cuadrado medio entre bordes / dentro de un borde | 5,88 / 4,75 |
+| ANOVA de un factor, efecto del borde en la puntuación | F(15, 112) = 1,24, p = 0,25 |
+| Parte de la varianza de la puntuación que lleva el borde (CCI) | alrededor del 3 % |
+| Hamming interior, mismo borde, otra semilla | media 184,1 (mín 166, 448 pares) |
+| Hamming interior, bordes distintos | media 190,4 (mín 185, 7680 pares) |
 
-El resultado es un enunciado de rigidez sobre el borde. Cierra la diversificación
-por el borde como ruta hacia mejores puntuaciones: un borde completamente
-emparejado distinto da un tablero distinto, pero no uno más alto, así que no hay
-gradiente que escalar recorriendo el espacio de los bordes. Donde vive realmente
-la información de las puntuaciones altas es en el interior de las filas
-superiores, y esa es exactamente la región que el
-[muro de rigidez](/research/why/rigidity-wall) describe como una isla congelada.
-El marco no fija la cima; la cima se fija a sí misma, y el borde cuelga de ella.
-La contabilidad de la costura que acopla ambos, el equilibrio exacto de colores a
-través de la interfaz borde-interior, es el tema de la
-[página de equilibrio del borde](/research/why/border-balance).
+Se desprenden dos lecturas. El borde no predice la puntuación de forma
+detectable: la dispersión entre bordes tiene el tamaño que produciría el ruido de
+las semillas por sí solo. Y la diferencia casi total entre cimas tampoco se debe,
+en lo esencial, al borde: dos semillas sobre el *mismo* borde ya discrepan en
+unas 184 de las 196 casillas interiores, frente a unas 190 para dos bordes
+distintos. La mayor parte de la diversidad que parecía venir del borde es la
+sensibilidad del productor a su semilla.
 
-Este es un hallazgo negativo de configuración única, acotado con franqueza. Se
-establece puramente a partir de bordes generados desde cero y completados por un
-solo productor fijo, la forma de robustez que el estudio original pedía. No
-intenta el control más difícil de congelar el borde propio de un tablero récord y
-completarlo, lo que requeriría un tablero que no forma parte del kit de inicio
-público; el hallazgo se sostiene sin él. Y la banda absoluta es la del
-solucionador de interior, no una afirmación sobre un dígito exacto: lo que porta
-es la brecha a la franja récord, y se reproduce con margen.
+## Por qué importa la fuerza del productor
 
-Cada número de arriba lo recalcula el productor versionado del topic de
-reproducción enlazado en las fuentes: un programa Rust que carga la instancia
-oficial, genera sus propios bordes completamente emparejados, congela cada uno y
-completa el interior con el único haz fijo tolerante a rupturas, y emite dos
-archivos JSON (la ejecución principal y la pasada con semilla independiente) que
-contienen cada cifra citada aquí.
+Una pasada anterior del cuaderno hizo esta prueba con un interior más débil, de
+ajuste estricto, que se estancaba en los 250. Esta reproducción lo sustituye por
+el haz tolerante a roturas de arriba, que siempre llena las 196 casillas y llega
+a mediados de 430. El negativo se mantiene con ambos productores, pero los dos
+terminan muy por debajo del récord, y un productor cuyo techo es el mismo para
+todos los bordes no puede revelar un efecto del borde que solo aparecería cerca
+de la cima. El resultado es, por tanto, una propiedad de estos productores y de
+este presupuesto, todavía no del acoplamiento entre marco e interior en general.
+
+## Qué muestra esto y qué no
+
+Con estos productores, otro borde completamente emparejado da otro tablero, pero
+no uno mediblemente mejor: la diversificación por el borde no aportó nada aquí.
+La información que hace las puntuaciones altas está probablemente en el
+interior, la región que el [muro de rigidez](/research/why/rigidity-wall)
+describe como una isla congelada, pero este experimento no lo demuestra. La
+contabilidad de la costura que acopla el borde con el interior es el tema de la
+[página del equilibrio del borde](/research/why/border-balance).
+
+El control abierto es el informativo: congelar el borde de un tablero cercano al
+récord y completarlo con un productor capaz de llegar a esa franja, y comparar
+con bordes aleatorios bajo el mismo productor. Hace falta un tablero que no
+forma parte del kit de inicio público y un productor de interior mucho más
+fuerte, y no se ejecuta aquí. Hasta entonces, el negativo se limita a
+productores que tocan techo alrededor de 440.
+
+Cada número de arriba lo recalcula el productor versionado del tema de
+reproducción enlazado en las fuentes: un programa en Rust que carga la instancia
+oficial, genera sus propios bordes completamente emparejados, congela cada uno,
+completa el interior con el único haz tolerante a roturas, y emite tres archivos
+JSON (la ejecución principal, la pasada con semillas independientes y el control
+con el mismo borde) que contienen cada cifra citada aquí.

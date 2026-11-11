@@ -5,20 +5,25 @@ description: >-
   voisins déjà posés que chaque case affronte à l'instant où elle est remplie :
   le total vaut exactement 480, quel que soit l'ordre. Un ordre de remplissage
   ne peut pas ajouter de restriction ; il choisit seulement quand chaque
-  restriction s'applique. Ce qui sépare les ordres, c'est l'immédiateté, la
-  distance entre une décision et sa réfutation, et seuls les extrêmes de ce
-  classement appartiennent au puzzle plutôt qu'au moteur.
-metaDescription: "Sommez les voisins déjà posés de chaque case sur n'importe quel ordre de visite du plateau 16x16 : le total vaut exactement 480. Un ordre n'ajoute aucune restriction, il planifie seulement quand elles s'appliquent. Relier les indices tôt est le pire cas ; le classement fin dépend du moteur."
+  restriction s'applique. Ce qui sépare les ordres, c'est le moment où les
+  vérifications arrivent. Sur le plateau officiel, l'ordre qui relie les
+  indices a été le pire avec les deux moteurs testés ; le reste du classement a
+  changé avec le moteur.
+metaDescription: "Sur tout ordre de visite du plateau 16x16, la somme des voisins déjà posés vaut exactement 480 : un ordre ne fait que planifier les vérifications. Sur le plateau officiel, relier les indices a été le pire ordre avec les deux moteurs testés ; le reste dépend du moteur."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "Le kit de reproduction derrière cette page : vérificateur des comptes de contraintes, solveur simple à deux bras, résultats archivés (research/topics/constraint-immediacy)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+  - label: "Haralick et Elliott, Increasing tree search efficiency for constraint satisfaction problems : le principe d'échec au plus tôt (Artificial Intelligence 14, 1980)"
+    url: https://doi.org/10.1016/0004-3702(80)90051-X
+  - label: "Bollobás et Leader, Edge-isoperimetric inequalities in the grid : quels ensembles de cases d'une taille donnée ont le plus d'arêtes induites (Combinatorica 11, 1991)"
+    url: https://doi.org/10.1007/BF01275667
 related:
   - /research/why/piece-theft
   - /research/why/theorem-sweep
@@ -73,7 +78,7 @@ le total se distribue :
 | border-first | 1 | 58 | 170 | 26 | 1 | 480 |
 
 
-Ces cinq valeurs sont les mesures d'origine du moteur de l'étude source ; la reproduction empaquetée couvre l'invariant et les deux solveurs simples ci-dessous, pas ce tableau.
+Ces histogrammes relèvent de la géométrie exacte, pas d'une mesure de moteur : `repro-korder` les recalcule et les archive dans results/korder-invariance.json.
 
 L'ordre ligne par ligne (row-major) est presque uniforme : passées la
 première ligne et la première colonne, chaque case affronte exactement deux
@@ -97,8 +102,10 @@ corridor ne sont détectées qu'à la fermeture, un sous-arbre entier plus
 tard. Un ordre qui maintient la distance entre une décision et sa réfutation
 près de zéro échoue *tout de suite*, et tout le bénéfice est là.
 
-C'est le principe d'immédiateté des contraintes : restreindre tôt est le bon
-choix exactement quand la restriction teste chaque décision sur-le-champ.
+C'est le principe classique d'échec au plus tôt de la recherche sous
+contraintes ([Haralick et Elliott, 1980](https://doi.org/10.1016/0004-3702(80)90051-X)),
+vu à travers l'ordre de remplissage : restreindre tôt est le bon choix
+exactement quand la restriction teste chaque décision sur-le-champ.
 L'ordre bord-d'abord (border-first) engage en premier le sous-ensemble le
 plus contraint (les 60 pièces de bord, qui n'admettent qu'une seule
 orientation sur le pourtour), si bien que ses restrictions s'appliquent à
@@ -125,10 +132,11 @@ revendication de record, et les tables de records vivent sur
 | row-major | 433 |
 | border-first | 445 |
 
-Un seul principe couvre toute la table : hint-link et la spirale échouent en
-dernier et s'effondrent ; row-major est uniforme et solide ; border-first
-ajoute un test immédiat sur les pièces les plus contraintes et finit en
-tête.
+Sur ce moteur, la table se lit comme un seul principe : hint-link et la
+spirale échouent en dernier et s'effondrent ; row-major est uniforme et
+solide ; border-first ajoute un test immédiat sur les pièces les plus
+contraintes et finit en tête. La contre-épreuve ci-dessous montre combien peu
+de cette lecture survit à un changement de moteur.
 
 ## La contre-épreuve au solveur simple
 
@@ -150,42 +158,51 @@ fichier de résultats archive un lien visionneuse pour chaque plateau final.
 | boustrophédon | 359 | 342 | 193/256 |
 | border-first | 358 | 28 | 35/256 |
 
-Ce qui survit au changement de moteur, ce sont les extrêmes. Hint-link est
+Ce qui survit au changement de moteur, c'est un seul extrême. Hint-link est
 de loin le pire ordre à ajustement parfait, et son score DFS de 44 atterrit
-près du 51 du moteur. Row-major et le boustrophédon forment le milieu de
-tableau solide dans les deux bras. Et sur le plateau officiel, le bras
-glouton garde border-first devant row-major, 358 contre 343, la même
-direction que le 445 contre 433 du moteur.
+près du 51 du moteur ; il est aussi dernier dans le bras glouton (316).
+Row-major et le boustrophédon forment le milieu de tableau solide du bras DFS.
 
-Ce qui ne survit pas, c'est tout le reste. Sous le DFS simple, la spirale ne
-s'effondre plus dans une classe à part (elle fait jeu égal avec
-border-first, ce qui est cohérent avec le fait que les deux ordres partagent
-ici un profil de contraintes identique et les 60 mêmes premières cases), et
-border-first lui-même bute sur un mur de fermeture du pourtour à la
-profondeur 35 sur 256 au lieu de mener. Sur quatre plateaux 16x16 générés
-avec cadre, l'avantage glouton s'inverse purement et simplement : row-major
-gagne le bras glouton sur 4 graines sur 4 et le bras en profondeur sur 3 sur
-4, le score DFS de border-first oscillant de 28 à 366 selon la graine.
-L'énoncé rigoureux de cette page est donc à deux faces : l'invariant et les
-extrêmes appartiennent au puzzle ; le milieu fin de tout classement d'ordres
-de remplissage appartient au moteur qui l'a produit.
+Presque tout le reste change. Dans le bras glouton, la spirale extérieure, un
+ordre qui échoue en dernier selon la lecture ci-dessus, est le *meilleur*
+ordre (366, devant les 358 de border-first et les 343 de row-major). Sous le
+DFS simple, la spirale fait jeu égal avec border-first (les deux ordres
+partagent ici un histogramme de contraintes identique et les 60 mêmes
+premières cases), et border-first lui-même bute sur un mur de fermeture du
+pourtour à la profondeur 35 sur 256 au lieu de mener. Sur quatre plateaux
+16x16 générés avec cadre, row-major bat border-first dans le bras glouton sur
+4 graines sur 4 et dans le bras en profondeur sur 4 sur 4, le score DFS de
+border-first oscillant de 28 à 366 selon la graine. L'énoncé défendable est
+donc étroit : l'invariant est exact ; sur le plateau officiel, hint-link a été
+le pire avec les deux moteurs testés ; l'effondrement de la spirale et l'avance
+de border-first n'ont pas survécu à un changement de moteur. Faire même du
+résultat de hint-link une propriété du puzzle demanderait davantage de
+plateaux et de moteurs.
 
 ## Où reste le levier
 
-La loi de conservation borne ce que la géométrie seule peut faire. Un profil
-uniforme à deux contraintes est le meilleur calendrier qu'un ordre de visite
-puisse atteindre, puisque les cases affrontant trois ou quatre voisines
-posées n'existent qu'en aval de cases posées presque sans vérification.
-Row-major atteint déjà ce profil, et les vingt ans d'ingénierie
-communautaire des ordres de remplissage recensés sur la
+La loi de conservation borne ce que la géométrie seule peut faire. Tout ordre
+paie les mêmes 480 vérifications ; ce qu'un calendrier contrôle, c'est leur
+précocité, c'est-à-dire le nombre d'arêtes induites parmi les $d$ premières
+cases posées, pour chaque $d$. C'est ce profil des préfixes, et pas le seul
+histogramme des $k$, dont dépend l'estimation de largeur de la
+[théorie de la complexité](/research/why/complex-theory) : la spirale
+extérieure et border-first partagent un histogramme et se sont pourtant
+comportés différemment ci-dessus. Maximiser le nombre d'arêtes induites de
+chaque préfixe est le problème edge-isopérimétrique sur la grille
+([Bollobás et Leader, 1991](https://doi.org/10.1007/BF01275667)), dont les
+ensembles optimaux croissent en blocs presque carrés plutôt qu'en rangées.
+Row-major est proche de cet optimum sans l'atteindre : 64 cases posées en
+quatre rangées de 16 induisent 108 arêtes, un bloc 8x8 en induit 112. Les
+vingt ans d'ingénierie communautaire des ordres de remplissage recensés sur la
 [page des ordres de remplissage](/research/build/backtracking/fill-order)
-sont des raffinements à l'intérieur de ce cadre. Toute liaison précoce
+travaillent dans cette marge étroite. Toute liaison précoce
 supplémentaire doit être informationnelle plutôt que géométrique : propager
 ce que la réserve de pièces restante peut encore servir (le mode d'échec que
 rend visible le [vol de pièce](/research/why/piece-theft)), des a priori de
 placement, des réserves de candidats restreintes, des portes d'élagage
 calculées. L'invariance elle-même est un petit énoncé exact dans l'esprit du
 [balayage de théorèmes](/research/why/theorem-sweep) : peu profond, mais il
-ferme une porte proprement. Personne ne rétrécira cette recherche en
-déroutant le chemin à travers le plateau ; les 480 vérifications sont dues
+ferme une porte proprement. Dérouter le chemin à travers le plateau ne
+supprime aucune vérification ; les 480 vérifications sont dues
 en totalité, sur tout chemin, et seul leur calendrier vous appartient.
