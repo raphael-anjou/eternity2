@@ -1,10 +1,10 @@
 ---
 title: PRIOR
 description: >-
-  Construire un plateau à partir de rien, en départageant les égalités selon la
-  position habituelle des pièces dans les bons plateaux déjà connus. Il atteint
-  un score élevé sans aucun plateau de départ à copier.
-metaDescription: "PRIOR construit un plateau d'Eternity II à partir de rien, départageant selon l'endroit où les pièces se placent d'ordinaire dans les plateaux forts connus. Il atteint 460 sur 480 sans plateau de départ à copier — un test de la capacité d'un prior positionnel à guider seul la construction."
+  Construire un plateau à partir d'une grille vide, en départageant les égalités
+  selon la position habituelle des pièces dans les bons plateaux déjà connus : un
+  prior positionnel qui agit comme un gabarit souple de ces plateaux.
+metaDescription: "PRIOR construit un plateau d'Eternity II depuis une grille vide, départageant selon la position habituelle des pièces dans les plateaux forts. Guidé par ce prior et un raffinement, il atteint 460 sur 480 ; la part de construction et celle de rappel du corpus restent ouvertes."
 kind: experiment
 hardware:
   cores: 8
@@ -42,7 +42,7 @@ stages:
     does: "A short local-refinement tail lifts the mid-450s construction to the committed 460"
     published: false
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, learning]
 related:
@@ -94,17 +94,21 @@ Aucun plateau n'est copié à l'unité ; la guidance est statistique.
 
 ## Le résultat
 
-En partant de zéro, PRIOR atteint le milieu des 450, et avec un prior plus
-tranché construit à partir des tout meilleurs plateaux uniquement, il monte plus
-haut. Suivi d'un raffinement local, il atteint 460, le plateau montré ici. Le
-fait qu'une construction à partir de rien se rapproche autant des records, c'est
-là tout le propos : la structure des bons plateaux est en partie apprenable, et
-il n'est pas nécessaire d'en partir pour y arriver.
+En partant d'une grille vide, PRIOR atteint le milieu des 450, et avec un prior
+plus tranché construit à partir des tout meilleurs plateaux uniquement, il monte
+plus haut. Suivi d'un raffinement local, il atteint 460, le plateau montré ici. La
+construction part sans plateau, mais son départage est une matrice 256×256 de
+fréquences pièce-case extraite de plateaux forts, si bien qu'un prior tranché agit
+comme un gabarit souple de ces plateaux. La page ne consigne ni la distance de
+Hamming entre ce 460 et le plateau du corpus le plus proche, ni le score du même
+faisceau sans prior à budget égal : la part de construction et la part de rappel du
+corpus restent donc ouvertes.
 
-Ce n'est pas le meilleur score du projet (463), et le gain final s'appuie ici
-sur une étape de raffinement, ce que l'étiquette du plateau signale. Mais en tant
-que résultat sur table rase, c'est le plus solide du projet, et c'est la base sur
-laquelle les constructeurs multi-signaux ultérieurs ont grandi.
+Ce n'est pas le meilleur score du projet (voir les [records](/research/records)), et
+le gain final s'appuie ici sur une étape de raffinement, ce que l'étiquette du
+plateau signale. En tant que construction depuis une grille vide, c'est le plus
+solide du projet, avec cette réserve, et c'est la base sur laquelle les
+constructeurs multi-signaux ultérieurs ont grandi.
 
 ## Méthode
 

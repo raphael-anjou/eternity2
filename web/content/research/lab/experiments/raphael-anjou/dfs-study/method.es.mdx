@@ -11,7 +11,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -93,9 +93,8 @@ página:
   variantes más lentas llevan una salvedad que vale la pena enunciar con
   franqueza: el motor MRV elige la celda más restringida recorriendo la lista de
   candidatos de cada celda vacía en cada nodo, lo cual es intrínsecamente más pesado
-  que un orden de relleno fijo. Dos optimizaciones que preservan el comportamiento lo
-  acercan a unas pocas veces el coste de los motores rápidos, en lugar de los miles de
-  veces que valía antes: la búsqueda de la celda más restringida deja de contar los
+  que un orden de relleno fijo. Dos optimizaciones que preservan el comportamiento
+  recortan ese coste: la búsqueda de la celda más restringida deja de contar los
   candidatos de una celda en cuanto superan la mejor celda encontrada hasta ahora
   (una búsqueda de mínimo nunca necesita el recuento exacto de una celda que no puede
   ganar), y evita reverificar las aristas sobre las que la lista de candidatos ya está
@@ -103,9 +102,11 @@ página:
   forma plenamente incremental de una colocación a otra, cosa que sí haría un
   solucionador CSP de producción; ese último paso tendría que rastrear cómo una pieza
   recién usada afecta al recuento de cada celda, y se deja de lado aquí para mantener
-  el motor legible. La clasificación por puntuación no depende de nada de esto, puesto
-  que el rendimiento es un eje aparte, pero la tasa de nodos MRV debe leerse como la de
-  este motor limpio y no como la mejor posible de MRV.
+  el motor legible. Aun así, la rejilla versionada corre las variantes MRV a entre
+  6.000 y 8.000 nodos por segundo, unas 4.000 a 7.000 veces más lento por nodo que el
+  recorrido por filas, así que las puntuaciones y profundidades de la familia
+  heurística a sesenta segundos son las de esta implementación, no las de MRV en su
+  mejor versión; un MRV más rápido podría llegar más lejos con el mismo presupuesto.
 - **profundidad máxima alcanzada**: la colocación más profunda que hizo la
   búsqueda, de 256, la medida del estudio de cuánto avanzó una variante. El
   backtracking estricto choca contra un muro en los 200 bajos (por filas 208, la
@@ -132,8 +133,13 @@ caliente, y ninguna asignación dentro de la búsqueda. Su gemela, `NAIVE-CODEGE
 el *mismo algoritmo* reexpresado como un bucle caliente especializado a mano, solo
 16×16, por filas, mantenido como programa separado para que el motor general se
 conserve limpio. Ponerlos a competir cara a cara pone precio a la ingeniería de bajo
-nivel: en este puzzle compra una ganancia de rendimiento modesta y dependiente de la
-instancia y, notablemente, ninguna mejor puntuación. Los números están en la
+nivel: en este puzzle compra un rendimiento mediano mayor (44,9 frente a 32,4 millones de
+nodos por segundo) y, notablemente, ninguna mejor puntuación: la gemela en codegen puntúa
+algo más bajo en nueve de las diez instancias. El tamaño de la ganancia instancia por
+instancia no es fiable, porque la rejilla corrió seis tareas de un solo hilo a la vez en
+un M1, que tiene cuatro núcleos de rendimiento y cuatro de eficiencia, y los ritmos del
+codegen se reparten en dos grupos (unos 37 y 46 millones) sin causa ligada a la
+instancia. Los números están en la
 [página de hallazgos](/research/lab/experiments/raphael-anjou/dfs-study/findings).
 
 ## Corrección de los propagadores

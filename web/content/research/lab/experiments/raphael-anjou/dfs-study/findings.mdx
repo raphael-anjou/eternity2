@@ -5,13 +5,13 @@ description: >-
   (row-major wins, a bad order is catastrophic), heuristics (MRV rescues
   border-first but costs throughput; more propagation did not help), and breaks
   (they smash the depth wall; the break schedule is the lever, not the per-cell cap).
-metaDescription: "The DFS study's findings: fill order, heuristics and breaks compared on Eternity II. Row-major wins; MRV rescues border-first; breaks smash the depth wall past depth 245 to the low 430s. On a pinned grid, McGavin and Blackwood collapse: node count is not score."
+metaDescription: "The DFS study's findings: fill order, heuristics and breaks compared on Eternity II. Row-major wins; MRV rescues border-first; breaks smash the depth wall past depth 245 to the low 430s. On a pinned grid, McGavin and Blackwood collapse."
 kind: page
 contribution: measurement
 author: raphael-anjou
 rigor: measured
 order: 20
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, speed]
 related:
@@ -39,10 +39,12 @@ families.
 The two baselines run the *same* strict row-major algorithm: `NAIVE-CLEAN` as a
 readable general engine, `NAIVE-CODEGEN` as a hand-specialised, row-major-only
 16×16 hot loop. The specialisation delivers what it should on the axis it targets.
-`NAIVE-CODEGEN` is meaningfully faster per node, by up to a third on some
-instances. On *score* the two are a wash, a point or two apart at sixty seconds
-and well inside the run-to-run spread, which is the fair reading rather than a
-claim that specialisation *hurts*. At a fixed wall-clock a faster engine reaches a
+`NAIVE-CODEGEN` is faster per node, median 44.9 against 32.4 million nodes per
+second; the per-instance gain is not reliable, because the grid ran six jobs at once
+and the codegen rates split into two clusters with no instance-related cause. On
+*score* the codegen twin is slightly lower on nine of the ten instances (by one to
+ten points): specialisation did not buy score here, a small consistent gap rather
+than a large harm. At a fixed wall-clock a faster engine reaches a
 different point of the same tree, and a backtracker's best partial does not move
 monotonically with how fast it got there. The baselines are therefore a clean
 *speed* comparison and are deliberately not presented as a *score* comparison. The
@@ -62,11 +64,11 @@ The six orders differ only in where the search sends its frontier, shown below.
   constant, since every new cell has the same two placed neighbours, so it reaches
   deep before the strict wall.
 - **A strict border-first or spiral fill collapses.** Filling the border ring
-  first, with no look-ahead, walks straight into the hardest corner and edge
-  constraints and stalls almost at once, near a mean of 67 at depth 66 or so. The
-  spiral pays the same closure tax.
-- **Bottom-up row-major fares worse still on this clue geometry** (mean 226, but
-  as low as 18 on some variants), because the pinned clues sit in rows the
+  first, with no look-ahead, closes the 60-cell frame and then stalls a few cells
+  into the interior (depth 66 to 77, mean score 67): the first frame it commits to
+  apparently admits no interior completion it can reach, and chronological backtracking
+- **Bottom-up row-major is erratic on this clue geometry** (mean 226, from 366
+  down to 18 depending on the instance), because the pinned clues sit in rows the
   bottom-up fill reaches early and cannot satisfy.
 
 Same engine, same sixty seconds, a swing of more than 300 points from the fill
@@ -84,28 +86,28 @@ Now fix the path near the frame and add one thing at a time. The largest lever i
 **MRV**, filling the most-constrained empty cell next, chosen dynamically. It
 turns the stalled border-first (mean 67) into a search that averages 324 (best
 341) at depth 190 or so. It also recomputes the most-constrained cell over the
-whole frontier at every step, so node throughput falls by three orders of
-magnitude, from tens of millions of nodes per second to a few thousand. Each node
-is worth far more, and far fewer of them are visited. Node rate and score are
-different axes.
+whole frontier at every step, so in the committed runs node throughput falls by
+nearly four orders of magnitude, from tens of millions of nodes per second to
+6,000 to 8,000. Far fewer nodes are visited, and each one goes further. Node rate
+and score are different axes.
 
-Adding heavier look-ahead on top did **not** buy more score at this budget.
+Adding heavier look-ahead on top did **not** buy more score at this budget. Every
+run uses one seed and is deterministic, so the only variation is across the ten
+shared instances, and the comparisons below are paired per instance.
 
 - **Forward-checking** (reject a placement that empties a neighbour's domain)
-  averaged 322.
-- **Arc-consistency** and the **per-colour supply check** averaged 321 each. With
-  a per-variant score spread of about 11 points over the ten instances, that
-  one-point gap is well within the noise: the three propagators are statistically
-  indistinguishable here, so the fair reading is that heavier look-ahead neither
-  helped nor clearly hurt, rather than that forward-checking won.
-- A **rare-colour-first** value ordering was inert, no better than plain insertion
-  order, echoing the community's repeated negative result on within-bucket value
-  orders.
+  averaged 322, two or three points *below* plain MRV on nine of ten instances.
+- **Arc-consistency** and the **per-colour supply check** averaged 321 each, and
+  returned identical scores on all ten instances. Against forward-checking the
+  paired differences are mixed (forward-checking higher on seven instances, lower
+  on one by fifteen points), so no propagator leads here.
+- A **rare-colour-first** value ordering was inert, identical to plain MRV on nine
+  of ten instances, echoing the community's repeated negative result on
+  within-bucket value orders.
 
 The lesson is not that propagation is useless. It is that at a small fixed budget,
-on this instance, the cheapest useful prune (forward-checking) already captures
-whatever benefit is available, and more expensive reasoning does not recover its
-extra per-node cost within sixty seconds.
+on these instances and with this implementation's MRV cost, no extra reasoning
+recovered its per-node cost within sixty seconds.
 
 ## Breaks: past the wall, and the schedule is the lever
 
@@ -130,16 +132,20 @@ edges. The score of a full board is then `480 − #breaks`.
   to pay off; at this budget the extra freedom mostly widens the branching without
   reaching better boards. This is a null result, reported as measured rather than
   the gain one might expect.
-- **The schedule is the decisive lever.** Verhaard's slip ladder unlocks breaks
-  much earlier than Blackwood's (depth 193 against 201) and here scores markedly
-  worse (mean 399 against 431), because unlocking early spends the budget on
-  shallow breaks. When and how fast breaks open is a tuning decision rather than a
-  detail.
+- **The schedule is a lever, but its effect here is bimodal.** Verhaard's slip
+  ladder unlocks breaks earlier than Blackwood's (depth 193 against 201) and scores
+  lower on average (mean 399 against 431). The mean hides two outcomes: on four of
+  the ten instances it matches Blackwood's ladder (428 to 430, using nine or ten
+  breaks), and on the other six it stalls near 380 having committed only two or
+  three breaks, with most of its break budget unspent. Why it stalls on those six
+  is not established. When and how fast breaks open is a tuning decision rather
+  than a detail.
 
-These break numbers sit alongside the sibling benchmark's from-scratch
-Blackwood-style and Verhaard-style reimplementations, which reach the high 430s on
-the same five clues. The agreement from an independent engine cross-validates the
-break machinery here.
+A naming note: VERHAARD-SLIP here is a break backtracker run on Verhaard's slip
+schedule. It is a different algorithm from the swap-annealing "Verhaard
+reimplementation" on the [engines page](/research/lab/experiments/raphael-anjou/engines),
+and the two scores do not cross-check each other. The break bookkeeping here is
+checked by the canonical rescorer, which recounts every returned board.
 
 ## Where the community engines sit: two grids
 
@@ -149,15 +155,17 @@ every score canonically rescored from the engine's own board. The result is a
 finding in its own right, and it has two halves.
 
 **On the pinned grid, they collapse.** McGavin's C, built with its author's own ARM
-flags (native tuning plus link-time optimisation), reaches depth 211 on the plain
-centre-clue puzzle at about 85 million tiles per second, well ahead of our fastest
-strict engine, yet pinning three corners collapses it to depth 21, a canonical
-score of 13. Its generated scan path never visits the corners early, so a pinned
-corner constrains its neighbourhood at once and dead-ends the fixed path almost
-immediately. Blackwood's C# hardcodes its piece set and scan, so it cannot even
-express an arbitrary corner pin; on the matching five-clue constraint its break
-heuristic thrashes to depth 47, a canonical score of 75, because it is tuned for
-the near-unconstrained one-clue instance where its 470 record was set.
+flags (native tuning plus link-time optimisation), reaches depth 205 to 211 on the
+unpinned and official-clue instances (it counts tiles placed, a different event from
+our search nodes, so its rate is not compared with ours here), yet pinning three
+corners collapses it to depth 21, a canonical score of 13. Its generated scan path
+never visits the corners early, so a pinned corner constrains its neighbourhood at
+once and dead-ends the fixed path almost immediately. Blackwood's C# hardcodes its
+piece set and scan, so it cannot even express an arbitrary corner pin; on the
+matching five-clue constraint its break heuristic thrashes within the first few
+dozen cells (the committed records give 34 and 47 cells, a canonical score of 75),
+because it is tuned for the near-unconstrained one-clue instance where its record
+was set.
 
 <Figure title="The corner-pin collapse: cells placed out of 256">
   <PinCollapseDiagram />
@@ -171,19 +179,27 @@ pinned grid.
 
 **On a fair unpinned grid, they run as designed.** Give every engine the official
 pieces with only the one mandatory centre clue, and nothing dead-ends on a corner.
-In sixty seconds on one core, McGavin reaches 392, our strongest break engine 344,
-the Verhaard reimplementation 286, and Blackwood 214. Read those as what a single
-core buys in a minute from a cold start, not as any engine's ceiling: Blackwood's
-470 and McGavin's deep runs came from days on hundreds of cores, which this budget
-cannot show. What the grid does show is that all four run properly once the pins
-that break a fixed scan path are gone, which is exactly what the pinned grid denied
-the two foreign engines. Both grids are on the study's leaderboard above.
+In sixty seconds, single-threaded, McGavin reaches about 390 (the committed record
+gives both 385 and 392 for this run), our strongest break engine 344, the Verhaard
+reimplementation 286, and Blackwood 214. Each row is in effect one deterministic run:
+the three seeds return identical scores, so they are not replicates. Read those as
+what a single thread buys in a minute from a cold start, not as any engine's
+ceiling: the community's record boards (see [records](/research/records)) came from
+far longer runs on many cores, which this budget cannot show. What the grid does
+show is that all four run properly once the pins that break a fixed scan path are
+gone, which is exactly what the pinned grid denied the two foreign engines. Both
+grids are on the study's leaderboard above.
 
 ## The through-line
 
-One theme runs through all three comparisons: **node count is not score.** The
-fastest variants per node (the codegen baseline and the strict row-major engine)
-do not reach the best boards; the slowest per node (MRV with propagation) reaches
-far better ones; and the breaks that win do so by changing *which* branch is
-legal, not by visiting branches faster. Raw speed is a constant factor, while
-where and whether the search is allowed to go is the exponential one.
+One theme runs through all three comparisons: **at a fixed sixty-second budget, what
+the search is allowed to do mattered more than how fast it did it.** The fastest
+strict variant per node (the codegen baseline) scores slightly *below* plain
+row-major, lower on nine of the ten instances by up to ten points, and the slowest
+strict variants (MRV with propagation, 6,000 to 8,000 nodes per second) score about
+55 points below it. The only variants that beat row-major are the break variants,
+which run at a few million nodes per second with no propagation and win by changing
+*which* branch is legal: a relaxation of the matching rule, not smarter per-node
+reasoning. This is one budget, one machine and one seed per instance. It does not
+show that throughput is irrelevant, only that within this grid the constraint
+mattered more than the speed.

@@ -3,9 +3,10 @@ title: Una poda correcta por conteo de colores para la búsqueda tolerante a rup
 description: >-
   Llevar, color a color, la oferta de semiaristas frente a la demanda del
   frente en un DFS con presupuesto de rupturas, y podar en cuanto el déficit o
-  su paridad superan las rupturas restantes. Correcto por construcción; la
-  ganancia se compone con la profundidad.
-metaDescription: "LEDGER es una poda global correcta para el DFS de Eternity II tolerante a rupturas: oferta contra demanda por color frente al presupuesto restante. Cero disparos erróneos en todas las repeticiones; en las colas de los tableros 464 la razón de nodos se compone de 1,7x a 45,3x sin censura."
+  su paridad superan las rupturas restantes. Correcto por construcción, una
+  cota de conteo de la familia Max-CSP; en el único tablero sin censura la
+  ganancia sube en las filas profundas.
+metaDescription: "LEDGER es una poda global correcta para el DFS tolerante a rupturas de E2: oferta contra demanda por color frente al presupuesto restante. En el único tablero 464 cuyas colas quedan sin censura, la razón de nodos sube de 1,7x a 45,3x al crecer a la vez profundidad y presupuesto."
 kind: experiment
 contribution: method
 author: raphael-anjou
@@ -25,7 +26,7 @@ repro:
   cmd: "just research-ledger-prune"
   scope: "reejecuta la puerta de corrección, la malla A/B sobre tableros generados y las filas de certificado en las colas de los 464; los conteos de nodos son deterministas por semilla, pero qué brazos se censuran en los topes de tiempo depende de la máquina"
 order: 40
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, structure]
 related:
@@ -36,18 +37,28 @@ related:
 sources:
   - label: "El topic de reproducción ledger-prune: código, plan y resultados en el repositorio"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/ledger-prune
+  - label: "Freuder & Wallace (1992), Partial constraint satisfaction, Artificial Intelligence 58: ramificación y poda con cotas por conteo de violaciones"
+    url: https://doi.org/10.1016/0004-3702(92)90004-H
+  - label: "Larrosa & Schiex (2004), Solving weighted CSP by maintaining arc consistency, Artificial Intelligence 159: cotas por consistencia de arco suave"
+    url: https://doi.org/10.1016/j.artint.2004.05.004
 ---
 
 La búsqueda de puntuaciones altas en Eternity II corre con una tolerancia a
 rupturas: el DFS puede colocar una pieza discordante mientras el total de
-rupturas cobradas quepa en un presupuesto. En ese marco casi ninguna poda
-clásica es correcta, porque el presupuesto es un recurso global; una rama que
-parece localmente muerta puede salvarse gastando una ruptura en un lugar
-completamente distinto. Me pregunté si una prueba de conteo puramente global
-podía podar de todos modos, sin cortar jamás una compleción que quepa en el
-presupuesto. Se puede: cero disparos erróneos en todas las repeticiones, y
-reducciones de nodos que se componen con la profundidad, aunque su magnitud
-depende del motor.
+rupturas cobradas quepa en un presupuesto. En ese marco la poda por
+restricciones duras no se aplica tal cual: una rama que parece localmente
+muerta puede salvarse gastando una ruptura en otro lugar. La búsqueda es una
+ramificación y poda Max-CSP, y las cotas correctas para ella son clásicas:
+contar las violaciones inevitables, como hacen el forward checking parcial y
+los conteos de inconsistencia de arco dirigidos (Freuder y Wallace 1992) o la
+consistencia de arco suave (Larrosa y Schiex 2004). LEDGER es una cota de esa
+familia, calculada globalmente a partir de conteos por color en lugar de
+celda a celda. La pregunta era si poda sin cortar jamás una compleción que
+quepa en el presupuesto. Lo hace: cero disparos erróneos en todas las
+repeticiones, y reducciones de nodos que suben en las filas profundas del
+único tablero del todo sin censura, aunque su magnitud depende del motor. Aún
+no se ha comparado con una simple cota por conteo de inconsistencias celda a
+celda.
 
 ## Cómo funciona
 
@@ -108,13 +119,13 @@ de convención de cobro. Ese tablero es el tablero 1 del estudio original.
 | Cero disparos erróneos repitiendo colas reales con holgura cero | 0 disparos en 8 tableros x 257 profundidades | reproducido |
 | La poda nunca cambia la respuesta | compleciones idénticas en los 144 pares A/B sin censura | reproducido |
 | Razón de nodos por encima de 1 con presupuestos pequeños | los 96 pares de la malla por encima de 1 (mín 1,48x) | reproducido |
-| La razón se compone con la profundidad (1,5x, 140x, 995x, 4.330x) | 1,7x, 19,4x, 45,3x; la fila más profunda censurada | forma reproducida, magnitud ligada al motor |
+| La razón crece en las filas profundas (1,5x, 140x, 995x, 4.330x) | 1,7x, 19,4x, 45,3x en un tablero; la fila más profunda censurada; los otros tableros censurados más allá de 12,1x | sentido visto en un tablero, magnitud ligada al motor |
 | Nulo con presupuesto grande (~0,1 por ciento de disparos) | la sonda quedó en el régimen activo (76 a 82 por ciento) | no probado aquí |
 
 En el tablero 464 identificado, con presupuestos idénticos a los originales
 (r = 5 y r = 6 en las filas profundas), el agotamiento halló exactamente una
 compleción en cada profundidad sin censura, la forma de certificado que el
-original reporta, y la razón se compone:
+original reporta, y la razón sube:
 
 <Figure collapsible title="Filas de certificado en el tablero 464 (girado 180°, presupuestos sin holgura)">
 
@@ -127,10 +138,16 @@ original reporta, y la razón se compone:
 
 </Figure>
 
-Un multiplicador que crece con la profundidad es la firma de una reducción del
-factor de ramificación, la única clase de aceleración que sobrevive al cambio
-de escala (el argumento está desarrollado en
-[la poda vence a la velocidad](/research/why/prune-vs-speed)).
+Profundidad y presupuesto cambian a la vez en estas filas (r = 2, 5, 6), así
+que el crecimiento no puede atribuirse solo a la profundidad; separarlos
+requiere filas con el presupuesto fijo. Los otros dos tableros 464 aportan
+poco: 464-basinB-b1 dio 2,0x a profundidad 232 y 12,1x a profundidad 224
+(r = 6), con ambos brazos censurados más abajo, y 464-basinB-b2 dio 2,0x a
+profundidad 232 y quedó censurado desde la profundidad 224. Tres puntos sin
+censura en un tablero muestran una razón que sube, no una ley de composición.
+Por qué una reducción del factor de ramificación pesa más que una aceleración
+de factor constante en la búsqueda exhaustiva se argumenta en
+[la poda vence a la velocidad](/research/why/prune-vs-speed).
 
 ## Alcance y límites
 

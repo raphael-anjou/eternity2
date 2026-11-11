@@ -4,13 +4,13 @@ description: >-
   Algunos motores de Eternity II vuelcan su esfuerzo en recorrer el árbol de
   búsqueda lo más rápido posible; otros lo gastan en el criterio sobre dónde
   buscar. Este es el alegato a favor de los primeros - qué compra el rendimiento
-  bruto, las tres cosas distintas que la gente llama «rápido» y por qué el motor más
-  rápido jamás construido sigue sin poder resolver el rompecabezas.
-metaDescription: "Una guía de solucionadores de Eternity II centrados en la velocidad: qué compra el rendimiento bruto, los tres sentidos distintos de «rápido» (colocaciones/s, aristas casadas sobre 480 y agregado del enjambre), y por qué el motor más rápido de la comunidad sigue sin resolver el rompecabezas."
+  bruto, las tres cosas distintas que la gente llama «rápido» y por qué ni el motor
+  más rápido puede agotar el árbol de búsqueda del rompecabezas.
+metaDescription: "Guía de solucionadores de Eternity II centrados en la velocidad: qué compra el rendimiento bruto, los tres sentidos de «rápido» (colocaciones/s, aristas casadas sobre 480, agregado del enjambre) y por qué el motor de un núcleo más rápido no puede agotar el árbol de búsqueda."
 kind: concept
 author: raphael-anjou
 order: 35
-updated: 2026-07-20
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -36,10 +36,11 @@ Esta página es el alegato a favor de los primeros: qué compra de veras ir ráp
 compra, y cómo hablar de ello sin engañarse.
 
 Es también el hogar conceptual de un resultado concreto: un
-[backtracker de Rust portable que iguala el C afinado a mano de McGavin en tableros difíciles](/research/lab/experiments/raphael-anjou/jit-backtracker)
- - el motor más rápido de la historia de la comunidad - y corre a alrededor del 44 % de su
-velocidad en los fáciles. Aquella página es el diario de ingeniería; esta es lo que el
-diario *significa*.
+[backtracker de Rust portable a un 5 % del C afinado a mano de McGavin en un tablero de referencia difícil](/research/lab/experiments/raphael-anjou/jit-backtracker)
+(el suyo es el motor de CPU de un núcleo publicado más rápido; los portes a GPU alcanzan
+ritmos agregados mucho mayores, véase [la resolución en GPU](/research/build/hardware/gpu-solving)),
+y a alrededor del 44 % de su velocidad en uno fácil. Aquella página es el diario de
+ingeniería; esta es lo que el diario *significa*.
 
 ## Tres cosas que la gente llama «rápido»
 
@@ -110,38 +111,50 @@ verificar, «no le haremos mella» al espacio
 ([msg 11657](https://groups.io/g/eternity2/message/11657)).
 
 La aritmética es implacable y es la [lección central](/research/why/prune-vs-speed) del
-sitio: una aceleración de factor constante, por muy trabajada que sea, se *multiplica
-contra* un número tan grande que ningún factor constante importa. Duplicar la velocidad
-de recorrido de una búsqueda que tardaría 10³² años da una búsqueda que tarda 5 × 10³¹
-años. Encoger el *árbol* es la única palanca con exponentes.
+sitio para la búsqueda exacta: una aceleración de factor constante, por muy trabajada que
+sea, se *multiplica contra* un número tan grande que ningún factor constante importa.
+Duplicar la velocidad de una búsqueda que tardaría 4,9 × 10³² años da una búsqueda que
+tarda unos 2,5 × 10³² años. Esa cifra es el tiempo para *agotar* el árbol de cinco
+pistas. Con las cinco pistas, el número esperado de soluciones ronda una, así que es
+también aproximadamente el tiempo hasta una primera solución; con solo la pista central,
+el número esperado sube a unas 14.702, pero el árbol crece con él (véase
+[contar soluciones](/research/build/analysis/solution-counting)), y el tiempo esperado
+hasta una primera solución sigue siendo astronómico. Encoger el *árbol* es la única
+palanca con exponentes. La caza de récords es otro juego: una búsqueda estocástica más
+rápida hace más intentos, y más intentos pueden plausiblemente subir la mejor
+puntuación, con rendimientos decrecientes.
 
 ## El experimento controlado
 
 Por eso justamente el [resultado del backtracker JIT](/research/lab/experiments/raphael-anjou/jit-backtracker)
 se plantea como un experimento de velocidad y nada más. Responde una pregunta nítida y
-acotada - *¿puede el Rust portable y seguro alcanzar el rendimiento del C afinado a
-mano?* - y la respuesta depende del tablero: en los tableros difíciles y profundos como
-el rompecabezas real lo **iguala**, recorriendo el árbol idéntico; en los fáciles y poco
-ramificados el C es unas 2,3× más rápido. Zanja una pregunta abierta menor que la
-comunidad había dejado en pie: si la famosa ventaja de ~4× del motor de McGavin sobre los
-solucionadores «típicos» era **oficio de generación de código** o simplemente **hardware
-más nuevo**. Manteniendo el hardware fijo y alcanzando su velocidad *en tableros
-difíciles* desde código portable, se demuestra que era oficio - el mismo oficio,
-reproducible en un lenguaje seguro, consignado peldaño a peldaño. (También muestra dónde
-rinde más el oficio: en los tableros fáciles, donde el trabajo por nodo es casi gratis,
-su generación de código más ajustada sigue ganando.)
+acotada (*¿puede el Rust portable y seguro alcanzar el rendimiento del C afinado a
+mano?*) y la respuesta depende del tablero: en un tablero de referencia difícil y
+profundo queda a un 5 % del C, con los dos motores en caminos de recorrido distintos, así
+que se comparan ritmos y no el mismo árbol; en un tablero fácil y poco ramificado el C
+es unas 2,3× más rápido. Arroja luz sobre una pregunta que la comunidad había dejado en
+pie: si la famosa ventaja de ~4× del motor de McGavin sobre los solucionadores
+«típicos» era **oficio de generación de código** o simplemente **hardware más nuevo**.
+En una máquina actual, el código portable cierra la mayor parte de esa brecha, que por
+tanto no es *solo* hardware; separar del todo ambas cosas exigiría cronometrar los
+mismos motores en hardware antiguo y nuevo. (El tablero fácil muestra también dónde
+rinde más el oficio: donde el trabajo por nodo es casi gratis, su generación de código
+más ajustada sigue ganando.)
 
-Y luego se detiene, con honestidad, donde se detiene todo motor rápido: apuntado al
+Y luego se detiene, sin rodeos, donde se detiene todo motor estricto: apuntado al
 rompecabezas real, se estanca en los 300 altos sobre 480, porque un backtracker
-estricto es un magnífico recorredor de árboles y un pobre solucionador. Los récords
-pertenecen a los motores que gastan su presupuesto del *otro* modo - en el
+estricto es un magnífico recorredor de árboles y un pobre solucionador. Los tableros
+récord de la comunidad (véanse los [récords](/research/records)) salieron de una
+búsqueda en profundidad tolerante a rupturas (Blackwood, McGavin) con mucho cómputo: la
+velocidad más una restricción de casamiento relajada, no la velocidad sola. Las líneas
+propias de este proyecto gastan el presupuesto del *otro* modo, en el
 [criterio de destrucción-reparación](/research/lab/experiments/raphael-anjou/repair-study)
-y en [lo que a una búsqueda se le permite aprender](/research/lab/experiments/raphael-anjou/learning) - 
-y llegan allí a una fracción de la velocidad.
+y en [lo que a una búsqueda se le permite aprender](/research/lab/experiments/raphael-anjou/learning),
+y por ahora quedan por debajo de esos récords.
 
 Ese es todo el trato. La velocidad es real, aprendible y merece dominarse; el motor JIT
-prueba que se puede dominar en un lenguaje seguro. Pero en Eternity II, el carril rápido
-y el carril ganador no son el mismo carril. Por eso la pregunta de ingeniería
+prueba que se puede dominar en un lenguaje seguro. Pero en Eternity II,
+la velocidad bruta por sí sola no es el carril ganador: rinde cuando impulsa una búsqueda a la que se le permite romper aristas. Por eso la pregunta de ingeniería
 interesante nunca es solo «cuán rápido» - es «rápido *¿en qué?*, y ¿es eso el
 obstáculo?»
 

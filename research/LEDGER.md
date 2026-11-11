@@ -1747,6 +1747,136 @@ web/src/components/research/views/{PapersView,RecordsView}.tsx.
 
 Verified 18 audit findings and fixed them, rejected 0 as not holding, deferred 4 (new experiments or files outside the group). Source commit c1907b7 on devin/1794390000-rigor-top-pages-and-tsx, integrated via devin/1794392000-rigor-top.
 
+## 2026-11-11 — Rigor pass: lab-raphael-a (external review follow-up)
+
+2026-11-11. Rigor pass on the raphael-anjou lab pages (hint study, DFS study,
+going-fast, JIT backtracker, frostline, learning study, notebook hub, engines
+hub), EN/FR/ES, following an external read-only audit; each finding was
+checked against committed results before editing. Hint study: the five-clue
+result is now scoped to the 8 s best-partial score of strict DFS. Paired data
+from research/experiments/hint-study/results/results.jsonl show 7 of 8 orders
+lose, clue-rows-first gains slightly (median +1), and the non-chronological
+beam also loses ~3 on 13/15 boards, so the harm is not specific to
+chronological search and needs a null control (not run). The 8x8 solve section
+now carries the no-hint baseline from results/solve8 (24/30 solved, median
+~1.8M nodes, 6 timeouts): 4 spread hints are worse than none (2/30),
+contiguous blocks match none, and only 16+ spread hints help (~3.9k nodes).
+The method page documents the faithful_colors rule as implemented (n=16: 5+18
+capped to 5+17; n=8: 2+6; the code comment saying 2+7 is stale). The b^{sum f}
+cost law is replaced by a descriptive frontier correlate and a fail-first
+account. DFS study (results/report.md, results.jsonl, run_meta.json): one
+deterministic seed, so comparisons are paired per instance. MRV runs at 6-8k
+nodes/s, nearly four orders below row-major, so heuristic conclusions belong
+to this implementation. Forward-checking sits 2-3 below plain MRV. Verhaard-
+slip is bimodal (4/10 match BREAK-1, 6/10 stall near 380 with 2-3 breaks).
+Border-first closes the frame, then stalls at depth 66-77. The cross-
+validation claim was dropped. Codegen scores below row-major on 9/10. Hardware
+is 6 concurrent single-threaded runs on 4P+4E cores. Speed pages: McGavin's is
+the fastest published single-core CPU engine, not the fastest overall. The JIT
+comparison is within ~5% on one hard board with different scan paths (not the
+same tree). The 2.8x easy-board lift (different boards) and the cache-miss
+explanation were removed. 4.9e32 years is exhaustion of the five-hint tree (~1
+expected solution; halving gives ~2.5e32), and exact search is separated from
+stochastic record hunting. Records came from break-tolerant DFS with large
+compute. Frostline: BP is exact only for the relaxed chain model, and the
+exact label is cheap exactly where the predictor works. Learning: the 451-463
+plateau sits below the corpus's own high-460s boards, so it belongs to the
+learners. Missing equal-budget baselines, PALIMPSEST's perturbation control,
+LODESTONE's null model and PRIOR's nearest-board distance are stated as open.
+Learned: committed result files disagree in places (community.json vs
+community.md), single-seed grids were described as replicated, and
+metaDescription is capped at 300 characters (caught only by pnpm typecheck).
+Reproducibility: verification by recomputation from committed results; no new
+runs. Commit 1508a14. Files: web/content/research/lab/experiments/raphael-
+anjou/{hint-study/{index,findings,method},dfs-
+study/{index,findings,method},going-fast,jit-backtracker,frostline,index,engin
+es/index,learning/{index,palimpsest,lodestone,prior}}{,.fr,.es}.mdx.
+
+Verified 21 audit findings and fixed them, rejected 2 as not holding, deferred 10 (new experiments or files outside the group). Source commit 1508a14 on devin/1794390000-rigor-lab-raphael-a, integrated via devin/1794392000-rigor-lab.
+
+## 2026-11-11 — Rigor pass: lab-raphael-b (external review follow-up)
+
+Rigor pass on Raphael's lab notebook (replay, ledger, bandsaw and MITM hub,
+beam-width, cas, cloister, fluid-frame, gauntlet, ladder, midden, mosaic,
+staged, repair-study findings/index, scaling-ladder; EN/FR/ES, updated
+2026-11-11; branch devin/1794390000-rigor-lab-raphael-b, final commit
+0a7ebf3). Every claim now matches committed evidence. REPLAY now shows witness
+representability, not a plateau cause (the dead-ends equal-wall-clock A/B
+ties). FLUID-FRAME's 45 free swaps are derived from the piece multiset. CAS's
+empty-interior ALNS arm is a weak baseline, and piece starvation is a
+hypothesis. LEDGER is framed as a Max-CSP global counting bound (Freuder &
+Wallace 1992, Larrosa & Schiex 2004), with the 1.7x-45.3x ratio limited to one
+uncensored board where depth and budget covary. The scaling ladder confounds
+size with constrainedness (fixed 22 colours) and the 12 s budget; its N=14
+collapse does not reproduce on the kit (DFS medians 0.512/0.477). Beam-width
+was retitled; width 32 to 2048 gives about +5%; stochastic/diverse beam and
+Beam-ACO precedents cited. Repair-study targeting is confounded with hole
+size, and START-DFS has no DFS-only control. BANDSAW was downgraded proven to
+measured: corrected first-feasible-budget optimality argument, no generic sqrt
+saving, 437 decoupled from the 10x10 certificate. MIDDEN generalises depth-
+gated (cell-set) schedules, at +14 to +21 perfect-prefix cells. The GAUNTLET
+458 is unhinted, and its scan-order result is evidence at unequal run counts.
+MOSAIC's 30 s blocks measure MaxSAT speed, not tractability. CLOISTER's rim
+effect and STAGED's frame valuation and mismatch anatomy are unmeasured. rigor
+was removed from unbacked pages (REPLAY, MIDDEN, LADDER, MOSAIC, CLOISTER).
+Learned: several headline effects were artifacts of unequal samples, covarying
+factors, or properties fixed by construction. Open: per-ring CAS stats, LEDGER
+fixed-budget sweep and PFC baseline, ladder colour/budget sweep, size-matched
+destroy controls, equal-count scan-order control, BANDSAW table sizes.
+Reproducibility: text-only corrections against existing results. Hub index.mdx
+labels (not owned) still need updating.
+
+Verified 16 audit findings and fixed them, rejected 0 as not holding, deferred 8 (new experiments or files outside the group). Source commit 0a7ebf3 on devin/1794390000-rigor-lab-raphael-b, integrated via devin/1794392000-rigor-lab.
+
+## 2026-11-11 — Rigor pass: lab-others-community (external review follow-up)
+
+2026-11-11. Rigor pass on lab experiments and community pages (group lab-
+others-community), commit c5697a3, branch devin/1794390000-rigor-lab-others-
+community. Reproducibility: deterministic (new research/experiments/single-
+core-benchmark/scripts/contender_stats.py writes results/contender_stats.json
+from the committed grid, fixed RNG seed). What changed: the single-core
+benchmark's headline 'node count is not score' rested on producer/ALNS rows
+that are withheld (eligible=false). On the published rows score follows
+throughput, so the thesis is dropped and the question left open. Contender
+order: Verhaard-style leads on 8/10 variants, paired mean gap 4.4 (bootstrap
+95% CI 0.8-8.5), median gap CI -0.5 to 9, so ranks 1-2 are not separated at
+n=10 with one seed. The grid ran 6 jobs at once on a 4P+4E M1, which confounds
+throughput with core type. CSP presets never beat naive DFS (best 349 vs naive
+worst 359). Three preset groups emitted identical boards on all 10 variants:
+rare_color_first is a placeholder equal to border-first MRV;
+verhaard_preferred and joe_depth150_bp need inputs the grid never passes; NS-1
+changed nothing. Despite its name, border_first_lcv uses insertion value
+order. REPORT.md's 'not reproducible from this repo' line was stale; the
+backtrackers live in bench-audit, but the just recipe builds only run_algo.
+The Verhaard reimplementation was misdescribed as swap-annealing; it is a
+comb/slip/quota DFS whose quota tables are byte-exact from eii.exe and whose
+slip schedule comes from posts. Its 120 s 438 was never committed, so the page
+now uses the committed variant boards (451 best, 440.8 mean). Blackwood's
+depth 45 is a pin artifact (the clue-aware reimpl averages 436.4), the partial
+248/256 board lost its leaderboard score, and the tuning sweep is 'suggests',
+not 'near-optimal'. McGavin: single-core speed rose 2.5-4x in 15 years (not
+'barely'); memory-wall and 'prunes harder' claims removed; the 10x10 is one
+geometric draw (95% range about 1.8K-258K rows); the msg 11201 pair 3.1e40
+nodes / 4.9e32 years is internally inconsistent; 'fastest' is scoped to
+single-core CPU. Community: banding is built into Blackwood's depth-201 break
+schedule, rigidity means flat plateaus rather than valley bottoms, fleet re-
+finds imply overlapping regions, Owen's 17.14 covers interior colours only
+(first-moment heuristic, ~14,702 expected), and the hunt-part-2 complexity
+link now points to /research/why/complex-theory. Methodology: review requires
+a reader other than the author, and non-re-runnable numbers are labelled and
+unscored. Learned: metaDescription has a 300-char zod cap that
+check:research:ci does not catch. Files: research/experiments/single-core-benc
+hmark/{README.md,results/REPORT.md,results/contender_stats.json,scripts/make_r
+eport.py,scripts/contender_stats.py}; web/content/research/lab/{index,experime
+nts/index,experiments/methodology,experiments/single-core-
+benchmark,experiments/single-core-benchmark/csp-presets,experiments/joshua-
+blackwood/solver,experiments/louis-verhaard/{eii,verhaard-
+reimpl},experiments/peter-mcgavin/{backtracker,index}}.{mdx,fr.mdx,es.mdx};
+web/content/research/community/{boards,five-clue-fleet,hunt,hunt-
+part-2}.{mdx,fr.mdx,es.mdx}.
+
+Verified 22 audit findings and fixed them, rejected 2 as not holding, deferred 9 (new experiments or files outside the group). Source commit c5697a3 on devin/1794390000-rigor-lab-others-community, integrated via devin/1794392000-rigor-lab.
+
 ## 2026-11-11 — Rigor pass: why-a (external review follow-up)
 
 2026-11-11. Rigor pass on ten why/ pages (border-balance, clue-corridors,

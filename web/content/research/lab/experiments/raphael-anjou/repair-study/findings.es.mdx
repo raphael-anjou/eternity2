@@ -12,7 +12,7 @@ contribution: measurement
 author: raphael-anjou
 rigor: measured
 order: 20
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -50,21 +50,23 @@ primero" (la heurística de Selby y Riordan según la cual un color escaso debe
 gastarse allí donde queda forzado) empieza un poco más alto aún y termina en una
 media de 373, la mejor de los inicios *voraces*.
 
-La prueba más nítida de este punto es partir de un tablero genuinamente fuerte en
-lugar de uno voraz. La última variante de tablero de partida entrega al bucle un
-tablero construido por el break-DFS del [estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study):
-la ejecución dedica sus primeros veinte segundos a hacer backtracking hasta un
-tablero en torno a 440, y luego lo repara durante los cuarenta restantes. Ese inicio
-está cien puntos por encima de una construcción voraz, y se propaga directamente
-hasta la llegada. Es la variante de mayor puntuación de todo el estudio, con una
-media de 446 (mejor 449), muy por encima de los 402 del bucle de destrucción
-aleatoria, y zanja la pregunta de construir-y-luego-refinar en torno a la cual gira
-el resto del estudio: la reparación *sí* añade unas pocas aristas sobre un tablero
-fuerte obtenido por backtracking, pero solo unas pocas, y el tablero del que parte
-decide casi todo. Esta es exactamente la división del trabajo que emplean los
-récords, y este estudio la reproduce de principio a fin en un núcleo en un minuto: un
-backtracker para construir un buen tablero, y luego un bucle de reparación para
-exprimir de él las últimas aristas.
+La prueba más clara de este punto es partir de un tablero de verdad fuerte en
+lugar de uno voraz. La última variante de arranque entrega al bucle un tablero
+construido por el DFS con roturas del
+[estudio DFS](/research/lab/experiments/raphael-anjou/dfs-study): la ejecución
+dedica sus primeros veinte segundos al backtracking hasta un tablero en la parte
+baja de los 440 y luego lo repara durante los cuarenta restantes. Ese arranque
+queda muy por encima de una construcción voraz, y la ventaja se mantiene hasta
+el final. Es la variante con mejor puntuación de todo el estudio, con una media de
+446 (mejor 449), muy por encima de los 402 del bucle de destrucción aleatoria. La
+reparación añade unas pocas aristas al tablero del backtracking (una subida media
+de 6,6 desde un arranque de 439,4), pero este brazo no tiene control de solo DFS:
+nadie midió qué darían cuarenta segundos más de DFS con roturas con el mismo
+relleno voraz final, así que la subida no está separada de un simple aumento del
+tiempo de búsqueda. El tablero de partida lo decide casi todo. El brazo se parece
+a las cadenas de construir y luego refinar, como la del propio proyecto; los
+tableros récord de la comunidad salieron de un backtracking tolerante a roturas
+(véase [la página de récords](/research/records)), no de una etapa de reparación.
 
 ## El operador de destrucción: atacar las roturas puede volverse en contra
 
@@ -84,34 +86,36 @@ Este es el eje que porta el resultado más sorprendente del estudio.
   tiempo que se ha congelado. Es la mejor de todas las variantes que parten de un
   tablero voraz (solo el inicio sembrado por DFS, una palanca completamente distinta,
   termina más alto).
-- **Todo operador dirigido por conflictos termina por debajo de ella, y cuanto más
-  se fija en las roturas, peor le va.** El ancla de "celdas en desajuste", que
-  levanta hasta una docena de las celdas rotas, promedia 366 y se estanca temprano:
-  arranca la misma maraña agrupada, la reconstruye vorazmente en casi la misma
-  disposición, y su mejor puntuación deja de moverse en unos pocos miles de
-  iteraciones. El operador de "componente más halo", que levanta toda una maraña
-  conexa (un hueco mucho mayor), lo hace peor aún, en 350, y su mejor ya no mejora
-  tras la iteración 211: un hueco de ese tamaño entrega a la recarga voraz un
-  subproblema que no sabe mejorar, de modo que casi nada llega a conservarse.
+- **Todo operador dirigido por conflictos termina por debajo de ella, aunque el
+  tamaño del hueco puede explicar la clasificación.** El ancla de celdas
+  discordantes, que levanta unas diez celdas rotas (9,6 de media, frente a 12,0 de
+  la destrucción aleatoria), promedia 366 y se estanca pronto: arranca siempre el
+  mismo nudo de roturas, lo reconstruye de forma voraz casi en la misma colocación,
+  y su mejor puntuación deja de moverse en unos pocos miles de iteraciones. El
+  operador de componente más halo, que levanta un nudo conexo entero (28,3 celdas
+  de media), lo hace peor aún, 350, y su última mejora llega en la iteración 211:
+  un hueco de ese tamaño deja al relleno voraz un subproblema que no sabe mejorar,
+  así que casi nada se conserva.
 - **Una destrucción de banda entera es inerte.** Levantar las dos filas con más
   roturas deja a la recarga voraz un subproblema casi tan difícil como el propio
   puzzle; en nueve de las diez instancias no hace *ninguna* mejora en todo el minuto,
   de modo que su puntuación reportada es simplemente su tablero de partida.
 
-El patrón es limpio y merece enunciarse sin rodeos: sobre este inicio voraz
-mediocre, cuanto más precisamente un operador apunta a las roturas existentes, peor
-le va, y la destrucción aleatoria ciega gana. Esto es lo contrario de la intuición
-natural, y de lo que funciona sobre un tablero *cercano al récord*, donde todo el
-tablero está próximo al óptimo y donde el ajuste de la comunidad halló que los
-operadores dirigidos por conflictos y por componentes eran los más valiosos,
-precisamente porque los pocos desajustes restantes son lo único que queda por
-corregir. Este estudio nunca alcanza ese régimen. Sesenta segundos sobre un tablero
-mediocre dejan un amplio margen de mejora en todas partes, y ahí un operador que
-reataca sin cesar el mismo grupo roto, o que arranca un hueco demasiado grande para
-reconstruirlo bien, pierden ambos frente a uno que simplemente sigue intentando
-nuevas regiones pequeñas. El hallazgo no es "la destrucción dirigida por conflictos
-es mala" sino "qué operador gana depende de lo bueno que ya sea el tablero, y sobre
-un tablero mediocre, explorar supera tanto a fijarse como a sobredestruir".
+Sobre este inicio voraz mediocre, la destrucción aleatoria de 12 celdas supera a
+la destrucción de discordancias (unas diez celdas), y los dos operadores de hueco
+grande (28 a 30 celdas) son los peores. Tamaño del hueco y focalización van juntos
+aquí, así que la clasificación puede deberse al tamaño del hueco y no a la
+focalización; no se han lanzado controles aleatorios del mismo tamaño (aleatorio
+frente a discordancias con unas 10 celdas, aleatorio frente a componente con unas
+28). La clasificación en sí se sostiene en estas instancias: la destrucción
+aleatoria vence al ancla en las diez, con una sola semilla por instancia. También
+difiere de lo que funciona en un tablero *cercano al récord*, donde el ajuste de la
+comunidad encontró más valiosos los operadores dirigidos por conflictos y por
+componentes, porque las pocas discordancias restantes son lo único que queda por
+arreglar. Este estudio nunca llega a ese régimen. La conclusión no es «la
+destrucción dirigida por conflictos es mala» sino «en un tablero mediocre, con
+estos tamaños de hueco, ganó la destrucción aleatoria»; queda abierto si se debe
+al azar o al tamaño.
 
 ## Reparación: cómo se reconstruye el hueco
 

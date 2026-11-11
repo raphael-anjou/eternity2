@@ -2,9 +2,10 @@
 title: PALIMPSEST
 description: >-
   Lire chaque plateau fort pour repérer les habitudes qui, en silence, plafonnent
-  un plateau, puis les briser. Cette expérience a produit le meilleur plateau du
-  projet : 463 sur 480.
-metaDescription: "PALIMPSEST lit chaque plateau fort d'Eternity II pour repérer les habitudes qui brident discrètement un plateau, puis les brise. Il a produit le meilleur plateau de ce projet — 463 sur 480 — en extrayant les anti-schémas du corpus et en détournant la recherche de ceux-ci."
+  un plateau, puis les briser. Ainsi guidée, une exécution de réparation a fait
+  passer un plateau à 461 à 463 sur 480, le meilleur du projet ; l'effet du guidage
+  n'est pas testé.
+metaDescription: "PALIMPSEST extrait des plateaux forts d'Eternity II les pièges de consensus, des placements partagés qu'aucun plateau de tête ne garde, et oriente une réparation pour les briser. Une exécution guidée a mené un 461 à 463 sur 480 ; le témoin qui créditerait le guidage n'a pas été lancé."
 kind: experiment
 hardware:
   cores: 8
@@ -43,7 +44,7 @@ stages:
     does: "À partir d'un plateau à 461, casser délibérément les cellules-pièges et laisser destruction-réparation les reconstruire, atteignant 463"
     published: false
 order: 40
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, learning]
 related:
@@ -97,10 +98,14 @@ famille la plus prometteuse à attaquer.
 
 ## Le résultat
 
-Utilisée comme carte pour orienter la recherche, cette approche a atteint 463 des
-480 arêtes appariées, le meilleur plateau que ce projet ait produit. À titre de
-comparaison, le meilleur plateau de la communauté sur ce puzzle est 470, et une
-solution complète en compte 480.
+Utilisée comme carte pour orienter la recherche, une exécution ALNS guidée par les
+pièges (30 minutes × 6 graines) a fait passer un plateau à 461 à 463 des 480 arêtes
+appariées, le meilleur plateau que ce projet ait produit (voir les
+[records](/research/records) pour situer ce chiffre). Le témoin qui attribuerait ce
+gain à la carte des pièges, le même ALNS depuis le même 461 avec des perturbations
+aléatoires ou prises dans la pire bande, de même taille, même budget et mêmes
+graines, n'a pas été lancé : le +2 est guidé par les pièges mais pas encore démontré
+comme causé par eux.
 
 Une réserve mérite d'être dite : tenter d'utiliser directement la liste des
 pièges, en forçant la recherche à éviter les placements piégés, n'a pas fonctionné
@@ -138,6 +143,12 @@ plafond à 463, des plateaux groupés du haut des 450 au bas des 460) elle est f
 à la main plutôt que balayée, et $p_\text{high}$ (score $\ge$ 460) est rapporté à
 côté mais n'est pas le discriminant. La vue à fréquence unique (la persistance
 seule) ne peut pas les distinguer ; la séparation par plafond est toute l'astuce.
+
+Comme le haut de ce corpus se réduit à une poignée de plateaux à 462 et 463 du
+projet lui-même, la règle du plafond revient à marquer les paires présentes dans le
+ou les deux meilleurs plateaux : le bon consensus est proche d'un codage par plus
+proche voisin de ces plateaux plutôt que d'une propriété apprise du paysage, et la
+coupure fixée à la main n'a pas été validée.
 
 **2. ALNS de destruction des pièges.** On prend un plateau à 461 (il se situe *à
 l'intérieur* du bassin des pièges par construction), on localise les ~50 paires-

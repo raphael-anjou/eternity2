@@ -16,7 +16,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  machine: "MacBook (Apple M1, 8 cores), single-threaded runs, 6 concurrent"
   wallClock: "60 s"
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
   measured: true
@@ -24,7 +24,7 @@ repro:
   kind: seeded
   cmd: just experiments dfs-study
 order: 25
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, speed]
 related:
@@ -80,21 +80,22 @@ grid further down where they run as designed.
   more than 300 points from the fill order alone.
 - **The most-constrained-cell heuristic (MRV) is what makes border-first viable.**
   It lifts a stalled border-first from the sixties to a mean of 324, at a cost of
-  three orders of magnitude in node throughput. Node rate and score are different
+  nearly four orders of magnitude in node throughput. Node rate and score are different
   axes, a distinction the study returns to throughout.
 - **More propagation did not buy more score at this budget.** Forward-checking,
   arc-consistency and per-colour reasoning land within a point of each other (322,
-  321, 321), a gap far inside the run-to-run spread, so heavier look-ahead neither
-  helped nor clearly hurt. It spends the sixty seconds proving small regions
-  rather than reaching deeper.
+  321, 321), and all sit two or three points below plain MRV. Every run uses one
+  seed and is deterministic, so this is instance spread across ten shared instances,
+  read pairwise, not run-to-run noise. Heavier look-ahead did not recover its
+  per-node cost within sixty seconds.
 - **Breaks reach deeper than any strict search.** Strict backtrackers top out in
   the low 200s (the fastest, NAIVE-CODEGEN, at 216); a depth-gated break budget
   reaches past 245 and averages the low 430s, because it can push past a locally
-  unmatchable edge instead of backtracking out of it. The decisive factor is the
-  break *schedule*: unlocking breaks too early (Verhaard's ladder, mean 399)
-  scores well below the later Blackwood ladder (mean 431). Raising the per-cell
-  cap from one to two did not help at this budget, a null result reported as
-  measured.
+  unmatchable edge instead of backtracking out of it. The break *schedule* matters:
+  Verhaard's earlier-unlocking ladder averages 399 against 431 for the Blackwood
+  ladder, but that mean mixes four instances where it matches Blackwood with six
+  where it stalls near 380 after only two or three breaks. Raising the per-cell cap
+  from one to two did not help at this budget, a null result reported as measured.
 
 Each of these has its own page: how the engine is built and what every raised
 statistic means is on the [method page](/research/lab/experiments/raphael-anjou/dfs-study/method),

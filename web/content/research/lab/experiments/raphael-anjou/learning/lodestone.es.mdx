@@ -2,9 +2,10 @@
 title: LODESTONE
 description: >-
   Una brújula tenue para una búsqueda partida de cero: incitarla a comprometer
-  las piezas raras pronto, allí donde se necesitan. No eleva el techo; hace que
-  la búsqueda alcance de forma fiable la cima de su propio rango.
-metaDescription: "LODESTONE incita a una búsqueda Eternity II partida de cero a comprometer pronto las piezas raras, con un prior de demanda escasa usado solo como desempate. No eleva el techo, pero alcanza fiablemente la cima de su rango: mediana 449→451, dispersión reducida a 450-451; sobreponderarlo lo rompe."
+  las piezas raras pronto, allí donde se necesitan. No eleva el techo; a lo largo
+  de cinco semillas empuja la búsqueda hacia la cima de su propio rango, un efecto
+  indicativo.
+metaDescription: "LODESTONE incita a una búsqueda Eternity II partida de cero a comprometer pronto las piezas raras, con un prior de demanda escasa usado como desempate. En cinco semillas la mediana pasa de 449 a 451 y la dispersión se reduce, un efecto indicativo; sobreponderarlo lo rompe."
 kind: experiment
 hardware:
   cores: 8
@@ -39,7 +40,7 @@ stages:
     learns: "Prior de color raro: un peso por pieza para cuántas veces una pieza sirve una demanda escasa noroeste"
     published: false
 order: 30
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, search-space, learning]
 related:
@@ -90,18 +91,19 @@ igual y nada más.
 
 ## El resultado
 
-Con un peso ínfimo, el prior aporta una ganancia pequeña pero constante: a lo
-largo de cinco semillas, la puntuación mediana partida de cero sube de 449 a 451
-y, más útil aún, la dispersión se estrecha, de un esparcimiento 446-451 a un rango
-fiable 450-451. Hace que el constructor aterrice en la cima de su rango en lugar
-de tropezar a veces.
+Con un peso ínfimo, el prior aporta una ganancia pequeña: a lo largo de cinco
+semillas, la puntuación mediana partida de cero sube de 449 a 451, y la dispersión
+se estrecha, de un esparcimiento 446-451 a 450-451. Con cinco semillas por brazo y
+sin prueba estadística, es un indicio más que un hecho establecido; separar del
+ruido un desplazamiento de dos puntos en la mediana pide más semillas y una prueba
+emparejada o de rangos.
 
 Sube el peso aunque sea un poco y todo se derrumba (422, luego 380), porque
 perseguir las demandas escasas del corpus se paga entonces directamente a costa de
 aparear la arista que tienes delante. Ese fracaso es en sí mismo el hallazgo: la
 escasez es una señal real para saber *qué* pieza preferir, pero una señal débil, y
-segura solo como desempate. LODESTONE es modesto sobre su magnitud: mejora la
-calidad y la regularidad de la construcción en un par de aristas, y no toca el
+segura solo como desempate. LODESTONE es modesto sobre su magnitud: parece mejorar
+la calidad y la regularidad de la construcción en un par de aristas, y no toca el
 techo de cuenca que detiene a todo método cerca de la cima.
 
 ## Método
@@ -112,10 +114,12 @@ Primero la señal, luego la forma deliberadamente diminuta en que se emplea.
 solo pueden ser servidos por una o dos piezas de todo el juego. Sobre el conjunto
 del corpus, el número de demandas escasas satisfechas en al menos la mitad de los
 tableros crece *de forma monótona* con la puntuación, aproximadamente 1 → 2 → 3 →
-10 a medida que los tableros trepan hacia 458+. Los tableros fuertes no colocan
-bien las piezas raras solo por casualidad; satisfacen cada vez más las *mismas*
-demandas escasas. Es una estructura real, correlacionada con la puntuación, que
-ningún constructor anterior había integrado.
+10 a medida que los tableros trepan hacia 458+. Es una correlación observada, no
+todavía una prueba de estructura: un tablero mejor puntuado satisface más demandas
+de todo tipo, y los tramos altos contienen menos tableros, y más parecidos, lo que
+infla "satisfecha en al menos la mitad". La comparación que la convertiría en
+prueba, demandas escasas frente a conjuntos aleatorios de demandas del mismo tamaño
+con puntuación igualada y tramos del mismo tamaño, no se ha hecho.
 
 **El prior.** Para cada pieza, se pondera cuántas veces sirve una de esas demandas
 escasas noroeste en un buen tablero, con un fuerte refuerzo para las más raras

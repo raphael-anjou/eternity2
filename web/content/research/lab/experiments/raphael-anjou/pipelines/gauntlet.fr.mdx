@@ -4,8 +4,8 @@ description: >-
   Lancer la même recherche en faisceau selon neuf ordres de parcours
   différents, pour qu'elle atterrisse dans des régions distinctes au lieu de
   toujours converger vers la même. L'ordre en zigzag a trouvé un plateau 458
-  inédit.
-metaDescription: "GAUNTLET lance une recherche en faisceau sur neuf ordres de parcours (ligne, zigzag, spirale, diagonale…) pour échantillonner des régions distinctes plutôt qu’une seule : le zigzag, rehaussé par ALNS, a atteint un 458 inédit dans une famille de coins nouvelle — l’ordre prime sur la graine."
+  inédit sans indices (arêtes appariées, indices officiels non placés).
+metaDescription: "GAUNTLET lance une recherche en faisceau sur neuf ordres de parcours pour échantillonner des régions distinctes plutôt qu'une seule : le zigzag, rehaussé par ALNS, a atteint un 458 sans indices dans une famille de coins nouvelle, indice que l'ordre prime sur la graine."
 kind: experiment
 hardware:
   cores: 8
@@ -45,7 +45,7 @@ stages:
   - engine: clustering
     does: "Regrouper les résultats par disposition des coins pour repérer les bassins véritablement nouveaux (ce n'est pas une étape de solveur)"
 order: 50
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction]
 related:
@@ -78,15 +78,19 @@ parcours interchangeable : ligne, ligne inversée, colonne, colonne inversée,
 zigzag, zigzag inversé, spirale entrante, spirale sortante et diagonale, neuf
 en tout. Comme l'ordre des cases modifie quels plateaux partiels survivent à
 chaque étape, chaque ordre explore une trajectoire différente au lieu de
-s'agglutiner sur une seule. Un balayage de 9 parcours × 4 graines a produit
-**18 signatures de disposition des coins distinctes**, contre une seule sur
-seize graines du faisceau à parcours unique dont il est issu.
+s'agglutiner sur une seule. Un balayage de 9 parcours × 4 graines (36
+exécutions) a produit **18 signatures de disposition des coins distinctes**,
+contre une seule sur seize graines (16 exécutions) du faisceau à parcours
+unique dont il est issu. Les effectifs diffèrent et aucun témoin à effectif égal
+(par exemple 36 graines d'un seul parcours) n'a été lancé : c'est un indice, pas
+une taille d'effet mesurée.
 
 Chaque exécution complète produit un plateau entier ; les plus solides sont
-ensuite polis par un rehaussement ALNS de 30 minutes. Le constat est net :
-*l'ordre de parcours est un axe de diversité plus puissant que la graine
-aléatoire.* Voilà le levier, et c'est sur lui que s'appuient KEYRING et PRIOR
-par la suite.
+ensuite polis par un rehaussement ALNS (5 minutes par construction durant le
+balayage, plus longtemps pour les finalistes). Les indices vont dans un sens :
+*l'ordre de parcours semble un axe de diversité plus puissant que la graine
+aléatoire*, en attendant une comparaison à effectifs égaux. C'est sur ce levier
+que s'appuient KEYRING et PRIOR par la suite.
 
 <Figure collapsible title="Interactif : le calendrier de l'ordre de construction">
   <GauntletDiagram />
@@ -115,11 +119,15 @@ arête.
 
 ## Le résultat
 
-L'ordre en zigzag à la graine 99, rehaussé, a atteint 458 sur 480 dans la
-disposition des coins cp=(3,0,1,2), le premier plateau égal ou supérieur à 458
-jamais trouvé dans cette disposition au sein de notre base. Il se situe à au
-moins 246 cases sur 256 de tout ce que nous avions à ce niveau : un bassin
-véritablement nouveau, pas une autre route vers un bassin connu.
+L'ordre en zigzag à la graine 99, rehaussé, a atteint 458 sur 480 en arêtes
+appariées sans les indices officiels en place (la pièce de l'indice central se
+trouve ailleurs sur le plateau), dans la disposition des coins cp=(3,0,1,2), le
+premier plateau égal ou supérieur à 458 dans cette disposition au sein de notre
+base. Il se situe à au moins 246 cases sur 256 de tout ce que nous avions à ce
+niveau : un bassin nouveau, pas une autre route vers un bassin connu. La base
+mêle plateaux sans indices et plateaux respectant les indices, et un plateau
+sans indices a un autre espace de dispositions des coins : la comparaison n'a
+de sens que face aux autres plateaux sans indices.
 
 La contribution de GAUNTLET est donc une portée plutôt qu'un record : il a
 ouvert une nouvelle région de plateaux solides. Un second tour (32
@@ -149,8 +157,8 @@ finalistes.
 **Étape 3 : regroupement.** On regroupe toutes les sorties par permutation des
 coins et on signale les signatures absentes de la base existante. C'est ainsi
 que le balayage 9×4 a fait émerger **18 familles de coins distinctes** là où
-seize graines d'un parcours unique n'en avaient fait émerger qu'une, la
-constatation mesurée selon laquelle *l'ordre de parcours est un axe de
+seize graines d'un parcours unique n'en avaient fait émerger qu'une : un indice,
+à effectifs inégaux (36 contre 16), que *l'ordre de parcours est un axe de
 diversité plus puissant que la graine.*
 
 Le plateau gagnant, zigzag, graine 99, rehaussé, se trouve en

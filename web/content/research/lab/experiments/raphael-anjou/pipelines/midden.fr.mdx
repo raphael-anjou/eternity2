@@ -1,9 +1,10 @@
 ---
 title: MIDDEN
 description: >-
-  Décider à l'avance non pas quand un plateau peut casser, mais où : confiner
-  chaque désaccord à une forme de cellules choisie, et chercher la meilleure forme.
-metaDescription: "MIDDEN décide à l'avance non pas quand un plateau d'Eternity II peut rompre, mais où : il confine chaque discordance à une forme de cases choisie, puis cherche la meilleure forme. Ce pipeline de placement des ruptures a atteint 452 sur 480, en optimisant l'emplacement des défauts."
+  Étendre les calendriers de ruptures par profondeur à des masques de cellules
+  quelconques : confiner chaque désaccord à une forme de cellules choisie, et
+  chercher la meilleure forme.
+metaDescription: "MIDDEN étend les calendriers de ruptures par profondeur d'Eternity II à des masques de cases quelconques : il confine chaque discordance à une forme de cases choisie, puis cherche la meilleure forme. Ce pipeline de placement des ruptures a atteint 452 sur 480 en optimisant l'emplacement des défauts."
 kind: experiment
 hardware:
   cores: 8
@@ -20,7 +21,6 @@ author: raphael-anjou
 score: 452
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "per mask: a 300 s × 8-seed break-tolerant DFS run; plus a sweep over mask shapes/densities"
   space: "the mask is a 256-bit cell set; otherwise a standard DFS frontier"
@@ -36,7 +36,7 @@ stages:
   - engine: break-dfs
     does: "Break-tolerant DFS off the frame allows mismatches only inside the mask, perfect match outside"
 order: 72
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search]
 related:
@@ -51,13 +51,13 @@ sources:
 
 import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
 
-La plupart des solveurs tolérant les cassures contrôlent quand un désaccord est
-permis : à certaines profondeurs, au-delà d'un certain remplissage. MIDDEN
-contrôle où, à la place. Il fixe un masque, un ensemble de cellules choisi, et
-impose que les désaccords ne puissent être payés qu'à l'intérieur ; partout
-ailleurs, l'accord doit être parfait. Puis il cherche sur la forme de ce masque.
-Les méthodes existantes disent quand encaisser des dégâts ; cette expérience
-demande où les dégâts doivent se loger.
+Les calendriers de ruptures par profondeur, comme ceux de Blackwood et de
+Verhaard, fixent déjà les cellules qui peuvent casser, car dans un ordre de
+balayage fixe une profondeur est une cellule. MIDDEN généralise cette idée à des
+masques quelconques : un ensemble de cellules choisi, indépendant de l'ordre de
+balayage et éventuellement dispersé, seul endroit où les désaccords peuvent être
+payés ; partout ailleurs, tout doit s'apparier parfaitement. Il cherche ensuite
+la forme de ce masque.
 
 ## Fonctionnement
 
@@ -85,16 +85,16 @@ mécanisme est clair ; ce qui reste ouvert, c'est l'économie de l'affaire :
 convertir une série parfaite plus longue en un score final plus élevé, une fois
 que la fin de partie doit absorber les dégâts différés.
 
-Le masque est donc un vrai levier, le complément spatial des contrôles de timing
-habituels, avec un effet mesuré sur la distance à laquelle un plateau reste
-parfait, mais pas encore une voie aboutie vers un record.
+Le masque est donc un levier sur la longueur du préfixe parfait, avec un effet
+mesuré sur la distance où un plateau reste parfait ; son effet sur le score
+final n'a pas été testé, et ce n'est pas encore une voie vers un record.
 
 ## Méthode
 
-Toutes les autres recherches tolérant les cassures régulent les dégâts par
-*quand* : une profondeur, une fraction de remplissage. MIDDEN régule par *où*.
-C'est le premier contrôle de dégâts par ensemble de cellules (OÙ) face aux
-régulations par profondeur (QUAND) de tous les autres.
+Les calendriers de ruptures par profondeur (Blackwood, Verhaard) fixent déjà
+les cellules qui peuvent casser, puisque profondeur et cellule coïncident dans
+un ordre de balayage fixe. MIDDEN étend cela à des masques quelconques, non
+contigus, qui n'ont pas à suivre l'ordre de balayage.
 
 - **Le masque.** Un ensemble de cellules choisi (un masque de 256 bits) est
   passé via `--break-cells`. À l'intérieur du masque, les désaccords sont
@@ -105,15 +105,7 @@ régulations par profondeur (QUAND) de tous les autres.
   choisi par couleur, balayés sur les formes et les densités, chacun à 300 s × 8
   graines.
 
-Le résultat mesuré est une règle de conception à densité graduée : un **treillis
-dispersé** de cellules à dégâts autorisés allonge la plus longue série parfaite
-d'environ 153 cellules à 167-174 (**+21**), bien plus que le fait de concentrer
-les dégâts sur une ligne ou deux. Le mécanisme est clair ; l'économie qui reste
-ouverte, c'est la fin de partie : une série parfaite plus longue ne sert que si
-la queue peut absorber les dégâts différés, et le masque dispersé qui maximise le
-mur ne scelle pas à lui seul la fin de partie. L'étape suivante naturelle
-(composer un masque de corps dispersé avec une queue ouverte) est exactement ce
-que le balayage MIDDEN-v2 s'est proposé de tester.
+(**+14 à +21**)
 
 ## Reproduire
 

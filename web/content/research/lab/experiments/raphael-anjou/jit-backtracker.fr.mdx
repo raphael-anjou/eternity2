@@ -1,14 +1,14 @@
 ---
-title: "Le backtracker JIT : du Rust portable à égalité avec du C optimisé sur les plateaux difficiles"
+title: "Le backtracker JIT : du Rust portable à environ 5 % d'un C optimisé sur un plateau difficile"
 description: >-
   Un backtracker Rust en profondeur d'abord, sûr et portable, spécialisé à
   l'exécution en émettant puis compilant du Rust propre à chaque puzzle, porté de
-  43 à 123 millions de nœuds de recherche par seconde sur un cœur. Mesuré
-  équitablement face au C de Peter McGavin sur la même machine : à égalité sur les
-  plateaux difficiles et profonds comme le vrai Eternity II, et à environ 44 % de sa
-  vitesse sur les faciles. Chaque échelon parcourt l'arbre identique ; tout le gain
-  vient du code, pas de l'algorithme.
-metaDescription: "Un backtracker Eternity II en Rust portable qui compile du Rust propre à chaque puzzle à l'exécution, porté de 43 à 123 millions de nœuds/s sur un cœur. Mesuré sans affichage face au C de McGavin sur le même Apple M1 : à égalité sur les plateaux difficiles, ~44 % sur les faciles."
+  43 à 123 millions de nœuds de recherche par seconde sur un cœur. Mesuré face au C
+  de Peter McGavin sur la même machine : à environ 5 % sur un plateau de référence
+  difficile et profond (les moteurs suivent des chemins de balayage différents), et à
+  environ 44 % de sa vitesse sur un plateau facile. Chaque échelon de ce moteur
+  parcourt l'arbre identique ; tout le gain vient du code, pas de l'algorithme.
+metaDescription: "Un backtracker Eternity II en Rust portable qui compile du Rust propre à chaque puzzle à l'exécution, porté de 43 à 123 millions de nœuds/s sur un cœur. Mesuré sans affichage face au C de McGavin sur le même Apple M1 : à environ 5 % sur un plateau de référence difficile, ~44 % sur un plateau facile."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -29,7 +29,7 @@ repro:
   kind: heavy
   cmd: "cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- --puzzle P.json --chain2 --opt native"
 order: 36
-updated: 2026-07-20
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -52,13 +52,16 @@ sources:
 moteur le plus rapide de la communauté - le
 [C optimisé à la main de Peter McGavin](/research/lab/experiments/peter-mcgavin/backtracker) - 
   sans quitter Rust ni descendre à l'assembleur ? La réponse dépend du plateau : sur
-  les plateaux **difficiles et profonds comme le vrai Eternity II, il égale son C** ;
+  **un plateau de référence difficile et profond, il se tient à environ 5 % de son C**
+  (chemins de balayage différents, donc pas le même arbre) ;
   sur les plateaux faciles et peu ramifiés, son C est environ **2,3× plus rapide**. Il
   ne dit rien des *scores* : parcourir l'arbre vite et trouver un plateau à haut score
   sont [deux axes entièrement distincts](/research/lab/experiments/raphael-anjou/going-fast).
   Le meilleur que ce moteur atteint sur le vrai puzzle est dans les hauts 300 sur 480,
-exactement là où un backtracker strict doit s'arrêter - les plateaux record viennent
-  des métaheuristiques, pas d'une marche plus rapide.
+  exactement là où un backtracker strict doit s'arrêter ; les plateaux records de la
+  communauté (voir les [records](/research/records)) viennent d'une recherche tolérant les
+  ruptures menée avec beaucoup de calcul, pas d'une marche stricte à quelque vitesse que
+  ce soit.
 </Callout>
 
 Tout moteur Eternity II rapide est, en dessous, le même backtracker en profondeur
@@ -76,14 +79,16 @@ et exécutés dos à dos :
 | Plateau | C de McGavin (sans affichage) | Ce moteur | Résultat |
 | --- | --- | --- | --- |
 | Facile (71.puz de Joe, 18 indices) | ~287 M/s | ~122 M/s | McGavin **~2,3×** |
-| **Difficile (16×16 profond, comme le vrai E2)** | **~102–105 M/s** | **~104–111 M/s** | **~égalité** |
+| **Difficile (plateau de référence 16×16 profond)** | **~102–105 M/s** | **~104–111 M/s** | **~égalité** |
 
-Sur les plateaux qui ressemblent vraiment à Eternity II - profonds, densément
-contraints, où la recherche passe son temps à revenir en arrière - un moteur Rust sûr
-et portable **égale du C optimisé à la main**. Sur les plateaux faciles et peu
-ramifiés, où il n'y a presque rien à faire par nœud, le C en ligne droite de McGavin
-est plus de deux fois plus rapide. Les deux nombres sont réels ; l'ingénierie
-ci-dessous est ce qui a hissé Rust jusqu'à l'égalité sur les plateaux difficiles.
+Sur ce plateau de référence difficile, profond et densément contraint, où la recherche
+passe son temps à revenir en arrière, un moteur Rust sûr et portable se tient **à
+environ 5 % d'un C optimisé à la main** (trois essais chacun, une machine ; les deux
+moteurs suivent des chemins de balayage différents et parcourent donc des sous-arbres
+différents). Sur les plateaux faciles et peu ramifiés, où il n'y a presque rien à faire
+par nœud, le C en ligne droite de McGavin est plus de deux fois plus rapide. Les deux
+nombres sont réels ; l'ingénierie ci-dessous est ce qui a hissé Rust près de la parité
+sur le plateau difficile.
 
 Tout ce qui suit vient de la **génération de code et de la disposition des données**,
 pas d'une recherche plus fine : chaque échelon parcourt l'arbre *identique* et, sur un
@@ -98,8 +103,8 @@ cesse. Cet affichage lui coûte environ **2,7× de son débit** - sa vitesse san
   affichage est de ~287 M sur le plateau facile, mais avec l'affichage il affiche ~106 M.
   La première comparaison opposait notre moteur sans affichage à son binaire *bridé* et
   produisait une victoire fantôme. Reconstruit sans affichage (`-mcpu=native`), le vrai
-  tableau est celui ci-dessus : il gagne le plateau facile largement, et nous égalisons
-sur les difficiles. La leçon est générale - construisez toujours la référence telle
+  tableau est celui ci-dessus : il gagne le plateau facile largement, et nous restons à
+  environ 5 % sur le difficile. La leçon est générale - construisez toujours la référence telle
   qu'elle tourne à pleine vitesse avant de faire confiance à un ratio.
 </Callout>
 
@@ -347,11 +352,12 @@ constantes de laboratoire.
 
 Deux moteurs partagent ce tableau : `naive-clean` est un backtracker récursif à part
 (lançable avec `run_dfs --algo naive-clean`), et tout depuis « JIT piloté par tables »
-est le chemin codegen dont parle cette page (`run_dfs_codegen_jit`). Le résumé rigoureuse
+est le chemin codegen dont parle cette page (`run_dfs_codegen_jit`). Le résumé rigoureux
 est un **gain de ~2,5× de la référence naive-clean au champion fusionné sur le plateau
-difficile** (~44 M → ~110 M) et **~2,8× sur le facile** (~44 M → ~122 M) - atterrissant,
-sur le difficile, à niveau avec le C sans affichage de McGavin. Trois méta-leçons en
-découlent, la part transférable :
+difficile** (~44 M → ~110 M), atterrissant, sur le difficile, à niveau avec le C sans
+affichage de McGavin. Le champion atteint ~122 M sur le plateau facile, mais naive-clean
+n'a été mesuré que sur le difficile, si bien qu'aucun gain sur le facile n'est donné.
+Trois méta-leçons en découlent, la part transférable :
 
 1. **La représentation prime sur les micro-opérations.** Les deux plus grands gains
 isolés - cases u32 (+67 %) et chaîne de fonctions (+56 %) - portaient tous deux sur
@@ -459,8 +465,11 @@ droite, où la liste de candidats de chaque case est réduite à une recherche p
 parfait minimal, le fait avec le moins d'instructions possible. Notre travail par nœud
 (indexer le vivier, calculer le gain, vérifier le bord) est peu coûteux mais pas *nul*,
 et quand l'arbre est peu profond et large, ce surcoût se voit. Sur un plateau difficile,
-les mêmes nœuds sont dominés par le retour arrière et les défauts de cache, où les deux
-moteurs convergent. Refermer l'écart facile signifierait adopter sa génération de liste
+l'hypothèse de travail est que le coût par nœud est dominé par le retour arrière et les
+erreurs de prédiction de branchement, où les deux moteurs convergent ; elle n'a pas été
+profilée ici (un état 16×16 et ses tables de candidats tiennent largement dans les caches
+L1 et L2 du M1, si bien que les défauts de cache sont une explication peu probable).
+Refermer l'écart facile signifierait adopter sa génération de liste
 de candidats plus serrée - une étape suivante concrète, pas un mur. C'est consigné ici
 comme ouvert plutôt que masqué.
 
@@ -472,16 +481,17 @@ nœuds par seconde et par cœur, et plafonne, d'une graine à l'autre, dans les 
 sur 480. Ce n'est pas une déception ; c'est
 [tout le propos de la leçon centrale du site](/research/why/prune-vs-speed). Un
 backtracker strict est un superbe arpenteur d'arbre et un piètre solveur : l'espace de
-recherche est si vaste qu'aucune vitesse atteignable n'y fait une brèche, ce qui est
-précisément pourquoi les records viennent des
-[heuristiques et de la réparation](/research/lab/experiments/raphael-anjou/repair-study),
-pas du débit brut.
+recherche est si vaste qu'aucune vitesse atteignable n'y fait une brèche. Les plateaux
+records de la communauté (voir les [records](/research/records)) sont venus d'une
+recherche en profondeur tolérant les ruptures, menée avec beaucoup de calcul, et non
+d'un parcours strict à quelque vitesse que ce soit.
 
-Le résultat ici est donc délibérément étroit et, je crois, mérite d'être dit
-franchement : un moteur Rust *sûr et portable* peut **égaler du C optimisé à la main
-sur les plateaux difficiles et profonds qui ressemblent au vrai puzzle**, en parcourant
-le même arbre sur le même matériel - tandis que le C gagne encore de ~2,3× sur les
-faciles. Et même à égalité, il ne sait pas résoudre Eternity II, parce que la vitesse
+Le résultat ici est donc délibérément étroit et mérite d'être dit franchement : un
+moteur Rust *sûr et portable* se tient **à environ 5 % d'un C optimisé à la main sur un
+plateau de référence difficile et profond**, sur le même matériel mais avec des chemins
+de balayage différents, si bien que les deux débits sont mesurés sur des sous-arbres
+différents ; le C gagne encore de ~2,3× sur un plateau facile. Et même à parité, il ne
+peut pas épuiser l'arbre de recherche d'Eternity II, parce que la vitesse
 n'a jamais été l'obstacle. L'argument plus long sur ce compromis - pourquoi certains
 algorithmes dépensent leur budget en vitesse et d'autres en jugement - a sa propre
 page : [aller vite](/research/lab/experiments/raphael-anjou/going-fast).

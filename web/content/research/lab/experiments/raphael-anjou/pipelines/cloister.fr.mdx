@@ -20,7 +20,6 @@ author: raphael-anjou
 score: 453
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "per frame: ~6 s hint-compatibility probe, then a 30 s tail recipe × 8 seeds"
   space: "one DFS frontier over the 14×14 interior; the 60-piece frame is fixed"
@@ -37,7 +36,7 @@ stages:
   - engine: exact-tail
     does: "Une finale exacte de 14 cases scelle l'intérieur contre le rebord de façon déterministe"
 order: 60
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, backtracking]
 related:
@@ -88,11 +87,13 @@ dérouler face à lui dans votre navigateur.
 
 ## Le résultat
 
-En tant que solveur d'intérieur autonome, CLOISTER atteint un score intérieur de
-453 sans indices, en quelques minutes, et confirme un effet réel : un intérieur
-bâti contre son propre rebord s'y rattache avec quelques arêtes appariées de plus
-que le même intérieur, de qualité équivalente, rattaché après coup. Avec les cinq
-indices officiels forcés, il se stabilise dans le haut des 440 à le bas des 450.
+En solveur d'intérieur autonome, CLOISTER atteint un score d'intérieur de 453
+sans indices, en quelques minutes. Avec les cinq indices officiels imposés, il
+se stabilise entre le haut des 440 et le bas des 450. La conception vise un
+effet, un intérieur construit contre son propre rebord qui se raccorde avec
+quelques arêtes appariées de plus qu'un intérieur de même qualité posé après
+coup, mais aucun A/B (cadres, intérieurs, écart moyen d'arêtes et dispersion)
+n'a été lancé : cet effet reste une question ouverte.
 
 Il ne bat pas les meilleurs records, et il sature comme tout le reste à
 l'approche du mur. Mais il isole et mesure proprement le couplage
@@ -118,11 +119,10 @@ nombreux* cadres.
   d'accueillir les indices, puis une recette de finale de 30 secondes tourne sur
   chaque cadre survivant avec 8 graines. Le meilleur intérieur l'emporte.
 
-L'effet mesuré est faible mais réel, et il provient d'une seule chose : le
-couplage bordure-intérieur que la recherche sur plateau entier moyenne et efface,
-mais qu'une construction rebord d'abord peut exploiter tant qu'elle le peut
-encore. 453 sans indices ; du haut des 440 au bas des 450 avec les cinq indices
-forcés.
+La source supposée est le couplage bord-intérieur que la recherche sur le
+plateau entier dilue, mais qu'une construction rebord d'abord peut exploiter
+tant qu'il en est temps ; le mesurer demande l'A/B ci-dessus. 453 sans indices ;
+du haut des 440 au bas des 450 avec les cinq indices imposés.
 
 ## Reproduire
 

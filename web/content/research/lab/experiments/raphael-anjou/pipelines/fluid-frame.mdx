@@ -1,11 +1,11 @@
 ---
 title: The fluid frame
 description: >-
-  A perfect 60-piece border is not one rigid object. Every fully matched frame
-  admits exactly 45 free rim exchanges at zero border cost; a third of perfect
-  frames cannot even start the interior, and a single free exchange revives
-  every one of them.
-metaDescription: "A perfect Eternity II border is not one rigid object: every fully matched 60-piece frame admits exactly 45 free rim exchanges at zero border cost. 36% of perfect frames cannot start the interior, yet one free swap revives every sampled one. A perfect border and a usable border differ."
+  A perfect 60-piece border is not one rigid object. A third or more of
+  perfect frames cannot even start the interior, and rim exchanges at zero
+  border cost revived every sampled one. The official piece set guarantees 45
+  such free exchanges on every perfect frame.
+metaDescription: "A perfect Eternity II border is not one rigid object: 36 to 45% of sampled perfect 60-piece frames cannot start the interior, yet zero-cost rim exchanges revived every sampled one. The piece set guarantees 45 such free exchanges on every perfect frame. A perfect border and a usable border differ."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -25,7 +25,7 @@ repro:
   cmd: "just research-frame-manifold"
   scope: "Regenerates the 500-frame main run and the 100-frame robustness pass and reproduces results/manifold.json byte for byte; it re-measures the mechanism only, no completed boards are produced"
 order: 75
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, local-search]
 sources:
@@ -45,10 +45,10 @@ colours to the interior search as hard constraints. I wanted to know whether
 that frozen object is really one object, starting from a simple reflex: when
 the interior stalls against the rim, why backtrack the border when you could
 exchange one rim piece? Measured on 500 fresh perfect frames, the answer is
-sharper than the question. A perfect border is a connected manifold with
-exactly 45 free exits; a third of perfect borders cannot even start the
-interior; and one free exchange fixes every sampled dead one at zero border
-cost.
+sharper than the question. A third of perfect borders cannot even start the
+interior, and free exchanges fix every sampled dead one at zero border cost.
+The supply of free exchanges is fixed by the piece set: 45 on every perfect
+frame.
 
 ## What was measured
 
@@ -80,18 +80,6 @@ generated frame is viewable in the
 
 ## The result
 
-**Exactly 45 free moves, on every frame.** All 500 perfect frames admit
-exactly 45 free exchanges, never 44, never 46. No exchange ever raises BB
-(60 is the maximum), and the free moves compose: after 100 chained free swaps
-BB is still 60 and 45 free moves are still available. The count never
-depletes.
-
-**None of them is cosmetic.** Zero of the 45 free swaps preserve the inward
-colour of the pieces they touch, so every free move changes the constraint
-vector the border presents to the interior. A 100-step free walk visited 99
-distinct rim-target vectors out of a possible 101 without ever leaving
-BB = 60.
-
 **Perfect is not usable.** 180 of 500 perfect frames (36 percent) had at
 least one interior cell that zero of the 196 interior pieces could fill, and
 46 (9.2 percent) were dead at the very first cell a scan-order solver visits:
@@ -99,6 +87,18 @@ the interior search dies at depth 0 despite a perfect border score. Greedy
 repair by free exchanges alone revived 60 of 60 sampled dead frames to zero
 dead cells, with BB never leaving 60. In the source study's worked example,
 one free swap took a framed DFS from depth 0 to depth 153 of 196.
+
+**45 free exchanges, by construction.** A swap of two edge pieces leaves
+BB at 60 exactly when the two pieces carry the same pair of along-ring
+colours, since each must fit the neighbours the other had. The official set
+has 45 pairs of edge pieces with identical along-ring colour pairs (class
+sizes 4, 4, 3, 3, 3, 3, 3, 3, 3, 2, ...) and no such pair among the 4
+corners, so every perfect frame has exactly these 45 free swaps, whatever
+the frame. The sampled frames confirm the count (45 on all 500, and still 45
+after 100 chained swaps), which checks the code rather than discovering a
+property of frames. Because no two pieces are identical, each free swap also
+changes the inward colour at both slots; a 100-step free walk visited 99
+distinct rim-target vectors out of a possible 101 without leaving BB = 60.
 
 <Figure collapsible title="Expected vs measured (main run, 500 frames)">
 
@@ -120,9 +120,9 @@ one free swap took a framed DFS from depth 0 to depth 153 of 196.
 </Figure>
 
 An independent-seed robustness pass (100 fresh frames, seed base 7001)
-agrees: 45 free exchanges on every frame, no gains, 45 of 100 frames dead
-(histogram 38 / 7), all 45 revived, and the walk again holds BB = 60 with 45
-free moves throughout. So the punchline holds across generators and seeds: a
+agrees: 45 of 100 frames dead (histogram 38 / 7), all 45 revived, and (as
+the piece set guarantees) 45 free exchanges on every frame with no gains.
+So the punchline holds across seeds: a
 perfect border and a usable border are different properties, and the frame
 can stay mutable during the search instead of being backtracked.
 
@@ -133,13 +133,15 @@ can stay mutable during the search instead of being backtracked.
   framed boards, so any score effect is an open question; a producer that
   keeps the frame fluid during the interior search is future work. This page
   publishes the mechanism only.
-- The 45 is claimed as a property of the official piece set and replicated
-  here on frames from a different generator. The dead-frame rate is a
+- The 45 is a property of the official piece set, derived above, not a
+  measured regularity of frames. The dead-frame rate is a
   property of the generator's sampling: 36.0 percent on the main run, 45
   percent on the independent-seed pass, so the defensible statement is a rate
   in the mid-30s to mid-40s percent range, not a universal 36.
 - The raw same-class pair count is 1546 per frame here against roughly 1458
   in the source, which evidently excluded some no-op pair class. The shares
   and the two load-bearing rows (45 free, 0 gains) match regardless.
+- Whether the set of perfect frames is connected under free exchanges is
+  not measured; the walks show only that free moves never run out.
 - Frames here are unhinted, as in the source measurement; hint compatibility
   of frames is a separate concern and no part of this claim.

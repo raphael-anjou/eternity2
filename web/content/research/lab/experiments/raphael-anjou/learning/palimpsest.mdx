@@ -2,9 +2,9 @@
 title: PALIMPSEST
 description: >-
   Read every strong board to find the habits that quietly hold a board back,
-  then break them. This experiment produced the project's best board: 463 of
-  480.
-metaDescription: "PALIMPSEST reads every strong Eternity II board to find the habits that quietly hold a board back, then breaks them. It produced this project's best board — 463 of 480 — by mining anti-patterns from the corpus and steering the search away from them."
+  then break them. Steered this way, one repair run lifted a 461 board to 463 of
+  480, this project's best; whether the steering mattered is untested.
+metaDescription: "PALIMPSEST mines consensus traps from strong Eternity II boards, placements many boards share but no top board keeps, and steers a repair search to break them. One trap-steered run lifted a 461 board to 463 of 480; the control that would credit the steering has not been run."
 kind: experiment
 hardware:
   cores: 8
@@ -43,7 +43,7 @@ stages:
     does: "From a 461 board, deliberately break the trap cells and let destroy-and-repair rebuild them, reaching 463"
     published: false
 order: 40
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, learning]
 related:
@@ -95,9 +95,12 @@ attack.
 
 ## The result
 
-Used as a map to steer the search, this reached 463 of 480 matched edges, the
-best board this project has produced. For comparison, the community's best on
-this puzzle is 470, and a complete solution is 480.
+Used as a map to steer the search, one trap-steered ALNS run (30 minutes × 6
+seeds) lifted a 461 board to 463 of 480 matched edges, the best board this project
+has produced (see [records](/research/records) for where that stands). The control
+that would credit the trap map with that lift, the same ALNS from the same 461
+with random or worst-band perturbations of the same size, budget and seeds, has
+not been run, so the +2 is trap-steered but not yet shown to be trap-caused.
 
 One caveat worth stating: trying to use the trap list directly, by forcing the
 search to avoid trapped placements, did not work on its own and tended to
@@ -132,6 +135,11 @@ from the high 450s to low 460s) it is set by hand rather than swept, and
 $p_\text{high}$ (score $\ge$ 460) is reported alongside but is not the
 discriminant. The single-frequency view (persistence alone) cannot tell these
 apart; splitting by ceiling is the whole trick.
+
+Because the top of this corpus is a handful of the project's own 462 and 463
+boards, the ceiling rule in effect marks which pairs appear in the one or two best
+boards: good consensus is close to a nearest-neighbour encoding of them rather than
+a learned property of the landscape, and the hand-set cut has not been validated.
 
 **2. Trap-destroy ALNS.** Take a 461 board (it lives *inside* the trap basin
 by construction), locate the ~50 highest-ranked trap pairs it contains, and

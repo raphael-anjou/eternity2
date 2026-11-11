@@ -7,10 +7,8 @@ metaDescription: "BANDSAW solves a band of Eternity II rows exactly by meeting i
 kind: experiment
 contribution: analysis
 author: raphael-anjou
-score: 437
 outcome: plateaued
-scoringConvention: matched-edges
-rigor: proven
+rigor: measured
 hardware:
   cores: 8
   cpu: "Apple M1"
@@ -22,16 +20,16 @@ hardware:
   seedPolicy: "none (exact, deterministic)"
   measured: false
 complexity:
-  time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
+  time: "two-sided enumeration joined on seam colours and complementary piece pools; the saving over naive enumeration depends on how the pools fragment; each half grew ~20× per extra mismatch on the 10×10 testbed"
   space: "O(number of top-half partials), the seam/piece-set hash table is the memory bottleneck"
   note: >-
     Meeting in the middle trades time for space: it replaces one exponential
-    walk with two smaller ones plus a join, which is why the band size is capped
-    by memory, not time.
+    walk with two smaller ones plus a join, which is why memory, not time, was
+    expected to cap the band size.
 repro:
   kind: exact
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [exact-methods]
 related:
@@ -62,9 +60,10 @@ sets don't overlap. That meet-in-the-middle join finds the exact best
 completion without walking the whole tree.
 
 Exact lower-bound tables, computed by working backwards column by column, let
-it prune branches that already can't beat the budget, and it raises the
-budget step by step until a round finds nothing new, which proves the best
-score for that band.
+it prune branches that already can't beat the budget. The budget is raised one
+step at a time (iterative deepening on the mismatch budget): the first budget at
+which a completion exists is optimal for that band, because the exhaustive round
+one step lower found none.
 
 <Figure collapsible title="Interactive: the meet-in-the-middle endgame tree">
   <MeetInMiddleDiagram />
@@ -72,14 +71,15 @@ score for that band.
 
 ## The result
 
-On a 10×10 testbed BANDSAW settles the endgame exactly and pins the budget
-where exactness stops being affordable: the search tree grows about
-twenty-fold per extra mismatch, on both sides, so meeting in the middle stops
-paying off at full board size. That negative is the useful part: it tells you
-exactly where exact methods give out and heuristics must take over. The exact
-pieces that survived, the suffix lower-bound tables and the pruned
-branch-and-bound, became reusable instruments. A frame-free board scoring 437
-came out of the same machinery.
+On a 10×10 testbed BANDSAW settles the endgame band exactly, with a
+certificate of optimality. It also gives a first reading of where exactness gets
+expensive: on that testbed each half grew about twenty-fold per extra mismatch.
+The table of sizes against budget behind that figure is not committed, and the
+inference that meeting in the middle stops paying off at full board size is an
+extrapolation, not a measurement. The exact pieces that survived, the suffix
+lower-bound tables and the pruned branch-and-bound, became reusable
+instruments. A frame-free 16×16 board scoring 437 came out of the same
+machinery as a heuristic by-product, with no optimality claim.
 
 ## Method
 
@@ -92,20 +92,24 @@ The join is the idea; the pruning is what makes it affordable.
   *and* their piece-sets are disjoint. That join finds the exact best
   completion without ever walking the full tree, the classic
   [meet-in-the-middle](/research/build/exact/meet-in-the-middle) time-for-
-  space trade.
+  space trade. Disjoint piece sets are not an equality key, so bottom halves
+  are grouped by complementary pool and the square-root saving of a plain hash
+  join does not carry over in general; the saving depends on how the pools
+  fragment.
 - **Suffix lower bounds.** Working backwards column by column builds exact
   lower-bound tables, so a partial that already cannot beat the current budget
   is pruned before it is extended.
-- **Budget ratchet.** Raise the mismatch budget one step at a time and re-solve;
-  when a round finds nothing better, the previous best is *proven* optimal for
-  that band. That proof is why this page is tagged **proven**, not measured:
-  the result is a certificate, not a sample.
+- **Budget ratchet.** Raise the mismatch budget one step at a time and re-solve
+  exhaustively. The first budget at which a completion exists is *proven*
+  optimal for that band, because the exhaustive round one step lower found
+  none. That certificate is exact; the scaling figures below are a measurement
+  and an extrapolation, so the page as a whole is tagged measured.
 
-The measured ceiling: each half grows ~20× per extra unit of budget, so at full
-16×16 board size the top-half table no longer fits, memory, not time, is the
-wall. That negative is the deliverable: it pins exactly where exact methods give
-out and heuristics must take over. The frame-free 437 board fell out of the same
-machinery.
+The reported ceiling: on the 10×10 testbed each half grew about 20× per extra
+unit of budget; the instances, budgets and table sizes behind that figure are
+not yet committed. Extrapolated to a full 16×16 band, the top-half table would
+no longer fit in memory; that extrapolation has not been tested. The frame-free
+437 board is a separate 16×16 by-product of the same machinery.
 
 ## Reproduce
 

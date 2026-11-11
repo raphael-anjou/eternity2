@@ -12,7 +12,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, structure, search-space]
 related:
@@ -106,8 +106,14 @@ i(n) \;=\; \operatorname{round}\!\Big(\tfrac{E(n) - F(n)}{24}\Big),
 $$
 
 apuntando a las multiplicidades que el propio Eternity II usa en $n=16$ (borde
-$\approx 12$, interior $\approx 24$). En $n=16$ esto devuelve exactamente la
-receta oficial, cinco colores de borde y diecisiete interiores.
+$\approx 12$, interior $\approx 24$). Al redondeo le siguen dos ajustes: el número
+de colores interiores se eleva a al menos tres veces el de borde (con un tope de un
+cuarto de las costuras interiores), y la paleta se limita a 22 colores en total, el
+número de motivos que el sitio sabe dibujar. En $n=16$, $F=60$ y $E-F=420$: el
+redondeo da cinco colores de borde y dieciocho interiores, y el tope de 22 baja el
+interior a diecisiete, que es la receta oficial. En $n=8$, $F=28$ y $E-F=84$: el
+redondeo da dos de borde y cuatro interiores, y la regla de tres a uno sube el
+interior a seis.
 
 Conseguir esto en tableros pequeños exigió una corrección del generador. La paleta
 de Eternity II es *de dominante interior*, cinco colores de borde frente a
@@ -201,28 +207,26 @@ El motor es el [backtracker DFS](/research/lab/experiments/raphael-anjou/dfs-stu
 hermano de este estudio, ejecutado en estricto (sin rupturas, sin propagación) de
 modo que **el orden de relleno sea lo único que cambia**. Los órdenes probados son
 fila por fila, su espejo de abajo arriba, la espiral hacia dentro, la espiral
-hacia fuera, borde primero, el peine de Verhaard, un control de
-filas-de-pistas-primero, y el orden propio del estudio que busca las pistas,
-`connect-hints-first`.
+hacia fuera, el peine de Verhaard, un control de filas-de-pistas-primero,
+`trace-hints` (que dibuja un esqueleto entre las pistas antes de rellenar), y el
+orden propio del estudio que busca las pistas, `connect-hints-first`.
 
-¿Por qué importa tanto el orden? El coste de un backtracker lo gobierna la
+¿Por qué importa tanto el orden? La respuesta de trabajo del estudio es la
 **frontera abierta**: el conjunto de celdas ya rellenas todavía adyacentes a una
-vacía. Cuando la siguiente celda se coloca contra una frontera de tamaño $f$, el
-número de tableros parciales que la búsqueda puede tener que considerar crece
-multiplicativamente en $f$, la ramificación es exponencial en la frontera, no en
-el tablero. Un único barrido compacto mantiene $f$ en torno a una fila
+vacía. Un único barrido compacto mantiene la frontera en torno a una fila
 ($\approx n$); un orden que abre manchas alrededor de $k$ pistas dispersas lleva
-$k$ fronteras a la vez, y
-
-$$
-\text{trabajo} \;\sim\; \prod_{j} b^{\,f_j} \;=\; b^{\sum_j f_j},
-$$
-
-de modo que fragmentar el relleno en regiones desconectadas multiplica el coste,
-no lo suma. Esto es exactamente por lo que `connect-hints-first`, el orden que
-*busca* las pistas, es el peor: alcanzar las pistas pronto vale mucho menos que
-mantener la frontera pequeña, y conectar anclas dispersas hace justo lo contrario
-de mantenerla pequeña.
+$k$ fronteras a la vez. La frontera es una correlación descriptiva, no un modelo de
+coste: los resultados muestran que sigue la puntuación mediana a través de los ocho
+órdenes, pero no ordena a los órdenes fragmentadores entre sí. La explicación
+clásica del coste de un backtracker se fija en cuán restringida está cada
+colocación en el momento de hacerla (el principio de "fallar primero" de
+[Haralick y Elliott, 1980](https://doi.org/10.1016/0004-3702%2880%2990051-X)): fila por fila coloca casi cada celda interior
+contra dos vecinas ya colocadas, mientras que un relleno fragmentado coloca muchas
+contra una sola, y más tarde paga el cierre de ciclos, donde un fallo cuesta caro de
+deshacer. Esa explicación encaja con que `connect-hints-first`, el orden que
+*busca* las pistas, sea el que peor sale parado con ellas, pero este estudio no la
+ha probado (por ejemplo, relacionando los nodos gastados en cada profundidad con el
+número de vecinas ya colocadas).
 
 ## Cómo leer las cifras
 
