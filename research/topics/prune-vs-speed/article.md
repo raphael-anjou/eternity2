@@ -52,8 +52,10 @@ $(1/0.95)^{256} \approx 5\times10^5$ — a five-hundred-thousand-fold speedup's
 worth of work, from one cheap structural idea.
 
 So the ordering is: **prune first, then go fast inside the reduced space.** Speed
-is not worthless — it lets you run more, deeper pruned searches — but it is never
-where the gap to 480 is hiding.
+is not worthless: it lets you run more, deeper pruned searches, and in stochastic
+record hunting more throughput means more attempts. On the measured 6x6 trees
+below (depth 36, effective branching factor 1.416), a 1000x speedup beats a 5%
+uniform cut, which is worth only about 6.3x.
 
 ## What we measured
 

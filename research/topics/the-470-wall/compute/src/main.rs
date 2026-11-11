@@ -132,7 +132,7 @@ fn main() {
     let mean = 60.0 * p_f + 420.0 * p_i;
     let sd = (60.0 * p_f * (1.0 - p_f) + 420.0 * p_i * (1.0 - p_i)).sqrt();
 
-    let probe_scores = [37usize, 200, 400, 460, 470, 480];
+    let probe_scores = [37usize, 200, 400, 460, 465, 470, 475, 478, 480];
     let landscape: Vec<serde_json::Value> = probe_scores
         .iter()
         .map(|&s| {

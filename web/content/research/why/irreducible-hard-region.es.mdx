@@ -1,18 +1,18 @@
 ---
-title: La región difícil que no se puede diseñar de otro modo
+title: La región difícil sigue el orden de relleno
 description: >-
-  Rellena un tablero en cualquier orden fijo y los tres cuartos de arriba entran
-  con soltura, mientras la dificultad se amontona en la banda que terminas al
-  final. En cuarenta tableros generados, todo lo que sobra cae en la mitad
-  inferior cada vez; baraja el orden de relleno y se dispersa, así que la región
-  difícil la fabrica el barrido, no está escondida en el tablero.
-metaDescription: "En tableros Eternity II resolubles, una búsqueda row-major rellena los tres cuartos de arriba y luego se atasca; en cuarenta tableros 16x16, todo lo que sobra cae en la mitad inferior cada vez. Baraja el orden y se dispersa (0,503): la región difícil pertenece a la descomposición, no al tablero."
+  Rellena un tablero en un orden fijo y los tres cuartos de arriba entran con
+  soltura; lo que sobra es, por construcción, el final del orden. En cuarenta
+  tableros generados, una búsqueda row-major se atasca en una mediana de 12
+  filas de 16, y más presupuesto no la mueve. Falta comprobar si algunas
+  celdas son difíciles con cualquier orden.
+metaDescription: "En cuarenta tableros 16x16 resolubles, una búsqueda row-major rellena una mediana de 12 filas de 16 y se atasca con cualquier presupuesto. Lo que sobra queda al final del orden por construcción; que una región sea difícil con cualquier orden no se ha probado."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 sources: []
 related:
@@ -61,7 +61,10 @@ terminarla con una heurística**: como cada pieza se usa una sola vez, gastar un
 pieza escasa pronto en la parte fácil mata de hambre a la parte difícil después,
 de modo que ninguna reparación local alcanza un tablero alto nuevo.
 
-Solo la primera parte es un hecho nítido que se lee directamente en un tablero.
+Solo la primera parte se lee en un tablero, y en su mayor parte es cierta por
+construcción: con un relleno secuencial, el tablero parcial más profundo es un
+prefijo del orden, así que sus celdas vacías son el sufijo. Lo que se puede
+medir es hasta dónde llega el prefijo y si más presupuesto lo hace avanzar.
 Las otras dos son techos ligados a un solucionador exacto concreto y a la escasez
 propia del conjunto oficial de 22 colores, y el propio cuaderno las califica de
 empíricas más que de demostradas. Por eso esta página reproduce la primera parte,
@@ -119,7 +122,10 @@ doce filas completas de dieciséis, antes de no poder colocar ya un emparejamien
 perfecto. Eso coincide con la imagen del cuaderno donde las diez filas y más de
 arriba se rellenan casi con soltura. Y en cada uno de los cuarenta tableros, todo
 el sobrante cae en la mitad inferior: la fracción de sobrante media en la mitad
-inferior vale exactamente 1,000.
+inferior vale exactamente 1,000. Esa segunda cifra no aporta nada por sí sola:
+en cuanto la frontera pasa de la fila 8, lo que sobra de un prefijo row-major
+son, por definición, las filas de abajo. La cifra row-major informativa es la
+profundidad alcanzada, una mediana del 75 % de las celdas.
 
 ## El control es todo el asunto
 
@@ -138,6 +144,13 @@ muestran directamente los tableros récord: sus
 cuya posición fija la dirección en que la búsqueda rellenó el tablero. Aquí se
 puede ver esa banda crearse y desplazarse sin cambiar nada más que el orden de
 relleno.
+
+El control tampoco revela una zona difícil oculta: 0,503 es lo que da por
+construcción un orden uniformemente aleatorio. Para saber si algunas celdas
+son intrínsecamente difíciles harían falta varios órdenes sin relación entre
+sí (por columnas, en espiral, invertido, aleatorio) y una medida de cuánto se
+solapan las celdas que cada uno deja sin resolver. Esa comparación aún no se ha
+hecho.
 
 ## El atasco es un muro, no un arranque lento
 
@@ -178,9 +191,10 @@ La mitad **demasiado acoplada globalmente** es un techo empírico ligado a la
 escasez del conjunto oficial, el acoplamiento que permite que una pieza escasa
 gastada arriba [mate de hambre a una celda muy abajo](/research/why/piece-theft).
 Nuestros tableros vienen del generador enmarcado del kit, con solución plantada y
-que plausiblemente admite muchas soluciones, donde se cree que el puzzle real
-admite esencialmente una. La localización vale para cualquier tablero resoluble
-bajo un relleno secuencial, porque el sobrante tiene que vivir en algún sitio y un
+que plausiblemente admite muchas soluciones, mientras que la estimación del
+primer momento del puzzle real es de unas 14 702 con la pieza central (ver el
+[recuento de soluciones](/research/build/analysis/solution-counting)). La
+localización vale para cualquier tablero bajo un relleno secuencial, porque el sobrante tiene que vivir en algún sitio y un
 barrido row-major lo pone abajo, de modo que la familia generada es una prueba
 adecuada de la localización; no es una prueba de la afirmación de acoplamiento,
 que exigiría el conjunto oficial. Esa brecha de familia de instancias explica por

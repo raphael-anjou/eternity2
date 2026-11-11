@@ -1,5 +1,5 @@
 ---
-title: "Invariantes de flujo: una ley de rotación que el conjunto oficial cumple exactamente"
+title: "Invariantes de flujo: una ley de rotación que toda solución debe cumplir"
 description: >-
   Pondere cada color de arista y lea cada pieza como un vector con signo, este
   menos oeste en un eje, sur menos norte en el otro. Sumado sobre cualquier
@@ -12,13 +12,15 @@ contribution: theory
 rigor: proven
 tier: 2
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Invariantes de flujo: topic de reproducción con el artículo, el verificador versionado y el JSON de resultados (GitHub)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
   - label: "Conway y Lagarias, Tiling with polyominoes and combinatorial group theory: los invariantes de palabra de borde que esta ley adapta al emparejamiento de aristas (JCTA 1990)"
     url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Thurston, Conway's tiling groups: la forma de palabra de borde (van Kampen) de la condición de los grupos de teselado (American Mathematical Monthly 97, 1990)"
+    url: https://doi.org/10.1080/00029890.1990.11995660
   - label: "Brendan Owen digitaliza el conjunto de piezas: el histograma de colores que esta ley confronta (groups.io msg 1054, julio de 2007)"
     url: https://groups.io/g/eternity2/message/1054
   - label: "Brendan Owen, Design the hardest puzzle: la separación deliberada de las paletas de borde e interior (groups.io msg 1947, agosto de 2007)"
@@ -50,8 +52,8 @@ toda solución válida, sea cual sea su score.
 
 ## La idea en una línea
 
-Dé a cada uno de los 22 colores de arista un peso numérico, con el color de borde
-gris pesando cero. Lea una pieza colocada como un vector de dos dimensiones: su
+Dé a cada uno de los 22 colores de arista no grises un peso numérico, y al color
+de borde gris el peso cero. Lea una pieza colocada como un vector de dos dimensiones: su
 peso este menos su peso oeste en el eje horizontal, su peso sur menos su peso
 norte en el eje vertical. Ahora sume ese vector sobre un bloque de piezas
 colocadas. Cada costura interior del bloque es compartida por dos piezas, y entra
@@ -85,9 +87,9 @@ van las piezas sino sobre qué rotaciones puede adoptar el conjunto entero.
 ## La familia completa, y qué es nuevo
 
 El grupo de rotación de un cuadrado tiene cuatro caracteres, y la ley de flujo es
-solo uno de ellos. Descomponer la pieza según los cuatro da el retículo completo
-de los invariantes lineales, intrínsecos a la pieza, del emparejamiento de
-aristas: nada lineal se le escapa. Los cuatro miembros son un simple censo de
+solo uno de ellos. Descomponer la pieza según los cuatro da cuatro familias de
+invariantes lineales, intrínsecos a la pieza, del emparejamiento de aristas. No
+se demuestra aquí que no exista ningún otro invariante lineal. Los cuatro miembros son un simple censo de
 colores (ciego a la rotación, el recuento total de cada color en la pieza), la ley
 de flujo gaussiana que se acaba de describir, su conjugado complejo (la misma
 información), y un cuarto miembro, de valores enteros, que acopla la elección de
@@ -118,8 +120,8 @@ los números salen así.
     <div className="mt-1 text-xs text-muted-foreground">rango complejo, pleno (22 de 22 colores)</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">40</div>
-    <div className="mt-1 text-xs text-muted-foreground">restricciones reales independientes</div>
+    <div className="text-3xl font-bold tabular-nums">44</div>
+    <div className="mt-1 text-xs text-muted-foreground">ecuaciones reales independientes sobre los fasores de rotación</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">21</div>
@@ -129,14 +131,21 @@ los números salen así.
 
 Un rango complejo pleno de 22 significa que la ley liga los 22 colores a la vez,
 sin que ningún color quede fuera como variable libre. Dividir las ecuaciones
-complejas en sus partes real e imaginaria da 40 restricciones reales
-independientes sobre la asignación de rotaciones. Y reducir todo el sistema módulo
+complejas en sus partes real e imaginaria da 44 ecuaciones reales
+independientes sobre las partes real e imaginaria de los fasores de rotación
+$i^{r_p}$. (El verificador también da 40: el rango real de las filas de
+coeficientes reales e imaginarias apiladas actuando sobre incógnitas reales,
+otra magnitud.) Y reducir todo el sistema módulo
 2, donde la rotación de una pieza colapsa a un único bit de paridad (un cuarto de
 vuelta y un tres cuartos de vuelta se vuelven iguales módulo 2), deja 21
 restricciones de paridad independientes, con el sistema aumentado quedando también
 de rango 21, así que es consistente y no contradictorio. Ese sistema módulo 2 por
 sí solo retira un factor de unos dos millones del espacio de paridades de
-rotación.
+rotación. Nada de esto distingue al conjunto oficial: todo juego de piezas que
+tiene solución cumple la ley, así que todo puzzle pintado a partir de un tablero
+resuelto, incluidos los generados, es consistente, y el rango pleno es el caso
+genérico. Estas cifras miden el tamaño de la ley en E2, no una propiedad propia
+de E2.
 
 Los hechos de instancia que la ley confronta se reproducen también exactamente,
 dígito por dígito frente al conjunto de piezas digitalizado por Brendan Owen: 196
@@ -186,10 +195,20 @@ uniformemente y un depósito de 30 tableros, 30 órdenes cada uno (900 por llena
 modo que las tasas de detección absolutas quedan más bajas. Lo que se cumple
 exactamente, y ese es el punto, es que el certificado es fiable y que su
 probabilidad de detección sube de forma monótona hacia el pleno a medida que el
-tablero se llena. Ese es precisamente el comportamiento útil para una búsqueda: la
-comprobación se afila justo donde la cola de ramificación del árbol es más costosa,
-hacia el final, y cada captura es ortogonal al podado por color y por recuento, así
-que se suma por encima en vez de duplicarlos.
+tablero se llena. El banco
+de pruebas es, sin embargo, artificial. Gira una pieza de una solución plantada
+por lo demás intacta, un estado que un backtracker nunca produce: la pieza
+girada ya no casa con sus vecinas colocadas, y la comprobación ordinaria de
+aristas ya la rechaza. Las tasas de captura no dicen todavía nada de los
+callejones sin salida reales, y no se ha probado si la comprobación añade algo
+al podado por color y por recuento. En el tablero 16x16 el sistema residual solo
+tiene 21 ecuaciones de paridad, así que es genéricamente satisfacible mientras
+queden más de unos 21 bits de rotación libres: solo puede dispararse en las
+últimas 20 celdas aproximadamente, el colapso que el
+[embudo de la teoría compleja](/research/why/complex-theory) muestra ya barato.
+Medir su valor exige estados sin salida recogidos de un backtracker 16x16 que ya
+aplica el emparejamiento y las comprobaciones de recuento, con la poda adicional
+por nodo y el efecto en tiempo real.
 
 ## Qué es y qué no es
 
@@ -200,14 +219,16 @@ comparten todos los resultados de esta familia. Dos advertencias más, dichas co
 claridad. La ley restringe las rotaciones que el conjunto de piezas puede emplear,
 no la celda donde cada pieza se coloca; solo el miembro de tablero de ajedrez se
 acopla a la posición, y solo por la paridad de la celda, de modo que ningún
-miembro fija una pieza a un lugar. Y la extensión no lineal natural, un producto
-de palabra de borde no abeliano al estilo de la construcción original de Conway y
-Lagarias, no sobrevive en dos dimensiones: una celda interior tiene cuatro aristas
-compartidas pero solo dos vecinas adyacentes a ella en cualquier orden de lectura
-lineal, de modo que al menos dos de sus aristas nunca podrán cancelarse, y la
-construcción recae en la ley de flujo lineal. Todo invariante estrictamente más
-fuerte que estos ha de ser no lineal y queda fuera de la familia de los grupos de
-teselado.
+miembro fija una pieza a un lugar. Y la extensión no abeliana al estilo de Conway y Lagarias
+sí existe. Para una región simplemente conexa, etiquete cada arista con su color
+y su dirección; una costura emparejada se recorre en sentidos opuestos con la
+misma etiqueta y se cancela, así que la palabra de borde de la región debe ser
+un producto de conjugados de las palabras de borde de las piezas en el grupo
+libre, un diagrama de van Kampen
+([Thurston, 1990](https://doi.org/10.1080/00029890.1990.11995660)). Es una
+auténtica condición necesaria no lineal, cuya sombra abeliana es el censo más
+la ley de flujo de arriba. Comprobarla es esencialmente tan difícil como
+resolver el teselado, y por eso no sirve como podador aquí.
 
 ## Dónde se ubica
 
@@ -221,7 +242,8 @@ tablero entero como una palabra de código: la ley de flujo es un conjunto de
 comprobaciones de paridad que las rotaciones deben satisfacer, la misma moneda en
 la que esa lente está escrita. La
 [página de teoría compleja](/research/why/complex-theory) cuenta cuán ancha es la
-búsqueda; esta página añade una manera barata y fiable de podar su final.
+búsqueda; esta página añade una comprobación de final barata y fiable, cuyo valor de
+poda en búsquedas reales aún no está medido.
 
 Cada número de arriba es recalculado por el verificador versionado en el topic de
 reproducción enlazado bajo las fuentes: un único programa Rust determinista que

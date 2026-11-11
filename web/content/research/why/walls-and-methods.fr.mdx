@@ -11,12 +11,13 @@ contribution: exposition
 rigor: conjectured
 tier: 1
 order: 20
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Ansótegui, Béjar, Fernández & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge"
     url: https://repositori.udl.cat/server/api/core/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/content
 related:
+  - /research/build/analysis/solution-counting
   - /research/why/prune-vs-speed
   - /research/why/rigidity-wall
   - /research/lab/experiments
@@ -74,7 +75,7 @@ réserve à garder en tête.
 
 | Mur / affirmation | Forme la plus forte soutenue | Niveau | Réplication externe | La seule réserve |
 | --- | --- | --- | --- | --- |
-| [Pic de difficulté](/research/why/phase-transition) | 17,14 couleurs intérieures découlent du critère d'une solution attendue ; 17 est proche du pic de difficulté de recherche pour l'assemblage de bords encadré | Prouvé, externe | Oui : la dérivation de Owen en 1947 ; Ansótegui, Béjar, Fernández & Mateu confirment le pic | « Une solution attendue » est une moyenne au premier moment supposant des couleurs de bord indépendantes ; elle situe le pic, elle ne compte pas les solutions |
+| [Pic de difficulté](/research/why/phase-transition) | L'heuristique simplifiée au premier moment d'Owen place ≈17 couleurs intérieures près de son point à une solution ; 17 est proche du pic de difficulté de recherche pour l'assemblage de bords encadré | Mesuré (petites instances) + heuristique | Oui : la dérivation d'Owen (msg 1947) ; Ansótegui, Béjar, Fernández & Mateu mesurent le pic sur des instances générées | L'estimation corrigée donne environ 14 702 solutions attendues avec la pièce de départ, une moyenne d'ensemble (voir [le comptage des solutions](/research/build/analysis/solution-counting)) ; la position du pic dépend de la taille et du solveur (la courbe 6×6 versée culmine à 5 couleurs) |
 | [Théorie complexe / l'entonnoir](/research/why/complex-theory) | Un estimateur au premier moment de la largeur d'arbre et du nombre de solutions, juste à un facteur deux près partout où on a pu le vérifier | Conjecture (badge de la page), sur réplication externe | Oui : le modèle de Owen ; le portage C de McGavin et sa résolution 10×10, dans la prédiction | C'est une moyenne, aveugle au caractère réellement distinct des partiels comptés ; un outil pour classer les ordres de balayage, jamais un compte exact ni une borne |
 | [Aucun coup forcé](/research/why/no-forced-moves) | Un décompte exhaustif exact sur le jeu intérieur officiel : aucune pièce intérieure n'est jamais forcée à un seul partenaire droit (73 à 137 partenaires chacune) | Prouvé, interne | Aucune réplication externe ; le décompte est propre au projet, versé et reproductible | Il compte la compatibilité par paires sur le jeu complet, pas les candidats dans une planche partielle vivante ; une propriété des pièces, pas une preuve que la recherche ne se resserre jamais |
 | [Motifs interdits](/research/why/forbidden-patterns) | Décomptes exhaustifs exacts : 38,96 % des paires, 83,26 % des L-triominos, 99,72 % des carrés 2×2 sont infaisables sur des pièces intérieures distinctes | Prouvé, interne | Les décomptes 2×2 sont le résultat exact versé du projet ; les 20 paires-coins vides sont une observation communautaire citée de 2008 | La lecture « le décompte de patchs interdits suit la distance à une solution » est un signal heuristique, pas une distance monotone prouvée |
@@ -88,7 +89,7 @@ réserve à garder en tête.
 | [Géographie des couleurs rares](/research/why/rare-color-geography) | Un décompte exact sur le jeu officiel : les cinq couleurs de bord n'apparaissent jamais sur un bord intérieur | Prouvé, interne | Aucune réplication externe du décompte ; l'intention de conception 17+5 est citée à Owen | Correctement présenté comme structurel (bordure grise, pools de couleurs séparés), pas une ruse de rareté ; l'étiquette « rare » est un artefact du moindre nombre de bords de bordure |
 | [Recette de conception](/research/why/design-recipe) | La communauté a reconstruit une recette cohérente de puzzle le plus dur, ingrédient par ingrédient, chacun sourcé à un message de l'année de lancement | Conjecture (badge de la page), chaque ingrédient sourcé de l'extérieur | Oui, densément : les dérivations et mesures de Owen, le recensement de l'espace de conception, la chaîne de provenance jusqu'à Selby et Riordan | Une reconstruction de l'intention de conception, pas un énoncé que les concepteurs ont publié ; la page la badge conjecturée |
 | [Cadre de complexité](/research/why/how-hard-is-this-instance) | L'assemblage de bords est NP-complet comme famille ; une planche fixe unique est une constante, pas un problème ; la difficulté d'E2 est empirique sur un espace ~10^557 | Prouvé, externe | Oui : Demaine & Demaine 2007 pour la NP-complétude ; Ansótegui et al. pour le cas empirique | La distinction de catégorie porte le raisonnement : la NP-complétude plafonne ce que les solveurs généraux peuvent promettre, elle ne dit rien de cette planche |
-| [Élagage contre vitesse](/research/why/prune-vs-speed) | L'argument de composition est de l'arithmétique exacte ; sur E2, un élagage légal coûte souvent plus que le sous-arbre qu'il retire | Prouvé (l'arithmétique), mesuré (le verdict « l'élagage ne paie pas ») | Partiel : le principe est autonome ; le verdict communautaire est cité à McGavin et 95A31, désormais vérifiables dans l'archive étendue | Les chiffres de l'arbre de démonstration sont illustratifs, pas une mesure d'un vrai solveur, et la page le dit |
+| [Élagage contre vitesse](/research/why/prune-vs-speed) | L'argument de composition est de l'arithmétique exacte ; sur E2, un élagage légal coûte souvent plus que le sous-arbre qu'il retire | Prouvé (l'arithmétique), mesuré (le verdict « l'élagage ne paie pas ») | Partiel : le principe est autonome ; le verdict communautaire est cité à McGavin et 95A31, désormais vérifiables dans l'archive étendue | Les chiffres de l'arbre de démonstration sont illustratifs ; sur les arbres 6×6 mesurés, une accélération de 1000× bat une coupe uniforme de 5 %, comme la page le montre |
 
 Trois évolutions depuis le premier tracé de cette carte méritent d'être
 soulignées, car elles font monter des affirmations d'un niveau. Les sigma-cycles
@@ -118,9 +119,11 @@ Chacun d'eux est une version d'un même énoncé : il n'y a rien de local à él
 - **[Aucun coup forcé](/research/why/no-forced-moves)**. Chaque case intérieure
   conserve 73 à 137 pièces légales, si bien que le facteur de branchement ne
   s'effondre jamais.
-- **[Le pic de difficulté](/research/why/phase-transition)**. Avec ≈17 couleurs
-  intérieures, le puzzle se situe à la transition de phase : environ une solution
-  attendue, le pire endroit où chercher.
+- **[Le pic de difficulté](/research/why/phase-transition)**. L'heuristique au
+  premier moment d'Owen place ≈17 couleurs intérieures près du point à une
+  solution d'un modèle simplifié ; l'estimation corrigée donne environ 14 702
+  solutions avec la pièce de départ (voir
+  [le comptage des solutions](/research/build/analysis/solution-counting)).
 - **[La loi d'aire](/research/why/entropy-area-law)**. Les plateaux partiels
   réellement distincts s'effondrent à mesure que l'aire remplie grandit, mais aucun score local
   ne peut percevoir ce fait global.
@@ -160,8 +163,7 @@ mais aucune ne passe jusqu'au plafond. Les méthodes de concentration et exactes
 (LADDER, BANDSAW) attaquent plutôt la recherche elle-même (le facteur de
 branchement élevé et le pic infouillable) et le paient en fin de partie. Les
 méthodes d'ancrage (CLOISTER, MIDDEN) localisent les dégâts mais butent sur le mur
-de la loi d'aire à l'intérieur. Aucun mur pris isolément ne raconte toute
-l'histoire, et aucune méthode ne franchit les quatre.
+de la loi d'aire à l'intérieur. Aucun mur pris isolément ne raconte toute l'histoire. Les ● indiquent le mur que l'article de chaque méthode désigne comme son obstacle : c'est une lecture, pas un critère mesuré.
 
 ## Où chacune a calé, et pourquoi
 
@@ -227,12 +229,16 @@ une ligne.
 
 ## La forme de l'écart
 
-Parcourez la table de haut en bas et la leçon de tout le projet saute aux yeux :
-les méthodes qui font bouger le score changent la forme de la recherche - un ordre
-de balayage, un prior appris, une région confinée -, jamais sa vitesse brute. Et
-chacune d'elles cale contre un mur qui est global, pas local. Les dix arêtes de 470
-à 480 ne relèvent pas d'un problème de finition ; elles se trouvent de l'autre côté
-des quatre murs à la fois.
+Les méthodes du projet calent entre 436 et 463, et cette table note où
+chacune s'est arrêtée et la raison qu'en donne son article. Elle ne mesure pas
+ce qui arrête les plateaux à 470, et aucune expérience ici ne fait varier la
+vitesse ou la puissance de calcul à méthode fixée. Dans ce projet, les
+méthodes qui ont fait bouger le score ont changé la forme de la recherche (un
+ordre de balayage, un prior appris, une région confinée). Les plateaux à 468
+et 470 de la communauté et le 465 de la piste stricte sont venus d'une
+recherche en profondeur rapide et d'une grosse puissance de calcul (voir
+[la page des records](/research/records)) : le débit brut a donc lui aussi
+fait bouger le record.
 
 Une campagne distincte menée en 2026 par William Millilaw a abouti à la même
 conclusion par le versant de la diversité. En balayant toute la liste des méthodes,

@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 // leaves. A speedup divides the work by a constant; a cut to the branching
 // factor divides it by (b'/b)^d — exponential in depth. The two sliders let you
 // trade a raw speedup against a small per-level prune and watch the prune win by
-// orders of magnitude. Numbers are illustrative (b and d chosen to be E2-like),
-// not a claim about a specific solver.
+// orders of magnitude on this tree. Numbers are illustrative, not a claim
+// about a specific solver; the page compares them with a measured tree.
 
 const B = 5; // illustrative effective branching factor
 const D = 64; // illustrative depth (a quarter of E2's 256, kept legible)
@@ -30,8 +30,8 @@ const T = {
     verdict: (ratio: string) =>
       `At this setting the prune does the work of a ${ratio}× speedup.`,
     caption:
-      "A speedup is a constant divisor — it buys you a fixed multiple, no matter how deep the search. A prune lowers the branching factor at every one of the ~64 levels here, so its effect compounds: (reduced ⁄ original) to the 64th power. Even a few percent off the branching factor dwarfs a large raw speedup. That is why record solvers win on what they prune, not on clock rate — and why a puzzle engineered to resist pruning is so hard.",
-    depthNote: `Illustrative tree: branching factor ${B}, depth ${D}. Eternity II's is far deeper (256), so the gap is far larger still.`,
+      "A speedup is a constant divisor — it buys you a fixed multiple, no matter how deep the search. A prune lowers the branching factor at every one of the ~64 levels here, so its effect compounds: (reduced ⁄ original) to the 64th power. On this deep, bushy tree even a few percent off the branching factor dwarfs a large raw speedup. On shallow, narrow trees the balance can flip: on the measured 6×6 instances a 1000× speedup beats a 5% cut.",
+    depthNote: `Illustrative tree: branching factor ${B}, depth ${D}. Real search trees are often much narrower, which shrinks the gap.`,
   },
   fr: {
     title: "La vitesse divise ; l'élagage divise exponentiellement",
@@ -43,8 +43,8 @@ const T = {
     verdict: (ratio: string) =>
       `À ce réglage, l'élagage fait le travail d'une accélération de ${ratio}×.`,
     caption:
-      "Une accélération est un diviseur constant — elle offre un multiple fixe, quelle que soit la profondeur. Un élagage abaisse le facteur de branchement à chacun des ~64 niveaux ici, donc son effet se compose : (réduit ⁄ original) à la puissance 64. Même quelques pour cent retirés au facteur de branchement écrasent une grosse accélération brute. C'est pourquoi les meilleurs solveurs gagnent sur ce qu'ils élaguent, pas sur la fréquence — et pourquoi un puzzle conçu pour résister à l'élagage est si dur.",
-    depthNote: `Arbre illustratif : facteur de branchement ${B}, profondeur ${D}. Celui d'Eternity II est bien plus profond (256), donc l'écart est encore bien plus grand.`,
+      "Une accélération est un diviseur constant — elle offre un multiple fixe, quelle que soit la profondeur. Un élagage abaisse le facteur de branchement à chacun des ~64 niveaux ici, donc son effet se compose : (réduit ⁄ original) à la puissance 64. Sur cet arbre profond et touffu, même quelques pour cent retirés au facteur de branchement écrasent une grosse accélération brute. Sur des arbres peu profonds et étroits, la balance peut s'inverser : sur les instances 6×6 mesurées, une accélération de 1000× bat une coupe de 5 %.",
+    depthNote: `Arbre illustratif : facteur de branchement ${B}, profondeur ${D}. Les vrais arbres de recherche sont souvent bien plus étroits, ce qui réduit l'écart.`,
   },
   es: {
     title: "La velocidad divide; la poda divide exponencialmente",
@@ -56,8 +56,8 @@ const T = {
     verdict: (ratio: string) =>
       `Con este ajuste, la poda hace el trabajo de una aceleración de ${ratio}×.`,
     caption:
-      "Una aceleración es un divisor constante: aporta un múltiplo fijo, sin importar la profundidad de la búsqueda. Una poda reduce el factor de ramificación en cada uno de los ~64 niveles de aquí, así que su efecto se compone: (reducido ⁄ original) elevado a la 64. Incluso restar unos pocos por ciento al factor de ramificación empequeñece una gran aceleración bruta. Por eso los solucionadores récord ganan por lo que podan, no por la frecuencia de reloj, y por eso un puzzle diseñado para resistir la poda es tan difícil.",
-    depthNote: `Árbol ilustrativo: factor de ramificación ${B}, profundidad ${D}. El de Eternity II es mucho más profundo (256), así que la diferencia es aún mayor.`,
+      "Una aceleración es un divisor constante: aporta un múltiplo fijo, sin importar la profundidad de la búsqueda. Una poda reduce el factor de ramificación en cada uno de los ~64 niveles de aquí, así que su efecto se compone: (reducido ⁄ original) elevado a la 64. En este árbol profundo y frondoso, incluso restar unos pocos por ciento al factor de ramificación empequeñece una gran aceleración bruta. En árboles poco profundos y estrechos la balanza puede invertirse: en las instancias 6×6 medidas, una aceleración de 1000× vence a un recorte del 5 %.",
+    depthNote: `Árbol ilustrativo: factor de ramificación ${B}, profundidad ${D}. Los árboles de búsqueda reales suelen ser mucho más estrechos, lo que reduce la diferencia.`,
   },
 };
 

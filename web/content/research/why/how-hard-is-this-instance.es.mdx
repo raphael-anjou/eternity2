@@ -6,14 +6,16 @@ description: >-
   problema. Lo que sí es cierto es la dureza en el peor caso de la familia y la
   dureza empírica de esta instancia, y cómo escribir el puzzle para un
   solucionador SAT, de cobertura exacta o de PLE, con pequeños esbozos detallados.
-  Una medición con tableros plantados pone cifras a la elección de la
-  formulación: un acantilado de resolubilidad que un paradigma de búsqueda
-  golpea y otro cruza, y que se mueve con el número de colores.
-metaDescription: "El emparejamiento de aristas es NP-completo como familia, pero un tablero 16x16 fijo es una constante, no un problema. Junto a SAT, DLX y PLE, una medición con tableros plantados muestra un acantilado de resolubilidad que la DFS golpea, CP-SAT cruza y que se mueve con el número de colores."
+  Una medición con tableros plantados pone cifras a la elección del
+  solucionador: una DFS con reinicios choca con un muro aproximadamente un
+  tamaño de tablero antes que CP-SAT, y ambos muros se mueven con el número de
+  colores, cerca del tamaño en que los tableros cruzan el umbral de una
+  solución esperada.
+metaDescription: "El emparejamiento de aristas es NP-completo como familia, pero un tablero 16x16 fijo es una constante. Junto a SAT, DLX y PLE, una medición con tableros plantados muestra a CP-SAT alejando el muro un tamaño más que una DFS; ambos muros siguen al número de colores."
 kind: concept
 contribution: exposition
 order: 25
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: 'Demaine & Demaine 2007, "Jigsaw Puzzles, Edge Matching, and Polyomino Packing: Connections and Complexity" (Graphs and Combinatorics 23): el emparejamiento de aristas es NP-completo'
@@ -58,8 +60,9 @@ como que todo problema de NP se reduce a él.
 
 Un único tablero fijo no es una familia. La instancia de Eternity II tiene una
 respuesta bien definida, «sí, tiene solución» (los diseñadores la construyeron a
-partir de una solución) o, en la forma de competición con 5 pistas, «sí, con
-exactamente esta disposición». Esa respuesta cabe en un solo bit. Un solo bit es
+partir de una solución), y la forma de competición con 5 pistas también tiene
+una solución conocida, la del premio, aunque su unicidad no está demostrada.
+Cualquiera de esas respuestas cabe en un solo bit. Un solo bit es
 una constante, y «¿es NP-completa esta constante?» no es una pregunta bien
 formada: existe un algoritmo en tiempo constante que imprime la respuesta
 (`return true`), sencillamente lleva la respuesta grabada dentro. Preguntar si
@@ -82,10 +85,13 @@ Dos afirmaciones distintas, mantenidas por separado:
   comporta una entrada *específica*.
 - **Dureza empírica de esta instancia.** Una dureza que se puede medir. El
   tablero 16×16 tiene del orden de $1{,}115\times10^{557}$ disposiciones distintas
-  de piezas y rotaciones, y el puzzle parece admitir muy pocas soluciones (la
-  forma con 5 pistas está diseñada para tener esencialmente una; véase la
-  [teoría de la complejidad](/research/why/complex-theory) para la estimación del
-  número esperado). Por tanto, una búsqueda con backtracking enhebra un espacio
+  de piezas y rotaciones, y el número esperado de soluciones es minúsculo en
+  comparación: las estimaciones del primer momento dan unas 14 702 con la pieza
+  central obligatoria y alrededor de una con las cinco pistas, ambas promedios
+  sobre puzzles aleatorios con las mismas estadísticas de piezas y no recuentos
+  para este tablero (véase el
+  [recuento de soluciones](/research/build/analysis/solution-counting) y la
+  [teoría de la complejidad](/research/why/complex-theory)). Por tanto, una búsqueda con backtracking enhebra un espacio
   astronómicamente amplio hacia un conjunto de soluciones casi vacío, y así pasa
   casi todo su tiempo explorando callejones sin salida. Por eso el puzzle es
   duro *en la práctica*, y es una afirmación sobre este tablero, no sobre la
@@ -163,8 +169,9 @@ cambian por variables auxiliares), y el resultado es una fórmula con millones d
 cláusulas cuya estructura le da casi nada que aprender a la búsqueda guiada por
 conflictos. Esto se ha intentado desde 2008 y los solucionadores SAT completos
 se atascan en el tablero completo; Blackwood, entre otros, informó de que SAT no
-ayudaba. La codificación es limpia, el solucionador no es el cuello de botella,
-lo es la *instancia*. Véase
+ayudaba. A tamaño completo ningún solucionador ni codificación probados han
+tenido éxito; en tableros generados más pequeños, la elección del solucionador
+desplaza el muro uno o dos tamaños (ver más abajo). Véase
 [codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings) para el
 historial de bancos de pruebas y dónde los veredictos SAT todavía se ganan su
 sitio como pruebas de imposibilidad en regiones pequeñas.
@@ -250,11 +257,13 @@ fijadas como pistas, puntuadas con la convención de aristas emparejadas sin
 contar el borde exterior (una resolución completa a tamaño $N$ vale
 exactamente $2N(N-1)$ aristas emparejadas: 264 en 12×12, 480 en 16×16). Los
 tableros plantados no son el Eternity II canónico; plausiblemente admiten
-muchísimas soluciones donde el puzzle real está diseñado para tener en esencia
-una. Lo que ofrecen es una escalera de instancias resolubles por construcción
+muchísimas soluciones, mientras que la estimación del primer momento del puzzle
+real es de unas 14 702 con la pieza central y de alrededor de una con las
+cinco pistas. Lo que ofrecen es una escalera de instancias resolubles por construcción
 que dos paradigmas de búsqueda distintos pueden atacar lado a lado.
 
-En este banco, a 22 colores, una búsqueda en profundidad con reinicios que
+En este banco, a 22 colores en total (17 interiores y 5 de borde, el reparto
+del puzzle real), una búsqueda en profundidad con reinicios que
 solo coloca coincidencias exactas resuelve por completo cuatro de cinco
 semillas 10×10 (la más rápida en 4 ms) y dos de cinco semillas 11×11, y luego
 cero de cinco en 12×12 y cero en todos los tamaños superiores. El fallo no es
@@ -274,12 +283,13 @@ dos instancias 13×13 probadas cae en 74 segundos, con cada tablero devuelto
 reverificado de forma independiente: distinción de piezas, conformidad con las
 pistas, recuento de aristas recalculado. Son resoluciones completas
 verificadas de tableros que ninguna semilla de la DFS toca con ningún
-presupuesto. El acantilado pertenece al paradigma de búsqueda, no a los
-tableros.
+presupuesto, así que en estos tableros el muro de la DFS no es un límite duro
+de las instancias.
 
 La ronda original de esta medición corría sobre un generador que permitía 26
-colores interiores, un ajuste que el banco empaquetado no puede producir (su
-generador limita los colores interiores a 22, el recuento del puzzle real). A
+colores en total (21 interiores), un ajuste que el banco empaquetado no puede
+producir (su generador está limitado a 22 colores en total, 17 interiores y 5
+de borde, el reparto del puzzle real). A
 26 colores el contraste era aún más nítido: CP-SAT resolvió por completo 25 de
 25 instancias en los tamaños 10 a 14 con tiempos medianos de 0,10 a 0,84
 segundos, medio segundo en 13×13, y terminó un 16×16 plantado en unos 15
@@ -287,16 +297,18 @@ segundos, mientras el acantilado de la DFS quedaba un peldaño más arriba, en
 13×13. Esa misma ronda midió además la brecha de formulación en aislamiento:
 sobre una instancia 12×12, un MIP genérico sobre binarias de colocación con
 filas de suma uno, pasado por la ramificación y acotación de HiGHS, devolvió
-11 de 264 aristas emparejadas tras 300 segundos; CP-SAT devolvió las 264
-completas sobre la misma instancia en 0,42 segundos. Mismo problema, misma
-máquina, unos tres órdenes de magnitud, y toda la diferencia está en cómo se
-escribieron las restricciones.
+11 de 264 aristas emparejadas tras 300 segundos; CP-SAT con el modelo de
+tablas devolvió las 264 completas sobre la misma instancia en 0,42 segundos.
+Mismo problema, misma máquina, unos tres órdenes de magnitud. Esta única
+comparación cambia a la vez el modelo y el solucionador (ramificación y
+acotación sobre la relajación lineal frente a generación perezosa de cláusulas
+con varios hilos), así que muestra que la pareja importa, no cuál de los dos.
 
-Poner los dos ajustes lado a lado hace aflorar un segundo hallazgo: el
-acantilado se mueve con el número de colores, para ambos paradigmas a la vez.
+Poner los dos ajustes lado a lado muestra que el muro se mueve con el número
+de colores, para ambos solucionadores a la vez.
 A 26 colores, la DFS muere en 13×13 y CP-SAT atraviesa un 16×16 plantado en
 segundos. A 22 colores, la DFS muere un peldaño antes, en 12×12, y el propio
-CP-SAT se ralentiza unos dos órdenes de magnitud entre 11×11 y 12×12 y
+CP-SAT se ralentiza unas veinte veces en la mediana entre 11×11 y 12×12 y
 empieza a agotar sus límites desde 12×12 en adelante: las sondas 14×14 y
 16×16 chocan ambas con un tope de 120 segundos. (Los peldaños grandes fueron
 sondas de una sola semilla, y los tiempos de CP-SAT a 22 colores llevan algo
@@ -305,7 +317,21 @@ explica la brecha con las medianas por debajo del segundo a 26 colores.) Más
 colores significa un tablero más restringido y una búsqueda más fácil para
 todos; menos colores arrastra a ambos paradigmas hacia abajo a la vez, de
 modo que las mediciones tomadas a 26 colores favorecen a todos los
-solucionadores de la carrera. El 16×16 plantado en el que la sonda agotó su
+solucionadores de la carrera.
+
+La posición de los muros coincide con el tamaño en que estos tableros cruzan el
+umbral de una solución esperada para su número de colores. Una estimación
+burda del primer momento para el interior solo, $m! \cdot 4^m / c^{j}$ con
+$m = (N-2)^2$ piezas, $j = 2(N-2)(N-3)$ uniones internas y $c$ colores
+interiores, cruza el uno entre N = 12 y N = 13 con 17 colores interiores
+($10^{-3.3}$ en 12, $10^{3.1}$ en 13) y hacia N = 16 con 21 ($10^{-6.2}$ en 15,
+$10^{2.4}$ en 16). Con 17 colores interiores es justo donde CP-SAT se ralentiza
+y empieza a agotar sus límites. Ambos solucionadores chocan cerca de ese cruce,
+y CP-SAT aleja el muro uno o dos tamaños respecto a la DFS con reinicios. Con
+cinco semillas por tamaño, una sola implementación de DFS y sondas de una sola
+semilla en los peldaños grandes, estos datos no permiten decir qué parte del
+acantilado corresponde al paradigma de búsqueda y qué parte a la posición de
+la familia de tableros respecto a la transición de fase. El 16×16 plantado en el que la sonda agotó su
 tiempo merece verse, mostrado aquí como su solución construida:
 [16×16 plantado, 480/480](https://eternity2.dev/viewer?puzzle=gen_16x16_c22_s1&puzzle_size=16&board_edges=aebaabgeabvbacvbadvcacrdadlcadodadidaeqdafneadgfacwdafscachfaabcbjcagmujvhpmvuohvtpurnttlrsnouvriphuqowpnluogqllwpqqsvgphkgvbackcgdauwsgpluwoqmlpjoqtikjsnnivvvnhmrvwhpmuuuhlutuqqkugguqgnhgcabndgdassrguihsmqkiokhqkjnknokjvkrormikpptmuroptrirkomruumohjsubaejdlearsulhqmskvpqhqkvnwpqknuwrlqnikrltjlkosnjiglsmoogmnjoslqneaclerdauhjrmiihpklikwlkprmwunprqnwnrgnnlgjgnvmglknvowskjkowqwpkcafwdjfajjgjiqqjlptqlnipmslnpowswjjonoljjttomsrtnwtssrowosmrpmisfafmfhdagvkhqjsvtinjitsilwntwjrwjvrjlkovtsvkrhqstquhojhqmkqjitrkfaftdufakstusuisnmvuslsmnrmlrsvrrhnsoomhvtloqvntutvvhkltqukkrmtufaemfhfatwhhirhwvtrrsjptmtujvtgtnvstmohvliionwhivqqwlomqkgpotljgeaflfqeahgqqhmngrprmpqhpuugqgiquslqihqrliimqhkjiqwwkmspwpqisjkjqfaekembaqipmnioirkwihvkkgntvqhhnqnshrwgnmvlwjgwvwqkgpwmqiliwjulleadububapssuohjswmuhkowmtnpohrtnspgrgnrplnvnwgpnkvvgmhlvihwhlnshdadnbkeasgtkjjigumvjwwwmpjgwtpojgujprvtuvruvptorvmmtlsomwigssopidafoegcatppgiltpvpwlwohpgiuoolhijroltigrujgiotljmkjtorkkgiirppmifabpcbaapeabtbaewcabhcacueacheaeocaegfacgcaflbacjfabkbafieabmdaebaad).
 
@@ -314,10 +340,10 @@ tiempo merece verse, mostrado aquí como su solución construida:
   acantilado, desde un rellenador ingenuo fila a fila hasta la propagación
   AC-3 y la poda por déficit de Hall: seis resolvieron por completo el 12×12
   y ninguna resolvió el 13×13. Diez solucionadores de acuerdo parecían diez
-  pruebas de que las instancias eran el muro. Era una sola. Los diez se
-  comprometen cronológicamente y con avidez sobre información local, así que
-  fallan juntos por la razón compartida, y el primer solucionador de un
-  paradigma de verdad distinto tumbó la conclusión en medio segundo. El
+  pruebas de que las instancias eran el muro. Era más bien una sola. Los diez
+  se comprometen cronológicamente y con avidez sobre información local, así
+  que fallan juntos por la razón compartida, y el primer solucionador de un
+  paradigma de verdad distinto resolvió esos tableros 13×13 en medio segundo. El
   acuerdo de N solucionadores de la misma familia es un testigo con N voces.
 </Callout>
 

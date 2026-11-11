@@ -1,17 +1,18 @@
 ---
-title: Dónde colocas las pistas importa más que cuántas
+title: "Las pistas dispersas superan a filas completas de pistas en la parte superior"
 description: >-
   En un puzzle de 16×16 construido como Eternity II, dieciocho pistas repartidas
   por el tablero lo resuelven en minutos, mientras que amontonarlas en filas
-  contiguas necesita un centenar solo para bajar la búsqueda a decenas de miles
-  de millones de colocaciones. La posición, no la cantidad, es la palanca, y
-  apunta directamente a la fase final.
-metaDescription: "En un puzzle de 16×16 tipo Eternity II, dónde colocas las pistas importa más que cuántas: 18 repartidas lo resuelven en minutos, frente a filas contiguas que necesitan un centenar, pues el 99 % de la búsqueda ocurre pasada la profundidad 132 de 256. Cuentan las que llegan a la fase final."
+  contiguas desde arriba necesita un centenar solo para bajar la búsqueda a
+  decenas de miles de millones de colocaciones. La disposición importa más que
+  la cantidad; falta separar si es porque las pistas dispersas llegan a la fase
+  final o porque tocan más celdas libres.
+metaDescription: "En un 16×16 con la receta de Eternity II, 18 pistas repartidas lo resuelven en minutos y las filas superiores necesitan un centenar; en 8×8, cinco filas igualan un retículo de 16 pistas. Fase final o número de contactos: faltan los controles."
 kind: finding
 contribution: measurement
 rigor: measured
 order: 100
-updated: 2026-07-10
+updated: 2026-11-11
 topics: [structure, search-space, backtracking]
 sources:
   - label: "El estudio de densidad de pistas de Joe y la resolución con 18 pistas de Peter McGavin (hilo de groups.io «A method to prune E2 search space by 17-30%+», msg 11725)"
@@ -49,7 +50,7 @@ a decenas de miles de millones de colocaciones. Para fijar nosotros mismos el
 punto de cruce, repetimos el mismo enfrentamiento en un tablero lo bastante
 pequeño para resolverse por completo: igualar un retículo repartido de dieciséis
 pistas exigió **cinco filas contiguas, cuarenta pistas**, unas dos veces y media
-la cantidad, decidida por la sola geometría.
+la cantidad, decidida solo por la disposición.
 
 ## Dos maneras de gastar las mismas dieciocho pistas
 
@@ -82,8 +83,8 @@ búsqueda. Las filas contiguas tienen que subir a cinco filas completas, cuarent
 pistas, antes de resolver cada instancia dentro del mismo presupuesto de nodos.
 A *igual* cantidad, dieciséis pistas repartidas superan a dieciséis amontonadas
 en dos filas por más de dos órdenes de magnitud en nodos de búsqueda, y el
-bloque no logra resolver seis de las treinta. El retículo alcanza el final de la
-partida; el bloque no lo alcanza hasta casi sepultarlo.
+bloque no logra resolver seis de las treinta. En este experimento,
+las filas contiguas siempre se fijan desde arriba del barrido.
 
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
@@ -106,7 +107,7 @@ partida; el bloque no lo alcanza hasta casi sepultarlo.
 
 ## Por qué gana la posición: las pistas tienen que llegar a la fase final
 
-Los dos números de la derecha explican los de la izquierda. Joe instrumentó su
+Una lectura enlaza los dos números de la derecha con los de la izquierda. Joe instrumentó su
 backtracker a lo largo de mil millones de iteraciones y descubrió que el trabajo
 no está repartido por el tablero en absoluto: el 99 % ocurre después de la
 profundidad 132 de 256, y el 70 % después de la profundidad 150. Casi todo el
@@ -122,8 +123,20 @@ que los tableros récord llevan en su superficie. Un tablero casi perfecto
 concentra todos sus daños en la banda de filas en la que la búsqueda terminó,
 porque
 [las filas que rellenas en último lugar son donde el puzzle te hace pagar](/research/why/mismatch-geometry).
-Las pistas solo ayudan en la medida en que alcanzan esa banda antes que la
-búsqueda.
+Según esta lectura, las pistas solo ayudan en la medida en que alcanzan esa
+banda antes que la búsqueda.
+
+Una explicación más sencilla encaja con los mismos datos. Una pista aislada por
+delante del frente de barrido expone hasta cuatro contactos entre pista y celda
+libre y lleva a tres o cuatro restricciones a las celdas vecinas que se rellenan
+después, mientras que un bloque de filas superiores solo expone su borde
+inferior. Es un efecto del número de contactos, no de la profundidad, y el
+experimento no permite distinguirlos: sus filas contiguas siempre están arriba
+del barrido, justo donde la lectura de la fase final predice que menos sirven.
+Los controles que los separarían son un bloque de filas al final del barrido,
+un bloque en el centro y una disposición repartida limitada a las primeras
+filas, con los nodos referidos al número de contactos entre pista y celda
+libre. No se han ejecutado.
 
 También encaja con [por qué el interior no da jugadas forzadas](/research/why/no-forced-moves):
 con cada celda interior aún aceptando decenas de vecinas, el valor de una pista
@@ -139,8 +152,13 @@ un regalo distinto, mucho más pequeño, en sitios distintos. Lo que se transfie
 es la forma de la lección, y es la misma que el argumento de
 [poda frente a velocidad](/research/why/prune-vs-speed) formula desde el otro
 lado: lo que importa es cambiar dónde gasta su esfuerzo la búsqueda, y el
-esfuerzo vive en la fase final. Un puñado de pistas dirigidas a esa fase final
-vale muchísimo más que otras tantas dirigidas a cualquier otro sitio.
+esfuerzo vive en la fase final. Si la lectura de la fase final
+resiste los controles de arriba, un puñado de pistas dirigidas a esa fase final
+valdría muchísimo más que otras tantas dirigidas a cualquier otro sitio. La
+propia comparación en 16×16 (las 18 pistas repartidas y 41 mil millones de
+nodos de McGavin frente a las 100 pistas contiguas y unos 47 mil millones de
+Joe) usa solucionadores y conjuntos de pistas distintos, así que no puede aislar
+la geometría por sí sola.
 
 <Callout kind="note">
   Los recuentos, el árbol de 41 mil millones de nodos y las estadísticas de

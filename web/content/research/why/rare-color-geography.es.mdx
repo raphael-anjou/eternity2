@@ -2,16 +2,17 @@
 title: Los colores raros viven en el marco
 description: >-
   Cinco de los 22 colores de Eternity II aparecen solo a lo largo del anillo de
-  borde, cada uno en exactamente 24 aristas, nunca una sola vez en el interior.
+  borde, cada uno en exactamente 24 lados de pieza (12 juntas del anillo), nunca
+  una sola vez en el interior.
   Una separación estructural que moldea la forma en que cada solucionador trata
   el marco.
-metaDescription: "Cinco de los 22 colores de Eternity II aparecen solo en el anillo de borde, cada uno en 24 aristas, nunca en el interior. Esta división deja el interior 14x14 a diecisiete colores comunes, sin señal rara ni restrictiva, lo que explica por qué la búsqueda interior apenas encuentra apoyo."
+metaDescription: "Cinco de los 22 colores de Eternity II solo aparecen en el anillo de borde, cada uno en 24 lados de pieza (12 juntas). El marco de 5 colores casa con 1 de 5 por junta y es fácil de completar; los 17 colores interiores casi uniformes casan con 1 de 17 y no dan apoyo."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 110
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/design-recipe
@@ -72,7 +73,7 @@ export function FrameInteriorChart() {
               fontSize={11}
             />
             <YAxis
-              label={{ value: "edges", angle: -90, position: "insideLeft", fontSize: 12 }}
+              label={{ value: "semiaristas", angle: -90, position: "insideLeft", fontSize: 12 }}
               width={40}
               fontSize={12}
             />
@@ -98,8 +99,8 @@ tablero.
 
 ## Dónde se permiten los colores raros
 
-Elige uno de los cinco colores raros y observa el tablero: sus 24 aristas se
-encienden todo alrededor del anillo del marco, y el interior de 14×14 permanece
+Elige uno de los cinco colores raros y observa el tablero: sus 24 semiaristas (12
+juntas) se encienden todo alrededor del anillo del marco, y el interior de 14×14 permanece
 completamente en blanco. Cambia a un color común y en cambio se llena el
 interior. Ese centro vacío, para cada color raro, es todo el resultado.
 
@@ -114,15 +115,15 @@ interior. Ese centro vacío, para cada color raro, es todo el resultado.
 <div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.edgesPerRareColor}</div>
-    <div className="text-xs text-muted-foreground">aristas cada uno</div>
+    <div className="text-xs text-muted-foreground">semiaristas cada uno</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.rareEdgesTotal}</div>
-    <div className="text-xs text-muted-foreground">aristas raras, todas en el marco</div>
+    <div className="text-xs text-muted-foreground">semiaristas raras, todas en el marco</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums text-emerald-600">0</div>
-    <div className="text-xs text-muted-foreground">aristas raras en el interior</div>
+    <div className="text-xs text-muted-foreground">semiaristas raras en el interior</div>
   </div>
 </div>
 
@@ -149,12 +150,16 @@ borde que colorear, y podrían reetiquetarse con cualesquiera cinco valores
 la [nota de diseño sobre el porqué](/research/why#diseñado-para-resistir-el-ingenio),
 con nuestro agradecimiento a Vasily V. en la lista groups.io por la corrección.)
 
-Lo que sí es real, y lo que importa para resolver, es la consecuencia: el
-interior de 14×14 queda a merced de diecisiete colores comunes sin ninguna señal
-rara, fuertemente restrictiva, en ninguna parte de él, lo que explica en gran
-medida por qué la búsqueda en el interior tiene tan poco a lo que aferrarse. El
-borde, donde la reserva de colores es pequeña y las coincidencias son ajustadas,
-es en consecuencia la parte que todo tablero sólido logra prácticamente perfecta.
+Lo que sí es real, y lo que importa para resolver, es la consecuencia. El
+borde usa 5 colores, así que dos semiaristas de marco tomadas al azar casan
+con probabilidad 0,2 por junta: el marco es el subsistema comparativamente
+holgado, fácil de completar (unas $10^{37{,}6}$ colocaciones de marco
+válidas, ver [la pureza del anillo](/research/why/ring-purity)), y por eso los
+tableros sólidos lo logran prácticamente perfecto. El interior de 14×14 usa
+17 colores casi uniformes, que casan con una probabilidad de alrededor de 1
+entre 17 por junta y no dan a ningún color más información que a otro. Esa
+uniformidad, y no la ausencia de colores raros, es lo que deja a la búsqueda
+interior sin asideros.
 Los conteos de colores de Eternity II se equilibraron para eliminar los apoyos
 estadísticos que hundieron a Eternity I; esta geografía es donde se siente el
 resultado.

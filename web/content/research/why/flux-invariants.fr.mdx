@@ -1,5 +1,5 @@
 ---
-title: "Invariants de flux : une loi de rotation que l'ensemble officiel respecte exactement"
+title: "Invariants de flux : une loi de rotation que toute solution doit respecter"
 description: >-
   Pondérez chaque couleur d'arête et lisez chaque pièce comme un vecteur signé,
   est moins ouest sur un axe, sud moins nord sur l'autre. Sommé sur une région
@@ -12,13 +12,15 @@ contribution: theory
 rigor: proven
 tier: 2
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Invariants de flux : topic de reproduction avec l'article, le vérificateur versionné et le JSON de résultats (GitHub)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
   - label: "Conway et Lagarias, Tiling with polyominoes and combinatorial group theory : les invariants de mot de bord que cette loi adapte à l'appariement d'arêtes (JCTA 1990)"
     url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Thurston, Conway's tiling groups : la forme mot de bord (van Kampen) de la condition des groupes de pavage (American Mathematical Monthly 97, 1990)"
+    url: https://doi.org/10.1080/00029890.1990.11995660
   - label: "Brendan Owen numérise l'ensemble de pièces : l'histogramme de couleurs que cette loi confronte (groups.io msg 1054, juillet 2007)"
     url: https://groups.io/g/eternity2/message/1054
   - label: "Brendan Owen, Design the hardest puzzle : la séparation délibérée des palettes bordure et intérieur (groups.io msg 1947, août 2007)"
@@ -50,8 +52,8 @@ tiennent pour toute solution valide, quel que soit son score.
 
 ## L'idée en une ligne
 
-Donnez à chacune des 22 couleurs d'arête un poids numérique, la couleur de
-bordure grise recevant le poids zéro. Lisez une pièce posée comme un vecteur à
+Donnez à chacune des 22 couleurs d'arête non grises un poids numérique, et à la
+couleur de bordure grise le poids zéro. Lisez une pièce posée comme un vecteur à
 deux dimensions : son poids côté est moins son poids côté ouest sur l'axe
 horizontal, son poids sud moins son poids nord sur l'axe vertical. Sommez maintenant ce vecteur
 sur un bloc de pièces posées. Chaque couture intérieure du bloc est partagée par
@@ -87,9 +89,9 @@ adopter.
 ## La famille complète, et ce qui est nouveau
 
 Le groupe de rotation d'un carré a quatre caractères, et la loi de flux n'en est
-qu'un. Décomposer la pièce selon les quatre donne le treillis complet des
-invariants linéaires, intrinsèques à la pièce, de l'appariement d'arêtes : rien de
-linéaire ne lui échappe. Les quatre membres sont un simple recensement de couleurs
+qu'un. Décomposer la pièce selon les quatre donne quatre familles d'invariants
+linéaires, intrinsèques à la pièce, de l'appariement d'arêtes. Qu'il n'existe
+aucun autre invariant linéaire n'est pas démontré ici. Les quatre membres sont un simple recensement de couleurs
 (insensible à la rotation, le décompte total de chaque couleur sur la pièce), la
 loi de flux gaussienne que l'on vient de décrire, son conjugué complexe (la même
 information), et un quatrième membre, à valeurs entières, qui couple le choix par
@@ -120,8 +122,8 @@ la loi contraint réellement le casse-tête. Recalculés sur l'ensemble officiel
     <div className="mt-1 text-xs text-muted-foreground">rang complexe, plein (22 sur 22 couleurs)</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">40</div>
-    <div className="mt-1 text-xs text-muted-foreground">contraintes réelles indépendantes</div>
+    <div className="text-3xl font-bold tabular-nums">44</div>
+    <div className="mt-1 text-xs text-muted-foreground">équations réelles indépendantes sur les phaseurs de rotation</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">21</div>
@@ -131,13 +133,20 @@ la loi contraint réellement le casse-tête. Recalculés sur l'ensemble officiel
 
 Un rang complexe plein de 22 signifie que la loi lie les 22 couleurs à la fois,
 sans qu'aucune couleur ne s'échappe comme variable libre. Scinder les équations
-complexes en leurs parties réelle et imaginaire donne 40 contraintes réelles
-indépendantes sur l'assignation des rotations. Et réduire tout le système modulo
+complexes en leurs parties réelle et imaginaire donne 44 équations réelles
+indépendantes sur les parties réelles et imaginaires des phaseurs de rotation
+$i^{r_p}$. (Le vérificateur affiche aussi 40 : le rang réel des lignes de
+coefficients réelles et imaginaires empilées agissant sur des inconnues réelles,
+une autre grandeur.) Et réduire tout le système modulo
 2, où la rotation d'une pièce se ramène à un unique bit de parité (un quart de
 tour et un trois-quarts de tour deviennent identiques modulo 2), laisse 21
 contraintes de parité indépendantes, le système augmenté restant lui aussi de rang
 21, donc cohérent plutôt que contradictoire. Ce système mod 2 à lui seul retire un
-facteur d'environ deux millions de l'espace des parités de rotation.
+facteur d'environ deux millions de l'espace des parités de rotation. Rien de
+cela ne distingue l'ensemble officiel : tout jeu de pièces qui admet une solution
+respecte la loi, si bien que tout casse-tête peint à partir d'un plateau résolu,
+y compris les jeux générés, est cohérent, et le rang plein est le cas générique.
+Ces nombres mesurent la taille de la loi sur E2, pas une propriété propre à E2.
 
 Les faits d'instance que la loi confronte se reproduisent eux aussi exactement,
 chiffre pour chiffre face à l'ensemble de pièces numérisé par Brendan Owen : 196
@@ -187,10 +196,20 @@ uniformément et un réservoir de 30 plateaux, 30 ordres chacun (900 par remplis
 que les taux de détection absolus se situent plus bas. Ce qui tient exactement, et
 c'est là le point, c'est que le certificat est fiable et que sa probabilité de
 détection grimpe de façon monotone vers le plein à mesure que le plateau se
-remplit. C'est précisément le comportement utile pour une recherche : le contrôle
-s'affûte exactement là où la queue de branchement de l'arbre est la plus coûteuse,
-vers la fin, et chaque prise est orthogonale à l'élagage par couleur et par
-décompte, donc elle s'ajoute par-dessus au lieu de les dupliquer.
+remplit. Ce banc
+d'essai est toutefois artificiel. Il tourne une tuile d'une solution plantée par
+ailleurs intacte, un état qu'un backtracker ne produit jamais : la tuile tournée
+ne s'accorde plus avec ses voisines posées, et la vérification ordinaire des
+arêtes la rejette déjà. Les taux de détection ne disent donc encore rien des
+vraies impasses, et l'apport du contrôle au-delà de l'élagage par couleur et par
+décompte n'est pas testé. Sur le plateau 16x16, le système résiduel ne compte
+que 21 équations de parité : il est génériquement satisfiable tant qu'il reste
+plus d'environ 21 bits de rotation libres, et ne peut donc se déclencher que
+dans les quelque 20 dernières cases, l'effondrement que
+[l'entonnoir de la théorie complexe](/research/why/complex-theory) montre déjà
+peu coûteux. Mesurer sa valeur demande des états d'impasse récoltés sur un
+backtracker 16x16 qui applique déjà l'appariement et les contrôles de décompte,
+avec l'élagage supplémentaire par nœud et l'effet en temps réel.
 
 ## Ce que c'est et ce que ce n'est pas
 
@@ -201,14 +220,17 @@ est partagé par tous les résultats de cette famille. Deux réserves de plus, d
 franchement. La loi contraint les rotations que l'ensemble de pièces peut employer,
 pas la case où chaque pièce se pose ; seul le membre d'échiquier se couple à la
 position, et seulement par la parité de la case, si bien qu'aucun membre n'épingle
-une pièce à un emplacement. Et l'extension non linéaire naturelle, un produit de
-mot de bord non abélien à la manière de la construction originale de Conway et
-Lagarias, ne survit pas en deux dimensions : une case intérieure a quatre arêtes
-partagées mais seulement deux voisines adjacentes à elle dans tout ordre de lecture
-linéaire, si bien qu'au moins deux de ses arêtes ne pourront jamais s'annuler, et
-la construction retombe sur la loi de flux linéaire. Tout invariant strictement
-plus fort que ceux-ci doit être non linéaire et se situe hors de la famille des
-groupes de pavage.
+une pièce à un emplacement. Et l'extension non abélienne à la manière de Conway et
+Lagarias existe bel et bien. Pour une région simplement connexe, étiquetez chaque
+arête par sa couleur et sa direction ; une couture appariée est parcourue dans
+les deux sens avec la même étiquette et s'annule, si bien que le mot de bord de
+la région doit être un produit de conjugués des mots de bord des tuiles dans le
+groupe libre, un diagramme de van Kampen
+([Thurston, 1990](https://doi.org/10.1080/00029890.1990.11995660)). C'est une
+vraie condition nécessaire non linéaire, dont l'ombre abélienne est le
+recensement plus la loi de flux ci-dessus. La vérifier est à peu près aussi
+difficile que résoudre le pavage, ce qui la rend inutilisable comme élagueur
+ici.
 
 ## Où cela se place
 
@@ -222,8 +244,8 @@ plateau entier comme un mot de code : la loi de flux est un ensemble de contrôl
 de parité que les rotations doivent satisfaire, la même monnaie que celle dans
 laquelle cette lentille est écrite. La
 [page de théorie complexe](/research/why/complex-theory) compte la largeur de la
-recherche ; cette page y ajoute une façon peu coûteuse et fiable d'élaguer sa fin
-de partie.
+recherche ; cette page y ajoute un contrôle de fin de partie peu coûteux et fiable,
+dont la valeur d'élagage sur de vraies recherches n'est pas encore mesurée.
 
 Chaque nombre ci-dessus est recalculé par le vérificateur versionné dans le topic
 de reproduction lié sous les sources : un unique programme Rust déterministe qui

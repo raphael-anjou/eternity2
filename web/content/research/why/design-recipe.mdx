@@ -1,17 +1,18 @@
 ---
 title: "Designed to be unsolvable: the recipe"
 description: >-
-  Eternity II follows a recipe for the hardest possible edge-matching puzzle:
-  compact shape, no symmetric or duplicate pieces, split palettes, flat
-  frequencies, one expected solution. The community reverse-engineered every
-  ingredient in the launch year.
-metaDescription: "Eternity II's difficulty is engineered by recipe: a compact 16x16 board, 256 unique pieces with no symmetries or duplicates, a split 17+5 palette, flat color frequencies, and one expected solution. Brendan Owen and the community reverse-engineered every ingredient within weeks of the 2007 launch."
+  Eternity II follows a recipe for a very hard edge-matching puzzle: compact
+  shape, no symmetric or duplicate pieces, split palettes, flat frequencies,
+  and a colour count set so that Owen's simplified model expects about one
+  solution. The community reverse-engineered every ingredient in the launch
+  year.
+metaDescription: "Eternity II's difficulty is engineered by recipe: a compact 16x16 board, unique asymmetric pieces, a split 17+5 palette, flat colour frequencies, and a colour count at which Owen's simplified model expects about one solution. The community reconstructed it in 2007."
 kind: finding
 contribution: reconstruction
 rigor: conjectured
 tier: 2
 order: 130
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "guenter stertenbrink poses the design problem: a puzzle with ~1% chance of falling in ten years (msg 15, February 2001)"
@@ -49,8 +50,8 @@ post by Brendan Owen titled, fittingly, "Design the hardest puzzle"
 
 This page walks through that recipe: what each rule is, what it costs anyone
 trying to solve the puzzle, and where each claim comes from. The measurement
-of the sharpest single ingredient (the colour count sitting exactly on the
-hardness peak) has [its own page](/research/why/phase-transition); here it
+of the sharpest single ingredient (the colour count sitting near the hardness
+peak of random ensembles) has [its own page](/research/why/phase-transition); here it
 takes its place among the others.
 
 ## The problem came before the puzzle
@@ -93,11 +94,19 @@ areas to start tiling from"
 
 Every one of the 256 pieces is unique, and none is symmetric under rotation
 ([msg 1947](https://groups.io/g/eternity2/message/1947)). In 2010 the
-community counted the design space to see how deliberate this is: with 5
+community counted the design space to see whether this is deliberate: with 5
 frame and 17 interior patterns there are roughly 21,000 possible piece
 designs, including forms like *aaaa* and *abab* that repeat under
-rotation. The real set pointedly avoids all of them
-([msgs 8014–8034](https://groups.io/g/eternity2/message/8014)).
+rotation. The real set avoids all of them
+([msgs 8014–8034](https://groups.io/g/eternity2/message/8014)). That absence
+is weaker evidence of a filter than it looks. Painting 196 interior pieces at
+random from 17 colours gives on average about $196/289 \approx 0.68$ pieces
+symmetric under a half turn and about $\binom{196}{2}/20{,}880 \approx 0.92$
+duplicate pairs (there are about $17^4/4 \approx 20{,}880$ rotation classes),
+so an unfiltered generator produces no symmetric and no duplicate interior
+piece roughly one time in five. The absence fits a filter but does not prove
+one; the flat frequency distribution below is the ingredient that is clearly
+non-random.
 
 The consequence is the absence of freebies. A duplicate pair would let any
 solution be rewritten by swapping the two pieces, doubling the solution
@@ -107,21 +116,20 @@ count pinned where the designers wanted it and hands the solver exactly
 zero symmetry to exploit: every placement is a full, independent decision
 among 4 orientations of distinct pieces.
 
-There is a second, quieter reason to bar symmetric pieces, and Owen measured
-it. A symmetric piece is not just structurally redundant, it is easier to
-*place*, because it fits more contexts. He built a set of 289 pieces (all 17
-of the 90-degree-symmetric forms, all 136 of the 180-degree-symmetric ones,
-and 136 random asymmetric pieces), tiled a small rectangle every possible way,
-and counted how often each piece appeared across all 759 million solutions.
-The asymmetric pieces showed up **2.08 times** as often as the
-180-degree-symmetric ones and **4.14 times** as often as the
-90-degree-symmetric ones
-([msg 2076](https://groups.io/g/eternity2/message/2076)). So symmetric pieces
-are the *hard-to-tile* ones, and a puzzle that included them would hand a
-solver exactly the uneven-tileability handhold that
-[flat colour frequencies](#make-every-frequency-flat) are meant to remove.
-Banning them keeps every piece about equally hard to place, with no easy ones
-to save for last.
+Owen also measured how often each kind of piece gets used. He built a set of
+289 pieces (all 17 of the 90-degree-symmetric forms, all 136 of the
+180-degree-symmetric ones, and 136 random asymmetric pieces), tiled a small
+rectangle every possible way, and counted how often each piece appeared
+across all 759 million solutions. The asymmetric pieces showed up **2.08
+times** as often as the 180-degree-symmetric ones and **4.14 times** as often
+as the 90-degree-symmetric ones
+([msg 2076](https://groups.io/g/eternity2/message/2076)). Those ratios are
+almost exactly 4:2:1, the number of distinct orientations each class has (an
+asymmetric piece has 4, a half-turn-symmetric one 2, a quarter-turn-symmetric
+one 1). Counted per distinct orientation, the three classes appear at about
+the same rate, so the census shows no intrinsic difference in tileability.
+The real cost of symmetric pieces is the one above: redundant search over
+equivalent rotations, and extra solution multiplicity.
 
 ### Two palettes, strictly separated
 
@@ -143,7 +151,10 @@ signature has [its own page](/research/why/rare-color-geography).
 When Owen digitised his set on launch day he found the edge-colour
 distribution "as flat as could be": 24 edges of each of the 5 border-join
 colours, 48–50 of each of the 17 interior colours
-([msg 1054](https://groups.io/g/eternity2/message/1054)).
+([msg 1054](https://groups.io/g/eternity2/message/1054)). That one is clearly
+not chance: the 420 interior-colour joins painted at random from 17 colours
+would give each colour $840/17 \approx 49$ half-edges with a standard
+deviation of about 9, not a spread of two.
 
 This single ingredient is the one that killed the Eternity I playbook.
 Eternity I was cracked largely through piece-difficulty ordering: its piece
@@ -166,8 +177,11 @@ gives
 
 $$I = (196! \cdot 4^{196})^{1/392} \approx 17.14$$
 
-Round to 17, add the separately-tuned 5 border colours, and you have
-Eternity II's exact palette
+This is a simplified first-moment count: it treats the interior as 196 cells
+with two joins each (392, a torus-like simplification; the real board has 364
+interior-interior joins plus 56 seam joins on interior colours) and ignores
+the frame. Round to 17, add the separately-tuned 5 border colours, and you
+have Eternity II's exact palette
 ([msg 1947](https://groups.io/g/eternity2/message/1947)). Owen backed the
 derivation with simulations, defended 17+5 against the neighbouring 16+8
 design from the same one-expected-solution family, since it better balances
@@ -177,11 +191,16 @@ and followed up with a table of hardest parameters for every board size, a
 general recipe of which E2 is the 16×16 row
 ([msg 2164](https://groups.io/g/eternity2/message/2164)).
 
-One expected solution is not an arbitrary aesthetic. It is the setting where
-solutions are as scarce as they can be while still existing: the peak of
-the phase transition, the point where search is provably at its worst. That
-measurement, and the published analyses that later confirmed Owen's number,
-live on the [hardness-peak page](/research/why/phase-transition). The flip
+This is a design heuristic, not the instance's expected count. The full
+first-moment model gives about 14,702 expected solutions with the mandatory
+centre clue and about one with all five clues (an ensemble average for random
+puzzles with the same piece statistics, not a count of this puzzle's
+solutions; see the
+[solution-counting page](/research/build/analysis/solution-counting)).
+Random-ensemble studies place peak hardness near the ratio where solutions
+become scarce; that measurement, and the published analyses of Owen's number,
+live on the [hardness-peak page](/research/why/phase-transition). Nothing
+about hardness is proven for this single planted instance. The flip
 side proves the knob is real: a deliberately *loosened* 16×16 design
 discussed on the list has around 10^42 expected solutions, though Owen
 warned that even that one is no pushover
@@ -251,12 +270,13 @@ Every generic shortcut you might reach for was anticipated and
 priced in nearly two decades ago. Piece-frequency ordering died with the
 flat distribution. Symmetry and duplicate tricks have nothing to grab.
 There is no soft region to tile first, no palette imbalance to lever, and
-the colour count sits at the exact setting where search is worst. The
-community's raw ceiling has moved twice in twenty years (467 in 2008, 470 in
-2021) and has held there since (the strict-clue track has kept moving
-independently; see [/research/records](/research/records)); that plateau is
-the empirical readout of a design that worked precisely as intended.
-That does not make the puzzle impossible: one solution certifiably exists,
-printed and locked away. It means the remaining gap is not a tuning problem.
-Anything that closes it will have to be an idea the designers could not
-anticipate. That is, in the end, what this wiki is for.
+the colour count sits near the setting where random-ensemble studies find
+search hardest. The record history is on [/research/records](/research/records):
+after Verhaard's 467 in 2008 the open record stood for twelve years, then rose
+to 470 in 2020 and 2021 with Blackwood's method and more compute, and the
+strict-five-clue record is still moving. A long stall followed by a burst of
+progress points at method and effort as much as at the design; without
+puzzles of other designs attacked with the same effort, the plateau cannot be
+read as a measurement of the design. The puzzle is not impossible: one
+solution certifiably exists, printed and locked away. That is, in the end,
+what this wiki is for.

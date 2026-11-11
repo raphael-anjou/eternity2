@@ -3,13 +3,13 @@ title: Forbidden patterns
 description: >-
   Almost every small patch of pieces you could build is impossible. For a 2×2
   square, 99.72% of the ways to place four pieces can never be made to match.
-metaDescription: "Almost every small patch of Eternity II pieces is impossible: for a 2×2 square, 99.72% of the ways to place four pieces can never be made to match. This proven forbidden-pattern density is what arc-consistency exploits, and why local moves so rarely lead anywhere."
+metaDescription: "Almost every small patch of Eternity II pieces is impossible: for a 2×2 square, 99.72% of the ways to place four pieces can never be made to match, about what any random 17-colour set gives (first-moment estimate 99.69%). This proven forbidden-pattern density is what arc-consistency exploits."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 55
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Forbidden patterns: article, source and results (GitHub)"
@@ -74,20 +74,21 @@ $$
 \Pr[\text{one edge matches}] \;\approx\; \frac{1}{17} \;\approx\; 6\%.
 $$
 
-A 2×2 square has four internal edges to satisfy at once. Rotations give each
-piece four chances, but the four edges are coupled, so a back-of-the-envelope
-independence estimate puts the chance all four match at very roughly
+A 2×2 square has four internal edges to satisfy at once, and each piece can
+take four rotations. Treating the four edges as independent, the expected
+number of the $4^4$ rotation choices that match all four edges is
 
 $$
-\Pr[\text{2}\times\text{2 feasible}] \;\sim\; 1 - \left(1 - \tfrac{1}{17}\right)^{\!c} \ \text{per rotation budget} \;\Rightarrow\; \lesssim 1\%,
+\mathbb{E}[\text{matching rotation choices}] \;\approx\; \frac{4^4}{17^4} \;\approx\; 0.31\%,
 $$
 
-which is already under one percent. The exact exhaustive count lands at 0.28%
-feasible, that is 99.72% forbidden
-$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. The estimate is
-crude because the edges aren't independent and the colors aren't uniform, but
-it gets the order of magnitude right and shows why closing a square is so
-much harder than placing a single pair.
+an upper bound on the chance that some rotation works. The exact exhaustive
+count lands at 0.28% feasible, that is 99.72% forbidden
+$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. The estimate
+is close because the colours are nearly uniform, and that is the point: any
+random 17-colour piece set gives about the same density, so 99.72% is a
+property of the colour count, not an E2-specific extreme. It still shows why
+closing a square is so much harder than placing a single pair.
 
 ## The exact counts
 
@@ -117,30 +118,34 @@ pair of colors on adjacent edges
 forces a cell to answer with one of those 20 corner-pairs is dead on the spot,
 before a single piece is tried, and a fast solver can reject it with one table
 lookup. It is the same lesson as the 2×2 count, pushed down to the smallest unit
-that can be impossible: the constraints bite so early that whole categories of
-local demand have no legal answer at all.
+that can be impossible. It is also what chance predicts: the 196 interior
+pieces show 784 corner pairs, so under a random painting each of the 289
+ordered pairs is missing with probability about $e^{-784/289}$, and the
+expected number of voids is $289\,e^{-784/289} pprox 19.2$, against 20
+observed.
 
 ## Why it matters
 
 A finished, correct board has zero forbidden patches: by definition,
-everything matches. So counting the forbidden patches in a board tells you
-roughly how far it is from a real solution, even when two boards have the
-same number of matched edges. Weak boards are full of forbidden squares; the
-best boards ever found have only a couple of dozen left.
+everything matches. On a near-solution every forbidden 2×2 window contains a
+mismatched edge, and each interior mismatch lies in at most two windows, so
+the count is close to twice the number of breaks: the 470-point boards, with
+10 breaks, sit near 18 forbidden windows. Weak boards are full of forbidden
+squares; the best boards ever found have only a couple of dozen left.
 
-It also shows, from another angle, why the puzzle shrugs off clever local
-fixes. When 99.72% of small squares are impossible, the pieces that do fit
-together are rare and specific. There's almost no room to shuffle things
-around without breaking something. The good arrangements are scarce and
-rigid.
+The density says that local feasibility is rare for a random patch. It does
+not make good arrangements rigid in absolute terms: 3,993,696 feasible 2×2
+squares exist, and
+[interior cells keep scores of candidates](/research/why/no-forced-moves).
 
 ## A second axis of progress
 
-Counting forbidden squares turns the idea into a usable signal. Pick a real
+Counting forbidden squares turns the idea into a visible signal. Pick a real
 record board: the number of forbidden 2×2 windows falls as the matched-edge
-score rises. Two boards with the same edge-score can still differ here: the
-one with fewer forbidden squares is structurally closer to a solution, which
-is why some solvers track forbidden-patch count as a tiebreak.
+score rises, because it is nearly a function of the score. At equal score it
+mainly measures how clustered the breaks are (two breaks in one window count
+once). Whether fewer forbidden windows at equal score means a board is closer
+to a solution has not been measured.
 
 <Figure collapsible title="Interactive: count feasible vs forbidden placements">
   <ForbiddenCountLab />

@@ -1,17 +1,19 @@
 ---
 title: El muro de rigidez
 description: >-
-  Cada tablero récord que tenemos está congelado en su sitio. No se puede
-  progresar a base de pequeños retoques desde un tablero excelente hacia uno
-  perfecto, y podemos demostrarlo.
-metaDescription: "Cada tablero récord de Eternity II está congelado: no puedes pasar con pequeños retoques de un gran tablero a uno perfecto. Pruebas MIP de optimalidad de halo en varias cuencas récord muestran que el núcleo es localmente rígido; por eso pulir un tablero fuerte nunca eleva su puntuación."
+  En los tableros récord probados, ningún rellenado de una región de radio
+  como mucho 4 alrededor de los defectos mejora estrictamente la puntuación
+  (certificados MIP y SAT; la mayoría de las ejecuciones MIP son resultados
+  de cuaderno aún no publicados en el repositorio). Pulir un gran tablero no
+  lleva a uno perfecto.
+metaDescription: "En los tableros récord de Eternity II probados, rellenar una región de radio acotado alrededor de los defectos nunca mejora estrictamente la puntuación: pruebas MIP hasta el halo 4 y una reproducción SAT publicada en radio 4. Siguen existiendo intercambios de gemelas a igual puntuación."
 kind: finding
 contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "una resolución MIP por región; de ~70 s (48 celdas) a ~1800 s (halo-1 conjunto de 59 celdas) en CBC"
@@ -22,6 +24,8 @@ complexity:
     o a una brecha ajustada en cuestión de minutos.
 related:
   - /research/records
+  - /research/build/analysis/solution-counting
+  - /research/why/ring-purity
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -61,7 +65,7 @@ cuantas, y seguro que la puntuación sube poco a poco hasta 480.
 Pues no. En cada tablero de cabeza que hemos probado, las últimas discordancias
 están bloqueadas. Mueve cualquier cosa en el entorno y la puntuación se mantiene
 igual o baja. Los buenos tableros no son casi-soluciones a la espera de un
-pulido; son puntos aislados sin ningún sitio mejor al que ir al lado.
+pulido; son óptimos locales estrictos frente a cada movimiento acotado probado (siguen existiendo intercambios de gemelas con la misma puntuación).
 
 ## Observa cómo crece la región
 
@@ -129,17 +133,13 @@ intercambiarlas parece casi neutro. En el 469 de la comunidad se probaron los
 en 469 (y produce el único tablero gemelo conocido), 2 dan 468 y 111 dan
 467. Los 6.441 intercambios dobles: ninguno alcanza 470, el mejor da 468. En
 6.555 perturbaciones construidas precisamente para ser casi neutras en
-puntuación, el conjunto de nivel 469 contiene exactamente dos tableros.
+puntuación, esas perturbaciones solo encuentran dos tableros en el conjunto de nivel 469.
 
 Los números se explican solos. A una puntuación de 459, una celda aporta de
 media unas 3,6 aristas concordantes, mientras que una pieza aleatoria soltada
-en un vecindario fijo espera solo unas 0,18 (aproximadamente cuatro aristas
-por una probabilidad de uno entre 22 colores); un intercambio aleatorio
-espera por tanto perder unas 6,8 aristas. Una cota probabilística holgada
+en un vecindario fijo espera solo unas 0,24 (cuatro aristas por una probabilidad de uno entre 17 colores interiores); un intercambio aleatorio espera por tanto perder unas 6,7 aristas. Una cota probabilística holgada
 limita la probabilidad de un intercambio de mejora a alrededor del 5 por
-ciento; la frecuencia medida está por debajo de $3\times10^{-5}$. Cada
-colocación de un tablero de cabeza está coadaptada a sus vecinas mucho más
-allá de lo que el azar por sí solo predeciría. Una nota de alcance: cada
+ciento; la frecuencia medida está por debajo de $3\times10^{-5}$. Estos tableros salen de búsquedas que ya rechazan esa clase de movimientos, así que no encontrar ninguna mejora es lo esperado por construcción; los resultados informativos son los certificados MIP y SAT de mayor radio de abajo. Una nota de alcance: cada
 censo aquí es exhaustivo dentro de su clase de movimientos pero corre sobre
 un solo tablero (los censos de rotaciones e intercambios sobre un 459, la
 enumeración de cinco piezas sobre un 457, el censo de casi gemelas sobre el
@@ -351,8 +351,12 @@ legales y ninguna mejor. Liberando dos filas conjuntamente (32 celdas,
 costura interna sin restricción): los pares (11,12), (12,13) y (13,14) del
 460 dan de 0 a 4 cadenas alternativas en total, todas peores (12 a 16
 aristas por debajo) o infactibles. Tres filas conjuntas (48 celdas): las
-filas (11,12,13) y (12,13,14) dan cero cadenas alternativas. Estas filas no
-son solo óptimas; a menudo están *forzadas*. Unicidad, no mera optimalidad.
+filas (11,12,13) y (12,13,14) dan cero cadenas alternativas.  Estas filas no
+son solo óptimas; a menudo están *forzadas*. Esa unicidad se acerca a lo que
+predice el azar: con unos 0,0094 candidatos extra por celda totalmente
+rodeada (ver [la meseta de 470](/research/why/the-470-wall)), una fila
+encajada entre filas fijas no debería admitir ningún relleno alternativo, así
+que lo informativo es que ninguna alternativa sea mejor, no que haya pocas.
 Alcance: la enumeración es programación dinámica de haz (ancho de haz de
 100.000 para una fila, de 5.000 a 50.000 para dos y tres filas), exhaustiva
 en la práctica pero no certificada como las filas MIP; llamémosla
@@ -604,8 +608,11 @@ UNSAT en menos de 2 s cada uno; el halo 7, 173 libres y 83 fijadas, UNSAT en
 filas superiores más 3 de las 5 pistas. Así que las dos filas superiores de
 este tablero son, por sí solas, demostrablemente incompatibles con cualquier
 solución perfecta: todo 480 debe diferir de este tablero en algún punto de
-esas 38 celdas. La rigidez la porta un fino esqueleto de la parte alta del
-tablero, no los vecindarios de los defectos. En radio 15, con solo 4 celdas
+esas 38 celdas. Es menos especial de lo que parece: con a lo sumo unas $10^7$ soluciones
+(ver [el recuento de soluciones](/research/build/analysis/solution-counting)),
+casi cualquier esqueleto fijo de 38 celdas es incompatible con todas ellas,
+así que esto muestra qué poco de un tablero hay que dejar fijado para excluir
+el 480, no una rigidez propia de este tablero. En radio 15, con solo 4 celdas
 fijadas, el solucionador agotó los 600 s; ese caso queda abierto. Un tablero
 concreto; no se sabe si otros tableros de 459 comparten la misma rigidez de
 la parte alta fijada.
@@ -659,8 +666,17 @@ configuraciones de borde en nuestro corpus, y un borde compatible con 480
 existe con certeza: el puzle se construyó a partir de una solución.
 Simplemente no es ninguno de los bordes que una búsqueda de clase récord haya
 producido jamás. Pulir cerca de un récord no es solo lento; bajo el propio
-borde de ese récord, llegar a 480 es demostrablemente imposible. Una solución
-exige un borde distinto.
+borde de ese récord, llegar a 480 es demostrablemente imposible. Una solución exige un borde distinto.
+
+La expectativa nula da el mismo veredicto. Hay unas $10^{37{,}6}$
+colocaciones de marco válidas (ver
+[la pureza del anillo](/research/why/ring-purity)) frente a como mucho unas
+$1{,}15\times10^{7}$ soluciones, cada una con un único borde, así que un borde
+legal tomado al azar admite un 480 con probabilidad inferior a unos
+$10^{-30}$, y nueve bordes UNSAT de nueve es lo que darían nueve bordes
+cualesquiera. No se ejecutó ningún control con bordes aleatorios o de
+puntuación baja. El resultado muestra que pulir dentro de un borde fijo no
+puede llegar a 480; no muestra que los bordes récord sean especiales.
 
 ## Por qué existe el muro
 
@@ -691,8 +707,7 @@ cada instancia probada resultó rígida exactamente en ese sentido: cero celdas
 compartidas entre cada par de soluciones perfectas.
 
 Para el propio Eternity II esto es una conjetura, y la etiquetamos como tal.
-Con 22 colores interiores, cada uno reutilizado entre unas 24 y 50 veces a
-lo largo de 480 adyacencias interiores, el puzle real se asienta bien adentro
+Con 17 colores interiores (48 a 50 semiaristas cada uno) en 420 juntas interiores, más 5 colores de marco en las 60 juntas del anillo, el puzle real se asienta bien adentro
 del régimen rígido, de modo que tableros casi perfectos distintos deberían
 ser casi ortogonales (lo que encaja con la diferencia de 225 celdas
 observada arriba entre buenos tableros) y ningún movimiento de tamaño
@@ -703,8 +718,7 @@ ficha" no es estrictamente cierta en E2, así que la afirmación defendible es
 El corolario es la parte satisfactoria: la búsqueda local se congela
 *precisamente en las puntuaciones altas* porque ahí es donde el grafo de
 movimientos se desconecta. El interior del rango de puntuaciones se recorre
-con facilidad, por eso llegar a los 450 y 460 es rutina; la cima es un
-conjunto de puntos aislados, por eso el pulido muere ahí. Una teoría, las
+con facilidad, por eso llegar a los 450 y 460 es rutina; la cima parece, en cada prueba hasta ahora, un conjunto de puntos aislados, por eso el pulido muere ahí. Una teoría, las
 dos mitades de la historia de esta página. (Las matemáticas son el círculo
 de ideas de las bases de Markov y de Graver de la estadística algebraica;
 mira las fuentes. Los únicos movimientos de cima baratos que la teoría

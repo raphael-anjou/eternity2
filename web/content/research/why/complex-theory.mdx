@@ -9,7 +9,7 @@ kind: finding
 contribution: exposition
 rigor: conjectured
 order: 30
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure, backtracking]
 sources:
   - label: "Brendan Owen's peak-depth closed form, 256·(1−1/e) (groups.io msg 8125, 2010)"
@@ -28,6 +28,10 @@ sources:
     url: https://groups.io/g/eternity2/files/Brendan/heuristics.pdf
   - label: "Joe's backtracker depth-time measurement, 1B-iteration sample (groups.io msg 11725, 2026)"
     url: https://groups.io/g/eternity2/message/11725
+  - label: "Williams and Hogg, Exploiting the deep structure of constraint problems: expected partial solutions per search depth (Artificial Intelligence 70, 1994)"
+    url: https://doi.org/10.1016/0004-3702(94)90104-X
+  - label: "Knuth, Estimating the efficiency of backtrack programs (Mathematics of Computation 29, 1975)"
+    url: https://doi.org/10.1090/S0025-5718-1975-0373371-6
 related:
   - /research/why/prune-vs-speed
   - /research/why/phase-transition
@@ -71,12 +75,21 @@ within about a factor of two. That is more than enough to see the shape.
 | Clues placed                       | Expected solutions |
 | ---------------------------------- | ------------------ |
 | One clue (the centre piece only)   | ≈ 14,702           |
-| All five official clues            | ≈ 1                |
+| All five official clues            | the designed solution plus ≈ 4×10⁻⁸ others |
 
-With only the mandatory centre piece the puzzle has on the order of fifteen
-thousand solutions; add the four other clues and the expected count drops to
-about $4\times10^{-8}$: overwhelmingly, exactly one. This is the formal
-reason the 5-clue puzzle has a single designed solution.
+These are ensemble averages: the expected number of solutions of a random
+puzzle with the same piece statistics, not a count of this puzzle's
+solutions. With only the mandatory centre piece the estimate is on the order
+of fifteen thousand; each of the four other clues divides it by about
+$196 \times 4 = 784$, leaving about $4\times10^{-8}$ solutions other than the
+designed one ($14{,}702 / 784^4 \approx 3.9\times10^{-8}$). So the designed
+solution is very probably the only one with all five clues, assuming the
+first-moment model holds for a planted instance. That is a heuristic
+inference, not a proof: the clues were read off the planted solution, and
+near-duplicates of a planted solution (boards differing by a few swaps) are
+correlated with it in a way the independent-edge model ignores. The
+[solution-counting page](/research/build/analysis/solution-counting) carries
+the estimates in full.
 
 ## The same numbers, checked against reality
 
@@ -146,7 +159,7 @@ If almost all the work is in the plateau, the goal isn't raw speed. It is
 getting across the plateau to the funnel entrance (around depth 200), after
 which the search chains down deterministically. And because complex theory
 scores a scan order before you run it, you can compare orders by the height of
-their plateau peak rather than by trial and error. That is the rigorous
+their plateau peak rather than by trial and error. That is the quantitative
 version of a rule this site states everywhere: the fill order is a
 first-class choice, and McGavin's bottom-left, left-to-right scan was picked
 because complex theory said it was good.
@@ -165,23 +178,40 @@ single node.
 
 ## What it can't see
 
-Complex theory is a first-moment estimate, so it is blind to one thing:
-whether the many counted partial boards are genuinely distinct. The
-[entropy and area-law results](/research/why/entropy-area-law) show that
-distinctness collapses as the filled area grows, a second-order effect the
-independent-edge model cannot capture. So use complex theory to choose orders
-and read the tree's shape, never as a true count or a bound.
+Complex theory already includes the use-once rule: the number of unused
+pieces at each depth enters as a falling factorial, $P(n,k) = n!/(n-k)!$,
+exactly as in McGavin's reference C. What it ignores is correlation. It
+treats the edge colours as independent, although the four colours on one
+piece are not; it reports only the mean, not the variance (the second
+moment); and it knows nothing about the clustering of solutions around a
+planted one. So it estimates an ensemble average, not this instance's count,
+and the two can be far apart. Use it to choose orders and read the tree's
+shape. As a statement about the ensemble the first moment is still an upper
+bound on the probability that a random puzzle has any solution (Markov's
+inequality); it is not a bound for one given puzzle.
+
+The same object is standard in the constraint-satisfaction literature. Knuth
+estimated backtrack tree sizes by random probing
+([1975](https://doi.org/10.1090/S0025-5718-1975-0373371-6)), and Williams and
+Hogg computed the expected number of consistent partial assignments at each
+depth and its peak in the middle of the tree, along with how far the mean can
+sit from typical instances
+([1994](https://doi.org/10.1016/0004-3702(94)90104-X)). Complex theory is that
+calculation, carried out for edge matching and calibrated on Eternity II's own
+pieces.
 
 ## Provenance and validation
 
 The theory's paper trail runs through the mailing list. Brendan Owen posted
 the completed model in April 2008
 ([msg 5197](https://groups.io/g/eternity2/message/5197),
-[5209](https://groups.io/g/eternity2/message/5209)), and later proved a neat
-closed form: for a scan order the node-count peak sits at depth
+[5209](https://groups.io/g/eternity2/message/5209)), and later derived a neat
+closed form: if every cell is placed with two contacts and the puzzle has
+exactly one expected solution, the node-count peak sits at depth
 $256\,(1 - 1/e) \approx 161.8$
-([msg 8125](https://groups.io/g/eternity2/message/8125)); the funnel above
-peaks there empirically. Peter McGavin typeset the theory
+([msg 8125](https://groups.io/g/eternity2/message/8125)). Both assumptions are
+approximations for E2 (the full model gives about 14,702 expected solutions
+with the centre clue), and the funnel above peaks near that depth. Peter McGavin typeset the theory
 ([msg 9188](https://groups.io/g/eternity2/message/9188)), published the
 14,702 expected-solutions figure as early as 2011
 ([msg 8924](https://groups.io/g/eternity2/message/8924)), and in 2017

@@ -1,18 +1,18 @@
 ---
-title: The piece set is extreme on every measured axis
+title: What the piece set does and does not constrain
 description: >-
-  Measure the official 256 pieces with no solver in sight and every structural
-  door is shut: no rotation-symmetric piece, 5 twin pairs in 32,640 pairings,
-  a 307-of-480 matching cap if nothing rotates, colour budgets that pair to
-  exactly 480 with zero slack, and a 17+5 palette sitting at the
-  one-expected-solution point.
-metaDescription: "The Eternity II piece set sits at the adversarial extreme on every measured structural axis: zero rotation-symmetric pieces among 256, five twin pairs in 32,640 pairings, a fixed-orientation matching cap of 307 of 480, even colour budgets pairing to exactly 480, and a split 17+5 palette."
+  Measure the official 256 pieces with no solver in sight, and compare each
+  property with random solved boards painted with the same colour counts. No
+  rotation-symmetric piece and 5 twin pairs are ordinary; zero
+  rotation-duplicate pairs is rare (about 1.4% of painted sets); the zero-slack
+  colour budget is automatic; a 307-of-480 cap holds if nothing rotates.
+metaDescription: "The Eternity II piece set against random painted sets: no rotation-symmetric piece (half of painted sets have none), 5 twin pairs (painted mean 6.6), zero rotation-duplicate pairs (only about 1.4% of painted sets), an automatic zero-slack budget, a 307-of-480 fixed-orientation cap."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 1
 order: 15
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Adversarial piece set: article, source and results (GitHub)"
@@ -24,6 +24,7 @@ sources:
   - label: "Selby and Riordan's Eternity pages, the designers' own site"
     url: https://www.archduke.org/eternity/
 related:
+  - /research/build/analysis/solution-counting
   - /research/why/design-recipe
   - /research/why/theorem-sweep
   - /research/why/walls-and-methods
@@ -40,7 +41,8 @@ repro:
     the fixed-orientation matching cap, the colour-budget parity and pairing
     capacity) recompute from the bundled official instance; the binary asserts
     every expected value, runs deterministically in under a second, and the
-    committed JSON is byte-stable across runs.
+    committed JSON is byte-stable across runs. The random-painted baseline
+    comes from compute/null_model.py (20,000 seeded boards, about a minute).
 ---
 
 Put the solvers aside and measure the object itself. The official set is 256
@@ -49,22 +51,24 @@ some structural slack would survive somewhere: a repeated piece, a symmetric
 piece, a colour in oversupply, an orientation bias that costs nothing, a
 clique of pieces that prefer each other. Slack of that kind is what solvers
 eat. This page checks each of those doors directly against the piece set
-alone, and every one of them is shut, exactly, not approximately.
+alone, and for each one asks the question a skeptic would: would a set cut
+from a randomly painted solved board, with the same colour counts, look any
+different?
 
 Five of the six measurements below are committed as one reproducible topic.
 Each recomputes from the published instance in under a second, and the binary
 asserts its own expected values, so reproducing the numbers is the same act as
 checking them.
 
-## The four committed measurements
+## The five committed measurements
 
-| Axis | Measurement | The extreme it sits at |
+| Axis | Measurement | Against random painted sets |
 | --- | --- | --- |
-| Rotation symmetry | 256 of 256 pieces have all four rotations distinct | 1,024 piece-rotations, nothing to quotient |
-| Twins | 251 distinct edge-colour multisets; 5 twin pairs and 114 near-twin pairs in 32,640 pairings | no duplicates, coincidence at the 0.4% level |
-| Fixed-orientation cap | at most 307 of 480 joins can match if no piece rotates | rotation is structurally necessary |
-| Colour budget | all 22 colours have even side counts; pairing capacity sums to 480 | exactly sufficient, zero slack |
-| Palette split | 17 interior colours, 5 border-join colours | 17 is the one-expected-solution setting |
+| Rotation symmetry | 256 of 256 pieces have all four rotations distinct | ordinary: about 54% of painted sets also have none (mean 0.63) |
+| Twins | 251 distinct edge-colour multisets; 5 twin pairs and 114 near-twin pairs in 32,640 pairings; zero pairs equal up to rotation | 5 twins is ordinary (mean 6.6); zero rotation-duplicate pairs is rare (about 1.4%, mean 4.1) |
+| Fixed-orientation cap | at most 307 of 480 joins can match if no piece rotates | not compared; rotation is structurally necessary here |
+| Colour budget | all 22 colours have even side counts; pairing capacity sums to 480 | automatic for every painted board |
+| Palette split | 17 interior colours, 5 border-join colours | the separation is automatic; the counts were chosen |
 
 ### No rotation symmetry anywhere
 
@@ -73,10 +77,15 @@ orientations and shrink the decision space, and the standard reduction,
 searching one canonical form per orbit, would collect the discount. Measured:
 every one of the 256 pieces has a full rotation orbit of size 4, so the puzzle
 genuinely has 1,024 distinct piece-rotations and orbit-canonical search gains
-nothing at all. The community's census of the design space shows this is a
-choice, not an accident: with this palette the space of possible piece designs
-includes rotation-repeating forms, and the real set avoids every one of them
-([msg 8025](https://groups.io/g/eternity2/message/8025)). The
+nothing at all. That alone is not evidence of design. In random solved
+boards painted with the same colour counts, about 54% of sets have no
+symmetric piece either (mean 0.63): edge and corner pieces can never be
+symmetric, and an interior piece is half-turn symmetric only when both
+opposite pairs match, which a random painting rarely produces. The
+community's census of the design space shows that symmetric forms exist
+([msg 8025](https://groups.io/g/eternity2/message/8025)); whether the real
+set avoids them by choice cannot be read from a count that chance produces
+half the time. The
 [design recipe](/research/why/design-recipe) carries the intent side of that
 story, including Brendan Owen's measurement that symmetric pieces tile
 unevenly enough to hand back exactly the difficulty-ordering signal the
@@ -90,8 +99,11 @@ Ignore edge order and ask which pieces carry the same four-colour budget. The
 in each pair the shared colours sit in a different cyclic order, so no piece
 repeats, even up to rotation. Loosening the question to near-twins, pairs
 sharing 3 of their 4 same-position edges in the stored orientation, adds 114
-pairs in 79 groups. Against the 32,640 unordered pairs the set offers, even
-that loose form of coincidence occurs at a fraction of a percent. The door
+pairs in 79 groups. Against the random-painted baseline, 5 twin pairs is
+ordinary: painted sets average 6.6, and 35% have 5 or fewer. The striking
+number is the one before it: zero pairs of pieces that repeat up to rotation,
+where painted sets average 4.1 and only about 1.4% have none. That is the
+likeliest trace of a deliberate design pass. The door
 this shuts is the free doubling: a genuine duplicate pair would let every
 solution be rewritten by swapping the two pieces, and there is none.
 
@@ -113,7 +125,9 @@ across this site.
 
 Count piece sides per colour. Every one of the 22 non-grey colours has an even
 total, and the pairing capacities, half the side count per colour, sum to
-exactly 480, the geometric number of joins on the board. The supply is exactly
+exactly 480, the geometric number of joins on the board. This is automatic
+for any puzzle cut from a painted solved board, since every join consumes two
+sides of one colour, so it says nothing about design. The supply is exactly
 sufficient for a perfect board: no colour runs short, which would certify the
 designed solution impossible, and no colour runs over, which would leave slack
 for partial boards to spend. Zero slack also means zero leverage. No counting
@@ -131,11 +145,14 @@ grey rim, a border piece's coloured edges only ever meet other border edges or
 the interior, so the two pools never mix, as the
 [rare-colour geography](/research/why/rare-color-geography) page explains.
 What was chosen is the counts. Owen's launch-year derivation recovers 17.14
-interior colours from the requirement of about one expected solution
-([msg 1947](https://groups.io/g/eternity2/message/1947)), the scarcest a
-solution can be while still existing, and the
-[hardness peak](/research/why/phase-transition) page measures that this is the
-worst possible place for search. The full reconstructed recipe, ingredient by
+interior colours from a simplified heuristic aimed at roughly one expected
+solution ([msg 1947](https://groups.io/g/eternity2/message/1947)). The
+corrected first-moment estimate is about 14,702 expected solutions with the
+mandatory starter, an average over random puzzles with the same piece
+statistics rather than a count for this one; the
+[solution-counting page](/research/build/analysis/solution-counting) has the
+numbers, and the [hardness peak](/research/why/phase-transition) page covers
+where search is hardest. The full reconstructed recipe, ingredient by
 ingredient, is on the [design recipe](/research/why/design-recipe) page.
 
 ## The sixth axis, stated without its numbers
@@ -152,7 +169,7 @@ about. The spectral numbers behind this description are deferred until their
 computation is committed alongside the other five, so read this axis as a
 description for now, and the five above as exact.
 
-## What the extremes rule out
+## What these properties rule out
 
 Each axis closes a standard door.
 
@@ -162,8 +179,8 @@ Each axis closes a standard door.
   32,640 pairings, none of them a true duplicate.
 - **Orientation shortcuts.** Fixing rotations early concedes 173 of 480 joins
   by a counting argument, before any search runs.
-- **Supply arguments.** Budgets are even and exactly sufficient, so counting
-  colours prunes nothing.
+- **Supply arguments.** Budgets are even and exactly sufficient, as on every
+  painted board, so counting colours prunes nothing.
 - **Cheap sub-communities.** Nothing softer than the frame-versus-interior
   split exists to start from.
 
@@ -171,7 +188,7 @@ This page is the measurement companion to two neighbours. The
 [design recipe](/research/why/design-recipe) reconstructs, from the
 launch-year record, why the set was built this way; the
 [theorem sweep](/research/why/theorem-sweep) collects the laws proved about
-the same object. And the extremes here are the ground floor of the section's
+the same object. And these properties are the ground floor of the section's
 walls: [no forced moves](/research/why/no-forced-moves) is the same flatness
 felt cell by cell during a build, and
 [sigma-cycles](/research/why/sigma-cycles) is what the absence of small

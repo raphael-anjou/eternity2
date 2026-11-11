@@ -19,7 +19,10 @@ sources:
     url: https://e2.bucas.name/
 reproduce:
   - cd research/topics/ring-purity/compute && cargo run --release > ../results/ring_purity.json
+  - cd research/topics/ring-purity/compute && python3 ring_count.py 16000000 > ../results/ring_count.json
 results:
+  - label: Directed BEST count and sampled corner fraction (JSON)
+    path: results/ring_count.json
   - label: Results JSON (seed 1, deterministic clauses + SIS)
     path: results/ring_purity.json
 site:
@@ -68,4 +71,4 @@ Every deterministic clause matches exactly. The two Monte Carlo measures land in
 
 ## Notes / caveats
 
-The exact count of undirected Eulerian circuits of the real ring multigraph is open. A single-orientation BEST-theorem shortcut was attempted during the original investigation, caught as an undercount by a K5 sanity check, and withdrawn; no circuit count is claimed here. The greedy completion measure ignores the geometric corner/edge alternation constraint of the physical ring, so it measures the color-matching law in isolation.
+Border pieces cannot flip and keep gray outward, so the ring is a directed multigraph (in-degree = out-degree = 12 per frame colour) and the BEST theorem applies exactly: 3,432 arborescences times (11!)^5, about 3.5x10^41 Euler circuits of the 60 labelled pieces. `compute/ring_count.py` computes this and samples 16 million uniform circuits (Wilson + BEST bijection) for the fraction with corners 15 positions apart, 2.78e-5 (s.e. 0.13e-5), giving about 10^37.6 valid frame placements; results in `results/ring_count.json`. An exact count with the corner constraint is still open. The earlier undercount came from applying BEST to the undirected model. The greedy completion measure ignores the geometric corner/edge alternation constraint of the physical ring, so it measures the color-matching law in isolation.

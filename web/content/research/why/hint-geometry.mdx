@@ -1,16 +1,18 @@
 ---
-title: Where you place the hints beats how many
+title: "Scattered hints beat contiguous top rows of hints"
 description: >-
   On a 16×16 puzzle built like Eternity II, eighteen hints scattered across the
-  board solve it in minutes, while piling hints into contiguous rows needs a
-  hundred just to bring the search down to tens of billions of placements.
-  Position, not count, is the lever, and it points straight at the endgame.
-metaDescription: "On a 16×16 puzzle built to Eternity II's exact colour recipe, hint position beats hint count: 18 scattered hints solve it in minutes, while contiguous rows need about a hundred to reach the same range, because 99% of the search happens past depth 132 of 256. The hints that count reach the endgame."
+  board solve it in minutes, while piling hints into contiguous rows from the
+  top needs a hundred just to bring the search down to tens of billions of
+  placements. Layout matters more than count; whether that is because
+  scattered hints reach the endgame or because they touch more free cells is
+  not yet separated.
+metaDescription: "On a 16×16 puzzle built to Eternity II's colour recipe, 18 scattered hints solve it in minutes while contiguous top rows need about a hundred; on 8×8, five top rows match a 16-hint lattice. Endgame reach and contact count both fit; the controls are still to run."
 kind: finding
 contribution: measurement
 rigor: measured
 order: 100
-updated: 2026-07-10
+updated: 2026-11-11
 topics: [structure, search-space, backtracking]
 sources:
   - label: "Joe's hint-density study and Peter McGavin's 18-hint solve (groups.io thread 'A method to prune E2 search space by 17-30%+', msg 11725)"
@@ -46,7 +48,7 @@ border plus forty inner) just to bring the search down to tens of billions of
 placements. To pin the crossover down ourselves, we ran the same contest on a
 board small enough to solve to completion: matching a scattered sixteen-hint
 lattice took **five contiguous rows, forty hints**, about two and a half times
-the count, decided by geometry alone.
+the count, decided by layout alone.
 
 ## Two ways to spend the same eighteen hints
 
@@ -76,8 +78,8 @@ solves every instance in a few thousand search nodes. Contiguous rows have to
 climb to five full rows, forty hints, before they solve every instance in the
 same node budget. At the *same* count, sixteen scattered hints beat sixteen
 piled into two rows by more than two orders of magnitude in search nodes, and
-the block fails to solve six of the thirty at all. The lattice reaches the
-endgame; the block never does until it nearly buries it.
+the block fails to solve six of the thirty at all. Note that in this experiment the contiguous rows are always pinned from the
+top of the scan.
 
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
@@ -100,7 +102,7 @@ endgame; the block never does until it nearly buries it.
 
 ## Why position wins: the hints have to reach the endgame
 
-The two right-hand numbers explain the left-hand ones. Joe instrumented his
+One reading links the two right-hand numbers to the left-hand ones. Joe instrumented his
 backtracker over a billion iterations and found the work is not spread across
 the board at all: 99% of it happens after depth 132 of 256, and 70% after
 depth 150. Nearly all the pain is in the back half of the fill, and most of it
@@ -114,7 +116,19 @@ the choices that would otherwise blow up deep in the tree. This is the same
 fact the record boards wear on their surface. A near-perfect board packs all
 its damage into the band of rows the search finished on, because
 [whichever rows you fill last are where the puzzle makes you pay](/research/why/mismatch-geometry).
-Hints only help to the extent they reach that band before the search does.
+On this reading, hints help to the extent they reach that band before the
+search does.
+
+A simpler explanation fits the same data. An isolated hint ahead of the scan
+front exposes up to four hint-to-free contacts and raises the later cells
+beside it to three or four constraints, while a block of top rows exposes only
+its lower edge. That is a contact-count effect, not a depth effect, and the
+experiment cannot tell the two apart: its contiguous rows always sit at the
+top of the scan, the place the endgame reading predicts is least useful. The
+controls that would separate them are a block of rows at the bottom of the
+scan, a block in the middle, and a scattered layout confined to the first
+rows, with nodes reported against the number of hint-to-free contacts. They
+have not been run.
 
 It also fits [why the interior gives no forced moves](/research/why/no-forced-moves):
 with every interior cell still accepting scores of neighbours, a hint's value
@@ -129,8 +143,12 @@ about the official puzzle, whose five fixed clues are a different, much smaller
 gift in different places. What transfers is the shape of the lesson, and it is
 the same one the [prune-versus-speed](/research/why/prune-vs-speed) argument
 makes from the other direction: what matters is changing where the search
-spends its effort, and the effort lives in the endgame. A handful of hints
-aimed at that endgame is worth a great many aimed anywhere else.
+spends its effort, and the effort lives in the endgame. If the endgame reading
+survives the controls above, a handful of hints aimed at that endgame would be
+worth a great many aimed anywhere else. The 16×16 comparison itself (McGavin's
+18 scattered hints and 41 billion nodes against Joe's 100 contiguous hints and
+about 47 billion) uses different solvers and hint sets, so it cannot isolate
+geometry on its own.
 
 <Callout kind="note">
   The counts, the 41-billion-node tree, and the depth statistics are Joe's and

@@ -1,18 +1,18 @@
 ---
-title: La région difficile qu'on ne peut pas concevoir autrement
+title: La région difficile suit l'ordre de remplissage
 description: >-
   Remplissez un plateau dans un ordre fixe et les trois quarts du haut se posent
-  librement, tandis que la difficulté s'entasse dans la bande que vous terminez
-  en dernier. Sur quarante plateaux générés, tout le reste tombe dans la moitié
-  basse à chaque fois ; mélangez l'ordre de remplissage et il se disperse, donc
-  la région difficile est fabriquée par le balayage, pas cachée dans le plateau.
-metaDescription: "Sur des plateaux Eternity II solubles, une recherche row-major remplit les trois quarts du haut puis cale ; sur quarante plateaux 16x16, tout le reste tombe dans la moitié basse à chaque fois. Mélangez l'ordre et il se disperse (0,503) : la région difficile tient à la décomposition, pas au plateau."
+  librement ; le reste est, par construction, la fin de l'ordre. Sur quarante
+  plateaux générés, une recherche row-major cale à une médiane de 12 lignes sur
+  16, et un budget plus large n'y change rien. Reste à tester si certaines cases
+  sont difficiles quel que soit l'ordre.
+metaDescription: "Sur quarante plateaux 16x16 solubles, une recherche row-major remplit une médiane de 12 lignes sur 16, puis cale quel que soit le budget. Le reste tombe en fin d'ordre par construction ; qu'une région soit difficile quel que soit l'ordre n'a pas été testé."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 3
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, search-space]
 sources: []
 related:
@@ -64,8 +64,11 @@ sert une seule fois, dépenser une pièce rare tôt dans la partie facile affame
 partie difficile plus tard, si bien qu'aucune réparation locale n'atteint un
 nouveau plateau élevé.
 
-Seul le premier volet est un fait net qu'on lit directement sur un plateau. Les
-deux autres sont des plafonds liés à un solveur exact particulier et à la rareté
+Seul le premier volet se lit sur un plateau, et il est vrai pour l'essentiel par
+construction : sous un remplissage séquentiel, le plateau partiel le plus
+profond est un préfixe de l'ordre, et ses cases vides en sont donc le suffixe.
+Ce qui se mesure, c'est jusqu'où va le préfixe et si un budget plus large le
+fait avancer. Les deux autres sont des plafonds liés à un solveur exact particulier et à la rareté
 propre à l'ensemble officiel de 22 couleurs, et le carnet lui-même les qualifie
 d'empiriques plutôt que de démontrés. Cette page reproduit donc le premier volet,
 la localisation, et porte les deux autres comme conjecture. La seule lecture
@@ -123,7 +126,10 @@ douze lignes complètes sur seize, avant de ne plus pouvoir poser un appariement
 parfait. Cela correspond à l'image du carnet où les dix lignes et plus du haut se
 remplissent quasi librement. Et sur chacun des quarante plateaux, tout le reste
 se situe dans la moitié basse : la fraction de reste moyenne dans la moitié basse
-vaut exactement 1,000.
+vaut exactement 1,000. Ce second chiffre n'apporte rien à lui seul : dès que
+le front dépasse la ligne 8, le reste d'un préfixe row-major est, par
+définition, fait des lignes du bas. Le chiffre row-major informatif est la
+profondeur atteinte, une médiane de 75 % des cases.
 
 ## Le contrôle, c'est tout l'enjeu
 
@@ -142,6 +148,13 @@ directement les plateaux records : leurs
 dont la position est fixée par la direction dans laquelle la recherche a rempli
 le plateau. Ici, on peut voir cette bande se créer et se déplacer en ne changeant
 rien d'autre que l'ordre de remplissage.
+
+Le contrôle ne révèle pas davantage une zone difficile cachée : 0,503 est ce
+que donne par construction un ordre uniformément aléatoire. Pour savoir si
+certaines cases sont intrinsèquement difficiles, il faudrait plusieurs ordres
+sans rapport entre eux (par colonnes, en spirale, inversé, aléatoire) et une
+mesure du recouvrement entre les cases que chacun laisse vides. Cette
+comparaison n'a pas encore été faite.
 
 ## Le blocage est un mur, pas un démarrage lent
 
@@ -182,9 +195,10 @@ Le volet **trop globalement couplée** est un plafond empirique lié à la raret
 l'ensemble officiel, le couplage qui permet à une pièce rare dépensée en haut d'
 [affamer une case bien plus bas](/research/why/piece-theft). Nos plateaux
 proviennent du générateur encadré du kit, à solution plantée et admettant
-plausiblement de nombreuses solutions, là où le vrai casse-tête est réputé n'en
-admettre essentiellement qu'une. La localisation vaut pour tout plateau soluble
-sous un remplissage séquentiel, car le reste doit bien vivre quelque part et un
+plausiblement de nombreuses solutions, là où l'estimation du premier moment du
+vrai casse-tête est d'environ 14 702 avec la pièce centrale (voir le
+[dénombrement des solutions](/research/build/analysis/solution-counting)). La
+localisation vaut pour tout plateau sous un remplissage séquentiel, car le reste doit bien vivre quelque part et un
 balayage row-major le met en bas, si bien que la famille générée est un test
 adéquat de la localisation ; ce n'est pas un test de l'affirmation de couplage,
 qui exigerait l'ensemble officiel. Cet écart de famille d'instances explique
