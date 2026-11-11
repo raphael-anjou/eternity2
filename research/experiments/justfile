@@ -208,3 +208,12 @@ ktam-unassignment stage="all":
 # stage: all (about 75 min on 8 vCPU) | build | stage1 | calibrate | test | analyze.
 backdoor-branching stage="all":
     backdoor-branching/run.sh {{stage}}
+
+# MRV-BASELINE (A22): is bb-mrv a better hard-ladder baseline than
+# scb-gacolor_ac3_random on fresh seeds (PROTOCOL.md G1 + wall clock at 8x8 c=10
+# seeds 21..50), does the paired node ratio shrink with n on the c = primary+2
+# track (OLS slope over n = 6..10, bootstrap CI), and which component carries
+# the gain (exploratory ablations)? See mrv-baseline/PREREG.md.
+# stage: all (about 90 min on 8 vCPU) | build | check | calibrate | q1 | q2 | extended | ablations | analyze.
+mrv-baseline stage="all":
+    mrv-baseline/run.sh {{stage}}
