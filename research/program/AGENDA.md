@@ -251,7 +251,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** No improvement over the better of ALNS and PT by more than 2 standard errors and no more planted solves on both sizes; or CP-SAT cannot certify the k=8 ball in 60 s on most 10x10 incumbents.
 - **Budget.** About 25 core-hours, CPU only.
 
-## A15. Non-chronological, bond-weighted unassignment (kTAM / iterative modulo scheduling) · proposed
+## A15. Non-chronological, bond-weighted unassignment (kTAM / iterative modulo scheduling) · killed
 
 - **Hypothesis.** Growing the board by stable cooperative attachments and detaching weakly bonded pieces anywhere (self-assembly kinetics), or evicting the piece that blocks a cell (iterative modulo scheduling), solves hard-band boards chronological DFS does not.
 - **Borrowed from.** Winfree's kinetic Tile Assembly Model (E. Winfree and R. Bekbolatov, "Proofreading Tile Sets", DNA Computing 2003); B. R. Rau, "Iterative modulo scheduling", MICRO-27, 1994, DOI 10.1145/192724.192731. Two round-1 ideas merged here because both rest on the same mechanism.
@@ -260,6 +260,8 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** DFS and a generic non-chronological arm (random eviction / min-conflicts repair) at the same budget, to separate the mechanism from non-chronological unassignment in general.
 - **Kill.** Solves fewer than max(baselines) + 5 boards at 8x8; mechanism killed if the generic arm comes within 4 boards.
 - **Budget.** 1 to 4 core-hours, CPU only.
+
+- **Result (round 3, [PR #23](https://github.com/raphael-anjou/eternity2/pull/23)).** Killed by an independent judge on the method clause; the mechanism clause did not fire. Run at 6x6 c=5 and 7x7 c=6 first, 1e6 events per instance (one event = one placement or removal). R6 solved/30: ladder DFS `scb-gacolor_ac3_random` 30 (KM median 1,866 events), plain DFS 30, random eviction 19, kTAM detachment (V1) 23, IMS blocker eviction (V2) 27; G1 against the ladder DFS NO-GAIN for both (paired ratios 186 and 100). R7: ladder DFS 10 (16 within 1e6 nodes), every other arm 0. R8 not triggered. V2 beats random eviction at R6 (ratio 0.43, p 0.004; holds over the judge's run seeds 2 to 5 and a matched control), so choosing which piece to remove by its blocking relation carries signal, but without propagation it loses to complete propagating DFS by two orders of magnitude. Exploratory equal-CPU check at R7 (11.8 s per instance): ladder DFS 16/30, V1 and V2 1/30. Randomised restarts on the ladder DFS were suggested and are not taken up (restart portfolios are saturated in EXPLORED.md). Follow-ups: A19, A20, A21. Experiment: `research/experiments/ktam-unassignment/`.
 
 ## A16. Backdoor-guided branching · running
 
@@ -290,6 +292,36 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** Colour-rarity ranking (the A1 baseline) for recovery; the ladder's strongest propagating DFS with its own border order for nodes.
 - **Kill.** Paired planted-placement rank no better than colour rarity at both sizes (CI including 0), or no significant node reduction on any ladder rung. Most valid frames do not extend to a full solution, so frame-only signal may not transfer; that is the expected failure mode.
 - **Budget.** Under 2 core-hours on reduced boards; a few runs of the A5 counter (about 9 min per prime, 17.5 GiB peak on the official ring) for the descriptive official marginals. No AWS.
+
+## A19. Ablation of the ladder's best DFS · proposed
+
+- **Hypothesis.** One component of `scb-gacolor_ac3_random` (border-first MRV, AC-3 after every placement, the GAColor per-colour pairing check, class balance, random value order) carries most of its 44x node lead over plain DFS at 6x6 c=5, and the same component explains its lead at 7x7 c=6.
+- **Borrowed from.** Component ablation, standard in CP solver evaluation. A measurement, not a new method: it tells later candidates which inference to build on.
+- **Nearest cell.** Arc consistency and dynamic ordering (saturated as methods); not previously ablated on node-counted, hardness-matched instances.
+- **Cheap test.** Remove one component at a time (and add one at a time to plain DFS) on ladder R6 and R7 test seeds, 1e6 nodes and CPU time per instance, 3 run seeds where the order is random.
+- **Baseline.** The full solver and plain row-major DFS.
+- **Kill.** Not a method, so no kill: the outcome is the per-component paired node and CPU ratio table. Dropped if no single removal changes nodes significantly at either rung (the lead is then spread over components).
+- **Budget.** Under 1 core-hour.
+
+## A20. Blocker eviction as the backjump rule inside propagating DFS · proposed
+
+- **Hypothesis.** Inside the ladder's propagating DFS, undoing the placement that blocks the cell whose domain was wiped out (the IMS rule that beat random eviction in A15), then re-propagating, solves more 7x7 and 8x8 boards than chronological backtracking at equal events and CPU.
+- **Borrowed from.** B. R. Rau, "Iterative modulo scheduling" (MICRO-27, 1994); conflict-directed backjumping (P. Prosser, "Hybrid algorithms for the constraint satisfaction problem", Computational Intelligence 1993).
+- **Nearest cell.** No-good learning (mapped: no-goods outrun memory at 16x16) and A15 (killed: eviction without propagation). Missing mechanism: blocker choice by conflict, without stored no-goods, on top of full propagation.
+- **Cheap test.** Ladder R7 and 8x8 c=9 test seeds, 3 run seeds per arm, 1e6 events plus CPU time.
+- **Baseline.** The ladder DFS, and a twin that evicts a random placed piece with identical propagation (matched control).
+- **Kill.** NO-GAIN against the ladder DFS on G1 at both rungs and solves at most baseline + 3 on the run-seed median; mechanism killed if the random twin comes within 2 solves and is not significantly worse.
+- **Budget.** 1 to 3 core-hours, CPU only.
+
+## A21. Value order by propagation impact · proposed
+
+- **Hypothesis.** In the ladder's propagating DFS, trying first the piece and rotation whose propagation removes the fewest values from neighbouring domains (least-constraining value measured by real propagation, not by colour counts) shrinks trees at 7x7 c=6 and 8x8 c=9 against its random value order.
+- **Borrowed from.** Impact-based search (P. Refalo, "Impact-based search strategies for constraint programming", CP 2004).
+- **Nearest cell.** Fixed and dynamic fill orders, learned move ordering. Novelty check against those first; record whether a value-impact order was already measured.
+- **Cheap test.** Ladder R6, R7 and 8x8 c=9 test seeds, nodes and CPU time per instance.
+- **Baseline.** The ladder DFS with its random value order (3 run seeds).
+- **Kill.** NO-GAIN on every rung, or a node GAIN whose CPU ratio is above 1 at every rung.
+- **Budget.** Under 2 core-hours.
 
 ## Parked from the round-1 idea pass
 

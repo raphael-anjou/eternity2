@@ -2525,3 +2525,20 @@ all valid frames, tested for whether planted placements rank above colour
 rarity on generated boards before any use as a border ordering. Nearest
 dead ends: belief and survey propagation, A1 spectral statistics. Files:
 research/program/AGENDA.md.
+
+## 2026-11-11 · Round 3, A15 non-chronological bond-weighted unassignment: killed
+
+Preregistered test on the hard ladder, judged by a separate session. kTAM
+detachment (V1) and IMS blocker eviction (V2) against the ladder DFS
+`scb-gacolor_ac3_random`, plain DFS and a tuned random-eviction arm, 1e6
+events per instance, 6x6 c=5 and 7x7 c=6 first. R6 solved/30: 30, 30, 19, 23,
+27; G1 against the ladder DFS NO-GAIN (ratios 186 and 100). R7: ladder DFS
+10, every other arm 0. 8x8 c=9 not triggered. Learning: V2 beats random
+eviction (ratio 0.43, p 0.004), so the blocker choice carries signal, but
+non-chronological search without propagation loses to propagating complete
+DFS by two orders of magnitude, also at equal CPU (exploratory). Follow-ups
+A19 (ablation of the ladder DFS), A20 (blocker eviction inside propagating
+DFS) and A21 (value order by propagation impact) added as proposed.
+Reproducibility: deterministic, `just experiments ktam-unassignment`, full
+rerun bit for bit except wall clock. Source commit 617c131 (PR #23). Files:
+research/experiments/ktam-unassignment/, research/program/AGENDA.md.
