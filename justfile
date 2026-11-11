@@ -176,6 +176,7 @@ research-frame-manifold:
 research-frame-is-not-the-basin:
     cd research/topics/frame-is-not-the-basin/compute && cargo run --release -- --frames 16 --beam 128 --seeds 3 --seed0 1 > ../results/frame_first.json
     cd research/topics/frame-is-not-the-basin/compute && cargo run --release -- --frames 12 --beam 128 --seeds 2 --seed0 7001 > ../results/frame_first_seed7001.json
+    cd research/topics/frame-is-not-the-basin/compute && cargo run --release -- --frames 16 --beam 128 --seeds 8 --seed0 1 --control > ../results/frame_variance_control.json
 
 # Reproduce the ledger-prune topic's results (soundness gate + A/B sweep + the 464 certificate rows).
 research-ledger-prune:

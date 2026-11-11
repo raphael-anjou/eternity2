@@ -1707,3 +1707,181 @@ build/hardware/fpga-solving{,.fr,.es}.mdx, the GPU bullet of
 build/approaches-map{,.fr,.es}.mdx; then the hardware hub description
 (build/hardware/index{,.fr,.es}.mdx) and the FPGA page's economics, ReConFig
 and rack-year paragraphs. Commits: cd55b20, 5748d05.
+
+## 2026-11-11 — Rigor pass: why-a (external review follow-up)
+
+2026-11-11. Rigor pass on ten why/ pages (border-balance, clue-corridors,
+complex-theory, constraint-immediacy, design-recipe, entropy-area-law, flux-
+invariants, forbidden-patterns, frame-is-not-the-basin, hint-geometry),
+EN/FR/ES, after a read-only audit; all 21 findings verified and fixed. New
+measurement (seeded, about 1 min on 8 cores): frame-is-not-the-basin --control
+completes 16 fully-matched borders x 8 beam seeds with every completion kept.
+One-way ANOVA F(15,112)=1.24, p=0.25, ICC about 0.03. Interior Hamming is
+184.1 for two seeds on the same border against 190.4 between borders. So the
+border effect is undetectable for this producer, and most 'border-driven
+diversity' was seed sensitivity; the negative is now scoped to producers
+topping out near 440, and 455 is relabelled a threshold rather than the
+record. Recomputed exactly: the clue-corridors closest-pair corridor is L=9
+(5.6e13 walks, 4.7e13 distinct, a 5e-13 fraction of 9.3e25 unconstrained
+placements), and with C=17 the branching table is b1=46.1, b2=2.71, b3=0.16.
+The corridor argument now rests on fail-last scheduling, not volume.
+Corrections: the border balance is a trivial seam identity (Delta lower-bounds
+seam mismatches and is identically 0 under a matching backtracker). The flux
+law gives 44 real equations on the phasors (40 was the real rank on real
+unknowns); the nonabelian van Kampen condition exists but is impractical; the
+endgame certificate's benchmark is artificial and can only fire in about the
+last 20 cells. Complex theory already includes use-once via P(n,k); its blind
+spots are correlations, variance and planted clustering. 'Five clues give
+about 1' is now 'the designed solution plus about 4e-8 others'. Null models
+added: 99.72% forbidden 2x2 matches the 4^4/17^4 first-moment estimate; 20
+void corner pairs vs 19.2 expected; no symmetric or duplicate pieces happens
+about 1 time in 5 under random painting; flat frequencies are clearly non-
+random (sd about 9). Owen's 2.08/4.14 ratios are orbit counting (4:2:1).
+Constraint-immediacy uses the prefix induced-edge criterion (edge-
+isoperimetric; row-major 108 vs 8x8 block 112 at 64 cells), cites fail-first,
+and claims only that hint-link was worst under both engines; a FR '3 sur 4'
+typo is now 4 of 4. Titles scoped: clue-corridors ('...hurt a greedy filler'),
+hint-geometry ('Scattered hints beat contiguous top rows of hints', contact-
+count confound and missing controls), flux ('...every solution must satisfy'),
+border-balance (identity, rigor proven), entropy (no 'all the hardness'; NP-
+completeness cited). Literature added: Haralick-Elliott 1980, Bollobas-Leader
+1991, Williams-Hogg 1994, Knuth 1975, Demaine-Demaine 2007, van Emde Boas
+1997, Thurston 1990. Learned: metaDescription is capped at 300 characters and
+only pnpm typecheck catches it. Deferred: justfile recipe for --control,
+ForbiddenCountLab note, hint bottom/centre arms, the flux re-benchmark, the
+corridor A/B rerun, the record-border freeze, and PLAN.md sweeps. Files: the
+30 MDX files above; research/topics/frame-is-not-the-
+basin/{compute/src/main.rs, article.md, results/frame_variance_control.json};
+research/topics/clue-corridors/{compute/src/main.rs, article.md,
+results/corridor_counts.json}; research/topics/flux-invariants/article.md;
+research/index.json. Commit 7dc143f.
+
+Verified 21 audit findings and fixed them, rejected 0 as not holding, deferred 7 (new experiments or files outside the group). Source commit 7dc143f on devin/1794390000-rigor-why-a, integrated via devin/1794392000-rigor-why.
+
+## 2026-11-11 — Rigor pass: why-b (external review follow-up)
+
+Rigor pass on the why/ group (no-forced-moves, piece-theft, phase-transition,
+how-hard-is-this-instance, irreducible-hard-region, mismatch-geometry, no-
+height-function, index, parity-defect-floor, permutation-code-wall; EN/FR/ES),
+commit 85b7de4 on devin/1794390000-rigor-why-b. New reproducible null models:
+research/topics/no-forced-moves/compute/src/bin/null_model.rs and
+research/topics/piece-theft/compute/src/bin/null_model.rs run the engine's
+generate_framed(16, 22, seed, true) for seeds 1-100. Results are in
+results/null-model.json; reproduce with `cargo run --release --bin null_model`
+(exact; default-run added so the existing just recipes are unchanged).
+Learned: E2's single-edge partner counts (median 125; random 120-128) and
+(north, west) demand scarcity (269/47/2.90; random 261-282 / 38-63 /
+2.77-3.00) are typical of any 5+17 16x16 puzzle, not design signatures. The
+'no forced moves' claim holds only for single edges: with two neighbours
+fixed, about 3 candidates remain and 17.5% of demands have one server. Piece
+theft is a standard forward-checking domain wipe-out. The 8x8 hardness sweep
+shows a noisy band at 6-8 interior colours, and the DFS also fails at 1-3 and
+5. The 16x16 sweep locates no peak. Owen's 2xL strip count tracks the first-
+moment threshold (crossing at L 19-20) and measures satisfiability, not
+effort. The n13 cliff boards are 17+5 (22 total), not 22 interior; the
+original round was 26 total (21 interior). The CP-SAT 11-to-12 slowdown is
+about 20x at the median, not two orders of magnitude. The crude first-moment
+crossing (N 12-13 at 17 interior colours) matches CP-SAT's wall, so paradigm
+and instance position cannot be separated. Row-major localisation and the
+0.503 random control are true by construction. Mismatch forests are expected
+by chance (under 0.2% loop probability at 11-25 defects). The no-height parity
+is automatic. Pages were retitled to match what they measure, record numbers
+were replaced by /research/records links, and the solution-count wording rule
+was applied. The phase-transition page now cites the random-CSP threshold
+literature. Deferred: committing the 1,964-board mismatch corpus, the
+ForcedMovesLab string, just recipes for the null models, the n13 article
+frontmatter title, a multi-order hard-region test, and an invariant
+classification. check:research:ci and typecheck pass. Files:
+web/content/research/why/{no-forced-moves,piece-theft,phase-transition,how-
+hard-is-this-instance,irreducible-hard-region,mismatch-geometry,no-height-
+function,index,parity-defect-floor,permutation-code-wall}{,.fr,.es}.mdx;
+research/topics/no-forced-
+moves/compute/{Cargo.toml,README.md,src/bin/null_model.rs}, results/null-
+model.json; research/topics/piece-
+theft/compute/{Cargo.toml,README.md,src/bin/null_model.rs}, results/null-
+model.json; research/topics/n13-encoding-cliff/article.md (body only).
+
+Verified 18 audit findings and fixed them, rejected 2 as not holding, deferred 6 (new experiments or files outside the group). Source commit 85b7de4 on devin/1794390000-rigor-why-b, integrated via devin/1794392000-rigor-why.
+
+## 2026-11-11 — Rigor pass: why-c (external review follow-up)
+
+2026-11-11, rigor pass on why/ group C (branch devin/1794390000-rigor-why-c,
+commit c8b2d22). Nine pages edited in EN/FR/ES: the-470-wall, prune-vs-speed,
+theorem-sweep, ring-purity, rare-color-geography, rigidity-wall, why-e2-is-
+hard, walls-and-methods, sigma-cycles. Also PruneVsSpeedLab.tsx (caption only)
+and topic files for the-470-wall, prune-vs-speed, ring-purity and adversarial-
+piece-set.
+
+Why: an audit found these pages claimed more than their evidence measured.
+
+- The 470 'phase boundary' was not in the landscape.
+
+- A naive solution count of ~19 contradicted solution-counting.
+
+- A prune-beats-speed headline contradicted its own committed data.
+
+- A 'proven' theorem sweep was mostly unpublished claims.
+
+- Design 'extremes' had no null model.
+
+What changed:
+
+- the-470-wall: probe scores extended to 465/475/478 and landscape.json rerun.
+The curve falls smoothly (2.5 to 3 decades per point), crosses 1 at 480, has
+no feature at 470, and predicts ~10^18 boards at 475. The page is retitled as
+a conjecture, and the small-instance enumeration is marked unpublished.
+
+- prune-vs-speed: now reports its measured comparison (at depth 36, b_eff
+1.416, a 1000x speedup beats a 5% cut, worth only 6.3x) and separates
+exhaustive search from record hunting.
+
+- theorem-sweep: rigor set to conjectured, and each family tagged
+committed/measured/conjectured/claimed. The PLS and proof-complexity
+statements are corrected (CDCL p-simulates general resolution; BIW 2004;
+Pipatsrisawat-Darwiche 2011).
+
+- ring-purity: the ring is a directed multigraph (in=out=12). New
+compute/ring_count.py gives the exact BEST count, 3432 x (11!)^5 ~ 3.5x10^41
+circuits. Sampling 16M uniform circuits gives a corner-spacing fraction of
+2.78e-5, so ~10^37.6 valid frame placements (the naive estimate is 10^34.3).
+Kind: exact plus seeded sampling, ~90 s on 8 cores.
+
+- adversarial-piece-set: new compute/null_model.py paints 20,000 seeded solved
+boards with the official joint-colour counts.
+
+  - Zero symmetric pieces is ordinary (54%).
+
+  - 5 twins is ordinary (mean 6.6).
+
+  - Zero rotation-duplicate pairs is rare (1.4%, mean 4.1); this is the only
+design fingerprint that survives.
+
+  - Even colour counts and zero slack are automatic.
+
+- rigidity-wall: the null for border UNSAT is that a random border hosts a 480
+with p < 10^-30, so 9/9 UNSAT is expected. Row uniqueness is at the null
+expectation. A selection-bias caveat was added, and the 0.18 per-cell figure
+corrected to 0.24 and the 22-colour figure to 17 colours.
+
+- rare-color-geography: reasoning reversed (the 5-colour frame is the loose
+subsystem), and 'edges' corrected to half-edges.
+
+- walls-and-methods: speed has moved community records; the hardness peak is
+retiered.
+
+- sigma-cycles: the hot chains are at effectively infinite temperature.
+
+Learned:
+
+- The design story needs nulls. Most 'adversarial' piece-set properties are
+what a random painting gives; zero rotation duplicates is the exception.
+
+- The landscape gives no reason to expect a wall at 470.
+
+- The research schema caps metaDescription at 300 chars, and only `pnpm
+typecheck` catches it.
+
+Open: rerun research/build-index.mjs (index.json not committed), and reconcile
+the five-clue count (4e-8 vs ~1) between solution-counting and known-facts.
+
+Verified 20 audit findings and fixed them, rejected 2 as not holding, deferred 7 (new experiments or files outside the group). Source commit c8b2d22 on devin/1794390000-rigor-why-c, integrated via devin/1794392000-rigor-why.
