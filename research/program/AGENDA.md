@@ -199,7 +199,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Murty arm does not beat the baseline on solve rate or on paired gap to the planted optimum by more than 2 standard errors on both sizes; or 90% or more of its improving moves are exchange cycles of 5 cells or fewer (already covered by the rigidity census).
 - **Budget.** About 8 core-hours, CPU only.
 
-## A10. Near-codeword spectrum: fewest breaks at each overlap with a planted solution · running
+## A10. Near-codeword spectrum: fewest breaks at each overlap with a planted solution · killed
 
 - **Hypothesis.** The curve b_min(a), the fewest breaks of any full board at distance a from the planted solution, tests the overlap-gap reading of the 470 wall for near-solutions: a barrier in the mid-overlap band that grows with size.
 - **Borrowed from.** Coding theory, near-codewords / (a,b) trapping sets: D. J. C. MacKay and M. S. Postol, ENTCS 74 (2003), DOI 10.1016/S1571-0661(04)80768-0; enumeration after Karimi and Banihashemi, IEEE Trans. Inf. Theory 58(11), 2012, DOI 10.1109/TIT.2012.2205663.
@@ -208,6 +208,8 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** Annealed first-moment prediction of b_min per band; a polished-random reachable null; a looser palette as no-gap control.
 - **Kill.** K1: median barrier H_mid - H_far <= 0 at 5x5 and 6x6 or not growing; or at 7x7/8x8 a mid-band board as good as the best far-band board on 25% or more of instances. K2: b_min(a) <= 2 for some a >= n/3 at 6x6. K3: annealed model off by more than 2 breaks mid-band at 6x6.
 - **Budget.** 10 to 14 core-hours, CPU only.
+
+- **Result (round 2, [PR #25](https://github.com/raphael-anjou/eternity2/pull/25)).** Killed by a second independent judge; the first ruled the run invalid because the corner pin does not remove the 4-fold board rotation, so the far band held a turned copy of the planted solution and K1c was undetermined. With distance quotiented by rotation (amendment A6, committed before the fix-run solves), K1a fires on closed data: 5x5 C=13 median mid band 4 breaks against far band 7 (B* = -3, 30/30 optimal), 6x6 C=14 median B* in [-7, -1]. The judge reproduced all 60 5x5 optima with an independent CP-SAT model. No primary instance has a 0-break board far from the planted solution, so the kill covers single-solution-class small boards only: the mid band is a cheap saddle, not a barrier. Next: the same measurement between two distinct solutions on 6x6 and 7x7 palettes with 5 to 50 expected solution classes (kill if median H_between - H_near <= 0 or fewer than 10 usable instances per size). Experiment: `research/experiments/near-codeword-spectrum/`.
 
 ## A11. Coupled real replicas (local entropy) versus parallel tempering · proposed
 
@@ -324,6 +326,14 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** The ladder DFS with its random value order (3 run seeds).
 - **Kill.** NO-GAIN on every rung, or a node GAIN whose CPU ratio is above 1 at every rung.
 - **Budget.** Under 2 core-hours.
+
+## A22. `bb-mrv` as a ladder baseline: fresh seeds, scaling, ablation · promoted
+
+- **Hypothesis.** The A16 side observation holds on fresh seeds: `bb-mrv` (A3 propagation with piece all-different, plus free MRV) beats `scb-gacolor_ac3_random` in nodes and wall clock, and its node ratio shrinks with board size (a smaller effective branching factor rather than a constant factor).
+- **Nearest cell.** Propagating complete DFS (the ladder baseline). Not a new method: a baseline check that decides what every later candidate is compared against.
+- **Cheap test.** Ladder R6, R7 seeds 21..30; 8x8 c=10 seeds 21..50; a fixed c = critical + 2 track for n = 6..10, seeds 1..30; four one-change ablations.
+- **Kill.** Not adopted if G1 fails at 8x8 c=10 on seeds 21..50 or the median paired wall-clock ratio there is above 1; "gain grows with n" only if the slope CI is entirely below 0.
+- **Result (round 3, [PR #26](https://github.com/raphael-anjou/eternity2/pull/26)).** Kept by an independent judge, scoped to the 8x8 c=10 rung: 30/30 solved against 20/30, KM median 69,036 vs 555,342 nodes, G1 ratio 0.147 (CI [0.076, 0.313]), wall ratio 0.194; node-identical on the judge's rerun and G1 PASS for scb run seeds 1 to 5. At the critical-colour rungs R6 and R7 G1 fails (0.80, 0.70) and `bb-mrv` is slower in wall clock (1.64x, 1.85x), so it is not adopted there. Scaling: no evidence of a growing gain, because 9x9 c=11 and 10x10 c=12 are censored for both solvers on every pair even at the extended 1e7 / 180 s cap (binding slope +0.089 per n). Exploratory only: over n = 6..8 the median log10 ratio goes -0.26, -0.38, -0.83. Ablations at R8 (node ratio against the parent): no hidden singles 1.11, border-first order 1.83, random value order 1.62; adding A3's piece all-different to scb cuts its nodes to 0.23 but costs per node (wall 0.90). Next: a separately preregistered scaling run with per-size caps of 1e8 to 1e9 nodes on the +2 track, and re-baselining A17 on `bb-mrv` at 8x8 c=10. Experiment: `research/experiments/mrv-baseline/`.
 
 ## Parked from the round-1 idea pass
 

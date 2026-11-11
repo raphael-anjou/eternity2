@@ -2564,3 +2564,42 @@ the 240 s guard depend on machine speed). Source commit 3c85866 (PR #24).
 Files: research/experiments/backdoor-branching/,
 research/experiments/hard-ladder/instances/8-c10-*.jsonl,
 research/program/AGENDA.md.
+
+## 2026-11-11 · Round 2, A10 near-codeword spectrum: killed
+
+Preregistered CP-SAT measurement of the fewest internal breaks of full boards
+in near, mid and far overlap bands around a planted solution, judged twice.
+Judge 1: invalid, because the corner pin leaves the 4-fold board rotation, so
+the far band held the planted solution's own turned copy, and K1c was
+undetermined. Fix run on rotation-quotiented distance d* (amendment A6,
+committed before its solves). Judge 2: K1a fires on closed data; 5x5 C=13
+median mid band 4 breaks against far band 7 (B* -3, 30/30 optimal), 6x6 C=14
+B* in [-7, -1]; an independent judge-written CP-SAT model reproduces all 60
+5x5 optima. Learning: on single-solution-class small boards the mid band is a
+cheap saddle, not a barrier; no board far from the planted solution has 0
+breaks. Untested: the barrier between two distinct solutions.
+Reproducibility: CP-SAT with time limits, `just experiments
+near-codeword-spectrum` (about 10 core-hours; unclosed solves reported as
+intervals); witnesses rechecked by an independent numpy checker. Source commit
+49bd769 (PR #25). Files: research/experiments/near-codeword-spectrum/,
+research/program/AGENDA.md.
+
+## 2026-11-11 · Round 3, A22 bb-mrv as a ladder baseline: kept at 8x8 c=10
+
+Preregistered fresh-seed test of the A16 side observation, judged by a separate
+session. At 8x8 c=10 seeds 21..50, `bb-mrv` against `scb-gacolor_ac3_random`:
+30/30 vs 20/30 solved, KM median 69,036 vs 555,342 nodes, G1 ratio 0.147 (CI
+[0.076, 0.313]) PASS, wall ratio 0.194; the judge's rerun is node-identical
+60/60. At 6x6 c=5 and 7x7 c=6 G1 fails (0.80, 0.70) and `bb-mrv` is slower in
+wall clock. Scaling on c = critical + 2: no evidence of a growing gain, since
+9x9 c=11 and 10x10 c=12 are censored for both solvers on every pair at 1e7
+nodes; exploratory n = 6..8 median log10 ratios -0.26, -0.38, -0.83.
+Ablations (R8 node ratio against parent): no hidden singles 1.11, border-first
+1.83, random value order 1.62, scb plus piece all-different 0.23. Learning:
+the ladder baseline is beaten above the critical colour count by piece-side
+propagation plus free MRV; the scaling question needs caps of 1e8 or more.
+New ladder files `8-c10-fresh` and `plus2` (hard-ladder amendment A4).
+Reproducibility: node counts deterministic, `just experiments mrv-baseline`
+(about 90 min on 8 vCPU; wall clock depends on machine). Source commit
+046324c (PR #26). Files: research/experiments/mrv-baseline/,
+research/experiments/hard-ladder/, research/program/AGENDA.md.
