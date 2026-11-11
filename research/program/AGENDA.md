@@ -161,9 +161,11 @@ test, scheduled at larger scale), `published`.
   with a first-party number instead of forum reports.
 - **Cheap test.** Stage 1 on the VM (no GPU): write the per-thread search as
   host-and-device code, compile it for the CPU, and check that exhaustive runs
-  on generated 6x6 to 8x8 puzzles find exactly the solution set of the
-  size-generic CPU solver in `engine/src/solver.rs` (the benchmark engines
-  are 16x16 only).
+  on generated 6x6 to 8x8 puzzles find exactly the full solution set of a
+  CPU oracle. The engine's `Solver` (`engine/src/solver.rs`) is size-generic
+  but stops at the first solution, so extend it to resume after each solution
+  (or write a separate enumerator), and cross-check the oracle's counts
+  against an independent counter first. The benchmark engines are 16x16 only.
   Stage 2 on AWS, after repeating that check on the GPU: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
   placements per second and time to first solution on 10x10 generated
   puzzles against the CPU solver on the same instance. Only if the 10x10
