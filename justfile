@@ -220,3 +220,8 @@ research-exact-tail-endgame:
 # certificate catch curve on planted 8x8 boards).
 research-flux-invariants:
     cd research/topics/flux-invariants/compute && cargo run --release > ../results/flux_invariants.json
+
+# Reproduce the fill-order mean-field law check and k-profiles (seeded, about
+# 3 minutes on one core).
+research-fill-order-mean-field:
+    python3 research/experiments/fill-order-mean-field/mean_field.py
