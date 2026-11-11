@@ -131,15 +131,18 @@ test, scheduled at larger scale), `published`.
 - **Nearest cell.** Benchmarks, open problems.
 - **Cheap test.** Two numbers, kept apart. (1) Knuth's random-probe estimate
   of set_2's full tree under the best fill order: the cost of an exhaustive
-  search, an upper bound. (2) The first-solution cost, from the distribution
+  search. The estimator is unbiased but heavy-tailed (most samples
+  underestimate), so report the probe count and an upper confidence bound,
+  not the mean alone. (2) The first-solution cost, from the distribution
   of time to first solution under randomized restarts on generated 10x10
   puzzles with set_2's colour profile, scaled by the engine's measured speed.
   (2) is an ensemble estimate, not set_2's own price: report it as such,
   check it first by predicting first-hit times on held-out generated puzzles,
   and report the spread across the ensemble. Report core-years with an
   uncertainty band for each.
-- **Spending rule.** A compute request for set_2 cites (1) as the worst case;
-  (2) can motivate a request but never justifies one alone.
+- **Spending rule.** A compute request for set_2 cites the upper confidence
+  bound of (1) and says it is an estimate, not a guarantee; (2) can motivate
+  a request but never justifies one alone.
 - **Baseline.** Set_1's measured first-hit cost, compared with (2) only.
 - **Kill.** Not applicable; the output is a number. Promote only if the price
   is within a rented-compute budget the user approves.
