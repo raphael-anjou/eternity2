@@ -100,6 +100,23 @@ bandsaw rung_ms="15000" label_ms="1500":
         --entry /tmp/bandsaw_entry.json --rung-ms {{rung_ms}} --label-ms {{label_ms}} \
         | tee bandsaw/results/bracket.json
 
+# SAT backdoors (agenda A3): on generated planted 6x6..10x10 boards, find the
+# smallest set of planted placements after which arc consistency + piece
+# all-different completes the board (exact where the node cap allows, else a
+# greedy/local-search upper bound), plus the random-subset baseline; then fit
+# the growth curve and apply the pre-registered kill rule (see PREREG.md).
+# Deterministic given the seeds; the thread count does not change the output.
+# The last two lines check the rerun against the committed results.
+sat-backdoors threads="8":
+    cargo build --release --manifest-path sat-backdoors/Cargo.toml
+    sat-backdoors/target/release/sat_backdoors --threads {{threads}} \
+        --out sat-backdoors/results/rerun/results.jsonl \
+        --timing sat-backdoors/results/rerun/timing.jsonl
+    python3 sat-backdoors/analyze.py sat-backdoors/results/rerun/results.jsonl \
+        sat-backdoors/results/rerun/summary.json
+    cmp sat-backdoors/results/results.jsonl sat-backdoors/results/rerun/results.jsonl
+    cmp sat-backdoors/results/summary.json sat-backdoors/results/rerun/summary.json
+
 # A4 quality-diversity vs parallel tempering: MAP-Elites (96-cell descriptor
 # archive) and PT on the same SA move kernel, 30 generated puzzles x 2 seeds per
 # size (8x8, 10x10) at the budgets and colour counts in the committed
