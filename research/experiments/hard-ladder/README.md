@@ -20,7 +20,8 @@ sets (8 is "> C" after a finite 7); rungs 9 and 10 were not run here (A2).
 Which fix applies (PREREG: "the cap or the colours must change"): the colours,
 not the cap. The committed hardness-peak sweep, run with the same generator,
 scramble and plain DFS on the same seeds 1..30, solves **0 of 30** at 8x8 c = 8
-even with 1.5e7 placements, and 0/30 at every c <= 8; it solves 23/30 at c = 9
+even with 1.5e7 placements, and 0/30 at c = 6 and 7 (at c = 1 to 5 it
+solves 11 to 27 of 30); it solves 23/30 at c = 9
 (KM median 8.5e6 placements) and 30/30 at c = 10 (KM median 5.1e5). The
 hardness peak of this generator at 8x8 therefore sits at or below Owen's
 criterion (7.56): counts at or just below the one-expected-solution point are
