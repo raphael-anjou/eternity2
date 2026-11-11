@@ -3,16 +3,19 @@ title: Búsqueda local y ALNS
 description: >-
   Destruir una parte del tablero, reconstruirla mejor y dejar que el algoritmo
   aprenda qué demoliciones rinden. La búsqueda de gran vecindario adaptativa es
-  el pulidor más fiable de este proyecto, y la demostración más nítida del muro
-  donde el pulido se detiene.
-metaDescription: "Búsqueda de gran vecindario adaptativa (ALNS) en Eternity II: destruir parte del tablero, reconstruir el hueco de forma más fina y aprender qué demoliciones rinden. El pulidor más fiable del proyecto, que eleva las construcciones por haz a nivel de récord, pero choca con un muro."
+  el pulidor más fiable de este proyecto, y una ilustración nítida del
+  atrapamiento en una cuenca: mejora rápido un tablero y luego se estanca cerca
+  de donde empezó.
+metaDescription: "Búsqueda de gran vecindario adaptativa (ALNS) en Eternity II: destruir parte del tablero, reconstruir el hueco más fino y aprender qué demoliciones rinden. El pulidor más fiable del proyecto, que eleva los haces a nivel de récord y luego se estanca en la cuenca recibida."
 kind: concept
 order: 60
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
-  - label: "El artículo de JFPC de Pierre Schaus + el vecindario de relleno húngaro, detallado por primera vez en la lista (groups.io msg 5589, junio de 2008)"
+  - label: "Pierre Schaus explica en la lista el vecindario de asignación óptima (relleno húngaro) (groups.io msg 5601, 2008)"
+    url: https://groups.io/g/eternity2/message/5601
+  - label: "antminder lo usa como paso de reparación de su híbrido de backtracking + AG (groups.io msg 5589, junio de 2008)"
     url: https://groups.io/g/eternity2/message/5589
   - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
     url: https://doi.org/10.1287/trsc.1050.0135
@@ -124,20 +127,30 @@ Tres refinamientos que vale la pena conocer:
   celdas liberadas son dos a dos no adyacentes, el coste de cada hueco depende
   solo de sus vecinos fijos, de modo que el relleno es exactamente un problema
   de asignación $k \times k$: el algoritmo húngaro lo resuelve de forma óptima
-  en $O(k^3)$. Ese es el vecindario Eternity II de Schaus. En cuanto dos huecos
+  en $O(k^3)$. Ese es el vecindario del
+  [artículo de JFPC 2008](https://hdl.handle.net/2078.5/253676) de Schaus y
+  Deville, que Schaus explicó en la lista
+  ([mensaje 5601](https://groups.io/g/eternity2/message/5601)) y que antminder
+  usó como paso de reparación de su híbrido de 2008
+  ([mensaje 5589](https://groups.io/g/eternity2/message/5589)). El bucle de este
+  proyecto, descrito arriba, rellena en cambio de forma voraz. En cuanto dos huecos
   se tocan, sus elecciones se acoplan, y la reparación óptima se convierte en
   una pequeña búsqueda CP/exacta, exponencial en el peor caso en $k$, que es por
   lo que las destrucciones grandes dejan de rendir.
 - **Anytime, y nada más.** ALNS mejora una respuesta factible y puede detenerse
   en cualquier momento; el mejor tablero hasta ese punto *es* la salida. No
   ofrece garantía alguna de completitud ni de optimalidad: nunca puede
-  certificar que no exista un tablero mejor. En este puzzle ese certificado
-  tiene que venir de otro lado (el oráculo SAT tras el
-  [muro de rigidez](/research/why/rigidity-wall)).
+  certificar que no exista un tablero mejor. Los solvers exactos certifican
+  algo más estrecho: en los tableros estudiados en la página del
+  [muro de rigidez](/research/why/rigidity-wall), pruebas MIP y SAT muestran
+  que no existe mejora dentro de un halo de radio 1 a 4 alrededor de los
+  desapareamientos (radio 4 en un solo tablero). Es optimalidad local para una
+  familia de vecindarios. Ningún método sabe hoy certificar que un tablero
+  16×16 completo no se puede superar.
 - **A escala de Eternity II el bucle es barato; el escape no lo es.** Con
   $k = 20$–$80$ de las 256 celdas y unos pocos cientos de candidatos por hueco,
-  una iteración cuesta de microsegundos a milisegundos, y las curvas de mejora
-  se aplanan en unas pocas decenas de iteraciones. El coste vinculante no es,
+  una iteración cuesta de microsegundos a milisegundos, así que una ejecución
+  de un minuto encadena millones de iteraciones. El coste vinculante no es,
   por tanto, la aritmética sino la probabilidad de que un vecindario de $k$
   celdas contenga el único [σ-cycle](/research/why/sigma-cycles) entrelazado que
   lleva hacia arriba, y esa probabilidad es la que se desploma cerca de la cima.
@@ -156,11 +169,20 @@ independiente:
 - **La selección le gana a la cobertura.** Un conjunto seleccionado de cinco
   operadores superó al conjunto completo de once; repartir los pesos adaptativos
   entre demasiados operadores diluye la señal de aprendizaje.
-- **La temperatura no es la palanca.** A lo largo de un rango de temperaturas de
-  aceptación de un factor diez, las puntuaciones finales fueron idénticas,
-  porque cerca de la cima el paisaje está dominado por mesetas de igual
-  puntuación donde prácticamente cada movimiento se acepta a cualquier
-  temperatura.
+- **En el rango probado, la temperatura no movió las puntuaciones de cabeza.**
+  Al pulir tableros cercanos al récord, las puntuaciones finales fueron
+  idénticas en un rango de temperaturas de aceptación de un factor diez (una
+  ejecución del cuaderno; las temperaturas no están en los resultados
+  versionados). Eso vale para ese rango, no en general. En tableros medianos,
+  el [estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study)
+  versionado sitúa la aceptación por recocido unos 16 puntos por delante de una
+  subida estricta (media 377 frente a 361), y una escalera con un peldaño
+  caliente cruzó una barrera de 21 aristas que una cadena fría no puede cruzar
+  ([tempering paralelo](/research/build/local-search/parallel-tempering)).
+  Cerca de la cima, los movimientos de igual puntuación se aceptan a cualquier
+  temperatura, pero los movimientos que empeoran, que son los que permitirían
+  salir de una meseta, siguen dependiendo de $T$; las temperaturas probadas
+  eran demasiado bajas para que esas salidas contaran.
 
 Que destruir-reparar convenga a este puzzle es una observación antigua: Schaus
 y Deville hibridaron la programación con restricciones con la búsqueda de gran
@@ -182,18 +204,26 @@ entre una colocación aleatoria y la mejor puntuación alcanzable, a lo largo de
 amplio rango de aprieto del puzzle, antes de saturar en las instancias más
 difíciles. (Todo esto está medido aquí, y matizado en consecuencia.)
 
-Igual de característico: las ganancias llegan pronto. Las curvas de mejora se
-aplanan dentro de las primeras decenas de iteraciones, y dejar una ejecución
-correr diez veces más reproduce la misma puntuación final. Cuando ALNS se
-detiene, se ha detenido.
+Igual de característico: las ganancias llegan pronto. En el
+[estudio de reparación](/research/lab/experiments/raphael-anjou/repair-study)
+versionado, una ejecución de un minuto encadena entre 5 y 34 millones de
+iteraciones, y en la mayoría de las variantes el mejor tablero mejora por
+última vez tras unos pocos miles o unos pocos cientos de miles de ellas; los
+millones restantes vuelven sobre la misma cuenca. (La excepción es una
+destrucción aleatoria, ciega a la geometría, que sigue mejorando tarde en
+tableros medianos.) Esas ejecuciones parten de tableros entre 350 y 440
+aproximadamente, y no se probaron presupuestos muy superiores a un minuto: el
+estancamiento está medido con ese presupuesto, no demostrado definitivo.
 
 ## El muro con el que choca
 
 Por qué se detiene es la parte interesante, y este sitio le dedica dos páginas
-enteras. En cada tablero de cabeza, los desapareamientos restantes están
-demostrablemente bloqueados: liberar un vecindario generoso a su alrededor y
-buscarlo exhaustivamente no encuentra nada mejor; ese es el
-[muro de rigidez](/research/why/rigidity-wall). Y pasar de un tablero de cabeza a
+enteras. En cada tablero de cabeza estudiado hasta ahora (un puñado de
+cuencas), pruebas MIP y SAT muestran que no existe mejora dentro de un halo de
+radio 1 a 4 alrededor de los desapareamientos restantes (radio 4 en un solo
+tablero); algunas resoluciones mayores no terminaron. Ese es el
+[muro de rigidez](/research/why/rigidity-wall): un certificado de optimalidad
+local para ese vecindario, no una prueba de que no exista un tablero mejor. Y pasar de un tablero de cabeza a
 uno mejor exige reubicar un gran conjunto de piezas en un único bucle
 entrelazado, donde toda aplicación parcial del bucle puntúa peor que no hacer
 nada: la

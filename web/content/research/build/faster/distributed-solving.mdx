@@ -10,7 +10,7 @@ metaDescription: "Fifteen years of distributed Eternity II solving: BOINC swarms
 kind: concept
 order: 150
 group: Go faster
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "eternity2.net launches on BOINC, and the skeptics answer (groups.io message 756)"
@@ -148,9 +148,11 @@ real puzzle
 The cloud made cameo appearances: Amazon EC2 was suggested as early as 2010
 ([message 8106](https://groups.io/g/eternity2/message/8106)), and David
 Barr tried his search program on AWS Lambda in 2016
-([message 9642](https://groups.io/g/eternity2/message/9642)). But rented
-fleets never displaced owned ones; the economics of a puzzle with no
-deadline favour hardware you can leave running for years.
+([message 9642](https://groups.io/g/eternity2/message/9642)). Through 2020,
+rented fleets never displaced owned ones; the economics of a puzzle with no
+deadline favoured hardware you could leave running for years. By 2025 a
+rented RTX 4090 at about $0.30 an hour had become the cheapest measured
+compute for bounded sweeps; see [GPU solving](/research/build/hardware/gpu-solving).
 
 ## The census
 
@@ -193,11 +195,17 @@ effort petered out; the 2017 one added the missing ingredient: *ranking*.
 McGavin scored ~20 million first-row permutations by their
 [complex-theory](/research/why/complex-theory) chance of solution per
 search-tree node and farmed the best rows first. The solution arrived at
-row-search ~92,907 against a predicted one-per-~70,000
-([message 9688](https://groups.io/g/eternity2/message/9688)). The ranking
-was the difference between a lottery and a schedule. Jobs are wildly
-uneven in value; a good static model of which slices are promising is
-worth more than any amount of extra hardware.
+row-search ~92,907, consistent with the model's predicted one-per-~70,000
+([message 9688](https://groups.io/g/eternity2/message/9688)). That is a
+single draw: under a geometric wait with mean 70,000, a wait at least that
+long has about a 27% chance, so the arrival alone cannot separate the
+model from a range of other rates. The stronger evidence is that the
+published per-depth node histograms matched the model. In the 2013
+unranked list the known solution sat at row 1,407,888 of 4,318,956, but
+that list counts rows differently from the ~20 million ranked
+permutations, so the two positions are not directly comparable. Jobs are
+uneven in value, and a static model of which slices are promising is a
+cheap way to order them.
 
 **Parameter sweeps.** The modern variant distributes *configurations*
 instead of subtrees. Jef Bucas's
@@ -239,16 +247,17 @@ motivated, inside that forced secrecy. When the
 contest died, the problem evaporated: the modern efforts publish
 everything, and trust rides on reproducibility instead of contracts.
 
-## What 10^19 operations bought
+## What 10^19 operations bought toward a full solution
 
 Nothing, and the community knew why before it started. The group's own
 tree estimates, converging from independent implementations in 2008, put
-the full search at roughly 2.2×10⁴³ nodes per solution, on the
-order of 10²⁷ CPU-years
+the full search at roughly 2.2×10⁴³ nodes per solution, about 10²⁸
+CPU-years at 10⁸ nodes per second
 ([message 5193](https://groups.io/g/eternity2/message/5193),
 [message 5197](https://groups.io/g/eternity2/message/5197)). Against that,
-eternity2.net's lifetime total of 10¹⁹ operations is about
-10⁻²⁴ of one solution's worth of work: multiplying your fleet by
+eternity2.net's lifetime total of 10¹⁹ operations corresponds to roughly
+10¹⁷–10¹⁸ nodes, about 10⁻²⁶ to 10⁻²⁵ of one solution's worth of
+work: multiplying your fleet by
 a thousand, or a million, moves a number like that not at all. Owen said it
 two months before the puzzle shipped
 ([message 226](https://groups.io/g/eternity2/message/226)); Clark's
@@ -262,6 +271,14 @@ and [complex theory](/research/why/complex-theory) supplies the exact
 arithmetic of why the full-puzzle tree dwarfs any conceivable fleet. Every
 distributed effort on the full puzzle confirmed the counting argument; none
 dented it.
+
+Record hunting is a different question. A record is a rare event of a
+stochastic search, so its odds grow with the number of independent
+attempts. Volunteer compute bought eternity2.net's 463, the community's
+public ceiling for over a year, and the dozens of independent 467s the eii
+crowd found. The multiplier works on the odds of a high partial, with
+diminishing returns, never on the exponent of the full tree; current
+figures are on [records](/research/records).
 
 ## What distribution is actually good for
 
@@ -282,17 +299,18 @@ mathematics said so in advance.
   question is "which of these thousand configurations searches deepest?",
   the jobs are verifiable, bounded, and independent, which is exactly what
   distribution wants.
-- **Records only downstream of an algorithm.** The 469 came from ~200
-  cores running a solver that was already, by itself, record-class
+- **Records, on top of an algorithm.** The 469 came from ~200 cores
+  running a solver that was already, by itself, record-class
   ([message 10045](https://groups.io/g/eternity2/message/10045)). Cores
-  multiplied Blackwood's algorithm; at no point in this archive did they
-  substitute for one.
+  multiplied the attempts of Blackwood's algorithm. Whether one core would
+  have reached 469 in the same wall-clock time was never tested.
 
 <Callout kind="note" title="The one-line summary">
-  Fifteen years of collective compute, distilled: crowds without an
-  algorithm bought nothing; fleets pointed at finite, well-modelled targets
-  bought exactly what the model promised. The multiplier is real; it just
-  multiplies whatever you already have.
+  Fifteen years of collective compute, distilled: no fleet came near an
+  exact solution of the full puzzle; fleets pointed at finite, well-modelled
+  targets bought exactly what the model promised; and fleets running a good
+  heuristic bought more record attempts, which is how several records were
+  found. The multiplier is real; it multiplies whatever you already have.
 </Callout>
 
 That conclusion is being tested live as this is written: a shared five-clue

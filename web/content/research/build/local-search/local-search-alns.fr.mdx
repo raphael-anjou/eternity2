@@ -3,16 +3,19 @@ title: Recherche locale et ALNS
 description: >-
   Détruire une partie du plateau, la reconstruire en mieux, et laisser
   l'algorithme apprendre quelles démolitions rapportent. La recherche à grand
-  voisinage adaptative est le meilleur outil de finition de ce projet, et la
-  démonstration la plus nette du mur où la finition s'arrête.
-metaDescription: "Recherche à grand voisinage adaptative (ALNS) sur Eternity II : détruire une région, la reconstruire plus finement, laisser l'algorithme apprendre quelles démolitions paient. Le meilleur outil de finition du projet, qui hisse les constructions par faisceau au rang de records — puis un mur."
+  voisinage adaptative est le meilleur outil de finition de ce projet, et une
+  illustration nette du piégeage dans un bassin : il améliore vite un plateau,
+  puis cale près de son point de départ.
+metaDescription: "Recherche à grand voisinage adaptative (ALNS) sur Eternity II : détruire une région, la reconstruire plus finement, apprendre quelles démolitions paient. Le meilleur outil de finition du projet, qui hisse les faisceaux au rang de records, puis cale dans le bassin reçu."
 kind: concept
 order: 60
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
-  - label: "L'article JFPC de Pierre Schaus + le voisinage à remplissage hongrois, détaillé pour la première fois sur la liste (groups.io msg 5589, juin 2008)"
+  - label: "Pierre Schaus explique sur la liste le voisinage d'affectation optimale (remplissage hongrois) (groups.io msg 5601, 2008)"
+    url: https://groups.io/g/eternity2/message/5601
+  - label: "antminder s'en sert comme étape de réparation de son hybride backtracking + AG (groups.io msg 5589, juin 2008)"
     url: https://groups.io/g/eternity2/message/5589
   - label: Ropke & Pisinger, An Adaptive Large Neighborhood Search Heuristic for the Pickup and Delivery Problem with Time Windows (Transportation Science, 2006)
     url: https://doi.org/10.1287/trsc.1050.0135
@@ -127,21 +130,31 @@ Trois raffinements qui valent la peine d'être connus :
   les cellules libérées sont deux à deux non adjacentes, le coût de chaque trou
   ne dépend que de ses voisins fixes, si bien que le remplissage est exactement
   un problème d'affectation $k \times k$ : l'algorithme hongrois le résout de
-  façon optimale en $O(k^3)$. C'est le voisinage Eternity II de Schaus. Dès que
+  façon optimale en $O(k^3)$. C'est le voisinage de
+  [l'article JFPC 2008](https://hdl.handle.net/2078.5/253676) de Schaus et
+  Deville, que Schaus a expliqué sur la liste
+  ([message 5601](https://groups.io/g/eternity2/message/5601)) et dont
+  antminder a fait l'étape de réparation de son hybride de 2008
+  ([message 5589](https://groups.io/g/eternity2/message/5589)). La boucle de ce
+  projet, décrite plus haut, remplit au contraire de façon gloutonne. Dès que
   deux trous se touchent, leurs choix se couplent, et la réparation optimale
   devient une petite recherche CP/exacte, exponentielle dans le pire des cas en
   $k$, ce qui explique pourquoi les grosses destructions cessent de rapporter.
 - **Anytime, et rien de plus.** ALNS améliore une réponse admissible et peut
   être arrêté à tout moment ; le meilleur plateau obtenu jusque-là *est* la
   sortie. Il n'offre aucune garantie de complétude ni d'optimalité : il ne peut
-  jamais certifier qu'aucun meilleur plateau n'existe. Sur ce puzzle, ce
-  certificat doit venir d'ailleurs (l'oracle SAT derrière le
-  [mur de rigidité](/research/why/rigidity-wall)).
+  jamais certifier qu'aucun meilleur plateau n'existe. Les solveurs exacts
+  certifient quelque chose de plus étroit : sur les plateaux étudiés à la page
+  du [mur de rigidité](/research/why/rigidity-wall), des preuves MIP et SAT
+  montrent qu'aucune amélioration n'existe dans un halo de rayon 1 à 4 autour
+  des désappariements (rayon 4 sur un seul plateau). C'est une optimalité
+  locale pour une famille de voisinages. Aucune méthode ne sait aujourd'hui
+  certifier qu'un plateau 16×16 entier est imbattable.
 - **À l'échelle d'Eternity II, la boucle est bon marché ; l'évasion ne l'est
   pas.** Avec $k = 20$ à $80$ des 256 cellules et quelques centaines de
   candidats par trou, une itération coûte de la microseconde à la milliseconde,
-  et les courbes d'amélioration s'aplatissent en quelques dizaines
-  d'itérations. Le coût contraignant n'est donc pas l'arithmétique mais la
+  si bien qu'une exécution d'une minute enchaîne des millions d'itérations. Le
+  coût contraignant n'est donc pas l'arithmétique mais la
   probabilité qu'un voisinage de $k$ cellules contienne l'unique
   [σ-cycle](/research/why/sigma-cycles) imbriqué qui mène vers le haut, et
   cette probabilité est ce qui s'effondre près du sommet.
@@ -160,10 +173,20 @@ ce projet et non répliqués de façon indépendante :
 - **La sélection l'emporte sur la couverture.** Un ensemble sélectionné de
   cinq opérateurs a surpassé l'ensemble complet de onze ; répartir les poids
   adaptatifs sur trop d'opérateurs dilue le signal d'apprentissage.
-- **La température n'est pas le levier.** Sur une plage de températures
-  d'acceptation d'un facteur dix, les scores finaux étaient identiques, parce
-  que près du sommet le paysage est dominé par des plateaux à score égal où
-  pratiquement chaque déplacement est accepté à n'importe quelle température.
+- **Dans la plage essayée, la température n'a pas bougé les scores de tête.**
+  En finition de plateaux proches du record, les scores finaux étaient
+  identiques sur une plage de températures d'acceptation d'un facteur dix
+  (une exécution du carnet ; les températures ne figurent pas dans les
+  résultats versionnés). Ce constat vaut pour cette plage, pas en général. Sur
+  des plateaux moyens, l'[étude de la réparation](/research/lab/experiments/raphael-anjou/repair-study)
+  versionnée place l'acceptation par recuit environ 16 points devant une
+  montée stricte (moyenne 377 contre 361), et une échelle dotée d'un barreau
+  chaud a franchi une barrière de 21 arêtes infranchissable pour une chaîne
+  froide ([tempering parallèle](/research/build/local-search/parallel-tempering)).
+  Près du sommet, les déplacements à score égal passent à toute température,
+  mais les déplacements dégradants qui permettraient de quitter un plateau
+  dépendent toujours de $T$ ; les températures testées étaient trop basses
+  pour que ces sorties comptent.
 
 Que détruire-réparer convienne à ce puzzle est une observation ancienne :
 Schaus et Deville avaient hybridé la programmation par contraintes avec la
@@ -185,18 +208,27 @@ distance entre un placement aléatoire et le meilleur score atteignable, sur une
 large plage de serrage du puzzle, avant de saturer sur les instances les plus
 difficiles. (Tout ceci est mesuré ici, et nuancé en conséquence.)
 
-Tout aussi caractéristique : les gains arrivent tôt. Les courbes d'amélioration
-s'aplatissent dès les premières dizaines d'itérations, et laisser une exécution
-tourner dix fois plus longtemps reproduit le même score final. Quand ALNS
-s'arrête, il s'est arrêté.
+Tout aussi caractéristique : les gains arrivent tôt. Dans
+l'[étude de la réparation](/research/lab/experiments/raphael-anjou/repair-study)
+versionnée, une exécution d'une minute enchaîne de 5 à 34 millions
+d'itérations, et pour la plupart des variantes le meilleur plateau progresse
+pour la dernière fois après quelques milliers à quelques centaines de milliers
+d'entre elles ; les millions restantes ressassent le même bassin. (L'exception
+est une destruction aléatoire, aveugle à la géométrie, qui continue de
+progresser tard sur des plateaux moyens.) Ces exécutions partent de plateaux
+entre 350 et 440 environ, et aucun budget bien au-delà d'une minute n'a été
+testé : le calage est mesuré à ce budget, pas démontré définitif.
 
 ## Le mur qu'il rencontre
 
 La raison pour laquelle il s'arrête est la partie intéressante, et ce site y
-consacre deux pages entières. Sur chaque plateau de tête, les désappariements
-restants sont prouvablement verrouillés : libérer un voisinage généreux autour
-d'eux et le fouiller exhaustivement ne trouve rien de mieux ; c'est le
-[mur de rigidité](/research/why/rigidity-wall). Et passer d'un plateau de tête
+consacre deux pages entières. Sur chaque plateau de tête étudié à ce jour
+(une poignée de bassins), des preuves MIP et SAT montrent qu'aucune
+amélioration n'existe dans un halo de rayon 1 à 4 autour des désappariements
+restants (rayon 4 sur un seul plateau) ; certaines résolutions plus grosses
+n'ont pas abouti. C'est le [mur de rigidité](/research/why/rigidity-wall) :
+un certificat d'optimalité locale pour ce voisinage, pas la preuve qu'aucun
+meilleur plateau n'existe. Et passer d'un plateau de tête
 à un meilleur exige de relocaliser un grand ensemble de pièces dans une seule
 boucle imbriquée, où toute application partielle de la boucle obtient un score
 pire que de ne rien faire : la

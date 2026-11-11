@@ -1,20 +1,22 @@
 ---
 title: Cuando el aprendizaje se desmorona
 description: >-
-  La mitad desencantada de aprender a partir de tableros fuertes. Una señal
-  aprendida alcanza de forma fiable el tope del rango propio de una búsqueda, y
-  ahí se detiene. Confía demasiado en ella y la búsqueda se desmorona; incluso
-  usada a la perfección no eleva el techo, porque el techo no es algo que el
-  corpus conozca.
-metaDescription: "Dónde se detiene aprender de tableros fuertes de Eternity II: como desempate, una señal aprendida alcanza el tope del rango de una búsqueda, pero nunca eleva el techo. Confía de más y la búsqueda se desmorona; LODESTONE, PRIOR, KEYRING y PALIMPSEST chocan con el mismo muro de rigidez."
+  La mitad desencantada de aprender a partir de tableros fuertes. En las
+  ejecuciones de este proyecto, una señal aprendida llevó una búsqueda al tope de
+  su propio rango y ahí se detuvo. Con demasiado peso hizo colapsar una búsqueda;
+  como desempate no superó la meseta del proyecto, que tableros de la comunidad
+  ya rebasan.
+metaDescription: "Dónde se detuvo aprender de tableros fuertes de Eternity II en estas ejecuciones: como desempate, una señal aprendida llegó a 460 a 463, no más, y un peso excesivo hundió LODESTONE. Tableros de la comunidad superan esa meseta: un límite de estos métodos."
 kind: concept
 order: 54
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [learning, search-space]
 sources:
-  - label: "El muro de rigidez (este proyecto): el techo medido que toda señal aprendida alcanza y ninguna franquea"
+  - label: "El muro de rigidez (este proyecto): una explicación candidata de dónde se detuvieron estas ejecuciones"
     url: https://github.com/raphael-anjou/eternity2/blob/main/web/content/research/why/rigidity-wall.mdx
+  - label: "Rubinstein 1999, el método de entropía cruzada: reaprender una distribución de muestreo a partir de sus propias muestras de élite"
+    url: https://doi.org/10.1023/A:1010091220143
 related:
   - /research/build/learning/corpus-priors
   - /research/build/learning/anti-pattern-mining
@@ -28,75 +30,76 @@ repro:
 Las otras cuatro páginas de esta sección tratan de lo que aprender a partir de
 tableros fuertes *aporta*. Esta trata de dónde se detiene, y es la página que
 mantiene a toda la familia con los pies en la tierra, porque cada técnica de aquí
-comparte los mismos dos modos de fallo y es mejor enunciarlos con claridad que
-dejar que un lector confunda un saco de trucos aprendidos con una forma de
-superar el muro.
+mostró los mismos dos modos de fallo en estas ejecuciones, y un lector no debe
+confundir un saco de trucos aprendidos con una forma de superar la meseta. Todo
+procede de ejecuciones exploratorias sobre un corpus privado (tableros publicados
+y verificables, búsquedas que no pueden volver a ejecutarse aquí), con unas pocas
+semillas cada una y sin referencia a igual cómputo.
 
 ## Fallo uno: la señal se convierte en el objetivo
 
-Toda señal aprendida de esta sección solo es segura como *desempate*. Decide
-entre jugadas que por lo demás son equivalentes en lo único que de verdad cuenta,
-la arista apareada que tienes delante, y nunca debe imponerse a esa cosa. En el
-instante en que un a priori aprendido asciende de desempate a componente del
-objetivo, la búsqueda empieza a canjear una arista apareada real por una
-corazonada estadística, y se desmorona.
+En estos experimentos, una señal aprendida funcionó mejor como *desempate*:
+decide entre jugadas que por lo demás son equivalentes en lo único que de verdad
+cuenta, la arista apareada que tienes delante. Elevada a una parte fija y grande
+del objetivo, lleva a la búsqueda a canjear una arista apareada real por una
+corazonada estadística, y en el único caso medido la búsqueda se desmoronó.
 
-[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) es la
-medición más nítida de esto. Con un peso ínfimo, su a priori de piezas escasas
-primero eleva la puntuación mediana de construcción desde cero de 449 a 451 y
-estrecha la dispersión. Sube el peso aunque sea ligeramente y la puntuación cae a
-422, luego a 380, porque perseguir las demandas escasas del corpus se canjea
-entonces directamente contra el apareado de la arista que tienes delante. La
-misma forma aparece en el
+[LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) es ese
+caso. Con cinco semillas, un peso ínfimo en su a priori de piezas escasas primero
+movió la puntuación mediana de construcción desde cero de 449 a 451 (dentro de la
+dispersión de base, de 446 a 451) y estrechó la dispersión a 450 a 451; pesos fijos
+mayores dieron 422 y luego 380. La misma forma aparece en el
 [minado de anti-patrones](/research/build/learning/anti-pattern-mining) por el
-otro extremo: usar la lista de trampas como una guía suave llegaba a 463, pero
-*prohibir* de forma dura las colocaciones atrapadas empeoraba los tableros. Una
-señal aprendida es un buen empujón y una mala ley. El desmoronamiento no es un
-accidente de ajuste que la ingeniería pueda hacer desaparecer; es la señal
-diciéndote que nunca fue más que una corazonada.
+otro extremo: la ejecución que usó la lista de trampas como guía llegó a 463, pero
+*prohibir* de forma dura las colocaciones atrapadas empeoraba los tableros. La
+lectura prudente es estrecha: en este haz, con pesos fijos, el a priori tenía que
+seguir siendo pequeño frente a las aristas apareadas. No se probaron pesos
+recocidos ni adaptativos, y
+[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) mezcló tres
+señales en su puntuación y aun así llegó a 460: es un resultado de ajuste, no una
+ley de la familia.
 
-## Fallo dos: el techo no está en el corpus
+## Fallo dos: la meseta no es la del puzzle
 
-El límite más profundo es más discreto, porque parece un éxito. Usada
-correctamente, como desempate, una señal aprendida lleva de forma fiable una
-búsqueda hasta el tope de *su propio rango*, y no más allá. LODESTONE es
-explícito en que "no toca el techo de la cuenca que detiene a todo método cerca
-del tope". [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) y
-[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) alcanzan 460
-partiendo de cero, el tope del rango de construcción desde cero, pero no lo pasan.
+El límite más profundo es más discreto, porque parece un éxito. Usada como
+desempate, una señal aprendida llevó cada búsqueda hasta el tope de *su propio
+rango*, y no más allá. LODESTONE ganó un par de aristas de regularidad sin mover
+el tope de su rango. [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) y
+[KEYRING](/research/lab/experiments/raphael-anjou/learning/keyring) alcanzan la
+mitad o la parte alta de los 450 desde una cuadrícula vacía, y 460 tras una fase
+de refinamiento local.
 [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest), el más
-fuerte de todos, alcanza 463 y luego constata que reconstruir las regiones
-atrapadas devuelve al mismo tablero tope ya conocido en lugar de a uno nuevo.
+fuerte de todos, alcanza 463, y reconstruir sus regiones atrapadas devuelve al
+mismo tablero tope ya conocido en lugar de a uno nuevo.
 
-La razón es estructural, y es la tesis de toda la sección puesta del revés. Cada
-tablero del corpus está él mismo atascado por debajo de 480. Una señal minada a
-partir de ese corpus codifica *dónde están* los tableros fuertes, es decir, la
-meseta, de modo que una señal aprendida que se limita a re-codificar la meseta no
-puede alzar una búsqueda por encima de ella. El corpus conoce la forma de la
-cuenca en la que están atrapados sus tableros; no conoce la salida, porque
-ninguno de sus tableros la encontró. Lo que detiene a todo método cerca del tope
-es el [muro de rigidez](/research/why/rigidity-wall): cerca de un tablero fuerte,
-los desapareamientos restantes se bloquean en un único
-[σ-ciclo](/research/why/sigma-cycles) entrelazado que ninguna jugada local puede
-abrir. Ese muro es una propiedad del puzzle, no de la ignorancia de una búsqueda,
-y ninguna cantidad de minado de corpus lo mueve, porque el corpus está hecho de
-tableros que chocan contra ese mismo muro.
+Esa meseta es un límite medido de estas ejecuciones, no una propiedad del puzzle:
+hay tableros de la comunidad por encima de ella ([récords](/research/records)). No
+hemos mostrado por qué estos métodos se detienen donde lo hacen. Los candidatos son
+el [muro de rigidez](/research/why/rigidity-wall) (cerca de un tablero fuerte, los
+desapareamientos restantes se bloquean en un [σ-ciclo](/research/why/sigma-cycles)
+entrelazado que las jugadas locales probadas aquí no abrieron), los propios
+métodos y el filtro que eligió el corpus. Un argumento tentador no se sostiene: que
+una señal minada de tableros imperfectos no puede llevar más allá de ellos.
+Aprender de datos subóptimos y luego buscar supera a menudo esos datos cuando el
+aprendiz vuelve a aprender de sus propias muestras mejoradas, como hacen el
+[método de entropía cruzada](https://doi.org/10.1023/A:1010091220143) y los
+algoritmos de estimación de distribuciones. Ninguno de los experimentos de aquí
+volvió a minar sus propias salidas.
 
 ## Para qué sirve realmente esta familia
 
 Nada de esto vuelve inútil aprender a partir de tableros fuertes. Lo vuelve
-*preciso*. Una señal aprendida es la forma más rápida y fiable de llevar una
+*preciso*. En estas ejecuciones, una señal aprendida fue una forma de llevar una
 búsqueda *hasta* la meseta: construir un tablero competitivo desde la nada
 (PRIOR, KEYRING), alcanzarla en una cuenca inédita (la nueva familia de esquinas
-de KEYRING), posarse cada vez en el tope del rango en lugar de tropezar a veces
-(la dispersión estrechada de LODESTONE), o diagnosticar la jugada exacta que le
-faltaba a una búsqueda para alcanzar una altura conocida (el doble desbloqueo de
+de KEYRING, atribuida a sus señales junto con el azar inyectado, que ninguna
+ablación separa), posarse con más regularidad en el tope del rango (la dispersión
+estrechada de LODESTONE con cinco semillas), o diagnosticar una jugada que una
+búsqueda no podía representar (el doble desbloqueo de
 [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay)).
 
-Para lo que no sirve es para pasar *más allá* de la meseta, y una sección sobre
-aprender a partir de tableros fuertes que fingiera lo contrario le vendería al
-lector la única cosa que el corpus, de forma demostrable, no puede contener. Los
+Pasar *más allá* de la meseta es una cuestión abierta, no algo descartado. Los
 pipelines de construir-luego-refinar que alcanzan los mejores tableros de este
-proyecto reparten el trabajo con limpieza: un constructor aprendido para alcanzar
-rápido el tope del rango, y luego una confrontación aparte con el muro de rigidez,
-que aprender a partir de tableros fuertes sabe describir pero no sabe disolver.
+proyecto reparten el trabajo: un constructor aprendido para alcanzar el tope del
+rango y luego un refinamiento aparte. Un aprendiz que itere sobre sus propios
+tableros mejorados es el siguiente experimento evidente.

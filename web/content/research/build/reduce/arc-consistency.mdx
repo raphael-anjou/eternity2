@@ -5,21 +5,23 @@ description: >-
   candidate list defend itself against every neighbour's, to a fixed point.
   Mackworth's AC-3, the optimal refinements that followed, and what the whole
   family actually measured on this puzzle, including where it is unsound.
-metaDescription: "Arc consistency on Eternity II: Mackworth's AC-3 and its optimal successors like AC-2001 shrink each cell's candidate list until every neighbour supports it. Watch AC-3 settle to a fixed point, see why path consistency costs more than it saves, and where AC turns unsound under mismatch budgets."
+metaDescription: "Arc consistency on Eternity II: Mackworth's AC-3, AC-2001 and colour-counter AC prune each cell's candidates until every neighbour supports them. What path consistency cost on small boards, and why hard AC is unsound under mismatch budgets."
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space]
 rigor: measured
 complexity:
-  time: "AC-3 O(e·d³) · AC-2001 O(e·d²) (optimal for arc revision)"
-  space: "AC-3 O(e) · AC-2001 O(e·d)"
+  time: "Generic: AC-3 O(e·d³) · AC-2001 O(e·d²) · colour-equality constraints with support counters O(e·d)"
+  space: "AC-3 O(e) · AC-2001 O(e·d) · support counters O(e·c)"
   note: >-
-    On the 16×16 board e = 960 directed interior arcs and d ≈ 764 candidate
-    tuples per cell, so the worst-case gap is ~4×10¹¹ vs ~5.6×10⁸ checks, but
-    real propagations touch only a few cells, and the cost is paid at every
-    search node.
+    On the 16×16 board e = 960 directed arcs (all 480 joins, both directions)
+    and d = 784 rotated tuples per interior cell (border and corner domains are
+    far smaller), so the generic worst cases are ~4.6×10¹¹ vs ~5.9×10⁸ checks.
+    Because every constraint is colour equality, per-side colour counters
+    bring full AC down to O(e·d) ≈ 7.5×10⁵ updates; real propagations touch
+    only a few cells, and the cost is paid at every search node.
 sources:
   - label: 'Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8): AC-3'
     url: https://doi.org/10.1016/0004-3702(77)90007-8
@@ -27,11 +29,18 @@ sources:
     url: https://doi.org/10.1016/j.artint.2005.02.004
   - label: AC-3 algorithm (Wikipedia)
     url: https://en.wikipedia.org/wiki/AC-3_algorithm
+  - label: 'Larrosa & Schiex 2004, "Solving weighted CSP by maintaining arc consistency" (Artificial Intelligence 159)'
+    url: https://doi.org/10.1016/j.artint.2004.05.004
+  - label: 'Petit, Régin & Bessière 2001, "Specific Filtering Algorithms for Over-Constrained Problems" (CP 2001)'
+    url: https://doi.org/10.1007/3-540-45578-7_31
+  - label: 'van Hoeve, Pesant & Rousseau 2006, "On global warming: Flow-based soft global constraints" (Journal of Heuristics)'
+    url: https://doi.org/10.1007/s10732-006-6550-4
 related:
   - /research/why/no-forced-moves
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
 repro:
   kind: prose
 ---
@@ -48,8 +57,10 @@ that, and it has a fifty-year paper trail.
 ## Domains that police each other
 
 Give every empty cell a *domain*: the set of piece-and-rotation candidates
-still allowed there. On the full puzzle that starts at roughly 764 tuples per
-interior cell. **Forward checking** is the one-step discipline: when a piece
+still allowed there. On the full puzzle an interior cell starts with 784
+tuples (196 interior pieces × 4 rotations, none of them rotation-symmetric);
+an edge cell starts with at most 56 and a corner with at most 4, since the
+grey side fixes the rotation. **Forward checking** is the one-step discipline: when a piece
 is placed, delete it from every other domain and delete every candidate that
 clashes with the newly exposed edges. Cheap, and every serious solver does at
 least this.
@@ -68,8 +79,9 @@ point: keep a queue of directed arcs, revise one arc at a time (scan a domain,
 delete unsupported candidates), and whenever a domain shrinks, requeue the
 arcs that point at it. It is short, correct, and easy to make incremental
 inside a search, which is why it is still the default everywhere. Worst case
-it costs $O(e d^3)$ for $e$ arcs and domain size $d$; on the 16×16 board $e$
-is $e = 960$ (the 480 interior adjacencies, both directions) and $d \approx 764$.
+it costs $O(e d^3)$ for $e$ arcs and domain size $d$; on the 16×16 board
+$e = 960$ (all 480 joins, both directions) and $d = 784$ for an interior
+cell.
 
 Its known flaw: every revision searches for supports from scratch, so the same
 support gets rediscovered thousands of times as the search dives and
@@ -142,20 +154,29 @@ Bessière & Régin and by Zhang & Yap in 2001: keep AC-3's simple loop, but
 remember for each candidate-arc pair the *last support found*, check that it
 is still alive before searching again, and resume the scan from where it
 stopped rather than from zero. That one integer per pair delivers the optimal
-$O(e d^2)$ bound with only $O(e d)$ memory; on this puzzle that is about
-367,000 small integers, negligible. The 2005 journal study measures 1.5–9× less CPU
-than AC-3 in maintained-arc-consistency search, and shows the advantage over
-AC-6 *growing* with the domain size on the far side of the arc. Eternity II
-has huge domains on both sides of every arc, which makes AC-2001 the
-textbook fit.
+$O(e d^2)$ bound with only $O(e d)$ memory; on this puzzle that is
+$960 \times 784 = 752{,}640$ small integers, negligible. The 2005 journal study
+measures 1.5–9× less CPU than AC-3 in maintained-arc-consistency search on
+generic binary CSPs.
+
+Those generic bounds are context, not the right comparison here. Every
+Eternity II constraint is colour equality between two facing half-edges, so a
+candidate in cell $X$ is supported across the arc to $Y$ exactly when some
+candidate of $Y$ shows the same colour on the facing side. Keep, for each
+cell and side, a counter of live candidates per colour: a deletion decrements
+one counter per side, and a counter reaching zero deletes the candidates of
+the neighbour that needed that colour. No support is ever searched for, and
+full arc consistency costs $O(e d)$ in total, an AC-4-style scheme
+specialised to a colour channel of 22 values. That dominates AC-2001 on this
+structure.
 
 ## The ceiling: why not path consistency?
 
 Arc consistency checks pairs of cells. The next rung up, *path consistency*,
 checks triples: it removes any pair of assignments that no third cell can
-support, propagating a much stronger condition. It shrinks the search tree
-enormously, and the community measured exactly how much, and exactly why nobody
-uses it. In March 2008 Geoff ran the ladder on Brendan Owen's beginner puzzles
+support, propagating a much stronger condition. On small boards it shrinks the search tree
+enormously, and one community implementation measured how much it cost. In
+March 2008 Geoff ran the ladder on Brendan Owen's beginner puzzles
 ([msg 4827](https://groups.io/g/eternity2/message/4827)):
 
 - On the 6×6, plain nodal consistency leaves a search tree of over **40,000
@@ -167,19 +188,20 @@ uses it. In March 2008 Geoff ran the ladder on Brendan Owen's beginner puzzles
   tree to roughly 1 million nodes but costs about **14 minutes** of
   preprocessing; path-2 preprocessing was still running after **7 hours**.
 
-The pattern is unambiguous: each stronger level of consistency really does cut
-the tree by orders of magnitude, and each one costs more than it saves. Geoff's
-own conclusion was that path consistency is "simply not a cost-benefit positive
-effect" on this puzzle. That is [prune versus speed](/research/why/prune-vs-speed)
-stated in the language of a real algorithm: the prune is genuine and large, but
-here the machinery to compute it is more expensive than the search it removes,
-which is why the record engines stop at arc consistency (or below) and spend the
-saved time on raw placements instead.
+On those two boards, with that one 2008 implementation of *partial* path
+consistency, each stronger level cut the tree by orders of magnitude and cost
+more time than it saved. Geoff's own conclusion was that path consistency is
+"simply not a cost-benefit positive effect" on this puzzle. That is
+[prune versus speed](/research/why/prune-vs-speed) in the language of a real
+algorithm. It is evidence from a 6×6 and an 8×8, not a measurement on the
+16×16, and a better implementation could move the balance. The record
+engines are a separate story: they run no arc consistency at all, because
+their mismatch budget makes hard AC unsound (see below).
 
 ## What it costs
 
-The accounting, with $e$ the number of directed arcs and $d$ the maximum
-domain size:
+The generic accounting, with $e$ the number of directed arcs and $d$ the
+maximum domain size:
 
 - **AC-3** runs in $O(e d^3)$ time worst case: each arc can be re-enqueued up
   to $d$ times (once per deletion in its far domain), and each revision costs
@@ -189,30 +211,37 @@ domain size:
   need its support walked once across a domain of size $d$. The price is the
   last-support table: one integer per candidate–arc pair, $O(e d)$ space.
 
-On Eternity II's scale those symbols are: $e = 960$ (480 interior adjacencies,
-both directions) and $d \approx 764$ candidate tuples per interior cell. So
-the worst-case bounds sit near $e d^3 \approx 4 \times 10^{11}$ elementary
-checks for AC-3 against $e d^2 \approx 5.6 \times 10^8$ for AC-2001, three
-orders of magnitude apart on paper. Worst cases are pessimistic (real
-propagations touch a few cells, as the demo above shows), but the ratio is
-why the literature calls AC-3's bound the thing to fix, and the fix costs
-only $O(e d)$ integers of memory. The catch on this puzzle is not the
-propagation cost per node; it is that inside a search this cost is paid at
-*every* node, millions of times per second, which is why constant factors and
-cache behaviour end up mattering as much as the exponent on $d$.
+On Eternity II's scale those symbols are: $e = 960$ (all 480 joins, both
+directions) and $d = 784$ candidate tuples per interior cell. So the generic
+worst-case bounds sit near $e d^3 \approx 4.6 \times 10^{11}$ elementary
+checks for AC-3 against $e d^2 \approx 5.9 \times 10^8$ for AC-2001. For this
+puzzle's colour-equality constraints the counter scheme above needs only
+$O(e d) \approx 7.5 \times 10^5$ counter updates for a full propagation from
+scratch. Worst cases are pessimistic (real propagations touch a few cells, as
+the demo above shows). The catch on this puzzle is not the propagation cost
+per node; it is that inside a search this cost is paid at *every* node,
+millions of times per second, which is why constant factors and cache
+behaviour end up mattering as much as the exponent on $d$.
 
 ## Measured on this puzzle
 
-On this project's engine (measured here; not independently replicated):
-
-- A plain backtracker propagating AC-3 together with the
+- **The committed ablation.** The
+  [DFS study](/research/lab/experiments/raphael-anjou/dfs-study/findings)
+  ran an MRV backtracker with forward checking, with AC-3 over the frontier,
+  and with AC-3 plus the per-colour supply check, on ten corner-pinned
+  variants of the official puzzle, 60 seconds each on one core. Mean scores
+  were 322.2, 320.6 and 320.6 matched edges of 480: indistinguishable at that
+  budget, with a spread of about 11 points across instances. A plain
+  row-major backtracker with no look-ahead averaged 376.6 in the same grid,
+  because it visits millions of nodes per second where the MRV variants
+  visit thousands. Reproduce with `just experiments dfs-study`.
+- **One unreplicated run.** On an earlier version of this project's engine,
+  AC-3 together with the
   [per-colour matching filter](/research/build/reduce/alldiff-regin)
-  reaches 449 of 480 edges on the canonical puzzle in about 44 seconds
-  single-threaded, around 2.5 seconds on 8 cores.
-- The best algorithmic speedup found inside AC-3 itself was mundane: a
-  precomputed table of which rotations of the same piece share edge colours,
-  so revisions stop re-deriving it, worth a 2.9× throughput gain on the
-  engine's reference benchmark.
+  reached 449 of 480 edges on the canonical puzzle in one run of about 44
+  seconds on a single thread. No forward-checking-only run under the same
+  conditions exists, and the result is not committed, so it does not
+  separate AC from the colour filter or from the rest of that engine.
 - The unbuilt part: AC-2001 was recommended twice in this project's notes and
   never actually built, so its projected 2–5× win here is a reading of the
   literature, not a measurement. And the belief that AC-3 dominated the
@@ -223,18 +252,35 @@ On this project's engine (measured here; not independently replicated):
 
 Arc consistency assumes every edge must match perfectly. The record engines
 do not: [Blackwood-style searches](/research/lab/experiments/joshua-blackwood/solver) allow a
-budget of deliberate mismatches at late depths, and under that regime AC is
-*unsound*: it prunes boards that a licensed mismatch would make perfectly
-legal. On this project's engine the whole AC family is switched off in
-break-tolerant runs for exactly that reason. The one strong propagator that
-survives the mismatch regime is piece-level all-different; see
+budget of deliberate mismatches at late depths, and under that regime plain
+(hard) AC is *unsound*: it prunes boards that a licensed mismatch would make
+perfectly legal. The exact per-colour filter is unsound there for the same
+reason. On this project's engine the AC family is switched off in
+break-tolerant runs. Piece-level all-different stays sound, since a break
+never lets a piece be used twice; see
 [Régin's filter](/research/build/reduce/alldiff-regin).
+
+Switching propagation off is a design choice, not the only sound option. The
+weighted and soft CSP literature exists for exactly this case: soft arc
+consistency ([Larrosa & Schiex 2004](https://doi.org/10.1016/j.artint.2004.05.004))
+and soft global constraints
+([Petit, Régin & Bessière 2001](https://doi.org/10.1007/3-540-45578-7_31);
+[van Hoeve, Pesant & Rousseau 2006](https://doi.org/10.1007/s10732-006-6550-4))
+turn propagation into a sound *lower bound on the number of violations
+still to come*. Here that could be a count of cells whose domain AC would
+empty, or the per-colour supply deficit; a node whose bound exceeds the
+remaining break budget can be pruned without losing any licensed board.
+Whether such a bound pays for itself at Eternity II node rates has not been
+measured.
 
 ## Verdict
 
-For any exact-matching search, arc consistency is mandatory and cheap: it is
-the difference between a backtracker that thrashes and one that reaches the
-440s. Forward checking alone leaves prunings on the table; AC-3 collects
-them; AC-2001 collects the same ones for less CPU, if you first verify that
-propagation is where your cycles actually go. For mismatch-tolerant record
-hunting, leave it out; soundness comes first.
+For exact-matching search, arc consistency is the standard look-ahead and
+removes prunings that forward checking leaves on the table. On this puzzle
+the committed ablation found no score gain from AC over forward checking at a
+60-second budget, and a plain row-major scan beat both on raw throughput. If
+you build it, use per-colour support counters rather than generic AC-3 or
+AC-2001, and first verify that propagation is where your cycles actually go.
+For mismatch-tolerant record hunting, hard AC is unsound; a soft-AC lower
+bound against the break budget is the sound alternative, and its value at
+this speed is an open question.

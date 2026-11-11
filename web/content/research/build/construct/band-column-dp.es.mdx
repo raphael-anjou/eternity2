@@ -4,17 +4,19 @@ description: >-
   Cortar el tablero en bandas de dos filas, resolver cada banda a la
   perfección con una DP columna a columna bajo poda en haz, y encadenar las
   bandas de arriba abajo. Un tablero completo con 444 aristas apareadas de 480
-  en 35 segundos; toda la pérdida vive en las costuras verticales tardías.
+  en 35 segundos; en ese tablero, un cálculo exacto sitúa toda la pérdida en
+  las costuras verticales tardías.
 metaDescription: "DP por columnas en bandas para Eternity II: cortar el tablero en bandas de dos filas, resolver cada una perfectamente con DP bajo haz y encadenarlas. Un tablero completo con 444 aristas apareadas de 480 (pistas no impuestas) en 35 s; las 36 aristas perdidas viven en las costuras verticales."
 kind: concept
 order: 55
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search: Integrating Backtracking with Beam Search (ICAPS 2005)"
     url: https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf
 related:
+  - /research/build/exact/meet-in-the-middle
   - /research/build/construct/beam-search
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
@@ -29,11 +31,11 @@ grano del movimiento: se corta el tablero de 16×16 en bandas de dos filas, se
 resuelve cada banda a la perfección con una programación dinámica columna a
 columna bajo poda en haz, y se encadenan las bandas de arriba abajo, con cada
 banda nueva heredando la fila inferior de la anterior. Una banda aislada
-siempre se resuelve perfectamente. La cadena completa un tablero entero con
-444 aristas apareadas de 480 en 35 segundos, y la totalidad de las 36 aristas
-que faltan se localiza, por un cálculo exacto, en las costuras verticales de
-la mitad baja: un fallo de horizonte voraz, no un accidente de inventario de
-piezas.
+se resolvió perfectamente en todos los tamaños probados. La cadena completa
+un tablero entero con 444 aristas apareadas de 480 en 35 segundos, y la
+totalidad de las 36 aristas que faltan se localiza, por un cálculo exacto,
+en las costuras verticales de la mitad baja: algo coherente con una escasez
+de piezas creada por el compromiso voraz unidireccional.
 
 Una salvedad gobierna todo lo que sigue. Cada número de esta página proviene
 de una sola ejecución determinista por configuración, sacada del cuaderno:
@@ -56,10 +58,11 @@ a un paso más grueso: una columna entera de banda por paso, dos piezas a la
 vez, lo que explota directamente la estructura 2D. Las celdas del borde (que
 exigen el color gris) recortan con fuerza los candidatos en el perímetro.
 
-El trabajo por banda es $O(n \cdot K \cdot |P|^2)$; para $n = 16$,
-$K = 10^4$, $|P| = 256$ eso da del orden de $10^{10}$ transiciones candidatas
-por banda: minutos en un motor compilado, horas en Python. Es aritmética de
-diseño, no una medición; fue lo que motivó escribir el solucionador en Rust.
+El trabajo por banda es $O(n \cdot K \cdot c)$, donde $c$ es el número de
+colocaciones compatibles de pares de columnas por estado (unas 45 000 en el
+borde y 490 000 en el interior según el recuento de más abajo). Los tiempos
+de esta página vienen de ejecuciones de cuaderno distintas cuya versión del
+motor no se anotó: se comparan dentro de una sección, no entre secciones.
 
 ## La aritmética de las bandas
 
@@ -167,17 +170,20 @@ abajo, la cadena produce 7 bandas perfectas desde el borde superior, decae y
 falla *abajo*; lanzada de abajo arriba, produce 7 bandas perfectas desde el
 borde inferior, decae y falla *arriba*. Ambas direcciones se detienen a 16
 celdas de un tablero completo (240 colocadas de 256), una ejecución por
-dirección. El fallo aterriza siempre en el borde más alejado del anclaje:
-cada borde impone su propio juego de restricciones, una cadena anclada
-satisface el borde cercano y deriva libremente respecto al lejano, y la
-deriva se acumula. El declive es una propiedad del compromiso voraz
-unidireccional, no de las filas del fondo.
+dirección. En una ejecución por dirección, el fallo aterrizó en el borde más alejado
+del anclaje: cada borde impone su propio juego de restricciones, una cadena
+anclada satisface el borde cercano y deriva libremente respecto al lejano, y
+la deriva se acumula. Eso apunta al compromiso voraz unidireccional, no a
+las filas del fondo en sí.
 
 ¿Por qué no lanzar las dos direcciones y pegar? Casar ingenuamente una mitad
 superior y una mitad inferior independientes en la costura central exige que
-16 colores coincidan; bajo un modelo de colores aleatorios eso tiene una
-probabilidad de alrededor de $(1/23)^{16} \approx 10^{-22}$. Un encuentro
-exige construcción conjunta, no dos ejecuciones independientes.
+coincidan 14 colores interiores y 2 de borde; bajo un modelo de colores
+aleatorios (17 colores interiores, 5 de borde) eso tiene una probabilidad de
+alrededor de $(1/17)^{14}(1/5)^2 \approx 2 \times 10^{-19}$, antes incluso de
+exigir que las dos mitades usen lotes disjuntos de 128 piezas, el obstáculo
+mayor. Un encuentro exige construcción conjunta, como en el
+[encuentro a mitad de camino](/research/build/exact/meet-in-the-middle), no dos ejecuciones independientes.
 
 Anclarse en el medio es peor, en la única configuración probada: partir de
 una banda central (sin borde en ninguna de las dos filas) no logró completar
@@ -218,9 +224,12 @@ Medida, la reconstrucción voraz es un resultado nulo: reconstruir la mitad
 baja con la misma DP voraz cae de nuevo exactamente en 444 se trace donde se
 trace la línea de congelación (congelar hasta la fila 7: 444; hasta la fila
 11: 444; solo la reconstrucción trivial de la última fila conserva la entrada
-de 447). La pérdida de las bandas tardías es un artefacto de horizonte voraz,
-no un accidente reparable de qué piezas quedaron: relanzar el mismo voraz
-sobre el sobrante desde cualquier fila de partida acaba en el mismo sitio. El
+de 447). Relanzar el mismo voraz sobre el sobrante desde cualquier fila de partida
+acaba en el mismo sitio. Eso es coherente con una escasez de piezas creada
+por el compromiso voraz (el recuento del final de partida de arriba), pero
+no dice si existe una compleción mejor de la mitad superior congelada: un
+voraz determinista sobre el mismo sobrante volvería a dar 444 en ambos
+casos. El
 +3 de la mirada hacia delante es la única ganancia algorítmica encontrada en
 esta familia. Alcance: solo se probó la reconstrucción voraz bajo haz; una
 resolución exacta de la mitad baja de 128 piezas (un problema de
@@ -249,13 +258,17 @@ arreglo; no se lanzó en estas mediciones.
 
 ## Dónde se detiene
 
-La DP por columnas en bandas es una ruta rápida hacia un buen tablero: 444
-aristas apareadas en 35 segundos, con cada arista horizontal de fila
-compartida apareada, allí donde el haz a nivel de celda alcanza la mitad de
-los 450 (aristas apareadas) en minutos. El techo es el propio compromiso
+La DP por columnas en bandas llegó a 444 aristas apareadas (pistas
+ignoradas) en 35 segundos, con cada arista horizontal de fila compartida
+apareada, y a 414 en un tablero parcial de 240 celdas con las cinco pistas.
+El [haz](/research/build/construct/beam-search) a nivel de celda es a la vez
+más rápido y más fuerte en este motor (un 450 completo con las cinco pistas
+en unos 8 s en un hilo, y de 450 a 455 con $K = 16384$), así que la DP en
+bandas interesa por su contabilidad exacta de las costuras, no como
+constructor de producción. Su meseta es el propio compromiso
 unidireccional: cada banda paga sus costuras verticales con colores elegidos
-una banda antes y ninguna búsqueda local abajo puede reembolsarlos; por eso
-las ganancias más allá de esta meseta vinieron del
+una banda antes, las reconstrucciones voraces del fondo no los
+reembolsaron, y las ganancias más allá de esta meseta vinieron del
 [pulido por destrucción y reparación](/research/build/local-search/local-search-alns)
 y no de más anchura. Las puertas abiertas que deja esta familia son
 concretas: una resolución exacta de la mitad baja con la parte superior

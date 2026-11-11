@@ -5,11 +5,11 @@ description: >-
   et les faire croître case par case. La recherche en faisceau est le moteur des
   constructeurs ex nihilo de ce projet, et une illustration limpide des raisons
   pour lesquelles la largeur seule s'enlise dans les profondeurs de l'intérieur.
-metaDescription: "La recherche en faisceau maintient en vie les K meilleures plaquettes Eternity II partielles et les fait croître case par case : le moteur ex nihilo du projet. Linéaire en K, elle atteint le milieu des 450 sur 480, puis bute sur le mur du vol de pièces que seule la réparation franchit."
+metaDescription: "Recherche en faisceau sur Eternity II : garder les K meilleures plaquettes partielles et les faire croître case par case. Linéaire en K, ses meilleures plaquettes brutes atteignent 455 à 457 sur 480, puis elle bute sur le mur du vol de pièces, que la réparation a dépassé."
 kind: concept
 order: 50
 group: Build boards up
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [construction]
 sources:
   - label: "Zhou & Hansen, Beam-Stack Search : Integrating Backtracking with Beam Search (ICAPS 2005)"
@@ -27,6 +27,7 @@ related:
   - /research/lab/experiments/raphael-anjou/learning/lodestone
   - /research/why/piece-theft
   - /research/build/local-search/local-search-alns
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
 repro:
   kind: prose
 ---
@@ -200,10 +201,10 @@ place, et les trois plaquettes ne s'accordent deux à deux que sur environ
 aléatoires sans lien partageant les indices. Treize pour cent des graines
 atteignent exactement 452 et à peu près la moitié tombent à deux points
 près. Des plaquettes sans lien qui convergent vers un même nombre, cela dit
-que le plafond appartient à la classe du producteur, pas à une famille de
-plaquettes en particulier ; et les essais plus larges ci-dessus montrent
-que le plafond de cette classe est en réalité 455, l'accumulation à 452
-étant elle-même un artefact de largeur.
+que le plateau appartient à la classe du producteur, pas à une famille de
+plaquettes en particulier ; et les essais plus larges ci-dessus placent le
+meilleur score observé de cette classe à 455, l'accumulation à 452 étant
+elle-même un artefact de largeur.
 
 Il y a une raison structurelle pour laquelle un faisceau pur ne peut guère
 être plus que « glouton, en plus large ». Un état de faisceau à la profondeur
@@ -214,9 +215,8 @@ Eternity II ne prédit de façon fiable quels préfixes de profondeur 100 se
 complètent encore bien. Cette page concluait autrefois de cet argument que
 la largeur supplémentaire du faisceau ne faisait pour l'essentiel que
 reproduire ce que les redémarrages aléatoires d'un retour arrière
-fournissent déjà. Une mesure en tête-à-tête, ci-dessous, a montré que cette
-conclusion était fausse : la largeur paie exactement quand l'échec se noue
-bien au-dessus de la profondeur où il affleure.
+fournissent déjà. Une mesure en tête-à-tête, ci-dessous, la contredit sur un banc simple et à
+petit budget de nœuds, mais pas dans le régime où se font les records.
 
 ## Le faisceau face à la profondeur d'abord, à coût égal
 
@@ -237,18 +237,17 @@ secondes sur un seul fil d'exécution. Et ce n'est pas une loterie de
 graines : huit permutations de l'ordre de départage ont rendu une sortie
 identique à l'octet près.
 
-Le mécanisme est la correction promise plus haut. Une recherche en
-profondeur d'abord qui s'est trompée quarante cases au-dessus de l'endroit
-où elle échoue doit défaire chaque niveau intermédiaire avant de pouvoir
-toucher à l'erreur précoce, et les nœuds de cet intervalle sont
-exponentiellement nombreux. Les $K$ survivants du faisceau encodent déjà
-des choix superficiels différents, conservés côte à côte, si bien qu'une
-correction peu profonde est disponible à coût linéaire par niveau. La
-largeur ne relâche aucune contrainte ; ce qu'elle achète, c'est un
-substitut au retour arrière profond qu'une recherche en profondeur d'abord
-ne peut pas se payer. Sur ce puzzle, les engagements fatals se prennent
-bien au-dessus de la profondeur où ils affleurent, et c'est exactement le
-régime où ce substitut rapporte.
+Un mécanisme plausible, non mesuré ici (la profondeur de l'engagement fatal
+n'a jamais été localisée) : une recherche en profondeur d'abord qui s'est
+trompée quarante cases au-dessus de l'endroit où elle échoue doit défaire
+chaque niveau intermédiaire avant de pouvoir toucher à l'erreur précoce, et
+les nœuds de cet intervalle sont exponentiellement nombreux. Les $K$
+survivants du faisceau encodent déjà des choix superficiels différents,
+conservés côte à côte, si bien qu'une correction peu profonde est disponible
+à coût linéaire par niveau. La largeur ne relâche aucune contrainte ; ce
+qu'elle achète, c'est un substitut au retour arrière profond. Si les
+engagements fatals de ce puzzle se nouent bien au-dessus de la profondeur où
+ils apparaissent, c'est le régime où ce substitut paie.
 
 La recherche à divergences limitées mérite son propre résultat négatif. La
 [LDS de Harvey et Ginsberg](https://www.ijcai.org/Proceedings/95-1/Papers/080.pdf)
@@ -265,10 +264,15 @@ l'échec de budget de pièces est diffus, beaucoup de cases précoces
 coquilles à faible divergence autour du chemin glouton sont condamnées
 ensemble.
 
-Une note de portée. Les scores absolus de cette comparaison viennent d'un
-banc volontairement simple ; les producteurs ailleurs sur cette page les
-dépassent. La revendication est l'ordre relatif à coût de nœuds égal
-(faisceau devant profondeur d'abord devant LDS), pas les nombres.
+Une note de portée. Cette comparaison tournait sur un banc volontairement
+simple, avec un budget d'environ $2 \times 10^7$ nœuds, bien moins d'une
+seconde pour un retour arrière optimisé. Face à une recherche en profondeur
+d'abord non réglée, avec une tolérance fixe de non-appariements, le faisceau
+complétait des plaquettes quand la profondeur d'abord calait vers la
+profondeur 213. Les retours arrière qui produisent les records (calendriers
+de glissement d'arête, ordres de remplissage réglés, $10^{12}$ nœuds et plus)
+n'ont pas été comparés : cela ne classe pas le faisceau face à la recherche
+en profondeur d'abord en général.
 
 ## La diversité est le vrai bouton
 
@@ -303,7 +307,7 @@ source de population même à score brut plus bas.
 L'autre bouton fécond est le départage.
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) tranche les
 égalités de score en faveur des pièces fréquentes à cette position dans un
-corpus de plaquettes fortes, relevant le plafond ex nihilo de quelques bords
+corpus de plaquettes fortes, relevant le meilleur score ex nihilo de quelques bords
 et atteignant 460 après raffinement (un chiffre de carnet ex nihilo,
 convention des bords appariés sur 480 ; voir la page des
 [records](/research/records) pour situer ce nombre face aux résultats
@@ -361,9 +365,21 @@ une à 450 ; les 94 plaquettes à 453 ou mieux avaient toutes leurs treize
 premières lignes deux à deux distinctes, des familles de plaquettes
 distinctes plutôt que des variations d'une seule. Cela fait environ 1160
 plaquettes par heure sur une modeste exécution parallèle à quatre voies,
-avec à peu près une graine sur huit atteignant le plafond de 455 et aucune
-n'atteignant 456. La diversité produite en masse est exactement l'entrée
-que réclame le polissage en aval.
+avec à peu près une graine sur huit atteignant le meilleur score observé,
+455, et aucune n'atteignant 456. La diversité produite en masse est
+exactement l'entrée que réclame le polissage en aval. (Ces chiffres en 16×16
+sont des exécutions de carnet, pas des résultats versionnés.)
+
+La seule modification de la règle de survie dotée de statistiques appariées
+versionnées est le rééchantillonnage de Monte-Carlo séquentiel : au lieu de
+garder les $K$ meilleurs, on tire les survivants selon un softmax de leurs
+scores. Sur des instances plantées 10×10 et 12×12,
+l'[étude de largeur de faisceau](/research/lab/experiments/raphael-anjou/pipelines/beam-width)
+trouve que la largeur est le levier dominant à temps de calcul fixé, et que le
+rééchantillonnage apporte un petit gain réel sur 96 graines appariées à
+largeur 1024 : +1,83 bord (environ 1 %) sur le banc versionné, +8,6 bords
+(environ 6 %) sur le banc source, plus difficile, où il a été conçu. Aucun de
+ces chiffres n'a été mesuré sur la vraie plaquette 16×16.
 
 ## Le mur de profondeur
 
@@ -374,7 +390,7 @@ dont une case a besoin ont été dépensées bien plus tôt au service de cases
 plus faciles : le problème du [vol de pièces](/research/why/piece-theft). Un
 objectif local glouton ne peut pas voir ce budget global, et doubler $K$ ne
 recule le mur que d'un ou deux bords. Sur ce moteur, les faisceaux ex nihilo
-plafonnent au milieu des 450 ; la distance restante s'achète par le
+ont culminé à 455 à 457 bruts jusqu'ici (voir les [records](/research/records)) ; la distance restante s'achète par le
 [polissage par destruction-réparation](/research/build/local-search/local-search-alns),
 et non par plus de largeur. Sur ce puzzle, la recherche en faisceau est un bon
 moyen d'atteindre vite le plateau, et aucunement un moyen de le quitter.
@@ -388,11 +404,12 @@ non-appariements sur les rangées du milieu, parce que ses dernières cases
 sont le centre de la plaquette ; le bord-d'abord les concentre sur
 l'anneau le plus intérieur. L'emplacement du mur est une propriété de
 l'ordre de visite, pas du puzzle. Choisir l'ordre peut même relever le
-plafond d'un bord : un ordre de balayage en peigne, dont les
+meilleur score observé : un ordre de balayage en peigne, dont les
 non-appariements tombent en bandes verticales plutôt qu'en bas de
 plaquette, a produit six plaquettes brutes à 456 bords appariés sur 120
 graines et à peu près le double du taux habituel de 455, là où ligne par
-ligne n'a produit aucun 456 en 160 graines. (Scores bruts de constructeur,
+ligne n'a produit aucun 456 en 160 graines, et une exécution ultérieure d'un
+producteur en peigne a atteint 457 brut. (Scores bruts de constructeur,
 convention des bords appariés ; la page des [records](/research/records)
 les met en contexte.)
 
@@ -402,9 +419,10 @@ non-appariement par case ne peut structurellement pas construire : la
 plaquette à 450 ci-dessus porte une case à deux bords non appariés, et un
 enfant à double non-appariement peut survivre dans le top $K$ alors
 qu'aucun chemin en profondeur d'abord à un seul non-appariement par case
-n'y mène. Ensuite, sur le propre préfixe de 240 cases du faisceau, un
-finisseur exact par séparation et évaluation a fait pire (433 ou 420 bords
-appariés, selon la part du préfixe épinglée) que la complétion du faisceau
-lui-même à 450 : la largeur avait déjà mieux exploré la queue qu'une
-recherche exacte limitée en profondeur ne le peut, complétions à double
-non-appariement comprises.
+n'y mène. Ensuite, sur le propre préfixe de 240 cases du faisceau, un finisseur de
+queue par séparation et évaluation restreint (au plus un non-appariement par
+case, profondeur limitée) a obtenu 433 ou 420 bords appariés, selon la part
+du préfixe épinglée, sous la complétion du faisceau lui-même à 450, parce
+que la restriction excluait la complétion à double non-appariement du
+faisceau. Une résolution vraiment exacte de la queue sur le même préfixe
+obtiendrait au moins 450.

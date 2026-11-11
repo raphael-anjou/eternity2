@@ -7,11 +7,11 @@ description: >-
   encoding. This page tells both properly, does the arithmetic against
   Eternity II's actual numbers, and reports the complete community record:
   nineteen years of asides, one unfinished embedding attempt, zero runs.
-metaDescription: "Quantum computing versus Eternity II: Grover's quadratic speedup and QUBO annealing on D-Wave, priced against the puzzle's real numbers. Grover's square root of the ~10^45 tree still needs ~10^22 sequential steps; the QUBO is far too large to embed. Nineteen years of talk, zero runs."
+metaDescription: "Quantum computing versus Eternity II: Grover-type speedups and QUBO annealing on D-Wave, priced against the puzzle's real numbers. Quantum backtracking over ~10^43 nodes per solution still needs ~10^25 sequential steps; the QUBO is far too large to embed. Nineteen years of talk, zero runs."
 kind: concept
 order: 210
 group: GPU & hardware
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [hardware, exact-methods]
 sources:
   - label: Grover, A fast quantum mechanical algorithm for database search (arXiv:quant-ph/9605043, 1996)
@@ -20,6 +20,12 @@ sources:
     url: https://arxiv.org/abs/quant-ph/9701001
   - label: Montanaro, Quantum walk speedup of backtracking algorithms (arXiv:1509.02374)
     url: https://arxiv.org/abs/1509.02374
+  - label: "Ambainis & Kokainis, Quantum algorithm for tree size estimation, with applications to backtracking and 2-player games (arXiv:1704.06774, STOC 2017)"
+    url: https://arxiv.org/abs/1704.06774
+  - label: Jarret & Wan, Improved quantum backtracking algorithms using effective resistance estimates (arXiv:1711.05295, 2018)
+    url: https://arxiv.org/abs/1711.05295
+  - label: "Altshuler, Krovi & Roland, Anderson localization casts clouds over adiabatic quantum optimization (arXiv:0912.0746, PNAS 2010)"
+    url: https://arxiv.org/abs/0912.0746
   - label: Lucas, Ising formulations of many NP problems (arXiv:1302.5843, 2014)
     url: https://arxiv.org/abs/1302.5843
   - label: Bengtsson et al., QAOA solves small exact-cover instances on two superconducting qubits (arXiv:1912.10495)
@@ -48,6 +54,7 @@ sources:
     url: https://groups.io/g/eternity2/message/11813
 related:
   - /research/build/exact/sat-csp-encodings
+  - /research/build/analysis/solution-counting
   - /research/build/hardware/fpga-solving
   - /research/why/complex-theory
 repro:
@@ -122,21 +129,29 @@ it carefully two messages later: "Could Grover's or another quantum
 algorithm search the E2 tree in O(sqrt(N)) operations?"
 ([message 10260](https://groups.io/g/eternity2/message/10260)). Nobody on
 the list answered. The literature does: yes, almost.
-[Montanaro's quantum backtracking](https://arxiv.org/abs/1509.02374) walks a
-classical backtracking tree of $T$ nodes in roughly $\sqrt{T}$ (times
-polynomial factors) quantum steps, structure and pruning included. Take this
-wiki's own number for the tree's plateau width, about $10^{45}$ partial
-boards ([complex theory](/research/why/complex-theory)):
+[Montanaro's quantum backtracking](https://arxiv.org/abs/1509.02374) finds
+a solution in a classical backtracking tree of $T$ nodes and depth $n$ in
+$O(\sqrt{T}\,n^{3/2})$ quantum steps (up to a log factor), structure and
+pruning included.
+[Ambainis and Kokainis](https://arxiv.org/abs/1704.06774) sharpened this to
+depend on $T'$, the number of nodes a classical backtracker visits before its
+first solution, rather than the whole tree, and
+[Jarret and Wan](https://arxiv.org/abs/1711.05295) gave related refinements.
+So the quantity to square-root is nodes-to-first-solution. Take the
+community's converged estimate, about $2.2\times10^{43}$ nodes per solution
+([distributed solving](/research/build/faster/distributed-solving)), with
+$n = 256$:
 
 $$
-\sqrt{10^{45}} \;\approx\; 3\times10^{22} \text{ quantum steps.}
+\sqrt{2.2\times10^{43}} \times 256^{1.5} \;\approx\; 5\times10^{21} \times 4{,}096 \;\approx\; 10^{25} \text{ quantum steps.}
 $$
 
-Is $3\times10^{22}$ feasible? Grant the machine an absurd gift: one full
+Is $10^{25}$ feasible? Grant the machine an absurd gift: one full
 oracle call (verifying an entire board's 480 edge constraints, reversibly)
-every *nanosecond*. Grover iterations are inherently sequential (running $k$
-machines in parallel only buys $\sqrt{k}$, not $k$), so that is
-$3\times10^{13}$ seconds: **about a million years**. At the kHz–MHz logical
+every *nanosecond*. Grover-type iterations are inherently sequential (running $k$
+machines in parallel only buys $\sqrt{k}$, not $k$), so that is about
+$2\times10^{16}$ seconds: **several hundred million years**. Dropping the
+polynomial factor entirely still leaves about 150,000 years. At the kHz–MHz logical
 gate rates that error-corrected machines actually project, it is longer than
 the age of the universe. And McGavin's 135 qubits count only the index
 register: the oracle must hold the board (256 cells × 10 bits of
@@ -205,10 +220,13 @@ quantum processor is a subroutine inside a classical heuristic; a hybrid
 older one: an annealer, at any size, is a physical local-search machine
 descending this energy landscape, the same landscape on which the
 community's [simulated annealing and local search](/research/build/local-search/local-search-alns)
-plateaued in the 460s. Nothing in quantum annealing theory promises to
-tunnel through the [scarcity that was engineered into this
-puzzle](/research/why/complex-theory); on spin-glass-like instances the
-adiabatic gap closes and the anneal time blows up. Alan's cheerful 2010
+climbed to the mid-460s. That descent is easy; the open question is whether
+anything, quantum or classical, crosses the last ten or so edges to a perfect
+board. For some random ensembles of hard optimization problems the minimum
+adiabatic gap is known to close exponentially with size
+([Altshuler, Krovi and Roland](https://arxiv.org/abs/0912.0746)), which makes
+the anneal time blow up; whether Eternity II's QUBO behaves that way is
+untested. Alan's cheerful 2010
 remark that "Simulated Annealing is one problem QComputers are expected to
 be especially good at"
 ([message 7802](https://groups.io/g/eternity2/message/7802)) is precisely
@@ -251,13 +269,15 @@ inflate it.
   generic speedup any known physics offers: it halves the exponent, where
   every hardware story on this wiki ([FPGA](/research/build/hardware/fpga-solving),
   [GPU](/research/build/hardware/gpu-solving), clusters) only divides by a
-  constant. And E2 shrugs it off: $10^{45} \to 10^{22.5}$ still loses to any
-  conceivable clock. The argument of
+  constant. And E2 shrugs it off: $10^{43} \to 10^{21.5}$, about $10^{25}$
+  with the polynomial overhead, still loses to any conceivable clock. The argument of
   [why a faster computer doesn't help](/research/why/prune-vs-speed)
   survives even the best speedup physics has on offer, which is the
-  strongest form of that argument. Meanwhile the annealing story lands on
-  the other wall: as an energy landscape, E2 was
-  [built to have one needle and no gradient toward it](/research/why/complex-theory).
+  strongest form of that argument for exhaustive search. Meanwhile the
+  annealing story lands on a different question: as an energy landscape, E2
+  descends easily to the mid-460s, and nobody knows whether any annealer
+  crosses the last few edges (the expected number of solutions is on
+  [solution counting](/research/build/analysis/solution-counting)).
   Quantum's real E2 relevance today is that pricing the puzzle against
   hypothetical hardware locates the difficulty precisely where the structure
   pages say it lives: in the tree, not the clock.
@@ -288,7 +308,7 @@ Annealer time is rentable by the minute, and the experiment itself is small:
    counts as progress.
 
 Until someone does that, the scoreboard reads: two beautiful
-algorithms, one arithmetic that ends in $10^{22}$ sequential steps, one
+algorithms, one arithmetic that ends in $10^{25}$ sequential steps, one
 encoding three orders of magnitude too large for its hardware, and a
 nineteen-year archive in which the quantum computer remains what it was in
 May 2007: the club nobody ever built.

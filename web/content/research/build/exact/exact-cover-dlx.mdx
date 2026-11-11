@@ -10,11 +10,13 @@ metaDescription: "Eternity II as exact cover: Knuth's Algorithm X and dancing li
 kind: concept
 order: 30
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: Knuth 2000, "Dancing Links" (arXiv cs/0011047)
     url: https://arxiv.org/abs/cs/0011047
+  - label: "Knuth, The Art of Computer Programming Vol. 4B (2022), §7.2.2.1: exact covering with colours (Algorithm C), multiplicities, and minimum-cost exact covers"
+    url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
   - label: Knuth's Algorithm X (Wikipedia)
     url: https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
   - label: Exact cover (Wikipedia)
@@ -22,6 +24,7 @@ sources:
 related:
   - /research/build/dead-ends
   - /research/why/no-forced-moves
+  - /research/build/backtracking/fill-order
   - /research/lab/experiments/joshua-blackwood/solver
 repro:
   kind: prose
@@ -44,7 +47,9 @@ piece. A selection of options covering every item exactly once is precisely a
 board with every cell filled and every piece used once.
 
 What pure exact cover cannot say is that touching edges must agree. Knuth's
-own extension handles it: XCC, exact covering with colours, where secondary
+own extension handles it: XCC, exact covering with colours (Algorithm C in
+[TAOCP Volume 4B, §7.2.2.1](https://www-cs-faculty.stanford.edu/~knuth/taocp.html),
+2022; the 2000 paper has secondary items but not colours), where secondary
 items (here, one per interior edge of the grid) carry a colour, and two
 options may share a secondary item only if they assign it the same colour. A
 full XCC solution is then exactly a perfect Eternity II board. The encoding
@@ -126,10 +131,10 @@ On Eternity II's scale: the XCC matrix itself is perfectly manageable, with 512
 primary items (256 cells + 256 pieces), 480 secondary items for the interior
 edges and their 22 colours, and at most $256 \times 256 \times 4 = 262{,}144$
 options before symmetry and border pruning. Building it is minutes of work.
-The tree above it is the wall: with [no forced moves](/research/why/no-forced-moves)
-the branching stays wide all the way down, over a space usually estimated
-near $10^{100}$, and $O(1)$ per node times an astronomical node count is
-still astronomical. That is the precise sense in which DLX is the right tool
+The tree above it is the wall: a good scan-row backtracking tree on the
+real puzzle is estimated at about $10^{40}$ to $10^{43}$ nodes
+([fill order](/research/build/backtracking/fill-order)), and $O(1)$ per
+node times an astronomical node count is still astronomical. That is the precise sense in which DLX is the right tool
 for small boards and the wrong weapon for the 16×16.
 
 ## Where it shines
@@ -154,21 +159,28 @@ the letter; the days lost above were this project's own to lose.
 Two independent walls, either of which would suffice.
 
 **The tree is the same tree.** Exact cover re-describes the search; it does
-not shrink it. The fail-first item choice is a good variable ordering, but
-[no move is ever forced](/research/why/no-forced-moves) on this puzzle: the
-least-covered item still offers dozens of live options deep into the search,
-so the branching stays enormous all the way down, over a space usually
-estimated near $10^{100}$ boards. A DLX engine walks that tree completely or
-not usefully at all; and its pointer-chasing inner loop is memory-bound,
-an order of magnitude behind the cache-tuned array engines the
+not shrink it. The fail-first item choice is a good variable ordering, and
+deep in the search it does find items with one live option or none. What it
+cannot do is keep the effective branching factor below one: on an empty
+board [no piece is pinned to a single neighbour](/research/why/no-forced-moves),
+and the measured node count of a scan-row search keeps climbing until
+roughly 160 pieces are placed, to a tree of about $10^{40}$ to $10^{43}$
+nodes ([fill order](/research/build/backtracking/fill-order)). Fail-first
+reorders that tree; it does not remove its bulge. A DLX engine walks it
+completely or not usefully at all. No published measurement compares a DLX
+engine's node rate on this puzzle with the array-based engines the
 [record backtrackers](/research/lab/experiments/joshua-blackwood/solver) use.
 
 **No partial credit.** DLX answers one question: covered exactly, or not.
 The entire Eternity II economy runs on partial scores (467, 469, 470)
 and on searches that deliberately tolerate a few mismatched edges to get
-there. Exact cover has no native way to leave an edge unmatched and pay a
-penalty; relaxing it that far means rebuilding it into a branch-and-bound,
-at which point the elegance that justified it is gone.
+there. XCC can express soft edges: make each seam an optional item and
+charge a cost for leaving it uncovered, which is the minimum-cost exact
+covering that TAOCP 4B also treats. But that turns the search into
+branch-and-bound over a weak bound (a fractional cost estimate on the
+remaining items), which is the same game the
+[record backtrackers](/research/lab/experiments/joshua-blackwood/solver)
+already play with tighter data structures.
 
 ## Verdict
 

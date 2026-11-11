@@ -3,13 +3,14 @@ title: Priors de corpus
 description: >-
   La forma más simple de aprender de los tableros fuertes: contar dónde tiende a
   situarse cada pieza, o con qué frecuencia satisface una demanda escasa, y usar
-  ese recuento como un suave desempate en la construcción. Debe seguir siendo un
-  desempate; en cuanto pasa a formar parte del objetivo, hace colapsar la búsqueda.
-metaDescription: "Priors de corpus para Eternity II: contar dónde se sitúan las piezas en tableros fuertes, o cuántas veces una pieza sirve una demanda escasa, y usar ese recuento como diminuto desempate en la búsqueda en haz. PRIOR alcanza 460 desde una cuadrícula vacía; sube el peso y la puntuación colapsa."
+  ese recuento como un suave desempate en la construcción. En las
+  ejecuciones de este proyecto funcionó como desempate; con pesos fijos grandes,
+  hizo colapsar la búsqueda.
+metaDescription: "Priors de corpus para Eternity II: contar dónde se sitúan las piezas en tableros fuertes, o cuántas veces una pieza sirve una demanda escasa, y usarlo como desempate en la búsqueda en haz. PRIOR llega a 460 tras refinar; pesos grandes hundieron LODESTONE."
 kind: concept
 order: 50
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [construction, learning]
 sources:
   - label: "Búsqueda en haz (página de concepto de este proyecto): la construcción de anchura acotada que un prior sesga"
@@ -54,7 +55,8 @@ típica de los tableros fuertes en ese sitio. El recuento de aristas casadas sig
 decidiendo; el prior solo habla cuando el recuento calla. Esta es la
 [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior) experimento, que
 construye un tablero competitivo a partir de una cuadrícula vacía, sin tablero al
-que anclarse, y alcanza así 460.
+que anclarse: la mitad de los 450 con el haz solo, y 460 tras una breve fase de
+refinamiento local.
 
 Vale la pena nombrar tres afilados del mismo recuento, porque cada uno cambia
 fuerza de señal por ruido:
@@ -85,13 +87,14 @@ a comprometer las piezas raras temprano, antes de que se las roben. Esta es la
 [LODESTONE](/research/lab/experiments/raphael-anjou/learning/lodestone) experimento, y
 se conecta con la [geografía de colores raros](/research/why/rare-color-geography) del puzzle.
 
-## Por qué sigue siendo un desempate
+## Por qué siguió siendo un desempate
 
-El detalle portante, tanto para el prior posicional como para el de demanda
-escasa, es que el múltiplo sobre el prior debe ser *minúsculo*. Un prior es un
-puro desempatador: decide entre movimientos que casan por igual y nada más. Suba
-el peso aunque sea un poco y la búsqueda empieza a trocar una arista casada real
-por una corazonada estadística, y la puntuación colapsa: LODESTONE cae de 451 a
-422 a 380 a medida que el peso sube. Ese colapso no es un fallo de implementación;
-es la forma de toda la familia, y tiene su propia página:
+El detalle portante en estas ejecuciones, tanto para el prior posicional como para
+el de demanda escasa, fue que el múltiplo sobre el prior se mantuvo *pequeño*. En
+LODESTONE, con cinco semillas, un peso ínfimo movió la mediana de 449 a 451 (dentro
+de la dispersión de base, de 446 a 451), y pesos fijos mayores dieron 422 y 380.
+Eso sugiere que el prior debe seguir siendo pequeño frente a las aristas casadas
+en este haz, donde un peso mayor empieza a trocar una arista casada real por una
+corazonada estadística. No se probaron pesos recocidos o adaptativos, ni otros
+priors. Dónde dejaron de ayudar estas señales tiene su propia página:
 [cuando el aprendizaje colapsa](/research/build/learning/when-learning-collapses).
