@@ -1,11 +1,11 @@
 ---
 title: Le cadre fluide
 description: >-
-  Une bordure parfaite de 60 pièces n'est pas un objet rigide. Chaque cadre
-  entièrement apparié admet exactement 45 échanges libres à coût de bordure
-  nul ; un tiers des cadres parfaits ne peuvent même pas démarrer l'intérieur,
-  et un seul échange libre ranime chacun d'eux.
-metaDescription: "Une bordure parfaite d'Eternity II n'est pas un objet rigide : chaque cadre de 60 pièces entièrement apparié admet exactement 45 échanges libres à coût de bordure nul. 36 % des cadres parfaits ne peuvent pas démarrer l'intérieur, et un seul échange libre ranime chaque cadre mort échantillonné."
+  Une bordure parfaite de 60 pièces n'est pas un objet rigide. Un tiers ou
+  plus des cadres parfaits ne peuvent même pas démarrer l'intérieur, et des
+  échanges à coût de bordure nul ont ranimé chacun des cadres échantillonnés.
+  Le jeu de pièces garantit 45 de ces échanges libres sur tout cadre parfait.
+metaDescription: "Une bordure parfaite d'Eternity II n'est pas un objet rigide : 36 à 45 % des cadres parfaits échantillonnés ne peuvent pas démarrer l'intérieur, et des échanges à coût de bordure nul ont ranimé chacun d'eux. Le jeu de pièces garantit 45 échanges libres sur tout cadre parfait."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -25,7 +25,7 @@ repro:
   cmd: "just research-frame-manifold"
   scope: "Régénère la passe principale de 500 cadres et la passe de robustesse de 100 cadres et reproduit results/manifold.json octet par octet ; seule la mécanique est re-mesurée, aucun plateau complet n'est produit"
 order: 75
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, local-search]
 sources:
@@ -46,10 +46,10 @@ la recherche intérieure. Je voulais savoir si cet objet gelé est vraiment un
 seul objet, en partant d'un réflexe simple : quand l'intérieur cale contre le
 rebord, pourquoi revenir en arrière sur la bordure alors qu'on pourrait
 échanger une seule pièce du rebord ? Mesurée sur 500 cadres parfaits frais,
-la réponse est plus nette que la question. Une bordure parfaite est une
-variété connexe avec exactement 45 sorties libres ; un tiers des bordures
-parfaites ne peuvent même pas démarrer l'intérieur ; et un échange libre
-répare chaque cadre mort échantillonné, à coût de bordure nul.
+la réponse est plus nette que la question. Un tiers des bordures parfaites
+ne peuvent même pas démarrer l'intérieur, et des échanges libres réparent
+chaque cadre mort échantillonné, à coût de bordure nul. La réserve d'échanges
+libres est fixée par le jeu de pièces : 45 sur tout cadre parfait.
 
 ## Ce qui a été mesuré
 
@@ -85,18 +85,6 @@ résultats octet par octet. Le premier cadre généré se regarde dans la
 
 ## Le résultat
 
-**Exactement 45 coups libres, sur chaque cadre.** Les 500 cadres parfaits
-admettent exactement 45 échanges libres, jamais 44, jamais 46. Aucun échange
-n'augmente jamais BB (60 est le maximum), et les coups libres se composent :
-après 100 échanges libres enchaînés, BB vaut toujours 60 et 45 coups libres
-restent disponibles. Le compte ne s'épuise jamais.
-
-**Aucun n'est cosmétique.** Zéro des 45 échanges libres ne préserve la
-couleur intérieure des pièces touchées : chaque coup libre change le vecteur
-de contraintes que la bordure présente à l'intérieur. Une marche libre de
-100 pas a visité 99 vecteurs de cibles de rebord distincts sur 101 possibles
-sans jamais quitter BB = 60.
-
 **Parfait n'est pas utilisable.** 180 des 500 cadres parfaits (36 pour cent)
 avaient au moins une case intérieure qu'aucune des 196 pièces intérieures ne
 pouvait remplir, et 46 (9,2 pour cent) étaient morts dès la toute première
@@ -106,6 +94,20 @@ gloutonne par échanges libres seuls a ranimé 60 cadres morts sur 60, BB ne
 quittant jamais 60. Dans l'exemple travaillé de l'étude source, un seul
 échange libre a fait passer un DFS cadré de la profondeur 0 à la profondeur
 153 sur 196.
+
+**45 échanges libres, par construction.** Échanger deux pièces de bord
+laisse BB à 60 exactement quand les deux pièces portent la même paire de
+couleurs le long de l'anneau, puisque chacune doit s'accorder aux voisines
+de l'autre. Le jeu officiel compte 45 paires de pièces de bord aux couleurs
+le long de l'anneau identiques (classes de tailles 4, 4, 3, 3, 3, 3, 3, 3, 3,
+2, ...) et aucune parmi les 4 coins : tout cadre parfait a donc exactement
+ces 45 échanges libres, quel que soit le cadre. Les cadres échantillonnés
+confirment le compte (45 sur les 500, et toujours 45 après 100 échanges
+enchaînés), ce qui valide le code plutôt que de révéler une propriété des
+cadres. Comme aucune pièce n'a de jumelle, chaque échange libre change aussi
+la couleur intérieure aux deux cases ; une marche libre de 100 pas a visité
+99 vecteurs de cibles de rebord distincts sur 101 possibles sans quitter
+BB = 60.
 
 <Figure collapsible title="Attendu contre mesuré (passe principale, 500 cadres)">
 
@@ -127,10 +129,10 @@ quittant jamais 60. Dans l'exemple travaillé de l'étude source, un seul
 </Figure>
 
 Une passe de robustesse à graine indépendante (100 cadres frais, base de
-graine 7001) concorde : 45 échanges libres sur chaque cadre, aucun gain, 45
-cadres morts sur 100 (histogramme 38 / 7), les 45 tous ranimés, et la marche
-tient de nouveau BB = 60 avec 45 coups libres du début à la fin. La chute
-tient donc à travers générateurs et graines : une bordure parfaite et une
+graine 7001) concorde : 45 cadres morts sur 100 (histogramme 38 / 7), les 45
+tous ranimés, et (comme le garantit le jeu de pièces) 45 échanges libres sur
+chaque cadre, sans aucun gain. La chute tient donc d'une graine à l'autre :
+une bordure parfaite et une
 bordure utilisable sont deux propriétés différentes, et le cadre peut rester
 mobile pendant la recherche au lieu d'être défait par retour arrière.
 
@@ -142,8 +144,8 @@ mobile pendant la recherche au lieu d'être défait par retour arrière.
   reste une question ouverte, et un producteur qui garde le cadre fluide
   pendant la recherche intérieure est un travail futur. Cette page publie la
   mécanique seule.
-- Le 45 est revendiqué comme une propriété du jeu de pièces officiel et
-  répliqué ici sur des cadres issus d'un autre générateur. Le taux de cadres
+- Le 45 est une propriété du jeu de pièces officiel, dérivée plus haut, et
+  non une régularité mesurée des cadres. Le taux de cadres
   morts est une propriété de l'échantillonnage du générateur : 36,0 pour
   cent sur la passe principale, 45 pour cent sur la passe à graine
   indépendante ; l'énoncé défendable est un taux entre le milieu des 30 et
@@ -152,6 +154,9 @@ mobile pendant la recherche au lieu d'être défait par retour arrière.
   environ 1458 dans la source, qui excluait de toute évidence une classe de
   paires sans effet. Les parts et les deux lignes porteuses (45 libres, 0
   gain) concordent quoi qu'il en soit.
+- La connexité de l'ensemble des cadres parfaits sous échanges libres n'est
+  pas mesurée ; les marches montrent seulement que les coups libres ne
+  s'épuisent pas.
 - Les cadres sont ici sans indices, comme dans la mesure source ; la
   compatibilité des cadres avec les indices est un sujet distinct et ne fait
   pas partie de cette affirmation.

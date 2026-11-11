@@ -1,10 +1,10 @@
 ---
 title: REPLAY
 description: >-
-  Rebuild the community's strict 460 boards exactly, and in doing so discover
-  the move ordinary solvers can't make: paying two mismatches at a single
-  cell.
-metaDescription: "REPLAY rebuilds the community's strict 460 Eternity II boards exactly, and in doing so reveals the move ordinary solvers can't make: paying two mismatches at a single cell. A reconstruction that decodes how the record boards were actually reached, not just their final score."
+  Rebuild the community's strict 460 boards exactly from the witness board,
+  and read off what a one-break-per-cell search cannot represent: cells that
+  pay two mismatches at once.
+metaDescription: "REPLAY rebuilds the community's strict 460 Eternity II boards exactly, guided by the witness board. Both contain four or five cells that pay two mismatches, which a one-break-per-cell search cannot represent. Whether that cap explains an unguided plateau is not supported by equal-time tests."
 kind: experiment
 hardware:
   cores: 8
@@ -18,10 +18,7 @@ hardware:
   measured: false
 contribution: reconstruction
 author: raphael-anjou
-score: 460
 outcome: plateaued
-scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "DFS with an exact 14-cell tail; 8 threads, 5 s restart cadence, per-witness budget"
   space: "bounded by the DFS frontier plus the fixed frame and the witness schedule"
@@ -31,7 +28,7 @@ complexity:
 repro:
   kind: seeded
 order: 50
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, learning]
 related:
@@ -52,13 +49,13 @@ import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
 
 REPLAY closes the [study](/research/lab/experiments/raphael-anjou/learning) with a
 different kind of learning. Every experiment before it mined a *statistic* from the
-whole corpus; REPLAY learns from a *single* board, and it learns the one thing a
-statistic cannot show, the exact move a record used that our search could not make.
-The public fully-clued boards this project was measured against reach 460 (the
-community record has since advanced to 465), but this project's own break-allowing
-search stalled at 457 or 458 no matter what. REPLAY set out to reproduce those 460
-boards exactly, piece for piece, to learn what they were doing that our search could
-not. The answer turned out to be a single overlooked move.
+whole corpus; REPLAY learns from a *single* board, and it looks for what a statistic
+cannot show: a move a record board uses that a one-break-per-cell search cannot
+represent. The public fully-clued boards this project was measured against reach 460
+(later records are on the [records page](/research/records)), while this project's
+own break-allowing search stalled at 457 or 458. REPLAY set out to reproduce those
+460 boards exactly, piece for piece, to see what they contain that our search did
+not produce.
 
 ## How it works
 
@@ -69,8 +66,9 @@ actually used outrank cheaper-looking ones. With those two changes it can
 walk the same path the witness board took.
 
 Played back this way, the community 460 boards rebuild exactly, every piece
-in place, and the score checks out. The reproduction is the proof that the
-missing ingredient was real.
+in place, and the score checks out. This shows the witnesses are reachable
+once the answer is known; it does not show how an unguided search would find
+them.
 
 <Figure collapsible title="Interactive: the double-break cells">
   <DoubleBreakDiagram />
@@ -82,15 +80,17 @@ missing ingredient was real.
 
 ## The result
 
-Both community strict-460 boards replay exactly to 460. The discovery: each
-contains four or five cells that pay two mismatches at once. A search that
-allows only one mismatch per cell literally cannot reach those boards, which
-is exactly why the project's earlier runs saturated at 457 to 458. Allowing
-the double break lifts the strict ladder to 460.
+Both community strict-460 boards replay exactly to 460. Both contain four or
+five cells with two mismatched edges, so an engine capped at one break per
+cell cannot represent them. That much can be read straight off the boards;
+the replay adds that, given the witness as a prior, a two-breaks-per-cell
+engine rebuilds them exactly.
 
-It's a clean explanation of a long-standing plateau, and a caution: a
-reasonable-looking rule (one break per cell) silently fenced off the very
-boards we were chasing.
+Whether the cap explains the unguided 457 to 458 plateau is not supported. At
+equal wall-clock a two-breaks-per-cell engine ties the one-break engine (see
+[dead ends](/research/build/dead-ends#widen-the-mismatch-vocabulary)), and the
+double-break cells in community boards appear to come from local-search
+repair, not from a depth-first pass.
 
 ## Method
 
@@ -110,14 +110,15 @@ The replay is a depth-first search run in a deliberately constrained mode.
 
 Run on a fixed 460 frame, 8 threads, a 5-second restart cadence and a per-run
 budget, both community strict-460 witnesses rebuild piece-for-piece and the
-score checks out, the reproduction *is* the proof that the missing ingredient
-was the double break.
+score checks out. Because the ordering is driven by the witness itself, this
+is sufficiency given an oracle, not evidence about unguided search.
 
 **The finding.** Each witness contains four or five cells that pay two
-mismatches at once. A search capped at one break per cell cannot represent
-those boards, which is precisely why the project's earlier break-tolerant runs
-saturated at 457–458. It is a search-completeness result dressed as a record
-attempt: the wall was in the move set, not the compute.
+mismatches at once, so a search capped at one break per cell cannot represent
+those exact boards. It does not follow that the cap is what held the project's
+unguided runs at 457 to 458: the equal-time A/B on the
+[dead-ends page](/research/build/dead-ends#widen-the-mismatch-vocabulary) found
+no gain from the wider move set.
 
 ## Reproduce
 
@@ -132,7 +133,7 @@ planned.
 
 ## Open questions
 
-Does allowing two breaks per cell open a path to 461 and beyond, or just to
-the known 460s? Are there boards needing a triple break? And can the
+Does allowing two breaks per cell open a path to 461 and beyond in an
+unguided search, or only to the known 460s once they are given? Are there boards needing a triple break? And can the
 double-break cells be predicted from a partial board rather than discovered
 by replay?

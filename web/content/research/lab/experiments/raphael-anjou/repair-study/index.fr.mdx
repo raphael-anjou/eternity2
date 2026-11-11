@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments repair-study
 order: 27
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -85,25 +85,25 @@ s'enlise.
 ## Ce que l'étude a trouvé
 
 - **Partir d'un plateau solide obtenu par retour arrière remporte l'étude
-  entière.** La variante qui consacre ses vingt premières secondes à exécuter le
-  break-DFS de l'étude DFS, puis répare le plateau à un peu plus de 440 qui en
-  résulte, termine la plus haute de toutes, avec une moyenne de 446 (meilleur
-  résultat 449). La réparation n'ajoute qu'une poignée d'arêtes par-dessus ce
-  plateau, mais le plateau dont elle part vaut cent points de plus qu'une
-  construction gloutonne, et cela se répercute jusqu'au bout. C'est la division du
-  travail construire-puis-affiner qu'emploient les records, reproduite de bout en
-  bout sur un cœur en une minute.
-- **Parmi les variantes à départ glouton, la destruction aléatoire l'emporte et
-  cibler les défauts se retourne contre soi.** Une destruction aveugle à la
-  géométrie qui soulève douze cases *aléatoires* termine à une moyenne de 402
-  (meilleur résultat 409) et continue de s'améliorer tard dans l'exécution. Tout
-  opérateur qui cible les cases dépareillées termine en dessous, et plus il se
-  fixe précisément, plus il fait mal : l'ancre des cases dépareillées atterrit à
-  366, une destruction par composante connexe plus large à 350. Sur un plateau
-  médiocre, il y a de l'amélioration disponible partout, si bien qu'explorer vaut
-  mieux qu'attaquer là où ça fait déjà mal. Cela s'inverse sur un plateau
-  quasi-record, où les quelques défauts restants sont la seule chose qu'il reste à
-  corriger.
+  entière.** La variante qui consacre ses vingt premières secondes au DFS à
+  cassures de l'étude DFS, puis répare le plateau obtenu dans le bas des 440,
+  termine en tête de tout, avec une moyenne de 446 (meilleur 449). La réparation
+  n'ajoute qu'une poignée d'arêtes à ce plateau, et faute de témoin DFS seul ce
+  gain n'est pas séparé d'un supplément de temps de recherche ; le plateau de
+  départ est bien meilleur qu'une construction gloutonne, et cela se conserve.
+  Cela ressemble aux chaînes construire puis affiner, comme celle du projet ; les
+  plateaux records de la communauté viennent d'un retour arrière tolérant aux
+  cassures.
+- **Parmi les variantes à départ glouton, la destruction aléatoire l'emporte.**
+  Une destruction aveugle à la géométrie qui soulève douze cellules *au hasard*
+  termine à une moyenne de 402 (meilleur 409) et continue de progresser tard dans
+  l'exécution. Tout opérateur qui cible les cellules cassées finit en dessous :
+  l'ancre sur les discordances (une dizaine de cellules) à 366, une destruction
+  par composante connexe (environ 28 cellules) à 350. La taille du trou varie avec
+  le ciblage, si bien que le classement peut tenir à la taille plutôt qu'au
+  ciblage ; aucun témoin aléatoire de même taille n'a été lancé. Sur un plateau
+  proche du record, où les quelques discordances restantes sont tout ce qu'il
+  reste à corriger, la communauté a trouvé les opérateurs ciblés plus utiles.
 - **Le plateau de départ fixe le plancher.** Une construction gloutonne démarre
   autour de 348 ; une construction aléatoire démarre près de 18, et bien que la
   boucle la fasse gagner un spectaculaire 308 points, elle termine tout de même en

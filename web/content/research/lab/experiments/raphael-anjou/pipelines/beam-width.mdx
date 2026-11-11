@@ -1,11 +1,12 @@
 ---
-title: "Making a beam producer 10x better: the answer is width"
+title: "Beam producers: width beats the two per-node signals tried"
 description: >-
-  A verified survey plus paired measurement: no per-node cleverness beats raw
-  beam width at equal wall-clock. The two additives that survive are
-  randomising exactly-tied truncation keys (free) and SMC-style resampling of
-  survivors (small but significant).
-metaDescription: "Paired measurements on planted Eternity II style ladders show raw beam width dominates every smart per-node signal at equal wall-clock; randomised tie-breaks are a free win and SMC resampling of survivors adds one to six percent depending on bed hardness."
+  On planted kit ladders, wider beams score monotonically higher (about +5% from
+  width 32 to 2048 at N=12, measured at saturation). Two costlier per-node
+  signals lost at equal wall-clock in the source study (not rebuilt here).
+  Randomising exactly-tied truncation keys and SMC-style resampling of
+  survivors give small but significant gains.
+metaDescription: "On planted Eternity II style ladders, wider beams score higher and the two per-node signals tested in the source study lost at equal wall-clock; randomised tie-breaks are a free win and SMC resampling of survivors adds one to six percent depending on bed hardness."
 kind: finding
 hardware:
   cores: 1
@@ -32,7 +33,7 @@ repro:
     negative controls (completability oracle, dominance merge) are cited from
     the source study and are not rebuilt by the command.
 order: 82
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, speed, search-space]
 related:
@@ -47,15 +48,22 @@ sources:
     url: https://arxiv.org/html/2502.01618v3
   - label: "Sequential Monte Carlo steering"
     url: https://arxiv.org/pdf/2306.03081
+  - label: "Kool, van Hoof & Welling (2019), Stochastic Beams and Where to Find Them, ICML: sampling survivors without replacement"
+    url: https://arxiv.org/abs/1903.06059
+  - label: "Vijayakumar et al. (2018), Diverse Beam Search, AAAI: diversity-promoting beam selection"
+    url: https://arxiv.org/abs/1610.02424
+  - label: "Blum (2005), Beam-ACO, Computers & Operations Research 32(6): probabilistic beam construction for combinatorial optimisation"
+    url: https://doi.org/10.1016/j.cor.2003.11.018
 ---
 
-I went looking for the lever that would make a wide-beam constructor ten times
-better per unit of compute: a smarter per-node score, a completability oracle,
-a dominance rule, anything. After a literature survey and a round of paired
-A/B measurements, the answer is deflating and useful: the lever is raw beam
-width. Everything clever loses to simply running wider at the same wall-clock,
-with exactly two cheap exceptions, both changes to *which* survivors are kept
-rather than to how nodes are scored.
+I went looking for a lever that would make a wide-beam constructor much better
+per unit of compute: a smarter per-node score, a completability oracle, a
+dominance rule. After a literature survey and a round of paired A/B
+measurements, width is the lever that held up. In the source study the two
+costlier signals tried, a completability oracle and a dominance merge, lost to
+simply running wider at the same wall-clock. That is two alternatives, not
+every possible per-node signal. The two gains found are both changes to
+*which* survivors are kept rather than to how nodes are scored.
 
 ## What was measured
 
@@ -80,7 +88,7 @@ much instance hardness moves measured scores is a theme of its own; see
 
 ## The result
 
-Width is the dominant lever, and it is not close. On the original study's
+Width is the strongest lever measured. On the original study's
 harder bed the mean score over optimum climbs monotonically from 0.210 at
 width 32 to 0.346 (width 128), 0.527 (width 512), and 0.743 (width 2048) at a
 fixed 3-second budget. The expensive alternatives lose at equal wall-clock in
@@ -91,7 +99,11 @@ and a decision-diagram style dominance merge drops the score from 0.679 to
 scarcest, so the wall-clock they burn buys less than the width it could have
 bought.
 
-The committed reproduction confirms every sign on the kit bed:
+The committed reproduction confirms the signs on the kit bed, but the
+Hall oracle and the dominance merge were not rebuilt here. On kit rungs width
+32 to 2048 (64 times the nodes) moves the N=12 ratio from 0.836 to 0.878,
+about +5 percent, and that width law is measured at saturation rather than at
+equal wall-clock (see below), where a wider beam is expected to do better:
 
 <Figure collapsible title="Expected (source bed) vs measured (kit bed)">
 
@@ -104,7 +116,12 @@ The committed reproduction confirms every sign on the kit bed:
 
 </Figure>
 
-The two survivor-rule additives are individually significant. Randomising
+Stochastic survivor selection is not new: stochastic beam search (Kool, van
+Hoof and Welling 2019), diverse beam search (Vijayakumar et al. 2018) and
+Beam-ACO (Blum 2005) all keep survivors by sampling or for diversity, and they
+predict this result. What is measured here is that known effect on
+edge-matching beds. The two survivor-rule additives are individually
+significant. Randomising
 among exactly tied truncation keys costs nothing and gains +2.06 edges at
 width 128. SMC resampling gains +1.75 edges at N=10 (t = 3.30) and +1.92 at
 N=12 (t = 5.41), with identical node counts in both arms: the gain is not
