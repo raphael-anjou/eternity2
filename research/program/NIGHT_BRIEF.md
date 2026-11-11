@@ -27,7 +27,7 @@ Question: does the bb-mrv / scb paired node ratio keep shrinking past 8x8?
 A22 left 9x9 and 10x10 fully censored at 1e7 nodes.
 - 9x9 c=11 (A22's +2 track), 8 fresh seeds (not 1..50, not 1001..1010), both solvers, cap 1e8 nodes per run.
 - About 16 runs of up to ~2 h each at A22's measured 13k to 22k nodes/s. Give it half the cores.
-- Kill: median paired log10 node ratio at 9x9 not below the 8x8 value (A22: ratio 0.147), or more than 4 of 8 pairs censored on both sides (uninformative).
+- Kill: median paired log10 node ratio at 9x9 not below the 8x8 value (A22: ratio 0.147, log10 = -0.833), or more than 4 of 8 pairs censored on both sides (uninformative).
 - This is a pilot. It decides whether a 30-seed 9x9/10x10 run is worth requesting; it is not that run.
 
 ## Track 2. A20, blocker eviction as the backjump rule inside bb-mrv
