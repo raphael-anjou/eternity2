@@ -116,3 +116,15 @@ quality-diversity-basins parallel="7":
     python3 quality-diversity-basins/scripts/analyse.py \
         --basins quality-diversity-basins/results/rerun/basins.jsonl \
         --out quality-diversity-basins/results/rerun/summary.json
+
+# Spectral planted recovery (agenda A1): on 200 generated framed puzzles per
+# configuration (8x8 and 10x10, two colour counts each), rank every half-edge's
+# colour-compatible candidates by the rarity-weighted compatibility matrix and
+# by its leading eigenvectors, and score the rank of the planted neighbour.
+# Deterministic given the seeds; single core, a few minutes. See PREREG.md.
+# Only the preregistered 200-seed run writes the committed results/; any other
+# seed count writes to spectral-planted-recovery/rerun-<seeds>/ unless out= is given.
+spectral-planted-recovery seeds="200" out="":
+    cargo test --release --manifest-path spectral-planted-recovery/Cargo.toml
+    cargo run --release --manifest-path spectral-planted-recovery/Cargo.toml -- \
+        --out {{ if out != "" { out } else if seeds == "200" { "spectral-planted-recovery/results" } else { "spectral-planted-recovery/rerun-" + seeds } }} --seeds {{seeds}}
