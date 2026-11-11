@@ -100,6 +100,11 @@ At R8 c=10 the ladder's best baseline and plain row-major DFS solve the same
 about 26 times more wall clock per run. Above the critical colour count the
 baseline's propagation buys no node reduction on this rung.
 
+R8 is also off-protocol: `hard-ladder/README.md` requires an amendment and a
+baseline calibration before candidates use 8x8 at c >= 10, and neither exists
+for this rung. The R8 rows are therefore an uncalibrated rung against a
+baseline that plain DFS matches; the verdict rests on R6 and R7 only.
+
 ## Files
 
 - `PREREG.md`: preregistration and novelty check.
