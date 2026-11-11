@@ -503,8 +503,23 @@ export function buildManifest(lang: Lang, opts?: { includeDrafts?: boolean }): R
       ...(e.fm.board !== undefined ? { board: e.fm.board } : {}),
       ...(use.fm.updated !== undefined ? { updated: use.fm.updated } : {}),
       ...(use.fm.date !== undefined ? { date: use.fm.date } : {}),
-      ...(e.fm.repro !== undefined ? { repro: e.fm.repro } : {}),
-      ...(e.fm.stages !== undefined ? { stages: e.fm.stages } : {}),
+      // The command and kind are language-neutral, but `scope` is prose written
+      // in the page's language, so take it from the translation when present.
+      ...(e.fm.repro !== undefined
+        ? {
+            repro: {
+              ...e.fm.repro,
+              ...(use.fm.repro?.scope !== undefined ? { scope: use.fm.repro.scope } : {}),
+            },
+          }
+        : {}),
+      // stages[].does / .learns are translated prose; parity guarantees the
+      // translation's machine fields match EN.
+      ...(use.fm.stages !== undefined
+        ? { stages: use.fm.stages }
+        : e.fm.stages !== undefined
+          ? { stages: e.fm.stages }
+          : {}),
       // zod infers optional fields as `T | undefined`, which trips
       // exactOptionalPropertyTypes against HardwareInfo's `nodes?: number` etc.
       // The schema mirrors HardwareInfo exactly (and has just validated the
