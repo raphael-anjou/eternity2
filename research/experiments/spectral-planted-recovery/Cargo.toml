@@ -1,0 +1,23 @@
+# A1 spectral planted recovery: rank each half-edge's colour-compatible
+# candidates by a rarity-weighted compatibility matrix and by its leading
+# eigenvectors, and score the rank of the planted neighbour. Path dependency on
+# the site engine for the generator, so the puzzles are the engine's own.
+[package]
+name = "spectral-planted-recovery"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+default-run = "spectral_planted_recovery"
+
+[[bin]]
+name = "spectral_planted_recovery"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../engine" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
