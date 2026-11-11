@@ -2403,3 +2403,78 @@ correctness checks on the VM, and checks the G and VT vCPU quotas at the start
 of each round. No results; reproducibility kind: prose. Files:
 research/program/AGENDA.md, .claude/commands/research-lead.md,
 research/LEDGER.md.
+
+## 2026-11-11 · Round 1, A1 spectral planted recovery: killed
+
+Preregistered cheap test of agenda A1 on generated planted boards, judged by a
+separate session (rigor-check, adversarial review, recomputation from
+`results/`, rerun of the primary configurations). The spectral pair ranking
+places the planted neighbour lower than plain colour-rarity ranking: paired
+difference -0.00472 (SE 0.00059, z -7.94) at 8x8 c=8 and -0.00349 (SE 0.00059,
+z -5.91) at 10x10, 200 puzzles each; rescrambling leakage below 1.4e-15.
+Learned: global pair statistics of the piece set carry no neighbour signal
+beyond colour rarity on these boards, which weakens the "read the solution off
+statistics" family. Reproducibility: deterministic, `just experiments
+spectral-planted-recovery`. Source commit bc5353d (PR #14). Files:
+research/experiments/spectral-planted-recovery/.
+
+## 2026-11-11 · Round 1, A3 SAT backdoors: kept
+
+Preregistered cheap test of agenda A3, judged by a separate session. On planted
+generated boards, the number of correct placements after which propagation
+finishes the board grows as N^b with b = 0.589 in regime A (bootstrap 95% CI
+[0.549, 0.626]; kill line 0.9), difference statistic D = -0.039 (CI [-0.045,
+-0.034]). Limits: at 8x8 and above k is a greedy upper bound, not a proven
+minimum; boards are generated regimes, not the E2 piece set; the backdoors
+were found with the planted solution in hand. Learned: on these boards the
+hardness concentrates in a sublinear set of decisions; whether that set can be
+recognised without the solution is agenda A16. Reproducibility: deterministic,
+`just experiments sat-backdoors`. Source commit 1705965 (PR #15). Files:
+research/experiments/sat-backdoors/.
+
+## 2026-11-11 · Round 1, A4 quality-diversity over basins: killed
+
+Preregistered cheap test of agenda A4 (no amendments), judged by a separate
+session that recomputed the Wilcoxon tests and basin counts from `results/` and
+reran a declared subset of cells byte for byte. At equal move budgets,
+MAP-Elites over basin descriptors found fewer distinct near-best basins than
+parallel tempering on 58 of 60 puzzles (2 ties, 0 wins) and reached worse best
+scores. Mean distinct basins: 8x8 PT 22.33 vs ME 5.63; 10x10 PT 5.30 vs ME
+1.00. Learned: an explicit diversity archive does not add basin diversity over
+PT on these boards, so diversity is not shown to be the missing ingredient of
+local search. Reproducibility: stochastic with fixed seeds, `just experiments
+quality-diversity-basins` (full grid takes hours). Source commit 3f96c0f
+(PR #16). Files: research/experiments/quality-diversity-basins/.
+
+## 2026-11-11 · Round 1, A5 exact frame count with corners: kept
+
+Preregistered cheap test of agenda A5, judged by a separate session that also
+wrote its own brute-force checker. Transfer-matrix count of frame placements
+with the corner constraint: N = 40519056449429419697492635191544381440
+(log10 N = 37.6077). The fraction f = N_cyc / EC = 2.913e-5 (N_cyc = N/4,
+EC the BEST-theorem Euler-circuit count) is the quantity the existing Monte
+Carlo estimate measured, 2.775e-5 (SE 1.32e-6, z -1.04). Validation:
+exact agreement with brute force on all 34 reduced rings where it finishes and
+with an independent method on all 45. Limit: the official-ring number comes
+from one implementation; an independent cross-check on the full ring is open.
+Peak RSS about 17.5 GiB. Reproducibility: deterministic, `just experiments
+frame-count-corners`. Source commit 8b8c8b5 (PR #17). Files:
+research/experiments/frame-count-corners/.
+
+## 2026-11-11 · Round 1 idea pass: eight agenda entries, two parked
+
+Ten sessions, one outside field each (coding theory, compilers, operations
+research, computational biology, tiling and words, spin glasses,
+cryptanalysis, game-tree search, program synthesis, auctions and matching),
+each returned one idea in agenda format; each was filtered against
+EXPLORED.md by naming the mechanism its nearest explored cell lacks. Added as
+proposed or running: A9 Murty k-best checkerboard assignments, A10
+near-codeword spectrum, A11 coupled same-temperature replicas, A12 ProbCut,
+A13 synteny decomposition of local optima, A14 local branching, A15
+bond-weighted non-chronological unassignment (kTAM and iterative modulo
+scheduling merged, same mechanism). Added from round-1 results: A16
+backdoor-guided branching (from A3) and A17 cut-multiset feasibility pruning
+(from A5's transfer-matrix view). Parked: distinguished-point collision
+detection (premise not supported by A4) and abstraction refinement on piece
+distinctness (closest to the fake-480 dead end). Reproducibility: prose.
+Files: research/program/AGENDA.md, research/LEDGER.md.
