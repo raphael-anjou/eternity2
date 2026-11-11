@@ -277,6 +277,16 @@ test, scheduled at larger scale), `published`.
 - **Kill.** No significant node reduction on any of the round-2 rungs (6x6 c=5, 7x7 c=6, 8x8 c=10). A pass needs median paired node ratio at most 0.5 at 8x8.
 - **Budget.** A few core-hours.
 
+## A18. Exact frame marginals: where border pieces sit across all valid frames · proposed
+
+- **Hypothesis.** Exact per-slot and per-adjacency frequencies over all valid frames (A5 counts 4.05e37 on the official ring) are non-uniform enough that the planted frame's placements rank above chance, beyond what colour rarity already gives, and ordering the border by them shrinks DFS trees.
+- **Borrowed from.** Forward-backward marginals on a transfer matrix (hidden Markov models), applied to the A5 counter. Pieces of the same edge-arc type are interchangeable in M1, so per-piece marginals reduce to per-type marginals divided by the type multiplicity.
+- **Nearest cell.** Belief-propagation ordering and survey propagation (dead ends: signal fades two cells out) and A1 spectral pair statistics (killed: nothing beyond colour rarity). Missing mechanism: exact rather than approximate marginals, restricted to the frame subproblem where they are computable, scored on ground truth.
+- **Cheap test.** Generated 8x8 and 10x10 boards with a planted solution: exact frame marginals, then the rank of each planted placement against a colour-rarity ranking of the same slot, paired per board. If that survives, a border ordering by marginal inside the ladder DFS. The official-ring marginals are computed as a descriptive side result only.
+- **Baseline.** Colour-rarity ranking (the A1 baseline) for recovery; the ladder's strongest propagating DFS with its own border order for nodes.
+- **Kill.** Paired planted-placement rank no better than colour rarity at both sizes (CI including 0), or no significant node reduction on any ladder rung. Most valid frames do not extend to a full solution, so frame-only signal may not transfer; that is the expected failure mode.
+- **Budget.** Under 2 core-hours on reduced boards; a few runs of the A5 counter (about 9 min per prime, 17.5 GiB peak on the official ring) for the descriptive official marginals. No AWS.
+
 ## Parked from the round-1 idea pass
 
 - **Distinguished-point collision detection for local-search walks** (cryptanalysis; van Oorschot and Wiener, J. Cryptology 12(1), 1999). Its premise, that basin rediscovery wastes compute, overlaps A4. A4 then found that parallel tempering already reaches more distinct basins than an explicit diversity archive, so rediscovery is not shown to be the bottleneck; stays parked.
