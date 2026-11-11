@@ -2378,3 +2378,17 @@ renders. Reproducibility: prose (site rendering only, no research numbers
 changed). Source commit 3d8ca74. Files: web/content.config.ts,
 web/scripts/check-research-parity.mjs,
 web/content/research/lab/experiments/{single-core-benchmark,raphael-anjou/jit-backtracker}.{fr,es}.mdx.
+
+## 2026-11-11 · Research program: explored map, agenda, lead procedure
+
+Added `research/program/EXPLORED.md`, a compressed map of what has been
+searched heavily (families, status, where each stopped, page), built from the
+approaches map, dead ends, walls-and-methods, open problems and the lab
+experiments. Added `research/program/AGENDA.md` with seven proposed directions
+outside that map (spectral planted-solution recovery, extreme-value score
+curves, SAT backdoors, quality-diversity over basins, exact frame count with
+corners, colour-chain repair neighbourhoods, set_2 pricing), each with a
+baseline, a kill criterion and a budget. Added `.claude/commands/research-lead.md`,
+the round procedure for a lead session, and an AGENTS.md pointer. No results;
+reproducibility kind: prose. Files: research/program/{EXPLORED,AGENDA}.md,
+.claude/commands/research-lead.md, AGENTS.md, research/LEDGER.md.
