@@ -123,6 +123,7 @@ def main():
             rss_kb, wall, status = time_v(os.path.join(RES, f"official_p{i}.time"))
             o.update({"peak_rss_kb": rss_kb, "wall_seconds": wall, "exit_status": status})
             offs.append(o)
+    crt_agree = None
     if len(offs) == 3:
         o0 = offs[0]
         arcs = [tuple(a) for a in o0["corners"] + o0["edges"]]
@@ -176,13 +177,13 @@ def main():
     else:
         k2_fail = None
     k1_fail = bool(k1_mismatch)
-    if k1_fail or k2_fail:
+    if k1_fail or k2_fail or crt_agree is False:
         outcome = "killed"
     elif finished < 30 or k2_fail is None:
         outcome = "inconclusive"
     else:
         outcome = "survived"
-    out["kill"] = {"K1_disagreement": k1_fail, "K2_memory": k2_fail,
+    out["kill"] = {"K1_disagreement": k1_fail, "K2_memory": k2_fail, "CRT_disagreement": crt_agree is False,
                    "validation_thin": finished < 30, "self_assessed_outcome": outcome}
     json.dump(out, open(os.path.join(RES, "summary.json"), "w"), indent=1)
     print(json.dumps(out["kill"]))
