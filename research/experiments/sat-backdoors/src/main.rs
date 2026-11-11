@@ -196,6 +196,9 @@ fn main() {
     if let Some(dir) = std::path::Path::new(&out).parent() {
         std::fs::create_dir_all(dir).unwrap();
     }
+    if let Some(dir) = std::path::Path::new(&timing).parent() {
+        std::fs::create_dir_all(dir).unwrap();
+    }
     let mut f = std::fs::File::create(&out).unwrap();
     let mut tf = std::fs::File::create(&timing).unwrap();
     for (j, r) in results.into_inner().unwrap().into_iter().enumerate() {
