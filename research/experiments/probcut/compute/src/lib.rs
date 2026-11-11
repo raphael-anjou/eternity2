@@ -67,7 +67,11 @@ pub fn cut_tests(rp: &RungParams, p: f64) -> Vec<CutTest> {
     rp.depths
         .iter()
         .zip(rp.mu.iter().zip(&rp.sigma))
-        .map(|(&d, (&m, &s))| CutTest { filled: d, probe: rp.k + 1, t: m - z * s })
+        .map(|(&d, (&m, &s))| CutTest {
+            filled: d,
+            probe: rp.k + 1,
+            t: m - z * s,
+        })
         .collect()
 }
 
@@ -87,7 +91,15 @@ pub struct FcDfs {
 impl LadderSolver for FcDfs {
     fn solve(&mut self, puzzle: &Puzzle, counter: &mut NodeCounter) -> Outcome {
         let t = Tables::new(puzzle);
-        let mut d = Dfs { b: Board::new(&t, self.fc), c: counter, cuts: Vec::new(), cut_fired: 0, probes: 0, local_left: u64::MAX, rng: None };
+        let mut d = Dfs {
+            b: Board::new(&t, self.fc),
+            c: counter,
+            cuts: Vec::new(),
+            cut_fired: 0,
+            probes: 0,
+            local_left: u64::MAX,
+            rng: None,
+        };
         let st = d.run(0);
         let fit = d.b.fit_tests;
         let out = finish(st, &d).unwrap_or(Outcome::Exhausted);
@@ -102,14 +114,24 @@ pub struct FcLuby {
 }
 
 fn name_hash(s: &str) -> u64 {
-    s.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3))
+    s.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3)
+    })
 }
 
 impl LadderSolver for FcLuby {
     fn solve(&mut self, puzzle: &Puzzle, counter: &mut NodeCounter) -> Outcome {
         let t = Tables::new(puzzle);
         let unit = LUBY_UNIT.load(Ordering::Relaxed);
-        let mut d = Dfs { b: Board::new(&t, true), c: counter, cuts: Vec::new(), cut_fired: 0, probes: 0, local_left: 0, rng: Some((self.seed ^ name_hash(&puzzle.name)) | 1) };
+        let mut d = Dfs {
+            b: Board::new(&t, true),
+            c: counter,
+            cuts: Vec::new(),
+            cut_fired: 0,
+            probes: 0,
+            local_left: 0,
+            rng: Some((self.seed ^ name_hash(&puzzle.name)) | 1),
+        };
         let mut i = 1u64;
         let out = loop {
             d.local_left = unit.saturating_mul(luby(i));
@@ -135,9 +157,24 @@ impl LadderSolver for ProbCut {
     fn solve(&mut self, puzzle: &Puzzle, counter: &mut NodeCounter) -> Outcome {
         let t = Tables::new(puzzle);
         let n = puzzle.width as usize;
-        let rp = PARAMS.get().expect("params loaded").rungs.iter().find(|r| r.n == n).expect("rung params").clone();
+        let rp = PARAMS
+            .get()
+            .expect("params loaded")
+            .rungs
+            .iter()
+            .find(|r| r.n == n)
+            .expect("rung params")
+            .clone();
         let mut info = PassInfo::default();
-        let mut d = Dfs { b: Board::new(&t, true), c: counter, cuts: Vec::new(), cut_fired: 0, probes: 0, local_left: u64::MAX, rng: None };
+        let mut d = Dfs {
+            b: Board::new(&t, true),
+            c: counter,
+            cuts: Vec::new(),
+            cut_fired: 0,
+            probes: 0,
+            local_left: u64::MAX,
+            rng: None,
+        };
         let mut out = Outcome::Exhausted;
         for (pi, &p) in self.schedule.iter().enumerate() {
             d.cuts = cut_tests(&rp, p);
@@ -156,7 +193,11 @@ impl LadderSolver for ProbCut {
         let fit = d.b.fit_tests;
         counter.fit_tests = fit;
         counter.propagation = info.probes;
-        PASS_INFO.lock().expect("lock").get_or_insert_with(HashMap::new).insert(puzzle.name.clone(), info);
+        PASS_INFO
+            .lock()
+            .expect("lock")
+            .get_or_insert_with(HashMap::new)
+            .insert(puzzle.name.clone(), info);
         out
     }
 }
@@ -165,11 +206,44 @@ pub const V1_SCHEDULE: &[f64] = &[0.2, 0.05, 0.01, 0.0];
 pub const V2_SCHEDULE: &[f64] = &[0.05, 0.0];
 
 pub const SOLVERS: &[SolverEntry] = &[
-    SolverEntry { name: "fc-dfs", description: "row-major DFS + forward checking", run_seed: 0, make: |_| Box::new(FcDfs { fc: true }) },
-    SolverEntry { name: "rm-dfs", description: "row-major DFS, no forward checking (equals hp-dfs)", run_seed: 0, make: |_| Box::new(FcDfs { fc: false }) },
-    SolverEntry { name: "fc-luby", description: "fc-dfs + Luby restarts, random value order", run_seed: 1, make: |s| Box::new(FcLuby { seed: s }) },
-    SolverEntry { name: "probcut-v1", description: "fc-dfs + ProbCut, p = 0.2, 0.05, 0.01, 0", run_seed: 0, make: |_| Box::new(ProbCut { schedule: V1_SCHEDULE }) },
-    SolverEntry { name: "probcut-v2", description: "fc-dfs + ProbCut, p = 0.05, 0", run_seed: 0, make: |_| Box::new(ProbCut { schedule: V2_SCHEDULE }) },
+    SolverEntry {
+        name: "fc-dfs",
+        description: "row-major DFS + forward checking",
+        run_seed: 0,
+        make: |_| Box::new(FcDfs { fc: true }),
+    },
+    SolverEntry {
+        name: "rm-dfs",
+        description: "row-major DFS, no forward checking (equals hp-dfs)",
+        run_seed: 0,
+        make: |_| Box::new(FcDfs { fc: false }),
+    },
+    SolverEntry {
+        name: "fc-luby",
+        description: "fc-dfs + Luby restarts, random value order",
+        run_seed: 1,
+        make: |s| Box::new(FcLuby { seed: s }),
+    },
+    SolverEntry {
+        name: "probcut-v1",
+        description: "fc-dfs + ProbCut, p = 0.2, 0.05, 0.01, 0",
+        run_seed: 0,
+        make: |_| {
+            Box::new(ProbCut {
+                schedule: V1_SCHEDULE,
+            })
+        },
+    },
+    SolverEntry {
+        name: "probcut-v2",
+        description: "fc-dfs + ProbCut, p = 0.05, 0",
+        run_seed: 0,
+        make: |_| {
+            Box::new(ProbCut {
+                schedule: V2_SCHEDULE,
+            })
+        },
+    },
 ];
 
 /// The R8 instance: the ladder's generator call and scramble at 8x8, c = 10.
@@ -248,7 +322,8 @@ pub fn stage1_rows(inst: &LadderInstance, depths: &[usize], siblings: bool) -> V
                 let mut v = Vec::new();
                 let mut vc = Vec::new();
                 for j in 0..5 {
-                    let r = count_deeper(&mut b, d, j + 1, u64::MAX, &mut Budget { left: V_BUDGET });
+                    let r =
+                        count_deeper(&mut b, d, j + 1, u64::MAX, &mut Budget { left: V_BUDGET });
                     let (cnt, capped) = match r {
                         Ok(x) => (x, false),
                         Err(x) => (x, true),
@@ -283,4 +358,111 @@ pub fn stage1_rows(inst: &LadderInstance, depths: &[usize], siblings: bool) -> V
         }
     }
     rows
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hard_ladder::registry::find;
+    use hard_ladder::{run_one, verify_board};
+
+    fn inst6(seed: u32) -> LadderInstance {
+        let (puzzle, planted) = generate(6, 5, seed);
+        LadderInstance {
+            id: format!("n6-c5-s{seed}"),
+            ladder: "t".into(),
+            role: "t".into(),
+            n: 6,
+            c: 5,
+            seed,
+            owen_criterion: owen_criterion(6),
+            generator: String::new(),
+            puzzle,
+            planted,
+        }
+    }
+
+    fn params() {
+        let rungs = [6usize, 8]
+            .iter()
+            .map(|&n| RungParams {
+                n,
+                k: 1,
+                depths: vec![n, 2 * n, 3 * n],
+                mu: vec![2.0; 3],
+                sigma: vec![0.5; 3],
+            })
+            .collect();
+        let _ = PARAMS.set(Params {
+            luby_unit: 1000,
+            rungs,
+        });
+    }
+
+    #[test]
+    fn luby_sequence() {
+        let v: Vec<u64> = (1..=15).map(luby).collect();
+        assert_eq!(v, [1, 1, 2, 1, 1, 2, 4, 1, 1, 2, 1, 1, 2, 4, 8]);
+    }
+
+    #[test]
+    fn r8_instances_deterministic_and_planted_verifies() {
+        let a = instance_8c10("test", 3);
+        let b = instance_8c10("test", 3);
+        assert_eq!(
+            serde_json::to_string(&a).unwrap(),
+            serde_json::to_string(&b).unwrap()
+        );
+        assert_eq!((a.n, a.c), (8, 10));
+        verify_board(&a.puzzle, &a.planted).unwrap();
+    }
+
+    #[test]
+    fn rm_dfs_matches_hp_dfs_nodes() {
+        for seed in [1001, 1002, 1003] {
+            let i = inst6(seed);
+            let a = run_one(find(SOLVERS, "rm-dfs").unwrap(), &i, 2_000_000);
+            let b = run_one(find(SOLVERS, "hp-dfs").unwrap(), &i, 2_000_000);
+            assert_eq!(
+                (a.status.as_str(), a.nodes),
+                (b.status.as_str(), b.nodes),
+                "seed {seed}"
+            );
+        }
+    }
+
+    #[test]
+    fn solvers_return_valid_boards() {
+        params();
+        for name in ["fc-dfs", "fc-luby", "probcut-v1", "probcut-v2"] {
+            for seed in [1001, 1004] {
+                let r = run_one(find(SOLVERS, name).unwrap(), &inst6(seed), 2_000_000);
+                assert_eq!(r.status, "solved", "{name} seed {seed}: {:?}", r.error);
+            }
+        }
+    }
+
+    #[test]
+    fn probe_nodes_are_charged() {
+        params();
+        let i = inst6(1001);
+        let pc = run_one(find(SOLVERS, "probcut-v2").unwrap(), &i, 2_000_000);
+        assert!(pc.propagation > 0, "probes recorded");
+        // A cap below the solve cost must stop the run inside the probes or search.
+        let capped = run_one(find(SOLVERS, "probcut-v2").unwrap(), &i, pc.nodes - 1);
+        assert_eq!(
+            (capped.status.as_str(), capped.nodes),
+            ("censored", pc.nodes - 1)
+        );
+    }
+
+    #[test]
+    fn stage1_has_planted_child() {
+        let i = inst6(1001);
+        let rows = stage1_rows(&i, &[6, 12, 18], true);
+        for d in [6, 12, 18] {
+            assert!(rows.iter().any(|r| r.d == d && r.planted), "depth {d}");
+            assert!(rows.iter().filter(|r| r.d == d).all(|r| r.v.len() == 5));
+        }
+    }
 }

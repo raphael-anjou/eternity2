@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 LADDER = os.path.join(ROOT, "..", "hard-ladder")
 sys.path.insert(0, os.path.join(LADDER, "analysis"))
-from analyze import km_quantile, log_ratio, obs, pct, upper_median, wilson  # noqa: E402
+from analyze import INF, km_quantile, log_ratio, obs, pct, upper_median, wilson  # noqa: E402
 
 BOOT_SEED = 20261111
 B = 10_000
@@ -220,9 +220,163 @@ def write_calibration_md(out, params):
     with open(os.path.join(ROOT, "CALIBRATION.md"), "w") as f:
         f.write("\n".join(L))
 
+CANDS = ["probcut-v1", "probcut-v2"]
+ALL = ["scb-gacolor_ac3_random", "hp-dfs", "fc-dfs", "fc-luby"] + CANDS
+FIRST_P = {"probcut-v1": 0.2, "probcut-v2": 0.05}
+
+
+def test_rows(solver, n):
+    if n < 8 and solver in ("scb-gacolor_ac3_random", "hp-dfs"):
+        path = os.path.join(LADDER, "results", "test", "primary", f"{solver}.jsonl")
+    else:
+        path = res("test", "primary" if n < 8 else "8-c10", f"{solver}.jsonl")
+    return sorted((r for r in load(path) if r["n"] == n), key=lambda r: r["seed"])
+
+
+def g1(cand, base):
+    bmap = {r["instance"]: r for r in base}
+    lr = [log_ratio(c, bmap[c["instance"]]) for c in cand]
+    assert all(c["cap"] == bmap[c["instance"]]["cap"] for c in cand)
+    med = upper_median(lr)
+    rng = random.Random(BOOT_SEED)
+    boots = [upper_median([lr[rng.randrange(len(lr))] for _ in lr]) for _ in range(B)]
+    lo, hi = pct(boots, 0.025), pct(boots, 0.975)
+    p1 = sum(b >= 0 for b in boots) / B
+    return {"pairs": len(lr), "median_ratio": None if math.isinf(med) else math.exp(med),
+            "median_log_ratio": None if math.isinf(med) else med,
+            "ci95": [None if math.isinf(lo) else lo, None if math.isinf(hi) else hi],
+            "p_one_sided": p1, "label": label(med, hi)}
+
+
+def label(med, hi):
+    if hi < 0:
+        return "PASS" if math.exp(med) <= 0.5 else "GAIN"
+    return "NO-GAIN"
+
+
+def stats(rows, passes=None):
+    vals = [obs(r) for r in rows]
+    k = sum(r["status"] == "solved" for r in rows)
+    w = sorted(r["wall_ms"] for r in rows)
+    st = {"solved": k, "n": len(rows), "wilson95": wilson(k, len(rows)),
+          "km_q25": km_quantile(vals, 0.25), "km_median": km_quantile(vals, 0.5), "km_q75": km_quantile(vals, 0.75),
+          "median_wall_ms": w[len(w) // 2], "total_wall_s": sum(w) / 1000,
+          "statuses": {s: sum(r["status"] == s for r in rows) for s in sorted({r["status"] for r in rows})}}
+    if passes is not None:
+        st["first_pass_solved"] = sum(p["info"]["solved_in_pass"] == 1 for p in passes)
+        st["passes_used_hist"] = {}
+        for p in passes:
+            key = str(p["info"]["passes_run"])
+            st["passes_used_hist"][key] = st["passes_used_hist"].get(key, 0) + 1
+        st["cuts_fired_total"] = sum(p["info"]["cuts_fired"] for p in passes)
+        st["probes_total"] = sum(p["info"]["probes"] for p in passes)
+    return st
+
+
+def false_cut(n, p):
+    """Fraction of test instances whose planted path fails at least one pass-1 cut test."""
+    params = json.load(open(res("calibration", "params.json")))
+    rp = next(r for r in params["rungs"] if r["n"] == n)
+    rows = load(res("test", "planted-primary-67.jsonl") if n < 8 else res("test", "planted-8-c10.jsonl"))
+    cut = {}
+    for d, m, s in zip(rp["depths"], rp["mu"], rp["sigma"]):
+        for seed, v in planted_v(rows, n, d, rp["k"]).items():
+            cut[seed] = cut.get(seed, False) or v < m - Z[p] * s
+    return sum(cut.values()) / len(cut), len(cut)
+
 
 def cmd_report():
-    raise SystemExit("report: not yet")
+    out = {"rungs": {}, "cap": 1_000_000}
+    for n, c, ladder in RUNGS:
+        rows = {s: test_rows(s, n) for s in ALL}
+        for s in ALL:
+            assert [r["seed"] for r in rows[s]] == list(range(1, 31)), (s, n)
+        ru = {"n": n, "c": c, "ladder": ladder, "solvers": {}}
+        for s in ALL:
+            passes = None
+            if s in CANDS:
+                pf = res("test", "primary" if n < 8 else "8-c10", f"{s}.passes.jsonl")
+                passes = [p for p in load(pf) if p["n"] == n]
+            ru["solvers"][s] = stats(rows[s], passes)
+            if s in CANDS:
+                fr, m = false_cut(n, FIRST_P[s])
+                ru["solvers"][s]["false_cut_rate_pass1"] = fr
+                ru["solvers"][s]["false_cut_instances"] = m
+        ru["G1"] = {s: {b: g1(rows[s], rows[b]) for b in ["scb-gacolor_ac3_random", "fc-dfs", "fc-luby", "hp-dfs"]}
+                    for s in CANDS + ["fc-dfs", "fc-luby"]}
+        # Holm over the two looks vs the verdict baseline
+        ps = sorted(CANDS, key=lambda s: ru["G1"][s]["scb-gacolor_ac3_random"]["p_one_sided"])
+        holm, reject_prev = {}, True
+        for i, s in enumerate(ps):
+            g = ru["G1"][s]["scb-gacolor_ac3_random"]
+            ok = reject_prev and g["p_one_sided"] < 0.025 / (2 - i)
+            reject_prev = ok
+            holm[s] = (("PASS" if g["median_ratio"] is not None and g["median_ratio"] <= 0.5 else "GAIN") if ok else "NO-GAIN")
+        ru["holm_labels"] = holm
+        out["rungs"][n] = ru
+    R = out["rungs"]
+
+    def better_base(n):
+        return min(R[n]["solvers"][b]["km_median"] for b in ("fc-dfs", "fc-luby", "scb-gacolor_ac3_random"))
+
+    def ratio(n):
+        m = R[n]["solvers"]["probcut-v1"]["km_median"]
+        bb = better_base(n)
+        return INF if math.isinf(m) else (0.0 if math.isinf(bb) else m / bb)
+
+    st2_cost = not (ratio(7) <= 0.7 and ratio(8) <= 0.7)
+    st2_first = R[8]["solvers"]["probcut-v1"]["first_pass_solved"] <= 15
+    nogain_all = all(all(R[n]["holm_labels"][s] == "NO-GAIN" for s in CANDS) for n in R)
+    r8_nogain = all(R[8]["holm_labels"][s] == "NO-GAIN" for s in CANDS)
+    r8_pass = any(R[8]["holm_labels"][s] == "PASS" for s in CANDS)
+    s1 = json.load(open(res("calibration", "stage1.json")))["stage1_kill_R8"]
+    own = s1["fires"] or st2_cost or st2_first
+    killed = own or nogain_all or r8_nogain
+    out["kill"] = {"stage1": s1, "stage2_cost": {"fires": st2_cost, "v1_over_better_baseline_km_median": {7: ratio(7), 8: ratio(8)}},
+                   "stage2_first_pass": {"fires": st2_first, "v1_first_pass_solved_R8": R[8]["solvers"]["probcut-v1"]["first_pass_solved"]},
+                   "nogain_all_rungs": nogain_all, "r8_nogain_both": r8_nogain, "r8_pass": r8_pass,
+                   "outcome": "killed" if killed else ("survived" if r8_pass else "promising, needs a variant")}
+    g2 = {}
+    from analyze import cmd_compare
+    import contextlib
+    import io
+    for s in CANDS:
+        dst = res("test", f"g2-{s}-vs-scb.json")
+        with contextlib.redirect_stdout(io.StringIO()):
+            cmd_compare(res("test", "primary", f"{s}.jsonl"), os.path.join(LADDER, "results", "test", "primary", "scb-gacolor_ac3_random.jsonl"), dst)
+        g2[s] = json.load(open(dst))["G2"]
+    out["G2_R6_R7"] = g2
+    with open(res("summary.json"), "w") as f:
+        json.dump(out, f, indent=1, default=lambda x: None)
+    write_results_md(out)
+
+
+def km(v):
+    return "> cap" if math.isinf(v) else f"{v:,.0f}"
+
+
+def write_results_md(out):
+    L = ["| rung | solver | solved (Wilson 95%) | KM q25 / median / q75 nodes | median wall ms | total wall s | first-pass solved | passes used | false-cut rate (pass 1) |",
+         "|---|---|---|---|---|---|---|---|---|"]
+    for n, ru in out["rungs"].items():
+        for s, st in ru["solvers"].items():
+            w = st["wilson95"]
+            fp = f"{st['first_pass_solved']}/30" if "first_pass_solved" in st else ""
+            pu = ", ".join(f"{k}:{v}" for k, v in sorted(st["passes_used_hist"].items())) if "passes_used_hist" in st else ""
+            fc = f"{st['false_cut_rate_pass1']:.2f}" if "false_cut_rate_pass1" in st else ""
+            L.append(f"| {n}x{n} c={ru['c']} | {s} | {st['solved']}/30 ({w[0]:.2f}-{w[1]:.2f}) | {km(st['km_q25'])} / {km(st['km_median'])} / {km(st['km_q75'])} | {st['median_wall_ms']:.1f} | {st['total_wall_s']:.1f} | {fp} | {pu} | {fc} |")
+    L += ["", "| rung | candidate | baseline | median ratio | 95% CI log-ratio | one-sided p | label (unadj.) | Holm label |", "|---|---|---|---|---|---|---|---|"]
+    for n, ru in out["rungs"].items():
+        for s, gs in ru["G1"].items():
+            for b, g in gs.items():
+                ci = ", ".join("inf" if x is None else f"{x:+.2f}" for x in g["ci95"])
+                mr = "inf" if g["median_ratio"] is None else f"{g['median_ratio']:.3f}"
+                hl = ru["holm_labels"].get(s, "") if b == "scb-gacolor_ac3_random" else ""
+                L.append(f"| {n}x{n} | {s} | {b} | {mr} | [{ci}] | {g['p_one_sided']:.4f} | {g['label']} | {hl} |")
+    k = out["kill"]
+    L += ["", "Kill evaluation: " + json.dumps(k, default=lambda x: None), ""]
+    with open(res("RESULTS.md"), "w") as f:
+        f.write("\n".join(L))
 
 
 if __name__ == "__main__":

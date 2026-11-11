@@ -21,7 +21,14 @@ pub struct Tables {
 impl Tables {
     #[must_use]
     pub fn new(p: &Puzzle) -> Self {
-        let nc = p.pieces.iter().flat_map(|e| e.iter()).copied().max().unwrap_or(0) as usize + 1;
+        let nc = p
+            .pieces
+            .iter()
+            .flat_map(|e| e.iter())
+            .copied()
+            .max()
+            .unwrap_or(0) as usize
+            + 1;
         let (mut edges, mut piece, mut rot) = (Vec::new(), Vec::new(), Vec::new());
         for (i, &e0) in p.pieces.iter().enumerate() {
             for r in 0..4u8 {
@@ -40,13 +47,24 @@ impl Tables {
             by_tl[e[0] as usize * nc + e[3] as usize].push(o as u32);
             by_t[e[0] as usize].push(o as u32);
         }
-        Self { w: p.width as usize, h: p.height as usize, nc, edges, piece, rot, by_tl, by_t }
+        Self {
+            w: p.width as usize,
+            h: p.height as usize,
+            nc,
+            edges,
+            piece,
+            rot,
+            by_tl,
+            by_t,
+        }
     }
 
     /// Oriented id of `piece` with edges `e` (planted boards use piece*4+rot).
     #[must_use]
     pub fn oriented(&self, piece: usize, e: [u8; 4]) -> u32 {
-        (0..self.edges.len()).find(|&o| self.piece[o] == piece && self.edges[o] == e).expect("orientation") as u32
+        (0..self.edges.len())
+            .find(|&o| self.piece[o] == piece && self.edges[o] == e)
+            .expect("orientation") as u32
     }
 }
 
@@ -61,7 +79,13 @@ pub struct Board<'a> {
 impl<'a> Board<'a> {
     #[must_use]
     pub fn new(t: &'a Tables, fc: bool) -> Self {
-        Self { t, cells: vec![-1; t.w * t.h], used: vec![false; t.w * t.h], fc, fit_tests: 0 }
+        Self {
+            t,
+            cells: vec![-1; t.w * t.h],
+            used: vec![false; t.w * t.h],
+            fc,
+            fit_tests: 0,
+        }
     }
 
     #[inline]
@@ -78,8 +102,16 @@ impl<'a> Board<'a> {
         out.clear();
         let t = self.t;
         let (x, y) = (pos % t.w, pos / t.w);
-        let top = if y == 0 { BORDER } else { t.edges[self.cells[pos - t.w] as usize][2] };
-        let left = if x == 0 { BORDER } else { t.edges[self.cells[pos - 1] as usize][1] };
+        let top = if y == 0 {
+            BORDER
+        } else {
+            t.edges[self.cells[pos - t.w] as usize][2]
+        };
+        let left = if x == 0 {
+            BORDER
+        } else {
+            t.edges[self.cells[pos - 1] as usize][1]
+        };
         for &o in &t.by_tl[top as usize * t.nc + left as usize] {
             self.fit_tests += 1;
             if !self.used[t.piece[o as usize]] && self.rim_ok(&t.edges[o as usize], x, y, true) {
@@ -91,8 +123,16 @@ impl<'a> Board<'a> {
     fn any_candidate(&mut self, pos: usize) -> bool {
         let t = self.t;
         let (x, y) = (pos % t.w, pos / t.w);
-        let top = if y == 0 { BORDER } else { t.edges[self.cells[pos - t.w] as usize][2] };
-        let left = if x == 0 { BORDER } else { t.edges[self.cells[pos - 1] as usize][1] };
+        let top = if y == 0 {
+            BORDER
+        } else {
+            t.edges[self.cells[pos - t.w] as usize][2]
+        };
+        let left = if x == 0 {
+            BORDER
+        } else {
+            t.edges[self.cells[pos - 1] as usize][1]
+        };
         for &o in &t.by_tl[top as usize * t.nc + left as usize] {
             self.fit_tests += 1;
             if !self.used[t.piece[o as usize]] && self.rim_ok(&t.edges[o as usize], x, y, true) {
@@ -152,7 +192,10 @@ impl<'a> Board<'a> {
 
     #[must_use]
     pub fn ladder_board(&self) -> Vec<i32> {
-        self.cells.iter().map(|&o| (self.t.piece[o as usize] * 4) as i32 + i32::from(self.t.rot[o as usize])).collect()
+        self.cells
+            .iter()
+            .map(|&o| (self.t.piece[o as usize] * 4) as i32 + i32::from(self.t.rot[o as usize]))
+            .collect()
     }
 }
 
@@ -188,7 +231,13 @@ impl Count for Budget {
 /// Number of forward-checked nodes exactly `k` cells below the current
 /// partial board (whose next empty cell is `pos`), stopping once `stop` is
 /// reached. Every placement is charged to `c`. `Err(partial)` = budget exhausted.
-pub fn count_deeper<C: Count>(b: &mut Board, pos: usize, k: usize, stop: u64, c: &mut C) -> Result<u64, u64> {
+pub fn count_deeper<C: Count>(
+    b: &mut Board,
+    pos: usize,
+    k: usize,
+    stop: u64,
+    c: &mut C,
+) -> Result<u64, u64> {
     if k == 0 || pos == b.cells.len() {
         return Ok(u64::from(k == 0));
     }
@@ -200,7 +249,11 @@ pub fn count_deeper<C: Count>(b: &mut Board, pos: usize, k: usize, stop: u64, c:
             return Err(total);
         }
         b.place(pos, o);
-        let sub = if b.forward_ok(pos) { count_deeper(b, pos + 1, k - 1, stop - total, c) } else { Ok(0) };
+        let sub = if b.forward_ok(pos) {
+            count_deeper(b, pos + 1, k - 1, stop - total, c)
+        } else {
+            Ok(0)
+        };
         b.unplace(pos);
         match sub {
             Ok(v) => total += v,
@@ -273,7 +326,11 @@ impl Dfs<'_, '_> {
         let mut cands = Vec::new();
         self.b.candidates(pos, &mut cands);
         let len = cands.len();
-        let off = if self.rng.is_some() && len > 1 { (self.next_rand() % len as u64) as usize } else { 0 };
+        let off = if self.rng.is_some() && len > 1 {
+            (self.next_rand() % len as u64) as usize
+        } else {
+            0
+        };
         for i in 0..len {
             let o = cands[(i + off) % len];
             if self.local_left == 0 {
