@@ -2542,3 +2542,25 @@ DFS) and A21 (value order by propagation impact) added as proposed.
 Reproducibility: deterministic, `just experiments ktam-unassignment`, full
 rerun bit for bit except wall clock. Source commit 617c131 (PR #23). Files:
 research/experiments/ktam-unassignment/, research/program/AGENDA.md.
+
+## 2026-11-11 · Round 2, A16 backdoor-guided branching: killed
+
+Preregistered test on the hard ladder, judged by a separate session. Stage 1
+(root features on A3's 300 boards, labels from A3's backdoors): learned AUC
+0.637 vs fail-first 0.373, but only +0.010 over signed domain size and 0.518
+within interior cells, so the signal is position class plus domain size.
+Stage 2 (seeds 1..20, cap 1e6 nodes): branching first on predicted backdoor
+cells is NO-GAIN against MRV with the same propagation at 6x6 c=5 (node ratio
+8.1 to 17.2), 7x7 c=6 (1/20 vs 15/20) and 8x8 c=10 (1 to 2/20 vs 20/20); K2
+and K3 fire, and the loss holds on nodes without the time guard. Learning:
+backdoor cells are not good first branching cells. Side observation, not
+preregistered: `bb-mrv` (A3 propagation, piece all-different, MRV) beats the
+ladder baseline `scb-gacolor_ac3_random` at all three rungs (8x8 c=10: 20/20
+vs 12/20), so the ladder's calibrated baseline may not be the strongest
+available; a fresh-seed baseline test is the next step. New ladder file
+`8-c10` added. Reproducibility: node counts deterministic,
+`just experiments backdoor-branching` (about 2 h on 8 vCPU; runs stopped by
+the 240 s guard depend on machine speed). Source commit 3c85866 (PR #24).
+Files: research/experiments/backdoor-branching/,
+research/experiments/hard-ladder/instances/8-c10-*.jsonl,
+research/program/AGENDA.md.

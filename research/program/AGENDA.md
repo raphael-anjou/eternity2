@@ -263,7 +263,7 @@ test, scheduled at larger scale), `published`.
 
 - **Result (round 3, [PR #23](https://github.com/raphael-anjou/eternity2/pull/23)).** Killed by an independent judge on the method clause; the mechanism clause did not fire. Run at 6x6 c=5 and 7x7 c=6 first, 1e6 events per instance (one event = one placement or removal). R6 solved/30: ladder DFS `scb-gacolor_ac3_random` 30 (KM median 1,866 events), plain DFS 30, random eviction 19, kTAM detachment (V1) 23, IMS blocker eviction (V2) 27; G1 against the ladder DFS NO-GAIN for both (paired ratios 186 and 100). R7: ladder DFS 10 (16 within 1e6 nodes), every other arm 0. R8 not triggered. V2 beats random eviction at R6 (ratio 0.43, p 0.004; holds over the judge's run seeds 2 to 5 and a matched control), so choosing which piece to remove by its blocking relation carries signal, but without propagation it loses to complete propagating DFS by two orders of magnitude. Exploratory equal-CPU check at R7 (11.8 s per instance): ladder DFS 16/30, V1 and V2 1/30 (lower bounds: most method runs hit their node cap at about 80% of that CPU). Randomised restarts on the ladder DFS were suggested and are not taken up (restart portfolios are saturated in EXPLORED.md). Follow-ups: A19, A20, A21. Experiment: `research/experiments/ktam-unassignment/`.
 
-## A16. Backdoor-guided branching · running
+## A16. Backdoor-guided branching · killed
 
 - **Hypothesis.** A3's small backdoors can be recognised from root features without the solution, and branching on predicted backdoor cells first shrinks DFS trees below dynamic fail-first ordering.
 - **Borrowed from.** Strong backdoors (Williams, Gomes and Selman, IJCAI 2003), via A3.
@@ -271,6 +271,8 @@ test, scheduled at larger scale), `published`.
 - **Cheap test.** Round 2 on the hard-instance ladder.
 - **Kill.** Backdoor-membership AUC not above fail-first with CI above 0, or the ladder's G1 gate fails at 8x8 against the strongest dynamic ordering.
 - **Budget.** A few core-hours.
+
+- **Result (round 2, [PR #24](https://github.com/raphael-anjou/eternity2/pull/24)).** Killed by an independent judge: K1 does not fire but K2 and K3 do. Stage 1: backdoor membership is predicted with test AUC 0.637 against 0.373 for fail-first (Delta +0.264, CI [0.233, 0.295]), but the model adds only +0.010 (CI includes 0) over domain size with the sign learned on training, and within interior cells its AUC is 0.518, so the signal is mostly position class plus domain size. Stage 2 on 20 test seeds per rung: branching first on predicted backdoor cells is NO-GAIN against `bb-mrv` (A3 propagation plus MRV) at every rung; R6 node ratio 17.2 (learned) and 8.1 (impact feature), R7 1/20 solved against 15/20, R8 (8x8 c=10) 1 to 2/20 against 20/20, and the loss holds on nodes alone without the 240 s guard. Side observation, not preregistered: `bb-mrv` beats the ladder baseline `scb-gacolor_ac3_random` at all three rungs (R8 20/20 vs 12/20, KM median 95k vs 468k nodes, faster in wall clock). Next: preregister `bb-mrv` as a ladder baseline candidate on fresh seeds (kill if G1 fails at 8-c10 or the wall-clock ratio against scb is above 1), and if it survives re-baseline A12 and A17 on it. Further backdoor work should use backdoors for decomposition or restarts, not as a first-branch rule. Experiment: `research/experiments/backdoor-branching/`.
 
 ## A17. Cut-multiset feasibility pruning · promoted
 
