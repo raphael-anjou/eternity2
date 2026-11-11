@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments repair-study
 order: 27
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -84,24 +84,25 @@ mejorante. El **reinicio** cambia lo que ocurre una vez que el bucle se estanca.
 ## Lo que el estudio encontró
 
 - **Partir de un tablero sólido obtenido por backtracking gana el estudio
-  entero.** La variante que dedica sus primeros veinte segundos a ejecutar el
-  break-DFS del estudio DFS, y luego repara el tablero de poco más de 440 que
-  resulta, termina la más alta de todas, con una media de 446 (mejor resultado
-  449). La reparación solo añade un puñado de aristas por encima de ese tablero,
-  pero el tablero del que parte vale cien puntos más que una construcción voraz, y
-  eso se propaga hasta el final. Es la división del trabajo construir-y-luego-refinar
-  que emplean los récords, reproducida de principio a fin en un núcleo en un
-  minuto.
-- **Entre las variantes con arranque voraz, la destrucción aleatoria se impone y
-  apuntar a los defectos resulta contraproducente.** Una destrucción ciega a la
-  geometría que levanta doce celdas *aleatorias* termina en una media de 402 (mejor
-  resultado 409) y sigue mejorando bien entrada la ejecución. Todo operador que
-  apunta a las celdas rotas termina por debajo, y cuanto más precisamente se
-  fija, peor lo hace: el ancla de las celdas desapareadas aterriza en 366, una
-  destrucción por componente conexa más grande en 350. Sobre un tablero mediocre
-  hay mejora disponible en todas partes, de modo que explorar vale más que atacar
-  donde ya duele. Eso se invierte en un tablero casi récord, donde los pocos
-  defectos restantes son lo único que queda por corregir.
+  entero.** La variante que dedica sus primeros veinte segundos al DFS con roturas
+  del estudio DFS y luego repara el tablero resultante, en la parte baja de los
+  440, termina la primera de todas, con una media de 446 (mejor 449). La
+  reparación solo añade un puñado de aristas a ese tablero, y sin control de solo
+  DFS esa subida no está separada de un aumento del tiempo de búsqueda; el tablero
+  de partida es mucho mejor que una construcción voraz, y eso se mantiene. Se
+  parece a las cadenas de construir y luego refinar, como la del propio proyecto;
+  los tableros récord de la comunidad salieron de un backtracking tolerante a
+  roturas.
+- **Entre las variantes con arranque voraz, la destrucción aleatoria se impone.**
+  Una destrucción ciega a la geometría que levanta doce celdas *al azar* termina
+  con una media de 402 (mejor 409) y sigue mejorando hasta muy avanzada la
+  ejecución. Todo operador que apunta a las celdas rotas termina por debajo: el
+  ancla de discordancias (unas diez celdas) en 366, una destrucción por componente
+  conexa (unas 28 celdas) en 350. El tamaño del hueco cambia con la focalización,
+  así que la clasificación puede deberse al tamaño y no a la focalización; no se
+  han lanzado controles aleatorios del mismo tamaño. En un tablero cercano al
+  récord, donde las pocas discordancias restantes son lo único que queda por
+  arreglar, la comunidad encontró más valiosos los operadores focalizados.
 - **El tablero de partida fija el suelo.** Una construcción voraz arranca en torno
   a 348; una aleatoria arranca cerca de 18, y aunque el bucle la eleva unos
   espectaculares 308 puntos, aun así termina por debajo de donde el arranque voraz
