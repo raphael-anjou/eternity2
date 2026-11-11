@@ -4,8 +4,8 @@ description: >-
   Fifteen solvers, ours and our implementations of the community's two record
   backtrackers, each run once on ten corner-pinned variants of the official
   puzzle, single thread, 60 seconds per run. Depth-gated-break backtrackers
-  dominate this budget, and on the published rows score follows throughput.
-metaDescription: "Fifteen Eternity II solvers on ten corner-pinned variants, one thread, 60 seconds each. Our Verhaard- and Blackwood-style backtrackers reach a mean near 440 (not separated at n=10), naive DFS 365, the best CSP preset 183; score follows throughput on these rows."
+  dominate this budget; score does not simply follow throughput.
+metaDescription: "Fifteen Eternity II solvers on ten corner-pinned variants, one thread, 60 seconds each. Our Verhaard- and Blackwood-style backtrackers reach a mean near 440 (not separated at n=10), naive DFS 365, the best CSP preset 183; score does not simply follow throughput."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -75,9 +75,10 @@ reaches a mean of **440.8** (best 451) and our Blackwood-style engine **436.4**
 comes close: naive DFS lands at **365.6** at about 274 thousand nodes per
 second, and the best CSP preset at about **183**.
 
-On the rows published here, score is in the same order as throughput: the two
-fastest engines win, and the slower families trail. Throughput is not the whole
-story either. Naive DFS and the two best CSP presets run at the same speed (274
+On the rows published here, the two fast backtrackers win by a wide margin,
+but score does not follow throughput within them: the Blackwood-style engine
+runs faster than the Verhaard-style one and scores slightly lower (the two are
+not separated at n=10). Naive DFS and the two best CSP presets run at the same speed (274
 to 281 thousand nodes per second) and still finish about 180 points apart, so at
 equal throughput the shape of the search decides, and here the plain row scan
 wins. The original grid also ran a beam producer and an ALNS engine; their rows
