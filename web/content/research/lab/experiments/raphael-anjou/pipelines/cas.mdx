@@ -3,7 +3,7 @@ title: CAS
 description: >-
   Place a perfect border ring first, then solve the board inward, shell by
   shell, each ring as one assignment over the pieces that remain.
-metaDescription: "CAS solves Eternity II from the outside in: a perfect 60-piece border ring, then each inner shell as one assignment over the remaining pieces. From 20 perfect frames it plateaus at 429 to 437 of 480, yet beats a destroy-and-repair continuation from the same frames every time."
+metaDescription: "CAS solves Eternity II from the outside in: a perfect 60-piece border ring, then each inner shell as one assignment over the remaining pieces. From 20 perfect frames it plateaus at 429 to 437 of 480, yet beats a destroy-and-repair loop started from the same frames with an empty interior every time."
 kind: experiment
 hardware:
   cores: 8
@@ -39,7 +39,7 @@ stages:
     does: "Rings are solved outside-in, each as one assignment over the remaining pieces (width-1024 per-shell beam; the source runs used a per-shell MIP)"
     published: false
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, local-search]
 related:
@@ -57,8 +57,8 @@ lay a perfect border ring, then solve inward, shell by shell, until the four
 centre cells close the board. I asked whether that outside-in schedule could
 be a record path. It came back with a clean no and a useful yes: from any
 perfect frame the pipeline plateaus in a narrow 429 to 437 band, and from
-that exact starting state it beats a destroy-and-repair continuation on
-every single frame.
+that exact starting state it beats a destroy-and-repair loop on every single
+frame (a weak baseline for a constructive state; see below).
 
 ## How it works
 
@@ -109,16 +109,18 @@ consistency are.
 
 ## Why it stops
 
-The plateau is not a tuning problem, and it is not an objective gap either:
-all 480 edges are in the CAS objective. The mechanism is piece starvation.
-Greedy outer shells lock in pieces by how well they fit outward, and by
-rings 5 to 7 the remaining pool simply no longer contains pieces whose
-colour profiles fit the inward-facing constraints. It is the ring-scale
+The plateau is not an objective gap: all 480 edges are in the CAS objective.
+The conjectured mechanism is piece starvation: greedy outer shells lock in
+pieces by how well they fit outward, and by rings 5 to 7 the remaining pool
+no longer contains pieces whose colour profiles fit the inward-facing
+constraints. The committed results hold per-frame totals only; the per-ring
+mismatch breakdown and the remaining-pool fit have not been measured, so
+this is a hypothesis, not a measured cause. It would be the ring-scale
 version of [piece theft](/research/why/piece-theft): a scarce piece spent
 early, rings before the cell that needed it.
 
-The source volumes tried the obvious rescues, and both confirm the
-diagnosis. A CAS-ALNS hybrid scored 418, worse than CAS alone; an ALNS
+The source volumes tried the obvious rescues, and both are consistent with
+that hypothesis. A CAS-ALNS hybrid scored 418, worse than CAS alone; an ALNS
 refine pass on top of a finished CAS board reached 437 to 439, a lift of a
 few points that stays far below what other pipelines in this notebook reach
 from scratch on the same hardware. For where the community bar sits, see the
@@ -127,16 +129,16 @@ from scratch on the same hardware. For where the community bar sits, see the
 ## What does and does not follow
 
 CAS is two things at once, and both halves are the finding. As a record path
-it is refuted as a greedy schedule: the outside-in order starves its own
-endgame, from any frame. As a sub-problem tool it is the strongest option I
-have measured for one specific state, a perfect frame plus an empty
-interior. Destroy-and-repair operators expect a full board to mutate; handed
-an empty interior they must first build one, badly, while CAS is exactly the
-constructive tool for that state. Which algorithm is right depends on the
-state you start it from; composition matters as much as the components.
-[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) is
-the sibling experiment that keeps the pinned frame but drops the
-ring-by-ring schedule.
+it plateaus as a greedy schedule, from any frame. As a sub-problem tool it
+beats a destroy-and-repair loop started from a perfect frame and an empty
+interior, but that operator expects a full board to mutate and must first
+build one, badly, so the comparison is weak. The stronger comparison is
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister), a
+frame-constrained break-tolerant DFS from the same state, which reports 453
+unhinted and the high 440s to low 450s with the five clues (not yet backed
+by a committed reproduction). So CAS is not the strongest tool measured for
+this state; a same-frame CAS versus break-DFS A/B is still to be run. Which
+algorithm is right depends on the state you start it from.
 
 Three caveats bound the claim. The reproduction pins the five official clue
 pieces; the source pages do not record whether the original runs did. All
@@ -144,9 +146,10 @@ five clues sit in the interior, so the frame arm is unaffected, and pinning
 can only make the reproduction slightly conservative, the safe direction for
 a plateau claim. The baseline arm is a light proxy, so only the direction
 and the every-frame consistency of the gap carry over, not its size. And the
-numbers are properties of the official 16×16 piece set: the mechanism lives
-in rings 5 to 7, which an 8×8 board (4 rings) never reaches, so small-board
-tests can neither confirm nor refute the claim.
+numbers are properties of the official 16×16 piece set. The conjectured
+mechanism lives in rings 5 to 7, which an 8×8 board (4 rings) never reaches,
+but 12×12 and 14×14 boards (6 and 7 rings) do, so framed rungs of those
+sizes are a cheap place to test it.
 
 ## Reproduce
 

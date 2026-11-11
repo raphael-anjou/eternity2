@@ -4,7 +4,7 @@ description: >-
   Poser d'abord une bordure parfaite, puis résoudre le plateau vers
   l'intérieur, anneau par anneau, chaque anneau comme un problème
   d'affectation sur les pièces restantes.
-metaDescription: "CAS résout Eternity II de l'extérieur vers l'intérieur : une bordure parfaite de 60 pièces, puis chaque anneau interne résolu sur les pièces restantes. Depuis 20 cadres parfaits, il plafonne à 429-437 sur 480, et bat à chaque fois une poursuite destruction-réparation partie des mêmes cadres."
+metaDescription: "CAS résout Eternity II de l'extérieur vers l'intérieur : une bordure parfaite de 60 pièces, puis chaque anneau interne résolu sur les pièces restantes. Depuis 20 cadres parfaits, il plafonne à 429-437 sur 480, et bat à chaque fois une boucle destruction-réparation partie des mêmes cadres à intérieur vide."
 kind: experiment
 hardware:
   cores: 8
@@ -40,7 +40,7 @@ stages:
     does: "Les anneaux sont résolus de l'extérieur vers l'intérieur, chacun comme une affectation sur les pièces restantes (beam par anneau de largeur 1024 ; les runs sources utilisaient un MIP par anneau)"
     published: false
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, local-search]
 related:
@@ -60,8 +60,9 @@ quatre cases centrales ferment le plateau. La question posée : cet ordre de
 l'extérieur vers l'intérieur peut-il être un chemin vers les records ? La
 réponse est un non net doublé d'un oui utile : depuis n'importe quel cadre
 parfait, le pipeline plafonne dans une bande étroite de 429 à 437, et depuis
-ce même état de départ il bat une poursuite par destruction-réparation sur
-chacun des cadres, sans exception.
+ce même état de départ il bat une boucle de destruction-réparation sur
+chacun des cadres (une référence faible pour un état constructif ; voir plus
+bas).
 
 ## Fonctionnement
 
@@ -114,18 +115,20 @@ cadre le sont.
 
 ## Pourquoi ça s'arrête
 
-Le plateau n'est pas un problème de réglage, ni un trou dans l'objectif :
-les 480 arêtes sont toutes dans l'objectif de CAS. Le mécanisme est une
-pénurie de pièces. Les anneaux externes, résolus gloutonnement, verrouillent
-les pièces selon leur qualité vers l'extérieur, et aux anneaux 5 à 7 le pool
-restant ne contient tout simplement plus de pièces dont les profils de
-couleurs conviennent aux contraintes tournées vers l'intérieur. C'est la
-version à l'échelle des anneaux du
+Le plateau n'est pas un trou dans l'objectif : les 480 arêtes sont toutes
+dans l'objectif de CAS. Le mécanisme supposé est une pénurie de pièces : les
+anneaux externes, résolus gloutonnement, verrouillent les pièces selon leur
+qualité vers l'extérieur, et aux anneaux 5 à 7 le pool restant ne contient
+plus de pièces dont les profils de couleurs conviennent aux contraintes
+tournées vers l'intérieur. Les résultats archivés ne donnent que les totaux
+par cadre ; ni les désaccords par anneau ni l'adéquation du pool restant
+n'ont été mesurés, c'est donc une hypothèse et non une cause mesurée. Ce
+serait la version à l'échelle des anneaux du
 [vol de pièces](/research/why/piece-theft) : une pièce rare dépensée tôt,
 des anneaux avant la case qui en avait besoin.
 
-Les volumes sources ont tenté les sauvetages évidents, et les deux
-confirment le diagnostic. Un hybride CAS-ALNS score 418, pire que CAS seul ;
+Les volumes sources ont tenté les sauvetages évidents, et les deux vont
+dans le sens de cette hypothèse. Un hybride CAS-ALNS score 418, pire que CAS seul ;
 une passe de raffinement ALNS sur un plateau CAS terminé atteint 437 à 439,
 un gain de quelques points qui reste loin de ce que d'autres pipelines de ce
 carnet atteignent depuis zéro sur le même matériel. Pour situer la barre de
@@ -134,18 +137,19 @@ la communauté, voir la [page des records](/research/records).
 ## Ce qui suit, et ce qui ne suit pas
 
 CAS est deux choses à la fois, et les deux moitiés font le résultat. Comme
-chemin vers les records, il est réfuté en tant qu'ordre glouton : l'ordre de
-l'extérieur vers l'intérieur affame sa propre fin de partie, depuis
-n'importe quel cadre. Comme outil de sous-problème, c'est la meilleure
-option que j'aie mesurée pour un état précis, un cadre parfait plus un
-intérieur vide. Les opérateurs de destruction-réparation attendent un
-plateau complet à muter ; face à un intérieur vide, ils doivent d'abord en
-construire un, mal, tandis que CAS est exactement l'outil constructif de cet
-état. Le bon algorithme dépend de l'état de départ ; la composition du
-pipeline compte autant que ses composants.
-[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) est
-l'expérience sœur qui garde le cadre épinglé mais abandonne l'ordre anneau
-par anneau.
+chemin vers les records, il plafonne en tant qu'ordre glouton, depuis
+n'importe quel cadre. Comme outil de sous-problème, il bat une boucle de
+destruction-réparation lancée depuis un cadre parfait et un intérieur vide,
+mais cet opérateur attend un plateau complet à muter et doit d'abord en
+construire un, mal : la comparaison est donc faible. La comparaison plus
+exigeante est
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister), un
+DFS tolérant aux ruptures contraint par le cadre, parti du même état, qui
+annonce 453 sans indices et le haut des 440 au bas des 450 avec les cinq
+indices (sans reproduction archivée pour l'instant). CAS n'est donc pas le
+meilleur outil mesuré pour cet état ; un A/B CAS contre DFS à ruptures sur
+les mêmes cadres reste à faire. Le bon algorithme dépend de l'état de
+départ.
 
 Trois réserves bornent la conclusion. La reproduction épingle les cinq
 pièces indices officielles ; les pages sources ne disent pas si les runs
@@ -154,10 +158,11 @@ cadre n'est donc pas affecté, et l'épinglage ne peut que rendre la
 reproduction légèrement conservatrice, la direction sûre pour une
 affirmation de plateau. Le bras de référence est un proxy léger : seules la
 direction de l'écart et sa constance sur chaque cadre se transposent, pas sa
-taille. Et les nombres sont des propriétés du jeu de pièces officiel 16×16 :
-le mécanisme vit dans les anneaux 5 à 7, qu'un plateau 8×8 (4 anneaux)
-n'atteint jamais, si bien qu'un test sur petit plateau ne peut ni confirmer
-ni réfuter la conclusion.
+taille. Et les nombres sont des propriétés du jeu de pièces officiel 16×16.
+Le mécanisme supposé vit dans les anneaux 5 à 7, qu'un plateau 8×8
+(4 anneaux) n'atteint jamais, mais que les plateaux 12×12 et 14×14 (6 et
+7 anneaux) atteignent : des barreaux cadrés de ces tailles offrent un test
+peu coûteux.
 
 ## Reproduire
 

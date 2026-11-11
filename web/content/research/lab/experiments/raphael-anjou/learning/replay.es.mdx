@@ -1,10 +1,10 @@
 ---
 title: REPLAY
 description: >-
-  Reconstruir de forma idéntica los tableros estrictos de 460 de la comunidad
-  y descubrir, de paso, la jugada que los solucionadores corrientes no saben
-  hacer: pagar dos desajustes en una misma celda.
-metaDescription: "REPLAY reconstruye exactamente los tableros 460 estrictos de la comunidad, revelando el movimiento que los solucionadores corrientes no pueden hacer: pagar dos desajustes en una sola celda. Una reconstrucción que decodifica cómo se alcanzaron los tableros récord, no solo su puntuación final."
+  Reconstruir de forma idéntica, guiado por el tablero testigo, los tableros
+  estrictos de 460 de la comunidad, y leer en ellos lo que una búsqueda con una
+  rotura por celda no puede representar: celdas con dos desajustes.
+metaDescription: "REPLAY reconstruye exactamente los tableros 460 estrictos de la comunidad, guiado por el tablero testigo. Ambos tienen cuatro o cinco celdas con dos desajustes, fuera del alcance de una búsqueda con una rotura por celda. Que ese límite explique un estancamiento sin guía no lo respaldan las pruebas a igual tiempo."
 kind: experiment
 hardware:
   cores: 8
@@ -18,10 +18,7 @@ hardware:
   measured: false
 contribution: reconstruction
 author: raphael-anjou
-score: 460
 outcome: plateaued
-scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "DFS con una cola exacta de 14 celdas; 8 hilos, cadencia de reinicio de 5 s, presupuesto por testigo"
   space: "acotado por la frontera del DFS más el marco fijo y la programación del testigo"
@@ -32,7 +29,7 @@ complexity:
 repro:
   kind: seeded
 order: 50
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, learning]
 related:
@@ -53,14 +50,14 @@ import { DoubleBreakLab } from "@/components/research/DoubleBreakLab";
 
 REPLAY cierra el [estudio](/research/lab/experiments/raphael-anjou/learning) con una
 forma de aprendizaje distinta. Cada experimento anterior extraía una *estadística* del
-corpus completo; REPLAY aprende de un *solo* tablero, y aprende justo lo que una
-estadística no puede mostrar: la jugada exacta que un récord empleó y que nuestra
-búsqueda no sabía hacer. Los tableros públicos totalmente pistados que sirvieron de
-patrón a este proyecto llegan a 460 (el récord comunitario ha avanzado desde entonces
-hasta 465), pero la propia búsqueda con roturas permitidas de este proyecto se estancaba
-en 457 o 458, pasara lo que pasara. REPLAY se propuso reproducir esos tableros de 460 de
-forma idéntica, pieza a pieza, para aprender qué hacían que nuestra búsqueda no sabía
-hacer. La respuesta resultó ser una única jugada que había pasado inadvertida.
+corpus completo; REPLAY aprende de un *solo* tablero, y busca en él lo que una
+estadística no muestra: una jugada presente en un tablero récord que una búsqueda con
+una rotura por celda no puede representar. Los tableros públicos totalmente pistados que
+sirvieron de patrón a este proyecto llegan a 460 (los récords posteriores están en la
+[página de récords](/research/records)), mientras que la propia búsqueda con roturas
+permitidas de este proyecto se estancaba en 457 o 458. REPLAY se propuso reproducir esos
+tableros de 460 de forma idéntica, pieza a pieza, para ver qué contienen que nuestra
+búsqueda no producía.
 
 ## Cómo funciona
 
@@ -71,8 +68,9 @@ un buen tablero conocido usó de verdad pasan por delante de las que parecen má
 Con esos dos cambios puede recorrer el mismo camino que tomó el tablero testigo.
 
 Reproducidos de esta manera, los tableros de 460 de la comunidad se reconstruyen de
-forma idéntica, cada pieza en su sitio, y la puntuación cuadra. La reproducción es la
-prueba de que el ingrediente que faltaba era real.
+forma idéntica, cada pieza en su sitio, y la puntuación cuadra. Esto muestra que los
+testigos son alcanzables una vez conocida la respuesta; no dice cómo los encontraría una
+búsqueda sin guía.
 
 <Figure collapsible title="Interactivo: las celdas de doble rotura">
   <DoubleBreakDiagram />
@@ -84,15 +82,17 @@ prueba de que el ingrediente que faltaba era real.
 
 ## El resultado
 
-Ambos tableros estrictos de 460 de la comunidad se reproducen exactamente hasta 460. El
-hallazgo: cada uno contiene cuatro o cinco celdas que pagan dos desajustes a la vez. Una
-búsqueda que solo permite un desajuste por celda literalmente no puede alcanzar esos
-tableros, y eso es exactamente por lo que las ejecuciones anteriores del proyecto se
-saturaban en 457 a 458. Permitir la doble rotura eleva la escala estricta hasta 460.
+Ambos tableros estrictos de 460 de la comunidad se reproducen exactamente hasta 460.
+Cada uno contiene cuatro o cinco celdas con dos aristas en desajuste, así que un motor
+limitado a una rotura por celda no puede representarlos. Eso se lee directamente en los
+tableros; la reproducción añade que, con el testigo como prior, un motor con dos roturas
+por celda los reconstruye de forma idéntica.
 
-Es una explicación nítida de un estancamiento de larga data y una advertencia: una regla
-de apariencia razonable (una rotura por celda) vedaba en silencio el acceso a los mismos
-tableros que perseguíamos.
+Que ese límite explique el estancamiento sin guía en 457 a 458 no está respaldado. A
+igual tiempo de reloj, un motor con dos roturas por celda empata con el de una (véanse
+los [callejones sin salida](/research/build/dead-ends#ampliar-el-vocabulario-de-las-discordancias)), y
+las celdas de doble rotura de los tableros comunitarios parecen venir de reparaciones por
+búsqueda local, no de una pasada en profundidad.
 
 ## Método
 
@@ -114,14 +114,16 @@ restringido.
 
 Ejecutados sobre un marco fijo de 460, 8 hilos, una cadencia de reinicio de 5 segundos y
 un presupuesto por ejecución, ambos testigos estrictos de 460 de la comunidad se
-reconstruyen pieza a pieza y la puntuación cuadra: la reproducción *es* la prueba de que
-el ingrediente que faltaba era la doble rotura.
+reconstruyen pieza a pieza y la puntuación cuadra. Como la ordenación la dirige el
+propio testigo, esto prueba suficiencia con un oráculo, no dice nada de la búsqueda sin
+guía.
 
 **El hallazgo.** Cada testigo contiene cuatro o cinco celdas que pagan dos desajustes a
-la vez. Una búsqueda limitada a una rotura por celda no puede representar esos tableros, y
-es precisamente por eso que las ejecuciones anteriores del proyecto, tolerantes a roturas,
-se saturaban en 457-458. Es un resultado de completitud de búsqueda disfrazado de intento
-de récord: el muro estaba en el conjunto de jugadas, no en el cómputo.
+la vez, así que una búsqueda limitada a una rotura por celda no puede representar esos
+tableros concretos. De ahí no se sigue que el límite fuera lo que retenía las ejecuciones
+sin guía del proyecto en 457-458: el A/B a igual tiempo de la
+[página de callejones sin salida](/research/build/dead-ends#ampliar-el-vocabulario-de-las-discordancias)
+no midió ninguna ganancia con el conjunto de jugadas ampliado.
 
 ## Reproducir
 
@@ -136,7 +138,7 @@ previsto un directorio de apoyo ejecutable que entregue ambos.
 
 ## Preguntas abiertas
 
-¿Permitir dos roturas por celda abre una vía hacia 461 y más allá, o solo hacia los 460
-conocidos? ¿Existen tableros que necesiten una triple rotura? ¿Y se pueden predecir las
+¿Permitir dos roturas por celda abre, en una búsqueda sin guía, una vía hacia 461 y más
+allá, o solo hacia los 460 conocidos cuando se le dan? ¿Existen tableros que necesiten una triple rotura? ¿Y se pueden predecir las
 celdas de doble rotura a partir de un tablero parcial en lugar de descubrirlas por
 reproducción?

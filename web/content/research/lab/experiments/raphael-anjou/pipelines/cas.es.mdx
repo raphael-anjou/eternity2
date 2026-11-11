@@ -4,7 +4,7 @@ description: >-
   Colocar primero un borde perfecto y resolver el tablero hacia adentro,
   anillo por anillo, cada anillo como un problema de asignación sobre las
   piezas restantes.
-metaDescription: "CAS resuelve Eternity II de fuera hacia dentro: un borde perfecto de 60 piezas y luego cada anillo interior resuelto sobre las piezas restantes. Desde 20 marcos perfectos se estanca en 429-437 de 480, y vence siempre a una continuación de destrucción y reparación desde los mismos marcos."
+metaDescription: "CAS resuelve Eternity II de fuera hacia dentro: un borde perfecto de 60 piezas y luego cada anillo interior resuelto sobre las piezas restantes. Desde 20 marcos perfectos se estanca en 429-437 de 480, y vence siempre a un bucle de destrucción y reparación iniciado desde los mismos marcos con el interior vacío."
 kind: experiment
 hardware:
   cores: 8
@@ -40,7 +40,7 @@ stages:
     does: "Los anillos se resuelven de fuera hacia dentro, cada uno como una asignación sobre las piezas restantes (beam por anillo de anchura 1024; las ejecuciones fuente usaban un MIP por anillo)"
     published: false
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, local-search]
 related:
@@ -59,8 +59,9 @@ hacia adentro, anillo por anillo, hasta que las cuatro casillas centrales
 cierran el tablero. La pregunta era si ese orden de fuera hacia dentro podía
 ser un camino hacia los récords. La respuesta fue un no rotundo junto a un
 sí útil: desde cualquier marco perfecto el pipeline se estanca en una banda
-estrecha de 429 a 437, y desde ese mismo estado inicial vence a una
-continuación de destrucción y reparación en todos y cada uno de los marcos.
+estrecha de 429 a 437, y desde ese mismo estado inicial vence a un bucle de
+destrucción y reparación en todos y cada uno de los marcos (una referencia
+débil para un estado constructivo; véase más abajo).
 
 ## Cómo funciona
 
@@ -112,17 +113,20 @@ dirección y su consistencia en cada marco sí lo son.
 
 ## Por qué se detiene
 
-La meseta no es un problema de ajuste, ni un hueco en el objetivo: las 480
-aristas están todas en el objetivo de CAS. El mecanismo es escasez de
-piezas. Los anillos exteriores, resueltos con avidez, fijan las piezas según
-lo bien que encajan hacia fuera, y en los anillos 5 a 7 el conjunto restante
-sencillamente ya no contiene piezas cuyos perfiles de color encajen con las
-restricciones orientadas hacia dentro. Es la versión a escala de anillos del
+La meseta no es un hueco en el objetivo: las 480 aristas están todas en el
+objetivo de CAS. El mecanismo conjeturado es escasez de piezas: los anillos
+exteriores, resueltos con avidez, fijan las piezas según lo bien que encajan
+hacia fuera, y en los anillos 5 a 7 el conjunto restante ya no contiene
+piezas cuyos perfiles de color encajen con las restricciones orientadas
+hacia dentro. Los resultados publicados solo guardan totales por marco; no se
+han medido los desajustes por anillo ni el encaje del conjunto restante, así
+que es una hipótesis y no una causa medida. Sería la versión a escala de
+anillos del
 [robo de piezas](/research/why/piece-theft): una pieza escasa gastada
 pronto, anillos antes de la casilla que la necesitaba.
 
-Los volúmenes fuente probaron los rescates obvios, y ambos confirman el
-diagnóstico. Un híbrido CAS-ALNS puntuó 418, peor que CAS solo; una pasada
+Los volúmenes fuente probaron los rescates obvios, y ambos son coherentes
+con esa hipótesis. Un híbrido CAS-ALNS puntuó 418, peor que CAS solo; una pasada
 de refinamiento ALNS sobre un tablero CAS terminado llegó a 437-439, una
 mejora de unos pocos puntos que queda muy por debajo de lo que otros
 pipelines de este cuaderno alcanzan desde cero en el mismo hardware. Para
@@ -132,18 +136,18 @@ situar el listón de la comunidad, véase la
 ## Qué se sigue de esto, y qué no
 
 CAS es dos cosas a la vez, y ambas mitades son el hallazgo. Como camino
-hacia los récords queda refutado en cuanto orden voraz: el orden de fuera
-hacia dentro deja sin piezas a su propio final de partida, desde cualquier
-marco. Como herramienta de subproblema es la mejor opción que he medido para
-un estado concreto, un marco perfecto más un interior vacío. Los operadores
-de destrucción y reparación esperan un tablero completo que mutar; ante un
-interior vacío primero tienen que construir uno, y lo hacen mal, mientras
-que CAS es exactamente la herramienta constructiva de ese estado. Qué
-algoritmo conviene depende del estado de partida; la composición del
-pipeline importa tanto como sus componentes.
-[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister) es el
-experimento hermano que conserva el marco fijado pero abandona el orden
-anillo por anillo.
+hacia los récords se estanca en cuanto orden voraz, desde cualquier marco.
+Como herramienta de subproblema vence a un bucle de destrucción y reparación
+iniciado desde un marco perfecto y un interior vacío, pero ese operador
+espera un tablero completo que mutar y primero tiene que construir uno, mal,
+así que la comparación es débil. La comparación exigente es
+[CLOISTER](/research/lab/experiments/raphael-anjou/pipelines/cloister), un
+DFS tolerante a roturas restringido por el marco desde el mismo estado, que
+reporta 453 sin pistas y de la parte alta de los 440 a la baja de los 450
+con las cinco pistas (aún sin reproducción publicada). CAS no es, pues, la
+mejor herramienta medida para ese estado; falta un A/B de CAS frente a DFS
+con roturas sobre los mismos marcos. Qué algoritmo conviene depende del
+estado de partida.
 
 Tres salvedades acotan la conclusión. La reproducción fija las cinco piezas
 pista oficiales; las páginas fuente no registran si las ejecuciones
@@ -152,10 +156,11 @@ brazo del marco no se ve afectado, y fijarlas solo puede hacer la
 reproducción ligeramente conservadora, la dirección segura para una
 afirmación de meseta. El brazo de referencia es un proxy ligero: solo la
 dirección de la diferencia y su consistencia en cada marco se trasladan, no
-su tamaño. Y los números son propiedades del juego de piezas oficial 16×16:
-el mecanismo vive en los anillos 5 a 7, que un tablero 8×8 (4 anillos) nunca
-alcanza, de modo que una prueba en tablero pequeño no puede confirmar ni
-refutar la conclusión.
+su tamaño. Y los números son propiedades del juego de piezas oficial 16×16.
+El mecanismo conjeturado vive en los anillos 5 a 7, que un tablero 8×8
+(4 anillos) nunca alcanza, pero que los tableros 12×12 y 14×14 (6 y
+7 anillos) sí alcanzan: escalones con marco de esos tamaños son un banco de
+prueba barato.
 
 ## Reproducir
 
