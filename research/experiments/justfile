@@ -100,6 +100,24 @@ bandsaw rung_ms="15000" label_ms="1500":
         --entry /tmp/bandsaw_entry.json --rung-ms {{rung_ms}} --label-ms {{label_ms}} \
         | tee bandsaw/results/bracket.json
 
+# HARD-LADDER: planted n = 6..10 instances at Owen one-expected-solution
+# colour counts; calibrates the baseline DFS and measures its node curves.
+# stage: all (about 30 min on 8 vCPU) | check | calibrate | test | analyze.
+hard-ladder stage="all":
+    hard-ladder/run.sh {{stage}}
+
+# CUT-MULTISET-PRUNING: Hall matching of frontier cells against unused pieces
+# on top of the hard-ladder best baseline, rungs 6x6 c=5, 7x7 c=6, 8x8 c=10.
+# stage: all (about 15 min on 8 vCPU) | check | calibrate | test | analyze.
+cut-multiset-pruning stage="all":
+    cut-multiset-pruning/run.sh {{stage}}
+
+# PROBCUT: calibrated statistical cutoffs (ProbCut) on the hard ladder.
+# Stage 1 on calibration seeds, then all solvers on R6 (6x6 c=5), R7 (7x7 c=6),
+# R8 (8x8 c=10) test seeds. About 5 min on 8 vCPU. See probcut/README.md.
+probcut:
+    probcut/run.sh
+
 # A5: exact count of official frame placements with the corner constraint.
 # M1 = transfer matrix over edge-type multisets (Rust), validated on 45
 # generated reduced rings against M3 = brute force (Rust, node-capped) and
