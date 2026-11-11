@@ -213,7 +213,7 @@ research-permutation-code-wall:
 # optimisation of the bottom band vs the producer's own tail; delta distribution
 # across producer seeds, incoming-break cap 1 vs 2).
 research-exact-tail-endgame:
-    cd research/topics/exact-tail-endgame/compute && uv run tailforge.py --seeds 24 --rows 1,2 --caps 1,2 --band-seeds 1:24,2:4 --time-limit 45 --workers 8 --out ../results/tailforge.json
+    cd research/topics/exact-tail-endgame/compute && uv run tailforge.py --seeds 24 --rows 1,2 --caps 1,db1,none --band-seeds 1:24,2:4 --time-limit 45 --workers 8 --out ../results/tailforge.json
 
 # Reproduce the flux-invariants topic's results (official-instance facts, the
 # flux-law complex/real/F2 ranks + census orthogonality, and the mod-2 endgame

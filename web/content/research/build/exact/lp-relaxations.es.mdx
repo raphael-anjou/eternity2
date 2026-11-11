@@ -4,15 +4,17 @@ description: >-
   Escribe Eternity II como un programa entero, abandona la integralidad, y un
   solucionador lineal alcanza error cero en segundos, con un 30 % de una pieza y
   un 20 % de otra compartiendo una esquina. Dieciocho años de campañas
-  comunitarias midieron dónde termina la comodidad fraccionaria: una meseta de
-  420–440 aristas en cuanto las piezas deben ser enteras, un muro PLE ya en el
-  8×8, y un récord académico de 461 en una hora. Lo que enseña el camino del
+  comunitarias midieron dónde termina la comodidad fraccionaria: un intento de
+  2009 de imponer la integralidad con una penalización cuadrática se estancó
+  en 420–440 aristas, los programas enteros exactos se detienen hacia el 8×8
+  (10×10 con pocos colores), y una heurística que usa MILP como componente
+  llegó a 461 en 2012. Lo que enseña el camino del
   optimizador, y dónde el LP sigue ganándose su lugar.
-metaDescription: "Eternity II como programa entero: relaja la integralidad y el LP alcanza error cero en segundos sobre piezas fraccionarias, pero forzar piezas enteras hunde la puntuación a 420-440 aristas, con un muro PLE ya en el 8x8. La cota LP ~478 es demasiado floja para certificar; la asignación sí compensa."
+metaDescription: "Eternity II como programa entero: relajado, el LP alcanza error cero en segundos con piezas fraccionarias. Una penalización de integralidad de 2009 se estancó en 420-440 aristas, la PLE exacta se detiene hacia el 8x8 y las cotas LP condicionales cerca de 478 no certifican nada."
 kind: concept
 order: 160
 group: Exact methods
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: "La formulación de clique máximo: 262 144 vértices de colocación, encontrar un clique de 256 (groups.io message 627, 2007)"
@@ -51,6 +53,7 @@ related:
   - /research/why/rigidity-wall
   - /research/build/dead-ends
   - /research/build/exact/sat-csp-encodings
+  - /research/why/design-recipe
   - /research/build/reduce/alldiff-regin
   - /research/records
 repro:
@@ -72,10 +75,11 @@ La comunidad recorrió este camino una y otra vez entre 2007 y 2025, con
 solucionadores que iban desde `glpsol` hasta CPLEX pasando por Newton–Raphson
 hechos a mano, y el resultado se midió con precisión suficiente para merecer una
 página: la relajación se resuelve rápido y reporta un tablero casi perfecto,
-hecho de fracciones de piezas. Fuerza las piezas a ser enteras y la puntuación
-se desploma sobre una meseta en torno a 420–440 de 480 aristas. La brecha entre
-el óptimo fraccionario y el entero no es un tecnicismo. Es exactamente el lugar
-donde vive el puzzle.
+hecho de fracciones de piezas. Un intento de 2009 de forzar piezas enteras con
+una penalización cuadrática se estancó en 420–440 de 480 aristas, y los
+programas enteros exactos se detienen hacia el 8×8. La brecha entre el óptimo
+fraccionario y el entero no es un tecnicismo: es donde la restricción de
+integralidad hace su trabajo.
 
 ## La formulación
 
@@ -198,7 +202,7 @@ objetivo de costura en mínimo-de-sumas lo que arrastra el óptimo fuera de
 los vértices enteros. La mitad de asignación del modelo nunca fue el
 problema.
 
-## La meseta medida
+## Las campañas medidas
 
 Cada pocos años alguien nuevo recorría el camino, con mejores solucionadores y
 más memoria, y chocaba con los mismos tres muros: la PLE completa es irresoluble
@@ -227,13 +231,15 @@ recuentos de aristas direccionales se equilibran, cayeron ante `glpsol` en cinco
 segundos en 2007 y ante CPLEX en milisegundos en 2012. Cuando la estructura
 entera es genuinamente fácil, el solucionador lo dice de inmediato; el silencio
 del puzzle completo es un veredicto, no un problema de herramientas. Segundo,
-los números de la meseta coinciden a través de maquinarias totalmente
-distintas: los 420–440 de Benjamin por LP penalizado, las 200–224 piezas
-colocadas sin desajuste de Munjak por asignación iterada, los 461 del grupo
-Wauters con una hora de reparación metaheurística por encima. Todo lo que tiene
-forma de optimizador aterriza en la misma banda de los 400 y pico que la
-[búsqueda local](/research/build/local-search/local-search-alns) simple alcanza
-sin ningún LP en absoluto. Tercero, el artículo de 2017, el tratamiento
+los puntos de parada no forman una banda. Los 420–440 de Benjamin son el
+número de aristas donde un sistema de penalización no convexo se estancó bajo
+un solucionador local de tipo Newton: una propiedad de ese solucionador, no de
+la integralidad, ya que la
+[búsqueda local](/research/build/local-search/local-search-alns) con piezas
+enteras llega a los 460. Las 200–224 de Munjak cuentan piezas colocadas sin
+desajuste, otra unidad. Los 461 del grupo Wauters salen de una
+hiperheurística, no de un método LP. Lo que comparten las campañas es el muro
+de la resolución exacta, no una puntuación. Tercero, el artículo de 2017, el tratamiento
 académico más sólido, con tanto una formulación MILP como una de Max-Clique,
 concede la intratabilidad en su resumen y pivota hacia usar las formulaciones
 *dentro* de heurísticas. Los propios constructores del camino pusieron la señal
@@ -250,12 +256,14 @@ Un hecho de la literatura merece un sitio junto a la tabla. El tratamiento
 académico más sólido, el artículo MILP + Max-Clique de 2017, solo resuelve
 instancias enteras hasta aproximadamente 7×7 u 8×8 y nunca reporta una cota de
 relajación LP para la instancia 16×16
-([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). Hasta donde llega el
-registro público, nadie ha publicado una cota LP o MILP válida por debajo de
-480 para el Eternity II completo. Los valores de 477 a 479 medidos más abajo
-son *condicionales* (asumen un borde fijado), así que la pregunta
-incondicional sigue abierta: probar cualquier cota válida por debajo de 480
-mediante relajación convexa sería algo nuevo.
+([arXiv:1709.00252](https://arxiv.org/abs/1709.00252)). No puede existir
+ninguna cota incondicional válida por debajo de 480: el puzzle se
+[construyó a partir de una solución](/research/why/design-recipe), así que su
+óptimo entero es 480 (con o sin las cinco pistas, sacadas de esa solución), y
+toda relajación válida devuelve al menos eso. Una cota solo informa cuando se
+condiciona a un borde o una región fijados, y solo para bordes que no admiten
+ningún completado perfecto. Los valores de 477 a 479 medidos más abajo son
+cotas condicionales de ese tipo.
 
 ## Replantear el puzzle sobre los lados de las piezas
 
@@ -285,13 +293,13 @@ entera. El LP mantiene 480 factible poniendo cada pieza parcialmente en sus
 cuatro rotaciones a la vez, el gemelo a nivel de lados de la esquina con
 «30 % pieza 1» de arriba.
 
-Así que el libro de cuentas de los colores cuadra perfectamente en cada nivel
-de la relajación que pudimos permitirnos, y una cota que se clava en el
-máximo es un resultado negativo de un tipo concreto y útil: localiza la
-dureza. Nada en «qué lados pueden emparejarse con cuáles» obstruye un 480. La
-obstrucción vive por entero en lo que estas relajaciones no ven, que cada
-pieza ocupa una celda entera y que el emparejamiento debe tenderse plano como
-una malla 16×16. El mismo veredicto que el modelo celda-pieza, alcanzado
+Así que el libro de cuentas de los colores cuadra en cada nivel de la
+relajación que pudimos permitirnos. Eso es forzoso más que informativo: el
+puzzle tiene solución, así que toda relajación incondicional válida debe
+devolver 480. Lo que sí muestran estos cálculos es *cómo* llegan ahí las
+relajaciones, cubriendo emparejamientos y rotaciones con fracciones, el
+comportamiento que las deja flojas en cuanto se fija un borde y un completado
+perfecto puede dejar de existir. El mismo veredicto que el modelo celda-pieza, alcanzado
 desde la dirección opuesta.
 
 Tres mediciones posteriores cierran del todo la cuestión del suministro.
@@ -326,6 +334,11 @@ los separa de forma demostrada.
 
 ## Condicionar la cota a un borde
 
+Las cifras de LP condicional de esta sección y de la siguiente son mediciones
+de cuaderno; su script y sus resultados aún no están publicados en
+`research/topics`, así que deben leerse como observaciones registradas, no
+como resultados reproducibles.
+
 La cota incondicional se clava en el techo, así que la condicionamos. Fija
 un borde completo (las 60 piezas del perímetro) y resuelve la relajación
 LP sobre las 196 celdas interiores: el óptimo es una cota superior válida
@@ -358,9 +371,9 @@ cota condicional, entre 2 y 5,5 puntos. Trece ensayos de una sola semilla
 son un boceto, no un teorema. Y proyectar el borde del tablero comunitario
 de 469 aristas a la convención de cinco pistas (superponer las cinco
 pistas, recolocar las piezas desplazadas) *baja* su techo condicional a
-477, un punto por debajo del borde de nuestro tablero de 458: un indicio
-estructural, no una prueba, de que el techo con cinco pistas podría estar
-por debajo del techo sin pistas.
+477, un punto por debajo del borde de nuestro tablero de 458. Eso compara
+dos bordes concretos; no dice nada de las convenciones mismas, cuyos techos
+son ambos 480.
 
 ### Dónde vive la brecha
 
@@ -370,18 +383,17 @@ borde), 56 costuras borde-interior y 364 costuras interior-interior, con
 un máximo combinatorio de $60 + 56 + 364 = 480$. Muchos bordes distintos
 presentan el mismo multiconjunto de demandas de color hacia el interior,
 y por eso tantos comparten un mismo valor LP. En el borde del tablero de
-458, la descomposición se lee $478 = 60 + 54{,}02 + 363{,}98$. Léela
-despacio: la parte interior-interior es esencialmente *ajustada*, el LP
-concede solo 0,02 de las 364 costuras interiores; toda la pérdida contra
-el máximo se asienta en la costura borde-interior. El veredicto del LP
-sobre este borde: 2 de sus 56 costuras hacia el interior son
-estructuralmente inemparejables por cualquier completado interior. El
-propio tablero deja 4 sin emparejar, así que como mucho 2 son
-teóricamente reparables, una subida máxima dentro del borde de +2, hasta
-460. Probamos ese margen una vez: una re-resolución entera exacta
+458, la descomposición se lee $478 = 60 + 54{,}02 + 363{,}98$. Léela con
+cautela: en esta solución LP óptima la parte interior-interior está casi
+llena, a 0,02 de las 364 costuras, y la pérdida se asienta en la costura
+borde-interior. Ese reparto pertenece a un vértice óptimo de un LP grande y
+degenerado, no a la cota. Otro óptimo puede repartir la misma pérdida de otro
+modo, así que no identifica costuras inemparejables concretas, y la cota solo
+limita el total a 478, lo que deja hasta +20 sobre el tablero de 458. Sondeamos
+una vez la parte baja de ese tablero: una re-resolución entera exacta
 liberando 84 celdas (el perímetro inferior más las cinco filas interiores
-inferiores; 30 minutos, un solucionador, una ejecución) devolvió delta 0.
-O el +2 no es factible en enteros, o necesita una ventana mayor.
+inferiores; 30 minutos, un solucionador, una ejecución) devolvió delta 0. Esa
+ventana es óptima para sus piezas; si una mayor ayuda sigue abierto.
 
 Un segundo borde intercambia en sentido contrario: su descomposición es
 $477 = 60 + 54{,}17 + 362{,}83$, algo más de margen borde-interior pero
@@ -405,19 +417,22 @@ entera exacta de la unión de todos sus grupos de fallos (28 celdas
 liberadas) prueba que no existe mejora local: delta 0 en 0,46 segundos.
 Las tres descomposiciones se alinean como
 $478 = 60 + 54{,}02 + 363{,}98$, $477 = 60 + 54{,}17 + 362{,}83$ y
-$479 = 60 + 55{,}48 + 363{,}52$, y la brecha LP-entero por tablero se lee
+$479 = 60 + 55{,}48 + 363{,}52$, y la brecha LP-mejor tablero (la cota menos el mejor tablero
+encontrado, no menos el óptimo entero desconocido de ese borde) se lee
 20, 20 y 22: casi constante en todos los bordes probados (479 es también
 el techo más alto visto en 18 LP condicionales sobre bordes diversos). La
 cota condicional *ordena* los bordes por estructura, pero no predice qué
-borde da el mejor tablero de piezas enteras; el borde con techo 479 está
-bloqueado en enteros más abajo que el de techo 478. El mecanismo es el de
+borde da el mejor tablero de piezas enteras: el mejor tablero encontrado en el
+borde con techo 479 queda más bajo que en el de techo 478, y ni ocho semillas
+de una hora de búsqueda local ni una re-resolución exacta de 28 celdas lo
+mejoraron. El mecanismo es el de
 la página: el margen extra es holgura de cobertura fraccionaria, y un
 techo más alto solo significa que el libro de cuentas de colores está
 *más cerca* de cuadrar, no que algún tablero entero lo realice. Una
-conjetura merece escribirse como conjetura: el borde de un tablero
-perfecto debe tener cota condicional exactamente 480, ambas partes al
-máximo a la vez, y el borde de 479 muestra que el LP se queda a uno de esa
-condición necesaria.
+condición necesaria se sigue en una línea de LP $\ge$ PLE: un borde que
+admite un tablero perfecto tiene cota condicional exactamente 480. Todos los
+bordes medidos aquí la incumplen, así que cada uno queda certificado sin
+completado perfecto; el de 479 se queda a uno.
 
 Una última cautela al leer estas descomposiciones: las asignaciones LP por
 color **no** son cotas por color. En el tablero de 458, el recuento entero
@@ -512,10 +527,9 @@ no teoremas.
   genuinamente barato de la página.
 - **La PLE: NP-difícil, y no de forma abstracta.** La ramificación y acotación
   es backtracking con una cota LP en cada nodo: exponencial en el peor caso, y
-  una instancia [construida en el pico de dureza](/research/why/phase-transition)
-  está diseñada para realizar ese peor caso. La forma medida del coste: un
-  solucionador que maneja el 8×8 (64 piezas) no devuelve nada en el 16×16,
-  porque el árbol bajo la raíz se eleva al cuadrado, no se duplica.
+  nada indica que Eternity II escape de ello. La forma medida del coste: un
+  solucionador que maneja el 8×8 (64 piezas) no devuelve nada en el 16×16. El
+  número de celdas se cuadruplica, y el exponente del árbol también.
 - **La brecha de integralidad es la moneda real.** Todo el valor del método es
   la distancia entre el óptimo del LP y la mejor solución entera. Aquí esa
   distancia es de aproximadamente 478 frente a 458-y-estancándose: la relajación
@@ -547,12 +561,13 @@ la [página SAT](/research/build/exact/sat-csp-encodings) para el CDCL.
   coincidentes, convención de cinco pistas) converge a 461; desde uno de
   456, a 461; desde uno de 440, hasta 469. El uso válido es como
   *indicador de margen*: cuando la puntuación voraz relajada iguala la del
-  propio tablero, el tablero queda probado como máximo local estricto
-  incluso con la unicidad de piezas relajada, un certificado de callejón
-  sin salida más fuerte que las pruebas por operadores. En ese tablero de
-  457, la brecha de +4 quedó probada incerrable por cualquier cadena de
-  permutaciones hasta longitud 11 (40 millones de permutaciones, cero
-  mejoras). La regla: solo los valores derivados de LP o MIP son techos;
+  propio tablero, el tablero no admite ningún reemplazo de una sola celda que mejore,
+  ni siquiera con reutilización. Eso solo certifica optimalidad local celda a
+  celda: cambiar dos celdas adyacentes a la vez (un intercambio, un par de
+  rotaciones) no está cubierto. En ese tablero de 457, 40 millones de cadenas
+  de permutaciones de longitud hasta 11, sacadas de una sola familia
+  muestreada, no hallaron ninguna mejora; una fracción ínfima de todas las
+  cadenas posibles, así que es un resultado de búsqueda, no una prueba. La regla: solo los valores derivados de LP o MIP son techos;
   las puntuaciones voraces relajadas son diagnósticos.
 - **Subproblemas de asignación, donde la integralidad es gratis.** Dentro de los
   bucles de reparación, rellenar $k$ agujeros no adyacentes dos a dos es un puro

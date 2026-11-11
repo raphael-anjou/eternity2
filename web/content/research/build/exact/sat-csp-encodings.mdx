@@ -9,7 +9,7 @@ metaDescription: "Encoding Eternity II as SAT/CSP clauses for industrial solvers
 kind: concept
 order: 80
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: Heule, Solving edge-matching problems with satisfiability solvers (2008)
@@ -20,11 +20,19 @@ sources:
     url: https://link.springer.com/article/10.1007/s10601-012-9128-9
   - label: "Ansótegui, Béjar, Fernàndez & Mateu, How Hard is a Commercial Puzzle: the Eternity II Challenge (CCIA 2008)"
     url: https://repositori.udl.cat/bitstreams/0b6533fe-54e5-4070-85fe-80f7d35837d8/download
+  - label: "Heule, Kullmann, Wieringa & Biere, Cube and Conquer: Guiding CDCL SAT Solvers by Lookaheads (HVC 2011, LNCS 2012)"
+    url: https://doi.org/10.1007/978-3-642-34188-5_8
+  - label: "Heule, Kullmann & Marek, Solving and Verifying the boolean Pythagorean Triples problem via Cube-and-Conquer (SAT 2016, arXiv:1605.00723)"
+    url: https://arxiv.org/abs/1605.00723
+  - label: "Heule, Schur Number Five (AAAI 2018, arXiv:1711.08076)"
+    url: https://arxiv.org/abs/1711.08076
 related:
   - /research/lab/experiments/raphael-anjou/pipelines/mosaic
   - /research/papers
   - /research/why/phase-transition
   - /research/why/rigidity-wall
+  - /research/why/how-hard-is-this-instance
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -60,14 +68,19 @@ edge-matching instances well beyond what the naive encoding reached.
 Even so, community-built CNFs of the full 16×16 puzzle run to roughly a
 hundred thousand variables and hundreds of millions of clauses (as reported
 on the [community mailing list](https://groups.io/g/eternity2)). They load
-fine, and they remain utterly unsolved.
+fine, and no complete solver has been reported to decide one. The reported
+attempts are single runs of solvers from that era, budgets mostly
+unstated. Cube-and-conquer, the massively parallel split-then-CDCL scheme
+behind the Pythagorean triples
+([2016](https://arxiv.org/abs/1605.00723)) and Schur number five
+([2017](https://arxiv.org/abs/1711.08076)) results, has not been attempted
+at scale on the full puzzle as far as we know (checked 2026-11).
 
 ## Take the measure of it
 
 Numbers with fourteen digits stop meaning anything in prose, so measure them
 instead. The explorer below computes both encodings live from the derivation
-above. Slide the board size across the community's pure-SAT ceiling at
-10×10 and up to the full 16×16, and watch the log-scale bars. Underneath it,
+above. Slide the board size across 10×10 and up to the full 16×16, and watch the log-scale bars. Underneath it,
 a six-clause instance shows the other half of the story: the unit-propagation
 cascade that CDCL's clause learning feeds on, and that this puzzle starves.
 
@@ -101,10 +114,11 @@ Derive the sizes once by hand; they stop being folklore.
    auxiliary variables ($8{,}160$ at full size). Now each placement *implies*
    its four seam colours (at most $16n^4$ binary clauses) and disagreement is
    forbidden once per seam, not once per pair: $\binom{c}{2}$ clauses per
-   seam, about $65{,}000$ total. The conflict machinery collapses by three
-   orders of magnitude. That is exactly why Heule's instances reached sizes
-   the naive encoding never touched, and why the ceiling still sits near
-   10×10 rather than 16×16: size was never the only problem.
+   seam, about $65{,}000$ total. Counting the implications too, the
+   conflict machinery shrinks from about $4.7\times10^8$ clauses to about
+   $1.1\times10^6$, roughly 400 times fewer. That is exactly why Heule's
+   instances reached sizes the naive encoding never touched, and why the
+   full board still resists: size was never the only problem.
 
 ## What it costs
 
@@ -112,8 +126,9 @@ Derive the sizes once by hand; they stop being folklore.
   CDCL is a resolution-based procedure: on families with exponential
   resolution lower bounds, *no* run of it can be subexponential. Its
   industrial success is a statement about typical structure, not worst-case
-  cost, and an instance built at the hardness peak is as far from typical as
-  it gets.
+  cost. No resolution lower bound is known for Eternity II in either
+  direction, so this is a ceiling on what can be promised, not a measured
+  verdict on the instance.
 - **Unit propagation: cheap by design.** With two watched literals per
   clause, a clause is only examined when one of its two watches is
   falsified, and each visit costs $O(\text{clause length})$ to find a new
@@ -132,8 +147,8 @@ Derive the sizes once by hand; they stop being folklore.
   [alldifferent page](/research/build/reduce/alldiff-regin)). Polynomial
   propagation atop an exponential search tree: strong locally, helpless
   globally.
-- **Where the account balances.** On the full board, worst-case behaviour
-  is the observed behaviour. On pinned subproblems, the same machinery
+- **Where the account balances.** On the full board, no complete solver
+  has finished within any reported budget. On pinned subproblems, the same machinery
   returns UNSAT in under two seconds, an impossibility theorem per query
   at the price of a database lookup. The costs did not change; the question
   did.
@@ -149,15 +164,21 @@ with a companion paper asking, verbatim,
 Their headline: generalized edge-matching puzzles make excellent SAT/CSP
 benchmarks precisely because difficulty is tunable: vary the number of
 colours and solve time rises to a sharp peak where solutions are scarce but
-real. Eternity II's colour counts sit at that peak, by design; the
-[phase transition page](/research/why/phase-transition) walks through it.
+real. Eternity II's colour counts sit near that peak for random puzzles of
+its size; the [phase transition page](/research/why/phase-transition) walks
+through it. The peak is a property of the random ensemble: for the real
+instance, the first-moment estimate is about 14,702 solutions with the
+centre clue ([solution counting](/research/build/analysis/solution-counting)).
 In practice, complete solvers dispatch small boards in seconds and then hit
-an exponential cliff; community experiments over the years put the practical
-ceiling for pure SAT on Eternity-style instances somewhere around the 10×10
-scale, far short of 16×16. See the [papers page](/research/papers) for the
+an exponential cliff, but where the cliff sits depends on the colour count,
+the solution density and the formulation, not on size alone. On planted
+boards this project measured CP-SAT (a lazy-clause-generation solver)
+solving 22-colour 12×12 and 13×13 instances, and a 26-colour 16×16 in about
+15 seconds ([how hard is this instance?](/research/why/how-hard-is-this-instance)).
+No complete solver has decided the real 16×16. See the [papers page](/research/papers) for the
 full literature trail.
 
-## Why CDCL stalls on the full board
+## Why CDCL may stall on the full board: a hypothesis
 
 CDCL earns its power from clause learning: when propagation hits a conflict,
 the solver walks the implication graph back to a small set of decisions that
@@ -165,18 +186,24 @@ caused it, and records that combination as forbidden. The learned clause is
 short and general when conflicts arise from long chains of unit
 propagation.
 
-Eternity II starves that mechanism. This project's analysis of its own CSP
-engine (hedged accordingly: measured here, not independently replicated)
-found the implication structure is nearly flat (a domain deletion traces
+The working hypothesis is that Eternity II starves that mechanism. The
+evidence comes from this project's own CSP engine, not from a CDCL solver,
+and the depth figures below are not yet a committed result. A CSP engine's
+record of why a domain value was deleted is not CDCL's implication graph
+over a CNF with seam variables, and CDCL learns at every conflict, not only
+at domain wipeouts. With that said, the CSP analysis found the implication
+structure nearly flat (a domain deletion traces
 back to a single neighbouring placement, not to a deep chain), so
 conflict analysis has almost nothing to compress, and the learned
 [no-goods](/research/build/reduce/nogood-learning) come out wide and
 specific instead of short and general. Worse, conflicts
 surface late: with strong propagation running, domain wipeouts essentially
 never occurred before depth 50, with the median deep in the board. A wide
-clause about a deep, specific configuration prunes almost nothing else. Add
-an instance deliberately tuned to the hardness peak, and the full puzzle is
-close to a worst case for conflict-driven search.
+clause about a deep, specific configuration prunes almost nothing else. If
+the same holds inside a CDCL solver, the full puzzle is a poor fit for
+conflict-driven search. Testing it means running kissat or CaDiCaL on the
+full CNF for a fixed budget and reporting learned-clause length, LBD and
+conflict depth; that measurement has not been made.
 
 ## Where the exact verdicts still pay
 
@@ -197,4 +224,5 @@ SAT-style watched literals.
 
 That is the division of labour: as a frontal solver of the full
 puzzle, CDCL is outmatched; as a fast generator of impossibility
-certificates for pieces of it, nothing else comes close.
+certificates for pieces of it, it is the cheapest generator measured
+here.

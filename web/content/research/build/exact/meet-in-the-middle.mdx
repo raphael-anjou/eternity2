@@ -9,7 +9,7 @@ metaDescription: "Meet-in-the-middle on Eternity II: the Horowitz-Sahni trick tr
 kind: concept
 order: 40
 group: Exact methods
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [exact-methods]
 sources:
   - label: 'Horowitz & Sahni 1974, "Computing Partitions with Applications to the Knapsack Problem" (JACM), the classic origin'
@@ -83,8 +83,10 @@ automorphism exists. The 22 colours fall into unequal frequency classes (5
 colours at 24 half-edges, 5 at 48, 12 at 50), and no two colours share both
 supply and incidence structure. The one sound relaxation is projecting the
 seam signature down to its colour *multiset* and using that as a pre-filter,
-which shrinks buckets by roughly a factor $k!$ for a seam of length $k$:
-polynomial relief, never exponential. The fat keys stay fat.
+which shrinks the key space by up to a factor $k!$ for a seam of length
+$k$ (less when colours repeat), at the cost of larger buckets whose
+candidates need an exact second-stage check: polynomial relief, never
+exponential. The fat keys stay fat.
 
 ## Feel the square root
 
@@ -159,51 +161,65 @@ buckets no bottom ever probed successfully.
 
 The coupling can be priced, not just gestured at. A notebook calculus prices
 the expected number of valid fillings of a region of area $a$ with interface
-length $k$ (for regions that touch no board border) as
+length $k$ as
 
 $$
-T(a,k)\;=\;\frac{256!}{(256-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
+T(a,k)\;=\;\frac{n!}{(n-a)!}\cdot 4^a\cdot p^{\,2a-k/2},
 $$
 
-where $p = 0.048177$ is the probability that two random half-edges share a
-colour under the real colour-frequency distribution: about 6% above the
+where $n$ is the number of eligible pieces and $p$ the probability that two
+random half-edges share a colour. Over the whole piece set, $n = 256$ and
+$p = 0.048177$ under the real 22-colour frequency distribution: about 6% above the
 naive $1/22 \approx 0.0455$, an inflation the uneven frequencies force by
 Cauchy–Schwarz. The falling factorial counts ordered piece choices, $4^a$
 the rotations, and the exponent $2a - k/2$ is exact: a double-counting
 identity gives a border-free region of area $a$ and perimeter $k$ exactly
-$2a - k/2$ interior edges, each priced as an independent match.
+$2a - k/2$ interior edges, each priced as an independent match. For a
+region that touches no board border the right parameters are narrower:
+only the 196 interior pieces fit there, their sides use the 17 interior
+colours, and $p \approx 0.0588$ (computed over the 840 inward-facing
+half-edges, edge pieces' inward sides included). The whole-set values are a
+cruder average; the numbers below use them unless stated otherwise.
 
 The formula was validated against exhaustive counts on planted 10×10 to
-12×12 instances: exact (ratio 1.000) when the region has no interior edges,
-within 3 to 20% for one or two interior edges, and the error shrinks as the
+12×12 instances: within 3 to 20% for one or two interior edges, and the error shrinks as the
 colour count grows (ratio 0.806 at 6 colours rising to 1.010 at 22), the
 direction finite-pool depletion predicts. Regions with four or more interior
 edges are already past brute-force verification even on a 12×12 toy; the
 predicted count for one 9-cell region is about $6 \times 10^{11}$. So the
 small-scale validation is a measurement, while extrapolating the formula to
-large regions is model-based, and everything below should be read with that
-label attached.
+large regions is model-based. Neither the calculus nor the validation counts
+is committed as a research topic yet, so every number in this section and
+the next two is an uncommitted model estimate.
 
-## Why no split size wins
+## What a split actually saves
 
-Feed the formula the full optimization: choose the region area $a$, give it
-the minimum achievable perimeter (a classical polyomino bound, from Harary
-and Harborth 1976, gives $k_{\min} = 2\lceil 2\sqrt{a}\rceil$), and minimize
-the total bill of table size plus join output. The sweep finds no interior
-sweet spot at all: cost climbs monotonically in region area, with
-$\log_{10}$-cost rising 3.0 at $a=1$, 16.4 at $a=16$, 48.7 at $a=64$, 61.5
-at $a=128$. The optimum is the degenerate one-cell "region", which is just
-ordinary cell-at-a-time constraint propagation.
+Compare the two plans for the same target. A one-sided search that grows a
+region cell by cell pays roughly $\sum_d T(d)$ over its depths, a sum
+dominated by its widest level. A two-sided plan pays two half-tables plus
+the join, about $2\,T(a/2)$ plus the join. Give each area its minimum
+perimeter (a classical polyomino bound, from Harary and Harborth 1976,
+gives $k_{\min} = 2\lceil 2\sqrt{a}\rceil$) and use the whole-set
+parameters: $\log_{10} T$ reads 3.0 at $a=1$, 16.3 at $a=16$, 41.4 at
+$a=64$ and 61.5 at $a=128$, keeps rising to about 66 near $a = 160$, then
+falls (64.5 at $a=192$). The half-board table, about $10^{61.5}$ entries,
+is smaller than the one-sided tree's widest level, about $10^{66}$. Under
+this model the split saves about four orders of magnitude on the dominant
+term: a real but low-order factor, nowhere near the square root of a
+$10^{66}$ bill, and $10^{61}$ stored entries are out of reach anyway. (With
+the interior parameters, border-free regions peak lower and earlier, near
+$10^{60}$ around $a = 148$.)
 
 The mechanism is worth stating plainly. Classical meet in the middle wins
-because the two halves enumerate *independent* universes whose product
-recovers the full space at square-root cost per side. Here both halves draw
-from one shared pool of 256 pieces under a global disjointness constraint,
-so the combinatorial base is a falling factorial whose per-cell marginal
-cost rises with area: both sides pay the super-linear bill simultaneously,
-and the square-root saving never materializes. This is what the calculus,
-validated on small planted boards, says; it is a computed verdict on a
-model, not a measurement at full board size.
+because one-sided partial counts grow like $2^d$ all the way to the
+leaves, so halving the depth takes a square root. Here partial-fill counts
+bulge: they rise while piece and rotation choices outpace the matching
+penalty, peak mid-depth, and fall as the remaining pieces run out. Both
+halves of a split sit on the rising flank of the same bulge, so the split
+saves only the distance between the midpoint and the peak. And the join is
+where the real work goes: two half-boards must also use disjoint piece
+sets, which no seam key can enforce. This is a computed verdict on an
+ensemble model, not a measurement at full board size.
 
 One tempting dodge also fails. Anchoring the region in a corner, so two of
 its sides are free board border, sounds like getting perimeter for free; it
@@ -222,7 +238,8 @@ worse, and the reason connects to a lovely corner of database theory. Four
 quadrants form a 4-cycle join: each shares an 8-edge interface with two
 neighbours, the textbook setting where worst-case-optimal-join theory shows
 any plan that materializes a pairwise join first is dominated. The same
-notebook calculus prices a materialized quadrant plan at about $10^{80}$
+notebook calculus (uncommitted, its cost function unrecorded) prices a
+materialized quadrant plan at about $10^{80}$
 intermediate rows against about $10^{62}$ for the plain two-way split over
 the same area, because the pairwise product balloons before the
 cross-constraints from the other two quadrants can prune it, and no join
@@ -288,14 +305,17 @@ with different seeds sampled different incumbents; across a sweep of 40
 seeds, one draw improved the board by 2 matched edges, to 459 of 480 under
 the same convention, verified independently three ways, in about 200
 seconds. Enlarging the freed band to 64 cells overshot: within the same
-budget the solver's best incumbent landed below the starting score, at 455.
+budget the solver's best incumbent landed below the starting score, at 455,
+which shows the run was not warm-started: a solve hinted with the existing
+board cannot return worse than it.
 (That 459 matched the notebook's then-best score with this pipeline; for how
 such scores sit against community results obtained with far larger compute
 budgets, see the [records page](/research/records).) The lever hiding in
-this: when the exact solver closes the optimality gap, the region is tight
-and no method will help; when it cannot, its incumbent is effectively a
-lottery draw and re-drawing is the play. "Did the solver prove it optimal?"
-is a free map of where headroom lives.
+this: when the exact solver closes the optimality gap, that window is
+proven optimal for those pieces, though a larger or different window may
+still help; when it cannot, re-solving with new seeds samples different
+incumbents, and here one draw in 40 improved the board. "Did the solver
+prove it optimal?" is a cheap map of which windows are exhausted.
 
 ## Limits, and what is still open
 
