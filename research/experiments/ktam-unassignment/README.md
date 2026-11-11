@@ -114,6 +114,51 @@ Reading the tables:
   blocking rule toward wrong pieces, and V1/V2 place planted pieces less often
   than B3. Descriptive only; boards with other solutions make it a lower bound.
 
+## Exploratory: equal CPU time at R7 (non-binding, PREREG_AMENDMENTS.md E1)
+
+Added after the verdict because B1 runs AC-3 and GAColor propagation inside
+every node, so nodes and events do not charge its work per node. This check
+does not change the verdict above. `./run.sh explore` measures per-thread CPU
+time (`CLOCK_THREAD_CPUTIME_ID`) for every arm on the 30 R7 test instances at
+1e6 nodes (8 parallel runs on 8 vCPU), then reruns the method arms at the node
+cap that matches B1's CPU time per instance. Node caps are fixed numbers, so
+the reruns stay deterministic in nodes; only the CPU times vary by machine.
+Hardware instruction counters are not available on this VM, so there are no
+instruction counts. The native propagation counters measure different things
+in each solver (B1: engine propagation steps; B3/V1/V2: candidate-list scans),
+so the propagation-per-node column is descriptive only and not comparable
+across solver families.
+
+| arm | nodes per CPU s | native propagation per node | median CPU ms per 1e6-node run | CPU/wall |
+|---|---|---|---|---|
+| B1 | 89,404 | 83.1 | 8,405 | 0.996 |
+| B2 | 1,590,883 | 0.0 | 568 | 0.998 |
+| B3 | 698,360 | 153.6 | 1,448 | 0.994 |
+| V1 | 488,668 | 183.1 | 2,016 | 0.997 |
+| V2 | 691,397 | 101.5 | 1,483 | 0.997 |
+
+Equal CPU budget C = 11.8 s per instance (median CPU time of a censored B1 run).
+
+| arm | node cap | solved within C /30 | KM median CPU s |
+|---|---|---|---|
+| B1 | 1,000,000 | 16 | 10.2 |
+| B3 | 8,300,000 | 0 | not reached |
+| V1 | 5,800,000 | 1 | not reached |
+| V2 | 8,200,000 | 1 | not reached |
+
+- Per node, B1 costs about 8 times the CPU of V2 (89 thousand vs 691 thousand
+  nodes per CPU second).
+- Given the same CPU time per instance (11.8 s), B1 solves 16/30, V1 and V2
+  1/30 each and B3 0/30. Charging B1's propagation therefore does not change
+  the R7 picture.
+- CPU pressure: CPU time is within 1% of wall time in every arm, so the 8
+  parallel runs were not oversubscribed. Running them in parallel still slows
+  each run through shared cache and memory. Single-thread nodes per CPU second
+  are 105,890 for B1 (8 parallel runs: 16% slower) and 967,251 for V2 (29%
+  slower), so the per-node cost ratio between them depends on load (7 to 9).
+- Raw rows: `results/exploratory/cpu/R7/*.jsonl`; summary:
+  `results/exploratory/cpu/summary.json`.
+
 ## Outcome against the kill criterion (self-assessment; a separate judge decides)
 
 - **Method clause fires**: on every rung run (R6, R7) both V1 and V2 are

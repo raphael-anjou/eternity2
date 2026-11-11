@@ -105,6 +105,22 @@ fn real_main() -> Result<(), String> {
             );
             Ok(())
         }
+        Some("explore-cpu") => {
+            // Exploratory, non-binding: see PREREG_AMENDMENTS.md E1.
+            let arm = arg(&args, "--arm").ok_or("--arm")?;
+            let rung = arg(&args, "--rung").ok_or("--rung")?;
+            let cap: u64 = arg(&args, "--node-cap").map_or(Ok(TEST_CAP), str::parse).map_err(|e| format!("{e}"))?;
+            let tag = arg(&args, "--tag").unwrap_or("timing");
+            let insts = instances(rung, Role::Test)?;
+            let rule = if matches!(arm, "B1" | "B2") { None } else { Some(selected(arm)?) };
+            let rows = ktam::explore::run_cpu(arm, rule, &insts, rung, cap, threads);
+            let out = root().join(format!("results/exploratory/cpu/{rung}/{tag}-{arm}.jsonl"));
+            fs::create_dir_all(out.parent().expect("dir")).map_err(|e| e.to_string())?;
+            let text: String = rows.iter().map(|r| serde_json::to_string(r).expect("json") + "\n").collect();
+            fs::write(&out, text).map_err(|e| e.to_string())?;
+            eprintln!("-> {}", out.display());
+            Ok(())
+        }
         _ => Err("usage: ktam gen | check-instances | calibrate --arm A | run --arm A --rung R".into()),
     }
 }

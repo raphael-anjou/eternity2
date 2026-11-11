@@ -5,6 +5,8 @@
 #   ./run.sh            # everything: check, calibrate, test R6/R7 (+R8 if triggered), analyse
 #   ./run.sh check      # build, tests, clippy, instance check only
 #   ./run.sh calibrate | test | analyze
+#   ./run.sh explore    # exploratory equal-CPU check at R7 (PREREG_AMENDMENTS.md E1, non-binding;
+#                       # CPU times are machine-dependent, so it is not part of "all")
 #
 # THREADS (default 8) runs that many instances in parallel; events and nodes
 # do not depend on it, wall clock does.
@@ -39,6 +41,14 @@ case "$STAGE" in
     ;;&
   analyze|all)
     python3 analysis/analyze.py summary
+    ;;
+  explore)
+    for arm in B1 B2 B3 V1 V2; do "$BIN" explore-cpu --arm "$arm" --rung R7 --threads "$THREADS"; done
+    for arm in B1 V2; do "$BIN" explore-cpu --arm "$arm" --rung R7 --threads 1 --tag timing1t; done
+    python3 analysis/explore_cpu.py caps | while read -r arm cap; do
+      "$BIN" explore-cpu --arm "$arm" --rung R7 --threads "$THREADS" --node-cap "$cap" --tag equalcpu
+    done
+    python3 analysis/explore_cpu.py summary
     ;;
   check|calibrate|test) ;;
   *) echo "unknown stage $STAGE" >&2; exit 2 ;;
