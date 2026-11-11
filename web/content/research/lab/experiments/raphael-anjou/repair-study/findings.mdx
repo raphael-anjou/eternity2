@@ -11,7 +11,7 @@ contribution: measurement
 author: raphael-anjou
 rigor: measured
 order: 20
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -46,19 +46,21 @@ is the polish.** A rarest-colour-first greedy construction (the Selby and Riorda
 heuristic that a scarce colour should be spent where it is forced) starts a little
 higher still and finishes at a mean of 373, the best of the *greedy* starts.
 
-The clearest proof of the point is to start from a genuinely strong board rather
+The clearest test of the point is to start from a genuinely strong board rather
 than a greedy one. The final starting-board variant hands the loop a board built
 by the [DFS study's](/research/lab/experiments/raphael-anjou/dfs-study) break-DFS:
 the run spends its first twenty seconds backtracking to a board in the low 440s,
-then repairs it for the remaining forty. That start is a hundred points above a
-greedy construction, and it carries straight through to the finish. It is the
+then repairs it for the remaining forty. That start is far above a greedy
+construction, and it carries straight through to the finish. It is the
 highest-scoring variant in the whole study, at a mean of 446 (best 449), far above
-the random-destroy loop's 402, and it settles the construct-then-refine question the
-rest of the study circles: repair *does* add a few edges on top of a strong
-backtracked board, but only a few, and the board it starts from decides almost
-everything. This is exactly the division of labour the records use, and this study
-reproduces it end to end on one core in one minute: a backtracker to build a good
-board, then a repair loop to squeeze the last edges out of it.
+the random-destroy loop's 402. Repair adds a few edges on top of the backtracked
+board (a mean lift of 6.6 from a 439.4 start), but this arm has no DFS-only
+control: what forty more seconds of break-DFS with the same greedy tail fill would
+give was not measured, so the lift is not separated from extra search time. The
+board it starts from decides almost everything. The arm mirrors construct-then-refine
+pipelines such as this project's own; the community record boards came from
+break-tolerant backtracking (see [the records page](/research/records)), not from a
+repair stage.
 
 ## The destroy operator: attacking the breaks can backfire
 
@@ -76,32 +78,32 @@ the axis with the study's most surprising result.
   past three million iterations, where every conflict-driven variant has long since
   frozen. It is the best of every variant that starts from a greedy board (only the
   DFS-seeded start, a different lever entirely, finishes higher).
-- **Every conflict-driven operator finishes below it, and the more it fixates on
-  the breaks, the worse it does.** The mismatched-cells anchor, which lifts up to
-  a dozen of the broken cells, averages 366 and stalls early: it rips out the same
-  clustered tangle, greedily rebuilds it to almost the same placement, and its best
-  score stops moving within a few thousand iterations. The component-plus-halo
-  operator, which lifts one whole connected tangle (a much larger hole), does worse
-  still, at 350, and its best last improves at iteration 211: a hole that size hands
-  the greedy refill a subproblem it cannot improve, so almost nothing is ever kept.
+- **Every conflict-driven operator finishes below it, though hole size may explain
+  the ranking.** The mismatched-cells anchor, which lifts about ten of the broken
+  cells (9.6 on average, against 12.0 for random destroy), averages 366 and stalls
+  early: it rips out the same clustered tangle, greedily rebuilds it to almost the
+  same placement, and its best score stops moving within a few thousand iterations.
+  The component-plus-halo operator, which lifts one whole connected tangle (28.3
+  cells on average), does worse still, at 350, and its best last improves at
+  iteration 211: a hole that size hands the greedy refill a subproblem it cannot
+  improve, so almost nothing is ever kept.
 - **A whole-band destroy is inert.** Lifting the two rows with the most breaks
   leaves the greedy refill a subproblem nearly as hard as the puzzle itself; on
   nine of the ten instances it makes *zero* improvements over the whole minute, so
   its reported score is simply its starting board.
 
-The pattern is clean and worth stating plainly: on this mediocre greedy start,
-the more precisely an operator targets the existing breaks, the worse it does, and
-blind random destroy wins. This is the opposite of the natural intuition, and of
-what works on a *near-record* board, where the whole board is close to optimal and
-the community's tuning found conflict-driven and component operators most valuable
-precisely because the few remaining mismatches are the only thing left to fix. This
-study never reaches that regime. Sixty seconds on a mediocre board leaves broad
-improvement available everywhere, and there an operator that keeps re-attacking the
-same broken cluster, or that tears out a hole too large to rebuild well, both lose
-to one that simply keeps trying fresh small regions. The finding is not
-"conflict-driven destroy is bad" but "which operator wins depends on how good the
-board already is, and on a mediocre board, exploring beats both fixating and
-over-destroying."
+On this mediocre greedy start, random 12-cell destroy beats the roughly 10-cell
+mismatch destroy, and the two large-hole operators (28 to 30 cells) do worst. Hole
+size and targeting move together here, so the ranking may reflect hole size rather
+than targeting; size-matched random controls (random against mismatch at about 10
+cells, random against component at about 28) have not been run. The ranking itself
+holds on these instances: random destroy beats the anchor on all ten, though each
+instance runs one seed. It also differs from what works on a *near-record* board,
+where the community's tuning found conflict-driven and component operators most
+valuable because the few remaining mismatches are the only thing left to fix. This
+study never reaches that regime. The finding is not "conflict-driven destroy is
+bad" but "on a mediocre board, at these hole sizes, random destroy won"; whether
+the randomness or the size is responsible remains open.
 
 ## Repair: how the hole is rebuilt
 

@@ -4,15 +4,15 @@ description: >-
   The engine behind the 467, the only Eternity II score ever paid, read from
   Louis Verhaard's own mailing-list posts: forward pruning, comb-search fill
   orders, depth-gated edge slipping, a Markov-tuned slip schedule. And why his
-  own source-less Win32 binary cannot be built or run on this machine at all.
-metaDescription: "Louis Verhaard's eii: the depth-first backtracker behind the 467/480 that won Eternity II's only prize, the $10,000 runner-up. Reconstructed from his posts: forward pruning, comb-search fill orders, depth-gated edge slipping, a Markov-tuned slip schedule, and why his Win32 binary won't run here."
+  source-less Win32 binary has not been run here.
+metaDescription: "Louis Verhaard's eii: the depth-first backtracker behind the 467/480 that won Eternity II's only prize, the $10,000 runner-up. Rebuilt from his posts: forward pruning, comb-search fill orders, depth-gated edge slipping, a Markov-tuned slip schedule, and why his Win32 binary has not been run here."
 kind: page
 contribution: exposition
 author: louis-verhaard
 contributors:
   - { slug: raphael-anjou, role: write-up }
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, local-search, speed]
 related:
@@ -65,8 +65,8 @@ is unusually good testimony: Verhaard documented the heuristics and search order
 himself, discussed the design on the mailing list in first person, and shipped a
 public binary that an independent user benchmarked all the way back to the prize
 score. That missing source is why, of the three community engines studied in this
-lab, his is the one that cannot be run at all; the last section here says exactly
-why.
+lab, his is the only one whose own program has not been run here; the last
+section says why, and what running it would take.
 
 ## The arc: stuck past 463, so release it
 
@@ -257,18 +257,20 @@ followed: the solver keeps no memory of past positions, so its thousands of
 What "the code lives there" hides is that no *source* lives anywhere. What
 Verhaard shipped is `eii-1.0-win32.zip`: a Windows `eii.exe`, a readme, and some
 `.bat` files. There are **zero source files**, and it is Win32 only. It does not
-run on Apple silicon, and there is no Windows or emulation layer on this machine to
-run it under. His artifact is, here, unrunnable, and there is nothing of his to
-fetch and build. The comb-search fill orders and depth-gated slip schedule
-described above became community canon precisely because they were recovered from
-his posts and, where numeric, byte-exact from the strings inside `eii.exe`, since
-that binary is the only surviving record of them.
+run natively on Apple silicon, and it has not been run for this site. That is a
+limit of the machine used here, not of the program: a Win32 console binary runs
+under Wine or in any Windows/x86 virtual machine, and JSA ran this exact binary
+for 82 days. There is nothing of his to fetch and build. The comb-search fill
+orders and depth-gated slip schedule described above became community canon
+because they were recovered from his posts; some numeric tables (the piece quota
+and its good groups) survive only inside `eii.exe` and were recovered from it
+byte-exact.
 
-So "running Verhaard" at all means rebuilding his method from that documentation.
-That is what the
-[Verhaard reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
-does, and on the real five-clue puzzle it reaches 438 of 480, single core. That
-engine is filed here beside this page, bylined to Raphaël, because it is a reading
-of Verhaard's method rewritten as Raphaël's code. Naming that distinction is part of the
-finding: of the three community engines studied here, his is the one that cannot
-be run at all.
+So the runnable engine on this site is a rebuild of his method from that
+documentation and those tables: the
+[Verhaard reimplementation](/research/lab/experiments/louis-verhaard/verhaard-reimpl),
+which on ten five-clue benchmark variants averages 440.8 of 480 on one thread in
+60 seconds. That engine is filed here beside this page, bylined to Raphaël,
+because it is a reading of Verhaard's method rewritten as Raphaël's code. It has
+not been validated against the original's score distribution. Running `eii.exe`
+under Wine against JSA's 43, 62 and 82-day ladder is the obvious validation.

@@ -3,9 +3,11 @@ title: La escalera de tamaños
 description: >-
   Un banco que ejecuta cualquier solucionador, sin cambios, sobre tableros
   plantados totalmente resolubles con N = 8, 10, 12, 14, cada uno con un techo
-  probado de 2N(N-1): el tamaño de colapso de un método se mide antes de
-  gastar semanas en el 16×16 real.
-metaDescription: "La escalera de tamaños ejecuta cualquier solucionador de Eternity II sobre tableros plantados totalmente resolubles con N = 8, 10, 12, 14 y un techo probado de 2N(N-1): mide dónde colapsa un método antes de apuntarlo al 16×16 real."
+  probado de 2N(N-1): la degradación de un método se lee a bajo coste antes de
+  gastar semanas en el 16×16 real. Los peldaños comparten una paleta de 22
+  colores y un presupuesto de 12 s, así que la curva mezcla tamaño,
+  restricción y presupuesto.
+metaDescription: "La escalera de tamaños ejecuta cualquier solucionador de Eternity II sobre tableros plantados totalmente resolubles con N = 8, 10, 12, 14 y un techo probado de 2N(N-1): lee cómo se degrada un método, con paleta fija de 22 colores y 12 s de presupuesto, antes de apuntarlo al 16×16 real."
 kind: tool
 hardware:
   cores: 1
@@ -27,7 +29,7 @@ repro:
   produces: search
   scope: "Reconstruye los cuatro peldaños desde el generador con semillas y vuelve a ejecutar los dos solucionadores de referencia incluidos; reproduce la mecánica del banco y la forma de las curvas, no la malla original de trece métodos, que exige el conjunto de instancias archivado."
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, backtracking]
 related:
@@ -45,8 +47,10 @@ escalera de tamaños plantea antes una pregunta más barata: ejecuta cualquier
 solucionador, sin modificarlo, sobre tableros plantados totalmente
 resolubles con N = 8, 10, 12 y 14, cada uno con un techo probado, y lee el
 tamaño en el que el método colapsa. Los dos solucionadores de referencia
-incluidos se separan con nitidez y se degradan de forma monótona al subir la
-escalera: exactamente la lectura que el banco existe para producir.
+incluidos se separan con nitidez. Cada peldaño conserva la paleta de 22
+colores del puzle real y cada solucionador el mismo presupuesto de 12
+segundos, así que la lectura mezcla el tamaño del tablero con su grado de
+restricción y depende de ese presupuesto.
 
 ## Cómo funciona
 
@@ -105,19 +109,24 @@ dos solucionadores de referencia:
 
 </Figure>
 
-Toda la mecánica se reproduce: el techo probado gratuito, la certificación
-de cada tablero plantado con el mismo puntuador que afrontan los
-solucionadores, la re-puntuación independiente de cada tablero devuelto y la
-degradación monótona del DFS, perfecto en N=8 y sin ninguna resolución
-completa en N=14, mientras el voraz no resuelve por completo en ningún
-sitio. La dispersión entre semillas es amplia en los peldaños altos (0.216 a
+La mecánica del banco se reproduce: el techo probado gratuito, la
+certificación de cada tablero plantado con el mismo puntuador que afrontan
+los solucionadores y la re-puntuación independiente de cada tablero
+devuelto. El DFS pasa de perfecto en N=8 a ninguna resolución completa en
+N=14 y el voraz no resuelve por completo en ningún sitio, pero el colapso
+original en N=14 (0.055 a 0.157) no se reproduce en los peldaños del kit:
+las medianas del DFS en N=12 y N=14 son casi planas (0.512 y 0.477). Las
+dos razones tampoco miden lo mismo. El DFS devuelve un tablero parcial cuyas
+celdas vacías puntúan 0, de modo que su razón indica hasta dónde bajó la
+búsqueda; la del voraz puntúa un tablero completo con discordancias. La dispersión entre semillas es amplia en los peldaños altos (0.216 a
 1.0 en N=12, 0.047 a 0.613 en N=14 para el DFS); por eso cada peldaño
 conserva 8 semillas.
 
 ## Lo que no se sigue
 
-- **El éxito con N pequeño no predice nada sobre el 16×16.** Los métodos
-  perfectos en N=12 valen casi nada un peldaño más arriba; el entregable es
+- **El éxito con N pequeño no predice nada sobre el 16×16.** En la malla
+  original (no incluida aquí), los métodos perfectos en N=12 caían a 0.157 o
+  menos un peldaño más arriba; el DFS del kit no cae tanto. El entregable es
   la curva de degradación, nunca una clasificación a un solo tamaño. Para el
   estado de la instancia real, véase
   [la página de récords](/research/records).
@@ -130,6 +139,17 @@ conserva 8 semillas.
   es visiblemente menos profundo en sus peldaños (parciales cerca de 0.6
   frente a un suelo de 0.157 en la malla original). Las formas de las curvas
   se transfieren; los puntos de ruptura exactos, no.
+- **La curva mezcla tamaño, restricción y presupuesto.** Con 22 colores en
+  todos los peldaños, los peldaños pequeños quedan lejos en el lado fácil de
+  la transición de fase: las
+  [mediciones del pico de dificultad](/research/why/phase-transition) sitúan
+  el máximo de dificultad del 8×8 entre 6 y 8 colores interiores (0 de 30
+  resueltos en 30 M nodos), mientras que con 17 colores interiores se
+  resuelven 30 de 30. Subir la escalera cambia la posición respecto a la
+  transición además del tamaño. El presupuesto fijo de 12 s también pesa: un
+  método exponencial falla en el N que el presupuesto permita. No se han
+  lanzado ni un barrido de presupuesto (por ejemplo 3, 12 y 48 s) ni un
+  número de colores ajustado por peldaño.
 - **Que un solucionador de referencia débil falle un peldaño no refuta
   nada.** Las filas perfectas hasta N=12 pertenecen a solucionadores
   propagativos concretos aún no portados al kit; un solucionador

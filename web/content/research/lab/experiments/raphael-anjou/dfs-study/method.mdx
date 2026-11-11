@@ -10,7 +10,7 @@ contribution: method
 author: raphael-anjou
 rigor: measured
 order: 10
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -83,18 +83,19 @@ For every run the engine records, and the results carry all the way to the page:
   both axes rather than collapsing them into one. The slowest variants carry a
   caveat worth stating plainly: the MRV engine picks the most-constrained cell by
   scanning every empty cell's candidate list at each node, which is inherently
-  heavier than a fixed fill order. Two behaviour-preserving optimisations bring it
-  within a few times of the fast engines rather than the thousands it once was: the
-  most-constrained search stops counting a cell's candidates the moment they exceed
-  the best cell found so far (a minimum search never needs the exact count of a
-  cell that cannot win), and it skips re-checking the edges the candidate list is
-  already indexed on. What it still does not do is maintain each cell's candidate
-  count fully incrementally across placements, which a production CSP solver would;
-  that last step would need to track how a newly-used piece affects every cell's
-  count, and it is left out here to keep the engine legible. The ranking by score
-  does not depend on any of this, since throughput is a separate axis, but the MRV
-  node rate should be read as this clean engine's rather than as MRV's best
-  possible.
+  heavier than a fixed fill order. Two behaviour-preserving optimisations trim that
+  cost: the most-constrained search stops counting a cell's candidates the moment
+  they exceed the best cell found so far (a minimum search never needs the exact
+  count of a cell that cannot win), and it skips re-checking the edges the candidate
+  list is already indexed on. What it still does not do is maintain each cell's
+  candidate count fully incrementally across placements, which a production CSP
+  solver would; that last step would need to track how a newly-used piece affects
+  every cell's count, and it is left out here to keep the engine legible. Even so,
+  the committed grid runs the MRV variants at 6,000 to 8,000 nodes per second,
+  roughly 4,000 to 7,000 times slower per node than row-major, so the
+  heuristic-family scores and depths at sixty seconds belong to this
+  implementation, not to MRV at its best; a faster MRV could reach further in the
+  same budget.
 - **max depth reached**: the deepest placement the search made, out of 256, the
   study's measure of how far a variant got. Strict backtracking hits a wall in
   the low 200s (row-major 208, the fastest strict variant 216); breaks push well
@@ -117,8 +118,13 @@ edge cache so no rotation is recomputed on the hot path, and no allocation insid
 the search. Its twin, `NAIVE-CODEGEN`, is the *same algorithm* re-expressed as a
 hand-specialised, 16×16-only, row-major hot loop, kept as a separate program so
 the general engine stays clean. Running them head to head prices the low-level
-engineering: on this puzzle it buys a modest, instance-dependent throughput gain
-and, notably, no better score. The numbers are on the
+engineering: on this puzzle it buys a higher median throughput (44.9 against 32.4
+million nodes per second) and, notably, no better score: the codegen twin scores
+slightly lower on nine of the ten instances. The per-instance size of the speedup
+is not reliable, because the grid ran six single-threaded jobs at once on an M1,
+which has four performance and four efficiency cores, and the codegen rates split
+into two clusters (about 37 and 46 million) with no instance-related cause. The
+numbers are on the
 [findings page](/research/lab/experiments/raphael-anjou/dfs-study/findings).
 
 ## Soundness of the propagators

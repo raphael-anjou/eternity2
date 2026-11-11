@@ -2,9 +2,9 @@
 title: LODESTONE
 description: >-
   A faint compass for a from-scratch search: nudge it to commit the rare
-  pieces early, where they're needed. It doesn't raise the ceiling; it makes
-  the search reliably reach the top of its own range.
-metaDescription: "LODESTONE nudges an Eternity II from-scratch beam search to commit rare pieces early, via a scarce-demand prior used only as a tiebreak. It does not raise the ceiling but reliably reaches the top of its range: median 449 to 451, spread tightening to 450-451; over-weighting it collapses the build."
+  pieces early, where they're needed. It doesn't raise the ceiling; over five
+  seeds it nudges the search toward the top of its own range, a suggestive effect.
+metaDescription: "LODESTONE nudges a from-scratch Eternity II beam search to commit rare pieces early, via a scarce-demand prior used only as a tiebreak. Over five seeds the median moves from 449 to 451 and the spread tightens, a suggestive effect; over-weighting it collapses the build."
 kind: experiment
 hardware:
   cores: 8
@@ -39,7 +39,7 @@ stages:
     learns: "Rare-colour prior: a per-piece weight for how often a piece serves a scarce north-west demand"
     published: false
 order: 30
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, search-space, learning]
 related:
@@ -87,10 +87,11 @@ moves and nothing more.
 
 ## The result
 
-At a tiny weight the prior gives a small, consistent gain: across five seeds
-the median from-scratch score rises from 449 to 451, and, more usefully, the
-spread tightens, from a 446–451 scatter to a reliable 450–451. It makes the
-constructor land at the top of its range instead of sometimes stumbling.
+At a tiny weight the prior gives a small gain: across five seeds the median
+from-scratch score rises from 449 to 451, and the spread tightens, from a 446–451
+scatter to 450–451. With five seeds per arm and no test, that is suggestive rather
+than established; separating a two-point median shift from noise needs more seeds
+and a paired or rank test.
 
 Turn the weight up even slightly and it collapses (422, then 380) because
 chasing the corpus's scarce demands then trades directly against matching the
@@ -108,9 +109,11 @@ The signal comes first, then the deliberately-tiny way it is used.
 can be served by only one or two pieces in the whole set. Over the corpus, the
 count of scarce demands satisfied in at least half the boards rises
 *monotonically* with score, roughly 1 → 2 → 3 → 10 as boards climb toward
-458+. Strong boards don't just happen to place rare pieces well; they
-increasingly satisfy the *same* scarce demands. That is a real, score-correlated
-structure that no earlier constructor had wired in.
+458+. That is an observed correlation, not yet evidence of structure: a
+higher-scoring board satisfies more demands of every kind, and the top bins hold
+fewer, more similar boards, which inflates "satisfied in at least half". The
+comparison that would make it evidence, scarce demands against random demand sets
+of the same size at matched score and equal bin size, has not been run.
 
 **The prior.** For each piece, weight how often it serves one of those scarce
 north-west demands in a good board, boosted sharply for the rarest (a piece

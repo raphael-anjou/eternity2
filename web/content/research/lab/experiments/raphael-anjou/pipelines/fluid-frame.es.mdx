@@ -1,11 +1,11 @@
 ---
 title: El marco fluido
 description: >-
-  Un borde perfecto de 60 piezas no es un objeto rígido. Cada marco
-  completamente apareado admite exactamente 45 intercambios libres a coste de
-  borde cero; un tercio de los marcos perfectos ni siquiera pueden arrancar el
-  interior, y un solo intercambio libre revive cada uno de ellos.
-metaDescription: "Un borde perfecto de Eternity II no es un objeto rígido: cada marco de 60 piezas completamente apareado admite exactamente 45 intercambios libres a coste de borde cero. El 36% de los marcos perfectos no pueden arrancar el interior, y un solo intercambio libre revive cada marco muerto muestreado."
+  Un borde perfecto de 60 piezas no es un objeto rígido. Un tercio o más de
+  los marcos perfectos ni siquiera pueden arrancar el interior, e intercambios
+  a coste de borde cero revivieron cada marco muestreado. El juego de piezas
+  garantiza 45 de esos intercambios libres en todo marco perfecto.
+metaDescription: "Un borde perfecto de Eternity II no es un objeto rígido: del 36 al 45% de los marcos perfectos muestreados no pueden arrancar el interior, e intercambios a coste de borde cero revivieron cada uno. El juego de piezas garantiza 45 intercambios libres en todo marco perfecto."
 kind: finding
 contribution: analysis
 rigor: measured
@@ -25,7 +25,7 @@ repro:
   cmd: "just research-frame-manifold"
   scope: "Regenera la pasada principal de 500 marcos y la pasada de robustez de 100 marcos y reproduce results/manifold.json byte a byte; solo se vuelve a medir el mecanismo, no se produce ningún tablero completo"
 order: 75
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, local-search]
 sources:
@@ -46,10 +46,10 @@ búsqueda interior. Quería saber si ese objeto congelado es de verdad un solo
 objeto, partiendo de un reflejo simple: cuando el interior se atasca contra
 el borde, ¿por qué retroceder sobre el borde pudiendo intercambiar una sola
 pieza del reborde? Medida sobre 500 marcos perfectos frescos, la respuesta es
-más nítida que la pregunta. Un borde perfecto es una variedad conexa con
-exactamente 45 salidas libres; un tercio de los bordes perfectos ni siquiera
-pueden arrancar el interior; y un intercambio libre repara cada marco muerto
-muestreado, a coste de borde cero.
+más nítida que la pregunta. Un tercio de los bordes perfectos ni siquiera
+pueden arrancar el interior, e intercambios libres reparan cada marco muerto
+muestreado, a coste de borde cero. La reserva de intercambios libres la fija
+el juego de piezas: 45 en todo marco perfecto.
 
 ## Qué se midió
 
@@ -85,18 +85,6 @@ resultados byte a byte. El primer marco generado puede verse en el
 
 ## El resultado
 
-**Exactamente 45 movimientos libres, en cada marco.** Los 500 marcos
-perfectos admiten exactamente 45 intercambios libres, nunca 44, nunca 46.
-Ningún intercambio sube BB jamás (60 es el máximo), y los movimientos libres
-componen: tras 100 intercambios libres encadenados, BB sigue en 60 y siguen
-disponibles 45 movimientos libres. El recuento nunca se agota.
-
-**Ninguno es cosmético.** Cero de los 45 intercambios libres preserva el
-color interior de las piezas que toca: cada movimiento libre cambia el vector
-de restricciones que el borde presenta al interior. Un paseo libre de 100
-pasos visitó 99 vectores de objetivos de reborde distintos de 101 posibles
-sin salir nunca de BB = 60.
-
 **Perfecto no es utilizable.** 180 de los 500 marcos perfectos (36 por
 ciento) tenían al menos una celda interior que ninguna de las 196 piezas
 interiores podía rellenar, y 46 (9,2 por ciento) estaban muertos en la
@@ -106,6 +94,20 @@ reparación voraz solo con intercambios libres revivió 60 de 60 marcos
 muertos muestreados hasta cero celdas muertas, sin que BB saliera nunca de
 60. En el ejemplo trabajado del estudio fuente, un solo intercambio libre
 llevó un DFS con marco de la profundidad 0 a la profundidad 153 de 196.
+
+**45 intercambios libres, por construcción.** Intercambiar dos piezas de
+borde deja BB en 60 exactamente cuando ambas llevan el mismo par de colores a
+lo largo del anillo, porque cada una debe encajar con las vecinas de la otra.
+El juego oficial tiene 45 pares de piezas de borde con pares de colores a lo
+largo del anillo idénticos (clases de tamaños 4, 4, 3, 3, 3, 3, 3, 3, 3, 2,
+...) y ninguno entre las 4 esquinas, así que todo marco perfecto tiene
+exactamente esos 45 intercambios libres, sea cual sea el marco. Los marcos
+muestreados confirman el recuento (45 en los 500, y aún 45 tras 100
+intercambios encadenados), lo que valida el código más que descubrir una
+propiedad de los marcos. Como no hay dos piezas idénticas, cada intercambio
+libre cambia además el color interior en ambas celdas; un paseo libre de 100
+pasos visitó 99 vectores de objetivos de reborde distintos de 101 posibles
+sin salir de BB = 60.
 
 <Figure collapsible title="Esperado frente a medido (pasada principal, 500 marcos)">
 
@@ -127,10 +129,10 @@ llevó un DFS con marco de la profundidad 0 a la profundidad 153 de 196.
 </Figure>
 
 Una pasada de robustez con semilla independiente (100 marcos frescos, base de
-semilla 7001) concuerda: 45 intercambios libres en cada marco, ningún
-aumento, 45 marcos muertos de 100 (histograma 38 / 7), los 45 revividos, y el
-paseo vuelve a mantener BB = 60 con 45 movimientos libres de principio a fin.
-La conclusión se sostiene, pues, a través de generadores y semillas: un borde
+semilla 7001) concuerda: 45 marcos muertos de 100 (histograma 38 / 7), los 45
+revividos, y (como garantiza el juego de piezas) 45 intercambios libres en
+cada marco, sin ningún aumento. La conclusión se sostiene, pues, de una
+semilla a otra: un borde
 perfecto y un borde utilizable son propiedades distintas, y el marco puede
 permanecer móvil durante la búsqueda en lugar de deshacerse por retroceso.
 
@@ -142,8 +144,8 @@ permanecer móvil durante la búsqueda en lugar de deshacerse por retroceso.
   puntuación es una cuestión abierta, y un productor que mantenga el marco
   fluido durante la búsqueda interior es trabajo futuro. Esta página publica
   solo el mecanismo.
-- El 45 se reivindica como propiedad del juego de piezas oficial y se
-  replica aquí sobre marcos de un generador distinto. La tasa de marcos
+- El 45 es una propiedad del juego de piezas oficial, derivada más arriba,
+  no una regularidad medida de los marcos. La tasa de marcos
   muertos es una propiedad del muestreo del generador: 36,0 por ciento en la
   pasada principal, 45 por ciento en la de semilla independiente; el
   enunciado defendible es una tasa entre mediados de los 30 y mediados de
@@ -152,6 +154,8 @@ permanecer móvil durante la búsqueda en lugar de deshacerse por retroceso.
   frente a unos 1458 en la fuente, que evidentemente excluía alguna clase de
   pares sin efecto. Las cuotas y las dos filas que soportan la carga (45
   libres, 0 ganancias) concuerdan de todos modos.
+- No se mide si el conjunto de marcos perfectos es conexo bajo intercambios
+  libres; los paseos solo muestran que los movimientos libres no se agotan.
 - Los marcos van aquí sin pistas, como en la medición fuente; la
   compatibilidad de los marcos con las pistas es un asunto aparte y no forma
   parte de esta afirmación.

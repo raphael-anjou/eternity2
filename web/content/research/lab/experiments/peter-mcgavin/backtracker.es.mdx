@@ -1,7 +1,8 @@
 ---
 title: "El backtracker en C de McGavin: la historia del rendimiento, reconstruida aquí"
 description: >-
-  El backtracker en C de Peter McGavin, el más rápido de la comunidad: una receta
+  El backtracker en C de Peter McGavin, el backtracker de CPU mono-núcleo más
+  rápido medido en la lista: una receta
   de optimización de 2007 capitalizada durante dos décadas mediante código generado,
   tablas de búsqueda y trucos de contador, luego compilada en mi M1 y apuntada al
   puzzle real de 256 piezas, donde en un solo núcleo supera las 200 de 256 piezas a
@@ -27,7 +28,7 @@ repro:
   kind: heavy
   cmd: "fetch genbody71.zip from groups.io msg 11749; gcc -Ofast -DG then without -DG"
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -192,12 +193,15 @@ en la misma máquina, y la mejor velocidad que había visto mencionada en la lis
 propio McGavin son los ~225M/s del Orange Pi en puzzles pequeños
 ([message 11751](https://groups.io/g/eternity2/message/11751)).
 
-Segundo, la lectura más discreta y más instructiva: la velocidad de un solo núcleo apenas
-se movió durante quince años. McGavin lo dijo él mismo al publicar la tabla de 2025: las
-velocidades en las CPU más recientes «are only a little faster» que en su Phenom II de
-2010 ([message 11643](https://groups.io/g/eternity2/message/11643)). El motor ya estaba
-cerca del muro de memoria que Field describió en 2011. Lo que realmente creció fue el
-número de núcleos que podía apuntar a un problema.
+Segundo, la lectura más discreta y más instructiva: la velocidad de un solo núcleo
+creció mucho menos que el número de núcleos. McGavin lo dijo él mismo al publicar la
+tabla de 2025: las velocidades en las CPU más recientes «are only a little faster» que
+en su Phenom II de 2010 ([message 11643](https://groups.io/g/eternity2/message/11643)).
+La tabla pone cifra a ese «un poco»: el mismo árbol de 2,12 billones de nodos corrió
+2,4× más rápido en un Ryzen de 2021 que en el Phenom II de 2010, y las mejores cifras
+de un solo núcleo pasaron de unos 75M/s en 2011 a unos 295M/s en 2026, entre 2,5 y 4×
+en quince años, sobre todo gracias a núcleos más nuevos. Lo que creció mucho más fue
+el número de núcleos que podía apuntar a un problema.
 
 ## Cientos de núcleos con un presupuesto de aficionado
 
@@ -245,10 +249,13 @@ una entre 70,000, tras casi 2 × 10¹⁷ nodos, unos **180 años-núcleo**, meno
 ([message 9686](https://groups.io/g/eternity2/message/9686),
 [message 9688](https://groups.io/g/eternity2/message/9688)), repartidos a lo largo de unos
 cuatro años ([message 9804](https://groups.io/g/eternity2/message/9804)). Su resumen: «no
-new methods, just systematic persistence and the law of large numbers.» La
-[página de benchmarks](/research/build/benchmarks) cuenta esa historia como la validación
-más fuerte de la teoría compleja; aquí se yergue como el punto culminante de la historia
-del rendimiento.
+new methods, just systematic persistence and the law of large numbers.» Un solo
+éxito en la fila ~92 907 frente a una probabilidad prevista de 1 entre 70 000 es
+compatible con la teoría, pero apenas acota la tasa prevista: con esa tasa, el intervalo
+central del 95 % para el primer éxito va de unas 1800 a 258 000 filas. Las
+comprobaciones más fuertes de la teoría compleja son recuentos exactos como el de los
+bloques de esquina 5×5 de más arriba, a menos del 6 % de la estimación. Aquí el 10×10
+queda como el punto culminante de la historia del rendimiento.
 
 **Y un récord, en el motor de otro.** En septiembre de 2020, días después de que Joshua
 Blackwood liberara el código de su solucionador, McGavin lo ejecutó «for a few days on
@@ -270,9 +277,12 @@ bruta. Sus propios números arman el caso. Con el orden de recorrido por filas, 
 compleja sitúa el árbol de búsqueda completo de E2 en unas 1.6 × 10⁴⁷ colocaciones
 ([message 9710](https://groups.io/g/eternity2/message/9710)), unas 9.3 × 10⁴² por solución
 esperada ([message 9713](https://groups.io/g/eternity2/message/9713)). Incluso en su mejor
-ruta de colocación de 5 pistas (un árbol mucho más pequeño, unos 3.1 × 10⁴⁰ nodos) calculó
-4.9 × 10³² años a 100 millones de nodos por segundo, y añadir miles de millones de núcleos
-sigue dejándote «orders of magnitude longer than the age of the Universe»
+ruta de colocación de 5 pistas, un árbol mucho más pequeño, la estimación sigue siendo
+astronómica: el hilo cita unos 3.1 × 10⁴⁰ nodos y 4.9 × 10³² años a 100 millones de
+nodos por segundo. Esas dos cifras no concuerdan entre sí (3.1 × 10⁴⁰ nodos a ese ritmo
+son unos 10²⁵ años), así que una de ellas corresponde a otro recuento. Cualquiera de las
+dos queda fuera de alcance, y añadir miles de millones de núcleos sigue dejándote
+«orders of magnitude longer than the age of the Universe»
 ([message 11201](https://groups.io/g/eternity2/message/11201)). Había sacado la conclusión
 mucho antes, en 2013: «It seems clear to me that E2 will not be solved by brute force. If
 it is to be solved at all, it will be by deep analysis and/or clever insight, in my
@@ -286,9 +296,12 @@ global: un factor de alrededor de 25 a la profundidad 81
 ([message 9751](https://groups.io/g/eternity2/message/9751)). Ninguna opción de compilador
 le dio jamás 25×. Dar forma al árbol le ganó a reducir los nanosegundos. Esa es la
 [lección central](/research/why/prune-vs-speed) de este sitio, reportada aquí como el
-experimento de veinte años de un profesional: construyó el motor más rápido de la historia
-de la comunidad, lo midió todo y concluyó que la brecha hasta 480 nunca se jugó en el
-reloj.
+experimento de veinte años de un profesional: construyó el backtracker de CPU
+mono-núcleo más rápido de la lista, lo midió todo y concluyó que la velocidad sola no
+llegará a 480. El rendimiento sí mueve récords: su granja, con las heurísticas de
+Blackwood, encontró el 469, y cada récord posterior, hasta los vigentes en la
+[página de récords](/research/records), salió de buenas heurísticas multiplicadas por
+muchos núcleos.
 
 ## Ejecutándolo aquí
 
@@ -353,7 +366,9 @@ Dos cosas conviene decir con claridad. Primero, esto es una **profundidad** (has
 llegó la búsqueda antes de retroceder), no una puntuación de aristas sobre 480: su programa
 no emite un tablero parcial para volver a puntuar. Segundo, el ritmo en el puzzle real es
 de unos 109 millones de colocaciones por segundo, aproximadamente el 40 % de su velocidad
-en el puzzle de Joe, porque las restricciones del puzzle real podan con más dureza. El
+en el puzzle de Joe. La causa no se mide aquí: las colocaciones por segundo no son una
+medida de poda, y los dos puzzles difieren en su frente de búsqueda y en su número de
+pistas. El
 número de pistas apenas lo mueve: 205 con una pista, 204 con cinco. Esta es la misma
 lección a la que llegan sus propios mensajes, ahora en mi propio hardware: el motor en
 bruto es soberbio recorriendo un árbol y no dice nada, por sí solo, sobre dónde se esconde
@@ -372,8 +387,9 @@ este motor junto al
 Los tres no miden el mismo eje (el número de McGavin es una profundidad de colocación, no
 una puntuación de aristas coincidentes), así que lea la comparación con cuidado.
 
-Una posdata de primera mano sobre el propio rendimiento. Reconstruido sin pantalla (su
-pantalla de terminal en vivo, resulta, le cuesta ~2,7×) y apuntado a un tablero fácil y a
+Una posdata de primera mano sobre el propio rendimiento. Reconstruido sin pantalla (los
+ritmos sin pantalla de abajo coinciden con los medidos con pantalla más arriba a pocos
+puntos porcentuales) y apuntado a un tablero fácil y a
 uno difícil, este motor C fija el listón frente al cual se midió luego un
 [backtracker de generación de código en Rust portable](/research/lab/experiments/raphael-anjou/jit-backtracker)
 en el mismo M1: el Rust lo iguala en tableros difíciles y profundos como el rompecabezas

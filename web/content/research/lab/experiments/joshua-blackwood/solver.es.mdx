@@ -3,10 +3,13 @@ title: "El solucionador de Blackwood, decodificado y ejecutado aquí"
 description: >-
   El backtracker récord de Joshua Blackwood, decodificado gracias a las notas de
   Jef Bucas (un calendario de cuotas de color y una tolerancia a desajustes en el
-  tramo final, ajustados casi óptimamente), luego construido y ejecutado en mi M1:
-  tal como se publicó, vuela hasta 248 de 256 piezas ignorando las pistas; fija las
-  cinco pistas oficiales y el mismo motor se atasca cerca de 45.
-metaDescription: "El backtracker récord en C# de Blackwood, decodificado vía Jef Bucas y ejecutado en un núcleo de un M1: publicado tal cual alcanza 248/256 piezas (454/480 aristas), pero se atasca cerca de 45/256 al fijar las cinco pistas oficiales. Incluye el calendario de cuotas y su ajuste manual casi óptimo."
+  tramo final, que un pequeño barrido encontró ya bien ajustados), luego
+  construido y ejecutado en un núcleo de M1. Tal como se publicó, alcanza 248 de
+  256 piezas ignorando las pistas. Con una fijación tosca de las cinco pistas
+  añadida a su recorrido sin modificar, solo llega a la profundidad ~45 en 120 s:
+  un artefacto de la fijación, ya que una reimplementación del mismo método que
+  tiene en cuenta las pistas promedia 436/480.
+metaDescription: "El backtracker récord en C# de Blackwood, decodificado vía Jef Bucas y ejecutado en un núcleo de un Apple M1: tal cual coloca 248/256 piezas; una fijación tosca de las cinco pistas lo atasca cerca de la profundidad 45, artefacto de la fijación y no del método. Con su calendario de cuotas."
 kind: experiment
 contribution: measurement
 author: joshua-blackwood
@@ -14,8 +17,6 @@ contributors:
   - { slug: jef-bucas, role: parameter study }
   - { slug: raphael-anjou, role: write-up }
 rigor: measured
-score: 454
-scoringConvention: matched-edges
 hardware:
   cores: 1
   cpu: "Apple M1"
@@ -29,8 +30,9 @@ hardware:
 repro:
   kind: heavy
   cmd: "git clone github.com/jblackwood345/EternityII_Solver; dotnet build -c Release"
+  scope: "Compila su código fuente sin modificar. Las tres modificaciones usadas en las ejecuciones de abajo (número de hilos, línea de progreso, umbral de guardado y fijación de pistas) se describen en el texto pero no se publican como parche, así que este comando no reproduce ni la ejecución de 248 piezas ni la de profundidad 45."
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -88,8 +90,8 @@ cuotas por profundidad que poda las ramas que se quedan atrás, un
 [orden de relleno](/research/build/backtracking/fill-order) ajustado para ser «ni
 demasiado apretado ni demasiado holgado», y una tolerancia a desajustes acumulados
 en el tramo final. Cada una de esas decisiones lleva números dentro, y el estudio
-de Jef Bucas planteó la pregunta obvia: ¿los números de Blackwood valen algo? Sí,
-hasta resultar incómodo. Como el código es un programa C# real y compilable, se
+de Jef Bucas planteó la pregunta obvia: ¿los números de Blackwood valen algo? En un pequeño
+barrido, quedan dentro de la banda de mejor rendimiento. Como el código es un programa C# real y compilable, se
 puede entonces ejecutar exactamente tal como lo escribió su autor, que es lo que
 hace la última sección aquí.
 
@@ -295,13 +297,15 @@ Dos parámetros recibieron el tratamiento:
 
 ## Lo que el ajuste manual acertó
 
-Ese último resultado merece énfasis. Blackwood rellenó su calendario a mano: cinco
-segmentos lineales, coeficientes estimados a ojo. Cuando un barrido aleatorio
-exploró el vecindario a su alrededor, la línea ajustada a mano quedó de lleno en la
-zona de mejor rendimiento. La conclusión de Jef, y la nuestra: los parámetros
-originales eran casi óptimos. El viejo consejo se sostiene. Antes de rediseñar las
-heurísticas de un solucionador récord, comprueba si su autor ya encontró el óptimo
-local a mano.
+Ese último resultado pide una lectura cuidadosa. Blackwood rellenó su calendario a
+mano: cinco segmentos lineales, coeficientes estimados a ojo. En el barrido de Jef,
+la línea hecha a mano quedó dentro de la banda de mejor rendimiento de las
+perturbaciones aleatorias. Lo que se midió fue la profundidad que alcanzaba cada
+ejecución, no la frecuencia de tableros récord, y las muestras eran pocas y sin
+replicar (la salvedad del propio Jef, más abajo). Sugiere que el ajuste manual ya
+era bueno; no establece un óptimo local. El consejo práctico se mantiene: antes de
+rediseñar las heurísticas de un solucionador récord, comprueba lo bien que su autor
+ya las ajustó a mano.
 
 <Callout kind="note" title="Los propios resultados negativos de Blackwood">
   Blackwood llevó a cabo la misma auditoría sobre sí mismo. Después del 469 catalogó
@@ -365,8 +369,10 @@ núcleos», «cambia la función de guardado»):
 Ejecutado tal como está su código, en un solo núcleo durante 60 segundos, es rápido
 y llega lejos:
 
-- **248 / 256 piezas colocadas**, un tablero que se recalifica a **454 / 480**
-  aristas apareadas.
+- **248 / 256 piezas colocadas**, un tablero parcial con ocho celdas vacías que el
+  puntuador canónico califica con **454 / 480** aristas apareadas. El recuento de
+  un tablero parcial no es comparable con la puntuación de un tablero completo de
+  256 piezas, así que esta ejecución no lleva puntuación de clasificación.
 - **~18,9 millones de nodos por segundo** (un nodo es un intento de colocación).
 
 Su programa publicado no tiene noción alguna de pistas: trata cada pieza, incluidas
@@ -394,14 +400,15 @@ segundos, un solo núcleo:
 
 - **Colocación más profunda: alrededor de 45 / 256.**
 
-Su heurística de orden de recorrido no tiene nada a lo que agarrarse una vez que las
-piezas especiales quedan fijas a mitad del tablero: se debate cerca de las filas
-inferiores y nunca sube. Fijar las cinco es más estricto que lo que el puzzle exige
-en rigor (solo la pista central es obligatoria), pero es la misma restricción a la
-que se someten los otros motores aquí, y Blackwood aterriza muy por debajo del
-[438 de la reimplementación de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
-o del [204 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) bajo la
-misma restricción.
+Es una profundidad de colocación, no una puntuación de aristas apareadas, y casi
+con seguridad es un artefacto de la fijación más que del algoritmo. Nuestra
+reimplementación del mismo método, que sí tiene en cuenta las pistas, promedia en el
+[benchmark mono-núcleo](/research/lab/experiments/single-core-benchmark)
+436,4 / 480 aristas apareadas con las cinco pistas (y tres esquinas) fijadas, en 60
+segundos con un hilo. Fijar las cinco es más estricto de lo que el puzzle exige
+(solo la pista central es obligatoria). Para comparar en el mismo eje de
+profundidad, [el motor de McGavin](/research/lab/experiments/peter-mcgavin/backtracker)
+llega a unas 204 de 256 piezas con las cinco pistas.
 
 <Callout kind="note" title="Una salvedad justa">
   Esta fijación de pistas es tosca: prohíbe cualquier otra pieza en las cinco celdas

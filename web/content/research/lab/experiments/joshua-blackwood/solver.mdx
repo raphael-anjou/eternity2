@@ -2,10 +2,12 @@
 title: "Blackwood's solver, decoded and run here"
 description: >-
   Joshua Blackwood's record backtracker, decoded through Jef Bucas's notes (a
-  colour quota schedule and a late-game mismatch allowance, tuned near-optimally),
-  then built and run on my M1: left as published it flies to 248 of 256 pieces
-  ignoring the clues; pin the five official clues and the same engine stalls near 45.
-metaDescription: "Blackwood's record 470-class C# backtracker, decoded via Jef Bucas and run single-core on an Apple M1: as published it reaches 248/256 pieces (454/480 edges), yet stalls near 45/256 once the five official clues are pinned. Inside: the colour-quota schedule and why hand-tuning proved near-optimal."
+  colour quota schedule and a late-game mismatch allowance, which a small sweep
+  found already well tuned), then built and run on one M1 core. As published it
+  reaches 248 of 256 pieces ignoring the clues. With a crude five-clue pin bolted
+  onto his unmodified scan it reaches only depth ~45 in 120 s: an artifact of the
+  pin, since a clue-aware reimplementation of the same method averages 436/480.
+metaDescription: "Blackwood's record C# backtracker, decoded via Jef Bucas and run on one Apple M1 core: as published it places 248/256 pieces; a crude five-clue pin stalls it near depth 45, an artifact of the pin. Inside: the colour-quota schedule and a sweep suggesting the hand tuning was good."
 kind: experiment
 contribution: measurement
 author: joshua-blackwood
@@ -13,8 +15,6 @@ contributors:
   - { slug: jef-bucas, role: parameter study }
   - { slug: raphael-anjou, role: write-up }
 rigor: measured
-score: 454
-scoringConvention: matched-edges
 hardware:
   cores: 1
   cpu: "Apple M1"
@@ -28,8 +28,9 @@ hardware:
 repro:
   kind: heavy
   cmd: "git clone github.com/jblackwood345/EternityII_Solver; dotnet build -c Release"
+  scope: "Builds his unmodified source. The three edits used for the runs below (thread count, progress line, save threshold and clue pin) are described in prose but not published as a patch, so this command does not reproduce the 248-piece or depth-45 runs."
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, speed]
 related:
@@ -84,7 +85,8 @@ schedule that prunes branches falling behind, a
 [fill order](/research/build/backtracking/fill-order) tuned to be "not too tight
 and not too loose", and a late-game allowance for accumulating mismatches. Every
 one of those choices has numbers in it, and Jef Bucas's study asked the obvious
-question: are Blackwood's numbers any good? They are, uncomfortably so. Because
+question: are Blackwood's numbers any good? In one small sweep, they sit in the
+best-performing band. Because
 the code is a real, buildable C# program, it can then be run exactly as its
 author wrote it, which is what the last section here does.
 
@@ -281,12 +283,14 @@ Two parameters got the treatment:
 
 ## What hand-tuning got right
 
-That last result deserves emphasis. Blackwood filled his schedule by hand: five
-linear segments, eyeballed coefficients. When a randomized sweep explored the
-neighbourhood around it, the hand-tuned line sat squarely in the best-performing
-zone. Jef's conclusion, and ours: the original parameters were near-optimal. The
-decades-old advice holds. Before you redesign a record solver's heuristics, check
-whether its author already found the local optimum by hand.
+That last result deserves a careful reading. Blackwood filled his schedule by
+hand: five linear segments, eyeballed coefficients. In Jef's sweep, the hand-made
+line sat inside the best-performing band of random perturbations. The outcome
+measured was the depth each run reached, not the rate of record boards, and the
+sample counts were low and unreplicated (Jef's own caveat, below). It suggests
+the hand tuning was already good; it does not establish a local optimum. The
+practical advice still stands: before you redesign a record solver's heuristics,
+check how well its author already tuned them by hand.
 
 <Callout kind="note" title="Blackwood's own negative results">
   Blackwood ran the same audit on himself. After the 469 he catalogued his dead
@@ -346,8 +350,10 @@ the number of cores", "change the save function"):
 
 Run as his code stands, single core for 60 seconds, it is fast and it gets far:
 
-- **248 / 256 pieces placed**, a board that re-scores to **454 / 480** matched
-  edges.
+- **248 / 256 pieces placed**, a partial board with eight empty cells that the
+  canonical scorer rates at **454 / 480** matched edges. A partial board's count
+  is not comparable to a full 256-piece score, so this run carries no leaderboard
+  score.
 - **~18.9 million nodes per second** (one node is one placement attempt).
 
 His published program has no notion of clues at all: it treats every piece,
@@ -374,14 +380,15 @@ clues pinned, 120 seconds, single core:
 
 - **Deepest placement: about 45 / 256.**
 
-His scan-order heuristic has nothing to grip once the special pieces are fixed
-mid-board: it thrashes near the bottom rows and never climbs. Pinning all five is
-stricter than the puzzle strictly requires (only the centre clue is mandatory),
-but it is the same constraint the other engines are held to here, and Blackwood
-lands far below the
-[Verhaard reimplementation's 438](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
-or [McGavin's 204](/research/lab/experiments/peter-mcgavin/backtracker) under the
-same constraint.
+This is a placement depth, not a matched-edge score, and it is almost certainly
+an artifact of the pin rather than of the algorithm. Our clue-aware
+reimplementation of the same method, on the
+[single-core benchmark](/research/lab/experiments/single-core-benchmark), averages
+436.4 / 480 matched edges with the five clues (and three corners) pinned, in 60
+seconds on one thread. Pinning all five is stricter than the puzzle requires
+(only the centre clue is mandatory). For comparison on the same depth axis,
+[McGavin's engine](/research/lab/experiments/peter-mcgavin/backtracker) reaches
+about 204 of 256 with the five clues.
 
 <Callout kind="note" title="A fair caveat">
   This clue pin is crude: it forbids every other piece at the five clue cells and

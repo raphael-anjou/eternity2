@@ -1,7 +1,8 @@
 ---
 title: "Le backtracker C de McGavin : l'histoire du débit, reconstruit ici"
 description: >-
-  Le backtracker C de Peter McGavin, le plus rapide de la communauté : une recette
+  Le backtracker C de Peter McGavin, le backtracker CPU mono-cœur le plus
+  rapide mesuré sur la liste : une recette
   d'optimisation de 2007 capitalisée pendant deux décennies via code généré, tables
   de correspondance et astuces de compteur, puis compilée sur mon M1 et pointée vers
   le vrai puzzle à 256 pièces, où en mono-cœur elle dépasse 200 des 256 pièces à
@@ -27,7 +28,7 @@ repro:
   kind: heavy
   cmd: "fetch genbody71.zip from groups.io msg 11749; gcc -Ofast -DG then without -DG"
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -201,12 +202,15 @@ mentionnée sur la liste était 70-90M/s
 McGavin lui-même est les ~225M/s de l'Orange Pi sur de petits puzzles
 ([message 11751](https://groups.io/g/eternity2/message/11751)).
 
-Deuxième lecture, plus discrète et plus instructive : la vitesse mono-cœur n'a
-quasiment pas bougé pendant quinze ans. McGavin l'a dit lui-même quand il a publié la
+Deuxième lecture, plus discrète et plus instructive : la vitesse mono-cœur a bien
+moins progressé que le nombre de cœurs. McGavin l'a dit lui-même quand il a publié la
 table de 2025 : les vitesses sur les CPU les plus récents « are only a little faster »
 que sur son Phenom II de 2010
-([message 11643](https://groups.io/g/eternity2/message/11643)). Le moteur était déjà
-près du mur mémoire que Field décrivait en 2011. Ce qui a réellement grandi, c'est le
+([message 11643](https://groups.io/g/eternity2/message/11643)). La table chiffre ce
+« un peu » : le même arbre de 2,12 billions de nœuds a tourné 2,4× plus vite sur un
+Ryzen de 2021 que sur le Phenom II de 2010, et les meilleurs chiffres mono-cœur sont
+passés d'environ 75M/s en 2011 à environ 295M/s en 2026, soit 2,5 à 4× en quinze ans,
+surtout grâce à des cœurs plus récents. Ce qui a grandi bien davantage, c'est le
 nombre de cœurs qu'il pouvait pointer vers un problème.
 
 ## Des centaines de cœurs pour un budget de loisir
@@ -255,10 +259,13 @@ années-cœur**, moins de 0,5 % de l'arbre entier
 ([message 9686](https://groups.io/g/eternity2/message/9686),
 [message 9688](https://groups.io/g/eternity2/message/9688)), étalés sur environ quatre
 ans ([message 9804](https://groups.io/g/eternity2/message/9804)). Son résumé : « no new
-methods, just systematic persistence and the law of large numbers. » La
-[page des benchmarks](/research/build/benchmarks) raconte cette histoire comme la
-validation la plus forte de la théorie complexe ; ici, elle se dresse comme le point
-culminant de l'histoire du débit.
+methods, just systematic persistence and the law of large numbers. » Un seul
+succès à la ligne ~92 907 pour une chance prédite de 1 sur 70 000 est compatible avec
+la théorie, mais ne contraint le taux prédit que de loin : à ce taux, l'intervalle
+central à 95 % pour le premier succès va d'environ 1 800 à 258 000 lignes. Les
+vérifications les plus fortes de la théorie complexe sont des décomptes exacts comme
+celui des blocs de coin 5×5 plus haut, à moins de 6 % de l'estimation. Ici, le 10×10
+reste le point culminant de l'histoire du débit.
 
 **Et un record, sur le moteur d'un autre.** En septembre 2020, quelques jours après
 que Joshua Blackwood a ouvert le code de son solveur, McGavin l'a exécuté « for a few
@@ -280,10 +287,13 @@ Ses propres chiffres font le procès. Avec l'ordre de balayage de lignes, la th�
 complexe situe l'arbre de recherche complet d'E2 à environ 1,6 × 10⁴⁷ placements
 ([message 9710](https://groups.io/g/eternity2/message/9710)), soit quelque 9,3 × 10⁴²
 par solution attendue ([message 9713](https://groups.io/g/eternity2/message/9713)).
-Même sur son meilleur chemin de placement à 5 indices (un arbre bien plus petit,
-environ 3,1 × 10⁴⁰ nœuds), il a calculé 4,9 × 10³² années à 100 millions de nœuds par
-seconde, et ajouter des milliards de cœurs vous laisse encore « orders of magnitude
-longer than the age of the Universe »
+Même sur son meilleur chemin de placement à 5 indices, un arbre bien plus petit,
+l'estimation reste astronomique : le fil cite environ 3,1 × 10⁴⁰ nœuds et 4,9 × 10³²
+années à 100 millions de nœuds par seconde. Ces deux chiffres ne concordent pas entre
+eux (3,1 × 10⁴⁰ nœuds à ce rythme font environ 10²⁵ années) : l'un des deux se
+rapporte donc à un autre décompte. L'un comme l'autre est hors de portée, et ajouter
+des milliards de cœurs vous laisse encore « orders of magnitude longer than the age
+of the Universe »
 ([message 11201](https://groups.io/g/eternity2/message/11201)). Il en avait tiré la
 conclusion bien avant, en 2013 : « It seems clear to me that E2 will not be solved by
 brute force. If it is to be solved at all, it will be by deep analysis and/or clever
@@ -298,9 +308,12 @@ d'environ 25 à la profondeur 81
 ([message 9751](https://groups.io/g/eternity2/message/9751)). Aucune option de
 compilateur ne lui a jamais donné 25×. Façonner l'arbre a battu réduire les
 nanosecondes. C'est la [leçon centrale](/research/why/prune-vs-speed) de ce site,
-rapportée ici comme l'expérience de vingt ans d'un praticien : il a construit le moteur
-le plus rapide de l'histoire de la communauté, tout mesuré, et conclu que l'écart
-jusqu'à 480 ne s'est jamais joué sur le chronomètre.
+rapportée ici comme l'expérience de vingt ans d'un praticien : il a construit le
+backtracker CPU mono-cœur le plus rapide de la liste, tout mesuré, et conclu que la
+vitesse seule n'atteindra pas 480. Le débit fait pourtant bouger les records : sa
+ferme, avec les heuristiques de Blackwood, a trouvé le 469, et chaque record depuis,
+jusqu'à ceux de la [page des records](/research/records), est venu de bonnes
+heuristiques multipliées par de nombreux cœurs.
 
 ## Le faire tourner ici
 
@@ -367,8 +380,9 @@ Deux choses méritent d'être dites clairement. D'abord, il s'agit d'une **profo
 (jusqu'où la recherche est allée avant de rebrousser chemin), et non d'un score
 d'arêtes sur 480 : son programme n'émet pas de plateau partiel à re-scorer.
 Deuxièmement, le débit sur le vrai puzzle est d'environ 109 millions de placements par
-seconde, à peu près 40 % de sa vitesse sur le puzzle de Joe, parce que les contraintes
-du vrai puzzle élaguent plus dur. Le nombre d'indices ne le bouge quasiment pas : 205
+seconde, à peu près 40 % de sa vitesse sur le puzzle de Joe. La cause n'est pas mesurée
+ici : des placements par seconde ne mesurent pas l'élagage, et les deux puzzles
+diffèrent par leur front de recherche et leur nombre d'indices. Le nombre d'indices ne le bouge quasiment pas : 205
 avec un indice, 204 avec cinq. C'est la même leçon que ses propres messages
 atteignent, désormais sur mon propre matériel : le moteur brut est superbe pour
 parcourir un arbre et ne dit rien, à lui seul, sur l'endroit où se cache un plateau à
@@ -389,7 +403,8 @@ placement, pas un score d'arêtes concordantes), donc lisez la comparaison avec
 prudence.
 
 Un post-scriptum de première main sur le débit lui-même. Reconstruit sans affichage
-(son affichage terminal en direct lui coûte, en fait, ~2,7×) et pointé sur un plateau
+(les débits sans affichage ci-dessous rejoignent à quelques pour cent près ceux
+mesurés avec affichage plus haut) et pointé sur un plateau
 facile et un difficile, ce moteur C fixe la barre face à laquelle un
 [backtracker à génération de code en Rust portable](/research/lab/experiments/raphael-anjou/jit-backtracker)
 a ensuite été mesuré sur le même M1 : le Rust l'égale sur les plateaux difficiles et

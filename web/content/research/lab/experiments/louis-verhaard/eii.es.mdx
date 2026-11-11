@@ -5,16 +5,16 @@ description: >-
   reconstruido a partir de los propios mensajes de Louis Verhaard en la lista de
   correo: poda prospectiva, órdenes de relleno en peine, deslizamiento de arista
   condicionado por la profundidad, un calendario de deslizamiento ajustado por
-  cadena de Markov. Y por qué su propio binario Win32, sin código fuente, no
-  puede compilarse ni ejecutarse en esta máquina en absoluto.
-metaDescription: "El eii de Louis Verhaard: el backtracker en profundidad detrás del 467/480, el único premio de Eternity II (10 000 dólares de finalista). Reconstruido desde sus mensajes: poda prospectiva, relleno en peine, deslizamiento de arista ajustado por Markov, y por qué su binario Win32 no se ejecuta aquí."
+  cadena de Markov. Y por qué su propio binario Win32, sin código fuente, no se
+  ha ejecutado aquí.
+metaDescription: "El eii de Louis Verhaard: el backtracker en profundidad detrás del 467/480, el único premio de Eternity II (10 000 $ de finalista). Reconstruido desde sus mensajes: poda prospectiva, relleno en peine, deslizamiento de arista ajustado por Markov, y por qué su binario Win32 no se ha ejecutado aquí."
 kind: page
 contribution: exposition
 author: louis-verhaard
 contributors:
   - { slug: raphael-anjou, role: write-up }
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, local-search, speed]
 related:
@@ -70,8 +70,9 @@ documentó él mismo las heurísticas y el orden de búsqueda, discutió el dise
 lista de correo en primera persona, y distribuyó un binario público que un usuario
 independiente llevó por banco de pruebas hasta la mismísima puntuación del premio.
 Esa ausencia de código fuente es la razón por la que, de los tres motores
-comunitarios estudiados en este laboratorio, el suyo es el que no puede ejecutarse
-en absoluto; la última sección dice exactamente por qué.
+comunitarios estudiados en este laboratorio, el suyo es el único cuyo programa
+original no se ha ejecutado aquí; la última sección dice por qué, y qué haría
+falta para hacerlo.
 
 ## La trayectoria: atascado más allá de 463, así que publícalo
 
@@ -282,19 +283,22 @@ modo que sus miles de tableros a 463–465 no están deduplicados
 Lo que «el código vive ahí» oculta es que ningún *código fuente* vive en ninguna
 parte. Lo que Verhaard distribuyó es `eii-1.0-win32.zip`: un `eii.exe` de Windows, un
 léeme, y algunos archivos `.bat`. Hay **cero archivos fuente**, y es solo Win32. No
-se ejecuta en Apple silicon, y no hay en esta máquina ninguna capa de Windows ni de
-emulación bajo la cual ejecutarlo. Su artefacto es, aquí, inejecutable, y no hay nada
-suyo que recuperar y compilar. Los órdenes de relleno en peine y el calendario de
-deslizamiento condicionado por la profundidad descritos más arriba se convirtieron en
-canon comunitario precisamente porque se recuperaron de sus mensajes y, cuando eran
-numéricos, byte a byte de las cadenas dentro de `eii.exe`, ya que ese binario es el
-único registro superviviente de ellos.
+se ejecuta de forma nativa en Apple silicon, y no se ha ejecutado para este sitio.
+Es un límite de la máquina usada aquí, no del programa: un binario de consola Win32
+funciona con Wine o en cualquier máquina virtual Windows/x86, y JSA ejecutó este
+mismo binario durante 82 días. No hay nada suyo que recuperar y compilar. Los
+órdenes de relleno en peine y el calendario de deslizamiento condicionado por la
+profundidad descritos más arriba se convirtieron en canon comunitario porque se
+recuperaron de sus mensajes; algunas tablas numéricas (la cuota de piezas y sus
+buenos grupos) solo sobreviven dentro de `eii.exe` y se extrajeron de él byte a
+byte.
 
-Así que «ejecutar a Verhaard» siquiera significa reconstruir su método a partir de
-esa documentación. Eso es lo que hace la
+Así que el motor ejecutable de este sitio es una reconstrucción de su método a
+partir de esa documentación y esas tablas: la
 [reimplementación de Verhaard](/research/lab/experiments/louis-verhaard/verhaard-reimpl),
-y en el puzzle real de cinco pistas alcanza 438 de 480, en un solo núcleo. Ese motor
-está archivado aquí junto a esta página, atribuido a Raphaël, porque es una lectura
-del método de Verhaard reescrita como código de Raphaël. Nombrar esa distinción forma
-parte del hallazgo: de los tres motores comunitarios estudiados aquí, el suyo es el
-que no puede ejecutarse en absoluto.
+que en diez variantes de cinco pistas del banco promedia 440,8 de 480 con un hilo
+en 60 segundos. Ese motor está archivado aquí junto a esta página, atribuido a
+Raphaël, porque es una lectura del método de Verhaard reescrita como código de
+Raphaël. No se ha validado frente a la distribución de puntuaciones del original.
+Ejecutar `eii.exe` con Wine frente a la escala de JSA de 43, 62 y 82 días es la
+validación evidente.

@@ -8,10 +8,8 @@ metaDescription: "BANDSAW resuelve exactamente una banda de filas de Eternity II
 kind: experiment
 contribution: analysis
 author: raphael-anjou
-score: 437
 outcome: plateaued
-scoringConvention: matched-edges
-rigor: proven
+rigor: measured
 hardware:
   cores: 8
   cpu: "Apple M1"
@@ -23,17 +21,17 @@ hardware:
   seedPolicy: "none (exact, deterministic)"
   measured: false
 complexity:
-  time: "meet-in-the-middle: ~√ of the naive enumeration; but each half grows ~20× per extra mismatch budget"
+  time: "two-sided enumeration joined on seam colours and complementary piece pools; the saving over naive enumeration depends on how the pools fragment; each half grew ~20× per extra mismatch on the 10×10 testbed"
   space: "O(number of top-half partials), the seam/piece-set hash table is the memory bottleneck"
   note: >-
     Encontrarse en el medio cambia tiempo por espacio: reemplaza un único
     recorrido exponencial por dos recorridos más pequeños seguidos de una unión,
-    lo que explica por qué el tamaño de la banda está limitado por la memoria, no
-    por el tiempo.
+    lo que explica por qué se esperaba que la memoria, y no el tiempo, limitara
+    el tamaño de la banda.
 repro:
   kind: exact
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [exact-methods]
 related:
@@ -66,8 +64,10 @@ completación exacta sin recorrer todo el árbol.
 
 Unas tablas de cotas inferiores exactas, calculadas trabajando hacia atrás
 columna por columna, le permiten podar las ramas que ya no pueden superar el
-presupuesto, y eleva el presupuesto paso a paso hasta que una ronda no
-encuentra nada nuevo, lo que prueba la mejor puntuación para esa banda.
+presupuesto. El presupuesto se eleva un escalón cada vez (profundización
+iterativa sobre el presupuesto de desajustes): el primer presupuesto con el que
+existe una compleción es óptimo para esa banda, porque la ronda exhaustiva un
+escalón más abajo no encontró ninguna.
 
 <Figure collapsible title="Interactivo: el árbol de fin de partida por encuentro en el medio">
   <MeetInMiddleDiagram />
@@ -75,16 +75,16 @@ encuentra nada nuevo, lo que prueba la mejor puntuación para esa banda.
 
 ## El resultado
 
-En un banco de pruebas 10×10, BANDSAW resuelve la fin de partida de forma
-exacta y fija el presupuesto justo donde la exactitud deja de ser asumible: el
-árbol de búsqueda crece unas veinte veces por cada desajuste adicional, en
-ambos lados, de modo que encontrarse en el medio deja de compensar al tamaño
-completo del tablero. Ese resultado negativo es la parte útil: te dice
-exactamente dónde se agotan los métodos exactos y dónde las heurísticas deben
-tomar el relevo. Las piezas exactas que sobrevivieron, las tablas de cotas
-inferiores de sufijo y el branch-and-bound podado, se convirtieron en
-instrumentos reutilizables. Un tablero sin marco que puntúa 437 salió de la
-misma maquinaria.
+En un banco de pruebas 10×10, BANDSAW resuelve con exactitud la banda de fin
+de partida, con un certificado de optimalidad. También da una primera lectura de
+dónde la exactitud se encarece: en ese banco, cada mitad creció unas veinte
+veces por cada desajuste adicional. La tabla de tamaños frente a presupuesto que
+respalda esa cifra no está incluida, y la idea de que encontrarse en el medio
+deja de compensar al tamaño completo del tablero es una extrapolación, no una
+medición. Las piezas exactas que sobrevivieron, las tablas de cotas inferiores
+de sufijo y el branch-and-bound podado, se convirtieron en instrumentos
+reutilizables. Un tablero 16×16 sin marco de 437 salió de la misma maquinaria
+como subproducto heurístico, sin ninguna pretensión de optimalidad.
 
 ## Método
 
@@ -98,22 +98,27 @@ La unión es la idea; la poda es lo que la hace asumible.
   colores de costura concuerdan *y* sus conjuntos de piezas son disjuntos. Esa
   unión halla la mejor completación exacta sin recorrer nunca el árbol entero:
   el clásico compromiso tiempo-por-espacio del
-  [encuentro en el medio](/research/build/exact/meet-in-the-middle).
+  [encuentro en el medio](/research/build/exact/meet-in-the-middle). Unos
+  conjuntos de piezas disjuntos no forman una clave de igualdad: las mitades
+  inferiores se agrupan por reserva complementaria, y el ahorro en raíz cuadrada
+  de una simple unión por hash no se aplica en general; el ahorro depende de cómo
+  se fragmenten las reservas.
 - **Cotas inferiores de sufijo.** Trabajar hacia atrás columna por columna
   construye tablas de cotas inferiores exactas, de modo que un parcial que ya no
   puede superar el presupuesto actual se poda antes de extenderse.
 - **Trinquete de presupuesto.** Se eleva el presupuesto de desajustes un escalón
-  a la vez y se vuelve a resolver; cuando una ronda no encuentra nada mejor, el
-  mejor anterior queda *probado* como óptimo para esa banda. Esa prueba es la
-  razón por la que esta página está etiquetada como **proven**, y no medida: el
-  resultado es un certificado, no una muestra.
+  a la vez y se vuelve a resolver de forma exhaustiva. El primer presupuesto con
+  el que existe una compleción queda *probado* como óptimo para esa banda,
+  porque la ronda exhaustiva un escalón más abajo no encontró ninguna. Ese
+  certificado es exacto; las cifras de escalado de más abajo son una medición y
+  una extrapolación, de ahí la etiqueta de medido de la página.
 
-El techo medido: cada mitad crece ~20× por unidad adicional de presupuesto, de
-modo que al tamaño completo de tablero 16×16 la tabla de la mitad superior ya no
-cabe; es la memoria, no el tiempo, la que es el muro. Ese resultado negativo es
-el entregable: fija con precisión dónde se agotan los métodos exactos y dónde
-las heurísticas deben tomar el relevo. El tablero 437 sin marco cayó de la misma
-maquinaria.
+El techo reportado: en el banco 10×10, cada mitad creció ~20× por unidad
+adicional de presupuesto; las instancias, presupuestos y tamaños de tabla que
+respaldan esa cifra aún no están incluidos. Extrapolada a una banda 16×16
+completa, la tabla de la mitad superior ya no cabría en memoria; esa
+extrapolación no se ha probado. El tablero de 437 sin marco es un subproducto
+16×16 aparte de la misma maquinaria.
 
 ## Reproducir
 

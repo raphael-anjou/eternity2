@@ -1,18 +1,19 @@
 ---
 title: Reimplementación de Verhaard
 description: >-
-  Una reimplementación desde cero del método eii de Louis Verhaard, ya que su
-  propio binario no incluye código fuente y no se ejecuta aquí. Recocido por
-  intercambio de composición de conjunto bajo la métrica de teselado 2×2; en el
-  puzzle real de cinco pistas alcanza 438 de 480, en un solo núcleo.
-metaDescription: "Reimplementación desde cero del método eii de Verhaard: recocido por intercambio de composición bajo la métrica de teselado 2×2, alcanza 438/480 en el puzzle real de cinco pistas, en un solo núcleo. Constantes recuperadas bit a bit desde eii.exe; ejecución versionada, así que 438 es verificable."
+  Una reconstrucción desde cero en Rust del eii de Louis Verhaard como
+  backtracker en profundidad: orden de relleno en peine, un calendario de
+  deslizamiento de aristas interiores condicionado por la profundidad, y una
+  cuota de profundidad sobre 60 buenos grupos extraídos de eii.exe. En diez
+  variantes de cinco pistas promedia 440,8 de 480 en 60 s, un hilo.
+metaDescription: "Reconstrucción desde cero en Rust del eii de Verhaard: un DFS con orden en peine, deslizamiento de aristas condicionado por la profundidad y cuota de piezas sobre 60 buenos grupos extraídos de eii.exe. Un hilo, 60 s, diez variantes de cinco pistas: media 440,8/480, mejor 451."
 kind: experiment
 contribution: reconstruction
 author: raphael-anjou
 contributors:
   - { slug: louis-verhaard, role: method }
 rigor: measured
-score: 438
+score: 451
 scoringConvention: strict-5-clue
 hardware:
   cores: 1
@@ -20,15 +21,15 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
-  wallClock: "120 s"
+  machine: "MacBook (Apple M1, 4P+4E cores), 6 single-thread runs at a time, core assignment not controlled"
+  wallClock: "60 s"
   seedPolicy: "fixed seed 1"
   measured: true
 repro:
   kind: seeded
   cmd: just experiments single-core-benchmark
 order: 20
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, local-search]
 related:
@@ -51,52 +52,69 @@ sources:
   es suyo; la sección es la de Verhaard, porque la idea lo es.
 </Callout>
 
-El eii original de Verhaard es un binario de Windows sin código fuente que
-[no se ejecuta aquí](/research/lab/experiments/louis-verhaard/eii). La única manera
-de ejecutar su enfoque es reconstruirlo, y esto es precisamente esa reconstrucción:
-el mismo motor que aparece como `verhaard` en la
+El eii original de Verhaard es un binario de Windows sin código fuente, y
+[no se ha ejecutado aquí](/research/lab/experiments/louis-verhaard/eii). Para
+poner su enfoque en el banco había que reconstruirlo, y esto es precisamente esa
+reconstrucción: el mismo motor que aparece como `verhaard` en la
 [grilla](/research/lab/experiments/single-core-benchmark).
 
 ## Qué reimplementa
 
-El método documentado de Verhaard: el **recocido por intercambio de composición de
-conjunto** bajo la métrica de teselado 2×2. Se elige un subconjunto interior de unas
-180 piezas, se recuece su composición mediante intercambios hasta maximizar localmente
-el número de subteselados 2×2 alcanzables, se colocan primero las piezas más
-problemáticas y luego se busca el resto bajo ese armazón. Las constantes numéricas del
-motor se recuperaron bit a bit a partir de las cadenas contenidas en `eii.exe`, ya que
-ese binario es el único registro que se conserva de ellas.
+Un backtracker en profundidad, con la forma que describe la
+[página de eii](/research/lab/experiments/louis-verhaard/eii):
 
-Decir que se "ejecuta Verhaard" es un atajo que conviene reconocer: es una lectura de
-su método, no de su código. Que esta sea la única manera de ejecutar su enfoque forma
-parte del hallazgo.
+- **Orden de relleno en peine.** Primero el anillo del borde (esquinas, luego
+  bordes), después el interior, rellenado sobre todo por filas horizontales y
+  las filas restantes en vertical.
+- **Deslizamiento de aristas condicionado por la profundidad.** Un calendario que
+  admite un número creciente de discordancias acumuladas en aristas interiores a
+  partir de la profundidad 193 (hasta 12 en la profundidad 240); las aristas del
+  borde nunca se deslizan.
+- **Una cuota de profundidad sobre buenos grupos.** A profundidades fijadas, el
+  tablero debe contener ya un mínimo de piezas «buenas», tomadas de uno de 60
+  grupos de 253 piezas elegido al azar en cada reinicio.
+- **Una cartera de reinicios**, cada uno con una apertura barajada y un tope de
+  nodos.
 
-## Qué logra en el puzzle real de cinco pistas
+La tabla de cuotas y los 60 buenos grupos se extrajeron byte a byte de `eii.exe`
+(sus secciones `.rdata` y `.data`). El calendario de deslizamiento, la palanca
+más importante, no está almacenado como tabla en el binario v1.0: es el
+calendario ajustado que Verhaard publicó en sus mensajes. La
+[fuente del motor](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark/engine/crates/bench-audit/src/bin)
+(`verhaard_faithful_v2.rs`) indica de dónde salió cada constante.
 
-En un solo núcleo, 120 segundos, con las cinco pistas oficiales fijadas:
+Decir que se "ejecuta Verhaard" es un atajo que conviene reconocer: es una
+lectura de su método, no de su código, y no se ha validado frente a la
+distribución de puntuaciones del original.
 
-- **438 / 480** aristas emparejadas, un tablero **completamente colocado** (256 de 256 piezas).
-- Las cinco pistas respetadas (una solución estricta de pistas), 42 aristas rotas, a unos
-  40 millones de nodos por segundo.
+## Qué logra en las variantes del banco
 
-La ejecución y el tablero resultante están versionados en el
+Diez variantes del puzzle oficial, cada una con las cinco pistas oficiales más
+tres esquinas fijadas; un hilo, 60 segundos, semilla fija:
+
+- **Media 440,8 / 480**, mejor **451** (variantes 3 y 7), peor 437; cada tablero
+  completamente colocado (256 de 256 piezas) y con las cinco pistas respetadas.
+- Unos **24 millones** de nodos de búsqueda por segundo.
+
+Cada uno de esos tableros está versionado en el
 [directorio de referencia](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/single-core-benchmark)
-del motor, y `just experiments single-core-benchmark` la vuelve a ejecutar, de modo que
-el 438 es verificable en lugar de afirmado. Se trata de la instancia de cinco pistas, un
-puzzle más difícil que las variantes con esquinas fijadas que puntúa la
-[clasificación](/research/lab/experiments/single-core-benchmark), donde el mismo motor
-alcanza un mejor resultado de 451.
+del motor, y la grilla los vuelve a ejecutar. Las variantes están más
+restringidas que el puzzle de cinco pistas a secas (añaden tres esquinas
+fijadas), así que no es una puntuación sobre una instancia más fácil. Dentro del
+presupuesto, cada ejecución deja de mejorar mucho antes de los 60 segundos; es
+una meseta para ese presupuesto y esa semilla, no la prueba de un óptimo local.
+Frente a nuestro motor de estilo Blackwood en las mismas variantes, el orden no
+queda separado con n = 10 (véase la
+[grilla](/research/lab/experiments/single-core-benchmark#leer-la-tabla)).
 
-Encontró 438 en unos doce segundos y luego se estancó durante el resto del presupuesto:
-un auténtico óptimo local para esa semilla y ese tiempo. Es la única de las tres
-reimplementaciones comunitarias presentes aquí que resuelve bien el puzzle real de cinco
-pistas, en lugar de una versión más fácil, pero las tres no miden lo mismo, así que la
-comparación exige cautela.
-[Blackwood](/research/lab/experiments/joshua-blackwood/solver) se mide sobre la misma
-base, aristas emparejadas con las pistas fijadas, y se atasca cerca de 45.
-[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) no: su cifra es una
-*profundidad* de colocación (unas 204 de 256 piezas alcanzadas), no una puntuación de
-aristas emparejadas, de modo que no puede leerse en el mismo eje que el 438 de aquí, y
-los dos números no son directamente comparables. Lo que las tres comparten es solo el
-veredicto de que el puzzle restringido es mucho más difícil que el no restringido; los
-números que sustentan ese veredicto están en escalas diferentes.
+Los tres motores comunitarios estudiados en esta sección no se miden en el mismo
+eje, así que la comparación exige cautela.
+[El programa publicado de Blackwood](/research/lab/experiments/joshua-blackwood/solver),
+con una fijación tosca de las cinco pistas añadida, alcanzó una *profundidad* de
+colocación de unas 45, no una puntuación de aristas emparejadas; nuestra
+reimplementación de estilo Blackwood, que sí tiene en cuenta las pistas, promedia
+436,4 aristas en estas variantes. La cifra de
+[McGavin](/research/lab/experiments/peter-mcgavin/backtracker) también es una
+profundidad de colocación (unas 204 de 256 piezas). Ninguna de esas
+profundidades se lee en la misma escala que las puntuaciones de aristas
+emparejadas de aquí.

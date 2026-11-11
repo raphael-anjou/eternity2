@@ -3,8 +3,10 @@ title: The scaling ladder
 description: >-
   A harness that runs any solver unchanged on planted, fully solvable boards at
   N = 8, 10, 12, 14, each with a proven ceiling of 2N(N-1), so a method's
-  collapse size is measured before weeks are spent on the real 16×16.
-metaDescription: "The scaling ladder runs any Eternity II solver on planted, fully solvable boards at N = 8, 10, 12, 14 with a proven ceiling of 2N(N-1), measuring where a method collapses before it is pointed at the real 16×16."
+  degradation is read off cheaply before weeks are spent on the real 16×16.
+  Rungs share a 22-colour palette and a 12 s budget, so the curve mixes size,
+  constrainedness and budget.
+metaDescription: "The scaling ladder runs any Eternity II solver on planted, fully solvable boards at N = 8, 10, 12, 14 with a proven ceiling of 2N(N-1), reading how a method degrades under a fixed 22-colour palette and 12 s budget before it is pointed at the real 16×16."
 kind: tool
 hardware:
   cores: 1
@@ -26,7 +28,7 @@ repro:
   produces: search
   scope: "Rebuilds the four rungs from the seeded generator and re-runs the two shipped baselines; it reproduces the harness mechanics and the curve shapes, not the original thirteen-method grid, which needs the committed instance set."
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, backtracking]
 related:
@@ -43,8 +45,9 @@ The real 16×16 is an expensive place to discover that a method does not
 scale. The scaling ladder asks a cheaper question first: it runs any solver,
 unchanged, on fully solvable planted boards at N = 8, 10, 12 and 14, each
 with a proven ceiling, and reads off the size at which the method collapses.
-The two shipped baselines separate cleanly and degrade monotonically up the
-ladder, which is exactly the readout the harness exists to produce.
+The two shipped baselines separate cleanly. Every rung keeps the real
+puzzle's 22-colour palette and every solver the same 12-second budget, so the
+readout mixes board size with constrainedness and depends on that budget.
 
 ## How it works
 
@@ -98,19 +101,24 @@ the two baselines:
 
 </Figure>
 
-The mechanics all reproduce: the free proven ceiling, the certification of
-every planted board through the same scorer the solvers face, the
-independent re-score of every returned board, and the monotone degradation
-of the DFS from perfect at N=8 to no full solve at N=14 while the greedy
-filler never full-solves anywhere. Seed-to-seed spread is wide on the top
+The harness mechanics reproduce: the free proven ceiling, the certification
+of every planted board through the same scorer the solvers face, and the
+independent re-score of every returned board. The DFS goes from perfect at
+N=8 to no full solve at N=14 while the greedy filler never full-solves
+anywhere, but the original N=14 collapse (0.055 to 0.157) does not reproduce
+on kit rungs: the DFS medians at N=12 and N=14 are nearly flat (0.512 and
+0.477). The two ratios are also different quantities. The DFS returns a
+partial board whose empty cells score 0, so its ratio reads how deep the
+search got; the greedy ratio scores a complete board with mismatches. Seed-to-seed spread is wide on the top
 rungs (0.216 to 1.0 at N=12, 0.047 to 0.613 at N=14 for the DFS); that
 spread is why each rung keeps 8 seeds.
 
 ## What does not follow
 
-- **Small-N success predicts nothing about the 16×16.** The methods that are
-  perfect at N=12 are near worthless one rung later, so the deliverable is
-  the degradation curve, never a ranking at any single size. For where the
+- **Small-N success predicts nothing about the 16×16.** In the original grid
+  (not committed here), methods perfect at N=12 fell to 0.157 or below one
+  rung later; the kit DFS does not drop that sharply. The deliverable is the
+  degradation curve, never a ranking at any single size. For where the
   real instance stands, see [the records page](/research/records).
 - **Ladders built by different generators are not interchangeable.** Collapse
   depth is instance-profile-sensitive. The original rungs matched the real
@@ -120,6 +128,15 @@ spread is why each rung keeps 8 seeds.
   and the N=14 collapse is visibly shallower on its rungs (partials near 0.6
   against a 0.157 floor in the original grid). Curve shapes transfer; exact
   breakpoints do not.
+- **The curve mixes size with constrainedness and budget.** With 22 colours
+  on every rung, the small rungs sit far on the easy side of the phase
+  transition: the site's [hardness-peak runs](/research/why/phase-transition)
+  find 8×8 boards hardest at 6 to 8 interior colours (0 of 30 solved within
+  30 M nodes) and 17 interior colours solved 30 of 30. Going up the ladder
+  therefore changes position relative to the transition as well as size.
+  The fixed 12 s budget matters too: an exponential method fails at whatever
+  N the budget allows. A budget sweep (for example 3, 12 and 48 s) and colour
+  counts matched per rung to constrainedness have not been run.
 - **A weak baseline failing a rung refutes nothing.** The
   perfect-through-N=12 rows belong to specific propagating solvers not yet
   ported to the kit; an under-powered baseline can only under-shoot them.

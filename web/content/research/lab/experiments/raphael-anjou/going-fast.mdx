@@ -4,13 +4,13 @@ description: >-
   Some Eternity II engines pour their effort into walking the search tree as
   fast as possible; others spend it on judgement about where to walk. This is
   the case for the first kind - what raw throughput buys, the three different
-  things people mean by "fast", and why the fastest engine ever built still
-  cannot solve the puzzle.
-metaDescription: "A field guide to speed-first Eternity II solvers: what raw throughput buys, the three distinct meanings of 'fast' (placements per second, matched edges out of 480, and swarm aggregate), and why the community's fastest engine still cannot solve the puzzle."
+  things people mean by "fast", and why even the fastest engine cannot exhaust
+  the puzzle's search tree.
+metaDescription: "A field guide to speed-first Eternity II solvers: what raw throughput buys, the three distinct meanings of 'fast' (placements per second, matched edges out of 480, and swarm aggregate), and why the fastest single-core engine still cannot exhaust the puzzle's search tree."
 kind: concept
 author: raphael-anjou
 order: 35
-updated: 2026-07-20
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -35,9 +35,11 @@ smaller, better tree. This page is the case for the first kind: what going fast
 actually buys, what it doesn't, and how to talk about it without fooling yourself.
 
 It is also the conceptual home of a specific result: a
-[portable Rust backtracker that ties McGavin's hand-tuned C on hard boards](/research/lab/experiments/raphael-anjou/jit-backtracker)
- - the fastest engine in the community's history - and runs at about 44% of its speed
-on easy ones. That page is the engineering diary; this one is what the diary *means*.
+[portable Rust backtracker within about 5% of McGavin's hand-tuned C on one hard benchmark board](/research/lab/experiments/raphael-anjou/jit-backtracker)
+(his is the fastest published single-core CPU engine; GPU ports reach far higher
+aggregate rates, see [GPU solving](/research/build/hardware/gpu-solving)) and at
+about 44% of its speed on an easy one. That page is the engineering diary; this one is
+what the diary *means*.
 
 ## Three things people mean by "fast"
 
@@ -102,37 +104,47 @@ it still leaves you "orders of magnitude longer than the age of the Universe"
 speed thread wound down, Razvan wrote its epitaph: however fast we can check, "we will
 not make a dent" in the space ([msg 11657](https://groups.io/g/eternity2/message/11657)).
 
-The arithmetic is unforgiving and it is the site's [core lesson](/research/why/prune-vs-speed):
-a constant-factor speed-up, however hard-won, is *multiplied against* a number so
-large that no constant factor matters. Doubling the walking speed of a search that
-would take 10³² years gives you a search that takes 5 × 10³¹ years. Shrinking the
-*tree* is the only lever with exponents on it.
+The arithmetic is unforgiving and it is the site's [core lesson](/research/why/prune-vs-speed)
+for exact search: a constant-factor speed-up, however hard-won, is *multiplied
+against* a number so large that no constant factor matters. Doubling the walking speed
+of a search that would take 4.9 × 10³² years gives a search that takes about
+2.5 × 10³² years. That figure is the time to *exhaust* the five-hint tree. With all
+five clues the expected number of solutions is about one, so it is also roughly the
+time to a first solution; with only the centre clue the expected count rises to about
+14,702, but the tree grows with it (see [counting solutions](/research/build/analysis/solution-counting)),
+and the expected time to a first solution stays astronomically long. Shrinking the
+*tree* is the only lever with exponents on it. Record hunting is a different game: a
+stochastic search that runs faster gets more attempts, and more attempts can
+plausibly raise the best score, with diminishing returns.
 
 ## The controlled experiment
 
 This is exactly why the [JIT backtracker result](/research/lab/experiments/raphael-anjou/jit-backtracker)
 is framed as a speed experiment and nothing more. It answers a clean, bounded
-question - *can portable, safe Rust reach hand-tuned-C throughput?* - and the answer is
-board-dependent: on hard, deep boards like the real puzzle it **ties** the C, walking
-the identical tree; on easy low-branching boards the C is about 2.3× faster. It settles
-a smaller open question the community had left standing: whether the famous ~4× edge of
-McGavin's engine over "typical" solvers was **codegen craft** or merely **newer
-hardware**. Holding the hardware fixed and reaching his speed *on hard boards* from
-portable code shows it was craft - the same craft, reproducible in a safe language, and
-written down rung by rung. (It also shows where the craft pays most: on easy boards,
-where per-node work is nearly free, his tighter codegen still wins.)
+question (*can portable, safe Rust reach hand-tuned-C throughput?*) and the answer is
+board-dependent: on one hard, deep benchmark board it lands within about 5% of the C,
+with the two engines on different scan paths, so this compares rates rather than the
+same tree; on an easy low-branching board the C is about 2.3× faster. It bears on a
+question the community had left standing: whether the famous ~4× edge of McGavin's
+engine over "typical" solvers was **codegen craft** or merely **newer hardware**. On
+one current machine, portable code closes most of that gap, so the gap is not *only*
+hardware; separating the two fully would need the same engines timed on old and new
+hardware. (The easy board also shows where the craft pays most: where per-node work
+is nearly free, his tighter codegen still wins.)
 
-And then it stops, plainly, at the same place every fast engine stops: pointed at the
+And then it stops, plainly, at the same place every strict engine stops: pointed at the
 real puzzle it plateaus in the high-300s of 480, because a strict backtracker is a
-superb tree-walker and a poor solver. The records belong to engines that spend their
-budget the *other* way - on
+superb tree-walker and a poor solver. The community's record boards (see
+[records](/research/records)) came from break-tolerant depth-first search (Blackwood,
+McGavin) run with large compute: speed plus a relaxed matching constraint, not speed
+alone. This project's own lines spend the budget the *other* way, on
 [destroy-and-repair judgement](/research/lab/experiments/raphael-anjou/repair-study)
-and [what a search is allowed to learn](/research/lab/experiments/raphael-anjou/learning) - 
-and they get there at a small fraction of the speed.
+and [what a search is allowed to learn](/research/lab/experiments/raphael-anjou/learning),
+and so far they sit below those records.
 
 That is the whole trade. Speed is real, learnable, and worth mastering; the JIT engine
-is proof you can master it in a safe language. But on Eternity II, the fast lane and
-the winning lane are not the same lane. Which is why the interesting engineering
+is proof you can master it in a safe language. But on Eternity II, raw speed on its own
+is not the winning lane: it pays when it drives a search that is allowed to break edges. Which is why the interesting engineering
 question is never only "how fast" - it is "fast *at what*, and is that the thing in the
 way?"
 

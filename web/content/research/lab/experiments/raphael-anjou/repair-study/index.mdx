@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments repair-study
 order: 27
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -82,19 +82,20 @@ the loop stalls.
 - **Starting from a strong backtracked board wins the whole study.** The variant
   that spends its first twenty seconds running the DFS study's break-DFS, then
   repairs the resulting low-440s board, finishes highest of all, at a mean of 446
-  (best 449). Repair adds only a handful of edges on top of that board, but the board it
-  starts from is a hundred points better than a greedy construction, and that
-  carries through. This is the construct-then-refine division of labour the records
-  use, reproduced end to end on one core in one minute.
-- **Among the greedy-start variants, random destroy wins and targeting the breaks
-  backfires.** A geometry-blind destroy that lifts twelve *random* cells finishes
-  at a mean of 402 (best 409) and keeps improving deep into the run. Every operator
-  that targets the broken cells finishes below it, and the more precisely it
-  fixates, the worse it does: the mismatched-cells anchor lands at 366, a larger
-  connected-component destroy at 350. On a mediocre board there is improvement
-  available everywhere, so exploring beats attacking where it already hurts. That
-  inverts on a near-record board, where the few remaining mismatches are the only
-  thing left to fix.
+  (best 449). Repair adds only a handful of edges on top of that board, and with no
+  DFS-only control that lift is not separated from extra search time; the board it
+  starts from is far better than a greedy construction, and that carries through.
+  This mirrors construct-then-refine pipelines such as this project's own; the
+  community record boards came from break-tolerant backtracking.
+- **Among the greedy-start variants, random destroy wins.** A geometry-blind
+  destroy that lifts twelve *random* cells finishes at a mean of 402 (best 409) and
+  keeps improving deep into the run. Every operator that targets the broken cells
+  finishes below it: the mismatched-cells anchor (about ten cells) lands at 366, a
+  connected-component destroy (about 28 cells) at 350. Hole size moves with
+  targeting, so the ranking may reflect hole size rather than targeting;
+  size-matched random controls have not been run. On a near-record board, where the
+  few remaining mismatches are the only thing left to fix, the community found
+  targeted operators most valuable.
 - **The starting board sets the floor.** A greedy construction starts around 348;
   a random one starts near 18, and although the loop lifts it a spectacular 308
   points, it still finishes below where the greedy start *began*. Construction is

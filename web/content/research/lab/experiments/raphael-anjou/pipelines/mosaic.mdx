@@ -14,14 +14,13 @@ hardware:
   accelerator: none
   machine: "MacBook (Apple M1, 8 cores)"
   wallClock: "~30 s per block × 16 blocks (exploratory run, not the standardized single-core bench)"
-  seedPolicy: "stochastic; see the run's repro command"
+  seedPolicy: "none by design (exact MaxSAT blocks, deterministic composition); not yet confirmed by a packaged rerun"
   measured: false
 contribution: solver
 author: raphael-anjou
 score: 448
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "per 4×4 block ~30 s to MaxSAT optimum (3×3 ~11 s); 16 block levels with backtracking"
   space: "one MaxSAT solution enumerator per block level held on the backtrack stack"
@@ -38,7 +37,7 @@ stages:
   - engine: exact-tail
     does: "Coarse backtracking over the per-block MaxSAT solution enumerators composes the blocks into a full board"
 order: 100
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [exact-methods]
 related:
@@ -80,8 +79,9 @@ suffer.
 ## The result
 
 The window primitive does what it promises: a 4×4 block solves to its 24-edge
-optimum in about thirty seconds, a 3×3 in eleven, confirming the puzzle
-really is tractable in the small. Composed across the whole board, from
+optimum in about thirty seconds, a 3×3 in eleven. Perfect 4×4 blocks are
+plentiful, so the timing measures the MaxSAT solver, slow next to a plain DFS,
+not any tractability of the puzzle. Composed across the whole board, from
 scratch and with no warm start, MOSAIC reaches 448 of 480. The reservation
 sweet spot is around eight percent of the pool.
 
@@ -113,16 +113,16 @@ together.
   sweet spot is ~8% of the pool.
 
 The window primitive is real: a 4×4 block reaches its 24-edge optimum in ~30 s,
-a 3×3 in ~11 s, the puzzle *is* tractable in the small. Composed from scratch
+a 3×3 in ~11 s, slow next to a plain DFS on such under-constrained windows. Composed from scratch
 it reaches 448, with the residual shortfall concentrated in the last three
 bottom-right blocks: [piece theft](/research/why/piece-theft) made visible as a
 single bright spot.
 
 ## Reproduce
 
-Deterministic: the MaxSAT block solves and the backtracking composition are
-exact, so `kind: exact`, the 448 board reproduces and is checkable edge by
-edge in the viewer. The block engine runs from the puzzle alone, with no corpus
+By design the MaxSAT block solves and the backtracking composition are exact
+(`kind: exact`), so a rerun should reproduce the 448 board; no packaged rerun
+has confirmed it yet, and the board is checkable edge by edge in the viewer. The block engine runs from the puzzle alone, with no corpus
 or seed board, its only external dependency being a MaxSAT solver, so a runnable
 backing directory for it is planned alongside the other exact experiments. For
 now the run remains exploratory: the 448 board is verifiable in the viewer, but

@@ -1,10 +1,15 @@
 # single-core-benchmark
 
-Seventeen Eternity II solvers, each run once on ten corner-pinned variants of the
+Seventeen Eternity II solvers (fifteen published), each run once on ten corner-pinned variants of the
 official puzzle, **single-threaded, 60 s per run**, every board re-scored by one
-canonical scorer. The finding: **throughput does not equal score** — the beam
-producer explores 150x fewer nodes/s than the Blackwood backtracker and still
-finishes 20 points higher. The write-up is the research page
+canonical scorer. On the published rows the two depth-gated-break backtrackers
+dominate a 60 s budget, and score follows throughput. (An earlier claim that
+throughput does not equal score rested on the beam `producer` row, which is
+withheld with `alns` pending publication; see `solvers.toml`. Contender
+separation and preset-identity checks: `scripts/contender_stats.py` writes
+`results/contender_stats.json`.) Six runs shared the M1 (4 performance + 4
+efficiency cores) at a time; core assignment was not controlled.
+The write-up is the research page
 [`lab/experiments/single-core-benchmark`](https://eternity2.dev/research/lab/experiments/single-core-benchmark);
 this directory is its runnable/committed backing.
 

@@ -8,7 +8,7 @@ description: >-
 metaDescription: "Una búsqueda de Eternity II viva y abierta a cualquiera: la flota compartida de Benjamin Riotte ataca el tablero estricto de cinco pistas, con un orquestador que reparte tiques acotados, nunca repite trabajo terminado y firma cada tablero que llega. Cómo cederle unos hilos de CPU."
 kind: page
 order: 65
-updated: 2026-09-17
+updated: 2026-11-11
 topics: [speed, backtracking]
 sources:
   - label: "La llamada a contribuidores de Benjamin Riotte, con los recuentos verificados y el rendimiento de la flota (groups.io, agosto de 2026)"
@@ -73,8 +73,8 @@ página, el proyecto describe cada una de sus piezas:
 - **Contabilidad de tiques terminados.** Los identificadores de los tiques
   terminados entran en un registro que cada cliente descarga antes de empezar,
   y un tique terminado no se vuelve a repartir. Una auditoría de 3 458 636
-  tiques completados encontró 3 458 636 identificadores distintos: ninguna
-  unidad de trabajo se había calculado dos veces.
+  tiques completados encontró 3 458 636 identificadores distintos: ningún tique
+  se había repartido dos veces.
 - **Deduplicación canónica de tableros.** Un tablero terminado recibe una
   huella SHA-256 canónica que se compara con la base central. Un tablero nuevo
   se registra y se acredita; uno que ya estaba se anota como redescubrimiento,
@@ -84,8 +84,9 @@ página, el proyecto describe cada una de sus piezas:
   puntuación creída.
 
 Es la misma lección que la comunidad aprendió a golpes en quince años de
-[intentos distribuidos](/research/build/faster/distributed-solving): el recurso
-escaso nunca fue el cálculo, sino la contabilidad.
+[intentos distribuidos](/research/build/faster/distributed-solving): el cálculo
+por sí solo no hace útil a una flota; la contabilidad decide qué parte de él se
+dedica a trabajo nuevo.
 
 ## Qué ha encontrado
 
@@ -133,12 +134,15 @@ primero. Un contribuidor con una estación Ryzen y una Raspberry Pi 5 reportó
 128 hallazgos locales frente a 40 créditos en un día, y concluyó, con toda
 lógica, que dos tercios del tiempo de máquina se habían tirado.
 
-No era así. Los tiques detrás de esos tableros eran todos distintos: dos
-búsquedas diferentes, desde raíces y desplazamientos diferentes, habían
-convergido en el mismo tablero final, algo que la flota solo puede detectar una
-vez construido el tablero. Evitarlo por adelantado exigiría enviar y comparar
-entre máquinas una cantidad enorme de estados de búsqueda intermedios, a un
-coste muy superior al cálculo que ahorraría. En la ventana medida, los
+No del todo. Los tiques detrás de esos tableros eran todos distintos, pero
+tiques distintos no equivalen a trabajo disjunto. En una búsqueda de orden fijo
+cortada en porciones disjuntas, cada tablero terminado está en una sola hoja, así
+que dos tiques no podrían producirlo ambos. Un reencuentro muestra entonces que
+las regiones de búsqueda se solapan en algún punto, probablemente por las etapas
+guiadas o de final de partida, que no siguen un árbol fijo. Ese solapamiento es
+esfuerzo duplicado, pero se acepta: evitarlo por adelantado exigiría enviar y
+comparar entre máquinas una cantidad enorme de estados de búsqueda intermedios,
+a un coste mayor que lo que ahorraría. En la ventana medida, los
 reencuentros fueron en torno al 0,15 % de los tiques completados. El tablero es
 un efecto secundario; el trabajo es el tique.
 

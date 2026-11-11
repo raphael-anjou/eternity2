@@ -12,7 +12,7 @@ contribution: measurement
 author: raphael-anjou
 rigor: measured
 order: 20
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, search-space, speed]
 related:
@@ -50,21 +50,24 @@ plus rare d'abord » (l'heuristique de Selby et Riordan selon laquelle une coule
 rare doit être dépensée là où elle est forcée) démarre un peu plus haut encore et
 termine à une moyenne de 373, le meilleur des départs *gloutons*.
 
-La preuve la plus nette de ce point est de partir d'un plateau réellement fort plutôt
-que d'un plateau glouton. La dernière variante de plateau de départ confie à la boucle
-un plateau construit par le break-DFS de l'[étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) :
-l'exécution passe ses vingt premières secondes à revenir en arrière jusqu'à un plateau
-autour de 440, puis le répare pendant les quarante restantes. Ce départ se situe cent
-points au-dessus d'une construction gloutonne, et il se propage directement jusqu'à
-l'arrivée. C'est la variante au plus haut score de toute l'étude, à une moyenne de 446
-(meilleur 449), bien au-dessus des 402 de la boucle à destruction aléatoire, et elle
-tranche la question construire-puis-raffiner autour de laquelle tourne le reste de
-l'étude : la réparation *ajoute* bien quelques arêtes par-dessus un plateau fort obtenu
-par backtracking, mais seulement quelques-unes, et le plateau dont elle part décide
-presque tout. C'est exactement la division du travail qu'emploient les records, et
-cette étude la reproduit de bout en bout sur un cœur en une minute : un backtracker
-pour construire un bon plateau, puis une boucle de réparation pour en extraire les
-dernières arêtes.
+Le test le plus net de ce point consiste à partir d'un plateau réellement fort
+plutôt que d'un plateau glouton. La dernière variante de départ confie à la boucle
+un plateau construit par le DFS à cassures de
+[l'étude DFS](/research/lab/experiments/raphael-anjou/dfs-study) : l'exécution
+consacre ses vingt premières secondes au retour arrière jusqu'à un plateau dans le
+bas des 440, puis le répare pendant les quarante restantes. Ce départ est bien
+au-dessus d'une construction gloutonne, et l'avance se conserve jusqu'à
+l'arrivée. C'est la variante la mieux notée de toute l'étude, avec une moyenne de
+446 (meilleur 449), loin devant les 402 de la boucle à destruction aléatoire. La
+réparation ajoute quelques arêtes au plateau issu du retour arrière (un gain
+moyen de 6,6 depuis un départ à 439,4), mais ce bras n'a pas de témoin DFS seul :
+personne n'a mesuré ce que donneraient quarante secondes de DFS à cassures de
+plus, avec le même remplissage glouton de la fin, et le gain n'est donc pas
+séparé d'un simple supplément de temps de recherche. Le plateau de départ décide
+de presque tout. Ce bras ressemble aux chaînes construire puis affiner, comme
+celle du projet ; les plateaux records de la communauté viennent, eux, d'un
+retour arrière tolérant aux cassures (voir [la page des records](/research/records)),
+pas d'une étape de réparation.
 
 ## L'opérateur de destruction : attaquer les cassures peut se retourner contre soi
 
@@ -83,34 +86,37 @@ itération soulève. C'est l'axe qui porte le résultat le plus surprenant de l'
   au-delà de trois millions d'itérations, là où toute variante pilotée par les conflits a
   gelé depuis longtemps. C'est la meilleure de toutes les variantes qui partent d'un plateau
   glouton (seul le départ ensemencé par le DFS, un tout autre levier, termine plus haut).
-- **Tout opérateur piloté par les conflits termine en dessous d'elle, et plus il se
-  fixe sur les cassures, moins il réussit.** L'ancre « cellules en défaut », qui soulève
-  jusqu'à une douzaine des cellules rompues, atteint en moyenne 366 et stagne tôt : elle
-  arrache le même enchevêtrement groupé, le reconstruit gloutonnement dans presque la même
-  disposition, et son meilleur score cesse de bouger en quelques milliers d'itérations.
-  L'opérateur « composante plus halo », qui soulève tout un enchevêtrement connexe (un trou
-  bien plus grand), fait pire encore, à 350, et son meilleur ne s'améliore plus après
-  l'itération 211 : un trou de cette taille confie à la recharge gloutonne un sous-problème
-  qu'elle ne sait pas améliorer, de sorte que presque rien n'est jamais conservé.
+- **Tout opérateur piloté par les conflits termine en dessous d'elle, même si la
+  taille du trou peut expliquer le classement.** L'ancre sur les cellules
+  discordantes, qui soulève une dizaine de cellules cassées (9,6 en moyenne, contre
+  12,0 pour la destruction aléatoire), plafonne à 366 en moyenne et cale tôt : elle
+  arrache toujours le même nœud de cassures, le reconstruit gloutonnement presque à
+  l'identique, et son meilleur score ne bouge plus au bout de quelques milliers
+  d'itérations. L'opérateur composante plus halo, qui soulève tout un nœud connexe
+  (28,3 cellules en moyenne), fait pire encore, 350, et sa dernière amélioration
+  tombe à l'itération 211 : un trou de cette taille laisse au remplissage glouton un
+  sous-problème qu'il ne sait pas améliorer, si bien que presque rien n'est jamais
+  conservé.
 - **Une destruction de bande entière est inerte.** Soulever les deux rangées comptant le
   plus de cassures laisse à la recharge gloutonne un sous-problème presque aussi difficile
   que le casse-tête lui-même ; sur neuf des dix instances, elle ne fait *aucune* amélioration
   sur toute la minute, de sorte que le score reporté est simplement son plateau de départ.
 
-Le schéma est net et mérite d'être énoncé clairement : sur ce départ glouton médiocre,
-plus un opérateur cible précisément les cassures existantes, moins il réussit, et la
-destruction aléatoire aveugle l'emporte. C'est l'inverse de l'intuition naturelle, et
-de ce qui fonctionne sur un plateau *proche du record*, où tout le plateau est proche
-de l'optimum et où le réglage de la communauté a jugé les opérateurs pilotés par les
-conflits et par composante les plus précieux, précisément parce que les quelques défauts
-restants sont la seule chose qu'il reste à corriger. Cette étude n'atteint jamais ce
-régime. Soixante secondes sur un plateau médiocre laissent une marge d'amélioration large
-partout, et là un opérateur qui rattaque sans cesse le même amas rompu, ou qui arrache un
-trou trop grand pour être bien reconstruit, perdent tous deux face à un opérateur qui se
-contente d'essayer sans relâche de nouvelles petites régions. Le constat n'est pas « la
-destruction pilotée par les conflits est mauvaise » mais « l'opérateur gagnant dépend de la
-qualité déjà atteinte par le plateau, et sur un plateau médiocre, explorer bat à la fois se
-fixer et sur-détruire ».
+Sur ce départ glouton médiocre, la destruction aléatoire de 12 cellules bat la
+destruction des discordances (une dizaine de cellules), et les deux opérateurs à
+grand trou (28 à 30 cellules) font le moins bien. Taille du trou et ciblage varient
+ensemble ici : le classement peut tenir à la taille du trou plutôt qu'au ciblage,
+et aucun témoin aléatoire de même taille (aléatoire contre discordances vers 10
+cellules, aléatoire contre composante vers 28) n'a été lancé. Le classement
+lui-même tient sur ces instances : la destruction aléatoire bat l'ancre sur les
+dix, avec une seule graine par instance. Il diffère aussi de ce qui marche sur un
+plateau *proche du record*, où le réglage de la communauté a trouvé les
+opérateurs pilotés par les conflits et par composantes les plus utiles, parce que
+les quelques discordances restantes sont tout ce qu'il reste à corriger. Cette
+étude n'atteint jamais ce régime. La conclusion n'est pas « la destruction
+pilotée par les conflits est mauvaise » mais « sur un plateau médiocre, à ces
+tailles de trou, la destruction aléatoire a gagné » ; reste à savoir si c'est le
+hasard ou la taille qui en est la cause.
 
 ## Réparation : comment le trou est reconstruit
 

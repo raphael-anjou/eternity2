@@ -14,14 +14,13 @@ hardware:
   accelerator: none
   machine: "MacBook (Apple M1, 8 cores)"
   wallClock: "~30 s per block × 16 blocks (exploratory run, not the standardized single-core bench)"
-  seedPolicy: "stochastic; see the run's repro command"
+  seedPolicy: "none by design (exact MaxSAT blocks, deterministic composition); not yet confirmed by a packaged rerun"
   measured: false
 contribution: solver
 author: raphael-anjou
 score: 448
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "por bloque 4×4 ~30 s hasta el óptimo MaxSAT (3×3 ~11 s); 16 niveles de bloque con backtracking"
   space: "un enumerador de soluciones MaxSAT por nivel de bloque mantenido en la pila de backtracking"
@@ -39,7 +38,7 @@ stages:
   - engine: exact-tail
     does: "Un backtracking grueso sobre los enumeradores de soluciones MaxSAT de cada bloque compone los bloques en un tablero completo"
 order: 100
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [exact-methods]
 related:
@@ -83,8 +82,9 @@ sin recursos, demasiado y los primeros bloques lo sufren.
 ## El resultado
 
 La primitiva de ventana cumple su promesa: un bloque 4×4 se resuelve hasta su
-óptimo de 24 aristas en unos treinta segundos, un 3×3 en once, confirmando que
-el puzzle es efectivamente tratable a pequeña escala. Compuesto sobre todo el
+óptimo de 24 aristas en unos treinta segundos, un 3×3 en once. Los bloques 4×4
+perfectos abundan, así que ese tiempo mide el solucionador MaxSAT, lento al lado
+de un DFS simple, y no una supuesta tratabilidad del puzzle. Compuesto sobre todo el
 tablero, desde cero y sin arranque en caliente, MOSAIC alcanza 448 de 480. El
 punto óptimo de reserva se sitúa en torno al ocho por ciento del reservorio.
 
@@ -117,17 +117,15 @@ La exactitud es genuina, y también lo es el backtracking que la cose.
   piezas raras que sus costuras exigen. Esa fracción de reserva es la única
   perilla real; el punto óptimo medido es ~8% del reservorio.
 
-La primitiva de ventana es real: un bloque 4×4 alcanza su óptimo de 24 aristas
-en ~30 s, un 3×3 en ~11 s, el puzzle *es* tratable a pequeña escala. Compuesto
-desde cero alcanza 448, con el déficit residual concentrado en los tres últimos
-bloques de la esquina inferior derecha: el [robo de piezas](/research/why/piece-theft)
-hecho visible como un único punto brillante.
+un 3×3 en ~11 s, lento al lado de un DFS simple en
+ventanas tan poco restringidas.
 
 ## Reproducir
 
-Determinista: las resoluciones de bloque MaxSAT y la composición por backtracking
-son exactas, de ahí `kind: exact`; el tablero de 448 se reproduce y se verifica
-arista por arista en el visor. El motor de bloque funciona a partir del puzzle
+Por diseño, las resoluciones de bloque MaxSAT y la composición por backtracking
+son exactas (`kind: exact`), así que una nueva ejecución debería reproducir el
+tablero de 448; ninguna ejecución empaquetada lo ha confirmado aún, y el tablero
+se verifica arista por arista en el visor. El motor de bloque funciona a partir del puzzle
 solo, sin corpus ni tablero de partida, siendo su única dependencia externa un
 solucionador MaxSAT, por lo que se prevé un directorio ejecutable de respaldo
 para él junto a los demás experimentos exactos. Por ahora la ejecución sigue
