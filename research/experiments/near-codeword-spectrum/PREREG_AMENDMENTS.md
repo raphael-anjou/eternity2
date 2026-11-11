@@ -46,3 +46,16 @@ With A2 and A3 the estimate is stage 1 bands about 15 min, curves about
 65 min, stage 2 about 2 h (unchanged), stage 3 about 40 min: about 4 h wall,
 above the 3 h estimate. Stage 2 (the K1c evidence) is kept at full budget
 rather than cut.
+
+## A5. Run stopped by the program lead during stage 2 (2026-11-11, 14:55 UTC)
+
+What: the program lead asked for no further compute. The run was stopped
+about 6 min into stage 2. Stage 3 was not run. Done before the stop:
+stage 1 in full (320 band solves), the A2 curves in full (590 solves), and 6
+of 80 stage-2 solves (7x7 C=15: seed 1 near/mid/far, seed 2 near/mid,
+seed 3 near). No 8x8 solve and no contrast stage-2 solve were run.
+
+Consequence (by the prereg's own rules, not a change to them): K1c has 1 of
+10 usable 7x7 instances and 0 of 10 at 8x8, so it is undetermined; K1a, K1b,
+K2 and K3 use only stage 1 and are evaluated as written. The stage-3 metrics
+are not reported.

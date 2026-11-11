@@ -11,7 +11,7 @@ import sys
 from scipy.stats import mannwhitneyu, wilcoxon
 
 sys.path.insert(0, os.path.dirname(__file__))
-from cpsat_spectrum import CONTRAST, PRIMARY, bands  # noqa: E402
+from cpsat_spectrum import CONTRAST, PRIMARY, bands, rot  # noqa: E402
 
 R = os.path.join(os.path.dirname(__file__), "..", "results")
 
@@ -78,6 +78,39 @@ def band_stats(rows, kinds):
     return out
 
 
+def rot_cell(n, c):
+    x, y = c % n, c // n
+    return x * n + (n - 1 - y)
+
+
+def dist_to_rotated_copies(n, pieces, board):
+    """Distances (k = 1, 2, 3) from a witness to the planted board turned by k
+    quarter turns, ignoring the pin. Diagnostic only (not in the prereg)."""
+    tup = [rot(pieces[v // 4], v % 4) for v in board]
+    out = []
+    for k in (1, 2, 3):
+        same = 0
+        for c in range(n * n):
+            d = c
+            for _ in range(k):
+                d = rot_cell(n, d)
+            same += rot(tup[c], k) == tuple(pieces[d])
+        out.append(n * n - same)
+    return out
+
+
+def symmetry_diagnostic(recs, insts):
+    agg = {}
+    for r in recs:
+        if r["board"] is None or r["kind"] not in ("near", "mid", "far", "k2"):
+            continue
+        d = min(dist_to_rotated_copies(r["n"], insts[r["n"], r["colors"], r["seed"]]["pieces"], r["board"]))
+        agg.setdefault(f"{r['n']}x{r['n']}_C{r['colors']}/{r['kind']}", []).append(d)
+    return {k: {"median_min_dist_to_rotated_planted": med(v),
+                "share_within_4_cells": sum(x <= 4 for x in v) / len(v), "n": len(v)}
+            for k, v in sorted(agg.items())}
+
+
 def main():
     s1 = index(load("stage1.jsonl"))
     s2 = index(load("stage2.jsonl"))
@@ -89,6 +122,8 @@ def main():
     for d in load("../instances.jsonl"):
         census.setdefault((d["n"], d["colors"]), set()).add((round(d["p_f"], 12), round(d["p_i"], 12)))
     summary["collision_probs_seed_independent"] = {f"{n}x{n}_C{c}": len(v) == 1 for (n, c), v in sorted(census.items())}
+    insts = {(d["n"], d["colors"], d["seed"]): d for d in load("../instances.jsonl")}
+    summary["witness_symmetry_diagnostic"] = symmetry_diagnostic(load("stage1.jsonl") + load("stage2.jsonl"), insts)
     summary["rotation_duplicates_total"] = sum(d["rotation_duplicates"] for d in load("../instances.jsonl"))
 
     # ---- stage 1 tables
