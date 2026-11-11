@@ -1,0 +1,32 @@
+# Quality-diversity vs parallel tempering on generated planted puzzles (agenda A4).
+#
+# Standalone workspace. Puzzles come from the site engine's generator
+# (../../../../engine); the move kernel and scorer are the single-core
+# benchmark's local-search crate (run_sa_steps_fixed_temp, the same kernel the
+# repo's parallel tempering calls), so PT and MAP-Elites differ only in the
+# archive and the selection rule.
+[workspace]
+resolver = "2"
+members = ["."]
+
+[package]
+name = "qd-basins"
+version = "0.1.0"
+edition = "2021"
+publish = false
+default-run = "qd_basins"
+
+[[bin]]
+name = "qd_basins"
+path = "src/main.rs"
+
+[dependencies]
+eternity2-engine = { path = "../../../../engine" }
+eternity2-core = { path = "../../single-core-benchmark/engine/crates/core" }
+eternity2-localsearch = { path = "../../single-core-benchmark/engine/crates/localsearch" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
