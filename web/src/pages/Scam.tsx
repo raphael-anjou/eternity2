@@ -32,10 +32,11 @@ const T = {
         No, it is not a scam, and yes, a complete solution almost certainly
         exists. The competition ran from 28 July 2007 to noon on 31 December
         2010 and expired with no winner, but that is a story about difficulty,
-        not deception. The puzzle was built to have very few solutions, so close
-        to one solution by the maker's account, that finding one among roughly
-        1.15×10<sup>557</sup> arrangements (with the centre clue pinned; ~10
-        <sup>560</sup> without it) is astronomically hard. "Few solutions by
+        not deception. The puzzle was built to have very few solutions: the
+        community estimate is about 14,702 with the centre clue, and effectively
+        one with all five clues. Finding one among roughly 1.15×10<sup>557</sup>{" "}
+        arrangements (with the centre clue pinned; ~10<sup>560</sup> without it)
+        is astronomically hard. "Few solutions by
         design" is not the same claim as "no solution exists."
       </>
     ),
@@ -96,9 +97,13 @@ const T = {
         body: (
           <>
             The best partial board found so far matches 470 of the 480 interior
-            edges (Joshua Blackwood, 2021). Ten unmatched edges out of 480 is a
-            narrow gap, and progress has been real: 467 in 2008, 469 in 2020, 470
-            in 2021. A search this hard can go a very long time without a full hit
+            edges (Joshua Blackwood, 2021), and progress has been real: 467 in 2008,
+            469 in 2020, 470 in 2021. That sounds close, but a high score is not a
+            distance to the solution: the best boards are{" "}
+            <Link className="underline" to="/research/why/rigidity-wall">
+              locally frozen
+            </Link>
+            , and a full solution may share few placements with them. A search this hard can go a very long time without a full hit
             while a solution still sits somewhere in the space. Hard is not the
             same as impossible.
           </>
@@ -185,9 +190,10 @@ const T = {
         presque à coup sûr. Le concours s'est tenu du 28 juillet 2007 au 31
         décembre 2010 à midi, et s'est éteint sans gagnant, mais c'est une
         histoire de difficulté, pas de tromperie. Le puzzle a été conçu pour
-        n'avoir que très peu de solutions, si peu que, d'après son créateur, on
-        frôle l'unicité : dénicher l'une d'elles parmi environ 1,15×10<sup>557</sup>{" "}
-        agencements relève de l'astronomique. « Peu de solutions par conception »
+        n'avoir que très peu de solutions : la communauté en estime environ 14 702
+        avec l'indice central, et pratiquement une seule avec les cinq indices.
+        En dénicher une parmi environ 1,15×10<sup>557</sup> agencements relève de
+        l'astronomique. « Peu de solutions par conception »
         n'est pas la même affirmation que « aucune solution n'existe ».
       </>
     ),
@@ -251,9 +257,14 @@ const T = {
         body: (
           <>
             Le meilleur plateau partiel trouvé à ce jour apparie 470 des 480 côtés
-            intérieurs (Joshua Blackwood, 2021). Dix côtés non appariés sur 480,
-            c'est un écart mince, et les progrès sont bien réels : 467 en 2008, 469
-            en 2020, 470 en 2021. Une recherche aussi ardue peut rester longtemps
+            intérieurs (Joshua Blackwood, 2021), et les progrès sont bien réels : 467
+            en 2008, 469 en 2020, 470 en 2021. Cela paraît tout proche, mais un score
+            élevé n'est pas une distance à la solution : les meilleurs plateaux sont{" "}
+            <Link className="underline" to="/research/why/rigidity-wall">
+              figés localement
+            </Link>
+            , et une solution complète peut n'avoir que peu de placements en commun
+            avec eux. Une recherche aussi ardue peut rester longtemps
             sans aboutir alors qu'une solution attend quelque part dans l'espace.
             Difficile ne veut pas dire impossible.
           </>
@@ -346,9 +357,10 @@ const T = {
         completa. El concurso se celebró del 28 de julio de 2007 al 31 de
         diciembre de 2010 al mediodía y expiró sin ganador, pero eso es una
         cuestión de dificultad, no de engaño. El puzzle se diseñó para tener muy
-        pocas soluciones, tan pocas que, según su creador, roza la unicidad:
-        encontrar una entre aproximadamente 1,15×10<sup>557</sup> disposiciones es
-        astronómicamente difícil. «Pocas soluciones por diseño» no es lo mismo que
+        pocas soluciones: la comunidad estima unas 14.702 con la pista central, y
+        en la práctica una sola con las cinco pistas. Encontrar una entre
+        aproximadamente 1,15×10<sup>557</sup> disposiciones es astronómicamente
+        difícil. «Pocas soluciones por diseño» no es lo mismo que
         «no existe ninguna solución».
       </>
     ),
@@ -412,9 +424,15 @@ const T = {
         body: (
           <>
             El mejor tablero parcial hallado hasta ahora hace coincidir 470 de las
-            480 aristas interiores (Joshua Blackwood, 2021). Diez aristas sin
-            coincidir de 480 es una diferencia estrecha, y el avance ha sido real:
-            467 en 2008, 469 en 2020, 470 en 2021. Una búsqueda tan difícil puede
+            480 aristas interiores (Joshua Blackwood, 2021), y el avance ha sido
+            real: 467 en 2008, 469 en 2020, 470 en 2021. Parece muy cerca, pero una
+            puntuación alta no es una distancia a la solución: los mejores tableros
+            están{" "}
+            <Link className="underline" to="/research/why/rigidity-wall">
+              congelados localmente
+            </Link>
+            , y una solución completa puede compartir muy pocas colocaciones con ellos.
+            Una búsqueda tan difícil puede
             pasar muchísimo tiempo sin dar en el blanco mientras una solución sigue
             en algún punto del espacio. Difícil no es lo mismo que imposible.
           </>

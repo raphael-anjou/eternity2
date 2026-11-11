@@ -106,8 +106,8 @@ const T = {
     methodsDeadEndsLink: "dead ends page",
     methods: [
       [
-        "Selby–Riordan generator (2007)",
-        "The puzzle was generated to have about one expected solution. Brendan Owen and Günter Stertenbrink derived in 2007 that ~17 interior colors and ~5 border colors put it exactly at the unique-solution boundary — later confirmed as the SAT/CSP phase-transition peak. The hardness is by design.",
+        "The 17+5 colour design (2007)",
+        "Brendan Owen and Günter Stertenbrink's 2007 first-moment estimate puts a 16×16 with about 17 interior colours near one expected solution. That matches Eternity II's 17 interior and 5 frame-only colours, close to the hardness band that SAT/CSP studies find for random edge-matching ensembles. It is an ensemble average, not a count of this puzzle: for the real piece set the community estimates about 14,702 solutions with the centre clue, and effectively one with all five.",
       ],
       [
         "Verhaard set-annealing (2008)",
@@ -119,7 +119,7 @@ const T = {
       ],
       [
         "McGavin's engine (2020–2026)",
-        "A C backtracker hitting ~295 million tile placements per second on one core — roughly 4× a typical community engine — via PGO, aggressive compiler flags and auto-generated per-cell unrolled code. Raw speed plus the right scan order (bottom-left start, left-to-right rows) is half the story of the 469. That headline ~4× is an easy-board figure: on a hard board the same engine runs ~105M, and a portable-Rust reimplementation on this site ties it there (while his C stays ~2.3× faster on easy boards) — though throughput and the score axis are unrelated, and neither engine solves the puzzle.",
+        "His own C backtracker, measured in 2026 at ~295 million tile placements per second on one core on an easy board (~105M on a hard one), roughly 4× a typical community engine there, via PGO, aggressive compiler flags, auto-generated per-cell unrolled code and a bottom-left, left-to-right scan. His 2020 469 was found with Blackwood's solver on about 200 cores; the speed figure is a separate engineering result. On a hard board a portable-Rust reimplementation on this site ties it (his C stays ~2.3× faster on easy boards). More throughput buys more attempts in a record hunt, but neither engine makes an exhaustive search of the full board feasible.",
       ],
       [
         "Joe's prune-back policy (2026)",
@@ -133,7 +133,7 @@ const T = {
       ["Joshua Blackwood", "The 469/470-class algorithm (heuristic schedule + break-index); the modern standard."],
       ["Jef Bucas", "libblackwood (a C port of Blackwood's solver) and bucas.name — the board viewer + URL format the community shares boards in."],
       ["Louis Verhaard", "The 467 record (2008) and set-composition swap-annealing."],
-      ["Brendan Owen & Günter Stertenbrink", "The 2007 hardness derivation: why 17/5 colors sit at the unique-solution boundary."],
+      ["Brendan Owen & Günter Stertenbrink", "The 2007 17+5 hardness estimate: about 17 interior colours puts a 16×16 near one expected solution."],
       ["Marijn Heule", "The canonical SAT encoding (2008) and ongoing SAT experiments."],
       ["Al Hopfer", "The NS-1 deficit invariant (2022) — the border↔interior multiset-equality condition; Carlos Fernandez showed 14×14 quadrants then solve in minutes."],
       ["Ramon van der Werf", "A public solver blog and Wang-tile analysis of the puzzle."],
@@ -191,8 +191,8 @@ const T = {
     methodsDeadEndsLink: "page des impasses",
     methods: [
       [
-        "Générateur Selby–Riordan (2007)",
-        "Le puzzle a été généré pour n'avoir qu'environ une solution attendue. Brendan Owen et Günter Stertenbrink ont dérivé en 2007 que ≈17 couleurs intérieures et ≈5 de bord le placent pile à la frontière d'unicité — confirmé plus tard comme le pic de transition de phase SAT/CSP. La difficulté est voulue.",
+        "Le choix des 17+5 couleurs (2007)",
+        "L'estimation au premier moment de Brendan Owen et Günter Stertenbrink, en 2007, place un 16×16 à environ 17 couleurs intérieures près d'une solution attendue. Cela correspond aux 17 couleurs intérieures et 5 couleurs de cadre d'Eternity II, à proximité de la zone de difficulté que les études SAT/CSP observent sur des ensembles aléatoires de puzzles d'appariement. C'est une moyenne sur l'ensemble, pas un décompte de ce puzzle : pour le vrai jeu de pièces, la communauté estime environ 14 702 solutions avec l'indice central, et pratiquement une seule avec les cinq.",
       ],
       [
         "Recuit sur jeux de Verhaard (2008)",
@@ -204,7 +204,7 @@ const T = {
       ],
       [
         "Le moteur de McGavin (2020–2026)",
-        "Un backtracker C atteignant ≈295 millions de placements de tuiles par seconde sur un cœur — environ 4× un moteur communautaire typique — via PGO, options de compilation agressives et code déroulé par case auto-généré. La vitesse brute plus le bon ordre de balayage (départ bas-gauche, lignes de gauche à droite) est la moitié de l'histoire du 469. Ce ≈4× est un chiffre de plateau facile : sur un plateau difficile le même moteur tourne à ~105 M, et une réimplémentation en Rust portable sur ce site l'y égale (tandis que son C reste ~2,3× plus rapide sur les plateaux faciles) — mais le débit et l'axe du score n'ont aucun rapport, et aucun des deux moteurs ne résout le casse-tête.",
+        "Son propre backtracker C, mesuré en 2026 à ≈295 millions de placements de tuiles par seconde sur un cœur sur un plateau facile (~105 M sur un plateau difficile), soit environ 4× un moteur communautaire typique dans ce cas, grâce à la PGO, à des options de compilation agressives, à du code déroulé par case auto-généré et à un balayage partant du coin bas-gauche, de gauche à droite. Son 469 de 2020 a été trouvé avec le solveur de Blackwood sur environ 200 cœurs ; le chiffre de vitesse est un résultat d'ingénierie distinct. Sur un plateau difficile, une réimplémentation en Rust portable sur ce site l'égale (son C reste ~2,3× plus rapide sur les plateaux faciles). Plus de débit, c'est plus de tentatives dans une chasse au record, mais aucun des deux moteurs ne rend faisable une recherche exhaustive du plateau complet.",
       ],
       [
         "La politique de prune-back de Joe (2026)",
@@ -218,7 +218,7 @@ const T = {
       ["Joshua Blackwood", "L'algorithme de classe 469/470 (schedule heuristique + break-index) ; le standard moderne."],
       ["Jef Bucas", "libblackwood (un port C du solveur de Blackwood) et bucas.name — le visualiseur et le format d'URL avec lequel la communauté partage les plateaux."],
       ["Louis Verhaard", "Le record 467 (2008) et le recuit par composition de jeux."],
-      ["Brendan Owen & Günter Stertenbrink", "La dérivation de difficulté de 2007 : pourquoi 17/5 couleurs sont à la frontière d'unicité."],
+      ["Brendan Owen & Günter Stertenbrink", "L'estimation de difficulté 17+5 de 2007 : environ 17 couleurs intérieures placent un 16×16 près d'une solution attendue."],
       ["Marijn Heule", "L'encodage SAT canonique (2008) et des expériences SAT continues."],
       ["Al Hopfer", "L'invariant de déficit NS-1 (2022) — la condition d'égalité des multisets bord↔intérieur ; Carlos Fernandez a montré que les quadrants 14×14 se résolvent alors en minutes."],
       ["Ramon van der Werf", "Un blog public de solveur et une analyse en tuiles de Wang du puzzle."],
@@ -276,8 +276,8 @@ const T = {
     methodsDeadEndsLink: "página de callejones sin salida",
     methods: [
       [
-        "Generador de Selby–Riordan (2007)",
-        "El puzzle se generó para tener alrededor de una única solución esperada. Brendan Owen y Günter Stertenbrink dedujeron en 2007 que ≈17 colores interiores y ≈5 de borde lo sitúan justo en la frontera de solución única —confirmado después como el pico de transición de fase SAT/CSP—. La dificultad es intencionada.",
+        "El diseño de 17+5 colores (2007)",
+        "La estimación de primer momento de Brendan Owen y Günter Stertenbrink, de 2007, sitúa un 16×16 con unos 17 colores interiores cerca de una solución esperada. Eso coincide con los 17 colores interiores y 5 de marco de Eternity II, cerca de la franja de dificultad que los estudios SAT/CSP encuentran en conjuntos aleatorios de puzzles de encaje de bordes. Es un promedio sobre el conjunto, no un recuento de este puzzle: para el juego real de piezas, la comunidad estima unas 14.702 soluciones con la pista central, y en la práctica una sola con las cinco.",
       ],
       [
         "Recocido sobre conjuntos de Verhaard (2008)",
@@ -289,7 +289,7 @@ const T = {
       ],
       [
         "El motor de McGavin (2020–2026)",
-        "Un backtracker en C que alcanza ≈295 millones de colocaciones de piezas por segundo en un solo núcleo —unas 4× más que un motor comunitario típico— mediante PGO, opciones de compilación agresivas y código desenrollado por celda generado automáticamente. La velocidad bruta más el orden de recorrido adecuado (inicio abajo a la izquierda, filas de izquierda a derecha) es la mitad de la historia del 469. Ese ≈4× es una cifra de tablero fácil: en un tablero difícil el mismo motor corre a ~105 M, y una reimplementación en Rust portable en este sitio lo iguala ahí (mientras que su C sigue siendo ~2,3× más rápido en los tableros fáciles) —aunque el rendimiento y el eje de la puntuación no están relacionados, y ninguno de los dos motores resuelve el rompecabezas.",
+        "Su propio backtracker en C, medido en 2026 a ≈295 millones de colocaciones de piezas por segundo en un solo núcleo sobre un tablero fácil (~105 M sobre uno difícil), unas 4× más que un motor comunitario típico en ese caso, gracias a PGO, opciones de compilación agresivas, código desenrollado por celda generado automáticamente y un recorrido que empieza abajo a la izquierda y avanza de izquierda a derecha. Su 469 de 2020 se encontró con el solucionador de Blackwood en unos 200 núcleos; la cifra de velocidad es un resultado de ingeniería aparte. En un tablero difícil, una reimplementación en Rust portable en este sitio lo iguala (su C sigue siendo ~2,3× más rápido en los tableros fáciles). Más rendimiento significa más intentos en la caza de récords, pero ninguno de los dos motores vuelve factible una búsqueda exhaustiva del tablero completo.",
       ],
       [
         "La política de poda-atrás de Joe (2026)",
@@ -303,7 +303,7 @@ const T = {
       ["Joshua Blackwood", "El algoritmo de clase 469/470 (programación heurística + índice de ruptura); el estándar moderno."],
       ["Jef Bucas", "libblackwood (un port en C del solucionador de Blackwood) y bucas.name —el visor de tableros y el formato de URL con el que la comunidad comparte tableros."],
       ["Louis Verhaard", "El récord 467 (2008) y el recocido por intercambio de composición de conjuntos."],
-      ["Brendan Owen & Günter Stertenbrink", "La deducción de la dificultad de 2007: por qué 17/5 colores se sitúan en la frontera de solución única."],
+      ["Brendan Owen & Günter Stertenbrink", "La estimación de dificultad 17+5 de 2007: unos 17 colores interiores sitúan un 16×16 cerca de una solución esperada."],
       ["Marijn Heule", "La codificación SAT canónica (2008) y experimentos SAT en curso."],
       ["Al Hopfer", "El invariante de déficit NS-1 (2022) —la condición de igualdad de multiconjuntos borde↔interior; Carlos Fernandez demostró que los cuadrantes 14×14 se resuelven entonces en minutos."],
       ["Ramon van der Werf", "Un blog público sobre solucionadores y un análisis del puzzle con teselas de Wang."],

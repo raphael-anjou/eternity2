@@ -271,11 +271,11 @@ const T = {
     usefulness: [
       [
         "If you want to understand the wall",
-        "Start with Demaine & Demaine (the NP-completeness proof) and Ansótegui–Béjar–Fernández–Mateu — together they explain why no fast general algorithm is known and, crucially, why Eternity II's exact parameters were chosen: the puzzle sits at the SAT/CSP phase transition (≈17 interior colors) where instances have about one expected solution and are hardest to find.",
+        "Start with Demaine & Demaine (the NP-completeness proof) and Ansótegui–Béjar–Fernández–Mateu — together they explain why no fast general algorithm is known and why Eternity II's colour counts look the way they do: random edge-matching ensembles are hardest near the colour count where the expected number of solutions is about one, and E2's ≈17 interior colours fall near that band. That is an ensemble statement; the real piece set is estimated at about 14,702 solutions with the centre clue.",
       ],
       [
         "If you want ideas that make a solver faster",
-        "Benoist & Bourreau's O(1)-per-node global filtering and Schaus & Deville's CP + very-large-neighborhood search are the lineage behind most record boards. Wauters et al.'s hyper-heuristic and Salassa et al.'s MILP + max-clique formulations are the strongest published metaheuristics. Harris/Vanstone/Gepp lean on structural knowledge and the uniform color distribution rather than generic forward-checking, reporting up to three orders of magnitude over earlier solvers.",
+        "Benoist & Bourreau's O(1)-per-node global filtering and Schaus & Deville's CP + very-large-neighborhood search are the strongest published academic methods. The community records from 467 up came from other lines: Verhaard's 467 engine, Blackwood's scheduled scan-row backtracker (469, 470) and Riotte's modified-Blackwood DFS (strict 464, 465). Wauters et al.'s hyper-heuristic and Salassa et al.'s MILP + max-clique formulations are the strongest published metaheuristics. Harris/Vanstone/Gepp lean on structural knowledge and the uniform color distribution rather than generic forward-checking, reporting up to three orders of magnitude over earlier solvers.",
       ],
       [
         "The constraint-propagation core",
@@ -314,11 +314,11 @@ const T = {
       rotations2017:
         "Edge matching stays NP-hard even with rotations and in restricted settings — closes off an obvious 'maybe rotations make it easy' hope.",
       mateu2012:
-        "The phase-transition result: E2's ~17 interior / 5 border color split puts it exactly at the SAT/CSP hardness peak, with about one expected solution. This is *why* the parameters are what they are.",
+        "The phase-transition result: random edge-matching ensembles have a SAT/CSP hardness peak near the colour count where the expected number of solutions is about one, and E2-like parameters (~17 interior / 5 border colours) fall near it. A statement about the ensemble: the real E2 piece set is estimated at about 14,702 solutions with the centre clue.",
       ansotegui2008cp:
-        "Encodes Eternity-style puzzles for SAT/CSP solvers and shows generated instances sit right at the hardness peak.",
+        "Encodes Eternity-style puzzles for SAT/CSP solvers and shows that generated E2-like instances near the hardness peak make hard benchmarks.",
       bejar2009:
-        "Bounds the phase transition analytically (via second-moment statistical measures), not just empirically: an upper bound that doubles as a good estimator for locating the hardest instances. The theory backbone under the 'E2 sits at the hardness peak' claim.",
+        "Bounds the phase transition analytically (via second-moment statistical measures), not just empirically: an upper bound that doubles as a good estimator for locating the hardest instances. Analytic bounds on the ensemble phase transition near which E2's parameters fall.",
       benoist2008edges:
         "A short, elegant result from the e-lab (same author as Fast Global Filtering): the exact maximum number of shared edges N square tiles can achieve on a board, with a closed-form h(N) and a proof. A necessary feasibility condition, and a clean building block for parity and solution-count arguments.",
       ansotegui2008ccia:
@@ -328,7 +328,7 @@ const T = {
       benoist2008:
         "Constraint-propagation machinery purpose-built for E2: O(1)-per-node global filtering that prunes impossible regions early and cheaply. A direct ancestor of fast solvers.",
       schaus2008:
-        "Constraint programming plus very-large-neighborhood repair — the family of methods behind most record boards.",
+        "Constraint programming plus very-large-neighborhood repair: among the strongest published academic methods, though the community record boards came from scheduled backtrackers instead.",
       coelho2010:
         "A general variable-neighborhood-search metaheuristic with five move types; robust across sizes but doesn't reach optimality.",
       wang2010:
@@ -360,11 +360,11 @@ const T = {
     usefulness: [
       [
         "Pour comprendre le mur",
-        "Commencez par Demaine & Demaine (la preuve de NP-complétude) et Ansótegui–Béjar–Fernández–Mateu : ensemble, ils expliquent pourquoi aucun algorithme rapide général n'est connu et, surtout, pourquoi les paramètres exacts d'Eternity II ont été choisis : le puzzle se situe à la transition de phase SAT/CSP (≈17 couleurs intérieures), là où les instances n'ont qu'environ une solution attendue et sont les plus dures à trouver.",
+        "Commencez par Demaine & Demaine (la preuve de NP-complétude) et Ansótegui–Béjar–Fernández–Mateu : ensemble, ils expliquent pourquoi aucun algorithme rapide général n'est connu et pourquoi les nombres de couleurs d'Eternity II sont ce qu'ils sont : les ensembles aléatoires de puzzles d'appariement sont les plus durs près du nombre de couleurs où l'on attend environ une solution, et les ≈17 couleurs intérieures d'E2 tombent près de cette zone. C'est un énoncé sur l'ensemble ; le vrai jeu de pièces compterait environ 14 702 solutions avec l'indice central.",
       ],
       [
         "Pour des idées qui accélèrent un solveur",
-        "Le filtrage global en O(1) par nœud de Benoist & Bourreau et la recherche CP + très grand voisinage de Schaus & Deville constituent la lignée derrière la plupart des plateaux records. L'hyper-heuristique de Wauters et al. et les formulations PLNE + clique maximale de Salassa et al. sont les meilleures métaheuristiques publiées. Harris/Vanstone/Gepp s'appuient sur la connaissance structurelle et la distribution uniforme des couleurs plutôt que sur du forward-checking générique, avec jusqu'à trois ordres de grandeur de mieux que les solveurs antérieurs.",
+        "Le filtrage global en O(1) par nœud de Benoist & Bourreau et la recherche CP + très grand voisinage de Schaus & Deville sont les méthodes académiques publiées les plus solides. Les records communautaires à partir de 467 viennent d'autres lignées : le moteur du 467 de Verhaard, le backtracker en balayage de lignes à calendrier de Blackwood (469, 470) et le DFS dérivé de Blackwood de Riotte (464 et 465 stricts). L'hyper-heuristique de Wauters et al. et les formulations PLNE + clique maximale de Salassa et al. sont les meilleures métaheuristiques publiées. Harris/Vanstone/Gepp s'appuient sur la connaissance structurelle et la distribution uniforme des couleurs plutôt que sur du forward-checking générique, avec jusqu'à trois ordres de grandeur de mieux que les solveurs antérieurs.",
       ],
       [
         "Le cœur de la propagation de contraintes",
@@ -403,11 +403,11 @@ const T = {
       rotations2017:
         "L'edge-matching reste NP-difficile même avec rotations et dans des cadres restreints — referme l'espoir « les rotations rendent peut-être le problème facile ».",
       mateu2012:
-        "Le résultat de transition de phase : le partage ≈17 couleurs intérieures / 5 de bord place E2 pile au pic de difficulté SAT/CSP, avec environ une solution attendue. C'est *pourquoi* les paramètres sont ce qu'ils sont.",
+        "Le résultat de transition de phase : les ensembles aléatoires de puzzles d'appariement présentent un pic de difficulté SAT/CSP près du nombre de couleurs où l'on attend environ une solution, et des paramètres de type E2 (≈17 couleurs intérieures / 5 de bord) tombent près de ce pic. Un énoncé sur l'ensemble : le vrai jeu de pièces d'E2 compterait environ 14 702 solutions avec l'indice central.",
       ansotegui2008cp:
-        "Traduit les puzzles de type Eternity pour les solveurs SAT/CSP et montre que les instances générées tombent pile au pic de difficulté.",
+        "Traduit les puzzles de type Eternity pour les solveurs SAT/CSP et montre que des instances générées de type E2, proches du pic de difficulté, font de redoutables benchmarks.",
       bejar2009:
-        "Borne la transition de phase de façon analytique (mesures statistiques du second moment), et pas seulement empirique : une borne supérieure qui sert aussi de bon estimateur pour situer les instances les plus dures. La charpente théorique sous l'affirmation « E2 est pile au pic de difficulté ».",
+        "Borne la transition de phase de façon analytique (mesures statistiques du second moment), et pas seulement empirique : une borne supérieure qui sert aussi de bon estimateur pour situer les instances les plus dures. Des bornes analytiques sur la transition de phase de l'ensemble, près de laquelle tombent les paramètres d'E2.",
       benoist2008edges:
         "Un résultat court et élégant de l'e-lab (même auteur que Fast Global Filtering) : le nombre maximal exact d'arêtes partagées que N tuiles carrées peuvent atteindre sur un plateau, avec un h(N) en forme close et une preuve. Une condition nécessaire de faisabilité, et une brique nette pour les arguments de parité et de comptage de solutions.",
       ansotegui2008ccia:
@@ -417,7 +417,7 @@ const T = {
       benoist2008:
         "Une mécanique de propagation taillée pour E2 : un filtrage global en O(1) par nœud qui écarte tôt et à bas coût les régions impossibles. Un ancêtre direct des solveurs rapides.",
       schaus2008:
-        "Programmation par contraintes et réparation par très grands voisinages — la famille de méthodes derrière la plupart des plateaux records.",
+        "Programmation par contraintes et réparation par très grands voisinages : parmi les méthodes académiques publiées les plus solides, même si les plateaux records de la communauté sont sortis de backtrackers à calendrier.",
       coelho2010:
         "Une métaheuristique générale de recherche à voisinage variable avec cinq types de mouvements ; robuste selon les tailles mais n'atteint pas l'optimalité.",
       wang2010:
@@ -449,11 +449,11 @@ const T = {
     usefulness: [
       [
         "Para entender el muro",
-        "Empieza por Demaine & Demaine (la demostración de NP-completitud) y Ansótegui–Béjar–Fernández–Mateu: juntos explican por qué no se conoce ningún algoritmo rápido general y, sobre todo, por qué se eligieron los parámetros exactos de Eternity II: el puzzle se sitúa en la transición de fase SAT/CSP (≈17 colores interiores), donde las instancias tienen alrededor de una solución esperada y son las más difíciles de hallar.",
+        "Empieza por Demaine & Demaine (la demostración de NP-completitud) y Ansótegui–Béjar–Fernández–Mateu: juntos explican por qué no se conoce ningún algoritmo rápido general y por qué los números de colores de Eternity II son los que son: los conjuntos aleatorios de puzzles de encaje de bordes son más difíciles cerca del número de colores en el que se espera alrededor de una solución, y los ≈17 colores interiores de E2 caen cerca de esa franja. Es un enunciado sobre el conjunto; el juego real de piezas tendría unas 14.702 soluciones con la pista central.",
       ],
       [
         "Para ideas que aceleran un solucionador",
-        "El filtrado global en O(1) por nodo de Benoist & Bourreau y la búsqueda CP + vecindario muy grande de Schaus & Deville son el linaje detrás de la mayoría de los tableros récord. La hiperheurística de Wauters et al. y las formulaciones MILP + clique máxima de Salassa et al. son las mejores metaheurísticas publicadas. Harris/Vanstone/Gepp se apoyan en el conocimiento estructural y en la distribución uniforme de colores en lugar del forward-checking genérico, y reportan hasta tres órdenes de magnitud sobre los solucionadores anteriores.",
+        "El filtrado global en O(1) por nodo de Benoist & Bourreau y la búsqueda CP + vecindario muy grande de Schaus & Deville son los métodos académicos publicados más sólidos. Los récords comunitarios a partir de 467 salieron de otras líneas: el motor del 467 de Verhaard, el backtracker por barrido de filas con calendario de Blackwood (469, 470) y el DFS derivado de Blackwood de Riotte (464 y 465 estrictos). La hiperheurística de Wauters et al. y las formulaciones MILP + clique máxima de Salassa et al. son las mejores metaheurísticas publicadas. Harris/Vanstone/Gepp se apoyan en el conocimiento estructural y en la distribución uniforme de colores en lugar del forward-checking genérico, y reportan hasta tres órdenes de magnitud sobre los solucionadores anteriores.",
       ],
       [
         "El núcleo de la propagación de restricciones",
@@ -492,11 +492,11 @@ const T = {
       rotations2017:
         "El edge-matching sigue siendo NP-difícil incluso con rotaciones y en entornos restringidos: cierra la esperanza obvia de que «quizá las rotaciones lo vuelvan fácil».",
       mateu2012:
-        "El resultado de transición de fase: el reparto de ≈17 colores interiores / 5 de borde coloca a E2 justo en el pico de dificultad SAT/CSP, con alrededor de una solución esperada. Este es el *porqué* de que los parámetros sean los que son.",
+        "El resultado de transición de fase: los conjuntos aleatorios de puzzles de encaje de bordes tienen un pico de dificultad SAT/CSP cerca del número de colores en el que se espera alrededor de una solución, y unos parámetros de tipo E2 (≈17 colores interiores / 5 de borde) caen cerca de él. Un enunciado sobre el conjunto: el juego real de piezas de E2 tendría unas 14.702 soluciones con la pista central.",
       ansotegui2008cp:
-        "Codifica los puzzles de tipo Eternity para solucionadores SAT/CSP y muestra que las instancias generadas caen justo en el pico de dificultad.",
+        "Codifica los puzzles de tipo Eternity para solucionadores SAT/CSP y muestra que las instancias generadas de tipo E2, cerca del pico de dificultad, son benchmarks difíciles.",
       bejar2009:
-        "Acota la transición de fase de forma analítica (mediante medidas estadísticas de segundo momento), y no solo empírica: una cota superior que sirve además como buen estimador para localizar las instancias más difíciles. El armazón teórico bajo la afirmación de que «E2 está justo en el pico de dificultad».",
+        "Acota la transición de fase de forma analítica (mediante medidas estadísticas de segundo momento), y no solo empírica: una cota superior que sirve además como buen estimador para localizar las instancias más difíciles. Cotas analíticas sobre la transición de fase del conjunto, cerca de la cual caen los parámetros de E2.",
       benoist2008edges:
         "Un resultado breve y elegante del e-lab (mismo autor que Fast Global Filtering): el número máximo exacto de aristas compartidas que N piezas cuadradas pueden alcanzar en un tablero, con una h(N) en forma cerrada y una demostración. Una condición necesaria de factibilidad y un ladrillo limpio para los argumentos de paridad y conteo de soluciones.",
       ansotegui2008ccia:
@@ -506,7 +506,7 @@ const T = {
       benoist2008:
         "Maquinaria de propagación diseñada a medida para E2: un filtrado global en O(1) por nodo que descarta pronto y a bajo coste las regiones imposibles. Un ancestro directo de los solucionadores rápidos.",
       schaus2008:
-        "Programación con restricciones más reparación por vecindarios muy grandes: la familia de métodos detrás de la mayoría de los tableros récord.",
+        "Programación con restricciones más reparación por vecindarios muy grandes: de los métodos académicos publicados más sólidos, aunque los tableros récord de la comunidad salieron de backtrackers con calendario.",
       coelho2010:
         "Una metaheurística general de búsqueda por vecindario variable con cinco tipos de movimiento; robusta a distintos tamaños, pero no alcanza la optimalidad.",
       wang2010:

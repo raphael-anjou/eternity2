@@ -156,15 +156,22 @@ const T = {
         the search into deep dead ends. And every line shows something famous: a sharp{" "}
         <strong>hardness peak</strong>. Very few colors → tons of solutions, easy to stumble on
         one. Many colors → so constrained the search barely branches. The peak sits right in
-        between — and, crucially, <strong>it slides to the right as the board grows</strong>: the
-        6×6 line peaks at <strong>4 colors</strong>, the 8×8 line at <strong>6 colors</strong>,
-        roughly one extra color per added row. At its peak the median 8×8 puzzle needs over{" "}
+        between and, crucially, <strong>it moves to more colors as the board grows</strong>: the
+        6×6 line peaks at <strong>4 colors</strong>, the 7×7 line at <strong>6</strong>, the 8×8 line
+        at <strong>6 to 7</strong>. At its peak the median 8×8 puzzle needs over{" "}
         <strong>2 billion</strong> piece placements, and most seeds there ran so long we had to
-        stop measuring them (the flat tops are those censored points). One color either side and
-        it collapses by a hundredfold. Extrapolate that one-color-per-row trend out to a 16×16
-        board and the peak lands right around <strong>22 colors</strong> — exactly where
-        Eternity II was built to sit. It isn't an accident past the peak; it's tuned to land
-        <em> on</em> it.
+        stop measuring them (the flat tops are those censored points, so the true 8×8 peak may sit
+        at 7). One color either side and it collapses by a hundredfold. These boards are too small
+        to locate the 16×16 peak, and the shift is slower than one color per row. Brendan Owen's
+        expected-solution estimate grows the same slow way (about 5, 6.4 and 7.6 colors at 6×6,
+        7×7 and 8×8; it counts interior colors on a framed board, so it runs a little above
+        these curves) and puts the 16×16 value near <strong>17 interior colors</strong>. Eternity
+        II uses 17 interior colors plus 5 frame-only ones: see{" "}
+        <Link className="underline" to="/research/why/phase-transition">
+          the hardness peak
+        </Link>
+        . A direct 16×16 sweep has not located the peak yet: under a budget of 20 million DFS steps
+        (placements plus backtracks) it solved no board at any interior count from 8 to 17.
       </>
     ),
     workChartTitle: "Work to solve (median nodes, log scale) vs number of colors",
@@ -217,12 +224,22 @@ const T = {
     s6Title: "6 · So how far does smart get you?",
     s6P1: (
       <>
-        State-of-the-art attacks add constraint propagation (deduce forced placements before
-        trying any), clever piece orderings, parallel search, and{" "}
+        The{" "}
+        <Link className="underline" to="/research/records">
+          record boards
+        </Link>{" "}
+        (469 and 470 of 480 matched edges) came from a carefully scheduled backtracker that is
+        allowed a few deliberate mismatches, run for tens of billions of steps on many cores.
+        Constraint propagation, clever piece orderings and{" "}
         <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
           local-repair heuristics
         </Link>{" "}
-        that fix imperfect boards. They reach 469 and 470 of 480 matched edges. Extraordinary, and
+        that fix imperfect boards are the other main tools, though propagation buys less here
+        than you might hope: Eternity II has{" "}
+        <Link className="underline" to="/research/why/no-forced-moves">
+          almost no forced placements
+        </Link>{" "}
+        to deduce. Extraordinary, and
         still short. The gap between "almost solved" and "solved" is where the open research
         lives: see the <Link className="underline" to="/research">Research</Link> section.
       </>
@@ -304,17 +321,26 @@ const T = {
         au fond d'une impasse. Enfin, chaque courbe trahit un phénomène bien connu : un{" "}
         <strong>pic de difficulté</strong>. Très peu de couleurs → des solutions à la pelle,
         faciles à dégoter par hasard. Beaucoup de couleurs → un puzzle si contraint que la
-        recherche ne se ramifie presque plus. Le pic se loge entre les deux — et surtout,{" "}
-        <strong>il glisse vers la droite à mesure que le plateau s'agrandit</strong> : la courbe
-        6×6 culmine à <strong>4 couleurs</strong>, la courbe 8×8 à <strong>6 couleurs</strong>,
-        soit grosso modo une couleur de plus par rangée ajoutée. À son sommet, le puzzle 8×8
-        médian réclame plus de <strong>2 milliards</strong> de placements de pièces, et la
-        plupart des graines ont tourné si longtemps qu'on a dû renoncer à les mesurer (les
-        plateaux des courbes, ce sont ces points censurés). Une couleur de plus ou de moins, et
-        tout s'effondre d'un facteur cent. Prolongez cette progression d'une couleur par rangée
-        jusqu'au plateau 16×16 et le pic retombe pile sur les <strong>22 couleurs</strong> —
-        exactement le réglage choisi pour Eternity II. Rien d'accidentel à ce qu'il se tienne
-        au-delà du pic : il est calibré pour tomber <em>dessus</em>.
+        recherche ne se ramifie presque plus. Le pic se loge entre les deux et, surtout,{" "}
+        <strong>il se déplace vers davantage de couleurs à mesure que le plateau grandit</strong> :
+        la courbe 6×6 culmine à <strong>4 couleurs</strong>, la 7×7 à <strong>6</strong>, la 8×8
+        entre <strong>6 et 7</strong>. À son sommet, le puzzle 8×8 médian réclame plus de{" "}
+        <strong>2 milliards</strong> de placements de pièces, et la plupart des graines ont
+        tourné si longtemps qu'on a dû renoncer à les mesurer (les plateaux des courbes, ce sont
+        ces points censurés : le vrai pic 8×8 pourrait donc se trouver à 7). Une couleur de plus
+        ou de moins, et tout s'effondre d'un facteur cent. Ces plateaux sont trop petits pour
+        situer le pic du 16×16, et le glissement est plus lent qu'une couleur par rangée.
+        L'estimation du nombre attendu de solutions de Brendan Owen croît avec la même lenteur
+        (environ 5, 6,4 et 7,6 couleurs en 6×6, 7×7 et 8×8 ; elle compte les couleurs intérieures
+        d'un plateau à cadre, d'où un léger décalage vers le haut par rapport à ces courbes) et
+        place la valeur du 16×16 vers <strong>17 couleurs intérieures</strong>. Eternity II en
+        compte justement 17, plus 5 réservées au cadre : voir{" "}
+        <Link className="underline" to="/research/why/phase-transition">
+          le pic de difficulté
+        </Link>
+        . Un balayage direct en 16×16 n'a pas encore localisé le pic : avec un budget de
+        20 millions de pas de DFS (placements et retours arrière), il n'a résolu aucun plateau, quel que soit le nombre de couleurs
+        intérieures entre 8 et 17.
       </>
     ),
     workChartTitle:
@@ -374,14 +400,23 @@ const T = {
     s6Title: "6 · Alors, jusqu'où la finesse nous mène-t-elle ?",
     s6P1: (
       <>
-        Les attaques de pointe ajoutent à tout cela la propagation de contraintes (déduire les
-        placements forcés avant le moindre essai), des ordres de pièces malins, la recherche en
-        parallèle et des{" "}
+        Les{" "}
+        <Link className="underline" to="/research/records">
+          plateaux records
+        </Link>{" "}
+        (469, puis 470 côtés appariés sur 480) sont l'œuvre d'un backtracker au calendrier
+        soigneusement réglé, qui s'autorise quelques erreurs délibérées, lancé sur des dizaines de
+        milliards d'étapes et de nombreux cœurs. La propagation de contraintes, des ordres de
+        pièces malins et des{" "}
         <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
           heuristiques de réparation locale
         </Link>{" "}
-        qui rafistolent les plateaux
-        imparfaits. Elles atteignent 469, voire 470 côtés appariés sur 480. C'est
+        qui rafistolent les plateaux imparfaits complètent la panoplie, même si la propagation
+        rapporte moins qu'on ne l'espère : Eternity II n'offre{" "}
+        <Link className="underline" to="/research/why/no-forced-moves">
+          presque aucun placement forcé
+        </Link>{" "}
+        à déduire. C'est
         prodigieux — et toujours insuffisant. Cet écart entre « presque résolu » et « résolu »,
         c'est précisément là que se joue la recherche ouverte : rendez-vous dans la section{" "}
         <Link className="underline" to="/research">Recherche</Link>.
@@ -459,16 +494,25 @@ const T = {
         línea revela algo célebre: un marcado <strong>pico de dificultad</strong>. Muy pocos
         colores → soluciones a montones, fáciles de encontrar por azar. Muchos colores → un
         puzzle tan restringido que la búsqueda apenas se ramifica. El pico se aloja justo en
-        medio y, sobre todo, <strong>se desplaza hacia la derecha a medida que crece el
-        tablero</strong>: la línea 6×6 culmina en <strong>4 colores</strong>, la línea 8×8 en{" "}
-        <strong>6 colores</strong>, más o menos un color más por cada fila añadida. En su pico,
-        el puzzle 8×8 mediano exige más de <strong>2 mil millones</strong> de emplazamientos de
-        piezas, y la mayoría de las semillas allí tardaron tanto que tuvimos que dejar de
-        medirlas (las mesetas planas son esos puntos censurados). Un color a un lado u otro y
-        todo se derrumba por un factor de cien. Prolonga esa tendencia de un color por fila
-        hasta un tablero 16×16 y el pico cae justo en torno a los <strong>22 colores</strong>:
-        exactamente donde se diseñó Eternity II para situarse. No es casualidad que quede más
-        allá del pico; está calibrado para caer <em>sobre</em> él.
+        medio y, sobre todo, <strong>se desplaza hacia más colores a medida que crece el
+        tablero</strong>: la línea 6×6 culmina en <strong>4 colores</strong>, la 7×7 en{" "}
+        <strong>6</strong> y la 8×8 entre <strong>6 y 7</strong>. En su pico, el puzzle 8×8
+        mediano exige más de <strong>2 mil millones</strong> de emplazamientos de piezas, y la
+        mayoría de las semillas allí tardaron tanto que tuvimos que dejar de medirlas (las mesetas
+        planas son esos puntos censurados, así que el verdadero pico 8×8 podría estar en 7). Un
+        color a un lado u otro y todo se derrumba por un factor de cien. Estos tableros son
+        demasiado pequeños para situar el pico del 16×16, y el desplazamiento es más lento que un
+        color por fila. La estimación de soluciones esperadas de Brendan Owen crece con la misma
+        lentitud (unos 5, 6,4 y 7,6 colores en 6×6, 7×7 y 8×8; cuenta colores interiores en un
+        tablero con marco, por eso queda algo por encima de estas curvas) y sitúa el valor del
+        16×16 cerca de <strong>17 colores interiores</strong>. Eternity II usa precisamente 17,
+        más 5 exclusivos del marco: consulta{" "}
+        <Link className="underline" to="/research/why/phase-transition">
+          el pico de dificultad
+        </Link>
+        . Un barrido directo en 16×16 aún no ha localizado el pico: con un presupuesto de 20
+        millones de pasos de DFS (colocaciones y retrocesos) no resolvió ningún tablero con ningún número de colores interiores
+        entre 8 y 17.
       </>
     ),
     workChartTitle:
@@ -526,13 +570,23 @@ const T = {
     s6Title: "6 · Entonces, ¿hasta dónde te lleva la astucia?",
     s6P1: (
       <>
-        Los ataques de vanguardia añaden propagación de restricciones (deducir los
-        emplazamientos forzados antes de probar ninguno), ordenaciones de piezas ingeniosas,
-        búsqueda en paralelo y{" "}
+        Los{" "}
+        <Link className="underline" to="/research/records">
+          tableros récord
+        </Link>{" "}
+        (469 y 470 de 480 aristas coincidentes) salieron de un backtracker con un calendario
+        cuidadosamente ajustado, al que se le permiten unos pocos desajustes deliberados,
+        ejecutado durante decenas de miles de millones de pasos en muchos núcleos. La
+        propagación de restricciones, las ordenaciones de piezas ingeniosas y las{" "}
         <Link className="underline" to="/research/lab/experiments/raphael-anjou/repair-study">
           heurísticas de reparación local
         </Link>{" "}
-        que arreglan tableros imperfectos. Alcanzan 469 y 470 de 480 aristas coincidentes.
+        que arreglan tableros imperfectos son las otras herramientas principales, aunque la
+        propagación rinde menos de lo esperado: Eternity II casi no tiene{" "}
+        <Link className="underline" to="/research/why/no-forced-moves">
+          emplazamientos forzados
+        </Link>{" "}
+        que deducir.
         Extraordinario, y aún insuficiente. El hueco entre «casi resuelto» y «resuelto» es
         donde vive la investigación abierta: consulta la sección{" "}
         <Link className="underline" to="/research">Investigación</Link>.
