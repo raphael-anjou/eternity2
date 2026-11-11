@@ -1,18 +1,21 @@
 ---
 title: Órdenes de relleno
 description: >-
-  El orden en que un algoritmo de backtracking visita las 256 celdas es su
-  única libertad: no cuesta nada en tiempo de ejecución y mueve el tamaño del
-  árbol de búsqueda en varios órdenes de magnitud. Veinte años de ciencia
+  El orden en que un algoritmo de backtracking visita las 256 celdas es una de
+  sus decisiones de mayor peso: un orden fijo no cuesta nada por nodo y mueve
+  el tamaño del árbol de búsqueda en varios órdenes de magnitud. En E2 la
+  comunidad encontró el barrido por filas como el mejor de los órdenes fijos,
+  mientras que el MRV dinámico gana en nodos en tableros pequeños. Veinte años
+  de ciencia
   comunitaria, desde las guerras entre fijo y dinámico y las carreras de
   estrategias hasta el cuadrado mágico 10×16 y la búsqueda en peine de
   Verhaard, responden todos a la misma pregunta: ¿qué camino a través del
   tablero es el más barato?
-metaDescription: "El orden en que un backtracking visita las 256 celdas de Eternity II mueve el árbol de búsqueda en varios órdenes de magnitud: la elección libre más decisiva del solucionador. Fijo contra dinámico, la victoria del barrido en la partición 5/17, el cuadrado mágico 10×16 y el peine de Verhaard."
+metaDescription: "El orden de visita de las 256 celdas de Eternity II mueve el árbol en órdenes de magnitud: fijo contra dinámico, el barrido en la partición 5/17, el cuadrado mágico 10×16, el borde primero en búsqueda exhaustiva y el peine de Verhaard."
 kind: concept
 order: 110
 group: Backtracking
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: El «mejor orden de búsqueda» de Owen, el barrido casi óptimo y el argumento por conteo de formas (septiembre de 2007)
@@ -48,30 +51,41 @@ related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/reduce/edge-slipping
   - /research/build/backtracking/restarts
+  - /research/build/analysis/solution-counting
+  - /research/why/constraint-immediacy
   - /research/records
 repro:
   kind: prose
+  cmd: python3 research/experiments/fill-order-mean-field/mean_field.py
   scope: >-
     Las cifras comunitarias de esta página se reproducen desde los mensajes
-    citados. Las mediciones de cuaderno (la ley de regímenes k, los órdenes
-    fallidos, el barrido del peine y el nulo del orden de candidatos) están
-    registradas en el cuaderno de laboratorio del proyecto y aún no están
-    empaquetadas como reproducciones de un solo comando; cada una se reporta
-    por tanto con su diseño de barrido y sus conteos de semillas en el texto.
+    citados. La comprobación de la ley de campo medio y los perfiles en k se
+    reproducen con el comando de arriba (sembrado, unos 3 minutos en un
+    núcleo). Las demás mediciones de cuaderno (los órdenes fallidos, el
+    barrido del peine y el nulo del orden de candidatos) están registradas en
+    el cuaderno de laboratorio del proyecto y aún no están empaquetadas como
+    reproducciones de un solo comando; cada una se reporta con su diseño de
+    barrido y sus conteos de semillas en el texto.
 ---
 
 import { FillOrderLab } from "@/components/research/concepts/FillOrderLab";
 
-Un algoritmo de backtracking apenas tiene libertad. Las piezas están dadas, la
-regla de emparejamiento está dada, el tablero está dado. Lo único que depende
-enteramente de ti es el *orden de relleno*: la secuencia en que se rellenan las
-256 celdas. Parece un detalle (la búsqueda es exhaustiva de cualquier modo), y
-en realidad es la decisión de mayor apalancamiento de todo el solucionador.
+Un algoritmo de backtracking tiene menos libertad de la que parece. Las piezas
+están dadas, la regla de emparejamiento está dada, el tablero está dado. Lo que
+depende de ti es un puñado de decisiones de diseño: el orden de candidatos, la
+propagación, las reglas de poda, los calendarios de deslizamiento, los
+reinicios y el *orden de relleno*, la secuencia en que se rellenan las 256
+celdas. Este último parece un detalle (la búsqueda es exhaustiva de cualquier
+modo), y en realidad es una de las decisiones de mayor apalancamiento del
+solucionador.
 Brendan Owen lo dijo sin rodeos en 2007: «Uno de los mayores ahorros de conteo
 de nodos que puedes lograr consiste en elegir un buen orden de búsqueda»
 ([msg 2714](https://groups.io/g/eternity2/message/2714)). El mismo puzzle,
 recorrido en un orden distinto, puede costar diez órdenes de magnitud más de
-nodos. Y la elección es gratuita, decidida antes de colocar la primera pieza.
+nodos. Un orden fijo es además gratuito por nodo, decidido antes de colocar la
+primera pieza; un orden dinámico paga un coste de selección en cada nodo pero,
+en tableros pequeños, puede ganar en número de nodos (véase el duelo de Zajc
+más abajo).
 
 Por eso la lista de correo lo debatió durante veinte años. El primer gran
 debate, en el verano de 2007, fue *fijo contra dinámico*: los veteranos de
@@ -114,38 +128,46 @@ maquinaria, probabilidades de unión incluidas, se convirtió en la
 [teoría compleja](/research/why/complex-theory); esta página muestra a qué se
 parecen sus respuestas en la práctica.
 
-El cuaderno de laboratorio del proyecto pone números a la dieta misma.
-Llamemos $k$ al número de lados vecinos ya colocados que una celda presenta
-cuando la búsqueda la alcanza. Una ley de campo medio dice que la celda
-debería admitir unas $4Rp^k$ colocaciones candidatas, donde $R$ es el
-número de piezas aún en mano y $p \approx 0{,}048$ es la probabilidad media,
-en E2, de que un lado empareje con un color. Al comienzo del relleno
-interior eso predice unos 38 candidatos para una celda $k=1$, 1,8 para
-$k=2$, 0,09 para $k=3$ y 0,004 para $k=4$. Una enumeración exacta contra el
-juego real de 256 piezas (40 ensayos sembrados por configuración) cae
-dentro del 20 a 40% de esas predicciones y confirma los tres regímenes que
-dibujan: las celdas $k=1$ son en esencia siempre rellenables; las celdas
-$k=2$ cruzan el 50% de celdas muertas en algún punto entre el 50 y el 62%
-de relleno del tablero; y las celdas con tres o más vecinos colocados están
-muertas en el 87 a 100% de los ensayos a cualquier nivel de relleno,
-incluida la primera colocación interior. (La ley es una idealización de
-campo medio validada para las estadísticas de color de Eternity II, una
-sola instancia; no es una afirmación sobre el emparejamiento de aristas en
-general.)
+La dieta se puede poner en números. Llamemos $k$ al número de lados
+vecinos ya colocados que una celda presenta cuando la búsqueda la alcanza.
+Una ley de campo medio dice que la celda debería admitir unas $4Rp^k$
+colocaciones candidatas, donde $R$ es el número de piezas aún en mano y $p$
+la probabilidad de que un lado empareje con un color dado. Para una celda
+interior el valor pertinente es la suma de los cuadrados de las frecuencias
+de los 17 colores interiores en las 196 piezas interiores,
+$p \approx 0{,}0589$ (sobre los 22 colores del juego completo saldría 0,048,
+el depósito equivocado para una celda interior). Al comienzo del relleno
+interior, con $R = 196$, eso predice unos 46 candidatos para una celda
+$k=1$, 2,7 para $k=2$, 0,16 para $k=3$ y 0,0094 para $k=4$. Los recuentos
+exactos con las piezas interiores reales (20.000 ensayos sembrados para
+$k \le 2$, 100.000 para $k \ge 3$, vecinos aleatorios en rotaciones
+aleatorias) dan 45,0, 2,58, 0,148 y 0,0082, entre un 3 y un 13% por debajo
+de la predicción; una celda $k=2$ está muerta en el 7,6% de los ensayos, una
+$k=3$ en el 86% y una $k=4$ en el 99%
+([script y resultados](https://github.com/raphael-anjou/eternity2/tree/main/research/experiments/fill-order-mean-field)).
+Ejecuciones del cuaderno a niveles de relleno más avanzados vieron las
+celdas $k=2$ cruzar el 50% de celdas muertas en algún punto entre el 50 y el
+62% de relleno. (La ley es una idealización de campo medio comprobada con
+las estadísticas de color de Eternity II, una sola instancia; no es una
+afirmación sobre el emparejamiento de aristas en general.)
 
-Leída como regla de diseño: un buen orden es aquel cuya frontera presenta a
-cada celda nueva exactamente dos vecinos colocados, suficientes para podar,
-pocos para sobrevivir. El barrido por filas lo hace por construcción, un
-$k=2$ constante tras la primera fila; cualquier orden cuya frontera
-desarrolle bolsas cóncavas de tres lados paga celdas casi seguramente
-muertas, esté como esté de lleno el tablero. Los mismos regímenes miden
-también lo que compra el propio backtracking. Sin backtracking alguno, un
+Son recuentos no condicionados para rellenos parciales aleatorios, no para
+los parciales que visita de verdad una búsqueda, y no convierten las celdas
+de tres lados en un coste. En un backtracker, una celda $k=3$ con unos 0,15
+candidatos esperados es una poda: mata una rama a bajo precio. Lo que fija
+el coste, según el argumento de Owen de arriba, es el número esperado de
+teselaciones de la forma que el orden ha construido en cada profundidad. En
+el 16×16 completo con borde libre, el barrido por filas da un $k=2$
+constante tras la primera fila (225 de 256 celdas, con 30 en $k=1$ a lo
+largo de la primera fila y en los comienzos de fila); esa dieta regular es
+una forma de mantener baratas las formas parciales. Los mismos recuentos
+miden también lo que compra el propio backtracking. Sin backtracking alguno, un
 relleno voraz aleatorio se atasca dentro del primer 5 a 12% del tablero use
 el recorrido que use: sobre 8 semillas por orden, el atasco mediano llegó
 en el paso 15 para fila-mayor, 13 para un recorrido diagonal y 15 para una
 espiral (el recorrido diagonal osciló entre 4 y 32), y ninguna de las 24 ejecuciones llegó más lejos.
-Cualquier recorrido fabrica una esquina cóncava fatal en un puñado de
-colocaciones; ese número ilustra la geometría, no es un banco de pruebas de
+Cualquier recorrido topa con una celda muerta en un puñado de colocaciones;
+ese número ilustra la geometría, no es un banco de pruebas de
 solucionadores.
 
 El laboratorio de abajo hace visible la planificación. Anima la secuencia de
@@ -205,8 +227,10 @@ frente a los $1,07\times10^{50}$ del barrido, porque el diseño equilibra la
 teselabilidad del borde y del interior, dando al puzzle «ninguna zona débil por
 la que empezar a teselar»
 ([msg 5263](https://groups.io/g/eternity2/message/5263),
-[5243](https://groups.io/g/eternity2/message/5243)). El barrido por líneas no es
-una ley de la naturaleza; es la respuesta correcta a un diseño específico y
+[5243](https://groups.io/g/eternity2/message/5243)). Son totales de teoría
+compleja para puzzles aleatorios con esos repartos de colores, sin la
+restricción de la pieza inicial. El barrido por líneas no es una ley de la
+naturaleza; es la respuesta correcta a un diseño específico y
 adversario.
 
 **El cuadrado mágico 10×16.** ¿Por qué el barrido por líneas y no, digamos, un
@@ -223,25 +247,37 @@ curva de conteo de restricciones por sí sola no puede ver: dos órdenes pueden
 pagar uniones según la misma planificación y aun así diferir por el perímetro de
 la región que construyen.
 
-**Por qué «resolver el borde primero» es una trampa.** El instinto humano más
-natural, construir el marco fácil y luego rellenar el medio, es
-cuantitativamente uno de los peores órdenes, y en 2025 Owen y Peter McGavin
-detallaron por qué, precisamente sobre este pico en profundidad 160. El borde es
-realmente fácil: tras la pieza de partida hay unas $5,17\times10^{37}$ formas de
-completarlo, de las cuales solo 14.702 pueden rellenarse con las 196 piezas de
-interior, de modo que unos $3,5\times10^{33}$ marcos deben probarse antes de que
-uno siquiera *pueda* terminar
-([msg 11572](https://groups.io/g/eternity2/message/11572)). Eso por sí solo es
-desesperante, pero no es el verdadero problema. El problema es que con el marco
-fijado primero, el conteo de nodos sigue *subiendo* después del borde hasta un
-pico de unos $10^{57}$ hacia las 160 piezas, frente a unos $10^{43}$ del barrido
-por filas. Un orden borde primero se compromete temprano con el borde y luego se
-mete de lleno en un pico catorce órdenes de magnitud más alto que el del barrido
-por filas, porque solo alrededor de 1 marco de cada $10^{31}$ lleva a alguna
-parte y cada uno es caro de descartar
-([msg 11573](https://groups.io/g/eternity2/message/11573)). El barrido por
-líneas no gana construyendo una frontera más bonita, sino no pagando nunca por
-un borde que aún no puede saber que está condenado.
+**Por qué «resolver el borde primero» pierde en búsqueda exhaustiva.** Para
+una búsqueda completa de un tablero perfecto, el instinto humano más natural,
+construir el marco fácil y luego rellenar el medio, es cuantitativamente uno
+de los peores órdenes, y en 2025 Owen y Peter McGavin detallaron por qué,
+precisamente sobre este pico en profundidad 160. El borde es realmente fácil:
+tras la pieza de partida hay unas $5{,}17\times10^{37}$ formas de
+completarlo, y la estimación de primer momento solo espera unas 14.702
+soluciones completas
+([recuento de soluciones](/research/build/analysis/solution-counting)), de
+modo que hay que probar del orden de $3{,}5\times10^{33}$ marcos por solución
+([msg 11572](https://groups.io/g/eternity2/message/11572)). Eso por sí solo
+es desesperante, pero no es el verdadero problema. El problema es que con el
+marco fijado primero, el conteo de nodos sigue *subiendo* después del borde
+hasta un pico de unos $10^{57}$ hacia las 160 piezas, frente a unos $10^{43}$
+del barrido por filas
+([msg 11573](https://groups.io/g/eternity2/message/11573)); el mismo mensaje
+sitúa en alrededor de 1 de cada $10^{31}$ la fracción de marcos que llevan a
+alguna parte, una magnitud distinta de la razón marcos por solución de
+arriba, cuya definición exacta el hilo no precisa. El barrido por líneas
+gana esta carrera no construyendo una frontera más bonita, sino no pagando
+nunca por un borde que aún no puede saber que está condenado.
+
+La trampa es propia de la búsqueda exhaustiva. Cazar una *puntuación*
+parcial es otro juego, y las mediciones del proyecto son mixtas
+([inmediatez de las restricciones](/research/why/constraint-immediacy)): en
+un motor histórico el borde primero alcanzó 445 aristas emparejadas frente a
+433 del fila-mayor, y una repetición voraz en el tablero oficial lo mantuvo
+por delante (358 frente a 343), mientras que en búsqueda en profundidad
+estricta chocó con un muro de cierre del borde en la profundidad 35, y en
+cuatro tableros generados el fila-mayor ganó el brazo voraz todas las
+veces.
 
 **Pero ¿qué barrido?** Incluso dentro de los barridos por filas hay ocho
 orientaciones: cuatro esquinas de partida, filas o columnas
@@ -255,6 +291,27 @@ Verhaard ya usaba) salió en torno a $2,3\times10^{40}$
 [6023](https://groups.io/g/eternity2/message/6023)). Una elección de folclore
 convertida en un ~15% medido: minúsculo al lado de los órdenes de magnitud de
 arriba, pero gratis.
+
+**Cómo leer los tamaños de árbol.** Las cifras de esta página salen de
+estimadores distintos en condiciones distintas, y no son intercambiables:
+
+| cifra | qué cuenta | condiciones | fuente |
+|:--|:--|:--|:--|
+| $1{,}07\times10^{50}$ | nodos totales, barrido | teoría compleja para las estadísticas de E2; igual a $9{,}2751\times10^{42}$ nodos por solución sin pieza inicial × $1{,}1527\times10^7$ | Owen, [msg 5263](https://groups.io/g/eternity2/message/5263) |
+| $\approx 1{,}4\times10^{47}$ | nodos totales, barrido | teoría compleja con la pieza inicial obligatoria ($9{,}2766\times10^{42}$ nodos por solución × 14.702 soluciones esperadas) | [recuento de soluciones](/research/build/analysis/solution-counting) |
+| $\approx 10^{45}$ | anchura por profundidad en la meseta | teoría compleja, barrido por filas | [teoría compleja](/research/why/complex-theory) |
+| $\approx 10^{43}$ | pico por profundidad hacia la profundidad 160 | barrido por filas, estimación de 2025; conjunto de pistas no indicado | [msg 11573](https://groups.io/g/eternity2/message/11573) |
+| $2{,}3$ a $2{,}7\times10^{40}$ | tamaño del árbol completo por orientación | estimador por muestreo de Max durante varios días; conjunto de pistas y definición de nodo no indicados | [msg 6023](https://groups.io/g/eternity2/message/6023) |
+
+Las dos primeras difieren por la restricción de la pieza inicial (×784, la
+razón entre las dos estimaciones de soluciones). Los totales muestreados por
+Max quedan por debajo de ambos picos por profundidad, algo imposible para un
+mismo árbol: sus ejecuciones cuentan otro árbol (otro conjunto de pistas u
+otra definición de nodo) y sirven para comparar orientaciones entre sí, no
+con los totales de la teoría compleja. La brecha de dos órdenes de magnitud
+entre los picos de $10^{45}$ y $10^{43}$ no queda conciliada por las fuentes
+tal como se resumen aquí. Compara órdenes solo con cifras de la misma
+fila.
 
 **Desviaciones que pagaron.** La ortodoxia del orden de barrido se puso a prueba
 constantemente, y en su mayoría ganó, pero no siempre. El propio Owen resolvió
@@ -277,23 +334,25 @@ confirmó ~10% del espacio de búsqueda eliminado a un coste casi nulo
 
 La comunidad publicó sobre todo las desviaciones que tenían argumentos a
 favor. El cuaderno de laboratorio del proyecto guarda la otra especie,
-órdenes atractivos que perdieron, y los regímenes $k$ de arriba saben
-nombrar el mecanismo de cada uno.
+órdenes atractivos que perdieron; para algunos, los regímenes $k$ de arriba
+sugieren un mecanismo, y para uno lo descartan.
 
-**Las espirales pagan un impuesto de cierre.** En un banco de pruebas de
-interior 14×14 con borde (8 semillas por brazo), una espiral de fuera hacia
-dentro se atascó en la profundidad 26 en las 8 semillas, en la esquina de
-cierre de su primer anillo. Una espiral de borde libre se estancó en
-profundidades 133 a 141 con 0 completados, frente a 344 a 347 de un barrido
-por filas; con todas las asistencias del motor activadas aún chocaba en 131
-a 140 con 0 completados en 300 s, frente a 446 a 448 del barrido. La ley en
-$k$ dice por qué: todo el primer anillo de una espiral de borde libre corre
-con un vecino colocado o menos por celda, una ramificación casi imposible
-de podar, mientras que una espiral con borde paga un *impuesto de cierre*:
-cada anillo carga 4 o 5 celdas con tres vecinos colocados en sus esquinas y
-en su empalme, y las celdas de tres lados son casi irrellenables. El
-barrido por filas es el orden de Ricitos de Oro, dos vecinos constantes y
-una sola zona de daños activa.
+**Las espirales perdieron.** En un banco de pruebas de interior 14×14 con
+borde (8 semillas por brazo), una espiral de fuera hacia dentro se atascó en
+la profundidad 26 en las 8 semillas, en la esquina de cierre de su primer
+anillo. Una espiral de borde libre se estancó en profundidades 133 a 141 con
+0 completados, frente a 344 a 347 de un barrido por filas; con todas las
+asistencias del motor activadas aún chocaba en 131 a 140 con 0 completados
+en 300 s, frente a 446 a 448 del barrido. Para la espiral de borde libre, la
+ley en $k$ da una razón: todo su primer anillo corre con un vecino colocado
+o menos por celda, una ramificación temprana ancha y casi imposible de
+podar. Para la espiral con borde no la da. En un 14×14 con borde todas las
+aristas cuentan, y el barrido por filas y la espiral hacia dentro tienen
+exactamente el mismo histograma de $k$ (169 celdas con $k=2$, 26 con $k=3$,
+1 con $k=4$; mismo script que arriba), así que el fracaso de la espiral con
+borde se debe a la forma de la región parcial que construye, el argumento
+de los recuentos de formas de Owen, y no a un recuento de celdas de tres
+lados.
 
 **Partir de las pistas pierde.** «Empieza donde está la información» suena
 bien y apunta al revés. En un duelo de 60 s sobre el puzzle real (una
@@ -324,16 +383,17 @@ los propios tableros de clase 469 de la comunidad), esquinas para las
 espirales desde el centro. Un orden de relleno no solo decide cuánto
 fallas, sino dónde.
 
-La literatura académica aterriza en el mismo sitio. Ansotegui, Bejar,
+La literatura académica solo es comparable en parte. Ansotegui, Bejar,
 Fernandez y Mateu, que convirtieron los puzzles de emparejamiento de
 aristas en benchmarks SAT/CSP, trabajaban con órdenes estáticos de la
-familia damero-más-espiral-central; reproducido en nuestro motor sin el
-filtrado all-different completo que sus modelos suponen, ese orden hizo
-explotar los conteos de nodos en unas 600×. Y la base de backtracking del
-estudio hiperheurístico de 2012 de Wauters, Vancroonenburg y Vanden Berghe
-hizo competir el barrido por filas contra espiral, espiral inversa y
-órdenes en espejo, y encontró el barrido significativamente mejor: un
-redescubrimiento independiente de la tesis de la lista de correo.
+familia damero-más-espiral-central dentro de solucionadores con una fuerte
+propagación all-different; reproducido en nuestro motor sin esa
+propagación, su orden costó unas 600× más nodos. Es un montaje desajustado,
+no una prueba de su método. La base de backtracking del estudio
+hiperheurístico de 2012 de Wauters, Vancroonenburg y Vanden Berghe hizo
+competir el barrido por filas contra espiral, espiral inversa y órdenes en
+espejo, y encontró el barrido significativamente mejor, en línea con la
+experiencia de la lista de correo.
 
 ### La búsqueda en peine: la geometría de las puntuaciones altas
 
@@ -375,33 +435,40 @@ El peine durmió dieciocho años en la historia de los récords antes de que
 lo probáramos en casa; fue releer los mensajes de arriba lo que sacó a la
 luz la palanca. Injertar la geometría del peine en un productor de búsqueda
 en haz escrito desde cero (filas superiores en fila-mayor, filas inferiores
-rellenadas como dientes verticales cortos) elevó su mejor parcial bruto de
-455 a 457 aristas emparejadas de 480, en tableros con las cinco pistas
-estrictas, solo por el orden de visita; nada más cambió. Detrás de esa
-frase hay un barrido, no una carrera afortunada: cinco órdenes (fila-mayor
-más cortes de peine tras las filas 8, 10, 12 y 14) cruzados con tres
-anchuras de haz (2048, 8192 y 16384), 24 semillas cada uno a cómputo
-igualado, en 8 núcleos. El techo nuevo solo aparece en el haz más ancho,
-donde el corte 14 alcanzó 457 en una semilla y el corte 12 alcanzó 456 en
-dos, cada tablero comprobado de tres maneras independientes (un
-repuntuador independiente, un verificador externo y el conteo propio del
-productor; colocación estricta de las cinco pistas, las 256 piezas todas
-distintas). En anchuras menores el peine empata el máximo del fila-mayor.
+rellenadas como dientes verticales cortos), sin cambiar nada más, dio un
+mejor tablero de 457 aristas emparejadas de 480, en tableros con las cinco
+pistas estrictas, sobre 288 ejecuciones en peine, frente a 455 del mejor de
+72 ejecuciones en fila-mayor. El barrido: cinco órdenes (fila-mayor más
+cortes de peine tras las filas 8, 10, 12 y 14) cruzados con tres anchuras de
+haz (2048, 8192 y 16384), 24 semillas cada uno a cómputo igualado, en 8
+núcleos. El 457 solo aparece en el haz más ancho, donde el corte 14 lo
+alcanzó en una semilla y el corte 12 alcanzó 456 en dos, cada tablero
+comprobado de tres maneras independientes (un repuntuador independiente, un
+verificador externo y el conteo propio del productor; colocación estricta
+de las cinco pistas, las 256 piezas todas distintas). En anchuras menores
+el peine empata el máximo del fila-mayor. Un máximo sobre doce brazos en
+peine frente a un solo brazo fila-mayor es un máximo de comparaciones
+múltiples, y una diferencia de una o dos aristas entre máximos no demuestra
+un techo más alto sin una prueba de permutación o bootstrap.
 
-Lo que el peine mueve con fiabilidad es el suelo y el centro de la
+La señal más constante del peine está en el suelo y el centro de la
 distribución. En haz 2048, los cortes 10 y 12 suben el mínimo de 24
 semillas de 446 a 449 y la mediana de 449 a 451; en el haz más ancho, la
 mediana del corte 12 gana una arista. El corte 12 también alcanza 455, el
-antiguo techo del fila-mayor, con la mitad de la anchura de haz, y en haz
-8192 un barrido de 24 semillas rinde 15 tableros de 453 o mejor contra 9
-del fila-mayor: +67% de buenos tableros de partida por unidad de cómputo.
+máximo del fila-mayor, con la mitad de la anchura de haz. En haz 8192, 15
+de 24 semillas en peine dieron tableros de 453 o mejor frente a 9 de 24 en
+fila-mayor, lo que no es significativo ($p \approx 0{,}31$ bilateral, prueba
+binomial condicional). Aún no se han calculado medianas por semilla con
+intervalos bootstrap ni una prueba de rangos por anchura de haz, así que
+léanse estas cifras como dirección, no como un tamaño de efecto medido.
 La regla de Verhaard sobre la longitud de los dientes se sostiene también
 desde arriba. Los dientes largos (corte 8, dientes de 8 celdas) retroceden
-por debajo del fila-mayor en todas las anchuras; los dientes cortos ganan.
+por debajo del fila-mayor en todas las anchuras; los dientes cortos rinden
+mejor.
 El corte 12, el exacto «doce filas, luego columnas» de Max, es el mejor
 para toda la distribución, mientras que el corte 14, con sus dientes de 2
 celdas, encuentra el mejor tablero aislado sobre una mediana más baja: una
-geometría de remate más fina y de mayor varianza. El mecanismo es la
+geometría de remate más fina y de mayor varianza. El mecanismo propuesto es la
 intuición enunciada arriba, ahora medida: cada diente corto es una columna
 casi independiente cuyos fallos quedan confinados, de modo que las
 fronteras profundas de puntuación alta se alcanzan una y otra vez.
@@ -489,15 +556,18 @@ en la poda y en el orden de las celdas.
 
 ## Lo que cuesta
 
-En tiempo de ejecución, nada: un orden de relleno fijo es un arreglo precalculado
-de 256 índices de celda, y «elegir la siguiente celda» es un incremento de
-índice: $O(1)$, cero ramificaciones, que es precisamente el argumento de
-velocidad que mató al ordenamiento dinámico para E2
-([msg 5860](https://groups.io/g/eternity2/message/5860)). Todo el coste y todo el
+En tiempo de ejecución, nada por nodo: un orden de relleno fijo es un arreglo
+precalculado de 256 índices de celda, y «elegir la siguiente celda» es un
+incremento de índice: $O(1)$, cero ramificaciones, que es precisamente el
+argumento de velocidad que apartó a los solucionadores de E2 del
+ordenamiento dinámico
+([msg 5860](https://groups.io/g/eternity2/message/5860)). Un orden dinámico
+paga un coste de selección en cada nodo y aun así puede ganar en número de
+nodos, como en el 8×8 de Zajc. Todo el coste y todo el
 beneficio residen en el árbol que el orden induce:
 
 - **Entre familias de órdenes, órdenes de magnitud.** El centro primero en E2 es
-  $10^{10}$ veces más caro que el barrido
+  $10^{10}$ veces más caro que el barrido en búsqueda exhaustiva
   ([msg 5263](https://groups.io/g/eternity2/message/5263)); un orden por bloques
   4×4 cuesta ~70× sobre el barrido 1×1 según las estimaciones de teoría compleja
   de Max, la brecha que resume la regla mágica del 10×16
@@ -516,8 +586,9 @@ beneficio residen en el árbol que el orden induce:
   Markov de Verhaard combinando orden y calendario de deslizamientos
   ([msg 6423](https://groups.io/g/eternity2/message/6423)).
 
-Cada motor récord desde entonces ha tratado el orden como un objeto diseñado y
-calculado: el peine-más-arreglo-de-deslizamientos de Verhaard
+Todos los motores récord trataron el orden como un objeto diseñado, una
+decisión de mucho peso entre otras, junto a su poda y sus calendarios de
+deslizamiento: el peine-más-arreglo-de-deslizamientos de Verhaard
 ([eii](/research/lab/experiments/louis-verhaard/eii)), el barrido inferior-
 izquierdo elegido por teoría compleja de McGavin, y el orden de barrido fijo bajo
 los cortes con umbral de profundidad de

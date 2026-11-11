@@ -3,14 +3,15 @@ title: Edge slipping
 description: >-
   Louis Verhaard's prize-winning move: let the backtracker place a mismatched
   piece, but only at chosen depths near the end of the board. Each allowed
-  slip costs one point of score and multiplies the number of target boards
-  astronomically. That is why his 467 was found more than fifty times, and
-  the direct ancestor of Blackwood's breaks.
-metaDescription: "Louis Verhaard's edge slipping: let the backtracker place mismatched pieces at chosen depths late in the search, each slip costing one point but multiplying reachable target boards by orders of magnitude. His 467 recurred 50+ times; the same depth-gated schedule, retuned, drives Blackwood's 470."
+  slip costs one point of score and enlarges the class of target boards by
+  orders of magnitude; with a schedule tuned by his Markov chain, his 467
+  was found more than fifty times. Blackwood's breaks are the same idea,
+  re-derived independently.
+metaDescription: "Louis Verhaard's edge slipping: allow mismatched pieces at chosen late depths, each slip costing one point but enlarging the target class. His Markov-chain-tuned schedule found 467 over 50 times; Blackwood's 470 breaks re-derive the idea."
 kind: concept
 order: 100
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, local-search]
 sources:
   - label: Verhaard defines edge slipping (January 2009)
@@ -29,10 +30,13 @@ sources:
     url: https://groups.io/g/eternity2/message/6687
   - label: Blackwood's no-adjacent-breaks discipline (msg 10051)
     url: https://groups.io/g/eternity2/message/10051
+  - label: "Blackwood's 469-to-470 tuning plan: break budget cut from eleven to ten (msg 10076)"
+    url: https://groups.io/g/eternity2/message/10076
 related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/analysis/parity-arguments
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -154,10 +158,14 @@ schedule concentrated the entire budget late: thirteen slips, a target of
    ([msg 6412](https://groups.io/g/eternity2/message/6412)). The only
    single-mismatch boards route through the unscored border rim, the same
    leak that produced [the 479 story](/research/build/analysis/parity-arguments).
-4. **Stop at N = 10.** Target score 470, the current record, and exactly
-   the break budget of [Blackwood's solver](/research/lab/experiments/joshua-blackwood/solver).
-5. **Stop at N = 13.** Target score 467, multiplier ≈ 6.9 × 10²⁷. This is
-   why one hobbyist's program found the prize board more than fifty times.
+4. **Stop at N = 10.** Target score 470, exactly the break budget of
+   [Blackwood's solver](/research/lab/experiments/joshua-blackwood/solver)
+   (see [records](/research/records) for where the scores stand).
+5. **Stop at N = 13.** Target score 467, multiplier ≈ 6.9 × 10²⁷ by Max's
+   formula (Owen's estimate is seven orders of magnitude larger). A target
+   class that large, together with a schedule tuned by Verhaard's Markov
+   chain, is what let one hobbyist's program find the prize board more than
+   fifty times. Neither factor alone was measured as the cause.
 6. **Toggle the gates early.** Same budget, same multiplier, but the
    earliest slip now sits beneath 215 later placements instead of 55, and
    the extra branching lands where the tree is widest. The schedule, not
@@ -176,21 +184,30 @@ $$
 
 where $\binom{420}{N}$ chooses which of the 420 interior joins break, the
 powers of two account (roughly) for the ways each break can be realized, and
-$S(480)$ is the number of perfect boards. Plugging in the early
+$S(480)$ is the expected number of perfect boards. Plugging in the early
 complex-theory estimate $S(480) = 26{,}700$ he got about $4.7 \times 10^9$
 boards at 478, $2.9 \times 10^{30}$ at 468 and $1.8 \times 10^{32}$ at 467,
-numbers this project has re-verified from the formula. Two consequences
-matter more than the absolute values, which Max himself flagged as
-oversimplified:
+numbers this project has re-verified from the formula. The current
+first-moment estimate with the mandatory starter is about 14,702
+([solution counting](/research/build/analysis/solution-counting)), an
+ensemble average rather than a count for this instance; rerun with it, the
+formula gives absolute counts about half as large ($1.0 \times 10^{32}$ at
+467). Max himself flagged the formula as oversimplified, and it ignores the
+parity constraint that forbids a lone slipped interior edge (step 3 above).
+Two consequences matter more than the absolute values:
 
 - **The cost of one more matched edge.** Consecutive ratios telescope:
   $S(467)/S(468) = 2\binom{420}{13}/\binom{420}{12} = 2 \cdot 408/13
-  \approx 63$. Each edge you refuse to slip shrinks the target class by a
-  factor of about sixty, matching, as Max noted, the observed behaviour of
-  Verhaard's solver ([msg 6390](https://groups.io/g/eternity2/message/6390)),
-  and of the same order as Owen's ~100×-per-edge rule of thumb, posted to
-  the same thread the next day
-  ([msg 6391](https://groups.io/g/eternity2/message/6391)).
+  \approx 63$. That is a ratio of target-class sizes, not of search
+  difficulty. Max read it as consistent with Verhaard's solver
+  ([msg 6390](https://groups.io/g/eternity2/message/6390)), and it is of the
+  same order as Owen's ~100×-per-edge rule of thumb, posted to the same
+  thread the next day
+  ([msg 6391](https://groups.io/g/eternity2/message/6391)). The observed
+  rarity in JSA's run of the public solver is smaller: 17.7× from 463 to
+  464, 16.7× from 464 to 465 and 21.8× from 465 to 466, about twenty per
+  edge. How the size of a target class translates into the effort needed
+  to reach it has not been measured.
 - **The ceiling.** The multiplication is bought with score: $N$ allowed
   slips cap the board at $480 - N$ forever. Slipping buys reachability, not
   quality; it converts an impossible search into a feasible one whose best
@@ -212,8 +229,12 @@ boards with 13 slips at $2.05 \times 10^{35}$ times the count of perfect
 boards ([msg 6412](https://groups.io/g/eternity2/message/6412)), seven
 orders of magnitude above Max's figure, because the theory also counts
 near-boards that are not perturbations of any solution, while Max counted
-only those derived from a perfect board. Take either number: the target set
-explodes combinatorially, while the price is linear in score.
+only those derived from a perfect board. The two estimates disagree by about
+$10^7$, so neither is a reliable absolute count. Both agree on the shape: the
+target set grows combinatorially, while the price is linear in score. What
+made 467 recur is the probability that the joint (fill order, slip array)
+schedule reaches depth 256, which is what Verhaard's Markov chain estimated;
+the size of the target class is one input to that, not the whole story.
 
 ## From slipping to breaks
 
@@ -229,9 +250,12 @@ Read it against this page and it is a slip array: mismatches ("breaks", in
 his vocabulary) forbidden outright for the first 200 placements, then
 unlocked cumulatively, one at a time, at hand-chosen depths, ten in total,
 for a target score of 470. The concept, the depth gating and the
-late-concentration of the budget are Verhaard's design of 2008, re-derived
-at record strength; the retuning of exactly those unlock depths is what took
-Blackwood from 469 to 470. He also added a discipline Verhaard's version did
+late concentration of the budget match Verhaard's design of 2008: the same
+idea, re-derived independently (nothing in the record shows Blackwood had
+read Verhaard's slip array). The step from 469 to 470 was a budget cut, not
+a retuning of depths: the published 470 code keeps the 469-era unlock
+points and drops the eleventh break, from eleven to ten
+([msg 10076](https://groups.io/g/eternity2/message/10076)). He also added a discipline Verhaard's version did
 not have: no two breaks may ever touch, so every mismatch sits isolated
 among matched edges, which is why any of his runs reaching 255 placements
 completes to 256, and why a 469 board doubles as a 249-piece clean partial
@@ -240,10 +264,11 @@ with seven holes
 machine, with its quota schedules and its parameter study, is on
 [the Blackwood page](/research/lab/experiments/joshua-blackwood/solver).
 
-The arithmetic of the lineage is worth saying out loud. Verhaard's thirteen
-slips targeted 467; Blackwood's ten target 470. By Max's ratio, each slip
-removed costs a factor of about sixty, so those three edges are roughly a
-$2 \times 10^5$ multiplier in difficulty, paid for by twelve years of
+The arithmetic between the two is worth saying out loud. Verhaard's
+thirteen slips targeted 467; Blackwood's ten target 470. By Max's formula
+the 470 target class is about $3 \times 10^5$ times smaller than the 467
+class ($2^3\binom{420}{13}/\binom{420}{10}$). How much harder that made the
+470 to reach was never measured; it was found after twelve years of
 hardware, a faster inner loop, and a community running the code in
 parallel. The technique itself did not change. On a puzzle scored by matched
 edges, the winning move, twice and thirteen years apart, was not a better

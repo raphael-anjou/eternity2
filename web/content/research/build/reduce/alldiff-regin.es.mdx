@@ -4,13 +4,14 @@ description: >-
   Ninguna pieza puede usarse dos veces: una sola restricción all-different
   global sobre 256 celdas. Jean-Charles Régin mostró en 1994 cómo un matching
   bipartito la filtra por completo en tiempo polinómico; su variante por color
-  es el propagador más potente jamás medido sobre el edge matching, con una
-  reserva clara sobre las búsquedas tolerantes a desajustes.
-metaDescription: "Las 256 celdas de Eternity II deben albergar 256 piezas distintas: un all-different global. El filtro por matching bipartito de Régin (1994) lo poda por completo en tiempo polinómico, y su variante por color es el propagador más fuerte medido, elevando un backtracker a 449 de 480 aristas."
+  es, en la literatura, un propagador potente para el edge matching, con una
+  reserva clara sobre las búsquedas tolerantes a desajustes, donde solo una
+  versión blanda sigue siendo correcta.
+metaDescription: "Las 256 celdas de Eternity II deben albergar 256 piezas distintas: un all-different global. El filtro por matching bipartito de Régin (1994) lo poda por completo en tiempo polinómico, y su variante por color poda la oferta de colores, pero deja de ser correcta con un presupuesto de rupturas."
 kind: concept
 order: 20
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, exact-methods]
 sources:
   - label: Régin 1994, «A Filtering Algorithm for Constraints of Difference in CSPs» (AAAI-94)
@@ -19,11 +20,16 @@ sources:
     url: https://doi.org/10.1007/978-3-540-85958-1_42
   - label: Algoritmo de matching de Hopcroft-Karp (Wikipedia)
     url: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
+  - label: 'Petit, Régin & Bessière 2001, «Specific Filtering Algorithms for Over-Constrained Problems» (CP 2001): all-different blando'
+    url: https://doi.org/10.1007/3-540-45578-7_31
+  - label: 'van Hoeve, Pesant & Rousseau 2006, «On global warming: Flow-based soft global constraints» (Journal of Heuristics)'
+    url: https://doi.org/10.1007/s10732-006-6550-4
 related:
   - /research/build/reduce/arc-consistency
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/why/no-forced-moves
   - /research/build/dead-ends
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
 repro:
   kind: prose
 ---
@@ -57,8 +63,9 @@ grafos:
 4. Toda arista que no pertenezca a ninguno es un candidato que puede eliminarse
    del dominio de su celda, de forma correcta.
 
-Este artículo fundó de hecho el campo de las restricciones globales en
-programación con restricciones: una restricción sobre cientos de variables,
+Este artículo es un hito de las restricciones globales en programación con
+restricciones (junto a trabajos contemporáneos como las restricciones
+cumulative y element de CHIP): una restricción sobre cientos de variables,
 filtrada de forma óptima por un único algoritmo combinatorio en lugar de
 descomponerse en débiles comprobaciones por pares. Las versiones incrementales
 (Régin 1995; Mehlhorn & Thiel 2000) reparan el matching tras unas pocas
@@ -148,14 +155,16 @@ perfectamente entre celdas adyacentes: una condición de matching perfecto por
 clase de color. Ansótegui, Béjar, Fernández y Mateu construyeron exactamente
 este propagador sobre el teorema de Régin para los CSP de edge matching, y lo
 calificaron como la restricción global más potente que habían encontrado para
-estos puzzles. Eso coincide con la experiencia de este proyecto: el filtro por
-color es el propagador más fuerte del motor de matching exacto del proyecto, el
-ingrediente que (junto con la
-[consistencia de arco](/research/build/reduce/arc-consistency)) eleva un simple
-backtracker a 449 de 480 aristas en menos de un minuto (medido sobre el motor de
-este proyecto, no replicado de forma independiente). Se gana su sitio tarde: el
-proyecto lo reserva a las posiciones profundas, donde los dominios están lo
-bastante ajustados para que los matchings fallen y el coste se amortice.
+estos puzzles. La evidencia de este proyecto es más escasa. Una ejecución no
+replicada de un motor anterior, con el filtro por color y la
+[consistencia de arco](/research/build/reduce/arc-consistency) juntos,
+alcanzó 449 de 480 aristas en menos de un minuto, pero ninguna ejecución aísla
+el filtro. En el [estudio
+DFS](/research/lab/experiments/raphael-anjou/dfs-study/findings) publicado,
+añadir el control de oferta por color a un backtracker MRV con AC-3 no cambió
+en nada la puntuación media a 60 segundos (320,6 en ambos casos). El proyecto
+reserva el filtro a las posiciones profundas, donde los dominios están lo
+bastante ajustados para que los matchings fallen.
 
 **Por pieza.** La lectura directa, piezas restantes frente a celdas vacías, atrapa
 las trampas de tipo Hall que el tachado se pierde: grupos enteros de celdas que
@@ -172,17 +181,38 @@ El filtro por color supone que cada color debe emparejarse *exactamente*. Una
 rompe esa hipótesis a propósito: sus índices de ruptura autorizan un presupuesto
 de desajustes a profundidades tardías, de modo que un tablero que el filtro
 declara «imposible» puede ser precisamente el 470 que la búsqueda persigue.
-Ejecutar el filtro por matching por color dentro de una búsqueda tolerante a
-desajustes es incorrecto, punto final. En el motor de este proyecto se desactiva
+Ejecutar el filtro exacto por matching por color dentro de una búsqueda
+tolerante a desajustes es incorrecto. En el motor de este proyecto se desactiva
 en ese régimen, y quitarlo (junto con el resto de los propagadores estrictos)
-formó parte de una gran aceleración en mono-hilo.
+formó parte de una gran aceleración en mono-hilo. La literatura ofrece una
+alternativa correcta: las restricciones all-different y de cardinalidad
+blandas
+([Petit, Régin & Bessière 2001](https://doi.org/10.1007/3-540-45578-7_31);
+[van Hoeve, Pesant & Rousseau 2006](https://doi.org/10.1007/s10732-006-6550-4))
+calculan una cota inferior del número de violaciones, aquí el déficit de
+matching por color, que puede compararse con el presupuesto de rupturas
+restante. La [página de consistencia de
+arco](/research/build/reduce/arc-consistency) trata la misma idea para el AC.
+Nadie ha medido si compensa en este puzzle.
 
 El all-different a nivel de piezas es la excepción, y eso importa: ni siquiera
 una búsqueda tolerante a desajustes usa una pieza dos veces. La unicidad de las
 piezas se mantiene estricta donde el matching de colores deja de serlo, de modo
 que el filtro de Régin sobre las piezas sigue siendo correcto precisamente en el
-régimen donde todo lo demás de la familia de propagación se derrumba. Es el
-único propagador global fuerte del que dispone un motor de récord.
+régimen donde los propagadores duros se derrumban.
+
+Cuánto aportaría es otra cuestión. Con un orden por filas, casi todas las
+celdas vacías no tienen ninguna vecina colocada: su dominio es toda pieza
+restante del tipo adecuado, y ahí no puede formarse ningún conjunto de Hall.
+Solo las celdas de la frontera, unas dieciséis, están restringidas, casi
+siempre por un único color, y una violación de Hall entre ellas se reduce a
+«quedan menos piezas que muestren el color $c$ en el lado necesario que celdas
+de frontera que lo piden». Eso es un control de recuento por color, cercano a
+la poda de oferta y demanda que motores como este ya aplican. Las celdas de
+ruptura ensanchan aún más los dominios. La poda adicional del filtro por pieza
+es, por tanto, probablemente pequeña; una prueba barata es registrar cuántas
+veces el filtro de Régin elimina un candidato que la poda por recuento había
+conservado.
 
 ## Beneficio, y lo que aún se ignora
 
@@ -192,5 +222,6 @@ evalúa un juguete de 25 variables, y no existe ninguna medición publicada del
 filtro sobre un all-different de 256 variables con la forma de Eternity II. Este
 proyecto tampoco ha construido la versión a nivel de piezas; su promesa dentro de
 las búsquedas tolerantes a desajustes es un argumento, no una cifra. A tratar
-como la apuesta abierta mejor fundamentada del estante: correcto allí donde ya
-nada fuerte lo es, coste conocido como polinómico, ganancia no medida.
+como una apuesta abierta: correcto allí donde los propagadores duros no lo son,
+coste conocido como polinómico, ganancia no medida y quizá pequeña frente a la
+poda por recuento.

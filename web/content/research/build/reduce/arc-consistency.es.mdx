@@ -6,21 +6,24 @@ description: >-
   vecina, hasta un punto fijo. El AC-3 de Mackworth, los refinamientos óptimos que
   vinieron después, y lo que toda esa familia midió realmente en este puzzle,
   incluido dónde deja de ser correcta.
-metaDescription: "Consistencia de arco en Eternity II: el AC-3 de Mackworth y sus sucesores óptimos como AC-2001 reducen los candidatos de cada celda hasta que cada vecina los soporta. Mira a AC-3 alcanzar un punto fijo, por qué la consistencia de camino cuesta más de lo que ahorra, y dónde el AC falla."
+metaDescription: "Consistencia de arco en Eternity II: AC-3, AC-2001 y el AC con contadores de color podan candidatos hasta que cada vecina los soporta. Lo que costó la consistencia de camino en tableros pequeños, y por qué el AC duro falla con rupturas."
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space]
 rigor: measured
 complexity:
-  time: "AC-3 O(e·d³) · AC-2001 O(e·d²) (óptimo para la revisión de arcos)"
-  space: "AC-3 O(e) · AC-2001 O(e·d)"
+  time: "Genérico: AC-3 O(e·d³) · AC-2001 O(e·d²) · restricciones de igualdad de color con contadores de soporte O(e·d)"
+  space: "AC-3 O(e) · AC-2001 O(e·d) · contadores de soporte O(e·c)"
   note: >-
-    En el tablero de 16×16, e = 960 arcos interiores orientados y d ≈ 764 tuplas
-    candidatas por celda, de modo que la brecha en el peor caso es de ~4×10¹¹
-    frente a ~5,6×10⁸ comprobaciones; pero las propagaciones reales solo tocan
-    unas pocas celdas, y el coste se paga en cada nodo de búsqueda.
+    En el tablero de 16×16, e = 960 arcos orientados (las 480 uniones, en ambos
+    sentidos) y d = 784 tuplas rotadas por celda interior (los dominios de borde
+    y esquina son mucho menores), así que los peores casos genéricos son de
+    ~4,6×10¹¹ frente a ~5,9×10⁸ comprobaciones. Como cada restricción es una
+    igualdad de color, unos contadores por lado y por color bajan el AC
+    completo a O(e·d) ≈ 7,5×10⁵ actualizaciones; las propagaciones reales solo
+    tocan unas pocas celdas, y el coste se paga en cada nodo.
 sources:
   - label: 'Mackworth 1977, "Consistency in Networks of Relations" (Artificial Intelligence 8): AC-3'
     url: https://doi.org/10.1016/0004-3702(77)90007-8
@@ -28,11 +31,18 @@ sources:
     url: https://doi.org/10.1016/j.artint.2005.02.004
   - label: Algoritmo AC-3 (Wikipedia)
     url: https://en.wikipedia.org/wiki/AC-3_algorithm
+  - label: 'Larrosa & Schiex 2004, "Solving weighted CSP by maintaining arc consistency" (Artificial Intelligence 159)'
+    url: https://doi.org/10.1016/j.artint.2004.05.004
+  - label: 'Petit, Régin & Bessière 2001, "Specific Filtering Algorithms for Over-Constrained Problems" (CP 2001)'
+    url: https://doi.org/10.1007/3-540-45578-7_31
+  - label: 'van Hoeve, Pesant & Rousseau 2006, "On global warming: Flow-based soft global constraints" (Journal of Heuristics)'
+    url: https://doi.org/10.1007/s10732-006-6550-4
 related:
   - /research/why/no-forced-moves
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
 repro:
   kind: prose
 ---
@@ -50,8 +60,11 @@ arrastra tras de sí medio siglo de publicaciones.
 ## Dominios que se vigilan mutuamente
 
 Asignemos a cada celda vacía un *dominio*: el conjunto de candidatos
-pieza-y-rotación aún permitidos en ese lugar. En el puzzle completo, eso arranca
-en unas 764 tuplas por celda interior. El **forward checking** es la disciplina
+pieza-y-rotación aún permitidos en ese lugar. En el puzzle completo, una celda
+interior arranca con 784 tuplas (196 piezas interiores × 4 rotaciones, ninguna
+simétrica por rotación); una celda de borde tiene como mucho 56 y una esquina
+como mucho 4, porque el lado gris fija la rotación. El **forward checking** es
+la disciplina
 de un solo paso: cuando se coloca una pieza, se elimina de todos los demás
 dominios y se elimina todo candidato que choque con las aristas recién
 expuestas. Es barato, y todo solucionador serio hace al menos esto.
@@ -72,8 +85,8 @@ punto fijo: se mantiene una cola de arcos orientados, se revisa un arco a la vez
 un dominio se encoge, se reencolan los arcos que apuntan hacia él. Es corto,
 correcto y fácil de hacer incremental dentro de una búsqueda, y por eso sigue
 siendo la opción por defecto en todas partes. En el peor caso cuesta $O(e d^3)$
-para $e$ arcos y un tamaño de dominio $d$; en el tablero de 16×16, $e$ vale
-$e = 960$ (las 480 adyacencias interiores, en ambos sentidos) y $d \approx 764$.
+para $e$ arcos y un tamaño de dominio $d$; en el tablero de 16×16, $e = 960$
+(las 480 uniones, en ambos sentidos) y $d = 784$ para una celda interior.
 
 Su defecto conocido: cada revisión busca los soportes desde cero, de modo que el
 mismo soporte se redescubre miles de veces a medida que la búsqueda se sumerge y
@@ -150,19 +163,28 @@ bucle simple de AC-3, pero se recuerda para cada par candidato-arco el *último
 soporte encontrado*, se comprueba que sigue vivo antes de volver a buscar, y se
 reanuda el recorrido donde se detuvo en lugar de desde cero. Ese único entero por
 par entrega la cota óptima $O(e d^2)$ con solo $O(e d)$ de memoria; en este
-puzzle eso son unos 367 000 enteros pequeños, despreciable. El estudio de revista
-de 2005 mide entre 1,5 y 9 veces menos CPU que AC-3 en una búsqueda con
-consistencia de arco mantenida, y muestra que la ventaja sobre AC-6 *crece* con
-el tamaño del dominio al otro lado del arco. Eternity II tiene dominios enormes a
-ambos lados de cada arco, lo que hace de AC-2001 la elección de manual.
+puzzle eso son $960 \times 784 = 752\,640$ enteros pequeños, despreciable. El
+estudio de revista de 2005 mide entre 1,5 y 9 veces menos CPU que AC-3 en una
+búsqueda con consistencia de arco mantenida, sobre CSP binarios genéricos.
+
+Esas cotas genéricas son contexto, no la comparación adecuada. Toda
+restricción de Eternity II es una igualdad de color entre dos medias aristas
+enfrentadas: un candidato de la celda $X$ tiene soporte hacia $Y$ justo cuando
+algún candidato de $Y$ muestra el mismo color en el lado enfrentado. Basta
+llevar, por celda y por lado, un contador de candidatos vivos por color: una
+eliminación decrementa un contador por lado, y un contador que llega a cero
+elimina los candidatos vecinos que necesitaban ese color. Nunca se busca un
+soporte, y la consistencia de arco completa cuesta $O(e d)$ en total, un
+esquema al estilo de AC-4 especializado en un canal de 22 colores. En esta
+estructura domina a AC-2001.
 
 ## El techo: ¿por qué no la consistencia de camino?
 
 La consistencia de arco comprueba pares de celdas. El siguiente peldaño, la
 *consistencia de camino*, comprueba tripletes: retira todo par de asignaciones
 que ninguna tercera celda pueda soportar, propagando una condición mucho más
-fuerte. Encoge el árbol de búsqueda enormemente, y la comunidad midió
-exactamente cuánto, y exactamente por qué nadie la usa. En marzo de 2008, Geoff
+fuerte. En tableros pequeños encoge el árbol de búsqueda enormemente, y una
+implementación de la comunidad midió lo que costaba. En marzo de 2008, Geoff
 ejecutó toda la escalera sobre los puzzles para principiantes de Brendan Owen
 ([msg 4827](https://groups.io/g/eternity2/message/4827)):
 
@@ -177,20 +199,21 @@ ejecutó toda la escalera sobre los puzzles para principiantes de Brendan Owen
   nodos pero cuesta unos **14 minutos** de preprocesamiento; el preprocesamiento
   de camino-2 seguía corriendo tras **7 horas**.
 
-El patrón es inequívoco: cada nivel más fuerte de consistencia recorta
-realmente el árbol en varios órdenes de magnitud, y cada uno cuesta más de lo que
-ahorra. La propia conclusión de Geoff fue que la consistencia de camino "no tiene
-sencillamente un efecto coste-beneficio positivo" en este puzzle. Eso es [podar
-frente a velocidad](/research/why/prune-vs-speed) enunciado en el lenguaje de un
-algoritmo real: la poda es genuina y grande, pero aquí la maquinaria para
-calcularla es más cara que la búsqueda que elimina, y por eso los motores
-recordistas se detienen en la consistencia de arco (o por debajo) y dedican el
-tiempo ahorrado a colocaciones en bruto.
+En esos dos tableros, con esa única implementación de 2008 de la consistencia
+de camino *parcial*, cada nivel más fuerte recortó el árbol en varios órdenes
+de magnitud y costó más tiempo del que ahorró. La propia conclusión de Geoff
+fue que la consistencia de camino "no tiene sencillamente un efecto
+coste-beneficio positivo" en este puzzle. Eso es [podar frente a
+velocidad](/research/why/prune-vs-speed) en el lenguaje de un algoritmo real.
+Pero son mediciones en un 6×6 y un 8×8, no en el 16×16, y una implementación
+mejor podría cambiar el balance. Los motores recordistas son otra historia: no
+usan ninguna consistencia de arco, porque su presupuesto de rupturas hace
+incorrecto el AC duro (véase más abajo).
 
 ## Lo que cuesta
 
-La contabilidad, con $e$ el número de arcos orientados y $d$ el tamaño máximo de
-dominio:
+La contabilidad genérica, con $e$ el número de arcos orientados y $d$ el tamaño
+máximo de dominio:
 
 - **AC-3** corre en $O(e d^3)$ de tiempo en el peor caso: cada arco puede
   reencolarse hasta $d$ veces (una por eliminación en su dominio lejano), y cada
@@ -202,15 +225,15 @@ dominio:
   $d$. El precio es la tabla del último soporte: un entero por par candidato–arco,
   $O(e d)$ de espacio.
 
-A la escala de Eternity II, esos símbolos valen: $e = 960$ (480 adyacencias
-interiores, en ambos sentidos) y $d \approx 764$ tuplas candidatas por celda
-interior. Así que las cotas del peor caso se sitúan cerca de
-$e d^3 \approx 4 \times 10^{11}$ comprobaciones elementales para AC-3 frente a
-$e d^2 \approx 5.6 \times 10^8$ para AC-2001, tres órdenes de magnitud de
-diferencia sobre el papel. Los peores casos son pesimistas (las propagaciones
-reales tocan unas pocas celdas, como muestra la demo de arriba), pero esa razón
-es por la que la literatura señala la cota de AC-3 como la cosa a corregir, y la
-corrección solo cuesta $O(e d)$ enteros de memoria. La trampa en este puzzle no
+A la escala de Eternity II, esos símbolos valen: $e = 960$ (las 480 uniones,
+en ambos sentidos) y $d = 784$ tuplas candidatas por celda interior. Así que
+las cotas genéricas del peor caso se sitúan cerca de
+$e d^3 \approx 4.6 \times 10^{11}$ comprobaciones elementales para AC-3 frente
+a $e d^2 \approx 5.9 \times 10^8$ para AC-2001. Para las restricciones de
+igualdad de color de este puzzle, el esquema de contadores de arriba necesita
+solo $O(e d) \approx 7.5 \times 10^5$ actualizaciones para una propagación
+completa desde cero. Los peores casos son pesimistas (las propagaciones
+reales tocan unas pocas celdas, como muestra la demo de arriba). La trampa en este puzzle no
 es el coste de propagación por nodo; es que dentro de una búsqueda ese coste se
 paga en *cada* nodo, millones de veces por segundo, y por eso los factores
 constantes y el comportamiento de la caché acaban importando tanto como el
@@ -218,17 +241,24 @@ exponente de $d$.
 
 ## Medido en este puzzle
 
-En el motor de este proyecto (medido aquí; no replicado de forma
-independiente):
-
-- Un backtracker simple que propaga AC-3 junto con el
+- **La ablación publicada.** El [estudio
+  DFS](/research/lab/experiments/raphael-anjou/dfs-study/findings) ejecutó un
+  backtracker MRV con forward checking, con AC-3 sobre la frontera y con AC-3
+  más el control de oferta por color, sobre diez variantes con esquina fijada
+  del puzzle oficial, 60 segundos cada una en un núcleo. Las puntuaciones
+  medias fueron 322,2, 320,6 y 320,6 aristas concordantes de 480:
+  indistinguibles con ese presupuesto, con una dispersión de unos 11 puntos
+  entre instancias. Un backtracker simple por filas, sin anticipación, promedió
+  376,6 en la misma parrilla, porque visita millones de nodos por segundo donde
+  las variantes MRV visitan miles. Para reproducir: `just experiments dfs-study`.
+- **Una ejecución no replicada.** En una versión anterior del motor de este
+  proyecto, AC-3 junto con el
   [filtro de emparejamiento por color](/research/build/reduce/alldiff-regin)
-  alcanza 449 de 480 aristas en el puzzle canónico en unos 44 segundos en un
-  solo hilo, alrededor de 2,5 segundos en 8 núcleos.
-- La mejor aceleración algorítmica hallada dentro del propio AC-3 fue mundana:
-  una tabla precalculada de qué rotaciones de la misma pieza comparten colores de
-  arista, para que las revisiones dejen de rederivarla, con un valor de 2,9× de
-  ganancia de rendimiento en el banco de referencia del motor.
+  alcanzó 449 de 480 aristas en el puzzle canónico, en una ejecución de unos
+  44 segundos en un solo hilo. No existe una ejecución solo con forward
+  checking en las mismas condiciones, y el resultado no está publicado en el
+  repositorio, así que no separa el AC ni del filtro por color ni del resto de
+  ese motor.
 - La parte no construida: AC-2001 se recomendó dos veces en las notas de este
   proyecto y nunca se construyó realmente, de modo que su ganancia proyectada de
   2 a 5× aquí es una lectura de la literatura, no una medición. Y la creencia de
@@ -241,18 +271,38 @@ La consistencia de arco supone que cada arista debe coincidir perfectamente. Los
 motores recordistas no lo hacen: las [búsquedas al estilo
 Blackwood](/research/lab/experiments/joshua-blackwood/solver) permiten un
 presupuesto de desajustes deliberados a grandes profundidades, y bajo ese régimen
-la consistencia de arco es *incorrecta*: poda tableros que un desajuste
-autorizado haría perfectamente legales. En el motor de este proyecto, toda la
-familia AC se desactiva en las ejecuciones tolerantes a rupturas, exactamente por
-esa razón. El único propagador fuerte que sobrevive al régimen de desajuste es el
-all-different a nivel de pieza; véase [el filtro de
+la consistencia de arco clásica (dura) es *incorrecta*: poda tableros que un
+desajuste autorizado haría perfectamente legales. El filtro exacto por color
+también lo es, por la misma razón. En el motor de este proyecto, la familia AC
+se desactiva en las ejecuciones tolerantes a rupturas. El all-different a
+nivel de pieza sigue siendo correcto, porque una ruptura nunca permite usar
+dos veces la misma pieza; véase [el filtro de
 Régin](/research/build/reduce/alldiff-regin).
+
+Desactivar la propagación es una decisión de diseño, no la única opción
+correcta. La literatura de CSP ponderados y blandos existe justo para este
+caso: la consistencia de arco blanda
+([Larrosa & Schiex 2004](https://doi.org/10.1016/j.artint.2004.05.004)) y las
+restricciones globales blandas
+([Petit, Régin & Bessière 2001](https://doi.org/10.1007/3-540-45578-7_31);
+[van Hoeve, Pesant & Rousseau 2006](https://doi.org/10.1007/s10732-006-6550-4))
+convierten la propagación en una *cota inferior correcta del número de
+violaciones por venir*. Aquí podría ser el número de celdas cuyo dominio
+vaciaría el AC, o el déficit de oferta por color; un nodo cuya cota supera el
+presupuesto de rupturas restante puede podarse sin perder ningún tablero
+autorizado. Nadie ha medido si una cota así compensa a las velocidades de
+nodos de Eternity II.
 
 ## Veredicto
 
-Para cualquier búsqueda de emparejamiento exacto, la consistencia de arco es
-obligatoria y barata: es la diferencia entre un backtracker que patina y uno que
-alcanza los 440. El forward checking por sí solo deja podas sobre la mesa; AC-3
-las recoge; AC-2001 recoge las mismas por menos CPU, si primero verificas que la
-propagación es donde de verdad se van tus ciclos. Para la caza de récords
-tolerante a desajustes, déjalo fuera; la corrección va primero.
+Para una búsqueda de emparejamiento exacto, la consistencia de arco es la
+anticipación estándar y recoge podas que el forward checking deja sobre la
+mesa. En este puzzle, la ablación publicada no encontró ganancia de puntuación
+del AC sobre el forward checking con un presupuesto de 60 segundos, y un simple
+recorrido por filas superó a ambos por puro rendimiento. Si lo construyes,
+usa contadores de soporte por color en lugar de AC-3 o AC-2001 genéricos, y
+verifica primero que la propagación es donde de verdad se van tus ciclos.
+Para la caza de récords tolerante a desajustes, el AC duro es incorrecto; una
+cota inferior de AC blando frente al presupuesto de rupturas es la
+alternativa correcta, y su valor a esta velocidad sigue siendo una pregunta
+abierta.
