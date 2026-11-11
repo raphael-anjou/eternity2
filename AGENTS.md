@@ -142,6 +142,19 @@ user-facing tour and
   (`../../research/community-exports/messages.jsonl`), so never invent a `msg_num` —
   grep the archive for the number before citing it.
 
+- **Scientific rigor gate for research pages.** Before publishing or
+  substantially editing a research page, run the checklist in
+  `.claude/commands/rigor-check.md`: null model (would a random puzzle show
+  the same thing?), title and description no stronger than the body, exact
+  search kept separate from record hunting, dated hardware and literature,
+  numbers recomputed against committed results, and a site-wide grep for the
+  same claim. Internal-consistency audits are not a substitute: the 2026-07
+  self-audits graded the site A- and missed a stale GPU thesis, a solution
+  count contradicted across pages, and design claims with no baseline. The
+  expected solution count is ~14,702 with the starter clue and ~1 with all
+  five (first-moment ensemble estimate; canonical page
+  `/research/build/analysis/solution-counting`); never write "one solution".
+
 - **`/research/records` is the canonical SOTA page.** The headline numbers
   (community 470 open / 465 strict, the project's own 463/460s) live there in
   the "where this project stands" table. New or edited pages LINK to
