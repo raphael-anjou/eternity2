@@ -156,3 +156,15 @@ distinct solutions.
   a half turn in its own cell as changed (CP-SAT does not). Not fixed:
   there are 1 such piece over the 30 5x5 C=13 instances and 5 over the 30
   6x6 C=14 instances, so the shift in E(a, b) is far below one break.
+
+### A11. Independent witness recheck for the fix run (judge Reruns section)
+
+What: `scripts/check_fix.py` rechecks every witness in
+`results/raw/{star1,k1c,star7}.jsonl` with code that shares nothing with the
+solver (numpy grid, whole-board quarter turn as `rot90` plus a side shift):
+permutation, gray legality, pin, breaks = UB, all four d_k equal to the
+recorded ones, band membership on d* (quotient jobs) or d_0 (k1c), and
+breaks <= the cap for k1c. Analysis only; no criterion reads it.
+
+Why: the judge's witness check was run on the first run's files only; the
+fix adds a new distance, so the new witnesses get the same check.

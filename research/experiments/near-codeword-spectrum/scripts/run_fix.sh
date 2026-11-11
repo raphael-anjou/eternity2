@@ -15,3 +15,4 @@ for stage in star1 k1c star7; do
     echo "$stage wall $(( $(date +%s) - start )) s" | tee -a results/raw/wall_fix.txt
 done
 $PY scripts/analyze_fix.py
+$PY scripts/check_fix.py
