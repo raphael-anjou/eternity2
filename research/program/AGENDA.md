@@ -159,10 +159,10 @@ test, scheduled at larger scale), `published`.
   the GPU page; not new as a method, but the project has no measurement.
 - **Nearest cell.** Hardware: GPU (open). This closes the page's open problem
   with a first-party number instead of forum reports.
-- **Cheap test.** Stage 1 on the VM: write the kernel and check it against the
-  CPU engine on generated 8x8 and 10x10 puzzles (same solutions found, same
-  node counts at a fixed budget) with a CPU emulation or small-grid run.
-  Stage 2 on AWS: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
+- **Cheap test.** Stage 1 on the VM (no GPU): write the per-thread search as
+  host-and-device code, compile it for the CPU, and check that exhaustive runs
+  on generated 6x6 to 8x8 puzzles find exactly the CPU engine's solution set.
+  Stage 2 on AWS, after repeating that check on the GPU: one g4dn.xlarge (T4) or g5.xlarge (A10G) for a few hours;
   placements per second, time to first solution on 10x10 generated puzzles,
   and best score at a fixed wall-clock budget on the 16x16, each against the
   single-core benchmark engine on the same instance's CPU.
