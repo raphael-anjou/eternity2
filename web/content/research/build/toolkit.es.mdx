@@ -11,7 +11,7 @@ metaDescription: "Un kit de inicio de Eternity II listo para usar: un espacio Ru
 kind: tool
 order: 2
 group: Start here
-updated: 2026-07-20
+updated: 2026-11-11
 sources:
   - label: "El kit de inicio (este repositorio): el espacio de trabajo Rust, los ejemplos y los archivos de configuración para agentes"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit
@@ -20,6 +20,8 @@ related:
   - /research/build/dataset
   - /research/build/approaches-map
   - /research/build/formats
+  - /research/lab/experiments/raphael-anjou/pipelines/beam-width
+  - /research/lab/experiments/raphael-anjou/pipelines/cas
 ---
 
 import { AgentSetupBlock } from "@/components/research/AgentSetupBlock";
@@ -59,19 +61,26 @@ excluido. Copia la carpeta, mete tu idea e itera.
   sobrecarga de tu solucionador.
 - **El bucle de iteración:** un trait `Solver` estable, un ejecutor de barrido que
   escribe directorios de ejecución reproducibles y una herramienta `compare` que
-  compara dos ejecuciones, con la disciplina de varianza que este puzzle exige
+  compara dos ejecuciones semilla a semilla, con estadística emparejada
   incorporada.
 
 ## La única regla que el kit impone por ti
 
-En Eternity II la puntuación varía mucho de una semilla a otra: la desviación
-estándar entre semillas es de aproximadamente 12 a 20 puntos para un solucionador
-de tablero completo. Así que una diferencia de uno o dos puntos de media entre dos
-versiones de solucionador casi siempre es ruido. La herramienta `compare` del kit
-se niega a llamar victoria a una diferencia por debajo del ruido, te dice que
-barras al menos 40 semillas y siempre informa de la dispersión. Mantén todo en un
-solo núcleo, como hacen los [benchmarks](/research/build/benchmarks) del sitio, y
-tus números seguirán siendo comparables con los de los demás.
+Cuánto varía la puntuación de una semilla a otra depende del solucionador. La
+base voraz del kit, barrida sobre 40 tableros 16×16 generados (el barrido por
+defecto de abajo, semillas 1 a 40, determinista), obtiene 292,7 de media con una
+desviación estándar de 14,8 puntos. Las búsquedas más fuertes son mucho más
+estrechas: las ejecuciones de haz publicadas en el repositorio varían de 2 a 3
+puntos, tanto en tableros 12×12 generados ([anchura de haz](/research/lab/experiments/raphael-anjou/pipelines/beam-width)) como en
+el tablero oficial de un marco a otro ([CAS](/research/lab/experiments/raphael-anjou/pipelines/cas)). Así que nunca juzgues un
+cambio por una diferencia fija de puntos. La herramienta `compare` del kit
+empareja las dos ejecuciones semilla a semilla, muestra el error estándar de
+la diferencia media, se niega a llamar victoria a nada por debajo de dos
+errores estándar y avisa cuando hay menos de 40 semillas emparejadas. Mantén
+todo en un solo núcleo, como hacen los [benchmarks](/research/build/benchmarks)
+del sitio, y tus números seguirán siendo comparables entre ejecuciones de este
+kit; las ejecuciones de récord de la comunidad son búsquedas largas en muchos
+núcleos, otro régimen.
 
 ## Escribe tu primer solucionador
 
@@ -100,6 +109,12 @@ cuerpo de `solve` y luego bárrelo:
 cargo run --release --example sweep -- --n 40 --budget 3
 cargo run --release --bin e2kit -- compare runs/<A> runs/<B>
 ```
+
+Una media con presupuesto corto es un indicador, no el objetivo. Un récord es
+el mejor tablero de ejecuciones muy largas, así que mira también la mejor
+puntuación y los cuantiles altos de un barrido, y el tiempo que tarda en
+alcanzar una puntuación objetivo, y vuelve a comprobar cualquier ganador con un
+presupuesto de 10 a 100 veces mayor antes de fiarte.
 
 Las recetas completas (puntuación, generación, lote, conversión, benchmark)
 están en el [README](https://github.com/raphael-anjou/eternity2/tree/main/research/starter-kit#readme)
