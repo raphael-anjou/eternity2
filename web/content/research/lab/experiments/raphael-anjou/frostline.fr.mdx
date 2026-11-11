@@ -26,7 +26,7 @@ repro:
   cmd: "just research-frostline"
   scope: "Régénère les 120 sommets gloutons, les étiquettes exactes de dernière rangée et la table de corrélations complète (palier qualitatif : l'ensemble de sommets de faisceau de l'étude source n'est pas régénéré)"
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, structure, search-space]
 related:
@@ -74,8 +74,11 @@ et non une instance de satisfiabilité. Et la jointure contre les rangées
 gelées doit être un facteur souple ; l'étude source a mesuré qu'un filtre de
 jointure dur se contredit sur 5 cases sur 16 des vrais sommets quasi optimaux.
 Sur une rangée, le graphe résiduel est une chaîne : la propagation de
-croyances y est exacte et l'énergie libre est le vrai logarithme de la
-fonction de partition.
+croyances y est exacte pour le modèle en chaîne, où chaque case tire sa pièce du
+vivier indépendamment et où une pièce peut resservir. La vraie fin de plateau
+ajoute une contrainte de permutation (chacune des seize pièces servie une fois),
+si bien que même sur une rangée l'énergie libre est une approximation de la
+grandeur visée, et non le logarithme exact de sa fonction de partition.
 
 ## Le résultat
 
@@ -124,6 +127,10 @@ brut avec une fin de 22. Le plateau au score brut plus bas a la meilleure fin.
   résiduelles à -0,19 à 32 et -0,12 à 48, pendant que le domaine moyen par
   case passe de 12,5 à 32,6 puis 72,2. FROSTLINE est un oracle de fin de
   dernière rangée, pas un signal de pilotage en cours de construction.
+- **Là où il marche, la réponse exacte est bon marché.** À 16 cases, l'étiquette
+  exacte coûte quelques millisecondes : le prédicteur n'y fait rien gagner ; il ne
+  compterait que là où la résolution exacte est hors de portée, et c'est
+  précisément là que son signal s'éteint.
 - **Il n'achète pas (encore) de meilleurs plateaux.** Dans l'étude source,
   s'en servir pour choisir quels partiels reçoivent du calcul exact ne bat pas
   le choix par score brut : le score final réalisé est dominé par l'étalement

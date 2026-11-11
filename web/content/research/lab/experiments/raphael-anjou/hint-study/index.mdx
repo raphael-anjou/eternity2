@@ -1,12 +1,13 @@
 ---
 title: The hint study
 description: >-
-  Give a backtracker five correct pieces for free, in the puzzle's own clue
-  geometry. It turns out not to help, and depending on the fill order it can
-  hurt badly, because a pinned piece is a hard constraint a fixed fill order must
-  satisfy on arrival. A family of fill paths, run on the same hinted boards,
-  single core, measured against no hints at all.
-metaDescription: "A controlled study of hint placement for Eternity II: the five official clue hints never help a chronological backtracker on these boards. They cost a compact sweep ~10 to 20 points and cripple a hint-seeking order by ~345, because a pinned piece is a constraint the fixed fill order must satisfy."
+  Five correct pieces in the puzzle's own clue geometry, scored by the best
+  partial board after eight seconds. On generated 16×16 boards they lower a strict
+  backtracker's score on seven of eight fill orders (median cost about 6 to 18
+  points on the compact sweeps, with 3 of 15 boards collapsing) and cost a
+  hint-seeking order about 345. On a solvable 8×8, enough spread hints cut the time
+  to a full solution by orders of magnitude.
+metaDescription: "A controlled hint-placement study on generated Eternity II boards: five clue-shaped hints lower an 8-second strict backtracker's best partial score on 7 of 8 fill orders, while on a solvable 8x8 enough spread hints cut time-to-solve by orders of magnitude."
 kind: page
 contribution: measurement
 author: raphael-anjou
@@ -17,7 +18,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned per run"
+  machine: "MacBook (Apple M1, 8 cores), single-threaded runs, 6 concurrent"
   wallClock: "8 s per run"
   seedPolicy: "15 board seeds; each seed is a distinct generated instance"
   measured: true
@@ -25,7 +26,7 @@ repro:
   kind: seeded
   cmd: just experiments hint-study
 order: 26
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, structure]
 related:
@@ -45,25 +46,37 @@ correct pieces. The natural next question is *how many*, and the community's own
 *where*. This study asks something more basic that both questions skip past: on our
 own generated boards, do the hints help *at all*?
 
-For a chronological backtracker, the answer is **no**. Seed one with the five
-official clue pieces at their real board positions, then measure it against the very
-same board with no hints, and it does worse on every fill order tested, without
-exception. On a compact row-major sweep the five correct pieces cost only ten to
-twenty matched edges; on the fill order a newcomer would reach for first, "get to
-the clues and connect them up", they cost around three hundred and forty-five,
-turning one of the best no-hint orders into the worst. The reason is simple once
-seen: to a solver that fills cells in a fixed order, a pinned piece is not free
-information but a **hard constraint it must satisfy the moment it arrives**, and
-sometimes it cannot.
+For a strict chronological backtracker scored on its best partial board after eight
+seconds, the answer is mostly **no**. Seed one with five correct pieces at the five
+official clue positions, compare it with the very same board and no hints, and the
+paired score falls on seven of the eight fill orders tested; on the eighth, a
+clue-rows-first control, it rises by a point or two. On a compact row-major sweep
+the median cost is about eleven matched edges, but three of the fifteen boards
+collapse from the high 300s to double digits, so the mean cost is about seventy. On
+the fill order a newcomer would reach for first, "get to the clues and connect them
+up", the hints cost around three hundred and forty-five, turning one of the best
+no-hint orders into the worst. One reading: to a solver that fills cells in a fixed
+order, a pinned piece is a **hard constraint it must satisfy the moment it
+arrives**, and sometimes it cannot.
+
+That reading is not yet the whole story. The beam solver, which is not a
+chronological backtracker, also loses about three points to the same five hints on
+thirteen of fifteen boards. The null control that would separate the fill-order
+mechanism from a plainer effect of pinning correct pieces on a best-partial metric
+(a random pinned set of the same size, or pins taken from a different solution) has
+not been run. And the metric matters: on a fully solvable 8×8 board, sixteen or
+more spread hints cut a row-major backtracker's time to a full solution by orders
+of magnitude.
 
 ## See it: five hints, four orders
 
 Each board below fills along a different order, on a loop. Nothing is being *solved*;
 this is only the order the search would visit cells, made visible. The bright cell is
 the one just placed, and the trail behind it is the recent **wavefront**, so you can
-see how much boundary each order keeps open as it runs. That open boundary, the
-frontier, is what a backtracker pays for: its branching grows with the frontier, and
-a small frontier is also what leaves the search room to route around a hostile pin.
+see how much boundary each order keeps open as it runs. That open boundary is the
+frontier. Across the orders tested, those that keep it small tend to score higher; the
+[findings page](/research/lab/experiments/raphael-anjou/hint-study/findings) treats
+this as a descriptive correlate, not a measured cost law.
 
 <HintPathFill />
 
@@ -80,9 +93,9 @@ Two paired comparisons, run on the same generated boards:
 
 - **Do the hints help, and which order survives them?** Fix the hints (five, in the
   shape of Eternity II's own five clues) and vary only the fill order, measured
-  against the identical board with no hints. This is the study's spine: it shows the
-  hints never help, and that how much they hurt is set by the fill order and its
-  open frontier.
+  against the identical board with no hints. This is the study's spine: on seven
+  of the eight orders the hints lower the score, and how much they cost varies by
+  more than a factor of thirty from one order to another.
 - **Count.** Does adding *more* hints help? Some, but the naive way of measuring it
   is *confounded*. A block of clustered hints banks a pile of correct edges for free
   just by being pinned; that free "floor" flatters clustered layouts on raw score

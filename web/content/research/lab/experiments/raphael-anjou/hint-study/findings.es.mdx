@@ -1,18 +1,21 @@
 ---
 title: Qué mostró el estudio de las pistas
 description: >-
-  Los resultados, desarrollados: en estos tableros las cinco pistas con forma de
-  pistas oficiales nunca ayudan a un backtracker, van de un coste moderado a una
-  catástrofe, y el orden de relleno decide cuánto daño hacen; las puntuaciones son
-  bimodales, no un gradiente suave; y la pregunta por el número de pistas está
-  confundida por un suelo gratuito de costuras fijadas.
-metaDescription: "Los resultados del estudio de las pistas: en tableros Eternity II generados, las cinco pistas oficiales nunca ayudan a un backtracker cronológico, cuestan ~10 a 20 puntos a un barrido compacto y ~345 a un orden que busca las pistas, pues una pieza fijada es una restricción que debe satisfacerse."
+  Los resultados, desarrollados: en estos tableros, las cinco pistas con forma de
+  pistas oficiales bajan la mejor puntuación parcial a ocho segundos de un
+  backtracker en siete de ocho órdenes de relleno, desde un coste mediano pequeño
+  hasta una catástrofe, y también le cuestan unos puntos al solucionador de haz;
+  las puntuaciones son bimodales, no un gradiente suave; la pregunta por el número
+  de pistas está confundida por un suelo gratuito de costuras fijadas; y en un 8×8
+  resoluble, dieciséis o más pistas dispersas hacen la resolución completa cientos
+  de veces más rápida que sin pistas.
+metaDescription: "Resultados del estudio de pistas: en tableros Eternity II generados, cinco pistas de forma oficial bajan la mejor puntuación parcial a 8 s de un backtracker estricto en 7 de 8 órdenes, y la de un haz en ~3; en un 8x8 resoluble, 16 o más pistas dispersas aceleran la resolución cientos de veces."
 kind: page
 contribution: measurement
 author: raphael-anjou
 rigor: measured
 order: 20
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, structure, search-space]
 related:
@@ -39,7 +42,7 @@ es emparejada, cada orden de relleno ve los mismos tableros, y la dispersión po
 instancia se muestra en lugar de promediarse, porque resulta que importa más que
 cualquier mediana.
 
-## Las pistas no ayudan, y el orden de relleno decide cuánto dañan
+## Las pistas rara vez ayudan, y el orden de relleno decide cuánto dañan
 
 Empecemos por la distribución. Cada punto es un tablero; la marca es la mediana.
 
@@ -56,21 +59,23 @@ de los tableros; los órdenes fragmentadores quedan bajos de principio a fin.
 Pero la separación compacto-contra-fragmentador no es el verdadero hallazgo,
 porque invita a la pregunta equivocada, "¿qué orden *usa* mejor las pistas?". La
 pregunta que importa es si las pistas ayudan *en absoluto*. El segundo gráfico la
-responde, y la respuesta es no. Muestra el **cambio emparejado** de añadir las
-cinco pistas: la puntuación de cada orden en un tablero menos su puntuación en el
-*mismo tablero sin pistas*.
+responde, y la respuesta es: casi nunca. Muestra el **cambio emparejado** de añadir
+las cinco pistas: la puntuación de cada orden en un tablero menos su puntuación en
+el *mismo tablero sin pistas*.
 
-Cada barra está en cero o por debajo. Las cinco pistas con forma de pistas
-oficiales no ayudan a un solo orden de relleno. En los barridos compactos cuestan
-solo de diez a veinte puntos. En la espiral hacia fuera cuestan unos noventa. Y en
-los dos órdenes que buscan las pistas son ruinosas: el orden `trace-hints`, que
-dibuja un esqueleto entre las pistas antes de rellenar, pierde unos trescientos
-veinticinco, y la inundación `connect-hints-first` pierde aproximadamente
-**trescientos cuarenta y cinco**, llevando un orden que puntúa entre los
-*mejores* de los ocho sin pistas al *peor* con ellas. Cuanto más deliberadamente
-un orden persigue las pistas, más le cuestan. Entregar al solucionador cinco
-piezas correctas, en la geometría misma de las pistas del puzzle, hizo peor cada
-versión de él.
+Casi todas las barras están bajo cero. En siete de los ocho órdenes de relleno, las
+cinco pistas con forma de pistas oficiales bajan la puntuación. La excepción es el
+orden de control que rellena primero las filas de las pistas, donde la suben un
+poco (mediana emparejada +1, diez de quince tableros al alza, como mucho diez
+puntos). En los barridos compactos el coste mediano es de seis a dieciocho puntos,
+pero cada barrido compacto tiene además tres tableros de quince que se hunden unos
+160 a 370 puntos, así que el coste medio va de 56 a 72. En la espiral hacia fuera
+las pistas cuestan unos noventa. Y en los dos órdenes que buscan las pistas son
+ruinosas: el orden `trace-hints`, que dibuja un esqueleto entre las pistas antes de
+rellenar, pierde unos trescientos veinticinco, y la inundación
+`connect-hints-first` pierde aproximadamente **trescientos cuarenta y cinco**,
+llevando un orden que puntúa entre los *mejores* de los ocho sin pistas al *peor*
+con ellas. Cuanto más deliberadamente un orden persigue las pistas, más le cuestan.
 
 ## Por qué una pista correcta hace daño
 
@@ -79,44 +84,52 @@ una **restricción dura que el orden de relleno fijo debe satisfacer al llegar**
 Cuando un barrido compacto baja rodando hasta una celda interior fijada, la pieza
 ya está allí, y la fila que acaba de construir tiene que casar con las caras de
 esa pieza. La mayor parte del tiempo puede, a un coste pequeño: el barrido
-esquiva la restricción y pierde unas decenas de puntos. Pero en algunos tableros
+esquiva la restricción y pierde unos diez puntos. Pero en algunos tableros
 la pieza fijada contradice aquello a lo que la frontera ya se comprometió, y no
 hay reparación local: la búsqueda choca contra un muro que no puede cruzar y se
-revuelve por debajo de él. Ese es el modo atascado, y son las pistas las que lo
-crean. En fila por fila, los tableros que se hunden a los dos dígitos son
-precisamente aquellos donde un fijado con forma de pista cae donde el barrido no
-puede honrarlo; el mismo tablero sin fijados trepa a los 360 y 370.
+revuelve por debajo de él. Ese es el modo atascado, y en estos tableros solo
+aparece con las pistas. En fila por fila, tres de los quince tableros caen a entre
+18 y 52 con los fijados; esos mismos tres tableros sin fijados puntúan de 344 a
+390. Que el hundimiento ocurra donde un fijado cae en un sitio que el barrido no
+puede honrar es la explicación de trabajo, no algo que las ejecuciones rastreen
+celda a celda.
 
 Esto reencuadra el resultado sobre el orden de relleno. El orden sigue importando
 (un barrido compacto sobrevive a las restricciones de las pistas con una cicatriz
-de diez a veinte puntos mientras `connect-hints-first` queda destruido por
-ellas), pero lo que el orden compra no es "usar bien las pistas". Es
-**sobrevivirlas**. La frontera es el porqué: un orden que mantiene una única
-frontera prieta tiene margen para rodear un fijado adverso; un orden que ya se ha
-fragmentado en cinco manchas abiertas se ha comprometido en todas partes a la vez
-y no puede.
+mediana de seis a dieciocho puntos mientras `connect-hints-first` queda destruido
+por ellas), pero lo que el orden compra no es "usar bien las pistas". Es
+**sobrevivirlas**. La explicación de trabajo es la frontera: un orden que mantiene
+una única frontera prieta tiene margen para rodear un fijado adverso; un orden que
+ya se ha fragmentado en cinco manchas abiertas se ha comprometido en todas partes a
+la vez y no puede.
 
-Esa relación con la frontera, a través de los ocho órdenes, es llamativamente
-limpia, y merece mostrarse precisamente porque la frontera puede computarse desde
-la geometría de un orden sin ningún solucionador, y confrontarse luego con las
-puntuaciones medidas:
+Esa relación con la frontera, a través de los ocho órdenes, es lo bastante limpia
+como para mostrarla, porque la frontera puede computarse desde la geometría de un
+orden sin ningún solucionador, y confrontarse luego con las puntuaciones medidas:
 
 <FrontierPhaseChart />
 
-La frontera abierta media que un orden mantiene predice de cerca su puntuación
-mediana a través de estos ocho órdenes. Es una relación descriptiva fuerte, no una
-ley probada sobre ocho puntos, y deja de zanjar el orden de llegada entre los
-órdenes fragmentadores de la derecha (la espiral hacia dentro mantiene una
-frontera mayor que la espiral hacia fuera y sin embargo puntúa más alto). Pero la
-dirección es exactamente la que el mecanismo predice: el coste de ramificación es
-multiplicativo en la frontera, así que un orden que mantiene la frontera pequeña
-conserva el margen para absorber un fijado hostil.
+La frontera abierta media que un orden mantiene sigue su puntuación mediana a
+través de estos ocho órdenes. Es una correlación descriptiva sobre ocho puntos, no
+una ley de coste medida, y deja de zanjar el orden de llegada entre los órdenes
+fragmentadores de la derecha (la espiral hacia dentro mantiene una frontera mayor
+que la espiral hacia fuera y sin embargo puntúa más alto). Una lectura plausible,
+no probada aquí, es la clásica de la búsqueda con restricciones: un orden que deja
+más celdas con un solo vecino ya colocado restringe menos cada colocación, y cierra
+más ciclos tarde, donde un fallo cuesta caro de deshacer.
 
-Como contraste, el solucionador de haz, que no es un backtracker cronológico y no
-paga el coste de la frontera de la misma manera, alcanza una mediana en los 450
-sobre estos mismos tableros con pistas. Las pistas y los tableros no están ni
-cerca de ser irresolubles. Es específicamente el backtracker *cronológico de
-orden fijo* el que no puede convertir cinco piezas correctas en progreso.
+Como contraste, el solucionador de haz, que no es un backtracker cronológico,
+alcanza una mediana en los 450 sobre estos mismos tableros con pistas, así que
+esos tableros no están ni cerca de ser irresolubles. Pero no es inmune: las cinco
+pistas bajan su puntuación en trece de quince tableros y nunca la suben (mediana
+emparejada −3). El daño es mucho menor que en los backtrackers fragmentadores,
+pero no es propio de la búsqueda cronológica, y la historia de la frontera no lo
+explica. Una explicación más simple valdría para ambos solucionadores: un tablero
+generado tiene muchas casi-soluciones localmente consistentes, y fijar piezas de la
+única solución plantada descarta muchas de ellas, así que el mejor parcial de
+cualquier solucionador puede bajar. El control que decidiría entre las dos (un
+conjunto de piezas fijadas al azar del mismo tamaño, o piezas tomadas de otra
+solución) no se ha ejecutado.
 
 ## El número: un umbral, no un gradiente, y un suelo que lo esconde
 
@@ -199,55 +212,70 @@ lo segundo. La sección siguiente hace visible esa separación.
 A 16×16 nada se resuelve en ocho segundos, así que la puntuación es siempre una
 instantánea de una búsqueda todavía en su apertura. Para ver el efecto de *final
 de partida* que la comunidad reportó, necesitamos un tablero que se resuelva por
-completo. Un 8×8 construido con la misma receta de colores lo hace, en bastante
-menos de un segundo, así que sobre él podemos medir la cantidad que de verdad
-importa: el número de nodos de búsqueda que un backtracker fila por fila necesita
-para alcanzar una solución completa. Menos nodos significa que las pistas
-hicieron trabajo real de poda. Abajo, una retícula dispersa y un bloque contiguo
-emparejado, a números de pistas crecientes.
+completo. Un 8×8 construido con la misma receta de colores suele hacerlo: sin
+pistas, un backtracker fila por fila resuelve 24 de 30 tableros dentro del
+presupuesto de 30 segundos (mediana de unos 1,8 millones de nodos en los
+resueltos; la mitad tarda menos de dos segundos, el más lento unos quince) y 6
+agotan el tiempo. Sobre él podemos medir la cantidad que de verdad importa: el
+número de nodos de búsqueda que un backtracker fila por fila necesita para
+alcanzar una solución completa. Menos nodos significa que las pistas hicieron
+trabajo real de poda. Abajo, una retícula dispersa y un bloque contiguo
+emparejado, a números de pistas crecientes, frente a la línea discontinua sin
+pistas.
 
 <SolveSpeedChart />
 
-Esta es toda la historia en un gráfico, y por fin encaja con la afirmación
-comunitaria. Con cuatro pistas la retícula dispersa es *peor* que inútil,
-resolviendo solo dos de treinta tableros, el mismo efecto de
-pistas-escasas-que-hacen-tropezar de cada uno de los otros ejes, mientras que el
-bloque contiguo emparejado los resuelve casi todos. Pero cruce un umbral en torno
-a dieciséis pistas y las líneas se intercambian con fuerza: una retícula dispersa
-de dieciséis pistas se resuelve en unos cuatro mil nodos, mientras que el bloque
-contiguo emparejado todavía muele casi dos millones, una diferencia de quinientas
-veces al mismo número de pistas. Empuje más lejos y ambas disposiciones se
-vuelven fáciles (con treinta y seis pistas un cuarto del tablero está fijado y
+Frente a la ausencia de pistas, unas pocas pistas, dispersas o contiguas, no
+ayudan. Con cuatro pistas la retícula dispersa es *peor* que nada, resolviendo solo
+dos de treinta tableros frente a veinticuatro sin pistas, el mismo efecto de
+pistas-escasas-que-hacen-tropezar de cada uno de los otros ejes. El bloque contiguo
+emparejado resuelve veintisiete con cuatro pistas, y con cuatro, nueve y dieciséis
+pistas se queda al nivel de la ausencia de pistas (mediana de unos 1,8 a 2,2
+millones de nodos en los tableros resueltos). Nueve pistas dispersas también
+empatan con la ausencia de pistas. Al cruzar un umbral en torno a dieciséis pistas
+la retícula dispersa se despega: resuelve todos los tableros, con una mediana de
+unos cuatro mil nodos, más de cuatrocientas veces menos que la referencia sin
+pistas y que el bloque contiguo emparejado. Empuje más lejos y ambas disposiciones
+se vuelven fáciles (treinta y seis pistas fijan más de la mitad del tablero 8×8, y
 cualquiera de las dos se resuelve en unos cientos de nodos), así que la ventaja
 dispersa es una ventana, la más ancha donde el número basta para alcanzar la
-búsqueda profunda pero no es tan grande que el tablero esté medio resuelto a
-mano. En esa ventana, las pistas dispersas alcanzan la parte de la búsqueda con
-la que un backtracker de verdad batalla y la cortan de raíz, exactamente como
-Joe y Peter McGavin lo describieron; un bloque contiguo solo poda la apertura
-fácil. La comparación de puntuaciones a 16×16 solo pareció contradecirlos porque
-a presupuesto corto la búsqueda nunca vive lo suficiente para llegar a la región
-donde la colocación dispersa rinde.
+búsqueda profunda pero no es tan grande que el tablero esté medio resuelto a mano.
+En esa ventana, las pistas dispersas parecen alcanzar la parte de la búsqueda con
+la que un backtracker de verdad batalla y cortarla de raíz, en línea con lo que Joe
+y Peter McGavin describieron; un bloque contiguo del mismo tamaño no hace nada
+mejor que la ausencia de pistas. La comparación de puntuaciones a 16×16 solo
+pareció contradecirlos porque a presupuesto corto la búsqueda nunca vive lo
+suficiente para llegar a la región donde la colocación dispersa rinde.
 
 ## Lo que dice y lo que no dice
 
 Este es un resultado sobre **backtrackers estrictos, cronológicos, en
 profundidad**, sobre tableros 16×16 generados con la receta de colores de
-Eternity II, a presupuesto corto (ocho segundos). Cada una de esas palabras de
-acotación se gana su lugar. *Cronológico*: el resultado es específico de los
-solucionadores que rellenan celdas en un orden fijo y deben satisfacer una pieza
-fijada cuando la alcanzan, un solucionador de haz, que no lo hace, llega a los
-450 en los mismos tableros. *Generado*: los tableros comparten la receta de
+Eternity II, juzgados por el mejor tablero parcial a presupuesto corto (ocho
+segundos). Cada una de esas palabras de acotación se gana su lugar.
+*Cronológico*: las grandes pérdidas se miden en solucionadores que rellenan celdas
+en un orden fijo y deben satisfacer una pieza fijada cuando la alcanzan; un
+solucionador de haz, que no lo hace, llega a los 450 en los mismos tableros pero
+aun así pierde unos tres puntos con las pistas, así que parte del efecto no es
+propio de la búsqueda cronológica. *Generado*: los tableros comparten la receta de
 colores de E2 y la *forma* de sus cinco pistas, pero no son el puzzle oficial, y
-el estudio no le transfiere ningún número. *Presupuesto corto*: ninguno de estos
-backtrackers estrictos resuelve en ocho segundos, así que esto mide hasta dónde
-llega cada uno, no una carrera hacia 480; si el efecto "las pistas dañan"
-sobrevive a presupuestos mucho más largos queda sin probar aquí.
+el estudio no le transfiere ningún número. *Presupuesto corto y puntuación de mejor
+parcial*: ninguno de estos backtrackers estrictos resuelve en ocho segundos, así
+que esto mide hasta dónde llega cada uno, no una carrera hacia 480; en un 8×8
+resoluble, donde se puede medir el tiempo hasta una solución completa, dieciséis o
+más pistas dispersas ayudan mucho. Si el efecto "las pistas dañan" sobrevive a
+presupuestos mucho más largos queda sin probar aquí. *Sin control nulo todavía*:
+el estudio no ha fijado un conjunto aleatorio de piezas correctas, ni piezas de
+otra solución, así que aún no puede decir qué parte de la pérdida viene de la
+geometría de las pistas y del orden de relleno y no del mero hecho de fijar piezas
+correctas.
 
-Dentro de ese ámbito la lección es sólida y, creemos, contraintuitiva: para un
-backtracker cronológico, cinco piezas correctas colocadas en la geometría misma
-de las pistas del puzzle no son un regalo sino una restricción, y pueden costar
-mucho más de lo que dan. Lo que decide el daño no son las pistas sino el orden de
-relleno que tiene que vivir con ellas, y el orden paga una pista como paga todo
-lo demás, en el tamaño de la frontera que mantiene abierta. Es una lectura más de
-[por qué el puzzle se resiste](/research/why/hint-geometry): incluso la
-información correcta solo ayuda a un solucionador construido para recibirla.
+Dentro de ese ámbito, el resultado medido es este: cinco piezas correctas en la
+geometría misma de las pistas del puzzle bajaron la puntuación a ocho segundos de
+siete de los ocho órdenes de relleno estrictos, desde unos pocos puntos hasta más
+de trescientos según el orden. La explicación de trabajo es que una pieza fijada es
+una restricción con la que el orden tiene que convivir, y que los órdenes que
+mantienen una frontera pequeña conviven mejor con ella; los controles de arriba la
+pondrían a prueba. Es una lectura más de
+[por qué el puzzle se resiste](/research/why/hint-geometry): la información
+correcta no es automáticamente útil para una búsqueda.

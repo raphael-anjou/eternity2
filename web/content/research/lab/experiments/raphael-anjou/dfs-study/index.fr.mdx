@@ -17,7 +17,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  machine: "MacBook (Apple M1, 8 cores), single-threaded runs, 6 concurrent"
   wallClock: "60 s"
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
   measured: true
@@ -25,7 +25,7 @@ repro:
   kind: seeded
   cmd: just experiments dfs-study
 order: 25
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, speed]
 related:
@@ -86,24 +86,26 @@ ils tournent tels qu'ils ont été conçus.
   300 points dû au seul ordre de remplissage.
 - **L'heuristique de la case la plus contrainte (MRV) est ce qui rend le bord
   d'abord viable.** Elle fait passer un bord d'abord en panne de la soixantaine à
-  une moyenne de 324, au prix de trois ordres de grandeur sur le débit de nœuds.
+  une moyenne de 324, au prix de près de quatre ordres de grandeur sur le débit de nœuds.
   Le débit de nœuds et le score sont deux axes distincts, une distinction sur
   laquelle l'étude revient de bout en bout.
 - **Davantage de propagation n'a pas acheté davantage de score à ce budget.** Le
   forward-checking, l'arc-cohérence et le raisonnement par couleur atterrissent à
-  un point près l'un de l'autre (322, 321, 321), un écart bien à l'intérieur de la
-  dispersion d'une exécution à l'autre : une anticipation plus lourde n'a donc ni
-  aidé ni clairement nui. Elle dépense les soixante secondes à prouver de petites
-  régions plutôt qu'à descendre plus profond.
+  un point près l'un de l'autre (322, 321, 321), et tous restent deux ou trois
+  points sous le MRV simple. Chaque exécution utilise une seule graine et est
+  déterministe : il s'agit donc de la dispersion entre dix instances partagées, lue
+  par paires, et non d'un bruit d'une exécution à l'autre. Une anticipation plus
+  lourde n'a pas récupéré son surcoût par nœud en soixante secondes.
 - **Les ruptures descendent plus profond que n'importe quelle recherche stricte.**
   Les backtrackers stricts plafonnent dans les 200 tout juste (le plus rapide,
   NAIVE-CODEGEN, à 216) ; un budget de rupture à seuil de profondeur dépasse 245 et
   tourne en moyenne autour de 430, car il peut forcer le passage au-delà d'une
-  arête localement inappariable au lieu de remonter pour en sortir. Le facteur
-  décisif est le *calendrier* des ruptures : déverrouiller les ruptures trop tôt
-  (l'échelle de Verhaard, moyenne 399) score bien en deçà de l'échelle plus
-  tardive de Blackwood (moyenne 431). Relever le plafond par case de un à deux n'a
-  pas aidé à ce budget, un résultat nul rapporté comme mesuré.
+  arête localement inappariable au lieu de remonter pour en sortir. Le
+  *calendrier* des ruptures compte : l'échelle de Verhaard, qui déverrouille plus
+  tôt, obtient en moyenne 399 contre 431 pour celle de Blackwood, mais cette
+  moyenne mêle quatre instances où elle égale Blackwood et six où elle cale vers
+  380 après deux ou trois ruptures seulement. Relever le plafond par case de un à
+  deux n'a pas aidé à ce budget, un résultat nul rapporté comme mesuré.
 
 Chacun de ces points a sa propre page : la construction du moteur et la
 signification de chaque statistique relevée figurent sur la

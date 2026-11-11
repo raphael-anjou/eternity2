@@ -26,7 +26,7 @@ repro:
   cmd: "just research-frostline"
   scope: "Regenera las 120 cimas voraces, las etiquetas exactas de la última fila y la tabla completa de correlaciones (nivel cualitativo: el conjunto de cimas de haz del estudio fuente no se regenera)"
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, structure, search-space]
 related:
@@ -74,8 +74,11 @@ no una instancia de satisfacibilidad. Y la costura contra las filas congeladas
 debe ser un factor blando; el estudio fuente midió que un filtro de costura
 duro se contradice en 5 de 16 celdas de cimas reales casi óptimas. En una
 fila, el grafo residual es una cadena: allí la propagación de creencias es
-exacta y la energía libre es el verdadero logaritmo de la función de
-partición.
+exacta para el modelo de cadena, en el que cada celda toma su pieza de la reserva
+de forma independiente y una pieza puede repetirse. La cola real añade una
+restricción de permutación (cada una de las dieciséis piezas se usa una vez), así
+que incluso en una fila la energía libre es una aproximación a la cantidad que
+interesa, no el logaritmo exacto de su función de partición.
 
 ## El resultado
 
@@ -125,6 +128,10 @@ final.
   residuales a -0,19 con 32 y -0,12 con 48, mientras el dominio medio por
   celda crece de 12,5 a 32,6 y 72,2. FROSTLINE es un oráculo de final de
   última fila, no una señal de dirección a mitad de construcción.
+- **Donde funciona, la respuesta exacta es barata.** Con 16 celdas, la etiqueta
+  exacta cuesta milisegundos, así que el predictor no ahorra nada ahí; solo
+  importaría donde la resolución exacta queda fuera de alcance, y es justo ahí
+  donde su señal se apaga.
 - **No compra (todavía) mejores tableros.** En el estudio fuente, usarlo para
   elegir qué parciales reciben cómputo exacto no supera la elección por
   puntaje bruto: el puntaje final realizado lo domina la dispersión del

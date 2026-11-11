@@ -18,7 +18,7 @@ hardware:
   ramGb: 16
   gpus: 0
   accelerator: none
-  machine: "MacBook (Apple M1, 8 cores), one core pinned"
+  machine: "MacBook (Apple M1, 8 cores), single-threaded runs, 6 concurrent"
   wallClock: "60 s"
   seedPolicy: "fixed seed 1; the 10 corner arrangements are the diversity axis"
   measured: true
@@ -26,7 +26,7 @@ repro:
   kind: seeded
   cmd: just experiments dfs-study
 order: 25
-updated: 2026-07-16
+updated: 2026-11-11
 date: 2026-07
 topics: [backtracking, search-space, speed]
 related:
@@ -87,24 +87,26 @@ donde funcionan tal como fueron diseñados.
   debida al solo orden de relleno.
 - **La heurística de la celda más restringida (MRV) es lo que hace viable el borde
   primero.** Eleva un borde primero estancado desde los sesenta hasta una media de
-  324, a un coste de tres órdenes de magnitud en el rendimiento de nodos. El
+  324, a un coste de casi cuatro órdenes de magnitud en el rendimiento de nodos. El
   rendimiento de nodos y la puntuación son dos ejes distintos, una distinción sobre
   la que el estudio vuelve de principio a fin.
 - **Más propagación no compró más puntuación con este presupuesto.** El
   forward-checking, la arco-consistencia y el razonamiento por color aterrizan a un
-  punto unos de otros (322, 321, 321), una brecha muy dentro de la dispersión de
-  una ejecución a otra, de modo que una anticipación más pesada ni ayudó ni
-  perjudicó claramente. Gasta los sesenta segundos en demostrar regiones pequeñas
-  en lugar de descender más profundo.
+  punto unos de otros (322, 321, 321), y todos quedan dos o tres puntos por debajo
+  del MRV simple. Cada ejecución usa una sola semilla y es determinista: se trata
+  de la dispersión entre diez instancias compartidas, leída por pares, no de ruido
+  de una ejecución a otra. Una anticipación más pesada no recuperó su coste por
+  nodo en sesenta segundos.
 - **Las rupturas descienden más profundo que cualquier búsqueda estricta.** Los
   backtrackers estrictos se topan con un techo en los 200 justos (el más rápido,
   NAIVE-CODEGEN, en 216); un presupuesto de ruptura con umbral de profundidad
   supera 245 y promedia los 430 justos, porque puede forzar el paso más allá de una
-  arista localmente incasable en lugar de retroceder para salir de ella. El factor
-  decisivo es el *calendario* de las rupturas: desbloquear las rupturas demasiado
-  pronto (la escalera de Verhaard, media 399) puntúa muy por debajo de la escalera
-  más tardía de Blackwood (media 431). Elevar el tope por celda de uno a dos no
-  ayudó con este presupuesto, un resultado nulo reportado como medido.
+  arista localmente incasable en lugar de retroceder para salir de ella. El
+  *calendario* de las rupturas importa: la escalera de Verhaard, que desbloquea
+  antes, promedia 399 frente a 431 de la de Blackwood, pero esa media mezcla cuatro
+  instancias donde iguala a Blackwood con seis donde se atasca cerca de 380 tras
+  solo dos o tres rupturas. Elevar el tope por celda de uno a dos no ayudó con este
+  presupuesto, un resultado nulo reportado como medido.
 
 Cada uno de estos puntos tiene su propia página: cómo se construye el motor y qué
 significa cada estadística registrada está en la

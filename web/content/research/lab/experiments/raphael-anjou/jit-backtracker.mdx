@@ -1,13 +1,14 @@
 ---
-title: "The JIT backtracker: portable Rust that ties hand-tuned C on hard boards"
+title: "The JIT backtracker: portable Rust within about 5% of hand-tuned C on one hard board"
 description: >-
   A safe, portable Rust depth-first backtracker, specialised at runtime by
   emitting and compiling per-puzzle Rust, taken from 43 to 123 million
-  search-nodes per second on one core. Measured fairly against Peter McGavin's C
-  on the same machine: a tie on hard, deep boards like the real Eternity II, and
-  about 44% of its speed on easy ones. Every rung searches the identical tree;
-  the whole gain is code, not algorithm.
-metaDescription: "A portable Rust Eternity II backtracker that compiles per-puzzle Rust at runtime, taken from 43 to 123 million search-nodes/s single core. Measured headless against McGavin's hand-tuned C on the same Apple M1: a tie on hard deep boards, ~44% of its speed on easy ones."
+  search-nodes per second on one core. Measured against Peter McGavin's C on the
+  same machine: within about 5% on one hard, deep benchmark board (the engines
+  follow different scan paths), and about 44% of its speed on an easy one. Every
+  rung of this engine searches the identical tree; the whole gain is code, not
+  algorithm.
+metaDescription: "A portable Rust Eternity II backtracker that compiles per-puzzle Rust at runtime, taken from 43 to 123 million search-nodes/s single core. Measured headless against McGavin's hand-tuned C on the same Apple M1: within about 5% on one hard benchmark board, ~44% of its speed on an easy one."
 kind: experiment
 contribution: measurement
 author: raphael-anjou
@@ -28,7 +29,7 @@ repro:
   kind: heavy
   cmd: "cargo run --release -p dfs-codegen --bin run_dfs_codegen_jit -- --puzzle P.json --chain2 --opt native"
 order: 36
-updated: 2026-07-20
+updated: 2026-11-11
 date: 2026-07
 topics: [speed, backtracking]
 related:
@@ -50,14 +51,14 @@ sources:
   can a *safe, portable* Rust backtracker reach the throughput of the community's
 fastest engine - [Peter McGavin's hand-tuned C](/research/lab/experiments/peter-mcgavin/backtracker) - 
   without leaving Rust or dropping to hand assembly? The answer turns out to depend
-  on the board: on **hard, deep boards like the real Eternity II it ties his C**; on
+  on the board: on **one hard, deep benchmark board it lands within about 5% of his C** (different scan paths, so not the same tree); on
   easy low-branching boards his C is about **2.3× faster**. It says nothing about
   *scores*: a fast walk of the tree and a high-scoring board are
   [different axes entirely](/research/lab/experiments/raphael-anjou/going-fast). The
   best this engine reaches on the real puzzle is in the high-300s of 480, exactly
-what a strict backtracker should reach - the record boards come from
-  metaheuristics, not from walking faster.
-</Callout>
+  what a strict backtracker should reach; the community's record boards (see
+  [records](/research/records)) come from break-tolerant search run with large
+  compute, not from strict walking at any speed.
 
 Every fast Eternity II engine is, underneath, the same depth-first backtracker:
 fill cells in a fixed order, try each piece that fits, recurse, back out on a dead
@@ -73,14 +74,14 @@ codegen and run back to back:
 | Board | McGavin's C (headless) | This engine | Result |
 | --- | --- | --- | --- |
 | Easy (Joe's 18-hint 71.puz) | ~287 M/s | ~122 M/s | McGavin **~2.3×** |
-| **Hard (deep 16×16, like real E2)** | **~102–105 M/s** | **~104–111 M/s** | **~tie** |
-
-On the boards that actually resemble Eternity II - deep, densely constrained, where
-the search spends its time backtracking - a safe, portable Rust engine **matches
-hand-tuned C**. On easy, low-branching boards, where there is almost nothing to do
-per node, McGavin's straight-line generated C is more than twice as fast. Both
-numbers are real; the engineering below is what pulled Rust up to the tie on hard
-boards.
+| **Hard (deep 16×16 benchmark board)** | **~102–105 M/s** | **~104–111 M/s** | **~tie** |
+On this hard benchmark board, deep and densely constrained, where the search spends
+its time backtracking, a safe, portable Rust engine lands **within about 5% of
+hand-tuned C** (three trials each, one machine; the two engines follow different scan
+paths, so they walk different subtrees). On easy, low-branching boards, where there
+is almost nothing to do per node, McGavin's straight-line generated C is more than
+twice as fast. Both numbers are real; the engineering below is what pulled Rust up to
+near parity on the hard board.
 
 Everything that follows is **code generation and data layout**, not a smarter
 search: every rung walks the *identical* tree and, on a solvable test board, halts
@@ -95,7 +96,7 @@ costs it about **2.7× of its throughput** - his headless speed is ~287M on the 
   board, but with the display on it reads ~106M. The first comparison pitted our
   headless engine against his *throttled* one and produced a phantom win. Rebuilt
   headless (`-mcpu=native`, display off), the true picture is the table above: he wins
-the easy board comfortably, and we tie on hard ones. The lesson is general - always
+the easy board comfortably, and we land within about 5% on the hard one. The lesson is general - always
   build the reference the way it runs at full speed before trusting any ratio.
 </Callout>
 
@@ -334,8 +335,9 @@ Two engines share this table: `naive-clean` is a separate recursive backtracker
 (runnable with `run_dfs --algo naive-clean`), and everything from "data-driven JIT" down
 is the codegen path this page is about (`run_dfs_codegen_jit`). The headline, stated
 plainly, is a **~2.5× lift from the naive-clean baseline to the fused champion on the hard board**
-(~44 M → ~110 M), and **~2.8× on the easy board** (~44 M → ~122 M) - landing, on the hard
-board, level with McGavin's headless C. Three meta-lessons fall out of it, the transferable part:
+(~44 M → ~110 M), landing, on the hard board, level with McGavin's headless C. The
+champion reaches ~122 M on the easy board, but naive-clean was measured on the hard
+board only, so no easy-board lift is quoted. Three meta-lessons fall out of it, the transferable part:
 
 1. **Representation beats micro-ops.** The two biggest single wins - u32 cells
 (+67 %) and the function-chain (+56 %) - were both about the *shape* of the data
@@ -436,26 +438,30 @@ candidates, place, move on - and his straight-line generated code, with each cel
 candidate list baked to a minimal-perfect-hash lookup, does that with the fewest
 possible instructions. Our per-node work (index the pool, compute the gain, check the
 rim) is cheap but not *nothing*, and when the tree is shallow-and-wide that overhead
-shows. On a hard board the same nodes are dominated by backtracking and cache misses,
-where the two engines converge. Closing the easy-board gap would mean adopting his
+shows. On a hard board, the working hypothesis is that per-node cost is dominated by
+backtracking and branch misprediction, where the two engines converge; it has not
+been profiled here (a 16×16 state and its candidate tables fit comfortably in the
+M1's L1 and L2 caches, so cache misses are an unlikely explanation).
 tighter candidate-list codegen - a concrete next step, not a wall. It is logged here
 as open rather than papered over.
 
 ## What the speed is worth
 
 Pointed at the real 256-piece Eternity II - six cores, fifteen minutes, the mandatory
-centre clue pinned - this engine walks the tree at tens of millions of nodes per
-second per core and plateaus, across seeds, in the high-300s of 480. That is not a
-disappointment; it is the [whole point of the site's core lesson](/research/why/prune-vs-speed).
+space is so vast that no achievable speed makes a dent in it. The community's record
+boards (see [records](/research/records)) came from break-tolerant depth-first search
+run with large compute, not from strict tree-walking at any speed.
 A strict backtracker is a superb tree-walker and a poor puzzle-solver: the search
 space is so vast that no achievable speed makes a dent in it, which is precisely why
 the records come from [heuristics and repair](/research/lab/experiments/raphael-anjou/repair-study),
 not from raw throughput.
 
-So the result here is deliberately narrow and, I think, worth stating plainly: a
-*safe, portable* Rust engine can **match hand-tuned C on the hard, deep boards that
-resemble the real puzzle**, walking the same tree on the same hardware - while the C
-still wins by ~2.3× on easy ones. And even at parity it cannot solve Eternity II,
+So the result here is deliberately narrow and worth stating plainly: a *safe,
+portable* Rust engine lands **within about 5% of hand-tuned C on one hard, deep
+benchmark board**, on the same hardware but on different scan paths, so the two
+rates are measured on different subtrees; the C still wins by ~2.3× on an easy
+board. And even at parity it cannot exhaust Eternity II's search tree, because speed
+was never the thing standing in the way. The longer argument about that
 because speed was never the thing standing in the way. The longer argument about that
 trade-off - why some algorithms spend their budget on speed and others on judgement - 
 is its own page: [going fast](/research/lab/experiments/raphael-anjou/going-fast).

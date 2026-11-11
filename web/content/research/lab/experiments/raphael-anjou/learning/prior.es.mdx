@@ -1,10 +1,10 @@
 ---
 title: PRIOR
 description: >-
-  Construir un tablero desde cero, resolviendo los empates según la posición
-  habitual de las piezas en los buenos tableros ya conocidos. Alcanza una
-  puntuación alta sin ningún tablero de partida que copiar.
-metaDescription: "PRIOR construye un tablero de Eternity II desde la nada, desempatando según dónde suelen situarse las piezas en los tableros fuertes conocidos. Alcanza 460 de 480 sin tablero inicial que copiar — una prueba de si un prior posicional basta por sí solo para guiar la construcción."
+  Construir un tablero desde una cuadrícula vacía, resolviendo los empates según
+  la posición habitual de las piezas en los buenos tableros ya conocidos: un prior
+  posicional que actúa como una plantilla suave de esos tableros.
+metaDescription: "PRIOR construye un tablero de Eternity II desde una cuadrícula vacía, desempatando según la posición habitual de las piezas en tableros fuertes. Guiado por ese prior y un refinamiento, alcanza 460 de 480; cuánto es construcción y cuánto recuerdo del corpus sigue abierto."
 kind: experiment
 hardware:
   cores: 8
@@ -42,7 +42,7 @@ stages:
     does: "Una breve cola de refinamiento local eleva la construcción de mediados de los 450 hasta el 460 comprometido"
     published: false
 order: 10
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [construction, learning]
 related:
@@ -94,17 +94,21 @@ tablero individual; la guía es estadística.
 
 ## El resultado
 
-Desde cero, PRIOR alcanza mediados de los 450, y con un prior más afilado
-construido solo a partir de los mejores tableros sube más alto. Seguido de un
-refinamiento local, alcanza 460, el tablero mostrado aquí. Que una construcción
-desde la nada quede tan cerca de los récords es justamente el punto: la
-estructura de los buenos tableros es en parte aprendible, y no hace falta partir
-de uno para llegar hasta ahí.
+Desde una cuadrícula vacía, PRIOR alcanza mediados de los 450, y con un prior más
+afilado construido solo a partir de los mejores tableros sube más alto. Seguido de
+un refinamiento local, alcanza 460, el tablero mostrado aquí. La construcción parte
+sin tablero, pero su desempate es una matriz 256×256 de frecuencias pieza-celda
+extraída de tableros fuertes, así que un prior afilado actúa como una plantilla
+suave de esos tableros. La página no registra ni la distancia de Hamming entre este
+460 y el tablero del corpus más cercano ni la puntuación del mismo haz sin prior con
+igual presupuesto, así que cuánto es construcción y cuánto es recuerdo del corpus
+sigue abierto.
 
-No es la puntuación máxima del proyecto (463), y el impulso final aquí se apoya
-en un paso de refinamiento, lo que la etiqueta del tablero señala. Pero como
-resultado desde una hoja en blanco es el más fuerte que tiene el proyecto, y es
-el cimiento del que crecieron los constructores multi-señal posteriores.
+No es la puntuación máxima del proyecto (véanse los [récords](/research/records)), y
+el impulso final aquí se apoya en un paso de refinamiento, lo que la etiqueta del
+tablero señala. Como construcción desde una cuadrícula vacía es la más fuerte que
+tiene el proyecto, con esa salvedad, y es el cimiento del que crecieron los
+constructores multi-señal posteriores.
 
 ## Método
 
