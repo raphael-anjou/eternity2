@@ -74,6 +74,10 @@ threads): 10 min 8 s wall clock, 78 min 41 s CPU. Per-instance wall time is in
 the design is regime A n=7 (mean 53 s, max 88 s per instance, mostly the exact
 search hitting its cap).
 
+Reproduction check: a fresh clone of the branch at commit `785439f`, running
+`just experiments sat-backdoors`, took 9 min 59 s wall clock and both `cmp`
+checks passed (results.jsonl and summary.json byte-identical).
+
 ## Files
 
 - `PREREG.md`: pre-registration.
