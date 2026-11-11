@@ -1,17 +1,19 @@
 ---
-title: L'emplacement des indices l'emporte sur leur nombre
+title: "Des indices dispersés battent des rangées pleines d'indices en haut du plateau"
 description: >-
   Sur un casse-tête 16×16 construit à l'image d'Eternity II, dix-huit indices
   dispersés sur le plateau le résolvent en quelques minutes, là où les entasser
-  en rangées contiguës en réclame une centaine rien que pour ramener la
-  recherche à des dizaines de milliards de placements. C'est la position, non le
-  nombre, qui fait levier, et elle pointe droit vers la fin de partie.
-metaDescription: "Sur un casse-tête 16×16 façon Eternity II, la position des indices prime sur le nombre : 18 dispersés le résolvent en minutes, quand les rangées contiguës en réclament une centaine, car 99 % de la recherche a lieu après la profondeur 132 sur 256. Seuls comptent ceux atteignant la fin de partie."
+  en rangées contiguës depuis le haut en réclame une centaine rien que pour
+  ramener la recherche à des dizaines de milliards de placements. La
+  disposition compte plus que le nombre ; reste à savoir si c'est parce que les
+  indices dispersés atteignent la fin de partie ou parce qu'ils touchent plus
+  de cases libres.
+metaDescription: "Sur un 16×16 à la recette d'Eternity II, 18 indices dispersés le résolvent en minutes quand des rangées du haut en réclament une centaine ; sur 8×8, cinq rangées égalent un réseau de 16 indices. Fin de partie ou nombre de contacts : les contrôles restent à faire."
 kind: finding
 contribution: measurement
 rigor: measured
 order: 100
-updated: 2026-07-10
+updated: 2026-11-11
 topics: [structure, search-space, backtracking]
 sources:
   - label: "L'étude de densité d'indices de Joe et la résolution à 18 indices de Peter McGavin (fil groups.io « A method to prune E2 search space by 17-30%+ », msg 11725)"
@@ -50,7 +52,7 @@ recherche à des dizaines de milliards de placements. Pour établir nous-mêmes 
 seuil de bascule, nous avons rejoué le même affrontement sur un plateau assez
 petit pour être résolu jusqu'au bout : égaler un réseau dispersé de seize
 indices a demandé **cinq rangées contiguës, quarante indices**, environ deux
-fois et demie le nombre, tranché par la seule géométrie.
+fois et demie le nombre, tranché par la seule disposition.
 
 ## Deux façons de dépenser les mêmes dix-huit indices
 
@@ -85,8 +87,8 @@ en quelques milliers de nœuds de recherche. Les rangées contiguës doivent gri
 à cinq rangées pleines, quarante indices, avant de résoudre chaque instance dans
 le même budget de nœuds. À nombre *égal*, seize indices dispersés l'emportent
 sur seize entassés en deux rangées de plus de deux ordres de grandeur en nœuds de
-recherche, et le bloc échoue à en résoudre six sur trente. Le réseau atteint la
-fin de partie ; le bloc ne l'atteint jamais avant de presque l'ensevelir.
+recherche, et le bloc échoue à en résoudre six sur trente. Dans cette expérience,
+les rangées contiguës sont toujours posées en haut du balayage.
 
 <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
   <div className="rounded-lg border p-4">
@@ -109,7 +111,7 @@ fin de partie ; le bloc ne l'atteint jamais avant de presque l'ensevelir.
 
 ## Pourquoi la position gagne : les indices doivent atteindre la fin de partie
 
-Les deux nombres de droite expliquent ceux de gauche. Joe a instrumenté son
+Une lecture relie les deux nombres de droite à ceux de gauche. Joe a instrumenté son
 backtracker sur plus d'un milliard d'itérations et constaté que le travail n'est
 pas du tout réparti sur le plateau : 99 % s'effectue après la profondeur 132 sur
 256, et 70 % après la profondeur 150. Presque toute la douleur est dans la
@@ -124,8 +126,20 @@ plateaux records portent à leur surface. Un plateau quasi parfait concentre tou
 ses dégâts dans la bande de rangées sur laquelle la recherche s'est terminée,
 parce que
 [ce sont les rangées remplies en dernier qui vous font payer le casse-tête](/research/why/mismatch-geometry).
-Les indices n'aident que dans la mesure où ils atteignent cette bande avant la
-recherche.
+Selon cette lecture, les indices n'aident que dans la mesure où ils
+atteignent cette bande avant la recherche.
+
+Une explication plus simple colle aux mêmes données. Un indice isolé en avant
+du front de balayage expose jusqu'à quatre contacts entre indice et case libre
+et fait passer les cases voisines remplies plus tard à trois ou quatre
+contraintes, alors qu'un bloc de rangées du haut n'expose que son bord
+inférieur. C'est un effet du nombre de contacts, pas de la profondeur, et
+l'expérience ne permet pas de trancher : ses rangées contiguës sont toujours en
+haut du balayage, là où la lecture par la fin de partie prédit qu'elles servent
+le moins. Les contrôles qui sépareraient les deux sont un bloc de rangées en bas
+du balayage, un bloc au milieu, et une disposition dispersée limitée aux
+premières rangées, avec les nœuds rapportés au nombre de contacts entre indice
+et case libre. Ils n'ont pas été menés.
 
 Cela cadre aussi avec [le fait que l'intérieur ne donne aucun coup forcé](/research/why/no-forced-moves) :
 chaque cellule intérieure acceptant encore des dizaines de voisines, la valeur
@@ -142,9 +156,13 @@ constituent un cadeau différent, bien plus modeste, à des endroits différents
 Ce qui se transpose, c'est la forme de la leçon, et c'est la même que celle que
 l'argument [élagage contre vitesse](/research/why/prune-vs-speed) formule par
 l'autre bout : ce qui compte, c'est de changer l'endroit où la recherche dépense
-son effort, et l'effort réside dans la fin de partie. Une poignée d'indices
-visant cette fin de partie vaut une multitude d'indices visant n'importe où
-ailleurs.
+son effort, et l'effort réside dans la fin de partie. Si la lecture par la fin de
+partie résiste aux contrôles ci-dessus, une poignée d'indices visant cette fin
+de partie vaudrait une multitude d'indices visant n'importe où ailleurs. La
+comparaison 16×16 elle-même (les 18 indices dispersés et 41 milliards de nœuds
+de McGavin contre les 100 indices contigus et environ 47 milliards de Joe)
+oppose des solveurs et des jeux d'indices différents, et ne peut donc isoler la
+géométrie à elle seule.
 
 <Callout kind="note">
   Les décomptes, l'arbre de 41 milliards de nœuds et les statistiques de

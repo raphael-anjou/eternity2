@@ -4,20 +4,24 @@ description: >-
   Sum, over any visit order of the 16x16 board, the number of already-placed
   neighbours each cell faces at the moment it is filled: the total is exactly
   480, for every order. A fill order cannot add restriction; it only chooses
-  when each restriction binds. What separates orders is immediacy, the
-  distance between a decision and its refutation, and only the extremes of
-  that ranking are properties of the puzzle rather than of the engine.
-metaDescription: "Sum each cell's already-placed neighbours over any visit order of the 16x16 board and the total is exactly 480: a fill order adds no restriction, it only schedules when restrictions bind. Clue-linking orders are the engine-independent worst; the finer ranking belongs to the engine."
+  when each restriction binds. What separates orders is how early the checks
+  arrive. On the official board the clue-linking order was worst under both
+  engines tested; the rest of the ranking changed with the engine.
+metaDescription: "Sum each cell's already-placed neighbours over any visit order of the 16x16 board: the total is exactly 480. A fill order only schedules when checks bind. On the official board the clue-linking order was worst under both engines tested; the rest changed with the engine."
 kind: finding
 contribution: theory
 rigor: measured
 tier: 2
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "The reproduction kit behind this page: constraint-count checker, plain two-arm solver, committed results (research/topics/constraint-immediacy)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/constraint-immediacy
+  - label: "Haralick and Elliott, Increasing tree search efficiency for constraint satisfaction problems: the fail-first principle (Artificial Intelligence 14, 1980)"
+    url: https://doi.org/10.1016/0004-3702(80)90051-X
+  - label: "Bollobás and Leader, Edge-isoperimetric inequalities in the grid: which cell sets of a given size have the most induced edges (Combinatorica 11, 1991)"
+    url: https://doi.org/10.1007/BF01275667
 related:
   - /research/why/piece-theft
   - /research/why/theorem-sweep
@@ -70,7 +74,7 @@ distributed:
 | border-first | 1 | 58 | 170 | 26 | 1 | 480 |
 
 
-These five figures are the source study's original engine measurements; the packaged reproduction covers the invariant and the plain-solver arms below, not this table.
+These histograms are exact geometry, not engine measurements: `repro-korder` recomputes them and commits them as results/korder-invariance.json.
 
 Row-major is nearly uniform: after the first row and column, every cell
 faces exactly two constraints. The hint-link order (a path that strings the
@@ -92,8 +96,10 @@ are only detected at the closure, an entire subtree later. An order that
 keeps the distance between a decision and its refutation near zero is
 *fail-fast*, and fail-fast is where the whole benefit lives.
 
-This is the constraint-immediacy principle: restricting early is right
-exactly when the restriction tests each decision at once. Border-first
+This is the classic fail-first principle of constraint search
+([Haralick and Elliott, 1980](https://doi.org/10.1016/0004-3702(80)90051-X))
+seen through the fill order: restricting early is right exactly when the
+restriction tests each decision at once. Border-first
 commits the most constrained sub-pool first (the 60 border pieces, which on
 the rim admit a single orientation), so its restrictions bind the moment
 they are created. The hint-link path is the opposite case, geometric
@@ -118,9 +124,11 @@ record tables live at [/research/records](/research/records).
 | row-major | 433 |
 | border-first | 445 |
 
-One principle covers the whole table: hint-link and the spiral are
-fail-last and collapse; row-major is uniform and solid; border-first adds
-immediate binding on the most constrained pieces and finishes on top.
+On this engine the table reads as one principle: hint-link and the spiral
+are fail-last and collapse; row-major is uniform and solid; border-first adds
+immediate binding on the most constrained pieces and finishes on top. The
+plain-solver check below shows how little of that reading survives a change
+of engine.
 
 ## The plain-solver check
 
@@ -141,39 +149,47 @@ file stores a viewer link for every finishing board.
 | boustrophedon | 359 | 342 | 193/256 |
 | border-first | 358 | 28 | 35/256 |
 
-What survives the change of engine is the extremes. Hint-link is by far the
-worst perfect-fit order, and its DFS score of 44 lands close to the
-engine's 51. Row-major and boustrophedon are the solid mid-field in both
-arms. And on the official board the greedy arm keeps border-first ahead of
-row-major, 358 against 343, the same direction as the engine's 445 against
-433.
+What survives the change of engine is one extreme. Hint-link is by far the
+worst perfect-fit order, and its DFS score of 44 lands close to the engine's
+51; it is also last in the greedy arm (316). Row-major and boustrophedon are
+the solid mid-field of the DFS arm.
 
-What does not survive is everything finer. Under the plain DFS the outer
-spiral no longer collapses to a class of its own (it ties border-first,
-consistent with the two orders sharing an identical constraint profile and
-an identical first 60 cells here), and border-first itself hits a
-rim-closure depth wall at 35 of 256 instead of leading. On four generated
-framed 16x16 boards the greedy advantage reverses outright: row-major wins
-the greedy arm on 4 of 4 seeds and the depth-first arm on 4 of 4, with
-border-first's DFS score swinging from 28 to 366 across seeds. The fair
-statement of this page's claim is therefore two-sided: the invariant and
-the extremes belong to the puzzle; the fine-grained middle of any
-fill-order ranking belongs to the engine that produced it.
+Almost everything else changes. In the greedy arm the outer spiral, a
+fail-last order on the reading above, is the *best* order (366, ahead of
+border-first's 358 and row-major's 343). Under the plain DFS the spiral ties
+border-first (the two orders share an identical constraint histogram and an
+identical first 60 cells here), and border-first itself hits a rim-closure
+depth wall at 35 of 256 instead of leading. On four generated framed 16x16
+boards row-major beats border-first in the greedy arm on 4 of 4 seeds and in
+the depth-first arm on 4 of 4, with border-first's DFS score swinging from 28
+to 366 across seeds. The defensible statement is therefore narrow: the
+invariant is exact; on the official board, hint-link was worst under both
+engines tested; the spiral's collapse and border-first's lead did not survive
+a change of engine. Calling even the hint-link result a property of the
+puzzle would need more boards and engines.
 
 ## Where that leaves the leverage
 
-The conservation law bounds what geometry alone can do. A uniform
-two-constraint profile is the best schedule a visit order can reach, since
-cells facing three or four placed neighbours exist only downstream of cells
-placed nearly unchecked. Row-major already achieves that profile, and the
-twenty years of community fill-order engineering surveyed on the
-[fill-orders page](/research/build/backtracking/fill-order) are refinements
-within it. Any further early binding has to be informational rather than
+The conservation law bounds what geometry alone can do. Every order pays the
+same 480 checks; what a schedule controls is how early they arrive, that is,
+the number of edges induced among the first $d$ placed cells, for every $d$.
+That prefix profile, not the $k$ histogram alone, is what the
+[complex-theory](/research/why/complex-theory) width estimate depends on:
+outer-spiral and border-first share a histogram and still behaved differently
+above. Maximising the induced-edge count of every prefix is the grid
+edge-isoperimetric problem
+([Bollobás and Leader, 1991](https://doi.org/10.1007/BF01275667)), whose
+optimal sets grow as near-square blocks rather than rows. Row-major is close
+to that optimum but not on it: 64 cells laid as four 16-cell rows induce 108
+edges, an 8x8 block induces 112. The twenty years of community fill-order
+engineering surveyed on the
+[fill-orders page](/research/build/backtracking/fill-order) work within that
+narrow range. Any further early binding has to be informational rather than
 geometric: propagating what the remaining piece pool can still serve (the
 failure mode [piece theft](/research/why/piece-theft) makes visible),
 placement priors, restricted candidate pools, computed pruning gates. The
 invariance itself is a small exact statement in the spirit of the
 [theorem sweep](/research/why/theorem-sweep): not deep, but it closes a
-door cleanly. Nobody will shrink this search by rerouting the path through
-the board; the 480 checks are owed in full, on every path, and only their
+door cleanly. Rerouting the path through the board cannot remove a single
+check; the 480 checks are owed in full, on every path, and only their
 timing is yours to choose.

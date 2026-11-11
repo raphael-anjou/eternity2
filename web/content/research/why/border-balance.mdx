@@ -1,16 +1,17 @@
 ---
-title: The border balance
+title: "The border balance: a seam identity every solution satisfies"
 description: >-
-  A solved board hides a simple bookkeeping law: every colour the border hands
-  to the interior, the interior hands straight back. Break it and you know
-  instantly the board is wrong; obeying it, though, guarantees nothing.
-metaDescription: "Eternity II's border balance: every colour the border shows the interior, the interior shows back, an exact multiset equality. A deficit Δ>0 proves a board can never be completed; Δ=0 proves nothing, as swaps and interior errors slip past. It also works as a cheap late-search pruner."
+  In a solved board the colours the border shows the interior and the colours
+  the interior shows back are the same multiset, because every matched seam
+  edge shows one colour from both sides. The imbalance is a lower bound on the
+  number of mismatched seam edges, nothing more.
+metaDescription: "Eternity II's border balance: on a solved board the border's inward colours and the interior's outward colours form the same multiset, a direct consequence of matched seam edges. The deficit Δ lower-bounds the mismatched seam edges; Δ = 0 proves nothing, and a matching backtracker never sees Δ > 0."
 kind: finding
 contribution: theory
-rigor: measured
+rigor: proven
 tier: 3
 order: 120
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [search-space, structure]
 sources:
   - label: Border edge-type balance observed in the launch summer (angwin_uk, August 2007)
@@ -45,21 +46,30 @@ once from the border side and once from the interior side. In any complete
 solution the two tallies are identical: the multiset of colours the border
 presents inward exactly equals the multiset the interior presents outward.
 
-Call the imbalance the **deficit**, $\Delta$: half the total mismatch between
-the two tallies. A finished, correct board has $\Delta = 0$. The four known
-full solutions, across four different piece sets, all satisfy it exactly. So
-$\Delta > 0$ is a certificate that a board can never be completed: a real,
-cheap necessary condition.
+That is not a hidden law; it follows from the definition of a solved board.
+Every seam edge in a solution shows the same colour from both sides, so the
+two tallies agree term by term, and they agree for every solution of every
+puzzle, the four known full solutions included. Call the imbalance the
+**deficit**, $\Delta$: half the total mismatch between the two tallies. It is
+a lower bound on the number of mismatched seam edges, since each mismatched
+seam edge can move at most one unit of colour out of balance on each side.
 
-## The law, in one line
+## The identity, in one line
 
-Across the border↔interior seam, the colours the border shows inward and the
-colours the interior shows outward are the same multiset. Writing $A[c]$ and
-$B[c]$ for the two per-colour tallies:
+Across the border↔interior seam, write $A[c]$ and $B[c]$ for the per-colour
+tallies seen from the border and from the interior. On any board with all 56
+seam edges matched,
 
 $$
-\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0 .
+\Delta \;=\; \tfrac{1}{2} \sum_{c} \bigl|\, A[c] - B[c] \,\bigr| \;=\; 0,
+\qquad\text{and in general}\qquad
+\Delta \;\le\; \#\{\text{mismatched seam edges}\}.
 $$
+
+One more fact makes it weaker than it looks. Each of the 56 edge pieces has
+exactly one inward side, whatever its position, and the corners have none, so
+on a complete frame the border tally $A$ is fixed by the piece set alone. Only
+$B$, the colours the first interior ring turns outward, can vary.
 
 ## See it on a real board
 
@@ -71,26 +81,25 @@ button, and watch the catch.
   <Ns1Lab />
 </Figure>
 
-## The catch, and why it matters
+## The catch
 
 Swapping two border pieces leaves $\Delta$ at 0. The swap moves colours around
-the seam without changing either tally, so the invariant is blind to it.
-Worse, on a near-solution most of the remaining errors aren't on the border
-seam at all. They sit interior-to-interior, where NS-1 never looks. Across the
-nine bundled 469-class boards, of the 99 unmatched edges that remain, 86.9% sit
-interior-to-interior and not one is border-to-border; only the other 13.1% land
-on the seam NS-1 inspects. The invariant is blind to the large majority of what
-is still wrong.
-
-That is the whole texture of Eternity II in miniature. A check this clean
-still only ever says "definitely broken", never "definitely fine". The puzzle
-resists every cheap certificate of progress.
+the seam without changing either tally, so the deficit is blind to it while
+the seam may now hold mismatches. On a near-solution most of the remaining
+errors are not on the seam at all. They sit interior-to-interior, where the
+deficit never looks. Across the nine bundled 469-class boards, of the 99
+unmatched edges that remain, 86.9% sit interior-to-interior and not one is
+border-to-border; only the other 13.1% land on the seam. Counting those seam
+mismatches directly is both cheaper and sharper than computing $\Delta$.
 
 ## Is it useful, then?
 
-Yes, as a late-search pruner. Once a solver has closed the border ring,
-enforcing $\Delta = 0$ rejects a useful slice of deep dead-ends for the price
-of one pass over the 56 seam edges (how large a slice is queued for exact
-measurement, not yet a committed benchmark). It is necessary-but-loose: it
-throws away bad states cheaply and leaves the hard part, the interior,
-untouched.
+Not as stated. In a backtracker that only places pieces matching their placed
+neighbours, every seam edge with both sides placed already matches, so
+$\Delta$ over the placed cells is identically zero and rejects nothing. The
+version that could prune compares the border's remaining seam demand with
+what the unused interior pieces can still supply, colour by colour. That is a
+counting (global-cardinality) constraint on the remaining pool, the family
+constraint programming handles with global cardinality constraints; it is not
+defined or benchmarked on this site yet, so its pruning value on Eternity II
+is open.

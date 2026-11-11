@@ -4,13 +4,13 @@ description: >-
   Casi todo pequeño conjunto de piezas que podrías construir es imposible. Para
   un cuadrado 2×2, el 99,72 % de las formas de colocar cuatro piezas nunca podrá
   encajar.
-metaDescription: "Casi cada pequeño fragmento de piezas de Eternity II es imposible: en un cuadrado 2×2, el 99,72 % de las colocaciones de cuatro piezas nunca coincide. Esta densidad probada de patrones prohibidos es lo que explota la arco-consistencia, y por qué los movimientos locales rara vez sirven."
+metaDescription: "Casi cada pequeño fragmento de piezas de Eternity II es imposible: en un cuadrado 2×2, el 99,72 % de las colocaciones nunca coincide, más o menos lo que da cualquier juego aleatorio de 17 colores (99,69 % de primer momento). La arco-consistencia explota esta densidad."
 kind: finding
 contribution: theory
 rigor: proven
 tier: 1
 order: 55
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: "Patrones prohibidos: artículo, código fuente y resultados (GitHub)"
@@ -76,21 +76,23 @@ $$
 \Pr[\text{one edge matches}] \;\approx\; \frac{1}{17} \;\approx\; 6\%.
 $$
 
-Un cuadrado 2×2 tiene cuatro aristas internas que satisfacer a la vez. Las
-rotaciones dan cuatro oportunidades a cada pieza, pero las cuatro aristas están
-acopladas, de modo que una estimación de independencia hecha a ojo sitúa la
-probabilidad de que las cuatro encajen en, muy aproximadamente,
+Un cuadrado 2×2 tiene cuatro aristas internas que satisfacer a la vez, y cada
+pieza puede tomar cuatro rotaciones. Tratando las cuatro aristas como
+independientes, el número esperado de las $4^4$ elecciones de rotación que
+casan las cuatro aristas es
 
 $$
-\Pr[\text{2}\times\text{2 feasible}] \;\sim\; 1 - \left(1 - \tfrac{1}{17}\right)^{\!c} \ \text{per rotation budget} \;\Rightarrow\; \lesssim 1\%,
+\mathbb{E}[\text{rotaciones que casan}] \;\approx\; \frac{4^4}{17^4} \;\approx\; 0{,}31\%,
 $$
 
-lo cual ya está por debajo del uno por ciento. El recuento exhaustivo exacto
-llega al 0,28 % de configuraciones factibles, es decir, el 99,72 % prohibidas
-$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. La estimación es
-burda porque las aristas no son independientes y los colores no son uniformes,
-pero acierta el orden de magnitud y muestra por qué cerrar un cuadrado es mucho
-más difícil que colocar un solo par.
+una cota superior de la probabilidad de que alguna rotación sirva. El recuento
+exhaustivo exacto llega al 0,28 % de configuraciones factibles, es decir, el 99,72 % prohibidas
+$(\,0.28\% = \tfrac{3{,}993{,}696}{1{,}431{,}033{,}240}\,)$. La estimación
+acierta porque los colores son casi uniformes, y esa es la cuestión: cualquier
+juego de piezas aleatorio de 17 colores da más o menos la misma densidad, así
+que el 99,72 % es una propiedad del número de colores, no un extremo propio de
+E2. Aun así muestra por qué cerrar un cuadrado es mucho más difícil que colocar
+un solo par.
 
 ## Los recuentos exactos
 
@@ -121,34 +123,36 @@ aristas adyacentes
 parcial que obliga a una celda a responder con uno de esos 20 pares de esquina
 está muerto en el acto, antes de probar una sola pieza, y un solucionador rápido
 puede rechazarlo con una única consulta de tabla. Es la misma lección que el
-recuento 2×2, llevada hasta la unidad más pequeña que puede ser imposible: las
-restricciones muerden tan pronto que categorías enteras de demanda local no
-tienen ninguna respuesta legal en absoluto.
+recuento 2×2, llevada hasta la unidad más pequeña que puede ser imposible. Es
+también lo que predice el azar: las 196 piezas interiores muestran 784 pares de
+esquina, así que con una pintura aleatoria cada uno de los 289 pares ordenados
+falta con probabilidad de alrededor de $e^{-784/289}$, y el número esperado de
+ausencias es $289\,e^{-784/289} pprox 19{,}2$, frente a 20 observadas.
 
 ## Por qué importa
 
 Un tablero terminado y correcto tiene cero conjuntos prohibidos: por
-definición, todo encaja. Así que contar los conjuntos prohibidos de un tablero
-indica aproximadamente a qué distancia está de una solución real, incluso
-cuando dos tableros tienen el mismo número de aristas encajadas. Los tableros
-débiles están llenos de cuadrados prohibidos; los mejores tableros jamás
-encontrados solo conservan un par de docenas.
+definición, todo encaja. En una casi solución cada ventana 2×2 prohibida
+contiene una arista rota, y cada rotura interior está como mucho en dos
+ventanas, así que el recuento es más o menos el doble del número de roturas:
+los tableros de 470, con 10 roturas, rondan las 18 ventanas prohibidas. Los
+tableros débiles están llenos de cuadrados prohibidos; los mejores tableros
+jamás encontrados solo conservan un par de docenas.
 
-También muestra, desde otro ángulo, por qué el puzzle se sacude los arreglos
-locales ingeniosos. Cuando el 99,72 % de los pequeños cuadrados son imposibles,
-las piezas que sí encajan entre sí son raras y específicas. No hay casi margen
-para reordenar las cosas sin romper algo. Los buenos arreglos son escasos y
-rígidos.
+La densidad dice que la factibilidad local es rara para un conjunto tomado al
+azar. No vuelve rígidos los buenos arreglos en términos absolutos: existen
+3 993 696 cuadrados 2×2 factibles, y
+[las celdas interiores conservan decenas de candidatas](/research/why/no-forced-moves).
 
 ## Un segundo eje de progreso
 
-Contar los cuadrados prohibidos convierte la idea en una señal utilizable. Toma
-un tablero récord real: el número de ventanas 2×2 prohibidas disminuye a medida
-que sube la puntuación de aristas encajadas. Dos tableros con la misma
-puntuación de aristas aún pueden diferir aquí: el que tiene menos cuadrados
-prohibidos está estructuralmente más cerca de una solución, y por eso algunos
-solucionadores siguen el recuento de conjuntos prohibidos como criterio de
-desempate.
+Contar los cuadrados prohibidos hace visible la idea. Toma un tablero récord
+real: el número de ventanas 2×2 prohibidas disminuye a medida que sube la
+puntuación de aristas encajadas, porque depende casi por completo de la
+puntuación. A igual puntuación, mide sobre todo lo agrupadas que están las
+roturas (dos roturas en una misma ventana cuentan una vez). No se ha medido si
+un tablero con menos ventanas prohibidas a igual puntuación está más cerca de
+una solución.
 
 <Figure collapsible title="Interactivo: cuenta las colocaciones factibles frente a las prohibidas">
   <ForbiddenCountLab />

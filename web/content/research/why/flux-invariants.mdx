@@ -1,5 +1,5 @@
 ---
-title: "Flux invariants: a rotation law the official set obeys exactly"
+title: "Flux invariants: a rotation law every solution must satisfy"
 description: >-
   Weight every edge color and read each piece as a signed vector, east minus
   west on one axis, south minus north on the other. Summed over any region the
@@ -12,13 +12,15 @@ contribution: theory
 rigor: proven
 tier: 2
 order: 70
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure]
 sources:
   - label: "Flux invariants: reproduction topic with the article, the committed checker and the results JSON (GitHub)"
     url: https://github.com/raphael-anjou/eternity2/tree/main/research/topics/flux-invariants
   - label: "Conway and Lagarias, Tiling with polyominoes and combinatorial group theory: the boundary-word invariants this law adapts to edge matching (JCTA 1990)"
     url: https://doi.org/10.1016/0097-3165(90)90057-4
+  - label: "Thurston, Conway's tiling groups: the boundary-word (van Kampen) form of the tiling-group condition (American Mathematical Monthly 97, 1990)"
+    url: https://doi.org/10.1080/00029890.1990.11995660
   - label: "Brendan Owen digitises the piece set: the color histogram this law counts against (groups.io msg 1054, July 2007)"
     url: https://groups.io/g/eternity2/message/1054
   - label: "Brendan Owen, Design the hardest puzzle: the deliberate frame/interior palette split (groups.io msg 1947, August 2007)"
@@ -49,8 +51,8 @@ hold for every valid solution regardless of score.
 
 ## The one-line idea
 
-Give each of the 22 edge colors a numeric weight, with the gray border color
-weighted zero. Read a placed piece as a two-dimensional vector: its east weight
+Give each of the 22 non-grey edge colors a numeric weight, and weight the grey
+border color zero. Read a placed piece as a two-dimensional vector: its east weight
 minus its west weight on the horizontal axis, its south weight minus its north
 weight on the vertical axis. Now sum that vector over any block of placed pieces.
 Every internal seam of the block is shared by two pieces, and it enters the sum
@@ -83,8 +85,9 @@ pieces go but on which rotations the whole set may adopt.
 ## The complete family, and what is new
 
 The rotation group of a square has four characters, and the flux law is only one
-of them. Decomposing the piece along all four gives the complete lattice of
-linear, piece-intrinsic edge-matching invariants: nothing linear escapes it. The
+of them. Decomposing the piece along all four gives four families of linear,
+piece-intrinsic edge-matching invariants. Whether any other linear invariant
+exists is not proven here. The
 four members are a plain color census (rotation-blind, the piece's total count of
 each color), the Gaussian flux law just described, its complex conjugate (the
 same information), and a fourth, integer-valued member that couples each piece's
@@ -114,8 +117,8 @@ out as follows.
     <div className="mt-1 text-xs text-muted-foreground">complex rank, full (22 of 22 colors)</div>
   </div>
   <div className="rounded-lg border p-4">
-    <div className="text-3xl font-bold tabular-nums">40</div>
-    <div className="mt-1 text-xs text-muted-foreground">independent real constraints</div>
+    <div className="text-3xl font-bold tabular-nums">44</div>
+    <div className="mt-1 text-xs text-muted-foreground">independent real equations on the rotation phasors</div>
   </div>
   <div className="rounded-lg border p-4">
     <div className="text-3xl font-bold tabular-nums">21</div>
@@ -124,14 +127,20 @@ out as follows.
 </div>
 
 Full complex rank 22 means the law binds all 22 colors at once, with no color
-falling out as a free variable. Splitting the complex equations into their real
-and imaginary parts gives 40 independent real constraints on the rotation
-assignment. And reducing the whole system modulo 2, where a piece's rotation
+falling out as a free variable. Splitting the complex
+equations into their real and imaginary parts gives 44 independent real
+equations on the real and imaginary parts of the rotation phasors $i^{r_p}$.
+(The checker also reports 40: the real rank of the stacked real and imaginary
+coefficient rows acting on real unknowns, a different quantity.) And reducing the whole system modulo 2, where a piece's rotation
 collapses to a single parity bit (a quarter turn and a three-quarter turn become
 the same mod 2), leaves 21 independent parity constraints, the augmented system
 staying rank 21 as well, so it is consistent rather than contradictory. That mod-2
 system alone removes a factor of about two million from the space of rotation
-parities.
+parities. None of this singles out the official set: any piece set that has a
+solution satisfies the law, so every puzzle painted from a solved board,
+generated ones included, is consistent, and full rank is the generic case.
+The numbers measure the size of the law on E2, not a property that
+distinguishes E2.
 
 The instance facts the law counts against reproduce exactly too, digit for digit
 against Brendan Owen's digitised piece set: 196 interior pieces, 56 edge pieces,
@@ -174,11 +183,19 @@ exact percentages. The source reports a steeper curve (13%, 50%, 100% at fills
 board at 13 colors with a uniformly chosen injected piece and a pool of 30 boards,
 30 orderings each (900 per fill), so the absolute detection rates sit lower. What
 holds exactly, and is the point, is that the certificate is sound and that its
-detection probability climbs monotonically toward full as the board fills. That
-is precisely the useful behavior for a search: the check sharpens exactly where
-the tree's branching tail is most expensive, near the end, and every catch is
-orthogonal to color and count pruning, so it adds on top of them rather than
-duplicating them.
+detection probability climbs monotonically toward full as the board fills. The
+benchmark is artificial, though. It rotates one tile of an otherwise planted
+solution, a state a backtracker never produces: the rotated tile mismatches
+its placed neighbours, and ordinary edge checking already rejects it. So the
+catch rates say nothing yet about real dead ends, and whether the check adds
+anything to color and count pruning is untested. On the 16x16 board the
+residual system has only 21 parity equations, so it is generically
+satisfiable while more than about 21 rotation bits remain free: it can only
+fire in roughly the last 20 cells, the collapse that the
+[complex-theory funnel](/research/why/complex-theory) shows is already cheap.
+Measuring its value needs dead-end states harvested from a 16x16 backtracker
+that already enforces matching and count checks, with the extra pruning per
+node and the wall-clock effect reported.
 
 ## What it is and is not
 
@@ -188,13 +205,15 @@ inside a branch-and-prune search, and it is shared by every result in this
 family. Two more honesty flags. The law constrains which rotations the piece set
 may use, not which cell each piece sits in; only the checkerboard member couples
 to position, and only through the parity of the cell, so neither member pins a
-piece to a place. And the natural nonlinear extension, a nonabelian boundary-word
-product in the style of the original Conway and Lagarias construction, does not
-survive in two dimensions: an interior cell has four shared edges but only two
-neighbours adjacent to it in any linear reading order, so at least two of its
-edges can never be made to cancel, and the construction collapses back to the
-linear flux law. Any invariant strictly stronger than these must be nonlinear and
-lies outside the tiling-group family.
+piece to a place. And the nonabelian extension in the style of Conway and Lagarias does exist.
+For a simply connected region, label each edge by its color and direction; a
+matched seam is traversed in opposite directions with the same label and
+cancels, so the region's boundary word must equal a product of conjugates of
+the tiles' boundary words in the free group, a van Kampen diagram
+([Thurston, 1990](https://doi.org/10.1080/00029890.1990.11995660)). That is a
+genuine nonlinear necessary condition, and its abelian shadow is the census
+plus the flux law above. Checking it is essentially as hard as solving the
+tiling, which is why it is of no practical use as a pruner here.
 
 ## Where it sits
 
@@ -207,7 +226,8 @@ obeys, and it is the algebraic complement to the
 whole board as a codeword: the flux law is a set of parity checks the rotations
 must satisfy, the same currency that lens is written in. The
 [complex theory page](/research/why/complex-theory) counts how wide the search
-is; this page adds a cheap, sound way to prune its endgame.
+is; this page adds a cheap, sound endgame check whose pruning value on real
+searches is not yet measured.
 
 Every number above is recomputed by the committed checker in the reproduction
 topic linked under sources: a single deterministic Rust program that loads the
