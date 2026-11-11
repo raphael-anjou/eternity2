@@ -1,9 +1,10 @@
 ---
 title: MIDDEN
 description: >-
-  Decidir de antemano no cuándo puede romperse un tablero, sino dónde: confinar
-  cada desajuste a una forma de celdas elegida, y buscar la mejor forma.
-metaDescription: "MIDDEN decide de antemano no cuándo puede romper un tablero de Eternity II, sino dónde: confina cada desajuste a una forma de celdas elegida, y luego busca la mejor forma. Esta tubería de colocación de rupturas alcanzó 452 de 480 tratando la ubicación de los fallos como aquello que optimizar."
+  Extender los calendarios de rupturas por profundidad a máscaras de celdas
+  arbitrarias: confinar cada desajuste a una forma de celdas elegida, y buscar
+  la mejor forma.
+metaDescription: "MIDDEN extiende los calendarios de rupturas por profundidad de Eternity II a máscaras de celdas arbitrarias: confina cada desajuste a una forma de celdas elegida, y luego busca la mejor forma. Esta tubería de colocación de rupturas alcanzó 452 de 480 tratando la ubicación de los fallos como aquello que optimizar."
 kind: experiment
 hardware:
   cores: 8
@@ -36,7 +37,7 @@ stages:
   - engine: break-dfs
     does: "Un DFS tolerante a roturas a partir del marco permite desajustes solo dentro de la máscara, con coincidencia perfecta fuera"
 order: 72
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search]
 related:
@@ -51,7 +52,12 @@ sources:
 
 import { MaskShapeDiagram } from "@/components/research/MaskShapeDiagram";
 
-La mayoría de los solucionadores que permiten roturas controlan cuándo se
+Los calendarios de rupturas por profundidad, como los de Blackwood y Verhaard,
+ya fijan qué celdas pueden romperse, porque en un orden de recorrido fijo una
+profundidad es una celda. MIDDEN generaliza esa idea a máscaras arbitrarias: un
+conjunto de celdas elegido, libre del orden de recorrido y posiblemente
+disperso, el único lugar donde pueden pagarse desajustes; en el resto todo debe
+encajar a la perfección. Luego busca la forma de esa máscara. los solucionadores que permiten roturas controlan cuándo se
 permite un desajuste: a ciertas profundidades, más allá de cierto relleno.
 MIDDEN controla dónde, en cambio. Fija una máscara, un conjunto de celdas
 elegido, e impone que los desajustes solo puedan pagarse dentro de ella; en
@@ -84,16 +90,16 @@ claro; lo que queda abierto es la economía del asunto: convertir una serie
 perfecta más larga en una puntuación final más alta una vez que el final de
 partida tiene que absorber el daño diferido.
 
-Así que la máscara es una palanca real, el complemento espacial de los controles
-de tiempo habituales, con un efecto medido sobre hasta dónde permanece perfecto
-un tablero, pero todavía no una vía acabada hacia un récord.
+Así que la máscara es una palanca sobre la longitud del prefijo perfecto, con
+un efecto medido sobre hasta dónde un tablero sigue perfecto; su efecto sobre la
+puntuación final no se ha probado, y aún no es una vía hacia un récord.
 
 ## Método
 
-Cualquier otra búsqueda tolerante a roturas regula el daño por *cuándo*: una
-profundidad, una fracción de relleno. MIDDEN regula por *dónde*. Es el primer
-control de daño por conjunto de celdas (DÓNDE) frente a las regulaciones por
-profundidad (CUÁNDO) de todos los demás.
+Los calendarios de rupturas por profundidad (Blackwood, Verhaard) ya fijan qué
+celdas pueden romperse, porque profundidad y celda coinciden en un orden de
+recorrido fijo. MIDDEN lo extiende a máscaras arbitrarias, no contiguas, que no
+tienen por qué seguir el orden de recorrido.
 
 - **La máscara.** Un conjunto de celdas elegido (una máscara de 256 bits) se
   pasa mediante `--break-cells`. Dentro de la máscara, los desajustes están
@@ -105,14 +111,7 @@ profundidad (CUÁNDO) de todos los demás.
   conjunto elegido por color, barridos sobre formas y densidades, cada uno a
   300 s × 8 semillas.
 
-El resultado medido es una regla de diseño de densidad graduada: un **enrejado
-disperso** de celdas de daño permitido alarga la serie perfecta más larga de
-~153 celdas a 167-174 (**+21**), mucho más que concentrar el daño en una fila o
-dos. El mecanismo es claro; la economía que queda abierta es el final de
-partida: una serie perfecta más larga solo ayuda si la cola puede absorber el
-daño diferido, y la máscara dispersa que maximiza el muro no sella por sí sola
-el final. El paso siguiente natural (componer una máscara de cuerpo dispersa con
-una cola abierta) es exactamente lo que el barrido MIDDEN-v2 se propuso probar.
+(**+14 a +21**)
 
 ## Reproducir
 
