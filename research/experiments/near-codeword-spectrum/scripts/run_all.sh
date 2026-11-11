@@ -34,7 +34,7 @@ done
 start=$(date +%s)
 {
     for s in $(seq 1 20); do echo "8 16 $s"; echo "10 18 $s"; done
-} | xargs -P "$CORES" -L 1 sh -c '[ -s results/raw/stage3/$0x$0_C$1_s$2.jsonl ] || '"$B"' stage3 $0 $1 $2 > results/raw/stage3/$0x$0_C$1_s$2.tmp && mv results/raw/stage3/$0x$0_C$1_s$2.tmp results/raw/stage3/$0x$0_C$1_s$2.jsonl'
+} | xargs -P "$CORES" -L 1 sh -c 'f=results/raw/stage3/$0x$0_C$1_s$2; [ -s $f.jsonl ] || { '"$B"' stage3 $0 $1 $2 > $f.tmp && mv $f.tmp $f.jsonl; }'
 echo "stage3 wall $(( $(date +%s) - start )) s" | tee -a results/raw/wall.txt
 cat $(ls results/raw/stage3/*.jsonl | sort -V) > results/raw/stage3.jsonl
 $PY scripts/analyze.py
