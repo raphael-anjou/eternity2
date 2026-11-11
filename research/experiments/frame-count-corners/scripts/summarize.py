@@ -177,7 +177,9 @@ def main():
     else:
         k2_fail = None
     k1_fail = bool(k1_mismatch)
-    if k1_fail or k2_fail or crt_agree is False:
+    if crt_agree is False:
+        outcome = "invalid"
+    elif k1_fail or k2_fail:
         outcome = "killed"
     elif finished < 30 or k2_fail is None:
         outcome = "inconclusive"
