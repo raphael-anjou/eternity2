@@ -3,13 +3,14 @@ title: Priors de corpus
 description: >-
   La façon la plus simple d'apprendre des bons plateaux : compter où chaque pièce
   tend à se placer, ou à quelle fréquence elle satisfait une demande rare, et se
-  servir de ce décompte comme d'un léger départage en construction. Ce doit rester
-  un départage ; dès qu'il entre dans l'objectif, il fait s'effondrer la recherche.
-metaDescription: "Priors de corpus pour Eternity II : compter où les pièces se placent dans les bons plateaux, ou combien de fois une pièce sert une demande rare, puis employer ce décompte comme minuscule départage en recherche en faisceau. PRIOR atteint 460 sur grille vide ; montez le poids, le score s'effondre."
+  servir de ce décompte comme d'un léger départage en construction. Dans les
+  exécutions de ce projet il a fonctionné en départage ; à fort poids fixe, il a
+  fait s'effondrer la recherche.
+metaDescription: "Priors de corpus pour Eternity II : compter où les pièces se placent dans les bons plateaux, ou combien de fois une pièce sert une demande rare, et s'en servir pour départager en faisceau. PRIOR atteint 460 après raffinement ; de forts poids ont fait chuter LODESTONE."
 kind: concept
 order: 50
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [construction, learning]
 sources:
   - label: "Recherche en faisceau (page concept de ce projet) : la construction à largeur bornée qu'un prior biaise"
@@ -54,7 +55,8 @@ la plus typique des bons plateaux à cet endroit. Le décompte d'arêtes appari�
 décide toujours ; le prior ne parle que lorsque le décompte est muet. C'est
 l'expérience [PRIOR](/research/lab/experiments/raphael-anjou/learning/prior), qui
 bâtit un plateau compétitif à partir d'une grille vide, sans plateau où
-s'ancrer, et atteint ainsi 460.
+s'ancrer : le milieu des 450 avec le seul faisceau, et 460 après une courte phase
+de raffinement local.
 
 Trois affûtages du même décompte méritent d'être nommés, car chacun échange la
 force du signal contre du bruit :
@@ -86,13 +88,15 @@ soient dérobées. C'est l'expérience [LODESTONE](/research/lab/experiments/rap
 et elle se rattache à la [géographie des couleurs rares](/research/why/rare-color-geography)
 du puzzle.
 
-## Pourquoi cela reste un départage
+## Pourquoi c'est resté un départage
 
-Le détail porteur, pour le prior positionnel comme pour celui de la demande rare,
-est que le multiple sur le prior doit être *minuscule*. Un prior est un pur
-départageur : il tranche entre des coups qui apparient également, et rien de plus.
-Montez le poids ne serait-ce qu'un peu et la recherche se met à troquer une arête
-appariée réelle contre une intuition statistique, et le score s'effondre :
-LODESTONE tombe de 451 à 422 à 380 à mesure que le poids grimpe. Cet effondrement
-n'est pas un bogue d'implémentation ; c'est la forme de toute la famille, et il a
-sa propre page : [quand l'apprentissage s'effondre](/research/build/learning/when-learning-collapses).
+Le détail porteur dans ces exécutions, pour le prior positionnel comme pour celui
+de la demande rare, est que le multiple sur le prior est resté *petit*. Dans
+LODESTONE, sur cinq graines, un poids infime a fait passer la médiane de 449 à 451
+(à l'intérieur de la dispersion de base, de 446 à 451), et des poids fixes plus
+élevés ont donné 422 et 380. Cela suggère que le prior doit rester petit devant
+les arêtes appariées dans ce faisceau, où un poids plus fort se met à troquer une
+arête appariée réelle contre une intuition statistique. Les poids recuits ou
+adaptatifs, et d'autres priors, n'ont pas été testés. L'endroit où ces signaux
+ont cessé d'aider a sa propre page :
+[quand l'apprentissage s'effondre](/research/build/learning/when-learning-collapses).

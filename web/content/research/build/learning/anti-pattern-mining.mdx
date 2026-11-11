@@ -2,14 +2,14 @@
 title: Anti-pattern mining
 description: >-
   The subtle idea in learning from strong boards: not every agreement between
-  them is good. Some shared placements are real structure; some are a shared trap
-  that caps every search just short of the top. Separate the two, and attack the
-  trap.
-metaDescription: "Anti-pattern mining for Eternity II: two frequencies separate the real structure strong boards share from the consensus trap that caps every search just short of the top, then steer an ALNS search to break the trap patterns. PALIMPSEST used this to reach 463; banning traps outright fails."
+  them is good. Some shared placements are real structure; some may be a shared
+  trap that caps searches just short of the top. Try to separate the two, and
+  attack the trap.
+metaDescription: "Anti-pattern mining for Eternity II: flag placements common across strong boards but absent from the very best ones as candidate traps, then steer an ALNS search to break them. PALIMPSEST's steered run reached 463, without a random-break control; banning traps outright made boards worse."
 kind: concept
 order: 52
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [local-search, learning]
 sources:
   - label: "Ropke & Pisinger 2006, adaptive large-neighbourhood search (the destroy-and-repair frame this steers)"
@@ -31,14 +31,14 @@ where the good boards concur, follow them. This one takes agreement apart, becau
 some of it is a trap. When many independent searches all reach a high but
 imperfect board, they agree on a great many placements, and some of that agreement
 is genuine structure while some of it is a shared bad habit: a local choice that
-looks good, feels forced, and quietly caps every search just short of the top. The
-whole idea is to tell the two apart, then attack the trap.
+looks good, feels forced, and may cap searches just short of the top. The idea is
+to try to tell the two apart, then attack the trap.
 
 ## Two frequencies, not one
 
 A single count cannot separate real structure from a trap, because both show up
-almost everywhere. The trick is to compute *two* frequencies for each candidate
-pattern and compare them. Over a corpus of boards scoring across a wide band, for
+almost everywhere. The method computes *two* frequencies and a ceiling for each
+candidate pattern. Over a corpus of boards scoring across a wide band, for
 every adjacent cell-pair and every piece-pair that ever sits there, measure:
 
 $$
@@ -47,13 +47,16 @@ p_\text{all} = \frac{\#\{\text{boards with the pair}\}}{\#\{\text{all boards}\}}
 $$
 
 together with a *ceiling*: the best score of any board that contains the pattern.
-Two categories fall out. **Good consensus** is high $p_\text{all}$ with a high
-ceiling, a pattern that strong boards share *and* the very best boards keep: real,
-trustworthy structure. A **consensus trap** is high $p_\text{all}$ with a ceiling
-stuck just below the top, a pattern almost every board adopts but no top board
-does: the agreed-upon wrong choice that locks a whole family below the record. The
-single-frequency view cannot distinguish them; splitting by basin is the entire
-move.
+The ceiling, not $p_\text{high}$, does the sorting; $p_\text{high}$ is reported
+alongside it. **Good consensus** is high $p_\text{all}$ with a ceiling that
+reaches the top of the corpus: a pattern the very best boards keep. A **candidate
+trap** is high $p_\text{all}$ with a ceiling stuck just below the top: a pattern
+most boards adopt but no top board does. The cut between the two was set by hand,
+and the corpus has very few boards at the top, so "absent from the top" often
+means absent from one or two boards. Any frequent pattern missing from those
+boards qualifies, whether or not it causes anything; no permutation baseline
+(shuffling scores across boards) has measured how many such traps appear by
+chance.
 
 <Figure collapsible title="Interactive: the trap map, corner-family by corner-family">
   <PalimpsestDiagram />
@@ -67,10 +70,13 @@ experiment uses it to steer an [ALNS](/research/build/local-search/local-search-
 search: take a board caught in the trap basin, find the wedge whose removal breaks
 the most trap patterns while sparing the good-consensus ones, deliberately break
 those cells, and hand the board back to the repair loop, whose destroy operator
-tears open exactly those broken regions and rebuilds them. Steered this way, it
-reached 463, the best board this project has produced (the
+tears open exactly those broken regions and rebuilds them. Started from a 461
+board with 4 to 8 deliberate breaks at the top trap wedge, the best of six
+30-minute runs reached 463, the best board this project has produced (the
 [PALIMPSEST experiment](/research/lab/experiments/raphael-anjou/learning/palimpsest),
-whose committed board reproduces via `just research-record-boards`).
+whose committed board reproduces via `just research-record-boards`). A control
+with breaks at a random wedge was not run, so the trap map's share of that 463 is
+not established.
 
 The caveat is the lesson. Trying to use the trap list *directly*, forcing the
 search to avoid every trapped placement, did not work and made boards worse. The
@@ -82,8 +88,9 @@ between tiebreak and objective that runs through
 here the danger is not over-weighting a good signal but over-trusting a signal
 about what is *bad*.
 
-Even steered perfectly, this does not clear the top. Rebuilding the trapped regions
-tends to land back on the same known top board rather than a genuinely new one,
-because the trap is not a mistake a smarter search avoids; it is the
-[rigidity wall](/research/why/rigidity-wall) itself. That is the subject of the
-[collapse page](/research/build/learning/when-learning-collapses).
+Even steered, this did not clear the top. Rebuilding the trapped regions tended to
+land back on the same known top board rather than a genuinely new one. Whether
+that reflects the [rigidity wall](/research/why/rigidity-wall), the thin top of the
+corpus, or the repair operator is not settled; the
+[collapse page](/research/build/learning/when-learning-collapses) lists the
+candidates.

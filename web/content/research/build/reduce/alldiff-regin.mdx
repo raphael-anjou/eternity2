@@ -3,14 +3,14 @@ title: All-different, Régin's matching filter
 description: >-
   No piece may be used twice: one global all-different constraint over 256
   cells. Jean-Charles Régin showed in 1994 how bipartite matching filters it
-  completely in polynomial time; its per-colour cousin is the strongest
-  propagator anyone has measured on edge matching, with one sharp caveat
-  about mismatch-tolerant searches.
-metaDescription: "Eternity II's 256 cells must hold 256 distinct pieces: one global all-different. Jean-Charles Régin's 1994 bipartite-matching filter prunes it completely in polynomial time, and its per-colour cousin is the strongest propagator measured on this engine, lifting a backtracker to 449 of 480 edges."
+  completely in polynomial time; its per-colour cousin is a strong
+  edge-matching propagator in the literature, with one sharp caveat about
+  mismatch-tolerant searches, where only a soft version stays sound.
+metaDescription: "Eternity II's 256 cells must hold 256 distinct pieces: one global all-different. Jean-Charles Régin's 1994 bipartite-matching filter prunes it completely in polynomial time; its per-colour cousin prunes colour supply, but turns unsound under a mismatch budget."
 kind: concept
 order: 20
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, exact-methods]
 sources:
   - label: Régin 1994, "A Filtering Algorithm for Constraints of Difference in CSPs" (AAAI-94)
@@ -19,11 +19,16 @@ sources:
     url: https://doi.org/10.1007/978-3-540-85958-1_42
   - label: Hopcroft–Karp matching algorithm (Wikipedia)
     url: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
+  - label: 'Petit, Régin & Bessière 2001, "Specific Filtering Algorithms for Over-Constrained Problems" (CP 2001): soft all-different'
+    url: https://doi.org/10.1007/3-540-45578-7_31
+  - label: 'van Hoeve, Pesant & Rousseau 2006, "On global warming: Flow-based soft global constraints" (Journal of Heuristics)'
+    url: https://doi.org/10.1007/s10732-006-6550-4
 related:
   - /research/build/reduce/arc-consistency
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/why/no-forced-moves
   - /research/build/dead-ends
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
 repro:
   kind: prose
 ---
@@ -54,8 +59,9 @@ global assignment gets removed. The construction is pure graph theory:
 4. Every edge that belongs to none is a candidate that can be deleted from
    its cell's domain, soundly.
 
-This paper effectively founded the field of global constraints in constraint
-programming: a constraint over hundreds of variables, filtered to optimality
+This paper is a landmark of global constraints in constraint programming
+(alongside contemporaneous work such as CHIP's cumulative and element
+constraints): a constraint over hundreds of variables, filtered to optimality
 by one combinatorial algorithm instead of being decomposed into weak pairwise
 checks. Incremental versions (Régin 1995; Mehlhorn & Thiel 2000) repair the
 matching after a few deletions instead of recomputing it, which is what makes
@@ -138,14 +144,16 @@ The same theorem applies at two different levels on this puzzle.
 perfectly across adjacent cells: a perfect-matching condition per colour
 class. Ansótegui, Béjar, Fernández and Mateu built exactly this propagator on
 Régin's theorem for edge-matching CSPs and called it the most powerful global
-constraint they had found for these puzzles. That matches this project's
-experience: the per-colour filter is the strongest propagator in the
-project's exact-matching engine, the ingredient that (together with
-[arc consistency](/research/build/reduce/arc-consistency)) lifts a plain
-backtracker to 449 of 480 edges in under a minute (measured on this
-project's engine, not independently replicated). It earns its keep late: the
-project gates it to deep positions, where domains are tight enough for
-matchings to fail and the cost is repaid.
+constraint they had found for these puzzles. This project's evidence is
+thinner. One unreplicated run of an earlier engine, with the per-colour
+filter and [arc consistency](/research/build/reduce/arc-consistency)
+together, reached 449 of 480 edges in under a minute, but no run isolates the
+filter. In the committed
+[DFS study](/research/lab/experiments/raphael-anjou/dfs-study/findings), adding
+the per-colour supply check to an MRV backtracker with AC-3 changed the
+60-second mean score not at all (320.6 both ways). The project gates the
+filter to deep positions, where domains are tight enough for matchings to
+fail.
 
 **Per piece.** The direct reading, remaining pieces versus empty cells,
 catches the Hall-style traps that crossing-off misses: whole groups of cells
@@ -160,16 +168,33 @@ The per-colour filter assumes every colour must match *exactly*. A
 [Blackwood-style search](/research/lab/experiments/joshua-blackwood/solver) breaks that
 assumption on purpose: its break indices license a budget of mismatches at
 late depths, so a board the filter proves "impossible" may be exactly the 470
-the search is hunting. Running the per-colour matching filter inside a
-mismatch-tolerant search is unsound, full stop. On this project's engine it
-is switched off in that regime, and dropping it (with the rest of the strict
-propagators) was part of a large single-thread speedup.
+the search is hunting. Running the exact per-colour matching filter inside a
+mismatch-tolerant search is unsound. On this project's engine it is switched
+off in that regime, and dropping it (with the rest of the strict
+propagators) was part of a large single-thread speedup. A sound alternative
+exists in the literature: soft all-different and soft cardinality
+constraints ([Petit, Régin & Bessière 2001](https://doi.org/10.1007/3-540-45578-7_31);
+[van Hoeve, Pesant & Rousseau 2006](https://doi.org/10.1007/s10732-006-6550-4))
+compute a lower bound on the number of violations, here the per-colour
+matching deficit, which can be compared with the remaining break budget.
+The [arc-consistency page](/research/build/reduce/arc-consistency) covers the
+same idea for AC. Nobody has measured whether it pays on this puzzle.
 
 The piece-level all-different is the exception, and it matters: even a
 mismatch-tolerant search never uses a piece twice. Piece uniqueness stays
 strict when colour matching does not, so Régin's filter over pieces remains
-sound in precisely the regime where everything else in the propagation family
-breaks. It is the one strong global propagator available to a record engine.
+sound in precisely the regime where the hard propagators break.
+
+How much it would add is a separate question. Under a row-scan order almost
+every unfilled cell has no placed neighbour, so its domain is every remaining
+piece of the right type and no Hall set can form there. Only the frontier
+cells, about sixteen of them, are restricted, mostly by a single colour, and a
+Hall violation among them reduces to "fewer remaining pieces show colour $c$
+on the needed side than frontier cells demand $c$". That is a per-colour
+counting check, close to the supply-and-demand prune engines like this one
+already run. Break cells widen domains further. The extra pruning from the
+piece-level filter is therefore plausibly small; a cheap test is to log how
+often Régin's filter removes a candidate that the counting prune had kept.
 
 ## Benefit, and what is not yet known
 
@@ -178,6 +203,6 @@ The benefit side, though, has a hole in it: Régin's original paper
 benchmarks a 25-variable toy, and there is no published measurement of
 the filter on a 256-variable all-different shaped like Eternity II. This
 project has not built the piece-level version either; its promise inside
-mismatch-tolerant searches is an argument, not a number. Treat it as the
-best-reasoned open bet on the shelf: sound where nothing else strong is,
-cost known to be polynomial, payoff unmeasured.
+mismatch-tolerant searches is an argument, not a number. Treat it as an open
+bet: sound where the hard propagators are not, cost known to be polynomial,
+payoff unmeasured and possibly small next to the counting prune.

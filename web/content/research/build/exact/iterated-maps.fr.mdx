@@ -10,7 +10,7 @@ metaDescription: "L'attaque des physiciens sur Eternity II : la difference map e
 kind: concept
 order: 170
 group: Exact methods
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [exact-methods, learning]
 sources:
   - label: Elser, Rankenburg & Thibault, Searching with iterated maps (PNAS 104:418, 2007)
@@ -21,6 +21,10 @@ sources:
     url: https://arxiv.org/abs/0801.0222
   - label: Aragón Artacho, Borwein & Tam, Recent results on Douglas–Rachford methods for combinatorial optimization problems (arXiv:1305.2657)
     url: https://arxiv.org/abs/1305.2657
+  - label: "Hesse & Luke, Nonconvex notions of regularity and convergence of fundamental algorithms for feasibility problems (SIAM J. Optim. 23, 2013)"
+    url: https://doi.org/10.1137/120902653
+  - label: "Phan, Linear convergence of the Douglas–Rachford method for two closed sets (Optimization 65, 2016)"
+    url: https://doi.org/10.1080/02331934.2015.1051532
   - label: JSA formalise le problème dual et présente les travaux d'Elser à la liste (message groups.io 9347)
     url: https://groups.io/g/eternity2/message/9347
   - label: JSA sur les articles divide-and-concur et la question ouverte du passage à l'échelle (message groups.io 9350)
@@ -45,6 +49,7 @@ related:
   - /research/build/dead-ends
   - /research/build/exact/lp-relaxations
   - /research/build/exact/sat-csp-encodings
+  - /research/build/analysis/solution-counting
 repro:
   kind: prose
 ---
@@ -94,11 +99,19 @@ point le plus proche de l'ensemble :
   l'affinité totale. L'algorithme hongrois le résout exactement en temps
   polynomial, le même moteur d'affectation qui alimente l'étape de recomplétion
   de la [recherche locale](/research/build/local-search/local-search-alns).
-- $P_2(x)$, le coloriage cohérent en arêtes le plus proche, se décompose arête
-  par arête : chaque jointure intérieure moyenne simplement ses deux côtés vers
-  l'accord. Purement local, massivement parallèle.
+- $P_2(x)$, le plateau cohérent en arêtes le plus proche, est le point
+  délicat. Dans ce plongement one-hot, $C_2$ est l'ensemble des grilles 0/1
+  (doublons permis) dont les côtés en contact concordent : un ensemble de
+  pavages non convexe, couplé globalement, et son point le plus proche ne se
+  calcule pas jointure par jointure. Moyenner deux côtés vers l'accord, c'est
+  projeter sur un ensemble d'accord *continu*, et le résultat mélange des
+  couleurs qui n'en sont pas. Le remède est de changer de plongement, ce que
+  fait divide-and-concur (plus bas) : chaque jointure reçoit sa propre réplique
+  des deux côtés qu'elle relie, et la projection d'arête devient un minuscule
+  problème discret par jointure (la paire de couleurs concordante la plus
+  proche, trouvée par énumération). Purement local, massivement parallèle.
 
-Chaque projection est un problème résolu. Toute la difficulté d'Eternity II
+Avec des répliques, chaque projection est bon marché. Toute la difficulté d'Eternity II
 réside entièrement dans l'*intersection*, et le schéma naïf, l'alternance de
 projections $x \mapsto P_1(P_2(x))$, échoue exactement comme on l'imagine : il
 converge vers une paire de points, un dans chaque ensemble, localement aussi
@@ -156,9 +169,14 @@ tout le travail :
 
 Pour $\beta = 1$ la difference map coïncide avec l'**itération de
 Douglas–Rachford**, une méthode de projection que les analystes convexes
-étudient depuis les années 1950 ; la convergence est démontrable lorsque les
-deux ensembles sont convexes, et totalement non garantie ici, où $C_1$ est un
-nuage de points de permutation. La liste Eternity II n'a appris le nom de la
+étudient depuis les années 1950. La convergence globale est démontrable
+lorsque les deux ensembles sont convexes ; ici, où $C_1$ est un nuage de
+points de permutation, aucune garantie globale ne tient. Il existe bien des
+résultats de convergence locale pour des problèmes de faisabilité non convexes
+([Hesse & Luke 2013](https://doi.org/10.1137/120902653) ;
+[Phan 2016](https://doi.org/10.1080/02331934.2015.1051532)), mais aucun n'a été
+appliqué à une instance d'appariement d'arêtes de la taille d'Eternity II,
+d'après une recherche bibliographique (vérifié en novembre 2026). La liste Eternity II n'a appris le nom de la
 famille qu'en 2025, quand Wyatt Carpenter a trouvé Wikipédia créditant
 « l'algorithme de Douglas–Rachford » pour la résolution de TetraVex et l'a
 signalé comme une piste possiblement prometteuse que personne n'avait soulevée
@@ -209,9 +227,11 @@ Le compte rendu, intégral, car il est court.
 - **2008, un rejet en passant.** La première mention de la méthode sur la liste
   est Don Milne rangeant la « difference map » parmi les techniques
   d'optimisation qu'il jugeait incapables de résoudre des CSP complexes : elles
-  ne brillent que lorsque les solutions sont denses, et Eternity II a été
-  [conçu pour n'en avoir presque exactement qu'une](/research/why/complex-theory)
-  ([message 5479](https://groups.io/g/eternity2/message/5479)).
+  ne brillent que lorsque les solutions sont denses, et selon lui Eternity II
+  a été construit pour en avoir très peu
+  ([message 5479](https://groups.io/g/eternity2/message/5479)). L'estimation
+  au premier moment est d'environ 14 702 avec l'indice central
+  ([dénombrement des solutions](/research/build/analysis/solution-counting)).
 - **2014, la véritable introduction.** Le schéma du réseau d'arêtes du puzzle
   proposé par un membre a conduit JSA à énoncer le problème dual et à présenter
   les travaux d'Elser : la difference map « fait des allers-retours entre les
@@ -229,7 +249,8 @@ Le compte rendu, intégral, car il est court.
   de dix minutes. « Ce qui me fait me demander si c'est vraiment à la hauteur de
   la hype » ([message 9351](https://groups.io/g/eternity2/message/9351)), tout
   en jugeant encore l'idée à deux faces pièces-contre-arêtes digne d'être
-  explorée pour E2.
+  explorée pour E2. C'est une seule instance, chronométrée sur une machine de
+  2014 face à une table de 2007 : une anecdote, pas un banc d'essai.
 - **2015, du code et une promesse.** Quelqu'un a obtenu du code source d'Elser
   en personne, avec un exemple d'appariement d'arêtes 5×5 traité, et l'a partagé
   dans les fichiers du groupe
@@ -271,13 +292,13 @@ ou négatif.
 <Callout kind="note" title="Pourquoi si peu de reprise ?">
   En partie le calendrier (le fil de 2014 est tombé dans les années les plus
   calmes de l'archive) et en partie le point de données de Dima, qui a vite
-  terni l'éclat. Mais la raison plus profonde est celle que Don Milne a donnée
-  en 2008 et que JSA a répétée en 2025 : les méthodes stochastiques continues
-  paient lorsque les solutions sont abondantes relativement à l'espace, et
-  Eternity II siège au
-  [pic de difficulté conçu](/research/why/complex-theory) où elles ne le sont
-  pas. La méthode est célèbre *parce que* l'appariement d'arêtes l'illustre à
-  merveille, non parce qu'elle résout l'appariement d'arêtes à grande échelle.
+  terni l'éclat. Don Milne en 2008 et JSA en 2025 ont avancé une autre
+  raison, à titre d'opinion : les méthodes stochastiques continues paient
+  lorsque les solutions sont abondantes relativement à l'espace, et Eternity II
+  en a peu. La littérature ne tranche pas : le groupe d'Elser a justement
+  testé des instances difficiles, dont du 3-SAT près de son seuil. La méthode
+  est célèbre *parce que* l'appariement d'arêtes l'illustre à merveille ;
+  qu'elle le résolve à grande échelle reste non mesuré.
 </Callout>
 
 ## À quoi ressemblerait une tentative aujourd'hui
@@ -291,8 +312,9 @@ personne puisse le combler. Une tentative moderne consisterait à :
    personne n'a écrite pour E2 ; le code 5x5 partagé par Elser
    ([message 9362](https://groups.io/g/eternity2/message/9362)) en est le
    gabarit de départ naturel.
-2. **Implémenter les deux projections.** L'accord d'arête est une moyenne
-   locale ; la validité de pièce est une résolution hongroise par itération (256
+2. **Implémenter les deux projections.** L'accord d'arête devient local dès
+   que chaque jointure porte ses répliques (paire de couleurs concordante la
+   plus proche) ; la validité de pièce est une résolution hongroise par itération (256
    cases x 1 024 candidats), ou du pur moyennage de répliques sous la forme
    divide-and-concur.
 3. **Gravir l'échelle des benchmarks.** Confronter à la
@@ -325,9 +347,9 @@ entrée négative propre pour le registre des
   seconde](/research/build/faster/solver-engineering) d'un backtracker réglé.
   Divide-and-concur échange cela contre du pur moyennage local, au prix d'un
   état répliqué bien plus volumineux.
-- **Aucune garantie de convergence.** La théorie de convergence de
+- **Aucune garantie de convergence globale.** La théorie globale de
   Douglas–Rachford est convexe ; les deux ensembles d'Eternity II sont des
-  nuages combinatoires. Sur les instances faisables, l'application trouve
+  nuages combinatoires, et seuls des résultats locaux couvrent le non-convexe. Sur les instances faisables, l'application trouve
   généralement des points fixes en pratique (c'est le contenu empirique des
   articles), mais rien ne borne le nombre d'itérations, et sur ce puzzle
   l'attente de JSA est qu'il égale le nombre de nœuds du backtracking
@@ -337,8 +359,8 @@ entrée négative propre pour le registre des
   errant dans un espace fractionnaire, et non un plateau scoré. Il n'y a aucun
   lot de consolation à 460 arêtes en chemin, ce qui importe sur le seul puzzle
   où l'[échelle des records](/research/records) se compte en scores partiels.
-- **Le tableau des scores.** Un test communautaire, perdu face à un
-  hill-climber sur le propre benchmark de la méthode
+- **Le tableau des scores.** Une anecdote communautaire, un hill-climber
+  battant le temps publié sur une instance de coloriage, sur un autre matériel
   ([message 9351](https://groups.io/g/eternity2/message/9351)) ; de petits
   modèles d'appariement d'arêtes résolus dans les matériaux d'Elser ; le puzzle
   complet intouché. Élégante, rigoureuse, ici non démontrée, et, chose

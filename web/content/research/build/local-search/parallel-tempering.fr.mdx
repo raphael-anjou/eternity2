@@ -2,25 +2,36 @@
 title: Recuit simulé et tempérage parallèle
 description: >-
   Voir les désaccords comme de l'énergie et la température comme une tolérance à
-  la dégradation. Le recuit détient le plus ancien record du puzzle ; le
-  tempérage parallèle franchit des barrières que le recuit ne passe pas. Les deux
-  butent sur le même mur.
-metaDescription: "Recuit simulé et tempérage parallèle sur Eternity II : désaccords comme énergie, température comme tolérance à la dégradation. Le recuit a bâti le record 467/480 de Verhaard ; l'échelle de répliques franchit des barrières inaccessibles à une chaîne froide, mais l'iso-score les stoppe au même mur."
+  la dégradation. Le tempérage parallèle franchit des barrières d'énergie qu'une
+  chaîne froide isolée ne passe pas ; près du sommet de ce puzzle, où l'obstacle
+  est entropique plutôt qu'énergétique, aucune des deux méthodes n'a quitté le
+  bassin de la graine.
+metaDescription: "Recuit simulé et tempérage parallèle sur Eternity II : désaccords comme énergie, température comme tolérance. L'échelle franchit des barrières d'énergie interdites à une chaîne froide ; près du sommet, les sorties de plateau sont rares et les échelles gardent le score de la graine."
 kind: concept
 order: 70
 group: Local search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [local-search]
 sources:
   - label: Swendsen & Wang, Replica Monte Carlo Simulation of Spin-Glasses (Physical Review Letters, 1986)
     url: https://doi.org/10.1103/PhysRevLett.57.2607
   - label: "Earl & Deem, Parallel tempering : théorie, applications et nouvelles perspectives (Phys. Chem. Chem. Phys., 2005)"
     url: https://arxiv.org/abs/physics/0508111
-  - label: La liste de diffusion Eternity II, où Verhaard a décrit sa méthode de recuit de 2008 (groups.io)
-    url: https://groups.io/g/eternity2
+  - label: "Verhaard sur le programme du 467 : une recherche normale, avec glissement d'arête permis à des profondeurs choisies (groups.io msg 7321)"
+    url: https://groups.io/g/eternity2/message/7321
+  - label: "Les détails du solveur eii de Louis Verhaard, dont le prétraitement par composition d'ensemble"
+    url: https://www.shortestpath.se/eii/eii_details.html
+  - label: "Woodard, Schmidler & Huber, Conditions for rapid mixing of parallel and simulated tempering on multimodal distributions (Ann. Appl. Probab., 2009)"
+    url: https://doi.org/10.1214/08-AAP555
+  - label: "Woodard, Schmidler & Huber, Sufficient conditions for torpid mixing of parallel and simulated tempering (Electron. J. Probab., 2009)"
+    url: https://doi.org/10.1214/EJP.v14-638
+  - label: "benj39100 : un recuit GPU à 4096 répliques sur le plateau aux cinq indices bute sur le même noyau gelé (groups.io msg 11902)"
+    url: https://groups.io/g/eternity2/message/11902
 related:
   - /research/why/rigidity-wall
   - /research/why/sigma-cycles
+  - /research/lab/experiments/louis-verhaard/eii
+  - /research/lab/experiments/louis-verhaard/verhaard-reimpl
   - /research/build/local-search/local-search-alns
 repro:
   kind: prose
@@ -118,23 +129,30 @@ Un tour de tempérage parallèle, tel que le laboratoire l'exécute :
 - **Par phase d'échange :** les $R{-}1$ paires adjacentes nécessitent chacune une
   exponentielle des énergies en cache : $O(R)$ au total, une erreur d'arrondi à
   côté des balayages.
-- **Le gain porte sur le temps de mélange, pas sur le coût du pas.** Une chaîne
-  froide isolée franchit une barrière d'énergie $\Delta E$ en environ
+- **Le gain porte sur le temps de mélange, quand il existe.** Une chaîne froide
+  isolée franchit une barrière d'énergie $\Delta E$ en environ
   $e^{\Delta E / T_{\text{cold}}}$ tentatives (l'attente d'Arrhenius ; le
-  franchissement de 76 cellules que nous avons mesuré se situait à $e^{-21}$ par
-  tentative à $T = 1$). L'échelle remplace cette attente par de la diffusion :
-  une configuration se promène aléatoirement à travers $R$ barreaux, et avec un
-  espacement géométrique réglé pour une acceptation par barreau constante, un
-  aller-retour coûte de l'ordre de $R^2$ tours d'échange. Vous payez un facteur
-  constant $R$ par balayage pour transformer une attente exponentielle en une
-  navette polynomiale. Cette asymétrie constitue tout l'argument de la méthode.
+  franchissement de 76 cellules que nous avons mesuré se situait à $e^{-21}$
+  par tentative à $T = 1$). Quand la barrière est énergétique et que le barreau
+  le plus chaud mélange vite, l'échelle peut remplacer cette attente par une
+  diffusion entre barreaux dont le coût ne croît que polynomialement en $R$ ;
+  on la paie d'un facteur $R$ par balayage. Rien ne le garantit. Le nombre de
+  barreaux nécessaires croît avec la taille du système, chaque barreau doit
+  s'équilibrer, et face à des goulots entropiques ou à des transitions de type
+  premier ordre, le tempérage mélange lui aussi en temps exponentiel
+  ([Woodard, Schmidler et Huber 2009](https://doi.org/10.1214/EJP.v14-638) ;
+  les conditions de mélange rapide correspondantes figurent dans leur
+  [article jumeau](https://doi.org/10.1214/08-AAP555)). Le barreau chaud doit
+  encore trouver la sortie.
 - **Aucune garantie, comme tous les échantillonneurs.** Le tempérage parallèle
   n'est pas complet et ne certifie rien ; il converge finalement vers la bonne
-  distribution, sans borne utile sur ce « finalement ». Et là où le paysage
-  offre des égalités plutôt que des barrières, comme sur les plateaux à
-  iso-score au sommet de ce puzzle, $\Delta E = 0$ fait se comporter tous les
-  barreaux à l'identique, et l'avantage de l'échelle s'évanouit par
-  construction, ce qui est précisément ce que rapporte le verdict ci-dessous.
+  distribution, sans borne utile sur ce « finalement ». Près du sommet de ce
+  puzzle, l'obstacle est du type entropique : les plateaux meilleurs se
+  trouvent au-delà de vastes plateaux neutres dont les sorties sont rares. Les
+  mouvements le long d'un plateau ($\Delta E = 0$) sont acceptés à chaque
+  barreau, mais les sorties montantes dépendent toujours de $T$ : les barreaux
+  diffèrent bien. Ce que l'échelle ne sait pas faire, c'est rendre fréquente
+  une sortie rare. Le verdict ci-dessous en est un exemple.
 
 ## Pourquoi ce puzzle a besoin de l'échelle
 
@@ -161,28 +179,37 @@ véritablement chaud, réglé pour que les échanges soient fréquents mais pas
 gratuits, est le conseil standard d'Earl et Deem, et il correspondait à ce que
 nous avons observé.
 
-## Le record communautaire bâti par le recuit
+## Le recuit et le 467
 
-Le recuit a une histoire distinguée sur ce puzzle. Le record le plus durable
-sur le jeu de pièces canonique (le 467 sur 480 de Louis Verhaard en 2008,
-invaincu jusqu'aux backtrackers de l'ère Blackwood en 2020) provenait d'une
-méthode de recuit, et d'une méthode inhabituelle : comme il l'a décrit sur la
-[liste de diffusion communautaire](https://groups.io/g/eternity2), il recuisait
-la *composition* d'un sous-ensemble de pièces, échangeant des pièces à l'entrée
-et à la sortie d'un groupe candidat sous un score de pavabilité, plutôt que de
-recuire des positions sur le plateau. La leçon se généralise : sur Eternity II,
-le choix de *ce que l'on recuit* comptait davantage que le recuit lui-même.
+Le recuit sur les positions du plateau n'a jamais détenu le record de ce
+puzzle. Le 467 sur 480 de Louis Verhaard (2008), invaincu jusqu'aux
+backtrackers de l'ère Blackwood en 2020, sortait d'un backtracker en
+profondeur avec élagage anticipé et glissement d'arête autorisé selon la
+profondeur ([eii](/research/lab/experiments/louis-verhaard/eii) ;
+[message 7321](https://groups.io/g/eternity2/message/7321)). Le recuit n'y
+intervient que comme idée de prétraitement qu'on lui attribue
+([détails d'eii](https://www.shortestpath.se/eii/eii_details.html)) : recuire
+la *composition* d'un sous-ensemble de pièces intérieures, en échangeant des
+pièces sous un score de pavage 2×2, avant le début de la recherche. La
+[réimplémentation](/research/lab/experiments/louis-verhaard/verhaard-reimpl)
+de cette méthode par ce projet atteint 438, pas 467 : l'étape de recuit seule
+n'explique pas le record.
 
 ## Le verdict
 
 À partir des mesures de ce projet, nuancées en conséquence : le tempérage
 parallèle franchit mieux les barrières que le recuit ordinaire, et sur la
-tranche intermédiaire de la montée cette différence est réelle et fiable.
-Près du sommet, elle se dissout. Les plateaux de là-haut sont à iso-score :
-des égalités partout, de sorte que l'acceptation ne dépend plus du tout de la
-température, et pousser la chaleur au lieu de grimper ne fait que randomiser le
-plateau, qui ensuite ne retrouve jamais le chemin du territoire des records.
-Les répliques lancées depuis un plateau de tête plafonnent au score de la
-graine, à chaque chaîne, à chaque échelle que nous avons essayée. Le tempérage
-vous déplace entre les collines ; il n'abroge pas le
-[mur de rigidité](/research/why/rigidity-wall).
+tranche intermédiaire de la montée cette différence est réelle. Près du
+sommet, on ne l'a pas observée. Les échelles lancées depuis un plateau de tête
+sont restées au score de la graine dans toutes les exécutions tentées ; ce
+sont des exécutions de carnet, dont la taille d'échelle, la plage de
+températures et le budget ne figurent pas dans les résultats versionnés, et
+le résultat négatif ne vaut que pour elles. Le mécanisme est celui, entropique,
+décrit plus haut : chauffer assez pour rendre probables les sorties du plateau
+randomise aussi le plateau, qui ne retrouve pas le territoire des records dans
+le budget. Une exécution indépendante de recuit sur GPU, à 4096 répliques, a
+buté sur le même noyau gelé d'arêtes cassées sur le plateau aux cinq indices
+([benj39100, message 11902](https://groups.io/g/eternity2/message/11902) ;
+voir le [mur de rigidité](/research/why/rigidity-wall)). Le tempérage vous
+déplace entre les collines ; on ne l'a pas vu passer d'un bassin de tête à un
+autre ici.

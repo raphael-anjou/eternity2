@@ -1,15 +1,16 @@
 ---
 title: Restarts and heavy tails
 description: >-
-  Run the same backtracker on the same puzzle twice and the runtimes differ by
-  powers of ten. The community measured this in 2007; the CSP literature had
-  already named it. The cure (cut off, reshuffle, restart) is why every record
-  solver since has been a restart portfolio.
-metaDescription: "Why Eternity II backtrackers show heavy-tailed runtimes that vary by powers of ten, and why cut-off-and-restart portfolios beat plain search. The community measured it in 2007; Gomes, Selman and Kautz named it; the record solvers of Blackwood, McGavin and Verhaard are built on it."
+  Across 500 random 7×7 puzzles, a cut-off-and-restart backtracker lost about
+  half the races but never lost big; the plain backtracker's worst loss was
+  over 500 times the restarter's. That pattern is consistent with the heavy-tailed runtimes
+  the CSP literature describes; nobody has measured the run-length distribution
+  on the full 16×16. Blackwood's record engine is built as a restart portfolio.
+metaDescription: "Heavy-tailed backtracking runtimes and cut-off-and-restart portfolios on Eternity II: the 2007 race over 500 random 7×7 puzzles, the Gomes, Selman, Crato and Kautz literature, Luby's universal schedule, and Blackwood's 50-billion-node restart engine."
 kind: concept
 order: 130
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "Txibilis's 500-puzzle experiment: restarts win 52% of races, all of the tail (groups.io message 2822)"
@@ -24,11 +25,13 @@ sources:
     url: https://groups.io/g/eternity2/message/10066
   - label: McGavin's manually restarted 20-PC farm for the 9×9 census (groups.io message 9342)
     url: https://groups.io/g/eternity2/message/9342
-  - label: "McGavin's 10×10 solve: 92,907 restarted row searches and the law of large numbers (groups.io message 9688)"
+  - label: "McGavin's 10×10 solve: 92,907 ranked first-row subtree searches and the law of large numbers (groups.io message 9688)"
     url: https://groups.io/g/eternity2/message/9688
   - label: The PRNG hygiene thread on generator period vs restart campaigns (groups.io message 6798)
     url: https://groups.io/g/eternity2/message/6798
-  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+  - label: Gomes, Selman & Crato, Heavy-Tailed Distributions in Combinatorial Search (CP-97)
+    url: https://doi.org/10.1007/BFb0017434
+  - label: Gomes, Selman, Crato & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
     url: https://doi.org/10.1023/A:1006314320276
   - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
     url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
@@ -39,6 +42,9 @@ related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/backtracking/fill-order
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/louis-verhaard/eii
 repro:
   kind: prose
 ---
@@ -46,8 +52,8 @@ repro:
 import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
 
 Run the same backtracker on two puzzles drawn from the same distribution and
-the solve times do not differ by percentages; they differ by powers of ten.
-The Eternity II community measured this in October 2007. Responding to
+the solve times do not differ by percentages; they can differ by powers of ten.
+The Eternity II community saw this in October 2007. Responding to
 antminder's claim that "backtracking with multiple restarts" beat plain
 backtracking
 ([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
@@ -61,18 +67,32 @@ restarter's margin alone exceeded the plain solver's best win
 ([message 2822](https://groups.io/g/eternity2/message/2822)). One column of
 the ledger is bounded; the other is not.
 
-That asymmetry has a name in the literature: a **heavy-tailed runtime
-distribution**. Gomes, Selman and Kautz had described exactly this phenomenon
-in satisfiability and CSP search a decade earlier
-([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), and formalized it
-in [their 2000 paper](https://doi.org/10.1023/A:1006314320276): for
-backtracking on hard instances, the survival function decays like a power
-law, $P(T > t) \approx C\,t^{-\alpha}$, not an exponential. The decay is so
-slow that for $\alpha \le 1$ the *mean* runtime is infinite. Every Eternity II
-record since, from [Verhaard's 467](/research/lab/experiments/louis-verhaard/eii) and
-[McGavin's 10×10](/research/lab/experiments/peter-mcgavin/backtracker) to the
-[468–470 wave](/research/lab/experiments/joshua-blackwood/solver), was found by a solver
-built around this fact.
+Read the design carefully. Each of the 500 puzzles got one plain run and one
+restart run, so the experiment measures variation *across* instances and shows
+that restarts sometimes win by enormous margins. It does not measure the
+seed-to-seed spread of one solver on one instance, and no tail exponent was
+fitted.
+
+The pattern is consistent with what the literature calls a **heavy-tailed
+runtime distribution**. Gomes, Selman and Crato first reported it for
+randomized backtracking
+([CP-97](https://doi.org/10.1007/BFb0017434)); the
+[AAAI-98 paper](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf) by Gomes,
+Selman and Kautz turned it into randomization and restarts; and Gomes,
+Selman, Crato and Kautz gave the full treatment in
+[their 2000 journal paper](https://doi.org/10.1023/A:1006314320276): over
+repeated randomized runs on one hard instance, the survival function decays
+like a power law, $P(T > t) \approx C\,t^{-\alpha}$, not an exponential. The
+decay is so slow that for $\alpha \le 1$ the *mean* runtime is infinite.
+Nobody has measured that distribution for the full 16×16 Eternity II board.
+
+Record engines differ on this point.
+[Blackwood's 468–470 engine](/research/lab/experiments/joshua-blackwood/solver)
+is a cut-off-and-reshuffle restart portfolio.
+[McGavin's 10×10 solve](/research/lab/experiments/peter-mcgavin/backtracker)
+was something else: a ranked, exhaustive partition of the tree by first row,
+each subtree searched to completion. No restart policy is documented for
+[Verhaard's eii](/research/lab/experiments/louis-verhaard/eii).
 
 ## Why tails happen
 
@@ -89,7 +109,7 @@ more than one at depth 30. The tail of the runtime distribution is precisely
 the distribution of early wrong commitments, inherited forever.
 
 The flip side is a fat *left* tail: some runs get every early decision right
-by luck and finish absurdly fast. Gomes, Selman and Kautz's point is that
+by luck and finish absurdly fast. The point of Gomes and colleagues is that
 both tails come from the same variance-amplifying mechanism, and that the
 right response is not a better average run but *more draws from the
 distribution*.
@@ -107,10 +127,13 @@ loyalty to a struggling run.
 The original thread carried one caveat: Txibilis reasoned that restarts
 should pay only when the instance has *many* solutions (many chances for a
 lucky prefix) and less on a unique-solution benchmark. For Eternity II the
-distinction is moot in the searcher's favour:
-[complex theory](/research/why/complex-theory) puts the hint-free full puzzle
-at roughly $1.15 \times 10^7$ solutions, any one of which wins, and
-partial-score hunting has astronomically more targets still.
+first-moment estimate on the
+[solution-counting page](/research/build/analysis/solution-counting) gives
+about 14,702 expected solutions with the mandatory starter (about
+$1.15 \times 10^7$ if the starter constraint is dropped). That is an average
+over random puzzles with the same piece statistics, not a count for this
+instance, but it still suggests many targets for a lucky prefix, and
+partial-score hunting has astronomically more.
 
 ## The cure
 
@@ -147,18 +170,24 @@ What production looks like, twenty years on:
   "The 50B number was arbitrary. I tried a few big numbers (over 1B) and they
   didn't make too much of a difference"
   ([message 10066](https://groups.io/g/eternity2/message/10066)). That
-  insensitivity is itself a heavy-tail signature: when the enemy is the tail,
-  almost any cutoff that spares the body of the distribution works.
-- **McGavin's farms** are the same policy at the human timescale. His 9×9
-  solution census ran on "about 20 PCs" scavenged for up to 60 cores, each
-  running a row-scan backtracker from a randomly shuffled piece array, and
-  he "manually restarted ones that seemed stuck"
-  ([message 9342](https://groups.io/g/eternity2/message/9342)). His 2017
-  solve of Brendan Owen's 10×10, the community's hardest solved benchmark,
-  was a restart portfolio by construction: 92,907 independent first-row
-  searches, farmed to 400+ cores, where theory predicted about one success
-  per 70,000. His own summary: "no new methods, just systematic persistence
-  and the law of large numbers"
+  flatness does not establish a heavy tail. A memoryless (exponential)
+  runtime gives the same expected cost at every cutoff, so it would look
+  just as flat; a pure power-law tail with $\alpha < 1$ would make a 50×
+  change of cutoff matter. His engine also hunts a maximum score rather than
+  a solution, so time-to-solution is not what the cutoff trades.
+- **McGavin's 9×9 farm** used restarts by hand. His solution census ran on
+  "about 20 PCs" scavenged for up to 60 cores, each running a row-scan
+  backtracker from a randomly shuffled piece array, and he "manually
+  restarted ones that seemed stuck"
+  ([message 9342](https://groups.io/g/eternity2/message/9342)).
+- **McGavin's 10×10 solve is not a restart portfolio.** For Brendan Owen's
+  10×10, the community's hardest solved benchmark, he ranked about 20 million
+  candidate first rows by complex theory's expected yield and searched each
+  subtree exhaustively, about a core-day each. The solution came on row test
+  92,907, farmed to 400+ cores, where theory predicted about one success per
+  70,000. That is complete search over a ranked static partition, not
+  randomized cutoffs. His own summary: "no new methods, just systematic
+  persistence and the law of large numbers"
   ([message 9688](https://groups.io/g/eternity2/message/9688)).
 
 There is also a strategic reading, stated on the list as early as 2007: under
@@ -181,10 +210,11 @@ cost of ever finishing a marathon run.
 
 ## Watch the tail collapse
 
-The lab below draws 400 solver runs from a seeded heavy-tailed mixture,
-calibrated to match the 2007 measurement: a body of lucky
-runs around a few million nodes, a tail stretching five orders of magnitude
-past it. Then it hands you the cutoff.
+The lab below draws 400 solver runs from a seeded heavy-tailed mixture: a
+body of lucky runs around a few million nodes, a tail stretching five orders
+of magnitude past it, loosely scaled to the 2007 margins. It is a synthetic
+distribution chosen to show the mechanism, not a measurement of Eternity II
+run lengths. Then it hands you the cutoff.
 
 <Figure collapsible title="Interactive: heavy-tailed runtimes and restarts">
   <RestartTailLab />
@@ -209,8 +239,9 @@ past it. Then it hands you the cutoff.
    never succeeds. The cutoff must spare the lucky runs it is betting on.
 5. **Notice how flat the sweet spot is.** Between "too greedy" and "too
    patient" lies a plateau several orders of magnitude wide where the
-   expected total barely changes. Blackwood's "arbitrary" 50 billion, found
-   empirically, is this plateau speaking.
+   expected total barely changes. That plateau is a property of this
+   synthetic mixture; whether Eternity II's own run lengths have one, and
+   where, has not been measured.
 
 ## What it costs
 
@@ -253,6 +284,6 @@ did not systematically traverse the whole search tree, so might have missed
 some solutions"
 ([message 9342](https://groups.io/g/eternity2/message/9342)). For proving a
 region empty, restarts are the wrong tool. For finding one solution, or one
-record board, in a space where your runtime spans powers of ten, they are
-the only sane policy, and every engine on the
-[records timeline](/research/records) uses them.
+record board, when runtimes may span powers of ten, they are a cheap
+insurance policy, and the engine behind the current open-scoring
+[records](/research/records) is built on one.

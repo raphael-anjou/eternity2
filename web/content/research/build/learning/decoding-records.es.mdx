@@ -2,14 +2,15 @@
 title: Decodificar récords
 description: >-
   La forma más literal de aprender de un tablero fuerte: reconstruirlo con
-  exactitud, pieza por pieza, hasta que tu búsqueda sepa reproducirlo. Lo que la
-  reconstrucción te obliga a añadir es el ingrediente que le faltaba a tu
-  búsqueda, y la reproducción es la prueba.
-metaDescription: "Decodificar tableros récord de Eternity II: reconstruir un récord conocido con exactitud, pieza por pieza, hasta reproducirlo; el ingrediente que lo permite es lo que faltaba. REPLAY lo hizo en los testigos strict-460, revelando un tope de una ruptura por celda; subirlo a dos eleva 457/458 a 460."
+  exactitud, pieza por pieza, con una búsqueda guiada por el propio tablero. Lo
+  que la reconstrucción te obliga a permitir es una jugada que tu búsqueda no
+  podía representar; el rejuego es una prueba de representabilidad, no una
+  búsqueda libre.
+metaDescription: "Decodificar tableros récord de Eternity II: reconstruir un tablero conocido con un rejuego guiado por el testigo, y leer lo que tu búsqueda no podía representar. Los testigos strict-460 tienen 4 o 5 celdas con dos desajustes, fuera de una búsqueda de una ruptura."
 kind: concept
 order: 53
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [backtracking, learning]
 sources:
   - label: "Tableros récord de la comunidad (cronología de récords de este proyecto): los testigos que un rejuego reconstruye"
@@ -33,10 +34,10 @@ lo más difícil de percibir desde la distancia: la única jugada que una búsqu
 ordinaria no puede hacer. El método es brutalmente literal. Toma un tablero
 récord conocido e intenta que tu propia búsqueda lo reconstruya con exactitud,
 pieza por pieza. Todo lo que tengas que añadir a tu búsqueda antes de que pueda
-recorrer ese camino es precisamente el ingrediente que le faltaba, y la
-reconstrucción exacta es la prueba de que ese ingrediente es real.
+recorrer ese camino es una jugada que no podía representar, y la
+reconstrucción exacta confirma que esa jugada basta para representar el testigo.
 
-## La reproducción como prueba
+## La reproducción como prueba de representabilidad
 
 El montaje es una búsqueda en profundidad ejecutada en un modo deliberadamente
 restringido, apuntada a un tablero testigo concreto en lugar de buscar
@@ -58,12 +59,14 @@ libremente:
 Este es el experimento [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay),
 y lo que encontró en los tableros strict-460 de la comunidad es un ejemplo
 limpio de la recompensa. La búsqueda tolerante a rupturas propia del proyecto se
-había saturado en 457 o 458 hiciera lo que hiciera, y la razón resultó ser una
-única regla que nadie había cuestionado: permitía a lo sumo *una* arista en
-desajuste por celda. Los tableros récord contienen cada uno cuatro o cinco
-celdas que pagan *dos* desajustes de una vez. Una búsqueda limitada a una ruptura
-por celda es literalmente incapaz de representar esos tableros, así que quedaba
-apartada de los mismísimos objetivos que perseguía.
+había saturado en 457 o 458 en todas las ejecuciones registradas, y una regla que
+nadie había cuestionado resultó excluir los objetivos: permitía a lo sumo *una*
+arista en desajuste por celda. Los tableros récord contienen cada uno cuatro o
+cinco celdas que pagan *dos* desajustes de una vez. Una búsqueda limitada a una
+ruptura por celda no puede representar esos tableros, así que quedaba apartada de
+los mismísimos objetivos que perseguía. (Son los tableros strict-460 de la
+comunidad; el récord estricto de la comunidad ha subido desde entonces, véanse los
+[récords](/research/records).)
 
 <Figure collapsible title="Interactivo: las celdas de doble ruptura">
   <DoubleBreakDiagram />
@@ -75,9 +78,11 @@ apartada de los mismísimos objetivos que perseguía.
 
 Sube el presupuesto por celda de uno a dos, y ambos testigos strict-460 de la
 comunidad se reconstruyen con exactitud, cada pieza en su sitio, con la
-puntuación cuadrando arista por arista. La reconstrucción *es* el hallazgo: un
-resultado de completitud de búsqueda disfrazado de intento de récord. El muro
-estaba en el conjunto de jugadas, no en el cómputo.
+puntuación cuadrando arista por arista. Contar las celdas con dos desajustes en
+cada testigo ya muestra, sin búsqueda alguna, que el tope de una ruptura las
+excluye; el rejuego lo confirma de forma constructiva. Es una prueba de
+representabilidad, no una búsqueda libre: la ordenación conoce la respuesta. No se
+ha informado de si una búsqueda no guiada con tope de dos rupturas llega a 460.
 
 ## Qué puede y qué no puede comprar el decodificado
 
@@ -85,9 +90,9 @@ Decodificar un récord es el diagnóstico más afilado de esta familia, porque
 convierte una sospecha vaga ("a nuestra búsqueda le falta algo") en una
 afirmación concreta y verificable ("no puede pagar dos rupturas en una misma
 celda"). Es también, en el mismo aliento, el más franco sobre sus límites.
-Recuperar la doble ruptura eleva la escalera estricta a 460, pero no dice, por sí
-solo, si dos rupturas por celda abren un camino hacia 461 y más allá o meramente
-hacia los 460 conocidos. El decodificado te dice el ingrediente que un testigo
+Recuperar la doble ruptura hace representables los testigos de 460, pero no dice,
+por sí solo, si una búsqueda libre con dos rupturas por celda llega a ellos, y
+menos aún a 461 y más allá. El decodificado te dice el ingrediente que un testigo
 usó; no promete que ese ingrediente llegue más lejos de lo que llegó el testigo.
 Esa brecha, una jugada aprendida que alcanza la meseta sin probar nada más allá
 de ella, es el tema de la

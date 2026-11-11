@@ -8,11 +8,11 @@ description: >-
   hace la aritmética frente a los números reales de Eternity II, y reporta el
   registro completo de la comunidad: diecinueve años de comentarios al margen,
   un intento de embedding sin terminar, cero ejecuciones.
-metaDescription: "Lo cuántico frente a Eternity II: aceleración cuadrática de Grover y recocido QUBO en D-Wave, evaluados frente a las cifras reales del puzzle. La raíz del árbol de ~10^45 aún exige ~10^22 pasos secuenciales; el QUBO es demasiado grande para embeber. Diecinueve años de charla, cero ejecuciones."
+metaDescription: "Lo cuántico frente a Eternity II: aceleraciones tipo Grover y recocido QUBO en D-Wave, evaluados frente a las cifras reales. El backtracking cuántico sobre ~10^43 nodos por solución aún exige ~10^25 pasos secuenciales; el QUBO es demasiado grande. Diecinueve años de charla, cero ejecuciones."
 kind: concept
 order: 210
 group: GPU & hardware
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [hardware, exact-methods]
 sources:
   - label: Grover, A fast quantum mechanical algorithm for database search (arXiv:quant-ph/9605043, 1996)
@@ -21,6 +21,12 @@ sources:
     url: https://arxiv.org/abs/quant-ph/9701001
   - label: Montanaro, Quantum walk speedup of backtracking algorithms (arXiv:1509.02374)
     url: https://arxiv.org/abs/1509.02374
+  - label: "Ambainis & Kokainis, Quantum algorithm for tree size estimation, with applications to backtracking and 2-player games (arXiv:1704.06774, STOC 2017)"
+    url: https://arxiv.org/abs/1704.06774
+  - label: Jarret & Wan, Improved quantum backtracking algorithms using effective resistance estimates (arXiv:1711.05295, 2018)
+    url: https://arxiv.org/abs/1711.05295
+  - label: "Altshuler, Krovi & Roland, Anderson localization casts clouds over adiabatic quantum optimization (arXiv:0912.0746, PNAS 2010)"
+    url: https://arxiv.org/abs/0912.0746
   - label: Lucas, Ising formulations of many NP problems (arXiv:1302.5843, 2014)
     url: https://arxiv.org/abs/1302.5843
   - label: Bengtsson et al., QAOA resuelve pequeñas instancias de exact-cover en dos qubits superconductores (arXiv:1912.10495)
@@ -49,6 +55,7 @@ sources:
     url: https://groups.io/g/eternity2/message/11813
 related:
   - /research/build/exact/sat-csp-encodings
+  - /research/build/analysis/solution-counting
   - /research/build/hardware/fpga-solving
   - /research/why/complex-theory
 repro:
@@ -130,22 +137,30 @@ buscar el árbol de E2 en O(sqrt(N)) operaciones?»
 ([message 10260](https://groups.io/g/eternity2/message/10260)). Nadie en la
 lista respondió. La literatura sí: sí, casi.
 [El backtracking cuántico de Montanaro](https://arxiv.org/abs/1509.02374)
-recorre un árbol de backtracking clásico de $T$ nodos en aproximadamente
-$\sqrt{T}$ (por factores polinómicos) pasos cuánticos, estructura y poda
-incluidas. Toma el propio número de este wiki para la anchura de la meseta del
-árbol, unos $10^{45}$ tableros parciales
-([teoría de la complejidad](/research/why/complex-theory)):
+encuentra una solución en un árbol de backtracking clásico de $T$ nodos y
+profundidad $n$ en $O(\sqrt{T}\,n^{3/2})$ pasos cuánticos (salvo un factor
+logarítmico), estructura y poda incluidas.
+[Ambainis y Kokainis](https://arxiv.org/abs/1704.06774) afinaron el resultado
+para que dependa de $T'$, el número de nodos que un backtracker clásico visita
+antes de su primera solución, y no del árbol entero;
+[Jarret y Wan](https://arxiv.org/abs/1711.05295) aportaron refinamientos
+afines. Lo que hay que pasar por la raíz es, por tanto, el número de nodos
+hasta la primera solución. Toma la estimación convergente de la comunidad,
+unos $2{,}2\times10^{43}$ nodos por solución
+([resolución distribuida](/research/build/faster/distributed-solving)), con
+$n = 256$:
 
 $$
-\sqrt{10^{45}} \;\approx\; 3\times10^{22} \text{ quantum steps.}
+\sqrt{2{,}2\times10^{43}} \times 256^{1{,}5} \;\approx\; 5\times10^{21} \times 4.096 \;\approx\; 10^{25} \text{ pasos cuánticos.}
 $$
 
-¿Es factible $3\times10^{22}$? Concédele a la máquina un regalo absurdo: una
+¿Es factible $10^{25}$? Concédele a la máquina un regalo absurdo: una
 llamada completa al oráculo (verificando las 480 restricciones de arista de un
 tablero entero, de forma reversible) cada *nanosegundo*. Las iteraciones de
-Grover son inherentemente secuenciales (ejecutar $k$ máquinas en paralelo solo
-compra $\sqrt{k}$, no $k$), así que eso son $3\times10^{13}$ segundos: **cerca
-de un millón de años**. A las cadencias de puerta lógica de kHz–MHz que las
+tipo Grover son inherentemente secuenciales (ejecutar $k$ máquinas en paralelo
+solo compra $\sqrt{k}$, no $k$), así que eso son unos $2\times10^{16}$
+segundos: **varios cientos de millones de años**. Aun quitando todo factor
+polinómico quedan unos 150.000 años. A las cadencias de puerta lógica de kHz–MHz que las
 máquinas con corrección de errores realmente proyectan, es más largo que la edad
 del universo. Y los 135 qubits de McGavin cuentan solo el registro de índice: el
 oráculo debe mantener el tablero (256 celdas × 10 bits de pieza-rotación ya son
@@ -215,11 +230,14 @@ detrás del muro del tamaño se alza otro más antiguo: un recocedor, a cualquie
 tamaño, es una máquina física de búsqueda local que desciende este paisaje
 energético, el mismo paisaje sobre el que el
 [recocido simulado y la búsqueda local](/research/build/local-search/local-search-alns)
-de la comunidad se estancaron en los 460. Nada en la teoría del recocido
-cuántico promete abrir un túnel a través de la
-[escasez que se ingenió en este puzzle](/research/why/complex-theory); sobre
-instancias tipo vidrio de espín el gap adiabático se cierra y el tiempo de
-recocido se dispara. El alegre comentario de Alan en 2010 de que «el recocido
+de la comunidad subieron hasta mediados de los 460. Ese descenso es fácil; la
+pregunta abierta es si algo, cuántico o clásico, cruza la decena de aristas que
+aún faltan para un tablero perfecto. Para ciertos conjuntos aleatorios de
+problemas de optimización difíciles se sabe que el gap adiabático mínimo se
+cierra exponencialmente con el tamaño
+([Altshuler, Krovi y Roland](https://arxiv.org/abs/0912.0746)), lo que dispara
+el tiempo de recocido; nadie ha comprobado si el QUBO de Eternity II se
+comporta así. El alegre comentario de Alan en 2010 de que «el recocido
 simulado es uno de los problemas en los que se espera que los QComputers sean
 especialmente buenos»
 ([message 7802](https://groups.io/g/eternity2/message/7802)) es precisamente la
@@ -265,13 +283,16 @@ delgado, y el trabajo de esta página es decirlo en lugar de inflarlo.
   divide el exponente a la mitad, allí donde toda historia de hardware de este
   wiki ([FPGA](/research/build/hardware/fpga-solving),
   [GPU](/research/build/hardware/gpu-solving), clústeres) solo divide por una
-  constante. Y E2 se la sacude de encima: $10^{45} \to 10^{22.5}$ sigue
-  perdiendo contra cualquier reloj concebible. El argumento de
+  constante. Y E2 se la sacude de encima: $10^{43} \to 10^{21.5}$, unos
+  $10^{25}$ con el sobrecoste polinómico, sigue perdiendo contra cualquier
+  reloj concebible. El argumento de
   [por qué un ordenador más rápido no ayuda](/research/why/prune-vs-speed)
   sobrevive incluso a la mejor aceleración que la física tiene en oferta, que es
-  la forma más fuerte de ese argumento. Mientras tanto, la historia del recocido
-  aterriza en el otro muro: como paisaje energético, E2 fue
-  [construido para tener una aguja y ningún gradiente hacia ella](/research/why/complex-theory).
+  la forma más fuerte de ese argumento para la búsqueda exhaustiva. La historia
+  del recocido, en cambio, desemboca en otra pregunta: como paisaje energético,
+  E2 se desciende sin esfuerzo hasta mediados de los 460, y nadie sabe si un
+  recocedor cruza las últimas aristas (el número esperado de soluciones está en
+  [conteo de soluciones](/research/build/analysis/solution-counting)).
   La verdadera relevancia de lo cuántico para E2 hoy es que evaluar el puzzle
   frente a hardware hipotético localiza la dificultad precisamente donde las
   páginas de estructura dicen que reside: en el árbol, no en el reloj.
@@ -303,7 +324,7 @@ tiempo de recocedor se alquila por minutos, y el experimento en sí es pequeño:
    cuenta como progreso.
 
 Hasta que alguien lo haga, el marcador reza: dos hermosos algoritmos, una
-aritmética que termina en $10^{22}$ pasos secuenciales, una codificación tres
+aritmética que termina en $10^{25}$ pasos secuenciales, una codificación tres
 órdenes de magnitud demasiado grande para su hardware, y un archivo de diecinueve
 años en el que el ordenador cuántico sigue siendo lo que era en mayo de 2007: el
 club que nadie llegó a construir nunca.

@@ -10,7 +10,7 @@ metaDescription: "Cómo la comunidad de Eternity II creó una cultura de pruebas
 kind: reference
 order: 17
 group: Check your code
-updated: 2026-07-21
+updated: 2026-11-11
 topics: [backtracking, speed]
 sources:
   - label: "La propuesta de censo de esquinas 3×3: 'Suggestion for Benchmark/Test' (arthurhucksake), eternity2@groups.io, 2007-08"
@@ -140,7 +140,11 @@ orienta a los recién llegados: 260 soluciones con rotaciones y una búsqueda po
 barrido de filas completo de exactamente 69 284 103 nodos para el 6×6
 ([mensaje 7771](https://groups.io/g/eternity2/message/7771),
 [7777](https://groups.io/g/eternity2/message/7777)). Si tu solucionador obtiene
-un conteo distinto, tu solucionador está mal; esa es toda la propuesta de valor.
+un número de soluciones distinto, tu solucionador está mal; esa es toda la
+propuesta de valor. La cifra de nodos es más estrecha: 69 284 103 solo vale para
+un backtracker simple de barrido de filas que cuenta colocaciones válidas
+confirmadas (la convención de Txibilis), y un solucionador correcto con otro
+orden de llenado u otra definición de nodo obtiene otro número.
 
 ## El duelo del 12×12 con 40 pistas
 
@@ -200,8 +204,10 @@ independiente de Peter McGavin encontraron una *segunda* solución para el set 1
 corregidos (**2 soluciones para el set 1, 3 para el set 2**) se confirmaron
 cuando McGavin encontró las tres soluciones del set 2
 ([mensaje 8803](https://groups.io/g/eternity2/message/8803)). La teoría de la
-complejidad había predicho 3,2 soluciones para el set 1: el orden de magnitud
-correcto en la mayor instancia jamás explorada por completo.
+complejidad había predicho 3,2 soluciones para el set 1. Dos observadas frente a
+3,2 esperadas es una sola extracción de Poisson (alrededor de un 38 % de
+probabilidad de obtener dos o menos): es coherente con la teoría en la mayor
+instancia jamás explorada por completo, sin ponerla a prueba con dureza.
 
 Siete años después, los números fueron reverificados desde cero por una
 implementación completamente distinta sobre un hardware absurdamente diferente:
@@ -227,10 +233,15 @@ de una predicción de una por cada 70 000, tras haber cubierto menos del 0,5 % d
 y estadísticas en [9688](https://groups.io/g/eternity2/message/9688)). Martin
 validó el tablero de forma independiente
 ([mensaje 9725](https://groups.io/g/eternity2/message/9725)), y el veredicto de
-la comunidad, "asombroso que esté siendo realmente tan difícil como se predijo"
-([mensaje 9693](https://groups.io/g/eternity2/message/9693)), hizo las veces de
-la validación empírica más fuerte que la
-[teoría de la complejidad](/research/why/complex-theory) haya recibido jamás. En
+la comunidad fue "asombroso que esté siendo realmente tan difícil como se predijo"
+([mensaje 9693](https://groups.io/g/eternity2/message/9693)). El resultado es
+coherente con la [teoría de la complejidad](/research/why/complex-theory): con la
+tasa predicha, un primer éxito en la búsqueda de fila 92 907 o más tarde tiene
+una probabilidad de alrededor de 0,27. Pero un único éxito solo acota la tasa
+dentro de un factor de unos 150 (intervalo del 95 % de aproximadamente 1 entre
+25 000 a 1 entre 3,7 millones), así que es una comprobación de coherencia, no una
+validación fuerte. Los conteos exhaustivos en tableros pequeños (6×6, 7×7, los
+puzzles pista) calibran mucho mejor la teoría. En
 palabras del propio McGavin: ningún método nuevo, solo persistencia sistemática y
 la ley de los grandes números.
 
@@ -267,15 +278,22 @@ lo iguala. Dos
 advertencias heredadas del viejo debate nodo-contra-paso subsisten: una
 "colocación válida" cuenta solo las piezas que pasan la búsqueda de ajuste de
 color, no cada pieza probada, y la velocidad en un solo núcleo sobre un 16×16
-completo suele valer aproximadamente la mitad de la cifra en un puzzle pequeño,
+completo suele quedar muy por debajo de la cifra en un puzzle pequeño (alrededor
+de un tercio en el caso de McGavin, 105 M frente a 295 M),
 porque la búsqueda pasa su tiempo en el bosque denso de restricciones cercanas al
 borde. (Estas cifras de colocaciones/s son un eje de «rápido», sin relación con el
 puntaje en aristas casadas de un tablero; el
 [registro de ingeniería de solucionadores](/research/build/faster/solver-engineering)
 fija los tres sentidos de la palabra.) Nada de esto cambia el veredicto
-[poda contra velocidad](/research/why/prune-vs-speed): un salto de rendimiento de
-400× desde 2008 no ha movido el récord, porque hace el árbol más barato de
-recorrer, no más pequeño.
+[poda contra velocidad](/research/why/prune-vs-speed): el rendimiento por núcleo se ha
+multiplicado por unos 4 desde 2008 (295 M frente a 68 M en tableros fáciles,
+alrededor de 1,5× con la cifra de 105 M en tablero difícil), y una GPU a 10 000
+millones por segundo equivale a unos 150 núcleos de 2008. Ningún factor de ese
+orden vuelve factible el árbol exhaustivo del 16×16, porque hace el árbol más
+barato de recorrer, no más pequeño. En la caza de récords, durante el mismo
+periodo el récord ganó tres aristas ([récords](/research/records)), lo que
+encaja con que más velocidad compre más intentos y ayude un poco, con
+rendimientos decrecientes.
 
 ## Qué ejecutar hoy
 
