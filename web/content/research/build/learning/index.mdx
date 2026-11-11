@@ -10,7 +10,7 @@ metaDescription: "Learning from strong Eternity II boards: rather than search fr
 kind: page
 order: 44
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 related:
   - /research/build/approaches-map
   - /research/build/techniques
@@ -40,18 +40,33 @@ A learned signal helps when it captures real, transferable structure: something
 true of good boards that a from-scratch search would otherwise have to rediscover
 by luck. Where each piece tends to sit, which pieces like to touch, which scarce
 demand a rare piece is the only one that can serve. Wired into a search as a gentle
-bias, that structure reliably carries a build to the top of its own range.
+bias, that structure carried this project's builds to the top of their range in
+the runs reported here.
 
-The limit is the part that makes this research rather than a bag of tricks. The
-corpus these signals are learned from is itself sub-perfect: every board in it is
-stuck somewhere below 480. So a signal mined from the corpus encodes the
-community's *ceiling* as much as its wisdom, and a signal that merely re-encodes
-the plateau every strong board is already caught on raises nothing. Push a learned
-prior from a tiebreak into the objective and the search collapses, because it starts
-trading the edge in front of it against a statistical hunch. The plain through-line
-of this whole family: learning from strong boards helps you reach the plateau fast
-and reliably, but it does not, on its own, get you past it. The ceiling is the
-[rigidity wall](/research/why/rigidity-wall), and no amount of corpus mining moves it.
+All results in this section come from exploratory runs on a private corpus: the
+boards are committed and verifiable, but the searches are not re-runnable here,
+each used a few seeds at most, and none was compared with a baseline search at
+equal compute.
+
+The limit is the part that makes this research rather than a bag of tricks. In
+this project's runs, corpus-learned signals reached 460 to 463 and none passed the
+project's plateau, which sits below boards the community has already found
+([records](/research/records)). That plateau is a property of these methods and
+runs, not of the puzzle. Pushing a fixed-weight prior from a tiebreak into the
+objective collapsed one beam search (LODESTONE); KEYRING mixed its signals into
+the score and still reached 460, so the safe weight is an open tuning question
+rather than a law. Whether learning from strong boards can go further is open:
+none of these experiments re-learned from its own improved boards, the iterated
+scheme behind the cross-entropy method
+([Rubinstein 1999](https://doi.org/10.1023/A:1010091220143)) and
+estimation-of-distribution algorithms. The metaheuristics literature on learning
+from elite solutions is the natural comparison: adaptive memory programming
+([Taillard et al. 2001](https://doi.org/10.1016/S0377-2217(00)00268-X)), path
+relinking over elite pools
+([Resende et al. 2010](https://doi.org/10.1007/978-1-4419-1665-5_4)) and
+backbone-guided local search
+([Zhang 2004](https://doi.org/10.1016/j.artint.2004.04.001)). It reports both
+successes and the over-exploitation failure these pages run into.
 
 ## The techniques
 
@@ -70,11 +85,10 @@ and reliably, but it does not, on its own, get you past it. The ceiling is the
   [PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest) experiment,
   which reached this project's best board.
 - **[Decoding records](/research/build/learning/decoding-records)** reconstructs a
-  known record board exactly, piece for piece, to recover the ingredient an ordinary
-  search was missing. Reproduction as proof. The
+  known record board exactly, piece for piece, to recover the move an ordinary
+  search could not represent: a representability check, not a free search. The
   [REPLAY](/research/lab/experiments/raphael-anjou/learning/replay) experiment.
 - **[When learning collapses](/research/build/learning/when-learning-collapses)** is
-  the failure-mode capstone: exactly when a learned signal stops helping, why
-  over-trusting it wrecks the search, and why none of these methods raise the ceiling.
-  It sets the limit for the whole section: learned signals reach the plateau
-  faster, but none of them lift it.
+  the failure-mode capstone: where a learned signal stopped helping in these runs,
+  how over-weighting it wrecked one search, and why the plateau these methods
+  reached is not evidence of a ceiling in the puzzle.

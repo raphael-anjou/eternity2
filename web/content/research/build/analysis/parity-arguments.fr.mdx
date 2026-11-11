@@ -11,7 +11,7 @@ metaDescription: "Les arguments de parité comptent un plateau à appariement d'
 kind: concept
 order: 90
 group: Analysis
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [structure, search-space]
 sources:
   - label: L'argument de parité de kubzpa selon lequel un score de 479 est impossible (août 2007)
@@ -136,9 +136,10 @@ $$
 avec une constante si petite qu'elle est de fait gratuite : 480 lectures
 d'arêtes tiennent en microsecondes, contre des pas de recherche qui se comptent
 en milliards. C'est cette asymétrie de prix qui fait que de telles
-vérifications se composent avec tout : NS-1, après la fermeture de la bordure,
-rejette 10 à 28 % des impasses profondes pour 56 lectures, l'élagage le moins
-cher que ce projet connaisse. Mais l'asymétrie d'*information*, elle, joue en
+vérifications se composent avec tout : NS-1, lancé une fois la bordure
+fermée, est un contrôle de 56 lectures qui rejette une partie des impasses
+profondes (la page sur [l'équilibre de la bordure](/research/why/border-balance)
+détaille ce qu'il voit et ce qu'il ne voit pas). Mais l'asymétrie d'*information*, elle, joue en
 sens inverse, et elle ne fléchit jamais : un invariant violé est une preuve
 d'impossibilité, un invariant satisfait ne prouve absolument rien. Un passage sur
 les arêtes achète un certificat qui ne dit jamais que non. Il vaut exactement son
@@ -190,10 +191,8 @@ difficile de PARTITION.
 
 Deux résultats mirent fin à l'expédition, tous deux à conserver. John Gilbert
 mena l'expérience : on peut trouver des jeux de damier équilibrés un à un, mais
-fournir l'équilibre à un backtracker comme contrainte le fait bloquer *plus
-vite* : chaque placement puise désormais dans la moitié des pièces candidates, et
-la restriction coûte plus qu'elle n'élague
-([msg 8913](https://groups.io/g/eternity2/message/8913)). Et Nick, travaillant au
+fournir l'un d'eux à un backtracker comme contrainte le fait bloquer *plus
+vite* ([msg 8913](https://groups.io/g/eternity2/message/8913)). Et Nick, travaillant au
 papier-crayon alors qu'il s'ennuyait dans un train
 ([msg 8960](https://groups.io/g/eternity2/message/8960)), conduisit une
 affectation complète des 256 pièces (damier plus rotation) à un seul basculement
@@ -202,8 +201,18 @@ Jason Jamison vérifia les sommes globales sous le codage de Nick (tous les haut
 égaux à tous les bas à 2 809, tous les gauches égaux à tous les droits à 2 881)
 et rapporta que le jeu quasi équilibré bloquait tout de même son backtracker à
 environ 19 pièces d'un coin
-([msg 8978](https://groups.io/g/eternity2/message/8978)). L'équilibre est réel,
-abondant, et n'achète rien à la recherche.
+([msg 8978](https://groups.io/g/eternity2/message/8978)).
+
+Les comptes suffisent à expliquer ces deux blocages. Il existe environ
+$3 \times 10^{147}$ jeux de damier équilibrés, pour un nombre attendu de
+solutions complètes compris entre $10^{4}$ (avec la pièce de départ) et $10^{7}$
+(sans), d'après le [comptage de solutions](/research/build/analysis/solution-counting),
+et chaque solution induit une seule partition (deux, si l'on compte l'échange des
+piles). Un jeu équilibré choisi sans connaître de solution n'est donc compatible,
+presque à coup sûr, avec aucune d'elles : le backtracker explore un sous-puzzle
+sans solution. C'est un fait de dénombrement, pas un arbitrage entre élagage et
+coût. L'équilibre est nécessaire et abondant, et il ne dit pour ainsi dire rien de
+la partition qu'utilise une solution.
 
 ## Ce que la parité rapporte à l'auteur d'un solveur
 
@@ -212,7 +221,7 @@ Trois choses, dont aucune n'est une solution.
 **Des conditions nécessaires peu coûteuses.** Une vérification de parité ou
 d'équilibre coûte un passage et se compose avec tout : un backtracker, une
 [recherche locale](/research/build/local-search/local-search-alns), un contrôle
-de cohérence sur le plateau qu'un autre prétend avoir. Les chiffres NS-1
+de cohérence sur le plateau qu'un autre prétend avoir. Les coûts
 ci-dessus donnent le tarif en vigueur.
 
 **L'asymétrie du certificat.** Chaque argument de cette page pointe dans un seul

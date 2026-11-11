@@ -3,13 +3,14 @@ title: Fouille d'anti-motifs
 description: >-
   L'idée subtile derrière l'apprentissage à partir des grilles fortes : tout
   accord entre elles n'est pas bon à prendre. Certains placements partagés sont
-  de vraies structures ; d'autres sont un piège commun qui plafonne chaque
-  recherche juste sous le sommet. Distinguer les deux, puis attaquer le piège.
-metaDescription: "Fouille d'anti-motifs pour Eternity II : deux fréquences distinguent la vraie structure des grilles fortes du piège de consensus qui plafonne chaque recherche juste sous le sommet, puis dirigent une recherche ALNS pour casser les motifs-pièges. PALIMPSEST a ainsi atteint 463."
+  de vraies structures ; d'autres sont peut-être un piège commun qui plafonne
+  les recherches juste sous le sommet. Tenter de distinguer les deux, puis
+  attaquer le piège.
+metaDescription: "Fouille d'anti-motifs pour Eternity II : repérer comme pièges candidats les placements courants mais absents des toutes meilleures grilles, puis diriger une ALNS pour les casser. PALIMPSEST a atteint 463, sans témoin aléatoire ; interdire les pièges a nui."
 kind: concept
 order: 52
 group: Learned guidance
-updated: 2026-07-16
+updated: 2026-11-11
 topics: [local-search, learning]
 sources:
   - label: "Ropke & Pisinger 2006, recherche adaptative à grand voisinage (le cadre destruction-réparation que l'on dirige ici)"
@@ -32,14 +33,14 @@ accord, car une partie en est un piège. Quand de nombreuses recherches
 indépendantes atteignent toutes une grille élevée mais imparfaite, elles
 s'accordent sur un très grand nombre de placements ; une partie de cet accord est
 une structure authentique, l'autre une mauvaise habitude partagée : un choix local
-qui paraît bon, semble forcé, et plafonne discrètement chaque recherche juste sous
-le sommet. Toute l'idée consiste à distinguer les deux, puis à attaquer le piège.
+qui paraît bon, semble forcé, et plafonne peut-être les recherches juste sous le
+sommet. L'idée consiste à tenter de distinguer les deux, puis à attaquer le piège.
 
 ## Deux fréquences, pas une
 
 Un simple comptage ne peut pas séparer la vraie structure du piège, car les deux
-apparaissent presque partout. L'astuce est de calculer *deux* fréquences pour
-chaque motif candidat et de les comparer. Sur un corpus de grilles réparties sur
+apparaissent presque partout. La méthode calcule *deux* fréquences et un
+plafond pour chaque motif candidat. Sur un corpus de grilles réparties sur
 une large plage de scores, pour chaque paire de cases adjacentes et chaque paire
 de pièces qui s'y trouve un jour, on mesure :
 
@@ -49,14 +50,17 @@ p_\text{all} = \frac{\#\{\text{grilles avec la paire}\}}{\#\{\text{toutes les gr
 $$
 
 ainsi qu'un *plafond* : le meilleur score parmi les grilles contenant le motif.
-Deux catégories émergent. Un **bon consensus** correspond à un $p_\text{all}$ élevé
-avec un plafond élevé : un motif que les grilles fortes partagent *et* que les
-toutes meilleures grilles conservent, une structure réelle et digne de confiance.
-Un **piège de consensus** correspond à un $p_\text{all}$ élevé avec un plafond
-bloqué juste sous le sommet : un motif que presque toutes les grilles adoptent mais
-qu'aucune grille de tête ne retient, le mauvais choix consensuel qui verrouille
-toute une famille sous le record. La vue à fréquence unique ne peut pas les
-distinguer ; c'est le partage par bassin qui fait tout le travail.
+C'est le plafond, et non $p_\text{high}$, qui fait le tri ; $p_\text{high}$ est
+rapporté à côté. Un **bon consensus** correspond à un $p_\text{all}$ élevé avec un
+plafond qui atteint le haut du corpus : un motif que les toutes meilleures grilles
+conservent. Un **piège candidat** correspond à un $p_\text{all}$ élevé avec un
+plafond bloqué juste sous le sommet : un motif que la plupart des grilles adoptent
+mais qu'aucune grille de tête ne retient. La coupure entre les deux a été fixée à
+la main, et le corpus compte très peu de grilles au sommet : « absent du sommet »
+veut donc souvent dire absent d'une ou deux grilles. Tout motif fréquent qui manque
+à ces grilles est retenu, qu'il cause ou non quoi que ce soit ; aucune référence
+par permutation (en mélangeant les scores entre grilles) n'a mesuré combien de tels
+pièges apparaissent par hasard.
 
 <Figure collapsible title="Interactif : la carte des pièges, famille de coins par famille de coins">
   <PalimpsestDiagram />
@@ -71,9 +75,12 @@ on prend une grille prise dans le bassin du piège, on cherche le coin dont le
 retrait casse le plus de motifs-pièges tout en épargnant les motifs de bon
 consensus, on brise délibérément ces cases, et on rend la grille à la boucle de
 réparation, dont l'opérateur de destruction rouvre précisément ces régions brisées
-et les reconstruit. Dirigée ainsi, elle a atteint 463, la meilleure grille produite
-par ce projet (l'[expérience PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest),
-dont la grille versionnée se reproduit via `just research-record-boards`).
+et les reconstruit. Partie d'une grille à 461 avec 4 à 8 cassures délibérées sur le coin piège de
+tête, la meilleure de six exécutions de 30 minutes a atteint 463, la meilleure
+grille produite par ce projet (l'[expérience PALIMPSEST](/research/lab/experiments/raphael-anjou/learning/palimpsest),
+dont la grille versionnée se reproduit via `just research-record-boards`). Aucun
+témoin avec des cassures sur un coin tiré au hasard n'a été lancé, si bien que la
+part de la carte des pièges dans ce 463 n'est pas établie.
 
 La réserve est la leçon. Vouloir utiliser la liste des pièges *directement*, en
 forçant la recherche à éviter chaque placement piégé, n'a pas fonctionné et a
@@ -85,8 +92,10 @@ qui traverse les [a priori de corpus](/research/build/learning/corpus-priors), v
 de l'autre côté : ici le danger n'est pas de surpondérer un bon signal mais de trop
 se fier à un signal sur ce qui est *mauvais*.
 
-Même parfaitement dirigée, cette approche ne franchit pas le sommet. Reconstruire
-les régions piégées tend à ramener sur la même grille de tête déjà connue plutôt
-que sur une grille véritablement nouvelle, car le piège n'est pas une erreur qu'une
-recherche plus astucieuse éviterait ; c'est le [mur de rigidité](/research/why/rigidity-wall)
-lui-même. C'est le sujet de la [page sur l'effondrement](/research/build/learning/when-learning-collapses).
+Même dirigée, cette approche n'a pas franchi le sommet. Reconstruire les régions
+piégées tendait à ramener sur la même grille de tête déjà connue plutôt que sur
+une grille véritablement nouvelle. Que cela tienne au
+[mur de rigidité](/research/why/rigidity-wall), à la minceur du sommet du corpus
+ou à l'opérateur de réparation n'est pas tranché ; la
+[page sur l'effondrement](/research/build/learning/when-learning-collapses) passe
+les candidats en revue.
