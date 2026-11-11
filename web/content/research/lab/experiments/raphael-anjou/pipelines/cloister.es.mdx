@@ -20,7 +20,6 @@ author: raphael-anjou
 score: 453
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "por marco: sonda de compatibilidad con las pistas de ~6 s, luego una receta de cola de 30 s × 8 semillas"
   space: "una frontera de DFS sobre el interior 14×14; el marco de 60 piezas queda fijo"
@@ -37,7 +36,7 @@ stages:
   - engine: exact-tail
     does: "Una fase final exacta de 14 celdas sella el interior contra el borde de forma determinista"
 order: 60
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, backtracking]
 related:
@@ -88,12 +87,13 @@ ejecuta frente a él en tu navegador.
 
 ## El resultado
 
-Como solucionador de interiores autónomo, CLOISTER alcanza una puntuación
-interior de 453 sin pistas, en minutos, y confirma un efecto real: un interior
-construido contra su propio borde se adhiere a él con unas pocas aristas
-apareadas más que el mismo interior, de igual calidad, adherido después. Con las
-cinco pistas oficiales forzadas se estabiliza entre el tramo alto de los 440 y
-el bajo de los 450.
+Como solucionador de interior autónomo, CLOISTER alcanza una puntuación de
+interior de 453 sin pistas, en minutos. Con las cinco pistas oficiales forzadas
+se asienta entre el tramo alto de los 440 y el bajo de los 450. El diseño busca
+un efecto, un interior construido contra su propio borde que encaja con unas
+pocas aristas emparejadas más que un interior de la misma calidad colocado
+después, pero no se ha hecho ningún A/B (marcos, interiores, diferencia media
+de aristas con su dispersión), así que ese efecto sigue abierto.
 
 No bate los mejores récords y satura como todo lo demás al acercarse al muro.
 Pero aísla y mide con limpieza el acoplamiento borde-interior que la búsqueda
@@ -117,11 +117,11 @@ está en el encuadre y en una campaña de dos fases llevada sobre *muchos* marco
   alojar las pistas, y luego una receta de cola de 30 segundos se ejecuta sobre
   cada marco superviviente con 8 semillas. Gana el mejor interior.
 
-El efecto medido es pequeño pero real, y proviene de una sola cosa: el
-acoplamiento borde-interior que la búsqueda sobre el tablero completo promedia y
-borra, pero que una construcción borde-primero puede explotar mientras aún
-puede. 453 sin pistas; del tramo alto de los 440 al bajo de los 450 con las
-cinco pistas forzadas.
+La fuente supuesta es el acoplamiento borde-interior que la búsqueda sobre el
+tablero entero diluye, pero que una construcción con el borde primero puede
+aprovechar mientras aún puede; medirlo requiere el A/B anterior. 453 sin
+pistas; del tramo alto de los 440 al bajo de los 450 con las cinco pistas
+forzadas.
 
 ## Reproducir
 

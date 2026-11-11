@@ -20,7 +20,6 @@ author: raphael-anjou
 score: 453
 outcome: plateaued
 scoringConvention: matched-edges
-rigor: measured
 complexity:
   time: "per frame: ~6 s hint-compatibility probe, then a 30 s tail recipe × 8 seeds"
   space: "one DFS frontier over the 14×14 interior; the 60-piece frame is fixed"
@@ -37,7 +36,7 @@ stages:
   - engine: exact-tail
     does: "A 14-cell exact endgame seals the interior against the rim deterministically"
 order: 60
-updated: 2026-07-21
+updated: 2026-11-11
 date: 2026-07
 topics: [local-search, backtracking]
 related:
@@ -87,10 +86,11 @@ browser.
 ## The result
 
 As a standalone interior solver CLOISTER reaches an interior score of 453
-unhinted, in minutes, and confirms a real effect: an interior built against
-its own rim attaches with a few more matched edges than the same-quality
-interior attached after the fact. With all five official clues forced it
-settles in the high 440s to low 450s.
+unhinted, in minutes. With all five official clues forced it settles in the high
+440s to low 450s. The design aims at an effect, an interior built against its
+own rim attaching with a few more matched edges than the same-quality interior
+attached after the fact, but no A/B (frames, interiors, mean edge delta with
+spread) has been run, so that effect is open.
 
 It doesn't break the top records, and it saturates like everything else does
 near the wall. But it cleanly isolates and measures the border-interior
@@ -113,10 +113,10 @@ the framing and a two-phase campaign over *many* frames.
   drops frames that can't host the clues, then a 30-second tail recipe runs
   over each surviving frame with 8 seeds. The best interior wins.
 
-The measured effect is small but real, and it comes from one thing: the
-border-interior coupling that whole-board search averages away, but that a
-rim-first build gets to exploit while it still can. 453 unhinted; high-440s to
-low-450s with all five clues forced.
+The hypothesised source is the border-interior coupling that whole-board search
+averages away but that a rim-first build can exploit while it still can;
+measuring it needs the A/B above. 453 unhinted; high-440s to low-450s with all
+five clues forced.
 
 ## Reproduce
 
