@@ -2478,3 +2478,50 @@ backdoor-guided branching (from A3) and A17 cut-multiset feasibility pruning
 detection (premise not supported by A4) and abstraction refinement on piece
 distinctness (closest to the fake-480 dead end). Reproducibility: prose.
 Files: research/program/AGENDA.md, research/LEDGER.md.
+
+## 2026-11-11 · Round 2, hard-instance ladder: infrastructure valid, own kill fired
+
+Preregistered shared harness for round 2 (node-counted DFS on generated 6x6
+to 10x10 boards, colours by Owen's one-expected-solution criterion: 5.22,
+6.38, 7.56, 8.74, 9.93 interior colours), judged by a separate session. The
+preregistered usability condition (best baseline solves at least 15/30 at
+8x8) failed: 0/30 at cap 1e6 nodes, and 1/30 (c=8) / 0/30 (c=7) at the
+original 1e7 cap in the judge's rerun. Usable rungs: 6x6 c=5 (best baseline
+30/30, KM median 951 nodes, 44x fewer than plain DFS) and 7x7 c=6 (16/30).
+Learning: on this generator the counts at or just below the critical point
+are the hardest; an 8x8 rung that separates pruning methods needs a colour
+count between 8 and 10. 360/360 committed rows reproduce node for node.
+Reproducibility: deterministic, `just experiments hard-ladder`. Source commit
+521c1f4 (PR #19). Files: research/experiments/hard-ladder/.
+
+## 2026-11-11 · Round 2, A12 ProbCut statistical cutoffs: killed
+
+Preregistered test on the ladder, judged by a separate session. Own stage-2
+kill fired (R8 first pass 13/30, line 15). At 8x8 c=10 neither variant gains
+on nodes against `scb` or `fc-dfs`; cuts removed planted-solution branches
+(V1 13/30, V2 17/30 vs 19/30) and cost nodes at 6x6 c=5. The stage-1 AUC null
+is structural (probes shorter than one row), so it is not read as further
+evidence for the propagation-signal wall. Clean rerun reproduced every JSONL
+row. Reproducibility: deterministic, `just experiments probcut`. Source
+commit aa4216f (PR #20). Files: research/experiments/probcut/.
+
+## 2026-11-11 · Round 2, A17 cut-multiset (Hall matching) pruning: kept, small gain
+
+Preregistered test on the ladder, judged by a separate session. Novelty check
+reduced the idea to Hall matching feasibility (count/parity already in
+`gacolor`; ring cuts measured at zero). Paired G1, Holm over 2 variants:
+6x6 c=5 GAIN (node ratio 0.900, p 0.0002; 0.876, p 0.018); 7x7 c=6 and 8x8
+c=10 NO-GAIN. Wall clock neutral to slightly worse. Side result: at 8x8 c=10
+plain row-major DFS matches the best propagating baseline in nodes (19/30
+solved each) at about 26x lower wall time, so that rung cannot separate
+pruning methods. Reproducibility: deterministic, `just experiments
+cut-multiset-pruning`. Source commit e2641a5 (PR #21). Files:
+research/experiments/cut-multiset-pruning/.
+
+## 2026-11-11 · Agenda A18 proposed: exact frame marginals
+
+Added after the A5 count: exact per-slot and per-adjacency frequencies over
+all valid frames, tested for whether planted placements rank above colour
+rarity on generated boards before any use as a border ordering. Nearest
+dead ends: belief and survey propagation, A1 spectral statistics. Files:
+research/program/AGENDA.md.

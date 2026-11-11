@@ -219,7 +219,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Solved-count advantage over the better baseline below 10 instances of 120, or exact one-sided McNemar p >= 0.01.
 - **Budget.** About 13 core-hours, CPU only.
 
-## A12. ProbCut statistical cutoffs for exact search · running
+## A12. ProbCut statistical cutoffs for exact search · killed
 
 - **Hypothesis.** A shallow subtree-size probe predicts whether a DFS subtree holds a solution well enough to cut it with a calibrated false-cut rate, past the depth where proofs stop.
 - **Borrowed from.** M. Buro, "ProbCut", ICCA Journal 1995, DOI 10.3233/ICG-1995-18202; Multi-ProbCut (Buro 1999).
@@ -228,6 +228,8 @@ test, scheduled at larger scale), `published`.
 - **Baseline.** Ladder DFS baselines; shallow value v_0 alone for the AUC stage.
 - **Kill.** Probe AUC gain over v_0 below 0.05, R^2 below 0.2, or held-out false-cut rate above 2p; or median nodes to first solution (all passes included) not at most 0.7x the better baseline at 8x8 and 9x9; and the ladder's G1 gate at 8x8.
 - **Budget.** A few core-hours, CPU only.
+
+- **Result (round 2, [PR #20](https://github.com/raphael-anjou/eternity2/pull/20)).** Killed by an independent judge. Its own stage-2 criterion fired: V1 solved 13/30 on the first R8 pass, at or below the kill line of 15. At 8x8 c=10 G1 is NO-GAIN for both variants against `scb` and `fc-dfs`; the cuts removed planted-solution branches (V1 13/30, V2 17/30 solved vs `fc-dfs` 19/30) and cost nodes at 6x6. The stage-1 AUC null is structural (row-boundary probes shorter than one row cannot see the sibling difference), so it is not evidence for the "signal fades two cells out" wall. A variant would need probes of n to 2n cells at mid-row nodes, at least 60 sibling sets, cuts on the ladder's strongest DFS. Experiment: `research/experiments/probcut/`.
 
 ## A13. Synteny decomposition of local optima · proposed
 
@@ -268,7 +270,7 @@ test, scheduled at larger scale), `published`.
 - **Kill.** Backdoor-membership AUC not above fail-first with CI above 0, or the ladder's G1 gate fails at 8x8 against the strongest dynamic ordering.
 - **Budget.** A few core-hours.
 
-## A17. Cut-multiset feasibility pruning · running
+## A17. Cut-multiset feasibility pruning · promoted
 
 - **Hypothesis.** A check that the colours demanded along the frontier of a partial board can be supplied by the unused pieces (count, parity and flow conditions) prunes DFS nodes that local arc consistency keeps.
 - **Borrowed from.** Transfer-matrix counting over colour multisets (round-1 A5).
@@ -276,6 +278,8 @@ test, scheduled at larger scale), `published`.
 - **Cheap test.** On the hard-instance ladder, nodes and wall clock.
 - **Kill.** No significant node reduction on any of the round-2 rungs (6x6 c=5, 7x7 c=6, 8x8 c=10). A pass needs median paired node ratio at most 0.5 at 8x8.
 - **Budget.** A few core-hours.
+
+- **Result (round 2, [PR #21](https://github.com/raphael-anjou/eternity2/pull/21)).** Kept by an independent judge as a small gain. The count/parity half was already in `gacolor` and the ring-cut half measured at zero, so only Hall matching (every empty cell gets a distinct unused piece, Kuhn augmenting paths) was tested. 6x6 c=5: GAIN, paired node ratio 0.900 (V1, p 0.0002) and 0.876 (V2, p 0.018), Holm-corrected. 7x7 c=6 and 8x8 c=10: NO-GAIN. Wall clock neutral to slightly worse. 8x8 c=10 does not separate pruning methods (plain DFS matches the baseline in nodes at about 26x lower wall time). Next variant: Hall plus Regin filtering on the frontier with a prune-invariant value order, on an 8x8 rung between c=8 and c=10; kill if NO-GAIN there or wall ratio above 1 against the better of the baseline and plain DFS. Experiment: `research/experiments/cut-multiset-pruning/`.
 
 ## A18. Exact frame marginals: where border pieces sit across all valid frames · proposed
 
