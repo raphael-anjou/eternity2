@@ -19,7 +19,10 @@ sources:
     url: https://e2.bucas.name/
 reproduce:
   - cd research/topics/ring-purity/compute && cargo run --release > ../results/ring_purity.json
+  - cd research/topics/ring-purity/compute && python3 ring_count.py 16000000 > ../results/ring_count.json
 results:
+  - label: Directed BEST count and sampled corner fraction (JSON)
+    path: results/ring_count.json
   - label: Results JSON (seed 1, deterministic clauses + SIS)
     path: results/ring_purity.json
 site:

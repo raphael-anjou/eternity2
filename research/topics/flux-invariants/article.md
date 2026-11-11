@@ -1,7 +1,7 @@
 ---
 id: flux-invariants
 title: "Flux and character invariants: a rotation-parity law every solution must satisfy"
-summary: Weighting each tile edge and reading a signed flux vector turns the official 256-piece set into a linear algebra fact — the flux law has full complex rank 22, forty independent real constraints and twenty-one F2 parity constraints, every one of them invisible to colour counting, and its mod-2 shadow gives a sound endgame certificate that flags a single rotation error with a detection rate rising toward 100% as the board fills.
+summary: Weighting each tile edge and reading a signed flux vector turns the official 256-piece set into a linear algebra fact — the flux law has full complex rank 22, forty-four independent real constraints and twenty-one F2 parity constraints, none of them implied by colour counting, and its mod-2 shadow gives a sound endgame certificate whose catch rate for a single rotation error rises as the board fills (measured on planted 8x8 boards).
 status: draft
 created: 2026-07-23
 updated: 2026-07-23
