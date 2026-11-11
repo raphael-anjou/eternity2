@@ -151,6 +151,13 @@ Equal CPU budget C = 11.8 s per instance (median CPU time of a censored B1 run).
 - Given the same CPU time per instance (11.8 s), B1 solves 16/30, V1 and V2
   1/30 each and B3 0/30. Charging B1's propagation therefore does not change
   the R7 picture.
+- The node caps were set from each arm's mean nodes per CPU second, and on
+  these runs that rate came out higher than on the timing runs. So most
+  censored method runs stopped at the node cap before C: 25 of 29 for V1 and
+  V2 (median CPU 8.6 s and 9.3 s) and 27 of 30 for B3 (median 10.0 s). Their
+  solve counts are therefore lower bounds at equal CPU, with about 80% of C
+  used. The gap (16 vs 1 solved) is far larger than that shortfall would
+  plausibly close, but this was not measured.
 - CPU pressure: CPU time is within 1% of wall time in every arm, so the 8
   parallel runs were not oversubscribed. Running them in parallel still slows
   each run through shared cache and memory. Single-thread nodes per CPU second
