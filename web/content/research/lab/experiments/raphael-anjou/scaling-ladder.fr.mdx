@@ -3,9 +3,11 @@ title: L'échelle de tailles
 description: >-
   Un banc qui fait tourner n'importe quel solveur, tel quel, sur des plateaux
   plantés entièrement résolubles à N = 8, 10, 12, 14, chacun avec un plafond
-  prouvé de 2N(N-1) : la taille d'effondrement d'une méthode se mesure avant
-  de passer des semaines sur le vrai 16×16.
-metaDescription: "L'échelle de tailles fait tourner n'importe quel solveur d'Eternity II sur des plateaux plantés entièrement résolubles à N = 8, 10, 12, 14, avec un plafond prouvé de 2N(N-1) : on mesure où une méthode s'effondre avant de l'engager sur le vrai 16×16."
+  prouvé de 2N(N-1) : la dégradation d'une méthode se lit à peu de frais avant
+  de passer des semaines sur le vrai 16×16. Les barreaux partagent une
+  palette de 22 couleurs et un budget de 12 s ; la courbe mêle donc taille,
+  contrainte et budget.
+metaDescription: "L'échelle de tailles fait tourner n'importe quel solveur d'Eternity II sur des plateaux plantés entièrement résolubles à N = 8, 10, 12, 14, avec un plafond prouvé de 2N(N-1) : on lit comment une méthode se dégrade, à palette fixe de 22 couleurs et budget de 12 s, avant de l'engager sur le vrai 16×16."
 kind: tool
 hardware:
   cores: 1
@@ -27,7 +29,7 @@ repro:
   produces: search
   scope: "Reconstruit les quatre barreaux depuis le générateur à graines et relance les deux solveurs de référence livrés ; cela reproduit la mécanique du banc et la forme des courbes, pas la grille originale à treize méthodes, qui exige le jeu d'instances archivé."
 order: 85
-updated: 2026-07-22
+updated: 2026-11-11
 date: 2026-07
 topics: [structure, backtracking]
 related:
@@ -45,9 +47,10 @@ pas à l'échelle. L'échelle de tailles pose d'abord une question moins chère 
 elle fait tourner n'importe quel solveur, sans le modifier, sur des plateaux
 plantés entièrement résolubles à N = 8, 10, 12 et 14, chacun avec un plafond
 prouvé, et lit la taille à laquelle la méthode s'effondre. Les deux solveurs
-de référence livrés se séparent nettement et se dégradent de façon monotone
-en montant l'échelle : c'est précisément la lecture que le banc existe pour
-produire.
+de référence livrés se séparent nettement. Chaque barreau garde la palette de
+22 couleurs du vrai puzzle et chaque solveur le même budget de 12 secondes :
+la lecture mêle donc la taille du plateau à son degré de contrainte et dépend
+de ce budget.
 
 ## Fonctionnement
 
@@ -106,21 +109,27 @@ de référence :
 
 </Figure>
 
-Toute la mécanique se reproduit : le plafond prouvé gratuit, la certification
-de chaque plateau planté à travers le scoreur même que les solveurs
-affrontent, le re-score indépendant de chaque plateau rendu, et la
-dégradation monotone du DFS, parfait à N=8 puis sans aucune résolution
-complète à N=14, tandis que le glouton ne résout jamais complètement nulle
-part. La dispersion entre graines est large sur les barreaux hauts (0.216 à
+La mécanique du banc se reproduit : le plafond prouvé gratuit, la
+certification de chaque plateau planté à travers le scoreur même que les
+solveurs affrontent, et le re-score indépendant de chaque plateau rendu. Le
+DFS passe d'un plateau parfait à N=8 à aucune résolution complète à N=14,
+et le glouton ne résout jamais complètement nulle part, mais l'effondrement
+original à N=14 (0.055 à 0.157) ne se reproduit pas sur les barreaux du
+kit : les médianes du DFS à N=12 et N=14 sont presque à plat (0.512 et
+0.477). Les deux ratios ne mesurent pas non plus la même chose. Le DFS rend
+un plateau partiel dont les cases vides valent 0, si bien que son ratio dit
+jusqu'où la recherche est descendue ; celui du glouton note un plateau
+complet avec ses discordances. La dispersion entre graines est large sur les barreaux hauts (0.216 à
 1.0 à N=12, 0.047 à 0.613 à N=14 pour le DFS) ; c'est pour cela que chaque
 barreau garde 8 graines.
 
 ## Ce qui n'en découle pas
 
-- **Réussir aux petits N ne prédit rien sur le 16×16.** Les méthodes
-  parfaites à N=12 sont presque sans valeur un barreau plus haut ; le
-  livrable est la courbe de dégradation, jamais un classement à une taille
-  donnée. Pour l'état de l'instance réelle, voir
+- **Réussir aux petits N ne prédit rien sur le 16×16.** Dans la grille
+  originale (non versée ici), les méthodes parfaites à N=12 tombaient à
+  0.157 ou moins un barreau plus haut ; le DFS du kit ne chute pas aussi
+  fort. Le livrable est la courbe de dégradation, jamais un classement à une
+  taille donnée. Pour l'état de l'instance réelle, voir
   [la page des records](/research/records).
 - **Des échelles issues de générateurs différents ne sont pas
   interchangeables.** La profondeur de l'effondrement dépend du profil
@@ -132,6 +141,17 @@ barreau garde 8 graines.
   moins profond (des partiels vers 0.6 contre un plancher de 0.157 dans la
   grille originale). Les formes de courbes se transfèrent ; les points de
   rupture exacts, non.
+- **La courbe mêle taille, degré de contrainte et budget.** Avec 22
+  couleurs sur chaque barreau, les petits barreaux se trouvent loin du côté
+  facile de la transition de phase : les
+  [mesures du pic de difficulté](/research/why/phase-transition) placent le
+  maximum de difficulté du 8×8 entre 6 et 8 couleurs intérieures (0 sur 30
+  résolus en 30 M nœuds), alors que 17 couleurs intérieures donnent 30
+  résolus sur 30. Monter l'échelle déplace donc l'instance par rapport à la
+  transition autant qu'elle en change la taille. Le budget fixe de 12 s pèse
+  aussi : une méthode exponentielle échoue à la taille que le budget permet.
+  Ni balayage de budget (par exemple 3, 12 et 48 s) ni nombre de couleurs
+  ajusté par barreau n'ont été lancés.
 - **Qu'un solveur de référence faible échoue sur un barreau ne réfute
   rien.** Les lignes parfaites jusqu'à N=12 appartiennent à des solveurs
   propagatifs précis pas encore portés dans le kit ; un solveur
