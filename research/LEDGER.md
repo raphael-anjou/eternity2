@@ -2359,3 +2359,22 @@ web/content/research/build/{index,known-facts,toolkit,variants,run-it-
 yourself}{,.fr,.es}.mdx.
 
 Verified 11 audit findings and fixed them, rejected 1 as not holding, deferred 4 (new experiments or files outside the group). Source commit 456c6a8 on devin/1794390000-rigor-build-top-b, integrated via devin/1794392000-rigor-build.
+
+## 2026-11-11 · Translated pages render their own reproduction and hardware prose
+
+A rendered-browser sweep of the live site (36 URLs, EN/FR/ES) showed English
+"Reproduce" scope paragraphs on the FR and ES fill-order, ring-purity and
+flux-invariants pages, although every sidecar carries a translated
+`repro.scope`. Cause: `buildManifest` in web/content.config.ts copied `repro`
+and `stages` from the English frontmatter for every language. It now keeps the
+English machine fields of `repro` (kind, cmd, topic, produces) and takes
+`scope` from the translation, and takes `stages[]` from the translation (the
+parity check already pins engine/published to EN). The parity check now treats
+`hardware.machine`, `wallClock` and `seedPolicy` as prose, as the manifest
+already assumed, and those strings are translated on FR/ES single-core-benchmark
+and jit-backtracker. Learned: the parity check validated translated prose that
+the manifest then discarded, so a check passing is not evidence that a field
+renders. Reproducibility: prose (site rendering only, no research numbers
+changed). Source commit 3d8ca74. Files: web/content.config.ts,
+web/scripts/check-research-parity.mjs,
+web/content/research/lab/experiments/{single-core-benchmark,raphael-anjou/jit-backtracker}.{fr,es}.mdx.
