@@ -1,16 +1,17 @@
 ---
 title: Reinicios y colas pesadas
 description: >-
-  Ejecute el mismo backtracker sobre el mismo puzzle dos veces y los tiempos de
-  ejecución diferirán por potencias de diez. La comunidad lo midió en 2007; la
-  literatura CSP ya lo había bautizado. La cura (cortar, rebarajar, reiniciar) es
-  la razón por la que todo solucionador récord desde entonces es un portafolio de
-  reinicios.
-metaDescription: "Por qué los backtrackers de Eternity II tienen tiempos de ejecución de cola pesada que varían por potencias de diez, y por qué todo solucionador récord se apoya en portafolios de cortar y reiniciar. Medido por la comunidad en 2007 y bautizado por Gomes, Selman y Kautz."
+  Sobre 500 puzzles 7×7 aleatorios, un backtracker con corte y reinicio pierde
+  cerca de la mitad de las carreras, pero nunca pierde por mucho; la peor derrota
+  del backtracker simple supera 500 veces la del reiniciador. Ese patrón es
+  compatible con los tiempos de cola pesada que describe la literatura CSP;
+  nadie ha medido esa distribución en el 16×16 completo. El motor récord de
+  Blackwood está construido como un portafolio de reinicios.
+metaDescription: "Tiempos de ejecución de cola pesada y portafolios de corte y reinicio en Eternity II: la carrera de 2007 sobre 500 puzzles 7×7 aleatorios, la literatura de Gomes, Selman, Crato y Kautz, el calendario universal de Luby y el motor de 50 mil millones de nodos de Blackwood."
 kind: concept
 order: 130
 group: Backtracking
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [backtracking, search-space]
 sources:
   - label: "El experimento de Txibilis sobre 500 puzzles: los reinicios ganan el 52 % de las carreras, pero toda la cola (groups.io message 2822)"
@@ -25,11 +26,13 @@ sources:
     url: https://groups.io/g/eternity2/message/10066
   - label: La granja de 20 PC reiniciados a mano de McGavin para el censo 9×9 (groups.io message 9342)
     url: https://groups.io/g/eternity2/message/9342
-  - label: "La resolución 10×10 de McGavin: 92 907 búsquedas de fila reiniciadas y la ley de los grandes números (groups.io message 9688)"
+  - label: "La resolución 10×10 de McGavin: 92 907 subárboles de primera fila ordenados y la ley de los grandes números (groups.io message 9688)"
     url: https://groups.io/g/eternity2/message/9688
   - label: El hilo sobre la higiene del PRNG, periodo del generador frente a campañas de reinicios (groups.io message 6798)
     url: https://groups.io/g/eternity2/message/6798
-  - label: Gomes, Selman & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
+  - label: Gomes, Selman & Crato, Heavy-Tailed Distributions in Combinatorial Search (CP-97)
+    url: https://doi.org/10.1007/BFb0017434
+  - label: Gomes, Selman, Crato & Kautz, Heavy-Tailed Phenomena in Satisfiability and Constraint Satisfaction Problems (J. Automated Reasoning, 2000)
     url: https://doi.org/10.1023/A:1006314320276
   - label: Gomes, Selman & Kautz, Boosting Combinatorial Search Through Randomization (AAAI-98)
     url: https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf
@@ -40,6 +43,9 @@ related:
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/backtracking/fill-order
   - /research/why/complex-theory
+  - /research/build/analysis/solution-counting
+  - /research/lab/experiments/peter-mcgavin/backtracker
+  - /research/lab/experiments/louis-verhaard/eii
 repro:
   kind: prose
 ---
@@ -47,8 +53,9 @@ repro:
 import { RestartTailLab } from "@/components/research/concepts/RestartTailLab";
 
 Ejecute el mismo backtracker sobre dos puzzles extraídos de la misma
-distribución y los tiempos de resolución no difieren en porcentajes; difieren
-por potencias de diez. La comunidad de Eternity II lo midió en octubre de 2007.
+distribución y los tiempos de resolución no difieren en porcentajes; pueden
+diferir por potencias de diez. La comunidad de Eternity II lo constató en
+octubre de 2007.
 En respuesta a la afirmación de antminder de que el «backtracking con múltiples
 reinicios» batía al backtracking simple
 ([groups.io message 2420](https://groups.io/g/eternity2/message/2420)),
@@ -63,19 +70,33 @@ mejor victoria del solucionador simple
 ([message 2822](https://groups.io/g/eternity2/message/2822)). Una columna del
 registro está acotada; la otra no lo está.
 
-Esa asimetría tiene un nombre en la literatura: una **distribución de tiempos
-de ejecución de cola pesada**. Gomes, Selman y Kautz habían descrito
-exactamente este fenómeno en la búsqueda SAT y CSP una década antes
-([AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf)), y lo formalizaron
-en [su artículo de 2000](https://doi.org/10.1023/A:1006314320276): para el
-backtracking sobre instancias difíciles, la función de supervivencia decae como
-una ley de potencia, $P(T > t) \approx C\,t^{-\alpha}$, no como una
+Conviene leer bien el diseño. Cada uno de los 500 puzzles recibió una ejecución
+simple y una con reinicios: el experimento mide la variación *entre*
+instancias y muestra que los reinicios a veces ganan por márgenes enormes. No
+mide la dispersión de una semilla a otra para un mismo solucionador sobre una
+misma instancia, y no se ajustó ningún exponente de cola.
+
+El patrón es compatible con lo que la literatura llama una **distribución de
+tiempos de ejecución de cola pesada**. Gomes, Selman y Crato la describieron
+primero para el backtracking aleatorizado
+([CP-97](https://doi.org/10.1007/BFb0017434)); el [artículo
+AAAI-98](https://cdn.aaai.org/AAAI/1998/AAAI98-061.pdf) de Gomes, Selman y
+Kautz la convirtió en aleatorización y reinicios; y Gomes, Selman, Crato y
+Kautz le dieron un tratamiento completo en [su artículo de revista de
+2000](https://doi.org/10.1023/A:1006314320276): en ejecuciones aleatorizadas
+repetidas sobre una misma instancia difícil, la función de supervivencia decae
+como una ley de potencia, $P(T > t) \approx C\,t^{-\alpha}$, no como una
 exponencial. El decaimiento es tan lento que para $\alpha \le 1$ el *promedio*
-del tiempo de ejecución es infinito. Cada récord de Eternity II desde entonces,
-desde el [467 de Verhaard](/research/lab/experiments/louis-verhaard/eii) y el
-[10×10 de McGavin](/research/lab/experiments/peter-mcgavin/backtracker) hasta la
-[oleada de 468–470](/research/lab/experiments/joshua-blackwood/solver), fue
-hallado por un solucionador construido en torno a este hecho.
+del tiempo de ejecución es infinito. Nadie ha medido esa distribución en el
+tablero completo 16×16 de Eternity II.
+
+En este punto los motores récord difieren. [El motor 468–470 de
+Blackwood](/research/lab/experiments/joshua-blackwood/solver) es un
+portafolio de corte y rebarajado. [La resolución 10×10 de
+McGavin](/research/lab/experiments/peter-mcgavin/backtracker) es otra cosa:
+una partición ordenada y exhaustiva del árbol por primera fila, con cada
+subárbol recorrido hasta el final. No hay ninguna política de reinicio
+documentada para [eii de Verhaard](/research/lab/experiments/louis-verhaard/eii).
 
 ## Por qué aparecen las colas
 
@@ -95,7 +116,7 @@ de los malos compromisos tempranos, heredados para siempre.
 
 El reverso es una cola *izquierda* igualmente gruesa: algunas ejecuciones
 aciertan todas sus decisiones tempranas por suerte y terminan con una rapidez
-absurda. El punto de Gomes, Selman y Kautz es que ambas colas proceden del
+absurda. Lo que subrayan Gomes y sus coautores es que ambas colas proceden del
 mismo mecanismo amplificador de la varianza, y que la respuesta correcta no es
 una mejor ejecución promedio, sino *más extracciones de la distribución*.
 
@@ -113,11 +134,13 @@ favor de la lealtad a una ejecución que penosamente avanza.
 El hilo original llevaba una salvedad: Txibilis razonaba que los reinicios solo
 deberían rendir cuando la instancia tiene *muchas* soluciones (muchas
 oportunidades de un prefijo afortunado) y menos en un banco de pruebas de
-solución única. Para Eternity II la distinción es irrelevante, a favor del
-buscador: la [teoría compleja](/research/why/complex-theory) sitúa el puzzle
-completo sin pistas en aproximadamente $1.15 \times 10^7$ soluciones, cualquiera
-de las cuales gana, y la caza de puntuaciones parciales cuenta con
-astronómicamente más objetivos todavía.
+solución única. Para Eternity II, la estimación de primer momento de la
+[página de recuento de soluciones](/research/build/analysis/solution-counting)
+da unas 14 702 soluciones esperadas con la pieza inicial obligatoria (unas
+$1.15 \times 10^7$ si se suprime esa restricción). Es un promedio sobre puzzles
+aleatorios con las mismas estadísticas de piezas, no un recuento de esta
+instancia, pero sugiere muchos objetivos para un prefijo afortunado, y la caza
+de puntuaciones parciales cuenta con astronómicamente más.
 
 ## El remedio
 
@@ -156,19 +179,26 @@ Cómo se ve la producción, veinte años después:
   millones, Blackwood respondió: «El número de 50 G era arbitrario. Probé unos
   cuantos números grandes (más de 1 G) y no marcaban demasiada diferencia»
   ([message 10066](https://groups.io/g/eternity2/message/10066)). Esa
-  insensibilidad es en sí misma una firma de cola pesada: cuando el enemigo es
-  la cola, casi cualquier corte que respete el cuerpo de la distribución
-  funciona.
-- **Las granjas de McGavin** son la misma política a escala humana. Su censo de
-  soluciones 9×9 corría en «unos 20 PC» recolectados para alcanzar hasta 60
-  núcleos, cada uno ejecutando un backtracker de recorrido por filas a partir de
-  un arreglo de piezas rebarajado aleatoriamente, y él «reiniciaba manualmente
-  los que parecían atascados»
-  ([message 9342](https://groups.io/g/eternity2/message/9342)). Su resolución en
-  2017 del 10×10 de Brendan Owen, el banco de pruebas resuelto más difícil de la
-  comunidad, fue un portafolio de reinicios por construcción: 92 907 búsquedas
-  independientes de primera fila, repartidas en más de 400 núcleos, donde la
-  teoría predecía alrededor de un éxito por cada 70 000. Su propio resumen:
+  insensibilidad no demuestra una cola pesada. Un tiempo de ejecución sin
+  memoria (exponencial) da el mismo coste esperado con cualquier corte, así que
+  se vería igual de plano; una cola de ley de potencia pura con $\alpha < 1$
+  haría notar un cambio de corte de 50 veces. Además, su motor caza una
+  puntuación máxima y no una solución, de modo que el corte no arbitra un
+  tiempo hasta la solución.
+- **La granja 9×9 de McGavin** reiniciaba a mano. Su censo de soluciones corría
+  en «unos 20 PC» recolectados para alcanzar hasta 60 núcleos, cada uno
+  ejecutando un backtracker de recorrido por filas a partir de un arreglo de
+  piezas rebarajado aleatoriamente, y él «reiniciaba manualmente los que
+  parecían atascados»
+  ([message 9342](https://groups.io/g/eternity2/message/9342)).
+- **La resolución 10×10 de McGavin no es un portafolio de reinicios.** Para el
+  10×10 de Brendan Owen, el banco de pruebas resuelto más difícil de la
+  comunidad, ordenó unos 20 millones de primeras filas candidatas según el
+  rendimiento esperado por la teoría compleja y recorrió cada subárbol de forma
+  exhaustiva, alrededor de un día-núcleo cada uno. La solución llegó en la
+  prueba de fila 92 907, repartida en más de 400 núcleos, donde la teoría
+  predecía alrededor de un éxito por cada 70 000. Es búsqueda completa sobre
+  una partición estática ordenada, no cortes aleatorizados. Su propio resumen:
   «ningún método nuevo, solo persistencia sistemática y la ley de los grandes
   números»
   ([message 9688](https://groups.io/g/eternity2/message/9688)).
@@ -195,10 +225,11 @@ de nunca llevar a término una ejecución de maratón.
 ## Vea colapsar la cola
 
 El laboratorio de abajo extrae 400 ejecuciones de solucionador de una mezcla de
-cola pesada inicializada por semilla, calibrada para coincidir con la medición
-de 2007: un cuerpo de ejecuciones afortunadas en torno a unos pocos millones de
-nodos, una cola que se extiende cinco órdenes de magnitud más allá. Luego le
-confía el corte.
+cola pesada inicializada por semilla: un cuerpo de ejecuciones afortunadas en
+torno a unos pocos millones de nodos, una cola que se extiende cinco órdenes de
+magnitud más allá, a una escala inspirada en los márgenes de 2007. Es una
+distribución sintética elegida para mostrar el mecanismo, no una medición de
+los tiempos de ejecución de Eternity II. Luego le confía el corte.
 
 <Figure collapsible title="Interactivo: tiempos de ejecución de cola pesada y reinicios">
   <RestartTailLab />
@@ -227,9 +258,9 @@ confía el corte.
    corte debe respetar las ejecuciones afortunadas sobre las que apuesta.
 5. **Fíjese en lo plano que es el punto óptimo.** Entre «demasiado codicioso» y
    «demasiado paciente» se extiende una meseta de varios órdenes de magnitud de
-   ancho donde el total esperado apenas cambia. Los 50 mil millones
-   «arbitrarios» de Blackwood, hallados empíricamente, son esa meseta que se
-   expresa.
+   ancho donde el total esperado apenas cambia. Esa meseta es una propiedad de
+   esta mezcla sintética; nadie ha medido si los tiempos de ejecución de
+   Eternity II tienen una, ni dónde.
 
 ## Lo que cuesta
 
@@ -275,6 +306,7 @@ censo 9×9: «no recorrí sistemáticamente todo el árbol de búsqueda, así qu
 podría haber pasado por alto algunas soluciones»
 ([message 9342](https://groups.io/g/eternity2/message/9342)). Para probar que
 una región está vacía, los reinicios son la herramienta equivocada. Para
-encontrar una solución, o un tablero récord, en un espacio donde su tiempo de
-ejecución abarca potencias de diez, son la única política sensata, y todo motor
-de la [cronología de récords](/research/records) los emplea.
+encontrar una solución, o un tablero récord, cuando los tiempos de ejecución
+pueden abarcar potencias de diez, son un seguro barato, y el motor detrás de
+los [récords](/research/records) actuales en puntuación abierta se apoya en
+uno.

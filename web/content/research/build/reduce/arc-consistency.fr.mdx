@@ -6,21 +6,24 @@ description: >-
   jusqu'à un point fixe. AC-3 de Mackworth, les raffinements optimaux qui ont
   suivi, ce que toute cette famille a réellement mesuré sur ce casse-tête, et où
   elle devient incorrecte.
-metaDescription: "Cohérence d'arc sur Eternity II : AC-3 de Mackworth et ses raffinements optimaux comme AC-2001 rétrécissent les candidats d'une case jusqu'à ce qu'une voisine les supporte. AC-3 atteint un point fixe ; pourquoi la cohérence de chemin coûte plus qu'elle n'apporte, et où l'AC devient incorrecte."
+metaDescription: "Cohérence d'arc sur Eternity II : AC-3, AC-2001 et l'AC à compteurs de couleurs élaguent les candidats jusqu'à ce que chaque voisine les supporte. Le coût de la cohérence de chemin sur petits plateaux, et l'AC dure incorrecte sous ruptures."
 kind: concept
 order: 10
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space]
 rigor: measured
 complexity:
-  time: "AC-3 O(e·d³) · AC-2001 O(e·d²) (optimal for arc revision)"
-  space: "AC-3 O(e) · AC-2001 O(e·d)"
+  time: "Générique : AC-3 O(e·d³) · AC-2001 O(e·d²) · contraintes d'égalité de couleur avec compteurs de supports O(e·d)"
+  space: "AC-3 O(e) · AC-2001 O(e·d) · compteurs de supports O(e·c)"
   note: >-
-    Sur la grille 16×16, e = 960 arcs intérieurs orientés et d ≈ 764 tuples
-    candidats par case, d'où un écart au pire cas de ~4×10¹¹ contre ~5,6×10⁸
-    vérifications ; mais les propagations réelles ne touchent que quelques cases,
-    et le coût est payé à chaque nœud de recherche.
+    Sur la grille 16×16, e = 960 arcs orientés (les 480 jonctions, dans les deux
+    sens) et d = 784 tuples tournés par case intérieure (les domaines des bords
+    et des coins sont bien plus petits), d'où des pires cas génériques de
+    ~4,6×10¹¹ contre ~5,9×10⁸ vérifications. Comme chaque contrainte est une
+    égalité de couleur, des compteurs par côté et par couleur ramènent l'AC
+    complète à O(e·d) ≈ 7,5×10⁵ mises à jour ; les propagations réelles ne
+    touchent que quelques cases, et le coût est payé à chaque nœud.
 sources:
   - label: 'Mackworth 1977, « Consistency in Networks of Relations » (Artificial Intelligence 8) : AC-3'
     url: https://doi.org/10.1016/0004-3702(77)90007-8
@@ -28,11 +31,18 @@ sources:
     url: https://doi.org/10.1016/j.artint.2005.02.004
   - label: Algorithme AC-3 (Wikipédia)
     url: https://en.wikipedia.org/wiki/AC-3_algorithm
+  - label: 'Larrosa & Schiex 2004, « Solving weighted CSP by maintaining arc consistency » (Artificial Intelligence 159)'
+    url: https://doi.org/10.1016/j.artint.2004.05.004
+  - label: 'Petit, Régin & Bessière 2001, « Specific Filtering Algorithms for Over-Constrained Problems » (CP 2001)'
+    url: https://doi.org/10.1007/3-540-45578-7_31
+  - label: 'van Hoeve, Pesant & Rousseau 2006, « On global warming: Flow-based soft global constraints » (Journal of Heuristics)'
+    url: https://doi.org/10.1007/s10732-006-6550-4
 related:
   - /research/why/no-forced-moves
   - /research/lab/experiments/joshua-blackwood/solver
   - /research/build/reduce/alldiff-regin
   - /research/build/dead-ends
+  - /research/lab/experiments/raphael-anjou/dfs-study/findings
 repro:
   kind: prose
 ---
@@ -51,7 +61,10 @@ cela, et elle traîne derrière elle un demi-siècle de publications.
 
 Attribuons à chaque case vide un *domaine* : l'ensemble des candidats
 pièce-et-rotation encore autorisés à cet endroit. Sur le casse-tête complet,
-cela démarre à environ 764 tuples par case intérieure. Le **forward checking**
+une case intérieure démarre avec 784 tuples (196 pièces intérieures × 4
+rotations, aucune n'étant symétrique par rotation) ; une case de bord en a au
+plus 56 et un coin au plus 4, puisque le côté gris fixe la rotation. Le
+**forward checking**
 est la discipline en une étape : quand une pièce est posée, on la supprime de
 tous les autres domaines et on supprime tout candidat qui entre en conflit avec
 les arêtes nouvellement exposées. C'est peu coûteux, et tout solveur sérieux fait
@@ -73,9 +86,9 @@ parcourt un domaine, on supprime les candidats sans support), et chaque fois
 qu'un domaine rétrécit, on réenfile les arcs qui pointent vers lui. C'est court,
 correct, et facile à rendre incrémental à l'intérieur d'une recherche, ce qui
 explique pourquoi il reste le choix par défaut partout. Au pire cas, il coûte
-$O(e d^3)$ pour $e$ arcs et une taille de domaine $d$ ; sur la grille 16×16, $e$
-vaut $e = 960$ (les 480 adjacences intérieures, dans les deux sens) et
-$d \approx 764$.
+$O(e d^3)$ pour $e$ arcs et une taille de domaine $d$ ; sur la grille 16×16,
+$e = 960$ (les 480 jonctions, dans les deux sens) et $d = 784$ pour une case
+intérieure.
 
 Son défaut connu : chaque révision cherche les supports de zéro, si bien que le
 même support est redécouvert des milliers de fois à mesure que la recherche
@@ -152,22 +165,31 @@ garde la boucle simple d'AC-3, mais on retient pour chaque paire candidat-arc le
 *dernier support trouvé*, on vérifie qu'il est toujours vivant avant de chercher
 de nouveau, et on reprend le parcours là où il s'était arrêté plutôt que de zéro.
 Cet unique entier par paire délivre la borne optimale $O(e d^2)$ avec seulement
-$O(e d)$ de mémoire ; sur ce casse-tête, cela fait environ 367 000 petits
-entiers, négligeable. L'étude de revue de 2005 mesure un CPU de 1,5 à 9 fois
-moindre qu'AC-3 dans une recherche à cohérence d'arc maintenue, et montre que
-l'avantage sur AC-6 *croît* avec la taille du domaine de l'autre côté de l'arc.
-Eternity II possède des domaines énormes des deux côtés de chaque arc, ce qui fait
-d'AC-2001 le choix de manuel.
+$O(e d)$ de mémoire ; sur ce casse-tête, cela fait $960 \times 784 = 752\,640$
+petits entiers, négligeable. L'étude de revue de 2005 mesure un CPU de 1,5 à 9
+fois moindre qu'AC-3 dans une recherche à cohérence d'arc maintenue, sur des
+CSP binaires génériques.
+
+Ces bornes génériques donnent un contexte, pas la bonne comparaison. Toute
+contrainte d'Eternity II est une égalité de couleur entre deux demi-arêtes qui
+se font face : un candidat de la case $X$ a un support vers $Y$ exactement
+quand un candidat de $Y$ montre la même couleur sur le côté en regard. Il
+suffit de tenir, pour chaque case et chaque côté, un compteur de candidats
+vivants par couleur : une suppression décrémente un compteur par côté, et un
+compteur qui tombe à zéro supprime les candidats voisins qui attendaient
+cette couleur. On ne cherche jamais de support, et la cohérence d'arc
+complète coûte $O(e d)$ au total, un schéma à la AC-4 spécialisé pour un
+canal de 22 couleurs. Sur cette structure, il domine AC-2001.
 
 ## Le plafond : pourquoi pas la cohérence de chemin ?
 
 La cohérence d'arc vérifie des paires de cases. L'échelon supérieur, la
 *cohérence de chemin*, vérifie des triplets : elle retire toute paire
 d'affectations qu'aucune troisième case ne peut supporter, propageant une
-condition bien plus forte. Elle rétrécit énormément l'arbre de recherche, et la
-communauté a mesuré exactement de combien, et exactement pourquoi personne ne
-l'utilise. En mars 2008, Geoff a fait tourner toute l'échelle sur les casse-tête
-pour débutants de Brendan Owen
+condition bien plus forte. Sur de petits plateaux, elle rétrécit énormément
+l'arbre de recherche, et une implémentation de la communauté a mesuré ce
+qu'elle coûtait. En mars 2008, Geoff a fait tourner toute l'échelle sur les
+casse-tête pour débutants de Brendan Owen
 ([msg 4827](https://groups.io/g/eternity2/message/4827)) :
 
 - Sur la 6×6, la simple cohérence nodale laisse un arbre de recherche de plus de
@@ -181,20 +203,22 @@ pour débutants de Brendan Owen
   **14 minutes** de prétraitement ; le prétraitement de chemin-2 tournait encore
   après **7 heures**.
 
-Le schéma est sans ambiguïté : chaque niveau plus fort de cohérence coupe
-réellement l'arbre de plusieurs ordres de grandeur, et chacun coûte plus qu'il
-n'économise. La conclusion de Geoff lui-même était que la cohérence de chemin
-« n'a tout simplement pas d'effet coût-bénéfice positif » sur ce casse-tête.
-C'est [élaguer contre vitesse](/research/why/prune-vs-speed) énoncé dans la langue
-d'un vrai algorithme : l'élagage est réel et important, mais ici la machinerie
-pour le calculer est plus coûteuse que la recherche qu'elle supprime, ce qui
-explique pourquoi les moteurs recordmen s'arrêtent à la cohérence d'arc (ou en
-dessous) et consacrent le temps économisé à des placements bruts.
+Sur ces deux plateaux, avec cette unique implémentation de 2008 de la
+cohérence de chemin *partielle*, chaque niveau plus fort a coupé l'arbre de
+plusieurs ordres de grandeur et coûté plus de temps qu'il n'en a fait gagner.
+La conclusion de Geoff lui-même était que la cohérence de chemin « n'a tout
+simplement pas d'effet coût-bénéfice positif » sur ce casse-tête. C'est
+[élaguer contre vitesse](/research/why/prune-vs-speed) dans la langue d'un vrai
+algorithme. Mais ce sont des mesures sur un 6×6 et un 8×8, pas sur le 16×16,
+et une meilleure implémentation pourrait déplacer l'équilibre. Les moteurs
+recordmen relèvent d'une autre logique : ils n'utilisent aucune cohérence
+d'arc, parce que leur budget de ruptures rend l'AC dure incorrecte (voir
+plus bas).
 
 ## Ce que cela coûte
 
-La comptabilité, avec $e$ le nombre d'arcs orientés et $d$ la taille maximale de
-domaine :
+La comptabilité générique, avec $e$ le nombre d'arcs orientés et $d$ la taille
+maximale de domaine :
 
 - **AC-3** tourne en $O(e d^3)$ au pire cas : chaque arc peut être réenfilé
   jusqu'à $d$ fois (une par suppression dans son domaine distant), et chaque
@@ -206,15 +230,16 @@ domaine :
   Le prix est la table du dernier support : un entier par paire candidat–arc,
   $O(e d)$ d'espace.
 
-À l'échelle d'Eternity II, ces symboles valent : $e = 960$ (480 adjacences
-intérieures, dans les deux sens) et $d \approx 764$ tuples candidats par case
-intérieure. Les bornes au pire cas se situent donc vers
-$e d^3 \approx 4 \times 10^{11}$ vérifications élémentaires pour AC-3 contre
-$e d^2 \approx 5{,}6 \times 10^8$ pour AC-2001, trois ordres de grandeur d'écart
-sur le papier. Les pires cas sont pessimistes (les propagations réelles ne
-touchent que quelques cases, comme le montre la démo ci-dessus), mais ce rapport
-explique pourquoi la littérature désigne la borne d'AC-3 comme la chose à
-corriger, et la correction ne coûte que $O(e d)$ entiers de mémoire. Le hic sur
+À l'échelle d'Eternity II, ces symboles valent : $e = 960$ (les 480 jonctions,
+dans les deux sens) et $d = 784$ tuples candidats par case intérieure. Les
+bornes génériques au pire cas se situent donc vers
+$e d^3 \approx 4{,}6 \times 10^{11}$ vérifications élémentaires pour AC-3
+contre $e d^2 \approx 5{,}9 \times 10^8$ pour AC-2001. Pour les contraintes
+d'égalité de couleur de ce casse-tête, le schéma à compteurs ci-dessus ne
+demande que $O(e d) \approx 7{,}5 \times 10^5$ mises à jour pour une
+propagation complète à partir de zéro. Les pires cas sont pessimistes (les
+propagations réelles ne touchent que quelques cases, comme le montre la démo
+ci-dessus). Le hic sur
 ce casse-tête n'est pas le coût de propagation par nœud ; c'est qu'à l'intérieur
 d'une recherche ce coût est payé à *chaque* nœud, des millions de fois par
 seconde, ce qui explique pourquoi les facteurs constants et le comportement du
@@ -222,16 +247,25 @@ cache finissent par compter autant que l'exposant sur $d$.
 
 ## Mesuré sur ce casse-tête
 
-Sur le moteur de ce projet (mesuré ici ; pas répliqué indépendamment) :
-
-- Un backtracker simple propageant AC-3 conjointement avec le
-  [filtre d'appariement par couleur](/research/build/reduce/alldiff-regin)
-  atteint 449 arêtes sur 480 sur le casse-tête canonique en environ 44 secondes
-  en mono-thread, autour de 2,5 secondes sur 8 cœurs.
-- La meilleure accélération algorithmique trouvée à l'intérieur d'AC-3 lui-même
-  était banale : une table précalculée indiquant quelles rotations d'une même
-  pièce partagent des couleurs d'arête, pour que les révisions cessent de la
-  redériver, valant un gain de débit de 2,9× sur le banc de référence du moteur.
+- **L'ablation publiée.** L'[étude
+  DFS](/research/lab/experiments/raphael-anjou/dfs-study/findings) a fait
+  tourner un backtracker MRV avec forward checking, avec AC-3 sur la
+  frontière, et avec AC-3 plus le contrôle d'offre par couleur, sur dix
+  variantes à coin épinglé du casse-tête officiel, 60 secondes chacune sur un
+  cœur. Les scores moyens étaient de 322,2, 320,6 et 320,6 arêtes concordantes
+  sur 480 : indiscernables à ce budget, avec une dispersion d'environ 11 points
+  d'une instance à l'autre. Un backtracker simple en ordre ligne par ligne,
+  sans anticipation, a fait 376,6 en moyenne dans la même grille, parce qu'il
+  visite des millions de nœuds par seconde là où les variantes MRV en visitent
+  des milliers. Reproduction : `just experiments dfs-study`.
+- **Une exécution non répliquée.** Sur une version antérieure du moteur de ce
+  projet, AC-3 conjointement avec le
+  [filtre d'appariement par couleur](/research/build/reduce/alldiff-regin) a
+  atteint 449 arêtes sur 480 sur le casse-tête canonique, en une exécution
+  d'environ 44 secondes sur un seul thread. Aucune exécution en forward
+  checking seul dans les mêmes conditions n'existe, et le résultat n'est pas
+  publié dans le dépôt : il ne sépare donc l'AC ni du filtre par couleur, ni
+  du reste de ce moteur.
 - La partie non construite : AC-2001 a été recommandé deux fois dans les notes de
   ce projet et jamais réellement construit, si bien que son gain projeté de 2 à
   5× ici est une lecture de la littérature, pas une mesure. Et la croyance qu'AC-3
@@ -244,19 +278,38 @@ La cohérence d'arc suppose que chaque arête doit correspondre parfaitement. Le
 moteurs recordmen, eux, non : les [recherches à la
 Blackwood](/research/lab/experiments/joshua-blackwood/solver) autorisent un budget
 de non-correspondances délibérées aux grandes profondeurs, et sous ce régime la
-cohérence d'arc est *incorrecte* : elle élague des grilles qu'une
-non-correspondance autorisée rendrait parfaitement légales. Sur le moteur de ce
-projet, toute la famille AC est désactivée dans les exécutions tolérant les
-ruptures, pour exactement cette raison. Le seul propagateur fort qui survit au
-régime de non-correspondance est le all-different au niveau des pièces ; voir
+cohérence d'arc classique (dure) est *incorrecte* : elle élague des grilles
+qu'une non-correspondance autorisée rendrait parfaitement légales. Le filtre
+exact par couleur l'est aussi, pour la même raison. Sur le moteur de ce
+projet, la famille AC est désactivée dans les exécutions tolérant les
+ruptures. Le all-different au niveau des pièces reste correct, car une
+rupture ne permet jamais d'utiliser deux fois la même pièce ; voir
 [le filtre de Régin](/research/build/reduce/alldiff-regin).
+
+Désactiver la propagation est un choix de conception, pas la seule option
+correcte. La littérature des CSP pondérés et souples existe précisément pour
+ce cas : la cohérence d'arc souple
+([Larrosa & Schiex 2004](https://doi.org/10.1016/j.artint.2004.05.004)) et les
+contraintes globales souples
+([Petit, Régin & Bessière 2001](https://doi.org/10.1007/3-540-45578-7_31) ;
+[van Hoeve, Pesant & Rousseau 2006](https://doi.org/10.1007/s10732-006-6550-4))
+font de la propagation une *borne inférieure correcte sur le nombre de
+violations à venir*. Ici, ce pourrait être le nombre de cases dont l'AC
+viderait le domaine, ou le déficit d'offre par couleur ; un nœud dont la
+borne dépasse le budget de ruptures restant peut être élagué sans perdre
+aucune grille autorisée. Personne n'a mesuré si une telle borne se rentabilise
+aux cadences de nœuds d'Eternity II.
 
 ## Verdict
 
-Pour toute recherche à appariement exact, la cohérence d'arc est obligatoire et
-peu coûteuse : c'est la différence entre un backtracker qui patine et un qui
-atteint les 440. Le forward checking seul laisse des élagages sur la table ; AC-3
-les récupère ; AC-2001 récupère les mêmes pour moins de CPU, à condition d'avoir
-d'abord vérifié que la propagation est bien là où partent vos cycles. Pour la
-chasse au record tolérante aux non-correspondances, laissez-le de côté ; la
-correction passe avant tout.
+Pour une recherche à appariement exact, la cohérence d'arc est l'anticipation
+standard et récupère des élagages que le forward checking laisse sur la table.
+Sur ce casse-tête, l'ablation publiée n'a trouvé aucun gain de score de l'AC
+sur le forward checking à un budget de 60 secondes, et un simple balayage
+ligne par ligne a battu les deux par son débit brut. Si vous la construisez,
+préférez des compteurs de supports par couleur à AC-3 ou AC-2001 génériques,
+et vérifiez d'abord que la propagation est bien là où partent vos cycles.
+Pour la chasse au record tolérante aux non-correspondances, l'AC dure est
+incorrecte ; une borne inférieure d'AC souple confrontée au budget de
+ruptures est l'alternative correcte, et sa valeur à cette vitesse reste une
+question ouverte.

@@ -11,7 +11,7 @@ metaDescription: "Aprendizaje de no-goods en Eternity II: un subárbol fallido e
 kind: concept
 order: 190
 group: Reduce the search
-updated: 2026-07-02
+updated: 2026-11-11
 topics: [search-space, exact-methods]
 sources:
   - label: "El esquema de índice de frontera de Max: 16 aristas no apareadas más un bitmap de piezas (groups.io message 6137, 2008)"
@@ -22,7 +22,7 @@ sources:
     url: https://groups.io/g/eternity2/message/6144
   - label: "El tamaño de clave corregido: 76 bits de estado de frontera; tasa de aciertos 0,1 % → 1 % antes de agotarse la memoria (groups.io message 6145)"
     url: https://groups.io/g/eternity2/message/6145
-  - label: "El recuento de Max de firmas de frontera distintas: 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
+  - label: "La cota superior de Max sobre las firmas de colores de frontera: 5²·17¹⁴ ≈ 4×10¹⁸ (groups.io message 6143)"
     url: https://groups.io/g/eternity2/message/6143
   - label: "El método mejorado: memoria mínima, 75–80 % de las ramas descartadas (groups.io message 6218)"
     url: https://groups.io/g/eternity2/message/6218
@@ -54,6 +54,12 @@ sources:
     url: https://groups.io/g/eternity2/message/10289
   - label: "El pipeline CNF de capiman: 130 180 variables, cryptominisat, parciales y anillos (groups.io message 11822, 2026)"
     url: https://groups.io/g/eternity2/message/11822
+  - label: Ginsberg 1993, Dynamic Backtracking (Journal of Artificial Intelligence Research 1)
+    url: https://doi.org/10.1613/jair.1
+  - label: Prosser 1993, Hybrid Algorithms for the Constraint Satisfaction Problem (Computational Intelligence 9), salto atrás dirigido por conflictos
+    url: https://doi.org/10.1111/j.1467-8640.1993.tb00310.x
+  - label: Ohrimenko, Stuckey & Codish 2009, Propagation via Lazy Clause Generation (Constraints 14)
+    url: https://doi.org/10.1007/s10601-008-9064-x
 related:
   - /research/lab/experiments/raphael-anjou/learning/replay
   - /research/build/exact/sat-csp-encodings
@@ -147,16 +153,18 @@ detectara el fallo en su esquema de reducción dinámica, y no llegó ninguna
 respuesta sustancial
 ([message 7938](https://groups.io/g/eternity2/message/7938)).
 
-Nótese lo que hacía la clave tan grande: la frontera por líneas de barrido de
-E2 es *ancha*. Una posición de ajedrez cabe en unas pocas decenas de bytes con
-independencia de la profundidad de la partida; una frontera E2 son dieciséis
-aristas abiertas de diecisiete colores interiores **más** un conjunto de
-disponibilidad de 256 piezas, y el número de firmas alcanzables crece
-exponencialmente con la longitud de la frontera. Esa es la misma magnitud de
-entropía de frontera que gobierna la
-[ley de área de la entropía](/research/why/entropy-area-law): la frontera es
-donde reside la información del puzzle, y una clave de transposición debe
-llevarla toda o ser incorrecta.
+Nótese lo que hacía la clave tan grande. Una posición de ajedrez cabe en unas
+pocas decenas de bytes con independencia de la profundidad de la partida; un
+estado de E2 en la línea de prueba son dieciséis aristas abiertas **más** el
+conjunto de piezas que quedan en mano. La parte de colores toma como mucho
+$25 \cdot 17^{14} \approx 4 \times 10^{18}$ valores, una cota superior que
+ignora la alcanzabilidad. El conjunto de piezas pesa mucho más: a profundidad
+128 hay $\binom{256}{128} \approx 6 \times 10^{75}$ subconjuntos posibles, y
+una clave correcta debe llevarlo. Es la restricción all-different, más que la
+anchura de la frontera, lo que mata la tabla. Quítala (copias ilimitadas de
+cada pieza, como en los teselados de Wang) y los colores de la frontera
+determinan por sí solos el subárbol: justo el caso en que funciona la
+programación dinámica clásica por matriz de transferencia sobre la frontera.
 
 ## Las trampas de corrección
 
@@ -196,6 +204,20 @@ solo en los fallos de propagación con sus conjuntos de razones completos,
 comprobados al estilo SAT con literales vigilados; los mecanismos están en la
 [página sobre codificaciones SAT y CSP](/research/build/exact/sat-csp-encodings).
 
+Estos esquemas de la comunidad redescubren técnicas con nombre propio. Las
+restore-lists asociadas a la celda que, al deshacerse, revive a un candidato son una
+forma de las explicaciones de eliminación del [backtracking
+dinámico](https://doi.org/10.1613/jair.1) (Ginsberg 1993) y del [salto atrás
+dirigido por conflictos](https://doi.org/10.1111/j.1467-8640.1993.tb00310.x)
+(Prosser 1993), y la corrección de DeVincentis es el requisito conocido de
+conservar el conjunto completo de razones de cada explicación. Almacenar
+estados fallidos es el registro de no-goods de los CSP (Dechter 1990; Schiex &
+Verfaillie 1994), llevado más lejos por la [generación perezosa de
+cláusulas](https://doi.org/10.1007/s10601-008-9064-x) (Ohrimenko, Stuckey &
+Codish 2009). Reutilizar resultados de subárboles durante un recuento exacto
+es el caché de componentes de los contadores de modelos #SAT (Sang et al.
+2004).
+
 ## Variante dos: no-goods sobre el propio puzzle
 
 Una entrada de transposición dice «este estado, en esta búsqueda, está
@@ -234,8 +256,10 @@ solucionador SAT seguía respondiendo UNSAT
 ([message 10292](https://groups.io/g/eternity2/message/10292)), y devolvía
 un núcleo de 28 piezas que ya es no extensible
 ([message 10289](https://groups.io/g/eternity2/message/10289)). Eso es
-minimización de cláusula de conflicto hecha a mano, exactamente lo que un
-solucionador CDCL hace internamente después de cada conflicto.
+minimización por eliminación de un núcleo insatisfacible (extracción de MUS,
+estudiada entre otros por Marques-Silva), hecha a mano alrededor de un
+solucionador SAT. No es la minimización de cláusulas por resolución que un
+solucionador CDCL aplica tras cada conflicto.
 
 La contabilidad, sin embargo, invita a la reflexión y capiman la publicó él
 mismo: en febrero de 2023 la mina contenía ~68 millones de pares inválidos
@@ -278,11 +302,11 @@ de las heurísticas de colocación rindió, con un valor de aproximadamente 2×
 declaradas para rechazar un diseño de caché por hilo emparentado son pura
 aritmética de memoria: el coste de reconstrucción cuando la búsqueda vuelve a
 cruzar la frontera del caché, y la certeza de que las tablas por hilo ya no
-cabrían en L3. Los motores más rápidos ya pasan más de la mitad de sus ciclos
-detenidos sobre la memoria (véase
-[ingeniería de solucionadores](/research/build/faster/solver-engineering));
-un sondeo de caché por nodo es una propuesta de añadir un viaje de ida y vuelta
-a la latencia DRAM a un bucle que vive o muere por el L1.
+cabrían en L3. Un núcleo moderno pierde sobre todo ciclos en fallos de
+predicción de saltos (véase
+[ingeniería de solucionadores](/research/build/faster/solver-engineering)), y
+su conjunto de trabajo vive en L1; una tabla demasiado grande para L3 convierte
+cada sondeo en un viaje de ida y vuelta con la latencia de DRAM.
 
 **Las tasas de aciertos se midieron, y son magras.** En 2016, 21valy
 instrumentó un solucionador 10×10 por líneas de barrido: los estados
@@ -292,28 +316,35 @@ donde su «moraleja n.º 1: no te preocupes por los duplicados verdaderos». Las
 claves relajadas (solo piezas interiores) muestran un 30–40 % de repetición,
 pero la ganancia teórica se topa por debajo del 25 % y su tabla de hash «crece
 demasiado rápido … saturada en unos minutos»
-([message 9618](https://groups.io/g/eternity2/message/9618)). Un uno por ciento
-de aciertos, cada uno ahorrando un subárbol, frente a un sondeo en cada nodo y
-una tabla cuyo conjunto de trabajo supera la RAM en minutos: ese es el problema
-del punto de equilibrio en una sola medición.
+([message 9618](https://groups.io/g/eternity2/message/9618)). Sondeada una
+vez por estado en una línea de prueba, una tabla que encuentra un duplicado se
+salta todo el subárbol de debajo, así que el trabajo ahorrado está acotado por
+la tasa de duplicados en esa línea: cerca del 1 % para duplicados exactos,
+según las mediciones tanto de 21valy como de Lindström. Como mucho una
+pequeña ganancia positiva, frente a una tabla cuyo conjunto de trabajo supera
+la RAM en minutos.
 
 El patrón a lo largo de los tres casos: nadie refutó el teorema. Los subárboles
 fallidos *son* reutilizables. Lo que falló es el tipo de cambio: en 16×16 la
-clave de frontera es demasiado ancha, el espacio de estados demasiado grande
-para que cualquier tabla cubra una fracción útil, y el coste del sondeo recae
-sobre el recurso exacto (el ancho de banda de memoria) que los backtrackers
-rápidos ya han agotado.
+clave correcta (frontera más conjunto de piezas) es demasiado grande para que
+cualquier tabla cubra una fracción útil de los estados, así que los duplicados
+exactos se quedan cerca del 1 %, mientras las tablas crecen sin límite y cada
+sondeo paga la latencia de memoria.
 
 ## Dónde rinde de verdad
 
 Reduce el tablero o cierra la búsqueda, y la misma idea cambia de signo.
 
-- **Tableros y anillos pequeños.** El esquema de restore-lists de Lindström
-  redujo el anillo de borde 6×6 en un factor de 4,4×
-  ([message 8875](https://groups.io/g/eternity2/message/8875)). En un espacio
-  de estados pequeño la tabla *puede* cubrir una fracción significativa de las
-  fronteras alcanzables, de modo que las tasas de aciertos suben del por-mil al
-  por-ciento y más allá.
+- **Tableros y anillos pequeños.** En un espacio de estados pequeño una tabla
+  *puede* cubrir una fracción significativa de las fronteras alcanzables, de
+  modo que las tasas de aciertos suben del por-mil al por-ciento y más allá. La
+  única cifra de la comunidad, el factor 4,4× de Lindström en el anillo de
+  borde 6×6
+  ([message 8875](https://groups.io/g/eternity2/message/8875)), es anterior a
+  la corrección por arista del mismo hilo
+  ([message 8886](https://groups.io/g/eternity2/message/8886)), y el archivo
+  no dice si esa ejecución conservó todas las soluciones; puede venir de la
+  versión que luego se demostró que las perdía.
 - **Enumeración y conteo exhaustivos.** Cuando el árbol se recorra hasta el
   final, cada subárbol duplicado es una revisita garantizada, no una
   probabilística: las filas superiores gemelas de McGavin
@@ -335,41 +366,38 @@ Reduce el tablero o cierra la búsqueda, y la misma idea cambia de signo.
 
 ## Lo que cuesta
 
-- **La clave: entropía de frontera, pagada por entrada.** Una clave de
-  transposición correcta es la frontera abierta más el conjunto de piezas
-  restantes. En una línea de prueba a media altura del tablero eso son
+- **La clave: frontera más conjunto de piezas, pagada por entrada.** Una
+  clave de transposición correcta es la frontera abierta más el conjunto de
+  piezas restantes. En una línea de prueba a media altura del tablero eso son
   $2 \cdot 3 + 14 \cdot 5 = 76$ bits de estado de arista
   ([message 6145](https://groups.io/g/eternity2/message/6145)) más un bitmap de
   piezas de 256 bits para la prueba de subconjunto
-  ([message 6137](https://groups.io/g/eternity2/message/6137)), y el número de
-  claves *alcanzables* en esa única línea es de alrededor de
-  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$
-  ([message 6143](https://groups.io/g/eternity2/message/6143)). En general
-  la población de claves crece como $e^{h \cdot \ell}$ para una frontera de
-  longitud $\ell$: una ley de perímetro, el mismo término de frontera que el de
-  la [ley de área](/research/why/entropy-area-law), y por eso los tableros
-  pequeños son baratos y el 16×16 no lo es.
+  ([message 6137](https://groups.io/g/eternity2/message/6137)), unos 42 bytes
+  por entrada. Los colores de la frontera por sí solos toman como mucho
+  $5^2 \cdot 17^{14} \approx 4 \times 10^{18}$ valores
+  ([message 6143](https://groups.io/g/eternity2/message/6143)), una cota
+  superior, y el conjunto de piezas multiplica el espacio de claves muy por
+  encima. El término de frontera crece con la longitud de la frontera, una
+  magnitud de borde, y por eso los tableros pequeños son baratos y el 16×16 no
+  lo es; es una magnitud distinta del término de volumen que ajusta la página
+  de la [ley de área de la entropía](/research/why/entropy-area-law).
 - **La tabla: la cobertura es la memoria dividida por la población.** Una tabla
-  de hash de $M$ entradas frente a $K$ claves alcanzables cubre $M/K$ de ellas;
-  con $K \approx 4 \times 10^{18}$, una tabla de 64 GiB ($M \approx 2^{33}$
-  entradas) cubre alrededor de $10^{-9}$ del espacio. Los aciertos vienen
+  de hash de $M$ entradas frente a $K$ claves cubre como mucho $M/K$ de ellas.
+  A 42 bytes por entrada, una tabla de 64 GiB guarda unas $1.6 \times 10^9$
+  entradas; frente a la sola cota de frontera $K \approx 4 \times 10^{18}$, eso
+  es menos de $10^{-9}$ del espacio. Los aciertos vienen
   entonces solo de la localidad a corto plazo, que es lo que Lindström
   observó: 0,1 % trepando a 1 % y estancándose contra el muro de la memoria
   ([message 6145](https://groups.io/g/eternity2/message/6145)).
-- **El sondeo: un viaje de ida y vuelta a DRAM por nodo.** Un motor moderno
-  coloca $\sim$70 M de piezas por segundo (unos $14$ ns por nodo) mientras que
-  un sondeo aleatorio de tabla cuesta un bloqueo de memoria de $\sim$100 ns, es
-  decir $c \approx 7$ nodos de búsqueda. El caché solo rinde si
-  $$
-  p_{\text{hit}} \cdot \bar{S} \;>\; c \;\approx\; 7 \text{ nodos},
-  $$
-  donde $\bar{S}$ es el tamaño medio de un subárbol saltado. Con el
-  $p_{\text{hit}} \approx 1\%$ medido
-  ([message 9618](https://groups.io/g/eternity2/message/9618)) necesitas
-  $\bar{S} > 700$ nodos *y* una tabla que retenga efectivamente esas entradas,
-  la misma que 21valy vio saturarse en minutos. Con un
-  $p_{\text{hit}} \sim 10^{-9}$ efectivo, ningún $\bar{S}$ realista equilibra
-  las cuentas.
+- **El sondeo: una vez por estado en la línea de prueba.** Los esquemas de
+  esta página solo sondean cuando la búsqueda cruza la línea de prueba, no en
+  cada nodo, así que la latencia de memoria del sondeo se amortiza sobre el
+  subárbol de debajo y no es el coste determinante. El límite determinante es
+  la tasa de aciertos: con duplicados exactos en torno al 1 % de los estados
+  de esa línea ([message 9618](https://groups.io/g/eternity2/message/9618),
+  [message 6145](https://groups.io/g/eternity2/message/6145)), el trabajo
+  ahorrado es como mucho cerca del 1 % del trabajo bajo la línea, mientras la
+  tabla, la misma que 21valy vio saturarse en minutos, sigue creciendo.
 - **Corrección: el conjunto de razones completo, o nada.** Cada hipótesis que
   la prueba de fallo usó debe estar en la clave: restore-lists por arista,
   listas de piezas usadas, todo
@@ -379,6 +407,8 @@ Reduce el tablero o cierra la búsqueda, y la misma idea cambia de signo.
 
 Ese es el resumen que el archivo se ganó a lo largo de dieciocho años: el
 teorema es gratis, la memoria no. Un subárbol fallido es de verdad un hecho que
-te pertenece, pero a la escala del tablero completo, almacenar hechos cuesta
-más que redescubrirlos, y los dos solucionadores que establecieron récords
-eligieron ambos, tras medir, olvidar.
+te pertenece, pero a la escala del tablero completo la tasa medida de
+duplicados exactos limita la ganancia a cerca del 1 %, y la tabla necesaria
+para cosecharla crece sin límite. Blackwood midió el caché de bloques 2×2 y lo
+descartó; el motor de Verhaard simplemente no tiene memoria de posiciones
+pasadas.
