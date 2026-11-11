@@ -1,17 +1,19 @@
 ---
 title: Le mur de rigidité
 description: >-
-  Chaque plateau record dont nous disposons est figé sur place. Impossible de
-  progresser par petites retouches d'un excellent plateau vers un plateau
-  parfait, et nous pouvons le démontrer.
-metaDescription: "Chaque plateau record d'Eternity II est figé : impossible de passer d'un excellent plateau à un plateau parfait par petites retouches. Des preuves MIP d'optimalité de halo sur plusieurs bassins records montrent que le cœur est localement rigide, d'où l'échec du polissage."
+  Sur les plateaux records testés, aucun reremplissage d'une région de rayon
+  au plus 4 autour des défauts n'améliore strictement le score (certificats
+  MIP et SAT ; la plupart des exécutions MIP sont des résultats de carnet pas
+  encore versés). Polir un excellent plateau ne mène pas à un plateau
+  parfait.
+metaDescription: "Sur les plateaux records d'Eternity II testés, reremplir une région de rayon borné autour des défauts n'améliore jamais strictement le score : preuves MIP jusqu'au halo 4 et reproduction SAT versée au rayon 4. Des échanges de jumelles à score égal existent encore."
 kind: finding
 contribution: theory
 tier: 1
 rigor: proven
 author: raphael-anjou
 order: 45
-updated: 2026-07-22
+updated: 2026-11-11
 topics: [structure, local-search, exact-methods]
 complexity:
   time: "une résolution PLNE par région ; de ~70 s (48 cellules) à ~1800 s (halo-1 conjoint de 59 cellules) sur CBC"
@@ -22,6 +24,8 @@ complexity:
     l'optimalité ou à un écart serré en quelques minutes.
 related:
   - /research/records
+  - /research/build/analysis/solution-counting
+  - /research/why/ring-purity
   - /research/why/sigma-cycles
   - /research/why/walls-and-methods
   - /research/why/prune-vs-speed
@@ -61,8 +65,7 @@ faire pivoter quelques-unes, et le score va sûrement grimper jusqu'à 480.
 Ce n'est pas le cas. Sur chaque plateau de tête que nous avons testé, les
 derniers désaccords sont verrouillés. Déplacez quoi que ce soit dans le
 voisinage et le score reste identique ou baisse. Les bons plateaux ne sont pas
-des quasi-solutions attendant un polissage ; ce sont des points isolés qui
-n'ont nulle part de meilleur où aller à côté.
+des quasi-solutions attendant un polissage ; ce sont des optima locaux stricts pour chaque mouvement borné testé (des échanges de jumelles à score égal existent encore).
 
 ## Regardez la région grandir
 
@@ -131,17 +134,13 @@ de ce type ont tous été essayés : exactement un conserve le score de 469 (et
 produit le seul plateau jumeau connu), 2 donnent 468 et 111 donnent 467. Les
 6 441 doubles échanges : aucun n'atteint 470, le meilleur donne 468. Sur
 6 555 perturbations construites précisément pour être presque neutres en
-score, l'ensemble de niveau 469 contient exactement deux plateaux.
+score, ces perturbations ne trouvent que deux plateaux dans l'ensemble de niveau 469.
 
 Les chiffres s'expliquent d'eux-mêmes. À un score de 459, une cellule
 contribue en moyenne environ 3,6 arêtes concordantes, alors qu'une pièce
-aléatoire déposée dans un voisinage fixé n'en espère qu'environ 0,18 (à peu
-près quatre arêtes fois une chance sur 22 couleurs) ; un échange aléatoire
-s'attend donc à perdre environ 6,8 arêtes. Une borne probabiliste grossière
+aléatoire déposée dans un voisinage fixé n'en espère qu'environ 0,24 (quatre arêtes fois une chance sur 17 couleurs intérieures) ; un échange aléatoire s'attend donc à perdre environ 6,7 arêtes. Une borne probabiliste grossière
 plafonne la probabilité d'un échange améliorant vers 5 pour cent ; la
-fréquence mesurée est inférieure à $3\times10^{-5}$. Chaque placement d'un
-plateau de tête est co-adapté à ses voisins bien au-delà de ce que le hasard
-seul prédirait. Une note de portée : chaque recensement ici est exhaustif
+fréquence mesurée est inférieure à $3\times10^{-5}$. Ces plateaux sont issus de recherches qui rejettent déjà ce genre de mouvements : n'y trouver aucune amélioration est donc attendu par construction, et les résultats informatifs sont les certificats MIP et SAT à plus grand rayon ci-dessous. Une note de portée : chaque recensement ici est exhaustif
 dans sa classe de mouvements mais porte sur un seul plateau (les recensements
 de rotations et d'échanges sur un 459, l'énumération à cinq pièces sur un
 457, le recensement des quasi-jumelles sur le 469) ; ce sont les preuves
@@ -361,9 +360,14 @@ libérant deux rangées conjointement (32 cellules, jointure interne libre) :
 les paires (11,12), (12,13) et (13,14) sur le 460 donnent 0 à 4 chaînes
 alternatives au total, toutes moins bonnes (12 à 16 arêtes de moins) ou
 infaisables. Trois rangées conjointement (48 cellules) : les rangées
-(11,12,13) et (12,13,14) donnent zéro chaîne alternative. Ces rangées ne sont
-pas seulement optimales ; elles sont souvent *forcées*. Unicité, pas
-simplement optimalité. Portée : l'énumération est une programmation dynamique
+(11,12,13) et (12,13,14) donnent zéro chaîne alternative.  Ces rangées ne sont
+pas seulement optimales ; elles sont souvent *forcées*. Cette unicité est
+proche de ce que prédit le hasard : à environ 0,0094 candidat supplémentaire
+par case entièrement entourée (voir
+[le plateau des 470](/research/why/the-470-wall)), une rangée prise entre
+deux rangées fixes ne devrait admettre aucun autre remplissage, si bien que
+ce qui informe, c'est qu'aucune alternative ne soit meilleure, pas qu'il y en
+ait peu. Portée : l'énumération est une programmation dynamique
 à faisceau (largeur 100 000 pour une rangée, 5 000 à 50 000 pour deux et
 trois rangées), exhaustive en pratique mais non certifiée comme le sont les
 lignes PLNE ; disons faisceau-exhaustive. Deux plateaux.
@@ -618,8 +622,12 @@ en 0,17 s. Les 38 cellules encore épinglées au halo 10 sont essentiellement
 les deux rangées du haut plus 3 des 5 indices. Les deux rangées supérieures
 de ce plateau sont donc, à elles seules, prouvées incompatibles avec toute
 solution parfaite : tout 480 doit différer de ce plateau quelque part dans
-ces 38 cellules. La rigidité est portée par un mince squelette en haut du
-plateau, pas par les voisinages des défauts. Au rayon 15, seulement 4
+ces 38 cellules. C'est moins particulier qu'il n'y paraît : avec au plus environ $10^7$
+solutions (voir
+[le comptage des solutions](/research/build/analysis/solution-counting)),
+presque n'importe quel squelette fixe de 38 cellules est incompatible avec
+toutes, si bien que cela montre combien peu d'un plateau doit rester épinglé
+pour exclure 480, et non une rigidité propre à ce plateau. Au rayon 15, seulement 4
 cellules épinglées, le solveur a expiré à 600 s ; ce cas est ouvert. Un
 plateau précis ; on ignore si d'autres plateaux à 459 partagent la même
 rigidité du haut épinglé.
@@ -677,6 +685,17 @@ classe record ait jamais produites. Polir près d'un record n'est pas
 seulement lent ; sous la propre bordure de ce record, atteindre 480 est
 prouvé impossible. Une solution exige une autre bordure.
 
+L'attente sous l'hypothèse nulle donne le même verdict. Il existe environ
+$10^{37{,}6}$ placements de cadre valides (voir
+[la pureté de l'anneau](/research/why/ring-purity)) pour au plus environ
+$1{,}15\times10^{7}$ solutions, chacune avec une seule bordure : une bordure
+légale prise au hasard accueille un 480 avec une probabilité inférieure à
+environ $10^{-30}$, et neuf bordures UNSAT sur neuf, c'est ce que donneraient
+n'importe quelles neuf bordures. Aucun témoin sur des bordures aléatoires ou
+à bas score n'a été lancé. Le résultat montre que polir à l'intérieur d'une
+bordure fixée ne peut pas atteindre 480 ; il ne montre pas que les bordures
+records sont particulières.
+
 ## Pourquoi le mur existe
 
 La page jusqu'ici prouve le mur ; voici ce qui se rapproche le plus d'une
@@ -706,8 +725,7 @@ vrai puzzle, chaque instance testée était rigide exactement en ce sens : zéro
 cellule partagée entre toute paire de solutions parfaites.
 
 Pour Eternity II lui-même, c'est une conjecture, et nous l'étiquetons comme
-telle. Avec 22 couleurs intérieures, chacune réutilisée environ 24 à 50 fois
-sur 480 adjacences intérieures, le vrai puzzle siège profondément dans le
+telle. Avec 17 couleurs intérieures (48 à 50 demi-arêtes chacune) sur 420 joints intérieurs, plus 5 couleurs de cadre sur les 60 joints de l'anneau, le vrai puzzle siège profondément dans le
 régime rigide, si bien que des plateaux quasi parfaits distincts devraient
 être quasi orthogonaux (ce qui correspond à la différence de 225 cellules
 observée plus haut entre bons plateaux) et qu'aucun mouvement de taille
@@ -718,8 +736,7 @@ tuile » n'est pas strictement vraie sur E2, donc l'affirmation défendable est
 Le corollaire est la partie satisfaisante : la recherche locale gèle
 *précisément aux hauts scores* parce que c'est là que le graphe des
 mouvements se déconnecte. L'intérieur de la gamme des scores se parcourt
-facilement, d'où le fait qu'atteindre les 450 et 460 soit routinier ; le
-sommet est un ensemble de points isolés, d'où le fait que le polissage y
+facilement, d'où le fait qu'atteindre les 450 et 460 soit routinier ; le sommet ressemble, dans chaque test à ce jour, à un ensemble de points isolés, d'où le fait que le polissage y
 meure. Une théorie, les deux moitiés de l'histoire de cette page. (Les
 mathématiques sont le cercle d'idées des bases de Markov et de Graver en
 statistique algébrique ; voir les sources. Les seuls mouvements de sommet bon

@@ -1,6 +1,6 @@
 ---
 id: the-470-wall
-title: The 470 wall as a phase boundary
+title: The 470 plateau, an annealed landscape and an overlap-gap conjecture
 summary: A random-CSP analysis of the official piece set places the entropic ceiling for planted-solution-uncorrelated boards at roughly 465 to 470, matching the community wall, with 480 an isolated planted needle beyond an empty overlap gap.
 status: draft
 created: 2026-07-22
@@ -27,7 +27,7 @@ site:
   dataFile: null
 ---
 
-# The 470 wall as a phase boundary
+# The 470 plateau: an annealed landscape and an overlap-gap conjecture
 
 > **Status:** draft · **Created:** 2026-07-22 · **Updated:** 2026-07-22
 > **Authors:** Raphael Anjou

@@ -2,16 +2,16 @@
 title: Les couleurs rares vivent sur le cadre
 description: >-
   Cinq des 22 couleurs d'Eternity II n'apparaissent que le long de l'anneau de
-  bordure, chacune sur exactement 24 arêtes, jamais une seule fois à
-  l'intérieur. Une séparation structurelle qui façonne la manière dont chaque
+  bordure, chacune sur exactement 24 côtés de pièces (12 joints de l'anneau),
+  jamais une seule fois à l'intérieur. Une séparation structurelle qui façonne la manière dont chaque
   solveur traite le cadre.
-metaDescription: "Cinq des 22 couleurs d'Eternity II n'apparaissent que sur l'anneau de bordure, chacune sur 24 arêtes, jamais à l'intérieur. Cette séparation laisse l'intérieur 14x14 à dix-sept couleurs communes, sans signal rare fortement contraignant, ce qui explique pourquoi la recherche y a peu de prise."
+metaDescription: "Cinq des 22 couleurs d'Eternity II ne vivent que sur l'anneau de bordure, chacune sur 24 côtés de pièces (12 joints). Le cadre à 5 couleurs s'apparie à 1 sur 5 par joint et se complète aisément ; les 17 couleurs intérieures quasi uniformes, à 1 sur 17, n'offrent aucune prise."
 kind: finding
 contribution: measurement
 rigor: proven
 tier: 2
 order: 110
-updated: 2026-07-01
+updated: 2026-11-11
 topics: [structure]
 related:
   - /research/why/design-recipe
@@ -72,7 +72,7 @@ export function FrameInteriorChart() {
               fontSize={11}
             />
             <YAxis
-              label={{ value: "edges", angle: -90, position: "insideLeft", fontSize: 12 }}
+              label={{ value: "demi-arêtes", angle: -90, position: "insideLeft", fontSize: 12 }}
               width={40}
               fontSize={12}
             />
@@ -98,8 +98,8 @@ font presque tout leur travail à l'intérieur du plateau.
 
 ## Où les couleurs rares sont autorisées
 
-Choisissez l'une des cinq couleurs rares et observez le plateau : ses 24 arêtes
-s'allument tout autour de l'anneau du cadre, et l'intérieur 14×14 reste
+Choisissez l'une des cinq couleurs rares et observez le plateau : ses 24 demi-arêtes
+(12 joints) s'allument tout autour de l'anneau du cadre, et l'intérieur 14×14 reste
 entièrement vierge. Passez à une couleur commune et c'est l'intérieur qui se
 remplit à la place. Ce centre vide, pour chaque couleur rare, constitue tout le
 résultat.
@@ -115,15 +115,15 @@ résultat.
 <div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-center">
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.edgesPerRareColor}</div>
-    <div className="text-xs text-muted-foreground">arêtes chacune</div>
+    <div className="text-xs text-muted-foreground">demi-arêtes chacune</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums">{data.rareEdgesTotal}</div>
-    <div className="text-xs text-muted-foreground">arêtes rares, toutes sur le cadre</div>
+    <div className="text-xs text-muted-foreground">demi-arêtes rares, toutes sur le cadre</div>
   </div>
   <div className="rounded-lg border p-3">
     <div className="text-2xl font-bold tabular-nums text-emerald-600">0</div>
-    <div className="text-xs text-muted-foreground">arêtes rares à l'intérieur</div>
+    <div className="text-xs text-muted-foreground">demi-arêtes rares à l'intérieur</div>
   </div>
 </div>
 
@@ -151,13 +151,17 @@ celles de l'intérieur) sans rien changer au puzzle. (Voir la [note de conceptio
 sur le pourquoi](/research/why#conçu-pour-résister-à-lingéniosité), avec nos
 remerciements à Vasily V. sur la liste groups.io pour la correction.)
 
-Ce qui est réel, et ce qui compte pour la résolution, c'est la conséquence :
-l'intérieur 14×14 est laissé à dix-sept couleurs communes sans aucun signal
-rare, fortement contraignant, nulle part en son sein, ce qui explique en grande
-partie pourquoi la recherche à l'intérieur a si peu de prise. La bordure, où le
-réservoir de couleurs est petit et les correspondances serrées, est en
-conséquence la partie que tout plateau solide réalise pour ainsi dire
-parfaitement. Les décomptes de couleurs d'Eternity II ont été équilibrés pour
+Ce qui est réel, et ce qui compte pour la résolution, c'est la conséquence.
+La bordure utilise 5 couleurs, si bien que deux demi-arêtes de cadre prises
+au hasard s'accordent avec une probabilité de 0,2 par joint : le cadre est le
+sous-système relativement lâche, facile à compléter (environ $10^{37{,}6}$
+placements de cadre valides, voir
+[la pureté de l'anneau](/research/why/ring-purity)), et c'est pourquoi les
+plateaux solides le réussissent pour ainsi dire parfaitement. L'intérieur
+14×14 utilise 17 couleurs quasi uniformes, qui s'accordent à environ 1 chance
+sur 17 par joint et ne donnent à aucune couleur plus d'information qu'à une
+autre. C'est cette uniformité, et non l'absence de couleurs rares, qui laisse
+la recherche intérieure sans prise. Les décomptes de couleurs d'Eternity II ont été équilibrés pour
 supprimer les points d'appui statistiques qui avaient coulé Eternity I ; cette
 géographie, c'est là que l'on en ressent le résultat.
 
